@@ -1221,7 +1221,15 @@
     }
 
     global define list<map<string, any> > getPartitionsToActivate () {
-	map<string,integer> md =  Md2Partitions (BootCommon::loader_device);
+	map<string,integer> md = $[];
+	if (BootCommon::loader_device == "mbr_md")
+	{
+	    md =  Md2Partitions (BootCommon::BootPartitionDevice);
+	}
+	else
+	{
+	    md =  Md2Partitions (BootCommon::loader_device);
+	}
 	list<string> partitions = maplist (string k, integer v, md, ``(k));
 	if (size (partitions) == 0)
 	{
@@ -1237,7 +1245,15 @@
 
     global define list<string> getMbrsToRewrite () {
 	list<string> ret = [BootCommon::mbrDisk];
-	map<string,integer> md = Md2Partitions (BootCommon::loader_device);
+	map<string,integer> md = $[];
+	if (BootCommon::loader_device == "mbr_md")
+	{
+	    md =  Md2Partitions (BootCommon::BootPartitionDevice);
+	}
+	else
+	{
+	    md = Md2Partitions (BootCommon::loader_device);
+	}
 	list<string> mbrs = maplist (string d, integer b, md, {
 	    d = lookup (
 		getPartitionToActivate (BootCommon::BootPartitionDevice, d),
