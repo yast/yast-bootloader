@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Thu Sep  4 12:37:04 CEST 2003 - jsrain@suse.de
+
+- if variable with list of initrd modules in sysconfig doesn't
+  exist, set default value to empty (#30020)
+
+-------------------------------------------------------------------
+Wed Sep  3 13:34:51 CEST 2003 - jsrain@suse.de
+
+- don't write 'single' to slot A kernel command line on IBM iSeries
+  (arch. PPC) (#27984) (olh@suse.de)
+
+-------------------------------------------------------------------
 Mon Sep  1 10:04:55 CEST 2003 - jsrain@suse.de
 
 - fixed bootloader installation with numeric (major-minor) root
