@@ -359,7 +359,12 @@ Replace it with an entry  to boot from the floppy?");
 	}
 	else if (op == `add)
 	{
-            BootCommon::tmp_store["active_section"] = $[];
+            BootCommon::tmp_store["active_section"] = $[
+		"__order__" : ["root", "kernel", "initrd"],
+		"root" : "",
+		"kernel" : "",
+		"initrd" : "",
+	    ];
             BootCommon::tmp_store["active_section_name"] = "";
             BootCommon::tmp_store["section_type"] = "image";
 	    BootCommon::one_section_changed = true;
@@ -737,7 +742,8 @@ Replace it with an entry  to boot from the floppy?");
 		"root" : tmp["root"]:"",
 		"kernel" : sformat ("/vmlinuz root=%1",
 		    grubDev2unixDev (tmp["root"]:"")),
-		"__order__" : ["root", "kernel"],
+		"initrd" : "/initrd",
+		"__order__" : ["root", "kernel", "initrd"],
             ];
         }
         BootCommon::tmp_store["active_section", "title"] = label;

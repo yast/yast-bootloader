@@ -808,6 +808,10 @@
 	    i = i + 1;
 	    return e == current;
 	});
+	// separator can be the last option in the list (#25305)
+	// handle the same way as if previous was behind
+	if (i + 1 >= size (opts))
+	    p = i + 1;
 	return select(opts, p < i ? i + 1 : i - 1, "");
     }
 
