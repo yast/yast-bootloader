@@ -57,7 +57,7 @@ AC_C_CONST
 AC_C_INLINE
 
 AC_OUTPUT(Makefile
-	package/$RPMNAME.spec:$RPMNAME.spec.in
+	package/yast2-agent-prom.spec:yast2-agent-prom.spec.in
 	src/Makefile
 	doc/Makefile
 	doc/autodocs/Makefile
