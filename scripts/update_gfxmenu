@@ -14,7 +14,7 @@ MENU_ENTRIES=$5
 
 # create temporarry directory
 cd $TMP_DIR || exit 1;
-test -e fgxmenu && rm -rf gfxmenu;
+test -e gfxmenu && rm -rf gfxmenu;
 mkdir gfxmenu || exit 2;
 cd gfxmenu || exit 3;
 # unpack current message file
@@ -29,11 +29,18 @@ test -f $SCR_DIR/texts.$LOCALE && cp $SRC_DIR/texts.$LOCALE . \
 test -f $SRC_DIR/help.$LOCALE && cp I4/help.$LOCALE . \
  || test -f $SRC_DIR/help.$LOCALE_SHORT && cp $SRC_DIR/help.$LOCALE_SHORT .
 # set languages to choose
-echo -n "$LOCALE_SHORT
+if [ "$LOCALE_SHORT" = "en" ] ; then
+    echo -n "en
+" >languages || exit 6
+else
+    echo -n "$LOCALE_SHORT
 en
 " >languages || exit 6
+fi
+
 # set translations of bootloaer menu entries
-cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7
+cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7A
+rm -r gfxmenu
 ls | cpio -o >/boot/message.new && mv /boot/message.new /boot/message || exit 99
 exit 0
 
