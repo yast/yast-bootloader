@@ -26,10 +26,10 @@
         return `auto;
     }
 
-    if ((Args(2) == true)
+    if ((WFM::Args(2) == true)
 	&& workflow_lilo_expert)
     {
-	return CallFunction( `inst_lilo_expert ( true, true ) );
+	return WFM::CallFunction( `inst_lilo_expert ( true, true ) );
     }
 
     string name_of_bootloader = "Lilo";
@@ -279,7 +279,7 @@ starting Linux as well as other operating systems.
     Wizard::SetContents(_("System Boot Configuration"),
 			    contents,
 			    help_text,
-			    Args(0), Args(1));
+			    WFM::Args(0), WFM::Args(1));
 
    // assume the smallest Apple_HFS partition is the boot volume
    if(Arch::board_mac)
@@ -300,7 +300,7 @@ starting Linux as well as other operating systems.
 	ret = UI::UserInput();
 
 	if ((ret == `abort)
-	    && CallFunction(`inst_confirm_abort(`painless)))
+	    && WFM::CallFunction(`inst_confirm_abort(`painless)))
 	{
 	    return `abort;
 	}

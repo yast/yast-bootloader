@@ -22,7 +22,7 @@
  * @param first a map of x settings
  * @return boolean success of operation
  * @example map mm = $[ "FAIL_DELAY" : "77" ];
- * @example map ret = CallModule ("x_auto", [ mm ]);
+ * @example map ret = WFM::CallModule ("x_auto", [ mm ]);
  */
 
 {
@@ -34,15 +34,15 @@
 
 //    include "lilo/ui.ycp";
 
-    list args = Args ();
+    list args = WFM::Args ();
     if ( size (args) <= 0 )
     {
 	y2error ("Did not get the settings, probably some mistake...");
 	return false;
     }
-    if ( !is ( Args (0), map ) )
+    if ( !is ( WFM::Args (0), map ) )
     {
-	y2error ("Bad argument for lilo_auto: %1", Args (0));
+	y2error ("Bad argument for lilo_auto: %1", WFM::Args (0));
 	return false;
     }
 
@@ -52,7 +52,7 @@
 
     Lilo::Import ( settings );
 
-    CallFunction(`lilo());
+    WFM::CallFunction(`lilo());
 
     return Lilo::Export ();
 }

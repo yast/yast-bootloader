@@ -17,7 +17,7 @@
  * $Id$
  *
  * Main file for lilo configuration. Uses all other files.
- * 
+ *
  */
 
 {
@@ -61,9 +61,9 @@ y2debug("Lilo module started");
 
 boolean initial_mode = false;
 
-if (size(Args()) > 0)
+if (size(WFM::Args()) > 0)
 {
-    initial_mode = Args(0);
+    initial_mode = WFM::Args(0);
 }
 
 /*
@@ -97,7 +97,7 @@ string bootPart = "";
 
 
 /**
- * this variable signalizes that nothing was changed, thus we can 
+ * this variable signalizes that nothing was changed, thus we can
  * finish this module without saving and launching /sbin/lilo.
  * if set to false, changes will be written and applied.
  *
@@ -128,7 +128,7 @@ map liloconf = $[];
 any ret = LiloMainDialog(); //settings);
 y2debug("ret = %1",ret);
 
-if (ret == `ok) 
+if (ret == `ok)
 {
     if (Lilo::autoinstallation)
     {

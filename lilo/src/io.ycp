@@ -14,7 +14,7 @@
  * $Id$
  *
  * Input and output routines.
- * 
+ *
  */
 
 {
@@ -91,7 +91,7 @@ global define void restoreOriginalSettings() ``{
     {
         SCR::Execute (.target.bash, "/bin/cp /etc/lilo.conf /etc/lilo.conf.bak");
     }
-//    CallFunction (`inst_writelilo ());
+//    WFM::CallFunction (`inst_writelilo ());
     import "BootLILO";
     BootLILO::Write();
     restoredLilo = true;

@@ -207,7 +207,7 @@
      */
     global define map Write (block increase_progress, block really_abort) ``{
 	map conf = Export();
-	map res = CallFunction(`lilo_write(conf));
+	map res = WFM::CallFunction(`lilo_write(conf));
 	return res;
     }
 
@@ -222,7 +222,7 @@
 	map conf = Export();
 	conf = add(conf, "file", file);
 	conf = add(conf, "execute_lilo", false);
-        map res = CallFunction(`lilo_write(conf));
+        map res = WFM::CallFunction(`lilo_write(conf));
         return res;
     }
 
@@ -422,16 +422,16 @@
 	return val;
     }
 
-    /**     
+    /**
      * converts array of string to path
-     * @param strs list of string 
+     * @param strs list of string
      * @return path whose components are taken from strs
      */
 
 
     global define path list2path(list strs) ``{
 	path pth = .;
-	foreach(`e, strs, 
+	foreach(`e, strs,
 	``{
 	    pth = add(pth, e);
 	}

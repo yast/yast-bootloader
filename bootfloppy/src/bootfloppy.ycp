@@ -22,17 +22,17 @@
   textdomain "bootloader";
   //include "ui/wizard_dialog.ycp";
   include "wizard/sequencer.ycp";
- 
+
 
   import "MediaUI";
   import "Wizard";
   import "Mode";
-  
+
   Wizard::CreateDialog();
 
   // test mode
   boolean test_mode = false;
-  if (size (Args ()) > 0 && Args (0) == .test)
+  if (size (WFM::Args ()) > 0 && WFM::Args (0) == .test)
   {
       test_mode = true;
   }
@@ -82,10 +82,10 @@
 
       // initialize InstMedia from running system
       InstMedia::initializeInstMedia ($[]);
-      
+
       // is CD1/directory with CD1 sources inserted/available ?
       integer result = InstMedia::MountMedium ( 1 );
-	    
+
       if ( result != 0 )
       {
 	  any ret = UI::YesNoPopup(_("The source medium used in the previous installation is apparently not available.
@@ -94,7 +94,7 @@ Would you like to choose a new installation source?"));
 	  if ( ret )
 	  {
 	      // choose new installation source
-	      any result = CallFunction( `inst_source( true, true ) );
+	      any result = WFM::CallFunction( `inst_source( true, true ) );
 
 	      if( result == `abort || result == `back || result == `cancel ) return `abort;
 	  }

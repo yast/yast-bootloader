@@ -15,9 +15,9 @@
  *
  * This is a write-only client. It takes its arguments and just
  * write the settings.
- */ 
+ */
 
-/** 
+/**
  * @param first a map of lilo settings
  * example:    $[ "conf" :$["global" :		    // global options
 				$[
@@ -30,8 +30,8 @@
 					"label": "linux",
 					"image": "/boot/vmlinuz"
 				    ]
-				]   
-			    "other" :  [...]	    // list of other sections      
+				]
+			    "other" :  [...]	    // list of other sections
 		    ]
 		  "file" : "/etc/lilo.conf"	// output file
 		  "execute_lilo" : boolean	// execute or don't execute lilo after writing
@@ -122,15 +122,15 @@ global define map LiloWrite(map settings) ``{
 }
 
 
-list args = Args();
+list args = WFM::Args();
 
 if (size(args) <= 0) {
     y2error("NOT writing, probably some mistake...");
     return false;
 }
 
-if (!is(Args(0),map)) {
-    y2error("Bad argument for lilo write: %1", Args(0));
+if (!is(WFM::Args(0),map)) {
+    y2error("Bad argument for lilo write: %1", WFM::Args(0));
     return false;
 }
 

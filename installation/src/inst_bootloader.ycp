@@ -270,7 +270,7 @@ the BIOS of your machine to use this option.
     helptext = helptext + _("<p>
 - In the <b>/boot</b> partition.  Choose this option if you
 have installed several operating systems on your hard drive and want to
-continue using your old boot manager, such as <tt>loadlin</tt>. No changes 
+continue using your old boot manager, such as <tt>loadlin</tt>. No changes
 will be made to the existing MBR.<br>
 The boot manager is always installed on the <b>/boot</b> partition.
 Configure your <b>other boot manager</b> to start SuSE Linux.
@@ -292,8 +292,8 @@ when selecting this option.</p>
     if (Arch::i386)
     {
 	// optional part, only inserted on x86 architectures. 7 of 9
-	helptext = helptext + _("<p>For example, most PCs have a BIOS limit that restricts booting to 
-hard disk cylinders smaller than 1024. Depending on the boot manager used, 
+	helptext = helptext + _("<p>For example, most PCs have a BIOS limit that restricts booting to
+hard disk cylinders smaller than 1024. Depending on the boot manager used,
 you may or may not be able to boot from a logical partition.
 </p>");
     }
@@ -314,7 +314,7 @@ enter them in the corresponding input field. Most users will not need this.
     helptext = helptext + help_parameters + "<br>";
 
     Wizard::SetContents(_("Custom boot manager installation"),
-			    contents, helptext, Args(0), Args(1));
+			    contents, helptext, WFM::Args(0), WFM::Args(1));
 
     // Event handling
 
@@ -329,7 +329,7 @@ enter them in the corresponding input field. Most users will not need this.
 	    // Just for convenience: If the user selects "custom partition", he
 	    // needs to enter a value in the corresponding input field anyway,
 	    // so move the keyboard focus there right away.
-	    
+
 	    UI::SetFocus(`id(`custom_partition) );
 	    continue;
 	}
@@ -357,7 +357,7 @@ options to continue.
 		    Boot::device = Boot::mbrDisk;
 		}
 		else if (option == "floppy")
-		{		
+		{
 		    Boot::device =  StorageDevices::FloppyDevice;
 		}
 		else if (option == "boot")

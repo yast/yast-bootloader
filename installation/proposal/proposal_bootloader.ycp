@@ -15,8 +15,8 @@
     import "Language";
     import "Boot";
 
-    string func  = Args(0);
-    map    param = Args(1);
+    string func  = WFM::Args(0);
+    map    param = WFM::Args(1);
     map    ret   = $[];
 
     if ( func == "MakeProposal" )
@@ -67,7 +67,7 @@
 	// call some function that makes a proposal here:
 	//
 	// DummyMod::MakeProposal( force_reset );
-	
+
 	// Fill return map
 
 	ret = $[ "raw_proposal" : [ info_msg ] ];
@@ -81,10 +81,10 @@
 	//
 	// sequence = DummyMod::AskUser( has_next );
 
-	symbol result = CallFunction (`inst_bootloader (true, true));
+	symbol result = WFM::CallFunction (`inst_bootloader (true, true));
 
 	// Fill return map
-	
+
 	ret = $[ "workflow_sequence" : result ];
     }
     else if ( func == "Description" )
@@ -92,7 +92,7 @@
 	// Fill return map.
 	//
 	// Static values do just nicely here, no need to call a function.
-	
+
 	ret =
 	    $[
 	      "rich_text_title"	:	_("Booting"),
