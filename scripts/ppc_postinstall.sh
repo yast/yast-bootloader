@@ -13,9 +13,9 @@ while read line; do
 	esac
 done < /proc/cpuinfo
 
-if test $MACHINE = iseries ; then
+if [ "$MACHINE" = iseries ] ; then
 
-for i in `fdisk -l | grep PReP | cut -d\  -f1`
+for i in `fdisk -l | sed -e '/^\/.*PReP/s/[[:blank:]].*$//p;d'`
 do
 	j=`echo $i | sed 's/\([0-9]\)/ \1/'`
 	/sbin/activate $j
@@ -23,13 +23,14 @@ done
 
 sed '/^.*mingetty.*$/d' /etc/inittab > /etc/inittab.tmp
 diff /etc/inittab /etc/inittab.tmp &>/dev/null || mv -v /etc/inittab.tmp /etc/inittab
+rm -f /etc/inittab.tmp
 
 #echo "1:12345:respawn:/bin/login console" >> /etc/inittab
 cat >> /etc/inittab <<-EOF
 
 
 # iSeries virtual console:
-1:2345:respawn:/sbin/mingetty --noclear tty1
+1:2345:respawn:/sbin/agetty -L 38400 console
 
 # to allow only root to log in on the console, use this:
 # 1:2345:respawn:/sbin/sulogin /dev/console
@@ -39,16 +40,14 @@ cat >> /etc/inittab <<-EOF
 
 EOF
 
+echo console >> /etc/securetty
+
 if grep -q tty10 /etc/syslog.conf; then
 echo "changing syslog.conf"
 sed '/.*tty10.*/d; /.*xconsole.*/d' /etc/syslog.conf > /etc/syslog.conf.tmp
 diff /etc/syslog.conf /etc/syslog.conf.tmp &>/dev/null || mv -v /etc/syslog.conf.tmp /etc/syslog.conf
+rm -f /etc/syslog.conf.tmp
 fi
-
-sed -e '/\/dev\/ram/d' \
-    -e '\/dev\/viocd0[[:space:]]*om/d' \
-    -e 's@^.*floppy.*@/dev/viocd0     /cdrom                    auto            ro,noauto,user,exec 0   0@' \
-    < /etc/fstab > /etc/fstab.neu ; mv /etc/fstab.neu /etc/fstab
 
 ( echo "SuSE Linux on iSeries -- the spicy solution!"
   echo "Have a lot of fun..."
