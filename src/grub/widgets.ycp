@@ -111,8 +111,8 @@ Replace it with an entry  to boot from the floppy?");
       * Get map of Target widget
       * @return map of Target widget
       */
-    global define map getTargetWidget () ``{
-	map ret = BootCommon::getTargetOption ();
+    global define map<string,any> getTargetWidget () ``{
+	map<string,any> ret = BootCommon::getTargetOption ();
 	ret["popup", "store"] = BootGRUB::targetStore;
 	return ret;
     }
@@ -146,7 +146,7 @@ Replace it with an entry  to boot from the floppy?");
       * Get map of widget
       * @return map of widget
       */
-    global define map getGlobalSectionWidget () ``{
+    global define map<string,any> getGlobalSectionWidget () ``{
 	return TablePopup::CreateTableDescr (
 	    $[
 		"add_delete" : true,
@@ -383,8 +383,8 @@ Replace it with an entry  to boot from the floppy?");
       * Get map of widget
       * @return map of widget
       */
-    global define map getSectionsWidget () ``{
-	map ret = BootCommon::getSectionsWidget ();
+    global define map<string,any> getSectionsWidget () ``{
+	map<string,any> ret = BootCommon::getSectionsWidget ();
 	ret["init"] = BootGRUB::sectionsInit;
 	ret["handle"] = BootGRUB::sectionsHandle;
 	return ret;
@@ -564,7 +564,7 @@ Replace it with an entry  to boot from the floppy?");
       * Get map of widget
       * @return map of widget
       */
-    global define map getOrderPopup () ``{
+    global define map<string,any> getOrderPopup () ``{
 	return $[
 	    "table" : $[
 		"summary" : BootGRUB::orderSummary,
@@ -626,7 +626,7 @@ Replace it with an entry  to boot from the floppy?");
       * Get map of widget
       * @return map of widget
       */
-    global define map getGfxMenuWidget () ``{
+    global define map<string,any> getGfxMenuWidget () ``{
 	return $[
 	    "table" : $[
 		"delete" : BootCommon::deleteMessage,
@@ -644,7 +644,7 @@ Replace it with an entry  to boot from the floppy?");
       * Get map of widget
       * @return map of widget
       */
-    global define map getSingleSectionWidget () ``{
+    global define map<string,any> getSingleSectionWidget () ``{
 	return TablePopup::CreateTableDescr (
 	    $[
 		"add_delete" : true,
@@ -739,7 +739,7 @@ Replace it with an entry  to boot from the floppy?");
       * Get map of widget
       * @return map of widget
       */
-    global define map getAddOrigMbrWidget () ``{
+    global define map<string,any> getAddOrigMbrWidget () ``{
 	return $[
 	    "table" : $[
 		// table item / label
@@ -762,7 +762,7 @@ Replace it with an entry  to boot from the floppy?");
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetWidgetMaps () ``{
+    global define map<string,map<string,any> > GetWidgetMaps () ``{
         return $[
 	    "sections" : BootGRUB::getSectionsWidget (),
 	    "singlesection" : BootGRUB::getSingleSectionWidget (),
@@ -774,7 +774,7 @@ Replace it with an entry  to boot from the floppy?");
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetOptionMaps () ``{
+    global define map<string,map<string,any> > GetOptionMaps () ``{
         return $[
 	    "__location": BootGRUB::getTargetWidget (),
 	    "title" : BootCommon::getLabelWidget (),

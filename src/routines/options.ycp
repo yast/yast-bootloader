@@ -272,7 +272,7 @@ Continue?")))
       * Get map of Target widget
       * @return map of Target widget
       */
-    global define map getTargetOption () ``{
+    global define map<string,any> getTargetOption () ``{
 	return $[
 	    "table" : $[
 		// table cell / label
@@ -321,7 +321,7 @@ Continue?")))
       * Get map of widget
       * @return map of widget
       */
-    global define map getLoaderSelectionWidget () ``{
+    global define map<string,any> getLoaderSelectionWidget () ``{
         list loaders = maplist (string l,
 	    BootCommon::getBootloaders (), ``{
             return `item (`id (l), BootCommon::getLoaderName (l));
@@ -389,7 +389,7 @@ Continue?")))
       * Get map of widget
       * @return map of widget
       */
-    global define map getBackupMbrWidget () ``{
+    global define map<string,any> getBackupMbrWidget () ``{
 	return $[
 	    "table" : $[
 		// table item / label
@@ -472,7 +472,7 @@ and the sector to which the boot loader is installed."),
       * Get widget map
       * @return map of widget
       */
-    global define map getActivateWidget () ``{
+    global define map<string,any> getActivateWidget () ``{
 	return $[
 	    "table" : $[
 		// table item
@@ -544,7 +544,7 @@ and the sector to which the boot loader is installed."),
       * Get map of widget
       * @return map of widget
       */
-    global define map getReplMbrWidget () ``{
+    global define map<string,any> getReplMbrWidget () ``{
 	return $[
 	    "table" : $[
 		// table item / label
@@ -603,7 +603,7 @@ and the sector to which the boot loader is installed."),
       * Get map of widget
       * @return map of widget
       */
-    global define map getSaveMethod () ``{
+    global define map<string,any> getSaveMethod () ``{
 	return $[
 	    "table" : $[
 		// table item / label
@@ -679,7 +679,7 @@ and the sector to which the boot loader is installed."),
       * Get map of widget
       * @return map of widget
       */
-    global define map getSectionsTableEntry () ``{
+    global define map<string,any> getSectionsTableEntry () ``{
 	return $[
 	    "table" : $[
 		// table item / label
@@ -731,7 +731,7 @@ and the sector to which the boot loader is installed."),
       * Get map of widget
       * @return map of widget
       */
-    global define map getLabelWidget () ``{
+    global define map<string,any> getLabelWidget () ``{
 	return $[
 	    "table" : $[
 		// table item / label
@@ -754,8 +754,8 @@ and the sector to which the boot loader is installed."),
       * Get map of widget
       * @return map of widget
       */
-    global define map getAliasWidget () ``{
-	map ret = getLabelWidget ();
+    global define map<string,any> getAliasWidget () ``{
+	map<string,any> ret = getLabelWidget ();
 	ret["table", "optional"] = true;
 	ret["table", "ordering"] = true;
         return ret;
@@ -812,7 +812,7 @@ and the sector to which the boot loader is installed."),
       * Get map of widget
       * @return map of widget
       */
-    global define map getSectionTypeWidget () ``{
+    global define map<string,any> getSectionTypeWidget () ``{
         return $[
 	    "table" : $[
 		// table item / label
@@ -881,7 +881,7 @@ and the sector to which the boot loader is installed."),
       * Get map of widget
       * @return map of widget
       */
-    global define map getTimeoutWidget () ``{
+    global define map<string,any> getTimeoutWidget () ``{
 	return $[
 	    "table" : $[
 		"summary" : BootCommon::timeoutSummary,
@@ -1014,7 +1014,7 @@ and the sector to which the boot loader is installed."),
       * Get map of widget
       * @return map of widget
       */
-    global define map getPasswdWidget () ``{
+    global define map<string,any> getPasswdWidget () ``{
 	return $[
 	    "table" : $[
 		"summary" : BootCommon::getPasswdSummary,
@@ -1059,7 +1059,7 @@ and the sector to which the boot loader is installed."),
       * Get map of widget
       * @return map of widget
       */
-    global define map getMessageWidget () ``{
+    global define map<string,any> getMessageWidget () ``{
 	return $[
 	    "table" : $[
 //		"delete" : BootCommon::deleteMessage,
@@ -1091,8 +1091,8 @@ and the sector to which the boot loader is installed."),
       * Get map of all available Table/Popup options
       * @return map of options
       */
-    global define map<string,any> GetOptionMaps () ``{
-	return (map<string,any>)union (generateOptionMaps (), $[
+    global define map<string,map<string,any> > GetOptionMaps () ``{
+	return (map<string,map<string, any> >)union (generateOptionMaps (), $[
 	    "__location"	: BootCommon::getTargetOption (),
 	    "__loader_type"	: BootCommon::getLoaderSelectionWidget (),
 	    "__sections"	: BootCommon::getSectionsTableEntry (),

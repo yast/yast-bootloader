@@ -24,7 +24,7 @@
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetWidgetMaps () ``{
+    global define map<string,map<string,any> > GetWidgetMaps () ``{
         return $[
         ];
     }
@@ -32,7 +32,7 @@
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetOptionMaps () ``{
+    global define map<string,map<string,any> > GetOptionMaps () ``{
         return $[
         ];
     }

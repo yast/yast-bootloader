@@ -73,8 +73,8 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getGlobalSectionWidget () ``{
-	map ret = BootCommon::getGlobalSectionWidget ();
+    global define map<string,any> getGlobalSectionWidget () ``{
+	map<string,any> ret = BootCommon::getGlobalSectionWidget ();
 	ret["ids"] = getTableContents;
 	return ret;
     }
@@ -83,7 +83,7 @@
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetWidgetMaps () ``{
+    global define map<string,map<string,any> > GetWidgetMaps () ``{
 	return $[
 	    "globalsection" : getGlobalSectionWidget (),
 	];
@@ -401,10 +401,10 @@
 	    "scratch" : true,
 	];
 	// TODO no UI available yet
-	BootCommon::cwm_options = (map<string, any>) union (
+	BootCommon::cwm_options = (map<string, map<string,any> >)union (
 	    BootCommon::GetOptionMaps (),
 	    $[]);//BootS390::GetOptionMaps ());
-	BootCommon::cwm_widgets = union (
+	BootCommon::cwm_widgets = (map<string, map<string,any> >)union (
 	    BootCommon::GetWidgetMaps (),
 	    BootS390::GetWidgetMaps ());
     }
