@@ -191,58 +191,8 @@
 	SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
 	SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
 
-	BootCommon::sections = filter (`s, BootCommon::sections, ``{
-	    string label = lookup_value (s, "label", "");
-	    map intern = lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:"";
-            if (label == "")
-	    {
-		y2warning ("Removing section with empty title");
-                return false;
-	    }
-	    if (! contains (["linux", "failsafe", "memtest86"], type))
-		return true;
-
-	    string kernel = lookup_value (s, "image", "");
-	    if (kernel == "")
-		return true;
-	    if (SCR::Read (.target.size, kernel) == -1)
-	    {
-		y2warning ("Removing section %1 with unexistent kernel %2",
-		    label, kernel);
-		return false;
-	    }
-	    return true;
-	});
-        BootCommon::sections = maplist (`s, BootCommon::sections, ``{
-            string initrd = lookup_value (s, "initrd", "");
-	    string title = lookup_value (s, "label", "");
-	    map intern = lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:"";
-            if (initrd != "")
-            {
-                if (-1 == SCR::Read (.target.size, initrd))
-		    s = modifySection (s, "initrd", nil);
-            }
-            else if ((type == "linux" || type == "failsafe")
-		&& BootCommon::write_settings["insert_initrd"]:false)
-            {
-		initrd = "/boot/initrd";
-/* Not using .shipped images any more
-                if (type == "linux")
-                    initrd = "/boot/initrd";
-                else
-                    initrd = "/boot/initrd.shipped";*/
-		s = modifySection (s, "initrd", initrd);
-            }
-            if (type == "linux" && lookup_value (s, "append", nil) != nil
-		&& Mode::initial)
-	    {
-		s = modifySection (s, "append", BootCommon::updateKernelParams (
-		    lookup_value (s, "append", "")));
-	    }
-            return s;
-	});
+	BootCommon::liloRemoveUnexistentSections ();
+	BootCommon::liloUpdateIninrdAppend ();
 	string message = lookup_value (BootCommon::globals, "message", "");
         if (message != "")
         {
@@ -286,26 +236,10 @@
 		BootCommon::BootPartitionDevice));
 	}
 
-	map exit = SCR::Execute (.target.bash_output,
-	    "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1");
-	ret = 0 == exit["exit"]:1;
-	if (! ret)
-	{
-	    string log = SCR::Read (.target.string,
-		    "/var/log/YaST2/y2loglilo");
-	    log = log + exit["stdout"]:"" + exit["stderr"]:"";
-	    if (exit["exit"]:1 == 139)
-	    {
-		// means: process received signal SIGSEGV
-		// please, use some usual translation
-		// proofreaders: don't change this text
-		log = log + _("Segmentation fault");
-	    }
-
-	    // error popup - label
-            errorWithLogPopup (_("Error occurred while installing LILO"), log);
-	}
-        else if (BootCommon::installingToFloppy ())
+	string bl_command = "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1";
+	string bl_logfile = "/var/log/YaST2/y2loglilo";
+	if (BootCommon::installBootLoader (bl_command, bl_logfile)
+            && BootCommon::installingToFloppy ())
         {
             BootCommon::updateTimeoutPopupForFloppy
 		(BootCommon::getLoaderName ("lilo"));
@@ -560,111 +494,7 @@
       *   relevant disk locations have changed
       */
     global define void fixSections (boolean disks_changed) ``{
-	list parts = BootCommon::getPartitionList(`parts_old);
-	if (BootCommon::partitioning_last_change
-		!= Storage::GetTargetChangeTime()
-	    && BootCommon::files_edited)
-	{
-	    displayFilesEditedPopup ();
-	    BootCommon::files_edited = false;
-	    return;
-	}
-	list old_sect_list = BootCommon::sections;
-	createSections ();
-	map new_sect = listmap (`s, BootCommon::sections, ``{
-	    string label = lookup_value (s, "label", "");
-	    map intern = lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:label;
-	    return [type, s];
-	});
-	old_sect_list = maplist (`s, old_sect_list, ``{
-	    string label = lookup_value (s, "label", "");
-	    map intern = lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:label;
-	    if (! intern["auto"]:false)
-	    {
-		y2milestone ("Leaving section %1", label);
-		return s;
-	    }
-	    else if (! intern["changed"]:false)
-	    {
-		y2milestone ("Recreating section %1, new is %2",
-		    label, new_sect[type]:[]);
-		return new_sect[type]:[];
-	    }
-	    else
-	    {
-		y2milestone ("Warning on section %1", label);
-		boolean cont = true;
-                if (type != "linux" && type != "failsafe"
-                    && type != "memtest86")
-		{
-		    foreach (`n, intern["devs"]:[], ``{
-		        if (! contains (parts, n))
-		        {
-			    cont = false;
-		        }
-		    });
-		}
-                list new_this_section = new_sect[type]:[];
-                map new_this_intern = lookup_value (
-                    new_this_section, "__intern__", $[]);
-		list new_devs = toset(new_this_intern["devs"]:[]);
-		list old_devs = toset(intern["devs"]:[]);
-                if (size (new_devs) != size (old_devs))
-                    cont = false;
-                else
-                {
-                    foreach (`d, old_devs, ``{
-                        if (! contains (new_devs, d))
-                            cont = false;
-                    });
-                }
-		if (! cont)
-		{
-		    intern["auto"] = false;
-		    displayDiskChangePopup (label);
-		}
-		s = maplist( `i, s, ``{
-		    if (i["key"]:"" == "__intern__")
-			i["value"] = intern;
-		     return i;
-		});
-		return s;
-	    }
-	});
-
-	y2milestone ("Checking for sections needing some of %1", del_parts);
-	list(string) to_remove = [];
-	foreach (`s, BootCommon::sections, ``{
-	    map intern = lookup_value (s, "__intern__", $[]);
-	    list(string) devs = intern["devs"]:[];
-	    string label = lookup_value (s, "label", "");
-	    y2milestone ("Section %1 needs %2", label, devs);
-	    boolean to_add = false;
-	    foreach (string d, devs, ``{
-		if (contains (del_parts, d))
-		{
-		    to_add = true;
-		}
-	    });
-	    if (to_add)
-	    {
-		map old_sect = listmap (`s, old_sect_list, ``{
-		    return [label, s];
-		});
-
-		if (label != "" && ! haskey(old_sect, label))
-		{
-		    y2milestone ("Adding %1", s);
-		    to_remove = add (to_remove, d);
-		    old_sect_list = add (old_sect_list, s);
-		}
-	    }
-	});
-	del_parts = BootCommon::difflist (del_parts, to_remove);
-	old_sect_list = filter (`s, old_sect_list, ``(s != []));
-	BootCommon::sections = old_sect_list;
+	BootCommon::liloFixSections ();
     }
 
     /**
@@ -674,24 +504,7 @@
       *   relevant disk locations have changed
       */
     global define void fixGlobals (boolean disks_changed) ``{
-	string default = lookup_value (BootCommon::globals, "default", "");
-	string first = "";
-	if (default != "")
-	{
-	    boolean exists = false;
-	    foreach (`s, BootCommon::sections, ``{
-		string label = lookup_value (s, "label", "");
-
-
-		if (label == default)
-		    exists = true;
-		if (first == "")
-		    first = label;
-	    });
-	    if (! exists)
-		BootCommon::addValueToBootloaderSection (
-		    `globals, "default", first);
-	}
+	BootCommon::liloFixGlobals ();
     }
 
     /**

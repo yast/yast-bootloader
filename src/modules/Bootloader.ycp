@@ -107,8 +107,10 @@
     global define boolean Read () ``{
 	y2milestone ("Reading configuration");
 //	Initrd::Read ();
-	BootCommon::location
-	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
+
+// better determine from lilo.conf and assign according to it
+//	BootCommon::location
+//	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
 	boolean ret = blRead ();
 	BootCommon::updateLoaderLocation ();
 	if (BootCommon::location == "none")

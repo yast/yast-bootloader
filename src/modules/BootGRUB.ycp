@@ -325,22 +325,18 @@
 		    kernel));
 	    }
 	    string initrd = lookup_value (s, "initrd", "");
+
+	    if ((type == "linux" || type == "failsafe")
+		&& BootCommon::write_settings["insert_initrd"]:false)
+	    {
+		initrd = file2grub ("/boot/initrd");
+		s = modifySection (s, "initrd", initrd);
+	    }
 	    if (initrd != "")
 	    {
 		initrd = grub2file (initrd);
 		if (-1 == SCR::Read (.target.size, initrd))
 		    s = modifySection (s, "initrd", nil);
-	    }
-	    else if ((type == "linux" || type == "failsafe")
-		&& BootCommon::write_settings["insert_initrd"]:false)
-	    {
-		initrd = file2grub ("/boot/initrd");
-/* not using .shipped images any more
-		if (type == "linux")
-		    initrd = file2grub ("/boot/initrd");
-		else
-		    initrd = file2grub ("/boot/initrd.shipped");*/
-		s = modifySection (s, "initrd", initrd);
 	    }
 	    return s;
 	});
