@@ -253,7 +253,6 @@
             ));
 	    BootCommon::globals = grubGlob2liloGlob (BootCommon::globals);
 	}
-	BootCommon::saveCfgFileToAgent ();
 	return true;
     }
 

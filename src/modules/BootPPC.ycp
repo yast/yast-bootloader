@@ -369,8 +369,10 @@ global boolean currentBoardUpdate () {
       * @return map filename -> contents
       */
     global define map<string,string> GetFiles() ``{
+	return $[]; // FIXME remove
 	currentBoardSave ();
-        BootCommon::saveCfgFileToAgent ();
+// TODO rewrite using the bootloader library
+//        BootCommon::saveCfgFileToAgent ();
         return $[
             "/etc/lilo.conf" : (string)SCR::Read (.lilo.tostring),
         ];
@@ -381,10 +383,12 @@ global boolean currentBoardUpdate () {
       * @param files map filename -> contents
       */
     global define void SetFiles (map<string,string> files) ``{
+	return; // FIXME remove
 	if (SCR::Read (.lilo.tostring) != files["/etc/lilo.conf"]:"")
 	    BootCommon::files_edited = true;
         SCR::Write (.lilo.fromstring, files["/etc/lilo.conf"]:"");
-        BootCommon::loadCfgFileFromAgent ();
+// TODO rewrite using the bootloader library
+//        BootCommon::loadCfgFileFromAgent ();
 	currentBoardRead ();
     }
 

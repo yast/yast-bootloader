@@ -275,19 +275,21 @@
 		    foreach (string f, filenames, ``{
 			y2debug ("Checking file %1", f);
 			string fc = (string)SCR::Read (.target.string, f);
-			SCR::Write (.grub.fromstring, fc);
-			list<string> sects = (list<string>)
-			    SCR::Dir (.grub.sections);
+			map<string,string> files = $[
+			    "/boot/grub/menu.lst" : fc,
+			];
+			map settings = (map)
+			    SCR::Read (.bootloader.fromstrings, files);
+			list<map> sects = settings["sections"]:[];
 			y2debug ("Found sections %1", sects);
 			count = count + size (sects);
-			foreach (string s, sects, ``{
-			    list<map> opts_tmp = BootCommon::sectOptions2Map (
-				"grub", "sections", s);
+			foreach (map s, sects, ``{
 			    map intern = $[
 				"changed" : false,
 				"auto" : true,
 				"converted" : true,
 			    ];
+			    list<map> opts_tmp = s["__lines"]:[];
 			    opts_tmp = maplist (map o, opts_tmp, ``{
 				if (o["key"]:"" == "title")
 				{
@@ -1042,7 +1044,6 @@
 
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
 	y2milestone ("Proposed globals: %1", BootCommon::globals);
-	BootCommon::saveCfgFileToAgent ();
     }
 
     /**
@@ -1257,20 +1258,8 @@
 	    }
 
 	    // remove the log
-	    SCR::Execute (.target.bash, "test -f /var/log/YaST2/y2loggrub && /bin/rm /var/log/YaST2/y2loggrub");
 	    boolean grub_ret = (boolean)SCR::Execute (.bootloader.initialize);
 	    y2milestone ("GRUB return value: %1", grub_ret);
-/*	    map exit = (map)SCR::Execute (.target.bash_output,
-"cat /etc/grub.conf \
-| /usr/sbin/grub --batch --device-map=/boot/grub/device.map >> \
-/var/log/YaST2/y2loggrub 2>&1"
-	    );
-	    boolean grub_ret = 0 == exit["exit"]:1;
-	    if (grub_ret)
-	    {
-		grub_ret = 0 != SCR::Execute (.target.bash,
-		    "/usr/bin/grep \"Error [0-9]*: \" /var/log/YaST2/y2loggrub");
-	    }*/
 	    if (! grub_ret)
 	    {
 //		y2error ("Exit code of grub installation: %1", exit["exit"]:-1);

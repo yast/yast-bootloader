@@ -72,7 +72,9 @@
       * @return map filename -> contents
       */
     global define map<string,string> GetFiles() ``{
-        BootCommon::saveCfgFileToAgent ();
+	return $[]; // FIXME remove
+// TODO rewrite using the library
+//        BootCommon::saveCfgFileToAgent ();
         return $[
             elilo_conf_filename : (string)SCR::Read (.elilo.tostring),
         ];
@@ -83,13 +85,15 @@
       * @param files map filename -> contents
       */
     global define void SetFiles (map<string,string> files) ``{
+	return; // FIXME remove
         if (SCR::Read (.elilo.tostring)
 	    != files[elilo_conf_filename]:"")
 	{
             BootCommon::files_edited = true;
 	}
         SCR::Write (.elilo.fromstring, files[elilo_conf_filename]:"");
-        BootCommon::loadCfgFileFromAgent ();
+// TODO rewrite using the library
+//        BootCommon::loadCfgFileFromAgent ();
     }
 
     /**
@@ -314,7 +318,6 @@
 	y2milestone ("EFI entry name: %1", BootCommon::location);
         y2milestone ("Proposed sections: %1", BootCommon::sections);
         y2milestone ("Proposed globals: %1", BootCommon::globals);
-	BootCommon::saveCfgFileToAgent ();
     }
 
     /**
