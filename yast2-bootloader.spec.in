@@ -63,6 +63,7 @@ Summary:	Bootloader installation and configuration
 @scrconfdir@/elilo.scr
 @scrconfdir@/silo.scr
 @scrconfdir@/grub.scr
+@scrconfdir@/zipl.scr
 @scrconfdir@/cfg_bootloader.scr
 
 # lilo agent - devel
