@@ -25,7 +25,7 @@
       * @return string help text
       */
     global define string getDiskOrderHelp () ``{
-	// help label
+	// help displayed as label, no HTML tags!!!
 	return _("Reorder the disks to the same order as the BIOS sees them.
 Do not change this if you do not know what you are doing.
 ");

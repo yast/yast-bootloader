@@ -216,7 +216,7 @@
     global define map getPasswdWidget () ``{
 	return $[
 		// frame
-	    "widget" : `Frame (_("Security settings"), `VBox (
+	    "widget" : `VBox (
                 `Left (`CheckBox (`id (`usepas), `opt (`notify),
 			// checkbox
                     _("&Enable Boot Loader Password Protection"))),
@@ -228,7 +228,7 @@
                     `HWeight (1, `Password (`id (`pw2), _("Re&type Password")))
                 ),
                 `VSpacing (0.4)
-            )),
+            ),
 	    "restore" : ``(BootCommon::restorePasswdWidget ()),
 	    "handle" : ``(BootCommon::handlePasswdWidget ()),
 	    "validate" : ``(BootCommon::validatePasswdWidget ()),
