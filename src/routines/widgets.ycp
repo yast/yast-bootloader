@@ -90,15 +90,19 @@
                 sformat(_("Boot &Sector of Boot Partition %1"),
                      BootPartitionDevice),
                 (location == "boot")
-            )),
-            `VSpacing (0.4),
-            `Left (`RadioButton (`id ("root"), `opt (`notify),
+            ))
+	);
+	if (BootPartitionDevice != RootPartitionDevice)
+	{
+	    targetlist = add (targetlist, `VSpacing (0.4));
+	    targetlist = add (targetlist, `Left (
+		`RadioButton (`id ("root"), `opt (`notify),
 		// radiobutton, %1 is device (eg. /dev/hda1)
                 sformat(_("Boot Sector of Roo&t Partition %1"),
                     RootPartitionDevice),
                 (location == "root")
-            ))
-        );
+            )));
+        };
 
         if (StorageDevices::FloppyPresent)
         {
@@ -152,6 +156,11 @@
       * Restore settings of Target widget
       */
     global define void targetRead () ``{
+	if (BootPartitionDevice == RootPartitionDevice
+	    && loader_device == "root")
+	{
+	    loader_device = "root";
+	}
 	UI::ChangeWidget (`id (`loc), `Value, loader_device);
 	UI::ChangeWidget (`id (`location), `CurrentButton, location);
 	UI::SetFocus (`id (`loc));
