@@ -4,6 +4,7 @@ Fri Feb 25 09:05:14 CET 2005 - jsrain@suse.cz
 - added missed translation mark (#8402)
 - fixed testsuites
 - enabled the bootfloppy icon also on AMD64
+- disabled rescue floppy creation on other archs than i386
 - 2.11.15
 
 -------------------------------------------------------------------
