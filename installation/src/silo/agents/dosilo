@@ -25,8 +25,10 @@
 # (c) 2000-2001 SuSE GmbH
 # (c) 2002 SuSE Linux AG
 
+LOGFILE=/var/log/YaST2/dosilo.log
+
 function log {
-  echo "$@" >>/var/log/YaST2/dosilo.log 2>/dev/null
+  echo "$@" >>$LOGFILE 2>/dev/null
 }
 
 get_device () {
@@ -47,14 +49,14 @@ get_device () {
   fi
 }
 
-echo -n >/var/log/dosilo.log
+echo -n > $LOGFILE
 
 log "arguments: $*"
-printenv >> /var/log/dosilo.log
+printenv >> $LOGFILE
 log "cat /proc/mounts"
-cat /proc/mounts >> /var/log/dosilo.log 2>&1
+cat /proc/mounts >> $LOGFILE 2>&1
 log "call mount"
-mount >> /var/log/dosilo.log 2>&1
+mount >> $LOGFILE 2>&1
 
 root_dir=$1
 [ "$root_dir" ] || root_dir=/
@@ -102,7 +104,7 @@ PATH=/usr/lib/YaST2/bin:$root_dir/usr/lib/YaST2/bin:$root_dir/sbin:$PATH
 cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.shipped || exit 31
 
 # make an initial ram disk
-$root_dir/sbin/mk_initrd $root_dir >>/var/log/dosilo.log 2>/dev/null
+$root_dir/sbin/mk_initrd $root_dir >> $LOGFILE 2>&1
 ret_code=$?
 # ret_code 0 means success, 9 means: a module is missing, but we ignore it
 if [ $ret_code -ne 0 -a $ret_code -ne 9 ] ; then
@@ -180,4 +182,4 @@ for kernel in '' .shipped _24 _24.shipped ; do
 done
 
 log "run silo -r $root_dir -t -f -C /boot/silo.conf"
-silo -r $root_dir -t -f -C /boot/silo.conf
+silo -r $root_dir -t -f -C /boot/silo.conf >> $LOGFILE 2>&1
