@@ -21,6 +21,10 @@
 
 textdomain "bootloader";
 
+import "Lilo";
+include "lilo/routines.ycp";
+include "lilo/io.ycp";
+
 /**
   * get kernel parameters from menu.lst
   * @param string section title
@@ -50,6 +54,135 @@ global define boolean setGrubKernelParam (string section, string key, string val
     boolean ret = SCR::Write (p, command);
     ret = ret && SCR::Write (.grub, nil);
     return ret;
+}
+
+/**
+  * get kernel parameters from bootloader configuration file
+  * @param string section title, use DEFAULT for default section
+  * @param string key
+  * @return string value, "false" if not present, "true" if present key without value
+  */
+global define string getKernelParam (string section, string key) ``{
+    if (section == "DEFAULT")
+	section = getDefaultSection ();
+    if (section == nil)
+	return "";
+    string bl = boot();
+    string line = "";
+    path p = .;
+    if (Lilo::mode != `grub)
+    {
+	if (key == "vga" || key == "root")
+	{
+	    p = list2path ([bl, "sections", section, key]);
+	    return SCR::Read (p);
+	}
+	else
+	{
+	    p = list2path ([bl, "sections", section, "append"]);
+	}
+    }
+    else
+    {
+	p = list2path ([bl, "sections", section, "kernel"]);
+    }
+    line = SCR::Read (p);
+    return getGrubKernelParamFromLine (line, key);
+}
+
+/** set kernel parameter to menu.lst
+  * @param string section title, use DEFAULT for default section
+  * @param string parameter key
+  * @param string value, "false" to remove key, "true" to add key without value
+  * @return boolean true on success
+  */
+global define boolean setKernelParam (string section, string key, string value) ``{
+    if (section == "DEFAULT")
+	section = getDefaultSection ();
+    if (section == nil)
+	return false;
+    string bl = boot();
+    path p = .;
+    if ((key == "vga" || key == "root") && (value == "false" || value == "true"))
+	return false;
+    if (Lilo::mode != `grub)
+    {
+	if (key == "vga" || key == "root")
+	{
+	    p = list2path ([bl, "sections", section, key]);
+	    return SCR::Write (p, value) && SCR::Write (list2path([bl]), nil);
+	}
+	else
+	{
+	    p = list2path ([bl, "sections", section, "append"]);
+	}
+    }
+    else
+    {
+	p = list2path ([bl, "sections", section, "kernel"]);
+    }
+    string line = SCR::Read (p);
+    line = setGrubKernelParamToLine (line, key, value);
+    boolean ret = SCR::Write (p, line);
+    ret = ret && SCR::Write (list2path ([bl]), nil);
+    return ret;
+}
+/**
+  * save bootloader configuration
+  * @param boolean force rebuilding initial ramdisk, if false never gets rebuilt
+  * @return boolean true on success
+  */
+global define boolean saveBootloaderConfig (boolean rebuildInitrd) ``{
+    string bl = boot();
+    boolean ret = SCR::Write (list2path ([bl]), nil);
+    if (! ret)
+	return false;
+
+    integer r = 0;
+    if (rebuildInitrd)
+    {
+	if (Lilo::mode == `grub)
+	    r = SCR::Execute(.target.bash, "/sbin/mk_initrd");
+	else if (Lilo::mode == `elilo)
+	    r = DoELilo();
+	else
+	    r = DoLilo();
+    }
+    else
+    {
+	if (Lilo::mode == `grub)
+	    r = 0;
+	else  if (Lilo::mode == `elilo)
+	    r = 0;
+	else
+	    r = SCR::Execute(.target.bash, boot(), $[]);
+    }
+    ret = ret && (r == 0);
+    return ret;
+}
+/**
+  * return default section label
+  * @return string default section label
+  */
+global define string getDefaultSection () ``{
+    string bl = boot();
+    list all = [];
+    string def = SCR::Read (list2path ([bl, "default"]));
+    if (Lilo::mode != `grub)
+    {
+	if (def == nil)
+	    def = "0";
+	else
+	    return def;
+    }
+    else
+    {
+	if (def == nil)
+	    def = "0";
+    }
+    list sections = SCR::Dir (list2path ([bl, "sections"]));
+    integer i = tointeger (def);
+    return select (sections, i, nil);
 }
 
 }

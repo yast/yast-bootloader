@@ -87,20 +87,14 @@ global define integer DoLilo() ``{
 }
 
 global define integer DoGrub() ``{
-    y2error ("Now starting DoGrub ()");
     integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
-    y2error ("InitRD done");
     saveGrubConf (Lilo::grub_set);
-    y2error ("Starting GRUB");
     ret = SCR::Execute(.target.bash, "grub < /etc/grub.conf");
-    y2error ("GRUB execution done");
     return ret;
 }
 
 global define integer DoELilo() ``{
-    y2error ("Now starting DoELilo ()");
     integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
-    y2error ("DoElilo execution done");
     return ret;
 }
 
