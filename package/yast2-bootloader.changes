@@ -4,6 +4,7 @@ Mon Sep 15 09:03:25 CEST 2003 - jsrain@suse.de
 - fixed popup reporting error when creating initrd (#30714)
 - fixed detection if root kernel parameter is specified via major
   and minor number (#30842)
+- adding only one "splash=silent" to kernel command line (#30860)
 
 -------------------------------------------------------------------
 Sun Sep 14 21:02:56 CEST 2003 - adrian@suse.de
