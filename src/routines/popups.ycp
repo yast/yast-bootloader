@@ -29,7 +29,15 @@
     import "Console";
     import "BootCommon";
 
-
+    /**
+      * Display question
+      * @return boolean true if answered yes
+      */
+    global define boolean askClone (string name) ``{
+	// yes-no popup
+	return Popup::YesNo (sformat (_("Clone the selected section '%1' instead
+of creating an empty new section?"), name));
+    }
     /**
       * Display question
       * @return boolean true if answered yes

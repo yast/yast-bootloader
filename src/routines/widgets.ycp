@@ -477,8 +477,22 @@
 	}
 	else if (op == `add)
 	{
-	    BootCommon::current_section = BootCommon::convertSection
-		(nil, "image", nil);
+	    list selected = sects[index]:[];
+	    string name = lookup_value (selected,
+		BootCommon::getSectionTitle (), "");
+	    if (askClone (name))
+	    {
+		selected = modifySection (
+		    eval (selected),
+		    BootCommon::getSectionTitle (),
+		    BootCommon::getFreeSectionLabel ());
+		BootCommon::current_section = selected;
+	    }
+	    else
+	    {
+		BootCommon::current_section = BootCommon::convertSection
+		    (nil, "image", nil);
+	    }
 	    BootCommon::current_section_name = "";
 	    BootCommon::one_section_changed = true;
 	}
