@@ -290,9 +290,6 @@ Do you want to try again?")) )
 	// additional message that needs to be displayed
 	string confirm_boot_msg = Misc::boot_msg;
 
-	integer doresult = 0;
-	string docmd = "/usr/lib/YaST2/bin/dolilo /";
-
 	string prefix = "";
 
 	if (Boot::BootPartitionDevice == Boot::RootPartitionDevice)

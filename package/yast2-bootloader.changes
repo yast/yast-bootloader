@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Sep  3 10:28:02 CEST 2002 - jsrain@suse.cz
+
+- if partitioning changes, resets bootloader location to MBR, only
+  meaningful partitions possible as bootloader bootsector locations
+  (Bug #18744)
+- 2.6.35
+
+-------------------------------------------------------------------
 Mon Sep  2 17:33:54 CEST 2002 - jsrain@suse.cz
 
 - added reset function (for calling after partitioning changes

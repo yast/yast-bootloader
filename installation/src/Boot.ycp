@@ -99,6 +99,11 @@
      */
     global boolean mixed = false;
 
+    /**
+     * time of last change of partitioning
+     */
+    integer last_change = 0;
+
     //---------------------------------------------------------------
 
     // map of module arguments
@@ -208,6 +213,13 @@
 
     global define void Set()
     ``{
+	if (last_change != Storage::GetTargetChangeTime())
+	{
+	    last_change = Storage::GetTargetChangeTime();
+	    device = "";
+	    location = "";
+	}
+
 	y2debug ("UseLilo: %1", Storage::UseLilo());
 	// get map of lists
 	// $[ "/mount_point" : [partitionName, fsid, targetdevice, raid_type], ...]

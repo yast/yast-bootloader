@@ -101,15 +101,25 @@
     // convert ["/dev/hda1", "/dev/hda2", ... ]
     // to [ `item(`id("/dev/hda1"), "/dev/hda1"), `item(`id("/dev/hda2"), "/dev/hda2"), ...]
 
-    list all_partitions = Storage::GetPartitionList();
+    list all_partitions = [];//Storage::GetPartitionList();
 
     // add device names to partition list
-    foreach (`device, `dummy, Storage::GetTargetMap(),
-    ``{
-	if (!contains (all_partitions, device))
-	{
-	    all_partitions = add (all_partitions, device);
-	}
+    map devices = Storage::GetTargetMap();
+    devices = filter (`k, `v, devices, ``(! lookup (v, "is_lvm_vg", false)));
+
+    foreach (`d, `cont, devices, ``{
+	all_partitions = add (all_partitions, d);
+	list parts = lookup (cont, "partitions", []);
+	parts = filter (`p, parts, ``(is (p, map)));
+	parts = filter (`p, parts, ``(lookup (p, "lvm_group", "") == "" && lookup (p, "raid_name", "") == "" && ! lookup (p, "delete", false)));
+	parts = filter (`p, parts, ``(lookup (p, "type", `primary) == `primary || lookup (p, "type", `primary) == `extended));
+	parts = filter (`p, parts, ``(lookup (p, "fstype", "") != "Linux swap"));
+
+	foreach (`p, parts, ``{
+	    string dev = lookup (p, "device", "");
+	    if (dev != "")
+		all_partitions = add (all_partitions, dev);
+	});
     });
 
     list combo_partitions = [];
