@@ -1,0 +1,128 @@
+/**
+ * File:
+ *      include/bootloader/routines/switcher.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions for choosing proper bootloader-specific functions
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    import "BootGRUB";
+    import "BootLILO";
+/*    import "BootSILO";
+    import "BootMILO";
+    import "BootABOOT";
+    import "BootELILO";
+    import "BootMIPS";
+    import "BootS390";
+    import "BootPPC";
+*/
+    global define map getFunctions (string bootloader) ``{
+	map bl_functions = $[
+	    "lilo"  : ``(BootLILO::GetFunctions ()),
+	    "grub"  : ``(BootGRUB::GetFunctions ()),
+	    "silo"  : ``(BootSILO::GetFunctions ()),
+	    "milo"  : ``(BootMILO::GetFunctions ()),
+	    "aboot" : ``(BootABOOT::GetFunctions ()),
+	    "elilo" : ``(BootELILO::GetFunctions ()),
+	    "mips"  : ``(BootMIPS::GetFunctions ()),
+	    "s390"  : ``(BootS390::GetFunctions ()),
+	    "ppc"   : ``(BootPPC::GetFunctions ())
+	];
+	term gf = bl_functions[bootloader]:$[];
+	return eval(gf);
+    }
+
+    global define map blExport () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        term toEval = functions["export"]:``(BootCommon::Export ());
+        return eval (toEval);
+    }
+
+    global define void blImport (map settings) ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        term toEval = functions["import"]:``(BootCommon::Import ());
+	toEval = add (toEval, settings);
+        eval (toEval);
+    }
+
+    global define boolean blRead () ``{
+	map functions = getFunctions (BootCommon::getLoaderType (false));
+	term toEval = functions["read"]:``(BootCommon::Read ());
+	return eval (toEval);
+    }
+
+    global define void blReset () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        term toEval = functions["reset"]:``(BootCommon::Reset ());
+        eval (toEval);
+    }
+
+    global define void blPropose () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        term toEval = functions["propose"]:``(BootCommon::Propose ());
+        eval (toEval);
+    }
+
+    global define boolean blSave () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        term toEval = functions["save"]:``(BootCommon::Save ());
+        return eval (toEval);
+    }
+
+    global define string blSummary (list style) ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        term toEval = functions["summary"]:``(BootCommon::Summary ());
+	toEval = add (toEval, style);
+        return eval (toEval);
+    }
+
+    global define void blUpdate () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        term toEval = functions["update"]:``(BootCommon::Update ());
+        eval (toEval);
+    }
+
+    global define boolean blWrite () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        term toEval = functions["write"]:``(BootCommon::Write ());
+        return eval (toEval);
+    }
+
+    global define map blGetWidgets () ``{
+	map functions = getFunctions (BootCommon::getLoaderType (false));
+	term toEval = functions["widgets"]:nil;
+	return eval (toEval);
+    }
+
+    global define map blGetSequence (map ws_data) ``{
+	map functions = getFunctions (BootCommon::getLoaderType (false));
+	term toEval = functions["sequence"]:``(BootCommon::FixSequence ());
+	toEval = add (toEval, ws_data);
+	return eval (toEval);
+    }
+
+    global define map blGetFiles () ``{
+	map functions = getFunctions (BootCommon::getLoaderType (false));
+	term toEval = functions["getfiles"]:nil;
+	return eval (toEval);
+    }
+
+    global define void blSetFiles (map files) ``{
+	map functions = getFunctions (BootCommon::getLoaderType (false));
+	term toEval = functions["setfiles"]:nil;
+	if (toEval == nil)
+	    return nil;
+	toEval = add (toEval, files);
+	return eval (toEval);
+    }
+}

@@ -22,6 +22,7 @@
 
     import "Boot";
     import "Kernel";
+    import "Arch";
 
     global boolean  promalias = false;
 
@@ -286,10 +287,13 @@ SunOS or Solaris installed\non the same hard drive.\n
 
     global define void BootSILO ()
     ``{
+      if (Arch::sparc)
+      {
 	if (SCR::Read(.prom.hasaliases) == 1)
 	    promalias = true;
 	else
 	    promalias = false;
 	defaultdevice = true;
+      }
     }
 }

@@ -1,0 +1,45 @@
+/**
+ * File:
+ *  lilo2Grub.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Translating device names from UNIX to grub
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    include "testsuite.ycp";
+    import "BootGRUB";
+
+    map EXEC = $["target" : $["bash_output": $["stdout" : "(hd0)"]]];
+    map READ = $["target" : $["string" : "(hd0)	/dev/hda
+(hd1)	/dev/ida/c0d0
+(fd0)	/dev/fd0
+"]];
+
+    BootGRUB::device_map = TEST (``(BootGRUB::readDeviceMap ()), [READ, $[], $[]], 0);
+
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/hda")), [READ, $[], EXEC], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/hda1")), [READ, $[], EXEC], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/hda12")), [READ, $[], EXEC], 0);
+
+    EXEC = $["target" : $["bash_output": $["stdout" : "/dev/ida/c0d0"]]];
+
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/ida/c0d0")), [READ, $[], EXEC], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/ida/c0d0p1")), [READ, $[], EXEC], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/ida/c0d0p12")), [READ, $[], EXEC], 0);
+
+    EXEC = $["target" : $["bash_output": $["stdout" : "/dev/fd0"]]];
+
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/fd0")), [READ, $[], EXEC], 0);
+
+}
+

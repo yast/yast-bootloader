@@ -1,0 +1,475 @@
+/**
+ * File:
+ *      modules/BootGRUB.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Module containing specific functions for GRUB configuration
+ *      and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    module "BootGRUB";
+
+    import "Kernel";
+    import "Storage";
+
+    import "BootCommon";
+
+    include "bootloader/grub/misc.ycp";
+    include "bootloader/grub/widgets.ycp";
+
+
+// private variables
+
+    /**
+      * map from grub device names to linux device names
+      */
+    global list device_map = [];
+    /**
+      * parsed contents of /etc/grub.conf file
+      */
+    global map grub_conf = $[];
+    /**
+      * was grub_conf changed by user manually?
+      */
+    global boolean gc_changed = false;
+
+// general functions
+
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootGRUB::Write ())])
+      */
+    global define map GetFunctions () ``{
+	return $[
+            "export"   : ``(BootGRUB::Export ()),
+            "import"   : ``(BootGRUB::Import ()),
+            "read"     : ``(BootGRUB::Read ()),
+            "reset"    : ``(BootGRUB::Reset ()),
+            "propose"  : ``(BootGRUB::Propose ()),
+            "save"     : ``(BootGRUB::Save ()),
+//	    "summary"  : ``(BootGRUB::Summary ()),
+            "update"   : ``(BootGRUB::Update ()),
+            "write"    : ``(BootGRUB::Write ()),
+	    "sequence" : ``(BootGRUB::FixSequence ()),
+	    "widgets"  : ``(BootGRUB::GetWidgets ()),
+            "getfiles" : ``(BootGRUB::GetFiles ()),
+            "setfiles" : ``(BootGRUB::SetFiles ()),
+
+	];
+    }
+
+    /**
+      * Export bootloader settings to a map
+      * @return bootloader settings
+      */
+    global define map Export () ``{
+	map ret = BootCommon::Export ();
+	ret["device_map"] = device_map;
+	return ret;
+    }
+    /**
+      * Import settings from a map
+      * @param settigns map of bootloader settings
+      */
+    global define void Import (map settings) ``{
+	BootCommon::Import (settings);
+	device_map = settings["device_map"]:[];
+    }
+    /**
+      * Read settings from disk
+      * @return boolean true on success
+      */
+    global define boolean Read () ``{
+	DetectDisks ();
+	grub_conf = readGrubConf ();
+	device_map = readDeviceMap ();
+	boolean ret = BootCommon::Read ();
+	BootCommon::loader_device = grubDev2unixDev (grub_conf["device"]:"");
+	return ret;
+    }
+
+    /**
+      * Reset bootloader settings
+      */
+    global define void Reset () ``{
+	device_map = [];
+	BootCommon::Reset ();
+	device_map = proposeDeviceMap ();
+	grub_conf = proposeGrubConf ();
+    }
+    /**
+      * Propose bootloader settings
+      */
+    global define void Propose () ``{
+        if (! BootCommon::was_proposed)
+	{
+            DetectDisks ();
+	    // refresh device map
+	    if (device_map == [])
+		device_map = proposeDeviceMap ();
+	    if (grub_conf == $[])
+		grub_conf = proposeGrubConf ();
+	}
+	boolean disks_changed = BootCommon::RefreshDisks();
+	if (disks_changed)
+	{
+	    // FIXME: show warning
+	}
+
+	if (size (BootCommon::sections) == 0)
+	{
+	    createSections ();
+	}
+	else
+	{
+	    fixSections (disks_changed);
+	}
+	if (size (BootCommon::globals) == 0)
+	{
+	    createGlobals ();
+	}
+	else
+	{
+	    fixGlobals (disks_changed);
+	}
+
+	y2milestone ("Proposed sections: %1", BootCommon::sections);
+	y2milestone ("Proposed globals: %1", BootCommon::globals);
+	// generate configuration
+    }
+    /**
+      * Save all bootloader configuration files
+      * @return boolean true if success
+      */
+    global define boolean Save () ``{
+	grub_conf["device"] = unixDev2grubDev (BootCommon::loader_device);
+	saveGrubConf (grub_conf);
+	saveDeviceMap (device_map);
+	BootCommon::sections = maplist (`s, BootCommon::sections, ``{
+	    string initrd = s["initrd"]:"";
+	    if (initrd != "")
+	    {
+		initrd = grub2file (initrd);
+		if (-1 == SCR::Read (.target.size, initrd))
+		    s = remove (s, "initrd");
+	    }
+	    return s;
+	});
+	return BootCommon::Save ();
+    }
+    /**
+      * Update read settings to new version of configuration files
+      */
+    global define void Update () ``{
+	updateSections (true);
+	updateGlobals ();
+    }
+    /**
+      * Write bootloader settings to disk
+      * @return boolean true on success
+      */
+    global define boolean Write () ``{
+// TODO: Add gfxmenu if installing/update
+	boolean ret = true;
+	if (BootCommon::location_changed)
+	{
+	    ret = 0 == SCR::Execute (.target.bash,// FIXME: log
+"cat /etc/grub.conf | /usr/sbin/grub --bash --device-map=/boot/grub/device.map"
+	    );
+	    if (! ret)
+	    {
+		Report::Error (_("Error while saving GRUB occured"));
+	    }
+	}
+	return ret;
+    }
+
+// end of mandatory functions
+//----------------------------------------------------------------------------
+
+    global define map createLinuxSection (symbol what) ``{
+	string title = what == `failsafe ? "failsafe" : "linux";
+	string initrd = what == `failsafe ? "initrd.shipped" : "initrd";
+	string image = what == `failsafe ? "vmlinuz.shipped" : "vmlinuz";
+	return $[
+	    "__order__":["title", "kernel", "initrd"],
+	    "title" : title,
+	    "kernel" : sformat ("%1 %2 %3",
+		sformat ("%1%2%3",
+		    unixDev2grubDev (BootCommon::BootPartitionDevice),
+		    prefix,
+		    image),
+		sformat ("root=%1", BootCommon::RootPartitionDevice),
+		sformat ("%1 %2", Kernel::cmdLine, vgastring)
+	    ),
+	    "initrd" : sformat ("%1%2%3",
+		unixDev2grubDev (BootCommon::BootPartitionDevice),
+		prefix,
+		initrd
+	    ),
+	    "__intern__" : $[
+		"changed" : false,
+		"auto" : true,
+		"devs" : [
+		    BootCommon::BootPartitionDevice,
+		    BootCommon::RootPartitionDevice
+		]
+	    ]
+	];
+    }
+
+    global define void createSections () ``{
+        string prefix = "";
+
+        if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice)
+            prefix = "/boot/";
+        else
+            prefix = "/";
+
+	string vgastring = "";
+
+	list out = [
+	    createLinuxSection (nil),
+	];
+	list others = Storage::GetForeignPrimary();
+	if (others != nil)
+	{
+	    if (size (others) > 0)
+	    {
+		foreach (`o, others, ``{
+		    list parts = splitstring (o, " ");
+		    while (select (parts, 0, " ") == "")
+			parts = remove (parts, 0);
+		    string dev = select (parts, 0, "");
+		    y2milestone ("Checking partition %1", dev);
+// TEST UNIX PARTITION
+		    boolean is_unix = false;
+		    SCR::Execute (.target.bash, "mkdir /tmp/mp");
+		    if (0 == SCR::Execute (.target.bash, sformat (
+			"/bin/mount %1 %2", dev, "/tmp/mp")))
+		    {
+// TEST EXISTENCE OF MENU.LST
+			y2milestone ("Mount successfull");
+			string filename = "";
+			if (-1 != SCR::Read (.target.size,
+			    "/tmp/mp/boot/grub/menu.lst"))
+			{
+			    filename = "/tmp/mp/boot/grub/menu.lst";
+			}
+			else if (-1 != SCR::Read (.target.size,
+			    "/tmp/mp/grub/menu.lst"))
+			{
+			    filename = "/tmp/mp/grub/menu.lst";
+			}
+			if (filename != "")
+			{
+			    y2milestone ("Found %1", filename);
+			    string old_filename
+				= SCR::Read (.grub.getfilename);
+			    SCR::Write (.grub.setfilename, filename);
+			    list sec = SCR::Dir (.grub.sections);
+// TEST CONTENTS OF MENU.LST
+			    if (sec != nil && is (sec, list) && size (sec) > 0)
+			    {
+				y2milestone ("Found sections %1", sec);
+				foreach (`e, sec, ``{
+				    map opts_tmp = BootCommon::sectOptions2Map (
+					"grub", "sections", e);
+				    opts_tmp["title"] = sformat ("%1_%2",
+					dev, opts_tmp["title"]:"");
+				    opts_tmp["__intern__"] = $[
+					"changed" : false,
+					"auto" : true,
+				    ];
+				    list devs = [];
+				    devs = add (devs, grubDev2unixDev (select (
+					splitDevPath (
+					opts_tmp["initrd"]:""), 0, "")));
+				    devs = add (devs, grubDev2unixDev (select (
+					splitDevPath (
+					opts_tmp["kernel"]:""), 0, "")));
+				    devs = add (devs, grubDev2unixDev (
+					opts_tmp["root"]:""));
+				    devs = add (devs,
+					BootCommon::getKernelParamFromLine (
+					    opts_tmp["kernel"]:"", "root"));
+				    devs = filter (`d, devs, ``(d != ""
+					&& d != "/dev/wrong" && d != "false"));
+				    opts_tmp["__intern__", "devs"] = devs;
+				    y2milestone ("Converted sec: %1", opts_tmp);
+				    out = add (out, opts_tmp);
+				});
+				is_unix = true;
+			    }
+			    SCR::Write (.grub.setfilename, old_filename);
+			}
+			SCR::Execute (.target.bash, sformat (
+			"/bin/umount %1", dev));
+		    }
+
+		    if (! is_unix)
+		    {
+			string g_dev = unixDev2grubDev (dev);
+			parts = remove (parts, 0);
+			string label = mergestring (parts, " ");
+
+                        // don't add rewritten location (#19990)
+			if (g_dev != "" && label != ""
+			    && dev != BootCommon::loader_device)
+			{
+			    map m = $[
+				"__order__":["title", "root", "makeactive",
+					"chainloader +1"],
+				"title" : label,
+				"root" : g_dev,
+				"makeactive" : "",
+				"chainloader" : "+1",
+				"__intern__" : $[
+				    "changed" : false,
+				    "auto" : true,
+				    "devs" : [dev],
+				],
+			    ];
+			   out = add (out, m);
+			}
+		    }
+		});
+	    }
+	}
+	out = add (out, createLinuxSection (`failsafe));
+// FIXME: memtest if installed
+
+
+	BootCommon::sections = out;
+    }
+
+    global define void createGlobals () ``{
+	map bcg = $[];
+	bcg["color"] = "white/blue black/light-gray";
+	bcg["default"] = "0";
+	bcg["timeout"] = 8;
+	BootCommon::globals = bcg;
+    }
+
+    global define list updateSections (boolean replace) ``{
+        string prefix = "";
+
+        if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice)
+            prefix = "/boot/";
+        else
+            prefix = "/";
+
+        string vgastring = "";
+
+	list out = BootCommon::sections;
+
+	foreach (`s, [nil, `failsafe], ``{
+	    map m = createLinuxSection (s);
+	    boolean changed = false;
+	    list out = maplist (`s, out, ``{
+		if (s["title"]:"" == m["title"]:"")
+		{
+		    changed = true;
+		    if (replace)
+			return m;
+		    else
+			return s;
+		}
+		else
+		{
+		    return s;
+		}
+	    });
+	    if (! changed)
+		out = add (out, m);
+	});
+	BootCommon::sections = out;
+    }
+
+    global define void updateGlobals () ``{
+        map bcg = BootCommon::globals;
+        bcg["color"] = "white/blue black/light-gray";
+        bcg["timeout"] = 8;
+        BootCommon::globals = bcg;
+    }
+
+    global define void fixSections (boolean disks_changed) ``{
+	list parts = BootCommon::getPartitionList(`parts_old);
+	BootCommon::sections = filter (`s, BootCommon::sections, ``{
+	    boolean contains = true;
+	    foreach (`n, s["__intern__", "devs"]:[], ``{
+		if (! contains (parts, n))
+		{
+		    contains = false;
+		}
+	    });
+	    if (contains)
+		return true;
+	    boolean ok = true;
+	    y2milestone ("sections %1 changed", s["title"]:"");
+	    if (! s["__intern__", "auto"]:false)
+	    {  // user created
+		return true;
+	    }
+	    else if (! s["__intern__", "changed"]:false)
+	    { // not changed by user
+		return false;
+	    }
+	    UI::MessagePopup (sformat (_("Disk settings changed,
+please check section %1 settings"), s["title"]:""));
+	    return true;
+	});
+	updateSections (false);
+    }
+
+    global define void fixGlobals (boolean disks_changed) ``{
+
+    }
+
+
+    global define map GetFiles() ``{
+	BootCommon::saveCfgFileToAgent ();
+	grub_conf["device"] = unixDev2grubDev (BootCommon::loader_device);
+        return $[
+	    "default" : "/boot/grub/menu.lst",
+            "/boot/grub/menu.lst" : SCR::Read (.grub.tostring),
+	    "/boot/grub/device.map" : devMap2string (device_map),
+	    "/etc/grub.conf" : getGrubConf (grub_conf),
+        ];
+    }
+
+    global define void SetFiles (map files) ``{
+	device_map = string2devMap (files["/boot/grub/device.map"]:"");
+	SCR::Write (.grub.fromstring, files["/boot/grub/menu.lst"]:"");
+	if (getGrubConf (grub_conf) != files["/etc/grub.conf"]:"")
+	    BootCommon::location = "custom";
+	grub_conf = parseGrubConf (files["/etc/grub.conf"]:"");
+	BootCommon::loader_device = grubDev2unixDev (grub_conf["device"]:"");
+	BootCommon::loadCfgFileFromAgent ();
+    }
+
+    global define map FixSequence (map ws_data) ``{
+	map aliases = $[
+	    "order" : ``(BootGRUB::runOrderDialog ())
+	];
+	map gs = ws_data["glob_seq"]:$[];
+	map ts = gs["target"]:$[];
+	gs["order"] = $[ `next : "target", `abort: `abort];
+	ts = add (ts, `order, "order");
+	gs["target"] = ts;
+	ws_data["aliases"] = aliases;
+	ws_data["glob_seq"] = gs;
+	return ws_data;
+    }
+
+}

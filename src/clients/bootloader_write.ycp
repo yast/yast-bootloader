@@ -1,0 +1,50 @@
+/**
+ * File:
+ *      bootloader_write.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Import settings to bootloader module and write them
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+/**
+ * @param    1st map     bootloader settings
+ */
+
+{
+    textdomain "bootloader";
+
+    import "Progress";
+    import "Bootloader";
+
+    list args = Args();
+
+    if (size(args) <= 0) {
+	y2error("NOT writing, probably some mistake...");
+	return false;
+    }
+
+    if (!is(Args(0),map)) {
+	y2error("Bad argument for lilo write: %1", Args(0));
+	return false;
+    }
+
+    map settings = select(args,0, $[]);
+
+    y2debug("Only writing... (%1)",settings);
+
+    Bootloader::Import (settings);
+    Progress::off ();
+    boolean ret = Bootloader::Write ();
+    Progress::on ();
+    return ret;
+}
+

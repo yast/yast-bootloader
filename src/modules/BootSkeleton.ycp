@@ -1,0 +1,101 @@
+/**
+ * File:
+ *      modules/BootSkeleton.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Skeleton for bootloader-specific modules. Not to be used directly.
+ *      Replace functions needed functions, don't remove declarations.
+ *
+ *      Not for being installed
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    module "BootSkeleton";
+
+    import "BootCommon";
+
+// general functions
+
+
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootGRUB::Write ())])
+      */
+    global define map GetFunctions () ``{
+        return $[
+
+        ];
+    }
+
+    /**
+      * Export bootloader settings to a map
+      * @return bootloader settings
+      */
+    global define map Export () ``{
+	return BootCommon::Export ();
+    }
+    /**
+      * Import settings from a map
+      * @param settigns map of bootloader settings
+      */
+    global define void Import (map settings) ``{
+	BootCommon::Import (settings);
+    }
+    /**
+      * Read settings from disk
+      * @return boolean true on success
+      */
+    global define boolean Read () ``{
+	return BootCommon::Read ();
+    }
+    /**
+      * Reset bootloader settings
+      */
+    global define void Reset () ``{
+	BootCommon::Reset ();
+    }
+    /**
+      * Propose bootloader settings
+      */
+    global define void Propose () ``{
+	BootCommon::Propose ();
+    }
+    /**
+      * Save all bootloader configuration files
+      * @return boolean true if success
+      */
+    global define boolean Save () ``{
+	return BootCommon::Save ();
+    }
+    /**
+      * Display bootloader summary
+      * @param list of style attributes
+      * FIXME add attrib description
+      */
+    global define string Summary (list style) ``{
+	return BootCommon::Summary (style);
+    }
+    /**
+      * Update read settings to new version of configuration files
+      */
+    global define void Update () ``{
+	BootCommon::Update ();
+    }
+    /**
+      * Write bootloader settings to disk
+      * @return boolean true on success
+      */
+    global define boolean Write () ``{
+	return BootCommon::Write ();
+    }
+
+}

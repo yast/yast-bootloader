@@ -1,0 +1,21 @@
+/**
+ * File:
+ *      bootloader_auto.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Bootloader autoinstallation preparation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+
+}

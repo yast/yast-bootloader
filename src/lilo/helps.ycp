@@ -1,0 +1,37 @@
+/**
+ * File:
+ *      include/bootloader/lilo/helps.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Help strings for bootloader installation and configuration
+ *	related to LILO bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+    textdomain "bootloader";
+
+    import "BootCommon";
+
+    global define string getExpertLocationHelp () ``{
+	string help_text = BootCommon::getExpertLocationHelp ();
+	// help text 1/2
+	help_text = help_text + _("<p>If you want to use the LBA-32 mode,
+set appropriate checkbox.</P>");
+	// help text 2/2
+	help_text = help_text + _("<p>If you want to use linear 24-bit
+adderssing mode, set appropriate checkbox.</P>");
+        return help_text;
+    }
+
+
+}

@@ -1,0 +1,84 @@
+/**
+ * File:
+ *      bootloader_write.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Main file of bootloader configuration
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+{
+    textdomain "bootloader";
+    import "Bootloader";
+    import "Wizard";
+    import "Progress";
+    import "Mode";
+    import "Arch";
+
+    include "bootloader/routines/helps.ycp";
+    include "bootloader/routines/ui.ycp";
+
+    /**
+     * Test for abort.
+     * @return true if abort was pressed
+     */
+    define boolean testAbort () ``{
+        if (`abort == UI::PollInput ())
+        {
+            UI::CloseDialog ();
+            return true;
+        }
+        return false;
+    }
+
+
+
+    Wizard::CreateDialog ();
+// run Progress bar
+    list stages = [
+	// progress stage, text in dialog (short)
+	_("Check bootloader."),
+	// progress stage, text in dialog (short)
+	_("Load bootloader settings."),
+    ];
+    list titles = [
+	// progress stage, text in dialog (short)
+	_("Checking environment..."),
+	// progress stage, text in dialog (short)
+	_("Loading current settings..."),
+    ];
+    // progress bar caption
+    Progress::New (_("Initializing bootloader configuration tool..."),
+	" ", 2, stages, titles, getInitProgressHelp ());
+
+    Progress::NextStage ();
+    if (testAbort ())
+	return `back;
+
+    Bootloader::getLoaderType ();
+
+    Progress::NextStage ();
+    if (testAbort ())
+        return `back;
+
+//    Bootloader::Read ();
+    Bootloader::Propose ();
+    Bootloader::Propose ();
+    Progress::Finish ();
+    if (testAbort ())
+        return `back;
+
+    symbol ret = runWizard ();
+
+//    Bootloader::Write ();
+
+    UI::CloseDialog ();
+    return ret;
+}

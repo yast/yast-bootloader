@@ -1,0 +1,16 @@
+Read	.target.string "/boot/grub/device.map" "(hd0) /dev/hda\n(hd1)   /dev/ida/c0d0\n(fd0)   /dev/fd0\n"
+Return	[["(hd0)", "/dev/hda"], ["(hd1)", "/dev/ida/c0d0"], ["(fd0)", "/dev/fd0"]]
+Return	$["__order__":["title", "root", "makeactive", "chainloader"], "chainloader":"+1", "makeactive":true, "root":"(hd0,1)", "title":"sectlabel"]
+Return	$["__order__":["title", "kernel", "initrd"], "initrd":"(hd0,0)/initrd", "kernel":"(hd0,0)/vmlinuz root=/dev/hda3 vga=789 append_opts", "title":"section2"]
+Return	$["__order__":["title", "kernel"], "kernel":"(hd0,0)/vmlinuz root=/dev/hda3 vga=789 append_opts", "title":"section2"]
+Dump	====================================================
+Return	$["label":"section", "other":"/dev/hda3"]
+Return	$["append":"app_opt1 app_opt2", "image":"/boot/vmlinuz", "label":"section", "optional":true, "root":"/dev/hda3", "vga":"789"]
+Return	$["append":"app_opt1 app_opt2", "image":"/vmlinuz", "label":"section", "optional":true, "root":"/dev/hda3"]
+Return	$["append":"app_opt1 app_opt2", "image":"/boot/vmlinuz", "initrd":"/boot/initrd", "label":"section", "optional":true, "root":"/dev/hda3", "vga":"789"]
+Dump	====================================================
+Return	$["gfxmenu":"/boot/message", "prompt":true, "timeout":80]
+Return	$["gfxmenu":"/boot/message", "prompt":false, "timeout":80]
+Dump	====================================================
+Return	$["gfxmenu":"(hd0,0)/message", "hiddenmenu":true, "timeout":8]
+Return	$["gfxmenu":"(hd0,0)/message", "hiddenmenu":false, "timeout":8]

@@ -1,0 +1,311 @@
+/**
+ * File:
+ *      modules/BootLILO.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Module containing specific functions for LILO configuration
+ *      and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    module "BootLILO";
+
+    import "Kernel";
+    import "Storage";
+
+    import "BootCommon";
+
+    include "bootloader/lilo/widgets.ycp";
+    include "bootloader/lilo/helps.ycp";
+
+
+
+// general functions
+
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
+      */
+    global define map GetFunctions () ``{
+	return $[
+//	    "export" :	``(BootLILO::Export ()),
+//	    "import" :	``(BootLILO::Import ()),
+	    "read" :	``(BootLILO::Read ()),
+//	    "reset" :	``(BootLILO::Reset ()),
+	    "propose" : ``(BootLILO::Propose ()),
+	    "save" :	``(BootLILO::Save ()),
+//	    "summary" :	``(BootLILO::Summary ()),
+	    "update" :	``(BootLILO::Update ()),
+	    "write" :	``(BootLILO::Write ()),
+
+	    "widgets" :	``(BootLILO::GetWidgets ()),
+	    "getfiles" : ``(BootLILO::GetFiles ()),
+	    "setfiles" : ``(BootLILO::SetFiles ())
+	];
+    }
+
+    /**
+      * Propose bootloader settings
+      */
+    global define void Propose () ``{
+	if (! BootCommon::was_proposed)
+	{
+            DetectDisks ();
+	}
+
+	if (BootCommon::RefreshDisks())
+	{
+	    // FIXME: show warning
+	}
+//	y2error ("loaderdevice: %1", BootCommon::loader_device);
+//	y2error ("Location: %1", BootCommon::location);
+
+	// refresh device map
+// TODO: delete
+//	if (device_map == [])
+//	    device_map = proposeDeviceMap ();
+
+	if (size (BootCommon::sections) == 0)
+	{
+	    createSections ();
+	}
+	else
+	{
+	    // TODO: check sectinos
+	}
+	if (size (BootCommon::globals) == 0)
+	{
+	    createGlobals ();
+	}
+	else
+	{
+	    // TODO: check globals
+	}
+
+	y2milestone ("Proposed sections: %1", BootCommon::sections);
+	y2milestone ("Proposed globals: %1", BootCommon::globals);
+	// generate configuration
+    }
+
+    /**
+      * Read settings from disk
+      * @return boolean true on success
+      */
+    global define boolean Read () ``{
+	BootCommon::DetectDisks ();
+	BootCommon::Read ();
+	BootCommon::loader_device
+	    = SCR::Read(BootCommon::list2path(["lilo", "boot"]));
+    }
+
+    global define boolean Save () ``{
+
+        BootCommon::sections = maplist (`s, BootCommon::sections, ``{
+            string initrd = s["initrd"]:"";
+            if (initrd != "")
+            {
+                if (-1 == SCR::Read (.target.size, initrd))
+                    s = remove (s, "initrd");
+            }
+            return s;
+	});
+	return BootCommon::Save ();
+    }
+
+    /**
+      * Update read settings to new version of configuration files
+      */
+    global define void Update () ``{
+	updateSections ();
+	updateGlobals ();
+    }
+    /**
+      * Write bootloader settings to disk
+      * @return boolean true on success
+      */
+    global define boolean Write () ``{
+// TODO: Add gfxmenu if installing/update
+	boolean ret = true;
+	if (BootCommon::location_changed)
+	{
+	    ret = 0 == SCR::Execute (.target.bash,// FIXME: log
+"cat /etc/grub.conf | /usr/sbin/grub --bash --device-map=/boot/grub/device.map"
+	    );
+	    if (! ret)
+	    {
+		Report::Error (_("Error while saving LILO occured"));
+	    }
+	}
+	return ret;
+    }
+
+// end of mandatory functions
+//----------------------------------------------------------------------------
+
+    global define void createSections () ``{
+        string prefix = "";
+
+        if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice)
+            prefix = "/boot/";
+        else
+            prefix = "/";
+
+	string vgastring = "";
+
+	list out = [
+	   $[
+		"label" : "linux",
+		"kernel" : "/boot/vmlinuz",
+		"initrd" : "/boot/initrd",
+		"root" : BootCommon::RootPartitionDevice,
+		"vga" : vgastring,
+		"append" : Kernel::cmdLine
+	    ]
+	];
+	list others = Storage::GetForeignPrimary();
+	if (others != nil)
+	{
+	    if (size (others) > 0)
+	    {
+		foreach (`o, others, ``{
+		    list parts = splitstring (o, " ");
+		    while (select (parts, 0, " ") == "")
+			parts = remove (parts, 0);
+		    string dev = select (parts, 0, "");
+		    parts = remove (parts, 0);
+		    string label = mergestring (parts, " ");
+
+                    // don't add rewritten location (#19990)
+		    if (dev != "" && label != ""
+			&& dev != BootCommon::loader_device)
+		    {
+			map m = $[
+			    "label" : label,
+			    "other" : dev,
+			];
+			out = add (out, m);
+		    }
+		});
+	    }
+	}
+	map m = $[
+	    "label" : "failsafe",
+	    "kernel" : "/boot/vmlinuz.shipped",
+	    "initrd" : "/boot/initrd.shipped",
+	    "root" : BootCommon::RootPartitionDevice,
+	    "append" : "ide=nodma apm=off acpi=off vga=normal "
+                    + ((Arch::x86_64) ? "iommu=noforce " : "nosmp disableapic ")
+                    + "maxcpus=0 3"
+	];
+	out = add (out, m);
+// FIXME: memtest if installed
+
+
+	BootCommon::sections = out;
+    }
+
+    global define void createGlobals () ``{
+	map bcg = $[];
+	bcg["menu-scheme"] = "Wg:kw:Wg:Wg";
+	bcg["default"] = "linux";
+	bcg["timeout"] = "80";
+	list internal_bios = SCR::Read (.probe.bios);
+	bcg["lba32"] = internal_bios[0, "lba_support"]:false;
+	BootCommon::globals = bcg;
+    }
+
+    global define list updateSections () ``{
+        string prefix = "";
+
+        if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice)
+            prefix = "/boot/";
+        else
+            prefix = "/";
+
+        string vgastring = "";
+
+
+	map m =$[
+                "label" : "linux",
+                "kernel" : "/boot/vmlinuz",
+                "initrd" : "/boot/initrd",
+                "root" : BootCommon::RootPartitionDevice,
+                "vga" : vgastring,
+                "append" : Kernel::cmdLine
+        ];
+
+	boolean changed = false;
+	list out = maplist (`s, BootCommon::sections, ``{
+	    if (s["label"]:"" == m["label"]:"")
+	    {
+		changed = true;
+		return m;
+	    }
+	    else
+	    {
+		return s;
+	    }
+	});
+	if (! changed)
+	    out = add (out, m);
+
+        map m = $[
+            "label" : "failsafe",
+            "kernel" : "/boot/vmlinuz.shipped",
+            "initrd" : "/boot/initrd.shipped",
+            "root" : BootCommon::RootPartitionDevice,
+            "append" : "ide=nodma apm=off acpi=off vga=normal "
+                    + ((Arch::x86_64) ? "iommu=noforce " : "nosmp disableapic ")
+                    + "maxcpus=0 3"
+        ];
+	changed = false;
+        out = maplist (`s, out, ``{
+            if (s["title"]:"" == m["title"]:"")
+            {
+                changed = true;
+                return m;
+            }
+            else
+            {
+                return s;
+            }
+        });
+        if (! changed)
+            out = add (out, m);
+
+	BootCommon::sections = out;
+    }
+
+    global define void updateGlobals () ``{
+        map bcg = BootCommon::globals;
+        bcg["menu-scheme"] = "Wg:kw:Wg:Wg";
+        bcg["timeout"] = 8;
+        BootCommon::globals = bcg;
+    }
+
+    global define map GetFiles() ``{
+	BootCommon::globals["boot"] = BootCommon::loader_device;
+        BootCommon::saveCfgFileToAgent ();
+        return $[
+            "/etc/lilo.conf" : SCR::Read (.lilo.tostring),
+        ];
+    }
+
+    global define void SetFiles (map files) ``{
+        SCR::Write (.lilo.fromstring, files["/etc/lilo.conf"]:"");
+        BootCommon::loadCfgFileFromAgent ();
+	if (BootCommon::globals["boot"]:"" != BootCommon::loader_device)
+	    BootCommon::location = "custom";
+	BootCommon::loader_device = BootCommon::globals["boot"]:"";
+    }
+
+}

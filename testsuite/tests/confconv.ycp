@@ -1,0 +1,111 @@
+/**
+ * File:
+ *  confconv.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Testsuite for converting settings between bootloaders
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    include "testsuite.ycp";
+    include "bootloader/routines/convert.ycp";
+//    import "BootGRUB";
+
+    map EXEC = $["target" : $["bash_output": $["stdout" : "(hd0)"]]];
+    map READ = $["target" : $["string" : "(hd0) /dev/hda
+(hd1)   /dev/ida/c0d0
+(fd0)   /dev/fd0
+"]];
+
+    Mode::test = true;
+
+    BootGRUB::device_map = TEST (``(BootGRUB::readDeviceMap ()), [READ, $[], $[]], 0);
+
+    TEST (``(liloSect2grubSect ($[
+	"label" : "sectlabel",
+	"other" : "/dev/hda2"
+	])), [], 0);
+
+    TEST (``(liloSect2grubSect ($[
+	"label" : "section2",
+	"image" : "/boot/vmlinuz",
+	"root" : "/dev/hda3",
+	"append" : "append_opts",
+	"vga" : "789",
+	"initrd" : "/boot/initrd",
+	])), [], 0);
+
+    TEST (``(liloSect2grubSect ($[
+        "label" : "section2",
+        "image" : "/boot/vmlinuz",
+        "root" : "/dev/hda3",
+        "append" : "append_opts",
+        "vga" : "789",
+        ])), [], 0);
+
+    DUMP ("====================================================");
+
+    TEST (``(grubSect2liloSect ($[
+	"title" : "section",
+	"makeactive" : "true",
+	"chainloader" : "+1",
+	"root" : "(hd0,2)",
+        ])), [], 0);
+
+    TEST (``(grubSect2liloSect ($[
+        "title" : "section",
+	"kernel" : "(hd0,0)/vmlinuz root=/dev/hda3 vga=789 app_opt1 app_opt2",
+        ])), [], 0);
+
+    TEST (``(grubSect2liloSect ($[
+        "title" : "section",
+        "kernel" : "(hd0,1)/vmlinuz root=/dev/hda3 app_opt1 app_opt2",
+        ])), [], 0);
+
+
+    TEST (``(grubSect2liloSect ($[
+        "title" : "section",
+        "kernel" : "(hd0,0)/vmlinuz root=/dev/hda3 vga=789 app_opt1 app_opt2",
+	"initrd" : "(hd0,0)/initrd",
+        ])), [], 0);
+
+    DUMP ("====================================================");
+
+    TEST (``(grubGlob2liloGlob ($[
+	"timeout" : 8,
+	"gfxmenu" : "(hd0,0)/message",
+	])), [], 0);
+
+    TEST (``(grubGlob2liloGlob ($[
+        "timeout" : 8,
+        "gfxmenu" : "(hd0,0)/message",
+	"hiddenmenu" : "true",
+        ])), [], 0);
+
+
+    DUMP ("====================================================");
+
+    TEST (``(liloGlob2grubGlob ($[
+        "timeout" : 80,
+        "gfxmenu" : "/boot/message",
+        ])), [], 0);
+
+    TEST (``(liloGlob2grubGlob ($[
+        "timeout" : 80,
+        "gfxmenu" : "/boot/message",
+	"prompt" : "true",
+        ])), [], 0);
+
+
+}
+
+

@@ -1,0 +1,239 @@
+/**
+ * File:
+ *      include/bootloader/routines/lilolike.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions common for lilo-like bootloaders only
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+{
+
+    import "StorageDevices";
+    import "Storage";
+
+    import "BootCommon";
+
+    /**
+      * Refresh disk locations
+      * @return boolean true if bootloader location should be set again
+      */
+    global define boolean RefreshDisks() ``{
+	if (DisksChanged ())
+	    return false;
+
+	DetectDisks ();
+
+	return true;
+    }
+
+    /**
+     *  IsBootAccessible()
+     *  @return boolean:
+     *
+     */
+
+    global define IsBootAccessible() ``{
+        boolean boot_partition_accessible = true;
+
+        if (!LbaSupport())
+        {
+            string boot_mount_point = "";
+            // check, if no /boot partition exists
+
+            if (lookup (Storage::GetMountPoints(), "/boot", "") == "")
+            {
+                boot_mount_point = "/";
+            }
+            else
+            {
+                boot_mount_point = "/boot";
+            }
+
+            // check if boot mount point is below cyl 1024
+
+            foreach (string dname, map ddata, Storage::GetTargetMap(),
+            ``{
+                list partitions = ddata["partitions"]:[];
+                if (partitions != [])
+                {
+                    foreach (`pentry, partitions,
+                    ``{
+                        if (pentry["mount"]:"" == boot_mount_point)
+                        {
+                            boot_partition_accessible =
+				(1024 > pentry["region",0]:0);
+                        }
+                    });
+                }
+
+            });
+
+        }
+        if (boot_partition_accessible)
+            y2milestone("Boot partition accessible");
+        else
+            y2milestone("Boot partition unaccessible");
+
+        return (boot_partition_accessible);
+    }
+
+   global define boolean DisksChanged () ``{
+        map mp = Storage::GetMountPoints();
+        string actual_root = mp["/", 0]:"";
+        string actual_boot = mp["/boot", 0]:actual_root;
+
+        // don't change configuration if '/' and '/boot' were not changed
+        // and location is "floppy", "mbr" or "boot"
+        if (actual_boot == BootCommon::BootPartitionDevice
+            && actual_root == BootCommon::RootPartitionDevice
+            && BootCommon::location != "custom"
+            && BootCommon::location != "")
+        {
+            return false;
+        }
+
+        if (BootCommon::location == "custom")
+        {
+	    list all_partitions = BootCommon::getPartitionList(`boot);
+
+            if (!contains(all_partitions, device))
+            {
+                y2milestone ("Location should be set again");
+                return true;
+            }
+            else if (actual_boot == BootPartitionDevice
+                && actual_root == RootPartitionDevice)
+            {
+                return false;
+            }
+        }
+    return false;
+    }
+
+
+    global define void DetectDisks () ``{
+        map mp = Storage::GetMountPoints();
+
+        list mountdata_boot     = mp["/boot"]:(mp["/"]:[]);
+
+        y2milestone( "mountPoints %1", mp );
+        y2milestone( "mountdata_boot %1", mountdata_boot );
+
+        string bootDisk         = mountdata_boot[2]:(mp["/",2]:"");
+
+       // check if /boot is on raid1
+        boolean boot_is_raid1   = (mountdata_boot[3]:(mp["/",2]:"") == "raid1");
+
+        BootCommon::RootPartitionDevice     = mp["/", 0]:"";
+
+        if (bootDisk == ""
+            || BootCommon::RootPartitionDevice == "")
+        {
+            y2error ("No mountpoint for / !!");
+        }
+
+        // if /boot changed, re-configure location
+        if (BootCommon::BootPartitionDevice
+            != mp["/boot", 0]:BootCommon::RootPartitionDevice)
+        {
+            BootCommon::BootPartitionDevice
+                = mp["/boot", 0]:BootCommon::RootPartitionDevice;
+        }
+
+        if (boot_is_raid1)
+        {
+            y2milestone ("/boot is on RAID1");
+            // use partitionName from GetMountPoints
+            BootCommon::mbrDisk = mountdata_boot[0]:RootPartitionDevice;
+        }
+        else
+        {
+            // normal mbr detection.
+            BootCommon::mbrDisk = FindMbrDisk();
+        }
+
+        if (BootCommon::location == "")
+            BootCommon::location = ConfigureLocation ();
+
+        BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+    }
+
+    /**
+     * ConfigureLocation()
+     * Where to install the bootloader.
+     * It just gives "mbr" or "floppy"
+     * @return string location proposed to bootloader
+     */
+    global define string ConfigureLocation() ``{
+        string loc = "mbr";                       // default to mbr
+        string device   = BootCommon::mbrDisk;
+
+        if (!IsBootAccessible()                 // above cyl 1024
+            && StorageDevices::FloppyPresent)
+        {
+            // if we're on an old system without lba support
+            // (the last needs a too big initrd, see bugzilla #7864)
+
+            loc = "floppy";                // floppy and fd0
+            device   = StorageDevices::FloppyDevice;
+        }
+
+        y2milestone ("ConfigureLocation (%1 on %2)", loc, device);
+        return loc;
+    }
+
+    /*
+     * FindMbrDisk()
+     * try to find the system's mbr device
+     * @return string   mbr device
+     */
+    global define string FindMbrDisk() ``{
+        // can hwinfo find the disk ?
+
+        string probed_mbr_disk = SCR::Read(.probe.boot_disk);
+        if (probed_mbr_disk != "")
+        {
+            y2milestone ("MBR probed as %1", probed_mbr_disk);
+            return probed_mbr_disk;
+        }
+
+        // look for disk with bios_id 0x80
+        list disks = SCR::Read(.probe.disk);
+        string mbr_disk = disks[0,"dev_name"]:bootDisk;
+
+        foreach (`disk, disks,
+        ``{
+            if (disk["bios_id"]:"" == "0x80")
+            {
+                y2milestone ("disk with bios_id 0x80: %1", disk);
+                mbr_disk = disk["dev_name"]:bootDisk;
+            }
+        });
+
+        y2milestone("MBR Disk: %1", mbr_disk);
+
+        return mbr_disk;
+    }
+
+    /**
+     * LbaSupport ()
+     * @return boolean  LBA support available
+     */
+    global define boolean LbaSupport () ``{
+	return true; // FIXME
+        if (BootCommon::getLoaderType (false) == "lilo")
+        {
+            return BootLILO::lba_support;
+        }
+        return true;
+    }
+
+}

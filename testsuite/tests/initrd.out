@@ -1,0 +1,26 @@
+Read	.target.size "/etc/sysconfig/kernel" 0
+Read	.sysconfig.kernel.INITRD_MODULES "reiserfs lvmmod"
+Return	["lvmmod", "reiserfs"]
+Dump	Now reseting
+Return	nil
+Dump	Reading again
+Read	.target.size "/etc/sysconfig/kernel" 0
+Read	.sysconfig.kernel.INITRD_MODULES "reiserfs lvmmod"
+Return	["lvmmod", "reiserfs"]
+Dump	Reseting again
+Return	nil
+Dump	Adding ne2k
+Read	.target.size "/etc/sysconfig/kernel" 0
+Read	.sysconfig.kernel.INITRD_MODULES "reiserfs lvmmod"
+Return	nil
+Return	["lvmmod", "ne2k", "reiserfs"]
+Dump	Removing lvmmod
+Return	nil
+Return	["ne2k", "reiserfs"]
+Dump	Writing
+Write	.modules.options $["io":"0x300,", "irq":"5"] "ne2k" true
+Write	.modules nil true
+Execute	.target.bash "/usr/bin/touch /etc/sysconfig/bootloader" 0
+Write	.sysconfig.kernel.INITRD_MODULES "ne2k reiserfs" true
+Execute	.target.bash "/sbin/mk_initrd >> /var/log/YaST2/y2logmk_initrd 2>&1" 0
+Return	nil

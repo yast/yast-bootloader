@@ -1,0 +1,32 @@
+/**
+ * File:
+ *      ui2mod.ycp
+ *
+ * Module:
+ *      Bootloader
+ *
+ * Summary:
+ *      testsuite for translating of strings
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *      primary author unknown
+ *
+ * $Id$
+ *
+ */
+
+{
+    include "testsuite.ycp";
+
+    import "BootCommon";
+
+    BootCommon::setLoaderType ("lilo");
+
+    TEST(``(BootCommon::ui2mod("string")), [], nil);
+    TEST(``(BootCommon::ui2mod("string with spaces")), [], nil);
+    TEST(``(BootCommon::ui2mod("string_with_\"quote")), [], nil);
+    TEST(``(BootCommon::ui2mod("string with \\ backslash ")), [], nil);
+    TEST(``(BootCommon::ui2mod(5)), [], nil);
+    TEST(``(BootCommon::ui2mod("")), [], nil);
+}

@@ -1,0 +1,224 @@
+/**
+ * File:
+ *      modules/Initrd.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      functions for initial ramdisk setup and creation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+{
+    module "Initrd";
+
+    import "Arch";
+    import "Misc";
+    import "Mode";
+
+    textdomain "bootloader";
+
+// module variables
+
+    /**
+      * map of modules for being contained in initrd and their settings
+      */
+    map modules = $[];
+    /**
+      * true if settings were changed and initrd needs to be rebuilt,
+      * false otherwise
+      */
+    global boolean changed = false;
+    /**
+      * true if settings were already read, flase otherwise
+      */
+    boolean was_read = false;
+
+// module functions
+
+    /**
+      * Constructor
+      */
+    global define void Initrd () ``{
+        if (! Mode::normal)
+        {
+            string tmp_mods = SCR::Read( .etc.install_inf.InitrdModules );
+            if (tmp_mods != nil)
+            {
+                list tmp_mod = splitstring( tmp_mods, " " );
+                foreach( `t, tmp_mod, ``{ AddModule(t,""); });
+            }
+        }
+        y2milestone( "initrdModules %1", modules );
+    }
+
+    /**
+      * add module to ramdisk
+      * @param modname name of module
+      * @param modargs arguments to be passes to module
+      */
+    global define void AddModule (string modname, string modargs) ``{
+	if (! was_read)
+	    Read ();
+	if ((!contains (ListModules (), modname))
+	    || ((modname == "aic7xxx")
+		&& !contains ( ListModules (), "aic7xxx_old"))
+	    || ((modname == "aic7xxx_old")
+		&& !contains ( ListModules (), "aic7xxx")))
+        {
+            // usb and cdrom modules dont belong to initrd,
+	    // they're loaded by hotplug
+            list modules_to_skip = [ "usbcore",
+                                     "usb-uhci",
+                                     "uhci",
+                                     "usb-ohci",
+                                     "input",
+                                     "hid",
+                                     "keybdev",
+                                     "mousedev",
+                                     "usb-storage",
+                                     "cdrom",
+                                     "ide-cd",
+                                     "sr_mod"
+                                     ];
+	    // some other modules don't belong to initrd on PPC
+            if (Arch::ppc)
+            {
+                list ppc_modules_to_skip = [ "reiserfs",
+                                             "ext3",
+                                             "jbd",
+                                             "jfs",
+                                             "xfs",
+                                             ];
+                modules_to_skip = union (modules_to_skip, ppc_modules_to_skip);
+            }
+
+            if ( ! contains (modules_to_skip, modname))
+	    {
+		changed = true;
+		modules [modname] = Misc::SplitOptions (modargs, $[]);
+	    }
+        }
+        return;
+    }
+
+    /**
+      * Export settigs to variable
+      * @return map of initrd settings
+      */
+    global define map Export () ``{
+	if (! was_read)
+	    Read ();
+	return modules;
+    }
+
+    /**
+      * import settings of initrd
+      * @param settings map of initrd settings
+      */
+    global define void Import (map settings) ``{
+	modules = settings;
+	was_read = true;
+	changed = true;
+    }
+
+    /**
+      * List modules included in initrd
+      * @return list of strings with modulenames
+      */
+    global define list ListModules () ``{
+	if (! was_read)
+	    Read ();
+	return maplist (`k, `v, modules, ``(k));
+    }
+
+    /**
+      * read seettings from sysconfig
+      */
+    global define boolean Read () ``{
+	Reset ();
+	was_read = true;
+	if (Mode::initial && ! Mode::update) // nothing to read
+	{
+	    return true;
+	}
+
+	// test for missing files - probably an error - should never occur
+	if (SCR::Read (.target.size, "/etc/sysconfig/kernel") == -1)
+	{
+	    y2error ("sysconfig/kernel not found");
+	    return false;
+	}
+
+	string s_modnames = SCR::Read (.sysconfig.kernel.INITRD_MODULES);
+	list modnames = splitstring (s_modnames, " ");
+	modnames = filter (`m, modnames, ``(m != ""));
+	foreach (`m, modnames, ``{modules [m] = $[];});
+	return true;
+    }
+    /**
+      * remove module from list of initrd modules
+      * @param modname string name of module to remove
+      */
+    global define void RemoveModule (string modname) ``{
+	if (! was_read)
+	    Read ();
+	modules = filter (`k, `v, modules, ``(k != modname));
+	changed = true;
+    }
+
+    /**
+      * reset settings to empty list of modules
+      */
+    global define void Reset () ``{
+	was_read = false;
+	changed = false;
+	modules = $[];
+    }
+
+    /**
+      * write settings to sysconfig, rebuild initrd images
+      */
+    global define void Write () ``{
+	// check whether it is neccessary to write initrd
+	if ((! changed) && (Mode::normal))
+	    return;
+
+	boolean modules_written = false;
+
+	foreach (`modname, `optmap, modules, ``{
+	    if (size (optmap) > 0)
+	    {
+		// write options to /etc/modules.conf
+		SCR::Write (.modules.options, optmap, modname);
+		modules_written = true;
+	    }
+	});
+
+	if (modules_written)
+	{
+	    SCR::Write (.modules, nil);
+	}
+	// save sysconfig
+        SCR::Execute (.target.bash,
+	    "/usr/bin/touch /etc/sysconfig/bootloader");
+	SCR::Write (.sysconfig.kernel.INITRD_MODULES,
+	    mergestring (maplist (`k, `v, modules, ``{return k;}), " "));
+	// recreate initrd
+	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> \
+/var/log/YaST2/y2logmk_initrd 2>&1") != 0 )
+	{
+	    string log = SCR::Read (.target.string,
+		"/var/log/YaST2/y2logmk_initrd");
+	    Report::Error ("An error occured during initrd creation."
+		+ "\n\n\n" + log);
+	}
+	changed = false;
+    }
+
+} // end of module
