@@ -6,6 +6,7 @@ Tue Jul  8 16:35:47 CEST 2003 - jsrain@suse.de
   of /boot partition for LILO and GRUB (#27389)
 - not activating any partition by default if some already active
   (#26278)
+- 2.8.4
 
 -------------------------------------------------------------------
 Wed Jun 25 10:11:41 CEST 2003 - jsrain@suse.de
