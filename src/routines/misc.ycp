@@ -1536,4 +1536,27 @@
 	}
     }
 
+    /**
+      * Update graphical bootloader to contain help text of current language
+      * And make the selected installation language default
+      */
+    global define boolean updateGfxMenu () {
+	string lang = (string)SCR::Read (.sysconfig.language.RC_LANG);
+	list<string> l = splitstring (lang, ".");
+	lang = l[0]:"";
+	y2milestone ("Default language for booring menu: %1", lang);
+	string tmpdir = (string)SCR::Read (.target.tmpdir);
+	l = splitstring (lang, "_");
+	string lang_short = l[0]:"";
+
+	string command = sformat (
+	    "/usr/lib/YaST2/bin/update_gfxmenu %1 %2 %3 %4",
+	    tmpdir, lang, lang_short, "/etc/bootsplash/themes/SuSE/bootloader");
+
+	map ret = (map)SCR::Execute (.target.bash_output, command);
+	y2milestone ("GFXMenu update result: %1", ret);
+	return ret["exit"]:0 == 0;
+    }
+
+
 } //end of include
