@@ -27,7 +27,6 @@
     import "Mode";
     include "bootloader/routines/routines.ycp";
 
-    import "Product";
     import "Storage";
     import "StorageDevices";
     import "Report";
@@ -1584,6 +1583,7 @@
       * @return translated section name
       */
     global define string translateSectionTitle (string orig) ``{
+	import "Product";
         map trans = $[
 	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
 	    // are allowed, otherwise translartion won't be used
@@ -1657,6 +1657,7 @@
     }
 
     global define map<string,string> getTranslationsToDiacritics () ``{
+	import "Product";
         map<string,string> trans = $[
 	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
 	    // are allowed. Always remove the leading '_', its just to

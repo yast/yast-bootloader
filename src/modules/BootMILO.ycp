@@ -24,7 +24,6 @@
 
     import "Kernel";
     import "Storage";
-    import "Product";
     import "StorageControllers";
     import "BootCommon";
     import "Installation";
