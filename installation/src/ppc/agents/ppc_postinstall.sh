@@ -21,8 +21,8 @@ do
 	/sbin/activate $j
 done
 
-sed '/^.*mingetty.*$/d' /etc/inittab > /etc/inittab.tmp 
-diff /etc/inittab /etc/inittab.tmp &>/dev/null || mv -v /etc/inittab.tmp /etc/inittab 
+sed '/^.*mingetty.*$/d' /etc/inittab > /etc/inittab.tmp
+diff /etc/inittab /etc/inittab.tmp &>/dev/null || mv -v /etc/inittab.tmp /etc/inittab
 
 #echo "1:12345:respawn:/bin/login console" >> /etc/inittab
 cat >> /etc/inittab <<-EOF
@@ -39,10 +39,10 @@ cat >> /etc/inittab <<-EOF
 
 EOF
 
-if grep -q tty10 /etc/syslog.conf; then 
+if grep -q tty10 /etc/syslog.conf; then
 echo "changing syslog.conf"
-sed '/.*tty10.*/d; /.*xconsole.*/d' /etc/syslog.conf > /etc/syslog.conf.tmp 
-diff /etc/syslog.conf /etc/syslog.conf.tmp &>/dev/null || mv -v /etc/syslog.conf.tmp /etc/syslog.conf 
+sed '/.*tty10.*/d; /.*xconsole.*/d' /etc/syslog.conf > /etc/syslog.conf.tmp
+diff /etc/syslog.conf /etc/syslog.conf.tmp &>/dev/null || mv -v /etc/syslog.conf.tmp /etc/syslog.conf
 fi
 
 sed -e '/\/dev\/ram/d' \
@@ -51,25 +51,24 @@ sed -e '/\/dev\/ram/d' \
     < /etc/fstab > /etc/fstab.neu ; mv /etc/fstab.neu /etc/fstab
 
 ( echo "SuSE Linux on iSeries -- the spicy solution!"
-  echo "Have a lot of fun..." 
+  echo "Have a lot of fun..."
 ) > /etc/motd
 
 
 fi # iseries
 
 
-# p690 has a hvc console
+# p690/p670 has a hvc console
 grep -q "console=hvc" < /proc/cmdline && {
 
-sed '/^.*mingetty.*$/d' /etc/inittab > /etc/inittab.tmp 
-diff /etc/inittab /etc/inittab.tmp &>/dev/null || mv -v /etc/inittab.tmp /etc/inittab 
+sed '/^.*mingetty.*$/d' /etc/inittab > /etc/inittab.tmp
+diff /etc/inittab /etc/inittab.tmp &>/dev/null || mv -v /etc/inittab.tmp /etc/inittab
 
 cat >> /etc/inittab <<-EOF
 
 
 # p690 virtual console:
-V0:12345:respawn:/sbin/mingetty hvc0
-V1:12345:respawn:/sbin/mingetty hvc1
+V0:12345:respawn:/sbin/agetty -L 9600 hvc0 vt320
 
 # to allow only root to log in on the console, use this:
 # 1:2345:respawn:/sbin/sulogin /dev/console
@@ -79,13 +78,8 @@ V1:12345:respawn:/sbin/mingetty hvc1
 
 EOF
 echo "hvc0" >> /etc/securetty
-echo "hvc1" >> /etc/securetty
 echo "hvc/0" >> /etc/securetty
-echo "hvc/1" >> /etc/securetty
 
 
 }
 # p690
-
-
-
