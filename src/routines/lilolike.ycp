@@ -282,7 +282,7 @@
       * @return boolean true if supported
       */
     global define boolean LbaSupport() ``{
-        if (Arch::i386)
+        if (Arch::i386 ())
         {
             list internal_bios = (list<map>)SCR::Read (.probe.bios);
             boolean lba_support = internal_bios[0, "lba_support"]:false;
