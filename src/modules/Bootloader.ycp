@@ -195,6 +195,11 @@
 	    BootCommon::changed = true;
 	}
 
+	if (Mode::initial)
+	{
+	    setKernelParam (getDefaultSection (), "splash", "silent");
+	}
+
 	if (! (BootCommon::changed
 	    || BootCommon::write_settings["initrd_changed_externally"]:false))
 	{

@@ -299,8 +299,10 @@
 		ret = false;
 // save if mkfs or fdformat failed too
 //	    if (ret)
-		SCR::Execute (.target.bash, "test -f /var/log/YaST2/y2loggrub && /bin/rm /var/log/YaST2/y2loggrub");
-		ret = 0 == SCR::Execute (.target.bash, "cat /etc/grub.conf \
+
+	    // remove the log
+	    SCR::Execute (.target.bash, "test -f /var/log/YaST2/y2loggrub && /bin/rm /var/log/YaST2/y2loggrub");
+	    ret = 0 == SCR::Execute (.target.bash, "cat /etc/grub.conf \
 | /usr/sbin/grub --batch --device-map=/boot/grub/device.map >> \
 /var/log/YaST2/y2loggrub 2>&1"
 	    );
@@ -316,6 +318,10 @@
 		// error popup - label
                 errorWithLogPopup (_("Error occurred while installing GRUB"),
                     log);
+	    }
+	    else if (BootCommon::location == "floppy")
+	    {
+		floppyWrittenPopup (BootCommon::getLoaderName ("grub"));
 	    }
 	}
 	return ret;

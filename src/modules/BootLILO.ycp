@@ -97,16 +97,16 @@
 	}
 	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
 	{
+	    createGlobals ();
+	}
+	else
+	{
             if (Mode::autoinst)
             {
                 // TODO whatever will be needed
             }
             else
-		createGlobals ();
-	}
-	else
-	{
-	    fixGlobals (disks_changed);
+		fixGlobals (disks_changed);
 	}
 
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
@@ -195,24 +195,24 @@
     global define boolean Write () ``{
 	BootCommon::updateMBR ();
 	boolean ret = true;
-	if (true) // save always in case of LILO
-//	if (BootCommon::location_changed)
-	{
-	    if (! (BootCommon::location == "floppy" && saveToFLoppyPopup ()))
-		ret = false;
+	if (! (BootCommon::location == "floppy" && saveToFLoppyPopup ()))
+	    ret = false;
 // save if mkfs or fdformat failed too
 //            if (ret)
-		ret = 0 == SCR::Execute (.target.bash,
-		    "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1");
-	    if (! ret)
-	    {
-		string log = SCR::Read (.target.string,
+	ret = 0 == SCR::Execute (.target.bash,
+	    "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1");
+	if (! ret)
+	{
+	    string log = SCR::Read (.target.string,
 		    "/var/log/YaST2/y2loglilo");
-		// error popup - label
-                errorWithLogPopup (_("Error occurred while installing LILO"),
-                    log);
-	    }
+	    // error popup - label
+            errorWithLogPopup (_("Error occurred while installing LILO"), log);
 	}
+        else if (BootCommon::location == "floppy")
+        {
+            floppyWrittenPopup (BootCommon::getLoaderName ("lilo"));
+        }
+
 	return ret;
     }
 
