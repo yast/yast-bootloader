@@ -16,6 +16,7 @@
  */
 
 {
+// testedfiles: BootCommon.ycp bootloader/routines/lilolike.ycp bootloader/routines/misc.ycp
     include "testsuite.ycp";
     import "Mode";
 
@@ -39,6 +40,7 @@
             "floppy" : $[
                 "manual" : [],
             ],
+	    "is_uml" : false,
         ],
         "sysconfig" : $[
             "console" : $[

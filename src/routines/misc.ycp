@@ -1126,8 +1126,12 @@
 	if (num == 0)
 	{
 	    p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
-	    num = p_dev["nr"]:0;
-	    mbr_dev = p_dev["disk"]:"";
+	    any num_any = p_dev["nr"]:nil;
+	    if (num_any != nil && is (num_any, integer))
+	    {
+		num = p_dev["nr"]:0;
+		mbr_dev = p_dev["disk"]:"";
+	    }
 	}
 	if (num != 0)
 	{

@@ -39,6 +39,7 @@
             "floppy" : $[
                 "manual" : [],
             ],
+	    "is_uml" : false,
         ],
         "sysconfig" : $[
             "console" : $[

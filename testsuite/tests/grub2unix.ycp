@@ -40,6 +40,7 @@
             "floppy" : $[
                 "manual" : [],
             ],
+	    "is_uml" : false,
 	    "disk" : [],
         ],
         "sysconfig" : $[
