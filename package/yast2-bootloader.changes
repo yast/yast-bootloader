@@ -15,6 +15,22 @@ Wed Oct  6 10:04:38 CEST 2004 - jsrain@suse.cz
 - fixed summary if GRUB section name contains HTML tag (#46792)
 
 -------------------------------------------------------------------
+Tue Oct  5 12:55:53 CEST 2004 - jsrain@suse.cz
+
+- replace blank spaces in LILO section name with underscores,
+  shorten it if it is longer than 15 chars (#46778)
+- 2.10.17
+
+-------------------------------------------------------------------
+Mon Oct  4 18:59:27 CEST 2004 - jsrain@suse.cz
+
+- if serial parameter is present in menu.lst, don't add gfxboot
+  during update (#46680)
+- fixed update if root device name contained 'suse' or 'shipped'
+  (#46750)
+- 2.10.16
+
+-------------------------------------------------------------------
 Wed Sep 29 09:14:29 CEST 2004 - jsrain@suse.cz
 
 - do not show the disks order if there is only one disk (#46346)

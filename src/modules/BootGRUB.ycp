@@ -508,15 +508,25 @@
 		if (p["key"]:"" == "kernel" || p["key"]:"" == "initrd")
 		{
 		    string option = p["value"]:"";
-		    if (regexpmatch (option, "^.*\.shipped.*$"))
+		    if (regexpmatch (option, "^.*vmlinuz\\.shipped.*$"))
 		    {
 			option = regexpsub (option,
-			    "^(.*)\.shipped(.*)$", "\\1\\2");
+			    "^(.*)vmlinuz\\.shipped(.*)$", "\\1vmlinuz\\2");
 		    }
-		    else if (regexpmatch (option, "^.*\.suse.*$"))
+		    else if (regexpmatch (option, "^.*vmlinuz\\.suse.*$"))
 		    {
 			option = regexpsub (option,
-			    "^(.*)\.suse(.*)$", "\\1\\2");
+			    "^(.*)vmlinuz\\.suse(.*)$", "\\1vmlinuz\\2");
+		    }
+		    else if (regexpmatch (option, "^.*initrd\\.shipped.*$"))
+		    {
+			option = regexpsub (option,
+			    "^(.*)initrd\\.shipped(.*)$", "\\1initrd\\2");
+		    }
+		    else if (regexpmatch (option, "^.*initrd\\.suse.*$"))
+		    {
+			option = regexpsub (option,
+			    "^(.*)initrd\\.suse(.*)$", "\\1initrd\\2");
 		    }
 		    if (type == "linux" && p["key"]:"" == "kernel")
 		    {
@@ -583,8 +593,12 @@
 	    `globals, "color", "white/blue black/light-gray");
 	BootCommon::addValueToBootloaderSection (
             `globals, "timeout", 8);
-	BootCommon::addValueToBootloaderSection (
-            `globals, "gfxmenu", file2grub ("/boot/message"));
+	if (lookup_value (BootCommon::globals, "gfxmenu", nil) != nil
+	    || lookup_value (BootCommon::globals, "serial", nil) == nil)
+	{
+	    BootCommon::addValueToBootloaderSection (
+		`globals, "gfxmenu", file2grub ("/boot/message"));
+	}
     }
 
     /**
