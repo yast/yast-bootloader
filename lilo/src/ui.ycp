@@ -79,7 +79,8 @@ global define symbol LiloMainDialog() ``{
         ],
 	"summary" : $[
 	    `modify : "target",
-	    `restore : "summary",
+	    `restore : `next,//"summary",
+	    `nothing : "summary",
 	    `expert :  "expert",
 	    `next  : "end",
 	    `abort : `abort
@@ -169,7 +170,7 @@ global define symbol SummaryDialog() ``{
 
     do
     {
-	if (ui == `accept && !initial_mode)
+	if ((ui == `accept || ui == `restore) && !initial_mode)
 	{
 	    UI::ChangeWidget(`id(`next), `Label, UI::FinishButtonLabel());
 	}
@@ -206,6 +207,17 @@ and bootloader will be installed. Do you wish to continue?");
                 ui = `skip_event;
             }
 	}
+	if (ui == `next && UI::QueryWidget(`id(`radios), `CurrentButton) == `restore)
+	{
+	    // popup
+            string message = _("Settings will be tested now. If the test is
+successfull, settings will be saved to disk
+and bootloader will be installed. Do you wish to continue?");
+            if (!Lilo::autoinstallation && !initial_mode && !UI::`YesNoPopup(message))
+            {
+                ui = `skip_event;
+            }
+	}
     }
     while (!contains([`next, `abort, `back], ui));
     summary_sel = UI::QueryWidget(`id(`radios), `CurrentButton);
@@ -226,6 +238,22 @@ and bootloader will be installed. Do you wish to continue?");
 	}
 	else if (way == `restore)
 	{
+/*	    // popup
+	    string message = _("Settings will be tested now. If the test is
+successfull, settings will be saved to disk
+and bootloader will be installed. Do you wish to continue?");
+            if (!Lilo::autoinstallation && !initial_mode && !UI::`YesNoPopup(message))
+            {
+		return `nothing;
+            }*/
+
+	    map m = SCR::Read (.target.ycp, "/var/lib/YaST2/bootloader");
+	    m = lookup (m, "original", $[]);
+	    string dev = lookup (m, "device", "");
+	    if (dev == "")
+		dev = "/dev/hda";
+	    import "Boot";
+	    Boot::device = dev;
 	    if (initial_mode)
 	    {
 		restoreOriginalSettings_initial();

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 20 14:48:13 CEST 2002 - jsrain@suse.cz
+
+- fixed original configuration restore when using GRUB
+- fixed partition list reading
+- 2.6.25
+
+-------------------------------------------------------------------
 Mon Aug 19 14:10:01 CEST 2002 - jsrain@suse.cz
 
 - modified failsafe kernel image name for update of lilo
