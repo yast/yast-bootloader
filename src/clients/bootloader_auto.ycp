@@ -22,10 +22,8 @@
 
     import "Bootloader";
     import "BootCommon";
-    import "Wizard";
     import "Initrd";
     import "Progress";
-    import "Kernel";
     import "Mode";
 
     include "bootloader/routines/routines.ycp";
