@@ -1,8 +1,8 @@
 -------------------------------------------------------------------
 Fri Feb 14 09:33:09 CET 2003 - jsrain@suse.de
 
-- added splash-screen's size parameter when calling mk_initrd
-  (partial fix #23579)
+- added splash-screen's size parameter when calling mk_initrd 
+  (#23579)
 
 -------------------------------------------------------------------
 Thu Feb 13 10:41:08 CET 2003 - jsrain@suse.de
