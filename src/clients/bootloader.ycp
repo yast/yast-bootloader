@@ -25,7 +25,6 @@
     import "RichText";
 
     include "bootloader/routines/routines.ycp";
-    include "commandline/commandline.ycp";
 
 // --------------------------------------------------------------------------
 // --------------------------------- cmd-line handlers
@@ -268,7 +267,7 @@
 	i = i + 1;
     }
 
-    boolean ret = CommandLineRun (cmdline);
+    boolean ret = CommandLine::Run (cmdline);
 //    boolean ret = GuiHandler ();
 /*
     Wizard::CreateDialog ();
