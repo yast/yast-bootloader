@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 23 18:16:32 CEST 2003 - schwab@suse.de
+
+- Fix quoting in efibootmgr command line.
+
+-------------------------------------------------------------------
 Thu Oct 23 12:50:39 CEST 2003 - jsrain@suse.de
 
 - fixed routines used to modify parameters of specified kernel
