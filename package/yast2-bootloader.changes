@@ -5,6 +5,8 @@ Mon Aug 16 11:16:44 CEST 2004 - jsrain@suse.cz
   holding the /boot partition on /dev/md*
 - fixed activating partitions and writing generic code to MBR if
   installing on /dev/md*
+- work correctly with kernel image names also on other archs than
+  i386 when creating the previous kernel section
 
 -------------------------------------------------------------------
 Fri Aug 13 14:55:49 CEST 2004 - jsrain@suse.cz

@@ -1920,12 +1920,13 @@
 	    {
 		list<string> l = splitstring (s["value"]:"", " \t");
 		l = filter (string p, l, {return p != "";});
-		if (regexpmatch (l[0]:"", "^.*vmlinuz[^ ]*.*$"))
+		if (regexpmatch (sformat (l[0]:"", "^.*%1[^ ]*.*$",
+		    Kernel::binary)))
 		{
 		    l[0] = regexpsub (
 			l[0]:"",
-			"^(.*)vmlinuz[^ ]*(.*)$",
-			"\\1vmlinuz.previous\\2");
+			sformat ("^(.*)%1[^ ]*(.*)$", Kernel::binary),
+			sformat ("\\1%1.previous\\2", Kernel::binary));
 		}
 		s["value"] = mergestring (l, " ");
 	    }
