@@ -2,7 +2,8 @@
 Tue Mar 11 12:55:43 CET 2003 - jsrain@suse.de
 
 - using activate instead of sfdisk to activate bootloader
-  partition (#24740)
+  partition, because sfdisk has unwanted side effects (#24740)
+- 2.7.15
 
 -------------------------------------------------------------------
 Mon Mar 10 11:05:07 CET 2003 - jsrain@suse.de
