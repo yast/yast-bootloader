@@ -114,6 +114,8 @@ read-only
 
 # Now set the appropriate EFI environment variables 
 
+test -n "$product" || product="SuSE Linux"
+
 # boot device
 bootdev=$(get_device /boot)
 
@@ -124,9 +126,9 @@ bootdsk=`echo $bootdev | sed -e 's/[0-9]*$//' -e 's/\([0-9]\)p/\1/'`
 bootprt=${bootdev#$bootdsk}
 
 # check for old SuSE Linux entries.
-BOOTENTRY="`/usr/sbin/efibootmgr |grep "SuSE Linux" |cut -f1 -d\* |cut -c5-`"
+BOOTENTRY=`/usr/sbin/efibootmgr |grep -F "$product" |cut -f1 -d\* |cut -c5-`
 if [ "$BOOTENTRY" != "" ]; then
   /usr/sbin/efibootmgr -b $BOOTENTRY -B -q
 fi
 
-/usr/sbin/efibootmgr -c -L "SuSE Linux" -d $bootdsk  -l \\efi\\SuSE\\elilo.efi -p $bootprt -q
+/usr/sbin/efibootmgr -c -L "$product" -d $bootdsk  -l \\efi\\SuSE\\elilo.efi -p $bootprt -q
