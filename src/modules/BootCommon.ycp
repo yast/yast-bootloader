@@ -418,7 +418,7 @@ configuration files
 	if ((! recheck) && (loader_type != nil))
 	    return loader_type;
 	// read bootloader to use from disk
-	if (Mode::update || Mode::normal)
+	if (Mode::update || Mode::normal || Mode::repair)
 	{
 	    loader_type = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
 	    if (loader_type != nil && loader_type != "")
