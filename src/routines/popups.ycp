@@ -269,6 +269,9 @@ Check the gfxmenu settings.
       * @param log string logfile contents
       */
     global define void errorWithLogPopup (string header, string log) ``{
+	if (log == nil)
+	    // FIXME too generic, but was already translated
+	    log = _("Unable to install the boot loader.");
 	term text = `RichText( `opt(`plainText), log );
 	UI::OpenDialog(`opt ( `decorated ),
 	    `VBox (`HSpacing(75),

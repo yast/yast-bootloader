@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 26 10:03:50 CET 2004 - jsrain@suse.de
+
+- check for nil output of runnign bootloader installer (#36927)
+
+-------------------------------------------------------------------
 Thu Mar 25 11:43:52 CET 2004 - jsrain@suse.de
 
 - fixed behavior if installing bootloader to boot sector of
