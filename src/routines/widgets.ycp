@@ -507,6 +507,7 @@
 	{
 	    if (BootCommon::sections_changed)
 	    {
+		BootCommon::changed = true;
 		BootCommon::markOptionChanged (`current_globals, "__sections");
 		BootCommon::markOptionChanged (`current_globals, "__default_section");
 	    }
