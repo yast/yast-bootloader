@@ -437,6 +437,14 @@ configuration files
 		y2milestone ("Sysconfig bootloader is %1, using", loader_type);
 		return loader_type;
 	    }
+	    if (Mode::update)
+	    {
+		if (Arch::i386)
+		{ // no sysconfig variable -> old version installed -> use LILO
+		    loader_type = "lilo";
+		    return loader_type;
+		}
+	    }
 	}
 	// detect bootloader
 	loader_type = SCR::Read (.probe.boot_arch);

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar  7 10:16:51 CET 2003 - jsrain@suse.de
+
+- fixed update from version without sysconfig variables specifying
+  used bootloader (#24783)
+
+-------------------------------------------------------------------
 Wed Mar  5 13:48:29 CET 2003 - jsrain@suse.de
 
 - fixed multiple occurences of map option in one GRUB section

@@ -101,6 +101,10 @@
 	    BootCommon::location = "custom";
 	    BootCommon::loader_device = "/dev/null";
 	}
+	else if (BootCommon::location == nil || BootCommon::location == "")
+	{
+	    BootCommon::location = "custom";
+	}
 	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::was_read = true;
 	old_vga = getKernelParam (getDefaultSection (), "vga");
