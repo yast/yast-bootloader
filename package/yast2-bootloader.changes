@@ -3,6 +3,8 @@ Mon Sep  8 09:18:48 CEST 2003 - jsrain@suse.de
 
 - fixed bootloader menu entry - windows -> Windows (like other
   entries) (#29600)
+- use device file name when specifying root device for LVM and MD
+  instead of using major and minor number (#28028)
 
 -------------------------------------------------------------------
 Fri Sep  5 15:10:35 CEST 2003 - jsrain@suse.de
