@@ -727,6 +727,7 @@
 			    opts_tmp = maplist (`o, opst_tmp, ``{
 				if (o["key"]:"" == "title")
 				{
+				    // no need to translate here...
 				    o["value"] = sformat ("%1_%2",
 					dev, o["value"]:"");
 				    intern["type"] = o["value"]:"";
@@ -788,7 +789,8 @@
 			    && dev != BootCommon::loader_device)
 			{
 			    list m = [
-				$[ "key" : "title", "value" : label],
+				$[ "key" : "title",
+				    "value" : translateSectionTitle (label)],
 				$[ "key" : "root", "value" : g_dev],
 // can bring problem if bootloader installed in bootsector of some partition
 // new systems don't mind not having active partitions

@@ -380,7 +380,8 @@
 		    {
 			list m = [
 			    $["key" : "label",
-				"value" : BootCommon::removeBlanks (label)],
+				"value" : translateSectionTitle (
+				BootCommon::removeBlanks (label))],
 			    $[ "key" : "other", "value" : dev],
 			    $[ "key" : "__intern__", "value" : $[
 				"auto" : true,
