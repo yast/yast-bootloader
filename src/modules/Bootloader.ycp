@@ -830,6 +830,8 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
      * @reuturn boolean true on success
      */
     global define boolean UpdateGfxMenu () {
+	if (! Mode::normal)
+	    return true;
 	if (getLoaderType () != "lilo" && getLoaderType () != "grub")
 	    return true;
 
