@@ -82,6 +82,7 @@
 	    "kernel_params" : $[
 		`other : "kernel",
 	    ],
+	    "update_passwd" : ``{ps = sformat ("--md5 %1", cryptmd5 (ps));},
         ];
     }
 
@@ -1020,6 +1021,21 @@
       */
     global define map convertSection (string otype, string ntype, map orig) ``{
 	map ret = $[];
+	if (orig == nil)
+	{
+	    if (ntype == "other")
+	    {
+		ret = $[ "root" : "", "chainloader" : "",
+		    "__order__" : ["root", "chainloader"]];
+	    }
+	    else
+	    {
+		ret = $[ "root": "", "kernel" : "", "initrd" : "",
+		    "__order__" : ["root", "kernel", "initrd"]];
+	    }
+	    ret["title"] = BootCommon::getFreeSectionLabel ();
+	    return ret;
+	}
 	if (ntype == "other")
 	{
 	    string root = select (splitDevPath (orig["kernel"]:""), 0,"");
@@ -1043,7 +1059,6 @@
 	    ];
 	}
 	ret["title"] = orig["title"]:"";
-y2error ("Converted: %1", ret);
 	return ret;
     }
 

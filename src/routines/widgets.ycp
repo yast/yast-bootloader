@@ -281,8 +281,14 @@
 		if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
 		{
 		    string ps = UI::QueryWidget (`id (`pw1), `Value);
-		    if (getLoaderType (false) == "grub")
-			ps = sformat ("--md5 %1", cryptmd5 (ps));
+		    if (haskey (BootCommon::current_bootloader_attribs,
+			"update_passwd"))
+		    {
+			eval (BootCommon::current_bootloader_attribs[
+			    "update_passwd"]:nil);
+		    }
+//		    if (getLoaderType (false) == "grub")
+//			ps = sformat ("--md5 %1", cryptmd5 (ps));
 		    current_section["password"] = ps;
 		}
 	    }
@@ -339,7 +345,6 @@
 	return $[
 	    "widget" : `VBox (
 		`HBox (
-		    `ReplacePoint (`id (`sects_rp),
 			`Table (`id (`sects), `opt (`keepSorting), `header (
 			// table header
 			_("Def."),
@@ -349,8 +354,7 @@
 			_("Type"),
 			// table header
 			_("Image / Device")
-			), [])
-		    ),
+			), []),
 		    `HSpacing (1),
 		    `VBox (
 			`VStretch (),
@@ -398,18 +402,7 @@
                 : s["other"]:""
             );
         });
-	UI::ReplaceWidget (`id (`sects_rp),
-	    `Table (`id (`sects), `opt (`keepSorting), `header (
-		// table header
-		_("Default"),
-		// table header
-		_("Label"),
-		// table header
-		_("Type"),
-		// table header
-		_("Image / Device")
-	    ), sec)
-	);
+	UI::ChangeWidget (`id (`sects), `Items, sec);
     }
 
     /**
@@ -472,14 +465,9 @@
 	}
 	else if (op == `add)
 	{
-	    BootCommon::current_section = $[
-		"label" : getFreeSectionLabel (),
-		"image" : "",
-		"initrd" : "",
-		"root" : "",
-	    ];
+	    BootCommon::current_section = BootCommon::convertSection
+		(nil, "image", nil);
 	    BootCommon::current_section_name = "";
-	    BootCommon::current_section_type = "image";
 	    BootCommon::changed_settings[""] = $[];// FIXME this is wrong due to name and "current" variable
 	    BootCommon::one_section_changed = true;
 	}
@@ -489,8 +477,6 @@
 	    BootCommon::current_section = eval (sects[index]:$[]);
 	    BootCommon::current_section_name
 		= sects[index, "label"]:"";
-	    BootCommon::current_section_type
-		= sects[index, "image"]:"" == "" ? "other" : "image";
 
 	    BootCommon::changed_settings_single_sect
 		= eval (BootCommon::changed_settings[sects[index, "label"]:""]:$[]);
@@ -609,31 +595,23 @@
       * @return list of options as should bve displayed
       */
     global define list UpdateOptionsList (map _options) ``{
+	list prependlist = [];
 	list options = maplist (`k, `v, _options, ``(k));
-	any type = BootCommon::current_section_type;
+	any type = BootCommon::getSectionType (BootCommon::current_section);
 	if (type == `global)
 	{
+	    prependlist = ["__loader_type", "__sep2", "__location",
+		"__default_section", "__sections", "activate", "__repl_mbr",
+		"__sep1"];
 	    options = filter (`o, options, ``(o != "boot" && o != "default"));
-	    options = filter (`o, options, ``(o != "loader_type"
-		&& o != "location" && o != "default_section" && o != "sections"
-		&& o != `repl_mbr && o != "activate"
-	    ));
-	    options = prepend (options, "__sep1");
-	    options = prepend (options, "__repl_mbr");
-	    options = prepend (options, "activate");
-	    options = prepend (options, "__sections");
-	    options = prepend (options, "__default_section");
-	    options = prepend (options, "__location");
-	    options = prepend (options, "__sep2");
-	    options = prepend (options, "__loader_type");
 	}
 	else
 	{
-	    options = filter (`o, options, ``(o != "type" && o != "label"));
-	    options = prepend (options, "__sep1");
-	    options = prepend (options, "__section_type");
+	    prependlist = ["label", "__section_type", "__sep1"];
 	    options = prepend (options, "label");
 	}
+	options = filter (`o, options, ``(! contains (prependlist, o)));
+	options = merge (prependlist, options);
 	return options;
     }
 
@@ -758,15 +736,11 @@
 	if (! contains (tosave, op))
 	    return;
         string ntype = UI::QueryWidget (`id (`section_type), `Value);
-	string otype = BootCommon::current_section[
-		BootCommon::getKernelKey ()]:nil == nil
-	    ? "other"
-	    : "image";
+	string otype = BootCommon::getSectionType (BootCommon::current_section);
 	if (otype == ntype)
 	    return;
 	BootCommon::current_section = BootCommon::convertSection (
 	    otype, ntype, BootCommon::current_section);
-	BootCommon::current_section_type = ntype;
     }
 
     /**

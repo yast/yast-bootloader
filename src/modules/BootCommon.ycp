@@ -148,17 +148,13 @@
 // ui help variables
 
     /**
-      * Curtrently edited section
+      * Curtrently edited section -- tmp store
       */
     global map current_section = $[];
     /**
       * Name of currently edited section, `global for global section
       */
     global any current_section_name = `global;
-    /**
-      * Type of currently edited section
-      */
-    global any current_section_type = `global;
     /**
       * Updated, but not yet confirmed sections -- tmp store
       */

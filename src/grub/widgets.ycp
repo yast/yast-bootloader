@@ -84,18 +84,13 @@ Replace it with an entry  to boot from the floppy?");
 	any ret = BootCommon::targetWrite (op, tosave);
 	if (contains (tosave, op))
 	{
-//	    y2error ("SEC: %1", BootCommon::sections);
-//	    list sections = BootCommon::sections;
 	    list sections = BootCommon::current_sections;
-//	    y2milestone ("Possibly needed to change the floppy bl entry");
 	    if (issubstring (BootCommon::loader_device, "/dev/fd")||
 		BootCommon::location == "floppy")
 	    {
-//		y2milestone ("BL saving to floppy");
 		sections = maplist (`s, sections, ``{
 		    if (s["title"]:"" == "floppy" && changeSection ("floppy"))
 		    {
-//			y2milestone ("Floppy found");
 			s = $[
 			    "__order__" : ["title", "root", "chainloader"],
 			    "title" : "hard disk",
@@ -113,12 +108,10 @@ Replace it with an entry  to boot from the floppy?");
 	    }
 	    else
 	    {
-//		y2milestone ("BL saving to disk");
 		sections = maplist (`s, sections, ``{
 		    if (s["title"]:"" == "hard disk"
 			&& changeSection ("disk"))
 		    {
-//			y2milestone ("Disk found");
 			s = $[
 			    "__order__" : ["title", "root", "chainloader"],
 			    "title" : "floppy",
@@ -134,9 +127,7 @@ Replace it with an entry  to boot from the floppy?");
 		    return s;
 		});
 	    }
-//	    BootCommon::sections = sections;
 	    BootCommon::current_sections = sections;
-//	    y2error ("SEC: %1", BootCommon::sections);
 	}
 	return ret;
     }
@@ -148,16 +139,16 @@ Replace it with an entry  to boot from the floppy?");
       * @return list of option to show
       */
     global define list UpdateOptionsList (map options) ``{
-	any type = BootCommon::current_section_type;
+	any type = BootCommon::getSectionType (BootCommon::current_section);
 	list _options = [];
+	list prependlist = [];
 	if (type == `global)
 	{
+	    prependlist = ["__loader_type", "__sep2", "__location",
+		"__diskorder", "__default_section", "__sections", "activate",
+		"__repl_mbr", "__sep1"];
             options = filter (`o, `v, options,
 		``(o != "boot" && o != "default"));
-            options = filter (`o, `v, options, ``(o != "loader_type"
-                && o != "location" && o != "default_section" && o != "sections"
-                && o != `repl_mbr && o != "activate" && o != `diskorder
-            ));
 
             list done = [];
             map cont = $[];
@@ -177,20 +168,10 @@ Replace it with an entry  to boot from the floppy?");
                 }
             });
             _options = done;
-
-            _options = prepend (_options, "__sep1");
-            _options = prepend (_options, "__repl_mbr");
-            _options = prepend (_options, "activate");
-            _options = prepend (_options, "__sections");
-            _options = prepend (_options, "__default_section");
-	    _options = prepend (_options, "__diskorder");
-            _options = prepend (_options, "__location");
-            _options = prepend (_options, "__sep2");
-            _options = prepend (_options, "__loader_type");
 	}
 	else
 	{
-	    options = filter (`k, `v, options, ``(k != "type" && k != "title"));
+	    prependlist = ["title", "__section_type", "__sep1"];
 	    list done = [];
 	    map cont = $[];
 	    list order = options["__order__"]:[];
@@ -209,11 +190,10 @@ Replace it with an entry  to boot from the floppy?");
 		}
 	    });
 	    _options = done;
-
-	    _options = prepend (_options, "__sep1");
-	    _options = prepend (_options, "__section_type");
-	    _options = prepend (_options, "title");
 	}
+
+	_options = filter (`o, _options, ``(! contains (prependlist, o)));
+	_options = merge (prependlist, _options);
 	return _options;
     }
 
@@ -353,15 +333,9 @@ Replace it with an entry  to boot from the floppy?");
 	}
 	else if (op == `add)
 	{
-            BootCommon::current_section = $[
-		"__order__" : ["title", "root", "kernel", "initrd"],
-		"title" : getFreeSectionLabel (),
-		"root" : "",
-		"kernel" : "",
-		"initrd" : "",
-	    ];
+            BootCommon::current_section = BootCommon::convertSection
+		(nil, "image", nil);
             BootCommon::current_section_name = "";
-            BootCommon::current_section_type = "image";
 	    BootCommon::one_section_changed = true;
 	}
 	else if (op == `edit)
@@ -370,8 +344,6 @@ Replace it with an entry  to boot from the floppy?");
             BootCommon::current_section = eval (sects[index]:$[]);
             BootCommon::current_section_name
                 = sects[index, "title"]:"";
-            BootCommon::current_section_type
-                = sects[index, "kernel"]:"" == "" ? "other" : "image";
 
             BootCommon::changed_settings_single_sect
                 = eval (BootCommon::changed_settings[sects[index, "title"]:""]:$[]);

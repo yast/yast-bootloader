@@ -119,7 +119,7 @@
     global define map convertSection (string otype, string ntype, map orig) ``{
         term f = current_bootloader_attribs["convert_function"]:nil;
 	if (f == nil)
-	    return f;
+	    return orig;
 	f = add (f, otype);
 	f = add (f, ntype);
 	f = add (f, orig);
@@ -132,6 +132,22 @@
       */
     global define map getKernelParamKeys () ``{
         return current_bootloader_attribs["kernel_params"]:$[];
+    }
+
+    /**
+      * Get type of specified section
+      * Type depends on currently used bootloader
+      * @param section map of the section
+      * @return any section type
+      */
+    global define any getSectionType (map section) ``{
+	if (is (current_section_name, symbol))
+	    return current_section_name;
+// TODO: ask bootloader-specific function if exists
+	if (haskey (current_section, getKernelKey ()))
+	    return "image";
+	else
+	    return "other";
     }
 
 
@@ -261,19 +277,18 @@
 	if (type == `boot_other)
 	{
 	    partitions = filter (`p, partitions,
-		``(lookup (p, "type", `primary) == `primary));
+		``(p["type"]:`primary == `primary));
 	}
         else if (type == `boot)
         {
             partitions = filter (`p, partitions,
-                ``(lookup (p, "type", `primary) == `primary
-			|| lookup (p, "type", `primary) == `extended));
-//			|| lookup (p, "type", `primary) == `logical));
+                ``(p["type"]:`primary == `primary
+		    || p["type"]:`primary == `extended));
         }
         else if (type == `root)
         {
             partitions = filter (`p, partitions,
-                    ``(lookup (p, "type", `primary) != `extended));
+                    ``(p["type"]:`primary != `extended));
         }
 	else if (type == `parts_old)
 	{
@@ -617,7 +632,7 @@
 	    boolean exists = false;
 	    foreach (`s, sections, ``{
 		if (s[getSectionTitle ()]:"" == default)
-		    found = true;
+		    exists = true;
 	    });
 	    if (exists)
 		return default;
