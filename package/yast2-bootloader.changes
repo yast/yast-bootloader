@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  2 18:22:09 CET 2005 - jsrain@suse.cz
+
+- fixed support for localized boot menu, allowed multiple languages
+  to be used at once
+
+-------------------------------------------------------------------
 Tue Feb  1 21:39:12 CET 2005 - nashif@suse.de
 
 - Disabled @YAST2-CHECKS-PROGRAM@ to fix build

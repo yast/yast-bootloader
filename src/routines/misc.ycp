@@ -1788,69 +1788,86 @@
 	return additional_failsafe_params;
     }
 
-    /**
-      * Update graphical bootloader to contain help text of current language
-      * And make the selected installation language default
-      */
-    global define boolean updateGfxMenu () {
-	y2milestone ("Updating GFX boot menu");
-	if (SCR::Read (.target.size, "/boot/message") == -1)
-	    return true;
-	if (SCR::Read (.target.size, "/etc/sysconfig/bootsplash") == -1)
-	    return true;
-	// select the current language
-	string lang = (string)SCR::Read (.sysconfig.language.RC_LANG);
-	if (lang == nil)
-	    return true;
+/**
+  * Update graphical bootloader to contain help text of current language
+  * And make the selected installation language default
+  */
+global define boolean updateGfxMenu () {
+    y2milestone ("Updating GFX boot menu");
+    if (SCR::Read (.target.size, "/boot/message") == -1)
+	return true;
+    if (SCR::Read (.target.size, "/etc/sysconfig/bootsplash") == -1)
+	return true;
+    // select the current language
+    string main_lang = (string)SCR::Read (.sysconfig.language.RC_LANG);
+    string langs = (string)
+	SCR::Read (.sysconfig.language.INSTALLED_LANGUAGES);
+    if (langs == nil)
+	langs = "";
+    list<string> languages = splitstring (langs, ",");
+    languages = prepend (languages, main_lang);
+    languages = filter (string l, languages, {return l != nil;});
+    if (size (languages) == 0)
+	return true;
+    // check if theme is set
+    string boot_theme = (string)SCR::Read (.sysconfig.bootsplash.THEME);
+    if (boot_theme == nil)
+    {
+	return true;
+    }
+    // get available languages
+    string data_dir = sformat ("/etc/bootsplash/themes/%1/bootloader",
+	boot_theme);
+    list<string> files = (list<string>)SCR::Read (.target.dir, data_dir);
+    list<string> helps = filter (string f, files, {
+	return regexpmatch (f, "\\.hlp$");
+    });
+    list<string> texts = filter (string f, files, {
+	return regexpmatch (f, "\\.tr$");
+    });
+    helps = maplist (string h, helps, ``(substring (h, 0, 2)));
+    texts = maplist (string t, texts, ``(substring (t, 0, 2)));
+    y2milestone ("Texts available for %1", sort (texts));
+    y2milestone ("Helps available for %1", sort (helps));
+    string tmpdir = (string)SCR::Read (.target.tmpdir);
+    string lang_params = "";
+
+    foreach (string lang, languages, {
 	list<string> l = splitstring (lang, ".");
 	lang = l[0]:"";
-	y2milestone ("Default language for booting menu: %1", lang);
-	string tmpdir = (string)SCR::Read (.target.tmpdir);
+	y2milestone ("Selected language for booting menu: %1", lang);
 	l = splitstring (lang, "_");
 	string lang_short = l[0]:"";
-	string boot_theme = (string)SCR::Read (.sysconfig.bootsplash.THEME);
-	if (boot_theme == nil)
-	{
-	    // check if theme is set
-	    return true;
-	}
-	string data_dir = sformat ("/etc/bootsplash/themes/%1/bootloader",
-	    boot_theme);
-	// get available languages, check if selected is supported
-	list<string> files = (list<string>)SCR::Read (.target.dir, data_dir);
-	list<string> helps = filter (string f, files, {
-	    return regexpmatch (f, "\\.hlp$");
-	});
-	list<string> texts = filter (string f, files, {
-	    return regexpmatch (f, "\\.tr$");
-	});
-	helps = maplist (string h, helps, ``(substring (h, 5, 2)));
-	texts = maplist (string t, texts, ``(substring (t, 5, 2)));
-	y2debug ("Texts available for %1", texts);
-	y2debug ("Helps available for %1", helps);
+	// check if lang is supported
 	if (! (contains (helps, lang_short) || contains (texts, lang_short)))
 	{
 	    y2milestone ("Language %1 is not supported by gfxmenu", lang_short);
-	    lang = "en_EN";
-	    lang_short = "en";
 	}
-	// update the boot message
-	string trans_file = sformat ("%1/boot_translations", tmpdir);
-	map<string,string> trans_map = getTranslationsToDiacritics ();
-	list<string> trans_list = maplist (string k, string v, trans_map, {
-	    return sformat ("%1\n%2", k, v);
-	});
-	string trans_str = mergestring (trans_list, "\n");
-	trans_str = trans_str + "\n";
-	SCR::Write (.target.string, trans_file, trans_str);
-	string command = sformat (
-	    "/usr/lib/YaST2/bin/update_gfxmenu %1 %2 %3 %4 %5",
-	    tmpdir, lang, lang_short, data_dir, trans_file);
+	else
+	{
+	    lang_params = sformat ("%1 %2 %3", lang_params, lang, lang_short);
+	}
+    });
+    // update the boot message
+    string trans_file = sformat ("%1/boot_translations", tmpdir);
+    map<string,string> trans_map = getTranslationsToDiacritics ();
+    list<string> trans_list = maplist (string k, string v, trans_map, {
+	return sformat ("%1\n%2", k, v);
+    });
+    string trans_str = mergestring (trans_list, "\n");
+    trans_str = trans_str + "\n";
+    SCR::Write (.target.string, trans_file, trans_str);
+    if (lang_params == "")
+	lang_params = "en_EN en";
+    string command = sformat (
+	"/usr/lib/YaST2/bin/update_gfxmenu %1 %2 %3 %4",
+	tmpdir, data_dir, trans_file, lang_params);
 
-	map ret = (map)SCR::Execute (.target.bash_output, command);
-	y2milestone ("GFXMenu update result: %1", ret);
-	return ret["exit"]:0 == 0;
-    }
+    y2milestone ("Runnign command %1", command);
+    map ret = (map)SCR::Execute (.target.bash_output, command);
+    y2milestone ("GFXMenu update result: %1", ret);
+    return ret["exit"]:0 == 0;
+}
 
     /**
      * Transform the selected linux section to section for previous kernel
