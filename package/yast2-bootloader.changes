@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 18 13:45:02 CET 2003 - jsrain@suse.de
+
+- switched from kdoc to doxygen
+
+-------------------------------------------------------------------
 Thu Oct 30 17:49:22 CET 2003 - jsrain@suse.de
 
 - fixed handling of disks reorder dialog for GRUB configuration

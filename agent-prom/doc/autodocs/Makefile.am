@@ -4,10 +4,9 @@
 
 htmldir = $(docdir)/agent-prom/autodocs
 
-html_DATA = index.html $(wildcard *.html)
+html_DATA = index.html $(wildcard *.html) doxygen.css @RPMNAME@.tag
 
-CLEANFILES = $(html_DATA)
+CLEANFILES = $(html_DATA) doxygen.log doxygen.conf installdox
 
 index.html: $(srcdir)/../../src/*.h
-	cd $(srcdir)/../../src && @ybindir@/ydoc agent-prom *.h
-	mv -f $(srcdir)/../../src/*.html .
+	@ybindir@/ydoxygen PROJECT_NAME=@RPMNAME@
