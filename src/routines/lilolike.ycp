@@ -18,12 +18,11 @@
 
     textdomain "bootloader";
 
-    import "StorageDevices";
-    import "Storage";
-
+    import "Arch";
     import "BootCommon";
     import "Mode";
-    import "Arch";
+    import "Storage";
+    import "StorageDevices";
 
     /**
       * Check whether disk settings were changed since last checking
