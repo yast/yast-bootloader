@@ -3,7 +3,6 @@ Read	.probe.has_apm true
 Read	.probe.has_pcmcia false
 Read	.probe.has_smp false
 Read	.probe.system []
-Read	.target.size "/etc/install.inf" -1
 Read	.target.tmpdir "/tmp/"
 Read	.etc.install_inf.Cmdline ""
 Read	.proc.cpuinfo.value.0."flags" ""
