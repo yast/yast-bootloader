@@ -2,12 +2,7 @@
 # Makefile.am for y2c_lilo/src
 #
 
-clientsdir = $(YAST2DIR)/clients
-yncludedir = $(YAST2DIR)/include/lilo
-menudir = $(YAST2DIR)/menuentries
-modulesdir = $(YAST2DIR)/modules
-
-clients_DATA =		\
+client_DATA =		\
 	lilo.ycp	\
 	lilo_write.ycp	\
 	lilo_auto.ycp
@@ -19,10 +14,10 @@ ynclude_DATA =		\
 	texts.ycp	\
 	widgets.ycp	\
 	helps.ycp	\
-	scan.ycp	
+	scan.ycp
 
-menu_DATA = menuentry_lilo.y2cc
+config_DATA = lilo.y2cc
 
-modules_DATA = Lilo.ycp
+module_DATA = Lilo.ycp
 
-EXTRA_DIST = $(clients_DATA) $(ynclude_DATA) $(menu_DATA) $(modules_DATA)
+EXTRA_DIST = $(client_DATA) $(ynclude_DATA) $(config_DATA) $(module_DATA)

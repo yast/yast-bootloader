@@ -1,5 +1,6 @@
 @HEADER-COMMENT@
-# neededforbuild yast2-devtools  autoconf automake yast2-testsuite dejagnu expect tcl yast2-core yast2-core-devel
+
+# neededforbuild  autoconf automake dejagnu expect tcl yast2-core yast2-core-devel yast2-devtools yast2-testsuite
 
 @HEADER@
 Requires:	yast2 yast2-lib-sequencer yast2-lib-wizard
@@ -34,7 +35,7 @@ Summary:	YaST2 Modules for installation
 %dir @yincludedir@/lilo
 @yincludedir@/lilo/*.ycp
 @clientdir@/lilo*.ycp
-@configdir@/menuentry_lilo.y2cc
+@configdir@/*.y2cc
 @moduledir@/Lilo.ycp
 
 #installation
@@ -71,4 +72,3 @@ Summary:	YaST2 Modules for installation
 @ybindir@/dolilo
 @moduledir@/BootLILO.ycp
 %endif
-
