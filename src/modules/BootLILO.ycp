@@ -28,6 +28,7 @@
     import "BootCommon";
     import "Arch";
     import "Pkg";
+    impirt "ProductFeatures";
 
     include "bootloader/lilo/widgets.ycp";
     include "bootloader/lilo/helps.ycp";
@@ -85,7 +86,8 @@
 	if (title != "failsafe")
 	{
 	    append = BootCommon::setKernelParamToLine (append, "splash", "silent");
-	    append = BootCommon::setKernelParamToLine (append, "desktop", "true");
+	    if (ProductFeatures::use_desktop_scheduler)
+		append = BootCommon::setKernelParamToLine (append, "desktop", "true");
 	}
 	string root = BootCommon::dev2majminIfNonStandard (
             BootCommon::RootPartitionDevice);
