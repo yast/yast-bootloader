@@ -146,7 +146,7 @@ if (ret == `ok)
 	map ret = Lilo::Write(``{}, ``{});
 	y2debug("write = %1", ret);
 	if (ret["execute"]:127 != 0 || ret["finish"]:false == false || ret["write"]:false == false)
-	    UI::ErrorPopup ("An error occured during saving bootloader configuration");
+	    UI::ErrorPopup (_("An error occured during saving bootloader configuration"));
     }
     UI::`CloseDialog();
     return `next;

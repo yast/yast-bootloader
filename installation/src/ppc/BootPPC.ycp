@@ -22,6 +22,8 @@
     import "Boot";
     import "Kernel";
 
+    textdomain "bootloader";
+
     // ppc specific global settings
 
     // run lilo or not
@@ -239,7 +241,8 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 					    // Layout trick: let the text have its nice size - the rest
 					    // will do nicely for the input field.
 					    `Bottom(
-						    `ComboBox (`id(`custom_partition), `opt(`editable), "Choose 41 PReP boot partition:", BootPPC::ppc_possible_boot_partitions)
+							// combobox
+						    `ComboBox (`id(`custom_partition), `opt(`editable), _("&Choose 41 PReP boot partition:"), BootPPC::ppc_possible_boot_partitions)
 						    )
 					    )
 				   )
@@ -279,6 +282,7 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 				 `VStretch(),
 				 `Left(
 				       `RadioButton( `id( "iseries_stmf" ), `opt(`notify),
+							// radiobutton
 						     sformat (_("Generate a bootfile for *STMF booting")),
 						     Boot::location == "iseries_stmf")
 				       )
@@ -290,6 +294,7 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 					 `VStretch(),
 					 `Left(
 					       `RadioButton( `id( "iseries_nwsstg" ), `opt(`notify),
+							// radiobutton
 							     sformat (_("write kernel to 41 PReP boot partition (for *NWSSTG)"), Boot::mbrDisk),
 							     Boot::location == "iseries_nwsstg")
 					       )
@@ -300,6 +305,7 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 				 `VStretch(),
 				 `Left(
 				       `RadioButton( `id( "iseries_kernel_slot" ), `opt(`notify),
+							// radiobutton
 						     sformat (_("write kernel to slot B")),
 						     Boot::location == "iseries_kernel_slot")
 				       )
@@ -309,6 +315,7 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 				 `VStretch(),
 				 `Left(
 				       `RadioButton( `id( "iseries_do_nothing" ), `opt(`notify),
+							// radiobutton
 						     sformat (_("Do not configure bootloader")),
 						     Boot::location == "iseries_do_nothing")
 				       )
