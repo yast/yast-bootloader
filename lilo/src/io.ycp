@@ -19,7 +19,7 @@
 
 {
 
-textdomain "lilo";
+textdomain "bootloader";
 
 
 

@@ -3,12 +3,12 @@
 # neededforbuild  autoconf automake dejagnu expect tcl yast2 yast2-core yast2-core-devel yast2-devtools yast2-testsuite gpp libgpp libxcrypt libxcrypt-devel
 
 @HEADER@
-Requires:	yast2 yast2-lib-sequencer yast2-lib-wizard
+Requires:	yast2 yast2-core
 
-Provides:	y2c_bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo
-Obsoletes:	y2c_bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo
+Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo
+Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo
 
-Summary:	YaST2 Modules for installation
+Summary:	YaST2 Modules for bootloader installation and configuration
 
 %description
 -
@@ -26,7 +26,7 @@ Summary:	YaST2 Modules for installation
 
 # bootfloppy
 @configdir@/bootfloppy.y2cc
-@moduledir@/bootfloppy.ycp
+@clientdir@/bootfloppy.ycp
 %doc @docdir@/*
 
 # lilo

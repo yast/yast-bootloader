@@ -42,7 +42,7 @@
 
 {
 
-textdomain "lilo";
+textdomain "bootloader";
 include "lilo/io.ycp";
 include "lilo/routines.ycp";
 

@@ -24,7 +24,7 @@
 
     module "Lilo";
     include "lilo/routines.ycp";
-    textdomain "lilo";
+    textdomain "bootloader";
 
     // Settings: Define all variables needed for configuration of exampleX
     //   // List of the configured cards

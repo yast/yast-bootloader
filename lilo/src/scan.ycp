@@ -19,7 +19,7 @@
 
 {
 
-textdomain "lilo";
+textdomain "bootloader";
 
     /**
      * returns true, if specified partition is of type 'linux'

@@ -18,7 +18,7 @@
  */
 
 {
-textdomain "lilo";
+textdomain "bootloader";
 
 include "wizard/sequencer.ycp";
 include "ui/common_popups.ycp";

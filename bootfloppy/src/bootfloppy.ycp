@@ -19,7 +19,7 @@
  */
 
 {
-  textdomain "bootfloppy";
+  textdomain "bootloader";
   //include "ui/wizard_dialog.ycp";
   include "wizard/sequencer.ycp";
  

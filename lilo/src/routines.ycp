@@ -19,7 +19,7 @@
 
 {
 
-textdomain "lilo";
+textdomain "bootloader";
 
 /**
  * returns modified list where items index1 and index2 are swapped.

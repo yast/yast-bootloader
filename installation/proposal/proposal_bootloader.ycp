@@ -10,7 +10,7 @@
  *			See also file proposal-API.txt for details.
  */
 {
-    textdomain "proposal";
+    textdomain "bootloader";
 
     import "Language";
     import "Boot";
