@@ -878,7 +878,7 @@ Replace it with an entry  to boot from the floppy?");
 		// menubutton item
             `item (`id (`scratch), _("&Start from Scratch")),
 	];
-	if (Mode::normal || Mode::config)
+	if (Mode::normal || Mode::config || Mode::repair)
 	    items = add (items,
 		// menubutton item
 		`item (`id (`reread), _("&Reread Configuration from Disk")));

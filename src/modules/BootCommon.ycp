@@ -216,6 +216,7 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
+	SCR::Read (list2path ([getLoaderType (false), "reread"]));
 	loadCfgFileFromAgent ();
 	loader_device = globals["boot"]:"/dev/null";
         return true;
