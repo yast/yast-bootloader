@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Fri Jan 10 17:25:38 CET 2003 - jsrain@suse.de
+
+- fixed failsafe kernel parameters on i386 (#22539)
+
+-------------------------------------------------------------------
+Fri Dec 20 16:37:56 CET 2002 - jsrain@suse.de
+
+- added documentation files
+
+-------------------------------------------------------------------
 Thu Dec 19 16:27:40 CET 2002 - jsrain@suse.de
 
 - fixed path to elilo.conf (IA64 only affected) (#22502)
