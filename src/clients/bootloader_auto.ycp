@@ -29,7 +29,7 @@
     include "bootloader/routines/routines.ycp";
     include "bootloader/routines/autoinstall.ycp";
 
-    Progress::off();
+    boolean progress_orig = Progress::set (false);
 
 
     any ret = nil;
@@ -114,7 +114,7 @@
 	y2error("unknown function: %1", func);
 	ret =  false;
     }
-    Progress::on();
+    Progress::set (progress_orig);
 
     y2debug("ret=%1", ret);
     y2milestone("bootloader_auto finished");

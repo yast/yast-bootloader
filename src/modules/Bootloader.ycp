@@ -840,9 +840,9 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
             }
             else
             {
-		Progress::off ();
+		boolean progress_orig = Progress::set (false);
                 Read ();
-		Progress::on ();
+		Progress::set (progress_orig);
 		if (Mode::update ())
 		{
 		    UpdateConfiguration ();
