@@ -330,7 +330,7 @@
 	    && SCR::Read (.target.size, elilo_conf_filename) > 0)
 	{
 	    SCR::Execute (.target.bash, sformat (
-		"/bin/cp %1 /etc/elilo.conf"), elilo_conf_filename);
+		"/bin/cp %1 /etc/elilo.conf", elilo_conf_filename));
 	}
 	SCR::Execute (.target.bash, "/bin/touch /etc/elilo.conf");
 	BootCommon::DetectDisks ();
