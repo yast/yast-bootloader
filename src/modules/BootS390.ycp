@@ -246,7 +246,9 @@
     global define boolean Read () ``{
 	BootCommon::DetectDisks ();
 	BootCommon::changed = true;
-	return BootCommon::Read ();
+	boolean ret = BootCommon::Read ();
+	y2error ("Read: %1", BootCommon::io_structure);
+	return ret;
     }
 
     /**
@@ -255,6 +257,59 @@
       */
     global define boolean Save () ``{
 	y2milestone ("Saving S390 cfg. file");
+
+map settings = $[
+  "global":$[
+    "default":"ipl",
+    "menuname":"menu1",
+    "prompt":1,
+    "timeout":10
+  ],
+  "sections":[
+    $[
+      "append":"selinux=0 TERM=dumb elevator=cfq",
+      "initrd":"/boot/initrd",
+      "kernel":"/boot/image",
+      "name":"ipl",
+      "original_name":"ipl",
+      "root":BootCommon::RootPartitionDevice,
+      "target":"/boot/zipl",
+      "type":"image"
+    ],
+    $[
+      "append":"selinux=0 TERM=dumb",
+      "initrd":"/boot/initrd",
+      "kernel":"/boot/image",
+      "name":"failsafe",
+      "original_name":"ipl",
+      "root":BootCommon::RootPartitionDevice,
+      "target":"/boot/zipl",
+      "type":"image"
+    ],
+    $[
+      "dumpto":"/dev/dasd??",
+      "name":"dumpdasd",
+      "original_name":"dumpdasd",
+      "target":"/boot/zipl",
+      "type":"dump"
+    ],
+    $[
+      "dumpto":"/dev/rtibm0",
+      "name":"dumptape",
+      "original_name":"dumptape",
+      "target":"/boot/zipl",
+      "type":"dump"
+    ]
+  ]
+];
+	SCR::Execute (.bootloader.agent_init, "zipl");
+	SCR::Execute (.bootloader.disk_init, BootCommon::PrepareInitData ());
+	SCR::Write (.bootloader.settings, settings);
+	SCR::Execute (.bootloader.update);
+	return true;
+
+
+
 	boolean ret = BootCommon::Save ();
 
 	integer exit = (integer)SCR::Execute (.target.bash,
