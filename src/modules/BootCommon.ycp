@@ -487,19 +487,6 @@ configuration files
 		    WFM::CallModule("inst_suseconfig", []);
 		}
 	    }
-/*	    else
-	    { //FIXME some checking must be added, this idea might be correct
-		import "ForcedPackages";
-		foreach (`b, bootloaders, ``{
-		    foreach (p, getBootloaderPackages (b), ``{
-			ForcedPackages::RemoveFromForceInstall (b);
-		    });
-		});
-		foreach (`p, getBootloaderPackages (bootloader), ``{
-		    ForcedPackages::RemoveFromForceNotInstall (p);
-		    ForcedPackages::ForceInstall (p);
-		});
-	    }*/
 	}
 	loader_type = bootloader;
     }

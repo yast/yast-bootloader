@@ -26,8 +26,9 @@
       */
     global define string getDiskOrderHelp () ``{
 	// help label
-	return _("Reorder the disks to the same order as BIOS sees them.
-Don't change if you don't know what you are doing.");
+	return _("Reorder the disks to the same order as the BIOS sees them.
+Do not change this if you do not know what you are doing.
+");
     }
 
 }
