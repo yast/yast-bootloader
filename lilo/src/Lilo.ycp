@@ -415,7 +415,7 @@
      * @return any transformed value
      */
 
-/*    define any ui2mod(any val) ``{
+/*    define any ui2mod_spec(any val) ``{
 	if (is(val, string))
 	{
 	    string v = sformat("%1", val);

@@ -54,6 +54,7 @@ void initOptTypes()
     _options["menu-scheme"]=val;    _options["table"]=val;
     _options["message"]=val;        _options["alias"]=val;
     _options["password"]=val;       _options["label"]=val;
+    _options["kernel"]=val;
 
     val=T_INT;
 

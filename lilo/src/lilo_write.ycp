@@ -60,9 +60,9 @@ global define map LiloWrite(map settings) ``{
     map global_opts = lookup(conf, "global", $[]);
     list global_order = lookup (global_opts, "__order__", []);
     global_opts = filter (`k, `v, global_opts, ``(k != "__order__"));
+    global_order = filter (`e, global_order, ``(haskey (global_opts, e)));
     list globs1 = SCR::`Dir(list2path([boot()]));
     list globs2 = maplist(`e, `f, global_opts, ``(e));
-
     list diff = difflist(globs1, globs2);
     diff = difflist(diff, ["sections"]);
 
@@ -114,6 +114,7 @@ global define map LiloWrite(map settings) ``{
         sname = lookup(sect, Lilo::mode == `grub ? "title" : "label", "");
 	list sect_order = lookup  (sect, "__order__", []);
 	sect = filter (`k, `v, sect, ``(k != "__order__"));
+	sect_order = filter (`e, sect_order, ``(haskey (sect, e)));
         SCR::`Write(list2path([boot(), "sections", ui2mod(sname), Lilo::mode == `grub ? "title" : "label"]), ui2mod(sname));
 	if (sect_order != [])
 	{
