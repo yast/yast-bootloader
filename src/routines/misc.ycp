@@ -1093,17 +1093,17 @@
       */
     global define map getPartitionToActivate () ``{
 	map p_dev = Storage::GetDiskPartition (BootCommon::loader_device);
-	any num = p_dev["nr"]:0;
+	integer num = p_dev["nr"]:0;
 	string mbr_dev = p_dev["disk"]:"";
 	// if bootloader in MBR, activate /boot partition
 	// (partiall fix of #20637)
-	if (! (num != 0 && num != ""))
+	if (num == 0)
 	{
 	    p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
 	    num = p_dev["nr"]:0;
 	    mbr_dev = p_dev["disk"]:"";
 	}
-	if (is (num, integer) && num != 0 && num != "")
+	if (num != 0)
 	{
 	    if (num > 4)
 	    {
