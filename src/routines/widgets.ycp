@@ -881,13 +881,14 @@
 	    "handle" : ``(BootCommon::backupMbrSave ()),
 	    "type" : "b",
 	    // label displayed as help
-	    "help" : _("Affected disk areas are MBR of the first disk
-and the sector bootloader is installed to."),
+	    "help" : _("Affected disk areas are the MBR of the first disk
+and the sector to which the boot loader is installed.
+"),
 	    "exits" : [],
 	    // table item / label
-	    "label" : _("Backup Affected Disk Areas"),
+	    "label" : _("Back up Affected Disk Areas"),
 	    // checkbox label
-	    "widget_label" : _("&Backup Affected Disk Areas"),
+	    "widget_label" : _("&Back up Affected Disk Areas"),
 	    "summary" : ``(BootCommon::backupMbrSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,

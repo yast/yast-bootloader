@@ -72,7 +72,7 @@
 	if (bootloader == "none")
 	{
 	    // combo box item, summary string, table item
-	    return _("Do not install any bootloader");
+	    return _("Do Not Install Any Boot Loader");
 	}
 	// fallback bootloader name, keep short
 	return bootloader_attribs[bootloader, "loader_name"]:_("boot loader");

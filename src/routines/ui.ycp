@@ -636,10 +636,11 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	    // popup - Continue/Cancel
 	    if (Popup::ContinueCancel (_("Warning!
 
-If you do not install any bootloader, the system
+If you do not install any boot loader, the system
 may not start.
 
-Proceed?")))
+Proceed?
+")))
 	    {
 		BootCommon::other_bl[old_bl] = Bootloader::Export ();
 		BootCommon::setLoaderType ("none");
