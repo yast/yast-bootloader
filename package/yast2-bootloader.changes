@@ -3,6 +3,8 @@ Mon Aug  9 10:25:27 CEST 2004 - jsrain@suse.cz
 
 - fixed crippling of sections of other distros in case of multiboot
   (#43491)
+- add 'd' to GRUB installation command only if 1st and 2nd stage
+  are on different disks (#43198)
 
 -------------------------------------------------------------------
 Fri Aug  6 13:19:45 CEST 2004 - jsrain@suse.cz

@@ -483,8 +483,20 @@
     global define map<string,string> proposeGrubConf () ``{
 	list<string> stage1 = splitDevPath (file2grub ("/boot/grub/stage1"));
 	list<string> stage2 = splitDevPath (file2grub ("/boot/grub/stage2"));
+
+	map dev_info = Storage::GetDiskPartition (BootCommon::loader_device);
+	string s1_dev = dev_info["disk"]:"";
+	dev_info = Storage::GetDiskPartition (grubDev2unixDev (stage2[0]:""));
+	string s2_dev = dev_info["disk"]:"";
+
+	string discswitch = "";
+	if (s1_dev != s2_dev)
+	{
+	    discswitch = "d";
+	}
+
 	return $[
-	    "discswitch" : "d",
+	    "discswitch" : discswitch,
 	    "root" : stage1[0]:"",
 	    "stage1" : stage1[1]:"",
 	    "device" : BootCommon::loader_device,
