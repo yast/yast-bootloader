@@ -340,7 +340,7 @@ and File Systems (modules disk 4)"))),
 	}
 	else
 	{
-	    Wizard::ReplaceBackButton(`VSpacing (0));
+	    Wizard::HideBackButton();
 	    Wizard::ReplaceAbortButton (
 		`PushButton (`id (`abort), Label::CancelButton ()));
 	    UI::SetFocus (`id ("bootdisk"));
