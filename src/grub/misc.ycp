@@ -137,7 +137,7 @@
 	{
 	    mapping = add (mapping, ["(fd0)", StorageDevices::FloppyDevice]);
 	}
-	y2debug ("Detected device mapping: %1", mapping);
+	y2milestone ("Detected device mapping: %1", mapping);
 	return mapping;
     }
 
