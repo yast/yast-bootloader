@@ -2,6 +2,7 @@
 Wed Feb 16 13:54:34 CET 2005 - jsrain@suse.cz
 
 - added support for embedding GRUB's stage 1.5
+- 2.11.13
 
 -------------------------------------------------------------------
 Mon Feb 14 17:32:02 CET 2005 - jsrain@suse.cz
