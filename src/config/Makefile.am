@@ -4,13 +4,7 @@
 
 if S390
 
-config_DATA =
-
 else
-
-config_DATA = \
-		bootloader.y2cc	\
-	  	bootfloppy.y2cc
 
 desktop_DATA = \
 		bootloader.desktop \
@@ -19,4 +13,4 @@ desktop_DATA = \
 endif
 
 
-EXTRA_DIST = $(config_DATA) $(desktop_DATA)
+EXTRA_DIST = $(desktop_DATA)
