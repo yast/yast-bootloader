@@ -184,6 +184,8 @@
 	}
 
 	string s_modnames = SCR::Read (.sysconfig.kernel.INITRD_MODULES);
+	if (s_modnames == nil)
+	    s_modnames = "";
 	modules = splitstring (s_modnames, " ");
 	modules = filter (`m, modules, ``(m != ""));
 	foreach (`m, modules, ``{modules_settings [m] = $[];});
@@ -262,6 +264,8 @@
 	if (SCR::Read (.target.size, "/etc/sysconfig/kernel") != -1)
 	{
 	    string s_modnames = SCR::Read (.sysconfig.kernel.INITRD_MODULES);
+	    if (s_modnames == nil)
+		s_modnames = "";
 	    list(string) s_modules = splitstring (s_modnames, " ");
 	    s_modules = filter (`m, s_modules, ``(
 		! contains (read_modules, m)));

@@ -494,7 +494,9 @@ y2error ("Glob: %1, Sect: %2", BootCommon::globals, BootCommon::sections);
                 {
                         y2milestone("start writing rescue kernel to slot A ...");
                         SCR::Execute (.target.bash, "time dd if=`rpm -ql kernel-iseries64 | grep ^/boot | grep install | head -n1` of=/proc/iSeries/mf/A/vmlinux bs=4096 >>/var/log/YaST2/y2loglilo_iseries_slot_a 2>&1 ");
-                        SCR::Execute (.target.bash, "echo 'start_shell manual=1 single' > /proc/iSeries/mf/A/cmdline");
+			SCR::Execute (.target.bash, "dd if=/dev/zero of=/proc/iSeries/mf/A/cmdline bs=255 count=1");
+			SCR::Execute (.target.bash, "echo 'start_shell manual=1' > /proc/iSeries/mf/A/cmdline");
+
                         y2milestone("done writing rescue kernel to slot A.");
                 }
                 if ( ppc_iseries_write_slot_b )
