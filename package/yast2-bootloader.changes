@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep  2 17:33:54 CEST 2002 - jsrain@suse.cz
+
+- added reset function (for calling after partitioning changes
+  during installation) (Bug #18744)
+
+-------------------------------------------------------------------
 Mon Sep  2 10:55:24 CEST 2002 - jsrain@suse.cz
 
 - updating prep boot partition during installation on PPC
