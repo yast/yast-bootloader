@@ -1,0 +1,57 @@
+#! /bin/bash
+
+# Increase timeout to 8s and add a message entry, lba32 and a menu-scheme to
+# lilo.conf, if they are missing.
+
+root_dir=$1
+
+lc=$root_dir/etc/lilo.conf
+lc_tmp=$root_dir/etc/lilo.conf.$$
+
+[ -f $lc ] || exit 1
+
+sed -e '/^ *timeout.*=/ c\' -e 'timeout	= 80' $lc >$lc_tmp
+
+has_timeout=
+has_message=
+has_scheme=
+has_lba=
+has_linear=
+has_ro=
+
+grep -q -s '^timeout' $lc_tmp && has_timeout=1
+grep -q -s 'message' $lc_tmp && has_message=1
+grep -q -s '^menu-scheme' $lc_tmp && has_scheme=1
+grep -q -s '^lba32' $lc_tmp && has_lba=1
+grep -q -s '^linear' $lc_tmp && has_linear=1
+grep -q -s '^read-only' $lc_tmp && has_ro=1
+
+# Only if we have a 'timeout' & 'read-only' line. Otherwise we'll assume the
+# user has modified it on her own and leave it as it is.
+
+if [ "$has_timeout" -a "$has_ro" ] ; then
+
+  if [ "$has_linear" ] ; then
+    mv $lc_tmp $lc
+    sed -e 's/^linear/lba32/' $lc >$lc_tmp
+    has_lba=1
+  fi
+
+  if [ ! "$has_message" ] ; then
+    mv $lc_tmp $lc
+    sed -e ' /^timeout/ a\' -e 'message	= /boot/message' $lc >$lc_tmp
+  fi
+
+  if [ ! "$has_lba" ] ; then
+    mv $lc_tmp $lc
+    sed -e ' /^read-only/ a\' -e 'lba32' $lc >$lc_tmp
+  fi
+
+  if [ ! "$has_scheme" ] ; then
+    mv $lc_tmp $lc
+    sed -e ' /^read-only/ a\' -e 'menu-scheme = Wg:kw:Wg:Wg' $lc >$lc_tmp
+  fi
+
+fi
+
+mv $lc_tmp $lc

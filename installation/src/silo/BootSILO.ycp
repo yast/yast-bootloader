@@ -1,0 +1,165 @@
+/**
+ * File:
+ *	BootSILO.ycp
+ *
+ * Module:
+ *	BootSILO
+ *
+ * Summary:
+ *	functions for bootload setup
+ *
+ * Authors:
+ *	Klaus Kaempf <kkaempf@suse.de>
+ *	Anas Nashif <nashif@suse.de>
+ *
+ * $Id$
+ *
+ */
+{
+    module "BootSILO";
+
+    textdomain "bootloader";
+    
+    import "Boot";
+    import "Kernel";
+
+    global boolean  promalias = false;
+
+    global boolean  defaultdevice = false;
+
+    /**
+     * AskParameters
+     *
+     * helper function for inst_bootloader
+     * provide ui code to ask LILO specific parameters
+     * Input field for PROM changes and boot parameters
+     *
+     * @returns: list of <uicode>
+     */
+
+    global define list AskParameters ()
+    ``{
+	return [
+	    `Left (`CheckBox (`id (`alias),
+		_("Create PROM alias '&linux'"),
+		promalias)),
+	    `Left (`CheckBox (`id (`change_prom),
+		_("Set default &PROM boot device"),
+		defaultdevice))
+	];
+    }
+
+
+    /**
+     * HelpParameters
+     *
+     * help text for the values from AskParameters ()
+     *
+     * @returns: string of help text
+     */
+
+    global define string HelpParameters ()
+    ``{
+	// helptext for the customized SILO installation
+	// part 1 of 3
+	return _("<p>
+SILO (the SPARC Improved boot LOader) can be installed in different locations:
+</p>")
+
+	// part 2 of 3
+	+ _("<p>
+- In the <b>MBR</b> (the Master Boot Record).  This is recommended whenever SuSE Linux
+is the only operating system on the hard drive or when you are <em>absolutely certain</em> all other operating systems can be booted with SILO.</p>\n")
+
+	// part 3 of 3
+	+ _("<p>
+- In the <b>/boot</b> partition.  This option can always be used\nif you
+have a number of operating systems on the hard drive. The\nadvantage of this
+method is that the MBR is left intact.\nYou should use this method, if you have
+SunOS or Solaris installed\non the same hard drive.\n
+</p>");
+
+    }
+
+    /**
+     * HandleParameters
+     *
+     * helper function for inst_bootloader
+     * called after UI::UserInput() returned
+     *  (only if AskParameters() returned a non-empty list)
+     */
+
+    global define void HandleParameters ()
+    ``{
+	any option = nil;
+
+	option = UI::QueryWidget(`id(`alias), `Value);
+	if (is (option, boolean))
+	{
+	    promalias = option;
+	}
+
+	option = UI::QueryWidget(`id(`change_prom), `Value);
+	if (is (option, boolean))
+	{
+	    defaultdevice = option;
+	}
+
+	return;
+    }
+
+    /**
+     * Write ()
+     *
+     */
+
+    global define boolean Write ()
+    ``{
+	// On SPARC, set the right device for a hard reboot to find our
+	// installed system. Modify the PROM parameters if necessary, too.
+
+	if (Kernel::switched)
+	{
+	    string silo_device = Boot::device;
+	    string reboot_device = SCR::Read (.prom.path,silo_device);
+
+	    SCR::Execute (.target.bash, "/bin/echo \""+reboot_device+"\" >/proc/sys/kernel/reboot-cmd");
+	}
+
+	if (promalias)
+	{
+	    string silo_device = Boot::device;
+	    string boot_device = SCR::Read (.prom.path, silo_device);
+
+	    SCR::Write (.prom.alias.linux, boot_device);
+	    if (Boot::defaultdevice)
+	    {
+		SCR::Write (.prom.boot-device, "linux");
+	    }
+	}
+	else if (Boot::defaultdevice)
+	{
+	    string silo_device = Boot::device;
+	    string boot_device = SCR::Read (.prom.path,silo_device);
+
+	    SCR::Write (.prom.boot-device, boot_device);
+	}
+
+	return true;
+    }
+
+    /**
+     * constructor
+     *
+     */
+
+    global define void BootSILO ()
+    ``{
+	if (SCR::Read(.prom.hasaliases) == 1)
+	    promalias = true;
+	else
+	    promalias = false;
+	defaultdevice = true;
+    }
+}
+

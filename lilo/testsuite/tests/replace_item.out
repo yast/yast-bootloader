@@ -1,0 +1,5 @@
+Return	[1, 2, "v", 4, 5]
+Return	["v", 2, 3, 4, 5]
+Return	["v"]
+Return	[1, "v"]
+Return	["v"]

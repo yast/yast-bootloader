@@ -1,0 +1,218 @@
+/**
+ * File:
+ *   osscan.ycp
+ *
+ * Module:
+ *   Configuration of lilo
+ *
+ * Summary:
+ *   this file scans for installed linuxes.
+ *
+ * Authors:
+ *   Dan Meszaros <dmeszar@suse.cz>
+ *
+ * $Id$
+ *
+ * Installed OS scanner.
+ * 
+ */
+
+{
+
+textdomain "lilo";
+
+    /**
+     * returns true, if specified partition is of type 'linux'
+     * @param part_entry partition map
+     * @return boolean is linux?
+     *
+     */
+
+    global define boolean is_linux(map part_entry) ``{
+	return (lookup(part_entry, "fstype", "") == "Linux native");
+    }
+
+    /**
+     * tries to figure out distro name and version
+     * @param part_entry modified entry from .disk.hdx.partitions
+     * @param mountpoint dir where the partition is mounted to
+     * @return map with distro info
+     */
+
+    global define map figure_out_distro(map part_entry, string mountpoint) ``{
+	list distro_files = [
+	    $[
+		"file":	    "/etc/SuSE-release",
+		"name":	    "SuSE linux",
+		"version_line": 1,
+		"version_token": 2
+	    ],
+	    $[
+		"file":	    "/etc/debian_version",
+		"name":	    "Debian linux",
+		"version_token": 0
+	    ],
+	    $[
+		"file":	    "/etc/turbolinux-release",
+		"name":	    "Turbo linux",
+		"version_token": 1
+	    ],
+	    $[
+		"file":	    "/etc/mandrake-release",
+		"name":	    "Mandrake linux"
+	    ],
+	    $[
+		"file":	    "/etc/.issue",
+		"name":	    "Caldera linux"
+	    ],
+	    $[
+		"file":	    "/etc/redhat-release",
+		"name":	    "RedHat linux",
+		"version_token": 4
+	    ]
+        ];
+
+	boolean skip_rest = false;
+	map output = $[];
+
+	foreach(`d, distro_files, 
+	``{
+	    if (!skip_rest
+		    &&  SCR::Read(.target.size, mountpoint + lookup(d, "file", "")) > 0)
+	    {
+		skip_rest = true;
+		output = add(output, "dist", lookup(d, "name", ""));
+		map cat = SCR::Execute(.target.bash_output, 
+		    sformat("/bin/cat %1", mountpoint + lookup(d, "file", "")), $[]);
+
+		// now let's parse the -release file.
+		// first select the line with version number
+		integer line_n = lookup(d, "version_line", 0);
+		list release_lines = splitstring(lookup(cat, "stdout", ""), "\n");
+		string verline = select(release_lines, line_n, "");
+		// now select the token with release number
+		list ver_tokens = splitstring(verline, " \t");
+		string version = select(ver_tokens, lookup(d, "version_token", 0), "");
+
+		output = add(output, "version", version);
+	    }
+
+	});
+
+	return output;
+    }
+
+    /**
+     * mount partition to 'mountpoint' and tries to figure out
+     * whether its linux root partition.
+     * @param part_entry partition entry
+     * @param mountpoint dir to mount partition to
+     * @return map nil if not recognized, otherwise map 
+     *	    $["dist": distro_name, "version": disrto_version, "boot_part": boot_partition]
+     */
+
+    global define map is_linux_root(map part_entry, string mountpoint) ``{
+	string cmd = sformat("/bin/mount %1 %2", lookup(part_entry, "dev_name", ""), mountpoint);
+	map res = SCR::Execute(.target.bash_output, cmd, $[]);
+	if (lookup(res, "exit", -1) != 0)
+	{
+	    return part_entry;
+	}
+
+	string etc_dir = sformat("%1/%2", mountpoint, "etc");
+	if (SCR::Read(.target.size, etc_dir) == nil)
+	{
+	    // probably not root partition
+	    cmd = sformat("/bin/umount %1", mountpoint);
+            SCR::Execute(.target.bash_output, cmd, $[]);
+	    return part_entry;
+	}
+
+	map res = figure_out_distro(part_entry, mountpoint);
+	map result = add(part_entry, "linux_info", res);
+	// unmout partition. TODO: do something if umount fails (but what?)
+	cmd = sformat("/bin/umount %1", mountpoint);
+	SCR::Execute(.target.bash_output, cmd, $[]);
+	return result;
+    }
+
+    /**
+     * scans for installed linuxes.
+     * @return list linux partitions entries
+     *
+     */
+
+    global define list scan_os() ``{
+
+	UI::OpenDialog(`opt(`decorated), `Label(`id(`message), _("Reading partitions...") + 
+		// spaces for later messages
+		"                       "));
+
+	// first get the list of harddisks
+	list disks = SCR::Read(.probe.disk);
+	// extract only devicenames
+	disks = maplist(`d, disks, ``(lookup(d, "dev_name", nil)));
+
+	list partitions = [];
+
+	// read partition table of each disk and insert calculate device name
+	// for each partition
+	foreach(`disk, disks,
+	``{
+	    list comps = splitstring(disk, "/");
+	    string devsuffix = select(comps, size(comps)-1, "");
+	    path p = add(add(.disk, devsuffix), "partitions");
+	    list disk_parts = SCR::Read(p);
+	    disk_parts = maplist(`part, disk_parts,
+	    ``(add(part, "dev_name", disk + lookup(part, "nr", "0"))));
+	    partitions = add(partitions, disk_parts);
+	});
+
+	// currently the 'partitions' contains list of lists,
+	// lest flatten it.
+	partitions = flatten(partitions);
+
+	// try to find out, which partitions may be 'root' linux partitions
+
+	// create tmp directory to mount the partition to.
+	string tmp_dir = SCR::Read(.target.tmpdir);
+
+	if (size(tmp_dir) == 0)
+	{
+	    // tmp dir failed
+	    return [];
+	}
+
+	partitions = maplist(`part_entry, partitions,
+	``{
+	    UI::ChangeWidget(`id(`message), `Value, sformat(_("Analyzing partition %1..."), 
+		lookup(part_entry, "dev_name", "")));
+	    if (is_linux(part_entry))
+	    {
+		return is_linux_root(part_entry, tmp_dir);
+	    }
+	    else
+	    {
+		return part_entry;
+	    }
+	});
+
+	UI::CloseDialog();
+
+	// now convert linux entries to readable form
+	list linux_parts = maplist(`e, partitions,
+	``{
+	    if (lookup(e, "linux_info", $[]) != $[])
+	    {
+		return e; // lookup(lookup(e, "linux_info", $[]), "version", nil);
+	    }
+	    else return nil;
+	});
+
+	// filter out empty items;
+	linux_parts = filter(`e, linux_parts, ``(e != nil));
+
+//	BrowseTree(partitions);
+	return linux_parts;
+    }
+}

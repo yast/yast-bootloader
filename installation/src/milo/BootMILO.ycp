@@ -1,0 +1,36 @@
+/**
+ * File:
+ *	BootMILO.ycp
+ *
+ * Module:
+ *	BootMILO
+ *
+ * Summary:
+ *	functions for aboot setup
+ *
+ * Authors:
+ *	Klaus Kaempf <kkaempf@suse.de>
+ *
+ * $Id$
+ *
+ */
+{
+    module "BootMILO";
+    import "Boot";
+    import "Installation";
+
+    global define boolean Write ()
+    ``{
+	string docmd = "/usr/lib/YaST2/bin/do" + Boot::LoaderType + " /";
+
+	// prepare /tmp/boot.conf
+	byteblock milo_buffer = WFM::Read(.local.byte, Installation::sourcedir+ "/milo/boot.conf");
+	SCR::Write(.target.byte, "/tmp/boot.conf", milo_buffer);
+	// install milo in /boot
+	SCR::Execute (.target.bash, docmd);
+	// remove /tmp/boot.conf
+	SCR::Execute (.target.remove, "/tmp/boot.conf");
+
+	return true;
+    }
+}

@@ -1,0 +1,482 @@
+/**
+ * File:
+ *   widgets.ycp
+ *
+ * Module:
+ *   Configuration of lilo
+ *
+ * Summary:
+ *   UI widgets
+ *
+ * Authors:
+ *   Dan Meszaros <dmeszar@suse.cz>
+ *
+ * $Id$
+ *
+ * UI widgets.
+ *
+ */
+
+{
+
+    textdomain "lilo";
+
+/**
+ * mail dialog widget
+ * @param data item list for main table
+ * @return term dialog term
+ */
+
+global define term MainDlgWidget(list data) ``{
+	// to translators: %1 is one of 'lilo', 'silo', 'elilo'
+    string mes1=sformat(_("&Where to install the %1 bootloader?"), boot());
+	// to translators: %1 is one of 'lilo', 'silo', 'elilo'
+    string mes2=sformat(_("Uninstall %1"), boot());
+
+    list parts = toItemList(getPartitionList());
+
+    term combo = nil;
+
+    term widget=`VBox
+                (
+		    `HBox(
+			`Table (`id(`lilo_table), `opt (`notify, `immediate),
+                            // table header labels. def=default
+			        `header(_("Default"), _("Label"), _("Image / Device"), _("Type")), data)
+//			`VBox(
+//			    `PushButton(`id(`up), UI::Glyph(`ArrowUp)),
+//			    `PushButton(`id(`down), UI::Glyph(`ArrowDown))
+//			)
+		    ),
+                    `VSpacing (0.5),
+		    `HBox(
+			`PushButton(`id(`up), UI::Glyph(`ArrowUp)),
+			`PushButton(`id(`down), UI::Glyph(`ArrowDown))
+		    ),
+		    `VSpacing(0.5),
+                    `HBox
+                    (
+                        `PushButton (`id(`b_add), _("A&dd")),
+                        `PushButton (`id(`b_edit), _("&Edit")),
+                        `PushButton (`id(`b_delete), _("&Delete")),
+			`HStretch(),
+			`PushButton (`id(`b_default), _("&Set as default"))
+                    ),
+//		    `HBox
+//		    (
+//			`HStretch(),
+//			`PushButton (`id(`b_default), _("&Set as default")),
+//			`HStretch()
+//		    ),
+                    `VSpacing (1.5)
+                );
+    return widget;
+}
+
+/**
+ * widget for options setting
+ * @param opts option list
+ * @return term dialog term
+ */
+
+global define term OptionsDlgWidget(list opts)
+``{
+    term widget=`HBox(`HSpacing(3), `VBox
+			(
+			    `Table (`id(`opt_table), `opt (`vstretch,`notify, `immediate),
+			    `header(_("Option"), _("Value")), []),
+			    `HBox
+			    (
+				`HStretch(),
+				`PushButton(`id(`add), _("A&dd option")),
+				`PushButton(`id(`set), _("&Edit")),
+				`PushButton(`id(`delete), _("&Delete")),
+				`HStretch()
+			    ),
+			    `VSpacing(1)
+			),
+			`HSpacing(3)
+                    );
+    return widget;
+}
+
+/**
+ * widget for os type selector dialog
+ * @return term dialog term
+ */
+
+global define term OSTypeWidget()
+``{
+    string obs=_("&Scan installed operating systems");
+
+    term radios = !Arch::i386 ?
+	    `VBox
+                            (
+                                `VSpacing(0.5),
+                                `Left(`RadioButton(`id(`add_image), _("Add &Linux section"))),
+                                `VSpacing(0.5),
+                                `Left(`RadioButton(`id(`add_other2), _("Add &other section"))),
+                                `VSpacing(0.5)
+                            )
+	    :
+	    `VBox
+                            (
+                                `VSpacing(0.5),
+                                `Left(`RadioButton(`id(`add_image), _("Add &Linux section"))),
+                                `VSpacing(0.5),
+                                `Left(`RadioButton(`id(`add_other), _("Add Dos/&Windows section"))),
+                                `VSpacing(0.5),
+                                `Left(`RadioButton(`id(`add_other2), _("Add &OS2 section"))),
+                                `VSpacing(1.0),
+				`Left(`RadioButton(`id(`scan), _("&Scan installed operating systems"))),
+				`VSpacing(0.5)
+                            )
+
+	;
+
+    term widget=`HBox
+		(
+		    `HStretch(),
+		    `Frame
+		    (
+		        _("&Section type"),
+		        `RadioButtonGroup
+		        ( `id(`type), `HBox( `HSpacing(2), radios,
+			    `HSpacing(2))
+			)
+		    ),
+		    `HStretch()
+		);
+
+    return widget;
+}
+
+/**
+ * widget for linux section properties editing
+ * @return term dialog term
+ */
+
+global define term LinuxSectWidget()
+``{
+    list itl=prepend(toItemList(getPartitionList()), `item(`id("none"), _("Not set")));
+
+    term part = nil;
+
+    if (Lilo::autoinstallation)
+    {
+	part = `TextEntry(`id(`root),  _("&Root partition (without /dev/ prefix)"));
+    }
+    else
+    {
+	part = `ComboBox(`id(`root), _("&Root partition"), itl);
+    }
+
+    term widget=`HBox(`HSpacing(1), `VBox
+		(
+		    `TextEntry(`id(`sect_label), _("&Section label")),
+		    `VSpacing(0.5),
+		    `Frame(_("&Linux kernel"), `HBox(`HSpacing(2),`VBox(
+			`VSpacing(0.5),
+			`HBox(
+			    `TextEntry(`id(`sect_kernel), _("&Path to linux kernel")),
+			    `VBox(`Label(""), `PushButton(`id(`browse), _("&Browse")))
+			),
+			`VSpacing(0.5),
+			`Left(`CheckBox(`id(`optional), `opt(`notify),
+			    _("&Kernel is optional (may not be present in future)"))),
+			`VSpacing(0.5)
+		    ), `HSpacing(2))),
+		    `VSpacing(0.5),
+		    `Left(`opt(`hstretch), part),
+
+		    `VSpacing(1.5),
+		    `PushButton(`id(`options), _("&Expert settings..."))
+		), `HSpacing(1));
+    return widget;
+}
+
+/**
+ * widget for other section properties editing
+ * @return term dialog term
+ */
+
+global define term OtherSectWidget() ``{
+    list itl=toItemList(getPartitionList());
+
+    term part = nil;
+
+    if (Lilo::autoinstallation)
+    {
+	part = `TextEntry(`id(`part), _("&Boot device (without '/dev/' prefix)"));
+    }
+    else
+    {
+	part = `ComboBox(`id(`part), _("&Boot device"), itl);
+    }
+
+    term widget=`HBox(`HSpacing(2), `VBox
+                (
+			`VStretch(),
+                        `TextEntry(`id(`sect_label), _("&Section label")),
+                        `VSpacing(0.5),
+                        `Left(part),
+			`VStretch(),
+			`PushButton(`id(`options), _("&Expert settings...")),
+			`VSpacing(0.5)
+                ), `HSpacing(2));
+    return widget;
+}
+
+/**
+ * widget for global properties editing dialog
+ * @return term dialog term
+ */
+
+global define term GlobalOptsWidget() ``{
+    term widget=`HBox(
+		`HSpacing(3),
+		    `VBox(
+			`VSpacing(1),
+			`Frame(_("&Boot prompt"),
+			    `VBox(
+				`Left(`CheckBox(`id(`show_prompt), `opt(`notify), _("&Show the boot prompt"))),
+				`Left(`HBox(`HSpacing(3), `CheckBox(`id(`timeout_active), `opt(`notify),
+				    _("&Continue booting after a timeout")))),
+				`Left(`HBox(`HSpacing(6), `IntField(`id(`timeout), _("&Timeout in seconds"), 0, 3600, 0), `HStretch())),
+				`VSpacing(0.5)
+			    )
+			),
+			`VSpacing(0.5),
+			`Frame(_("&Protect booting with a password"),
+			    `VBox(
+				`Left(`CheckBox(`id(`password_active), `opt(`notify), _("&Use password for booting"))),
+				`Left(`HBox(`HSpacing(3), `Password(`id(`pass1), _("P&assword")), `HStretch())),
+				`Left(`HBox(`HSpacing(3), `Password(`id(`pass2), _("&Retype password")), `HStretch())),
+				`VSpacing(0.5)
+			    )
+			),
+			`VSpacing(0.5),
+			`PushButton(`id(`options), _("&Expert settings")),
+			`VStretch()
+		    ),
+		    `HSpacing(3)
+		);
+    return widget;
+
+}
+
+/**
+ * widget for os scanner
+ * @param contents selectionbox contents
+ * @return term dialog term
+ */
+
+global define term OSScanWidget(list contents) ``{
+
+    term widget=`VBox(`VSpacing(3), `HBox( `HSpacing(6),
+		    `SelectionBox(`id(`os), _("&These operating systems have been found:"), contents),
+		`HSpacing(6)), `VSpacing(3));
+    return widget;
+}
+
+/**
+ * widget for option adding/editing dialog
+ * @param optlist list of available options
+ * @return term dialog term
+ */
+
+global define term AddOptionWidget(list optlist) ``{
+    term widget=`VBox(`HSpacing(60), `HBox
+		(
+		    `VSpacing(15),
+		    `RichText(`id(`help), `opt(`vstretch), _("<P>None</P>")),
+		    `HSpacing(2),
+		    `Top(`VBox
+		    (	`opt(`vstretch),
+			`Left(`Heading(_("Implement new option"))),
+			`ComboBox(`id(`optname), `opt(`notify, `immediate, `hstretch), _("Option &name"), optlist),
+			`ReplacePoint(`id(`input), `TextEntry(`id(`val), `opt(`notify), _("Option &value (enter now or later)"))),
+//			`TextEntry(`id(`val), _("Option &value (enter now or later)")),
+			`VStretch(),
+			`PushButton(`id(`reset), _("&Reset")),
+			`HBox
+			(
+			    `HStretch(),
+			    `PushButton(`id(`ok), `opt(`default), UI::OKButtonLabel()),
+			    `PushButton(`id(`cancel), UI::CancelButtonLabel()),
+			    `HStretch()
+			),
+			`HSpacing(1)
+		    )),
+		    `HSpacing(2)
+		));
+    return widget;
+
+}
+
+/**
+ * @return term dialog term
+ */
+
+global define term SummaryWidget() ``{
+    if (summary_sel == nil)
+    {
+	summary_sel = `accept;
+    }
+    term contents =
+     `VBox (
+        `VSpacing (0.5),
+        `HBox (
+            `HSpacing (2),
+            `Top (`RadioButtonGroup (`id (`radios),
+                     `VBox (
+                          `HBox (`RichText (`id (`richtext), _("One moment please ..."))
+                                           ),
+                          `VSpacing (1),
+                          // Frame description in suggested partition for mode accept modify ..
+                          `HCenter(`Frame (_("Choose"), `HVSquash (
+                             `VBox (
+                                    `VSpacing (0.2),
+                                    `Left (`RadioButton (`id (`accept), `opt(`notify),
+					initial_mode ? _("Acc&ept") : _("&Save current configuration"), 
+					summary_sel == `accept)),
+                                    `VSpacing (0.2),
+                                    `Left (`RadioButton (`id (`modify), `opt(`notify),
+					initial_mode ? _("&Modify") : _("&Modify current configuration"),
+					summary_sel == `modify)),
+                                    `VSpacing (0.2),
+                                    `Left (`RadioButton (`id (`restore), `opt(`notify),
+					_("Restore &original configuration"),
+					summary_sel == `restore)),
+                                    `VSpacing (0.2)
+                                    )
+                             )
+                           ))
+                          ))
+                  ),
+            `HSpacing (2)
+            ),
+        `VSpacing(2) );
+    return contents;
+}
+
+/**
+ * @return term dialog term
+ */
+
+global define term ActionWidget() ``{
+    if (action_sel == nil)
+    {
+	action_sel = `target;
+    }
+    term radios =   `VBox
+                    (
+			`VSpacing(0.5),
+                        `Left(`RadioButton(`id(`target), _("Change installation &target or uninstall"),
+			    action_sel == `target)),
+                        `VSpacing(0.5),
+                        `Left(`RadioButton(`id(`global), _("Edit &global options"),
+			    action_sel == `global)),
+                        `VSpacing(0.5),
+                        `Left(`RadioButton(`id(`sections), _("Edit &sections"),
+			    action_sel == `sections)),
+                        `VSpacing(0.5)
+                    );
+
+    term widget=`HBox
+                (
+                    `HStretch(),
+                    `Frame
+                    (
+                        _("&Section type"),
+                        `RadioButtonGroup
+                        ( `id(`radios), `HBox( `HSpacing(2), radios,
+                            `HSpacing(2))
+                        )
+                    ),
+                    `HStretch()
+                );
+
+    return widget;
+}
+
+/**
+ * widget for installation target seection.
+ * @param mbr_dev master boot record device
+ * @param bootdev device where the lilo was lastly installed
+ * @return term term
+ */
+
+global define term TargetWidget(string mbr_dev, string bootdev) ``{
+    term radios = nil;
+    string uninstall_label = "";
+    if (initial_mode)
+    {
+	uninstall_label = _("Do not install boot loader");
+    }
+    else
+    {
+	uninstall_label = sformat(_("&Uninstall boot loader from %1"), bootdev);
+    }
+
+    if (Arch::i386)
+    {
+	// i386
+	string mbr_label = sformat(_("&Master boot record of %1"), mbr_dev);
+
+	term part_combo = `ComboBox(`id(`part), `opt(`notify), "", toItemList(getPartitionList()));
+
+	if (Lilo::autoinstallation)
+	{
+	    string _void = " ";
+	    part_combo = `TextEntry(`id(`part), _void);
+	}
+
+	    radios =   `VBox
+                    (
+                        `VSpacing(0.5),
+                        `Left(`RadioButton(`id(`mbr), `opt(`notify), mbr_label)),
+                        `VSpacing(0.5),
+                        `Left(`RadioButton(`id(`boot), `opt(`notify), _("Boot sector of &boot partition"))),
+                        `VSpacing(0.5),
+                        `Left(`RadioButton(`id(`root), `opt(`notify), _("Boot sector of &root partition"))),
+                        `VSpacing(0.5),
+                        `Left(`RadioButton(`id(`floppy), `opt(`notify), _("&Floppy disk"))),
+                        `VSpacing(0.5),
+                        `Left(`HBox(`VBox(`Label(""), `RadioButton(`id(`other), `opt(`notify), _("&Other: /dev/"))), part_combo)),
+                        `VSpacing(1.5),
+                        `Left(`RadioButton(`id(`uninstall), `opt(`notify), uninstall_label)),
+                        `VSpacing(0.5)
+
+
+                    );
+    }
+    else
+    {
+	// TODO: other architectures
+
+    }
+
+
+    term widget=`HBox
+                (
+                    `HStretch(),
+                    `Frame
+                    (
+                        _("Where should the boot loader be installed?"),
+                        `RadioButtonGroup
+                        ( `id(`radios), `HBox( `HSpacing(2), radios,
+                            `HSpacing(2))
+                        )
+                    ),
+                    `HStretch()
+                );
+
+    return widget;
+
+
+}
+
+
+}
+

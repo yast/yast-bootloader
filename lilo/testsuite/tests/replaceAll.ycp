@@ -1,0 +1,13 @@
+{
+    include "testsuite.ycp";
+    include "lilo/routines.ycp";
+
+    TEST(``(replaceAll("a", "a", "aaa")), [], nil);
+    TEST(``(replaceAll("", "a", "aaa")), [], nil);
+    TEST(``(replaceAll("aa", "a", "aaa")), [], nil);
+    TEST(``(replaceAll("pepep", "pep", "x")), [], nil);
+    TEST(``(replaceAll("abcd", "e", "ASDASD")), [], nil);
+    TEST(``(replaceAll("ABCD", "", "X")), [], nil);
+    TEST(``(replaceAll("", "A", "X")), [], nil);
+    
+}

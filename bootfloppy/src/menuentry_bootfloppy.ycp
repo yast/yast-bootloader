@@ -1,0 +1,66 @@
+/**
+ * File:
+ *   menuentry_bootfloppy.ycp
+ *
+ * Module:
+ *   Bootfloppy
+ *
+ * Summary:
+ *   Bootfloppy menuentry
+ *
+ * Authors:
+ *   Michael Mager <mike@suse.de>
+ *
+ * String corrections by Christian Steinruecken <cstein@suse.de>, 2001/08/01
+ *
+ *
+ * $Id$
+ *
+ *
+ */   
+{
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // set the textdomain, (generally the name of the module for example "lan" for y2c_lan
+  // in doubt do a "grep textdomain" in the main module, you are calling 
+   textdomain "bootfloppy";
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+  // first parameter of the list is the module, that shoul be called
+   return([ "bootfloppy",
+   $[
+     ////////////////////////////////////////////////////////////////////////////////
+     // name of the entry, shon in curses menu and ycc                             //
+     `menuentry    : UI(_("Create a boot, rescue or module floppy")),
+     
+     ////////////////////////////////////////////////////////////////////////////////
+     //leave blank,  experts only ;-)
+     `arguments    : [ ],
+     
+      ////////////////////////////////////////////////////////////////////////////////
+      // group (one of the groups in /usr/lib/YaST2/etc/y2contolcenter.conf         //
+     `group        : "System", 
+   
+     ////////////////////////////////////////////////////////////////////////////////
+     // Icon used in y2contolcenter                                                //
+     `icon         : UI(_("bootmode.png")),
+     
+      ////////////////////////////////////////////////////////////////////////////////
+      // explanation of yast2 menueentry in ncurses menu                            //                 
+     `widget       : `RichText(
+				// 
+				UI(_("Launch this module to create a boot, rescue or module floppy."))
+				+
+				UI(_("<p>You need to be logged in as <i>root</i> in order to do this.</p>"))),
+     
+      ////////////////////////////////////////////////////////////////////////////////
+      // explanation in YaST2 Control Center                                         //
+      `helptext     : UI(_("Insert a floppy disk and create a standalone boot, rescue or module floppy.")),
+   
+      ////////////////////////////////////////////////////////////////////////////////
+      // leave nil, experts only ;-)
+      `codefragment : nil 
+   
+   ]
+   ]);
+}

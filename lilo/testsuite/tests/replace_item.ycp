@@ -1,0 +1,11 @@
+{
+    include "testsuite.ycp";
+    include "lilo/routines.ycp";
+
+    TEST(``(replaceitem([1,2,3,4,5], "v", 2)), [], nil);
+    TEST(``(replaceitem([1,2,3,4,5], "v", 0)), [], nil);
+    TEST(``(replaceitem([], "v", 1)), [], nil);
+    TEST(``(replaceitem([1], "v", 1)), [], nil);
+    TEST(``(replaceitem([], "v", 0)), [], nil);
+
+}

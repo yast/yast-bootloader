@@ -1,0 +1,13 @@
+{
+    include "testsuite.ycp";
+    include "lilo/routines.ycp";
+    
+    TEST(``(normalizeValue("change", "a,b,c,d")), [], nil);
+    TEST(``(normalizeValue("change", "change,a,b,c,d")), [], nil);
+    TEST(``(normalizeValue("change-rules", "a,b,c,d")), [], nil);
+    TEST(``(normalizeValue("change-rules", "")), [], nil);
+    TEST(``(normalizeValue("A", "B")), [], nil);
+    TEST(``(normalizeValue("A", "")), [], nil);
+    TEST(``(normalizeValue("A", 6)), [], nil);
+
+}

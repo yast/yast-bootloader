@@ -1,0 +1,35 @@
+/**
+ * File:
+ *	BootABOOT.ycp
+ *
+ * Module:
+ *	BootABOOT
+ *
+ * Summary:
+ *	functions for aboot setup
+ *
+ * Authors:
+ *	Klaus Kaempf <kkaempf@suse.de>
+ *
+ * $Id$
+ *
+ */
+{
+    module "BootABOOT";
+
+    import "Boot";
+
+    global define boolean Write ()
+    ``{
+	// where is "/boot" located ?
+	string boot_device = Boot::BootPartitionDevice;
+
+	// where is "/" located ?
+	string root_device = Boot::RootPartitionDevice;
+
+	string docmd = "/usr/lib/YaST2/bin/do" + Boot::LoaderType + " /";
+	SCR::Execute (.target.bash, docmd, $["RDEV": root_device, "BDEV": boot_device]);
+
+	return true;
+    }
+}

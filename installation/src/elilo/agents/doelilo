@@ -1,0 +1,127 @@
+#! /bin/sh
+
+# Script to create an initial ELILO config file & initrd.
+#
+# Usage:
+#   doelilo [root_dir] [ -m mbr_device ] [ -v vga_fb_mode ]
+#           [ -a partition_spec ] [ -d disk_param ] [ -d ... ]
+#           [ -o other_system_entry ] [ -o ... ]
+#
+# -a, -m and -v are ignored
+#
+# Example:
+#
+# doelilo /blub -m /dev/hda
+#
+# As an alternative, specify the root & boot devices via environment
+# variables. e.g.: rootdev=/dev/hda bootdev=/dev/hda1 doelilo
+#
+# on errors:
+#   exit code > 0
+#
+# Version 1.0
+#
+# Author: Andreas Schwab <schwab@suse.de>
+# (c) 2001 SuSE GmbH
+
+function log {
+  echo "$@" >>/var/log/doelilo.log 2>/dev/null
+}
+
+get_device () {
+  x1=$(cat /proc/mounts 2>/dev/null | grep -F " /mnt$1 ")
+  x2=$(echo "$x1" | wc -l)
+  x3=$(echo "$x1" | cut -f 1 -d " ")
+
+  if [ $x2 -eq 1 -a -b "$x3" ] ; then
+    echo "$x3"
+  else
+    x1=$(mount 2>/dev/null | grep -F " on $1 ")
+    x2=$(echo "$x1" | wc -l)
+    x3=$(echo "$x1" | cut -f 1 -d " ")
+
+    if [ $x2 -eq 1 -a -b "$x3" ] ; then
+      echo "$x3"
+    fi
+  fi
+}
+
+get_device_number () {
+  major=${5%,}
+  minor=$6
+  printf "%x\n" $(($major*256 + $minor))
+}
+
+: >/var/log/doelilo.log
+
+log "arguments: $*"
+printenv >> /var/log/doelilo.log
+
+root_dir=$1
+test -n "$root_dir" || root_dir=/
+shift
+
+log "root_dir=$root_dir"
+
+if test -z "$rootdev"; then
+    rootdev=$(get_device "$root_dir")
+    test -n "$rootdev" || exit 11
+fi
+export rootdev
+if test -b "$root_dir$rootdev"; then
+  numeric_rootdev=$(get_device_number $(ls -ln "$root_dir$rootdev"))
+else
+  # punt
+  numeric_rootdev=$rootdev
+fi
+#echo "using \"$rootdev\" as root device (mounted on \"$root_dir\")"
+log "using \"$rootdev\" ($numeric_rootdev) as root device (mounted on \"$root_dir\")"
+
+if test -z "$(get_device /boot)"; then
+  log "/boot is not a separate partition"
+  exit 12
+fi
+
+
+PATH=/usr/lib/YaST2/bin:$root_dir/usr/lib/YaST2/bin:$root_dir/sbin:$PATH
+
+# create a fallback kernel
+cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.suse || exit 31
+
+# make an initial ram disk
+$root_dir/sbin/mk_initrd $root_dir >>/var/log/doelilo.log 2>/dev/null
+ret_code=$?
+# ret_code 0 means success, 9 means: a module is missing, but we ignore it
+if test $ret_code -ne 0 -a $ret_code -ne 9; then
+  log "mk_initrd failed with $ret_code"
+  exit $ret_code
+fi
+
+{
+  echo "# ELILO config file
+prompt
+timeout=80
+read-only
+"
+
+  for kernel in '' .suse; do
+    if test -f $root_dir/boot/vmlinuz$kernel ; then
+      echo "image=vmlinuz$kernel"
+      if test "$kernel" = .suse; then
+	echo "	label=failsafe"
+      else
+	echo "	label=linux$kernel"
+      fi
+      echo "	root=$numeric_rootdev"
+      if test -f $root_dir/boot/initrd$kernel; then
+	echo "	initrd=initrd$kernel"
+      fi
+      if test "$kernel" = .suse; then
+	echo "	append=\"ide=nodma${append:+ $append}\""
+      elif test -n "$append" then
+	echo "	append=\"$append\""
+      fi
+      echo
+    fi
+  done
+} > $root_dir/boot/elilo.conf

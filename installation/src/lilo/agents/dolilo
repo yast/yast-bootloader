@@ -1,0 +1,65 @@
+#! /bin/sh
+
+# Script to create an initial LILO config file & initrd.
+#
+# Usage:
+#   dolilo [args]
+#
+#   args: cf. mk_lilo_conf
+#
+# Example:
+#
+# dolilo /blub -m /dev/hda
+#
+# As an alternative, specify the root & boot devices via environment
+# variables. e.g.: rootdev=/dev/hda bootdev=/dev/hda1 mk_lilo_conf
+#
+# on errors:
+#   exit code > 0
+#
+# Version 1.06
+#
+# Author: Steffen Winterfeldt <wfeldt@suse.de>
+# (c) 1999 SuSE GmbH
+
+
+# look for '-v vga_mode' option and put resolution in $res
+function vga_res {
+  v=
+  mode=
+  for i in "$@" ; do
+    [ "$i" = '-v' ] && v=1 continue
+    [ "$v" ] && mode=$((i)) break
+    v=
+  done
+
+  res=
+  case "$mode" in
+    785|786) res=640x480   ;;
+    788|789) res=800x600   ;;
+    791|792) res=1024x768  ;;
+        794) res=1280x1024 ;;
+  esac
+}
+
+root_dir=$1
+[ "$root_dir" ] || root_dir=/
+
+PATH=/usr/lib/YaST2/bin:$root_dir/usr/lib/YaST2/bin:$root_dir/sbin:$PATH
+
+# create a fallback kernel
+if [ ! -f "$root_dir/boot/vmlinuz.suse" ] ; then
+  cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.suse || exit 31
+fi
+
+# make an initial ram disk
+vga_res "$@"
+if [ "$res" ] ; then
+  mk_initrd -s "$res" $root_dir || exit $?
+else
+  mk_initrd $root_dir || exit $?
+fi
+
+# configure lilo
+mk_lilo_conf "$@" || exit $?
+

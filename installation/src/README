@@ -1,0 +1,36 @@
+bootloader code layout
+
+The bootloader code is separated in three parts
+
+- the general "Boot" module
+- the general "inst_bootloader.ycp" client
+- the boot manager specific modules (in sub-diretories)
+
+The general files are not dependant on the boot manager used
+but just handle the "where" (i.e. install on harddisk or floppy,
+where does /boot reside, which kernel parameters to pass) side
+of the boot manager configuration.
+
+The "how" side (how does the specific boot manager gets installed)
+is handled in specific modules. These modules reside in sub-directories
+named by the boot loader. (The name comes from .probe.boot_arch and
+is stored in Boot::LoaderType)
+
+The "Boot" module handle the "MakeProposal" part of the installation
+proposal. It does not contain any UI code.
+
+The inst_bootloader handles the "AskUser" part of the installation
+proposal. It generates a UI dialogue from its own general settings
+and the boot manager specific parameters. The latter are taken from
+the sub-modules function "AskParameters ()" and "HelpParameters ()".
+The specific parameters are handled via "HandleParameters ()"
+of the sub-module.
+
+
+Boot also has two general functions
+
+Boot::Save() is used to save boot manager configuration data,
+without actually installing the boot manager.
+
+Boot::Write() installs the boot manager according to the settings
+saved before.

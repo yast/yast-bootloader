@@ -1,0 +1,123 @@
+<html>
+<head>
+<title>Booting using initial ram disk</title>
+</head>
+
+<body>
+<h1>Booting using a initial ram disk</h1>
+
+Using the <code>initrd</code> feature allows you to load modules before the
+root file system is mounted. This is more or less only useful for adding
+modules that are needed to mount the root file system.
+
+<h2>How initrd works</h2>
+
+The <code>initrd</code> feature is enabled by adding a kernel command line
+parameter like <code>initrd=/boot/xyz</code> (SYSLINUX) or by adding an
+<code>initrd=/boot/xyz</code> line to <code>/etc/lilo.conf</code> (LILO).<p>
+
+The initial ram disk itself is a compressed (<code>gzip</code>) file system
+image (the kernel must have support for the corresponding file system type,
+of course).<p>
+
+The kernel loads and uncompresses this image into a ram disk mounts it as
+the root file system and runs the program <code>/linuxrc</code>. When
+<code>/linuxrc</code> exists, the normal boot process continues (the ram
+disk is unmounted and the memory freed - unless it is still in use when
+<code>/linuxrc</code> exits). That is, the (real) root file system is
+mounted and <code>init</code> started.
+
+<h2>How to create an initrd: mkinitrd</h2>
+
+Red Hat uses the mkinitrd script to create the initial ram disk. Usage is:
+
+<pre>
+usage: mkinitrd [--version] [-v] [-f] [--ifneeded] [--preload &lt;module>]
+       [--omit-scsi-modules] [--with &lt;module>] [--image-version] &lt;initrd-image> &lt;kernel>
+       (ex: mkinitrd /boot/initrd 2.0.3)
+</pre>
+
+It is actually quite an overkill to use this script. We should however consider
+providing it (or one with an identical usage) for those users that are used
+to the Red Hat script.<p>
+
+Here is the contents of a typical ram disk created by this script
+(<code>mkinitrd</code> uses the <code>ext2</code> fs): 
+
+<pre>
+-rwxr-xr-x   1 root     root           64 Sep  1 16:23 linuxrc
+
+bin:
+total 700
+drwxr-xr-x   2 root     root         1024 Sep  1 16:23 .
+drwxr-xr-x   6 root     root         1024 Sep  1 16:23 ..
+-rwxr-xr-x   1 root     root       423504 Sep  1 16:23 insmod
+-rwxr-xr-x   1 root     root       284304 Sep  1 16:23 sh
+
+dev:
+total 2
+drwxr-xr-x   2 root     root         1024 Sep  1 16:23 .
+drwxr-xr-x   6 root     root         1024 Sep  1 16:23 ..
+crw-------   1 root     tty        5,   1 Sep  1 16:21 console
+crw-r--r--   1 root     root       1,   3 Jul 23 12:55 null
+lrwxrwxrwx   1 root     root            4 Sep  1 16:23 ram -> ram0
+brw-r-----   1 root     disk       1,   0 Jul 23 01:04 ram0
+brw-r-----   1 root     disk       1,   1 Jul 23 01:04 ram1
+brw-r-----   1 root     disk       1,   2 Jul 23 01:04 ram2
+brw-r-----   1 root     disk       1,   3 Jul 23 01:04 ram3
+brw-r-----   1 root     disk       1,   4 Jul 23 01:04 ram4
+brw-r-----   1 root     disk       1,   5 Jul 23 01:04 ram5
+brw-r-----   1 root     disk       1,   6 Jul 23 01:04 ram6
+brw-r-----   1 root     disk       1,   7 Jul 23 01:04 ram7
+lrwxrwxrwx   1 root     root            4 Sep  1 16:23 ramdisk -> ram0
+crw-r-----   1 root     tty        4,   1 Sep  1 16:21 tty1
+crw-r-----   1 root     tty        4,   2 Sep  1 16:21 tty2
+crw-r-----   1 root     tty        4,   3 Sep  1 16:21 tty3
+crw-r-----   1 root     tty        4,   4 Sep  1 16:21 tty4
+
+etc:
+total 2
+drwxr-xr-x   2 root     root         1024 Sep  1 16:23 .
+drwxr-xr-x   6 root     root         1024 Sep  1 16:23 ..
+
+lib:
+total 113
+drwxr-xr-x   2 root     root         1024 Sep  1 16:23 .
+drwxr-xr-x   6 root     root         1024 Sep  1 16:23 ..
+-rw-r--r--   1 root     root       112400 Jul 23 10:42 aic7xxx.o
+</pre>
+
+<code>insmod</code> and <code>sh</code> (in fact <code>ash</code>) are statically
+linked binaries. The modules are placed in <code>/lib</code>.<p>
+
+<code>linuxrc</code> is a shell script that looks like this:
+
+<pre>
+#!/bin/sh
+
+echo "Loading aic7xxx module"
+insmod /lib/aic7xxx.o 
+</pre>
+
+<h2>lilo.conf</h2>
+
+A typical <code>lilo.conf</code> <code>initrd</code> entry looks like
+
+<pre>
+image = /boot/eide01
+  root = /dev/sda3
+  initrd = /boot/initrd
+  label = linux
+</pre>
+
+<h2>Specials</h2>
+
+When loading a SCSI module keep in mind that even the SuSE non-SCSI kernel
+currently include SCSI disk/tape/cdrom support (but not generic SCSI
+support). So there is no point loading, e.g, the <code>sd.o</code> module.<p>
+
+<code>mkinitrd</code> however <em>does</em> it (unless the
+<code>--omit-scsi-modules</code> option is given).
+
+</body>
+</html>

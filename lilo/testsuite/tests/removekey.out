@@ -1,0 +1,4 @@
+Return	$[]
+Return	$["a":"b", "c":"d"]
+Return	$["a":"b"]
+Return	$[]

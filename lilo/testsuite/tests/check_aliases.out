@@ -1,0 +1,12 @@
+Return	
+Return	Section label 'image2' is already used.
+Return	Section label 'other2' is already used.
+Return	
+Return	Alias 'other alias' is already used as an alias for section 'other1'.
+Return	Alias 'image alias' is already used as an alias for section 'image2'.
+Return	Alias 'image2' conflicts with the name of another section.
+Return	Alias 'other2' conflicts with the name of another section.
+Return	Alias 'image2' conflicts with the name of another section.
+Return	Label 'image alias' is already used as an alias for section 'image2'.
+Return	Alias 'image alias' is already used as an alias for section 'image2'.
+Return	Alias 'other alias' is already used as an alias for section 'other1'.

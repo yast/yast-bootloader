@@ -1,0 +1,92 @@
+-------------------------------------------------------------------
+Mon Jun 24 13:00:47 CEST 2002 - kkaempf@suse.de
+
+- merge bootloader parts from yast2.rpm
+- rename to yast2-bootloader.
+
+-------------------------------------------------------------------
+Fri Mar  8 14:58:13 CET 2002 - jbuch@suse.de
+
+- %defattr(-,root,root)
+  %docdir @DOCDIR@
+  %doc @DOCDIR@/* to yast2-....spec.in
+
+-------------------------------------------------------------------
+Fri Mar  8 14:51:38 CET 2002 - jbuch@suse.de
+
+- Adapt code to new function for mount installation source (CD1)
+  Remove one CloseDialog (Bug #14461)
+  Installation::installMap -> Mode::installMap (Bug # 14664) 
+
+-------------------------------------------------------------------
+Wed Feb 13 18:24:15 CET 2002 - schubi@suse.de
+
+- user_settings removed
+
+-------------------------------------------------------------------
+Thu Sep  6 09:56:53 CEST 2001 - jbuch@suse.de
+
+- ChangeCD ->  MediaUI::ChangeMedium 
+
+-------------------------------------------------------------------
+Tue Aug 21 13:49:44 CEST 2001 - kkaempf@suse.de
+
+- replace fileexist() with SCR::Read(.targe.size, ...)
+
+-------------------------------------------------------------------
+Thu Aug  9 10:59:46 CEST 2001 - jbuch@suse.de
+
+- fixed bug 8890 (umount /dev/fd0) 
+
+-------------------------------------------------------------------
+Mon Aug  6 16:48:28 CEST 2001 - jbuch@suse.de
+
+- Update to version 2.4.0 
+
+------------------------------------------------------------------------
+Fri May 11 17:44:16 2001 - ke@suse.de
+
+- Update to version 2.3.6.
+- Update cs, de, and ja.
+
+-------------------------------------------------------------------
+Thu May  3 10:06:48 CEST 2001 - jbuch@suse.de
+
+- add yast2-lib-sequencer to spec file 
+
+-------------------------------------------------------------------
+Mon Apr 30 11:08:50 CEST 2001 - jbuch@suse.de
+
+- fixed bug with RadioButtons  
+
+-------------------------------------------------------------------
+Wed Apr 25 13:43:09 CEST 2001 - sh@suse.de
+
+- Migration from .tar.gz to .tar.bz2
+  V 2.3.3
+
+-------------------------------------------------------------------
+Wed Apr 25 13:26:48 CEST 2001 - sh@suse.de
+
+- Fixed translatable message: Made one message from fragments
+
+-------------------------------------------------------------------
+Tue Apr 24 09:45:28 CEST 2001 - jbuch@suse.de
+
+- new include  
+
+-------------------------------------------------------------------
+Tue Apr 17 15:48:14 CEST 2001 - jbuch@suse.de
+
+- create boot, module and rescue disks 
+
+-------------------------------------------------------------------
+Thu Jan  4 17:33:01 CET 2001 - kkaempf@suse.de
+
+- fix syntax error
+
+-------------------------------------------------------------------
+Thu Jan  4 15:07:16 CET 2001 - mike@suse.de
+
+- initial version
+

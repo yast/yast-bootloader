@@ -1,0 +1,107 @@
+<html>
+<body>
+<PRE>
+
+<B>Boot loader setup tool.</B>
+
+<B>UI frontends to lilo:</B>
+   <B>KDE : </B><a href=http://klilo.sourceforge.net>klilo</a>
+   <B>Gnome: </B><a href=http://freshmeat.net/redir/glilo/3352/url_homepage>glilo</A> (how surprising)<BR><BR>
+
+<B>More information on bootloading:</B>
+   <A href=os.html>Operating systems</a>
+   <A href=strategy.html>Multiple OS's booting strategies</A>
+   <A href=dists.html>Linux destribution names and version</A>
+
+<B> Supported bootloaders </B>
+
+lodader	    conf.file	      platforms
+=======================================
+lilo	    /etc/lilo.conf    i386, ppc
+silo	    /etc/silo.conf    sparc64
+elilo	    /boot/elilo.conf  ia64
+
+<B>Bootloader module functionality</B>
+
+*) add/edit/remove lilo sections in ui.
+*) install LILO to mbr/bootsector/floppy 
+*) uninstall LILO 
+<! *) add section with help of installed-OS-detection >
+
+this module takes over functionality of yast1 bootloader configuration.
+<BR><HR><BR>
+<B>Config summary viewer</B>
+<p><a href=summary.jpg><img SRC="tn_summary.jpg" ></A>
+A partitioner-like config viewer. User can select
+to save (accept) config, modify config and restore original
+config from installation (this will overtake the functionality of
+y2c_bootloader module from YCC)
+
+<BR><HR><BR>
+<B>Action selector</B>
+<p><a href=action.jpg><img SRC="tn_action.jpg" ></A>
+Shown when 'modify' radiobutton was checked.
+Asks user, what does she want to change.
+
+<BR><HR><BR>
+<B>Installation target selector</B>
+<p><a href=target.jpg><img SRC="tn_target.jpg" ></A>
+asks for partition to install bootloader on.
+
+<BR><HR><BR>
+<B>Section viewer (main window)</B>
+<p><a href=sections.jpg><img SRC="tn_sections.jpg" ></A>
+1) sections viewing/creating/modifying.
+2) marking section as default
+<BR><HR><BR>
+<B>new section type selector</B>
+new section
+a) specifying section type: image/other
+<a href=type.jpg><img src=tn_type.jpg></a>
+<BR><HR><BR>
+<B>image section options</B>
+<a href=linux.jpg><img SRC="tn_linux.jpg" ></A>
+1) label
+2) root device (partition that will be mounted as root after boot)
+3) optional checkbox- kernel is optional (may not be present in future)
+4) path to image / device name
+
+5) list of all options accessed by 'options' button
+<BR><HR><BR>
+<B>other section options </B>
+<a href=other.jpg><img SRC="tn_other.jpg" ></A>
+1) section label
+2) boot device (partition)
+
+3) list of all options accessed by 'options' button
+
+<BR><HR><BR>
+<B>detailed options for section</b>
+<p><A href=options.jpg><img SRC="tn_options.jpg" ></A>
+options for section
+values are changed via 'Edit' button.
+dialog for adding and editing is the same.
+<BR><HR><BR>
+<B>option value editor</B>
+<p><A href=add.jpg><img SRC="tn_add.jpg" ></A>
+reset button sets brings back the value to the state
+it was before before calling *options* dialog, not the 
+value editor.
+help for currently selected option is shown on the left
+
+<BR><HR><BR>
+
+<B>global lilo options</b>
+<a href=global.jpg><img src=tn_global.jpg></A>
+global options for lilo (common for all section if not overriden there)
+1) show prompt automatically / on demand
+2) timeout
+3) password
+5) all option accessible by 'options' button
+3) combo with installation target (mbr, root partition, boot partition. floppy, uninstall)
+<BR><HR><BR>
+
+<B>Wizard sequence</B>
+<img SRC="lilo.jpg">
+</body>
+</html>

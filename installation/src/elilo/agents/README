@@ -1,0 +1,17 @@
+Note: you'll find a complete docu at the top of each script. This README
+just gives a general overview.
+
+
+
+doelilo
+======
+
+Create initrd, initrd.suse, vmlinuz.suse and elilo.conf.
+
+Usage expample:
+
+  doelilo /blub
+
+It looks for the kernel images /blub/boot/vmlinuz{,.suse} and the initrds
+/blub/boot/initrd{,.suse}. In addition, you *must* have mounted a /boot
+partition to /blub/boot.

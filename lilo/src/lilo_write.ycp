@@ -1,0 +1,153 @@
+/**
+ * File:
+ *   lilo_write.ycp
+ *
+ * Module:
+ *   Configuration of lilo
+ *
+ * Summary:
+ *   Writing only client
+ *
+ * Authors:
+ *   Dan Meszaros <dmeszar@suse.cz>
+ *
+ * $Id$
+ *
+ * This is a write-only client. It takes its arguments and just
+ * write the settings.
+ */ 
+
+/** 
+ * @param first a map of lilo settings
+ * example:    $[ "conf" :$["global" :		    // global options
+				$[
+				    "boot": "/dev/hda",
+				    "default": "linux"
+				],
+			    "image" :		    // list of image sections with their options
+				[
+				    $[
+					"label": "linux",
+					"image": "/boot/vmlinuz"
+				    ]
+				]   
+			    "other" :  [...]	    // list of other sections      
+		    ]
+		  "file" : "/etc/lilo.conf"	// output file
+		  "execute_lilo" : boolean	// execute or don't execute lilo after writing
+		]
+
+ * @return boolean success of operation
+ */
+
+{
+
+textdomain "lilo";
+include "lilo/io.ycp";
+include "lilo/routines.ycp";
+
+/**
+ * writes config to disk.
+ * @param settings see above
+ * @return map result
+ */
+
+global define map LiloWrite(map settings) ``{
+    map conf = lookup(settings, "conf", $[]);
+
+    // first synchronize global settings
+
+    map global_opts = lookup(conf, "global", $[]);
+
+    list globs1 = SCR::`Dir(list2path([boot()]));
+    list globs2 = maplist(`e, `f, global_opts, ``(e));
+
+    list diff = difflist(globs1, globs2);
+    diff = difflist(diff, ["sections"]);
+
+    // remove options that has disappeared
+    foreach(`e, diff, ``{SCR::`Write(list2path([boot(), e]), nil);});
+
+    // write values
+    foreach(`e, `f, lookup(conf, "global", $[]), ``{
+	if (isSpecial(e))
+	{
+	    SCR::Write(list2path([boot(), e]), splitstring(f, ","));
+	}
+	else
+	{
+	    SCR::`Write(list2path([boot(), e]), ui2mod(f));
+	}
+    });
+
+    // now remove all sections
+    list sects = SCR::`Dir(list2path([boot(), "sections"]));
+    foreach(`sect, sects,
+    ``{
+       SCR::`Write(list2path([boot(), "sections", sect]), nil);
+    });
+
+    string sname = "";
+    sects = [];
+    // now write new sections
+    sects = lookup(conf, "sections", []);
+    foreach(`sect, sects,
+    ``{
+        sname = lookup(sect, "label", "");
+        SCR::`Write(list2path([boot(), "sections", ui2mod(sname), "label"]), ui2mod(sname));
+        foreach(`key, `val, sect,
+        ``{
+	    if (isSpecial(key))
+	    {
+		SCR::Write(list2path([boot(), "sections", ui2mod(sname), key]), splitstring(val, ","));
+	    }
+	    else
+	    {
+		SCR::`Write(list2path([boot(), "sections", ui2mod(sname), key]), ui2mod(val));
+	    }
+        });
+    });
+
+    string target_file = lookup(settings, "file", "");
+    if (target_file == "")
+    {
+        SCR::`Write(list2path([boot()]), nil);
+    }
+    else
+    {
+        SCR::`Write(list2path([boot()]), target_file);
+    }
+
+    return true;
+}
+
+
+list args = Args();
+
+if (size(args) <= 0) {
+    y2error("NOT writing, probably some mistake...");
+    return false;
+}
+
+if (!is(Args(0),map)) {
+    y2error("Bad argument for lilo write: %1", Args(0));
+    return false;
+}
+
+map settings = select(args,0, $[]);
+
+
+y2debug("Only writing... (%1)",settings);
+
+boolean ret1 = LiloWrite(settings);
+integer ret2 = 0;
+
+if (lookup(settings, "execute_lilo", false))
+{
+    ret2 = DoLilo();
+}
+
+boolean ret3 = LiloFinish();
+return $["write": ret1, "execute": ret2, "finish": ret3];
+
+}

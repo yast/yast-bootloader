@@ -1,0 +1,7 @@
+{
+    include "testsuite.ycp";
+    include "lilo/routines.ycp";
+
+    TEST(``(createOptsTable($["opt1": "val1", "opt2": "val2", "image": "image"])), [], nil);
+
+}

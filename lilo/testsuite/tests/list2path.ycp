@@ -1,0 +1,10 @@
+{
+    include "testsuite.ycp";
+    include "lilo/routines.ycp";
+
+    TEST(``(list2path(["a","b","c"])), [], nil);
+    TEST(``(list2path([])), [], nil);
+    TEST(``(list2path(["a b", "c d", "e"])), [], nil);
+    TEST(``(list2path(["a", "1", "b"])), [], nil);
+    TEST(``(list2path(["a.b", "c", "d.e"])), [], nil);
+}

@@ -1,0 +1,1403 @@
+/**
+ * File:
+ *   ui.ycp
+ *
+ * Module:
+ *   Configuration of lilo
+ *
+ * Summary:
+ *   User interface functions.
+ *
+ * Authors:
+ *   Dan Meszaros <dmeszar@suse.cz>
+ *
+ * $Id$
+ *
+ * All user interface functions.
+ *
+ */
+
+{
+textdomain "lilo";
+
+include "wizard/sequencer.ycp";
+include "ui/common_popups.ycp";
+include "ui/common_messages.ycp";
+include "lilo/routines.ycp";
+include "ui/file_popups.ycp";
+include "lilo/texts.ycp";
+include "lilo/widgets.ycp";
+include "lilo/io.ycp";
+include "lilo/scan.ycp";
+
+/**
+ * global variables
+ *
+ */
+
+
+/**
+ * Main dialog
+ */
+
+/**
+ * sequence
+ * @return symbol next dialog
+ */
+
+global define symbol LiloMainDialog() ``{
+    string  currentSection = "";
+    integer currentSectionIndex = 0;
+    string  currentSectionType = "";
+    map	    currentOptions = $[];
+    map	    currentOptions_backup = $[];
+
+
+    map	    aliases = $[
+	"summary"	: ``(SummaryDialog()),
+	"target"	: ``(TargetDialog()),
+
+        "abort"		: ``(AbortDialog()),
+        "sections"		: ``(MainDlg()),
+	"ostype"	: ``(OSTypeDlg()),
+	"edit_linux"	: ``(LinuxSectDlg()),
+        "edit_other"	: ``(OtherSectDlg()),
+	"opts"		: ``(OptionsDlg(currentOptions)),
+	"glob_opts"	: ``(GlobalOptsDlg()),
+	"scan_os"	: ``(OSScanDlg()),
+        "end"		: ``(EndDialog())
+    ];
+
+    // just for sure that nothing unpleased will happen, create a copy of lilo.conf
+    // and we'll operate on it
+    // remove this before release ;)
+
+    map sequence = $[
+        "ws_start" : "summary",
+        "abort" : $[
+            `yes: `back
+        ],
+	"summary" : $[
+	    `accept : "save",
+	    `modify : "target",
+	    `restore : "summary",
+	    `next  : "end",
+	    `abort : "abort"
+	],
+	"target"   : $[
+	    `next  : "glob_opts",
+	    `abort : "abort",
+	    `summary: "summary"
+
+	],
+
+        "sections" : $[
+            `abort: "abort",
+            `next: "summary",
+	    `edit_linux: "edit_linux",
+	    `edit_other: "edit_other",
+	    `add:  "ostype"
+        ],
+	"scan_os": $[
+	    `abort: "abort",
+	    `add_image: "edit_linux",
+	    `add_other: "edit_other"
+	],
+	"ostype": $[
+	    `scan:  "scan_os",
+	    `abort: "abort",
+	    `add_image: "edit_linux",
+	    `add_other: "edit_other",
+	    `add_other2: "edit_other"
+	],
+	"edit_linux" : $[
+	    `next : "sections",
+	    `abort: "abort",
+	    `options: "opts"
+	],
+	"edit_other" : $[
+	    `next : "sections",
+	    `abort: "abort",
+	    `options: "opts"
+	],
+	"opts"	: $[ // we can only jump back
+	    `abort: "abort"
+	],
+	"glob_opts" : $[
+	    `next : "sections", //"summary",
+	    `options : "opts",
+	    `abort : "abort"
+	],
+        "end" : $[
+            `abort: "abort",
+            `next: `ok
+        ]
+    ];
+
+    Wizard::CreateDialog();
+    symbol ret = WizardSequencer(aliases, sequence);
+    UI::CloseDialog();
+    return ret;
+}
+
+/**
+ *  summary dialog
+ * @return symbol next dialog
+ */
+
+global define symbol SummaryDialog() ``{
+    term widget = SummaryWidget();
+    string caption = _("Bootloader configuration");
+    string help = lookup(HELP_STRINGS, "summary_dialog", "");
+
+    Wizard::SetContents(caption, widget, help, true, true);
+
+    string summary = create_summary_text();
+
+    UI::ChangeWidget(`id(`richtext), `Value, summary);
+
+
+    // triger action on init time to show proper 'next' label
+    // this is the reason why UserInput is at the end of the loop
+    symbol ui = (summary_sel == nil) ? `accept : summary_sel;
+
+    do
+    {
+	if (ui == `accept && !initial_mode)
+	{
+	    UI::ChangeWidget(`id(`next), `Label, UI::FinishButtonLabel());
+	}
+	else
+	{
+	    UI::ChangeWidget(`id(`next), `Label, UI::NextButtonLabel());
+	}
+
+	ui = UI::UserInput();
+	if (ui == `cancel) ui = `abort;
+
+	if (ui == `next && UI::QueryWidget(`id(`radios), `CurrentButton) == `accept)
+	{
+	    string message = "";
+	    if (Lilo::uninstallLilo)
+            {
+                message = _("Settings will be saved to disk 
+and bootloader will be removed.");
+            }
+            else
+            {
+                message = _("Settings will be tested now. If the test is
+successfull, settings will be saved to disk
+and bootloader will be installed. Do you wish to continue?");
+            }
+            if (!Lilo::autoinstallation && !initial_mode && !UI::`YesNoPopup(message))
+            {
+                ui = `skip_event;
+            }
+	}
+    }
+    while (!contains([`next, `abort, `back], ui));
+    summary_sel = UI::QueryWidget(`id(`radios), `CurrentButton);
+    if (ui == `next)
+    {
+	symbol way = UI::QueryWidget(`id(`radios), `CurrentButton);
+	if (way == `accept)
+	{
+	    return `next;
+	}
+	else if (way == `modify)
+	{
+	    currentSectionType = "global";
+	    currentOptions = getOptMap("");
+	    currentOptions_backup = currentOptions;
+	    currentSection = "";
+	    action_sel = `target;
+	}
+	else if (way == `restore)
+	{
+	    if (initial_mode)
+	    {
+		restoreOriginalSettings_initial();
+		summary_sel = `accept;
+	    }
+	    else
+	    {
+		restoreOriginalSettings();
+		summary_sel = `accept;
+	    }
+	}
+
+	return way;
+    }
+    return ui;
+}
+
+/**
+ * bootloader installation target dialog
+ * @return symbol next dialog
+ */
+
+global define symbol TargetDialog() ``{
+    string caption = _("Where should the boot loader be installed?");
+    string help = lookup(HELP_STRINGS, "target_dialog", "");
+
+    term widget = TargetWidget(lookup(lookup(Lilo::partmap, `mbr, $[]), "dev", "?"), Lilo::bootPart);
+
+    Wizard::SetContents(caption, widget, help, true, true);
+
+    string b_dev = lookup(Lilo::globals, "boot", "");
+
+
+    // now check the right radio
+    if (Lilo::uninstallLilo)
+    {
+	UI::ChangeWidget(`id(`radios), `CurrentButton, `uninstall);
+    }
+    else if (Lilo::autoinstallation && !Mode::test)
+    {
+	UI::ChangeWidget(`id(`mbr), `Enabled, false);
+	UI::ChangeWidget(`id(`boot), `Enabled, false);
+	UI::ChangeWidget(`id(`root), `Enabled, false);
+	UI::ChangeWidget(`id(`floppy), `Enabled, false);
+	UI::ChangeWidget(`id(`radios), `CurrentButton, `other);
+            list l = splitstring(b_dev, "/");
+            UI::ChangeWidget(`id(`part), `Value, select(l, size(l) - 1, ""));
+    }
+    else
+    {
+	symbol res = nil;
+	foreach(`key, `val, Lilo::partmap, 
+	``{
+	    if (lookup(val, "dev", "") ==b_dev)
+	    {
+		res = key;
+	    }
+	}
+	);
+	if (res != nil)
+	{
+	    UI::ChangeWidget(`id(`radios), `CurrentButton, res);
+	    UI::ChangeWidget(`id(`part), `Enabled, false);
+	}
+	else
+	{
+	    UI::ChangeWidget(`id(`radios), `CurrentButton, `other);
+	    list l = splitstring(b_dev, "/");
+	    UI::ChangeWidget(`id(`part), `Value, select(l, size(l) - 1, ""));
+	}
+    }
+
+
+    symbol ui = nil;
+    do
+    {
+        ui = UI::UserInput();
+	if (ui == `cancel) ui = `abort;
+	if (UI::QueryWidget(`id(`radios), `CurrentButton) == `other)
+	{
+	    UI::ChangeWidget(`id(`part), `Enabled, true);
+	}
+	else
+	{
+	    UI::ChangeWidget(`id(`part), `Enabled, false);
+	}
+
+
+    }
+    while(!contains([`back, `next, `abort], ui));
+    if (ui == `next)
+    {
+	// commit values
+	symbol sel = UI::QueryWidget(`id(`radios), `CurrentButton);
+	if (!contains([`other, `uninstall], sel))
+	{
+	    string b_dev = lookup(lookup(Lilo::partmap, sel, `mbr), "dev", "/dev/hda");
+	    Lilo::globals = add(Lilo::globals, "boot", b_dev);
+	    Lilo::uninstallLilo = false;
+	}
+	else if (sel == `other)
+	{
+	    string b_dev = "/dev/" + UI::QueryWidget(`id(`part), `Value);
+	    Lilo::globals = add(Lilo::globals, "boot", b_dev);
+	    Lilo::uninstallLilo = false;
+	}
+	else if (sel == `uninstall)
+	{
+	    Lilo::uninstallLilo = true;
+	    summary_sel = `accept;
+	    return `summary;
+	}
+
+        currentSectionType = "global";
+        currentOptions = Lilo::globals;
+        currentOptions_backup = currentOptions;
+        currentSection = "";
+    }
+    return ui;
+
+}
+
+/**
+ * Abort dialog
+ * @return symbol next dialog
+ */
+global define symbol AbortDialog() ``{
+    boolean ret = UI::`ReallyAbortPopup(true);
+    if (ret == true) return `yes;
+    return `back;
+}
+
+/**
+ * End dialog
+ * @return symbol next dialog
+ */
+global define symbol EndDialog() ``{
+//    return `next;
+
+    if (Lilo::autoinstallation)
+    {
+	return `next;
+    }
+
+    if (initial_mode)
+    {
+	user_settings = change(user_settings, "lilo_conf", liloconf);
+	return `next;
+    }
+    string  help = _("<P>New configuration test failed.</P>");
+    string  caption = _("Failure");
+
+    term    contents=nil;   
+
+    map	    test_res=nil;
+
+    // no boot option on sparc
+    if (Arch::sparc)
+    {
+	Lilo::globals = removekey(Lilo::globals, "boot");
+//	agWrite(["boot"], nil);
+    }
+
+    if (Lilo::uninstallLilo)
+    {
+	test_res = RemoveLilo();
+    }
+    else
+    { 
+	test_res = TestLilo();
+
+	if (lookup(test_res, "exit", -1) == 0)
+	{
+	// lilo conf successfully tested
+//	DoLilo();
+	}
+    }
+
+    if (lookup(test_res, "exit", -1) != 0)
+    {
+          // something went wrong
+        contents = `VBox(`Label(_("Error occured while testing new configuration.")), `VSpacing(2.0),
+            `PushButton(`id(`log), _("&View error log")));
+        Wizard::SetContents(caption,contents,help,true, false);
+    }
+    else 
+    {
+	return `next;
+    }
+
+    symbol ret = nil;
+
+    do {
+	ret = UI::`UserInput();
+	if (ret == `cancel) ret = `abort;
+	if (ret == `log)
+	{
+	    ShowErrorLog(lookup(test_res, "stderr", ""));
+	}
+    } while(!contains([`back, `abort, `next], ret));
+
+    return ret;
+}
+
+/**
+ * main dialog
+ * @return symbol next dialog
+ *
+ *
+ *
+ */
+
+global define symbol MainDlg() ``{
+    string  caption = _("Lilo configuration - Sections");
+    any     action = nil; // any is essential here- may be symbol or string with device name
+    string  help = lookup(HELP_STRINGS, "main_dialog", "");
+
+    term    widget = MainDlgWidget([]);
+
+    Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(), UI::`NextButtonLabel());
+
+    // update data in dialog
+    MainDlgRedraw();
+
+
+    while(true) {
+	action = UI::`UserInput();
+	if (action == `cancel) action = `abort;
+
+	currentSectionIndex = UI(`QueryWidget(`id(`lilo_table), `CurrentItem));
+	if (action == `b_default)
+	//===========  set item as default 
+	{
+	    map defsect = select(Lilo::sections, currentSectionIndex, $[]);
+	    string defname = lookup(defsect, "label", "");
+
+	    if (defname == "")
+	    {
+		Lilo::globals = removekey(Lilo::globals, "default");
+	    }
+	    else
+	    {
+		Lilo::globals = add(Lilo::globals, "default", defname);
+	    }
+	    MainDlgRedraw();
+	    untouched = false;
+	    continue;
+	}
+	else if (action == `b_delete && UI::`YesNoPopup(_("Really delete this item?")))
+	//===========  delete item
+	{
+	    integer index = UI::`QueryWidget(`id(`lilo_table), `CurrentItem);
+	    if (index != nil)
+	    {
+		Lilo::DeleteSectionPos(index);
+	    }
+	    untouched = false;
+	    MainDlgRedraw();
+            continue;
+	}
+	else if (action == `b_edit)
+	//============= edit section
+	{
+	    integer index = UI(`QueryWidget(`id(`lilo_table), `CurrentItem));
+	    currentSection = lookup(select(Lilo::sections, index, $[]), "label", "");
+	    currentOptions = select(Lilo::sections, index, $[]);
+	    if (haskey(currentOptions, "other"))
+	    {
+		currentSectionType = "other";
+		return `edit_other;
+	    }
+	    else
+	    {
+		currentSectionType = "image";
+		return `edit_linux;
+	    }
+	}
+	//============= add section
+	else if (action==`b_add)
+	{
+	    currentSection = "";
+	    currentSectionType = "image";
+	    currentOptions = $[];
+	    action = `add;
+	    break;
+	}
+	else if (action == `lilo_table)
+	{
+	    UI::ChangeWidget(`id(`up), `Enabled, currentSectionIndex > 0);
+	    UI::ChangeWidget(`id(`down), `Enabled, currentSectionIndex < (size(Lilo::sections) - 1));
+	}
+	else if (action == `up)
+	{
+	    if (currentSectionIndex > 0)
+            {
+                Lilo::sections = swapItems(Lilo::sections, currentSectionIndex, currentSectionIndex - 1);
+		currentSectionIndex = currentSectionIndex -1;
+                MainDlgRedraw();
+            }
+	}
+	else if (action == `down)
+	{
+	    if (currentSectionIndex < (size(Lilo::sections) - 1))
+	    {
+		Lilo::sections = swapItems(Lilo::sections, currentSectionIndex, currentSectionIndex + 1);
+		currentSectionIndex = currentSectionIndex + 1;
+		MainDlgRedraw();
+	    }
+	}
+	else if (action == `next)
+	{
+	    integer size1 = size(Lilo::sections);
+
+	    if (!Lilo::uninstallLilo && size1 == 0)    // zero sections
+	    {
+		UI::`ErrorPopup(_("Configuration cannot be confirmed.
+There must be at least one boot section.
+"));
+		continue;
+	    }
+	    summary_sel = `accept;
+	    break;
+	}
+	else if (action == `back || action == `abort)
+	{
+	    break;
+	}
+    }
+
+    return action;
+}
+
+/**
+ * inserts data into main dialog. especially a table with sections is created
+ *
+ * @return symbol next dialog
+ */
+
+global define symbol MainDlgRedraw() ``{
+    list items = createSummaryTable();
+    UI::`ChangeWidget(`id(`lilo_table), `Items, items);
+    UI::`ChangeWidget(`id(`lilo_table), `CurrentItem, currentSectionIndex);
+    boolean enab = false; // disable buttons if there are no items in table
+    if (size(items) > 0)
+    {
+	// enable buttons
+	enab = true;
+    }
+    UI::`ChangeWidget(`id(`b_add), `Enabled, size(items)<16);
+    UI::`ChangeWidget(`id(`b_delete), `Enabled, enab);
+    UI::`ChangeWidget(`id(`b_default), `Enabled, enab);
+    UI::`ChangeWidget(`id(`b_edit), `Enabled, enab);
+
+    UI::ChangeWidget(`id(`up), `Enabled, currentSectionIndex > 0);
+    UI::ChangeWidget(`id(`down), `Enabled, currentSectionIndex < (size(Lilo::sections) - 1));
+
+}
+
+/*=========================================================
+ * linux section editor
+ *
+ *
+ *
+ */
+
+/**
+ * linux section dialog validator
+ * @param vals map with section options
+ * @param sectname_orig original section name (could have been changed in dialog)
+ * @return boolean false if data are invalid
+ */
+
+global define boolean LinuxSectDlg_validate(map vals, string sectname_orig) ``{
+    if (strip(lookup(vals, "label", "")) == "")
+    {
+	UI::`MessagePopup(_("Please enter section label."));
+	return false;
+    }
+    if (!Lilo::autoinstallation)
+    {
+        if (SCR::Read(.target.size, lookup(vals, "image", "")) == -1 ||
+	    ( Arch::sparc && SCR::Read(.target.size, "/boot"+lookup(vals, "image", "")) == -1))
+	{
+	    UI::`MessagePopup(_("File entered in 'Path to linux kernel' doesn't exist."));
+	    return false;
+	}
+    }
+
+    string error = check_aliases(liloconf, sectname_orig, 
+		    lookup(vals, "label", ""), lookup(vals, "alias", ""));
+    if (error != "")
+    {
+	UI::`ErrorPopup(error);
+        return false;
+    }
+    return true;
+}
+
+/**
+ * 'image' section properties dialog
+ * 
+ *
+ * @return symbol next dialog
+ */
+
+global define symbol LinuxSectDlg() ``{
+    string caption = _("Linux section properties");
+    string help = lookup(HELP_STRINGS, "linux_sect_dialog", "");
+
+    term widget = LinuxSectWidget();
+    Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
+
+    // read section name. we'll keep 'currentSection' as a copy
+    // for a case of section renaming.
+    string sectn = lookup(currentOptions, "label", "");
+
+    // move data to UI
+	UI::`ChangeWidget(`id(`sect_label), `Value, sectn);
+	UI::`ChangeWidget(`id(`sect_kernel), `Value, lookup(currentOptions, "image", ""));
+	// check 'optional' checkbox
+	if (lookup(currentOptions, "optional", "false")=="true" || lookup(currentOptions, "optional", "false")=="")
+	{
+	    UI::`ChangeWidget(`id(`optional), `Value, true);
+	}
+    // get the tail of '/dev/hdxx/' - we need only hdxx
+    string rootdev = "";
+    if (haskey(currentOptions, "root"))
+    {
+	list rd = splitstring(lookup(currentOptions, "root", ""), "/");
+	rootdev = select(rd, size(rd)-1, "");
+    }
+    else
+    {
+	rootdev = "none";
+    }
+
+    UI::`ChangeWidget(`id(`root), `Value, rootdev);
+
+    // end of data moving
+
+    symbol action = nil;
+    do {
+        action = UI::`UserInput();
+	if (action == `cancel) action = `abort;
+
+        if (action == `browse)
+        {
+	    // browse for kernel. start at /boot/
+            string file = PopupFile("/boot/");
+            if (file != "")
+            {
+                UI::`ChangeWidget(`id(`sect_kernel), `Value, file);
+            }
+        }
+	else if (action == `optional)
+	{
+	    if (UI::`QueryWidget(`id(`optional), `Value))
+	    {
+		currentOptions = add(currentOptions, "optional", "true");
+	    }
+	    else
+	    {
+		currentOptions = removekey(currentOptions, "optional");
+	    }
+	}
+	else if (contains([`next, `options], action))
+	{
+	    // partial commit
+	    string kernel = UI::`QueryWidget(`id(`sect_kernel), `Value);
+	    string label = toascii(UI::`QueryWidget(`id(`sect_label), `Value));
+	    if(size(label)>15)
+	    {
+		label=substring(label, 0, 15);
+	    }
+
+	    currentOptions = add(currentOptions, "label", label);
+	    currentOptions = add(currentOptions, "image", kernel);
+	    if (!LinuxSectDlg_validate(currentOptions, currentSection))
+	    {
+		action = `skip_event;
+	    }
+	    if (UI::`QueryWidget(`id(`root), `Value) != "none")
+	    {
+		currentOptions = add(currentOptions, "root", "/dev/"+UI::`QueryWidget(`id(`root), `Value));
+	    }
+	    else
+	    {
+		currentOptions = removekey(currentOptions, "root");
+	    }
+
+	    if (UI::`QueryWidget(`id(`optional), `Value))
+	    {
+		currentOptions = add(currentOptions, "optional", "true");
+	    }
+	    else
+	    {
+		currentOptions = removekey(currentOptions, "optional");
+	    }
+	}
+
+    } while(!contains([`next, `abort, `cancel, `back, `options], action));
+    // commit values to agent
+
+    if (action == `next)
+    {
+	if (currentSection == "")
+	{
+	    Lilo::AddSection(currentOptions);
+	}
+	else
+	{
+	    Lilo::ChangeSectionOptions( currentSection, currentOptions);
+	}
+	// TODO: improve me
+	if(currentOptions != currentOptions_backup)
+	{
+	    untouched = false;
+	}
+    }
+
+
+    return action;
+}
+
+/**
+ * other section editor dialog
+ * @return symbol next dialog
+ *
+ *
+ *
+ */
+
+global define symbol OtherSectDlg() ``{
+    string  caption = _("Other OS section properties");
+    string  help = lookup(HELP_STRINGS, "other_sect_dialog", "");
+
+    term    widget = OtherSectWidget();
+    Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
+
+    string  sectname_orig = lookup(currentOptions, "label", "");
+
+    UI::`ChangeWidget(`id(`sect_label), `Value, lookup(currentOptions, "label", ""));
+
+    // get partition name 'dhxx' from '/dev/hdxx/'
+    list    bd = splitstring(lookup(currentOptions, "other", ""), "/");
+    string bootdev="";
+    if (size(bd) > 0)
+    {
+	bootdev = select(bd, size(bd)-1, "");
+    }
+    symbol action = nil;
+
+    UI::`ChangeWidget(`id(`part), `Value, bootdev); 
+    
+    do {
+        action = UI::`UserInput();
+	if (action == `cancel) action = `abort;
+
+	if (contains([`next, `options], action))
+	{
+	    // validation and partial commit
+	    string lab=toascii(UI::`QueryWidget(`id(`sect_label), `Value));
+	    if(size(lab)>15)
+	    {
+		lab=substring(lab, 0, 15);
+	    }
+	    if (lab == "")
+	    {
+		UI::`MessagePopup(_("Please enter section label."));
+		action = `skip_event;
+	    }
+	    else if (lab != sectname_orig && checkSectionExistence(toascii(lab)))
+	    {
+		UI::`MessagePopup(_("Section with given label already exists. 
+Please enter new section label."));
+		action = `skip_event;
+	    }
+	    else
+	    {
+		currentOptions = add(currentOptions, "label", lab);
+	    }
+	    currentOptions = add(currentOptions, "other", "/dev/"+UI::`QueryWidget(`id(`part), `Value));
+	}
+
+    } 
+    while(!contains([`next, `abort, `cancel, `back, `options], action));
+    // commit values
+    if (action == `next)
+    {
+	if (currentSection == "")
+	{
+	    Lilo::AddSection(currentOptions);
+	}
+	else
+	{
+	    Lilo::ChangeSectionOptions(currentSection, currentOptions);
+	}
+	if (currentOptions != currentOptions_backup)
+	{
+	    untouched = false;
+	}
+    }    
+
+
+    return action;
+}
+
+/**
+ * os type selector
+ * @return symbol next dialog
+ *
+ *
+ *
+ */
+
+global define symbol OSTypeDlg() ``{
+    string caption = _("Select action");
+    string help = lookup(HELP_STRINGS, "os_type_dialog", "");
+//_("<P>In this dialog you can decide whether to add Linux or other OS section. 
+// You can also let this module to detect installed operating systems on this computer.</P>");
+
+//    help = _("<P>In this dialog you can decide whether to add Linux or other OS section.</P>");
+
+    term widget = OSTypeWidget();
+    Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
+
+    if (Lilo::autoinstallation)
+    {
+	UI::ChangeWidget(`id(`scan), `Enabled, false);
+    }
+
+    // check previously checked radio- type is stored in 'currentSectionType' var
+    map pt = $["image" : `add_image, "other" : `add_other, "" : `scan];
+    
+    UI::`ChangeWidget(`id(`type), `CurrentButton, lookup(pt, currentSectionType, ""));
+
+    symbol action = nil;
+    do 
+    {
+        action = UI::`UserInput();
+	if (action == `cancel) action = `abort;
+    } 
+    while(!contains([`next, `abort, `cancel, `back], action));
+
+    if (action == `next)
+    {
+	// return symbol due to radiobox state
+	symbol state = UI::`QueryWidget(`id(`type), `CurrentButton);
+	// fill the 'currentSectionType' variable
+	map tp = $[`add_image : "image", `add_other : "other", `add_other2 : "other"];
+	currentSectionType = lookup(tp, state, "image");	
+
+	return state; 
+    }
+    return action;
+    
+}
+ 
+/**
+ * global options dialog
+ * @return symbol next dialog
+ *
+ *
+ *
+ */
+
+global define symbol GlobalOptsDlg() ``{
+    string  caption = _("Global LILO properties");
+    string  help = lookup(HELP_STRINGS, "global_opts_dialog", "");
+
+    term    widget = GlobalOptsWidget();
+    Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
+
+    // move data to ui
+   
+    // is option 'prompt' set?
+    boolean prompt = lookup(currentOptions, "prompt", "false") == "true";
+    // if so, check show_prompt checkbox
+    UI::`ChangeWidget(`id(`show_prompt), `Value, prompt);
+    // and enable timeout_active checkbox
+    UI::`ChangeWidget(`id(`timeout_active), `Enabled, prompt);
+
+    // is option timeout set?
+    boolean timact = haskey(currentOptions, "timeout");
+    // if so, check timeout_active checkbox
+    UI::`ChangeWidget(`id(`timeout_active), `Value, timact);
+    // and enable timeout integerfield
+    UI::`ChangeWidget(`id(`timeout), `Enabled, timact);
+    if (timact)
+    {
+	// and set its value
+	UI::`ChangeWidget(`id(`timeout), `Value, tointeger(lookup(currentOptions, "timeout", 0))/10);
+    }    
+
+    // is set password?
+    if (haskey(currentOptions, "password"))
+    {
+	// yes, check the checkbox
+	UI::`ChangeWidget(`id(`password_active), `Value, true);
+	// and insert text values
+	UI::`ChangeWidget(`id(`pass1), `Value, lookup(currentOptions, "password", ""));
+	UI::`ChangeWidget(`id(`pass2), `Value, lookup(currentOptions, "password", ""));
+    }
+    else
+    {
+	// no, disable text inputs
+        UI::`ChangeWidget(`id(`pass1), `Enabled, false);
+	UI::`ChangeWidget(`id(`pass2), `Enabled, false);
+    }
+
+    UI::SetFocus(`id(`timeout));
+    UI::SetFocus(`id(`next));
+    
+
+    // end move
+
+    symbol action = nil;
+    do {
+        action = UI::`UserInput();
+	if (action == `cancel) action = `abort;
+	if (action == `password_active)
+	{
+	    // pasword activated/deactivated
+	    boolean enab = UI::`QueryWidget(`id(`password_active), `Value);
+	    UI::`ChangeWidget(`id(`pass1), `Enabled, enab);
+	    UI::`ChangeWidget(`id(`pass2), `Enabled, enab);
+	}
+	
+	if (action == `show_prompt)
+	{
+	    // show_prompt checkbox has been pressed
+	    boolean enab = UI::`QueryWidget(`id(`show_prompt), `Value);
+	    
+	    // enable/disable sub-controls
+	    UI::`ChangeWidget(`id(`timeout_active), `Enabled, enab);
+	    if (!enab)
+	    {
+		UI::`ChangeWidget(`id(`timeout_active), `Value, false);
+	    }
+	    // and update subcontrols- update 'enabled' property
+	    action = `timeout_active;
+	}
+
+	if (action == `timeout_active)
+	{
+	    // timeout activated/deactivated
+	    boolean enab = UI::`QueryWidget(`id(`timeout_active), `Value);
+	    UI::`ChangeWidget(`id(`timeout), `Enabled, enab);
+	}
+
+	if (contains([`next, `options], action))
+	{
+	    // partial commit
+	    // password
+	    if (UI::`QueryWidget(`id(`password_active), `Value))
+	    {
+		string ps1 = UI::`QueryWidget(`id(`pass1), `Value);
+		string ps2 = UI::`QueryWidget(`id(`pass2), `Value);
+		if (ps1 != ps2)
+		{
+		    UI::`MessagePopup(_("Values in 'Password' and 'Retype password' 
+fields differ. Please retype password."));
+		    action=`skip_event;
+		}
+		else
+		{   
+		    currentOptions = add(currentOptions, "password", ps1);
+		}   
+	    }
+	    else
+	    {
+		currentOptions = removekey(currentOptions, "password");
+	    }
+
+	    // prompt
+	    if (UI::`QueryWidget(`id(`show_prompt), `Value))
+	    {
+		currentOptions = add(currentOptions, "prompt", "true");
+	    }
+	    else
+	    {
+		currentOptions = removekey(currentOptions, "prompt");
+	    }
+
+	    // timeout
+	    if (UI::`QueryWidget(`id(`timeout_active), `Value))
+	    {
+		currentOptions = add(currentOptions, "timeout", UI::`QueryWidget(`id(`timeout), `Value)*10);
+	    }
+	    else
+	    {
+		currentOptions = removekey(currentOptions, "timeout");
+	    }
+	}
+
+    } 
+    while(!contains([`next, `abort, `cancel, `back, `options], action));
+
+    // commit the values to agent
+    if (action == `next)
+    {
+	if(currentOptions != currentOptions_backup)
+	{
+	    untouched = false;
+	}
+	Lilo::globals = currentOptions;
+    }
+    
+    return action;
+}
+
+/**
+ * enables / disables controls in dialog due to nonempty/empty option table
+ * @param val boolean enable/disable
+ * @return void
+ *
+ *
+ *
+ */
+
+global define void enable_opt_dlg(boolean val) ``{
+    UI::`ChangeWidget(`id(`delete), `Enabled, val);
+    UI::`ChangeWidget(`id(`value), `Enabled, val);
+    UI::`ChangeWidget(`id(`set), `Enabled, val);
+    UI::`ChangeWidget(`id(`reset), `Enabled, val);
+    UI::`ChangeWidget(`id(`opt_help), `Enabled, val);
+    UI::`ChangeWidget(`id(`value), `Value, "");
+}
+
+/**
+ * dialog for changing (image/other/global) section properties
+ * @param vals map with all options and their values
+ * @return symbol next dialog
+ */
+
+global define symbol OptionsDlg(map vals) ``{
+    string caption = _("Section options");
+
+    string help = lookup(HELP_STRINGS, "options_dialog", "");
+    // get list of all available options for section of given type
+    // and convert them to list for ComboBox
+    list opts = getCurrentOpts(currentSectionType);
+
+    term widget = OptionsDlgWidget(opts);
+    Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
+
+    // convert map of options to list and insert it into table
+    UI::`ChangeWidget(`id(`opt_table), `Items, createOptsTable(vals));  
+
+    map originalVals = vals;
+
+    if (size(vals) > 0)
+    {
+	// if table is not empty, select first line
+	string selopt = select(select(map2list(vals), 0, []), 0, "");
+        UI::`ChangeWidget(`id(`opt_table), `CurrentItem, selopt);
+    }
+    else
+    {
+	// or if it's empty, disable some controls
+	enable_opt_dlg(false);
+    }
+
+
+    symbol a = nil;
+    do {
+	a = UI::`UserInput();
+	if (a == `cancel) a = `abort;
+
+	if (a == `set)
+	// the 'set' button has been pressed
+	{
+	    // read the value from textinput
+	    string curitem=UI::`QueryWidget(`id(`opt_table), `CurrentItem);
+
+
+	    list retval = AddOption([curitem], sformat("%1", lookup(vals, curitem, "")), 
+		    sformat("%1", lookup(originalVals, curitem, "")));
+	    
+	    if (size(retval) > 0)
+	    {
+		string value = normalizeValue(curitem, select(retval, 1, ""));
+		vals = add(vals, curitem, value);
+	    }
+
+	    if (curitem != nil)
+	    {	
+		UI::`ChangeWidget(`id(`opt_table), `Items, createOptsTable(vals));
+	    }
+	    UI::`ChangeWidget(`id(`opt_table), `CurrentItem, curitem);
+	}
+	else if (a == `opt_help)
+	// show help for option	
+	{
+	    string curitem = UI::`QueryWidget(`id(`opt_table), `Value);
+	    if (curitem != nil)
+	    {
+		ShowOptHelp(curitem);
+	    }
+	}
+	else if (a == `optname)
+	{
+	    string optn = UI::`QueryWidget(`id(`optname), `Value);
+	    if (haskey(vals, optn))
+	    {
+		UI::`ChangeWidget(`id(`add), `Enabled, false);
+	    }
+	    else
+	    {
+		UI::`ChangeWidget(`id(`add), `Enabled, true);
+	    }
+	}
+	else if (a == `add)
+	{
+	    // get list of options present in table:
+	    list set = maplist(`e, map2list(vals), ``(select(e, 0, "")));
+	    list diff = difflist(opts, set);
+	    list retval = AddOption(diff, "", "");
+	    if (size(retval) > 0)
+	    {
+		string s1 = select(retval, 0, "");
+		string s2 = normalizeValue(s1, select(retval, 1, ""));
+		vals = add(vals, s1, s2);
+		UI::`ChangeWidget(`id(`opt_table), `Items, createOptsTable(vals));
+		UI::`ChangeWidget(`id(`opt_table), `CurrentItem, s1);
+	    }
+	}
+	else if (a == `delete && UI(`YesNoPopup(_("Really remove selected option?"))))
+	{
+	    string optn = UI::`QueryWidget(`id(`opt_table), `CurrentItem);
+	    vals = removekey(vals, optn);
+	    list items = createOptsTable(vals);
+	    UI::`ChangeWidget(`id(`opt_table), `Items, items);
+	    if (size(items) > 0)
+	    {
+		string selopt = select(select(map2list(vals), 0, []), 0, "");
+		UI::`ChangeWidget(`id(`opt_table), `CurrentItem, selopt);
+	    }
+	    else
+	    {
+		enable_opt_dlg(false);
+	    }
+	}
+	else if (a == `reset)
+	{
+	    string ci = UI::`QueryWidget(`id(`opt_table), `CurrentItem);
+
+            // change value 
+            vals = add(vals, ci, lookup(originalVals, ci, ""));
+	    
+	    list items = createOptsTable(vals);
+            UI::`ChangeWidget(`id(`opt_table), `Items, items);
+	    UI::`ChangeWidget(`id(`opt_table), `CurrentItem, ci);
+	}
+	else if (a == `next)
+	{
+	    list wrongs = check_values(vals);
+	    if (size(wrongs) > 0)
+	    {
+		//error message
+		// %1 is coma separated list of option names
+		UI::`ErrorPopup(sformat(
+			_("Option %1 must not have empty value.", 
+			  "Options %1 must not have empty value.", size(wrongs)),
+			mergestring(wrongs, ", ")));
+		a = `skip_event;
+	    }
+	    
+	    if (!(currentSectionType == "" || currentSectionType == "global"))
+	    {
+		string err = check_aliases(liloconf, currentSection, lookup(vals, "label",""), lookup(vals, "alias", ""));
+		if (err != "")
+		{
+		    UI::`ErrorPopup(err);
+		    a = `skip_event;
+		}
+	    }
+	}
+
+    } while(!contains([`next, `abort, `cancel, `back], a));
+    if (a == `next)
+    {
+	currentOptions = vals;
+	return `back;
+    }
+    return a;
+}
+
+/**
+ * OSScan dialog
+ * @return symbol next dialog
+ *
+ *
+ */
+
+global define symbol OSScanDlg() ``{
+    string caption = _("Detected operating systems");
+    string help = lookup(HELP_STRINGS, "scanner_dialog", "");
+
+    if (scanned_os == nil)
+    {
+	scanned_os = scan_os();
+    }
+
+    term widget = nil;
+    boolean disable_next = false;
+
+    string root_device = lookup(lookup(Lilo::partmap, `root, $[]), "dev", "/dev/hda3");
+
+    if (size(scanned_os) == 0)
+    {
+	// no linux detected (? this should not happen, at least *this* linux must be detected)
+	widget = `Label(_("No operating system detected on this system.\nPress 'Back' to continue."));
+	disable_next = true;
+    }
+    else
+    {
+	//    BrowseTree(scanned_os);
+	integer cnt = -1;
+	list ui_list = maplist(`e, scanned_os, 
+	``{
+	    map linux_info = lookup(e, "linux_info", $[]);
+	    string retval = sformat("%1 (Version %2) installed on %3", 
+                                                lookup(linux_info, "dist", _("Unrecognized Linux")),
+                                                lookup(linux_info, "version", _("Unknown")),
+						lookup(e, "dev_name", ""));
+	    if (lookup(e, "dev_name", "") == root_device)
+	    {
+		retval = retval + ". This system is currently running.";
+	    }
+	    cnt = cnt + 1;
+	    return `item(`id(cnt), retval, cnt == 0);
+	});
+	widget = OSScanWidget(ui_list);
+    }
+
+    Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
+    if (disable_next)
+    {
+	UI::ChangeWidget(`id(`next), `Enabled, false);
+    }
+
+
+    symbol action = nil;
+
+    do
+    {
+	action = UI::`UserInput();
+	if (action == `cancel) action = `abort;
+    }
+    while(!contains([`next, `abort, `cancel, `back], action));
+
+    if (action == `next)
+    {
+	// let's decide which dialog to show.
+	// if currently running linux has been selected,
+	// add the image section
+	integer index = UI::QueryWidget(`id(`os), `CurrentItem);
+	map os_entry = select(scanned_os, index, $[]);
+	map linux_info = lookup(os_entry, "linux_info", $[]);
+	if (lookup(os_entry, "dev_name", "/dev/null") == root_device)
+	{
+	    // predefine some values for image section editor
+	    currentOptions = $[];
+	    currentOptions = add(currentOptions, "root", root_device);
+	    currentOptions = add(currentOptions, "label", lookup(linux_info, "dist", "Linux"));
+	    action = `add_image;
+	}
+	else
+	{
+	    currentOptions = $[];
+	    currentOptions = add(currentOptions, "image", lookup(os_entry, "dev_name", ""));
+	    currentOptions = add(currentOptions, "label", lookup(linux_info, "dist", "Linux"));
+	    action = `add_other;
+	}
+	return action;
+    }
+
+    return action;
+}
+
+/**
+ * used by AddOption- shows widget for setting the option value due
+ * to option type
+ * @param optname option name
+ * @param value string previously set value
+ * @return viod
+ */
+
+global define void showPropWidget(string optname, string value) ``{
+    if (lookup(opttypes(), optname, "s") == "b")
+    {
+	UI::`ReplaceWidget(`id(`input), `ComboBox(`id(`val), `opt(`hstretch), _("Option &value (enter now or later)"),
+                [`item(`id("true"), _("Yes"), value == "true"),  `item(`id("false"), _("No"), value == "false")]));
+    }
+    else
+    {
+        UI::`ReplaceWidget(`id(`input), `TextEntry(`id(`val), _("Option &value (enter now or later)"), value));
+    }
+}
+
+
+/**
+ *   options adding dialog. possible options are listed in 1st param
+ *   @param optlist list with available options
+ *   @param val value to be preset in edit widget
+ *   @param origVal original value
+ *   @return map pair ["optname", "value"]
+ */
+
+global define map AddOption(list optlist, string val, string origVal) ``{
+    term widget = AddOptionWidget(toItemList(optlist));
+
+    UI::OpenDialog(widget);
+
+    UI::ChangeWidget(`id(`val), `Value, val);
+
+    symbol action = `optname; // trigger help showing
+
+    do {
+	if (action == `optname)
+	{
+	    string optn = UI::QueryWidget(`id(`optname), `Value);
+	    string help = sformat(_("<P>Help for option <B>%1</B>:</P>"), optn);
+	    UI::ChangeWidget(`id(`help), `Value, help +	OptionHelp(optn));
+
+	    showPropWidget(optn, val);
+	}
+	else if (action == `reset)
+	{
+	    UI::`ChangeWidget(`id(`val), `Value, origVal);
+	}
+
+	action = UI::`UserInput();
+
+	if (action == `cancel) action = `abort;
+
+    } while(action != `ok && action != `abort);
+
+    if (action == `abort)
+    {
+	UI::CloseDialog();
+	return [];
+    }
+    else
+    {
+	string opn = UI::QueryWidget(`id(`optname), `Value);
+	string val = UI::QueryWidget(`id(`val), `Value);
+
+	UI::CloseDialog();
+	return [opn, val];
+    }
+}
+
+/**
+ * help dialog for options
+ * @param option option name
+ * @return void
+ */
+
+global define void ShowOptHelp(string option) ``{
+//    UI(`OpenDialog(OptionHelpWidget()));
+    string text = sformat(_("Help for option '%1'"), option);
+    UI::`LongTextPopup(text, `RichText(OptionHelp(option)), 48, 10);
+}
+
+/**
+ * the message with 'lilo' execution failure reason is show.
+ * @param stderr stderr of lilo
+ * @return void
+ */
+
+global define void ShowErrorLog(string stderr) ``{
+    integer i = 0;
+    i = getErrLine(stderr);
+    string errline = "";
+    if (i >= 0)
+    {
+        string s = lookup(SCR::Execute(.target.bash_output, SCR::Read(.target.tmpdir) + "/lilo.conf.test", $[]), "stdout", "");
+	list l = splitstring(s, "\n");
+	errline = select(l, i - 1, "");
+    }
+			// %1 = lilo/silo
+    UI::`MessagePopup(sformat(_("%1 returned this error message: \n%2"), boot(), stderr)); //+"\n"+errline)));
+}
+
+}

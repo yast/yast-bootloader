@@ -1,0 +1,19 @@
+/**
+ * File:
+ *	BootELILO.ycp
+ *
+ * Module:
+ *	BootELILO
+ *
+ * Summary:
+ *	functions for elilo setup
+ *
+ * Authors:
+ *	Klaus Kaempf <kkaempf@suse.de>
+ *
+ * $Id$
+ *
+ */
+{
+    module "BootELILO";
+}

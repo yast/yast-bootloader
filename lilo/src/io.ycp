@@ -1,0 +1,144 @@
+/**
+ * File:
+ *   io.ycp
+ *
+ * Module:
+ *   Configuration of lilo
+ *
+ * Summary:
+ *   Input and output functions.
+ *
+ * Authors:
+ *   Dan Meszaros <dmeszar@suse.cz>
+ *
+ * $Id$
+ *
+ * Input and output routines.
+ * 
+ */
+
+{
+
+textdomain "lilo";
+
+
+
+/**
+ * removes lilo from partition specified in 'bootPart'
+ * @return map from calling .target execute
+ */
+
+global define map RemoveLilo() ``{
+    string cmd = "/sbin/" + boot() + " -U " + bootPart;
+    y2debug("launching %1", cmd);
+    map result = SCR::Execute(.target.bash_output, cmd, $[]);
+    return result;
+}
+
+/**
+ * writes config from agent to temp file and launches 'lilo -t -C tmp_file'
+ *
+ * @return map from calling .target execute
+ */
+
+global define map TestLilo() ``{
+    string tempfile = SCR::Read(.target.tmpdir) + "/lilo.conf.test";
+
+    Lilo::WriteTest(tempfile); //LiloWrite($["conf": liloconf, "file": tempfile, "execute_lilo": false]);
+    // lilo someitimes complains when lilo.conf is readable by non roots
+    SCR::Execute(.target.bash_output, sformat("/bin/chmod 600 %1", tempfile), $[]);
+
+    string cmd="/sbin/" + boot() + " -t -C "+tempfile;
+    y2debug("launching %1", cmd);
+    map result = SCR::Execute(.target.bash_output, cmd, $[]);
+    return result;
+}
+
+/**
+ * writes the config from agent to disk
+ *
+ * @return integer succes/error
+ */
+
+global define integer DoLilo() ``{
+    integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
+    ret = SCR::Execute(.target.bash, boot(), $[]);
+    return ret;
+}
+
+/**
+ * Write the lilo data from SCR to the disk
+ * @return boolean success of operation
+ */
+
+global define boolean LiloFinish() ``{
+    return true;
+}
+
+/**
+ * restores the original lilo conf by caliing the inst_lilo_write module
+ * this is usable only on installed (running) system
+ * this function should be OBSOLETED in future
+ */
+
+global define void restoreOriginalSettings() ``{
+    UI::`OpenDialog(`opt(`decorated), `Label(_("Restoring original configuration...")));
+    if (Arch::sparc)
+    {
+        SCR::Execute (.target.bash, "/bin/cp -p /boot/silo.conf /boot/silo.conf.bak");
+    }
+    else
+    {
+        SCR::Execute (.target.bash, "/bin/cp /etc/lilo.conf /etc/lilo.conf.bak");
+    }
+//    CallFunction (`inst_writelilo ());
+    import "BootLILO";
+    BootLILO::Write();
+    restoredLilo = true;
+
+    // reset the agent
+    SCR::UnmountAgent( .lilo );
+//    settings = LiloRead();
+    Lilo::Read(``{});
+    UI::`CloseDialog();
+}
+
+/**
+ * restores the original lilo conf by caliing the inst_lilo_write module
+ * this is usable only on installed (running) system
+ * this function should be OBSOLETED in future
+ */
+
+global define void restoreOriginalSettings_initial() ``{
+//    if (lookup(user_settings, "lilo_conf_original", nil) != nil)
+//    {
+//	liloconf = lookup(user_settings, "lilo_conf_original", nil);
+//	y2error("original lilo_conf is nil");
+//    }
+//    settings = LiloRead();
+//    import "BootLILO";
+//    BootLILO::Write();
+//    Lilo::Read(``{});
+}
+
+/**
+ * when user restores original config and then press abort of skip back from
+ * module we must to remove the new config from bootsector and restore lilo.conf
+ *
+ */
+
+global define void undoRestore() ``{
+    if (Arch::sparc)
+    {
+        SCR::Execute (.target.bash, "/bin/cp -p /boot/silo.conf.bak /boot/silo.conf");
+    }
+    else
+    {
+        SCR::Execute (.target.bash, "/bin/cp /etc/lilo.conf.bak /etc/lilo.conf");
+    }
+    // we must rewrite bootsector because inst_writelilo does it before module
+    // finish and i'm cannot tell it not to write it yet.
+    SCR::Execute(.target.bash, boot(), $[]);
+}
+
+}

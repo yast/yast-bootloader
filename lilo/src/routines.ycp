@@ -1,0 +1,956 @@
+/**
+ * File:
+ *   routines.ycp
+ *
+ * Module:
+ *   Configuration of lilo
+ *
+ * Summary:
+ *   miscellaneous functions.
+ *
+ * Authors:
+ *   Dan Meszaros <dmeszar@suse.cz>
+ *
+ * $Id$
+ *
+ *   miscellaneous functions.
+ * 
+ */
+
+{
+
+textdomain "lilo";
+
+/**
+ * returns modified list where items index1 and index2 are swapped.
+ * if indices are out of bounds, unmodified list is returned.
+ * @param input list
+ * @param index1 index of the first element
+ * @param index2 index og the seconsd element
+ * @return list modified list
+ */
+
+global define list swapItems(list input, integer index1, integer index2) ``{
+    if (index1 >= size(input) || index2 >= size(input))
+    {
+	return input;
+    }
+    list output = [];
+    integer pos = -1;
+    output = maplist(`e, input, ``{
+	pos = pos + 1;
+	if (pos == index1)
+	{
+	    return select(input, index2, $[]);
+	}
+	else if (pos == index2)
+	{
+	    return select(input, index1, $[]);
+	}
+	return e;
+    });
+
+    return output;
+
+}
+
+/** 
+ * returns the name of default section. of no default section is specified
+ * the first section is considered as default.
+ * @return string default section label
+ */
+
+global define string get_default_section() ``{
+    if (haskey(Lilo::globals, "default"))
+    {
+	return lookup(Lilo::globals, "default", "");
+    }
+
+    if (size(Lilo::sections) > 0)
+    {
+	return lookup(select(Lilo::sections, 0, $[]), "label", "");
+    }
+
+    return "";
+}
+
+/**
+ * replaces pos'th item of source list by new_item, returns modified list.
+ * if pos is greater than array size, item is added to the end
+ * 
+ * @param source source list
+ * @param new_item any value
+ * @param pos integer
+ * @return list modified list
+ * 
+ */
+
+global define list replaceitem(list source, any new_item, integer pos) ``{
+    if ((size(source) <= pos) || (pos < 0))
+    {
+	return add(source, new_item);
+    }
+
+    list out = [];
+    integer counter = 0;
+    integer asiz = size(source);
+    while (counter < asiz)
+    {
+	out = add(out, (pos == counter) ? new_item : select(source, counter, nil));
+	counter = counter + 1;
+    }
+    return out;
+}
+
+/**
+ * replaces all occurences of 'from' to 'to' in src
+ * @param src input string
+ * @param from string to be replaced
+ * @param to string to be replaced by
+ * @return string modified string
+ */
+
+global define string replaceAll(string src, string from, string to) ``{
+    if (from == "")
+    {
+	return src;
+    }
+	
+    list tokens = [];
+
+    integer p = find(src, from);
+    while(p >= 0)
+    {
+	tokens = add(tokens, substring(src, 0, p));
+	src = substring(src, p + size(from), size(src) - (p+size(from)));
+	p = find(src, from);
+    }
+    tokens = add(tokens, src);
+    return mergestring(tokens, to);
+}
+
+/**
+ * returns true if char is blank (newline, tab or space)
+ * @param s single char string
+ * @return boolean blank/non blank
+ */
+global define boolean isBlank(string s) ``{
+    if (s == "\n" || s == "\t" || s == " ")
+    {
+	return true;
+    }
+    return false;
+}
+
+
+/**
+ * removes trailing and leading blank chars from string. eg: "  as df  " -> "as df"
+ * @param str string source string
+ * @return string stripped string
+ */
+global define string strip(string str)``{
+    //emtpy  string
+    if (size(str) == 0) return "";
+
+    integer bound = size(str);
+    integer first = 0;
+    integer last = size(str) - 1;
+    // find first non-blank char
+    while(first < bound && isBlank(substring(str, first, 1)))
+    {
+	first = first + 1;
+    }
+
+    while(last >= 0 && isBlank(substring(str, last, 1)))
+    {
+	last = last - 1;
+    }
+    if (last >= first)
+    {
+	return substring(str, first, last - first + 1);
+    }
+    return "";
+}
+
+
+/**
+ * this is used for normalizing values of special options that comes from 
+ * ui to agent. when setting 'change-rules' and 'change' these string must
+ * come to the beginning of the string. so if they are missing, they are added
+ * eg: "change-rules,reset,type=23" -> "change-rules,reset,type=23"
+ * eg: "reset,type=23" -> "change-rules,reset,type=23"
+ * @param optname string option name
+ * @param val any value
+ * @return any proper value
+ */
+
+global define any normalizeValue(string optname, any val) ``{
+    if (is(val, string) && (optname == "change-rules" || optname == "change"))
+    {
+	list v = splitstring(val, ",");
+	v = maplist(`e, v, ``(strip(e)));
+	if (size(v) == 0 || select(v, 0, "") != optname)
+	{
+	    v = prepend(v, optname);
+	}
+
+	return mergestring(v, ",");
+    }
+    return val;
+
+    
+}
+
+/**
+ * convert string values from agent representation to module representation
+ * 1) if string is quoted, quotes are removed
+ * 2) if string contains escaped quotes, they're unescaped
+ * @param val value to transform
+ * @return any transformed value
+ */
+
+global define any mod2ui(any val) ``{
+    if (is(val, string))
+    {
+	string v = sformat("%1", val);
+	v = strip(v);
+	// remove leading and trailing quotes
+	if (substring(v, 0, 1) == "\"" && substring(v, size(v)-1, 1) == "\"")
+	{
+	    v = substring(v, 1, size(v)-2);
+	}
+    
+	// unescape backslashes
+	v = replaceAll(v, "\\\\", "\\");
+
+	// unescape quotes
+	v = replaceAll(v, "\\\"", "\"");
+	return v;
+    }
+    return val;
+}
+
+/** 
+ * reverse of mod2ui
+ * @param val value to transform
+ * @return any transformed value
+ */
+
+global define any ui2mod(any val) ``{
+    if (is(val, string))
+    {
+        string v = sformat("%1", val);
+        v = strip(v);
+	// if string contains backslashes, escape them
+	v = replaceAll(v, "\\", "\\\\");
+
+	// if string contains quotes, escape them
+	v = replaceAll(v, "\"", "\\\"");
+
+	// if string contains spaces or equal sign or is empty, quote it
+
+	if (size(splitstring(v, " ")) >= 2 || size(v) == 0 || find(v, "=") >= 0)
+	{
+	    v = "\"" + v + "\"";
+	}    
+	return v;
+    }
+    return val;
+}   
+
+/**
+ * reads the global settings and returns booloader for current platform.
+ * this is just a helper function, present only because this setting is
+ * frequently needed
+ *
+ * @return string architecture
+ */
+
+global define string boot() ``{
+    return SCR::Read(.probe.boot_arch);
+}
+
+/**
+ * returns list difference A \ B (items that are in A and are not in B)
+ * @param a list 1
+ * @param b list 2
+ * @return list see above
+ */
+
+global define list difflist(list a, list b) ``{
+    return filter(`e, a, ``(!contains(b, e)));	
+}
+
+/**
+ * converts array of string to path
+ * @param strs list of string
+ * @return path whose components are taken from strs
+ */
+
+global define path list2path(list strs) ``{
+    path pth = .;
+    foreach(`e, strs, 
+    ``{
+	pth = add(pth, e);
+    }
+    );
+    return pth;
+}
+
+/**
+ * return true if given option is special
+ * @param opt option name
+ * @return boolean special/not
+ *
+ */
+
+global define boolean isSpecial(string opt) ``{
+    return (lookup(opttypes(), opt, "") == "x");
+}
+
+/**
+ * returns true if section with given name exists
+ *
+ * @param sectname section label
+ * @return boolean exists/doesn't
+ */
+
+global define boolean checkSectionExistence(string sectname) ``{
+    string str = getSectionType(sectname);
+    if (str == "image" || str == "other") 
+    {
+	// section exists
+	return true; 
+    }
+    return false;
+}
+
+/**
+ * deletes key from map
+ * @param m input map
+ * @param key key to remove
+ * @return map modified map
+ */
+
+global define map removekey(map m, any key) ``{
+    map out = $[];
+    foreach(`e, `f, m, 
+    ``{ 
+	if (e != key)
+	{
+	    out = add(out, e, f);
+	}
+    }
+    );
+    return out;
+}
+
+/**
+ * converts map into a list of pairs eg $["A":"B"] => [["A", "B"]]
+ * @param m map
+ * @return list transformed map
+ */
+
+global define list map2list(map m) ``{
+    return maplist(`k, `v, m, ``([k, v]));
+}   
+
+/**
+ * returns string with file description (uses /usr/bin/file)
+ * @param pth path to file
+ * @return string description string
+ *
+ */
+
+global define string getImageDescr(string pth) ``{
+    if (SCR::Read(.target.size, pth) == -1 && Arch::sparc)
+    {
+	pth = "/boot" + pth;
+    }
+
+    if (SCR::Read(.target.size, pth) == -1)
+    {
+	return "";
+    }
+
+    string descr = lookup(SCR::Execute(.target.bash_output,
+                sformat("/usr/bin/file -b %1", pth)), "stdout", "");
+    descr = select(splitstring(descr, "\n"), 0, "");
+    return descr;
+}
+
+/**
+ * converts list into item list
+ * @param l list 
+ * @return list of items for combo box. id of each item is it's value
+ */
+
+global define list toItemList(list l) ``{
+    return maplist(`e, l, ``(`item(`id(e), e)));
+}
+
+/**
+ * returns list of partitions. looks at '/proc/partitions' and creates list 
+ * of partition for combobox or menu
+ * @return list of strings
+ */
+
+global define list getPartitionList() ``{
+    // TODO: implement
+    map retval = SCR::Execute(.target.bash_output, "/bin/cat /proc/partitions | /usr/bin/tail +3", $[]);
+    list ret = splitstring(lookup(retval, "stdout", ""), "\n");
+
+    string mask = "[ \t]*[0-9]*[ \t]*[0-9]*[ \t]*[0-9]*[ \t]*([^ \t]*).*";
+
+    ret = maplist(`e, ret, ``(select(regexptokenize(e, mask), 0, "")));
+
+    // filter out empty items (eg. the last one)
+    ret = filter(`e, ret, ``(size(e) != 0));
+    return ret;
+}
+
+
+/**
+ * creates table for summary dialog. list of images and other sections is created,
+ * default section is marked
+ * @return list of items for 'table' widget
+ */
+
+global define list createSummaryTable() ``{
+    list items = [];
+    list sections = Lilo::sections;
+
+    boolean check_first = false;
+    string default = get_default_section();
+
+    string flag = "";
+
+    string label = "";
+    string descr = "";
+    string image = "";
+
+    integer pos = 0;
+    string check = " " + UI::Glyph(`CheckMark);
+
+    integer index = 0;
+
+    //=============== images
+    foreach(`img, sections,
+    ``{
+	flag = (default == lookup(img, "label", "")) ? check : "";
+
+	if (haskey(img, "other"))
+	{
+	    descr = "other";
+	    image = lookup(img, "other", _("none"));
+	}
+	else
+	{
+	    descr = "image";
+	    image = lookup(img, "image", _("none"));
+	}
+
+	string lab = lookup(img, "label", "");
+
+        items = add(items, `item(`id(index), flag, 
+	    mod2ui(lab), 
+	    mod2ui(image), descr));
+	index = index + 1;
+    });
+
+    return items;
+
+}
+
+/**
+ * for given name returns section type ('image', 'other', '' (for error))
+ * works as a function for checking whether the name already exists (when adding a new section) 
+ * @param label section label
+ * @return string section type 'image'/'other'
+ */
+
+global define string getSectionType(string label)
+``{
+    map sect = Lilo::GetSection(label);
+
+    if (sect == $[])
+    {
+	return "";
+    }
+
+    if (haskey(sect, "other"))
+    {
+	return "other";
+    }
+
+    return "image";
+}
+
+/**
+ * returns map of options and their types
+ * @return map option types
+ */
+
+global define map opttypes() ``{
+    return $[
+	"activate"	: "b",
+	"alias"		: "s",
+	"append"	: "s",
+	"backup"	: "s",
+	"boot"		: "s",	    // partitions   
+	"change"	: "x",
+	"change-rules"	: "x",
+	"compact"	: "b",
+	"copy"		: "b",
+	"default"	: "s",
+	"delay"		: "i",
+	"disk"		: "x",
+	"disktab"	: "s",
+	"fix-table"	: "s",
+	"force-backup"	: "s",
+	"ignore-table"	: "b",
+	"initrd"	: "s",
+	"install"	: "s",
+	"label"		: "s",
+	"lba"		: "b",
+	"lba32"		: "b",
+	"linear"	: "b",
+	"literal"	: "s",
+	"loader"	: "s",
+	"lock"		: "b",
+	"map"		: "s",
+	"map-drive"	: "x",
+	"menu-title"	: "s",
+	"menu-scheme"	: "s",
+	"message"	: "s",
+	"nowarn"	: "b",
+	"optional"	: "b",
+	"password"	: "s",
+	"prompt"	: "b",
+	"ramdisk"	: "s",
+	"range"		: "s",
+	"read-only"	: "b",
+	"read-write"	: "b",
+	"restricted"	: "b",
+	"root"		: "s",
+	"serial"	: "s",
+	"table"		: "s",
+	"timeout"	: "i",
+	"unsafe"	: "b",
+	"verbose"	: "i",
+	"vga"		: "s"
+	];
+
+	
+	
+}
+
+/** 
+ * returns sorted list of known options for image-section
+ * @return list option list for 'image' section
+ *
+ */
+
+global define list imageOptionList()
+``{
+    list out = 
+	[
+	"append",  
+	"initrd", 
+	"literal",
+	"ramdisk", 
+	"read-only", 
+	"read-write",
+	"root", 
+	"vga", 
+	"label", 
+	"alias", 
+	"lock",	
+	"optional", 
+	"password", 
+	"restricted"
+	];
+    if (Arch::sparc)
+    {
+	out = add(out, "copy");
+    }
+    return sort(out);
+}
+
+/** 
+ * returns sorted list of known options for other-section
+ * @return list option list fot 'other' section
+ *
+ */
+
+global define list otherOptionList() 
+``{
+    list out =
+	[
+	"loader", 
+	"table", 
+	"change", 
+	"map-drive", 
+	"unsafe", 
+	"label", 
+	"alias", 
+	"lock", 
+	"optional", 
+	"password", 
+	"restricted"
+	];
+    if (Arch::sparc)
+    {
+	out = add(out, "copy");
+    }	
+    return sort(out);
+}
+
+/** 
+ * returns sorted list of known options for global section
+ * @return list option list
+ *
+ */
+
+global define list globalOptionList()
+``{
+    list out = 
+	[
+	"append",
+	"backup", 
+	"boot", 
+	"change-rules", 
+	"compact", 
+	"default", 
+	"delay", 
+	"disk",	
+	"disktab", 
+	"fix-table", 
+	"force-backup", 
+	"ignore-table", 
+	"install", 
+	"lba32", 
+	"linear", 
+	"lock", 
+	"map", 
+	"menu-title",
+	"menu-scheme", 
+	"message", 
+	"nowarn", 
+	"optional", 
+	"password", 
+	"prompt",
+	"restricted", 
+	"serial", 
+	"timeout", 
+	"verbose", 
+	"vga"
+	];
+    if (Arch::sparc)
+    {
+	out = add(out, "activate");
+    }
+    return sort(out);
+}
+
+/**
+ * this function returns options list for given section type
+ * @param type section type (image/global/other)
+ * @return list of options
+ *
+ */
+
+global define list getCurrentOpts(string type)
+``{
+    if (type == "image")
+    {
+	return imageOptionList();
+    }
+    if (type == "other")
+    {
+	return otherOptionList();
+    }
+    if (type == "global")
+    {
+	return globalOptionList();
+    }
+    return [];
+}
+
+/**
+ * as a param this takes map of type $["option": "value" ....]
+ * and converts it to item list used by Table widget
+ * @param values map options and values
+ * @return list of items
+ *
+ */
+
+global define list createOptsTable(map values)
+``{
+    list lopts = [];
+    list table = [];
+    foreach(`e, `f, values, 
+    ``{
+	if (e != "image")
+	{
+	    table = add(table, `item(`id(e), e, f));
+	}
+    }
+    );
+    return table;
+}
+
+/**
+ * reads all option of given section from agent and creates a map $["option": "value"...]
+ * @param sectName string section name
+ * @return map with options as keys and treir values 
+ *
+ */
+
+global define map getOptMap(string sectName) ``{
+    if(sectName == "")
+    {
+	return lookup(liloconf, "global", $[]);
+    }
+    else
+    {
+	string type = getSectionType(sectName);
+	list sects = lookup(liloconf, type, []);
+	return get_sect_by_name(sects, sectName);
+    }	
+    return $[];
+}
+
+/**
+ * checks for string options and returns list of options that have
+ * empty value
+ * @param vals map options
+ * @return list of strings with options that have invalid value
+ */
+
+global define list check_values(map vals) ``{
+    list out = [];
+    map op = opttypes();
+    foreach(`key, `val, vals, 
+    ``{
+	if ((lookup(op, key, "s") == "s" || lookup(op, key, "") == "x") && val == "")
+	{
+	    out = add(out, key);
+	}   
+    });
+    return out;
+}
+
+/**
+ * this function tries to find alias/label duplicities in lilo settings
+ * @param liloconf settings
+ * @param omit_section skip section with given name
+ * @param new_name new section name
+ * @param new_alias pass "" if no alias was specified for given section
+ * @return string error message with duplicity description or empty string on success
+ */ 
+
+global define string check_aliases(map liloconf, string omit_section, string new_name, string new_alias) ``{
+    string s1 = _("Section label '%1' is already used.");
+    string s2 = _("Label '%1' is already used as an alias for section '%2'.");
+    string s3 = _("Alias '%1' conflicts with the name of another section.");
+    string s4 = _("Alias '%1' is already used as an alias for section '%2'.");
+
+    string s7 = _("Use another section label.");
+    string s8 = _("Use another section alias.");
+
+    list images = lookup(liloconf, "image", []);
+    list others = lookup(liloconf, "other", []);
+    
+    list all = flatten([images, others]);
+
+    all = filter (`e, all, ``(lookup(e, "label", nil) != omit_section));
+
+    // new section label is already used by another section
+    if (filter (`e, all, ``(lookup(e, "label", nil) == new_name)) != [])
+    {
+	return sformat(s1, new_name)+"\n"+s7;
+    }
+
+    // new section alias is already used by another section
+    if (filter (`e, all, ``(lookup(e, "label", nil) == new_alias)) != [])
+    {
+	return sformat(s3, new_alias) + "\n" + s8;
+    }
+
+    // new section name is already used by another section as alias
+    list sect = filter(`e, all, ``(lookup(e, "alias", nil) == new_name));
+    if (size(sect) > 0 )
+    {
+	return sformat(s2, new_name, lookup(select(sect, 0, $[]), "label", "")) + "\n" + s7;
+    }
+
+    // new section alias is used as alias for another section
+    sect = filter(`e, all, ``(lookup(e, "alias", nil) == new_alias));
+    if (size(sect) > 0 )
+    {
+        return sformat(s4, new_alias, lookup(select(sect, 0, $[]), "label", "")) + "\n" + s8;
+    }
+    
+    return "";
+
+}
+
+/**
+ * creates a short description of section of given type. used by create_summary_text
+ * @return string summary of all sections
+ */
+
+global define string create_sect_summary() ``{
+    list l = Lilo::sections;
+
+    string out = "";
+
+    string def = get_default_section();
+
+    string additional = "";
+
+    foreach (`s, l,
+    ``{
+	additional = "";
+	if ((lookup(s, "label", "") == def) || (haskey(s, "alias") &&
+			 lookup(s, "alias", "") == def))
+	{
+	    additional = "default";
+	}
+	if (haskey(s, "alias"))
+	{
+	    if (additional != "")
+	    {
+		additional = additional + ", ";
+	    }
+	    additional = additional + "alias " + lookup(s, "alias", "");
+	}
+
+	if (additional != "")
+	{
+	    additional = sformat("(%1)", additional);
+	}
+	out = out + sformat("<LI> %1 %2\n", lookup(s, "label", ""), additional);
+    });
+    return out;
+}
+
+
+/**
+ * creates the summary text for intro dialog
+ * @return string textual summary
+ */
+
+global define string create_summary_text() ``{
+
+    list image = Lilo::sections;
+
+    string output = "";
+
+    if (Lilo::uninstallLilo)
+    {
+	if (initial_mode)
+	{
+	    return _("<P>The boot loader will not be installed.</P>");
+	}
+	else
+	{
+	    return _("<P>The boot loader will be uninstalled.</P>");
+	}
+    }
+
+
+    // if this is initial call of lilo module and suggested lilo config
+    // hasn't changed, let's show the lilo suggestion message
+    if (initial_mode && (lookup(user_settings, "lilo_conf", nil) == lookup(user_settings, "lilo_conf", nil)))
+    {
+	string comment = lookup(user_settings, "lilo_comment", "");
+	if (comment != "")
+	{
+	    output = sformat("<P>%1</P><P></P>", comment);
+	}
+    }
+
+    // ==== beginning of paragraph
+    output = output + "<P>\n";
+
+    string bootdev = "";
+
+    if (!Arch::sparc)
+    {
+	string b_dev = lookup(Lilo::globals, "boot", "");
+	map parts = mapmap(`key, `val, Lilo::partmap, ``([lookup(val, "dev", ""), key]));
+
+	symbol partsymbol = lookup(parts, b_dev, `mbr);
+	if (partsymbol == `mbr)
+	{
+	    bootdev = sformat(_("The boot loader will be installed on the master boot record
+of %1.
+"), b_dev);
+	}
+	else if (partsymbol == `boot)
+	{
+	    bootdev = sformat(_("The boot loader will be installed on the boot sector of the /boot partition (%1)."), b_dev);
+	}
+	else if (partsymbol == `root)
+	{
+	    bootdev = sformat(_("The boot loader will be installed on the boot sector of root partition (%1)."), b_dev);
+	}
+	else if (partsymbol == `floppy)
+	{
+	    bootdev = _("The boot loader will be installed on a floppy disk.");
+	}
+	else
+	{
+	    bootdev = sformat(_("The boot loader will be installed on the boot sector of partition %1."), b_dev);
+	}
+    }
+
+    output = output + bootdev + " ";
+
+    if (!haskey(Lilo::globals, "prompt"))
+    {
+	output = output + _("The boot prompt will not be shown and default section will be 
+booted automatically unless the left Shift key is pressed during booting.
+") + " ";
+    }
+    else
+    {
+	if (haskey(Lilo::globals, "timeout"))
+	{
+	    output = output + sformat(_("The boot prompt will be shown. After %1 seconds of inactivity,
+the default section will be booted.
+"), tointeger(lookup(Lilo::globals, "timeout", "0")) / 10) + " ";
+	}
+	else
+	{
+	    output = output + _("When booting, you will be prompted to select the
+section to boot. Unattended reboots are impossible.
+") + " ";
+	}
+    }
+
+    if (haskey(Lilo::globals, "password"))
+    {
+	output = output + "Password will be required." + " ";
+    }
+
+    output = output + "</P><P></P>";
+    // ===== end of paragraph
+    if (size(image) == 0)
+    {
+	output = output + _("<p>No sections.</p>");
+    }
+    else
+    {
+	output = output + sformat("<P>%1 \n<UL>%2</UL>\n</P>", _("Sections:"), 
+	    create_sect_summary());
+    }
+
+
+    y2debug(output);
+    return output;
+}
+
+}

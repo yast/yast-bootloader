@@ -1,0 +1,73 @@
+@HEADER-COMMENT@
+# neededforbuild yast2-devtools  autoconf automake ydoc ycpdoc yast2-testsuite dejagnu expect tcl
+
+@HEADER@
+Requires:	yast2 yast2-lib-sequencer yast2-lib-wizard
+
+Provides:	y2c_bootfloppy yast2-config-lilo yast2-config-bootloader
+Obsoletes:	y2c_bootfloppy yast2-config-lilo yast2-config-bootloader
+
+BuildArchitectures: noarch
+
+Summary:	YaST2 Modules for installation
+
+%description
+-
+
+@PREP@
+
+@BUILD-YCP@
+
+@INSTALL-YCP@
+
+@CLEAN@
+
+%files
+%defattr(-,root,root)
+
+# bootfloppy
+@YAST2DIR@/menuentries/menuentry_bootfloppy.y2cc
+@YAST2DIR@/clients/bootfloppy.ycp
+%doc @DOCDIR@/*
+
+# lilo
+%dir @YAST2DIR@/include/lilo
+@YAST2DIR@/include/lilo/*.ycp
+@YAST2DIR@/clients/lilo*.ycp
+@YAST2DIR@/menuentries/menuentry_lilo.y2cc
+@YAST2DIR@/modules/Lilo.ycp
+
+#installation
+@YAST2DIR@/scrconf/cfg_bootloader.scr
+@YAST2DIR@/clients/inst_bootloader.ycp
+@YAST2DIR@/modules/Boot.ycp
+
+%ifarch ppc ppc64
+@YAST2DIR@/ppc_postinstall.sh
+@YAST2DIR@/modules/BootPPC.ycp
+%endif
+%ifarch sparc sparc64
+@YAST2DIR@/bin/dosilo
+@YAST2DIR@/modules/BootSILO.ycp
+%endif
+%ifarch ia64
+@YAST2DIR@/bin/doelilo
+@YAST2DIR@/modules/BootELILO.ycp
+%endif
+%ifarch alpha
+@YAST2DIR@/bin/doaboot
+@YAST2DIR@/bin/domilo
+@YAST2DIR@/modules/BootMILO.ycp
+@YAST2DIR@/modules/BootABOOT.ycp
+%endif
+%ifarch s390 s390x
+@YAST2DIR@/modules/BootS390.ycp
+%endif
+%ifarch i386 x86_64
+@YAST2DIR@/bin/mk_boot_floppy
+@YAST2DIR@/bin/mk_lilo_conf
+@YAST2DIR@/bin/update_lilo_conf
+@YAST2DIR@/bin/dolilo
+@YAST2DIR@/modules/BootLILO.ycp
+%endif
+

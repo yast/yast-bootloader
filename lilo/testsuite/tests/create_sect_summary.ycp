@@ -1,0 +1,23 @@
+{
+    include "lilo/routines.ycp";
+    include "testsuite.ycp";
+
+
+    // global settings
+    map liloconf =
+    $[
+        "global": $["default" : "other1", "boot" : "/dev/hda", "vga" : "normal" ],
+        "image":  [
+                        $["label" : "image1", "image" : "/boot/vmlinuz"],
+                        $["label" : "image2", "image" : "/boot/vmlinuz.suse"]
+                ],
+        "other":  [
+                        $["label" : "other1", "image" : "/dev/hda1"],
+                        $["label" : "other2", "image" : "/dev/hdb1"]
+                ]
+    ];
+
+    // TODO: this function will probably change in near future.
+
+
+}

@@ -1,0 +1,11 @@
+{
+    include "testsuite.ycp";
+    include "lilo/routines.ycp";
+    
+    TEST(``(ui2mod("string")), [], nil);
+    TEST(``(ui2mod("string with spaces")), [], nil);
+    TEST(``(ui2mod("string_with_\"quote")), [], nil);
+    TEST(``(ui2mod("string with \\ backslash ")), [], nil);
+    TEST(``(ui2mod(5)), [], nil);
+    TEST(``(ui2mod("")), [], nil);   
+}

@@ -1,0 +1,11 @@
+{
+    include "testsuite.ycp";
+    include "lilo/routines.ycp";
+
+    TEST(``(isBlank("A")), [], nil);
+    TEST(``(isBlank("AB")), [], nil);
+    TEST(``(isBlank(" ")), [], nil);
+    TEST(``(isBlank("\t")), [], nil);
+    TEST(``(isBlank("\n")), [], nil);
+
+}

@@ -1,0 +1,5 @@
+Return	."a"."b"."c"
+Return	.
+Return	."a b"."c d"."e"
+Return	."a"."1"."b"
+Return	."a.b"."c"."d.e"

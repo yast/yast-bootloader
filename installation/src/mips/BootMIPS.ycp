@@ -1,0 +1,19 @@
+/**
+ * File:
+ *	BootMIPS.ycp
+ *
+ * Module:
+ *	BootMIPS
+ *
+ * Summary:
+ *	functions for aboot setup
+ *
+ * Authors:
+ *	Klaus Kaempf <kkaempf@suse.de>
+ *
+ * $Id$
+ *
+ */
+{
+    module "BootMIPS";
+}

@@ -1,0 +1,11 @@
+{
+    include "testsuite.ycp";
+    include "lilo/routines.ycp";
+
+    TEST(``(check_values($["label":"A", "alias": "B"])), [], nil);
+    TEST(``(check_values($["label": "", "alias": "A"])), [], nil);
+    TEST(``(check_values($["prompt": "", "timeout": 0])), [], nil);
+    TEST(``(check_values($["disk": "disk=/dev/hda,bios=0x80", "change-rules":""])), [], nil);
+    TEST(``(check_values($[])), [], nil);
+
+}

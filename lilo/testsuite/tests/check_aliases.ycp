@@ -1,0 +1,42 @@
+{
+    include "testsuite.ycp";
+    include "lilo/routines.ycp";
+
+    // this one should make no problem
+    map liloconf = $[
+	        "image":  [
+                        $["label" : "image1"],
+                        $["label" : "image2", "alias": "image alias"]
+                ],
+		"other":  [
+                        $["label" : "other1", "alias": "other alias"],
+                        $["label" : "other2"]
+                ]
+    ];
+
+    TEST(``(check_aliases(liloconf, "image1", "new_lab", "new_image")), [], nil);
+
+    // complain for duplicitous sec label
+    TEST(``(check_aliases(liloconf, "image1", "image2", "")), [], nil);
+    TEST(``(check_aliases(liloconf, "image1", "other2", "")), [], nil);
+
+    // no prob
+    TEST(``(check_aliases(liloconf, "image2", "image4", "image alias")), [], nil);
+
+    // prob
+    TEST(``(check_aliases(liloconf, "image1", "brekeke", "other alias")), [], nil);
+    TEST(``(check_aliases(liloconf, "image1", "brekeke", "image alias")), [], nil);
+
+    // alias/label conflict
+    TEST(``(check_aliases(liloconf, "image1", "brekeke", "image2")), [], nil);
+    TEST(``(check_aliases(liloconf, "image1", "brekeke", "other2")), [], nil);
+
+    TEST(``(check_aliases(liloconf, "other2", "brekeke", "image2")), [], nil);
+    TEST(``(check_aliases(liloconf, "other2", "image alias", "adf")), [], nil);
+
+
+    // alias conflict
+    TEST(``(check_aliases(liloconf, "other2", "brekeke", "image alias")), [], nil);
+    TEST(``(check_aliases(liloconf, "image2", "ialias", "other alias")), [], nil);
+
+}

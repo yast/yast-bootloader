@@ -1,0 +1,68 @@
+<HTML><BODY bgcolor="#ffffff"><pre>
+
+		  Multiple OS's lilo configuration strategies
+
+<B>STRATEGY A
+====================================================================================</B>
+
+Lilo installed in MBR (NOTE:if there's an winNT os, the lilo installed /dev/hda? (first 
+partition that doesn't belong to winNT OS)). It will contain one or more 'image' 
+sections for every installed linux distribution and 'other' sections for 
+win95/98/dos/os2 operating systems.
+
+    a) get a partition list obtained by fdisk
+    b) for each partition (eg hda1, hda2...) create temporary directory
+       (eg /tmp/hda1 /tmp/hda2 ... ) and try to mount these partitions 
+       to temp dirs.
+    c) if the partition is Linux look at the 'lilo.conf' file (if present) and extract 
+       paths to kernels and their labels and other options. (don't care about kernels 
+       for other linuxes and 'other' sections)
+    d) if it is win95/98/os2 try to figure out if it really bootable partition.
+       if so, create an 'other' section in lilo.conf.
+    e) after getting all sumarized, write lilo to MBR/other partition respectively 
+       (see note abowe)
+
+<B>PROS:</B> plain lilo structure
+
+<B>CONS:</B> it will be *quite* complicated to merge all lilos into one. options must
+      be set very carefully. all '/etc/lilo.conf' from all linux partition
+      must be parsed.
+
+<B>Example</B>
+<img src=lilo_central.jpg>
+
+<B>STRATEGY B
+===================================================================================</B>
+
+Every linux installation has it's own lilo written to the bootsector of it's
+root partition. The global lilo is installed to /dev/hda MBR and contains only
+'other' sections (one per OS). Every linux installation has it's ``small'' lilo
+for loading it's kernel images.
+
+    a) get a partition list obtained by fdisk.
+    b) try to find out, which are bootable and which are not (fat32/16, NTFS/HPFS, root 
+       linux partitions)
+    c) for each bootable partition create a section of type 'other' in global-lilo, 
+       install it to MBR (or when trere is winNT, to first non-NT partition. 
+       see <a href=os.html>NT details</A>)
+    d) install lilos of aech linux to it's root partition. for each linux root filesystem 
+       partition (including the one that is currently running) do:
+	1) mount the partition somewhere (eg. partition is /dev/hdb5 => mount it to /tmp/hdb5)
+	2) chroot to that partition (chroot /tmp/hdb5. no need to do this for currently
+	   mounted root fs)
+	3) launch 'lilo -b /dev/hdb5'. this will install lilo for linux on /dev/hdb5 to 
+	   /dev/hdb5 boot sector
+	4) done
+
+
+<B>PROS:</B> tree-structured lilo. more flexible. very robust. parsing of all 'lilo.conf' 
+      anywhere on the system is not needed
+
+<B>CONS:</B> for each linux installation present on disk, new lilo must be re-created. we need 
+      second 'lilo.conf' is needed: one for 'global' lilo, one for 'local' lilo.
+	     
+<B>Example</B>
+<img src=lilo_dist.jpg>
+
+
+</pre></BODY></HTML>

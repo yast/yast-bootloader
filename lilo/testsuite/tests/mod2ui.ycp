@@ -1,0 +1,14 @@
+{
+    include "testsuite.ycp";
+    include "lilo/routines.ycp";
+
+    TEST(``(mod2ui("")), [], nil);
+    TEST(``(mod2ui("simple_string")), [], nil);    
+    TEST(``(mod2ui("unquoted string")), [], nil);
+    TEST(``(mod2ui("\"quoted string\"")), [], nil);
+    TEST(``(mod2ui("\"  unstripped quoted string \"")), [], nil);
+    TEST(``(mod2ui("string with backslash \\\\ and spaces")), [], nil);
+    TEST(``(mod2ui("string with escaped \\\" quote")), [], nil);
+    TEST(``(mod2ui(5)), [], nil);
+
+}

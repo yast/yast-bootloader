@@ -1,0 +1,242 @@
+/**
+ * File:
+ *   helps.ycp
+ *
+ * Module:
+ *   Configuration of lilo
+ *
+ * Summary:
+ *   Helps
+ *
+ * Authors:
+ *   Dan Meszaros <dmeszar@suse.cz>
+ *
+ * $Id$
+ *
+ * Helps string
+ *
+ */
+
+{
+    textdomain "lilo";
+
+/*
+ *
+ */
+
+HELP_STRINGS = $[
+
+/*
+ * summary dialog
+ */
+"summary_dialog" :
+_("<p>
+This is a summary of the boot loader configuration.
+</p>
+") +
+_("<P>
+Check <B>Save current configuration</b> and press
+<B>Finish</B> to write the configuration to disk 
+and install the boot loader.
+</p>
+") +
+_("<P>
+Check <B>Change current configuration</B> to edit sections 
+or global options.
+</p>") +
+_("<P>
+Check <B>Restore original configuration from installation</B> 
+to restore 
+the configuration suggested during installation.
+</p>
+"),
+
+/*
+ * action dialog
+ */
+
+"action_dialog" :
+_("<p>
+Select <B>Edit sections</B> then press <B>Next</B>
+to change the default section or add, edit, or delete sections.
+</P>
+") +
+_("<p>
+Select <B>Edit global options</B> then press <B>Next</B> 
+to change the boot loader installation target or other 
+options.
+</P>
+"),
+
+/*
+ * target dialog
+ */
+
+"target_dialog":
+_("<p>
+Select a partition on which to install the boot loader or check
+<B>Uninstall lilo</B> to uninstall the boot loader.
+</P>
+"),
+
+/*
+ * main dialog
+ */
+
+"main_dialog":
+_("<P>
+Select the target for boot loader installation in <B>Where to 
+install the LILO boot loader</B>.
+</P>
+") +
+_("<P>
+In the <B>Sections</B> table, each section represents one item in the boot menu.
+</P>
+") + 
+_("<P>
+Press <B>Edit</B> to display the properties of the selected section.
+</P>
+") +
+_("<P>
+By pressing <b>Set as default</b>, mark the selected 
+section as default. When booting, the boot loader will provide 
+a boot menu and wait for the user to select the kernel or other 
+OS to boot. If no key is pressed before the time out, the default 
+kernel or OS will be booted.
+</P>\n") + 
+_("<P>
+Press <B>Add</B> to create a new boot loader section.
+</P>
+") +
+_("<P>
+Press <B>Global options</B> to modify global parameters of the boot loader.
+</P>
+"),
+
+/*
+ * linux_sect_dialog
+ */
+
+"linux_sect_dialog":
+_("<P>
+<B>Section label</B> will be used for building the boot menu. 
+This label must be unique and cannot be empty. 
+</P>
+") +
+_("<P>
+Specify <B>Path to linux kernel</B> for this section. Press 
+<B>Browse</B> to show a file dialog. The specified file must exist.
+</P>
+") +
+_("<P>
+Check <B>Kernel is optional</b> to mark this kernel 
+as optional. This is useful for specifying test kernels that are not 
+always present.
+</P>
+") +
+_("<P>
+In <B>Root partition</B>, select the partition to 
+mount as '/'.
+</P>
+") +
+_("<P>
+Press <B>Expert settings</B> to modify other options for this section.
+</P>
+"),
+
+/*
+ * other sect dialog
+ */
+
+"other_sect_dialog":
+_("<P>
+<B>Section label</B> will be used for building the boot menu. 
+This label must be unique and cannot be empty. 
+</P>
+") +
+_("<P>
+<B>Boot device</B> specifies the partition to 
+boot with this section.
+</P>
+") +
+_("<P>
+Press <B>Expert settings</B> to modify other options 
+for this section.
+</p>
+"),
+
+/*
+ * OS type dlg
+ */
+
+"os_type_dialog":
+_("<P>
+In this dialog, decide whether to add Linux or other OS sections.
+</P>
+"),
+
+/*
+ * global opts dialog
+ */
+
+"global_opts_dialog":
+_("<P>
+In this dialog, change boot loader settings. These 
+settings are common to all sections, unless overridden 
+in the section settings.
+</P>
+") +
+_("<P>For the boot loader to show its boot menu (or prompt), 
+check <B>Show the boot prompt</B>. Otherwise, access 
+the boot menu by pressing and holding the SHIFT key during boot.
+</P>
+") +
+_("<P>
+If <I>Show the boot prompt</I> is checked, check 
+<B>Time out active</B> and specify the after which 
+the default section will be booted if nothing is typed. 
+Unattended  reboots  are  impossible  if <I>Show prompt</I> 
+is checked and a time out is not set.
+</P>
+") +
+_("<P>
+By checking <B>Use password for booting</B> and setting a 
+<B>Password</B>, protect the computer from being booted 
+by an unauthorized person.
+</p>
+") +
+_("<P>
+Press <B>Expert settings</B> for other options.
+</P>
+"),
+
+/*
+ * options dlg
+ */
+
+"options_dialog":
+_("<p>
+Here, find a table with all set options for a given section.
+</P>
+") +
+_("<P>
+To change a value, select the option in the table then press 
+<B>Edit</B>. To remove a selected option, press 
+<B>Delete</B>.
+</P>
+") +
+_("<P>
+To add a new option, press  <B>Add</B>. 
+</P>
+"),
+
+/*
+ * scanner dlg
+ */
+"scanner_dialog":
+_("<p>Select the operating system for which to add a new section 
+then press <B>Next</B>.</P>
+")
+
+	];
+}
