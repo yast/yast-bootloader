@@ -481,6 +481,9 @@ configuration files"));
       * @param loader_type string loader type to initialize
       */
     define void setCurrentLoaderAttribs (string loader_type) ``{
+	// testsuite hack
+	if (Mode::test)
+	    return;
 	if (bootloader_attribs[loader_type, "initializer"]:nil != nil)
 	{
 	    y2milestone ("Running bootloader initializer");

@@ -29,6 +29,7 @@
     import "BootGRUB";
     import "Popup";
     import "Mode";
+    import "TablePopup";
 
     /**
       * Get map of dialogs and widgets

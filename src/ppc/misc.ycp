@@ -17,8 +17,11 @@
 
 {
 
+    textdomain "bootloader";
+
     import "Storage";
     import "BootCommon";
+    import "Arch";
 
     /**
       * Update list of 41 PReP boot partitions

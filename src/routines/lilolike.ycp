@@ -16,6 +16,8 @@
  */
 {
 
+    textdomain "bootloader";
+
     import "StorageDevices";
     import "Storage";
 
