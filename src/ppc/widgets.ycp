@@ -19,7 +19,6 @@
 
     textdomain "bootloader";
 
-    import "Arch";
     import "BootCommon";
     import "Label";
     import "Mode";
@@ -44,7 +43,12 @@
 	any type = BootCommon::getSectionType (BootCommon::current_section);
 	if (type == `global)
 	{
-	    prependlist = ["__loader_type", "__sep2"];
+	    prependlist = ["__loader_type"];
+	    if (Mode::config)
+	    {
+		prependlist = add (prependlist, "__board_type");
+	    }
+	    prependlist = add (prependlist, "__sep2");
 	    prependlist = merge (prependlist, table_items);
 	    prependlist = merge (prependlist, [
 		"default", "__sections", "__save_method", "__sep1"]
@@ -502,6 +506,58 @@
     }
 
     /**
+      * Init function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void BoardTypeInit (any opt_id, any opt_key) ``{
+	UI::ChangeWidget (`id (opt_key), `Value, getBoardType ());
+    }
+    /**
+      * Store function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void BoardTypeStore (any opt_id, any opt_key) ``{
+	BootCommon::redraw_table = true;
+	setBoardType ((string)UI::QueryWidget (`id (opt_key), `Value));
+    }
+
+    /**
+      * Summary function of a table entry
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @return string summary to the table
+      */
+    global define string BoardTypeSummary (any opt_id, any opt_key) ``{
+	return board_type_names[getBoardType ()]:getBoardType ();
+    }
+
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getBoardTypeWidget () {
+	return $[
+	    "table" : $[
+		// table cell / label
+		"label" : _("PPC Board Type"),
+		"optional" : false,
+		"ordering" : false,
+		"unique_key" : true,
+		"summary" : BootPPC::BoardTypeSummary,
+	    ],
+	    "popup" : $[
+		"init" : BootPPC::BoardTypeInit,
+		"store" : BootPPC::BoardTypeStore,
+		"widget" : `combobox,
+		"items" : maplist (string k, string v, board_type_names, ``(
+		    [ k, v ] )),
+	    ],
+	];
+    }
+
+    /**
       * Get map of bootloader options
       * @return map of options
       */
@@ -514,6 +570,7 @@
 	    "__stmf_image" : getSTMFWidget (),
 	    "__set_default_of" : getSetDeafultOFWidget (),
 	    "__prep_boot_part" : getPRePPartsWidget (),
+	    "__board_type" : getBoardTypeWidget (),
 	];
     }
 
