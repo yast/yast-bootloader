@@ -486,8 +486,8 @@
     global define map createLinuxSection (string title) ``{
 	if (title == "memtest86")
 	{
-	  if ((Mode::normal && Pkg::IsProvided ("gfxboot"))
-		|| ((! Mode::normal) && Pkg::IsSelected ("gfxboot")))
+	  if ((Mode::normal && Pkg::IsProvided ("memtest86"))
+		|| ((! Mode::normal)))// && Pkg::IsSelected ("memtest86")))
 	    return $[
 		"__order__":["title", "kernel"],
 		"kernel" : file2grub ("/boot/memtest.bin"),

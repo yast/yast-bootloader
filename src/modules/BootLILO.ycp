@@ -227,6 +227,9 @@
     global define map createLinuxSection (string title) ``{
 	if (title == "memtest86")
 	{
+          if ((Mode::normal && Pkg::IsProvided ("memtest86"))
+                || ((! Mode::normal)))// && Pkg::IsSelected ("memtest86")))
+	  {
 	    return $[
 		"image" : "/boot/memtest.bin",
 		"label" : "memtest86",
@@ -236,6 +239,9 @@
 		    "devs" : [],
 		],
 	    ];
+	  }
+	  else
+	    return $[];
 	}
 	string initrd = title == "failsafe" ? "initrd.shipped" : "initrd";
 	string image = title == "failsafe" ? "vmlinuz.shipped" : "vmlinuz";
@@ -302,6 +308,7 @@
 	}
         out = add (out, createLinuxSection ("failsafe"));
 	out = add (out, createLinuxSection ("memtest86"));
+	out = filter (`s, out, ``(s != $[] && s != nil));
 	BootCommon::sections = out;
     }
 

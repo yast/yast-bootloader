@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb 21 09:25:43 CET 2003 - jsrain@suse.de
+
+- fixed adding of memtest to bootloader menu (#23924)
+
+-------------------------------------------------------------------
 Thu Feb 20 09:50:57 CET 2003 - jsrain@suse.de
 
 - changed executing /sbin/mk_initrd -> /sbin/mkinitrd
