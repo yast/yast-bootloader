@@ -62,7 +62,7 @@
       * @return map of Target widget
       */
     global define map getTargetWidget () ``{
-	map ret = BootCommon::getTargetWidget ();
+	map ret = BootCommon::getTargetOption ();
 	ret["popup", "store"] = ``(BootGRUB::targetStore ());
 	return ret;
     }
