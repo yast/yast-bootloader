@@ -1,92 +1,175 @@
 -------------------------------------------------------------------
-Mon Jun 24 13:00:47 CEST 2002 - kkaempf@suse.de
+Tue Jul  2 15:31:29 CEST 2002 - lslezak@suse.cz
 
-- merge bootloader parts from yast2.rpm
-- rename to yast2-bootloader.
-
--------------------------------------------------------------------
-Fri Mar  8 14:58:13 CET 2002 - jbuch@suse.de
-
-- %defattr(-,root,root)
-  %docdir @DOCDIR@
-  %doc @DOCDIR@/* to yast2-....spec.in
+- merged with yast2-agent-lilo, yast2-agent-prom,
+  yast2-config-bootfloppy and yast2 lilo installation part
+- renamed to yast2-bootloader
+- version 2.6.1
 
 -------------------------------------------------------------------
-Fri Mar  8 14:51:38 CET 2002 - jbuch@suse.de
+Tue Jun 25 16:57:19 CEST 2002 - lslezak@suse.cz
 
-- Adapt code to new function for mount installation source (CD1)
-  Remove one CloseDialog (Bug #14461)
-  Installation::installMap -> Mode::installMap (Bug # 14664) 
-
--------------------------------------------------------------------
-Wed Feb 13 18:24:15 CET 2002 - schubi@suse.de
-
-- user_settings removed
+- addded editor for expert user
+- changed ABC::`abc -> ABC::abc
+- version 2.6.0
 
 -------------------------------------------------------------------
-Thu Sep  6 09:56:53 CEST 2001 - jbuch@suse.de
+Thu Apr 11 11:01:31 CEST 2002 - lslezak@suse.cz
 
-- ChangeCD ->  MediaUI::ChangeMedium 
-
--------------------------------------------------------------------
-Tue Aug 21 13:49:44 CEST 2001 - kkaempf@suse.de
-
-- replace fileexist() with SCR::Read(.targe.size, ...)
+- SuSE-8_0-Branch merged to the head
 
 -------------------------------------------------------------------
-Thu Aug  9 10:59:46 CEST 2001 - jbuch@suse.de
+Thu Mar 21 15:04:50 CET 2002 - mvidner@suse.cz
 
-- fixed bug 8890 (umount /dev/fd0) 
-
--------------------------------------------------------------------
-Mon Aug  6 16:48:28 CEST 2001 - jbuch@suse.de
-
-- Update to version 2.4.0 
-
-------------------------------------------------------------------------
-Fri May 11 17:44:16 2001 - ke@suse.de
-
-- Update to version 2.3.6.
-- Update cs, de, and ja.
+- Obsoletes yast2-config-bootloader. (#15135)
+- 2.5.13
 
 -------------------------------------------------------------------
-Thu May  3 10:06:48 CEST 2001 - jbuch@suse.de
+Fri Mar 15 12:01:57 CET 2002 - dmeszar@suse.cz
 
-- add yast2-lib-sequencer to spec file 
-
--------------------------------------------------------------------
-Mon Apr 30 11:08:50 CEST 2001 - jbuch@suse.de
-
-- fixed bug with RadioButtons  
+- fixed #14935 (can't close with WM)
 
 -------------------------------------------------------------------
-Wed Apr 25 13:43:09 CEST 2001 - sh@suse.de
+Mon Mar  4 12:12:49 CET 2002 - dmeszar@suse.cz
 
-- Migration from .tar.gz to .tar.bz2
-  V 2.3.3
-
--------------------------------------------------------------------
-Wed Apr 25 13:26:48 CEST 2001 - sh@suse.de
-
-- Fixed translatable message: Made one message from fragments
+- fixed bug #14100 (main dialog not hiden when exiting)
+- screenshot mode implemented
 
 -------------------------------------------------------------------
-Tue Apr 24 09:45:28 CEST 2001 - jbuch@suse.de
+Mon Feb 18 19:29:06 CET 2002 - dmeszar@suse.cz
 
-- new include  
-
--------------------------------------------------------------------
-Tue Apr 17 15:48:14 CEST 2001 - jbuch@suse.de
-
-- create boot, module and rescue disks 
+- fixed bug #13505 (incomplete label "Uninstall boot loader from"->
+  device name is missing)
+- fixed bug #13524 (broken writing of special lilo options
+  (like change-rules, disk, map-drive...)
 
 -------------------------------------------------------------------
-Thu Jan  4 17:33:01 CET 2001 - kkaempf@suse.de
+Mon Feb 11 15:19:24 CET 2002 - dmeszar@suse.cz
 
-- fix syntax error
+- fixed restoring original settings from installation
 
 -------------------------------------------------------------------
-Thu Jan  4 15:07:16 CET 2001 - mike@suse.de
+Tue Feb  5 13:24:57 CET 2002 - dmeszar@suse.cz
+
+- implemented section order changing
+
+-------------------------------------------------------------------
+Mon Jan 28 17:04:55 CET 2002 - dmeszar@suse.cz
+
+- don't read 'user_settings'
+
+-------------------------------------------------------------------
+Wed Jan 23 17:44:13 CET 2002 - dmeszar@suse.cz
+
+- fixed rpm dependencied
+
+-------------------------------------------------------------------
+Fri Jan 11 19:38:30 CET 2002 - dmeszar@suse.cz
+
+- fixed original lilo.conf restoring
+
+-------------------------------------------------------------------
+Sat Dec 22 18:45:31 CET 2001 - dmeszar@suse.cz
+
+- autoinstallation adaptation
+- installed linux's scanner
+- 3rd param for 'select', fixed specfile
+
+-------------------------------------------------------------------
+Fri Nov  9 13:21:52 CET 2001 - dmeszar@suse.cz
+
+- major ui changes- new startup dialog, sequence changed
+- addaptation for installation
+
+-------------------------------------------------------------------
+Thu Sep 20 19:08:32 CEST 2001 - dmeszar@suse.cz
+
+- module icon changed to 'boot.png' ;)
+
+-------------------------------------------------------------------
+Tue Sep 18 15:36:00 CEST 2001 - dmeszar@suse.cz
+
+- module icon changed to 'lilo.png' (#10656)
+
+-------------------------------------------------------------------
+Mon Sep 17 14:01:01 CEST 2001 - dmeszar@suse.cz
+
+- bug #10661 fixed (lilo configuration written without change !!)
+- bug #10667 fixed (No section is marked as default, if there is the 
+    keyword 'default' missing in the lilo.conf.) 
+
+-------------------------------------------------------------------
+Thu Sep 13 16:51:28 CEST 2001 - kendy@suse.cz
+
+- Write the lilo.conf first and then run lilo (not in the reverse
+  order...)
+- Some unused code removed, lilo_write.ycp is not distributed.
+
+-------------------------------------------------------------------
+Mon Sep 10 14:47:28 CEST 2001 - dmeszar@suse.cz
+
+- use Arch:: instead of user_settings 
+
+-------------------------------------------------------------------
+Tue Sep  4 15:02:23 CEST 2001 - dmeszar@suse.cz
+
+- fix #10062 
+- fixed the qt-IntField update bug (after creation of
+  dialog the intfield doesn't show its actual value
+  but shows 0 under qt)
+
+-------------------------------------------------------------------
+Fri Aug 31 13:49:03 CEST 2001 - dmeszar@suse.cz
+
+- use 'Add other section' radio button instead of 'add windows/os2 section'
+  for sparcs
+- removed debug logging
+
+-------------------------------------------------------------------
+Mon Aug 27 12:54:32 CEST 2001 - dmeszar@suse.cz
+
+- removed 'uninstall silo', 'install to boot/root' for sparcs
+- sparc: if kernel image's path is /'kernel', add '/boot' as prefix
+  when checking the kernel existence and description
+
+-------------------------------------------------------------------
+Mon Aug 20 16:58:35 CEST 2001 - dmeszar@suse.cz
+
+- fixed section label displaying in summary table ("section label" - > section label)
+
+-------------------------------------------------------------------
+Mon Aug 13 17:14:39 CEST 2001 - dmeszar@suse.cz
+
+- fixed description for other sections in summary table
+
+-------------------------------------------------------------------
+Wed Aug  8 15:09:04 CEST 2001 - dmeszar@suse.cz
+
+- correct handling od '\' '"' chars when reading ui input fields
+- fixed 'other' section removing
+- section quota set to 16 
+
+-------------------------------------------------------------------
+Tue Jul 31 19:07:59 CEST 2001 - dmeszar@suse.cz
+
+- uninstall ability implemnted
+- section removing fixed
+- don't show 'image' option in options list of image/other section
+- help text for options stripped to minimal acceptable extent
+- options dialog layout changes
+- option editing dialog added
+
+-------------------------------------------------------------------
+Mon Jul 30 16:49:14 CEST 2001 - dmeszar@suse.cz
+
+- save confirm dialog added
+
+-------------------------------------------------------------------
+Thu Jul 26 18:59:25 CEST 2001 - dmeszar@suse.cz
+
+- proof-read texts, platform dependent code added
+
+-------------------------------------------------------------------
+Thu Mar 22 09:27:24 CET 2001 - dmeszar@suse.cz
 
 - initial version
-

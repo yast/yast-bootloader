@@ -5,8 +5,8 @@
 @HEADER@
 Requires:	yast2 yast2-core
 
-Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo
-Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo
+Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo yast2-agent-prom
+Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo yast2-agent-prom
 
 Summary:	YaST2 Modules for bootloader installation and configuration
 
@@ -62,6 +62,11 @@ Summary:	YaST2 Modules for bootloader installation and configuration
 %ifarch sparc sparc64
 @ybindir@/dosilo
 @moduledir@/BootSILO.ycp
+# agent-prom
+@plugindir@/libpy2ag_prom.so.*
+@scrconfdir@/prom.scr
+@plugindir@/libpy2ag_prom.so
+@plugindir@/libpy2ag_prom.la
 %endif
 %ifarch ia64
 @ybindir@/doelilo

@@ -1,5 +1,5 @@
 #
-# Makefile.am for y2a_prom/doc
+# Makefile.am for agent-prom/doc
 #
 
 SUBDIRS = autodocs

@@ -10,5 +10,7 @@
 @YAST2-CHECKS-YCP@
 @YAST2-CHECKS-PROGRAM@
 
+AM_CONDITIONAL(SPARC, test $target_cpu = "sparc" -o $target_cpu = "sparc64")
+
 ## and generate the output...
 @YAST2-OUTPUT@

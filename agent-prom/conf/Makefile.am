@@ -1,5 +1,5 @@
 #
-# Makefile.am for y2a_prom/conf
+# Makefile.am for agent-prom/conf
 #
 
 scrconf_DATA = prom.scr
