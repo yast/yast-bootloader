@@ -9,6 +9,45 @@
 {
     include "testsuite.ycp";
     import "Pkg";
+
+    // minimal "don't care" SCR data to work with the constructor
+    map READ = $[
+	"target": $[
+	    "tmpdir": "/tmp",
+	    ],
+	"etc" : $[
+            "install_inf" : $[
+                "Locale" : "en_EN",
+                "InstMode" : "cd",
+		],
+	    ],
+	"sysconfig" : $[
+            "console" : $[
+                "CONSOLE_FONT" : "lat2-16.psfu",
+                "CONSOLE_SCREENMAP" : "trivial",
+                "CONSOLE_UNICODEMAP" : "",
+                "CONSOLE_MAGIC" : "(K",
+                "CONSOLE_ENCODING" : "ISO-8859-2",
+            ],
+        ],
+        "probe" : $[
+            "disk" : [],
+            "boot_arch" : "lilo",
+            "architecture" : "i386",
+            "has_apm" : true,
+            "has_pcmcia" : false,
+            "has_smp" : false,
+            "system" : [],
+            "floppy" : $[
+                "manual" : [],
+		],
+	    "cdrom" : $[
+                "manual" : [],
+		],
+	    ],
+	];
+    TESTSUITE_INIT ([READ, $[], $[]], 0);
+
     include "lilo/routines.ycp";
 
     TEST(``(isBlank("A")), [], nil);
