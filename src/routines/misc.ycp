@@ -1325,12 +1325,16 @@
 		? nil
 		: index;
 	    if (nil != retval)
-		sortmap[opt["key"]:""] = retval;
+	    {
+		string label = opt["key"]:"";
+		map opt_map = BootCommon::cwm_options[label]:$[];
+		label = opt_map["label"]:label;
+		sortmap[label] = retval;
+	    }
 	    return retval;
 	});
 	if (alpha_order)
 	{
-	    // FIXME takes option keys, not labels, doesn't mater now
 	    options = maplist (any k, integer v, sortmap, ``(v));
 	}
 	prependlist = maplist (`e, prependlist, ``(remap_prepend[e]:e));
