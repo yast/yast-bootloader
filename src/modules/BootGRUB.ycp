@@ -264,6 +264,7 @@
 	BootCommon::sections = filter (`s, BootCommon::sections, ``{
 	    map intern = lookup_value (s, "__intern__", $[]);
 	    string title = lookup_value (s, "title", "");
+	    string type = intern["type"]:"";
 	    if (intern["converted"]:false)
 	    {
 		return true;
@@ -273,7 +274,7 @@
 		y2debug ("Removing section with empty title");
                 return false;
 	    }
-            if (! contains (["linux", "failsafe", "memtest86"], title))
+            if (! contains (["linux", "failsafe", "memtest86"], type))
 	    {
                 return true;
 	    }
@@ -297,10 +298,11 @@
 	BootCommon::sections = maplist (`s, BootCommon::sections, ``{
 	    string title = lookup_value (s, "title", "");
 	    map intern = lookup_value (s, "__intern__", $[]);
+	    string type = intern["type"]:"";
 	    string kernel = lookup_value (s, "kernel", "");
 	    if (intern["converted"]:false)
 		return s;
-            if (title == "linux" && kernel != "" && Mode::initial)
+            if (type == "linux" && kernel != "" && Mode::initial)
 	    {
                 s = modifySection (s, "kernel", BootCommon::updateKernelParams (
 		    kernel));
@@ -312,10 +314,10 @@
 		if (-1 == SCR::Read (.target.size, initrd))
 		    s = modify_section (s, "initrd", nil);
 	    }
-	    else if ((title == "linux" || title == "failsafe")
+	    else if ((type == "linux" || type == "failsafe")
 		&& BootCommon::write_settings["insert_initrd"]:false)
 	    {
-		if (title == "linux")
+		if (type == "linux")
 		    initrd = file2grub ("/boot/initrd");
 		else
 		    initrd = file2grub ("/boot/initrd.shipped");
@@ -568,12 +570,13 @@
 	  if (Pkg::IsProvided ("memtest86") || ! Mode::normal)
 	    return [
 		$[ "key" : "kernel", "value" : file2grub ("/boot/memtest.bin")],
-		$[ "key" : "title", "value" : "memtest86"],
+		$[ "key" : "title", "value" : translateSectionTitle (title)],
 		$[ "key" : "__intern__", "value" : $[
 		    "auto" : true,
 		    "changed" : false,
 		    "devs" : [BootCommon::BootPartitionDevice],
 		    "kernel" : "/boot/memtest.bin",
+		    "type" : "memtest86",
 		]],
 	    ];
 	  else
@@ -584,13 +587,14 @@
             return [
                 $[ "key" : "chainloader",
 		   "value" : file2grub ("/boot/backup/mbr")],
-                $[ "key" : "title", "value" : title],
+                $[ "key" : "title", "value" : translateSectionTitle (title)],
                 $[ "key" : "__intern__", "value" : $[
                     "auto" : true,
                     "changed" : false,
                     "devs" : [BootCommon::BootPartitionDevice],
                     "kernel" : "/boot/backup/mbr",
 		    "original_mbr" : true,
+		    "type" : "original_mbr",
                 ]],
             ];
 	}
@@ -606,7 +610,7 @@
 	    : sformat ("%1 %2 %3", vgastring, Kernel::cmdLine,
 		"splash=silent showopts");
 	return [
-	    $[ "key" : "title", "value" : title],
+	    $[ "key" : "title", "value" : translateSectionTitle (title)],
 	    $[ "key" : "kernel", "value" : sformat ("%1 %2 %3",
 		file2grub ("/boot/" + image),
 		sformat ("root=%1", BootCommon::dev2majminIfNonStandard (
@@ -623,6 +627,7 @@
 		],
 		"kernel" : "/boot/" + image,
 		"initrd" : "/boot/" + initrd,
+		"type" : title,
 	    ]]
 	];
     }
@@ -787,26 +792,30 @@
 	if (BootCommon::installingToFloppy ())
 	{
             out = add (out, [
-                $[ "key" : "title", "value" : "hard disk"],
+                $[ "key" : "title",
+		    "value" : translateSectionTitle("hard disk")],
                 $[ "key" : "root", "value" : "(hd0)"],
                 $[ "key" : "chainloader", "value" : "+1"],
                 $[ "key" : "__intern__", "value" : $[
 		    "changed" : false,
                     "auto" : true,
                     "devs" : [],
+		    "type" : "hard_disk",
                 ]],
             ]);
 	}
 	else
 	{
 	    out = add (out, [
-		$[ "key" : "title", "value" : "floppy"],
+		$[ "key" : "title",
+		    "value" : translateSectionTitle("floppy")],
 		$[ "key" : "root", "value" : "(fd0)"],
 		$[ "key" : "chainloader", "value" : "+1"],
                 $[ "key" : "__intern__", "value" : $[
                     "changed" : false,
                     "auto" : true,
                     "devs" : [],
+		    "type" : "floppy",
                 ]],
 	    ]);
 	}
@@ -929,10 +938,12 @@
 		boolean cont = true;
 		string title = lookup_value (
 		    s, "title", "");
+		map intern = lookup_value (s, "__intern__", $[]);
+		string type = intern["type"]:"";
 		// FIXME don't check title, but metadata
-		if (title != "linux" && title != "failsafe"
-		    && title != "memtest86" && title !="floppy"
-		    && title != "original MBR")
+		if (type != "linux" && type != "failsafe"
+		    && type != "memtest86" && type !="floppy"
+		    && type != "original_mbr")
 		{
 		    foreach (`n, intern["devs"]:[], ``{
 		        if (! contains (parts, n))
@@ -975,7 +986,8 @@
 	});
 	boolean has_memtest = false;
 	foreach (`s, old_sect_list, ``{
-	    if (lookup_value (s, "title", "") == "memtest86")
+	    if (lookup (lookup_value (s, "__intern__", $[]), "type", "")
+		== "memtest86")
 	    {
 		has_memtest = true;
 	    }

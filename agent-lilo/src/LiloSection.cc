@@ -628,6 +628,12 @@ int liloOrderedOptions::saveToFile(ostream* f, string indent)
 	    ||(type == "zipl" && (order[i]->optname == "label"))
 	    ||(type != "grub" && type != "zipl" && (order[i]->optname == "image" || order[i]->optname == "other")))
 	{
+	    if(order[i]->comment!="")
+	    {
+		*f << indentString(order[i]->comment, indent);
+		*f << endl;
+	    }
+
 	    if (type == "zipl")
 		*f << "[" << order[i]->value << "]" << endl;
 	    else

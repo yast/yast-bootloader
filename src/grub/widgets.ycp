@@ -94,17 +94,19 @@ Replace it with an entry  to boot from the floppy?");
 		BootCommon::installingToFloppy ())
 	    {
 		sections = maplist (`s, sections, ``{
-		    if (lookup_value (s, "title", "") == "floppy"
+		    if ((getCreationType (s) == "floppy"
+			    || lookup_value (s, "root", "") == "(fd0)")
 			&& changeSection ("floppy"))
 		    {
 			s = [
-			    $[ "key" : "title", "value" : "hard disk"],
+			    $[ "key" : "title", "value" : translateSectionTitle ("hard disk")],
 			    $[ "key" : "root", "value" : "(hd0)"],
 			    $[ "key" : "chainloader", "value"  : "+1"],
 	                    $[ "key" : "__intern__", "value" : $[
 		                "changed" : false,
 		                "auto" : true,
 		                "devs" : [],
+				"type" : "hard_disk",
 		            ]],
 			];
 		    }
@@ -114,17 +116,19 @@ Replace it with an entry  to boot from the floppy?");
 	    else
 	    {
 		sections = maplist (`s, sections, ``{
-		    if (lookup_value (s, "title", "") == "hard disk"
+		    if ((getCreationType (s) == "hard_disk"
+			    || lookup_value (s, "root", "") == "(fd0)")
 			&& changeSection ("disk"))
 		    {
 			s = [
-			    $[ "key" : "title", "value" : "floppy"],
+			    $[ "key" : "title", "value" : translateSectionTitle ("floppy")],
 			    $[ "key" : "root", "value" : "(fd0)"],
 			    $[ "key" : "chainloader", "value" : "+1"],
                             $[ "key" : "__intern__", "value" : $[
                                 "changed" : false,
                                 "auto" : true,
                                 "devs" : [],
+				"type" : "floppy",
                             ]],
 			];
 		    }

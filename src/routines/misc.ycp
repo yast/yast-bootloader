@@ -434,14 +434,25 @@
         }
 
 	list options = SCR::Read (p);
+	map intern = $[];
 	options = maplist (`o, options, ``{
 	    string key = o["key"]:"";
+	    if (key == getSectionTitle ()
+		&& regexpmatch (o["comment"]:"", "###[a-z_]+###"))
+	    {
+		intern["type"] = regexpsub (o["comment"]:"", "###([a-z_]+)###",
+		    "\\1");
+	    }
 	    any value = mod2ui (o["value"]:"");
 	    if (isSpecial (key))
 		value = mergestring (splitstring (value, "\n"), ",");
 	    o["value"] = value;
 	    return o;
 	});
+	options = add (options, $[
+	    "key" : "__intern__",
+	    "value" : intern,
+	]);
 	y2debug ("Result of section options: %1", options);
 	return options;
     }
@@ -509,11 +520,10 @@
 
 	    // if string contains quotes, escape them
 	    v = replaceAll(v, "\"", "\\\"");
-
 	    // if string contains spaces or equal sign or is empty, quote it
 
 	    if ((size(splitstring(v, " ")) >= 2 || size(v) == 0
-		|| find(v, "=") >= 0)
+		|| findfirstof(v, "=") != nil)
 	        &&(getLoaderType (false) != "grub"))
 	    {
 		v = "\"" + v + "\"";
@@ -834,7 +844,7 @@
 	// first synchronize global settings
 	list options = maplist (`o, globals, ``{
 	    string key = o["key"]:"";
-	    any value = mod2ui (o["value"]:"");
+	    any value = ui2mod (o["value"]:"");
 	    if (isSpecial (key))
 		value = mergestring (splitstring (value, ","), "\n");
 	    o["value"] = value;
@@ -853,11 +863,15 @@
 	// now write new sections
 	foreach (`s, sections, ``{
 	    string title = "";
+	    string sect_type = getCreationType (s);
 	    options = maplist (`o, s, ``{
 		string key = o["key"]:"";
-		any value = mod2ui (o["value"]:"");
+		any value = ui2mod (o["value"]:"");
 		if (key == getSectionTitle ())
+		{
 		    title = value;
+		    o["comment"] = sformat ("###%1###", sect_type);
+		}
 		if (isSpecial (key))
 		    value = mergestring (splitstring (value, ","), "\n");
 		o["value"] = value;
