@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep  5 10:36:55 CEST 2002 - schwab@suse.de
+
+- Move elilo.conf to /boot/efi/SuSE.
+
+-------------------------------------------------------------------
 Wed Sep  4 12:35:39 CEST 2002 - jsrain@suse.cz
 
 - fixed bootfloppy function (Bug #17430)
