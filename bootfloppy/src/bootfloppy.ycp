@@ -97,13 +97,13 @@
 
       string begin_search = "boot/";
 
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "bootdisk"))!=-1) ) bootdisk_found    = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "i386"))!=-1)     ) i386disk_found    = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "rescuefloppy"))!=-1)   ) rescuedisk_found  = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "modules1"))!=-1) ) moduledisk_found  = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "modules2"))!=-1 )) module2disk_found = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "modules3"))!=-1 )) module3disk_found = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "modules4"))!=-1 )) module4disk_found = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "bootdisk"))!=-1) ) bootdisk_found    = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "i386"))!=-1)     ) i386disk_found    = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "rescuefloppy"))!=-1)   ) rescuedisk_found  = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "modules1"))!=-1) ) moduledisk_found  = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "modules2"))!=-1 )) module2disk_found = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "modules3"))!=-1 )) module3disk_found = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "modules4"))!=-1 )) module4disk_found = true;
 
       y2milestone("bootdisk_found: %1", bootdisk_found);
       y2milestone("i386disk_found: %1", i386disk_found);

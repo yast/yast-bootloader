@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Sep  3 17:05:39 CEST 2002 - jsrain@suse.cz
+
+- fixed usage of Pkg::SourceProvideFile function
+
+-------------------------------------------------------------------
 Tue Sep  3 10:28:02 CEST 2002 - jsrain@suse.cz
 
 - if partitioning changes, resets bootloader location to MBR, only
