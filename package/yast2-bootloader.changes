@@ -2,6 +2,8 @@
 Thu Mar 18 10:44:48 CET 2004 - jsrain@suse.cz
 
 - mark settings as changed after bootloader switch (#36269)
+- avoid putting /dev/evms to GRUB's device map and allowing it as
+  device to install bootloader to
 
 -------------------------------------------------------------------
 Wed Mar 17 14:27:15 CET 2004 - jsrain@suse.cz
