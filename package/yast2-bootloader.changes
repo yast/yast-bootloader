@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar  3 18:20:39 CET 2005 - jsrain@suse.cz
+
+- reverted to older version update_gfxmenu due to recent problems
+  (#67288)
+
+-------------------------------------------------------------------
 Wed Mar  2 10:15:35 CET 2005 - jsrain@suse.cz
 
 - merged texts from proofread

@@ -14,12 +14,6 @@ shift 3;
 LOCALE=$1;
 LOCALE_SHORT=$2;
 
-LOCALE_LIST=$LOCALE_SHORT;
-EN_PRESENT=0;
-LIMIT=9; # + English
-ORIG_LIMIT=$LIMIT
-DONE="";
-
 # create temporarry directory
 cd $TMP_DIR || exit 1;
 test -e gfxmenu && rm -rf gfxmenu;
@@ -29,59 +23,25 @@ cd gfxmenu || exit 3;
 /usr/bin/cpio -i < /boot/message || exit 4;
 # set default language
 echo $LOCALE >lang || exit 5
+# replace original texts with localized
+rm `ls *tr | grep -v en.tr`
+rm `ls *hlp | grep -v en.hlp`
+test -f $SCR_DIR/$LOCALE.tr && cp $SRC_DIR/$LOCALE.tr . \
+ || test -f $SRC_DIR/$LOCALE_SHORT.tr && cp $SRC_DIR/$LOCALE_SHORT.tr .
+test -f $SRC_DIR/$LOCALE.hlp && cp I4/$LOCALE.hlp . \
+ || test -f $SRC_DIR/$LOCALE_SHORT.hlp && cp $SRC_DIR/$LOCALE_SHORT.hlp .
+# set languages to choose
+if [ "$LOCALE_SHORT" = "en" ] ; then
+    echo -n "en
+" >languages || exit 6
+else
+    echo -n "$LOCALE_SHORT
+en
+" >languages || exit 6
+fi
 
-# after finishing, size must be checked
-while [ -z $DONE ] ; do
- # replace original texts with localized
- rm `ls *tr | grep -v en.tr`
- rm `ls *hlp | grep -v en.hlp`
-
- while [ ! -z $LOCALE ] ; do
-  test -f $SCR_DIR/$LOCALE.tr && cp $SRC_DIR/$LOCALE.tr . \
-   || test -f $SRC_DIR/$LOCALE_SHORT.tr && cp $SRC_DIR/$LOCALE_SHORT.tr .
-  test -f $SRC_DIR/$LOCALE.hlp && cp I4/$LOCALE.hlp . \
-   || test -f $SRC_DIR/$LOCALE_SHORT.hlp && cp $SRC_DIR/$LOCALE_SHORT.hlp .
-  if [ $LOCALE_SHORT = "en" ] ; then
-   EN_PRESENT=1;
-  else
-   LIMIT=$(($LIMIT-1));
-  fi;
-  shift 2;
-  LOCALE=$1;
-  LOCALE_SHORT=$2;
-  if [ $LIMIT = 0 ]; then
-   LOCALE="";
-  fi;
-  if [ ! -z $LOCALE ] ; then
-   LOCALE_LIST=`echo "$LOCALE_LIST
- $LOCALE_SHORT"`;
-  fi;
- done
- echo -n "$LOCALE_LIST";
- # set languages to choose
- if [ "$EN_PRESENT" = "1" ] ; then
-     echo -n "$LOCALE_LIST
- " >languages || exit 6
- else
-     echo -n "$LOCALE_LIST
- en
- " >languages || exit 6
- fi
- # set translations of bootloaer menu entries
- cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7;
-
- ls | cpio -o >/boot/message.new || exit 8;
-
- # check the total size
- SIZE=`du -bs /boot/message.new |cut -f 1`;
- if [ $SIZE -le 148480 -o $ORIG_LIMIT -le 1 ]; then
-  DONE="1";
- else
-  ORIG_LIMIT=$(($ORIG_LIMIT-1));
-  LIMIT=$ORIG_LIMIT;
- fi;
-done 
-
-mv /boot/message.new /boot/message || exit 99
+# set translations of bootloaer menu entries
+cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7A
+ls | cpio -o >/boot/message.new && mv /boot/message.new /boot/message || exit 99
 cd .. && rm -r gfxmenu
 exit 0
