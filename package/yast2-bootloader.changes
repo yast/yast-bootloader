@@ -4,6 +4,7 @@ Thu Mar 25 11:43:52 CET 2004 - jsrain@suse.de
 - fixed behavior if installing bootloader to boot sector of
   MD device (#34122)
 - do not update graphical boot menu if it is not installed (#36893)
+- 2.9.15
 
 -------------------------------------------------------------------
 Wed Mar 24 15:33:24 CET 2004 - jsrain@suse.cz
