@@ -844,9 +844,11 @@
 	// first synchronize global settings
 	list options = maplist (`o, eval (globals), ``{
 	    string key = o["key"]:"";
-	    any value = ui2mod (o["value"]:"");
+	    any value = o["value"]:"";
 	    if (isSpecial (key))
 		value = mergestring (splitstring (value, ","), "\n");
+	    else
+		value = ui2mod (value);
 	    o["value"] = value;
 	    if (key == "__intern__")
 		return nil;
@@ -866,7 +868,7 @@
 	    string sect_type = getCreationType (s);
 	    options = maplist (`o, eval (s), ``{
 		string key = o["key"]:"";
-		any value = ui2mod (o["value"]:"");
+		any value = o["value"]:"";
 		if (key == getSectionTitle ())
 		{
 		    title = value;
@@ -874,6 +876,8 @@
 		}
 		if (isSpecial (key))
 		    value = mergestring (splitstring (value, ","), "\n");
+		else
+		    value = ui2mod (value);
 		o["value"] = value;
 		if (key == "__intern__")
 		    return nil;
