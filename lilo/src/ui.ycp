@@ -57,6 +57,7 @@ global define symbol LiloMainDialog() ``{
 	"summary"	: ``(SummaryDialog()),
 	"target"	: ``(TargetDialog()),
 //	"save"		: ``(SummaryDialog()),
+	"expert"        : [ ``(ExpertDialog()), true ],
         "abort"		: ``(AbortDialog()),
         "sections"		: ``(MainDlg()),
 	"ostype"	: ``(OSTypeDlg()),
@@ -80,6 +81,7 @@ global define symbol LiloMainDialog() ``{
 	"summary" : $[
 	    `modify : "target",
 	    `restore : "summary",
+	    `expert :  "expert",
 	    `next  : "end",
 	    `abort : "abort"
 	],
@@ -90,6 +92,10 @@ global define symbol LiloMainDialog() ``{
 
 	],
 
+	"expert" : $[
+	    `next  : "summary",
+	    `abort : "abort"
+	],
         "sections" : $[
             `abort: "abort",
             `next: "summary",
@@ -226,6 +232,10 @@ and bootloader will be installed. Do you wish to continue?");
 		restoreOriginalSettings();
 		summary_sel = `accept;
 	    }
+	}
+	else if (way == `expert)
+	{
+	    summary_sel = `accept;
 	}
 
 	return way;
@@ -1349,6 +1359,66 @@ global define symbol OptionsDlg(map vals) ``{
     }
     return a;
 }
+
+
+/**
+ * Expert dialog with multiline widget. 
+ * @return symbol UserInput() symbol
+ */
+
+global define symbol ExpertDialog() ``{
+    symbol ret = nil;
+    string tmpdir = SCR::Read(.target.tmpdir);
+    string tmpfile = tmpdir + "/bootloader.conf.tmp";
+
+    // store lilo.conf to temporary file
+    Lilo::WriteTest(tmpfile);
+    string multi = SCR::Read(.target.string, tmpfile);
+
+    term content = `VBox(
+	`VSpacing(1),
+	// multi line text widget label
+	`MultiLineEdit(`id(`editor), _("Bootloader &configuration:"), multi),
+	`VSpacing(1)
+    );
+
+    // dialog header
+    Wizard::SetContents(_("Expert configuration"), content,
+	// help text in dialog
+	_("<P><B>Expert manual configuration</B><BR>Here you can manually edit bootloader configuration.</P><P>Note: Final configuration file can have different indenting.</P>"), true, true);
+
+    do
+    {
+	ret = UI::UserInput();
+    }
+    while (ret != `next && ret != `back && ret != `abort);
+
+    if (ret == `next)
+    {
+	// reread settings
+	string config = UI::QueryWidget(`id(`editor), `Value);
+	SCR::Write(.target.string, tmpfile, config);
+
+	path loader = (Lilo::mode == `grub) ? .grub : .lilo;
+
+	string original = SCR::Read(loader + .getfilename);
+
+	SCR::Write(loader + .setfilename, tmpfile);
+	SCR::Read(loader + .reread);
+
+	// reread settings
+	Lilo::Read(nil);
+
+	// set original file name
+	SCR::Write(loader + .setfilename, original);
+
+	y2debug("globals: %1", Lilo::globals);
+	y2debug("sections: %1", Lilo::sections);
+    }
+
+    return ret;
+}
+
 
 /**
  * OSScan dialog

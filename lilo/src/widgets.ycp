@@ -407,6 +407,11 @@ global define term SummaryWidget() ``{
 					 : _("&Modify current configuration"),
 					summary_sel == `modify)),
                                     `VSpacing (0.2),
+                                    `Left (`RadioButton (`id (`expert), `opt(`notify),
+					// radiobutton
+                                       _("&Expert manual configuration"),
+                                       summary_sel == `expert)),
+                                    `VSpacing (0.2),
                                     `Left (`RadioButton (`id (`restore), `opt(`notify),
 					// radiobutton
 					_("Restore &original configuration"),
