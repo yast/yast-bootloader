@@ -160,6 +160,17 @@
       */
     global define boolean Write () ``{
 	boolean ret = true;
+
+	// proposing anything is irrelevant during update, this forces reading
+	// if settings weren't read before
+	if (Mode::update)
+	{
+	    BootCommon::was_proposed = false;
+	    BootCommon::changed = true;
+	    BootCommon::location_changed = true;
+	    BootCommon::getLoaderType (true);
+	}
+
 	ReadOrProposeIfNeeded ();
 
 	if (BootCommon::write_settings["save_all"]:false)

@@ -5,6 +5,8 @@ Fri Sep 12 08:17:22 CEST 2003 - jsrain@suse.de
   (#30519)
 - fixed updating of kernel image name in bootloader configuration
   files (#30627)
+- fixed original bootloader configuration reading during update
+  (#30625)
 
 -------------------------------------------------------------------
 Thu Sep 11 12:46:41 CEST 2003 - jsrain@suse.de
