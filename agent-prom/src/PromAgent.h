@@ -44,12 +44,12 @@ class PromAgent : public SCRAgent
          * @param path Path that should be read.
          * @param arg Additional parameter.
          */
-        virtual YCPValue Read(const YCPPath &path, const YCPValue& arg = YCPNull());
+        virtual YCPValue Read(const YCPPath &path, const YCPValue& arg);
 
         /**
          * Provides SCR Write ().
          */
-        virtual YCPValue Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg = YCPNull());
+        virtual YCPValue Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg);
 
         /**
          * Provides SCR Write ().
