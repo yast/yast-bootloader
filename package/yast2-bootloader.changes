@@ -6,7 +6,7 @@ Mon Jul 12 14:27:25 CEST 2004 - jsrain@suse.cz
 - fixed error messages of the script for /boot/message recreating
 - added general function to recreate /boot/message file on
   relevant architectures
-
+- 2.10.1
 
 -------------------------------------------------------------------
 Tue Jun 29 13:45:04 CEST 2004 - jsrain@suse.cz
