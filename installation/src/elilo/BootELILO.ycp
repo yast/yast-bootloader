@@ -6,14 +6,61 @@
  *	BootELILO
  *
  * Summary:
- *	functions for elilo setup
+ *	Functions for elilo setup
  *
  * Authors:
- *	Klaus Kaempf <kkaempf@suse.de>
+ *	Andreas Schwab <schwab@suse.de>
  *
  * $Id$
  *
  */
 {
     module "BootELILO";
+
+    textdomain "bootloader";
+
+    import "Arch";
+    import "Boot";
+    import "Kernel";
+    
+    /**
+     * WriteUpdate
+     * Calling mk_initrd while update.
+     * @ return void
+     */
+    global define void WriteUpdate()
+    ``{
+	// Calling mk_initrd
+	
+	if (SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/y2logmk_initrd 2>> /var/log/y2logmk_initrd") != 0)
+	  {
+	    any retAsk = UI::AskShowLog("mk_initrd");
+	    if (retAsk == `yes)
+	      DisplayLogFile(SCR::Read (.target.string, "/var/log/y2logmk_initrd"));
+	  }
+    }
+
+    /**
+     * write the ELILO bootloader
+     */
+
+    global define boolean Write ()
+    ``{
+	import "Mode";
+	import "Boot";
+
+	if (Mode::update)
+	  {
+	    WriteUpdate();
+	    return true;
+	  }
+
+	string docmd = "/usr/lib/YaST2/bin/doelilo /";
+	map doenv = $[ "bootdev" : Boot::BootPartitionDevice,
+		       "rootdev" : Boot::RootPartitionDevice,
+		       "append" : Kernel::cmdLine ];
+	integer doresult = SCR::Execute(.target.bash, docmd, doenv);
+
+	return true;
+    }
 }
