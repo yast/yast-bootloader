@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug  9 09:24:57 CEST 2002 - jsrain@suse.de
+
+- now setting framebuffer vga mode (Bug #17537)
+- 2.6.20
+
+-------------------------------------------------------------------
 Thu Aug  8 09:59:38 CEST 2002 - jsrain@suse.de
 
 - fixed device name translation for GRUB during installation for
