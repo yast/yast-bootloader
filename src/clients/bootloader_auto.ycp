@@ -14,11 +14,11 @@
  * $Id$
  *
  */
-
-
 {
-
     textdomain "bootloader";
+
+	y2milestone("----------------------------------------");
+	y2milestone("bootloader auto started");
     import "Bootloader";
     import "Wizard";
     import "Installation";
@@ -26,16 +26,34 @@
     import "Summary";
     include "bootloader/routines/ui.ycp";
 
-    string func = WFM::Args(0);
-    map param = WFM::Args(1);
 
+	any ret = nil;
+	string func = "";
+	map param = $[];
+
+	/* Check arguments */
+	if(size(Args()) > 0 && is(Args(0), string)) {
+		func = WFM::Args(0);
+	    if(size(Args()) > 1 && is(Args(1), map))
+		param = WFM::Args(1);
+	}
+	y2debug("func=%1", func);
+	y2debug("param=%1", param);
+
+
+    if(func == "Import") {
+	ret = Bootloader::Import(param);
+    }
     /**
       * Create a summary
       * return string
       */
-    if(func == "Summary") {
-	Bootloader::Import(param);
-	return (Bootloader::Summary ());
+    else if(func == "Summary") {
+    ret = "<UL>"
+        + mergestring (maplist (`l, Bootloader::Summary(), ``("<LI>" + l)),
+        "\n")
+        + "</UL>";
+
     }
     /**
       * Reset configuration
@@ -43,36 +61,45 @@
       */
     else if (func == "Reset") {
 	Bootloader::Propose ();
-	return ($[]);
+	ret =  ($[]);
     }
     /**
       * Change configuration
       * return symbol (i.e. `finish || `accept || `next || `cancel || `abort)
       */
     else if (func == "Change") {
-	Bootloader::Import(param);
-	any res = runWizard ();
-	return res;
+	Wizard::CreateDialog ();
+    ret = runWizard ();
+    UI::CloseDialog ();
+	return ret;
     }
     /**
       * Return configuration data
       * return map or list
       */
     else if (func == "Result") {
-	return(Bootloader::Export());
+	ret = Bootloader::Export();
     }
     /**
       * Write configuration data
       * return boolean
       */
     else if (func == "Write") {
-	return(Bootloader::Write());
+	ret = Bootloader::Write();
     }
 
     /* unknown function */
     else {
 	y2error("unknown function: %1", func);
-	return false;
+	ret =  false;
     }
+
+y2debug("ret=%1", ret);
+y2milestone("bootloader_auto finished");
+y2milestone("----------------------------------------");
+
+return ret;
+
+/* EOF */
 
 }
