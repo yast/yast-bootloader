@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Sep  9 13:40:09 CEST 2002 - mvidner@suse.cz
+
+- Replace whitespace (and nonprintable characters)
+  in lilo section labels by an underscore (#19181).
+- Properly use / or /boot/ in /boot/grub/menu.lst during upgrade (#19125).
+- 2.6.43
+
+-------------------------------------------------------------------
 Sun Sep  8 19:47:38 CEST 2002 - mvidner@suse.cz
 
 - Fixed the testsuite.
