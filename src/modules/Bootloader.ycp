@@ -338,6 +338,9 @@
 		params_to_save["vga"] = new_vga;
 	}
 
+	// create device node in target system if not present
+	string to_remove = BootCommon::createRootDeviceNode ();
+
 	// save initrd
 	if ((Initrd::changed || ! Mode::normal)
 	    && ! (BootCommon::write_settings["forbid_save_initrd"]:false))
@@ -362,6 +365,12 @@
 	    || BootCommon::write_settings["initrd_changed_externally"]:false))
 	{
 	    y2milestone ("No bootloader cfg. file saving needed, exiting");
+	    if (to_remove != nil)
+	    {
+		y2milestone ("Removing %1", to_remove);
+		SCR::Execute (.target.bash,
+		    sformat ("/bin/rm -rf %1", to_remove));
+	    }
 	    return true;
 	}
 
@@ -397,7 +406,15 @@
 	}
 
 	if (getLoaderType () == "none")
+	{
+	    if (to_remove != nil)
+	    {
+		y2milestone ("Removing %1", to_remove);
+		SCR::Execute (.target.bash,
+		    sformat ("/bin/rm -rf %1", to_remove));
+	    }
 	    return ret;
+	}
 
 	// save bootloader settings
 	ret = ret && blSave ();
@@ -414,11 +431,27 @@
         }
 
         if (BootCommon::location == "none" || BootCommon::location == "")
-            return ret;
+	{
+	    if (to_remove != nil)
+	    {
+		y2milestone ("Removing %1", to_remove);
+		SCR::Execute (.target.bash,
+		    sformat ("/bin/rm -rf %1", to_remove));
+	    }
+	    return ret;
+	}
 
 	// call bootloader executable
 	y2milestone ("Calling bootloader executable");
 	ret = ret && blWrite ();
+
+	// remove the above created device node in target system
+	if (to_remove != nil)
+	{
+	    y2milestone ("Removing %1", to_remove);
+	    SCR::Execute (.target.bash, sformat ("/bin/rm -rf %1", to_remove));
+	}
+
 	while (! ret)
 	{
 	    y2error ("Installing bootloader failed");
