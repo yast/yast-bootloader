@@ -30,6 +30,7 @@
 #define T_SPEC_DISK         17
 #define T_SPEC_CHANGE       18
 #define T_SPEC_MAP_DRIVE    19
+#define T_SPEC_MAP	    20
 
 #include <map>
 #include <string>

@@ -71,7 +71,6 @@ OptTypes::OptTypes(const string& type)
 	_options["install"]=val;
 	_options["ioprobe"]=val;
 	_options["kernel"]=val;
-	_options["map"]=val;
 	_options["module"]=val;
 	_options["modulenounzip"]=val;
 	_options["pause"]=val;
@@ -91,6 +90,10 @@ OptTypes::OptTypes(const string& type)
 	_options["default"]=val;
 	_options["timeout"]=val;
 	_options["fallback"]=val;
+
+    val=T_SPEC_MAP;
+
+	_options["map"]=val;
 
 	return;
     }
@@ -170,6 +173,7 @@ string OptTypes::getSpecGroup(const string& optname)
 	case T_SPEC_DISK        : return string("disk");
 	case T_SPEC_CHANGE      : return string("change");
 	case T_SPEC_MAP_DRIVE   : return string("map-drive");
+	case T_SPEC_MAP		: return string("map");
     }
 
     return "";
