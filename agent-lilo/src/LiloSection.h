@@ -165,4 +165,9 @@ public:
     
 };
 
+/**
+ * replace non-printable chars and space by r
+ */
+string replaceBlanks (const string &s, char r);
+
 #endif

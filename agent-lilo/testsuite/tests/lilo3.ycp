@@ -1,0 +1,27 @@
+/*
+ * Authors:
+ *  Unknown <unknown@addres.xx>
+ *
+ * $Id$
+ *
+ * Test the fix to bug 19181
+ */
+
+{
+    path xname = ."\"obskurni nazev\\\"\\\\\"";
+    path pname = .sections + xname + .label;
+    return [
+	Read (.append),
+	Write  (.append, Read (.append)),
+	Read (.append),
+
+	Dir (.sections),
+	// rename an existing section
+	Write (pname, Read (pname)),
+	Dir (.sections),
+
+	// write a new section
+	Write (.sections."\"another fine\tsection\"".image, "vmtux"),
+	Dir (.sections),
+	];
+}

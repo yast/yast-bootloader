@@ -1,0 +1,5 @@
+.
+
+`ag_liloconf(
+    LiloConf("grub", "tests/grub3.in.test")
+)

@@ -355,6 +355,23 @@ YCPValue liloOrderedOptions::Read(const YCPPath& path)
     return YCPVoid();
 }
 
+// replace non-printable chars and space by r
+string replaceBlanks (const string &s, char r)
+{
+    // the STL manual says that assigning to a string character
+    // invalidates iterators, so let's use a C string
+    char *result = strdup (s.c_str());
+
+    for (char *p = result; *p; ++p)
+    {
+	*p = (((unsigned char)*p) > 32)? *p : r;
+    }
+
+    string s_result = result;
+    free (result);
+    return s_result;
+}
+
 YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, const YCPValue& _pos)
 {
     if(path->length()==0)
@@ -445,7 +462,15 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
     }
     if(value->isString())
     {
-	opt->value=value->asString()->value_cstr();
+	string tmp = value->asString()->value();
+	// Ugh, type is a global variable.
+	// Anyway, this should fix bug #19181.
+	// yes, this is slow :(
+	if (opt->optname == "label" && type != "grub")
+	{
+	    tmp = replaceBlanks (tmp, '_');
+	}
+	opt->value = tmp;
 	return YCPBoolean(true);
     }
     if(value->isInteger() || value->isBoolean())
