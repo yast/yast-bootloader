@@ -403,15 +403,15 @@
     global define void sectionsRedrawTable (list sects) ``{
 	boolean elilo = getLoaderType (false) == "elilo";
 	list sec = maplist (map s, sects, ``{
-	    string image = lookup_value (s, "image", "");
+	    string image = lookup_value (s, "image", nil);
 	    string root = lookup_value (s, "root", "");
             return `item (`id (lookup_value (s, "label", "")),
                 lookup_value (current_globals, "default", "")
 			== lookup_value (s, "label", "")
                     ? UI::Glyph (`CheckMark) : "",
                 lookup_value (s, "label", ""),
-                image == "" ? _("other") : _("image"),
-                image != ""
+                image == nil ? _("other") : _("image"),
+                (image != "" && image != nil)
                 ? sformat ("%1   (%2%3)",
                     image,
                     elilo

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug 28 14:20:10 CEST 2003 - jsrain@suse.de
+
+- fixed dieplayed section type in sections summary dialog for
+  "other" sections (#29472)
+
+-------------------------------------------------------------------
 Mon Aug 25 10:00:10 CEST 2003 - jsrain@suse.de
 
 - fixed inconsistence of floppy size (1440kB -> 1.44 MB) (#29142)

@@ -233,7 +233,7 @@ Replace it with an entry  to boot from the floppy?");
 		lookup_value (s, "title", ""),
 		lookup_value (s, "kernel", nil)
 			// table cell
-		    == "" ? _("other")
+		    == nil ? _("other")
 			// table cell
 		    : _("image"),
 		lookup_value (s, "kernel", "")
