@@ -1,4 +1,131 @@
 -------------------------------------------------------------------
+Fri Oct 11 11:10:43 CEST 2002 - jsrain@suse.cz
+
+- fixed security problem with permissions of /boot/grub/menu.lst
+  (#20803)
+- activating /boot partition if grub installed to mbr (part of
+  #20637)
+- 2.6.61
+
+-------------------------------------------------------------------
+Thu Oct 10 17:32:15 CEST 2002 - jsrain@suse.cz
+
+- if bootloader which should be used is not selected for
+  installation, backup one is installed on i386 and x86-64
+  (grub instead of lilo and lilo instead of grub) (#20759)
+
+-------------------------------------------------------------------
+Wed Oct  9 09:22:09 CEST 2002 - jsrain@suse.cz
+
+- now not enabling 2 gettys on same serial line on p690 (#19788)
+
+-------------------------------------------------------------------
+Tue Oct  8 14:16:06 CEST 2002 - jsrain@suse.cz
+
+- fixed type in initrd modules ignore list for PPC (#20684)
+- 2.6.59
+
+-------------------------------------------------------------------
+Mon Oct  7 08:23:36 CEST 2002 - jsrain@suse.cz
+
+- fixed activating boot method on PPC (#20407)
+- fixed helptexts on PPC (#20605)
+- fixed translating of PPC-specific strings
+- 2.6.58
+
+-------------------------------------------------------------------
+Fri Oct  4 10:38:02 CEST 2002 - jsrain@suse.cz
+
+- added more comments to bootloader in sysconfig/bootloader (#20385)
+- fixed restoring original configuration - could caused unbootable
+  system (#20391)
+- 2.6.57
+
+-------------------------------------------------------------------
+Wed Oct  2 14:01:36 CEST 2002 - jsrain@suse.cz
+
+- fixed update of lilo, resulted in corrupted lilo.conf (#20320)
+- fixed errors reporting during bootloader update (#20321)
+- fixed activating of initrd at update (#19643)
+
+-------------------------------------------------------------------
+Tue Oct  1 15:34:28 CEST 2002 - jsrain@suse.cz
+
+- fixed nasty trap in bootloader installation (now not reseting
+  configuration without question) (#20073)
+
+-------------------------------------------------------------------
+Fri Sep 27 16:45:01 CEST 2002 - jsrain@suse.cz
+
+- applied patches for PPC (#20178 and #20205 - initrd modules list)
+
+-------------------------------------------------------------------
+Fri Sep 27 08:45:51 CEST 2002 - lslezak@suse.cz
+
+- fixed configuration reset at installation proposal
+  if partitioning was changed (#20073)
+- fixed failsafe options on x86-64 (removed disableapic,
+  added iommu=noforce) (#19903)
+
+-------------------------------------------------------------------
+Tue Sep 24 11:23:39 CEST 2002 - lslezak@suse.cz
+
+- check if label already exists (in section edit),
+  allow labels longer than 15 chars for grub (#19874)
+- removed 'nosmp' from failsafe options on x86-64 (#19903)
+- don't add rewritten other section to menu (#19990)
+- version 2.6.56
+
+-------------------------------------------------------------------
+Tue Sep 17 17:13:23 CEST 2002 - lslezak@suse.de
+
+- fixed obsoleted help text in y2cc (#19466)
+- version 2.6.55
+
+-------------------------------------------------------------------
+Fri Sep 13 13:52:12 CEST 2002 - mvidner@suse.cz
+
+- bootfloppy: enable asking the user for the CD (#19628).
+- 2.6.54
+
+-------------------------------------------------------------------
+Fri Sep 13 13:25:06 CEST 2002 - fehr@suse.de
+
+- make supression of certain modules (cdrom and usb) work
+- version 2.6.53
+
+-------------------------------------------------------------------
+Thu Sep 12 19:58:13 CEST 2002 - lslezak@suse.cz
+
+- do not regenerate device.map file at update (part of #19555)
+- version 2.6.52
+
+-------------------------------------------------------------------
+Thu Sep 12 18:17:11 CEST 2002 - fehr@suse.de
+
+- fix to use lilo on update if there is no /etc/sysconfig/bootloader 
+  (#19558)
+
+-------------------------------------------------------------------
+Thu Sep 12 16:12:56 CEST 2002 - lslezak@suse.cz
+
+- add current kernel parameters to lilo.conf at update (#19415)
+- added missing function DisplayLogFile to BootSILO.ycp, BootELILO.ycp
+- version 2.6.51
+
+-------------------------------------------------------------------
+Thu Sep 12 16:02:49 CEST 2002 - kkaempf@suse.de
+
+- run mkinitrd on PPC if needed (#18276)
+- 2.6.50
+
+-------------------------------------------------------------------
+Thu Sep 12 11:23:17 CEST 2002 - kkaempf@suse.de
+
+- exclude usb modules from initrd (#19432)
+- 2.6.49
+
+-------------------------------------------------------------------
 Wed Sep 11 14:02:12 CEST 2002 - lslezak@suse.cz
 
 - don't change configuration if partitioning was changed

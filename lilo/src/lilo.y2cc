@@ -18,7 +18,7 @@ Group = System
 Icon = boot.png
 
 ; // *one* *short* descriptive line for y2cc
-Helptext = _("Configure lilo")
+Helptext = _("Bootloader configuration")
 
 ; arguments, seperated by space
 Arguments = 

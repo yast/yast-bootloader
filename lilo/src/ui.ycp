@@ -30,6 +30,8 @@ include "lilo/widgets.ycp";
 include "lilo/io.ycp";
 include "lilo/scan.ycp";
 
+import "Lilo";
+
 /**
  * global variables
  *
@@ -836,9 +838,28 @@ global define symbol LinuxSectDlg() ``{
 	    // partial commit
 	    string kernel = UI::`QueryWidget(`id(`sect_kernel), `Value);
 	    string label = toascii(UI::`QueryWidget(`id(`sect_label), `Value));
-	    if(size(label)>15)
+
+	    // remove white spaces
+	    label = remove_ws(label);
+	    y2debug("removed WS: '%1'", label);
+
+	    if (Lilo::mode == `lilo && size(label)>15)
 	    {
+		// TODO: warn user that label was truncated
 		label=substring(label, 0, 15);
+		label = remove_ws(label);
+	    }
+
+	    if (checkSectionExistence(label))
+	    {
+		// refresh truncated label
+		UI::ChangeWidget(`id(`sect_label), `Value, label);
+
+		// popup message
+		UI::MessagePopup(_("A section with given label already exists.
+Enter new section label.
+"));
+		action = `again;
 	    }
 
 	    currentOptions = add(currentOptions, (Lilo::mode == `grub) ? "title" : "label", label);
@@ -987,10 +1008,17 @@ global define symbol OtherSectDlg() ``{
 	{
 	    // validation and partial commit
 	    string lab=toascii(UI::`QueryWidget(`id(`sect_label), `Value));
-	    if(size(lab)>15)
+
+	    // remove white spaces
+	    lab = remove_ws(lab);
+
+	    if (Lilo::mode == `lilo && size(lab)>15)
 	    {
+		// TODO: warn user that label was truncated
 		lab=substring(lab, 0, 15);
+		label = remove_ws(label);
 	    }
+
 	    if (lab == "")
 	    {
 		// popup

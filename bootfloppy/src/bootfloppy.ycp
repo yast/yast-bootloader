@@ -22,7 +22,7 @@
   textdomain "bootloader";
   include "wizard/sequencer.ycp";
 
-  import "MediaUI";
+  import "PackageCallbacks";
   import "Wizard";
   import "Mode";
 

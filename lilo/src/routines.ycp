@@ -1396,4 +1396,37 @@ section to boot. Unattended reboots are impossible.
     return output;
 }
 
+
+/**
+ * Remove starting and trailing white spaces from string
+ * @param input string
+ * @return string Result string (if 'in' is nil return "")
+ */
+global define string remove_ws(string in) ``{
+    string ret = "";
+
+    if (in == nil)
+    {
+	ret = "";
+    }
+    else
+    {
+	ret = regexpsub(in, "^[[:space:]]*([^[:space:]]+.*)$", "\\1");
+	y2debug("remove ws (starting): '%1'", ret);
+
+	if (ret != nil)
+	{
+	    ret = regexpsub(ret, "^(.*[^[:space:]]+)[[:space:]]*$", "\\1");
+	}
+	y2debug("remove ws (trailing): '%1'", ret);
+    }
+
+    if (ret == nil)
+    {
+	ret = "";
+    }
+
+    return ret;
+}
+
 }

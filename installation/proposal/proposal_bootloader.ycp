@@ -15,6 +15,8 @@
     import "Language";
     import "Boot";
 
+    include "ui/common_popups.ycp";
+
     string func  = WFM::Args(0);
     map    param = WFM::Args(1);
     map    ret   = $[];
@@ -29,8 +31,19 @@
 	    // force re-calculation of bootloader proposal
 	    Boot::location = "";
 	}
-	
-	Boot::Set ();
+
+	if (!Boot::Set())
+	{
+	    // Yes/No popup question, %1 is partition name (e.g. /dev/hda2)
+	    if (UI::YesNoPopup(sformat(_("Partition '%1' is not available.
+Do you want to set default boot loader location?"), Boot::device)))
+	    {
+		// reset configuration to default value
+		Boot::location = "";
+
+		Boot::Set();
+	    }
+	}
 
 	string info_msg = "";
 
@@ -51,7 +64,7 @@
 	else if (Boot::LoaderType == "ppc")
 	{
 		import "BootPPC";
-		info_msg = BootPPC::Proposal ();
+		return BootPPC::Proposal ();
 	}
 	else
 	{
@@ -76,6 +89,15 @@
 	// Fill return map
 
 	ret = $[ "raw_proposal" : [ info_msg ] ];
+
+        if (Boot::no_bootloader)
+        {
+            y2error ("No bootloader selected");
+            ret = add (ret, "warning_level", `error);
+            ret = add (ret, "warning", _("No bootloader selected to be installed, your system can be unbootable"));
+        }
+
+
     }
     else if ( func == "AskUser" )
     {

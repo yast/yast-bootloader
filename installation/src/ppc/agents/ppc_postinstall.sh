@@ -68,7 +68,7 @@ cat >> /etc/inittab <<-EOF
 
 
 # p690 virtual console:
-V0:12345:respawn:/sbin/agetty -L 9600 hvc0 vt320
+#V0:12345:respawn:/sbin/agetty -L 9600 hvc0 vt320
 
 # to allow only root to log in on the console, use this:
 # 1:2345:respawn:/sbin/sulogin /dev/console

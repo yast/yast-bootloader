@@ -27,6 +27,29 @@
 
     global boolean  defaultdevice = false;
 
+    /**
+     * DisplayLogFile
+     * Displaying log files
+     * @ return 'ok_help
+     */
+    global define DisplayLogFile( string msg_text ) ``{
+            term text = `RichText( "<p>" + msg_text + "</p>" );
+            UI::OpenDialog(`opt ( `decorated ),
+                       `VBox (`HSpacing(75),
+                                // heading
+                              `Heading( _("Error Log File")),
+                              text,     // e.g. `Richtext()
+                              `PushButton( `id(`ok_help), `opt(`default), OKButtonLabel() )
+                              )
+                       );
+
+            UI::SetFocus(`id(`ok_help) );
+            any r = UI::UserInput();
+            UI::CloseDialog();
+            return (r);
+    };
+
+
 
     /**
      * WriteUpdate
