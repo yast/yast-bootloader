@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  5 11:49:23 CEST 2002 - jsrain@suse.cz
+
+- not calling Storage::UseLilo () in Boot module constructor
+- 2.6.37
+
+-------------------------------------------------------------------
 Thu Sep  5 10:36:55 CEST 2002 - schwab@suse.de
 
 - Move elilo.conf to /boot/efi/SuSE.

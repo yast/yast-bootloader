@@ -18,7 +18,7 @@
 {
     include "testsuite.ycp";
     import "Pkg";
-    map IREAD = $["target" : $[
+    map READ = $["target" : $[
             "string" : "root (hd0,0)\ninstall /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit",
             "tmpdir" : "/tmp"
         ], "etc" : $[
@@ -48,7 +48,10 @@
                 "CONSOLE_UNICODEMAP" : "",
                 "CONSOLE_MAGIC" : "(K",
                 "CONSOLE_ENCODING" : "ISO-8859-2"
-            ]
+            ],
+	    "bootloader" : $[
+		"LOADER_TYPE" : "grub"
+	    ]
         ], "md" : $[
 	    "config" : $[]
 	], "lvm" : $[
@@ -59,24 +62,24 @@
 	    "mounts" : []
 	]
     ];
-    TESTSUITE_INIT ([IREAD, $[], $[]], 0);
+    TESTSUITE_INIT ([READ, $[], $[]], 0);
     include "lilo/routines.ycp";
 
     map EXEC = $["target" : $["bash_output": $["stdout" : "/dev/hda"]]];
 
-    TEST (``(grub2Lilo ("(hd0)")), [$[], $[], EXEC], 0);
-    TEST (``(grub2Lilo ("(hd0,0)")), [$[], $[], EXEC], 0);
-    TEST (``(grub2Lilo ("(hd0,11)")), [$[], $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(hd0)")), [READ, $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(hd0,0)")), [READ, $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(hd0,11)")), [READ, $[], EXEC], 0);
 
     EXEC = $["target" : $["bash_output": $["stdout" : "/dev/ida/c0d0"]]];
 
-    TEST (``(grub2Lilo ("(hd0)")), [$[], $[], EXEC], 0);
-    TEST (``(grub2Lilo ("(hd0,0)")), [$[], $[], EXEC], 0);
-    TEST (``(grub2Lilo ("(hd0,11)")), [$[], $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(hd0)")), [READ, $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(hd0,0)")), [READ, $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(hd0,11)")), [READ, $[], EXEC], 0);
 
     EXEC = $["target" : $["bash_output": $["stdout" : "/dev/fd0"]]];
 
-    TEST (``(grub2Lilo ("(fd0)")), [$[], $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(fd0)")), [READ, $[], EXEC], 0);
 
 }
 

@@ -22,7 +22,6 @@
     import "Mode";
 
     import "StorageDevices";
-    import "Storage";
 
     /**
      * @return list: modules for the initrd
@@ -104,6 +103,11 @@
      */
     integer last_change = 0;
 
+    /**
+     * was already called the Set function?
+     */
+    boolean was_set = false;
+
     //---------------------------------------------------------------
 
     // map of module arguments
@@ -126,19 +130,7 @@
 		initrdModules = splitstring (tmp_mods, " ");
 	    }
 	}
-	checkBootloader ();
-/*	LoaderType = SCR::Read (.probe.boot_arch);
-	if (LoaderType == "grub"
-	    && Mode::update
-	    && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
-	{
-	    string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
-	    if (sysconfig == "grub" || sysconfig == "lilo")
-		LoaderType = sysconfig;
-	}
-	if (LoaderType == "grub" && Storage::UseLilo())
-	    LoaderType = "lilo";
-	y2milestone ("Setting bootloader type to %1", LoaderType);*/
+	checkBootloader (false);
 	return;
     }
     /**
@@ -151,19 +143,34 @@
     }
     /**
       * detect bootloader for being used and set it to LoaderType variable
+      * @param ask function Storage::UseLilo ()
       */
-    global define void checkBootloader () ``{
+    global define void checkBootloader (boolean askStorage) ``{
+//y2error ("Ask: %1", askStorage);
         LoaderType = SCR::Read (.probe.boot_arch);
+/*
+y2error ("LoaderType: %1", LoaderType);
+y2error ("Mode::Update: %1", Mode::update);
+y2error ("Mode::initial: %1", Mode::initial);
+y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
+*/
         if (LoaderType == "grub"
-            && Mode::update
-            && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
+//            && Mode::update
+	    && (! Mode::initial)
+            && SCR::Read (.target.size, "/etc/sysconfig/bootloader") != -1)
         {
             string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
             if (sysconfig == "grub" || sysconfig == "lilo")
                 LoaderType = sysconfig;
+	    y2milestone ("Bootloader update, using %1", LoaderType);
         }
-        if (LoaderType == "grub" && Storage::UseLilo())
-            LoaderType = "lilo";
+//y2error ("Ask: %1", askStorage);
+	if (askStorage)
+	{
+	    import "Storage";
+	    if (LoaderType == "grub" && Storage::UseLilo())
+		LoaderType = "lilo";
+	}
         y2milestone ("Setting bootloader type to %1", LoaderType);
 	return;
     }
@@ -232,7 +239,8 @@
 
     global define void Set()
     ``{
-	checkBootloader ();
+	import "Storage";
+	checkBootloader (true);
 	if (last_change != Storage::GetTargetChangeTime())
 	{
 //	    Boot ();
@@ -241,7 +249,8 @@
 	    location = "";
 	}
 
-	y2debug ("UseLilo: %1", Storage::UseLilo());
+	was_set = true;
+
 	// get map of lists
 	// $[ "/mount_point" : [partitionName, fsid, targetdevice, raid_type], ...]
 	map mountPoints		= Storage::GetMountPoints();
@@ -342,6 +351,7 @@
 
     global define IsBootAccessible()
     ``{
+	import "Storage";
 	boolean boot_partition_accessible = true;
 
 	if (!LbaSupport())
@@ -431,6 +441,9 @@
 
     global define void Save ()
     ``{
+	if (! was_set)
+	    Set ();
+
 	string kernel_initrd = "";
 	boolean modules_written = false;
 
@@ -439,8 +452,8 @@
 	if (Mode::update)
 	{
 	    // update: check for old lilo destination
-	    SCR::Execute (.target.bash, "/usr/bin/touch /var/lib/YaST2/settings.ycp");
-	    map old_user_settings = SCR::Read(.target.ycp, ["/var/lib/YaST2/settings.ycp", $[]]);
+	    SCR::Execute (.target.bash, "/usr/bin/touch /var/lib/YaST2/bootloader");
+	    map old_user_settings = SCR::Read(.target.ycp, ["/var/lib/YaST2/bootloader", $[]]);
 	    if (old_user_settings["lilo"]:"" == "floppy")
 	    {
 		Boot::location = "floppy";
@@ -540,11 +553,18 @@
 
     global define boolean Write ()
     ``{
+	if (! was_set)
+	{
+	    Save ();
+            Set ();
+	}
+
+	import "Storage";
 	if (Mode::live_eval)
 	    return true;
 
 	y2milestone ("LoaderType %1", LoaderType);
-	SCR::Execute (.target.bash, "/usr/bin/touch /var/lib/YaST2/settings.ycp");
+	SCR::Execute (.target.bash, "/usr/bin/touch /var/lib/YaST2/bootloader");
 	map m = SCR::Read (.target.ycp, "/var/lib/YaST2/bootloader");
 	if (m == nil || ! is (m, map))
 	    m = $[];

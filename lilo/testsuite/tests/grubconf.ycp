@@ -18,7 +18,7 @@
 {
     include "testsuite.ycp";
     import "Pkg";
-    map IREAD = $["target" : $[
+    map READ = $["target" : $[
             "string" : "root (hd0,0)\ninstall /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit",
             "tmpdir" : "/tmp"
         ], "etc" : $[
@@ -48,6 +48,9 @@
                 "CONSOLE_UNICODEMAP" : "",
                 "CONSOLE_MAGIC" : "(K",
                 "CONSOLE_ENCODING" : "ISO-8859-2"
+            ],
+            "bootloader" : $[
+                "LOADER_TYPE" : "grub"
             ]
         ], "md" : $[
             "config" : $[]
@@ -59,7 +62,7 @@
             "mounts" : []
         ]
     ];
-    TESTSUITE_INIT ([IREAD, $[], $[]], 0);
+    TESTSUITE_INIT ([READ, $[], $[]], 0);
     include "lilo/misc.ycp";
     include "lilo/routines.ycp";
 
