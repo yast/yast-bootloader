@@ -3,6 +3,8 @@ Thu Sep 18 10:29:15 CEST 2003 - jsrain@suse.de
 
 - again adding maxcpus=0 to failsafe bootloader entry on AMD64
   (#30519)
+- fixed possibily missing "splash=silent" in default kernel's
+  command line (#31256)
 
 -------------------------------------------------------------------
 Tue Sep 16 16:51:28 CEST 2003 - jsrain@suse.de
