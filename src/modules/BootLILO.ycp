@@ -77,7 +77,7 @@
 	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
 	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
 	string append = title == "failsafe"
-	    ? "ide=nodma apm=off acpi=off vga=normal noresume selinux=0 "
+	    ? "ide=nodma apm=off acpi=off vga=normal noresume selinux=0 barrier=off "
 	      + ((Arch::x86_64)
 		? "iommu=noforce maxcpus=0 "
 		: "nosmp noapic maxcpus=0 ")
