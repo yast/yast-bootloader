@@ -106,7 +106,7 @@ FireWire and file systems modules floppy"),
       * @return map floppy mountpoint info
       */
     define map isFloppyMounted (string floppy) ``{
-	list mounts = (list)SCR::Read(.proc.mounts);
+	list<map> mounts = (list<map>)SCR::Read(.proc.mounts);
 
 	mounts = filter (map mount, mounts, ``(
 	    issubstring (mount["spec"]:"", floppy)));
