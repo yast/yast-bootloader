@@ -87,6 +87,7 @@ Group:          System/YaST
 /var/adm/fillup-templates/*
 
 %files -n yast2-bootfloppy
+%defattr(-,root,root)
 
 @desktopdir@/bootfloppy.desktop
 @clientdir@/bootfloppy.ycp
