@@ -229,7 +229,7 @@
       */
     global define void createGlobals () ``{
 	BootCommon::globals = [
-	    $[ "key" : "default", "value" : "linux"],
+	    $[ "key" : "default", "value" : BootCommon::translateSectionTitle ("linux")],
 	    $[ "key" : "timeout", "value" : 100],
 	];
     }
