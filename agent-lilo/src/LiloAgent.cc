@@ -20,6 +20,7 @@
 #include "LiloAgent.h"
 #include "LiloFile.h"
 #include "OptTypes.h"
+#include "ycp/YCPPath.h"
 
 /* LiloAgent */
 LiloAgent::LiloAgent() : SCRAgent() {

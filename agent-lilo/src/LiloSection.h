@@ -26,6 +26,9 @@
 
 #include <Y2.h>
 
+#include <ycp/YCPPath.h>
+#include <ycp/YCPVoid.h>
+
 #include <stdio.h>
 #include <iostream>
 #include <fstream>

@@ -31,6 +31,8 @@
     Wizard::SetDesktopIcon("bootfloppy");
     PackageCallbacksInit::InitPackageCallbacks ();
 
+    integer boot_floppy_count = 6;
+
     string file_image = "bootdsk1"; //default
     string filename = "";
     string dirname = "";
@@ -47,15 +49,7 @@
     // This is the headline of the bootfloppy module
     string dialog_header = _("Create boot or rescue floppies");
 
-    map image_labels = $[
-	// image text - label
-	"bootdsk1" : _("Creating Standard Boot Floppy -- Part 1 of 3"),
-	// image text - label
-	"bootdsk2" : _("Creating Standard Boot Floppy -- Part 2 of 3"),
-	// image text - label
-	"bootdsk3" : _("Creating Standard Boot Floppy -- Part 3 of 3"),
-	// image text - label
-	"bootdisk" : _("Creating standard boot floppy"),
+    map<string,string> image_creating_labels = $[
 	// image text - label
 	"rescuefloppy" : _("Creating rescue floppy"),
 	// image text - label
@@ -71,6 +65,46 @@ FireWire and file systems modules floppy"),
 	"modules5" : _("Creating IDE/RAID/SCSI modules floppy"),
     ];
 
+    integer index = -1;
+    while (index < boot_floppy_count)
+    {
+	index = index + 1;
+	string image = sformat ("bootdsk%1", index);
+	image_creating_labels[image] = sformat (
+	    // image text - label
+	    // %1 is index of the floppy
+	    // %2 is total count of the floppies
+	    _("Creating Standard Boot Floppy -- Part %1 of %2"),
+	    index,
+	    boot_floppy_count);
+    }
+
+    map<string,string> image_selection_labels = $[
+	// radiobutton - disk image name
+	"rescuefloppy" : _("&Rescue Floppy"),
+	// radiobutton - disk image name
+	"__modules" : _("&Module Floppies"),
+	// radiobutton - disk image name
+	"__other" : _("&Other installation disk"),
+	// radiobutton - disk image name
+	"__custom" : _("&Custom Floppy"),
+	// radiobutton - disk image name
+	"__url" : _("&Download Floppy Image"),
+    ];
+    index = 0;
+    while (index < boot_floppy_count)
+    {
+	index = index + 1;
+	string image = sformat ("bootdsk%1", index);
+	image_selection_labels[image] = sformat (
+	    // image text - label
+	    // %1 is index of the floppy
+	    // %2 is total count of the floppies
+	    _("Standard Boot Floppy -- Part %1 of %2"),
+	    index,
+	    boot_floppy_count);
+    }
+
     /**
       * Get strnig to show while writing the image to floppy
       * @param image string image name
@@ -78,7 +112,7 @@ FireWire and file systems modules floppy"),
       */
     define string getImageWritingLabel (string image) ``{
 	// image text - label
-	return image_labels[image]:_("Creating Specified Floppy");
+	return image_creating_labels[image]:_("Creating Specified Floppy");
     }
 
     /**
@@ -150,13 +184,8 @@ To create a boot, modules, or rescue floppy,
 select the appropriate item from the list and
 click <b>Next</b> to continue.</p>");
 
-	    // help text 2/5, alt. 1
-	    string old_text = _("<p><b>Boot Floppy:</b><br>
-This boot floppy can be used to boot your installed system or a rescue system
-(from the first CD-ROM or the rescue floppy).</p>
-");
-	    // help text 2/5, alt. 2
-	    help_text = help_text + _("<p><b>Boot Floppies:</b><br>
+	    // help text 2/5
+	    help_text = help_text + _("<p><b>Boot Floppies</b><br>
 These boot floppies can be used to boot your installed system or a rescue system
 (from the first CD-ROM or the rescue floppy).</p>");
 
@@ -166,19 +195,24 @@ To start the rescue system, boot from the boot floppy or the SuSE CD-ROM
 and select <i>Manual installation</i> -> <i>Start installation / system</i>
 -> <i>Rescue system</i>. You will be prompted for the rescue floppy.</p>");
 
-	    // help text 4/5
+if (false)
+	    // help text - former 4/5 - is skipped now
 	    help_text = help_text + _("<p><b>Module Floppies</b><br>
 All SuSE kernels are modularized. This means that most drivers
 are loaded as kernel modules on demand. Because the space on one single floppy
 is not sufficient for all kernel modules, consider creating one
-of the <b>module floppies</b>.</p>
-");
+of the <b>module floppies</b>.</p>");
 
-	    // help text 5/5
+	    // help text 4/5
 	    help_text = help_text + _("<p><b>Custom Floppy</b><br>
 To create a floppy from another image, select <b>Custom Floppy</b>. You will
-be prompted for the file containing the floppy image.</p>
-");
+be prompted for the file containing the floppy image.</p>");
+
+	    // help text 5/5
+	    help_text = help_text + _("<p><b>Download Floppy Image</b><br>
+To create a floppy from an image located on the network, select
+<b>Download Floppy Image</b>. You will be prompted for the location
+of the floppy image.</p>");
 
 	    return help_text;
 	}
@@ -293,46 +327,30 @@ and File Systems (modules disk 4)"))),
 	}
 	else
 	{
-	    term old_item =
-		`Left (`RadioButton (`id ("bootdisk"),
-		    // radiobutton - disk image name
-		    _("&Standard boot floppy")));
-	    images_term = `VBox (
-		`VSpacing (2),
-		`Left (`RadioButton (`id ("bootdsk1"),
-		    // radiobutton - disk image name
-		    _("&Standard Boot Floppy -- Part 1 of 3"))),
-		`VSpacing (0.4),
-		`Left (`RadioButton (`id ("bootdsk2"),
-		    // radiobutton - disk image name
-		    _("&Standard Boot Floppy -- Part 2 of 3"))),
-		`VSpacing (0.4),
-		`Left (`RadioButton (`id ("bootdsk3"),
-		    // radiobutton - disk image name
-		    _("&Standard Boot Floppy -- Part 3 of 3"))),
-		`VSpacing (0.4),
-		`Left (`RadioButton (`id ("rescuefloppy"),
-		    // radiobutton - disk image name
-		    _("&Rescue Floppy"))),
-		`VSpacing (0.4),
-		`Left (`RadioButton (`id ("__modules"),
-		    // radiobutton - disk image name
-		    _("&Module Floppies"))),
-// FIXME: Waiting for yast2-hackers response
-//		`VSpacing (0.4),
-//		`Left (`RadioButton (`id ("__other"),
-//		    // radiobutton - disk image name
-//		    _("&Other installation disk"))),
-		`VSpacing (0.4),
-		`Left (`RadioButton (`id ("__custom"),
-		    // radiobutton - disk image name
-		    _("&Custom Floppy"))),
-		`VSpacing (0.4),
-		`Left (`RadioButton (`id ("__url"),
-		    // radiobutton - disk image name
-		    _("&Download Floppy Image"))),
-		`VSpacing (2)
-	    );
+	    list<string> images = [];
+	    integer index = 0;
+	    while (index < boot_floppy_count)
+	    {
+		index = index + 1;
+		images = add (images, sformat ("bootdsk%1", index));
+	    }
+	    images = (list<string>)merge (images, [
+		"rescuefloppy",
+//		"__modules",
+//		"__other",
+		"__custom",
+		"__url"
+	    ]);
+	    images_term = `VBox ();
+	    boolean first = true;
+	    foreach (string i, images, {
+		images_term = add (images_term, `VSpacing (first ? 2 : 0.4));
+		first = false;
+		images_term = add (images_term, `Left (`RadioButton (`id (i),
+		    `opt (`autoShortcut),
+		    image_selection_labels[i]:i)));
+	    });
+	    images_term = add (images_term, `VSpacing (2));
 	}
 
 	term contents = `HBox (`HStretch (),

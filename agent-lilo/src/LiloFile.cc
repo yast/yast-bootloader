@@ -22,6 +22,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <ycp/y2log.h>
+#include "ycp/YCPPath.h"
+#include "ycp/YCPBoolean.h"
+#include "ycp/YCPVoid.h"
 #include <fstream>
 #include <sstream>
 

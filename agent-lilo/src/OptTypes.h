@@ -35,6 +35,7 @@
 #include <map>
 #include <string>
 #include <Y2.h>
+#include <ycp/YCPMap.h>
 
 // using std::string;
 // using std::map;
