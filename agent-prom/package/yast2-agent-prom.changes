@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr  8 15:36:17 CEST 2002 - kukuk@suse.de
+
+- Fix for g++ 3.1
+- Update autoconf/automake
+- Version 2.6.0
+
+-------------------------------------------------------------------
 Fri Jun  1 13:29:11 CEST 2001 - kukuk@suse.de
 
 - Implement changing of boot-device and linux alias
