@@ -671,6 +671,8 @@
 		    });
 		}
 		list<map> new_this_section = new_sect[type]:[];
+		if (new_this_section == [])
+		    return [];
 		map new_this_intern = (map)lookup_value(
 		    new_this_section, "__intern__", $[]);
 		list new_devs = toset(new_this_intern["devs"]:[]);
