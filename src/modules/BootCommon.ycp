@@ -772,7 +772,7 @@ configuration files"));
       * @return list of bootloaders
       */
     global define list<string> getBootloaders () ``{
-	if (Mode::config () || true)
+	if (Mode::config ())
 	{
 	    return ["grub", "lilo", "elilo", "s390", "ppc"];
 	}
