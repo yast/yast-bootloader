@@ -2169,23 +2169,32 @@ global map<string,any> PrepareInitData () {
     });
     y2milestone ("Detected mountpoints: %1", mountpoints);
 
-
-    map tm = Storage::GetTargetMap ();
-    list<list<list> > pi = maplist (string disk, map info, (map<string,map>) tm,
+    map<string,list<string> > md_info = $[];
+    map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
+    list<list<list> > pi = maplist (string disk, map info, tm,
     {
 	list partitions = info["partitions"]:[];
 	list<list> parts = maplist (map p, (list<map>)partitions, {
-	    return [ p["device"]:"", disk, p["nr"]:0 ];
+	    string raid = p["raid_name"]:"";
+	    string device = p["device"]:"";
+	    if (raid != "")
+	    {
+		list<string> members = md_info[raid]:[];
+		members = add (members, device);
+		md_info[raid] = members;
+	    }
+	    return [ device, disk, p["nr"]:0 ];
 	});
 	return parts;
     });
     list<list> partinfo = flatten (pi);
     y2milestone ("Information about partitioning: %1", partinfo);
+    y2milestone ("Information about MD arrays: %1", md_info);
 
     return $[
 	"mountpoints" : mountpoints,
 	"partitions" : partinfo,
-	"md_arrays" : $[],
+	"md_arrays" : md_info,
     ];
 }
 
