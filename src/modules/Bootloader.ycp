@@ -143,7 +143,7 @@
     global define boolean Read () ``{
 	y2milestone ("Reading configuration");
 // run Progress bar
-	list stages = [
+	list<string> stages = [
 	    // progress stage, text in dialog (short, infinitiv)
 	    _("Check boot loader"),
 	    // progress stage, text in dialog (short, infinitiv)
@@ -151,7 +151,7 @@
 	    // progress stage, text in dialog (short, infinitiv)
 	    _("Load boot loader settings"),
 	];
-	list titles = [
+	list<string> titles = [
 	    // progress stage, text in dialog (short)
 	    _("Checking boot loader..."),
 	    // progress stage, text in dialog (short)
@@ -297,7 +297,7 @@
 	y2milestone ("Writing bootloader configuration");
 
 // run Progress bar
-        list stages = [
+        list<string> stages = [
             // progress stage, text in dialog (short)
             _("Creating initrd..."),
             // progress stage, text in dialog (short)
@@ -305,7 +305,7 @@
             // progress stage, text in dialog (short)
             _("Installing boot loader..."),
         ];
-        list titles = [
+        list<string> titles = [
             // progress stage, text in dialog (short)
             _("Creating initrd..."),
             // progress stage, text in dialog (short)
