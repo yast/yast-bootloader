@@ -1828,10 +1828,6 @@ global list<string> ListKernelParamsInLine (string line) {
 
 global string GetAdditionalKernelParams () {
     string line = ProductFeatures::additional_kernel_parameters;
-    if (ProductFeatures::io_scheduler != "")
-	line = sformat ("%1 elevator=%2", line, ProductFeatures::io_scheduler);
-    if (ProductFeatures::use_desktop_scheduler)
-	line = line + " desktop";
     return line;
 }
 

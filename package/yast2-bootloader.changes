@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  9 14:53:27 CET 2005 - jsrain@suse.cz
+
+- stopped using multiple variables from ProductFeatures for
+  creating kernel command line (#50369)
+
+-------------------------------------------------------------------
 Tue Feb  8 12:58:56 CET 2005 - jsrain@suse.cz
 
 - fixed warning when removed memtest package after modifying
