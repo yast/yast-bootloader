@@ -9,7 +9,6 @@ Read	.sysconfig.console.CONSOLE_ENCODING ""
 Execute	.target.bash_output "locale -k charmap" $[]
 Read	.proc.cpuinfo.value."0"."flags" ""
 Read	.probe.memory []
-Read	.probe.cpu []
 Read	.probe.floppy.manual []
 Read	.probe.cdrom.manual []
 Return	string
