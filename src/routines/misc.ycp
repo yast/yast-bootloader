@@ -1642,6 +1642,10 @@
 	    // are allowed, otherwise translartion won't be used
 	    // try to keep short, may be shortened due to bootloader limitations
             "previous" : _("Previous Kernel"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "Vendor diagnostics" : _("Vendor Diagnostics"),
         ];
         map not_trans = $[
             "linux" : "Linux",
@@ -1723,6 +1727,11 @@
 	    // be able to have translations with and without diacritics
 	    // please use diacritics here
             "previous" : _("_Previous Kernel"),
+	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
+	    // are allowed. Always remove the leading '_', its just to
+	    // be able to have translations with and without diacritics
+	    // please use diacritics here
+            "Vendor diagnostics" : _("_Vendor Diagnostics"),
         ];
 /*	trans = filter (string k, string v, trans, {
 	    if (substring (v, 0, 1) == "_")
