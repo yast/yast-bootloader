@@ -1,5 +1,0 @@
-.
-
-`ag_liloconf(
-    `LiloConf("lilo", "tests/lilo1.in.test")
-)

@@ -1,6 +1,0 @@
-.elilo
-
-`ag_liloconf(
-  `LiloConf("elilo", "/etc/elilo.conf")
-)
-

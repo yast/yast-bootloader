@@ -1,6 +1,0 @@
-.grub
-
-`ag_liloconf(
-  `LiloConf("grub", "/boot/grub/menu.lst")
-)
-

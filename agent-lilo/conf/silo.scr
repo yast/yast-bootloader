@@ -1,6 +1,0 @@
-.silo
-
-`ag_liloconf(
-  `LiloConf("lilo", "/etc/silo.conf")
-)
-

@@ -1,5 +1,0 @@
-.
-
-`ag_liloconf(
-    `LiloConf("grub", "tests/grub1.in.test")
-)
