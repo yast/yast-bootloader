@@ -334,12 +334,17 @@
 	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp noapic ")
 	      + "maxcpus=0 3"
 	    : sformat ("%1 splash=silent", Kernel::cmdLine);
+	string root = BootCommon::dev2majminIfNonStandard (
+            BootCommon::RootPartitionDevice);
+	if (regexpmatch (root, "[0-9a-f]{4}"))
+	{
+	    root = "0x" + root;
+	}
 	list ret = [
 	    $[ "key" : "label", "value" : translateSectionTitle (title)],
 	    $[ "key" : "image", "value" : "/boot/" + image],
 	    $[ "key" : "initrd", "value" : "/boot/" + initrd],
-	    $[ "key" : "root", "value" : BootCommon::dev2majminIfNonStandard (
-		BootCommon::RootPartitionDevice)],
+	    $[ "key" : "root", "value" : root ],
 	    $[ "key" : "append", "value" : append],
 	    $[ "key" : "__intern__", "value" : $[
 		"auto" : true,

@@ -69,5 +69,5 @@ Return	false
 Return	false
 Dump	======================================
 Execute	.target.bash_output "ls -ln /dev/hda" $["exit":0, "stdout":"brw-rw----    1 0        6          3,   0 2003-03-14 14:07 /dev/hda"]
-Return	0x0300
+Return	0300
 Dump	======================================

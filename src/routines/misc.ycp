@@ -1270,7 +1270,7 @@
 	while (size (mins) < 2)
 	    mins = "0" +  mins;
 	y2debug ("Translated %1 to %2:%3", device, majs, mins);
-	string ret = sformat ("0x%1%2", majs, mins);
+	string ret = sformat ("%1%2", majs, mins);
         return ret;
     }
 
