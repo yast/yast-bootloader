@@ -712,8 +712,11 @@
 			    ];
 			    opts_tmp = maplist (`o, opst_tmp, ``{
 				if (o["key"]:"" == "title")
+				{
 				    o["value"] = sformat ("%1_%2",
 					dev, o["value"]:"");
+				    intern["type"] = o["value"]:"";
+				}
 				return o;
 			    });
 			    opts_tmp = filter (`o, opst_tmp, ``(o != nil));
@@ -781,6 +784,7 @@
 				    "changed" : false,
 				    "auto" : true,
 				    "devs" : [dev],
+				    "type" : label,
 				]],
 			    ];
 			   out = add (out, m);
@@ -916,12 +920,16 @@
 	list old_sect_list = BootCommon::sections;
 	createSections ();
 	map new_sect = listmap (`s, BootCommon::sections, ``{
-	    return [lookup_value (s, "title", ""), s];
+	    string title = lookup_value (s, "title", "");
+	    map intern = lookup_value (s, "__intern__", $[]);
+	    string type = intern["type"]:title;
+	    return [type, s];
 	});
 	old_sect_list = maplist (`s, old_sect_list, ``{
 	    string title = lookup_value (s, "title", "");
 	    map intern = lookup_value (
 		s, "__intern__", $[]);
+	    string type = intern["type"]:title;
 	    if (! intern["auto"]:false)
 	    {
 		y2debug ("Leaving section %1 as is", title);
@@ -930,7 +938,7 @@
 	    else if (! intern["changed"]:false)
 	    {
 		y2debug ("Recreating section %1", title);
-		return new_sect[title]:[];
+		return new_sect[type]:[];
 	    }
 	    else
 	    {
@@ -948,7 +956,7 @@
 		        }
 		    });
 		}
-		list new_this_section = new_sect[title]:"";
+		list new_this_section = new_sect[type]:[];
 		map new_this_intern = lookup_value(
 		    new_this_section, "__intern__", $[]);
 		list new_devs = toset(new_this_intern["devs"]:[]);
@@ -967,7 +975,7 @@
 		if (! cont)
 		{
 		    intern["auto"] = false;
-		    y2milestone ("Warning, ND: %1, OD: %2, P: %3",
+		    y2warning ("Warning, ND: %1, OD: %2, P: %3",
 			new_devs, old_devs, parts);
 		    displayDiskChangePopup (
 			lookup_value (s, "title", ""));

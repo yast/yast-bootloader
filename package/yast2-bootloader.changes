@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Thu Aug  7 10:10:38 CEST 2003 - jsrain@suse.de
+Thu Aug  7 15:46:44 CEST 2003 - jsrain@suse.de
 
 - fixed lost sections when changhing bootloader location (#28552)
 - not offering to replace partition booting from HDD with partition
@@ -7,6 +7,10 @@ Thu Aug  7 10:10:38 CEST 2003 - jsrain@suse.de
   partition if entry for booting from HDD doesn't exist
 - fixed proposing of LILO configuration (put multiple times into
   quotes, some options weren't displayed correctly in summary table)
+- fixed lost sections in many other cases
+- removed popup informing about changed disk partitioning although
+  it was unchanged during installation proposal
+- 2.8.7
 
 -------------------------------------------------------------------
 Mon Aug  4 15:56:18 CEST 2003 - jsrain@suse.de
