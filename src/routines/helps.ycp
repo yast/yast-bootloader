@@ -19,7 +19,6 @@
 {
     textdomain "bootloader";
 
-    import "BootCommon";
     import "StorageDevices";
     import "Arch";
 
