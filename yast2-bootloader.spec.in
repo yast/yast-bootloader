@@ -1,6 +1,5 @@
 @HEADER-COMMENT@
-
-# neededforbuild  autoconf automake dejagnu expect gpp libgpp libxcrypt libxcrypt-devel tcl yast2 yast2-core yast2-core-devel yast2-devtools yast2-testsuite
+# neededforbuild gpp libgpp libxcrypt libxcrypt-devel yast2-devel-packages
 
 @HEADER@
 Requires:	yast2 yast2-core
@@ -8,7 +7,7 @@ Requires:	yast2 yast2-core
 Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-liloconf yast2-agent-prom
 Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-liloconf yast2-agent-prom
 
-Summary:	YaST2 Modules for bootloader installation and configuration
+Summary:	Bootloader installation and configuration
 
 %description
 -

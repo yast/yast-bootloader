@@ -2,7 +2,7 @@
 # Makefile.am for y2a_lilo/testsuite
 #
 
-SUBDIRS	= config lib tests ag_liloconf.test
+SUBDIRS	= config lib ag_liloconf.test tests
 
 AM_CXXFLAGS = -DY2LOG=\"agent-lilo\"
 
@@ -21,3 +21,4 @@ runag_liloconf_LDFLAGS = -L$(libdir)	\
 	$(plugindir)/libpy2script.la	\
 	$(srcdir)/../src/libpy2ag_liloconf.la	\
 	-Xlinker --no-whole-archive
+
