@@ -25,9 +25,11 @@
     import "BootCommon";
     import "Wizard";
     import "Initrd";
+    import "Progress";
 
     include "bootloader/routines/routines.ycp";
 
+    Progress::off();
 
     /**
       * Translate the autoinstallation map to the Export map
@@ -76,7 +78,7 @@
 	map modsett = $[];
 	foreach(map mod, ai["initrd_modules"]:[], ``{
 	    modlist = add(modlist, mod["module"]:"");
-	    modsett = add(modsett, mod["module"]:"", mod["module_args"]:"");
+	    modsett = add(modsett, mod["module"]:"", mod["module_args"]:$[]);
 	});
 	if (size(modlist) > 0 )
 	    exp["initrd"] = $[ "list": modlist, "settings" : modsett ];
@@ -185,8 +187,8 @@
 	list<map> ayinitrd = maplist(string m, exp["initrd", "list"]:[], ``{
 	    map tmp = $[];
 	    tmp["module"] = m;
-	    if (exp["initrd", "settings", m]:"" != "")
-		tmp["module_args"] = exp["initrd", "settings", m]:"";
+	    if (exp["initrd", "settings", m]:$[] != $[])
+		tmp["module_args"] = exp["initrd", "settings", m]:$[];
 	    return (tmp);
 	});
 	if (size(ayinitrd) > 0 )
@@ -285,6 +287,7 @@
 	y2error("unknown function: %1", func);
 	ret =  false;
     }
+    Progress::on();
 
     y2debug("ret=%1", ret);
     y2milestone("bootloader_auto finished");
