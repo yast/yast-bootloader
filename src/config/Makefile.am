@@ -2,13 +2,22 @@
 # Makefile.am for bootloader/src
 #
 
+if I386
+
+desktop_DATA = \
+		bootloader.desktop \
+	  	bootfloppy.desktop
+
+else
+
 if S390
 
 else
 
 desktop_DATA = \
-		bootloader.desktop \
-	  	bootfloppy.desktop
+		bootloader.desktop
+
+endif
 
 endif
 
