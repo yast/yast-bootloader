@@ -42,7 +42,7 @@ Summary:	Bootloader installation and configuration
 @configdir@/bootloader.y2cc
 %endif
 
-%ifarch %ix86
+%ifarch %ix86 x86_64
 @ydatadir@/mbr
 %endif
 

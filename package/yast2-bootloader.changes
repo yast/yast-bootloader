@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 28 13:43:45 CET 2003 - jsrain@suse.de
+
+- fixed compilation of MBR only on selected platforms
+- 2.7.5
+
+-------------------------------------------------------------------
 Mon Jan 27 17:48:21 CET 2003 - jsrain@suse.de
 
 - added new testsuites
