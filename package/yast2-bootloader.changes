@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jul 29 11:26:24 CEST 2002 - jsrain@suse.cz
+
+- added basic expert dialogs for GRUB
+- several fixes
+- 2.6.10
+
+-------------------------------------------------------------------
 Fri Jul 26 15:44:32 CEST 2002 - jsrain@suse.cz
 
 - fixed configuration of installed system for GRUB

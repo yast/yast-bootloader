@@ -175,15 +175,19 @@ global define term LinuxSectWidget()
 		(
 		    `TextEntry(`id(`sect_label), _("&Section label")),
 		    `VSpacing(0.5),
-		    `Frame(_("&Linux kernel"), `HBox(`HSpacing(2),`VBox(
+		    `Frame(_("Linux kernel"), `HBox(`HSpacing(2),`VBox(
 			`VSpacing(0.5),
 			`HBox(
 			    `TextEntry(`id(`sect_kernel), _("&Path to linux kernel")),
 			    `VBox(`Label(""), `PushButton(`id(`browse), _("Bro&wse")))
 			),
-			`VSpacing(0.5),
-			`Left(`CheckBox(`id(`optional), `opt(`notify),
-			    _("&Kernel is optional (may not be present in future)"))),
+			Lilo::mode == `grub
+			    ? `VSpacing (0)
+			    : `VSpacing(0.5),
+			Lilo::mode == `grub
+			    ? `VSpacing (0)
+			    : `Left(`CheckBox(`id(`optional), `opt(`notify),
+				_("&Kernel is optional (may not be present in future)"))),
 			`VSpacing(0.5)
 		    ), `HSpacing(2))),
 		    `VSpacing(0.5),
@@ -237,7 +241,7 @@ global define term GlobalOptsWidget() ``{
 		`HSpacing(3),
 		    `VBox(
 			`VSpacing(1),
-			`Frame(_("&Boot prompt"),
+			`Frame(_("Boot prompt"),
 			    `VBox(
 				`Left(`CheckBox(`id(`show_prompt), `opt(`notify), _("&Show the boot prompt"))),
 				`Left(`HBox(`HSpacing(Lilo::mode == `grub ? 0 : 3), `CheckBox(`id(`timeout_active), `opt(`notify),
@@ -248,8 +252,8 @@ global define term GlobalOptsWidget() ``{
 			),
 			`VSpacing(0.5),
 			`Frame(Lilo::mode == `grub
-			    ? _("&Protect running GRUB commands with a password")
-			    : _("&Protect booting with a password"),
+			    ? _("Protect running GRUB commands with a password")
+			    : _("Protect booting with a password"),
 			    `VBox(
 				`Left(`CheckBox(`id(`password_active), `opt(`notify), _("&Use password for booting"))),
 				`Left(`HBox(`HSpacing(3), `Password(`id(`pass1), _("P&assword")), `HStretch())),
@@ -296,7 +300,9 @@ global define term AddOptionWidget(list optlist) ``{
 		    `Top(`VBox
 		    (	`opt(`vstretch),
 			`Left(`Heading(_("Implement new option"))),
-			`ComboBox(`id(`optname), `opt(`notify, `immediate, `hstretch), _("Option &name"), optlist),
+			Lilo::mode == `grub
+			    ? `TextEntry (`id (`optname), `opt (`hstretch), _("Option &name"), "")
+			    : `ComboBox(`id(`optname), `opt(`notify, `immediate, `hstretch), _("Option &name"), optlist),
 			`ReplacePoint(`id(`input), `TextEntry(`id(`val), `opt(`notify), _("Option &value (enter now or later)"))),
 //			`TextEntry(`id(`val), _("Option &value (enter now or later)")),
 			`VStretch(),
@@ -313,7 +319,6 @@ global define term AddOptionWidget(list optlist) ``{
 		    `HSpacing(2)
 		));
     return widget;
-
 }
 
 /**

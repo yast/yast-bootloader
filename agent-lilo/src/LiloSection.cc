@@ -488,7 +488,7 @@ int liloOrderedOptions::saveToFile(ofstream* f, string indent)
 
     for(uint i=0; i<order.size(); i++)
     {
-        if (type == "grub" && (order[i]->optname == "root"))
+        if (type == "grub" && (order[i]->optname == "lock"))
         {
             *f << "    " << order[i]->optname << separ << order[i]->value << endl;
         }
@@ -496,7 +496,7 @@ int liloOrderedOptions::saveToFile(ofstream* f, string indent)
 
     for(uint i=0; i<order.size(); i++)
     {
-        if (type == "grub" && (order[i]->optname == "kernel"))
+        if (type == "grub" && ((order[i]->optname == "root") || (order[i]->optname == "kernel")))
         {
             *f << "    " << order[i]->optname << separ << order[i]->value << endl;
         }
@@ -504,7 +504,8 @@ int liloOrderedOptions::saveToFile(ofstream* f, string indent)
 
     for(uint i=0; i<order.size(); i++)
     {
-        if ((type == "grub" && (order[i]->optname == "title" || order[i]->optname == "root" || order[i]->optname == "kernel"))
+        if ((type == "grub" && (order[i]->optname == "title" || order[i]->optname == "root" 
+		|| order[i]->optname == "kernel" || order[i]->optname == "lock"))
             ||(type != "grub" && (order[i]->optname == "image" || order[i]->optname == "other")))
 	{
 	    continue;

@@ -649,7 +649,7 @@ global define list createSummaryTable() ``{
 	if (Lilo::mode == `grub)
 	{
 	    flag = (tointeger (default) == index) ? check : "";
-	    if (haskey(img, "chainload") || haskey(img, "chainloader"))
+	    if (haskey(img, "chainload") || haskey(img, "chainloader") || haskey (img, "root"))
 	    {
 		descr = "other";
 		image = lookup(img, "chainload", "");

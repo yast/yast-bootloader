@@ -73,7 +73,7 @@
     ``{
 	// Calling mk_initrd
 
-/*	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/y2logmk_initrd 2>> /var/log/y2logmk_initrd") != 0 )
+	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/y2logmk_initrd 2>> /var/log/y2logmk_initrd") != 0 )
 	{
 	    any retAsk = UI::AskShowLog( "mk_initrd" );
 	    if ( retAsk == `yes )
@@ -87,9 +87,21 @@
 
 	// Generate grafical login
 
-	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_lilo_conf / >>/var/log/y2loglilo 2>>/var/log/y2loglilo");
+	string menu = SCR::Read (.target.string, "/boot/grub/menu.lst");
+	list lines = splitstring (menu, "\n");
+	lines = filter (`l, lines, ``(substring (l, 0, 7) != "gfxmenu" && substring (l, 0, 5) != "color"));
+	lines = prepend (lines, "color white/green black/light-gray");
+	lines = prepend (lines, sformat ("gfxmenu %1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message"));
+	menu = mergestring (lines, "\n");
+	SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
 
-	if (Boot::location == "floppy")
+	string grub_conf = SCR::Read (.target.string, "/etc/grub.conf");
+	string command = sformat ("echo \"%1\" | grub --batch ", grub_conf);
+	SCR::Execute(.target.bash, command);
+
+//	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_lilo_conf / >>/var/log/y2loglilo 2>>/var/log/y2loglilo");
+
+/*	if (Boot::location == "floppy")
 	{
 	    // Rewrite lilo, if it has been booted from Floppy
 
@@ -324,6 +336,7 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 
 	string menu = "";
 	menu = menu + sformat ("gfxmenu %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message");
+	menu = menu + "color white/green black/light-gray\n";
 	menu = menu + "default 0\n";
 	menu = menu + "timeout 8\n";
 
@@ -654,15 +667,6 @@ the old boot sector in the installed system with \"lilo -u %1\""), Boot::device)
 
     global define void Save()
     ``{
-/*	SCR::Write (.sysconfig.bootloader.LILO_LBA, (lba_support?"yes":"no"));
-	SCR::Write (.sysconfig.bootloader.LILO_LBA.comment,
-		       "\n# Does the BIOS support LBA access.\n#\n");
-	SCR::Write (.sysconfig.bootloader.LILO_ACTIVATE, (activate?"yes":"no"));
-	SCR::Write (.sysconfig.bootloader.LILO_ACTIVATE.comment,
-		       "\n# Did the user select 'activate'.\n#\n");
-	SCR::Write (.sysconfig.bootloader.LILO_LINEAR, (linear?"yes":"no"));
-	SCR::Write (.sysconfig.bootloader.LILO_LINEAR.comment,
-		       "\n# Did the user select 'linear'.\n#\n");*/
     }
 
     /**

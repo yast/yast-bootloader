@@ -660,9 +660,11 @@ global define symbol LinuxSectDlg() ``{
     string sectn = lookup(currentOptions, (Lilo::mode == `grub) ? "title" : "label", "");
     string kernel = lookup (currentOptions, (Lilo::mode == `grub) ? "kernel" : "image", "");
     string rootdev = "";
+    string append = "";
     if (Lilo::mode == `grub)
     {
 	list kl = splitstring (kernel, " ");
+	kl = filter (`i, kl, ``(i != ""));
 	kernel = select (kl, 0, "");
 	kernel = getLinuxPath (kernel);
 	list rl = splitstring (select (kl, 1, ""), "=");
@@ -672,6 +674,9 @@ global define symbol LinuxSectDlg() ``{
 	    rl = splitstring (rootdev, "/");
 	    rootdev = select (rl, size (rl)-1, "");
 	}
+	kl = remove (kl, 0);
+	kl = remove (kl, 0);
+	append = mergestring (kl, " ");
     }
     else
     {
@@ -777,6 +782,7 @@ global define symbol LinuxSectDlg() ``{
 		//fix /boot
 		kernel = getGrubPath (kernel);
 		kernel = kernel + sformat (" root=/dev/%1", UI::`QueryWidget(`id(`root), `Value));
+		kernel = kernel + " " + append;
                 currentOptions = add (currentOptions, "kernel", kernel);
             }
 
@@ -828,6 +834,10 @@ global define symbol LinuxSectDlg() ``{
 global define symbol OtherSectDlg() ``{
     string  caption = _("Other OS section properties");
     string  help = lookup(HELP_STRINGS, "other_sect_dialog", "");
+    boolean adding = false;
+
+    if (currentOptions == $[])
+	adding = true;
 
     term    widget = OtherSectWidget();
     Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
@@ -884,11 +894,13 @@ Please enter new section label."));
 	    }
 	    if (Lilo::mode == `grub)
 	    {
-y2error ("Value: %1", UI::`QueryWidget(`id(`part), `Value));
-y2error ("Root: %1", lilo2Grub (UI::`QueryWidget(`id(`part), `Value)));
 		currentOptions = add(currentOptions, "root", lilo2Grub (sformat ("/dev/%1", UI::`QueryWidget(`id(`part), `Value))));
-		currentOptions = add (currentOptions, "makeactive", "true");
-		currentOptions = add (currentOptions, "chainloader", "+1");
+		if (adding)
+		{
+		    if (substring (UI::`QueryWidget(`id(`part), `Value), 0, 2) != "fd")
+			currentOptions = add (currentOptions, "makeactive", "true");
+		    currentOptions = add (currentOptions, "chainloader", "+1");
+		}
 	    }
 	    else
 	    {
@@ -1198,9 +1210,9 @@ global define symbol OptionsDlg(map vals) ``{
 	    string curitem=UI::`QueryWidget(`id(`opt_table), `CurrentItem);
 
 
-	    list retval = AddOption([curitem], sformat("%1", lookup(vals, curitem, "")), 
+	    list retval = AddOption([curitem], sformat("%1", lookup(vals, curitem, "")),
 		    sformat("%1", lookup(originalVals, curitem, "")));
-	    
+
 	    if (size(retval) > 0)
 	    {
 		string value = normalizeValue(curitem, select(retval, 1, ""));
@@ -1208,13 +1220,13 @@ global define symbol OptionsDlg(map vals) ``{
 	    }
 
 	    if (curitem != nil)
-	    {	
+	    {
 		UI::`ChangeWidget(`id(`opt_table), `Items, createOptsTable(vals));
 	    }
 	    UI::`ChangeWidget(`id(`opt_table), `CurrentItem, curitem);
 	}
 	else if (a == `opt_help)
-	// show help for option	
+	// show help for option
 	{
 	    string curitem = UI::`QueryWidget(`id(`opt_table), `Value);
 	    if (curitem != nil)
@@ -1439,14 +1451,37 @@ global define map AddOption(list optlist, string val, string origVal) ``{
 
     UI::ChangeWidget(`id(`val), `Value, val);
 
+    if (Lilo::mode == `grub)
+    {
+        if (size (optlist) == 1)
+        {
+            UI::ChangeWidget (`id (`optname), `Value, select (optlist, 0, ""));
+            UI::ChangeWidget (`id (`optname), `Enabled, false);
+        }
+    }
+
     symbol action = `optname; // trigger help showing
 
     do {
 	if (action == `optname)
 	{
 	    string optn = UI::QueryWidget(`id(`optname), `Value);
-	    string help = sformat(_("<P>Help for option <B>%1</B>:</P>"), optn);
-	    UI::ChangeWidget(`id(`help), `Value, help +	OptionHelp(optn));
+	    string help = "";
+	    if (Lilo::mode == `grub)
+	    {
+		if (size (optlist) == 1)
+		    help = _("Set value of selected option.");
+		else
+		    help = _("Set option name and it's value.");
+		string h2 = _("For help please look into the documentation of your bootloader. ");
+		string h3 = _("If you set improper values, your system may be unbootable.");
+		help = sformat ("<P>%1 %2 %3</P>", help, h2, h3);
+	    }
+	    else
+	    {
+		help = sformat(_("<P>Help for option <B>%1</B>:</P>"), optn) + OptionHelp(optn);
+	    }
+	    UI::ChangeWidget(`id(`help), `Value, help);
 
 	    showPropWidget(optn, val);
 	}
