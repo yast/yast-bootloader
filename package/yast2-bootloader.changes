@@ -1,8 +1,9 @@
 -------------------------------------------------------------------
-Mon Aug 11 09:04:43 CEST 2003 - jsrain@suse.de
+Mon Aug 11 09:33:26 CEST 2003 - jsrain@suse.de
 
 - not using .shipped image any more (kernel package doesn't contain
   it)
+- merged texts from proofread
 
 -------------------------------------------------------------------
 Thu Aug  7 15:46:44 CEST 2003 - jsrain@suse.de

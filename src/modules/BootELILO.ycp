@@ -253,13 +253,13 @@
 	{
 	    result
 		// summary text
-		= add (result, _("Do not create any EFI boot manager entry"));
+		= add (result, _("Do Not Create EFI Boot Manager Entry"));
 	}
 	else
 	{
 	    result = add (result, sformat (
 		// summary text, %1 is label of the entry of EFI boot manager
-		_("Create EFI boot manager entry %1"),
+		_("Create EFI Boot Manager Entry %1"),
                 BootCommon::location));
 	}
         list(string) sects = [];
