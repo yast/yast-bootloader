@@ -61,7 +61,6 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define void targetStore (any opt_id, string opt_key) ``{
 	BootCommon::targetStore (opt_id, opt_key);
-	grub_conf = proposeGrubConf ();
 	list<list<map> > sections = BootCommon::current_sections;
 	if (issubstring (BootCommon::loader_device, "/dev/fd")||
 	    BootCommon::installingToFloppy ())
@@ -575,12 +574,6 @@ Adapt it?"), BootCommon::loader_device)))
 	    });
 	    BootCommon::current_section = BootGRUB::remapDisks (
 		BootCommon::current_section, remap);
-	    list<map> gcl = (list<map>)maplist (string k, string v,
-		BootGRUB::grub_conf,
-		``($[ "key" : k, "value" : v]));
-	    gcl = BootGRUB::remapDisks (gcl, remap);
-	    BootGRUB::grub_conf = listmap (map e, gcl, ``(
-		$[e["key"]:"": e["value"]:""]));
 	    BootGRUB::device_map = new_map;
 	    BootCommon::mbrDisk = disks_order[0]:BootCommon::mbrDisk;
 	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
