@@ -1367,10 +1367,8 @@ global define symbol OptionsDlg(map vals) ``{
             a = nil;
 	if (a == `up)
 	{
-	    y2error ("Pushed up");
 	    if (pos > 0)
 	    {
-		y2error ("Moving");
 		list ordering = lookup (vals, "__order__", []);
 		string ci = UI::QueryWidget (`id (`opt_table), `CurrentItem);
 		ordering = swapItems (ordering, pos, pos-1);
@@ -1382,11 +1380,9 @@ global define symbol OptionsDlg(map vals) ``{
 
 	if (a == `down)
 	{
-	    y2error ("Pushed down");
 	    list ordering = lookup (vals, "__order__", []);
             if (pos < size (ordering) - 1)
             {
-		y2error ("Moving");
 		string ci = UI::QueryWidget (`id (`opt_table), `CurrentItem);
                 ordering = swapItems (ordering, pos, pos+1);
 		vals = add (vals, "__order__", ordering);
@@ -1622,7 +1618,6 @@ global define symbol ExpertDialog() ``{
 		return `grubabort;
 	    Wizard::SetContents(_("Expert configuration"), content, help, true, true);
 	    UI::ChangeWidget (`id(`editor), `Value, config);
-	    y2error ("Grub conf: %1", Lilo::grub_set);
 	}
 	if (ret == `abort && AbortDialog() != `yes)
             ret = nil;
