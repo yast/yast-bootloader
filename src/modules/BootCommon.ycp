@@ -171,6 +171,11 @@ global map<string,string> edited_files = $[];
 
 // variables for storing data
 
+    /**
+      * Stage 1.5 is to be embedded?
+      * For GRUB only
+      */
+    global boolean embed_stage15 = false;
 
 // saving mode setting functions
 
@@ -391,6 +396,7 @@ global list<string> update_section_types
 	activate = false;
 	activate_changed = false;
 	memtest_removed = false;
+	was_proposed = false;
     }
 
     /**
@@ -444,6 +450,10 @@ global list<string> update_section_types
 	else
 	{
 	    io_structure["global", "stage1_dev", 0] = loader_device;
+	}
+	if (getLoaderType (false) == "grub")
+	{
+	    io_structure["global", "embed_stage1.5"] = embed_stage15 ? 1 : 0;
 	}
 
 	SCR::Write (.bootloader.settings, io_structure);

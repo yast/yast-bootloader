@@ -130,6 +130,7 @@ Adapt it?
 	    }
 	}
 	BootCommon::current_sections = sections;
+	BootCommon::embed_stage15 = allowEmbed15 ();
     }
 
     /**
@@ -148,16 +149,22 @@ Adapt it?
       * @return list of option ids as it should be displayed
       */
     global define list getTableContents (map descr) ``{
-	list prependlist = [];
-	list forbidden_keys = [];
+	list<string> prependlist = [];
+	list<string> forbidden_keys = [];
 	any type = BootCommon::getSectionType (BootCommon::current_section);
 	if (type == `global)
 	{
 	    prependlist = ["__loader_type", "__sep2", "__location",
 		"__diskorder", "default", "__sections", "__activate",
-		"__repl_mbr", "__backup_mbr", "__add_orig_mbr",
+		"__repl_mbr", "__embed_15", "__backup_mbr", "__add_orig_mbr",
 		"__save_method", "__sep1"];
 	    forbidden_keys = ["default"];
+	    if (! allowEmbed15 ())
+	    {
+		prependlist = filter (string i, prependlist, {
+		    return i != "__embed_15";
+		});
+	    }
 	}
 	else
 	{
@@ -811,6 +818,73 @@ only in the text mode. Continue?
 	return ret;
     }
 
+// embed stage 1.5
+
+/**
+ * Init function of a popup
+ * @param opt_id any option id
+ * @param opt_key any option key
+ */
+global define void embed15Init (any opt_id, string opt_key) ``{
+    UI::ChangeWidget (`id (opt_key), `Value, BootCommon::embed_stage15);
+    UI::SetFocus (`id (opt_key));
+}
+
+/**
+ * Store function of a popup
+ * @param opt_id any option id
+ * @param opt_key any option key
+ */
+global define void embed15Store (any opt_id, string opt_key) ``{
+    BootCommon::embed_stage15
+	= (boolean)UI::QueryWidget (`id (opt_key), `Value);
+    BootCommon::location_changed = true;
+    BootCommon::markGeneralOptionChanged ("__embed_15");
+}
+
+/**
+ * Summary function of a table entry
+ * @param opt_id any option id
+ * @param opt_key any option key
+ * @return string summary to the table
+ */
+global define string embed15Summary (any opt_id, string opt_key) ``{
+    if (BootCommon::embed_stage15)
+	// table item / label
+	return _("Yes");
+    else
+	// table item / label
+	return _("No");
+}
+
+/**
+ * Get map of widget
+ * @return map of widget
+ */
+global define map<string,any> getEmbed15Widget () ``{
+    return $[
+	"table" : $[
+	    // table item / label
+	    "label" : _("Use dedicated partition boot loader area."),
+	    "summary" : embed15Summary,
+	    "optional" : false,
+	    "ordering" : false,
+	    "unique_key" : true,
+	],
+	"popup" : $[
+	    "init" : embed15Init,
+	    "store" : embed15Store,
+	    "widget" : `checkbox,
+	    // label displayed as help
+	    "help" : _("Using dedicated disk partition boot loader area prevents
+from moving bootloader files which may occurre due to
+automatic disk defragmentation and may break loading
+boot loader."),
+	    // checkbox label
+	    "widget_label" : _("Use dedicated partition boot loader area."),
+	],
+    ];
+}
 
     /**
       * Get map of dialogs and widgets
@@ -836,6 +910,7 @@ only in the text mode. Continue?
 	    "__diskorder" : BootGRUB::getOrderPopup (),
 	    "__add_orig_mbr" : BootGRUB::getAddOrigMbrWidget (),
 	    "password" : BootGRUB::getPasswdWidget (),
+	    "__embed_15" : getEmbed15Widget (),
 	];
     }
 
