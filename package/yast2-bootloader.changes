@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 17 12:14:22 CET 2005 - jsrain@suse.cz
+
+- prevent from inserting language to the offer of boot menu twice
+  (#50930)
+
+-------------------------------------------------------------------
 Wed Feb 16 13:54:34 CET 2005 - jsrain@suse.cz
 
 - added support for embedding GRUB's stage 1.5
