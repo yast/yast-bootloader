@@ -1,6 +1,0 @@
-.zipl
-
-`ag_liloconf(
-  `LiloConf("zipl", "/etc/zipl.conf")
-)
-
