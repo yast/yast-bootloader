@@ -2,6 +2,7 @@
 Mon Mar 10 11:05:07 CET 2003 - jsrain@suse.de
 
 - fixed filtering of modules added to initrd (#24709)
+- fixed partition activation if bootloader in logical disk (#24740)
 
 -------------------------------------------------------------------
 Fri Mar  7 10:16:51 CET 2003 - jsrain@suse.de
