@@ -317,10 +317,12 @@
 	    else if ((type == "linux" || type == "failsafe")
 		&& BootCommon::write_settings["insert_initrd"]:false)
 	    {
+		initrd = file2grub ("/boot/initrd");
+/* not using .shipped images any more
 		if (type == "linux")
 		    initrd = file2grub ("/boot/initrd");
 		else
-		    initrd = file2grub ("/boot/initrd.shipped");
+		    initrd = file2grub ("/boot/initrd.shipped");*/
 		s = modifySection (s, "initrd", initrd);
 	    }
 	    return s;
@@ -601,8 +603,9 @@
 	string vgastring = Kernel::vgaType != ""
 	    ? sformat ("vga=%1", Kernel::vgaType)
 	    : "";
-	string initrd = title == "failsafe" ? "initrd.shipped" : "initrd";
-	string image = title == "failsafe" ? "vmlinuz.shipped" : "vmlinuz";
+	// not using .shipped images any more
+	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
+	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
 	string append = title == "failsafe"
 	    ? "showopts ide=nodma apm=off acpi=off vga=normal "
 	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp noapic ")
