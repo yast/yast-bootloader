@@ -75,8 +75,17 @@
 		BootCommon::setLoaderType (loader);
 	    }
 	}
-
-	Bootloader::Propose ();
+	if (Bootloader::getLoaderType () == "grub")
+	{
+	    import "BootGRUB";
+	    BootGRUB::deep_propose = true;
+	    Bootloader::Propose ();
+	    BootGRUB::deep_propose = false;
+	}
+	else
+	{
+	    Bootloader::Propose ();
+	}
 	// to make sure packages will get installed
 	BootCommon::setLoaderType (BootCommon::getLoaderType (false));
 
