@@ -479,6 +479,23 @@
 	    }
 	});
 
+        y2milestone ("Checking for sections using the resume parameter");
+        BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+            string append = (string)lookup_value (s, "append", "");
+            string resume
+                = BootCommon::getKernelParamFromLine (append, "resume");
+            if (resume != "" && resume != nil
+                && ! haskey (BootCommon::getSwapPartitions (), resume)
+            )
+            // points to unexistent swap partition
+            {
+                append = BootCommon::setKernelParamToLine (append,
+                    "resume", BootCommon::getLargestSwapPartition);
+                s = modifySection (s, "append", append);
+            }
+            return s;
+        });
+
 	y2milestone ("Checking for sections needing some of %1", del_parts);
 	list<string> to_remove = [];
 	foreach (list s, BootCommon::sections, ``{
@@ -536,6 +553,19 @@
 		    changed = true;
 		    if (replace)
 			return m;
+		    else if (t == "linux")
+		    {
+			string append = (string)lookup_value (s, "append", "");
+                        string resume = BootCommon::getKernelParamFromLine (
+                            append, "resume");
+                        if (! haskey (BootCommon::getSwapPartitions (), resume))
+                        {
+                            append = BootCommon::setKernelParamToLine (append,
+                                "resume", BootCommon::getLargestSwapPartition);
+                            s = modifySection (s, "append", append);
+                        }
+                        return s;
+                    }
 		    else
 			return s;
 		}

@@ -68,6 +68,8 @@
 	  else
 	    return [];
 	}
+	string resumestring = sformat ("resume=%1",
+	    BootCommon::getLargestSwapPartition ());
 	// not using .shipped images any more
 	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
 	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
@@ -77,7 +79,7 @@
 		? "iommu=noforce maxcpus=0 "
 		: "nosmp noapic maxcpus=0 ")
 	      + "3"
-	    : Kernel::cmdLine;
+	    : sformat ("%1 %2", resumestring, Kernel::cmdLine);
 	if (title != "failsafe")
 	{
 	    append = BootCommon::setKernelParamToLine (append, "splash", "silent");

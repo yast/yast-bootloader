@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan  5 11:32:29 CET 2004 - jsrain@suse.de
+
+- adding resume= kernel parameter for GRUB and LILO (#33640)
+
+-------------------------------------------------------------------
 Wed Dec 10 14:55:12 CET 2003 - jsrain@suse.de
 
 - translating also section label in the "default" entry in
