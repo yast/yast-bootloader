@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jul 21 17:00:59 CEST 2003 - jsrain@suse.de
+
+- double click on tables now triggers Edit (#25156)
+- fixed testuite and building
+- 2.8.5
+
+-------------------------------------------------------------------
 Tue Jul  8 16:35:47 CEST 2003 - jsrain@suse.de
 
 - fixed question popup if canceling configuration (#27479)

@@ -350,7 +350,7 @@
 	return $[
 	    "widget" : `VBox (
 		`HBox (
-			`Table (`id (`sects), `opt (`keepSorting), `header (
+			`Table (`id (`sects), `opt (`keepSorting, `immediate, `notify), `header (
 			// table header
 			_("Def."),
 			// table header

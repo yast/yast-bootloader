@@ -1,3 +1,21 @@
+Read	.target.size "/etc/install.inf" -1
+Read	.probe.architecture "i386"
+Read	.probe.has_apm true
+Read	.probe.has_pcmcia false
+Read	.probe.has_smp false
+Read	.probe.system []
+Read	.target.tmpdir "/tmp/"
+Read	.etc.install_inf.Cmdline ""
+Read	.proc.cpuinfo.value.0."flags" ""
+Read	.probe.memory []
+Read	.probe.cpu []
+Read	.probe.floppy.manual []
+Read	.probe.cdrom.manual []
+Read	.sysconfig.console.CONSOLE_FONT ""
+Read	.sysconfig.console.CONSOLE_SCREENMAP ""
+Read	.sysconfig.console.CONSOLE_UNICODEMAP ""
+Read	.sysconfig.console.CONSOLE_MAGIC ""
+Read	.sysconfig.console.CONSOLE_ENCODING ""
 Dump	======================================
 Return	[["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"]]
 Return	[["(hd1)", "/dev/hda"], ["(hd1)", "/dev/hdb"]]
