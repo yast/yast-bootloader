@@ -82,59 +82,59 @@ global define symbol LiloMainDialog() ``{
 	    `restore : "summary",
 	    `expert :  "expert",
 	    `next  : "end",
-	    `abort : "abort"
+	    `abort : `abort
 	],
 	"target"   : $[
 	    `next  : "glob_opts",
-	    `abort : "abort",
+	    `abort : `abort,
 	    `summary: "summary"
 
 	],
 
 	"expert" : $[
 	    `next  : "summary",
-	    `abort : "abort" ,
+	    `abort : `abort,
 	    `grubabort: `abort,
 	],
         "sections" : $[
-            `abort: "abort",
+            `abort: `abort,
             `next: "summary",
 	    `edit_linux: "edit_linux",
 	    `edit_other: "edit_other",
 	    `add:  "ostype"
         ],
 	"scan_os": $[
-	    `abort: "abort",
+	    `abort: `abort,
 	    `add_image: "edit_linux",
 	    `add_other: "edit_other"
 	],
 	"ostype": $[
 	    `scan:  "scan_os",
-	    `abort: "abort",
+	    `abort: `abort,
 	    `add_image: "edit_linux",
 	    `add_other: "edit_other",
 	    `add_other2: "edit_other"
 	],
 	"edit_linux" : $[
 	    `next : "sections",
-	    `abort: "abort",
+	    `abort: `abort,
 	    `options: "opts"
 	],
 	"edit_other" : $[
 	    `next : "sections",
-	    `abort: "abort",
+	    `abort: `abort,
 	    `options: "opts"
 	],
 	"opts"	: $[ // we can only jump back
-	    `abort: "abort"
+	    `abort: `abort
 	],
 	"glob_opts" : $[
 	    `next : "sections", //"summary",
 	    `options : "opts",
-	    `abort : "abort"
+	    `abort : `abort
 	],
         "end" : $[
-            `abort: "abort",
+            `abort: `abort,
             `next: `ok
         ]
     ];
@@ -180,6 +180,9 @@ global define symbol SummaryDialog() ``{
 
 	ui = UI::UserInput();
 	if (ui == `cancel) ui = `abort;
+
+	if (ui == `abort && AbortDialog() != `yes)
+            ui = nil;
 
 	if (ui == `next && UI::QueryWidget(`id(`radios), `CurrentButton) == `accept)
 	{
@@ -310,6 +313,10 @@ global define symbol TargetDialog() ``{
     {
         ui = UI::UserInput();
 	if (ui == `cancel) ui = `abort;
+
+	if (ui == `abort && AbortDialog() != `yes)
+            ui = nil;
+
 	if (UI::QueryWidget(`id(`radios), `CurrentButton) == `other)
 	{
 	    UI::ChangeWidget(`id(`part), `Enabled, true);
@@ -453,6 +460,8 @@ global define symbol EndDialog() ``{
     do {
 	ret = UI::`UserInput();
 	if (ret == `cancel) ret = `abort;
+	if (ret == `abort && AbortDialog() != `yes)
+            ret = nil;
 	if (ret == `log)
 	{
 	    ShowErrorLog(lookup(test_res, "stderr", ""));
@@ -487,6 +496,9 @@ global define symbol MainDlg() ``{
     while(true) {
 	action = UI::`UserInput();
 	if (action == `cancel) action = `abort;
+
+	if (action == `abort && AbortDialog() != `yes)
+            action = nil;
 
 	currentSectionIndex = UI(`QueryWidget(`id(`lilo_table), `CurrentItem));
 	if (action == `b_default)
@@ -764,6 +776,9 @@ global define symbol LinuxSectDlg() ``{
         action = UI::`UserInput();
 	if (action == `cancel) action = `abort;
 
+	if (action == `abort && AbortDialog() != `yes)
+            action = nil;
+
         if (action == `browse)
         {
 	    // browse for kernel. start at /boot/
@@ -933,6 +948,9 @@ global define symbol OtherSectDlg() ``{
         action = UI::`UserInput();
 	if (action == `cancel) action = `abort;
 
+	if (action == `abort && AbortDialog() != `yes)
+            action = nil;
+
 	if (contains([`next, `options], action))
 	{
 	    // validation and partial commit
@@ -1043,6 +1061,8 @@ global define symbol OSTypeDlg() ``{
     {
         action = UI::`UserInput();
 	if (action == `cancel) action = `abort;
+	if (action == `abort && AbortDialog() != `yes)
+            action = nil;
     }
     while(!contains([`next, `abort, `cancel, `back], action));
 
@@ -1125,6 +1145,8 @@ global define symbol GlobalOptsDlg() ``{
     do {
         action = UI::`UserInput();
 	if (action == `cancel) action = `abort;
+	if (action == `abort && AbortDialog() != `yes)
+            action = nil;
 	if (action == `password_active)
 	{
 	    // pasword activated/deactivated
@@ -1308,6 +1330,8 @@ y2error ("Got map: %1", vals);
 
 	a = UI::`UserInput();
 	if (a == `cancel) a = `abort;
+	if (a == `abort && AbortDialog() != `yes)
+            a = nil;
 	if (a == `up)
 	{
 	    y2error ("Pushed up");
@@ -1564,6 +1588,8 @@ global define symbol ExpertDialog() ``{
 	    UI::ChangeWidget (`id(`editor), `Value, config);
 	    y2error ("Grub conf: %1", Lilo::grub_set);
 	}
+	if (ret == `abort && AbortDialog() != `yes)
+            ret = nil;
     }
     while (ret != `next && ret != `back && ret != `abort);
 

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug  6 16:43:24 CEST 2002 - jsrain@suse.de
+
+- fixed abort button behaviour
+- 2.6.16
+
+-------------------------------------------------------------------
 Tue Aug  6 15:07:04 CEST 2002 - jsrain@suse.de
 
 - fixed ordering of GRUB commands in menu.lst
