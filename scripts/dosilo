@@ -1,0 +1,185 @@
+#! /bin/sh
+
+# Script to create an initial SILO config file & initrd.
+#
+# Usage:
+#   dosilo [root_dir] [ -m mbr_device ] [ -v vga_fb_mode ]
+#          [ -a partition_spec ] [ -d disk_param ] [ -d ... ]
+#          [ -o other_system_entry ] [ -o ... ]
+#
+# -a (activate partition) is ignored
+#
+# Example:
+#
+# dosilo /blub -m /dev/hda
+#
+# As an alternative, specify the root & boot devices via environment
+# variables. e.g.: rootdev=/dev/hda bootdev=/dev/hda1 dosilo
+#
+# on errors:
+#   exit code > 0
+#
+# Version 1.10
+#
+# Author: Thorsten Kukuk <kukuk@suse.de>
+# (c) 2000-2001 SuSE GmbH
+# (c) 2002 SuSE Linux AG
+
+LOGFILE=/var/log/YaST2/dosilo.log
+
+function log {
+  echo "$@" >>$LOGFILE 2>/dev/null
+}
+
+get_device () {
+  x1=`cat /proc/mounts 2>/dev/null | grep " /mnt$1 "`
+  x2=`echo \`echo "$x1" | wc -l\``
+  x3=`echo "$x1" | cut -f 1 -d " "`
+
+  if [ "$x2" = 1 -a -b "$x3" ] ; then
+    echo "$x3"
+  else
+    x1=`mount 2>/dev/null | grep " on $1 "`
+    x2=`echo \`echo "$x1" | wc -l\``
+    x3=`echo "$x1" | cut -f 1 -d " "`
+
+    if [ "$x2" = 1 -a -b "$x3" ] ; then
+      echo "$x3"
+    fi
+  fi
+}
+
+echo -n > $LOGFILE
+
+log "arguments: $*"
+printenv >> $LOGFILE
+log "cat /proc/mounts"
+cat /proc/mounts >> $LOGFILE 2>&1
+log "call mount"
+mount >> $LOGFILE 2>&1
+
+root_dir=$1
+[ "$root_dir" ] || root_dir=/
+shift
+
+log "root_dir=$root_dir"
+
+mbr=
+if [ "$1" = "-m" -a "$2" ] ; then
+  mbr="$2"
+  shift 2
+fi
+
+log "mbr=$mbr"
+
+if [ -z "$rootdev" ] ; then
+    rootdev=`get_device "$root_dir"`
+    [ "$rootdev" ] || exit 11
+fi
+export rootdev
+#echo "using \"$rootdev\" as root device (mounted on \"$root_dir\")"
+log "using \"$rootdev\" as root device (mounted on \"$root_dir\")"
+
+if [ -z "$bootdev" ] ; then
+  if [ -z "`get_device /boot`" ] ; then
+    log "we don't have an extra /boot partition"
+    boot_path="/boot"
+  else
+    log "we have an extra /boot partition"
+    boot_path=""
+  fi
+else
+  if [ "$rootdev" = "$bootdev" ] ; then
+    log "we don't have an extra /boot partition"
+    boot_path="/boot"
+  else
+    log "we have an extra /boot partition"
+    boot_path=""
+  fi
+fi
+
+PATH=/usr/lib/YaST2/bin:$root_dir/usr/lib/YaST2/bin:$root_dir/sbin:$PATH
+
+# create a fallback kernel
+cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.shipped || exit 31
+
+# make an initial ram disk
+$root_dir/sbin/mk_initrd $root_dir >> $LOGFILE 2>&1
+ret_code=$?
+# ret_code 0 means success, 9 means: a module is missing, but we ignore it
+if [ $ret_code -ne 0 -a $ret_code -ne 9 ] ; then
+  log "mk_initrd failed with $ret_code"
+  exit $ret_code
+fi
+
+if [ -z "$mbr" ]; then
+  log "mbr variable empty, we need to find the boot partition somehow else"
+  part=""
+  # write boot block into boot partition, not MBR
+  t_param="-t"
+else
+  part=`expr $mbr : '.*\([1-8]\)'`
+  if [ $? -ne 0 ]; then
+    log "We get something like /dev/sda, which means write the boot block into MBR."
+    t_param=""
+    part=""
+  else
+    log "write boot block into boot partiton, not MBR."
+    t_param="-t"
+  fi
+fi
+
+# We need to find the boot partition
+if [ -z "$part" ]; then
+  log "find the boot partition"
+  if [ -z "$bootdev" ] ; then
+    bootdev=`get_device "/boot"`
+    [ "$bootdev" ] || bootdev="$rootdev"
+  fi
+  part=`expr $bootdev : '.*\([1-8]\)'`
+  log "using \"$bootdev\" as boot device"
+fi
+
+log "part is now $part"
+
+echo -e "# SILO config file
+#
+# If you want to prevent console users to boot with init=/bin/bash,
+# restrict usage of boot params by setting a passwd and using the option
+# restricted.
+#passwd=bootpwd
+#restricted
+timeout=100" > $root_dir/boot/silo.conf
+echo "partition=$part" >> $root_dir/boot/silo.conf
+echo "#append=\"video=sbusfb:off\"" >> $root_dir/boot/silo.conf
+echo "read-only" >> $root_dir/boot/silo.conf
+
+head -1 /etc/SuSE-release > $root_dir/boot/message
+if [ -f $root_dir/boot/message ] ; then
+  echo "message=$boot_path/message" >> $root_dir/boot/silo.conf
+fi
+
+echo -e "\n# If /boot is a separate partition, remove /boot from the image path" >> $root_dir/boot/silo.conf
+echo "" >> $root_dir/boot/silo.conf
+
+for kernel in '' .shipped _24 _24.shipped ; do
+  if [ -f $root_dir/boot/vmlinuz$kernel ] ; then
+    echo "image=$boot_path/vmlinuz$kernel" >> $root_dir/boot/silo.conf
+    if [ "$kernel" = ".shipped" ] ; then
+      echo "   label=suse" >> $root_dir/boot/silo.conf
+    else
+      echo "   label=linux$kernel" >> $root_dir/boot/silo.conf
+    fi
+    echo "   root=$rootdev" >> $root_dir/boot/silo.conf
+    if [ -f $root_dir/boot/initrd$kernel ]; then
+      echo "   initrd=$boot_path/initrd$kernel" >> $root_dir/boot/silo.conf
+    fi
+    if [ ! -z "$append" ]; then
+      echo "   append=\"$append\"" >> $root_dir/boot/silo.conf
+    fi
+    echo "" >> $root_dir/boot/silo.conf
+  fi
+done
+
+log "run silo -r $root_dir -t -f -C /boot/silo.conf"
+silo -r $root_dir -t -f -C /boot/silo.conf >> $LOGFILE 2>&1

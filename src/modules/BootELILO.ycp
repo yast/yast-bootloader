@@ -1,0 +1,167 @@
+/**
+ * File:
+ *      modules/BootELILO.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Module containing specific functions for ELILO configuration
+ *      and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *      Andreas Schwab <schwab@suse.de>
+ *
+ * $Id$
+ *
+ */
+
+{
+    module "BootELILO";
+
+    textdomain "bootloader";
+
+    import "Kernel";
+    import "Storage";
+    import "Product";
+    import "BootCommon";
+
+    include "bootloader/routines/popups.ycp";
+
+// general functions
+
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
+      */
+    global define map GetFunctions () ``{
+	return $[
+	    "read" :	``(BootELILO::Read ()),
+	    "propose" : ``(BootELILO::Propose ()),
+	    "save" :	``(BootELILO::Save ()),
+	    "summary" :	``(BootELILO::Summary ()),
+	    "update" :	``(BootELILO::Update ()),
+	    "write" :	``(BootELILO::Write ()),
+	    "sequence" :``(BootELILO::FixSequence ()),
+	];
+    }
+    /**
+      * Propose bootloader settings
+      */
+    global define void Propose () ``{
+	BootCommon::DetectDisks ();
+    }
+
+    /**
+      * Read settings from disk
+      * @return boolean true on success
+      */
+    global define boolean Read () ``{
+	BootCommon::DetectDisks ();
+    }
+    global define boolean Save () ``{
+	if (Mode::update)
+	    return true;
+	string filename = "/boot/efi/SuSE/elilo.conf";
+	SCR::Execute (.target.bash, sformat ("/usr/bin/touch %1", filename));
+
+	string contents = "# ELILO config file
+prompt
+timeout=80
+read-only
+\n\n";
+
+	string rootdev = BootCommon::RootPartitionDevice;
+	integer root = BootCommon::dev2majmin (rootdev);
+	string initrd = "";
+	if (SCR::Read (.target.size, "/boot/initrd") != -1)
+	    initrd = "initrd=/initrd\n";
+	contents = contents + sformat ("image=/vmlinuz
+    label=linux
+    root=%1
+    %2    append=\"%3\"
+\n\n", root, initrd, Kernel::cmdLine);
+
+	initrd = "";
+        if (SCR::Read (.target.size, "/boot/initrd.shipped") != -1)
+            initrd = "initrd=/initrd.shipped\n";
+	contents = contents + sformat ("image=/vmlinuz.shipped
+    label=failsafe
+    root=%1
+    %2    append=\"%3\"
+\n\n", root, initrd, "ide=nodma");
+
+	return SCR::Write (.target.string, filename, contents);
+    }
+
+    global define list(string) Summary () ``{
+	return [_("Install ELILO bootloader")];
+    }
+
+    /**
+      * Update read settings to new version of configuration files
+      */
+    global define void Update () ``{
+    }
+
+    /**
+      * Write bootloader settings to disk
+      * @return boolean true on success
+      */
+    global define boolean Write () ``{
+	if (Mode::update || Mode::normal)
+	    return true;
+	string efi_label = Product::name;
+	boolean ret = true;
+	// remove existing entry
+	ret = 0 == SCR::Execute (.target.bash, sformat ("BOOTENTRY=\"`/usr/sbin/efibootmgr |grep \"%1\" |cut -f1 -d\* |cut -c5-`\"
+if [ \"$BOOTENTRY\" != \"\" ]; then
+  /usr/sbin/efibootmgr -b $BOOTENTRY -B -q
+fi", efi_label));
+
+	string boot_dev = BootCommon::BootPartitionDevice;
+	map splited = Storage::GetDiskPartition (boot_dev);
+	any boot_part = splited["nr"]:0;
+	any boot_disk = splited["disk"]:"";
+
+	ret = 0 == SCR::Execute (.target.bash, sformat ("/usr/sbin/efibootmgr -c -L \"%1\" -d %2 -l \\efi\\SuSE\\elilo.efi -p %3 -q >> /var/log/YaST2/y2logefi 2>&1",
+	    efi_label, boot_disk, boot_part));
+
+	if (! ret)
+	{
+		string log = SCR::Read (.target.string,
+		    "/var/log/YaST2/y2logefi");
+		errorWithLogPopup (_("Error while installing ELILO occured"),
+		    log);
+	}
+	return ret;
+    }
+
+    /**
+      * Update bootlaoder configuration sequence
+      * @param ws_data map of wizard sequencer data
+      * @return map modified map of wizard sequencer data
+      */
+    global define map FixSequence (map ws_data) ``{
+        map aliases = $[
+	    "summary" : ``(BootELILO::runSummaryDialog ()),
+        ];
+        ws_data["aliases"] = aliases;
+        return ws_data;
+    }
+
+
+
+// end of mandatory functions
+//----------------------------------------------------------------------------
+
+    /**
+      * Empty summary dialog
+      * @return symbol always `back
+      */
+    global define symbol runSummaryDialog () ``{
+	displayNoSupportPopup ();
+	return `back;
+    }
+}

@@ -1,0 +1,375 @@
+/**
+ * File:
+ *      modules/BootSILO.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Module containing specific functions for SILO configuration
+ *      and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *      Klaus Kaempf <kkaempf@suse.de>
+ *      Anas Nashif <nashif@suse.de>
+ *
+ * $Id$
+ *
+ */
+
+{
+    module "BootSILO";
+
+    textdomain "bootloader";
+
+    import "Kernel";
+    import "Storage";
+
+    import "BootCommon";
+
+    include "bootloader/lilo/widgets.ycp";
+    include "bootloader/lilo/helps.ycp";
+    include "bootloader/routines/popups.ycp";
+
+
+// module variables
+
+    global boolean  promalias = false;
+
+    global boolean  defaultdevice = false;
+
+// general functions
+
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootSILO::Write ())])
+      */
+    global define map GetFunctions () ``{
+	return $[
+	    "read" :	``(BootSILO::Read ()),
+	    "propose" : ``(BootSILO::Propose ()),
+	    "save" :	``(BootSILO::Save ()),
+	    "update" :	``(BootSILO::Update ()),
+	    "write" :	``(BootSILO::Write ()),
+	    "updoptlst":``(BootSILO::UpdateOptionsList ()),
+	    "getoptions":``(BootSILO::GetOptions ()),
+	    "widgets"  :``(BootSILO::GetWidgets ()),
+	];
+    }
+
+    /**
+      * Propose bootloader settings
+      */
+    global define void Propose () ``{
+	if (! BootCommon::was_proposed)
+	{
+            BootCommon::DetectDisks ();
+	}
+
+	boolean disks_changed = BootCommon::RefreshDisks();
+	if (disks_changed)
+	{
+	    if (askLocationResetPopup (BootCommon::loader_device))
+	    {
+		BootCommon::location = "";
+		BootCommon::DetectDisks ();
+	    }
+	}
+
+	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+    }
+
+    /**
+      * Read settings from disk
+      * @return boolean true on success
+      */
+    global define boolean Read () ``{
+	BootCommon::DetectDisks ();
+    }
+
+    global define boolean Save () ``{
+	return true;
+    }
+
+    /**
+      * Update read settings to new version of configuration files
+      */
+    global define void Update () ``{
+    }
+    /**
+      * Write bootloader settings to disk
+      * @return boolean true on success
+      */
+    global define boolean Write () ``{
+        import "Mode";
+        import "Misc";
+        import "Report";
+
+        include "ui/common_popups.ycp";
+
+
+
+        if ( Mode::update )
+        {
+            // update mode
+            WriteUpdate();
+            return true;
+        }
+
+        // Boot setup start
+
+        // additional message that needs to be displayed
+        string confirm_boot_msg = Misc::boot_msg;
+
+        string docmd = "/usr/lib/YaST2/bin/dosilo /";
+
+        if (BootCommon::location == "mbr")
+        {
+            docmd = docmd + " -m " + BootCommon::loader_device;
+        }
+        else if (BootCommon::location == "custom")
+        {
+            string last_dev_char = substring (BootCommon::loader_device,
+                size(BootCommon::loader_device)-1, 1);
+            // if BootCommon::loader_device does not end in a digit,it is a disk
+            // device for mbr
+            if (!(filterchars (last_dev_char, "0123456789") == last_dev_char))
+                docmd = docmd + " -m " + BootCommon::loader_device;
+        }
+
+        y2milestone("silo: %1 cmd: %2", BootCommon::location, docmd);
+
+
+        map doenv = $[ "bootdev" : BootCommon::BootPartitionDevice,
+                       "rootdev" : BootCommon::RootPartitionDevice,
+                       "append" : Kernel::cmdLine];
+        y2milestone ("doenv: %1", doenv);
+        // Call silo
+        if (0 != SCR::Execute(.target.bash, docmd, doenv))
+        {
+            // error popup
+            Report::Error(_("Could not write the SILO boot sector"));
+        }
+
+        // On SPARC, set the right device for a hard reboot to find our
+        // installed system. Modify the PROM parameters if necessary, too.
+
+        if (Kernel::switched)
+        {
+            string silo_device = BootCommon::loader_device;
+            string reboot_device = SCR::Read (.prom.path,silo_device);
+
+            y2milestone ("reboot device is: %1", reboot_device);
+            SCR::Execute (.target.bash, "/bin/echo \""+reboot_device+"\" >/proc/sys/kernel/reboot-cmd");
+        }
+
+        if (promalias)
+        {
+            string silo_device = BootCommon::loader_device;
+            string boot_device = SCR::Read (.prom.path, silo_device);
+
+            if (defaultdevice)
+            {
+                y2milestone ("create linux alias %1 (%2) as default",
+                             boot_device, silo_device);
+                SCR::Write (.prom.boot-device, "linux");
+            }
+            else
+            {
+                y2milestone ("create linux alias %1 (%s)",
+                             boot_device, silo_device);
+
+            }
+            SCR::Write (.prom.alias.linux, boot_device);
+        }
+        else if (defaultdevice)
+        {
+            string silo_device = BootCommon::loader_device;
+            string boot_device = SCR::Read (.prom.path,silo_device);
+
+            y2milestone ("setting boot-device to %1 (%2) as default",
+                         boot_device, silo_device);
+            SCR::Write (.prom.boot-device, boot_device);
+        }
+
+        return true;
+    }
+
+// end of mandatory functions
+//----------------------------------------------------------------------------
+
+
+    global define list UpdateOptionsList (map options) ``{
+        any type = BootCommon::tmp_store["section_type"]:"";
+        list _options = [];
+        if (type == `global)
+        {
+	    _options = [`loader_type, `sep1, `location, `promalias,
+		`defaultdevice];
+        }
+        else
+	    _options = []; // TODO add support
+        return _options;
+    }
+
+
+
+    /**
+     * WriteUpdate
+     * Calling mk_initrd and lilo while update.
+     * @ return void
+     */
+    global define void WriteUpdate()
+    ``{
+        // Replace X.Y with 8.1 in /boot/message and modify silo.conf, if
+        // necessary.
+        SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_silo_conf / >>/var/log/YaST2/y2logsilo 2>>/var/log/YaST2/y2logsilo");
+
+        any retAsk = `yes;
+        while ( retAsk == `yes
+                && SCR::Execute (.target.bash, "/sbin/silo >> /var/log/YaST2/y2logsilo 2>> /var/log/YaST2/y2logsilo") != 0 )
+        {
+            retAsk = UI::AskRetry( "silo" );
+            while ( retAsk == `log )
+            {
+                string text = "";
+
+                // FIXME: Installation::destdir should be removed?
+                text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logsilo");
+                DisplayLogFile( text );
+                retAsk = UI::AskRetry( "silo" );
+            }
+        }
+    }
+
+
+    /**
+      * Get map of bootloader options
+      * @return map of options
+      */
+    global define map GetOptions () ``{
+	return nil;
+    }
+
+    /**
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
+      */
+    global define map GetWidgets () ``{
+        return $[
+		"summarybuttons" : getSummaryButtonsWidget (),
+                "tableentries" : $[
+		    `promalias : getPromAliasWidget (),
+		    `defaultdevice : getDefaultDeviceWidget (),
+                ],
+        ];
+    }
+
+    /**
+      * Get widget
+      * @return widget description map
+      */
+    global define map getSummaryButtonsWidget () ``{
+	return $[];
+    }
+
+    /**
+      * Get widget
+      * @return widget description map
+      */
+    global define map getPromAliasWidget () ``{
+	return $[
+	    "type" : "b",
+	    "label" : _("Create PROM alias 'linux'"),
+	    "restore" : ``(BootSILO::restorePromAlias ()),
+	    "handle" : ``(BootSILO::handlePromAlias ()),
+	    "summary" : ``(BootSILO::summaryPromAlias ()),
+	];
+    }
+
+    /**
+      * Get widget
+      * @return widget description map
+      */
+    global define map getDefaultDeviceWidget () ``{
+	return $[
+	    "type" : "b",
+	    "label" : _("Set default PROM boot device"),
+	    "restore" : ``(BootSILO::restoreDefDev ()),
+	    "handle" : ``(BootSILO::handleDefDev ()),
+	    "summary" : ``(BootSILO::summaryDefDev ()),
+	];
+    }
+
+    /**
+      * Restore widget
+      */
+    global define void restorePromAlias () ``{
+	UI::ChangeWidget (`id (`value), `Value, promalias);
+    }
+
+    /**
+      * Handle widget
+      * @param op any operation to handle
+      * @param toexit list of operations exiting widget
+      * @return changed (if needed) operation
+      */
+    global define symbol handlePromAlias (any op, list toexit) ``{
+	promalias = UI::QueryWidget (`id (`value), `Value);
+	return op;
+    }
+
+    /**
+      * Get text to summary table
+      * @return string summary table text
+      */
+    global define string summaryPromAlias () ``{
+	return sformat ("%1", promalias);
+    }
+
+    /**
+      * Restore widget
+      */
+    global define void restoreDefDev () ``{
+	UI::ChangeWidget (`id (`value), `Value, defaultdevice);
+    }
+
+    /**
+      * Handle widget
+      * @param op any operation to handle
+      * @param toexit list of operations exiting widget
+      * @return changed (if needed) operation
+      */
+    global define symbol handleDefDev (any op, list toexit) ``{
+	defaultdevice = UI::QueryWidget (`id (`value), `Value);
+	return op;
+    }
+
+    /**
+      * Get text to summary table
+      * @return string summary table text
+      */
+    global define string summaryDefDev () ``{
+	return sformat ("%1", defaultdevice);
+    }
+
+
+
+    /**
+     * constructor
+     *
+     */
+    global define void BootSILO () ``{
+	if (! Arch::sparc)
+	    return;
+        if (SCR::Read(.prom.hasaliases) == 1)
+            promalias = true;
+        else
+            promalias = false;
+        defaultdevice = true;
+    }
+
+
+
+}
