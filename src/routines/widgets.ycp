@@ -814,7 +814,9 @@
         return $[
             "widget" : (`ComboBox (`id (`section_type), `opt (`notify),
 			// combobox header
-                        _("Section &Type"), ["image", "other"]
+                        _("Section &Type"), [
+			    `item (`id ("image"), _("image")),
+			    `item (`id ("other"), _("other"))]
                     )),
             "restore" : ``(BootCommon::sectionTypeRestore ()),
             "handle" : ``(BootCommon::sectionTypeSave ()),
