@@ -132,5 +132,21 @@
     TEST (``(BootCommon::setKernelParamToLine (line, "nosmp", "true")), [], 0);
 
     DUMP ("======================================");
+
+    line = line + " vga=567";
+
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "321")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "false")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "true")), [], 0);
+
+    DUMP ("======================================");
+
+    line = line + " noapic";
+
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "321")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "false")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "true")), [], 0);
+
+    DUMP ("======================================");
 }
 
