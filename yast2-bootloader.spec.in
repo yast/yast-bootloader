@@ -57,6 +57,7 @@ Group:          System/YaST
 @clientdir@/bootloader*.ycp
 @ybindir@/*
 @agentdir@/ag_*
+@scrconfdir@/*.scr
 
 /var/adm/fillup-templates/*
 
