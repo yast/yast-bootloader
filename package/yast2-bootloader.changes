@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov  9 08:16:53 CET 2004 - jsrain@suse.cz
+
+- enhanced memtest handling during installation (#46796)
+
+-------------------------------------------------------------------
 Mon Nov  8 13:23:42 CET 2004 - jsrain@suse.cz
 
 - better fix of kernel image name update (#46750)

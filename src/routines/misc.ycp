@@ -2018,5 +2018,17 @@ global string UpdateDevice (string device) {
     return device;
 }
 
+/**
+ * Check if memtest86 is present
+ * @return boolean true if memtest86 section is to be proposed
+ */
+global boolean MemtestPresent () {
+    return ! memtest_removed
+	&& (Mode::test ()
+	    || (Mode::normal () && Pkg::IsProvided ("memtest86"))
+	    || (! Mode::normal () && Pkg::IsSelected ("memtest86")));
+
+}
+
 
 } //end of include

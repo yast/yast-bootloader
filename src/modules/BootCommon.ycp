@@ -253,6 +253,11 @@ global map<string,any> update_version = $[];
       * time of last change of partitioning
       */
     global integer partitioning_last_change = 0;
+    /**
+     * true if memtest was removed by user (manually) during the installation
+     * proposal
+     */
+    global boolean memtest_removed = false;
 
 /**
  * Types of sections that should be updated (changed device names)
@@ -331,6 +336,7 @@ global list<string> update_section_types
 	repl_mbr = false;
 	activate = false;
 	activate_changed = false;
+	memtest_removed = false;
     }
 
     /**
