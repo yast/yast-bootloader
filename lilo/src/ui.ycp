@@ -410,7 +410,12 @@ global define symbol EndDialog() ``{
     }
     else
     {
-	test_res = Lilo::mode == `grub ? TestGrub() : TestLilo();
+        if (Lilo::mode == `grub)
+	    test_res = TestGrub()
+	else if (Lilo::mode == `elilo)
+	    test_res = TestELilo();
+	else
+	    test_res = TestLilo();
 
 	if (lookup(test_res, "exit", -1) == 0)
 	{

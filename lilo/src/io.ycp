@@ -65,6 +65,16 @@ global define map TestGrub () ``{
 }
 
 /**
+ * writes config from agent to temp file and checks the config file.
+ * currently doesn't do anything
+ * @return map from calling .target execute
+ */
+global define map TestELilo () ``{
+    return $["exit": 0];
+}
+
+
+/**
  * writes the config from agent to disk
  *
  * @return integer succes/error
@@ -84,6 +94,13 @@ global define integer DoGrub() ``{
     y2error ("Starting GRUB");
     ret = SCR::Execute(.target.bash, "grub < /etc/grub.conf");
     y2error ("GRUB execution done");
+    return ret;
+}
+
+global define integer DoELilo() ``{
+    y2error ("Now starting DoELilo ()");
+    integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
+    y2error ("DoElilo execution done");
     return ret;
 }
 
