@@ -22,4 +22,4 @@ endif
 endif
 
 
-EXTRA_DIST = $(desktop_DATA)
+EXTRA_DIST = bootloader.desktop bootfloppy.desktop

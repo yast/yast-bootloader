@@ -109,14 +109,10 @@
 	    import "BootGRUB";
 	    BootGRUB::deep_propose = true;
 	    Bootloader::Propose ();
+	    BootGRUB::deep_propose = false;
 	}
 	else if (op == `propose)
 	{
-	    if (Bootloader::getLoaderType () == "grub")
-	    {
-		import "BootGRUB";
-		BootGRUB::deep_propose = false;
-	    }
 	    Bootloader::Propose ();
 	}
         BootCommon::fetchSettings ();
@@ -264,7 +260,17 @@ Proceed?
             else if (action == `propose)
 	    {
 		Bootloader::Reset ();
-                Bootloader::Propose ();
+		if (Bootloader::getLoaderType () == "grub")
+		{
+		    import "BootGRUB";
+		    BootGRUB::deep_propose = true;
+		    Bootloader::Propose ();
+		    BootGRUB::deep_propose = false;
+		}
+		else
+		{
+		    Bootloader::Propose ();
+		}
 	    }
             else if (action == `convert)
                 convertSettings (old_bl, new_bl);
