@@ -6,6 +6,7 @@ Fri Sep  3 13:16:28 CEST 2004 - jsrain@suse.cz
 - provide general Bootloader::Update function that processes all
   needed tasks
 - added SetModified to _auto client
+- 2.10.10
 
 -------------------------------------------------------------------
 Thu Sep  2 13:03:07 CEST 2004 - jsrain@suse.cz
