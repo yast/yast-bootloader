@@ -28,10 +28,10 @@
 	    <listitem><para>Bootloader-independent interface to most common functions for other modules</para></listitem>
 	    <listitem><para>Allow the bootloader-specific part affect bootloader user interface or fully replace it</para></listitem>
 	    <listitem><para>More unified user interface for installation and configuration of installed system</para></listitem>
-	    <listitem><para>Possibility to switch bootloader (only where platform allows more bootloaders)</para></listitem>
+	    <listitem><para>Possibility to switch bootloader (only where platform allows more boot loaders)</para></listitem>
 	    <listitem><para>Remove or start using during configuration of running system currently unused variables from 
 		<computeroutput>/etc/sysconfig/bootloader</computeroutput> file</para></listitem>
-	    <listitem><para>Inteligently merge bootloader configuration files if Linux installation in other partition present</para></listitem>
+	    <listitem><para>Intelligently merge bootloader configuration files if Linux installation in other partition present</para></listitem>
 	</itemizedlist>
     </section>
 
@@ -39,7 +39,7 @@
 	<title>TODO</title>
 	<itemizedlist>
 	    <listitem><para>Optimize internal structures</para></listitem>
-	    <listitem><para>Make some parts of code more universal for multiple bootloaders</para></listitem>
+	    <listitem><para>Make some parts of code more universal for multiple boot loaders</para></listitem>
 	    <listitem><para>Improve UI</para></listitem>
 	    <listitem><para>Improve GRUB - LILO configuration conversion</para></listitem>
 	</itemizedlist>

@@ -32,6 +32,16 @@
 // general functions
 
     /**
+      * Constructor
+      */
+    global define BootS390 () ``{
+	BootCommon::bootloader_attribs["s390"] = $[
+            "loader_name" : "zipl",
+        ];
+    }
+
+
+    /**
       * Return map of provided functions
       * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
       */

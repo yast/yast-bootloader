@@ -60,7 +60,7 @@
 	map out = $[
 	    "location" : BootCommon::location,
 	    "loader_device" : BootCommon::loader_device,
-	    "loader_type" : BootCommon::getLoaderType (false),
+	    "loader_type" : getLoaderType (),
 	    "initrd" : Initrd::Export (),
 	    "specific" : blExport (),
 	    "changed_settings" : BootCommon::changed_settings,
@@ -230,7 +230,7 @@
 	}
 	y2milestone ("Saving configuration files");
         SCR::Write (.sysconfig.bootloader.LOADER_TYPE,
-	    BootCommon::getLoaderType (false));
+	    getLoaderType ());
         SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
             BootCommon::location);
 
@@ -322,29 +322,7 @@
       */
     global define string getDefaultSection () ``{
 	ReadOrProposeIfNeeded ();
-	string bl = BootCommon::getLoaderType(false);
-	list all = [];
-	string def = sformat ("%1", BootCommon::globals["default"]:nil);
-	if (bl != "grub")
-	{
-	    if (def == nil || def == "nil")
-		def = "0";
-	    else
-		return def;
-	}
-	else
-	{
-	   if (def == nil || def == "nil")
-		def = "0";
-	}
-	string titlename = BootCommon::getLoaderType (false) == "grub"
-	    ? "title"
-	    : "label";
-	list sections = maplist (`s, BootCommon::sections, ``{
-	    return s[titlename]:"";
-	});
-	integer i = tointeger (def);
-	return select (sections, i, nil);
+	return BootCommon::getDefaultSection ();
     }
 
     /**
@@ -356,13 +334,12 @@
       */
     global define string getKernelParam (string section, string key) ``{
 	ReadOrProposeIfNeeded ();
-
 	if (section == "DEFAULT")
 	    section = getDefaultSection ();
 	if (section == nil)
 	    return "";
-	string bl = BootCommon::getLoaderType (false);
-	string label = bl == "grub" ? "title" : "label";
+	map params = getKernelParamKeys ();
+	string label = BootCommon::getSectionTitle ();
 	integer sectnum = -1;
 	integer index = -1;
 	foreach (`s, BootCommon::sections, ``{
@@ -373,22 +350,13 @@
 	if (sectnum == -1)
 	    return "";
 	string line = "";
-	if (bl != "grub")
-	{
-	    if (key == "vga" || key == "root")
-	    {
-		return BootCommon::sections[sectnum, key]:"false";
-	    }
-	    else
-	    {
-		line = BootCommon::sections[sectnum, "append"]:"";
-	    }
-	}
+	if (haskey (params, key))
+	    return BootCommon::sections[sectnum, key]:"false";
 	else
 	{
-	    line = BootCommon::sections[sectnum, "kernel"]:"";
+	    line = BootCommon::sections[sectnum, params[`other]:""]:"";
+	    return BootCommon::getKernelParamFromLine (line, key);
 	}
-	return BootCommon::getKernelParamFromLine (line, key);
     }
 
     /**
@@ -400,9 +368,8 @@
       * @return list of strings representing sections names
       */
     global define list getSectionsList (symbol type) ``{
-	string bl = BootCommon::getLoaderType (false);
-	string title = ((bl == "grub") ? "title" : "label");
-	string linux = ((bl == "grub") ? "kernel" : "image");
+	string title = BootCommon::getSectionTitle ();
+	string linux = BootCommon::getKernelKey ();
 
 	list sects = BootCommon::sections;
 	if (type == `other)
@@ -432,8 +399,8 @@
 	    section = getDefaultSection ();
 	if (section == nil)
 	    return false;
-	string bl = BootCommon::getLoaderType (false);
-        string label = bl == "grub" ? "title" : "label";
+        string label = BootCommon::getSectionTitle ();
+	map params = getKernelParamKeys ();
         integer sectnum = -1;
         integer index = -1;
         foreach (`s, BootCommon::sections, ``{
@@ -446,24 +413,21 @@
 	string slabel = "";
 	if ((key == "vga" || key == "root") && (value == "true"))
 	    return false;
-	if (bl != "grub")
+	if (haskey (params, key))
 	{
-	    if (key == "vga" || key == "root")
+	    if (value != "false")
 	    {
-		if (value != "false")
-		    BootCommon::sections[sectnum, key] = value;
-		else if (haskey (BootCommon::sections[sectnum]:$[], key))
-		    BootCommon::sections[sectnum] = removekey
-			(BootCommon::sections[sectnum]:$[], key);
+		BootCommon::sections[sectnum, key] = value;
 	    }
-	    else
+	    else if (haskey (BootCommon::sections[sectnum]:$[], key))
 	    {
-		slabel = "append";
+		BootCommon::sections[sectnum] = removekey
+		    (BootCommon::sections[sectnum]:$[], key);
 	    }
 	}
 	else
 	{
-	    slabel = "kernel";
+	    slabel = params[`other]:"";
 	}
 	string line = BootCommon::sections [sectnum, slabel]:"";
 	line = BootCommon::setKernelParamToLine (line, key, value);

@@ -18,6 +18,7 @@
 {
     import "Pkg";
     include "testsuite.ycp";
+    import "Bootloader";
     import "BootCommon";
 
     DUMP ("======================================");

@@ -31,7 +31,7 @@
 	map spec_widgets = Bootloader::blGetWidgets ();
 	map common_widgets = BootCommon::GetWidgets ();
 	return maplist (`w, names, ``(
-	    eval (spec_widgets[w]:common_widgets[w]:$[])//`VSpacing(0)
+	    eval (spec_widgets[w]:common_widgets[w]:$[])
 	));
     }
 

@@ -6,7 +6,7 @@ Each bootloader-specific module must provide function, which returns map describ
 Details about return value are available in Bootloader-specific module description section.
     </para>
     <para>
-Since future versions of YCP interpreter may need to parse and check all (possibly) used module and include files, all files of all bootloaders
+Since future versions of YCP interpreter may need to parse and check all (possibly) used module and include files, all files of all boot loaders
 must be present (which forbids architecture-dependent conditional presence of bootloader-related files in .spec file).
     </para>
     <para>
@@ -25,5 +25,9 @@ is called.
     </para>
     <para>
 There is (at least currently) no Automatical way to generate these functions, each of them must be written manually.
+    </para>
+    <para>
+Additionally, since bootloaders attributes are supported and attributes can be values of any types including terms,
+the bootloader attribute can be a function to be evaluated. This adds another point where it is possible to call bootloader-specific functions.
     </para>
 </section>

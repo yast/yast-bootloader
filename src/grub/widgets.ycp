@@ -34,15 +34,9 @@
 	    "sections" : ``(BootGRUB::getSectionsWidget ()),
 	    "singlesection" : ``(BootGRUB::getSingleSectionWidget ()),
 	    "globalsection" : ``(BootGRUB::getGlobalSectionWidget ()),
-	    "passwd" : ``(BootGRUB::getPasswdWidget ()),
 	    "tableentries" :$[
 		"__location": ``(BootGRUB::getTargetWidget ()),
-		"__sections" : ``(BootGRUB::getSectionsTableEntry ()),
-		"__default_section" : ``(BootGRUB::getDefaultSectionTableEntry ()),
-		"__section_type" : ``(BootGRUB::getSectionTypeWidget ()),
-		"title" : ``(BootGRUB::getTitleWidget ()),
-		"timeout" : ``(BootGRUB::getTimeoutWidget ()),
-		"password" : ``(BootGRUB::getPasswdWidget ()),
+		"title" : ``(BootCommon::getLabelWidget ()),
 		"gfxmenu" : ``(BootGRUB::getGfxMenuWidget ()),
 		"__diskorder" : ``(BootGRUB::getOrderPopup ()),
 	    ],
@@ -360,7 +354,8 @@ Replace it with an entry  to boot from the floppy?");
 	else if (op == `add)
 	{
             BootCommon::current_section = $[
-		"__order__" : ["root", "kernel", "initrd"],
+		"__order__" : ["title", "root", "kernel", "initrd"],
+		"title" : getFreeSectionLabel (),
 		"root" : "",
 		"kernel" : "",
 		"initrd" : "",
@@ -408,50 +403,6 @@ Replace it with an entry  to boot from the floppy?");
         }
 	UI::SetFocus (`id (`sects));
     }
-
-// password widge
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getPasswdWidget () ``{
-	map ret = BootCommon::getPasswdWidget ();
-	ret["handle"] = ``(BootGRUB::handlePasswdWidget ());
-	return ret;
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any handlePasswdWidget (any op, list tosave) ``{
-	if (! contains (tosave, op))
-	    return BootCommon::handlePasswdWidget (op, tosave);
-
-
-        boolean usepass = UI::QueryWidget (`id (`usepas), `Value);
-        y2milestone ("Usepass: %1", usepass);
-        if (usepass)
-        {
-	    if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
-	    {
-	        string ps = UI::QueryWidget (`id (`pw1), `Value);
-	        ps = sformat ("--md5 %1", cryptmd5 (ps));
-	        BootCommon::current_section["password"] = ps;
-	    }
-	}
-        else
-        {
-            BootCommon::current_section
-                = remove (BootCommon::current_section, "password");
-        }
-	return op;
-    }
-
-
 
 // grub-specific dialogs
 
@@ -584,10 +535,10 @@ Replace it with an entry  to boot from the floppy?");
 		if (pushed == `ok)
 		{
 		    disks_order = add (disks_order, new_dev);
-		    UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
-	                `opt (`notify, `immediate),
-	                _("D&isks"), disks_order));
-		// FIXME TODO
+		    UI::ReplaceWidget (`id (`disks_rp),
+			`SelectionBox(`id (`disks),
+			    `opt (`notify, `immediate),
+			    _("D&isks"), disks_order));
 		}
 	    }
 	    else if (op == `delete)
@@ -644,188 +595,6 @@ Replace it with an entry  to boot from the floppy?");
 	}
 	UI::SetFocus (`id (`disks));
 	return op;
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getSectionsTableEntry () ``{
-	map ret = BootCommon::getSectionsTableEntry ();
-	ret["summary"] = ``(BootGRUB::getSectionsSummary ());
-	return ret;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string getSectionsSummary () ``{
-        integer default = BootCommon::globals["default"]:0;
-        list sects = [];
-	integer counter = 0;
-        foreach (`s, BootCommon::sections, ``{
-            string title = s["title"]:"";
-            string def = counter == default ? _(" (default)") : "";
-	    counter = counter + 1;
-            sects = add (sects, sformat ("%1%2", title, def));
-        });
-        return mergestring (sects, ", ");
-    }
-
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getDefaultSectionTableEntry () ``{
-	map ret = BootCommon::getDefaultSectionTableEntry ();
-	ret["summary"] = ``(BootGRUB::getDefaultSectionSummary ());
-	return ret;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string getDefaultSectionSummary () ``{
-        return BootCommon::sections[
-	    BootCommon::globals["default"]:0, "title"]:"";
-    }
-
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getSectionTypeWidget () ``{
-	map ret = BootCommon::getSectionTypeWidget ();
-	ret["handle"] = ``(BootGRUB::sectionTypeSave ());
-	return ret;
-    }
-
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any sectionTypeSave (any op, list tosave) ``{
-        string ntype = UI::QueryWidget (`id (`section_type), `Value);
-	y2milestone ("New type: %1", ntype);
-        string otype = BootCommon::current_section["kernel"]:"" == ""
-            ? "other"
-            : "image";
-        if (otype == ntype)
-            return;
-        string label = BootCommon::current_section["title"]:"";
-        if (ntype == "other")
-        {
-            map tmp = eval (BootCommon::current_section);
-	    string root = select (splitDevPath (
-		tmp["kernel"]:""), 0,"");
-	    root = tmp["root"]:root;
-	    if (root == nil)
-		root = "";
-            BootCommon::current_section = $[
-		"root": root,
-		"chainloader" : "+1",
-		"__order__" : ["root", "chainloader"],
-	    ];
-        }
-        else
-        {
-            map tmp = BootCommon::current_section;
-            BootCommon::current_section = $[
-		"root" : tmp["root"]:"",
-		"kernel" : sformat ("/vmlinuz root=%1",
-		    grubDev2unixDev (tmp["root"]:"")),
-		"initrd" : "/initrd",
-		"__order__" : ["root", "kernel", "initrd"],
-            ];
-        }
-        BootCommon::current_section["title"] = label;
-	BootCommon::current_section_type = ntype;
-	y2milestone ("FS: %1", BootCommon::current_section);
-	return op;
-    }
-
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getTimeoutWidget () ``{
-        return $[
-            "restore" : ``(BootGRUB::timeoutRestore ()),
-            "handle" : ``(BootGRUB::timeoutSave ()),
-            "summary" : ``(BootGRUB::timeoutSummary ()),
-        ];
-    }
-
-    /**
-      * Restore function of widget
-      */
-    global define void timeoutRestore () ``{
-        integer timeout = BootCommon::current_section["timeout"]:0;
-        UI::ChangeWidget (`id (`value), `Value, timeout);
-	UI::SetFocus (`id (`value));
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any timeoutSave (any op, list tosave) ``{
-        integer timeout = UI::QueryWidget (`id (`value), `Value);
-        BootCommon::current_section["timeout"] = timeout;
-	return op;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string timeoutSummary () ``{
-        integer timeout = BootCommon::current_section["timeout"]:0;
-	// table cell, means eg. 5 s (like 5 seconds)
-        return sformat (_("%1 s"), timeout);
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getTitleWidget () ``{
-	map ret = BootCommon::getLabelWidget ();
-	ret["validate"] = ``(BootGRUB::titleValidate ());
-	return ret;
-    }
-
-    /**
-      * Validate function of widget
-      * @return true if ok
-      */
-    global define boolean titleValidate () ``{
-        list(string) existing = [];
-        foreach (`s, BootCommon::current_sections, ``{
-            existing = add (existing, s["title"]:"");
-        });
-	y2milestone ("Active is %1", BootCommon::current_section_name);
-        existing = filter (string l, existing,
-            ``(l != BootCommon::current_section_name));
-        existing = add (existing, "");
-        string new = UI::QueryWidget (`id (`value), `Value);
-
-        if (contains (existing, new))
-        {
-            usedNameErrorPopup ();
-            return false;
-        }
-        return true;
     }
 
     /**

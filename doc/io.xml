@@ -21,10 +21,10 @@ Second step is call bootloader-specific function to write it's configuration fil
 	</para>
 	<para>
 Running bootloader executable is bootloader-dependent operation. In some cases there is needed to call bootloader executable every time anything is changed (eg. LILO), in some cases
-only if bootloader location is to be changed (eg. GRUB), some bootloaders have no executable (eg. ELILO).
+only if bootloader location is to be changed (eg. GRUB), some boot loaders have no executable (eg. ELILO).
 	</para>
 	<para>
-Before running bootloader's specific write, in some cases should be run functions that should modify the MBR of the first hard disk. There are currently functions for setting active partition
+Before running boot loader's specific write, in some cases should be run functions that should modify the MBR of the first hard disk. There are currently functions for setting active partition
 and for replacing code in MBR with generic code (which loads boot sector of bootloader partition). It is upon bootloader-specific code whether it will run these functions.
 	</para>
 	<para>
@@ -57,7 +57,7 @@ In case any configuration file was changed manually inside the editor, then no r
 	</itemizedlist>
         </para>
 	<para>
-The proposing mechanism mainly depends on bootloader, which is used, and is described in bootloader-specific chapters describing single bootloaders.
+The proposing mechanism mainly depends on bootloader, which is used, and is described in bootloader-specific chapters describing single boot loaders.
 	</para>
 
     </section>

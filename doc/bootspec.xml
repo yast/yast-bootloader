@@ -5,7 +5,7 @@
         <section>
             <title>Motivation</title>
             <para>
-                Different bootloaders are installing different ways, require different informations, etc. The goal of new design is to allow different bootloaders to have
+                Different boot loaders are installing different ways, require different informations, etc. The goal of new design is to allow different boot loaders to have
                 their own dialogs, proposal, and functions for several tasks, but to provide generic dialogs and functions too.
                 Common part of bootloader installer should not contain bootloader-specific code, everything bootloader-specific should be encapsulated in bootloader-specific
                 module.
@@ -14,7 +14,7 @@
 	<section>
 	    <title>Switching mechanism</title>
 	    <para>
-		Switching mechanism must allow to call any bootloader-specific function transparently. Caller doesn't have to know that there are many different bootloaders
+		Switching mechanism must allow to call any bootloader-specific function transparently. Caller doesn't have to know that there are many different boot loaders
 		supported. If he wants to write bootloader settings, he wants to do it by one single function call. This is covered by <computeroutput>Bootloader.ycp</computeroutput>
 		module. But it must have simple-to-use mechanism for calling bootloader-specific function.
 	    </para>
@@ -59,7 +59,7 @@
                     <listitem><para><computeroutput>"setfiles"</computeroutput> stores map with the same format as result of "getfiles" to internal structures (after parsing them).
 			Should change the BootCommon::files_edited variable if some file was changed. Has one map parameter.</para></listitem>
                     <listitem><para><computeroutput>"getoptions"</computeroutput> returns map of options which can be present in bootloader. Map contains key `global for global options,
-			and keys "image" and "other" (can differ for different bootloaders) for sections. Value of each key is list of options.
+			and keys "image" and "other" (can differ for different boot loaders) for sections. Value of each key is list of options.
 			If returns nil, the "Add" button for adding options will be disabled. To enable it if you don't want to create options list, just return empty map.
 			Combo box for choosing option is always editable, lists don't have to be complete. </para></listitem>
                     <listitem><para><computeroutput>"updoptlst"</computeroutput> updates list of options to be shown in table. As parameter has map of options and values, returns list of
@@ -67,7 +67,7 @@
                 </itemizedlist>
 		Value of each key shall be term, which will be evaluated in moment specified function is needed (after adding parameters if needed). Return value will be returned to caller
 		(if function has return value).
-		If some key is missing in the map, generic function is used (which typically means function usable for Lilo, because most of bootloaders for Linux are similar to Lilo.
+		If some key is missing in the map, generic function is used (which typically means function usable for Lilo, because most of boot loaders for Linux are similar to Lilo.
             </para>
         </section>
     </section>
