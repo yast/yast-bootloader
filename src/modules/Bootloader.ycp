@@ -141,7 +141,6 @@
         BootCommon::location_changed = true;
 	BootCommon::partitioning_last_change = Storage::GetTargetChangeTime();
 	BootCommon::backup_mbr = true;
-	BootCommon::activate = true;// FIXME do it only if needed
     }
     /**
       * Display bootloader summary

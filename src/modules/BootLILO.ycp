@@ -112,6 +112,13 @@
 
 	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 
+	// set activate flag
+	if (! BootCommon::activate_changed)
+	{
+	    BootCommon::activate
+	        = size (Storage::GetBootPartition (BootCommon::mbrDisk)) == 0;
+	}
+
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
 	    createSections ();

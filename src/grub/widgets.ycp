@@ -94,7 +94,8 @@ Replace it with an entry  to boot from the floppy?");
 		BootCommon::installingToFloppy ())
 	    {
 		sections = maplist (`s, sections, ``{
-		    if (s["title"]:"" == "floppy" && changeSection ("floppy"))
+		    if (lookup_value (s, "title", "") == "floppy"
+			&& changeSection ("floppy"))
 		    {
 			s = [
 			    $[ "key" : "title", "value" : "hard disk"],
@@ -113,7 +114,7 @@ Replace it with an entry  to boot from the floppy?");
 	    else
 	    {
 		sections = maplist (`s, sections, ``{
-		    if (s["title"]:"" == "hard disk"
+		    if (lookup_value (s, "title", "") == "hard disk"
 			&& changeSection ("disk"))
 		    {
 			s = [
@@ -148,7 +149,7 @@ Replace it with an entry  to boot from the floppy?");
 	if (type == `global)
 	{
 	    prependlist = ["__loader_type", "__sep2", "__location",
-		"__diskorder", "__default_section", "__sections", "activate",
+		"__diskorder", "__default_section", "__sections", "__activate",
 		"__repl_mbr", "__backup_mbr", "__add_orig_mbr",
 		"__save_method", "__sep1"];
             _options = filter (`o, _options,
@@ -372,8 +373,8 @@ Replace it with an entry  to boot from the floppy?");
         {
             if (BootCommon::sections_changed)
             {
-                BootCommon::markOptionChanged (`global, "__sections");
-                BootCommon::markOptionChanged (`global, "__default_section");
+                BootCommon::markOptionChanged (`current_globals, "__sections");
+                BootCommon::markOptionChanged (`current_globals, "__default_section");
             }
         }
         if (op == `back)
@@ -672,7 +673,7 @@ Replace it with an entry  to boot from the floppy?");
 	{
 	    boolean found = false;
 	    foreach (`s, BootCommon::sections, ``{
-		if (s["__intern__", "original_mbr"]:false)
+		if (lookup (lookup_value (s, "__intern__", $[]), "original_mbr", false))
 		{
 		    found = true;
 		    y2error ("Found %1", s);
@@ -689,8 +690,7 @@ Replace it with an entry  to boot from the floppy?");
 	{
 	    BootCommon::current_sections = filter (`s,
 		BootCommon::current_sections, ``(
-		! s["__intern__", "original_mbr"]:false
-	    ));
+		! lookup (lookup_value (s, "__intern__", $[]), "original_mbr", false)));
 	}
         return nil;
     }

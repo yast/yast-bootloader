@@ -213,6 +213,10 @@
       */
     global boolean activate = false;
     /**
+      * Was the activate flag changed by user?
+      */
+    global boolean activate_changed = false;
+    /**
       * Save everything, not only changed settings
       */
     global boolean save_all = false;
@@ -246,6 +250,7 @@
         sections  = lookup(settings, "sections", []);
         repl_mbr = settings["repl_mbr"]:false;
         activate = settings["activate"]:false;
+	activate_changed = true;
 	return;
     }
 
@@ -274,6 +279,7 @@
 //	DetectDisks ();
 	repl_mbr = false;
 	activate = false;
+	activate_changed = false;
     }
 
     /**
