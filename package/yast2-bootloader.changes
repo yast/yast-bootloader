@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov  8 13:23:42 CET 2004 - jsrain@suse.cz
+
+- better fix of kernel image name update (#46750)
+
+-------------------------------------------------------------------
 Thu Nov  4 14:00:10 CET 2004 - jsrain@suse.cz
 
 - removed select () and lookup () builtins usage

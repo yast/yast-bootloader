@@ -517,12 +517,12 @@
 		    if (regexpmatch (option, "^.*vmlinuz\\.shipped.*$"))
 		    {
 			option = regexpsub (option,
-			    "^(.*)vmlinuz\\.shipped(.*)$", "\\1vmlinuz\\2");
+			    "^([ \t]*[^ \t]*)vmlinuz\\.shipped(.*)$", "\\1vmlinuz\\2");
 		    }
 		    else if (regexpmatch (option, "^.*vmlinuz\\.suse.*$"))
 		    {
 			option = regexpsub (option,
-			    "^(.*)vmlinuz\\.suse(.*)$", "\\1vmlinuz\\2");
+			    "^([ \t]*[^ \t]*)vmlinuz\\.suse(.*)$", "\\1vmlinuz\\2");
 		    }
 		    else if (regexpmatch (option, "^.*initrd\\.shipped.*$"))
 		    {
