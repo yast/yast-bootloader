@@ -21,16 +21,16 @@
 
     map READ = $["grub": $["sections" : $["linux" : $["kernel" : "(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333"]]]];
 
-    TEST (``(getGrubKernelParam ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "root")), [READ, $[], $[]], 0);
-    TEST (``(getGrubKernelParam ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "vga")), [READ, $[], $[]], 0);
-    TEST (``(getGrubKernelParam ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "unex")), [READ, $[], $[]], 0);
-    TEST (``(getGrubKernelParam ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "noval")), [READ, $[], $[]], 0);
+    TEST (``(getGrubKernelParamFromLine ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "root")), [READ, $[], $[]], 0);
+    TEST (``(getGrubKernelParamFromLine ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "vga")), [READ, $[], $[]], 0);
+    TEST (``(getGrubKernelParamFromLine ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "unex")), [READ, $[], $[]], 0);
+    TEST (``(getGrubKernelParamFromLine ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "noval")), [READ, $[], $[]], 0);
     DUMP("==================================================================");
-    TEST (``(setGrubKernelParam ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "root", "/dev/hda5")), [READ, $[], $[]], 0);
-    TEST (``(setGrubKernelParam ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "vga", "55")), [READ, $[], $[]], 0);
-    TEST (``(setGrubKernelParam ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "ide", "nodma")), [READ, $[], $[]], 0);
-    TEST (``(setGrubKernelParam ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "vga", "false")), [READ, $[], $[]], 0);
-    TEST (``(setGrubKernelParam ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "extra", "true")), [READ, $[], $[]], 0);
+    TEST (``(setGrubKernelParamToLine ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "root", "/dev/hda5")), [READ, $[], $[]], 0);
+    TEST (``(setGrubKernelParamToLine ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "vga", "55")), [READ, $[], $[]], 0);
+    TEST (``(setGrubKernelParamToLine ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "ide", "nodma")), [READ, $[], $[]], 0);
+    TEST (``(setGrubKernelParamToLine ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "vga", "false")), [READ, $[], $[]], 0);
+    TEST (``(setGrubKernelParamToLine ("(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333", "extra", "true")), [READ, $[], $[]], 0);
 
 }
 

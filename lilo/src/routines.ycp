@@ -27,7 +27,7 @@ textdomain "bootloader";
   * @param string parameter key
   * @return string value, "false" if not present, "true" if present key without value
   */
-global define string getGrubKernelParam (string line, string key) ``{
+global define string getGrubKernelParamFromLine (string line, string key) ``{
     string res = "false";
     list params = splitstring (line, " ");
     params = filter (`p, params, ``(p != ""));
@@ -45,7 +45,7 @@ global define string getGrubKernelParam (string line, string key) ``{
   * @param string value, "false" to remove key, "true" to add key without value
   * @return boolean true on success
   */
-global define string setGrubKernelParam (string line, string key, string value) ``{
+global define string setGrubKernelParamToLine (string line, string key, string value) ``{
     list params = splitstring (line, " ");
     params = filter (`p, params, ``(p != ""));
     list rp = [];
