@@ -499,6 +499,8 @@ global void updateDeviceMap () {
     global define map<string,string> proposeGrubConf () ``{
 	list<string> stage1 = splitDevPath (file2grub ("/boot/grub/stage1"));
 	list<string> stage2 = splitDevPath (file2grub ("/boot/grub/stage2"));
+	y2milestone ("Proposed grub.conf: Stage1: %1, Stage2: %stage2",
+	    stage1, stage2);
 
 	string s1_part = BootCommon::loader_device;
 	if (s1_part == "mbr_md")
