@@ -4,6 +4,8 @@ Mon Aug 11 09:33:26 CEST 2003 - jsrain@suse.de
 - not using .shipped image any more (kernel package doesn't contain
   it)
 - merged texts from proofread
+- added more verbose logging of proposing configuration
+- 2.8.8
 
 -------------------------------------------------------------------
 Thu Aug  7 15:46:44 CEST 2003 - jsrain@suse.de

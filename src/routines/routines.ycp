@@ -21,6 +21,8 @@
 
     textdomain "bootloader";
 
+    import "BootCommon";
+
     /**
       * Get value of some key in bootloader section
       * @param section list representating bootloader section

@@ -271,7 +271,7 @@
 	    }
             if (title == "")
 	    {
-		y2debug ("Removing section with empty title");
+		y2warning ("Removing section with empty title");
                 return false;
 	    }
             if (! contains (["linux", "failsafe", "memtest86"], type))
@@ -289,8 +289,8 @@
 	    kernel = grub2file (kernel);
 	    if (SCR::Read (.target.size, kernel) == -1)
 	    {
-		y2debug ("Removing section %1 with unexistent kernel",
-		    title);
+		y2warning ("Removing section %1 with unexistent kernel %2",
+		    title, kernel);
 		return false;
 	    }
 	    return true;
@@ -935,17 +935,18 @@
 	    string type = intern["type"]:title;
 	    if (! intern["auto"]:false)
 	    {
-		y2debug ("Leaving section %1 as is", title);
+		y2milestone ("Leaving section %1 as is", title);
 		return s;
 	    }
 	    else if (! intern["changed"]:false)
 	    {
-		y2debug ("Recreating section %1", title);
+		y2milestone ("Recreating section %1, new is %2",
+		    title, new_sect[type]:[]);
 		return new_sect[type]:[];
 	    }
 	    else
 	    {
-		y2debug ("Possible warning on section %1", title);
+		y2milestone ("Possible warning on section %1", title);
 		boolean cont = true;
 		string type = intern["type"]:"";
 		if (type != "linux" && type != "failsafe"
