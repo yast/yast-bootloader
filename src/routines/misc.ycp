@@ -1920,7 +1920,7 @@
 	    {
 		list<string> l = splitstring (s["value"]:"", " \t");
 		l = filter (string p, l, {return p != "";});
-		if (regexpmatch (sformat (l[0]:"", "^.*%1[^ ]*.*$",
+		if (regexpmatch (l[0]:"", sformat ("^.*%1[^ ]*.*$",
 		    Kernel::binary)))
 		{
 		    l[0] = regexpsub (
