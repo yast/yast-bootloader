@@ -102,35 +102,14 @@
 	    prependlist = merge (prependlist, [
 		"default", "__sections", "__save_method", "__sep1"]
 	    );
-	    forbidden_keys = ["boot", "default"];
+	    forbidden_keys = ["boot", "default", "activate"];
 	}
 	else
 	{
 	    prependlist = ["label", "__section_type", "__sep1"];
 	}
-	if (Mode::initial)
-	{
-	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
-	}
-	forbidden_keys = merge (forbidden_keys, prependlist);
-	forbidden_keys = add (forbidden_keys, "__intern__");
-	integer index = -1;
-	map remap_prepend = $[];
-	list options = maplist (map opt, BootCommon::current_section, ``{
-	    index = index + 1;
-	    if (contains (prependlist, opt["key"]:""))
-	    {
-		remap_prepend[opt["key"]:""] = index;
-		return nil;
-	    }
-	    return contains (forbidden_keys, opt["key"]:"")
-		? nil
-		: index;
-	});
-	prependlist = maplist (`e, prependlist, ``(remap_prepend[e]:e));
-	options = filter (any opt, options, ``(opt != nil));
-	return merge (prependlist, options);
-	return table_items;
+	return BootCommon::createSectionItemsList (
+	    prependlist, forbidden_keys, true);
     }
 
     /**
@@ -216,6 +195,8 @@
       */
     global define void setDefaultOFStore (any opt_id, any opt_key) ``{
 	of_defaultdevice = UI::QueryWidget (`id (opt_key), `Value);
+	BootCommon::markGeneralOptionChanged (opt_key);
+	BootCommon::location_changed = true;
     }
 
     /**
@@ -277,6 +258,7 @@
       */
     global define void PRePPartsStore (any opt_id, any opt_key) ``{
 	prep_boot_partition = UI::QueryWidget (`id (opt_key), `Value);
+	BootCommon::markGeneralOptionChanged (opt_id);
     }
 
     /**

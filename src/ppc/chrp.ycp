@@ -68,7 +68,8 @@
 	BootCommon::loader_device = prep_boot_partition;
 	BootCommon::activate
 	    = prep_boot_partition != "" && prep_boot_partition != "/dev/null";
-	// TODO of_defaultdevice ??
+	of_defaultdevice
+	    = lookup_value (BootCommon::globals, "activate", false);
 	return true;
     }
 
@@ -79,7 +80,8 @@
     global define boolean CHRPSave () ``{
 	BootCommon::globals = modifySection (BootCommon::globals, "boot",
 	    prep_boot_partition);
-	// TODO of_defaultdevice ??
+	BootCommon::globals = modifySection (BootCommon::globals, "activate",
+	    of_defaultdevice);
 	return true;
     }
 
