@@ -169,10 +169,10 @@ Would you like to choose a new installation source?"));
   define string floppyHelpSelectImage() ``{
 	// help text
       string help_text = UI (_("<p>
-	// help text
-To create a boot, modules or rescue floppy please
+
+To create a boot, modules or, rescue floppy,
 select the appropriate item from the list and
-click on <b>Next</b> to start.</p>"
+click <b>Next</b> to start.</p>"
 			       ));
 
       if ( i386disk_found || bootdisk_found )
