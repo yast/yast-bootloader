@@ -129,6 +129,19 @@
     }
 
     /**
+      * Should backup copy of bootloader bootsector be created?
+      * @return boolean true if yes.
+      */
+    global define boolean createBackupBS () ``{
+	if (! Mode::initial)
+	    return false;
+	map mp = Storage::GetMountPoints ();
+	list data = mp["/boot"]:(mp["/"]:[]);
+	string bpd = data[0]:"";
+	return bpd == BootPartitionDevice;
+    }
+
+    /**
       * Detect /boot and / (root) partition devices and store settings
       * to internal variables
       */
