@@ -312,6 +312,8 @@
 	string bl = getLoaderType (false);
 	if (bl == "s390")
 	    bl = "zipl";
+	else if (bl == "ppc")
+	    bl = "lilo";
 	saveCfgFileToAgent ();
 	SCR::Write(list2path([bl]), nil);
 	return true;
@@ -481,6 +483,7 @@ configuration files"));
     define void setCurrentLoaderAttribs (string loader_type) ``{
 	if (bootloader_attribs[loader_type, "initializer"]:nil != nil)
 	{
+	    y2milestone ("Running bootloader initializer");
 	    eval (bootloader_attribs[loader_type, "initializer"]:nil);
 	}
 	else
@@ -502,6 +505,9 @@ configuration files"));
     global define string getLoaderType (boolean recheck) ``{
 	if ((! recheck) && (loader_type != nil))
 	    return loader_type;
+// FIXME FIXME FIXME
+	Arch::board_iseries = true;
+// FIXME FIXME FIXME
 	// read bootloader to use from disk
 	if (Mode::update || Mode::normal || Mode::repair)
 	{

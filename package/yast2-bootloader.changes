@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct  8 17:01:50 CEST 2003 - jsrain@suse.de
+
+- updated support of PPC bootloader
+
+-------------------------------------------------------------------
 Mon Oct  6 16:53:52 CEST 2003 - jsrain@suse.de
 
 - added separate fillup templates for different architectures
