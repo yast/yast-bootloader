@@ -251,7 +251,7 @@
         foreach (`s, BootCommon::sections, ``{
             existing = add (existing, lookup_value (
 		s, getSectionTitle (), ""));
-            foreach (`a, aliases, ``{
+            foreach (`a, getAnyTypeAttrib ("alias_keys", []), ``{
                 existing = add (existing, lookup_value (
 		    s, a, ""));
             });
