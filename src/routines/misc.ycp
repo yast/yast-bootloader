@@ -1220,6 +1220,11 @@
 	return ret;
     }
 
+    /**
+     * Get a list of partitions to activate if user wants to activate
+     * boot partition
+     * @return a list of partitions to activate
+     */
     global define list<map<string, any> > getPartitionsToActivate () {
 	map<string,integer> md = $[];
 	if (BootCommon::loader_device == "mbr_md")
@@ -1240,9 +1245,14 @@
 		BootCommon::BootPartitionDevice,
 		partition);
 	});
-	return ret;
+	return toset (ret);
     }
 
+    /**
+     * Get the list of MBR disks that should be rewritten by generic code
+     * if user wants to do so
+     * @return a list of device names to be rewritten
+     */
     global define list<string> getMbrsToRewrite () {
 	list<string> ret = [BootCommon::mbrDisk];
 	map<string,integer> md = $[];

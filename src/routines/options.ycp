@@ -60,6 +60,7 @@
 		map p_dev = Storage::GetDiskPartition (d);
 		return p_dev["disk"]:"";
 	    });
+	    mbrs = toset (mbrs);
 	    targetlist = add (targetlist, `VSpacing (0.4));
             targetlist = add (targetlist, `Left (
 		`RadioButton (`id ("mbr_md"), `opt (`notify),

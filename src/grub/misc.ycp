@@ -459,6 +459,7 @@ global void updateDeviceMap () {
 	devices = filter (string d, devices, {
 	    return d != "" && d != nil && d != "(null)" && d != "/dev/null";
 	});
+	devices = toset (devices);
 	list<string> lines = maplist (string d, devices, {
 	    string line = sformat (settings["discswitch"]:"" == "d"
 		? "install %6 %1 d %2 %3 %4 %5"
