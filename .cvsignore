@@ -22,3 +22,4 @@ mkinstalldirs
 stamp-h*
 *.pot
 *.mo
+Makefile.am.common
