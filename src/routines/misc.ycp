@@ -1661,8 +1661,14 @@
       * And make the selected installation language default
       */
     global define boolean updateGfxMenu () {
+	if (SCR::Read (.target.size, "/boot/message") == -1)
+	    return true;
+	if (SCR::Read (.target.size, "/etc/sysconfig/bootsplash") == -1)
+	    return true;
 	// select the current language
 	string lang = (string)SCR::Read (.sysconfig.language.RC_LANG);
+	if (lang == nil)
+	    return true;
 	list<string> l = splitstring (lang, ".");
 	lang = l[0]:"";
 	y2milestone ("Default language for booting menu: %1", lang);
@@ -1670,6 +1676,11 @@
 	l = splitstring (lang, "_");
 	string lang_short = l[0]:"";
 	string boot_theme = (string)SCR::Read (.sysconfig.bootsplash.THEME);
+	if (boot_theme == nil)
+	{
+	    // check if theme is set
+	    return true;
+	}
 	string data_dir = sformat ("/etc/bootsplash/themes/%1/bootloader",
 	    boot_theme);
 	// get available languages, check if selected is supported
