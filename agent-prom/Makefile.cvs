@@ -6,10 +6,7 @@ configure: all
 	./configure
 
 all:
-	aclocal
-	autoconf
-	autoheader
-	automake -a
+	autoreconf --force --install
 
 install: configure
 	make
