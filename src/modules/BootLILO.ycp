@@ -331,8 +331,8 @@
 	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
 	string append = title == "failsafe"
 	    ? "ide=nodma apm=off acpi=off vga=normal "
-	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp noapic ")
-	      + "maxcpus=0 3"
+	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp noapic maxcpus=0 ")
+	      + "3"
 	    : sformat ("%1 splash=silent", Kernel::cmdLine);
 	string root = BootCommon::dev2majminIfNonStandard (
             BootCommon::RootPartitionDevice);

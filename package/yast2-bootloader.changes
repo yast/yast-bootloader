@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep 12 08:17:22 CEST 2003 - jsrain@suse.de
+
+- not adding maxcpus=0 to failsafe kernel parameters on AMD64
+  (#30519)
+
+-------------------------------------------------------------------
 Thu Sep 11 12:46:41 CEST 2003 - jsrain@suse.de
 
 - removed forgotten debug code (#30396)
