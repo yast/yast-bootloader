@@ -72,11 +72,13 @@
 	    integer index = BootCommon::getSectionIndex (section);
 	    if (index != nil)
 	    {
+y2error ("Before mod: %1", BootCommon::sections[index]:[]);
 		BootCommon::sections[index] = modifySection (
 		    BootCommon::sections[index]:[],
 		    key,
 		    value
 		);
+y2error ("After mod: %1", BootCommon::sections[index]:[]);
 		return true;
 	    }
 	    else
@@ -194,9 +196,9 @@
 	"id"		: "bootloader",
 	// command line help text for Printer module
 	"help"		: _("Bootloader configuration module."),
-	"guihandler"	: ``(GuiHandler ()),
-	"initialize"	: ``(Bootloader::Read()),
-	"finish"	: ``(Bootloader::Write()),
+	"guihandler"	: GuiHandler,
+	"initialize"	: Bootloader::Read,
+	"finish"	: Bootloader::Write,
 	"actions"	: $[
 	    "summary"	: $[
 		"handler"	: BootloaderSummaryHandler,
@@ -260,8 +262,8 @@
 	i = i + 1;
     }
 
-//    boolean ret = CommandLineRun (cmdline);
-    boolean ret = GuiHandler ();
+    boolean ret = CommandLineRun (cmdline);
+//    boolean ret = GuiHandler ();
 /*
     Wizard::CreateDialog ();
 
