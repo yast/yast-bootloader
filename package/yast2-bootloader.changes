@@ -3,6 +3,7 @@ Mon Feb 23 12:39:36 CET 2004 - jsrain@suse.de
 
 - fixed used kernel image name on S390 (now using the one from
   Kernel.ycp) (#34735)
+- fixed kernel command line on S390 (#34734)
 
 -------------------------------------------------------------------
 Thu Feb 19 11:27:28 CET 2004 - jsrain@suse.de
