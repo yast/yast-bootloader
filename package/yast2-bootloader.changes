@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 10 17:32:18 CEST 2002 - lslezak@suse.cz
+
+- use lilo instead grub at update 
+- version 2.6.46
+
+-------------------------------------------------------------------
 Tue Sep 10 12:15:10 CEST 2002 - fehr@suse.de
 
 - fix root device detection of mk_lilo_conf

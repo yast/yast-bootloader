@@ -146,14 +146,13 @@
       * @param ask function Storage::UseLilo ()
       */
     global define void checkBootloader (boolean askStorage) ``{
-//y2error ("Ask: %1", askStorage);
+	y2milestone ("Ask: %1", askStorage);
 	LoaderType = SCR::Read (.probe.boot_arch);
-/*
-y2error ("LoaderType: %1", LoaderType);
-y2error ("Mode::Update: %1", Mode::update);
-y2error ("Mode::initial: %1", Mode::initial);
-y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
-*/
+
+	y2milestone ("LoaderType: %1", LoaderType);
+	y2milestone ("Mode::Update: %1", Mode::update);
+	y2milestone ("Mode::initial: %1", Mode::initial);
+
 	if (((LoaderType == "grub")
 	     || (LoaderType == "unknown"))		// hwinfo bug ?
 	    && (Mode::update || Mode::normal))
@@ -163,7 +162,7 @@ y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
 	    if (sysconfig == "grub" || sysconfig == "lilo")
 	        LoaderType = sysconfig;
 	    else if (LoaderType == "unknown")
-		LoaderType = "grub";
+		LoaderType = (Mode::update) ? "lilo" : "grub";
 	    y2milestone ("Bootloader update, using %1", LoaderType);
 	}
 //y2error ("Ask: %1", askStorage);
