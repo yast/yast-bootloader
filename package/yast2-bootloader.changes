@@ -1,7 +1,13 @@
 -------------------------------------------------------------------
+Mon Jul 12 14:27:25 CEST 2004 - jsrain@suse.cz
+
+- writing product name and version as section label to bootloader
+  menu (GRUB both text and graphical, lilo graphical) (#31250)
+
+-------------------------------------------------------------------
 Tue Jun 29 13:45:04 CEST 2004 - jsrain@suse.cz
 
-- added possibiliyt to install GRUB on MD device (the way that if
+- added possibility to install GRUB on MD device (the way that if
   any of the disks building MD is removed system still boots)
 - update zipl.conf before packages update on S390 (#40629)
 - added "barrier=off" to failsafe kernel command line on i386, IA64

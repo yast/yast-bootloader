@@ -27,6 +27,7 @@
     import "Mode";
     include "bootloader/routines/routines.ycp";
 
+    import "Product";
     import "Storage";
     import "StorageDevices";
     import "Report";
@@ -1636,6 +1637,22 @@
 	    if (size (filtered) > 15)
 		filtered = substring (filtered, 0, 15);
 	}
+	else if (contains (["linux", "failsafe", "previous"], orig))
+	{
+	    string product = sformat ("%1 %2", Product::name, Product::version);
+	    string prod_filtered = filterchars (product, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.");
+	    if (product == prod_filtered && product != " ")
+	    {
+		if (orig == "linux")
+		{
+		    filtered = prod_filtered;
+		}
+		else
+		{
+		    filtered = sformat ("%1 -- %2", filtered, prod_filtered);
+		}
+	    }
+	}
 	return filtered;
     }
 
@@ -1677,16 +1694,37 @@
 	    // please use diacritics here
             "previous" : _("_Previous Kernel"),
         ];
-	trans = filter (string k, string v, trans, {
+/*	trans = filter (string k, string v, trans, {
 	    if (substring (v, 0, 1) == "_")
 	    {
 		y2warning ("Translation %1 contains leading underscore", v);
 		return false;
 	    }
 	    return true;
+	});*/
+	trans = mapmap (string k, string v, trans, {
+	    if (substring (v, 0, 1) == "_")
+		v = substring (v, 1);
+	    return $[ k : v ];
 	});
 	map<string,string> ret = mapmap (string k, string v, trans, {
 	    string il1 = translateSectionTitle (k);
+	    if (contains (["linux", "failsafe", "previous"], k))
+	    {
+		string product
+		    = sformat ("%1 %2", Product::name, Product::version);
+		if (product != " ")
+		{
+		    if (k == "linux")
+		    {
+			v = product;
+		    }
+		    else
+		    {
+			v = sformat ("%1 (%2)", product, v);
+		    }
+		}
+	    }
 	    return $[il1 : v];
 	});
 	return ret;
@@ -1773,6 +1811,7 @@
       * And make the selected installation language default
       */
     global define boolean updateGfxMenu () {
+	y2milestone ("Updating GFX boot menu");
 	if (SCR::Read (.target.size, "/boot/message") == -1)
 	    return true;
 	if (SCR::Read (.target.size, "/etc/sysconfig/bootsplash") == -1)

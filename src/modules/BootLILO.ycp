@@ -371,10 +371,7 @@
       */
     global define boolean Save () ``{
 	// update graphical bootloaer menu
-	if (Mode::update || ! Mode::normal)
-	{
-	    BootCommon::updateGfxMenu ();
-	}
+	BootCommon::updateGfxMenu ();
 
 	SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
 	SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
