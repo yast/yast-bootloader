@@ -145,10 +145,8 @@
       * Restore settings of Target widget
       */
     global define void targetRead () ``{
-	UI::ChangeWidget (`id (`loc), `Value, tmp_store["loader_device"]:"");
-	y2debug ("tmp_store: %1", tmp_store);
-	UI::ChangeWidget (`id (`location), `CurrentButton,
-	    tmp_store["location"]:"");
+	UI::ChangeWidget (`id (`loc), `Value, loader_device);
+	UI::ChangeWidget (`id (`location), `CurrentButton, location);
 	UI::SetFocus (`id (`loc));
     }
 
@@ -161,11 +159,10 @@
     global define any targetWrite (any op, list tosave) ``{
 	if (! contains (tosave, op))
 	    return;
-	tmp_store["location"]
-	    = UI::QueryWidget (`id (`location), `CurrentButton);
-	tmp_store["loader_device"] = UI::QueryWidget (`id (`loc), `Value);
+	location = UI::QueryWidget (`id (`location), `CurrentButton);
+	loader_device = UI::QueryWidget (`id (`loc), `Value);
 	BootCommon::storeSettings ();
-	tmp_store["loader_device"] = BootCommon::GetBootloaderDevice ();
+	loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::location_changed = true;
 	return;
     }
@@ -242,7 +239,7 @@
       * Restore function of widget
       */
     global define void restorePasswdWidget () ``{
-	string passwd = tmp_store["globals", "password"]:nil;
+	string passwd = current_globals["password"]:nil;
 	if (passwd == nil)
 	{
 	    UI::ChangeWidget (`id (`usepas), `Value, false);
@@ -282,13 +279,13 @@
 	    if (usepass)
 	    {
 		if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
-		    tmp_store["active_section", "password"]
+		    current_section["password"]
 		        = UI::QueryWidget (`id (`pw1), `Value);
 	    }
 	    else
 	    {
-		tmp_store["active_section"]
-		    = remove (tmp_store["active_section"]:$[], "password");
+		current_section
+		    = remove (current_section, "password");
 	    }
 	}
     }
@@ -320,7 +317,7 @@
       * @return string summary text
       */
     global define string getPasswdSummary () ``{
-	if (BootCommon::tmp_store["active_section", "password"]:nil != nil)
+	if (BootCommon::current_section["password"]:nil != nil)
 		// table cell
 	    return _("Password will be needed");
 	else
@@ -383,7 +380,7 @@
     global define void sectionsRedrawTable (list sects) ``{
 	list sec = maplist (map s, sects, ``{
             return `item (`id (s["label"]:""),
-                BootCommon::tmp_store["globals", "default"]:""
+                BootCommon::current_globals["default"]:""
 			== s["label"]:""
                     ? UI::Glyph (`CheckMark) : "",
                 s["label"]:"",
@@ -415,7 +412,7 @@
       * Restore function of widget
       */
     global define void sectionsRead () ``{
-	sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
+	sectionsRedrawTable (BootCommon::current_sections);
 	UI::SetFocus (`id (`sects));
     }
 
@@ -430,19 +427,19 @@
 	string current = UI::QueryWidget (`id (`sects), `CurrentItem);
 	integer counter = 0;
 	integer index = 0;
-	foreach (`s, BootCommon::tmp_store["sections"]:[], ``{
+	foreach (`s, BootCommon::current_sections, ``{
 	    if (s["label"]:"" == current)
 		index = counter;
 	    counter = counter + 1;
 	});
-	list sects = BootCommon::tmp_store["sections"]:[];
+	list sects = BootCommon::current_sections;
 	if (op == `up)
 	{
 	    if (index > 0)
 	    {
 		sects = swapItems(sects, index, index - 1);
 		index = index - 1;
-		BootCommon::tmp_store["sections"] = sects;
+		BootCommon::current_sections = sects;
 		sectionsRedrawTable (sects);
 		UI::ChangeWidget (`id (`sects), `CurrentItem,
 		    sects[index, "label"]:0);
@@ -455,7 +452,7 @@
 	    {
 		sects = swapItems(sects, index, index + 1);
                 index = index + 1;
-		BootCommon::tmp_store["sections"] = sects;
+		BootCommon::current_sections = sects;
 		sectionsRedrawTable (sects);
 		UI::ChangeWidget (`id (`sects), `CurrentItem,
 		    sects[index, "label"]:0);
@@ -464,46 +461,46 @@
 	}
 	else if (op == `default)
 	{
-	    BootCommon::tmp_store["globals", "default"] = current;
+	    BootCommon::current_globals["default"] = current;
 	    sectionsRedrawTable (sects);
 	    UI::ChangeWidget (`id (`sects), `CurrentItem, current);
 	    BootCommon::sections_changed = true;
 	}
 	else if (op == `add)
 	{
-	    BootCommon::tmp_store["active_section"] = $[
+	    BootCommon::current_section = $[
 		"image" : "",
 		"initrd" : "",
 		"root" : "",
 	    ];
-	    BootCommon::tmp_store["active_section_name"] = "";
-	    BootCommon::tmp_store["section_type"] = "image";
+	    BootCommon::current_section_name = "";
+	    BootCommon::current_section_type = "image";
 	    BootCommon::changed_settings[""] = $[];
 	    BootCommon::one_section_changed = true;
 	}
 	else if (op == `edit)
 	{
 	    y2milestone ("Editing title %1, index %2", current, index);
-	    BootCommon::tmp_store["active_section"] = eval (sects[index]:$[]);
-	    BootCommon::tmp_store["active_section_name"]
+	    BootCommon::current_section = eval (sects[index]:$[]);
+	    BootCommon::current_section_name
 		= sects[index, "label"]:"";
-	    BootCommon::tmp_store["section_type"]
+	    BootCommon::current_section_type
 		= sects[index, "image"]:"" == "" ? "other" : "image";
 
-	    BootCommon::tmp_store["changed_single_sect"]
+	    BootCommon::changed_settings_single_sect
 		= eval (BootCommon::changed_settings[sects[index, "label"]:""]:$[]);
-	    y2milestone ("Changed settings: %1", BootCommon::tmp_store["changed_single_sect"]:$[]);
+	    y2milestone ("Changed settings: %1", BootCommon::changed_settings_single_sect);
 	    BootCommon::one_section_changed = false;
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
 	    sects = remove (sects, index);
-	    if (current == BootCommon::tmp_store["globals", "default"]:"")
+	    if (current == BootCommon::current_globals["default"]:"")
 	    {
-		BootCommon::tmp_store["globals", "default"]
+		BootCommon::current_globals["default"]
 		    = sects[0, "label"]:"";
 	    }
-	    BootCommon::tmp_store["sections"] = sects;
+	    BootCommon::current_sections = sects;
 	    sectionsRedrawTable (sects);
 	    BootCommon::sections_changed = true;
 	}
@@ -518,7 +515,7 @@
 	if (op == `back)
 	{
 	    BootCommon::changed_settings
-		= eval (BootCommon::tmp_store["changed_all_sects"]:$[]);
+		= eval (BootCommon::changed_settings_all_sections);
 	    y2milestone ("Restoring changed to %1", BootCommon::changed_settings);
 	}
 	UI::SetFocus (`id (`sects));
@@ -608,7 +605,7 @@
       */
     global define list UpdateOptionsList (map _options) ``{
 	list options = maplist (`k, `v, _options, ``(k));
-	any type = BootCommon::tmp_store["section_type"]:"";
+	any type = BootCommon::current_section_type;
 	if (type == `global)
 	{
 	    options = filter (`o, options, ``(o != "boot" && o != "default"));
@@ -748,7 +745,7 @@
 	string key = BootCommon::getLoaderType (false) == "grub"
 	    ? "kernel" : "image";
         UI::ChangeWidget (`id (`section_type), `Value,
-	    BootCommon::tmp_store["active_section", key]:nil == nil
+	    BootCommon::current_section[key]:nil == nil
 		? "other"
 		: "image");
 	UI::SetFocus (`id (`section_type));
@@ -764,29 +761,29 @@
 	if (! contains (tosave, op))
 	    return;
         string ntype = UI::QueryWidget (`id (`section_type), `Value);
-	string otype = BootCommon::tmp_store["active_section", "image"]:nil == nil
+	string otype = BootCommon::current_section["image"]:nil == nil
 	    ? "other"
 	    : "image";
 	if (otype == ntype)
 	    return;
-	string label = BootCommon::tmp_store["active_section", "label"]:"";
+	string label = BootCommon::current_section["label"]:"";
 	if (ntype == "other")
 	{
-	    map tmp = BootCommon::tmp_store["active_section"]:$[];
-	    BootCommon::tmp_store["active_section"] = $["other":
+	    map tmp = eval (BootCommon::current_section);
+	    BootCommon::current_section = $["other":
 		select (BootCommon::splitPath (tmp["image"]:""), 0, "")];
 	}
 	else
 	{
-	    map tmp = BootCommon::tmp_store["active_section"]:$[];
-	    BootCommon::tmp_store["active_section"] = $[
+	    map tmp = eval (BootCommon::current_section);
+	    BootCommon::current_section = $[
 		"image" : "/boot/vmlinuz",
 		"root" : tmp["other"]:"",
 		"initrd" : "/boot/initrd",
 	    ];
 	}
-	BootCommon::tmp_store["active_section", "label"] = label;
-	BootCommon::tmp_store["section_type"] = ntype;
+	BootCommon::current_section["label"] = label;
+	BootCommon::current_section_type = ntype;
     }
 
     /**
@@ -796,7 +793,7 @@
     global define string sectionTypeSummary () ``{
 	string key = BootCommon::getLoaderType (false) == "grub"
 	    ? "kernel" : "image";
-	return BootCommon::tmp_store["active_section", key]:nil == nil
+	return BootCommon::current_section[key]:nil == nil
 	    ? "other"
 	    : "image";
     }
@@ -817,7 +814,7 @@
       * Restore function of widget
       */
     global define void timeoutRestore () ``{
-	integer timeout = BootCommon::tmp_store["active_section", "timeout"]:0;
+	integer timeout = BootCommon::current_section["timeout"]:0;
 	UI::ChangeWidget (`id (`value), `Value, timeout / 10);
 	UI::SetFocus (`id (`value));
     }
@@ -832,7 +829,7 @@
 	if (! contains (tosave, op))
 	    return op;
 	integer timeout = UI::QueryWidget (`id (`value), `Value) * 10;
-	BootCommon::tmp_store["active_section", "timeout"] = timeout;
+	BootCommon::current_section["timeout"] = timeout;
 	return op;
     }
 
@@ -841,7 +838,7 @@
       * @return string summary text
       */
     global define string timeoutSummary () ``{
-	integer timeout = BootCommon::tmp_store["active_section", "timeout"]:0;
+	integer timeout = BootCommon::current_section["timeout"]:0;
 	return sformat (_("%1 s"), timeout / 10);
     }
 
@@ -865,12 +862,12 @@
       */
     global define boolean labelValidate () ``{
 	list(string) existing = [];
-	foreach (`s, BootCommon::tmp_store["sections"]:[], ``{
+	foreach (`s, BootCommon::current_sections, ``{
 	    existing = add (existing, s["label"]:"");
 	    existing = add (existing, s["alias"]:"");
 	});
 	existing = filter (string l, existing,
-	    ``(l != BootCommon::tmp_store["active_section_name"]:""));
+	    ``(l != BootCommon::current_section_name));
 	existing = add (existing, "");
 	string new = UI::QueryWidget (`id (`value), `Value);
 
@@ -915,7 +912,7 @@
       * Restore function of widget
       */
     global define void replMbrRestore () ``{
-	UI::ChangeWidget (`id (`value), `Value, tmp_store["repl_mbr"]:false);
+	UI::ChangeWidget (`id (`value), `Value, repl_mbr);
 	UI::SetFocus (`id (`value));
     }
 
@@ -928,8 +925,8 @@
     global define any replMbrHandle (any op, list tosave) ``{
         if (! contains (tosave, op))
             return op;
-	tmp_store["repl_mbr"] = UI::QueryWidget (`id (`value), `Value);
-	if (tmp_store["repl_mbr"]:false)
+	repl_mbr = UI::QueryWidget (`id (`value), `Value);
+	if (repl_mbr)
 	    BootCommon::location_changed = true;
 	return op;
     }
@@ -939,7 +936,7 @@
       * @return string summary text
       */
     global define string replMbrSummary () ``{
-	if (tmp_store["repl_mbr"]:false)
+	if (repl_mbr)
 		// table item / label
 	    return _("Replace with Generic Code");
 	else
@@ -968,7 +965,7 @@
       * Restore function of widget
       */
     global define void activateRestore () ``{
-        UI::ChangeWidget (`id (`value), `Value, tmp_store["activate"]:false);
+        UI::ChangeWidget (`id (`value), `Value, activate);
 	UI::SetFocus (`id (`value));
     }
 
@@ -981,8 +978,8 @@
     global define any activateHandle (any op, list tosave) ``{
         if (! contains (tosave, op))
             return op;
-        tmp_store["activate"] = UI::QueryWidget (`id (`value), `Value);
-        if (tmp_store["activate"]:false)
+        activate = UI::QueryWidget (`id (`value), `Value);
+        if (activate)
             BootCommon::location_changed = true;
 
 	return op;
@@ -993,7 +990,7 @@
       * @return string summary text
       */
     global define string activateSummary () ``{
-        if (tmp_store["activate"]:false)
+        if (activate)
 		// table item
             return _("Yes");
         else
@@ -1015,8 +1012,8 @@
       * Delete function of widget
       */
     global define void deleteMessage () ``{
-	BootCommon::tmp_store["active_section"] = remove
-	    (BootCommon::tmp_store["active_section"]:$[], "__intern__");
+	BootCommon::current_section = remove
+	    (BootCommon::current_section, "__intern__");
     }
 
 } // include end
