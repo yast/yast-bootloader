@@ -20,6 +20,7 @@
 
     textdomain "bootloader";
 
+    import "Arch";
     import "BootCommon";
     import "Initrd";
     import "Kernel";
@@ -390,8 +391,10 @@
 	    BootCommon::location = "none";
 	}
 	y2milestone ("Saving configuration files");
-        SCR::Write (.sysconfig.bootloader.LOADER_TYPE,
-	    getLoaderType ());
+	string lt = getLoaderType ();
+	if (lt == "ppc" && Arch::ppc)
+	    lt = "lilo";
+        SCR::Write (.sysconfig.bootloader.LOADER_TYPE, lt);
         SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
             BootCommon::location);
 	SCR::Write (.sysconfig.bootloader, nil);

@@ -561,6 +561,8 @@ configuration files"));
 	    if (loader_type != nil && loader_type != "")
 	    {
 		y2milestone ("Sysconfig bootloader is %1, using", loader_type);
+		if (loader_type == "lilo" && Arch::ppc)
+		    loader_type = "ppc";
 		setCurrentLoaderAttribs (loader_type);
 		return loader_type;
 	    }
