@@ -456,6 +456,10 @@
     ``{
 	if (Mode::live_eval)
 	    return true;
+	y2milestone( "LoaderType %1", LoaderType );
+
+	if( Arch::s390 )
+	    LoaderType = "s390";
 
 	SCR::Execute (.target.bash, "touch /etc/sysconfig/bootloader");
 
