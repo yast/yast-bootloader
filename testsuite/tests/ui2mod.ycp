@@ -17,9 +17,7 @@
  */
 
 {
-    import "Pkg";
     include "testsuite.ycp";
-    import "Mode";
 
     map READ_I = $[
         "target" : $[
@@ -68,7 +66,10 @@
                     ],
                 ],
             ],
-        ]
+        ],
+	"lilo" : $[
+	    "opttypes" : $[],
+	],
     ];
     map WRITE_I = $[];
     map EXEC_I = $[
@@ -78,6 +79,8 @@
     ];
 
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
+    import "Pkg";
+    import "Mode";
     import "BootCommon";
     TESTSUITE_CLEAN ();
 
