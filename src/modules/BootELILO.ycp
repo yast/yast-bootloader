@@ -73,8 +73,8 @@ timeout=80
 read-only
 \n\n";
 
-	string rootdev = BootCommon::RootPartitionDevice;
-	integer root = BootCommon::dev2majmin (rootdev);
+	string root = BootCommon::RootPartitionDevice;
+	root = BootCommon::dev2majmin (root);
 	string initrd = "";
 	if (SCR::Read (.target.size, "/boot/initrd") != -1)
 	    initrd = "initrd=/initrd\n";
@@ -125,8 +125,9 @@ fi", efi_label));
 	map splited = Storage::GetDiskPartition (boot_dev);
 	any boot_part = splited["nr"]:0;
 	any boot_disk = splited["disk"]:"";
+	y2milestone ("Disk: %1, Part: %2", boot_disk, boot_part);
 
-	ret = 0 == SCR::Execute (.target.bash, sformat ("/usr/sbin/efibootmgr -c -L \"%1\" -d %2 -l \\efi\\SuSE\\elilo.efi -p %3 -q >> /var/log/YaST2/y2logefi 2>&1",
+	ret = 0 == SCR::Execute (.target.bash, sformat ("/usr/sbin/efibootmgr -c -L \"%1\" -d %2 -l \\efi\\SuSE\\elilo.efi -p %3 -q -w >> /var/log/YaST2/y2logefi 2>&1",
 	    efi_label, boot_disk, boot_part));
 
 	if (! ret)
