@@ -761,7 +761,8 @@
 	string to_remove = nil;
 	map part = Storage::GetEntryForMountpoint ("/");
 	string device = part["device"]:"";
-	if (Mode::initial && Storage::CheckForLvmRootFs ()
+	if (Mode::initial &&
+	    (Storage::CheckForLvmRootFs () || Storage::CheckForEvmsRootFs ())
 	    && SCR::Read (.target.stat, device) == $[])
 	{
 	    y2milestone ("Root node %1 not found on target", device);

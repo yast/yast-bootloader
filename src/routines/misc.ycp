@@ -1321,8 +1321,11 @@
     global define string dev2majminIfNonStandard (string device) ``{
 	// don't use major/minor numbers for LVM and MD (seems to be able
 	// to make system unbootable
-	if (Storage::CheckForLvmRootFs() || Storage::CheckForMdRootFs())
+	if (Storage::CheckForLvmRootFs() || Storage::CheckForEvmsRootFs ()
+	    || Storage::CheckForMdRootFs())
+	{
 	    return device;
+	}
 	if (regexpmatch (device, "^/dev/hd.+$")
 	    || regexpmatch (device, "^/dev/sd.+$")
 	    || regexpmatch (device, "^/dev/ataraid/.+$"))
