@@ -22,6 +22,8 @@
     import "BootCommon";
     import "BootGRUB";
 
+    include "bootloader/routines/routines.ycp";
+
     /**
       * Is conversion possible?
       * @param from string source settings format
@@ -34,111 +36,122 @@
 	 || (from == "grub" && to == "lilo")
 	)
 	    return true;
-
 	return false;
     }
 
     /**
       * Convert one section of bootloader cfg file from LILO format
       * to GRUB format
-      * @param section map of section settings in LILO format
-      * @return map of section settings in GRUB format
+      * @param section list of section settings in LILO format
+      * @return list of section settings in GRUB format
       */
-    global define map liloSect2grubSect (map section) ``{
-	map ret = $[];
-	ret["title"] = section["label"]:"";
-	if (section["other"]:"" != "")
+    global define list liloSect2grubSect (list section) ``{
+	list ret = [];
+	if (lookup_value (section, "other", "") != "")
 	{
-	    ret["root"] = BootGRUB::unixDev2grubDev (section["other"]:"");
-	    ret["chainloader"] = "+1";
-	    ret["makeactive"] = true;
-	    ret["__order__"] = ["title", "root", "makeactive", "chainloader"];
-	    ret["__order__"] = filter (`o, ret["__order__"]:[], ``(
-		ret[o]:"--invalid--" != "--invalid--"
-	    ));
+	    ret = [
+		$[ "key" : "root",
+		   "value" : BootGRUB::unixDev2grubDev (
+			lookup_value (section, "other", ""))],
+		$[ "key" : "chainloader", "value" : "+1"],
+		$[ "key" : "makeactive", "value" : true],
+	    ];
 	}
 	else
 	{
-	    if (section["initrd"]:"" != "")
-		ret["initrd"] = BootGRUB::file2grub (section["initrd"]:"");
-	    ret["kernel"] = sformat ("%1 %2 %3 %4",
-		BootGRUB::file2grub (section["image"]:""),
-		section["root"]:"" != ""
-		    ? sformat ("root=%1", section["root"]:"")
+	    string root = lookup_value (section, "root", "");
+	    string vga = lookup_value (section, "vga", "");
+	    ret = add (ret, $[ "key" : "kernel",
+			       "value" : sformat ("%1 %2 %3 %4",
+		BootGRUB::file2grub (lookup_value (section, "image", "")),
+		root != ""
+		    ? sformat ("root=%1", root)
 		    : "",
-		section["vga"]:"" != ""
-		    ? sformat ("vga=%1", section["vga"]:"")
+		vga != ""
+		    ? sformat ("vga=%1", vga)
 		    : "",
-		section["append"]:""
-	    );
-	   ret["__order__"] = ["title", "kernel", "initrd"];
-           ret["__order__"] = filter (`o, ret["__order__"]:[], ``(
-               ret[o]:"--invalid--" != "--invalid--"
-           ));
-
+		lookup_value (section, "append", "")
+	    )]);
+            string initrd = lookup_value (section, "initrd", "");
+            if (initrd != "")
+            {
+                ret = add (ret,
+                     $[ "key" : "initrd",
+                        "value" : BootGRUB::file2grub (initrd)]);
+            }
 	}
+	ret = prepend (ret, $["key" : "title",
+	    "value" : lookup_value (section, "label", "")]);
 	return ret;
     }
 
     /**
       * Convert one section of bootloader cfg file from GRUB format
       * to LILO format
-      * @param section map of section settings in GRUB format
-      * @return map of section settings in LILO format
+      * @param section list of section settings in GRUB format
+      * @return list of section settings in LILO format
       */
-    global define map grubSect2liloSect (map section) ``{
-	map ret= $[];
-	ret["label"] = section["title"]:"";
-	if (section["kernel"]:"" == "")
+    global define list grubSect2liloSect (list section) ``{
+	string chainloader = lookup_value (section, "chainloader", "+1");
+	if (issubstring (chainloader, "/")) // means file, eg. saved MBR
+	    return [];
+	list ret= [$["key" : "label",
+		     "value" : lookup_value (section, "title", "")]];
+	if (lookup_value (section, "kernel", "") == "")
 	{
-	    ret["other"] = BootGRUB::grubDev2unixDev (section["root"]:"");
+	    ret = appendValue (ret, "other", BootGRUB::grubDev2unixDev (
+		lookup_value (section, "root", "")));
 	}
 	else
 	{
-	    if (section["initrd"]:"" != "")
-		ret["initrd"] = BootGRUB::grub2file (section["initrd"]:"");
-	    ret["optional"] = true;
-	    ret["root"] = BootCommon::getKernelParamFromLine
-		(section["kernel"]:"", "root");
+	    string cmdline = lookup_value (section, "kernel", "");
+	    if (lookup_value (section, "initrd", "") != "")
+		ret = appendValue (ret, "initrd", BootGRUB::grub2file (
+		    lookup_value (section, "initrd", "")));
+	    ret = appendValue (ret, "optional", true);
+	    ret = appendValue (ret, "root", BootCommon::getKernelParamFromLine
+		(cmdline, "root"));
 	    string vga = BootCommon::getKernelParamFromLine
-                (section["kernel"]:"", "vga");
+                (cmdline, "vga");
 	    if (vga != "false")
-		ret["vga"] = vga;
-	    list(string) kline = splitstring (section["kernel"]:"", " ");
+		ret = appendValue (ret, "vga", vga);
+	    list(string) kline = splitstring (cmdline, " ");
 	    kline = filter (string e, kline, ``(e != ""));
-	    ret["image"] = BootGRUB::grub2file (kline[0]:"");
+	    ret = appendValue (ret, "image", BootGRUB::grub2file (kline[0]:""));
 	    kline = remove (kline, 0);
 	    kline = filter (string e, kline, ``(
 		substring (e, 0, 4) != "vga=" && substring (e, 0, 5) != "root="
 	    ));
-	    ret["append"] = mergestring (kline, " ");
+	    ret = appendValue (ret, "append", mergestring (kline, " "));
 	}
-	if (issubstring (ret["other"]:"", "/dev/fd"))
-	    return $[];
+	if (issubstring (lookup_value (ret, "other", ""), "/dev/fd"))
+	    return [];
 	return ret;
     }
 
     /**
       * Convert global section of bootloader cfg file from LILO format
       * to GRUB format
-      * @param globs map of global settings in LILO format
-      * @return map of global settings in GRUB format
+      * @param globs list of global settings in LILO format
+      * @return list of global settings in GRUB format
       */
-    global define map liloGlob2grubGlob (map globs) ``{
-	map ret = $[];
-	if (globs["message"]:"" != "")
-	    ret["gfxmenu"] = BootGRUB::file2grub (globs["message"]:"");
-	if (globs["timeout"]:0 != 0)
-	    ret["timeout"] = (globs["timeout"]:0)/10;
-	if (globs["prompt"]:"" == "")
-	    ret["hiddenmenu"] = true;
+    global define list liloGlob2grubGlob (list globs) ``{
+	list ret = [];
+	if (lookup_value (globs, "message", "") != "")
+	    ret = appendValue (ret, "gfxmenu",
+		BootGRUB::file2grub (lookup_value (globs, "message", "")));
+	if (lookup_value (globs, "timeout", 0) != 0)
+	    ret = appendValue (ret, "timeout",
+		(lookup_value (globs, "timeout", 0))/10);
+	if (lookup_value (globs, "prompt", "") == "")
+	    ret = appendValue (ret, "hiddenmenu", true);
 	else
-	    ret["hiddenmenu"] = false;
-	string def = globs["default"]:"";
+	    ret = appendValue (ret, "hiddenmenu", false);
+	string def = lookup_value (globs, "default", "");
 	integer count = 0;
 	foreach (`e, BootCommon::sections, ``{
-	    if (e["title"]:"" == def)
-		ret["default"] = count;
+	    if (lookup_value (e, "title", "") == def)
+		 ret = appendValue (ret, "default", count);
 	    count = count + 1;
 	});
 	return ret;
@@ -147,23 +160,26 @@
     /**
       * Convert global section of bootloader cfg file from GRUB format
       * to LILO format
-      * @param globs map of global settings in GRUB format
-      * @return map of global settings in LILO format
+      * @param globs list of global settings in GRUB format
+      * @return list of global settings in LILO format
       */
-    global define map grubGlob2liloGlob (map globs) ``{
-	map ret = $[];
-	if (globs["gfxmenu"]:"" != "")
-	    ret["message"] = BootGRUB::grub2file (globs["gfxmenu"]:"");
-        if (globs["timeout"]:0 != 0)
-            ret["timeout"] = (globs["timeout"]:0)*10;
-	if (globs["hiddenmenu"]:"" == "")
-	    ret["prompt"] = true;
+    global define list grubGlob2liloGlob (list globs) ``{
+	list ret = [];
+	if (lookup_value (globs, "gfxmenu", "") != "")
+	    ret = appendValue (ret, "message", BootGRUB::grub2file (
+		lookup_value (globs, "gfxmenu", "")));
+        if (lookup_value (globs, "timeout", 0) != 0)
+            ret = appendValue (ret, "timeout",
+		(lookup_value (globs, "timeout", 0))*10);
+	if (lookup_value (globs, "hiddenmenu", "") == "")
+	    ret = appendValue (ret, "prompt", true);
 	else
-	    ret["prompt"] = false;
-	integer count = globs["default"]:0;
+	    ret = appendValue (ret, "prompt", false);
+	integer count = lookup_value (globs, "default", 0);
 	foreach (`e, BootCommon::sections, ``{
 	    if (count == 0)
-		ret["default"] = e["label"]:"";
+		ret = appendValue (ret, "default",
+		    lookup_value (e, "label", ""));
 	    count = count - 1;
 	});
 	return ret;
@@ -187,7 +203,7 @@
 		return liloSect2grubSect (s);
 	    });
 	    BootCommon::sections = filter (`s, BootCommon::sections, ``(
-		s != $[]
+		s != []
 	    ));
 	    BootCommon::globals = liloGlob2grubGlob (BootCommon::globals);
 	}
@@ -198,7 +214,7 @@
 		return grubSect2liloSect (s);
 	    });
             BootCommon::sections = filter (`s, BootCommon::sections, ``(
-                s != $[]
+                s != []
             ));
 	    BootCommon::globals = grubGlob2liloGlob (BootCommon::globals);
 	}

@@ -30,6 +30,7 @@
     include "bootloader/lilo/widgets.ycp";
     include "bootloader/lilo/helps.ycp";
     include "bootloader/routines/popups.ycp";
+    include "bootloader/routines/routines.ycp";
 
 // private variables
 
@@ -64,6 +65,7 @@
 	    "read" : true,
 	    "scratch" : true,
 	    "restore_mbr" : true,
+	    "key_only_once" : true,
 	];
     }
 
@@ -137,7 +139,8 @@
 
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
 	y2milestone ("Proposed globals: %1", BootCommon::globals);
-	BootCommon::globals["boot"] = BootCommon::loader_device;
+	BootCommon::addValueToBootloaderSection (
+	    `globals, "boot", BootCommon::loader_device);
 	BootCommon::saveCfgFileToAgent ();
     }
 
@@ -150,9 +153,12 @@
 	boolean ret = BootCommon::Read ();
 	BootCommon::loader_device
 	    = SCR::Read(BootCommon::list2path(["lilo", "boot"]));
-	if (BootCommon::globals["default"]:"" == "")
-	    BootCommon::globals["default"]
-		= BootCommon::sections[0, "label"]:"";
+	if (lookup_value (BootCommon::globals, "default", "") == "")
+	{
+	    BootCommon::addValueToBootloaderSection (`globals, "default",
+		lookup_value (BootCommon::sections[0]:[],
+		 "label", ""));
+	}
 	return ret;
     }
 
@@ -256,20 +262,20 @@
       * @param title strign section title (linux, failsafe, memtest)
       * @return section description structure
       */
-    global define map createLinuxSection (string title) ``{
+    global define list createLinuxSection (string title) ``{
 	if (title == "memtest86")
 	{
           if ((Mode::normal && Pkg::IsProvided ("memtest86"))
                 || ((! Mode::normal)))// && Pkg::IsSelected ("memtest86")))
 	  {
-	    return $[
-		"image" : "/boot/memtest.bin",
-		"label" : "memtest86",
-		"__intern__" : $[
+	    return [
+		$[ "key" : "image", "value" : "/boot/memtest.bin"],
+		$[ "key" : "label", "value" : "memtest86"],
+		$[ "key" : "__intern__", "value" : $[
 		    "auto" : true,
 		    "changed" : false,
 		    "devs" : [],
-		],
+		]],
 	    ];
 	  }
 	  else
@@ -282,20 +288,20 @@
 	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp noapic ")
 	      + "maxcpus=0 3"
 	    : sformat ("%1 splash=silent", Kernel::cmdLine);
-	map ret = $[
-	    "label" : title,
-	    "image" : "/boot/" + image,
-	    "initrd" : "/boot/" + initrd,
-	    "root" : BootCommon::RootPartitionDevice,
-	    "append" : append,
-	    "__intern__" : $[
+	list ret = [
+	    $[ "key" : "label", "value" : title],
+	    $[ "key" : "image", "value" : "/boot/" + image],
+	    $[ "key" : "initrd", "value" : "/boot/" + initrd],
+	    $[ "key" : "root", "value" : BootCommon::RootPartitionDevice],
+	    $[ "key" : "append", "value" : append],
+	    $[ "key" : "__intern__", "value" : $[
 		"auto" : true,
 		"changed" : false,
 		"devs" : [BootCommon::RootPartitionDevice]
-	    ],
+	    ]],
 	];
-	if (Kernel::vgaType != "")
-	    ret["vga"] = Kernel::vgaType;
+	if (Kernel::vgaType != "" && title != "failsafe")
+	    ret = add (ret, $["key" : "vga", "value" : Kernel::vgaType]);
 	return ret;
     }
 
@@ -324,14 +330,15 @@
 		    if (dev != "" && label != ""
 			&& dev != BootCommon::loader_device)
 		    {
-			map m = $[
-			    "label" : BootCommon::removeBlanks (label),
-			    "other" : dev,
-			    "__intern__" : $[
+			list m = [
+			    $["key" : "label",
+				"value" : BootCommon::removeBlanks (label)],
+			    $[ "key" : "other", "value" : dev],
+			    $[ "key" : "__intern__", "value" : $[
 				"auto" : true,
 				"changed" : false,
 				"devs" : [dev],
-			    ],
+			    ]],
 			];
 			out = add (out, m);
 		    }
@@ -349,16 +356,18 @@
       * modifies internal structures
       */
     global define void createGlobals () ``{
-	map bcg = $[];
-	bcg["menu-scheme"] = "Wg:kw:Wg:Wg";
-	bcg["default"] = "linux";
-	bcg["timeout"] = 80;
-	bcg["message"] = "/boot/message";
 	list internal_bios = SCR::Read (.probe.bios);
-	bcg["lba32"] = internal_bios[0, "lba_support"]:false;
-	bcg["change-rules"] = "change-rules,reset";
-	bcg["read-only"] = true;
-	bcg["prompt"] = true;
+	list bcg = [
+	    $[ "key" : "menu-scheme", "value" : "Wb:kw:Wb:Wb"],
+	    $[ "key" : "default", "value" : "linux"],
+	    $[ "key" : "timeout", "value" : 80],
+	    $[ "key" : "message", "value" : "/boot/message"],
+	    $[ "key" : "lba32",
+	       "value" : internal_bios[0, "lba_support"]:false],
+	    $[ "key" : "change-rules", "value" : "change-rules,reset"],
+	    $[ "key" : "read-only", "value" :  true],
+	    $[ "key" : "prompt", "value" : true],
+	];
 	if (Storage::DiskmapNeeded())
 	{
 	    string order = "";
@@ -375,7 +384,7 @@
 		}
 	    });
 	    if (order != "")
-		bcg["disk"] = order;
+		bcg = add (bcg, $[ "key" : "disk", "value" : order]);
 	}
 	BootCommon::globals = bcg;
     }
@@ -389,10 +398,10 @@
 	list out = BootCommon::sections;
 
 	foreach (`t, ["linux", "failsafe", "memtest86"], ``{
-	    map m = createLinuxSection (t);
+	    list m = createLinuxSection (t);
 	    boolean changed = false;
 	    list out = maplist (`s, out, ``{
-		if (s["title"]:"" == m["title"]:"")
+		if (lookup_value (s, "label", "") == t)
 		{
 		    changed = true;
 		    if (replace)
@@ -419,11 +428,15 @@
       * modifies internal sreuctures
       */
     global define void updateGlobals () ``{
-        map bcg = BootCommon::globals;
-        bcg["menu-scheme"] = "Wg:kw:Wg:Wg";
-        bcg["timeout"] = 80;
-	bcg["message"] = "/boot/message";
-        BootCommon::globals = bcg;
+	BootCommon::globals = maplist (`e, BootCommon::globals, ``{
+	    if (e["key"]:"" == "menu-scheme")
+		e["value"] = "Wb:kw:Wb:Wb";
+	    else if (e["key"]:"" == "timeout")
+		e["value"] = 80;
+	    else if (e["key"]:"" == "message")
+		e["value"] = "/boot/message";
+	    return e;
+	});
     }
 
     /**
@@ -445,39 +458,42 @@
 	list(map) old_sect_list = BootCommon::sections;
 	createSections ();
 	map old_sect = listmap (`s, old_sect_list, ``{
-	    return [s["label"]:"", s];
+	    return [lookup_value (s, "label", ""), s];
 	});
 	map new_sect = listmap (`s, BootCommon::sections, ``{
-	    return [s["label"]:"", s];
+	    return [lookup_value (s, "label", ""), s];
 	});
 	old_sect_list = maplist (`s, old_sect_list, ``{
-	    string label = s["label"]:"";
-	    if (! s["__intern__", "auto"]:false)
+	    string label = lookup_value (s, "label", "");
+	    map intern = lookup_value (s, "__intern__", $[]);
+	    if (! intern["auto"]:false)
 	    {
 		y2milestone ("Leaving section %1", label);
 		return s;
 	    }
-	    else if (! s["__intern__", "changed"]:false)
+	    else if (! intern["changed"]:false)
 	    {
 		y2milestone ("Recreating section %1", label);
-		return new_sect[label]:$[];
+		return new_sect[label]:[];
 	    }
 	    else
 	    {
 		y2milestone ("Warning on section %1", label);
 		boolean cont = true;
-                if (s["label"]:"" != "linux" && s["label"]:"" != "failsafe"
-                    && s["label"]:"" != "memtest86")
+                if (label != "linux" && label != "failsafe"
+                    && label != "memtest86")
 		{
-		    foreach (`n, s["__intern__", "devs"]:[], ``{
+		    foreach (`n, intern["devs"]:[], ``{
 		        if (! contains (parts, n))
 		        {
 			    cont = false;
 		        }
 		    });
 		}
-                list new_devs = toset(new_sect[title, "__intern__", "devs"]:[]);
-                list old_devs = toset(s["__intern__", "devs"]:[]);
+                list new_this_section = new_sect[label]:"";
+                map new_this_intern = lookup_value (
+                    new_this_section, "__intern__", $[]);
+		list old_devs = toset(intern["devs"]:[]);
                 if (size (new_devs) != size (old_devs))
                     cont = false;
                 else
@@ -488,15 +504,17 @@
                     });
                 }
 		if (! cont)
-		    displayDiskChangePopup (s["label"]:"");
+		    displayDiskChangePopup (label);
 		return s;
 	    }
 	});
 	y2milestone ("Checking for sections needing some of %1", del_parts);
 	list(string) to_remove = [];
 	foreach (`s, BootCommon::sections, ``{
-	    list(string) devs = s["__intern__", "devs"]:[];
-	    y2milestone ("Section %1 needs %2", s["label"]:"", devs);
+	    map intern = lookup_value (s, "__intern__", $[]);
+	    list(string) devs = intern["devs"]:[];
+	    string label = lookup_value (s, "label", "");
+	    y2milestone ("Section %1 needs %2", label, devs);
 	    boolean to_add = false;
 	    foreach (string d, devs, ``{
 		if (contains (del_parts, d))
@@ -507,11 +525,10 @@
 	    if (to_add)
 	    {
 		map old_sect = listmap (`s, old_sect_list, ``{
-		    return [s["label"]:"", s];
+		    return [label, s];
 		});
 
-		string title = s["label"]:"";
-		if (title != "" && ! haskey(old_sect, title))
+		if (label != "" && ! haskey(old_sect, label))
 		{
 		    y2milestone ("Adding %1", s);
 		    to_remove = add (to_remove, d);
@@ -520,7 +537,7 @@
 	    }
 	});
 	del_parts = BootCommon::difflist (del_parts, to_remove);
-	old_sect_list = filter (`s, old_sect_list, ``(s != $[]));
+	old_sect_list = filter (`s, old_sect_list, ``(s != []));
 	BootCommon::sections = old_sect_list;
     }
 
@@ -531,38 +548,24 @@
       *   relevant disk locations have changed
       */
     global define void fixGlobals (boolean disks_changed) ``{
-	if (BootCommon::globals["default"]:"" != "")
+	string default = lookup_value (BootCommon::globals, "default", "");
+	string first = "";
+	if (default != "")
 	{
 	    boolean exists = false;
 	    foreach (`s, BootCommon::sections, ``{
-		if (s["label"]:"" == BootCommon::globals["default"]:"")
+		string label = lookup_value (s, "label", "");
+
+
+		if (label == default)
 		    exists = true;
+		if (first == "")
+		    first = label;
 	    });
 	    if (! exists)
-		BootCommon::globals["default"]
-		    = BootCommon::sections[0, "label"]:"";
+		BootCommon::addValueToBootloaderSection (
+		    `globals, "default", first);
 	}
-// not needed here, because DiskmapNeeded return value doesn't change
-// during installation proposal
-// additionally,this replaced changed user's settings
-/*        if (Storage::DiskmapNeeded())
-        {
-            string order = "";
-            // check if bios_id is given for a target
-            map targetMap = Storage::GetTargetMap();
-            foreach (`target_dev, `target, targetMap, ``{
-                string bios_id = target["bios_id"]:"";
-                if (bios_id != "")
-                {
-                    if (order != "")
-                        order = order + ",";
-                    order = order + sformat ("disk=%1,bios=%2", target_dev,
-                        bios_id);
-                }
-            });
-            if (order != "")
-                BootCommon::globals["disk"] = order;
-        }*/
     }
 
     /**
@@ -570,7 +573,8 @@
       * @return map filename -> contents
       */
     global define map GetFiles() ``{
-	BootCommon::globals["boot"] = BootCommon::loader_device;
+	BootCommon::addValueToBootloaderSection (
+	    `globals, "boot", BootCommon::loader_device);
         BootCommon::saveCfgFileToAgent ();
         return $[
             "/etc/lilo.conf" : SCR::Read (.lilo.tostring),
@@ -586,9 +590,9 @@
 	    BootCommon::files_edited = true;
         SCR::Write (.lilo.fromstring, files["/etc/lilo.conf"]:"");
         BootCommon::loadCfgFileFromAgent ();
-	if (BootCommon::globals["boot"]:"" != BootCommon::loader_device)
+	if (lookup_value (BootCommon::globals, "boot", "") != BootCommon::loader_device)
 	    BootCommon::location = "custom";
-	BootCommon::loader_device = BootCommon::globals["boot"]:"";
+	BootCommon::loader_device = lookup_value (BootCommon::globals, "boot", "");
     }
 
     /**

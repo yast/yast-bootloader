@@ -25,6 +25,7 @@
 
     textdomain "bootloader";
     import "Mode";
+    include "bootloader/routines/routines.ycp";
 
 
 // bootloader attributes handling functions
@@ -122,8 +123,8 @@
       * @param attrib string attribute name
       * @return any value of attribute
       */
-    global define any getAnyTypeAttrib (string attrib) ``{
-        return current_bootloader_attribs[attrib]:false;
+    global define any getAnyTypeAttrib (string attrib, any default) ``{
+        return current_bootloader_attribs[attrib]:default;
     }
 
 
@@ -159,18 +160,78 @@
       * @param section map of the section
       * @return any section type
       */
-    global define any getSectionType (map section) ``{
+    global define any getSectionType (list section) ``{
 	if (is (current_section_name, symbol))
 	    return current_section_name;
 // TODO: ask bootloader-specific function if exists
-	if (haskey (current_section, getKernelKey ()))
+	if (lookup_value (current_section, getKernelKey (),
+	    nil) != nil)
+	{
 	    return "image";
+	}
 	else
+	{
 	    return "other";
+	}
     }
 
 
 // other misc functions
+
+    /**
+      * Add value to key in bootloader section
+      * @parma s_section symbol representing section, values are
+      *  `globals, `current_globals, `current_section
+      * @param section list of section to be changed
+      * @param key string key of requested parameter
+      * @param value any value to be set, nil for remiving key
+      */
+    global define void addValueToBootloaderSection (symbol s_section,
+	string key, any value)
+    ``{
+	boolean found = false;
+	list section = [];
+	if (s_section == `globals)
+	    section = globals;
+	else if (s_section == `current_globals)
+	    section = current_globals;
+	else if (s_section == `current_section)
+	    section = current_section;
+	else
+	{
+	    y2error ("Incorrect parameter for addValueToBootloaderSection");
+	    section = [];
+	}
+
+	section = filter (`cc,
+	    maplist (`c, section, ``{
+		if (c["key"]:"" == key)
+		{
+		    found = true;
+		    if (value == nil)
+			return nil;
+		    else
+		    {
+			c["value"] = value;
+			return c;
+		    }
+		}
+		return c;
+	    }), ``(cc != nil && cc["value"]:"" != nil)
+	);
+	if (! found)
+	{
+	    section = add (section, $[ "key" : key, "value" : value]);
+	}
+
+        if (s_section == `globals)
+            globals = section;
+        else if (s_section == `current_globals)
+            current_globals = section;
+        else if (s_section == `current_section)
+            current_section = section;
+    }
+
 
     /**
       * Generates unused section label for new section
@@ -180,9 +241,11 @@
 	integer index = 1;
 	list(string) existing = [];
         foreach (`s, BootCommon::sections, ``{
-            existing = add (existing, s[getSectionTitle ()]:"");
+            existing = add (existing, lookup_value (
+		s, getSectionTitle (), ""));
             foreach (`a, aliases, ``{
-                existing = add (existing, s[a]:"");
+                existing = add (existing, lookup_value (
+		    s, a, ""));
             });
         });
 	while (true)
@@ -360,34 +423,17 @@
             p = list2path([bl, "sections" , section]);
         }
 
-        list optlist = SCR::Dir(p);
-
-        if (type == "")
-        {
-            optlist = filter(`e, optlist, ``(e != "sections"));
-        }
-
-        any value = "";
-        map retval = $["__order__" : optlist];
-
-        // read global options and create map to be stored in settings
-
-        list option = [];
-
-        foreach(`e, optlist,
-        ``{
-            value = mod2ui(SCR::Read(add(p, e)));
-            if (isSpecial(e))
-                retval = add(retval, e, mergestring(SCR::Read(add(p, e)), ","));
-            else if (lookup(opttypes(), e, "") == "b")
-		retval = add(retval, e, tobool (value));
-	    else if (lookup(opttypes(), e, "") == "i")
-		retval = add(retval, e, tointeger (value));
-	    else
-                retval = add(retval, e, sformat("%1", value));
-        });
-
-        return retval;
+	list options = SCR::Read (p);
+	options = maplist (`o, options, ``{
+	    string key = o["key"]:"";
+	    any value = mod2ui (o["value"]:"");
+	    if (isSpecial (key))
+		value = mergestring (splitstring (value, "\n"), ",");
+	    o["value"] = value;
+	    return o;
+	});
+	y2debug ("Result of section options: %1", options);
+	return options;
     }
 
     /**
@@ -669,24 +715,30 @@
     global define string getDefaultSection () ``{
 	if (getDefaultType () == `label)
 	{
-	    string default = globals[getDefaultKey ()]:"";
+	    string default = lookup_value (globals,
+		getDefaultKey (), "");
 	    boolean exists = false;
 	    foreach (`s, sections, ``{
-		if (s[getSectionTitle ()]:"" == default)
+		if (lookup_value (s, getSectionTitle (), "")
+		    == default)
+		{
 		    exists = true;
+		}
 	    });
 	    if (exists)
 		return default;
 	    else
-		return sections[0, getSectionTitle ()]:"";
+	    {
+		return lookup_value (sections[0]:[], getSectionTitle (), "");
+	    }
 	}
 	else
 	{
-	    integer index = globals[getDefaultKey ()]:0
-		- getDefaultFirstIndex ();
+	    integer index = lookup_value (globals,
+		getDefaultKey (), 0) - getDefaultFirstIndex ();
 	    if (index < 0 || index >= size (sections))
 		index = 0;
-	    return sections[index, getSectionTitle ()]:"";
+	    return lookup_value (sections[index]:[], getSectionTitle (), "");
 	}
     }
 
@@ -767,109 +819,44 @@
 	string bl = getLoaderType (false);
 	if (bl == "s390")
 	    bl = "zipl";
+	// first synchronize global settings
+	list options = maplist (`o, globals, ``{
+	    string key = o["key"]:"";
+	    any value = mod2ui (o["value"]:"");
+	    if (isSpecial (key))
+		value = mergestring (splitstring (value, ","), "\n");
+	    o["value"] = value;
+	    if (key == "__intern__")
+		return nil;
+	    return o;
+	});
+	options = filter (`o, options, ``(o != nil));
+	SCR::Write (list2path ([bl]), options);
 
-        // first synchronize global settings
+	// now remove all sections
+	list sects = SCR::Dir(list2path([bl, "sections"]));
+	foreach(`sect, sects, ``{
+	    SCR::Write(list2path([bl, "sections", sect]), nil);
+	});
 
-	map glob_backup = globals;
-	list sect_backup = sections;
-        list global_order = lookup (globals, "__order__", []);
-        globals = filter (`k, `v, globals, ``(k != "__order__"));
-	globals = filter (`k, `v, globals,
-	    ``(k != "__intern__"));
-        global_order = filter (`e, global_order, ``(haskey (globals, e)));
-        list globs1 = SCR::Dir(list2path([bl]));
-        list globs2 = maplist(`e, `f, globals, ``(e));
-        list diff = difflist(globs1, globs2);
-        diff = difflist(diff, ["sections"]);
-
-        // remove options that has disappeared
-        foreach(`e, diff, ``{SCR::Write(list2path([bl, e]), nil);});
-
-        // write values
-        if (global_order != [])
-        {
-            integer index = 0;
-            foreach (`e, global_order, ``{
-                if (isSpecial(e))
-                {
-                    SCR::Write(list2path([bl, e]),
-                        splitstring(lookup (globals, e, ""), ","), index);
-                }
-                else
-                {
-                    SCR::Write(list2path([bl, e]),
-                        ui2mod(lookup (globals, e, "")), index);
-                }
-                index = index + 1;
-                globals = filter (`k, `v, globals, ``(k != e));
-            });
-        };
-        foreach(`e, `f, globals, ``{
-            if (isSpecial(e))
-            {
-                SCR::Write(list2path([bl, e]), splitstring(f, ","));
-            }
-            else
-            {
-                SCR::Write(list2path([bl, e]), ui2mod(f));
-            }
+	// now write new sections
+	foreach (`s, sections, ``{
+	    string title = "";
+	    options = maplist (`o, s, ``{
+		string key = o["key"]:"";
+		any value = mod2ui (o["value"]:"");
+		if (key == getSectionTitle ())
+		    title = value;
+		if (isSpecial (key))
+		    value = mergestring (splitstring (value, ","), "\n");
+		o["value"] = value;
+		if (key == "__intern__")
+		    return nil;
+		return o;
+	    });
+	    options = filter (`o, options, ``(o != nil));
+	    SCR::Write (list2path ([bl, "sections", title]), options);
         });
-
-        // now remove all sections
-        list sects = SCR::Dir(list2path([bl, "sections"]));
-        foreach(`sect, sects, ``{
-           SCR::Write(list2path([bl, "sections", sect]), nil);
-        });
-        string sname = "";
-        // now write new sections
-        foreach(`sect, sections,
-        ``{
-            sname = sect[getSectionTitle ()]:"";
-            list sect_order = lookup  (sect, "__order__", []);
-            sect = filter (`k, `v, sect, ``(k != "__order__"));
-	    sect = filter (`k, `v, sect,
-		``(k != "__intern__"));
-            sect_order = filter (`e, sect_order, ``(haskey (sect, e)));
-            SCR::Write(list2path([bl, "sections", ui2mod(sname),
-                getSectionTitle ()]), ui2mod(sname));
-            if (sect_order != [])
-            {
-                integer index = 0;
-                foreach (`key, sect_order, ``{
-                    if (isSpecial(key))
-                    {
-                        SCR::Write(
-                            list2path([bl, "sections", ui2mod(sname), key]),
-                            splitstring(lookup (sect, key, ""), ","), index);
-                    }
-                    else
-                    {
-                        SCR::Write(
-                            list2path([bl, "sections", ui2mod(sname), key]),
-                            ui2mod(lookup (sect, key, "")), index);
-                    }
-                    index = index + 1;
-                    sect = filter (`k, `v, sect, ``(k != key));
-                });
-            }
-            foreach(`key, `val, sect, ``{
-                if (isSpecial(key))
-                {
-                    SCR::Write(
-                        list2path([bl, "sections", ui2mod(sname), key]),
-                        splitstring(val, ","));
-                }
-                else
-                {
-                    SCR::Write(
-                        list2path([bl, "sections", ui2mod(sname), key]),
-                        ui2mod(val));
-                }
-            });
-        });
-
-	globals = glob_backup;
-	sections = sect_backup;
 	return true;
     }
 
@@ -893,7 +880,7 @@
         // iterate for all sections and do the same as before
 
         list sects = [];
-        map opts_tmp = $[];
+	list opts_tmp = [];
 
         sects = SCR::Dir(list2path([bl, "sections"]));
         BootCommon::sections = [];
@@ -968,12 +955,12 @@
     /**
       * The SelectionBox "----" divider hack
       * @param opts list of options for the current selection
-      * @param prev previously selected item
-      * @param current currently selected item
-      * @return new item selection
+      * @param prev previously selected item index
+      * @param current currently selected item index
+      * @return new item selection index
       */
-    global define any dividerHack(list opts, any prev, any current) ``{
-	integer p = -1;
+    global define any dividerHack(list opts, integer prev, integer current) ``{
+/*	integer p = -1;
 	find(`e, opts, ``{
 	    p = p + 1;
 	    return e == prev;
@@ -982,12 +969,12 @@
 	find(`e, opts, ``{
 	    i = i + 1;
 	    return e == current;
-	});
+	});*/
 	// separator can be the last option in the list (#25305)
 	// handle the same way as if previous was behind
-	if (i + 1 >= size (opts))
-	    p = i + 1;
-	return select(opts, p < i ? i + 1 : i - 1, "");
+	if (current + 1 >= size (opts))
+	    prev = current + 1;
+	return prev < current ? current + 1 : current - 1;
     }
 
     /**
@@ -997,10 +984,15 @@
       * @return list filtered list
       */
     global define list filterOrder (list order, map widgets) ``{
-	order = filter (`o, order, ``(
-	    widgets[o, "ordering"]:true
-	));
-	return order;
+	list ordering = [];
+	list unordering = [];
+	foreach (`o, order, ``{
+	    if (widgets[o["key"]:"", "ordering"]:true)
+		ordering = add (ordering, o);
+	    else
+		unordering = add (unordering, o);
+	});
+	return merge (unordering, ordering);
     }
 
     /**

@@ -30,6 +30,7 @@
     include "bootloader/routines/widgets.ycp";
     include "bootloader/routines/helps.ycp";
     include "bootloader/routines/lilolike.ycp";
+    include "bootloader/routines/routines.ycp";
 
 // common variables
 
@@ -71,7 +72,7 @@
     /**
       * map of global options and values
       */
-    global map globals = $[];
+    global list globals = [];
 
     /**
       * string sepresenting device name of /boot partition
@@ -154,7 +155,7 @@
     /**
       * Curtrently edited section -- tmp store
       */
-    global map current_section = $[];
+    global list current_section = [];
     /**
       * Name of currently edited section, `global for global section
       */
@@ -166,11 +167,15 @@
     /**
       * Updated, but not yet confirmed globals -- tmp store
       */
-    global map current_globals = $[];
+    global list current_globals = [];
     /**
       * Name of option, which is currently being edited in popup
       */
     global string current_option_name = "";
+    /**
+      * Index of current option in the section
+      */
+    global integer current_option_index = -1;
 
 // other variables
 
@@ -247,7 +252,7 @@
       * @param settings map of bootloader settings
       */
     global define void Import (map settings) ``{
-        globals = lookup(settings, "global", $[]);
+        globals = lookup(settings, "global", []);
         sections  = lookup(settings, "sections", []);
         repl_mbr = settings["repl_mbr"]:false;
         activate = settings["activate"]:false;
@@ -261,7 +266,7 @@
     global define boolean Read () ``{
 	SCR::Read (list2path ([getLoaderType (false), "reread"]));
 	loadCfgFileFromAgent ();
-	loader_device = globals["boot"]:"/dev/null";
+	loader_device = lookup_value (globals, "boot", "/dev/null");
         return true;
     }
 
@@ -270,7 +275,7 @@
       */
     global define void Reset () ``{
         sections = [];
-        globals = $[];
+        globals = [];
 //	DetectDisks ();
 	repl_mbr = false;
 	activate = false;

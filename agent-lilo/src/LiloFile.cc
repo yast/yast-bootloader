@@ -287,9 +287,13 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
 	{
 	    ret = save();
 	}
-	else
+	else if (value->isString ())
 	{
 	    ret = save(value->asString()->value_cstr());
+	}
+	else
+	{
+	    return options.Write(path, value, pos);
 	}
 	if (!ret)
 	{
@@ -399,8 +403,7 @@ YCPValue liloFile::Read(const YCPPath &path, const YCPValue& _UNUSED)
 {
     if(path->length()==0)
     {
-	// TODO: reread the file
-	return YCPBoolean(true);
+	return options.Read(path);
     }
 
     if (path->component_str (0) == "tostring")
