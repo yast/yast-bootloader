@@ -276,6 +276,7 @@ Proceed?
             BootCommon::current_section_name = `global;
 	}
 	BootCommon::location_changed = true;
+	BootCommon::changed = true;
 	BootCommon::redraw_table = true;
     }
 

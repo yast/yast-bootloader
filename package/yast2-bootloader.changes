@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 18 10:44:48 CET 2004 - jsrain@suse.cz
+
+- mark settings as changed after bootloader switch (#36269)
+
+-------------------------------------------------------------------
 Wed Mar 17 14:27:15 CET 2004 - jsrain@suse.cz
 
 - allowed to select PPC board type when preparing autoinstallation
