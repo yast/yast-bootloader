@@ -108,6 +108,32 @@
     //---------------------------------------------------------------
 
     /**
+     * Constructor
+     */
+
+    global define void Boot()
+    ``{
+	string tmp_mods = SCR::Read (.etc.install_inf.InitrdModules);
+	if (tmp_mods != nil)
+	{
+	    initrdModules = splitstring (tmp_mods, " ");
+	}
+
+	LoaderType = SCR::Read (.probe.boot_arch);
+	if (LoaderType == "grub"
+	    && Mode::update
+	    && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
+	{
+	    string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
+	    if (sysconfig == "grub" || sysconfig == "lilo")
+		LoaderType = sysconfig;
+	}
+	y2milestone ("Setting bootloader type to %1", LoaderType);
+	return;
+    }
+
+    
+    /**
      * LbaSupport ()
      * @return boolean	LBA support available
      */
@@ -507,28 +533,5 @@
 	return false;
     }
 
-    /**
-     * Constructor
-     */
 
-    global define void Boot()
-    ``{
-	string tmp_mods = SCR::Read (.etc.install_inf.InitrdModules);
-	if (tmp_mods != nil)
-	{
-	    initrdModules = splitstring (tmp_mods, " ");
-	}
-
-	LoaderType = SCR::Read (.probe.boot_arch);
-	if (LoaderType == "grub"
-	    && Mode::update
-	    && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
-	{
-	    string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
-	    if (sysconfig == "grub" || sysconfig == "lilo")
-		LoaderType = sysconfig;
-	}
-	y2milestone ("Setting bootloader type to %1", LoaderType);
-	return;
-    }
 }
