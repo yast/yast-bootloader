@@ -205,7 +205,6 @@ SunOS or Solaris installed\non the same hard drive.\n
         // additional message that needs to be displayed
         string confirm_boot_msg = Misc::boot_msg;
 
-        integer doresult = 0;
         string docmd = "/usr/lib/YaST2/bin/dosilo /";
 
         if (Boot::location == "mbr")
@@ -230,23 +229,7 @@ SunOS or Solaris installed\non the same hard drive.\n
                        "append" : Kernel::cmdLine];
         y2milestone ("doenv: %1", doenv);
         // Call silo
-        doresult = SCR::Execute(.target.bash, docmd, doenv);
-
-        if (doresult == 0)
-        {
-        // final information message for user after SILO write popup.
-            string msg = _("The SILO boot sector has been written to disk.");
-
-            if ( size (confirm_boot_msg) > 0 )
-            {
-                msg = msg + "\n\n" + confirm_boot_msg;
-                Misc::boot_msg = "";
-                // empty that entry to indicate the message has been displayed
-            }
-
-            Report::Message(msg);
-        }
-        else
+        if (0 != SCR::Execute(.target.bash, docmd, doenv))
         {
             // error popup
             Report::Error(_("Could not write the SILO boot sector"));

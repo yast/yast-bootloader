@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Oct 30 21:44:47 CET 2002 - kukuk@suse.de
+
+- fix log path in dosilo script
+- update_silo_conf: modify version number in /boot/message
+- BootSILO.ycp: Don't show popup on success when installing silo
+
+-------------------------------------------------------------------
 Fri Oct 11 11:10:43 CEST 2002 - jsrain@suse.cz
 
 - fixed security problem with permissions of /boot/grub/menu.lst
