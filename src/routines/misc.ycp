@@ -2253,4 +2253,36 @@ global void Global2IO () {
     io_structure["global"] = glob;
 }
 
+/**
+ * Check if the bootloader can be installed at all with current configuration
+ * @return boolean true if it can
+ */
+global boolean BootloaderInstallable () {
+    if (Arch::i386 () || Arch::ia64 ())
+    // the only relevant is the partition holding the /boot filesystem
+    {
+	// EVMS
+	if (find (BootPartitionDevice, "/dev/evms/") == 0)
+	    return false;
+	// LVM
+	map dev = Storage::GetDiskPartition( BootCommon::BootPartitionDevice);
+	if (is( dev["nr"]:(any)0, integer ))
+	    return false;
+	// MD, but not mirroring
+	if (dev["disk"]:"" == "/dev/md")
+	{
+	    map tm = Storage::GetTargetMap ();
+	    map info = tm["/dev/md",BootPartitionDevice]:$[];
+	    if (tolower (info["raid_type"]:"") != "raid1")
+		return false;
+	}
+
+	return true;
+    }
+    else
+    {
+	return true;
+    }
+}
+
 } //end of include
