@@ -189,8 +189,11 @@
                 else
                     s["initrd"] = "/boot/initrd.shipped";
             }
-            if (s["label"]:"" == "linux" && s["append"]:nil != nil)
+            if (s["label"]:"" == "linux" && s["append"]:nil != nil
+		&& Mode::initial)
+	    {
 		s["append"] = BootCommon::updateKernelParams (s["append"]:"");
+	    }
             return s;
 	});
 	string message = BootCommon::globals["message"]:"";

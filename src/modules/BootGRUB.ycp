@@ -272,8 +272,11 @@
 	    string title = s["title"]:"";
 	    if (s["__intern__", "converted"]:false)
 		return s;
-            if (s["title"]:"" == "linux" && s["kernel"]:nil != nil)
+            if (s["title"]:"" == "linux" && s["kernel"]:nil != nil
+		&& Mode::initial)
+	    {
                 s["kernel"] = BootCommon::updateKernelParams (s["kernel"]:"");
+	    }
 	    string initrd = s["initrd"]:"";
 	    if (initrd != "")
 	    {

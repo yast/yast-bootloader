@@ -212,7 +212,7 @@
     /**
       * Activate bootloader partition during installation?
       */
-    global boolean activate = true;
+    global boolean activate = false;
     /**
       * Save everything, not only changed settings
       */
@@ -242,7 +242,7 @@
         globals = lookup(settings, "global", $[]);
         sections  = lookup(settings, "sections", []);
         repl_mbr = settings["repl_mbr"]:false;
-        activate = settings["activate"]:true;
+        activate = settings["activate"]:false;
 	return;
     }
 
@@ -265,7 +265,7 @@
         globals = $[];
 //	DetectDisks ();
 	repl_mbr = false;
-	activate = true;
+	activate = false;
     }
 
     /**
