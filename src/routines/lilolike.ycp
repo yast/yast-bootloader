@@ -138,6 +138,7 @@
 	map mp = Storage::GetMountPoints ();
 	list data = mp["/boot"]:(mp["/"]:[]);
 	string bpd = data[0]:"";
+	// ???? FIXME ???? how about LVM/MD ????
 	return bpd == BootPartitionDevice;
     }
 
