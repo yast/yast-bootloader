@@ -19,10 +19,10 @@ module_DATA =			\
 EXTRA_DIST = 			\
 	$(module_DATA) 
 
-symlinks:
-	test -L bootloader || ln -sf .. bootloader
+include:
+	mkdir include && ln -sf ../../ include/bootloader
 
-ycpchook = symlinks
+ycpchook = include
 
 
 include $(top_srcdir)/Makefile.am.common
