@@ -258,6 +258,8 @@ y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
 	map mountPoints		= Storage::GetMountPoints();
 
 	list mountdata_boot	= mountPoints["/boot"]:(mountPoints["/"]:[]);
+	y2milestone( "mountPoints %1", mountPoints );
+	y2milestone( "mountdata_boot %1", mountdata_boot );
 	bootDisk		= mountdata_boot[2]:(mountPoints["/",2]:"");
 
 	// check if /boot is on raid1
@@ -294,6 +296,10 @@ y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
 	    // normal mbr detection.
 	    mbrDisk		= FindMbrDisk();
 	}
+
+	y2milestone( "bootDisk %1 mbrDisk %2", bootDisk, mbrDisk );
+	y2milestone( "RootPartitionDevice %1 BootPartitionDevice %2",
+	             RootPartitionDevice, BootPartitionDevice );
 
 	// Do not configure location automatically if already set.
 	if (location == "")
@@ -418,7 +424,7 @@ y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
 	// look for disk with bios_id 0x80
 
 	list disks = SCR::Read(.probe.disk);
-	string mbr_disk = bootDisk;
+	string mbr_disk = disks[0,"dev_name"]:bootDisk;
 
 	foreach (`disk, disks,
 	``{

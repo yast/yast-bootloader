@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 10 12:15:10 CEST 2002 - fehr@suse.de
+
+- fix root device detection of mk_lilo_conf
+- change default mbr detection in Boot.ycp (#19117)
+
+-------------------------------------------------------------------
 Mon Sep  9 17:59:48 CEST 2002 - lslezak@suse.cz
 
 - allow installation on extended partion (#19184)
