@@ -28,7 +28,6 @@
     import "BootCommon";
     import "Kernel";
     import "Mode";
-    import "Product";
     import "ProductFeatures";
     import "Storage";
 
