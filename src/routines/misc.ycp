@@ -1612,7 +1612,6 @@
       * @return translated section name
       */
     global define string translateSectionTitle (string orig) ``{
-	import "Product";
         map trans = $[
 	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
 	    // are allowed, otherwise translartion won't be used
@@ -1673,6 +1672,7 @@
 	else if (contains (["linux", "failsafe", "previous"], orig)
 	    && ! Mode::test)
 	{
+	    import "Product";
 	    string product = sformat ("%1 %2", Product::name, Product::version);
 	    string prod_filtered = filterchars (product, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.");
 	    if (product == prod_filtered && product != " ")
@@ -1691,7 +1691,6 @@
     }
 
     global define map<string,string> getTranslationsToDiacritics () ``{
-	import "Product";
         map<string,string> trans = $[
 	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
 	    // are allowed. Always remove the leading '_', its just to
@@ -1751,6 +1750,7 @@
 	    string il1 = translateSectionTitle (k);
 	    if (contains (["linux", "failsafe", "previous"], k) && ! Mode::test)
 	    {
+		import "Product";
 		string product
 		    = sformat ("%1 %2", Product::name, Product::version);
 		if (product != " ")
