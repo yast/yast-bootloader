@@ -882,7 +882,7 @@
 	    options = maplist (`o, eval (s), ``{
 		string key = o["key"]:"";
 		any value = o["value"]:"";
-		if (key == getSectionTitle ())
+		if (key == getSectionTitle () && sect_type != "")
 		{
 		    title = value;
 		    o["comment"] = sformat ("###Don't change this comment - YaST2 identifier: Original name: %1###",

@@ -25,6 +25,7 @@
     import "Mode";
     import "Storage";
     import "StorageDevices";
+    import "CWM";
     import "TablePopup";
     include "bootloader/routines/popups.ycp";
     include "bootloader/routines/options.ycp";

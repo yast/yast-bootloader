@@ -26,7 +26,6 @@
     import "Mode";
     import "Wizard";
 
-    include "bootloader/routines/wh.ycp";
     include "bootloader/routines/popups.ycp";
     include "bootloader/routines/convert.ycp";
     include "bootloader/routines/routines.ycp";

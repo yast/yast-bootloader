@@ -28,6 +28,7 @@
     import "Arch";
     import "BootPPC";
     import "Mode";
+    import "TablePopup";
 
 
     /**
@@ -257,7 +258,7 @@
     global define term getPRePPartsCombo () ``{
 	return `ComboBox (`id ("__prep_boot_part"), `opt (`editable),
 	    // combo box
-	    _("41 PReP Boot Partition"), prep_boot_partitions);
+	    _("41 &PReP Boot Partition"), prep_boot_partitions);
     }
 
     /**
@@ -329,7 +330,7 @@
 	    )),
 	    `Left (`HBox (`HSpacing (2),
 		`TextEntry (`id (`iseries_streamfile_filename),
-		    _("Stream File for *STMF Booting")))),
+		    _("Stream File for *&STMF Booting")))),
 	    `Left (`CheckBox (`id (`iseries_prepboot), `opt (`notify),
 		// checkbox
 		_("Write the Kernel to 41 &PReP Boot Partition (for *NWSSTG)")
@@ -338,7 +339,7 @@
 		`ComboBox (`id (`iseries_prepboot_part),
 		    `opt (`editable),
 		    // combo box
-		   _("41 PReP Boot Partition"), prep_boot_partitions))),
+		   _("41 P&ReP Boot Partition"), prep_boot_partitions))),
 	    `Left (`CheckBox (`id (`iseries_slot_a),
 		// checkbox
 		_("Write Rescue Kernel to Slot &A")
@@ -491,7 +492,7 @@
 		`ComboBox (`id (`prepboot_part),
 		    `opt (`editable),
 		    // combo box
-		   _("41 PReP Boot Partition"), prep_boot_partitions)))
+		   _("41 &PReP Boot Partition"), prep_boot_partitions)))
 	);
     }
 
