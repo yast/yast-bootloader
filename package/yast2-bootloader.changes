@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan  6 14:14:23 CET 2005 - jsrain@suse.cz
+
+- propose all present kernels for GRUB
+
+-------------------------------------------------------------------
 Wed Jan  5 17:10:56 CET 2005 - jsrain@suse.cz
 
 - adapted to interface change of Kernel.ycp

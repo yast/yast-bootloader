@@ -169,6 +169,14 @@
 	string type = title;
 	if (type == "wildcard")
 	    title = BootCommon::translateSectionTitle ("linux") + " (*)";
+
+	if (regexpmatch (type, "^version=.+$"))
+	{
+	    title = regexpsub (type, "^version=(.+)$", "\\1");
+	    image = Kernel::GetBinary () + "-" + title;
+	    initrd = "initrd-" + title;
+	}
+
 	list<map> ret = [
 	    $[ "key" : "title", "value" : BootCommon::translateSectionTitle (title)],
 	    $[ "key" : "kernel", "value" : sformat ("%1 %2 %3",
@@ -413,6 +421,16 @@
 		|| 0 < SCR::Read (.target.size, "/boot/backup_mbr")))
 	{
 	    out = add (out, createLinuxSection ("original MBR"));
+	}
+	if (Mode::normal ())
+	{
+	    foreach (map<string,string> additional,
+		BootCommon::CheckAdditionalKernels (),
+	    {
+		string type = additional["version"]:"";
+		type = sformat ("version=%1", type);
+		out = add (out, createLinuxSection (type));
+	    });
 	}
 	out = (list<list<map> >)
 	    filter (list<map> s, out, ``(s != [] && s != nil));
