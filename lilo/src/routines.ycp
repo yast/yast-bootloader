@@ -372,6 +372,7 @@ global define list swapItems(list input, integer index1, integer index2) ``{
  */
 
 global define string get_default_section() ``{
+    import "Lilo";
     if (haskey(Lilo::globals, "default"))
     {
 	return lookup(Lilo::globals, "default", "");
@@ -550,8 +551,9 @@ global define any mod2ui(any val) ``{
 global define any ui2mod(any val) ``{
     if (is(val, string))
     {
-        string v = sformat("%1", val);
-        v = strip(v);
+	import "Lilo";
+	string v = sformat("%1", val);
+	v = strip(v);
 	// if string contains backslashes, escape them
 	v = replaceAll(v, "\\", "\\\\");
 
@@ -560,14 +562,15 @@ global define any ui2mod(any val) ``{
 
 	// if string contains spaces or equal sign or is empty, quote it
 
-	if (size(splitstring(v, " ")) >= 2 || size(v) == 0 || find(v, "=") >= 0)
+	if ((size(splitstring(v, " ")) >= 2 || size(v) == 0 || find(v, "=") >= 0)
+	    &&(Lilo::mode != `grub))
 	{
 	    v = "\"" + v + "\"";
-	}    
+	}
 	return v;
     }
     return val;
-}   
+}
 
 /**
  * reads the global settings and returns booloader for current platform.
@@ -578,6 +581,7 @@ global define any ui2mod(any val) ``{
  */
 
 global define string boot() ``{
+    import "Lilo";
     string ret = SCR::Read(.probe.boot_arch);
     if (ret == "grub" && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0  && SCR::Read (.sysconfig.bootloader.LOADER_TYPE) != nil)
 	ret = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
@@ -769,6 +773,7 @@ global define list getPartitionList(symbol type) ``{
  */
 
 global define list createSummaryTable() ``{
+    import "Lilo";
     list items = [];
     list sections = Lilo::sections;
 
@@ -850,6 +855,7 @@ global define list createSummaryTable() ``{
 
 global define string getSectionType(string label)
 ``{
+    import "Lilo";
     map sect = Lilo::GetSection(label);
 
     if (sect == $[])
@@ -1209,6 +1215,7 @@ global define string check_aliases(map liloconf, string omit_section, string new
  */
 
 global define string create_sect_summary() ``{
+    import "Lilo";
     list l = Lilo::sections;
 
     string out = "";
@@ -1256,7 +1263,7 @@ global define string create_sect_summary() ``{
  */
 
 global define string create_summary_text() ``{
-
+    import "Lilo";
     list image = Lilo::sections;
 
     string output = "";
