@@ -265,36 +265,6 @@
 	    getLoaderType ());
         SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
             BootCommon::location);
-
-	if (! Mode::normal)
-	{
-	    string comment
-		= SCR::Read (.sysconfig.bootloader.LOADER_TYPE.comment);
-	    if (comment == nil)
-		comment = "";
-	    if (Arch::i386 || Arch::x86_64)
-	    {
-		comment = regexpsub (comment, "(.*\n## )Type:[^\n]*(\n.*)",
-		    "\\1Type:	list(grub,lilo,none)\\2");
-	    }
-	    comment = regexpsub (comment, "(.*\n## )Default:[^\n]*(\n.*)",
-		sformat ("\\1Default:  %1\\2", getLoaderType ()));
-	    if (comment != nil)
-		SCR::Write (.sysconfig.bootloader.LOADER_TYPE.comment, comment);
-	    comment = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION.comment);
-	    if (comment == nil)
-		comment = "";
-	    if (Arch::i386 || Arch::x86_64)
-            {
-                comment = regexpsub (comment, "(.*\n## )Type:[^\n]*(\n.*)",
-                    "\\1Type:	list(floppy,mbr,root,boot,custom,none)\\2");
-            }
-	    comment = regexpsub (comment, "(.*\n## )Default:[^\n]*(\n.*)",
-		sformat ("\\1Default:  %1\\2", BootCommon::location));
-	    if (comment != nil)
-		SCR::Write (.sysconfig.bootloader.LOADER_LOCATION.comment,
-		    comment);
-	}
 	SCR::Write (.sysconfig.bootloader, nil);
 
 	if (getLoaderType () == "none")
