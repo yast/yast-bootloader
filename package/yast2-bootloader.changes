@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Sep 14 21:02:56 CEST 2003 - adrian@suse.de
+
+- make it working in kcontrol
+
+-------------------------------------------------------------------
 Fri Sep 12 08:17:22 CEST 2003 - jsrain@suse.de
 
 - not adding maxcpus=0 to failsafe kernel parameters on AMD64
