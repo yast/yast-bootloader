@@ -23,13 +23,11 @@
 
     textdomain "bootloader";
 
+    import "Arch";
+    import "BootCommon";
+    import "Installation";
     import "Kernel";
     import "Storage";
-    import "Installation";
-    import "Arch";
-
-    import "BootCommon";
-    import "BootSILO";
 
     include "bootloader/lilo/widgets.ycp";
     include "bootloader/lilo/helps.ycp";
@@ -42,24 +40,47 @@
 
     global boolean  defaultdevice = false;
 
-// general functions
+// function declarations
+
+// FIXME uncomment for NI
+#    global define map GetWidgets ();
+#    global define map GetOptions ();
+#    global define list UpdateOptionsList (map options);
+
+// misc. functions
 
     /**
-      * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootSILO::Write ())])
-      */
-    global define map GetFunctions () ``{
-	return $[
-	    "read" :	``(BootSILO::Read ()),
-	    "propose" : ``(BootSILO::Propose ()),
-	    "save" :	``(BootSILO::Save ()),
-	    "update" :	``(BootSILO::Update ()),
-	    "write" :	``(BootSILO::Write ()),
-	    "updoptlst":``(BootSILO::UpdateOptionsList ()),
-	    "getoptions":``(BootSILO::GetOptions ()), // FIXME to initializer
-	    "widgets"  :``(BootSILO::GetWidgets ()),
-	];
+     * WriteUpdate
+     * Calling mkinitrd and lilo while update.
+     * @ return void
+     */
+    global define void WriteUpdate()
+    ``{
+        // Replace X.Y with 8.1 in /boot/message and modify silo.conf, if
+        // necessary.
+        SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_silo_conf / >>/var/log/YaST2/y2logsilo 2>>/var/log/YaST2/y2logsilo");
+
+        any retAsk = `yes;
+        while ( retAsk == `yes
+                && SCR::Execute (.target.bash, "/sbin/silo >> /var/log/YaST2/y2logsilo 2>> /var/log/YaST2/y2logsilo") != 0 )
+        {
+// FIXME what did UI::AskRetry mean?
+/*            retAsk = UI::AskRetry( "silo" );
+            while ( retAsk == `log )
+            {
+                string text = "";
+
+                // FIXME: Installation::destdir should be removed?
+		// log view headline
+		Popup::ShowLog (_("SILO Log"), Installation::destdir + "/var/log/YaST2/y2logsilo");
+                retAsk = UI::AskRetry( "silo" );
+            }*/
+        }
     }
+
+
+// general functions
+
 
     /**
       * Propose bootloader settings
@@ -103,6 +124,7 @@
       * Update read settings to new version of configuration files
       */
     global define void Update () ``{
+	y2milestone ("No update functionality implemented");
     }
     /**
       * Write bootloader settings to disk
@@ -165,7 +187,7 @@
         if (Kernel::switched)
         {
             string silo_device = BootCommon::loader_device;
-            string reboot_device = SCR::Read (.prom.path,silo_device);
+            string reboot_device = (string)SCR::Read (.prom.path,silo_device);
 
             y2milestone ("reboot device is: %1", reboot_device);
             SCR::Execute (.target.bash, "/bin/echo \""+reboot_device+"\" >/proc/sys/kernel/reboot-cmd");
@@ -174,7 +196,7 @@
         if (promalias)
         {
             string silo_device = BootCommon::loader_device;
-            string boot_device = SCR::Read (.prom.path, silo_device);
+            string boot_device = (string)SCR::Read (.prom.path, silo_device);
 
             if (defaultdevice)
             {
@@ -193,7 +215,7 @@
         else if (defaultdevice)
         {
             string silo_device = BootCommon::loader_device;
-            string boot_device = SCR::Read (.prom.path,silo_device);
+            string boot_device = (string)SCR::Read (.prom.path,silo_device);
 
             y2milestone ("setting boot-device to %1 (%2) as default",
                          boot_device, silo_device);
@@ -201,6 +223,23 @@
         }
 
         return true;
+    }
+
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootSILO::Write ())])
+      */
+    global define map GetFunctions () ``{
+	return $[
+	    "read" :	``(BootSILO::Read ()),
+	    "propose" : ``(BootSILO::Propose ()),
+	    "save" :	``(BootSILO::Save ()),
+	    "update" :	``(BootSILO::Update ()),
+	    "write" :	``(BootSILO::Write ()),
+#	    "updoptlst":``(BootSILO::UpdateOptionsList ()),
+	    "getoptions":``(BootSILO::GetOptions ()), // FIXME to initializer
+	    "widgets"  :``(BootSILO::GetWidgets ()),
+	];
     }
 
 // end of mandatory functions
@@ -227,34 +266,6 @@
 
 
 
-    /**
-     * WriteUpdate
-     * Calling mkinitrd and lilo while update.
-     * @ return void
-     */
-    global define void WriteUpdate()
-    ``{
-        // Replace X.Y with 8.1 in /boot/message and modify silo.conf, if
-        // necessary.
-        SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_silo_conf / >>/var/log/YaST2/y2logsilo 2>>/var/log/YaST2/y2logsilo");
-
-        any retAsk = `yes;
-        while ( retAsk == `yes
-                && SCR::Execute (.target.bash, "/sbin/silo >> /var/log/YaST2/y2logsilo 2>> /var/log/YaST2/y2logsilo") != 0 )
-        {
-            retAsk = UI::AskRetry( "silo" );
-            while ( retAsk == `log )
-            {
-                string text = "";
-
-                // FIXME: Installation::destdir should be removed?
-		// log view headline
-		Popup::ShowLog (_("SILO Log"), Installation::destdir + "/var/log/YaST2/y2logsilo");
-                retAsk = UI::AskRetry( "silo" );
-            }
-        }
-    }
-
 
     /**
       * Get map of bootloader options
@@ -265,55 +276,11 @@
     }
 
     /**
-      * Get map of dialogs and widgets
-      * @return map of dialogs and widgets
-      */
-    global define map GetWidgets () ``{
-        return $[
-		"summarybuttons" : getSummaryButtonsWidget (),
-                "tableentries" : $[
-		    "__promalias" : getPromAliasWidget (),
-		    "__defaultdevice" : getDefaultDeviceWidget (),
-                ],
-        ];
-    }
-
-    /**
       * Get widget
       * @return widget description map
       */
     global define map getSummaryButtonsWidget () ``{
 	return $[];
-    }
-
-    /**
-      * Get widget
-      * @return widget description map
-      */
-    global define map getPromAliasWidget () ``{
-	return $[
-	    "type" : "b",
-		// label / table entry
-	    "label" : _("Create PROM Alias 'linux'"),
-	    "restore" : ``(BootSILO::restorePromAlias ()),
-	    "handle" : ``(BootSILO::handlePromAlias ()),
-	    "summary" : ``(BootSILO::summaryPromAlias ()),
-	];
-    }
-
-    /**
-      * Get widget
-      * @return widget description map
-      */
-    global define map getDefaultDeviceWidget () ``{
-	return $[
-	    "type" : "b",
-		// label / table entry
-	    "label" : _("Set Default PROM Boot Device"),
-	    "restore" : ``(BootSILO::restoreDefDev ()),
-	    "handle" : ``(BootSILO::handleDefDev ()),
-	    "summary" : ``(BootSILO::summaryDefDev ()),
-	];
     }
 
     /**
@@ -330,8 +297,8 @@
       * @return changed (if needed) operation
       */
     global define symbol handlePromAlias (any op, list toexit) ``{
-	promalias = UI::QueryWidget (`id (`value), `Value);
-	return op;
+	promalias = (boolean)UI::QueryWidget (`id (`value), `Value);
+	return (symbol)op;
     }
 
     /**
@@ -340,6 +307,21 @@
       */
     global define string summaryPromAlias () ``{
 	return sformat ("%1", promalias);
+    }
+
+    /**
+      * Get widget
+      * @return widget description map
+      */
+    global define map getPromAliasWidget () ``{
+	return $[
+	    "type" : "b",
+		// label / table entry
+	    "label" : _("Create PROM Alias 'linux'"),
+	    "restore" : ``(BootSILO::restorePromAlias ()),
+#	    "handle" : ``(BootSILO::handlePromAlias ()),
+	    "summary" : ``(BootSILO::summaryPromAlias ()),
+	];
     }
 
     /**
@@ -356,8 +338,8 @@
       * @return changed (if needed) operation
       */
     global define symbol handleDefDev (any op, list toexit) ``{
-	defaultdevice = UI::QueryWidget (`id (`value), `Value);
-	return op;
+	defaultdevice = (boolean)UI::QueryWidget (`id (`value), `Value);
+	return (symbol)op;
     }
 
     /**
@@ -366,6 +348,35 @@
       */
     global define string summaryDefDev () ``{
 	return sformat ("%1", defaultdevice);
+    }
+
+    /**
+      * Get widget
+      * @return widget description map
+      */
+    global define map getDefaultDeviceWidget () ``{
+	return $[
+	    "type" : "b",
+		// label / table entry
+	    "label" : _("Set Default PROM Boot Device"),
+	    "restore" : ``(BootSILO::restoreDefDev ()),
+#	    "handle" : ``(BootSILO::handleDefDev ()),
+	    "summary" : ``(BootSILO::summaryDefDev ()),
+	];
+    }
+
+    /**
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
+      */
+    global define map GetWidgets () ``{
+        return $[
+		"summarybuttons" : getSummaryButtonsWidget (),
+                "tableentries" : $[
+		    "__promalias" : getPromAliasWidget (),
+		    "__defaultdevice" : getDefaultDeviceWidget (),
+                ],
+        ];
     }
 
 
