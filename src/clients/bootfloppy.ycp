@@ -31,6 +31,9 @@
     string file_image = "bootdisk"; //default
     string filename = "";
     string dirname = "";
+    string url = "";
+    string user = "";
+    string pass = "";
 
     integer source_id = 0;
     boolean source_mounted = false;
@@ -267,6 +270,10 @@ and File Systems (modules disk 4)"))),
 		`Left (`RadioButton (`id ("__custom"),
 		    // radiobutton - disk image name
 		    _("&Custom floppy"))),
+		`VSpacing (0.4),
+		`Left (`RadioButton (`id ("__url"),
+		    // radiobutton - disk image name
+		    _("&Download floppy image"))),
 		`VSpacing (2)
 	    );
 	}
@@ -302,7 +309,7 @@ and File Systems (modules disk 4)"))),
 	    Wizard::ReplaceBackButton(`VSpacing (0));
 	    Wizard::ReplaceAbortButton (
 		`PushButton (`id (`abort), CancelButtonLabel ()));
-	    UI::SetFocus (`id (`bootdisk));
+	    UI::SetFocus (`id ("bootdisk"));
 	    string image_item = file_image;
 	    if (substring (image_item, 0, 7) == "modules")
 		image_item = "__modules";
@@ -322,7 +329,7 @@ and File Systems (modules disk 4)"))),
 		    file_image = backup_file_image;
 		    return `select_module;
 		}
-		if (file_image != "__custom")
+		if (file_image != "__custom" && file_image != "__url")
 		{
 		    if (file_image == "__other")
 		    {
@@ -351,7 +358,11 @@ and File Systems (modules disk 4)"))),
 		}
 		if (file_image == "__other" || file_image == "__custom")
 		{
-		   ret = `select_file;
+		    ret = `select_file;
+		}
+		else if (file_image == "__url")
+		{
+		    ret = `select_url;
 		}
 
 	    }
@@ -428,8 +439,85 @@ and File Systems (modules disk 4)"))),
 	    }
 	}
 
-	return `ret;
+	return ret;
     }
+
+    /**
+      * Display a dialog that lets the select URL with floppy image.
+      * Save the URL and downloaded file name in the global variable filename.
+      * Called from the sequencer.
+      * @return symbol wizard sequencer symbol
+      */
+    global define symbol floppySelectURL () ``{
+	term contents = `HBox (`HStretch (),
+	    `VBox (
+		`VStretch (),
+		// text entry label
+		`TextEntry (`id (`url), _("&URL"), ""),
+		`VSpacing (2),
+		`HBox (
+		    `TextEntry (`id (`user), _("&User"), user),
+		    `HSpacing (2),
+		    `Password (`id (`pass), _("&Password"), pass)
+		),
+		`VStretch ()
+	    ), `HStretch ()
+	);
+
+	Wizard::SetContents (dialog_header, contents,
+	    floppyHelpSelectURL(), true, true);
+
+	Wizard::RestoreBackButton ();
+	Wizard::RestoreAbortButton ();
+
+	if (url != "" && url != nil)
+	    UI::ChangeWidget (`id (`url), `Value, url);
+
+	symbol ret = nil;
+
+	while (ret == nil)
+	{
+	    ret = UI::UserInput ();
+	    if (ret == `cancel)
+		ret = `abort;
+	    if (ret == `next)
+	    {
+		url = UI::QueryWidget (`id (`url), `Value);
+		user = UI::QueryWidget (`id (`user), `Value);
+		pass = UI::QueryWidget (`id (`pass), `Value);
+		string file = SCR::Read (.target.tmpdir) + "/image";
+		showPopup (_("Downloading image"));
+		if (user != "" && pass != "")
+		{
+		    string userpass = sformat ("%1:%2", user, pass);
+		    SCR::Execute(.curl.setUserPassword, userpass, $[]);
+		}
+		else if (user != "")
+		{
+		    Report::Error (_("Set the password!"));
+		    ret = nil;
+		    continue;
+		}
+		map response = SCR::Execute (.curl.get, url,
+		    $["output": file]);
+		hidePopup ();
+		y2error ("Response: %1", response);
+		if (response["dsize"]:0 == 0)
+		{
+		    Report::Error (_(
+"Error occured while downloading floppy image.
+Check that you wrote correct URL and set
+correct user name and password."));
+		    ret = nil;
+		    continue;
+		}
+		filename = file;
+	    }
+	}
+
+	return ret;
+    }
+
 
     /**
       * Display a dialog that prompts for a floppy.
@@ -641,6 +729,7 @@ The requested floppy disk was successfully created.
 	"select_image" :  ``(floppySelectImage (false)),
 	"select_module":  ``(floppySelectImage (true)),
 	"select_file"  :  ``(floppySelectFile ()),
+	"select_url"   :  ``(floppySelectURL ()),
 	"insert_disk"  :  ``(floppyInsertDisk ()),
 	"copy_image"   :  ``(floppyCopyImage ())
     ];
@@ -651,6 +740,7 @@ The requested floppy disk was successfully created.
 	    `abort: `abort,
 	    `next : "insert_disk",
 	    `select_file : "select_file",
+	    `select_url : "select_url",
 	    `select_module : "select_module",
 	],
 	"select_module": $[
@@ -658,6 +748,10 @@ The requested floppy disk was successfully created.
 	    `next : "insert_disk",
 	],
 	"select_file" : $[
+	    `abort: `abort,
+	    `next : "insert_disk",
+	],
+	"select_url" : $[
 	    `abort: `abort,
 	    `next : "insert_disk",
 	],
