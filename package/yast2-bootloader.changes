@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb  8 12:58:56 CET 2005 - jsrain@suse.cz
+
+- fixed warning when removed memtest package after modifying
+  memtest section in bootloader menu (#50498)
+
+-------------------------------------------------------------------
 Mon Feb  7 14:31:48 CET 2005 - jsrain@suse.cz
 
 - merged texts from proofread
