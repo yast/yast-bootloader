@@ -3,6 +3,9 @@ Tue Jun 29 13:45:04 CEST 2004 - jsrain@suse.cz
 
 - added possibiliyt to install GRUB on MD device (the way that if
   any of the disks building MD is removed system still boots)
+- update zipl.conf before packages update on S390 (#40629)
+- added "barrier=off" to failsafe kernel command line on i386, IA64
+  and AMD64 (#42526)
 
 -------------------------------------------------------------------
 Fri Jun 25 15:36:31 CEST 2004 - jsrain@suse.cz

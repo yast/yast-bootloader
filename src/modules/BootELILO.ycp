@@ -102,7 +102,7 @@
         string initrd = "initrd";
         string image = "vmlinuz";
         string append = title == "failsafe"
-            ? "ide=nodma nohalt noresume selinux=0 "
+            ? "ide=nodma nohalt noresume selinux=0 barrier=off "
 		+ BootCommon::GetAdditionalFailsafeParams ()
             : "";
 	list <string> split = BootCommon::splitPath (initrd);

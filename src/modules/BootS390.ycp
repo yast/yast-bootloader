@@ -27,6 +27,7 @@
     import "BootCommon";
     import "Mode";
     import "ProductFeatures";
+    import "Installation";
 
     include "bootloader/routines/popups.ycp";
     include "bootloader/routines/routines.ycp";
@@ -91,6 +92,41 @@
 
 
 // misc. functions
+
+    /**
+      * Update /etc/zip.conf before the update (fix kernel path)
+      */
+    global define void UpdateZiplConfBeforeUpdate () {
+	// update the partition layout if needed
+	// ?? FIXME any other conditions?
+	if (Mode::update)
+	{
+	    map output = (map)SCR::Execute (.target.bash_output, sformat (
+	      "/bin/cp %1/etc/zipl.conf %1/etc/zipl.conf.YaST2save",
+	      Installation::destdir));
+	    y2milestone ("Result of backup original elilo.conf: %1", output);
+	    output = (map)SCR::Execute (.target.bash_output, sformat (
+		"/bin/cp /usr/lib/YaST2/bin/update_zipl_conf %1/usr/lib/YaST2/bin/",
+		Installation::destdir
+	    ));
+	    y2milestone ("Result of copying from / to %1: %2",
+		Installation::destdir,
+		output
+	    );
+	    output = (map)SCR::Execute (.target.bash_output, sformat (
+		"chroot %1 /usr/lib/YaST2/bin/update_zipl_conf",
+		Installation::destdir));
+	    if (output["exit"]:0 != 0)
+	    {
+		y2error ("Update of /etc/zipl.conf failed: %1", output);
+	    }
+	    else
+	    {
+		BootCommon::was_proposed = false;
+		BootCommon::was_read = false;
+	    }
+	}
+    }
 
     /**
       * Empty summary dialog

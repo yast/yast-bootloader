@@ -279,6 +279,10 @@
 	{
 	    BootELILO::UpdateEfiPartitionLayout ();
 	}
+	else if (Arch::s390)
+	{
+	    BootS390::UpdateZiplConfBeforeUpdate ();
+	}
     }
 
     /**
