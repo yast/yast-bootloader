@@ -864,7 +864,7 @@
 		{
 		    y2milestone ("Activating partition %1 on %2", num, mbr_dev);
 		    ret = ret && (0 == SCR::Execute (.target.bash,
-			sformat ("/sbin/sfdisk -A%1 %2", num, mbr_dev)));
+			sformat ("/sbin/activate %2 %1", num, mbr_dev)));
 		}
 	    }
 	}
