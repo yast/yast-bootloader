@@ -29,6 +29,37 @@
     global list floppies = [];
 
     /**
+      * Update the text of countdown widget
+      * @param bootloader string printable name of used bootloader
+      */
+    global define void updateTimeoutPopup (string bootloader) ``{
+	if (Mode::normal)
+	    return;
+
+        string confirm_boot_msg = Misc::boot_msg;
+        // data saved to floppy disk
+        string msg = sformat (_(
+            // popup, %1 is bootloader name
+            "The %1 boot sector has been written to the floppy disk."),
+            bootloader);
+        msg = msg + "\n";
+	// always hard boot
+        // If LILO was written on floppy disk and we need
+        // to do a hard reboot (because a different kernel
+        // was installed), tell the user to leave the floppy
+        // inserted.
+        msg = msg
+            // popup - continuing
+            + _("Leave the floppy disk in the drive.");
+
+        if ( size (confirm_boot_msg) > 0 )
+        {
+            msg = msg + "\n" + confirm_boot_msg;
+        }
+        Misc::boot_msg = msg;
+    }
+
+    /**
       * List of all supported bootloaders
       */
     global list(string) bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
