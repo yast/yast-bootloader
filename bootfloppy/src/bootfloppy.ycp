@@ -43,6 +43,8 @@
   boolean rescuedisk_found  = false;
   boolean moduledisk_found  = false;
   boolean module2disk_found = false;
+  boolean module3disk_found = false;
+  boolean module4disk_found = false;
   string file_image         = "bootdisk"; //default
   string bootmode           = "";
   string partition          = "";
@@ -135,8 +137,18 @@ Would you like to choose a new installation source?"));
       if( ( SCR::Read(.target.size, begin_search + "bootdisk")!=-1) ) bootdisk_found    = true;
       if( ( SCR::Read(.target.size, begin_search + "i386")!=-1)     ) i386disk_found    = true;
       if( ( SCR::Read(.target.size, begin_search + "rescue")!=-1)   ) rescuedisk_found  = true;
-      if( ( SCR::Read(.target.size, begin_search + "modules")!=-1)  ) moduledisk_found  = true;
+      if( ( SCR::Read(.target.size, begin_search + "modules1")!=-1) ) moduledisk_found  = true;
       if( ( SCR::Read(.target.size, begin_search + "modules2"))!=-1 ) module2disk_found = true;
+      if( ( SCR::Read(.target.size, begin_search + "modules3"))!=-1 ) module3disk_found = true;
+      if( ( SCR::Read(.target.size, begin_search + "modules4"))!=-1 ) module4disk_found = true;
+
+      y2milestone("bootdisk_found: %1", bootdisk_found);
+      y2milestone("i386disk_found: %1", i386disk_found);
+      y2milestone("rescuedisk_found: %1", rescuedisk_found);
+      y2milestone("moduledisk_found: %1", moduledisk_found);
+      y2milestone("module2disk_found: %1", module2disk_found);
+      y2milestone("module3disk_found: %1", module3disk_found);
+      y2milestone("module4disk_found: %1", module4disk_found);
 
       //y2milestone("%1",  SCR::Read(.target.size, begin_search + "bootdisk"));
       return `next;
@@ -242,12 +254,16 @@ and press <b>Next</b> to continue.</p>"
       boolean b_rescue   = false;
       boolean b_modules  = false;
       boolean b_modules2 = false;
+      boolean b_modules3 = false;
+      boolean b_modules4 = false;
 
       if( file_image == "bootdisk" ) b_bootdisk = true;
       if( file_image == "i386"     ) b_i386     = true;
       if( file_image == "rescue"   ) b_rescue   = true;
-      if( file_image == "modules"  ) b_modules  = true;
+      if( file_image == "modules1" ) b_modules  = true;
       if( file_image == "modules2" ) b_modules2 = true;
+      if( file_image == "modules3" ) b_modules3 = true;
+      if( file_image == "modules4" ) b_modules4 = true;
 
 
       // build main dialog:
@@ -284,18 +300,33 @@ and press <b>Next</b> to continue.</p>"
 
       if ( moduledisk_found )
       {
-	    moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules"),
+	    moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules1"),
 								       `opt(`notify),
 									// radio button
-								       _("SCSI/RAID/EIDE and PCMCIA &modules, old\n(non-ATAPI) CDROM drivers"), b_modules)));
+								       _("&USB modules"), b_modules)));
       }
 
       if ( module2disk_found  )
       {
-	  moduledisk_term = add( moduledisk_term, 	`Left(`RadioButton(`id("modules2"),
+	  moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules2"),
+									   `opt(`notify),
+									   _("&IDE/RAID/SCSI modules"), b_modules2)));
+      }
+
+      if ( module3disk_found  )
+      {
+	  moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules3"),
 									   `opt(`notify),
 									// radio button
-									   _("&Network modules"), b_modules2)));
+									   _("&Network modules"), b_modules3)));
+      }
+
+      if ( module4disk_found  )
+      {
+	  moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules4"),
+									   `opt(`notify),
+									// radio button
+									   _("&PCMCIA, old (non-ATAPI) CDROM, FireWire\nand file systems modules"), b_modules4)));
       }
 
       bootdisk_term    = add( bootdisk_term   ,  `VSpacing(0.6) );
@@ -360,7 +391,9 @@ and press <b>Next</b> to continue.</p>"
 	  rescuedisk_found  ||
 	  moduledisk_found  ||
 	  i386disk_found    ||
-	  module2disk_found  )
+	  module2disk_found ||
+	  module3disk_found ||
+	  module4disk_found )
       {
 	  contents = add( contents, `RadioButtonGroup(`id(`radiobuttons) ,contents_vbox ));
 
@@ -377,7 +410,7 @@ and press <b>Next</b> to continue.</p>"
 		  ret= UI::UserInput();
 
 		  if(  ret == "rescue"   || ret == "i386" ||  ret == "bootdisk" ||
-		       ret == "modules2" || ret == "modules" )
+		       ret == "modules2" || ret == "modules1" || ret == "modules3" || ret == "modules4")
 		  {
 		      file_image = ret;
 		  }
@@ -476,10 +509,13 @@ Do you want to unmount the floppy?"), lookup(floppymount, "spec", ""),
 	// image text - label
       if( file_image == "rescue"   ) image_text = UI(_("Creating rescue floppy"));
 	// image text - label
-      if( file_image == "modules"  ) image_text = UI(_("Creating SCSI/RAID/EIDE and PCMCIA\nmodules floppy"));
+      if( file_image == "modules1" ) image_text = UI(_("Creating USB modules floppy"));
 	// image text - label
-      if( file_image == "modules2" ) image_text = UI(_("Creating network modules floppy"));
-
+      if( file_image == "modules2" ) image_text = UI(_("Creating IDE/RAID/SCSI modules floppy"));
+	// image text - label
+      if( file_image == "modules3" ) image_text = UI(_("Creating network modules floppy"));
+	// image text - label
+      if( file_image == "modules4" ) image_text = UI(_("Creating PCMCIA, old (non-ATAPI) CDROM,\nFireWire and file systems modules floppy"));
 
       term contents =   `VBox(
 			      `VSpacing( 2 ),
