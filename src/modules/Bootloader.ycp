@@ -339,8 +339,13 @@
 		params_to_save["vga"] = new_vga;
 	}
 
-	// create device node in target system if not present
-	string to_remove = BootCommon::createRootDeviceNode ();
+	// Initialize device mapper and LVM in target system
+	if (Mode::initial)
+	{
+	    SCR::Execute (.target.bash, "
+test -f /sbin/devmap_mknod.sh && /sbin/devmap_mknod.sh
+test -f /sbin/vgscan && /sbin/vgscan --mknodes");
+	}
 
 	// save initrd
 	if ((Initrd::changed || ! Mode::normal)
@@ -366,12 +371,6 @@
 	    || BootCommon::write_settings["initrd_changed_externally"]:false))
 	{
 	    y2milestone ("No bootloader cfg. file saving needed, exiting");
-	    if (to_remove != nil)
-	    {
-		y2milestone ("Removing %1", to_remove);
-		SCR::Execute (.target.bash,
-		    sformat ("/bin/rm -rf %1", to_remove));
-	    }
 	    return true;
 	}
 
@@ -410,12 +409,6 @@
 
 	if (getLoaderType () == "none")
 	{
-	    if (to_remove != nil)
-	    {
-		y2milestone ("Removing %1", to_remove);
-		SCR::Execute (.target.bash,
-		    sformat ("/bin/rm -rf %1", to_remove));
-	    }
 	    return ret;
 	}
 
@@ -435,25 +428,12 @@
 
         if (BootCommon::location == "none" || BootCommon::location == "")
 	{
-	    if (to_remove != nil)
-	    {
-		y2milestone ("Removing %1", to_remove);
-		SCR::Execute (.target.bash,
-		    sformat ("/bin/rm -rf %1", to_remove));
-	    }
 	    return ret;
 	}
 
 	// call bootloader executable
 	y2milestone ("Calling bootloader executable");
 	ret = ret && blWrite ();
-
-	// remove the above created device node in target system
-	if (to_remove != nil)
-	{
-	    y2milestone ("Removing %1", to_remove);
-	    SCR::Execute (.target.bash, sformat ("/bin/rm -rf %1", to_remove));
-	}
 
 	while (! ret)
 	{
