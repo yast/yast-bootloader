@@ -289,25 +289,41 @@
 				return o;
 			    });
 			    opts_tmp = filter (map o, opts_tmp, ``(o != nil));
-			    list<string> _dp = [];
-			    string _d = "";
-			    _dp = splitDevPath (
-				(string)lookup_value (opts_tmp, "initrd", ""));
-			    _d = _dp[0]:"";
 			    list<string> devs = [];
-			    devs = add (devs, grubDev2unixDev (_d));
+			    list<string> _dp = [];
 
-			    _dp = splitDevPath (
-				(string)lookup_value (opts_tmp, "kernel", ""));
-			    _d = _dp[0]:"";
+			    string _d = (string)
+				lookup_value (opts_tmp, "root", "");
+			    if (_d != nil && _d != "")
+				devs = add (devs, _d);
 
+			    string _gp =
+				(string)lookup_value (opts_tmp, "initrd", "");
+			    if (_gp != "" && _gp != nil)
+			    {
+				_dp = splitDevPath (_gp);
+				_d = _dp[0]:"";
+				if (_d != "" && _d != nil)
+				    devs = add (devs, grubDev2unixDev (_d));
+			    }
+			    _gp =
+				(string)lookup_value (opts_tmp, "kernel", "");
+			    if (_gp != "" && _gp != nil)
+			    {
+				_dp = splitDevPath (_gp);
+				_d = _dp[0]:"";
+				if (_d != "" && _d != nil)
+				    devs = add (devs, grubDev2unixDev (_d));
+				string _root =
+				    BootCommon::getKernelParamFromLine (
+					_gp, "root");
+				if (_root != "false" && _root != ""
+				    && _root != nil)
+				{
+				    devs = add (devs, _root);
+				}
+			    }
 
-			    devs = add (devs, grubDev2unixDev (_d));
-			    devs = add (devs, grubDev2unixDev (
-				(string)lookup_value (opts_tmp, "root", "")));
-			    devs = add (devs,
-				BootCommon::getKernelParamFromLine (
-				    (string)lookup_value (opts_tmp, "kernel", ""), "root"));
 			    devs = (list<string>)filter (string d, devs,
 				``(d != ""
 				    && d != nil
