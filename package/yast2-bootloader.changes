@@ -3,6 +3,7 @@ Fri Mar  7 10:16:51 CET 2003 - jsrain@suse.de
 
 - fixed update from version without sysconfig variables specifying
   used bootloader (#24783)
+- fixed reading configuration, not using agent's cache (#24821)
 
 -------------------------------------------------------------------
 Wed Mar  5 13:48:29 CET 2003 - jsrain@suse.de

@@ -642,7 +642,7 @@
 		// menubutton item, keep as short as possible
             `item (`id (`scratch), _("&Start from Scratch")),
 	];
-	if (Mode::normal)
+	if (Mode::normal || Mode::config || Mode::repair)
 	    items = add (items,
 		// menubutton item, keep as short as possible
                 `item (`id (`reread), _("&Reread Configuration from Disk")));

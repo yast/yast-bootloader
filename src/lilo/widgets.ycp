@@ -39,7 +39,7 @@
             `item (`id (`propose), _("&Propose New Configuration")),
             `item (`id (`scratch), _("&Start from Scratch")),
 	];
-	if (Mode::normal || Mode::config)
+	if (Mode::normal || Mode::config || Mode::repair)
 	    items = add (items, `item (`id (`reread),
 		_("&Reread Configuration from Disk")));
         map ret = BootCommon::getGlobalSectionWidget ();
