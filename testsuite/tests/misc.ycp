@@ -144,7 +144,7 @@
 
     DUMP ("======================================");
 
-    map EXEC = $["target" : $["bash_output" : $["stdout" : "brw-rw----    1 0        6          3,   0 2003-03-14 14:07 /dev/hda"]]];
+    map EXEC = $["target" : $["bash_output" : $["stdout" : "brw-rw----    1 0        6          3,   0 2003-03-14 14:07 /dev/hda", "exit" : 0]]];
 
     TEST (``(BootCommon::dev2majmin ("/dev/hda")), [$[], $[], EXEC], 0);
 
