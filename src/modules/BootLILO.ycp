@@ -80,7 +80,7 @@
 	      + ((Arch::x86_64)
 		? "iommu=noforce maxcpus=0 "
 		: "nosmp noapic maxcpus=0 ")
-	      + "3"
+	      + BootCommon::GetAdditionalFailsafeParams () + " 3"
 	    : sformat ("%1 %2", resumestring, Kernel::cmdLine);
 	if (title != "failsafe")
 	{
