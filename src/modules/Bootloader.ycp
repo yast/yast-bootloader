@@ -30,6 +30,7 @@
     include "bootloader/routines/switcher.ycp";
     include "bootloader/routines/popups.ycp";
     include "bootloader/routines/routines.ycp";
+    include "bootloader/routines/ui.ycp";
 
 
     /**
@@ -54,6 +55,14 @@
 
 
 // general functions
+
+    /**
+      * Constructor
+      */
+    global define void Bootloader () ``{
+	BootCommon::reset_button_handle = ``(Bootloader::resetButtonHandle ());
+	BootCommon::loader_type_store = ``(Bootloader::loaderTypeStore ());
+    }
 
     /**
       * Export bootloader settings to a map

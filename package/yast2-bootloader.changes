@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Oct  3 14:59:17 CEST 2003 - jsrain@suse.de
+
+- changed internals so that bootloader module now uses CWM
+
+-------------------------------------------------------------------
 Mon Sep 22 13:54:59 CEST 2003 - jsrain@suse.de
 
 - fixed assigning of default section when changed default secion's

@@ -25,38 +25,22 @@
     import "Mode";
     import "Storage";
     import "StorageDevices";
+    import "TablePopup";
     include "bootloader/routines/popups.ycp";
+    include "bootloader/routines/options.ycp";
+
 
     /**
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetWidgets () ``{
+    global define map GetWidgetMaps () ``{
 	return $[
-	    "sections"		: ``(BootCommon::getSectionsWidget ()),
-	    "singlesection"	: ``(BootCommon::getSingleSectionWidget ()),
-	    "globalsection"	: ``(BootCommon::getGlobalSectionWidget ()),
-	    "resetbutton"	: ``(BootCommon::getResetButtonWidget ()),
-	    "manual_edit_button": ``(BootCommon::getManualEditWidget ()),
-	    "tableentries"	: $[
-		"__location"	: ``(BootCommon::getTargetWidget ()),
-		"__loader_type" : ``(BootCommon::getLoaderSelectionWidget ()),
-		"__sections"	: ``(BootCommon::getSectionsTableEntry ()),
-		"__default_section" : ``(BootCommon::getDefaultSectionTableEntry ()),
-		"__section_type": ``(BootCommon::getSectionTypeWidget ()),
-		"__save_method" : ``(BootCommon::getSaveMethod ()),
-		"__backup_mbr"	: ``(BootCommon::getBackupMbrWidget ()),
-		"__sep1"	: $["label" : "---------------"],
-		"__sep2"	: $["label" : "---------------"],
-		"__sep3"	: $["label" : "---------------"],
-		"label"		: ``(BootCommon::getLabelWidget ()),
-		"alias"		: ``(BootCommon::getAliasWidget ()),
-		"timeout"	: ``(BootCommon::getTimeoutWidget ()),
-		"password"	: ``(BootCommon::getPasswdWidget ()),
-		"__repl_mbr"	: ``(BootCommon::getReplMbrWidget ()),
-		"__activate"	: ``(BootCommon::getActivateWidget ()),
-		"message"	: ``(BootCommon::getMessageWidget ()),
-	    ],
+	    "sections"		: BootCommon::getSectionsWidget (),
+	    "singlesection"	: BootCommon::getSingleSectionWidget (),
+	    "globalsection"	: BootCommon::getGlobalSectionWidget (),
+	    "resetbutton"	: BootCommon::getResetButtonWidget (),
+	    "manual_edit_button": BootCommon::getManualEditWidget (),
 	];
     }
 
@@ -70,284 +54,6 @@
 	return ws_data;
     }
 
-// Bootloader target widget
-
-    /**
-      * Get map of Target widget
-      * @return map of Target widget
-      */
-    global define map getTargetWidget () ``{
-        term targetlist = `VBox (
-            `VSpacing (0.4),
-            `Left (`RadioButton (`id ("mbr"), `opt (`notify),
-		// radiobutton, %1 is device (eg. /dev/hda)
-                sformat(_("&Master boot record of %1"), mbrDisk),
-                (location == "mbr")
-            )),
-            `VSpacing (0.4),
-            `Left (`RadioButton (`id ("boot"), `opt (`notify),
-		// radiobutton, %1 is device (eg. /dev/hda1)
-                sformat(_("Boot &Sector of Boot Partition %1"),
-                     BootCommon::getDeviceOfRaid (BootPartitionDevice)),
-                (location == "boot")
-            ))
-	);
-	if (BootPartitionDevice != RootPartitionDevice)
-	{
-	    targetlist = add (targetlist, `VSpacing (0.4));
-	    targetlist = add (targetlist, `Left (
-		`RadioButton (`id ("root"), `opt (`notify),
-		// radiobutton, %1 is device (eg. /dev/hda1)
-                sformat(_("Boot Sector of Roo&t Partition %1"),
-                    BootCommon::getDeviceOfRaid (RootPartitionDevice)),
-                (location == "root")
-            )));
-        };
-
-        if (StorageDevices::FloppyPresent)
-        {
-            targetlist = add (targetlist, `VSpacing (1));
-            targetlist = add (targetlist, `Left (`RadioButton (`id ("floppy"),
-		 `opt (`notify),
-		// radiobutton, %1 is device name, typically /dev/fd0
-                sformat (_("&Floppy Disk %1"), StorageDevices::FloppyDevice),
-                (location == "floppy")
-            )));
-        }
-
-        targetlist = add (targetlist, `HBox (
-            `VBox (`Label (""), `RadioButton (`id ("custom"), `opt (`notify),
-		// radiobutton
-		_("Ot&her"),
-                (location == "custom"))),
-            `HSpacing (2),
-            `VBox (
-                `ComboBox (`id (`loc), `opt (`editable, `hstretch, `notify), "",
-                    getPartitionList(`boot)),
-                `HSpacing (15)
-            ),
-            `HStretch ()
-        ));
-
-        targetlist = add (targetlist, `VSpacing (0.4));
-
-	// frame
-        term widget = `Frame (_("Boot Loader Location"),
-            `RadioButtonGroup (`id (`location),
-                targetlist
-            )
-        );
-	return $[
-	    "widget" : widget,
-	    "restore" : ``(BootCommon::targetRead ()),
-	    "handle" : ``(BootCommon::targetWrite ()),
-//	    "help" : getLocationsHelp (),
-	    "validate" : ``(BootCommon::targetValidate ()),
-		// table cell / label
-	    "label" : _("Boot Loader Location"),
-	    "summary" : ``(BootCommon::locationSummary ()),
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Restore settings of Target widget
-      */
-    global define void targetRead () ``{
-	if (BootPartitionDevice == RootPartitionDevice
-	    && location == "root")
-	{
-	    location = "boot";
-	}
-	UI::ChangeWidget (`id (`loc), `Value, loader_device);
-	UI::ChangeWidget (`id (`location), `CurrentButton, location);
-	UI::SetFocus (`id (`loc));
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any targetWrite (any op, boolean save) ``{
-	if (! save)
-	    return nil;
-	location = UI::QueryWidget (`id (`location), `CurrentButton);
-	loader_device = UI::QueryWidget (`id (`loc), `Value);
-	BootCommon::storeSettings ();
-	loader_device = BootCommon::GetBootloaderDevice ();
-	BootCommon::location_changed = true;
-	return nil;
-    }
-
-    /**
-      * Validate the target widget
-      * @return true if everything is OK
-      */
-    global define boolean targetValidate () ``{
-	string rb = UI::QueryWidget (`id (`location), `CurrentButton);
-	if (rb == nil)
-	{
-	    setLocationErrorPopup ();
-	    UI::SetFocus (`id (`location));
-	    return false;
-	}
-	if (rb == "custom" && UI::QueryWidget (`id (`loc), `Value) == "")
-	{
-	    setLocationErrorPopup ();
-	    UI::SetFocus (`is (`loc));
-	    return false;
-	}
-	return true;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string locationSummary () ``{
-	map targetMap = Storage::GetTargetMap ();
-	map boot_target = targetMap[loader_device]:$[];
-	string target_name = "";
-	if (boot_target == $[])
-	    target_name = loader_device;
-	else
-	    target_name = boot_target["name"]:"disk";
-	return target_name;
-    }
-
-
-// password widget
-
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getPasswdWidget () ``{
-	return $[
-		// frame
-	    "widget" : `VBox (
-                `Left (`CheckBox (`id (`usepas), `opt (`notify),
-			// checkbox
-                    _("&Enable Boot Loader Password Protection"))),
-                `HBox (
-			// password textentry
-                    `HWeight (1, `Password (`id (`pw1), _("&Password"))),
-                    `HSpacing (2),
-			// password textentry
-                    `HWeight (1, `Password (`id (`pw2), _("Re&type Password")))
-                ),
-                `VSpacing (0.4)
-            ),
-	    "restore" : ``(BootCommon::restorePasswdWidget ()),
-	    "handle" : ``(BootCommon::handlePasswdWidget ()),
-	    "validate" : ``(BootCommon::validatePasswdWidget ()),
-	    "help" : getPasswdHelp (),
-	    "summary" : ``(BootCommon::getPasswdSummary ()),
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Restore function of widget
-      */
-    global define void restorePasswdWidget () ``{
-	string passwd = lookup_value (
-	    current_globals, current_option_name, nil);
-	if (passwd == nil)
-	{
-	    UI::ChangeWidget (`id (`usepas), `Value, false);
-	    UI::ChangeWidget (`id (`pw1), `Enabled, false);
-	    UI::ChangeWidget (`id (`pw1), `Value, "");
-	    UI::ChangeWidget (`id (`pw2), `Enabled, false);
-	    UI::ChangeWidget (`id (`pw2), `Value, "");
-	}
-	else
-	{
-	    UI::ChangeWidget (`id (`usepas), `Value, true);
-	    UI::ChangeWidget (`id (`pw1), `Enabled, true);
-	    UI::ChangeWidget (`id (`pw1), `Value, "**********");
-	    UI::ChangeWidget (`id (`pw2), `Enabled, true);
-	    UI::ChangeWidget (`id (`pw2), `Value, "**********");
-	}
-	UI::SetFocus (`id (`usepas));
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any handlePasswdWidget (any op, boolean save) ``{
-	if (op == `usepas)
-	{
-	    boolean enabled = UI::QueryWidget (`id (`usepas), `Value);
-	    UI::ChangeWidget (`id (`pw1), `Enabled, enabled);
-	    UI::ChangeWidget (`id (`pw2), `Enabled, enabled);
-	}
-	else if (save)
-	{
-	    string password = nil;
-	    boolean usepass = UI::QueryWidget (`id (`usepas), `Value);
-	    y2milestone ("Usepass: %1", usepass);
-	    if (usepass)
-	    {
-		if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
-		{
-		    password = UI::QueryWidget (`id (`pw1), `Value);
-		    if (haskey (BootCommon::current_bootloader_attribs,
-			"update_passwd"))
-		    {
-			eval (BootCommon::current_bootloader_attribs[
-			    "update_passwd"]:nil);
-		    }
-		}
-	    }
-	    current_section = modifySection (current_section, "password",
-		password);
-	}
-	return nil;
-    }
-
-    /**
-      * Validate function of widget
-      * @return true if widget settings ok
-      */
-    global define boolean validatePasswdWidget () ``{
-	if (! UI::QueryWidget (`id (`usepas), `Value))
-	    return true;
-	if (UI::QueryWidget (`id (`pw1), `Value) == "")
-	{
-	    emptyPasswdErrorPopup ();
-	    UI::SetFocus (`id (`pw1));
-	    return false;
-	}
-	if (UI::QueryWidget (`id (`pw1), `Value)
-	    == UI::QueryWidget (`id (`pw2), `Value)
-	)
-	    return true;
-	passwdMissmatchPopup ();
-	UI::SetFocus (`id (`pw1));
-	return false;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string getPasswdSummary () ``{
-	if (lookup_value (BootCommon::current_section, "password", nil) != nil)
-		// table cell
-	    return _("Password will be needed");
-	else
-		// table cell
-	    return _("No password will be needed");
-    }
 
 // sections managment widget
 
@@ -357,7 +63,8 @@
       */
     global define map getSectionsWidget () ``{
 	return $[
-	    "widget" : `VBox (
+	    "widget" : `custom,
+	    "custom_widget" : `VBox (
 		`HBox (
 			`Table (`id (`sects), `opt (`keepSorting, `immediate, `notify), `header (
 			// table header
@@ -388,8 +95,9 @@
 		    `PushButton (`id (`default), _("Set as De&fault"))
 		)
 	    ),
-	    "restore" : ``(BootCommon::sectionsRead ()),
+	    "init" : ``(BootCommon::sectionsInit ()),
 	    "handle" : ``(BootCommon::sectionsHandle ()),
+	    "store" : ``(BootCommon::sectionsStore ()),
 	    "help" : getSectionsHelp (),
 	    "exits" : [`add, `edit],
 	    "key_only_once" : true,
@@ -429,7 +137,7 @@
     /**
       * Restore function of widget
       */
-    global define void sectionsRead () ``{
+    global define void sectionsInit (any widget) ``{
 	sectionsRedrawTable (BootCommon::current_sections);
 	UI::SetFocus (`id (`sects));
     }
@@ -440,7 +148,8 @@
       * @param save boolean true if op should lead to closing & saving widget
       * @return symbol changed op (if needed)
       */
-    global define symbol sectionsHandle (any op, boolean save) ``{
+    global define symbol sectionsHandle (any widget, map event) ``{
+	any op = event["ID"]:nil;
 	y2milestone ("Handling event %1", op);
 	string current = UI::QueryWidget (`id (`sects), `CurrentItem);
 	integer counter = 0;
@@ -504,6 +213,7 @@
 	    }
 	    BootCommon::current_section_name = "";
 	    BootCommon::one_section_changed = true;
+	    return `add;
 	}
 	else if (op == `edit)
 	{
@@ -512,6 +222,7 @@
 	    BootCommon::current_section_name
 		= lookup_value (sects[index]:[], "label", "");
 	    BootCommon::one_section_changed = false;
+	    return `edit;
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
@@ -526,88 +237,98 @@
 	    sectionsRedrawTable (sects);
 	    BootCommon::sections_changed = true;
 	}
-	if (save && op != `edit && op != `add)
-	{
-	    if (BootCommon::sections_changed)
-	    {
-		BootCommon::changed = true;
-		BootCommon::markOptionChanged (`current_globals, "__sections");
-		BootCommon::markOptionChanged (`current_globals, "__default_section");
-	    }
-	}
-	if (op == `back)
-	{
-	}
 	UI::SetFocus (`id (`sects));
 	return nil;
     }
 
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getLoaderSelectionWidget () ``{
-        list loaders = maplist (`l, BootCommon::getBootloaders (), ``{
-            return `item (`id (l), BootCommon::getLoaderName (l));
-        });
+    global define void sectionsStore (any widget, map event) ``{
+	any op = event["ID"]:nil;
+	if (op != `edit && op != `add)
+	{
+	    if (BootCommon::sections_changed)
+	    {
+		BootCommon::changed = true;
+		BootCommon::markGeneralOptionChanged ("__sections");
+		BootCommon::markGeneralOptionChanged ("default");
+	    }
+	}
 
-	return $[
-	    "widget" : (`ComboBox (`id (`loader_type), `opt (`notify),
-			// combobox header
-                        _("Boot &Loader Type"), loaders
-                    )),
-	    "restore" : ``(BootCommon::loaderTypeRestore ()),
-	    "handle" : ``(loaderTypeSave ()),
-	    "help" : nil,
-	    "exits" : [],
-		// table item / label
-	    "label" : _("Boot Loader Type"),
-	    "summary" : ``(BootCommon::loaderTypeSummary ()),
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-	];
     }
 
-    /**
-      * Restore function of widget
-      */
-    global define void loaderTypeRestore () ``{
-	UI::ChangeWidget (`id (`loader_type), `Value,
-	    BootCommon::getLoaderType (false));
-	UI::SetFocus (`id (`loader_type));
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string loaderTypeSummary () ``{
-	return BootCommon::getLoaderName (BootCommon::getLoaderType (false));
-    }
 
     /**
       * Get map of widget
       * @return map of widget
       */
     global define map getSingleSectionWidget () ``{
-	return $[
-	    "widget" : (`HBox (`HSpacing (2), `VBox (
-		    `Table (`id (`settings), `opt (`immediate, `notify, `keepSorting),
-			`header (_("Ch."), _("Option"), _("Value")), []),
-		    `HBox (
-			`PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),
-			`PushButton (`id (`edit), `opt (`key_F4), Label::EditButton ()),
-			`PushButton (`id (`delete), `opt (`key_F5), Label::DeleteButton ()),
-			`HStretch ()
-		    )
-		), `HSpacing (2))),
-	    "restore" : ``(singleSectionRead ()),
-	    "handle" : ``(singleSectionHandle ()),
-	    "help" : getSingleSectionHelp (),
-	    "exits" : [`sections],
-	    "key_only_once" : true,
-	];
+	return TablePopup::CreateTableDescr (
+	    $["add_delete" : true, "up_down_buttons" : false, "changed_column" : true],
+	    $[
+		"store" : ``(BootCommon::singleSectionStore ()),
+		"options": BootCommon::GetOptionMaps (),
+		"id2key": ``(BootCommon::id2key ()),
+		"ids": ``(BootCommon::getTableContents ()),
+                "help": getSingleSectionHelp (),
+                "fallback" : $[
+                    "init": ``(BootCommon::commonPopupInit ()),
+                    "store": ``(BootCommon::commonPopupSave ()),
+                    "summary": ``(BootCommon::commonTableEntrySummary ()),
+                    "changed" : ``(BootCommon::commonTableChanged ()),
+                ],
+		"handle" : ``(BootCommon::singleSectionHandle ()),
+                "option_delete": ``(BootCommon::commonTableEntryDelete ()),
+                "add_items":  lookup (GetOptions (), `global, []), // FIXME
+	    ]
+	);
+    }
+
+    global define symbol singleSectionHandle (any widget_key, map event) ``{
+	redraw_table = false;
+	map current_table = CWM::GetProcessedWidget ();
+	symbol ret = TablePopup::TableHandle (current_table, widget_key, event);
+	if (redraw_table)
+	{
+	    TablePopup::TableInit (current_table, widget_key);
+	}
+	return ret;
+    }
+
+    global define void singleSectionStore (any widget_key, map event) ``{
+	string ls = getSectionTitle ();
+	string old_name = current_section_name;
+	y2milestone ("Old name: %1", old_name);
+	map intern = lookup_value (current_section, "__intern__", $[]);
+	intern["changed"] = true;
+	current_section = modifySection (current_section, "__intern__", intern);
+	boolean found = false;
+	BootCommon::current_sections = maplist (`s, current_sections, ``{
+	    if (lookup_value (s, ls, "") == old_name)
+	    {
+		found = true;
+		return BootCommon::current_section;
+	    }
+	    else
+	    {
+		return s;
+	    }
+	});
+	if (! found)
+	{
+	    current_sections = add (current_sections, current_section);
+	    }
+	y2milestone ("Saving section");
+	if (one_section_changed)
+	    sections_changed = true;
+
+	if (getDefaultType () == `label
+	    && tolower (current_section_name)
+		    == tolower (lookup_value (current_globals, getDefaultKey (), "")))
+	{
+	    current_globals = modifySection (
+		current_globals,
+		getDefaultKey (),
+		lookup_value (current_section, getSectionTitle (), ""));
+	}
     }
 
     /**
@@ -615,68 +336,235 @@
       * @return map of widget
       */
     global define map getGlobalSectionWidget () ``{
-	map ret = getSingleSectionWidget ();
-	ret["help"] = getGlobalSectionHelp ();
-	ret["handle"] = ``(globalSectionHandle ());
-	ret["widget"] = (`HBox (`HSpacing (2), `VBox (
-	    `Table (`id (`settings), `opt (`immediate, `notify, `keepSorting),
-		// table header, shortcut for changed, keep very short
-		`header (_("Ch."),
-		// table header
-		_("Option"),
-		// table header
-		_("Value")), []),
-	    `HBox (
-		`PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),
-		`PushButton (`id (`edit), `opt (`key_F4), Label::EditButton ()),
-		`PushButton (`id (`delete), `opt (`key_F5),
-		    Label::DeleteButton ()),
-		`HStretch (),
-		`ReplacePoint (`id (`reset_rp), `VSpacing (0))
-	    )
-	), `HSpacing (2)));
+	return TablePopup::CreateTableDescr (
+	    $["add_delete" : true, "up_down_buttons" : false, "changed_column" : true],
+	    $[
+		"init" : ``(BootCommon::globalSectionInit ()),
+		"handle" : ``(BootCommon::globalSectionHandle ()),
+		"store" : ``(BootCommon::globalSectionStore ()),
+		"options": BootCommon::GetOptionMaps (),
+		"id2key": ``(BootCommon::id2key ()),
+		"ids": ``(BootCommon::getTableContents ()),
+                "help": getGlobalSectionHelp (),
+                "fallback" : $[
+                    "init": ``(BootCommon::commonPopupInit ()),
+                    "store": ``(BootCommon::commonPopupSave ()),
+                    "summary": ``(BootCommon::commonTableEntrySummary ()),
+                    "changed" : ``(BootCommon::commonTableChanged ()),
+                ],
+                "option_delete": ``(BootCommon::commonTableEntryDelete ()),
+                "add_items":  lookup (GetOptions (), `global, []),
+	    ]
+	);
+    }
+
+    global define void globalSectionInit (any widget_key) ``{
+	current_section = eval (globals);
+	current_section_name = `global;
+	TablePopup::TableInitWrapper (widget_key);
+    }
+
+    global define symbol globalSectionHandle (any widget_key, map event) ``{
+	redraw_table = false;
+	map current_table = CWM::GetProcessedWidget ();
+	symbol ret = TablePopup::TableHandle (current_table, widget_key, event);
+	if (redraw_table)
+	{
+	    return `redraw;
+	}
 	return ret;
     }
 
+    global define void globalSectionStore (any widget_key, map event) ``{
+	if (event["ID"]:nil == `redraw)
+	    return;
+	globals = current_section;
+	if (one_section_changed)
+	    changed = true;
+    }
+
+
     /**
-      * Update list of options to display in current section
-      * @param _options list of all options
-      * @return list of options as it should be displayed
+      * Create a list of options for the table
+      * @return list of option ids as it should be displayed
       */
-    global define list UpdateOptionsList (list _options) ``{
+    global define list getTableContents (map descr) ``{
 	if (BootCommon::getLoaderType (false) == "none")
 	    return [$["key":"__loader_type"]];
 	list prependlist = [];
-	list orig_opts = _options;
+	list forbidden_keys = [];
 	any type = BootCommon::getSectionType (BootCommon::current_section);
 	if (type == `global)
 	{
 	    prependlist = ["__loader_type", "__sep2", "__location",
-		"__default_section", "__sections", "__activate", "__repl_mbr",
+		"default", "__sections", "__activate", "__repl_mbr",
 		"__backup_mbr", "__save_method", "__sep1"];
-	    _options = filter (`o, _options, ``(
-		o["key"]:"" != "boot" && o["key"]:"" != "default"));
+	    forbidden_keys = ["boot", "default"];
 	}
 	else
 	{
 	    prependlist = ["label", "__section_type", "__sep1"];
 	}
-	_options = filter (`o, _options, ``(! contains (
-	    prependlist, o["key"]:"")));
 	if (Mode::initial)
 	{
 	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
 	}
-	prependlist = maplist (`p, prependlist, ``{
-	    map m = getValueMap (orig_opts, p);
-	    if (m == $[])
+	forbidden_keys = merge (forbidden_keys, prependlist);
+	forbidden_keys = add (forbidden_keys, "__intern__");
+	integer index = -1;
+	map remap_prepend = $[];
+	list options = maplist (map opt, BootCommon::current_section, ``{
+	    index = index + 1;
+	    if (contains (prependlist, opt["key"]:""))
 	    {
-		m = $[ "key" : p];
+		remap_prepend[opt["key"]:""] = index;
+		return nil;
 	    }
-	    return m;
+	    return contains (forbidden_keys, opt["key"]:"")
+		? nil
+		: index;
 	});
-	list options = merge (prependlist, _options);
-	return options;
+	prependlist = maplist (`e, prependlist, ``(remap_prepend[e]:e));
+	options = filter (any opt, options, ``(opt != nil));
+	return merge (prependlist, options);
+    }
+
+    /**
+      * Transform table entry id to option id
+      * @param table map table description
+      * @param id any entry id
+      * @return any option key
+      */
+    global define any id2key (map table, any opt_id) ``{
+	if (is (opt_id, string))
+	{
+	    if (substring (opt_id, 0, 5) == "__sep")
+		return "____sep";
+	    return opt_id;
+	}
+	integer index = opt_id;
+	return BootCommon::current_section[index, "key"]:"";
+    }
+
+    /**
+      * Get the popup widget description map
+      * @param opt_key any option key
+      * @return map popup description map
+      */
+    global define map key2descr (any opt_key) ``{
+        map ret = popups[opt_key]:nil;
+        if (ret != nil)
+            return ret;
+        return $[
+                "init" : ``(BootCommon::commonPopupInit ()),
+                "store" : ``(BootCommon::commonPopupSave ()),
+        ];
+    }
+
+    global define boolean commonTableChanged (any opt_id, any opt_key) ``{
+	if (is (opt_id, integer))
+	{
+	    integer index = opt_id;
+	    return current_section[index, "changed"]:false;
+	}
+	else if (is (opt_id, string))
+	{
+	    string key = opt_id;
+	    map intern = lookup_value (current_section, "__intern__", $[]);
+	    list ch = intern["changed_opts"]:[];
+	    return contains (ch, opt_id);
+	}
+	return false;
+    }
+
+    global define string commonTableEntrySummary (any opt_id, any opt_key) ``{
+	if (is (opt_id, integer))
+	{
+	    if (is (BootCommon::current_section[opt_id, "value"]:"", boolean))
+	    {
+		return BootCommon::current_section[opt_id, "value"]:""
+		    // table item
+		    ? _("Yes")
+		    // table item
+		    : _("No");
+	    }
+	    return sformat ("%1",
+		BootCommon::current_section[opt_id, "value"]:"");
+	}
+	return "";
+    }
+
+    global define boolean commonTableEntryDelete (any opt_id, any opt_key) ``{
+	if (! confirmOptionDeletePopup ())
+	    return false;
+	if (! is (opt_id, integer))
+	    return false;
+
+	integer index = opt_id;
+	current_section = remove (current_section, index);
+	one_section_changed = true;
+	return true;
+    }
+
+    global define void commonPopupInit (any opt_id, any opt_key) ``{
+	integer index = opt_id;
+	if (index != nil)
+	{
+	    UI::ChangeWidget (`id (opt_key), `Value,
+		BootCommon::current_section[opt_id, "value"]:"");
+	}
+	UI::SetFocus (`id (opt_key));
+    }
+
+    global define void commonPopupSave (any opt_id, any opt_key) ``{
+	any value = UI::QueryWidget (`id (opt_key), `Value);
+	one_section_changed = true;
+	if (opt_id == nil) // append
+	{
+	    current_section = appendValue (current_section, opt_key, value);
+	}
+	else if (is (opt_id, integer))
+	{
+	    integer index = opt_id;
+	    current_section[index, "value"] = value;
+	    current_section[index, "changed"] = true;
+	}
+    }
+
+    global define any moveTableItem (any opt_id, any opt_key, symbol dir)``{
+	if (! is (opt_id, integer))
+	    return nil;
+
+	integer index = opt_id;
+	map reordered = filterOrder (current_section, cwm_options, index);
+
+	if (reordered["items"]:nil == nil || reordered["index"]:nil == nil)
+	    return nil;
+
+	index = reordered["index"]:nil;
+	list items = reordered["items"]:nil;
+
+	if (dir == `up)
+	{
+	    BootCommon::current_section = BootCommon::swapItems (
+		items, index, index - 1);
+	    BootCommon::one_section_changed = true;
+	    if (index > 0)
+		return index - 1;
+	    else
+		return index;
+	}
+	if (dir == `down)
+	{
+            BootCommon::current_section = BootCommon::swapItems (
+		items, index, index + 1);
+	    BootCommon::one_section_changed = true;
+	    if (index + 1 < size (items))
+		return index + 1;
+	    else
+		return index;
+	}
+	return nil;
     }
 
     /**
@@ -685,9 +573,10 @@
       */
     global define map getResetButtonWidget () ``{
 	return $[
-	    "widget" : `VSpacing (0),
-	    "handle" : ``(resetButtonHandle ()),
-	    "restore" : ``(BootCommon::resetButtonRestore ()),
+	    "widget" : `custom,
+	    "custom_widget" : `VSpacing (0),
+	    "handle" : reset_button_handle,
+	    "init" : ``(BootCommon::resetButtonInit ()),
 	    "help" : getSummaryButtonsHelp (),
 	    "key_only_once" : true,
 	];
@@ -696,7 +585,7 @@
     /**
       * Restore function of widget
       */
-    global define void resetButtonRestore () ``{
+    global define void resetButtonInit (any widget_id) ``{
 	list items = [];
 	if (getBooleanAttrib ("propose"))
 	{
@@ -731,13 +620,13 @@
 
 	if (size (items) > 0)
 	{
-	    UI::ReplaceWidget (`id (`reset_rp),
+	    UI::ReplaceWidget (`id (`_tp_table_repl),
 		// menu button
 		`MenuButton (`id (`reset), _("Res&et"), items));
 	}
 	else
 	{
-	    UI::ReplaceWidget (`id (`reset_rp), `VSpacing (0));
+	    UI::ReplaceWidget (`id (`_tp_table_repl), `VSpacing (0));
 	}
 
     }
@@ -748,464 +637,21 @@
       */
     global define map getManualEditWidget () ``{
 	return $[
-	    "widget" : `HBox (`HStretch (),
+	    "widget" : `custom,
+	    "custom_widget" : `HBox (`HStretch (),
 		// pushbutton
 		`PushButton (`id (`manual), _("E&dit Configuration Files")),
 		`HStretch ()
 	    ),
-	    "exits" : [`manual],
+	    "handle_events" : [`manual],
+	    "handle" : ``(BootCommon::manualEditHandle ()),
 	    "help" : getManualEditHelp (),
 	    "key_only_once" : true,
 	];
     }
 
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getSectionsTableEntry () ``{
-	return $[
-		// table item / label
-	    "label" : _("Available Sections"),
-	    "summary" : ``(BootCommon::getSectionsSummary ()),
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string getSectionsSummary () ``{
-	string default_name = BootCommon::getDefaultSection ();
-	string sect_title = BootCommon::getSectionTitle ();
-	list sects = maplist (`s, BootCommon::sections, ``{
-            string title = lookup_value (s, sect_title, "");
-	    boolean is_default = default_name == title;
-	    // suffix after section name, keep short, to summary and table
-            string def = is_default ? _(" (default)") : "";
-	    return sformat ("%1%2", title, def);
-        });
-	return mergestring (sects, ", ");
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getDefaultSectionTableEntry () ``{
-	return $[
-		// table item / label
-	    "label" : _("Default Section"),
-	    "summary" : ``(BootCommon::getDefaultSection ()),
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getSectionTypeWidget () ``{
-        return $[
-            "widget" : (`ComboBox (`id (`section_type), `opt (`notify),
-			// combobox header
-                        _("Section &Type"), [
-			    `item (`id ("image"), _("image")),
-			    `item (`id ("other"), _("other"))]
-                    )),
-            "restore" : ``(BootCommon::sectionTypeRestore ()),
-            "handle" : ``(BootCommon::sectionTypeSave ()),
-            "help" : nil,
-            "exits" : [],
-		// table item / label
-            "label" : _("Section Type"),
-            "summary" : ``(BootCommon::sectionTypeSummary ()),
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-        ];
-    }
-
-    /**
-      * Restore function of widget
-      */
-    global define void sectionTypeRestore () ``{
-	string key = BootCommon::getKernelKey ();
-        UI::ChangeWidget (`id (`section_type), `Value,
-	    lookup_value (BootCommon::current_section, key, nil) == nil
-		? "other"
-		: "image");
-	UI::SetFocus (`id (`section_type));
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any sectionTypeSave (any op, boolean save) ``{
-	if (! save)
-	    return;
-        string ntype = UI::QueryWidget (`id (`section_type), `Value);
-	string otype = BootCommon::getSectionType (BootCommon::current_section);
-	if (otype == ntype)
-	    return nil;
-	BootCommon::current_section = BootCommon::convertSection (
-	    otype, ntype, BootCommon::current_section);
-	return nil;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string sectionTypeSummary () ``{
-	string key = BootCommon::getKernelKey ();
-	return lookup_value (
-		BootCommon::current_section, key, nil) == nil
-	    ? _("other")
-	    : _("image");
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getBackupMbrWidget () ``{
-	return $[
-	    "restore" : ``(BootCommon::backupMbrRestore ()),
-	    "handle" : ``(BootCommon::backupMbrSave ()),
-	    "type" : "b",
-	    // label displayed as help
-	    "help" : _("Affected disk areas are the MBR of the first disk
-and the sector to which the boot loader is installed.
-"),
-	    "exits" : [],
-	    // table item / label
-	    "label" : _("Back up Affected Disk Areas"),
-	    // checkbox label
-	    "widget_label" : _("&Back up Affected Disk Areas"),
-	    "summary" : ``(BootCommon::backupMbrSummary ()),
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Restore function of widget
-      */
-    global define void backupMbrRestore () ``{
-        UI::ChangeWidget (`id (`value), `Value, backup_mbr);
-        UI::SetFocus (`id (`value));
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any backupMbrSave (any op, boolean save) ``{
-        if (! save)
-            return nil;
-        backup_mbr = UI::QueryWidget (`id (`value), `Value);
-        return nil;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string backupMbrSummary () ``{
-        if (backup_mbr)
-            // table item / label
-            return _("Yes");
-        else
-            // table item / label
-            return _("No");
-    }
-
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getSaveMethod () ``{
-	return $[
-            "restore" : ``(BootCommon::saveMethodRestore ()),
-            "handle" : ``(BootCommon::saveMethodSave ()),
-	    "type" : "b",
-	    "help" : BootCommon::getSaveMethodHelp (),
-	    "exits" : [],
-		// table item / label
-	    "label" : _("Save Method"),
-		// table item / label
-	    "widget_label" : _("Force &Saving Everything"),
-	    "summary" : ``(BootCommon::saveMethodSummary ()),
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Restore function of widget
-      */
-    global define void saveMethodRestore () ``{
-        UI::ChangeWidget (`id (`value), `Value, save_all);
-        UI::SetFocus (`id (`value));
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any saveMethodSave (any op, boolean save) ``{
-        if (! save)
-            return nil;
-        save_all = UI::QueryWidget (`id (`value), `Value);
-        return nil;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string saveMethodSummary () ``{
-        if (save_all)
-            // table item / label
-            return _("Force Saving Everything");
-        else
-            // table item / label
-            return _("Save Only Changed Files");
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getTimeoutWidget () ``{
-	return $[
-	    "restore" : ``(BootCommon::timeoutRestore ()),
-	    "handle" : ``(BootCommon::timeoutSave ()),
-	    "summary" : ``(BootCommon::timeoutSummary ()),
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Restore function of widget
-      */
-    global define void timeoutRestore () ``{
-	integer timeout = lookup_value (BootCommon::current_section,
-	    "timeout", 0);
-	UI::ChangeWidget (`id (`value), `Value,
-	    timeout / BootCommon::getTimeoutMultiplier ());
-	UI::SetFocus (`id (`value));
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any timeoutSave (any op, boolean save) ``{
-	if (! save)
-	    return nil;
-	integer timeout = UI::QueryWidget (`id (`value), `Value)
-	    * BootCommon::getTimeoutMultiplier ();
-	BootCommon::current_section = modifySection (
-	    BootCommon::current_section, "timeout", timeout);
-	return nil;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string timeoutSummary () ``{
-	integer timeout = lookup_value (current_section, "timeout", 0);
-	// table cell, %1 is a number, 's' means 'seconds'
-	return sformat (_("%1 s"),
-	    timeout / BootCommon::getTimeoutMultiplier ());
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getLabelWidget () ``{
-	return $[
-		// table item / label
-	    "label" : _("Section Name"),
-	    "validate" : ``(BootCommon::labelValidate ()),
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Validate function of widget
-      * @return true if ok
-      */
-    global define boolean labelValidate () ``{
-	list(string) existing = [];
-	list(string) aliases = BootCommon::getAliasesKeys ();
-	foreach (`s, BootCommon::current_sections, ``{
-	    foreach (`e, s, ``{
-		if (e["key"]:"" == BootCommon::getSectionTitle ()
-		    || contains (aliases, e["key"]:""))
-		{
-		    existing = add (existing, e["value"]:"");
-		}
-	    });
-	});
-	existing = filter (string l, existing,
-	    ``(l != BootCommon::current_section_name));
-	existing = add (existing, "");
-	string new = UI::QueryWidget (`id (`value), `Value);
-
-	if (contains (existing, new))
-	{
-	    usedNameErrorPopup ();
-	    return false;
-	}
-	return true;
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getAliasWidget () ``{
-	map ret = getLabelWidget ();
-	ret["deletable"] = true;
-	ret["ordering"] = true;
-        ret["validate"] = ``(BootCommon::labelValidate ());
-        return ret;
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getReplMbrWidget () ``{
-	return $[
-		// table item / label
-	    "label" : _("Replace Code in MBR"),
-	    "restore" : ``(BootCommon::replMbrRestore ()),
-	    "handle" : ``(BootCommon::replMbrHandle ()),
-	    "summary" : ``(BootCommon::replMbrSummary ()),
-	    "type" : "b",
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Restore function of widget
-      */
-    global define void replMbrRestore () ``{
-	UI::ChangeWidget (`id (`value), `Value, repl_mbr);
-	UI::SetFocus (`id (`value));
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any replMbrHandle (any op, boolean save) ``{
-        if (! save)
-            return nil;
-	repl_mbr = UI::QueryWidget (`id (`value), `Value);
-	if (repl_mbr)
-	    BootCommon::location_changed = true;
-	return nil;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string replMbrSummary () ``{
-	if (repl_mbr)
-		// table item / label
-	    return sformat (_("Replace %1 with Generic Code"),
-		BootCommon::mbrDisk);
-	else
-		// table item / label
-	    return _("Leave Untouched");
-    }
-
-    /**
-      * Get widget map
-      * @return map of widget
-      */
-    global define map getActivateWidget () ``{
-	return $[
-		// table item
-	    "label" : _("Activate Boot Loader Partition"),
-	    "restore" : ``(BootCommon::activateRestore ()),
-	    "handle" : ``(BootCommon::activateHandle ()),
-	    "summary" : ``(BootCommon::activateSummary ()),
-	    "type" : "b",
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Restore function of widget
-      */
-    global define void activateRestore () ``{
-        UI::ChangeWidget (`id (`value), `Value, activate);
-	UI::SetFocus (`id (`value));
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any activateHandle (any op, boolean save) ``{
-        if (! save)
-            return nil;
-        activate = UI::QueryWidget (`id (`value), `Value);
-        if (activate)
-            BootCommon::location_changed = true;
-	activate_changed = true;
-	return nil;
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string activateSummary () ``{
-        if (activate)
-		// table item, %1 is a device name (eg. /dev/hda1)
-		// FIXME partition %1 of %2 is better (in future)
-            return sformat (_("Yes, Activate %1"),
-		lookup (BootCommon::getPartitionToActivate (), "dev", ""));
-        else
-		// table item
-            return _("No");
+    global define symbol manualEditHandle(any key, map event)``{
+	return `manual;
     }
 
     /**

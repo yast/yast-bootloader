@@ -26,6 +26,7 @@
     textdomain "bootloader";
 
     include "bootloader/routines/misc.ycp";
+    include "bootloader/routines/options.ycp";
     include "bootloader/routines/widgets.ycp";
     include "bootloader/routines/helps.ycp";
     include "bootloader/routines/lilolike.ycp";
@@ -179,6 +180,11 @@
       */
     global integer current_option_index = -1;
 
+    global boolean redraw_table = false;
+    global term reset_button_handle = nil;
+    global term loader_type_store = nil;
+
+
 // other variables
 
     /**
@@ -224,6 +230,14 @@
       * Backup original MBR before installing bootloader
       */
     global boolean backup_mbr = false;
+    /**
+      * Widgets used by currently used bootloader
+      */
+    global map cwm_widgets = $[];
+    /**
+      * Table/Popup options used by currently used bootloader
+      */
+    global map cwm_options = $[];
 
 // generic versions of bootloader-specific functions
 
@@ -459,6 +473,22 @@ configuration files"));
 
 // bootloader type handling functions
 
+    define void setCurrentLoaderAttribs (string loader_type) ``{
+	if (bootloader_attribs[loader_type, "initializer"]:nil != nil)
+	{
+	    eval (bootloader_attribs[loader_type, "initializer"]:nil);
+	}
+	else
+	{
+	    y2warning ("No initializer found for %1", loader_type);
+	    current_bootloader_attribs = $[];
+	    widgets = GetWidgetMaps ();
+	}
+	current_bootloader_attribs = union (
+	    current_bootloader_attribs,
+	    bootloader_attribs[loader_type]:$[]);
+    }
+
     /**
       * Get currently used bootloader, detect if not set yet
       * @param recheck boolean force checking bootloader
@@ -474,8 +504,7 @@ configuration files"));
 	    if (loader_type != nil && loader_type != "")
 	    {
 		y2milestone ("Sysconfig bootloader is %1, using", loader_type);
-		current_bootloader_attribs
-		    = bootloader_attribs[loader_type]:$[];
+		setCurrentLoaderAttribs (loader_type);
 		return loader_type;
 	    }
 	    if (Mode::update)
@@ -483,8 +512,7 @@ configuration files"));
 		if (Arch::i386)
 		{ // no sysconfig variable -> old version installed -> use LILO
 		    loader_type = "lilo";
-		    current_bootloader_attribs
-			= bootloader_attribs[loader_type]:$[];
+		    setCurrentLoaderAttribs (loader_type);
 		    return loader_type;
 		}
 	    }
@@ -503,7 +531,7 @@ configuration files"));
 	}
 
 	y2milestone ("Detected bootloader %1", loader_type);
-	current_bootloader_attribs = bootloader_attribs[loader_type]:$[];
+	setCurrentLoaderAttribs (loader_type);
 	return loader_type;
     }
     /**
@@ -537,7 +565,7 @@ configuration files"));
 	    }
 	}
 	loader_type = bootloader;
-	current_bootloader_attribs = bootloader_attribs[loader_type]:$[];
+	setCurrentLoaderAttribs (loader_type);
     }
     /**
       * List bootloaders available for configured architecture

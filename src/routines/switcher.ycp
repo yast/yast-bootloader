@@ -140,7 +140,7 @@
       * Get bootloader specific widgets
       * @return map of widgets
       */
-    global define map blGetWidgets () ``{
+    global define map blGetWidgetMaps () ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
 	term toEval = functions["widgets"]:nil;
 	return eval (toEval);

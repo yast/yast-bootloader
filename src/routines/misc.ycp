@@ -957,6 +957,19 @@
     }
 
     /**
+      * Mark general bootloader option as changed by user
+      * @param optname string option name
+      */
+    global define void markGeneralOptionChanged (string optname) ``{
+	map intern = lookup_value (current_section, "__intern__", $[]);
+	list ch = intern["changed_opts"]:[];
+	ch = toset (add (ch, optname));
+	intern["changed_opts"] = ch;
+	current_section = modifySection (current_section, "__intern__", intern);
+	one_section_changed = true;
+    }
+
+    /**
       * Mark option as changed by user
       * @param section symbol section to update
       * @param optname string option name
@@ -1047,16 +1060,36 @@
       * @param widgets map of present widgets
       * @return list filtered list
       */
-    global define list filterOrder (list order, map widgets) ``{
+    global define map filterOrder (list order, map widgets, integer index) ``{
 	list ordering = [];
 	list unordering = [];
+	integer new_index = -1;
+	integer order_count = 0;
+	integer sorted_cound = 0;
 	foreach (`o, order, ``{
-	    if (widgets[o["key"]:"", "ordering"]:true)
+	    boolean ord_option = widgets[o["key"]:"", "table", "ordering"]:true;
+	    if (substring (o["key"]:"", 0, 2) == "__")
+		ord_option = false;
+	    if (ord_option)
+	    {
 		ordering = add (ordering, o);
+		order_count = order_count + 1;
+	    }
 	    else
+	    {
 		unordering = add (unordering, o);
+	    }
+	    if (index == 0)
+	    {
+		new_index = order_count - 1;
+	    }
+	    index = index - 1;
 	});
-	return merge (unordering, ordering);
+	new_index = new_index + size (unordering);
+	return $[
+	    "items" : merge (unordering, ordering),
+	    "index" : new_index,
+	];
     }
 
     /**
