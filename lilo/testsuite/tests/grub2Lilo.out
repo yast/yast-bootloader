@@ -25,18 +25,8 @@ Execute	.target.bash "/usr/bin/setfont" 0
 Read	.probe.floppy.manual []
 Read	.probe.cdrom.manual []
 Read	.probe.boot_arch "grub"
-Read	.probe.disk []
-Read	.md.config $[]
-Read	.lvm.vg $[]
-Read	.lvm.pv $[]
-Read	.target.size "/etc/cryptotab" 0
-Read	.proc.swaps []
-Write	.dumpto.tmp.targetMap_i $[] true
-Read	.proc.mounts []
-Read	.proc.swaps []
-Read	.etc.mtab []
-Read	.target.size "/etc/fstab" 0
-Read	.target.size "/etc/cryptotab" 0
+Read	.target.size "/etc/sysconfig/bootloader" 0
+Read	.sysconfig.bootloader.LOADER_TYPE "grub"
 Execute	.target.bash_output "awk '\n/(hd0)/ {printf $2; next;}\n// {next;}' /boot/grub/device.map" $["stdout":"/dev/hda"]
 Return	/dev/hda
 Execute	.target.bash_output "awk '\n/(hd0)/ {printf $2; next;}\n// {next;}' /boot/grub/device.map" $["stdout":"/dev/hda"]
