@@ -336,19 +336,14 @@
       * @return boolean true if success
       */
     global define boolean Save () ``{
-	string prefix = getEfiMountPoint ();
-	string relative_prefix = getEliloConfDir () + "/";
+	string prefix = "";//getEfiMountPoint ();
+	string relative_prefix = "/boot/";//getEliloConfDir () + "/";
 	SCR::Execute (.target.bash,
 	    sformat ("test -d %1 || /bin/mkdir -p %1", getEliloConfDir ()));
         SCR::Execute (.target.bash, sformat (
 	    "test -f %1 && /bin/cp %1 %1.old", elilo_conf_filename));
         SCR::Execute (.target.bash, sformat ("/usr/bin/touch %1",
 	    elilo_conf_filename));
-
-	SCR::Execute (.target.bash, sformat ("
-	    cp /boot/vmlinuz %1/vmlinuz
-	    cp /boot/initrd %1/initrd
-	", getEliloConfDir ()));
 
 	BootCommon::liloRemoveUnexistentSections (prefix, relative_prefix);
         BootCommon::sections = maplist (list s, BootCommon::sections, ``{
@@ -377,11 +372,6 @@
         });
 	BootCommon::liloUpdateAppend ();
         boolean ret = BootCommon::Save ();
-	SCR::Execute (.target.bash, sformat ("
-	    cp /etc/elilo.conf %1/elilo.conf
-	    cp /usr/lib/elilo/elilo.efi %1/elilo.efi
-
-	", getEliloConfDir ()));
         return ret;
     }
 
@@ -435,6 +425,14 @@
       * @return boolean true on success
       */
     global define boolean Write () ``{
+	// FIXME this should be only temporary
+	SCR::Execute (.target.bash, sformat ("
+	    test -f /boot/vmlinuz && cp /boot/vmlinuz %1/vmlinuz
+	    test -f /boot/initrd && cp /boot/initrd %1/initrd
+	    test -f /etc/elilo.conf && cp /etc/elilo.conf %1/elilo.conf
+	    test -f /usr/lib/elilo/elilo.efi && cp /usr/lib/elilo/elilo.efi %1/elilo.efi
+	", getEliloConfDir ()));
+	SCR::Execute (.target.bash, "/sbin/elilo");
 	if (! create_efi_entry)
 	    return true;
 	boolean ret = true;
