@@ -89,5 +89,7 @@ Group:          System/YaST
 %files -n yast2-bootfloppy
 %defattr(-,root,root)
 
+%ifarch %ix86
 @desktopdir@/bootfloppy.desktop
+%endif
 @clientdir@/bootfloppy.ycp

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug 31 16:46:46 CEST 2004 - jsrain@suse.cz
+
+- fixed building on other archs than i386
+
+-------------------------------------------------------------------
 Tue Aug 31 14:43:04 CEST 2004 - jsrain@suse.cz
 
 - branched yast2-bootfloppy package (so that the bootfloppy
