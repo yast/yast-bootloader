@@ -244,6 +244,9 @@
             return probed_mbr_disk;
         }
 
+	map mp = Storage::GetMountPoints();
+        string bootDisk = mp["/boot",2]:(mp["/",2]:"");
+
         // look for disk with bios_id 0x80
         list disks = SCR::Read(.probe.disk);
 	// fallback
@@ -259,7 +262,6 @@
         });
 
         y2milestone("MBR Disk: %1", mbr_disk);
-
         return mbr_disk;
     }
 
@@ -273,7 +275,7 @@
             list internal_bios = SCR::Read (.probe.bios);
             boolean lba_support = internal_bios[0, "lba_support"]:false;
             if (getLoaderType (false) == "lilo")
-                return BootCommon::globals["lba32"]:lba_support;
+                return lookup_value (globals, "lba32", lba_support);
             else
                 return lba_support;
         }

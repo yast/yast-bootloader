@@ -26,6 +26,7 @@
 
     include "bootloader/routines/switcher.ycp";
     include "bootloader/routines/popups.ycp";
+    include "bootloader/routines/routines.ycp";
 
 
     /**
@@ -349,17 +350,19 @@
 	integer index = -1;
 	foreach (`s, BootCommon::sections, ``{
 	    index = index + 1;
-	    if (s[label]:"" == section)
+	    if (lookup_value (s, label, "") == section)
 		sectnum = index;
 	});
 	if (sectnum == -1)
 	    return "";
 	string line = "";
 	if (haskey (params, key))
-	    return BootCommon::sections[sectnum, key]:"false";
+	    return lookup_value (
+		BootCommon::sections[sectnum]:[], key, "false");
 	else
 	{
-	    line = BootCommon::sections[sectnum, params[`other]:""]:"";
+	    line = lookup_value (
+		BootCommon::sections[sectnum]:[], params[`other]:"", "");
 	    return BootCommon::getKernelParamFromLine (line, key);
 	}
     }
@@ -378,10 +381,13 @@
 
 	list sects = BootCommon::sections;
 	if (type == `other)
-	    sects = filter (`s, sects, s[linux]:nil == nil);
+	    sects = filter (`s, sects, ``(
+		lookup_value (s, linux, nil) == nil));
 	else if (type == `linux)
-	    sects = filter (`s, sects, s[linux]:nil != nil);
-	sects = maplist (`s, sects, ``(s[title]:""));
+	    sects = filter (`s, sects, ``(
+		lookup_value (s, linux, nil) != nil));
+	sects = maplist (`s, sects, ``(
+	    lookup_value (s, title, "")));
 	sects = filter (`s, sects, ``(s != ""));
 	return sects;
     }

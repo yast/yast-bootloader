@@ -140,6 +140,7 @@
 	    "summary" : ``(BootCommon::locationSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
+	    "key_only_once" : true,
 	];
     }
 
@@ -234,6 +235,7 @@
 	    "validate" : ``(BootCommon::validatePasswdWidget ()),
 	    "help" : getPasswdHelp (),
 	    "summary" : ``(BootCommon::getPasswdSummary ()),
+	    "key_only_once" : true,
 	];
     }
 
@@ -241,7 +243,8 @@
       * Restore function of widget
       */
     global define void restorePasswdWidget () ``{
-	string passwd = current_globals[current_option_name]:nil;
+	string passwd = lookup_value (
+	    current_globals, current_option_name, nil);
 	if (passwd == nil)
 	{
 	    UI::ChangeWidget (`id (`usepas), `Value, false);
@@ -379,6 +382,7 @@
 	    "handle" : ``(BootCommon::sectionsHandle ()),
 	    "help" : getSectionsHelp (),
 	    "exits" : [`add, `edit],
+	    "key_only_once" : true,
 	];
     }
 
@@ -388,19 +392,21 @@
       */
     global define void sectionsRedrawTable (list sects) ``{
 	list sec = maplist (map s, sects, ``{
-            return `item (`id (s["label"]:""),
-                BootCommon::current_globals["default"]:""
-			== s["label"]:""
+	    string image = lookup_value (s, "image", "");
+	    string root = lookup_value (s, "root", "");
+            return `item (`id (lookup_value (s, "label", "")),
+                lookup_value (current_globals, "default", "")
+			== lookup_value (s, "label", "")
                     ? UI::Glyph (`CheckMark) : "",
-                s["label"]:"",
-                s["image"]:"" == "" ? _("other") : _("image"),
-                s["image"]:"" != ""
+                lookup_value (s, "label", ""),
+                image == "" ? _("other") : _("image"),
+                image != ""
                 ? sformat ("%1   (%2%3)",
-                    s["image"]:"",
-                    select (BootCommon::splitPath (s["image"]:""), 0, ""),
-                    s["root"]:"" == "" ? ""
-                        : sformat (", root=%1", s["root"]:""))
-                : s["other"]:""
+                    image,
+                    select (BootCommon::splitPath (image), 0, ""),
+                    root == "" ? ""
+                        : sformat (", root=%1", root))
+                : lookup_value (s, "other", "")
             );
         });
 	UI::ChangeWidget (`id (`sects), `Items, sec);
@@ -426,7 +432,7 @@
 	integer counter = 0;
 	integer index = 0;
 	foreach (`s, BootCommon::current_sections, ``{
-	    if (s["label"]:"" == current)
+	    if (lookup_value (s, "label", "") == current)
 		index = counter;
 	    counter = counter + 1;
 	});
@@ -459,7 +465,7 @@
 	}
 	else if (op == `default)
 	{
-	    BootCommon::current_globals["default"] = current;
+	    addValueToBootloaderSection (`current_globals, "default", current);
 	    sectionsRedrawTable (sects);
 	    UI::ChangeWidget (`id (`sects), `CurrentItem, current);
 	    BootCommon::sections_changed = true;
@@ -477,20 +483,21 @@
 	    y2milestone ("Editing title %1, index %2", current, index);
 	    BootCommon::current_section = eval (sects[index]:$[]);
 	    BootCommon::current_section_name
-		= sects[index, "label"]:"";
-
-	    BootCommon::changed_settings_single_sect
-		= eval (BootCommon::changed_settings[sects[index, "label"]:""]:$[]);
+		= lookup_value (sects[index]:[], "label", "");
+// FIXME
+//	    BootCommon::changed_settings_single_sect
+//		= eval (BootCommon::changed_settings[sects[index, "label"]:""]:$[]);
 	    y2milestone ("Changed settings: %1", BootCommon::changed_settings_single_sect);
 	    BootCommon::one_section_changed = false;
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
 	    sects = remove (sects, index);
-	    if (current == BootCommon::current_globals["default"]:"")
+	    if (current ==lookup_value (current_globals,
+		"default", ""))
 	    {
-		BootCommon::current_globals["default"]
-		    = sects[0, "label"]:"";
+		addValueToBootloaderSection (`current_globals, "default",
+		    lookup_value (sects[0]:[], "label", ""));
 	    }
 	    BootCommon::current_sections = sects;
 	    sectionsRedrawTable (sects);
@@ -537,6 +544,7 @@
 	    "summary" : ``(BootCommon::loaderTypeSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
+	    "key_only_once" : true,
 	];
     }
 
@@ -577,6 +585,7 @@
 	    "handle" : ``(singleSectionHandle ()),
 	    "help" : getSingleSectionHelp (),
 	    "exits" : [`sections],
+	    "key_only_once" : true,
 	];
     }
 
@@ -610,31 +619,40 @@
 
     /**
       * Update list of options to display in current section
-      * @param _options map of all options (includinf order)
+      * @param _options list of all options (including order)
       * @return list of options as should bve displayed
       */
-    global define list UpdateOptionsList (map _options) ``{
+    global define list UpdateOptionsList (list _options) ``{
 	list prependlist = [];
-	list options = maplist (`k, `v, _options, ``(k));
+	list orig_opts = _options;
 	any type = BootCommon::getSectionType (BootCommon::current_section);
 	if (type == `global)
 	{
 	    prependlist = ["__loader_type", "__sep2", "__location",
 		"__default_section", "__sections", "activate", "__repl_mbr",
 		"__backup_mbr", "__save_method", "__sep1"];
-	    options = filter (`o, options, ``(o != "boot" && o != "default"));
+	    _options = filter (`o, _options, ``(
+		o["key"]:"" != "boot" && o["key"]:"" != "default"));
 	}
 	else
 	{
 	    prependlist = ["label", "__section_type", "__sep1"];
-	    options = prepend (options, "label");
 	}
-	options = filter (`o, options, ``(! contains (prependlist, o)));
+	_options = filter (`o, _options, ``(! contains (
+	    prependlist, o["key"]:"")));
 	if (Mode::initial)
 	{
 	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
 	}
-	options = merge (prependlist, options);
+	prependlist = maplist (`p, prependlist, ``{
+	    map m = getValueMap (orig_opts, p);
+	    if (m == $[])
+	    {
+		m = $[ "key" : p];
+	    }
+	    return m;
+	});
+	list options = merge (prependlist, _options);
 	return options;
     }
 
@@ -648,6 +666,7 @@
 	    "handle" : ``(resetButtonHandle ()),
 	    "restore" : ``(BootCommon::resetButtonRestore ()),
 	    "help" : getSummaryButtonsHelp (),
+	    "key_only_once" : true,
 	];
     }
 
@@ -672,7 +691,7 @@
 		// menubutton item, keep as short as possible
 		`item (`id (`reread), _("&Reread Configuration from Disk")));
 	}
-	list additional_entries = getAnyTypeAttrib ("addtional_entries");
+	list additional_entries = getAnyTypeAttrib ("additional_entries", []);
 	items = merge (items, additional_entries);
 
 	if ((Mode::normal || Mode::repair)
@@ -709,6 +728,7 @@
 	    ),
 	    "exits" : [`manual],
 	    "help" : getManualEditHelp (),
+	    "key_only_once" : true,
 	];
     }
 
@@ -723,6 +743,7 @@
 	    "summary" : ``(BootCommon::getSectionsSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
+	    "key_only_once" : true,
 	];
     }
 
@@ -734,7 +755,7 @@
 	string default_name = BootCommon::getDefaultSection ();
 	string sect_title = BootCommon::getSectionTitle ();
 	list sects = maplist (`s, BootCommon::sections, ``{
-            string title = s[sect_title]:"";
+            string title = lookup_value (s, sect_title, "");
 	    boolean is_default = default_name == title;
 	    // suffix after section name, keep short, to summary and table
             string def = is_default ? _(" (default)") : "";
@@ -754,6 +775,7 @@
 	    "summary" : ``(BootCommon::getDefaultSection ()),
 	    "deletable" : false,
 	    "ordering" : false,
+	    "key_only_once" : true,
 	];
     }
 
@@ -776,6 +798,7 @@
             "summary" : ``(BootCommon::sectionTypeSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
+	    "key_only_once" : true,
         ];
     }
 
@@ -815,7 +838,8 @@
       */
     global define string sectionTypeSummary () ``{
 	string key = BootCommon::getKernelKey ();
-	return BootCommon::current_section[key]:nil == nil
+	return lookup_value (
+		BootCommon::current_section, key, nil) == nil
 	    ? _("other")
 	    : _("image");
     }
@@ -839,6 +863,7 @@
 	    "summary" : ``(BootCommon::backupMbrSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
+	    "key_only_once" : true,
 	];
     }
 
@@ -895,6 +920,7 @@
 	    "summary" : ``(BootCommon::saveMethodSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
+	    "key_only_once" : true,
 	];
     }
 
@@ -941,6 +967,7 @@
 	    "restore" : ``(BootCommon::timeoutRestore ()),
 	    "handle" : ``(BootCommon::timeoutSave ()),
 	    "summary" : ``(BootCommon::timeoutSummary ()),
+	    "key_only_once" : true,
 	];
     }
 
@@ -974,7 +1001,7 @@
       * @return string summary text
       */
     global define string timeoutSummary () ``{
-	integer timeout = BootCommon::current_section["timeout"]:0;
+	integer timeout = lookup_value (current_section, "timeout", 0);
 	return sformat (_("%1 s"),
 	    timeout / BootCommon::getTimeoutMultiplier ());
     }
@@ -990,6 +1017,7 @@
 	    "validate" : ``(BootCommon::labelValidate ()),
 	    "deletable" : false,
 	    "ordering" : false,
+	    "key_only_once" : true,
 	];
     }
 
@@ -1045,6 +1073,7 @@
 	    "type" : "b",
 	    "deletable" : false,
 	    "ordering" : false,
+	    "key_only_once" : true,
 	];
     }
 
@@ -1099,6 +1128,7 @@
 	    "type" : "b",
 	    "deletable" : false,
 	    "ordering" : false,
+	    "key_only_once" : true,
 	];
     }
 
@@ -1147,6 +1177,7 @@
     global define map getMessageWidget () ``{
 	return $[
 	    "delete" : ``(BootCommon::deleteMessage ()),
+	    "key_only_once" : true,
 	];
     }
 

@@ -31,6 +31,7 @@
     include "bootloader/grub/widgets.ycp";
 
     include "bootloader/routines/popups.ycp";
+    include "bootloader/routines/routines.ycp";
 
 // private variables
 
@@ -91,10 +92,11 @@
 	    "propose" : true,
 	    "read" : true,
 	    "scratch" : true,
-	    "addtional_entries" : [`item (`id (`propose_deep),
+	    "additional_entries" : [`item (`id (`propose_deep),
 		// menubutton item, keep as short as possible
 		_("Propose and &Merge with Existing GRUB Menus"))],
 	    "restore_mbr" : true,
+	    "key_only_once" : false,
         ];
     }
 
@@ -203,7 +205,6 @@
 	}
 
 	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
-
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
 	    createSections ();
@@ -232,8 +233,8 @@
 		fixGlobals (disks_changed);
 	}
 
-	y2debug ("Proposed sections: %1", BootCommon::sections);
-	y2debug ("Proposed globals: %1", BootCommon::globals);
+	y2error ("Proposed sections: %1", BootCommon::sections);
+	y2error ("Proposed globals: %1", BootCommon::globals);
 	BootCommon::saveCfgFileToAgent ();
     }
 
@@ -305,12 +306,16 @@
 	    }
 	    return s;
 	});
-	string gfxmenu = BootCommon::globals["gfxmenu"]:"";
+	string gfxmenu = lookup_value (
+	    BootCommon::globals, "gfxmenu", "");
 	if (gfxmenu != "")
 	{
 	    gfxmenu = grub2file (gfxmenu);
 	    if (-1 == SCR::Read (.target.size, gfxmenu))
-		BootCommon::globals = remove (BootCommon::globals, "gfxmenu");
+	    {
+		BootCommon::addValueToBootloaderSection (`globals,
+		    "gfxmenu", nil);
+	    }
 	}
 	boolean ret = BootCommon::Save ();
 	SCR::Execute (.target.bash, "/bin/chmod 600 /boot/grub/menu.lst");
@@ -508,7 +513,7 @@
                 "testload",
                 "testvbe",
                 "uppermem",
-                "vbeprobe",
+                "vbeprobe"
 	    ],
 	];
     }
@@ -521,38 +526,36 @@
       * @param title strign section title (linux, failsafe, memtest)
       * @return section description structure
       */
-    global define map createLinuxSection (string title) ``{
+    global define list createLinuxSection (string title) ``{
 	if (title == "memtest86")
 	{
-	  if ((Mode::normal && Pkg::IsProvided ("memtest86"))
-		|| ((! Mode::normal)))// && Pkg::IsSelected ("memtest86")))
-	    return $[
-		"__order__":["title", "kernel"],
-		"kernel" : file2grub ("/boot/memtest.bin"),
-		"title" : "memtest86",
-		"__intern__" : $[
+	  if (Pkg::IsProvided ("memtest86") || ! Mode::normal)
+	    return [
+		$[ "key" : "kernel", "value" : file2grub ("/boot/memtest.bin")],
+		$[ "key" : "title", "value" : "memtest86"],
+		$[ "key" : "__intern__", "value" : $[
 		    "auto" : true,
 		    "changed" : false,
 		    "devs" : [BootCommon::BootPartitionDevice],
 		    "kernel" : "/boot/memtest.bin",
-		],
+		]],
 	    ];
 	  else
 		return $[];
 	}
 	if (title == "original MBR")
 	{
-            return $[
-                "__order__":["title", "chainloader"],
-                "chainloader" : file2grub ("/boot/backup/mbr"),
-                "title" : title,
-                "__intern__" : $[
+            return [
+                $[ "key" : "chainloader",
+		   "value" : file2grub ("/boot/backup/mbr")],
+                $[ "key" : "title", "value" : title],
+                $[ "key" : "__intern__", "value" : $[
                     "auto" : true,
                     "changed" : false,
                     "devs" : [BootCommon::BootPartitionDevice],
                     "kernel" : "/boot/backup/mbr",
 		    "original_mbr" : true,
-                ],
+                ]],
             ];
 	}
 	string vgastring = Kernel::vgaType != ""
@@ -566,16 +569,15 @@
 	      + "maxcpus=0 3"
 	    : sformat ("%1 %2 %3", vgastring, Kernel::cmdLine,
 		"splash=silent showopts");
-	return $[
-	    "__order__":["title", "kernel", "initrd"],
-	    "title" : title,
-	    "kernel" : sformat ("%1 %2 %3",
+	return [
+	    $[ "key" : "title", "value" : title],
+	    $[ "key" : "kernel", "value" : sformat ("%1 %2 %3",
 		file2grub ("/boot/" + image),
 		sformat ("root=%1", BootCommon::RootPartitionDevice),
 		append
-	    ),
-	    "initrd" : file2grub ("/boot/" + initrd),
-	    "__intern__" : $[
+	    )],
+	    $[ "key" : "initrd", "value" : file2grub ("/boot/" + initrd)],
+	    $[ "key" : "__intern__", "value" : $[
 		"changed" : false,
 		"auto" : true,
 		"devs" : [
@@ -584,7 +586,7 @@
 		],
 		"kernel" : "/boot/" + image,
 		"initrd" : "/boot/" + initrd,
-	    ]
+	    ]]
 	];
     }
 
@@ -659,15 +661,20 @@
 			y2debug ("Found sections %1", sects);
 			count = count + size (sects);
 			foreach (`s, sects, ``{
-			    map opts_tmp = BootCommon::sectOptions2Map (
+			    list opts_tmp = BootCommon::sectOptions2Map (
 				"grub", "sections", s);
-			    opts_tmp["title"] = sformat ("%1_%2",
-				dev, opts_tmp["title"]:"");
-			    opts_tmp["__intern__"] = $[
+			    map intern = $[
 				"changed" : false,
 				"auto" : true,
 				"converted" : true,
 			    ];
+			    opts_tmp = maplist (`o, opst_tmp, ``{
+				if (o["key"]:"" == "title")
+				    o["value"] = sformat ("%1_%2",
+					dev, o["value"]:"");
+				return o;
+			    });
+			    opts_tmp = filter (`o, opst_tmp, ``(o != nil));
 			    list devs = [];
 			    devs = add (devs, grubDev2unixDev (select (
 				splitDevPath (
@@ -684,7 +691,8 @@
 				&& d != nil
 				&& d != "/dev/null" && d != "false"));
 			    devs = toset (devs);
-			    opts_tmp["__intern__", "devs"] = devs;
+			    intern["devs"] = devs;
+			    opts_tmp = add (opts_tmp, "__intern__", intern);
 			    y2debug ("Converted sec: %1", opts_tmp);
 			    out = add (out, opts_tmp);
 			});
@@ -720,20 +728,18 @@
 			if (g_dev != "" && label != ""
 			    && dev != BootCommon::loader_device)
 			{
-			    map m = $[
-				"__order__":["title", "root", "makeactive",
-					"chainloader +1"],
-				"title" : label,
-				"root" : g_dev,
+			    list m = [
+				$[ "key" : "title", "value" : label],
+				$[ "key" : "root", "value" : g_dev],
 // can bring problem if bootloader installed in bootsector of some partition
 // new systems don't mind not having active partitions
-//				"makeactive" : "",
-				"chainloader" : "+1",
-				"__intern__" : $[
+//				$[ "key" : "makeactive", "value" : ""],
+				$[ "key" : "chainloader", "value" : "+1"],
+				$[ "key" : "__intern__", "value" : $[
 				    "changed" : false,
 				    "auto" : true,
 				    "devs" : [dev],
-				],
+				]],
 			    ];
 			   out = add (out, m);
 			}
@@ -743,30 +749,28 @@
 	}
 	if (BootCommon::installingToFloppy ())
 	{
-            out = add (out, $[
-                "__order__" : ["title", "root", "chainloader"],
-                "title" : "hard disk",
-                "root" : "(hd0)",
-                "chainloader" : "+1",
-                "__intern__" : $[
+            out = add (out, [
+                $[ "key" : "title", "value" : "hard disk"],
+                $[ "key" : "root", "value" : "(hd0)"],
+                $[ "key" : "chainloader", "value" : "+1"],
+                $[ "key" : "__intern__", "value" : $[
 		    "changed" : false,
                     "auto" : true,
                     "devs" : [],
-                ],
+                ]],
             ]);
 	}
 	else
 	{
-	    out = add (out, $[
-		"__order__" : ["title", "root", "chainloader"],
-		"title" : "floppy",
-		"root" : "(fd0)",
-		"chainloader" : "+1",
-                "__intern__" : $[
+	    out = add (out, [
+		$[ "key" : "title", "value" : "floppy"],
+		$[ "key" : "root", "value" : "(fd0)"],
+		$[ "key" : "chainloader", "value" : "+1"],
+                $[ "key" : "__intern__", "value" : $[
                     "changed" : false,
                     "auto" : true,
                     "devs" : [],
-                ],
+                ]],
 	    ]);
 	}
 	out = add (out, createLinuxSection ("failsafe"));
@@ -787,17 +791,17 @@
       */
     global define void createGlobals () ``{
 	y2debug ("Creating GRUB globals from scratch");
-	map bcg = $[];
-	bcg["color"] = "white/blue black/light-gray";
-	bcg["default"] = 0;
-	bcg["timeout"] = 8;
-	bcg["gfxmenu"] = file2grub ("/boot/message");
-	bcg["__intern__"] = $[
-	    "changed" : false,
-	    "auto" : true,
-	    "disks" : [BootCommon::BootPartitionDevice],
-        ];
-	BootCommon::globals = bcg;
+	BootCommon::globals = [
+	    $["key" : "color", "value" : "white/blue black/light-gray"],
+	    $["key" : "default", "value" : 0],
+	    $["key" : "timeout", "value" : 8],
+	    $["key" : "gfxmenu", "value" : file2grub ("/boot/message")],
+	    $["key" : "__intern__", "value" : $[
+		"changed" : false,
+	        "auto" : true,
+	        "disks" : [BootCommon::BootPartitionDevice],
+	    ]],
+	];
     }
 
     /**
@@ -839,11 +843,12 @@
       * modifies internal sreuctures
       */
     global define void updateGlobals () ``{
-        map bcg = BootCommon::globals;
-        bcg["color"] = "white/blue black/light-gray";
-        bcg["timeout"] = 8;
-	bcg["gfxmenu"] = file2grub ("/boot/message");
-        BootCommon::globals = bcg;
+	BootCommon::addValueToBootloaderSection (
+	    `globals, "color", "white/blue black/light-gray");
+	BootCommon::addValueToBootloaderSection (
+            `globals, "timeout", 8);
+	BootCommon::addValueToBootloaderSection (
+            `globals, "gfxmenu", file2grub ("/boot/message"));
     }
 
     /**
@@ -865,37 +870,46 @@
 	list(map) old_sect_list = BootCommon::sections;
 	createSections ();
 	map new_sect = listmap (`s, BootCommon::sections, ``{
-	    return [s["title"]:"", s];
+	    return [
+		lookup_value (s, "title", ""), s];
 	});
 	old_sect_list = maplist (`s, old_sect_list, ``{
 	    string title = s["title"]:"";
-	    if (! s["__intern__", "auto"]:false)
+	    map intern = lookup_value (
+		s, "__intern__", $[]);
+	    if (! intern["auto"]:false)
 	    {
 		y2debug ("Leaving section %1 as is", title);
 		return s;
 	    }
-	    else if (! s["__intern__", "changed"]:false)
+	    else if (! intern["changed"]:false)
 	    {
 		y2debug ("Recreating section %1", title);
-		return new_sect[title]:$[];
+		return new_sect[title]:[];
 	    }
 	    else
 	    {
 		y2debug ("Possible warning on section %1", title);
 		boolean cont = true;
-		if (s["title"]:"" != "linux" && s["title"]:"" != "failsafe"
-		    && s["title"]:"" != "memtest86" && s["title"]:"" !="floppy"
-		    && s["title"]:"" != "original MBR")
+		string title = lookup_value (
+		    s, "title", "");
+		// FIXME don't check title, but metadata
+		if (title != "linux" && title != "failsafe"
+		    && title != "memtest86" && title !="floppy"
+		    && title != "original MBR")
 		{
-		    foreach (`n, s["__intern__", "devs"]:[], ``{
+		    foreach (`n, intern["devs"]:[], ``{
 		        if (! contains (parts, n))
 		        {
 			    cont = false;
 		        }
 		    });
 		}
-		list new_devs = toset(new_sect[title, "__intern__", "devs"]:[]);
-		list old_devs = toset(s["__intern__", "devs"]:[]);
+		list new_this_section = new_sect[title]:"";
+		map new_this_intern = lookup_value(
+		    new_this_section, "__intern__", $[]);
+		list new_devs = toset(new_this_intern["devs"]:[]);
+		list old_devs = toset(intern["devs"]:[]);
 		if (size (new_devs) != size (old_devs))
 		{
 		    cont = false;
@@ -909,25 +923,39 @@
 		}
 		if (! cont)
 		{
-		    s["__intern__", "auto"] = false;
+		    intern["auto"] = false;
 		    y2milestone ("Warning, ND: %1, OD: %2, P: %3",
 			new_devs, old_devs, parts);
-		    displayDiskChangePopup (s["title"]:"");
+		    displayDiskChangePopup (
+			lookup_value (
+			    s, "title", ""));
 		}
+		s = maplist( `i, s, ``{
+		    if (i["key"]:"" == "__intern__")
+			i["value"] = intern;
+		    return i;
+		});
 		return s;
 	    }
 	});
 	boolean has_memtest = false;
 	foreach (`s, old_sect_list, ``{
-	    if (s["title"]:"" == "memtest86")
+	    if (lookup_value (s, "title", "")
+		== "memtest86")
+	    {
 		has_memtest = true;
+	    }
 	});
-	if (new_sect["memtest86"]:$[] != $[] && ! has_memtest)
-	    old_sect_list = add (old_sect_list, new_sect["memtest86"]:$[]);
+	if (new_sect["memtest86"]:[] != [] && ! has_memtest)
+	    old_sect_list = add (old_sect_list, new_sect["memtest86"]:[]);
 	y2milestone ("Checking for sections needing some of %1dd", del_parts);
 	list(string) to_remove = [];
 	foreach (`s, BootCommon::sections, ``{
-	    list(string) devs = s["__intern__", "devs"]:[];
+	    map intern = lookup_value (
+		s, "__intern__", $[]);
+	    list(string) devs = intern["devs"]:[];
+	    string title = lookup_value (
+		s, "title", "");
 	    y2milestone ("Section %1 needs %2", s["title"]:"", devs);
 	    boolean to_add = false;
 	    foreach (string d, devs, ``{
@@ -939,10 +967,9 @@
 	    if (to_add)
 	    {
 		map old_sect = listmap (`s, old_sect_list, ``{
-		    return [s["title"]:"", s];
+		    return [title, s];
 		});
 
-		string title = s["title"]:"";
 		if (title != "" && ! haskey(old_sect, title))
 		{
 		    y2milestone ("Adding %1", s);
@@ -952,7 +979,7 @@
 	    }
 	});
 	del_parts = BootCommon::difflist (del_parts, to_remove);
-	old_sect_list = filter (`s, old_sect_list, ``(s != $[]));
+	old_sect_list = filter (`s, old_sect_list, ``(s != []));
 	BootCommon::sections = old_sect_list;
     }
 
@@ -963,27 +990,38 @@
       *   relevant disk locations have changed
       */
     global define void fixGlobals (boolean disks_changed) ``{
-	if (size (BootCommon::sections) <= BootCommon::globals["default"]:0)
-	    BootCommon::globals["default"] = 0;
-	if (BootCommon::globals["gfxmenu"]:"" == "")
-	    BootCommon::globals["__intern__", "auto"] = false;
-	y2debug ("Have GFXMenu");
-	if (BootCommon::globals["gfxmenu"]:"" != "")
+	if (size (BootCommon::sections) <= lookup_value (
+	    BootCommon::globals, "default", 0))
 	{
-	    if (! BootCommon::globals["__intern__", "changed"]:false)
-		BootCommon::globals["gfxmenu"] = file2grub ("/boot/message");
-	    else if (BootCommon::globals["__intern__", "auto"]:false)
+	    BootCommon::addValueToBootloaderSection (`globals, "default", 0);
+	}
+	map intern = lookup_value (
+	    BootCommon::globals, "__intern__", $[]);
+	if (lookup_value (
+	    BootCommon::globals, "gfxmenu", "") == "")
+	{
+	    intern["auto"] = false;
+	}
+	y2debug ("Have GFXMenu");
+	if (lookup_value (
+	    BootCommon::globals, "gfxmenu", "") != "")
+	{
+	    if (! intern["changed"]:false)
+		BootCommon::addValueToBootloaderSection (
+		    `globals, "gfxmenu", file2grub ("/boot/message"));
+	    else if (intern["auto"]:false)
 	    { // automatic, but changed
-//	y2error ("Checking %1", BootCommon::globals);
 		if (BootCommon::BootPartitionDevice
-		    != BootCommon::globals["__intern__", "disks", 0]:""
-		    && ! BootCommon::globals["__intern__", "warned"]:false)
+		    != intern["disks", 0]:""
+		    && ! intern["warned"]:false)
 		{
-		    BootCommon::globals["__intern__", "warned"] = true;
+		    intern["warned"] = true;
 		    displayGfxMenuChangePopup ();
 		}
 	    }
 	}
+	BootCommon::addValueToBootloaderSection (`globals, "__intern__",
+	    intern);
     }
 
     /**
@@ -1052,49 +1090,54 @@
       * Some information gets lost. ntype must be different from otype
       * @param otype string original section type, "image" or "other"
       * @param ntype string new section type, "image" or "other"
-      * @param orig map original section
-      * @return map new (converted) section
+      * @param orig list original section
+      * @return list new (converted) section
       */
-    global define map convertSection (string otype, string ntype, map orig) ``{
-	map ret = $[];
+    global define list convertSection (string otype, string ntype, list orig)``{
+	list ret = $[];
 	if (orig == nil)
 	{
 	    if (ntype == "other")
 	    {
-		ret = $[ "root" : "", "chainloader" : "",
-		    "__order__" : ["root", "chainloader"]];
+		ret = [ $[ "key" : "root", "value" : ""],
+			$[ "key" : "chainloader", "value" : ""]];
 	    }
 	    else
 	    {
-		ret = $[ "root": "", "kernel" : "", "initrd" : "",
-		    "__order__" : ["root", "kernel", "initrd"]];
+		ret = [ $[ "key" : "root", "value" : ""],
+                        $[ "key" : "kernel", "value" : ""],
+			$[ "key" : "initrd", "value" : ""]];
 	    }
-	    ret["title"] = BootCommon::getFreeSectionLabel ();
+	    ret = add (ret, $[ "key" : "title",
+		"value" : BootCommon::getFreeSectionLabel ()]);
 	    return ret;
 	}
 	if (ntype == "other")
 	{
-	    string root = select (splitDevPath (orig["kernel"]:""), 0,"");
-            root = orig["root"]:root;
+	    string root = select (splitDevPath (
+		lookup_value (orig, "kernel", "")),
+		0,"");
+            root = lookup_value (
+		orig, "root", root);
 	    if (root == nil)
 		root = "";
-	    ret = $[
-		"root": root,
-		"chainloader" : "+1",
-		"__order__" : ["root", "chainloader"],
+	    ret = [
+		$[ "key" : "root", "value" : root],
+		$[ "key" : "chainloader", "value" : "+1"]
 	    ];
 	}
 	else
 	{
-	    ret = $[
-                "root" : orig["root"]:"",
-                "kernel" : sformat ("/vmlinuz root=%1",
-		    grubDev2unixDev (orig["root"]:"")),
-		"initrd" : "/initrd",
-		"__order__" : ["root", "kernel", "initrd"],
+	    string root = lookup_value (orig, "root", "");
+	    string title = lookup_value (orig, "title", "");
+	    ret = [
+                $[ "key" : "root", "value" : root],
+                $[ "key" : "kernel", "value" : sformat ("/vmlinuz root=%1",
+		    grubDev2unixDev (root))],
+		$[ "key" : "initrd", "value" : "/initrd"]
 	    ];
 	}
-	ret["title"] = orig["title"]:"";
+	ret = add (ret, $[ "key" : "title", "value" : title]);
 	return ret;
     }
 

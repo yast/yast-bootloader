@@ -25,6 +25,7 @@
     include "bootloader/routines/wh.ycp";
     include "bootloader/routines/popups.ycp";
     include "bootloader/routines/convert.ycp";
+    include "bootloader/routines/routines.ycp";
 
     import "BootCommon";
     import "Bootloader";
@@ -70,7 +71,8 @@
 	UI::CloseDialog ();
 	if (ret == `cancel)
 	    return nil;
-	selected_opt = option;
+// FIXME make added option selected
+//	selected_opt = option;
 	return option;
     }
 
@@ -84,7 +86,7 @@
     global define term getSpecificOptionWidget (any optname, any ot) ``{
 	map widget_data = getPopupWidget (optname);
         term widget = widget_data["widget"]:nil;
-	map sect = BootCommon::current_section;
+	list sect = BootCommon::current_section;
         if (widget == nil)
         {
             string type = widget_data["type"]:lookup (
@@ -93,17 +95,17 @@
 		// checkbox
                 widget = `CheckBox (`id (`value),
 		    widget_data["widget_label"]:_("&Set"),
-                    sect[optname]:true);
+                    lookup_value (sect, optname, true));
             else if (type == "i")
 		// intfield header
                 widget = `IntField (`id (`value),
 		    widget_data["widget_label"]:_("&Value"), 0, 999999,
-                    sect[optname]:0);
+		    lookup_value (sect, optname, 0));
             else
 		// textentry header
                 widget = `TextEntry (`id (`value),
 		    widget_data["widget_label"]:_("&Value"),
-                    sect[optname]:"");
+		    lookup_value (sect, optname, ""));
         }
         return widget;
     }
@@ -116,10 +118,10 @@
       * @return symbol `ok or `cancel
       */
     global define symbol singleOptionEditPopup (any opttype, any optname)``{
-        map sect = BootCommon::current_section;
         if (optname == "")
         {
 	    optname = getOptionChoicePopup (any opttype);
+	    BootCommon::current_option_index = -2;
 	    if (optname == nil)
 		return;
         }
@@ -127,7 +129,7 @@
 	BootCommon::current_option_name = optname;
 	map widget_data = getPopupWidget (optname);
 
-	y2milestone ("Popup widget: %1", widget_data);
+	y2debug ("Popup widget: %1", widget_data);
         string label = sformat ("%1", widget_data["label"]:optname);
         term header = `HBox (
 	    // heading / label
@@ -162,9 +164,29 @@
         ), `HSpacing (1));
         UI::OpenDialog (contents);
 	if (widget_data["restore"]:nil != nil)
+	{
 	    eval (widget_data["restore"]:nil);
+	}
 	else
+	{
+	    any old_value = UI::QueryWidget (`id (`value), `Value);
+	    any value = nil;
+	    if (BootCommon::current_option_index >= 0
+		&& ! BootCommon::getBooleanAttrib ("key_only_once")
+		&& ! widget_data["key_only_once"]:false)
+	    {
+		value = lookupValueByIndex (BootCommon::current_section,
+		    BootCommon::current_option_index, old_value);
+		UI::ChangeWidget (`id (`value), `Value, value);
+	    }
+	    else
+	    {
+		value = lookup_value (BootCommon::current_section,
+		    optname, old_value);
+	    }
+	    UI::ChangeWidget (`id (`value), `Value, value);
 	    UI::SetFocus (`id (`value));
+	}
         any ret = nil;
         while (ret != `ok && ret != `cancel)
         {
@@ -174,7 +196,7 @@
 		if (widget_data["handle"]:nil != nil)
 		{
 		    term toEval = widget_data["handle"]:nil;
-		    toEval = add (add (toEval, ret), [`ok]);
+		    toEval = add (add (toEval, ret), false);
 		    eval (toEval);
 		}
 		else
@@ -193,13 +215,38 @@
 		if (widget_data["handle"]:nil != nil)
 		{
 		    term toEval = widget_data["handle"]:nil;
-		    toEval = add (add (toEval, `ok), contains ([`ok], ret));
+		    toEval = add (add (toEval, `ok), true);
 		    eval (toEval);
 		}
 		else
 		{
-		    BootCommon::current_section[optname]
-			= UI::QueryWidget (`id (`value), `Value);
+		    any value = UI::QueryWidget (`id (`value), `Value);
+		    // existing value, ordered
+		    if (BootCommon::current_option_index >= 0
+			&& ! BootCommon::getBooleanAttrib ("key_only_once")
+			&& ! widget_data["key_only_once"]:false)
+		    {
+y2error ("Existing ordered");
+			BootCommon::current_section = setValueByIndex (
+			    BootCommon::current_section,
+			    BootCommon::current_option_index, value);
+		    }
+		    // new value, ordered
+		    else if (BootCommon::current_option_index == -2
+	                && ! BootCommon::getBooleanAttrib ("key_only_once")
+                        && ! widget_data["key_only_once"]:false)
+		    {
+y2error ("New ordered");
+			BootCommon::current_section = appendValue (
+			    BootCommon::current_section, optname, value);
+		    }
+		    // unordered value - replace old if exists
+		    else
+		    {
+y2error ("Unordered");
+			BootCommon::addValueToBootloaderSection (
+			    `current_section, optname, value);
+		    }
 		}
 		BootCommon::markOptionChanged (
 		    BootCommon::current_section_name, optname);
@@ -209,36 +256,44 @@
 	return ret;
     }
 
-    global any selected_opt = nil;
+    global integer selected_opt = nil;
+    global list current_dialog_options = [];
 
     /**
       * Read seettings to the table of section configuration
       */
     global define void singleSectionRead () ``{
-        map orig = BootCommon::current_section;
+        list orig = BootCommon::current_section;
 	list items = [];
 
-	list options = Bootloader::blUpdateOptionsList (orig);
+	integer counter = -1;
+	list options = maplist (`o, orig, ``{
+	    counter = counter + 1;
+	    o["index"] = counter;
+	});
+	options = Bootloader::blUpdateOptionsList (orig);
 	options = filter (`o, options,
-	    ``(o != "__order__" && o != "__intern__"));
+	    ``(o["key"]:"" != "__intern__"));
+	current_dialog_options = options;
 
 	map opts = getPopupWidgets ();
+	counter = 0;
 	foreach (`o, options, ``{
-	    map widget = opts[o]:$[];
-	    string label = sformat ("%1", widget["label"]:o);
+	    map widget = opts[o["key"]:""]:$[];
+	    string label = sformat ("%1", widget["label"]:o["key"]:"");
 	    term toEval = widget["summary"]:nil;
 	    string value = "";
 	    if (toEval == nil)
-		value = sformat ("%1",
-		    BootCommon::current_section[o]:"");
+		value = sformat ("%1", o["value"]:"");
 	    else
 		value = eval (toEval);
 	    string chng = BootCommon::changed_settings[
 		BootCommon::current_section_name, o]:false
 		? "*" : "";
-	    items = add (items, `item (`id (o), chng, label, value));
+	    items = add (items, `item (`id (counter), chng, label, value));
+	    counter = counter + 1;
 	});
-	selected_opt = options[0]:nil;
+	selected_opt = 0;
 	UI::ChangeWidget (`id (`settings), `Items, items);
 	singleSectionHandle (`settings, false);
 	UI::ChangeWidget (`id (`add), `Enabled, Bootloader::blOptions() != nil);
@@ -252,53 +307,51 @@
       */
     global define any singleSectionHandle (any op, boolean save) ``{
 	symbol ret = nil;
-	any item = UI::QueryWidget (`id (`settings), `CurrentItem);
+	integer prev = selected_opt;
+	selected_opt = UI::QueryWidget (`id (`settings), `CurrentItem);
+	string selected_key
+	    = current_dialog_options[selected_opt, "key"]:"";
+	BootCommon::current_option_index = current_dialog_options[
+	    selected_opt, "index"]:-1;
+	y2debug ("Key: %1, Index: %2", selected_key,
+	    BootCommon::current_option_index);
+	y2debug ("Current section: %1", BootCommon::current_section);
         if (op == `settings)
         {
-            any prev = selected_opt;
             selected_opt = UI::QueryWidget (`id (`settings), `CurrentItem);
-	    if (selected_opt == "__sep1" || selected_opt == "__sep2"
-		|| selected_opt == "__sep3")
+	    if (selected_key == "__sep1" || selected_key == "__sep2"
+		|| selected_key == "__sep3")
 	    {
-		map orig = BootCommon::current_section;
-		list entries = Bootloader::blUpdateOptionsList (orig);
-		entries = filter (`o, entries,
-		    ``(o != "__order__" && o != "__intern__"));
-                selected_opt = BootCommon::dividerHack (entries, prev,
-		    selected_opt);
+		if (selected_opt + 1 >= size (current_dialog_options))
+		    prev = selected_opt + 1;
+		selected_opt = prev < selected_opt
+		    ? selected_opt + 1
+		    : selected_opt - 1;
 		UI::ChangeWidget(`id(`settings), `CurrentItem, selected_opt);
 	    }
-	    map cur = getPopupWidget (selected_opt);
+	    map cur = getPopupWidget (selected_key);
 	    UI::ChangeWidget (`id (`delete), `Enabled, cur["deletable"]:true);
         }
         else if (op == `edit)
         {
-	    if (item == "__default_section")
-		item = "__sections";
-	    if (item == "__sections")
+	    if (selected_key == "__default_section")
+		selected_key = "__sections";
+	    if (selected_key == "__sections")
 	    {
 		BootCommon::sections_changed = false;
 		return `sections;
 	    }
-           if (selected_opt == "__sep1" || selected_opt == "__sep2"
-		    || selected_opt == "__sep3")
-		return op;
-            map options = Bootloader::blOptions ();
+           if (selected_key == "__sep1" || selected_key == "__sep2"
+		    || selected_key == "__sep3")
+		return nil;
             ret = singleOptionEditPopup (
-		BootCommon::getSectionType (BootCommon::current_section), item);
+		BootCommon::getSectionType (BootCommon::current_section),
+		selected_key);
         }
         else if (op == `add)
         {
             ret = singleOptionEditPopup (
 		BootCommon::getSectionType (BootCommon::current_section), "");
-	    if (ret == `ok
-		&& ! contains (
-		    BootCommon::current_section["__order__"]:[], selected_opt)
-		)
-	    {
-		BootCommon::current_section["__order__"] = add (
-		    BootCommon::current_section["__order__"]:[], selected_opt);
-	    }
         }
         else if (op == `delete && confirmOptionDeletePopup ())
         {
@@ -314,32 +367,30 @@
 	// ORDERING BUTTONS
 	else if (op == `up)
 	{
-	    list order
-		= BootCommon::current_section["__order__"]:[];
-	    order = BootCommon::filterOrder (order, getPopupWidgets ());
+	    BootCommon::current_section = BootCommon::filterOrder (
+		BootCommon::current_section, getPopupWidgets ());
 	    integer index = -1;
-	    find (`o, order, ``{
+	    find (`o, BootCommon::current_section, ``{
 		index = index + 1;
-		return o == item;
+		return o["key"]:"" == selected_key;
 	    });
-	    order = BootCommon::swapItems (order, index, index - 1);
-	    BootCommon::current_section["__order__"] = order;
+	    BootCommon::current_section = BootCommon::swapItems (
+		BootCommon::current_section, index, index - 1);
 		// FIXME global sect if will be needed
 	    BootCommon::one_section_changed = true;
 	    ret = `ok;
 	}
 	else if (op == `down)
 	{
-            list order
-                = BootCommon::current_section["__order__"]:[];
-	    order = BootCommon::filterOrder (order, getPopupWidgets ());
+	    BootCommon::current_section = BootCommon::filterOrder (
+                BootCommon::current_section, getPopupWidgets ());
             integer index = -1;
-            find (`o, order, ``{
+            find (`o, BootCommon::current_section, ``{
                 index = index + 1;
-                return o == item;
+                return o["key"]:"" == selected_key;
             });
-            order = BootCommon::swapItems (order, index, index + 1);
-	    BootCommon::current_section["__order__"] = order;
+            BootCommon::current_section = BootCommon::swapItems (
+		BootCommon::current_section, index, index + 1);
 		// FIXME global sect if will be needed
 	    BootCommon::one_section_changed = true;
 	    ret = `ok;
@@ -358,20 +409,21 @@
 	    {
 		readWidgets (getWidgets(["singlesection"]));
 	    }
-	    UI::ChangeWidget (`id (`settings), `CurrentItem, item);
+	    UI::ChangeWidget (`id (`settings), `CurrentItem, selected_opt);
 	}
 	if (save && BootCommon::current_section_name != `global)
 	{
 	    string ls = BootCommon::getSectionTitle ();
 	    string old_name = BootCommon::current_section_name;
 	    y2milestone ("Old name: %1", old_name);
-	    map as = BootCommon::current_section;
-	    as["__intern__"] = add (as["__intern__"]:$[], "changed", true);
+// FIXME
+//	    map as = BootCommon::current_section;
+//	    as["__intern__"] = add (as["__intern__"]:$[], "changed", true);
 	    boolean found = false;
 	    BootCommon::current_sections = maplist (`s,
 		BootCommon::current_sections,
 	    ``{
-		if (s[ls]:"" == old_name)
+		if (lookup_value (s, ls, "") == old_name)
 		{
 		    found = true;
 		    return as;
@@ -386,17 +438,19 @@
 		    BootCommon::current_section
 		);
 	    }
-	    BootCommon::changed_settings[as[ls]:""]
-		= BootCommon::changed_settings[old_name]:$[];
+// FIXME
+//	    BootCommon::changed_settings[as[ls]:""]
+//		= BootCommon::changed_settings[old_name]:$[];
 	    y2milestone ("Saving section");
 	    if (BootCommon::one_section_changed)
 		BootCommon::sections_changed = true;
 	}
 	if (`back == op)
 	{
-	    string current_l = BootCommon::current_section_name;
-	    BootCommon::changed_settings[current_l]
-		= eval (BootCommon::changed_settings_single_sect);
+// FIXME
+//	    string current_l = BootCommon::current_section_name;
+//	    BootCommon::changed_settings[current_l]
+//		= eval (BootCommon::changed_settings_single_sect);
 	}
 	UI::SetFocus (`id (`settings));
 	return nil;

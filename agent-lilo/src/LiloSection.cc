@@ -321,7 +321,36 @@ YCPValue liloOrderedOptions::Read(const YCPPath& path)
 {
     if(path->length()==0)
     {
-	return YCPVoid();
+	YCPList l;
+	for(uint i=0; i<order.size(); i++)
+	{
+	    YCPMap m;
+	    m->add (YCPString ("key"), YCPString (order[i]->optname));
+	    m->add (YCPString ("comment"), YCPString (order[i]->comment));
+	    switch(o.getOptType(order[i]->optname))
+	    {
+		case T_INT:
+		{
+		    m->add (YCPString ("value"),
+			YCPInteger (order[i]->value.c_str()));
+		    break;
+		}
+		case T_BOOL:
+		{
+		    m->add (YCPString ("value"),
+			(order[i]->value=="true" || order[i]->value=="")
+			    ? YCPBoolean(true)
+			    : YCPBoolean(false));
+		    break;
+		}
+		default: // special options, string and unknown
+		{        // special options logic moved to front-end
+		    m->add (YCPString ("value"), YCPString (order[i]->value));
+		}
+	    }
+	    l->add (m);
+	}
+	return l;
     }
     int cpos=getPos(&order, path->component_str(0));
 
@@ -393,9 +422,55 @@ string replaceBlanks (const string &s, char r)
 
 YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, const YCPValue& _pos)
 {
+
     if(path->length()==0)
     {
-        return YCPBoolean(true);
+	order.clear();
+	bool ret = true;
+	if (value.isNull () || ! value->isList ())
+	    return YCPError ("Wrong arguments passed to section write");
+        YCPList l = value->asList ();
+	for (int index = 0; index < l->size (); index ++)
+        {
+	    if (l->value(index).isNull () || ! l->value(index)->isMap ())
+	    {
+		y2error ("Wrong arguments passed to section write");
+		ret = false;
+	    }
+            YCPMap m = l->value(index)->asMap ();
+	    string comment = "";
+	    string value = "";
+	    string key = "";
+	    if (m->haskey (YCPString ("key")))
+	    {
+		key = m->value (YCPString ("key"))
+		    ->asString()->value_cstr();
+	    }
+	    if (m->haskey (YCPString ("comment")))
+	    {
+		comment = m->value (YCPString ("comment"))
+		    ->asString()->value_cstr();
+	    }
+	    if (m->haskey (YCPString ("value")))
+	    {
+		if(m->value(YCPString ("value"))->isInteger()
+		    || m->value(YCPString ("value"))->isBoolean())
+		{
+		    value = m->value(YCPString ("value"))
+			->toString().c_str();
+		}
+		else
+		{
+		    value = m->value (YCPString ("value"))
+			->asString()->value_cstr();
+		}
+	    }
+// TODO: copy type checking here
+// TODO: check correct label when configuring lilo
+	    liloOption *op  = new liloOption (key, value, comment);
+	    order.push_back (op);
+        }
+        return YCPBoolean (ret);
     }
 
     int newpos = -1;
@@ -642,14 +717,19 @@ YCPValue liloSection::Read(const YCPPath& path)
 {
     if(path->length()==0)
     {
+	return options->Read (path);
 	    //===========================
 	    // return list of options
+/*
+
+WHY? The same is result of Dir ()
+
 	YCPList list;
 	for(uint i=0; i<options->order.size(); i++)
 	{
 	    list->add(YCPString(options->order[i]->optname));
 	}
-	return list;
+	return list;*/
     }
 
     if(path->length()>0)

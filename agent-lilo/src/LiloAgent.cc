@@ -39,7 +39,7 @@ LiloAgent::~LiloAgent() {
 
 YCPValue LiloAgent::Read(const YCPPath &path, const YCPValue& arg) {
     y2debug ("Called LiloAgent::Read");
-    if (path->component_str(0)=="opttypes")
+    if (path->length() > 0 && path->component_str(0)=="opttypes")
     {
 	y2debug ("Called LiloAgent::Read for opttypes");
 	OptTypes o(type);
@@ -47,9 +47,13 @@ YCPValue LiloAgent::Read(const YCPPath &path, const YCPValue& arg) {
 
     }
     if(lilo)
+    {
 	return lilo->Read(path, arg);
+    }
     else 
+    {
 	return YCPVoid();
+    }
 }
 
 /**

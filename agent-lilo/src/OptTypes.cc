@@ -98,6 +98,7 @@ OptTypes::OptTypes(const string& type)
 	return;
     }
 
+    // other bootloader - use LILO
     val = T_BOOL;
 
     _options["compact"]=val;	    _options["fix-table"]=val;

@@ -1,0 +1,85 @@
+/**
+ * File:
+ *      include/bootloader/routines/routines.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Several routines not using any variable of any module
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+
+{
+
+    textdomain "bootloader";
+
+    /**
+      * Get value of some key in bootloader section
+      * @param section list representating bootloader section
+      * @param key string key of requested parameter
+      * @param default any default value to be returned if key not present
+      * @return any found key
+      */
+    global define any lookup_value (list section, string key,
+	any default)
+    ``{
+	any ret = default;
+	foreach (map m, section, ``{
+	    if (m["key"]:"" == key)
+		ret = m["value"]:default;
+	});
+	return ret;
+    }
+
+    /**
+      * Get map describing value from section
+      * @param section list representating bootloader section
+      * @param key string key of requested parameter
+      * @return map of option, empty map if not found
+      */
+    global define map getValueMap (list section, string key) ``{
+        map ret = $[];
+        foreach (`m, section, ``{
+            if (m["key"]:"" == key)
+                ret = m;
+        });
+        return ret;
+    }
+
+    global define list appendValue (list section, string key, any value) ``{
+	map m = $[ "key" : key, "value" : value];
+	return add (section, m);
+    }
+
+    global define any lookupValueByIndex (list section, integer index,
+	any default)
+    ``{
+	y2error ("Checking option %1", section[index]:$[]);
+	return section[index, "value"]:default;
+    }
+
+    global define list setValueByIndex (list section, integer index,
+	any value)
+    ``{
+	if (index < 0)
+	{
+	    // TODO
+	    y2error ("Not yet implemented");
+	    return section;
+	}
+	else
+	{
+	    section[index, "value"] = value;
+	    return section;
+	}
+
+    }
+}
