@@ -1,5 +1,5 @@
 .
 
 `ag_liloconf(
-    SCR::LiloConf ("tests/lilo1.in.test")
+    LiloConf("tests/lilo1.in.test")
 )

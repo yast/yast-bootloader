@@ -2,13 +2,13 @@
     // read/write test
 
     // get first image section name
-    string str = select (SCR::Dir (.sections), 0, "label");
+    string str=select(Dir(.sections), 0, "label");
 
-    list olddir = SCR::Dir (.sections);
+    list olddir=Dir(.sections);
 
     // change it's label
-    SCR::Write (add (add (.sections, str), "label"), "\"New Label\"");
-    SCR::Write (., nil);
+    Write(add(add(.sections, str), "label"), "\"New Label\"");
+    Write(., nil);
 
-    return [olddir, SCR::Dir (.sections)];
+    return [olddir, Dir(.sections)];
 }
