@@ -22,15 +22,368 @@
     import "Boot";
     import "Kernel";
 
+    // ppc specific global settings
+
+    // run lilo or not
+    global boolean  ppc_activate_bootloader = true;
+
+    // change the OpenFirmware variable 'boot-device' on CHRP or new PowerMacs
+    global boolean  ppc_of_defaultdevice = true;
+
+    // partition number for the bootloader (either 41PReP boot or Apple_HFS)
+    global integer  ppc_boot_partition = 1;
+
+    // filename for the iSeries kernel, for streamfile *STMF booting
+    global string   ppc_iseries_streamfile = "/boot/suse_linux_bootfile";
+
+    // map available of 41 PReP partitions, used on iSeries and CHRP
+    global map      ppc_prep_boot_partitions = $[];
+
+    // list of possible boot partitions, used in combobox
+    global list     ppc_possible_boot_partitions = [];
+
+
+    /*
+     *
+     *
+     */
+
+
+    // clear the ppc_prep_boot_partitions list and fill it again
+    global define void   ppc_update_prep_boot_partitions ()
+    ``{
+		map targetMap = Storage::GetTargetMap ();
+		integer partition_type = 0;
+		integer partition_number = 0;
+		integer partition_counter = 0;
+		boolean deleted = false;
+
+		y2milestone("old prep_boot_partitions %1", ppc_prep_boot_partitions);
+		ppc_prep_boot_partitions = $[];
+		ppc_possible_boot_partitions = [];
+
+		foreach (`dname, `ddata, targetMap,
+		``{
+		    list partitions = lookup (ddata, "partitions", []);
+		    y2milestone ("ppc_update_prep_boot_partitions disk %1 partitions %2",dname, partitions);
+
+		    if (size (partitions) > 0)
+		    {
+			foreach (`pentry, partitions,
+			``{
+			    partition_type   = lookup (pentry, "fsid", "");
+			    partition_number = lookup (pentry, "nr", "");
+			    deleted          = lookup (pentry, "delete", false);
+
+			    y2milestone("partitionsloop: dname %1 partition_type %2 partition_number %3 ",dname,partition_type, partition_number);
+
+			    if ((partition_type == 65)
+				&& !deleted)
+			    {
+				partition_counter = partition_counter + 1;
+				if ( partition_counter == ppc_boot_partition )
+				{
+					ppc_possible_boot_partitions = add (ppc_possible_boot_partitions, `item(`id(partition_counter), lookup (pentry, "device", ""), true));
+				}
+				else
+				{
+					ppc_possible_boot_partitions = add (ppc_possible_boot_partitions, `item(`id(partition_counter), lookup (pentry, "device", "")));
+				}
+				ppc_prep_boot_partitions = add (ppc_prep_boot_partitions, partition_counter, lookup (pentry, "device", "" ));
+			    }
+			});
+		    }
+		});
+		y2milestone("new prep_boot_partitions %1 %2", partition_counter, ppc_prep_boot_partitions);
+		y2milestone("new ppc_possible_boot_partitions %1", ppc_possible_boot_partitions);
+    }
+
+    global define string Proposal ()
+    ``{
+	string ppc_proposal = "foobar ppc_proposal string";
+	string target_name = "";
+
+	y2milestone("BootPPC::Proposal: Boot::location %1", Boot::location);
+	y2milestone("BootPPC::Proposal: target_name %1", target_name);
+
+	// probably the inital call
+	if ( Boot::location == "mbr" )
+	{
+		if ( Arch::board_iseries )
+			Boot::location = "iseries_nwsstg";
+		else if ( Arch::board_chrp )
+			Boot::location = "ppc_chrp"; // define it later
+		else if ( Arch::board_prep )
+			Boot::location = "ppc_prep"; // define it later
+		else if ( Arch::board_mac_new )
+			Boot::location = "ppc_chrp"; // define it later
+		else if ( Arch::board_mac_old )
+			Boot::location = "ppc_mac_old"; // define it later
+		else if ( Arch::board_mac_nubus )
+			Boot::location = "ppc_mac_nubus"; // define it later
+		else
+			Boot::location = "ppc_undefined";
+	}
+	if ( Arch::board_iseries )
+	{
+
+		BootPPC::ppc_update_prep_boot_partitions ();
+
+		if ( Boot::location == "iseries_nwsstg" )
+		{
+			if ( size (ppc_prep_boot_partitions) > 0)
+			{
+				target_name = ppc_prep_boot_partitions[ppc_boot_partition]:1;
+				Boot::device = target_name;
+				ppc_proposal = sformat("The kernel will be written to %1. Use *NWSSTG on OS400 side.", target_name);
+			}
+			else
+			{
+			// do not use *NWSSTG, switch to kernel_slot instead
+				Boot::location = "iseries_kernel_slot";
+				Boot::device = "B";
+				ppc_proposal = sformat("The kernel will be written to slot B. This will take a while", BootPPC::ppc_iseries_streamfile);
+			}
+
+		}
+		else if ( Boot::location == "iseries_stmf" )
+		{
+			// XXX newline required. how?
+			ppc_proposal = sformat("A stream file will be written to %1.
+Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfile);
+		}
+		else if ( Boot::location == "iseries_kernel_slot" )
+		{
+			ppc_proposal = sformat("The kernel will be written to slot B. This will take a while ...", BootPPC::ppc_iseries_streamfile);
+		}
+		else if ( Boot::location == "iseries_do_nothing" )
+		{
+			ppc_proposal = sformat("No bootloader configuration in YaST2.");
+		}
+		else
+		{
+			ppc_proposal = sformat("Error: %1 should not happen on iSeries. report this as a bug!", Boot::location);
+		}
+
+		y2milestone("prep_boot_partitions %1", ppc_prep_boot_partitions);
+	}
+	else if ( Arch::board_prep )
+	{
+		if ( size (ppc_prep_boot_partitions) > 0)
+		{
+			target_name = ppc_prep_boot_partitions[ppc_boot_partition]:1;
+			Boot::device = target_name;
+			ppc_proposal = "the zImage.prep from CD1/boot must be written to a 41 PReP boot partition";
+		}
+		else
+		{
+			ppc_proposal = "there is no 41 PReP boot partition, you can not boot from hard disk";
+		}
+	}
+	else if ( Arch::board_chrp )
+	{
+		if ( size (ppc_prep_boot_partitions) > 0)
+		{
+			target_name = ppc_prep_boot_partitions[ppc_boot_partition]:1;
+			Boot::device = target_name;
+			ppc_proposal = sformat("yaboot will be written to %1. use SMS Multiboot to boot from this drive", target_name);
+		}
+		else
+		{
+			ppc_proposal = "there is no 41 PReP boot partition, you can not boot from hard disk";
+		}
+	}
+	else if ( Arch::board_mac_new )
+	{
+		ppc_proposal = "boot configuration on new PowerMacs is not yet implemented";
+	}
+	else if ( Arch::board_mac_old )
+	{
+		ppc_proposal = "configure BootX App in classic MacOS to boot the file 'vmlinuz-oldworld'";
+	}
+	else if ( Arch::board_mac_nubus )
+	{
+		ppc_proposal = "use the Apple MkLinux Booter to boot the kernel";
+	}
+	else
+	{
+		ppc_proposal = "boot configuration for this board is not yet implemented";
+	}
+
+	y2milestone("BootPPC::Proposal: ppc_proposal %1, Boot::location %2", ppc_proposal, Boot::location);
+	y2milestone("BootPPC::Proposal: target_name  %1", target_name);
+	return ppc_proposal;
+    }
+
+    /**
+     * AskParameters
+     *
+     * helper function for inst_bootloader
+     * provide ui code to ask LILO specific parameters
+     * Input field for PROM changes and boot parameters
+     *
+     * @returns: list of <uicode>
+     */
+
+    global define list AskParameters ()
+    ``{
+	list ppc_params = [];
+
+	if ( ( Arch::board_iseries || Arch::board_chrp ) &&
+		size (ppc_prep_boot_partitions) > 0 )
+	{
+		ppc_params = add ( ppc_params,
+		    `VSquash(
+			     `HBox(
+				   `HWeight(1,
+					    // Layout trick: let the text have its nice size - the rest
+					    // will do nicely for the input field.
+					    `Bottom(
+						    `ComboBox (`id(`custom_partition), `opt(`editable), "Choose 41 PReP boot partition:", BootPPC::ppc_possible_boot_partitions)
+						    )
+					    )
+				   )
+			     )
+		    );
+	}
+	if ( Arch::board_iseries )
+	{
+		ppc_params = add ( ppc_params,
+			`VBox (`Left (`TextEntry (
+			`id( `ppc_iseries_streamfile ),
+			// Text input field to enter the iSeries streamfile location
+			_("&iSeries stream file for *STMF booting:"),
+			BootPPC::ppc_iseries_streamfile)
+			))
+			);
+	}
+	if ( Arch::board_mac_new || Arch::board_chrp )
+	{
+		ppc_params = add ( ppc_params,
+		    `Left (`CheckBox (`id (`ppc_change_of),
+			// check box
+			_("Set default &OpenFirmware 'boot-device'"),
+			BootPPC::ppc_of_defaultdevice))
+			);
+	}
+	return ppc_params;
+    }
+
+    global define term AskOptions ()
+    ``{
+           term ppc_location = `Empty();
+
+	   if ( Arch::board_iseries )
+	   {
+		ppc_location = `VBox(
+				 `VStretch(),
+				 `Left(
+				       `RadioButton( `id( "iseries_stmf" ), `opt(`notify),
+						     sformat (_("Generate a bootfile for *STMF booting")),
+						     Boot::location == "iseries_stmf")
+				       )
+				 );
+
+		if ( size (ppc_prep_boot_partitions) > 0 )
+		{
+			ppc_location = add ( ppc_location ,`VBox(
+					 `VStretch(),
+					 `Left(
+					       `RadioButton( `id( "iseries_nwsstg" ), `opt(`notify),
+							     sformat (_("write kernel to 41 PReP boot partition (for *NWSSTG)"), Boot::mbrDisk),
+							     Boot::location == "iseries_nwsstg")
+					       )
+					       )
+					 );
+		}
+		ppc_location = add ( ppc_location ,`VBox(
+				 `VStretch(),
+				 `Left(
+				       `RadioButton( `id( "iseries_kernel_slot" ), `opt(`notify),
+						     sformat (_("write kernel to slot B")),
+						     Boot::location == "iseries_kernel_slot")
+				       )
+				       )
+				 );
+		ppc_location = add ( ppc_location ,`VBox(
+				 `VStretch(),
+				 `Left(
+				       `RadioButton( `id( "iseries_do_nothing" ), `opt(`notify),
+						     sformat (_("Do not configure bootloader")),
+						     Boot::location == "iseries_do_nothing")
+				       )
+				       )
+				 );
+	 }
+	 else if ( Arch::board_chrp || Arch::board_mac_new )
+	 {
+		ppc_location = `VBox(
+				`VStretch(),
+				`Left(
+					`RadioButton( `id( "ppc_chrp" ),
+						// activate boot partition
+						sformat (_("Write bootloader")),
+						Boot::location == "ppc_chrp"
+					)
+				)
+				);
+	 }
+	 else
+	 {
+		ppc_location = `VBox(
+				`VStretch(),
+				`Left(
+					`RadioButton( `id( "ppc_undefined" ),
+						// activate boot partition
+						sformat (_("Yes, I agree that there is no bootloader support for this board."),
+						Boot::location == "ppc_undefined")
+					)
+				)
+				);
+	 }
+
+	y2milestone("ppc AskOptions <%1>", Boot::location);
+	    return ppc_location;
+	 }
+
+    global define void HandleParameters ()
+    ``{
+	any option = nil;
+	y2milestone("HandleParameters");
+
+	if ( Arch::board_iseries )
+	{
+		option = UI::QueryWidget(`id(`custom_partition), `Value);
+		y2milestone("custom_partition %1", option);
+		if ( ! option == nil )
+		{
+			ppc_boot_partition = option;
+		}
+
+	}
+	else if ( Arch::board_chrp )
+	{
+
+	}
+	return;
+    }
+    global define void    UI_Poll ( any ui_poll )
+    ``{
+
+	y2milestone("UI_Poll %1", ui_poll );
+	return;
+
+    }
+
     global define boolean Write ()
     ``{
-	if (!( Arch::board_prep || Arch::board_chrp || Arch::board_mac_new  ))
+	if (!( Arch::board_prep || Arch::board_chrp || Arch::board_mac_new || Arch::board_iseries ))
 	    return true;
 
 	string boot_device	= Boot::device;
 	string root_device	= Boot::RootPartitionDevice;
 	string other_device	= Boot::others[0]:"";
-	boolean lilo_activate	= Boot::activate;
+	boolean lilo_activate	= BootPPC::ppc_activate_bootloader;
 	string lilo_conf = "# Generated by YaST2\n
 default=linux
 timeout=100
@@ -61,12 +414,14 @@ image = /boot/" + Kernel::binary + "
 	{
 	    // the PReP boot file (the kernel) is not in k_deflt.rpm
 	    // FIXME: this is one of the crudest hacks (cf #9718)
-	    SCR::Execute (.target.bash, "/bin/cp -p " + Installation::sourcedir +
-			"/suse/images/zImage.prep /boot/zImage.prep");
-	    SCR::Execute (.target.bash, "/bin/cp -p " + Installation::sourcedir +
-			"/suse/images/zImage.initrd.prep /boot/zImage.initrd.prep");
+	    WFM::Execute (.local.bash, "/bin/cp -pv " + Installation::sourcedir +
+			"/boot/mvlinuz-prep* /boot/zImage.prep");
+	    WFM::Execute (.local.bash, "/bin/cp -pv " + Installation::sourcedir +
+			"/boot/install-prep* /boot/zImage.initrd.prep");
 	}
-	SCR::Execute(.target.bash, "/sbin/lilo --lilo-rootdrive " + root_device);
+	if (ppc_activate_bootloader == true)
+		SCR::Execute(.target.bash, "/sbin/lilo --lilo-rootdrive " + root_device);
+
 	SCR::Execute(.target.bash, "/usr/lib/YaST2/bin/ppc_postinstall.sh " + boot_device + " " + root_device);
 
 	return true;

@@ -24,7 +24,9 @@ Summary:	Bootloader installation and configuration
 %defattr(-,root,root)
 
 # bootfloppy
+%ifnarch s390 s390x
 @configdir@/bootfloppy.y2cc
+%endif
 @clientdir@/bootfloppy.ycp
 %doc @docdir@/*
 
@@ -32,7 +34,9 @@ Summary:	Bootloader installation and configuration
 %dir @yncludedir@/lilo
 @yncludedir@/lilo/*.ycp
 @clientdir@/lilo*.ycp
+%ifnarch s390 s390x
 @configdir@/lilo.y2cc
+%endif
 @moduledir@/Lilo.ycp
 
 # lilo agent

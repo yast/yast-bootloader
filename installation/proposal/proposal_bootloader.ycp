@@ -48,6 +48,11 @@
 	    // user selected _not_ to use a linux bootloader
 	    info_msg = _("Non-Linux boot loader (provided by user)");
 	}
+	else if (Boot::LoaderType == "ppc")
+	{
+		import "BootPPC";
+		info_msg = BootPPC::Proposal ();
+	}
 	else
 	{
 	    map targetMap = Storage::GetTargetMap ();
