@@ -406,6 +406,14 @@
             partitions = filter (map p, partitions,
                 ``(p["type"]:`primary == `primary
 		    || p["type"]:`primary == `extended));
+	    // FIXME this checking is performed on 3 places, one function should
+	    // be developed for it
+	    partitions = filter (map p, partitions, {
+		symbol fs = (symbol)(p["used_fs"]:p["detected_fs"]:nil);
+		if (fs == `xfs)
+		    return false;
+		return true;
+	    });
         }
         else if (type == `root)
         {

@@ -35,6 +35,32 @@
       * @return term widget to be displayed
       */
     global define term getTargetWidget () ``{
+	boolean allow_boot = true;
+	boolean allow_root = true;
+	list<string> do_not_recommend = [];
+	// FIXME this checking is performed on 3 places
+	map<string,map> tm = Storage::GetTargetMap ();
+	foreach (string disk_dev, map disk, tm, {
+	    list<map<string,any> > partitions
+		= (list<map<string,any> >) disk["partitions"]:[];
+	    foreach (map<string,any> p, partitions, {
+		if (! p["delete"]:false)
+		{
+		    symbol fs = (symbol)(p["used_fs"]:p["detected_fs"]:nil);
+		    if (fs == `xfs)
+		    {
+			string device = p["device"]:"";
+			do_not_recommend = add (do_not_recommend, device);
+			y2milestone ("Part: %1 FS: %2", p, fs);
+		    }
+		}
+	    });
+	});
+	if (contains (do_not_recommend, BootPartitionDevice))
+	   allow_boot = false;
+	if (contains (do_not_recommend, RootPartitionDevice))
+	   allow_root = false;
+
         term targetlist = `VBox (
             `VSpacing (0.4),
             `Left (`RadioButton (`id ("mbr"), `opt (`notify),
@@ -44,16 +70,20 @@
 		    // radiobutton, %1 is device (eg. /dev/hda)
 		    : sformat(_("&Master boot record of %1"), mbrDisk),
                 (location == "mbr")
-            )),
-            `VSpacing (0.4),
-            `Left (`RadioButton (`id ("boot"), `opt (`notify),
+            ))
+	);
+	if (allow_boot)
+	{
+	    targetlist = add (targetlist, `VSpacing (0.4));
+            targetlist = add (targetlist, `Left (
+		`RadioButton (`id ("boot"), `opt (`notify),
 		// radiobutton, %1 is device (eg. /dev/hda1)
                 sformat(_("Boot &Sector of Boot Partition %1"),
                      BootCommon::getDeviceOfRaid (BootPartitionDevice)),
                 (location == "boot")
-            ))
-	);
-	if (BootPartitionDevice != RootPartitionDevice)
+            )));
+	};
+	if (allow_root && BootPartitionDevice != RootPartitionDevice)
 	{
 	    targetlist = add (targetlist, `VSpacing (0.4));
 	    targetlist = add (targetlist, `Left (
@@ -148,8 +178,41 @@
 	if (rb == "custom" && UI::QueryWidget (`id (`loc), `Value) == "")
 	{
 	    setLocationErrorPopup ();
-	    UI::SetFocus (`is (`loc));
+	    UI::SetFocus (`id (`loc));
 	    return false;
+	}
+	if (rb == "custom")
+	{
+	    boolean ok = true;
+	    string ld = (string)UI::QueryWidget (`id (`loc), `Value);
+	    map<string,map> tm = Storage::GetTargetMap ();
+	    foreach (string disk_dev, map disk, tm, {
+		list<map<string,any> > partitions
+		    = (list<map<string,any> >) disk["partitions"]:[];
+		foreach (map<string,any> p, partitions, {
+		    if (! p["delete"]:false)
+		    {
+			symbol fs = (symbol)(p["used_fs"]:p["detected_fs"]:nil);
+			// FIXME this checking is performed on 3 places
+			if (p["device"]:"" == ld && fs == `xfs)
+			{
+			    if (! Popup::YesNo (_("The partition selected for boot loader installation
+does not have enough free space in its boot sector
+to hold the boot loader because of the file system
+it contains. Using this partition for boot loader
+may lead to corrupting data on the partition.
+
+Continue?")))
+			    {
+				UI::SetFocus (`id (`loc));
+				ok = false;
+			    }
+			}
+		    }
+		});
+	    });
+	    if (! ok)
+		return false;
 	}
 	return true;
     }
