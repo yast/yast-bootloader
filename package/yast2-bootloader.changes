@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Sun Sep  8 13:30:47 CEST 2002 - kkaempf@suse.de
+
+- drop "make check" for the moment.
+
+-------------------------------------------------------------------
 Fri Sep  6 21:34:54 CEST 2002 - kkaempf@suse.de
 
 - workaround for hwinfo bug (#19071)
