@@ -36,7 +36,7 @@
     /**
       * Constructor
       */
-    global define BootS390 () ``{
+    global define void BootS390 () ``{
 	BootCommon::bootloader_attribs["s390"] = $[
             "loader_name" : "zipl",
         ];

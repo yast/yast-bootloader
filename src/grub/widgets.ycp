@@ -231,8 +231,8 @@ Replace it with an entry  to boot from the floppy?");
 		== order
 		    ? UI::Glyph (`CheckMark) : "",
 		lookup_value (s, "title", ""),
-		// table cell
 		lookup_value (s, "kernel", nil)
+			// table cell
 		    == "" ? _("other")
 			// table cell
 		    : _("image"),

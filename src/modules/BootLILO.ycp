@@ -47,7 +47,7 @@
     /**
       * Constructor
       */
-    global define BootLILO () ``{
+    global define void BootLILO () ``{
 	BootCommon::bootloader_attribs["lilo"] = $[
 	    "section_title" : "label",
 	    "kernel_key" : "image",

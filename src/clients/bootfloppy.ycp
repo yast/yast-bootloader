@@ -73,7 +73,7 @@ FireWire and file systems modules floppy"),
 
     /**
       * Show popup with a custom message
-      * @param message string message to show
+      * @param label string message to show
       */
     global define void showPopup (string label) ``{
 	UI::OpenDialog (`Label (label));
@@ -103,7 +103,7 @@ FireWire and file systems modules floppy"),
     /**
       * Read /proc/mounts and return a list with all mounted devices
       * @param floppy string device name of floppy to check
-      * @return list floppy mountpoint info
+      * @return map floppy mountpoint info
       */
     global define map isFloppyMounteded (string floppy)``{
 	list mounts =SCR::Read(.proc.mounts);
@@ -117,6 +117,8 @@ FireWire and file systems modules floppy"),
     /**
       * Helptext for the define floppySelectImage.
       * Called from the floppySelectImage.
+      * @param modules boolean if true then shows a list of modules instead
+      *  of main dialog
       * @return string help text
       */
     define string floppyHelpSelectImage(boolean modules) ``{
@@ -231,6 +233,8 @@ If necessary, also specify username and password for the authentication</p>");
       * Display a dialog that lets the user choose among different images.
       * Save the selected image in the global variable file_image.
       * Called from the sequencer.
+      * @param modules boolean if true then shows a list of modules instead
+      *  of main dialog
       * @return symbol wizard sequencer symbol
       */
     define symbol floppySelectImage(boolean modules) ``{
@@ -352,7 +356,8 @@ and File Systems (modules disk 4)"))),
 		    }
 		    else
 		    {
-			// popup
+			// label in a popup informing about currently
+			// processed action
 			showPopup (_("Getting the floppy disk image..."));
 			floppyMountSource ();
 			string pth = sformat ("boot/%1", file_image);
@@ -469,8 +474,10 @@ and File Systems (modules disk 4)"))),
 		`TextEntry (`id (`url), _("&URL"), ""),
 		`VSpacing (2),
 		`HBox (
+		    // text entry label
 		    `TextEntry (`id (`user), _("&User"), user),
 		    `HSpacing (2),
+		    // text entry label
 		    `Password (`id (`pass), _("&Password"), pass)
 		),
 		`VStretch ()
@@ -499,7 +506,8 @@ and File Systems (modules disk 4)"))),
 		user = UI::QueryWidget (`id (`user), `Value);
 		pass = UI::QueryWidget (`id (`pass), `Value);
 		string file = SCR::Read (.target.tmpdir) + "/image";
-		showPopup (_("Downloading image"));
+		// label in a popup informing about currently processed action
+		showPopup (_("Downloading image..."));
 		if (user != "" && pass != "")
 		{
 		    string userpass = sformat ("%1:%2", user, pass);
@@ -507,6 +515,7 @@ and File Systems (modules disk 4)"))),
 		}
 		else if (user != "")
 		{
+		    // error report
 		    Report::Error (_("Set the password!"));
 		    ret = nil;
 		    continue;
@@ -517,8 +526,9 @@ and File Systems (modules disk 4)"))),
 		y2error ("Response: %1", response);
 		if (response["dsize"]:0 == 0)
 		{
-		    Report::Error (_(
-"Error occured while downloading floppy image.
+		    Report::Error (
+// error report
+_("Error occured while downloading floppy image.
 Check that you wrote correct URL and set
 correct user name and password."));
 		    ret = nil;
@@ -555,8 +565,8 @@ into the floppy drive.
 All data on this floppy will be deleted.")),
 		`VSpacing (3),
 		`HSquash (
-		    // combo box label
 		    `ComboBox (`id (`device), `opt (`editable),
+			// combo box label
 			_("Floppy &device"), floppies)
 		),
 		`VSpacing (3),
@@ -637,7 +647,7 @@ Unmount the floppy?"), floppymount["spec"]:"", floppymount["file"]:"")))
 
 	if (format_floppy)
 	{
-	    // popup
+	    // label in a popup informing about currently processed action
 	    showPopup (_("Formatting the floppy..."));
 	    integer fd_ret = SCR::Execute
 		(.target.bash, sformat ("/usr/bin/fdformat %1", floppy_device));

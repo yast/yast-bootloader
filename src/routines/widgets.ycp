@@ -682,6 +682,9 @@
 	];
     }
 
+    /**
+      * Restore function of widget
+      */
     global define void resetButtonRestore () ``{
 	list items = [];
 	if (getBooleanAttrib ("propose"))
@@ -718,6 +721,7 @@
 	if (size (items) > 0)
 	{
 	    UI::ReplaceWidget (`id (`reset_rp),
+		// menu button
 		`MenuButton (`id (`reset), _("Res&et"), items));
 	}
 	else
@@ -1016,6 +1020,7 @@
       */
     global define string timeoutSummary () ``{
 	integer timeout = lookup_value (current_section, "timeout", 0);
+	// table cell, %1 is a number, 's' means 'seconds'
 	return sformat (_("%1 s"),
 	    timeout / BootCommon::getTimeoutMultiplier ());
     }

@@ -110,7 +110,7 @@
 
     /**
       * Get list of keys which mean section alias
-      * @return list of such keys
+      * @return a list of such keys
       */
     global define list(string) getAliasesKeys () ``{
         return current_bootloader_attribs["alias_keys"]:[];
@@ -128,6 +128,7 @@
     /**
       * Get value of specified bootloader attribute
       * @param attrib string attribute name
+      * @param default any default value of the attribute (if not found)
       * @return any value of attribute
       */
     global define any getAnyTypeAttrib (string attrib, any default) ``{
@@ -188,9 +189,8 @@
 
     /**
       * Add value to key in bootloader section
-      * @parma s_section symbol representing section, values are
+      * @param s_section symbol representing section, values are
       *  `globals, `current_globals, `current_section
-      * @param section list of section to be changed
       * @param key string key of requested parameter
       * @param value any value to be set, nil for remiving key
       */
@@ -267,7 +267,7 @@
 
     /**
       * Get the list of installed floppy drives
-      * @return list of floppy devices
+      * @return a list of floppy devices
       */
     global define list(string) getFloppyDevices () ``{
         if (floppy_devices == nil)

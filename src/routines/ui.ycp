@@ -95,18 +95,18 @@
             string type = widget_data["type"]:lookup (
                 BootCommon::opttypes (), optname, "s");
             if (type == "b")
-		// checkbox
                 widget = `CheckBox (`id (`value),
+		    // checkbox
 		    widget_data["widget_label"]:_("&Set"),
                     lookup_value (sect, optname, true));
             else if (type == "i")
-		// intfield header
                 widget = `IntField (`id (`value),
+		    // intfield header
 		    widget_data["widget_label"]:_("&Value"), 0, 999999,
 		    lookup_value (sect, optname, 0));
             else
-		// textentry header
                 widget = `TextEntry (`id (`value),
+		    // textentry header
 		    widget_data["widget_label"]:_("&Value"),
 		    lookup_value (sect, optname, ""));
         }

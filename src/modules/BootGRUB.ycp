@@ -74,7 +74,7 @@
     /**
       * Constructor
       */
-    global define BootGRUB () ``{
+    global define void BootGRUB () ``{
         BootCommon::bootloader_attribs["grub"] = $[
             "section_title" : "title",
 	    "kernel_key" : "kernel",
