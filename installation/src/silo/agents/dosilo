@@ -99,7 +99,7 @@ fi
 PATH=/usr/lib/YaST2/bin:$root_dir/usr/lib/YaST2/bin:$root_dir/sbin:$PATH
 
 # create a fallback kernel
-cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.suse || exit 31
+cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.shipped || exit 31
 
 # make an initial ram disk
 $root_dir/sbin/mk_initrd $root_dir >>/var/log/dosilo.log 2>/dev/null
@@ -160,10 +160,10 @@ fi
 echo -e "\n# If /boot is a separate partition, remove /boot from the image path" >> $root_dir/boot/silo.conf
 echo "" >> $root_dir/boot/silo.conf
 
-for kernel in '' .suse _24 _24.suse ; do
+for kernel in '' .shipped _24 _24.shipped ; do
   if [ -f $root_dir/boot/vmlinuz$kernel ] ; then
     echo "image=$boot_path/vmlinuz$kernel" >> $root_dir/boot/silo.conf
-    if [ "$kernel" = ".suse" ] ; then
+    if [ "$kernel" = ".shipped" ] ; then
       echo "   label=suse" >> $root_dir/boot/silo.conf
     else
       echo "   label=linux$kernel" >> $root_dir/boot/silo.conf

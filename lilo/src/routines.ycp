@@ -23,8 +23,8 @@ textdomain "bootloader";
 
 /**
   * get kernel parameter from GRUB command line
-  * @param string original line
-  * @param string parameter key
+  * @param line string original line
+  * @param key string parameter key
   * @return string value, "false" if not present, "true" if present key without value
   */
 global define string getGrubKernelParamFromLine (string line, string key) ``{
@@ -40,10 +40,10 @@ global define string getGrubKernelParamFromLine (string line, string key) ``{
 }
 /**
   * set kernel parameter to GRUB command line
-  * @param string original line
-  * @param string parameter key
-  * @param string value, "false" to remove key, "true" to add key without value
-  * @return boolean true on success
+  * @param line string original line
+  * @param key string parameter key
+  * @param value string value, "false" to remove key, "true" to add key without value
+  * @return string new kernel command line
   */
 global define string setGrubKernelParamToLine (string line, string key, string value) ``{
     list params = splitstring (line, " ");
@@ -95,7 +95,7 @@ global define map parseGrubConf () ``{
 
 /**
   * parse /etc/grub file from other file
-  * @param filename
+  * @param filename string name of file
   * @return map of settings
   */
 global define map parseGrubConfFrom (string filename) ``{
@@ -138,7 +138,7 @@ global define map parseGrubConfFrom (string filename) ``{
 
 /**
   * get /etc/grub.conf file from settings as string
-  * @param map of settings
+  * @param settings map of settings
   * @return string file contents
   */
 global define string getGrubConf (map settings) ``{
@@ -158,7 +158,7 @@ global define string getGrubConf (map settings) ``{
 
 /**
   * save /etc/grub.conf
-  * @param map settings
+  * @param settings map settings
   * @return boolean true if success
   */
 global define boolean saveGrubConf (map settings) ``{
@@ -167,8 +167,8 @@ global define boolean saveGrubConf (map settings) ``{
 
 /**
   * save /etc/grub.conf to specified file
-  * @param map settings
-  * @param string filename
+  * @param settings map GRUB main settings
+  * @param filename string filename to save to
   * @return boolean true if success
   */
 global define boolean saveGrubConfTo (map settings, string filename) ``{
@@ -185,7 +185,7 @@ global define void createMap () ``{
 
 /**
   * translate filename path (eg. /boot/kernel) to grub device/path (eg. (hd0,0)/kernel)
-  * @param string fileststem path
+  * @param pth string fileststem path
   * @return string grub path
   */
 global define string getGrubPath (string pth) ``{
@@ -213,7 +213,7 @@ global define string getGrubPath (string pth) ``{
 
 /**
   * translate grub device/path (eg. (hd0,0)/kernel) to filename path (eg. /boot/kernel)
-  * @param string grub path
+  * @param pth string grub path
   * @return string filesystem path
   */
 global define string getLinuxPath (string pth) ``{
@@ -235,7 +235,7 @@ global define string getLinuxPath (string pth) ``{
 
 /**
  * translate UNIX device /dev/hda to grub device (hd0)
- * @param string UNIX device
+ * @param o_dev string UNIX device
  * @return string grub device
  */
 global define string lilo2Grub (string o_dev) ``{
@@ -280,7 +280,7 @@ global define string lilo2Grub (string o_dev) ``{
 
 /**
  * translate grub device (hd0) to UNIX device /dev/hda 
- * @param string grub device
+ * @param o_dev string grub device
  * @return string UNIX device
  */
 global define string grub2Lilo (string o_dev) ``{

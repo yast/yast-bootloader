@@ -27,8 +27,8 @@ include "lilo/io.ycp";
 
 /**
   * get kernel parameters from menu.lst
-  * @param string section title
-  * @param string key
+  * @param section string section title
+  * @param key string key
   * @return string value, "false" if not present, "true" if present key without value
   */
 global define string getGrubKernelParam (string section, string key) ``{
@@ -39,10 +39,11 @@ global define string getGrubKernelParam (string section, string key) ``{
     return getGrubKernelParamFromLine (command, key);
 }
 
-/** set kernel parameter to menu.lst
-  * @param string section title
-  * @param string parameter key
-  * @param string value, "false" to remove key, "true" to add key without value
+/**
+  * set kernel parameter to menu.lst
+  * @param section string section title
+  * @param key string parameter key
+  * @param value string value, "false" to remove key, "true" to add key without value
   * @return boolean true on success
   */
 global define boolean setGrubKernelParam (string section, string key, string value) ``{
@@ -58,8 +59,8 @@ global define boolean setGrubKernelParam (string section, string key, string val
 
 /**
   * get kernel parameters from bootloader configuration file
-  * @param string section title, use DEFAULT for default section
-  * @param string key
+  * @param section string section title, use DEFAULT for default section
+  * @param key string
   * @return string value, "false" if not present, "true" if present key without value
   */
 global define string getKernelParam (string section, string key) ``{
@@ -90,10 +91,11 @@ global define string getKernelParam (string section, string key) ``{
     return getGrubKernelParamFromLine (line, key);
 }
 
-/** set kernel parameter to menu.lst
-  * @param string section title, use DEFAULT for default section
-  * @param string parameter key
-  * @param string value, "false" to remove key, "true" to add key without value
+/**
+  * set kernel parameter to menu.lst
+  * @param section string section title, use DEFAULT for default section
+  * @param key string parameter key
+  * @param value string value, "false" to remove key, "true" to add key without value
   * @return boolean true on success
   */
 global define boolean setKernelParam (string section, string key, string value) ``{
@@ -129,7 +131,7 @@ global define boolean setKernelParam (string section, string key, string value) 
 }
 /**
   * save bootloader configuration
-  * @param boolean force rebuilding initial ramdisk, if false never gets rebuilt
+  * @param rebuildInitrd boolean force rebuilding initial ramdisk, if false never gets rebuilt
   * @return boolean true on success
   */
 global define boolean saveBootloaderConfig (boolean rebuildInitrd) ``{

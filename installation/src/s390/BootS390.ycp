@@ -21,6 +21,8 @@
     import "Installation";
     import "StorageControllers";
 
+    textdomain "bootloader";
+
     /**
      * Write()
      *
@@ -55,6 +57,8 @@ dumpto=/dev/rtibm0
 ";
 
 	SCR::Write (.target.string, "/etc/zipl.conf", zipl_conf);
+
+	SCR::Execute (.target.bash, "/sbin/mk_initrd");
 
 	// append chandev to /etc/chandev.conf
 	string chandev = SCR::Read(.etc.install_inf.Chandev);

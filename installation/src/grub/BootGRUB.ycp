@@ -99,61 +99,6 @@
 	string grub_conf = SCR::Read (.target.string, "/etc/grub.conf");
 	string command = sformat ("echo \"%1\" | grub --batch ", grub_conf);
 	SCR::Execute(.target.bash, command);
-
-//	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_lilo_conf / >>/var/log/y2loglilo 2>>/var/log/y2loglilo");
-
-/*	if (Boot::location == "floppy")
-	{
-	    // Rewrite lilo, if it has been booted from Floppy
-
-	    SCR::Execute(.target.umount, "/media/floppy"); // Just for safety
-	    UI::MessagePopup(_("The LILO boot sector will be written to a floppy disk.
-Insert a formatted floppy and confirm with 'OK'.
-"));
-	    while (true)
-	    {
-		integer doresult = SCR::Execute (.target.bash,
-					"/sbin/lilo -b " + StorageDevices::FloppyDevice
-					+ " -m /boot/map2 >>/var/log/y2loglilo 2>>/var/log/y2loglilo");
-
-		SCR::Execute(.target.bash, "/bin/sync");
-
-		if (doresult==0)
-		{
-		    // data saved to floppy disk
-		    UI::MessagePopup(_("The LILO boot sector has been written to a floppy disk."));
-		    break;
-		}
-		else
-		{
-		    // boot write to floppy failed
-		    if ( !UI::YesNoPopup(_("Could not write LILO boot sector to the floppy.
-Please check that the floppy disk is formatted
-and that the write protection tab is removed.
-Do you want to try again?")) )
-			break;		// no choosen
-		}
-	    } // while (true)
-
-	}
-	else	// lilo on harddisk
-	{
-
-	    any retAsk = `yes;
-	    while ( retAsk == `yes
-		    && SCR::Execute (.target.bash, "/sbin/lilo >> /var/log/y2loglilo 2>> /var/log/y2loglilo") != 0 )
-	    {
-		retAsk = UI::AskRetry( "lilo" );
-		while ( retAsk == `log )
-		{
-		    string text = "";
-
-		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/y2loglilo");
-		    DisplayLogFile( text );
-		    retAsk = UI::AskRetry( "lilo" );
-		}
-	    }
-	}*/
     }
 
 
@@ -197,19 +142,6 @@ Do you want to try again?")) )
     global define list AskParameters ()
     ``{
 	return [];
-/*	return eval ([
-	    `Left (
-		`CheckBox (`id( `linear ),
-		// check box: use the 'linear' option?
-		_("Use the '&linear' option"),
-		linear)
-	    ),
-	    `Left (`CheckBox (`id( `activate ),
-		// check box: activate partition where LILO is installed ?
-		_("Ac&tivate LILO partition"),
-		activate)
-	    )
-	]);*/
     }
 
     /**
@@ -223,20 +155,6 @@ Do you want to try again?")) )
     global define string HelpParameters ()
     ``{
 	return "";
-	// custom bootloader help text, LILO only, 1 of 2
-/*	return _("<p>
-The <b>linear option</b> is for backwards compatibility. Use this to make LILO
-cooperate with older hardware when the default does not work.
-Most users will not need this.
-</p>
-")
-
-	// custom bootloader help text, LILO only, 2 of 2
-	+ _("<p>
-Check <b>Activate partition</b> to mark the partition as active. Usually this
-is not required, but, on some systems, the BIOS only boots from an active partition.
-</p>
-");*/
     }
 
 
@@ -251,27 +169,6 @@ is not required, but, on some systems, the BIOS only boots from an active partit
     global define void HandleParameters ()
     ``{
 	return;
-/*	any option = nil;
-
-	// on i386, no need for linear if bios has lba support
-	if (Arch::i386 && lba_support)
-	{
-	    linear = false;
-	}
-	else
-	{
-	    option = UI::QueryWidget(`id(`linear), `Value);
-	    if (is (option, boolean))
-	    {
-		linear = option;
-	    }
-	}
-	option = UI::QueryWidget(`id(`activate), `Value);
-	if (is (option, boolean))
-	{
-	    activate = option;
-	}
-	return;*/
     }
 
 
@@ -424,48 +321,15 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	}
 
 	menu = menu + "title failsafe\n";
-	menu = menu + sformat ("   kernel %1 %2 %3\n", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz.suse"),
-            sformat ("root=%1", Boot::RootPartitionDevice), "ide=nodma apm=off acpi=off vga=normal nosmp maxcpus=0 3");
-	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd.suse");
+	menu = menu + sformat ("   kernel %1 %2 %3\n", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz.shipped"),
+            sformat ("root=%1", Boot::RootPartitionDevice), "ide=nodma apm=off acpi=off vga=normal nosmp maxcpus=0 disableapic 3");
+	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd.shipped");
 
 	if (-1 != SCR::Read (.target.size, "/boot/memtest.bin"))
         {
 	    menu = menu + "title memtest86\n";
 	    menu = menu + sformat ("   kernel %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "memtest.bin");
         }
-
-
-/*	map section = $[
-	    "title" : "linux",
-	    "kernel" : sformat ("%1 %2 %3", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz"),
-		sformat ("root=%1", Boot::RootPartitionDevice), Kernel::cmdLine),
-	    "initrd" : sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd"),
-	];
-	sections = add (sections, section);
-
-//TODO add non-linux sections
-
-	section = $[
-            "title" : "failsafe",
-            "kernel" : sformat ("%1 %2 %3", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz.suse"),
-                sformat ("root=%1", Boot::RootPartitionDevice), Kernel::cmdLine),
-            "initrd" : sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd.suse")
-        ];
-        sections = add (sections, section);
-
-	if (-1 != SCR::Read (.target.size, "/boot/memtest.bin"))
-	{
-	    section = $[
-		"title" : "memtest86",
-		"kernel" : sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "memtest.bin")
-	    ];
-	    sections = add (sections, section);
-	}
-
-y2error ("Sections: %1", sections);
-
-	Lilo::globals = globals;
-	Lilo::sections = sections;*/
 
 	SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
 
@@ -476,225 +340,6 @@ y2error ("Sections: %1", sections);
 	string command = sformat ("echo \"%1\" | /usr/sbin/grub --batch ", grub_conf);
 	SCR::Execute(.target.bash, command);
 	y2milestone ("GRUB installed");
-
-
-
-//	map m = Lilo::Write (``{}, ``{});
-//	y2error ("Write returned %1", m);
-	return;
-
-
-/*	if (Boot::location == "mbr")
-	{
-	    docmd = docmd + " -m " + Boot::device;
-	}
-	else if (Boot::location == "floppy")
-	{
-	    docmd = docmd + " -m " + Boot::device;
-	}
-	else if (Boot::location == "custom")
-	{
-	    string last_dev_char = substring (Boot::device, size(Boot::device)-1, 1);
-	    // if Boot::device does not end in a digit, it is a disk device for mbr
-	    if (!(filterchars (last_dev_char, "0123456789") == last_dev_char))
-		docmd = docmd + " -m " + Boot::device;
-	}*/
-
-	// if syslinux recognized a framebuffer, pass it to lilo
-
-/*	integer vga = tointeger (Boot::VgaType);
-	if (vga > 0)
-	{
-	    list fbdev = SCR::Read(.probe.fbdev);
-	    string unique_key = fbdev[0, "unique_key"]:"";
-	    if (size (unique_key) > 0)
-	    {
-		HwStatus::Set (unique_key, `yes);
-	    }
-	    docmd = docmd + " -v " + vga;
-	}*/
-
-	// on LILO systems with LILO in MBR activate it.
-
-	if (activate
-	    || (Boot::location == "mbr"))
-	{
-	    // normaly, the /boot device
-	    string active_device = Boot::BootPartitionDevice;
-
-	    // if user choose another device (i.e. for compaq bios), use this
-	    if (Boot::location == "custom")
-	    {
-		active_device = Boot::device;
-	    }
-
-	    // now check if it really is a primary device
-	    // now check if it really is a primary device
-	    // if not a primary -> find extended
-
-	    string last_dev_char = substring (active_device, size(active_device)-1, 1);
-
-	    if (filterchars (last_dev_char, "1234") != last_dev_char)
-	    {
-		map target = lookup ( Storage::GetTargetMap() , Boot::device, $[]);
-		list partitions = target["partitions"]:[];
-
-		active_device = "";
-
-		foreach (`partition, partitions,
-		``{
-		    // no active_device found yet
-		    // and extend partition
-		    // and not marked for deletion
-		    //     or maybe marked for creation
-		    if ((active_device == "")
-			&& (partition["fsid"]:0 == 5)
-			&& (!(partition["delete"]:false))
-			&& (partition["create"]:true))
-		    {
-			active_device = Boot::device + partition["nr"]:"1";
-		    }
-		});
-	    }
-
-	    if (active_device != "")
-	    {
-		docmd = docmd + " -a " + active_device;
-	    }
-	    else
-	    {
-		y2warning ("Can't find primary partition to activate.");
-	    }
-	}
-
-	// check for bios_id on a ide/scsi mixed system
-
-	if (StorageDevices::mixedDevices)
-	{
-	    // check if bios_id is given for a target
-
-	    map targetMap = Storage::GetTargetMap();
-	    foreach (`target_dev, `target, targetMap,
-	    ``{
-		string bios_id = target["bios_id"]:"";
-		if (bios_id != "")
-		{
-		    docmd = docmd + " -d \"" + target_dev + " " + bios_id + "\"";
-		}
-	    });
-	}
-
-	// add "-o <other>" entry if given
-
-	if (Boot::other != "")
-	{
-	    docmd = docmd + " " + Boot::other;
-	}
-
-	// set lilo_opt_linear non-empty if checked
-	string lilo_opt_linear = "";
-	if (linear)
-	    lilo_opt_linear = "yes";
-
-	// set lilo_opt_lba non-empty if supported
-	string lilo_opt_lba = "";
-	if (lba_support)
-	    lilo_opt_lba = "yes";
-
-	y2milestone("lilo: %1 cmd: %2", Boot::location, docmd);
-
-	if (Boot::location == "floppy")
-	{
-
-	    SCR::Execute(.target.bash, "/bin/umount /media/floppy"); // Just for safety
-		// popup
-	    Report::Message(_("The LILO boot sector will be written onto a floppy disk.
-Please insert a formatted floppy and confirm with 'OK'."));
-
-	    map doenv = $[ "bootdev" : Boot::BootPartitionDevice,
-			 "rootdev" : Boot::RootPartitionDevice,
-			 "append" : Kernel::cmdLine,
-			 "linear" : lilo_opt_linear,
-			 "lba32"  : lilo_opt_lba,
-			 "floppy" : StorageDevices::FloppyDevice ];
-	    y2milestone("env: %1", doenv);
-	    while (true)
-	    {
-		doresult = SCR::Execute(.target.bash, docmd, doenv);
-		SCR::Execute(.target.bash, "/bin/sync");
-
-		if (doresult == 0) {
-		    // data saved to floppy disk
-		    string msg = _("The LILO boot sector has been written to the floppy disk.");
-
-		    if ( size (confirm_boot_msg) > 0 )
-		    {
-			msg = msg + "\n\n" + confirm_boot_msg;
-			if (Kernel::switched)
-			{
-			    // If LILO was written on floppy disk and we need
-			    // to do a hard reboot (because a different kernel
-			    // was installed), tell the user to leave the floppy
-			    // inserted.
-			    msg = msg + _("Leave the floppy disk in the drive. The system will now be rebooted.");
-			}
-			Misc::boot_msg=msg;;
-			// empty that  Misc::boot_msg indicate the message has been displayed
-		    }
-		    Report::Message(msg);
-		    break;
-		}
-		else {
-		    // boot write to floppy failed
-		    if (!UI::YesNoPopup(_("Could not write the LILO boot sector to the floppy.
-Please check that the floppy disk is formatted
-and that the write protection tab is removed.
-Do you want to try again?")))
-			break;		// no choosen
-		}
-	    } // while (true)
-
-	} // Boot::location == "floppy"
-	else
-	{
-	    map doenv = $[ "bootdev" : Boot::BootPartitionDevice,
-			 "rootdev" : Boot::RootPartitionDevice,
-			 "append" : Kernel::cmdLine,
-			 "linear" : lilo_opt_linear,
-			 "lba32"  : lilo_opt_lba ];
-	    y2milestone ("doenv: %1", doenv);
-	    // lilo not on floppy
-	    doresult = SCR::Execute(.target.bash, docmd, doenv);
-
-	    if (doresult == 0)
-	    {
-		if ((Boot::location == "mbr")
-			|| (Boot::location == "custom"))
-		{
-		    // final information message for user after LILO write
-		    string msg = sformat(_("The LILO boot sector has been written to disk. You can restore
-the old boot sector in the installed system with \"lilo -u %1\""), Boot::device);
-
-		    if ( size (confirm_boot_msg) > 0 )
-		    {
-			msg = msg + "\n\n" + confirm_boot_msg;
-			Misc::boot_msg = "";
-			// empty that entry to indicate the message has been displayed
-		    }
-
-		    Report::Message(msg);
-
-		}
-	    }
-	    else
-	    {
-		// error popup
-		Report::Error(_("Could not write the LILO boot sector"));
-	    }
-
-	} // Boot::location != "floppy"
-
-	// LILO setup end
 
 	return true;
     }
