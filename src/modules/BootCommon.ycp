@@ -515,7 +515,7 @@ configuration files"));
 	    && ! Mode::test)
 	{
 	    // don't configure package maneger during autoinstallation preparing
-	    if (! Mode::config)
+	    if (! (Mode::config || Mode::repair))
 	    {
 		// TODO ??? check if package manager is initialized
 		boolean installed = false;
