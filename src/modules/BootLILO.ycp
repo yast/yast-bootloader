@@ -476,6 +476,13 @@
                     out = add (out, m);
         });
         out = maplist (`s, out, ``{
+	    string type = "";
+	    foreach (`p, s, ``{
+		if (p["key"]:"" == "label" && type == "")
+		    type = p["value"]:"";
+		if (p["key"]:"" == "__intern__")
+		    type = p["value", "type"]:type;
+	    });
             s = maplist (`p, s, ``{
 		if (p["key"]:"" == "image" || p["key"]:"" == "initrd")
 		{
@@ -489,6 +496,14 @@
 		    {
 			option = regexpsub (option,
 			    "^(.*)\.suse(.*)$", "\\1\\2");
+		    }
+		    if (type == "linux" && p["key"]:"" == "append")
+		    {
+			// FIXME check the product
+			if (! issubstring (option, "desktop"))
+			    option = option + " desktop";
+			if (! issubstring (option, "splash"))
+			    option = option + " splash=silent";
 		    }
 		    p["value"] = option;
 		}
