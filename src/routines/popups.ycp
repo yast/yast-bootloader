@@ -312,23 +312,9 @@ no options to set here."));
 	// popup, %1 is bootloader name
 	string msg = sformat (_("The %1 boot sector has been written to the floppy disk."),
 	    bootloader);
-	msg = msg + "\n";
-	if (Mode::hardBoot)
-        {
-            // If LILO was written on floppy disk and we need
-            // to do a hard reboot (because a different kernel
-            // was installed), tell the user to leave the floppy
-            // inserted.
-	    msg = msg
-		// popup - continuing - alternative 1 ...
-                + _("Leave the floppy disk in the drive. The system will now be rebooted.");
-	}
-	else
-	{
-	    msg = msg
-		// popup - continuing - alternative 2 ...
-		+ _("Remove the floppy disk from the drive.");
-	}
+	msg = msg + "\n"
+	    // popup - continuing - alternative 1 ...
+	    + _("Leave the floppy disk in the drive. The system will now be rebooted.");
 
 	if ( size (confirm_boot_msg) > 0 )
 	{
