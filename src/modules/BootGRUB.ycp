@@ -609,7 +609,8 @@
 	    $[ "key" : "title", "value" : title],
 	    $[ "key" : "kernel", "value" : sformat ("%1 %2 %3",
 		file2grub ("/boot/" + image),
-		sformat ("root=%1", BootCommon::RootPartitionDevice),
+		sformat ("root=%1", BootCommon::dev2majminIfNonStandard (
+		    BootCommon::RootPartitionDevice)),
 		append
 	    )],
 	    $[ "key" : "initrd", "value" : file2grub ("/boot/" + initrd)],

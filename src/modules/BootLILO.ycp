@@ -309,7 +309,8 @@
 	    $[ "key" : "label", "value" : title],
 	    $[ "key" : "image", "value" : "/boot/" + image],
 	    $[ "key" : "initrd", "value" : "/boot/" + initrd],
-	    $[ "key" : "root", "value" : BootCommon::RootPartitionDevice],
+	    $[ "key" : "root", "value" : BootCommon::dev2majminIfNonStandard (
+		BootCommon::RootPartitionDevice)],
 	    $[ "key" : "append", "value" : append],
 	    $[ "key" : "__intern__", "value" : $[
 		"auto" : true,

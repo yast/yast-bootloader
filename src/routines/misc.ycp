@@ -1171,18 +1171,41 @@
     }
 
     /**
+      * Translate device name to major/minor number if the device is not
+      * "usual"
+      * @param device string
+      * @return string the original device parameter if it is "usual",
+      *  same as dev2majmin otherwise
+      */
+    global define string dev2majminIfNonStandard (string device) ``{
+	if (regexpmatch (device, "^/dev/hd.+$")
+	    || regexpmatch (device, "^/dev/sd.+$")
+	    || regexpmatch (device, "^/dev/ataraid/.+$"))
+	{
+	    return device;
+	}
+	return dev2majmin (device);
+    }
+
+    /**
       * Translate device name to major/minor number
       * @param device string
-      * @return string major*256+minor hexadecimal without leading 0x
+      * @return string major*256+minor hexadecimal without leading 0x, in case
+      *  of any fail return unchanged device node
       */
     global define string dev2majmin (string device) ``{
-        string ls = lookup (SCR::Execute (.target.bash_output, sformat (
-            "ls -ln %1", device)), "stdout", "");
+	map exec_ret = SCR::Execute (.target.bash_output, sformat (
+	    "ls -ln %1", device));
+	if (exec_ret["exit"]:1 != 0)
+	    return device;
+        string ls = exec_ret["stdout"]:"";
         list(string) parts = splitstring (ls, " ");
         parts = filter (`p, parts, ``(p != ""));
         string majs = parts[4]:"";
         majs = substring (majs, 0, size (majs) -1);
         string mins = parts[5]:"";
+	if (majs == "" || majs == nil || mins == "" || mins == nil)
+	    return device;
         integer maj = tointeger (majs);
         integer min = tointeger (mins);
 	majs = tohexstring (maj);
