@@ -49,7 +49,7 @@
       */
     global define map getValueMap (list section, string key) ``{
         map ret = $[];
-        foreach (`m, section, ``{
+        foreach (map m, section, ``{
             if (m["key"]:"" == key)
                 ret = m;
         });
@@ -79,6 +79,42 @@
 	any default)
     ``{
 	return section[index, "value"]:default;
+    }
+
+    /**
+      * Replace first occurence of option with specified value,
+      *   remove other occurences, add if no occurence present
+      * @param section list of section to be changed
+      * @param key string key of requested parameter
+      * @param value any value to be set, nil for removing key
+      * @return list modified section
+      */
+    global define list modifySection (list section, string key, any value) ``{
+	boolean found = false;
+        section = filter (map cc,
+            maplist (map c, section, ``{
+                if (c["key"]:"" == key)
+                {
+		    found = true;
+                    if (value == nil)
+                        return nil;
+                    else
+                    {
+                        c["value"] = value;
+			c["changed"] = true;
+			value = nil;
+                        return c;
+                    }
+                }
+                return c;
+            }), ``(cc != nil && cc["value"]:"" != nil)
+        );
+	if (! found && value != nil)
+	{
+	    section = add (section, $[ "key" : key, "value" : value,
+		"changed" : true]);
+	}
+	return section;
     }
 
     /**
@@ -112,42 +148,6 @@
 	    return section;
 	}
 
-    }
-
-    /**
-      * Replace first occurence of option with specified value,
-      *   remove other occurences, add if no occurence present
-      * @param section list of section to be changed
-      * @param key string key of requested parameter
-      * @param value any value to be set, nil for removing key
-      * @return list modified section
-      */
-    global define list modifySection (list section, string key, any value) ``{
-	boolean found = false;
-        section = filter (`cc,
-            maplist (`c, section, ``{
-                if (c["key"]:"" == key)
-                {
-		    found = true;
-                    if (value == nil)
-                        return nil;
-                    else
-                    {
-                        c["value"] = value;
-			c["changed"] = true;
-			value = nil;
-                        return c;
-                    }
-                }
-                return c;
-            }), ``(cc != nil && cc["value"]:"" != nil)
-        );
-	if (! found && value != nil)
-	{
-	    section = add (section, $[ "key" : key, "value" : value,
-		"changed" : true]);
-	}
-	return section;
     }
 
     /**
@@ -214,7 +214,7 @@
       * @return string section type
       */
     global define string getCreationType (list section) ``{
-	map intern = lookup_value (section, "__intern__", $[]);
+	map intern = (map) lookup_value (section, "__intern__", $[]);
 	return intern["type"]:"";
     }
 

@@ -28,9 +28,121 @@
     import "Require";
     import "Storage";
 
+    /* These global variables and functions is needed in included files */
+
+    /**
+      * string sepresenting device name of /boot partition
+      * same as RootPartitionDevice if no separate /boot partition
+      */
+    global string BootPartitionDevice = "";
+
+    /**
+      * string representing device name of / partition
+      */
+    global string RootPartitionDevice = "";
+
+    /**
+      * location description
+      * on i386 can be mbr, root, boot, floppy, custom, none
+      * other architectures may differ
+      */
+    global string location = "";
+
+    /**
+      * Parameters of currently used bootloader
+      */
+    global map current_bootloader_attribs = $[];
+
+    /**
+      * Parameters of all bootloaders
+      */
+    global map bootloader_attribs = $[];
+
+    /**
+      * Name of currently edited section, `global for global section
+      */
+    global any current_section_name = `global;
+
+    /**
+      * Curtrently edited section -- tmp store
+      */
+    global list current_section = [];
+
+    /**
+      * map of global options and values
+      */
+    global list globals = [];
+
+    /**
+      * Updated, but not yet confirmed globals -- tmp store
+      */
+    global list current_globals = [];
+
+    /**
+      * list of section
+      */
+    global list sections = [];
+
+    /**
+      * list of installed floppy devices
+      */
+    global list floppy_devices = nil;
+
+    /**
+      * Option types for differnt bootloaders
+      */
+    global map opt_types = $[];
+
+    /**
+      * device holding MBR for bootloader
+      */
+    global string mbrDisk = "";
+
+    /**
+      * Device to install bootloader to
+      */
+    global string loader_device = "";
+
+    /**
+      * was currently edited section changed (== true)
+      */
+    global boolean one_section_changed = false;
+
+    /**
+      * Backup original MBR before installing bootloader
+      */
+    global boolean backup_mbr = false;
+
+    /**
+      * Activate bootloader partition during installation?
+      */
+    global boolean activate = false;
+
+    /**
+      * Replace MBR with generic code after bootloader installation?
+      */
+    global boolean repl_mbr = false;
+
+    /**
+      * Kernel parameters at previous detection
+      */
+    global string kernelCmdLine = "";
+
+    /**
+      * were settings changed (== true)
+      */
+    global boolean changed = false;
+
+    /**
+      * Table/Popup options used by currently used bootloader
+      */
+    global map cwm_options = $[];
+
+    global define string getLoaderType (boolean recheck);
+
     include "bootloader/routines/helps.ycp";
-    include "bootloader/routines/lilolike.ycp";
     include "bootloader/routines/misc.ycp";
+    include "bootloader/routines/lilolike.ycp";
     include "bootloader/routines/options.ycp";
     include "bootloader/routines/routines.ycp";
     include "bootloader/routines/widgets.ycp";
@@ -46,18 +158,6 @@
 
 // sysconfig variables
 
-    /**
-      * location description
-      * on i386 can be mbr, root, boot, floppy, custom, none
-      * other architectures may differ
-      */
-    global string location = "";
-
-    /**
-      * Device to install bootloader to
-      */
-    global string loader_device = "";
-
 // installation proposal help variables
 
     /**
@@ -66,35 +166,6 @@
     global boolean prefer_lilo = false;
 
 // variables for storing data
-
-    /**
-      * list of section
-      */
-    global list sections = [];
-
-    /**
-      * map of global options and values
-      */
-    global list globals = [];
-
-    /**
-      * string sepresenting device name of /boot partition
-      * same as RootPartitionDevice if no separate /boot partition
-      */
-    global string BootPartitionDevice = "";
-
-    /**
-      * string representing device name of / partition
-      */
-    global string RootPartitionDevice = "";
-    /**
-      * device holding MBR for bootloader
-      */
-    global string mbrDisk = "";
-    /**
-      * list of installed floppy devices
-      */
-    global list floppy_devices = nil;
 
 // state variables
 
@@ -107,17 +178,9 @@
       */
     global boolean was_read = false;
     /**
-      * were settings changed (== true)
-      */
-    global boolean changed = false;
-    /**
       * were sections settings changes (== true)
       */
     global boolean sections_changed = false;
-    /**
-      * was currently edited section changed (== true)
-      */
-    global boolean one_section_changed = false;
     /**
       * Was bootloader location changed? (== true)
       */
@@ -156,21 +219,9 @@
 // ui help variables
 
     /**
-      * Curtrently edited section -- tmp store
-      */
-    global list current_section = [];
-    /**
-      * Name of currently edited section, `global for global section
-      */
-    global any current_section_name = `global;
-    /**
       * Updated, but not yet confirmed sections -- tmp store
       */
     global list current_sections = [];
-    /**
-      * Updated, but not yet confirmed globals -- tmp store
-      */
-    global list current_globals = [];
     /**
       * Name of option, which is currently being edited in popup
       */
@@ -188,36 +239,12 @@
 // other variables
 
     /**
-      * Parameters of all bootloaders
-      */
-    global map bootloader_attribs = $[];
-    /**
-      * Parameters of currently used bootloader
-      */
-    global map current_bootloader_attribs = $[];
-    /**
       * Settings of other bootloaders used when switching bootloader
       */
     global map other_bl = $[];
-    /**
-      * Option types for differnt bootloaders
-      */
-    global map opt_types = $[];
-    /**
-      * Kernel parameters at previous detection
-      */
-    global string kernelCmdLine = "";
 
 // bootloader installation variables
 
-    /**
-      * Replace MBR with generic code after bootloader installation?
-      */
-    global boolean repl_mbr = false;
-    /**
-      * Activate bootloader partition during installation?
-      */
-    global boolean activate = false;
     /**
       * Was the activate flag changed by user?
       */
@@ -227,17 +254,9 @@
       */
     global boolean save_all = false;
     /**
-      * Backup original MBR before installing bootloader
-      */
-    global boolean backup_mbr = false;
-    /**
       * Widgets used by currently used bootloader
       */
     global map cwm_widgets = $[];
-    /**
-      * Table/Popup options used by currently used bootloader
-      */
-    global map cwm_options = $[];
 
 // generic versions of bootloader-specific functions
 
@@ -322,7 +341,7 @@
       * Display bootloader summary
       * @return a list of summary lines
       */
-    global define list(string) Summary () ``{
+    global define list<string> Summary () ``{
 	if (getLoaderType (false) == "none")
 	{
 	    return [HTML::Colorize (getLoaderName (getLoaderType (false)),
@@ -336,13 +355,13 @@
 	else
 	target_name = boot_target["name"]:"disk";
 
-	list(string) result = [];
+	list<string> result = [];
 	// summary text, %1 is bootloader name (eg. LILO)
 	result = add (result, sformat (_("Boot loader type: %1"),
 		getLoaderName (getLoaderType (false))));
 	// summary text, location is location description (eg. /dev/hda)
 	result = add (result, sformat (_("Location: %1"), target_name));
-	list(string) sects = [];
+	list<string> sects = [];
 	foreach (`s, sections, ``{
 	    string title = lookup_value (s, getSectionTitle (), "");
 		// section name "suffix" for default section

@@ -26,72 +26,6 @@
     import "Arch";
 
     /**
-      * Refresh disk locations
-      * @return boolean true if bootloader location should be set again
-      */
-    global define boolean RefreshDisks() ``{
-	boolean ret = true;
-	if (! DisksChanged ())
-	    ret = false;
-
-	y2milestone ("Reconfiguring locations");
-	DetectDisks ();
-
-	return ret;
-    }
-
-    /**
-     *  IsBootAccessible()
-     *  @return boolean true if accessible
-     */
-    global define boolean IsBootAccessible() ``{
-	if (Mode::config)
-	    return true;
-        boolean boot_partition_accessible = true;
-
-        if (!LbaSupport())
-        {
-            string boot_mount_point = "";
-            // check, if no /boot partition exists
-
-            if (lookup (Storage::GetMountPoints(), "/boot", "") == "")
-            {
-                boot_mount_point = "/";
-            }
-            else
-            {
-                boot_mount_point = "/boot";
-            }
-
-            // check if boot mount point is below cyl 1024
-
-            foreach (string dname, map ddata, Storage::GetTargetMap(),
-            ``{
-                list partitions = ddata["partitions"]:[];
-                if (partitions != [])
-                {
-                    foreach (`pentry, partitions,
-                    ``{
-                        if (pentry["mount"]:"" == boot_mount_point)
-                        {
-                            boot_partition_accessible =
-				(1024 > pentry["region",0]:0);
-                        }
-                    });
-                }
-
-            });
-
-        }
-        if (boot_partition_accessible)
-            y2milestone("Boot partition accessible");
-        else
-            y2milestone("Boot partition unaccessible");
-
-        return (boot_partition_accessible);
-    }
-
-    /**
       * Check whether disk settings were changed since last checking
       * @return boolean true if needs to recheck
       */
@@ -131,50 +65,39 @@
     }
 
     /**
-      * Should backup copy of bootloader bootsector be created?
-      * @return boolean true if yes.
+      * FindMbrDisk()
+      * try to find the system's mbr device
+      * @return string   mbr device
       */
-    global define boolean createBackupBS () ``{
-	if (! Mode::initial)
-	    return false;
-	map mp = Storage::GetMountPoints ();
-	list data = mp["/boot"]:(mp["/"]:[]);
-	string bpd = data[0]:"";
-	// ???? FIXME ???? how about LVM/MD ????
-	return bpd == BootPartitionDevice;
-    }
+    global define string FindMbrDisk() ``{
+        // can hwinfo find the disk ?
 
-    /**
-      * If device is part of RAID (md), then return first of its members
-      * otherwise return the same as argument
-      * @param device string device of the RAID
-      * @return string first member of the RAID
-      */
-    global define string getDeviceOfRaid (string device) ``{
-	// get list of all partitions (not marked to be deleted)
-	map tm = Storage::GetTargetMap ();
-	list partitions = [];
+        string probed_mbr_disk = SCR::Read(.probe.boot_disk);
+        if (probed_mbr_disk != "")
+        {
+            y2milestone ("MBR probed as %1", probed_mbr_disk);
+            return probed_mbr_disk;
+        }
 
-	foreach ( string dev, map disk, tm, ``{
-	    if( Storage::IsRealDisk( dev, disk ) )
-	    {
-		list l = filter( map p, disk["partitions"]:[],
-		    ``(p["delete"]:false==false) );
-		partitions = merge (partitions, l);
+	map mp = Storage::GetMountPoints();
+        string bootDisk = mp["/boot",2]:(mp["/",2]:"");
+
+        // look for disk with bios_id 0x80
+        list disks = SCR::Read(.probe.disk);
+	// fallback
+        string mbr_disk = disks[0,"dev_name"]:bootDisk;
+
+        foreach (`disk, disks,
+        ``{
+            if (disk["bios_id"]:"" == "0x80")
+            {
+                y2milestone ("disk with bios_id 0x80: %1", disk);
+                mbr_disk = disk["dev_name"]:bootDisk;
             }
         });
 
-	// filter partitions to relevant list according to raid name
-	list md_list = filter (`e, partitions, ``(e["raid_name"]:"" == device));
-	// get the devices
-	list dev_list = maplist (`e, md_list, ``(e["device"]:""));
-	dev_list = filter (`d, dev_list, ``(d != ""));
-	if (size (dev_list) > 0)
-	{
-	    dev_list = sort (dev_list);
-	    return dev_list[0]:"";
-	}
-	return device;
+        y2milestone("MBR Disk: %1", mbr_disk);
+        return mbr_disk;
     }
 
     /**
@@ -257,6 +180,86 @@
     }
 
     /**
+      * Refresh disk locations
+      * @return boolean true if bootloader location should be set again
+      */
+    global define boolean RefreshDisks() ``{
+	boolean ret = true;
+	if (! DisksChanged ())
+	    ret = false;
+
+	y2milestone ("Reconfiguring locations");
+	DetectDisks ();
+
+	return ret;
+    }
+
+    /**
+     *  IsBootAccessible()
+     *  @return boolean true if accessible
+     */
+    global define boolean IsBootAccessible() ``{
+	if (Mode::config)
+	    return true;
+        boolean boot_partition_accessible = true;
+
+        if (!LbaSupport())
+        {
+            string boot_mount_point = "";
+            // check, if no /boot partition exists
+
+            if (lookup (Storage::GetMountPoints(), "/boot", "") == "")
+            {
+                boot_mount_point = "/";
+            }
+            else
+            {
+                boot_mount_point = "/boot";
+            }
+
+            // check if boot mount point is below cyl 1024
+
+            foreach (string dname, map ddata, Storage::GetTargetMap(),
+            ``{
+                list partitions = ddata["partitions"]:[];
+                if (partitions != [])
+                {
+                    foreach (`pentry, partitions,
+                    ``{
+                        if (pentry["mount"]:"" == boot_mount_point)
+                        {
+                            boot_partition_accessible =
+				(1024 > pentry["region",0]:0);
+                        }
+                    });
+                }
+
+            });
+
+        }
+        if (boot_partition_accessible)
+            y2milestone("Boot partition accessible");
+        else
+            y2milestone("Boot partition unaccessible");
+
+        return (boot_partition_accessible);
+    }
+
+    /**
+      * Should backup copy of bootloader bootsector be created?
+      * @return boolean true if yes.
+      */
+    global define boolean createBackupBS () ``{
+	if (! Mode::initial)
+	    return false;
+	map mp = Storage::GetMountPoints ();
+	list data = mp["/boot"]:(mp["/"]:[]);
+	string bpd = data[0]:"";
+	// ???? FIXME ???? how about LVM/MD ????
+	return bpd == BootPartitionDevice;
+    }
+
+    /**
      * ConfigureLocation()
      * Where to install the bootloader.
      * It just gives "mbr" or "floppy"
@@ -281,42 +284,6 @@
 
         y2milestone ("ConfigureLocation (%1 on %2)", loc, device);
         return loc;
-    }
-
-    /**
-      * FindMbrDisk()
-      * try to find the system's mbr device
-      * @return string   mbr device
-      */
-    global define string FindMbrDisk() ``{
-        // can hwinfo find the disk ?
-
-        string probed_mbr_disk = SCR::Read(.probe.boot_disk);
-        if (probed_mbr_disk != "")
-        {
-            y2milestone ("MBR probed as %1", probed_mbr_disk);
-            return probed_mbr_disk;
-        }
-
-	map mp = Storage::GetMountPoints();
-        string bootDisk = mp["/boot",2]:(mp["/",2]:"");
-
-        // look for disk with bios_id 0x80
-        list disks = SCR::Read(.probe.disk);
-	// fallback
-        string mbr_disk = disks[0,"dev_name"]:bootDisk;
-
-        foreach (`disk, disks,
-        ``{
-            if (disk["bios_id"]:"" == "0x80")
-            {
-                y2milestone ("disk with bios_id 0x80: %1", disk);
-                mbr_disk = disk["dev_name"]:bootDisk;
-            }
-        });
-
-        y2milestone("MBR Disk: %1", mbr_disk);
-        return mbr_disk;
     }
 
     /**
