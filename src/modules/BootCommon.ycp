@@ -289,13 +289,13 @@
       * Import settings from a map
       * @param settings map of bootloader settings
       */
-    global define void Import (map settings) ``{
+    global define boolean Import (map settings) ``{
         globals = settings["global"]:[];
         sections  = settings["sections"]:[];
         repl_mbr = settings["repl_mbr"]:false;
         activate = settings["activate"]:false;
 	activate_changed = true;
-	return;
+	return true;
     }
 
     /**
