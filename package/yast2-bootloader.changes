@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Mar  1 08:26:39 CET 2005 - jsrain@suse.cz
+
+- display proper list of bootloaders (#66933)
+
+-------------------------------------------------------------------
 Mon Feb 28 16:07:36 CET 2005 - jsrain@suse.cz
 
 - fixed aborting during inst_finish (was crashing YaST)
