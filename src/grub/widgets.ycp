@@ -146,7 +146,7 @@ Replace it with an entry  to boot from the floppy?");
 	{
 	    prependlist = ["__loader_type", "__sep2", "__location",
 		"__diskorder", "__default_section", "__sections", "activate",
-		"__repl_mbr", "__sep1"];
+		"__repl_mbr", "__save_method", "__sep1"];
             options = filter (`o, `v, options,
 		``(o != "boot" && o != "default"));
 
@@ -193,6 +193,10 @@ Replace it with an entry  to boot from the floppy?");
 	}
 
 	_options = filter (`o, _options, ``(! contains (prependlist, o)));
+	if (Mode::initial)
+	{
+	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
+	}
 	_options = merge (prependlist, _options);
 	return _options;
     }

@@ -92,7 +92,7 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
-//	Initrd::Read ();
+	Initrd::Read ();
 	boolean ret = blRead ();
 	BootCommon::location
 	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
@@ -153,6 +153,8 @@
 	ReadOrProposeIfNeeded ();
 
 	if (BootCommon::write_settings["save_all"]:false)
+	    BootCommon::save_all = true;
+	if (BootCommon::save_all)
 	{ // force saving everything
 	    BootCommon::changed = true;
 	    BootCommon::location_changed = true;

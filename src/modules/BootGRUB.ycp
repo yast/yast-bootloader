@@ -82,7 +82,8 @@
 	    "kernel_params" : $[
 		`other : "kernel",
 	    ],
-	    "update_passwd" : ``{ps = sformat ("--md5 %1", cryptmd5 (ps));},
+	    "update_passwd" :
+		``{password = sformat ("--md5 %1", cryptmd5 (password));},
         ];
     }
 

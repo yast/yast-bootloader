@@ -40,6 +40,7 @@
 		    "__sections" : ``(BootCommon::getSectionsTableEntry ()),
 		    "__default_section" : ``(BootCommon::getDefaultSectionTableEntry ()),
 		    "__section_type" : ``(BootCommon::getSectionTypeWidget ()),
+		    "__save_method" : ``(BootCommon::getSaveMethod ()),
 		    "__sep1" : $["label" : "---------------"],
 		    "__sep2" : $["label" : "---------------"],
 		    "__sep3" : $["label" : "---------------"],
@@ -280,16 +281,14 @@
 	    {
 		if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
 		{
-		    string ps = UI::QueryWidget (`id (`pw1), `Value);
+		    string password = UI::QueryWidget (`id (`pw1), `Value);
 		    if (haskey (BootCommon::current_bootloader_attribs,
 			"update_passwd"))
 		    {
 			eval (BootCommon::current_bootloader_attribs[
 			    "update_passwd"]:nil);
 		    }
-//		    if (getLoaderType (false) == "grub")
-//			ps = sformat ("--md5 %1", cryptmd5 (ps));
-		    current_section["password"] = ps;
+		    current_section["password"] = password;
 		}
 	    }
 	    else if (haskey (current_section, "password"))
@@ -602,7 +601,7 @@
 	{
 	    prependlist = ["__loader_type", "__sep2", "__location",
 		"__default_section", "__sections", "activate", "__repl_mbr",
-		"__sep1"];
+		"__save_method", "__sep1"];
 	    options = filter (`o, options, ``(o != "boot" && o != "default"));
 	}
 	else
@@ -611,6 +610,10 @@
 	    options = prepend (options, "label");
 	}
 	options = filter (`o, options, ``(! contains (prependlist, o)));
+	if (Mode::initial)
+	{
+	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
+	}
 	options = merge (prependlist, options);
 	return options;
     }
@@ -752,6 +755,61 @@
 	return BootCommon::current_section[key]:nil == nil
 	    ? "other"
 	    : "image";
+    }
+
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getSaveMethod () ``{
+	return $[
+            "restore" : ``(BootCommon::saveMethodRestore ()),
+            "handle" : ``(BootCommon::saveMethodSave ()),
+	    "type" : "b",
+	    "help" : BootCommon::getSaveMethodHelp (),
+	    "exits" : [],
+		// table item / label
+	    "label" : _("Save method"),
+		// table item / label
+	    "widget_label" : _("Force &saving everything"),
+	    "summary" : ``(BootCommon::saveMethodSummary ()),
+	    "deletable" : false,
+	    "ordering" : false,
+	];
+    }
+
+    /**
+      * Restore function of widget
+      */
+    global define void saveMethodRestore () ``{
+        UI::ChangeWidget (`id (`value), `Value, save_all);
+        UI::SetFocus (`id (`value));
+    }
+
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param tosave list of operations, which lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any saveMethodSave (any op, list tosave) ``{
+        if (! contains (tosave, op))
+            return op;
+        save_all = UI::QueryWidget (`id (`value), `Value);
+        return op;
+    }
+
+    /**
+      * Summary function for option
+      * @return string summary text
+      */
+    global define string saveMethodSummary () ``{
+        if (save_all)
+                // table item / label
+            return _("Force saving everything");
+        else
+                // table item / label
+            return _("Save only changed files");
     }
 
     /**

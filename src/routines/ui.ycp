@@ -91,15 +91,18 @@
                 BootCommon::opttypes (), optname, "s");
             if (type == "b")
 		// checkbox
-                widget = `CheckBox (`id (`value), _("&Set"),
+                widget = `CheckBox (`id (`value),
+		    widget_data["widget_label"]:_("&Set"),
                     sect[optname]:true);
             else if (type == "i")
 		// intfield header
-                widget = `IntField (`id (`value), _("&Value"), 0, 999999,
+                widget = `IntField (`id (`value),
+		    widget_data["widget_label"]:_("&Value"), 0, 999999,
                     sect[optname]:0);
             else
 		// textentry header
-                widget = `TextEntry (`id (`value), _("&Value"),
+                widget = `TextEntry (`id (`value),
+		    widget_data["widget_label"]:_("&Value"),
                     sect[optname]:"");
         }
         return widget;
