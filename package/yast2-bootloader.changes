@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 11 12:55:43 CET 2003 - jsrain@suse.de
+
+- using activate instead of sfdisk to activate bootloader
+  partition (#24740)
+
+-------------------------------------------------------------------
 Mon Mar 10 11:05:07 CET 2003 - jsrain@suse.de
 
 - fixed filtering of modules added to initrd (#24709)
