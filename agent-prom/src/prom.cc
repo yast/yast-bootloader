@@ -79,15 +79,26 @@ prom_getproperty (int promfd, char *prop, int *lenp)
   return op->oprom_array;
 }
 
-static char *
-prom_getopt(int promfd, char *var, int *lenp) {
-    DECL_OP(MAX_VAL);
+char *
+prom_getopt (int promfd, char *var, int *lenp)
+{
+  DECL_OP(MAX_VAL);
 
-    strcpy (op->oprom_array, var);
-    if (ioctl (promfd, OPROMGETOPT, op) < 0)
-        return 0;
-    if (lenp) *lenp = op->oprom_size;
-    return op->oprom_array;
+  strcpy (op->oprom_array, var);
+  if (ioctl (promfd, OPROMGETOPT, op) < 0)
+    return 0;
+  if (lenp) *lenp = op->oprom_size;
+  return op->oprom_array;
+}
+
+void
+prom_setopt (int promfd, const char *var, const char *value)
+{
+  DECL_OP(MAX_VAL);
+
+  strcpy (op->oprom_array, var);
+  strcpy (op->oprom_array + strlen (var) + 1, value);
+  ioctl (promfd, OPROMSETOPT, op);
 }
 
 static int

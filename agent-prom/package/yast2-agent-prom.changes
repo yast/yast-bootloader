@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Fri Jun  1 13:29:11 CEST 2001 - kukuk@suse.de
+
+- Implement changing of boot-device and linux alias
+
+-------------------------------------------------------------------
+Fri Jun  1 09:28:02 CEST 2001 - kukuk@suse.de
+
+- Fix spec file
+
+-------------------------------------------------------------------
 Wed May 30 17:40:12 CEST 2001 - kukuk@suse.de
 
 - Initial version

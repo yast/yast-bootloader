@@ -40,14 +40,14 @@ Requires:	@RPMNAME@
 
 %build
 export CXXFLAGS="$RPM_OPT_FLAGS $CXXFLAGS -DNDEBUG"
-%{?suse_update_config:%{suse_update_config -f}}
+#%{?suse_update_config:%{suse_update_config -f}}
 ./configure
 make
 #make check
 
 %install
 make install-strip
-strip --strip-debug @YAST2DIR@/plugin/libag_prom.so.*
+strip --strip-debug @YAST2DIR@/plugin/libpy2ag_prom.so.*
 %{?suse_check}
 
 %files
