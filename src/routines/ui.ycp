@@ -20,15 +20,14 @@
     textdomain "bootloader";
 
     import "BootCommon";
-    import "Bootloader";
     import "CWM";
     import "Label";
     import "Mode";
     import "Popup";
+    import "Sequencer";
     import "Wizard";
 
     include "bootloader/routines/convert.ycp";
-    include "wizard/sequencer.ycp";
 
     /**
      * Test for abort.
@@ -90,13 +89,16 @@
             return nil;
         }
 
-	if (! contains ([`scratch, `reread, `propose_deep, `propose], op))
+	if (! (is (op, symbol)
+	    && contains ([`scratch, `reread, `propose_deep, `propose],
+		(symbol)op)))
 	{
 	    return nil;
 	}
 	Bootloader::Reset ();
 	if (op == `scratch)
 	{
+	    y2debug ("Not reading anything for starting from scratch");
 	}
 	else if (op == `reread)
 	{
@@ -345,11 +347,11 @@ Proceed?
       * @return symbol for wizard sequencer
       */
     global define symbol runEditFilesDialog () ``{
-        map files = Bootloader::blGetFiles ();
+        map<string,string> files = Bootloader::blGetFiles ();
 	string default = files["default"]:"";
-	files = filter (`k, `v, files, ``(k != "default"));
+	files = filter (string k, string v, files, ``(k != "default"));
         list filenames = [];
-        foreach (`k, `v, files, ``{
+        foreach (string k, string v, files, ``{
             filenames = add (filenames, k);
         });
 	term cb = nil;
@@ -396,13 +398,13 @@ Proceed?
             ret = UI::UserInput ();
 	    if (ret == `filename)
 	    {
-		files[filename] = UI::QueryWidget (`id (`file), `Value);
+		files[filename] = (string)UI::QueryWidget (`id (`file), `Value);
 		filename = (string)UI::QueryWidget (`id (`filename), `Value);
 		UI::ChangeWidget (`id (`file), `Value, files[filename]:"");
 	    }
 	    if (ret == `next)
 	    {
-		files[filename] = UI::QueryWidget (`id (`file), `Value);
+		files[filename] = (string)UI::QueryWidget (`id (`file), `Value);
 		Bootloader::blSetFiles (files);
 		BootCommon::changed = true;
 		BootCommon::location_changed = true;
@@ -434,9 +436,9 @@ Proceed?
 	    "singlesect" : ``(runSingleSectionDialog ()),
 // sequences definitions
 	    "global_seq" :
-		``(WizardSequencer (aliases, ws_data["glob_seq"]:$[])),
+		``(Sequencer::Run (aliases, ws_data["glob_seq"]:$[])),
 	    "sect_seq" :
-		``(WizardSequencer (aliases, ws_data["sect_seq"]:$[])),
+		``(Sequencer::Run (aliases, ws_data["sect_seq"]:$[])),
 	];
     }
 
@@ -499,7 +501,7 @@ Proceed?
 
 	// run wizard
 	y2milestone ("Starting wizard sequencer");
-	return WizardSequencer (aliases, sequence);
+	return Sequencer::Run (aliases, sequence);
     }
 
     /**
@@ -521,7 +523,7 @@ Proceed?
       * @return sequence result
       */
     global define symbol BootloaderSequence () ``{
-	map aliases = $[
+	map my_aliases = $[
 	    "read"	: [ ``(ReadDialog ()), true ],
 	    "main"	:   ``(runWizard ()),
 	    "write"	: [ ``(WriteDialog ()), true ],
@@ -546,7 +548,7 @@ Proceed?
 	Wizard::CreateDialog();
 	Wizard::SetContentsButtons("", `VBox (), "",
 	    Label::BackButton(), Label::NextButton());
-	symbol ret = WizardSequencer(aliases, sequence);
+	symbol ret = Sequencer::Run (my_aliases, sequence);
 
 	UI::CloseDialog();
 	return ret;

@@ -29,18 +29,18 @@
       */
     global define boolean updatePrepBootPartitions () ``{
 	y2milestone ("Detecting PReP partitions: prep_only_active: %1, prep_only_hdx: %2, prep_only_primary: %3", prep_only_active, prep_only_hdx, prep_only_primary);
-	map targetMap = Storage::GetTargetMap ();
+	map<string,map> targetMap = (map<string,map>)Storage::GetTargetMap ();
 	y2milestone ("TargetMap: %1", targetMap);
 	list old_prep_boot_partitions = prep_boot_partitions;
 	prep_boot_partitions = [];
 	y2milestone("old prep_boot_partitions %1", old_prep_boot_partitions);
 
 	foreach (string dname, map ddata, targetMap, ``{
-	    list partitions = ddata["partitions"]:[];
+	    list<map> partitions = ddata["partitions"]:[];
 	    y2milestone ("Partitions: %1", partitions);
 	    partitions = filter (map p, partitions, ``(
 		(! p["delete"]:false)
-		&& (is (p["fsid"]:-1, integer) && p["fsid"]:-1 == 65)
+		&& (is (p["fsid"]:nil, integer) && p["fsid"]:nil == 65)
 		&& (! p["is_lv"]:false)
 		&& (p["raid_type"]:"" == "")
 	    ));
@@ -65,8 +65,8 @@
 		));
 	    }
 	    y2milestone ("Finally filtered partitions: %1", partitions);
-	    prep_boot_partitions = merge (prep_boot_partitions,
-		maplist (map p, partitions, ``(
+	    prep_boot_partitions = (list<string>)merge (prep_boot_partitions,
+		(list<string>)maplist (map p, partitions, ``(
 		    p["device"]:""
 		))
 	    );

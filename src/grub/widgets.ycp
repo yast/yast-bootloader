@@ -26,7 +26,6 @@
 
     textdomain "bootloader";
 
-    import "BootGRUB";
     import "Popup";
     import "Mode";
     import "TablePopup";
@@ -69,7 +68,7 @@ Replace it with an entry  to boot from the floppy?");
 		    && changeSection ("floppy"))
 		{
 		    s = [
-			$[ "key" : "title", "value" : translateSectionTitle ("hard disk")],
+			$[ "key" : "title", "value" : BootCommon::translateSectionTitle ("hard disk")],
 			$[ "key" : "root", "value" : "(hd0)"],
 			$[ "key" : "chainloader", "value"  : "+1"],
 	                $[ "key" : "__intern__", "value" : $[
@@ -91,7 +90,7 @@ Replace it with an entry  to boot from the floppy?");
 			&& changeSection ("disk"))
 		{
 		    s = [
-			$[ "key" : "title", "value" : translateSectionTitle ("floppy")],
+			$[ "key" : "title", "value" : BootCommon::translateSectionTitle ("floppy")],
 			$[ "key" : "root", "value" : "(fd0)"],
 			$[ "key" : "chainloader", "value" : "+1"],
                         $[ "key" : "__intern__", "value" : $[
@@ -476,7 +475,8 @@ Replace it with an entry  to boot from the floppy?");
 	    }
 	    else if (op == `delete)
 	    {
-		disks_order = filter (`i, disks_order, ``(i != active));
+		disks_order = (list<string>)
+		    filter (string i, disks_order, ``(i != active));
 		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
                     `opt (`notify, `immediate),
                     _("D&isks"), disks_order));
@@ -516,11 +516,11 @@ Replace it with an entry  to boot from the floppy?");
 	    foreach (list<string> d, dl, ``{
 		olddiskmap[d[1]:""] = d[0]:"";
 	    });
-	    map remap = $[];
+	    map<string,string> remap = $[];
 	    integer pos = 0;
 	    list<list<string> > new_map = filter (list<string> i, device_map,
 		``(substring (i[0]:"", 0, 3) != "(hd"));
-	    foreach (`d, disks_order, ``{
+	    foreach (string d, disks_order, ``{
 		string gd = sformat ("(hd%1)", pos);
 		if (gd != olddiskmap[d]:"")
 		{
@@ -529,7 +529,8 @@ Replace it with an entry  to boot from the floppy?");
 		new_map = add (new_map, [gd, d]);
 		pos = pos + 1;
 	    });
-	    remap = filter (string k, string v, remap, ``(k != "" && v != ""));
+	    remap = (map<string,string>)
+		filter (string k, string v, remap, ``(k != "" && v != ""));
 	    BootCommon::current_globals
 		= BootGRUB::remapDisks (BootCommon::current_globals, remap);
 	    BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
@@ -537,8 +538,9 @@ Replace it with an entry  to boot from the floppy?");
 	    });
 	    BootCommon::current_section = BootGRUB::remapDisks (
 		BootCommon::current_section, remap);
-	    list<map> gcl = (list<map>)maplist (`k, `v, BootGRUB::grub_conf, ``(
-		$[ "key" : k, "value" : v]));
+	    list<map> gcl = (list<map>)maplist (string k, string v,
+		BootGRUB::grub_conf,
+		``($[ "key" : k, "value" : v]));
 	    gcl = BootGRUB::remapDisks (gcl, remap);
 	    BootGRUB::grub_conf = listmap (map e, gcl, ``(
 		$[e["key"]:"": e["value"]:""]));

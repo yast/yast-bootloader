@@ -21,7 +21,6 @@
 
     import "Arch";
     import "BootCommon";
-    import "BootPPC";
     import "Label";
     import "Mode";
     import "TablePopup";

@@ -153,9 +153,10 @@
       * Create map future cfg. files from internal variables
       * @return map filename -> contents
       */
-    global define map blGetFiles () ``{
+    global define map<string,string> blGetFiles () ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
-	map() toEval = (map())(functions["getfiles"]:nil);
+	map<string,string>() toEval = (map<string,string>())
+	    (functions["getfiles"]:nil);
 	return toEval ();
     }
 
@@ -163,9 +164,10 @@
       * Store map of future cfg. files to  internal variables
       * @param files map filename -> contents
       */
-    global define void blSetFiles (map files) ``{
+    global define void blSetFiles (map<string,string> files) ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
-	void(map) toEval = (void(map))(functions["setfiles"]:nil);
+	void(map<string,string>) toEval = (void(map<string,string>))
+	    (functions["setfiles"]:nil);
 	if (toEval == nil)
 	    return nil;
 	toEval (files);

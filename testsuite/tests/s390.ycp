@@ -108,7 +108,8 @@
 
     DUMP ("======================================");
 
-    list dumps = (list)TEST (``(BootS390::GetDumpDevices ()), [], nil);
+    list<map<string,string> > dumps = (list<map<string,string> >)
+	TEST (``(BootS390::GetDumpDevices ()), [], nil);
 
     DUMP ("======================================");
 

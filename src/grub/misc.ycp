@@ -37,9 +37,9 @@
       * @param devmap list device map
       * @return string device map as string to save to file
       */
-    global define string devMap2string (list devmap) ``{
+    global define string devMap2string (list<list<string> > devmap) ``{
         string res = "";
-        foreach (map m, devmap, ``{
+        foreach (list<string> m, devmap, ``{
             res = res + m[0]:"" + "\t" + m[1]:"" + "\n";
         });
 	return res;
@@ -77,7 +77,7 @@
       * @param devmap list device map the same way as read with readDeviceMap
       * @return boolean true on success
       */
-    global define boolean saveDeviceMap (list devmap) ``{
+    global define boolean saveDeviceMap (list<list<string> > devmap) ``{
 	string res = devMap2string (devmap);
 	return SCR::Write (.target.string, "/boot/grub/device.map", res);
     }
@@ -89,9 +89,10 @@
     global define list<list<string> > proposeDeviceMap () ``{
 	map ids = $[];
 	list<list<string> > mapping = [];
-        map targetMap = $[];
+        map<string,map> targetMap = $[];
 	if (Mode::config)
 	{
+	    y2milestone ("Skipping device map proposing in Config mode");
 /*	    import "AutoinstStorage";
 	    targetMap = listmap (map d, AutoinstStorage::drives, ``(
 		[d["device"]:"", d]
@@ -101,7 +102,7 @@
 */	}
 	else
 	{
-	    targetMap = Storage::GetTargetMap();
+	    targetMap = (map<string,map>)Storage::GetTargetMap();
 	}
 	targetMap = filter (string k, map v, targetMap, ``(
 	    ! v["is_lvm_vg"]:false && ! issubstring (k, "/dev/md")
@@ -272,15 +273,15 @@
       * @param file string contents of grub.conf file
       * @return map of settings
       */
-    global define map parseGrubConf (string file) ``{
+    global define map<string,string> parseGrubConf (string file) ``{
 	if (file == "" || file == nil)
 	    return $[];
-	list lines = splitstring (file, "\n");
-	lines = filter (`l, lines, ``(l != ""));
-	map settings = $[];
+	list<string> lines = splitstring (file, "\n");
+	lines = filter (string l, lines, ``(l != ""));
+	map<string,string> settings = $[];
 	string root = "";
 	foreach (string l, lines, ``{
-	    list entries = splitstring (l, " ");
+	    list<string> entries = splitstring (l, " ");
 	    entries = filter (string e, entries, ``(e != ""));
 	    if (select (entries, 0, "") == "root")
 	        root = entries[1]:"";
@@ -303,7 +304,7 @@
 	        tmp = entries[shift2]:"";
 	        if ("d" == tmp)
 	        {
-	            settings = add (settings, "discswitch", true);
+	            settings = add (settings, "discswitch", "d");
 	            shift = shift + 1;
 		    integer shift2 = 2 + shift;
 	            tmp = entries[shift2]:"";
@@ -330,7 +331,7 @@
       * parse /etc/grub file
       * @return map of settings
       */
-    global define map readGrubConf () ``{
+    global define map<string,string> readGrubConf () ``{
 	return parseGrubConf ((string)
 	    SCR::Read (.target.string, "/etc/grub.conf"));
     }
@@ -342,10 +343,10 @@
       * @param settings map of settings
       * @return string file contents
       */
-    global define string getGrubConf (map settings) ``{
+    global define string getGrubConf (map<string,string> settings) ``{
 	string res = "";
 	string root = sformat ("root %1\n", settings["root"]:"");
-	res = sformat (settings["discswitch"]:false
+	res = sformat (settings["discswitch"]:"" == "d"
 	    ? "install %6 %1 d %2 %3 %4 %5"
 	    : "install %6 %1 %2 %3 %4 %5",
 	        settings["stage1"]:"",
@@ -363,7 +364,7 @@
       * @param settings map settings
       * @return boolean true if success
       */
-    global define boolean saveGrubConf (map settings) ``{
+    global define boolean saveGrubConf (map<string,string> settings) ``{
 	if (settings == $[])
 	    return true;
 	return SCR::Write (.target.string, "/etc/grub.conf",
@@ -374,11 +375,11 @@
       * Propose /etc/grub.con
       * @return map grub-conf file
       */
-    global define map proposeGrubConf () ``{
+    global define map<string,string> proposeGrubConf () ``{
 	list<string> stage1 = splitDevPath (file2grub ("/boot/grub/stage1"));
 	list<string> stage2 = splitDevPath (file2grub ("/boot/grub/stage2"));
 	return $[
-	    "discswitch" : true,
+	    "discswitch" : "d",
 	    "root" : stage1[0]:"",
 	    "stage1" : stage1[1]:"",
 	    "device" : unixDev2grubDev(BootCommon::loader_device),
@@ -395,16 +396,16 @@
       * @param mapping map mapping description
       * @return list modified map
       */
-    global define list<map> remapDisks (list<map> src, map mapping) ``{
+    global define list<map> remapDisks (list<map> src, map<string,string> mapping) ``{
 	foreach (string k, string v, mapping, ``{
 	   mapping = add (mapping, substring (k, 0, size (k) - 1) + ",",
 				substring (v, 0, size (v) - 1) + ",");
 
 	});
-	map m1 = $[];
-	map m2 = $[];
+	map<string,string> m1 = $[];
+	map<string,string> m2 = $[];
 	integer counter = 0;
-	foreach (`k, `v, mapping, ``{
+	foreach (string k, string v, mapping, ``{
 	    string scounter = sformat ("\\*\\*\\*\n%1\n*\\*\\*\\", counter);
 	    m1[k] = scounter;
 	    m2[scounter] = v;
@@ -412,7 +413,7 @@
 	});
 
 	list<map> ret = maplist (map v, src, ``{
-	    if (v["key"]:"" != "__intern__" && is (v["value"]:"",  string))
+	    if (v["key"]:"" != "__intern__" && is (v["value"]:(any)"",  string))
 	    {
 		foreach (string s, string d, m1, ``{
 		    if (is (v["value"]:nil, string) && v["value"]:nil != nil)
