@@ -5,6 +5,7 @@ Mon Feb 16 15:12:38 CET 2004 - jsrain@suse.de
 - fixed selectin PReP boot partition for installation on PPC (#34570)
 - fixed return value of Import function
 - fixed text of MBR radio button in AI configuration mode
+- 2.9.6
 
 -------------------------------------------------------------------
 Tue Feb 10 19:56:37 CET 2004 - arvin@suse.de
