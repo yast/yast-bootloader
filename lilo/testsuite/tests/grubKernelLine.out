@@ -1,0 +1,10 @@
+Return	/dev/hda3
+Return	333
+Return	false
+Return	true
+Dump	==================================================================
+Return	(hd0,0)/vmlinuz.suse noval root=/dev/hda5 vga=333
+Return	(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=55
+Return	(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333 ide=nodma
+Return	(hd0,0)/vmlinuz.suse noval root=/dev/hda3
+Return	(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333 extra

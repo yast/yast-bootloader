@@ -349,6 +349,8 @@
 	string kernel_initrd = "";
 	boolean modules_written = false;
 
+	SCR::Execute (.target.bash, "touch /etc/sysconfig/bootloader");
+
 	if (Mode::update)
 	{
 	    // update: check for old lilo destination
@@ -364,7 +366,9 @@
 
 	    // (old variable already moved to sysconfig by aaa_base.
 
-	    list old_initrd = splitstring (SCR::Read (.sysconfig.kernel.INITRD_MODULES), " ");
+	    list old_initrd = [];
+	    if (SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
+		old_initrd = splitstring (SCR::Read (.sysconfig.kernel.INITRD_MODULES), " ");
 	    map optmap = $[];
 
 	    // loop over all initrdModules entries and add to
@@ -453,6 +457,8 @@
 	if (Mode::live_eval)
 	    return true;
 
+	SCR::Execute (.target.bash, "touch /etc/sysconfig/bootloader");
+
 	if (LoaderType == "grub")
 	{
 	    import "BootGRUB";
@@ -504,8 +510,7 @@
     global define void Boot()
     ``{
 	LoaderType = SCR::Read (.probe.boot_arch);
-	y2error ("Probe arch: %1", LoaderType);
-	if (LoaderType == "grub" && Mode::update)
+	if (LoaderType == "grub" && Mode::update && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
 	{
 	    string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
 	    if (sysconfig == "grub" || sysconfig == "lilo")

@@ -14,12 +14,76 @@
  * $Id$
  *
  *   miscellaneous functions.
- * 
+ *
  */
 
 {
 
 textdomain "bootloader";
+
+/**
+  * get kernel parameter from GRUB command line
+  * @param string original line
+  * @param string parameter key
+  * @return string value, "false" if not present, "true" if present key without value
+  */
+global define string getGrubKernelParam (string line, string key) ``{
+    string res = "false";
+    list params = splitstring (line, " ");
+    params = filter (`p, params, ``(p != ""));
+    foreach (`p, params, ``{
+	list l = filter (`e, splitstring (p, "="), ``(e != " " && e != ""));
+	if (select (l, 0, "") == key)
+	    res = select (l, 1, "true");
+    });
+    return res;
+}
+/**
+  * set kernel parameter to GRUB command line
+  * @param string original line
+  * @param string parameter key
+  * @param string value, "false" to remove key, "true" to add key without value
+  * @return boolean true on success
+  */
+global define string setGrubKernelParam (string line, string key, string value) ``{
+    list params = splitstring (line, " ");
+    params = filter (`p, params, ``(p != ""));
+    list rp = [];
+    boolean done = false;
+    foreach (`p, params, ``{
+	list l = filter (`e, splitstring (p, "="), ``(e != " " && e != ""));
+	if (select (l, 0, "") == key)
+	{
+	    done = true;
+	    if (value == "true")
+	    {
+		rp = add (rp, key);
+	    }
+	    else if (value != "false")
+	    {
+		rp = add (rp, sformat ("%1=%2", key, value));
+	    }
+	}
+	else
+	{
+	    rp = add (rp, p);
+	}
+    });
+    if (! done)
+    {
+	if (value == "true")
+	{
+	    rp = add (rp, key);
+	}
+	else if (value != "false")
+	{
+	    rp = add (rp, sformat ("%1=%2", key, value));
+	}
+    }
+    line = mergestring (rp, " ");
+    return line;
+}
+
 
 /**
   * parse /etc/grub file
@@ -470,12 +534,13 @@ global define any ui2mod(any val) ``{
 
 global define string boot() ``{
     string ret = SCR::Read(.probe.boot_arch);
-    if (ret == "grub" && SCR::Read (.sysconfig.bootloader.LOADER_TYPE) != nil)
+    if (ret == "grub" && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0  && SCR::Read (.sysconfig.bootloader.LOADER_TYPE) != nil)
 	ret = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
     if (ret == "grub")
 	Lilo::mode = `grub;
     else
 	Lilo::mode = `lilo;
+    y2milestone ("Configuring bootloader %1", ret);
     return ret;
 }
 

@@ -48,13 +48,13 @@
     map mountPoints		= lookup ( user_settings, "mountpoints", $[]);
 
     // boot device (partition)
-    string boot_device		= select (lookup(mountPoints, "/boot", lookup (mountPoints, "/", [])), 0);
+    string boot_device		= select (lookup(mountPoints, "/boot", lookup (mountPoints, "/", [])), 0, "");
 
     // boot disk (raw disk)
-    string boot_device_disk	= select (lookup(mountPoints, "/boot", lookup (mountPoints, "/", [])), 2);
+    string boot_device_disk	= select (lookup(mountPoints, "/boot", lookup (mountPoints, "/", [])), 2, "");
 
     string mbr_disk		= boot_device_disk;
-    string root_device		= select (lookup (mountPoints, "/", []), 0);		// root device (partition)
+    string root_device		= select (lookup (mountPoints, "/", []), 0, "");		// root device (partition)
 
     boolean whole_disk		= lookup ( user_settings, "whole_disk", false);
 
@@ -150,7 +150,7 @@ You can also specify the volume of your MacOS 9/X installation.
 				}
 				if (i == 0)
 				{
-					partition_size = (select(lookup(pentry, "region",[]),1) / 2) / 1024;
+					partition_size = (select(lookup(pentry, "region",[]),1, 0) / 2) / 1024;
 					partition_counter = partition_counter + 1;
 					possible_boot_partitions = add(possible_boot_partitions,dname + partition_number);
 					pdisk_partitions = add(pdisk_partitions,`item(`id(partition_counter), "" + partition_size + " Mb  " + volume_name));
@@ -314,14 +314,14 @@ starting Linux as well as other operating systems.
 	    any option = UI::QueryWidget(`id(`real_boot_partition), `Value);
 	    y2milestone("option = %1", option);
 	    {
-		change (user_settings, "ppc_boot_device", select(possible_boot_partitions,option - 1));
+		change (user_settings, "ppc_boot_device", select(possible_boot_partitions,option - 1, ""));
 	    }
 
 	    option = UI::QueryWidget(`id(`real_macos_partition), `Value);
 	    y2milestone("option = %1", option);
 	    if (option != nil)
 	    {
-		change (user_settings, "other_device", select(possible_boot_partitions,option - 1));
+		change (user_settings, "other_device", select(possible_boot_partitions,option - 1, ""));
 	    }
 
 	    option = UI::QueryWidget(`id(`boot_params), `Value);
