@@ -49,11 +49,11 @@
       */
     global define map GetOptionMaps () ``{
         return $[
-//		"__location": BootGRUB::getTargetWidget (),
-		"title" : BootCommon::getLabelWidget (),
-//		"gfxmenu" : BootGRUB::getGfxMenuWidget (),
-		"__diskorder" : BootGRUB::getOrderPopup (),
-		"__add_orig_mbr" : BootGRUB::getAddOrigMbrWidget (),
+	    "__location": BootGRUB::getTargetWidget (),
+	    "title" : BootCommon::getLabelWidget (),
+	    "gfxmenu" : BootGRUB::getGfxMenuWidget (),
+	    "__diskorder" : BootGRUB::getOrderPopup (),
+	    "__add_orig_mbr" : BootGRUB::getAddOrigMbrWidget (),
 	];
     }
 
@@ -63,7 +63,7 @@
       */
     global define map getTargetWidget () ``{
 	map ret = BootCommon::getTargetWidget ();
-	ret["handle"] = ``(BootGRUB::targetWrite ());
+	ret["popup", "store"] = ``(BootGRUB::targetStore ());
 	return ret;
     }
 
@@ -89,64 +89,59 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
+      * Store function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
       */
-    global define any targetWrite (any op, boolean save) ``{
-	any ret = BootCommon::targetWrite (op, save);
-	if (save)
+    global define void targetStore (any opt_id, any opt_key) ``{
+	BootCommon::targetWrite (op, save);
+	list sections = BootCommon::current_sections;
+	if (issubstring (BootCommon::loader_device, "/dev/fd")||
+	    BootCommon::installingToFloppy ())
 	{
-	    list sections = BootCommon::current_sections;
-	    if (issubstring (BootCommon::loader_device, "/dev/fd")||
-		BootCommon::installingToFloppy ())
-	    {
-		sections = maplist (`s, sections, ``{
-		    if ((getCreationType (s) == "floppy"
-			    || lookup_value (s, "root", "") == "(fd0)")
-			&& changeSection ("floppy"))
-		    {
-			s = [
-			    $[ "key" : "title", "value" : translateSectionTitle ("hard disk")],
-			    $[ "key" : "root", "value" : "(hd0)"],
-			    $[ "key" : "chainloader", "value"  : "+1"],
-	                    $[ "key" : "__intern__", "value" : $[
-		                "changed" : false,
-		                "auto" : true,
-		                "devs" : [],
-				"type" : "hard_disk",
-		            ]],
-			];
-		    }
-		    return s;
-		});
-	    }
-	    else
-	    {
-		sections = maplist (`s, sections, ``{
-		    if ((getCreationType (s) == "hard_disk"
+	    sections = maplist (`s, sections, ``{
+		if ((getCreationType (s) == "floppy"
+			|| lookup_value (s, "root", "") == "(fd0)")
+		    && changeSection ("floppy"))
+		{
+		    s = [
+			$[ "key" : "title", "value" : translateSectionTitle ("hard disk")],
+			$[ "key" : "root", "value" : "(hd0)"],
+			$[ "key" : "chainloader", "value"  : "+1"],
+	                $[ "key" : "__intern__", "value" : $[
+		            "changed" : false,
+		            "auto" : true,
+		            "devs" : [],
+			    "type" : "hard_disk",
+		        ]],
+		    ];
+		}
+		return s;
+	    });
+	}
+	else
+	{
+	    sections = maplist (`s, sections, ``{
+		if ((getCreationType (s) == "hard_disk"
 			    || lookup_value (s, "root", "") == "(hd0)")
 			&& changeSection ("disk"))
-		    {
-			s = [
-			    $[ "key" : "title", "value" : translateSectionTitle ("floppy")],
-			    $[ "key" : "root", "value" : "(fd0)"],
-			    $[ "key" : "chainloader", "value" : "+1"],
-                            $[ "key" : "__intern__", "value" : $[
-                                "changed" : false,
-                                "auto" : true,
-                                "devs" : [],
-				"type" : "floppy",
-                            ]],
-			];
-		    }
-		    return s;
-		});
-	    }
-	    BootCommon::current_sections = sections;
+		{
+		    s = [
+			$[ "key" : "title", "value" : translateSectionTitle ("floppy")],
+			$[ "key" : "root", "value" : "(fd0)"],
+			$[ "key" : "chainloader", "value" : "+1"],
+                        $[ "key" : "__intern__", "value" : $[
+                            "changed" : false,
+                            "auto" : true,
+                            "devs" : [],
+			    "type" : "floppy",
+                        ]],
+		    ];
+		}
+		return s;
+	    });
 	}
-	return ret;
+	BootCommon::current_sections = sections;
     }
 
     /**
@@ -434,7 +429,7 @@ Replace it with an entry  to boot from the floppy?");
 		"label" : _("Disk Order"),
 		"optional" : false,
 		"help" : getDiskOrderHelp (),
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `custom,
@@ -629,21 +624,23 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define map getGfxMenuWidget () ``{
 	return $[
-	    "handle" : ``(BootGRUB::gfxMenuHandle ()),
-	    "delete" : ``(BootCommon::deleteMessage ()),
-	    "key_only_once" : true,
+	    "table" : $[
+		"delete" : ``(BootCommon::deleteMessage ()),
+		"unique_key" : true,
+	    ],
+	    "popup" : $[
+		"store" : ``(BootGRUB::gfxMenuStore ()),
+
+	    ],
 	];
     }
 
     /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
+      * Store function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
       */
-    global define any gfxMenuHandle (any op, boolean save) ``{
-	if (! save)
-	    return nil;
+    global define void gfxMenuStore (any opt_id, any opt_key) ``{
 	BootCommon::current_section = setValueByIndex (
 	    BootCommon::current_section, -1,
 	    BootCommon::current_option_name,
@@ -654,8 +651,7 @@ Replace it with an entry  to boot from the floppy?");
 	intern["changed"] = true;
 	BootCommon::addValueToBootloaderSection (
 	    `current_section, "__intern__", intern);
-	y2error ("Final current section: %1", BootCommon::current_section);
-	return nil;
+	y2milestone ("Final current section: %1", BootCommon::current_section);
     }
 
     /**
@@ -701,7 +697,7 @@ Replace it with an entry  to boot from the floppy?");
 		"summary" : ``(BootGRUB::addOrigMbrSummary ()),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"init" : ``(BootGRUB::addOrigMbrInit ()),

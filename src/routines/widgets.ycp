@@ -100,8 +100,6 @@
 	    "handle" : ``(BootCommon::sectionsHandle ()),
 	    "store" : ``(BootCommon::sectionsStore ()),
 	    "help" : getSectionsHelp (),
-	    "exits" : [`add, `edit],
-	    "key_only_once" : true,
 	];
     }
 
@@ -648,7 +646,6 @@
 	    "handle" : reset_button_handle,
 	    "init" : ``(BootCommon::resetButtonInit ()),
 	    "help" : getSummaryButtonsHelp (),
-	    "key_only_once" : true,
 	];
     }
 
@@ -717,7 +714,6 @@
 	    "handle_events" : [`manual],
 	    "handle" : ``(BootCommon::manualEditHandle ()),
 	    "help" : getManualEditHelp (),
-	    "key_only_once" : true,
 	];
     }
 
@@ -731,23 +727,5 @@
 	return `manual;
     }
 
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getMessageWidget () ``{
-	return $[
-	    "delete" : ``(BootCommon::deleteMessage ()),
-	    "key_only_once" : true,
-	];
-    }
-
-    /**
-      * Delete function of widget
-      */
-    global define void deleteMessage () ``{
-	BootCommon::current_section = filter (`e, BootCommon::current_section,
-	    ``(e["key"]:"" != "__intern__"));
-    }
 
 } // include end
