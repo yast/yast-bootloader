@@ -725,7 +725,7 @@
 				"auto" : true,
 				"converted" : true,
 			    ];
-			    opts_tmp = maplist (`o, opst_tmp, ``{
+			    opts_tmp = maplist (`o, opts_tmp, ``{
 				if (o["key"]:"" == "title")
 				{
 				    // no need to translate here...
@@ -735,25 +735,27 @@
 				}
 				return o;
 			    });
-			    opts_tmp = filter (`o, opst_tmp, ``(o != nil));
+			    opts_tmp = filter (`o, opts_tmp, ``(o != nil));
 			    list devs = [];
 			    devs = add (devs, grubDev2unixDev (select (
 				splitDevPath (
-				    opts_tmp["initrd"]:""), 0, "")));
+				    lookup_value (opts_tmp, "initrd", "")), 0, "")));
 			    devs = add (devs, grubDev2unixDev (select (
 				splitDevPath (
-				    opts_tmp["kernel"]:""), 0, "")));
+				    lookup_value (opts_tmp, "kernel", "")), 0, "")));
 			    devs = add (devs, grubDev2unixDev (
-				opts_tmp["root"]:""));
+				lookup_value (opts_tmp, "root", "")));
 			    devs = add (devs,
 				BootCommon::getKernelParamFromLine (
-				    opts_tmp["kernel"]:"", "root"));
+				    lookup_value (opts_tmp, "kernel", ""), "root"));
 			    devs = filter (`d, devs, ``(d != ""
 				&& d != nil
 				&& d != "/dev/null" && d != "false"));
 			    devs = toset (devs);
 			    intern["devs"] = devs;
-			    opts_tmp = add (opts_tmp, "__intern__", intern);
+			    opts_tmp = add (opts_tmp, $[
+				"key" : "__intern__",
+				"value" : intern]);
 			    y2debug ("Converted sec: %1", opts_tmp);
 			    out = add (out, opts_tmp);
 			});
