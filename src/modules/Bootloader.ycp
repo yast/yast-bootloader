@@ -27,10 +27,17 @@
     import "Storage";
     import "Progress";
 
-    include "bootloader/routines/switcher.ycp";
-    include "bootloader/routines/popups.ycp";
-    include "bootloader/routines/routines.ycp";
-    include "bootloader/routines/ui.ycp";
+// FIXME uncomment for the new interpreter
+#    global define map Export ();
+#    global define void Import (map settings);
+#    global define void Propose ();
+#    global define boolean Read ();
+#    global define void Reset ();
+
+#    global define void ReadOrProposeIfNeeded ();
+#    global define string getDefaultSection ();
+#    global define string getKernelParam (string section, string key);
+#    global define string getLoaderType ();
 
 
     /**
@@ -53,6 +60,17 @@
       */
     string old_vga = nil;
 
+// UI helping variables
+
+    global map aliases = $[];
+    global map ws_data = $[];
+
+
+
+    include "bootloader/routines/switcher.ycp";
+    include "bootloader/routines/popups.ycp";
+    include "bootloader/routines/ui.ycp";
+
 
 // general functions
 
@@ -62,6 +80,7 @@
     global define void Bootloader () ``{
 	BootCommon::reset_button_handle = ``(Bootloader::resetButtonHandle ());
 	BootCommon::loader_type_store = ``(Bootloader::loaderTypeStore ());
+	return;
     }
 
     /**
@@ -157,7 +176,7 @@
       * Display bootloader summary
       * @return a list of summary lines
       */
-    global define list(string) Summary () ``{
+    global define list<string> Summary () ``{
 	return blSummary ();
     }
     /**
@@ -290,8 +309,8 @@
 	    if (writeErrorPopup ())
 	    {
 		repeating_write = true;
-		map res = WFM::CallFunction( `bootloader_proposal ("AskUser",
-		    $[ "has_next": false]));
+		map res = (map)WFM::call( "bootloader_proposal", ["AskUser",
+		    $[ "has_next": false]]);
 		if (res["workflow_sequence"]:nil == `next)
 		    return Write ();
 		else
@@ -339,8 +358,9 @@
 	string first_image = "";
 	string default_image = "";
 	foreach (list s, BootCommon::sections, ``{
-	    string title = lookup_value (s, BootCommon::getSectionTitle (), "");
-	    map intern = lookup_value (s, "__intern__", "");
+	    string title = (string)
+		lookup_value (s, BootCommon::getSectionTitle (), "");
+	    map intern = (map)lookup_value (s, "__intern__", "");
 	    string kernel_key = BootCommon::getKernelKey ();
 	    if (lookup_value (s, kernel_key, nil) != nil)
 	    {
@@ -380,7 +400,7 @@
 	string label = BootCommon::getSectionTitle ();
 	integer sectnum = -1;
 	integer index = -1;
-	foreach (`s, BootCommon::sections, ``{
+	foreach (list s, BootCommon::sections, ``{
 	    index = index + 1;
 	    if (lookup_value (s, label, "") == section)
 		sectnum = index;
@@ -389,11 +409,11 @@
 	    return "";
 	string line = "";
 	if (haskey (params, key))
-	    return lookup_value (
+	    return (string)lookup_value (
 		BootCommon::sections[sectnum]:[], key, "false");
 	else
 	{
-	    line = lookup_value (
+	    line = (string)lookup_value (
 		BootCommon::sections[sectnum]:[], params[`other]:"", "");
 	    return BootCommon::getKernelParamFromLine (line, key);
 	}
@@ -411,17 +431,17 @@
 	string title = BootCommon::getSectionTitle ();
 	string linux = BootCommon::getKernelKey ();
 
-	list sects = BootCommon::sections;
+	list<list<map> > sects = BootCommon::sections;
 	if (type == `other)
-	    sects = filter (`s, sects, ``(
+	    sects = filter (list<map> s, sects, ``(
 		lookup_value (s, linux, nil) == nil));
 	else if (type == `linux)
-	    sects = filter (`s, sects, ``(
+	    sects = filter (list<map> s, sects, ``(
 		lookup_value (s, linux, nil) != nil));
-	sects = maplist (`s, sects, ``(
-	    lookup_value (s, title, "")));
-	sects = filter (`s, sects, ``(s != ""));
-	return sects;
+	list<string> sects_titles = maplist (list<map> s, sects, ``(
+	    (string)lookup_value (s, title, "")));
+	sects_titles = filter (string s, sects_titles, ``(s != ""));
+	return sects_titles;
     }
 
 
@@ -448,7 +468,7 @@
 	map params = BootCommon::getKernelParamKeys ();
         integer sectnum = -1;
         integer index = -1;
-        foreach (`s, BootCommon::sections, ``{
+        foreach (list s, BootCommon::sections, ``{
             index = index + 1;
             if (lookup_value (s, label, "") == section)
                 sectnum = index;
@@ -466,16 +486,16 @@
 	    }
 	    else if (haskey (BootCommon::sections[sectnum]:$[], key))
 	    {
-		BootCommon::sections[sectnum] = removekey
-		    (BootCommon::sections[sectnum]:$[], key);
+		BootCommon::sections[sectnum] = modifySection
+		    (BootCommon::sections[sectnum]:[], key, nil);
 	    }
 	}
 	else
 	{
 	    slabel = params[`other]:"";
 	}
-	string line
-	    = lookup_value (BootCommon::sections [sectnum]:[], slabel, "");
+	string line = (string)
+	    lookup_value (BootCommon::sections [sectnum]:[], slabel, "");
 	line = BootCommon::setKernelParamToLine (line, key, value);
 	BootCommon::sections [sectnum]
 	    = modifySection (BootCommon::sections [sectnum]:[], slabel, line);
