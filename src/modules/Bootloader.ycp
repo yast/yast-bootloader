@@ -148,6 +148,13 @@
 	boolean ret = true;
 	ReadOrProposeIfNeeded ();
 
+	if (BootCommon::write_settings["save_all"]:false)
+	{ // force saving everything
+	    BootCommon::changed = true;
+	    BootCommon::location_changed = true;
+	    Initrd::changed = true;
+	}
+
 	y2milestone ("Writing bootloader configuration");
 
 // run Progress bar
