@@ -200,7 +200,7 @@
     global define list<map> createLinuxSection (string title) ``{
 	list<map> section = [
 	    $[ "key" : "image", "value" : "/boot/" + Kernel::binary ],
-	    $[ "key" : "label", "value" : BootCommon::translateSectionTitle ("linux") ],
+	    $[ "key" : "label", "value" : "linux" ],
 	    $[ "key" : "root", "value" : BootCommon::RootPartitionDevice ],
 	    $[ "key" : "initrd", "value" : "/boot/initrd" ],
 	    $[ "key" : "append", "value" : Kernel::cmdLine ],
@@ -251,8 +251,7 @@
 		    {
 			list<map> m = [
 			    $["key" : "label",
-				"value" : BootCommon::translateSectionTitle (
-				BootCommon::removeBlanks (label))],
+				"value" : BootCommon::removeBlanks (label)],
 			    $[ "key" : "other", "value" : dev],
 			    $[ "key" : "__intern__", "value" : $[
 				"auto" : true,
@@ -277,7 +276,7 @@
       */
     global define void createGlobals () ``{
 	BootCommon::globals = [
-	    $[ "key" : "default", "value" : BootCommon::translateSectionTitle ("linux")],
+	    $[ "key" : "default", "value" : "linux"],
 	    $[ "key" : "timeout", "value" : 100],
 	];
     }
