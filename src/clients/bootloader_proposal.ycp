@@ -71,6 +71,10 @@
 		    convertSettings (old_bl, new_bl);
 		}
 	    }
+	    else
+	    {
+		BootCommon::setLoaderType (loader);
+	    }
 	}
 
 	Bootloader::Propose ();
