@@ -34,7 +34,6 @@
     import "Kernel";
     import "Misc";
 
-
 // bootloader attributes handling functions
 
     /**
@@ -138,6 +137,23 @@
       */
     global define any getAnyTypeAttrib (string attrib, any default) ``{
         return current_bootloader_attribs[attrib]:default;
+    }
+
+    /**
+      * Get index of a section specified by name
+      * @param string section name
+      * @return integer index of the section or nil if not found
+      */
+    global define integer getSectionIndex (string name) ``{
+	string label = getSectionTitle ();
+	integer index = -1;
+	integer sectnum = nil;
+	foreach (list s, sections, ``{
+	    index = index + 1;
+	    if (lookup_value (s, label, "") == name)
+		sectnum = index;
+	});
+	return sectnum;
     }
 
 
