@@ -21,6 +21,14 @@ Summary:	Bootloader installation and configuration
 %description
 -
 
+
+%package -n yast2-bootfloppy
+Summary:        Tool for creating boot floppy disks
+Group:          System/YaST
+
+%description -n yast2-bootfloppy
+-
+
 @PREP@
 
 @BUILD@
@@ -41,10 +49,6 @@ Summary:	Bootloader installation and configuration
 @desktopdir@/bootloader.desktop
 %endif
 
-%ifarch %ix86
-@desktopdir@/bootfloppy.desktop
-%endif
-
 %ifarch %ix86 x86_64
 @ydatadir@/mbr
 %endif
@@ -54,7 +58,7 @@ Summary:	Bootloader installation and configuration
 %dir @yncludedir@/bootloader
 @yncludedir@/bootloader/*
 @moduledir@/*
-@clientdir@/*.ycp
+@clientdir@/bootloader*.ycp
 @ybindir@/*
 
 # lilo agent
@@ -81,3 +85,8 @@ Summary:	Bootloader installation and configuration
 %endif
 
 /var/adm/fillup-templates/*
+
+%files -n yast2-bootfloppy
+
+@desktopdir@/bootfloppy.desktop
+@clientdir@/bootfloppy.ycp
