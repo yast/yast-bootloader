@@ -276,7 +276,7 @@ Proceed?
       */
     global define symbol runSectionsDialog () ``{
 	y2milestone ("Running sections dialog");
-        list<map> widgets = CWM::CreateWidgets (["sections"],
+        list<map<string,any> > widgets = CWM::CreateWidgets (["sections"],
 	    BootCommon::cwm_widgets);
         term contents = `HBox (`HSpacing (1), `VBox (
 		`VSpacing (1),
@@ -298,7 +298,7 @@ Proceed?
       */
     global define symbol runSingleSectionDialog () ``{
 	y2milestone ("Running single section dialog");
-	list<map> widgets = CWM::CreateWidgets (["singlesection"],
+	list<map<string,any> > widgets = CWM::CreateWidgets (["singlesection"],
 	    BootCommon::cwm_widgets);
         term contents = `HBox (`HSpacing (1), `VBox (
                 `VSpacing (1),
@@ -320,7 +320,7 @@ Proceed?
       */
     global define symbol runSummaryDialog () ``{
 	y2milestone ("Running summary dialog");
-	list<map> widgets = CWM::CreateWidgets (["globalsection", "resetbutton",
+	list<map<string,any> > widgets = CWM::CreateWidgets (["globalsection", "resetbutton",
 	    "manual_edit_button"], BootCommon::cwm_widgets);
         term contents = `HBox (`HSpacing (1), `VBox (
                 `VSpacing (1),
