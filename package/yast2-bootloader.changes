@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep  6 13:56:56 CEST 2004 - jsrain@suse.cz
+
+- do not use obsolete include commandline/commandline.ycp
+
+-------------------------------------------------------------------
 Mon Sep  6 09:44:33 CEST 2004 - jsrain@suse.cz
 
 - avoid calling constructor of Product:: in testsuite (in order to
