@@ -1,587 +1,583 @@
-/*
- * File:		bootfloppy.ycp
- *
- * Module:              Bootfloppy
- *
- * Author:		Michael Hager <mike@suse.de>
- *                      Johannes Buchhold <jbuch@suse.de>
- *
- * Submodules:        ------------
- *
- *
- * Purpose: This module create boot floppies and module floppies.
- * You can use a new boot/install floppy to boot either the installed
- * system or the rescue system from CD.
- *
- * English strings rewritten by Christian Steinruecken <cstein@suse.de>, 2001/08/01
+/**
+ * File:	clients/bootfloppy.ycp
+ * Package:	Bootloader
+ * Summary:	Boot floppy creation
+ * Authors:	Michael Hager <mike@suse.de>
+ *		Johannes Buchhold <jbuch@suse.de>
  *
  * $Id$
+ *
+ * This module create boot floppies and module floppies.
+ * You can use a new boot/install floppy to boot either
+ * the installed  system or the rescue system from CD.
  */
 
 {
-  textdomain "bootloader";
-  include "wizard/sequencer.ycp";
 
-  import "PackageCallbacks";
-  import "Wizard";
-  import "Mode";
+textdomain "bootloader";
 
-  Wizard::CreateDialog();
+include "wizard/sequencer.ycp";
 
-  ////////////////////////////////////////////////////////////
-  // will be  set true in floppySearchImages if the images exist
-  ////////////////////////////////////////////////////////////
-  boolean bootdisk_found    = false;
-  boolean i386disk_found    = false;
-  boolean rescuedisk_found  = false;
-  boolean moduledisk_found  = false;
-  boolean module2disk_found = false;
-  boolean module3disk_found = false;
-  boolean module4disk_found = false;
-  string file_image         = "bootdisk"; //default
-  string bootmode           = "";
-  string partition          = "";
+import "PackageCallbacks";
+import "Wizard";
 
-  integer source_id = 0;
+Wizard::CreateDialog();
 
-  // This is the headline of the bootfloppy module
-  string dialog_header = _("Create boot or rescue floppies");
+////////////////////////////////////////////////////////////
+// will be  set true in floppySearchImages if the images exist
+////////////////////////////////////////////////////////////
+boolean bootdisk_found    = false;
+boolean i386disk_found    = false;
+boolean rescuedisk_found  = false;
+boolean moduledisk_found  = false;
+boolean module2disk_found = false;
+boolean module3disk_found = false;
+boolean module4disk_found = false;
+string file_image         = "bootdisk"; //default
+string bootmode           = "";
+string partition          = "";
 
+integer source_id = 0;
 
-  /**
-   * Read /proc/mounts and return a list with all mounted devices
-   * @return list
-   */
-  define list isFloppyMount()``{
-      list mounts =SCR::Read(.proc.mounts);
-
-      mounts = filter(`mount, mounts,``( issubstring(lookup( mount, "spec", "") ,"/dev/fd0")));
-
-      if( size( mounts) > 0 )
-	  return select(mounts, 0,nillist);
-      else return nillist;
-  }
-
-  /**
-   * Try to mount source medium e.g. CD1 or a directory on the harddisk.
-   * If no source medium is found, the user can select
-   * a new source medium like in the module software selection.
-   * Called from the sequencer.
-   * @return symbol
-   */
-  define symbol floppyMountSource() ``{
-      list sources = Pkg::SourceStartCache (true);
-      source_id = sources[0]:0;
-      return `next;
-  }
+// This is the headline of the bootfloppy module
+string dialog_header = _("Create boot or rescue floppies");
 
 
-  /**
-   * Search the images at the source media
-   * Called from the sequenser.
-   * @return symbol
-   */
-  define symbol floppySearchImages() ``{
+/**
+* Read /proc/mounts and return a list with all mounted devices
+* @return list
+*/
+define list isFloppyMount()``{
+  list mounts =SCR::Read(.proc.mounts);
 
-      if( Pkg::SourceProvideFile(source_id, 1, "boot/bootdisk") != nil ) bootdisk_found    = true;
-      if( Pkg::SourceProvideFile(source_id, 1, "boot/i386") != nil ) i386disk_found    = true;
-      if( Pkg::SourceProvideFile(source_id, 1, "boot/rescuefloppy") !=nil ) rescuedisk_found  = true;
-      if( Pkg::SourceProvideFile(source_id, 1, "boot/modules1") != nil) moduledisk_found  = true;
-      if( Pkg::SourceProvideFile(source_id, 1, "boot/modules2") != nil) module2disk_found = true;
-      if( Pkg::SourceProvideFile(source_id, 1, "boot/modules3") != nil) module3disk_found = true;
-      if( Pkg::SourceProvideFile(source_id, 1, "boot/modules4") != nil) module4disk_found = true;
+  mounts = filter(`mount, mounts,``( issubstring(lookup( mount, "spec", "") ,"/dev/fd0")));
 
-      y2milestone("bootdisk_found: %1", bootdisk_found);
-      y2milestone("i386disk_found: %1", i386disk_found);
-      y2milestone("rescuedisk_found: %1", rescuedisk_found);
-      y2milestone("moduledisk_found: %1", moduledisk_found);
-      y2milestone("module2disk_found: %1", module2disk_found);
-      y2milestone("module3disk_found: %1", module3disk_found);
-      y2milestone("module4disk_found: %1", module4disk_found);
+  if( size( mounts) > 0 )
+      return select(mounts, 0,nillist);
+  else return nillist;
+}
 
-      //y2milestone("%1",  SCR::Read(.target.size, "boot/" + "bootdisk"));
-      return `next;
-  }
+/**
+* Try to mount source medium e.g. CD1 or a directory on the harddisk.
+* If no source medium is found, the user can select
+* a new source medium like in the module software selection.
+* Called from the sequencer.
+* @return symbol
+*/
+define symbol floppyMountSource() ``{
+  list sources = Pkg::SourceStartCache (true);
+  source_id = sources[0]:0;
+  return `next;
+}
+
+
+/**
+* Search the images at the source media
+* Called from the sequenser.
+* @return symbol
+*/
+define symbol floppySearchImages() ``{
+
+  if( Pkg::SourceProvideFile(source_id, 1, "boot/bootdisk") != nil ) bootdisk_found    = true;
+  if( Pkg::SourceProvideFile(source_id, 1, "boot/i386") != nil ) i386disk_found    = true;
+  if( Pkg::SourceProvideFile(source_id, 1, "boot/rescuefloppy") !=nil ) rescuedisk_found  = true;
+  if( Pkg::SourceProvideFile(source_id, 1, "boot/modules1") != nil) moduledisk_found  = true;
+  if( Pkg::SourceProvideFile(source_id, 1, "boot/modules2") != nil) module2disk_found = true;
+  if( Pkg::SourceProvideFile(source_id, 1, "boot/modules3") != nil) module3disk_found = true;
+  if( Pkg::SourceProvideFile(source_id, 1, "boot/modules4") != nil) module4disk_found = true;
+
+  y2milestone("bootdisk_found: %1", bootdisk_found);
+  y2milestone("i386disk_found: %1", i386disk_found);
+  y2milestone("rescuedisk_found: %1", rescuedisk_found);
+  y2milestone("moduledisk_found: %1", moduledisk_found);
+  y2milestone("module2disk_found: %1", module2disk_found);
+  y2milestone("module3disk_found: %1", module3disk_found);
+  y2milestone("module4disk_found: %1", module4disk_found);
+
+  //y2milestone("%1",  SCR::Read(.target.size, "boot/" + "bootdisk"));
+  return `next;
+}
 
 
 
-   /**
-   * Helptext for the define floppySelectImage.
-   * Called from the floppySelectImage.
-   * @return string
-   */
+/**
+* Helptext for the define floppySelectImage.
+* Called from the floppySelectImage.
+* @return string
+*/
 
-  define string floppyHelpSelectImage() ``{
-	// help text
-      string help_text = UI (_("<p>
+define string floppyHelpSelectImage() ``{
+    // help text
+  string help_text = UI (_("<p>
 
 To create a boot, modules or, rescue floppy,
 select the appropriate item from the list and
 click <b>Next</b> to start.</p>"
-			       ));
+			   ));
 
-      if ( i386disk_found || bootdisk_found )
-      {
-	  help_text = help_text + UI (_(
-	// help text
+  if ( i386disk_found || bootdisk_found )
+  {
+      help_text = help_text + UI (_(
+    // help text
 "<p><b>Boot floppies:</b><br>
 This boot floppy can be used to boot your installed system or a rescue system
 (from the first CDROM or the rescue floppy).</p>"
-        ));
-      }
+    ));
+  }
 
-      if( rescuedisk_found )
-      {
-	help_text = help_text + UI (_(
-	// help text
+  if( rescuedisk_found )
+  {
+    help_text = help_text + UI (_(
+    // help text
 "<p><b>Rescue system:</b><br>
 To start the rescue system boot from the boot floppy or the SuSE CDROM
 and select <i>Manual installation</i> -> <i>Start installation / system</i>
 -> <i>Rescue system</i>.</p>"
-     ));
-      }
+ ));
+  }
 
-      if( module2disk_found || moduledisk_found )
-      {
-	help_text = help_text + UI (_(
-	// help text
+  if( module2disk_found || moduledisk_found )
+  {
+    help_text = help_text + UI (_(
+    // help text
 "<p><b><big>Module disks:</big></b><br>
 All SuSE kernels are modularized. This means that most of the drivers
 are loaded as kernel modules on demand. But since the space of one single floppy
 is not sufficient for all of the kernels modules, you might want to create one of
 the <b>module floppies</b>.</p>"
-        ));
-      }
-      return help_text;
+    ));
   }
+  return help_text;
+}
 
 
-  /**
-   * Helptext for the define floppyInsertDisk.
-   * Called from the floppyInsertDisk.
-   * @return string
-   */
-  define string floppyHelpInsertDisk() ``{
+/**
+* Helptext for the define floppyInsertDisk.
+* Called from the floppyInsertDisk.
+* @return string
+*/
+define string floppyHelpInsertDisk() ``{
 
-      string help_text = UI (_(
-	// help text
+  string help_text = UI (_(
+    // help text
 "<p><b><big>Create a boot, rescue or module floppy:</big></b><br>
 Please insert a new, preformatted floppy disk (1440k) into the floppy drive<br>
 and press <b>Next</b> to continue.</p>"
-        ));
+    ));
 
-    help_text = help_text + UI(_(
-	// help text
-				 "<p><b><big>Attention:</big></b><br>All data on the floppy will be deleted.</p>"));
+help_text = help_text + UI(_(
+    // help text
+			     "<p><b><big>Attention:</big></b><br>All data on the floppy will be deleted.</p>"));
 
-    return help_text;
+return help_text;
+}
+
+
+/**
+* Helptext for the define floppyCopyImage.
+* Called from the  floppyCopyImage.
+* @return string
+*/
+define string floppyHelpCopyImage() ``{
+
+  return UI (_(
+    // help text
+	       "<p><b><big>Create floppy disk:</big></b><br>YaST2 is copying the image to the floppy disk. Please wait.</p>" ));
+}
+
+
+/**
+* Display a dialog that lets the user choose among different images.
+* Save the selected image in the global variable file_image.
+* Called from the sequencer.
+* @return symbol
+*/
+define symbol floppySelectImage() ``{
+
+  boolean b_bootdisk = false;
+  boolean b_i386     = false;
+  boolean b_rescue   = false;
+  boolean b_modules  = false;
+  boolean b_modules2 = false;
+  boolean b_modules3 = false;
+  boolean b_modules4 = false;
+
+  if( file_image == "bootdisk" ) b_bootdisk = true;
+  if( file_image == "i386"     ) b_i386     = true;
+  if( file_image == "rescuefloppy") b_rescue   = true;
+  if( file_image == "modules1" ) b_modules  = true;
+  if( file_image == "modules2" ) b_modules2 = true;
+  if( file_image == "modules3" ) b_modules3 = true;
+  if( file_image == "modules4" ) b_modules4 = true;
+
+
+  // build main dialog:
+  term contents        = `HSquash( );
+  term contents_vbox   = `VBox( `VSpacing(0.5) );
+  term bootdisk_term   = `VBox();
+  term rescuedisk_term = `VBox();
+  term moduledisk_term = `VBox();
+
+
+  if ( bootdisk_found )
+  {
+      bootdisk_term = add( bootdisk_term , `Left(`RadioButton(`id("bootdisk"),
+							      `opt(`notify),
+								    // radio button
+							      _("&Standard boot floppy"), b_bootdisk)));
   }
 
-
-  /**
-   * Helptext for the define floppyCopyImage.
-   * Called from the  floppyCopyImage.
-   * @return string
-   */
-  define string floppyHelpCopyImage() ``{
-
-      return UI (_(
-	// help text
-		   "<p><b><big>Create floppy disk:</big></b><br>YaST2 is copying the image to the floppy disk. Please wait.</p>" ));
+  if ( i386disk_found )
+  {
+      bootdisk_term = add( bootdisk_term  , `Left(`RadioButton(`id("i386"),
+							      `opt(`notify),
+								    // radio button
+							      _("&Fallback boot floppy for i386 and older Cyrix\nprocessors; without frame buffer support"), b_i386)));
   }
 
-
-  /**
-   * Display a dialog that lets the user choose among different images.
-   * Save the selected image in the global variable file_image.
-   * Called from the sequencer.
-   * @return symbol
-   */
-  define symbol floppySelectImage() ``{
-
-      boolean b_bootdisk = false;
-      boolean b_i386     = false;
-      boolean b_rescue   = false;
-      boolean b_modules  = false;
-      boolean b_modules2 = false;
-      boolean b_modules3 = false;
-      boolean b_modules4 = false;
-
-      if( file_image == "bootdisk" ) b_bootdisk = true;
-      if( file_image == "i386"     ) b_i386     = true;
-      if( file_image == "rescuefloppy") b_rescue   = true;
-      if( file_image == "modules1" ) b_modules  = true;
-      if( file_image == "modules2" ) b_modules2 = true;
-      if( file_image == "modules3" ) b_modules3 = true;
-      if( file_image == "modules4" ) b_modules4 = true;
-
-
-      // build main dialog:
-      term contents        = `HSquash( );
-      term contents_vbox   = `VBox( `VSpacing(0.5) );
-      term bootdisk_term   = `VBox();
-      term rescuedisk_term = `VBox();
-      term moduledisk_term = `VBox();
-
-
-      if ( bootdisk_found )
-      {
-	  bootdisk_term = add( bootdisk_term , `Left(`RadioButton(`id("bootdisk"),
+  if ( rescuedisk_found  )
+  {
+      rescuedisk_term = add( rescuedisk_term , `Left(`RadioButton(`id("rescuefloppy"),
 								  `opt(`notify),
-									// radio button
-								  _("&Standard boot floppy"), b_bootdisk)));
-      }
+								    // radio button
+								  _("&Rescue disk"), b_rescue)));
+  }
 
-      if ( i386disk_found )
-      {
-	  bootdisk_term = add( bootdisk_term  , `Left(`RadioButton(`id("i386"),
-								  `opt(`notify),
-									// radio button
-								  _("&Fallback boot floppy for i386 and older Cyrix\nprocessors; without frame buffer support"), b_i386)));
-      }
+  if ( moduledisk_found )
+  {
+	moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules1"),
+								   `opt(`notify),
+								    // radio button
+								   _("&USB (modules disk 1)"), b_modules)));
+  }
 
-      if ( rescuedisk_found  )
-      {
-	  rescuedisk_term = add( rescuedisk_term , `Left(`RadioButton(`id("rescuefloppy"),
-								      `opt(`notify),
-									// radio button
-								      _("&Rescue disk"), b_rescue)));
-      }
-
-      if ( moduledisk_found )
-      {
-	    moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules1"),
+  if ( module2disk_found  )
+  {
+      moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules2"),
 								       `opt(`notify),
-									// radio button
-								       _("&USB (modules disk 1)"), b_modules)));
-      }
+								    // radio button
+								       _("&IDE/RAID/SCSI (modules disk 2)"), b_modules2)));
+  }
 
-      if ( module2disk_found  )
-      {
-	  moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules2"),
-									   `opt(`notify),
-									// radio button
-									   _("&IDE/RAID/SCSI (modules disk 2)"), b_modules2)));
-      }
+  if ( module3disk_found  )
+  {
+      moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules3"),
+								       `opt(`notify),
+								    // radio button
+								       _("&Network (modules disk 3)"), b_modules3)));
+  }
 
-      if ( module3disk_found  )
-      {
-	  moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules3"),
-									   `opt(`notify),
-									// radio button
-									   _("&Network (modules disk 3)"), b_modules3)));
-      }
+  if ( module4disk_found  )
+  {
+      moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules4"),
+								       `opt(`notify),
+								    // radio button
+								       _("&PCMCIA, old (non-ATAPI) CDROM, FireWire\nand file systems (modules disk 4)"), b_modules4)));
+  }
 
-      if ( module4disk_found  )
-      {
-	  moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules4"),
-									   `opt(`notify),
-									// radio button
-									   _("&PCMCIA, old (non-ATAPI) CDROM, FireWire\nand file systems (modules disk 4)"), b_modules4)));
-      }
+  term g_bootdisks_term = `Frame (
+				    // frame
+				   _("Boot disks:"),
+				   `HBox(
+					 bootdisk_term
+					 )
+				   );
 
-      term g_bootdisks_term = `Frame (
-					// frame
-				       _("Boot disks:"),
-				       `HBox(
-					     bootdisk_term
-					     )
-				       );
+  term g_rescuedisk_term =  `Frame (
+				    // frame
+				    _("Rescue disks:"),
+				    `HBox(
+					  `HSpacing(0.5),
+					  `VBox(
+						rescuedisk_term
+						),
+					  `HSpacing(0.5)
+					  )
+				    );
 
-      term g_rescuedisk_term =  `Frame (
-					// frame
-					_("Rescue disks:"),
-					`HBox(
-					      `HSpacing(0.5),
-					      `VBox(
-						    rescuedisk_term
-						    ),
-					      `HSpacing(0.5)
-					      )
-					);
+  term g_moduledisk_term = `Frame (
+				    // frame
+				   _("Module disks:"),
+				   `HBox(
+					 `HSpacing(0.5),
+					 `VBox(
+					       moduledisk_term
+					       ),
+					 `HSpacing(0.5)
+					 )
+				   );
 
-      term g_moduledisk_term = `Frame (
-					// frame
-				       _("Module disks:"),
-				       `HBox(
-					     `HSpacing(0.5),
-					     `VBox(
-						   moduledisk_term
-						   ),
-					     `HSpacing(0.5)
-					     )
-				       );
+  if( bootdisk_found ||  i386disk_found   )
+  {
+      contents_vbox = add ( contents_vbox , g_bootdisks_term );
+      contents_vbox = add ( contents_vbox , `VSpacing(0.5)  );
+  }
+  if( rescuedisk_found ) contents_vbox = add ( contents_vbox , g_rescuedisk_term );
+  if( rescuedisk_found ) contents_vbox = add ( contents_vbox , `VSpacing(0.5)  );
+  if( moduledisk_found  || module2disk_found )
+  {
+      contents_vbox = add ( contents_vbox, g_moduledisk_term  );
+      contents_vbox = add ( contents_vbox , `VSpacing(0.5)  );
+  }
 
-      if( bootdisk_found ||  i386disk_found   )
-      {
-	  contents_vbox = add ( contents_vbox , g_bootdisks_term );
-	  contents_vbox = add ( contents_vbox , `VSpacing(0.5)  );
-      }
-      if( rescuedisk_found ) contents_vbox = add ( contents_vbox , g_rescuedisk_term );
-      if( rescuedisk_found ) contents_vbox = add ( contents_vbox , `VSpacing(0.5)  );
-      if( moduledisk_found  || module2disk_found )
-      {
-	  contents_vbox = add ( contents_vbox, g_moduledisk_term  );
-	  contents_vbox = add ( contents_vbox , `VSpacing(0.5)  );
-      }
+  if( bootdisk_found    ||
+      rescuedisk_found  ||
+      moduledisk_found  ||
+      i386disk_found    ||
+      module2disk_found ||
+      module3disk_found ||
+      module4disk_found )
+  {
+      contents = add( contents, `RadioButtonGroup(`id(`radiobuttons) ,contents_vbox ));
 
-      if( bootdisk_found    ||
-	  rescuedisk_found  ||
-	  moduledisk_found  ||
-	  i386disk_found    ||
-	  module2disk_found ||
-	  module3disk_found ||
-	  module4disk_found )
-      {
-	  contents = add( contents, `RadioButtonGroup(`id(`radiobuttons) ,contents_vbox ));
-
-	  // Screen title for the first interactive dialog
-	  any dlg = Wizard::SetContents( dialog_header, contents,
-					       floppyHelpSelectImage(),
-					       true, true);
+      // Screen title for the first interactive dialog
+      any dlg = Wizard::SetContents( dialog_header, contents,
+					   floppyHelpSelectImage(),
+					   true, true);
 
 
 
-	  any           ret = "";
-	  repeat
-	      {
-		  ret= UI::UserInput();
-
-		  if(  ret == "rescuefloppy"   || ret == "i386" ||  ret == "bootdisk" ||
-		       ret == "modules2" || ret == "modules1" || ret == "modules3" || ret == "modules4")
-		  {
-		      file_image = ret;
-		  }
-
-	      } until (ret == `next || ret == `back || ret == `abort || ret == `cancel );
-
-	  if( ret == `back  )
+      any           ret = "";
+      repeat
 	  {
-	      ret = `abort;
-	  }
+	      ret= UI::UserInput();
 
-	  return ret;
+	      if(  ret == "rescuefloppy"   || ret == "i386" ||  ret == "bootdisk" ||
+		   ret == "modules2" || ret == "modules1" || ret == "modules3" || ret == "modules4")
+	      {
+		  file_image = ret;
+	      }
 
+	  } until (ret == `next || ret == `back || ret == `abort || ret == `cancel );
+
+      if( ret == `back  )
+      {
+	  ret = `abort;
       }
-      else
-      {	  // Translators: This is what happens if everything went wrong. Feel free to
-          // include a funny remark here ;-)
-	  UI::ErrorPopup(_("The required floppy images were not found
+
+      return ret;
+
+  }
+  else
+  {	  // Translators: This is what happens if everything went wrong. Feel free to
+      // include a funny remark here ;-)
+      UI::ErrorPopup(_("The required floppy images were not found
 on your system. There's no point in proceeding any further..."));
-	  return `abort;
-      }
+      return `abort;
+  }
 
-      return `abort; // no way
-  };
+  return `abort; // no way
+};
 
 
 
-  /**
-   * Display a dialog that prompts for a floppy.
-   * @return system
-   */
-  define symbol floppyInsertDisk() ``{
+/**
+* Display a dialog that prompts for a floppy.
+* @return system
+*/
+define symbol floppyInsertDisk() ``{
 
-      term contents =	`HSquash(
-				 `VBox(
-				       `VSpacing( 1 ),
+  term contents =	`HSquash(
+			     `VBox(
+				   `VSpacing( 1 ),
 
-				       `Label(_(
+				   `Label(_(
 // Main window contents when the floppy is about to be written.
 // Translators: Try not to make this much longer than the English version, please...
 "Please insert a preformatted floppy-disk (1.44 MB)
 into the floppy drive.
 
 All data on this floppy will be deleted.")),
-				       `VSpacing( 3 )
-				       )
-				 );
+				   `VSpacing( 3 )
+				   )
+			     );
 
-      Wizard::SetContents( dialog_header, contents,
-			     floppyHelpInsertDisk(),
-			     true, true);
-
-
-      return UI::UserInput();
-  }
+  Wizard::SetContents( dialog_header, contents,
+			 floppyHelpInsertDisk(),
+			 true, true);
 
 
-
-  /**
-   * Copy the selected image to the floppy.
-   * Called from the  sequenser.
-   * @return symbol
-   */
-  define symbol floppyCopyImage() ``{
+  return UI::UserInput();
+}
 
 
-      map  floppymount = isFloppyMount();
 
-      if ( floppymount != nillist)
-      {
-	  //floppy is mounted
-	  // popup
-	  if( ! UI::ContinueCancelPopup(sformat(_("
+/**
+* Copy the selected image to the floppy.
+* Called from the  sequenser.
+* @return symbol
+*/
+define symbol floppyCopyImage() ``{
+
+
+  map  floppymount = isFloppyMount();
+
+  if ( floppymount != nillist)
+  {
+      //floppy is mounted
+      // popup
+      if( ! UI::ContinueCancelPopup(sformat(_("
 Your floppy device %1 is currently mounted on
 %2. To create a new boot floppy
 the floppy device must be unmounted.
 
 Do you want to unmount the floppy?"), lookup(floppymount, "spec", ""),
-		                      lookup(floppymount, "file", ""))))
-	  {
-	      return `back;
-	  }
-	  else
-	  {
-	      SCR::Execute(.target.bash, sformat( "/bin/umount %1",  lookup(floppymount, "spec", "")));
-	  }
+				  lookup(floppymount, "file", ""))))
+      {
+	  return `back;
       }
+      else
+      {
+	  SCR::Execute(.target.bash, sformat( "/bin/umount %1",  lookup(floppymount, "spec", "")));
+      }
+  }
 
 
-      string image_text = "";
+  string image_text = "";
 
-	// image text - label
-      if( file_image == "bootdisk" ) image_text = UI(_("Creating standard boot floppy"));
-	// image text - label
-      if( file_image == "i386"     ) image_text = UI(_("Creating fallback boot floppy for i386 and\nolder Cyrix processors"));
-	// image text - label
-      if( file_image == "rescuefloppy") image_text = UI(_("Creating rescue floppy"));
-	// image text - label
-      if( file_image == "modules1" ) image_text = UI(_("Creating USB modules floppy"));
-	// image text - label
-      if( file_image == "modules2" ) image_text = UI(_("Creating IDE/RAID/SCSI modules floppy"));
-	// image text - label
-      if( file_image == "modules3" ) image_text = UI(_("Creating network modules floppy"));
-	// image text - label
-      if( file_image == "modules4" ) image_text = UI(_("Creating PCMCIA, old (non-ATAPI) CDROM,\nFireWire and file systems modules floppy"));
+    // image text - label
+  if( file_image == "bootdisk" ) image_text = UI(_("Creating standard boot floppy"));
+    // image text - label
+  if( file_image == "i386"     ) image_text = UI(_("Creating fallback boot floppy for i386 and\nolder Cyrix processors"));
+    // image text - label
+  if( file_image == "rescuefloppy") image_text = UI(_("Creating rescue floppy"));
+    // image text - label
+  if( file_image == "modules1" ) image_text = UI(_("Creating USB modules floppy"));
+    // image text - label
+  if( file_image == "modules2" ) image_text = UI(_("Creating IDE/RAID/SCSI modules floppy"));
+    // image text - label
+  if( file_image == "modules3" ) image_text = UI(_("Creating network modules floppy"));
+    // image text - label
+  if( file_image == "modules4" ) image_text = UI(_("Creating PCMCIA, old (non-ATAPI) CDROM,\nFireWire and file systems modules floppy"));
 
-      term contents =   `VBox(
-			      `VSpacing( 2 ),
-			      `Left(`Heading ( image_text )),
-				// progress bar status
-			      `HVCenter(`ProgressBar(`id(`bar), _("copy ......"))),
-			      `VSpacing( 2 )
-			      );
+  term contents =   `VBox(
+			  `VSpacing( 2 ),
+			  `Left(`Heading ( image_text )),
+			    // progress bar status
+			  `HVCenter(`ProgressBar(`id(`bar), _("copy ......"))),
+			  `VSpacing( 2 )
+			  );
 
-      Wizard::SetContents( dialog_header, contents,
-			   floppyHelpCopyImage(),
-			   true, true);
-
-
-
-        string command   = "";
-	string begin_str = "";
-	string diff_str  = "";
-
-	begin_str = sformat ("/bin/dd if=%1 of=/dev/fd0u1440 bs=512", Pkg::SourceProvideFile(source_id, 1, sformat ("boot/%1", file_image)));
-	diff_str  = sformat("/usr/bin/diff %1 /dev/fd0u1440", Pkg::SourceProvideFile(source_id, 1, sformat ("boot/%1", file_image)));
-
-	integer count   = 0;
-	integer ignore  = 0;
-	integer value   = 0;
-	any ret_command = 1;
-
-	while( count < 2880 ) {
+  Wizard::SetContents( dialog_header, contents,
+		       floppyHelpCopyImage(),
+		       true, true);
 
 
-	    UI::ChangeWidget(`id(`bar), `Value, value );
 
-	    count   = count + 288;
-	    command = begin_str + sformat(" count=288 skip=%1 seek=%2", ignore, ignore);
-	    ignore  = ignore + 288;
-	    value   = value  + 10;
+    string command   = "";
+    string begin_str = "";
+    string diff_str  = "";
 
-	    ret_command = SCR::Execute(.target.bash , command );
+    begin_str = sformat ("/bin/dd if=%1 of=/dev/fd0u1440 bs=512", Pkg::SourceProvideFile(source_id, 1, sformat ("boot/%1", file_image)));
+    diff_str  = sformat("/usr/bin/diff %1 /dev/fd0u1440", Pkg::SourceProvideFile(source_id, 1, sformat ("boot/%1", file_image)));
 
-	    if( ret_command == 0 ) {
-		if( count == 2880 ) {
-		    value = 100;
-		    UI::ChangeWidget(`id(`bar), `Value, value );
-		    UI::ChangeWidget(`id(`bar), `Value, 100 );
+    integer count   = 0;
+    integer ignore  = 0;
+    integer value   = 0;
+    any ret_command = 1;
 
-		    any ret_diff = 0;
+    while( count < 2880 ) {
 
-		    if( file_image != "rescuefloppy" )
-		    {
-			ret_diff = SCR::Execute(.target.bash ,diff_str );
-		    }
 
-		    if( ret_diff != 0  )
-		    {
-			// FIXME: Don't know why is this here
-			boolean format = true;
-			//try to format the floppy with fdformat
-			if ( ! format)  return `format;
-			// error popup
-			UI::ErrorPopup(_("An error occurred during the creation of the floppy disk.
+	UI::ChangeWidget(`id(`bar), `Value, value );
+
+	count   = count + 288;
+	command = begin_str + sformat(" count=288 skip=%1 seek=%2", ignore, ignore);
+	ignore  = ignore + 288;
+	value   = value  + 10;
+
+	ret_command = SCR::Execute(.target.bash , command );
+
+	if( ret_command == 0 ) {
+	    if( count == 2880 ) {
+		value = 100;
+		UI::ChangeWidget(`id(`bar), `Value, value );
+		UI::ChangeWidget(`id(`bar), `Value, 100 );
+
+		any ret_diff = 0;
+
+		if( file_image != "rescuefloppy" )
+		{
+		    ret_diff = SCR::Execute(.target.bash ,diff_str );
+		}
+
+		if( ret_diff != 0  )
+		{
+		    // FIXME: Don't know why is this here
+		    boolean format = true;
+		    //try to format the floppy with fdformat
+		    if ( ! format)  return `format;
+		    // error popup
+		    UI::ErrorPopup(_("An error occurred during the creation of the floppy disk.
 Please try again."));
-			return `select_image;
-		    }
+		    return `select_image;
+		}
 
-		    else {
-			// popup
-			UI::MessagePopup(_("
+		else {
+		    // popup
+		    UI::MessagePopup(_("
 
 The requested floppy disk was successfully created.
 
 "));
-			return `next;
-		    }
+		    return `next;
 		}
 	    }
-	    else {
-		// error popup
-		UI::ErrorPopup(_("
+	}
+	else {
+	    // error popup
+	    UI::ErrorPopup(_("
 Error copying the image file to the floppy disk.
 Please verify that you inserted a valid floppy medium
 in the drive and that you have root permissions.
 
 "));
-		return `back;
-	    }
+	    return `back;
 	}
-  }
+    }
+}
 
 
 
 
-  // ===== define the sequences =======================================
+// ===== define the sequences =======================================
 
-   map aliases = $[
-        "mount_source" :  ``(floppyMountSource() ),
-	"search_images":  ``(floppySearchImages()),
-	"select_image" :  ``(floppySelectImage()),
-        "insert_disk"  :  ``(floppyInsertDisk()  ),
-        "copy_image"   :  ``(floppyCopyImage()   )
-    ];
+map aliases = $[
+    "mount_source" :  ``(floppyMountSource() ),
+    "search_images":  ``(floppySearchImages()),
+    "select_image" :  ``(floppySelectImage()),
+    "insert_disk"  :  ``(floppyInsertDisk()  ),
+    "copy_image"   :  ``(floppyCopyImage()   )
+];
 
-    map main_sequence = $[
-			  "ws_start":           "mount_source",
-			  "mount_source":	$[ `abort:	  `abort,
-						 `next :	  "search_images",
-			                         `cancel:          `abort  ],
-			  "search_images":      $[ `abort: 	  `abort,
-						   `next:    	  "select_image" ],
-			  "select_image":  	$[ `abort:        `abort,
-						   `next :	  "insert_disk",
-						   `cancel:        `abort        ],
-			  "insert_disk" : 	$[ `abort: 	  `abort,
-						   `next : 	  "copy_image",
-						   `cancel:       `abort ],
-			  "copy_image"  : 	$[ `abort:	  `abort ,
-						   `next : 	  `abort,
-						   `select_image: "select_image" ]
+map main_sequence = $[
+		      "ws_start":           "mount_source",
+		      "mount_source":	$[ `abort:	  `abort,
+					     `next :	  "search_images",
+					     `cancel:          `abort  ],
+		      "search_images":      $[ `abort: 	  `abort,
+					       `next:    	  "select_image" ],
+		      "select_image":  	$[ `abort:        `abort,
+					       `next :	  "insert_disk",
+					       `cancel:        `abort        ],
+		      "insert_disk" : 	$[ `abort: 	  `abort,
+					       `next : 	  "copy_image",
+					       `cancel:       `abort ],
+		      "copy_image"  : 	$[ `abort:	  `abort ,
+					       `next : 	  `abort,
+					       `select_image: "select_image" ]
 
-    ];
-
-
-    // ===== Start the sequence =======================================
-
-    WizardSequencer(aliases, main_sequence);
+];
 
 
-  //  ===== umount CD  ================================================
-  SCR::Execute(.target.bash, "/bin/umount /var/adm/mount");
-  return UI::CloseDialog();
+// ===== Start the sequence =======================================
 
+WizardSequencer(aliases, main_sequence);
+
+
+//  ===== umount CD  ================================================
+SCR::Execute(.target.bash, "/bin/umount /var/adm/mount");
+return UI::CloseDialog();
+
+/* EOF */
 }
