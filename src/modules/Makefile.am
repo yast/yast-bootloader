@@ -19,10 +19,10 @@ module_DATA =			\
 EXTRA_DIST = 			\
 	$(module_DATA) 
 
-include:
-	mkdir include && ln -sf ../../ include/bootloader
+bootloader:
+	ln -sf .. bootloader
 
-ycpchook = include
+ycpchook = bootloader
 
 
 include $(top_srcdir)/Makefile.am.common
