@@ -20,6 +20,7 @@
     import "Arch";
     import "Misc";
     import "Mode";
+    import "Report";
 
     textdomain "bootloader";
 
@@ -28,7 +29,11 @@
     /**
       * List of modules for Initrd
       */
-    list modules = [];
+    list(string) modules = [];
+    /**
+      * List of modules that were in sysconfig file when reading settings
+      */
+    list(string) read_modules = [];
     /**
       * map of settings for modules for being contained in initrd
       */
@@ -104,34 +109,6 @@
 	    || ((modname == "aic7xxx_old")
 		&& !contains ( ListModules (), "aic7xxx")))
         {
-/* moved to constructor
-            // usb and cdrom modules dont belong to initrd,
-	    // they're loaded by hotplug
-            list modules_to_skip = [ "usbcore",
-                                     "usb-uhci",
-                                     "uhci",
-                                     "usb-ohci",
-                                     "input",
-                                     "hid",
-                                     "keybdev",
-                                     "mousedev",
-                                     "usb-storage",
-                                     "cdrom",
-                                     "ide-cd",
-                                     "sr_mod"
-                                     ];
-	    // some other modules don't belong to initrd on PPC
-            if (Arch::ppc)
-            {
-                list ppc_modules_to_skip = [ "reiserfs",
-                                             "ext3",
-                                             "jbd",
-                                             "jfs",
-                                             "xfs",
-                                             ];
-                modules_to_skip = union (modules_to_skip, ppc_modules_to_skip);
-            }*/
-
             if ( ! contains (modules_to_skip, modname))
 	    {
 		changed = true;
@@ -170,6 +147,7 @@
       * @param settings map of initrd settings
       */
     global define void Import (map settings) ``{
+	Read (); // to set modules that were read and not add them to the list
 	modules = settings["list"]:[];
 	modules_settings = settings["settings"]:$[];
 	was_read = true;
@@ -209,6 +187,7 @@
 	modules = splitstring (s_modnames, " ");
 	modules = filter (`m, modules, ``(m != ""));
 	foreach (`m, modules, ``{modules_settings [m] = $[];});
+	read_modules = modules;
 	return true;
     }
     /**
@@ -231,6 +210,7 @@
 	was_read = false;
 	changed = false;
 	modules = [];
+	read_modules = [];
 	modules_settings = $[];
     }
 
@@ -277,6 +257,23 @@
 	{
 	    SCR::Write (.modules, nil);
 	}
+
+	// check modules that could be added during module's run (bug 26717)
+	if (SCR::Read (.target.size, "/etc/sysconfig/kernel") != -1)
+	{
+	    string s_modnames = SCR::Read (.sysconfig.kernel.INITRD_MODULES);
+	    list(string) s_modules = splitstring (s_modnames, " ");
+	    s_modules = filter (`m, s_modules, ``(
+		! contains (read_modules, m)));
+	    s_modules = filter (`m, s_modules, ``(
+		! contains (modules, m)));
+	    y2milestone ("Modules %1 were added to initrd not during YaST2",
+		s_modules);
+	    foreach (`m, s_modules, ``{
+		AddModule (m, "");
+	    });
+	}
+
 	// save sysconfig
         SCR::Execute (.target.bash,
 	    "/usr/bin/touch /etc/sysconfig/bootloader");
