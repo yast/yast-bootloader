@@ -2,6 +2,7 @@
 Mon Mar 17 14:24:01 CET 2003 - jsrain@suse.de
 
 - fixed displaying of logs on bootloader errors (#25470)
+- 2.7.18
 
 -------------------------------------------------------------------
 Mon Mar 17 09:41:07 CET 2003 - jsrain@suse.de
