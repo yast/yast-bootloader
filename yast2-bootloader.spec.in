@@ -39,8 +39,6 @@ Summary:	Bootloader installation and configuration
 # menu items
 
 %ifnarch s390 s390x
-@configdir@/bootfloppy.y2cc
-@configdir@/bootloader.y2cc
 @desktopdir@/bootfloppy.desktop
 @desktopdir@/bootloader.desktop
 %endif
