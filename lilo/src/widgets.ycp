@@ -33,7 +33,7 @@ global define term MainDlgWidget(list data) ``{
 	// to translators: %1 is one of 'lilo', 'silo', 'elilo', 'grub'
     string mes2=sformat(_("Uninstall %1"), boot());
 
-    list parts = toItemList(getPartitionList());
+    list parts = toItemList(getPartitionList(`all));
 
     term combo = nil;
 
@@ -182,7 +182,7 @@ global define term OSTypeWidget()
 global define term LinuxSectWidget()
 ``{
 	// combobox item, keep short
-    list itl=prepend(toItemList(getPartitionList()), `item(`id("none"), _("Not set")));
+    list itl=prepend(toItemList(getPartitionList(`root)), `item(`id("none"), _("Not set")));
 
     term part = nil;
 
@@ -237,7 +237,7 @@ global define term LinuxSectWidget()
  */
 
 global define term OtherSectWidget() ``{
-    list itl=toItemList(getPartitionList());
+    list itl=toItemList(getPartitionList(`boot_other));
 
     term part = nil;
 
@@ -505,7 +505,7 @@ global define term TargetWidget(string mbr_dev, string bootdev) ``{
 	// radiobutton, %1 is device (eg. /dev/hda)
 	string mbr_label = sformat(_("&Master boot record of %1"), mbr_dev);
 
-	term part_combo = `ComboBox(`id(`part), `opt(`notify), "", toItemList(getPartitionList()));
+	term part_combo = `ComboBox(`id(`part), `opt(`notify), "", toItemList(getPartitionList(`boot)));
 
 	if (Lilo::autoinstallation)
 	{

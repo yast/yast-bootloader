@@ -1,0 +1,24 @@
+Read	.probe.architecture "i386"
+Read	.probe.has_apm true
+Read	.probe.has_pcmcia false
+Read	.probe.has_smp false
+Read	.probe.system []
+Read	.etc.fstab []
+Read	.target.string "/etc/grub.conf" "root (hd0,0)\ninstall /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit"
+Read	.probe.disk []
+Read	.probe.boot_arch "grub"
+Read	.target.size "/etc/sysconfig/bootloader" 0
+Execute	.target.bash_output "awk '\n/\\/dev\\/hda/ {printf $1; next;}\n// {next;}' /boot/grub/device.map" $["stdout":"(hd0)"]
+Return	(hd0)
+Execute	.target.bash_output "awk '\n/\\/dev\\/hda/ {printf $1; next;}\n// {next;}' /boot/grub/device.map" $["stdout":"(hd0)"]
+Return	(hd0,0)
+Execute	.target.bash_output "awk '\n/\\/dev\\/hda/ {printf $1; next;}\n// {next;}' /boot/grub/device.map" $["stdout":"(hd0)"]
+Return	(hd0,11)
+Execute	.target.bash_output "awk '\n/\\/dev\\/ida\\/c0d0/ {printf $1; next;}\n// {next;}' /boot/grub/device.map" $["stdout":"(hd0)"]
+Return	(hd0)
+Execute	.target.bash_output "awk '\n/\\/dev\\/ida\\/c0d0/ {printf $1; next;}\n// {next;}' /boot/grub/device.map" $["stdout":"(hd0)"]
+Return	(hd0,0)
+Execute	.target.bash_output "awk '\n/\\/dev\\/ida\\/c0d0/ {printf $1; next;}\n// {next;}' /boot/grub/device.map" $["stdout":"(hd0)"]
+Return	(hd0,11)
+Execute	.target.bash_output "awk '\n/\\/dev\\/fd0/ {printf $1; next;}\n// {next;}' /boot/grub/device.map" $["stdout":"(fd0)"]
+Return	(fd0)

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 23 18:34:27 CEST 2002 - jsrain@suse.cz
+
+- fixed lists of devices (Bug #18269)
+- fixed installation on compaq disk array (Bug #18134)
+- 2.6.27
+
+-------------------------------------------------------------------
 Tue Aug 20 17:05:05 CEST 2002 - arvin@suse.de
 
 - correctly handle hvc console on ppc

@@ -97,7 +97,7 @@
 	SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
 
 	string grub_conf = SCR::Read (.target.string, "/etc/grub.conf");
-	string command = sformat ("echo \"%1\" | grub --batch ", grub_conf);
+	string command = sformat ("echo \"%1\" | grub --batch --device-map=/boot/grub/device.map ", grub_conf);
 	SCR::Execute(.target.bash, command);
     }
 
@@ -188,16 +188,15 @@
 
 	include "ui/common_popups.ycp";
 	include "lilo/routines.ycp";
-	include "lilo/io.ycp";
 
 	SCR::Execute (.target.bash, "test -f /etc/grub.conf || touch /etc/grub.conf");
 	SCR::Execute (.target.bash, "test -d /boot/grub || mkdir /boot/grub;");
 	SCR::Execute (.target.bash, "test -f /boot/grub/menu.lst || touch /boot/grub/menu.lst;");
-	if (! Mode::update)
+	if (Mode::initial)
 	{
 	    SCR::Execute (.target.bash, "test -f /boot/grub/device.map && rm /boot/grub/device.map");
 	}
-	SCR::Execute (.target.bash, "test -f /boot/grub/device.map || echo \"quit\" | /usr/sbin/grub --device-map=/boot/grub/device.map");
+	SCR::Execute (.target.bash, "test -f /boot/grub/device.map || echo \"quit\" | /usr/sbin/grub --batch --device-map=/boot/grub/device.map");
 
         if ( Mode::update )
         {
@@ -338,10 +337,19 @@
 	y2milestone ("Starting mk_initrd");
 	SCR::Execute(.target.bash, "/sbin/mk_initrd");
 	y2milestone ("Starting GRUB");
-	string command = sformat ("echo \"%1\" | /usr/sbin/grub --batch ", grub_conf);
+	string command = sformat ("echo \"%1\" | /usr/sbin/grub --batch --device-map=/boot/grub/device.map ", grub_conf);
 	SCR::Execute(.target.bash, command);
 	y2milestone ("GRUB installed");
 
+	if (nil != findlastof (boot_sect, "/"))
+	    boot_sect = substring (boot_sect, findlastof (boot_sect, "/") + 1);
+	integer part = tointeger (substring (boot_sect, size (boot_sect) - 1));
+	if (part != nil && part != 0)
+	{
+	    boot_sect = "/dev/" + substring (boot_sect, 0, size (boot_sect) - 1);
+	    y2milestone ("Activating partition %1 on %2", part, boot_sect);
+	    return 0 == SCR::Execute (.target.bash, sformat ("/sbin/sfdisk -A%1 %2", part, boot_sect));
+	}
 	return true;
     }
 

@@ -88,7 +88,7 @@ global define integer DoLilo() ``{
 global define integer DoGrub() ``{
     integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
     saveGrubConf (Lilo::grub_set);
-    ret = SCR::Execute(.target.bash, "grub --batch < /etc/grub.conf");
+    ret = SCR::Execute(.target.bash, "grub --batch --device-map=/boot/grub/device.map < /etc/grub.conf");
     return ret;
 }
 /**

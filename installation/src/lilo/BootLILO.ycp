@@ -400,7 +400,13 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	if (size (Boot::others) > 0)
 	{
 	    foreach (`o, Boot::others, ``{
-		docmd = docmd + " -o \"" + o + "\"";
+                list parts = splitstring (o, " ");
+                while (select (parts, 0, " ") == "")
+                    parts = remove (parts, 0);
+                string dev = select (parts, 0, "");
+                parts = remove (parts, 0);
+                string label = mergestring (parts, " ");
+		docmd = docmd + sformat (" -o \"%1 \\\"%2\\\"\"", dev, label);
 	    });
 	}
 
