@@ -52,29 +52,30 @@
 	    ret = [
 		$[ "key" : "root",
 		   "value" : BootGRUB::unixDev2grubDev (
-			lookup_value (section, "other", ""))],
+			(string)lookup_value (section, "other", ""))],
 		$[ "key" : "chainloader", "value" : "+1"],
 		$[ "key" : "makeactive", "value" : true],
 	    ];
 	}
 	else
 	{
-	    string root = lookup_value (section, "root", "");
+	    string root = (string)lookup_value (section, "root", "");
 	    if (regexpmatch (root, "^0x[0-9a-f]{4}$"))
 		root = substring (root, 2);
-	    string vga = lookup_value (section, "vga", "");
+	    string vga = (string)lookup_value (section, "vga", "");
 	    ret = add (ret, $[ "key" : "kernel",
 			       "value" : sformat ("%1 %2 %3 %4",
-		BootGRUB::file2grub (lookup_value (section, "image", "")),
+		BootGRUB::file2grub (
+		    (string)lookup_value (section, "image", "")),
 		root != ""
 		    ? sformat ("root=%1", root)
 		    : "",
 		vga != ""
 		    ? sformat ("vga=%1", vga)
 		    : "",
-		lookup_value (section, "append", "")
+		(string)lookup_value (section, "append", "")
 	    )]);
-            string initrd = lookup_value (section, "initrd", "");
+            string initrd = (string)lookup_value (section, "initrd", "");
             if (initrd != "")
             {
                 ret = add (ret,
@@ -84,7 +85,7 @@
 	}
 	ret = prepend (ret, $["key" : "title",
 	    "value" : lookup_value (section, "label", "")]);
-        ret = maplist (`r, ret, ``{
+        ret = maplist (map r, ret, ``{
             r["changed"] = false;
             return r;
         });
@@ -98,7 +99,8 @@
       * @return list of section settings in LILO format
       */
     global define list grubSect2liloSect (list section) ``{
-	string chainloader = lookup_value (section, "chainloader", "+1");
+	string chainloader = (string)
+	    lookup_value (section, "chainloader", "+1");
 	if (issubstring (chainloader, "/")) // means file, eg. saved MBR
 	    return [];
 	list ret= [$["key" : "label",
@@ -106,14 +108,14 @@
 	if (lookup_value (section, "kernel", "") == "")
 	{
 	    ret = appendValue (ret, "other", BootGRUB::grubDev2unixDev (
-		lookup_value (section, "root", "")));
+		(string)lookup_value (section, "root", "")));
 	}
 	else
 	{
-	    string cmdline = lookup_value (section, "kernel", "");
+	    string cmdline = (string)lookup_value (section, "kernel", "");
 	    if (lookup_value (section, "initrd", "") != "")
 		ret = appendValue (ret, "initrd", BootGRUB::grub2file (
-		    lookup_value (section, "initrd", "")));
+		    (string)lookup_value (section, "initrd", "")));
 	    ret = appendValue (ret, "optional", true);
 	    string root = BootCommon::getKernelParamFromLine (cmdline, "root");
 	    if (regexpmatch (root, "^[0-9a-f]{4}$"))
@@ -124,7 +126,7 @@
                 (cmdline, "vga");
 	    if (vga != "false")
 		ret = appendValue (ret, "vga", vga);
-	    list(string) kline = splitstring (cmdline, " ");
+	    list<string> kline = splitstring (cmdline, " ");
 	    kline = filter (string e, kline, ``(e != ""));
 	    ret = appendValue (ret, "image", BootGRUB::grub2file (kline[0]:""));
 	    kline = remove (kline, 0);
@@ -133,9 +135,9 @@
 	    ));
 	    ret = appendValue (ret, "append", mergestring (kline, " "));
 	}
-	if (issubstring (lookup_value (ret, "other", ""), "/dev/fd"))
+	if (issubstring ((string)lookup_value (ret, "other", ""), "/dev/fd"))
 	    return [];
-        ret = maplist (`r, ret, ``{
+        ret = maplist (map r, ret, ``{
             r["changed"] = false;
             return r;
         });
@@ -152,22 +154,23 @@
 	list ret = [];
 	if (lookup_value (globs, "message", "") != "")
 	    ret = appendValue (ret, "gfxmenu",
-		BootGRUB::file2grub (lookup_value (globs, "message", "")));
+		BootGRUB::file2grub (
+		    (string)lookup_value (globs, "message", "")));
 	if (lookup_value (globs, "timeout", 0) != 0)
 	    ret = appendValue (ret, "timeout",
-		(lookup_value (globs, "timeout", 0))/10);
+		((integer)lookup_value (globs, "timeout", 0))/10);
 	if (lookup_value (globs, "prompt", "") == "")
 	    ret = appendValue (ret, "hiddenmenu", true);
 	else
 	    ret = appendValue (ret, "hiddenmenu", false);
-	string def = lookup_value (globs, "default", "");
+	string def = (string)lookup_value (globs, "default", "");
 	integer count = 0;
-	foreach (`e, BootCommon::sections, ``{
-	    if (lookup_value (e, "title", "") == def)
+	foreach (list e, BootCommon::sections, ``{
+	    if ((string)lookup_value (e, "title", "") == def)
 		 ret = appendValue (ret, "default", count);
 	    count = count + 1;
 	});
-        ret = maplist (`r, ret, ``{
+        ret = maplist (map r, ret, ``{
             r["changed"] = false;
             return r;
         });
@@ -184,22 +187,22 @@
 	list ret = [];
 	if (lookup_value (globs, "gfxmenu", "") != "")
 	    ret = appendValue (ret, "message", BootGRUB::grub2file (
-		lookup_value (globs, "gfxmenu", "")));
+		(string)lookup_value (globs, "gfxmenu", "")));
         if (lookup_value (globs, "timeout", 0) != 0)
             ret = appendValue (ret, "timeout",
-		(lookup_value (globs, "timeout", 0))*10);
+		((integer)lookup_value (globs, "timeout", 0))*10);
 	if (lookup_value (globs, "hiddenmenu", "") == "")
 	    ret = appendValue (ret, "prompt", true);
 	else
 	    ret = appendValue (ret, "prompt", false);
-	integer count = lookup_value (globs, "default", 0);
-	foreach (`e, BootCommon::sections, ``{
+	integer count = (integer)lookup_value (globs, "default", 0);
+	foreach (list e, BootCommon::sections, ``{
 	    if (count == 0)
 		ret = appendValue (ret, "default",
 		    lookup_value (e, "label", ""));
 	    count = count - 1;
 	});
-        ret = maplist (`r, ret, ``{
+        ret = maplist (map r, ret, ``{
             r["changed"] = false;
             return r;
         });
@@ -220,10 +223,10 @@
 	    import "BootGRUB";
 	    BootGRUB::device_map = BootGRUB::proposeDeviceMap ();
 	    BootGRUB::grub_conf = BootGRUB::proposeGrubConf ();
-	    BootCommon::sections = maplist (`s, BootCommon::sections, ``{
+	    BootCommon::sections = maplist (list s, BootCommon::sections, ``{
 		return liloSect2grubSect (s);
 	    });
-	    BootCommon::sections = filter (`s, BootCommon::sections, ``(
+	    BootCommon::sections = filter (list s, BootCommon::sections, ``(
 		s != []
 	    ));
 	    BootCommon::globals = liloGlob2grubGlob (BootCommon::globals);
@@ -231,10 +234,10 @@
 
 	if (from == "grub" && to == "lilo")
 	{
-	    BootCommon::sections = maplist (`s, BootCommon::sections, ``{
+	    BootCommon::sections = maplist (list s, BootCommon::sections, ``{
 		return grubSect2liloSect (s);
 	    });
-            BootCommon::sections = filter (`s, BootCommon::sections, ``(
+            BootCommon::sections = filter (list s, BootCommon::sections, ``(
                 s != []
             ));
 	    BootCommon::globals = grubGlob2liloGlob (BootCommon::globals);

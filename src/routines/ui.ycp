@@ -19,19 +19,16 @@
 {
     textdomain "bootloader";
 
-    include "wizard/sequencer.ycp";
-    import "CWM";
-    import "Label";
-    import "Popup";
-    import "Mode";
-    import "Wizard";
-
-    include "bootloader/routines/popups.ycp";
-    include "bootloader/routines/convert.ycp";
-    include "bootloader/routines/routines.ycp";
-
     import "BootCommon";
     import "Bootloader";
+    import "CWM";
+    import "Label";
+    import "Mode";
+    import "Popup";
+    import "Wizard";
+
+    include "bootloader/routines/convert.ycp";
+    include "wizard/sequencer.ycp";
 
     /**
       * Handle function of a widget
@@ -55,7 +52,7 @@
 		    // message popup
 		    Popup::Message (_("Failed to restore MBR"));
 	    }
-            return;
+            return nil;
         }
 
 	if (! contains ([`scratch, `reread, `propose_deep, `propose], op))
@@ -86,7 +83,7 @@
 	    Bootloader::Propose ();
 	}
         BootCommon::fetchSettings ();
-        BootCommon::current_section = eval (BootCommon::current_globals);
+        BootCommon::current_section = (list)eval (BootCommon::current_globals);
         BootCommon::current_section_name = `global;
 
 	return `redraw;
@@ -166,8 +163,8 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	));
 	UI::OpenDialog (contents);
 	UI::ChangeWidget (`id (`convert), `Value, true);
-	symbol ret = UI::UserInput ();
-	symbol action = UI::QueryWidget (`id (`action), `CurrentButton);
+	symbol ret = (symbol)UI::UserInput ();
+	symbol action = (symbol)UI::QueryWidget (`id (`action), `CurrentButton);
 	UI::CloseDialog ();
 	if (ret != `ok)
 	    return nil;
@@ -182,7 +179,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
     global define void loaderTypeStore (any opt_id, any opt_key) ``{
 
 	string old_bl = Bootloader::getLoaderType ();
-	string new_bl = UI::QueryWidget (`id (`loader_type), `Value);
+	string new_bl = (string)UI::QueryWidget (`id (`loader_type), `Value);
 	if (old_bl == new_bl)
 	    return;
 
@@ -228,7 +225,8 @@ Proceed?
                 Bootloader::Import (BootCommon::other_bl[new_bl]:$[]);
 
 	    BootCommon::fetchSettings ();
-            BootCommon::current_section = eval (BootCommon::current_globals);
+            BootCommon::current_section =
+		(list)eval (BootCommon::current_globals);
             BootCommon::current_section_name = `global;
 	}
 	BootCommon::location_changed = true;
@@ -361,7 +359,7 @@ Proceed?
 	    if (ret == `filename)
 	    {
 		files[filename] = UI::QueryWidget (`id (`file), `Value);
-		filename = UI::QueryWidget (`id (`filename), `Value);
+		filename = (string)UI::QueryWidget (`id (`filename), `Value);
 		UI::ChangeWidget (`id (`file), `Value, files[filename]:"");
 	    }
 	    if (ret == `next)
@@ -377,7 +375,7 @@ Proceed?
 		    ret = nil;
 	    }
         }
-        return ret;
+        return (symbol)ret;
     }
 
 
@@ -393,9 +391,6 @@ Proceed?
 	    "store" : [``(BootCommon::storeSettings ()), true],
 // expert edit dialog
 	    "editfiles" : ``(runEditFilesDialog ()),
-// global settings dialogs
-	    "globals" : ``(runGlobalsDialog ()),
-	    "target" : ``(runTargetDialog ()),
 // sections managment dialogs
 	    "sects" : ``(runSectionsDialog ()),
 	    "singlesect" : ``(runSingleSectionDialog ()),
@@ -446,7 +441,7 @@ Proceed?
 	    "sect_seq" : $[ `next : "summary", `abort: `abort ],
 	];
 
-	map ws_data = $[
+	ws_data = $[
 	    "start_seq" : "startseq",
 	    "startseq" : normal_sequence,
 	    "glob_seq" : glob_seq,
@@ -456,9 +451,9 @@ Proceed?
 	// add specific aliases and modify sequence if needed
 	ws_data = Bootloader::blGetSequence (ws_data);
 
-	map aliases = getAliases ();
+	aliases = getAliases ();
 	// merge new aliases
-	foreach (`k, `v, ws_data["aliases"]:$[], ``{
+	foreach (string k, any v, ws_data["aliases"]:$[], ``{
 	    aliases[k] = v;
 	});
 	string start_seq = ws_data["start_seq"]:"";

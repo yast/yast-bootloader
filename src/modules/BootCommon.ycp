@@ -256,7 +256,7 @@
 
 
 
-// FIXME uncomment
+// FIXME uncomment for NI
 //    global define string getLoaderType (boolean recheck);
 //    global define list getBootloaders ();
 

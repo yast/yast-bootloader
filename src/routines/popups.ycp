@@ -20,14 +20,13 @@
 
     textdomain "bootloader";
 
-    import "Label";
-    import "Popup";
-    import "Mode";
-
-    import "Report";
-    import "Misc";
-    import "Console";
     import "BootCommon";
+    import "Console";
+    import "Label";
+    import "Misc";
+    import "Mode";
+    import "Popup";
+    import "Report";
 
     /**
       * Display question
