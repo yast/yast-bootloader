@@ -248,8 +248,8 @@
                 string text = "";
 
                 // FIXME: Installation::destdir should be removed?
-                text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logsilo");
-                DisplayLogFile( text );
+		// log view headline
+		Popup::ShowLog (_("SILO log"), Installation::destdir + "/var/log/YaST2/y2logsilo");
                 retAsk = UI::AskRetry( "silo" );
             }
         }
