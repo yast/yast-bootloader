@@ -423,7 +423,7 @@
       */
     global define list getTableContents (map descr) ``{
 	if (BootCommon::getLoaderType (false) == "none")
-	    return [$["key":"__loader_type"]];
+	    return ["__loader_type"];
 	list prependlist = [];
 	list forbidden_keys = [];
 	any type = BootCommon::getSectionType (BootCommon::current_section);

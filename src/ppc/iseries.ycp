@@ -52,13 +52,10 @@
 	iseries_write_slot_b = true;
 	iseries_write_prepboot = true;
 	iseries_write_streamfile = true;
-	if ( ! (size (prep_boot_partitions) > 0 ||
-	    (prep_boot_partition != "" && prep_boot_partition != "/dev/null")))
+	if ( ! size (prep_boot_partitions) > 0)
 	{
 	    iseries_write_prepboot = false;
 	}
-
-	iSeriesAssignDevice ();
     }
 
     /**
@@ -66,25 +63,44 @@
       * @return boolean true on success
       */
     global define boolean iSeriesRead () ``{
-// FIXME I should be able to live witout sysconfig
-/*	iseries_write_slot_b = ! (SCR::Read (
-	    .sysconfig.bootloader.ISERIES_WRITE_SLOT_B) == "no");
-	iseries_write_slot_a = ! (SCR::Read (
-	    .sysconfig.bootloader.ISERIES_WRITE_SLOT_A) == "no");
-	if (nil != SCR::Read (.sysconfig.bootloader.ISERIES_STREAMFILE))
-	{
-	    iseries_streamfile = SCR::Read (
-		.sysconfig.bootloader.ISERIES_STREAMFILE);
-	}
-	iseries_write_streamfile = ! (SCR::Read (
-	    .sysconfig.bootloader.ISERIES_WRITE_STREAMFILE) == "no");
-	if (nil != SCR::Read (.sysconfig.bootloader.PREP_BOOT_PARTITION))
-	{
-	    prep_boot_partition = SCR::Read (
-		.sysconfig.bootloader.PREP_BOOT_PARTITION);
-	}
-	iseries_write_prepboot =  ! (SCR::Read (
-	    .sysconfig.bootloader.ISERIES_WRITE_PREPBOOT) == "no");*/
+	prep_boot_partition = "/dev/null";
+	iseries_streamfile = "";
+	iseries_write_slot_b = false;
+	iseries_write_prepboot = false;
+	iseries_write_streamfile = false;
+	foreach (map g, BootCommon::globals, ``{
+	    y2error ("Having glob %1", g);
+	    if (g["key"]:"" == "boot")
+	    {
+		string target = g["value"]:"";
+		symbol type = iSeriesTarget2Type (target);
+		if (type == `slot)
+		{
+		    if (target == "A")
+			iseries_write_slot_a = true;
+		    else if (target == "B")
+			iseries_write_slot_b = true;
+		}
+		else if (type == `prep)
+		{
+		    iseries_write_prepboot = true;
+		    if (prep_boot_partition == "/dev/null")
+		    {
+			prep_boot_partition = target;
+		    }
+		}
+		else if (type == `file)
+		{
+		    iseries_write_streamfile = true;
+		    if (iseries_streamfile == "")
+		    {
+			iseries_streamfile = target;
+		    }
+		}
+	    }
+	});
+	iSeriesAssignDevice ();
+	return true;
     }
 
     /**
@@ -92,20 +108,30 @@
       * @return boolean true on success
       */
     global define boolean iSeriesSave () ``{
-// FIXME I should be able to live witout sysconfig
-/*	SCR::Write (.sysconfig.bootloader.ISERIES_WRITE_SLOT_B,
-	    iseries_write_slot_b ? "yes" : "no");
-	SCR::Write (.sysconfig.bootloader.ISERIES_WRITE_SLOT_A,
-	    iseries_write_slot_a ? "yes" : "no");
-	SCR::Write (.sysconfig.bootloader.ISERIES_WRITE_STREAMFILE,
-	    iseries_write_streamfile ? "yes" : "no");
-	SCR::Write (.sysconfig.bootloader.ISERIES_WRITE_PREPBOOT,
-	    iseries_write_prepboot ? "yes" : "no");
-	SCR::Write (.sysconfig.bootloader.ISERIES_STREAMFILE,
-	    iseries_streamfile);
-	SCR::Write (.sysconfig.bootloader.PREP_BOOT_PARTITION,
-	    prep_boot_partition);
-	SCR::Write (.sysconfig.bootloader, nil);*/
+	BootCommon::globals = filter (map g, BootCommon::globals, ``(
+	    g["key"]:"" != "boot"
+	));
+	if (iseries_write_slot_b)
+	{
+	    BootCommon::globals = add (BootCommon::globals, $[
+		"key" : "boot",
+		"value" : "B",
+	    ]);
+	}
+	if (iseries_write_prepboot)
+	{
+	    BootCommon::globals = add (BootCommon::globals, $[
+		"key" : "boot",
+		"value" : prep_boot_partition,
+	    ]);
+	}
+	if (iseries_write_streamfile)
+	{
+	    BootCommon::globals = add (BootCommon::globals, $[
+		"key" : "boot",
+		"value" : iseries_streamfile,
+	    ]);
+	}
     }
 
     /**
@@ -261,7 +287,32 @@
 	{
 	    BootCommon::activate = true;
 	}
+     }
 
+
+    /**
+      * Get the type of target (just a simple heuristic)
+      * @param target bootloader target
+      * @return symbol `slot, `prep, `file or `unknown
+      */
+    global define symbol iSeriesTarget2Type (string target) ``{
+	// one big letter means slot
+	if (size (target) == 1 && target == toupper (target))
+	{
+	    return `slot;
+	}
+	// /dev/ at the beginning means device, hopefully PReP partition
+	else if (substring (target, 0, 5) == "/dev/")
+	{
+	    return `prep;
+	}
+	// files should begin with the absolute path
+	else if (substring (target, 0, 1) == "/")
+	{
+	    return `file;
+	}
+	// didn't realize what it is -> unknown
+	return `unknown;
     }
 
 

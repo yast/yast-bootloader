@@ -490,7 +490,8 @@ configuration files"));
 	{
 	    y2warning ("No initializer found for %1", loader_type);
 	    current_bootloader_attribs = $[];
-	    widgets = GetWidgetMaps ();
+	    cwm_options = GetOptionMaps ();
+	    cwm_widgets = GetWidgetMaps ();
 	}
 	current_bootloader_attribs = union (
 	    current_bootloader_attribs,
@@ -505,9 +506,6 @@ configuration files"));
     global define string getLoaderType (boolean recheck) ``{
 	if ((! recheck) && (loader_type != nil))
 	    return loader_type;
-// FIXME FIXME FIXME
-	Arch::board_iseries = true;
-// FIXME FIXME FIXME
 	// read bootloader to use from disk
 	if (Mode::update || Mode::normal || Mode::repair)
 	{

@@ -59,16 +59,16 @@
     global string   iseries_streamfile  = "/boot/suse_linux_bootfile";
 
     // write the install kernel to slot A, for rescue purpose
-    global boolean  iseries_write_slot_a = true;
+    global boolean  iseries_write_slot_a = false;
 
     // write the kernel to slot B
-    global boolean  iseries_write_slot_b = true;
+    global boolean  iseries_write_slot_b = false;
 
     // write the kernel to an 41 PReP boot partition
-    global boolean  iseries_write_prepboot = true;
+    global boolean  iseries_write_prepboot = false;
 
     // write the kernel to file, this must be transfered to OS/400
-    global boolean  iseries_write_streamfile = true;
+    global boolean  iseries_write_streamfile = false;
 
     // current board attribs
     global boolean prep_only_active = true;
@@ -76,6 +76,8 @@
     global boolean prep_only_primary = true;
     global boolean prep_same_disk_as_root = true;
     global list table_items = [];
+
+
 
 // general functions
 
@@ -219,21 +221,7 @@
         choosePrepBootPartition ();
 
 	boolean ret = BootCommon::Read ();
-
-	if ( Arch::board_iseries )
-	{
-	    iSeriesRead ();
-	}
-	else if ( Arch::board_prep )
-	{
-	    PRePRead ();
-	}
-	else if ( Arch::board_chrp )
-	{
-	    CHRPRead ();
-	}
-	// TODO other boards
-
+	ret = currentBoardRead () && ret;
 	BootCommon::finishReading ();
 	return ret;
     }
@@ -245,10 +233,10 @@
 	BootCommon::Reset ();
 	of_defaultdevice = true;
 	iseries_streamfile = "/boot/suse_linux_bootfile";
-	iseries_write_slot_a = true;
-	iseries_write_slot_b = true;
-	iseries_write_prepboot = true;
-	iseries_write_streamfile = true;
+	iseries_write_slot_a = false;
+	iseries_write_slot_b = false;
+	iseries_write_prepboot = false;
+	iseries_write_streamfile = false;
 	prep_boot_partitions = [];
 	prep_boot_partition = "/dev/null";
 	BootCommon::activate = true;
@@ -265,28 +253,21 @@
 	{
             return true;
 	}
-	if ( Arch::board_iseries )
-	{
-	    iSeriesSave ();
-	}
-	else if ( Arch::board_prep )
-	{
-	    PRePSave ();
-	}
-	else if ( Arch::board_chrp )
-	{
-	    CHRPSave ();
-	}
-	// TODO other boards
+	boolean ret = currentBoardSave ();
 
         SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
         SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
 
 	BootCommon::liloRemoveUnexistentSections ();
 	BootCommon::liloUpdateIninrdAppend ();
-        BootCommon::globals = modifySection (BootCommon::globals, "boot",
-            BootCommon::loader_device);
-        boolean ret = BootCommon::Save ();
+	// iSeries can have multiple locations, are stored during
+        // iSeriesSave ()
+	if (! Arch::board_iseries )
+	{
+	    BootCommon::globals = modifySection (BootCommon::globals, "boot",
+		BootCommon::loader_device);
+	}
+	ret = BootCommon::Save () && ret;
         SCR::Execute (.target.bash, "/bin/chmod 600 /etc/lilo.conf");
         return ret;
     }
@@ -512,8 +493,7 @@
       * @return map filename -> contents
       */
     global define map GetFiles() ``{
-	BootCommon::addValueToBootloaderSection (
-	    `globals, "boot", BootCommon::loader_device);
+	currentBoardSave ();
         BootCommon::saveCfgFileToAgent ();
         return $[
             "/etc/lilo.conf" : SCR::Read (.lilo.tostring),
@@ -531,7 +511,7 @@
         BootCommon::loadCfgFileFromAgent ();
 	if (lookup_value (BootCommon::globals, "boot", "") != BootCommon::loader_device)
 	    BootCommon::location = "custom";
-	BootCommon::loader_device = lookup_value (BootCommon::globals, "boot", "");
+	currentBoardRead ();
     }
 
     /**
@@ -551,6 +531,50 @@
 	    CHRPInit ();
 	}
 	// TODO other boards
+    }
+
+    /**
+      * Write the settings specific to current board
+      * Cannot use SCR!!!
+      */
+    global define boolean currentBoardRead () ``{
+	if ( Arch::board_iseries )
+	{
+	    return iSeriesRead ();
+	}
+	else if ( Arch::board_prep )
+	{
+	    return PRePRead ();
+	}
+	else if ( Arch::board_chrp )
+	{
+	    return CHRPRead ();
+	}
+	// TODO other boards
+
+	return true;
+    }
+
+    /**
+      * Read the settings specific to current board
+      * Cannot use SCR!!!
+      */
+    global define boolean currentBoardSave () ``{
+	if ( Arch::board_iseries )
+	{
+	    return iSeriesSave ();
+	}
+	else if ( Arch::board_prep )
+	{
+	    return PRePSave ();
+	}
+	else if ( Arch::board_chrp )
+	{
+	    return CHRPSave ();
+	}
+	// TODO other boards
+
+	return true;
     }
 
 }
