@@ -364,9 +364,25 @@
 	map boot_target = targetMap[loader_device]:$[];
 	string target_name = "";
 	if (boot_target == $[])
+	{
 	    target_name = loader_device;
+	    if (target_name == "mbr_md")
+	    {
+		list<string> mbrs = maplist (string d, integer id,
+		    Md2Partitions (BootPartitionDevice),
+		{
+		    map p_dev = Storage::GetDiskPartition (d);
+		    return p_dev["disk"]:"";
+		});
+		// summary part, %1 is a list of device names
+		target_name = sformat (_("Master Boot Records of Disks %1"),
+		    mergestring (mbrs, ", "));
+	    }
+	}
 	else
+	{
 	    target_name = boot_target["name"]:"disk";
+	}
 	target_name = AddMbrToDescription (target_name, loader_device);
 
 	list<string> result = [];
