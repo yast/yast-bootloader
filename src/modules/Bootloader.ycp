@@ -444,7 +444,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 
 	params_to_save["additional_failsafe_params"]
 	    = BootCommon::GetAdditionalFailsafeParams ();
-	params_to_save["installation_kernel_params"] = Kernel::cmdLine;
+	params_to_save["installation_kernel_params"] = Kernel::GetCmdLine ();
 	if (Stage::initial ())
 	{
 	    SCR::Write (.target.ycp, "/var/lib/YaST2/bootloader.ycp",

@@ -85,7 +85,7 @@
 		? "iommu=noforce maxcpus=0 "
 		: "nosmp noapic maxcpus=0 ")
 	      + BootCommon::GetAdditionalFailsafeParams () + " 3"
-	    : sformat ("%1 %2 %3", resumestring, "selinux=0", Kernel::cmdLine);
+	    : sformat ("%1 %2 %3", resumestring, "selinux=0", Kernel::GetCmdLine ());
 	if (title != "failsafe")
 	{
 	    if (BootCommon::getKernelParamFromLine (append, "splash")
@@ -132,8 +132,8 @@
 		"type" : type,
 	    ]],
 	];
-	if (Kernel::vgaType != "" && title != "failsafe")
-	    ret = add (ret, $["key" : "vga", "value" : Kernel::vgaType]);
+	if (Kernel::GetVgaType () != "" && title != "failsafe")
+	    ret = add (ret, $["key" : "vga", "value" : Kernel::GetVgaType ()]);
 	if (type == "wildcard")
 	{
 	    ret = prepend (ret, $[
@@ -347,7 +347,7 @@
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
 	    createSections ();
-	    BootCommon::kernelCmdLine = Kernel::cmdLine;
+	    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
 	}
 	else
 	{

@@ -229,7 +229,7 @@
 		$[ "key" : "label", "value" : "ipl" ],
 		$[ "key" : "target", "value" : "/boot/zipl" ],
 		$[ "key" : "image",
-		   "value" : sformat ("/boot/%1", Kernel::binary) ],
+		   "value" : sformat ("/boot/%1", Kernel::GetBinary ()) ],
 		$[ "key" : "ramdisk", "value" : "/boot/initrd" ],
 		$[ "key" : "parameters", "value" : parameters ],
 	    ],

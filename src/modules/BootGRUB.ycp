@@ -122,8 +122,8 @@
                 ]],
             ];
 	}
-	string vgastring = Kernel::vgaType != ""
-	    ? sformat ("vga=%1", Kernel::vgaType)
+	string vgastring = Kernel::GetVgaType () != ""
+	    ? sformat ("vga=%1", Kernel::GetVgaType ())
 	    : "";
 	string resumestring = "";
 	if (BootCommon::getLargestSwapPartition () != "")
@@ -141,7 +141,7 @@
 		: "nosmp noapic maxcpus=0 ")
 	      + BootCommon::GetAdditionalFailsafeParams () + " 3"
 	    : sformat ("%1 %2 %3 %4 %5", vgastring, "selinux=0",
-		Kernel::cmdLine, resumestring, "showopts");
+		Kernel::GetCmdLine (), resumestring, "showopts");
 	if (title != "failsafe")
 	{
 	    if (BootCommon::getKernelParamFromLine (append, "splash")
@@ -1000,7 +1000,7 @@
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
 	    createSections ();
-	    BootCommon::kernelCmdLine = Kernel::cmdLine;
+	    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
 	}
 	else
 	{

@@ -124,8 +124,8 @@
         ];
 	if (append != "")
 	    ret = add (ret, $[ "key" : "append", "value" : append]);
-        if (Kernel::vgaType != "" && title != "failsafe")
-            ret = add (ret, $["key" : "vga", "value" : Kernel::vgaType]);
+        if (Kernel::GetVgaType () != "" && title != "failsafe")
+            ret = add (ret, $["key" : "vga", "value" : Kernel::GetVgaType ()]);
         return ret;
     }
 
@@ -155,7 +155,7 @@
       */
     global define void createGlobals () ``{
 	string append = sformat ("%1 %2 splash=silent", "selinux=0",
-	    Kernel::cmdLine);
+	    Kernel::GetCmdLine ());
 	// always server product, FIXME when it changes
 	append = BootCommon::setKernelParamToLine (append, "desktop", "false");
 	if (ProductFeatures::io_scheduler != "")
@@ -290,7 +290,7 @@
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
 	    createSections ();
-	    BootCommon::kernelCmdLine = Kernel::cmdLine;
+	    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
 	}
 	else
 	{

@@ -1521,7 +1521,7 @@
       * @return kernel command line or parameters with added new parameters
       */
     global define string updateKernelParams (string orig) ``{
-	list<string> new = splitstring (Kernel::cmdLine, " ");
+	list<string> new = splitstring (Kernel::GetCmdLine (), " ");
 	list<string> old = splitstring (orig, " ");
 	list<string> added = (list<string>)BootCommon::difflist (new,
 	     splitstring (BootCommon::kernelCmdLine, " "));
@@ -1841,21 +1841,21 @@
 	    saved_params = (map<string,any>)SCR::Read (
 		.target.ycp, "/var/lib/YaST2/bootloader.ycp");
 	}
-	if (Kernel::vgaType == "")
+	if (Kernel::GetVgaType () == "")
 	{
 	    string vgaType = (string)(saved_params["vga"]:"");
 	    if (vgaType != nil && vgaType != "")
-		Kernel::vgaType = vgaType;
+		Kernel::SetVgaType (vgaType);
 	}
 	if (! Stage::initial ())
 	{
-	    Kernel::cmdLine = saved_params["installation_kernel_params"]:"";
+	    Kernel::SetCmdLine (saved_params["installation_kernel_params"]:"");
 	}
 	else
 	{
 	    if (SCR::Read (.etc.install_inf.NoPCMCIA) == "1")
 	    {
-		Kernel::cmdLine = Kernel::cmdLine + " NOPCMCIA";
+		Kernel::SetCmdLine (Kernel::GetCmdLine () + " NOPCMCIA");
 	    }
 	}
     }
@@ -1967,12 +1967,12 @@
 		list<string> l = splitstring (s["value"]:"", " \t");
 		l = filter (string p, l, {return p != "";});
 		if (regexpmatch (l[0]:"", sformat ("^.*%1[^ ]*.*$",
-		    Kernel::binary)))
+		    Kernel::GetBinary ())))
 		{
 		    l[0] = regexpsub (
 			l[0]:"",
-			sformat ("^(.*)%1[^ ]*(.*)$", Kernel::binary),
-			sformat ("\\1%1.previous\\2", Kernel::binary));
+			sformat ("^(.*)%1[^ ]*(.*)$", Kernel::GetBinary ()),
+			sformat ("\\1%1.previous\\2", Kernel::GetBinary()));
 		}
 		s["value"] = mergestring (l, " ");
 	    }

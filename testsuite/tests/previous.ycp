@@ -116,7 +116,7 @@
 	    "value" : "initrd",
 	],
     ];
-    TEST (``(BootCommon::Linux2Previous (section)), [], 0);
+    TEST (``(BootCommon::Linux2Previous (section)), [READ_I], 0);
 
     section = [
 	$[
@@ -132,7 +132,7 @@
 	    "value" : "/boot/initrd",
 	],
     ];
-    TEST (``(BootCommon::Linux2Previous (section)), [], 0);
+    TEST (``(BootCommon::Linux2Previous (section)), [READ_I], 0);
 
     section = [
 	$[
@@ -148,7 +148,7 @@
 	    "value" : "(hd0,0)/boot/initrd.shipped",
 	],
     ];
-    TEST (``(BootCommon::Linux2Previous (section)), [], 0);
+    TEST (``(BootCommon::Linux2Previous (section)), [READ_I], 0);
 
     section = [
 	$[
@@ -164,7 +164,7 @@
 	    "value" : "(hd0,0)/boot/initrd",
 	],
     ];
-    TEST (``(BootCommon::Linux2Previous (section)), [], 0);
+    TEST (``(BootCommon::Linux2Previous (section)), [READ_I], 0);
 
     DUMP ("======================================");
 
@@ -183,7 +183,7 @@
 	],
     ];
     BootCommon::was_read = true;
-    TEST (``(Bootloader::AddPreviousSection ()), [], 0);
+    TEST (``(Bootloader::AddPreviousSection ()), [READ_I], 0);
     DUMP (BootCommon::sections);
     DUMP (size (BootCommon::sections));
 
@@ -210,7 +210,7 @@
 	],
     ];
 
-    TEST (``(Bootloader::AddPreviousSection ()), [], 0);
+    TEST (``(Bootloader::AddPreviousSection ()), [READ_I], 0);
     DUMP (BootCommon::sections);
     DUMP (size (BootCommon::sections));
 
@@ -237,7 +237,7 @@
 	],
     ];
 
-    TEST (``(Bootloader::AddPreviousSection ()), [], 0);
+    TEST (``(Bootloader::AddPreviousSection ()), [READ_I], 0);
     DUMP (BootCommon::sections);
     DUMP (size (BootCommon::sections));
 
