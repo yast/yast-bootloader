@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct  6 10:04:38 CEST 2004 - jsrain@suse.cz
+
+- fixed summary if GRUB section name contains HTML tag (#46792)
+
+-------------------------------------------------------------------
 Wed Sep 29 09:14:29 CEST 2004 - jsrain@suse.cz
 
 - do not show the disks order if there is only one disk (#46346)
