@@ -58,6 +58,7 @@
         "etc" : $[
             "install_inf" : $[
                 "Cmdline" : "",
+		"Cdrom" : "",
             ],
         ],
         "proc" : $[
