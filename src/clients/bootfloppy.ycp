@@ -22,9 +22,9 @@
 
     import "Label";
     import "Popup";
-    include "wizard/sequencer.ycp";
 
     import "Report";
+    import "Sequencer";
     import "Wizard";
 
     Wizard::CreateDialog();
@@ -811,7 +811,7 @@ The requested floppy disk was successfully created.
 
     // ===== Start the sequence =======================================
 
-    any ret = WizardSequencer(aliases, main_sequence);
+    any ret = Sequencer::Run(aliases, main_sequence);
 
     //  ===== umount CD  ================================================
     UI::CloseDialog();

@@ -127,7 +127,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 		return false;
 	    }
 	    BootCommon::sections[index] = nil;
-	    BootCommon::sections = filter (list s, BootCommon::sections, ``(
+	    BootCommon::sections = filter (list<map> s, BootCommon::sections, ``(
 		s != nil
 	    ));
 	    return true;
