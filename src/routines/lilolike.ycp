@@ -370,7 +370,7 @@
 
             errorWithLogPopup (sformat (
 		// error popup - label, %1 is bootloader name
-		_("Error occurred while installing %1"),
+		_("Error Occurred while Installing %1"),
 		getLoaderName (getLoaderType (false))), log);
 	}
 	return ret;

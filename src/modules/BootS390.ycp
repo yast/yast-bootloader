@@ -107,7 +107,7 @@
 		{
 		    Report::Error (
 		        // error report
-			_("Copying hardware configuration template failed"));
+			_("Copying hardware configuration template failed."));
 		    failed = true;
 		}
 		path p = add (.sysconfig.hardware.value, dst);

@@ -399,9 +399,9 @@
 	    {
 		y2error ("Directory structure update failed: %1", output);
 		// report error
-		Report::Error (_("Update of the directory layout in order
+		Report::Error (_("Updating the directory layout 
 to match Intel's EFI specification failed.
-Update it manually before you proceed."));
+Update it manually before proceeding."));
 	    }
 	}
         return ret;

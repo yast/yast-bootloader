@@ -83,7 +83,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	    }
 	    else
 	    {
-		CommandLine::Print (sformat (_("Section %1 not found"),
+		CommandLine::Print (sformat (_("Section %1 not found."),
 		    section));
 		return false;
 	    }
@@ -104,7 +104,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	any value = options["value"]:nil;
 	if (value == nil)
 	{
-	    CommandLine::Print (_("Value was not specified"));
+	    CommandLine::Print (_("Value was not specified."));
 	    return false;
 	}
 	return BootloaderModifySection (section, option, value);
@@ -122,7 +122,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	    integer index = BootCommon::getSectionIndex (section);
 	    if (index == nil)
 	    {
-		CommandLine::Print (sformat (_("Section %1 not found"),
+		CommandLine::Print (sformat (_("Section %1 not found."),
 		    section));
 		return false;
 	    }
@@ -146,7 +146,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	string section = (string)(options["section"]:nil);
 	if (section == nil)
 	{
-	    CommandLine::Print (_("Section name must be specified"));
+	    CommandLine::Print (_("Section name must be specified."));
 	    return false;
 	}
 	BootCommon::sections = add (BootCommon::sections, [
@@ -167,7 +167,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	string option = (string)(options["option"]:nil);
 	if (option == nil)
 	{
-	    CommandLine::Print (_("Option was not specified"));
+	    CommandLine::Print (_("Option was not specified."));
 	    return false;
 	}
 	any value = nil;
@@ -185,7 +185,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	    }
 	}
 	if (value == nil)
-	    CommandLine::Print (_("Specified option doesn't exist"));
+	    CommandLine::Print (_("Specified option does not exist."));
 	else
 	    CommandLine::Print (sformat (_("Value: %1"), value));
 	return false;
@@ -195,7 +195,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
     map cmdline = $[
 	"id"		: "bootloader",
 	// command line help text for Printer module
-	"help"		: _("Bootloader configuration module."),
+	"help"		: _("Boot loader configuration module"),
 	"guihandler"	: GuiHandler,
 	"initialize"	: Bootloader::Read,
 	"finish"	: Bootloader::Write,
@@ -203,7 +203,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	    "summary"	: $[
 		"handler"	: BootloaderSummaryHandler,
 		// command line help text for summary action
-		"help"		: _("Configuration summary of bootloader")
+		"help"		: _("Configuration summary of boot loader")
 	    ],
 	    "delete"	: $[
 		"handler"	: BootloaderDeleteHandler,
