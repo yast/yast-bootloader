@@ -268,12 +268,22 @@
 		BootCommon::BootPartitionDevice));
 	}
 
-	ret = 0 == SCR::Execute (.target.bash,
+	map exit = SCR::Execute (.target.bash_output,
 	    "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1");
+	ret = 0 == exit["exit"]:1;
 	if (! ret)
 	{
 	    string log = SCR::Read (.target.string,
 		    "/var/log/YaST2/y2loglilo");
+	    log = log + exit["stdout"]:"" + exit["stderr"]:"";
+	    if (exit["exit"]:1 == 139)
+	    {
+		// means: process received signal SIGSEGV
+		// please, use some usual translation
+		// proofreaders: don't change this text
+		log = log + _("Segmentation fault");
+	    }
+
 	    // error popup - label
             errorWithLogPopup (_("Error occurred while installing LILO"), log);
 	}

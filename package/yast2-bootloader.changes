@@ -2,6 +2,9 @@
 Mon Aug 25 10:00:10 CEST 2003 - jsrain@suse.de
 
 - fixed inconsistence of floppy size (1440kB -> 1.44 MB) (#29142)
+- reporting segmentation fault when running bootloader binary
+  (#29199)
+- added correct help for configuration writing dialog
 
 -------------------------------------------------------------------
 Mon Aug 18 09:20:32 CEST 2003 - jsrain@suse.de

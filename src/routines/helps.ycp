@@ -42,7 +42,9 @@ Change the settings of your boot loader. </P>
       * @return string help text
       */
     global define string getSaveProgressHelp () ``{
-	return "Write help";
+	// help text
+	return _("<P><B><BIG>Saving Bootloader Configuration</BIG></B><BR>
+Please wait...<br></p>");
     }
 
     /**
