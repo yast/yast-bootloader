@@ -13,5 +13,5 @@
 .sysconfig.bootloader
 
 `ag_ini(
-  SysConfigFile("/etc/sysconfig/bootloader")
+  `SysConfigFile("/etc/sysconfig/bootloader")
 )
