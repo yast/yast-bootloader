@@ -151,7 +151,7 @@
 	    $[ "key" : "timeout", "value" : 80 ],
 	    $[ "key" : "read-only", "value" : true ],
 	    $[ "key" : "relocatable", "value" : true ],
-	    $[ "key" : "default", "value" : "linux" ],
+	    $[ "key" : "default", "value" : translateSectionTitle ("linux") ],
 	];
     }
 
