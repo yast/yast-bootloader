@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 28 12:13:05 CEST 2002 - kkaempf@suse.de
+
+- fix checking for splashscreen
+- 2.6.31
+
+-------------------------------------------------------------------
 Tue Aug 27 16:19:25 CEST 2002 - jsrain@suse.cz
 
 - if no boot message exists not including in menu.lst (Bug #18381)
