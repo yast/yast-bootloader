@@ -1,1 +1,0 @@
-#undef YAST2HOME

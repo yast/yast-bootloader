@@ -30,13 +30,11 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
+AC_DISABLE_STATIC
+AC_PROG_LIBTOOL
 
 CFLAGS="${CFLAGS} -DY2LOG='\"@RPMNAME@\"' -Wall -Wmissing-prototypes -Wformat"
 CXXFLAGS="${CXXFLAGS} -DY2LOG='\"@RPMNAME@\"' -Wall -Wmissing-prototypes -Wformat"
-
-AC_DISABLE_STATIC
-AM_PROG_LIBTOOL dnl for libraries
 
 dnl Allow conditionals in .am files
 AM_CONDITIONAL(ISIX86, [case `uname -m` in i*86) true;; *) false;; esac])
@@ -47,7 +45,7 @@ AM_CONDITIONAL(ISPPC, test `uname -m` = ppc)
 dnl generate the config header
 AM_CONFIG_HEADER(config.h) dnl at the distribution this done
 
-AC_DEFINE_UNQUOTED(YAST2HOME, "${YAST2DIR}")
+AC_DEFINE_UNQUOTED(YAST2HOME, "${YAST2DIR}", [YaST2home])
 
 AC_FUNC_ALLOCA
 AC_HEADER_STDC
