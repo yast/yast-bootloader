@@ -162,6 +162,11 @@
 	    append = BootCommon::setKernelParamToLine (append, "elevator",
 		ProductFeatures::io_scheduler);
 	}
+	// on SIG Altix change kernel default hash tables sizes
+	if (SCR::Read (.target.stat, "/proc/sgi_sn") != $[])
+	{
+	    append = append + " thash_entries=2097152";
+	}
 	BootCommon::globals = [
 	    $[ "key" : "prompt", "value" : true ],
 	    $[ "key" : "timeout", "value" : 80 ],
@@ -214,6 +219,15 @@
 		    e["value"]:"",
 		    "elevator",
 		    ProductFeatures::io_scheduler);
+	    }
+	    // and on SGI Altix, change default kernel hash table sizes
+	    if (e["key"]:"" == "append"
+		&& SCR::Read (.target.stat, "/proc/sgi_sn") != $[])
+	    {
+		e["value"] = BootCommon::setKernelParamToLine (
+		    e["value"]:"",
+		    "thash_entries",
+		    "2097152");
 	    }
 	    else if (e["key"]:"" == "boot")
 		e["value"] = BootCommon::UpdateDevice (e["value"]:"");
