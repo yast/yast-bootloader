@@ -194,11 +194,6 @@ inputLine::inputLine(const string& line, const string& init_type)
 	s++;
     }
 
-/*    if (type == "grub")
-    {
-	y2error ("Option: %s, Value: %s", option.c_str(), value.c_str());
-    }
-*/
     free (orig);
 }
 
@@ -308,9 +303,20 @@ bool liloOrderedOptions::processLine(inputLine* li)
 	}
 	else
 	{
-	    y2debug("lilo.conf waring: overriding option %s", li->option.c_str());
-	    order[cpos]->value=norm_value;
-	    order[cpos]->comment=li->comment;
+#ifdef __powerpc__
+	    order.push_back(new liloOption(optname, norm_value, li->comment));
+#else
+	    if (type == "grub")
+	    {
+		order.push_back(new liloOption(optname, norm_value, li->comment));
+	    }
+	    else
+	    {
+		y2debug("lilo.conf waring: overriding option %s", li->option.c_str());
+		order[cpos]->value=norm_value;
+		order[cpos]->comment=li->comment;
+	    }
+#endif
 	}
     }
     return true;

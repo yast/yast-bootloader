@@ -33,7 +33,7 @@
 	    list partitions = ddata["partitions"]:[];
 	    partitions = filter (map p, partitions, ``(
 		(! p["delete"]:false)
-		&& (p["fsid"]:"" == 65)
+//		&& (p["fsid"]:"" == 65)
 		&& (! p["is_lv"]:false)
 		&& (p["raid_type"]:"" == "")
 	    ));
