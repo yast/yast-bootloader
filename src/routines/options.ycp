@@ -1052,10 +1052,10 @@ and the sector to which the boot loader is installed."),
                         _("&Enable Boot Loader Password Protection"))),
 		    `HBox (
 			// password textentry
-			`HWeight (1, `Password (`id (`pw1), _("&Password"))),
+			`HWeight (1, `Password (`id (`pw1), Label::Password ())),
 			`HSpacing (2),
 			// password textentry
-			`HWeight (1, `Password (`id (`pw2), _("Re&type Password")))
+			`HWeight (1, `Password (`id (`pw2), Label::ConfirmPassword ()))
 		    ),
 		    `VSpacing (0.4)
 		),
