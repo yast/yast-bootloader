@@ -104,7 +104,8 @@
 	if (issubstring (chainloader, "/")) // means file, eg. saved MBR
 	    return [];
 	list<map> ret= [$["key" : "label",
-		     "value" : lookup_value (section, "title", "")]];
+	    "value" : BootCommon::removeBlanks (
+		(string)lookup_value (section, "title", ""))]];
 	if (lookup_value (section, "kernel", "") == "")
 	{
 	    ret = appendValue (ret, "other", BootGRUB::grubDev2unixDev (
