@@ -1,0 +1,126 @@
+/**
+ * File:
+ *  grub.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Bootloader GRUB misc functions testsuite
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    import "Pkg";
+    include "testsuite.ycp";
+
+    map READ_I = $[
+        "target" : $[
+            "size" : -1,
+            "tmpdir" : "/tmp/",
+	    "yast2" : nil,
+        ],
+        "probe" : $[
+            "architecture" : "i386",
+            "has_apm" : true,
+            "has_pcmcia" : false,
+            "has_smp" : false,
+            "system" : [],
+            "memory" : [],
+            "cpu" : [],
+            "cdrom" : $[
+                "manual" : [],
+            ],
+            "floppy" : $[
+                "manual" : [],
+            ],
+        ],
+        "sysconfig" : $[
+            "console" : $[
+                "CONSOLE_FONT" : "",
+                "CONSOLE_SCREENMAP" : "",
+                "CONSOLE_UNICODEMAP" : "",
+                "CONSOLE_MAGIC" : "",
+                "CONSOLE_ENCODING" : "",
+            ],
+            "language" : $[
+                "RC_LANG" : "",
+                "DEFAULT_LANGUAGE" : "",
+            ],
+        ],
+        "etc" : $[
+            "install_inf" : $[
+                "Cmdline" : "",
+            ],
+        ],
+        "proc" : $[
+            "cpuinfo" : $[
+                "value" : $[
+                    "0" : $[
+                        "flags" : ""
+                    ],
+                ],
+            ],
+        ]
+    ];
+    map WRITE_I = $[];
+    map EXEC_I = $[
+	"target" : $[
+	    "bash_output" : $[],
+	],
+    ];
+
+    TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
+    import "BootS390";
+    import "BootCommon";
+    TESTSUITE_CLEAN ();
+
+        BootCommon::sections = [
+            [
+                $[ "key" : "label", "value" : "defaultboot" ],
+                $[ "key" : "default", "value" : "ipl" ],
+            ],
+            [
+                $[ "key" : "label", "value" : "ipl" ],
+                $[ "key" : "target", "value" : "/boot/zipl" ],
+                $[ "key" : "image", "value" : "/boot/kernel/image" ],
+                $[ "key" : "ramdisk", "value" : "/boot/initrd" ],
+                $[ "key" : "parameters", "value" : "parameters" ],
+            ],
+            [
+                $[ "key" : "label", "value" : "dumpdasd" ],
+                $[ "key" : "target", "value" : "/boot/zipl" ],
+                $[ "key" : "dumpto", "value" : "/dev/dasd??" ],
+            ],
+            [
+                $[ "key" : "label", "value" : "dumptape" ],
+                $[ "key" : "target", "value" : "/boot/zipl" ],
+                $[ "key" : "dumpto", "value" : "/dev/rtibm0" ],
+            ],
+        ];
+
+    y2error ("%1", BootCommon::sections);
+
+    DUMP ("======================================");
+
+    list dumps = TEST (``(BootS390::GetDumpDevices ()), [], nil);
+
+    DUMP ("======================================");
+
+    TEST (``(BootS390::SetDumpDevices (dumps)), [], nil);
+
+    DUMP ("======================================");
+
+    y2error ("%1", BootCommon::sections);
+
+    DUMP ("======================================");
+
+    TEST (``(BootS390::GetDumpDevices ()), [], nil);
+
+
+}

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct 14 18:08:02 CEST 2003 - jsrain@suse.de
+
+- updated support of S390 bootloader
+
+-------------------------------------------------------------------
 Mon Oct 13 10:45:18 CEST 2003 - jsrain@suse.de
 
 - updated support of PPC bootloader
