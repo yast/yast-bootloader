@@ -57,7 +57,7 @@
     /**
       * Constructor
       */
-    global define BootELILO () ``{
+    global define void BootELILO () ``{
         BootCommon::bootloader_attribs["elilo"] = $[
             "section_title" : "label",
             "kernel_key" : "image",
@@ -271,7 +271,10 @@
         return result;
     }
 
-
+    /**
+      * Display bootloader summary
+      * @return a list of summary lines
+      */
     global define list(string) Summary () ``{
 	// summary text
 	return [_("Install ELILO boot loader")];
@@ -425,8 +428,6 @@ fi", efi_label);
     /**
       * Fix sections of bootloader menu during proposal regeneration
       * modifies internal sreuctures
-      * @param disks_changed boolean should be true if bootloader location
-      *   relevant disk locations have changed
       */
     global define void fixSections () ``{
 	list old_sect_list = BootCommon::sections;

@@ -476,7 +476,7 @@
 
     /**
       * Set root fs device
-      * @param string root device
+      * @param device string root device
       */
     global define void setRootDevice (string device) ``{
 	ReadOrProposeIfNeeded ();
@@ -494,7 +494,7 @@
 
     /**
       * Set device containing /boot directory
-      * @param string boot device
+      * @param device string boot device
       */
     global define void setBootDevice (string device) ``{
 	ReadOrProposeIfNeeded ();

@@ -151,7 +151,7 @@
 
     /**
       * Create translated name of a section
-      * @param original section name
+      * @param orig string original section name
       * @return translated section name
       */
     global define string translateSectionTitle (string orig) ``{

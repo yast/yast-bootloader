@@ -49,10 +49,12 @@
 	term widget = `VBox (
 	    `VSpacing (1),
 	    `TextEntry (`id (`location),
+		// text entry label
 		_("&EFI entry name")),
 	    have_old ? `VSpacing (1) : `VSpacing (0),
 	    have_old
 		? `CheckBox (`id (`remove_old),
+		    // check box
 		    sformat (_("Remove old EFI entry (%1)"), old_efi_entry))
 		: `VSpacing (0),
 	    `VSpacing (1)

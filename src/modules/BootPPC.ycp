@@ -82,7 +82,7 @@
     /**
       * Constructor
       */
-    global define BootPPC () ``{
+    global define void BootPPC () ``{
         BootCommon::bootloader_attribs["ppc"] = $[
             "section_title" : "label",
             "kernel_key" : "image",
@@ -433,15 +433,15 @@ y2error ("Glob: %1, Sect: %2", BootCommon::globals, BootCommon::sections);
 
 	else if ( Arch::board_mac_new )
 	{
-	    // summary part
 	    ret = [
+		// summary part
 		_("Boot configuration on new PowerMacs is not yet implemented.")
 	    ];
 	}
 	else if ( Arch::board_mac_old )
 	{
-	    // summary part
 	    ret = [
+		// summary part
 		_("Configure the BootX App in classic MacOS to boot the file 'vmlinuz-oldworld'")
 	    ];
 	}
@@ -452,8 +452,8 @@ y2error ("Glob: %1, Sect: %2", BootCommon::globals, BootCommon::sections);
 	}
 	else
 	{
-	    // summary part
 	    ret = [
+		// summary part
 		 _("Boot configuration for this board is not yet implemented.")
 	    ];;
 	}

@@ -31,6 +31,7 @@
 
     /**
       * Display question
+      * @param name string name of currently selected section (to clone)
       * @return boolean true if answered yes
       */
     global define boolean askClone (string name) ``{
@@ -341,6 +342,7 @@ no options to set here."));
 
     /**
       * Display popup - confirmation befopre restoring MBR
+      * @param device string device to restore to
       */
     global define void restoreMBRPopup (string device) ``{
 	map stat = SCR::Read (.target.stat, "/boot/backup/mbr");
