@@ -81,7 +81,7 @@
             y2error ("No bootloader selected");
             ret = add (ret, "warning_level", `error);
 	    // warning text in the summary rixhtext
-            ret = add (ret, "warning", _("No bootloader selected to be installed, your system can be unbootable"));
+            ret = add (ret, "warning", _("No boot loader is selected for installation. Your system might not be bootable."));
         }
 
 

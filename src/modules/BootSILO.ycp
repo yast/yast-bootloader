@@ -149,7 +149,7 @@
         if (0 != SCR::Execute(.target.bash, docmd, doenv))
         {
             // error popup
-            Report::Error(_("Could not write the SILO boot sector"));
+            Report::Error(_("Could not write the SILO boot sector."));
         }
 
         // On SPARC, set the right device for a hard reboot to find our
@@ -281,7 +281,7 @@
     global define map getPromAliasWidget () ``{
 	return $[
 	    "type" : "b",
-	    "label" : _("Create PROM alias 'linux'"),
+	    "label" : _("Create PROM Alias 'linux'"),
 	    "restore" : ``(BootSILO::restorePromAlias ()),
 	    "handle" : ``(BootSILO::handlePromAlias ()),
 	    "summary" : ``(BootSILO::summaryPromAlias ()),
@@ -295,7 +295,7 @@
     global define map getDefaultDeviceWidget () ``{
 	return $[
 	    "type" : "b",
-	    "label" : _("Set default PROM boot device"),
+	    "label" : _("Set Default PROM Boot Device"),
 	    "restore" : ``(BootSILO::restoreDefDev ()),
 	    "handle" : ``(BootSILO::handleDefDev ()),
 	    "summary" : ``(BootSILO::summaryDefDev ()),

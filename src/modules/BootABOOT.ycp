@@ -67,7 +67,7 @@
     }
 
     global define list(string) Summary () ``{
-	return [_("Install ABOOT bootloader")];
+	return [_("Install ABOOT Boot Loader")];
     }
 
     /**

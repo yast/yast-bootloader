@@ -143,7 +143,7 @@ dumpto=/dev/rtibm0
       * @return a list of summary lines
       */
     global define list(string) Summary () ``{
-	return [_("Install S390 bootloader")];
+	return [_("Install S390 Boot Loader")];
     }
 
     /**
@@ -167,8 +167,7 @@ dumpto=/dev/rtibm0
 	{
 		string log = SCR::Read (.target.string,
 		    "/var/log/YaST2/y2logzipl");
-		errorWithLogPopup (_(
-		    "Error while installing S390 bootloader occured"), log);
+		errorWithLogPopup (_("Error occurred while installing S390 boot loader."), log);
 	}
 	return ret;
     }

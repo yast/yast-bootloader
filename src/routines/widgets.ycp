@@ -81,14 +81,14 @@
             `VSpacing (0.4),
             `Left (`RadioButton (`id ("boot"), `opt (`notify),
 		// radiobutton, %1 is device (eg. /dev/hda1)
-                sformat(_("Boot&sector of boot partition %1"),
+                sformat(_("Boot &Sector of Boot Partition %1"),
                      BootPartitionDevice),
                 (location == "boot")
             )),
             `VSpacing (0.4),
             `Left (`RadioButton (`id ("root"), `opt (`notify),
 		// radiobutton, %1 is device (eg. /dev/hda1)
-                sformat(_("Bootsector of roo&t partition %1"),
+                sformat(_("Boot Sector of Roo&t Partition %1"),
                     RootPartitionDevice),
                 (location == "root")
             ))
@@ -122,7 +122,7 @@
         targetlist = add (targetlist, `VSpacing (0.4));
 
 	// frame
-        term widget = `Frame (_("Bootloader location"),
+        term widget = `Frame (_("Boot Loader Location"),
             `RadioButtonGroup (`id (`location),
                 targetlist
             )
@@ -134,7 +134,7 @@
 //	    "help" : getLocationsHelp (),
 	    "validate" : ``(BootCommon::targetValidate ()),
 		// table cell / label
-	    "label" : _("Bootloader location"),
+	    "label" : _("Boot Loader Location"),
 	    "summary" : ``(BootCommon::locationSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
@@ -219,13 +219,13 @@
 	    "widget" : `Frame (_("Security settings"), `VBox (
                 `Left (`CheckBox (`id (`usepas), `opt (`notify),
 			// checkbox
-                    _("&Enable bootloader password protection"))),
+                    _("&Enable Boot Loader Password Protection"))),
                 `HBox (
 			// password textentry
                     `HWeight (1, `Password (`id (`pw1), _("&Password"))),
                     `HSpacing (2),
 			// password textentry
-                    `HWeight (1, `Password (`id (`pw2), _("Re&type password")))
+                    `HWeight (1, `Password (`id (`pw2), _("Re&type Password")))
                 ),
                 `VSpacing (0.4)
             )),
@@ -364,7 +364,7 @@
 		    `PushButton (`id (`delete), `opt (`key_F5), DeleteButtonLabel ()),
 		    `HStretch (),
 			// pushbutton
-		    `PushButton (`id (`default), _("Set as de&fault"))
+		    `PushButton (`id (`default), _("Set as De&fault"))
 		)
 	    ),
 	    "restore" : ``(BootCommon::sectionsRead ()),
@@ -520,14 +520,14 @@
 	return $[
 	    "widget" : (`ComboBox (`id (`loader_type), `opt (`notify),
 			// combobox header
-                        _("Boot&loader type"), loaders
+                        _("Boot &Loader Type"), loaders
                     )),
 	    "restore" : ``(BootCommon::loaderTypeRestore ()),
 	    "handle" : ``(loaderTypeSave ()),
 	    "help" : nil,
 	    "exits" : [],
 		// table item / label
-	    "label" : _("Bootloader type"),
+	    "label" : _("Boot Loader Type"),
 	    "summary" : ``(BootCommon::loaderTypeSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
@@ -625,23 +625,23 @@
     global define map getSummaryButtonsWidget () ``{
 	list items = [
 		// menubutton item, keep as short as possible
-            `item (`id (`propose), _("&Propose new configuration")),
+            `item (`id (`propose), _("&Propose New Configuration")),
 		// menubutton item, keep as short as possible
-            `item (`id (`scratch), _("&Start from scratch")),
+            `item (`id (`scratch), _("&Start from Scratch")),
 	];
 	if (Mode::normal)
 	    items = add (items,
 		// menubutton item, keep as short as possible
-                `item (`id (`reread), _("&Reread configuration from disk")));
+                `item (`id (`reread), _("&Reread Configuration from Disk")));
 	if (/*Mode::initial &&*/ BootCommon::getLoaderType (false) == "grub")
 	    items = add (items, `item (`id (`propose_deep),
 		// menubutton item, keep as short as possible
-		_("Propose new configuration and merge existing menus")));
+		_("Propose a New Configuration and Merge with Other Existing Linux Menus")));
 	return $[
 	    "widget" : `HBox (`HStretch (),
 //		`MenuButton (`id (`restore), _("Res&et"), items),
 		// pushbutton
-                `PushButton (`id (`manual), _("Edit &configuration files")),
+                `PushButton (`id (`manual), _("Edit &Configuration Files")),
 		`HStretch ()
 	    ),
 	    "exits" : [`manual],
@@ -657,7 +657,7 @@
     global define map getSectionsTableEntry () ``{
 	return $[
 		// table item / label
-	    "label" : _("Available sections"),
+	    "label" : _("Available Sections"),
 	    "summary" : ``(BootCommon::getSectionsSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
@@ -687,7 +687,7 @@
     global define map getDefaultSectionTableEntry () ``{
 	return $[
 		// table item / label
-	    "label" : _("Default section"),
+	    "label" : _("Default Section"),
 	    "summary" : ``(BootCommon::getDefaultSectionSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
@@ -710,14 +710,14 @@
         return $[
             "widget" : (`ComboBox (`id (`section_type), `opt (`notify),
 			// combobox header
-                        _("Section &type"), ["image", "other"]
+                        _("Section &Type"), ["image", "other"]
                     )),
             "restore" : ``(BootCommon::sectionTypeRestore ()),
             "handle" : ``(BootCommon::sectionTypeSave ()),
             "help" : nil,
             "exits" : [],
 		// table item / label
-            "label" : _("Section type"),
+            "label" : _("Section Type"),
             "summary" : ``(BootCommon::sectionTypeSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
@@ -832,7 +832,7 @@
     global define map getLabelWidget () ``{
 	return $[
 		// table item / label
-	    "label" : "Section name",
+	    "label" : "Section Name",
 	    "validate" : ``(BootCommon::labelValidate ()),
 	    "deletable" : false,
 	    "ordering" : false,
@@ -881,7 +881,7 @@
     global define map getReplMbrWidget () ``{
 	return $[
 		// table item / label
-	    "label" : _("Replace code in MBR"),
+	    "label" : _("Replace Code in MBR"),
 	    "restore" : ``(BootCommon::replMbrRestore ()),
 	    "handle" : ``(BootCommon::replMbrHandle ()),
 	    "summary" : ``(BootCommon::replMbrSummary ()),
@@ -918,10 +918,10 @@
     global define string replMbrSummary () ``{
 	if (tmp_store["repl_mbr"]:false)
 		// table item / label
-	    return _("Replace with generic code");
+	    return _("Replace with Generic Code");
 	else
 		// table item / label
-	    return _("Leave untouched");
+	    return _("Leave Untouched");
     }
 
     /**
@@ -931,7 +931,7 @@
     global define map getActivateWidget () ``{
 	return $[
 		// table item
-	    "label" : _("Activate bootloader partition"),
+	    "label" : _("Activate Boot Loader Partition"),
 	    "restore" : ``(BootCommon::activateRestore ()),
 	    "handle" : ``(BootCommon::activateHandle ()),
 	    "summary" : ``(BootCommon::activateSummary ()),

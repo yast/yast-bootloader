@@ -141,7 +141,7 @@
                 if ( ppc_iseries_write_streamfile )
                 {
                         BootCommon::loaderdevice = BootPPC::ppc_iseries_streamfile;
-                        boot_strings = add ( boot_strings, sformat(_("A stream file will be written to %1. Copy this file to OS400 side and boot with *STMF"), BootPPC::ppc_iseries_streamfile));
+                        boot_strings = add ( boot_strings, sformat(_("A stream file will be written to %1. Copy this file to OS400 side and boot with *STMF."), BootPPC::ppc_iseries_streamfile));
                 }
 
                 if ( ! (size (ppc_prep_boot_partitions) > 0 ) )
@@ -164,7 +164,7 @@
                 }
                 if ( ppc_iseries_write_slot_a || ppc_iseries_write_slot_b )
                 {
-                        boot_strings = add ( boot_strings, sformat(_("- This will take a while ...")));
+                        boot_strings = add ( boot_strings, sformat(_("This will take a while...")));
                 }
                if ( ppc_activate_bootloader == false )
                 {
@@ -188,11 +188,11 @@
                 if ( size (ppc_prep_boot_partitions) > 0)
                 {
                         BootCommon::loader_device = ppc_prep_boot_partitions[ppc_boot_partition]:"/dev/null";
-                        boot_strings = add ( boot_strings, _("the zImage.prep from CD1/boot must be written to a 41 PReP boot partition"));
+                        boot_strings = add ( boot_strings, _("The zImage.prep from CD1/boot must be written to a 41 PReP boot partition."));
                 }
                 else
                 {
-                        boot_strings = add ( boot_strings, _("there is no 41 PReP boot partition, you can not boot from hard disk"));
+                        boot_strings = add ( boot_strings, _("There is no 41 PReP boot partition. You cannot boot from the hard disk."));
                 }
                 if ( ppc_activate_bootloader == false )
                 {
@@ -206,11 +206,11 @@
                 if ( size (ppc_prep_boot_partitions) > 0)
                 {
                         BootCommon::loader_device = ppc_prep_boot_partitions[ppc_boot_partition]:"/dev/null";
-                        boot_strings = add ( boot_strings, sformat(_("yaboot will be written to %1. use SMS Multiboot to boot from this drive"), BootCommon::loader_device));
+                        boot_strings = add ( boot_strings, sformat(_("yaboot will be written to %1. Use SMS Multiboot to boot from this drive."), BootCommon::loader_device));
                 }
                 else
                 {
-                        boot_strings = add ( boot_strings, _("there is no 41 PReP boot partition, you can not boot from hard disk"));
+                        boot_strings = add ( boot_strings, _("There is no 41 PReP boot partition. You cannot boot from the hard disk."));
                 }
                 if ( ppc_activate_bootloader == false )
                 {
@@ -220,19 +220,19 @@
 
         else if ( Arch::board_mac_new )
         {
-                boot_strings = add ( boot_strings, _("boot configuration on new PowerMacs is not yet implemented"));
+                boot_strings = add ( boot_strings, _("Boot configuration on new PowerMacs is not yet implemented."));
         }
         else if ( Arch::board_mac_old )
         {
-                boot_strings = add ( boot_strings, _("configure BootX App in classic MacOS to boot the file 'vmlinuz-oldworld'"));
+                boot_strings = add ( boot_strings, _("Configure the BootX App in classic MacOS to boot the file 'vmlinuz-oldworld'"));
         }
         else if ( Arch::board_mac_nubus )
         {
-                boot_strings = add ( boot_strings, _("use the Apple MkLinux Booter to boot the kernel"));
+                boot_strings = add ( boot_strings, _("Use the Apple MkLinux Booter to boot the kernel."));
         }
         else
         {
-                boot_strings = add ( boot_strings, _("boot configuration for this board is not yet implemented"));
+                boot_strings = add ( boot_strings, _("Boot configuration for this board is not yet implemented."));
         }
 
         y2milestone("BootCommon::location %1", BootCommon::location);
@@ -440,7 +440,7 @@ image = /boot/" + Kernel::binary + "
 	    "restore" : ``(BootPPC::restoreOptionsWidget ()),
 	    "handle" : ``(BootPPC::handleOptionsWidget ()),
 	    "summary" : ``(BootPPC::summaryOptionsWidget ()),
-	    "label" : _("Bootloader options"),
+	    "label" : _("Boot Loader Options"),
 	];
     }
 
@@ -455,7 +455,7 @@ image = /boot/" + Kernel::binary + "
                 `Left(
 		    `RadioButton( `id( "ppc_iseries" ), `opt(`notify),
                         // activate boot partition
-                        sformat (_("Write bootloader")),
+                        sformat (_("Write Boot Loader")),
                         ppc_activate_bootloader
                     )
                 )
@@ -465,7 +465,7 @@ image = /boot/" + Kernel::binary + "
                 `Left(
                     `CheckBox( `id( `iseries_do_stmf ), `opt(`notify),
 			// radiobutton
-			sformat (_("Generate a bootfile for *STMF booting")),
+			sformat (_("Generate a Boot File for *STMF Booting")),
                         ppc_iseries_write_streamfile)
                     )
                 )
@@ -478,7 +478,7 @@ image = /boot/" + Kernel::binary + "
                     `Left(
                         `CheckBox( `id( `iseries_do_nwsstg ), `opt(`notify),
                             // radiobutton
-                            sformat (_("write kernel to 41 PReP boot partition (for *NWSSTG)"), BootCommon::mbrDisk),
+                            sformat (_("Write the Kernel to 41 PReP Boot Partition (for *NWSSTG)"), BootCommon::mbrDisk),
                             ppc_iseries_write_prepboot)
                         )
                     )
@@ -489,7 +489,7 @@ image = /boot/" + Kernel::binary + "
                 `Left(
                     `CheckBox( `id( `iseries_do_rescue_slot ), `opt(`notify),
                         // radiobutton
-                        sformat (_("write rescue kernel to slot A")),
+                        sformat (_("Write Rescue Kernel to Slot A")),
                         ppc_iseries_write_slot_a)
                     )
                 )
@@ -499,7 +499,7 @@ image = /boot/" + Kernel::binary + "
                 `Left(
                     `CheckBox( `id( `iseries_do_kernel_slot ), `opt(`notify),
                         // radiobutton
-                        sformat (_("write kernel to slot B")),
+                        sformat (_("Write the Kernel to Slot B")),
                         ppc_iseries_write_slot_b)
                     )
                 )
@@ -512,7 +512,7 @@ image = /boot/" + Kernel::binary + "
                 `Left(
                     `RadioButton( `id( "ppc_chrp" ), `opt(`notify),
                         // activate boot partition
-                        sformat (_("Write bootloader")),
+                        sformat (_("Write Boot Loader")),
                         BootCommon::location == "ppc_chrp"
                     )
                 )
@@ -525,7 +525,7 @@ image = /boot/" + Kernel::binary + "
                 `Left(
                     `RadioButton( `id( "ppc_undefined" ), `opt(`notify),
                         // activate boot partition
-                        sformat (_("Yes, I agree that there is no bootloader support for this board."),
+                        sformat (_("Yes, I agree that there is no boot loader support for this board."),
                         BootCommon::location == "ppc_undefined")
                     )
                 )
@@ -536,7 +536,7 @@ image = /boot/" + Kernel::binary + "
             `Left(
                 `RadioButton( `id( "ppc_nobootloader" ), `opt(`notify),
                     // radiobutton
-                    sformat (_("Do not configure bootloader")),
+                    sformat (_("Do Not Configure a Boot Loader")),
                     ! ppc_activate_bootloader)
                 )
             )
@@ -647,7 +647,7 @@ image = /boot/" + Kernel::binary + "
 
     global define string summaryLocationWidget () ``{
 	if (! ppc_activate_bootloader)
-	    return _("Don't install bootloader");
+	    return _("Do Not Install a Boot Loader");
 	return BootCommon::location;
     }
 
@@ -675,7 +675,7 @@ image = /boot/" + Kernel::binary + "
                                             // will do nicely for the input field.
                                             `Bottom(
                                                         // combobox
-                                                    `ComboBox (`id(`custom_partition), `opt(`editable), _("&Choose 41 PReP boot partition:"), BootPPC::ppc_possible_boot_partitions)
+                                                    `ComboBox (`id(`custom_partition), `opt(`editable), _("&Choose 41 PReP Boot Partition:"), BootPPC::ppc_possible_boot_partitions)
                                                     )
                                             )
                                    )
@@ -688,7 +688,7 @@ image = /boot/" + Kernel::binary + "
                         `VBox (`Left (`TextEntry (
                         `id( `ppc_iseries_streamfile ),
                         // Text input field to enter the iSeries streamfile location
-                        _("&iSeries stream file for *STMF booting:"),
+                        _("&iSeries Stream File for *STMF Booting:"),
                         BootPPC::ppc_iseries_streamfile)
                         ))
                         );
@@ -698,7 +698,7 @@ image = /boot/" + Kernel::binary + "
                 ppc_params = add ( ppc_params,
                     `Left (`CheckBox (`id (`ppc_change_of),
                         // check box
-                        _("Set default &OpenFirmware 'boot-device'"),
+                        _("Set Default &OpenFirmware 'boot-device'"),
                         BootPPC::ppc_of_defaultdevice))
                         );
         }

@@ -42,7 +42,7 @@
 	    `VSpacing (1),
 	    `ComboBox (`id (`optname), `opt (`editable),
 		// combobox header
-		_("&Selected option"), optnames),
+		_("&Selected Option"), optnames),
 	    `VSpacing (1),
 	    `HBox (
 		`HStretch (),
@@ -124,7 +124,7 @@
         string label = sformat ("%1", widget_data["label"]:optname);
         term header = `HBox (
 	    // heading / label
-	    `Heading (_("Current option: ")),
+	    `Heading (_("Current Option: ")),
 	    `Label (label),
 	    `HStretch ()
 	);
@@ -450,13 +450,14 @@
 	// warning - popup
 	string label = type == `user ? _("Warning!
 
-You chose to change your bootloader. When converting 
-configuration some settings may get lost.
+You chose to change your boot loader. When converting 
+the configuration, some settings may be lost.
 
-Current configuration will be saved and you will be able
-to restore it if you will return back to current bootloader.
+The current configuration will be saved and you will be able
+to restore it if you return to the current boot loader.
 
-What do you want to do?")
+Select a course of action:
+")
 		// warning - popup
 	    : sformat (_("Warning!
 
@@ -478,25 +479,25 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
 		canConvert (from, to)
 		    ? `Left (`RadioButton (`id (`convert),
 			// radiobutton
-			_("Co&nvert current configuration")))
+			_("Co&nvert Current Configuration")))
 		    : `VSpacing (0),
 		type == `proposal ? `VSpacing (0)
 		: `Left (`RadioButton (`id (`scratch),
 		    // radiobutton
-		    _("&Start new configuration from scratch"))),
+		    _("&Start New Configuration from Scratch"))),
 		`Left (`RadioButton (`id (`propose),
 		    // radiobutton
-		    _("&Propose new configuration"))),
+		    _("&Propose New Configuration"))),
 		Mode::normal
 		    ? `Left (`RadioButton (`id (`read),
 			// radiobutton
-			_("&Read configuration saved on disk")))
+			_("&Read Configuration Saved on Disk")))
 		    : `VSpacing (0),
 		BootCommon::other_bl[to]:nil == nil || type == `proposal
 		    ? `VSpacing (0)
 		    : `Left (`RadioButton (`id (`prev),
 			// radiobutton
-			_("Res&tore to configuration saved before conversion")))
+			_("Res&tore Configuration Saved before Conversion")))
 	    )),
 	`VSpacing (1),
 	`HBox (
@@ -612,7 +613,7 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
                 `VSpacing (1)
                 ), `HSpacing (2));
 	// dialog caption
-        string caption = _("Bootloader setup - Sections managment");
+        string caption = _("Boot Loader Setup -- Sections Managment");
         string help = mergeHelps (widgets);
 	list exits = getExitEvents (widgets);
 	return runDialog (widgets, caption, contents, help, OKButtonLabel (),
@@ -631,7 +632,7 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
 		`VSpacing (1)
                 ), `HSpacing (2));
 	// dialog caption
-        string caption = _("Bootloader setup - Sections managment");
+        string caption = _("Boot Loader Setup -- Sections Managment");
         string help = mergeHelps (widgets);
         list exits = getExitEvents (widgets);
         return runDialog (widgets, caption, contents, help, OKButtonLabel (),
@@ -657,7 +658,7 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
                 `VSpacing (1)
                 ), `HSpacing (2));
 	// dialog caption
-        string caption = _("Bootloader setup");
+        string caption = _("Boot Loader Setup");
         string help = mergeHelps (widgets);
         list exits = getExitEvents (widgets);
 
@@ -681,10 +682,10 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
 	if (size (files) > 1)
 	    cb = `ComboBox (`id (`filename), `opt (`notify, `hstretch),
 		// combobox label
-		_("&Filename"), filenames);
+		_("&File Name"), filenames);
 	else
 	    // label. %1 is name of file (eg. /etc/lilo.conf
-	    cb = `Left (`Label (sformat (_("Filename: %1"), filenames[0]:"")));
+	    cb = `Left (`Label (sformat (_("File Name: %1"), filenames[0]:"")));
 
 	term contents = `HBox (`HSpacing (2), `VBox (
             `VSpacing (2),
@@ -692,12 +693,12 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
             `VSpacing (2),
             `MultiLineEdit (`id (`file), `opt (`hstretch, `vstretch),
 		// multiline edit header
-                _("File &contents")),
+                _("File &Contents")),
             `VSpacing (2)
 	), `HSpacing (2));
 
 	// dialog caption
-        string caption = _("Expert manual configuration");
+        string caption = _("Expert Manual Configuration");
         string help = BootCommon::getExpertManualHelp ();
 
         list exits = getExitEvents ([]);

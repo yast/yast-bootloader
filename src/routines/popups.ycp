@@ -30,8 +30,9 @@
       */
     global define boolean resetSectsPopup () ``{
 	// yes-no popup question
-	return UI::YesNoPopup (_("Do you really want to reset your sections
-settings? All your changes made to sections managment will be lost."));
+	return UI::YesNoPopup (_("Really reset your settings for sections?
+All your changes made in section management will be lost.
+"));
     }
 
     /**
@@ -41,8 +42,7 @@ settings? All your changes made to sections managment will be lost."));
       */
     global define boolean confirmSectionDeletePopup (string title) ``{
 	// yes-no popup question
-	return UI::YesNoPopup (sformat(_("Do you rally want to delete section
-%1?"), title));
+	return UI::YesNoPopup (sformat(_("Really delete section %1?"), title));
     }
 
     /**
@@ -51,8 +51,9 @@ settings? All your changes made to sections managment will be lost."));
       */
     global define boolean resetAllPopup () ``{
 	// yes-no popup question
-	return UI::YesNoPopup (_("Do you rally want to reset all
-your settings? All your changes will be lost."));
+	return UI::YesNoPopup (_("Really reset all
+your settings? All your changes will be lost.
+"));
     }
 
     /**
@@ -60,7 +61,7 @@ your settings? All your changes will be lost."));
       */
     global define void setLocationErrorPopup () ``{
 	// error popup
-	Report::Error (_("You must set bootloader location!!!"));
+	Report::Error (_("Set the boot loader location."));
     }
 
     /**
@@ -68,7 +69,7 @@ your settings? All your changes will be lost."));
       */
     global define void emptyPasswdErrorPopup () ``{
 	// error popup
-	Report::Error (_("You must set non-empty password"));
+	Report::Error (_("The password must not be empty."));
     }
 
     /**
@@ -86,8 +87,9 @@ do not match. Retype the password."));
       */
     global define void displayDiskChangePopup (string sect_name) ``{
 	// message popup, %1 is sectino label
-	UI::MessagePopup (sformat (_("Disk settings changed,
-please check section %1 settings"), sect_name));
+	UI::MessagePopup (sformat (_("The disk settings have changed.
+Check section %1 settings.
+"), sect_name));
     }
 
     /**
@@ -95,8 +97,9 @@ please check section %1 settings"), sect_name));
       */
     global define void displayFilesEditedPopup () ``{
 	// message popup
-	UI::MessagePopup (_("Disk settings changed and you edited bootloader
-configuration files manually, please check bootloader settings."));
+	UI::MessagePopup (_("The disk settings have changed and you edited boot loader
+configuration files manually. Check the boot loader settings.
+"));
     }
 
     /**
@@ -107,7 +110,8 @@ configuration files manually, please check bootloader settings."));
     global define boolean askLocationResetPopup (string device) ``{
 	// yes-no popup
 	return UI::YesNoPopup(sformat(_("Partition '%1' is not available.
-Do you want to set default boot loader location?"), device));
+Set default boot loader location?
+"), device));
     }
 
     /**
@@ -120,24 +124,25 @@ Do you want to set default boot loader location?"), device));
 	symbol fs = `no;
 	list items = [
 		// combobox item
-	    `item (`id (`no), _("Don't create filesystem")),
+	    `item (`id (`no), _("Do Not Create a File System")),
 		// combobox item
-	    `item (`id (`ext2), _("Create ext2 filesystem")),
+	    `item (`id (`ext2), _("Create an ext2 File System")),
 	];
 	if (SCR::Read (.target.size, "/sbin/mkfs.msdos") != -1)
 		// combobox item
-	   items = add (items, `item (`id (`fat), _("Create FAT filesystem")));
+	   items = add (items, `item (`id (`fat), _("Create a FAT File System")));
 	term contents = `VBox (
 		// label
-	    `Label (_("The bootloader bootsector will be written
+	    `Label (_("The boot loader boot sector will be written
 to a floppy disk. Insert a floppy disk
-and confirm with OK.")),
+and confirm with OK.
+")),
 	    `VSpacing (1),
 	    // checkbox
-	    `Left (`CheckBox (`id (`format), _("&Low level format"), false)),
+	    `Left (`CheckBox (`id (`format), _("&Low Level Format"), false)),
 	    `VSpacing (1),
 	    // combobox
-	    `Left (`ComboBox (`id (`fs), _("&Create filesystem"), items)),
+	    `Left (`ComboBox (`id (`fs), _("&Create File System"), items)),
 	    `VSpacing (1),
 	    `PushButton (`id (`ok), OKButtonLabel ())
 	);
@@ -177,7 +182,7 @@ and confirm with OK.")),
 		(.target.bash, sformat ("/sbin/mkfs.ext2 %1", dev));
 	    if (! tmpretval)
 		// error report
-		Report::Error (_("Creating filesystem failed."));
+		Report::Error (_("Creating file system failed."));
             retval = retval && tmpretval;
         }
 	else if (fs == `fat)
@@ -187,7 +192,7 @@ and confirm with OK.")),
 		(.target.bash, sformat ("/sbin/mkfs.msdos %1", dev));
 	    if (! tmpretval)
 		// error report
-		Report::Error (_("Creating filesystem failed."));
+		Report::Error (_("Creating file system failed."));
 	    retval = retval && tmpretval;
 	}
 	return retval;
@@ -198,8 +203,9 @@ and confirm with OK.")),
       */
     global define void usedNameErrorPopup () ``{
         // error popup
-        Report::Error (_("Name you set is already used
-Use other one."));
+        Report::Error (_("The name selected is already used.
+Use a different one.
+"));
     }
 
     /**
@@ -208,8 +214,9 @@ Use other one."));
       */
     global define boolean writeErrorPopup () ``{
         // yes-no popup
-	return UI::YesNoPopup (_("An error occured during bootloader
-installation. Retry to configure bootloader?"));
+	return UI::YesNoPopup (_("An error occurred during boot loader
+installation. Retry boot loader configuration?
+"));
     }
 
     /**
@@ -217,8 +224,9 @@ installation. Retry to configure bootloader?"));
       */
     global define void displayGfxMenuChangePopup () ``{
 	// message popup, gfxmenu is option name, leave as is
-	UI::MessagePopup (_("Disks settings changed,
-please check gfxmenu settings"));
+	UI::MessagePopup (_("The disk settings have changed.
+Check the gfxmenu settings.
+"));
     }
 
     /**
@@ -227,7 +235,7 @@ please check gfxmenu settings"));
       */
     global define boolean confirmOptionDeletePopup () ``{
 	// yes-no popup
-	return UI::YesNoPopup (_("Really delete selected option?"));
+	return UI::YesNoPopup (_("Really delete the selected option?"));
     }
 
     /**
@@ -265,6 +273,6 @@ no options to set here."));
       */
     global define void noBootloaderPopup () ``{
 	// error report
-	Report::Error (_("Unable to install bootloader."));
+	Report::Error (_("Unable to install the boot loader."));
     }
 }
