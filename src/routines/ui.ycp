@@ -46,7 +46,8 @@
 	    `VSpacing (1),
 	    `HBox (
 		`HStretch (),
-		`PushButton (`id (`ok), `opt (`key_F10), OKButtonLabel ()),
+		`PushButton (`id (`ok), `opt (`key_F10, `default),
+		    OKButtonLabel ()),
 		`HSpacing (1),
 		`PushButton (`id (`cancel), `opt (`key_F9), CancelButtonLabel ()),
 		`HStretch ()
@@ -146,7 +147,8 @@
 	    `VSpacing (1),
             `HBox (
                 `HStretch(),
-		`PushButton (`id (`ok), `opt (`key_F10), OKButtonLabel ()),
+		`PushButton (`id (`ok), `opt (`key_F10, `default),
+		    OKButtonLabel ()),
 		`HSpacing (1),
                 `PushButton (`id (`cancel), `opt (`key_F9), CancelButtonLabel ()),
                 `HStretch ()
