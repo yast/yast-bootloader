@@ -128,7 +128,6 @@
 	}
 	if ( Arch::board_iseries )
 	{
-
 		BootPPC::ppc_update_prep_boot_partitions ();
 
 		if ( Boot::location == "iseries_nwsstg" )
@@ -171,6 +170,8 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 	}
 	else if ( Arch::board_prep )
 	{
+		BootPPC::ppc_update_prep_boot_partitions ();
+
 		if ( size (ppc_prep_boot_partitions) > 0)
 		{
 			target_name = ppc_prep_boot_partitions[ppc_boot_partition]:1;
@@ -184,6 +185,8 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 	}
 	else if ( Arch::board_chrp )
 	{
+		BootPPC::ppc_update_prep_boot_partitions ();
+
 		if ( size (ppc_prep_boot_partitions) > 0)
 		{
 			target_name = ppc_prep_boot_partitions[ppc_boot_partition]:1;
