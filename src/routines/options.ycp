@@ -199,6 +199,7 @@
 			// FIXME this checking is performed on 3 places
 			if (p["device"]:"" == ld && fs == `xfs)
 			{
+			    // yes-no popup
 			    if (! Popup::YesNo (_("The partition selected for boot loader installation
 does not have enough free space in its boot sector
 to hold the boot loader because of the file system
