@@ -387,7 +387,7 @@ image = /boot/" + Kernel::binary + "
         list _options = [];
         if (type == `global)
         {
-	    _options = [`loader_type, `sep1, `location, `options];
+	    _options = ["__loader_type", "__sep1", "__location", "__options"];
         }
         else
 	    _options = []; // TODO add support
@@ -410,8 +410,8 @@ image = /boot/" + Kernel::binary + "
         return $[
 		"summarybuttons" : getSummaryButtonsWidget (),
                 "tableentries" : $[
-		    `location: getLocationsWidget (),
-		    `options: getOptionsWidget (),
+		    "__location": getLocationsWidget (),
+		    "__options": getOptionsWidget (),
                 ],
         ];
     }

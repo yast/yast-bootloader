@@ -205,8 +205,8 @@
         list _options = [];
         if (type == `global)
         {
-	    _options = [`loader_type, `sep1, `location, `promalias,
-		`defaultdevice];
+	    _options = ["__loader_type", "__sep1", "__location", "__promalias",
+		"__defaultdevice"];
         }
         else
 	    _options = []; // TODO add support
@@ -260,8 +260,8 @@
         return $[
 		"summarybuttons" : getSummaryButtonsWidget (),
                 "tableentries" : $[
-		    `promalias : getPromAliasWidget (),
-		    `defaultdevice : getDefaultDeviceWidget (),
+		    "__promalias" : getPromAliasWidget (),
+		    "__defaultdevice" : getDefaultDeviceWidget (),
                 ],
         ];
     }

@@ -72,7 +72,8 @@
 	BootCommon::location = settings["location"]:"";
 	BootCommon::loader_device = settings["loader_device"]:"";
 	BootCommon::setLoaderType (settings["loader_type"]:nil);
-	Initrd::Import (settings["initrd"]:$[]);
+	if (settings["initrd"]:$[] != $[])
+	    Initrd::Import (settings["initrd"]:$[]);
 	blImport (settings["specific"]:$[]);
 	BootCommon::changed_settings = settings["changed_settings"]:$[];
 	BootCommon::write_settings = settings["write_settings"]:$[];
@@ -209,53 +210,30 @@
 	{
 	    string comment
 		= SCR::Read (.sysconfig.bootloader.LOADER_TYPE.comment);
+	    if (comment == nil)
+		comment = "";
 	    if (Arch::i386 || Arch::x86_64)
 	    {
-		comment = regexpsub (comment, ".*\n## (Type:[^\n]*)\n.*",
-		    "Type:	list(grub,lilo)");
+		comment = regexpsub (comment, "(.*\n## )Type:[^\n]*(\n.*)",
+		    "\\1Type:	list(grub,lilo)\\2");
 	    }
-	    comment = regexpsub (comment, ".*\n## (Default:[^\n]*)\n.*",
-		sformat ("Default:  %1", getLoaderType ()));
-	    SCR::Write (.sysconfig.bootloader.LOADER_TYPE.comment, comment);
+	    comment = regexpsub (comment, "(.*\n## )Default:[^\n]*(\n.*)",
+		sformat ("\\1Default:  %1\\2", getLoaderType ()));
+	    if (comment != nil)
+		SCR::Write (.sysconfig.bootloader.LOADER_TYPE.comment, comment);
 	    comment = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION.comment);
+	    if (comment == nil)
+		comment = "";
 	    if (Arch::i386 || Arch::x86_64)
             {
-                comment = regexpsub (comment, ".*\n## (Type:[^\n]*)\n.*",
-                    "Type:	list(floppy,mbr,root,boot,custom,none)");
+                comment = regexpsub (comment, "(.*\n## )Type:[^\n]*(\n.*)",
+                    "\\1Type:	list(floppy,mbr,root,boot,custom,none)\\2");
             }
-	    comment = regexpsub (comment, ".*\n## (Default:[^\n]*)\n.*",
-		sformat ("Default:  %1", BootCommon::location));
-	    SCR::Write (.sysconfig.bootloader.LOADER_LOCATION.comment, comment);
-
-/*	    string comment = "## Path:	System/Bootloader
-## Description:	Bootloader configuration\n";
-	    if (Arch::i386 || Arch::x86_64)
-		comment = comment
-		    + "## Type:	list(grub,lilo)";
-	    else
-		comment = comment + "## Type:	string";
-	    comment = comment
-		+ sformat ("\n## Default:	%1\n", getLoaderType ());
-	    comment = comment
-		+ "# Type of bootloader in use.
-# For making the change effect run bootloader configuration tool
-# and configure newly selected bootloader.\n#\n#";
-	    SCR::Write (.sysconfig.bootloader.LOADER_TYPE.comment, comment);*/
-
-
-
-/*            comment = "\n## Path:	System/Bootloader
-## Description:	Bootloader configuration\n";
-	    if (Arch::i386 || Arch::x86_64)
-		comment = comment
-		    + "## Type:	list(floppy,mbr,root,boot,custom,none)";
-	    else
-		comment = comment + "## Type:	string";
-	    comment = comment
-		+ sformat ("\n## Default:	%1\n", BootCommon::location);
-	    comment = comment + "# Location of boot loader.
-#\n#";
-	    SCR::Write (.sysconfig.bootloader.LOADER_LOCATION.comment, comment);*/
+	    comment = regexpsub (comment, "(.*\n## )Default:[^\n]*(\n.*)",
+		sformat ("\\1Default:  %1\\2", BootCommon::location));
+	    if (comment != nil)
+		SCR::Write (.sysconfig.bootloader.LOADER_LOCATION.comment,
+		    comment);
 	}
 	SCR::Write (.sysconfig.bootloader, nil);
 

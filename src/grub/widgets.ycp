@@ -36,14 +36,14 @@
 	    "globalsection" : getGlobalSectionWidget (),
 	    "passwd" : getPasswdWidget (),
 	    "tableentries" :$[
-		`sections : getSectionsTableEntry (),
-		`default_section : getDefaultSectionTableEntry (),
-		`section_type : getSectionTypeWidget (),
+		"__sections" : getSectionsTableEntry (),
+		"__default_section" : getDefaultSectionTableEntry (),
+		"__section_type" : getSectionTypeWidget (),
 		"title" : getTitleWidget (),
 		"timeout" : getTimeoutWidget (),
 		"password" : getPasswdWidget (),
 		"gfxmenu" : getGfxMenuWidget (),
-		`diskorder : getOrderPopup (),
+		"__diskorder" : getOrderPopup (),
 	    ],
         ];
     }
@@ -84,15 +84,15 @@
             });
             _options = done;
 
-            _options = prepend (_options, `sep1);
-            _options = prepend (_options, `repl_mbr);
+            _options = prepend (_options, "__sep1");
+            _options = prepend (_options, "__repl_mbr");
             _options = prepend (_options, "activate");
-            _options = prepend (_options, `sections);
-            _options = prepend (_options, `default_section);
-	    _options = prepend (_options, `diskorder);
-            _options = prepend (_options, `location);
-            _options = prepend (_options, `sep2);
-            _options = prepend (_options, `loader_type);
+            _options = prepend (_options, "__sections");
+            _options = prepend (_options, "__default_section");
+	    _options = prepend (_options, "__diskorder");
+            _options = prepend (_options, "__location");
+            _options = prepend (_options, "__sep2");
+            _options = prepend (_options, "__loader_type");
 	}
 	else
 	{
@@ -116,8 +116,8 @@
 	    });
 	    _options = done;
 
-	    _options = prepend (_options, `sep1);
-	    _options = prepend (_options, `section_type);
+	    _options = prepend (_options, "__sep1");
+	    _options = prepend (_options, "__section_type");
 	    _options = prepend (_options, "title");
 	}
 	return _options;
@@ -262,8 +262,8 @@
 	}*/
         if (contains (tosave, op))
         {
-            BootCommon::markOptionChanged (`global, `sections);
-            BootCommon::markOptionChanged (`global, `default_section);
+            BootCommon::markOptionChanged (`global, "__sections");
+            BootCommon::markOptionChanged (`global, "__default_section");
         }
     }
 
@@ -583,7 +583,7 @@
         ];
 	map ret = BootCommon::getGlobalSectionWidget ();
 	ret["widget"] = (`HBox (`HSpacing (2), `VBox (
-                    `Table (`id (`settings), `opt (`notify, `keepSorting),
+                    `Table (`id (`settings), `opt (`immediate, `keepSorting),
 			// table header
                         `header (_("Ch."),
 			// table header
