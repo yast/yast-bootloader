@@ -15,6 +15,7 @@ X-SuSE-YaST-AutoInst=configure
 X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoinstResource=
+X-SuSE-YaST-AutoinstPath=install
 
 Icon=boot
 Exec=/sbin/yast2 bootloader 
