@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug  4 10:10:40 CEST 2004 - jsrain@suse.cz
+
+- more type information for CWM structures
+- fixed testsuite
+
+-------------------------------------------------------------------
 Mon Jul 26 12:58:55 CEST 2004 - jsrain@suse.cz
 
 - fixed routine of merging detected modules for initrd with those

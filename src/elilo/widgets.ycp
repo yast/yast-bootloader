@@ -56,8 +56,8 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getGlobalSectionWidget () ``{
-	map ret = BootCommon::getGlobalSectionWidget ();
+    global define map<string,any> getGlobalSectionWidget () ``{
+	map<string,any> ret = BootCommon::getGlobalSectionWidget ();
 	ret["ids"] = BootELILO::getTableContents;
 	return ret;
     }
@@ -183,7 +183,7 @@
       * Get map of Target widget
       * @return map of Target widget
       */
-    global define map getTargetOption () ``{
+    global define map<string,any> getTargetOption () ``{
 	return $[
 	    "table" : $[
 		// table cell / label
@@ -212,7 +212,7 @@
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetWidgetMaps () ``{
+    global define map<string,map<string,any> > GetWidgetMaps () ``{
 	return $[
 	    "globalsection" : getGlobalSectionWidget (),
 	];
@@ -222,7 +222,7 @@
       * Get map of all available Table/Popup options
       * @return map of options
       */
-    global define map GetOptionMaps () ``{
+    global define map<string,map<string,any> > GetOptionMaps () ``{
 	return $[
 	    "__location"	: getTargetOption (),
         ];

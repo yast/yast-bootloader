@@ -78,6 +78,7 @@
 		"ENABLE_AUTOLOGIN" : "0",
 		"EVMS_CONFIG" : "0",
 		"IO_SCHEDULER" : "cfg",
+		"UI_MODE" : "expert",
 	    ]
 	],
     ];

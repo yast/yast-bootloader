@@ -376,7 +376,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getSectionsWidget () ``{
+    global define map<string,any> getSectionsWidget () ``{
 	return $[
 	    "widget" : `custom,
 	    "custom_widget" : `VBox (
@@ -422,11 +422,11 @@
 
     /**
       * Handle function of a widget
-      * @param widget any widget key
+      * @param widget string widget key
       * @param event map event description of event that occured
       * @return symbol to return to wizard sequencer, or nil
       */
-    global define symbol singleSectionHandle (any widget, map event) ``{
+    global define symbol singleSectionHandle (string widget, map event) ``{
 	redraw_table = false;
 	map<string,any> current_table = CWM::GetProcessedWidget ();
 	map options = current_bootloader_attribs["option_list"]:$[];
@@ -488,7 +488,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getSingleSectionWidget () ``{
+    global define map<string,any> getSingleSectionWidget () ``{
 	return TablePopup::CreateTableDescr (
 	    $[
 		"add_delete" : true,
@@ -565,7 +565,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getGlobalSectionWidget () ``{
+    global define map<string,any> getGlobalSectionWidget () ``{
 	return TablePopup::CreateTableDescr (
 	    $[
 		"add_delete" : true,
@@ -695,7 +695,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getResetButtonWidget () ``{
+    global define map<string,any> getResetButtonWidget () ``{
 	return $[
 	    "widget" : `custom,
 	    "custom_widget" : `VSpacing (0),
@@ -721,7 +721,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getManualEditWidget () ``{
+    global define map<string,any> getManualEditWidget () ``{
 	return $[
 	    "widget" : `custom,
 	    "custom_widget" : `HBox (`HStretch (),
@@ -741,7 +741,7 @@
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map<string,any> GetWidgetMaps () ``{
+    global define map<string,map<string,any> > GetWidgetMaps () ``{
 	return $[
 	    "sections"		: BootCommon::getSectionsWidget (),
 	    "singlesection"	: BootCommon::getSingleSectionWidget (),

@@ -67,8 +67,8 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getGlobalSectionWidget () ``{
-	map ret = BootCommon::getGlobalSectionWidget ();
+    global define map<string,any> getGlobalSectionWidget () ``{
+	map<string,any> ret = BootCommon::getGlobalSectionWidget ();
 	ret["ids"] = BootPPC::getTableContents;
 	return ret;
     }
@@ -105,7 +105,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getSTMFWidget () ``{
+    global define map<string,any> getSTMFWidget () ``{
 	return $[
 	    "table" : $[
 		"summary" : BootPPC::STMFSummary,
@@ -157,7 +157,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getSetDeafultOFWidget () ``{
+    global define map<string,any> getSetDeafultOFWidget () ``{
 	return $[
 	    "table" : $[
 		"summary" : BootPPC::setDefaultOFSummary,
@@ -221,7 +221,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getPRePPartsWidget () ``{
+    global define map<string,any> getPRePPartsWidget () ``{
 	return $[
 	    "table" : $[
 		"summary" : BootPPC::PRePPartsSummary,
@@ -380,7 +380,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map iSeriesTargetWidget () ``{
+    global define map<string,any> iSeriesTargetWidget () ``{
 	return $[
 	    "table" : $[
 		// table cell / label
@@ -484,7 +484,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map PRePTargetWidget () ``{
+    global define map<string,any> PRePTargetWidget () ``{
 	return $[
 	    "table" : $[
 		// table cell / label
@@ -538,7 +538,7 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getBoardTypeWidget () {
+    global define map<string,any> getBoardTypeWidget () {
 	return $[
 	    "table" : $[
 		// table cell / label
@@ -562,7 +562,7 @@
       * Get map of bootloader options
       * @return map of options
       */
-    global define map GetOptionMaps () ``{
+    global define map<string,map<string,any> > GetOptionMaps () ``{
 	return $[
 	    "__iseries_location" : iSeriesTargetWidget (),
 	    "__prep_location" : PRePTargetWidget (),
@@ -579,7 +579,7 @@
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetWidgetMaps () ``{
+    global define map<string,map<string,any> > GetWidgetMaps () ``{
         return $[
 	    "globalsection" : getGlobalSectionWidget (),
         ];

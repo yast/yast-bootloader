@@ -582,10 +582,10 @@ fi", efi_label);
 	    "bootloader_on_disk" : false,
 	    "option_list" : GetOptions (),
 	];
-	BootCommon::cwm_options = (map<string, any>) union (
+	BootCommon::cwm_options = (map<string, map<string,any> >)union (
 	    BootCommon::GetOptionMaps (),
 	    BootELILO::GetOptionMaps ());
-	BootCommon::cwm_widgets = union (
+	BootCommon::cwm_widgets = (map<string, map<string,any> >)union (
 	    BootCommon::GetWidgetMaps (),
 	    BootELILO::GetWidgetMaps ());
     }

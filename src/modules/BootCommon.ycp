@@ -137,7 +137,7 @@
     /**
       * Table/Popup options used by currently used bootloader
       */
-    global map<string, any> cwm_options = $[];
+    global map<string, map<string,any> > cwm_options = $[];
 
 // common variables
 
@@ -221,7 +221,7 @@
     /**
       * Widgets used by currently used bootloader
       */
-    global map cwm_widgets = $[];
+    global map<string,map<string,any> > cwm_widgets = $[];
 // state variables
 
     /**
