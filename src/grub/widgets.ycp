@@ -597,6 +597,7 @@ Replace it with an entry  to boot from the floppy?");
 		new_map = add (new_map, [gd, d]);
 		pos = pos + 1;
 	    });
+	    remap = filter (string k, string v, remap, ``(k != "" && v != ""));
 	    BootCommon::current_globals
 		= BootGRUB::remapDisks (BootCommon::current_globals, remap);
 	    BootCommon::sections = maplist (`s, BootCommon::sections, ``{

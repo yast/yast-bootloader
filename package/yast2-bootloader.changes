@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Thu Oct 30 16:16:42 CET 2003 - jsrain@suse.de
+Thu Oct 30 17:49:22 CET 2003 - jsrain@suse.de
 
 - fixed handling of disks reorder dialog for GRUB configuration
+- fixed modifying configuration data according to changed GRUB's
+  device map (#32667)
 
 -------------------------------------------------------------------
 Wed Oct 29 10:07:20 CET 2003 - jsrain@suse.de
