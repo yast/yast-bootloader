@@ -729,6 +729,7 @@
 			string device = option;
 			if (device != nil)
 			{
+			    y2milestone ("Updating root/other device of section %1", label);
 			    device = BootCommon::UpdateDevice (device);
 			    option = device;
 			}
@@ -746,6 +747,7 @@
 				option, "resume");
 			if (resume != "false")
 			{
+			    y2milestone ("Updating resume device of section %1", label);
 			    resume = BootCommon::UpdateDevice (resume);
 			    option = BootCommon::setKernelParamToLine (
 				option, "resume", resume);

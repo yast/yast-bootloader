@@ -148,6 +148,8 @@
  */
 global void updateDeviceMap () {
     device_map = maplist (list<string> entry, device_map, {
+	y2milestone ("Updating device in devmap entry %1:%2",
+	    entry[0]:"", entry[1]:"");
 	entry[1] = BootCommon::UpdateDevice (entry[1]:"");
 	return entry;
     });

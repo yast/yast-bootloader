@@ -245,10 +245,6 @@
       * Update read settings to new version of configuration files
       */
     global define void UpdateConfiguration () ``{
-	BootCommon::BootPartitionDevice
-	    = BootCommon::UpdateDevice (BootCommon::BootPartitionDevice);
-	BootCommon::RootPartitionDevice
-	    = BootCommon::UpdateDevice (BootCommon::RootPartitionDevice);
 	// first run bootloader-specific update function
 	blUpdate ();
 
