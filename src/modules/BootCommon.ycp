@@ -252,7 +252,12 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
-	SCR::Read (list2path ([getLoaderType (false), "reread"]));
+	string bl = getLoaderType (false);
+	if (bl == "s390")
+	    bl = "zipl";
+	else if (bl == "ppc")
+	    bl = "lilo";
+	SCR::Read (list2path ([bl, "reread"]));
 	loadCfgFileFromAgent ();
 	loader_device = lookup_value (globals, "boot", "/dev/null");
         return true;

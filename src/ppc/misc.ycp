@@ -1,0 +1,112 @@
+/**
+ * File:
+ *      include/bootloader/ppc/misc.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Miscelaneous functions for configuring and installing PPC bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+
+    /**
+      * Update the list of 41 PReP boot partitions
+      */
+    global define void ppc_update_prep_boot_partitions () ``{
+	map targetMap = Storage::GetTargetMap ();
+	integer partition_type = 0;
+	integer partition_number = 0;
+	integer partition_counter = 0;
+	boolean deleted = false;
+	string  boot_root_device
+	    = deletechars ( Boot::RootPartitionDevice, "0123456789");
+
+	y2milestone("old prep_boot_partitions %1", ppc_prep_boot_partitions);
+	ppc_prep_boot_partitions = $[];
+	ppc_possible_boot_partitions = [];
+
+	if ( Boot::last_change > ppc_boot_partition_timestamp )
+	{
+	    ppc_boot_partition_timestamp = Boot::last_change;
+	    ppc_boot_partition = 0;
+	    y2milestone("reset timestamp and active prep boot partition (%1)",
+		ppc_boot_partition_timestamp);
+	}
+	foreach (`dname, `ddata, targetMap, ``{
+	    list partitions = lookup (ddata, "partitions", []);
+	    y2milestone (
+		"ppc_update_prep_boot_partitions disk %1 partitions %2",
+		dname, partitions);
+
+	    if (size (partitions) > 0)
+	    {
+		foreach (`pentry, partitions, ``{
+		    partition_type   = lookup (pentry, "fsid", "");
+		    partition_number = lookup (pentry, "nr", "");
+		    deleted          = lookup (pentry, "delete", false);
+
+		    y2milestone("partitionsloop: dname %1 partition_type %2\
+			partition_number %3 ",dname,partition_type,
+			partition_number);
+
+		    if ((partition_type == 65) && ! deleted)
+		    {
+			partition_counter = partition_counter + 1;
+
+			// the 41 PReP boot partition must be
+			// on the same drive as the root partiton
+			// the bootloader yaboot expects the kernel
+			// on the same drive
+			// ppc_boot_partition==0 means, no user selection, yet
+			if ( ppc_boot_partition == 0
+			    && dname == boot_root_device )
+			{
+			    ppc_boot_partition = partition_counter;
+			    y2milestone("activate partition on %1,\n
+				partition_counter %2",
+				dname, partition_counter);
+			}
+			// activate the prefered partition in the menu
+			if ( partition_counter == ppc_boot_partition )
+			{
+			    ppc_possible_boot_partitions = add (
+				ppc_possible_boot_partitions,
+				`item(`id(partition_counter),
+				    pentry["device"]:"", true));
+			}
+			else
+			{
+			    ppc_possible_boot_partitions = add (
+				ppc_possible_boot_partitions,
+				`item(`id(partition_counter),
+				    pentry["device"]:""));
+			}
+			ppc_prep_boot_partitions[partition_counter]
+			    = pentry["device"]:"";
+		    }
+		});
+	    }
+	});
+	if ( ppc_boot_partition > size (ppc_prep_boot_partitions)
+	    || ppc_boot_partition == 0 )
+	{
+	    y2milestone("RESET ppc_boot_partition to 1, was %1",
+		ppc_boot_partition);
+	    ppc_boot_partition = 1;
+	}
+	y2milestone("new prep_boot_partitions %1 %2",
+	    partition_counter, ppc_prep_boot_partitions);
+	y2milestone("new ppc_possible_boot_partitions %1",
+	    ppc_possible_boot_partitions);
+    }
+
+
+}

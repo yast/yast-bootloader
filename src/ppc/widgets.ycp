@@ -1,0 +1,391 @@
+/**
+ * File:
+ *      include/bootloader/ppc/widgets.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Widgets specific for GRUB bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+
+    import "BootCommon";
+    include "ui/common_messages.ycp";
+    include "bootloader/routines/popups.ycp";
+    include "bootloader/grub/helps.ycp";
+    include "bootloader/routines/routines.ycp";
+
+    textdomain "bootloader";
+
+
+    /**
+      * Update list of options to display in current section
+      * @param _options list of all options
+      * @return list of options as it should be displayed
+      */
+    global define list UpdateOptionsList (list _options) ``{
+        list prependlist = [];
+        list orig_opts = _options;
+        any type = BootCommon::getSectionType (BootCommon::current_section);
+        if (type == `global)
+        {
+            prependlist = ["__loader_type", "__sep2", "__location",
+                "__default_section", "__sections", "__options"];
+            _options = filter (`o, _options, ``(
+                o["key"]:"" != "boot" && o["key"]:"" != "default"));
+        }
+        else
+        {
+            prependlist = ["label", "__section_type", "__sep1"];
+        }
+        _options = filter (`o, _options, ``(! contains (
+            prependlist, o["key"]:"")));
+        if (Mode::initial)
+        {
+            prependlist = filter (`p, prependlist, ``(p != "__save_method"));
+        }
+        prependlist = maplist (`p, prependlist, ``{
+            map m = getValueMap (orig_opts, p);
+            if (m == $[])
+            {
+                m = $[ "key" : p];
+            }
+            return m;
+        });
+        list options = merge (prependlist, _options);
+        return options;
+    }
+
+    /**
+      * Get map of bootloader options
+      * @return map of options
+      */
+    global define map GetOptions () ``{
+	return nil;
+    }
+
+    /**
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
+      */
+    global define map GetWidgets () ``{
+        return $[
+		"summarybuttons" : getSummaryButtonsWidget (),
+                "tableentries" : $[
+		    "__location": ``(BootPPC::getTargetWidget ()),
+		    "__options": ``(BootPPC::getOptionsWidget ()),
+                ],
+        ];
+    }
+
+    /**
+      * @return widget description map
+      */
+    global define map getSummaryButtonsWidget () ``{
+	return $[];
+    }
+
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getTargetWidget () ``{
+	map ret = BootCommon::getTargetWidget ();
+	ret["widget"] = getLocationPopup ();
+	ret["restore"] = ``(BootPPC::restoreLocationWidget ());
+	ret["handle"] = ``(BootPPC::handleLocationWidget ());
+	ret["summary"] = ``(BootPPC::summaryLocationWidget ());
+	ret["validate"] = nil;
+	return ret;
+    }
+
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getOptionsWidget () ``{
+	return $[
+	    "widget" : getOptionsDialog (),
+	    "restore" : ``(BootPPC::restoreOptionsWidget ()),
+	    "handle" : ``(BootPPC::handleOptionsWidget ()),
+	    "summary" : ``(BootPPC::summaryOptionsWidget ()),
+		// label / table entry
+	    "label" : _("Boot Loader Options"),
+	];
+    }
+
+    /**
+      * Get widget contents
+      * @return term widget contents
+      */
+    global define term getLocationPopup () ``{
+	term ppc_location = `VBox ();
+
+	if ( Arch::board_iseries )
+	{
+	    ppc_location = `VBox (
+		`VStretch (),
+		`Left (`RadioButton (`id ("ppc_iseries"), `opt (`notify),
+		    // activate boot partition, radiobutton
+		    _("Write Boot Loader")
+		)),
+		`VStretch (),
+		`Left (`CheckBox (`id (`iseries_do_stmf),
+		    // checkbox
+		    _("Generate a Boot File for *STMF Booting")
+		)),
+		size (ppc_prep_boot_partitions) <= 0
+		    ? `VSpacing (0)
+		    : `Left (`CheckBox (`id (`iseries_do_nwsstg),
+			// checkbox
+			_("Write the Kernel to 41 PReP Boot Partition (for *NWSSTG)")
+		)),
+		`Left (`CheckBox (`id (`iseries_do_rescue_slot),
+		    // checkbox
+		    _("Write Rescue Kernel to Slot A")
+		)),
+		`VStretch (),
+		`Left (`CheckBox (`id (`iseries_do_kernel_slot),
+		    // radiobutton
+		    _("Write the Kernel to Slot B")
+		))
+	    );
+	}
+	else if ( Arch::board_chrp || Arch::board_mac_new || Arch::board_prep)
+	{
+	    ppc_location = `VBox(
+                `VStretch(),
+                `Left (`RadioButton (`id ("ppc_chrp"), `opt (`notify),
+		    // radio button
+		    _("Write Boot Loader")
+		))
+	    );
+	}
+	else
+	{
+	    return `Label (
+		// label
+		_("There is no boot loader support for this board."));
+	}
+	ppc_location = add ( ppc_location ,`VBox(
+	    `VStretch(),
+	    `Left (`RadioButton (`id ("ppc_nobootloader"), `opt (`notify),
+		// radiobutton
+		_("Do Not Configure a Boot Loader")
+	    ))
+	));
+
+	return `RadioButtonGroup (`id (`options), ppc_location);
+    }
+
+    /**
+      * Read function of a widget
+      */
+    global define void restoreLocationWidget () ``{
+	tmp_ppc_iseries_write_slot_a = ppc_iseries_write_slot_a;
+	tmp_ppc_iseries_write_slot_b = ppc_iseries_write_slot_b;
+	tmp_ppc_iseries_write_streamfile = ppc_iseries_write_streamfile;
+	tmp_ppc_iseries_write_prepboot = ppc_iseries_write_prepboot;
+
+	if ( Arch::board_iseries )
+	{
+	    UI::ChangeWidget (`id ("ppc_iseries"), `Value,
+		BootCommon::activate);
+	    UI::ChangeWidget (`id (`iseries_do_stmf), `Value,
+		/*BootCommon::activate &&*/ ppc_iseries_write_streamfile);
+//	    UI::ChangeWidget (`id (`iseries_do_stmf), `Enabled,
+//		BootCommon::activate);
+
+            if (size (ppc_prep_boot_partitions) > 0)
+	    {
+		UI::ChangeWidget (`id (`iseries_do_nwsstg), `Value,
+		    /*BootCommon::activate &&*/ ppc_iseries_write_prepboot);
+//		UI::ChangeWidget (`id (`iseries_do_nwsstg), `Enabled,
+//		    BootCommon::activate);
+
+	    }
+	    UI::ChangeWidget (`id (`iseries_do_rescue_slot), `Value,
+		/*BootCommon::activate && */ppc_iseries_write_slot_a);
+//	    UI::ChangeWidget (`id (`iseries_do_rescue_slot), `Enabled,
+//		BootCommon::activate);
+	    UI::ChangeWidget (`id (`iseries_do_kernel_slot), `Value,
+		/*BootCommon::activate &&*/ ppc_iseries_write_slot_b);
+//	    UI::ChangeWidget (`id (`iseries_do_kernel_slot), `Enabled,
+//		BootCommon::activate);
+	}
+	else if (Arch::board_chrp || Arch::board_mac_new || Arch::board_prep)
+	{
+	    UI::ChangeWidget (`id ("ppc_chrp"), `Value,
+		BootCommon::location == "ppc_chrp");
+	}
+	UI::ChangeWidget (`id ("ppc_nobootloader"), `Value,
+	    ! BootCommon::activate);
+    }
+
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param save boolean true if op should lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any handleLocationWidget (any op, boolean save) ``{
+	if (op != `ok)
+	{
+	    return nil;
+	}
+	if ( Arch::board_iseries )
+	{
+	    BootCommon::activate
+		= UI::QueryWidget (`id ("ppc_iseries"), `Value);
+	    ppc_iseries_write_streamfile
+		= UI::QueryWidget (`id (`iseries_do_stmf), `Value);
+
+	    if ( size (ppc_prep_boot_partitions) > 0 )
+	    {
+		ppc_iseries_write_prepboot
+		    = UI::QueryWidget (`id (`iseries_do_nwsstg), `Value);
+            }
+	    ppc_iseries_write_slot_a
+		= UI::QueryWidget (`id (`iseries_do_rescue_slot), `Value);
+	    ppc_iseries_write_slot_b
+		= UI::QueryWidget (`id (`iseries_do_kernel_slot), `Value);
+	}
+	BootCommon::activate
+	    = ! UI::QueryWidget (`id ("ppc_nobootloader"), `Value);
+
+	BootCommon::location = UI::QueryWidget (`id (`options), `CurrentButton);
+	y2error ("Location: %1", BootCommon::location);
+	return nil;
+    }
+
+    /**
+      * Summary function for option
+      * @return string summary text
+      */
+    global define string summaryLocationWidget () ``{
+	if (! BootCommon::activate)
+		// table entry
+	    return _("Do Not Install a Boot Loader");
+	return BootCommon::location;
+    }
+
+    /**
+     * AskParameters
+     *
+     * helper function for inst_bootloader
+     * provide ui code to ask LILO specific parameters
+     * Input field for PROM changes and boot parameters
+     *
+     * @return term options dialog
+     */
+    global define term getOptionsDialog () ``{
+        list ppc_params = [];
+
+        if ( ( Arch::board_iseries || Arch::board_chrp ) &&
+                size (ppc_prep_boot_partitions) > 0 )
+        {
+                ppc_params = add ( ppc_params,
+                    `VSquash(
+                             `HBox(
+                                   `HWeight(1,
+                                            // Layout trick: let the text have its nice size - the rest
+                                            // will do nicely for the input field.
+                                            `Bottom(
+                                                        // combobox
+                                                    `ComboBox (`id(`custom_partition), `opt(`editable), _("&Choose 41 PReP Boot Partition:"), BootPPC::ppc_possible_boot_partitions)
+                                                    )
+                                            )
+                                   )
+                             )
+                    );
+        }
+        if ( Arch::board_iseries )
+        {
+                ppc_params = add ( ppc_params,
+                        `VBox (`Left (`TextEntry (
+                        `id( `ppc_iseries_streamfile ),
+                        // Text input field to enter the iSeries streamfile location
+                        _("&iSeries Stream File for *STMF Booting:"),
+                        BootPPC::ppc_iseries_streamfile)
+                        ))
+                        );
+        }
+        if ( Arch::board_mac_new || Arch::board_chrp )
+        {
+                ppc_params = add ( ppc_params,
+                    `Left (`CheckBox (`id (`ppc_change_of),
+                        // check box
+                        _("Set Default &OpenFirmware 'boot-device'"),
+                        BootPPC::ppc_of_defaultdevice))
+                        );
+        }
+
+	term ret = `VBox ();
+	foreach (`p, ppc_params, ``{
+	    ret = add (ret, p);
+	});
+
+        return ret;
+    }
+
+    /**
+      * Read function of a widget
+      */
+    global define void restoreOptionsWidget () ``{
+        if ( ( Arch::board_iseries || Arch::board_chrp ) &&
+                size (ppc_prep_boot_partitions) > 0 )
+        {
+	    UI::ChangeWidget (`id (`custom_partition), `Value, ppc_boot_partition);
+        }
+        if ( Arch::board_iseries )
+        {
+	    UI::ChangeWidget (`id (`ppc_iseries_streamfile), `Value, BootPPC::ppc_iseries_streamfile);
+        }
+        if ( Arch::board_mac_new || Arch::board_chrp )
+        {
+	    UI::ChangeWidget (`id (`ppc_change_of), `Value, BootPPC::ppc_of_defaultdevice);
+	}
+    }
+
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param save boolean true if op should lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any handleOptionsWidget (any op, boolean save) ``{
+	if (! save)
+	    return op;
+        if ( ( Arch::board_iseries || Arch::board_chrp ) &&
+                size (ppc_prep_boot_partitions) > 0 )
+        {
+            ppc_boot_partition = UI::QueryWidget (`id (`custom_partition), `Value);
+        }
+        if ( Arch::board_iseries )
+        {
+            BootPPC::ppc_iseries_streamfile = UI::QueryWidget (`id (`ppc_iseries_streamfile), `Value);
+        }
+        if ( Arch::board_mac_new || Arch::board_chrp )
+        {
+	    BootPPC::ppc_of_defaultdevice = UI::QueryWidget (`id (`ppc_change_of), `Value);
+        }
+	return op;
+    }
+
+    /**
+      * Summary function for option
+      * @return string summary text
+      */
+    global define string summaryOptionsWidget () ``{
+	return "";
+    }
+
+}

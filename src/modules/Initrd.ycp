@@ -267,7 +267,8 @@
 		! contains (read_modules, m)));
 	    s_modules = filter (`m, s_modules, ``(
 		! contains (modules, m)));
-	    y2milestone ("Modules %1 were added to initrd not during YaST2",
+	    y2milestone (
+		"Modules %1 were added to initrd not using Initrd module",
 		s_modules);
 	    foreach (`m, s_modules, ``{
 		AddModule (m, "");
