@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug 17 11:27:21 CEST 2004 - jsrain@suse.cz
+
+- fixed signatures of handler functions of Table/Popup options
+
+-------------------------------------------------------------------
 Mon Aug 16 11:16:44 CEST 2004 - jsrain@suse.cz
 
 - fixed printing of summary if location set to all MBRs of disks

@@ -133,7 +133,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void targetInit (any opt_id, any opt_key) ``{
+    global define void targetInit (any opt_id, string opt_key) ``{
 	if (BootPartitionDevice == RootPartitionDevice
 	    && location == "root")
 	{
@@ -152,7 +152,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void targetStore (any opt_id, any opt_key) ``{
+    global define void targetStore (any opt_id, string opt_key) ``{
 	location = (string)UI::QueryWidget (`id (`location), `CurrentButton);
 	loader_device = (string)UI::QueryWidget (`id (`loc), `Value);
 	loader_device = BootCommon::GetBootloaderDevice ();
@@ -169,7 +169,7 @@
       * @param event map event that caused validation
       * @return boolean true if widget settings ok
       */
-    global define boolean targetValidate (any opt_id, any opt_key, map event)``{
+    global define boolean targetValidate (any opt_id, string opt_key, map event)``{
 	string rb = (string)UI::QueryWidget (`id (`location), `CurrentButton);
 	if (rb == nil)
 	{
@@ -225,7 +225,7 @@ Continue?")))
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string targetSummary (any opt_id, any opt_key) ``{
+    global define string targetSummary (any opt_id, string opt_key) ``{
 	map targetMap = Storage::GetTargetMap ();
 	// MBR of all members of MD array
 	if (loader_device == "mbr_md" || location == "mbr_md")
@@ -301,7 +301,7 @@ Continue?")))
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void loaderTypeInit (any opt_id, any opt_key) ``{
+    global define void loaderTypeInit (any opt_id, string opt_key) ``{
 	UI::ChangeWidget (`id (`loader_type), `Value,
 	    BootCommon::getLoaderType (false));
 	UI::SetFocus (`id (`loader_type));
@@ -313,7 +313,7 @@ Continue?")))
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string loaderTypeSummary (any opt_id, any opt_key) ``{
+    global define string loaderTypeSummary (any opt_id, string opt_key) ``{
 	return BootCommon::getLoaderName (BootCommon::getLoaderType (false));
     }
 
@@ -355,7 +355,7 @@ Continue?")))
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void backupMbrInit (any opt_id, any opt_key) ``{
+    global define void backupMbrInit (any opt_id, string opt_key) ``{
         UI::ChangeWidget (`id (opt_key), `Value, backup_mbr);
         UI::SetFocus (`id (opt_key));
     }
@@ -365,7 +365,7 @@ Continue?")))
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void backupMbrStore (any opt_id, any opt_key) ``{
+    global define void backupMbrStore (any opt_id, string opt_key) ``{
         backup_mbr = (boolean)UI::QueryWidget (`id (opt_key), `Value);
 	markGeneralOptionChanged ("__backup_mbr");
     }
@@ -376,7 +376,7 @@ Continue?")))
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string backupMbrSummary (any opt_id, any opt_key) ``{
+    global define string backupMbrSummary (any opt_id, string opt_key) ``{
         if (backup_mbr)
             // table item / label
             return _("Yes");
@@ -419,7 +419,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void activateInit (any opt_id, any opt_key) ``{
+    global define void activateInit (any opt_id, string opt_key) ``{
         UI::ChangeWidget (`id (opt_key), `Value, activate);
 	UI::SetFocus (`id (opt_key));
     }
@@ -429,7 +429,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void activateStore (any opt_id, any opt_key) ``{
+    global define void activateStore (any opt_id, string opt_key) ``{
         activate = (boolean)UI::QueryWidget (`id (opt_key), `Value);
         if (activate)
             BootCommon::location_changed = true;
@@ -443,7 +443,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string activateSummary (any opt_id, any opt_key) ``{
+    global define string activateSummary (any opt_id, string opt_key) ``{
         if (activate)
 	{
 	    if (Mode::config)
@@ -497,7 +497,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void replMbrInit (any opt_id, any opt_key) ``{
+    global define void replMbrInit (any opt_id, string opt_key) ``{
 	UI::ChangeWidget (`id (opt_key), `Value, repl_mbr);
 	UI::SetFocus (`id (opt_key));
     }
@@ -507,7 +507,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void replMbrStore (any opt_id, any opt_key) ``{
+    global define void replMbrStore (any opt_id, string opt_key) ``{
 	repl_mbr = (boolean)UI::QueryWidget (`id (opt_key), `Value);
 	if (repl_mbr)
 	    BootCommon::location_changed = true;
@@ -520,7 +520,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string replMbrSummary (any opt_id, any opt_key) ``{
+    global define string replMbrSummary (any opt_id, string opt_key) ``{
 	if (repl_mbr)
 	{
 	    if (Mode::config)
@@ -569,7 +569,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void saveMethodInit (any opt_id, any opt_key) ``{
+    global define void saveMethodInit (any opt_id, string opt_key) ``{
         UI::ChangeWidget (`id (opt_key), `Value, save_all);
         UI::SetFocus (`id (opt_key));
     }
@@ -579,7 +579,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void saveMethodStore (any opt_id, any opt_key) ``{
+    global define void saveMethodStore (any opt_id, string opt_key) ``{
         save_all = (boolean)UI::QueryWidget (`id (opt_key), `Value);
 	markGeneralOptionChanged ((string)opt_key);
     }
@@ -590,7 +590,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string saveMethodSummary (any opt_id, any opt_key) ``{
+    global define string saveMethodSummary (any opt_id, string opt_key) ``{
         if (save_all)
             // table item / label
             return _("Force Saving Everything");
@@ -662,7 +662,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string getSectionsSummary (any opt_id, any opt_key) ``{
+    global define string getSectionsSummary (any opt_id, string opt_key) ``{
 	string default_name = BootCommon::getDefaultSection ();
 	string sect_title = BootCommon::getSectionTitle ();
 	list<string> sects = maplist (list<map> s, BootCommon::sections, ``{
@@ -702,7 +702,7 @@ and the sector to which the boot loader is installed."),
       * @param event map event that caused validation
       * @return boolean true if widget settings ok
       */
-    global define boolean labelValidate (any opt_id, any opt_key, map event) ``{
+    global define boolean labelValidate (any opt_id, string opt_key, map event) ``{
 	list<string> existing = [];
 	list<string> aliases = BootCommon::getAliasesKeys ();
 	foreach (list<map> s, BootCommon::current_sections, ``{
@@ -768,7 +768,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void sectionTypeInit (any opt_id, any opt_key) ``{
+    global define void sectionTypeInit (any opt_id, string opt_key) ``{
 	string key = BootCommon::getKernelKey ();
         UI::ChangeWidget (`id (`section_type), `Value,
 	    lookup_value (BootCommon::current_section, key, nil) == nil
@@ -782,7 +782,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void sectionTypeStore (any opt_id, any opt_key) ``{
+    global define void sectionTypeStore (any opt_id, string opt_key) ``{
         any ntype = UI::QueryWidget (`id (`section_type), `Value);
 	any otype = getSectionType (BootCommon::current_section);
 	if (otype == ntype)
@@ -800,7 +800,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string sectionTypeSummary (any opt_id, any opt_key) ``{
+    global define string sectionTypeSummary (any opt_id, string opt_key) ``{
 	string key = BootCommon::getKernelKey ();
 	return lookup_value (
 		BootCommon::current_section, key, nil) == nil
@@ -843,7 +843,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void timeoutInit (any opt_id, any opt_key) ``{
+    global define void timeoutInit (any opt_id, string opt_key) ``{
 	integer timeout = (integer)lookup_value (BootCommon::current_section,
 	    "timeout", 0);
 	UI::ChangeWidget (`id (opt_key), `Value,
@@ -856,7 +856,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void timeoutStore (any opt_id, any opt_key) ``{
+    global define void timeoutStore (any opt_id, string opt_key) ``{
 	integer timeout = (integer)UI::QueryWidget (`id (opt_key), `Value)
 	    * BootCommon::getTimeoutMultiplier ();
 	BootCommon::current_section = modifySection (
@@ -870,7 +870,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string timeoutSummary (any opt_id, any opt_key) ``{
+    global define string timeoutSummary (any opt_id, string opt_key) ``{
 	integer timeout = (integer)lookup_value (current_section, "timeout", 0);
 	// table cell, %1 is a number, 's' means 'seconds'
 	return sformat (_("%1 s"),
@@ -902,9 +902,9 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void initPasswdWidget (any opt_id, any opt_key) ``{
+    global define void initPasswdWidget (any opt_id, string opt_key) ``{
 	string passwd = (string)lookup_value (
-	    current_globals, current_option_name, nil);
+	    current_globals, opt_key, nil);
 	if (passwd == nil)
 	{
 	    UI::ChangeWidget (`id (`usepas), `Value, false);
@@ -930,7 +930,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_key any option key
       * @param event map event that occured
       */
-    global define void handlePasswdWidget (any opt_id, any opt_key, map event)
+    global define void handlePasswdWidget (any opt_id, string opt_key, map event)
     ``{
 	if (event["ID"]:nil == `usepas)
 	{
@@ -945,7 +945,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void storePasswdWidget (any opt_id, any opt_key) ``{
+    global define void storePasswdWidget (any opt_id, string opt_key) ``{
 	string password = nil;
 	boolean usepass = (boolean)UI::QueryWidget (`id (`usepas), `Value);
 	y2milestone ("Usepass: %1", usepass);
@@ -975,7 +975,7 @@ and the sector to which the boot loader is installed."),
       * @param event map event that caused validation
       * @return boolean true if widget settings ok
       */
-    global define boolean validatePasswdWidget (any opt_id, any opt_key,
+    global define boolean validatePasswdWidget (any opt_id, string opt_key,
 	map event)
     ``{
 	if (! (boolean)UI::QueryWidget (`id (`usepas), `Value))
@@ -1001,7 +1001,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string getPasswdSummary (any opt_id, any opt_key) ``{
+    global define string getPasswdSummary (any opt_id, string opt_key) ``{
 	if (lookup_value (BootCommon::current_section, "password", nil) != nil)
 	    // table cell
 	    return _("Password will be needed");

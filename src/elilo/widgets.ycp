@@ -96,7 +96,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void targetInit (any opt_id, any opt_key) ``{
+    global define void targetInit (any opt_id, string opt_key) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
 	UI::ChangeWidget (`id (`create_entry), `Value, create_efi_entry);
 	UI::ChangeWidget (`id (`location), `Value, BootCommon::location);
@@ -115,7 +115,7 @@
       * @param opt_key any option key
       * @param event map event that occured
       */
-    global define void targetHandle (any opt_id, any opt_key, map event) ``{
+    global define void targetHandle (any opt_id, string opt_key, map event) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
 	UI::ChangeWidget (`id (`location), `Enabled,
 	    UI::QueryWidget (`id (`create_entry), `Value));
@@ -131,7 +131,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void targetStore (any opt_id, any opt_key) ``{
+    global define void targetStore (any opt_id, string opt_key) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
 	BootCommon::location = (string)
 	    UI::QueryWidget (`id (`location), `Value);
@@ -154,7 +154,7 @@
       * @param event map event that caused validation
       * @return boolean true if widget settings ok
       */
-    global define boolean targetValidate (any opt_id, any opt_key, map event)``{
+    global define boolean targetValidate (any opt_id, string opt_key, map event)``{
 	return true; // FIXME check for valid characters
 			// FIXME check if not empty
     }
@@ -165,7 +165,7 @@
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string targetSummary (any opt_id, any opt_key) ``{
+    global define string targetSummary (any opt_id, string opt_key) ``{
 	if (BootCommon::location == "" || ! create_efi_entry)
 	{
 	    // table entry, %1 is label of the entry of EFI boot manager

@@ -57,7 +57,7 @@
     /**
       * Parameters of all bootloaders
       */
-    global map<string, any> bootloader_attribs = $[];
+    global map<string,map<string, any> > bootloader_attribs = $[];
 
     /**
       * Name of currently edited section, `global for global section
@@ -185,14 +185,6 @@
       * Updated, but not yet confirmed sections -- tmp store
       */
     global list<list<map> > current_sections = [];
-    /**
-      * Name of option, which is currently being edited in popup
-      */
-    global string current_option_name = "";
-    /**
-      * Index of current option in the section
-      */
-    global integer current_option_index = -1;
 
     global boolean redraw_table = false;
     global symbol(any, map) reset_button_handle = nil;

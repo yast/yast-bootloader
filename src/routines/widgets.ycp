@@ -38,7 +38,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void commonPopupInit (any opt_id, any opt_key) ``{
+    global define void commonPopupInit (any opt_id, string opt_key) ``{
 	integer index = (integer)opt_id;
 	if (index != nil)
 	{
@@ -55,7 +55,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void commonPopupStore (any opt_id, any opt_key) ``{
+    global define void commonPopupStore (any opt_id, string opt_key) ``{
 	any value = UI::QueryWidget (`id (opt_key), `Value);
 	one_section_changed = true;
 	if (opt_id == nil) // append
@@ -77,7 +77,7 @@
       * @param opt_key any option key
       * @return boolean true if item was changed
       */
-    global define boolean commonTableChanged (any opt_id, any opt_key) ``{
+    global define boolean commonTableChanged (any opt_id, string opt_key) ``{
 	if (is (opt_id, integer))
 	{
 	    integer index = (integer)opt_id;
@@ -125,7 +125,7 @@
       * @param opt_key any option key
       * @return boolean true if item was really deleted
       */
-    global define boolean commonTableEntryDelete (any opt_id, any opt_key) ``{
+    global define boolean commonTableEntryDelete (any opt_id, string opt_key) ``{
 	if (! confirmOptionDeletePopup ())
 	    return false;
 	if (! is (opt_id, integer))
@@ -491,7 +491,7 @@
     global define map<string,any> getSingleSectionWidget () ``{
 	return (map<string,any>)TablePopup::CreateTableDescr (
 	    $[
-		"add_delete" : true,
+		"add_delete_buttons" : true,
 		"up_down_buttons" : false,
 		"changed_column" : true,
 		"unique_keys" : true,
@@ -568,7 +568,7 @@
     global define map<string,any> getGlobalSectionWidget () ``{
 	return (map<string,any>)TablePopup::CreateTableDescr (
 	    $[
-		"add_delete" : true,
+		"add_delete_buttons" : true,
 		"up_down_buttons" : false,
 		"changed_column" : true,
 		"unique_keys" : true,
@@ -603,7 +603,7 @@
       * @return new option id after entries have moved, or nil if no option
       *   was moved
       */
-    global define any moveTableItem (any opt_id, any opt_key, symbol dir)``{
+    global define any moveTableItem (any opt_id, string opt_key, symbol dir)``{
 	if (! is (opt_id, integer))
 	    return nil;
 
