@@ -681,8 +681,11 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
         string caption = _("Boot Loader Setup");
         string help = mergeHelps (widgets);
         list exits = getExitEvents (widgets);
+	string next_button = (Mode::initial || Mode::config)
+	    ? AcceptButtonLabel ()
+	    : FinishButtonLabel ();
 
-        return runDialog (widgets, caption, contents, help, OKButtonLabel (),
+        return runDialog (widgets, caption, contents, help, next_button,
             exits, false);
     }
 
@@ -713,7 +716,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
             `VSpacing (2),
             `MultiLineEdit (`id (`file), `opt (`hstretch, `vstretch),
 		// multiline edit header
-                _("File &Contents")),
+                _("Fi&le Contents")),
             `VSpacing (2)
 	), `HSpacing (2));
 

@@ -60,7 +60,7 @@ the configuration saved on your disk. %1</P>
 "), ins);
 	// help text 2/2
 	help = help + _("<P>To edit boot loader configuration files
-manually, click <B>Edit configuration files</B>.</P>
+manually, click <B>Edit Configuration Files</B>.</P>
 ");
 	return help;
     }
