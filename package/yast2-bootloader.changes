@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 17 11:28:44 CEST 2002 - arvin@suse.de
+
+- fixed file list for i386 (use %ix86 macro)
+
+-------------------------------------------------------------------
 Fri Jul 12 12:33:34 CEST 2002 - arvin@suse.de
 
 - use proper namespace for Args and CallFunction (#16776)
