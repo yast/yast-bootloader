@@ -3,6 +3,7 @@ Mon Mar 14 09:48:35 CET 2005 - jsrain@suse.cz
 
 - fixed manual configuration files editation (#72389)
 - recreate grub.conf during update (#72361)
+- 2.11.21
 
 -------------------------------------------------------------------
 Mon Mar  7 13:32:23 CET 2005 - jsrain@suse.cz
