@@ -210,7 +210,7 @@
 	    y2milestone("start writing rescue kernel to slot A ...");
 	    SCR::Execute (.target.bash, "time dd if=`rpm -ql kernel-iseries64 | grep ^/boot | grep install | head -n1` of=/proc/iSeries/mf/A/vmlinux bs=4096 >>/var/log/YaST2/y2loglilo_iseries_slot_a 2>&1 ");
 	    SCR::Execute (.target.bash, "dd if=/dev/zero of=/proc/iSeries/mf/A/cmdline bs=255 count=1");
-	    SCR::Execute (.target.bash, "echo -en 'start_shell manual=1 single\0' > /proc/iSeries/mf/A/cmdline");
+	    SCR::Execute (.target.bash, "echo -en 'start_shell manual=1\\0' > /proc/iSeries/mf/A/cmdline");
 	    y2milestone("done writing rescue kernel to slot A.");
 	}
 	if ( iseries_write_slot_b )
@@ -225,7 +225,10 @@
 		y2milestone("start writing boot kernel to slot B ...");
 		SCR::Execute (.target.bash, "time dd if=" + iseries_bootbinary + " of=/proc/iSeries/mf/B/vmlinux bs=4096 >>/var/log/YaST2/y2loglilo_iseries_slot_b 2>&1 ");
 		SCR::Execute (.target.bash, "dd if=/dev/zero of=/proc/iSeries/mf/B/cmdline bs=255 count=1");
-		SCR::Execute (.target.bash, "echo '" + root_device + " " + Kernel::cmdLine + "' > /proc/iSeries/mf/B/cmdline");
+		SCR::Execute (.target.bash, "echo -en 'root="
+		    + root_device
+		    + " " + Kernel::cmdLine +
+		    "\\0' > /proc/iSeries/mf/B/cmdline");
 		SCR::Execute (.target.bash, "echo B > /proc/iSeries/mf/side");
 		y2milestone("done writing boot kernel to slot B.");
 	    }

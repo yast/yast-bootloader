@@ -258,8 +258,9 @@
         SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
         SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
 
-	BootCommon::liloRemoveUnexistentSections ();
-	BootCommon::liloUpdateIninrdAppend ();
+	BootCommon::liloRemoveUnexistentSections ("");
+	BootCommon::liloUpdateInitrd ();
+	BootCommon::liloUpdateAppend ();
 	// iSeries can have multiple locations, are stored during
         // iSeriesSave ()
 	if (! Arch::board_iseries )
@@ -329,7 +330,10 @@
       * Update read settings to new version of configuration files
       */
     global define void Update () ``{
+	updateSections (true);
+	updateGlobals ();
     }
+
     /**
       * Write bootloader settings to disk
       * @return boolean true on success
@@ -466,6 +470,22 @@
 	    $[ "key" : "default", "value" : "linux"],
 	    $[ "key" : "timeout", "value" : 100],
 	];
+    }
+
+    /**
+      * Update sections of bootloader menu
+      * modifies internal sreuctures
+      * @param replace boolean true if old sectinos shall be replaced
+      */
+    global define void updateSections (boolean replace) ``{
+	BootCommon::liloUpdateSections (replace);
+    }
+
+    /**
+      * Update global options of bootloader
+      * modifies internal sreuctures
+      */
+    global define void updateGlobals () ``{
     }
 
     /**
