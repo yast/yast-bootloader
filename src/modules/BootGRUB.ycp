@@ -717,7 +717,7 @@
       */
     global define map<string,string> GetFiles() ``{
 	BootCommon::saveCfgFileToAgent ();
-	grub_conf["device"] = unixDev2grubDev (BootCommon::loader_device);
+	grub_conf["device"] = BootCommon::loader_device;
 	map<string,string> ret = $[
 	    "default" : "/boot/grub/menu.lst",
             "/boot/grub/menu.lst" : (string)SCR::Read (.grub.tostring),
@@ -748,7 +748,7 @@
 	        BootCommon::location = "custom";
 	    }
 	    grub_conf = parseGrubConf (files["/etc/grub.conf"]:"");
-	    BootCommon::loader_device =grubDev2unixDev (grub_conf["device"]:"");
+	    BootCommon::loader_device = grub_conf["device"]:"";
 	}
 	BootCommon::loadCfgFileFromAgent ();
     }
@@ -840,13 +840,13 @@
       */
     global define boolean Read () ``{
 	BootCommon::DetectDisks ();
-	grub_conf = readGrubConf ();
 	device_map = readDeviceMap ();
+	grub_conf = readGrubConf ();
 	string mbrD = grubDev2unixDev ("(hd0)");
 	if (mbrD != "/dev/null" && mbrD != nil && mbrD != "")
 	    BootCommon::mbrDisk = mbrD;
 	boolean ret = BootCommon::Read ();
-	BootCommon::loader_device = grubDev2unixDev (grub_conf["device"]:"");
+	BootCommon::loader_device = grub_conf["device"]:"";
 	return ret;
     }
 
@@ -952,7 +952,7 @@
 	SCR::Execute (.target.bash, "test -f /boot/grub/menu.lst && /bin/cp /boot/grub/menu.lst /boot/grub/menu.lst.old");
 	SCR::Execute (.target.bash, "test -f /boot/grub/device.map && /bin/cp /boot/grub/device.map /boot/grub/device.map.old");
 	SCR::Execute (.target.bash, "test -f /etc/grub.conf && /bin/cp /etc/grub.conf /etc/grub.conf.old");
-	grub_conf["device"] = unixDev2grubDev (BootCommon::loader_device);
+	grub_conf["device"] = BootCommon::loader_device;
 	saveGrubConf (grub_conf);
 	saveDeviceMap (device_map);
 	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``{
@@ -1066,7 +1066,7 @@
 		y2milestone ("Creating backup copy to bootsector");
 		// want a copy here
 		map<string,string> backup_gc = add (grub_conf, "device",
-		    unixDev2grubDev (BootCommon::BootPartitionDevice));
+		    BootCommon::BootPartitionDevice);
 		string conf_file = getGrubConf (backup_gc);
 		string tmp_file = (string)SCR::Read (.target.tmpdir)
 		    + "/grub.conf";

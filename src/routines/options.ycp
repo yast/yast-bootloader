@@ -35,31 +35,10 @@
       * @return term widget to be displayed
       */
     global define term getTargetWidget () ``{
-	boolean allow_boot = true;
-	boolean allow_root = true;
-	list<string> do_not_recommend = [];
-	// FIXME this checking is performed on 3 places
-	map<string,map> tm = Storage::GetTargetMap ();
-	foreach (string disk_dev, map disk, tm, {
-	    list<map<string,any> > partitions
-		= (list<map<string,any> >) disk["partitions"]:[];
-	    foreach (map<string,any> p, partitions, {
-		if (! p["delete"]:false)
-		{
-		    symbol fs = (symbol)(p["used_fs"]:p["detected_fs"]:nil);
-		    if (fs == `xfs)
-		    {
-			string device = p["device"]:"";
-			do_not_recommend = add (do_not_recommend, device);
-			y2milestone ("Part: %1 FS: %2", p, fs);
-		    }
-		}
-	    });
-	});
-	if (contains (do_not_recommend, BootPartitionDevice))
-	   allow_boot = false;
-	if (contains (do_not_recommend, RootPartitionDevice))
-	   allow_root = false;
+	list<string> boot_devices = getPartitionList(`boot);
+	boolean allow_boot = contains (boot_devices, BootPartitionDevice);
+	boolean allow_root = contains (boot_devices, RootPartitionDevice);
+	boolean all_mbr = size (Md2Partitions (BootPartitionDevice)) > 1;
 
         term targetlist = `VBox (
             `VSpacing (0.4),
@@ -72,6 +51,24 @@
                 (location == "mbr")
             ))
 	);
+
+	if (all_mbr && getLoaderType (false) == "grub")
+	{
+	    list<string> mbrs = maplist (string d, integer id,
+		Md2Partitions (BootPartitionDevice),
+	    {
+		map p_dev = Storage::GetDiskPartition (d);
+		return p_dev["disk"]:"";
+	    });
+	    targetlist = add (targetlist, `VSpacing (0.4));
+            targetlist = add (targetlist, `Left (
+		`RadioButton (`id ("mbr_md"), `opt (`notify),
+		// radiobutton, %1 is a list of devices (eg. /dev/hda1)
+                sformat(_("MB&Rs of disks %1"),
+		    mergestring (mbrs, ", ")),
+                (location == "mbr_md")
+            )));
+	}
 	if (allow_boot)
 	{
 	    targetlist = add (targetlist, `VSpacing (0.4));
@@ -79,7 +76,7 @@
 		`RadioButton (`id ("boot"), `opt (`notify),
 		// radiobutton, %1 is device (eg. /dev/hda1)
                 sformat(_("Boot &Sector of Boot Partition %1"),
-                     BootCommon::getDeviceOfRaid (BootPartitionDevice)),
+                     BootPartitionDevice),
                 (location == "boot")
             )));
 	};
@@ -90,7 +87,7 @@
 		`RadioButton (`id ("root"), `opt (`notify),
 		// radiobutton, %1 is device (eg. /dev/hda1)
                 sformat(_("Boot Sector of Roo&t Partition %1"),
-                    BootCommon::getDeviceOfRaid (RootPartitionDevice)),
+                    RootPartitionDevice),
                 (location == "root")
             )));
         };
@@ -114,7 +111,7 @@
             `HSpacing (2),
             `VBox (
                 `ComboBox (`id (`loc), `opt (`editable, `hstretch, `notify), "",
-                    getPartitionList(`boot)),
+		    boot_devices),
                 `HSpacing (15)
             ),
             `HStretch ()
@@ -142,7 +139,10 @@
 	{
 	    location = "boot";
 	}
-	UI::ChangeWidget (`id (`loc), `Value, loader_device);
+	if (loader_device != "mbr_md")
+	UI::ChangeWidget (`id (`loc), `Value, loader_device == "mbr_md"
+	    ? select (getPartitionList(`boot), 0, "")
+	    : loader_device);
 	UI::ChangeWidget (`id (`location), `CurrentButton, location);
 	UI::SetFocus (`id (`loc));
     }
@@ -227,6 +227,19 @@ Continue?")))
       */
     global define string targetSummary (any opt_id, any opt_key) ``{
 	map targetMap = Storage::GetTargetMap ();
+	// MBR of all members of MD array
+	if (loader_device == "mbr_md" || location == "mbr_md")
+	{
+	    list<string> mbrs = maplist (string d, integer id,
+		Md2Partitions (BootPartitionDevice),
+	    {
+		map p_dev = Storage::GetDiskPartition (d);
+		return p_dev["disk"]:"";
+	    });
+	    // table item, %1 is list of device names
+	    return sformat (_("MBRs of disks %1"),
+		mergestring (mbrs, ", "));
+	}
 	if (loader_device == "")
 	{
 	    if (location == "mbr")

@@ -89,6 +89,9 @@
 
     TESTSUITE_INIT ([READ, WRITE, EXEC], 0);
     import "BootGRUB";
+    import "Mode";
+
+    Mode::test = true;
 
     DUMP ("======================================");
 
@@ -132,6 +135,8 @@
 
     DUMP ("======================================");
 
+    BootGRUB::device_map = [["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"], ["(hd2)", "/dev/cciss/c0d0"], ["(fd0)", "/dev/fd0" ]];
+
     TEST (``(BootGRUB::parseGrubConf ("root (hd0,0)
 install  --stage2=/boot/grub/stage2 /grub/stage1 d (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
 quit")), [READ, WRITE, EXEC], 0);
@@ -150,6 +155,8 @@ quit")), [READ, WRITE, EXEC], 0);
     TEST (``(BootGRUB::parseGrubConf ("")), [READ, WRITE, EXEC], 0);
 
     DUMP ("======================================");
+
+    BootGRUB::device_map = [["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"], ["(hd2)", "/dev/cciss/c0d0"], ["(fd0)", "/dev/fd0" ]];
 
     TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [READ, WRITE, EXEC], 0);
     TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [READ, WRITE, EXEC], 0);
@@ -181,7 +188,24 @@ quit")), [READ, WRITE, EXEC], 0);
     TEST (``(BootGRUB::mergeDevPath (["(hd0,0)", ""])), [READ, WRITE, EXEC], 0);
     TEST (``(BootGRUB::mergeDevPath ([nil, "/boot/vmlinuz"])), [READ, WRITE, EXEC], 0);
 
+    DUMP ("======================================");
+
+    BootGRUB::device_map = [["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"], ["(hd2)", "/dev/cciss/c0d0"]];
+
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"/dev/md0", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2 --force-lba=off", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [READ, WRITE, EXEC], 0);
+
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"mbr_md", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2 --force-lba=off", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [READ, WRITE, EXEC], 0);
 
     DUMP ("======================================");
 
+    TEST (``(BootGRUB::parseGrubConf ("root (hd0,0)
+install  /grub/stage1 (hd0,0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+install  /grub/stage1 (hd1,0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+quit")), [READ, WRITE, EXEC], 0);
+    TEST (``(BootGRUB::parseGrubConf ("root (hd0,0)
+install  /grub/stage1 (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+install  /grub/stage1 (hd1) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+quit")), [READ, WRITE, EXEC], 0);
+
+    DUMP ("======================================");
 }

@@ -1,5 +1,5 @@
 @HEADER-COMMENT@
-# neededforbuild gpp libgpp libxcrypt libxcrypt-devel yast2-devel-packages yast2-storage yast2-installation yast2 yast2-devel
+# neededforbuild gpp libgpp libxcrypt libxcrypt-devel yast2-devel-packages yast2-storage yast2-installation yast2 yast2-devel openssl openssl-devel
 
 @HEADER@
 PreReq:         /bin/sed %fillup_prereq

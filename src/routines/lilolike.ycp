@@ -382,15 +382,21 @@
 	    return;
 	}
 	// bootsector of boot partition
-	if (loader_device == getDeviceOfRaid (BootPartitionDevice))
+	if (loader_device == BootPartitionDevice)
 	{
 	    location = "boot";
 	    return;
 	}
 	// bootsector of root partition
-	if (loader_device == getDeviceOfRaid (RootPartitionDevice))
+	if (loader_device == RootPartitionDevice)
 	{
 	    location = "root";
+	    return;
+	}
+	// MBRs of all disks containing /boot MD array
+	if (loader_device == "mbr_md")
+	{
+	    location = "mbr_md";
 	    return;
 	}
 	// /dev/null or empty means bootloader not installed
