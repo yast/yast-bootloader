@@ -421,7 +421,7 @@
 	list internal_bios = SCR::Read (.probe.bios);
 	list bcg = [
 	    $[ "key" : "menu-scheme", "value" : "Wb:kw:Wb:Wb"],
-	    $[ "key" : "default", "value" : "linux"],
+	    $[ "key" : "default", "value" : translateSectionTitle ("linux")],
 	    $[ "key" : "timeout", "value" : 80],
 	    $[ "key" : "message", "value" : "/boot/message"],
 	    $[ "key" : "lba32",

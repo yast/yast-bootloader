@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep 22 13:54:59 CEST 2003 - jsrain@suse.de
+
+- fixed assigning of default section when changed default secion's
+  label in LILO (#30122)
+- 2.8.22
+
+-------------------------------------------------------------------
 Fri Sep 19 16:47:07 CEST 2003 - jsrain@suse.de
 
 - fixed testsuite (again)

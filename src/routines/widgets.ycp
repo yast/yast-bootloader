@@ -406,8 +406,8 @@
 	    string image = lookup_value (s, "image", nil);
 	    string root = lookup_value (s, "root", "");
             return `item (`id (lookup_value (s, "label", "")),
-                lookup_value (current_globals, "default", "")
-			== lookup_value (s, "label", "")
+                tolower (lookup_value (current_globals, "default", ""))
+			== tolower (lookup_value (s, "label", ""))
                     ? UI::Glyph (`CheckMark) : "",
                 lookup_value (s, "label", ""),
                 image == nil ? _("other") : _("image"),
