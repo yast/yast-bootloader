@@ -152,6 +152,12 @@
       */
     global define symbol sectionsHandle (any widget, map event) ``{
 	any op = event["ID"]:nil;
+	if (event["ID"]:nil == `sects
+	    && event["EventReason"]:"" == "Activated"
+	    && event["EventType"]:"" == "WidgetEvent")
+	{
+	    op = `edit;
+	}
 	y2milestone ("Handling event %1", op);
 	string current = UI::QueryWidget (`id (`sects), `CurrentItem);
 	integer counter = 0;

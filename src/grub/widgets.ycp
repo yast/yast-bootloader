@@ -304,6 +304,12 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define symbol sectionsHandle (any widget_id, map event) ``{
 	any op = event["ID"]:nil;
+	if (event["ID"]:nil == `sects
+	    && event["EventReason"]:"" == "Activated"
+	    && event["EventType"]:"" == "WidgetEvent")
+	{
+	    op = `edit;
+	}
         string current = UI::QueryWidget (`id (`sects), `CurrentItem);
         integer counter = 0;
         integer index = 0;
