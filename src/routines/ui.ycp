@@ -511,6 +511,7 @@ Proceed?
       */
     global define symbol BootloaderAutoSequence () ``{
 	Wizard::CreateDialog();
+	Wizard::SetDesktopIcon("bootloader");
 	Wizard::SetContentsButtons("", `VBox (), "",
 	    Label::BackButton(), Label::NextButton());
 	symbol ret = runWizard ();
@@ -546,6 +547,7 @@ Proceed?
 	];
 
 	Wizard::CreateDialog();
+	Wizard::SetDesktopIcon("bootloader");
 	Wizard::SetContentsButtons("", `VBox (), "",
 	    Label::BackButton(), Label::NextButton());
 	symbol ret = Sequencer::Run (my_aliases, sequence);
