@@ -347,6 +347,25 @@
 	{
 	    if (! (BootCommon::installingToFloppy () && saveToFLoppyPopup ()))
 		ret = false;
+
+	    // create backup copy first
+	    if (BootCommon::createBackupBS ())
+	    {
+		y2milestone ("Creating backup copy to bootsector");
+		// want a copy here
+		map backup_gc = add (grub_conf, "device",
+		    unixDev2grubDev (BootCommon::BootPartitionDevice));
+		string conf_file = getGrubConf (backup_gc);
+		string tmp_file = SCR::Read (.target.tmpdir) + "/grub.conf";
+		SCR::Write (.target.string, tmp_file, conf_file);
+		if (0 != SCR::Execute (.target.bash, sformat ("cat %1 \
+| /usr/sbin/grub --batch --device-map=/boot/grub/device.map", tmp_file)))
+		{
+		    y2error ("Error occured while creating backup copy of bootloader bootsector");
+		}
+	    }
+
+
 // save if mkfs or fdformat failed too
 //	    if (ret)
 

@@ -237,8 +237,15 @@
 	boolean ret = true;
 	if (! (BootCommon::installingToFloppy () && saveToFLoppyPopup ()))
 	    ret = false;
-// save if mkfs or fdformat failed too
-//            if (ret)
+
+	// create backup copy first
+	if (BootCommon::createBackupBS ())
+	{
+	    y2milestone ("Creating backup copy to bootsector");
+	    SCR::Execute (.target.bash, sformat ("/sbin/lilo -b %1",
+		BootCommon::BootPartitionDevice));
+	}
+
 	ret = 0 == SCR::Execute (.target.bash,
 	    "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1");
 	if (! ret)

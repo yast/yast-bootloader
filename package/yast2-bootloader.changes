@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Tue Jul  8 08:28:52 CEST 2003 - jsrain@suse.de
+Tue Jul  8 11:14:19 CEST 2003 - jsrain@suse.de
 
-- fixed question popup if canceling configuration
+- fixed question popup if canceling configuration (#27479)
+- installing additional copy of bootloader bootsector to bootsector
+  of /boot partition for LILO and GRUB (#27389)
 
 -------------------------------------------------------------------
 Wed Jun 25 10:11:41 CEST 2003 - jsrain@suse.de
