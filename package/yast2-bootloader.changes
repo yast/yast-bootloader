@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 10 11:05:07 CET 2003 - jsrain@suse.de
+
+- fixed filtering of modules added to initrd (#24709)
+
+-------------------------------------------------------------------
 Fri Mar  7 10:16:51 CET 2003 - jsrain@suse.de
 
 - fixed update from version without sysconfig variables specifying
