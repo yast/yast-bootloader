@@ -274,7 +274,6 @@
 	options = Bootloader::blUpdateOptionsList (orig);
 	map intern = lookup_value (options, "__intern__", $[]);
 	list changed_opts = intern["changed_opts"]:[];
-
 	options = filter (`o, options,
 	    ``(o["key"]:"" != "__intern__"));
 
@@ -628,11 +627,29 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	if (old_bl == new_bl)
 	    return;
 
+	if (new_bl == "none")
+	{
+	    // popup - Continue/Cancel
+	    if (Popup::ContinueCancel (_("Warning!
+
+If you do not install any bootloader, the system
+may not start.
+
+Proceed?")))
+	    {
+		BootCommon::other_bl[old_bl] = Bootloader::Export ();
+		BootCommon::setLoaderType ("none");
+		BootCommon::location_changed = true;
+	    }
+	    return nil;
+	}
+
 	symbol action = askSwitch (old_bl, new_bl, `user);
 	if (nil != action)
 	{
 	    y2milestone ("Switching bootloader");
-	    BootCommon::other_bl[old_bl] = Bootloader::Export ();
+	    if (old_bl != "none")
+		BootCommon::other_bl[old_bl] = Bootloader::Export ();
 	    BootCommon::setLoaderType (new_bl);
 
             if (action == `scratch)

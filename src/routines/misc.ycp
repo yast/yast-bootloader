@@ -69,6 +69,11 @@
       * @return string printable bootloader name
       */
     global define string getLoaderName (string bootloader) ``{
+	if (bootloader == "none")
+	{
+	    // combo box item, summary string, table item
+	    return _("Do not install any bootloader");
+	}
 	// fallback bootloader name, keep short
 	return bootloader_attribs[bootloader, "loader_name"]:_("boot loader");
     }

@@ -644,6 +644,8 @@
       * @return list of options as it should be displayed
       */
     global define list UpdateOptionsList (list _options) ``{
+	if (BootCommon::getLoaderType (false) == "none")
+	    return [$["key":"__loader_type"]];
 	list prependlist = [];
 	list orig_opts = _options;
 	any type = BootCommon::getSectionType (BootCommon::current_section);

@@ -272,6 +272,9 @@
 	}
 	SCR::Write (.sysconfig.bootloader, nil);
 
+	if (getLoaderType () == "none")
+	    return ret;
+
 	// save bootloader settings
 	ret = ret && blSave ();
 

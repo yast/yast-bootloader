@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug 12 13:29:35 CEST 2003 - jsrain@suse.de
+
+- added support for not installing any bootloader
+
+-------------------------------------------------------------------
 Mon Aug 11 09:33:26 CEST 2003 - jsrain@suse.de
 
 - not using .shipped image any more (kernel package doesn't contain

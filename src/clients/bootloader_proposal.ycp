@@ -51,7 +51,7 @@
 
 	    y2milestone ("PL: %1, L: %2, NL: %3, NPL: %4", pl, loader, new_l, BootCommon::prefer_lilo);
 
-	    if (pl != BootCommon::prefer_lilo && new_l != loader)
+	    if (pl != BootCommon::prefer_lilo && new_l != loader && loader != "none")
 	    {
 		symbol ret = nil;
 		if ((pl && new_l != "lilo") || (! pl && new_l == "lilo"))
