@@ -447,7 +447,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	y2milestone ("Calling bootloader executable");
 	ret = ret && blWrite ();
 
-	while (! ret)
+	if (! ret)
 	{
 	    y2error ("Installing bootloader failed");
 	    if (writeErrorPopup ())
@@ -456,12 +456,10 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 		map res = (map)WFM::call( "bootloader_proposal", ["AskUser",
 		    $[ "has_next": false]]);
 		if (res["workflow_sequence"]:nil == `next)
+		{
 		    return Write ();
-		else
-		    break;
+		}
 	    }
-	    else
-		break;
 	}
 	return ret;
     }

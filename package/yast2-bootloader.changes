@@ -3,6 +3,7 @@ Fri Jun 25 15:36:31 CEST 2004 - jsrain@suse.cz
 
 - added functionality to add section with previous kernel (#36624)
 - fixed confusing labels for the boot floppies (#37094)
+- fixed confusing code in Bootloader::Write (#40445)
 
 -------------------------------------------------------------------
 Thu Jun 24 13:29:08 CEST 2004 - jsrain@suse.cz
