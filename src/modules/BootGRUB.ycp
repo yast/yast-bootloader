@@ -925,16 +925,18 @@
     /**
       * Reset bootloader settings
       */
-    global define void Reset () ``{
+    global define void Reset (boolean init) ``{
 	if (Mode::autoinst)
 	    return;
 	device_map = [];
-	BootCommon::Reset ();
-	device_map = proposeDeviceMap ();
-	if (! Mode::config)
-	    grub_conf = proposeGrubConf ();
-	else
-	    grub_conf = $[];
+	grub_conf = $[];
+	BootCommon::Reset (init);
+	if (init)
+	{
+	    device_map = proposeDeviceMap ();
+	    if (! Mode::config)
+		grub_conf = proposeGrubConf ();
+	}
     }
     /**
       * Propose bootloader settings

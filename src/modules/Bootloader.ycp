@@ -202,8 +202,10 @@
     }
     /**
       * Reset bootloader settings
+      * @param init boolean true if basic initialization of system-dependent
+      * settings should be done
       */
-    global define void Reset () ``{
+    global define void ResetEx (boolean init) ``{
 	if (Mode::autoinst)
 	    return;
 	y2milestone ("Reseting configuration");
@@ -217,7 +219,14 @@
 //	BootCommon::other_bl = $[];
 	BootCommon::files_edited = false;
 	BootCommon::write_settings = $[];
-	blReset ();
+	blReset (init);
+    }
+
+    /**
+      * Reset bootloader settings
+      */
+    global define void Reset () ``{
+	return ResetEx (true);
     }
     /**
       * Propose bootloader settings
