@@ -266,7 +266,7 @@ bool liloOrderedOptions::processLine(inputLine* li)
 	value=li->option;
 	if(li->value!="")
 	{
-	    value=li->option+"="+li->value;
+	    value=li->option+ (type == "grub" ? " " : "=") +li->value;
 	}
 	spec=true;
     }
@@ -585,6 +585,7 @@ int liloOrderedOptions::saveToFile(ostream* f, string indent)
 	    case T_SPEC_DISK:
 	    case T_SPEC_CHANGE:
 	    case T_SPEC_MAP_DRIVE:
+	    case T_SPEC_MAP:
 
 		*f << indentString(order[i]->value, indent+"    ");
 		*f << endl;
