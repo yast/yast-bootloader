@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr  7 00:00:47 CEST 2004 - schwab@suse.de
+
+- Add nohalt to failsafe kernel command line on ia64.
+
+-------------------------------------------------------------------
 Tue Apr  6 09:01:01 CEST 2004 - jsrain@suse.de
 
 - updating graphical boot menu to contain proper languages (and 
