@@ -61,7 +61,7 @@
 	    // progress stage, text in dialog (short, infinitiv)
 	    _("Check boot loader"),
 	    // progress stage, text in dialog (short, infinitiv)
-	    _("Read disks partitioning"),
+	    _("Read partitioning"),
 	    // progress stage, text in dialog (short, infinitiv)
 	    _("Load boot loader settings"),
 	];
@@ -69,7 +69,7 @@
 	    // progress stage, text in dialog (short)
 	    _("Checking boot loader..."),
 	    // progress stage, text in dialog (short)
-	    _("Reading disks partitioning..."),
+	    _("Reading partitioning..."),
 	    // progress stage, text in dialog (short)
 	    _("Loading boot loader settings..."),
 	];
