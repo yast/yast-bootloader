@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 10 08:13:04 CEST 2003 - jsrain@suse.de
+
+- fixed update of metadata for sysconfig variable LOADER_TYPE
+  (#30352)
+
+-------------------------------------------------------------------
 Mon Sep  8 09:18:48 CEST 2003 - jsrain@suse.de
 
 - fixed bootloader menu entry - windows -> Windows (like other

@@ -250,7 +250,7 @@
 	    if (Arch::i386 || Arch::x86_64)
 	    {
 		comment = regexpsub (comment, "(.*\n## )Type:[^\n]*(\n.*)",
-		    "\\1Type:	list(grub,lilo)\\2");
+		    "\\1Type:	list(grub,lilo,none)\\2");
 	    }
 	    comment = regexpsub (comment, "(.*\n## )Default:[^\n]*(\n.*)",
 		sformat ("\\1Default:  %1\\2", getLoaderType ()));
