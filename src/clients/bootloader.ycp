@@ -267,7 +267,7 @@
 	i = i + 1;
     }
 
-    boolean ret = CommandLine::Run (cmdline);
+    any ret = CommandLine::Run (cmdline);
 //    boolean ret = GuiHandler ();
 /*
     Wizard::CreateDialog ();
