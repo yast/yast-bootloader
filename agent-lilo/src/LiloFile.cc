@@ -319,7 +319,11 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
 	    if (sect)
 	    {
 		sections.push_back(sect);
-		sect->options->order.push_back(new liloOption(type == "grub" ? "title" : "label", path->component_str(1), ""));
+		liloOption *opt = type == "grub"?
+		    new liloOption("title", path->component_str(1), "") :
+		    new liloOption("label", replaceBlanks (path->component_str(1), '_'), "");
+		    
+		sect->options->order.push_back(opt);
 	    }
 	    else
 	    {
