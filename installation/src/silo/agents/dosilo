@@ -26,7 +26,7 @@
 # (c) 2002 SuSE Linux AG
 
 function log {
-  echo "$@" >>/var/log/dosilo.log 2>/dev/null
+  echo "$@" >>/var/log/YaST2/dosilo.log 2>/dev/null
 }
 
 get_device () {

@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
-Tue Sep  3 17:37:37 CEST 2002 - kukuk@suse.de
+Tue Sep  3 20:37:36 CEST 2002 - kukuk@suse.de
 
+- installation/src/silo/agents/update_silo_conf: New
+  file, modifies silo.conf and boot/message if an update is done.
 - installation/src/silo/BootSILO.ycp: Implement calling "dosilo"
   script.
 
