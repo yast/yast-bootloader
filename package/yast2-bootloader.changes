@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 23 13:12:31 CEST 2003 - jsrain@suse.de
+
+- updated widget handling functions interface
+- updated documentation
+
+-------------------------------------------------------------------
 Tue Apr 22 09:57:55 CEST 2003 - jsrain@suse.de
 
 - added possibility to download boot floppy image via FTP/HTTP

@@ -80,11 +80,12 @@
 
     DUMP ("======================================");
 
-    global define any _h1 (any op, list exits) ``{DUMP ("H1");}
-    global define any _h2 (any op, list exits) ``{DUMP ("H2");}
-    global define any _h3 (any op, list exits) ``{DUMP ("H3"); return `op;}
-    global define any _h4 (any op, list exits) ``{DUMP ("H4"); return `op2;}
-    global define any _h5 (any op, list exits) ``{DUMP ("H5");}
+    global define any _h1 (any op, boolean exits) ``{DUMP ("H1");}
+    global define any _h2 (any op, boolean exits) ``{DUMP ("H2");}
+    global define any _h3 (any op, boolean exits) ``{DUMP ("H3");}
+    global define any _h4 (any op, boolean exits) ``{DUMP ("H4"); return `op2;}
+    global define any _h5 (any op, boolean exits) ``{DUMP ("H5");}
+    global define any _h6 (any op, boolean exits) ``{DUMP ("H6"); return `op;}
 
     TEST (``(handleChange ([$["handle" : ``(_h1())], $["handle" : ``(_h2())]], `op)), [], 0);
     TEST (``(handleChange ([$["handle" : ``(_h1())], $["handle" : ``(_h3())]], `op)), [], 0);
@@ -93,6 +94,7 @@
     TEST (``(handleChange ([$["handle" : ``(_h4())], $["handle" : ``(_h2())]], `op)), [], 0);
     TEST (``(handleChange ([$["handle" : ``(_h3())], $["handle" : ``(_h4())]], `op)), [], 0);
     TEST (``(handleChange ([$["handle" : ``(_h4())], $["handle" : ``(_h3())]], `op)), [], 0);
+    TEST (``(handleChange ([$["handle" : ``(_h4())], $["handle" : ``(_h6())]], `op)), [], 0);
 
     DUMP ("======================================");
 }

@@ -83,14 +83,14 @@
 	foreach (`w, widgets, ``{
 	    tosave = merge (tosave, w["exits"]:[]);
 	});
-	tosave = toset (tosave);
+	boolean exiting = contains (tosave, action);
 	any ret = nil;
 	foreach (`w, widgets, ``{
 	    term t = w["handle"]:nil;
 	    if (t != nil)
 	    {
-		any tmpret = eval (add (add (t, action), tosave));
-		if (tmpret != action && tmpret != nil)
+		any tmpret = eval (add (add (t, action), exiting));
+		if (tmpret != nil)
 		    ret = tmpret;
 	    }
 	});

@@ -15,9 +15,10 @@
 <!ENTITY io SYSTEM "io.xml">
 <!ENTITY lilo SYSTEM "lilo.xml">
 <!ENTITY grub SYSTEM "grub.xml">
+<!ENTITY bootparam SYSTEM "bootparam.xml">
 ]>
 
-<article>
+<article id="bootloader">
 <title>yast2-bootloader</title>
     <section id="goals">
 	<title>Main goals for 8.2</title>
@@ -35,7 +36,7 @@
 	</itemizedlist>
     </section>
 
-    <section>
+    <section id="todo">
 	<title>TODO</title>
 	<itemizedlist>
 	    <listitem><para>Optimize internal structures</para></listitem>
@@ -53,6 +54,7 @@
 &bootloader
 &bootcommon
 &bootspec
+&bootparam
 &ui
 &grub
 &lilo

@@ -41,7 +41,7 @@ YCPValue LiloAgent::Read(const YCPPath &path, const YCPValue& arg) {
     y2debug ("Called LiloAgent::Read");
     if (path->component_str(0)=="opttypes")
     {
-	 y2milestone ("Called LiloAgent::Read for opttypes");
+	y2debug ("Called LiloAgent::Read for opttypes");
 	OptTypes o(type);
 	return o.getYCPOptTypes ();
 
