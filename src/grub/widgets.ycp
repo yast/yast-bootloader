@@ -32,42 +32,6 @@
     import "TablePopup";
 
     /**
-      * Get map of dialogs and widgets
-      * @return map of dialogs and widgets
-      */
-    global define map GetWidgetMaps () ``{
-        return $[
-	    "sections" : BootGRUB::getSectionsWidget (),
-	    "singlesection" : BootGRUB::getSingleSectionWidget (),
-	    "globalsection" : BootGRUB::getGlobalSectionWidget (),
-        ];
-    }
-
-    /**
-      * Get map of dialogs and widgets
-      * @return map of dialogs and widgets
-      */
-    global define map GetOptionMaps () ``{
-        return $[
-	    "__location": BootGRUB::getTargetWidget (),
-	    "title" : BootCommon::getLabelWidget (),
-	    "gfxmenu" : BootGRUB::getGfxMenuWidget (),
-	    "__diskorder" : BootGRUB::getOrderPopup (),
-	    "__add_orig_mbr" : BootGRUB::getAddOrigMbrWidget (),
-	];
-    }
-
-    /**
-      * Get map of Target widget
-      * @return map of Target widget
-      */
-    global define map getTargetWidget () ``{
-	map ret = BootCommon::getTargetOption ();
-	ret["popup", "store"] = ``(BootGRUB::targetStore ());
-	return ret;
-    }
-
-    /**
       * Ask how to chang section floppy <-> hard disk when changing bootloader
       * location between disk and floppy
       * @param to string new bootloader location ("floppy" or "hard disk")
@@ -99,7 +63,7 @@ Replace it with an entry  to boot from the floppy?");
 	if (issubstring (BootCommon::loader_device, "/dev/fd")||
 	    BootCommon::installingToFloppy ())
 	{
-	    sections = maplist (`s, sections, ``{
+	    sections = maplist (list s, sections, ``{
 		if ((getCreationType (s) == "floppy"
 			|| lookup_value (s, "root", "") == "(fd0)")
 		    && changeSection ("floppy"))
@@ -121,7 +85,7 @@ Replace it with an entry  to boot from the floppy?");
 	}
 	else
 	{
-	    sections = maplist (`s, sections, ``{
+	    sections = maplist (list s, sections, ``{
 		if ((getCreationType (s) == "hard_disk"
 			    || lookup_value (s, "root", "") == "(hd0)")
 			&& changeSection ("disk"))
@@ -145,6 +109,16 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
+      * Get map of Target widget
+      * @return map of Target widget
+      */
+    global define map getTargetWidget () ``{
+	map ret = BootCommon::getTargetOption ();
+	ret["popup", "store"] = ``(BootGRUB::targetStore ());
+	return ret;
+    }
+
+    /**
       * Get map of widget
       * @return map of widget
       */
@@ -165,13 +139,13 @@ Replace it with an entry  to boot from the floppy?");
 		"ids": ``(BootGRUB::getTableContents ()),
                 "help": BootCommon::getGlobalSectionHelp (),
                 "fallback" : $[
-                    "init": ``(BootCommon::commonPopupInit ()),
-                    "store": ``(BootCommon::commonPopupStore ()),
-                    "summary": ``(BootCommon::commonTableEntrySummary ()),
-                    "changed" : ``(BootCommon::commonTableChanged ()),
+		    "init": ``(BootCommon::commonPopupInit ()),
+		    "store": ``(BootCommon::commonPopupStore ()),
+		    "summary": ``(BootCommon::commonTableEntrySummary ()),
+		    "changed" : ``(BootCommon::commonTableChanged ()),
                 ],
 		"option_move" : ``(BootCommon::moveTableItem ()),
-                "option_delete": ``(BootCommon::commonTableEntryDelete ()),
+		"option_delete": ``(BootCommon::commonTableEntryDelete ()),
                 "add_items":  lookup (GetOptions (), `global, []),
 	    ]
 	);
@@ -203,35 +177,25 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getSectionsWidget () ``{
-	map ret = BootCommon::getSectionsWidget ();
-	ret["init"] = ``(BootGRUB::sectionsInit ());
-	ret["handle"] = ``(BootGRUB::sectionsHandle ());
-	return ret;
-    }
-
-    /**
       * Redraw table of sections
       * @param sects list of sections
       */
     global define void sectionsRedrawTable (list sects) ``{
 	integer order = -1;
-	list sec = maplist (map s, sects, ``{
+	list sec = maplist (list s, sects, ``{
 	    order = order + 1;
 	    string other_dev
-		= lookup_value (s, "root",
-		    lookup_value (s,
+		= (string)lookup_value (s, "root",
+		    (string)lookup_value (s,
 			"rootnoverify", ""));
 	    string kernel_img
-		= lookup_value (s, "kernel", "");
-	    kernel_img = select (filter (`p, splitstring (kernel_img, " "),
+		= (string)lookup_value (s, "kernel", "");
+	    kernel_img = select (filter (string p,
+		splitstring (kernel_img, " "),
 		``(p != "")
 	    ), 0, "");
 	    string root = BootCommon::getKernelParamFromLine
-		(lookup_value (s, "kernel", ""),
+		((string)lookup_value (s, "kernel", ""),
 		    "root");
 	    if (root != "" && root != "false")
 		root = sformat (", root=%1", root);
@@ -255,7 +219,7 @@ Replace it with an entry  to boot from the floppy?");
 		    != ""
 		? sformat ("%1   (%2%3)",
 		    kernel_img,
-		    BootGRUB::grubDev2unixDev (
+		    BootGRUB::grubDev2unixDev ((string)
 			select (BootGRUB::splitDevPath (kernel_img), 0, "")
 		    ),
 		    root
@@ -275,8 +239,8 @@ Replace it with an entry  to boot from the floppy?");
     global define void sectionsAssignDefault (string title) ``{
 	integer index = 0;
 	integer counter = 0;
-	foreach (`s, BootCommon::current_sections, ``{
-	    if (lookup_value (s, "title", "")
+	foreach (list s, BootCommon::current_sections, ``{
+	    if ((string)lookup_value (s, "title", "")
 		== title)
 	    {
 		index = counter;
@@ -310,15 +274,15 @@ Replace it with an entry  to boot from the floppy?");
 	{
 	    op = `edit;
 	}
-        string current = UI::QueryWidget (`id (`sects), `CurrentItem);
+        string current = (string)UI::QueryWidget (`id (`sects), `CurrentItem);
         integer counter = 0;
         integer index = 0;
-	integer default = lookup_value (
+	integer default = (integer)lookup_value (
 	    BootCommon::current_globals, "default", 0);
 	string default_title
-	    = lookup_value (
+	    = (string)lookup_value (
 		BootCommon::current_sections[default]:[], "title", "");
-        foreach (`s, BootCommon::current_sections, ``{
+        foreach (list s, BootCommon::current_sections, ``{
             if (lookup_value (s, "title", "")
 		== current)
 	    {
@@ -370,12 +334,12 @@ Replace it with an entry  to boot from the floppy?");
 	else if (op == `add)
 	{
 	    list selected = sects[index]:[];
-	    string name = lookup_value (selected,
+	    string name = (string)lookup_value (selected,
 		BootCommon::getSectionTitle (), "");
 	    if (askClone (name))
 	    {
 		selected = modifySection (
-		    eval (selected),
+		    (list)eval (selected),
 		    BootCommon::getSectionTitle (),
 		    BootCommon::getFreeSectionLabel ());
 		BootCommon::current_section = selected;
@@ -392,7 +356,7 @@ Replace it with an entry  to boot from the floppy?");
 	else if (op == `edit)
 	{
             y2milestone ("Editing title %1, index %2", current, index);
-            BootCommon::current_section = eval (sects[index]:[]);
+            BootCommon::current_section = (list)eval (sects[index]:[]);
             BootCommon::current_section_name
                 = lookup_value (sects[index]:[], "title", "");
 	    BootCommon::one_section_changed = false;
@@ -415,7 +379,176 @@ Replace it with an entry  to boot from the floppy?");
 	return nil;
     }
 
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getSectionsWidget () ``{
+	map ret = BootCommon::getSectionsWidget ();
+	ret["init"] = ``(BootGRUB::sectionsInit ());
+	ret["handle"] = ``(BootGRUB::sectionsHandle ());
+	return ret;
+    }
+
 // grub-specific dialogs
+
+    /**
+      * get current order of disks from device map
+      * @return a list of disks as string
+      */
+    global define list<string> getDisksOrder () ``{
+        list<list<string> > dl = filter (list<string> i, device_map,
+            ``(substring (i[0]:"", 0, 3) == "(hd"));
+        dl = sort (list<string> a, list<string> b, dl, ``(a[0]:"" < b[0]:""));
+        return maplist (list<string> i, dl, ``{return i[1]:"";});
+
+    }
+
+    /**
+      * Summary function of a table entry
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @return string summary to the table
+      */
+    global define string orderSummary (any opt_id, any opt_key) ``{
+	disks_order = getDisksOrder ();
+	return mergestring (disks_order, ", ");
+    }
+
+    /**
+      * Handle function of widget
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @param event map event that occured
+      */
+    global define void handleOrderPopup (any opt_id, any opt_key, map event) ``{
+	any op = event["ID"]:nil;
+	string active = (string)UI::QueryWidget (`id (`disks), `CurrentItem);
+	integer pos = 0;
+	while (pos < size (disks_order) && disks_order[pos]:"" != active)
+	    pos = pos + 1;
+	UI::ChangeWidget (`id (`up), `Enabled, pos > 0);
+	UI::ChangeWidget (`id (`down), `Enabled, pos < size (disks_order) - 1);
+	    if (op == `up)
+	    {
+		disks_order = BootCommon::swapItems (disks_order, pos, pos - 1);
+		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
+		    `opt (`notify, `immediate),
+		    _("D&isks"), disks_order));
+		UI::ChangeWidget (`id (`disks), `CurrentItem, active);
+	    }
+	    else if (op == `down)
+	    {
+		disks_order = BootCommon::swapItems (disks_order, pos, pos + 1);
+		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
+		    `opt (`notify, `immediate),
+		    _("D&isks"), disks_order));
+		UI::ChangeWidget (`id (`disks), `CurrentItem, active);
+	    }
+	    else if (op == `add)
+	    {
+		term popup = `VBox (`VSpacing (1),
+		    // textentry header
+		    `TextEntry (`id (`devname), _("&Device")),
+		    `VSpacing (1),
+		    `HBox (`HStretch (),
+			`PushButton (`id (`ok), `opt (`key_F10, `default), Label::OKButton ()),
+			`HStretch (),
+			`PushButton (`id (`cancel), `opt (`key_F8), Label::CancelButton ()),
+			`HStretch ()
+		    ),
+		    `VSpacing (1)
+		);
+		UI::OpenDialog (popup);
+		symbol pushed = (symbol)UI::UserInput ();
+		string new_dev = (string)
+		    UI::QueryWidget (`id (`devname), `Value);
+		UI::CloseDialog ();
+		if (pushed == `ok)
+		{
+		    disks_order = add (disks_order, new_dev);
+		    UI::ReplaceWidget (`id (`disks_rp),
+			`SelectionBox(`id (`disks),
+			    `opt (`notify, `immediate),
+			    _("D&isks"), disks_order));
+		}
+	    }
+	    else if (op == `delete)
+	    {
+		disks_order = filter (`i, disks_order, ``(i != active));
+		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
+                    `opt (`notify, `immediate),
+                    _("D&isks"), disks_order));
+		UI::ChangeWidget (`id (`delete), `Enabled, size (disks_order) > 0);
+		UI::ChangeWidget (`id (`disks),`CurrentItem, disks_order[0]:"");
+	    }
+
+	UI::SetFocus (`id (`disks));
+    }
+
+    /**
+      * Init function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void initOrderPopup (any opt_id, any opt_key) ``{
+        disks_order = getDisksOrder ();
+	UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
+                    `opt (`notify, `immediate),
+                    _("D&isks"), disks_order));
+	UI::ChangeWidget (`id (`disks), `CurrentItem, disks_order[0]:"");
+	UI::SetFocus (`id (`disks));
+	handleOrderPopup (nil, nil, $[]);
+    }
+
+    /**
+      * Store function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void storeOrderPopup (any opt_id, any opt_key) ``{
+            list<list<string> > dl = filter (list<string> i, device_map,
+                ``(substring (i[0]:"", 0, 3) == "(hd"));
+            dl=sort (list<string> a, list<string> b, dl, ``(a[0]:"" < b[0]:""));
+
+	    map olddiskmap = $[];
+	    foreach (list<string> d, dl, ``{
+		olddiskmap[d[1]:""] = d[0]:"";
+	    });
+	    map remap = $[];
+	    integer pos = 0;
+	    list new_map = filter (list<string> i, device_map,
+		``(substring (i[0]:"", 0, 3) != "(hd"));
+	    foreach (`d, disks_order, ``{
+		string gd = sformat ("(hd%1)", pos);
+		if (gd != olddiskmap[d]:"")
+		{
+		    remap[olddiskmap[d]:""] = gd;
+		}
+		new_map = add (new_map, [gd, d]);
+		pos = pos + 1;
+	    });
+	    remap = filter (string k, string v, remap, ``(k != "" && v != ""));
+	    BootCommon::current_globals
+		= BootGRUB::remapDisks (BootCommon::current_globals, remap);
+	    BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+		return BootGRUB::remapDisks (s, remap);
+	    });
+	    BootCommon::current_section = BootGRUB::remapDisks (
+		BootCommon::current_section, remap);
+	    list gcl = maplist (`k, `v, BootGRUB::grub_conf, ``(
+		$[ "key" : k, "value" : v]));
+	    gcl = BootGRUB::remapDisks (gcl, remap);
+	    BootGRUB::grub_conf = listmap (map e, gcl, ``(
+		[e["key"]:"", e["value"]:""]));
+	    BootGRUB::device_map = new_map;
+	    BootCommon::mbrDisk = disks_order[0]:BootCommon::mbrDisk;
+	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+	    disks_order = nil;
+	    BootCommon::markGeneralOptionChanged ((string)opt_key);
+	    BootCommon::location_changed = true;
+	    BootCommon::redraw_table = true;
+    }
 
     /**
       * Get map of widget
@@ -462,161 +595,25 @@ Replace it with an entry  to boot from the floppy?");
 	];
     }
 
-    /**
-      * get current order of disks from device map
-      * @return a list of disks as string
-      */
-    global define list(string) getDisksOrder () ``{
-        list(list(string)) dl = filter (list(string) i, device_map,
-            ``(substring (i[0]:"", 0, 3) == "(hd"));
-        dl = sort (list(string) a, list(string) b, dl, ``(a[0]:"" < b[0]:""));
-        return maplist (list(string) i, dl, ``{return i[1]:"";});
-
-    }
-
-    /**
-      * Summary function of a table entry
-      * @param opt_id any option id
-      * @param opt_key any option key
-      * @return string summary to the table
-      */
-    global define string orderSummary (any opt_id, any opt_key) ``{
-	disks_order = getDisksOrder ();
-	return mergestring (disks_order, ", ");
-    }
-
-    /**
-      * Init function of a popup
-      * @param opt_id any option id
-      * @param opt_key any option key
-      */
-    global define void initOrderPopup (any opt_id, any opt_key) ``{
-        disks_order = getDisksOrder ();
-	UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
-                    `opt (`notify, `immediate),
-                    _("D&isks"), disks_order));
-	UI::ChangeWidget (`id (`disks), `CurrentItem, disks_order[0]:"");
-	UI::SetFocus (`id (`disks));
-	handleOrderPopup (nil, nil, $[]);
-    }
-
-    /**
-      * Handle function of widget
-      * @param opt_id any option id
-      * @param opt_key any option key
-      * @param event map event that occured
-      */
-    global define void handleOrderPopup (any opt_id, any opt_key, map event) ``{
-	any op = event["ID"]:nil;
-	string active = UI::QueryWidget (`id (`disks), `CurrentItem);
-	integer pos = 0;
-	while (pos < size (disks_order) && disks_order[pos]:"" != active)
-	    pos = pos + 1;
-	UI::ChangeWidget (`id (`up), `Enabled, pos > 0);
-	UI::ChangeWidget (`id (`down), `Enabled, pos < size (disks_order) - 1);
-	    if (op == `up)
-	    {
-		disks_order = BootCommon::swapItems (disks_order, pos, pos - 1);
-		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
-		    `opt (`notify, `immediate),
-		    _("D&isks"), disks_order));
-		UI::ChangeWidget (`id (`disks), `CurrentItem, active);
-	    }
-	    else if (op == `down)
-	    {
-		disks_order = BootCommon::swapItems (disks_order, pos, pos + 1);
-		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
-		    `opt (`notify, `immediate),
-		    _("D&isks"), disks_order));
-		UI::ChangeWidget (`id (`disks), `CurrentItem, active);
-	    }
-	    else if (op == `add)
-	    {
-		term popup = `VBox (`VSpacing (1),
-		    // textentry header
-		    `TextEntry (`id (`devname), _("&Device")),
-		    `VSpacing (1),
-		    `HBox (`HStretch (),
-			`PushButton (`id (`ok), `opt (`key_F10, `default), Label::OKButton ()),
-			`HStretch (),
-			`PushButton (`id (`cancel), `opt (`key_F8), Label::CancelButton ()),
-			`HStretch ()
-		    ),
-		    `VSpacing (1)
-		);
-		UI::OpenDialog (popup);
-		symbol pushed = UI::UserInput ();
-		string new_dev = UI::QueryWidget (`id (`devname), `Value);
-		UI::CloseDialog ();
-		if (pushed == `ok)
-		{
-		    disks_order = add (disks_order, new_dev);
-		    UI::ReplaceWidget (`id (`disks_rp),
-			`SelectionBox(`id (`disks),
-			    `opt (`notify, `immediate),
-			    _("D&isks"), disks_order));
-		}
-	    }
-	    else if (op == `delete)
-	    {
-		disks_order = filter (`i, disks_order, ``(i != active));
-		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
-                    `opt (`notify, `immediate),
-                    _("D&isks"), disks_order));
-		UI::ChangeWidget (`id (`delete), `Enabled, size (disks_order) > 0);
-		UI::ChangeWidget (`id (`disks),`CurrentItem, disks_order[0]:"");
-	    }
-
-	UI::SetFocus (`id (`disks));
-    }
+// gfx menu option
 
     /**
       * Store function of a popup
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void storeOrderPopup (any opt_id, any opt_key) ``{
-            list(list(string)) dl = filter (list(string) i, device_map,
-                ``(substring (i[0]:"", 0, 3) == "(hd"));
-            dl=sort (list(string) a, list(string) b, dl, ``(a[0]:"" < b[0]:""));
+    global define void gfxMenuStore (any opt_id, any opt_key) ``{
+	BootCommon::current_section = setValueByIndex (
+	    BootCommon::current_section, -1,
+	    BootCommon::current_option_name,
+	    UI::QueryWidget (`id (`value), `Value));
 
-	    map olddiskmap = $[];
-	    foreach (list(string) d, dl, ``{
-		olddiskmap[d[1]:""] = d[0]:"";
-	    });
-	    map remap = $[];
-	    integer pos = 0;
-	    list new_map = filter (list(string) i, device_map,
-		``(substring (i[0]:"", 0, 3) != "(hd"));
-	    foreach (`d, disks_order, ``{
-		string gd = sformat ("(hd%1)", pos);
-		if (gd != olddiskmap[d]:"")
-		{
-		    remap[olddiskmap[d]:""] = gd;
-		}
-		new_map = add (new_map, [gd, d]);
-		pos = pos + 1;
-	    });
-	    remap = filter (string k, string v, remap, ``(k != "" && v != ""));
-	    BootCommon::current_globals
-		= BootGRUB::remapDisks (BootCommon::current_globals, remap);
-	    BootCommon::sections = maplist (`s, BootCommon::sections, ``{
-		return BootGRUB::remapDisks (s, remap);
-	    });
-	    BootCommon::current_section = BootGRUB::remapDisks (
-		BootCommon::current_section, remap);
-	    list gcl = maplist (`k, `v, BootGRUB::grub_conf, ``(
-		$[ "key" : k, "value" : v]));
-	    gcl = BootGRUB::remapDisks (gcl, remap);
-	    BootGRUB::grub_conf = listmap (`e, gcl, ``(
-		[e["key"]:"", e["value"]:""]));
-	    BootGRUB::device_map = new_map;
-	    BootCommon::mbrDisk = disks_order[0]:BootCommon::mbrDisk;
-	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
-	    disks_order = nil;
-	    BootCommon::markGeneralOptionChanged (opt_key);
-	    BootCommon::location_changed = true;
-	    BootCommon::redraw_table = true;
+	map intern = (map)lookup_value (BootCommon::current_section,
+	    "__intern__", $[]);
+	intern["changed"] = true;
+	BootCommon::addValueToBootloaderSection (
+	    `current_section, "__intern__", intern);
+	y2milestone ("Final current section: %1", BootCommon::current_section);
     }
 
     /**
@@ -631,29 +628,11 @@ Replace it with an entry  to boot from the floppy?");
 	    ],
 	    "popup" : $[
 		"store" : ``(BootGRUB::gfxMenuStore ()),
-
 	    ],
 	];
     }
 
-    /**
-      * Store function of a popup
-      * @param opt_id any option id
-      * @param opt_key any option key
-      */
-    global define void gfxMenuStore (any opt_id, any opt_key) ``{
-	BootCommon::current_section = setValueByIndex (
-	    BootCommon::current_section, -1,
-	    BootCommon::current_option_name,
-	    UI::QueryWidget (`id (`value), `Value));
-
-	map intern = lookup_value (BootCommon::current_section,
-	    "__intern__", $[]);
-	intern["changed"] = true;
-	BootCommon::addValueToBootloaderSection (
-	    `current_section, "__intern__", intern);
-	y2milestone ("Final current section: %1", BootCommon::current_section);
-    }
+// single section widget
 
     /**
       * Get map of widget
@@ -687,6 +666,70 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
+      * Init function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void addOrigMbrInit (any opt_id, any opt_key) ``{
+        UI::ChangeWidget (`id (`value), `Value, insert_saved_mbr);
+        UI::SetFocus (`id (`value));
+    }
+
+    /**
+      * Store function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void addOrigMbrStore (any opt_id, any opt_key) ``{
+        insert_saved_mbr = (boolean)UI::QueryWidget (`id (`value), `Value);
+	if (insert_saved_mbr)
+	{
+	    boolean found = false;
+	    foreach (list s, BootCommon::sections, ``{
+		if (lookup (
+		    (map)lookup_value (s, "__intern__", $[]),
+		    "original_mbr",
+		    false))
+		{
+		    found = true;
+		    y2error ("Found %1", s);
+		}
+	    });
+	    if (! found)
+	    {
+		BootCommon::current_sections = add (
+		    BootCommon::current_sections,
+		    createLinuxSection ("original MBR"));
+	    }
+	}
+	else
+	{
+	    BootCommon::current_sections = filter (list s,
+		BootCommon::current_sections, ``(
+		! lookup (
+		    (map)lookup_value (s, "__intern__", $[]),
+		    "original_mbr",
+		    false)));
+	}
+	BootCommon::markGeneralOptionChanged ((string)opt_key);
+    }
+
+    /**
+      * Summary function of a table entry
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @return string summary to the table
+      */
+    global define string addOrigMbrSummary (any opt_id, any opt_key) ``{
+        if (insert_saved_mbr)
+            // table item / label
+            return _("Yes");
+        else
+            // table item / label
+            return _("No");
+    }
+
+    /**
       * Get map of widget
       * @return map of widget
       */
@@ -710,61 +753,29 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Init function of a popup
-      * @param opt_id any option id
-      * @param opt_key any option key
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
       */
-    global define void addOrigMbrInit (any opt_id, any opt_key) ``{
-        UI::ChangeWidget (`id (`value), `Value, insert_saved_mbr);
-        UI::SetFocus (`id (`value));
+    global define map GetWidgetMaps () ``{
+        return $[
+	    "sections" : BootGRUB::getSectionsWidget (),
+	    "singlesection" : BootGRUB::getSingleSectionWidget (),
+	    "globalsection" : BootGRUB::getGlobalSectionWidget (),
+        ];
     }
 
     /**
-      * Store function of a popup
-      * @param opt_id any option id
-      * @param opt_key any option key
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
       */
-    global define void addOrigMbrStore (any opt_id, any opt_key) ``{
-        insert_saved_mbr = UI::QueryWidget (`id (`value), `Value);
-	if (insert_saved_mbr)
-	{
-	    boolean found = false;
-	    foreach (`s, BootCommon::sections, ``{
-		if (lookup (lookup_value (s, "__intern__", $[]), "original_mbr", false))
-		{
-		    found = true;
-		    y2error ("Found %1", s);
-		}
-	    });
-	    if (! found)
-	    {
-		BootCommon::current_sections = add (
-		    BootCommon::current_sections,
-		    createLinuxSection ("original MBR"));
-	    }
-	}
-	else
-	{
-	    BootCommon::current_sections = filter (`s,
-		BootCommon::current_sections, ``(
-		! lookup (lookup_value (s, "__intern__", $[]), "original_mbr", false)));
-	}
-	markGeneralOptionChanged (opt_key);
-    }
-
-    /**
-      * Summary function of a table entry
-      * @param opt_id any option id
-      * @param opt_key any option key
-      * @return string summary to the table
-      */
-    global define string addOrigMbrSummary (any opt_id, any opt_key) ``{
-        if (insert_saved_mbr)
-            // table item / label
-            return _("Yes");
-        else
-            // table item / label
-            return _("No");
+    global define map GetOptionMaps () ``{
+        return $[
+	    "__location": BootGRUB::getTargetWidget (),
+	    "title" : BootCommon::getLabelWidget (),
+	    "gfxmenu" : BootGRUB::getGfxMenuWidget (),
+	    "__diskorder" : BootGRUB::getOrderPopup (),
+	    "__add_orig_mbr" : BootGRUB::getAddOrigMbrWidget (),
+	];
     }
 
 }
