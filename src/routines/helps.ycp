@@ -43,8 +43,9 @@ Change the settings of your boot loader. </P>
       */
     global define string getSaveProgressHelp () ``{
 	// help text
-	return _("<P><B><BIG>Saving Bootloader Configuration</BIG></B><BR>
-Please wait...<br></p>");
+	return _("<P><B><BIG>Saving Boot Loader Configuration</BIG></B><BR>
+Please wait...<br></p>
+");
     }
 
     /**

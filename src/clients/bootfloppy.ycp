@@ -156,7 +156,7 @@ and select <i>Manual installation</i> -> <i>Start installation / system</i>
 	    help_text = help_text + _("<p><b>Module Floppies</b><br>
 All SuSE kernels are modularized. This means that most drivers
 are loaded as kernel modules on demand. Because the space on one single floppy
-is not sufficient for all kernel modules, you might want to create one
+is not sufficient for all kernel modules, consider creating one
 of the <b>module floppies</b>.</p>
 ");
 

@@ -249,7 +249,7 @@
 
                 // FIXME: Installation::destdir should be removed?
 		// log view headline
-		Popup::ShowLog (_("SILO log"), Installation::destdir + "/var/log/YaST2/y2logsilo");
+		Popup::ShowLog (_("SILO Log"), Installation::destdir + "/var/log/YaST2/y2logsilo");
                 retAsk = UI::AskRetry( "silo" );
             }
         }
