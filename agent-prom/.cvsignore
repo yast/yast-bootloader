@@ -18,3 +18,4 @@ missing
 mkinstalldirs
 autom4te.cache
 Makefile.am
+configure.in
