@@ -728,6 +728,28 @@ and the sector to which the boot loader is installed."),
 	return true;
     }
 
+    global define void labelStore (any opt_id, string opt_key) ``{
+	string value = (string)UI::QueryWidget (`id (opt_key), `Value);
+	if (getLoaderType (false) != "grub")
+	{
+	    value = replaceAll (value, " ", "_");
+	    if (size (value) > 15)
+		value = substring (value, 0, 15);
+	}
+	one_section_changed = true;
+	if (opt_id == nil) // append
+	{
+	    current_section = appendValue (
+		current_section, (string)opt_key, value);
+	}
+	else if (is (opt_id, integer))
+	{
+	    integer index = (integer)opt_id;
+	    current_section[index, "value"] = value;
+	    current_section[index, "changed"] = true;
+	}
+    }
+
     /**
       * Get map of widget
       * @return map of widget
@@ -745,6 +767,7 @@ and the sector to which the boot loader is installed."),
 		"widget" : `textentry,
 		"validate_type" : `function,
 		"validate_function" : BootCommon::labelValidate,
+		"store" : labelStore,
 	    ],
 	];
     }
