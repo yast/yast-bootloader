@@ -153,6 +153,7 @@
 	});
         BootCommon::sections = maplist (`s, BootCommon::sections, ``{
             string initrd = s["initrd"]:"";
+	    string title = s["label"]:"";
             if (initrd != "")
             {
                 if (-1 == SCR::Read (.target.size, initrd))
