@@ -64,6 +64,14 @@
     }
 
     /**
+      * Update the board-type-specific settings
+      * @return boolean true on success
+      */
+    global define boolean CHRPUpdate () ``{
+	return true;
+    }
+
+    /**
       * Save the board-type-specific settings
       * @return boolean true on success
       */

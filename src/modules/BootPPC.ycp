@@ -173,6 +173,28 @@
 	return true;
     }
 
+/**
+ * Update the settings - process board-specific operations
+ * @return boolean true on success
+ */
+global boolean currentBoardUpdate () {
+	if ( getBoardType () == "iseries" )
+	{
+	    return iSeriesUpdate ();
+	}
+	else if ( getBoardType () == "prep" )
+	{
+	    return PRePUpdate ();
+	}
+	else if ( getBoardType () == "chrp" )
+	{
+	    return CHRPUpdate ();
+	}
+	// TODO other boards
+
+	return true;
+}
+
     /**
       * Read the settings specific to current board
       * Cannot use SCR!!!
@@ -676,6 +698,7 @@
       * Update read settings to new version of configuration files
       */
     global define void Update () ``{
+	currentBoardUpdate ();
 	updateSections (true);
 	updateGlobals ();
     }
