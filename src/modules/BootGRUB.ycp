@@ -253,6 +253,9 @@
 		    y2debug ("result of loading %1 is %2", modname, r);
 		}
 	    });
+	    SCR::Execute (.bootloader.agent_init, "grub");
+	    SCR::Execute (.bootloader.disk_init,
+		BootCommon::PrepareInitData ());
 	    foreach (map o, other_l, ``{
 		string dev = o["device"]:"";
 		if (dev != "" && 0 == SCR::Execute (.target.bash,
@@ -926,7 +929,6 @@
     global define map Export () ``{
 	map ret = BootCommon::Export ();
 	ret["device_map"] = device_map;
-	ret["grub_conf"] = grub_conf;
 	return ret;
     }
     /**
@@ -938,7 +940,6 @@
 	BootCommon::Import (settings);
 	y2debug ("Importing GRUB-specific settings %1", settings);
 	device_map = settings["device_map"]:proposeDeviceMap ();
-	grub_conf = settings["grub_conf"]:proposeGrubConf ();
 	y2debug ("GRUB import done");
 	return true;
     }
@@ -947,10 +948,8 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
-	BootCommon::DetectDisks ();
-	boolean ret = BootCommon::Read ();
+	BootCommon::DetectDisks ();	boolean ret = BootCommon::Read ();
 	device_map = readDeviceMap ();
-//	grub_conf = readGrubConf ();
 	string mbrD = grubDev2unixDev ("(hd0)");
 	if (mbrD != "/dev/null" && mbrD != nil && mbrD != "")
 	    BootCommon::mbrDisk = mbrD;
@@ -964,13 +963,10 @@
 	if (Mode::autoinst ())
 	    return;
 	device_map = [];
-	grub_conf = $[];
 	BootCommon::Reset (init);
 	if (init)
 	{
 	    device_map = proposeDeviceMap ();
-	    if (! Mode::config ())
-		grub_conf = proposeGrubConf ();
 	}
     }
     /**
@@ -988,8 +984,6 @@
 	// refresh device map
 	if (device_map == [] || device_map == nil)
 	    device_map = proposeDeviceMap ();
-	if (/*(grub_conf == $[] || grub_conf == nil) &&*/ ! Mode::config ())
-	    grub_conf = proposeGrubConf ();
 	string mbrD = grubDev2unixDev ("(hd0)");
 	if (mbrD != "/dev/null" && mbrD != nil && mbrD != "")
 	    BootCommon::mbrDisk = mbrD;
@@ -1057,8 +1051,6 @@
 	SCR::Execute (.target.bash, "test -f /boot/grub/menu.lst && /bin/cp /boot/grub/menu.lst /boot/grub/menu.lst.old");
 	SCR::Execute (.target.bash, "test -f /boot/grub/device.map && /bin/cp /boot/grub/device.map /boot/grub/device.map.old");
 	SCR::Execute (.target.bash, "test -f /etc/grub.conf && /bin/cp /etc/grub.conf /etc/grub.conf.old");
-//	grub_conf["device"] = BootCommon::loader_device;
-//	saveGrubConf (grub_conf);
 	saveDeviceMap (device_map);
 	integer index = -1;
 	integer default = (integer)
@@ -1217,7 +1209,6 @@
 	BootCommon::loader_device
 	    = BootCommon::UpdateDevice (BootCommon::loader_device);
 	y2milestone ("Updating device in /etc/grub.conf");
-	grub_conf["device"] = BootCommon::UpdateDevice (grub_conf["device"]:"");
     }
     /**
       * Write bootloader settings to disk
@@ -1244,7 +1235,8 @@
 	    {
 		y2milestone ("Creating backup copy to bootsector");
 		// want a copy here
-		map<string,string> backup_gc = add (grub_conf, "device",
+		map<string,string> gc_backup = proposeGrubConf ();
+		map<string,string> backup_gc = add (gc_backup, "device",
 		    BootCommon::BootPartitionDevice);
 		string conf_file = getGrubConf (backup_gc);
 		string tmp_file = (string)SCR::Read (.target.tmpdir)

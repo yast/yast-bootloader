@@ -6,6 +6,7 @@ Mon Jan 31 11:40:43 CET 2005 - jsrain@suse.cz
 - adapted to new filenames in GFX menu
 - fixed handling of YaSTi's data in comments in configuration files
 - by default merging all found GRUB menus
+- clean-up of obsolete code
 
 -------------------------------------------------------------------
 Fri Jan 28 13:46:53 CET 2005 - jsrain@suse.cz
