@@ -746,7 +746,7 @@ global define list getPartitionList(symbol type) ``{
 	else if (type == `boot)
 	{
             partitions = filter (`p, partitions,
-                ``(lookup (p, "type", `primary) == `primary || lookup (p, "type", `primary) == `extended));
+                ``(lookup (p, "type", `primary) == `primary || lookup (p, "type", `primary) == `extended || lookup (p, "type", `primary) == `logical));
 	}
 	else if (type == `root)
 	{
