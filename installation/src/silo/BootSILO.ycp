@@ -19,13 +19,57 @@
     module "BootSILO";
 
     textdomain "bootloader";
-    
+
     import "Boot";
     import "Kernel";
 
     global boolean  promalias = false;
 
     global boolean  defaultdevice = false;
+
+
+    /**
+     * WriteUpdate
+     * Calling mk_initrd and lilo while update.
+     * @ return void
+     */
+    global define void WriteUpdate()
+    ``{
+        // Calling mk_initrd
+
+        if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/YaST2/y2logmk_initrd 2>> /var/log/YaST2/y2logmk_initrd") != 0 )
+        {
+            any retAsk = UI::AskShowLog( "mk_initrd" );
+            if ( retAsk == `yes )
+            {
+                string text = "";
+
+                text = SCR::Read (.target.string, "/var/log/YaST2/y2logmk_initrd");
+                DisplayLogFile( text );
+            }
+        }
+
+	// Replace X.Y with 8.1 in /boot/message and modify silo.conf, if
+	// necessary.
+	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_silo_conf / >>/var/log/YaST2/y2logsilo 2>>/var/log/YaST2/y2logsilo");
+
+        any retAsk = `yes;
+        while ( retAsk == `yes
+                && SCR::Execute (.target.bash, "/sbin/silo >> /var/log/YaST2/y2logsilo 2>> /var/log/YaST2/y2logsilo") != 0 )
+        {
+            retAsk = UI::AskRetry( "silo" );
+            while ( retAsk == `log )
+            {
+                string text = "";
+
+                // FIXME: Installation::destdir should be removed?
+                text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2logsilo");
+                DisplayLogFile( text );
+                retAsk = UI::AskRetry( "silo" );
+            }
+        }
+    }
+
 
     /**
      * AskParameters
@@ -111,12 +155,80 @@ SunOS or Solaris installed\non the same hard drive.\n
     }
 
     /**
-     * Write ()
+     * Write () the SILO bootloader
      *
      */
 
     global define boolean Write ()
     ``{
+        import "Mode";
+        import "Boot";
+        import "Misc";
+        import "Report";
+
+        include "ui/common_popups.ycp";
+
+
+
+        if ( Mode::update )
+        {
+            // update mode
+            WriteUpdate();
+            return true;
+        }
+
+        // Boot setup start
+
+        // additional message that needs to be displayed
+        string confirm_boot_msg = Misc::boot_msg;
+
+        integer doresult = 0;
+        string docmd = "/usr/lib/YaST2/bin/dosilo /";
+
+        if (Boot::location == "mbr")
+        {
+            docmd = docmd + " -m " + Boot::device;
+        }
+        else if (Boot::location == "custom")
+        {
+            string last_dev_char = substring (Boot::device,
+					      size(Boot::device)-1, 1);
+            // if Boot::device does not end in a digit, it is a disk
+	    // device for mbr
+            if (!(filterchars (last_dev_char, "0123456789") == last_dev_char))
+                docmd = docmd + " -m " + Boot::device;
+        }
+
+	y2milestone("silo: %1 cmd: %2", Boot::location, docmd);
+
+
+        map doenv = $[ "bootdev" : Boot::BootPartitionDevice,
+                       "rootdev" : Boot::RootPartitionDevice,
+                       "append" : Kernel::cmdLine];
+        y2milestone ("doenv: %1", doenv);
+        // Call silo
+        doresult = SCR::Execute(.target.bash, docmd, doenv);
+
+        if (doresult == 0)
+        {
+        // final information message for user after SILO write popup.
+            string msg = _("The SILO boot sector has been written to disk.");
+
+            if ( size (confirm_boot_msg) > 0 )
+            {
+                msg = msg + "\n\n" + confirm_boot_msg;
+                Misc::boot_msg = "";
+                // empty that entry to indicate the message has been displayed
+            }
+
+            Report::Message(msg);
+        }
+        else
+        {
+            // error popup
+            Report::Error(_("Could not write the SILO boot sector"));
+        }
+
 	// On SPARC, set the right device for a hard reboot to find our
 	// installed system. Modify the PROM parameters if necessary, too.
 
@@ -125,6 +237,7 @@ SunOS or Solaris installed\non the same hard drive.\n
 	    string silo_device = Boot::device;
 	    string reboot_device = SCR::Read (.prom.path,silo_device);
 
+	    y2milestone ("reboot device is: %1", reboot_device);
 	    SCR::Execute (.target.bash, "/bin/echo \""+reboot_device+"\" >/proc/sys/kernel/reboot-cmd");
 	}
 
@@ -133,17 +246,27 @@ SunOS or Solaris installed\non the same hard drive.\n
 	    string silo_device = Boot::device;
 	    string boot_device = SCR::Read (.prom.path, silo_device);
 
-	    SCR::Write (.prom.alias.linux, boot_device);
 	    if (Boot::defaultdevice)
 	    {
+		y2milestone ("create linux alias %1 (%2) as default",
+			     boot_device, silo_device);
 		SCR::Write (.prom.boot-device, "linux");
 	    }
+	    else
+	    {
+		y2milestone ("create linux alias %1 (%s)",
+			     boot_device, silo_device);
+
+	    }
+	    SCR::Write (.prom.alias.linux, boot_device);
 	}
 	else if (Boot::defaultdevice)
 	{
 	    string silo_device = Boot::device;
 	    string boot_device = SCR::Read (.prom.path,silo_device);
 
+	    y2milestone ("setting boot-device to %1 (%2) as default",
+			 boot_device, silo_device);
 	    SCR::Write (.prom.boot-device, boot_device);
 	}
 
@@ -164,4 +287,3 @@ SunOS or Solaris installed\non the same hard drive.\n
 	defaultdevice = true;
     }
 }
-
