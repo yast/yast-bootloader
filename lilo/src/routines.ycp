@@ -90,7 +90,16 @@ global define string setGrubKernelParam (string line, string key, string value) 
   * @return map of settings
   */
 global define map parseGrubConf () ``{
-    string file = SCR::Read (.target.string, "/etc/grub.conf");
+    return parseGrubConfFrom ("/etc/grub.conf");
+}
+
+/**
+  * parse /etc/grub file from other file
+  * @param filename
+  * @return map of settings
+  */
+global define map parseGrubConfFrom (string filename) ``{
+    string file = SCR::Read (.target.string, filename);
     list lines = splitstring (file, "\n");
     lines = filter (`l, lines, ``(l != ""));
     map settings = $[];
@@ -145,12 +154,26 @@ global define string getGrubConf (map settings) ``{
 	    lookup (settings, "menu", ""));
     res = sformat ("%1%2\nquit\n", root, res);
     return res;
-//    return SCR::Write (.target.string, "/etc/grub.conf", res);
 }
 
+/**
+  * save /etc/grub.conf
+  * @param map settings
+  * @return boolean true if success
+  */
 global define boolean saveGrubConf (map settings) ``{
+    return saveGrubConfTo (settings, "/etc/grub.conf");
+}
+
+/**
+  * save /etc/grub.conf to specified file
+  * @param map settings
+  * @param string filename
+  * @return boolean true if success
+  */
+global define boolean saveGrubConfTo (map settings, string filename) ``{
     string cont = getGrubConf (settings);
-    return SCR::Write (.target.string, "/etc/grub.conf", cont);
+    return SCR::Write (.target.string, filename, cont);
 }
 
 /**
@@ -540,7 +563,6 @@ global define string boot() ``{
 	Lilo::mode = `grub;
     else
 	Lilo::mode = `lilo;
-    y2milestone ("Configuring bootloader %1", ret);
     return ret;
 }
 
@@ -995,14 +1017,26 @@ global define list createOptsTable(map values)
 ``{
     list lopts = [];
     list table = [];
-    foreach(`e, `f, values, 
-    ``{
-	if (e != "image")
-	{
-	    table = add(table, `item(`id(e), e, f));
-	}
+    list opts = lookup (values, "__order__", []);
+    values = filter (`k, `v, values, ``(k != "__order__"));
+
+    if (opts != [])
+    {
+	foreach (`o, opts, ``{
+	    if (o != "image")
+	    {
+		table = add (table, `item (`id(o), o, lookup (values, o, "")));
+	    }
+	    values = filter (`k, `v, values, ``(k != o));
+	});
     }
-    );
+    foreach(`e, `f, values, ``{
+        if (e != "image")
+        {
+            table = add(table, `item(`id(e), e, f));
+        }
+    });
+
     return table;
 }
 

@@ -95,6 +95,12 @@ global define term OptionsDlgWidget(list opts)
 			    `header(_("Option"),
 			    // table header
 				 _("Value")), []),
+	                    Lilo::mode == `grub
+			    ?`HBox(
+	                        `PushButton(`id(`up), UI::Glyph(`ArrowUp)),
+	                        `PushButton(`id(`down), UI::Glyph(`ArrowDown))
+	                    )
+			    : VSpacing (0),
 			    `HBox
 			    (
 				`HStretch(),

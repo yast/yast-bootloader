@@ -58,6 +58,8 @@ global define map LiloWrite(map settings) ``{
     // first synchronize global settings
 
     map global_opts = lookup(conf, "global", $[]);
+    list global_order = lookup (global_opts, "__order__", []);
+    global_opts = filter (`k, `v, global_opts, ``(k != "__order__"));
     list globs1 = SCR::`Dir(list2path([boot()]));
     list globs2 = maplist(`e, `f, global_opts, ``(e));
 
@@ -68,16 +70,33 @@ global define map LiloWrite(map settings) ``{
     foreach(`e, diff, ``{SCR::`Write(list2path([boot(), e]), nil);});
 
     // write values
-    foreach(`e, `f, lookup(conf, "global", $[]), ``{
-	if (isSpecial(e))
-	{
-	    SCR::Write(list2path([boot(), e]), splitstring(f, ","));
-	}
-	else
-	{
-	    SCR::`Write(list2path([boot(), e]), ui2mod(f));
-	}
+    if (global_order != [])
+    {
+	integer index = 0;
+	foreach (`e, global_order, ``{
+	    if (isSpecial(e))
+	    {
+		SCR::Write(list2path([boot(), e]), splitstring(lookup (global_opts, e, ""), ","), index);
+	    }
+	    else
+	    {
+		SCR::`Write(list2path([boot(), e]), ui2mod(lookup (global_opts, e, "")), index);
+	    }
+	    index = index + 1;
+	    global_opts = filter (`k, `v, global_opts, ``(k != e));
+	});
+    };
+    foreach(`e, `f, global_opts, ``{
+        if (isSpecial(e))
+        {
+            SCR::Write(list2path([boot(), e]), splitstring(f, ","));
+        }
+        else
+        {
+            SCR::`Write(list2path([boot(), e]), ui2mod(f));
+        }
     });
+
 
     // now remove all sections
     list sects = SCR::`Dir(list2path([boot(), "sections"]));
@@ -93,17 +112,34 @@ global define map LiloWrite(map settings) ``{
     foreach(`sect, sects,
     ``{
         sname = lookup(sect, Lilo::mode == `grub ? "title" : "label", "");
+	list sect_order = lookup  (sect, "__order__", []);
+	sect = filter (`k, `v, sect, ``(k != "__order__"));
         SCR::`Write(list2path([boot(), "sections", ui2mod(sname), Lilo::mode == `grub ? "title" : "label"]), ui2mod(sname));
-        foreach(`key, `val, sect,
-        ``{
-	    if (isSpecial(key))
-	    {
-		SCR::Write(list2path([boot(), "sections", ui2mod(sname), key]), splitstring(val, ","));
-	    }
-	    else
-	    {
-		SCR::`Write(list2path([boot(), "sections", ui2mod(sname), key]), ui2mod(val));
-	    }
+	if (sect_order != [])
+	{
+	    integer index = 0;
+            foreach (`key, sect_order, ``{
+		if (isSpecial(key))
+		{
+		    SCR::Write(list2path([boot(), "sections", ui2mod(sname), key]), splitstring(lookup (sect, key, ""), ","), index);
+		}
+		else
+		{
+		    SCR::`Write(list2path([boot(), "sections", ui2mod(sname), key]), ui2mod(lookup (sect, key, "")), index);
+		}
+		index = index + 1;
+		sect = filter (`k, `v, sect, ``(k != key));
+            });
+	}
+        foreach(`key, `val, sect, ``{
+            if (isSpecial(key))
+            {
+                SCR::Write(list2path([boot(), "sections", ui2mod(sname), key]), splitstring(val, ","));
+            }
+            else
+            {
+                SCR::`Write(list2path([boot(), "sections", ui2mod(sname), key]), ui2mod(val));
+            }
         });
     });
 
