@@ -49,6 +49,7 @@
 	    "initrd" : Initrd::Export (),
 	    "specific" : blExport (),
 	    "changed_settings" : BootCommon::changed_settings,
+	    "write_settings" : BootCommon::write_settings,
 	];
 	return out;
     }
@@ -67,6 +68,7 @@
 	Initrd::Import (settings["initrd"]:$[]);
 	blImport (settings["specific"]:$[]);
 	BootCommon::changed_settings = settings["changed_settings"]:$[];
+	BootCommon::write_settings = settings["write_settings"]:$[];
     }
     /**
       * Read settings from disk
@@ -100,6 +102,7 @@
 //	BootCommon::other_bl = $[];
 	BootCommon::files_edited = false;
 	BootCommon::changed_settings = $[];
+	BootCommon::write_settings = $[];
 	blReset ();
     }
     /**
@@ -124,10 +127,10 @@
       * @return boolean true on success
       */
     global define boolean Write () ``{
-	y2milestone ("Writing bootloader configuration");
-
 	boolean ret = true;
 	ReadOrProposeIfNeeded ();
+
+	y2milestone ("Writing bootloader configuration");
 
 // run Progress bar
         list stages = [
@@ -159,14 +162,18 @@
         }
 
 	// save initrd
-	if (Initrd::changed || ! Mode::normal)
+	if ((Initrd::changed || ! Mode::normal)
+	    && ! (BootCommon::write_settings["forbid_save_initrd"]:false))
 	{
 	    ret = Initrd::Write ();
 	    BootCommon::changed = true;
 	}
 
-	if (! BootCommon::changed)
+	if (! (BootCommon::changed
+	    || BootCommon::write_settings["initrd_changed_externally"]:false))
+	{
 	    return true;
+	}
 
 	if (Mode::normal)
 	    Progress::NextStage ();
@@ -254,6 +261,19 @@
 		break;
 	}
 	return ret;
+    }
+
+// write mode settings function
+
+    /**
+      * Set settings how to write bootloader
+      * @param map of settings
+      */
+    global define void SetWriteMode (map settings) ``{
+	y2milestone ("Setting mode for writing: %1", settings);
+	foreach (`k, `v, settings, ``{
+	    BootCommon::write_settings[k] = v;
+	});
     }
 
 // sections handling functions

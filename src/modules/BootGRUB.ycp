@@ -236,6 +236,14 @@
 		if (-1 == SCR::Read (.target.size, initrd))
 		    s = remove (s, "initrd");
 	    }
+	    else if ((title == "linux" || title == "failsafe")
+		&& BootCommon::write_settings["insert_initrd"]:false)
+	    {
+		if (title == "linux")
+		    s["initrd"] = file2grub ("/boot/initrd");
+		else
+		    s["initrd"] = file2grub ("/boot/initrd.shipped");
+	    }
 	    return s;
 	});
 	string gfxmenu = BootCommon::globals["gfxmenu"]:"";
