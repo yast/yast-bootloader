@@ -722,7 +722,7 @@
 
 	if ((Mode::normal || Mode::repair)
 	    && getBooleanAttrib ("restore_mbr")
-	    && SCR::Read (.target.size, "/boot/backup/mbr") > 0)
+	    && SCR::Read (.target.size, "/boot/backup_mbr") > 0)
 	{
 	    items = add (items,
 		// menubutton item, keep as short as possible
@@ -880,13 +880,14 @@
 	    "restore" : ``(BootCommon::backupMbrRestore ()),
 	    "handle" : ``(BootCommon::backupMbrSave ()),
 	    "type" : "b",
-	    "help" : "", //TODO BootCommon::backupMbrHelp (),
+	    // label displayed as help
+	    "help" : _("Affected disk areas are MBR of the first disk
+and the sector bootloader is installed to."),
 	    "exits" : [],
 	    // table item / label
-	    "label" : _("Backup Original MBR"),
-	    // checkbox label, %1 is device (eg. /dev/hda)
-	    "widget_label" : sformat (_("&Backup MBR of %1"),
-		BootCommon::mbrDisk),
+	    "label" : _("Backup Affected Disk Areas"),
+	    // checkbox label
+	    "widget_label" : _("&Backup Affected Disk Areas"),
 	    "summary" : ``(BootCommon::backupMbrSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
@@ -921,11 +922,11 @@
       */
     global define string backupMbrSummary () ``{
         if (backup_mbr)
-            // table item / label, %1 is device (eg. /dev/hda)
-            return sformat (_("Backup MBR of %1"), BootCommon::mbrDisk);
+            // table item / label
+            return _("Yes");
         else
             // table item / label
-            return _("Do Not Backup Current MBR");
+            return _("No");
     }
 
 

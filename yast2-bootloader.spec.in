@@ -53,16 +53,6 @@ Summary:	Bootloader installation and configuration
 
 %dir @yncludedir@/bootloader
 @yncludedir@/bootloader/*
-#%dir @yncludedir@/bootloader/routines
-#%dir @yncludedir@/bootloader/grub
-#%dir @yncludedir@/bootloader/lilo
-#%dir @yncludedir@/bootloader/elilo
-#%dir @yncludedir@/bootloader/ppc
-#@yncludedir@/bootloader/routines/*.ycp
-#@yncludedir@/bootloader/lilo/*.ycp
-#@yncludedir@/bootloader/grub/*.ycp
-#@yncludedir@/bootloader/elilo/*.ycp
-#@yncludedir@/bootloader/ppc/*.ycp
 @moduledir@/*.ycp
 @clientdir@/*.ycp
 @ybindir@/*

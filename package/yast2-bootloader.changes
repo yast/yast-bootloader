@@ -3,6 +3,11 @@ Mon Aug 18 09:20:32 CEST 2003 - jsrain@suse.de
 
 - fixed creating of boot floppy (#28994)
 - updated comments in susconfig fillup (#28845)
+- moved dir for backup MBR to /var/lib/YaST2, in /boot leaving just
+  last MBR (this way it can be inserted to GRUB menu) (#28802)
+- backup-ing areas really affected when saving bootloader
+  configuration (MBR of first disk and sector bootloader is
+  installed to) (#28803)
 
 -------------------------------------------------------------------
 Wed Aug 13 14:07:32 CEST 2003 - jsrain@suse.de

@@ -1108,6 +1108,8 @@
 	if (backup_mbr)
 	{
 	    saveMBR (BootCommon::mbrDisk);
+	    if (BootCommon::mbrDisk != BootCommon::loader_device)
+		saveMBR (BootCommon::loader_device);
 	}
 	boolean ret = true;
 	if (activate)
@@ -1153,50 +1155,65 @@
     }
 
     /**
-      * Save current MBR to /boot/backup/mbr, if some existing, rename it
+      * Save current MBR to /boot/backup_mbr
+      * Also save to /var/lib/YaST2/backup_boot_sectors/%device, if some
+      * existing, rename it
       * @param device string name of device
       */
     global define void saveMBR (string device) ``{
+	string device_file = mergestring (splitstring (device, "/"), "_");
+	string device_file_path = "/var/lib/YaST2/backup_boot_sectors/"
+	    + device_file;
 	SCR::Execute (.target.bash,
-	    "test -d /boot/backup || mkdir /boot/backup");
-	if (SCR::Read (.target.size, "/boot/backup/mbr") > 0)
+	    "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors");
+	if (SCR::Read (.target.size, device_file_path) > 0)
 	{
-	    list contents = SCR::Read (.target.dir, "/boot/backup");
-	    contents = filter (`c, contents, ``(regexpmatch (c,
-		".*-.*-.*-.*-.*-.*-.*")));
+	    list contents = SCR::Read (.target.dir, "/var/lib/YaST2/backup_boot_sectors");
+	    contents = filter (`c, contents, ``(regexpmatch (c, sformat (
+		"%1-.*-.*-.*-.*-.*-.*", device_file))));
 	    contents = sort (contents);
 	    integer index = 0;
 	    integer siz = size (contents);
 	    while (index + 10 < siz)
 	    {
 		SCR::Execute (.target.remove,
-		    sformat ("/boot/backup/%1", contents[index]:""));
+		    sformat ("/var/lib/YaST2/backup_boot_sectors/%1", contents[index]:""));
 		index = index + 1;
 	    }
-	    string change_date = getFileChangeDate ("/boot/backup/mbr");
+	    string change_date = getFileChangeDate (device_file_path);
 	    SCR::Execute (.target.bash, sformat (
-		"/bin/mv /boot/backup/mbr /boot/backup/mbr-%1",
-		getFileChangeDate ("/boot/backup/mbr")));
+		"/bin/mv %1 %1-%2",
+		device_file_path, change_date));
 	}
 	SCR::Execute (.target.bash, sformat (
-	    "/bin/dd if=%1 of=/boot/backup/mbr bs=512 count=1 2>&1",
-	    mbrDisk));
+	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+	    device, device_file_path));
+	if (device == mbrDisk)
+	{
+	    SCR::Execute (.target.bash, sformat (
+		"/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+		device, "/boot/backup_mbr"));
+
+	}
     }
 
     /**
-      * Rewrite current MBR with /boot/backup/mbr
-      * @param device string device to rewrite MBR on
+      * Rewrite current MBR with /var/lib/YaST2/backup_boot_sectors/%device
+      * Warning!!! don't use for bootsectors, 446 bytes of sector are written
+      * @param device string device to rewrite MBR to
       * @return boolean true on success
       */
     global define boolean restoreMBR (string device) ``{
-	if (SCR::Read (.target.size, "/boot/backup/mbr") <= 0)
+	string device_file = mergestring (splitstring (device, "/"), "_");
+	if (SCR::Read (.target.size, sformat ("/var/lib/YaST2/backup_boot_sectors/%1", device_file))
+	    <= 0)
 	{
 	    Report::Error ("Can't restore MBR. No saved MBR found");
 	    return false;
 	}
 	integer ret = SCR::Execute (.target.bash, sformat (
-	    "/bin/dd of=%1 if=/boot/backup/mbr bs=446 count=1",
-	    device));
+	    "/bin/dd of=%1 if=/var/lib/YaST2/backup_boot_sectors/%2 bs=446 count=1",
+	    device, device_file));
 	return (ret == 0);
     }
 
