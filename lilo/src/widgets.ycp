@@ -100,7 +100,7 @@ global define term OptionsDlgWidget(list opts)
 	                        `PushButton(`id(`up), UI::Glyph(`ArrowUp)),
 	                        `PushButton(`id(`down), UI::Glyph(`ArrowDown))
 	                    )
-			    : VSpacing (0),
+			    : `VSpacing (0),
 			    `HBox
 			    (
 				`HStretch(),
