@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Nov 27 17:20:19 CET 2003 - jsrain@suse.de
+
+- fixes for the new interpreter
+
+-------------------------------------------------------------------
 Mon Nov 24 18:24:47 CET 2003 - jsrain@suse.de
 
 - fixed changing of GRUB location (#33297)

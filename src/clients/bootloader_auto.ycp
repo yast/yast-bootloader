@@ -27,7 +27,6 @@
     import "Mode";
     import "Summary";
     import "Initrd";
-    include "bootloader/routines/ui.ycp";
 
 
     any ret = nil;
@@ -35,10 +34,10 @@
     map param = $[];
 
     /* Check arguments */
-    if(size(Args()) > 0 && is(Args(0), string)) {
-	func = WFM::Args(0);
-	if(size(Args()) > 1 && is(Args(1), map))
-	    param = WFM::Args(1);
+    if(size((list)WFM::Args()) > 0 && is(WFM::Args(0), string)) {
+	func = (string)WFM::Args(0);
+	if(size((list)WFM::Args()) > 1 && is(WFM::Args(1), map))
+	    param = (map)WFM::Args(1);
     }
     y2debug("func=%1", func);
     y2debug("param=%1", param);
@@ -67,8 +66,9 @@
       */
     else if(func == "Summary") {
 	ret = "<UL>"
-            + mergestring (maplist (`l, Bootloader::Summary(), ``("<LI>" + l)),
-            "\n")
+            + mergestring (maplist (string l, Bootloader::Summary(),
+		``("<LI>" + l)),
+		"\n")
             + "</UL>";
     }
     /**
@@ -85,7 +85,7 @@
       */
     else if (func == "Change") {
 	Wizard::CreateDialog ();
-    ret = runWizard ();
+    ret = Bootloader::runWizard ();
     UI::CloseDialog ();
 	return ret;
     }
@@ -94,19 +94,20 @@
       * return map or list
       */
     else if (func == "Export") {
-	ret = Bootloader::Export();
-	list ayinitrd = maplist(`m, ret["initrd", "list"]:[], ``{
+	map ret_m = Bootloader::Export();
+	list ayinitrd = maplist(string m, ret_m["initrd", "list"]:[], ``{
 		map tmp = $[];
 		tmp["module"] = m;
-		if (ret["initrd", "settings", m]:"" != "")
-			tmp["module_args"] = ret["initrd", "settings", m]:"";
+		if (ret_m["initrd", "settings", m]:"" != "")
+		    tmp["module_args"] = ret_m["initrd", "settings", m]:"";
 		return (tmp);
 	});
-	if (haskey(ret, "initrd"))
-		ret = remove(ret, "initrd");
+	if (haskey(ret_m, "initrd"))
+		ret = remove(ret_m, "initrd");
 
 	if (size(ayinitrd) > 0 )
-		ret["initrd_modules"] = ayinitrd;
+		ret_m["initrd_modules"] = ayinitrd;
+	ret = ret_m;
     }
     /**
       * Write configuration data
