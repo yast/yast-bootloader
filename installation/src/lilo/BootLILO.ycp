@@ -406,7 +406,7 @@ is not required, but, on some systems, the BIOS only boots from an active partit
                     parts = remove (parts, 0);
                 string dev = select (parts, 0, "");
                 parts = remove (parts, 0);
-                string label = mergestring (parts, " ");
+                string label = mergestring (parts, "_");
 		docmd = docmd + sformat (" -o \"%1 \\\"%2\\\"\"", dev, label);
 	    });
 	}

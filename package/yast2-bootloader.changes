@@ -3,6 +3,7 @@ Tue Sep 10 12:15:10 CEST 2002 - fehr@suse.de
 
 - fix root device detection of mk_lilo_conf
 - change default mbr detection in Boot.ycp (#19117)
+- prevent blanks in label in BootLILO.ycp (#19181)
 - version 2.6.45
 
 -------------------------------------------------------------------
