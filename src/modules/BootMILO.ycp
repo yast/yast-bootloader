@@ -28,7 +28,6 @@
     import "StorageControllers";
     import "BootCommon";
     import "Installation";
-    import "Arch";
 
     include "bootloader/routines/popups.ycp";
 

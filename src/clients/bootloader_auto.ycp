@@ -20,7 +20,6 @@
     y2milestone("----------------------------------------");
     y2milestone("bootloader auto started");
 
-    import "Arch";
     import "Bootloader";
     import "BootCommon";
     import "Wizard";
@@ -44,33 +43,19 @@
 	    "loader_device" : ai["loader_device"]:"",
 	    "specific" : $[],
 	];
-	if (Arch::ppc)
+	// global PPC stuff
+	if (ai["loader_type"]:"" == "ppc")
 	{
-	    if (haskey (ai, "prep_boot_partition"))
+	    foreach (string k, ["iseries_streamfile", "iseries_write_slot_a",
+		"iseries_write_slot_b", "iseries_write_streamfile",
+		"iseries_write_prepboot", "prep_boot_partition",
+		"of_defaultdevice", "board_type", ],
 	    {
-		exp["specific", "prep_boot_partition"]
-		    = ai["prep_boot_partition"]:"";
-	    }
-	    if (haskey (ai, "streamfile"))
-	    {
-		exp["specific", "streamfile"]
-		    = ai["streamfile"]:"";
-	    }
-	    if (haskey (ai, "iseries_write_slot_a"))
-	    {
-		exp["specific", "iseries_write_slot_a"]
-		    = ai["iseries_write_slot_a"]:true;
-	    }
-	    if (haskey (ai, "iseries_write_slot_b"))
-	    {
-		exp["specific", "iseries_write_slot_b"]
-		    = ai["iseries_write_slot_b"]:true;
-	    }
-	    if (haskey (ai, "of_defaultdevice"))
-	    {
-		exp["specific", "of_defaultdevice"]
-		    = ai["of_defaultdevice"]:false;
-	    }
+		if (haskey (ai, k))
+		{
+		    exp["specific", k] = ai[k]:nil;
+		}
+	    });
 	}
 
 	// initrd stuff
@@ -158,33 +143,19 @@
 	    "location" : exp["location"]:"",
 	    "loader_device" : exp["loader_device"]:"",
 	];
-	if (Arch::ppc)
+	// global PPC stuff
+	if (ai["loader_type"]:"" == "ppc")
 	{
-	    if (haskey (exp["specific"]:$[], "prep_boot_partition"))
+	    foreach (string k, ["iseries_streamfile", "iseries_write_slot_a",
+		"iseries_write_slot_b", "iseries_write_streamfile",
+		"iseries_write_prepboot", "prep_boot_partition",
+		"of_defaultdevice", "board_type", ],
 	    {
-		ai["prep_boot_partition"]
-		    = exp["specific", "prep_boot_partition"]:"";
-	    }
-	    if (haskey (exp["specific"]:$[], "iseries_streamfile"))
-	    {
-		ai["streamfile"]
-		    = exp["specific", "iseries_streamfile"]:"";
-	    }
-	    if (haskey (exp["specific"]:$[], "iseries_write_slot_a"))
-	    {
-		ai["iseries_write_slot_a"]
-		    = exp["specific", "iseries_write_slot_a"]:true;
-	    }
-	    if (haskey (exp["specific"]:$[], "iseries_write_slot_b"))
-	    {
-		ai["iseries_write_slot_b"]
-		    = exp["specific", "iseries_write_slot_b"]:true;
-	    }
-	    if (haskey (exp["specific"]:$[], "of_defaultdevice"))
-	    {
-		ai["of_defaultdevice"]
-		    = exp["specific", "of_defaultdevice"]:false;
-	    }
+		if (haskey (exp["specific"]:$[], k))
+		{
+		    ai[k] = exp["specific", k]:nil;
+		}
+	    });
 	}
 
 	// initrd stuff
@@ -294,7 +265,6 @@
       * return map or list
       */
     else if (func == "Export") {
-y2error ("EM: %1", Bootloader::Export());
 	ret = Export2AI ((map<string,any>)Bootloader::Export());
     }
     /**

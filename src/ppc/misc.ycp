@@ -117,43 +117,57 @@
 	});
     }
 
+    map<string,string> board_type_names = $[
+	"iseries" : "iSeries",
+	"prep" : "PReP",
+	"chrp" : "CHRP",
+	// part of summary
+	"mac_new" : _("New World Power Macintosh"),
+	// part of summary
+	"mac_old" : _("Old World Power Macintosh"),
+	"nubus" : "Nubus",
+	// part of summary
+	"unnknown" : _("Unknown"),
+    ];
+
     /**
       * Get name of the currently used board
       * @return string the name of the board
       */
     global define string getNameOfCurrentBoard () ``{
-	if ( Arch::board_iseries )
+	return board_type_names[getBoardType ()]:_("Unknown");
+/*	if ( getBoardType () == "iseries" )
 	{
 	    // part of summary
 	    return "iSeries";
 	}
-	else if ( Arch::board_prep )
+	else if ( getBoardType () == "prep" )
 	{
 	    // part of summary
 	    return "PReP";
 	}
-	else if ( Arch::board_chrp )
+	else if ( getBoardType () == "chrp" )
 	{
 	    // part of summary
 	    return "CHRP";
 	}
-	else if ( Arch::board_mac_new )
+	else if ( getBoardType () == "mac_new" )
 	{
 	    // part of summary
 	    return _("New World Power Macintosh");
 	}
-	else if ( Arch::board_mac_old )
+	else if ( getBoardType () == "mac_old" )
 	{
 	    // part of summary
 	    return _("Old World Power Macintosh");
 	}
-	else if ( Arch::board_mac_nubus )
+	else if ( getBoardType () == "nubus" )
 	{
 	    // part of summary
 	    return "Nubus";
 	}
 	// part of summary
-	return _("Unknown");
+	return _("Unknown");*/
     }
 
 

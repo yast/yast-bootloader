@@ -520,7 +520,9 @@
       */
     global define void BoardTypeStore (any opt_id, any opt_key) ``{
 	BootCommon::redraw_table = true;
-	setBoardType ((string)UI::QueryWidget (`id (opt_key), `Value));
+	string bt = (string)UI::QueryWidget (`id (opt_key), `Value);
+	y2milestone ("Setting board type to %1", bt);
+	setBoardType (bt);
     }
 
     /**
