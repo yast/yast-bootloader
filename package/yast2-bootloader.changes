@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 04 20:50:02 CEST 2002 - arvin@suse.de
+
+- moved non binary files to /usr/share/YaST2
+
+-------------------------------------------------------------------
 Wed Jul  3 10:38:58 CEST 2002 - lslezak@suse.cz
 
 - fixed installation/src/ppc/agents/Makefile.am (ppc build bug)
@@ -101,8 +106,8 @@ Tue Sep 18 15:36:00 CEST 2001 - dmeszar@suse.cz
 Mon Sep 17 14:01:01 CEST 2001 - dmeszar@suse.cz
 
 - bug #10661 fixed (lilo configuration written without change !!)
-- bug #10667 fixed (No section is marked as default, if there is the 
-    keyword 'default' missing in the lilo.conf.) 
+- bug #10667 fixed (No section is marked as default, if there is the
+    keyword 'default' missing in the lilo.conf.)
 
 -------------------------------------------------------------------
 Thu Sep 13 16:51:28 CEST 2001 - kendy@suse.cz
@@ -114,12 +119,12 @@ Thu Sep 13 16:51:28 CEST 2001 - kendy@suse.cz
 -------------------------------------------------------------------
 Mon Sep 10 14:47:28 CEST 2001 - dmeszar@suse.cz
 
-- use Arch:: instead of user_settings 
+- use Arch:: instead of user_settings
 
 -------------------------------------------------------------------
 Tue Sep  4 15:02:23 CEST 2001 - dmeszar@suse.cz
 
-- fix #10062 
+- fix #10062
 - fixed the qt-IntField update bug (after creation of
   dialog the intfield doesn't show its actual value
   but shows 0 under qt)
@@ -153,7 +158,7 @@ Wed Aug  8 15:09:04 CEST 2001 - dmeszar@suse.cz
 
 - correct handling od '\' '"' chars when reading ui input fields
 - fixed 'other' section removing
-- section quota set to 16 
+- section quota set to 16
 
 -------------------------------------------------------------------
 Tue Jul 31 19:07:59 CEST 2001 - dmeszar@suse.cz
