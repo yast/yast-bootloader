@@ -607,7 +607,7 @@ and the sector to which the boot loader is installed."),
 	    "table" : $[
 		// table item / label
 		"label" : _("Default Section"),
-		"summary" : BootCommon:: defaultSectionSummary,
+		"summary" : BootCommon::defaultSectionSummary,
 		"handle" : `sections,
 		"optional" : false,
 		"ordering" : false,

@@ -1,7 +1,22 @@
 -------------------------------------------------------------------
+Wed Apr  7 18:28:02 CEST 2004 - sh@suse.de
+
+- Fixed excessive whitespace after Module:: - bug #38327 
+
+-------------------------------------------------------------------
 Wed Apr  7 00:00:47 CEST 2004 - schwab@suse.de
 
 - Add nohalt to failsafe kernel command line on ia64.
+
+-------------------------------------------------------------------
+Tue Apr  6 09:01:01 CEST 2004 - jsrain@suse.de
+
+- updating graphical boot menu to contain proper languages (and 
+  be small enough to fit in memory) also when running update from
+  YaST control center (#38339)
+- added 'noresume' parameter to failsafe kernel command line
+  (#38400)
+- 2.9.22
 
 -------------------------------------------------------------------
 Tue Apr  6 09:01:01 CEST 2004 - jsrain@suse.de
