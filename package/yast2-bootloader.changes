@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug  4 15:56:18 CEST 2003 - jsrain@suse.de
+
+- added .desktop files
+- 2.8.6
+
+-------------------------------------------------------------------
 Thu Jul 31 09:29:28 CEST 2003 - jsrain@suse.de
 
 - don't offer extra /boot and / partition as bootloader location
