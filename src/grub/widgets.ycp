@@ -661,7 +661,7 @@ Replace it with an entry  to boot from the floppy?");
 	    "type" : "b",
 	    "exits" : [],
 	    // table item / label
-	    "label" : _("Add saved MBR to bootloader menu"),
+	    "label" : _("Add Saved MBR to Boot Loader Menu"),
 	    "summary" : ``(BootGRUB::addOrigMbrSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,

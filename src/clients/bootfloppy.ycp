@@ -68,7 +68,7 @@ FireWire and file systems modules floppy"),
       */
     global define string getImageWritingLabel (string image) ``{
 	// image text - label
-	return image_labels[image]:_("Creating specified floppy");
+	return image_labels[image]:_("Creating Specified Floppy");
     }
 
     /**
@@ -125,9 +125,10 @@ FireWire and file systems modules floppy"),
 	if (modules)
 	{
 	    // help text 1/1
-	    string help_text = _("<p>According to modules you need, select
-appropriate floppy from the list of module floppies, and click <b>Next</b>
-to continue.</p>");
+	    string help_text = _("<p>Depending on the modules needed, select the
+appropriate floppy from the list of module floppies then click <b>Next</b>
+to continue.</p>
+");
 
 	    return help_text;
 	}
@@ -140,27 +141,31 @@ select the appropriate item from the list and
 click <b>Next</b> to continue.</p>");
 
 	    // help text 2/5
-	    help_text = help_text + _("<p><b>Boot floppy:</b><br>
+	    help_text = help_text + _("<p><b>Boot Floppy:</b><br>
 This boot floppy can be used to boot your installed system or a rescue system
-(from the first CDROM or the rescue floppy).</p>");
+(from the first CD-ROM or the rescue floppy).</p>
+");
 
 	    // help text 3/5
-	    help_text = help_text + _("<p><b>Rescue floppy:</b><br>
-To start the rescue system boot from the boot floppy or the SuSE CDROM
+	    help_text = help_text + _("<p><b>Rescue Floppy:</b><br>
+To start the rescue system, boot from the boot floppy or the SuSE CD-ROM
 and select <i>Manual installation</i> -> <i>Start installation / system</i>
--> <i>Rescue system</i>.</p>");
+-> <i>Rescue system</i>.</p>
+");
 
 	    // help text 4/5
-	    help_text = help_text + _("<p><b>Module floppies</b><br>
-All SuSE kernels are modularized. This means that most of the drivers
-are loaded as kernel modules on demand. But since the space of one single floppy
-is not sufficient for all of the kernels modules, you might want to create one
-of the <b>module floppies</b>.</p>");
+	    help_text = help_text + _("<p><b>Module Floppies</b><br>
+All SuSE kernels are modularized. This means that most drivers
+are loaded as kernel modules on demand. Because the space on one single floppy
+is not sufficient for all kernel modules, you might want to create one
+of the <b>module floppies</b>.</p>
+");
 
 	    // help text 5/5
-	    help_text = help_text + _("<p><b>Custom floppy</b><br>
-To create a floppy from other image, select <b>Custom floppy</b> and you will
-be prompted for file containing the floppy image.</p>");
+	    help_text = help_text + _("<p><b>Custom Floppy</b><br>
+To create a floppy from another image, select <b>Custom Floppy</b>. You will
+be prompted for the file containing the floppy image.</p>
+");
 
 	    return help_text;
 	}
@@ -173,20 +178,23 @@ be prompted for file containing the floppy image.</p>");
       */
     define string floppyHelpInsertDisk() ``{
 	// help text 1/4
-	string help_text = _("<p><b><big>Create a boot, rescue
-or module floppy:</big></b><br>
-Please insert a floppy disk (1440k) into the floppy drive
-and press <b>Next</b> to continue.</p>");
+	string help_text = _("<p><b><big>Create a Boot, Rescue
+or Module Floppy:</big></b><br>
+Insert a floppy disk (1440k) into the floppy drive
+and press <b>Next</b> to continue.</p>
+");
 
 	// help text 2/4
 	help_text = help_text + _("<p><b><big>Floppy Device:</big></b><br>
-If your computer has multiple floppy drives, sellect correct device.</p>");
+If your computer has multiple floppy drives, select the correct device.</p>
+");
 
 	// help text 3/4
-	help_text = help_text + _("<p><b><big>Format floppy disk:</big></b><br>
-Before floppy image is saved on the floppy, it must be formated.
-If the floppy you use isn't preformatted, check
-<b>Format floppy disk</b></p>");
+	help_text = help_text + _("<p><b><big>Format Floppy Disk:</big></b><br>
+Before a floppy image is saved on the floppy, it must be formatted.
+If the floppy is not preformatted, check
+<b>Format Floppy Disk</b>.</p>
+");
 
 	// help text 4/4
 	help_text = help_text + _("<p><b><big>Attention:</big></b><br>
@@ -202,8 +210,9 @@ All data on the floppy will be deleted.</p>");
       */
     define string floppyHelpCopyImage() ``{
 	// help text 1/1
-	return _("<p><b><big>Create floppy disk:</big></b><br>
-YaST2 is copying the image to the floppy disk. Please wait.</p>");
+	return _("<p><b><big>Creating Floppy Disk:</big></b><br>
+YaST2 is copying the image to the floppy disk. Please wait.</p>
+");
     }
 
     /**
@@ -213,8 +222,9 @@ YaST2 is copying the image to the floppy disk. Please wait.</p>");
       */
     define string floppyHelpSelectFile() ``{
 	// help text 1/1
-	return _("<p><b><big>Select floppy image:</big></b><br>
-Selecty file containing the image of the floppy you want to create</p>");
+	return _("<p><b><big>Select Floppy Image:</big></b><br>
+Select the file containing the image of the floppy to create.</p>
+");
     }
 
     /**
@@ -224,9 +234,10 @@ Selecty file containing the image of the floppy you want to create</p>");
       */
     define string floppyHelpSelectURL() ``{
         // help text 1/1
-        return _("<p><b><big>Select floppy image:</big></b><br>
-Enter the URL you want to download floppy image from.
-If necessary, also specify username and password for the authentication</p>");
+        return _("<p><b><big>Select Floppy Image:</big></b><br>
+Enter the URL from which to download the floppy image.
+If necessary, also specify the user name and password for authentication.</p>
+");
     }
 
     /**
@@ -273,11 +284,11 @@ and File Systems (modules disk 4)"))),
 		`VSpacing (0.4),
 		`Left (`RadioButton (`id ("rescuefloppy"),
 		    // radiobutton - disk image name
-		    _("&Rescue floppy"))),
+		    _("&Rescue Floppy"))),
 		`VSpacing (0.4),
 		`Left (`RadioButton (`id ("__modules"),
 		    // radiobutton - disk image name
-		    _("&Module floppies"))),
+		    _("&Module Floppies"))),
 // FIXME: Waiting for yast2-hackers response
 //		`VSpacing (0.4),
 //		`Left (`RadioButton (`id ("__other"),
@@ -286,11 +297,11 @@ and File Systems (modules disk 4)"))),
 		`VSpacing (0.4),
 		`Left (`RadioButton (`id ("__custom"),
 		    // radiobutton - disk image name
-		    _("&Custom floppy"))),
+		    _("&Custom Floppy"))),
 		`VSpacing (0.4),
 		`Left (`RadioButton (`id ("__url"),
 		    // radiobutton - disk image name
-		    _("&Download floppy image"))),
+		    _("&Download Floppy Image"))),
 		`VSpacing (2)
 	    );
 	}
@@ -299,7 +310,7 @@ and File Systems (modules disk 4)"))),
 	    `VBox (
 		`VSpacing (2),
 		// frame label
-		`Frame (_("Floppy image"), `HBox (`HSpacing (3),
+		`Frame (_("Floppy Image"), `HBox (`HSpacing (3),
 		    `RadioButtonGroup (`id (`images), images_term),
 		    `HSpacing (3)
 		)),
@@ -436,7 +447,7 @@ and File Systems (modules disk 4)"))),
 		string name = UI::QueryWidget (`id (`filename), `Value);
 		name = UI::AskForExistingFile (name, "",
 		    // popup header
-		    _("Select floppy image"));
+		    _("Select Floppy Image"));
 		if (name != "" && name != nil)
 		    UI::ChangeWidget (`id (`filename), `Value, name);
 		ret = nil;
@@ -451,7 +462,7 @@ and File Systems (modules disk 4)"))),
 		    ret = nil;
 		    Report::Error (
 			// error report
-			_("Specified file doesn't exist or is empty"));
+			_("The specified file does not exist or is empty."));
 		}
 
 	    }
@@ -516,7 +527,7 @@ and File Systems (modules disk 4)"))),
 		else if (user != "")
 		{
 		    // error report
-		    Report::Error (_("Set the password!"));
+		    Report::Error (_("Set the password."));
 		    ret = nil;
 		    continue;
 		}
@@ -528,9 +539,10 @@ and File Systems (modules disk 4)"))),
 		{
 		    Report::Error (
 // error report
-_("Error occured while downloading floppy image.
-Check that you wrote correct URL and set
-correct user name and password."));
+_("An error occurred while downloading the floppy image.
+Verify the URL, user name, 
+and password.
+"));
 		    ret = nil;
 		    continue;
 		}
@@ -559,20 +571,21 @@ correct user name and password."));
 		    // is about to be written.
 		    // Translators: Try not to make this much longer
 		    // than the English version, please...
-		    _("Please insert a floppy-disk (1.44 MB)
+		    _("Insert a floppy disk (1.44 MB)
 into the floppy drive.
 
-All data on this floppy will be deleted.")),
+All data on this floppy will be deleted.
+")),
 		`VSpacing (3),
 		`HSquash (
 		    `ComboBox (`id (`device), `opt (`editable),
 			// combo box label
-			_("Floppy &device"), floppies)
+			_("Floppy &Device"), floppies)
 		),
 		`VSpacing (3),
 		`HSquash (
 		    // checkbox
-		    `CheckBox (`id (`format), _("&Format floppy disk"),
+		    `CheckBox (`id (`format), _("&Format Floppy Disk"),
 			format_floppy)
 		),
 		`VSpacing (1)
@@ -604,10 +617,11 @@ All data on this floppy will be deleted.")),
 		     //floppy is mounted -- popup
 		    if( ! Popup::ContinueCancel(sformat(_("
 Your floppy device %1 is currently mounted on
-%2. To create a new boot floppy
+%2. To create a new boot floppy,
 the floppy device must be unmounted.
 
-Unmount the floppy?"), floppymount["spec"]:"", floppymount["file"]:"")))
+Unmount the floppy?
+"), floppymount["spec"]:"", floppymount["file"]:"")))
 		    {
 			ret = nil;
 		    }
@@ -634,7 +648,7 @@ Unmount the floppy?"), floppymount["spec"]:"", floppymount["file"]:"")))
 	    // progress bar status
 	    `HVCenter(`ReplacePoint (`id (`bar_rp),
 		// progress bar
-		`ProgressBar(`id(`bar), _("Copying ......")))),
+		`ProgressBar(`id(`bar), _("Copying...")))),
 	    `VSpacing (2)
 	);
 
@@ -656,10 +670,11 @@ Unmount the floppy?"), floppymount["spec"]:"", floppymount["file"]:"")))
 	    {
 		Report::Error(
 		    // error report
-		    _("An error occured while formatting the floppy disk.
-Please verify that you inserted a valid floppy medium
-in the drive and that you have root permissions,
-and try again."));
+		    _("An error occurred while formatting the floppy disk.
+Verify that a valid floppy medium is
+in the drive and that you have root permissions 
+then try again.
+"));
 		return `select_image;
 	    }
 	}
@@ -694,10 +709,11 @@ and try again."));
 	if (failed)
 	{
 	    // error report
-	    Report::Error(_("An error occured while copying the image file
-to the floppy disk. Please verify that you inserted
-a valid floppy medium in the drive and that you have
-root permissions, and try again."));
+	    Report::Error(_("An error occurred while copying the image file
+to the floppy disk. Verify that a valid floppy 
+medium is in the drive and that you have
+root permissions then try again.
+"));
 	    return `select_image;
 	}
 
@@ -708,7 +724,7 @@ root permissions, and try again."));
 
 	UI::ReplaceWidget (`id (`bar_rp),
 	    // progress bar
-	    `ProgressBar(`id(`bar), _("Verifying ......")));
+	    `ProgressBar(`id(`bar), _("Verifying...")));
 
 	while (count < 2880)
 	{
@@ -729,8 +745,9 @@ root permissions, and try again."));
         if (failed)
         {
 	    // error report
-            Report::Error(_("An error occurred during the verifyingthe floppy disk.
-Please try again with other floppy."));
+            Report::Error(_("An error occurred while verifying the floppy disk.
+Try again with another floppy.
+"));
             return `back;
         }
 	// popup

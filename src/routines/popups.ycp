@@ -37,7 +37,8 @@
     global define boolean askClone (string name) ``{
 	// yes-no popup
 	return Popup::YesNo (sformat (_("Clone the selected section '%1' instead
-of creating an empty new section?"), name));
+of creating a new empty section?
+"), name));
     }
     /**
       * Display question
@@ -310,8 +311,7 @@ no options to set here."));
 	string confirm_boot_msg = Misc::boot_msg;
 	// data saved to floppy disk
 	// popup, %1 is bootloader name
-	string msg = sformat (_(
-	    "The %1 boot sector has been written to the floppy disk."),
+	string msg = sformat (_("The %1 boot sector has been written to the floppy disk."),
 	    bootloader);
 	msg = msg + "\n";
 	if (Mode::hardBoot)
@@ -359,13 +359,14 @@ no options to set here."));
 	// 'date' command output
 	string msg = sformat (_("Warning!
 
-Current MBR of %1 will be now rewritten with MBR
+Current MBR of %1 will now be rewritten with MBR
 saved at %2.
 
-Note, that only booting code in MBR will be rewritten,
-partition table stays unchanged.
+Only the booting code in the MBR will be rewritten.
+The partition table remains unchanged.
 
-Continue?"), device, c_time);
+Continue?
+"), device, c_time);
 
 	term dialog = `HBox (
 	    `HSpacing (1),
@@ -374,7 +375,7 @@ Continue?"), device, c_time);
 		`Label (msg),
 		`HBox(
 		    // PushButton
-		   `PushButton (`id (`yes), _("&Yes, rewrite")),
+		   `PushButton (`id (`yes), _("&Yes, Rewrite")),
 		   `HStretch (),
 		   `PushButton (`id (`no), `opt (`default), Label::NoButton ())
 		),

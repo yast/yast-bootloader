@@ -110,7 +110,7 @@
             targetlist = add (targetlist, `Left (`RadioButton (`id ("floppy"),
 		 `opt (`notify),
 		// radiobutton, %1 is device name, typically /dev/fd0
-                sformat (_("&Floppy disk %1"), StorageDevices::FloppyDevice),
+                sformat (_("&Floppy Disk %1"), StorageDevices::FloppyDevice),
                 (location == "floppy")
             )));
         }
@@ -724,7 +724,7 @@
 	{
 	    items = add (items,
 		// menubutton item, keep as short as possible
-		`item (`id (`restore_mbr), _("Restore MBR of hard disk")));
+		`item (`id (`restore_mbr), _("Restore MBR of Hard Disk")));
 	}
 
 	if (size (items) > 0)
@@ -881,7 +881,7 @@
 	    "help" : "", //TODO BootCommon::backupMbrHelp (),
 	    "exits" : [],
 	    // table item / label
-	    "label" : _("Backup original MBR"),
+	    "label" : _("Backup Original MBR"),
 	    // checkbox label, %1 is device (eg. /dev/hda)
 	    "widget_label" : sformat (_("&Backup MBR of %1"),
 		BootCommon::mbrDisk),
@@ -923,7 +923,7 @@
             return sformat (_("Backup MBR of %1"), BootCommon::mbrDisk);
         else
             // table item / label
-            return _("Do not backup current MBR");
+            return _("Do Not Backup Current MBR");
     }
 
 
@@ -939,9 +939,9 @@
 	    "help" : BootCommon::getSaveMethodHelp (),
 	    "exits" : [],
 		// table item / label
-	    "label" : _("Save method"),
+	    "label" : _("Save Method"),
 		// table item / label
-	    "widget_label" : _("Force &saving everything"),
+	    "widget_label" : _("Force &Saving Everything"),
 	    "summary" : ``(BootCommon::saveMethodSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
@@ -977,10 +977,10 @@
     global define string saveMethodSummary () ``{
         if (save_all)
             // table item / label
-            return _("Force saving everything");
+            return _("Force Saving Everything");
         else
             // table item / label
-            return _("Save only changed files");
+            return _("Save Only Changed Files");
     }
 
     /**
@@ -1195,7 +1195,7 @@
         if (activate)
 		// table item, %1 is a device name (eg. /dev/hda1)
 		// FIXME partition %1 of %2 is better (in future)
-            return sformat (_("Yes, activate %1"),
+            return sformat (_("Yes, Activate %1"),
 		lookup (BootCommon::getPartitionToActivate (), "dev", ""));
         else
 		// table item

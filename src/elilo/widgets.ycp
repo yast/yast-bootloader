@@ -50,12 +50,12 @@
 	    `VSpacing (1),
 	    `TextEntry (`id (`location),
 		// text entry label
-		_("&EFI entry name")),
+		_("&EFI Entry Name")),
 	    have_old ? `VSpacing (1) : `VSpacing (0),
 	    have_old
 		? `CheckBox (`id (`remove_old),
 		    // check box
-		    sformat (_("Remove old EFI entry (%1)"), old_efi_entry))
+		    sformat (_("Remove Old EFI Entry (%1)"), old_efi_entry))
 		: `VSpacing (0),
 	    `VSpacing (1)
 	);
@@ -120,12 +120,12 @@
 	if (BootCommon::location == "")
 	{
 	    // table entry, %1 is label of the entry of EFI boot manager
-	    return _("Do not create any EFI boot manager entry");
+	    return _("Do Not Create EFI Boot Manager Entry");
 	}
 	else
 	{
 	    // table entry
-	    return sformat (_("Create EFI boot manager entry %1"),
+	    return sformat (_("Create EFI Boot Manager Entry %1"),
 		BootCommon::location);
 	}
     }
