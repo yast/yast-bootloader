@@ -1,7 +1,3 @@
 Makefile
 Makefile.in
-PromAgent.html
-Y2CCPromAgent.html
-Y2PromAgentComponent.html
-heir.html
-index.html
+*.html
