@@ -9,6 +9,7 @@ Tue Mar 16 08:17:09 CET 2004 - jsrain@suse.cz
   #36012)
 - support for having both /boot/initrd and (hdx,y)/initrd in
   autoinstallation profile (#32384)
+- fixed storing of the gfxmenu option
 
 -------------------------------------------------------------------
 Mon Mar 15 12:58:34 CET 2004 - jsrain@suse.cz
