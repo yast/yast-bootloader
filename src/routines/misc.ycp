@@ -1401,6 +1401,10 @@
 	}
 	if (repl_mbr && BootCommon::location != "mbr")
 	{
+	    if (! Stage::initial ())
+	    {
+		PackageSystem::Install ("master-boot-code");
+	    }
 	    y2milestone("Updating code in MBR: MBR Disk: %1, loader device: %2",
 		BootCommon::mbrDisk, BootCommon::loader_device);
 	    list<string> disks_to_rewrite = getMbrsToRewrite ();
@@ -1408,7 +1412,8 @@
 		y2milestone ("Copying generic MBR code to %1", d);
 		ret = ret && (0 == SCR::Execute (.target.bash, sformat (
 		    "/bin/dd bs=446 count=1 if=%1 of=%2",
-			"/usr/share/YaST2/data/mbr", BootCommon::mbrDisk)));
+			"/usr/lib/boot/master-boot-code",
+			BootCommon::mbrDisk)));
 	    });
 	}
 	return ret;

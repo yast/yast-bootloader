@@ -24,9 +24,5 @@ bootloader.html: $(xmls)
 %.png: %.dia
 	dia -n -e $@ $< 
 
-html_DATA = readme.mbr 
-
 #$(diagrams) bootloader.html
-
-EXTRA_DIST = $(html_DATA)
 
