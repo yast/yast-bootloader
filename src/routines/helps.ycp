@@ -225,8 +225,9 @@ Here, manually edit the boot loader configuration.</P>
       */
     global define string getPasswdHelp () ``{
 	// help text 1/1, displayed as label, no HTML tags!!!
-	return _("By checking Enable Boot Loader Password Protection and setting a Password,
-protect the computer from being booted by an unauthorized person.");
+	return _("By checking Enable Boot Loader Password Protection and setting a password,
+protect the computer from being booted by an unauthorized person.
+");
 
     }
 
