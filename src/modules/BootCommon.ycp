@@ -25,7 +25,7 @@
     import "Arch";
     import "HTML";
     import "Mode";
-    import "Require";
+    import "PackageSystem";
     import "Storage";
     import "Pkg";
 
@@ -611,11 +611,7 @@ configuration files"));
 	    // don't configure package maneger during autoinstallation preparing
 	    if (Mode::normal && (! (Mode::config || Mode::repair)))
 	    {
-		Require::RequireAndConflict (
-		    getBootloaderPackages (bootloader),
-		    [],
-		    // rich text, %1 is list of packages
-		    _("YaST will install packages %1."));
+		PackageSystem::InstallAll (getBootloaderPackages (bootloader));
 	    }
 	    else if (Mode::initial && (! (Mode::repair)))
 	    {
