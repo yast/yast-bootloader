@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 22 09:57:55 CEST 2003 - jsrain@suse.de
+
+- added possibility to download boot floppy image via FTP/HTTP
+  (#26175)
+
+-------------------------------------------------------------------
 Fri Apr 18 13:18:24 CEST 2003 - jsrain@suse.de
 
 - no more retaking current kernel parameters to bootloader
