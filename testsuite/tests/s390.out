@@ -1,17 +1,15 @@
+Read	.target.size "/etc/install.inf" -1
 Read	.probe.architecture "i386"
 Read	.probe.has_apm true
 Read	.probe.has_pcmcia false
 Read	.probe.has_smp false
 Read	.probe.system []
-Read	.target.size "/etc/install.inf" -1
 Read	.proc.cpuinfo.value."0"."flags" ""
 Read	.probe.memory []
 Read	.probe.cpu []
 Read	.sysconfig.console.CONSOLE_ENCODING ""
 Execute	.target.bash_output "locale -k charmap" $[]
 Read	.target.tmpdir "/tmp/"
-Read	.probe.floppy.manual []
-Read	.probe.cdrom.manual []
 Log	[[$["key":"label", "value":"defaultboot"], $["key":"default", "value":"ipl"]], [$["key":"label", "value":"ipl"], $["key":"target", "value":"/boot/zipl"], $["key":"image", "value":"/boot/kernel/image"], $["key":"ramdisk", "value":"/boot/initrd"], $["key":"parameters", "value":"parameters"]], [$["key":"label", "value":"dumpdasd"], $["key":"target", "value":"/boot/zipl"], $["key":"dumpto", "value":"/dev/dasd??"]], [$["key":"label", "value":"dumptape"], $["key":"target", "value":"/boot/zipl"], $["key":"dumpto", "value":"/dev/rtibm0"]]]
 Dump	======================================
 Return	[$["dumpto":"/dev/dasd??", "label":"dumpdasd", "target":"/boot/zipl"], $["dumpto":"/dev/rtibm0", "label":"dumptape", "target":"/boot/zipl"]]

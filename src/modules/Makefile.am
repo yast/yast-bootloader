@@ -13,7 +13,6 @@ module_DATA =			\
 	BootS390.ycp		\
 	BootMILO.ycp		\
 	BootABOOT.ycp		\
-	BootSILO.ycp		\
 	BootPPC.ycp
 
 EXTRA_DIST = 			\

@@ -18,7 +18,6 @@
 {
     import "BootGRUB";
     import "BootLILO";
-    import "BootSILO";
     import "BootMILO";
     import "BootABOOT";
     import "BootELILO";
@@ -35,7 +34,6 @@
 	map bl_functions = $[
 	    "lilo"  : BootLILO::GetFunctions,
 	    "grub"  : BootGRUB::GetFunctions,
-	    "silo"  : BootSILO::GetFunctions,
 	    "milo"  : BootMILO::GetFunctions,
 	    "aboot" : BootABOOT::GetFunctions,
 	    "elilo" : BootELILO::GetFunctions,

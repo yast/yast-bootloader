@@ -76,8 +76,12 @@
     ];
 
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
+    import "Mode";
+    Mode::config = true; // yes, this is ugly, bus solves Product:: constructor
     import "Bootloader";
     import "BootCommon";
+
+    Mode::test = true;
 
     DUMP ("======================================");
 
