@@ -253,6 +253,10 @@
 	    }
         }
         UI::CloseDialog ();
+	if (ret == `ok && optname == "__loader_type")
+	{
+	    BootCommon::resetButtonRestore ();
+	}
 	return ret;
     }
 
