@@ -24,6 +24,7 @@
     import "Mode";
     import "Kernel";
     import "Storage";
+    import "StorageDevices";
     import "Arch";
 
     import "BootCommon";
@@ -824,7 +825,7 @@
                 ]],
             ]);
 	}
-	else
+	else if (StorageDevices::FloppyPresent)
 	{
 	    out = add (out, [
 		$[ "key" : "title",
