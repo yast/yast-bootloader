@@ -233,6 +233,7 @@
     global define void Propose () ``{
 	if (! BootCommon::was_proposed)
 	{
+	    create_efi_entry = true;
 	    BootCommon::location
 		= sformat ("%1 %2", Product::name, Product::version);
 	}
@@ -259,7 +260,6 @@
 	    createGlobals ();
 	}
 
-	create_efi_entry = true;
 	if (BootCommon::location == "" || BootCommon::location == nil)
 	{
 	    BootCommon::location
