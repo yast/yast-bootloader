@@ -932,7 +932,7 @@ and the sector to which the boot loader is installed."),
       */
     global define void initPasswdWidget (any opt_id, string opt_key) ``{
 	string passwd = (string)lookup_value (
-	    current_globals, opt_key, nil);
+	    current_section, opt_key, nil);
 	if (passwd == nil)
 	{
 	    UI::ChangeWidget (`id (`usepas), `Value, false);
@@ -985,14 +985,17 @@ and the sector to which the boot loader is installed."),
 		if (haskey (BootCommon::current_bootloader_attribs,
 		    "update_passwd"))
 		{
-		    eval (BootCommon::current_bootloader_attribs[
-			"update_passwd"]:nil);
+		    string(string) f = (string(string))
+			BootCommon::current_bootloader_attribs[
+			    "update_passwd"]:nil;
+		    password = f (password);
 		}
 	    }
 	}
 	current_section = modifySection (current_section, "password",
 	    password);
 	one_section_changed = true;
+	redraw_table = true;
         return nil;
     }
 
@@ -1030,12 +1033,13 @@ and the sector to which the boot loader is installed."),
       * @return string summary to the table
       */
     global define string getPasswdSummary (any opt_id, string opt_key) ``{
+y2error ("Value: %1", lookup_value (BootCommon::current_section, "password", nil));
 	if (lookup_value (BootCommon::current_section, "password", nil) != nil)
 	    // table cell
-	    return _("Password will be needed");
+	    return _("Password is set");
 	else
 	    // table cell
-	    return _("No password will be needed");
+	    return _("Password is not set");
     }
 
     /**

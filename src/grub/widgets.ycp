@@ -787,6 +787,36 @@ Adapt it?"), BootCommon::loader_device)))
 	];
     }
 
+// password widget
+
+    /**
+      * Validate function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @param event map event that caused validation
+      * @return boolean true if widget settings ok
+      */
+    global define boolean validatePasswdWidget (any opt_id, string opt_key,
+	map event)
+    {
+	boolean ret = BootCommon::validatePasswdWidget (opt_id, opt_key, event);
+	if (ret && (boolean)UI::QueryWidget (`id (`usepas), `Value))
+	{
+	    ret = Popup::YesNo (
+// yes-no popup
+_("If you set the password, the boot dialog will be displayed
+only in the text mode. Continue?"));
+	}
+	return ret;
+    }
+
+    global define map<string,any> getPasswdWidget () {
+	map<string,any> ret = BootCommon::getPasswdWidget ();
+	ret["popup", "validate_function"] = BootGRUB::validatePasswdWidget;
+	return ret;
+    }
+
+
     /**
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
@@ -810,6 +840,7 @@ Adapt it?"), BootCommon::loader_device)))
 	    "gfxmenu" : BootGRUB::getGfxMenuWidget (),
 	    "__diskorder" : BootGRUB::getOrderPopup (),
 	    "__add_orig_mbr" : BootGRUB::getAddOrigMbrWidget (),
+	    "password" : BootGRUB::getPasswdWidget (),
 	];
     }
 
