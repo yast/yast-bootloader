@@ -16,6 +16,11 @@ case $target_cpu in
     i?86) MBR_I386_TMP=true ;;
     x86_64) MBR_I386_TMP=true ;;
 esac
+
+case $target_cpu in
+    i?86) I386_TMP=true ;;
+esac
+AM_CONDITIONAL(I386, $I386_TMP = true)
 AM_CONDITIONAL(MBR_I386, $MBR_I386_TMP = true)
 AM_CONDITIONAL(I386_OR_AMD64, $MBR_I386_TMP = true)
 AM_CONDITIONAL(S390, test "$target_cpu" == "s390x" -o "$target_cpu" == "s390")

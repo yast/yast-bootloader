@@ -38,8 +38,11 @@ Summary:	Bootloader installation and configuration
 # menu items
 
 %ifnarch s390 s390x
-@desktopdir@/bootfloppy.desktop
 @desktopdir@/bootloader.desktop
+%endif
+
+%ifarch %ix86
+@desktopdir@/bootfloppy.desktop
 %endif
 
 %ifarch %ix86 x86_64
