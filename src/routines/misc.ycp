@@ -607,10 +607,10 @@
 	    string key = o["key"]:"";
 	    if (key == getSectionTitle ())
 	    {
-		if (regexpmatch (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: [a-z_]+###"))
+		if (regexpmatch (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: [a-z0-9_]+###"))
 		{
 		    intern["type"]
-			= regexpsub (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: ([a-z_]+)###", "\\1");
+			= regexpsub (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: ([a-z0-9_]+)###", "\\1");
 		}
 		else
 		{

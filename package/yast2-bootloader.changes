@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep 20 16:30:38 CEST 2004 - jsrain@suse.cz
+
+- fixes update if SATA devices are used (#44286)
+
+-------------------------------------------------------------------
 Mon Sep 13 10:59:50 CEST 2004 - jsrain@suse.cz
 
 - allowed to add wildcard entry to GRUB and LILO boot menu (#44742)
