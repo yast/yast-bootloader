@@ -454,6 +454,16 @@
 	    y2milestone ("Saving section");
 	    if (BootCommon::one_section_changed)
 		BootCommon::sections_changed = true;
+
+	    if (BootCommon::getDefaultType () == `label
+		&& tolower (BootCommon::current_section_name)
+		    == tolower (lookup_value (BootCommon::current_globals, BootCommon::getDefaultKey (), "")))
+	    {
+		BootCommon::current_globals = modifySection (
+		    BootCommon::current_globals,
+		    BootCommon::getDefaultKey (),
+		    lookup_value (BootCommon::current_section, BootCommon::getSectionTitle (), ""));
+	    }
 	}
 	if (`back == op)
 	{
