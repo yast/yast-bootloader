@@ -45,8 +45,9 @@
 	    `VSpacing (1),
 	    `HBox (
 		`HStretch (),
-		`PushButton (`id (`cancel), CancelButtonLabel ()),
 		`PushButton (`id (`ok), OKButtonLabel ()),
+		`HSpacing (1),
+		`PushButton (`id (`cancel), CancelButtonLabel ()),
 		`HStretch ()
 	    ),
 	    `VSpacing (1)
@@ -115,26 +116,34 @@
 
 	map widget_data = getPopupWidget (optname);
 
+	y2milestone ("Popup widget: %1", widget_data);
         string label = sformat ("%1", widget_data["label"]:optname);
-        term header = `Label (sformat ("Current option: %1", label));
-        if (optname == "")
-        {
-            optname = optnames[0]:"";
-            label = widget_data["label"]:optname;
-        }
-
+        term header = `HBox (
+	    `Heading (_("Current option: ")),
+	    `Label (label),
+	    `HStretch ()
+	);
         term widget = getSpecificOptionWidget (optname, opttype);
+	string help = widget_data["help"]:"";
+	if (help == nil)
+	{
+	    help = "";
+	}
         term contents = `HBox (`HSpacing (1), `VBox (
 	    `VSpacing (1),
             `Left (header),
 	    `VSpacing (1),
+	    help == "" ? `VSpacing (0)
+		: `Left (`Label (help)),
+            `VSpacing (help == "" ? 0 : 1),
             `Left (`ReplacePoint(`id (`value_rp), widget)),
 	    `VSpacing (1),
             `HBox (
                 `HStretch(),
+		`PushButton (`id (`ok), OKButtonLabel ()),
+		`HSpacing (1),
                 `PushButton (`id (`cancel), CancelButtonLabel ()),
-                `HStretch (),
-                `PushButton (`id (`ok), OKButtonLabel ())
+                `HStretch ()
             ),
 	    `VSpacing (1)
         ), `HSpacing (1));
@@ -218,9 +227,12 @@
     }
 
     /**
-      * Handle changes of table of settings
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param tosave list of operations, which lead to closing & saving widget
+      * @return any changed op (if needed)
       */
-    global define symbol singleSectionHandle (any op, list tosave) ``{
+    global define any singleSectionHandle (any op, list tosave) ``{
 	symbol ret = nil;
 	any item = UI::QueryWidget (`id (`settings), `CurrentItem);
         if (op == `settings)
@@ -286,9 +298,7 @@
 		index = index + 1;
 		return o == item;
 	    });
-	    y2error ("Old order: %1", order);
 	    order = BootCommon::swapItems (order, index, index - 1);
-	    y2error ("New order: %1", order);
 	    BootCommon::tmp_store["active_section", "__order__"] = order;
 	    ret = `ok;
 	}
@@ -302,9 +312,7 @@
                 index = index + 1;
                 return o == item;
             });
-	    y2error ("Old order: %1", order);
             order = BootCommon::swapItems (order, index, index + 1);
-	    y2error ("New order: %1", order);
 	    BootCommon::tmp_store["active_section", "__order__"] = order;
 	    ret = `ok;
 	}
@@ -317,9 +325,12 @@
 		BootCommon::tmp_store["globals"]
 		    = BootCommon::tmp_store["active_section"]:$[];
 		BootCommon::storeSettings ();
+		readWidgets (getWidgets(["globalsection"]));
 	    }
-	    // FIXME may be globalsection sometimes - add if
-	    readWidgets (getWidgets(["singlesection"]));
+	    else
+	    {
+		readWidgets (getWidgets(["singlesection"]));
+	    }
 	    UI::ChangeWidget (`id (`settings), `CurrentItem, item);
 	}
 	if (contains (tosave, op)
@@ -356,7 +367,13 @@
 	}
     }
 
-    global define void resetButtonHandle (any op, list tosave) ``{
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param tosave list of operations, which lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any resetButtonHandle (any op, list tosave) ``{
 	if (! contains ([`scratch, `reread, `propose_deep, `propose], op))
 	    return;
 	Bootloader::Reset ();
@@ -391,7 +408,13 @@
 	readWidgets (getWidgets(["globalsection"]));
     }
 
-    global define boolean askSwitch (string from, string to) ``{
+    /**
+      * Ask for bootlaoder switch method
+      * @param from string current spooler
+      * @param to string new spooler
+      * @return symbol method
+      */
+    global define symbol askSwitch (string from, string to) ``{
 	term contents = `VBox (
 	    `Label (_("Warning!
 
@@ -426,6 +449,7 @@ What do you want to do?")),
 	`HBox (
 	    `HStretch (),
 	    `PushButton (`id (`ok), OKButtonLabel ()),
+	    `HSpacing (1),
 	    `PushButton (`id (`cancel), CancelButtonLabel ()),
 	    `HStretch ()
 	));
@@ -439,8 +463,13 @@ What do you want to do?")),
 	return action;
     }
 
-
-    global define symbol loaderTypeSave (any op, list tosave) ``{
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param tosave list of operations, which lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any loaderTypeSave (any op, list tosave) ``{
 	if (! contains (tosave, op))
 	    return;
 
@@ -452,7 +481,7 @@ What do you want to do?")),
 	symbol action = askSwitch (old_bl, new_bl);
 	if (nil != action)
 	{
-	    y2error ("Switching");
+	    y2milestone ("Switching bootloader");
 	    BootCommon::other_bl[old_bl] = Bootloader::Export ();
 	    BootCommon::setLoaderType (new_bl);
 
@@ -502,11 +531,9 @@ What do you want to do?")),
 	while (! contains (exits, ret))
 	{
 	    ret = UI::UserInput ();
-//	    y2error ("Got ret %1", ret);
 	    if (! validateWidgetsIfNeeded (widgets, ret))
 		ret = nil;
 	    ret = handleChange (widgets, ret);
-//	    y2error ("Final ret: %1", ret);
 	}
 	return ret;
     }
@@ -569,9 +596,9 @@ What do you want to do?")),
         list widgets = getWidgets (["globalsection", "summarybuttons"]);
         term contents = `HBox (`HSpacing (2), `VBox (
                 `VSpacing (1),
-                widgets[1, "widget"]:`VSpacing (0),
-                `VSpacing (1),
                 widgets[0, "widget"]:`VSpacing (0),
+                `VSpacing (1),
+                widgets[1, "widget"]:`VSpacing (0),
                 `VSpacing (1)
                 ), `HSpacing (2));
         string caption = _("Bootloader setup");
@@ -582,6 +609,10 @@ What do you want to do?")),
             exits);
     }
 
+    /**
+      * Run dialog
+      * @return symbol for wizard sequencer
+      */
     global define symbol runEditFilesDialog () ``{
         map files = Bootloader::blGetFiles ();
 	string default = files["default"]:"";

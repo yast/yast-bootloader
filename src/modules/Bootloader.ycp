@@ -54,7 +54,7 @@
     }
     /**
       * Import settings from a map
-      * @param settigns map of bootloader settings
+      * @param settings map of bootloader settings
       */
     global define void Import (map settings) ``{
 	Reset ();
@@ -114,7 +114,7 @@
     }
     /**
       * Display bootloader summary
-      * @return list of summary lines
+      * @return a list of summary lines
       */
     global define list(string) Summary () ``{
 	return blSummary ();
@@ -191,15 +191,32 @@
 
 	if (! Mode::normal)
 	{
-	    SCR::Write (.sysconfig.bootloader.LOADER_TYPE.comment,
-                       "\n# Type of bootloader in use.
-# On i386 and compatibles \"grub\" and \"lilo\" are allowed.
-# Other platforms can have their specific bootloaders.
+	    string comment = "## Path:	System/Bootloader
+## Description:	Bootloader configuration\n";
+	    if (Arch::i386 || Arch::x86_64)
+		comment = comment
+		    + "## Type:	list(grub,lilo)";
+	    else
+		comment = comment + "## Type:	string";
+	    comment = comment
+		+ sformat ("\n## Default:	%1\n", getLoaderType ());
+	    comment = comment
+		+ "# Type of bootloader in use.
 # For making the change effect run bootloader configuration tool
-# and configure newly selected bootloader.\n#\n");
-	    SCR::Write (.sysconfig.bootloader.LOADER_LOCATION.comment,
-                       "\n# Location of boot loader. Shall contain \"mbr\",
-# \"floppy\", \"root\", \"boot\", \"custom\" or \"none\"\n#\n");
+# and configure newly selected bootloader.\n#\n#";
+	    SCR::Write (.sysconfig.bootloader.LOADER_TYPE.comment, comment);
+            comment = "\n## Path:	System/Bootloader
+## Description:	Bootloader configuration\n";
+	    if (Arch::i386 || Arch::x86_64)
+		comment = comment
+		    + "## Type:	list(floppy,mbr,root,boot,custom,none)";
+	    else
+		comment = comment + "## Type:	string";
+	    comment = comment
+		+ sformat ("\n## Default:	%1\n", BootCommon::location);
+	    comment = comment + "# Location of boot loader.
+#\n#";
+	    SCR::Write (.sysconfig.bootloader.LOADER_LOCATION.comment, comment);
 	}
 	SCR::Write (.sysconfig.bootloader, nil);
 
@@ -385,11 +402,19 @@
 	return BootCommon::getLoaderType (false);
     }
 
+    /**
+      * Get root fs device
+      * @return string root device
+      */
     global define string getRootDevice () ``{
 	ReadOrProposeIfNeeded ();
 	return BootCommon::RootPartitionDevice;
     }
 
+    /**
+      * Get device containing /boot directory
+      * @return string boot device
+      */
     global define string getBootDevice () ``{
 	ReadOrProposeIfNeeded ();
 	return BootCommon::BootPartitionDevice;

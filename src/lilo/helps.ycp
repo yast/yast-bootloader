@@ -22,16 +22,4 @@
 
     import "BootCommon";
 
-    global define string getExpertLocationHelp () ``{
-	string help_text = BootCommon::getExpertLocationHelp ();
-	// help text 1/2
-	help_text = help_text + _("<p>If you want to use the LBA-32 mode,
-set appropriate checkbox.</P>");
-	// help text 2/2
-	help_text = help_text + _("<p>If you want to use linear 24-bit
-adderssing mode, set appropriate checkbox.</P>");
-        return help_text;
-    }
-
-
 }

@@ -38,9 +38,9 @@
 
     /**
      *  IsBootAccessible()
-     *  @return boolean:
+     *  @return boolean true if accessible
      */
-    global define IsBootAccessible() ``{
+    global define boolean IsBootAccessible() ``{
         boolean boot_partition_accessible = true;
 
         if (!LbaSupport())
@@ -155,17 +155,20 @@
                 = mp["/boot", 0]:BootCommon::RootPartitionDevice;
         }
 
-        if (boot_is_raid1)
-        {
-            y2milestone ("/boot is on RAID1");
-            // use partitionName from GetMountPoints
-            BootCommon::mbrDisk = mountdata_boot[0]:RootPartitionDevice;
-        }
-        else
-        {
-            // normal mbr detection.
-            BootCommon::mbrDisk = FindMbrDisk();
-        }
+	if (BootCommon::mbrDisk == "" || BootCommon::mbrDisk == nil)
+	{
+	    if (boot_is_raid1)
+	    {
+		y2milestone ("/boot is on RAID1");
+		// use partitionName from GetMountPoints
+		BootCommon::mbrDisk = mountdata_boot[0]:RootPartitionDevice;
+	    }
+	    else
+	    {
+	        // normal mbr detection.
+	        BootCommon::mbrDisk = FindMbrDisk();
+	    }
+	}
 
         if (BootCommon::location == "")
             BootCommon::location = ConfigureLocation ();
@@ -197,11 +200,11 @@
         return loc;
     }
 
-    /*
-     * FindMbrDisk()
-     * try to find the system's mbr device
-     * @return string   mbr device
-     */
+    /**
+      * FindMbrDisk()
+      * try to find the system's mbr device
+      * @return string   mbr device
+      */
     global define string FindMbrDisk() ``{
         // can hwinfo find the disk ?
 

@@ -26,50 +26,35 @@
       */
     global define map GetWidgets () ``{
         return $[
-                "experttarget" : getExpertWidget (),
+		"globalsection" : getGlobalSectionWidget (),
         ];
     }
 
-
-
-
-    global define map getExpertWidget () ``{
-        term widget = `Frame (_("Expert settings"), `VBox (
-                    `Left (`CheckBox (`id (`activ),
-                        _("&Activate bootloader partition"))),
-                    `Left (`CheckBox (`id (`replmbr),
-                        _("R&eplace MBR with generic code"))),
-                    `Left (`CheckBox (`id (`lba), _("Use &LBA-32 mode"))),
-		    `Left (`CheckBox (`id (`linear),
-			_("&Use the 'linear' option")))
-            ));
-        return $[
-            "widget" : widget,
-            "restore" : ``(BootLILO::expertRead ()),
-            "handle" : ``(BootLILO::expertWrite ()),
-            "help" : getExpertLocationHelp (),
+    /**
+      * Get widget
+      * @return map of widget
+      */
+    global define map getGlobalSectionWidget () ``{
+        list items = [
+            `item (`id (`propose), _("&Propose new configuration")),
+            `item (`id (`scratch), _("&Start from scratch")),
+            `item (`id (`reread), _("&Reread configuration from disk")),
         ];
-
+        map ret = BootCommon::getGlobalSectionWidget ();
+        ret["widget"] = (`HBox (`HSpacing (2), `VBox (
+                    `Table (`id (`settings), `opt (`notify, `keepSorting),
+                        `header (_("Ch."), _("Option"), _("Value")), []),
+                    `HBox (
+                        `PushButton (`id (`add), AddButtonLabel ()),
+                        `PushButton (`id (`edit), EditButtonLabel ()),
+                        `PushButton (`id (`delete), DeleteButtonLabel ()),
+                        `HStretch (),
+                        `MenuButton (`id (`restore), _("Res&et"), items)
+                    )
+                ), `HSpacing (2)));
+        term widget = ret["widget"]:nil;
+        return ret;
     }
 
-    global define void expertRead () ``{
-	BootCommon::expertRead ();
-	UI::ChangeWidget (`id (`lba), `Value,
-	    BootCommon::tmp_store["globals","lba32"]:false);
-	UI::ChangeWidget (`id (`linear), `Value,
-	    BootCommon::tmp_store["globals","linear"]:false);
-    };
 
-    global define symbol expertWrite (any op, list tosave) ``{
-	BootCommon::expertWrite (op, tosave);
-	if (contains (tosave, op))
-	{
-	    BootCommon::tmp_store["globals","lba32"]
-		= UI::QueryWidget (`id (`lba), `Value);
-	    BootCommon::tmp_store["globals","linear"]
-		= UI::QueryWidget (`id (`linear), `Value);
-	}
-        return op;
-    }
-
-}
+} // end of include

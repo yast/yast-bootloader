@@ -83,6 +83,7 @@
 	if (size (BootCommon::sections) == 0)
 	{
 	    createSections ();
+	    BootCommon::kernelCmdLine = Kernel::cmdLine;
 	}
 	else
 	{
@@ -118,9 +119,15 @@
     }
 
     global define boolean Save () ``{
+	SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
 	SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
 
 	BootCommon::sections = filter (`s, BootCommon::sections, ``{
+            if (s["label"]:"" == "")
+                return false;
+	    if (! contains (["linux", "failsafe", "memtest86"], s["label"]:""))
+		return true;
+
 	    string kernel = s["image"]:"";
 	    if (kernel == "")
 		return true;
@@ -135,6 +142,8 @@
                 if (-1 == SCR::Read (.target.size, initrd))
                     s = remove (s, "initrd");
             }
+            if (s["label"]:"" == "linux")
+		s["append"] = BootCommon::updateKernelParams (s["append"]:"");
             return s;
 	});
 	string message = BootCommon::globals["message"]:"";
@@ -285,7 +294,8 @@
 	bcg["change-rules"] = "change-rules,reset";
 	bcg["read-only"] = true;
 	bcg["prompt"] = true;
-	if (StorageDevices::mixedDevices)
+	if (true) // always until situation with disks hda, hde, hdg fixes
+//	if (StorageDevices::mixedDevices)
 	{
 	    string order = "";
 	    // check if bios_id is given for a target

@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Wed Dec 11 11:14:58 CET 2002 - jsrain@suse.de
+
+- if something goes wrong during bootloader installation saving, it
+  is now possible to fix configuration (#21076)
+- possible to change section type an easy way (#19451)
+- dialogs updates
+- other updates and fixes
+- adding sysconfig metadata
+- 2.7.1
+
+-------------------------------------------------------------------
 Wed Dec  4 17:46:46 CET 2002 - jsrain@suse.cz
 
 - Removed global variables from Liloagent, now able to be used at

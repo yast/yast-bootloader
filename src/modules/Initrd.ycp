@@ -141,6 +141,7 @@
 
     /**
       * read seettings from sysconfig
+      * @return true on success
       */
     global define boolean Read () ``{
 	Reset ();
@@ -201,7 +202,8 @@
 	    if (size (optmap) > 0)
 	    {
 		// write options to /etc/modules.conf
-		SCR::Write (.modules.options, optmap, modname);
+		path p = add (.modules.options, modname);
+		SCR::Write (p, optmap);
 		modules_written = true;
 	    }
 	});

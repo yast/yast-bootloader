@@ -17,6 +17,7 @@
  */
 
 {
+    import "Pkg";
     include "testsuite.ycp";
 
     include "bootloader/routines/misc.ycp";
