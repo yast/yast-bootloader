@@ -907,15 +907,6 @@
 	    return opt_types[bl]:$[];
 	map out = SCR::Read (list2path ([bl, "opttypes"]));
 	opt_types[bl] = out;
-/*	if (Arch::ia64)
-	{
-	    out = remove(out, "lba");
-	    out = remove(out, "lba32");
-	    out = remove(out, "linear");
-	    out = add(out, "chooser", "s");
-	    out = add(out, "noedd30", "b");
-	}
-*/
 	return out;
     }
 

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu May 15 14:27:25 CEST 2003 - jsrain@suse.de
+
+- updated ELILO (IA64 bootloader) support
+
+-------------------------------------------------------------------
 Mon May  5 16:38:39 CEST 2003 - jsrain@suse.de
 
 - updated and optimized some internal structures and related

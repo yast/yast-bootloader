@@ -288,6 +288,8 @@
       * current location in bootloader configuration file
       */
     global define void updateLoaderLocation () ``{
+	if (! getBooleanAttrib ("bootloader_on_disk"))
+	    return;
 	// custom is always OK
 	if (location == "custom")
 	    return;
@@ -323,6 +325,20 @@
 	}
 	// other
 	location = "custom";
+    }
+
+    /**
+      * Set default section and loader device in lilo-style bootloader
+      */
+    global define void finishReading () ``{
+        BootCommon::loader_device
+            = lookup_value (BootCommon::globals, "boot", "");
+        if (lookup_value (BootCommon::globals, "default", "") == "")
+        {
+            BootCommon::addValueToBootloaderSection (`globals, "default",
+                lookup_value (BootCommon::sections[0]:[],
+                 "label", ""));
+        }
     }
 
 }

@@ -319,8 +319,7 @@
 	if (loader_device == "/dev/null")
 	    // summary text
 	    result = add (result, _("Do not install boot loader -- just create
-configuration files
-"));
+configuration files"));
 	return result;
     }
 

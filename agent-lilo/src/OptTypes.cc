@@ -159,6 +159,16 @@ OptTypes::OptTypes(const string& type)
     _options["map-drive"]=val;	    _options["to"]=val;
 #endif
 
+    if (type == "elilo")
+    {
+	// add exra elilo options, not needed don't have to be removed
+	_options["noedd30"] = T_BOOL;
+	_options["chooser"] = T_STR;
+	_options.erase ("lba");
+	_options.erase ("lba32");
+	_options.erase ("linear");
+    }
+
 }
 
 int OptTypes::getOptType(const string& optname)

@@ -66,6 +66,7 @@
 	    "scratch" : true,
 	    "restore_mbr" : true,
 	    "key_only_once" : true,
+	    "bootloader_on_disk" : true,
 	];
     }
 
@@ -81,8 +82,8 @@
 	    "update" :	``(BootLILO::Update ()),
 	    "write" :	``(BootLILO::Write ()),
 	    "widgets" :	``(BootLILO::GetWidgets ()),
-	    "getfiles" : ``(BootLILO::GetFiles ()),
-	    "setfiles" : ``(BootLILO::SetFiles ())
+	    "getfiles" :``(BootLILO::GetFiles ()),
+	    "setfiles" :``(BootLILO::SetFiles ())
 	];
     }
 
@@ -151,14 +152,7 @@
     global define boolean Read () ``{
 	BootCommon::DetectDisks ();
 	boolean ret = BootCommon::Read ();
-	BootCommon::loader_device
-	    = SCR::Read(BootCommon::list2path(["lilo", "boot"]));
-	if (lookup_value (BootCommon::globals, "default", "") == "")
-	{
-	    BootCommon::addValueToBootloaderSection (`globals, "default",
-		lookup_value (BootCommon::sections[0]:[],
-		 "label", ""));
-	}
+	BootCommon::finishReading ();
 	return ret;
     }
 
@@ -171,12 +165,13 @@
 	SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
 
 	BootCommon::sections = filter (`s, BootCommon::sections, ``{
-            if (s["label"]:"" == "")
+	    string label = lookup_value (s, "label", "");
+            if (label == "")
                 return false;
-	    if (! contains (["linux", "failsafe", "memtest86"], s["label"]:""))
+	    if (! contains (["linux", "failsafe", "memtest86"], label))
 		return true;
 
-	    string kernel = s["image"]:"";
+	    string kernel = lookup_value (s, "image", "");
 	    if (kernel == "")
 		return true;
 	    if (SCR::Read (.target.size, kernel) == -1)
@@ -184,35 +179,41 @@
 	    return true;
 	});
         BootCommon::sections = maplist (`s, BootCommon::sections, ``{
-            string initrd = s["initrd"]:"";
-	    string title = s["label"]:"";
+            string initrd = lookup_value ("initrd", "");
+	    string title = lookup_value (s, "label", "");
             if (initrd != "")
             {
                 if (-1 == SCR::Read (.target.size, initrd))
-                    s = remove (s, "initrd");
+		    s = modify_section (s, "initrd", nil);
             }
             else if ((title == "linux" || title == "failsafe")
 		&& BootCommon::write_settings["insert_initrd"]:false)
             {
                 if (title == "linux")
-                    s["initrd"] = "/boot/initrd";
+                    initrd = "/boot/initrd";
                 else
-                    s["initrd"] = "/boot/initrd.shipped";
+                    initrd = "/boot/initrd.shipped";
+		s = modifySection (s, "initrd", initrd);
             }
-            if (s["label"]:"" == "linux" && s["append"]:nil != nil
+            if (title == "linux" && s["append"]:nil != nil
 		&& Mode::initial)
 	    {
-		s["append"] = BootCommon::updateKernelParams (s["append"]:"");
+		s = modifySection (s, "append", BootCommon::updateKernelParams (
+		    lookup_value (s, "append", "")));
 	    }
             return s;
 	});
-	string message = BootCommon::globals["message"]:"";
+	string message = lookup_value (BootCommon::globals, "message", "");
         if (message != "")
         {
             if (-1 == SCR::Read (.target.size, message))
-                BootCommon::globals = remove (BootCommon::globals, "message");
+	    {
+                BootCommon::globals = modify_section (
+		    BootCommon::globals, "message", nil);
+	    }
         }
-	BootCommon::globals["boot"] = BootCommon::loader_device;
+	BootCommon::globals = modifySection (BootCommon::globals, "boot",
+	    BootCommon::loader_device);
 	boolean ret = BootCommon::Save ();
 	SCR::Execute (.target.bash, "/bin/chmod 600 /etc/lilo.conf");
 	return ret;
