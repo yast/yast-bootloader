@@ -1522,4 +1522,18 @@
 	    : descr;
     }
 
+    /**
+     * Update the Kernel::vgaType value to the saved one if not defined
+     */
+    global define void UpdateVgaParam () ``{
+	if (Kernel::vgaType == "")
+	{
+	    map<string,any> saved_params = (map<string,any>)SCR::Read (
+		.target.ycp, "/var/lib/YaST2/bootloader.ycp");
+	    string vgaType = (string)(saved_params["vga"]:"");
+	    if (vgaType != nil && vgaType != "")
+		Kernel::vgaType = vgaType;
+	}
+    }
+
 } //end of include
