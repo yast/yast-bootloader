@@ -31,8 +31,9 @@
       */
     global define boolean confirmAbortPopup () ``{
 	// yes-no popup question
-	return UI::YesNoPopup (_("Really leave Bootloader configuration without saving?
-All changes will be lost!"));
+	return UI::YesNoPopup (_("Really leave the boot loader configuration without saving?
+All changes will be lost.
+"));
     }
 
     /**

@@ -467,14 +467,13 @@ Select a course of action:
 	    : sformat (_("Warning!
 
 Your partitioning setup has changed. It is recommended
-to use %1 with current partitioning setup. 
+to use %1 with the current partitioning setup. 
 
-When converting configuration some settings may get lost.
+When converting the configuration, some settings may be lost.
+The current configuration will be saved and you will be able
+to restore it if you return to the current boot loader.
 
-Current configuration will be saved and you will be able
-to restore it if you will return back to current bootloader.
-
-Switch bootloader?"), BootCommon::getLoaderName (to));
+Switch boot loader?"), BootCommon::getLoaderName (to));
 
 	term contents = `VBox (
 		// warning label

@@ -363,7 +363,7 @@
 	    "handle" : ``(BootGRUB::handleOrderPopup ()),
 	    "summary" : ``(BootGRUB::orderSummary ()),
 		// label / table cell
-	    "label" : _("Disks Order"),
+	    "label" : _("Disk Order"),
 	    "deletable" : false,
 	    "help" : getDiskOrderHelp (),
 	];
@@ -760,7 +760,7 @@
 		`item (`id (`reread), _("&Reread Configuration from Disk")));
 	items = add (items, `item (`id (`propose_deep),
 		// menubutton item
-		_("Propose and &merge with existing GRUB menus")));
+		_("Propose and &Merge with Existing GRUB Menus")));
 	map ret = BootCommon::getGlobalSectionWidget ();
 	ret["widget"] = (`HBox (`HSpacing (2), `VBox (
                     `Table (`id (`settings), `opt (`immediate, `notify, `keepSorting),
