@@ -1,8 +1,10 @@
 -------------------------------------------------------------------
-Fri Feb 21 09:25:43 CET 2003 - jsrain@suse.de
+Fri Feb 21 13:11:08 CET 2003 - jsrain@suse.de
 
 - fixed adding of memtest to bootloader menu (#23924)
 - fixed help text and behaviour of password option popup (#23954)
+- added support for easy updating initrd contents during system
+  update (#23976)
 
 -------------------------------------------------------------------
 Thu Feb 20 09:50:57 CET 2003 - jsrain@suse.de
