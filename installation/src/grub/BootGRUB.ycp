@@ -295,7 +295,7 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	SCR::Execute (.target.bash, "test -f /etc/grub.conf || touch /etc/grub.conf");
 	SCR::Execute (.target.bash, "test -d /boot/grub || mkdir /boot/grub;");
 	SCR::Execute (.target.bash, "test -f /boot/grub/menu.lst || touch /boot/grub/menu.lst;");
-	SCR::Execute (.target.bash, "test -f /boot/grub/device.map || echo \"quit\" | /sbin/grub --device-map=/boot/grub/device.map");
+	SCR::Execute (.target.bash, "test -f /boot/grub/device.map || echo \"quit\" | /usr/sbin/grub --device-map=/boot/grub/device.map");
 
 	if ( Mode::update )
 	{

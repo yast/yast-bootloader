@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 30 15:27:45 CEST 2002 - arvin@suse.de
+
+- fixed installation of grub
+
+-------------------------------------------------------------------
 Mon Jul 29 11:26:24 CEST 2002 - jsrain@suse.cz
 
 - added basic expert dialogs for GRUB
