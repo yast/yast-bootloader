@@ -221,6 +221,10 @@
       * Save everything, not only changed settings
       */
     global boolean save_all = false;
+    /**
+      * Backup original MBR before installing bootloader
+      */
+    global boolean backup_mbr = false;
 
 // generic versions of bootloader-specific functions
 

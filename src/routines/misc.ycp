@@ -1032,6 +1032,10 @@
       * @return boolean true on success
       */
     global define boolean updateMBR () ``{
+	if (backup_mbr)
+	{
+	    saveMBR (BootCommon::mbrDisk);
+	}
 	boolean ret = true;
 	if (activate)
 	{
@@ -1056,6 +1060,54 @@
 		    "/usr/share/YaST2/data/mbr", BootCommon::mbrDisk)));
 	}
 	return ret;
+    }
+
+    /**
+      * Get last change time of file
+      * @param filename string name of file
+      * @return string last change date as YYYY-MM-DD-HH-MM-SS
+      */
+    global define string getFileChangeDate (string filename) ``{
+	map stat = SCR::Read (.target.stat, filename);
+	integer ctime = stat["ctime"]:0;
+	string command = sformat (
+	  "date --date='1970-01-01 00:00:00 %1 seconds' +\"%%Y-%%m-%%d-%%H-%%M-%%S\"",
+	  ctime);
+	map out = SCR::Execute (.target.bash_output, command);
+	string c_time = out["stdout"]:"";
+	y2error ("File %1: last change %2", filename, c_time);
+	return c_time;
+    }
+
+    /**
+      * Save current MBR to /boot/backup/mbr, if some existing, rename it
+      * @param device string name of device
+      */
+    global define void saveMBR (string device) ``{
+	SCR::Execute (.target.bash,
+	    "test -d /boot/backup || mkdir /boot/backup");
+	if (SCR::Read (.target.size, "/boot/backup/mbr") > 0)
+	{
+	    list contents = SCR::Read (.target.dir, "boot/backup");
+	    contents = filter (`c, contents, ``(regexpmatch (c,
+		".*-.*-.*-.*-.*-.*-.*")));
+	    contents = sort (contents);
+	    integer index = 0;
+	    integer siz = size (contents);
+	    while (index + 10 < siz)
+	    {
+		SCR::Execute (.target.remove,
+		    sformat ("/boot/backup/%1", contents[index]:""));
+		index = index + 1;
+	    }
+	    string change_date = getFileChangeDate ("/boot/backup/mbr");
+	    SCR::Execute (.target.bash, sformat (
+		"/bin/mv /boot/backup/mbr /boot/backup/mbr-%1",
+		getFileChangeDate ("/boot/backup/mbr")));
+	}
+	SCR::Execute (.target.bash, sformat (
+	    "/bin/dd if=%1 of=/boot/backup/mbr bs=512 count=1",
+	    mbrDisk));
     }
 
     /**
