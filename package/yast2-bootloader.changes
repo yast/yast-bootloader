@@ -8,6 +8,7 @@ Mon Aug 18 09:20:32 CEST 2003 - jsrain@suse.de
 - backup-ing areas really affected when saving bootloader
   configuration (MBR of first disk and sector bootloader is
   installed to) (#28803)
+- 2.8.10
 
 -------------------------------------------------------------------
 Wed Aug 13 14:07:32 CEST 2003 - jsrain@suse.de
