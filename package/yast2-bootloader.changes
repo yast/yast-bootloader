@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep  2 10:55:24 CEST 2002 - jsrain@suse.cz
+
+- updating prep boot partition during installation on PPC
+  (Bug #18689)
+- 2.6.34
+
+-------------------------------------------------------------------
 Fri Aug 30 15:54:15 CEST 2002 - jsrain@suse.cz
 
 - fixed bootfloppy creation (not yet tested) (Bug #17430)
