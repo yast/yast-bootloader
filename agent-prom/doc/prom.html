@@ -1,0 +1,71 @@
+<HTML>
+<HEAD>
+<TITLE>Prom agent description</TITLE>
+<!-- $Id$ -->
+</HEAD>
+<BODY>
+<H1>Prom agent description</H1>
+<HR>
+
+<H2>Purpose</H2> 
+The Prom agent (<TT>ag_prom</TT>) is used to access <TT>...</TT>.
+It is part of YaST2 SCR, the system configuration repository,
+used to access configuration data on the target system. The general
+SCR API allows <TT>Read()</TT> and <TT>Write()</TT> access to get and
+change data.
+
+<P>
+<H2>Implementation</H2>
+<TT>...</TT>
+
+<P>
+<I><B>Note:</B> The complete development documentation is available in the
+<A HREF="autodocs/index.html"><TT>autodocs/</TT></A> directory.</I>
+
+<P>
+<H2>Interface for prom-agent</H2>
+The interface is implemented as a SCR agent with the usual <TT>Read()</TT>,
+<TT>Write()</TT> and <TT>Dir()</TT> interface. The path prefix used is
+
+<UL><TT>.prom</TT></UL>
+<TT>...</TT>
+
+<P>
+<H2>Restrictions, limits and future enhancements</H2>
+<TT>...</TT>
+
+<P>
+See the <A HREF="TODO.txt">TODO.txt</A> file for the current status of support
+and also for the list of possible future enhancements.
+
+<P>
+<H2>Complete Read paths table</H2>
+The complete <TT>Write()</TT> paths table is similar to this except for
+the paths to which YCPList is returned.
+
+<TABLE>
+	<TR><TH WIDTH="30%" ALIGN="left">Path</TH><TH WIDTH="20%" ALIGN="left">Type</TH><TH ALIGN="left">Result</TH></TR>
+	<TR><TD><TT>.prom</TD><TD ALIGN="left">YCPList</TD>
+	<TD>list with all available directives (currently sublist of ["alias", "pre-install", "post-install", "options"]</TD></TR>
+	<TR>...</TR>
+</TABLE>
+
+<P>
+<H2>Complete Dir paths table</H2>
+The return type of the <TT>Dir()</TT> is always YCPList.
+
+<TABLE>
+	<TR><TH WIDTH="40%" ALIGN="left">Path</TH><TH ALIGN="left">Result</TH></TR>
+	<TR><TD><TT>.prom</TD>
+	<TD>list with all available directives (currently sublist of ["alias", "pre-install", "post-install", "options"]</TD></TR>
+	<TR>...</TR>
+</TABLE>
+
+<P>
+<ADDRESS>
+Thorsten Kukuk &lt;kukuk@suse.de&gt;<BR>
+</ADDRESS>
+
+
+</BODY>
+</HTML>

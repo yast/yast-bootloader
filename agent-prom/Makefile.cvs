@@ -1,0 +1,20 @@
+#
+# Makefile.cvs for y2a_prom
+#
+
+configure: all
+	./configure
+
+all:
+	aclocal
+	autoconf
+	autoheader
+	automake -a
+
+install: configure
+	make
+	make install
+
+reconf: all
+	./config.status --recheck
+	./config.status

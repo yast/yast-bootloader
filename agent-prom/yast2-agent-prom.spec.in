@@ -1,0 +1,64 @@
+#
+# spec file for package @RPMNAME@
+# 
+# Copyright  (c)  2000  SuSE GmbH  Nuernberg, Germany.
+#
+# This file and all modifications and additions to the pristine
+# package are under the same license as the package itself
+#
+# please send bugfixes or comments to @MAINTAINER@
+
+# neededforbuild  autoconf automake gpp libgpp ydoc libycp libycp-devel liby2 liby2-devel libscr libscr-devel
+
+Vendor:		SuSE GmbH, Nuernberg, Germany
+Distribution:	SuSE Linux 7.1 (i386)
+Name:		@RPMNAME@
+Release:	1
+Copyright:	(c) 2000 SuSE GmbH
+Group:		Development/Libraries
+
+Packager:	@MAINTAINER@
+
+Summary:	YaST2 Prom SCR Agent
+Version:	@VERSION@
+Source0:	@RPMNAME@-@VERSION@.tar.bz2
+
+%description
+-
+
+%package devel
+Version:	@VERSION@
+Summary:	YaST2 Prom SCR Agent for developers
+Group:		Development/Libraries
+Requires:	@RPMNAME@
+
+%description devel
+-
+
+%prep
+%setup -n @RPMNAME@-@VERSION@
+
+%build
+export CXXFLAGS="$RPM_OPT_FLAGS $CXXFLAGS -DNDEBUG"
+%{?suse_update_config:%{suse_update_config -f}}
+./configure
+make
+#make check
+
+%install
+make install-strip
+strip --strip-debug @YAST2DIR@/plugin/libag_prom.so.*
+%{?suse_check}
+
+%files
+%dir @YAST2DIR@/plugin
+@YAST2DIR@/plugin/libpy2ag_prom.so.*
+%dir @YAST2DIR@/scrconf
+@YAST2DIR@/scrconf/*.scr
+
+%files devel
+%dir @YAST2DIR@/plugin
+@YAST2DIR@/plugin/libpy2ag_prom.so
+@YAST2DIR@/plugin/libpy2ag_prom.la
+%dir @DOCDIR@
+@DOCDIR@/*
