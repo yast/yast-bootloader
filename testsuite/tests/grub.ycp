@@ -138,11 +138,11 @@ quit")), [], 0);
 
     DUMP ("======================================");
 
-    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":true, "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
-    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":true, "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
-    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":false, "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":"", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
     TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
-    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":true, "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2 --force-lba=off", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2 --force-lba=off", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
     TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($[]), "\n"), "\\n")), [], 0);
 
     DUMP ("======================================");

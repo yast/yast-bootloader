@@ -56,7 +56,7 @@
 	  {
 	    return [
 		$[ "key" : "image", "value" : "/boot/memtest.bin"],
-		$[ "key" : "label", "value" : translateSectionTitle (title)],
+		$[ "key" : "label", "value" : BootCommon::translateSectionTitle (title)],
 		$[ "key" : "__intern__", "value" : $[
 		    "auto" : true,
 		    "changed" : false,
@@ -92,7 +92,7 @@
 	    root = "0x" + root;
 	}
 	list<map> ret = [
-	    $[ "key" : "label", "value" : translateSectionTitle (title)],
+	    $[ "key" : "label", "value" : BootCommon::translateSectionTitle (title)],
 	    $[ "key" : "image", "value" : "/boot/" + image],
 	    $[ "key" : "initrd", "value" : "/boot/" + initrd],
 	    $[ "key" : "root", "value" : root ],
@@ -117,7 +117,7 @@
 	list<list<map> > out = [
 	    createLinuxSection ("linux")
 	];
-	list others = Storage::GetForeignPrimary();
+	list<string> others = (list<string>)Storage::GetForeignPrimary();
 	if (others != nil)
 	{
 	    if (size (others) > 0)
@@ -134,9 +134,9 @@
 		    if (dev != "" && label != ""
 			&& dev != BootCommon::loader_device)
 		    {
-			list m = [
+			list<map> m = [
 			    $["key" : "label",
-				"value" : translateSectionTitle (
+				"value" : BootCommon::translateSectionTitle (
 				BootCommon::removeBlanks (label))],
 			    $[ "key" : "other", "value" : dev],
 			    $[ "key" : "__intern__", "value" : $[
@@ -153,7 +153,8 @@
 	}
         out = add (out, createLinuxSection ("failsafe"));
 	out = add (out, createLinuxSection ("memtest86"));
-	out = filter (`s, out, ``(s != $[] && s != nil));
+	out = (list<list<map> >)
+	    filter (list<map> s, out, ``(s != [] && s != nil));
 	BootCommon::sections = out;
     }
 
@@ -165,7 +166,7 @@
 	list internal_bios = (list)SCR::Read (.probe.bios);
 	list<map> bcg = [
 	    $[ "key" : "menu-scheme", "value" : "Wb:kw:Wb:Wb"],
-	    $[ "key" : "default", "value" : translateSectionTitle ("linux")],
+	    $[ "key" : "default", "value" : BootCommon::translateSectionTitle ("linux")],
 	    $[ "key" : "timeout", "value" : 80],
 	    $[ "key" : "message", "value" : "/boot/message"],
 	    $[ "key" : "lba32",
@@ -178,7 +179,8 @@
 	{
 	    string order = "";
 	    // check if bios_id is given for a target
-	    map targetMap = Storage::GetTargetMap();
+	    map<string,map> targetMap
+		= (map<string,map>)Storage::GetTargetMap ();
 	    foreach (string target_dev, map target, targetMap, ``{
 		string bios_id = target["bios_id"]:"";
 		if (bios_id != "")
@@ -245,12 +247,12 @@
       * Create strings representing cfg. files for by-hand editation
       * @return map filename -> contents
       */
-    global define map GetFiles() ``{
+    global define map<string,string> GetFiles() ``{
 	BootCommon::addValueToBootloaderSection (
 	    `globals, "boot", BootCommon::loader_device);
         BootCommon::saveCfgFileToAgent ();
         return $[
-            "/etc/lilo.conf" : SCR::Read (.lilo.tostring),
+            "/etc/lilo.conf" : (string)SCR::Read (.lilo.tostring),
         ];
     }
 
@@ -258,7 +260,7 @@
       * Store strings representing cfg. files to internal structures
       * @param files map filename -> contents
       */
-    global define void SetFiles (map files) ``{
+    global define void SetFiles (map<string,string> files) ``{
 	if (SCR::Read (.lilo.tostring) != files["/etc/lilo.conf"]:"")
 	    BootCommon::files_edited = true;
         SCR::Write (.lilo.fromstring, files["/etc/lilo.conf"]:"");
@@ -362,6 +364,7 @@
             if (Mode::autoinst)
             {
                 // TODO whatever will be needed
+		y2debug ("nothing to to in AI mode if sections exist");
             }
             else
 		fixSections (disks_changed);
@@ -375,6 +378,7 @@
             if (Mode::autoinst)
             {
                 // TODO whatever will be needed
+		y2debug ("nothing to to in AI mode if globals are defined");
             }
             else
 		fixGlobals (disks_changed);

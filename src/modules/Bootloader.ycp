@@ -418,7 +418,7 @@
       * Set settings how to write bootloader
       * @param settings map of settings
       */
-    global define void SetWriteMode (map settings) ``{
+    global define void SetWriteMode (map<string,any> settings) ``{
 	y2milestone ("Setting mode for writing: %1", settings);
 	foreach (string k, any v, settings, ``{
 	    BootCommon::write_settings[k] = v;

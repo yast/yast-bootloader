@@ -535,7 +535,7 @@
       * returns map of options and their types
       * @return map option types
       */
-    global define map opttypes() ``{
+    global define map<string,string> opttypes() ``{
 	string bl = getLoaderType (false);
 	if (bl == "none")
 	    return $[];
@@ -545,7 +545,8 @@
 	    bl = "lilo";
 	if (size (opt_types[bl]:$[]) > 0)
 	    return opt_types[bl]:$[];
-	map out = (map) SCR::Read (list2path ([bl, "opttypes"]));
+	map<string,string> out = (map<string,string>)
+	   SCR::Read (list2path ([bl, "opttypes"]));
 	opt_types[bl] = out;
 	return out;
     }
@@ -754,21 +755,21 @@
     global define string getDeviceOfRaid (string device) ``{
 	// get list of all partitions (not marked to be deleted)
 	map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
-	list partitions = [];
+	list<map> partitions = [];
 
 	foreach ( string dev, map disk, tm, ``{
 	    if( Storage::IsRealDisk( dev, disk ) )
 	    {
-		list l = filter( map p, disk["partitions"]:[],
+		list<map> l = (list<map>)filter( map p, disk["partitions"]:[],
 		    ``(p["delete"]:false==false) );
-		partitions = merge (partitions, l);
+		partitions = (list<map>)merge (partitions, l);
             }
         });
 
 	// filter partitions to relevant list according to raid name
-	list md_list = filter (map e, partitions, ``(e["raid_name"]:"" == device));
+	list<map> md_list = filter (map e, partitions, ``(e["raid_name"]:"" == device));
 	// get the devices
-	list dev_list = maplist (map e, md_list, ``(e["device"]:""));
+	list<string> dev_list = maplist (map e, md_list, ``(e["device"]:""));
 	dev_list = filter (string d, dev_list, ``(d != ""));
 	if (size (dev_list) > 0)
 	{
@@ -1366,7 +1367,7 @@
     ``{
 	if (Mode::initial)
 	{
-	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
+	    prependlist = filter (any p, prependlist, ``(p != "__save_method"));
 	}
 	forbidden_keys = merge (forbidden_keys, prependlist);
 	forbidden_keys = add (forbidden_keys, "__intern__");
@@ -1396,7 +1397,7 @@
 	{
 	    options = maplist (any k, integer v, sortmap, ``(v));
 	}
-	prependlist = maplist (`e, prependlist, ``(remap_prepend[e]:e));
+	prependlist = maplist (any e, prependlist, ``(remap_prepend[e]:e));
 	options = filter (any opt, options, ``(opt != nil));
 	return merge (prependlist, options);
     }
@@ -1413,7 +1414,8 @@
 	foreach (string k, map v, tm, ``{
 	    integer cyl_size = v["cyl_size"]:0;
 	    list<map<string,any> > partitions = v["partitions"]:[];
-	    partitions = filter(map p, partitions, ``(p["mount"]:"" == "swap"));
+	    partitions = filter(map<string,any> p, partitions,
+		``(p["mount"]:"" == "swap"));
 	    foreach (map<string, any> s, partitions, ``{
 		string dev = (string)(s["device"]:"");
 		ret[dev] = (integer)(s["region", 1]:0) * cyl_size;
@@ -1436,5 +1438,64 @@
 	));
 	return swap_parts[0]:"";
     }
+
+    /**
+      * Create translated name of a section
+      * @param orig string original section name
+      * @return translated section name
+      */
+    global define string translateSectionTitle (string orig) ``{
+        map trans = $[
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "linux" : _("Linux"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "failsafe" : _("Failsafe"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "floppy" : _("Floppy"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "hard disk" : _("Hard Disk"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "memtest86" : _("Memory Test"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "original MBR" : _("MBR before Installation"),
+        ];
+        map not_trans = $[
+            "linux" : "Linux",
+            "failsafe" : "Failsafe",
+            "floppy" : "Floppy",
+            "hard disk" : "Hard Disk",
+            "memtest86" : "Memory Test",
+            "original MBR" : "MBR before Installation",
+            "windows" : "Windows",
+        ];
+	string translated = trans[orig]:"\n"; // not allowed character
+		// not_translated version will be used
+	string filtered = filterchars (translated, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _");
+	if (size (filtered) != size (translated))
+	{
+	    y2warning ("Incorrect translation %1 -> %2", orig, translated);
+	    return not_trans[orig]:orig;
+	}
+	if (BootCommon::getLoaderType (false) != "grub")
+	{
+	    filtered = mergestring (splitstring (filtered, " "), "_");
+	    if (size (filtered) > 15)
+		filtered = substring (filtered, 0, 15);
+	}
+	return filtered;
+    }
+
 
 } //end of include

@@ -40,7 +40,7 @@
     global string prep_boot_partition = "/dev/null";
 
     // map available of 41 PReP partitions, used on iSeries and CHRP
-    global list prep_boot_partitions = [];
+    global list<string> prep_boot_partitions = [];
 
     // iSeries specific global settings
 
@@ -152,7 +152,7 @@
     global define list<map> createLinuxSection (string title) ``{
 	list<map> section = [
 	    $[ "key" : "image", "value" : "/boot/" + Kernel::binary ],
-	    $[ "key" : "label", "value" : translateSectionTitle ("linux") ],
+	    $[ "key" : "label", "value" : BootCommon::translateSectionTitle ("linux") ],
 	    $[ "key" : "root", "value" : BootCommon::RootPartitionDevice ],
 	    $[ "key" : "initrd", "value" : "/boot/initrd" ],
 	    $[ "key" : "append", "value" : Kernel::cmdLine ],
@@ -175,7 +175,7 @@
 	list<list<map> > out = [
 	    createLinuxSection ("linux")
 	];
-	list others = Storage::GetForeignPrimary();
+	list<string> others = (list<string>)Storage::GetForeignPrimary();
 	if (others != nil)
 	{
 	    if (size (others) > 0)
@@ -201,9 +201,9 @@
 		    // don't add rewritten location (#19990)
 		    if (dev != "" && dev != BootCommon::loader_device)
 		    {
-			list m = [
+			list<map> m = [
 			    $["key" : "label",
-				"value" : translateSectionTitle (
+				"value" : BootCommon::translateSectionTitle (
 				BootCommon::removeBlanks (label))],
 			    $[ "key" : "other", "value" : dev],
 			    $[ "key" : "__intern__", "value" : $[
@@ -213,12 +213,13 @@
 				"type" : label,
 			     ]],
 			];
-			out = add (out, m);
+			out = (list<list<map> >)add (out, m);
 		    }
 		});
 	    }
 	}
-	out = filter (`s, out, ``(s != $[] && s != nil));
+	out = (list<list<map> >)filter (list<map> s, out,
+	    ``(s != [] && s != nil));
 	BootCommon::sections = out;
     }
 
@@ -276,11 +277,11 @@
       * Create strings representing cfg. files for by-hand editation
       * @return map filename -> contents
       */
-    global define map GetFiles() ``{
+    global define map<string,string> GetFiles() ``{
 	currentBoardSave ();
         BootCommon::saveCfgFileToAgent ();
         return $[
-            "/etc/lilo.conf" : SCR::Read (.lilo.tostring),
+            "/etc/lilo.conf" : (string)SCR::Read (.lilo.tostring),
         ];
     }
 
@@ -288,7 +289,7 @@
       * Store strings representing cfg. files to internal structures
       * @param files map filename -> contents
       */
-    global define void SetFiles (map files) ``{
+    global define void SetFiles (map<string,string> files) ``{
 	if (SCR::Read (.lilo.tostring) != files["/etc/lilo.conf"]:"")
 	    BootCommon::files_edited = true;
         SCR::Write (.lilo.fromstring, files["/etc/lilo.conf"]:"");
@@ -420,6 +421,7 @@
 	{
             if (Mode::autoinst)
             {
+		y2debug ("nothing to to in AI mode if sections exist");
                 // TODO whatever will be needed
             }
             else
@@ -433,6 +435,7 @@
 	{
             if (Mode::autoinst)
             {
+		y2debug ("nothing to to in AI mode if globals are defined");
                 // TODO whatever will be needed
             }
             else

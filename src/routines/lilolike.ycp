@@ -518,7 +518,7 @@
 		if (label != "" && ! haskey(old_sect, label))
 		{
 		    y2milestone ("Adding %1", s);
-		    to_remove = add (to_remove, s);
+		    to_remove = add (to_remove, label);
 		    old_sect_list = add (old_sect_list, s);
 		}
 	    }
@@ -535,14 +535,14 @@
       * @param term to evaluate to create a linux section
       */
     global define void liloUpdateSections (boolean replace,
-	list(string) create_linux_section)
+	list<map>(string) create_linux_section)
     ``{
 	list<list<map> > out = BootCommon::sections;
 
 	foreach (string t, ["linux", "failsafe", "memtest86"], ``{
-	    list m = create_linux_section (t);
+	    list<map> m = create_linux_section (t);
 	    boolean f_changed = false;
-	    list out = maplist (list<map> s, out, ``{
+	    out = maplist (list<map> s, out, ``{
 		map intern = (map)lookup_value (s, "__intern__", $[]);
 		string sect_type = intern["type"]:"";
 		if (sect_type == "")

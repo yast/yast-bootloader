@@ -39,7 +39,7 @@
     /**
       * parsed contents of /etc/grub.conf file
       */
-    global map grub_conf = $[];
+    global map<string,string> grub_conf = $[];
     /**
       * was grub_conf changed by user manually?
       */
@@ -88,7 +88,7 @@
 	  if (Pkg::IsProvided ("memtest86") || ! Mode::normal)
 	    return [
 		$[ "key" : "kernel", "value" : file2grub ("/boot/memtest.bin")],
-		$[ "key" : "title", "value" : translateSectionTitle (title)],
+		$[ "key" : "title", "value" : BootCommon::translateSectionTitle (title)],
 		$[ "key" : "__intern__", "value" : $[
 		    "auto" : true,
 		    "changed" : false,
@@ -105,7 +105,7 @@
             return [
                 $[ "key" : "chainloader",
 		   "value" : file2grub ("/boot/backup_mbr")],
-                $[ "key" : "title", "value" : translateSectionTitle (title)],
+                $[ "key" : "title", "value" : BootCommon::translateSectionTitle (title)],
                 $[ "key" : "__intern__", "value" : $[
                     "auto" : true,
                     "changed" : false,
@@ -138,7 +138,7 @@
 	    append = BootCommon::setKernelParamToLine (append, "desktop", "true");
 	}
 	return [
-	    $[ "key" : "title", "value" : translateSectionTitle (title)],
+	    $[ "key" : "title", "value" : BootCommon::translateSectionTitle (title)],
 	    $[ "key" : "kernel", "value" : sformat ("%1 %2 %3",
 		file2grub ("/boot/" + image),
 		sformat ("root=%1", BootCommon::dev2majminIfNonStandard (
@@ -170,9 +170,9 @@
 	    createLinuxSection ("linux")
 	];
 	list<string> others_ignore = [];
-	list others = Storage::GetForeignPrimary();
+	list<string> others = (list<string>)Storage::GetForeignPrimary();
 	y2debug ("Other primaries: %1", others);
-	list other_l = Storage::GetOtherLinuxPartitions();
+	list<map> other_l = (list<map>)Storage::GetOtherLinuxPartitions();
 	y2debug ("Other linux parts: %1", other_l);
 
 	string tmpdir = (string)SCR::Read (.target.tmpdir) + "/bldetect/";
@@ -183,11 +183,12 @@
 	    )
 	{
 	    y2milestone ("Detectig other Linux parts");
-	    list filesystems = maplist (map p, other_l, ``(p["used_fs"]:""));
+	    list filesystems = maplist (map p, other_l,
+		``(p["used_fs"]:(any)""));
 	    filesystems = toset (filter (any f, filesystems, ``(f != "")));
 	    filesystems = filter (any f, filesystems, ``(f != `ext2));
 	    y2debug ("Have to modprobe %1", filesystems);
-	    foreach (`f, filesystems, ``{
+	    foreach (any f, filesystems, ``{
 		map fsmods = $[
 		    `ext2 : "",
 		    `ext3 : "ext3",
@@ -227,7 +228,8 @@
 			y2debug ("Checking file %1", f);
 			string fc = (string)SCR::Read (.target.string, f);
 			SCR::Write (.grub.fromstring, fc);
-			list sects = SCR::Dir (.grub.sections);
+			list<string> sects = (list<string>)
+			    SCR::Dir (.grub.sections);
 			y2debug ("Found sections %1", sects);
 			count = count + size (sects);
 			foreach (string s, sects, ``{
@@ -249,7 +251,7 @@
 				return o;
 			    });
 			    opts_tmp = filter (map o, opts_tmp, ``(o != nil));
-			    list devs = [];
+			    list<string> devs = [];
 			    devs = add (devs, grubDev2unixDev ((string)select (
 				splitDevPath (
 				    (string)lookup_value (
@@ -263,9 +265,10 @@
 			    devs = add (devs,
 				BootCommon::getKernelParamFromLine (
 				    (string)lookup_value (opts_tmp, "kernel", ""), "root"));
-			    devs = filter (`d, devs, ``(d != ""
-				&& d != nil
-				&& d != "/dev/null" && d != "false"));
+			    devs = (list<string>)filter (string d, devs,
+				``(d != ""
+				    && d != nil
+				    && d != "/dev/null" && d != "false"));
 			    devs = toset (devs);
 			    intern["devs"] = devs;
 			    opts_tmp = add (opts_tmp, $[
@@ -306,9 +309,9 @@
 			if (g_dev != "" && label != ""
 			    && dev != BootCommon::loader_device)
 			{
-			    list m = [
+			    list<map> m = [
 				$[ "key" : "title",
-				    "value" : translateSectionTitle (label)],
+				    "value" : BootCommon::translateSectionTitle (label)],
 				$[ "key" : "root", "value" : g_dev],
 // can bring problem if bootloader installed in bootsector of some partition
 // new systems don't mind not having active partitions
@@ -331,7 +334,7 @@
 	{
             out = add (out, [
                 $[ "key" : "title",
-		    "value" : translateSectionTitle("hard disk")],
+		    "value" : BootCommon::translateSectionTitle("hard disk")],
                 $[ "key" : "root", "value" : "(hd0)"],
                 $[ "key" : "chainloader", "value" : "+1"],
                 $[ "key" : "__intern__", "value" : $[
@@ -346,7 +349,7 @@
 	{
 	    out = add (out, [
 		$[ "key" : "title",
-		    "value" : translateSectionTitle("floppy")],
+		    "value" : BootCommon::translateSectionTitle("floppy")],
 		$[ "key" : "root", "value" : "(fd0)"],
 		$[ "key" : "chainloader", "value" : "+1"],
                 $[ "key" : "__intern__", "value" : $[
@@ -365,7 +368,8 @@
 	{
 	    out = add (out, createLinuxSection ("original MBR"));
 	}
-	out = filter (`s, out, ``(s != $[] && s != nil));
+	out = (list<list<map> >)
+	    filter (list<map> s, out, ``(s != [] && s != nil));
 	BootCommon::sections = out;
     }
 
@@ -399,7 +403,7 @@
 	foreach (string t, ["linux", "failsafe", "memtest86"], ``{
 	    list<map> m = createLinuxSection (t);
 	    boolean changed = false;
-	    list out = maplist (list<map> s, out, ``{
+	    out = maplist (list<map> s, out, ``{
 		map intern = (map)lookup_value (s, "__intern__", $[]);
 		string sect_type = intern["type"]:"";
 		if (sect_type == "")
@@ -495,7 +499,7 @@
       *   relevant disk locations have changed
       */
     global define void fixSections (boolean disks_changed) ``{
-	list parts = BootCommon::getPartitionList(`parts_old);
+	list<string> parts = BootCommon::getPartitionList(`parts_old);
 	if (BootCommon::partitioning_last_change
 		!= Storage::GetTargetChangeTime()
 	    && BootCommon::files_edited)
@@ -537,7 +541,7 @@
 		    && type != "memtest86" && type !="floppy"
 		    && type != "original_mbr")
 		{
-		    foreach (`n, intern["devs"]:[], ``{
+		    foreach (string n, intern["devs"]:[], ``{
 		        if (! contains (parts, n))
 		        {
 			    cont = false;
@@ -548,14 +552,14 @@
 		map new_this_intern = (map)lookup_value(
 		    new_this_section, "__intern__", $[]);
 		list new_devs = toset(new_this_intern["devs"]:[]);
-		list old_devs = toset(intern["devs"]:[]);
+		list<string> old_devs = (list<string>)toset(intern["devs"]:[]);
 		if (size (new_devs) != size (old_devs))
 		{
 		    cont = false;
 		}
 		else
 		{
-		    foreach (`d, old_devs, ``{
+		    foreach (string d, old_devs, ``{
 			if (! contains (new_devs, d))
 			    cont = false;
 		    });
@@ -623,21 +627,23 @@
 	    });
 	    if (to_add)
 	    {
-		map old_sect = listmap (`s, old_sect_list, ``{
+		map<string,list<map> > old_sect = listmap (list<map> s,
+		    old_sect_list,
+		``{
 		    return $[title: s];
 		});
 
 		if (title != "" && ! haskey(old_sect, title))
 		{
 		    y2milestone ("Adding %1", s);
-		    to_remove = add (to_remove, s);
+		    to_remove = add (to_remove, title);
 		    old_sect_list = add (old_sect_list, s);
 		}
 	    }
 	});
 	BootCommon::del_parts
 	    = (list<string>)BootCommon::difflist (BootCommon::del_parts, to_remove);
-	old_sect_list = filter (list s, old_sect_list, ``(s != []));
+	old_sect_list = filter (list<map> s, old_sect_list, ``(s != []));
 	BootCommon::sections = old_sect_list;
     }
 
@@ -686,12 +692,12 @@
       * Create strings representing cfg. files for by-hand editation
       * @return map filename -> contents
       */
-    global define map GetFiles() ``{
+    global define map<string,string> GetFiles() ``{
 	BootCommon::saveCfgFileToAgent ();
 	grub_conf["device"] = unixDev2grubDev (BootCommon::loader_device);
-	map ret = $[
+	map<string,string> ret = $[
 	    "default" : "/boot/grub/menu.lst",
-            "/boot/grub/menu.lst" : SCR::Read (.grub.tostring),
+            "/boot/grub/menu.lst" : (string)SCR::Read (.grub.tostring),
 	    "/boot/grub/device.map" : devMap2string (device_map),
         ];
 	if (! Mode::config)
@@ -703,7 +709,7 @@
       * Store strings representing cfg. files to internal structures
       * @param files map filename -> contents
       */
-    global define void SetFiles (map files) ``{
+    global define void SetFiles (map<string,string> files) ``{
 	if ((devMap2string (device_map) != files["/boot/grub/device.map"]:"")
 	    || (SCR::Read (.grub.tostring) != files["/boot/grub/menu.lst"]:""))
 	{
@@ -884,6 +890,7 @@
 	    if (Mode::autoinst)
 	    {
 		// TODO whatever will be needed
+		y2debug ("nothing to to in AI mode if sections exist");
 	    }
 	    else
 		fixSections (disks_changed);
@@ -897,6 +904,7 @@
             if (Mode::autoinst)
             {
                 // TODO whatever will be needed
+		y2debug ("nothing to to in AI mode if globals are defined");
             }
             else
 		fixGlobals (disks_changed);
@@ -940,7 +948,8 @@
 	    if (kernel == "")
 		return true;
 	    kernel = select (
-		filter (`k, splitstring (kernel, " "), ``(k != "")), 0, "");
+		filter (string k, splitstring (kernel, " "), ``(k != "")),
+		0, "");
 	    if (kernel == "")
 		return true;
 	    kernel = grub2file (kernel);
@@ -1021,7 +1030,7 @@
 	    {
 		y2milestone ("Creating backup copy to bootsector");
 		// want a copy here
-		map backup_gc = add (grub_conf, "device",
+		map<string,string> backup_gc = add (grub_conf, "device",
 		    unixDev2grubDev (BootCommon::BootPartitionDevice));
 		string conf_file = getGrubConf (backup_gc);
 		string tmp_file = (string)SCR::Read (.target.tmpdir)

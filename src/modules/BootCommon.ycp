@@ -92,7 +92,7 @@
     /**
       * Option types for differnt bootloaders
       */
-    global map opt_types = $[];
+    global map<string,map<string,string> > opt_types = $[];
 
     /**
       * device holding MBR for bootloader

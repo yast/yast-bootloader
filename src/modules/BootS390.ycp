@@ -33,12 +33,12 @@
 // local data
 
 
-    map hw_descr = $[
+    map<string,map<string,any> > hw_descr = $[
 	"ctc" : $[
 	    "skeleton": "hwcfg-ctc",
 	    "target" : "ctc-bus-ccw-%1",
 	    "options" : $[
-		"CCW_CHAN_IDS" : "\"%1 %2\"",
+		"CCW_CHAN_IDS" : "%1 %2",
 		"CCW_CHAN_MODE" : "%3",
 	    ],
 	],
@@ -46,7 +46,7 @@
 	    "skeleton" : "hwcfg-qeth",
 	    "target" : "qeth-bus-ccw-%1",
 	    "options" : $[
-		"CCW_CHAN_IDS" : "\"%1 %2 %3\"",
+		"CCW_CHAN_IDS" : "%1 %2 %3",
 		"CCW_CHAN_MODE" : "%4",
 	    ],
 	],
@@ -96,9 +96,10 @@
 	    string a4 = args[4]:"";
 	    if (key != "")
 	    {
-		map descr = hw_descr[key]:$[];
-		string src = descr["skeleton"]:"";
-		string dst = sformat (descr["target"]:"", a1, a2, a3, a4);
+		map<string,any> descr = hw_descr[key]:$[];
+		string src = (string)(descr["skeleton"]:"");
+		string dst = sformat ((string)(descr["target"]:""),
+		    a1, a2, a3, a4);
 		y2milestone ("Template: %1, Target: %2", src, dst);
 		string command = sformat (
     "/bin/cp /etc/sysconfig/hardware/skel/%1 /etc/sysconfig/hardware/hwcfg-%2",
@@ -111,7 +112,9 @@
 		    failed = true;
 		}
 		path p = add (.sysconfig.hardware.value, dst);
-		foreach (string k, string v, descr["options"]:$[], ``{
+		foreach (string k, string v,
+		    (map<string,string>)(descr["options"]:$[]),
+		``{
 		    path op = add (p, k);
 		    v = sformat (v, a1, a2, a3, a4);
 		    if (! SCR::Write (op, v))
@@ -247,13 +250,15 @@
       * @return list of all dump devices, as list of maps containg keys
       *  "label", "target" and "dumpto"
       */
-    global define list GetDumpDevices () ``{
-	list dd = maplist (list d, BootCommon::sections, ``(
+    global define list<map<string,string> > GetDumpDevices () ``{
+	list<map<string,string> > dd = maplist (list<map> d,
+	    BootCommon::sections,
+	``(
 	    listmap (map e, d, ``(
 		$[ e["key"]:"": e["value"]:"" ]
 	    ))
 	));
-	return filter (map s, dd, ``(
+	return filter (map<string,string> s, dd, ``(
 	    s["dumpto"]:"" != ""
 	));
     }
@@ -262,11 +267,11 @@
       * Set the list of all dump devices
       * @param dump_devices list in the same form as result of GetDumpDevices ()
       */
-    global define void SetDumpDevices (list dump_devices) ``{
+    global define void SetDumpDevices (list<map<string,string> > dump_devices) {
 	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``(
 	    lookup_value (s, "dumpto", "") == ""
 	));
-	dump_devices = maplist (map d, dump_devices, ``{
+	dump_devices = maplist (map<string,string> d, dump_devices, ``{
 	    if (d["dumpto"]:"" == "")
 		return nil;
 	    if (d["target"]:"" == "")
@@ -275,8 +280,8 @@
 		d["label"] = "dump" + filterchars (d["dumpto"]:"", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 	    return d;
 	});
-	dump_devices = filter (map d, dump_devices, ``(d != nil));
-	list<list<map> > dd = maplist (map d, dump_devices, ``(
+	dump_devices = filter (map<string,string> d, dump_devices,``(d != nil));
+	list<list<map> > dd = maplist (map<string,string> d, dump_devices, ``(
 	    (list<map>)maplist (string k, string v, d, ``(
 		$[ "key" : k, "value" : v ]
 	    ))
