@@ -9,27 +9,27 @@
 #password=bootpwd
 #restricted
 append = "BOOT_FILE=/boot/vmlinuz"
-boot /dev/hda
+boot = /dev/hda
 #compact       # faster, but won't work on all systems.
 lba32
-vga 771
-message /boot/message
-menu-scheme Wg:kw:Wg:Wg
+vga = 771
+message = /boot/message
+menu-scheme = Wg:kw:Wg:Wg
 read-only
 prompt
-timeout 80
-default linuxovadlo
+timeout = 80
+default = linuxovadlo
 
     # End LILO global Section
     #
-    title linuxovadlo
-        kernel /boot/vmlinuz
-        root /dev/hda3
+    image = /boot/vmlinuz
+        root = /dev/hda3
+        label = linuxovadlo
 
     #
-    title "obskurni nazev\"\\"
-	image /boot/memtest.bin
+    image = /boot/memtest.bin
+        label = "obskurni nazev\"\\"
 
-    title sdf
-	image /boot/vmlinuz.suse
-        root /dev/hda3
+    image = /boot/vmlinuz.suse
+        label = sdf
+        root = /dev/hda3

@@ -112,7 +112,7 @@
 	SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
 
 	string grub_conf = SCR::Read (.target.string, "/etc/grub.conf");
-	string command = sformat ("echo \"%1\" | grub --batch --device-map=/boot/grub/device.map ", grub_conf);
+	string command = sformat ("echo \"%1\" | grub --batch --device-map=/boot/grub/device.map  >>/var/log/YaST2/y2loggrub 2>>/var/log/YaST2/y2loggrub", grub_conf);
 	if (Boot::location == "floppy")
 	{
 	    SCR::Execute(.target.umount, "/media/floppy"); // Just for safety
@@ -383,9 +383,20 @@ Do you want to try again?")) )
 
 	SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
 
-
 	y2milestone ("Starting mk_initrd");
-	boolean ret = (0 == SCR::Execute(.target.bash, "/sbin/mk_initrd"));
+	boolean ret = (0 == SCR::Execute(.target.bash, "/sbin/mk_initrd >> /var/log/YaST2/y2logmk_initrd 2>> /var/log/YaST2/y2logmk_initrd"));
+        if (! ret)
+        {
+            any retAsk = UI::AskShowLog( "mk_initrd" );
+            if ( retAsk == `yes )
+            {
+                string text = "";
+
+                text = SCR::Read (.target.string, "/var/log/YaST2/y2logmk_initrd");
+                DisplayLogFile( text );
+            }
+        }
+
 	if ((SCR::Read (.target.size, "/boot/initrd") < 0)
 	    || (SCR::Read (.target.size, "/boot/initrd.shipped") < 0))
 	{
@@ -399,7 +410,7 @@ Do you want to try again?")) )
 	    SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
 	}
 	y2milestone ("Starting GRUB");
-	string command = sformat ("echo \"%1\" | /usr/sbin/grub --batch --device-map=/boot/grub/device.map ", grub_conf);
+	string command = sformat ("echo \"%1\" | /usr/sbin/grub --batch --device-map=/boot/grub/device.map  >>/var/log/YaST2/y2loggrub 2>>/var/log/YaST2/y2loggrub", grub_conf);
 
         if (ret && Boot::location == "floppy")
         {

@@ -136,11 +136,11 @@ Would you like to choose a new installation source?"));
       }
       */
 
-      string begin_search = "/var/adm/mount/disks/";
+      string begin_search = "/var/adm/mount/boot/";
 
       if( ( SCR::Read(.target.size, begin_search + "bootdisk")!=-1) ) bootdisk_found    = true;
       if( ( SCR::Read(.target.size, begin_search + "i386")!=-1)     ) i386disk_found    = true;
-      if( ( SCR::Read(.target.size, begin_search + "rescue")!=-1)   ) rescuedisk_found  = true;
+      if( ( SCR::Read(.target.size, begin_search + "rescuefloppy")!=-1)   ) rescuedisk_found  = true;
       if( ( SCR::Read(.target.size, begin_search + "modules1")!=-1) ) moduledisk_found  = true;
       if( ( SCR::Read(.target.size, begin_search + "modules2"))!=-1 ) module2disk_found = true;
       if( ( SCR::Read(.target.size, begin_search + "modules3"))!=-1 ) module3disk_found = true;
@@ -264,7 +264,7 @@ and press <b>Next</b> to continue.</p>"
 
       if( file_image == "bootdisk" ) b_bootdisk = true;
       if( file_image == "i386"     ) b_i386     = true;
-      if( file_image == "rescue"   ) b_rescue   = true;
+      if( file_image == "rescuefloppy") b_rescue   = true;
       if( file_image == "modules1" ) b_modules  = true;
       if( file_image == "modules2" ) b_modules2 = true;
       if( file_image == "modules3" ) b_modules3 = true;
@@ -297,7 +297,7 @@ and press <b>Next</b> to continue.</p>"
 
       if ( rescuedisk_found  )
       {
-	  rescuedisk_term = add( rescuedisk_term , `Left(`RadioButton(`id("rescue"),
+	  rescuedisk_term = add( rescuedisk_term , `Left(`RadioButton(`id("rescuefloppy"),
 								      `opt(`notify),
 									// radio button
 								      _("&Rescue disk"), b_rescue)));
@@ -415,7 +415,7 @@ and press <b>Next</b> to continue.</p>"
 	      {
 		  ret= UI::UserInput();
 
-		  if(  ret == "rescue"   || ret == "i386" ||  ret == "bootdisk" ||
+		  if(  ret == "rescuefloppy"   || ret == "i386" ||  ret == "bootdisk" ||
 		       ret == "modules2" || ret == "modules1" || ret == "modules3" || ret == "modules4")
 		  {
 		      file_image = ret;
@@ -513,7 +513,7 @@ Do you want to unmount the floppy?"), lookup(floppymount, "spec", ""),
 	// image text - label
       if( file_image == "i386"     ) image_text = UI(_("Creating fallback boot floppy for i386 and\nolder Cyrix processors"));
 	// image text - label
-      if( file_image == "rescue"   ) image_text = UI(_("Creating rescue floppy"));
+      if( file_image == "rescuefloppy") image_text = UI(_("Creating rescue floppy"));
 	// image text - label
       if( file_image == "modules1" ) image_text = UI(_("Creating USB modules floppy"));
 	// image text - label
@@ -585,7 +585,7 @@ Do you want to unmount the floppy?"), lookup(floppymount, "spec", ""),
 
 		    any ret_diff = 0;
 
-		    if( file_image != "rescue" )
+		    if( file_image != "rescuefloppy" )
 		    {
 			ret_diff = SCR::Execute(.target.bash ,diff_str );
 		    }
