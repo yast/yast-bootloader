@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Aug 28 11:57:22 CEST 2002 - jsrain@suse.cz
+
+- fixed building on SPARC
+- removed unneeded files from GRUB installation
+- fixed boot floppies location
+- fixed logging
+- 2.6.32
+
+-------------------------------------------------------------------
 Wed Aug 28 12:13:05 CEST 2002 - kkaempf@suse.de
 
 - fix checking for splashscreen
