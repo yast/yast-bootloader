@@ -295,10 +295,9 @@
 	{
 	    string log = SCR::Read (.target.string,
 		"/var/log/YaST2/y2logmkinitrd");
-	// TODO replace with other popup
 	    // error report
-	    Report::Error (_("An error occurred during initrd creation.")
-		+ "\n\n\n" + log);
+	    errorWithLogPopup (_("An error occurred during initrd creation."),
+		log);
 	}
 	changed = false;
 	return true;
@@ -323,5 +322,28 @@
 	    });
 	}
     }
+
+    /**
+      * Display error popup with log
+      * FIXME this is copy-paste from ../routines/popups.ycp
+      * @param header string error header
+      * @param log string logfile contents
+      */
+    global define void errorWithLogPopup (string header, string log) ``{
+	term text = `RichText( `opt(`plainText), log );
+	UI::OpenDialog(`opt ( `decorated ),
+	    `VBox (`HSpacing(75),
+		// heading
+		`Heading(header),
+		text,     // e.g. `Richtext()
+		`PushButton( `id(`ok_help), `opt(`default), Label::OKButton() )
+	    )
+	);
+
+	UI::SetFocus(`id(`ok_help) );
+	any r = UI::UserInput();
+	UI::CloseDialog();
+    }
+
 
 } // end of module
