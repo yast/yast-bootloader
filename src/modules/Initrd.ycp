@@ -271,7 +271,7 @@
 	    ListModules ());
 	// check whether it is neccessary to write initrd
 	if ((! changed) && (Mode::normal))
-	    return;
+	    return true;
 
 	boolean modules_written = false;
 
