@@ -322,10 +322,13 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
 	    BootCommon::was_proposed = false;
 	    BootCommon::changed = true;
 	    BootCommon::location_changed = true;
-	    BootCommon::getLoaderType (true);
+	    BootCommon::getLoaderType (! repeating_write);
 	}
 
-	ReadOrProposeIfNeeded ();
+	if (repeating_write)
+	    BootCommon::was_read = true;
+	else
+	    ReadOrProposeIfNeeded ();
 
 	if (BootCommon::write_settings["save_all"]:false)
 	    BootCommon::save_all = true;
