@@ -69,12 +69,19 @@ dumpto=/dev/rtibm0
 	integer zipl = SCR::Execute (.target.bash, "/sbin/zipl > /var/log/inst-log.zipl 2>&1");
 	if (0 != zipl)
 	{
-	    // error popup, %1 is number, %2 content of file with output
-	    UI::MessagePopup (sformat(_("/sbin/zipl returned exit code %1
-
-Output of command:
-%2"),zipl,
-		SCR::Read (.target.string, "/var/log/inst-log.zipl")));
+	    string output = SCR::Read (.target.string, "/var/log/inst-log.zipl");
+	    UI::OpenDialog ( `VBox (
+		// label
+		`Label (`id (`l1), sformat(_("/sbin/zipl returned exit code %1"), zipl)),
+		`VSpacing (1),
+		// label, ruchtext headline
+		`Label (`id (`l2), _("Log contents:")),
+		`RichText (`id (`out),  `opt(`plainText), output),
+		`VSpacing (1),
+		`PushButton (`id (`ok), _("&Continue"))
+	    ));
+	    UI::UserInput ();
+	    UI::CloseDialog ();
 	    return false;
 	}
 	return true;
