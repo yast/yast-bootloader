@@ -106,6 +106,9 @@
 	];
     }
 
+    /**
+      * Initializer of GRUB bootloader
+      */
     global define void Initializer () ``{
 	y2milestone ("Called GRUB initializer");
 	BootCommon::current_bootloader_attribs = $[

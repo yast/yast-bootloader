@@ -72,6 +72,9 @@
 	];
     }
 
+    /**
+      * Initializer of LILO bootloader
+      */
     global define void Initializer () ``{
 	y2milestone ("Called LILO initializer");
 	BootCommon::current_bootloader_attribs = $[

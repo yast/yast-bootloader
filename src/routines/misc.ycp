@@ -970,52 +970,6 @@
     }
 
     /**
-      * Mark option as changed by user
-      * @param section symbol section to update
-      * @param optname string option name
-      */
-    global define void markOptionChanged (symbol section, string optname) ``{
-	y2debug ("Marking option %1 of section %2 changed", optname, section);
-	if (substring (optname, 0, 2) == "__")
-	{
-	   list s = [];
-	    if (section == `globals)
-	        s = globals;
-	    else if (section == `current_globals)
-	        s = current_globals;
-	    else if (section == `current_section)
-	        s = current_section;
-	    else
-	    {
-	        y2error ("Incorrect parameter for markOptionChanged");
-	        s = [];
-	    }
-
-	    map intern = lookup_value (s, "__intern__", $[]);
-	    list ch = intern["changed_opts"]:[];
-	    ch = toset (add (ch, optname));
-	    intern["changed_opts"] = ch;
-	    s = modifySection (s, "__intern__", intern);
-
-	    if (section == `globals)
-	        globals = s;
-	    else if (section == `current_globals)
-	        current_globals = s;
-	    else if (section == `current_section)
-	        current_section = s;
-	}
-
-	if (BootCommon::current_section_name == `global)
-	{
-	    BootCommon::changed = true;
-	}
-	else
-	{
-	    BootCommon::one_section_changed = true;
-	}
-    }
-
-    /**
       * remove blanks from section name and replace them with _
       * when not using GRUB
       * @param original string
@@ -1030,35 +984,12 @@
     }
 
     /**
-      * The SelectionBox "----" divider hack
-      * @param opts list of options for the current selection
-      * @param prev previously selected item index
-      * @param current currently selected item index
-      * @return new item selection index
-      */
-    global define any dividerHack(list opts, integer prev, integer current) ``{
-/*	integer p = -1;
-	find(`e, opts, ``{
-	    p = p + 1;
-	    return e == prev;
-	});
-	integer i = -1;
-	find(`e, opts, ``{
-	    i = i + 1;
-	    return e == current;
-	});*/
-	// separator can be the last option in the list (#25305)
-	// handle the same way as if previous was behind
-	if (current + 1 >= size (opts))
-	    prev = current + 1;
-	return prev < current ? current + 1 : current - 1;
-    }
-
-    /**
       * Filter list to only entries which are present as keys in map
       * @param order list (ordered) of settings
       * @param widgets map of present widgets
-      * @return list filtered list
+      * @param index of selected option
+      * @return map containing new index of selected option and list of options
+      *  where options that aren't ordered precede ordered options
       */
     global define map filterOrder (list order, map widgets, integer index) ``{
 	list ordering = [];

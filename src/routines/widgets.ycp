@@ -135,7 +135,8 @@
     }
 
     /**
-      * Restore function of widget
+      * Init function of widget
+      * @param widget any id of the widget
       */
     global define void sectionsInit (any widget) ``{
 	sectionsRedrawTable (BootCommon::current_sections);
@@ -143,10 +144,10 @@
     }
 
     /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return symbol changed op (if needed)
+      * Handle function of a widget
+      * @param widget any widget key
+      * @param event map event description of event that occured
+      * @return symbol to return to wizard sequencer, or nil
       */
     global define symbol sectionsHandle (any widget, map event) ``{
 	any op = event["ID"]:nil;
@@ -241,6 +242,11 @@
 	return nil;
     }
 
+    /**
+      * Store function of a widget
+      * @param widget any widget key
+      * @param event map event description of event that occured
+      */
     global define void sectionsStore (any widget, map event) ``{
 	any op = event["ID"]:nil;
 	if (op != `edit && op != `add)
@@ -271,7 +277,7 @@
                 "help": getSingleSectionHelp (),
                 "fallback" : $[
                     "init": ``(BootCommon::commonPopupInit ()),
-                    "store": ``(BootCommon::commonPopupSave ()),
+                    "store": ``(BootCommon::commonPopupStore ()),
                     "summary": ``(BootCommon::commonTableEntrySummary ()),
                     "changed" : ``(BootCommon::commonTableChanged ()),
                 ],
@@ -282,18 +288,29 @@
 	);
     }
 
-    global define symbol singleSectionHandle (any widget_key, map event) ``{
+    /**
+      * Handle function of a widget
+      * @param widget any widget key
+      * @param event map event description of event that occured
+      * @return symbol to return to wizard sequencer, or nil
+      */
+    global define symbol singleSectionHandle (any widget, map event) ``{
 	redraw_table = false;
 	map current_table = CWM::GetProcessedWidget ();
-	symbol ret = TablePopup::TableHandle (current_table, widget_key, event);
+	symbol ret = TablePopup::TableHandle (current_table, widget, event);
 	if (redraw_table)
 	{
-	    TablePopup::TableInit (current_table, widget_key);
+	    TablePopup::TableInit (current_table, widget);
 	}
 	return ret;
     }
 
-    global define void singleSectionStore (any widget_key, map event) ``{
+    /**
+      * Store function of a widget
+      * @param widget any widget key
+      * @param event map event description of event that occured
+      */
+    global define void singleSectionStore (any widget, map event) ``{
 	string ls = getSectionTitle ();
 	string old_name = current_section_name;
 	y2milestone ("Old name: %1", old_name);
@@ -348,7 +365,7 @@
                 "help": getGlobalSectionHelp (),
                 "fallback" : $[
                     "init": ``(BootCommon::commonPopupInit ()),
-                    "store": ``(BootCommon::commonPopupSave ()),
+                    "store": ``(BootCommon::commonPopupStore ()),
                     "summary": ``(BootCommon::commonTableEntrySummary ()),
                     "changed" : ``(BootCommon::commonTableChanged ()),
                 ],
@@ -358,16 +375,26 @@
 	);
     }
 
-    global define void globalSectionInit (any widget_key) ``{
+    /**
+      * Init function of widget
+      * @param widget any id of the widget
+      */
+    global define void globalSectionInit (any widget) ``{
 	current_section = eval (globals);
 	current_section_name = `global;
-	TablePopup::TableInitWrapper (widget_key);
+	TablePopup::TableInitWrapper (widget);
     }
 
-    global define symbol globalSectionHandle (any widget_key, map event) ``{
+    /**
+      * Handle function of a widget
+      * @param widget any widget key
+      * @param event map event description of event that occured
+      * @return symbol to return to wizard sequencer, or nil
+      */
+    global define symbol globalSectionHandle (any widget, map event) ``{
 	redraw_table = false;
 	map current_table = CWM::GetProcessedWidget ();
-	symbol ret = TablePopup::TableHandle (current_table, widget_key, event);
+	symbol ret = TablePopup::TableHandle (current_table, widget, event);
 	if (redraw_table)
 	{
 	    return `redraw;
@@ -375,7 +402,12 @@
 	return ret;
     }
 
-    global define void globalSectionStore (any widget_key, map event) ``{
+    /**
+      * Store function of a widget
+      * @param widget any widget key
+      * @param event map event description of event that occured
+      */
+    global define void globalSectionStore (any widget, map event) ``{
 	if (event["ID"]:nil == `redraw)
 	    return;
 	globals = current_section;
@@ -386,6 +418,7 @@
 
     /**
       * Create a list of options for the table
+      * @param descr map description of the table
       * @return list of option ids as it should be displayed
       */
     global define list getTableContents (map descr) ``{
@@ -432,7 +465,7 @@
     /**
       * Transform table entry id to option id
       * @param table map table description
-      * @param id any entry id
+      * @param opt_id any entry id
       * @return any option key
       */
     global define any id2key (map table, any opt_id) ``{
@@ -457,10 +490,16 @@
             return ret;
         return $[
                 "init" : ``(BootCommon::commonPopupInit ()),
-                "store" : ``(BootCommon::commonPopupSave ()),
+                "store" : ``(BootCommon::commonPopupStore ()),
         ];
     }
 
+    /**
+      * Fallback init function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @return boolean true if item was changed
+      */
     global define boolean commonTableChanged (any opt_id, any opt_key) ``{
 	if (is (opt_id, integer))
 	{
@@ -477,6 +516,12 @@
 	return false;
     }
 
+    /**
+      * Fallback summary function of a table entry
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @return string summary to the table
+      */
     global define string commonTableEntrySummary (any opt_id, any opt_key) ``{
 	if (is (opt_id, integer))
 	{
@@ -494,6 +539,12 @@
 	return "";
     }
 
+    /**
+      * Handler for the delete event on the table
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @return boolean true if item was really deleted
+      */
     global define boolean commonTableEntryDelete (any opt_id, any opt_key) ``{
 	if (! confirmOptionDeletePopup ())
 	    return false;
@@ -506,6 +557,11 @@
 	return true;
     }
 
+    /**
+      * Fallback init function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
     global define void commonPopupInit (any opt_id, any opt_key) ``{
 	integer index = opt_id;
 	if (index != nil)
@@ -516,7 +572,12 @@
 	UI::SetFocus (`id (opt_key));
     }
 
-    global define void commonPopupSave (any opt_id, any opt_key) ``{
+    /**
+      * Fallback store function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void commonPopupStore (any opt_id, any opt_key) ``{
 	any value = UI::QueryWidget (`id (opt_key), `Value);
 	one_section_changed = true;
 	if (opt_id == nil) // append
@@ -531,6 +592,14 @@
 	}
     }
 
+    /**
+      * Move item of a table up or down
+      * @param opt_id any option id of selected item
+      * @param opt_key any option key of selected item
+      * @param dir symbol direction, `up or `down
+      * @return new option id after entries have moved, or nil if no option
+      *   was moved
+      */
     global define any moveTableItem (any opt_id, any opt_key, symbol dir)``{
 	if (! is (opt_id, integer))
 	    return nil;
@@ -583,9 +652,10 @@
     }
 
     /**
-      * Restore function of widget
+      * Init function of widget
+      * @param widget any id of the widget
       */
-    global define void resetButtonInit (any widget_id) ``{
+    global define void resetButtonInit (any widget) ``{
 	list items = [];
 	if (getBooleanAttrib ("propose"))
 	{
@@ -650,6 +720,12 @@
 	];
     }
 
+    /**
+      * Handle function of a widget
+      * @param key any widget key
+      * @param event map event description of event that occured
+      * @return symbol to return to wizard sequencer, or nil
+      */
     global define symbol manualEditHandle(any key, map event)``{
 	return `manual;
     }
