@@ -74,21 +74,21 @@
     ``{
 	// Calling mk_initrd
 
-	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/y2logmk_initrd 2>> /var/log/y2logmk_initrd") != 0 )
+	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/YaST2/y2logmk_initrd 2>> /var/log/YaST2/y2logmk_initrd") != 0 )
 	{
 	    any retAsk = UI::AskShowLog( "mk_initrd" );
 	    if ( retAsk == `yes )
 	    {
 		string text = "";
 
-		text = SCR::Read (.target.string, "/var/log/y2logmk_initrd");
+		text = SCR::Read (.target.string, "/var/log/YaST2/y2logmk_initrd");
 		DisplayLogFile( text );
 	    }
 	}
 
 	// Generate grafical login
 
-	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_lilo_conf / >>/var/log/y2loglilo 2>>/var/log/y2loglilo");
+	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_lilo_conf / >>/var/log/YaST2/y2loglilo 2>>/var/log/YaST2/y2loglilo");
 
 	if (Boot::location == "floppy")
 	{
@@ -103,7 +103,7 @@ Insert a formatted floppy and confirm with 'OK'.
 	    {
 		integer doresult = SCR::Execute (.target.bash,
 					"/sbin/lilo -b " + StorageDevices::FloppyDevice
-					+ " -m /boot/map2 >>/var/log/y2loglilo 2>>/var/log/y2loglilo");
+					+ " -m /boot/map2 >>/var/log/YaST2/y2loglilo 2>>/var/log/YaST2/y2loglilo");
 
 		SCR::Execute(.target.bash, "/bin/sync");
 
@@ -132,14 +132,15 @@ Do you want to try again?")) )
 
 	    any retAsk = `yes;
 	    while ( retAsk == `yes
-		    && SCR::Execute (.target.bash, "/sbin/lilo >> /var/log/y2loglilo 2>> /var/log/y2loglilo") != 0 )
+		    && SCR::Execute (.target.bash, "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>> /var/log/YaST2/y2loglilo") != 0 )
 	    {
 		retAsk = UI::AskRetry( "lilo" );
 		while ( retAsk == `log )
 		{
 		    string text = "";
 
-		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/y2loglilo");
+		    // FIXME: Installation::destdir should be removed?
+		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2loglilo");
 		    DisplayLogFile( text );
 		    retAsk = UI::AskRetry( "lilo" );
 		}
