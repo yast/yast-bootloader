@@ -1,24 +1,18 @@
-#include "Y2CCLiloConf.h"
-#include "Y2LiloConfComponent.h"
 
 
-Y2CCLiloConf::Y2CCLiloConf()
-    : Y2ComponentCreator(Y2ComponentBroker::BUILTIN)
-{
-}
+/*
+ *  Author: Arvin Schnell <arvin@suse.de>
+ */
 
 
-bool
-Y2CCLiloConf::isServerCreator() const
-{
-    return true;
-}
+#include <scr/Y2AgentComponent.h>
+#include <scr/Y2CCAgentComponent.h>
+#include <scr/SCRInterpreter.h>
+
+#include "LiloAgent.h"
 
 
-Y2Component *
-Y2CCLiloConf::create(const char *name) const {
-    if (!strcmp(name, "ag_liloconf")) return new Y2LiloConfComponent();
-    else return 0;
-}
+typedef Y2AgentComp <LiloAgent> Y2LiloAgentComp;
 
-Y2CCLiloConf g_y2ccag_liloconf;
+Y2CCAgentComp <Y2LiloAgentComp> g_y2ccag_liloconf ("ag_liloconf");
+
