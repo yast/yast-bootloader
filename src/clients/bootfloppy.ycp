@@ -30,7 +30,7 @@
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("bootfloppy");
 
-    string file_image = "bootdisk"; //default
+    string file_image = "bootdsk1"; //default
     string filename = "";
     string dirname = "";
     string url = "";
@@ -47,6 +47,12 @@
     string dialog_header = _("Create boot or rescue floppies");
 
     map image_labels = $[
+	// image text - label
+	"bootdsk1" : _("Creating standard boot floppy 1"),
+	// image text - label
+	"bootdsk2" : _("Creating standard boot floppy 2"),
+	// image text - label
+	"bootdsk3" : _("Creating standard boot floppy 3"),
 	// image text - label
 	"bootdisk" : _("Creating standard boot floppy"),
 	// image text - label
@@ -143,11 +149,15 @@ To create a boot, modules, or rescue floppy,
 select the appropriate item from the list and
 click <b>Next</b> to continue.</p>");
 
-	    // help text 2/5
-	    help_text = help_text + _("<p><b>Boot Floppy:</b><br>
+	    // help text 2/5, alt. 1
+	    string old_text = _("<p><b>Boot Floppy:</b><br>
 This boot floppy can be used to boot your installed system or a rescue system
 (from the first CD-ROM or the rescue floppy).</p>
 ");
+	    // help text 2/5, alt. 2
+	    help_text = help_text + _("<p><b>Boot Floppies:</b><br>
+These boot floppies can be used to boot your installed system or a rescue system
+(from the first CD-ROM or the rescue floppy).</p>");
 
 	    // help text 3/5
 	    help_text = help_text + _("<p><b>Rescue Floppy:</b><br>
@@ -282,11 +292,23 @@ and File Systems (modules disk 4)"))),
 	}
 	else
 	{
-	    images_term = `VBox (
-		`VSpacing (2),
+	    term old_item =
 		`Left (`RadioButton (`id ("bootdisk"),
 		    // radiobutton - disk image name
-		    _("&Standard boot floppy"))),
+		    _("&Standard boot floppy")));
+	    images_term = `VBox (
+		`VSpacing (2),
+		`Left (`RadioButton (`id ("bootdsk1"),
+		    // radiobutton - disk image name
+		    _("&Standard boot floppy 1"))),
+		`VSpacing (0.4),
+		`Left (`RadioButton (`id ("bootdsk2"),
+		    // radiobutton - disk image name
+		    _("&Standard boot floppy 2"))),
+		`VSpacing (0.4),
+		`Left (`RadioButton (`id ("bootdsk3"),
+		    // radiobutton - disk image name
+		    _("&Standard boot floppy 3"))),
 		`VSpacing (0.4),
 		`Left (`RadioButton (`id ("rescuefloppy"),
 		    // radiobutton - disk image name
@@ -342,7 +364,7 @@ and File Systems (modules disk 4)"))),
 	{
 	    Wizard::HideBackButton();
 	    Wizard::SetAbortButton(`abort, Label::CancelButton () );
-	    UI::SetFocus (`id ("bootdisk"));
+	    UI::SetFocus (`id ("bootdsk1"));
 	    string image_item = file_image;
 	    if (substring (image_item, 0, 7) == "modules")
 		image_item = "__modules";
