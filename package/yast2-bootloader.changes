@@ -1,8 +1,10 @@
 -------------------------------------------------------------------
-Mon Aug 16 10:06:41 CEST 2004 - jsrain@suse.cz
+Mon Aug 16 11:16:44 CEST 2004 - jsrain@suse.cz
 
 - fixed printing of summary if location set to all MBRs of disks
-  holding the /boot partition (on /dev/md*)
+  holding the /boot partition on /dev/md*
+- fixed activating partitions and writing generic code to MBR if
+  installing on /dev/md*
 
 -------------------------------------------------------------------
 Fri Aug 13 14:55:49 CEST 2004 - jsrain@suse.cz
