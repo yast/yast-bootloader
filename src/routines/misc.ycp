@@ -1670,7 +1670,8 @@
 	    if (size (filtered) > 15)
 		filtered = substring (filtered, 0, 15);
 	}
-	else if (contains (["linux", "failsafe", "previous"], orig))
+	else if (contains (["linux", "failsafe", "previous"], orig)
+	    && ! Mode::test)
 	{
 	    string product = sformat ("%1 %2", Product::name, Product::version);
 	    string prod_filtered = filterchars (product, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.");
@@ -1748,7 +1749,7 @@
 	});
 	map<string,string> ret = mapmap (string k, string v, trans, {
 	    string il1 = translateSectionTitle (k);
-	    if (contains (["linux", "failsafe", "previous"], k))
+	    if (contains (["linux", "failsafe", "previous"], k) && ! Mode::test)
 	    {
 		string product
 		    = sformat ("%1 %2", Product::name, Product::version);
