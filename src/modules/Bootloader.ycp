@@ -160,7 +160,7 @@
 	    _("Loading boot loader settings..."),
 	];
 	// progress bar caption
-	Progress::New (_("Initializing boot loader configuration tool..."),
+	Progress::New (_("Initializing boot loader configuration"),
 	    " ", 3, stages, titles, "");
 
 	Progress::NextStage ();
@@ -321,7 +321,7 @@
         if (Mode::normal)
 	{
 	    // progress line
-            Progress::New (_("Saving boot loader configuration..."),
+            Progress::New (_("Saving boot loader configuration"),
                 " ", 2, stages, titles, "");
 	    Progress::NextStage ();
 	}

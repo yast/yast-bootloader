@@ -430,7 +430,7 @@
 	    }
         }
 	BootCommon::globals = modifySection (BootCommon::globals, "boot",
-	    BootCommon::loader_device);
+	    BootCommon::Md2Partition (BootCommon::loader_device));
 	boolean ret = BootCommon::Save ();
 	SCR::Execute (.target.bash, "/bin/chmod 600 /etc/lilo.conf");
 	return ret;
