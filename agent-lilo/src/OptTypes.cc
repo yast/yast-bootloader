@@ -151,8 +151,11 @@ OptTypes::OptTypes(const string& type)
 
     _options["change"]=val;	    _options["set"]=val;
     _options["partition"]=val;      _options["deactivate"]=val;
-    _options["automatic"]=val;      _options["activate"]=val;
-    _options["partition"]=val;           
+    _options["partition"]=val;      _options["automatic"]=val;
+
+#ifndef __powerpc__
+    _options["activate"]=val;
+#endif
 
     val=T_SPEC_MAP_DRIVE;
 

@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Wed Oct 15 08:23:57 CEST 2003 - jsrain@suse.de
+Wed Oct 15 16:27:26 CEST 2003 - jsrain@suse.de
 
 - fixed option type for relocatable in elilo.conf (IA64) (#32210)
+- fixed option type of "activate" option on PPC
 
 -------------------------------------------------------------------
 Tue Oct 14 18:08:02 CEST 2003 - jsrain@suse.de
