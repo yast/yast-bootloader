@@ -4,6 +4,7 @@ Wed Sep  4 12:35:39 CEST 2002 - jsrain@suse.cz
 - fixed bootfloppy function (Bug #17430)
 - fixed checking for need to set active partition (Bug #18835)
 - fixed reseting bootloader type after partitioning change
+- fixed label of sections dialog (Bug #18877)
 - 2.6.36
 
 -------------------------------------------------------------------

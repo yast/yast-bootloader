@@ -513,7 +513,7 @@ global define symbol EndDialog() ``{
 
 global define symbol MainDlg() ``{
 	// caption
-    string  caption = _("Lilo configuration - Sections");
+    string  caption = _("Sections:");//_("Lilo configuration - Sections");
     any     action = nil; // any is essential here- may be symbol or string with device name
     string  help = lookup(HELP_STRINGS, "main_dialog", "");
 
