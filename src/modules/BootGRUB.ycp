@@ -508,10 +508,11 @@
 	string initrd = title == "failsafe" ? "initrd.shipped" : "initrd";
 	string image = title == "failsafe" ? "vmlinuz.shipped" : "vmlinuz";
 	string append = title == "failsafe"
-	    ? "ide=nodma apm=off acpi=off vga=normal "
+	    ? "showopts ide=nodma apm=off acpi=off vga=normal "
 	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp noapic ")
 	      + "maxcpus=0 3"
-	    : sformat ("%1 %2", vgastring, Kernel::cmdLine);
+	    : sformat ("%1 %2 %3", vgastring, Kernel::cmdLine,
+		"splash=silent showopts apic");
 	return $[
 	    "__order__":["title", "kernel", "initrd"],
 	    "title" : title,
