@@ -22,7 +22,6 @@
     textdomain "bootloader";
 
     import "Kernel";
-    import "Storage";
     import "StorageControllers";
     import "BootCommon";
     import "Mode";

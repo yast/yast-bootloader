@@ -20,7 +20,6 @@
     textdomain "bootloader";
 
     import "Kernel";
-    import "Storage";
     import "Installation";
     import "Mode";
 
