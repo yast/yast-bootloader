@@ -78,8 +78,8 @@
 		BootCommon::getLargestSwapPartition ());
 	}
 	// not using .shipped images any more
-	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
-	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
+	string initrd = title == "wildcard" ? "initrd-*" : "initrd";
+	string image = title == "wildcard" ? "vmlinuz-*" : "vmlinuz";
 	string append = title == "failsafe"
 	    ? "ide=nodma apm=off acpi=off vga=normal noresume selinux=0 barrier=off "
 	      + ((Arch::x86_64)
@@ -117,6 +117,9 @@
 	{
 	    root = "0x" + root;
 	}
+	string type = title;
+	if (type == "wildcard")
+	    title = "*";
 	list<map> ret = [
 	    $[ "key" : "label", "value" : BootCommon::translateSectionTitle (title)],
 	    $[ "key" : "image", "value" : "/boot/" + image],
@@ -127,11 +130,18 @@
 		"auto" : true,
 		"changed" : false,
 		"devs" : [BootCommon::RootPartitionDevice],
-		"type" : title,
+		"type" : type,
 	    ]],
 	];
 	if (Kernel::vgaType != "" && title != "failsafe")
 	    ret = add (ret, $["key" : "vga", "value" : Kernel::vgaType]);
+	if (type == "wildcard")
+	{
+	    ret = prepend (ret, $[
+		"key" : "wildcard",
+		"value" : "/boot/" + image,
+	    ]);
+	}
 	return ret;
     }
 
@@ -179,6 +189,7 @@
 	}
         out = add (out, createLinuxSection ("failsafe"));
 	out = add (out, createLinuxSection ("memtest86"));
+//	out = add (out, createLinuxSection ("wildcard"));
 	out = (list<list<map> >)
 	    filter (list<map> s, out, ``(s != [] && s != nil));
 	BootCommon::sections = out;
