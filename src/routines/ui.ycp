@@ -46,9 +46,9 @@
 	    `VSpacing (1),
 	    `HBox (
 		`HStretch (),
-		`PushButton (`id (`ok), OKButtonLabel ()),
+		`PushButton (`id (`ok), `opt (`key_F10), OKButtonLabel ()),
 		`HSpacing (1),
-		`PushButton (`id (`cancel), CancelButtonLabel ()),
+		`PushButton (`id (`cancel), `opt (`key_F9), CancelButtonLabel ()),
 		`HStretch ()
 	    ),
 	    `VSpacing (1)
@@ -145,9 +145,9 @@
 	    `VSpacing (1),
             `HBox (
                 `HStretch(),
-		`PushButton (`id (`ok), OKButtonLabel ()),
+		`PushButton (`id (`ok), `opt (`key_F10), OKButtonLabel ()),
 		`HSpacing (1),
-                `PushButton (`id (`cancel), CancelButtonLabel ()),
+                `PushButton (`id (`cancel), `opt (`key_F9), CancelButtonLabel ()),
                 `HStretch ()
             ),
 	    `VSpacing (1)
@@ -417,12 +417,13 @@
       * Ask for bootlaoder switch method
       * @param from string current spooler
       * @param to string new spooler
+      * @param type of switching,
+      *   `proposal for switching proposed because of disks changed
+      *   `user for switching upon user's request
       * @return symbol method
       */
-    global define symbol askSwitch (string from, string to) ``{
-	term contents = `VBox (
-		// warning label
-	    `Label (_("Warning!
+    global define symbol askSwitch (string from, string to, symbol type) ``{
+	string label = type == `user ? _("Warning!
 
 You chose to change your bootloader. When converting 
 configuration some settings may get lost.
@@ -430,7 +431,17 @@ configuration some settings may get lost.
 Current configuration will be saved and you will be able
 to restore it if you will return back to current bootloader.
 
-What do you want to do?")),
+What do you want to do?")
+	    : sformat (_("Warning!
+
+Your partitioning setup has changed. It is recommended
+to use %1 with current partitioning setup. 
+
+Switch bootloader?"), getLoaderName (to));
+
+	term contents = `VBox (
+		// warning label
+	    `Label (label),
 	    `VSpacing (1),
 	    `RadioButtonGroup (`id (`action), `VBox (
 		canConvert (from, to)
@@ -438,7 +449,8 @@ What do you want to do?")),
 			// radiobutton
 			_("Co&nvert current configuration")))
 		    : `VSpacing (0),
-		`Left (`RadioButton (`id (`scratch),
+		type == `proposal ? `VSpacing (0)
+		: `Left (`RadioButton (`id (`scratch),
 		    // radiobutton
 		    _("&Start new configuration from scratch"))),
 		`Left (`RadioButton (`id (`propose),
@@ -449,7 +461,7 @@ What do you want to do?")),
 			// radiobutton
 			_("&Read configuration saved on disk")))
 		    : `VSpacing (0),
-		BootCommon::other_bl[to]:nil == nil
+		BootCommon::other_bl[to]:nil == nil || type == `proposal
 		    ? `VSpacing (0)
 		    : `Left (`RadioButton (`id (`prev),
 			// radiobutton
@@ -458,9 +470,9 @@ What do you want to do?")),
 	`VSpacing (1),
 	`HBox (
 	    `HStretch (),
-	    `PushButton (`id (`ok), OKButtonLabel ()),
+	    `PushButton (`id (`ok), `opt (`key_F10), OKButtonLabel ()),
 	    `HSpacing (1),
-	    `PushButton (`id (`cancel), CancelButtonLabel ()),
+	    `PushButton (`id (`cancel), `opt (`key_F9), CancelButtonLabel ()),
 	    `HStretch ()
 	));
 	UI::OpenDialog (contents);
@@ -488,7 +500,7 @@ What do you want to do?")),
 	if (old_bl == new_bl)
 	    return;
 
-	symbol action = askSwitch (old_bl, new_bl);
+	symbol action = askSwitch (old_bl, new_bl, `user);
 	if (nil != action)
 	{
 	    y2milestone ("Switching bootloader");

@@ -225,6 +225,7 @@
 	    return true;
 	});
 	BootCommon::sections = maplist (`s, BootCommon::sections, ``{
+	    string title = s["title"]:"";
 	    if (s["__intern__", "converted"]:false)
 		return s;
             if (s["title"]:"" == "linux")

@@ -43,7 +43,7 @@
 	    "s390"  : ``(BootS390::GetFunctions ()),
 	    "ppc"   : ``(BootPPC::GetFunctions ())
 	];
-	term gf = bl_functions[bootloader]:$[];
+	term gf = bl_functions[bootloader]:nil;
 	return eval(gf);
     }
 

@@ -54,6 +54,13 @@
       */
     global string loader_device = "";
 
+// installation proposal help variables
+
+    /**
+      * Last detection proposed to prefer lilo instead of grub
+      */
+    global boolean prefer_lilo = false;
+
 // variables for storing data
 
     /**
@@ -224,6 +231,8 @@
       */
     global define boolean Save () ``{
 	string bl = getLoaderType (false);
+	if (bl == "s390")
+	    bl = "zipl";
 	saveCfgFileToAgent ();
 	SCR::Write(list2path([bl]), nil);
 	return true;
@@ -416,7 +425,14 @@ configuration files"));
 	loader_type = SCR::Read (.probe.boot_arch);
 	y2milestone ("Bootloader detection returned %1", loader_type);
 	if (loader_type == "grub" && Storage::UseLilo())
+	{
 	    loader_type = "lilo";
+	    prefer_lilo = true;
+	}
+	else
+	{
+	    prefer_lilo = false;
+	}
 
 	// this shall install packages if possible
 	setLoaderType (loader_type);
@@ -486,7 +502,7 @@ configuration files"));
       */
     global define list getBootloaders () ``{
 	list ret = [getLoaderType (false)];
-	if (Arch::i386)
+	if (Arch::i386 || Arch::x86_64)
 	{
 	    ret = merge (ret, ["lilo", "grub"]);
 	}

@@ -591,9 +591,9 @@
 			// table header
 			_("Value")), []),
                     `HBox (
-                        `PushButton (`id (`add), AddButtonLabel ()),
-                        `PushButton (`id (`edit), EditButtonLabel ()),
-                        `PushButton (`id (`delete), DeleteButtonLabel ()),
+                        `PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
+                        `PushButton (`id (`edit), `opt (`key_F4), EditButtonLabel ()),
+                        `PushButton (`id (`delete), `opt (`key_F5), DeleteButtonLabel ()),
                         `HStretch (),
 			// menubutton
 			`MenuButton (`id (`restore), _("Res&et"), items)
@@ -601,9 +601,9 @@
                 ), `HSpacing (2)));
 	term widget = ret["widget"]:nil;
 	term buttons = `HBox (
-	    `PushButton (`id (`add), AddButtonLabel ()),
-	    `PushButton (`id (`edit), EditButtonLabel ()),
-	    `PushButton (`id (`delete), DeleteButtonLabel ()),
+	    `PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
+	    `PushButton (`id (`edit), `opt (`key_F4), EditButtonLabel ()),
+	    `PushButton (`id (`delete), `opt (`key_F5), DeleteButtonLabel ()),
 	    `HStretch ()
 	);
 	return ret;
