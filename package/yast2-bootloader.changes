@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 31 14:43:04 CEST 2004 - jsrain@suse.cz
+
+- branched yast2-bootfloppy package (so that the bootfloppy
+  functionality is not present in personal as floppy images are
+  not present on the media (#44163)
+
+-------------------------------------------------------------------
 Mon Aug 30 05:19:51 CEST 2004 - nashif@suse.de
 
 - Added GetModified function to _auto client
