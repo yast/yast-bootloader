@@ -60,7 +60,7 @@
       * return map or list
       */
     else if (func == "Reset") {
-	Bootloader::Propose ();
+	Bootloader::Reset();
 	ret =  ($[]);
     }
     /**
