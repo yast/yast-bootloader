@@ -69,10 +69,11 @@
 	BootCommon::was_read = true;
 	BootCommon::was_proposed = true;
 	BootCommon::changed = true;
+	BootCommon::location_changed = true;
 	BootCommon::location = settings["location"]:"";
 	BootCommon::loader_device = settings["loader_device"]:"";
 	BootCommon::setLoaderType (settings["loader_type"]:nil);
-	if (settings["initrd"]:$[] != $[])
+	if (settings["initrd"]:$[] != nil)
 	    Initrd::Import (settings["initrd"]:$[]);
 	blImport (settings["specific"]:$[]);
 	BootCommon::changed_settings = settings["changed_settings"]:$[];
@@ -334,21 +335,31 @@
 	if (section == nil)
 	    return "";
 	string bl = BootCommon::getLoaderType (false);
+	string label = bl == "grub" ? "title" : "label";
+	integer sectnum = -1;
+	integer index = -1;
+	foreach (`s, BootCommon::sections, ``{
+	    index = index + 1;
+	    if (s[label]:"" == section)
+		sectnum = index;
+	});
+	if (sectnum == -1)
+	    return "";
 	string line = "";
 	if (bl != "grub")
 	{
 	    if (key == "vga" || key == "root")
 	    {
-		return BootCommon::sections[section, key]:"false";
+		return BootCommon::sections[sectnum, key]:"false";
 	    }
 	    else
 	    {
-		line = BootCommon::sections[section, "append"]:"";
+		line = BootCommon::sections[sectnum, "append"]:"";
 	    }
 	}
 	else
 	{
-	    line = BootCommon::sections[section, "kernel"]:"";
+	    line = BootCommon::sections[sectnum, "kernel"]:"";
 	}
 	return BootCommon::getKernelParamFromLine (line, key);
     }
@@ -395,6 +406,16 @@
 	if (section == nil)
 	    return false;
 	string bl = BootCommon::getLoaderType (false);
+        string label = bl == "grub" ? "title" : "label";
+        integer sectnum = -1;
+        integer index = -1;
+        foreach (`s, BootCommon::sections, ``{
+            index = index + 1;
+            if (s[label]:"" == section)
+                sectnum = index;
+        });
+        if (sectnum == -1)
+            return false;
 	string slabel = "";
 	if ((key == "vga" || key == "root") && (value == "true"))
 	    return false;
@@ -403,10 +424,10 @@
 	    if (key == "vga" || key == "root")
 	    {
 		if (value != "false")
-		    BootCommon::sections[section, key] = value;
-		else
-		    BootCommon::sections[section] = removekey
-			(BootCommon::sections[section]:$[], key);
+		    BootCommon::sections[sectnum, key] = value;
+		else if (haskey (BootCommon::sections[sectnum]:$[], key))
+		    BootCommon::sections[sectnum] = removekey
+			(BootCommon::sections[sectnum]:$[], key);
 	    }
 	    else
 	    {
@@ -415,11 +436,11 @@
 	}
 	else
 	{
-	    slabel = "append";
+	    slabel = "kernel";
 	}
-	string line = BootCommon::sections [sections, slabel]:"";
-	line = setGrubKernelParamToLine (line, key, value);
-	BootCommon::sections [sections, slabel] = line;
+	string line = BootCommon::sections [sectnum, slabel]:"";
+	line = BootCommon::setKernelParamToLine (line, key, value);
+	BootCommon::sections [sectnum, slabel] = line;
 	boolean ret = true;
 	return ret;
     }

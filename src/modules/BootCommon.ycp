@@ -185,6 +185,8 @@
         map exp = $[
 		"global": globals,
 		"sections" : sections,
+		"repl_mbr" : repl_mbr,
+		"activate" : activate,
 	    ];
 	return exp;
     }
@@ -196,8 +198,11 @@
     global define void Import (map settings) ``{
         globals = lookup(settings, "global", $[]);
         sections  = lookup(settings, "sections", []);
+        repl_mbr = settings["repl_mbr"]:false;
+        activate = settings["activate"]:true;
 	return;
     }
+
     /**
       * Read settings from disk
       * @return boolean true on success
@@ -464,10 +469,9 @@ configuration files
 	if (contains(BootCommon::bootloaders, bootloader)
 	    && ! Mode::test)
 	{
-// select packages always, just move checking bellow !!!
-// FIXME autoinstallation !!!!
-//	    if (Mode::normal)
-//	    {
+	    // don't configure package maneger during autoinstallation preparing
+	    if (! Mode::config)
+	    {
 		boolean installed = false;
 		foreach (`p, getBootloaderPackages (bootloader), ``{
 		    if (! Pkg::IsProvided (bootloader))
@@ -482,8 +486,8 @@ configuration files
 		    Pkg::PkgCommit (0);
 		    WFM::CallModule("inst_suseconfig", []);
 		}
-/*	    }
-	    else
+	    }
+/*	    else
 	    { //FIXME some checking must be added, this idea might be correct
 		import "ForcedPackages";
 		foreach (`b, bootloaders, ``{

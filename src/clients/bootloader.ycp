@@ -1,6 +1,6 @@
 /**
  * File:
- *      bootloader_write.ycp
+ *      bootloader.ycp
  *
  * Module:
  *      Bootloader installation and configuration

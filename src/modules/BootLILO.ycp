@@ -21,6 +21,7 @@
 
     textdomain "bootloader";
 
+    import "Mode";
     import "Kernel";
     import "Storage";
 
@@ -69,7 +70,7 @@
 	}
 
 	boolean disks_changed = BootCommon::RefreshDisks();
-	if (disks_changed)
+	if (disks_changed && ! Mode::autoinst)
 	{
 	    if (askLocationResetPopup (BootCommon::loader_device))
 	    {
@@ -80,18 +81,28 @@
 
 	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 
-	if (size (BootCommon::sections) == 0)
+	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
 	    createSections ();
 	    BootCommon::kernelCmdLine = Kernel::cmdLine;
 	}
 	else
 	{
-	    fixSections (disks_changed);
+            if (Mode::autoinst)
+            {
+                // TODO whatever will be needed
+            }
+            else
+		fixSections (disks_changed);
 	}
-	if (size (BootCommon::globals) == 0)
+	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
 	{
-	    createGlobals ();
+            if (Mode::autoinst)
+            {
+                // TODO whatever will be needed
+            }
+            else
+		createGlobals ();
 	}
 	else
 	{
