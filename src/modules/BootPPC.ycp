@@ -23,23 +23,12 @@
 
     textdomain "bootloader";
 
-    import "Kernel";
-    import "Storage";
     import "Arch";
-    import "Installation";
-    import "Mode";
-
     import "BootCommon";
-    import "BootPPC";
-
-    include "bootloader/ppc/misc.ycp";
-    include "bootloader/ppc/prep.ycp";
-    include "bootloader/ppc/chrp.ycp";
-    include "bootloader/ppc/iseries.ycp";
-    include "bootloader/routines/popups.ycp";
-    include "bootloader/ppc/widgets.ycp";
-
-
+    import "Installation";
+    import "Kernel";
+    import "Mode";
+    import "Storage";
 
     // ppc specific global settings
 
@@ -76,74 +65,312 @@
     global boolean prep_only_primary = true;
     global boolean prep_same_disk_as_root = true;
     global list table_items = [];
+    global string boot_device = "";
+    global string root_device = "";
+
+    include "bootloader/routines/popups.ycp";
+    include "bootloader/routines/routines.ycp";
+    include "bootloader/ppc/misc.ycp";
+    include "bootloader/ppc/prep.ycp";
+    include "bootloader/ppc/chrp.ycp";
+    include "bootloader/ppc/iseries.ycp";
+    include "bootloader/ppc/widgets.ycp";
 
 
-
-// general functions
+// misc. functions
 
     /**
-      * Constructor
+      * Initialize the attribute of currently used board type
       */
-    global define void BootPPC () ``{
-        BootCommon::bootloader_attribs["ppc"] = $[
-            "required_packages" : [],// FIXME
-            "loader_name" : "yaboot",
-            "initializer" : ``(BootPPC::Initializer()),
+    global define void currentBoardInit () ``{
+        if (Arch::board_iseries)
+        {
+	    iSeriesInit ();
+        }
+        else if (Arch::board_prep)
+        {
+	    PRePInit ();
+        }
+        else if (Arch::board_chrp)
+        {
+	    CHRPInit ();
+	}
+	// TODO other boards
+    }
+
+    /**
+      * Write the settings specific to current board
+      * Cannot use SCR!!!
+      * @return boolean true on success
+      */
+    global define boolean currentBoardRead () ``{
+	if ( Arch::board_iseries )
+	{
+	    return iSeriesRead ();
+	}
+	else if ( Arch::board_prep )
+	{
+	    return PRePRead ();
+	}
+	else if ( Arch::board_chrp )
+	{
+	    return CHRPRead ();
+	}
+	// TODO other boards
+
+	return true;
+    }
+
+    /**
+      * Read the settings specific to current board
+      * Cannot use SCR!!!
+      * @return boolean true on success
+      */
+    global define boolean currentBoardSave () ``{
+	if ( Arch::board_iseries )
+	{
+	    return iSeriesSave ();
+	}
+	else if ( Arch::board_prep )
+	{
+	    return PRePSave ();
+	}
+	else if ( Arch::board_chrp )
+	{
+	    return CHRPSave ();
+	}
+	// TODO other boards
+
+	return true;
+    }
+
+    /**
+      * Create linux section
+      * @param title strign section title (linux, failsafe, memtest)
+      * @return section description structure
+      */
+    global define list createLinuxSection (string title) ``{
+	list section = [
+	    $[ "key" : "image", "value" : "/boot/" + Kernel::binary ],
+	    $[ "key" : "label", "value" : "linux" ],
+	    $[ "key" : "root", "value" : BootCommon::RootPartitionDevice ],
+	    $[ "key" : "initrd", "value" : "/boot/initrd" ],
+	    $[ "key" : "append", "value" : Kernel::cmdLine ],
+	    $[ "key" : "__intern__", "value" : $[
+		"auto" : true,
+		"changed" : false,
+		"devs" : [BootCommon::RootPartitionDevice],
+		"type" : title,
+	    ]],
+        ];
+	return section;
+    }
+
+    /**
+      * Propose sections to bootloader menu
+      * modifies internal sreuctures
+      * FIXME very similar to the one in BootLILO
+      */
+    global define void createSections () ``{
+	list out = [
+	    createLinuxSection ("linux")
+	];
+	list others = Storage::GetForeignPrimary();
+	if (others != nil)
+	{
+	    if (size (others) > 0)
+	    {
+		integer index = 0;
+		foreach (string o, others, ``{
+		    index = index + 1;
+		    list<string> parts = splitstring (o, " ");
+		    while (select (parts, 0, " ") == "")
+			parts = remove (parts, 0);
+		    string dev = (string)select (parts, 0, "");
+		    parts = remove (parts, 0);
+		    string label = mergestring (parts, " ");
+		    if (label == "")
+		    {
+			label = "macos";
+			if (index != 0)
+			{
+			    label = sformat ("macos %1", index);
+			}
+		    }
+
+		    // don't add rewritten location (#19990)
+		    if (dev != "" && dev != BootCommon::loader_device)
+		    {
+			list m = [
+			    $["key" : "label",
+				"value" : translateSectionTitle (
+				BootCommon::removeBlanks (label))],
+			    $[ "key" : "other", "value" : dev],
+			    $[ "key" : "__intern__", "value" : $[
+				"auto" : true,
+				"changed" : false,
+				"devs" : [dev],
+				"type" : label,
+			     ]],
+			];
+			out = add (out, m);
+		    }
+		});
+	    }
+	}
+	out = filter (`s, out, ``(s != $[] && s != nil));
+	BootCommon::sections = out;
+    }
+
+    /**
+      * Propose global options of bootloader
+      * modifies internal structures
+      */
+    global define void createGlobals () ``{
+	BootCommon::globals = [
+	    $[ "key" : "default", "value" : "linux"],
+	    $[ "key" : "timeout", "value" : 100],
+	];
+    }
+
+    /**
+      * Update sections of bootloader menu
+      * modifies internal sreuctures
+      * @param replace boolean true if old sectinos shall be replaced
+      */
+    global define void updateSections (boolean replace) ``{
+	BootCommon::liloUpdateSections (replace);
+	return;
+    }
+
+    /**
+      * Update global options of bootloader
+      * modifies internal sreuctures
+      */
+    global define void updateGlobals () ``{
+	return;
+    }
+
+    /**
+      * Fix sections of bootloader menu during proposal regeneration
+      * modifies internal sreuctures
+      * @param disks_changed boolean should be true if bootloader location
+      *   relevant disk locations have changed
+      */
+    global define void fixSections (boolean disks_changed) ``{
+	BootCommon::liloFixSections (``(BootPPC::createSections ()));
+	return;
+    }
+
+    /**
+      * Fix global options of bootloader during proposal regeneration
+      * modifies internal sreuctures
+      * @param disks_changed boolean should be true if bootloader location
+      *   relevant disk locations have changed
+      */
+    global define void fixGlobals (boolean disks_changed) ``{
+	BootCommon::liloFixGlobals ();
+    }
+
+    /**
+      * Create strings representing cfg. files for by-hand editation
+      * @return map filename -> contents
+      */
+    global define map GetFiles() ``{
+	currentBoardSave ();
+        BootCommon::saveCfgFileToAgent ();
+        return $[
+            "/etc/lilo.conf" : SCR::Read (.lilo.tostring),
         ];
     }
 
-
     /**
-      * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootPPC::Write ())])
+      * Store strings representing cfg. files to internal structures
+      * @param files map filename -> contents
       */
-    global define map GetFunctions () ``{
-	return $[
-	    "read"	: ``(BootPPC::Read ()),
-	    "reset"	: ``(BootPPC::Reset ()),
-	    "propose"	: ``(BootPPC::Propose ()),
-	    "save"	: ``(BootPPC::Save ()),
-	    "update"	: ``(BootPPC::Update ()),
-	    "write"	: ``(BootPPC::Write ()),
-	    "widgets"	: ``(BootPPC::GetWidgets ()),
-	    "getfiles"	: ``(BootPPC::GetFiles ()),
-	    "setfiles"	: ``(BootPPC::SetFiles ()),
-	];
+    global define void SetFiles (map files) ``{
+	if (SCR::Read (.lilo.tostring) != files["/etc/lilo.conf"]:"")
+	    BootCommon::files_edited = true;
+        SCR::Write (.lilo.fromstring, files["/etc/lilo.conf"]:"");
+        BootCommon::loadCfgFileFromAgent ();
+	if (lookup_value (BootCommon::globals, "boot", "") != BootCommon::loader_device)
+	    BootCommon::location = "custom";
+	currentBoardRead ();
     }
 
     /**
-      * Initializer of LILO bootloader
+      * Get map of bootloader options
+      * FIXME this was just copied from LILO, changes are expected
+      * @return map of options
       */
-    global define void Initializer () ``{
-	y2milestone ("Called PPC initializer");
-	BootCommon::current_bootloader_attribs = $[
-            "section_title" : "label",
-            "kernel_key" : "image",
-            "default_key" : "default",
-            "default_type" : `label,
-            "timeout_multiplier" : 10,
-            "alias_keys" : ["alias"],
-            "convert_function" : ``(BootPPC::convertSection ()),
-            "kernel_params" : $[
-                "vga" : "vga",
-                "root" : "root",
-                `other : "append",
-            ],
-            "propose" : true,
-            "read" : true,
-            "scratch" : true,
-            "restore_mbr" : true,
-            "key_only_once" : true,
-            "bootloader_on_disk" : true,
-	    "option_list" : GetOptions (),
+    global define map GetOptions () ``{
+	map opts = $[
+	    `global: [
+	        "append",
+	        "backup",
+	        "boot",
+	        "change-rules",
+	        "compact",
+	        "default",
+	        "delay",
+	        "disk",
+	        "disktab",
+	        "fix-table",
+		"force-backup",
+	        "ignore-table",
+	        "install",
+	        "lba32",
+	        "linear",
+	        "lock",
+	        "map",
+	        "menu-title",
+	        "menu-scheme",
+	        "message",
+	        "nowarn",
+	        "optional",
+	        "password",
+	        "prompt",
+	        "restricted",
+	        "serial",
+	        "timeout",
+	        "verbose",
+	        "vga",
+	    ],
+	    "image" : [
+	        "append",
+	        "initrd",
+	        "literal",
+	        "ramdisk",
+	        "read-only",
+	        "read-write",
+	        "root",
+	        "vga",
+	        "label",
+	        "alias",
+	        "lock",
+	        "optional",
+	        "password",
+	        "restricted",
+	    ],
+	    "other" : [
+	        "loader",
+	        "table",
+	        "change",
+	        "map-drive",
+	        "unsafe",
+	        "label",
+	        "alias",
+	        "lock",
+	        "optional",
+	        "password",
+	        "restricted",
+	    ]
 	];
-	BootCommon::cwm_options = union (
-	    BootCommon::GetOptionMaps (),
-	    BootPPC::GetOptionMaps ());
-	BootCommon::cwm_widgets = union (
-	    BootCommon::GetWidgetMaps (),
-	    BootPPC::GetWidgetMaps ());
+	return opts;
     }
+
+
+// general functions
 
     /**
       * Propose bootloader settings
@@ -160,6 +387,7 @@
 	}
         BootCommon::DetectDisks ();
 	BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
+	boolean disks_changed = BootCommon::RefreshDisks();
 
 	if (updatePrepBootPartitions () || prep_boot_partition == "")
 	{
@@ -280,8 +508,8 @@
       * Display bootloader summary
       * @return a list of summary lines
       */
-    global define list(string) Summary () ``{
-	list(string) ret = [];
+    global define list<string> Summary () ``{
+	list<string> ret = [];
 
 	if ( Arch::board_iseries )
 	{
@@ -351,8 +579,8 @@
 	boolean requires_initrd
 	    = SCR::Read (.target.size, "/boot/initrd") != -1;
 
-        string boot_device      = BootCommon::loader_device;
-        string root_device      = BootCommon::RootPartitionDevice;
+	boot_device = BootCommon::loader_device;
+	root_device = BootCommon::RootPartitionDevice;
 
         if (Arch::board_iseries)
         {
@@ -381,224 +609,67 @@
         return true;
     }
 
-// end of mandatory functions
-//----------------------------------------------------------------------------
-
-
     /**
-      * Create linux section
-      * @param title strign section title (linux, failsafe, memtest)
-      * @return section description structure
+      * Initializer of LILO bootloader
       */
-    global define list createLinuxSection (string title) ``{
-	list section = [
-	    $[ "key" : "image", "value" : "/boot/" + Kernel::binary ],
-	    $[ "key" : "label", "value" : "linux" ],
-	    $[ "key" : "root", "value" : BootCommon::RootPartitionDevice ],
-	    $[ "key" : "initrd", "value" : "/boot/initrd" ],
-	    $[ "key" : "append", "value" : Kernel::cmdLine ],
-	    $[ "key" : "__intern__", "value" : $[
-		"auto" : true,
-		"changed" : false,
-		"devs" : [BootCommon::RootPartitionDevice],
-		"type" : title,
-	    ]],
-        ];
-	return section;
-    }
-
-    /**
-      * Propose sections to bootloader menu
-      * modifies internal sreuctures
-      * FIXME very similar to the one in BootLILO
-      */
-    global define void createSections () ``{
-	list out = [
-	    createLinuxSection ("linux")
+    global define void Initializer () ``{
+	y2milestone ("Called PPC initializer");
+	BootCommon::current_bootloader_attribs = $[
+            "section_title" : "label",
+            "kernel_key" : "image",
+            "default_key" : "default",
+            "default_type" : `label,
+            "timeout_multiplier" : 10,
+            "alias_keys" : ["alias"],
+	    "convert_function" : ``(BootCommon::convertSection ()),
+            "kernel_params" : $[
+                "vga" : "vga",
+                "root" : "root",
+                `other : "append",
+            ],
+            "propose" : true,
+            "read" : true,
+            "scratch" : true,
+            "restore_mbr" : true,
+            "key_only_once" : true,
+            "bootloader_on_disk" : true,
+	    "option_list" : GetOptions (),
 	];
-	list others = Storage::GetForeignPrimary();
-	if (others != nil)
-	{
-	    if (size (others) > 0)
-	    {
-		integer index = 0;
-		foreach (`o, others, ``{
-		    index = index + 1;
-		    list parts = splitstring (o, " ");
-		    while (select (parts, 0, " ") == "")
-			parts = remove (parts, 0);
-		    string dev = select (parts, 0, "");
-		    parts = remove (parts, 0);
-		    string label = mergestring (parts, " ");
-		    if (label == "")
-		    {
-			label = "macos";
-			if (index != 0)
-			{
-			    label = sformat ("macos %1", index);
-			}
-		    }
-
-		    // don't add rewritten location (#19990)
-		    if (dev != "" && dev != BootCommon::loader_device)
-		    {
-			list m = [
-			    $["key" : "label",
-				"value" : translateSectionTitle (
-				BootCommon::removeBlanks (label))],
-			    $[ "key" : "other", "value" : dev],
-			    $[ "key" : "__intern__", "value" : $[
-				"auto" : true,
-				"changed" : false,
-				"devs" : [dev],
-				"type" : label,
-			     ]],
-			];
-			out = add (out, m);
-		    }
-		});
-	    }
-	}
-	out = filter (`s, out, ``(s != $[] && s != nil));
-	BootCommon::sections = out;
+	BootCommon::cwm_options = union (
+	    BootCommon::GetOptionMaps (),
+	    BootPPC::GetOptionMaps ());
+	BootCommon::cwm_widgets = union (
+	    BootCommon::GetWidgetMaps (),
+	    BootPPC::GetWidgetMaps ());
     }
 
     /**
-      * Propose global options of bootloader
-      * modifies internal structures
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootPPC::Write ())])
       */
-    global define void createGlobals () ``{
-	BootCommon::globals = [
-	    $[ "key" : "default", "value" : "linux"],
-	    $[ "key" : "timeout", "value" : 100],
+    global define map GetFunctions () ``{
+	return $[
+	    "read"	: ``(BootPPC::Read ()),
+	    "reset"	: ``(BootPPC::Reset ()),
+	    "propose"	: ``(BootPPC::Propose ()),
+	    "save"	: ``(BootPPC::Save ()),
+	    "update"	: ``(BootPPC::Update ()),
+	    "write"	: ``(BootPPC::Write ()),
+	    "widgets"	: ``(BootPPC::GetWidgetMaps ()),
+	    "getfiles"	: ``(BootPPC::GetFiles ()),
+	    "setfiles"	: ``(BootPPC::SetFiles ()),
 	];
     }
 
     /**
-      * Update sections of bootloader menu
-      * modifies internal sreuctures
-      * @param replace boolean true if old sectinos shall be replaced
+      * Constructor
       */
-    global define void updateSections (boolean replace) ``{
-	BootCommon::liloUpdateSections (replace);
-    }
-
-    /**
-      * Update global options of bootloader
-      * modifies internal sreuctures
-      */
-    global define void updateGlobals () ``{
-    }
-
-    /**
-      * Fix sections of bootloader menu during proposal regeneration
-      * modifies internal sreuctures
-      * @param disks_changed boolean should be true if bootloader location
-      *   relevant disk locations have changed
-      */
-    global define void fixSections (boolean disks_changed) ``{
-	BootCommon::liloFixSections (``(BootPPC::createSections ()));
-    }
-
-    /**
-      * Fix global options of bootloader during proposal regeneration
-      * modifies internal sreuctures
-      * @param disks_changed boolean should be true if bootloader location
-      *   relevant disk locations have changed
-      */
-    global define void fixGlobals (boolean disks_changed) ``{
-	BootCommon::liloFixGlobals ();
-    }
-
-    /**
-      * Create strings representing cfg. files for by-hand editation
-      * @return map filename -> contents
-      */
-    global define map GetFiles() ``{
-	currentBoardSave ();
-        BootCommon::saveCfgFileToAgent ();
-        return $[
-            "/etc/lilo.conf" : SCR::Read (.lilo.tostring),
+    global define void BootPPC () ``{
+        BootCommon::bootloader_attribs["ppc"] = $[
+            "required_packages" : [],// FIXME
+            "loader_name" : "yaboot",
+            "initializer" : ``(BootPPC::Initializer()),
         ];
-    }
-
-    /**
-      * Store strings representing cfg. files to internal structures
-      * @param files map filename -> contents
-      */
-    global define void SetFiles (map files) ``{
-	if (SCR::Read (.lilo.tostring) != files["/etc/lilo.conf"]:"")
-	    BootCommon::files_edited = true;
-        SCR::Write (.lilo.fromstring, files["/etc/lilo.conf"]:"");
-        BootCommon::loadCfgFileFromAgent ();
-	if (lookup_value (BootCommon::globals, "boot", "") != BootCommon::loader_device)
-	    BootCommon::location = "custom";
-	currentBoardRead ();
-    }
-
-    /**
-      * Initialize the attribute of currently used board type
-      */
-    global define void currentBoardInit () ``{
-        if (Arch::board_iseries)
-        {
-	    iSeriesInit ();
-        }
-        else if (Arch::board_prep)
-        {
-	    PRePInit ();
-        }
-        else if (Arch::board_chrp)
-        {
-	    CHRPInit ();
-	}
-	// TODO other boards
-    }
-
-    /**
-      * Write the settings specific to current board
-      * Cannot use SCR!!!
-      * @return boolean true on success
-      */
-    global define boolean currentBoardRead () ``{
-	if ( Arch::board_iseries )
-	{
-	    return iSeriesRead ();
-	}
-	else if ( Arch::board_prep )
-	{
-	    return PRePRead ();
-	}
-	else if ( Arch::board_chrp )
-	{
-	    return CHRPRead ();
-	}
-	// TODO other boards
-
-	return true;
-    }
-
-    /**
-      * Read the settings specific to current board
-      * Cannot use SCR!!!
-      * @return boolean true on success
-      */
-    global define boolean currentBoardSave () ``{
-	if ( Arch::board_iseries )
-	{
-	    return iSeriesSave ();
-	}
-	else if ( Arch::board_prep )
-	{
-	    return PRePSave ();
-	}
-	else if ( Arch::board_chrp )
-	{
-	    return CHRPSave ();
-	}
-	// TODO other boards
-
-	return true;
     }
 
 }
