@@ -25,7 +25,6 @@ Execute	.target.bash "/usr/bin/setfont" 0
 Read	.probe.floppy.manual []
 Read	.probe.cdrom.manual []
 Read	.probe.boot_arch "grub"
-Read	.target.size "/etc/sysconfig/bootloader" 0
 Read	.sysconfig.bootloader.LOADER_TYPE "grub"
 Read	.etc.fstab []
 Read	.target.string "/etc/grub.conf" "root (hd0,0)\ninstall /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit"
