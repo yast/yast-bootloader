@@ -3,6 +3,7 @@ Mon Feb 24 09:20:59 CET 2003 - jsrain@suse.de
 
 - updated confirmation popup after bootloader is isntalled to
   floppy (#23903)
+- fixed forgotten saving of cfg. files in some cases (#24073)
 
 -------------------------------------------------------------------
 Fri Feb 21 13:11:08 CET 2003 - jsrain@suse.de
