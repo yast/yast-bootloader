@@ -180,7 +180,7 @@ if (lookup(settings, "execute_lilo", false))
 {
     if (Lilo::mode == `grub)
 	DoGrub();
-    else if (Lilo::mode == `elilo)
+    else if (boot () == "elilo")
 	DoELilo();
     else
 	DoLilo();

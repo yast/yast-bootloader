@@ -193,9 +193,11 @@
 	SCR::Execute (.target.bash, "test -f /etc/grub.conf || touch /etc/grub.conf");
 	SCR::Execute (.target.bash, "test -d /boot/grub || mkdir /boot/grub;");
 	SCR::Execute (.target.bash, "test -f /boot/grub/menu.lst || touch /boot/grub/menu.lst;");
-	SCR::Execute (.target.bash, "test -f /boot/grub/device.map && rm /boot/grub/device.map");
+	if (! Mode::update)
+	{
+	    SCR::Execute (.target.bash, "test -f /boot/grub/device.map && rm /boot/grub/device.map");
+	}
 	SCR::Execute (.target.bash, "test -f /boot/grub/device.map || echo \"quit\" | /usr/sbin/grub --device-map=/boot/grub/device.map");
-
 
         if ( Mode::update )
         {
@@ -203,7 +205,6 @@
             WriteUpdate();
             return true;
         }
-
 
         // check for bios_id on a ide/scsi mixed system
 	// check if bios_id is given for a target

@@ -145,7 +145,7 @@ global define boolean saveBootloaderConfig (boolean rebuildInitrd) ``{
     {
 	if (Lilo::mode == `grub)
 	    r = SCR::Execute(.target.bash, "/sbin/mk_initrd");
-	else if (Lilo::mode == `elilo)
+	else if (boot () == "elilo")
 	    r = DoELilo();
 	else
 	    r = DoLilo();
@@ -154,7 +154,7 @@ global define boolean saveBootloaderConfig (boolean rebuildInitrd) ``{
     {
 	if (Lilo::mode == `grub)
 	    r = 0;
-	else  if (Lilo::mode == `elilo)
+	else  if (boot == "elilo")
 	    r = 0;
 	else
 	    r = SCR::Execute(.target.bash, boot(), $[]);

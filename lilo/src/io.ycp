@@ -88,7 +88,7 @@ global define integer DoLilo() ``{
 global define integer DoGrub() ``{
     integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
     saveGrubConf (Lilo::grub_set);
-    ret = SCR::Execute(.target.bash, "grub < /etc/grub.conf");
+    ret = SCR::Execute(.target.bash, "grub --batch < /etc/grub.conf");
     return ret;
 }
 /**
@@ -118,7 +118,13 @@ global define boolean LiloFinish() ``{
 global define void restoreOriginalSettings() ``{
     // popup contents
     UI::`OpenDialog(`opt(`decorated), `Label(_("Restoring original configuration...")));
-    if (Arch::sparc)
+    if (boot () == "grub")
+    {
+	SCR::Execute (.target.bash, "/bin/cp -p /boot/grub/menu.lst /boot/grub/menu.lst.bak");
+	SCR::Execute (.target.bash, "/bin/cp -p /boot/grub/device.map /boot/grub/device.map.bak");
+	SCR::Execute (.target.bash, "/bin/cp -p /etc/grub.conf /etc/grub.conf.bak");
+    }
+    else if (Arch::sparc)
     {
         SCR::Execute (.target.bash, "/bin/cp -p /boot/silo.conf /boot/silo.conf.bak");
     }
@@ -126,14 +132,21 @@ global define void restoreOriginalSettings() ``{
     {
         SCR::Execute (.target.bash, "/bin/cp /etc/lilo.conf /etc/lilo.conf.bak");
     }
-//    WFM::CallFunction (`inst_writelilo ());
-    import "BootLILO";
-    BootLILO::Write();
-    restoredLilo = true;
+    if (boot () == "grub")
+    {
+	import "BootGRUB";
+	BootGRUB::Write ();
+	restoredLilo = true;
+	SCR::UnmountAgent( .grub );
+    }
+    else
+    {
+	import "BootLILO";
+	BootLILO::Write();
+	restoredLilo = true;
+	SCR::UnmountAgent( .lilo );
+    }
 
-    // reset the agent
-    SCR::UnmountAgent( .lilo );
-//    settings = LiloRead();
     Lilo::Read(``{});
     UI::`CloseDialog();
 }

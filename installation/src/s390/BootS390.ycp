@@ -82,6 +82,7 @@ dumpto=/dev/rtibm0
 		`Label (`id (`l2), _("Log contents:")),
 		`RichText (`id (`out),  `opt(`plainText), output),
 		`VSpacing (1),
+		// pushbutton
 		`PushButton (`id (`ok), _("&Continue"))
 	    ));
 	    UI::UserInput ();
