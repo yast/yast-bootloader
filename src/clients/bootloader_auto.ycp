@@ -46,7 +46,7 @@
     if(func == "Import")
     {
 	list modlist = [];
-	map modsett = [];
+	map modsett = $[];
 	foreach(map mod, param["initrd_modules"]:[], ``{
 		modlist = add(modlist, mod["module"]:"");
 		modsett = add(modsett, mod["module"]:"", mod["module_args"]:"");
