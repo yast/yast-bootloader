@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep  6 17:16:13 CEST 2002 - jsrain@suse.cz
+
+- fixed provides/obsoletes
+- 2.6.40
+
+-------------------------------------------------------------------
 Fri Sep  6 12:45:21 CEST 2002 - jsrain@suse.cz
 
 - fixed deletion of cfg. file entries wjen using GRUB (Bug #18962)

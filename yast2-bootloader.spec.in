@@ -4,8 +4,8 @@
 @HEADER@
 Requires:	yast2 yast2-core yast2-storage
 
-Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-liloconf yast2-agent-prom yast2-trans-bootfloppy yast2-trans-inst-bootloader yast2-trans-lilo
-Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-liloconf yast2-agent-prom yast2-trans-bootfloppy yast2-trans-inst-bootloader yast2-trans-lilo
+Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-liloconf yast2-agent-prom yast2-trans-bootfloppy yast2-trans-inst-bootloader yast2-trans-lilo y2c_boot y2t_boot y2t_inst-bootloader yast2-agent-liloconf-devel yast2-agent-prom-devel
+Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-liloconf yast2-agent-prom yast2-trans-bootfloppy yast2-trans-inst-bootloader yast2-trans-lilo y2c_boot y2t_boot y2t_inst-bootloader yast2-agent-liloconf-devel yast2-agent-prom-devel
 
 Summary:	Bootloader installation and configuration
 
