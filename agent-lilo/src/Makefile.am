@@ -2,6 +2,8 @@
 # Makefile.am for y2a_lilo/src
 #
 
+AM_CXXFLAGS = -DY2LOG=\"agent-lilo\"
+
 plugin_LTLIBRARIES = libpy2ag_liloconf.la
 noinst_LTLIBRARIES = liby2ag_liloconf.la
 
@@ -19,4 +21,3 @@ libpy2ag_liloconf_la_SOURCES =				\
 libpy2ag_liloconf_la_LDFLAGS = -version-info 2:0
 
 INCLUDES = -I$(includedir)
-

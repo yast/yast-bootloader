@@ -4,6 +4,8 @@
 
 SUBDIRS	= config lib tests ag_liloconf.test
 
+AM_CXXFLAGS = -DY2LOG=\"agent-lilo\"
+
 PACKAGE = ag_liloconf
 AUTOMAKE_OPTIONS = dejagnu
 
@@ -17,5 +19,5 @@ runag_liloconf_LDFLAGS = -L$(libdir)	\
 	-Xlinker --whole-archive	\
 	$(plugindir)/libpy2stdio.la	\
 	$(plugindir)/libpy2script.la	\
-	../src/libpy2ag_liloconf.la	\
+	$(srcdir)/../src/libpy2ag_liloconf.la	\
 	-Xlinker --no-whole-archive
