@@ -96,7 +96,15 @@
 (fd0)   /dev/fd0
 ",
 	    "yast2" : $[],
-	]
+	],
+	"probe" : $[
+	    "boot_arch" : "grub",
+	],
+	"sysconfig" : $[
+	    "bootloader" : $[
+		"LOADER_TYPE" : "grub",
+	    ],
+	],
     ];
 
     Mode::test = true;
