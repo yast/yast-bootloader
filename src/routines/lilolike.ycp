@@ -403,6 +403,7 @@
       * @return boolean true on success
       */
     global define boolean installBootLoader (string command, string logfile) ``{
+	y2milestone ("Running command %1", command);
 	map exit = SCR::Execute (.target.bash_output, command);
 	boolean ret = 0 == exit["exit"]:1;
 	if (! ret)
@@ -561,9 +562,85 @@
     }
 
     /**
-      * Filter sections, remove those pointing to unexistent image
+      * Update sections of bootloader menu
+      * modifies internal sreuctures
+      * @param replace boolean true if old sectinos shall be replaced
       */
-    global define void liloRemoveUnexistentSections () ``{
+    global define void liloUpdateSections (boolean replace) ``{
+	list out = BootCommon::sections;
+
+	foreach (`t, ["linux", "failsafe", "memtest86"], ``{
+	    list m = createLinuxSection (t);
+	    boolean changed = false;
+	    list out = maplist (`s, out, ``{
+		map interm = lookup_value (s, "__intern__", $[]);
+		string sect_type = intern["type"]:"";
+		if (sect_type == "")
+		    sect_type = lookup_value (s, "label", "");
+		if (sect_type == t)
+		{
+		    changed = true;
+		    if (replace)
+			return m;
+		    else
+			return s;
+		}
+		else
+		{
+		    return s;
+		}
+	    });
+            if (! changed)
+                if (t == "lilo")
+                    out = prepend (out, m);
+                else
+                    out = add (out, m);
+        });
+
+        out = maplist (`s, out, ``{
+	    string type = "";
+	    foreach (`p, s, ``{
+		if (p["key"]:"" == "label" && type == "")
+		    type = p["value"]:"";
+		if (p["key"]:"" == "__intern__")
+		    type = p["value", "type"]:type;
+	    });
+            s = maplist (`p, s, ``{
+		if (p["key"]:"" == "image" || p["key"]:"" == "initrd")
+		{
+		    string option = p["value"]:"";
+		    if (regexpmatch (option, "^.*\.shipped.*$"))
+		    {
+			option = regexpsub (option,
+			    "^(.*)\.shipped(.*)$", "\\1\\2");
+		    }
+		    else if (regexpmatch (option, "^.*\.suse.*$"))
+		    {
+			option = regexpsub (option,
+			    "^(.*)\.suse(.*)$", "\\1\\2");
+		    }
+		    if (type == "linux" && p["key"]:"" == "append")
+		    {
+			// FIXME check the product
+			if (! issubstring (option, "desktop"))
+			    option = option + " desktop";
+			if (! issubstring (option, "splash"))
+			    option = option + " splash=silent";
+		    }
+		    p["value"] = option;
+		}
+		return p;
+            });
+	    return s;
+        });
+        BootCommon::sections = out;
+    }
+
+    /**
+      * Filter sections, remove those pointing to unexistent image
+      * @param path_prefix string prefix to be added to kernel path
+      */
+    global define void liloRemoveUnexistentSections (string path_prefix) ``{
 	BootCommon::sections = filter (`s, BootCommon::sections, ``{
 	    string label = lookup_value (s, "label", "");
 	    map intern = lookup_value (s, "__intern__", $[]);
@@ -579,6 +656,7 @@
 	    string kernel = lookup_value (s, "image", "");
 	    if (kernel == "")
 		return true;
+	    kernel = path_prefix + kernel;
 	    if (SCR::Read (.target.size, kernel) == -1)
 	    {
 		y2warning ("Removing section %1 with unexistent kernel %2",
@@ -593,7 +671,7 @@
       * Remove or add initrd option if needed, update append option if some
       *  parameters were changed
       */
-    global define void liloUpdateIninrdAppend () ``{
+    global define void liloUpdateInitrd () ``{
         BootCommon::sections = maplist (`s, BootCommon::sections, ``{
             string initrd = lookup_value (s, "initrd", "");
 	    string title = lookup_value (s, "label", "");
@@ -611,6 +689,17 @@
                 if (-1 == SCR::Read (.target.size, initrd))
 		    s = modifySection (s, "initrd", nil);
             }
+	    return s;
+	});
+    }
+
+    /**
+      * Update append option if some parameters were changed
+      */
+    global define void liloUpdateAppend () ``{
+	BootCommon::sections = maplist (`s, BootCommon::sections, ``{
+	    map intern = lookup_value (s, "__intern__", $[]);
+	    string type = intern["type"]:"";
             if (type == "linux" && lookup_value (s, "append", nil) != nil
 		&& Mode::initial)
 	    {

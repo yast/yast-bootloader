@@ -455,7 +455,7 @@
 		}
 	    }
 	    any value = mod2ui (o["value"]:"");
-	    if (isSpecial (key))
+	    if (isSpecial (key) && is (value, string))
 		value = mergestring (splitstring (value, "\n"), ",");
 	    o["value"] = value;
 	    return o;
@@ -858,7 +858,8 @@
 	list options = maplist (`o, eval (globals), ``{
 	    string key = o["key"]:"";
 	    any value = o["value"]:"";
-	    if (isSpecial (key))
+y2error ("Checking key %1, Value: %2", key, value);
+	    if (isSpecial (key) && is (value, string))
 		value = mergestring (splitstring (value, ","), "\n");
 	    else
 		value = ui2mod (value);
@@ -888,7 +889,7 @@
 		    o["comment"] = sformat ("###Don't change this comment - YaST2 identifier: Original name: %1###",
 			sect_type);
 		}
-		if (isSpecial (key))
+		if (isSpecial (key) && is (value, string))
 		    value = mergestring (splitstring (value, ","), "\n");
 		else
 		    value = ui2mod (value);
@@ -1292,6 +1293,41 @@
 	    return true;
 	else
 	    return false;
+    }
+
+    /**
+      * Create list of items to be displayed in bootloader section
+      * @param prepend_list list of items, that should be at the beginning
+      * @param forbidden_keys list of keys, that shouldn't be added to the list
+      * @param alpha_order boolean true if items should be alphabetically
+      *  ordered (except prependlist) FIXME not yet implemented
+      * @return list of items
+      */
+    global define list createSectionItemsList (list prependlist,
+	list forbidden_keys, boolean alpha_order)
+    ``{
+	if (Mode::initial)
+	{
+	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
+	}
+	forbidden_keys = merge (forbidden_keys, prependlist);
+	forbidden_keys = add (forbidden_keys, "__intern__");
+	integer index = -1;
+	map remap_prepend = $[];
+	list options = maplist (map opt, current_section, ``{
+	    index = index + 1;
+	    if (contains (prependlist, opt["key"]:""))
+	    {
+		remap_prepend[opt["key"]:""] = index;
+		return nil;
+	    }
+	    return contains (forbidden_keys, opt["key"]:"")
+		? nil
+		: index;
+	});
+	prependlist = maplist (`e, prependlist, ``(remap_prepend[e]:e));
+	options = filter (any opt, options, ``(opt != nil));
+	return merge (prependlist, options);
     }
 
 } //end of include

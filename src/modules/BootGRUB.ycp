@@ -101,7 +101,6 @@
 	    "widgets"  : ``(BootGRUB::GetWidgetMapss ()),
             "getfiles" : ``(BootGRUB::GetFiles ()),
             "setfiles" : ``(BootGRUB::SetFiles ()),
-	    "updoptlst": ``(BootGRUB::UpdateOptionsList ()),
 	];
     }
 
@@ -904,7 +903,11 @@
 	    list m = createLinuxSection (t);
 	    boolean changed = false;
 	    list out = maplist (`s, out, ``{
-		if (lookup_value (s, "title", "") == t)
+		map interm = lookup_value (s, "__intern__", $[]);
+		string sect_type = intern["type"]:"";
+		if (sect_type == "")
+		    sect_type = lookup_value (s, "label", "");
+		if (sect_type == t)
 		{
 		    changed = true;
 		    if (replace)

@@ -191,6 +191,7 @@
 	BootCommon::storeSettings ();
 	loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::location_changed = true;
+	markGeneralOptionChanged (opt_key);
     }
 
     /**
@@ -368,7 +369,6 @@ and the sector to which the boot loader is installed."),
 		"optional" : false,
 		"ordering" : false,
 		"key_only_once" : true,
-
 	    ],
 	    "popup" : $[
 		"init" : ``(BootCommon::activateInit ()),
