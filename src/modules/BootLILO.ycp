@@ -239,8 +239,11 @@
 
 	string bl_command = "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1";
 	string bl_logfile = "/var/log/YaST2/y2loglilo";
-	if (BootCommon::installBootLoader (bl_command, bl_logfile)
-            && BootCommon::installingToFloppy ())
+	boolean command_ret
+	    = BootCommon::installBootLoader (bl_command, bl_logfile);
+	ret = ret && command_ret;
+
+	if (command_ret && BootCommon::installingToFloppy ())
         {
             BootCommon::updateTimeoutPopupForFloppy
 		(BootCommon::getLoaderName ("lilo"));
