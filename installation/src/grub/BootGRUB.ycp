@@ -98,14 +98,46 @@
 
 	string grub_conf = SCR::Read (.target.string, "/etc/grub.conf");
 	string command = sformat ("echo \"%1\" | grub --batch --device-map=/boot/grub/device.map ", grub_conf);
-	SCR::Execute(.target.bash, command);
+	if (Boot::location == "floppy")
+	{
+	    SCR::Execute(.target.umount, "/media/floppy"); // Just for safety
+            // popup
+            UI::MessagePopup(_("The GRUB boot sector will be written to a floppy disk.
+Insert a formatted floppy and confirm with 'OK'.
+"));
+	    while (true)
+	    {
+		integer ret = SCR::Execute (.target.bash, sformat ("/bin/dd if=/dev/zero of=%1 bs=512 count=0", boot_sect));
+		if (ret == 0)
+		    ret = SCR::Execute(.target.bash, command);
+		if (ret == 0)
+		{
+		    UI::MessagePopup(_("The GRUB boot sector has been written to a floppy disk."));
+		    break;
+		}
+		else
+		{
+		    // yes-no popup
+                    if ( !UI::YesNoPopup(_("Could not write GRUB boot sector to the floppy.
+Please check that the floppy disk is formatted
+and that the write protection tab is removed.
+Do you want to try again?")) )
+                        break;          // no choosen
+		}
+	    }
+	}
+	else
+	{
+	    if (0 != SCR::Execute(.target.bash, command))
+		UI::ErrorPopup ("An error occured during saving bootloader configuration");
+	}
     }
 
 
 
     /**
      * Set
-     * Set LILO parameters (used in autoinst mode)
+     * Set GRUB parameters (used in autoinst mode)
      * @ return void
      */
     global define void Set(boolean act, boolean lin, boolean lba)
@@ -134,7 +166,7 @@
      * AskParameters
      *
      * helper function for inst_bootloader
-     * provide ui code to ask LILO specific parameters
+     * provide ui code to ask GRUB specific parameters
      *
      * @returns: list of <uicode>
      */
@@ -173,7 +205,7 @@
 
 
     /**
-     * write the LILO bootloader
+     * write the GRUB bootloader
      *
      */
 
@@ -335,10 +367,42 @@
 
 
 	y2milestone ("Starting mk_initrd");
-	SCR::Execute(.target.bash, "/sbin/mk_initrd");
+	boolean ret = (0 == SCR::Execute(.target.bash, "/sbin/mk_initrd"));
 	y2milestone ("Starting GRUB");
 	string command = sformat ("echo \"%1\" | /usr/sbin/grub --batch --device-map=/boot/grub/device.map ", grub_conf);
-	SCR::Execute(.target.bash, command);
+
+        if (ret && Boot::location == "floppy")
+        {
+            SCR::Execute(.target.umount, "/media/floppy"); // Just for safety
+            // popup
+            UI::MessagePopup(_("The GRUB boot sector will be written to a floppy disk.
+Insert a formatted floppy and confirm with 'OK'.
+"));
+            while (true)
+            {
+		ret = (0 == SCR::Execute (.target.bash, sformat ("/bin/dd if=/dev/zero of=%1 bs=512 count=0", boot_sect)));
+		ret = ret && (0 == SCR::Execute(.target.bash, command));
+                if (ret == true)
+                {
+                    UI::MessagePopup(_("The GRUB boot sector has been written to a floppy disk."));
+                    break;
+                }
+                else
+                {
+                    // yes-no popup
+                    if ( !UI::YesNoPopup(_("Could not write GRUB boot sector to the floppy.
+Please check that the floppy disk is formatted
+and that the write protection tab is removed.
+Do you want to try again?")) )
+                        break;          // no choosen
+                }
+            }
+        }
+        else
+	{
+	     ret = ret && (0 == SCR::Execute(.target.bash, command));
+        }
+
 	y2milestone ("GRUB installed");
 
 	if (nil != findlastof (boot_sect, "/"))
@@ -350,7 +414,9 @@
 	    y2milestone ("Activating partition %1 on %2", part, boot_sect);
 	    return 0 == SCR::Execute (.target.bash, sformat ("/sbin/sfdisk -A%1 %2", part, boot_sect));
 	}
-	return true;
+	if (! ret)
+	    UI::ErrorPopup ("An error occured during saving bootloader configuration");
+	return ret;
     }
 
     /**

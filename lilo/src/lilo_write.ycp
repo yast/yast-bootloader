@@ -179,11 +179,11 @@ integer ret2 = 0;
 if (lookup(settings, "execute_lilo", false))
 {
     if (Lilo::mode == `grub)
-	DoGrub();
+	ret2 = DoGrub();
     else if (boot () == "elilo")
-	DoELilo();
+	ret2 = DoELilo();
     else
-	DoLilo();
+	ret2 = DoLilo();
 }
 
 boolean ret3 = LiloFinish();

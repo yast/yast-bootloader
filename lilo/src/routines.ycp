@@ -102,6 +102,8 @@ global define map parseGrubConf () ``{
   */
 global define map parseGrubConfFrom (string filename) ``{
     string file = SCR::Read (.target.string, filename);
+    if (file == "" || file == nil)
+	return $[];
     list lines = splitstring (file, "\n");
     lines = filter (`l, lines, ``(l != ""));
     map settings = $[];
@@ -170,6 +172,8 @@ global define string getGrubConf (map settings) ``{
   * @return boolean true if success
   */
 global define boolean saveGrubConf (map settings) ``{
+    if (settings == $[])
+	return true;
     return saveGrubConfTo (settings, "/etc/grub.conf");
 }
 

@@ -375,11 +375,12 @@
 	string kernel_initrd = "";
 	boolean modules_written = false;
 
-	SCR::Execute (.target.bash, "touch /etc/sysconfig/bootloader");
+	SCR::Execute (.target.bash, "/usr/bin/touch /etc/sysconfig/bootloader");
 
 	if (Mode::update)
 	{
 	    // update: check for old lilo destination
+	    SCR::Execute (.target.bash, "/usr/bin/touch /var/lib/YaST2/settings.ycp");
 	    map old_user_settings = SCR::Read(.target.ycp, ["/var/lib/YaST2/settings.ycp", $[]]);
 	    if (old_user_settings["lilo"]:"" == "floppy")
 	    {
@@ -484,7 +485,7 @@
 	    return true;
 
 	y2milestone ("LoaderType %1", LoaderType);
-
+	SCR::Execute (.target.bash, "/usr/bin/touch /var/lib/YaST2/settings.ycp");
 	map m = SCR::Read (.target.ycp, "/var/lib/YaST2/bootloader");
 	if (m == nil || ! is (m, map))
 	    m = $[];

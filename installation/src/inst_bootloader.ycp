@@ -37,11 +37,21 @@
 	"elilo" : "ELILO",
 	"mips" : "dvh",
 	"s390" : "zipl",
-	"ppc" : "yaboot"
+	"ppc" : "boot loader"
     ];
     string loadername = loadertype2name[Boot::LoaderType]:"LILO";
 
-    term location = `VBox(
+     term location = `Empty();
+
+    if (Boot::LoaderType == "ppc")
+    {
+	import "BootPPC";
+	location = BootPPC::AskOptions ();
+
+    }
+    else
+    {
+    location = `VBox(
 			 `VStretch(),
 			 `Left(
 			       `RadioButton( `id( "mbr" ),
@@ -76,6 +86,7 @@
 					Boot::location == "boot")
 			  )
 		    );
+    }
 
     // build up 'custom' bootloader entry
     // offer all possible partitions in a ComboBox widget
@@ -122,7 +133,6 @@
     }
 
 
-    integer part_number = 1;
     foreach (`partition, `dummy, sorted_all_partitions,
     ``{
 	if (partition == default_text)
@@ -135,6 +145,9 @@
 	}
     });
 
+    // XXX move this to a generic place
+    if (Boot::LoaderType != "ppc")
+    {
     location = add ( location,
 		    `VSquash(
 			     `HBox(
@@ -159,6 +172,7 @@
 				   )
 			     )
 		    );
+    }
 
     location = `Frame(
 		      // frame label for boot manager (%1) location radio buttons
@@ -208,6 +222,12 @@
 
 	ui_parameters = BootSILO::AskParameters ();
 	help_parameters = BootSILO::HelpParameters ();
+    }
+    else if (Boot::LoaderType == "ppc")
+    {
+	import "BootPPC";
+
+	ui_parameters = BootPPC::AskParameters ();
     }
 
     foreach (`uiterm, ui_parameters,
@@ -333,6 +353,13 @@ enter them in the corresponding input field. Most users will not need this.
     {
 	ret = Wizard::UserInput();
 
+	if (Boot::LoaderType == "ppc")
+	{
+		import "BootPPC";
+		y2milestone("fooXXret %1", ret);
+		BootPPC::UI_Poll( ret );
+	}
+
 	if ( ret == "custom" )
 	{
 	    // Just for convenience: If the user selects "custom partition", he
@@ -345,6 +372,7 @@ enter them in the corresponding input field. Most users will not need this.
 	if (ret == `next || ret == `back)
 	{
 	    any option = UI::QueryWidget (`id(`options), `CurrentButton);
+		y2milestone("fooXXoption %1", option);
 	    if (option == nil)
 	    {
 		if ( ret == `next )
@@ -390,6 +418,26 @@ options to continue.
 			Boot::device = option;
 		    }
 		}
+		else if (option == "iseries_stmf")
+		{
+			option = UI::QueryWidget(`id(`ppc_iseries_streamfile), `Value);
+			if (is (option, string))
+			{
+				BootPPC::ppc_iseries_streamfile = option;
+			}
+		}
+		else if (option == "iseries_nwsstg")
+		{
+			option = UI::QueryWidget(`id(`custom_partition), `Value);
+			if (is (option, string))
+			{
+				Boot::device = option;
+			}
+		}
+		else if (option == "iseries_do_nothing")
+		{
+				BootPPC::ppc_activate_bootloader = false;
+		}
 	    }
 
 	    option = UI::QueryWidget(`id(`boot_params), `Value);
@@ -410,6 +458,12 @@ options to continue.
 		    import "BootGRUB";
 
 		    BootGRUB::HandleParameters ();
+		}
+		else if (Boot::LoaderType == "ppc")
+		{
+		    import "BootPPC";
+
+		    BootPPC::HandleParameters ();
 		}
 	    }
 

@@ -172,11 +172,13 @@ global define symbol SummaryDialog() ``{
     {
 	if ((ui == `accept || ui == `restore) && !initial_mode)
 	{
-	    UI::ChangeWidget(`id(`next), `Label, UI::FinishButtonLabel());
+	    Wizard::ReplaceNextButton(`PushButton (`id (`next), UI::FinishButtonLabel()));
+//	    UI::ChangeWidget(`id(`next), `Label, UI::FinishButtonLabel());
 	}
 	else
 	{
-	    UI::ChangeWidget(`id(`next), `Label, UI::NextButtonLabel());
+	    Wizard::ReplaceNextButton(`PushButton (`id (`next), UI::NextButtonLabel()));
+//	    UI::ChangeWidget(`id(`next), `Label, UI::NextButtonLabel());
 	}
 
 	ui = UI::UserInput();
@@ -291,7 +293,7 @@ global define symbol TargetDialog() ``{
     term widget = TargetWidget(lookup(lookup(Lilo::partmap, `mbr, $[]), "dev", "?"), Lilo::bootPart);
 
     Wizard::SetContents(caption, widget, help, true, true);
-
+y2error ("GS: %1", Lilo::grub_set);
     string b_dev = "";
     if (Lilo::mode == `grub)
     {
@@ -368,11 +370,12 @@ global define symbol TargetDialog() ``{
 	if (!contains([`other, `uninstall], sel))
 	{
 	    string b_dev = lookup(lookup(Lilo::partmap, sel, `mbr), "dev", "/dev/hda");
+y2error ("BD: %1", b_dev);
 	    if (Lilo::mode == `grub)
 	    {
 		b_dev = lilo2Grub (b_dev);
 		Lilo::grub_set = add (Lilo::grub_set, "device", b_dev);
-
+y2error ("GS: %1", Lilo::grub_set);
 	    }
 	    else
 	    {

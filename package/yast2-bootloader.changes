@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Aug 26 17:12:14 CEST 2002 - jsrain@suse.cz
+
+- removed icons from control center on S390 (Bugs #18371 and #18367)
+- fixed curses UI buttons (Bug #18333)
+- fixed handling of nonwritable floppy (Bug #18312)
+- fixed PPC installation (Bug #18140)
+- 2.6.28
+
+-------------------------------------------------------------------
 Fri Aug 23 18:34:27 CEST 2002 - jsrain@suse.cz
 
 - fixed lists of devices (Bug #18269)
