@@ -1,16 +1,21 @@
 #!/bin/bash
 #Update /boot/message to contain help for actual language
 #$1 is tmp dir to work in
-#$2 is locale in longer form (eg. cs_CZ)
-#$3 is locale in shorter form (eg. cs) 
-#$4 is directory with sources (usually /etc/bootsplash/themes/SuSE/bootloader)
-#$5 is file containing translation of names of bootloaer entries
+#$2 is directory with sources (usually /etc/bootsplash/themes/SuSE/bootloader)
+#$3 is file containing translation of names of bootloaer entries
+#$4 is locale in longer form (eg. cs_CZ)
+#$5 is locale in shorter form (eg. cs) 
+# secondary (and following) languages can be appended (eg. $6=de_DE, $7=de,...)
 
 TMP_DIR=$1;
-LOCALE=$2;
-LOCALE_SHORT=$3;
-SRC_DIR=$4;
-MENU_ENTRIES=$5
+SRC_DIR=$2;
+MENU_ENTRIES=$3
+shift 3;
+LOCALE=$1;
+LOCALE_SHORT=$2;
+
+LOCALE_LIST=$LOCALE_SHORT;
+EN_PRESENT=0;
 
 # create temporarry directory
 cd $TMP_DIR || exit 1;
@@ -24,22 +29,36 @@ echo $LOCALE >lang || exit 5
 # replace original texts with localized
 rm `ls *tr | grep -v en.tr`
 rm `ls *hlp | grep -v en.hlp`
-test -f $SCR_DIR/$LOCALE.tr && cp $SRC_DIR/$LOCALE.tr . \
- || test -f $SRC_DIR/$LOCALE_SHORT.tr && cp $SRC_DIR/$LOCALE_SHORT.tr .
-test -f $SRC_DIR/$LOCALE.hlp && cp I4/$LOCALE.hlp . \
- || test -f $SRC_DIR/$LOCALE_SHORT.hlp && cp $SRC_DIR/$LOCALE_SHORT.hlp .
+
+while [ ! -z $LOCALE ] ; do
+ test -f $SCR_DIR/$LOCALE.tr && cp $SRC_DIR/$LOCALE.tr . \
+  || test -f $SRC_DIR/$LOCALE_SHORT.tr && cp $SRC_DIR/$LOCALE_SHORT.tr .
+ test -f $SRC_DIR/$LOCALE.hlp && cp I4/$LOCALE.hlp . \
+  || test -f $SRC_DIR/$LOCALE_SHORT.hlp && cp $SRC_DIR/$LOCALE_SHORT.hlp .
+ if [ $LOCALE_SHORT = "en" ] ; then
+  EN_PRESENT=1;
+ fi;
+ shift 2;
+ LOCALE=$1;
+ LOCALE_SHORT=$2;
+ if [ ! -z $LOCALE ] ; then
+  LOCALE_LIST=`echo "$LOCALE_LIST
+$LOCALE_SHORT"`;
+ fi;
+done
+echo -n "$LOCALE_LIST";
 # set languages to choose
-if [ "$LOCALE_SHORT" = "en" ] ; then
-    echo -n "en
+if [ "$EN_PRESENT" = "1" ] ; then
+    echo -n "$LOCALE_LIST
 " >languages || exit 6
 else
-    echo -n "$LOCALE_SHORT
+    echo -n "$LOCALE_LIST
 en
 " >languages || exit 6
 fi
 
 # set translations of bootloaer menu entries
-cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7A
+cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7;
 ls | cpio -o >/boot/message.new && mv /boot/message.new /boot/message || exit 99
 cd .. && rm -r gfxmenu
 exit 0
