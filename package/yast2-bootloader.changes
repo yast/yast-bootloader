@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug 20 17:05:05 CEST 2002 - arvin@suse.de
+
+- correctly handle hvc console on ppc
+- 2.6.26
+
+-------------------------------------------------------------------
 Tue Aug 20 14:48:13 CEST 2002 - jsrain@suse.cz
 
 - fixed original configuration restore when using GRUB
@@ -11,7 +17,7 @@ Mon Aug 19 14:10:01 CEST 2002 - jsrain@suse.cz
 - modified failsafe kernel image name for update of lilo
 - fixed GRUB save after configuration
 - not deleting old device map during installation
-- /sbin/elilo now not running after configuration change 
+- /sbin/elilo now not running after configuration change
 - 2.6.24
 
 -------------------------------------------------------------------
@@ -54,7 +60,7 @@ Thu Aug  8 09:59:38 CEST 2002 - jsrain@suse.de
 -------------------------------------------------------------------
 Wed Aug  7 15:04:52 CEST 2002 - jsrain@suse.de
 
-- Fix adaptation for multiple 'other' partitions for booting 
+- Fix adaptation for multiple 'other' partitions for booting
   for GRUB (#17458)
 - 2.6.18
 
