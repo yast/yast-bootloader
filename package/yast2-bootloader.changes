@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jun 17 15:00:57 CEST 2004 - jsrain@suse.cz
+
+- 2.10.0
+
+-------------------------------------------------------------------
 Wed Jun 16 14:11:03 CEST 2004 - jsrain@suse.cz
 
 - prevent the "desktop" parameter from being added to kernel
