@@ -7,6 +7,7 @@ root_dir=$1
 
 lc=$root_dir/etc/lilo.conf
 lc_tmp=$root_dir/etc/lilo.conf.$$
+lc_tmp2=$root_dir/etc/lilo.conf.$$.$$
 
 [ -f $lc ] || exit 1
 
@@ -54,4 +55,19 @@ if [ "$has_timeout" -a "$has_ro" ] ; then
 
 fi
 
-mv $lc_tmp $lc
+awk '
+/^[ \t]*initrd[ \t]*=[ \t]*/ {
+    command = sprintf ("test -f %s", $3);
+    ex = system (command);
+    if (0 == ex)
+    {
+	print $0;
+    }
+    next;
+}
+// {print $0;}
+
+' <$lc_tmp >$lc_tmp2
+
+rm $lc_tmp
+mv $lc_tmp2 $lc
