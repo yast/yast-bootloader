@@ -48,7 +48,7 @@
     /**
       * Shall proposal merge menus?
       */
-    global boolean deep_propose = false;
+    global symbol merge_level = `main;
     /**
       * Insert saved MBR to bootloader menu?
       */
@@ -210,7 +210,7 @@
 
 	string tmpdir = (string)SCR::Read (.target.tmpdir) + "/bldetect/";
 
-	if (deep_propose && other_l != nil && size (other_l) > 0
+	if (merge_level != `none && other_l != nil && size (other_l) > 0
 	    && 0 == SCR::Execute (.target.bash, sformat (
 		"test -d %1 || /bin/mkdir %1", tmpdir))
 	    )
@@ -270,6 +270,12 @@
 			    SCR::Read (.bootloader.fromstrings, files);
 			list<map> sects = settings["sections"]:[];
 			y2debug ("Found sections %1", sects);
+			if (merge_level == `main)
+			{
+			    sects = filter (map s, sects, {
+				return s["initial"]:nil != nil;
+			    });
+			}
 			count = count + size (sects);
 			foreach (map s, sects, ``{
 			    map intern = $[
@@ -282,7 +288,7 @@
 				if (o["key"]:"" == "title")
 				{
 				    // no need to translate here...
-				    o["value"] = sformat ("%1_%2",
+				    o["value"] = sformat ("%2 (%1)",
 					dev, o["value"]:"");
 				    intern["type"] = o["value"]:"";
 				}

@@ -78,9 +78,9 @@
 	if (Bootloader::getLoaderType () == "grub")
 	{
 	    import "BootGRUB";
-	    BootGRUB::deep_propose = true;
+	    BootGRUB::merge_level = `main;
 	    Bootloader::Propose ();
-	    BootGRUB::deep_propose = false;
+	    BootGRUB::merge_level = `none;
 	}
 	else
 	{
