@@ -5,6 +5,7 @@ Tue Sep  3 20:37:36 CEST 2002 - kukuk@suse.de
   file, modifies silo.conf and boot/message if an update is done.
 - installation/src/silo/BootSILO.ycp: Implement calling "dosilo"
   script.
+- prom.cc: Add reg string if prom name exists at least once.
 
 -------------------------------------------------------------------
 Tue Sep  3 17:05:39 CEST 2002 - jsrain@suse.cz

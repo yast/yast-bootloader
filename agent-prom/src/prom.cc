@@ -171,7 +171,7 @@ prom_walk(int promfd, char *path, int parent, int node, int type) {
 	    if (prop && len > 0 && !strcmp (path + 1, prop))
 		cnt++;
 	}
-        if (cnt > 1)
+        if (cnt > 0)
 	    strcat (path, regstr);
     }
 
