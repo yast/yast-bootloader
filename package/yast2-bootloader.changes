@@ -3,6 +3,7 @@ Mon Feb 14 13:11:23 CET 2005 - jsrain@suse.cz
 
 - by default don't merge whole GRUB menus, but only the default
   entry (#50688)
+- fixed errors of the bootloader library if using LVM
 
 -------------------------------------------------------------------
 Thu Feb 10 14:51:08 CET 2005 - jsrain@suse.cz
