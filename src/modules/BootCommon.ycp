@@ -442,6 +442,7 @@ global list<string> update_section_types
 		});
 	    }
 	    io_structure["global", "stage1_dev"] = loader_devices;
+	    io_structure["grub_conf"] = []; // former data may be wrong
 	}
 	else if (getLoaderType (false) == "lilo")
 	{

@@ -925,6 +925,34 @@ define integer Dom0MemorySize () {
 	saveDeviceMap (device_map);
 	BootCommon::io_structure["global", "stage1_dev", 0]
 	    = BootCommon::loader_device;
+
+// FIXME copy-pasted from BootCommon.ycp
+            list<string> loader_devices = [BootCommon::loader_device];
+            if (substring (BootCommon::loader_device, 0, 7) == "/dev/md")
+            {
+                map<string,integer> md = BootCommon::Md2Partitions (BootCommon::loader_device);
+                if (Mode::test ())
+                    md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+                loader_devices = maplist (string d, integer b, md, {
+                    return d;
+                });
+            }
+            else if (BootCommon::loader_device == "mbr_md")
+            {
+                map<string,integer> md = BootCommon::Md2Partitions (BootCommon::BootPartitionDevice);
+                if (Mode::test ())
+                    md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+                loader_devices = maplist (string d, integer b, md, {
+                    map p_dev = Storage::GetDiskPartition (d);
+                    return p_dev["disk"]:"";
+                });
+            }
+            BootCommon::io_structure["global", "stage1_dev"] = loader_devices;
+
+
+	BootCommon::io_structure["grub_conf"] = [];
+	BootCommon::io_structure["global", "embed_stage1.5"]
+	    = BootCommon::embed_stage15 ? 1 : 0;
 	map<string,string> ret = (map<string,string>)
 	    SCR::Read (.bootloader.tostrings, BootCommon::io_structure);
 	BootCommon::edited_files = ret;
@@ -945,6 +973,61 @@ define integer Dom0MemorySize () {
 	device_map = readDeviceMap ();
 	BootCommon::loader_device
 	    = BootCommon::io_structure["global", "stage1_dev", 0]:"";
+
+	// FIXME copy-pasted from BootCommon.ycp
+	list<string> loader_devices = BootCommon::io_structure["global", "stage1_dev"]:[];
+	loader_devices = sort (loader_devices);
+        if (size (loader_devices) > 0)
+        {
+            map<string,map> tm = Storage::GetTargetMap ();
+            list<string> md = maplist (map m, tm["/dev/md", "partitions"]:[], {
+                return m["device"]:"";
+            });
+            if (Mode::test ())
+                md = ["/dev/md0"];
+            boolean md_found = false;
+            find (string md_disk, md, {
+                list<string> md_members = sort (maplist (
+                    string s,
+                    integer id,
+                    BootCommon::Md2Partitions (md_disk),
+                {
+                    return s;
+                }));
+                if (Mode::test ())
+                    md_members = ["/dev/hda1", "/dev/hdb1"];
+                if (md_members == loader_devices)
+                {
+                    BootCommon::loader_device = md_disk;
+                    md_found = true;
+                    return true;
+                }
+                return false;
+            });
+            // check MBRs of all disks holding /boot partition
+            if (! md_found)
+            {
+                map<string,integer> boot_md
+                    = BootCommon::Md2Partitions (
+                        BootCommon::BootPartitionDevice);
+                if (Mode::test ())
+                    boot_md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+                list<string> md_disks = maplist (string d, integer b, boot_md,
+                {
+                    map p_dev = Storage::GetDiskPartition (d);
+                    return p_dev["disk"]:"";
+                });
+                md_disks = sort (md_disks);
+                if (loader_devices == md_disks)
+                {
+                    BootCommon::loader_device = "mbr_md";
+                }
+            }
+        }
+
+
+	BootCommon::embed_stage15
+	    = BootCommon::io_structure["global", "embed_stage1.5"]:0 != 0;
 	if (BootCommon::edited_files != BootCommon::io_structure)
 	{
 	    BootCommon::files_edited = true;
