@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  2 13:03:07 CEST 2004 - jsrain@suse.cz
+
+- check dependencies of bootloader-related packages when selecting
+  them for installation (#44615)
+
+-------------------------------------------------------------------
 Wed Sep  1 08:59:59 CEST 2004 - jsrain@suse.cz
 
 - fixed proposing /etc/grub.conf if /boot is on /dev/md*

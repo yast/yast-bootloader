@@ -623,12 +623,20 @@ configuration files"));
 	    }
 	    else if (Mode::initial && (! (Mode::repair)))
 	    {
+		boolean pkg_added = false;
 		foreach (string p, getBootloaderPackages (bootloader), ``{
 		    if (! Pkg::IsSelected (p))
 		    {
 		        Pkg::PkgInstall (bootloader);
+			pkg_added = true;
 		    }
 		});
+		if (pkg_added)
+		{
+		    // if package was added in inst. proposal, I can't be sure
+		    // that dependencies will be solved
+		    Pkg::PkgSolve (false);
+		}
 	    }
 	}
 	loader_type = bootloader;
