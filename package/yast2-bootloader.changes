@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec 13 18:15:29 CET 2004 - jsrain@suse.cz
+
+- fixed setting GRUB password (#48999)
+
+-------------------------------------------------------------------
 Fri Nov 19 16:52:11 CET 2004 - jsrain@suse.cz
 
 - removed the generic MBR code from the package (moved to
