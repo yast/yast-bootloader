@@ -1,8 +1,14 @@
 -------------------------------------------------------------------
+Mon Jul 26 12:58:55 CEST 2004 - jsrain@suse.cz
+
+- fixed routine of merging detected modules for initrd with those
+  present in the AI profile during autoinstallation (#43103)
+
+-------------------------------------------------------------------
 Mon Jul 19 12:50:24 CEST 2004 - jsrain@suse.cz
 
 - use PackageSystem.ycp modules instead of Require.ycp
-- import "Product.ycp" when it is really needed (in order to buld)
+- import "Product.ycp" when it is really needed (in order to build)
 - 2.10.2
 
 -------------------------------------------------------------------
