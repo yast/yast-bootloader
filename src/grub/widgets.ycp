@@ -416,12 +416,25 @@ Replace it with an entry  to boot from the floppy?");
     global define any handlePasswdWidget (any op, list tosave) ``{
 	if (! contains (tosave, op))
 	    return BootCommon::handlePasswdWidget (op, tosave);
-	if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
-	{
-	    string ps = UI::QueryWidget (`id (`pw1), `Value);
-	    ps = sformat ("--md5 %1", cryptmd5 (ps));
-	    BootCommon::tmp_store["globals", "password"] = ps;
+
+
+        boolean usepass = UI::QueryWidget (`id (`usepas), `Value);
+        y2milestone ("Usepass: %1", usepass);
+        if (usepass)
+        {
+	    if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
+	    {
+	        string ps = UI::QueryWidget (`id (`pw1), `Value);
+	        ps = sformat ("--md5 %1", cryptmd5 (ps));
+	        BootCommon::tmp_store["active_section", "password"] = ps;
+	    }
 	}
+        else
+        {
+            BootCommon::tmp_store["active_section"]
+                = remove (BootCommon::tmp_store["active_section"]:$[],
+		    "password");
+        }
 	return op;
     }
 

@@ -190,7 +190,7 @@
 		    eval (toEval);
 		}
 		else
-			{
+		{
 		    BootCommon::tmp_store["active_section", optname]
 			= UI::QueryWidget (`id (`value), `Value);
 		}
