@@ -956,8 +956,11 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
-	BootCommon::DetectDisks ();	boolean ret = BootCommon::Read ();
+	BootCommon::DetectDisks ();
+	boolean ret = BootCommon::Read ();
 	device_map = readDeviceMap ();
+	BootCommon::embed_stage15
+	    = BootCommon::io_structure["global", "embed_stage1.5"]:0 != 0;
 	string mbrD = grubDev2unixDev ("(hd0)");
 	if (mbrD != "/dev/null" && mbrD != nil && mbrD != "")
 	    BootCommon::mbrDisk = mbrD;
@@ -1042,6 +1045,11 @@
             }
             else
 		fixGlobals (disks_changed);
+	}
+
+        if (! BootCommon::was_proposed)
+	{
+	    BootCommon::embed_stage15 = allowEmbed15 ();
 	}
 
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
@@ -1257,22 +1265,12 @@
 		}
 	    }
 
-	    // remove the log
 	    boolean grub_ret = (boolean)SCR::Execute (.bootloader.initialize);
 	    y2milestone ("GRUB return value: %1", grub_ret);
 	    if (! grub_ret)
 	    {
-//		y2error ("Exit code of grub installation: %1", exit["exit"]:-1);
 		string log = (string)SCR::Read (.target.string,
 		    "/var/log/YaST2/y2log_tool_grub");
-/*		log = log + exit["stdout"]:"" + exit["stderr"]:"";
-		if (exit["exit"]:1 == 139)
-		{
-		    // means: process received signal SIGSEGV
-		    // please, use some usual translation
-		    // proofreaders: don't change this text
-		    log = log + _("Segmentation fault");
-		}*/
 		// error popup - label
                 errorWithLogPopup (_("Error occurred while installing GRUB"),
                     log);

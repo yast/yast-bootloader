@@ -22,6 +22,33 @@
     import "Mode";
     import "BootCommon";
 
+define boolean allowEmbed15 () {
+    // allow only for /boot or /root device selected
+    if (! (BootCommon::loader_device == BootCommon::BootPartitionDevice
+	|| BootCommon::loader_device == BootCommon::RootPartitionDevice
+	|| BootCommon::loader_device == BootCommon::mbrDisk
+    ))
+    {
+	return false;
+    }
+    // check filesystem on /boot for Reiserfs and JFS
+    map mp = Storage::GetMountPoints ();
+    list bp_info
+	= mp["/boot"]:mp["/"]:[];
+    list<map> partitions
+	= Storage::GetTargetMap ()[bp_info[2]:"", "partitions"]:[];
+    boolean ret = false;
+    foreach (map p, partitions, {
+	if (p["device"]:"" == BootCommon::BootPartitionDevice)
+	{
+	    symbol fs = (symbol)p["used_fs"]:nil;
+	    if (fs == `reiser || fs == `jfs)
+		ret = true;
+	}
+    });
+    return ret;
+}
+
     /**
       * Encrypt the password before storing it in variables
       * @param passwd string unencrypted password
