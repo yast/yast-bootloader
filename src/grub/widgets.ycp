@@ -58,6 +58,7 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define void targetStore (any opt_id, string opt_key) ``{
 	BootCommon::targetStore (opt_id, opt_key);
+	grub_conf = proposeGrubConf ();
 	list<list<map> > sections = BootCommon::current_sections;
 	if (issubstring (BootCommon::loader_device, "/dev/fd")||
 	    BootCommon::installingToFloppy ())

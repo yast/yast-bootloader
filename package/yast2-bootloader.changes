@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep  1 08:59:59 CEST 2004 - jsrain@suse.cz
+
+- fixed proposing /etc/grub.conf if /boot is on /dev/md*
+
+-------------------------------------------------------------------
 Tue Aug 31 16:46:46 CEST 2004 - jsrain@suse.cz
 
 - fixed building on other archs than i386
