@@ -5,6 +5,7 @@ Mon Sep  6 09:44:33 CEST 2004 - jsrain@suse.cz
   build properly)
 - save splash type from installation kernel command line to created
   bootloader configuration files (#44683)
+- 2.10.11
 
 -------------------------------------------------------------------
 Fri Sep  3 13:16:28 CEST 2004 - jsrain@suse.cz
