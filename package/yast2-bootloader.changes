@@ -3,6 +3,7 @@ Fri Feb 25 09:05:14 CET 2005 - jsrain@suse.cz
 
 - added missed translation mark (#8402)
 - fixed testsuites
+- enabled the bootfloppy icon also on AMD64
 
 -------------------------------------------------------------------
 Mon Feb 21 10:58:13 CET 2005 - jsrain@suse.cz

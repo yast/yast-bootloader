@@ -2,7 +2,7 @@
 # Makefile.am for bootloader/src
 #
 
-if I386
+if I386_OR_AMD64
 
 desktop_DATA = \
 		bootloader.desktop \
