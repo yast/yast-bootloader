@@ -22,8 +22,6 @@
     import "Kernel";
     import "Mode";
 
-    include "bootloader/routines/routines.ycp";
-
     /**
       * Translate the autoinstallation map to the Export map
       * @param ai map the autoinstallation map

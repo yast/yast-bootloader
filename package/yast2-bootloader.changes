@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug  6 13:19:45 CEST 2004 - jsrain@suse.cz
+
+- minor fixes that made autoinstallation work
+
+-------------------------------------------------------------------
 Wed Aug  4 10:10:40 CEST 2004 - jsrain@suse.cz
 
 - more type information for CWM structures
