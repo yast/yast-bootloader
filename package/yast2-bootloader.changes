@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 31 11:59:29 CET 2003 - jsrain@suse.de
+
+- not adding lvm groups and md disks to device map (#23217)
+
+-------------------------------------------------------------------
 Thu Jan 30 09:15:45 CET 2003 - jsrain@suse.cz
 
 - fixed setting of vga= kernel parameter (#23188)

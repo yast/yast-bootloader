@@ -492,6 +492,24 @@
 		BootCommon::globals["default"]
 		    = BootCommon::sections[0, "label"]:"";
 	}
+        if (Storage::DiskmapNeeded())
+        {
+            string order = "";
+            // check if bios_id is given for a target
+            map targetMap = Storage::GetTargetMap();
+            foreach (`target_dev, `target, targetMap, ``{
+                string bios_id = target["bios_id"]:"";
+                if (bios_id != "")
+                {
+                    if (order != "")
+                        order = order + ",";
+                    order = order + sformat ("disk=%1,bios=%2", target_dev,
+                        bios_id);
+                }
+            });
+            if (order != "")
+                BootCommon::globals["disk"] = order;
+        }
     }
 
     /**
