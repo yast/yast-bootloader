@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun 24 13:29:08 CEST 2004 - jsrain@suse.cz
+
+- fixed autoinstallation with empty bootloader-related part of the
+  AI profile on PPC and IA64 (#41805)
+
+-------------------------------------------------------------------
 Thu Jun 17 15:00:57 CEST 2004 - jsrain@suse.cz
 
 - 2.10.0
