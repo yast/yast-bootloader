@@ -50,13 +50,13 @@
      * @param options a list of parameters passed as args
      * @return boolean false
      */
-    global define boolean BootloaderSummaryHandler (map options ) ``{
+    define boolean BootloaderSummaryHandler (map options ) ``{
         CommandLine::Print (RichText::Rich2Plain(
             "<br>"+mergestring (Bootloader::Summary (), "<br>")));
         return false; // do not call Write...
     }
 
-    global define boolean BootloaderModifySection (string section,
+    define boolean BootloaderModifySection (string section,
 	string key, any value)
     ``{
 	if (section == nil)
@@ -97,7 +97,7 @@
      * @param options a list of parameters passed as args
      * @return boolean true on success
      */
-    global define boolean BootloaderSetHandler (map options) ``{
+    define boolean BootloaderSetHandler (map options) ``{
 	string section = (string)(options["section"]:nil);
 	string option = (string)(options["option"]:nil);
 	any value = options["value"]:nil;
@@ -114,7 +114,7 @@
      * @param options a list of parameters passed as args
      * @return boolean true on success
      */
-    global define boolean BootloaderDeleteHandler (map options) ``{
+    define boolean BootloaderDeleteHandler (map options) ``{
 	string section = (string)(options["section"]:nil);
 	if (! haskey (options, "option"))
 	{
@@ -140,7 +140,7 @@
      * @param options a list of parameters passed as args
      * @return boolean true on success
      */
-    global define boolean BootloaderAddHandler (map options) ``{
+    define boolean BootloaderAddHandler (map options) ``{
 	// TODO check existence of such section
 	string section = (string)(options["section"]:nil);
 	if (section == nil)
@@ -161,7 +161,7 @@
      * @param options a list of parameters passed as args
      * @return boolean true on success
      */
-    global define boolean BootloaderPrintHandler (map options) ``{
+    define boolean BootloaderPrintHandler (map options) ``{
 	string section = (string)(options["section"]:nil);
 	string option = (string)(options["option"]:nil);
 	if (option == nil)

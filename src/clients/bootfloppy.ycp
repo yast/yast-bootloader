@@ -66,7 +66,7 @@ FireWire and file systems modules floppy"),
       * @param image string image name
       * @return string label to show
       */
-    global define string getImageWritingLabel (string image) ``{
+    define string getImageWritingLabel (string image) ``{
 	// image text - label
 	return image_labels[image]:_("Creating Specified Floppy");
     }
@@ -75,14 +75,14 @@ FireWire and file systems modules floppy"),
       * Show popup with a custom message
       * @param label string message to show
       */
-    global define void showPopup (string label) ``{
+    define void showPopup (string label) ``{
 	UI::OpenDialog (`Label (label));
     }
 
     /**
       * Hide shown popup window
       */
-    global define void hidePopup () ``{
+    define void hidePopup () ``{
 	UI::CloseDialog ();
     }
 
@@ -105,7 +105,7 @@ FireWire and file systems modules floppy"),
       * @param floppy string device name of floppy to check
       * @return map floppy mountpoint info
       */
-    global define map isFloppyMounted (string floppy) ``{
+    define map isFloppyMounted (string floppy) ``{
 	list mounts = (list)SCR::Read(.proc.mounts);
 
 	mounts = filter (map mount, mounts, ``(
@@ -410,7 +410,7 @@ and File Systems (modules disk 4)"))),
       * Called from the sequencer.
       * @return symbol wizard sequencer symbol
       */
-    global define symbol floppySelectFile () ``{
+    define symbol floppySelectFile () ``{
         term contents = `HBox (`HStretch (),
             `VBox (
                 `VStretch (),
@@ -478,7 +478,7 @@ and File Systems (modules disk 4)"))),
       * Called from the sequencer.
       * @return symbol wizard sequencer symbol
       */
-    global define symbol floppySelectURL () ``{
+    define symbol floppySelectURL () ``{
 	term contents = `HBox (`HStretch (),
 	    `VBox (
 		`VStretch (),
@@ -644,7 +644,7 @@ Unmount the floppy?
       * Called from the  sequenser.
       * @return symbol wizard sequencer symbol
       */
-    global define symbol floppyCopyImage() ``{
+    define symbol floppyCopyImage() ``{
 	term contents = `VBox(
 	    `VSpacing (2),
 	    `Left(`Heading ( getImageWritingLabel (file_image))),
