@@ -360,12 +360,12 @@
         }
         else if (op == `delete && confirmOptionDeletePopup ())
         {
-	    map cur = getPopupWidget (item);
+	    map cur = getPopupWidget (selected_key);
 	    term toEval = cur["delete"]:nil;
 	    if (toEval != nil)
 		eval (toEval);
 	    BootCommon::current_section = remove (
-		BootCommon::current_section, item);
+		BootCommon::current_section, BootCommon::current_option_index);
 	    BootCommon::one_section_changed = true;
 	    ret = `ok;
         }

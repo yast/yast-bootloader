@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jun 12 13:03:52 CEST 2003 - jsrain@suse.de
+
+- fixed file list
+- fixed user interface
+- 2.8.1
+
+-------------------------------------------------------------------
 Wed May 28 15:00:47 CEST 2003 - jsrain@suse.de
 
 - updated PPC bootloader support
