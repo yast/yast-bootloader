@@ -5,6 +5,7 @@ Fri Nov 19 16:52:11 CET 2004 - jsrain@suse.cz
   master-boot-code package) (#46406)
 - if user selects MBR of other than booting disk as location for
   GRUB, offer changing the order of the disks (#48051)
+- 2.11.3
 
 -------------------------------------------------------------------
 Tue Nov  9 10:40:18 CET 2004 - jsrain@suse.cz
