@@ -299,14 +299,44 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	SCR::Execute (.target.bash, "test -f /boot/grub/device.map && rm /boot/grub/device.map");
 	SCR::Execute (.target.bash, "test -f /boot/grub/device.map || echo \"quit\" | /usr/sbin/grub --device-map=/boot/grub/device.map");
 
-	y2milestone ("Got device map: %1", SCR::Read (.target.string, "/boot/grub/device.map"));
 
-	if ( Mode::update )
-	{
-	    // update mode
-	    WriteUpdate();
-	    return true;
-	}
+        if ( Mode::update )
+        {
+            // update mode
+            WriteUpdate();
+            return true;
+        }
+
+
+        // check for bios_id on a ide/scsi mixed system
+	// check if bios_id is given for a target
+
+	string dev_map = SCR::Read (.target.string, "/boot/grub/device.map");
+	y2milestone ("Got device map: %1", dev_map);
+	list maps = filter (`e, splitstring (dev_map, "\n"), ``(e != ""));
+	maps = maplist (`e, maps, ``{return filter (`f, splitstring (e, " \t"), ``(f != ""));});
+	map mapping = $[];
+	foreach (`e, maps, ``{mapping = add (mapping, select (e, 1, ""), select (e, 0, ""));});
+
+	map targetMap = Storage::GetTargetMap();
+	foreach (`target_dev, `target, targetMap, ``{
+	    string bios_id = target["bios_id"]:"";
+	    if (bios_id != "")
+	    {
+	        string grub_dev = sformat ("(hd%1)", (tointeger (bios_id) - tointeger ("0x80")));
+	        foreach (`e, `f, mapping, ``{
+		    if (e == target_dev || f == grub_dev)
+		        mapping = remove (mapping, e);
+	        });
+		mapping = add (mapping, target_dev, grub_dev);
+	    }
+	});
+	dev_map = "";
+	foreach (`k, `v, mapping, ``{
+	    dev_map = dev_map + sformat("%1\t%2\n", v, k);
+	});
+	y2milestone ("Fixed device mapping: %1", dev_map);
+	SCR::Write (.target.string, "/boot/grub/device.map", dev_map);
 
 
 	// Boot setup start

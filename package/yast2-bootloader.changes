@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 13 06:49:05 CEST 2002 - jsrain@suse.cz
+
+- fixed handling different BIOS Ids (Bug #17594)
+- added disableapic to failsafe kernel command
+- 2.6.22
+
+-------------------------------------------------------------------
 Fri Aug  9 16:10:37 CEST 2002 - jsrain@suse.de
 
 - fixed installation on S390 (Bug #17244)
