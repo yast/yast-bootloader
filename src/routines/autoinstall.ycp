@@ -21,7 +21,6 @@
     import "Initrd";
     import "Kernel";
     import "Mode";
-    import "Product";
 
     include "bootloader/routines/routines.ycp";
 
@@ -62,8 +61,15 @@
 	if (ai["loader_type"]:"" == "elilo")
 	{
 	    string def_label = "";
-	    if (Mode::autoinst)
-		def_label = sformat ("%1 %2", Product::name, Product::version);
+	    if (! Mode::test)
+	    {
+	    import "Product";
+		if (Mode::autoinst)
+		{
+		    def_label
+			= sformat ("%1 %2", Product::name, Product::version);
+		}
+	    }
 	    // if EFI label not specified, use default label
 	    exp["location"] = ai["efi_entry_label"]:ai["location"]:def_label;
 	    exp["specific", "create_efi_entry"]
