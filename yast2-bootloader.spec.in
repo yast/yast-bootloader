@@ -83,7 +83,10 @@ Summary:	Bootloader installation and configuration
 %ifarch %ix86 x86_64
 @ybindir@/mk_boot_floppy
 @ybindir@/mk_lilo_conf
+@ybindir@/mk_grub_conf
 @ybindir@/update_lilo_conf
 @ybindir@/dolilo
+@ybindir@/dogrub
 @moduledir@/BootLILO.ycp
+@moduledir@/BootGRUB.ycp
 %endif

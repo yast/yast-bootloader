@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 22 12:20:57 CEST 2002 - kkaempf@suse.de
+
+- prepare for GRUB support
+
+-------------------------------------------------------------------
 Wed Jul 17 11:28:44 CEST 2002 - arvin@suse.de
 
 - fixed file list for i386 (use %ix86 macro)

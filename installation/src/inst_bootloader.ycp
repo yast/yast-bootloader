@@ -30,6 +30,7 @@
 
     map loadertype2name = $[
 	"lilo" : "LILO",
+	"grub" : "GRUB",
 	"silo" : "SILO",
 	"milo" : "MILO",
 	"aboot" : "aboot",
@@ -76,7 +77,7 @@
 			  )
 		    );
 
-    // build up 'custom' lilo entry
+    // build up 'custom' bootloader entry
     // offer all possible partitions in a ComboBox widget
 
     string default_text = "";
@@ -140,7 +141,7 @@
 				   `Left(
 					 `Bottom(
 						 `RadioButton( `id("custom"), `opt(`notify),
-							       // Radio button for LILO installation:
+							       // Radio button for bootloader installation:
 							       // Other partition (enter name in text input field)
 							       // %1 == name of boot manager, e.g. "LILO"
 							       sformat (_("Write %1 to a different &partition:"), loadername),
@@ -194,6 +195,13 @@
 	ui_parameters = BootLILO::AskParameters ();
 	help_parameters = BootLILO::HelpParameters ();
     }
+    else if (Boot::LoaderType == "grub")
+    {
+	import "BootGRUB";
+
+	ui_parameters = BootGRUB::AskParameters ();
+	help_parameters = BootGRUB::HelpParameters ();
+    }
     else if (Boot::LoaderType == "silo")
     {
 	import "BootSILO";
@@ -223,7 +231,7 @@
 			      )
 			);
 
-    // determine destination location of lilo boot manager
+    // determine destination location of boot manager
     term contents =
 	`HSquash(
 		 `VBox(
@@ -395,6 +403,12 @@ options to continue.
 		    import "BootLILO";
 
 		    BootLILO::HandleParameters ();
+		}
+		else if (Boot::LoaderType == "grub")
+		{
+		    import "BootGRUB";
+
+		    BootGRUB::HandleParameters ();
 		}
 	    }
 

@@ -1,0 +1,538 @@
+/**
+ * File:
+ *	BootLILO.ycp
+ *
+ * Module:
+ *	BootLILO
+ *
+ * Summary:
+ *	functions for bootload setup
+ *
+ * Authors:
+ *	Anas Nashif <nashif@suse.de>
+ *
+ * $Id$
+ *
+ */
+{
+    module "BootLILO";
+
+    textdomain "bootloader";
+
+    import "Arch";
+    import "Boot";
+    import "Kernel";
+
+    /**
+     * @return boolean: LBA Support
+     *
+     */
+    global boolean lba_support	= false;
+
+    // ----------------------------------------------------
+
+    /**
+     * local parameters, set via UI
+     */
+
+    boolean activate = false;
+
+    boolean linear = false;
+
+    // ----------------------------------------------------
+
+    /**
+     * DisplayLogFile
+     * Displaying log files
+     * @ return 'ok_help
+     */
+    global define DisplayLogFile( string msg_text ) ``{
+	    term text = `RichText( "<p>" + msg_text + "</p>" );
+	    OpenDialog(`opt ( `decorated ),
+		       `VBox (`HSpacing(75),
+			      `Heading( _("Error Log File")),
+			      text,	// e.g. `Richtext()
+			      `PushButton( `id(`ok_help), `opt(`default), OKButtonLabel() )
+			      )
+		       );
+
+	    SetFocus(`id(`ok_help) );
+
+	    any r = UserInput();
+	    CloseDialog();
+	    return (r);
+    };
+
+
+    /**
+     * WriteUpdate
+     * Calling mk_initrd and lilo while update.
+     * @ return void
+     */
+    global define void WriteUpdate()
+    ``{
+	// Calling mk_initrd
+
+	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/y2logmk_initrd 2>> /var/log/y2logmk_initrd") != 0 )
+	{
+	    any retAsk = UI::AskShowLog( "mk_initrd" );
+	    if ( retAsk == `yes )
+	    {
+		string text = "";
+
+		text = SCR::Read (.target.string, "/var/log/y2logmk_initrd");
+		DisplayLogFile( text );
+	    }
+	}
+
+	// Generate grafical login
+
+	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_lilo_conf / >>/var/log/y2loglilo 2>>/var/log/y2loglilo");
+
+	if (Boot::location == "floppy")
+	{
+	    // Rewrite lilo, if it has been booted from Floppy
+
+	    SCR::Execute(.target.umount, "/media/floppy"); // Just for safety
+	    UI::MessagePopup(_("The LILO boot sector will be written to a floppy disk.
+Insert a formatted floppy and confirm with 'OK'.
+"));
+	    while (true)
+	    {
+		integer doresult = SCR::Execute (.target.bash,
+					"/sbin/lilo -b " + StorageDevices::FloppyDevice
+					+ " -m /boot/map2 >>/var/log/y2loglilo 2>>/var/log/y2loglilo");
+
+		SCR::Execute(.target.bash, "/bin/sync");
+
+		if (doresult==0)
+		{
+		    // data saved to floppy disk
+		    UI::MessagePopup(_("The LILO boot sector has been written to a floppy disk."));
+		    break;
+		}
+		else
+		{
+		    // boot write to floppy failed
+		    if ( !UI::YesNoPopup(_("Could not write LILO boot sector to the floppy.
+Please check that the floppy disk is formatted
+and that the write protection tab is removed.
+Do you want to try again?")) )
+			break;		// no choosen
+		}
+	    } // while (true)
+
+	}
+	else	// lilo on harddisk
+	{
+
+	    any retAsk = `yes;
+	    while ( retAsk == `yes
+		    && SCR::Execute (.target.bash, "/sbin/lilo >> /var/log/y2loglilo 2>> /var/log/y2loglilo") != 0 )
+	    {
+		retAsk = UI::AskRetry( "lilo" );
+		while ( retAsk == `log )
+		{
+		    string text = "";
+
+		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/y2loglilo");
+		    DisplayLogFile( text );
+		    retAsk = UI::AskRetry( "lilo" );
+		}
+	    }
+	}
+    }
+
+
+
+    /**
+     * Set
+     * Set LILO parameters (used in autoinst mode)
+     * @ return void
+     */
+    global define void Set(boolean act, boolean lin, boolean lba)
+    ``{
+	activate = act;
+	linear = lin;
+	lba_support = lba;
+	return;
+    }
+
+    /**
+     * ProbeLBA
+     *
+     * probe BIOS for lba support and set global lba_support accordingly
+     */
+
+    global define void ProbeLBA()
+    ``{
+	list internal_bios = SCR::Read (.probe.bios);
+	lba_support = internal_bios[0, "lba_support"]:false;
+	return;
+    }
+
+
+    /**
+     * AskParameters
+     *
+     * helper function for inst_bootloader
+     * provide ui code to ask LILO specific parameters
+     *
+     * @returns: list of <uicode>
+     */
+
+    global define list AskParameters ()
+    ``{
+	return eval ([
+	    `Left (
+		`CheckBox (`id( `linear ),
+		// check box: use the 'linear' option?
+		_("Use the '&linear' option"),
+		linear)
+	    ),
+	    `Left (`CheckBox (`id( `activate ),
+		// check box: activate partition where LILO is installed ?
+		_("Ac&tivate LILO partition"),
+		activate)
+	    )
+	]);
+    }
+
+    /**
+     * HelpParameters
+     *
+     * help text for the values from AskParameters ()
+     *
+     * @returns: string of help text
+     */
+
+    global define string HelpParameters ()
+    ``{
+	// custom bootloader help text, LILO only, 1 of 2
+	return _("<p>
+The <b>linear option</b> is for backwards compatibility. Use this to make LILO
+cooperate with older hardware when the default does not work.
+Most users will not need this.
+</p>
+")
+
+	// custom bootloader help text, LILO only, 2 of 2
+	+ _("<p>
+Check <b>Activate partition</b> to mark the partition as active. Usually this
+is not required, but, on some systems, the BIOS only boots from an active partition.
+</p>
+");
+    }
+
+
+    /**
+     * HandleParameters
+     *
+     * helper function for inst_bootloader
+     * called after UI::UserInput() returned
+     *  (only if AskParameters() returned a non-empty list)
+     */
+
+    global define void HandleParameters ()
+    ``{
+	any option = nil;
+
+	// on i386, no need for linear if bios has lba support
+	if (Arch::i386 && lba_support)
+	{
+	    linear = false;
+	}
+	else
+	{
+	    option = UI::QueryWidget(`id(`linear), `Value);
+	    if (is (option, boolean))
+	    {
+		linear = option;
+	    }
+	}
+	option = UI::QueryWidget(`id(`activate), `Value);
+	if (is (option, boolean))
+	{
+	    activate = option;
+	}
+	return;
+    }
+
+
+    /**
+     * write the LILO bootloader
+     *
+     */
+
+    global define boolean Write ()
+    ``{
+	import "Mode";
+	import "Boot";
+	import "Misc";
+	import "StorageDevices";
+	import "Storage";
+	import "Report";
+
+	include "ui/common_popups.ycp";
+
+	if ( Mode::update )
+	{
+	    // update mode
+	    WriteUpdate();
+	    return true;
+	}
+
+
+	// Boot setup start
+
+	// additional message that needs to be displayed
+	string confirm_boot_msg = Misc::boot_msg;
+
+	integer doresult = 0;
+	string docmd = "/usr/lib/YaST2/bin/dolilo /";
+
+	if (Boot::location == "mbr")
+	{
+	    docmd = docmd + " -m " + Boot::device;
+	}
+	else if (Boot::location == "floppy")
+	{
+	    docmd = docmd + " -m " + Boot::device;
+	}
+	else if (Boot::location == "custom")
+	{
+	    string last_dev_char = substring (Boot::device, size(Boot::device)-1, 1);
+	    // if Boot::device does not end in a digit, it is a disk device for mbr
+	    if (!(filterchars (last_dev_char, "0123456789") == last_dev_char))
+		docmd = docmd + " -m " + Boot::device;
+	}
+
+	// if syslinux recognized a framebuffer, pass it to lilo
+
+	integer vga = tointeger (Boot::VgaType);
+	if (vga > 0)
+	{
+	    list fbdev = SCR::Read(.probe.fbdev);
+	    string unique_key = fbdev[0, "unique_key"]:"";
+	    if (size (unique_key) > 0)
+	    {
+		HwStatus::Set (unique_key, `yes);
+	    }
+	    docmd = docmd + " -v " + vga;
+	}
+
+	// on LILO systems with LILO in MBR activate it.
+
+	if (activate
+	    || (Boot::location == "mbr"))
+	{
+	    // normaly, the /boot device
+	    string active_device = Boot::BootPartitionDevice;
+
+	    // if user choose another device (i.e. for compaq bios), use this
+	    if (Boot::location == "custom")
+	    {
+		active_device = Boot::device;
+	    }
+
+	    // now check if it really is a primary device
+	    // now check if it really is a primary device
+	    // if not a primary -> find extended
+
+	    string last_dev_char = substring (active_device, size(active_device)-1, 1);
+
+	    if (filterchars (last_dev_char, "1234") != last_dev_char)
+	    {
+		map target = lookup ( Storage::GetTargetMap() , Boot::device, $[]);
+		list partitions = target["partitions"]:[];
+
+		active_device = "";
+
+		foreach (`partition, partitions,
+		``{
+		    // no active_device found yet
+		    // and extend partition
+		    // and not marked for deletion
+		    //     or maybe marked for creation
+		    if ((active_device == "")
+			&& (partition["fsid"]:0 == 5)
+			&& (!(partition["delete"]:false))
+			&& (partition["create"]:true))
+		    {
+			active_device = Boot::device + partition["nr"]:"1";
+		    }
+		});
+	    }
+
+	    if (active_device != "")
+	    {
+		docmd = docmd + " -a " + active_device;
+	    }
+	    else
+	    {
+		y2warning ("Can't find primary partition to activate.");
+	    }
+	}
+
+	// check for bios_id on a ide/scsi mixed system
+
+	if (StorageDevices::mixedDevices)
+	{
+	    // check if bios_id is given for a target
+
+	    map targetMap = Storage::GetTargetMap();
+	    foreach (`target_dev, `target, targetMap,
+	    ``{
+		string bios_id = target["bios_id"]:"";
+		if (bios_id != "")
+		{
+		    docmd = docmd + " -d \"" + target_dev + " " + bios_id + "\"";
+		}
+	    });
+	}
+
+	// add "-o <other>" entry if given
+
+	if (Boot::other != "")
+	{
+	    docmd = docmd + " " + Boot::other;
+	}
+
+	// set lilo_opt_linear non-empty if checked
+	string lilo_opt_linear = "";
+	if (linear)
+	    lilo_opt_linear = "yes";
+
+	// set lilo_opt_lba non-empty if supported
+	string lilo_opt_lba = "";
+	if (lba_support)
+	    lilo_opt_lba = "yes";
+
+	y2milestone("lilo: %1 cmd: %2", Boot::location, docmd);
+
+	if (Boot::location == "floppy")
+	{
+
+	    SCR::Execute(.target.bash, "/bin/umount /media/floppy"); // Just for safety
+	    Report::Message(_("The LILO boot sector will be written onto a floppy disk.
+Please insert a formatted floppy and confirm with 'OK'."));
+
+	    map doenv = $[ "bootdev" : Boot::BootPartitionDevice,
+			 "rootdev" : Boot::RootPartitionDevice,
+			 "append" : Kernel::cmdLine,
+			 "linear" : lilo_opt_linear,
+			 "lba32"  : lilo_opt_lba,
+			 "floppy" : StorageDevices::FloppyDevice ];
+	    y2milestone("env: %1", doenv);
+	    while (true)
+	    {
+		doresult = SCR::Execute(.target.bash, docmd, doenv);
+		SCR::Execute(.target.bash, "/bin/sync");
+
+		if (doresult == 0) {
+		    // data saved to floppy disk
+		    string msg = _("The LILO boot sector has been written to the floppy disk.");
+
+		    if ( size (confirm_boot_msg) > 0 )
+		    {
+			msg = msg + "\n\n" + confirm_boot_msg;
+			if (Kernel::switched)
+			{
+			    // If LILO was written on floppy disk and we need
+			    // to do a hard reboot (because a different kernel
+			    // was installed), tell the user to leave the floppy
+			    // inserted.
+			    msg = msg + _("Leave the floppy disk in the drive. The system will now be rebooted.");
+			}
+			Misc::boot_msg=msg;;
+			// empty that  Misc::boot_msg indicate the message has been displayed
+		    }
+		    Report::Message(msg);
+		    break;
+		}
+		else {
+		    // boot write to floppy failed
+		    if (!UI::YesNoPopup(_("Could not write the LILO boot sector to the floppy.
+Please check that the floppy disk is formatted
+and that the write protection tab is removed.
+Do you want to try again?")))
+			break;		// no choosen
+		}
+	    } // while (true)
+
+	} // Boot::location == "floppy"
+	else
+	{
+	    map doenv = $[ "bootdev" : Boot::BootPartitionDevice,
+			 "rootdev" : Boot::RootPartitionDevice,
+			 "append" : Kernel::cmdLine,
+			 "linear" : lilo_opt_linear,
+			 "lba32"  : lilo_opt_lba ];
+	    y2milestone ("doenv: %1", doenv);
+	    // lilo not on floppy
+	    doresult = SCR::Execute(.target.bash, docmd, doenv);
+
+	    if (doresult == 0)
+	    {
+		if ((Boot::location == "mbr")
+			|| (Boot::location == "custom"))
+		{
+		    // final information message for user after LILO write
+		    string msg = sformat(_("The LILO boot sector has been written to disk. You can restore
+the old boot sector in the installed system with \"lilo -u %1\""), Boot::device);
+
+		    if ( size (confirm_boot_msg) > 0 )
+		    {
+			msg = msg + "\n\n" + confirm_boot_msg;
+			Misc::boot_msg = "";
+			// empty that entry to indicate the message has been displayed
+		    }
+
+		    Report::Message(msg);
+
+		}
+	    }
+	    else
+	    {
+		Report::Error(_("Could not write the LILO boot sector"));
+	    }
+
+	} // Boot::location != "floppy"
+
+	// LILO setup end
+
+	return true;
+    }
+
+    /**
+     *
+     * Save parameters to sysconfig
+     */
+
+    global define void Save()
+    ``{
+	SCR::Write (.sysconfig.bootloader.LILO_LBA, (lba_support?"yes":"no"));
+	SCR::Write (.sysconfig.bootloader.LILO_LBA.comment,
+		       "\n# Does the BIOS support LBA access.\n#\n");
+	SCR::Write (.sysconfig.bootloader.LILO_ACTIVATE, (activate?"yes":"no"));
+	SCR::Write (.sysconfig.bootloader.LILO_ACTIVATE.comment,
+		       "\n# Did the user select 'activate'.\n#\n");
+	SCR::Write (.sysconfig.bootloader.LILO_LINEAR, (linear?"yes":"no"));
+	SCR::Write (.sysconfig.bootloader.LILO_LINEAR.comment,
+		       "\n# Did the user select 'linear'.\n#\n");
+    }
+
+    /**
+     * constructor
+     *
+     * initializes lba_support
+     */
+
+    global define void BootLILO()
+    ``{
+	ProbeLBA();
+	return;
+    }
+
+
+}

@@ -32,7 +32,7 @@
 
     /**
      * @return string: the systems boot mode, i.e.
-     * "lilo", "silo", "milo", "aboot", "elilo", "ppc", "s390", "mips"
+     * "lilo", "grub", "silo", "milo", "aboot", "elilo", "ppc", "s390", "mips"
      */
     global string LoaderType = "";
 
