@@ -186,7 +186,9 @@
 
     location = `Frame(
 		      // frame label for boot manager (%1) location radio buttons
-		      sformat ("%1 location", loadername),
+		      // TODO FIXME: rewrite to account for inflection:
+		      // Umisteni GRUBu.
+		      sformat (_("%1 location"), loadername),
 		      `VBox(
 			    `VSpacing( 1 ),
 			    `HBox(
