@@ -31,11 +31,6 @@
     import "Product";
     import "Storage";
 
-    include "bootloader/elilo/misc.ycp";
-    include "bootloader/elilo/widgets.ycp";
-    include "bootloader/routines/routines.ycp";
-    include "bootloader/routines/routines.ycp";
-
 // private variables
 
     /**
@@ -58,75 +53,151 @@
       */
     global boolean create_efi_entry = true;
 
-// general functions
+
+    include "bootloader/elilo/misc.ycp";
+    include "bootloader/elilo/widgets.ycp";
+    include "bootloader/routines/routines.ycp";
+
+
+// misc. functions
 
     /**
-      * Constructor
+      * Create strings representing cfg. files for by-hand editation
+      * @return map filename -> contents
       */
-    global define void BootELILO () ``{
-        BootCommon::bootloader_attribs["elilo"] = $[
-            "required_packages" : ["elilo"],
-            "loader_name" : "ELILO",
-	    "initializer" : ``(BootELILO::Initializer()),
+    global define map GetFiles() ``{
+        BootCommon::saveCfgFileToAgent ();
+        return $[
+            elilo_conf_filename : SCR::Read (.elilo.tostring),
         ];
     }
 
     /**
-      * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
+      * Store strings representing cfg. files to internal structures
+      * @param files map filename -> contents
       */
-    global define map GetFunctions () ``{
-	return $[
-	    "export"   : ``(BootELILO::Export ()),
-	    "import"   : ``(BootELILO::Import ()),
-	    "read"     : ``(BootELILO::Read ()),
-	    "reset"    : ``(BootELILO::Reset ()),
-	    "propose"  : ``(BootELILO::Propose ()),
-	    "save"     : ``(BootELILO::Save ()),
-	    "summary"  : ``(BootELILO::Summary ()),
-	    "update"   : ``(BootELILO::Update ()),
-	    "write"    : ``(BootELILO::Write ()),
-	    "widgets"  : ``(BootELILO::GetWidgets ()),
-	    "getfiles" : ``(BootELILO::GetFiles ()),
-	    "setfiles" : ``(BootELILO::SetFiles ()),
+    global define void SetFiles (map files) ``{
+        if (SCR::Read (.elilo.tostring)
+	    != files[elilo_conf_filename]:"")
+	{
+            BootCommon::files_edited = true;
+	}
+        SCR::Write (.elilo.fromstring, files[elilo_conf_filename]:"");
+        BootCommon::loadCfgFileFromAgent ();
+    }
+
+    /**
+      * Create linux section
+      * @param title strign section title (linux, failsafe, memtest)
+      * @return section description structure
+      */
+    global define list createLinuxSection (string title) ``{
+	// not using .shipped images any more
+        string initrd = "initrd";
+        string image = "vmlinuz";
+        string append = title == "failsafe"
+            ? "ide=nodma"
+            : sformat ("%1 splash=silent", Kernel::cmdLine);
+	list <string> split = BootCommon::splitPath (initrd);
+	initrd = split[1]:initrd;
+	split = BootCommon::splitPath (image);
+	image = split[1]:image;
+        list ret = [
+            $[ "key" : "label", "value" : translateSectionTitle (title)],
+            $[ "key" : "image", "value" : image],
+            $[ "key" : "initrd", "value" : initrd],
+            $[ "key" : "root", "value" : BootCommon::dev2majmin (
+		BootCommon::RootPartitionDevice)],
+            $[ "key" : "append", "value" : append],
+            $[ "key" : "__intern__", "value" : $[
+                "auto" : true,
+                "changed" : false,
+                "devs" : [BootCommon::RootPartitionDevice],
+		"type" : title,
+            ]],
+        ];
+        if (Kernel::vgaType != "" && title != "failsafe")
+            ret = add (ret, $["key" : "vga", "value" : Kernel::vgaType]);
+        return ret;
+    }
+
+
+
+    /**
+      * Propose sections to bootloader menu
+      * modifies internal sreuctures
+      */
+    global define void createSections () ``{
+	BootCommon::sections = [ createLinuxSection ("linux"),
+	    createLinuxSection ("failsafe") ];
+    }
+
+    /**
+      * Fix sections of bootloader menu during proposal regeneration
+      * modifies internal sreuctures
+      */
+    global define void fixSections () ``{
+	BootCommon::liloFixSections (``(BootELILO::createSections ()));
+	return;
+    }
+
+    /**
+      * Propose global options of bootloader
+      * modifies internal structures
+      */
+    global define void createGlobals () ``{
+	BootCommon::globals = [
+	    $[ "key" : "prompt", "value" : true ],
+	    $[ "key" : "timeout", "value" : 80 ],
+	    $[ "key" : "read-only", "value" : true ],
+	    $[ "key" : "relocatable", "value" : true ],
+	    $[ "key" : "default", "value" : "linux" ],
 	];
     }
 
     /**
-      * Initializer of LILO bootloader
+      * Update sections of bootloader menu
+      * modifies internal sreuctures
+      * @param replace boolean true if old sectinos shall be replaced
       */
-    global define void Initializer () ``{
-	y2milestone ("Called ELILO initializer");
-	BootCommon::current_bootloader_attribs = $[
-            "section_title" : "label",
-            "kernel_key" : "image",
-            "required_packages" : ["elilo"],
-            "loader_name" : "ELILO",
-            "default_key" : "default",
-            "default_type" : `label,
-            "timeout_multiplier" : 10,
-            "alias_keys" : ["alias"],
-            "convert_function" : ``(BootELILO::convertSection ()),
-            "kernel_params" : $[
-                "vga" : "vga",
-                "root" : "root",
-                `other : "append",
-            ],
-            "propose" : true,
-            "read" : true,
-            "scratch" : true,
-            "restore_mbr" : false,
-            "key_only_once" : true,
-	    "bootloader_on_disk" : false,
-	    "option_list" : GetOptions (),
-	];
-	BootCommon::cwm_options = union (
-	    BootCommon::GetOptionMaps (),
-	    BootELILO::GetOptionMaps ());
-	BootCommon::cwm_widgets = union (
-	    BootCommon::GetWidgetMaps (),
-	    BootELILO::GetWidgetMaps ());
+    global define void updateSections (boolean replace) ``{
+	BootCommon::liloUpdateSections (replace);
+	BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	    s = maplist (map m, s, ``{
+		if (m["key"]:"" == "initrd")
+		{
+		    if (substring (m["value"]:"", 0, 7) == "/initrd")
+			m["value"] = "initrd";
+
+		}
+		if (m["key"]:"" == "image")
+		{
+		    if (substring (m["value"]:"", 0, 8) == "/vmlinuz")
+			m["value"] = "vmlinuz";
+
+		}
+		return m;
+	    });
+	    return s;
+	});
+// TODO maybe change the paths? Probably not needed, to be decised
     }
+
+    /**
+      * Update global options of bootloader
+      * modifies internal sreuctures
+      */
+    global define void updateGlobals () ``{
+	BootCommon::globals = maplist (list e, BootCommon::globals, ``{
+	    if (e["key"]:"" == "timeout")
+		e["value"] = 80;
+	    return e;
+	});
+    }
+
+
+// general functions
+
 
     /**
       * Export bootloader settings to a map
@@ -211,14 +282,14 @@
 	BootCommon::DetectDisks ();
 	boolean ret = BootCommon::Read ();
 	BootCommon::location
-	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
+	    = (string)SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
 	// check for meaningless EFI entry name in sysconfig
 	if ("mbr" == BootCommon::location || "" == BootCommon::location
 	    || nil == BootCommon::location)
 	{
 	    string efi_path = BootCommon::replaceAll (
 		getEliloConfSubpath (), "/", "\\");
-	    map efi_status = SCR::Execute (.target.bash_output, sformat (
+	    map efi_status = (map)SCR::Execute (.target.bash_output, sformat (
 		"/usr/sbin/efibootmgr |grep \"%1\"", efi_path));
 	    if (efi_status["exit"]:0 != 0)
 		BootCommon::location = Product::name;
@@ -280,10 +351,10 @@
 	", getEliloConfDir ()));
 
 	BootCommon::liloRemoveUnexistentSections (prefix, relative_prefix);
-        BootCommon::sections = maplist (`s, BootCommon::sections, ``{
-            string initrd = lookup_value (s, "initrd", "");
-            string title = lookup_value (s, "label", "");
-	    map intern = lookup_value (s, "__intern__", $[]);
+        BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+            string initrd = (string)lookup_value (s, "initrd", "");
+            string title = (string)lookup_value (s, "label", "");
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
 
             if ((type == "linux" || type == "failsafe")
@@ -318,9 +389,9 @@
       * Display bootloader summary
       * @return a list of summary lines
       */
-    global define list(string) Summary () ``{
+    global define list<string> Summary () ``{
 	// summary text, %1 is bootloader name (eg. LILO)
-	list(string) result = [ sformat (_("Boot loader type: %1"),
+	list<string> result = [ sformat (_("Boot loader type: %1"),
 	    BootCommon::getLoaderName (BootCommon::getLoaderType (false))) ];
 	if (BootCommon::location == "" || BootCommon::location == nil)
 	{
@@ -335,9 +406,10 @@
 		_("Create EFI Boot Manager Entry %1"),
                 BootCommon::location));
 	}
-        list(string) sects = [];
-        foreach (`s, BootCommon::sections, ``{
-            string title = lookup_value (s, BootCommon::getSectionTitle (), "");
+        list<string> sects = [];
+        foreach (list s, BootCommon::sections, ``{
+            string title = (string)
+		lookup_value (s, BootCommon::getSectionTitle (), "");
                 // section name "suffix" for default section
             string def = title == BootCommon::getDefaultSection ()
 		? _(" (default)")
@@ -420,143 +492,71 @@ fi", efi_label);
 	return ret;
     }
 
-
-// end of mandatory functions
-//----------------------------------------------------------------------------
-
-
     /**
-      * Create strings representing cfg. files for by-hand editation
-      * @return map filename -> contents
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
       */
-    global define map GetFiles() ``{
-        BootCommon::saveCfgFileToAgent ();
-        return $[
-            elilo_conf_filename : SCR::Read (.elilo.tostring),
-        ];
-    }
-
-    /**
-      * Store strings representing cfg. files to internal structures
-      * @param files map filename -> contents
-      */
-    global define void SetFiles (map files) ``{
-        if (SCR::Read (.elilo.tostring)
-	    != files[elilo_conf_filename]:"")
-	{
-            BootCommon::files_edited = true;
-	}
-        SCR::Write (.elilo.fromstring, files[elilo_conf_filename]:"");
-        BootCommon::loadCfgFileFromAgent ();
-    }
-
-    /**
-      * Create linux section
-      * @param title strign section title (linux, failsafe, memtest)
-      * @return section description structure
-      */
-    global define list createLinuxSection (string title) ``{
-	// not using .shipped images any more
-        string initrd = "initrd";
-        string image = "vmlinuz";
-        string append = title == "failsafe"
-            ? "ide=nodma"
-            : sformat ("%1 splash=silent", Kernel::cmdLine);
-	list (string) split = BootCommon::splitPath (initrd);
-	initrd = split[1]:initrd;
-	split = BootCommon::splitPath (image);
-	image = split[1]:image;
-        list ret = [
-            $[ "key" : "label", "value" : translateSectionTitle (title)],
-            $[ "key" : "image", "value" : image],
-            $[ "key" : "initrd", "value" : initrd],
-            $[ "key" : "root", "value" : BootCommon::dev2majmin (
-		BootCommon::RootPartitionDevice)],
-            $[ "key" : "append", "value" : append],
-            $[ "key" : "__intern__", "value" : $[
-                "auto" : true,
-                "changed" : false,
-                "devs" : [BootCommon::RootPartitionDevice],
-		"type" : title,
-            ]],
-        ];
-        if (Kernel::vgaType != "" && title != "failsafe")
-            ret = add (ret, $["key" : "vga", "value" : Kernel::vgaType]);
-        return ret;
-    }
-
-
-
-    /**
-      * Propose sections to bootloader menu
-      * modifies internal sreuctures
-      */
-    global define void createSections () ``{
-	BootCommon::sections = [ createLinuxSection ("linux"),
-	    createLinuxSection ("failsafe") ];
-    }
-
-    /**
-      * Fix sections of bootloader menu during proposal regeneration
-      * modifies internal sreuctures
-      */
-    global define void fixSections () ``{
-	BootCommon::liloFixSections (``(BootELILO::createSections ()));
-    }
-
-    /**
-      * Propose global options of bootloader
-      * modifies internal structures
-      */
-    global define void createGlobals () ``{
-	BootCommon::globals = [
-	    $[ "key" : "prompt", "value" : true ],
-	    $[ "key" : "timeout", "value" : 80 ],
-	    $[ "key" : "read-only", "value" : true ],
-	    $[ "key" : "relocatable", "value" : true ],
-	    $[ "key" : "default", "value" : "linux" ],
+    global define map GetFunctions () ``{
+	return $[
+	    "export"   : ``(BootELILO::Export ()),
+	    "import"   : ``(BootELILO::Import ()),
+	    "read"     : ``(BootELILO::Read ()),
+	    "reset"    : ``(BootELILO::Reset ()),
+	    "propose"  : ``(BootELILO::Propose ()),
+	    "save"     : ``(BootELILO::Save ()),
+	    "summary"  : ``(BootELILO::Summary ()),
+	    "update"   : ``(BootELILO::Update ()),
+	    "write"    : ``(BootELILO::Write ()),
+	    "getfiles" : ``(BootELILO::GetFiles ()),
+	    "setfiles" : ``(BootELILO::SetFiles ()),
 	];
     }
 
     /**
-      * Update sections of bootloader menu
-      * modifies internal sreuctures
-      * @param replace boolean true if old sectinos shall be replaced
+      * Initializer of LILO bootloader
       */
-    global define void updateSections (boolean replace) ``{
-	BootCommon::liloUpdateSections (replace);
-	BootCommon::sections = maplist (list s, BootCommon::sections, ``{
-	    s = maplist (map m, s, ``{
-		if (m["key"]:"" == "initrd")
-		{
-		    if (substring (m["value"]:"", 0, 7) == "/initrd")
-			m["value"] = "initrd";
-
-		}
-		if (m["key"]:"" == "image")
-		{
-		    if (substring (m["value"]:"", 0, 8) == "/vmlinuz")
-			m["value"] = "vmlinuz";
-
-		}
-		return m;
-	    });
-	    return s;
-	});
-// TODO maybe change the paths? Probably not needed, to be decised
+    global define void Initializer () ``{
+	y2milestone ("Called ELILO initializer");
+	BootCommon::current_bootloader_attribs = $[
+            "section_title" : "label",
+            "kernel_key" : "image",
+            "required_packages" : ["elilo"],
+            "loader_name" : "ELILO",
+            "default_key" : "default",
+            "default_type" : `label,
+            "timeout_multiplier" : 10,
+            "alias_keys" : ["alias"],
+	    "convert_function" : ``(BootCommon::convertSection ()),
+            "kernel_params" : $[
+                "vga" : "vga",
+                "root" : "root",
+                `other : "append",
+            ],
+            "propose" : true,
+            "read" : true,
+            "scratch" : true,
+            "restore_mbr" : false,
+            "key_only_once" : true,
+	    "bootloader_on_disk" : false,
+	    "option_list" : GetOptions (),
+	];
+	BootCommon::cwm_options = union (
+	    BootCommon::GetOptionMaps (),
+	    BootELILO::GetOptionMaps ());
+	BootCommon::cwm_widgets = union (
+	    BootCommon::GetWidgetMaps (),
+	    BootELILO::GetWidgetMaps ());
     }
 
     /**
-      * Update global options of bootloader
-      * modifies internal sreuctures
+      * Constructor
       */
-    global define void updateGlobals () ``{
-	BootCommon::globals = maplist (`e, BootCommon::globals, ``{
-	    if (e["key"]:"" == "timeout")
-		e["value"] = 80;
-	    return e;
-	});
+    global define void BootELILO () ``{
+        BootCommon::bootloader_attribs["elilo"] = $[
+            "required_packages" : ["elilo"],
+            "loader_name" : "ELILO",
+	    "initializer" : ``(BootELILO::Initializer()),
+        ];
     }
-
 
 }

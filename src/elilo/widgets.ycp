@@ -27,37 +27,8 @@
     import "TablePopup";
     include "bootloader/routines/popups.ycp";
 
-    /**
-      * Get map of dialogs and widgets
-      * @return map of dialogs and widgets
-      */
-    global define map GetWidgetMaps () ``{
-	return $[
-	    "globalsection" : getGlobalSectionWidget (),
-	];
-    }
-
-    /**
-      * Get map of all available Table/Popup options
-      * @return map of options
-      */
-    global define map GetOptionMaps () ``{
-	return $[
-	    "__location"	: getTargetOption (),
-        ];
-    }
 
 // Global section widget
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getGlobalSectionWidget () ``{
-	map ret = BootCommon::getGlobalSectionWidget ();
-	ret["ids"] = ``(BootELILO::getTableContents ());
-	return ret;
-    }
 
     /**
       * Create a list of options for the table
@@ -82,34 +53,17 @@
 	    prependlist, forbidden_keys, true);
     }
 
-// Bootloader target widget
-
     /**
-      * Get map of Target widget
-      * @return map of Target widget
+      * Get map of widget
+      * @return map of widget
       */
-    global define map getTargetOption () ``{
-	return $[
-	    "table" : $[
-		// table cell / label
-		"label" : _("Boot Loader Location"),
-		"summary" : ``(BootELILO::targetSummary ()),
-		"optional" : false,
-		"ordering" : false,
-		"unique_key" : true,
-	    ],
-	    "popup" : $[
-		"widget" : `func,
-		"widget_func" : ``(BootELILO::getTargetWidget ()),
-		"init" : ``(BootELILO::targetInit ()),
-		"handle" : ``(BootELILO::targetHandle ()),
-		"store" : ``(BootELILO::targetStore ()),
-//		"help" : getLocationsHelp (),
-		"validate" : ``(BootELILO::targetValidate ()),
-
-	    ],
-	];
+    global define map getGlobalSectionWidget () ``{
+	map ret = BootCommon::getGlobalSectionWidget ();
+	ret["ids"] = ``(BootELILO::getTableContents ());
+	return ret;
     }
+
+// Bootloader target widget
 
     /**
       * Get widget term
@@ -180,13 +134,18 @@
       */
     global define void targetStore (any opt_id, any opt_key) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
-	BootCommon::location = UI::QueryWidget (`id (`location), `Value);
+	BootCommon::location = (string)
+	    UI::QueryWidget (`id (`location), `Value);
 	if (have_old)
-	    remove_old_efi = UI::QueryWidget (`id (`remove_old), `Value);
+	{
+	    remove_old_efi = (boolean)
+		UI::QueryWidget (`id (`remove_old), `Value);
+	}
 	BootCommon::location_changed = true;
-	create_efi_entry = UI::QueryWidget (`id (`create_entry), `Value);
+	create_efi_entry = (boolean)
+	    UI::QueryWidget (`id (`create_entry), `Value);
 	BootCommon::location_changed = true;
-	BootCommon::markGeneralOptionChanged (opt_key);
+	BootCommon::markGeneralOptionChanged ((string)opt_key);
     }
 
     /**
@@ -219,6 +178,55 @@
 	    return sformat (_("Create EFI Boot Manager Entry %1"),
 		BootCommon::location);
 	}
+    }
+
+    /**
+      * Get map of Target widget
+      * @return map of Target widget
+      */
+    global define map getTargetOption () ``{
+	return $[
+	    "table" : $[
+		// table cell / label
+		"label" : _("Boot Loader Location"),
+		"summary" : ``(BootELILO::targetSummary ()),
+		"optional" : false,
+		"ordering" : false,
+		"unique_key" : true,
+	    ],
+	    "popup" : $[
+		"widget" : `func,
+		"widget_func" : ``(BootELILO::getTargetWidget ()),
+		"init" : ``(BootELILO::targetInit ()),
+		"handle" : ``(BootELILO::targetHandle ()),
+		"store" : ``(BootELILO::targetStore ()),
+//		"help" : getLocationsHelp (),
+		"validate" : ``(BootELILO::targetValidate ()),
+
+	    ],
+	];
+    }
+
+// general functions
+
+    /**
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
+      */
+    global define map GetWidgetMaps () ``{
+	return $[
+	    "globalsection" : getGlobalSectionWidget (),
+	];
+    }
+
+    /**
+      * Get map of all available Table/Popup options
+      * @return map of options
+      */
+    global define map GetOptionMaps () ``{
+	return $[
+	    "__location"	: getTargetOption (),
+        ];
     }
 
 }
