@@ -24,6 +24,7 @@
         "target" : $[
             "size" : -1,
             "tmpdir" : "/tmp/",
+	    "yast2" : nil,
         ],
         "probe" : $[
             "architecture" : "i386",
@@ -47,6 +48,10 @@
                 "CONSOLE_UNICODEMAP" : "",
                 "CONSOLE_MAGIC" : "",
                 "CONSOLE_ENCODING" : "",
+            ],
+            "language" : $[
+                "RC_LANG" : "",
+                "DEFAULT_LANGUAGE" : "",
             ],
         ],
         "etc" : $[
