@@ -42,7 +42,7 @@
 	    "s390"  : BootS390::GetFunctions,
 	    "ppc"   : BootPPC::GetFunctions
 	];
-	map () gf = (map())(bl_functions[bootloader]:nil);
+	map<string,any> () gf = (map<string,any>())(bl_functions[bootloader]:nil);
 	if (gf == nil)
 	{
 	    y2warning ("No bootloader-specific functions specified");
