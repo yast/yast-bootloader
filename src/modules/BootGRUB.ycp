@@ -1074,7 +1074,7 @@
 	    }
 	    if (! grub_ret)
 	    {
-		y2error ("Exit code of grub installation: %2", exit["exit"]:-1);
+		y2error ("Exit code of grub installation: %1", exit["exit"]:-1);
 		string log = (string)SCR::Read (.target.string,
 		    "/var/log/YaST2/y2loggrub");
 		log = log + exit["stdout"]:"" + exit["stderr"]:"";
