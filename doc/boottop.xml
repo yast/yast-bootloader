@@ -55,6 +55,8 @@
 			    calls the bootloader installed (eg. lilo).</para></listitem>
 			<listitem><para><computeroutput>"forbid_save_initrd" : boolean</computeroutput> forbids (if true) or allows (if false) saving and creating initrd. Doesn't affect function
 			    Initrd::Write, only avoids calling this function from Bootloader::Write. Default is false.</para></listitem>
+			<listitem><para><computeroutput>"save_all" : boolean</computeroutput> if true forces saving of all bootloader settings, including recreating initrd, saving
+			    bootloader configuration file(s) and calling required executable. The process is the same as during installation.</para></listitem>
 		    </itemizedlist>
 		</para></listitem>
             </itemizedlist>

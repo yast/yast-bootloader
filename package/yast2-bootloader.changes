@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar  3 12:51:51 CET 2003 - jsrain@suse.de
+
+- added possibility to force complete bootloader save (not save
+  only if settings have changed - no UI change, only for other
+  modules that need it)
+
+-------------------------------------------------------------------
 Fri Feb 28 11:04:26 CET 2003 - jsrain@suse.de
 
 - updated the detection of changes of settings (#24422)
