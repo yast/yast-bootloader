@@ -175,9 +175,11 @@
 
 	BootCommon::sections = filter (`s, BootCommon::sections, ``{
 	    string label = lookup_value (s, "label", "");
+	    map intern = lookup_value (s, "__intern__", $[]);
+	    string type = intern["type"]:"";
             if (label == "")
                 return false;
-	    if (! contains (["linux", "failsafe", "memtest86"], label))
+	    if (! contains (["linux", "failsafe", "memtest86"], type))
 		return true;
 
 	    string kernel = lookup_value (s, "image", "");
@@ -188,23 +190,25 @@
 	    return true;
 	});
         BootCommon::sections = maplist (`s, BootCommon::sections, ``{
-            string initrd = lookup_value ("initrd", "");
+            string initrd = lookup_value (s, "initrd", "");
 	    string title = lookup_value (s, "label", "");
+	    map intern = lookup_value (s, "__intern__", $[]);
+	    string type = intern["type"]:"";
             if (initrd != "")
             {
                 if (-1 == SCR::Read (.target.size, initrd))
 		    s = modify_section (s, "initrd", nil);
             }
-            else if ((title == "linux" || title == "failsafe")
+            else if ((type == "linux" || type == "failsafe")
 		&& BootCommon::write_settings["insert_initrd"]:false)
             {
-                if (title == "linux")
+                if (type == "linux")
                     initrd = "/boot/initrd";
                 else
                     initrd = "/boot/initrd.shipped";
 		s = modifySection (s, "initrd", initrd);
             }
-            if (title == "linux" && s["append"]:nil != nil
+            if (type == "linux" && lookup_value (s, "append", nil) != nil
 		&& Mode::initial)
 	    {
 		s = modifySection (s, "append", BootCommon::updateKernelParams (
@@ -287,11 +291,12 @@
 	  {
 	    return [
 		$[ "key" : "image", "value" : "/boot/memtest.bin"],
-		$[ "key" : "label", "value" : "memtest86"],
+		$[ "key" : "label", "value" : translateSectionTitle (title)],
 		$[ "key" : "__intern__", "value" : $[
 		    "auto" : true,
 		    "changed" : false,
 		    "devs" : [],
+		    "type" : "memtest86",
 		]],
 	    ];
 	  }
@@ -306,7 +311,7 @@
 	      + "maxcpus=0 3"
 	    : sformat ("%1 splash=silent", Kernel::cmdLine);
 	list ret = [
-	    $[ "key" : "label", "value" : title],
+	    $[ "key" : "label", "value" : translateSectionTitle (title)],
 	    $[ "key" : "image", "value" : "/boot/" + image],
 	    $[ "key" : "initrd", "value" : "/boot/" + initrd],
 	    $[ "key" : "root", "value" : BootCommon::dev2majminIfNonStandard (
@@ -315,7 +320,8 @@
 	    $[ "key" : "__intern__", "value" : $[
 		"auto" : true,
 		"changed" : false,
-		"devs" : [BootCommon::RootPartitionDevice]
+		"devs" : [BootCommon::RootPartitionDevice],
+		"type" : title,
 	    ]],
 	];
 	if (Kernel::vgaType != "" && title != "failsafe")

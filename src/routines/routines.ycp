@@ -149,5 +149,63 @@
 	return section;
     }
 
+    /**
+      * Create translated name of a section
+      * @param original section name
+      * @return translated section name
+      */
+    global define string translateSectionTitle (string orig) ``{
+        map trans = $[
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "linux" : _("Linux"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "failsafe" : _("Failsafe"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "floppy" : _("Floppy"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "hard disk" : _("Hard disk"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "memtest86" : _("Memory test"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "original MBR" : _("MBR before installation"),
+        ];
+	string translated = trans[orig]:orig;
+	string filtered = filterchars (translated, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _");
+	if (size (filtered) != size (translated))
+	{
+	    y2error ("Incorrect translation %1 -> %2", orig, translated);
+	    return orig;
+	}
+	if (BootCommon::getLoaderType (false) != "grub")
+	{
+	    filtered = BootCommon::replaceAll (filtered, " ", "_");
+	    if (size (filtered) > 15)
+		filtered = substring (filtered, 0, 15);
+	}
+	return filtered;
+    }
+
+    /**
+      * Get creator type of the section
+      * @param section map section description structure
+      * @return string section type
+      */
+    global define string getCreationType (list section) ``{
+	map intern = lookup_value (section, "__intern__", $[]);
+	return intern["type"]:"";
+    }
+
 
 }

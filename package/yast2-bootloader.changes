@@ -2,6 +2,8 @@
 Tue Jul 29 08:28:53 CEST 2003 - jsrain@suse.de
 
 - added possibility to clone selected bootloader section (#26458)
+- fixed creation of lilo.conf - quotes were missing
+- entries to bootloader are to be translated (#26800)
 
 -------------------------------------------------------------------
 Wed Jul 23 09:04:04 CEST 2003 - jsrain@suse.de
