@@ -378,6 +378,12 @@
      */
     global define list<string> getPartitionList(symbol type) ``{
 	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
+	list<map> partitions = [];
+	foreach (string k, map v, devices, ``{
+	    partitions = (list<map>)merge (partitions, (list<map>)(v["partitions"]:[]));
+	});
+	list<string> floppies = getFloppyDevices ();
+
 	devices = filter (string k, map v, devices,
 	    ``(! v["is_lvm_vg"]:false));
 	if (type == `boot || type == `boot_other)
@@ -389,12 +395,6 @@
 	    ));
 	}
 	list<string> all_disks = (list<string>) maplist (string k, map v, devices, ``(k));
-	list<map> partitions = [];
-	foreach (string k, map v, devices, ``{
-	    partitions = (list<map>)merge (partitions, (list<map>)(v["partitions"]:[]));
-	});
-	list<string> floppies = getFloppyDevices ();
-
 
 	if (type == `deleted)
 	    return maplist (map x, filter (map p, partitions, ``(p["delete"]:false)),
@@ -405,16 +405,13 @@
 	if (type == `boot_other || type == `root || type == `parts_old)
             ret = [];
 
-	if (type == `boot_other)
-	{
-	    partitions = filter (map p, partitions,
-		``(p["type"]:`primary == `primary));
-	}
-        else if (type == `boot)
+	if (type == `boot)
         {
-            partitions = filter (map p, partitions,
+	    partitions = filter (map p, partitions,
                 ``(p["type"]:`primary == `primary
-		    || p["type"]:`primary == `extended));
+		    || p["type"]:`primary == `extended
+		    || p["type"]:`primary == `logical
+		    || p["type"]:`primary == `sw_raid));
 	    // FIXME this checking is performed on 3 places, one function should
 	    // be developed for it
 	    partitions = filter (map p, partitions, {
@@ -442,7 +439,9 @@
 	{
 	    partitions = filter (map p, partitions,
                 ``(p["fstype"]:"" == "Linux native"
-                    || p["fstype"]:"" == "Extended"));
+                    || p["fstype"]:"" == "Extended"
+		    || p["fstype"]:"" == "Linux RAID"
+		    || p["fstype"]:"" == "MD Raid"));
 	}
         list<string>partition_names
 	    = maplist (map p, partitions, ``((string)(p["device"]:"")));
@@ -807,13 +806,13 @@
         if (BootCommon::location == "mbr")
             return BootCommon::mbrDisk;
         if (BootCommon::location == "boot")
-            return BootCommon::getDeviceOfRaid (
-		BootCommon::BootPartitionDevice);
+	    return BootCommon::BootPartitionDevice;
         if (BootCommon::location == "root")
-            return BootCommon::getDeviceOfRaid (
-		BootCommon::RootPartitionDevice);
+	    return  BootCommon::RootPartitionDevice;
         if (BootCommon::location == "floppy")
             return StorageDevices::FloppyDevice;
+        if (BootCommon::location == "mbr_md")
+	    return "mbr_md";
 	if (BootCommon::location == "none")
 	    return "/dev/null";
         return BootCommon::loader_device;

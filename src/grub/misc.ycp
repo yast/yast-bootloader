@@ -147,6 +147,8 @@
      * @return string grub device
      */
     global define string unixDev2grubDev (string o_dev) ``{
+	if (o_dev != nil && o_dev != "" && regexpmatch (o_dev, "^\\(.*\\)$"))
+	    return o_dev;
 	// md can't be translated as they are, use one of partitions
 	if (regexpmatch (o_dev, "\/dev\/md[0-9]+"))
 	{
@@ -181,6 +183,8 @@
       * @return string UNIX device
       */
     global define string grubDev2unixDev (string o_dev) ``{
+	if (o_dev != nil && o_dev != "" && ! regexpmatch (o_dev, "^\\(.*\\)$"))
+	    return o_dev;
 	string number = "";
 	if (o_dev == nil)
 	    return o_dev;
@@ -288,6 +292,7 @@
 	list<string> lines = splitstring (file, "\n");
 	lines = filter (string l, lines, ``(l != ""));
 	map<string,string> settings = $[];
+	list<string> devices = [];
 	string root = "";
 	foreach (string l, lines, ``{
 	    list<string> entries = splitstring (l, " ");
@@ -318,7 +323,8 @@
 		    integer shift2 = 2 + shift;
 	            tmp = entries[shift2]:"";
 	        }
-	        settings = add (settings, "device", tmp);
+		devices = add (devices, tmp);
+	        settings = add (settings, "device", grubDev2unixDev (tmp));
 		integer shift3 = 3 + shift;
 	        tmp = entries[shift3]:"";
 	        settings = add (settings, "stage2", tmp);
@@ -333,6 +339,59 @@
 	    }
 	    settings = add (settings, "root", root);
 	});
+
+	// MD devices handling
+	if (size (devices) > 1)
+	{
+	    list<string> boot_devices = sort (maplist (string d, devices, {
+		return grubDev2unixDev (d);
+	    }));
+	    string use_device = "";
+	    // first check all MD arrays
+	    map<string,map> tm = Storage::GetTargetMap ();
+	    list<string> md = maplist (map m, tm["/dev/md", "partitions"]:[], {
+		return m["device"]:"";
+	    });
+	    if (Mode::test)
+		md = ["/dev/md0"];
+	    find (string md_disk, md, {
+		list<string> md_members = sort (maplist (
+		    string s,
+		    integer id,
+		    BootCommon::Md2Partitions (md_disk),
+		{
+		    return s;
+		}));
+		if (Mode::test)
+		    md_members = ["/dev/hda1", "/dev/hdb1"];
+		if (md_members == boot_devices)
+		{
+		    use_device = md_disk;
+		    return true;
+		}
+		return false;
+	    });
+	    // check MBRs of all disks holding /boot partition
+	    if (use_device == "")
+	    {
+		map<string,integer> boot_md
+		    = BootCommon::Md2Partitions (
+			BootCommon::BootPartitionDevice);
+		if (Mode::test)
+		    boot_md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+		list<string> md_disks = maplist (string d, integer b, boot_md, {
+		    map p_dev = Storage::GetDiskPartition (d);
+		    return p_dev["disk"]:"";
+		});
+		md_disks = sort (md_disks);
+		if (boot_devices == md_disks)
+		{
+		    use_device = "mbr_md";
+		}
+	    }
+	    if (use_device != "")
+		settings["device"] = use_device;
+	}
 	return settings;
     }
 
@@ -353,18 +412,55 @@
       * @return string file contents
       */
     global define string getGrubConf (map<string,string> settings) ``{
-	string res = "";
 	string root = sformat ("root %1\n", settings["root"]:"");
-	res = sformat (settings["discswitch"]:"" == "d"
-	    ? "install %6 %1 d %2 %3 %4 %5"
-	    : "install %6 %1 %2 %3 %4 %5",
-	        settings["stage1"]:"",
-	        settings["device"]:"",
-	        settings["stage2"]:"",
-	        settings["addr"]:"",
-	        settings["menu"]:"",
-		settings["prefix"]:"");
-	res = sformat ("%1%2\nquit\n", root, res);
+	string dev = settings["device"]:"";
+	list<string> devices = [];
+	boolean remap = false;
+	if (dev == "mbr_md")
+	{
+	    dev = BootCommon::BootPartitionDevice;
+	    map<string,integer> md =  BootCommon::Md2Partitions (dev);
+	    if (Mode::test)
+		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+	    devices = maplist (string d, integer b, md, {
+		map p_dev = Storage::GetDiskPartition (d);
+		return p_dev["disk"]:"";
+	    });
+	    remap = true;
+	}
+	else if (regexpmatch (dev, "^\\/dev\\/md.*$"))
+	{
+	    map<string,integer> md =  BootCommon::Md2Partitions (dev);
+	    if (Mode::test)
+		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+	    devices = maplist (string d, integer b, md, { return d;});
+	    remap = true;
+	}
+	else
+	{
+	    devices = [dev];
+	}
+	devices = maplist (string d, devices, {
+	    return unixDev2grubDev (d);
+	});
+	devices = filter (string d, devices, {
+	    return d != "" && d != nil && d != "(null)" && d != "/dev/null";
+	});
+	list<string> lines = maplist (string d, devices, {
+	    string line = sformat (settings["discswitch"]:"" == "d"
+		? "install %6 %1 d %2 %3 %4 %5"
+		: "install %6 %1 %2 %3 %4 %5",
+		    settings["stage1"]:"",
+		    d,
+		    settings["stage2"]:"",
+		    settings["addr"]:"",
+		    settings["menu"]:"",
+		    settings["prefix"]:"");
+	    return line;
+	});
+	string res = sformat ("%1%2\nquit\n",
+	    root,
+	    mergestring (lines, "\n"));
 	return res;
     }
 
@@ -391,7 +487,7 @@
 	    "discswitch" : "d",
 	    "root" : stage1[0]:"",
 	    "stage1" : stage1[1]:"",
-	    "device" : unixDev2grubDev(BootCommon::loader_device),
+	    "device" : BootCommon::loader_device,
 	    "stage2" : stage2[1]:"",
 	    "addr" : "0x8000",
 	    "menu" : file2grub ("/boot/grub/menu.lst"),
