@@ -93,7 +93,7 @@ error () {
 }
 
 get_device () {
-  x1=`mount 2>/dev/null | grep "on $1 "`
+  x1=`mount 2>/dev/null | grep "on $1 " | | egrep -v "^rootfs|^/dev/root"`
   x2=`echo \`echo "$x1" | wc -l\``
   x3=`echo "$x1" | cut -f 1 -d " "`
 
