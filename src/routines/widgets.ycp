@@ -158,7 +158,7 @@
 	}
 	else
 	{
-	    prependlist = ["label", "__section_type", "__sep1"];
+	    prependlist = [getSectionTitle (), "__section_type", "__sep1"];
 	}
 	return createSectionItemsList (prependlist, forbidden_keys, true);
     }
@@ -208,13 +208,14 @@
     global define void sectionsRedrawTable (list sects) ``{
 	boolean elilo = getLoaderType (false) == "elilo";
 	list sec = maplist (list<map> s, sects, ``{
-	    string image = (string)lookup_value (s, "image", nil);
+	    string image = (string)lookup_value (s,  getKernelKey (), nil);
 	    string root = (string)lookup_value (s, "root", "");
-            return `item (`id (lookup_value (s, "label", "")),
+            return `item (`id (lookup_value (s, getSectionTitle (), "")),
                 tolower ((string)lookup_value (current_globals, "default", ""))
-			== tolower ((string)lookup_value (s, "label", ""))
+			== tolower ((string)lookup_value (
+			    s, getSectionTitle (), ""))
                     ? UI::Glyph (`CheckMark) : "",
-                (string)lookup_value (s, "label", ""),
+                (string)lookup_value (s, getSectionTitle (), ""),
                 image == nil ? _("other") : _("image"),
                 (image != "" && image != nil)
                 ? sformat ("%1   (%2%3)",
@@ -259,7 +260,7 @@
 	integer counter = 0;
 	integer index = 0;
 	foreach (list<map> s, BootCommon::current_sections, ``{
-	    if ((string)lookup_value (s, "label", "") == current)
+	    if ((string)lookup_value (s, getSectionTitle (), "") == current)
 		index = counter;
 	    counter = counter + 1;
 	});
@@ -273,7 +274,7 @@
 		BootCommon::current_sections = sects;
 		sectionsRedrawTable (sects);
 		UI::ChangeWidget (`id (`sects), `CurrentItem,
-		    lookup_value (sects[index]:[], "label", 0));
+		    lookup_value (sects[index]:[], getSectionTitle (), 0));
 		BootCommon::sections_changed = true;
 	    }
 	}
@@ -286,7 +287,7 @@
 		BootCommon::current_sections = sects;
 		sectionsRedrawTable (sects);
 		UI::ChangeWidget (`id (`sects), `CurrentItem,
-		    lookup_value (sects[index]:[], "label", 0));
+		    lookup_value (sects[index]:[], getSectionTitle (), 0));
 		BootCommon::sections_changed = true;
 	    }
 	}
@@ -324,7 +325,7 @@
 	    y2milestone ("Editing title %1, index %2", current, index);
 	    BootCommon::current_section = (list<map>)eval (sects[index]:[]);
 	    BootCommon::current_section_name
-		= (string)lookup_value (sects[index]:[], "label", "");
+		= (string)lookup_value (sects[index]:[], getSectionTitle (),"");
 	    BootCommon::one_section_changed = false;
 	    return `edit;
 	}
@@ -335,7 +336,7 @@
 		"default", ""))
 	    {
 		addValueToBootloaderSection (`current_globals, "default",
-		    lookup_value (sects[0]:[], "label", ""));
+		    lookup_value (sects[0]:[], getSectionTitle (), ""));
 	    }
 	    BootCommon::current_sections = sects;
 	    sectionsRedrawTable (sects);

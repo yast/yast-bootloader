@@ -160,6 +160,19 @@
       */
     global define string targetSummary (any opt_id, any opt_key) ``{
 	map targetMap = Storage::GetTargetMap ();
+	if (loader_device == "")
+	{
+	    if (location == "mbr")
+		// table item
+		return _("Master boot record of primary disk");
+	    if (location == "boot")
+		// table item
+                return _("Boot sector of boot partition");
+	    if (location == "root")
+		// table item
+                return _("Boot sector of root partition");
+	    return location;
+	}
 	map boot_target = targetMap[loader_device]:$[];
 	string target_name = "";
 	if (boot_target == $[])

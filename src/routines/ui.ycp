@@ -273,6 +273,7 @@ Proceed?
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSectionsDialog () ``{
+	y2milestone ("Running sections dialog");
         list<map> widgets = CWM::CreateWidgets (["sections"],
 	    BootCommon::cwm_widgets);
         term contents = `HBox (`HSpacing (1), `VBox (
@@ -294,6 +295,7 @@ Proceed?
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSingleSectionDialog () ``{
+	y2milestone ("Running single section dialog");
 	list<map> widgets = CWM::CreateWidgets (["singlesection"],
 	    BootCommon::cwm_widgets);
         term contents = `HBox (`HSpacing (1), `VBox (
@@ -315,6 +317,7 @@ Proceed?
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSummaryDialog () ``{
+	y2milestone ("Running summary dialog");
 	list<map> widgets = CWM::CreateWidgets (["globalsection", "resetbutton",
 	    "manual_edit_button"], BootCommon::cwm_widgets);
         term contents = `HBox (`HSpacing (1), `VBox (

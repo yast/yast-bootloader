@@ -31,6 +31,8 @@
       * @return map of function
       */
     global define map getFunctions (string bootloader) ``{
+	if (bootloader == nil || bootloader == "")
+	    return $[];
 	map bl_functions = $[
 	    "lilo"  : BootLILO::GetFunctions,
 	    "grub"  : BootGRUB::GetFunctions,
@@ -41,6 +43,11 @@
 	    "ppc"   : BootPPC::GetFunctions
 	];
 	map () gf = (map())(bl_functions[bootloader]:nil);
+	if (gf == nil)
+	{
+	    y2warning ("No bootloader-specific functions specified");
+	    return $[];
+	}
 	return gf();
     }
 
