@@ -5,7 +5,6 @@ Read	.probe.has_smp false
 Read	.probe.system []
 Read	.proc.cpuinfo.value."0"."flags" ""
 Read	.probe.memory []
-Read	.probe.cpu []
 Read	.probe.floppy.manual []
 Read	.probe.cdrom.manual []
 Read	.sysconfig.console.CONSOLE_ENCODING ""

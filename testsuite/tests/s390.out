@@ -6,7 +6,6 @@ Read	.probe.has_smp false
 Read	.probe.system []
 Read	.proc.cpuinfo.value."0"."flags" ""
 Read	.probe.memory []
-Read	.probe.cpu []
 Read	.sysconfig.console.CONSOLE_ENCODING ""
 Execute	.target.bash_output "locale -k charmap" $[]
 Read	.target.tmpdir "/tmp/"
