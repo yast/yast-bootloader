@@ -106,8 +106,6 @@
 
 	if (size(ayinitrd) > 0 )
 		ret["initrd_modules"] = ayinitrd;
-
-	ret = filter (`k, `v, ret, ``(k != "changed_settings"));
     }
     /**
       * Write configuration data

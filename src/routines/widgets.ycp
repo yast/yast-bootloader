@@ -279,27 +279,24 @@
 	}
 	else if (save)
 	{
+	    string password = nil;
 	    boolean usepass = UI::QueryWidget (`id (`usepas), `Value);
 	    y2milestone ("Usepass: %1", usepass);
 	    if (usepass)
 	    {
 		if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
 		{
-		    string password = UI::QueryWidget (`id (`pw1), `Value);
+		    password = UI::QueryWidget (`id (`pw1), `Value);
 		    if (haskey (BootCommon::current_bootloader_attribs,
 			"update_passwd"))
 		    {
 			eval (BootCommon::current_bootloader_attribs[
 			    "update_passwd"]:nil);
 		    }
-		    current_section["password"] = password;
 		}
 	    }
-	    else if (haskey (current_section, "password"))
-	    {
-		current_section
-		    = remove (current_section, "password");
-	    }
+	    current_section = modifySection (current_section, "password",
+		password);
 	}
 	return nil;
     }
@@ -331,7 +328,7 @@
       * @return string summary text
       */
     global define string getPasswdSummary () ``{
-	if (BootCommon::current_section["password"]:nil != nil)
+	if (lookup_value (BootCommon::current_section, "password", nil) != nil)
 		// table cell
 	    return _("Password will be needed");
 	else
@@ -475,7 +472,6 @@
 	    BootCommon::current_section = BootCommon::convertSection
 		(nil, "image", nil);
 	    BootCommon::current_section_name = "";
-	    BootCommon::changed_settings[""] = $[];// FIXME this is wrong due to name and "current" variable
 	    BootCommon::one_section_changed = true;
 	}
 	else if (op == `edit)
@@ -484,10 +480,6 @@
 	    BootCommon::current_section = eval (sects[index]:$[]);
 	    BootCommon::current_section_name
 		= lookup_value (sects[index]:[], "label", "");
-// FIXME
-//	    BootCommon::changed_settings_single_sect
-//		= eval (BootCommon::changed_settings[sects[index, "label"]:""]:$[]);
-	    y2milestone ("Changed settings: %1", BootCommon::changed_settings_single_sect);
 	    BootCommon::one_section_changed = false;
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
@@ -513,9 +505,6 @@
 	}
 	if (op == `back)
 	{
-	    BootCommon::changed_settings
-		= eval (BootCommon::changed_settings_all_sections);
-	    y2milestone ("Restoring changed to %1", BootCommon::changed_settings);
 	}
 	UI::SetFocus (`id (`sects));
 	return nil;
@@ -619,8 +608,8 @@
 
     /**
       * Update list of options to display in current section
-      * @param _options list of all options (including order)
-      * @return list of options as should bve displayed
+      * @param _options list of all options
+      * @return list of options as it should be displayed
       */
     global define list UpdateOptionsList (list _options) ``{
 	list prependlist = [];
@@ -808,7 +797,7 @@
     global define void sectionTypeRestore () ``{
 	string key = BootCommon::getKernelKey ();
         UI::ChangeWidget (`id (`section_type), `Value,
-	    BootCommon::current_section[key]:nil == nil
+	    lookup_value (BootCommon::current_section, key, nil) == nil
 		? "other"
 		: "image");
 	UI::SetFocus (`id (`section_type));
@@ -975,7 +964,8 @@
       * Restore function of widget
       */
     global define void timeoutRestore () ``{
-	integer timeout = BootCommon::current_section["timeout"]:0;
+	integer timeout = lookup_value (BootCommon::current_section,
+	    "timeout", 0);
 	UI::ChangeWidget (`id (`value), `Value,
 	    timeout / BootCommon::getTimeoutMultiplier ());
 	UI::SetFocus (`id (`value));
@@ -992,7 +982,8 @@
 	    return nil;
 	integer timeout = UI::QueryWidget (`id (`value), `Value)
 	    * BootCommon::getTimeoutMultiplier ();
-	BootCommon::current_section["timeout"] = timeout;
+	BootCommon::current_section = modifySection (
+	    BootCommon::current_section, "timeout", timeout);
 	return nil;
     }
 
@@ -1029,9 +1020,12 @@
 	list(string) existing = [];
 	list(string) aliases = BootCommon::getAliasesKeys ();
 	foreach (`s, BootCommon::current_sections, ``{
-	    existing = add (existing, s[BootCommon::getSectionTitle ()]:"");
-	    foreach (`a, aliases, ``{
-		existing = add (existing, s[a]:"");
+	    foreach (`e, s, ``{
+		if (e["key"]:"" == BootCommon::getSectionTitle ()
+		    || contains (aliases, e["key"]:""))
+		{
+		    existing = add (existing, e["value"]:"");
+		}
 	    });
 	});
 	existing = filter (string l, existing,
@@ -1185,8 +1179,8 @@
       * Delete function of widget
       */
     global define void deleteMessage () ``{
-	BootCommon::current_section = remove
-	    (BootCommon::current_section, "__intern__");
+	BootCommon::current_section = filter (`e, BootCommon::current_section,
+	    ``(e["key"]:"" != "__intern__"));
     }
 
 } // include end

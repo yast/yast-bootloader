@@ -54,11 +54,25 @@
         return ret;
     }
 
+    /**
+      * Append key with appropriate value to the end of the section
+      * @param section list section list
+      * @param key string key name
+      * @param value any value to specified key
+      * @return list modified section
+      */
     global define list appendValue (list section, string key, any value) ``{
-	map m = $[ "key" : key, "value" : value];
+	map m = $[ "key" : key, "value" : value, "changed" : true];
 	return add (section, m);
     }
 
+    /**
+      * Lookup at value of entry with specified index in the section
+      * @param section list section list
+      * @param index integer index of entry in section
+      * @param default any to be returned if specified entry not present
+      * @return any value of specified entry of PPD file
+      */
     global define any lookupValueByIndex (list section, integer index,
 	any default)
     ``{
@@ -66,20 +80,74 @@
 	return section[index, "value"]:default;
     }
 
-    global define list setValueByIndex (list section, integer index,
+    /**
+      * Set value to the section
+      * @param section list representing bootloader section
+      * @param index index of the value, -1 = unknown, -2 = new option
+      * @param key string option key
+      * @param value any option value
+      * @return list updated bootloader section
+      */
+    global define list setValueByIndex (list section, integer index, string key,
 	any value)
     ``{
 	if (index < 0)
 	{
-	    // TODO
-	    y2error ("Not yet implemented");
+	    if (index == -1)
+	    {
+		return modifySection (section, key, value);
+	    }
+	    else if (index == -2)
+	    {
+		return appendValue (section, key, value);
+	    }
+	    y2error ("Incorrect index");
 	    return section;
 	}
 	else
 	{
 	    section[index, "value"] = value;
+	    section[index, "changed"] = true;
 	    return section;
 	}
 
     }
+
+    /**
+      * Replace first occurence of option with specified value,
+      *   remove other occurences, add if no occurence present
+      * @param section list of section to be changed
+      * @param key string key of requested parameter
+      * @param value any value to be set, nil for removing key
+      * @return list modified section
+      */
+    global define list modifySection (list section, string key, any value) ``{
+	boolean found = false;
+        section = filter (`cc,
+            maplist (`c, section, ``{
+                if (c["key"]:"" == key)
+                {
+		    found = true;
+                    if (value == nil)
+                        return nil;
+                    else
+                    {
+                        c["value"] = value;
+			c["changed"] = true;
+			value = nil;
+                        return c;
+                    }
+                }
+                return c;
+            }), ``(cc != nil && cc["value"]:"" != nil)
+        );
+	if (! found && value != nil)
+	{
+	    section = add (section, $[ "key" : key, "value" : value,
+		"changed" : true]);
+	}
+	return section;
+    }
+
+
 }

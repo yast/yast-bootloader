@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Wed Apr 30 15:01:33 CEST 2003 - jsrain@suse.de
+Mon May  5 16:38:39 CEST 2003 - jsrain@suse.de
 
-- updated internal structures and related functions
+- updated and optimized some internal structures and related
+  functions
 
 -------------------------------------------------------------------
 Thu Apr 24 11:19:57 CEST 2003 - jsrain@suse.de

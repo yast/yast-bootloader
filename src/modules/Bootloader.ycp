@@ -64,7 +64,6 @@
 	    "loader_type" : getLoaderType (),
 	    "initrd" : Initrd::Export (),
 	    "specific" : blExport (),
-	    "changed_settings" : BootCommon::changed_settings,
 	    "write_settings" : BootCommon::write_settings,
 	];
 	return out;
@@ -85,7 +84,6 @@
 	if (settings["initrd"]:$[] != nil)
 	    Initrd::Import (settings["initrd"]:$[]);
 	blImport (settings["specific"]:$[]);
-	BootCommon::changed_settings = settings["changed_settings"]:$[];
 	BootCommon::write_settings = settings["write_settings"]:$[];
     }
     /**
@@ -125,7 +123,6 @@
 	BootCommon::location_changed = false;
 //	BootCommon::other_bl = $[];
 	BootCommon::files_edited = false;
-	BootCommon::changed_settings = $[];
 	BootCommon::write_settings = $[];
 	blReset ();
     }
