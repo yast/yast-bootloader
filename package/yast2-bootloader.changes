@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar  1 12:48:34 CET 2004 - jsrain@suse.de
+
+- merged texts from proofread
+
+-------------------------------------------------------------------
 Tue Feb 24 08:31:10 CET 2004 - jsrain@suse.de
 
 - removing ide-scsi emulation parameters from kernel command line

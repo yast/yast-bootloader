@@ -41,7 +41,7 @@
             `Left (`RadioButton (`id ("mbr"), `opt (`notify),
 		mbrDisk == ""
 		    // radio button
-		    ? _("&Master boot record")
+		    ? _("&Master Boot Record")
 		    // radiobutton, %1 is device (eg. /dev/hda)
 		    : sformat(_("&Master boot record of %1"), mbrDisk),
                 (location == "mbr")
@@ -167,7 +167,7 @@
 	{
 	    if (location == "mbr")
 		// table item
-		return _("Master boot record of primary disk");
+		return _("Master Boot Record of Primary Disk");
 	    if (location == "boot")
 		// table item
                 return _("Boot sector of boot partition");

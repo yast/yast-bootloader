@@ -159,7 +159,7 @@
 	    "table" : $[
 		"summary" : BootPPC::setDefaultOFSummary,
 		// label / table entry
-		"label" : _("Set Default OpenFirmware boot-device"),
+		"label" : _("Set Default OpenFirmware Boot Device"),
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
@@ -363,7 +363,7 @@
 	}
 	if (size (targets) == 0)
 	{
-	    return _("Do not install bootloader");
+	    return _("Do Not Install Boot Loader");
 	}
 	else
 	{
@@ -467,11 +467,11 @@
 	if (BootCommon::activate)
 	{
 	    // table cell, %1 is device name (eg. /dev/hda1)
-	    return sformat (_("PReP Boot partition %1"), prep_boot_partition);
+	    return sformat (_("PReP Boot Partition %1"), prep_boot_partition);
 	}
 	else
 	{
-	    return _("Do not install bootloader");
+	    return _("Do Not Install Boot Loader");
 	}
     }
 

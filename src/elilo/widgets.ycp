@@ -75,7 +75,7 @@
 	    `VSpacing (1),
 	    `Left (`CheckBox (`id (`create_entry), `opt (`notify),
 		// check box
-		_("&Create EFI entry"))),
+		_("&Create EFI Entry"))),
 	    `VSpacing (0.6),
 	    `Left (`TextEntry (`id (`location),
 		// text entry label
