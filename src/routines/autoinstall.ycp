@@ -16,6 +16,9 @@
  */
 {
 
+    import "Bootloader";
+    import "Product";
+    import "Mode";
 
     /**
       * Translate the autoinstallation map to the Export map
@@ -23,6 +26,11 @@
       * @return map the export map
       */
     define map<string,any> AI2Export (map<string,any> ai) ``{
+	// prepare settings for default bootloader if not specified in the
+	// profile
+	if (Mode::autoinst && ! haskey (ai, "loader_type"))
+	    ai["loader_type"] = Bootloader::getLoaderType ();
+
 	// bootloader type and location stuff
 	map exp = $[
 	    "loader_type" : ai["loader_type"]:"",
@@ -48,7 +56,11 @@
 	// global ELILO stuff
 	if (ai["loader_type"]:"" == "elilo")
 	{
-	    exp["location"] = ai["efi_entry_label"]:ai["location"]:"";
+	    string def_label = "";
+	    if (Mode::autoinst)
+		def_label = sformat ("%1 %2", Product::name, Product::version);
+	    // if EFI label not specified, use default label
+	    exp["location"] = ai["efi_entry_label"]:ai["location"]:def_label;
 	    exp["specific", "create_efi_entry"]
 		= ai["create_efi_entry"]:(exp["location"]:"" != "");
 	}
