@@ -24,6 +24,7 @@
 {
 
     textdomain "bootloader";
+    import "Mode";
 
     global list floppies = [];
 
@@ -545,7 +546,7 @@
       * @return boolean true on success
       */
     global define boolean saveCfgFileToAgent () ``{
-	y2milestone ("Saving: glob: %1, sec: %2", globals, sections);
+	y2debug ("Saving: glob: %1, sec: %2", globals, sections);
 	string bl = getLoaderType (false);
 	if (bl == "s390")
 	    bl = "zipl";
@@ -670,7 +671,7 @@
         string comment = "";
 
         BootCommon::globals = sectOptions2Map(bl, "", "");
-	y2milestone ("Parsed globals: %1", BootCommon::globals);
+	y2debug ("Parsed globals: %1", BootCommon::globals);
 
         // iterate for all sections and do the same as before
 
@@ -685,7 +686,7 @@
             opts_tmp = sectOptions2Map(bl, "sections", e);
             BootCommon::sections = add(BootCommon::sections, opts_tmp);
         });
-	y2milestone ("Parsed sections: %1", sections);
+	y2debug ("Parsed sections: %1", sections);
 	return true;
     }
 
@@ -719,7 +720,7 @@
       * @param optname any option name
       */
     global define void markOptionChanged (any section, any optname) ``{
-	y2milestone ("Marking option %1 of section %2 changed", optname, section);
+	y2debug ("Marking option %1 of section %2 changed", optname, section);
 	map current = BootCommon::changed_settings[section]:$[];
 	current[optname] = true;
 	BootCommon::changed_settings[section] = current;
@@ -835,7 +836,7 @@
 	mins = substring (mins, 2);
 	while (size (mins) < 2)
 	    mins = "0" +  mins;
-	y2milestone ("Translated %1 to %2:%3", device, majs, mins);
+	y2debug ("Translated %1 to %2:%3", device, majs, mins);
 	string ret = sformat ("%1%2", majs, mins);
         return ret;
     }

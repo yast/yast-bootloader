@@ -41,6 +41,8 @@
      *  @return boolean true if accessible
      */
     global define boolean IsBootAccessible() ``{
+	if (Mode::config)
+	    return true;
         boolean boot_partition_accessible = true;
 
         if (!LbaSupport())
@@ -90,6 +92,8 @@
       * @return boolean true if needs to recheck
       */
     global define boolean DisksChanged () ``{
+	if (Mode::config)
+	    return false;
         map mp = Storage::GetMountPoints();
         string actual_root = mp["/", 0]:"";
         string actual_boot = mp["/boot", 0]:actual_root;
@@ -108,7 +112,7 @@
         {
 	    list all_partitions = BootCommon::getPartitionList(`boot);
 
-            if (!contains(all_partitions, device))
+            if (!contains(all_partitions, BootCommon::loader_device))
             {
                 y2milestone ("Location should be set again");
                 return true;
@@ -127,6 +131,8 @@
       * to internal variables
       */
     global define void DetectDisks () ``{
+	if (Mode::config)
+	    return;
         map mp = Storage::GetMountPoints();
 
         list mountdata_boot     = mp["/boot"]:(mp["/"]:[]);
@@ -170,7 +176,7 @@
 	    }
 	}
 
-        if (BootCommon::location == "")
+        if (BootCommon::location == "" || BootCommon::location == nil)
             BootCommon::location = ConfigureLocation ();
 
         BootCommon::loader_device = BootCommon::GetBootloaderDevice ();

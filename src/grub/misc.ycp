@@ -18,6 +18,7 @@
 {
     textdomain "bootloader";
     import "Storage";
+    import "Mode";
 
     /**
       * Read GRUB device maping from /boot/grub/device.map file
@@ -74,11 +75,23 @@
     global define list proposeDeviceMap () ``{
 	map ids = $[];
 	list mapping = [];
-        map targetMap = Storage::GetTargetMap();
+        map targetMap = $[];
+	if (Mode::config)
+	{
+	    targetMap = listmap (map d, AIStorage::drives, ``(
+		[d["device"]:"", d]
+	    ));
+	    targetMap = filter (`k, `v, targetMap, ``(k != ""));
+	    y2debug ("Autoinst device map: %1", targetMap);
+	}
+	else
+	{
+	    targetMap = Storage::GetTargetMap();
+	}
 	targetMap = filter (`k, `v, targetMap, ``(
 	    ! v["is_lvm_vg"]:false && ! issubstring (k, "/dev/md")
 	));
-	y2error ("Target map: %1", targetMap);
+	y2debug ("Target map: %1", targetMap);
 	// add devices with know bios_id
         foreach (`target_dev, `target, targetMap, ``{
             string bios_id = target["bios_id"]:"";
@@ -107,7 +120,7 @@
 	{
 	    mapping = add (mapping, ["(fd0)", StorageDevices::FloppyDevice]);
 	}
-	y2milestone ("Detected device mapping: %1", mapping);
+	y2debug ("Detected device mapping: %1", mapping);
 	return mapping;
     }
 
@@ -117,6 +130,8 @@
      * @return string grub device
      */
     global define string unixDev2grubDev (string o_dev) ``{
+//	if (Mode::config)
+//	    return o_dev;
         integer i = 0;
         map p_dev = Storage::GetDiskPartition (o_dev);
         any num = p_dev["nr"]:0;
@@ -215,6 +230,8 @@
       * @return string GRUB-like filename (eg. "(hd0,0)/vmlinuz")
       */
     global define string file2grub (string filename) ``{
+	if (Mode::config)
+	    return filename;
 	list split = BootCommon::splitPath (filename);
 	split[0] = unixDev2grubDev (split[0]:"");
 	return mergeDevPath (split);
