@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  2 09:55:37 CET 2005 - jsrain@suse.cz
+
+- fixed neverending loop in update_gfxmenu
+
+-------------------------------------------------------------------
 Tue Mar  1 10:34:51 CET 2005 - jsrain@suse.cz
 
 - provide info about grub.conf to repair module if embedding
