@@ -18,8 +18,56 @@
 {
     import "Pkg";
     include "testsuite.ycp";
+
+    map READ_I = $[
+        "target" : $[
+            "size" : -1,
+            "tmpdir" : "/tmp/",
+        ],
+        "probe" : $[
+            "architecture" : "i386",
+            "has_apm" : true,
+            "has_pcmcia" : false,
+            "has_smp" : false,
+            "system" : [],
+            "memory" : [],
+            "cpu" : [],
+            "cdrom" : $[
+                "manual" : [],
+            ],
+            "floppy" : $[
+                "manual" : [],
+            ],
+        ],
+        "sysconfig" : $[
+            "console" : $[
+                "CONSOLE_FONT" : "",
+                "CONSOLE_SCREENMAP" : "",
+                "CONSOLE_UNICODEMAP" : "",
+                "CONSOLE_MAGIC" : "",
+                "CONSOLE_ENCODING" : "",
+            ],
+        ],
+        "etc" : $[
+            "install_inf" : $[
+                "Cmdline" : "",
+            ],
+        ],
+        "proc" : $[
+            "cpuinfo" : $[
+                "value" : $[
+                    "0" : $[
+                        "flags" : ""
+                    ],
+                ],
+            ],
+        ]
+    ];
+
+    TESTSUITE_INIT ([READ_I], 0);
     import "Bootloader";
     import "BootCommon";
+    TESTSUITE_CLEAN ();
 
     DUMP ("======================================");
 

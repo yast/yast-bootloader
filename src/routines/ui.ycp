@@ -693,7 +693,15 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	any ret = nil;
 	while (! contains (exits, ret))
 	{
-	    ret = UI::UserInput ();
+	    map event = UI::WaitForEvent ();
+	    ret = event["ID"]:nil;
+	    if ((ret == `settings || ret == `sects)
+		&& event["EventReason"]:"" == "Activated"
+		&& event["EventType"]:"" == "WidgetEvent"
+		&& event["WidgetClass"]:nil == `Table)
+	    {
+		ret = `edit;
+	    }
 	    if (ret == `cancel)
 		ret = `abort;
 	    if (ret == `abort && ! BootCommon::confirmAbort ())
