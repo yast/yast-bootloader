@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 27 16:19:25 CEST 2002 - jsrain@suse.cz
+
+- if no boot message exists not including in menu.lst (Bug #18381)
+- fixed ordering of list of kernel images / other partitions
+- 2.6.30
+
+-------------------------------------------------------------------
 Mon Aug 26 23:39:13 EDT 2002 - nashif@suse.de
 
 - do not reset location value in autoinst mode

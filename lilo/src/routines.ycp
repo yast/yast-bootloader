@@ -715,7 +715,11 @@ global define list getPartitionList(symbol type) ``{
     all_disks = maplist (`d, all_disks, ``{return lookup (d, "dev_name", "");});
     all_disks = filter (`d, all_disks, ``(d != ""));
     all_disks = maplist (`d, all_disks, ``{integer i = findlastof (d, "/"); if (nil != i) d = substring (d, i+1); return d;});
-
+    list floppies = SCR::Read (.probe.floppy);
+    floppies = filter (`f, floppies, ``(lookup (f, "model", "Floppy Disk") == "Floppy Disk"));
+    floppies = maplist (`f, floppies, ``(lookup (f, "dev_name", "")));
+    floppies = maplist (`f, floppies, ``(select (splitstring (f, "/"), size (splitstring (f, "/")) - 1, "")));
+    floppies = filter (`f, floppies, ``(f != ""));
     list ret = all_disks;
     if (type == `all_other || type == `root)
 	ret = [];
@@ -743,6 +747,7 @@ global define list getPartitionList(symbol type) ``{
 		``(lookup (p, "fstype", "") != "Linux swap"));
 	}
 	partitions = maplist (`p, partitions, ``{return sformat ("%1%2", d, lookup (p, "nr", 0));});
+	partitions = merge (partitions, floppies);
 	ret = union (ret, partitions);
     });
     return ret;
@@ -795,6 +800,7 @@ global define list createSummaryTable() ``{
 			// table item
 		image = lookup(img, "kernel", _("none"));
 		image = select ( splitstring (image, " "), 0, image);
+		image = getLinuxPath (image);
 	    }
 	}
 	else

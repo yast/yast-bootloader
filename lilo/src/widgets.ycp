@@ -40,7 +40,7 @@ global define term MainDlgWidget(list data) ``{
     term widget=`VBox
                 (
 		    `HBox(
-			`Table (`id(`lilo_table), `opt (`notify, `immediate),
+			`Table (`id(`lilo_table), `opt (`notify, `immediate, `keepSorting),
                             // table header labels
 			        `header(_("Default"),
                             // table header labels
@@ -49,10 +49,6 @@ global define term MainDlgWidget(list data) ``{
 					 _("Image / Device"),
                             // table header labels
 					 _("Type")), data)
-//			`VBox(
-//			    `PushButton(`id(`up), UI::Glyph(`ArrowUp)),
-//			    `PushButton(`id(`down), UI::Glyph(`ArrowDown))
-//			)
 		    ),
                     `VSpacing (0.5),
 		    `HBox(
@@ -90,7 +86,7 @@ global define term OptionsDlgWidget(list opts)
 ``{
     term widget=`HBox(`HSpacing(3), `VBox
 			(
-			    `Table (`id(`opt_table), `opt (`vstretch,`notify, `immediate),
+			    `Table (`id(`opt_table), `opt (`vstretch,`notify, `immediate, `keepSorting),
 			    // table header
 			    `header(_("Option"),
 			    // table header
