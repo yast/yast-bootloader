@@ -245,8 +245,8 @@
 		fixGlobals (disks_changed);
 	}
 
-	y2error ("Proposed sections: %1", BootCommon::sections);
-	y2error ("Proposed globals: %1", BootCommon::globals);
+	y2milestone ("Proposed sections: %1", BootCommon::sections);
+	y2milestone ("Proposed globals: %1", BootCommon::globals);
 	BootCommon::saveCfgFileToAgent ();
     }
 
@@ -312,7 +312,7 @@
 	    {
 		initrd = grub2file (initrd);
 		if (-1 == SCR::Read (.target.size, initrd))
-		    s = modify_section (s, "initrd", nil);
+		    s = modifySection (s, "initrd", nil);
 	    }
 	    else if ((type == "linux" || type == "failsafe")
 		&& BootCommon::write_settings["insert_initrd"]:false)

@@ -197,7 +197,7 @@
             if (initrd != "")
             {
                 if (-1 == SCR::Read (.target.size, initrd))
-		    s = modify_section (s, "initrd", nil);
+		    s = modifySection (s, "initrd", nil);
             }
             else if ((type == "linux" || type == "failsafe")
 		&& BootCommon::write_settings["insert_initrd"]:false)
@@ -221,7 +221,7 @@
         {
             if (-1 == SCR::Read (.target.size, message))
 	    {
-                BootCommon::globals = modify_section (
+                BootCommon::globals = modifySection (
 		    BootCommon::globals, "message", nil);
 	    }
         }

@@ -76,7 +76,6 @@
     global define any lookupValueByIndex (list section, integer index,
 	any default)
     ``{
-	y2error ("Checking option %1", section[index]:$[]);
 	return section[index, "value"]:default;
     }
 
