@@ -185,6 +185,10 @@
 	y2milestone ("Saving S390 cfg. file");
 	boolean ret = BootCommon::Save ();
 
+	integer exit = SCR::Execute (.target.bash,
+	    "test -d /boot/zipl || mkdir -p /boot/zipl");
+	ret =  ret && (exit == 0);
+
 	if (Mode::normal)
 	    return ret;
 
