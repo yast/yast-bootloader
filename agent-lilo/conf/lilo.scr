@@ -1,6 +1,6 @@
 .lilo
 
 `ag_liloconf(
-  LiloConf("lilo", "/etc/lilo.conf")
+  `LiloConf("lilo", "/etc/lilo.conf")
 )
 
