@@ -2056,5 +2056,42 @@ global boolean MemtestPresent () {
 
 }
 
+global list<map<string,string> > CheckAdditionalKernels () {
+    list<string> files = (list<string>)SCR::Read (.target.dir, "/boot");
+    string binary = Kernel::GetBinary ();
+    list<string> kernels = filter (string k, files, {
+	return substring (k, 0, size (binary)) == binary;
+    });
+    kernels = filter (string k, kernels, {
+	return k != ""
+	    && k != binary
+	    && regexpmatch (k, sformat ("^%1-.+$", binary));
+    });
+    if (contains (kernels, binary))
+    {
+	string default = (string)SCR::Read (.target.symlink,
+	    sformat ("/boot/%1", binary));
+	default = ""; // FIXME remove this line
+	kernels = filter (string k, kernels, {
+	    return k != default;
+	});
+    }
+    list<map<string,string> > ret = maplist (string k, kernels, {
+	string version = regexpsub (k, sformat ("^%1-(.+)$", binary), "\\1");
+	map<string,string> info = $[
+	    "version" : version,
+	    "kernel" : sformat ("/boot/%1", k)
+	];
+	if (contains (files, sformat ("initrd-%1", version)))
+	{
+	    info["initrd"] = sformat ("/boot/initrd-%1", version);
+	}
+	return info;
+    });
+
+    y2milestone ("Additional sectinos to propose: %1", ret);
+    return ret;
+}
+
 
 } //end of include
