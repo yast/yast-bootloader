@@ -143,15 +143,30 @@ define string createFloppyImage (string file_image) {
 	// build command to build the images
 	string tmpdir = (string)SCR::Read (.target.tmpdir);
 	imagedir = sformat ("%1/floppy", tmpdir);
+	string srcdir = sformat ("%1/src", tmpdir);
 	SCR::Execute (.target.mkdir, imagedir);
+	SCR::Execute (.target.mkdir, srcdir);
+	// get the list of files
+	string filelist_str = Pkg::SourceProvideFile (source_id, 1,
+	    "/boot/loader/directory.yast");
+	filelist_str = (string)SCR::Read (.target.string, filelist_str);
+	list<string> filelist = splitstring (filelist_str, "\n");
+	filelist = filter (string f, filelist, {return f != "";});
+	y2milestone ("Filelist: %1", filelist);
+	// copy all files to the local disk
+	foreach (string f, filelist, {
+	    f = Pkg::SourceProvideFile (source_id, 1,
+		sformat ("/boot/loader/%1", f));
+	    SCR::Execute (.target.bash, sformat ("/bin/cp %1 %2",
+		f, srcdir));
+	});
 	string image_pattern
 	    = substring (file_image, 0, size (file_image) - 1);
-	string cd_dir = Pkg::SourceProvideDir (source_id, 1, "/");
 	string command = sformat ("cd %1; /usr/bin/perl %2 %5 --out %3 %4",
 	    imagedir,
 	    script,
 	    image_pattern,
-	    cd_dir,
+	    srcdir,
 	    Arch::x86_64 () ? "--64" : "--32");
 	y2milestone ("Command to execute: %1", command);
 	SCR::Execute (.target.bash, command);
