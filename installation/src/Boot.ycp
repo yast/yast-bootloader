@@ -147,22 +147,21 @@
       */
     global define void checkBootloader (boolean askStorage) ``{
 //y2error ("Ask: %1", askStorage);
-        LoaderType = SCR::Read (.probe.boot_arch);
+	LoaderType = SCR::Read (.probe.boot_arch);
 /*
 y2error ("LoaderType: %1", LoaderType);
 y2error ("Mode::Update: %1", Mode::update);
 y2error ("Mode::initial: %1", Mode::initial);
 y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
 */
-        if (LoaderType == "grub"
-            && (Mode::update || Mode::normal)
-            && SCR::Read (.target.size, "/etc/sysconfig/bootloader") != -1)
-        {
-            string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
-            if (sysconfig == "grub" || sysconfig == "lilo")
-                LoaderType = sysconfig;
+	if (LoaderType == "grub"
+	    && (Mode::update || Mode::normal))
+	{
+	    string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
+	    if (sysconfig == "grub" || sysconfig == "lilo")
+	        LoaderType = sysconfig;
 	    y2milestone ("Bootloader update, using %1", LoaderType);
-        }
+	}
 //y2error ("Ask: %1", askStorage);
 	if (askStorage)
 	{
@@ -170,7 +169,7 @@ y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
 	    if (LoaderType == "grub" && Storage::UseLilo())
 		LoaderType = "lilo";
 	}
-        y2milestone ("Setting bootloader type to %1", LoaderType);
+	y2milestone ("Setting bootloader type to %1", LoaderType);
 	return;
     }
 
@@ -555,7 +554,7 @@ y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
 	if (! was_set)
 	{
 	    Save ();
-            Set ();
+	    Set ();
 	}
 
 	import "Storage";
@@ -571,13 +570,13 @@ y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
 	orig = add (orig, "device", device);
 	m = add (m, "original", orig);
 	SCR::Write (.target.ycp, "/var/lib/YaST2/bootloader", m);
-        if (Boot::BootPartitionDevice == "" || Boot::RootPartitionDevice == "")
-        {
-            import "Lilo";
-            Boot::BootPartitionDevice = lookup (lookup (Lilo::partmap, `boot, $[]), "dev", "/dev/hda3");
-            Boot::RootPartitionDevice = lookup (lookup (Lilo::partmap, `root, $[]), "dev", "/dev/hda3");
-            Boot::others = Storage::GetForeignPrimary();
-        }
+	if (Boot::BootPartitionDevice == "" || Boot::RootPartitionDevice == "")
+	{
+	    import "Lilo";
+	    Boot::BootPartitionDevice = lookup (lookup (Lilo::partmap, `boot, $[]), "dev", "/dev/hda3");
+	    Boot::RootPartitionDevice = lookup (lookup (Lilo::partmap, `root, $[]), "dev", "/dev/hda3");
+	    Boot::others = Storage::GetForeignPrimary();
+	}
 
 	SCR::Execute (.target.bash, "touch /etc/sysconfig/bootloader");
 
