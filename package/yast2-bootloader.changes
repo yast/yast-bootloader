@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb  4 11:07:51 CET 2005 - jsrain@suse.cz
+
+- getting additional kernel parameters as one string (#50369)
+
+-------------------------------------------------------------------
 Wed Feb  2 18:22:09 CET 2005 - jsrain@suse.cz
 
 - fixed support for localized boot menu, allowed multiple languages

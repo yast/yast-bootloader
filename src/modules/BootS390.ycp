@@ -26,7 +26,6 @@
     import "BootCommon";
     import "Mode";
     import "Stage";
-    import "ProductFeatures";
     import "Installation";
 
     include "bootloader/routines/popups.ycp";
@@ -206,18 +205,12 @@
     global define void Propose () ``{
 	BootCommon::DetectDisks ();
 	string root_device = BootCommon::RootPartitionDevice;
-	string parameters = sformat ("%1 root=%2 %3 %4",
+	string parameters = sformat ("%1 root=%2 %3 %4 %5",
 	    StorageControllers::dasdParam,
 	    root_device,
+	    BootCommon::GetAdditionalKernelParams (),
 	    "selinux=0",
 	    "TERM=dumb");
-	if (ProductFeatures::io_scheduler != "")
-	{
-	    parameters = BootCommon::setKernelParamToLine (
-		parameters,
-		"elevator",
-		ProductFeatures::io_scheduler);
-	}
 
 	BootCommon::globals = [];
 	BootCommon::sections = [

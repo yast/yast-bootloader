@@ -28,7 +28,6 @@
     import "Installation";
     import "Kernel";
     import "Mode";
-    import "ProductFeatures";
     import "Stage";
     import "Storage";
 
@@ -229,12 +228,10 @@ global boolean currentBoardUpdate () {
 	{
 	    return [];
 	}
-	string append = sformat ("%1 %2", Kernel::GetCmdLine (), "selinux=0");
-	if (ProductFeatures::io_scheduler != "")
-	{
-	    append = BootCommon::setKernelParamToLine (append, "elevator",
-		ProductFeatures::io_scheduler);
-	}
+	string append = sformat ("%1 %2 %3",
+	    Kernel::GetCmdLine (),
+	    BootCommon::GetAdditionalKernelParams (),
+	    "selinux=0");
 	// always server product, FIXME when it changes
 	append = BootCommon::setKernelParamToLine (append, "desktop", "false");
 	list<map> section = [
