@@ -1,3 +1,8 @@
+Read	.probe.architecture "i386"
+Read	.probe.has_apm true
+Read	.probe.has_pcmcia false
+Read	.probe.has_smp false
+Read	.probe.system []
 Read	.etc.fstab []
 Read	.target.string "/etc/grub.conf" "root (hd0,0)\ninstall /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit"
 Read	.probe.disk []

@@ -19,7 +19,7 @@
     include "testsuite.ycp";
     map IREAD = $["target" : $["string" : "root (hd0,0)\ninstall /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit"],
 		  "etc" : $["fstab" : []],
-		  "probe" : $["disk" : [], "boot_arch" : "grub"]];
+		  "probe" : $["disk" : [], "boot_arch" : "grub", "architecture" : "i386", "has_apm" : true, "has_pcmcia" : false, "has_smp" : false, "system" : []]];
     TESTSUITE_INIT ([IREAD, $[], $[]], 0);
     include "lilo/misc.ycp";
 
