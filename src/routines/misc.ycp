@@ -1879,6 +1879,7 @@ global define boolean updateGfxMenu () {
     string tmpdir = (string)SCR::Read (.target.tmpdir);
     string lang_params = "";
 
+    list<string> selected = [];
     foreach (string lang, languages, {
 	list<string> l = splitstring (lang, ".");
 	lang = l[0]:"";
@@ -1890,9 +1891,12 @@ global define boolean updateGfxMenu () {
 	{
 	    y2milestone ("Language %1 is not supported by gfxmenu", lang_short);
 	}
-	else
+	else if (! (contains (selected, lang)
+		    || contains (selected, lang_short)))
 	{
 	    lang_params = sformat ("%1 %2 %3", lang_params, lang, lang_short);
+	    selected = add (selected, lang);
+	    selected = add (selected, lang_short);
 	}
     });
     // update the boot message
