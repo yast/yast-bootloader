@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar 25 11:43:52 CET 2004 - jsrain@suse.de
+
+- fixed behavior if installing bootloader to boot sector of
+  MD device
+
+-------------------------------------------------------------------
 Wed Mar 24 15:33:24 CET 2004 - jsrain@suse.cz
 
 - fixed installation when root is on LVM device
