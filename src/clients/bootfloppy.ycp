@@ -45,7 +45,7 @@ string dialog_header = _("Create boot or rescue floppies");
 
 /**
 * Read /proc/mounts and return a list with all mounted devices
-* @return list
+* @return list floppy mountpoint info
 */
 define list isFloppyMount()``{
   list mounts =SCR::Read(.proc.mounts);
@@ -62,7 +62,7 @@ define list isFloppyMount()``{
 * If no source medium is found, the user can select
 * a new source medium like in the module software selection.
 * Called from the sequencer.
-* @return symbol
+* @return symbol wizard sequencer symbol
 */
 define symbol floppyMountSource() ``{
   list sources = Pkg::SourceStartCache (true);
@@ -74,7 +74,7 @@ define symbol floppyMountSource() ``{
 /**
 * Search the images at the source media
 * Called from the sequenser.
-* @return symbol
+* @return symbol wizard sequencer symbol
 */
 define symbol floppySearchImages() ``{
 
@@ -103,7 +103,7 @@ define symbol floppySearchImages() ``{
 /**
 * Helptext for the define floppySelectImage.
 * Called from the floppySelectImage.
-* @return string
+* @return string help text
 */
 
 define string floppyHelpSelectImage() ``{
@@ -154,7 +154,7 @@ the <b>module floppies</b>.</p>"
 /**
 * Helptext for the define floppyInsertDisk.
 * Called from the floppyInsertDisk.
-* @return string
+* @return string help text
 */
 define string floppyHelpInsertDisk() ``{
 
@@ -176,7 +176,7 @@ return help_text;
 /**
 * Helptext for the define floppyCopyImage.
 * Called from the  floppyCopyImage.
-* @return string
+* @return string help text
 */
 define string floppyHelpCopyImage() ``{
 
@@ -190,7 +190,7 @@ define string floppyHelpCopyImage() ``{
 * Display a dialog that lets the user choose among different images.
 * Save the selected image in the global variable file_image.
 * Called from the sequencer.
-* @return symbol
+* @return symbol wizard sequencer symbol
 */
 define symbol floppySelectImage() ``{
 
@@ -407,7 +407,7 @@ All data on this floppy will be deleted.")),
 /**
 * Copy the selected image to the floppy.
 * Called from the  sequenser.
-* @return symbol
+* @return symbol wizard sequencer symbol
 */
 define symbol floppyCopyImage() ``{
 

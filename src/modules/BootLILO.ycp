@@ -503,7 +503,10 @@
 		BootCommon::globals["default"]
 		    = BootCommon::sections[0, "label"]:"";
 	}
-        if (Storage::DiskmapNeeded())
+// not needed here, because DiskmapNeeded return value doesn't change
+// during installation proposal
+// additionally,this replaced changed user's settings
+/*        if (Storage::DiskmapNeeded())
         {
             string order = "";
             // check if bios_id is given for a target
@@ -520,7 +523,7 @@
             });
             if (order != "")
                 BootCommon::globals["disk"] = order;
-        }
+        }*/
     }
 
     /**

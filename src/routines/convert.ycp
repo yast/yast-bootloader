@@ -113,6 +113,8 @@
 	    ));
 	    ret["append"] = mergestring (kline, " ");
 	}
+	if (issubstring (ret["other"]:"", "/dev/fd"))
+	    return $[];
 	return ret;
     }
 
@@ -124,8 +126,8 @@
       */
     global define map liloGlob2grubGlob (map globs) ``{
 	map ret = $[];
-	if (globs["gfxmenu"]:"" != "")
-	    ret["gfxmenu"] = BootGRUB::file2grub (globs["gfxmenu"]:"");
+	if (globs["message"]:"" != "")
+	    ret["gfxmenu"] = BootGRUB::file2grub (globs["message"]:"");
 	if (globs["timeout"]:0 != 0)
 	    ret["timeout"] = (globs["timeout"]:0)/10;
 	if (globs["prompt"]:"" == "")
@@ -151,7 +153,7 @@
     global define map grubGlob2liloGlob (map globs) ``{
 	map ret = $[];
 	if (globs["gfxmenu"]:"" != "")
-	    ret["gfxmenu"] = BootGRUB::grub2file (globs["gfxmenu"]:"");
+	    ret["message"] = BootGRUB::grub2file (globs["gfxmenu"]:"");
         if (globs["timeout"]:0 != 0)
             ret["timeout"] = (globs["timeout"]:0)*10;
 	if (globs["hiddenmenu"]:"" == "")
@@ -184,6 +186,9 @@
 	    BootCommon::sections = maplist (`s, BootCommon::sections, ``{
 		return liloSect2grubSect (s);
 	    });
+	    BootCommon::sections = filter (`s, BootCommon::sections, ``(
+		s != $[]
+	    ));
 	    BootCommon::globals = liloGlob2grubGlob (BootCommon::globals);
 	}
 
@@ -192,6 +197,9 @@
 	    BootCommon::sections = maplist (`s, BootCommon::sections, ``{
 		return grubSect2liloSect (s);
 	    });
+            BootCommon::sections = filter (`s, BootCommon::sections, ``(
+                s != $[]
+            ));
 	    BootCommon::globals = grubGlob2liloGlob (BootCommon::globals);
 	}
 	BootCommon::saveCfgFileToAgent ();

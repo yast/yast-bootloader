@@ -62,10 +62,18 @@
 	BootCommon::DetectDisks ();
     }
 
+    /**
+      * Save all bootloader configuration files
+      * @return boolean true if success
+      */
     global define boolean Save () ``{
 	return true;
     }
 
+    /**
+      * Display bootloader summary
+      * @return a list of summary lines
+      */
     global define list(string) Summary () ``{
 	// summary
 	return [_("Install MILO Boot Loader")];

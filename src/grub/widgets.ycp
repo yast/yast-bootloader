@@ -59,6 +59,12 @@
 	return ret;
     }
 
+    /**
+      * Ask how to chang section floppy <-> hard disk when changing bootloader
+      * location between disk and floppy
+      * @param to string new bootloader location ("floppy" or "hard disk")
+      * @return boolean true if user wants to change the section
+      */
     global define boolean changeSection (string to) ``{
 	string message = "";
 	if (to == "floppy")
@@ -297,7 +303,7 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Handle function of widget 
+      * Handle function of widget
       * @param op any operation to handle
       * @param tosave list of operations, which lead to closing & saving widget
       * @return any changed op (if needed)
@@ -537,7 +543,7 @@ Replace it with an entry  to boot from the floppy?");
 		    `TextEntry (`id (`devname), _("&Device")),
 		    `VSpacing (1),
 		    `HBox (`HStretch (),
-			`PushButton (`id (`ok), `opt (`key_F10), OKButtonLabel ()),
+			`PushButton (`id (`ok), `opt (`key_F10, `default), OKButtonLabel ()),
 			`HStretch (),
 			`PushButton (`id (`cancel), `opt (`key_F8), CancelButtonLabel ()),
 			`HStretch ()

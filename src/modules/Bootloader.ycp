@@ -92,7 +92,7 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
-	Initrd::Read ();
+//	Initrd::Read ();
 	boolean ret = blRead ();
 	BootCommon::location
 	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);

@@ -214,6 +214,8 @@
       * @return true on success
       */
     global define boolean Write () ``{
+	if (! was_read)
+	    Read ();
 	y2milestone ("Initrd::Write called, changed: %1, list: %2", changed,
 	    ListModules ());
 	// check whether it is neccessary to write initrd

@@ -88,6 +88,10 @@
 	BootCommon::DetectDisks ();
     }
 
+    /**
+      * Save all bootloader configuration files
+      * @return boolean true if success
+      */
     global define boolean Save () ``{
 	return true;
     }
@@ -200,6 +204,11 @@
 //----------------------------------------------------------------------------
 
 
+    /**
+      * Update list of options to display in current section
+      * @param options map of all options (includinf order)
+      * @return list of options as should bve displayed
+      */
     global define list UpdateOptionsList (map options) ``{
         any type = BootCommon::tmp_store["section_type"]:"";
         list _options = [];
