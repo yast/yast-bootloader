@@ -11,6 +11,8 @@ Mon Mar 29 10:30:31 CEST 2004 - jsrain@suse.de
 - label the bootloader section on PPC 'linux' (lowercase 'l')
   (#37264)
 - do not ask about aborting if just entered and left (#37099)
+- write correct kernel to slot A on iSeries (PPC) when configuring
+  installed system (#35566)
 
 -------------------------------------------------------------------
 Fri Mar 26 10:03:50 CET 2004 - jsrain@suse.de
