@@ -131,8 +131,8 @@
 		BootCommon::getLargestSwapPartition ());
 	}
 	// not using .shipped images any more
-	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
-	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
+	string initrd = title == "wildcard" ? "initrd-*" : "initrd";
+	string image = title == "wildcard" ? "vmlinuz-*" : "vmlinuz";
 	string append = title == "failsafe"
 	    ? "showopts ide=nodma apm=off acpi=off vga=normal noresume selinux=0 barrier=off "
 	      + ((Arch::x86_64)
@@ -165,7 +165,10 @@
 		    ProductFeatures::io_scheduler);
 	    }
 	}
-	return [
+	string type = title;
+	if (type == "wildcard")
+	    title = BootCommon::translateSectionTitle ("linux") + " (*)";
+	list<map> ret = [
 	    $[ "key" : "title", "value" : BootCommon::translateSectionTitle (title)],
 	    $[ "key" : "kernel", "value" : sformat ("%1 %2 %3",
 		file2grub ("/boot/" + image),
@@ -183,9 +186,17 @@
 		],
 		"kernel" : "/boot/" + image,
 		"initrd" : "/boot/" + initrd,
-		"type" : title,
+		"type" : type,
 	    ]]
 	];
+	if (type == "wildcard")
+	{
+	    ret = prepend (ret, $[
+		"key" : "wildcard",
+		"value" : file2grub ("/boot/" + image),
+	    ]);
+	}
+	return ret;
     }
 
     /**
@@ -390,6 +401,7 @@
 	}
 	out = add (out, createLinuxSection ("failsafe"));
 	out = add (out, createLinuxSection ("memtest86"));
+//	out = add (out, createLinuxSection ("wildcard"));
 	if (insert_saved_mbr
 	    && ( BootCommon::backup_mbr
 		|| 0 < SCR::Read (.target.size, "/boot/backup_mbr")))
@@ -620,7 +632,7 @@
 		string type = intern["type"]:"";
 		if (type != "linux" && type != "failsafe"
 		    && type != "memtest86" && type !="floppy"
-		    && type != "original_mbr")
+		    && type != "original_mbr" && type != "wildcard")
 		{
 		    foreach (string n, intern["devs"]:[], ``{
 		        if (! contains (parts, n))
@@ -1019,6 +1031,10 @@
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string title = (string)lookup_value (s, "title", "");
 	    string type = intern["type"]:"";
+
+	    // do not touch the wildcard section
+	    if (lookup_value (s, "wildcard", "") != "")
+		return true;
 	    if (intern["converted"]:false)
 	    {
 		return true;
@@ -1076,6 +1092,12 @@
 	    string kernel = (string)lookup_value (s, "kernel", "");
 	    if (intern["converted"]:false)
 		return s;
+
+	    if (lookup_value (s, "wildcard", "") != "")
+	    {
+		return s;
+	    }
+
             if (type == "linux" && kernel != "" && Mode::initial)
 	    {
                 s = modifySection (s, "kernel", BootCommon::updateKernelParams (

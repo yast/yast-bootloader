@@ -521,7 +521,7 @@
 		y2milestone ("Warning on section %1", label);
 		boolean cont = true;
                 if (type != "linux" && type != "failsafe"
-                    && type != "memtest86")
+                    && type != "memtest86" && type != "wildcard")
 		{
 		    foreach (any n, intern["devs"]:[], ``{
 		        if (! contains (parts, n))
@@ -774,6 +774,15 @@
 	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``{
 	    string label = (string)
 		lookup_value (s, BootCommon::getSectionTitle (), "");
+
+	    // do not touch the wildcard section
+	    if (lookup_value (s, "wildcard", "") != "")
+	    {
+		if (first == nil)
+		    first = label;
+		return true;
+	    }
+
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
             if (label == "")
@@ -829,6 +838,12 @@
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
 
+	    // do not touch the wildcard section
+	    if (lookup_value (s, "wildcard", "") != "")
+	    {
+		return s;
+	    }
+
             if ((type == "linux" || type == "failsafe")
 		&& BootCommon::write_settings["insert_initrd"]:false)
             {
@@ -851,7 +866,8 @@
 	BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
-            if (type == "linux" && lookup_value (s, "append", nil) != nil
+            if ((type == "linux" || type == "wildcard")
+		&& lookup_value (s, "append", nil) != nil
 		&& Mode::initial)
 	    {
 		s = modifySection (s, "append", BootCommon::updateKernelParams (

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep 13 10:59:50 CEST 2004 - jsrain@suse.cz
+
+- allowed to add wildcard entry to GRUB and LILO boot menu (#44742)
+
+-------------------------------------------------------------------
 Tue Sep  7 10:09:14 CEST 2004 - jsrain@suse.cz
 
 - update the default boot section mark properly if a section was
