@@ -21,7 +21,6 @@
     module "BootCommon";
 
     import "Arch";
-
     import "Storage";
 
     textdomain "bootloader";
@@ -31,6 +30,9 @@
     include "bootloader/routines/helps.ycp";
     include "bootloader/routines/lilolike.ycp";
     include "bootloader/routines/routines.ycp";
+
+    import "Mode";
+    import "BootCommon";
 
 // common variables
 
@@ -496,7 +498,7 @@ configuration files"));
       * @param bootloader string type of bootloader
       */
     global define void setLoaderType (string bootloader) ``{
-	if (contains(BootCommon::bootloaders, bootloader)
+	if (contains(bootloaders, bootloader)
 	    && ! Mode::test)
 	{
 	    // don't configure package maneger during autoinstallation preparing

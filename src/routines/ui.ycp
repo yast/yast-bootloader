@@ -20,7 +20,10 @@
     textdomain "bootloader";
 
     include "wizard/sequencer.ycp";
-    include "ui/common_messages.ycp";
+    import "Label";
+    import "Popup";
+    import "Mode";
+    import "Wizard";
 
     include "bootloader/routines/wh.ycp";
     include "bootloader/routines/popups.ycp";
@@ -49,9 +52,9 @@
 	    `HBox (
 		`HStretch (),
 		`PushButton (`id (`ok), `opt (`key_F10, `default),
-		    OKButtonLabel ()),
+		    Label::OKButton ()),
 		`HSpacing (1),
-		`PushButton (`id (`cancel), `opt (`key_F9), CancelButtonLabel ()),
+		`PushButton (`id (`cancel), `opt (`key_F9), Label::CancelButton ()),
 		`HStretch ()
 	    ),
 	    `VSpacing (1)
@@ -155,9 +158,9 @@
             `HBox (
                 `HStretch(),
 		`PushButton (`id (`ok), `opt (`key_F10, `default),
-		    OKButtonLabel ()),
+		    Label::OKButton ()),
 		`HSpacing (1),
-                `PushButton (`id (`cancel), `opt (`key_F9), CancelButtonLabel ()),
+                `PushButton (`id (`cancel), `opt (`key_F9), Label::CancelButton ()),
                 `HStretch ()
             ),
 	    `VSpacing (1)
@@ -489,10 +492,10 @@
 		boolean ret = BootCommon::restoreMBR (BootCommon::mbrDisk);
 		if (ret)
 		    // message popup
-		    UI::MessagePopup (_("MBR restored successfully"));
+		    Popup::Message (_("MBR restored successfully"));
 		else
 		    // message popup
-		    UI::MessagePopup (_("Failed to restore MBR"));
+		    Popup::Message (_("Failed to restore MBR"));
 	    }
             return;
         }
@@ -595,9 +598,9 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	`VSpacing (1),
 	`HBox (
 	    `HStretch (),
-	    `PushButton (`id (`ok), `opt (`key_F10), OKButtonLabel ()),
+	    `PushButton (`id (`ok), `opt (`key_F10), Label::OKButton ()),
 	    `HSpacing (1),
-	    `PushButton (`id (`cancel), `opt (`key_F9), CancelButtonLabel ()),
+	    `PushButton (`id (`cancel), `opt (`key_F9), Label::CancelButton ()),
 	    `HStretch ()
 	));
 	UI::OpenDialog (contents);
@@ -672,7 +675,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	boolean back)
     ``{
 	Wizard::SetContentsButtons (caption, contents, help,
-	    BackButtonLabel (), next_button);
+	    Label::BackButton (), next_button);
 	if (back)
 	{
 	    Wizard::RestoreBackButton ();
@@ -682,7 +685,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	{
 	    Wizard::ReplaceBackButton(`VSpacing (0));
 	    Wizard::ReplaceAbortButton (
-		`PushButton (`id (`abort), CancelButtonLabel ()));
+		`PushButton (`id (`abort), Label::CancelButton ()));
 	}
 
 	readWidgets (widgets);
@@ -726,7 +729,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
         string caption = _("Boot Loader Setup -- Sections Managment");
         string help = mergeHelps (widgets);
 	list exits = getExitEvents (widgets);
-	return runDialog (widgets, caption, contents, help, OKButtonLabel (),
+	return runDialog (widgets, caption, contents, help, Label::OKButton (),
 	    exits, true);
     }
 
@@ -745,7 +748,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
         string caption = _("Boot Loader Setup -- Sections Managment");
         string help = mergeHelps (widgets);
         list exits = getExitEvents (widgets);
-        return runDialog (widgets, caption, contents, help, OKButtonLabel (),
+        return runDialog (widgets, caption, contents, help, Label::OKButton (),
             exits, true);
     }
 
@@ -772,8 +775,8 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
         string help = mergeHelps (widgets);
         list exits = getExitEvents (widgets);
 	string next_button = (Mode::initial || Mode::config)
-	    ? AcceptButtonLabel ()
-	    : FinishButtonLabel ();
+	    ? Label::AcceptButton ()
+	    : Label::FinishButton ();
 
         return runDialog (widgets, caption, contents, help, next_button,
             exits, false);
@@ -817,7 +820,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
         list exits = getExitEvents ([]);
 
         Wizard::SetContentsButtons (caption, contents, help,
-            BackButtonLabel (), OKButtonLabel ());
+            Label::BackButton (), Label::OKButton ());
 
 	Wizard::RestoreBackButton ();
 	Wizard::RestoreAbortButton ();

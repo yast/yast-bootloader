@@ -25,6 +25,7 @@
 //    import "BootMIPS";
     import "BootS390";
     import "BootPPC";
+    import "BootCommon";
 
     /**
       * Get map of main functions for bootloader
@@ -39,7 +40,7 @@
 	    "milo"  : ``(BootMILO::GetFunctions ()),
 	    "aboot" : ``(BootABOOT::GetFunctions ()),
 	    "elilo" : ``(BootELILO::GetFunctions ()),
-	    "mips"  : ``(BootMIPS::GetFunctions ()),
+//	    "mips"  : ``(BootMIPS::GetFunctions ()),
 	    "s390"  : ``(BootS390::GetFunctions ()),
 	    "ppc"   : ``(BootPPC::GetFunctions ())
 	];

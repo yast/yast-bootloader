@@ -17,6 +17,9 @@
 
 {
 
+    import "Storage";
+    import "BootCommon";
+
     /**
       * Update the list of 41 PReP boot partitions
       */
@@ -27,15 +30,15 @@
 	integer partition_counter = 0;
 	boolean deleted = false;
 	string  boot_root_device
-	    = deletechars ( Boot::RootPartitionDevice, "0123456789");
+	    = deletechars ( BootCommon::RootPartitionDevice, "0123456789");
 
 	y2milestone("old prep_boot_partitions %1", ppc_prep_boot_partitions);
 	ppc_prep_boot_partitions = $[];
 	ppc_possible_boot_partitions = [];
 
-	if ( Boot::last_change > ppc_boot_partition_timestamp )
+	if ( BootCommon::last_change > ppc_boot_partition_timestamp )
 	{
-	    ppc_boot_partition_timestamp = Boot::last_change;
+	    ppc_boot_partition_timestamp = BootCommon::last_change;
 	    ppc_boot_partition = 0;
 	    y2milestone("reset timestamp and active prep boot partition (%1)",
 		ppc_boot_partition_timestamp);

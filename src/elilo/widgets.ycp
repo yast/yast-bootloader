@@ -20,7 +20,10 @@
 
     textdomain "bootloader";
 
-    include "ui/common_messages.ycp";
+    import "Label";
+    import "Mode";
+    import "BootELILO";
+    import "BootCommon";
     include "bootloader/routines/popups.ycp";
 
     /**

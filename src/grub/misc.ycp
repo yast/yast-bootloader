@@ -18,7 +18,9 @@
 {
     textdomain "bootloader";
     import "Storage";
+    import "StorageDevices";
     import "Mode";
+    import "BootCommon";
 
     /**
       * Read GRUB device maping from /boot/grub/device.map file

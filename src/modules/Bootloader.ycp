@@ -23,6 +23,9 @@
     import "Arch";
     import "BootCommon";
     import "Initrd";
+    import "Mode";
+    import "Storage";
+    import "Progress";
 
     include "bootloader/routines/switcher.ycp";
     include "bootloader/routines/popups.ycp";
@@ -296,7 +299,7 @@
 		map res = WFM::CallFunction( `bootloader_proposal ("AskUser",
 		    $[ "has_next": false]));
 		if (res["workflow_sequence"]:nil == `next)
-		    return Bootloader::Write ();
+		    return Write ();
 		else
 		    break;
 	    }

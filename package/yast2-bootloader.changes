@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jun 23 14:09:14 CEST 2003 - jsrain@suse.de
+
+- fixed common_popups, common_messages -> YCP modules
+- fixed missing imports
+- 2.8.2
+
+-------------------------------------------------------------------
 Thu Jun 12 13:03:52 CEST 2003 - jsrain@suse.de
 
 - fixed file list

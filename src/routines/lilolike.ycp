@@ -20,6 +20,8 @@
     import "Storage";
 
     import "BootCommon";
+    import "Mode";
+    import "Arch";
 
     /**
       * Refresh disk locations
