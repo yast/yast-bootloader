@@ -3,6 +3,7 @@ Wed Mar  3 09:27:42 CET 2004 - jsrain@suse.de
 
 - appending text '(MBR)' to bootloader location description if it
   is MBR of a hard disk (#35255)
+- fixed exporting settings for autoinstallation (#35232)
 
 -------------------------------------------------------------------
 Tue Mar  2 11:05:50 CET 2004 - jsrain@suse.de

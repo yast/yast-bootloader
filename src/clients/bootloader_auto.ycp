@@ -84,9 +84,10 @@
 	    exp["initrd"] = $[ "list": modlist, "settings" : modsett ];
 
 	// sections stuff
-	exp["specific", "sections"] = maplist (list s, ai["sections"]:[], ``{
-	    return nil;
-
+	exp["specific", "sections"] = maplist (list<map<string,any> > s,
+	    ai["sections"]:[],
+	``{
+	    return s;
 	});
 	string default_key = BootCommon::getDefaultKey ();
 	if (haskey (ai, "default"))
@@ -149,7 +150,7 @@
       */
     define map<string,any> Export2AI (map<string,any> exp) ``{
 	// bootloader type and location stuff
-	map ai = $[
+	map<string,any> ai = $[
 	    "loader_type" : exp["loader_type"]:"",
 	    "location" : exp["location"]:"",
 	    "loader_device" : exp["loader_device"]:"",
@@ -195,8 +196,13 @@
 	    ai["initrd_modules"] = ayinitrd;
 
 	// sections stuff
-	ai["sections"] = maplist (list s, exp["specific", "sections"]:[], ``{
-	    return nil;
+	ai["sections"] = maplist (list<map<string,any> > s,
+	    exp["specific", "sections"]:[],
+	``{
+	    s = (list<map<string,any> >)filter (map<string,any> o, s, ``(
+		o["key"]:"" != "__intern__"
+	    ));
+	    return s;
 	});
 	string default = nil;
 	string default_key = BootCommon::getDefaultKey ();
@@ -268,6 +274,7 @@
       * return map or list
       */
     else if (func == "Export") {
+y2error ("EM: %1", Bootloader::Export());
 	ret = Export2AI ((map<string,any>)Bootloader::Export());
     }
     /**
