@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov  9 10:40:18 CET 2004 - jsrain@suse.cz
+
+- fixed automatical boot partition activating during installation
+  (#20329)
+
+-------------------------------------------------------------------
 Tue Nov  9 08:16:53 CET 2004 - jsrain@suse.cz
 
 - enhanced memtest handling during installation (#46796)

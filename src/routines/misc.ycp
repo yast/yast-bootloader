@@ -1147,7 +1147,15 @@
 	string loader_device)
     {
 	map p_dev = Storage::GetDiskPartition (loader_device);
-	integer num = p_dev["nr"]:0;
+	any num_any = p_dev["nr"]:nil;
+	integer num = 0;
+	if (num_any != nil)
+	{
+	    if (is (num_any, integer))
+		num = (integer)num_any;
+	    else if (is (num_any, string))
+		num = tointeger ((string)num_any);
+	}
 	string mbr_dev = p_dev["disk"]:"";
 	// if bootloader is installed to /dev/md*
 	if (substring (loader_device, 0, 7) == "/dev/md")
@@ -1165,8 +1173,15 @@
 	    if (device != "")
 	    {
 		map p_dev = Storage::GetDiskPartition (loader_device);
-		integer num = p_dev["nr"]:0;
-		string mbr_dev = p_dev["disk"]:"";
+		any num_any = p_dev["nr"]:nil;
+		if (num_any != nil)
+		{
+		    if (is (num_any, integer))
+			num = (integer)num_any;
+		    else if (is (num_any, string))
+			num = tointeger ((string)num_any);
+		}
+		mbr_dev = p_dev["disk"]:"";
 	    }
 	}
 	// if bootloader in MBR, activate /boot partition
@@ -1175,9 +1190,12 @@
 	{
 	    p_dev = Storage::GetDiskPartition (boot_partition);
 	    any num_any = p_dev["nr"]:nil;
-	    if (num_any != nil && is (num_any, integer))
+	    if (num_any != nil)
 	    {
-		num = p_dev["nr"]:0;
+		if (is (num_any, integer))
+		    num = (integer)num_any;
+		else if (is (num_any, string))
+		    num = tointeger ((string)num_any);
 		mbr_dev = p_dev["disk"]:"";
 	    }
 	    if (size (Md2Partitions (boot_partition)) > 1)
@@ -1187,9 +1205,12 @@
 		    {
 			p_dev = Storage::GetDiskPartition (k);
 			any num_any = p_dev["nr"]:nil;
-			if (num_any != nil && is (num_any, integer))
+			if (num_any != nil)
 			{
-			    num = p_dev["nr"]:0;
+			    if (is (num_any, integer))
+				num = (integer)num_any;
+			    else if (is (num_any, string))
+				num = tointeger ((string)num_any);
 			    mbr_dev = p_dev["disk"]:"";
 			}
 		    }
