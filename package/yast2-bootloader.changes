@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov 24 17:33:41 CET 2003 - jsrain@suse.de
+
+- fixed changing of GRUB location (#33297)
+
+-------------------------------------------------------------------
 Tue Nov 18 13:45:02 CET 2003 - jsrain@suse.de
 
 - switched from kdoc to doxygen
