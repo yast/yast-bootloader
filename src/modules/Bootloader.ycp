@@ -328,6 +328,40 @@
     }
 
     /**
+      * return section that was proposed as default during installation,
+      * if not known, return current default section if it is of type "image",
+      * if not found return first linux section, if no present, return empty
+      * string
+      */
+    global define string getProposedDefaultSection () ``{
+	ReadOrProposeIfNeeded ();
+	string default = "";
+	string first_image = "";
+	string default_image = "";
+	foreach (list s, BootCommon::sections, ``{
+	    string title = lookup_value (s, BootCommon::getSectionTitle (), "");
+	    map intern = lookup_value (s, "__intern__", "");
+	    string kernel_key = BootCommon::getKernelKey ();
+	    if (lookup_value (s, kernel_key, nil) != nil)
+	    {
+		if (first_image == "")
+		    first_image = title;
+		if (title == getDefaultSection ())
+		    default_image = title;
+	    }
+	    if (default == "" && intern["type"]:"" == "linux")
+		default = title;
+	});
+	if (default != "")
+	    return default;
+	if (default_image != "")
+	    return default_image;
+	if (first_image != "")
+	    return first_image;
+	return "";
+    }
+
+    /**
       * get kernel parameters from bootloader configuration file
       * @param section string section title, use DEFAULT for default section
       * @param key string
@@ -338,6 +372,8 @@
 	ReadOrProposeIfNeeded ();
 	if (section == "DEFAULT")
 	    section = getDefaultSection ();
+	else if (section == "LINUX_DEFAULT")
+	    section = getProposedDefaultSection ();
 	if (section == nil)
 	    return "";
 	map params = BootCommon::getKernelParamKeys ();
@@ -404,15 +440,17 @@
 
 	if (section == "DEFAULT")
 	    section = getDefaultSection ();
+	else if (section == "LINUX_DEFAULT")
+	    section = getProposedDefaultSection ();
 	if (section == nil)
 	    return false;
         string label = BootCommon::getSectionTitle ();
-	map params = getKernelParamKeys ();
+	map params = BootCommon::getKernelParamKeys ();
         integer sectnum = -1;
         integer index = -1;
         foreach (`s, BootCommon::sections, ``{
             index = index + 1;
-            if (s[label]:"" == section)
+            if (lookup_value (s, label, "") == section)
                 sectnum = index;
         });
         if (sectnum == -1)
@@ -436,9 +474,12 @@
 	{
 	    slabel = params[`other]:"";
 	}
-	string line = BootCommon::sections [sectnum, slabel]:"";
+	string line
+	    = lookup_value (BootCommon::sections [sectnum]:[], slabel, "");
 	line = BootCommon::setKernelParamToLine (line, key, value);
-	BootCommon::sections [sectnum, slabel] = line;
+	BootCommon::sections [sectnum]
+	    = modifySection (BootCommon::sections [sectnum]:[], slabel, line);
+	BootCommon::changed = true;
 	boolean ret = true;
 	return ret;
     }

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 23 12:50:39 CEST 2003 - jsrain@suse.de
+
+- fixed routines used to modify parameters of specified kernel
+
+-------------------------------------------------------------------
 Fri Oct 17 11:13:36 CEST 2003 - jsrain@suse.de
 
 - not proceeding with creating boot floppy if image not found
