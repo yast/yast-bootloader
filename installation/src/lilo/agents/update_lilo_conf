@@ -69,6 +69,39 @@ awk '
 
 ' <$lc_tmp >$lc_tmp2
 
+#FIX kernel and initrd name
+
 rm $lc_tmp
-sed -e 's/vmlinuz.suse/vmlinuz.shipped/' -e 's/initrd.suse/initrd.shipped/' <$lc_tmp2 >$lc
+sed -e 's/vmlinuz.suse/vmlinuz.shipped/' -e 's/initrd.suse/initrd.shipped/' <$lc_tmp2 >$lc_tmp
 rm $lc_tmp2
+
+#add initrd if removed
+test -f /boot/initrd && test -f /boot/initrd.shipped && awk '
+BEGIN {remove = 0}
+/^[ \t]*image[ \t]*=[ \t]*\/boot\/vmlinuz.shipped[ \t]*$/ {
+    print $0;
+    print "    initrd = /boot/initrd.shipped"
+    remove = 1;
+    next;
+}
+/^[ \t]*image[ \t]*=[ \t]*\/boot\/vmlinuz[ \t]*$/ {
+    print $0;
+    print "    initrd = /boot/initrd"
+    remove = 1;
+    next;
+}
+/^[ \t]*initrd[ \t]*=.*$/ {
+    if (remove != 1) {
+	print $0;
+    }
+    next;
+}
+/^[ \t]*image[ \t]*=.*/ {
+    print $0;
+    remove = 0;
+    next;
+}
+// {print $0;}
+' <$lc_tmp >$lc
+rm $lc_tmp;
+

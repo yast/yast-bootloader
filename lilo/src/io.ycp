@@ -91,6 +91,7 @@ global define integer DoGrub() ``{
 	return ret;
     saveGrubConf (Lilo::grub_set);
     ret = SCR::Execute(.target.bash, "grub --batch --device-map=/boot/grub/device.map < /etc/grub.conf");
+    SCR::Execute (.target.bash, "/bin/chmod 600 /boot/grub/menu.lst");
     return ret;
 }
 /**
@@ -135,6 +136,21 @@ global define void restoreOriginalSettings() ``{
         SCR::Execute (.target.bash, "/bin/cp /etc/lilo.conf /etc/lilo.conf.bak");
     }
     import "Boot";
+    if (SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
+	Boot::initrdModules = splitstring (SCR::Read (.sysconfig.kernel.INITRD_MODULES), " ");
+    SCR::Execute (.target.bash, "/usr/bin/touch /var/lib/YaST2/bootloader");
+    map m = SCR::Read (.target.ycp, "/var/lib/YaST2/bootloader");
+    if (m == nil || ! is (m, map))
+	m = $[];
+    map orig = lookup (m, "original", $[]);
+    string device = lookup (orig, "device", "");
+    Boot::Set ();
+    if (device != "")
+    {
+	Boot::device = device;
+	Boot::location = "custom";
+    }
+    Boot::Save ();
     Boot::Write ();
     restoredLilo = true;
     SCR::UnmountAgent (.grub);

@@ -35,8 +35,29 @@
     // partition number for the bootloader (either 41PReP boot or Apple_HFS)
     global integer  ppc_boot_partition = 1;
 
+
     // filename for the iSeries kernel, for streamfile *STMF booting
-    global string   ppc_iseries_streamfile = "/boot/suse_linux_bootfile";
+    global string   ppc_iseries_streamfile		= "/boot/suse_linux_bootfile";
+
+    // write the install kernel to slot A, for rescue purpose
+    global boolean  ppc_iseries_write_slot_a		= true;
+
+    // write the kernel to slot B
+    global boolean  ppc_iseries_write_slot_b		= true;
+
+    // write the kernel to an 41 PReP boot partition
+    global boolean  ppc_iseries_write_prepboot		= true;
+
+    // write the kernel to file, this must be transfered to OS/400
+    global boolean  ppc_iseries_write_streamfile	= true;
+
+    // list of widgets
+    global list     ppc_iseries_widgets			= [
+							    `iseries_do_stmf,
+							    `iseries_do_nwsstg,
+							    `iseries_do_rescue_slot,
+							    `iseries_do_kernel_slot
+							  ];
 
     // map available of 41 PReP partitions, used on iSeries and CHRP
     global map      ppc_prep_boot_partitions = $[];
@@ -96,14 +117,18 @@
 			});
 		    }
 		});
+		if ( ppc_boot_partition > size (ppc_prep_boot_partitions) )
+		{
+			ppc_boot_partition = 1;
+			y2milestone("RESET ppc_boot_partition to 1");
+		}
 		y2milestone("new prep_boot_partitions %1 %2", partition_counter, ppc_prep_boot_partitions);
 		y2milestone("new ppc_possible_boot_partitions %1", ppc_possible_boot_partitions);
     }
 
-    global define string Proposal ()
+    global define map Proposal ()
     ``{
-	string ppc_proposal = "undefined ppc_proposal string";
-	string target_name = "";
+	list   boot_strings	= [];
 
 	y2milestone("BootPPC::Proposal: Boot::location %1", Boot::location);
 	y2milestone("BootPPC::Proposal: Boot::device %1", Boot::device);
@@ -112,7 +137,7 @@
 	if ( Boot::location == "mbr" )
 	{
 		if ( Arch::board_iseries )
-			Boot::location = "iseries_nwsstg";
+			Boot::location = "ppc_iseries";
 		else if ( Arch::board_chrp )
 			Boot::location = "ppc_chrp"; // define it later
 		else if ( Arch::board_prep )
@@ -130,47 +155,48 @@
 	{
 		BootPPC::ppc_update_prep_boot_partitions ();
 
-		if ( Boot::location == "iseries_nwsstg" )
+		// the last entry wins
+		Boot::device = "";
+		if ( ppc_iseries_write_streamfile )
 		{
-			if ( size (ppc_prep_boot_partitions) > 0)
-			{
-				target_name = ppc_prep_boot_partitions[ppc_boot_partition]:1;
-				Boot::device = target_name;
-				ppc_proposal = sformat("The kernel will be written to %1. Use *NWSSTG on OS400 side.", target_name);
-			}
-			else
-			{
-			// do not use *NWSSTG, switch to kernel_slot instead
-				Boot::location = "iseries_kernel_slot";
-				Boot::device = "B";
-				ppc_proposal = sformat("The kernel will be written to slot B. This will take a while", BootPPC::ppc_iseries_streamfile);
-			}
-
-		}
-		else if ( Boot::location == "iseries_stmf" )
-		{
-			// XXX newline required. how?
-			ppc_proposal = sformat("A stream file will be written to %1.
-Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfile);
 			Boot::device = BootPPC::ppc_iseries_streamfile;
-			target_name = "";
+			boot_strings = add ( boot_strings, sformat(_("A stream file will be written to %1. Copy this file to OS400 side and boot with *STMF"), BootPPC::ppc_iseries_streamfile));
 		}
-		else if ( Boot::location == "iseries_kernel_slot" )
+
+		if ( ! (size (ppc_prep_boot_partitions) > 0 ) )
+			ppc_iseries_write_prepboot = false;
+
+		if ( ppc_iseries_write_prepboot )
 		{
-			ppc_proposal = sformat("The kernel will be written to slot B. This will take a while ...", BootPPC::ppc_iseries_streamfile);
+			Boot::device = ppc_prep_boot_partitions[ppc_boot_partition]:1;
+			boot_strings = add ( boot_strings, sformat(_("The kernel will be written to %1. Use *NWSSTG on OS400 side."), Boot::device));
+		}
+
+		if ( ppc_iseries_write_slot_b )
+		{
 			Boot::device = "B";
-			target_name = "";
+			boot_strings = add ( boot_strings, sformat(_("The kernel will be written to slot B.")));
 		}
-		else if ( Boot::location == "iseries_do_nothing" )
+		if ( ppc_iseries_write_slot_a )
 		{
-			ppc_proposal = sformat("No bootloader configuration in YaST2.");
-			Boot::device = "";
-			target_name = "";
+			boot_strings = add ( boot_strings, sformat(_("A rescue kernel will be written to slot A.")));
+		}
+		if ( ppc_iseries_write_slot_a || ppc_iseries_write_slot_b )
+		{
+			boot_strings = add ( boot_strings, sformat(_("- This will take a while ...")));
+		}
+
+		if ( ppc_activate_bootloader == false )
+		{
+			boot_strings = [ sformat(_("No boot configuration. Configure booting manually.")) ];
+		}
+		if ( !	( ppc_iseries_write_prepboot ||
+			  ppc_iseries_write_slot_b   ||
+			  ppc_iseries_write_slot_a   ||
+			  ppc_iseries_write_streamfile ) )
+		{
+			boot_strings = [ sformat(_("No boot option selected.")) ];
 			ppc_activate_bootloader = false;
-		}
-		else
-		{
-			ppc_proposal = sformat("Error: %1 should not happen on iSeries. report this as a bug!", Boot::location);
 		}
 
 		y2milestone("prep_boot_partitions %1", ppc_prep_boot_partitions);
@@ -181,13 +207,16 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 
 		if ( size (ppc_prep_boot_partitions) > 0)
 		{
-			target_name = ppc_prep_boot_partitions[ppc_boot_partition]:1;
-			Boot::device = target_name;
-			ppc_proposal = "the zImage.prep from CD1/boot must be written to a 41 PReP boot partition";
+			Boot::device = ppc_prep_boot_partitions[ppc_boot_partition]:1;
+			boot_strings = add ( boot_strings, _("the zImage.prep from CD1/boot must be written to a 41 PReP boot partition"));
 		}
 		else
 		{
-			ppc_proposal = "there is no 41 PReP boot partition, you can not boot from hard disk";
+			boot_strings = add ( boot_strings, _("there is no 41 PReP boot partition, you can not boot from hard disk"));
+		}
+		if ( ppc_activate_bootloader == false )
+		{
+			boot_strings = [ sformat(_("No boot configuration. Configure booting manually.")) ];
 		}
 	}
 	else if ( Arch::board_chrp )
@@ -196,36 +225,146 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 
 		if ( size (ppc_prep_boot_partitions) > 0)
 		{
-			target_name = ppc_prep_boot_partitions[ppc_boot_partition]:1;
-			Boot::device = target_name;
-			ppc_proposal = sformat("yaboot will be written to %1. use SMS Multiboot to boot from this drive", target_name);
+			Boot::device = ppc_prep_boot_partitions[ppc_boot_partition]:1;
+			boot_strings = add ( boot_strings, sformat(_("yaboot will be written to %1. use SMS Multiboot to boot from this drive"), Boot::device));
 		}
 		else
 		{
-			ppc_proposal = "there is no 41 PReP boot partition, you can not boot from hard disk";
+			boot_strings = add ( boot_strings, _("there is no 41 PReP boot partition, you can not boot from hard disk"));
+		}
+		if ( ppc_activate_bootloader == false )
+		{
+			boot_strings = [ sformat(_("No boot configuration. Configure booting manually.")) ];
 		}
 	}
 	else if ( Arch::board_mac_new )
 	{
-		ppc_proposal = "boot configuration on new PowerMacs is not yet implemented";
+		boot_strings = add ( boot_strings, _("boot configuration on new PowerMacs is not yet implemented"));
 	}
 	else if ( Arch::board_mac_old )
 	{
-		ppc_proposal = "configure BootX App in classic MacOS to boot the file 'vmlinuz-oldworld'";
+		boot_strings = add ( boot_strings, _("configure BootX App in classic MacOS to boot the file 'vmlinuz-oldworld'"));
 	}
 	else if ( Arch::board_mac_nubus )
 	{
-		ppc_proposal = "use the Apple MkLinux Booter to boot the kernel";
+		boot_strings = add ( boot_strings, _("use the Apple MkLinux Booter to boot the kernel"));
 	}
 	else
 	{
-		ppc_proposal = "boot configuration for this board is not yet implemented";
+		boot_strings = add ( boot_strings, _("boot configuration for this board is not yet implemented"));
 	}
 
-	y2milestone("BootPPC::Proposal: ppc_proposal %1, Boot::location %2", ppc_proposal, Boot::location);
-	y2milestone("BootPPC::Proposal: target_name  %1, Boot::device %2", target_name, Boot::device);
-	return ppc_proposal;
+	y2milestone("Boot::location %1", Boot::location);
+	y2milestone("BootPPC::Proposal: Boot::device %1", Boot::device);
+	y2milestone("BootPPC::Proposal strings %1", $[ "raw_proposal" : boot_strings ]);
+	return $[ "raw_proposal" : boot_strings ];
+
     }
+
+    /**
+     * HelpParameters
+     *
+     * help text for the values from AskParameters ()
+     *
+     * @returns: string of help text
+     */
+     global define string HelpParameters ()
+     ``{
+	if (Arch::board_iseries)
+	{
+		return "<br>" + _("<p>
+*STMF booting: generates a kernel for the OS400 *STMF boot method.<br>
+You must transfer this file to the OS400 side, via ftp as example.<br>
+Specify '*STMF' as <tt>IPL source</tt>, the path to your transfered kernel as <tt>IPL stream file</tt> and additional kernel boot parameters in the <tt>IPL parameters</tt> field.
+</p>") +
+_("<p>
+*NWSSTG booting: write the boot kernel to a <tt>41 PReP boot partition</tt>.<br>
+Specify '*NWSSTG' as <tt>IPL source</tt> and additional kernel boot parameters in the <tt>IPL parameters</tt> field.
+</p>") +
+_("<p>
+Kernel slot A: a rescue kernel will be written to slot <tt>A</tt>.<br>
+It will allow you to recover a Linux parition. You need an SuSE Linux install media to load the rescue image or start the installer.
+</p>") +
+_("<p>
+Kernel slot B: the boot kernel will be written to slot <tt>B</tt>.<br>
+This is the default boot method for SuSE Linux.
+</p>") +
+"<br>";
+
+	}
+	else if (Arch::board_chrp)
+	{
+		return "";
+	}
+	else return "";
+     }
+
+
+
+    /**
+     * HelpText
+     *
+     * @returns: string for the generic helptext window
+     */
+     global define string HelpText ()
+     ``{
+	if (Arch::board_iseries)
+	{
+		return _("<p>
+You can boot an iSeries Linux partition in diferent ways.\n
+Choose one or all of the available boot options. Or disable boot configuration entirely.\n
+</p>") +
+_("<p>
+After installation completes you will need to reconfigure your NWSD to boot from one of the OS/400 slots or from the PReP boot partition (refer to the SuSE SLES manual for details).
+</p>");
+	}
+	else if (Arch::board_chrp)
+	{
+		return "";
+	}
+	else if (Arch::board_prep)
+	{
+		return _("<p>
+Use <tt>dd</tt> to write the PReP boot kernel <tt>CD2/boot/vmlinuz-prep</tt> to the <tt>41 PReP boot partition</tt>.
+</p>");
+	}
+	else if (Arch::board_mac_new)
+	{
+		return _("<p>
+The newer PowerMacs load the kernel with yaboot.\n
+<tt>lilo</tt> and <tt>/etc/lilo.conf</tt> will do the configuration for you.\n
+</p>") +
+
+_("<p>boot= contains the boot partition in HFS format.</p>") +
+_("<p>image= contains the path to the kernel binary. It defaults to <tt>/boot/vmlinux</tt></p>") +
+_("<p>other= contains the partiton of MacOS 9 or MacOS X</p>") +
+_("<p>\n
+just run <tt>lilo</tt> to configure everything</p>");
+	}
+	else if (Arch::board_mac_old)
+	{
+		return _("<p>
+The older PowerMacs must be booted with the BootX App or the BootX extension.
+</p>");
+	}
+	else if (Arch::board_mac_nubus)
+	{
+		return _("<p>
+NuBus PowerMacs must be booted with the\n
+Apple MkLinux Booter.\n
+Use the Control panel to edit the lilo.conf in the Preferences folder.
+</p>");
+	}
+	else
+	{
+		return _("<p>
+Boot configuration for this board is not yet implemented.
+</p>");
+	}
+
+	     return "error ...";
+
+     }
 
     /**
      * AskParameters
@@ -289,24 +428,35 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 	   if ( Arch::board_iseries )
 	   {
 		ppc_location = `VBox(
+				`VStretch(),
+				`Left(
+					`RadioButton( `id( "ppc_iseries" ), `opt(`notify),
+						// activate boot partition
+						sformat (_("Write bootloader")),
+						ppc_activate_bootloader
+					)
+				 )
+				);
+		ppc_location = add ( ppc_location , `VBox(
 				 `VStretch(),
 				 `Left(
-				       `RadioButton( `id( "iseries_stmf" ), `opt(`notify),
+				       `CheckBox( `id( `iseries_do_stmf ), `opt(`notify),
 							// radiobutton
 						     sformat (_("Generate a bootfile for *STMF booting")),
-						     Boot::location == "iseries_stmf")
+						     ppc_iseries_write_streamfile)
 				       )
-				 );
+				 )
+				);
 
 		if ( size (ppc_prep_boot_partitions) > 0 )
 		{
 			ppc_location = add ( ppc_location ,`VBox(
 					 `VStretch(),
 					 `Left(
-					       `RadioButton( `id( "iseries_nwsstg" ), `opt(`notify),
+					       `CheckBox( `id( `iseries_do_nwsstg ), `opt(`notify),
 							// radiobutton
 							     sformat (_("write kernel to 41 PReP boot partition (for *NWSSTG)"), Boot::mbrDisk),
-							     Boot::location == "iseries_nwsstg")
+							     ppc_iseries_write_prepboot)
 					       )
 					       )
 					 );
@@ -314,20 +464,20 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 		ppc_location = add ( ppc_location ,`VBox(
 				 `VStretch(),
 				 `Left(
-				       `RadioButton( `id( "iseries_kernel_slot" ), `opt(`notify),
+				       `CheckBox( `id( `iseries_do_rescue_slot ), `opt(`notify),
 							// radiobutton
-						     sformat (_("write kernel to slot B")),
-						     Boot::location == "iseries_kernel_slot")
+						     sformat (_("write rescue kernel to slot A")),
+						     ppc_iseries_write_slot_a)
 				       )
 				       )
 				 );
 		ppc_location = add ( ppc_location ,`VBox(
 				 `VStretch(),
 				 `Left(
-				       `RadioButton( `id( "iseries_do_nothing" ), `opt(`notify),
+				       `CheckBox( `id( `iseries_do_kernel_slot ), `opt(`notify),
 							// radiobutton
-						     sformat (_("Do not configure bootloader")),
-						     Boot::location == "iseries_do_nothing")
+						     sformat (_("write kernel to slot B")),
+						     ppc_iseries_write_slot_b)
 				       )
 				       )
 				 );
@@ -337,7 +487,7 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 		ppc_location = `VBox(
 				`VStretch(),
 				`Left(
-					`RadioButton( `id( "ppc_chrp" ),
+					`RadioButton( `id( "ppc_chrp" ), `opt(`notify),
 						// activate boot partition
 						sformat (_("Write bootloader")),
 						Boot::location == "ppc_chrp"
@@ -350,7 +500,7 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 		ppc_location = `VBox(
 				`VStretch(),
 				`Left(
-					`RadioButton( `id( "ppc_undefined" ),
+					`RadioButton( `id( "ppc_undefined" ), `opt(`notify),
 						// activate boot partition
 						sformat (_("Yes, I agree that there is no bootloader support for this board."),
 						Boot::location == "ppc_undefined")
@@ -358,6 +508,16 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 				)
 				);
 	 }
+	ppc_location = add ( ppc_location ,`VBox(
+			 `VStretch(),
+			 `Left(
+			       `RadioButton( `id( "ppc_nobootloader" ), `opt(`notify),
+						// radiobutton
+					     sformat (_("Do not configure bootloader")),
+					     ! ppc_activate_bootloader)
+			       )
+			       )
+			 );
 
 	y2milestone("ppc AskOptions <%1>", Boot::location);
 	    return ppc_location;
@@ -373,7 +533,7 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 	{
 		option = UI::QueryWidget(`id(`custom_partition), `Value);
 		y2milestone("custom_partition %1", option);
-		if ( ! option == nil )
+		if ( option != nil )
 		{
 			ppc_boot_partition = option;
 		}
@@ -392,7 +552,49 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
     global define void    UI_Poll ( any ui_poll )
     ``{
 
-	y2milestone("UI_Poll %1", ui_poll );
+	y2milestone("UI_Poll %1 %2", ui_poll , ui_poll != "ppc_nobootloader");
+	if (Arch::board_iseries)
+	{
+		foreach(`sel, ppc_iseries_widgets,
+		``{
+			UI::ChangeWidget(`id(sel), `Enabled, ui_poll != "ppc_nobootloader");
+		});
+	}
+	else if (Arch::board_chrp || Arch::board_mac_new)
+	{
+		UI::ChangeWidget(`id(`ppc_change_of), `Enabled, ui_poll != "ppc_nobootloader");
+	}
+
+	if ( ui_poll == "ppc_nobootloader" )
+	{
+		UI::ChangeWidget(`id(`boot_params), `Enabled, false );
+		UI::ChangeWidget(`id(`custom_partition), `Enabled, false );
+		if (Arch::board_iseries)
+		{
+			UI::ChangeWidget(`id(`ppc_iseries_streamfile), `Enabled, false );
+		}
+		ppc_activate_bootloader = false;
+	}
+	else
+	{
+		UI::ChangeWidget(`id(`boot_params), `Enabled, true );
+
+		if (Arch::board_chrp && Arch::ppc64)
+		{
+			UI::ChangeWidget(`id(`ppc_change_of), `Enabled, true);
+			UI::ChangeWidget(`id(`custom_partition), `Enabled, true );
+		}
+		if (Arch::board_iseries)
+		{
+			UI::ChangeWidget(`id(`ppc_iseries_streamfile), `Enabled, UI::QueryWidget(`id(`iseries_do_stmf), `Value) );
+			ppc_iseries_write_streamfile = UI::QueryWidget(`id(`iseries_do_stmf), `Value);
+
+			UI::ChangeWidget(`id(`custom_partition), `Enabled, UI::QueryWidget(`id(`iseries_do_nwsstg), `Value) );
+			ppc_iseries_write_prepboot = UI::QueryWidget(`id(`iseries_do_nwsstg), `Value);
+		}
+
+	}
+
 	return;
 
     }
@@ -407,20 +609,27 @@ Copy this file to OS400 side and boot with *STMF", BootPPC::ppc_iseries_streamfi
 	// for MacOS 9/X partition or MacOS X ufs boot partition
 	string other_device	= Boot::others[0]:"";
 	boolean lilo_activate	= BootPPC::ppc_activate_bootloader;
+	boolean ppc_requires_initrd = ( size ( Boot::initrdModules ) > 0);
 	string lilo_conf = "# Generated by YaST2\n
 default=linux
 timeout=100
 boot=" + boot_device + "\n";
 
-	if (lilo_activate == true)
+	if ( ! lilo_activate )
 	{
-	    lilo_conf = lilo_conf + "activate\n";
+		lilo_conf = lilo_conf + "# ";
 	}
+	lilo_conf = lilo_conf + "activate\n";
 
 	lilo_conf = lilo_conf + "
 image = /boot/" + Kernel::binary + "
 	label = linux
 	root = " + root_device + "\n";
+	if ( ppc_requires_initrd )
+	{
+	    lilo_conf = lilo_conf + "\tinitrd = /boot/initrd" + "\n";
+	    SCR::Execute(.target.bash, "/sbin/mk_initrd >> /var/log/YaST2/y2log_mkinitrd 2>&1");
+	}
 
 	lilo_conf = lilo_conf + "\tappend = \"" + Kernel::cmdLine +"\"\n\n";
 
@@ -433,7 +642,54 @@ image = /boot/" + Kernel::binary + "
 
 	SCR::Write (.target.string, "/etc/lilo.conf", lilo_conf);
 
-	if (Arch::board_prep)
+	if (lilo_activate && Arch::board_iseries)
+	{
+		string ppc_iseries_bootbinary = "/boot/vmlinux64";
+		if ( ppc_requires_initrd )
+		{
+			ppc_iseries_bootbinary = "/tmp/vmlinux64.initrd";
+			SCR::Execute (.target.bash, "/bin/addRamDisk64 /boot/initrd $(rpm -ql kernel-iseries64 | grep ^/lib/modules/.\\\*/System.map$)  $(rpm -ql kernel-iseries64 | grep ^/lib/modules/.\\\*/vmlinux$) " + ppc_iseries_bootbinary + " >> /var/log/YaST2/y2loglilo_ppc_iseries_bootbinary 2>&1 " );
+		}
+		if ( ppc_iseries_write_slot_a )
+		{
+			y2milestone("start writing rescue kernel to slot A ...");
+			SCR::Execute (.target.bash, "time dd if=`rpm -ql kernel-iseries64 | grep ^/boot | grep install | head -n1` of=/proc/iSeries/mf/A/vmlinux bs=4096 >>/var/log/YaST2/y2loglilo_iseries_slot_a 2>&1 ");
+			SCR::Execute (.target.bash, "echo 'start_shell manual=1 single' > /proc/iSeries/mf/A/cmdline");
+			y2milestone("done writing rescue kernel to slot A.");
+		}
+		if ( ppc_iseries_write_slot_b )
+		{
+			if ( boot_device == "B" )
+			{
+                        y2milestone("lilo will write the kernel to slot B. B is now activated");
+                        SCR::Execute (.target.bash, "echo B > /proc/iSeries/mf/side");
+			}
+			else
+			{
+			y2milestone("start writing boot kernel to slot B ...");
+			SCR::Execute (.target.bash, "time dd if=" + ppc_iseries_bootbinary + " of=/proc/iSeries/mf/B/vmlinux bs=4096 >>/var/log/YaST2/y2loglilo_iseries_slot_b 2>&1 ");
+			SCR::Execute (.target.bash, "echo '" + root_device + " " + Kernel::cmdLine + "' > /proc/iSeries/mf/B/cmdline");
+			SCR::Execute (.target.bash, "echo B > /proc/iSeries/mf/side");
+			y2milestone("done writing boot kernel to slot B.");
+			}
+		}
+		if ( ppc_iseries_write_streamfile )
+		{
+			y2milestone("create *STMF file %1 from %2", ppc_iseries_streamfile, ppc_iseries_bootbinary);
+			SCR::Execute (.target.bash, "cd / ; cp -av " + ppc_iseries_bootbinary + " " + ppc_iseries_streamfile);
+		}
+		if ( ppc_iseries_write_prepboot && size (ppc_prep_boot_partitions) > 0 )
+		{
+			y2milestone("*NWSSTG: write %1 to %2", ppc_iseries_bootbinary, ppc_prep_boot_partitions[ppc_boot_partition]:1);
+			SCR::Execute (.target.bash, "test -b " +
+			ppc_prep_boot_partitions[ppc_boot_partition]:1 +
+			" && dd if=" + ppc_iseries_bootbinary + " bs=4096 of=" +
+			ppc_prep_boot_partitions[ppc_boot_partition]:1
+			);
+		}
+
+	}
+	if (lilo_activate && Arch::board_prep)
 	{
 	    // the PReP boot file (the kernel) is not in k_deflt.rpm
 	    // FIXME: this is one of the crudest hacks (cf #9718)
@@ -442,7 +698,7 @@ image = /boot/" + Kernel::binary + "
 	    WFM::Execute (.local.bash, "/bin/cp -pv " + Installation::sourcedir +
 			"/boot/install-prep* /boot/zImage.initrd.prep");
 	}
-	if (ppc_activate_bootloader == true)
+	if (lilo_activate)
 		SCR::Execute(.target.bash, "/sbin/lilo --lilo-rootdrive " + root_device + ">>/var/log/YaST2/y2loglilo 2>>/var/log/YaST2/y2loglilo");
 
 	SCR::Execute(.target.bash, "/usr/lib/YaST2/bin/ppc_postinstall.sh " + boot_device + " " + root_device);

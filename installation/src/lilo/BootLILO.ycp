@@ -76,7 +76,7 @@
 
 	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/YaST2/y2logmk_initrd 2>> /var/log/YaST2/y2logmk_initrd") != 0 )
 	{
-	    any retAsk = UI::AskShowLog();
+	    any retAsk = Boot::AskShowErrorLog();
 	    if ( retAsk )
 	    {
 		string text = "";
@@ -85,6 +85,44 @@
 		DisplayLogFile( text );
 	    }
 	}
+
+	// add current kernel parameters to linux section (#19415)
+	y2milestone("Actual kernel parameters '%1'", Kernel::cmdLine);
+
+        SCR::Write(.lilo.setfilename, "/etc/lilo.conf");
+	SCR::Read(.lilo.reread);
+	string current = SCR::Read(.lilo.sections.linux.append);
+
+	if (current != nil)
+	{
+	    current = regexpsub(current, "\"(.*)\"", "\\1");
+	}
+
+	if (current == nil)
+	{
+	    current = "";
+	}
+
+	string newparams = "\"" + Kernel::cmdLine + " " + current + "\"";
+
+	if (size(newparams) > 2)
+	{
+	    y2milestone("New kernel parameters: %1", newparams);
+	    SCR::Write(.lilo.sections.linux.append, newparams);
+	}
+	string image = SCR::Read (.lilo.sections.linux.image);
+	if (image == "" || image == nil)
+	    image = "/boot/vmlinuz";
+	SCR::Write(.lilo.sections.linux.image, image);
+	string initrd = SCR::Read (.lilo.sections.linux.initrd);
+	if ((initrd == "" || initrd == nil) && SCR::Read (.target.size, "/boot/initrd"))
+	    initrd = "/boot/initrd";
+	SCR::Write(.lilo.sections.linux.initrd, initrd);
+	string root = SCR::Read (.lilo.sections.linux.root);
+	if (root == "" || root == nil)
+	    root = Boot::RootPartitionDevice;
+	SCR::Write(.lilo.sections.linux.root, root);
+	SCR::Write(.lilo, nil);
 
 	// Generate grafical login
 
@@ -129,20 +167,15 @@ Do you want to try again?")) )
 	}
 	else	// lilo on harddisk
 	{
-
-	    any retAsk = `yes;
-	    while ( retAsk == `yes
-		    && SCR::Execute (.target.bash, "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>> /var/log/YaST2/y2loglilo") != 0 )
+	    if (SCR::Execute (.target.bash, "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>> /var/log/YaST2/y2loglilo") != 0 )
 	    {
-		retAsk = UI::AskRetry( "lilo" );
-		while ( retAsk == `log )
+		any retAsk = Boot::AskShowErrorLog();
+		if ( retAsk )
 		{
 		    string text = "";
 
-		    // FIXME: Installation::destdir should be removed?
-		    text = SCR::Read (.target.string, Installation::destdir + "/var/log/YaST2/y2loglilo");
+		    text = SCR::Read (.target.string, "/var/log/YaST2/y2loglilo");
 		    DisplayLogFile( text );
-		    retAsk = UI::AskRetry( "lilo" );
 		}
 	    }
 	}

@@ -77,7 +77,7 @@
 
 	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/YaST2/y2logmk_initrd 2>> /var/log/YaST2/y2logmk_initrd") != 0 )
 	{
-	    any retAsk = UI::AskShowLog();
+	    any retAsk = Boot::AskShowErrorLog();
 	    if ( retAsk )
 	    {
 		string text = "";
@@ -251,11 +251,13 @@ Do you want to try again?")) )
 	SCR::Execute (.target.bash, "test -f /etc/grub.conf || touch /etc/grub.conf");
 	SCR::Execute (.target.bash, "test -d /boot/grub || mkdir /boot/grub;");
 	SCR::Execute (.target.bash, "test -f /boot/grub/menu.lst || touch /boot/grub/menu.lst;");
-	if (Mode::initial)
+
+	// leave original device.map file at update
+	if (Mode::initial && !Mode::update)
 	{
 	    SCR::Execute (.target.bash, "test -f /boot/grub/device.map && rm /boot/grub/device.map");
+	    SCR::Execute (.target.bash, "test -f /boot/grub/device.map || echo \"quit\" | /usr/sbin/grub --batch --device-map=/boot/grub/device.map");
 	}
-	SCR::Execute (.target.bash, "test -f /boot/grub/device.map || echo \"quit\" | /usr/sbin/grub --batch --device-map=/boot/grub/device.map");
 
         if ( Mode::update )
         {
@@ -361,7 +363,9 @@ Do you want to try again?")) )
 		dev = lilo2Grub (dev);
 		parts = remove (parts, 0);
 		string label = mergestring (parts, " ");
-		if (dev != "" && label != "")
+
+                                                // don't add rewritten location (#19990)
+		if (dev != "" && label != "" && dev != Boot::device)
 		{
 		    menu = menu + sformat ("title %1\n", label);
 		    menu = menu + sformat ("   root %1\n", dev);
@@ -379,7 +383,8 @@ Do you want to try again?")) )
 
 	menu = menu + "title failsafe\n";
 	menu = menu + sformat ("   kernel %1 %2 %3\n", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz.shipped"),
-            sformat ("root=%1", Boot::RootPartitionDevice), "ide=nodma apm=off acpi=off vga=normal nosmp maxcpus=0 disableapic 3");
+	    // don't use nosmp and disableapic on x86_64, use iommu (#19903)
+            sformat ("root=%1", Boot::RootPartitionDevice), "ide=nodma apm=off acpi=off vga=normal " + ((Arch::x86_64) ? "iommu=noforce " : "nosmp disableapic ") + "maxcpus=0 3");
 	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd.shipped");
 
 	if (SCR::Read (.target.size, "/boot/memtest.bin") > 0)
@@ -394,7 +399,7 @@ Do you want to try again?")) )
 	boolean ret = (0 == SCR::Execute(.target.bash, "/sbin/mk_initrd >> /var/log/YaST2/y2logmk_initrd 2>> /var/log/YaST2/y2logmk_initrd"));
         if (! ret)
         {
-            any retAsk = UI::AskShowLog();
+            any retAsk = Boot::AskShowErrorLog();
             if ( retAsk )
             {
                 string text = "";
@@ -455,10 +460,17 @@ Do you want to try again?")) )
 	map p_dev = Storage::GetDiskPartition (boot_sect);
 	any num = p_dev["nr"]:0;
 	string mbr_dev = p_dev["disk"]:"";
+	// if bootloader in MBR, activate /boot partition (partiall fix of #20637)
+	if (! (num != 0 && num != ""))
+	{
+	    p_dev = Storage::GetDiskPartition (Boot::BootPartitionDevice);
+	    num = p_dev["nr"]:0;
+	    mbr_dev = p_dev["disk"]:"";
+	}
 	if (num != 0 && num != "")
 	{
 	    y2milestone ("Activating partition %1 on %2", num, mbr_dev);
-	    return 0 == SCR::Execute (.target.bash, sformat ("/sbin/sfdisk -A%1 %2", num, mbr_dev));
+	    ret = ret && (0 == SCR::Execute (.target.bash, sformat ("/sbin/sfdisk -A%1 %2", num, mbr_dev)));
 	}
 	if (! ret)
 	    UI::ErrorPopup (_("An error occured during saving bootloader configuration"));

@@ -22,6 +22,7 @@
     import "Mode";
 
     import "StorageDevices";
+    textdomain "bootloader";
 
     /**
      * @return list: modules for the initrd
@@ -107,6 +108,10 @@
      * was already called the Set function?
      */
     boolean was_set = false;
+    /**
+      * true if no bootloader is selected to be installed
+      */
+    global boolean no_bootloader = false;
 
     //---------------------------------------------------------------
 
@@ -124,12 +129,14 @@
     ``{
 	if (! Mode::normal)
 	{
-	    string tmp_mods = SCR::Read (.etc.install_inf.InitrdModules);
+	    string tmp_mods = SCR::Read( .etc.install_inf.InitrdModules );
 	    if (tmp_mods != nil)
 	    {
-		initrdModules = splitstring (tmp_mods, " ");
+		list tmp_mod = splitstring( tmp_mods, " " );
+		foreach( `t, tmp_mod, ``{ AddInitrdModule(t,""); });
 	    }
 	}
+	y2milestone( "initrdModules %1", initrdModules );
 	checkBootloader (false);
 	return;
     }
@@ -161,16 +168,26 @@
 	    y2milestone ("sysconfig:LOADER_TYPE %1", sysconfig);
 	    if (sysconfig == "grub" || sysconfig == "lilo")
 	        LoaderType = sysconfig;
-	    else if (LoaderType == "unknown")
+	    else if (LoaderType == "unknown" || sysconfig==nil )
 		LoaderType = (Mode::update) ? "lilo" : "grub";
 	    y2milestone ("Bootloader update, using %1", LoaderType);
 	}
-//y2error ("Ask: %1", askStorage);
 	if (askStorage)
 	{
 	    import "Storage";
 	    if (LoaderType == "grub" && Storage::UseLilo())
 		LoaderType = "lilo";
+	}
+	no_bootloader = false;
+	if ((Arch::i386 || Arch::x86_64) && (Mode::initial)){
+	    if (LoaderType == "lilo" && ! Pkg::IsSelected ("lilo"))
+		LoaderType = "grub";
+	    if (LoaderType == "grub" && ! Pkg::IsSelected ("grub"))
+		LoaderType = "lilo";
+	    if (! (Pkg::IsSelected ("lilo") || Pkg::IsSelected ("grub")))
+	    {
+		no_bootloader = true;
+	    }
 	}
 	y2milestone ("Setting bootloader type to %1", LoaderType);
 	return;
@@ -206,7 +223,36 @@
 	    || ((modname == "aic7xxx_old")
 		 && !contains (initrdModules, "aic7xxx")))
 	{
-	    initrdModules = add (initrdModules, modname);
+	    // usb and cdrom modules dont belong to initrd, they're loaded by hotplug
+
+	    list modules_to_skip = [ "usbcore",
+				     "usb-uhci",
+				     "uhci",
+				     "usb-ohci",
+				     "input",
+				     "hid",
+				     "keybdev",
+				     "mousedev",
+				     "usb-storage",
+				     "cdrom",
+				     "ide-cd",
+				     "sr_mod"
+				     ];
+	    if (Arch::ppc)
+	    {
+	        list ppc_modules_to_skip = [ "reiserfs",
+					     "ext3",
+					     "jbd",
+					     "jfs",
+					     "xfs",
+					     ];
+		modules_to_skip = union ( modules_to_skip, ppc_modules_to_skip );
+	    }
+
+	    if ( ! contains (modules_to_skip, modname ))
+	    {
+		initrdModules = add (initrdModules, modname);
+	    }
 	    if (size(modargs)  > 0)
 	    {
 		module_args[modname] = Misc::MergeOptions (modargs, $[]);
@@ -233,30 +279,63 @@
 
     /**
      *  Set()
-     *	@return void
+     *	@return boolean True if configuration is valid
      *  If nothing is configured, automatically determine values.
      *
      */
 
-    global define void Set()
+    global define boolean Set()
     ``{
 	import "Storage";
 	checkBootloader (true);
-	if (last_change != Storage::GetTargetChangeTime())
+
+	last_change = Storage::GetTargetChangeTime();
+
+	map mp = Storage::GetMountPoints();
+	string actual_root = mp["/", 0]:"";
+	string actual_boot = mp["/boot", 0]:actual_root;
+
+	// don't change configuration if '/' and '/boot' were not changed
+	// and location is "floppy", "mbr" or "boot"
+	if (actual_boot == BootPartitionDevice && actual_root == RootPartitionDevice && location != "custom" && location != "")
 	{
-//	    Boot ();
-	    last_change = Storage::GetTargetChangeTime();
-
-	    // don't change configuration if partitioning
-	    // was changed and location is floppy
-	    if (Boot::location == "floppy")
-	    {
-		return;
-	    }
-
-	    device = "";
-	    location = "";
+	    return true;
 	}
+
+	if (location == "custom")
+	{
+	    // check if target partition is (will be) present
+	    map devices = Storage::GetTargetMap();
+
+	    list all_partitions = [];
+
+	    foreach (string d, map cont, devices, ``{
+		all_partitions = add (all_partitions, d);
+		list parts = cont["partitions"]:[];
+
+		//remove deleted partitions
+		parts = filter (map p, parts, ``(! p["delete"]:false ));
+		parts = filter (map p, parts, ``(p["fstype"]:"" != "Linux swap"));
+
+		foreach (map p, parts, ``{
+		    string dev = p["device"]:"";
+		    if (dev != "")
+		    {
+			all_partitions = add (all_partitions, dev);
+		    }
+		});
+	    });
+
+	    if (!contains(all_partitions, device))
+	    {
+		return false;
+	    }
+	    else if (actual_boot == BootPartitionDevice && actual_root == RootPartitionDevice)
+	    {
+		return true;
+	    }
+	}
+	// else only refresh / and /boot location
 
 	was_set = true;
 
@@ -327,7 +406,7 @@
 	}
 
 	y2milestone ("mbr at %1", mbrDisk);
-	return;
+	return true;
     }
 
     /**
@@ -540,10 +619,15 @@
 
 	SCR::Write (.sysconfig.bootloader.LOADER_TYPE, LoaderType);
 	SCR::Write (.sysconfig.bootloader.LOADER_TYPE.comment,
-		       "\n# Type of bootloader in use.\n#\n");
+		       "\n# Type of bootloader in use.
+# On i386 and compatibles \"grub\" and \"lilo\" are allowed.
+# Other platforms can have their specific bootloaders.
+# For making the change effect run bootloader configuration tool
+# and configure newly selected bootloader.\n#\n");
 	SCR::Write (.sysconfig.bootloader.LOADER_LOCATION, location);
 	SCR::Write (.sysconfig.bootloader.LOADER_LOCATION.comment,
-		       "\n# Location of boot loader.\n#\n");
+		       "\n# Location of boot loader. Shall contain \"mbr\",
+# \"floppy\", \"boot\" or \"custom\"\n#\n");
 
 	if (LoaderType == "lilo")
 	{
@@ -640,6 +724,19 @@
 	y2error ("Unknown LoaderType '%1'", LoaderType);
 	return false;
     }
+
+
+    global define AskShowErrorLog( ) ``{
+	return UI::AnyQuestionPopup(
+                                    // heading for a popup box
+                                    _("An error occured during saving bootloader configuration"),
+                                    // question in a popup box
+                                    _("Would you like to see the installation log file?"),
+                                    UI::YesButtonLabel(),
+                                    UI::NoButtonLabel(),
+                                    `focus_no );
+    };
+
 
 
 }

@@ -186,6 +186,7 @@
 			     )
 		    );
     }
+    // ! ppc
 
     location = `Frame(
 		      // frame label for boot manager (%1) location radio buttons
@@ -193,13 +194,11 @@
 		      // Umisteni GRUBu.
 		      sformat (_("%1 location"), loadername),
 		      `VBox(
-			    `VSpacing( 1 ),
 			    `HBox(
 				  `HSpacing( 1 ),
 				  `HVSquash( `RadioButtonGroup(`id(`options), location) ),
 				  `HSpacing( 2 )
-				  ),
-			    `VSpacing( 1 )
+				  )
 			    )
 		      );
 
@@ -243,6 +242,7 @@
 	import "BootPPC";
 
 	ui_parameters = BootPPC::AskParameters ();
+	help_parameters = BootPPC::HelpParameters ();
     }
 
     foreach (`uiterm, ui_parameters,
@@ -260,9 +260,7 @@
 			sformat (_("%1 parameters"), loadername),
 
 			`VBox(
-			      `VSpacing( 1 ),
-			      parameters,
-			      `VSpacing( 1 )
+			      parameters
 			      )
 			);
 
@@ -283,6 +281,7 @@
 
     // help text for the custom boot manager installation, 1 of 9
     // %1 = name of boot loader (e.g. "LILO")
+    // this should be per architecture
     string helptext = sformat (_("<p>
 The boot manager (%1) can be installed in the following ways:
 </p>
@@ -353,6 +352,13 @@ Enter the device name of the partition (e.g., <tt>/dev/hda3</tt>,
 If your system requires additional <b>kernel boot parameters</b>,
 enter them in the corresponding input field. Most users will not need this.
 </p>");
+
+    // custom help texts for ppc
+    if (Boot::LoaderType == "ppc")
+    {
+	import "BootPPC";
+	helptext = BootPPC::HelpText();
+    }
 
     helptext = helptext + help_parameters + "<br>";
 
@@ -433,25 +439,47 @@ options to continue.
 			Boot::device = option;
 		    }
 		}
-		else if (option == "iseries_stmf")
+		else if (option == "ppc_iseries")
 		{
+			BootPPC::ppc_activate_bootloader = true;
 			option = UI::QueryWidget(`id(`ppc_iseries_streamfile), `Value);
 			if (is (option, string))
 			{
 				BootPPC::ppc_iseries_streamfile = option;
 			}
-		}
-		else if (option == "iseries_nwsstg")
-		{
-			option = UI::QueryWidget(`id(`custom_partition), `Value);
-			if (is (option, string))
+			option = UI::QueryWidget(`id(`iseries_do_stmf), `Value);
+			if (is (option, boolean))
 			{
-				Boot::device = option;
+				BootPPC::ppc_iseries_write_streamfile = option;
+			}
+			option = UI::QueryWidget(`id(`iseries_do_nwsstg), `Value);
+			if (is (option, boolean))
+			{
+				BootPPC::ppc_iseries_write_prepboot = option;
+			}
+			option = UI::QueryWidget(`id(`iseries_do_rescue_slot), `Value);
+			if (is (option, boolean))
+			{
+				BootPPC::ppc_iseries_write_slot_a = option;
+			}
+			option = UI::QueryWidget(`id(`iseries_do_kernel_slot), `Value);
+			if (is (option, boolean))
+			{
+				BootPPC::ppc_iseries_write_slot_b = option;
 			}
 		}
-		else if (option == "iseries_do_nothing")
+		else if (option == "ppc_nobootloader")
 		{
-				BootPPC::ppc_activate_bootloader = false;
+			BootPPC::ppc_activate_bootloader = false;
+		}
+		else if (option == "ppc_chrp")
+		{
+			BootPPC::ppc_activate_bootloader = true;
+			option = UI::QueryWidget(`id(`ppc_change_of), `Value);
+			if (is (option, boolean))
+			{
+				BootPPC::ppc_of_defaultdevice = option;
+			}
 		}
 	    }
 
