@@ -49,10 +49,6 @@ Group:          System/YaST
 @desktopdir@/bootloader.desktop
 %endif
 
-%ifarch %ix86 x86_64
-@ydatadir@/mbr
-%endif
-
 %doc @docdir@
 
 %dir @yncludedir@/bootloader
