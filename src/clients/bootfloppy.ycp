@@ -480,7 +480,8 @@ and File Systems (modules disk 4)"))),
 			hidePopup ();
 			if (filename == nil)
 			{
-			    Report::Error ("Selected image doesn't exist on installation medium.");
+			    // error report
+			    Report::Error (_("The selected image does not exist on the installation medium."));
 			    ret = nil;
 			}
 		    }

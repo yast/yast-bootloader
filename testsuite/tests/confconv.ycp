@@ -82,6 +82,7 @@
 		"EVMS_CONFIG" : "0",
 		"IO_SCHEDULER" : "cfg",
 		"UI_MODE" : "expert",
+		"INCOMPLETE_TRANSLATION_TRESHOLD" : "95",
 	    ]
 	],
     ];

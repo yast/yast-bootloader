@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 25 09:05:14 CET 2005 - jsrain@suse.cz
+
+- added missed translation mark (#8402)
+- fixed testsuites
+
+-------------------------------------------------------------------
 Mon Feb 21 10:58:13 CET 2005 - jsrain@suse.cz
 
 - use the new scripts for creating boot floppy (images are no
