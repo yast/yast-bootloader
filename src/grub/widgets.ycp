@@ -750,14 +750,14 @@
     global define map getGlobalSectionWidget () ``{
 	list items = [
 		// menubutton item
-            `item (`id (`propose), _("&Propose new configuration")),
+            `item (`id (`propose), _("&Propose New Configuration")),
 		// menubutton item
-            `item (`id (`scratch), _("&Start from scratch")),
+            `item (`id (`scratch), _("&Start from Scratch")),
 	];
 	if (Mode::normal || Mode::config)
 	    items = add (items,
 		// menubutton item
-		`item (`id (`reread), _("&Reread configuration from disk")));
+		`item (`id (`reread), _("&Reread Configuration from Disk")));
 	items = add (items, `item (`id (`propose_deep),
 		// menubutton item
 		_("Propose and &merge with existing GRUB menus")));

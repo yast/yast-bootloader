@@ -36,12 +36,12 @@
       */
     global define map getGlobalSectionWidget () ``{
         list items = [
-            `item (`id (`propose), _("&Propose new configuration")),
-            `item (`id (`scratch), _("&Start from scratch")),
+            `item (`id (`propose), _("&Propose New Configuration")),
+            `item (`id (`scratch), _("&Start from Scratch")),
 	];
 	if (Mode::normal || Mode::config)
 	    items = add (items, `item (`id (`reread),
-		_("&Reread configuration from disk")));
+		_("&Reread Configuration from Disk")));
         map ret = BootCommon::getGlobalSectionWidget ();
         ret["widget"] = (`HBox (`HSpacing (2), `VBox (
                     `Table (`id (`settings), `opt (`immediate, `notify, `keepSorting),
