@@ -2,6 +2,22 @@
 
     <section id="initrd">
         <title>Initrd module</title>
+	<section>
+	    <title>General information</title>
+	    <para>
+Initrd module is used for handling list of Initrd modules. Inside stores list of modules, which shall be contained in initial ramdisk, allows to add/remove any module to/from this list.
+Also when adding module to initrd, it is possible to specify parameters of the module.
+	    </para>
+	    <para>
+For storing of list of initrd modules variable INITRD_MODULES in /etc/sysconfig/kernel is used (contains list of modules separated by blank character). Parameters of modules are
+stored in /etc/modules.conf the same way like for modules which aren't to be a part of initrd.
+	    </para>
+	    <para>
+When calling the Write function of this module, first checking whether saving is really needed is done (if some module was added, or if function was called during installation,
+then it is needed). Modules settings are saved to /etc/modules.conf, list of modules to /etc/sysconfig/kernel, and after it /sbin/mk_initrd is called to create ramdisk.
+Note that even though list of modules is empty, /sbin/mk_initrd must be called, because some modules are added to initrd by this script.
+	    </para>
+	</section>
         <section>
             <title>List of declarations</title>
             <itemizedlist>
@@ -13,7 +29,8 @@
                 <listitem><para><computeroutput>global define void RemoveModule (string modname)</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global define void Reset ()</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global define void Write ()</computeroutput></para></listitem>
-                <listitem><para><computeroutput>map modules</computeroutput></para></listitem>
+		<listitem><para><computeroutput>list modules</computeroutput></para></listitem>
+                <listitem><para><computeroutput>map modules_settings</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global boolean changed</computeroutput></para></listitem>
                 <listitem><para><computeroutput>boolean was_read</computeroutput></para></listitem>
             </itemizedlist>
@@ -37,7 +54,9 @@
         <section>
             <title>Internal variables</title>
             <itemizedlist>
-                <listitem><para><computeroutput>map modules</computeroutput> is map from names of modules, which should be contained in initial ramdisk, to their
+		<listitem><para><computeroutput>list modules</computeroutput> contains list of modules to be inserted to initrd. Is important, because map doesn't preserve order
+			of module, which is imnportant.</para></listitem>
+                <listitem><para><computeroutput>map modules_settings</computeroutput> is map from names of modules, which should be contained in initial ramdisk, to their
                         parameters. For changing this variable should be appropriate functions used.</para></listitem>
                 <listitem><para><computeroutput>global boolean changed</computeroutput> is true if initrd needs to be rebuilt when saving configuration. Shall be directly used only
                         from Bootloader module.</para></listitem>

@@ -10,6 +10,11 @@
 <!ENTITY bootcommon SYSTEM "bootcommon.xml">
 <!ENTITY bootspec SYSTEM "bootspec.xml">
 <!ENTITY ui SYSTEM "ui.xml">
+<!ENTITY concept SYSTEM "concept.xml">
+<!ENTITY switch SYSTEM "switch.xml">
+<!ENTITY io SYSTEM "io.xml">
+<!ENTITY lilo SYSTEM "lilo.xml">
+<!ENTITY grub SYSTEM "grub.xml">
 ]>
 
 <article>
@@ -30,12 +35,17 @@
 	</itemizedlist>
     </section>
 
+&concept
+&switch
+&io
 &diagrams
 &initrd
 &bootloader
 &bootcommon
 &bootspec
 &ui
+&grub
+&lilo
 </article>
       
 	    

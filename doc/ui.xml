@@ -3,6 +3,29 @@
     <section id="ui">
 	<title>User interface</title>
 	<section>
+	    <title>UI concept</title>
+	    <para>
+The general user interface and workflow is the same for all supported bootloaders. But usually some widgets need to have a little different behaviour or look for 
+different bootloaders. Because of this there is common workflow, which can be used for all bootloaders, and common set of widgets (or widget groups), which can be
+replaced by bootloader-specific widget (widget group). Each widget has defined it's look and behaviour. It has various functions for restoring settings when shown,
+handle changes, check whether currently set settings are OK,...).
+This makes possible to write whole dialog at once and not duplicate code between different bootloaders if it isn't needed.
+	    </para>
+	    <para>
+The function for displaying dialog creates a look of the dialog from the widgets (some may be general, some bootloader-specific according to inidividual bootloader's set of widgets),
+creates help using helps of dialog member widgets, collects events which may result to replacing the dialog with other one, and call generic dialog function with parameters specifying
+wizard sequencer buttons, help, caption and everything else what is needed to display the dialog. (Not all dialogs do this, it is still possible to create and handle dialog
+completly inside specific dialog function). Generic dialog function calls appropriate function of all widgets which are part of the dialog.
+	    </para>
+	    <para>
+Popup widgets related to single option behave mainly the same way as widgets in the wizard sequencer dialog. The map describing the widget only must have function
+for displaying one-line summary in the table (otherwise generic one is used), and optionaly help is in the format of label widget (no HTML).
+	    </para>
+	    <para>
+Of course the concept allows to modify the base workflow for single bootloader, or completely replace it.
+	    </para>
+	</section>
+	<section>
 	    <title>GetWidgets function</title>
 	    <para>
 		Function <computeroutput>global define map GetWidgets ()</computeroutput> returns map describing all bootloader-specific widgets or whole dialogs.
@@ -18,17 +41,19 @@
 	    <para>
 		Widget description map contains following fields:
 		<itemizedlist>
-		    <listitem><para><computeroutput>"widget" : term</computeroutput> contains widget to be displayed in teh dialog.</para></listitem>
+		    <listitem><para><computeroutput>"widget" : term</computeroutput> contains widget to be displayed in the dialog.</para></listitem>
 		    <listitem><para><computeroutput>"restore" : term</computeroutput>, will be evaluated after dialog gets shown.
 			Appropriate contents of dialog (eg. texts from textentries) shoud be set during evaluating this term.</para></listitem>
 		    <listitem><para><computeroutput>"handle" : term</computeroutput>, which will be evaluated everytime some UI event is generated (at each UI::UserInput ()).
-			Before evaluating, one symbol parameter will be added, containing result value of UI::UserInput ().
-			Handler's return value must contain symbol, which may be the same, but can be changed. It is usable to forbid leaving the dialog
-			because of incorrect contents of widget. In this case handler changes the `next value to nil, and wizard sequencer will not proceed.</para></listitem>
+			Before evaluating, symbol parameter will be added, containing result value of UI::UserInput (), second parameter containing list of events leading to exit
+			widget with saving will be added.
+			Handler's return value must contain symbol, which may be the same, but can be changed. If nil is returned, it is handled the same wasy as if it wouldn't
+			be changed.</para></listitem>
 		    <listitem><para><computeroutput>"help" : string</computeroutput> representing help, which should be displayed to the widget.
-			The help will be included in dialog help at appropriate place.</para></listitem>
+			The help will be included in dialog help at appropriate place (left bar for normal dialog - in HTML format, as a label for popups).</para></listitem>
 		    <listitem><para><computeroutput>"validate" : term</computeroutput>, will be evaluated when it will be needed (dialog will be exited other way than
-			Back or Abort button).</para></listitem>
+			Back or Abort button). Shall return true if everything is OK, false if not. If there is any problem, should display appropriate popup
+			and change focus to problematic widget.</para></listitem>
 		    <listitem><para><computeroutput>"exits" : list</computeroutput> contains list of symbols, which if are generated and dialog is correctly validated,
 			dialog is left returning this symbol to wizard sequencer. </para></listitem>
 		</itemizedlist>
@@ -42,7 +67,7 @@
 		    <listitem><para><computeroutput>"label" : string</computeroutput> label, which will be shown in the table of settings.
 			Key not present means option name will be used.</para></listitem>
 		    <listitem><para><computeroutput>"summary" : term</computeroutput> will be evaluated to get the text to the settings table. Result of evaluation of this term
-			will be used. If key not present, raw value will be used.</para></listitem>
+			will be used. If key not present, raw value will be used if it is part of configuration file, otherwise will be empty.</para></listitem>
 		</itemizedlist>
             </para>
         </section>
@@ -53,22 +78,25 @@
 		They are used to apply all needed actions on list of widgets and create widget maps from widget names.
 		<itemizedlist>
 		    <listitem><para><computeroutput>global define list getWidgets (list names)</computeroutput> transforms list of widget names to list of widget maps
-			(contents described above). If bootloader-specific version of widhet exists, then is returned, otherwise generic widget is returned</para></listitem>
+			(contents described above). If bootloader-specific version of widhet exists, then is returned, otherwise generic widget is returned in the list.</para></listitem>
 		    <listitem><para><computeroutput>global define map getPopupWidget (any name)</computeroutput> returns map of specified single-option widget.
-			If bootloader-specific versin exits, it is returned, otherwise generic (if exits is used) or widget is generated according to option type
-			(in moment of use).</para></listitem>
+			If bootloader-specific versin exists, it is returned, otherwise generic (if exists) is used or widget is generated according to option type
+			</para></listitem>
 		    <listitem><para><computeroutput>global define map getPopupWidgets ()</computeroutput> gets maps of all popup widgets. Specific/common version
 			is choosen the same way as in getPopupWidget case.</para></listitem>
 		    <listitem><para><computeroutput>global define void readWidgets (list widgets)</computeroutput> evaluates the "restore" terms of all maps in list.
 			This is used to read all widgets settings.</para></listitem>
 		    <listitem><para><computeroutput>global define void handleChange (list widgets, any action)</computeroutput> takes the list of widgets and
-			evaluates the "handle" terms (after adding the action symbol). Before evaluating checks whether it is needed to validate widgets data
-			and if yes, then if validation is OK (using validateWidgetsIfNeeded function). If validation fails, doesn't do anything.</para></listitem>
+			evaluates the "handle" terms (after adding the action symbol and list of actions causing exiting including save).
+			Before evaluating checks whether it is needed to validate widgets data
+			and if yes, then if validation is OK (using validateWidgetsIfNeeded function). If validation fails, doesn't do anything.
+			Validation must succeed for all widgets present in dialog/popup.</para></listitem>
 		    <listitem><para><computeroutput>global define boolean validateWidgetsIfNeeded (list widgets, any action)</computeroutput>
 			checks whether generated event is reason to validate (leaving dialog other way than Back or Abort), and if yes, then
 			checks all widget whether they have proper values set. Returns true if no validation is needed or everything is OK
 			and action can be handled properly,
-			false if validation of some widget failed. Widget validation function should display some warning or change focus.</para></listitem>
+			false if validation of some widget failed. Widget validation function should display some warning or change focus
+			if validation fails.</para></listitem>
 		    <listitem><para><computeroutput>global define list getExitEvents (list widgets)</computeroutput> returns merge of all "exits" lists of widgets in dialog,
 			adds symbols `back, `abort and `next.</para></listitem>
 		    <listitem><para><computeroutput>global define string mergeHelps (list widgets)</computeroutput> merges helps of specified widgets to one string.</para></listitem>
@@ -78,7 +106,8 @@
 	<section>
 	    <title>Workflow sequence changes</title>
 	    <para>
-		Universal UI allows to add new dialogs to sequence. What bootloader-specific module must do, is to provide key "sequence" in bootloader description
+		Universal UI allows to add new dialogs to sequence or modify the sequence any way.
+		What bootloader-specific module must do, is to provide key "sequence" in bootloader description
 		function result. As argument the function when calling receives map containing
 		current sections (key is section name, value map of sequence). Function can modify them, add new sequences, remove existing.
 		Additionally can add "aliases" entry (value map of aliases). which is needed for adding new dialogs to sequence.
