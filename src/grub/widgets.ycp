@@ -399,7 +399,13 @@ Replace it with an entry  to boot from the floppy?");
     global define list<string> getDisksOrder () ``{
         list<list<string> > dl = filter (list<string> i, device_map,
             ``(substring (i[0]:"", 0, 3) == "(hd"));
-        dl = sort (list<string> a, list<string> b, dl, ``(a[0]:"" < b[0]:""));
+        dl = sort (list<string> a, list<string> b, dl, {
+	    integer i1 = tointeger (
+		regexpsub (a[0]:"", "\\(hd(.*)\\)", "\\1"));
+	    integer i2 = tointeger (
+		regexpsub (b[0]:"", "\\(hd(.*)\\)", "\\1"));
+	    return i1 < i2;
+	});
         return maplist (list<string> i, dl, ``{return i[1]:"";});
 
     }
