@@ -515,6 +515,7 @@ Replace it with an entry  to boot from the floppy?");
                     `opt (`notify, `immediate),
                     _("D&isks"), disks_order));
 	UI::ChangeWidget (`id (`disks), `CurrentItem, disks_order[0]:"");
+	UI::SetFocus (`id (`disks));
 	handleOrderPopup (nil, []);
     }
 
@@ -755,6 +756,7 @@ Replace it with an entry  to boot from the floppy?");
     global define void timeoutRestore () ``{
         integer timeout = BootCommon::tmp_store["active_section", "timeout"]:0;
         UI::ChangeWidget (`id (`value), `Value, timeout);
+	UI::SetFocus (`id (`value));
     }
 
     /**

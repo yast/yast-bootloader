@@ -149,6 +149,7 @@
 	y2debug ("tmp_store: %1", tmp_store);
 	UI::ChangeWidget (`id (`location), `CurrentButton,
 	    tmp_store["location"]:"");
+	UI::SetFocus (`id (`loc));
     }
 
     /**
@@ -258,6 +259,7 @@
 	    UI::ChangeWidget (`id (`pw2), `Enabled, true);
 	    UI::ChangeWidget (`id (`pw2), `Value, "**********");
 	}
+	UI::SetFocus (`id (`usepas));
     }
 
     /**
@@ -542,6 +544,7 @@
     global define void loaderTypeRestore () ``{
 	UI::ChangeWidget (`id (`loader_type), `Value,
 	    BootCommon::getLoaderType (false));
+	UI::SetFocus (`id (`loader_type));
     }
 
     /**
@@ -736,6 +739,7 @@
 	    BootCommon::tmp_store["active_section", key]:"" == ""
 		? "other"
 		: "image");
+	UI::SetFocus (`id (`section_type));
     }
 
     /**
@@ -802,6 +806,7 @@
     global define void timeoutRestore () ``{
 	integer timeout = BootCommon::tmp_store["active_section", "timeout"]:0;
 	UI::ChangeWidget (`id (`value), `Value, timeout / 10);
+	UI::SetFocus (`id (`value));
     }
 
     /**
@@ -898,6 +903,7 @@
       */
     global define void replMbrRestore () ``{
 	UI::ChangeWidget (`id (`value), `Value, tmp_store["repl_mbr"]:false);
+	UI::SetFocus (`id (`value));
     }
 
     /**
@@ -948,6 +954,7 @@
       */
     global define void activateRestore () ``{
         UI::ChangeWidget (`id (`value), `Value, tmp_store["activate"]:false);
+	UI::SetFocus (`id (`value));
     }
 
     /**

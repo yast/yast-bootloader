@@ -5,6 +5,7 @@ Fri Feb 21 13:11:08 CET 2003 - jsrain@suse.de
 - fixed help text and behaviour of password option popup (#23954)
 - added support for easy updating initrd contents during system
   update (#23976)
+- fixed setting focus in popups (#24050)
 
 -------------------------------------------------------------------
 Thu Feb 20 09:50:57 CET 2003 - jsrain@suse.de
