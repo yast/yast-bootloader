@@ -27,8 +27,6 @@ OptTypes::OptTypes(const string& type)
 {
     int val=T_BOOL;
 
-    _options["__fake__"]=val;
-
     if (type == "grub")
     {
 	_options["hiddenmenu"]=val;
@@ -99,8 +97,6 @@ OptTypes::OptTypes(const string& type)
 
     val = T_BOOL;
 
-    _options["__fake__"]=val;
-
     _options["compact"]=val;	    _options["fix-table"]=val;
     _options["ignore-table"]=val;   _options["lba32"]=val;
     _options["linear"]=val;	    _options["lock"]=val;
@@ -159,9 +155,6 @@ OptTypes::OptTypes(const string& type)
     _options["map-drive"]=val;	    _options["to"]=val;
 #endif
 
-    if (type == "grub")
-	_options["default"] = T_INT;
-
 }
 
 int OptTypes::getOptType(const string& optname)
@@ -171,11 +164,6 @@ int OptTypes::getOptType(const string& optname)
 
 string OptTypes::getSpecGroup(const string& optname)
 {
-//    if(_options["__fake__"]!=T_BOOL)
-//    {
-//        initOptTypes(type);
-//    }
-
     switch(_options[optname])
     {
 	case T_SPEC_CHANGE_RULES: return string("change-rules");
@@ -188,11 +176,6 @@ string OptTypes::getSpecGroup(const string& optname)
 }
 
 YCPMap OptTypes::getYCPOptTypes () {
-//    if(_options["__fake__"]!=T_BOOL)
-//    {
-//        initOptTypes(type);
-//    }
-
     YCPMap m;
     map <string, int>::iterator it = _options.begin ();
     while (it != _options.end ()) {

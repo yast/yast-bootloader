@@ -38,8 +38,10 @@ LiloAgent::~LiloAgent() {
  */
 
 YCPValue LiloAgent::Read(const YCPPath &path, const YCPValue& arg) {
+    y2debug ("Called LiloAgent::Read");
     if (path->component_str(0)=="opttypes")
     {
+	 y2milestone ("Called LiloAgent::Read for opttypes");
 	OptTypes o(type);
 	return o.getYCPOptTypes ();
 
@@ -55,6 +57,7 @@ YCPValue LiloAgent::Read(const YCPPath &path, const YCPValue& arg) {
  */
 
 YCPValue LiloAgent::Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg) {
+    y2debug ("Called LiloAgent::Write");
     if(lilo)
 	return lilo->Write(path, value, arg);
     else
@@ -66,6 +69,7 @@ YCPValue LiloAgent::Write(const YCPPath &path, const YCPValue& value, const YCPV
  */
 
 YCPValue LiloAgent::Dir(const YCPPath& path) {
+    y2debug ("Called LiloAgent::Dir");
     if(lilo)
 	return lilo->Dir(path);
     else
@@ -77,6 +81,7 @@ YCPValue LiloAgent::Dir(const YCPPath& path) {
  */
 
 YCPValue LiloAgent::otherCommand(const YCPTerm& term) {
+    y2debug ("Called LiloAgent::otherCommand");
     y2debug("other: %s", term->toString().c_str());
     if(lilo)	
     {
