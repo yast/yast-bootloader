@@ -327,7 +327,56 @@ global list<string> update_section_types
 	io_structure = (map)SCR::Read (.bootloader.settings);
 	IO2Sections ();
 	IO2Global ();
-	loader_device = io_structure["global", "stage1_dev", 0]:"/dev/null";
+	list<string> loader_devices = io_structure["global", "stage1_dev"]:[];
+	loader_device = loader_devices[0]:"/dev/null";
+	loader_devices = sort (loader_devices);
+	if (getLoaderType (false) == "grub" && size (loader_devices) > 0)
+	{
+	    map<string,map> tm = Storage::GetTargetMap ();
+	    list<string> md = maplist (map m, tm["/dev/md", "partitions"]:[], {
+		return m["device"]:"";
+	    });
+	    if (Mode::test ())
+		md = ["/dev/md0"];
+	    boolean md_found = false;
+	    find (string md_disk, md, {
+		list<string> md_members = sort (maplist (
+		    string s,
+		    integer id,
+		    BootCommon::Md2Partitions (md_disk),
+		{
+		    return s;
+		}));
+		if (Mode::test ())
+		    md_members = ["/dev/hda1", "/dev/hdb1"];
+		if (md_members == loader_devices)
+		{
+		    loader_device = md_disk;
+		    md_found = true;
+		    return true;
+		}
+		return false;
+	    });
+	    // check MBRs of all disks holding /boot partition
+	    if (! md_found)
+	    {
+		map<string,integer> boot_md
+		    = BootCommon::Md2Partitions (
+			BootCommon::BootPartitionDevice);
+		if (Mode::test ())
+		    boot_md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+		list<string> md_disks = maplist (string d, integer b, boot_md,
+		{
+		    map p_dev = Storage::GetDiskPartition (d);
+		    return p_dev["disk"]:"";
+		});
+		md_disks = sort (md_disks);
+		if (loader_devices == md_disks)
+		{
+		    loader_device = "mbr_md";
+		}
+	    }
+	}
         return true;
     }
 
@@ -364,7 +413,39 @@ global list<string> update_section_types
 	SCR::Execute (.bootloader.disk_init, PrepareInitData ());
 	Sections2IO ();
 	Global2IO ();
-	io_structure["global", "stage1_dev", 0] = loader_device;
+	if (getLoaderType (false) == "grub")
+	{
+	    list<string> loader_devices = [loader_device];
+	    if (substring (loader_device, 0, 7) == "/dev/md")
+	    {
+		map<string,integer> md = Md2Partitions (loader_device);
+		if (Mode::test ())
+		    md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+		loader_devices = maplist (string d, integer b, md, {
+		    return d;
+		});
+	    }
+	    else if (loader_device == "mbr_md")
+	    {
+		map<string,integer> md = Md2Partitions (BootPartitionDevice);
+		if (Mode::test ())
+		    md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+		loader_devices = maplist (string d, integer b, md, {
+		    map p_dev = Storage::GetDiskPartition (d);
+		    return p_dev["disk"]:"";
+		});
+	    }
+	    io_structure["global", "stage1_dev"] = loader_devices;
+	}
+	else if (getLoaderType (false) == "lilo")
+	{
+	    io_structure["global", "stage1_dev"] = [loader_device];
+	}
+	else
+	{
+	    io_structure["global", "stage1_dev", 0] = loader_device;
+	}
+
 	SCR::Write (.bootloader.settings, io_structure);
 	SCR::Execute (.bootloader.update);
 	return true;

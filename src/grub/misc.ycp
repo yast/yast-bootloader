@@ -372,7 +372,8 @@ global void updateDeviceMap () {
 			BootCommon::BootPartitionDevice);
 		if (Mode::test ())
 		    boot_md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
-		list<string> md_disks = maplist (string d, integer b, boot_md, {
+		list<string> md_disks = maplist (string d, integer b, boot_md,
+		{
 		    map p_dev = Storage::GetDiskPartition (d);
 		    return p_dev["disk"]:"";
 		});
@@ -408,7 +409,6 @@ global void updateDeviceMap () {
 	string root = sformat ("root %1\n", settings["root"]:"");
 	string dev = settings["device"]:"";
 	list<string> devices = [];
-	boolean remap = false;
 	if (dev == "mbr_md")
 	{
 	    dev = BootCommon::BootPartitionDevice;
@@ -419,7 +419,6 @@ global void updateDeviceMap () {
 		map p_dev = Storage::GetDiskPartition (d);
 		return p_dev["disk"]:"";
 	    });
-	    remap = true;
 	}
 	else if (regexpmatch (dev, "^\\/dev\\/md.*$"))
 	{
@@ -427,7 +426,6 @@ global void updateDeviceMap () {
 	    if (Mode::test ())
 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
 	    devices = maplist (string d, integer b, md, { return d;});
-	    remap = true;
 	}
 	else
 	{
