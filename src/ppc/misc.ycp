@@ -33,7 +33,7 @@
 	    list partitions = ddata["partitions"]:[];
 	    partitions = filter (map p, partitions, ``(
 		(! p["delete"]:false)
-//		&& (p["fsid"]:"" == 65)
+		&& (p["fsid"]:"" == 65)
 		&& (! p["is_lv"]:false)
 		&& (p["raid_type"]:"" == "")
 	    ));
@@ -55,13 +55,15 @@
 		    p["type"]:`primary == `primary
 		));
 	    }
-	    prep_boot_partitions = maplist (map p, partitions, ``(
-		p["device"]:""
-	    ));
-	    prep_boot_partitions = filter (string p, prep_boot_partitions, ``(
-		p != ""
-	    ));
+	    prep_boot_partitions = merge (prep_boot_partitions,
+		maplist (map p, partitions, ``(
+		    p["device"]:""
+		))
+	    );
 	});
+	prep_boot_partitions = filter (string p, prep_boot_partitions, ``(
+	    p != ""
+	));
 	prep_boot_partitions = sort (prep_boot_partitions);
 	y2milestone ("Detected PReP partitions: %1", prep_boot_partitions);
 

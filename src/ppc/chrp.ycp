@@ -67,8 +67,9 @@
 	prep_boot_partition = lookup_value (BootCommon::globals, "boot", "");
 	BootCommon::loader_device = prep_boot_partition;
 	BootCommon::activate
-	    = prep_boot_partitio != "" && prep_boot_partitio != "/dev/null";
+	    = prep_boot_partition != "" && prep_boot_partition != "/dev/null";
 	// TODO of_defaultdevice ??
+	return true;
     }
 
     /**
@@ -79,6 +80,7 @@
 	BootCommon::globals = modifySection (BootCommon::globals, "boot",
 	    prep_boot_partition);
 	// TODO of_defaultdevice ??
+	return true;
     }
 
     /**

@@ -402,7 +402,7 @@
       */
     global define boolean installBootLoader (string command, string logfile) ``{
 	map exit = SCR::Execute (.target.bash_output, command);
-	ret = 0 == exit["exit"]:1;
+	boolean ret = 0 == exit["exit"]:1;
 	if (! ret)
 	{
 	    string log = SCR::Read (.target.string, logfile);
