@@ -364,7 +364,8 @@
 	if (boot_target == $[])
 	    target_name = loader_device;
 	else
-	target_name = boot_target["name"]:"disk";
+	    target_name = boot_target["name"]:"disk";
+	target_name = AddMbrToDescription (target_name, loader_device);
 
 	list<string> result = [];
 	// summary text, %1 is bootloader name (eg. LILO)

@@ -187,7 +187,7 @@
 	    if (target_name == nil)
 		target_name = loader_device;
 	}
-	return target_name;
+	return AddMbrToDescription (target_name, loader_device);
     }
 
     /**
