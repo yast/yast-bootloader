@@ -92,17 +92,18 @@
 	list lines = splitstring (menu, "\n");
 	lines = filter (`l, lines, ``(substring (l, 0, 7) != "gfxmenu" && substring (l, 0, 5) != "color"));
 	lines = prepend (lines, "color white/green black/light-gray");
-	if (-1 != SCR::Read (.target.size, "/boot/message"))
+	if (SCR::Read (.target.size, "/boot/message") > 0)
 	    lines = prepend (lines, sformat ("gfxmenu %1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message"));
 	menu = mergestring (lines, "\n");
 
-        if (SCR::Read (.target.size, "/boot/initrd") == -1 || SCR::Read (.target.size, "/boot/initrd.shipped" == -1))
+        if ((SCR::Read (.target.size, "/boot/initrd") < 0)
+	   || (SCR::Read (.target.size, "/boot/initrd.shipped") < 0))
         {
             y2milestone ("no initrd created");
             menu_l = splitstring (menu, "\n");
-            if (SCR::Read (.target.size, "/boot/initrd") == -1)
+            if (SCR::Read (.target.size, "/boot/initrd") < 0)
                 menu_l = filter (`i, menu_l, ``(! issubstring (i, "/boot/initrd")));
-            if (SCR::Read (.target.size, "/boot/initrd.shipped") == -1)
+            if (SCR::Read (.target.size, "/boot/initrd.shipped") < 0)
                 menu_l = filter (`i, menu_l, ``(! issubstring (i, "/boot/initrd.shipped")));
             menu = mergestring (menu_l, "\n");
             SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
@@ -314,7 +315,7 @@ Do you want to try again?")) )
 	string grub_conf = getGrubConf (settings);
 
 	string menu = "";
-	if (-1 != SCR::Read (.target.size, "/boot/message"))
+	if (SCR::Read (.target.size, "/boot/message") > 0)
 	    menu = menu + sformat ("gfxmenu %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message");
 	menu = menu + "color white/green black/light-gray\n";
 	menu = menu + "default 0\n";
@@ -374,7 +375,7 @@ Do you want to try again?")) )
             sformat ("root=%1", Boot::RootPartitionDevice), "ide=nodma apm=off acpi=off vga=normal nosmp maxcpus=0 disableapic 3");
 	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd.shipped");
 
-	if (-1 != SCR::Read (.target.size, "/boot/memtest.bin"))
+	if (SCR::Read (.target.size, "/boot/memtest.bin") > 0)
         {
 	    menu = menu + "title memtest86\n";
 	    menu = menu + sformat ("   kernel %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "memtest.bin");
@@ -385,13 +386,14 @@ Do you want to try again?")) )
 
 	y2milestone ("Starting mk_initrd");
 	boolean ret = (0 == SCR::Execute(.target.bash, "/sbin/mk_initrd"));
-	if (SCR::Read (.target.size, "/boot/initrd") == -1 || SCR::Read (.target.size, "/boot/initrd.shipped" == -1))
+	if ((SCR::Read (.target.size, "/boot/initrd") < 0)
+	    || (SCR::Read (.target.size, "/boot/initrd.shipped") < 0))
 	{
 	    y2milestone ("no initrd created");
 	    menu_l = splitstring (menu, "\n");
-	    if (SCR::Read (.target.size, "/boot/initrd") == -1)
+	    if (SCR::Read (.target.size, "/boot/initrd") < 0)
 		menu_l = filter (`i, menu_l, ``(! issubstring (i, "/boot/initrd")));
-	    if (SCR::Read (.target.size, "/boot/initrd.shipped") == -1)
+	    if (SCR::Read (.target.size, "/boot/initrd.shipped") < 0)
 		menu_l = filter (`i, menu_l, ``(! issubstring (i, "/boot/initrd.shipped")));
 	    menu = mergestring (menu_l, "\n");
 	    SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
