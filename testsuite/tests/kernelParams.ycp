@@ -16,6 +16,7 @@
  */
 
 {
+// testedfiles: BootCommon.ycp bootloader/routines/lilolike.ycp bootloader/routines/misc.ycp
     include "testsuite.ycp";
 
     map READ_I = $[
@@ -38,6 +39,7 @@
             "floppy" : $[
                 "manual" : [],
             ],
+	    "is_uml" : false,
         ],
         "sysconfig" : $[
             "console" : $[

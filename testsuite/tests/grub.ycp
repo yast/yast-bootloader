@@ -41,6 +41,7 @@
                 "manual" : [],
             ],
 	    "disk" : [],
+	    "is_uml" : false,
         ],
         "sysconfig" : $[
             "console" : $[
