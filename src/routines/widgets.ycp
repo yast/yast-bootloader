@@ -20,7 +20,11 @@
 
     textdomain "bootloader";
 
-    include "ui/common_messages.ycp";
+    import "Label";
+    import "BootCommon";
+    import "Mode";
+    import "Storage";
+    import "StorageDevices";
     include "bootloader/routines/popups.ycp";
 
     /**
@@ -367,9 +371,9 @@
 		    )
 		),
 		`HBox (
-		    `PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
-		    `PushButton (`id (`edit), `opt (`key_F4), EditButtonLabel ()),
-		    `PushButton (`id (`delete), `opt (`key_F5), DeleteButtonLabel ()),
+		    `PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),
+		    `PushButton (`id (`edit), `opt (`key_F4), Label::EditButton ()),
+		    `PushButton (`id (`delete), `opt (`key_F5), Label::DeleteButton ()),
 		    `HStretch (),
 			// pushbutton
 		    `PushButton (`id (`default), _("Set as De&fault"))
@@ -568,9 +572,9 @@
 		    `Table (`id (`settings), `opt (`immediate, `notify, `keepSorting),
 			`header (_("Ch."), _("Option"), _("Value")), []),
 		    `HBox (
-			`PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
-			`PushButton (`id (`edit), `opt (`key_F4), EditButtonLabel ()),
-			`PushButton (`id (`delete), `opt (`key_F5), DeleteButtonLabel ()),
+			`PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),
+			`PushButton (`id (`edit), `opt (`key_F4), Label::EditButton ()),
+			`PushButton (`id (`delete), `opt (`key_F5), Label::DeleteButton ()),
 			`HStretch ()
 		    )
 		), `HSpacing (2))),
@@ -599,10 +603,10 @@
 		// table header
 		_("Value")), []),
 	    `HBox (
-		`PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
-		`PushButton (`id (`edit), `opt (`key_F4), EditButtonLabel ()),
+		`PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),
+		`PushButton (`id (`edit), `opt (`key_F4), Label::EditButton ()),
 		`PushButton (`id (`delete), `opt (`key_F5),
-		    DeleteButtonLabel ()),
+		    Label::DeleteButton ()),
 		`HStretch (),
 		`ReplacePoint (`id (`reset_rp), `VSpacing (0))
 	    )

@@ -25,8 +25,11 @@
 
     import "Kernel";
     import "Storage";
+    import "Installation";
+    import "Arch";
 
     import "BootCommon";
+    import "BootSILO";
 
     include "bootloader/lilo/widgets.ycp";
     include "bootloader/lilo/helps.ycp";
@@ -110,7 +113,7 @@
         import "Misc";
         import "Report";
 
-        include "ui/common_popups.ycp";
+        import "Popup";
 
 
 

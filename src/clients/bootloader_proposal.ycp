@@ -18,7 +18,7 @@
     import "Bootloader";
     import "BootCommon";
 
-    include "ui/common_popups.ycp";
+    import "Popup";
     include "bootloader/routines/ui.ycp";
 
     string func  = WFM::Args(0);

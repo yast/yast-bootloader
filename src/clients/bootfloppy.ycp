@@ -20,7 +20,8 @@
 
     textdomain "bootloader";
 
-    include "ui/common_messages.ycp";
+    import "Label";
+    import "Popup";
     include "wizard/sequencer.ycp";
 
     import "Report";
@@ -320,7 +321,7 @@ and File Systems (modules disk 4)"))),
 	{
 	    Wizard::ReplaceBackButton(`VSpacing (0));
 	    Wizard::ReplaceAbortButton (
-		`PushButton (`id (`abort), CancelButtonLabel ()));
+		`PushButton (`id (`abort), Label::CancelButton ()));
 	    UI::SetFocus (`id ("bootdisk"));
 	    string image_item = file_image;
 	    if (substring (image_item, 0, 7) == "modules")
@@ -591,7 +592,7 @@ All data on this floppy will be deleted.")),
 		if ( floppymount != nil)
 		{
 		     //floppy is mounted -- popup
-		    if( ! UI::ContinueCancelPopup(sformat(_("
+		    if( ! Popup::ContinueCancel(sformat(_("
 Your floppy device %1 is currently mounted on
 %2. To create a new boot floppy
 the floppy device must be unmounted.
@@ -723,7 +724,7 @@ Please try again with other floppy."));
             return `back;
         }
 	// popup
-	UI::MessagePopup(_("
+	Popup::Message(_("
 
 The requested floppy disk was successfully created.
 

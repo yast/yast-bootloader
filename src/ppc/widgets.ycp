@@ -18,12 +18,16 @@
 {
 
     import "BootCommon";
-    include "ui/common_messages.ycp";
+    import "Label";
     include "bootloader/routines/popups.ycp";
     include "bootloader/grub/helps.ycp";
     include "bootloader/routines/routines.ycp";
 
     textdomain "bootloader";
+
+    import "Arch";
+    import "BootPPC";
+    import "Mode";
 
 
     /**
@@ -135,27 +139,27 @@
 		`VStretch (),
 		`Left (`RadioButton (`id ("ppc_iseries"), `opt (`notify),
 		    // activate boot partition, radiobutton
-		    _("Write Boot Loader")
+		    _("&Write Boot Loader")
 		)),
 		`VStretch (),
 		`Left (`CheckBox (`id (`iseries_do_stmf),
 		    // checkbox
-		    _("Generate a Boot File for *STMF Booting")
+		    _("Generate a Boot File for *&STMF Booting")
 		)),
 		size (ppc_prep_boot_partitions) <= 0
 		    ? `VSpacing (0)
 		    : `Left (`CheckBox (`id (`iseries_do_nwsstg),
 			// checkbox
-			_("Write the Kernel to 41 PReP Boot Partition (for *NWSSTG)")
+			_("Write the Kernel to 41 &PReP Boot Partition (for *NWSSTG)")
 		)),
 		`Left (`CheckBox (`id (`iseries_do_rescue_slot),
 		    // checkbox
-		    _("Write Rescue Kernel to Slot A")
+		    _("Write Rescue Kernel to Slot &A")
 		)),
 		`VStretch (),
 		`Left (`CheckBox (`id (`iseries_do_kernel_slot),
 		    // radiobutton
-		    _("Write the Kernel to Slot B")
+		    _("Write the Kernel to Slot &B")
 		))
 	    );
 	}
@@ -165,7 +169,7 @@
                 `VStretch(),
                 `Left (`RadioButton (`id ("ppc_chrp"), `opt (`notify),
 		    // radio button
-		    _("Write Boot Loader")
+		    _("&Write Boot Loader")
 		))
 	    );
 	}

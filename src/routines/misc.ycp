@@ -27,6 +27,13 @@
     import "Mode";
     include "bootloader/routines/routines.ycp";
 
+    import "BootCommon";
+    import "Storage";
+    import "StorageDevices";
+    import "Report";
+    import "Kernel";
+    import "Misc";
+
 
 // bootloader attributes handling functions
 

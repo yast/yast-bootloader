@@ -19,12 +19,16 @@
 {
 
     import "BootCommon";
-    include "ui/common_messages.ycp";
+    import "Label";
     include "bootloader/routines/popups.ycp";
     include "bootloader/grub/helps.ycp";
     include "bootloader/routines/routines.ycp";
 
     textdomain "bootloader";
+
+    import "BootGRUB";
+    import "Popup";
+    import "Mode";
 
     /**
       * Get map of dialogs and widgets
@@ -72,7 +76,7 @@ Replace it with an entry to boot from the hard disk?");
 	    message = _("You chose to install the boot loader to the hard disk.
 The menu of the boot loader contains an entry to boot from the hard disk.
 Replace it with an entry  to boot from the floppy?");
-	return UI::YesNoPopup (message);
+	return Popup::YesNo (message);
     }
 
     /**
@@ -397,8 +401,8 @@ Replace it with an entry  to boot from the floppy?");
                     ),
 		    `HBox (
 			`HStretch (),
-			`PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
-			`PushButton (`id (`delete), `opt(`key_F5), DeleteButtonLabel ()),
+			`PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),
+			`PushButton (`id (`delete), `opt(`key_F5), Label::DeleteButton ()),
 			`HStretch ()
 		    )
                 ),
@@ -494,9 +498,9 @@ Replace it with an entry  to boot from the floppy?");
 		    `TextEntry (`id (`devname), _("&Device")),
 		    `VSpacing (1),
 		    `HBox (`HStretch (),
-			`PushButton (`id (`ok), `opt (`key_F10, `default), OKButtonLabel ()),
+			`PushButton (`id (`ok), `opt (`key_F10, `default), Label::OKButton ()),
 			`HStretch (),
-			`PushButton (`id (`cancel), `opt (`key_F8), CancelButtonLabel ()),
+			`PushButton (`id (`cancel), `opt (`key_F8), Label::CancelButton ()),
 			`HStretch ()
 		    ),
 		    `VSpacing (1)

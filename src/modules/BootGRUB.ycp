@@ -24,8 +24,10 @@
     import "Mode";
     import "Kernel";
     import "Storage";
+    import "Arch";
 
     import "BootCommon";
+    import "BootGRUB";
 
     include "bootloader/grub/misc.ycp";
     include "bootloader/grub/widgets.ycp";

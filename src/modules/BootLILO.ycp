@@ -26,6 +26,8 @@
     import "Storage";
 
     import "BootCommon";
+    import "Arch";
+    import "BootLILO";
 
     include "bootloader/lilo/widgets.ycp";
     include "bootloader/lilo/helps.ycp";

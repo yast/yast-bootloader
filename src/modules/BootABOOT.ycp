@@ -27,6 +27,7 @@
     import "Product";
     import "StorageControllers";
     import "BootCommon";
+    import "BootABOOT";
 
     include "bootloader/routines/popups.ycp";
 

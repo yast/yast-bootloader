@@ -20,11 +20,14 @@
 
     textdomain "bootloader";
 
-    include "ui/common_messages.ycp";
+    import "Label";
+    import "Popup";
+    import "Mode";
 
     import "Report";
     import "Misc";
     import "Console";
+    import "BootCommon";
 
 
     /**
@@ -33,7 +36,7 @@
       */
     global define boolean confirmAbortPopup () ``{
 	// yes-no popup question
-	return UI::YesNoPopup (_("Really leave the boot loader configuration without saving?
+	return Popup::YesNo (_("Really leave the boot loader configuration without saving?
 All changes will be lost.
 "));
     }
@@ -44,7 +47,7 @@ All changes will be lost.
       */
     global define boolean resetSectsPopup () ``{
 	// yes-no popup question
-	return UI::YesNoPopup (_("Really reset your settings for sections?
+	return Popup::YesNo (_("Really reset your settings for sections?
 All your changes made in section management will be lost.
 "));
     }
@@ -56,7 +59,7 @@ All your changes made in section management will be lost.
       */
     global define boolean confirmSectionDeletePopup (string title) ``{
 	// yes-no popup question
-	return UI::YesNoPopup (sformat(_("Really delete section %1?"), title));
+	return Popup::YesNo (sformat(_("Really delete section %1?"), title));
     }
 
     /**
@@ -65,7 +68,7 @@ All your changes made in section management will be lost.
       */
     global define boolean resetAllPopup () ``{
 	// yes-no popup question
-	return UI::YesNoPopup (_("Really reset all
+	return Popup::YesNo (_("Really reset all
 your settings? All your changes will be lost.
 "));
     }
@@ -101,7 +104,7 @@ do not match. Retype the password."));
       */
     global define void displayDiskChangePopup (string sect_name) ``{
 	// message popup, %1 is sectino label
-	UI::MessagePopup (sformat (_("The disk settings have changed.
+	Popup::Message (sformat (_("The disk settings have changed.
 Check section %1 settings.
 "), sect_name));
     }
@@ -111,7 +114,7 @@ Check section %1 settings.
       */
     global define void displayFilesEditedPopup () ``{
 	// message popup
-	UI::MessagePopup (_("The disk settings have changed and you edited boot loader
+	Popup::Message (_("The disk settings have changed and you edited boot loader
 configuration files manually. Check the boot loader settings.
 "));
     }
@@ -123,7 +126,7 @@ configuration files manually. Check the boot loader settings.
       */
     global define boolean askLocationResetPopup (string device) ``{
 	// yes-no popup
-	return UI::YesNoPopup(sformat(_("Partition '%1' is not available.
+	return Popup::YesNo(sformat(_("Partition '%1' is not available.
 Set default boot loader location?
 "), device));
     }
@@ -158,7 +161,7 @@ and confirm with OK.
 	    // combobox
 	    `Left (`ComboBox (`id (`fs), _("&Create File System"), items)),
 	    `VSpacing (1),
-	    `PushButton (`id (`ok), OKButtonLabel ())
+	    `PushButton (`id (`ok), Label::OKButton ())
 	);
 	UI::OpenDialog (contents);
 	any ret = nil;
@@ -184,7 +187,7 @@ and confirm with OK.
 		if (tmpretval)
 		    break;
 		// yes-no popup
-		if (! UI::YesNoPopup (_("Low level format failed. Try again?")))
+		if (! Popup::YesNo (_("Low level format failed. Try again?")))
 		    break;
 	    }
 	    retval = retval && tmpretval;
@@ -228,7 +231,7 @@ Use a different one.
       */
     global define boolean writeErrorPopup () ``{
         // yes-no popup
-	return UI::YesNoPopup (_("An error occurred during boot loader
+	return Popup::YesNo (_("An error occurred during boot loader
 installation. Retry boot loader configuration?
 "));
     }
@@ -238,7 +241,7 @@ installation. Retry boot loader configuration?
       */
     global define void displayGfxMenuChangePopup () ``{
 	// message popup, gfxmenu is option name, leave as is
-	UI::MessagePopup (_("The disk settings have changed.
+	Popup::Message (_("The disk settings have changed.
 Check the gfxmenu settings.
 "));
     }
@@ -249,7 +252,7 @@ Check the gfxmenu settings.
       */
     global define boolean confirmOptionDeletePopup () ``{
 	// yes-no popup
-	return UI::YesNoPopup (_("Really delete the selected option?"));
+	return Popup::YesNo (_("Really delete the selected option?"));
     }
 
     /**
@@ -264,7 +267,7 @@ Check the gfxmenu settings.
 		// heading
 		`Heading(header),
 		text,     // e.g. `Richtext()
-		`PushButton( `id(`ok_help), `opt(`default), OKButtonLabel() )
+		`PushButton( `id(`ok_help), `opt(`default), Label::OKButton() )
 	    )
 	);
 
@@ -278,7 +281,7 @@ Check the gfxmenu settings.
       */
     global define void displayNoSupportPopup () ``{
 	// message popup
-	UI::MessagePopup (_("Sorry, there are currently
+	Popup::Message (_("Sorry, there are currently
 no options to set here."));
     }
 
@@ -363,7 +366,7 @@ Continue?"), device, c_time);
 		    // PushButton
 		   `PushButton (`id (`yes), _("&Yes, rewrite")),
 		   `HStretch (),
-		   `PushButton (`id (`no), `opt (`default), NoButtonLabel ())
+		   `PushButton (`id (`no), `opt (`default), Label::NoButton ())
 		),
 		`VSpacing (0.2)
 	    ),
