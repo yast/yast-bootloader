@@ -550,7 +550,7 @@
 		"test -d %1 || /bin/mkdir %1", tmpdir))
 	    )
 	{
-	    y2debug ("Detectig other Linux parts");
+	    y2milestone ("Detectig other Linux parts");
 	    list filesystems = maplist (`p, other_l, ``(p["used_fs"]:""));
 	    filesystems = toset (filter (`f, filesystems, ``(f != "")));
 	    filesystems = filter (`f, filesystems, ``(f != `ext2));
@@ -577,16 +577,19 @@
 		if (dev != "" && 0 == SCR::Execute (.target.bash,
 		    sformat ("/bin/mount %1 %2", dev, tmpdir)))
 		{
-		    y2debug ("Mounted %1", dev);
+		    y2milestone ("Mounted %1", dev);
 		    list(string) filenames = [];
 		    foreach (string fn, [
-			tmpdir + "grub/menu.lst",
+// not needed since there is a symlink in /boot directory
+// named boot pointing to the /boot directory
+// this caused bug #23346 - the file was found twice
+//			tmpdir + "grub/menu.lst",
 			tmpdir + "boot/grub/menu.lst"
 		    ], ``{
 			if (-1 != SCR::Read (.target.size, fn))
 			    filenames = add (filenames, fn);
 		    });
-		    y2debug ("Found files %1", filenames);
+		    y2milestone ("Found files %1", filenames);
 		    integer count = 0;
 		    foreach (`f, filenames, ``{
 			y2debug ("Checking file %1", f);
