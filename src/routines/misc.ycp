@@ -272,7 +272,7 @@
     global define list(string) getFloppyDevices () ``{
         if (floppy_devices == nil)
         {
-            list(map) floppies = SCR::Read (.probe.floppy);
+            list floppies = SCR::Read (.probe.floppy);
             floppies = filter (`f, floppies,
                 ``(lookup (f, "model", "Floppy Disk") == "Floppy Disk"));
             floppy_devices = maplist (`f, floppies,
@@ -825,7 +825,7 @@
       * @return boolean true on success
       */
     global define boolean saveCfgFileToAgent () ``{
-	y2debug ("Saving: glob: %1, sec: %2", globals, sections);
+	y2milestone ("Saving: glob: %1, sec: %2", globals, sections);
 	string bl = getLoaderType (false);
 	if (bl == "s390")
 	    bl = "zipl";
@@ -844,7 +844,6 @@
 	});
 	options = filter (`o, options, ``(o != nil));
 	SCR::Write (list2path ([bl]), options);
-
 	// now remove all sections
 	list sects = SCR::Dir(list2path([bl, "sections"]));
 	foreach(`sect, sects, ``{
@@ -1083,9 +1082,9 @@
 	boolean ret = true;
 	if (activate)
 	{
-	    map activate = getPartitionToActivate ();
-	    any num = activate["num"]:0;
-	    string mbr_dev = activate["mbr"]:"";
+	    map m_activate = getPartitionToActivate ();
+	    any num = m_activate["num"]:0;
+	    string mbr_dev = m_activate["mbr"]:"";
 	    if (num != 0 && mbr_dev != "")
 	    {
 		if ((! is (num, integer)) || num <= 4)
@@ -1119,7 +1118,7 @@
 	  ctime);
 	map out = SCR::Execute (.target.bash_output, command);
 	string c_time = out["stdout"]:"";
-	y2error ("File %1: last change %2", filename, c_time);
+	y2debug ("File %1: last change %2", filename, c_time);
 	return c_time;
     }
 
@@ -1132,7 +1131,7 @@
 	    "test -d /boot/backup || mkdir /boot/backup");
 	if (SCR::Read (.target.size, "/boot/backup/mbr") > 0)
 	{
-	    list contents = SCR::Read (.target.dir, "boot/backup");
+	    list contents = SCR::Read (.target.dir, "/boot/backup");
 	    contents = filter (`c, contents, ``(regexpmatch (c,
 		".*-.*-.*-.*-.*-.*-.*")));
 	    contents = sort (contents);
@@ -1150,7 +1149,7 @@
 		getFileChangeDate ("/boot/backup/mbr")));
 	}
 	SCR::Execute (.target.bash, sformat (
-	    "/bin/dd if=%1 of=/boot/backup/mbr bs=512 count=1",
+	    "/bin/dd if=%1 of=/boot/backup/mbr bs=512 count=1 2>&1",
 	    mbrDisk));
     }
 

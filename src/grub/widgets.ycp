@@ -457,7 +457,7 @@ Replace it with an entry  to boot from the floppy?");
                     _("D&isks"), disks_order));
 	UI::ChangeWidget (`id (`disks), `CurrentItem, disks_order[0]:"");
 	UI::SetFocus (`id (`disks));
-	handleOrderPopup (nil, []);
+	handleOrderPopup (nil, false);
     }
 
     /**
@@ -563,8 +563,11 @@ Replace it with an entry  to boot from the floppy?");
 	    BootCommon::current_sections = sects;
 	    BootCommon::current_section = BootGRUB::remapDisks (
 		BootCommon::current_section, remap);
-	    BootGRUB::grub_conf
-		= BootGRUB::remapDisks (BootGRUB::grub_conf, remap);
+	    list gcl = maplist (`k, `v, BootGRUB::grub_conf, ``(
+		$[ "key" : k, "value" : v]));
+	    gcl = BootGRUB::remapDisks (gcl, remap);
+	    BootGRUB::grub_conf = listmap (`e, gcl, ``(
+		[e["key"]:"", e["value"]:""]));
 	    BootGRUB::device_map = new_map;
 	    BootCommon::mbrDisk = disks_order[0]:BootCommon::mbrDisk;
 	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
