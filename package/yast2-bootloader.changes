@@ -2,6 +2,7 @@
 Wed Mar 24 15:33:24 CET 2004 - jsrain@suse.cz
 
 - fixed installation when root is on LVM device
+- prepared for EVMS (handle it the same way as LVM)
 
 -------------------------------------------------------------------
 Tue Mar 23 12:54:11 CET 2004 - jsrain@suse.cz
