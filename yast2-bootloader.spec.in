@@ -31,21 +31,37 @@ Summary:	Bootloader installation and configuration
 %files
 %defattr(-,root,root)
 
-# bootfloppy
+# menu items
+
 %ifnarch s390 s390x
 @configdir@/bootfloppy.y2cc
+@configdir@/bootloader.y2cc
 %endif
-@clientdir@/bootfloppy.ycp
+
+
+#@clientdir@/bootfloppy.ycp
+
 %doc @docdir@/*
 
+%dir @yncludedir@/bootloader
+%dir @yncludedir@/bootloader/routines
+%dir @yncludedir@/bootloader/grub
+%dir @yncludedir@/bootloader/lilo
+@yncludedir@/bootloader/routines/*.ycp
+@yncludedir@/bootloader/lilo/*.ycp
+@yncludedir@/bootloader/grub/*.ycp
+#@configdir@/*.y2cc
+@moduledir@/*.ycp
+@clientdir@/*.ycp
+
 # lilo
-%dir @yncludedir@/lilo
-@yncludedir@/lilo/*.ycp
-@clientdir@/lilo*.ycp
-%ifnarch s390 s390x
-@configdir@/lilo.y2cc
-%endif
-@moduledir@/Lilo.ycp
+#%dir @yncludedir@/lilo
+#@yncludedir@/lilo/*.ycp
+#@clientdir@/lilo*.ycp
+#%ifnarch s390 s390x
+#@configdir@/lilo.y2cc
+#%endif
+#@moduledir@/Lilo.ycp
 
 # lilo agent
 %dir @plugindir@
@@ -62,42 +78,42 @@ Summary:	Bootloader installation and configuration
 %docdir @docdir@
 
 #installation
-@scrconfdir@/cfg_bootloader.scr
-@clientdir@/inst_bootloader.ycp
-@clientdir@/proposal_bootloader.ycp
-@moduledir@/Boot.ycp
+#@scrconfdir@/cfg_bootloader.scr
+#@clientdir@/inst_bootloader.ycp
+#@clientdir@/proposal_bootloader.ycp
+#@moduledir@/Boot.ycp
 
-%ifarch ppc ppc64
-@ybindir@/ppc_postinstall.sh
-@moduledir@/BootPPC.ycp
-%endif
-%ifarch sparc sparc64
-@ybindir@/dosilo
-@moduledir@/BootSILO.ycp
+#%ifarch ppc ppc64
+#@ybindir@/ppc_postinstall.sh
+#@moduledir@/BootPPC.ycp
+#%endif
+#%ifarch sparc sparc64
+#@ybindir@/dosilo
+#@moduledir@/BootSILO.ycp
 # agent-prom
-@plugindir@/libpy2ag_prom.so.*
-@scrconfdir@/prom.scr
-@plugindir@/libpy2ag_prom.so
-@plugindir@/libpy2ag_prom.la
-%endif
-%ifarch ia64
-@ybindir@/doelilo
-@moduledir@/BootELILO.ycp
-%endif
-%ifarch alpha
-@ybindir@/doaboot
-@ybindir@/domilo
-@moduledir@/BootMILO.ycp
-@moduledir@/BootABOOT.ycp
-%endif
-%ifarch s390 s390x
-@moduledir@/BootS390.ycp
-%endif
-%ifarch %ix86 x86_64
-@ybindir@/mk_boot_floppy
-@ybindir@/mk_lilo_conf
-@ybindir@/update_lilo_conf
-@ybindir@/dolilo
-@moduledir@/BootLILO.ycp
-@moduledir@/BootGRUB.ycp
-%endif
+#@plugindir@/libpy2ag_prom.so.*
+#@scrconfdir@/prom.scr
+#@plugindir@/libpy2ag_prom.so
+#@plugindir@/libpy2ag_prom.la
+#%endif
+#%ifarch ia64
+#@ybindir@/doelilo
+#@moduledir@/BootELILO.ycp
+#%endif
+#%ifarch alpha
+#@ybindir@/doaboot
+#@ybindir@/domilo
+#@moduledir@/BootMILO.ycp
+#@moduledir@/BootABOOT.ycp
+#%endif
+#%ifarch s390 s390x
+#@moduledir@/BootS390.ycp
+#%endif
+#%ifarch %ix86 x86_64
+#@ybindir@/mk_boot_floppy
+#@ybindir@/mk_lilo_conf
+#@ybindir@/update_lilo_conf
+#@ybindir@/dolilo
+#@moduledir@/BootLILO.ycp
+#@moduledir@/BootGRUB.ycp
+#%endif

@@ -66,7 +66,6 @@
 	Initrd::Read ();
 	BootCommon::location
 	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
-        //TODO: Read settings from sysconfig etc.
 	BootCommon::was_read = true;
 	return blRead ();
     }
@@ -84,6 +83,7 @@
 	BootCommon::install = true;
 //	BootCommon::other_bl = $[];
 	BootCommon::install = true;
+	BootCommon::files_edited = false;
 	blReset ();
     }
     /**
@@ -94,7 +94,7 @@
 	BootCommon::was_proposed = true;
         BootCommon::changed = true;
         BootCommon::location_changed = true;
-
+	BootCommon::partitioning_last_change = Storage::GetTargetChangeTime();
     }
     /**
       * Display bootloader summary
@@ -102,19 +102,20 @@
       * FIXME add attrib description
       */
     global define string Summary (list style) ``{
-	return blSummary ();
+	return blSummary (style);
     }
     /**
       * Write bootloader settings to disk
       * @return boolean true on success
       */
     global define boolean Write () ``{
+	boolean ret = true;
 	ReadOrProposeIfNeeded ();
 
 	// save initrd
-	if (Initrd::changed)
+	if (Initrd::changed || ! Mode::normal)
 	{
-	    Initrd::Write ();
+	    ret = Initrd::Write ();
 	    BootCommon::changed = true;
 	}
 
@@ -142,7 +143,7 @@
 	SCR::Write (.sysconfig.bootloader, nil);
 
 	// save bootloader settings
-	boolean ret = blSave ();
+	ret = ret && blSave ();
 
         if (BootCommon::location == "none" || BootCommon::install == false
 	    || BootCommon::location == "")
@@ -298,22 +299,34 @@
     global define string getLoaderType () ``{
 	return BootCommon::getLoaderType (false);
     }
+
+    global define string getRootDevice () ``{
+	ReadOrProposeIfNeeded ();
+	return BootCommon::RootPartitionDevice;
+    }
+
+    global define string getBootDevice () ``{
+	ReadOrProposeIfNeeded ();
+	return BootCommon::BootPartitionDevice;
+    }
+
     /**
       * Answer whether LBA is supported
       * @return boolean true if supported
       */
     global define boolean LbaSupport() ``{
-	if (Arch::i386)
+	return BootCommon::LbaSupport ();
+/*	if (Arch::i386)
 	{
 	    list internal_bios = SCR::Read (.probe.bios);
 	    boolean lba_support = internal_bios[0, "lba_support"]:false;
 	    if (getLoaderType () == "lilo")
-		return BootLILO::lba_support;
+		return BootCommon::globals["lba32"]:lba_support;
 	    else
 		return lba_support;
 	}
 	else
-	    return true;
+	    return true;*/
     }
 
     /**

@@ -33,6 +33,7 @@
 		"passwd" : getPasswdWidget (),
 		"loader" : getLoaderSelectionWidget (),
 		"sections" : getSectionsWidget (),
+		"singlesection" : getSingleSectionWidget (),
 	];
     }
 
@@ -336,18 +337,12 @@
 		    `PushButton (`id (`delete), DeleteButtonLabel ()),
 		    `HStretch (),
 		    `PushButton (`id (`default), _("Set as de&fault"))
-/*		),
-		`VSpacing (1),
-		`HBox (
-		    `HStretch (),
-		    `PushButton (`id (`reset), _("Re&set")),
-		    `HStretch ()*/
 		)
 	    ),
 	    "restore" : ``(BootCommon::sectionsRead ()),
 	    "handle" : ``(BootCommon::sectionsHandle ()),
 	    "help" : "help",
-	    "exits" : [],
+	    "exits" : [`add, `edit],
 	];
     }
 
@@ -378,7 +373,8 @@
 	sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
     }
 
-    global define symbol sectionsHandle (any op) ``{
+    global define symbol sectionsHandle (any op, list tosave) ``{
+	y2milestone ("Handling event %1", op);
 	string current = UI::QueryWidget (`id (`sects), `CurrentItem);
 	integer counter = 0;
 	integer index = 0;
@@ -421,9 +417,14 @@
 	}
 	else if (op == `add)
 	{
+	    BootCommon::tmp_store["active_section"] = $[];
+	    BootCommon::tmp_store["active_s_name"] = "";
 	}
 	else if (op == `edit)
 	{
+	    y2milestone ("Editing title %1, index %2", current, index);
+	    BootCommon::tmp_store["active_section"] = sects[index]:$[];;
+	    BootCommon::tmp_store["active_s_name"] = sects[index, "label"]:"";
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
@@ -436,11 +437,16 @@
 	    BootCommon::tmp_store["sections"] = sects;
 	    sectionsRedrawTable (sects);
 	}
-	else if (op == `reset && resetSectsPopup ())
+/*	else if (op == `reset && resetSectsPopup ())
 	{
 	    BootCommon::fetchSettings ();
 	    sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
-	}
+	}*/
+/*	if (contains (tosave, op))
+	{
+
+
+	}*/
     }
 
     global define map getLoaderSelectionWidget () ``{
@@ -458,5 +464,46 @@
 	    "exits" : [],
 	];
     }
+
+    global define map getSingleSectionWidget () ``{
+	return $[
+	    "widget" : (`HBox (`HSpacing (2), `VBox (
+		    `Table (`id (`settings), `opt (`notify,  `keepSorting),
+			`header (_("Option"), /*_("Changed"),*/ _("Values")), []),
+		    `HBox (
+			`HStretch (),
+			`PushButton (`id (`add), AddButtonLabel ()),
+			`PushButton (`id (`edit), EditButtonLabel ()),
+			`PushButton (`id (`delete), DeleteButtonLabel ()),
+			`HStretch ()
+		    )
+		), `HSpacing (2))),
+	    "restore" : ``(BootCommon::singleSectionRead ()),
+	    "handle" : ``(BootCommon::singleSectionHandle ()),
+	    "help" : nil,
+	    "exits" : [],
+	];
+    }
+
+    global define void singleSectionRead () ``{
+	map orig = BootCommon::tmp_store["active_section"]:$[];
+	y2milestone ("Editing section %1", orig);
+	string type = orig["image"]:"" == "" ? _("other") : _("image");
+	list items = [`item (`id (`type), "Section type", /*"",*/ type)];
+	orig = filter (`k, `v, orig, ``(k != "__order__" && k != "__intern__"));
+	foreach (string k, `v, orig, ``{
+	    items = add (items, `item (`id (k), k, /*"",*/ sformat ("%1", v)));
+
+	});
+
+
+	UI::ChangeWidget (`id (`settings), `Items, items);
+    }
+
+    global define symbol singleSectionHandle (any op, list tosave) ``{
+	y2error ("Handling");
+    }
+
+
 
 } // include end

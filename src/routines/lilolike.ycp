@@ -26,9 +26,10 @@
       * @return boolean true if bootloader location should be set again
       */
     global define boolean RefreshDisks() ``{
-	if (DisksChanged ())
+	if (! DisksChanged ())
 	    return false;
 
+	y2milestone ("Reconfiguring locations");
 	DetectDisks ();
 
 	return true;
@@ -37,9 +38,7 @@
     /**
      *  IsBootAccessible()
      *  @return boolean:
-     *
      */
-
     global define IsBootAccessible() ``{
         boolean boot_partition_accessible = true;
 
@@ -85,7 +84,11 @@
         return (boot_partition_accessible);
     }
 
-   global define boolean DisksChanged () ``{
+    /**
+      * Check whether disk settings were changed since last checking
+      * @return boolean true if needs to recheck
+      */
+    global define boolean DisksChanged () ``{
         map mp = Storage::GetMountPoints();
         string actual_root = mp["/", 0]:"";
         string actual_boot = mp["/boot", 0]:actual_root;
@@ -118,7 +121,10 @@
     return false;
     }
 
-
+    /**
+      * Detect /boot and / (root) partition devices and store settings
+      * to internal variables
+      */
     global define void DetectDisks () ``{
         map mp = Storage::GetMountPoints();
 
@@ -224,16 +230,22 @@
     }
 
     /**
-     * LbaSupport ()
-     * @return boolean  LBA support available
-     */
-    global define boolean LbaSupport () ``{
-	return true; // FIXME
-        if (BootCommon::getLoaderType (false) == "lilo")
+      * Answer whether LBA is supported
+      * @return boolean true if supported
+      */
+    global define boolean LbaSupport() ``{
+        if (Arch::i386)
         {
-            return BootLILO::lba_support;
+            list internal_bios = SCR::Read (.probe.bios);
+            boolean lba_support = internal_bios[0, "lba_support"]:false;
+            if (getLoaderType (false) == "lilo")
+                return BootCommon::globals["lba32"]:lba_support;
+            else
+                return lba_support;
         }
-        return true;
+        else
+            return true;
     }
+
 
 }

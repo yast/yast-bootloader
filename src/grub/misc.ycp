@@ -124,7 +124,7 @@
 		), 0, ""
 	    );
 	if (dev == "")
-	    dev = "(wrong)";
+	    dev = "(null)";
         else if (num != 0 && num != "")
         {
             num = num - 1;
@@ -141,6 +141,8 @@
       */
     global define string grubDev2unixDev (string o_dev) ``{
 	string number = "";
+	if (o_dev == nil)
+	    return o_dev;
 	if (findfirstof (o_dev, ",") != nil)
 	{
 	    number = substring (o_dev, (findfirstof (o_dev, ",") + 1));
@@ -154,7 +156,7 @@
                 ), 1, ""
             );
 	if (dev == "")
-	    dev = "/dev/wrong";
+	    dev = "/dev/null";
 	else if (number != "")
 	{
 	    integer num = tointeger (number);
@@ -204,7 +206,7 @@
     /**
       * translate UNIX filename to grub path
       * @param filename string UNIX-style filename (eg. "/boot/vmlinuz")
-      * @return string GRUB-like filename (eg. "(hd0,0)/vmlinux")
+      * @return string GRUB-like filename (eg. "(hd0,0)/vmlinuz")
       */
     global define string file2grub (string filename) ``{
 	list split = BootCommon::splitPath (filename);
@@ -353,7 +355,7 @@
 	map m2 = $[];
 	integer counter = 0;
 	foreach (`k, `v, mapping, ``{
-	    string scounter = sformat ("\\*\\*\\*%1*\\*\\*\\", counter);
+	    string scounter = sformat ("\\*\\*\\*\n%1\n*\\*\\*\\", counter);
 	    m1[k] = scounter;
 	    m2[scounter] = v;
 	    counter = counter + 1;

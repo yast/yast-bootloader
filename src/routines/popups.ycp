@@ -78,5 +78,33 @@ your settings? All your changes will be lost."));
 do not match. Retype the password."));
     }
 
+    /**
+      * Display popup about change of section
+      * @param sect_name string section name
+      */
+    global define void displayDiskChangePopup (string sect_name) ``{
+	// message popup, %1 is sectino label
+	UI::MessagePopup (sformat (_("Disk settings changed,
+please check section %1 settings"), sect_name));
+    }
+
+    /**
+      * Display popup
+      */
+    global define void displayFilesEditedPopup () ``{
+	// message popup
+	UI::MessagePopup (_("Disk settings changed and you edited bootloader
+configuration files manually, please check bootloader settings."));
+    }
+
+    /**
+      * Ask for change of bootloader location because of device unavailability
+      * @param device string currently confiogured device
+      * @return boolean yes if shall be reset
+      */
+    global define boolean askLocationResetPopup (string device) ``{
+	return UI::YesNoPopup(sformat(_("Partition '%1' is not available.
+Do you want to set default boot loader location?"), device));
+    }
 
 }

@@ -99,6 +99,22 @@
       * Was bootloader location changed? (== true)
       */
     global boolean location_changed = false;
+    /**
+      * Were configuration files manually edited and chamged?
+      */
+    global boolean files_edited = false;
+    /**
+      * Has been files edited warning already shown?
+      */
+    global boolean files_edited_warned = false;
+    /**
+      * Shall be settings saved when finishing bootloader configuration?
+      */
+    global boolean save_on_finish = true;
+    /**
+      * time of last change of partitioning
+      */
+    global integer partitioning_last_change = 0;
 
 // summary dialog state
 
@@ -207,11 +223,10 @@
       *   `short -> only one line text
       *   `verbose -> maximal verbose output
       *   `links -> contain hyperlinks
-      * TODO: Implement verbose and links
       */
     global define string Summary (list style) ``{
 	string default = BootCommon::getLoaderType (false) == "grub"
-	    ? sections[globals["default"]:0, "title"]:""
+	    ? sections[globals["default"]:0, "title"]:sections[0, "title"]:""
 	    : globals["default"]:sections[0, "label"]:"";
 	map targetMap = Storage::GetTargetMap ();
 	map boot_target = targetMap[loader_device]:$[];
@@ -224,10 +239,28 @@
 	if (contains (style, `short))
 	{
 	    // Text to proposal, %1 is bootloader name, %2 target description
-	    return sformat (_("Install %1 on %2"),
-		getLoaderName (getLoaderType (false)),
-		target_name
-	    );
+	    string result = "";
+	    result = result + sformat (_("<LI>Install bootloader"));
+	    result = result + sformat (_("<LI>Bootloader type: %1"),
+		getLoaderName (getLoaderType (false)));
+	    result = result + sformat (_("<LI>Locartion: %1"), target_name);
+	    list(string) sects = [];
+	    foreach (`s, sections, ``{
+		string title = s[
+		    getLoaderType (false) == "grub" ? "title" : "label"
+		]:"";
+		string def = title == default ? _(" (default)") : "";
+		sects = add (sects, sformat ("%1%2", title, def));
+	    });
+	    result = result + sformat (_("<LI>Sections: %1"),
+		mergestring (sects, ", "));
+//	    return sformat (_("Install %1 on %2"),
+//		getLoaderName (getLoaderType (false)),
+//		target_name
+//	    );
+
+	    result = result + "";
+	    return result;
 	}
 	string result = "";
 	if (! (install && location != "none"))
@@ -358,11 +391,13 @@
 	    }
 	}
 	// detect bootloader
-	loader_type = SCR::Read (.probe.boot_arch);
-//	import "Storage";
+	loader_type = "grub";//SCR::Read (.probe.boot_arch);
+	y2milestone ("Bootloader detection returned %1", loader_type);
+	y2error ("Storage::UseLilo: %1", Storage::UseLilo());
+// USE LILO INSTEAD OF GRUB CHECKING
 //	if (loader_type == "grub" && Storage::UseLilo())
 //	    loader_type = "lilo";
-// TODO: check whether bootlaoder is installed
+// TODO: check whether bootlaoder is installed and install if needed
 	y2milestone ("Detected bootloader %1", loader_type);
 	return loader_type;
     }

@@ -182,6 +182,24 @@ What do you want to do?")),
     }
 
     /**
+      * Run dialog for single section managment
+      * @return symbol wizard sequencer symbol
+      */
+    global define symbol runSingleSectionDialog () ``{
+        list widgets = getWidgets (["singlesection"]);
+        term contents = `HBox (`HSpacing (2), `VBox (
+                `VSpacing (1),
+                widgets[0, "widget"]:`VSpacing (0),
+                `VSpacing (1)
+                ), `HSpacing (2));
+        string caption = _("Section options");
+        string help = mergeHelps (widgets);
+        list exits = getExitEvents (widgets);
+        return runDialog (widgets, caption, contents, help, OKButtonLabel (),
+            exits);
+    }
+
+    /**
       * Run main summary dialog
       * @return symbol wizard sequencer symbol
       */
@@ -282,10 +300,6 @@ What do you want to do?")),
 		{
 		    BootCommon::install = false;
 		}
-		if (display_bl)
-		    UI::ChangeWidget (`id (`loader_type), `Enabled,
-			BootCommon::install);
-		// FIXME: Other widgets
 		redrawSummary ();
 	    }
 	    else if (ret == `loader_type)
@@ -417,6 +431,7 @@ What do you want to do?")),
 	    "target" : ``(runTargetDialog ()),
 // sections managment dialogs
 	    "sects" : ``(runSectionsDialog ()),
+	    "singlesect" : ``(runSingleSectionDialog ()),
 // sequences definitions
 	    "global_seq" :
 		``(WizardSequencer (aliases, ws_data["glob_seq"]:$[])),
@@ -443,7 +458,9 @@ What do you want to do?")),
 	map sect_seq = $[
 	    "ws_start" : "fetch",
 	    "fetch" : $[ `next : "sects", `abort: `abort],
-	    "sects" : $[ `next: "store", `abort: `abort ],
+	    "sects" : $[ `next: "store", `add : "singlesect",
+		`edit : "singlesect", `abort: `abort ],
+	    "singlesect" : $[ `next: "sects", `abort: `abort],
 	    "store" : $[ `next: `next, `abort: `abort ],
 	];
 
@@ -480,6 +497,7 @@ What do you want to do?")),
 	map sequence = ws_data[start_seq]:$[];
 
 	// run wizard
+	y2milestone ("Starting wizard sequencer");
 	return WizardSequencer (aliases, sequence);
     }
 
