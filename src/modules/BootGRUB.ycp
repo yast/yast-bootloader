@@ -1115,7 +1115,7 @@
 		"value" : BootCommon::getFreeSectionLabel ()]);
 	    return ret;
 	}
-	string title_map = getValueMap (orig, "title");
+	map title_map = getValueMap (orig, "title");
 	if (ntype == "other")
 	{
 	    string root = select (splitDevPath (
