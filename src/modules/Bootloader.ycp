@@ -26,6 +26,7 @@
     import "Kernel";
     import "Mode";
     import "Progress";
+    import "Stage";
     import "Storage";
 
     import "BootABOOT";
@@ -128,7 +129,8 @@
 
 	if (settings["loader_type"]:nil == "")
 	    settings["loader_type"] = nil;
-	BootCommon::setLoaderType ((string) (settings["loader_type"]:nil));
+	string loader_type = (string) (settings["loader_type"]:nil);
+	BootCommon::setLoaderType (loader_type);
 	BootCommon::getLoaderType (false);
 
 	if (settings["initrd"]:$[] != nil)
@@ -206,7 +208,7 @@
       * settings should be done
       */
     global define void ResetEx (boolean init) ``{
-	if (Mode::autoinst)
+	if (Mode::autoinst ())
 	    return;
 	y2milestone ("Reseting configuration");
 	BootCommon::was_proposed = false;
@@ -315,7 +317,7 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
 
 	// proposing anything is irrelevant during update, this forces reading
 	// if settings weren't read before
-	if (Mode::update)
+	if (Mode::update ())
 	{
 	    BootCommon::was_proposed = false;
 	    BootCommon::changed = true;
@@ -354,7 +356,7 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
             _("Installing boot loader..."),
         ];
         // progress bar caption
-        if (Mode::normal)
+        if (Mode::normal ())
 	{
 	    // progress line
             Progress::New (_("Saving boot loader configuration"),
@@ -372,12 +374,12 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
 	if (new_vga != old_vga && new_vga != "false" && new_vga != "")
 	{
 	    Initrd::setSplash (new_vga);
-	    if (Mode::initial)
+	    if (Stage::initial ())
 		params_to_save["vga"] = new_vga;
 	}
 
 	// Initialize device mapper and LVM in target system
-	if (Mode::initial || Mode::update)
+	if (Stage::initial () || Mode::update ())
 	{
 	    map out = (map)SCR::Execute (.target.bash_output, "
 test -f /sbin/devmap_mknod.sh && /sbin/devmap_mknod.sh
@@ -390,14 +392,14 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	}
 
 	// save initrd
-	if ((Initrd::changed || ! Mode::normal)
+	if ((Initrd::changed || ! Mode::normal ())
 	    && ! (BootCommon::write_settings["forbid_save_initrd"]:false))
 	{
 	    string vga = getKernelParam (getDefaultSection (), "vga");
 	    if (vga != "false" && vga != "")
 	    {
 		Initrd::setSplash (vga);
-		if (Mode::initial)
+		if (Stage::initial ())
 		    params_to_save["vga"] = new_vga;
 	    }
 	    ret = Initrd::Write ();
@@ -406,7 +408,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	if (! ret)
 	    y2error ("Error occurred while creating initrd");
 
-	if (Mode::commandline)
+	if (Mode::commandline ())
 	    BootCommon::changed = true;
 
 	if (! (BootCommon::changed
@@ -416,7 +418,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	    return true;
 	}
 
-	if (Mode::normal)
+	if (Mode::normal ())
 	    Progress::NextStage ();
 	else
         {
@@ -443,7 +445,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	params_to_save["additional_failsafe_params"]
 	    = BootCommon::GetAdditionalFailsafeParams ();
 	params_to_save["installation_kernel_params"] = Kernel::cmdLine;
-	if (Mode::initial)
+	if (Stage::initial ())
 	{
 	    SCR::Write (.target.ycp, "/var/lib/YaST2/bootloader.ycp",
 		params_to_save);
@@ -459,7 +461,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	if (! ret)
 	    y2error ("Error before configuration files saving finished");
 
-        if (Mode::normal)
+        if (Mode::normal ())
             Progress::NextStage ();
         else
         {
@@ -693,7 +695,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
     global define boolean setKernelParam
 	(string section, string key, string value)
     ``{
-	if ((! Mode::config) && key == "vga" && (
+	if ((! Mode::config ()) && key == "vga" && (
 	    Arch::s390 () || Arch::ppc ()
 	))
 	{
@@ -818,21 +820,21 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
     global define void ReadOrProposeIfNeeded () ``{
         if (! (BootCommon::was_read || BootCommon::was_proposed))
         {
-	    y2milestone ("Mode::initial: %1, update: %2, config: %3",
-		Mode::initial, Mode::update, Mode::config);
-	    if (Mode::config)
+	    y2milestone ("Stage::initial (): %1, update: %2, config: %3",
+		Stage::initial (), Mode::update (), Mode::config ());
+	    if (Mode::config ())
 	    {
-		y2milestone ("Not reading settings in Mode::config");
+		y2milestone ("Not reading settings in Mode::config ()");
 		BootCommon::was_read = true;
 		BootCommon::was_proposed = true;
 	    }
-	    else if (Arch::ia64 () && Mode::update
+	    else if (Arch::ia64 () && Mode::update ()
 		&& BootELILO::efi_layout_changed)
 	    { // recreate config on IPF from scratch - request by rw
 		y2milestone ("Reproposing new configuration - IPF, EFI layout has changed");
 		Propose ();
 	    }
-            else if (Mode::initial && ! Mode::update)
+            else if (Stage::initial () && ! Mode::update ())
             {
                 Propose ();
             }
@@ -841,7 +843,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 		Progress::off ();
                 Read ();
 		Progress::on ();
-		if (Mode::update)
+		if (Mode::update ())
 		{
 		    UpdateConfiguration ();
 		    BootCommon::changed = true;
@@ -856,7 +858,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
      * @reuturn boolean true on success
      */
     global define boolean UpdateGfxMenu () {
-	if (! Mode::normal)
+	if (! Mode::normal ())
 	    return true;
 	if (getLoaderType () != "lilo" && getLoaderType () != "grub")
 	    return true;

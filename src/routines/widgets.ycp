@@ -664,7 +664,7 @@
 		// menubutton item, keep as short as possible
 		`item (`id (`scratch), _("&Start from Scratch")));
 	}
-        if ((Mode::normal || Mode::config || Mode::repair)
+        if ((Mode::normal () || Mode::config () || Mode::repair ())
 	    && getBooleanAttrib ("read"))
 	{
 	    items = add (items,
@@ -675,7 +675,7 @@
 	    "additional_entries", []);
 	items = merge (items, additional_entries);
 
-	if ((Mode::normal || Mode::repair)
+	if ((Mode::normal () || Mode::repair ())
 	    && getBooleanAttrib ("restore_mbr")
 	    && SCR::Read (.target.size, "/boot/backup_mbr") > 0)
 	{

@@ -93,7 +93,7 @@
     import "Mode";
     import "BootCommon";
 
-    Mode::test = true;
+    Mode::SetTest ("testsuite");
 
     BootCommon::setLoaderType ("lilo");
 

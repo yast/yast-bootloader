@@ -259,7 +259,7 @@
 	if ( iseries_write_slot_a )
 	{
 	    string rescue_bootbinary = iseries_bootbinary;
-	    if (Mode::initial)
+	    if (Stage::initial ())
 	    {
 		list<integer> sources = Pkg::SourceStartCache (true);
 		integer source_id = sources[0]:0;

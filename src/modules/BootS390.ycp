@@ -25,6 +25,7 @@
     import "StorageControllers";
     import "BootCommon";
     import "Mode";
+    import "Stage";
     import "ProductFeatures";
     import "Installation";
 
@@ -98,7 +99,7 @@
     global define void UpdateZiplConfBeforeUpdate () {
 	// update the partition layout if needed
 	// ?? FIXME any other conditions?
-	if (Mode::update)
+	if (Mode::update ())
 	{
 	    map output = (map)SCR::Execute (.target.bash_output, sformat (
 	      "/bin/cp %1/etc/zipl.conf %1/etc/zipl.conf.YaST2save",
@@ -142,7 +143,7 @@
       * @return boolean true on success
       */
     global define boolean updateHardwareConfig () ``{
-	if (! Mode::initial || Mode::update)
+	if (! Stage::initial () || Mode::update ())
 	    return true;
 
 	boolean failed = false;
@@ -267,7 +268,7 @@
 	    "test -d /boot/zipl || mkdir -p /boot/zipl");
 	ret =  ret && (exit == 0);
 
-	if (Mode::normal)
+	if (Mode::normal ())
 	    return ret;
 
 	updateHardwareConfig ();
