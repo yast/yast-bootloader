@@ -132,7 +132,7 @@
 	return;
     }
 
-    
+
     /**
      * LbaSupport ()
      * @return boolean	LBA support available
@@ -482,10 +482,8 @@
     ``{
 	if (Mode::live_eval)
 	    return true;
-	y2milestone( "LoaderType %1", LoaderType );
 
-	if( Arch::s390 )
-	    LoaderType = "s390";
+	y2milestone ("LoaderType %1", LoaderType);
 
 	map m = SCR::Read (.target.ycp, "/var/lib/YaST2/bootloader");
 	if (m == nil || ! is (m, map))
