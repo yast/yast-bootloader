@@ -76,7 +76,7 @@
 	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
 	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
 	string append = title == "failsafe"
-	    ? "ide=nodma apm=off acpi=off vga=normal "
+	    ? "ide=nodma apm=off acpi=off vga=normal noresume "
 	      + ((Arch::x86_64)
 		? "iommu=noforce maxcpus=0 "
 		: "nosmp noapic maxcpus=0 ")
@@ -410,7 +410,7 @@
       */
     global define boolean Save () ``{
 	// update graphical bootloaer menu
-	if (! Mode::normal)
+	if (Mode::update || ! Mode::normal)
 	{
 	    BootCommon::updateGfxMenu ();
 	}
