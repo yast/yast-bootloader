@@ -3,6 +3,7 @@ Mon Jul 19 12:50:24 CEST 2004 - jsrain@suse.cz
 
 - use PackageSystem.ycp modules instead of Require.ycp
 - import "Product.ycp" when it is really needed (in order to buld)
+- 2.10.2
 
 -------------------------------------------------------------------
 Fri Jul 16 15:53:09 CEST 2004 - jsrain@suse.cz
