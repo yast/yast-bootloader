@@ -23,7 +23,7 @@
 
     /**
       * Read widgets with listed names
-      * @param names list of strings names of widgets
+      * @param names list of strings/symbols names of widgets
       * @return list of maps representing widgets
       */
     global define list getWidgets (list names) ``{
@@ -36,7 +36,7 @@
 
     /**
       * Read popup widget with specified name
-      * @param names list of strings names of widgets
+      * @param name any name of widgets
       * @return map representing widget
       */
     global define map getPopupWidget (any name) ``{

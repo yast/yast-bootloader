@@ -36,7 +36,7 @@ settings? All your changes made to sections managment will be lost."));
 
     /**
       * Display question
-      * @param section title
+      * @param title string section title
       * @return boolean true if answered yes
       */
     global define boolean confirmSectionDeletePopup (string title) ``{
@@ -109,6 +109,10 @@ configuration files manually, please check bootloader settings."));
 Do you want to set default boot loader location?"), device));
     }
 
+    /**
+      * Show the popup before saving to floppy, handle actions
+      * @return true on success
+      */
     global define boolean saveToFLoppyPopup () ``{
 	boolean retval = true;
 	boolean format = false;
@@ -190,6 +194,7 @@ Use other one."));
 
     /**
       * Display error
+      * @return true if shall retry
       */
     global define boolean writeErrorPopup () ``{
         // yes-no popup
@@ -208,6 +213,7 @@ please check gfxmenu settings"));
 
     /**
       * Display yes-no popup
+      * @return true if confirmed
       */
     global define boolean confirmOptionDeletePopup () ``{
 	// yes-no popup
@@ -241,5 +247,12 @@ please check gfxmenu settings"));
     global define void displayNoSupportPopup () ``{
 	UI::MessagePopup (_("Sorry, there are currently
 no options to set here."));
+    }
+
+    /**
+      * Display popup
+      */
+    global define void noBootloaderPopup () ``{
+	Report::Error (_("Unable to install bootloader."));
     }
 }

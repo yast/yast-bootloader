@@ -26,6 +26,11 @@
     import "BootS390";
     import "BootPPC";
 
+    /**
+      * Get map of main functions for bootloader
+      * @param bootloader string bootloader name
+      * @return map of function
+      */
     global define map getFunctions (string bootloader) ``{
 	map bl_functions = $[
 	    "lilo"  : ``(BootLILO::GetFunctions ()),
@@ -42,12 +47,20 @@
 	return eval(gf);
     }
 
+    /**
+      * Export bootloader-specific settings
+      * @return map of settings
+      */
     global define map blExport () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
         term toEval = functions["export"]:``(BootCommon::Export ());
         return eval (toEval);
     }
 
+    /**
+      * Import settings to bootloader
+      * @param settings map of settingss
+      */
     global define void blImport (map settings) ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
         term toEval = functions["import"]:``(BootCommon::Import ());
@@ -55,54 +68,88 @@
         eval (toEval);
     }
 
+    /**
+      * Read bootloader-specific settings
+      * @return boolean true on success
+      */
     global define boolean blRead () ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
 	term toEval = functions["read"]:``(BootCommon::Read ());
 	return eval (toEval);
     }
 
+    /**
+      * Reset bootloader-specific settings
+      */
     global define void blReset () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
         term toEval = functions["reset"]:``(BootCommon::Reset ());
         eval (toEval);
     }
 
+    /**
+      * Propose bootloader settings
+      */
     global define void blPropose () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
         term toEval = functions["propose"]:``(BootCommon::Propose ());
         eval (toEval);
     }
 
+    /**
+      * Save bootloader cfg. files
+      * @return boolean true on success
+      */
     global define boolean blSave () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
         term toEval = functions["save"]:``(BootCommon::Save ());
         return eval (toEval);
     }
 
-    global define list(string) blSummary () ``{
+    /**
+      * Get cfg. summary
+      * @return list summary items
+      */
+    global define list blSummary () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
         term toEval = functions["summary"]:``(BootCommon::Summary ());
         return eval (toEval);
     }
 
+    /**
+      * Update bootloader-specific settings
+      */
     global define void blUpdate () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
         term toEval = functions["update"]:``(BootCommon::Update ());
         eval (toEval);
     }
 
+    /**
+      * Do the bootloader installation
+      * @return boolean true on success
+      */
     global define boolean blWrite () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
         term toEval = functions["write"]:``(BootCommon::Write ());
         return eval (toEval);
     }
 
+    /**
+      * Get bootloader specific widgets
+      * @return map of widgets
+      */
     global define map blGetWidgets () ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
 	term toEval = functions["widgets"]:nil;
 	return eval (toEval);
     }
 
+    /**
+      * Update bootloader module cfg. sequence
+      * @param ws_data map containing original sequence
+      * @return map updates sequence
+      */
     global define map blGetSequence (map ws_data) ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
 	term toEval = functions["sequence"]:``(BootCommon::FixSequence ());
@@ -110,12 +157,20 @@
 	return eval (toEval);
     }
 
+    /**
+      * Create map future cfg. files from internal variables
+      * @return map filename -> contents
+      */
     global define map blGetFiles () ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
 	term toEval = functions["getfiles"]:nil;
 	return eval (toEval);
     }
 
+    /**
+      * Store map of future cfg. files to  internal variables
+      * @param files map filename -> contents
+      */
     global define void blSetFiles (map files) ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
 	term toEval = functions["setfiles"]:nil;
@@ -125,12 +180,21 @@
 	return eval (toEval);
     }
 
+    /**
+      * Get bootloader's list options
+      * @return map of bootloader options
+      */
     global define map blOptions () ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
 	term toEval = functions["getoptions"]:``(BootCommon::GetOptions ());
 	return eval (toEval);
     }
 
+    /**
+      * Update list of optoins to show in table
+      * @param options map of options including order
+      * @return list of option to show
+      */
     global define list blUpdateOptionsList (map options) ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
 	term toEval = functions["updoptlst"]:``(

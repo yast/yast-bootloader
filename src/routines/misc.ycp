@@ -25,6 +25,33 @@
 
     textdomain "bootloader";
 
+    /**
+      * List of all supported bootloaders
+      */
+    global list(string) bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
+	"aboot", "s390", "ppc", "mips"];
+
+    /**
+      * Get packages needed by specified bootloader
+      * maybe should be moved to bootloader specific modules
+      * @param bootloader string name of bootloader
+      * @return a list of required packages names
+      */
+    global define list(string) getBootloaderPackages (string bootloader) ``{
+	map packages = $[
+	    "lilo" : ["lilo"],
+	    "grub" : ["grub"],
+	    "elilo": ["elilo"],
+	    "milo" : ["milo"],
+	    "silo" : ["silo"],
+	    "aboot": ["aboot"],
+	    "s390" : ["s390"],
+	    "ppc"  : ["ppc"],
+	    "mips" : ["mips"],
+	];
+	return packages[bootloader]:[];
+    }
+
 
     /**
      * converts array of string to path
@@ -73,7 +100,6 @@
 		``{return x["device"]:"";
 	    });
         partitions = filter (`p, partitions, ``(! p["delete"]:false));
-// FIXME: "lvm_group" and "raid_name" might be removed
 	list ret = all_disks;
 	if (type == `boot_other || type == `root || type == `parts_old)
             ret = [];
@@ -363,7 +389,7 @@
     /**
       * translate filename path (eg. /boot/kernel) to list of device
       *  and relative path
-      * @param pth string fileststem path (eg. /boot/vmlinuz)
+      * @param fullpth string fileststem path (eg. /boot/vmlinuz)
       * @return list containing device and relative path,
       *  eg. ["/dev/hda1", "/vmlinuz"]
       */
@@ -401,7 +427,7 @@
       *  relative path (eg. ["/dev/hda1", "/vmlinuz"])
       * @return string fileststem path (eg. /boot/vmlinuz)
       */
-    global define list mergePath (list(string) devpth) ``{
+    global define string mergePath (list(string) devpth) ``{
 // UGHLY HACK because of testsuites
         map mountpoints = $[];
 	if (Mode::test)
@@ -510,6 +536,7 @@
 
     /**
       * Save settings stored in memory of module to Lilo agent
+      * @return boolean true on success
       */
     global define boolean saveCfgFileToAgent () ``{
 	y2milestone ("Saving: glob: %1, sec: %2", globals, sections);
@@ -676,7 +703,7 @@
 
     /**
       * Mark option as changed by user
-      * @param opttype any type of section
+      * @param section any section identifier
       * @param optname any option name
       */
     global define void markOptionChanged (any section, any optname) ``{
@@ -705,6 +732,7 @@
       * The SelectionBox "----" divider hack
       * @param opts list of options for the current selection
       * @param prev previously selected item
+      * @param current currently selected item
       * @return new item selection
       */
     global define any dividerHack(list opts, any prev, any current) ``{
@@ -721,6 +749,12 @@
 	return select(opts, p < i ? i + 1 : i - 1, "");
     }
 
+    /**
+      * Filter list to only entries which are present as keys in map
+      * @param order list (ordered) of settings
+      * @param widgets map of present widgets
+      * @return list filtered list
+      */
     global define list filterOrder (list order, map widgets) ``{
 	order = filter (`o, order, ``(
 	    widgets[o, "ordering"]:true
@@ -736,14 +770,15 @@
 	boolean ret = true;
 	if (activate)
 	{
-	    map p_dev = Storage::GetDiskPartition (boot_sect);
+	    map p_dev = Storage::GetDiskPartition (BootCommon::loader_device);
 	    any num = p_dev["nr"]:0;
 	    string mbr_dev = p_dev["disk"]:"";
             // if bootloader in MBR, activate /boot partition
 	    // (partiall fix of #20637)
 	    if (! (num != 0 && num != ""))
 	    {
-		p_dev = Storage::GetDiskPartition (Boot::BootPartitionDevice);
+		p_dev = Storage::GetDiskPartition (
+		    BootCommon::BootPartitionDevice);
 		num = p_dev["nr"]:0;
 		mbr_dev = p_dev["disk"]:"";
 	    }
@@ -758,7 +793,7 @@
 	{
 // FIXME: Real filenames
 	    ret = ret && (0 == SCR::Execute (.target.bash, sformat (
-		"/bin/dd if=%1 of=%2", "file", "mbr")));
+		"/bin/dd if=%1 of=%2", "file", BootCommon::mbrDisk)));
 	}
 	return ret;
     }
@@ -785,12 +820,29 @@
 
     /**
       * Convert any to boolean
+      * @param v any value
+      * @return boolean retyped value
       */
     global define boolean tobool (any v) ``{
 	if (v == true)
 	    return true;
 	else
 	    return false;
+    }
+
+    /**
+      * Update kernel parameters if some were added in Kernel module
+      * @param orig original kernel parameters or kernel command line
+      * @return kernel command line or parameters with added new parameters
+      */
+    global define string updateKernelParams (string orig) ``{
+	list(string) new = splitstring (Kernel::cmdLine, " ");
+	list(string) old = splitstring (orig, " ");
+	list(string) added = BootCommon::difflist (new,
+	     splitstring (BootCommon::kernelCmdLine, " "));
+	added = BootCommon::difflist (added, old);
+	old = merge (old, added);
+	return mergestring (old, " ");
     }
 
 } //end of include

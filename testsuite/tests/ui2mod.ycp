@@ -17,9 +17,12 @@
  */
 
 {
+    import "Pkg";
     include "testsuite.ycp";
 
     import "BootCommon";
+
+    Mode::test = true;
 
     BootCommon::setLoaderType ("lilo");
 

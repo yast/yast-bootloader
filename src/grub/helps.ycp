@@ -21,28 +21,12 @@
     textdomain "bootloader";
 
     /**
-      * Get help
+      * Get short popup help
       * @result string help text
       */
     global define string getDiskOrderHelp () ``{
-	// help text 1/2
-	return _("<P>If your system has more physical disks, Linux may
-not detect the order of these disks in BIOS correctly.</P>")
-	// help text 2/2
-	+ _("<P>You may fix the order using <B>Up</B> and <B>Down</B>
-buttons to the correct order. Most important is the possition of disk used
-for booting and disk containing partition with the
-<B>/boot</B> directory.</P>");
-    }
-
-    /**
-      * Get help
-      * @result string help text
-      */
-    global define string getOrderButtonHelp () ``{
-	// help text 1/1
-	return _("<P>To change the order of disks seen by your BIOS use
-<B>Change disks order</B> button.</P>");
+	return _("Reorder the disks to the same order as BIOS sees them.
+Don't change if you don't know what you are doing.");
     }
 
 }

@@ -18,7 +18,7 @@ Dump	Removing lvmmod
 Return	nil
 Return	["ne2k", "reiserfs"]
 Dump	Writing
-Write	.modules.options $["io":"0x300,", "irq":"5"] "ne2k" true
+Write	.modules.options."ne2k" $["io":"0x300,", "irq":"5"] true
 Write	.modules nil true
 Execute	.target.bash "/usr/bin/touch /etc/sysconfig/bootloader" 0
 Write	.sysconfig.kernel.INITRD_MODULES "ne2k reiserfs" true

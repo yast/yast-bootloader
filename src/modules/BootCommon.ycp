@@ -144,6 +144,10 @@
       * Map to remember what settings were changed
       */
     global map changed_settings = $[];
+    /**
+      * Kernel parameters at previous detection
+      */
+    global string kernelCmdLine = "";
 
 // bootloader installation variables
 
@@ -402,27 +406,23 @@ configuration files"));
 	if (loader_type == "grub" && Storage::UseLilo())
 	    loader_type = "lilo";
 
+	// this shall install packages if possible
+	setLoaderType (loader_type);
+
+	// this was wrong - storage, which initializes before package maneger,
+	// needs calls this function
 	// check bootloader package to be installed
-	boolean no_bootloader = false;
-	if ((Arch::i386 || Arch::x86_64) && (Mode::initial)){
-	    string lt = loader_type;
-	    if (lt == "lilo" && ! Pkg::IsSelected ("lilo"))
-		lt = "grub";
-	    if (lt == "grub" && ! Pkg::IsSelected ("grub"))
-		lt = "lilo";
-	    if (! (Pkg::IsSelected ("lilo") || Pkg::IsSelected ("grub")))
+/*	if ((Arch::i386 || Arch::x86_64) && (Mode::initial)){
+	    if (loader_type == "grub" && ! Pkg::IsSelected ("grub"))
+		loader_type = "lilo";
+            if (loader_type == "lilo" && ! Pkg::IsSelected ("lilo"))
+                loader_type = "grub";
+	    if (loader_type == "grub" && ! Pkg::IsSelected ("grub"))
 	    {
-		no_bootloader = true;
+		// no bootloader is installed
+		noBootloaderPopup ();
 	    }
-	    else
-	    {
-		loader_type = lt;
-	    }
-	}
-	if (no_bootloader)
-	{
-// TODO: install bootloader package
-	}
+	}*/
 	y2milestone ("Detected bootloader %1", loader_type);
 	return loader_type;
     }
@@ -431,6 +431,41 @@ configuration files"));
       * @param bootloader string type of bootloader
       */
     global define void setLoaderType (string bootloader) ``{
+	if (contains(BootCommon::bootloaders, bootloader)
+	    && ! Mode::test)
+	{
+	    if (Mode::normal)
+	    {
+		boolean installed = false;
+		foreach (`p, getBootloaderPackages (bootloader), ``{
+		    if (! Pkg::IsProvided (bootloader))
+		    {
+		        Pkg::PkgInstall (bootloader);
+			installed = false;
+		    }
+		});
+		if (installed)
+		{
+		    Pkg::PkgSolve ();
+		    Pkg::PkgCommit (0);
+		    WFM::CallModule("inst_suseconfig", []);
+		}
+	    }
+	    else
+	    {/* FIXME some checking must be added, this idea might be correct
+		import "ForcedPackages";
+		foreach (`b, bootloaders, ``{
+		    foreach (p, getBootloaderPackages (b), ``{
+			ForcedPackages::RemoveFromForceInstall (b);
+		    });
+		});
+		foreach (`p, getBootloaderPackages (bootloader), ``{
+		    ForcedPackages::RemoveFromForceNotInstall (p);
+		    ForcedPackages::ForceInstall (p);
+		});
+	*/
+	    }
+	}
 	loader_type = bootloader;
     }
     /**

@@ -99,8 +99,10 @@
 		ids[index] = true;
             }
         });
-	// FIXME: check floppy existence and device
-	mapping = add (mapping, ["(fd0)","/dev/fd0"]);
+	if (StorageDevices::FloppyPresent)
+	{
+	    mapping = add (mapping, ["(fd0)", StorageDevices::FloppyDevice]);
+	}
 	y2milestone ("Detected device mapping: %1", mapping);
 	return mapping;
     }

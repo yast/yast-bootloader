@@ -59,6 +59,7 @@
       */
     global define boolean Read () ``{
 	BootCommon::DetectDisks ();
+	return true;
     }
     global define boolean Save () ``{
 	if (Mode::update)

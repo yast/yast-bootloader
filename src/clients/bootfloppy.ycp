@@ -503,10 +503,6 @@ Do you want to unmount the floppy?"), lookup(floppymount, "spec", ""),
 
 		if( ret_diff != 0  )
 		{
-		    // FIXME: Don't know why is this here
-		    boolean format = true;
-		    //try to format the floppy with fdformat
-		    if ( ! format)  return `format;
 		    // error popup
 		    UI::ErrorPopup(_("An error occurred during the creation of the floppy disk.
 Please try again."));

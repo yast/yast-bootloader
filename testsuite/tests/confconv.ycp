@@ -16,6 +16,7 @@
  */
 
 {
+    import "Pkg";
     include "testsuite.ycp";
     include "bootloader/routines/convert.ycp";
 //    import "BootGRUB";
