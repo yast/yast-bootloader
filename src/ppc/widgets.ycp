@@ -78,7 +78,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void STMFInit (any opt_id, any opt_key) ``{
+    global define void STMFInit (any opt_id, string opt_key) ``{
 	UI::ChangeWidget (`id (opt_key), `Value, iseries_streamfile);
     }
 
@@ -87,7 +87,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void STMFStore (any opt_id, any opt_key) ``{
+    global define void STMFStore (any opt_id, string opt_key) ``{
 	iseries_streamfile = (string)UI::QueryWidget (`id (opt_key), `Value);
     }
 
@@ -97,7 +97,7 @@
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string STMFSummary (any opt_id, any opt_key) ``{
+    global define string STMFSummary (any opt_id, string opt_key) ``{
 	return iseries_streamfile;
     }
 
@@ -126,7 +126,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void setDefaultOFInit (any opt_id, any opt_key) ``{
+    global define void setDefaultOFInit (any opt_id, string opt_key) ``{
 	UI::ChangeWidget (`id (opt_key), `Value, of_defaultdevice);
     }
 
@@ -135,7 +135,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void setDefaultOFStore (any opt_id, any opt_key) ``{
+    global define void setDefaultOFStore (any opt_id, string opt_key) ``{
 	of_defaultdevice = (boolean)UI::QueryWidget (`id (opt_key), `Value);
 	BootCommon::markGeneralOptionChanged ((string)opt_key);
 	BootCommon::location_changed = true;
@@ -147,7 +147,7 @@
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string setDefaultOFSummary (any opt_id, any opt_key) ``{
+    global define string setDefaultOFSummary (any opt_id, string opt_key) ``{
 	return of_defaultdevice
 	    ? _("Yes")
 	    : _("No");
@@ -188,7 +188,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void PRePPartsInit (any opt_id, any opt_key) ``{
+    global define void PRePPartsInit (any opt_id, string opt_key) ``{
 	UI::ChangeWidget (`id (opt_key), `Value, prep_boot_partition);
     }
 
@@ -197,7 +197,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void PRePPartsStore (any opt_id, any opt_key) ``{
+    global define void PRePPartsStore (any opt_id, string opt_key) ``{
 	prep_boot_partition = (string)UI::QueryWidget (`id (opt_key), `Value);
 	BootCommon::markGeneralOptionChanged ((string)opt_id);
     }
@@ -208,7 +208,7 @@
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string PRePPartsSummary (any opt_id, any opt_key) ``{
+    global define string PRePPartsSummary (any opt_id, string opt_key) ``{
 	if (prep_boot_partition == "" || prep_boot_partition == "/dev/null")
 	{
 	    // table item
@@ -277,7 +277,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void iSeriesTargetInit (any opt_id, any opt_key) ``{
+    global define void iSeriesTargetInit (any opt_id, string opt_key) ``{
 	UI::ChangeWidget (`id (`iseries_streamfile), `Value,
 	    iseries_write_streamfile);
 	UI::ChangeWidget (`id (`iseries_streamfile_filename), `Value,
@@ -302,7 +302,7 @@
       * @param opt_key any option key
       * @param event map event that occured
       */
-    global define void iSeriesTargetHandle (any opt_id, any opt_key, map event)
+    global define void iSeriesTargetHandle (any opt_id, string opt_key, map event)
     ``{
         UI::ChangeWidget (`id (`iseries_streamfile_filename), `Enabled,
 	    UI::QueryWidget (`id (`iseries_streamfile), `Value));
@@ -316,7 +316,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void iSeriesTargetStore (any opt_id, any opt_key) ``{
+    global define void iSeriesTargetStore (any opt_id, string opt_key) ``{
 	iseries_write_streamfile = (boolean)
 	    UI::QueryWidget (`id (`iseries_streamfile), `Value);
 	iseries_streamfile = (string)
@@ -341,7 +341,7 @@
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string iSeriesTargetSummary (any opt_id, any opt_key) ``{
+    global define string iSeriesTargetSummary (any opt_id, string opt_key) ``{
 	list targets = [];
 	if (iseries_write_slot_b)
 	{
@@ -423,7 +423,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void PRePTargetInit (any opt_id, any opt_key) ``{
+    global define void PRePTargetInit (any opt_id, string opt_key) ``{
 	UI::ChangeWidget (`id (`install_prepboot), `Value,
 	    BootCommon::activate);
 	UI::ChangeWidget (`id (`prepboot_part), `Value,
@@ -438,7 +438,7 @@
       * @param opt_key any option key
       * @param event map event that occured
       */
-    global define void PRePTargetHandle (any opt_id, any opt_key, map event)
+    global define void PRePTargetHandle (any opt_id, string opt_key, map event)
     ``{
         UI::ChangeWidget (`id (`prepboot_part), `Enabled,
 	    UI::QueryWidget (`id (`install_prepboot), `Value));
@@ -450,7 +450,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void PRePTargetStore (any opt_id, any opt_key) ``{
+    global define void PRePTargetStore (any opt_id, string opt_key) ``{
 	BootCommon::activate = (boolean)
 	    UI::QueryWidget (`id (`install_prepboot), `Value);
 	prep_boot_partition = (string)
@@ -466,7 +466,7 @@
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string PRePTargetSummary (any opt_id, any opt_key) ``{
+    global define string PRePTargetSummary (any opt_id, string opt_key) ``{
 	list targets = [];
 	if (BootCommon::activate)
 	{
@@ -509,7 +509,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void BoardTypeInit (any opt_id, any opt_key) ``{
+    global define void BoardTypeInit (any opt_id, string opt_key) ``{
 	UI::ChangeWidget (`id (opt_key), `Value, getBoardType ());
     }
     /**
@@ -517,7 +517,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void BoardTypeStore (any opt_id, any opt_key) ``{
+    global define void BoardTypeStore (any opt_id, string opt_key) ``{
 	BootCommon::redraw_table = true;
 	string bt = (string)UI::QueryWidget (`id (opt_key), `Value);
 	y2milestone ("Setting board type to %1", bt);
@@ -530,7 +530,7 @@
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string BoardTypeSummary (any opt_id, any opt_key) ``{
+    global define string BoardTypeSummary (any opt_id, string opt_key) ``{
 	return board_type_names[getBoardType ()]:getBoardType ();
     }
 
