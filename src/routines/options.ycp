@@ -511,7 +511,11 @@ and the sector to which the boot loader is installed."),
     global define void replMbrStore (any opt_id, string opt_key) ``{
 	repl_mbr = (boolean)UI::QueryWidget (`id (opt_key), `Value);
 	if (repl_mbr)
+	{
 	    BootCommon::location_changed = true;
+	    if (Stage::initial ())
+		Pkg::PkgInstall ("master-boot-code");
+	}
 	markGeneralOptionChanged ((string)opt_key);
     }
 
