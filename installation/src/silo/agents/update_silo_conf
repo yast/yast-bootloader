@@ -1,0 +1,21 @@
+#! /bin/bash
+
+root_dir=$1
+
+sc=$root_dir/boot/silo.conf
+sc_tmp=$root_dir/boot/silo.conf.$$
+
+[ -f $sc ] || exit 1
+
+has_message=
+
+grep -q -s 'message' $sc && has_message=1
+
+if [ ! "$has_message" ] ; then
+	echo XXX need to modify /boot/message
+fi
+
+rm $sc_tmp
+sed -e 's/vmlinuz.suse/vmlinuz.shipped/' -e 's/initrd.suse/initrd.shipped/' <$sc >$sc_tmp
+mv $sc_tmp $sc
+
