@@ -29,10 +29,12 @@ Note that even though list of modules is empty, /sbin/mk_initrd must be called, 
                 <listitem><para><computeroutput>global define void RemoveModule (string modname)</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global define void Reset ()</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global define void Write ()</computeroutput></para></listitem>
+		<listitem><para><computeroutput>global define void setSplash (string vga)</computeroutput></para></listitem>
 		<listitem><para><computeroutput>list modules</computeroutput></para></listitem>
                 <listitem><para><computeroutput>map modules_settings</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global boolean changed</computeroutput></para></listitem>
                 <listitem><para><computeroutput>boolean was_read</computeroutput></para></listitem>
+		<listitem><para><computeroutput>string splash</computeroutput></para></listitem>
             </itemizedlist>
         </section>
         <section>
@@ -49,6 +51,8 @@ Note that even though list of modules is empty, /sbin/mk_initrd must be called, 
                     removes module from ramdisk when writing bootloader configuration to disk.</para></listitem>
                 <listitem><para><computeroutput>global define void Reset ()</computeroutput> resets modules list to empty and sets changed variable to false. </para></listitem>
                 <listitem><para><computeroutput>global define void Write ()</computeroutput> (if was changed) saves list of initrd modules to sysconfig files and rebuilds initrd.</para></listitem>
+		<listitem><para><computeroutput>global define void setSplash (string vga)</computeroutput> is used to add proper splash screen to initrd.
+		    As parameter takes the kernel vga parameter, internally translates to resolution.</para></listitem>
             </itemizedlist>
         </section>
         <section>
@@ -61,6 +65,7 @@ Note that even though list of modules is empty, /sbin/mk_initrd must be called, 
                 <listitem><para><computeroutput>global boolean changed</computeroutput> is true if initrd needs to be rebuilt when saving configuration. Shall be directly used only
                         from Bootloader module.</para></listitem>
                 <listitem><para><computeroutput>boolean was_read</computeroutput> is true if settings were already read from disk, otherwise false</para></listitem>
+		<listitem><para><computeroutput>string splash</computeroutput> contains resolution of splash image</para></listitem>
             </itemizedlist>
         </section>
     </section>

@@ -23,6 +23,7 @@
     include "ui/common_messages.ycp";
 
     import "Report";
+    import "Misc";
 
 
     /**
@@ -286,5 +287,43 @@ no options to set here."));
     global define void noBootloaderPopup () ``{
 	// error report
 	Report::Error (_("Unable to install the boot loader."));
+    }
+
+    /**
+      * Display popup
+      * @param bootloader string printable name of used bootloader
+      */
+    global define void floppyWrittenPopup (string bootloader) ``{
+	string confirm_boot_msg = Misc::boot_msg;
+	// data saved to floppy disk
+	string msg = sformat (_(
+	    // popup, %1 is bootloader name
+	    "The %1 boot sector has been written to the floppy disk."),
+	    bootloader);
+	msg = msg + "\n";
+	if (Mode::hardBoot)
+        {
+            // If LILO was written on floppy disk and we need
+            // to do a hard reboot (because a different kernel
+            // was installed), tell the user to leave the floppy
+            // inserted.
+	    msg = msg
+		// popup - continuing - alternative 1 ...
+                + _("Leave the floppy disk in the drive. The system will now be rebooted.");
+	}
+	else
+	{
+	    msg = msg
+		// popup - continuing - alternative 2 ...
+		+ _("Remove the floppy disk from the drive.");
+	}
+
+	if ( size (confirm_boot_msg) > 0 )
+	{
+	    msg = msg + "\n\n" + confirm_boot_msg;
+	}
+	Misc::boot_msg = "";
+        // empty that  Misc::boot_msg indicate the message has been displayed
+	Report::Message(msg);
     }
 }

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 17 12:21:40 CET 2003 - jsrain@suse.de
+
+- added popup when bootloader saved to floppy (#23571)
+
+-------------------------------------------------------------------
 Fri Feb 14 09:33:09 CET 2003 - jsrain@suse.de
 
 - added splash-screen's size parameter when calling mk_initrd 
