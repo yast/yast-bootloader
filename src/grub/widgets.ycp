@@ -117,7 +117,7 @@ Replace it with an entry  to boot from the floppy?");
 	    {
 		sections = maplist (`s, sections, ``{
 		    if ((getCreationType (s) == "hard_disk"
-			    || lookup_value (s, "root", "") == "(fd0)")
+			    || lookup_value (s, "root", "") == "(hd0)")
 			&& changeSection ("disk"))
 		    {
 			s = [

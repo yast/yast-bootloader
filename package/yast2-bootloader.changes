@@ -2,6 +2,9 @@
 Thu Aug  7 10:10:38 CEST 2003 - jsrain@suse.de
 
 - fixed lost sections when changhing bootloader location (#28552)
+- not offering to replace partition booting from HDD with partition
+  for booting from floppy when changed GRUB location to other disk
+  partition if entry for booting from HDD doesn't exist
 
 -------------------------------------------------------------------
 Mon Aug  4 15:56:18 CEST 2003 - jsrain@suse.de
