@@ -600,38 +600,46 @@
       * Some information gets lost. ntype must be different from otype
       * @param otype string original section type, "image" or "other"
       * @param ntype string new section type, "image" or "other"
-      * @param orig map original section
-      * @return map new (converted) section
+      * @param orig list original section
+      * @return list new (converted) section
       */
-    global define map convertSection (string otype, string ntype, map orig) ``{
-	map ret = $[];
+    global define list convertSection (string otype, string ntype, list orig)
+    ``{
+	list ret = [];
 	if (orig == nil)
 	{
 	    if (ntype == "other")
 	    {
-		ret = $[ "other" : "" ];
+		ret = [ $[ "key" : "other", "value" : "" ]];
 	    }
 	    else
 	    {
-		ret = $[ "image" : "", "initrd" : "", "root" : "" ];
+		ret = [
+		    $[ "key" : "image", "value" : ""],
+		    $[ "key" : "initrd", "value" : ""],
+		    $[ "key" : "root", "value" : "" ]
+		];
 	    }
-	    ret["label"] = BootCommon::getFreeSectionLabel ();
+	    ret = add (ret, $[ "key" : "label", "value" :
+		BootCommon::getFreeSectionLabel ()]);
 	    return ret;
 	}
+	map label_map = getValueMap (orig, "label");
 	if (ntype == "other")
 	{
-	    ret = $["other":
-		select (BootCommon::splitPath (orig["image"]:""), 0, "")];
+	    ret = [ $["key" : "other", "value" :
+		select (BootCommon::splitPath (
+		    lookup_value (orig, "image", "")), 0, "")]];
 	}
 	else
 	{
-	    ret = $[
-		"image" : "/boot/vmlinuz",
-		"root" : orig["other"]:"",
-		"initrd" : "/boot/initrd",
+	    ret = [
+		$[ "key" : "image", "value" : "/boot/vmlinuz"],
+		$[ "key" : "root", "value" : lookup_value (orig, "other", "")],
+		$[ "key" : "initrd", "value" : "/boot/initrd"],
 	    ];
 	}
-	ret["label"] = orig["label"]:"";
+	ret = add (ret, label_map);
 	return ret;
     }
 

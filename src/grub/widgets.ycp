@@ -349,10 +349,6 @@ Replace it with an entry  to boot from the floppy?");
             BootCommon::current_section_name
                 = lookup_value (sects[index]:[], "title", "");
 
-// FIXME
-//            BootCommon::changed_settings_single_sect
-//                = eval (BootCommon::changed_settings[sects[index, "title"]:""]:$[]);
-            y2milestone ("Changed settings: %1", BootCommon::changed_settings_single_sect);
 	    BootCommon::one_section_changed = false;
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
@@ -378,9 +374,6 @@ Replace it with an entry  to boot from the floppy?");
         }
         if (op == `back)
         {
-            BootCommon::changed_settings
-                = eval (BootCommon::changed_settings_all_sections);
-            y2milestone ("Restoring changed to %1", BootCommon::changed_settings);
         }
 	UI::SetFocus (`id (`sects));
 	return nil;
@@ -598,10 +591,17 @@ Replace it with an entry  to boot from the floppy?");
     global define any gfxMenuHandle (any op, boolean save) ``{
 	if (! save)
 	    return nil;
-	BootCommon::current_section["gfxmenu"]
-	    = UI::QueryWidget (`id (`value), `Value);
-	BootCommon::current_section["__intern__"] =
-	   add (BootCommon::current_section["__intern__"]:$[], "changed", true);
+	BootCommon::current_section = setValueByIndex (
+	    BootCommon::current_section, -1,
+	    BootCommon::current_option_name,
+	    UI::QueryWidget (`id (`value), `Value));
+
+	map intern = lookup_value (BootCommon::current_section,
+	    "__intern__", $[]);
+	intern["changed"] = true;
+	BootCommon::addValueToBootloaderSection (
+	    `current_section, "__intern__", intern);
+	y2error ("Final current section: %1", BootCommon::current_section);
 	return nil;
     }
 

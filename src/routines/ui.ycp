@@ -183,6 +183,8 @@
 	    {
 		value = lookup_value (BootCommon::current_section,
 		    optname, old_value);
+		if (BootCommon::current_option_index >= 0)
+		    BootCommon::current_option_index = -1;
 	    }
 	    UI::ChangeWidget (`id (`value), `Value, value);
 	    UI::SetFocus (`id (`value));
@@ -209,9 +211,6 @@
 		{
 		    ret = nil;
 		}
-	    }
-	    if (ret == `ok)
-	    {
 		if (widget_data["handle"]:nil != nil)
 		{
 		    term toEval = widget_data["handle"]:nil;
@@ -226,30 +225,28 @@
 			&& ! BootCommon::getBooleanAttrib ("key_only_once")
 			&& ! widget_data["key_only_once"]:false)
 		    {
-y2error ("Existing ordered");
 			BootCommon::current_section = setValueByIndex (
 			    BootCommon::current_section,
-			    BootCommon::current_option_index, value);
+			    BootCommon::current_option_index,
+			    BootCommon::current_option_name, value);
 		    }
 		    // new value, ordered
 		    else if (BootCommon::current_option_index == -2
 	                && ! BootCommon::getBooleanAttrib ("key_only_once")
                         && ! widget_data["key_only_once"]:false)
 		    {
-y2error ("New ordered");
 			BootCommon::current_section = appendValue (
 			    BootCommon::current_section, optname, value);
 		    }
 		    // unordered value - replace old if exists
 		    else
 		    {
-y2error ("Unordered");
-			BootCommon::addValueToBootloaderSection (
-			    `current_section, optname, value);
+			BootCommon::current_section = modifySection (
+			    BootCommon::current_section, optname, value);
 		    }
 		}
-		BootCommon::markOptionChanged (
-		    BootCommon::current_section_name, optname);
+		BootCommon::markOptionChanged ( `current_section, optname);
+//		    BootCommon::current_section_name, optname);
 	    }
         }
         UI::CloseDialog ();
@@ -272,12 +269,22 @@ y2error ("Unordered");
 	    o["index"] = counter;
 	});
 	options = Bootloader::blUpdateOptionsList (orig);
+	map intern = lookup_value (options, "__intern__", $[]);
+	list changed_opts = intern["changed_opts"]:[];
+
 	options = filter (`o, options,
 	    ``(o["key"]:"" != "__intern__"));
+
+	options = maplist (`o, options, ``{
+	    if (contains (changed_opts, o["key"]:""))
+		o["changed"] = true;
+	    return o;
+	});
 	current_dialog_options = options;
 
 	map opts = getPopupWidgets ();
 	counter = 0;
+
 	foreach (`o, options, ``{
 	    map widget = opts[o["key"]:""]:$[];
 	    string label = sformat ("%1", widget["label"]:o["key"]:"");
@@ -287,9 +294,7 @@ y2error ("Unordered");
 		value = sformat ("%1", o["value"]:"");
 	    else
 		value = eval (toEval);
-	    string chng = BootCommon::changed_settings[
-		BootCommon::current_section_name, o]:false
-		? "*" : "";
+	    string chng = o["changed"]:false ? "*" : "";
 	    items = add (items, `item (`id (counter), chng, label, value));
 	    counter = counter + 1;
 	});
@@ -416,9 +421,11 @@ y2error ("Unordered");
 	    string ls = BootCommon::getSectionTitle ();
 	    string old_name = BootCommon::current_section_name;
 	    y2milestone ("Old name: %1", old_name);
-// FIXME
-//	    map as = BootCommon::current_section;
-//	    as["__intern__"] = add (as["__intern__"]:$[], "changed", true);
+	    map intern = lookup_value (BootCommon::current_section,
+		"__intern__", $[]);
+	    intern["changed"] = true;
+	    BootCommon::current_section = modifySection (
+		BootCommon::current_section, "__intern__", intern);
 	    boolean found = false;
 	    BootCommon::current_sections = maplist (`s,
 		BootCommon::current_sections,
@@ -426,7 +433,7 @@ y2error ("Unordered");
 		if (lookup_value (s, ls, "") == old_name)
 		{
 		    found = true;
-		    return as;
+		    return BootCommon::current_section;
 		}
 		else
 		    return s;
@@ -438,19 +445,12 @@ y2error ("Unordered");
 		    BootCommon::current_section
 		);
 	    }
-// FIXME
-//	    BootCommon::changed_settings[as[ls]:""]
-//		= BootCommon::changed_settings[old_name]:$[];
 	    y2milestone ("Saving section");
 	    if (BootCommon::one_section_changed)
 		BootCommon::sections_changed = true;
 	}
 	if (`back == op)
 	{
-// FIXME
-//	    string current_l = BootCommon::current_section_name;
-//	    BootCommon::changed_settings[current_l]
-//		= eval (BootCommon::changed_settings_single_sect);
 	}
 	UI::SetFocus (`id (`settings));
 	return nil;
@@ -466,8 +466,6 @@ y2error ("Unordered");
 	any ret = singleSectionHandle (op, save);
 	if (op == `sections)
 	{
-            BootCommon::changed_settings_all_sections
-		= eval (BootCommon::changed_settings);
 	}
 	if (op == `delete)
 	    BootCommon::changed = true;

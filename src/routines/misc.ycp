@@ -133,10 +133,11 @@
       * Some information gets lost. ntype must be different from otype
       * @param otype string original section type, "image" or "other"
       * @param ntype string new section type, "image" or "other"
-      * @param orig map original section
-      * @return map new (converted) section
+      * @param orig list original section
+      * @return list new (converted) section
       */
-    global define map convertSection (string otype, string ntype, map orig) ``{
+    global define list convertSection (string otype, string ntype, list orig)
+    ``{
         term f = current_bootloader_attribs["convert_function"]:nil;
 	if (f == nil)
 	    return orig;
@@ -920,14 +921,40 @@
 
     /**
       * Mark option as changed by user
-      * @param section any section identifier
-      * @param optname any option name
+      * @param section symbol section to update
+      * @param optname string option name
       */
-    global define void markOptionChanged (any section, any optname) ``{
+    global define void markOptionChanged (symbol section, string optname) ``{
 	y2debug ("Marking option %1 of section %2 changed", optname, section);
-	map current = BootCommon::changed_settings[section]:$[];
-	current[optname] = true;
-	BootCommon::changed_settings[section] = current;
+	if (substring (optname, 0, 2) == "__")
+	{
+	   list s = [];
+	    if (section == `globals)
+	        s = globals;
+	    else if (section == `current_globals)
+	        s = current_globals;
+	    else if (section == `current_section)
+	        s = current_section;
+	    else
+	    {
+	        y2error ("Incorrect parameter for markOptionChanged");
+	        s = [];
+	    }
+
+	    map intern = lookup_value (s, "__intern__", $[]);
+	    list ch = intern["changed_opts"]:[];
+	    ch = toset (add (ch, optname));
+	    intern["changed_opts"] = ch;
+	    s = modifySection (s, "__intern__", intern);
+
+	    if (section == `globals)
+	        globals = s;
+	    else if (section == `current_globals)
+	        current_globals = s;
+	    else if (section == `current_section)
+	        current_section = s;
+	}
+
 	if (section == `global)
 	{
 	    BootCommon::changed = true;

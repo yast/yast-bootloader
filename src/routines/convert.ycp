@@ -82,6 +82,10 @@
 	}
 	ret = prepend (ret, $["key" : "title",
 	    "value" : lookup_value (section, "label", "")]);
+        ret = maplist (`r, ret, ``{
+            r["changed"] = false;
+            return r;
+        });
 	return ret;
     }
 
@@ -126,6 +130,10 @@
 	}
 	if (issubstring (lookup_value (ret, "other", ""), "/dev/fd"))
 	    return [];
+        ret = maplist (`r, ret, ``{
+            r["changed"] = false;
+            return r;
+        });
 	return ret;
     }
 
@@ -154,6 +162,10 @@
 		 ret = appendValue (ret, "default", count);
 	    count = count + 1;
 	});
+        ret = maplist (`r, ret, ``{
+            r["changed"] = false;
+            return r;
+        });
 	return ret;
     }
 
@@ -182,6 +194,10 @@
 		    lookup_value (e, "label", ""));
 	    count = count - 1;
 	});
+        ret = maplist (`r, ret, ``{
+            r["changed"] = false;
+            return r;
+        });
 	return ret;
     }
 

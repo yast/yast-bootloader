@@ -196,18 +196,6 @@
       */
     global map opt_types = $[];
     /**
-      * Map to remember what settings were changed
-      */
-    global map changed_settings = $[];
-    /**
-      * Temporary map for all-sections changed flag
-      */
-    global map changed_settings_all_sections = $[];
-    /**
-      * Temporary map for one-section changed flags
-      */
-    global map changed_settings_single_sect = $[];
-    /**
       * Kernel parameters at previous detection
       */
     global string kernelCmdLine = "";

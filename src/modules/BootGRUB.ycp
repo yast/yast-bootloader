@@ -870,8 +870,7 @@
 	list(map) old_sect_list = BootCommon::sections;
 	createSections ();
 	map new_sect = listmap (`s, BootCommon::sections, ``{
-	    return [
-		lookup_value (s, "title", ""), s];
+	    return [lookup_value (s, "title", ""), s];
 	});
 	old_sect_list = maplist (`s, old_sect_list, ``{
 	    string title = s["title"]:"";
@@ -927,8 +926,7 @@
 		    y2milestone ("Warning, ND: %1, OD: %2, P: %3",
 			new_devs, old_devs, parts);
 		    displayDiskChangePopup (
-			lookup_value (
-			    s, "title", ""));
+			lookup_value (s, "title", ""));
 		}
 		s = maplist( `i, s, ``{
 		    if (i["key"]:"" == "__intern__")
@@ -940,8 +938,7 @@
 	});
 	boolean has_memtest = false;
 	foreach (`s, old_sect_list, ``{
-	    if (lookup_value (s, "title", "")
-		== "memtest86")
+	    if (lookup_value (s, "title", "") == "memtest86")
 	    {
 		has_memtest = true;
 	    }
@@ -956,7 +953,7 @@
 	    list(string) devs = intern["devs"]:[];
 	    string title = lookup_value (
 		s, "title", "");
-	    y2milestone ("Section %1 needs %2", s["title"]:"", devs);
+	    y2milestone ("Section %1 needs %2", title, devs);
 	    boolean to_add = false;
 	    foreach (string d, devs, ``{
 		if (contains (del_parts, d))
@@ -1002,10 +999,10 @@
 	{
 	    intern["auto"] = false;
 	}
-	y2debug ("Have GFXMenu");
 	if (lookup_value (
 	    BootCommon::globals, "gfxmenu", "") != "")
 	{
+	    y2debug ("Have GFXMenu");
 	    if (! intern["changed"]:false)
 		BootCommon::addValueToBootloaderSection (
 		    `globals, "gfxmenu", file2grub ("/boot/message"));
@@ -1094,7 +1091,7 @@
       * @return list new (converted) section
       */
     global define list convertSection (string otype, string ntype, list orig)``{
-	list ret = $[];
+	list ret = [];
 	if (orig == nil)
 	{
 	    if (ntype == "other")
@@ -1112,6 +1109,7 @@
 		"value" : BootCommon::getFreeSectionLabel ()]);
 	    return ret;
 	}
+	string title_map = getValueMap (orig, "title");
 	if (ntype == "other")
 	{
 	    string root = select (splitDevPath (
@@ -1129,7 +1127,6 @@
 	else
 	{
 	    string root = lookup_value (orig, "root", "");
-	    string title = lookup_value (orig, "title", "");
 	    ret = [
                 $[ "key" : "root", "value" : root],
                 $[ "key" : "kernel", "value" : sformat ("/vmlinuz root=%1",
@@ -1137,7 +1134,7 @@
 		$[ "key" : "initrd", "value" : "/initrd"]
 	    ];
 	}
-	ret = add (ret, $[ "key" : "title", "value" : title]);
+	ret = add (ret, title_map);
 	return ret;
     }
 
