@@ -60,7 +60,7 @@
 	else
 	{
 	    string root = lookup_value (section, "root", "");
-	    if (regexpmatch (root, "0x[0-9a-f]{4}"))
+	    if (regexpmatch (root, "^0x[0-9a-f]{4}$"))
 		root = substring (root, 2);
 	    string vga = lookup_value (section, "vga", "");
 	    ret = add (ret, $[ "key" : "kernel",
@@ -116,7 +116,7 @@
 		    lookup_value (section, "initrd", "")));
 	    ret = appendValue (ret, "optional", true);
 	    string root = BootCommon::getKernelParamFromLine (cmdline, "root");
-	    if (regexpmatch (root, "[0-9a-f]{4}"))
+	    if (regexpmatch (root, "^[0-9a-f]{4}$"))
 		root = "0x" + root;
 	    if (root != "false")
 		ret = appendValue (ret, "root", root);
