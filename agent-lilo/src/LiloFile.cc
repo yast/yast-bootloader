@@ -55,7 +55,7 @@ bool liloFile::parse()
     string commentBuffer="";
     string tmp;
 
-    bool retval;
+    bool retval = false;
     bool trail=true;
 
     int linecounter=0;
@@ -101,14 +101,30 @@ bool liloFile::parse()
 	    continue;
 	}		
 
-	if(li->option=="image" || li->option=="other")
+	bool header = false;
+	if (type == "grub")
 	{
-	    curSect=new liloSection();
-	    curSect->processLine(li); 
-	    sections.push_back(curSect);
-	    retval=true;
+	    if (li->option == "title")
+	    {
+                curSect=new liloSection();
+                curSect->processLine(li); 
+                sections.push_back(curSect);
+                retval=true;
+                header = true;
+	    }
 	}
 	else
+	{
+	    if(li->option=="image" || li->option=="other")
+	    {
+		curSect=new liloSection();
+		curSect->processLine(li); 
+		sections.push_back(curSect);
+		retval=true;
+		header = true;
+	    }
+	}
+	if (! header)
 	{
 	    if(curSect)
 	    {
@@ -303,7 +319,7 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
 	    if (sect)
 	    {
 		sections.push_back(sect);
-		sect->options->order.push_back(new liloOption("label", path->component_str(1), ""));
+		sect->options->order.push_back(new liloOption(type == "grub" ? "title" : "label", path->component_str(1), ""));
 	    }
 	    else
 	    {

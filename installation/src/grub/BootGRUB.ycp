@@ -15,7 +15,7 @@
  *
  */
 {
-    module "BootLILO";
+    module "BootGRUB";
 
     textdomain "bootloader";
 
@@ -73,7 +73,7 @@
     ``{
 	// Calling mk_initrd
 
-	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/y2logmk_initrd 2>> /var/log/y2logmk_initrd") != 0 )
+/*	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> /var/log/y2logmk_initrd 2>> /var/log/y2logmk_initrd") != 0 )
 	{
 	    any retAsk = UI::AskShowLog( "mk_initrd" );
 	    if ( retAsk == `yes )
@@ -140,7 +140,7 @@ Do you want to try again?")) )
 		    retAsk = UI::AskRetry( "lilo" );
 		}
 	    }
-	}
+	}*/
     }
 
 
@@ -274,6 +274,13 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	import "Report";
 
 	include "ui/common_popups.ycp";
+	include "lilo/routines.ycp";
+	include "lilo/io.ycp";
+
+	SCR::Execute (.target.bash, "test -f /etc/grub.conf || touch /etc/grub.conf");
+	SCR::Execute (.target.bash, "test -d /boot/grub || mkdir /boot/grub;");
+	SCR::Execute (.target.bash, "test -f /boot/grub/menu.lst || touch /boot/grub/menu.lst;");
+	SCR::Execute (.target.bash, "test -f /boot/grub/device.map || echo \"quit\" | /sbin/grub --device-map=/boot/grub/device.map");
 
 	if ( Mode::update )
 	{
@@ -291,7 +298,108 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	integer doresult = 0;
 	string docmd = "/usr/lib/YaST2/bin/dolilo /";
 
-	if (Boot::location == "mbr")
+	string prefix = "";
+
+	if (Boot::BootPartitionDevice == Boot::RootPartitionDevice)
+	    prefix = "/boot/";
+	else
+	    prefix = "/";
+	string root_dev = lilo2Grub (Boot::BootPartitionDevice);
+
+	string boot_sect = Boot::device;
+	map settings = $[
+	    "root": root_dev,
+	    "stage1" : sformat ("%1grub/stage1", prefix),
+	    "stage2" : sformat ("%1grub/stage2", prefix),
+	    "discswitch": true,
+	    "device" : lilo2Grub (boot_sect),
+	    "addr" : "0x8000",
+	    "menu" : sformat ("%1%2grub/menu.lst", lilo2Grub (Boot::BootPartitionDevice), prefix)
+	];
+	saveGrubConf (settings);
+	string grub_conf = getGrubConf (settings);
+
+	string menu = "";
+	menu = menu + "default 0\n";
+	menu = menu + "timeout 8\n";
+
+	menu = menu + "\n";
+
+/*	map globals = $[
+	    "default" : "0",
+	    "timeout" : 8,
+	];
+	list sections = [];*/
+
+	menu = menu + "title linux\n";
+	menu = menu + sformat ("   kernel %1 %2 %3\n", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz"),
+	    sformat ("root=%1", Boot::RootPartitionDevice), Kernel::cmdLine);
+	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd");
+
+//TODO add non-linux sections
+
+	menu = menu + "title failsafe\n";
+	menu = menu + sformat ("   kernel %1 %2 %3\n", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz.suse"),
+            sformat ("root=%1", Boot::RootPartitionDevice), "ide=nodma apm=off acpi=off");
+	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd.suse");
+
+	if (-1 != SCR::Read (.target.size, "/boot/memtest.bin"))
+        {
+	    menu = menu + "title memtest86\n";
+	    menu = menu + sformat ("   kernel %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "memtest.bin");
+        }
+
+
+/*	map section = $[
+	    "title" : "linux",
+	    "kernel" : sformat ("%1 %2 %3", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz"),
+		sformat ("root=%1", Boot::RootPartitionDevice), Kernel::cmdLine),
+	    "initrd" : sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd"),
+	];
+	sections = add (sections, section);
+
+//TODO add non-linux sections
+
+	section = $[
+            "title" : "failsafe",
+            "kernel" : sformat ("%1 %2 %3", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz.suse"),
+                sformat ("root=%1", Boot::RootPartitionDevice), Kernel::cmdLine),
+            "initrd" : sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd.suse")
+        ];
+        sections = add (sections, section);
+
+	if (-1 != SCR::Read (.target.size, "/boot/memtest.bin"))
+	{
+	    section = $[
+		"title" : "memtest86",
+		"kernel" : sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "memtest.bin")
+	    ];
+	    sections = add (sections, section);
+	}
+
+y2error ("Sections: %1", sections);
+
+	Lilo::globals = globals;
+	Lilo::sections = sections;*/
+
+	SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
+
+
+	y2milestone ("Starting mk_initrd");
+	SCR::Execute(.target.bash, "/sbin/mk_initrd");
+	y2milestone ("Starting GRUB");
+	string command = sformat ("echo \"%1\" | grub --batch ", grub_conf);
+	SCR::Execute(.target.bash, command);
+	y2milestone ("GRUB installed", ret);
+
+
+
+//	map m = Lilo::Write (``{}, ``{});
+//	y2error ("Write returned %1", m);
+	return;
+
+
+/*	if (Boot::location == "mbr")
 	{
 	    docmd = docmd + " -m " + Boot::device;
 	}
@@ -305,11 +413,11 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	    // if Boot::device does not end in a digit, it is a disk device for mbr
 	    if (!(filterchars (last_dev_char, "0123456789") == last_dev_char))
 		docmd = docmd + " -m " + Boot::device;
-	}
+	}*/
 
 	// if syslinux recognized a framebuffer, pass it to lilo
 
-	integer vga = tointeger (Boot::VgaType);
+/*	integer vga = tointeger (Boot::VgaType);
 	if (vga > 0)
 	{
 	    list fbdev = SCR::Read(.probe.fbdev);
@@ -319,7 +427,7 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 		HwStatus::Set (unique_key, `yes);
 	    }
 	    docmd = docmd + " -v " + vga;
-	}
+	}*/
 
 	// on LILO systems with LILO in MBR activate it.
 
@@ -511,7 +619,7 @@ the old boot sector in the installed system with \"lilo -u %1\""), Boot::device)
 
     global define void Save()
     ``{
-	SCR::Write (.sysconfig.bootloader.LILO_LBA, (lba_support?"yes":"no"));
+/*	SCR::Write (.sysconfig.bootloader.LILO_LBA, (lba_support?"yes":"no"));
 	SCR::Write (.sysconfig.bootloader.LILO_LBA.comment,
 		       "\n# Does the BIOS support LBA access.\n#\n");
 	SCR::Write (.sysconfig.bootloader.LILO_ACTIVATE, (activate?"yes":"no"));
@@ -519,7 +627,7 @@ the old boot sector in the installed system with \"lilo -u %1\""), Boot::device)
 		       "\n# Did the user select 'activate'.\n#\n");
 	SCR::Write (.sysconfig.bootloader.LILO_LINEAR, (linear?"yes":"no"));
 	SCR::Write (.sysconfig.bootloader.LILO_LINEAR.comment,
-		       "\n# Did the user select 'linear'.\n#\n");
+		       "\n# Did the user select 'linear'.\n#\n");*/
     }
 
     /**
@@ -528,9 +636,10 @@ the old boot sector in the installed system with \"lilo -u %1\""), Boot::device)
      * initializes lba_support
      */
 
-    global define void BootLILO()
+    global define void BootGRUB()
     ``{
 	ProbeLBA();
+
 	return;
     }
 

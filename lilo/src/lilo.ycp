@@ -30,6 +30,7 @@ textdomain "bootloader";
 
 import "Lilo";
 import "Mode";
+include "lilo/routines.ycp";
 
 if (Mode::test)
 {

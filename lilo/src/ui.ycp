@@ -56,7 +56,7 @@ global define symbol LiloMainDialog() ``{
     map	    aliases = $[
 	"summary"	: ``(SummaryDialog()),
 	"target"	: ``(TargetDialog()),
-
+//	"save"		: ``(SummaryDialog()),
         "abort"		: ``(AbortDialog()),
         "sections"		: ``(MainDlg()),
 	"ostype"	: ``(OSTypeDlg()),
@@ -78,7 +78,6 @@ global define symbol LiloMainDialog() ``{
             `yes: `back
         ],
 	"summary" : $[
-	    // FIXME #17142 `accept : "save",
 	    `modify : "target",
 	    `restore : "summary",
 	    `next  : "end",
@@ -244,8 +243,13 @@ global define symbol TargetDialog() ``{
 
     Wizard::SetContents(caption, widget, help, true, true);
 
-    string b_dev = lookup(Lilo::globals, "boot", "");
-
+    string b_dev = "";
+    if (Lilo::mode == `grub)
+    {
+	b_dev = grub2Lilo (lookup (Lilo::grub_set, "device", ""));
+    }
+    else
+	b_dev = lookup(Lilo::globals, "boot", "");
 
     // now check the right radio
     if (Lilo::uninstallLilo)
@@ -311,13 +315,30 @@ global define symbol TargetDialog() ``{
 	if (!contains([`other, `uninstall], sel))
 	{
 	    string b_dev = lookup(lookup(Lilo::partmap, sel, `mbr), "dev", "/dev/hda");
-	    Lilo::globals = add(Lilo::globals, "boot", b_dev);
+	    if (Lilo::mode == `grub)
+	    {
+		b_dev = lilo2Grub (b_dev);
+		Lilo::grub_set = add (Lilo::grub_set, "device", b_dev);
+		
+	    }
+	    else
+	    {
+	        Lilo::globals = add(Lilo::globals, "boot", b_dev);
+	    }
 	    Lilo::uninstallLilo = false;
 	}
 	else if (sel == `other)
 	{
 	    string b_dev = "/dev/" + UI::QueryWidget(`id(`part), `Value);
-	    Lilo::globals = add(Lilo::globals, "boot", b_dev);
+	    if (Lilo::mode == `grub)
+            {
+                b_dev = lilo2Grub (b_dev);
+		Lilo::grub_set = add (Lilo::grub_set, "device", b_dev);
+            }
+	    else
+	    {
+                Lilo::globals = add(Lilo::globals, "boot", b_dev);
+	    }
 	    Lilo::uninstallLilo = false;
 	}
 	else if (sel == `uninstall)
@@ -382,8 +403,8 @@ global define symbol EndDialog() ``{
 	test_res = RemoveLilo();
     }
     else
-    { 
-	test_res = TestLilo();
+    {
+	test_res = Lilo::mode == `grub ? TestGrub() : TestLilo();
 
 	if (lookup(test_res, "exit", -1) == 0)
 	{
@@ -447,8 +468,16 @@ global define symbol MainDlg() ``{
 	if (action == `b_default)
 	//===========  set item as default 
 	{
-	    map defsect = select(Lilo::sections, currentSectionIndex, $[]);
-	    string defname = lookup(defsect, "label", "");
+	    string defname = "";
+	    if (Lilo::mode == `grub)
+	    {
+		defname = sformat ("%1", UI::`QueryWidget(`id(`lilo_table), `CurrentItem));
+	    }
+	    else
+	    {
+		map defsect = select(Lilo::sections, currentSectionIndex, $[]);
+		defname = lookup(defsect, "label", "");
+	    }
 
 	    if (defname == "")
 	    {
@@ -478,9 +507,9 @@ global define symbol MainDlg() ``{
 	//============= edit section
 	{
 	    integer index = UI(`QueryWidget(`id(`lilo_table), `CurrentItem));
-	    currentSection = lookup(select(Lilo::sections, index, $[]), "label", "");
+	    currentSection = lookup(select(Lilo::sections, index, $[]), Lilo::mode == `grub ? "title" : "label", "");
 	    currentOptions = select(Lilo::sections, index, $[]);
-	    if (haskey(currentOptions, "other"))
+	    if (haskey(currentOptions, "chainload") || haskey (currentOptions, "chainloader") || haskey(currentOptions, "other"))
 	    {
 		currentSectionType = "other";
 		return `edit_other;
@@ -587,14 +616,14 @@ global define symbol MainDlgRedraw() ``{
  */
 
 global define boolean LinuxSectDlg_validate(map vals, string sectname_orig) ``{
-    if (strip(lookup(vals, "label", "")) == "")
+    if (strip(lookup(vals, Lilo::mode == `grub ? "title" : "label", "")) == "")
     {
 	UI::`MessagePopup(_("Please enter section label."));
 	return false;
     }
     if (!Lilo::autoinstallation)
     {
-        if (SCR::Read(.target.size, lookup(vals, "image", "")) == -1 ||
+        if (SCR::Read(.target.size, lookup(vals, Lilo::mode == `grub ? "kernel" : "image", "")) == -1 ||
 	    ( Arch::sparc && SCR::Read(.target.size, "/boot"+lookup(vals, "image", "")) == -1))
 	{
 	    UI::`MessagePopup(_("File entered in 'Path to linux kernel' doesn't exist."));
@@ -603,7 +632,7 @@ global define boolean LinuxSectDlg_validate(map vals, string sectname_orig) ``{
     }
 
     string error = check_aliases(liloconf, sectname_orig, 
-		    lookup(vals, "label", ""), lookup(vals, "alias", ""));
+		    lookup(vals, Lilo::mode == `grub ? "title" : "label", ""), lookup(vals, "alias", ""));
     if (error != "")
     {
 	UI::`ErrorPopup(error);
@@ -628,18 +657,47 @@ global define symbol LinuxSectDlg() ``{
 
     // read section name. we'll keep 'currentSection' as a copy
     // for a case of section renaming.
-    string sectn = lookup(currentOptions, "label", "");
+    string sectn = lookup(currentOptions, (Lilo::mode == `grub) ? "title" : "label", "");
+    string kernel = lookup (currentOptions, (Lilo::mode == `grub) ? "kernel" : "image", "");
+    string rootdev = "";
+    if (Lilo::mode == `grub)
+    {
+	list kl = splitstring (kernel, " ");
+	kernel = select (kl, 0, "");
+	kernel = getLinuxPath (kernel);
+	list rl = splitstring (select (kl, 1, ""), "=");
+	rootdev = select (rl, 1, "none");
+	if (rootdev != "none")
+	{
+	    rl = splitstring (rootdev, "/");
+	    rootdev = select (rl, size (rl)-1, "");
+	}
+    }
+    else
+    {
+	if (haskey(currentOptions, "root"))
+	{
+            list rd = splitstring(lookup(currentOptions, "root", ""), "/");
+	    rootdev = select(rd, size(rd)-1, "");
+	}
+	else
+	{
+	    rootdev = "none";
+	}
+    }
+
+
 
     // move data to UI
 	UI::`ChangeWidget(`id(`sect_label), `Value, sectn);
-	UI::`ChangeWidget(`id(`sect_kernel), `Value, lookup(currentOptions, "image", ""));
+	UI::`ChangeWidget(`id(`sect_kernel), `Value, kernel);
 	// check 'optional' checkbox
 	if (lookup(currentOptions, "optional", "false")=="true" || lookup(currentOptions, "optional", "false")=="")
 	{
 	    UI::`ChangeWidget(`id(`optional), `Value, true);
 	}
     // get the tail of '/dev/hdxx/' - we need only hdxx
-    string rootdev = "";
+/*    string rootdev = "";
     if (haskey(currentOptions, "root"))
     {
 	list rd = splitstring(lookup(currentOptions, "root", ""), "/");
@@ -648,7 +706,7 @@ global define symbol LinuxSectDlg() ``{
     else
     {
 	rootdev = "none";
-    }
+    }*/
 
     UI::`ChangeWidget(`id(`root), `Value, rootdev);
 
@@ -689,28 +747,49 @@ global define symbol LinuxSectDlg() ``{
 		label=substring(label, 0, 15);
 	    }
 
-	    currentOptions = add(currentOptions, "label", label);
-	    currentOptions = add(currentOptions, "image", kernel);
+	    currentOptions = add(currentOptions, (Lilo::mode == `grub) ? "title" : "label", label);
+	    if (Lilo::mode == `grub)
+	    {
+//		//fix /boot
+//		kernel = kernel + sformat (" root=/dev/%1", UI::`QueryWidget(`id(`root), `Value));
+		currentOptions = add (currentOptions, "kernel", kernel);
+	    }
+	    else
+	    {
+		currentOptions = add(currentOptions, "image", kernel);
+	    }
 	    if (!LinuxSectDlg_validate(currentOptions, currentSection))
 	    {
 		action = `skip_event;
 	    }
 	    if (UI::`QueryWidget(`id(`root), `Value) != "none")
 	    {
-		currentOptions = add(currentOptions, "root", "/dev/"+UI::`QueryWidget(`id(`root), `Value));
+		if (Lilo::mode != `grub)
+		    currentOptions = add(currentOptions, "root", "/dev/"+UI::`QueryWidget(`id(`root), `Value));
 	    }
 	    else
 	    {
 		currentOptions = removekey(currentOptions, "root");
 	    }
 
-	    if (UI::`QueryWidget(`id(`optional), `Value))
+            if (Lilo::mode == `grub)
+            {
+		//fix /boot
+		kernel = getGrubPath (kernel);
+		kernel = kernel + sformat (" root=/dev/%1", UI::`QueryWidget(`id(`root), `Value));
+                currentOptions = add (currentOptions, "kernel", kernel);
+            }
+
+	    if (Lilo::mode != `grub)
 	    {
-		currentOptions = add(currentOptions, "optional", "true");
-	    }
-	    else
-	    {
-		currentOptions = removekey(currentOptions, "optional");
+		if (UI::`QueryWidget(`id(`optional), `Value))
+		{
+		    currentOptions = add(currentOptions, "optional", "true");
+		}
+		else
+		{
+		    currentOptions = removekey(currentOptions, "optional");
+		}
 	    }
 	}
 
@@ -753,13 +832,21 @@ global define symbol OtherSectDlg() ``{
     term    widget = OtherSectWidget();
     Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
 
-    string  sectname_orig = lookup(currentOptions, "label", "");
+    string  sectname_orig = lookup(currentOptions, Lilo::mode == `grub ? "title" : "label", "");
 
-    UI::`ChangeWidget(`id(`sect_label), `Value, lookup(currentOptions, "label", ""));
+    UI::`ChangeWidget(`id(`sect_label), `Value, lookup(currentOptions, Lilo::mode == `grub ? "title" : "label", ""));
 
     // get partition name 'dhxx' from '/dev/hdxx/'
-    list    bd = splitstring(lookup(currentOptions, "other", ""), "/");
-    string bootdev="";
+    list bd = [];
+    string bootdev = "";
+    if ( Lilo::mode == `grub)
+    {
+	bd = splitstring(grub2Lilo (lookup (currentOptions, "root", "")), "/");
+    }
+    else
+    {
+	bd = splitstring(lookup(currentOptions, "other", ""), "/");
+    }
     if (size(bd) > 0)
     {
 	bootdev = select(bd, size(bd)-1, "");
@@ -793,9 +880,20 @@ Please enter new section label."));
 	    }
 	    else
 	    {
-		currentOptions = add(currentOptions, "label", lab);
+		currentOptions = add(currentOptions, (Lilo::mode == `grub) ? "title" : "label", lab);
 	    }
-	    currentOptions = add(currentOptions, "other", "/dev/"+UI::`QueryWidget(`id(`part), `Value));
+	    if (Lilo::mode == `grub)
+	    {
+y2error ("Value: %1", UI::`QueryWidget(`id(`part), `Value));
+y2error ("Root: %1", lilo2Grub (UI::`QueryWidget(`id(`part), `Value)));
+		currentOptions = add(currentOptions, "root", lilo2Grub (sformat ("/dev/%1", UI::`QueryWidget(`id(`part), `Value))));
+		currentOptions = add (currentOptions, "makeactive", "true");
+		currentOptions = add (currentOptions, "chainloader", "+1");
+	    }
+	    else
+	    {
+		currentOptions = add(currentOptions, "other", "/dev/"+UI::`QueryWidget(`id(`part), `Value));
+	    }
 	}
 
     } 
@@ -881,20 +979,23 @@ global define symbol OSTypeDlg() ``{
  */
 
 global define symbol GlobalOptsDlg() ``{
-    string  caption = _("Global LILO properties");
+    string  caption = _("Global bootloader properties");
     string  help = lookup(HELP_STRINGS, "global_opts_dialog", "");
 
     term    widget = GlobalOptsWidget();
+    integer divisor = Lilo::mode == `grub ? 1 : 10;
     Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
 
     // move data to ui
    
     // is option 'prompt' set?
-    boolean prompt = lookup(currentOptions, "prompt", "false") == "true";
+    boolean prompt = (Lilo::mode == `grub)
+	? (! (lookup (currentOptions, "hiddenmenu", "false") == "true"))
+	: (lookup(currentOptions, "prompt", "false") == "true");
     // if so, check show_prompt checkbox
     UI::`ChangeWidget(`id(`show_prompt), `Value, prompt);
     // and enable timeout_active checkbox
-    UI::`ChangeWidget(`id(`timeout_active), `Enabled, prompt);
+    UI::`ChangeWidget(`id(`timeout_active), `Enabled, (Lilo::mode == `grub) || prompt);
 
     // is option timeout set?
     boolean timact = haskey(currentOptions, "timeout");
@@ -905,7 +1006,7 @@ global define symbol GlobalOptsDlg() ``{
     if (timact)
     {
 	// and set its value
-	UI::`ChangeWidget(`id(`timeout), `Value, tointeger(lookup(currentOptions, "timeout", 0))/10);
+	UI::`ChangeWidget(`id(`timeout), `Value, tointeger(lookup(currentOptions, "timeout", 0))/divisor);
     }    
 
     // is set password?
@@ -926,7 +1027,6 @@ global define symbol GlobalOptsDlg() ``{
 
     UI::SetFocus(`id(`timeout));
     UI::SetFocus(`id(`next));
-    
 
     // end move
 
@@ -948,8 +1048,8 @@ global define symbol GlobalOptsDlg() ``{
 	    boolean enab = UI::`QueryWidget(`id(`show_prompt), `Value);
 	    
 	    // enable/disable sub-controls
-	    UI::`ChangeWidget(`id(`timeout_active), `Enabled, enab);
-	    if (!enab)
+	    UI::`ChangeWidget(`id(`timeout_active), `Enabled, (Lilo::mode == `grub) || enab);
+	    if (! ((Lilo::mode == `grub) || enab))
 	    {
 		UI::`ChangeWidget(`id(`timeout_active), `Value, false);
 	    }
@@ -991,17 +1091,21 @@ fields differ. Please retype password."));
 	    // prompt
 	    if (UI::`QueryWidget(`id(`show_prompt), `Value))
 	    {
-		currentOptions = add(currentOptions, "prompt", "true");
+		currentOptions = (Lilo::mode == `grub)
+		    ? removekey (currentOptions, "hiddenmenu")
+		    : add(currentOptions, "prompt", "true");
 	    }
 	    else
 	    {
-		currentOptions = removekey(currentOptions, "prompt");
+		currentOptions = (Lilo::mode == `grub)
+		    ? add (currentOptions, "hiddenmenu", "true")
+		    : removekey(currentOptions, "prompt");
 	    }
 
 	    // timeout
 	    if (UI::`QueryWidget(`id(`timeout_active), `Value))
 	    {
-		currentOptions = add(currentOptions, "timeout", UI::`QueryWidget(`id(`timeout), `Value)*10);
+		currentOptions = add(currentOptions, "timeout", UI::`QueryWidget(`id(`timeout), `Value)*divisor);
 	    }
 	    else
 	    {

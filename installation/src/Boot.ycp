@@ -432,6 +432,11 @@
 	    import "BootLILO";
 	    BootLILO::Save ();
 	}
+	if (LoaderType == "grub")
+	{
+	    import "BootGRUB";
+	    BootGRUB::Save ();
+	}
 	SCR::Write (.sysconfig.bootloader, nil);
     }
 
@@ -448,7 +453,12 @@
 	if (Mode::live_eval)
 	    return true;
 
-	if (LoaderType == "lilo")
+	if (LoaderType == "grub")
+	{
+	    import "BootGRUB";
+	    return BootGRUB::Write();
+	}
+	else if (LoaderType == "lilo")
 	{
 	    import "BootLILO";
 	    return BootLILO::Write();
@@ -494,12 +504,15 @@
     global define void Boot()
     ``{
 	LoaderType = SCR::Read (.probe.boot_arch);
-
+	y2error ("Probe Arch 1: %1", LoaderType);
 	// FIXME, wait for complete grub support
-	if (LoaderType == "grub")
-	    LoaderType = "lilo";
-
+	if (LoaderType == "grub" || LoaderType == "lilo")
+	{
+	    string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
+	    y2error ("Sysconfig: %1", sysconfig);
+	    if (sysconfig == "grub" || sysconfig == "lilo")
+		LoaderType = "lilo";
+	}
 	return;
     }
-
 }

@@ -32,6 +32,8 @@
     //   // Some additional parameter needed for the confgiuration
     //   boolean additional_parameter
 
+    global symbol mode = `lilo;
+
     /**
      * list of section
      */
@@ -54,6 +56,11 @@
      * name of previously used bootpartition (needed when removing lilo)
      */
     global string bootPart = "";
+
+    /**
+     * settings from /etc/grub.conf
+     */
+    global map grub_set = $[];
 
     /**
      *
@@ -81,8 +88,12 @@
      */
 
     global define void Lilo() ``{
+	if (true)//(Mode::installation)
+	    return;
+
 	list fstab = SCR::Read(.etc.fstab);
 
+	grub_set = parseGrubConf ();
 //	list mbr = filter(`e, fstab, ``(lookup(e, "file", "") == "/"));
 
 	list rootpart_l = filter(`e, fstab, ``(lookup(e, "file", "") == "/"));
@@ -127,7 +138,7 @@
      */
 
     global define map GetSection(string label) ``{
-	list filt = filter(`s, sections, ``(lookup(s, "label", "")==label));
+	list filt = filter(`s, sections, ``(lookup(s, (Lilo::mode == `grub) ? "title" : "label", "")==label));
 
 	if (size(filt) > 0)
 	{
@@ -144,7 +155,7 @@
      */
 
     global define void DeleteSection(string label) ``{
-	sections = filter(`s, sections, ``(lookup(s, "label", "") != label));
+	sections = filter(`s, sections, ``(lookup(s, (Lilo::mode == `grub) ? "title" : "label", "") != label));
     }
 
     /**
@@ -177,7 +188,7 @@
 
     global define void ChangeSectionOptions(string sectname, map options) ``{
 
-	sections = maplist(`s, sections, ``((lookup(s, "label", "") == sectname) ? options: s));
+	sections = maplist(`s, sections, ``((lookup(s, (Lilo::mode == `grub) ? "title" : "label", "") == sectname) ? options: s));
     }
 
     /**
@@ -254,7 +265,7 @@
                             "global": globals,
                             "sections" : sections,
                         ],
-		    "file": "/etc/lilo.conf",
+		    "file": Lilo::mode == `grub ? "/boot/grub/menu.lst" : "/etc/lilo.conf",
                     "execute_lilo": true
                     ];
 	return conf;
@@ -328,7 +339,7 @@
 	map liloconf = $[];
 	map sets = $[];
 
-	path p = list2path([boot(), "boot"]);
+	path p = list2path([boot(), Lilo::mode == `grub ? "setup" : "boot"]);
 
 	list optlist = SCR::Dir(list2path([boot()]));
 
@@ -353,8 +364,7 @@
 
 	globals = options;
 
-	bootPart = SCR::`Read(list2path([boot(), "boot"]));
-
+	bootPart = SCR::`Read(list2path([boot(), Lilo::mode == `grub ? "setup" : "boot"]));
 
 	return sets;
     }
@@ -413,7 +423,8 @@
 
 	    // if string contains spaces or equal sign or is empty, quote it
 
-	    if (size(splitstring(v, " ")) >= 2 || size(v) == 0 || find(v, "=") >= 0)
+	    if ((size(splitstring(v, " ")) >= 2 || size(v) == 0 || find(v, "=") >= 0)
+		&&(Lilo::mode != `grub))
 	    {
 		v = "\"" + v + "\"";
 	    }
@@ -438,17 +449,4 @@
 	);
 	return pth;
     }
-
-    /**
-     * reads the global settings and returns booloader for current platform.
-     * this is just a helper function, present only because this setting is
-     * frequently needed
-     *
-     * @return string architecture
-     */
-
-    global define string boot() ``{
-	return SCR::Read(.probe.boot_arch); // FIXME!!
-    }
-
 }

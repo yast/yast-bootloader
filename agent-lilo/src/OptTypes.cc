@@ -36,6 +36,7 @@ void initOptTypes()
     _options["restricted"]=val;	    _options["read-write"]=val;
     _options["unsafe"]=val;	    _options["lock"]=val;
     _options["optional"]=val;	    _options["restricted"]=val;
+    _options["makeactive"]=val;	    _options["hiddenmenu"]=val;
 
     // for ppc:
     _options["copy"]=val;	    _options["activate"]=val;

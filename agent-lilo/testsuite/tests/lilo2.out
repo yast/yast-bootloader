@@ -1,23 +1,21 @@
-([["linux", "suse", "memtest86"], ["\"New Label\"", "suse", "memtest86"]])
-# Modified by YaST2. Last modification on Thu Jun 27 16:13:21 2002
-
-
-boot = /dev/hda
-vga = 771
+([["linux", "suse", "memtest86"], ["linux", "suse", "memtest86"]])
+boot	= /dev/hda
+vga	= 771
 read-only
 menu-scheme = Wg:kw:Wg:Wg
 prompt
-timeout = 80
-message = /boot/message
+timeout	= 80
+message	= /boot/message
 
-image = /boot/vmlinuz
-    label = "New Label"
-    root = /dev/hda3
+  image  = /boot/vmlinuz
+  label  = linux
+  root   = /dev/hda3
 
-image = /boot/vmlinuz.suse
-    label = suse
-    root = /dev/hda3
-    optional
+  image  = /boot/vmlinuz.suse
+  label  = suse
+  root   = /dev/hda3
+  optional
 
-image = /boot/memtest.bin
-    label = memtest86
+  image  = /boot/memtest.bin
+  label  = memtest86
+

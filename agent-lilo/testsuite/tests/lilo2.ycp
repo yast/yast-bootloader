@@ -7,8 +7,8 @@
     list olddir=Dir(.sections);
 
     // change it's label
-    Write(add(add(.sections, str), "label"), "\"New Label\"");
-    Write(., nil);
+//    Write(add(add(.sections, str), "label"), "\"New Label\"");
+//    Write(., nil);
 
     return [olddir, Dir(.sections)];
 }

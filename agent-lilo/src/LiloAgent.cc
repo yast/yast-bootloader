@@ -80,11 +80,16 @@ YCPValue LiloAgent::otherCommand(const YCPTerm& term) {
 	delete lilo;
     }
     string sym = term->symbol()->symbol();
-    if (sym == "LiloConf" && term->size() == 1) 
+    if (sym == "LiloConf" && term->size() == 2) 
     {
-        if (term->value(0)->isString()) 
+	if (term->value(0)->isString())
 	{
-            YCPString s = term->value(0)->asString();
+	    YCPString s = term->value(0)->asString();
+	    type = s->value ();
+	}
+        if (term->value(1)->isString()) 
+	{
+            YCPString s = term->value(1)->asString();
             if (lilo)
                 delete lilo;
             lilo = new liloFile(s->value());

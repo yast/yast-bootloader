@@ -31,6 +31,9 @@
 #include <fstream>
 
 using namespace std;
+
+extern string type;
+
 // using std::vector;
 // using std::map;
 

@@ -56,9 +56,9 @@ global define term MainDlgWidget(list data) ``{
 		    `VSpacing(0.5),
                     `HBox
                     (
-                        `PushButton (`id(`b_add), _("A&dd")),
-                        `PushButton (`id(`b_edit), _("&Edit")),
-                        `PushButton (`id(`b_delete), _("&Delete")),
+                        `PushButton (`id(`b_add), AddButtonLabel ()),
+                        `PushButton (`id(`b_edit), EditButtonLabel ()),
+                        `PushButton (`id(`b_delete), DeleteButtonLabel ()),
 			`HStretch(),
 			`PushButton (`id(`b_default), _("&Set as default"))
                     ),
@@ -88,9 +88,9 @@ global define term OptionsDlgWidget(list opts)
 			    `HBox
 			    (
 				`HStretch(),
-				`PushButton(`id(`add), _("A&dd option")),
-				`PushButton(`id(`set), _("&Edit")),
-				`PushButton(`id(`delete), _("&Delete")),
+				`PushButton(`id(`add), AddButtonLabel ()),
+				`PushButton(`id(`set), EditButtonLabel ()),
+				`PushButton(`id(`delete), DeleteButtonLabel ()),
 				`HStretch()
 			    ),
 			    `VSpacing(1)
@@ -179,7 +179,7 @@ global define term LinuxSectWidget()
 			`VSpacing(0.5),
 			`HBox(
 			    `TextEntry(`id(`sect_kernel), _("&Path to linux kernel")),
-			    `VBox(`Label(""), `PushButton(`id(`browse), _("&Browse")))
+			    `VBox(`Label(""), `PushButton(`id(`browse), _("Bro&wse")))
 			),
 			`VSpacing(0.5),
 			`Left(`CheckBox(`id(`optional), `opt(`notify),
@@ -240,7 +240,7 @@ global define term GlobalOptsWidget() ``{
 			`Frame(_("&Boot prompt"),
 			    `VBox(
 				`Left(`CheckBox(`id(`show_prompt), `opt(`notify), _("&Show the boot prompt"))),
-				`Left(`HBox(`HSpacing(3), `CheckBox(`id(`timeout_active), `opt(`notify),
+				`Left(`HBox(`HSpacing(Lilo::mode == `grub ? 0 : 3), `CheckBox(`id(`timeout_active), `opt(`notify),
 				    _("&Continue booting after a timeout")))),
 				`Left(`HBox(`HSpacing(6), `IntField(`id(`timeout), _("&Timeout in seconds"), 0, 3600, 0), `HStretch())),
 				`VSpacing(0.5)
@@ -437,15 +437,15 @@ global define term TargetWidget(string mbr_dev, string bootdev) ``{
                         `VSpacing(0.5),
                         `Left(`RadioButton(`id(`mbr), `opt(`notify), mbr_label)),
                         `VSpacing(0.5),
-                        `Left(`RadioButton(`id(`boot), `opt(`notify), _("Boot sector of &boot partition"))),
+                        `Left(`RadioButton(`id(`boot), `opt(`notify), _("Boot &sector of boot partition"))),
                         `VSpacing(0.5),
-                        `Left(`RadioButton(`id(`root), `opt(`notify), _("Boot sector of &root partition"))),
+                        `Left(`RadioButton(`id(`root), `opt(`notify), _("Boo&t sector of root partition"))),
                         `VSpacing(0.5),
                         `Left(`RadioButton(`id(`floppy), `opt(`notify), _("&Floppy disk"))),
                         `VSpacing(0.5),
                         `Left(`HBox(`VBox(`Label(""), `RadioButton(`id(`other), `opt(`notify), _("&Other: /dev/"))), part_combo)),
-                        `VSpacing(1.5),
-                        `Left(`RadioButton(`id(`uninstall), `opt(`notify), uninstall_label)),
+                        (Lilo::mode == `grub) ? `VSpacing (0) : `VSpacing(1.5),
+                        (Lilo::mode == `grub) ? `VSpacing (0) : `Left(`RadioButton(`id(`uninstall), `opt(`notify), uninstall_label)),
                         `VSpacing(0.5)
 
 

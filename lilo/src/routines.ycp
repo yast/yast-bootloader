@@ -22,6 +22,208 @@
 textdomain "bootloader";
 
 /**
+  * parse /etc/grub file
+  * @return map of settings
+  */
+global define map parseGrubConf () ``{
+    string file = SCR::Read (.target.string, "/etc/grub.conf");
+    list lines = splitstring (file, "\n");
+    lines = filter (`l, lines, ``(l != ""));
+    map settings = $[];
+    string root = "";
+    foreach (`l, lines, ``{
+	list entries = splitstring (l, " ");
+	entries = filter (`e, entries, ``(e != ""));
+	if (select (entries, 0, "") == "root")
+	    root = select (entries, 1, "");
+	else if (select (entries, 0, "") == "install")
+	{
+	    integer shift = 0;
+	    string tmp = select (entries, 1 + shift, "");
+	    settings = add (settings, "stage1", tmp);
+	    tmp = select (entries, 2 + shift, "");
+	    if ("d" == tmp)
+	    {
+		settings = add (settings, "discswitch", true);
+		shift = shift + 1;
+		tmp = select (entries, 3, "");
+	    }
+	    settings = add (settings, "device", tmp);
+	    tmp = select (entries, 3 + shift, "");
+	    settings = add (settings, "stage2", tmp);
+            tmp = select (entries, 4 + shift, "");
+            settings = add (settings, "addr", tmp);
+            tmp = select (entries, 5 + shift, "");
+            if (substring (tmp, 0, 1) == "/")
+                tmp = sformat ("%1%2", root, tmp);
+            settings = add (settings, "menu", tmp);
+	}
+	settings = add (settings, "root", root);
+    });
+    return settings;
+}
+
+/**
+  * get /etc/grub.conf file from settings as string
+  * @param map of settings
+  * @return string file contents
+  */
+global define string getGrubConf (map settings) ``{
+    string res = "";
+    string root = sformat ("root %1\n", lookup (settings, "root", ""));
+    res = sformat (lookup (settings, "discswitch", false)
+	? "install %1 d %2 %3 %4 %5"
+	: "install %1 %2 %3 %4 %5",
+	    lookup (settings, "stage1", ""),
+	    lookup (settings, "device", ""),
+	    lookup (settings, "stage2", ""),
+	    lookup (settings, "addr", ""),
+	    lookup (settings, "menu", ""));
+    res = sformat ("%1%2\nquit\n", root, res);
+    return res;
+//    return SCR::Write (.target.string, "/etc/grub.conf", res);
+}
+
+global define boolean saveGrubConf (map settings) ``{
+    string cont = getGrubConf (settings);
+    return SCR::Write (.target.string, "/etc/grub.conf", cont);
+}
+
+/**
+  * Create the grub devices map
+  */
+global define void createMap () ``{
+    SCR::Execute (.target.bash, "echo \"quit\" | /sbin/grub --device-map=/boot/grub/device.map");
+}
+
+/**
+  * translate filename path (eg. /boot/kernel) to grub device/path (eg. (hd0,0)/kernel)
+  * @param string fileststem path
+  * @return string grub path
+  */
+global define string getGrubPath (string pth) ``{
+    list mounts = SCR::Read (.etc.fstab);
+    string dev = "";
+    string mp = "";
+    integer max = 0;
+    foreach (`m, mounts, ``{
+	if (issubstring (pth, lookup (m, "file", "---invalid---")) && size (lookup (m, "file", "---invalid---")) > max)
+	{
+	    max = size (lookup (m, "file", "---invalid---"));
+	    dev = lookup (m, "spec", "");
+	    mp = lookup (m, "file", "");
+	}
+    });
+    if (mp == "")
+	return "";
+    dev = lilo2Grub (dev);
+    pth = substring (pth, size (mp));
+    if (substring (pth, 0, 1) == "/")
+	pth = substring (pth, 1);
+    pth = sformat ("%1/%2", dev, pth);
+    return pth;
+}
+
+/**
+  * translate grub device/path (eg. (hd0,0)/kernel) to filename path (eg. /boot/kernel)
+  * @param string grub path
+  * @return string filesystem path
+  */
+global define string getLinuxPath (string pth) ``{
+    string mp = "";
+    list mounts = SCR::Read (.etc.fstab);
+    integer sl = findfirstof (pth, "/");
+    if (sl == nil)
+	return "";
+    string dev = substring (pth, 0, sl);
+    dev = grub2Lilo (dev);
+    foreach (`m, mounts, ``{
+	if (dev == lookup (m, "spec", ""))
+	    mp = lookup (m, "file", "");
+    });
+    pth = substring (pth, sl);
+    pth = sformat ("%1%2", mp, pth);
+    return pth;
+}
+
+/**
+ * translate UNIX device /dev/hda to grub device (hd0)
+ * @param string UNIX device
+ * @return string grub device
+ */
+global define string lilo2Grub (string o_dev) ``{
+    string d = "";
+    integer i = 0;
+    string tmp = o_dev;
+    string number = "";;
+    if (findlastof (o_dev, "/") != nil)
+	tmp = substring (o_dev, findlastof (o_dev, "/") + 1);
+    if (size (tmp) > 3 && filterchars (substring (tmp, 3), "0123456789") == substring (tmp, 3))
+    {
+	number = substring (tmp, 3);
+	o_dev = substring (o_dev, 0, size (o_dev) - size (number));
+    }
+    if (findlastof (o_dev, "/") == nil)
+	o_dev = o_dev + "/dev/";
+    while (i<size (o_dev))
+    {
+	if (substring (o_dev, i, 1) == "/")
+	    d = d + "\\";
+	d = d + substring (o_dev, i, 1);
+	i=i+1;
+    }
+    string command = sformat ("awk '
+/%1/ {printf $1; next;}
+// {next;}' /boot/grub/device.map", d);
+
+    map out = SCR::Execute (.target.bash_output, command);
+    string dev = lookup (out, "stdout", "");
+    integer first = findfirstof (dev, "\n");
+    if (first != nil)
+        dev = substring (dev, 0, first);
+    if (number != "")
+    {
+	integer num = tointeger (number);
+	num = num - 1;
+	number = sformat ("%1", num);
+	dev = substring (dev, 0, size (dev) - 1) + "," + number + ")";
+    }
+    return dev;
+}
+
+/**
+ * translate grub device (hd0) to UNIX device /dev/hda 
+ * @param string grub device
+ * @return string UNIX device
+ */
+global define string grub2Lilo (string o_dev) ``{
+    string number = "";
+    if (findfirstof (o_dev, ",") != nil)
+    {
+	number = substring (o_dev, (findfirstof (o_dev, ",") + 1));
+	number = substring (number, 0, (size (number) - 1));
+	o_dev = substring (o_dev, 0, findfirstof (o_dev, ",")) + ")";
+    }
+    string command = sformat ("awk '
+/%1/ {printf $2; next;}
+// {next;}' /boot/grub/device.map", o_dev);
+
+    map out = SCR::Execute (.target.bash_output, command);
+    string dev = lookup (out, "stdout", "");
+    integer first = findfirstof (dev, "\n");
+    if (first != nil)
+        dev = substring (dev, 0, first);
+    if (number != "")
+    {
+	integer num = tointeger (number);
+	num = num + 1;
+	number = sformat ("%1", num);
+	dev = dev + number;
+    }
+    return dev;
+}
+
+/**
  * returns modified list where items index1 and index2 are swapped.
  * if indices are out of bounds, unmodified list is returned.
  * @param input list
@@ -267,7 +469,14 @@ global define any ui2mod(any val) ``{
  */
 
 global define string boot() ``{
-    return SCR::Read(.probe.boot_arch);
+    string ret = SCR::Read(.probe.boot_arch);
+    if (ret == "grub" && SCR::Read (.sysconfig.bootloader.LOADER_TYPE) != "grub")
+	ret = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
+    if (ret == "grub")
+	Lilo::mode = `grub;
+    else
+	Lilo::mode = `lilo;
+    return ret;
 }
 
 /**
@@ -437,20 +646,42 @@ global define list createSummaryTable() ``{
     //=============== images
     foreach(`img, sections,
     ``{
-	flag = (default == lookup(img, "label", "")) ? check : "";
-
-	if (haskey(img, "other"))
+	if (Lilo::mode == `grub)
 	{
-	    descr = "other";
-	    image = lookup(img, "other", _("none"));
+	    flag = (tointeger (default) == index) ? check : "";
+	    if (haskey(img, "chainload") || haskey(img, "chainloader"))
+	    {
+		descr = "other";
+		image = lookup(img, "chainload", "");
+		if (image == "")
+		    image = lookup(img, "root", _("none"));
+		if (image != "none")
+		    image = grub2Lilo (image);
+	    }
+	    else
+	    {
+		descr = "image";
+		image = lookup(img, "kernel", _("none"));
+		image = select ( splitstring (image, " "), 0, image);
+	    }
 	}
 	else
 	{
-	    descr = "image";
-	    image = lookup(img, "image", _("none"));
-	}
+	    flag = (default == lookup(img, "label", "")) ? check : "";
 
-	string lab = lookup(img, "label", "");
+
+	    if (haskey(img, "other"))
+	    {
+		descr = "other";
+		image = lookup(img, "other", _("none"));
+	    }
+	    else
+	    {
+		descr = "image";
+		image = lookup(img, "image", _("none"));
+	    }
+	}
+	string lab = lookup(img, (Lilo::mode == `grub) ? "title" : "label", "");
 
         items = add(items, `item(`id(index), flag, 
 	    mod2ui(lab), 
@@ -538,14 +769,14 @@ global define map opttypes() ``{
 	"timeout"	: "i",
 	"unsafe"	: "b",
 	"verbose"	: "i",
-	"vga"		: "s"
+	"vga"		: "s",
+	"makeactive"	: "b",
+	"hiddenmenu"	: "b"
 	];
 
-	
-	
 }
 
-/** 
+/**
  * returns sorted list of known options for image-section
  * @return list option list for 'image' section
  *
@@ -809,12 +1040,17 @@ global define string create_sect_summary() ``{
     string def = get_default_section();
 
     string additional = "";
+    integer i = 0;
 
     foreach (`s, l,
     ``{
 	additional = "";
-	if ((lookup(s, "label", "") == def) || (haskey(s, "alias") &&
-			 lookup(s, "alias", "") == def))
+	if (((lookup(s, "label", "") == def) || (haskey(s, "alias") &&
+	    lookup(s, "alias", "") == def))&&(Lilo::mode != `grub))
+	{
+	    additional = "default";
+	}
+	if (tointeger (def) == i)
 	{
 	    additional = "default";
 	}
@@ -831,7 +1067,8 @@ global define string create_sect_summary() ``{
 	{
 	    additional = sformat("(%1)", additional);
 	}
-	out = out + sformat("<LI> %1 %2\n", lookup(s, "label", ""), additional);
+	out = out + sformat("<LI> %1 %2\n", lookup(s, Lilo::mode == `grub ? "title" : "label", ""), additional);
+	i = i + 1;
     });
     return out;
 }
@@ -879,7 +1116,14 @@ global define string create_summary_text() ``{
 
     if (!Arch::sparc)
     {
-	string b_dev = lookup(Lilo::globals, "boot", "");
+	string b_dev = "";
+	if (Lilo::mode == `grub)
+	{
+	    b_dev = lookup (Lilo::grub_set, "device", "");
+	    b_dev = grub2Lilo (b_dev);
+	}
+	else
+	    b_dev = lookup(Lilo::globals, "boot", "");
 	map parts = mapmap(`key, `val, Lilo::partmap, ``([lookup(val, "dev", ""), key]));
 
 	symbol partsymbol = lookup(parts, b_dev, `mbr);
@@ -909,7 +1153,7 @@ of %1.
 
     output = output + bootdev + " ";
 
-    if (!haskey(Lilo::globals, "prompt"))
+    if (!haskey(Lilo::globals, "prompt") && (Lilo::mode != `grub))
     {
 	output = output + _("The boot prompt will not be shown and default section will be 
 booted automatically unless the left Shift key is pressed during booting.
@@ -919,9 +1163,10 @@ booted automatically unless the left Shift key is pressed during booting.
     {
 	if (haskey(Lilo::globals, "timeout"))
 	{
+	    integer divisor = (Lilo::mode == `grub) ? 1 : 10;
 	    output = output + sformat(_("The boot prompt will be shown. After %1 seconds of inactivity,
 the default section will be booted.
-"), tointeger(lookup(Lilo::globals, "timeout", "0")) / 10) + " ";
+"), tointeger(lookup(Lilo::globals, "timeout", "0")) / divisor) + " ";
 	}
 	else
 	{

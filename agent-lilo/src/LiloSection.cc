@@ -29,6 +29,7 @@
 #define WHITESPACE       " \t\n"
 
 string commentBuffer;
+string type;
 
 string strip(string str)
 {
@@ -108,7 +109,10 @@ inputLine::inputLine(const string& line)
 		}
 		else
 		{
-		    state=3;
+		    if (type == "grub")
+			state = 4;
+		    else
+			state=3;
 		}
 		break;
 
@@ -189,6 +193,11 @@ inputLine::inputLine(const string& line)
 	s++;
     }
 
+/*    if (type == "grub")
+    {
+	y2error ("Option: %s, Value: %s", option.c_str(), value.c_str());
+    }
+*/
     free (orig);
 }
 
@@ -467,18 +476,36 @@ void liloOrderedOptions::dump(FILE* f)
 
 int liloOrderedOptions::saveToFile(ofstream* f, string indent)
 {
+    string separ = (type == "grub") ? " " : " = ";
     for(uint i=0; i<order.size(); i++)
     {
-	if(order[i]->optname == "image" || order[i]->optname == "other")
+	if ((type == "grub" && (order[i]->optname == "title"))
+	    ||(type != "grub" && (order[i]->optname == "image" || order[i]->optname == "other")))
 	{
-//	    *f << indent;
-	    *f <<  order[i]->optname << " = " << order[i]->value << endl;
+	    *f <<  order[i]->optname << separ << order[i]->value << endl;
 	}
     }
 
     for(uint i=0; i<order.size(); i++)
     {
-	if (order[i]->optname == "image" || order[i]->optname == "other")
+        if (type == "grub" && (order[i]->optname == "root"))
+        {
+            *f << "    " << order[i]->optname << separ << order[i]->value << endl;
+        }
+    }
+
+    for(uint i=0; i<order.size(); i++)
+    {
+        if (type == "grub" && (order[i]->optname == "kernel"))
+        {
+            *f << "    " << order[i]->optname << separ << order[i]->value << endl;
+        }
+    }
+
+    for(uint i=0; i<order.size(); i++)
+    {
+        if ((type == "grub" && (order[i]->optname == "title" || order[i]->optname == "root" || order[i]->optname == "kernel"))
+            ||(type != "grub" && (order[i]->optname == "image" || order[i]->optname == "other")))
 	{
 	    continue;
 	}
@@ -508,7 +535,7 @@ int liloOrderedOptions::saveToFile(ofstream* f, string indent)
 		*f << endl;
 		break;
 	    default:
-		*f <<  order[i]->optname << " = " << order[i]->value << endl;
+		*f <<  order[i]->optname << separ << order[i]->value << endl;
 
 	}
     }
@@ -530,7 +557,8 @@ liloSection::liloSection()
 
 bool liloSection::processLine(inputLine* line)
 {
-    if (line->option == "image" || line->option == "other")
+    if (("grub" == type && line->option == "title")
+	||("grub" != type &&(line->option == "image" || line->option == "other")))
     {
 	sectName = line->value;
     }
@@ -544,7 +572,7 @@ liloSection::~liloSection()
 
 string liloSection::getSectName()
 {
-    int cpos=getPos(&(options->order), string("label"));
+    int cpos=getPos(&(options->order), string(type == "grub" ? "title" : "label"));
     if(cpos<0 || options->order[cpos]->value=="")
     {
 	return sectName.substr(sectName.rfind('/')+1);
@@ -569,7 +597,7 @@ YCPValue liloSection::Read(const YCPPath& path)
     if(path->length()>0)
     {
 	int cpos=getPos(&(options->order), path->component_str(0));
-	if(cpos<0 && path->component_str(0)=="label")
+	if(cpos<0 && path->component_str(0)==(type == "grub" ? "title" : "label"))
 	{
 	    return YCPString(getSectName());
 	}

@@ -54,6 +54,16 @@ global define map TestLilo() ``{
     return result;
 }
 
+
+/**
+ * writes config from agent to temp file and launches 'lilo -t -C tmp_file'
+ * currently doesn't do anything
+ * @return map from calling .target execute
+ */
+global define map TestGrub () ``{
+    return $["exit": 0];
+}
+
 /**
  * writes the config from agent to disk
  *
@@ -63,6 +73,19 @@ global define map TestLilo() ``{
 global define integer DoLilo() ``{
     integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
     ret = SCR::Execute(.target.bash, boot(), $[]);
+    return ret;
+}
+
+global define integer DoGrub(boolean conf) ``{
+    y2error ("Now starting DoGrub ()");
+    integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
+    y2error ("InitRD done");
+    if (conf)
+	saveGrubConf (Lilo::grub_set);
+    y2error ("Starting GRUB");
+    y2error ("After first start of GRUB");
+    ret = SCR::Execute(.target.bash, "grub < /etc/grub.conf");
+    y2error ("GRUB execution done");
     return ret;
 }
 

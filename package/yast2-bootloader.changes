@@ -1,7 +1,10 @@
 -------------------------------------------------------------------
-Wed Jul 24 18:02:01 CEST 2002 - msvec@suse.cz
+Thu Jul 25 13:28:41 CEST 2002 - jsrain@suse.cz
 
-- temporary fix for lilo startup (#17142)
+- added support for GRUB configuration on running system
+- added support for installing GRUB during installation process
+- fixed for lilo startup (#17142)
+- 2.6.7
 
 -------------------------------------------------------------------
 Mon Jul 22 12:20:57 CEST 2002 - kkaempf@suse.de

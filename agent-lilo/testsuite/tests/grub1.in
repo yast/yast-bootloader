@@ -1,0 +1,43 @@
+# Modified by YaST2. Last modification on Fri Jul 27 13:39:35 2001
+
+
+# LILO configuration file
+# Start LILO global Section
+# If you want to prevent console users to boot with init=/bin/bash,
+#  restrict usage of boot params by setting a passwd and using the option
+#  restricted.
+#password=bootpwd
+#restricted
+append = "BOOT_FILE=/boot/vmlinuz"
+boot /dev/hda
+#compact       # faster, but won't work on all systems.
+lba32
+vga 771
+message /boot/message
+menu-scheme Wg:kw:Wg:Wg
+read-only
+prompt
+change-rules
+    reset
+    type DOS12
+    normal 1
+    hidden 0x11
+    type DOS16_small
+    normal 4
+    hidden 0x14
+timeout 80
+default linuxovadlo
+
+    # End LILO global Section
+    #
+    title linuxovadlo
+        kernel /boot/vmlinuz
+        root /dev/hda3
+
+    #
+    title "obskurni nazev\"\\"
+	image /boot/memtest.bin
+
+    title sdf
+	image /boot/vmlinuz.suse
+        root /dev/hda3
