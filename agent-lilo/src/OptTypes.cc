@@ -84,16 +84,13 @@ OptTypes::OptTypes(const string& type)
 	_options["testvbe"]=val;
 	_options["uppermem"]=val;
 	_options["vbeprobe"]=val;
+	_options["map"]=val;
 
     val=T_INT;
 
 	_options["default"]=val;
 	_options["timeout"]=val;
 	_options["fallback"]=val;
-
-    val=T_SPEC_MAP;
-
-	_options["map"]=val;
 
 	return;
     }

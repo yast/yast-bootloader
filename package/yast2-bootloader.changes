@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr  2 09:39:47 CEST 2004 - jsrain@suse.de
+
+- fixed reading and writing of the 'map' option of sections in the
+  GRUB's menu.lst (#37971)
+
+-------------------------------------------------------------------
 Tue Mar 30 17:44:53 CEST 2004 - schwab@suse.de
 
 - Use dev2majminIfNonStandard instead of dev2majmin in BootELILO.
