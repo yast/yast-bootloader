@@ -953,6 +953,7 @@
 	saveGrubConf (grub_conf);
 	saveDeviceMap (device_map);
 	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``{
+	    string root = (string)lookup_value (s, "root", "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string title = (string)lookup_value (s, "title", "");
 	    string type = intern["type"]:"";
@@ -978,7 +979,15 @@
 		0, "");
 	    if (kernel == "")
 		return true;
+	    if (substring (kernel, 0, 1) != "(")
+		kernel = root + kernel;
 	    kernel = grub2file (kernel);
+	    if (kernel == nil || kernel == "/dev/null")
+	    {
+		y2warning ("Keeping section %1, couldn't get kernel file name",
+		    title);
+		return true;
+	    }
 	    if (SCR::Read (.target.size, kernel) == -1)
 	    {
 		y2warning ("Removing section %1 with unexistent kernel %2",
@@ -988,6 +997,7 @@
 	    return true;
 	});
 	BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
+	    string root = (string)lookup_value (s, "root", "");
 	    string title = (string)lookup_value (s, "title", "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
@@ -1009,9 +1019,22 @@
 	    }
 	    if (initrd != "")
 	    {
+		if (substring (initrd, 0, 1) != "(")
+		    initrd = root + initrd;
 		initrd = grub2file (initrd);
+		if (initrd == nil || initrd == "/dev/null")
+		{
+		    y2warning (
+			"Keeping initrd in section %1, cannot get file name",
+			title);
+		    return s;
+		}
 		if (-1 == SCR::Read (.target.size, initrd))
+		{
+		    y2warning ("Removing not existing initrd %2 of section %1",
+			title, initrd);
 		    s = modifySection (s, "initrd", nil);
+		}
 	    }
 	    return s;
 	});
