@@ -1,0 +1,105 @@
+/**
+ * Module:		proposal_bootloader.ycp
+ *
+ * $Id$
+ *
+ * Author:		Klaus Kaempf <kkaempf@suse.de>
+ *
+ * Purpose:		Proposal function dispatcher - bootloader.
+ *
+ *			See also file proposal-API.txt for details.
+ */
+{
+    textdomain "proposal";
+
+    import "Language";
+    import "Boot";
+
+    string func  = Args(0);
+    map    param = Args(1);
+    map    ret   = $[];
+
+    if ( func == "MakeProposal" )
+    {
+	boolean force_reset      = param["force_reset"     ]:false;
+	boolean language_changed = param["language_changed"]:false;
+
+	if (force_reset)
+	{
+	    // force re-calculation of bootloader proposal
+	    Boot::location = "";
+	}
+
+	Boot::Set ();
+
+	string info_msg = "";
+
+	if (Boot::location == "floppy")
+	{
+	    // Information about suggested bootloader installation:
+	    // Some other system present (MS Windows etc.) -
+	    // bootloader will be installed on floppy just to play safe
+	    // !! this is a normal message, without '&' !!
+	    info_msg = _("Create a boot floppy");
+	}
+	else if (Boot::location == "boot")
+	{
+	    // Information about suggested bootloader installation:
+	    // user selected _not_ to use a linux bootloader
+	    info_msg = _("Non-Linux boot loader (provided by user)");
+	}
+	else
+	{
+	    map targetMap = Storage::GetTargetMap ();
+	    map boot_target = targetMap[Boot::device]:$[];
+	    string target_name = "";
+	    if (boot_target == $[])
+		target_name = Boot::device;
+	    else
+		target_name = boot_target["name"]:"disk";
+
+	    // Information about suggested bootloader installation:
+	    // user selected a device
+	    info_msg = sformat (_("Booting from '%1'"), target_name);
+	}
+
+
+	// call some function that makes a proposal here:
+	//
+	// DummyMod::MakeProposal( force_reset );
+	
+	// Fill return map
+
+	ret = $[ "raw_proposal" : [ info_msg ] ];
+    }
+    else if ( func == "AskUser" )
+    {
+	boolean has_next = param["has_next"]:false;
+
+	// call some function that displays a user dialog
+	// or a sequence of dialogs here:
+	//
+	// sequence = DummyMod::AskUser( has_next );
+
+	symbol result = CallFunction (`inst_bootloader (true, true));
+
+	// Fill return map
+	
+	ret = $[ "workflow_sequence" : result ];
+    }
+    else if ( func == "Description" )
+    {
+	// Fill return map.
+	//
+	// Static values do just nicely here, no need to call a function.
+	
+	ret =
+	    $[
+	      "rich_text_title"	:	_("Booting"),
+	      "menu_title"	:	_("&Booting"),
+	      "id"		:	"bootloader_stuff"
+	    ];
+    }
+
+    return ret;
+}

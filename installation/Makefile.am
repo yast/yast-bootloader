@@ -1,3 +1,3 @@
 #
 # Makefile.am for bootloader/installation
-SUBDIRS = agents src
+SUBDIRS = agents src proposal

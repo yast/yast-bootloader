@@ -40,6 +40,7 @@ Summary:	YaST2 Modules for installation
 #installation
 @YAST2DIR@/scrconf/cfg_bootloader.scr
 @YAST2DIR@/clients/inst_bootloader.ycp
+@YAST2DIR@/clients/propsal_bootloader.ycp
 @YAST2DIR@/modules/Boot.ycp
 
 %ifarch ppc ppc64
