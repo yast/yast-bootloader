@@ -19,13 +19,10 @@
 
 #include "LiloAgent.h"
 #include "LiloFile.h"
+#include "OptTypes.h"
 
 /* LiloAgent */
 LiloAgent::LiloAgent() : SCRAgent() {
-//    lilo=new liloFile("/tmp/lilo.conf");    
-//    const char *tr = getenv("Y2_TARGET_ROOT");
-//    y2error("Env value='%s'", tr);
-//    lilo->parse();
     lilo=NULL;
 }
 
@@ -41,6 +38,12 @@ LiloAgent::~LiloAgent() {
  */
 
 YCPValue LiloAgent::Read(const YCPPath &path, const YCPValue& arg) {
+    if (path->component_str(0)=="opttypes")
+    {
+	OptTypes o(type);
+	return o.getYCPOptTypes ();
+
+    }
     if(lilo)
 	return lilo->Read(path, arg);
     else 
@@ -92,7 +95,7 @@ YCPValue LiloAgent::otherCommand(const YCPTerm& term) {
             YCPString s = term->value(1)->asString();
             if (lilo)
                 delete lilo;
-            lilo = new liloFile(s->value());
+            lilo = new liloFile(s->value(), type);
 	    y2debug("Parsing %s", s->value().c_str());
 	    lilo->parse();
             return YCPVoid();
@@ -103,11 +106,6 @@ YCPValue LiloAgent::otherCommand(const YCPTerm& term) {
 	}
     }
 
-//    lilo=new liloFile("/tmp/lilo.conf");     
-//    const char *tr = getenv("Y2_TARGET_ROOT");
-//    y2error("Env value='%s'", tr);
-//    lilo->parse();
-    
     return YCPVoid();
 }
 

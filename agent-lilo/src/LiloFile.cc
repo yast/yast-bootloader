@@ -23,12 +23,16 @@
 #include <unistd.h>
 #include <ycp/y2log.h>
 #include <fstream>
+#include <sstream>
 
 #define headline "# Modified by YaST2. Last modification on"
 
-liloFile::liloFile(string filename) : options()
+liloFile::liloFile(string filename, const string& init_type) : options(init_type)
 {
     fname=filename;
+    file_contents = "";
+    use_string = false;
+    type = init_type;
 }
 
 liloFile::~liloFile()
@@ -45,10 +49,20 @@ bool liloFile::parse()
     sections.erase(sections.begin(), sections.end());
     options.order.erase(options.order.begin(), options.order.end());
 
-    ifstream is(fname.c_str());
+    istream * is;
+    if (! use_string)
+	is = new ifstream (fname.c_str());
+    else
+	is = new istringstream (file_contents);
     
     if(!is)
     {
+	return false;
+    }
+
+    if (! *is)
+    {
+	delete is;
 	return false;
     }
 
@@ -60,10 +74,10 @@ bool liloFile::parse()
 
     int linecounter=0;
 
-    while(is)
+    while( *is)
     {
 	
-	getline(is, str);
+	getline(*is, str);
 	linecounter++;
     
 	if(linecounter==1)
@@ -75,7 +89,7 @@ bool liloFile::parse()
 	}
 	
 	// parse the line
-	li=new inputLine(str);
+	li=new inputLine(str, type);
 
 	if(commentBuffer!="")
 	{
@@ -106,7 +120,7 @@ bool liloFile::parse()
 	{
 	    if (li->option == "title")
 	    {
-                curSect=new liloSection();
+                curSect=new liloSection(type);
                 curSect->processLine(li); 
                 sections.push_back(curSect);
                 retval=true;
@@ -117,7 +131,7 @@ bool liloFile::parse()
 	{
 	    if(li->option=="image" || li->option=="other")
 	    {
-		curSect=new liloSection();
+		curSect=new liloSection(type);
 		curSect->processLine(li); 
 		sections.push_back(curSect);
 		retval=true;
@@ -148,7 +162,7 @@ bool liloFile::parse()
 	    li=NULL;
 	}
     }
-    
+    delete is; 
     return true;
 
 }
@@ -165,31 +179,43 @@ bool liloFile::save(const char* filename)
     {
 	fn=fname;
     }
-    ofstream of(fn.c_str());
+    ostream * of;
+
+    if (use_string)
+	of = new ostringstream ();
+    else
+	of = new ofstream (fn.c_str());
     
-    if(!of.good())
+    if(!of->good())
     {
 	if(del) delete filename;
+	delete of;
 	return false;
     }
 
     time_t tim=time(NULL);
 
-    of << headline << " " << string(ctime(&tim)) << endl ;
+    *of << headline << " " << string(ctime(&tim)) << endl ;
 
     if(comment.length()>=0)
     {
-	of << comment << endl;
+	*of << comment << endl;
     }
 
-    options.saveToFile(&of, "");
+    options.saveToFile(/*&*/of, "");
     uint pos;
 
     for(pos=0; pos<sections.size(); pos++)
     {
-	of << endl;
-	sections[pos]->saveToFile(&of, "    ");
+	*of << endl;
+	sections[pos]->saveToFile(/*&*/of, "    ");
     }
+    if (use_string)
+    {
+	const string tmp = (static_cast<ostringstream*>(of))->str ();
+	file_contents = tmp;
+    }
+    delete of;
     return true;
 }
 
@@ -258,6 +284,16 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
         return YCPBoolean(ret);
     }
 
+    if (path->component_str (0) == "fromstring")
+    {
+	use_string = true;
+	file_contents = value->asString()->value_cstr();
+	parse ();
+	file_contents = "";
+	use_string = false;
+	return YCPBoolean (true);
+    }
+
     // set config filename
     if(path->component_str(0) == "setfilename")
     {
@@ -315,7 +351,7 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
 	{
 	    //====================
 	    // create new section
-	    sect = new liloSection();
+	    sect = new liloSection(type);
 	    if (sect)
 	    {
 		sections.push_back(sect);
@@ -349,7 +385,15 @@ YCPValue liloFile::Read(const YCPPath &path, const YCPValue& _UNUSED)
 	// TODO: reread the file
 	return YCPBoolean(true);
     }
-	
+
+    if (path->component_str (0) == "tostring")
+    {
+	use_string = true;
+	file_contents = "";
+	save ();
+	use_string = false;
+	return YCPString (file_contents);
+    }
 
     if(path->component_str(0) == "getfilename")
     {

@@ -33,13 +33,24 @@
 
 #include <map>
 #include <string>
+#include <Y2.h>
 
 // using std::string;
 // using std::map;
 using namespace std;
 
-int getOptType(const string& optname);
+class OptTypes {
+private:
+    map <string, int> _options;
 
-string getSpecGroup(const string& optname);
+public:
+    int getOptType(const string& optname);
+
+    string getSpecGroup(const string& optname);
+
+    YCPMap getYCPOptTypes ();
+
+    OptTypes (const string& init_type = "");
+};
 
 #endif
