@@ -27,6 +27,7 @@
     import "Mode";
     import "PackageSystem";
     import "Storage";
+    import "String";
     import "Pkg";
 
     /* These global variables and functions is needed in included files */
@@ -402,7 +403,7 @@ global list<string> update_section_types
 	});
 	// summary text. %1 is list of bootloader sections
 	result = add (result, sformat (_("Sections: %1"),
-	    mergestring (sects, ", ")));
+	    String::EscapeTags (mergestring (sects, ", "))));
 	if (loader_device == "/dev/null")
 	    // summary text
 	    result = add (result, _("Do not install boot loader -- just create
