@@ -4,6 +4,9 @@ Mon Jul 12 14:27:25 CEST 2004 - jsrain@suse.cz
 - writing product name and version as section label to bootloader
   menu (GRUB both text and graphical, lilo graphical) (#31250)
 - fixed error messages of the script for /boot/message recreating
+- added general function to recreate /boot/message file on
+  relevant architectures
+
 
 -------------------------------------------------------------------
 Tue Jun 29 13:45:04 CEST 2004 - jsrain@suse.cz
