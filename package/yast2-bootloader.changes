@@ -3,6 +3,7 @@ Thu Sep 23 13:04:08 CEST 2004 - jsrain@suse.cz
 
 - avoid initalizing GRUB structures earlier than needed data is
   known (#45119)
+- fixed redrawing the main dialog if loader type changed (#45877)
 
 -------------------------------------------------------------------
 Mon Sep 20 16:30:38 CEST 2004 - jsrain@suse.cz

@@ -244,6 +244,7 @@ Proceed?
 		BootCommon::setLoaderType ("none");
 		BootCommon::location_changed = true;
 	    }
+	    BootCommon::redraw_dialog = true;
 	    BootCommon::redraw_table = true;
 	    return;
 	}
@@ -277,6 +278,7 @@ Proceed?
 	}
 	BootCommon::location_changed = true;
 	BootCommon::changed = true;
+	BootCommon::redraw_dialog = true;
 	BootCommon::redraw_table = true;
     }
 
