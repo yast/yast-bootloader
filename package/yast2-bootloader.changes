@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 24 12:07:34 CET 2003 - jsrain@suse.de
+
+- removed reading of initrd modules from install_inf (#24709)
+
+-------------------------------------------------------------------
 Fri Mar 21 14:44:31 CET 2003 - jsrain@suse.de
 
 - updated documentation

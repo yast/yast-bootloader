@@ -88,17 +88,6 @@
             ];
             modules_to_skip = union (modules_to_skip, ppc_modules_to_skip);
 	}
-
-        if (! Mode::normal)
-        {
-            string tmp_mods = SCR::Read( .etc.install_inf.InitrdModules );
-            if (tmp_mods != nil)
-            {
-                list tmp_mod = splitstring( tmp_mods, " " );
-                foreach( `t, tmp_mod, ``{ AddModule(t,""); });
-            }
-        }
-        y2milestone( "Initial Initrd modules %1", modules );
     }
 
     /**
