@@ -230,7 +230,10 @@
         string loc = "mbr";                       // default to mbr
         string device   = BootCommon::mbrDisk;
 
-        if (!IsBootAccessible()                 // above cyl 1024
+// this doesn't solve anything, because stage2 must be loaded some way
+// nor bootsector on floppy doesn't have any possibility to load it
+// see bugzilla 29524
+/*        if (!IsBootAccessible()                 // above cyl 1024
             && StorageDevices::FloppyPresent)
         {
             // if we're on an old system without lba support
@@ -238,7 +241,7 @@
 
             loc = "floppy";                // floppy and fd0
             device   = StorageDevices::FloppyDevice;
-        }
+        }*/
 
         y2milestone ("ConfigureLocation (%1 on %2)", loc, device);
         return loc;
