@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Dec 15 13:13:58 CET 2004 - jsrain@suse.cz
+
+- using new interface of Progress.ycp
+
+-------------------------------------------------------------------
 Mon Dec 13 18:15:29 CET 2004 - jsrain@suse.cz
 
 - fixed setting GRUB password (#48999)
