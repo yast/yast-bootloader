@@ -31,56 +31,18 @@
     include "bootloader/routines/popups.ycp";
     include "bootloader/routines/routines.ycp";
 
+// misc. functions
+
+    /**
+      * Empty summary dialog
+      * @return symbol always `back
+      */
+    global define symbol runSummaryDialog () ``{
+	displayNoSupportPopup ();
+	return `back;
+    }
+
 // general functions
-
-    /**
-      * Constructor
-      */
-    global define void BootS390 () ``{
-	BootCommon::bootloader_attribs["s390"] = $[
-            "loader_name" : "zipl",
-	    "required_packages" : [], // FIXME
-	    "initializer" : ``(BootS390::Initializer()),
-        ];
-    }
-
-
-    /**
-      * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootS390::Write ())])
-      */
-    global define map GetFunctions () ``{
-	return $[
-	    "read" :	``(BootS390::Read ()),
-	    "propose" : ``(BootS390::Propose ()),
-	    "save" :	``(BootS390::Save ()),
-	    "summary" :	``(BootS390::Summary ()),
-	    "update" :	``(BootS390::Update ()),
-	    "write" :	``(BootS390::Write ()),
-	    "sequence" :``(BootS390::FixSequence ()),
-	];
-    }
-
-    /**
-      * Initializer of LILO bootloader
-      */
-    global define void Initializer () ``{
-	y2milestone ("Called S390 (zipl) initializer");
-	BootCommon::current_bootloader_attribs = $[
-	    "section_title" : "label",
-	    "kernel_key" : "image",
-	    "propose" : true,
-	    "read" : true,
-	    "scratch" : true,
-	];
-	// TODO no UI available yet
-	BootCommon::cwm_options = union (
-	    BootCommon::GetOptionMaps (),
-	    $[]);//BootS390::GetOptionMaps ());
-	BootCommon::cwm_widgets = union (
-	    BootCommon::GetWidgetMaps (),
-	    $[]);//BootS390::GetWidgetMaps ());
-    }
 
     /**
       * Propose bootloader settings
@@ -140,7 +102,7 @@
 	    return ret;
 
 	// append chandev to /etc/chandev.conf
-	string chandev = SCR::Read(.etc.install_inf.Chandev);
+	string chandev = (string)SCR::Read(.etc.install_inf.Chandev);
 	if( chandev == nil )
 	{
 	    chandev = "";
@@ -159,7 +121,7 @@
       * Display bootloader summary
       * @return a list of summary lines
       */
-    global define list(string) Summary () ``{
+    global define list<string> Summary () ``{
 	// summary
 	return [_("Install S390 Boot Loader")];
     }
@@ -168,6 +130,7 @@
       * Update read settings to new version of configuration files
       */
     global define void Update () ``{
+	y2milestone ("No update functionality implemented");
     }
 
     /**
@@ -214,7 +177,7 @@
       * @param dump_devices list in the same form as result of GetDumpDevices ()
       */
     global define void SetDumpDevices (list dump_devices) ``{
-	BootCommon::sections = filter (map s, BootCommon::sections, ``(
+	BootCommon::sections = filter (list s, BootCommon::sections, ``(
 	    lookup_value (s, "dumpto", "") == ""
 	));
 	dump_devices = maplist (map d, dump_devices, ``{
@@ -235,17 +198,53 @@
 	BootCommon::sections = merge (BootCommon::sections, dd);
     }
 
-
-
-// end of mandatory functions
-//----------------------------------------------------------------------------
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootS390::Write ())])
+      */
+    global define map GetFunctions () ``{
+	return $[
+	    "read" :	``(BootS390::Read ()),
+	    "propose" : ``(BootS390::Propose ()),
+	    "save" :	``(BootS390::Save ()),
+	    "summary" :	``(BootS390::Summary ()),
+	    "update" :	``(BootS390::Update ()),
+	    "write" :	``(BootS390::Write ()),
+	    "sequence" :``(BootS390::FixSequence ()),
+	];
+    }
 
     /**
-      * Empty summary dialog
-      * @return symbol always `back
+      * Initializer of LILO bootloader
       */
-    global define symbol runSummaryDialog () ``{
-	displayNoSupportPopup ();
-	return `back;
+    global define void Initializer () ``{
+	y2milestone ("Called S390 (zipl) initializer");
+	BootCommon::current_bootloader_attribs = $[
+	    "section_title" : "label",
+	    "kernel_key" : "image",
+	    "propose" : true,
+	    "read" : true,
+	    "scratch" : true,
+	];
+	// TODO no UI available yet
+	BootCommon::cwm_options = union (
+	    BootCommon::GetOptionMaps (),
+	    $[]);//BootS390::GetOptionMaps ());
+	BootCommon::cwm_widgets = union (
+	    BootCommon::GetWidgetMaps (),
+	    $[]);//BootS390::GetWidgetMaps ());
     }
+
+
+    /**
+      * Constructor
+      */
+    global define void BootS390 () ``{
+	BootCommon::bootloader_attribs["s390"] = $[
+            "loader_name" : "zipl",
+	    "required_packages" : [], // FIXME
+	    "initializer" : ``(BootS390::Initializer()),
+        ];
+    }
+
 }
