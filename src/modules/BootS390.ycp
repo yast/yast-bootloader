@@ -56,6 +56,39 @@
 	],
     ];
 
+// very simple UI - only select loader type
+
+    /**
+      * Create a list of options for the table
+      * @param descr map description of the table
+      * @return list of option ids as it should be displayed
+      */
+    global define list getTableContents (map descr) ``{
+	return ["__loader_type"];
+    }
+
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getGlobalSectionWidget () ``{
+	map ret = BootCommon::getGlobalSectionWidget ();
+	ret["ids"] = getTableContents;
+	return ret;
+    }
+
+    /**
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
+      */
+    global define map GetWidgetMaps () ``{
+	return $[
+	    "globalsection" : getGlobalSectionWidget (),
+	];
+    }
+
+
+
 // misc. functions
 
     /**
@@ -305,7 +338,7 @@
 	    "summary"	: BootS390::Summary,
 	    "update"	: BootS390::Update,
 	    "write"	: BootS390::Write,
-	    "sequence"	: BootS390::FixSequence,
+//	    "sequence"	: BootS390::FixSequence,
 	];
     }
 
@@ -327,7 +360,7 @@
 	    $[]);//BootS390::GetOptionMaps ());
 	BootCommon::cwm_widgets = union (
 	    BootCommon::GetWidgetMaps (),
-	    $[]);//BootS390::GetWidgetMaps ());
+	    BootS390::GetWidgetMaps ());
     }
 
 

@@ -7,6 +7,8 @@ Wed Mar 17 14:27:15 CET 2004 - jsrain@suse.cz
   asked
 - correctly assigning default radio button when asking how to
   switch bootloader
+- zipl (S390 loader) switched to Table/Popup interface with just
+  one entry (loader type) because of autoinstallation
 
 -------------------------------------------------------------------
 Tue Mar 16 08:17:09 CET 2004 - jsrain@suse.cz
