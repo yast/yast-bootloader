@@ -583,6 +583,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
             BootCommon::tmp_store["active_section_name"] = `global;
             BootCommon::tmp_store["section_type"] = `global;
 	}
+	BootCommon::location_changed = true;
 	return nil;
     }
 

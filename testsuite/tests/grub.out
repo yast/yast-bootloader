@@ -10,6 +10,45 @@ Return	(hd0)	/dev/hda\n(hd0)	/dev/hdb\n
 Return	(hd0)	/dev/hda\n
 Return	(hd0)	/dev/hda\n(hd1)	\n
 Dump	======================================
+Return	/dev/hda
+Return	/dev/hdb
+Return	/dev/cciss/c0d0
+Return	/dev/hda1
+Return	/dev/hdb5
+Return	/dev/cciss/c0d0p3
+Return	/dev/null
+Return	/dev/null
+Dump	======================================
+Return	(hd0)
+Return	(hd1)
+Return	(hd2)
+Return	(hd0,0)
+Return	(hd1,4)
+Return	(hd2,2)
+Return	(null)
+Return	(null)
+Dump	======================================
+Return	$["addr":"0x8000", "device":"(fd0)", "discswitch":true, "menu":"(hd0,0)/grub/menu.lst", "prefix":" --stage2=/boot/grub/stage2", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "device":"(fd0)", "discswitch":true, "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "device":"(fd0)", "menu":"(hd0,0)/grub/menu.lst", "prefix":" --stage2=/boot/grub/stage2", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "device":"(fd0)", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "device":"(fd0)", "discswitch":true, "menu":"(hd0,0)/grub/menu.lst", "prefix":" --stage2=/boot/grub/stage2 --force-lba=off", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$[]
+Dump	======================================
+Return	root (hd0,0)\ninstall  --stage2=/boot/grub/stage2 /grub/stage1 d (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit\n
+Return	root (hd0,0)\ninstall  /grub/stage1 d (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit\n
+Return	root (hd0,0)\ninstall  --stage2=/boot/grub/stage2 /grub/stage1 (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit\n
+Return	root (hd0,0)\ninstall  /grub/stage1 (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit\n
+Return	root (hd0,0)\ninstall  --stage2=/boot/grub/stage2 --force-lba=off /grub/stage1 d (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit\n
+Return	root \ninstall      \nquit\n
+Dump	======================================
+Return	$["A":"(hd1)(hd0)", "B":"aaa(hd0)aaa"]
+Return	$["A":"(hd1)(hd1)", "B":"aaa(hd1)aaa"]
+Return	$["A":"(hd1)(hd1)", "B":"aaa(hd1)aaa"]
+Return	$["A":"(hd0)(hd1)", "B":"aaa(hd1)aaa"]
+Return	$["A":"(hd1)(hd0)", "B":"aaa(hd2)aaa"]
+Return	$["A":"(hd1)(hd2)", "B":"aaa(hd0)aaa"]
+Dump	======================================
 Return	["(hd0,0)", "/boot/vmlinuz"]
 Return	["(hd0,0)", "/vmlinuz"]
 Return	[nil, "/boot/vmlinuz"]

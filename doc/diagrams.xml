@@ -3,7 +3,7 @@
     <section id="diagrams">
         <title>Diagrams</title>
             <figure>
-                <title>UI workflow</title>
+                <title>UI work flow</title>
                 <mediaobject>
                   <imageobject>
                     <imagedata fileref="./workflow.png" scale="40"/>

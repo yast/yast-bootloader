@@ -36,6 +36,7 @@ Return	true
 Dump	Setting Mode::Update
 Dump	Importing with filtered module
 Return	nil
+Return	["ne2k", "xfs_dmapi", "xfs_support", "lvmmod"]
 Dump	Writing
 Execute	.target.bash "/usr/bin/touch /etc/sysconfig/bootloader" 0
 Write	.sysconfig.kernel.INITRD_MODULES "ne2k lvmmod" true

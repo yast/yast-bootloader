@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding='ISO-8859-1'?>
 <section id = "io">
-    <title>Bootloader configuration reading/writitng/proposing</title>
+    <title>Bootloader configuration reading/writing/proposing</title>
     <section>
 	<title>Reading</title>
 	<para>
 Bootloader configuration reading process consists from two steps. First is to detect which bootloader is in use (reading appropriate sysconfig variable), and the second step is
-to read bootloader-dependent setetings. The only common part of bootloader reading process is to assign device to match the sysconfig variable (eg. if in sysconfig is as location
+to read bootloader-dependent settings. The only common part of bootloader reading process is to assign device to match the sysconfig variable (eg. if in sysconfig is as location
 written MBR, then /dev/hda2 as bootloader device must be changed to MBR of first disk). Additionally, Read function of Initrd module is called.
 	</para>
     </section>
@@ -25,7 +25,7 @@ only if bootloader location is to be changed (eg. GRUB), some bootloaders have n
 	</para>
 	<para>
 Before running bootloader's specific write, in some cases should be run functions that should modify the MBR of the first hard disk. There are currently functions for setting active partition
-and for replacing code in MBR with generic code (which loads bootsector of bootloader partition). It is upon bootloader-specific code whether it will run these functions.
+and for replacing code in MBR with generic code (which loads boot sector of bootloader partition). It is upon bootloader-specific code whether it will run these functions.
 	</para>
 	<para>
 Since many other modules can call the Write function just to reinstall bootloader (eg. after manual changing of initrd settings), it was needed to allow to customize the write process.
@@ -37,8 +37,8 @@ Function to modify the write process and possibilities of modification are descr
     <section>
         <title>Proposing</title>
         <para>
-Proposing configuration is very complex operation. The main problem is that it must be regarded that configuration of disks isn't final and can change in future, and reproposing
-must combine previous configuration, which could be changed by user, and new state of disks. Of course this doesn't affect reproposing of configuration when user wants to
+Proposing configuration is very complex operation. The main problem is that it must be regarded that configuration of disks isn't final and can change in future, and re-proposing
+must combine previous configuration, which could be changed by user, and new state of disks. Of course this doesn't affect re-proposing of configuration when user wants to
 recreate original configuration, but there is one proposing mechanism. The proposing mechanism must be able to propose the configuration from scratch, but must be able to
 detect changes done inside disks configuration, and update the configuration according to these changes.
         </para>
@@ -53,7 +53,7 @@ must be done for global section.
 If there was no change in partitioning of the disk, then everything is OK and section can be left as is. But if disks have been repartitioned, and at least one
 partition affecting this section was changed, then the section may be incorrect and user must get warned. Currently warning the user is the only mechanism
 to solve these situations, because there is no easy way to fix the configuration of the section and not destroy any changes made by the user.
-In case any configuratino file was changed manually inside the editor, then no reproposing is done, and user gets only a warning.</para></listitem>
+In case any configuration file was changed manually inside the editor, then no re-proposing is done, and user gets only a warning.</para></listitem>
 	</itemizedlist>
         </para>
 	<para>

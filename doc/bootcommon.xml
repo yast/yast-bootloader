@@ -18,7 +18,6 @@
                 <listitem><para><computeroutput>string loader_type</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global boolean was_proposed</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global boolean was_read</computeroutput></para></listitem>
-                <listitem><para><computeroutput>global map dependent_settings</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global boolean changed</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global boolean location_changed</computeroutput></para></listitem>
 
@@ -33,10 +32,8 @@
             </itemizedlist>
         </section>
         <section>
-            <title>Variables for being used inside yast2-bootlaoder package only</title>
+            <title>Variables for being used inside yast2-bootloader package only</title>
             <itemizedlist>
-                <listitem><para><computeroutput>global map dependent_settings</computeroutput> for storing bootloader-dependent settings (because module is more usable for storing
-                        bootloader-dependent settings than include file which is used).</para></listitem>
                 <listitem><para><computeroutput>global boolean changed</computeroutput> is true if bootloader configuration has changed and must be saved.</para></listitem>
                 <listitem><para><computeroutput>string loader_type</computeroutput> stores type of currently used bootloader. Shouldn't be used directly because of initialization,
                     function <computeroutput>getLoaderType</computeroutput> shall be used instead.</para></listitem>

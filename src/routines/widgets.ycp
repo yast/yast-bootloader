@@ -929,6 +929,8 @@
         if (! contains (tosave, op))
             return op;
 	tmp_store["repl_mbr"] = UI::QueryWidget (`id (`value), `Value);
+	if (tmp_store["repl_mbr"]:false)
+	    BootCommon::location_changed = true;
 	return op;
     }
 
@@ -980,6 +982,9 @@
         if (! contains (tosave, op))
             return op;
         tmp_store["activate"] = UI::QueryWidget (`id (`value), `Value);
+        if (tmp_store["activate"]:false)
+            BootCommon::location_changed = true;
+
 	return op;
     }
 

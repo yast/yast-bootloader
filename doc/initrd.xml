@@ -64,7 +64,7 @@ Note that even though list of modules is empty, /sbin/mkinitrd must be called, b
             <title>Internal variables</title>
             <itemizedlist>
 		<listitem><para><computeroutput>list modules</computeroutput> contains list of modules to be inserted to initrd. Is important, because map doesn't preserve order
-			of module, which is imnportant.</para></listitem>
+			of module, which is important.</para></listitem>
                 <listitem><para><computeroutput>map modules_settings</computeroutput> is map from names of modules, which should be contained in initial ramdisk, to their
                         parameters. For changing this variable should be appropriate functions used.</para></listitem>
                 <listitem><para><computeroutput>global boolean changed</computeroutput> is true if initrd needs to be rebuilt when saving configuration. Shall be directly used only

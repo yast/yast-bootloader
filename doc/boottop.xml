@@ -2,6 +2,10 @@
 
     <section id="boottop">
         <title>Bootloader module</title>
+	<para>
+<computeroutput>Bootloader.ycp</computeroutput> module is the top module, which should be used by other modules to call bootloader-related actions. Contains
+switching mechanism to call requested functions for appropriate bootloader.
+	</para>
         <section>
             <title>List of declarations</title>
             <itemizedlist>
@@ -18,6 +22,7 @@
                 <listitem><para><computeroutput>global define list getSectionsList (symbol type)</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global define boolean setKernelParam (string section, string key, string value)</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global define string getLoaderType ()</computeroutput></para></listitem>
+		<listitem><para><computeroutput>global define void setLoaderType (string bootloader)</computeroutput></para></listitem>
 		<listitem><para><computeroutput>global define void getLoaderType (string bootloader)</computeroutput></para></listitem>
 		<listitem><para><computeroutput>global define string getRootDevice ()</computeroutput></para></listitem>
 		<listitem><para><computeroutput>global define string getBootDevice ()</computeroutput></para></listitem>
@@ -84,7 +89,7 @@
                 <listitem><para><computeroutput>global define string getLoaderType ()</computeroutput> returns currently used or configured bootloader. There will be no global
                     variable for detecting current bootloader.</para></listitem>
 		<listitem><para><computeroutput>global define void setLoaderType (string bootloader)</computeroutput> sets the bootloader to use. If parameter is nil, then
-		    next time <computeroutput>getLoaderType ()</computeroutput> will be called bootloader will be reread from disk or redetected.</para></listitem>
+		    next time <computeroutput>getLoaderType ()</computeroutput> will be called bootloader will be reread from disk or re-detected.</para></listitem>
 		<listitem><para><computeroutput>global define string getRootDevice ()</computeroutput> returns device which contains the / (root) directory.</para></listitem>
 		<listitem><para><computeroutput>global define string getBootDevice ()</computeroutput> returns device containing the /boot directory. Returns the same as getRootDevice ()
 		    if no extra /boot partition exists.</para></listitem>
@@ -102,7 +107,7 @@
 	<section>
 	    <title>Variables</title>
 	    <itemizedlist>
-		<listitem><para><computeroutput>global boolean repeating_write</computeroutput> is used just for internal moduel's needs (detects, whether repeated writing is running
+		<listitem><para><computeroutput>global boolean repeating_write</computeroutput> is used just for internal module's needs (detects, whether repeated writing is running
 		    and in case of installation the installation progress bar shall not be moved).</para></listitem>
 	    </itemizedlist>
 	</section>

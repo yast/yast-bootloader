@@ -10,10 +10,10 @@ Since future versions of YCP interpreter may need to parse and check all (possib
 must be present (which forbids architecture-dependent conditional presence of bootloader-related files in .spec file).
     </para>
     <para>
-The <computeroutput>getFunctions</computeroutput> function is the only point, where all bootloader must be listed. It's task is to choose
+The <computeroutput>GetFunctions</computeroutput> function is the only point, where all bootloader must be listed. It's task is to choose
 depending on parameter specifying bootloader which set of bootloader-specific functions should be used. In the body of this functions, there
 is stored map from bootloader identifiers to term, which after evaluation returns the set of bootloader-specific functions.
-From this map term to evaluate is choosen and evaluated, and this map is a return value of this function.
+From this map term to evaluate is chosen and evaluated, and this map is a return value of this function.
     </para>
     <para>
 Each function, which should be able to be called without checking of bootloader, has s shortcut (usually called like eg.
@@ -24,6 +24,6 @@ If there is no entry in map representing appropriate bootloader-specific functio
 is called.
     </para>
     <para>
-There is (at least currently) no automatical way to generate these functions, each of them must be written manually.
+There is (at least currently) no Automatical way to generate these functions, each of them must be written manually.
     </para>
 </section>

@@ -280,9 +280,9 @@
 	        string tmp = select (entries, 1 + shift, "");
 	        while (substring (tmp, 0, 2) == "--")
 	        {
-		    string prefix = settings["s2prefix"]:"";
+		    string prefix = settings["prefix"]:"";
 		    prefix = prefix + " " + tmp;
-	            settings = add (settings, "s2prefix", prefix);
+	            settings = add (settings, "prefix", prefix);
 	            shift = shift + 1;
 	            tmp = select (entries, 1 + shift, "");
 	        }
@@ -327,7 +327,7 @@
 	        lookup (settings, "stage2", ""),
 	        lookup (settings, "addr", ""),
 	        lookup (settings, "menu", ""),
-		lookup (settings, "s2prefix", ""));
+		lookup (settings, "prefix", ""));
 	res = sformat ("%1%2\nquit\n", root, res);
 	return res;
     }
@@ -359,7 +359,7 @@
 	    "stage2" : stage2[1]:"",
 	    "addr" : "0x8000",
 	    "menu" : file2grub ("/boot/grub/menu.lst"),
-	    "s2prefix" : "--stage2=/boot/grub/stage2",
+	    "prefix" : "--stage2=/boot/grub/stage2",
 	];
     }
 
