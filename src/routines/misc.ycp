@@ -1666,8 +1666,8 @@
 	));
 	helps = maplist (string h, helps, ``(substring (h, 5, 2)));
 	texts = maplist (string t, texts, ``(substring (t, 5, 2)));
-	y2milestone ("Texts available for %1", texts);
-	y2milestone ("Helps available for %1", helps);
+	y2debug ("Texts available for %1", texts);
+	y2debug ("Helps available for %1", helps);
 	if (! (contains (helps, lang_short) || contains (texts, lang_short)))
 	{
 	    y2milestone ("Language %1 is not supported by gfxmenu", lang_short);
