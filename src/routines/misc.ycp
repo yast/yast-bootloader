@@ -577,7 +577,7 @@
       * @return boolean special/not
       */
     global define boolean isSpecial(string opt) ``{
-	return (lookup(opttypes(), opt, "") == "x");
+	return (opttypes()[opt]:"" == "x");
     }
 
     /**
@@ -689,15 +689,15 @@
 	}
 	list output = [];
 	integer pos = -1;
-	output = maplist(any e, input, ``{
+	output = maplist(any e, input, {
 	    pos = pos + 1;
 	    if (pos == index1)
 	    {
-	        return select(input, index2, $[]);
+	        return (any)(input[index2]:(any)$[]);
 	    }
 	    else if (pos == index2)
 	    {
-	        return select(input, index1, $[]);
+	        return (any)(input[index1]:(any)$[]);
 	    }
 	    return e;
 	});
@@ -1266,10 +1266,9 @@
 	    md = Md2Partitions (BootCommon::loader_device);
 	}
 	list<string> mbrs = maplist (string d, integer b, md, {
-	    d = lookup (
-		getPartitionToActivate (BootCommon::BootPartitionDevice, d),
-		"mbr",
-		mbrDisk);
+	    d = getPartitionToActivate (
+		BootCommon::BootPartitionDevice, d
+	    )["mbr"]:mbrDisk;
 	    return d;
 	});
 	if (contains (mbrs, BootCommon::mbrDisk))
@@ -2010,15 +2009,11 @@ global string UpdateDevice (string device) {
     }
     else
     {
-	device = select (
-	    Storage::GetTranslatedDevices (
-		installed_version,
-		update_version,
-		[ device ]
-	    ),
-	    0,
-	    device
-	);
+	list<string> devices = Storage::GetTranslatedDevices (
+	    installed_version,
+	    update_version,
+	    [ device ]);
+	device = devices[0]:device;
     }
     return device;
 }

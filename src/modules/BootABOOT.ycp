@@ -55,6 +55,7 @@
       */
     global define boolean Read () ``{
 	BootCommon::DetectDisks ();
+	return true;
     }
 
     /**

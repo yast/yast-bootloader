@@ -26,6 +26,7 @@
     import "Mode";
     import "Popup";
     import "Report";
+    import "String";
 
     /**
       * Display question
@@ -339,7 +340,7 @@ no options to set here."));
 	    ctime);
 	map out = (map)SCR::Execute (.target.bash_output, command);
 	string c_time = out["stdout"]:"";
-	c_time = select (splitstring (c_time, "\n"), 0, "");
+	c_time = String::FirstChunk (c_time, "\n");
 	c_time = (string)UI::Recode (Encoding::console, "UTF-8", c_time);
 
 	// warning popup. %1 is device name, %2 is date/time in form of

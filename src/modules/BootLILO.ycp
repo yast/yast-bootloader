@@ -160,7 +160,7 @@
 	    {
 		foreach (string o, others, ``{
 		    list<string> parts = splitstring (o, " ");
-		    while (select (parts, 0, " ") == "")
+		    while (parts[0]:" " == "")
 			parts = remove (parts, 0);
 		    string dev = parts[0]:"";
 		    parts = remove (parts, 0);

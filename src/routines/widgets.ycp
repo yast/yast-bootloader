@@ -170,12 +170,12 @@
       * @param opt_id any entry id
       * @return any option key
       */
-    global define any id2key (map table, any opt_id) ``{
+    global define string id2key (map table, any opt_id) ``{
 	if (is (opt_id, string))
 	{
 	    if (substring ((string)opt_id, 0, 5) == "__sep")
 		return "____sep";
-	    return opt_id;
+	    return (string)opt_id;
 	}
 	integer index = (integer)opt_id;
 	return BootCommon::current_section[index, "key"]:"";
@@ -221,7 +221,7 @@
                     image,
                     elilo
 			? ""
-			: select (BootCommon::splitPath (image), 0, ""),
+			: BootCommon::splitPath (image)[0]:"",
                     root == "" ? ""
                         : ((elilo ? "" : ", ")
 			    + sformat ("root=%1", root)))
@@ -235,7 +235,7 @@
       * Init function of widget
       * @param widget any id of the widget
       */
-    global define void sectionsInit (any widget) ``{
+    global define void sectionsInit (string widget) ``{
 	sectionsRedrawTable (BootCommon::current_sections);
 	UI::SetFocus (`id (`sects));
     }
@@ -246,7 +246,7 @@
       * @param event map event description of event that occured
       * @return symbol to return to wizard sequencer, or nil
       */
-    global define symbol sectionsHandle (any widget, map event) ``{
+    global define symbol sectionsHandle (string widget, map event) ``{
 	any op = event["ID"]:nil;
 	if (event["ID"]:nil == `sects
 	    && event["EventReason"]:"" == "Activated"
@@ -350,7 +350,7 @@
       * @param widget any widget key
       * @param event map event description of event that occured
       */
-    global define void sectionsStore (any widget, map event) ``{
+    global define void sectionsStore (string widget, map event) ``{
 	any op = event["ID"]:nil;
 	if (op != `edit && op != `add)
 	{
@@ -445,7 +445,7 @@
       * @param widget any widget key
       * @param event map event description of event that occured
       */
-    global define void singleSectionStore (any widget, map event) ``{
+    global define void singleSectionStore (string widget, map event) ``{
 	string ls = getSectionTitle ();
 	string old_name = (string)current_section_name;
 	y2milestone ("Old name: %1", old_name);
@@ -558,7 +558,7 @@
       * @param widget any widget key
       * @param event map event description of event that occured
       */
-    global define void globalSectionStore (any widget, map event) ``{
+    global define void globalSectionStore (string widget, map event) ``{
 	globals = current_section;
 	if (event["ID"]:nil == `redraw)
 	    return;
@@ -650,7 +650,7 @@
       * Init function of widget
       * @param widget any id of the widget
       */
-    global define void resetButtonInit (any widget) ``{
+    global define void resetButtonInit (string widget) ``{
 	list items = [];
 	if (getBooleanAttrib ("propose"))
 	{
@@ -718,7 +718,7 @@
       * @param event map event description of event that occured
       * @return symbol to return to wizard sequencer, or nil
       */
-    global define symbol manualEditHandle(any key, map event)``{
+    global define symbol manualEditHandle(string key, map event)``{
 	return `manual;
     }
 

@@ -291,15 +291,20 @@
 				return o;
 			    });
 			    opts_tmp = filter (map o, opts_tmp, ``(o != nil));
+			    list<string> _dp = [];
+			    string _d = "";
+			    _dp = splitDevPath (
+				(string)lookup_value (opts_tmp, "initrd", ""));
+			    _d = _dp[0]:"";
 			    list<string> devs = [];
-			    devs = add (devs, grubDev2unixDev ((string)select (
-				splitDevPath (
-				    (string)lookup_value (
-					opts_tmp, "initrd", "")), 0, "")));
-			    devs = add (devs, grubDev2unixDev ((string)select (
-				splitDevPath (
-				    (string)lookup_value (
-					opts_tmp, "kernel", "")), 0, "")));
+			    devs = add (devs, grubDev2unixDev (_d));
+
+			    _dp = splitDevPath (
+				(string)lookup_value (opts_tmp, "kernel", ""));
+			    _d = _dp[0]:"";
+
+
+			    devs = add (devs, grubDev2unixDev (_d));
 			    devs = add (devs, grubDev2unixDev (
 				(string)lookup_value (opts_tmp, "root", "")));
 			    devs = add (devs,
@@ -335,7 +340,7 @@
 	    {
 		foreach (string o, others, ``{
 		    list parts = splitstring (o, " ");
-		    while (select (parts, 0, " ") == "")
+		    while (parts[0]:" " == "")
 			parts = remove (parts, 0);
 		    string dev = parts[0]:"";
 		    y2milestone ("Checking other partition %1", dev);
@@ -870,9 +875,9 @@
 	map title_map = getValueMap (orig, "title");
 	if (ntype == "other")
 	{
-	    string root = (string)select (splitDevPath (
-		(string)lookup_value (orig, "kernel", "")),
-		0,"");
+	    list<string> _dp = splitDevPath (
+		(string)lookup_value (orig, "kernel", ""));
+	    string root = _dp[0]:"";
             root = (string)lookup_value (
 		orig, "root", root);
 	    if (root == nil)
@@ -1075,9 +1080,12 @@
 	    string kernel = (string)lookup_value (s, "kernel", "");
 	    if (kernel == "")
 		return true;
-	    kernel = select (
-		filter (string k, splitstring (kernel, " "), ``(k != "")),
-		0, "");
+	    list<string> _tokens = filter (
+		string k,
+		splitstring (kernel, " "),
+		{ return k != "";}
+	    );
+	    kernel = _tokens[0]:"";
 	    if (kernel == "")
 		return true;
 	    if (substring (kernel, 0, 1) != "(")

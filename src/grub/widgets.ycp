@@ -171,7 +171,7 @@ Replace it with an entry  to boot from the floppy?");
                 ],
 		"option_move" : BootCommon::moveTableItem,
 		"option_delete": BootCommon::commonTableEntryDelete,
-                "add_items":  lookup (GetOptions (), `global, []),
+                "add_items":  GetOptions ()[`global]:[],
 	    ]
 	);
     }
@@ -191,10 +191,10 @@ Replace it with an entry  to boot from the floppy?");
 			"rootnoverify", ""));
 	    string kernel_img
 		= (string)lookup_value (s, "kernel", "");
-	    kernel_img = select (filter (string p,
-		splitstring (kernel_img, " "),
-		``(p != "")
-	    ), 0, "");
+	    kernel_img = filter (string p, splitstring (kernel_img, " "),
+		{
+		    return p != "";
+		})[0]:"";
 	    string root = BootCommon::getKernelParamFromLine
 		((string)lookup_value (s, "kernel", ""),
 		    "root");
@@ -221,7 +221,7 @@ Replace it with an entry  to boot from the floppy?");
 		? sformat ("%1   (%2%3)",
 		    kernel_img,
 		    BootGRUB::grubDev2unixDev ((string)
-			select (BootGRUB::splitDevPath (kernel_img), 0, "")
+			BootGRUB::splitDevPath (kernel_img)[0]:""
 		    ),
 		    root
 		)
@@ -256,7 +256,7 @@ Replace it with an entry  to boot from the floppy?");
       * Init function of widget
       * @param widget_id any id of the widget
       */
-    global define void sectionsInit (any widget_id) ``{
+    global define void sectionsInit (string widget_id) ``{
 	sectionsRedrawTable (BootCommon::current_sections);
 	UI::SetFocus (`id (`sects));
     }
@@ -267,7 +267,7 @@ Replace it with an entry  to boot from the floppy?");
       * @param event map event description of event that occured
       * @return symbol to return to wizard sequencer, or nil
       */
-    global define symbol sectionsHandle (any widget_id, map event) ``{
+    global define symbol sectionsHandle (string widget_id, map event) ``{
 	any op = event["ID"]:nil;
 	if (event["ID"]:nil == `sects
 	    && event["EventReason"]:"" == "Activated"
@@ -693,10 +693,8 @@ Replace it with an entry  to boot from the floppy?");
 	{
 	    boolean found = false;
 	    foreach (list<map> s, BootCommon::sections, ``{
-		if (lookup (
-		    (map)lookup_value (s, "__intern__", $[]),
-		    "original_mbr",
-		    false))
+		map intern = (map)lookup_value (s, "__intern__", $[]);
+		if (intern["original_mbr"]:false)
 		{
 		    found = true;
 		    y2error ("Found %1", s);
@@ -712,11 +710,11 @@ Replace it with an entry  to boot from the floppy?");
 	else
 	{
 	    BootCommon::current_sections = filter (list<map> s,
-		BootCommon::current_sections, ``(
-		! lookup (
-		    (map)lookup_value (s, "__intern__", $[]),
-		    "original_mbr",
-		    false)));
+		BootCommon::current_sections,
+	    {
+		map intern = (map)lookup_value (s, "__intern__", $[]);
+		return ! intern["original_mbr"]:false;
+	    });
 	}
 	BootCommon::markGeneralOptionChanged ((string)opt_key);
     }

@@ -112,8 +112,9 @@
     global define void choosePrepBootPartition () ``{
 	y2milestone ("Resetting selected PReP boot partition");
 	string root_disk			// FIXME what about LVM?
-	    = lookup (Storage::GetDiskPartition (
-		BootCommon::RootPartitionDevice), "disk", "");
+	    = Storage::GetDiskPartition (
+		BootCommon::RootPartitionDevice
+	    )["disk"]:"";
 
 	prep_boot_partition = "";
 	prep_boot_partitions = (list<string>)merge (

@@ -70,7 +70,7 @@
       * @param event map event description of event that occured
       * @return symbol to return to wizard sequencer, or nil
       */
-    global define symbol resetButtonHandle (any widget, map event) ``{
+    global define symbol resetButtonHandle (string widget, map event) ``{
 	any op = event["ID"]:nil;
         if (op == `restore_mbr)
         {
