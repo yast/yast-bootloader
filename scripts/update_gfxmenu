@@ -74,7 +74,7 @@ while [ -z $DONE ] ; do
 
  # check the total size
  SIZE=`du -bs /boot/message.new |cut -f 1`;
- if [ $SIZE -le 148480 -o $ORIG_LIMIT -le 1]; then
+ if [ $SIZE -le 148480 -o $ORIG_LIMIT -le 1 ]; then
   DONE="1";
  else
   ORIG_LIMIT=$(($ORIG_LIMIT-1));
