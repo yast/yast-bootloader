@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
-Thu Feb  6 12:33:54 CET 2003 - jsrain@suse.de
+Thu Feb  6 13:26:54 CET 2003 - jsrain@suse.de
 
+- fixed proposing with merging GRUB menus, resulted in doubled
+  items (#23346)
 - merged proofread texts from second round
 
 -------------------------------------------------------------------
