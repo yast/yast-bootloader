@@ -49,10 +49,34 @@
       */
     global define void BootLILO () ``{
 	BootCommon::bootloader_attribs["lilo"] = $[
-	    "section_title" : "label",
-	    "kernel_key" : "image",
 	    "required_packages" : ["lilo"],
 	    "loader_name" : "LILO",
+	    "initializer" : ``(BootLILO::Initializer()),
+	];
+    }
+
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
+      */
+    global define map GetFunctions () ``{
+	return $[
+	    "read" :	``(BootLILO::Read ()),
+	    "propose" : ``(BootLILO::Propose ()),
+	    "save" :	``(BootLILO::Save ()),
+	    "update" :	``(BootLILO::Update ()),
+	    "write" :	``(BootLILO::Write ()),
+	    "widgets" :	``(BootLILO::GetWidgetMaps ()),
+	    "getfiles" :``(BootLILO::GetFiles ()),
+	    "setfiles" :``(BootLILO::SetFiles ()),
+	];
+    }
+
+    global define void Initializer () ``{
+	y2milestone ("Called LILO initializer");
+	BootCommon::current_bootloader_attribs = $[
+	    "section_title" : "label",
+	    "kernel_key" : "image",
 	    "default_key" : "default",
 	    "default_type" : `label,
 	    "timeout_multiplier" : 10,
@@ -70,23 +94,12 @@
 	    "key_only_once" : true,
 	    "bootloader_on_disk" : true,
 	];
-    }
-
-    /**
-      * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
-      */
-    global define map GetFunctions () ``{
-	return $[
-	    "read" :	``(BootLILO::Read ()),
-	    "propose" : ``(BootLILO::Propose ()),
-	    "save" :	``(BootLILO::Save ()),
-	    "update" :	``(BootLILO::Update ()),
-	    "write" :	``(BootLILO::Write ()),
-	    "widgets" :	``(BootLILO::GetWidgets ()),
-	    "getfiles" :``(BootLILO::GetFiles ()),
-	    "setfiles" :``(BootLILO::SetFiles ())
-	];
+	BootCommon::cwm_options = union (
+	    BootCommon::GetOptionMaps (),
+	    BootLILO::GetOptionMaps ());
+	BootCommon::cwm_widgets = union (
+	    BootCommon::GetWidgetMaps (),
+	    BootLILO::GetWidgetMaps ());
     }
 
     /**

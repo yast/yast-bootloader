@@ -20,6 +20,7 @@
     textdomain "bootloader";
 
     include "wizard/sequencer.ycp";
+    import "CWM";
     import "Label";
     import "Popup";
     import "Mode";
@@ -34,468 +35,13 @@
     import "Bootloader";
 
     /**
-      * Displaye popup for option to edit choosing
-      * @param ot any option type (`global, "image", "other",...
-      *   may be bootloader dependent)
-      * @return any option identifies, nil if canceled
-      */
-    global define any getOptionChoicePopup (any ot) ``{
-	list optnames = lookup (Bootloader::blOptions (),
-	    BootCommon::getSectionType (BootCommon::current_section), []);
-	optnames = sort (optnames);
-	term widget = `HBox (`HSpacing (1), `VBox (
-	    `VSpacing (1),
-	    `ComboBox (`id (`optname), `opt (`editable),
-		// combobox header
-		_("&Selected Option"), optnames),
-	    `VSpacing (1),
-	    `HBox (
-		`HStretch (),
-		`PushButton (`id (`ok), `opt (`key_F10, `default),
-		    Label::OKButton ()),
-		`HSpacing (1),
-		`PushButton (`id (`cancel), `opt (`key_F9), Label::CancelButton ()),
-		`HStretch ()
-	    ),
-	    `VSpacing (1)
-	), `HSpacing (1));
-	UI::OpenDialog (widget);
-	UI::SetFocus (`id (`optname));
-	any ret = nil;
-	any option = nil;
-	while (ret != `ok && ret != `cancel)
-	{
-	    ret = UI::UserInput ();
-	    if (ret == `ok)
-	    {
-		option = UI::QueryWidget (`id (`optname), `Value);
-	    }
-	}
-	UI::CloseDialog ();
-	if (ret == `cancel)
-	    return nil;
-// FIXME make added option selected
-//	selected_opt = option;
-	return option;
-    }
-
-    /**
-      * Gets the widget for editing specified bootloader option
-      * @param optname any option name
-      * @param ot any option type (`global, "image", "other",...
-      *   may be bootloader dependent)
-      * @return term widget
-      */
-    global define term getSpecificOptionWidget (any optname, any ot) ``{
-	map widget_data = getPopupWidget (optname);
-        term widget = widget_data["widget"]:nil;
-	list sect = BootCommon::current_section;
-        if (widget == nil)
-        {
-            string type = widget_data["type"]:lookup (
-                BootCommon::opttypes (), optname, "s");
-            if (type == "b")
-                widget = `CheckBox (`id (`value),
-		    // checkbox
-		    widget_data["widget_label"]:_("&Set"),
-                    lookup_value (sect, optname, true));
-            else if (type == "i")
-                widget = `IntField (`id (`value),
-		    // intfield header
-		    widget_data["widget_label"]:_("&Value"), 0, 999999,
-		    lookup_value (sect, optname, 0));
-            else
-                widget = `TextEntry (`id (`value),
-		    // textentry header
-		    widget_data["widget_label"]:_("&Value"),
-		    lookup_value (sect, optname, ""));
-        }
-        return widget;
-    }
-
-    /**
-      * Display and handle the popup for option
-      * @param opttype any option type (`global, "image", "other",...
-      *   may be bootloader dependent)
-      * @param optname any option name
-      * @return symbol `ok or `cancel
-      */
-    global define symbol singleOptionEditPopup (any opttype, any optname)``{
-        if (optname == "")
-        {
-	    optname = getOptionChoicePopup (any opttype);
-	    BootCommon::current_option_index = -2;
-	    if (optname == nil)
-		return;
-        }
-
-	BootCommon::current_option_name = optname;
-	map widget_data = getPopupWidget (optname);
-
-	y2debug ("Popup widget: %1", widget_data);
-        string label = sformat ("%1", widget_data["label"]:optname);
-        term header = `HBox (
-	    // heading / label
-	    `Heading (_("Current Option: ")),
-	    `Label (label),
-	    `HStretch ()
-	);
-        term widget = getSpecificOptionWidget (optname, opttype);
-	string help = widget_data["help"]:"";
-	if (help == nil)
-	{
-	    help = "";
-	}
-        term contents = `HBox (`HSpacing (1), `VBox (
-	    `VSpacing (1),
-            `Left (header),
-	    `VSpacing (1),
-	    help == "" ? `VSpacing (0)
-		: `Left (`Label (help)),
-            `VSpacing (help == "" ? 0 : 1),
-            `Left (`ReplacePoint(`id (`value_rp), widget)),
-	    `VSpacing (1),
-            `HBox (
-                `HStretch(),
-		`PushButton (`id (`ok), `opt (`key_F10, `default),
-		    Label::OKButton ()),
-		`HSpacing (1),
-                `PushButton (`id (`cancel), `opt (`key_F9), Label::CancelButton ()),
-                `HStretch ()
-            ),
-	    `VSpacing (1)
-        ), `HSpacing (1));
-        UI::OpenDialog (contents);
-	if (widget_data["restore"]:nil != nil)
-	{
-	    eval (widget_data["restore"]:nil);
-	}
-	else
-	{
-	    any old_value = UI::QueryWidget (`id (`value), `Value);
-	    any value = nil;
-	    if (BootCommon::current_option_index >= 0
-		&& ! BootCommon::getBooleanAttrib ("key_only_once")
-		&& ! widget_data["key_only_once"]:false)
-	    {
-		value = lookupValueByIndex (BootCommon::current_section,
-		    BootCommon::current_option_index, old_value);
-		UI::ChangeWidget (`id (`value), `Value, value);
-	    }
-	    else
-	    {
-		value = lookup_value (BootCommon::current_section,
-		    optname, old_value);
-		if (BootCommon::current_option_index >= 0)
-		    BootCommon::current_option_index = -1;
-	    }
-	    UI::ChangeWidget (`id (`value), `Value, value);
-	    UI::SetFocus (`id (`value));
-	}
-        any ret = nil;
-        while (ret != `ok && ret != `cancel)
-        {
-            ret = UI::UserInput ();
-	    if (ret != `ok)
-	    {
-		if (widget_data["handle"]:nil != nil)
-		{
-		    term toEval = widget_data["handle"]:nil;
-		    toEval = add (add (toEval, ret), false);
-		    eval (toEval);
-		}
-		else
-		    UI::SetFocus (`id (`value));
-	    }
-	    if (ret == `ok)
-	    {
-		if (widget_data["validate"]:nil != nil
-		    && ! eval (widget_data["validate"]:nil))
-		{
-		    ret = nil;
-		}
-		if (widget_data["handle"]:nil != nil)
-		{
-		    term toEval = widget_data["handle"]:nil;
-		    toEval = add (add (toEval, `ok), true);
-		    eval (toEval);
-		}
-		else
-		{
-		    any value = UI::QueryWidget (`id (`value), `Value);
-		    // existing value, ordered
-		    if (BootCommon::current_option_index >= 0
-			&& ! BootCommon::getBooleanAttrib ("key_only_once")
-			&& ! widget_data["key_only_once"]:false)
-		    {
-			BootCommon::current_section = setValueByIndex (
-			    BootCommon::current_section,
-			    BootCommon::current_option_index,
-			    BootCommon::current_option_name, value);
-		    }
-		    // new value, ordered
-		    else if (BootCommon::current_option_index == -2
-	                && ! BootCommon::getBooleanAttrib ("key_only_once")
-                        && ! widget_data["key_only_once"]:false)
-		    {
-			BootCommon::current_section = appendValue (
-			    BootCommon::current_section, optname, value);
-		    }
-		    // unordered value - replace old if exists
-		    else
-		    {
-			BootCommon::current_section = modifySection (
-			    BootCommon::current_section, optname, value);
-		    }
-		}
-		BootCommon::markOptionChanged ( `current_section, optname);
-//		    BootCommon::current_section_name, optname);
-	    }
-        }
-        UI::CloseDialog ();
-	if (ret == `ok && optname == "__loader_type")
-	{
-	    BootCommon::resetButtonRestore ();
-	}
-	return ret;
-    }
-
-    global integer selected_opt = nil;
-    global list current_dialog_options = [];
-
-    /**
-      * Read seettings to the table of section configuration
-      */
-    global define void singleSectionRead () ``{
-        list orig = BootCommon::current_section;
-	list items = [];
-
-	integer counter = -1;
-	list options = maplist (`o, orig, ``{
-	    counter = counter + 1;
-	    o["index"] = counter;
-	});
-	options = Bootloader::blUpdateOptionsList (orig);
-	map intern = lookup_value (options, "__intern__", $[]);
-	list changed_opts = intern["changed_opts"]:[];
-	options = filter (`o, options,
-	    ``(o["key"]:"" != "__intern__"));
-
-	options = maplist (`o, options, ``{
-	    if (contains (changed_opts, o["key"]:""))
-		o["changed"] = true;
-	    return o;
-	});
-	current_dialog_options = options;
-
-	map opts = getPopupWidgets ();
-	counter = 0;
-
-	foreach (`o, options, ``{
-	    map widget = opts[o["key"]:""]:$[];
-	    string label = sformat ("%1", widget["label"]:o["key"]:"");
-	    term toEval = widget["summary"]:nil;
-	    string value = "";
-	    if (toEval == nil)
-		value = sformat ("%1", o["value"]:"");
-	    else
-		value = eval (toEval);
-	    string chng = o["changed"]:false ? "*" : "";
-	    items = add (items, `item (`id (counter), chng, label, value));
-	    counter = counter + 1;
-	});
-	selected_opt = 0;
-	UI::ChangeWidget (`id (`settings), `Items, items);
-	singleSectionHandle (`settings, false);
-	UI::ChangeWidget (`id (`add), `Enabled, Bootloader::blOptions() != nil);
-    }
-
-    /**
       * Handle function of widget
       * @param op any operation to handle
       * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any singleSectionHandle (any op, boolean save) ``{
-	symbol ret = nil;
-	integer prev = selected_opt;
-	selected_opt = UI::QueryWidget (`id (`settings), `CurrentItem);
-	string selected_key
-	    = current_dialog_options[selected_opt, "key"]:"";
-	BootCommon::current_option_index = current_dialog_options[
-	    selected_opt, "index"]:-1;
-	y2debug ("Key: %1, Index: %2", selected_key,
-	    BootCommon::current_option_index);
-	y2debug ("Current section: %1", BootCommon::current_section);
-        if (op == `settings)
-        {
-            selected_opt = UI::QueryWidget (`id (`settings), `CurrentItem);
-	    if (selected_key == "__sep1" || selected_key == "__sep2"
-		|| selected_key == "__sep3")
-	    {
-		if (selected_opt + 1 >= size (current_dialog_options))
-		    prev = selected_opt + 1;
-		selected_opt = prev < selected_opt
-		    ? selected_opt + 1
-		    : selected_opt - 1;
-		UI::ChangeWidget(`id(`settings), `CurrentItem, selected_opt);
-	    }
-	    map cur = getPopupWidget (selected_key);
-	    UI::ChangeWidget (`id (`delete), `Enabled, cur["deletable"]:true);
-        }
-        else if (op == `edit)
-        {
-	    if (selected_key == "__default_section")
-		selected_key = "__sections";
-	    if (selected_key == "__sections")
-	    {
-		BootCommon::sections_changed = false;
-		return `sections;
-	    }
-           if (selected_key == "__sep1" || selected_key == "__sep2"
-		    || selected_key == "__sep3")
-		return nil;
-            ret = singleOptionEditPopup (
-		BootCommon::getSectionType (BootCommon::current_section),
-		selected_key);
-        }
-        else if (op == `add)
-        {
-            ret = singleOptionEditPopup (
-		BootCommon::getSectionType (BootCommon::current_section), "");
-        }
-        else if (op == `delete && confirmOptionDeletePopup ())
-        {
-	    map cur = getPopupWidget (selected_key);
-	    term toEval = cur["delete"]:nil;
-	    if (toEval != nil)
-		eval (toEval);
-	    BootCommon::current_section = remove (
-		BootCommon::current_section, BootCommon::current_option_index);
-	    BootCommon::one_section_changed = true;
-	    ret = `ok;
-        }
-	// ORDERING BUTTONS
-	else if (op == `up)
-	{
-	    BootCommon::current_section = BootCommon::filterOrder (
-		BootCommon::current_section, getPopupWidgets ());
-	    integer index = -1;
-	    find (`o, BootCommon::current_section, ``{
-		index = index + 1;
-		return o["key"]:"" == selected_key;
-	    });
-	    BootCommon::current_section = BootCommon::swapItems (
-		BootCommon::current_section, index, index - 1);
-		// FIXME global sect if will be needed
-	    BootCommon::one_section_changed = true;
-	    ret = `ok;
-	}
-	else if (op == `down)
-	{
-	    BootCommon::current_section = BootCommon::filterOrder (
-                BootCommon::current_section, getPopupWidgets ());
-            integer index = -1;
-            find (`o, BootCommon::current_section, ``{
-                index = index + 1;
-                return o["key"]:"" == selected_key;
-            });
-            BootCommon::current_section = BootCommon::swapItems (
-		BootCommon::current_section, index, index + 1);
-		// FIXME global sect if will be needed
-	    BootCommon::one_section_changed = true;
-	    ret = `ok;
-	}
-
-	if ((op == `add || op == `edit || op == `delete || op == `up
-	    || op == `down) && ret == `ok)
-	{
-	    if (BootCommon::current_section_name == `global)
-	    {
-		BootCommon::current_globals = BootCommon::current_section;
-		BootCommon::storeSettings ();
-		readWidgets (getWidgets(["globalsection"]));
-	    }
-	    else
-	    {
-		readWidgets (getWidgets(["singlesection"]));
-	    }
-	    UI::ChangeWidget (`id (`settings), `CurrentItem, selected_opt);
-	}
-	if (save && BootCommon::current_section_name != `global)
-	{
-	    string ls = BootCommon::getSectionTitle ();
-	    string old_name = BootCommon::current_section_name;
-	    y2milestone ("Old name: %1", old_name);
-	    map intern = lookup_value (BootCommon::current_section,
-		"__intern__", $[]);
-	    intern["changed"] = true;
-	    BootCommon::current_section = modifySection (
-		BootCommon::current_section, "__intern__", intern);
-	    boolean found = false;
-	    BootCommon::current_sections = maplist (`s,
-		BootCommon::current_sections,
-	    ``{
-		if (lookup_value (s, ls, "") == old_name)
-		{
-		    found = true;
-		    return BootCommon::current_section;
-		}
-		else
-		    return s;
-	    });
-	    if (! found)
-	    {
-		BootCommon::current_sections = add (
-		    BootCommon::current_sections,
-		    BootCommon::current_section
-		);
-	    }
-	    y2milestone ("Saving section");
-	    if (BootCommon::one_section_changed)
-		BootCommon::sections_changed = true;
-
-	    if (BootCommon::getDefaultType () == `label
-		&& tolower (BootCommon::current_section_name)
-		    == tolower (lookup_value (BootCommon::current_globals, BootCommon::getDefaultKey (), "")))
-	    {
-		BootCommon::current_globals = modifySection (
-		    BootCommon::current_globals,
-		    BootCommon::getDefaultKey (),
-		    lookup_value (BootCommon::current_section, BootCommon::getSectionTitle (), ""));
-	    }
-	}
-	if (`back == op)
-	{
-	}
-	UI::SetFocus (`id (`settings));
-	return nil;
-    }
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any globalSectionHandle (any op, boolean save) ``{
-	any ret = singleSectionHandle (op, save);
-	if (op == `sections)
-	{
-	}
-	if (op == `delete)
-	    BootCommon::changed = true;
-	return ret;
-    }
-
-
-    /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
-      */
-    global define any resetButtonHandle (any op, boolean save) ``{
+    global define symbol resetButtonHandle (any widget_id, map event) ``{
+	any op = event["ID"]:nil;
         if (op == `restore_mbr)
         {
             boolean doit = restoreMBRPopup (BootCommon::mbrDisk);
@@ -515,7 +61,7 @@
 
 	if (! contains ([`scratch, `reread, `propose_deep, `propose], op))
 	{
-	    return;
+	    return nil;
 	}
 	Bootloader::Reset ();
 	if (op == `scratch)
@@ -544,7 +90,10 @@
         BootCommon::current_section = eval (BootCommon::current_globals);
         BootCommon::current_section_name = `global;
 
-	readWidgets (getWidgets(["globalsection"]));
+	return `redraw;
+
+	// FIXME this must be solved some way
+	readWidgets (CWM::CreateWidgets(["globalsection"], BootCommon::GetWidgets ()));
     }
 
     /**
@@ -632,9 +181,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
       * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any loaderTypeSave (any op, boolean save) ``{
-	if (! save)
-	    return;
+    global define any loaderTypeStore (any opt_id, any opt_key) ``{
 
 	string old_bl = Bootloader::getLoaderType ();
 	string new_bl = UI::QueryWidget (`id (`loader_type), `Value);
@@ -686,72 +233,8 @@ Proceed?
             BootCommon::current_section_name = `global;
 	}
 	BootCommon::location_changed = true;
+	BootCommon::redraw_table = true;
 	return nil;
-    }
-
-
-    /**
-      * Generic function to create dialog and handle it's events
-      * @param widgets list of widget maps
-      * @param caption string dialog caption
-      * @param contents term contents of dialog
-      * @param help string help for the dialog
-      * @param next_button string label of next button
-      * @param exits list of symbols representing events to exit dialog
-      * @param back whether should be Abort/Back buttons shown (true),
-      *   or only Cancel button
-      * @return symbol wizard sequencer symbol
-      */
-    global define symbol runDialog (list widgets, string caption,
-	term contents, string help, string next_button, list exits,
-	boolean back)
-    ``{
-	Wizard::SetContentsButtons (caption, contents, help,
-	    Label::BackButton (), next_button);
-	if (back)
-	{
-	    Wizard::RestoreBackButton ();
-	    Wizard::RestoreAbortButton ();
-	}
-	else
-	{
-	    Wizard::ReplaceBackButton(`VSpacing (0));
-	    Wizard::ReplaceAbortButton (
-		`PushButton (`id (`abort), Label::CancelButton ()));
-	}
-
-	readWidgets (widgets);
-
-	any ret = nil;
-	while (! contains (exits, ret))
-	{
-	    map event = UI::WaitForEvent ();
-	    ret = event["ID"]:nil;
-	    if ((ret == `settings || ret == `sects)
-		&& event["EventReason"]:"" == "Activated"
-		&& event["EventType"]:"" == "WidgetEvent"
-		&& event["WidgetClass"]:nil == `Table)
-	    {
-		ret = `edit;
-	    }
-	    if (ret == `cancel)
-		ret = `abort;
-	    if (ret == `abort && ! BootCommon::confirmAbort ())
-		ret = nil;
-	    if (! validateWidgetsIfNeeded (widgets, ret))
-		ret = nil;
-	    ret = handleChange (widgets, ret);
-	}
-	return ret;
-    }
-
-    /**
-      * Redraw the summary text
-      */
-    global define void redrawSummary () ``{
-	UI::ChangeWidget (`id (`summary), `Value,
-	    Bootloader::blSummary (
-		BootCommon::verbose ? [`verbose, `links] : [`links]));
     }
 
     /**
@@ -759,18 +242,20 @@ Proceed?
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSectionsDialog () ``{
-        list widgets = getWidgets (["sections"]);
-        term contents = `HBox (`HSpacing (2), `VBox (
+        list widgets = CWM::CreateWidgets (["sections"],
+	    BootCommon::cwm_widgets);
+        term contents = `HBox (`HSpacing (1), `VBox (
 		`VSpacing (1),
                 widgets[0, "widget"]:`VSpacing (0),
                 `VSpacing (1)
-                ), `HSpacing (2));
+                ), `HSpacing (1));
 	// dialog caption
         string caption = _("Boot Loader Setup -- Sections Managment");
-        string help = mergeHelps (widgets);
-	list exits = getExitEvents (widgets);
-	return runDialog (widgets, caption, contents, help, Label::OKButton (),
-	    exits, true);
+        string help = CWM::MergeHelps (widgets);
+	Wizard::SetContentsButtons (caption, contents, help,
+            Label::BackButton (), Label::OKButton ());
+
+	return CWM::Run (widgets, $[]);
     }
 
     /**
@@ -778,18 +263,20 @@ Proceed?
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSingleSectionDialog () ``{
-	list widgets = getWidgets (["singlesection"]);
-        term contents = `HBox (`HSpacing (2), `VBox (
+	list widgets = CWM::CreateWidgets (["singlesection"],
+	    BootCommon::cwm_widgets);
+        term contents = `HBox (`HSpacing (1), `VBox (
                 `VSpacing (1),
                 widgets[0, "widget"]:`VSpacing (0),
 		`VSpacing (1)
-                ), `HSpacing (2));
+                ), `HSpacing (1));
 	// dialog caption
         string caption = _("Boot Loader Setup -- Sections Managment");
-        string help = mergeHelps (widgets);
-        list exits = getExitEvents (widgets);
-        return runDialog (widgets, caption, contents, help, Label::OKButton (),
-            exits, true);
+        string help = CWM::MergeHelps (widgets);
+	Wizard::SetContentsButtons (caption, contents, help,
+	    Label::BackButton (), Label::OKButton ());
+
+	return CWM::Run (widgets, $[]);
     }
 
     /**
@@ -797,29 +284,26 @@ Proceed?
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSummaryDialog () ``{
-	BootCommon::fetchSettings ();
-	BootCommon::current_section
-	    = eval (BootCommon::current_globals);
-	BootCommon::current_section_name = `global;
-        list widgets = getWidgets (["globalsection", "manual_edit_button",
-	    "resetbutton"]);
-        term contents = `HBox (`HSpacing (2), `VBox (
+	list widgets = CWM::CreateWidgets (["globalsection", "resetbutton",
+	    "manual_edit_button"], BootCommon::cwm_widgets);
+        term contents = `HBox (`HSpacing (1), `VBox (
                 `VSpacing (1),
                 widgets[0, "widget"]:`VSpacing (0),
                 `VSpacing (1),
-                widgets[1, "widget"]:`VSpacing (0),
+                widgets[2, "widget"]:`VSpacing (0),
                 `VSpacing (1)
-                ), `HSpacing (2));
+                ), `HSpacing (1));
 	// dialog caption
         string caption = _("Boot Loader Setup");
-        string help = mergeHelps (widgets);
-        list exits = getExitEvents (widgets);
+        string help = CWM::MergeHelps (widgets);
 	string next_button = (Mode::initial || Mode::config)
 	    ? Label::AcceptButton ()
 	    : Label::FinishButton ();
 
-        return runDialog (widgets, caption, contents, help, next_button,
-            exits, false);
+	Wizard::SetContentsButtons (caption, contents, help,
+            Label::BackButton (), Label::FinishButton ());
+
+	return CWM::Run (widgets, $[]);
     }
 
     /**
@@ -857,7 +341,7 @@ Proceed?
         string caption = _("Expert Manual Configuration");
         string help = BootCommon::getExpertManualHelp ();
 
-        list exits = getExitEvents ([]);
+        list exits = [`back, `next, `abort, `ok, `apply, `accept];
 
         Wizard::SetContentsButtons (caption, contents, help,
             Label::BackButton (), Label::OKButton ());
@@ -957,6 +441,7 @@ Proceed?
 		`glob : "global_seq",
 		`manual : "editfiles",
 		`sections : "sect_seq",
+		`redraw : "summary",
 	     ],
 	    "editfiles" : $[ `next : "summary", `abort: `abort ],
 	    "global_seq" : $[ `next : "summary", `abort: `abort ],

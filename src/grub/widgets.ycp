@@ -34,18 +34,26 @@
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetWidgets () ``{
+    global define map GetWidgetMaps () ``{
         return $[
-	    "sections" : ``(BootGRUB::getSectionsWidget ()),
-	    "singlesection" : ``(BootGRUB::getSingleSectionWidget ()),
-	    "tableentries" :$[
-		"__location": ``(BootGRUB::getTargetWidget ()),
-		"title" : ``(BootCommon::getLabelWidget ()),
-		"gfxmenu" : ``(BootGRUB::getGfxMenuWidget ()),
-		"__diskorder" : ``(BootGRUB::getOrderPopup ()),
-		"__add_orig_mbr" : ``(BootGRUB::getAddOrigMbrWidget ()),
-	    ],
+	    "sections" : BootGRUB::getSectionsWidget (),
+	    "singlesection" : BootGRUB::getSingleSectionWidget (),
+	    "globalsection" : BootGRUB::getGlobalSectionWidget (),
         ];
+    }
+
+    /**
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
+      */
+    global define map GetOptionMaps () ``{
+        return $[
+//		"__location": BootGRUB::getTargetWidget (),
+		"title" : BootCommon::getLabelWidget (),
+//		"gfxmenu" : BootGRUB::getGfxMenuWidget (),
+		"__diskorder" : BootGRUB::getOrderPopup (),
+		"__add_orig_mbr" : BootGRUB::getAddOrigMbrWidget (),
+	];
     }
 
     /**
@@ -140,51 +148,77 @@ Replace it with an entry  to boot from the floppy?");
 	return ret;
     }
 
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getGlobalSectionWidget () ``{
+	return TablePopup::CreateTableDescr (
+	    $["add_delete" : true, "up_down_buttons" : false, "changed_column" : true],
+	    $[
+		"init" : ``(BootCommon::globalSectionInit ()),
+		"handle" : ``(BootCommon::globalSectionHandle ()),
+		"store" : ``(BootCommon::globalSectionStore ()),
+		"options": BootCommon::cwm_options,
+		"id2key": ``(BootCommon::id2key ()),
+		"ids": ``(BootGRUB::getTableContents ()),
+                "help": BootCommon::getGlobalSectionHelp (),
+                "fallback" : $[
+                    "init": ``(BootCommon::commonPopupInit ()),
+                    "store": ``(BootCommon::commonPopupSave ()),
+                    "summary": ``(BootCommon::commonTableEntrySummary ()),
+                    "changed" : ``(BootCommon::commonTableChanged ()),
+                ],
+		"option_move" : ``(BootCommon::moveTableItem ()),
+                "option_delete": ``(BootCommon::commonTableEntryDelete ()),
+                "add_items":  lookup (GetOptions (), `global, []),
+	    ]
+	);
+    }
 
     /**
-      * Update list of optoins to show in table
-      * @param _options list of options including order
-      * @return list of option to show
+      * Create a list of options for the table
+      * @return list of option ids as it should be displayed
       */
-    global define list UpdateOptionsList (list _options) ``{
-        list prependlist = [];
-        list orig_opts = _options;
+    global define list getTableContents (map descr) ``{
+	list prependlist = [];
+	list forbidden_keys = [];
 	any type = BootCommon::getSectionType (BootCommon::current_section);
 	if (type == `global)
 	{
 	    prependlist = ["__loader_type", "__sep2", "__location",
-		"__diskorder", "__default_section", "__sections", "__activate",
+		"__diskorder", "default", "__sections", "__activate",
 		"__repl_mbr", "__backup_mbr", "__add_orig_mbr",
 		"__save_method", "__sep1"];
-            _options = filter (`o, _options,
-		``(o["key"]:"" != "boot" && o["key"]:"" != "default"));
+	    forbidden_keys = ["default"];
 	}
 	else
 	{
 	    prependlist = ["title", "__section_type", "__sep1"];
 	}
-
-	_options = filter (`o, _options, ``(! contains (
-	    prependlist, o["key"]:"")));
 	if (Mode::initial)
 	{
 	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
 	}
-	if ((! BootCommon::backup_mbr) && 0 >= SCR::Read (.target.size,
-	    "/boot/backup_mbr"))
-	{
-	    prependlist = filter (`p, prependlist, ``(p != "__add_orig_mbr"));
-	}
-        prependlist = maplist (`p, prependlist, ``{
-            map m = getValueMap (orig_opts, p);
-            if (m == $[])
-            {
-                m = $[ "key" : p];
-            }
-            return m;
-        });
-        list options = merge (prependlist, _options);
-        return options;
+	// FIXME from here it is the same as generic version
+	forbidden_keys = merge (forbidden_keys, prependlist);
+	forbidden_keys = add (forbidden_keys, "__intern__");
+	integer index = -1;
+	map remap_prepend = $[];
+	list options = maplist (map opt, BootCommon::current_section, ``{
+	    index = index + 1;
+	    if (contains (prependlist, opt["key"]:""))
+	    {
+		remap_prepend[opt["key"]:""] = index;
+		return nil;
+	    }
+	    return contains (forbidden_keys, opt["key"]:"")
+		? nil
+		: index;
+	});
+	prependlist = maplist (`e, prependlist, ``(remap_prepend[e]:e));
+	options = filter (any opt, options, ``(opt != nil));
+	return merge (prependlist, options);
     }
 
     /**
@@ -193,7 +227,7 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define map getSectionsWidget () ``{
 	map ret = BootCommon::getSectionsWidget ();
-	ret["restore"] = ``(BootGRUB::sectionsRead ());
+	ret["init"] = ``(BootGRUB::sectionsInit ());
 	ret["handle"] = ``(BootGRUB::sectionsHandle ());
 	return ret;
     }
@@ -275,7 +309,7 @@ Replace it with an entry  to boot from the floppy?");
     /**
       * Read function of a widget
       */
-    global define void sectionsRead () ``{
+    global define void sectionsInit (any widget_id) ``{
 	sectionsRedrawTable (BootCommon::current_sections);
 	UI::SetFocus (`id (`sects));
     }
@@ -286,7 +320,8 @@ Replace it with an entry  to boot from the floppy?");
       * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any sectionsHandle (any op, boolean save) ``{
+    global define any sectionsHandle (any widget_id, map event) ``{
+	any op = event["ID"]:nil;
         string current = UI::QueryWidget (`id (`sects), `CurrentItem);
         integer counter = 0;
         integer index = 0;
@@ -364,6 +399,7 @@ Replace it with an entry  to boot from the floppy?");
 	    }
             BootCommon::current_section_name = "";
 	    BootCommon::one_section_changed = true;
+	    return `add;
 	}
 	else if (op == `edit)
 	{
@@ -371,8 +407,8 @@ Replace it with an entry  to boot from the floppy?");
             BootCommon::current_section = eval (sects[index]:[]);
             BootCommon::current_section_name
                 = lookup_value (sects[index]:[], "title", "");
-
 	    BootCommon::one_section_changed = false;
+	    return `edit;
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
@@ -387,18 +423,6 @@ Replace it with an entry  to boot from the floppy?");
 	    sectionsRedrawTable (sects);
 	    BootCommon::sections_changed = true;
 	}
-        if (save && op != `edit && op != `add)
-        {
-            if (BootCommon::sections_changed)
-            {
-		BootCommon::changed = true;
-                BootCommon::markOptionChanged (`current_globals, "__sections");
-                BootCommon::markOptionChanged (`current_globals, "__default_section");
-            }
-        }
-        if (op == `back)
-        {
-        }
 	UI::SetFocus (`id (`sects));
 	return nil;
     }
@@ -411,8 +435,17 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define map getOrderPopup () ``{
 	return $[
-	    "widget" : `HBox (
-                `VBox (
+	    "table" : $[
+		"summary" : ``(BootGRUB::orderSummary ()),
+		// label / table cell
+		"label" : _("Disk Order"),
+		"deletable" : false,
+		"help" : getDiskOrderHelp (),
+		"key_only_once" : true,
+	    ],
+	    "popup" : $[
+		"widget" : `custom,
+		"custom_widget" : `HBox (`VBox (
                     `ReplacePoint (`id (`disks_rp),
                         `SelectionBox (`id (`disks),
                             `opt (`notify, `immediate),
@@ -433,16 +466,11 @@ Replace it with an entry  to boot from the floppy?");
                         `PushButton (`id (`down), `opt (`hstretch), _("&Down")),
                         `VStretch ()
                     )
-                )
-	    ),
-	    "restore" : ``(BootGRUB::restoreOrderPopup ()),
-	    "handle" : ``(BootGRUB::handleOrderPopup ()),
-	    "summary" : ``(BootGRUB::orderSummary ()),
-		// label / table cell
-	    "label" : _("Disk Order"),
-	    "deletable" : false,
-	    "help" : getDiskOrderHelp (),
-	    "key_only_once" : true,
+                )),
+		"init" : ``(BootGRUB::initOrderPopup ()),
+		"handle" : ``(BootGRUB::handleOrderPopup ()),
+		"store" : ``(BootGRUB::storeOrderPopup ()),
+	    ],
 	];
     }
 
@@ -462,7 +490,7 @@ Replace it with an entry  to boot from the floppy?");
       * Summary function for option
       * @return string summary text
       */
-    global define string orderSummary () ``{
+    global define string orderSummary (any opt_id, any opt_key) ``{
 	disks_order = getDisksOrder ();
 	return mergestring (disks_order, ", ");
     }
@@ -470,14 +498,14 @@ Replace it with an entry  to boot from the floppy?");
     /**
       * Restore function of widget
       */
-    global define void restoreOrderPopup () ``{
+    global define void initOrderPopup (any opt_id, any opt_key) ``{
         disks_order = getDisksOrder ();
 	UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
                     `opt (`notify, `immediate),
                     _("D&isks"), disks_order));
 	UI::ChangeWidget (`id (`disks), `CurrentItem, disks_order[0]:"");
 	UI::SetFocus (`id (`disks));
-	handleOrderPopup (nil, false);
+	handleOrderPopup (nil, nil, $[]);
     }
 
     /**
@@ -486,15 +514,14 @@ Replace it with an entry  to boot from the floppy?");
       * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any handleOrderPopup (any op, boolean save) ``{
+    global define any handleOrderPopup (any opt_id, any opt_key, map event) ``{
+	any op = event["ID"]:nil;
 	string active = UI::QueryWidget (`id (`disks), `CurrentItem);
 	integer pos = 0;
 	while (pos < size (disks_order) && disks_order[pos]:"" != active)
 	    pos = pos + 1;
 	UI::ChangeWidget (`id (`up), `Enabled, pos > 0);
 	UI::ChangeWidget (`id (`down), `Enabled, pos < size (disks_order) - 1);
-	if (! save)
-	{
 	    if (op == `up)
 	    {
 		disks_order = BootCommon::swapItems (disks_order, pos, pos - 1);
@@ -548,10 +575,11 @@ Replace it with an entry  to boot from the floppy?");
 		UI::ChangeWidget (`id (`disks),`CurrentItem, disks_order[0]:"");
 	    }
 
-	}
-	else
-	{
+	UI::SetFocus (`id (`disks));
+	return nil;
+    }
 
+    global define any storeOrderPopup (any opt_id, any opt_key) ``{
             list(list(string)) dl = filter (list(string) i, device_map,
                 ``(substring (i[0]:"", 0, 3) == "(hd"));
             dl=sort (list(string) a, list(string) b, dl, ``(a[0]:"" < b[0]:""));
@@ -592,9 +620,7 @@ Replace it with an entry  to boot from the floppy?");
 	    BootCommon::mbrDisk = disks_order[0]:BootCommon::mbrDisk;
 	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 	    disks_order = nil;
-	}
-	UI::SetFocus (`id (`disks));
-	return nil;
+
     }
 
     /**
@@ -637,17 +663,26 @@ Replace it with an entry  to boot from the floppy?");
       * @return map of widget
       */
     global define map getSingleSectionWidget () ``{
-	map ret = BootCommon::getSingleSectionWidget ();
-        ret["widget"] = `HBox (ret["widget"]:`VSpacing (0),
-            `VBox (
-                `VStretch (),
-                `PushButton (`id (`up), _("&Up")),
-                `PushButton (`id (`down), _("&Down")),
-                `VStretch ()
-            ),
-            `HSpacing (1)
-        );
-	return ret;
+	return TablePopup::CreateTableDescr (
+	    $["add_delete" : true, "up_down_buttons" : true, "changed_column" : true],
+	    $[
+		"store" : ``(BootCommon::singleSectionStore ()),
+		"options": BootCommon::cwm_options,
+		"id2key": ``(BootCommon::id2key ()),
+		"ids": ``(BootGRUB::getTableContents ()),
+		"help": BootCommon::getSingleSectionHelp (),
+		"fallback" : $[
+		    "init": ``(BootCommon::commonPopupInit ()),
+		    "store": ``(BootCommon::commonPopupSave ()),
+		    "summary": ``(BootCommon::commonTableEntrySummary ()),
+		    "changed" : ``(BootCommon::commonTableChanged ()),
+		],
+		"handle" : ``(BootCommon::singleSectionHandle ()),
+		"option_move" : ``(BootCommon::moveTableItem ()),
+		"option_delete": ``(BootCommon::commonTableEntryDelete ()),
+		"add_items":  lookup (GetOptions (), `global, []), // FIXME
+	    ]
+	);
     }
 
     /**
@@ -656,23 +691,27 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define map getAddOrigMbrWidget () ``{
 	return $[
-	    "restore" : ``(BootGRUB::addOrigMbrRestore ()),
-	    "handle" : ``(BootGRUB::addOrigMbrSave ()),
-	    "type" : "b",
-	    "exits" : [],
-	    // table item / label
-	    "label" : _("Add Saved MBR to Boot Loader Menu"),
-	    "summary" : ``(BootGRUB::addOrigMbrSummary ()),
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
+	    "table" : $[
+		// table item / label
+		"label" : _("Add Saved MBR to Boot Loader Menu"),
+		"summary" : ``(BootGRUB::addOrigMbrSummary ()),
+		"deletable" : false,
+		"ordering" : false,
+		"key_only_once" : true,
+	    ],
+	    "popup" : $[
+		"init" : ``(BootGRUB::addOrigMbrInit ()),
+		"store" : ``(BootGRUB::addOrigMbrStore ()),
+		"widget" : `checkbox,
+
+	    ],
 	];
     }
 
     /**
       * Restore function of widget
       */
-    global define void addOrigMbrRestore () ``{
+    global define void addOrigMbrInit (any opt_id, any opt_key) ``{
         UI::ChangeWidget (`id (`value), `Value, insert_saved_mbr);
         UI::SetFocus (`id (`value));
     }
@@ -683,9 +722,7 @@ Replace it with an entry  to boot from the floppy?");
       * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any addOrigMbrSave (any op, boolean save) ``{
-        if (! save)
-            return nil;
+    global define void addOrigMbrStore (any opt_id, any opt_key) ``{
         insert_saved_mbr = UI::QueryWidget (`id (`value), `Value);
 	if (insert_saved_mbr)
 	{
@@ -710,14 +747,14 @@ Replace it with an entry  to boot from the floppy?");
 		BootCommon::current_sections, ``(
 		! lookup (lookup_value (s, "__intern__", $[]), "original_mbr", false)));
 	}
-        return nil;
+	markGeneralOptionChanged (opt_key);
     }
 
     /**
       * Summary function for option
       * @return string summary text
       */
-    global define string addOrigMbrSummary () ``{
+    global define string addOrigMbrSummary (any opt_id, any opt_key) ``{
         if (insert_saved_mbr)
             // table item / label
             return _("Yes");

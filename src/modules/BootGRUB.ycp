@@ -76,11 +76,41 @@
       * Constructor
       */
     global define void BootGRUB () ``{
-        BootCommon::bootloader_attribs["grub"] = $[
-            "section_title" : "title",
-	    "kernel_key" : "kernel",
+	BootCommon::bootloader_attribs["grub"] = $[
 	    "required_packages" : ["grub"],
 	    "loader_name" : "GRUB",
+	    "initializer" : ``(BootGRUB::Initializer()),
+	];
+    }
+
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootGRUB::Write ())])
+      */
+    global define map GetFunctions () ``{
+	return $[
+            "export"   : ``(BootGRUB::Export ()),
+            "import"   : ``(BootGRUB::Import ()),
+            "read"     : ``(BootGRUB::Read ()),
+            "reset"    : ``(BootGRUB::Reset ()),
+            "propose"  : ``(BootGRUB::Propose ()),
+            "save"     : ``(BootGRUB::Save ()),
+            "update"   : ``(BootGRUB::Update ()),
+            "write"    : ``(BootGRUB::Write ()),
+	    "sequence" : ``(BootGRUB::FixSequence ()),
+	    "widgets"  : ``(BootGRUB::GetWidgetMapss ()),
+            "getfiles" : ``(BootGRUB::GetFiles ()),
+            "setfiles" : ``(BootGRUB::SetFiles ()),
+	    "getoptions":``(BootGRUB::GetOptions ()),
+	    "updoptlst": ``(BootGRUB::UpdateOptionsList ()),
+	];
+    }
+
+    global define void Initializer () ``{
+	y2milestone ("Called GRUB initializer");
+	BootCommon::current_bootloader_attribs = $[
+            "section_title" : "title",
+	    "kernel_key" : "kernel",
 	    "default_key" : "default",
 	    "default_type" : `index,
 	    "default_index_first" : 0,
@@ -101,30 +131,13 @@
 	    "restore_mbr" : true,
 	    "key_only_once" : false,
 	    "bootloader_on_disk" : true,
-        ];
-    }
-
-    /**
-      * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootGRUB::Write ())])
-      */
-    global define map GetFunctions () ``{
-	return $[
-            "export"   : ``(BootGRUB::Export ()),
-            "import"   : ``(BootGRUB::Import ()),
-            "read"     : ``(BootGRUB::Read ()),
-            "reset"    : ``(BootGRUB::Reset ()),
-            "propose"  : ``(BootGRUB::Propose ()),
-            "save"     : ``(BootGRUB::Save ()),
-            "update"   : ``(BootGRUB::Update ()),
-            "write"    : ``(BootGRUB::Write ()),
-	    "sequence" : ``(BootGRUB::FixSequence ()),
-	    "widgets"  : ``(BootGRUB::GetWidgets ()),
-            "getfiles" : ``(BootGRUB::GetFiles ()),
-            "setfiles" : ``(BootGRUB::SetFiles ()),
-	    "getoptions":``(BootGRUB::GetOptions ()),
-	    "updoptlst": ``(BootGRUB::UpdateOptionsList ()),
 	];
+	BootCommon::cwm_options = union (
+	    BootCommon::GetOptionMaps (),
+	    BootGRUB::GetOptionMaps ());
+	BootCommon::cwm_widgets = union (
+	    BootCommon::GetWidgetMaps (),
+	    BootGRUB::GetWidgetMaps ());
     }
 
     /**

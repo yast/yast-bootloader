@@ -24,7 +24,15 @@
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetWidgets () ``{
+    global define map GetWidgetMaps () ``{
+        return $[
+        ];
+    }
+    /**
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
+      */
+    global define map GetOptionMaps () ``{
         return $[
         ];
     }
