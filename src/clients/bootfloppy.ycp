@@ -467,9 +467,16 @@ and File Systems (modules disk 4)"))),
 			// processed action
 			showPopup (_("Getting the floppy disk image..."));
 			floppyMountSource ();
-			filename = createFloppyImage (file_image);
-//			string pth = sformat ("boot/%1", file_image);
-//			filename = Pkg::SourceProvideFile(source_id, 1, pth);
+			if (substring (file_image, 0, 7) == "bootdsk")
+			{
+			    filename = createFloppyImage (file_image);
+			}
+			else
+			{
+			    string pth = sformat ("boot/%1", file_image);
+			    filename = Pkg::SourceProvideFile(source_id,
+								1, pth);
+			}
 			hidePopup ();
 			if (filename == nil)
 			{
