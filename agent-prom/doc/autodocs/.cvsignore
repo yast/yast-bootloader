@@ -1,3 +1,10 @@
 Makefile
 Makefile.in
 *.html
+*.html
+*.png
+*.tag
+doxygen.css
+doxygen.log
+doxygen.conf
+installdox
