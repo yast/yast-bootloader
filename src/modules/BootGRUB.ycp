@@ -189,6 +189,7 @@
             BootCommon::DetectDisks ();
 	    del_parts = BootCommon::getPartitionList (`deleted);
 	}
+
 	// refresh device map
 	if (device_map == [] || device_map == nil)
 	    device_map = proposeDeviceMap ();
@@ -208,6 +209,14 @@
 	}
 
 	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+
+	// set activate flag
+	if (! BootCommon::activate_changed)
+	{
+	    BootCommon::activate
+		= size (Storage::GetBootPartition (BootCommon::mbrDisk)) == 0;
+	}
+
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
 	    createSections ();

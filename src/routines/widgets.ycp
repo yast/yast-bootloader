@@ -54,7 +54,7 @@
 		"timeout"	: ``(BootCommon::getTimeoutWidget ()),
 		"password"	: ``(BootCommon::getPasswdWidget ()),
 		"__repl_mbr"	: ``(BootCommon::getReplMbrWidget ()),
-		"activate"	: ``(BootCommon::getActivateWidget ()),
+		"__activate"	: ``(BootCommon::getActivateWidget ()),
 		"message"	: ``(BootCommon::getMessageWidget ()),
 	    ],
 	];
@@ -507,8 +507,8 @@
 	{
 	    if (BootCommon::sections_changed)
 	    {
-		BootCommon::markOptionChanged (`global, "__sections");
-		BootCommon::markOptionChanged (`global, "__default_section");
+		BootCommon::markOptionChanged (`current_globals, "__sections");
+		BootCommon::markOptionChanged (`current_globals, "__default_section");
 	    }
 	}
 	if (op == `back)
@@ -626,7 +626,7 @@
 	if (type == `global)
 	{
 	    prependlist = ["__loader_type", "__sep2", "__location",
-		"__default_section", "__sections", "activate", "__repl_mbr",
+		"__default_section", "__sections", "__activate", "__repl_mbr",
 		"__backup_mbr", "__save_method", "__sep1"];
 	    _options = filter (`o, _options, ``(
 		o["key"]:"" != "boot" && o["key"]:"" != "default"));
@@ -1154,6 +1154,7 @@
         activate = UI::QueryWidget (`id (`value), `Value);
         if (activate)
             BootCommon::location_changed = true;
+	activate_changed = true;
 	return nil;
     }
 

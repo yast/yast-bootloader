@@ -1,9 +1,11 @@
 -------------------------------------------------------------------
-Tue Jul  8 11:14:19 CEST 2003 - jsrain@suse.de
+Tue Jul  8 16:35:47 CEST 2003 - jsrain@suse.de
 
 - fixed question popup if canceling configuration (#27479)
 - installing additional copy of bootloader bootsector to bootsector
   of /boot partition for LILO and GRUB (#27389)
+- not activating any partition by default if some already active
+  (#26278)
 
 -------------------------------------------------------------------
 Wed Jun 25 10:11:41 CEST 2003 - jsrain@suse.de
