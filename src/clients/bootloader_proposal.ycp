@@ -98,7 +98,11 @@
 	boolean has_next = param["has_next"]:false;
 
 	map settings = Bootloader::Export ();
+	// don't ask for abort confirm if nothing was changed (#29496)
+	BootCommon::changed = false;
 	symbol result = WFM::CallFunction (`bootloader (.noio));
+	// set to true, simply because must be saved during installation
+	BootCommon::changed = true;
 	if (result != `next)
 	    Bootloader::Import (settings);
 	else
