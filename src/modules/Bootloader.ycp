@@ -222,6 +222,10 @@
       */
     global define void Propose () ``{
 	y2milestone ("Proposing configuration");
+	if (! Mode::initial)
+	{
+	    BootCommon::UpdateVgaParam ();
+	}
 	blPropose ();
 	BootCommon::was_proposed = true;
         BootCommon::changed = true;
@@ -326,9 +330,15 @@
             Progress::Title (titles[0]:"");
         }
 
+	map<string,any> params_to_save = $[];
+
 	string new_vga = getKernelParam (getDefaultSection (), "vga");
 	if (new_vga != old_vga && new_vga != "false" && new_vga != "")
+	{
 	    Initrd::setSplash (new_vga);
+	    if (Mode::initial)
+		params_to_save["vga"] = new_vga;
+	}
 
 	// save initrd
 	if ((Initrd::changed || ! Mode::normal)
@@ -336,7 +346,11 @@
 	{
 	    string vga = getKernelParam (getDefaultSection (), "vga");
 	    if (vga != "false" && vga != "")
+	    {
 		Initrd::setSplash (vga);
+		if (Mode::initial)
+		    params_to_save["vga"] = new_vga;
+	    }
 	    ret = Initrd::Write ();
 	    BootCommon::changed = true;
 	}
@@ -374,6 +388,9 @@
         SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
             BootCommon::location);
 	SCR::Write (.sysconfig.bootloader, nil);
+
+	SCR::Write (.target.ycp, "/var/lib/YaST2/bootloader.ycp",
+	    params_to_save);
 
 	if (getLoaderType () == "none")
 	    return ret;
