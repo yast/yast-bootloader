@@ -26,49 +26,49 @@ Summary:	YaST2 Modules for installation
 %defattr(-,root,root)
 
 # bootfloppy
-@YAST2DIR@/menuentries/menuentry_bootfloppy.y2cc
-@YAST2DIR@/clients/bootfloppy.ycp
-%doc @DOCDIR@/*
+@configdir@/menuentry_bootfloppy.y2cc
+@clientdir@/bootfloppy.ycp
+%doc @docdir@/*
 
 # lilo
-%dir @YAST2DIR@/include/lilo
-@YAST2DIR@/include/lilo/*.ycp
-@YAST2DIR@/clients/lilo*.ycp
-@YAST2DIR@/menuentries/menuentry_lilo.y2cc
-@YAST2DIR@/modules/Lilo.ycp
+%dir @yincludedir@/lilo
+@yincludedir@/lilo/*.ycp
+@clientdir@/lilo*.ycp
+@configdir@/menuentry_lilo.y2cc
+@moduledir@/Lilo.ycp
 
 #installation
-@YAST2DIR@/scrconf/cfg_bootloader.scr
-@YAST2DIR@/clients/inst_bootloader.ycp
-@YAST2DIR@/clients/proposal_bootloader.ycp
-@YAST2DIR@/modules/Boot.ycp
+@scrconfdir@/cfg_bootloader.scr
+@clientdir@/inst_bootloader.ycp
+@clientdir@/proposal_bootloader.ycp
+@moduledir@/Boot.ycp
 
 %ifarch ppc ppc64
-@YAST2DIR@/ppc_postinstall.sh
-@YAST2DIR@/modules/BootPPC.ycp
+@ybindir@/ppc_postinstall.sh
+@moduledir@/BootPPC.ycp
 %endif
 %ifarch sparc sparc64
-@YAST2DIR@/bin/dosilo
-@YAST2DIR@/modules/BootSILO.ycp
+@ybindir@/dosilo
+@moduledir@/BootSILO.ycp
 %endif
 %ifarch ia64
-@YAST2DIR@/bin/doelilo
-@YAST2DIR@/modules/BootELILO.ycp
+@ybindir@/doelilo
+@moduledir@/BootELILO.ycp
 %endif
 %ifarch alpha
-@YAST2DIR@/bin/doaboot
-@YAST2DIR@/bin/domilo
-@YAST2DIR@/modules/BootMILO.ycp
-@YAST2DIR@/modules/BootABOOT.ycp
+@ybindir@/doaboot
+@ybindir@/domilo
+@moduledir@/BootMILO.ycp
+@moduledir@/BootABOOT.ycp
 %endif
 %ifarch s390 s390x
-@YAST2DIR@/modules/BootS390.ycp
+@moduledir@/BootS390.ycp
 %endif
 %ifarch i386 x86_64
-@YAST2DIR@/bin/mk_boot_floppy
-@YAST2DIR@/bin/mk_lilo_conf
-@YAST2DIR@/bin/update_lilo_conf
-@YAST2DIR@/bin/dolilo
-@YAST2DIR@/modules/BootLILO.ycp
+@ybindir@/mk_boot_floppy
+@ybindir@/mk_lilo_conf
+@ybindir@/update_lilo_conf
+@ybindir@/dolilo
+@moduledir@/BootLILO.ycp
 %endif
 
