@@ -767,7 +767,9 @@
             }
             else
             {
+		Progress::off ();
                 Read ();
+		Progress::on ();
 		if (Mode::update)
 		{
 		    Update ();
