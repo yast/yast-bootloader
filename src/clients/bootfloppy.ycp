@@ -376,6 +376,7 @@ and File Systems (modules disk 4)"))),
 			if (filename == nil)
 			{
 			    Report::Error ("Selected image doesn't exist on installation medium.");
+			    ret = nil;
 			}
 		    }
 		}
