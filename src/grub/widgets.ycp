@@ -199,6 +199,7 @@
       */
     global define void sectionsRead () ``{
 	sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
+	UI::SetFocus (`id (`sects));
     }
 
     /**
@@ -280,11 +281,6 @@
 		BootCommon::tmp_store["globals", "default"] = 0;
 	    sectionsRedrawTable (sects);
 	}
-/*	else if (op == `reset && resetSectsPopup ())
-	{
-	    BootCommon::fetchSettings ();
-	    sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
-	}*/
         if (contains (tosave, op) && op != `edit && op != `add)
         {
             BootCommon::markOptionChanged (`global, "__sections");
@@ -296,6 +292,7 @@
                 = eval (BootCommon::tmp_store["changed_all_sects"]:$[]);
             y2milestone ("Restoring changed to %1", BootCommon::changed_settings);
         }
+	UI::SetFocus (`id (`sects));
     }
 
 // password widge
@@ -441,8 +438,8 @@
 	    }
 	    else if (op == `add)
 	    {
-		// textentry header
 		term popup = `VBox (`VSpacing (1),
+		    // textentry header
 		    `TextEntry (`id (`devname), _("&Device")),
 		    `VSpacing (1),
 		    `HBox (`HStretch (),
@@ -518,6 +515,7 @@
 	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 	    disks_order = nil;
 	}
+	UI::SetFocus (`id (`disks));
 	return op;
     }
 
@@ -755,12 +753,14 @@
             `item (`id (`propose), _("&Propose new configuration")),
 		// menubutton item
             `item (`id (`scratch), _("&Start from scratch")),
+	];
+	if (Mode::normal || Mode::config)
+	    items = add (items,
 		// menubutton item
-            `item (`id (`reread), _("&Reread configuration from disk")),
-	    `item (`id (`propose_deep),
+		`item (`id (`reread), _("&Reread configuration from disk")));
+	items = add (items, `item (`id (`propose_deep),
 		// menubutton item
-                _("Propose new configuration and merge existing menus")),
-        ];
+		_("Propose and &merge with existing GRUB menus")));
 	map ret = BootCommon::getGlobalSectionWidget ();
 	ret["widget"] = (`HBox (`HSpacing (2), `VBox (
                     `Table (`id (`settings), `opt (`immediate, `notify, `keepSorting),

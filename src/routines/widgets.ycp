@@ -414,6 +414,7 @@
       */
     global define void sectionsRead () ``{
 	sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
+	UI::SetFocus (`id (`sects));
     }
 
     /**
@@ -506,6 +507,7 @@
 		= eval (BootCommon::tmp_store["changed_all_sects"]:$[]);
 	    y2milestone ("Restoring changed to %1", BootCommon::changed_settings);
 	}
+	UI::SetFocus (`id (`sects));
     }
 
     /**
@@ -636,7 +638,7 @@
 	if (/*Mode::initial &&*/ BootCommon::getLoaderType (false) == "grub")
 	    items = add (items, `item (`id (`propose_deep),
 		// menubutton item, keep as short as possible
-		_("Propose a New Configuration and Merge with Other Existing Linux Menus")));
+		_("Propose a New Configuration and &Merge with Other Existing Linux Menus")));
 	return $[
 	    "widget" : `HBox (`HStretch (),
 //		`MenuButton (`id (`restore), _("Res&et"), items),

@@ -804,6 +804,7 @@
 	}
 	if (repl_mbr && BootCommon::location != "mbr")
 	{
+	    y2milestone ("Copying generic MBR code to MBR");
 	    ret = ret && (0 == SCR::Execute (.target.bash, sformat (
 		"/bin/dd bs=446 count=1 if=%1 of=%2",
 		    "/usr/share/YaST2/data/mbr", BootCommon::mbrDisk)));
@@ -865,6 +866,18 @@
 	added = BootCommon::difflist (added, old);
 	old = merge (old, added);
 	return mergestring (old, " ");
+    }
+
+    /**
+      * Check whether settings were changed and if yes, ask for exit
+      * without saving
+      * @return true if shall exit
+      */
+    global define boolean confirmAbort () ``{
+	if ((! changed) || confirmAbortPopup ())
+	    return true;
+	else
+	    return false;
     }
 
 } //end of include
