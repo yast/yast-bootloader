@@ -28,6 +28,9 @@ Summary:	Bootloader installation and configuration
 
 @CLEAN@
 
+%post
+%{fillup_only -an bootloader }
+
 %files
 %defattr(-,root,root)
 
@@ -78,6 +81,8 @@ Summary:	Bootloader installation and configuration
 @plugindir@/libpy2ag_liloconf.so
 @plugindir@/libpy2ag_liloconf.la
 %docdir @docdir@
+
+/var/adm/fillup-templates/*
 
 #installation
 #@scrconfdir@/cfg_bootloader.scr

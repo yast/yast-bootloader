@@ -4,4 +4,8 @@
 
 scrconf_DATA = $(patsubst $(srcdir)/%,%,$(wildcard $(srcdir)/*.scr))
 
-EXTRA_DIST = $(scrconf_DATA)
+fillup_DATA = sysconfig.bootloader
+
+fillupdir = /var/adm/fillup-templates
+
+EXTRA_DIST = $(scrconf_DATA) $(fillup_DATA) 
