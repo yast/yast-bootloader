@@ -35,12 +35,12 @@
     import "Bootloader";
 
     /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
+      * Handle function of a widget
+      * @param widget any widget key
+      * @param event map event description of event that occured
+      * @return symbol to return to wizard sequencer, or nil
       */
-    global define symbol resetButtonHandle (any widget_id, map event) ``{
+    global define symbol resetButtonHandle (any widget, map event) ``{
 	any op = event["ID"]:nil;
         if (op == `restore_mbr)
         {
@@ -176,12 +176,11 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
     }
 
     /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
+      * Store function of a widget
+      * @param opt_id any option id
+      * @param opt_key any option key
       */
-    global define any loaderTypeStore (any opt_id, any opt_key) ``{
+    global define void loaderTypeStore (any opt_id, any opt_key) ``{
 
 	string old_bl = Bootloader::getLoaderType ();
 	string new_bl = UI::QueryWidget (`id (`loader_type), `Value);
@@ -203,7 +202,7 @@ Proceed?
 		BootCommon::setLoaderType ("none");
 		BootCommon::location_changed = true;
 	    }
-	    return nil;
+	    return;
 	}
 
 	symbol action = askSwitch (old_bl, new_bl, `user);
@@ -234,7 +233,6 @@ Proceed?
 	}
 	BootCommon::location_changed = true;
 	BootCommon::redraw_table = true;
-	return nil;
     }
 
     /**

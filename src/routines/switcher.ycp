@@ -181,26 +181,4 @@
 	return eval (toEval);
     }
 
-    /**
-      * Get bootloader's list options
-      * @return map of bootloader options
-      */
-    global define map blOptions () ``{
-	map functions = getFunctions (BootCommon::getLoaderType (false));
-	term toEval = functions["getoptions"]:``(BootCommon::GetOptions ());
-	return eval (toEval);
-    }
-
-    /**
-      * Update list of optoins to show in table
-      * @param options map of options including order
-      * @return list of option to show
-      */
-    global define list blUpdateOptionsList (list options) ``{
-	map functions = getFunctions (BootCommon::getLoaderType (false));
-	term toEval = functions["updoptlst"]:``(
-	    BootCommon::UpdateOptionsList ());
-	toEval = add (toEval, options);
-	return eval (toEval);
-    }
 }

@@ -165,7 +165,7 @@ Replace it with an entry  to boot from the floppy?");
                 "help": BootCommon::getGlobalSectionHelp (),
                 "fallback" : $[
                     "init": ``(BootCommon::commonPopupInit ()),
-                    "store": ``(BootCommon::commonPopupSave ()),
+                    "store": ``(BootCommon::commonPopupStore ()),
                     "summary": ``(BootCommon::commonTableEntrySummary ()),
                     "changed" : ``(BootCommon::commonTableChanged ()),
                 ],
@@ -178,6 +178,7 @@ Replace it with an entry  to boot from the floppy?");
 
     /**
       * Create a list of options for the table
+      * @param descr map description of the table
       * @return list of option ids as it should be displayed
       */
     global define list getTableContents (map descr) ``{
@@ -307,7 +308,8 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Read function of a widget
+      * Init function of widget
+      * @param widget_id any id of the widget
       */
     global define void sectionsInit (any widget_id) ``{
 	sectionsRedrawTable (BootCommon::current_sections);
@@ -315,12 +317,12 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
+      * Handle function of a widget
+      * @param widget_id any widget key
+      * @param event map event description of event that occured
+      * @return symbol to return to wizard sequencer, or nil
       */
-    global define any sectionsHandle (any widget_id, map event) ``{
+    global define symbol sectionsHandle (any widget_id, map event) ``{
 	any op = event["ID"]:nil;
         string current = UI::QueryWidget (`id (`sects), `CurrentItem);
         integer counter = 0;
@@ -439,7 +441,7 @@ Replace it with an entry  to boot from the floppy?");
 		"summary" : ``(BootGRUB::orderSummary ()),
 		// label / table cell
 		"label" : _("Disk Order"),
-		"deletable" : false,
+		"optional" : false,
 		"help" : getDiskOrderHelp (),
 		"key_only_once" : true,
 	    ],
@@ -487,8 +489,10 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Summary function for option
-      * @return string summary text
+      * Summary function of a table entry
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @return string summary to the table
       */
     global define string orderSummary (any opt_id, any opt_key) ``{
 	disks_order = getDisksOrder ();
@@ -496,7 +500,9 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Restore function of widget
+      * Init function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
       */
     global define void initOrderPopup (any opt_id, any opt_key) ``{
         disks_order = getDisksOrder ();
@@ -510,11 +516,11 @@ Replace it with an entry  to boot from the floppy?");
 
     /**
       * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @param event map event that occured
       */
-    global define any handleOrderPopup (any opt_id, any opt_key, map event) ``{
+    global define void handleOrderPopup (any opt_id, any opt_key, map event) ``{
 	any op = event["ID"]:nil;
 	string active = UI::QueryWidget (`id (`disks), `CurrentItem);
 	integer pos = 0;
@@ -576,10 +582,14 @@ Replace it with an entry  to boot from the floppy?");
 	    }
 
 	UI::SetFocus (`id (`disks));
-	return nil;
     }
 
-    global define any storeOrderPopup (any opt_id, any opt_key) ``{
+    /**
+      * Store function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void storeOrderPopup (any opt_id, any opt_key) ``{
             list(list(string)) dl = filter (list(string) i, device_map,
                 ``(substring (i[0]:"", 0, 3) == "(hd"));
             dl=sort (list(string) a, list(string) b, dl, ``(a[0]:"" < b[0]:""));
@@ -620,7 +630,6 @@ Replace it with an entry  to boot from the floppy?");
 	    BootCommon::mbrDisk = disks_order[0]:BootCommon::mbrDisk;
 	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 	    disks_order = nil;
-
     }
 
     /**
@@ -673,7 +682,7 @@ Replace it with an entry  to boot from the floppy?");
 		"help": BootCommon::getSingleSectionHelp (),
 		"fallback" : $[
 		    "init": ``(BootCommon::commonPopupInit ()),
-		    "store": ``(BootCommon::commonPopupSave ()),
+		    "store": ``(BootCommon::commonPopupStore ()),
 		    "summary": ``(BootCommon::commonTableEntrySummary ()),
 		    "changed" : ``(BootCommon::commonTableChanged ()),
 		],
@@ -695,7 +704,7 @@ Replace it with an entry  to boot from the floppy?");
 		// table item / label
 		"label" : _("Add Saved MBR to Boot Loader Menu"),
 		"summary" : ``(BootGRUB::addOrigMbrSummary ()),
-		"deletable" : false,
+		"optional" : false,
 		"ordering" : false,
 		"key_only_once" : true,
 	    ],
@@ -709,7 +718,9 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Restore function of widget
+      * Init function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
       */
     global define void addOrigMbrInit (any opt_id, any opt_key) ``{
         UI::ChangeWidget (`id (`value), `Value, insert_saved_mbr);
@@ -717,10 +728,9 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
+      * Store function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
       */
     global define void addOrigMbrStore (any opt_id, any opt_key) ``{
         insert_saved_mbr = UI::QueryWidget (`id (`value), `Value);
@@ -751,8 +761,10 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
-      * Summary function for option
-      * @return string summary text
+      * Summary function of a table entry
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @return string summary to the table
       */
     global define string addOrigMbrSummary (any opt_id, any opt_key) ``{
         if (insert_saved_mbr)

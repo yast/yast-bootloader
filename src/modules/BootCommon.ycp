@@ -473,6 +473,11 @@ configuration files"));
 
 // bootloader type handling functions
 
+    /**
+      * Set attributes of specified bootloader to variable containing
+      * attributes of currently used bootloader, call its initializer
+      * @param loader_type string loader type to initialize
+      */
     define void setCurrentLoaderAttribs (string loader_type) ``{
 	if (bootloader_attribs[loader_type, "initializer"]:nil != nil)
 	{
