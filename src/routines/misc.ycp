@@ -715,9 +715,11 @@
         if (BootCommon::location == "mbr")
             return BootCommon::mbrDisk;
         if (BootCommon::location == "boot")
-            return BootCommon::BootPartitionDevice;
+            return BootCommon::getDeviceOfRaid (
+		BootCommon::BootPartitionDevice);
         if (BootCommon::location == "root")
-            return BootCommon::RootPartitionDevice;
+            return BootCommon::getDeviceOfRaid (
+		BootCommon::RootPartitionDevice);
         if (BootCommon::location == "floppy")
             return StorageDevices::FloppyDevice;
 	if (BootCommon::location == "none")

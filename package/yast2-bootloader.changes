@@ -1,7 +1,10 @@
 -------------------------------------------------------------------
-Fri Sep  5 08:20:38 CEST 2003 - jsrain@suse.de
+Fri Sep  5 15:10:35 CEST 2003 - jsrain@suse.de
 
 - merged texts from proofread
+- fixed configuration proposal when root or boot partition is on md
+  (#30122)
+- 2.8.14
 
 -------------------------------------------------------------------
 Thu Sep  4 12:37:04 CEST 2003 - jsrain@suse.de
