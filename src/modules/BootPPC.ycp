@@ -229,7 +229,7 @@ global boolean currentBoardUpdate () {
 	{
 	    return [];
 	}
-	string append = sformat ("%1 %2", Kernel::cmdLine, "selinux=0");
+	string append = sformat ("%1 %2", Kernel::GetCmdLine (), "selinux=0");
 	if (ProductFeatures::io_scheduler != "")
 	{
 	    append = BootCommon::setKernelParamToLine (append, "elevator",
@@ -238,7 +238,7 @@ global boolean currentBoardUpdate () {
 	// always server product, FIXME when it changes
 	append = BootCommon::setKernelParamToLine (append, "desktop", "false");
 	list<map> section = [
-	    $[ "key" : "image", "value" : "/boot/" + Kernel::binary ],
+	    $[ "key" : "image", "value" : "/boot/" + Kernel::GetBinary ()],
 	    $[ "key" : "label", "value" : "linux" ],
 	    $[ "key" : "root", "value" : BootCommon::RootPartitionDevice ],
 	    $[ "key" : "initrd", "value" : "/boot/initrd" ],
@@ -557,7 +557,7 @@ global boolean currentBoardUpdate () {
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
 	    createSections ();
-	    BootCommon::kernelCmdLine = Kernel::cmdLine;
+	    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
 	}
 	else
 	{
