@@ -427,11 +427,32 @@
     global define boolean Write () ``{
 	// FIXME this should be only temporary
 	SCR::Execute (.target.bash, sformat ("
-	    test -f /boot/vmlinuz && cp /boot/vmlinuz %1/vmlinuz
-	    test -f /boot/initrd && cp /boot/initrd %1/initrd
-	    test -f /etc/elilo.conf && cp /etc/elilo.conf %1/elilo.conf
-	    test -f /usr/lib/elilo/elilo.efi && cp /usr/lib/elilo/elilo.efi %1/elilo.efi
-	", getEliloConfDir ()));
+
+if [ -r /boot/efi/SuSE/elilo.efi ]; then
+  # cover up for *out-of-date* elilo package
+  mkdir -p /usr/lib/elilo
+  mv /boot/efi/SuSE/elilo.efi /usr/lib/elilo
+  rmdir /boot/efi/SuSE
+  # I don't care about later elilo-complaints on update
+fi 
+
+boot_mount_point=%1
+elilo_dir=$boot_mount_point/efi/SuSE  # => see 1) below
+mkdir -p $elilo_dir
+
+update/create /etc/elilo.conf               # => see 2) below
+# OK to use 'image=vmlinuz' (see? no '/' in there)
+
+if [ -x /sbin/elilo ]; then
+  /sbin/elilo
+else
+  # those last 2 commands may as well run 'unconditionally'
+  # (at least as long as 'elilo.conf' is not using 'versions'
+  # for 'vmlinuz' and 'initrd')
+  cp -p /etc/elilo.conf $elilo_dir    # => see 3) below
+  cp -p /usr/lib/elilo/elilo.efi /boot/{vmlinuz,initrd} $elilo_dir
+fi
+	", getEfiMountPoint ()));
 	SCR::Execute (.target.bash, "/sbin/elilo");
 	if (! create_efi_entry)
 	    return true;
