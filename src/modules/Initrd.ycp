@@ -107,10 +107,18 @@
 		changed = true;
 		modules = add (modules, modname);
 		modules_settings [modname] = Misc::SplitOptions (modargs, $[]);
+		y2milestone ("Module %1 added to initrd, now contains %2",
+		    modname, ListModules ());
+	    }
+	    else
+	    {
+		y2milestone ("Module %1 is in list of modules not to insert to initrd", modname);
 	    }
         }
-	y2milestone ("Module %1 added to initrd, now contains %2",
-	    modname, ListModules ());
+	else
+	{
+	    y2milestone ("Module %s already present in initrd", modname);
+	}
         return;
     }
 
