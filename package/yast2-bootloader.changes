@@ -2,6 +2,8 @@
 Mon Jan  5 11:32:29 CET 2004 - jsrain@suse.de
 
 - adding resume= kernel parameter for GRUB and LILO (#33640)
+- writing kernel append parameters to global section of elilo.conf
+  (IA64) (#31736)
 
 -------------------------------------------------------------------
 Wed Dec 10 14:55:12 CET 2003 - jsrain@suse.de

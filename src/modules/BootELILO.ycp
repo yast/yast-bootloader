@@ -97,7 +97,7 @@
         string image = "vmlinuz";
         string append = title == "failsafe"
             ? "ide=nodma"
-            : sformat ("%1 splash=silent", Kernel::cmdLine);
+            : "";
 	list <string> split = BootCommon::splitPath (initrd);
 	initrd = split[1]:initrd;
 	split = BootCommon::splitPath (image);
@@ -108,7 +108,6 @@
             $[ "key" : "initrd", "value" : initrd],
             $[ "key" : "root", "value" : BootCommon::dev2majmin (
 		BootCommon::RootPartitionDevice)],
-            $[ "key" : "append", "value" : append],
             $[ "key" : "__intern__", "value" : $[
                 "auto" : true,
                 "changed" : false,
@@ -116,6 +115,8 @@
 		"type" : title,
             ]],
         ];
+	if (append != "")
+	    ret = add (ret, $[ "key" : "append", "value" : append]);
         if (Kernel::vgaType != "" && title != "failsafe")
             ret = add (ret, $["key" : "vga", "value" : Kernel::vgaType]);
         return ret;
@@ -152,6 +153,8 @@
 	    $[ "key" : "read-only", "value" : true ],
 	    $[ "key" : "relocatable", "value" : true ],
 	    $[ "key" : "default", "value" : translateSectionTitle ("linux") ],
+	    $[ "key" : "append",
+		"value" : sformat ("%1 splash=silent", Kernel::cmdLine) ],
 	];
     }
 
@@ -370,7 +373,12 @@
             }
             return s;
         });
-	BootCommon::liloUpdateAppend ();
+	BootCommon::globals = modifySection (BootCommon::globals,
+	    "append",
+	    BootCommon::updateKernelParams (
+		(string)lookup_value (s, "append", "")
+	    )
+	);
         boolean ret = BootCommon::Save ();
         return ret;
     }
