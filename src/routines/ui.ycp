@@ -156,8 +156,10 @@
 	    `VSpacing (1)
         ), `HSpacing (1));
         UI::OpenDialog (contents);
-	UI::SetFocus (`id (`value_rp));
-	eval (widget_data["restore"]:nil);
+	if (widget_data["restore"]:nil != nil)
+	    eval (widget_data["restore"]:nil);
+	else
+	    UI::SetFocus (`id (`value));
         any ret = nil;
         while (ret != `ok && ret != `cancel)
         {
@@ -171,7 +173,7 @@
 		    eval (toEval);
 		}
 		else
-		    UI::SetFocus (`id (`value_rp));
+		    UI::SetFocus (`id (`value));
 	    }
 	    if (ret == `ok)
 	    {
@@ -283,10 +285,16 @@
         {
             ret = singleOptionEditPopup (
 		BootCommon::tmp_store["section_type"]:"image", "");
-	    if (ret == `ok)
+	    if (ret == `ok
+		&& ! contains (
+		    BootCommon::tmp_store["active_section", "__order__"]:[],
+		    selected_opt)
+		)
+	    {
 		BootCommon::tmp_store["active_section", "__order__"] = add (
 		    BootCommon::tmp_store["active_section", "__order__"]:[],
 		    selected_opt);
+	    }
         }
         else if (op == `delete && confirmOptionDeletePopup ())
         {
