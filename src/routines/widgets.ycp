@@ -43,8 +43,10 @@
 	integer index = (integer)opt_id;
 	if (index != nil)
 	{
-	    UI::ChangeWidget (`id (opt_key), `Value,
-		BootCommon::current_section[index, "value"]:"");
+	    any value = BootCommon::current_section[index, "value"]:nil;
+	    if (value == nil)
+		value = "";
+	    UI::ChangeWidget (`id (opt_key), `Value, value);
 	}
 	UI::SetFocus (`id (opt_key));
     }
@@ -102,16 +104,18 @@
 	if (is (opt_id, integer))
 	{
 	    integer opt_id_int = (integer)opt_id;
-	    if (is (BootCommon::current_section[opt_id_int, "value"]:"", boolean))
+	    any value = BootCommon::current_section[opt_id_int, "value"]:nil;
+	    if (value == nil)
+		value = "";
+	    if (is (value, boolean))
 	    {
-		return BootCommon::current_section[opt_id_int,"value"]:false
+		return (boolean)value
 		    // table item
 		    ? _("Yes")
 		    // table item
 		    : _("No");
 	    }
-	    return sformat ("%1",
-		BootCommon::current_section[opt_id_int, "value"]:"");
+	    return sformat ("%1", value);
 	}
 	return "";
     }

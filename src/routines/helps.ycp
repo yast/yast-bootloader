@@ -167,7 +167,7 @@ The boot manager (%1) can be installed in the following ways:
 
 	// custom bootloader help text, 2 of 7
 	helptext = helptext + _("<p>
-- In the <b>MBR</b> (the Master Boot Record).  This is recommended whenever SuSE Linux
+- In the <b>MBR</b> (the Master Boot Record).  This is recommended whenever &Product
 determines the system can be booted this way.
 </p>
 ");
@@ -178,7 +178,7 @@ determines the system can be booted this way.
 have several operating systems installed on your hard drive and want to
 continue using your old boot manager, such as <tt>loadlin</tt>. 
 The code currently in your MBR remains unchanged.<br>
-Configure your <b>other boot manager</b> to start SuSE Linux.
+Configure your <b>other boot manager</b> to start &product;.
 </p>
 ");
 

@@ -701,7 +701,7 @@
 	string mp = "";
 	integer max = 0;
 	foreach (string k, list v, mountpoints, ``{
-	    if (issubstring (fullpth, k) && size (k) > max)
+	    if (k != "swap" && issubstring (fullpth, k) && size (k) > max)
 	    {
 	        max = size (k);
 	        dev = v[0]:"";
@@ -735,7 +735,7 @@
 	if (substring (devpth[1]:"", 0, 1) != "/")
 	    devpth[1] = "/" + devpth[1]:"";
         foreach (string k, list v, mountpoints, ``{
-	    if (v[0]:"" == devpth[0]:"")
+	    if (k != "swap" && v[0]:"" == devpth[0]:"")
 	    {
 		if (substring (k, size (k) - 1, 1) == "/")
 		    k = substring (k, 0, size (k) - 1);
