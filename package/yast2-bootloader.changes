@@ -5,6 +5,8 @@ Thu Aug  7 10:10:38 CEST 2003 - jsrain@suse.de
 - not offering to replace partition booting from HDD with partition
   for booting from floppy when changed GRUB location to other disk
   partition if entry for booting from HDD doesn't exist
+- fixed proposing of LILO configuration (put multiple times into
+  quotes, some options weren't displayed correctly in summary table)
 
 -------------------------------------------------------------------
 Mon Aug  4 15:56:18 CEST 2003 - jsrain@suse.de

@@ -842,7 +842,7 @@
 	else if (bl == "ppc")
 	    bl = "lilo";
 	// first synchronize global settings
-	list options = maplist (`o, globals, ``{
+	list options = maplist (`o, eval (globals), ``{
 	    string key = o["key"]:"";
 	    any value = ui2mod (o["value"]:"");
 	    if (isSpecial (key))
@@ -864,7 +864,7 @@
 	foreach (`s, sections, ``{
 	    string title = "";
 	    string sect_type = getCreationType (s);
-	    options = maplist (`o, s, ``{
+	    options = maplist (`o, eval (s), ``{
 		string key = o["key"]:"";
 		any value = ui2mod (o["value"]:"");
 		if (key == getSectionTitle ())
