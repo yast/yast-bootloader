@@ -616,7 +616,7 @@ and the sector to which the boot loader is installed."),
 		"ordering" : false,
 		"unique_key" : true,
 	    ],
-	    "option" : $[
+	    "popup" : $[
 		"widget" : `textentry,
 		"validate_type" : `function,
 		"validate_function" : ``(BootCommon::labelValidate ()),
