@@ -2,6 +2,8 @@
 Mon Jan 31 11:40:43 CET 2005 - jsrain@suse.cz
 
 - removed code obsolete after using the bootloader library
+  (including the LILO agent)
+- adapted to new filenames in GFX menu
 
 -------------------------------------------------------------------
 Fri Jan 28 13:46:53 CET 2005 - jsrain@suse.cz

@@ -1818,12 +1818,12 @@
 	    boot_theme);
 	// get available languages, check if selected is supported
 	list<string> files = (list<string>)SCR::Read (.target.dir, data_dir);
-	list<string> helps = filter (string f, files, ``(
-	    substring (f, 0, 5) == "help."
-	));
-	list<string> texts = filter (string f, files, ``(
-	    substring (f, 0, 6) == "texts."
-	));
+	list<string> helps = filter (string f, files, {
+	    return regexpmatch (f, "\\.hlp$");
+	});
+	list<string> texts = filter (string f, files, {
+	    return regexpmatch (f, "\\.tr$");
+	});
 	helps = maplist (string h, helps, ``(substring (h, 5, 2)));
 	texts = maplist (string t, texts, ``(substring (t, 5, 2)));
 	y2debug ("Texts available for %1", texts);

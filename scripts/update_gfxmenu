@@ -1,7 +1,7 @@
 #!/bin/bash
 #Update /boot/message to contain help for actual language
 #$1 is tmp dir to work in
-#$2 is localw in longer form (eg. cs_CZ)
+#$2 is locale in longer form (eg. cs_CZ)
 #$3 is locale in shorter form (eg. cs) 
 #$4 is directory with sources (usually /etc/bootsplash/themes/SuSE/bootloader)
 #$5 is file containing translation of names of bootloaer entries
@@ -22,12 +22,12 @@ cd gfxmenu || exit 3;
 # set default language
 echo $LOCALE >lang || exit 5
 # replace original texts with localized
-rm `ls texts* | grep -v texts.en`
-rm `ls help* | grep -v help.en`
-test -f $SCR_DIR/texts.$LOCALE && cp $SRC_DIR/texts.$LOCALE . \
- || test -f $SRC_DIR/texts.$LOCALE_SHORT && cp $SRC_DIR/texts.$LOCALE_SHORT .
-test -f $SRC_DIR/help.$LOCALE && cp I4/help.$LOCALE . \
- || test -f $SRC_DIR/help.$LOCALE_SHORT && cp $SRC_DIR/help.$LOCALE_SHORT .
+rm `ls *tr | grep -v en.tr`
+rm `ls *hlp | grep -v en.hlp`
+test -f $SCR_DIR/$LOCALE.tr && cp $SRC_DIR/$LOCALE.tr . \
+ || test -f $SRC_DIR/$LOCALE_SHORT.tr && cp $SRC_DIR/$LOCALE_SHORT.tr .
+test -f $SRC_DIR/$LOCALE.hlp && cp I4/$LOCALE.hlp . \
+ || test -f $SRC_DIR/$LOCALE_SHORT.hlp && cp $SRC_DIR/$LOCALE_SHORT.hlp .
 # set languages to choose
 if [ "$LOCALE_SHORT" = "en" ] ; then
     echo -n "en
