@@ -89,6 +89,9 @@
 	``{
 	    return s;
 	});
+	// global options stuff
+	exp["specific", "global"] = ai["global"]:[];
+
 	string default_key = BootCommon::getDefaultKey ();
 	if (haskey (ai, "default"))
 	{
@@ -202,7 +205,24 @@
 	    s = (list<map<string,any> >)filter (map<string,any> o, s, ``(
 		o["key"]:"" != "__intern__"
 	    ));
+	    s = maplist (map<string,any> o, s, ``{
+		return $[
+		    "key" : o["key"]:"",
+		    "value" : o["value"]:(any)"",
+		];
+	    });
 	    return s;
+	});
+	// global options stuff
+	ai["global"] = filter (map<string,any> o, exp["specific", "global"]:[],
+	{
+	    return o["key"]:"" != "__intern__";
+	});
+	ai["global"] = maplist (map<string,any> o, ai["global"]:[], ``{
+	    return $[
+		"key" : o["key"]:"",
+		"value" : o["value"]:(any)"",
+	    ];
 	});
 	string default = nil;
 	string default_key = BootCommon::getDefaultKey ();
