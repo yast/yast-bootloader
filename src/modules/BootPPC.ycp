@@ -313,7 +313,11 @@
       * modifies internal sreuctures
       */
     global define void updateGlobals () ``{
-	return;
+	BootCommon::globals = maplist (map e, BootCommon::globals, ``{
+	    if (e["key"]:"" == "boot")
+		e["value"] = BootCommon::UpdateDevice (e["value"]:"");
+	    return e;
+	});
     }
 
     /**

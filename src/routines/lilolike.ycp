@@ -618,20 +618,27 @@
 	list<map>(string) create_linux_section)
     ``{
 	list<list<map> > out = BootCommon::sections;
+	list<string> recreated = [];
+	boolean linux_resume_added = false;
 
 	foreach (string t, ["linux", "failsafe", "memtest86"], ``{
 	    list<map> m = create_linux_section (t);
 	    boolean f_changed = false;
 	    out = maplist (list<map> s, out, ``{
 		map intern = (map)lookup_value (s, "__intern__", $[]);
+		string label = (string)
+		    lookup_value (s, BootCommon::getSectionTitle (), "");
 		string sect_type = intern["type"]:"";
 		if (sect_type == "")
-		    sect_type = (string)lookup_value (s, "label", "");
+		    sect_type = label;
 		if (sect_type == t)
 		{
 		    f_changed = true;
 		    if (replace && m != [])
+		    {
+			recreated = add (recreated, label);
 			return m;
+		    }
 		    else if (t == "linux")
 		    {
 			string append = (string)lookup_value (s, "append", "");
@@ -642,6 +649,7 @@
                             append = BootCommon::setKernelParamToLine (append,
                                 "resume", BootCommon::getLargestSwapPartition ());
                             s = modifySection (s, "append", append);
+			    linux_resume_added = true;
                         }
                         return s;
                     }
@@ -654,24 +662,35 @@
 		}
 	    });
             if (! f_changed && m != [])
+	    {
+		recreated = (list<string>)add (recreated, (string)
+		    lookup_value (m, BootCommon::getSectionTitle (), ""));
                 if (t == "linux")
                     out = prepend (out, m);
                 else
                     out = add (out, m);
+	    }
         });
 
         out = maplist (list<map> s, out, ``{
 	    string type = "";
+	    string label = "";
 	    foreach (map p, s, ``{
-		if (p["key"]:"" == "label" && type == "")
-		    type = p["value"]:"";
+		if (p["key"]:"" == BootCommon::getSectionTitle ())
+		{
+		    label = p["value"]:"";
+		    if (type == "")
+			type = label;
+		}
 		if (p["key"]:"" == "__intern__")
 		    type = p["value", "type"]:type;
 	    });
             s = maplist (map p, s, ``{
+		string option = "";
+		if (p["key"]:"" != "__intern__")
+		    option = p["value"]:"";
 		if (p["key"]:"" == "image" || p["key"]:"" == "initrd")
 		{
-		    string option = p["value"]:"";
 		    if (regexpmatch (option, "^.*\.shipped.*$"))
 		    {
 			option = regexpsub (option,
@@ -682,11 +701,9 @@
 			option = regexpsub (option,
 			    "^(.*)\.suse(.*)$", "\\1\\2");
 		    }
-		    p["value"] = option;
 		}
 		else if (type == "linux" && p["key"]:"" == "append")
 		{
-		    string option = p["value"]:"";
 			if (! issubstring (option, "desktop"))
 			{
 			    if (ProductFeatures::use_desktop_scheduler)
@@ -702,8 +719,41 @@
 			}
 			if (! issubstring (option, "splash"))
 			    option = option + " splash=silent";
-		    p["value"] = option;
 		}
+		else if (p["key"]:"" == "root" || p["key"]:"" == "other")
+		{
+		    if ((contains (BootCommon::update_section_types, type)
+			    && ! contains (recreated, label))
+			|| p["key"]:"" == "other")
+		    {
+			string device = option;
+			if (device != nil)
+			{
+			    device = BootCommon::UpdateDevice (device);
+			    option = device;
+			}
+		    }
+		}
+		// else cannot be here - see conditions above
+		if (p["key"]:"" == "append"
+		    && contains (BootCommon::update_section_types, type)
+		    && ! contains (recreated, label))
+		{
+		    if (type != "linux" || ! linux_resume_added)
+		    {
+			string resume
+			    = BootCommon::getKernelParamFromLine (
+				option, "resume");
+			if (resume != "false")
+			{
+			    resume = BootCommon::UpdateDevice (resume);
+			    option = BootCommon::setKernelParamToLine (
+				option, "resume", resume);
+			}
+		    }
+		}
+		if (p["key"]:"" != "__intern__")
+		    p["value"] = option;
 		return p;
             });
 	    return s;
@@ -720,7 +770,8 @@
     global define void liloRemoveUnexistentSections (string path_prefix,
 	string relative_path_prefix) ``{
 	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``{
-	    string label = (string)lookup_value (s, "label", "");
+	    string label = (string)
+		lookup_value (s, BootCommon::getSectionTitle (), "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
             if (label == "")
@@ -755,7 +806,8 @@
     global define void liloUpdateInitrd () ``{
         BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
             string initrd = (string)lookup_value (s, "initrd", "");
-	    string title = (string)lookup_value (s, "label", "");
+	    string title = (string)
+		lookup_value (s, BootCommon::getSectionTitle (), "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
 

@@ -124,8 +124,12 @@
 	string vgastring = Kernel::vgaType != ""
 	    ? sformat ("vga=%1", Kernel::vgaType)
 	    : "";
-	string resumestring = sformat ("resume=%1",
-	    BootCommon::getLargestSwapPartition ());
+	string resumestring = "";
+	if (BootCommon::getLargestSwapPartition () != "")
+	{
+	    resumestring = sformat ("resume=%1",
+		BootCommon::getLargestSwapPartition ());
+	}
 	// not using .shipped images any more
 	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
 	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
@@ -412,23 +416,29 @@
       */
     global define void updateSections (boolean replace) ``{
 	list<list<map> > out = BootCommon::sections;
+	list<string> recreated = [];
+	boolean linux_resume_added = false;
 
 	foreach (string t, ["linux", "failsafe", "memtest86"], ``{
 	    list<map> m = createLinuxSection (t);
 	    boolean changed = false;
 	    out = maplist (list<map> s, out, ``{
 		map intern = (map)lookup_value (s, "__intern__", $[]);
-		string sect_type = intern["type"]:"";
+		string title = (string)lookup_value (s, "title", "");
+		string sect_type = (string)intern["type"]:"";
 		if (sect_type == "")
-		    sect_type = (string)lookup_value (s, "label", "");
+		    sect_type = title;
 		if (sect_type == t)
 		{
 		    changed = true;
-		    if (replace)
+		    if (replace && m != [])
+		    {
+			recreated = add (recreated, title);
 			return m;
+		    }
 		    else if (t == "linux")
 		    {
-			string kernel = (string)lookup_value (s, "kernel", "");
+		        string kernel = (string)lookup_value (s, "kernel", "");
 			string resume = BootCommon::getKernelParamFromLine (
 			    kernel, "resume");
 			if (! haskey (BootCommon::getSwapPartitions (), resume))
@@ -436,6 +446,7 @@
 			    kernel = BootCommon::setKernelParamToLine (kernel,
 				"resume", BootCommon::getLargestSwapPartition ());
 			    s = modifySection (s, "kernel", kernel);
+			    linux_resume_added = true;
 			}
 			return s;
 		    }
@@ -448,16 +459,25 @@
 		}
 	    });
 	    if (! changed)
-		if (t == "normal")
+	    {
+		recreated = (list<string>)add (recreated,
+		    (string)lookup_value (m, "title", ""));
+		if (t == "linux")
 		    out = prepend (out, m);
 		else
 		    out = add (out, m);
+	    }
 	});
 	out = maplist (list<map> s, out, ``{
 	    string type = "";
+	    string title = "";
 	    foreach (map p, s, ``{
-		if (p["key"]:"" == "title" && type == "")
-		    type = p["value"]:"";
+		if (p["key"]:"" == "title")
+		{
+		    title = p["value"]:"";
+		    if (type == "")
+			type = title;
+		}
 		if (p["key"]:"" == "__intern__")
 		    type = p["value", "type"]:type;
 	    });
@@ -492,6 +512,33 @@
 			}
 			if (! issubstring (option, "splash"))
 			    option = option + " splash=silent";
+		    }
+		    if (p["key"]:"" == "kernel")
+		    {
+			if (contains (BootCommon::update_section_types, type)
+			    && ! contains (recreated, title))
+			{
+			    string root = BootCommon::getKernelParamFromLine (
+				option, "root");
+			    if (root != "false")
+			    {
+				root = BootCommon::UpdateDevice (root);
+				option = BootCommon::setKernelParamToLine (
+				    option, "root", root);
+			    }
+			    if (type != "linux" || ! linux_resume_added)
+			    {
+				string resume
+				    = BootCommon::getKernelParamFromLine (
+					option, "resume");
+				if (resume != "false")
+				{
+				    resume = BootCommon::UpdateDevice (resume);
+				    option = BootCommon::setKernelParamToLine (
+					option, "resume", resume);
+				}
+			    }
+			}
 		    }
 		    p["value"] = option;
 		}
@@ -1075,8 +1122,12 @@
       * Update read settings to new version of configuration files
       */
     global define void Update () ``{
+	updateDeviceMap ();
 	updateSections (true);
 	updateGlobals ();
+	BootCommon::loader_device
+	    = BootCommon::UpdateDevice (BootCommon::loader_device);
+	grub_conf["device"] = BootCommon::UpdateDevice (grub_conf["device"]:"");
     }
     /**
       * Write bootloader settings to disk

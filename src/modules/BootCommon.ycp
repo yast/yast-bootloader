@@ -139,6 +139,9 @@
       */
     global map<string, map<string,any> > cwm_options = $[];
 
+global map<string,any> installed_version = $[];
+global map<string,any> update_version = $[];
+
 // common variables
 
     /**
@@ -248,6 +251,12 @@
       * time of last change of partitioning
       */
     global integer partitioning_last_change = 0;
+
+/**
+ * Types of sections that should be updated (changed device names)
+ */
+global list<string> update_section_types
+    = [ "linux", "failsafe", "initrd", "floppy" ];
 
 
 

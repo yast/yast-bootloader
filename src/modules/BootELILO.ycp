@@ -215,6 +215,8 @@
 		    "elevator",
 		    ProductFeatures::io_scheduler);
 	    }
+	    else if (e["key"]:"" == "boot")
+		e["value"] = BootCommon::UpdateDevice (e["value"]:"");
 	    return e;
 	});
     }

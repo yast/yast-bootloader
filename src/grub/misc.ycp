@@ -141,6 +141,19 @@
 	return mapping;
     }
 
+/**
+ * Update the device map according to changed device names
+ * @param devmap list original device map
+ * @return list updated device map
+ */
+global void updateDeviceMap () {
+    device_map = maplist (list<string> entry, device_map, {
+	entry[1] = BootCommon::UpdateDevice (entry[1]:"");
+	return entry;
+    });
+    y2milestone ("Updated device map: %1", device_map);
+}
+
     /**
      * translate UNIX device /dev/hda to grub device (hd0)
      * @param o_dev string UNIX device
