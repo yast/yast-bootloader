@@ -454,6 +454,15 @@
     }
 
     /**
+      * Set type of bootloader
+      * Just a wrapper to BootCommon::setLoaderType
+      * @param bootloader string type of bootloader
+      */
+    global define void setLoaderType (string bootloader) ``{
+	return BootCommon::setLoaderType (bootloader);
+    }
+
+    /**
       * Get root fs device
       * @return string root device
       */
