@@ -114,6 +114,8 @@
       * Reset bootloader settings
       */
     global define void Reset () ``{
+	if (Mode::autoinst)
+	    return;
 	BootCommon::was_proposed = false;
 	BootCommon::was_read = false;
 	BootCommon::location = "";

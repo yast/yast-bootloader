@@ -1,1 +1,1 @@
-SUBDIRS = routines modules lilo grub elilo config clients
+SUBDIRS = routines modules lilo grub elilo ppc config clients

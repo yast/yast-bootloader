@@ -414,6 +414,8 @@
       */
     global define map sectOptions2Map(string bl, string type, string section)
     ``{
+	if (bl == "ppc")
+	    bl = "lilo";
         path p = .;
         if (type == "")
         {
@@ -820,6 +822,8 @@
 	string bl = getLoaderType (false);
 	if (bl == "s390")
 	    bl = "zipl";
+	else if (bl == "ppc")
+	    bl = "lilo";
 	// first synchronize global settings
 	list options = maplist (`o, globals, ``{
 	    string key = o["key"]:"";
@@ -869,6 +873,8 @@
         string bl = getLoaderType (false);
 	if (bl == "s390")
 	    bl = "zipl";
+	else if (bl == "ppc")
+	    bl = "lilo";
 
         list optlist = SCR::Dir(list2path([bl]));
 
@@ -903,6 +909,8 @@
 	string bl = getLoaderType (false);
 	if (bl == "s390")
 	    bl = "zipl";
+	else if (bl == "ppc")
+	    bl = "lilo";
 	if (size (opt_types[bl]:$[]) > 0)
 	    return opt_types[bl]:$[];
 	map out = SCR::Read (list2path ([bl, "opttypes"]));
