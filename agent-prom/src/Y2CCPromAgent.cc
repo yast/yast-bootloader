@@ -1,38 +1,18 @@
+
+
 /*
- * YaST2: Core system
- *
- * Description:
- *   YaST2 SCR: Prom agent implementation
- *
- * Authors:
- *   Thorsten Kukuk <kukuk@suse.de>
- *
- * $Id$
+ *  Author: Arvin Schnell <arvin@suse.de>
  */
 
-#include "Y2CCPromAgent.h"
-#include "Y2PromAgentComponent.h"
+
+#include <scr/Y2AgentComponent.h>
+#include <scr/Y2CCAgentComponent.h>
+#include <scr/SCRInterpreter.h>
+
+#include "PromAgent.h"
 
 
-Y2CCPromAgent::Y2CCPromAgent()
-    : Y2ComponentCreator(Y2ComponentBroker::BUILTIN)
-{
-}
+typedef Y2AgentComp <PromAgent> Y2PromAgentComp;
 
+Y2CCAgentComp <Y2PromAgentComp> g_y2ccag_prom ("ag_prom");
 
-bool
-Y2CCPromAgent::isServerCreator() const
-{
-    return true;
-}
-
-
-Y2Component *
-Y2CCPromAgent::create(const char *name) const
-{
-    if (!strcmp(name, "ag_prom")) return new Y2PromAgentComponent();
-    else return 0;
-}
-
-
-Y2CCPromAgent g_y2ccag_prom;
