@@ -3,6 +3,7 @@ Thu Feb 20 09:50:57 CET 2003 - jsrain@suse.de
 
 - changed executing /sbin/mk_initrd -> /sbin/mkinitrd
 - reorganized kernel parameters when using GRUB (#23829)
+- fixed capitalization of YCC labels (#23848)
 - 2.7.9
 
 -------------------------------------------------------------------
