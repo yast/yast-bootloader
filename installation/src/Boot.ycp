@@ -28,7 +28,7 @@
      * @return list: modules for the initrd
      * (device driver and filesystem for the root partition)
      */
-    global list initrdModules = Mode::installMap["initrd_modules"]:[];
+    global list initrdModules = [];
 
     /**
      * @return string: the systems boot mode, i.e.
@@ -513,6 +513,12 @@
 
     global define void Boot()
     ``{
+	string tmp_mods = SCR::Read (.etc.install_inf.InitrdModules);
+	if (!isnil (tmp_mods))
+	{
+	    initrdModules = splitstring (tmp_mods, " ");
+	}
+
 	LoaderType = SCR::Read (.probe.boot_arch);
 	if (LoaderType == "grub" && Mode::update && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
 	{

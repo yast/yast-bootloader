@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 05 13:11:26 CEST 2002 - arvin@suse.de
+
+- changes for new /etc/install.inf agent
+
+-------------------------------------------------------------------
 Mon Aug  5 12:55:29 CEST 2002 - fehr@suse.de
 
 - make BootS390.ycp work again (was broken after 8.0 changes)
