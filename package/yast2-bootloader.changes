@@ -4,6 +4,7 @@ Tue Oct 19 13:59:33 CEST 2004 - jsrain@suse.cz
 - use unified messages from Label.ycp
 - changed boot floppy creator according to new layout of boot
   floppy disks (#43634)
+- 2.11.0
 
 -------------------------------------------------------------------
 Wed Oct 13 12:44:42 CEST 2004 - jsrain@suse.cz
