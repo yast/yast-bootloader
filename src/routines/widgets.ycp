@@ -958,7 +958,8 @@
     global define string replMbrSummary () ``{
 	if (repl_mbr)
 		// table item / label
-	    return _("Replace with Generic Code");
+	    return sformat (_("Replace %1 with Generic Code"),
+		BootCommon::mbrDisk);
 	else
 		// table item / label
 	    return _("Leave Untouched");
@@ -1012,7 +1013,9 @@
     global define string activateSummary () ``{
         if (activate)
 		// table item
-            return _("Yes");
+		// FIXME
+            return sformat (_("Yes, activate %1"),
+		lookup (BootCommon::getPartitionToActivate (), "dev", ""));
         else
 		// table item
             return _("No");
