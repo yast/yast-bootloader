@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sun Sep  8 19:47:38 CEST 2002 - mvidner@suse.cz
+
+- Fixed the testsuite.
+- 2.6.42
+
+-------------------------------------------------------------------
 Sun Sep  8 13:30:47 CEST 2002 - kkaempf@suse.de
 
 - drop "make check" for the moment.
