@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Feb 19 14:17:58 CET 2003 - jsrain@suse.de
+
+- changed color of text-mode LILO menu - now is blue
+- removed unwanted reseting of "disk" LILO option when reproposing
+  configuraition - some systems could be unbootable with LILO
+  without possibility to prevent it at installation time
+- updated ydoc comments
+- fixed conversion between GRUB and LILO (#23826)
+
+-------------------------------------------------------------------
 Mon Feb 17 15:57:17 CET 2003 - jsrain@suse.de
 
 - added popup when bootloader saved to floppy (#23571)

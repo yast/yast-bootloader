@@ -75,7 +75,7 @@
 	];
 	// progress bar caption
 	Progress::New (_("Initializing boot loader configuration tool..."),
-	    " ", 2, stages, titles, getInitProgressHelp ());
+	    " ", 3, stages, titles, getInitProgressHelp ());
 
 	Progress::NextStage ();
 	if (testAbort ())

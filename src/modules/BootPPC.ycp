@@ -265,6 +265,10 @@
 	BootCommon::DetectDisks ();
     }
 
+    /**
+      * Save all bootloader configuration files
+      * @return boolean true if success
+      */
     global define boolean Save () ``{
         if (!( Arch::board_prep || Arch::board_chrp || Arch::board_mac_new || Arch::board_iseries ))
             return true;
@@ -309,6 +313,10 @@ image = /boot/" + Kernel::binary + "
     }
 
 
+    /**
+      * Display bootloader summary
+      * @return a list of summary lines
+      */
     global define list(string) Summary () ``{
         return boot_strings;
     }
@@ -399,6 +407,11 @@ image = /boot/" + Kernel::binary + "
 //----------------------------------------------------------------------------
 
 
+    /**
+      * Update list of options to display in current section
+      * @param options map of all options (includinf order)
+      * @return list of options as should bve displayed
+      */
     global define list UpdateOptionsList (map options) ``{
         any type = BootCommon::tmp_store["section_type"]:"";
         list _options = [];
@@ -441,6 +454,10 @@ image = /boot/" + Kernel::binary + "
 	return $[];
     }
 
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
     global define map getLocationsWidget () ``{
 	map ret = BootCommon::getTargetWidget ();
 	ret["widget"] = getLocationWidget ();
@@ -451,6 +468,10 @@ image = /boot/" + Kernel::binary + "
 	return ret;
     }
 
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
     global define map getOptionsWidget () ``{
 	return $[
 	    "widget" : getOptionsDialog (),
@@ -462,7 +483,10 @@ image = /boot/" + Kernel::binary + "
 	];
     }
 
-
+    /**
+      * Get widget contents
+      * @return term widget contents
+      */
     global define term getLocationWidget () ``{
        term ppc_location = `Empty();
 
@@ -564,6 +588,9 @@ image = /boot/" + Kernel::binary + "
 	return `RadioButtonGroup (`id (`options), ppc_location);
     }
 
+    /**
+      * Read function of a widget
+      */
     global define void restoreLocationWidget () ``{
 	if ( Arch::board_iseries )
 	{
@@ -588,7 +615,13 @@ image = /boot/" + Kernel::binary + "
 	UI::ChangeWidget (`id ("ppc_nobootloader"), `Value, ! ppc_activate_bootloader);
     }
 
-    global define symbol handleLocationWidget (any op, list tosave) ``{
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param tosave list of operations, which lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any handleLocationWidget (any op, list tosave) ``{
 /*
         y2milestone("UI_Poll %1 %2", ui_poll , ui_poll != "ppc_nobootloader");
         if (Arch::board_iseries)
@@ -663,6 +696,10 @@ image = /boot/" + Kernel::binary + "
 	return op;
     }
 
+    /**
+      * Summary function for option
+      * @return string summary text
+      */
     global define string summaryLocationWidget () ``{
 	if (! ppc_activate_bootloader)
 		// table entry
@@ -677,9 +714,8 @@ image = /boot/" + Kernel::binary + "
      * provide ui code to ask LILO specific parameters
      * Input field for PROM changes and boot parameters
      *
-     * @returns: list of <uicode>
+     * @return term options dialog
      */
-
     global define term getOptionsDialog () ``{
         list ppc_params = [];
 
@@ -730,6 +766,9 @@ image = /boot/" + Kernel::binary + "
         return ret;
     }
 
+    /**
+      * Read function of a widget
+      */
     global define void restoreOptionsWidget () ``{
         if ( ( Arch::board_iseries || Arch::board_chrp ) &&
                 size (ppc_prep_boot_partitions) > 0 )
@@ -746,6 +785,12 @@ image = /boot/" + Kernel::binary + "
 	}
     }
 
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param tosave list of operations, which lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
     global define any handleOptionsWidget (any op, list tosave) ``{
 	if (! contains (tosave, op))
 	    return op;
@@ -765,6 +810,10 @@ image = /boot/" + Kernel::binary + "
 	return op;
     }
 
+    /**
+      * Summary function for option
+      * @return string summary text
+      */
     global define string summaryOptionsWidget () ``{
 	return "";
     }

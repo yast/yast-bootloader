@@ -97,12 +97,12 @@
 
     TEST (``(liloGlob2grubGlob ($[
         "timeout" : 80,
-        "gfxmenu" : "/boot/message",
+        "message" : "/boot/message",
         ])), [], 0);
 
     TEST (``(liloGlob2grubGlob ($[
         "timeout" : 80,
-        "gfxmenu" : "/boot/message",
+        "message" : "/boot/message",
 	"prompt" : "true",
         ])), [], 0);
 
