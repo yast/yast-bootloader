@@ -143,11 +143,22 @@
 		Kernel::cmdLine, resumestring, "showopts");
 	if (title != "failsafe")
 	{
-	    append = BootCommon::setKernelParamToLine (append, "splash", "silent");
+	    if (BootCommon::getKernelParamFromLine (append, "splash")
+		== "false")
+	    {
+		append = BootCommon::setKernelParamToLine (
+		    append, "splash", "silent");
+	    }
 	    if (ProductFeatures::use_desktop_scheduler)
-		append = BootCommon::setKernelParamToLine (append, "desktop", "true");
+	    {
+		append = BootCommon::setKernelParamToLine (
+		    append, "desktop", "true");
+	    }
 	    else
-		append = BootCommon::setKernelParamToLine (append, "desktop", "false");
+	    {
+		append = BootCommon::setKernelParamToLine (
+		    append, "desktop", "false");
+	    }
 	    if (ProductFeatures::io_scheduler != "")
 	    {
 		append = BootCommon::setKernelParamToLine (append, "elevator",
