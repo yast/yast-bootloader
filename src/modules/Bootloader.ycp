@@ -825,5 +825,26 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
         }
     }
 
+    /**
+     * Update the language of GFX menu according to currently selected language
+     * @reuturn boolean true on success
+     */
+    global define boolean UpdateGfxMenu () {
+	if (getLoaderType () != "lilo" && getLoaderType () != "grub")
+	    return true;
+
+	boolean ret = BootCommon::updateGfxMenu ();
+	if (getLoaderType () == "lilo")
+	{
+	    string bl_command = "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1";
+	    boolean command_ret = 0 == SCR::Execute (.target.bash, bl_command);
+	    if (! command_ret)
+	    {
+		y2error ("Execution of installation command failed");
+		return false;
+	    }
+	}
+	return ret;
+    }
 
 }
