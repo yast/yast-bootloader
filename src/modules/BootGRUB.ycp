@@ -51,10 +51,6 @@
       */
     global boolean gc_changed = false;
     /**
-      * List of partitions deleted in primary proposal
-      */
-    list(string) del_parts = [];
-    /**
       * Shall proposal merge menus?
       */
     global boolean deep_propose = false;
@@ -203,7 +199,7 @@
         if (! BootCommon::was_proposed)
 	{
             BootCommon::DetectDisks ();
-	    del_parts = BootCommon::getPartitionList (`deleted);
+	    BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
 	}
 
 	// refresh device map
@@ -991,7 +987,7 @@
 	    && BootCommon::files_edited)
 	{
 	    displayFilesEditedPopup ();
-	    BootCommon::files_edited = false;
+	    BootCommon::files_edited_warned = true;
 	    return;
 	}
 	list old_sect_list = BootCommon::sections;
@@ -1076,7 +1072,8 @@
 	});
 	if (new_sect["memtest86"]:[] != [] && ! has_memtest)
 	    old_sect_list = add (old_sect_list, new_sect["memtest86"]:[]);
-	y2milestone ("Checking for sections needing some of %1dd", del_parts);
+	y2milestone ("Checking for sections needing some of %1dd",
+	    BootCommon::del_parts);
 	list(string) to_remove = [];
 	foreach (`s, BootCommon::sections, ``{
 	    map intern = lookup_value (
@@ -1087,7 +1084,7 @@
 	    y2milestone ("Section %1 needs %2", title, devs);
 	    boolean to_add = false;
 	    foreach (string d, devs, ``{
-		if (contains (del_parts, d))
+		if (contains (BootCommon::del_parts, d))
 		{
 		    to_add = true;
 		}
@@ -1106,7 +1103,8 @@
 		}
 	    }
 	});
-	del_parts = BootCommon::difflist (del_parts, to_remove);
+	BootCommon::del_parts
+	    = BootCommon::difflist (BootCommon::del_parts, to_remove);
 	old_sect_list = filter (`s, old_sect_list, ``(s != []));
 	BootCommon::sections = old_sect_list;
     }

@@ -138,7 +138,8 @@
       */
     global map cwm_options = $[];
 
-    global define string getLoaderType (boolean recheck);
+//    global define string getLoaderType (boolean recheck);
+// FIXME uncomment for the new interpreter
 
     include "bootloader/routines/helps.ycp";
     include "bootloader/routines/misc.ycp";
@@ -164,6 +165,11 @@
       * Last detection proposed to prefer lilo instead of grub
       */
     global boolean prefer_lilo = false;
+
+    /**
+      * List of partitions deleted in primary proposal
+      */
+    global list<string> del_parts = [];
 
 // variables for storing data
 

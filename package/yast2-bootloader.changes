@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Mon Nov 24 17:33:41 CET 2003 - jsrain@suse.de
+Mon Nov 24 18:24:47 CET 2003 - jsrain@suse.de
 
 - fixed changing of GRUB location (#33297)
+- updated support of ELILO, several fixes
 
 -------------------------------------------------------------------
 Tue Nov 18 13:45:02 CET 2003 - jsrain@suse.de

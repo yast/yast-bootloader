@@ -183,7 +183,6 @@
 	BootCommon::location = UI::QueryWidget (`id (`location), `Value);
 	if (have_old)
 	    remove_old_efi = UI::QueryWidget (`id (`remove_old), `Value);
-	BootCommon::storeSettings ();
 	BootCommon::location_changed = true;
 	create_efi_entry = UI::QueryWidget (`id (`create_entry), `Value);
 	BootCommon::location_changed = true;

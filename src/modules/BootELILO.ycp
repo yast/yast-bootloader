@@ -25,15 +25,16 @@
 
     textdomain "bootloader";
 
+    import "BootCommon";
+    import "Kernel";
+    import "Mode";
+    import "Product";
+    import "Storage";
+
     include "bootloader/elilo/misc.ycp";
     include "bootloader/elilo/widgets.ycp";
     include "bootloader/routines/routines.ycp";
-
-    import "BootCommon";
-    import "Storage";
-    import "Mode";
-    import "Kernel";
-    import "Product";
+    include "bootloader/routines/routines.ycp";
 
 // private variables
 
@@ -125,7 +126,6 @@
 	BootCommon::cwm_widgets = union (
 	    BootCommon::GetWidgetMaps (),
 	    BootELILO::GetWidgetMaps ());
-	BootCommon::cwm_table_contents = ``(BootELILO::getTableContents ());
     }
 
     /**
@@ -148,9 +148,7 @@
 	BootCommon::Import (settings);
 	old_efi_entry = settings["old_efi_entry"]:nil;
 	remove_old_efi = settings["remove_old_efi"]:true;
-	elilo_conf_filename
-	    = settings["elilo_conf_filename"]:probeEliloConfFilename ();
-	setEliloConfFilename (elilo_conf_filename);
+	elilo_conf_filename = getEliloConfFilename ();
     }
 
 
@@ -163,8 +161,8 @@
 	    BootCommon::location = Product::name;
 	}
 	elilo_conf_filename = getEliloConfFilename ();
-	setEliloConfFilename (elilo_conf_filename);
 	BootCommon::DetectDisks ();
+	BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
 
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
@@ -186,7 +184,8 @@
 	}
 
 	create_efi_entry = true;
-	BootCommon::location = Product::name;
+	if (BootCommon::location == "" || BootCommon::location == nil)
+	    BootCommon::location = Product::name;
 	y2milestone ("EFI entry name: %1", BootCommon::location);
         y2milestone ("Proposed sections: %1", BootCommon::sections);
         y2milestone ("Proposed globals: %1", BootCommon::globals);
@@ -199,9 +198,16 @@
       */
     global define boolean Read () ``{
 	boolean efi_entry_found = false;
-	elilo_conf_filename = probeEliloConfFilename ();
-	if (elilo_conf_filename == nil)
-	setEliloConfFilename (elilo_conf_filename);
+	elilo_conf_filename = getEliloConfFilename ();
+	// copy old elilo.conf from /boot/<something> to /etc in case of upgrade
+	// (if /etc/elilo.conf doesn't exist)
+	if (SCR::Read (.target.size, "/etc/elilo.conf") <= 0
+	    && SCR::Read (.target.size, elilo_conf_filename) > 0)
+	{
+	    SCR::Execute (.target.bash, sformat (
+		"/bin/cp %1 /etc/elilo.conf"), elilo_conf_filename);
+	}
+	SCR::Execute (.target.bash, "/bin/touch /etc/elilo.conf");
 	BootCommon::DetectDisks ();
 	boolean ret = BootCommon::Read ();
 	BootCommon::location
@@ -260,12 +266,20 @@
       */
     global define boolean Save () ``{
 	string prefix = getEfiMountPoint ();
+	string relative_prefix = getEliloConfDir () + "/";
+	SCR::Execute (.target.bash,
+	    sformat ("test -d %1 || /bin/mkdir -p %1", getEliloConfDir ()));
         SCR::Execute (.target.bash, sformat (
 	    "test -f %1 && /bin/cp %1 %1.old", elilo_conf_filename));
         SCR::Execute (.target.bash, sformat ("/usr/bin/touch %1",
 	    elilo_conf_filename));
 
-	BootCommon::liloRemoveUnexistentSections (prefix);
+	SCR::Execute (.target.bash, sformat ("
+	    cp /boot/vmlinuz %1/vmlinuz
+	    cp /boot/initrd %1/initrd
+	", getEliloConfDir ()));
+
+	BootCommon::liloRemoveUnexistentSections (prefix, relative_prefix);
         BootCommon::sections = maplist (`s, BootCommon::sections, ``{
             string initrd = lookup_value (s, "initrd", "");
             string title = lookup_value (s, "label", "");
@@ -275,18 +289,28 @@
             if ((type == "linux" || type == "failsafe")
                 && BootCommon::write_settings["insert_initrd"]:false)
             {
-		initrd = getKernelSubdir () + "/initrd";
+		initrd = "initrd";
                 s = modifySection (s, "initrd", initrd);
             }
             if (initrd != "")
             {
-                if (-1 == SCR::Read (.target.size, prefix + initrd))
+		string check_prefix = "";
+		if (substring (initrd, 0, 1) == "/")
+		    check_prefix = prefix;
+		else
+		    check_prefix = relative_prefix;
+                if (-1 == SCR::Read (.target.size, check_prefix + initrd))
                     s = modifySection (s, "initrd", nil);
             }
             return s;
         });
 	BootCommon::liloUpdateAppend ();
         boolean ret = BootCommon::Save ();
+	SCR::Execute (.target.bash, sformat ("
+	    cp /etc/elilo.conf %1/elilo.conf
+	    cp /usr/lib/elilo/elilo.efi %1/elilo.efi
+
+	", getEliloConfDir ()));
         return ret;
     }
 
@@ -297,7 +321,7 @@
     global define list(string) Summary () ``{
 	// summary text, %1 is bootloader name (eg. LILO)
 	list(string) result = [ sformat (_("Boot loader type: %1"),
-	    getLoaderName (getLoaderType (false))) ];
+	    BootCommon::getLoaderName (BootCommon::getLoaderType (false))) ];
 	if (BootCommon::location == "" || BootCommon::location == nil)
 	{
 	    result
@@ -312,10 +336,12 @@
                 BootCommon::location));
 	}
         list(string) sects = [];
-        foreach (`s, sections, ``{
-            string title = s[getSectionTitle ()]:"";
+        foreach (`s, BootCommon::sections, ``{
+            string title = lookup_value (s, BootCommon::getSectionTitle (), "");
                 // section name "suffix" for default section
-            string def = title == getDefaultSection () ? _(" (default)") : "";
+            string def = title == BootCommon::getDefaultSection ()
+		? _(" (default)")
+		: "";
             sects = add (sects, sformat ("%1%2", title, def));
         });
         // summary text. %1 is list of bootloader sections
@@ -431,8 +457,8 @@ fi", efi_label);
       */
     global define list createLinuxSection (string title) ``{
 	// not using .shipped images any more
-        string initrd = getKernelSubdir () + "/initrd";
-        string image = getKernelSubdir () + "/vmlinuz";
+        string initrd = "initrd";
+        string image = "vmlinuz";
         string append = title == "failsafe"
             ? "ide=nodma"
             : sformat ("%1 splash=silent", Kernel::cmdLine);
@@ -441,7 +467,7 @@ fi", efi_label);
 	split = BootCommon::splitPath (image);
 	image = split[1]:image;
         list ret = [
-            $[ "key" : "label", "value" : title],
+            $[ "key" : "label", "value" : translateSectionTitle (title)],
             $[ "key" : "image", "value" : image],
             $[ "key" : "initrd", "value" : initrd],
             $[ "key" : "root", "value" : BootCommon::dev2majmin (
@@ -475,7 +501,7 @@ fi", efi_label);
       * modifies internal sreuctures
       */
     global define void fixSections () ``{
-	BootCommon::liloFixSections ();
+	BootCommon::liloFixSections (``(BootELILO::createSections ()));
     }
 
     /**
@@ -499,6 +525,24 @@ fi", efi_label);
       */
     global define void updateSections (boolean replace) ``{
 	BootCommon::liloUpdateSections (replace);
+	BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	    s = maplist (map m, s, ``{
+		if (m["key"]:"" == "initrd")
+		{
+		    if (substring (m["value"]:"", 0, 7) == "/initrd")
+			m["value"] = "initrd";
+
+		}
+		if (m["key"]:"" == "image")
+		{
+		    if (substring (m["value"]:"", 0, 8) == "/vmlinuz")
+			m["value"] = "vmlinuz";
+
+		}
+		return m;
+	    vmlinuz});
+	    return s;
+	});
 // TODO maybe change the paths? Probably not needed, to be decised
     }
 
