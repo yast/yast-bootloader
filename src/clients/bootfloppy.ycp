@@ -28,6 +28,7 @@
     import "Wizard";
 
     Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("bootfloppy");
 
     string file_image = "bootdisk"; //default
     string filename = "";
