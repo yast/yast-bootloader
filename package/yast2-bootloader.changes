@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep 15 09:03:25 CEST 2003 - jsrain@suse.de
+
+- fixed popup reporting error when creating initrd (#30714)
+
+-------------------------------------------------------------------
 Sun Sep 14 21:02:56 CEST 2003 - adrian@suse.de
 
 - make it working in kcontrol
