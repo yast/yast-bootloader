@@ -47,10 +47,18 @@
 
     /**
       * Get the name of key containing kernel in currently used bootloader
-      * @return string section name key
+      * @return string kernel path key
       */
     global define string getKernelKey () ``{
 	return current_bootloader_attribs["kernel_key"]:"image";
+    }
+
+    /**
+      * Get the name of key containing initrd in currently used bootloader
+      * @return string initrd path key
+      */
+    global define string getInitrdKey () ``{
+	return current_bootloader_attribs["initrd_key"]:"initrd";
     }
 
     /**
@@ -1601,6 +1609,10 @@
 	    // are allowed, otherwise translartion won't be used
 	    // try to keep short, may be shortened due to bootloader limitations
             "original MBR" : _("MBR before Installation"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "previous" : _("Previous Kernel"),
         ];
         map not_trans = $[
             "linux" : "Linux",
@@ -1660,6 +1672,11 @@
 	    // be able to have translations with and without diacritics
 	    // please use diacritics here
             "original MBR" : _("_MBR before Installation"),
+	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
+	    // are allowed. Always remove the leading '_', its just to
+	    // be able to have translations with and without diacritics
+	    // please use diacritics here
+            "previous" : _("_Previous Kernel"),
         ];
 	trans = filter (string k, string v, trans, {
 	    if (substring (v, 0, 1) == "_")
@@ -1813,6 +1830,64 @@
 	map ret = (map)SCR::Execute (.target.bash_output, command);
 	y2milestone ("GFXMenu update result: %1", ret);
 	return ret["exit"]:0 == 0;
+    }
+
+    /**
+     * Transform the selected linux section to section for previous kernel
+     * @param section a list representing the bootloader section
+     * @return a list representing the updated section
+     */
+    global define list<map> Linux2Previous (list<map> section) {
+	string title_key = getSectionTitle ();
+	string kernel_key = getKernelKey ();
+	string initrd_key = getInitrdKey ();
+	boolean intern_found = false;
+
+	section = maplist (map s, section, {
+	    if (s["key"]:nil == title_key)
+	    {
+		s["value"] = translateSectionTitle ("previous");
+	    }
+	    else if (s["key"]:nil == kernel_key)
+	    {
+		list<string> l = splitstring (s["value"]:"", " \t");
+		l = filter (string p, l, {return p != "";});
+		if (regexpmatch (l[0]:"", "^.*vmlinuz[^ ]*.*$"))
+		{
+		    l[0] = regexpsub (
+			l[0]:"",
+			"^(.*)vmlinuz[^ ]*(.*)$",
+			"\\1vmlinuz.previous\\2");
+		}
+		s["value"] = mergestring (l, " ");
+	    }
+	    else if (s["key"]:nil == initrd_key)
+	    {
+		if (regexpmatch (s["value"]:"", "^.*initrd[^ ]*.*$"))
+		{
+		    s["value"] = regexpsub (
+			s["value"]:"",
+			"^(.*)initrd[^ ]*(.*)$",
+			"\\1initrd.previous\\2");
+		}
+	    }
+	    else if (s["key"]:nil == "__intern__")
+	    {
+		s["value", "type"] = "previous";
+		intern_found = true;
+	    }
+	    return s;
+	});
+	if (! intern_found)
+	{
+	    section = add (section, $[
+		"key" : "__intern__",
+		"value" : $[
+		    "type" : "previous",
+		],
+	    ]);
+	}
+	return section;
     }
 
 

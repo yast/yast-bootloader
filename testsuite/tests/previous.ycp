@@ -1,0 +1,245 @@
+/**
+ * File:
+ *  misc.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Bootloader misc functions testsuite
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+// testedfiles: BootCommon.ycp bootloader/routines/lilolike.ycp bootloader/routines/misc.ycp
+    include "testsuite.ycp";
+    import "Mode";
+
+    map READ_I = $[
+        "target" : $[
+            "size" : -1,
+            "tmpdir" : "/tmp/",
+	    "yast2" : nil,
+        ],
+        "probe" : $[
+            "architecture" : "i386",
+            "has_apm" : true,
+            "has_pcmcia" : false,
+            "has_smp" : false,
+            "system" : [],
+            "memory" : [],
+            "cpu" : [],
+            "cdrom" : $[
+                "manual" : [],
+            ],
+            "floppy" : $[
+                "manual" : [],
+            ],
+	    "is_uml" : false,
+        ],
+        "sysconfig" : $[
+            "console" : $[
+                "CONSOLE_FONT" : "",
+                "CONSOLE_SCREENMAP" : "",
+                "CONSOLE_UNICODEMAP" : "",
+                "CONSOLE_MAGIC" : "",
+                "CONSOLE_ENCODING" : "",
+            ],
+            "language" : $[
+                "RC_LANG" : "",
+                "DEFAULT_LANGUAGE" : "",
+            ],
+        ],
+        "etc" : $[
+            "install_inf" : $[
+                "Cmdline" : "",
+            ],
+        ],
+        "proc" : $[
+            "cpuinfo" : $[
+                "value" : $[
+                    "0" : $[
+                        "flags" : ""
+                    ],
+                ],
+            ],
+        ],
+	"product" : $[
+	    "features" : $[
+		"USE_DESKTOP_SCHEDULER" : "0",
+		"ENABLE_AUTOLOGIN" : "0",
+		"EVMS_CONFIG" : "0",
+		"IO_SCHEDULER" : "cfg",
+	    ]
+	],
+    ];
+    map WRITE_I = $[];
+    map EXEC_I = $[
+	"target" : $[
+	    "bash_output" : $[],
+	],
+    ];
+
+    TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
+    import "Mode";
+    Mode::config = true; // yes, this is ugly, bus solves Product:: constructor
+    import "Bootloader";
+    import "BootCommon";
+
+    Mode::test = true;
+
+    DUMP ("======================================");
+
+    BootCommon::loader_type = "grub";
+    BootCommon::current_bootloader_attribs = $[
+	"section_title" : "title",
+	"kernel_key" : "kernel",
+    ];
+
+    list<map> section = [
+	$[
+	    "key" : "title",
+	    "value" : "Linux",
+	],
+	$[
+	    "key" : "kernel",
+	    "value" : "vmlinuz",
+	],
+	$[
+	    "key" : "initrd",
+	    "value" : "initrd",
+	],
+    ];
+    TEST (``(BootCommon::Linux2Previous (section)), [], 0);
+
+    section = [
+	$[
+	    "key" : "title",
+	    "value" : "Linux",
+	],
+	$[
+	    "key" : "kernel",
+	    "value" : "/boot/vmlinuz",
+	],
+	$[
+	    "key" : "initrd",
+	    "value" : "/boot/initrd",
+	],
+    ];
+    TEST (``(BootCommon::Linux2Previous (section)), [], 0);
+
+    section = [
+	$[
+	    "key" : "title",
+	    "value" : "Linux",
+	],
+	$[
+	    "key" : "kernel",
+	    "value" : "(hd0,0)/boot/vmlinuz.shipped root=/dev/hda1",
+	],
+	$[
+	    "key" : "initrd",
+	    "value" : "(hd0,0)/boot/initrd.shipped",
+	],
+    ];
+    TEST (``(BootCommon::Linux2Previous (section)), [], 0);
+
+    section = [
+	$[
+	    "key" : "title",
+	    "value" : "Linux",
+	],
+	$[
+	    "key" : "kernel",
+	    "value" : "(hd0,0)/boot/vmlinuz root=/dev/hda1",
+	],
+	$[
+	    "key" : "initrd",
+	    "value" : "(hd0,0)/boot/initrd",
+	],
+    ];
+    TEST (``(BootCommon::Linux2Previous (section)), [], 0);
+
+    DUMP ("======================================");
+
+    BootCommon::sections = [
+	[
+	    $["key":"title", "value":"Linux"],
+	    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 desktop"],
+	    $["key":"initrd", "value":"(hd0,0)/initrd"],
+	    $["key":"__intern__", "value":$["type":"linux"]]
+	],
+	[
+	    $["key":"title", "value":"Disketa"],
+	    $["key":"root", "value":"(fd0)"],
+	    $["key":"chainloader", "value":"+1"],
+	    $["key":"__intern__", "value":$["type":"floppy"]]
+	],
+    ];
+    BootCommon::was_read = true;
+    TEST (``(Bootloader::AddPreviousSection ()), [], 0);
+    DUMP (BootCommon::sections);
+    DUMP (size (BootCommon::sections));
+
+    DUMP ("======================================");
+
+    BootCommon::sections = [
+	[
+	    $["key":"title", "value":"Linux"],
+	    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 desktop"],
+	    $["key":"initrd", "value":"(hd0,0)/initrd"],
+	    $["key":"__intern__", "value":$["type":"linux"]]
+	],
+	[
+	    $["key":"title", "value":"Disketa"],
+	    $["key":"root", "value":"(fd0)"],
+	    $["key":"chainloader", "value":"+1"],
+	    $["key":"__intern__", "value":$["type":"floppy"]]
+	],
+	[
+	    $["key":"title", "value":"Linux"],
+	    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 desktop"],
+	    $["key":"initrd", "value":"(hd0,0)/initrd"],
+	    $["key":"__intern__", "value":$["type":"previous"]]
+	],
+    ];
+
+    TEST (``(Bootloader::AddPreviousSection ()), [], 0);
+    DUMP (BootCommon::sections);
+    DUMP (size (BootCommon::sections));
+
+    DUMP ("======================================");
+
+    BootCommon::sections = [
+	[
+	    $["key":"title", "value":"Linux"],
+	    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 desktop"],
+	    $["key":"initrd", "value":"(hd0,0)/initrd"],
+	    $["key":"__intern__", "value":$["type":"linux"]]
+	],
+	[
+	    $["key":"title", "value":"Disketa"],
+	    $["key":"root", "value":"(fd0)"],
+	    $["key":"chainloader", "value":"+1"],
+	    $["key":"__intern__", "value":$["type":"floppy"]]
+	],
+	[
+	    $["key":"title", "value":"previous"],
+	    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 desktop"],
+	    $["key":"initrd", "value":"(hd0,0)/initrd"],
+	    $["key":"__intern__", "value":$["type":"linux"]]
+	],
+    ];
+
+    TEST (``(Bootloader::AddPreviousSection ()), [], 0);
+    DUMP (BootCommon::sections);
+    DUMP (size (BootCommon::sections));
+
+    DUMP ("======================================");
+
+}
