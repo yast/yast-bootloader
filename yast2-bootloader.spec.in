@@ -62,6 +62,7 @@ Summary:	Bootloader installation and configuration
 @scrconfdir@/grub.scr
 @scrconfdir@/zipl.scr
 @scrconfdir@/cfg_bootloader.scr
+@scrconfdir@/cfg_bootsplash.scr
 
 # lilo agent - devel
 @plugindir@/libpy2ag_liloconf.so

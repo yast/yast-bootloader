@@ -4,22 +4,36 @@
 #$2 is localw in longer form (eg. cs_CZ)
 #$3 is locale in shorter form (eg. cs) 
 #$4 is directory with sources (usually /etc/bootsplash/themes/SuSE/bootloader)
+#$5 is file containing translation of names of bootloaer entries
 
 TMP_DIR=$1;
 LOCALE=$2;
 LOCALE_SHORT=$3;
 SRC_DIR=$4;
+MENU_ENTRIES=$5
 
+# create temporarry directory
 cd $TMP_DIR || exit 1;
 test -e fgxmenu && rm -rf gfxmenu;
 mkdir gfxmenu || exit 2;
 cd gfxmenu || exit 3;
+# unpack current message file
 /usr/bin/cpio -i < /boot/message || exit 4;
+# set default language
 echo $LOCALE >lang || exit 5
+# replace original texts with localized
+rm `ls texts* | grep -v texts.en`
+rm `ls help* | grep -v help.en`
 test -f $SCR_DIR/texts.$LOCALE && cp $SRC_DIR/texts.$LOCALE . \
  || test -f $SRC_DIR/texts.$LOCALE_SHORT && cp $SRC_DIR/texts.$LOCALE_SHORT .
 test -f $SRC_DIR/help.$LOCALE && cp I4/help.$LOCALE . \
  || test -f $SRC_DIR/help.$LOCALE_SHORT && cp $SRC_DIR/help.$LOCALE_SHORT .
-ls | cpio -o >/boot/message.new && mv /boot/message.new /boot/message || exit 6
+# set languages to choose
+echo -n "$LOCALE_SHORT
+en
+" >languages || exit 6
+# set translations of bootloaer menu entries
+cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7
+ls | cpio -o >/boot/message.new && mv /boot/message.new /boot/message || exit 99
 exit 0
 
