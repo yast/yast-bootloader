@@ -28,13 +28,6 @@
 
   Wizard::CreateDialog();
 
-  // test mode
-/*  boolean test_mode = false;
-  if (size (WFM::Args ()) > 0 && WFM::Args (0) == .test)
-  {
-      test_mode = true;
-  }*/
-
   ////////////////////////////////////////////////////////////
   // will be  set true in floppySearchImages if the images exist
   ////////////////////////////////////////////////////////////
@@ -61,9 +54,6 @@
    */
   define list isFloppyMount()``{
       list mounts =SCR::Read(.proc.mounts);
-
-//      if( test_mode )
-//	  SCR(`Write(.dumpto.tmp.mount, mounts ));
 
       mounts = filter(`mount, mounts,``( issubstring(lookup( mount, "spec", "") ,"/dev/fd0")));
 
