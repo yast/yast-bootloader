@@ -1,0 +1,36 @@
+/**
+ * File:
+ *      strip.ycp
+ *
+ * Module:
+ *      Bootloader
+ *
+ * Summary:
+ *      testsuite for striping strings
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *      primary author unknown
+ *
+ * $Id$
+ *
+ */
+
+{
+    include "testsuite.ycp";
+
+    include "bootloader/routines/misc.ycp";
+
+    TEST(``(sformat("a\nb\nc")), [], nil);
+
+    TEST(``(strip("")), [], nil);
+    TEST(``(strip(" ")), [], nil);
+    TEST(``(strip("a")), [], nil);
+    TEST(``(strip("    a")), [], nil);
+    TEST(``(strip("a    ")), [], nil);
+    TEST(``(strip("a   a")), [], nil);
+    TEST(``(strip("   a ")), [], nil);
+    TEST(``(sformat("%1", [strip(" \t  a ")])), [], nil);
+    TEST(``(sformat("%1", [strip(" \n   \n\t a\n  a\n ")])), [], nil);
+    TEST(``(sformat("%1", [strip("\t\t\t    s \t a\n ")])), [], nil);
+}

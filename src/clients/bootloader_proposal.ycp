@@ -1,0 +1,143 @@
+/**
+ * Module:		bootloader_proposal.ycp
+ *
+ * $Id$
+ *
+ * Author:		Klaus Kaempf <kkaempf@suse.de>
+ *
+ * Purpose:		Proposal function dispatcher - bootloader.
+ *
+ *			See also file proposal-API.txt for details.
+ */
+{
+    textdomain "bootloader";
+
+    import "Language";
+    import "Bootloader";
+
+    include "ui/common_popups.ycp";
+
+    string func  = WFM::Args(0);
+    map    param = WFM::Args(1);
+    map    ret   = $[];
+
+    if ( func == "MakeProposal" )
+    {
+	boolean force_reset      = param["force_reset"     ]:false;
+	boolean language_changed = param["language_changed"]:false;
+
+	if (force_reset && !Mode::autoinst)
+	{
+	    // force re-calculation of bootloader proposal
+	    Bootloader::Reset ();
+	}
+
+	Bootloader::Propose ();
+/*	{
+	    // Yes/No popup question, %1 is partition name (e.g. /dev/hda2)
+	    if (UI::YesNoPopup(sformat(_("Partition '%1' is not available.
+Do you want to set default boot loader location?"), Boot::device)))
+	    {
+		// reset configuration to default value
+		Boot::location = "";
+
+		Boot::Set();
+	    }
+	}*/
+	ret = $[ "raw_proposal" : [ Bootloader::Summary ([`short])]];
+
+/*	string info_msg = "";
+
+	if (Boot::location == "floppy")
+	{
+	    // Information about suggested bootloader installation:
+	    // Some other system present (MS Windows etc.) -
+	    // bootloader will be installed on floppy just to play safe
+	    // !! this is a normal message, without '&' !!
+	    info_msg = _("Create a boot floppy");
+	}
+	else if (Boot::location == "boot")
+	{
+	    // Information about suggested bootloader installation:
+	    // user selected _not_ to use a linux bootloader
+	    info_msg = _("Non-Linux boot loader (provided by user)");
+	}
+	else if (Boot::LoaderType == "ppc")
+	{
+		import "BootPPC";
+		return BootPPC::Proposal ();
+	}
+	else
+	{
+	    map targetMap = Storage::GetTargetMap ();
+	    map boot_target = targetMap[Boot::device]:$[];
+	    string target_name = "";
+	    if (boot_target == $[])
+		target_name = Boot::device;
+	    else
+		target_name = boot_target["name"]:"disk";
+
+	    // Information about suggested bootloader installation:
+	    // user selected a device
+	    info_msg = sformat (_("Booting from '%1'"), target_name);
+	}
+
+
+	// call some function that makes a proposal here:
+	//
+	// DummyMod::MakeProposal( force_reset );
+
+	// Fill return map
+
+	ret = $[ "raw_proposal" : [ info_msg ] ];*/
+
+	// FIXME: Something can go wrong
+
+/*        if (Boot::no_bootloader)
+        {
+            y2error ("No bootloader selected");
+            ret = add (ret, "warning_level", `error);
+            ret = add (ret, "warning", _("No bootloader selected to be installed, your system can be unbootable"));
+        }
+*/
+
+    }
+    else if ( func == "AskUser" )
+    {
+	boolean has_next = param["has_next"]:false;
+
+	map settings = Bootloader::Export ();
+// FIXME sequence call
+	symbol result = WFM::CallFunction (`inst_bootloader (true, true));
+	if (result != `next)
+	    Bootlaoder::Import (settings);
+
+	// Fill return map
+	ret = $[ "workflow_sequence" : result ];
+    }
+    else if ( func == "Description" )
+    {
+	// Fill return map.
+	//
+	// Static values do just nicely here, no need to call a function.
+
+	ret =
+	    $[
+		// proposal part - bootloader label
+	      "rich_text_title"	:	_("Booting"),
+		// menubutton entry
+	      "menu_title"	:	_("&Booting"),
+	      "id"		:	"bootloader_stuff"
+	    ];
+    }
+    else if (func == "Write")
+    {
+	boolean succ = Bootloader::Write ();
+	ret =
+	    $[
+		"success"	:	succ
+	    ];
+    }
+
+    return ret;
+}

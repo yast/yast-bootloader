@@ -1,0 +1,671 @@
+/**
+ * File:
+ *      include/bootloader/routines/misc-common.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Miscelaneous functions for bootloader configuration and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ * WARNING:
+ *      To be included to BootCommon.ycp only, requires function
+ *      getLoaderType to avoid include-import cycle
+ *      Use import "BootCommon" instead.
+ */
+
+
+
+{
+
+    textdomain "bootloader";
+
+
+    /**
+     * converts array of string to path
+     * @param strs list of string
+     * @return path whose components are taken from strs
+     */
+    global define path list2path(list strs) ``{
+        path pth = .;
+        foreach(`e, strs, ``{
+            pth = add(pth, e);
+        });
+        return pth;
+    }
+
+    /**
+     * returns list of partitions. looks at '/proc/partitions' and creates list
+     * of partition for combobox or menu
+     * @param type symbol
+     *   `boot - for botloader installation
+     *   `root - for kernel root
+     *   `boot_other - for bootable partitions of other systems
+     *   `all - all partitions
+     *   `parts_old - all partitions, except those what will be created
+     *      during isntallation
+     * @return list of strings
+     */
+    global define list getPartitionList(symbol type) ``{
+	map devices = Storage::GetTargetMap();
+	devices = filter (`k, `v, devices,
+	    ``(! lookup (v, "is_lvm_vg", false)));
+	list all_disks = maplist (`k, `v, devices, ``(k));
+	list partitions = [];
+	foreach (`k, `v, devices, ``{
+	    partitions = merge (partitions, v["partitions"]:[]);
+	});
+	list floppies = SCR::Read (.probe.floppy);
+	floppies = filter (`f, floppies,
+	    ``(lookup (f, "model", "Floppy Disk") == "Floppy Disk"));
+	floppies = maplist (`f, floppies, ``(lookup (f, "dev_name", "")));
+	floppies = filter (`f, floppies, ``(f != ""));
+
+        partitions = filter (`p, partitions, ``(is (p, map)));
+        partitions = filter (`p, partitions, ``(! p["delete"]:false));
+// FIXME: "lvm_group" and "raid_name" might be removed
+	list ret = all_disks;
+	if (type == `boot_other || type == `root || type == `parts_old)
+            ret = [];
+
+	if (type == `boot_other)
+	{
+	    partitions = filter (`p, partitions,
+		``(lookup (p, "type", `primary) == `primary));
+	}
+        else if (type == `boot)
+        {
+            partitions = filter (`p, partitions,
+                ``(lookup (p, "type", `primary) == `primary
+			|| lookup (p, "type", `primary) == `extended
+			|| lookup (p, "type", `primary) == `logical));
+        }
+        else if (type == `root)
+        {
+            partitions = filter (`p, partitions,
+                    ``(lookup (p, "type", `primary) != `extended));
+        }
+	else if (type == `parts_old)
+	{
+	    partitions = filter (`p, partitions, ``(! p["create"]:false));
+	}
+        if (type != `all && type != `parts_old)
+        {
+            partitions = filter (`p, partitions,
+                    ``(lookup (p, "fstype", "") != "Linux swap"));
+        }
+        partitions = maplist (`p, partitions, ``(p["device"]:""));
+	partitions = filter (`p, partitions, ``(p != ""));
+        partitions = merge (partitions, floppies);
+        ret = union (ret, partitions);
+
+	y2milestone ("getPartitionList for %1 returning %2", type, ret);
+	return ret;
+    }
+
+    /**
+      * return printable name of bootloader
+      * @param type string bootloader type internal string
+      * @return string printable bootloader name
+      */
+    global define string getLoaderName (string type) ``{
+        map names = $[
+            "lilo" : "LILO",
+            "grub" : "GRUB",
+            "silo" : "SILO",
+            "milo" : "MILO",
+            "aboot" : "aboot",
+            "elilo" : "ELILO",
+            "mips" : "dvh",
+            "s390" : "zipl",
+//            "ppc" : _("boot loader")
+        ];
+	return names[type]:_("boot loader");
+    }
+
+    /**
+      * reads specified section and returns values as map
+      *   $[option1:value1, option2:value2,...]]
+      * @param bl string bootloader to read
+      * @param type string "sections" / ""
+      * @param section string
+      * @return map map as described above
+      */
+    global define map sectOptions2Map(string bl, string type, string section)
+    ``{
+        path p = .;
+        if (type == "")
+        {
+            p = list2path([bl]);
+        }
+        else
+        {
+            p = list2path([bl, "sections" , section]);
+        }
+
+        list optlist = SCR::Dir(p);
+
+        if (type == "")
+        {
+            optlist = filter(`e, optlist, ``(e != "sections"));
+        }
+
+        any value = "";
+        map retval = $["__order__" : optlist];
+
+        // read global options and create map to be stored in settings
+
+        list option = [];
+
+        foreach(`e, optlist,
+        ``{
+            value = mod2ui(SCR::Read(add(p, e)));
+            if (isSpecial(e))
+                retval = add(retval, e, mergestring(SCR::Read(add(p, e)), ","));
+            else if (lookup(opttypes(), e, "") == "b")
+		retval = add(retval, e, tobool (value));
+	    else if (lookup(opttypes(), e, "") == "i")
+		retval = add(retval, e, tointeger (value));
+	    else
+                retval = add(retval, e, sformat("%1", value));
+        });
+
+        return retval;
+    }
+
+    /**
+      * returns list difference A \ B (items that are in A and are not in B)
+      * @param a list A
+      * @param b list B
+      * @return list see above
+      */
+    global define list difflist(list a, list b) ``{
+	return filter(`e, a, ``(!contains(b, e)));
+    }
+
+    /**
+      * return true if given option is special
+      * @param opt option name
+      * @return boolean special/not
+      */
+    global define boolean isSpecial(string opt) ``{
+	return (lookup(opttypes(), opt, "") == "x");
+    }
+
+    /**
+      * convert string values from agent representation to module representation
+      * 1) if string is quoted, quotes are removed
+      * 2) if string contains escaped quotes, they're unescaped
+      * @param val value to transform
+      * @return any transformed value
+      */
+    global define any mod2ui(any val) ``{
+	if (is(val, string))
+	{
+	    string v = sformat("%1", val);
+	    v = strip(v);
+	    // remove leading and trailing quotes
+	    if (substring(v, 0, 1) == "\""
+		&& substring(v, size(v)-1, 1) == "\"")
+	    {
+		v = substring(v, 1, size(v)-2);
+	    }
+
+	    // unescape backslashes
+	    v = replaceAll(v, "\\\\", "\\");
+
+	    // unescape quotes
+	    v = replaceAll(v, "\\\"", "\"");
+	    return v;
+	}
+	return val;
+    }
+
+    /**
+      * reverse of mod2ui
+      * @param val value to transform
+      * @return any transformed value
+      */
+    global define any ui2mod(any val) ``{
+	if (is(val, string))
+	{
+	    string v = sformat("%1", val);
+	    v = strip(v);
+	    // if string contains backslashes, escape them
+	    v = replaceAll(v, "\\", "\\\\");
+
+	    // if string contains quotes, escape them
+	    v = replaceAll(v, "\"", "\\\"");
+
+	    // if string contains spaces or equal sign or is empty, quote it
+
+	    if ((size(splitstring(v, " ")) >= 2 || size(v) == 0
+		|| find(v, "=") >= 0)
+	        &&(getLoaderType (false) != "grub"))
+	    {
+		v = "\"" + v + "\"";
+	    }
+	    return v;
+	}
+	return val;
+    }
+
+    /**
+      * replaces all occurences of 'from' to 'to' in src
+      * @param src input string
+      * @param from string to be replaced
+      * @param to string to be replaced by
+      * @return string modified string
+      */
+    global define string replaceAll(string src, string from, string to) ``{
+	if (from == "")
+	{
+	    return src;
+	}
+
+	list tokens = [];
+
+	integer p = find(src, from);
+	while(p >= 0)
+	{
+	    tokens = add(tokens, substring(src, 0, p));
+	    src = substring(src, p + size(from), size(src) - (p+size(from)));
+	    p = find(src, from);
+	}
+	tokens = add(tokens, src);
+	return mergestring(tokens, to);
+    }
+
+
+    /**
+      * returns true if char is blank (newline, tab or space)
+      * @param s single char string
+      * @return boolean blank/non blank
+      */
+    global define boolean isBlank(string s) ``{
+	if (s == "\n" || s == "\t" || s == " ")
+	{
+	    return true;
+	}
+	return false;
+    }
+
+    /**
+      * removes trailing and leading blank chars from string.
+      *   eg: "  as df  " -> "as df"
+      * @param str string source string
+      * @return string stripped string
+      */
+    global define string strip(string str)``{
+	//emtpy  string
+	if (size(str) == 0) return "";
+
+	integer bound = size(str);
+	integer first = 0;
+	integer last = size(str) - 1;
+	// find first non-blank char
+	while(first < bound && isBlank(substring(str, first, 1)))
+	{
+	    first = first + 1;
+	}
+
+	while(last >= 0 && isBlank(substring(str, last, 1)))
+	{
+	    last = last - 1;
+	}
+	if (last >= first)
+	{
+	    return substring(str, first, last - first + 1);
+	}
+	return "";
+    }
+
+    /**
+      * returns modified list where items index1 and index2 are swapped.
+      * if indices are out of bounds, unmodified list is returned.
+      * @param input list
+      * @param index1 index of the first element
+      * @param index2 index og the second element
+      * @return list modified list
+      */
+    global define list swapItems(list input, integer index1, integer index2) ``{
+	if (index1 >= size(input) || index2 >= size(input)
+	    || index1 < 0 || index2 < 0)
+	{
+	    return input;
+	}
+	list output = [];
+	integer pos = -1;
+	output = maplist(`e, input, ``{
+	    pos = pos + 1;
+	    if (pos == index1)
+	    {
+	        return select(input, index2, $[]);
+	    }
+	    else if (pos == index2)
+	    {
+	        return select(input, index1, $[]);
+	    }
+	    return e;
+	});
+	return output;
+    }
+
+    /**
+      * translate filename path (eg. /boot/kernel) to list of device
+      *  and relative path
+      * @param pth string fileststem path (eg. /boot/vmlinuz)
+      * @return list containing device and relative path,
+      *  eg. ["/dev/hda1", "/vmlinuz"]
+      */
+    global define list splitPath (string fullpth) ``{
+// UGHLY HACK because of testsuites
+	map mountpoints = $[];
+	if (Mode::test)
+	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
+	else
+	    mountpoints = Storage::GetMountPoints();
+	string dev = "";
+	string mp = "";
+	integer max = 0;
+	foreach (`k, `v, mountpoints, ``{
+	    if (issubstring (fullpth, k) && size (k) > max)
+	    {
+	        max = size (k);
+	        dev = v[0]:"";
+	        mp = k;
+	    }
+	});
+	if (mp == "")
+	    return [];
+
+	string pth = substring (fullpth, size (mp));
+	if (substring (pth, 0, 1) != "/")
+	    pth = "/" + pth;
+	return [dev, pth];
+    }
+
+    /**
+      * translate list of device and relative path
+      *  to filename path (eg. /boot/kernel)
+      * @param devpth list of two strings, first for device name, second for
+      *  relative path (eg. ["/dev/hda1", "/vmlinuz"])
+      * @return string fileststem path (eg. /boot/vmlinuz)
+      */
+    global define list mergePath (list(string) devpth) ``{
+// UGHLY HACK because of testsuites
+        map mountpoints = $[];
+	if (Mode::test)
+	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
+	else
+            mountpoints = Storage::GetMountPoints();
+	string ret = "";
+	if (substring (devpth[1]:"", 0, 1) != "/")
+	    devpth[1] = "/" + devpth[1]:"";
+        foreach (string k, `v, mountpoints, ``{
+	    if (v[0]:"" == devpth[0]:"")
+	    {
+		if (substring (k, size (k) - 1, 1) == "/")
+		    k = substring (k, 0, size (k) - 1);
+		ret = k + devpth[1]:"";
+	    }
+	});
+	return ret;
+    }
+
+    /**
+      * Get bootloader device for specified location
+      * @return string device name
+      */
+    global define string GetBootloaderDevice () ``{
+        if (BootCommon::location == "mbr")
+            return BootCommon::mbrDisk;
+        if (BootCommon::location == "boot")
+            return BootCommon::BootPartitionDevice;
+        if (BootCommon::location == "root")
+            return BootCommon::RootPartitionDevice;
+        if (BootCommon::location == "floppy")
+            return StorageDevices::FloppyDevice;
+        return BootCommon::loader_device;
+    }
+
+    /**
+      * get kernel parameter from kernel command line
+      * @param line string original line
+      * @param key string parameter key
+      * @return string value, "false" if not present,
+      *   "true" if present key without value
+      */
+    global define string getKernelParamFromLine (string line, string key) ``{
+	string res = "false";
+	list params = splitstring (line, " ");
+	params = filter (`p, params, ``(p != ""));
+	foreach (`p, params, ``{
+	    list l = filter (`e, splitstring (p, "="), ``(e != " " && e != ""));
+	    if (select (l, 0, "") == key)
+	        res = select (l, 1, "true");
+	});
+	return res;
+    }
+
+    /**
+      * set kernel parameter to GRUB command line
+      * @param line string original line
+      * @param key string parameter key
+      * @param value string value, "false" to remove key,
+      *   "true" to add key without value
+      * @return string new kernel command line
+      */
+    global define string setKernelParamToLine
+	(string line, string key, string value)
+    ``{
+	list params = splitstring (line, " ");
+	params = filter (`p, params, ``(p != ""));
+	list rp = [];
+	boolean done = false;
+	foreach (`p, params, ``{
+	    list l = filter (`e, splitstring (p, "="), ``(e != " " && e != ""));
+	    if (select (l, 0, "") == key)
+	    {
+	        done = true;
+	        if (value == "true")
+	        {
+	            rp = add (rp, key);
+	        }
+	        else if (value != "false")
+	        {
+	            rp = add (rp, sformat ("%1=%2", key, value));
+	        }
+	    }
+	    else
+	    {
+	        rp = add (rp, p);
+	    }
+	});
+	if (! done)
+	{
+	    if (value == "true")
+	    {
+	        rp = add (rp, key);
+	    }
+	    else if (value != "false")
+	    {
+	        rp = add (rp, sformat ("%1=%2", key, value));
+	    }
+	}
+	line = mergestring (rp, " ");
+	return line;
+    }
+
+    global define boolean saveCfgFileToAgent () ``{
+	string bl = getLoaderType (false);
+
+        // first synchronize global settings
+
+	map glob_backup = globals;
+	list sect_backup = sections;
+        list global_order = lookup (globals, "__order__", []);
+        globals = filter (`k, `v, globals, ``(k != "__order__"));
+	globals = filter (`k, `v, globals,
+	    ``(k != "__intern__"));
+        global_order = filter (`e, global_order, ``(haskey (globals, e)));
+        list globs1 = SCR::Dir(list2path([bl]));
+        list globs2 = maplist(`e, `f, globals, ``(e));
+        list diff = difflist(globs1, globs2);
+        diff = difflist(diff, ["sections"]);
+
+        // remove options that has disappeared
+        foreach(`e, diff, ``{SCR::Write(list2path([bl, e]), nil);});
+
+        // write values
+        if (global_order != [])
+        {
+            integer index = 0;
+            foreach (`e, global_order, ``{
+                if (isSpecial(e))
+                {
+                    SCR::Write(list2path([bl, e]),
+                        splitstring(lookup (globals, e, ""), ","), index);
+                }
+                else
+                {
+                    SCR::Write(list2path([bl, e]),
+                        ui2mod(lookup (globals, e, "")), index);
+                }
+                index = index + 1;
+                globals = filter (`k, `v, globals, ``(k != e));
+            });
+        };
+        foreach(`e, `f, globals, ``{
+            if (isSpecial(e))
+            {
+                SCR::Write(list2path([bl, e]), splitstring(f, ","));
+            }
+            else
+            {
+                SCR::Write(list2path([bl, e]), ui2mod(f));
+            }
+        });
+
+        // now remove all sections
+        list sects = SCR::Dir(list2path([bl, "sections"]));
+        foreach(`sect, sects, ``{
+           SCR::Write(list2path([bl, "sections", sect]), nil);
+        });
+
+        string sname = "";
+        // now write new sections
+        foreach(`sect, sections,
+        ``{
+            sname = lookup(sect, bl == "grub" ? "title" : "label", "");
+            list sect_order = lookup  (sect, "__order__", []);
+            sect = filter (`k, `v, sect, ``(k != "__order__"));
+	    sect = filter (`k, `v, sect,
+		``(k != "__intern__"));
+            sect_order = filter (`e, sect_order, ``(haskey (sect, e)));
+            SCR::Write(list2path([bl, "sections", ui2mod(sname),
+                bl == "grub" ? "title" : "label"]), ui2mod(sname));
+            if (sect_order != [])
+            {
+                integer index = 0;
+                foreach (`key, sect_order, ``{
+                    if (isSpecial(key))
+                    {
+                        SCR::Write(
+                            list2path([bl, "sections", ui2mod(sname), key]),
+                            splitstring(lookup (sect, key, ""), ","), index);
+                    }
+                    else
+                    {
+                        SCR::Write(
+                            list2path([bl, "sections", ui2mod(sname), key]),
+                            ui2mod(lookup (sect, key, "")), index);
+                    }
+                    index = index + 1;
+                    sect = filter (`k, `v, sect, ``(k != key));
+                });
+            }
+            foreach(`key, `val, sect, ``{
+                if (isSpecial(key))
+                {
+                    SCR::Write(
+                        list2path([bl, "sections", ui2mod(sname), key]),
+                        splitstring(val, ","));
+                }
+                else
+                {
+                    SCR::Write(
+                        list2path([bl, "sections", ui2mod(sname), key]),
+                        ui2mod(val));
+                }
+            });
+        });
+
+	globals = glob_backup;
+	sections = sect_backup;
+	return true;
+    }
+
+    global define boolean loadCfgFileFromAgent () ``{
+        string bl = getLoaderType (false);
+
+        list optlist = SCR::Dir(list2path([bl]));
+
+        any value = "";
+        string comment = "";
+
+        BootCommon::globals = sectOptions2Map(bl, "", "");
+//	y2milestone ("Parsed globals: %1", BootCommon::globals);
+
+        // iterate for all sections and do the same as before
+
+        list sects = [];
+        map opts_tmp = $[];
+
+        sects = SCR::Dir(list2path([bl, "sections"]));
+        BootCommon::sections = [];
+
+        foreach(`e, sects,
+        ``{
+            opts_tmp = sectOptions2Map(bl, "sections", e);
+            BootCommon::sections = add(BootCommon::sections, opts_tmp);
+        });
+//	y2milestone ("Parsed sections: %1", sections);
+	return true;
+    }
+
+    /**
+      * returns map of options and their types
+      * @return map option types
+      */
+    global define map opttypes() ``{
+	string bl = getLoaderType (false);
+	if (opt_types[bl, "__fake__"]:"" == "b")
+	    return opt_types[bl]:$[];
+	map out = SCR::Read (list2path ([bl, "opttypes"]));
+	opt_types[bl] = out;
+/*	if (Arch::ia64)
+	{
+	    out = remove(out, "lba");
+	    out = remove(out, "lba32");
+	    out = remove(out, "linear");
+	    out = add(out, "chooser", "s");
+	    out = add(out, "noedd30", "b");
+	}
+*/
+	return out;
+    }
+
+    global define boolean tobool (any v) ``{
+	if (v == true)
+	    return true;
+	else
+	    return false;
+    }
+
+} //end of include

@@ -1,0 +1,305 @@
+/**
+ * File:
+ *      include/bootloader/grub/widgets.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Widgets specific for GRUB bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+
+    import "BootCommon";
+    include "ui/common_messages.ycp";
+    include "bootloader/routines/popups.ycp";
+    include "bootloader/grub/helps.ycp";
+
+    /**
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
+      */
+    global define map GetWidgets () ``{
+        return $[
+	    "sections" : BootGRUB::getSectionsWidget (),
+	    "passwd" : getPasswdWidget (),
+	    "orderbutton" : getOrderButton (),
+        ];
+    }
+
+    global define map getSectionsWidget () ``{
+	map ret = BootCommon::getSectionsWidget ();
+	ret["restore"] = ``(BootGRUB::sectionsRead ());
+	ret["handle"] = ``(BootGRUB::sectionsHandle ());
+	return ret;
+    }
+
+    global define void sectionsRedrawTable (list sects) ``{
+	integer order = -1;
+	list sec = maplist (map s, sects, ``{
+	    order = order + 1;
+	    // FIXME add other disk location
+	    string other_dev = s["root"]:s["rootnoverify"]:"";
+	    string kernel_img = s["kernel"]:"";
+	    kernel_img = select (filter (`p, splitstring (kernel_img, " "),
+		``(p != "")
+	    ), 0, "");
+	    string root = BootCommon::getKernelParamFromLine
+		(s["kernel"]:"", "root");
+	    if (root != "" && root != "false")
+		root = sformat (", root=%1", root);
+	    else
+		root = "";
+	    if (substring (kernel_img, 0, 1) != "(")
+		kernel_img = other_dev + kernel_img;
+	    return `item (`id (s["title"]:""),
+		BootCommon::tmp_store["globals", "default"]:0 == order
+		    ? UI::Glyph (`CheckMark) : "",
+		s["title"]:"",
+		s["kernel"]:"" == "" ? _("other") : _("image"),
+		s["kernel"]:"" != ""
+		? sformat ("%1   (%2%3)",
+		    kernel_img,
+		    BootGRUB::grubDev2unixDev (
+			select (BootGRUB::splitDevPath (kernel_img), 0, "")
+		    ),
+		    root
+		)
+		: sformat ("%1   (%2)", other_dev,
+		    BootGRUB::grubDev2unixDev (other_dev))
+	    );
+
+	});
+	UI::ChangeWidget (`id (`sects), `Items, sec);
+    }
+
+    global define void sectionsAssignDefault (string title) ``{
+	integer index = 0;
+	integer counter = 0;
+	foreach (`s, BootCommon::tmp_store["sections"]:[], ``{
+	    if (s["title"]:"" == title)
+		index = counter;
+	    counter = counter + 1;
+	});
+	BootCommon::tmp_store["globals", "default"] = index;
+    }
+
+    global define void sectionsRead () ``{
+	sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
+    }
+
+    global define symbol sectionsHandle (any op) ``{
+        string current = UI::QueryWidget (`id (`sects), `CurrentItem);
+        integer counter = 0;
+        integer index = 0;
+	integer default = BootCommon::tmp_store["globals", "default"]:0;
+	string default_title //= _sect["title"]:"";
+	    = BootCommon::tmp_store["sections", default, "title"]:"";
+        foreach (`s, BootCommon::tmp_store["sections"]:[], ``{
+            if (s["title"]:"" == current)
+                index = counter;
+            counter = counter + 1;
+        });
+        list sects = BootCommon::tmp_store["sections"]:[];
+        if (op == `up)
+        {
+            if (index > 0)
+            {
+                sects = BootCommon::swapItems(sects, index, index - 1);
+                index = index - 1;
+                BootCommon::tmp_store["sections"] = sects;
+		sectionsAssignDefault (default_title);
+                sectionsRedrawTable (sects);
+                UI::ChangeWidget (`id (`sects), `CurrentItem,
+                    sects[index, "title"]:0);
+            }
+        }
+        else if (op == `down)
+        {
+            if (index < (size(sects) - 1))
+            {
+                sects = BootCommon::swapItems(sects, index, index + 1);
+                index = index + 1;
+                BootCommon::tmp_store["sections"] = sects;
+		sectionsAssignDefault (default_title);
+                sectionsRedrawTable (sects);
+                UI::ChangeWidget (`id (`sects), `CurrentItem,
+                    sects[index, "title"]:0);
+            }
+        }
+	else if (op == `default)
+	{
+	    BootCommon::tmp_store["globals", "default"] = index;
+	    sectionsRedrawTable (sects);
+	    UI::ChangeWidget (`id (`sects), `CurrentItem,
+		sects[index, "title"]:0);
+	}
+	else if (op == `add)
+	{
+	}
+	else if (op == `edit)
+	{
+	}
+	else if (op == `delete && confirmSectionDeletePopup (current))
+	{
+	    sects = remove (sects, index);
+	    BootCommon::tmp_store["sections"] = sects;
+	    sectionsRedrawTable (sects);
+	}
+	else if (op == `reset && resetSectsPopup ())
+	{
+	    BootCommon::fetchSettings ();
+	    sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
+	}
+    }
+
+
+// order button
+    global define map getOrderButton () ``{
+        return $[
+            "widget" : `PushButton (`id (`order), _("&Change disks order")),
+            "exits" : [`order],
+	    "help" : getOrderButtonHelp (),
+        ];
+    }
+
+// password widge
+
+    global define map getPasswdWidget () ``{
+	map ret = BootCommon::getPasswdWidget ();
+	ret["handle"] = ``(BootGRUB::handlePasswdWidget ());
+	return ret;
+    }
+
+    global define void handlePasswdWidget (any op, list tosave) ``{
+	if (! contains (tosave, op))
+	    return BootCommon::handlePasswdWidget (op, tosave);
+	if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
+	{
+	    string ps = UI::QueryWidget (`id (`pw1), `Value);
+	    ps = sformat ("--md5 %1", cryptmd5 (ps));
+	    BootCommon::tmp_store["globals", "password"] = ps;
+	}
+    }
+
+
+
+// grub-specific dialogs
+    global define symbol runOrderDialog () ``{
+	list(list(string)) dl = filter (list(string) i, device_map,
+	    ``(substring (i[0]:"", 0, 3) == "(hd"));
+
+// FIXME: remove
+	dl = [["(hd0)", "/dev/hda"], ["(hd1)", "/dev/sda"],
+		["(hd2)", "/dev/ica/c0d0"]];
+
+
+	dl = sort (list(string) a, list(string) b, dl, ``(a[0]:"" < b[0]:""));
+	list(string) disks = maplist (list(string) i, dl, ``{return i[1]:"";});
+
+	term contents = `HBox (`HStretch (), `VBox (
+	    `VSpacing (2),
+	    `HBox (
+		`VBox (
+		    `ReplacePoint (`id (`disks_rp),
+			`SelectionBox (`id (`disks),
+			    `opt (`notify, `immediate),
+			    _("D&isks"), disks)
+/*		    ),
+		    `HBox (
+			`HStretch (),
+			`PushButton (`id (`add), AddButtonLabel ()),
+			`PushButton (`id (`del), DeleteButtonLabel ()),
+			`HStretch ()
+*/		    )
+		),
+		`HSquash (
+		    `VBox (
+			`VStretch (),
+			`PushButton (`id (`up), `opt (`hstretch), _("&Up")),
+			`PushButton (`id (`down), `opt (`hstretch), _("&Down")),
+			`VStretch ()
+		    )
+		)
+	    ),
+	    `VStretch ()
+	), `HStretch ());
+
+	Wizard::SetContentsButtons (_("Disks order"), contents,
+	    getDiskOrderHelp (), BackButtonLabel (), NextButtonLabel ());
+
+	UI::ChangeWidget (`id (`disks), `CurrentItem, disks[0]:"");
+	any ret = nil;
+	while (true)
+	{
+	    string active = UI::QueryWidget (`id (`disks), `CurrentItem);
+	    integer pos = 0;
+	    while (pos < size (disks) && disks[pos]:"" != active)
+		pos = pos + 1;
+	    UI::ChangeWidget (`id (`up), `Enabled, pos > 0);
+	    UI::ChangeWidget (`id (`down), `Enabled, pos < size (disks) - 1);
+	    ret = UI::UserInput ();
+	    if (ret == `next || ret == `abort || ret == `back)
+		break;
+	    if (ret == `up)
+	    {
+		disks = BootCommon::swapItems (disks, pos, pos - 1);
+		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
+		    `opt (`notify, `immediate),
+		    _("D&isks"), disks));
+		UI::ChangeWidget (`id (`disks), `CurrentItem, active);
+	    }
+	    else if (ret == `down)
+	    {
+		disks = BootCommon::swapItems (disks, pos, pos + 1);
+		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
+		    `opt (`notify, `immediate),
+		    _("D&isks"), disks));
+		UI::ChangeWidget (`id (`disks), `CurrentItem, active);
+	    }
+	}
+	if (ret == `next)
+	{
+	    list(string) o_disks
+		= maplist (list(string) i, dl, ``{return i[1]:"";});
+
+	    map olddiskmap = $[];
+	    foreach (list(string) d, dl, ``{
+		olddiskmap[d[1]:""] = d[0]:"";
+	    });
+	    map remap = $[];
+	    integer pos = 0;
+	    list new_map = filter (list(string) i, device_map,
+		``(substring (i[0]:"", 0, 3) != "(hd"));
+	    foreach (`d, disks, ``{
+		string gd = sformat ("(hd%1)", pos);
+		if (gd != olddiskmap[d]:"")
+		{
+		    remap[olddiskmap[d]:""] = gd;
+		}
+		new_map = add (new_map, [gd, d]);
+		pos = pos + 1;
+	    });
+	    map glob = BootCommon::tmp_store["globals"]:$[];
+	    glob = BootGRUB::remapDisks (glob, remap);
+	    BootCommon::tmp_store["globals"] = glob;
+	    list sects = BootCommon::tmp_store["sections"]:[];
+	    sects = maplist (`s, sects, ``{
+		return BootGRUB::remapDisks (s, remap);
+	    });
+	    BootCommon::tmp_store["sections"] = sects;
+	    y2error ("tmp_store: %1", BootCommon::tmp_store["sections"]:[]);
+	    BootGRUB::device_map = new_map;
+	}
+	return ret;
+    }
+
+}

@@ -1,0 +1,338 @@
+/**
+ * File:
+ *      modules/Bootloader.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Bootloader installation and configuration base module
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    module "Bootloader";
+
+    textdomain "bootloader";
+
+    import "Arch";
+    import "BootCommon";
+    import "Initrd";
+
+    include "bootloader/routines/switcher.ycp";
+
+// general functions
+
+    /**
+      * Export bootloader settings to a map
+      * @return bootloader settings
+      */
+    global define map Export () ``{
+	ReadOrProposeIfNeeded ();
+	map out = $[
+	    "location" : BootCommon::location,
+	    "loader_device" : BootCommon::loader_device,
+	    "loader_type" : BootCommon::getLoaderType (false),
+	    "initrd" : Initrd::Export (),
+	    "specific" : blExport ()
+	];
+	return out;
+    }
+    /**
+      * Import settings from a map
+      * @param settigns map of bootloader settings
+      */
+    global define void Import (map settings) ``{
+	Reset ();
+	BootCommon::was_read = true;
+	BootCommon::was_proposed = true;
+	BootCommon::changed = true;
+	BootCommon::location = settings["location"]:"";
+	BootCommon::loader_device = settings["loader_device"]:"";
+	BootCommon::setLoaderType (settings["loader_type"]:nil);
+	Initrd::Import (settings["initrd"]:$[]);
+	blImport (settings["specific"]:$[]);
+    }
+    /**
+      * Read settings from disk
+      * @return boolean true on success
+      */
+    global define boolean Read () ``{
+	Initrd::Read ();
+	BootCommon::location
+	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
+        //TODO: Read settings from sysconfig etc.
+	BootCommon::was_read = true;
+	return blRead ();
+    }
+    /**
+      * Reset bootloader settings
+      */
+    global define void Reset () ``{
+	BootCommon::was_proposed = false;
+	BootCommon::was_read = false;
+	BootCommon::location = "";
+	BootCommon::loader_device = "";
+//	BootCommon::setLoaderType (nil);
+	BootCommon::changed = false;
+	BootCommon::location_changed = false;
+	BootCommon::install = true;
+//	BootCommon::other_bl = $[];
+	BootCommon::install = true;
+	blReset ();
+    }
+    /**
+      * Propose bootloader settings
+      */
+    global define void Propose () ``{
+	blPropose ();
+	BootCommon::was_proposed = true;
+        BootCommon::changed = true;
+        BootCommon::location_changed = true;
+
+    }
+    /**
+      * Display bootloader summary
+      * @param list of style attributes
+      * FIXME add attrib description
+      */
+    global define string Summary (list style) ``{
+	return blSummary ();
+    }
+    /**
+      * Write bootloader settings to disk
+      * @return boolean true on success
+      */
+    global define boolean Write () ``{
+	ReadOrProposeIfNeeded ();
+
+	// save initrd
+	if (Initrd::changed)
+	{
+	    Initrd::Write ();
+	    BootCommon::changed = true;
+	}
+
+	if (! BootCommon::changed)
+	    return true;
+
+	// Write settings to /etc/sysconfig/bootloader
+        SCR::Write (.sysconfig.bootloader.LOADER_TYPE,
+	    BootCommon::getLoaderType (false));
+        SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
+            BootCommon::location);
+
+	if (! Mode::normal)
+	{
+	    SCR::Write (.sysconfig.bootloader.LOADER_TYPE.comment,
+                       "\n# Type of bootloader in use.
+# On i386 and compatibles \"grub\" and \"lilo\" are allowed.
+# Other platforms can have their specific bootloaders.
+# For making the change effect run bootloader configuration tool
+# and configure newly selected bootloader.\n#\n");
+	    SCR::Write (.sysconfig.bootloader.LOADER_LOCATION.comment,
+                       "\n# Location of boot loader. Shall contain \"mbr\",
+# \"floppy\", \"root\", \"boot\", \"custom\" or \"none\"\n#\n");
+	}
+	SCR::Write (.sysconfig.bootloader, nil);
+
+	// save bootloader settings
+	boolean ret = blSave ();
+
+        if (BootCommon::location == "none" || BootCommon::install == false
+	    || BootCommon::location == "")
+            return ret;
+
+	// call bootloader executable
+	ret = ret && blWrite ();
+	return ret;
+    }
+
+// sections handling functions
+
+    /**
+      * return default section label
+      * @return string default section label
+      */
+    global define string getDefaultSection () ``{
+	ReadOrProposeIfNeeded ();
+	string bl = BootCommon::getLoaderType(false);
+	list all = [];
+	string def = BootCommon::globals["default"]:nil;
+	if (bl != "grub")
+	{
+	    if (def == nil)
+		def = "0";
+	    else
+		return def;
+	}
+	else
+	{
+	   if (def == nil)
+		def = "0";
+	}
+	string titlename = BootCommon::getLoaderType (false) == "grub"
+	    ? "title"
+	    : "label";
+	list sections = maplist (`s, BootCommon::sections, ``{
+	    return s[titlename]:"";
+	});
+	integer i = tointeger (def);
+	return select (sections, i, nil);
+    }
+
+    /**
+      * get kernel parameters from bootloader configuration file
+      * @param section string section title, use DEFAULT for default section
+      * @param key string
+      * @return string value, "false" if not present,
+      * "true" if present key without value
+      */
+    global define string getKernelParam (string section, string key) ``{
+	ReadOrProposeIfNeeded ();
+
+	if (section == "DEFAULT")
+	    section = getDefaultSection ();
+	if (section == nil)
+	    return "";
+	string bl = BootCommon::getLoaderType (false);
+	string line = "";
+	if (bl != "grub")
+	{
+	    if (key == "vga" || key == "root")
+	    {
+		return BootCommon::sections[section, key]:"false";
+	    }
+	    else
+	    {
+		line = BootCommon::sections[section, "append"]:"";
+	    }
+	}
+	else
+	{
+	    line = BootCommon::sections[section, "kernel"]:"";
+	}
+	return BootCommon::getKernelParamFromLine (line, key);
+    }
+
+    /**
+      * Get list of bootloader sections
+      * @param type symbol what sections to be returned
+      *  `linux -> linux sections
+      *  `other -> other sections
+      *  `all   -> all sections
+      * @return list of strings representing sections names
+      */
+    global define list getSectionsList (symbol type) ``{
+	string bl = BootCommon::getLoaderType (false);
+	string title = ((bl == "grub") ? "title" : "label");
+	string linux = ((bl == "grub") ? "kernel" : "image");
+
+	list sects = BootCommon::sections;
+	if (type == `other)
+	    sects = filter (`s, sects, s[linux]:nil == nil);
+	else if (type == `linux)
+	    sects = filter (`s, sects, s[linux]:nil != nil);
+	sects = maplist (`s, sects, ``(s[title]:""));
+	sects = filter (`s, sects, ``(s != ""));
+	return sects;
+    }
+
+
+    /**
+      * set kernel parameter to menu.lst
+      * @param section string section title, use DEFAULT for default section
+      * @param key string parameter key
+      * @param value string value, "false" to remove key,
+      *   "true" to add key without value
+      * @return boolean true on success
+      */
+    global define boolean setKernelParam
+	(string section, string key, string value)
+    ``{
+	ReadOrProposeIfNeeded ();
+
+	if (section == "DEFAULT")
+	    section = getDefaultSection ();
+	if (section == nil)
+	    return false;
+	string bl = BootCommon::getLoaderType (false);
+	string slabel = "";
+	if ((key == "vga" || key == "root") && (value == "true"))
+	    return false;
+	if (bl != "grub")
+	{
+	    if (key == "vga" || key == "root")
+	    {
+		if (value != "false")
+		    BootCommon::sections[section, key] = value;
+		else
+		    BootCommon::sections[section] = removekey
+			(BootCommon::sections[section]:$[], key);
+	    }
+	    else
+	    {
+		slabel = "append";
+	    }
+	}
+	else
+	{
+	    slabel = "append";
+	}
+	string line = BootCommon::sections [sections, slabel]:"";
+	line = setGrubKernelParamToLine (line, key, value);
+	BootCommon::sections [sections, slabel] = line;
+	boolean ret = true;
+	return ret;
+    }
+
+    /**
+      * Get currently used bootloader, detect if not set yet
+      * @return string botloader type
+      */
+    global define string getLoaderType () ``{
+	return BootCommon::getLoaderType (false);
+    }
+    /**
+      * Answer whether LBA is supported
+      * @return boolean true if supported
+      */
+    global define boolean LbaSupport() ``{
+	if (Arch::i386)
+	{
+	    list internal_bios = SCR::Read (.probe.bios);
+	    boolean lba_support = internal_bios[0, "lba_support"]:false;
+	    if (getLoaderType () == "lilo")
+		return BootLILO::lba_support;
+	    else
+		return lba_support;
+	}
+	else
+	    return true;
+    }
+
+    /**
+      * Check whether settings were read or proposed, if not, decide
+      * what to do and read or propose settings
+      */
+    global define void ReadOrProposeIfNeeded () ``{
+        if (! (BootCommon::was_read || BootCommon::was_proposed))
+        {
+            if (Mode::initial && ! Mode::update)
+            {
+                Propose ();
+            }
+            else
+            {
+                Read ();
+            }
+        }
+    }
+
+
+}

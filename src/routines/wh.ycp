@@ -1,0 +1,112 @@
+/**
+ * File:
+ *      include/bootloader/routines/wh.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions for handling several widget and dialog functions
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+
+    textdomain "bootloader";
+    import "Bootloader";
+
+    /**
+      * Read widgets with listed names
+      * @param names list of strings names of widgets
+      * @return list of maps representing widgets
+      */
+    global define list getWidgets (list names) ``{
+	map spec_widgets = Bootloader::blGetWidgets ();
+	map common_widgets = BootCommon::GetWidgets ();
+	return maplist (`w, names, ``(
+	    spec_widgets[w]:common_widgets[w]:$[]//`VSpacing(0)
+	));
+    }
+
+    /**
+      * Set widgets according to internally stored settings
+      * @param widgets list of maps represenging widgets
+      */
+    global define void readWidgets (list widgets) ``{
+	foreach (`w, widgets, ``{
+	    eval (w["restore"]:nil);
+	});
+    }
+
+    /**
+      * Handle change of widget after event generated
+      * @param widgets list of maps represenging widgets
+      * @param action any wizard sequencer symbol
+      */
+    global define void handleChange (list widgets, any action) ``{
+	if (! validateWidgetsIfNeeded (widgets, action))
+	    return;
+	list tosave = [`next];
+	foreach (`w, widgets, ``{
+	    tosave = merge (tosave, w["exits"]:[]);
+	});
+	if (contains (tosave, action))
+	    action = `next;
+	foreach (`w, widgets, ``{
+	    term t = w["handle"]:nil;
+	    if (t != nil)
+		eval (add (add (t, action), tosave));
+	});
+    }
+
+    /**
+      * Validate dialog contents for allow it to be saved
+      * Checks whether next or other widget-specific event to save
+      *  and leave dialog was generated
+      * @param widgets list of widgets to validate
+      * @param action any return value of UserInput
+      * @return boolean true if everything is OK or no validation
+      *  needed, false  if something is wrong
+      */
+    global define boolean validateWidgetsIfNeeded (list widgets, any action) ``{
+	list needed = [`next];
+	foreach (`w, widgets, ``{
+	    list spec = w["exits"]:[];
+	    needed = merge (needed, spec);
+	});
+	if (! contains (needed, action))
+	    return true;
+	boolean result = true;
+	foreach (`w, widgets, ``{
+	    term t = w["validate"]:nil;
+	    if (t != nil)
+		result = result && eval (t);
+	});
+	return result;
+    }
+
+    /**
+      * Get symbol on which dialog should be exited
+      * @param widgets list of widgets in dialog
+      * @return list of symbols, which should be handled as exits
+      */
+    global define list getExitEvents (list widgets) ``{
+	list exits = [`back, `next, `abort];
+	foreach (`w, widgets, ``{
+	    exits = merge (exits, w["exits"]:[]);
+	});
+	return exits;
+    }
+
+    global define string mergeHelps (list widgets) ``{
+	list helps = maplist (`w, widgets, ``(w["help"]:""));
+	return mergestring (helps, "\n");
+    }
+
+}

@@ -1,0 +1,391 @@
+/**
+ * File:
+ *      modules/BootCommon.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Data to be shared between common and bootloader-specific parts of
+ *      bootloader configurator/installator, generic versions of bootloader
+ *      specific functions
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    module "BootCommon";
+
+    import "Arch";
+
+    import "Storage";
+
+    textdomain "bootloader";
+
+    include "bootloader/routines/misc.ycp";
+    include "bootloader/routines/widgets.ycp";
+    include "bootloader/routines/helps.ycp";
+    include "bootloader/routines/lilolike.ycp";
+
+// common variables
+
+    /**
+      * type of bootloader to configuer/being configured
+      * shall be one of "lilo", "grub", "silo", "milo", "aboot",
+      * "elilo", "ppc", "s390", "mips"
+      */
+    string loader_type = nil;
+
+// sysconfig variables
+
+    /**
+      * location description
+      * on i386 can be mbr, root, boot, floppy, custom, none
+      * other architectures may differ
+      */
+    global string location = "";
+
+    /**
+      * Device to install bootloader to
+      */
+    global string loader_device = "";
+
+// variables for storing data
+
+    /**
+      * list of section
+      */
+    global list sections = [];
+
+    /**
+      * map of global options and values
+      */
+    global map globals = $[];
+
+    /**
+      * string sepresenting device name of /boot partition
+      * same as RootPartitionDevice if no separate /boot partition
+      */
+    global string BootPartitionDevice = "";
+
+    /**
+      * string representing device name of / partition
+      */
+    global string RootPartitionDevice = "";
+    /**
+      * device holding MBR for bootloader
+      */
+    global string mbrDisk = "";
+
+// state variables
+
+    /**
+      * was the propose function called (== true)
+      */
+    global boolean was_proposed = false;
+    /**
+      * Were module settings read (== true)
+      */
+    global boolean was_read = false;
+    /**
+      * were settings changed (== true)
+      */
+    global boolean changed = false;
+    /**
+      * Was bootloader location changed? (== true)
+      */
+    global boolean location_changed = false;
+
+// summary dialog state
+
+    /**
+      * Install bootloader (location must be set too to save botloader)
+      */
+    global boolean install = true;
+    /**
+      * Show verbose summary output
+      */
+    global boolean verbose = false;
+
+// other variables
+
+    /**
+      * Settings of other bootloaders used when switching bootloader
+      */
+    global map other_bl = $[];
+
+    /**
+      * Option types for differnt bootloaders
+      */
+    global map opt_types = $[];
+
+    /**
+      * Map for temporary state storing
+      */
+    global map tmp_store = $[];
+
+// bootloader installation variables
+
+    /**
+      * Replace MBR with generic code after bootloader installation?
+      */
+    global boolean repl_mbr = false;
+
+    /**
+      * Activate bootloader partition during installation?
+      */
+    global boolean activate = true;
+
+// generic versions of bootloader-specific functions
+
+    /**
+      * Export bootloader settings to a map
+      * @return bootloader settings
+      */
+    global define map Export () ``{
+        map exp = $[
+		"global": globals,
+		"sections" : sections,
+	    ];
+	return exp;
+    }
+
+    /**
+      * Import settings from a map
+      * @param settigns map of bootloader settings
+      */
+    global define void Import (map settings) ``{
+        globals = lookup(settings, "global", $[]);
+        sections  = lookup(settings, "sections", []);
+	return;
+    }
+    /**
+      * Read settings from disk
+      * @return boolean true on success
+      */
+    global define boolean Read () ``{
+	loader_device = SCR::Read (.sysconfig.bootloader.LOADER_DEVICE);
+	loadCfgFileFromAgent ();
+        return true;
+    }
+
+    /**
+      * Reset bootloader settings
+      */
+    global define void Reset () ``{
+        sections = [];
+        globals = $[];
+//	DetectDisks ();
+	repl_mbr = false;
+	activate = true;
+    }
+
+    /**
+      * Propose bootloader settings
+      */
+    global define void Propose () ``{
+	y2error ("No generic propose function available");
+    }
+    /**
+      * Save all bootloader configuration files
+      * @return boolean true if success
+      */
+    global define boolean Save () ``{
+	SCR::Write (.sysconfig.bootloader.LOADER_DEVICE, loader_device);
+	string bl = getLoaderType (false);
+	saveCfgFileToAgent ();
+	SCR::Write(list2path([bl]), nil);
+	return true;
+    }
+    /**
+      * Display bootloader summary
+      * @param list of style attributes
+      *   `short -> only one line text
+      *   `verbose -> maximal verbose output
+      *   `links -> contain hyperlinks
+      * TODO: Implement verbose and links
+      */
+    global define string Summary (list style) ``{
+	string default = BootCommon::getLoaderType (false) == "grub"
+	    ? sections[globals["default"]:0, "title"]:""
+	    : globals["default"]:sections[0, "label"]:"";
+	map targetMap = Storage::GetTargetMap ();
+	map boot_target = targetMap[loader_device]:$[];
+	string target_name = "";
+	if (boot_target == $[])
+	    target_name = loader_device;
+	else
+	    target_name = boot_target["name"]:"disk";
+
+	if (contains (style, `short))
+	{
+	    // Text to proposal, %1 is bootloader name, %2 target description
+	    return sformat (_("Install %1 on %2"),
+		getLoaderName (getLoaderType (false)),
+		target_name
+	    );
+	}
+	string result = "";
+	if (! (install && location != "none"))
+	    return _("Don't install any bootloader");
+
+	if (contains (style, `links))
+	    result = result +
+		_("<B><A HREF=\"global\">Global settings:</A></B><BR>");
+	else
+	    result = result + _("<B>Global settings:<BR></B>");
+
+	result = result + "<UL>";
+	result = result + sformat(_("<LI><I>Bootloader type:</I> %1"),
+	    getLoaderName (getLoaderType (false)));
+	result = result + sformat (_("<LI><I>Location:</I> %1"), target_name);
+
+	if (contains (style, `verbose))
+	{
+	    if ((getLoaderType (false) == "grub" && globals["hiddenmenu"]:false)
+		||(getLoaderType (false) != "grub" && !globals["prompt"]:false))
+	    {
+		result = result + _("<LI><I>Boot menu:</I> will not be shown");
+	    }
+	    else
+	    {
+		result = result + _("<LI><I>Boot menu:</I> will be shown");
+	    }
+	    integer timeout = globals["timeout"]:0;
+	    if (timeout > 0)
+	    {
+		integer divisor = getLoaderType (false) == "grub" ? 1 : 10;
+		result = result + sformat (
+		    _("<LI><I>Timeout:</I> Automatic start of default section
+			after %1 seconds"), timeout / divisor
+		);
+	    }
+	    else
+	    {
+		result = result + _("<LI><I>Timeout:</I> Default section will
+		   be never started automatically");
+	    }
+	    if (globals["password"]:"" != "")
+		result = result + _("<LI><I>Password:</I>
+		    will be required to boot");
+	    else
+		result = result + _("<LI><I>Password:</I>
+		    will not be required to boot");
+	}
+
+	result = result + "</UL>";
+
+        if (contains (style, `links))
+            result = result +
+		_("<B><A HREF=\"sects\">Configured sections:</A></B><BR>");
+        else
+            result = result + _("<B>Configured sections:</B><BR>");
+
+	result = result + "<UL>";
+	foreach (`s, sections, ``{
+	    string title = s[
+		getLoaderType (false) == "grub" ? "title" : "label"
+	    ]:"";
+	    string def = title == default ? _(" (default)") : "";
+	    result = result + sformat (_("<LI>%1%2"),
+		title, def);
+	});
+	result = result + "</UL>";
+
+	return result;
+    }
+    /**
+      * Write bootloader settings to disk
+      * @return boolean true on success
+      */
+    global define boolean Write () ``{
+	y2error ("No generic write possible");
+	return false;
+    }
+
+// end of generic versions of bootloader-specific functions
+//-----------------------------------------------------------------------------
+
+// functions for fetching settings to tmp map and storing back
+
+    global define symbol fetchSettings () ``{
+	tmp_store = $[];
+	tmp_store["globals"] = eval(globals);
+	tmp_store["sections"] = eval(sections);
+	tmp_store["location"] = location;
+	tmp_store["loader_device"] = loader_device;
+	tmp_store["activate"] = activate;
+	tmp_store["repl_mbr"] = repl_mbr;
+	return `next;
+    }
+
+    global define symbol storeSettings () ``{
+	globals = tmp_store["globals"]:$[];
+	sections = tmp_store["sections"]:[];
+	location = tmp_store["location"]:"";
+	loader_device = tmp_store["loader_device"]:"";
+	loader_device = GetBootloaderDevice ();
+	repl_mbr = tmp_store["repl_mbr"]:false;
+	activate = tmp_store["activate"]:false;
+	return `next;
+    }
+
+//-----------------------------------------------------------------------------
+// common functions start
+
+// bootloader type handling functions
+
+    /**
+      * Get currently used bootloader, detect if not set yet
+      * @param recheck boolean force checking bootloader
+      * @return string botloader type
+      */
+    global define string getLoaderType (boolean recheck) ``{
+	if ((! recheck) && (loader_type != nil))
+	    return loader_type;
+	// read bootloader to use from disk
+	if (Mode::update || Mode::normal)
+	{
+	    loader_type = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
+	    if (loader_type != nil && loader_type != "")
+	    {
+		y2milestone ("Sysconfig bootloader is %1, using", loader_type);
+		return loader_type;
+	    }
+	}
+	// detect bootloader
+	loader_type = SCR::Read (.probe.boot_arch);
+//	import "Storage";
+//	if (loader_type == "grub" && Storage::UseLilo())
+//	    loader_type = "lilo";
+// TODO: check whether bootlaoder is installed
+	y2milestone ("Detected bootloader %1", loader_type);
+	return loader_type;
+    }
+    /**
+      * set type of bootloader
+      * @param bootloader string type of bootloader
+      */
+    global define void setLoaderType (string bootloader) ``{
+	loader_type = bootloader;
+    }
+    /**
+      * List bootloaders available for configured architecture
+      * @return list of bootloaders
+      */
+    global define list getBootloaders () ``{
+	list ret = [getLoaderType (false)];
+	if (Arch::i386)
+	{
+	    ret = merge (ret, ["lilo", "grub"]);
+	}
+	return toset (ret);
+    }
+
+}
+
+

@@ -16,4 +16,6 @@
  */
 {
     module "BootMIPS";
+
+    global integer trash = 0; //only to contain anything and avoid errors
 }

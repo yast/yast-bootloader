@@ -658,6 +658,9 @@
 	    Set ();
 	}
 
+	if (location == "boot")
+	    return true;
+
 	import "Storage";
 	if (Mode::live_eval)
 	    return true;

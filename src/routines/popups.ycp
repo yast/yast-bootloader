@@ -1,0 +1,82 @@
+/**
+ * File:
+ *      include/bootloader/routines/popups.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Popups for being used inside bootloader configurator
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+
+    textdomain "bootloader";
+
+    import "Report";
+
+    /**
+      * Display question
+      * @return boolean true if answered yes
+      */
+    global define boolean resetSectsPopup () ``{
+	// yes-no popup question
+	return UI::YesNoPopup (_("Do you really want to reset your sections
+settings? All your changes made to sections managment will be lost."));
+    }
+
+    /**
+      * Display question
+      * @param section title
+      * @return boolean true if answered yes
+      */
+    global define boolean confirmSectionDeletePopup (string title) ``{
+	// yes-no popup question
+	return UI::YesNoPopup (sformat(_("Do you rally want to delete section
+%1?"), title));
+    }
+
+    /**
+      * Display question
+      * @return boolean true if answered yes
+      */
+    global define boolean resetAllPopup () ``{
+	// yes-no popup question
+	return UI::YesNoPopup (_("Do you rally want to reset all
+your settings? All your changes will be lost."));
+    }
+
+    /**
+      * Display error
+      */
+    global define void setLocationErrorPopup () ``{
+	// error popup
+	Report::Error (_("You must set bootloader location!!!"));
+    }
+
+    /**
+      * Display error
+      */
+    global define void emptyPasswdErrorPopup () ``{
+	// error popup
+	Report::Error (_("You must set non-empty password"));
+    }
+
+    /**
+      * Display error
+      */
+    global define void passwdMissmatchPopup () ``{
+	// error popup
+	Report::Error (_("'Password' and 'Retype password'
+do not match. Retype the password."));
+    }
+
+
+}
