@@ -960,7 +960,7 @@
 	        current_section = s;
 	}
 
-	if (section == `global)
+	if (BootCommon::current_section_name == `global)
 	{
 	    BootCommon::changed = true;
 	}
