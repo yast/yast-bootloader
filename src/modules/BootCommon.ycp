@@ -94,7 +94,7 @@
     /**
       * were settings changed (== true)
       */
-    global boolean changed = false;
+    global boolean changed = true;//FIXME false;
     /**
       * Was bootloader location changed? (== true)
       */
@@ -143,6 +143,11 @@
       * Map for temporary state storing
       */
     global map tmp_store = $[];
+
+    /**
+      * Map to remember what settings were changed
+      */
+    global map changed_settings = $[];
 
 // bootloader installation variables
 
@@ -238,9 +243,7 @@
 
 	if (contains (style, `short))
 	{
-	    // Text to proposal, %1 is bootloader name, %2 target description
 	    string result = "";
-	    result = result + sformat (_("<LI>Install bootloader"));
 	    result = result + sformat (_("<LI>Bootloader type: %1"),
 		getLoaderName (getLoaderType (false)));
 	    result = result + sformat (_("<LI>Locartion: %1"), target_name);
@@ -254,12 +257,9 @@
 	    });
 	    result = result + sformat (_("<LI>Sections: %1"),
 		mergestring (sects, ", "));
-//	    return sformat (_("Install %1 on %2"),
-//		getLoaderName (getLoaderType (false)),
-//		target_name
-//	    );
-
-	    result = result + "";
+	    if (! install)
+		result = result + _("<LI>Don't install bootloader, just create
+configuration files");
 	    return result;
 	}
 	string result = "";
@@ -340,6 +340,76 @@
 	return false;
     }
 
+    /**
+      * Get map of bootloader options
+      * @return map of options
+      */
+    global define map GetOptions () ``{
+	map opts = $[
+	    `global: [
+	        "append",
+	        "backup",
+	        "boot",
+	        "change-rules",
+	        "compact",
+	        "default",
+	        "delay",
+	        "disk",
+	        "disktab",
+	        "fix-table",
+		"force-backup",
+	        "ignore-table",
+	        "install",
+	        "lba32",
+	        "linear",
+	        "lock",
+	        "map",
+	        "menu-title",
+	        "menu-scheme",
+	        "message",
+	        "nowarn",
+	        "optional",
+	        "password",
+	        "prompt",
+	        "restricted",
+	        "serial",
+	        "timeout",
+	        "verbose",
+	        "vga",
+	    ],
+	    "image" : [
+	        "append",
+	        "initrd",
+	        "literal",
+	        "ramdisk",
+	        "read-only",
+	        "read-write",
+	        "root",
+	        "vga",
+	        "label",
+	        "alias",
+	        "lock",
+	        "optional",
+	        "password",
+	        "restricted",
+	    ],
+	    "other" : [
+	        "loader",
+	        "table",
+	        "change",
+	        "map-drive",
+	        "unsafe",
+	        "label",
+	        "alias",
+	        "lock",
+	        "optional",
+	        "password",
+	        "restricted",
+	    ]
+	];
+	return opts;
+    }
+
 // end of generic versions of bootloader-specific functions
 //-----------------------------------------------------------------------------
 
@@ -391,13 +461,33 @@
 	    }
 	}
 	// detect bootloader
-	loader_type = "grub";//SCR::Read (.probe.boot_arch);
+	loader_type = SCR::Read (.probe.boot_arch);
 	y2milestone ("Bootloader detection returned %1", loader_type);
-	y2error ("Storage::UseLilo: %1", Storage::UseLilo());
-// USE LILO INSTEAD OF GRUB CHECKING
-//	if (loader_type == "grub" && Storage::UseLilo())
-//	    loader_type = "lilo";
-// TODO: check whether bootlaoder is installed and install if needed
+	if (loader_type == "grub" && Storage::UseLilo())
+	    loader_type = "lilo";
+
+	// check bootloader package to be installed
+	boolean no_bootloader = false;
+	if ((Arch::i386 || Arch::x86_64) && (Mode::initial)){
+	    string lt = loader_type;
+	    if (lt == "lilo" && ! Pkg::IsSelected ("lilo"))
+		lt = "grub";
+	    if (lt == "grub" && ! Pkg::IsSelected ("grub"))
+		lt = "lilo";
+	    if (! (Pkg::IsSelected ("lilo") || Pkg::IsSelected ("grub")))
+	    {
+		no_bootloader = true;
+	    }
+	    else
+	    {
+		loader_type = lt;
+	    }
+	}
+	if (no_bootloader)
+	{
+// TODO: install bootloader package
+	}
+
 	y2milestone ("Detected bootloader %1", loader_type);
 	return loader_type;
     }

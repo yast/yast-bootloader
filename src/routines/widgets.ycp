@@ -27,13 +27,23 @@
       */
     global define map GetWidgets () ``{
 	return $[
-		"target": getTargetWidget (),
+//		"target": getTargetWidget (),
 		"experttarget" : getExpertWidget (),
 		"prompt" : getPromptWidget (),
 		"passwd" : getPasswdWidget (),
-		"loader" : getLoaderSelectionWidget (),
+//		"loader" : getLoaderSelectionWidget (),
 		"sections" : getSectionsWidget (),
 		"singlesection" : getSingleSectionWidget (),
+		"summarybuttons" : getSummaryButtonsWidget (),
+		"tableentries" : $[
+		    `location: getTargetWidget (),
+		    `loader_type : getLoaderSelectionWidget (),
+		    `sections : getSectionsTableEntry (),
+		    `default_section : getDefaultSectionTableEntry (),
+		    `section_type : getSectionTypeWidget (),
+		    "-" : $["label" : "---------------"],
+		    "label" : $["label" : "Section name"],
+		],
 	];
     }
 
@@ -110,6 +120,8 @@
 	    "handle" : ``(BootCommon::targetWrite ()),
 	    "help" : getLocationsHelp (),
 	    "validate" : ``(BootCommon::targetValidate ()),
+	    "label" : _("Bootloader location"),
+	    "summary" : ``(BootCommon::locationSummary ()),
 	];
     }
 
@@ -118,6 +130,7 @@
       */
     global define void targetRead () ``{
 	UI::ChangeWidget (`id (`loc), `Value, tmp_store["loader_device"]:"");
+	y2milestone ("tmp_store: %1", tmp_store);
 	UI::ChangeWidget (`id (`location), `CurrentButton,
 	    tmp_store["location"]:"");
     }
@@ -127,14 +140,13 @@
       * @param op symbol of event
       * @return symbol of event
       */
-    global define symbol targetWrite (any op, list tosave) ``{
-	if (contains (tosave, op))
-	{
-	    tmp_store["location"]
-		= UI::QueryWidget (`id (`location), `CurrentButton);
-	    tmp_store["loader_device"] = UI::QueryWidget (`id (`loc), `Value);
-	}
-	return op;
+    global define symbol targetWrite (/*any op, list tosave*/) ``{
+	tmp_store["location"]
+	    = UI::QueryWidget (`id (`location), `CurrentButton);
+	tmp_store["loader_device"] = UI::QueryWidget (`id (`loc), `Value);
+	BootCommon::storeSettings ();
+	tmp_store["loader_device"] = BootCommon::GetBootloaderDevice ();
+	return;// op;
     }
 
     /**
@@ -156,6 +168,18 @@
 	    return false;
 	}
 	return true;
+    }
+
+    global define boolean locationSummary () ``{
+	map targetMap = Storage::GetTargetMap ();
+	y2milestone ("LD: %1", BootCommon::loader_device);
+	map boot_target = targetMap[loader_device]:$[];
+	string target_name = "";
+	if (boot_target == $[])
+	    target_name = loader_device;
+	else
+	    target_name = boot_target["name"]:"disk";
+	return target_name;
     }
 
 
@@ -320,7 +344,7 @@
 		`HBox (
 		    `ReplacePoint (`id (`sects_rp),
 			`Table (`id (`sects), `header (
-			_("Default"), _("Label"), _("Type"), _("Image / Device")
+			_("Def."), _("Label"), _("Type"), _("Image / Device")
 			), [])
 		    ),
 		    `HSpacing (1),
@@ -349,7 +373,8 @@
     global define void sectionsRedrawTable (list sects) ``{
 	list sec = maplist (map s, sects, ``{
             return `item (`id (s["label"]:""),
-                BootCommon::tmp_store["globals", "default"]:"" == s["label"]:""
+                BootCommon::tmp_store["globals", "default"]:""
+			== s["label"]:""
                     ? UI::Glyph (`CheckMark) : "",
                 s["label"]:"",
                 s["image"]:"" == "" ? _("other") : _("image"),
@@ -418,13 +443,20 @@
 	else if (op == `add)
 	{
 	    BootCommon::tmp_store["active_section"] = $[];
-	    BootCommon::tmp_store["active_s_name"] = "";
+// FIXME
+	    BootCommon::tmp_store["active_section_name"]
+                = sects[index, "label"]:"";
+	    BootCommon::tmp_store["section_type"] = "image";
+
 	}
 	else if (op == `edit)
 	{
 	    y2milestone ("Editing title %1, index %2", current, index);
-	    BootCommon::tmp_store["active_section"] = sects[index]:$[];;
-	    BootCommon::tmp_store["active_s_name"] = sects[index, "label"]:"";
+	    BootCommon::tmp_store["active_section"] = sects[index]:$[];
+	    BootCommon::tmp_store["active_section_name"]
+		= sects[index, "label"]:"";
+	    BootCommon::tmp_store["section_type"]
+		= sects[index, "image"]:"" == "" ? "other" : "image";
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
@@ -442,11 +474,11 @@
 	    BootCommon::fetchSettings ();
 	    sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
 	}*/
-/*	if (contains (tosave, op))
+	if (contains (tosave, op))
 	{
-
-
-	}*/
+	    BootCommon::markOptionChanged (`global, `sections);
+	    BootCommon::markOptionChanged (`global, `default_section);
+	}
     }
 
     global define map getLoaderSelectionWidget () ``{
@@ -458,18 +490,34 @@
 	    "widget" : (`ComboBox (`id (`loader_type), `opt (`notify),
                         _("Boot&loader type"), loaders
                     )),
-	    "restore" : nil,
-	    "handle" : nil,
+	    "restore" : ``(BootCommon::loaderTypeRestore ()),
+	    "handle" : ``(BootCommon::loaderTypeSave ()),
 	    "help" : nil,
 	    "exits" : [],
+	    "label" : _("Bootloader type"),
+	    "summary" : ``(BootCommon::loaderTypeSummary ()),
 	];
+    }
+
+    global define void loaderTypeRestore () ``{
+	UI::ChangeWidget (`id (`loader_type), `Value,
+	    BootCommon::getLoaderType (false));
+    }
+
+    global define void loaderTypeSave () ``{
+	BootCommon::setLoaderType (UI::QueryWidget (`id (`loader_type),
+	    `Value));
+    }
+
+    global define string loaderTypeSummary () ``{
+	return BootCommon::getLoaderName (BootCommon::getLoaderType (false));
     }
 
     global define map getSingleSectionWidget () ``{
 	return $[
 	    "widget" : (`HBox (`HSpacing (2), `VBox (
-		    `Table (`id (`settings), `opt (`notify,  `keepSorting),
-			`header (_("Option"), /*_("Changed"),*/ _("Values")), []),
+		    `Table (`id (`settings), `opt (`notify, `keepSorting),
+			`header (_("Ch."), _("Option"), _("Value")), []),
 		    `HBox (
 			`HStretch (),
 			`PushButton (`id (`add), AddButtonLabel ()),
@@ -478,32 +526,136 @@
 			`HStretch ()
 		    )
 		), `HSpacing (2))),
-	    "restore" : ``(BootCommon::singleSectionRead ()),
-	    "handle" : ``(BootCommon::singleSectionHandle ()),
+	    "restore" : ``(singleSectionRead ()),
+	    "handle" : ``(singleSectionHandle ()),
 	    "help" : nil,
-	    "exits" : [],
+	    "exits" : [`sections],
 	];
     }
 
-    global define void singleSectionRead () ``{
-	map orig = BootCommon::tmp_store["active_section"]:$[];
-	y2milestone ("Editing section %1", orig);
-	string type = orig["image"]:"" == "" ? _("other") : _("image");
-	list items = [`item (`id (`type), "Section type", /*"",*/ type)];
-	orig = filter (`k, `v, orig, ``(k != "__order__" && k != "__intern__"));
-	foreach (string k, `v, orig, ``{
-	    items = add (items, `item (`id (k), k, /*"",*/ sformat ("%1", v)));
-
-	});
-
-
-	UI::ChangeWidget (`id (`settings), `Items, items);
+    global define list UpdateOptionsList (map _options) ``{
+	list options = maplist (`k, `v, _options, ``(k));
+	any type = BootCommon::tmp_store["section_type"]:"";
+	if (type == `global)
+	{
+	    options = filter (`o, options, ``(o != "boot" && o != "default"));
+	    options = filter (`o, options, ``(o != "loader_type"
+		&& o != "location" && o != "default_section" && o != "sections"
+	    ));
+	    options = prepend (options, "-");
+	    options = prepend (options, `sections);
+	    options = prepend (options, `default_section);
+	    options = prepend (options, `location);
+	    options = prepend (options, "-");
+	    options = prepend (options, `loader_type);
+	}
+	else
+	{
+	    options = filter (`o, options, ``(o != "type" && o != "label"));
+	    options = prepend (options, "-");
+	    options = prepend (options, `section_type);
+	    options = prepend (options, "label");
+	}
+	return options;
     }
 
-    global define symbol singleSectionHandle (any op, list tosave) ``{
-	y2error ("Handling");
+    global define map getSummaryButtonsWidget () ``{
+	return $[
+	    "widget" : `HBox (`HStretch (),
+		`MenuButton (`id (`restore), _("Res&et"), [
+                    `item (`id (`propose), _("&Propose new configuration")),
+                    `item (`id (`scratch), _("&Start from scratch")),
+                ]),
+                `PushButton (`id (`manual), _("Edit &configuration files"))
+	    ),
+	    "exits" : [`manual, `propose, `scratch],
+	];
     }
 
+    global define map getSectionsTableEntry () ``{
+	return $[
+	    "label" : _("Available sections"),
+	    "summary" : ``(BootCommon::getSectionsSummary ()),
+	];
+    }
 
+    global define string getSectionsSummary () ``{
+	string default = BootCommon::globals["default"]:"";
+        list sects = [];
+        foreach (`s, BootCommon::sections, ``{
+            string title = s["label"]:"";
+            string def = title == default ? _(" (default)") : "";
+            sects = add (sects, sformat ("%1%2", title, def));
+        });
+	return mergestring (sects, ", ");
+    }
+
+    global define map getDefaultSectionTableEntry () ``{
+	return $[
+	    "label" : _("Default section"),
+	    "summary" : ``(BootCommon::getDefaultSectionSummary ()),
+	];
+    }
+
+    global define string getDefaultSectionSummary () ``{
+	return BootCommon::globals["default"]:"";
+    }
+
+    global define map getSectionTypeWidget () ``{
+        return $[
+            "widget" : (`ComboBox (`id (`section_type), `opt (`notify),
+                        _("Section &type"), ["image", "other"]
+                    )),
+            "restore" : ``(BootCommon::sectionTypeRestore ()),
+            "handle" : ``(BootCommon::sectionTypeSave ()),
+            "help" : nil,
+            "exits" : [],
+            "label" : _("Section type"),
+            "summary" : ``(BootCommon::sectionTypeSummary ()),
+        ];
+    }
+
+    global define void sectionTypeRestore () ``{
+	string key = BootCommon::getLoaderType (false) == "grub"
+	    ? "kernel" : "image";
+        UI::ChangeWidget (`id (`section_type), `Value,
+	    BootCommon::tmp_store["active_section", key]:"" == ""
+		? "other"
+		: "image");
+    }
+
+    global define void sectionTypeSave () ``{
+        string ntype = UI::QueryWidget (`id (`section_type), `Value);
+	string otype = BootCommon::tmp_store["active_section", "image"]:"" == ""
+	    ? "other"
+	    : "image";
+	if (otype == ntype)
+	    return;
+	string label = BootCommon::tmp_store["active_section", "label"]:"";
+	if (ntype == "other")
+	{
+	    map tmp = BootCommon::tmp_store["active_section"]:$[];
+	    BootCommon::tmp_store["active_section"] = $["other":
+		select (BootCommon::splitPath (tmp["image"]:""), 0, "")];
+	}
+	else
+	{
+	    map tmp = BootCommon::tmp_store["active_section"]:$[];
+	    BootCommon::tmp_store["active_section"] = $[
+		"image" : "/boot/vmlinuz",
+		"root" : tmp["other"]:"",
+	    ];
+	}
+	BootCommon::tmp_store["active_section", "label"] = label;
+	BootCommon::tmp_store["section_type"] = ntype;
+    }
+
+    global define string sectionTypeSummary () ``{
+	string key = BootCommon::getLoaderType (false) == "grub"
+	    ? "kernel" : "image";
+	return BootCommon::tmp_store["active_section", key]:"" == ""
+	    ? "other"
+	    : "image";
+    }
 
 } // include end

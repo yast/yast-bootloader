@@ -17,6 +17,7 @@
 {
     textdomain "bootloader";
     import "Bootloader";
+    import "BootCommon";
     import "Wizard";
     import "Progress";
     import "Mode";
@@ -83,8 +84,6 @@
 	    return `back;
 
 	Bootloader::Read ();
-//	Bootloader::Propose ();
-//	Bootloader::Propose ();
 	Progress::Finish ();
 	if (testAbort ())
 	    return `back;
@@ -94,7 +93,8 @@
 
     if (! skip_io)
     {
-//	Bootloader::Write ();
+	if (ret == `next)
+	    Bootloader::Write ();
     }
 
     UI::CloseDialog ();

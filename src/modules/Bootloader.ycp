@@ -39,7 +39,8 @@
 	    "loader_device" : BootCommon::loader_device,
 	    "loader_type" : BootCommon::getLoaderType (false),
 	    "initrd" : Initrd::Export (),
-	    "specific" : blExport ()
+	    "specific" : blExport (),
+	    "changed_settings" : BootCommon::changed_settings,
 	];
 	return out;
     }
@@ -57,6 +58,7 @@
 	BootCommon::setLoaderType (settings["loader_type"]:nil);
 	Initrd::Import (settings["initrd"]:$[]);
 	blImport (settings["specific"]:$[]);
+	BootCommon::changed_settings = settings["changed_settings"]:$[];
     }
     /**
       * Read settings from disk
@@ -64,10 +66,12 @@
       */
     global define boolean Read () ``{
 	Initrd::Read ();
+	boolean ret = blRead ();
 	BootCommon::location
 	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
+	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::was_read = true;
-	return blRead ();
+	return ret;
     }
     /**
       * Reset bootloader settings
@@ -84,6 +88,7 @@
 //	BootCommon::other_bl = $[];
 	BootCommon::install = true;
 	BootCommon::files_edited = false;
+	BootCommon::changed_settings = $[];
 	blReset ();
     }
     /**
@@ -109,6 +114,7 @@
       * @return boolean true on success
       */
     global define boolean Write () ``{
+	y2milestone ("Writing bootloader configuration");
 	boolean ret = true;
 	ReadOrProposeIfNeeded ();
 

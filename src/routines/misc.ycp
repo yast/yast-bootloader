@@ -109,7 +109,7 @@
         partitions = merge (partitions, floppies);
         ret = union (ret, partitions);
 
-	y2milestone ("getPartitionList for %1 returning %2", type, ret);
+//	y2milestone ("getPartitionList for %1 returning %2", type, ret);
 	return ret;
     }
 
@@ -652,8 +652,7 @@
 	string bl = getLoaderType (false);
 	if (size (opt_types[bl]:$[]) > 0)
 	    return opt_types[bl]:$[];
-//	SCR::Dir (.lilo);//list2path ([bl]));
-	map out = SCR::Read (/*.lilo.opttypes);*/list2path ([bl, "opttypes"]));
+	map out = SCR::Read (list2path ([bl, "opttypes"]));
 	y2milestone ("Got opttypes %1", out);
 	opt_types[bl] = out;
 /*	if (Arch::ia64)
@@ -668,6 +667,22 @@
 	return out;
     }
 
+    /**
+      * Mark option as changed by user
+      * @param opttype any type of section
+      * @param optname any option name
+      */
+    global define void markOptionChanged (any section, any optname) ``{
+	map current = BootCommon::changed_settings[section]:$[];
+	current[optname] = true;
+	BootCommon::changed_settings[section] = current;
+
+
+    }
+
+    /**
+      * Convert any to boolean
+      */
     global define boolean tobool (any v) ``{
 	if (v == true)
 	    return true;
