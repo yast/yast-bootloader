@@ -20,6 +20,7 @@
 
     textdomain "bootloader";
 
+    import "Arch";
     import "Label";
     import "PackageCallbacksInit";
     import "Popup";
@@ -45,6 +46,9 @@
 
     string floppy_device = "/dev/fd0"; // default
     boolean format_floppy = false; // default
+    boolean images_created = false;
+    string imagedir = "";
+    map floppymount = nil;
 
     // This is the headline of the bootfloppy module
     string dialog_header = _("Create boot or rescue floppies");
@@ -129,6 +133,35 @@ FireWire and file systems modules floppy"),
     define void hidePopup () ``{
 	UI::CloseDialog ();
     }
+
+define string createFloppyImage (string file_image) {
+    if (! images_created)
+    {
+	// first download the mkbootfloppy script
+	string script = Pkg::SourceProvideFile(source_id, 1,
+	    "/boot/mkbootdisk");
+	// build command to build the images
+	string tmpdir = (string)SCR::Read (.target.tmpdir);
+	imagedir = sformat ("%1/floppy", tmpdir);
+	SCR::Execute (.target.mkdir, imagedir);
+	string image_pattern
+	    = substring (file_image, 0, size (file_image) - 1);
+	string cd_dir = Pkg::SourceProvideDir (source_id, 1, "/");
+	string command = sformat ("cd %1; /usr/bin/perl %2 %5 --out %3 %4",
+	    imagedir,
+	    script,
+	    image_pattern,
+	    cd_dir,
+	    Arch::x86_64 () ? "--64" : "--32");
+	y2milestone ("Command to execute: %1", command);
+	SCR::Execute (.target.bash, command);
+	images_created = true;
+    }
+    file_image = sformat ("%1/%2", imagedir, file_image);
+    y2milestone ("Image selected: %1", file_image);
+    return file_image;
+}
+
 
     /**
       * Try to mount source medium e.g. CD1 or a directory on the harddisk.
@@ -419,8 +452,9 @@ and File Systems (modules disk 4)"))),
 			// processed action
 			showPopup (_("Getting the floppy disk image..."));
 			floppyMountSource ();
-			string pth = sformat ("boot/%1", file_image);
-			filename = Pkg::SourceProvideFile(source_id, 1, pth);
+			filename = createFloppyImage (file_image);
+//			string pth = sformat ("boot/%1", file_image);
+//			filename = Pkg::SourceProvideFile(source_id, 1, pth);
 			hidePopup ();
 			if (filename == nil)
 			{
@@ -661,10 +695,11 @@ All data on this floppy will be deleted.
 		format_floppy = (boolean)
 		    UI::QueryWidget (`id (`format), `Value);
 
-		map floppymount = isFloppyMounted (floppy_device);
+		map floppymount_tmp = isFloppyMounted (floppy_device);
 
-		if ( floppymount != nil)
+		if ( floppymount_tmp != nil)
 		{
+		    floppymount = floppymount_tmp;
 		     //floppy is mounted -- popup
 		    if( ! Popup::ContinueCancel(sformat(_("
 Your floppy device %1 is currently mounted on
@@ -686,6 +721,36 @@ Unmount the floppy?
 	}
 	return (symbol)ret;
     }
+
+define void OfferFloppyRemount () {
+    if (floppymount == nil)
+	return;
+    // yes-no popup
+    if (Popup::YesNo (_("The floppy device was unmounted before creating
+the floppy image. Mount it again?")))
+    {
+	// try according to fstab
+	integer ret = (integer)SCR::Execute (.target.bash,
+	    sformat ("/bin/mount %1", floppymount["spec"]:""));
+	if (ret == 0)
+	    return;
+	ret = (integer)SCR::Execute (.target.bash,
+	    sformat ("/bin/mount %1 %2 %3 %4",
+		floppymount["mntops"]:"" == ""
+		    ? ""
+		    : sformat ("-o %1", floppymount["mntops"]:""),
+		floppymount["vfstype"]:"" == ""
+		    ? ""
+		    : sformat ("-t %1", floppymount["vfstype"]:""),
+		floppymount["spec"]:"",
+		floppymount["file"]:""));
+	if (ret == 0)
+	    return;
+	// error report;
+	Report::Error (_("Failed to mount the floppy. Do it manually
+after finishing YaST."));
+    }
+}
 
     /**
       * Copy the selected image to the floppy.
@@ -726,6 +791,7 @@ Verify that a valid floppy medium is
 in the drive and that you have root permissions 
 then try again.
 "));
+		OfferFloppyRemount ();
 		return `select_image;
 	    }
 	}
@@ -766,6 +832,7 @@ to the floppy disk. Verify that a valid floppy
 medium is in the drive and that you have
 root permissions then try again.
 "));
+	    OfferFloppyRemount ();
 	    return `select_image;
 	}
 
@@ -807,6 +874,7 @@ root permissions then try again.
             Report::Error(_("An error occurred while verifying the floppy disk.
 Try again with another floppy.
 "));
+	    OfferFloppyRemount ();
             return `back;
         }
 	// popup
@@ -815,11 +883,9 @@ Try again with another floppy.
 The requested floppy disk was successfully created.
 
 "));
+	OfferFloppyRemount ();
 	return `next;
     }
-
-
-
 
 
     // ===== define the sequences =======================================
@@ -862,7 +928,7 @@ The requested floppy disk was successfully created.
 	    `abort: `abort ,
 	    `next : `abort,
 	    `select_image: "select_image"
-	]
+	],
     ];
 
     // ===== Start the sequence =======================================

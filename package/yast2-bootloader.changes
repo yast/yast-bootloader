@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 21 10:58:13 CET 2005 - jsrain@suse.cz
+
+- use the new scripts for creating boot floppy (images are no
+  longer on installation media)
+
+-------------------------------------------------------------------
 Thu Feb 17 12:14:22 CET 2005 - jsrain@suse.cz
 
 - prevent from inserting language to the offer of boot menu twice
