@@ -365,8 +365,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	    {
 		y2error ("Failed to initialize device mapper");
 	    }
-	    y2milestone ("Device mapper and LVM initialization output: %1"
-		out);
+	    y2milestone ("Device mapper and LVM initialization output: %1", out);
 	}
 
 	// save initrd
