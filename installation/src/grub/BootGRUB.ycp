@@ -443,14 +443,13 @@ Do you want to try again?")) )
 
 	y2milestone ("GRUB installed");
 
-	if (nil != findlastof (boot_sect, "/"))
-	    boot_sect = substring (boot_sect, findlastof (boot_sect, "/") + 1);
-	integer part = tointeger (substring (boot_sect, size (boot_sect) - 1));
-	if (part != nil && part != 0)
+	map p_dev = Storage::GetDiskPartition (boot_sect);
+	any num = p_dev["nr"]:0;
+	string mbr_dev = p_dev["disk"]:"";
+	if (num != 0 && num != "")
 	{
-	    boot_sect = "/dev/" + substring (boot_sect, 0, size (boot_sect) - 1);
-	    y2milestone ("Activating partition %1 on %2", part, boot_sect);
-	    return 0 == SCR::Execute (.target.bash, sformat ("/sbin/sfdisk -A%1 %2", part, boot_sect));
+	    y2milestone ("Activating partition %1 on %2", num, mbr_dev);
+	    return 0 == SCR::Execute (.target.bash, sformat ("/sbin/sfdisk -A%1 %2", num, mbr_dev));
 	}
 	if (! ret)
 	    UI::ErrorPopup (_("An error occured during saving bootloader configuration"));

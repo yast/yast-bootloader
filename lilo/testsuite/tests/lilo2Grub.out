@@ -30,8 +30,8 @@ Read	.md.config $[]
 Read	.lvm.vg $[]
 Read	.lvm.pv $[]
 Read	.target.size "/etc/cryptotab" 0
-Write	.dumpto.tmp.targetMap_i $[] true
 Read	.proc.swaps []
+Write	.dumpto.tmp.targetMap_i $[] true
 Read	.proc.mounts []
 Read	.proc.swaps []
 Read	.etc.mtab []

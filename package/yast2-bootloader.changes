@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Sep  4 12:35:39 CEST 2002 - jsrain@suse.cz
+
+- fixed bootfloppy function (Bug #17430)
+- fixed checking for need to set active partition (Bug #18835)
+- fixed reseting bootloader type after partitioning change
+- 2.6.36
+
+-------------------------------------------------------------------
 Tue Sep  3 20:37:36 CEST 2002 - kukuk@suse.de
 
 - installation/src/silo/agents/update_silo_conf: New

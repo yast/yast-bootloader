@@ -126,8 +126,8 @@
 		initrdModules = splitstring (tmp_mods, " ");
 	    }
 	}
-
-	LoaderType = SCR::Read (.probe.boot_arch);
+	checkBootloader ();
+/*	LoaderType = SCR::Read (.probe.boot_arch);
 	if (LoaderType == "grub"
 	    && Mode::update
 	    && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
@@ -138,7 +138,7 @@
 	}
 	if (LoaderType == "grub" && Storage::UseLilo())
 	    LoaderType = "lilo";
-	y2milestone ("Setting bootloader type to %1", LoaderType);
+	y2milestone ("Setting bootloader type to %1", LoaderType);*/
 	return;
     }
     /**
@@ -149,6 +149,25 @@
 	location = "";
 	Set ();
     }
+    /**
+      * detect bootloader for being used and set it to LoaderType variable
+      */
+    global define void checkBootloader () ``{
+        LoaderType = SCR::Read (.probe.boot_arch);
+        if (LoaderType == "grub"
+            && Mode::update
+            && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
+        {
+            string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
+            if (sysconfig == "grub" || sysconfig == "lilo")
+                LoaderType = sysconfig;
+        }
+        if (LoaderType == "grub" && Storage::UseLilo())
+            LoaderType = "lilo";
+        y2milestone ("Setting bootloader type to %1", LoaderType);
+	return;
+    }
+
 
     /**
      * LbaSupport ()
@@ -213,8 +232,10 @@
 
     global define void Set()
     ``{
+	checkBootloader ();
 	if (last_change != Storage::GetTargetChangeTime())
 	{
+//	    Boot ();
 	    last_change = Storage::GetTargetChangeTime();
 	    device = "";
 	    location = "";
