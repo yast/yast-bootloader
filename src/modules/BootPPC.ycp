@@ -553,6 +553,7 @@
 		 _("Boot configuration for this board is not yet implemented.")
 	    ];;
 	}
+	// part of bootloader summary
 	ret = prepend (ret, sformat (_("Board Type: %1"),
 	    getNameOfCurrentBoard ()));
 	y2milestone("BootPPC::Summary %1", ret);

@@ -72,17 +72,16 @@
 	    integer index = BootCommon::getSectionIndex (section);
 	    if (index != nil)
 	    {
-y2error ("Before mod: %1", BootCommon::sections[index]:[]);
 		BootCommon::sections[index] = modifySection (
 		    BootCommon::sections[index]:[],
 		    key,
 		    value
 		);
-y2error ("After mod: %1", BootCommon::sections[index]:[]);
 		return true;
 	    }
 	    else
 	    {
+		// command line error report, %1 is section name
 		CommandLine::Print (sformat (_("Section %1 not found."),
 		    section));
 		return false;
@@ -104,6 +103,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	any value = options["value"]:nil;
 	if (value == nil)
 	{
+	    // command line error report
 	    CommandLine::Print (_("Value was not specified."));
 	    return false;
 	}
@@ -122,6 +122,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	    integer index = BootCommon::getSectionIndex (section);
 	    if (index == nil)
 	    {
+		// command line error report, %1 is section name
 		CommandLine::Print (sformat (_("Section %1 not found."),
 		    section));
 		return false;
@@ -142,10 +143,10 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
      * @return boolean true on success
      */
     define boolean BootloaderAddHandler (map options) ``{
-	// TODO check existence of such section
 	string section = (string)(options["section"]:nil);
 	if (section == nil)
 	{
+	    // command line error report
 	    CommandLine::Print (_("Section name must be specified."));
 	    return false;
 	}
@@ -167,6 +168,7 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	string option = (string)(options["option"]:nil);
 	if (option == nil)
 	{
+	    // command line error report
 	    CommandLine::Print (_("Option was not specified."));
 	    return false;
 	}
@@ -185,8 +187,10 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	    }
 	}
 	if (value == nil)
+	    // command line error report
 	    CommandLine::Print (_("Specified option does not exist."));
 	else
+	    // command line, %1 is the value of bootloader option
 	    CommandLine::Print (sformat (_("Value: %1"), value));
 	return false;
     }
@@ -228,14 +232,17 @@ y2error ("After mod: %1", BootCommon::sections[index]:[]);
 	],
         "options"	: $[
 	    "section"	: $[
+		// command line help text for an option
 		"help"		: _("The name of the section"),
 		"type"		: "string",
             ],
 	    "option"	: $[
+		// command line help text for an option
 		"help"		: _("The key of the option"),
 		"type"		: "string",
             ],
 	    "value"	: $[
+		// command line help text for an option
 		"help"		: _("The value of the option"),
 		"type"		: "string",
             ],
