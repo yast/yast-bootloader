@@ -23,5 +23,5 @@ Write	.modules nil true
 Execute	.target.bash "/usr/bin/touch /etc/sysconfig/bootloader" 0
 Write	.sysconfig.kernel.INITRD_MODULES "reiserfs ne2k" true
 Write	.sysconfig.kernel nil true
-Execute	.target.bash "/sbin/mk_initrd  >> /var/log/YaST2/y2logmk_initrd 2>&1" 0
+Execute	.target.bash "/sbin/mkinitrd  >> /var/log/YaST2/y2logmkinitrd 2>&1" 0
 Return	true

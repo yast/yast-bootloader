@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Thu Feb 20 09:16:57 CET 2003 - jsrain@suse.de
+Thu Feb 20 09:50:57 CET 2003 - jsrain@suse.de
 
+- changed executing /sbin/mk_initrd -> /sbin/mkinitrd
 - reorganized kernel parameters when using GRUB (#23829)
+- 2.7.9
 
 -------------------------------------------------------------------
 Wed Feb 19 14:17:58 CET 2003 - jsrain@suse.de
