@@ -162,12 +162,16 @@ to restore it if you return to the current boot loader.
 
 Switch boot loader?"), BootCommon::getLoaderName (to));
 
+	boolean can_convert = canConvert (from, to);
+	y2milestone ("Conversion from %1 to %2 possible: %3",
+	    from, to, can_convert);
+
 	term contents = `VBox (
 		// warning label
 	    `Label (label),
 	    `VSpacing (1),
 	    `RadioButtonGroup (`id (`action), `VBox (
-		canConvert (from, to)
+		can_convert
 		    ? `Left (`RadioButton (`id (`convert),
 			// radiobutton
 			_("Co&nvert Current Configuration")))
@@ -199,7 +203,12 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	    `HStretch ()
 	));
 	UI::OpenDialog (contents);
-	UI::ChangeWidget (`id (`convert), `Value, true);
+	symbol def = can_convert
+	    ? `convert
+	    : ((type == `proposal)
+		? `propose
+		: `scratch);
+	UI::ChangeWidget (`id (def), `Value, true);
 	symbol ret = (symbol)UI::UserInput ();
 	symbol action = (symbol)UI::QueryWidget (`id (`action), `CurrentButton);
 	UI::CloseDialog ();

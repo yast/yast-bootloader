@@ -5,6 +5,8 @@ Wed Mar 17 14:27:15 CET 2004 - jsrain@suse.cz
   (#36109)
 - not reading settings from disk in Mode::config if not explicitly
   asked
+- correctly assigning default radio button when asking how to
+  switch bootloader
 
 -------------------------------------------------------------------
 Tue Mar 16 08:17:09 CET 2004 - jsrain@suse.cz
