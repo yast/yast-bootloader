@@ -412,7 +412,7 @@ image = /boot/" + Kernel::binary + "
       * @return list of options as should bve displayed
       */
     global define list UpdateOptionsList (map options) ``{
-        any type = BootCommon::tmp_store["section_type"]:"";
+        any type = BootCommon::current_section_type;
         list _options = [];
         if (type == `global)
         {

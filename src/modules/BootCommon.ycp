@@ -145,6 +145,29 @@
       */
     global boolean verbose = false;
 
+// ui help variables
+
+    /**
+      * Curtrently edited section
+      */
+    global map current_section = $[];
+    /**
+      * Name of currently edited section, `global for global section
+      */
+    global any current_section_name = `global;
+    /**
+      * Type of currently edited section
+      */
+    global any current_section_type = `global;
+    /**
+      * Updated, but not yet confirmed sections -- tmp store
+      */
+    global list current_sections = [];
+    /**
+      * Updated, but not yet confirmed globals -- tmp store
+      */
+    global map current_globals = $[];
+
 // other variables
 
     /**
@@ -158,14 +181,17 @@
     global map opt_types = $[];
 
     /**
-      * Map for temporary state storing
-      */
-    global map tmp_store = $[];
-
-    /**
       * Map to remember what settings were changed
       */
     global map changed_settings = $[];
+    /**
+      * Temporary map for all-sections changed flag
+      */
+    global map changed_settings_all_sections = $[];
+    /**
+      * Temporary map for one-section changed flags
+      */
+    global map changed_settings_single_sect = $[];
     /**
       * Kernel parameters at previous detection
       */
@@ -388,16 +414,8 @@ configuration files
       * @return sumbol wizard sequencer symbol
       */
     global define symbol fetchSettings () ``{
-	map changed_all_sects = tmp_store["changed_all_sects"]:nil;
-	tmp_store = $[];
-	if (changed_all_sects != nil)
-	    tmp_store["changed_all_sects"] = changed_all_sects;
-	tmp_store["globals"] = eval(globals);
-	tmp_store["sections"] = eval(sections);
-	tmp_store["location"] = location;
-	tmp_store["loader_device"] = loader_device;
-	tmp_store["activate"] = activate;
-	tmp_store["repl_mbr"] = repl_mbr;
+	current_globals = eval(globals);
+	current_sections = eval(sections);
 	return `next;
     }
 
@@ -406,13 +424,9 @@ configuration files
       * @return wizard sequencer symbol
       */
     global define symbol storeSettings () ``{
-	globals = tmp_store["globals"]:$[];
-	sections = tmp_store["sections"]:[];
-	location = tmp_store["location"]:"";
-	loader_device = tmp_store["loader_device"]:"";
+	globals = eval (current_globals);
+	sections = eval (current_sections);
 	loader_device = GetBootloaderDevice ();
-	repl_mbr = tmp_store["repl_mbr"]:false;
-	activate = tmp_store["activate"]:false;
 	return `next;
     }
 

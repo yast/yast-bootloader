@@ -37,7 +37,7 @@
       */
     global define any getOptionChoicePopup (any ot) ``{
 	list optnames = lookup (Bootloader::blOptions (),
-	    BootCommon::tmp_store["section_type"]:`global, []);
+	    BootCommon::current_section_type, []);
 	optnames = sort (optnames);
 	term widget = `HBox (`HSpacing (1), `VBox (
 	    `VSpacing (1),
@@ -84,7 +84,7 @@
     global define term getSpecificOptionWidget (any optname, any ot) ``{
 	map widget_data = getPopupWidget (optname);
         term widget = widget_data["widget"]:nil;
-	map sect = BootCommon::tmp_store["active_section"]:$[];
+	map sect = BootCommon::current_section;
         if (widget == nil)
         {
             string type = widget_data["type"]:lookup (
@@ -113,7 +113,7 @@
       * @return symbol `ok or `cancel
       */
     global define symbol singleOptionEditPopup (any opttype, any optname)``{
-        map sect = BootCommon::tmp_store["active_section"]:$[];
+        map sect = BootCommon::current_section;
         if (optname == "")
         {
 	    optname = getOptionChoicePopup (any opttype);
@@ -194,11 +194,11 @@
 		}
 		else
 		{
-		    BootCommon::tmp_store["active_section", optname]
+		    BootCommon::current_section[optname]
 			= UI::QueryWidget (`id (`value), `Value);
 		}
 		BootCommon::markOptionChanged (
-		    BootCommon::tmp_store["active_section_name"]:"", optname);
+		    BootCommon::current_section_name, optname);
 	    }
         }
         UI::CloseDialog ();
@@ -211,7 +211,7 @@
       * Read seettings to the table of section configuration
       */
     global define void singleSectionRead () ``{
-        map orig = BootCommon::tmp_store["active_section"]:$[];
+        map orig = BootCommon::current_section;
 	list items = [];
 
 	list options = Bootloader::blUpdateOptionsList (orig);
@@ -226,11 +226,11 @@
 	    string value = "";
 	    if (toEval == nil)
 		value = sformat ("%1",
-		    BootCommon::tmp_store["active_section", o]:"");
+		    BootCommon::current_section[o]:"");
 	    else
 		value = eval (toEval);
 	    string chng = BootCommon::changed_settings[
-		BootCommon::tmp_store["active_section_name"]:`global, o]:false
+		BootCommon::current_section_name, o]:false
 		? "*" : "";
 	    items = add (items, `item (`id (o), chng, label, value));
 	});
@@ -256,7 +256,7 @@
 	    if (selected_opt == "__sep1" || selected_opt == "__sep2"
 		|| selected_opt == "__sep3")
 	    {
-		map orig = BootCommon::tmp_store["active_section"]:$[];
+		map orig = BootCommon::current_section;
 		list entries = Bootloader::blUpdateOptionsList (orig);
 		entries = filter (`o, entries,
 		    ``(o != "__order__" && o != "__intern__"));
@@ -281,21 +281,19 @@
 		return op;
             map options = Bootloader::blOptions ();
             ret = singleOptionEditPopup (
-		BootCommon::tmp_store["section_type"]:"image", item);
+		BootCommon::current_section_type, item);
         }
         else if (op == `add)
         {
             ret = singleOptionEditPopup (
-		BootCommon::tmp_store["section_type"]:"image", "");
+		BootCommon::current_section_type, "");
 	    if (ret == `ok
 		&& ! contains (
-		    BootCommon::tmp_store["active_section", "__order__"]:[],
-		    selected_opt)
+		    BootCommon::current_section["__order__"]:[], selected_opt)
 		)
 	    {
-		BootCommon::tmp_store["active_section", "__order__"] = add (
-		    BootCommon::tmp_store["active_section", "__order__"]:[],
-		    selected_opt);
+		BootCommon::current_section["__order__"] = add (
+		    BootCommon::current_section["__order__"]:[], selected_opt);
 	    }
         }
         else if (op == `delete && confirmOptionDeletePopup ())
@@ -304,8 +302,8 @@
 	    term toEval = cur["delete"]:nil;
 	    if (toEval != nil)
 		eval (toEval);
-	    BootCommon::tmp_store["active_section"] = remove (
-		BootCommon::tmp_store["active_section"]:$[], item);
+	    BootCommon::current_section = remove (
+		BootCommon::current_section, item);
 	    BootCommon::one_section_changed = true;
 	    ret = `ok;
         }
@@ -313,7 +311,7 @@
 	else if (op == `up)
 	{
 	    list order
-		= BootCommon::tmp_store["active_section", "__order__"]:[];
+		= BootCommon::current_section["__order__"]:[];
 	    order = BootCommon::filterOrder (order, getPopupWidgets ());
 	    integer index = -1;
 	    find (`o, order, ``{
@@ -321,7 +319,7 @@
 		return o == item;
 	    });
 	    order = BootCommon::swapItems (order, index, index - 1);
-	    BootCommon::tmp_store["active_section", "__order__"] = order;
+	    BootCommon::current_section["__order__"] = order;
 		// FIXME global sect if will be needed
 	    BootCommon::one_section_changed = true;
 	    ret = `ok;
@@ -329,7 +327,7 @@
 	else if (op == `down)
 	{
             list order
-                = BootCommon::tmp_store["active_section", "__order__"]:[];
+                = BootCommon::current_section["__order__"]:[];
 	    order = BootCommon::filterOrder (order, getPopupWidgets ());
             integer index = -1;
             find (`o, order, ``{
@@ -337,7 +335,7 @@
                 return o == item;
             });
             order = BootCommon::swapItems (order, index, index + 1);
-	    BootCommon::tmp_store["active_section", "__order__"] = order;
+	    BootCommon::current_section["__order__"] = order;
 		// FIXME global sect if will be needed
 	    BootCommon::one_section_changed = true;
 	    ret = `ok;
@@ -346,10 +344,9 @@
 	if ((op == `add || op == `edit || op == `delete || op == `up
 	    || op == `down) && ret == `ok)
 	{
-	    if (BootCommon::tmp_store["section_type"]:"" == `global)
+	    if (BootCommon::current_section_type == `global)
 	    {
-		BootCommon::tmp_store["globals"]
-		    = BootCommon::tmp_store["active_section"]:$[];
+		BootCommon::current_globals = BootCommon::current_section;
 		BootCommon::storeSettings ();
 		readWidgets (getWidgets(["globalsection"]));
 	    }
@@ -360,17 +357,17 @@
 	    UI::ChangeWidget (`id (`settings), `CurrentItem, item);
 	}
 	if (contains (tosave, op)
-	    && BootCommon::tmp_store["section_type"]:"" != `global)
+	    && BootCommon::current_section_type != `global)
 	{
 	    string ls = BootCommon::getLoaderType (false) == "grub"
 		? "title" : "label";
-	    string old_name = BootCommon::tmp_store["active_section_name"]:"";
+	    string old_name = BootCommon::current_section_name;
 	    y2milestone ("Old name: %1", old_name);
-	    map as = BootCommon::tmp_store["active_section"]:$[];
+	    map as = BootCommon::current_section;
 	    as["__intern__"] = add (as["__intern__"]:$[], "changed", true);
 	    boolean found = false;
-	    BootCommon::tmp_store["sections"] = maplist (`s,
-		BootCommon::tmp_store["sections"]:[],
+	    BootCommon::current_sections = maplist (`s,
+		BootCommon::current_sections,
 	    ``{
 		if (s[ls]:"" == old_name)
 		{
@@ -382,9 +379,9 @@
 	    });
 	    if (! found)
 	    {
-		BootCommon::tmp_store["sections"] = add (
-		    BootCommon::tmp_store["sections"]:[],
-		    BootCommon::tmp_store["active_section"]:$[]
+		BootCommon::current_sections = add (
+		    BootCommon::current_sections,
+		    BootCommon::current_section
 		);
 	    }
 	    BootCommon::changed_settings[as[ls]:""]
@@ -395,9 +392,9 @@
 	}
 	if (`back == op)
 	{
-	    string current_l = BootCommon::tmp_store["active_section_name"]:"";
+	    string current_l = BootCommon::current_section_name;
 	    BootCommon::changed_settings[current_l]
-		= eval (BootCommon::tmp_store["changed_single_sect"]:$[]);
+		= eval (BootCommon::changed_settings_single_sect);
 	}
 	UI::SetFocus (`id (`settings));
     }
@@ -412,7 +409,7 @@
 	any ret = singleSectionHandle (op, tosave);
 	if (ret == `sections) // was op, maybe wrong fix
 	{
-            BootCommon::tmp_store["changed_all_sects"]
+            BootCommon::changed_settings_all_sections
 		= eval (BootCommon::changed_settings);
 	}
 	if (op == `delete)
@@ -454,10 +451,9 @@
 	    Bootloader::Propose ();
 	}
         BootCommon::fetchSettings ();
-        BootCommon::tmp_store["active_section"]
-            = eval (BootCommon::tmp_store["globals"]:$[]);
-        BootCommon::tmp_store["active_section_name"] = `global;
-        BootCommon::tmp_store["section_type"] = `global;
+        BootCommon::current_section = eval (current_globals);
+        BootCommon::current_section_name = `global;
+        BootCommon::current_section_type = `global;
 
 	readWidgets (getWidgets(["globalsection"]));
     }
@@ -578,10 +574,9 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
                 Bootloader::Import (BootCommon::other_bl[new_bl]:$[]);
 
 	    BootCommon::fetchSettings ();
-            BootCommon::tmp_store["active_section"]
-                = eval (BootCommon::tmp_store["globals"]:$[]);
-            BootCommon::tmp_store["active_section_name"] = `global;
-            BootCommon::tmp_store["section_type"] = `global;
+            BootCommon::current_section = eval (BootCommon::current_globals);
+            BootCommon::current_section_name = `global;
+            BootCommon::current_section_type = `global;
 	}
 	BootCommon::location_changed = true;
 	return nil;
@@ -688,10 +683,10 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
       */
     global define symbol runSummaryDialog () ``{
 	BootCommon::fetchSettings ();
-	BootCommon::tmp_store["active_section"]
-	    = eval (BootCommon::tmp_store["globals"]:$[]);
-	BootCommon::tmp_store["active_section_name"] = `global;
-	BootCommon::tmp_store["section_type"] = `global;
+	BootCommon::current_section
+	    = eval (BootCommon::current_globals);
+	BootCommon::current_section_name = `global;
+	BootCommon::current_section_type = `global;
         list widgets = getWidgets (["globalsection", "summarybuttons"]);
         term contents = `HBox (`HSpacing (2), `VBox (
                 `VSpacing (1),
