@@ -22,32 +22,27 @@
 
     textdomain "bootloader";
 
-    import "Kernel";
-    import "Storage";
-    import "Product";
-    import "StorageControllers";
     import "BootCommon";
-    import "BootABOOT";
+    import "Kernel";
+    import "Product";
+    import "Storage";
+    import "StorageControllers";
 
     include "bootloader/routines/popups.ycp";
 
-// general functions
+// misc. functions
 
     /**
-      * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
+      * Empty summary dialog
+      * @return symbol always `back
       */
-    global define map GetFunctions () ``{
-	return $[
-	    "read" :	``(BootABOOT::Read ()),
-	    "propose" : ``(BootABOOT::Propose ()),
-	    "save" :	``(BootABOOT::Save ()),
-	    "summary" :	``(BootABOOT::Summary ()),
-	    "update" :	``(BootABOOT::Update ()),
-	    "write" :	``(BootABOOT::Write ()),
-	    "sequence" :``(BootABOOT::FixSequence ()),
-	];
+    global define symbol runSummaryDialog () ``{
+	displayNoSupportPopup ();
+	return `back;
     }
+
+// general functions
+
     /**
       * Propose bootloader settings
       */
@@ -75,7 +70,7 @@
       * Display bootloader summary
       * @return a list of summary lines
       */
-    global define list(string) Summary () ``{
+    global define list<string> Summary () ``{
 	// summary
 	return [_("Install ABOOT Boot Loader")];
     }
@@ -84,6 +79,7 @@
       * Update read settings to new version of configuration files
       */
     global define void Update () ``{
+	y2milestone ("No ABOOT update functionality implemented");
     }
 
     /**
@@ -116,17 +112,24 @@
         return ws_data;
     }
 
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
+      */
+    global define map GetFunctions () ``{
+	return $[
+	    "read" :	``(BootABOOT::Read ()),
+	    "propose" : ``(BootABOOT::Propose ()),
+	    "save" :	``(BootABOOT::Save ()),
+	    "summary" :	``(BootABOOT::Summary ()),
+	    "update" :	``(BootABOOT::Update ()),
+	    "write" :	``(BootABOOT::Write ()),
+	    "sequence" :``(BootABOOT::FixSequence ()),
+	];
+    }
 
 
 // end of mandatory functions
 //----------------------------------------------------------------------------
 
-    /**
-      * Empty summary dialog
-      * @return symbol always `back
-      */
-    global define symbol runSummaryDialog () ``{
-	displayNoSupportPopup ();
-	return `back;
-    }
 }
