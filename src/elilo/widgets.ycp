@@ -24,18 +24,79 @@
     import "Mode";
     import "BootELILO";
     import "BootCommon";
+    import "TablePopup";
     include "bootloader/routines/popups.ycp";
 
     /**
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetWidgets () ``{
+    global define map GetWidgetMaps () ``{
 	return $[
-	    "tableentries"	: $[
-		"__location"	: ``(BootELILO::getTargetWidget ()),
-	    ],
+	    "globalsection" : BootELILO::getGlobalSectionWidget (),
 	];
+    }
+
+    /**
+      * Get map of all available Table/Popup options
+      * @return map of options
+      */
+    global define map GetOptionMaps () ``{
+	return $[
+	    "__location"	: BootELILO::getTargetOption (),
+        ];
+    }
+
+// Global section widget
+
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getGlobalSectionWidget () ``{
+	return TablePopup::CreateTableDescr (
+	    $["add_delete" : true, "up_down_buttons" : false, "changed_column" : true],
+	    $[
+		"init" : ``(BootCommon::globalSectionInit ()),
+		"handle" : ``(BootCommon::globalSectionHandle ()),
+		"store" : ``(BootCommon::globalSectionStore ()),
+		"options": BootCommon::cwm_options,
+		"id2key": ``(BootCommon::id2key ()),
+		"ids": ``(BootELILO::getTableContents ()),
+                "help": BootCommon::getGlobalSectionHelp (),
+                "fallback" : $[
+                    "init": ``(BootCommon::commonPopupInit ()),
+                    "store": ``(BootCommon::commonPopupStore ()),
+                    "summary": ``(BootCommon::commonTableEntrySummary ()),
+                    "changed" : ``(BootCommon::commonTableChanged ()),
+                ],
+		"option_move" : ``(BootCommon::moveTableItem ()),
+                "option_delete": ``(BootCommon::commonTableEntryDelete ()),
+	    ]
+	);
+    }
+
+    /**
+      * Create a list of options for the table
+      * @param descr map description of the table
+      * @return list of option ids as it should be displayed
+      */
+    global define list getTableContents (map descr) ``{
+	list prependlist = [];
+	list forbidden_keys = [];
+	any type = BootCommon::getSectionType (BootCommon::current_section);
+	if (type == `global)
+	{
+	    prependlist = ["__loader_type", "__sep2", "__location",
+		"default", "__sections", "__save_method", "__sep1"];
+	    forbidden_keys = ["boot", "default"];
+	}
+	else
+	{
+	    prependlist = ["label", "__section_type", "__sep1"];
+	}
+	return BootCommon::createSectionItemsList (
+	    prependlist, forbidden_keys, true);
     }
 
 // Bootloader target widget
@@ -44,8 +105,35 @@
       * Get map of Target widget
       * @return map of Target widget
       */
-    global define map getTargetWidget () ``{
+    global define map getTargetOption () ``{
+	return $[
+	    "table" : $[
+		// table cell / label
+		"label" : _("Boot Loader Location"),
+		"summary" : ``(BootELILO::targetSummary ()),
+		"deletable" : false,
+		"ordering" : false,
+		"key_only_once" : true,
+	    ],
+	    "popup" : $[
+		"widget" : `func,
+		"widget_func" : ``(BootELILO::getTargetWidget ()),
+		"init" : ``(BootELILO::targetInit ()),
+		"store" : ``(BootELILO::targetStore ()),
+//		"help" : getLocationsHelp (),
+		"validate" : ``(BootELILO::targetValidate ()),
+
+	    ],
+	];
+    }
+
+    /**
+      * Get widget term
+      * @return widget term
+      */
+    global define term getTargetWidget () ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
+
 	term widget = `VBox (
 	    `VSpacing (1),
 	    `TextEntry (`id (`location),
@@ -59,26 +147,13 @@
 		: `VSpacing (0),
 	    `VSpacing (1)
 	);
-
-	return $[
-	    "widget" : widget,
-	    "restore" : ``(BootELILO::targetRead ()),
-	    "handle" : ``(BootELILO::targetWrite ()),
-//	    "help" : getLocationsHelp (),
-	    "validate" : ``(BootELILO::targetValidate ()),
-		// table cell / label
-	    "label" : _("Boot Loader Location"),
-	    "summary" : ``(BootELILO::locationSummary ()),
-	    "deletable" : false,
-	    "ordering" : false,
-	    "key_only_once" : true,
-	];
+	return widget;
     }
 
     /**
       * Restore settings of Target widget
       */
-    global define void targetRead () ``{
+    global define void targetInit (any opt_id, any opt_key) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
 	UI::ChangeWidget (`id (`location), `Value, BootCommon::location);
 	if (have_old)
@@ -92,23 +167,23 @@
       * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any targetWrite (any op, boolean save) ``{
-	if (! save)
-	    return nil;
+    global define void targetStore (any opt_id, any opt_key) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
 	BootCommon::location = UI::QueryWidget (`id (`location), `Value);
 	if (have_old)
 	    remove_old_efi = UI::QueryWidget (`id (`remove_old), `Value);
 	BootCommon::storeSettings ();
 	BootCommon::location_changed = true;
-	return nil;
+	create_efi_entry = true;
+	BootCommon::location_changed = true;
+	BootCommon::markGeneralOptionChanged (opt_key);
     }
 
     /**
       * Validate the target widget
       * @return true if everything is OK
       */
-    global define boolean targetValidate () ``{
+    global define boolean targetValidate (any opt_id, any opt_key) ``{
 	return true; // FIXME check for valid characters
     }
 
@@ -116,8 +191,8 @@
       * Summary function for option
       * @return string summary text
       */
-    global define string locationSummary () ``{
-	if (BootCommon::location == "")
+    global define string targetSummary (any opt_id, any opt_key) ``{
+	if (BootCommon::location == "" || ! create_efi_entry)
 	{
 	    // table entry, %1 is label of the entry of EFI boot manager
 	    return _("Do Not Create EFI Boot Manager Entry");
@@ -129,48 +204,5 @@
 		BootCommon::location);
 	}
     }
-
-
-
-
-    /**
-      * Update list of optoins to show in table
-      * @param _options list of options including order
-      * @return list of option to show
-      */
-    global define list UpdateOptionsList (list _options) ``{
-	list prependlist = [];
-	list orig_opts = _options;
-	any type = BootCommon::getSectionType (BootCommon::current_section);
-	if (type == `global)
-	{
-            prependlist = ["__loader_type", "__sep2", "__location",
-                "__default_section", "__sections", "__save_method", "__sep1"];
-            _options = filter (`o, _options,
-                ``(o["key"]:"" != "default"));
-        }
-        else
-        {
-            prependlist = ["label", "__section_type", "__sep1"];
-        }
-
-        _options = filter (`o, _options, ``(! contains (
-            prependlist, o["key"]:"")));
-        if (Mode::initial)
-        {
-            prependlist = filter (`p, prependlist, ``(p != "__save_method"));
-        }
-        prependlist = maplist (`p, prependlist, ``{
-            map m = getValueMap (orig_opts, p);
-            if (m == $[])
-            {
-                m = $[ "key" : p];
-            }
-            return m;
-        });
-        list options = merge (prependlist, _options);
-        return options;
-    }
-
 
 }

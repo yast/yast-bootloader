@@ -1,0 +1,141 @@
+/**
+ * File:
+ *      include/bootloader/elilo/misc.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Miscelaneous functions for configuring and installing ELILO bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    textdomain "bootloader";
+
+    import "Mode";
+    import "Storage";
+
+    /**
+      * Return mountpoint of partition holding EFI data
+      * @return mountpoint if partition holding EFI data
+      */
+    global define string getEfiMountPoint () ``{
+	string mountpoint = "/";
+	// UGHLY HACK because of testsuites
+	map mountpoints = $[];
+	if (Mode::test)
+	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
+	else
+	    mountpoints = Storage::GetMountPoints();
+	if (haskey (mountpoints, "/boot/efi"))
+	{
+	    mountpoint = "/boot/efi";
+	}
+	else if (haskey (mountpoints, "/boot"))
+	{
+	    mountpoint = "/boot";
+	}
+	return mountpoint;
+	y2milestone ("Mountpoing of EFI: %1", mountpoint);
+    }
+
+    /**
+      * Get used EFI vendor
+      * @return EFI vendor
+      */
+    global define string getEfiVendor () ``{
+	return "SuSE";
+    }
+
+    /**
+      * Get directory containing elilo.conf relative to EFI partition's root
+      * @return directory containing elilo.conf relative to EFI root
+      */
+    global define string getEliloConfSubdir () ``{
+	return sformat ("/efi/%1", getEfiVendor ());
+    }
+
+    /**
+      * Get directory containing kernel images relative to EFI partition's root
+      * @return directory containing kernel images relative to EFI root
+      */
+    global define string getKernelSubdir () ``{
+	return sformat ("/efi/%1", getEfiVendor ());
+    }
+
+    /**
+      * Get path of elilo.conf relative to EFI partition's root
+      * @return path of elilo.conf relative to EFI partition's root
+      */
+    global define string getEliloConfSubpath () ``{
+	return sformat ("%1/elilo.conf", getEliloConfSubdir ());
+    }
+
+    /**
+      * Return path to elilo.conf file
+      * @return path to elilo.conf
+      */
+    global define string getEliloConfFilename () ``{
+	string ret = sformat ("%1/efi/%2/elilo.conf", getEfiMountPoint (),
+	    getEfiVendor ());
+	y2milestone ("elilo.conf sould be located at %1", ret);
+	return ret;
+    }
+
+    /**
+      * Probe path of elilo.conf, if not found, return default location
+      * @return path of elilo.conf
+      */
+    global define string probeEliloConfFilename () ``{
+	list possibles = [
+	    "/boot/efi/efi/%1/elilo.conf",
+	    "/boot/efi/%1/elilo.conf",
+	];
+	possibles = maplist (string p, possibles, ``(
+	    sformat (p, getEfiVendor ())));
+	list probed = [];
+	foreach (string p, possibles, ``{
+	    if (-1 != SCR::Read (.target.size, p))
+	    {
+		probed = add (probed, p);
+	    }
+	});
+	string proposed = getEliloConfFilename ();
+	if (contains (probed, proposed))
+	{
+	    y2milestone ("Multiple elilo.conf files found, using %1", proposed);
+	    return proposed;
+	}
+	if (size (probed) == 0)
+	{
+	    y2milestone ("No elilo.conf found, using %1", proposed);
+	    return proposed;
+	}
+	if (size (probed) > 0)
+	{
+	    y2milestone (
+		"Multiple elilo.conf files found, using first one - %1",
+		probed[0]:nil
+	    );
+	    return probed[0]:nil;
+	}
+	// only one was found
+	y2milestone ("elilo.conf found at %1", probed[0]:nil);
+	return probed[0]:nil;
+    }
+
+    /**
+      * Set elilo.conf filename to the lilo agent
+      * @param filename abslut filename of elilo.conf
+      */
+    global define string setEliloConfFilename (string filename) ``{
+	SCR::Write (.elilo.setfilename, filename);
+    }
+
+}
