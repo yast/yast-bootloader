@@ -3,6 +3,8 @@ Tue Apr 22 09:57:55 CEST 2003 - jsrain@suse.de
 
 - added possibility to download boot floppy image via FTP/HTTP
   (#26175)
+- added possibility to restore last MBR saved during isntallation
+  or bootloader configuration (#16338)
 
 -------------------------------------------------------------------
 Fri Apr 18 13:18:24 CEST 2003 - jsrain@suse.de

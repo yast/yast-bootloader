@@ -24,6 +24,7 @@
 
     import "Report";
     import "Misc";
+    import "Console";
 
 
     /**
@@ -325,5 +326,62 @@ no options to set here."));
 	Misc::boot_msg = "";
         // empty that  Misc::boot_msg indicate the message has been displayed
 	Report::Message(msg);
+    }
+
+    /**
+      * Display popup - confirmation befopre restoring MBR
+      */
+    global define void restoreMBRPopup (string device) ``{
+	map stat = SCR::Read (.target.stat, "/boot/backup/mbr");
+	integer ctime = stat["ctime"]:0;
+	string command = sformat (
+	    "date --date='1970-01-01 00:00:00 %1 seconds'",
+	    ctime);
+	map out = SCR::Execute (.target.bash_output, command);
+	string c_time = out["stdout"]:"";
+	c_time = select (splitstring (c_time, "\n"), 0, "");
+	c_time = UI::Recode (Console::encoding, "UTF-8", c_time);
+
+	// warning popup. %1 is device name, %2 is date/time in form of
+	// 'date' command output
+	string msg = sformat (_("Warning!
+
+Current MBR of %1 will be now rewritten with MBR
+saved at %2.
+
+Note, that only booting code in MBR will be rewritten,
+partition table stays unchanged.
+
+Continue?"), device, c_time);
+
+	term dialog = `HBox (
+	    `HSpacing (1),
+	    `VBox (
+		`VSpacing (0.2),
+		`Label (msg),
+		`HBox(
+		    // PushButton
+		   `PushButton (`id (`yes), _("&Yes, rewrite")),
+		   `HStretch (),
+		   `PushButton (`id (`no), `opt (`default), NoButtonLabel ())
+		),
+		`VSpacing (0.2)
+	    ),
+	    `HSpacing(1)
+	);
+
+	UI::OpenDialog (`opt (`decorated, `warncolor), dialog);
+
+	symbol  button = nil;
+	repeat
+	{
+	    button = UI::UserInput ();
+	} until (button == `yes || button == `no);
+
+	UI::CloseDialog();
+
+	return (button == `yes);
+
+
     }
 }

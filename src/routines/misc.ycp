@@ -109,6 +109,25 @@
     }
 
     /**
+      * Get value of specified boolean bootloader attribute
+      * @param attrib string attribute name
+      * @return boolean value of attribute
+      */
+    global define boolean getBooleanAttrib (string attrib) ``{
+	return current_bootloader_attribs[attrib]:false;
+    }
+
+    /**
+      * Get value of specified bootloader attribute
+      * @param attrib string attribute name
+      * @return any value of attribute
+      */
+    global define boolean getAnyTypeAttrib (string attrib) ``{
+        return current_bootloader_attribs[attrib]:false;
+    }
+
+
+    /**
       * Convert section orig from type otype to ntype
       * Some information gets lost. ntype must be different from otype
       * @param otype string original section type, "image" or "other"
@@ -1108,6 +1127,23 @@
 	SCR::Execute (.target.bash, sformat (
 	    "/bin/dd if=%1 of=/boot/backup/mbr bs=512 count=1",
 	    mbrDisk));
+    }
+
+    /**
+      * Rewrite current MBR with /boot/backup/mbr
+      * @param device string device to rewrite MBR on
+      * @return boolean true on success
+      */
+    global define boolean restoreMBR (string device) ``{
+	if (SCR::Read (.target.size, "/boot/backup/mbr") <= 0)
+	{
+	    Report::Error ("Can't restore MBR. No saved MBR found");
+	    return false;
+	}
+	integer ret = SCR::Execute (.target.bash, sformat (
+	    "/bin/dd of=%1 if=/boot/backup/mbr bs=446 count=1",
+	    device));
+	return (ret == 0);
     }
 
     /**

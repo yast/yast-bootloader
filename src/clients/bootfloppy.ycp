@@ -183,7 +183,7 @@ If your computer has multiple floppy drives, sellect correct device.</p>");
 	help_text = help_text + _("<p><b><big>Format floppy disk:</big></b><br>
 Before floppy image is saved on the floppy, it must be formated.
 If the floppy you use isn't preformatted, check
-<b>Format floppy disk</b>");
+<b>Format floppy disk</b></p>");
 
 	// help text 4/4
 	help_text = help_text + _("<p><b><big>Attention:</big></b><br>
@@ -212,6 +212,18 @@ YaST2 is copying the image to the floppy disk. Please wait.</p>");
 	// help text 1/1
 	return _("<p><b><big>Select floppy image:</big></b><br>
 Selecty file containing the image of the floppy you want to create</p>");
+    }
+
+    /**
+      * Helptext for the define floppySelectURL.
+      * Called from the  floppySelectURL.
+      * @return string help text
+      */
+    define string floppyHelpSelectURL() ``{
+        // help text 1/1
+        return _("<p><b><big>Select floppy image:</big></b><br>
+Enter the URL you want to download floppy image from.
+If necessary, also specify username and password for the authentication</p>");
     }
 
     /**
@@ -544,12 +556,12 @@ All data on this floppy will be deleted.")),
 		`HSquash (
 		    // combo box label
 		    `ComboBox (`id (`device), `opt (`editable),
-			_("Floppy device"), floppies)
+			_("Floppy &device"), floppies)
 		),
 		`VSpacing (3),
 		`HSquash (
 		    // checkbox
-		    `CheckBox (`id (`format), _("Format floppy disk"),
+		    `CheckBox (`id (`format), _("&Format floppy disk"),
 			format_floppy)
 		),
 		`VSpacing (1)

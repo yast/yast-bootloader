@@ -88,6 +88,13 @@
 	    ],
 	    "update_passwd" :
 		``{password = sformat ("--md5 %1", cryptmd5 (password));},
+	    "propose" : true,
+	    "read" : true,
+	    "scratch" : true,
+	    "addtional_entries" : [`item (`id (`propose_deep),
+		// menubutton item, keep as short as possible
+		_("Propose and &Merge with Existing GRUB Menus"))],
+	    "restore_mbr" : true,
         ];
     }
 

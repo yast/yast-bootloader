@@ -60,6 +60,10 @@
 		"root" : "root",
 		`other : "append",
 	    ],
+	    "propose" : true,
+	    "read" : true,
+	    "scratch" : true,
+	    "restore_mbr" : true,
 	];
     }
 

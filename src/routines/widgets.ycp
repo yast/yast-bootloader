@@ -29,30 +29,30 @@
       */
     global define map GetWidgets () ``{
 	return $[
-//		"prompt" : getPromptWidget (),
-		"sections" : ``(BootCommon::getSectionsWidget ()),
-		"singlesection" : ``(BootCommon::getSingleSectionWidget ()),
-		"globalsection" : ``(BootCommon::getGlobalSectionWidget ()),
-		"summarybuttons" : ``(BootCommon::getSummaryButtonsWidget ()),
-		"tableentries" : $[
-		    "__location": ``(BootCommon::getTargetWidget ()),
-		    "__loader_type" : ``(BootCommon::getLoaderSelectionWidget ()),
-		    "__sections" : ``(BootCommon::getSectionsTableEntry ()),
-		    "__default_section" : ``(BootCommon::getDefaultSectionTableEntry ()),
-		    "__section_type" : ``(BootCommon::getSectionTypeWidget ()),
-		    "__save_method" : ``(BootCommon::getSaveMethod ()),
-		    "__backup_mbr" : ``(BootCommon::getBackupMbrWidget ()),
-		    "__sep1" : $["label" : "---------------"],
-		    "__sep2" : $["label" : "---------------"],
-		    "__sep3" : $["label" : "---------------"],
-		    "label" : ``(BootCommon::getLabelWidget ()),
-		    "alias" : ``(BootCommon::getAliasWidget ()),
-		    "timeout" : ``(BootCommon::getTimeoutWidget ()),
-		    "password" : ``(BootCommon::getPasswdWidget ()),
-		    "__repl_mbr" : ``(BootCommon::getReplMbrWidget ()),
-		    "activate" : ``(BootCommon::getActivateWidget ()),
-		    "message" : ``(BootCommon::getMessageWidget ()),
-		],
+	    "sections"		: ``(BootCommon::getSectionsWidget ()),
+	    "singlesection"	: ``(BootCommon::getSingleSectionWidget ()),
+	    "globalsection"	: ``(BootCommon::getGlobalSectionWidget ()),
+	    "resetbutton"	: ``(BootCommon::getResetButtonWidget ()),
+	    "manual_edit_button": ``(BootCommon::getManualEditWidget ()),
+	    "tableentries"	: $[
+		"__location"	: ``(BootCommon::getTargetWidget ()),
+		"__loader_type" : ``(BootCommon::getLoaderSelectionWidget ()),
+		"__sections"	: ``(BootCommon::getSectionsTableEntry ()),
+		"__default_section" : ``(BootCommon::getDefaultSectionTableEntry ()),
+		"__section_type": ``(BootCommon::getSectionTypeWidget ()),
+		"__save_method" : ``(BootCommon::getSaveMethod ()),
+		"__backup_mbr"	: ``(BootCommon::getBackupMbrWidget ()),
+		"__sep1"	: $["label" : "---------------"],
+		"__sep2"	: $["label" : "---------------"],
+		"__sep3"	: $["label" : "---------------"],
+		"label"		: ``(BootCommon::getLabelWidget ()),
+		"alias"		: ``(BootCommon::getAliasWidget ()),
+		"timeout"	: ``(BootCommon::getTimeoutWidget ()),
+		"password"	: ``(BootCommon::getPasswdWidget ()),
+		"__repl_mbr"	: ``(BootCommon::getReplMbrWidget ()),
+		"activate"	: ``(BootCommon::getActivateWidget ()),
+		"message"	: ``(BootCommon::getMessageWidget ()),
+	    ],
 	];
     }
 
@@ -586,6 +586,23 @@
 	map ret = getSingleSectionWidget ();
 	ret["help"] = getGlobalSectionHelp ();
 	ret["handle"] = ``(globalSectionHandle ());
+	ret["widget"] = (`HBox (`HSpacing (2), `VBox (
+	    `Table (`id (`settings), `opt (`immediate, `notify, `keepSorting),
+		// table header, shortcut for changed, keep very short
+		`header (_("Ch."),
+		// table header
+		_("Option"),
+		// table header
+		_("Value")), []),
+	    `HBox (
+		`PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
+		`PushButton (`id (`edit), `opt (`key_F4), EditButtonLabel ()),
+		`PushButton (`id (`delete), `opt (`key_F5),
+		    DeleteButtonLabel ()),
+		`HStretch (),
+		`ReplacePoint (`id (`reset_rp), `VSpacing (0))
+	    )
+	), `HSpacing (2)));
 	return ret;
     }
 
@@ -623,31 +640,73 @@
       * Get map of widget
       * @return map of widget
       */
-    global define map getSummaryButtonsWidget () ``{
-	list items = [
-		// menubutton item, keep as short as possible
-            `item (`id (`propose), _("&Propose New Configuration")),
-		// menubutton item, keep as short as possible
-            `item (`id (`scratch), _("&Start from Scratch")),
+    global define map getResetButtonWidget () ``{
+	return $[
+	    "widget" : `VSpacing (0),
+	    "handle" : ``(resetButtonHandle ()),
+	    "restore" : ``(BootCommon::resetButtonRestore ()),
+	    "help" : getSummaryButtonsHelp (),
 	];
-	if (Mode::normal || Mode::config || Mode::repair)
+    }
+
+    global define void resetButtonRestore () ``{
+	list items = [];
+	if (getBooleanAttrib ("propose"))
+	{
 	    items = add (items,
 		// menubutton item, keep as short as possible
-                `item (`id (`reread), _("&Reread Configuration from Disk")));
-	if (/*Mode::initial &&*/ BootCommon::getLoaderType (false) == "grub")
-	    items = add (items, `item (`id (`propose_deep),
+		`item (`id (`propose), _("&Propose New Configuration")));
+	}
+	if (getBooleanAttrib ("scratch"))
+	{
+	    items = add (items,
 		// menubutton item, keep as short as possible
-		_("Propose a New Configuration and &Merge with Other Existing Linux Menus")));
+		`item (`id (`scratch), _("&Start from Scratch")));
+	}
+        if ((Mode::normal || Mode::config || Mode::repair)
+	    && getBooleanAttrib ("read"))
+	{
+	    items = add (items,
+		// menubutton item, keep as short as possible
+		`item (`id (`reread), _("&Reread Configuration from Disk")));
+	}
+	list additional_entries = getAnyTypeAttrib ("addtional_entries");
+	items = merge (items, additional_entries);
+
+	if ((Mode::normal || Mode::repair)
+	    && getBooleanAttrib ("restore_mbr")
+	    && SCR::Read (.target.size, "/boot/backup/mbr") > 0)
+	{
+	    items = add (items,
+		// menubutton item, keep as short as possible
+		`item (`id (`restore_mbr), _("Restore MBR of hard disk")));
+	}
+
+	if (size (items) > 0)
+	{
+	    UI::ReplaceWidget (`id (`reset_rp),
+		`MenuButton (`id (`reset), _("Res&et"), items));
+	}
+	else
+	{
+	    UI::ReplaceWidget (`id (`reset_rp), `VSpacing (0));
+	}
+
+    }
+
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getManualEditWidget () ``{
 	return $[
 	    "widget" : `HBox (`HStretch (),
-//		`MenuButton (`id (`restore), _("Res&et"), items),
 		// pushbutton
-                `PushButton (`id (`manual), _("E&dit Configuration Files")),
+		`PushButton (`id (`manual), _("E&dit Configuration Files")),
 		`HStretch ()
 	    ),
 	    "exits" : [`manual],
-	    "handle" : ``(resetButtonHandle ()),
-	    "help" : getSummaryButtonsHelp (),
+	    "help" : getManualEditHelp (),
 	];
     }
 
@@ -771,6 +830,9 @@
 	    "exits" : [],
 	    // table item / label
 	    "label" : _("Backup original MBR"),
+	    // checkbox label, %1 is device (eg. /dev/hda)
+	    "widget_label" : sformat (_("Backup MBR of %1"),
+		BootCommon::mbrDisk),
 	    "summary" : ``(BootCommon::backupMbrSummary ()),
 	    "deletable" : false,
 	    "ordering" : false,
@@ -804,8 +866,8 @@
       */
     global define string backupMbrSummary () ``{
         if (backup_mbr)
-                // table item / label
-            return _("Backup Current MBR");
+                // table item / label, %1 is device (eg. /dev/hda)
+            return sformat (_("Backup MBR of %1"), BootCommon::mbrDisk);
         else
                 // table item / label
             return _("Do not backup current MBR");
