@@ -471,7 +471,11 @@
 	}
 	else if (op == `add)
 	{
-	    BootCommon::tmp_store["active_section"] = $[];
+	    BootCommon::tmp_store["active_section"] = $[
+		"image" : "",
+		"initrd" : "",
+		"root" : "",
+	    ];
 	    BootCommon::tmp_store["active_section_name"] = "";
 	    BootCommon::tmp_store["section_type"] = "image";
 	    BootCommon::changed_settings[""] = $[];
@@ -744,7 +748,7 @@
 	string key = BootCommon::getLoaderType (false) == "grub"
 	    ? "kernel" : "image";
         UI::ChangeWidget (`id (`section_type), `Value,
-	    BootCommon::tmp_store["active_section", key]:"" == ""
+	    BootCommon::tmp_store["active_section", key]:nil == nil
 		? "other"
 		: "image");
 	UI::SetFocus (`id (`section_type));
@@ -760,7 +764,7 @@
 	if (! contains (tosave, op))
 	    return;
         string ntype = UI::QueryWidget (`id (`section_type), `Value);
-	string otype = BootCommon::tmp_store["active_section", "image"]:"" == ""
+	string otype = BootCommon::tmp_store["active_section", "image"]:nil == nil
 	    ? "other"
 	    : "image";
 	if (otype == ntype)
@@ -778,6 +782,7 @@
 	    BootCommon::tmp_store["active_section"] = $[
 		"image" : "/boot/vmlinuz",
 		"root" : tmp["other"]:"",
+		"initrd" : "/boot/initrd",
 	    ];
 	}
 	BootCommon::tmp_store["active_section", "label"] = label;
@@ -791,7 +796,7 @@
     global define string sectionTypeSummary () ``{
 	string key = BootCommon::getLoaderType (false) == "grub"
 	    ? "kernel" : "image";
-	return BootCommon::tmp_store["active_section", key]:"" == ""
+	return BootCommon::tmp_store["active_section", key]:nil == nil
 	    ? "other"
 	    : "image";
     }

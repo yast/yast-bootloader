@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 14 13:26:39 CET 2003 - jsrain@suse.de
+
+- fixed behaviour when iditing empty section, when creating new 
+  section, add most common keys (#25305)
+
+-------------------------------------------------------------------
 Tue Mar 11 12:55:43 CET 2003 - jsrain@suse.de
 
 - using activate instead of sfdisk to activate bootloader
