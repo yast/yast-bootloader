@@ -847,7 +847,7 @@
     global define map getLabelWidget () ``{
 	return $[
 		// table item / label
-	    "label" : "Section Name",
+	    "label" : _("Section Name"),
 	    "validate" : ``(BootCommon::labelValidate ()),
 	    "deletable" : false,
 	    "ordering" : false,
