@@ -1,0 +1,40 @@
+/**
+ * File:
+ *  lilo2Grub.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Translating device names from UNIX to grub
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    include "testsuite.ycp";
+    map IREAD = $["target" : $["string" : "root (hd0,0)\ninstall /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit"],
+		  "etc" : $["fstab" : []],
+		  "probe" : $["disk" : [], "boot_arch" : "grub", "architecture" : "i386", "has_apm" : true, "has_pcmcia" : false, "has_smp" : false, "system" : []]];
+    TESTSUITE_INIT ([IREAD, $[], $[]], 0);
+    include "lilo/misc.ycp";
+    include "lilo/routines.ycp";
+
+    TEST (``(parseGrubConf ()), [$["target" : $["string" : "root (hd0,0)
+install /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+quit
+"]], $[], $[]], 0);
+    TEST (``(parseGrubConf ()), [$["target" : $["string" : "root (hd0,0)
+install --stage2=/boot/grub/stage2 /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+quit
+"]], $[], $[]], 0);
+
+    TEST (``(splitstring (getGrubConf ($["addr":"0x8000", "device":"(hd0)", "discswitch":true, "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "s2prefix":"--stage2=/boot/grub/stage2", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n")), [$[], $[], $[]], 0);
+
+
+}
+

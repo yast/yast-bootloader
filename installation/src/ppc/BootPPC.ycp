@@ -48,6 +48,8 @@ image = /boot/" + Kernel::binary + "
 
 	lilo_conf = lilo_conf + "\tappend = \"" + Boot::parameters +"\"\n\n";
 
+	other_device = select (filter (`d, splitstring (other_device, " "), ``(d != "")), 0, "");
+
 	if (other_device != "")
 	{
 	    lilo_conf = lilo_conf + "\nother = " + other_device + "\n\tlabel = macos \n\n";

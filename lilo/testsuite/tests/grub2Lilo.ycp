@@ -1,0 +1,44 @@
+/**
+ * File:
+ *  lilo2Grub.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Translating device names from UNIX to grub
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    include "testsuite.ycp";
+    map IREAD = $["target" : $["string" : "root (hd0,0)\ninstall /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit"],
+		  "etc" : $["fstab" : []],
+		  "probe" : $["disk" : [], "boot_arch" : "grub", "architecture" : "i386", "has_apm" : true, "has_pcmcia" : false, "has_smp" : false, "system" : []]];
+    TESTSUITE_INIT ([IREAD, $[], $[]], 0);
+    include "lilo/misc.ycp";
+    include "lilo/routines.ycp";
+
+    map EXEC = $["target" : $["bash_output": $["stdout" : "/dev/hda"]]];
+
+    TEST (``(grub2Lilo ("(hd0)")), [$[], $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(hd0,0)")), [$[], $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(hd0,11)")), [$[], $[], EXEC], 0);
+
+    EXEC = $["target" : $["bash_output": $["stdout" : "/dev/ida/c0d0"]]];
+
+    TEST (``(grub2Lilo ("(hd0)")), [$[], $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(hd0,0)")), [$[], $[], EXEC], 0);
+    TEST (``(grub2Lilo ("(hd0,11)")), [$[], $[], EXEC], 0);
+
+    EXEC = $["target" : $["bash_output": $["stdout" : "/dev/fd0"]]];
+
+    TEST (``(grub2Lilo ("(fd0)")), [$[], $[], EXEC], 0);
+
+}
+

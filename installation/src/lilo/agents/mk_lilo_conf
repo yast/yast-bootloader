@@ -150,13 +150,13 @@ write_lilo_conf_linux () {
 }
 
 write_lilo_conf_other () {
-  xx5=
-  [ "$3" ] && xx5="  table  = $3"
+  other=$1;
+  shift
+  label=$@
   cat <<-blubber >>$tmp_msg
-	  other  = $1
-	  label  = $2
+	  other  = $other
+	  label  = $label
 	blubber
-  [ "$xx5" ] && echo "$xx5" >>$tmp_msg
   echo >>$tmp_msg
 }
 
