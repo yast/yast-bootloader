@@ -428,8 +428,27 @@
       * @return any changed op (if needed)
       */
     global define any resetButtonHandle (any op, list tosave) ``{
+        if (op == `restore_mbr)
+        {
+            boolean doit = restoreMBRPopup (BootCommon::mbrDisk);
+	    y2milestone ("Rewrite MBR with saved one: %1", doit);
+	    if (doit)
+	    {
+		boolean ret = BootCommon::restoreMBR (BootCommon::mbrDisk);
+		if (ret)
+		    // message popup
+		    UI::MessagePopup (_("MBR restored successfully"));
+		else
+		    // message popup
+		    UI::MessagePopup (_("Failed to restore MBR"));
+	    }
+            return;
+        }
+
 	if (! contains ([`scratch, `reread, `propose_deep, `propose], op))
+	{
 	    return;
+	}
 	Bootloader::Reset ();
 	if (op == `scratch)
 	{
@@ -454,7 +473,7 @@
 	    Bootloader::Propose ();
 	}
         BootCommon::fetchSettings ();
-        BootCommon::current_section = eval (current_globals);
+        BootCommon::current_section = eval (BootCommon::current_globals);
         BootCommon::current_section_name = `global;
 
 	readWidgets (getWidgets(["globalsection"]));
@@ -687,7 +706,8 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	BootCommon::current_section
 	    = eval (BootCommon::current_globals);
 	BootCommon::current_section_name = `global;
-        list widgets = getWidgets (["globalsection", "summarybuttons"]);
+        list widgets = getWidgets (["globalsection", "manual_edit_button",
+	    "resetbutton"]);
         term contents = `HBox (`HSpacing (2), `VBox (
                 `VSpacing (1),
                 widgets[0, "widget"]:`VSpacing (0),

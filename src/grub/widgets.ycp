@@ -33,7 +33,6 @@
         return $[
 	    "sections" : ``(BootGRUB::getSectionsWidget ()),
 	    "singlesection" : ``(BootGRUB::getSingleSectionWidget ()),
-	    "globalsection" : ``(BootGRUB::getGlobalSectionWidget ()),
 	    "tableentries" :$[
 		"__location": ``(BootGRUB::getTargetWidget ()),
 		"title" : ``(BootCommon::getLabelWidget ()),
@@ -620,52 +619,6 @@ Replace it with an entry  to boot from the floppy?");
             ),
             `HSpacing (1)
         );
-	return ret;
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getGlobalSectionWidget () ``{
-	list items = [
-		// menubutton item
-            `item (`id (`propose), _("&Propose New Configuration")),
-		// menubutton item
-            `item (`id (`scratch), _("&Start from Scratch")),
-	];
-	if (Mode::normal || Mode::config || Mode::repair)
-	    items = add (items,
-		// menubutton item
-		`item (`id (`reread), _("&Reread Configuration from Disk")));
-	items = add (items, `item (`id (`propose_deep),
-		// menubutton item
-		_("Propose and &Merge with Existing GRUB Menus")));
-	map ret = BootCommon::getGlobalSectionWidget ();
-	ret["widget"] = (`HBox (`HSpacing (2), `VBox (
-                    `Table (`id (`settings), `opt (`immediate, `notify, `keepSorting),
-			// table header
-                        `header (_("Ch."),
-			// table header
-			_("Option"),
-			// table header
-			_("Value")), []),
-                    `HBox (
-                        `PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
-                        `PushButton (`id (`edit), `opt (`key_F4), EditButtonLabel ()),
-                        `PushButton (`id (`delete), `opt (`key_F5), DeleteButtonLabel ()),
-                        `HStretch (),
-			// menubutton
-			`MenuButton (`id (`restore), _("Res&et"), items)
-                    )
-                ), `HSpacing (2)));
-	term widget = ret["widget"]:nil;
-	term buttons = `HBox (
-	    `PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
-	    `PushButton (`id (`edit), `opt (`key_F4), EditButtonLabel ()),
-	    `PushButton (`id (`delete), `opt (`key_F5), DeleteButtonLabel ()),
-	    `HStretch ()
-	);
 	return ret;
     }
 

@@ -58,11 +58,17 @@ you can clear the current
 configuration and propose a new configuration, start from scratch, or reread
 the configuration saved on your disk. %1</P>
 "), ins);
-	// help text 2/2
-	help = help + _("<P>To edit boot loader configuration files
-manually, click <B>Edit Configuration Files</B>.</P>
-");
 	return help;
+    }
+
+    /**
+      * Get help
+      * @return string help text
+      */
+    global define string getManualEditHelp () ``{
+	// help text 1/1
+	return _("<P>To edit boot loader configuration files
+manually, click <B>Edit Configuration Files</B>.</P>");
     }
 
     /**
