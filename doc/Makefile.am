@@ -18,12 +18,12 @@ diagrams = \
 bootloader.html: $(xmls)
 	db2html --nochunks bootloader.xml >bootloader.html
 
-bootloader.pdf: $(xmls)
-	db2pdf bootloader.xml
+#bootloader.pdf: $(xmls)
+#	db2pdf bootloader.xml
 
 %.png: %.dia
 	dia -n -e $@ $< 
 
-html_DATA = readme.mbr $(diagrams) bootloader.pdf bootloader.html
+html_DATA = readme.mbr $(diagrams) bootloader.html
 EXTRA_DIST = $(html_DATA)
 
