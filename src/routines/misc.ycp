@@ -2235,7 +2235,6 @@ global void Sections2IO () {
 	s = filter (map m, s, {return m["key"]:"" != "__intern__";});
 	return $[
 	    "__lines" : LinesYCP2IO (s, intern),
-	    "__do_not_change" : 1,
 	];
     });
     io_structure["sections"] = sects;
@@ -2247,7 +2246,6 @@ global void Global2IO () {
 	    return m["key"]:"" != "__intern__";
 	}), $[]),
 	"stage1_dev" : [loader_device],
-	"__do_not_change" : 1,
     ];
     io_structure["global"] = glob;
 }
