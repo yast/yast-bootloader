@@ -5,6 +5,8 @@ Tue Feb 24 08:31:10 CET 2004 - jsrain@suse.de
   (#34694)
 - use PReP boot partition on the same disk as root partition on
   chrp (PPC) (#34891)
+- updated ELILO installation, change partitioning layout during
+  ELILO update in order to match Intel's EFI specification (#21644)
 
 -------------------------------------------------------------------
 Mon Feb 23 12:39:36 CET 2004 - jsrain@suse.de
