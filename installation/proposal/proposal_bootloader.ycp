@@ -24,12 +24,12 @@
 	boolean force_reset      = param["force_reset"     ]:false;
 	boolean language_changed = param["language_changed"]:false;
 
-	if (force_reset)
+	if (force_reset && !Mode::autoinst)
 	{
 	    // force re-calculation of bootloader proposal
 	    Boot::location = "";
 	}
-
+	
 	Boot::Set ();
 
 	string info_msg = "";
