@@ -4,7 +4,6 @@
 
 client_DATA =			\
 	bootloader.ycp		\
-	bootloader_write.ycp	\
 	bootloader_auto.ycp	\
 	bootloader_proposal.ycp	\
 	bootfloppy.ycp
