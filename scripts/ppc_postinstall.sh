@@ -79,6 +79,7 @@ EOF
 echo "hvc0" >> /etc/securetty
 echo "hvc/0" >> /etc/securetty
 
+exit 0
 
 }
 # p690
