@@ -32,7 +32,49 @@
 	    "sections" : BootGRUB::getSectionsWidget (),
 	    "passwd" : getPasswdWidget (),
 	    "orderbutton" : getOrderButton (),
+	    "tableentries" :$[
+		`sections : getSectionsTableEntry (),
+		`default_section : getDefaultSectionTableEntry (),
+		`section_type : getSectionTypeWidget (),
+		"title" : $["label" : "Section name"],
+	    ],
         ];
+    }
+
+    global define list UpdateOptionsList (map options) ``{
+	any type = BootCommon::tmp_store["section_type"]:"";
+	list _options = [];
+	if (type == `global)
+	{
+	    return BootCommon::UpdateOptionsList (options);
+	}
+	else
+	{
+	    options = filter (`k, `v, options, ``(k != "type" && k != "title"));
+	    list done = [];
+	    map cont = $[];
+	    list order = options["__order__"]:[];
+	    foreach (`o, order, ``{
+		if (haskey (options, o))
+		{
+		    done = add (done, o);
+		    cont = add (cont, o, "");
+		}
+	    });
+	    foreach (`k, `v, options, ``{
+		if (! haskey (cont, k))
+		{
+		    done = add (done, k);
+		    cont = add (cont, k, "");
+		}
+	    });
+	    _options = done;
+
+	    _options = prepend (_options, "-");
+	    _options = prepend (_options, `section_type);
+	    _options = prepend (_options, "title");
+	}
+	return _options;
     }
 
     global define map getSectionsWidget () ``{
@@ -144,14 +186,27 @@
 	}
 	else if (op == `add)
 	{
+            BootCommon::tmp_store["active_section"] = $[];
+// FIXME
+            BootCommon::tmp_store["active_section_name"]
+                = sects[index, "label"]:"";
+            BootCommon::tmp_store["section_type"] = "image";
 	}
 	else if (op == `edit)
 	{
+            y2milestone ("Editing title %1, index %2", current, index);
+            BootCommon::tmp_store["active_section"] = sects[index]:$[];
+            BootCommon::tmp_store["active_section_name"]
+                = sects[index, "label"]:"";
+            BootCommon::tmp_store["section_type"]
+                = sects[index, "image"]:"" == "" ? "other" : "image";
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
 	    sects = remove (sects, index);
 	    BootCommon::tmp_store["sections"] = sects;
+	    if (size (sects) <= BootCommon::tmp_store["globals", "default"]:0)
+		BootCommon::tmp_store["globals", "default"] = 0;
 	    sectionsRedrawTable (sects);
 	}
 /*	else if (op == `reset && resetSectsPopup ())
@@ -306,5 +361,87 @@
 	}
 	return ret;
     }
+
+    global define map getSectionsTableEntry () ``{
+	map ret = BootCommon::getSectionsTableEntry ();
+	ret["summary"] = ``(BootGRUB::getSectionsSummary ());
+	return ret;
+    }
+
+    global define string getSectionsSummary () ``{
+        integer default = BootCommon::globals["default"]:0;
+        list sects = [];
+	integer counter = 0;
+        foreach (`s, BootCommon::sections, ``{
+            string title = s["title"]:"";
+            string def = counter == default ? _(" (default)") : "";
+	    counter = counter + 1;
+            sects = add (sects, sformat ("%1%2", title, def));
+        });
+        return mergestring (sects, ", ");
+    }
+
+
+    global define map getDefaultSectionTableEntry () ``{
+	map ret = BootCommon::getDefaultSectionTableEntry ();
+	ret["summary"] = ``(BootGRUB::getDefaultSectionSummary ());
+	return ret;
+    }
+
+    global define string getDefaultSectionSummary () ``{
+        return BootCommon::sections[
+	    BootCommon::globals["default"]:0, "title"]:"";
+    }
+
+
+    global define map getSectionTypeWidget () ``{
+	map ret = BootCommon::getSectionTypeWidget ();
+	ret["handle"] = ``(BootGRUB::sectionTypeSave ());
+	return ret;
+    }
+
+
+    global define void sectionTypeSave () ``{
+        string ntype = UI::QueryWidget (`id (`section_type), `Value);
+	y2milestone ("New type: %1", ntype);
+        string otype = BootCommon::tmp_store["active_section","kernel"]:"" == ""
+            ? "other"
+            : "image";
+        if (otype == ntype)
+            return;
+        string label = BootCommon::tmp_store["active_section", "title"]:"";
+        if (ntype == "other")
+        {
+            map tmp = BootCommon::tmp_store["active_section"]:$[];
+	    string root = select (splitDevPath (
+		tmp["kernel"]:""), 0,"");
+	    root = tmp["root"]:root;
+	    if (root == nil)
+		root = "";
+            BootCommon::tmp_store["active_section"] = $[
+		"root": root,
+		"chainloader" : "+1",
+		"__order__" : ["root", "chainloader"],
+	    ];
+        }
+        else
+        {
+            map tmp = BootCommon::tmp_store["active_section"]:$[];
+            BootCommon::tmp_store["active_section"] = $[
+		"root" : tmp["root"]:"",
+		"kernel" : sformat ("/vmlinuz root=%1",
+		    grubDev2unixDev (tmp["root"]:"")),
+		"__order__" : ["root", "kernel"],
+            ];
+        }
+        BootCommon::tmp_store["active_section", "title"] = label;
+	BootCommon::tmp_store["section_type"] = ntype;
+	y2milestone ("FS: %1", BootCommon::tmp_store["active_section"]:$[]);
+    }
+
+
+
+
+
 
 }

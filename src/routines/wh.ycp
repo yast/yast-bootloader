@@ -34,6 +34,22 @@
 	));
     }
 
+    global define map getPopupWidget (any name) ``{
+	map spec_widgets = Bootloader::blGetWidgets ();
+	map common_widgets = BootCommon::GetWidgets ();
+	spec_widgets = spec_widgets["tableentries"]:$[];
+	common_widgets = common_widgets["tableentries"]:$[];
+	return spec_widgets[name]:common_widgets[name]:$[];
+    }
+
+    global define map getPopupWidgets () ``{
+	map spec_widgets = Bootloader::blGetWidgets ();
+	map common_widgets = BootCommon::GetWidgets ();
+	spec_widgets = spec_widgets["tableentries"]:$[];
+	common_widgets = common_widgets["tableentries"]:$[];
+	return union (common_widgets, spec_widgets);
+    }
+
     /**
       * Set widgets according to internally stored settings
       * @param widgets list of maps represenging widgets
@@ -48,8 +64,9 @@
       * Handle change of widget after event generated
       * @param widgets list of maps represenging widgets
       * @param action any wizard sequencer symbol
+      * @return any modified action (sometimes may be needed)
       */
-    global define void handleChange (list widgets, any action) ``{
+    global define any handleChange (list widgets, any action) ``{
 	if (! validateWidgetsIfNeeded (widgets, action))
 	    return;
 	list tosave = [`next];
@@ -58,11 +75,16 @@
 	});
 /*	if (contains (tosave, action))
 	    action = `next;*/
+	any ret = nil;
 	foreach (`w, widgets, ``{
 	    term t = w["handle"]:nil;
 	    if (t != nil)
-		eval (add (add (t, action), tosave));
+		ret = eval (add (add (t, action), tosave));
 	});
+	if (ret != nil)
+	    return ret;
+	else
+	    return action;
     }
 
     /**

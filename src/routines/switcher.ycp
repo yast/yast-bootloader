@@ -125,4 +125,18 @@
 	toEval = add (toEval, files);
 	return eval (toEval);
     }
+
+    global define map blOptions () ``{
+	map functions = getFunctions (BootCommon::getLoaderType (false));
+	term toEval = functions["getoptions"]:``(BootCommon::GetOptions ());
+	return eval (toEval);
+    }
+
+    global define list blUpdateOptionsList (map options) ``{
+	map functions = getFunctions (BootCommon::getLoaderType (false));
+	term toEval = functions["updoptlst"]:``(
+	    BootCommon::UpdateOptionsList ());
+	toEval = add (toEval, options);
+	return eval (toEval);
+    }
 }

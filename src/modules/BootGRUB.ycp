@@ -69,7 +69,8 @@
 	    "widgets"  : ``(BootGRUB::GetWidgets ()),
             "getfiles" : ``(BootGRUB::GetFiles ()),
             "setfiles" : ``(BootGRUB::SetFiles ()),
-
+	    "getoptions":``(BootGRUB::GetOptions ()),
+	    "updoptlst": ``(BootGRUB::UpdateOptionsList ()),
 	];
     }
 
@@ -80,6 +81,7 @@
     global define map Export () ``{
 	map ret = BootCommon::Export ();
 	ret["device_map"] = device_map;
+	ret["grub_conf"] = grub_conf;
 	return ret;
     }
     /**
@@ -88,7 +90,8 @@
       */
     global define void Import (map settings) ``{
 	BootCommon::Import (settings);
-	device_map = settings["device_map"]:[];
+	device_map = settings["device_map"]:proposeDeviceMap ();
+	grub_conf = settings["grub_conf"]:proposeGrubConf ();
     }
     /**
       * Read settings from disk
@@ -248,6 +251,153 @@
 	    }
 	}
 	return ret;
+    }
+
+    /**
+      * Get map of bootloader options
+      * @return map of options
+      */
+    global define map GetOptions () ``{
+	return $[
+	    `global: [
+                "default",
+                "fallback",
+                "hiddenmenu",
+                "timeout",
+                "title",
+
+                "bootp",
+                "color",
+                "device",
+                "dhcp",
+                "hide",
+                "ifconfig",
+                "pager",
+                "partnew",
+                "parttype",
+                "password",
+                "rarp",
+                "serial",
+                "setkey",
+                "terminal",
+                "tftpserver",
+                "unhide",
+
+
+	    ],
+	    "image" : [
+                "bootp",
+                "color",
+                "device",
+                "dhcp",
+                "hide",
+                "ifconfig",
+                "pager",
+                "partnew",
+                "parttype",
+                "password",
+                "rarp",
+                "serial",
+                "setkey",
+                "terminal",
+                "tftpserver",
+                "unhide",
+
+                "blocklist",
+                "boot",
+                "cat",
+                "cmp",
+                "configfile",
+                "debug",
+                "displayapm",
+                "displaymem",
+                "embed",
+                "find",
+                "fstest",
+                "geometry",
+                "halt",
+                "help",
+                "impsprobe",
+                "initrd",
+                "install",
+                "ioprobe",
+                "kernel",
+                "lock",
+                "makeactive",
+                "map",
+                "md5crypt",
+                "module",
+                "modulenounzip",
+                "pause",
+                "quit",
+                "reboot",
+                "read",
+                "root",
+                "rootnoverify",
+                "savedefault",
+                "setup",
+                "testload",
+                "testvbe",
+                "uppermem",
+                "vbeprobe",
+
+	    ],
+	    "other" : [
+                "bootp",
+                "color",
+                "device",
+                "dhcp",
+                "hide",
+                "ifconfig",
+                "pager",
+                "partnew",
+                "parttype",
+                "password",
+                "rarp",
+                "serial",
+                "setkey",
+                "terminal",
+                "tftpserver",
+                "unhide",
+
+                "blocklist",
+                "boot",
+                "cat",
+                "chainloader",
+                "cmp",
+                "configfile",
+                "debug",
+                "displayapm",
+                "displaymem",
+                "embed",
+                "find",
+                "fstest",
+                "geometry",
+                "halt",
+                "help",
+                "impsprobe",
+                "install",
+                "ioprobe",
+                "lock",
+                "makeactive",
+                "map",
+                "md5crypt",
+                "module",
+                "modulenounzip",
+                "pause",
+                "quit",
+                "reboot",
+                "read",
+                "root",
+                "rootnoverify",
+                "savedefault",
+                "setup",
+                "testload",
+                "testvbe",
+                "uppermem",
+                "vbeprobe",
+	    ],
+	];
     }
 
 // end of mandatory functions

@@ -27,6 +27,193 @@
     include "bootloader/routines/convert.ycp";
 
     import "BootCommon";
+    import "Bootloader";
+
+
+    /**
+      * Gets the widget for editing specified bootloader option
+      * @param optname any option name
+      * @param ot any option type (`global, "image", "other",...
+      *   may be bootloader dependent)
+      * @return term widget
+      */
+    global define term getSpecificOptionWidget (any optname, any ot) ``{
+	map widget_data = getPopupWidget (optname);
+        term widget = widget_data["widget"]:nil;
+        if (widget == nil)
+        {
+            string type = widget_data["type"]:lookup (
+                BootCommon::opttypes (), optname, "s");
+            if (type == "b")
+                widget = `CheckBox (`id (`value), _("&Set"),
+                    sect[optname]:true);
+            else if (type == "i")
+                widget = `IntField (`id (`value), _("&Value"), 0, 999999,
+                    sect[optname]:0);
+            else
+                widget = `TextEntry (`id (`value), _("&Value"),
+                    sect[optname]:"");
+        }
+        return widget;
+    }
+
+    /**
+      * Display and handle the popup for option
+      * @param opttype any option type (`global, "image", "other",...
+      *   may be bootloader dependent)
+      * @param optname any option name
+      * @return symbol `ok or `cancel
+      */
+    global define symbol singleOptionEditPopup (any opttype, any optname)``{
+	map widget_data = getPopupWidget (optname);
+        map sect = BootCommon::tmp_store["active_section"]:$[];
+        list(string) optnames = [];
+        if (optname == "")
+        {
+            optnames = lookup (Bootloader::blOptions (),
+		BootCommon::tmp_store["section_type"]:`global, []);
+        }
+
+        string label = sformat ("%1", widget_data["label"]:optname);
+        term header = optname == ""
+        ? `ComboBox (`id (`optname), `opt (`notify),
+	    _("C&urrent option"), optnames)
+        : `Label (sformat ("Current option: %1", label));
+        if (optname == "")
+        {
+            optname = optnames[0]:"";
+            label = widget_data["label"]:optname;
+        }
+
+        term widget = getSpecificOptionWidget (optname, opttype);
+        term contents = `HBox (`HSpacing (1), `VBox (
+	    `VSpacing (1),
+            `Left (header),
+	    `VSpacing (1),
+            `Left (`ReplacePoint(`id (`value_rp), widget)),
+	    `VSpacing (1),
+            `HBox (
+                `HStretch(),
+                `PushButton (`id (`cancel), CancelButtonLabel ()),
+                `HStretch (),
+                `PushButton (`id (`ok), OKButtonLabel ())
+            ),
+	    `VSpacing (1)
+        ), `HSpacing (1));
+        UI::OpenDialog (contents);
+	eval (widget_data["restore"]:nil);
+        any ret = nil;
+        while (ret != `ok && ret != `cancel)
+        {
+            ret = UI::UserInput ();
+// FIXME: may be removed
+            if (ret == `optname)
+            {
+                optname = UI::QueryWidget (`id (`optname), `Value);
+                widget = getSpecificOptionWidget (optname, opttype);
+                UI::ReplaceWidget (`id (`value_rp), widget);
+            }
+	    if (ret == `ok)
+	    {
+		if (widget_data["validate"]:nil != nil
+		    && ! eval (widget_data["validate"]:nil))
+		{
+		    ret = nil;
+		}
+	    }
+	    if (ret == `ok)
+	    {
+		if (widget_data["handle"]:nil != nil)
+		{
+		    eval (widget_data["handle"]:nil);
+		}
+		else
+		{
+		    BootCommon::tmp_store["active_section", optname]
+			= UI::QueryWidget (`id (`value), `Value);
+		}
+		BootCommon::markOptionChanged (
+		    BootCommon::tmp_store["active_section_name"]:"", optname);
+	    }
+        }
+        UI::CloseDialog ();
+	return ret;
+    }
+
+    /**
+      * Read seettings to the table of section configuration
+      */
+    global define void singleSectionRead () ``{
+        map orig = BootCommon::tmp_store["active_section"]:$[];
+	list items = [];
+
+	list options = Bootloader::blUpdateOptionsList (orig);
+	options = filter (`o, options,
+	    ``(o != "__order__" && o != "__intern__"));
+
+	map opts = getPopupWidgets ();
+	foreach (`o, options, ``{
+	    map widget = opts[o]:$[];
+	    string label = sformat ("%1", widget["label"]:o);
+	    term toEval = widget["summary"]:nil;
+	    string value = "";
+	    if (toEval == nil)
+		value = sformat ("%1",
+		    BootCommon::tmp_store["active_section", o]:"");
+	    else
+		value = eval (toEval);
+	    string chng = BootCommon::changed_settings[
+		BootCommon::tmp_store["active_section_name"]:`global, o]:false
+		? "*" : "";
+	    items = add (items, `item (`id (o), chng, label, value));
+	});
+	UI::ChangeWidget (`id (`settings), `Items, items);
+    }
+
+    /**
+      * Handle changes of table of settings
+      */
+    global define symbol singleSectionHandle (any op, list tosave) ``{
+	symbol ret = nil;
+        if (op == `edit)
+        {
+            any item = UI::QueryWidget (`id (`settings), `CurrentItem);
+	    if (item == `default_section)
+		item = `sections;
+	    if (item == `sections)
+	    {
+		return `sections;
+	    }
+	    if (item == "-")
+		return op;
+            map options = Bootloader::blOptions ();
+            ret = singleOptionEditPopup (
+		BootCommon::tmp_store["section_type"]:"image", item);
+        }
+        else if (op == `add)
+        {
+            ret = singleOptionEditPopup (
+		BootCommon::tmp_store["section_type"]:"image", "");
+        }
+	else if (op == `settings)
+	{
+	    any sel = UI::QueryWidget (`id (`settings), `CurrentItem);
+	    y2milestone ("Changed to %1", sel);
+	}
+
+	if ((op == `add || op == `edit || op == `delete) && ret == `ok)
+	{
+	    if (BootCommon::tmp_store["section_type"]:"" == `global)
+	    {
+		BootCommon::tmp_store["globals"]
+		    = BootCommon::tmp_store["active_section"]:$[];
+		BootCommon::storeSettings ();
+	    }
+	    readWidgets (getWidgets(["singlesection"]));
+	}
+    }
+
+
 
     global define boolean askSwitch (string from, string to) ``{
 	term contents = `VBox (
@@ -101,7 +288,7 @@ What do you want to do?")),
 	    ret = UI::UserInput ();
 	    if (! validateWidgetsIfNeeded (widgets, ret))
 		ret = nil;
-	    handleChange (widgets, ret);
+	    ret = handleChange (widgets, ret);
 	}
 	return ret;
     }
@@ -119,7 +306,7 @@ What do you want to do?")),
       * Run dialog for selecting installation target
       * @return symbol wizard sequencer symbol
       */
-    global define symbol runTargetDialog () ``{
+/*    global define symbol runTargetDialog () ``{
 	list widgets = getWidgets (["target", "experttarget", "orderbutton"]);
 	term contents = `HBox (`HStretch (), `VBox (
 		`VStretch (),
@@ -136,12 +323,12 @@ What do you want to do?")),
 	return runDialog (widgets, caption, contents, help, OKButtonLabel (),
 	    exits);
     }
-
+*/
     /**
       * Run dialog for global bootloader settings
       * @return symbol wizard sequencer symbol
       */
-    global define symbol runGlobalsDialog () ``{
+/*    global define symbol runGlobalsDialog () ``{
 	list widgets = getWidgets (["loader", "prompt", "passwd"]);
 	term contents = `HBox (`VBox (
 		`VStretch (),
@@ -162,7 +349,7 @@ What do you want to do?")),
 	return runDialog (widgets, caption, contents, help, NextButtonLabel (),
 	    exits);
     }
-
+*/
     /**
       * Run dialog for sections managment
       * @return symbol wizard sequencer symbol
@@ -174,7 +361,7 @@ What do you want to do?")),
                 widgets[0, "widget"]:`VSpacing (0),
                 `VSpacing (1)
                 ), `HSpacing (2));
-        string caption = _("Sections managment");
+        string caption = _("Bootloader setup - Sections managment");
         string help = mergeHelps (widgets);
 	list exits = getExitEvents (widgets);
 	return runDialog (widgets, caption, contents, help, OKButtonLabel (),
@@ -186,13 +373,13 @@ What do you want to do?")),
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSingleSectionDialog () ``{
-        list widgets = getWidgets (["singlesection"]);
+	list widgets = getWidgets (["singlesection"]);
         term contents = `HBox (`HSpacing (2), `VBox (
                 `VSpacing (1),
                 widgets[0, "widget"]:`VSpacing (0),
-                `VSpacing (1)
+		`VSpacing (1)
                 ), `HSpacing (2));
-        string caption = _("Section options");
+        string caption = _("Bootloader setup - Sections managment");
         string help = mergeHelps (widgets);
         list exits = getExitEvents (widgets);
         return runDialog (widgets, caption, contents, help, OKButtonLabel (),
@@ -204,7 +391,28 @@ What do you want to do?")),
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSummaryDialog () ``{
-	boolean display_inst = false;
+	BootCommon::fetchSettings ();
+	BootCommon::tmp_store["active_section"]
+	    = BootCommon::tmp_store["globals"]:$[];
+	BootCommon::tmp_store["active_section_name"] = `global;
+	BootCommon::tmp_store["section_type"] = `global;
+        list widgets = getWidgets (["singlesection", "summarybuttons"]);
+        term contents = `HBox (`HSpacing (2), `VBox (
+                `VSpacing (1),
+                widgets[1, "widget"]:`VSpacing (0),
+                `VSpacing (1),
+                widgets[0, "widget"]:`VSpacing (0),
+                `VSpacing (1)
+                ), `HSpacing (2));
+        string caption = _("Bootloader setup");
+        string help = mergeHelps (widgets);
+        list exits = getExitEvents (widgets);
+
+        return runDialog (widgets, caption, contents, help, OKButtonLabel (),
+            exits);
+    }
+
+/*	boolean display_inst = false;
 
 	list loaders = maplist (`l, BootCommon::getBootloaders (), ``{
 	    return `item (`id (l), BootCommon::getLoaderName (l));
@@ -351,7 +559,7 @@ What do you want to do?")),
 	return ret;
     }
 
-
+*/
     global define symbol runEditFilesDialog () ``{
         map files = Bootloader::blGetFiles ();
 	string default = files["default"]:"";
@@ -471,7 +679,7 @@ What do you want to do?")),
 		`abort: `abort,
 		`glob : "global_seq",
 		`manual : "editfiles",
-		`sects : "sect_seq",
+		`sections : "sect_seq",
 	     ],
 	    "editfiles" : $[ `next : "summary", `abort: `abort ],
 	    "global_seq" : $[ `next : "summary", `abort: `abort ],
