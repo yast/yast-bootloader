@@ -81,7 +81,7 @@ Summary:	YaST2 Modules for bootloader installation and configuration
 %ifarch s390 s390x
 @moduledir@/BootS390.ycp
 %endif
-%ifarch i386 x86_64
+%ifarch %ix86 x86_64
 @ybindir@/mk_boot_floppy
 @ybindir@/mk_lilo_conf
 @ybindir@/update_lilo_conf

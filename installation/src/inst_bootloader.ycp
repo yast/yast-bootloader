@@ -285,22 +285,18 @@ your other boot manager (e.g., <tt>loadlin</tt>) accordingly.
 ");
 
     // custom bootloader help text, 6 of 9
-    // leadout </p> is missing on purpose here, see next part
     helptext = helptext + _("<p>
 - In some <b>other</b> partition. Consider your system's restrictions
-when selecting this option.
+when selecting this option.</p>
 ");
     if (Arch::i386)
     {
 	// optional part, only inserted on x86 architectures. 7 of 9
-	// the missing </p> from above will be added automagically.
-	helptext = helptext + " " + _("For example, most PCs have a BIOS limit that restricts booting to 
+	helptext = helptext + _("<p>For example, most PCs have a BIOS limit that restricts booting to 
 hard disk cylinders smaller than 1024. Depending on the boot manager used, 
 you may or may not be able to boot from a logical partition.
-");
+</p>");
     }
-    // trailing </p> here
-    helptext = helptext + "</p>\n";
 
     // custom bootloader help text, 8 of 9
     helptext = helptext + _("<p>
