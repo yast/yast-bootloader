@@ -233,12 +233,11 @@
 	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp noapic ")
 	      + "maxcpus=0 3"
 	    : Kernel::cmdLine;
-	return $[
+	map ret = $[
 	    "label" : title,
 	    "image" : "/boot/" + image,
 	    "initrd" : "/boot/" + initrd,
 	    "root" : BootCommon::RootPartitionDevice,
-	    "vga": Kernel::vgaType,
 	    "append" : append,
 	    "__intern__" : $[
 		"auto" : true,
@@ -246,6 +245,9 @@
 		"devs" : [BootCommon::RootPartitionDevice]
 	    ],
 	];
+	if (Kernel::vgaType != "")
+	    ret["vga"] = Kernel::vgaType;
+	return ret;
     }
 
     /**

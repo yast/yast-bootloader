@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 30 09:15:45 CET 2003 - jsrain@suse.cz
+
+- fixed setting of vga= kernel parameter (#23188)
+
+-------------------------------------------------------------------
 Wed Jan 29 13:23:45 CET 2003 - jsrain@suse.de
 
 - patched proofread texts
