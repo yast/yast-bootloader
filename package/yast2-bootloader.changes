@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Sep 29 09:14:29 CEST 2004 - jsrain@suse.cz
+
+- do not show the disks order if there is only one disk (#46346)
+
+-------------------------------------------------------------------
 Thu Sep 23 13:04:08 CEST 2004 - jsrain@suse.cz
 
 - avoid initalizing GRUB structures earlier than needed data is

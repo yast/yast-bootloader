@@ -1159,7 +1159,7 @@
     global define list<string> Summary () {
 	list<string> ret = BootCommon::Summary ();
 	list<string> order = getDisksOrder ();
-	if (size (order) > 0)
+	if (size (order) > 1)
 	{
 	    ret = add (ret, sformat (
 		// part of summary, %1 is a list of hard disks device names
