@@ -846,9 +846,26 @@
 	    }
 	    if (num != 0 && num != "")
 	    {
-		y2milestone ("Activating partition %1 on %2", num, mbr_dev);
-		ret = ret && (0 == SCR::Execute (.target.bash,
-		    sformat ("/sbin/sfdisk -A%1 %2", num, mbr_dev)));
+		if (num > 4)
+		{
+		    y2milestone ("Bootloader partition type is logical");
+		    map tm = Storage::GetTargetMap ();
+		    list partitions = tm[mbr_dev, "partitions"]:$[];
+		    foreach (`p, partitions, ``{
+			if (p["type"]:nil == `extended)
+			{
+			    num = p["nr"]:num;
+			    y2milestone ("Using extended partition %1 instead",
+				num);
+			}
+		    });
+		}
+		if (num <= 4)
+		{
+		    y2milestone ("Activating partition %1 on %2", num, mbr_dev);
+		    ret = ret && (0 == SCR::Execute (.target.bash,
+			sformat ("/sbin/sfdisk -A%1 %2", num, mbr_dev)));
+		}
 	    }
 	}
 	if (repl_mbr && BootCommon::location != "mbr")
