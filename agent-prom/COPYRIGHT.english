@@ -1,21 +1,22 @@
 	  YaST 2 and SuSE Linux licence terms
 	  ===================================
 
-YaST 2 Copyright (c) 1995 - 1999 SuSE GmbH, Nuernberg (Germany)
+YaST 2 Copyright (c) 1995 - 2001 SuSE GmbH, Nuernberg (Germany)
+YaST 2 Copyright (c) 2002 SuSE Linux AG, Nuernberg (Germany)
 
 The object of this licence is the YaST 2 (Yet another Setup Tool 2) program,
 the name YaST, together with SuSE Linux, the Linux Distribution of 
-SuSE GmbH, all programme derived from YaST 2 and all works or names
+SuSE Linux AG, all programme derived from YaST 2 and all works or names
 derived in full or in part thereof together with the use, application,
 archiving, reproduction and passing on of YaST 2, all programs derived
 from YaST 2 and all works derived in full or in part thereof.  The YaST 2
-program and all sources is the intellectual property of SuSE GmbH
+program and all sources is the intellectual property of SuSE Linux AG
 within the meaning of the Copyright Law.  The name YaST is a registered
-trademark of SuSE GmbH.  In the following SuSE GmbH is the 
+trademark of SuSE Linux AG.  In the following SuSE Linux AG is the 
 licensor and every user or processor of YaST 2 or works derived in full
 or in part thereof, together with every person who reproduces, 
 distributes or archives YaST 2 or SuSE Linux, is the licensee of
-SuSE GmbH.
+SuSE Linux AG.
 
 The following licence terms are recognised as a result of the processing,
 use, application, archiving reproduction and dissemination of YaST 2.
@@ -38,10 +39,10 @@ even without the written consent of the Licensee.
    All programmes derived from YaST 2 and all works derived from it in full
    or parts thereof are to be filled on the opening screen with the clear
    information "Modified Version". Moreover the operator give his name on
-   the opening screen, stating that SuSE GmbH is not providing any
+   the opening screen, stating that SuSE Linux AG is not providing any
    support for the "Modified Version" and is excluded from any liability
    whatsoever. Every amendment to the sources which are not conducted by
-   SuSE GmbH are deemed to be a "Modified Version". The Licensee is
+   SuSE Linux AG are deemed to be a "Modified Version". The Licensee is
    entitled to change his copy from the sources of YaST 2, whereby a work
    based on the YaST 2 programme is created, provided that the following 
    conditions are satisfied.
@@ -58,17 +59,17 @@ even without the written consent of the Licensee.
    c) The amendment of this licence by a Licensee, even in part, is 
       forbidden.
 	
-   SuSE GmbH reserves the right to accept parts or all amendments of
+   SuSE Linux AG reserves the right to accept parts or all amendments of
    a modified version of YaST 2 into the official version of YaST 2 free of
    charge. The Licensee has no bearing on this.
 
 3. Dissemination
    It is forbidden to reproduce or distribute data carriers which have 
    been reproduced without authorisation for payment without the prior
-   written consent of SuSE GmbH or SuSE Linux.  Distribution of
+   written consent of SuSE Linux AG or SuSE Linux.  Distribution of
    the YaST 2 programme, its sources, whether amended or unamended in full
    or in part thereof, and the works derived thereof for a charge require
-   the prior written consent of SuSE GmbH.
+   the prior written consent of SuSE Linux AG.
 
    All programmes derived from YaST 2, and all works derived thereof as a
    whole or parts thereof may only be disseminated with the amended
@@ -79,14 +80,14 @@ even without the written consent of the Licensee.
 
 4. Guarantee
    No guarantee whatsoever is given for YaST 2 or for works derived from 
-   it and SuSE Linux. The SuSE GmbH guarantee only covers 
+   it and SuSE Linux. The SuSE Linux AG guarantee only covers 
    fault-free data carriers.
 
-   SuSE GmbH will provide YaST 2 and SuSE Linux "AS IT IS" without
+   SuSE Linux AG will provide YaST 2 and SuSE Linux "AS IT IS" without
    any guarantee whatever that it is fit for a specific purpose or use.
    In particular SuSE is not liable for lost profit, savings not 
    made, or damages from the claims lodged by third parties against the 
-   Licensee. SuSE GmbH is not liable either for other direct or 
+   Licensee. SuSE Linux AG is not liable either for other direct or 
    indirect consequential losses, in particular not for the loss or 
    production of recorded data.
 
@@ -112,7 +113,7 @@ even without the written consent of the Licensee.
 6. Additional restrictions.
    If the distribution or use of YaST 2 and SuSE Linux or parts of 
    SuSE Linux is restricted in a state either by patents or by 
-   interfaces protected by copyright, SuSE GmbH can specify an 
+   interfaces protected by copyright, SuSE Linux AG can specify an 
    explicit geographic restriction of the distribution of YaST 2 and 
    SuSE Linux or parts of SuSE Linux, in which these states
    are fully or partially excluded from distribution. In such a case 
