@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 19 15:35:24 CET 2004 - jsrain@suse.cz
+
+- removed the generic MBR code from the package (moved to
+  master-boot-code package) (#46406)
+
+-------------------------------------------------------------------
 Tue Nov  9 10:40:18 CET 2004 - jsrain@suse.cz
 
 - fixed automatical boot partition activating during installation
