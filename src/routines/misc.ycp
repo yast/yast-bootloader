@@ -1645,6 +1645,7 @@
       * And make the selected installation language default
       */
     global define boolean updateGfxMenu () {
+	// select the current language
 	string lang = (string)SCR::Read (.sysconfig.language.RC_LANG);
 	list<string> l = splitstring (lang, ".");
 	lang = l[0]:"";
@@ -1655,6 +1656,25 @@
 	string boot_theme = (string)SCR::Read (.sysconfig.bootsplash.THEME);
 	string data_dir = sformat ("/etc/bootsplash/themes/%1/bootloader",
 	    boot_theme);
+	// get available languages, check if selected is supported
+	list<string> files = (list<string>)SCR::Read (.target.dir, data_dir);
+	list<string> helps = filter (string f, files, ``(
+	    substring (f, 0, 5) == "help."
+	));
+	list<string> texts = filter (string f, files, ``(
+	    substring (f, 0, 6) == "texts."
+	));
+	helps = maplist (string h, helps, ``(substring (h, 5, 2)));
+	texts = maplist (string t, texts, ``(substring (t, 5, 2)));
+	y2milestone ("Texts available for %1", texts);
+	y2milestone ("Helps available for %1", helps);
+	if (! (contains (helps, lang_short) || contains (texts, lang_short)))
+	{
+	    y2milestone ("Language %1 is not supported by gfxmenu", lang_short);
+	    lang = "en_EN";
+	    lang_short = "en";
+	}
+	// update the boot message
 	string trans_file = sformat ("%1/boot_translations", tmpdir);
 	map<string,string> trans_map = getTranslationsToDiacritics ();
 	list<string> trans_list = maplist (string k, string v, trans_map, {
