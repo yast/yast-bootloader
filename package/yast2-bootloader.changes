@@ -9,6 +9,7 @@ Mon Sep 15 09:03:25 CEST 2003 - jsrain@suse.de
   update (#28780)
 - propose "floppy" entry to bootloader menu only if floppy drive
   is present (#30772)
+- don't install bootloader packages in repair mode (#30272)
 
 -------------------------------------------------------------------
 Sun Sep 14 21:02:56 CEST 2003 - adrian@suse.de
