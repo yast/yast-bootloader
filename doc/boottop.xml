@@ -17,9 +17,12 @@
                 <listitem><para><computeroutput>global define string getKernelParam (string section, string key)</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global define list getSectionsList (symbol type)</computeroutput></para></listitem>
                 <listitem><para><computeroutput>global define boolean setKernelParam (string section, string key, string value)</computeroutput></para></listitem>
-                <listitem><para><computeroutput>global define symbol getLoaderType ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define string getLoaderType ()</computeroutput></para></listitem>
+		<listitem><para><computeroutput>global define void getLoaderType (string bootloader)</computeroutput></para></listitem>
 		<listitem><para><computeroutput>global define string getRootDevice ()</computeroutput></para></listitem>
 		<listitem><para><computeroutput>global define string getBootDevice ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define void setRootDevice (string device)</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define void setBootDevice (string device)</computeroutput></para></listitem>
 		<listitem><para><computeroutput>global define boolean LbaSupport()</computeroutput></para></listitem>
 		<listitem><para><computeroutput>global define void ReadOrProposeIfNeeded ()</computeroutput></para></listitem>
 
@@ -76,11 +79,18 @@
         <section>
             <title>Other functions</title>
             <itemizedlist>
-                <listitem><para><computeroutput>global define symbol getLoaderType ()</computeroutput> returns currently used or configured bootloader. There will be no global
+                <listitem><para><computeroutput>global define string getLoaderType ()</computeroutput> returns currently used or configured bootloader. There will be no global
                     variable for detecting current bootloader.</para></listitem>
+		<listitem><para><computeroutput>global define void setLoaderType (string bootloader)</computeroutput> sets the bootloader to use. If parameter is nil, then
+		    next time <computeroutput>getLoaderType ()</computeroutput> will be called bootloader will be reread from disk or redetected.</para></listitem>
 		<listitem><para><computeroutput>global define string getRootDevice ()</computeroutput> returns device which contains the / (root) directory.</para></listitem>
 		<listitem><para><computeroutput>global define string getBootDevice ()</computeroutput> returns device containing the /boot directory. Returns the same as getRootDevice ()
 		    if no extra /boot partition exists.</para></listitem>
+		<listitem><para><computeroutput>global define void setRootDevice (string device)</computeroutput> sets device containing the / (root) directory. Should be set to real
+		    root partition of installed/configured machine. Normally this function isn't needed to be used, everything gets detected.</para></listitem>
+                <listitem><para><computeroutput>global define void setBootDevice (string device)</computeroutput> sets device containing the /boot directory. Should be set to real
+		    /boot partition of installed/configured machine. Normally this function isn't needed to be used, everything gets detected.</para></listitem>
+
                 <listitem><para><computeroutput>global define boolean LbaSupport()</computeroutput> returns true if current configuration supports LBA-32 mode (and in this case
 		    no extra /boot partition is required).</para></listitem>
                 <listitem><para><computeroutput>global define void ReadOrProposeIfNeeded ()</computeroutput> checks whether settings were read or proposed, and if not,
