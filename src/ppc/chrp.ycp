@@ -137,7 +137,7 @@
 	prep_only_active = true;
 	prep_only_hdx = false;
 	prep_only_primary = true;
-	prep_same_disk_as_root = false;
+	prep_same_disk_as_root = true;
 	table_items = [ "__chrp_location", "__set_default_of" ];
     }
 
