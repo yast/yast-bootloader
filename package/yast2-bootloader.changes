@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec 10 14:55:12 CET 2003 - jsrain@suse.de
+
+- translating also section label in the "default" entry in
+  elilo.conf (IA64)
+
+-------------------------------------------------------------------
 Tue Dec  9 15:36:47 CET 2003 - jsrain@suse.de
 
 - added command line interface support
