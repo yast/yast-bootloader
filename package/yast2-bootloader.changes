@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 13 14:55:49 CEST 2004 - jsrain@suse.cz
+
+- log the output of devmap_mknod.sh and /sbin/vgscan (#43758)
+
+-------------------------------------------------------------------
 Wed Aug 11 12:50:06 CEST 2004 - jsrain@suse.cz
 
 - prevent from adding trailing blank space to section name on PPC

@@ -356,11 +356,17 @@
 	}
 
 	// Initialize device mapper and LVM in target system
-	if (Mode::initial)
+	if (Mode::initial || Mode::update)
 	{
-	    SCR::Execute (.target.bash, "
+	    map out = (map)SCR::Execute (.target.bash_output, "
 test -f /sbin/devmap_mknod.sh && /sbin/devmap_mknod.sh
 test -f /sbin/vgscan && /sbin/vgscan --mknodes");
+	    if (out["exit"]:0 != 0)
+	    {
+		y2error ("Failed to initialize device mapper");
+	    }
+	    y2milestone ("Device mapper and LVM initialization output: %1"
+		out);
 	}
 
 	// save initrd
