@@ -119,6 +119,8 @@ Would you like to choose a new installation source?"));
    */
   define symbol floppySearchImages() ``{
 
+      // FIXME: this is nonsense
+      /*
       map    installMap = Mode::installMap;
       //y2milestone("%1", installMap);
       bootmode   = lookup ( installMap, "bootmode", "" );
@@ -132,7 +134,9 @@ Would you like to choose a new installation source?"));
       {
 	  begin_search = "/var/adm/mount/disks/";
       }
+      */
 
+      string begin_search = "/var/adm/mount/disks/";
 
       if( ( SCR::Read(.target.size, begin_search + "bootdisk")!=-1) ) bootdisk_found    = true;
       if( ( SCR::Read(.target.size, begin_search + "i386")!=-1)     ) i386disk_found    = true;
