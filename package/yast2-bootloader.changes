@@ -2,6 +2,7 @@
 Mon Aug 18 09:20:32 CEST 2003 - jsrain@suse.de
 
 - fixed creating of boot floppy (#28994)
+- updated comments in susconfig fillup (#28845)
 
 -------------------------------------------------------------------
 Wed Aug 13 14:07:32 CEST 2003 - jsrain@suse.de

@@ -18,6 +18,7 @@ LOADER_TYPE=""
 ## Default:     none
 #
 # Location of boot loader.
+# For making the change effect run bootloader configuration tool
 #
 #
 LOADER_LOCATION=""
