@@ -356,6 +356,24 @@ global void updateDeviceMap () {
 	        if (substring (tmp, 0, 1) == "/")
 	            tmp = sformat ("%1%2", root, tmp);
 	        settings = add (settings, "menu", tmp);
+		settings["command"] = "install";
+	    }
+	    else if (entries[0]:"" == "setup")
+	    {
+		integer shift = 0;
+		string tmp = entries[shift + 1]:"";
+		while (substring (tmp, 0, 2) == "--")
+		{
+		    string prefix = settings["prefix"]:"";
+		    prefix = prefix + " " + tmp;
+	            settings = add (settings, "prefix", prefix);
+	            shift = shift + 1;
+	            tmp = entries[shift + 1]:"";
+		}
+		devices = add (devices, tmp);
+	        settings["device"] = grubDev2unixDev (tmp);
+		root = entries[shift + 2]:"";
+		settings["command"] = "setup";
 	    }
 	    settings = add (settings, "root", root);
 	});

@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
-Tue Mar  1 08:26:39 CET 2005 - jsrain@suse.cz
+Tue Mar  1 10:34:51 CET 2005 - jsrain@suse.cz
 
+- provide info about grub.conf to repair module if embedding
+  GRUB stage1.5
 - display proper list of bootloaders (#66933)
 
 -------------------------------------------------------------------

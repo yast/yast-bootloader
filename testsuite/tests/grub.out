@@ -17,11 +17,11 @@ Return	(hd2,2)
 Return	(null)
 Return	(null)
 Dump	======================================
-Return	$["addr":"0x8000", "device":"/dev/fd0", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "prefix":" --stage2=/boot/grub/stage2", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
-Return	$["addr":"0x8000", "device":"/dev/fd0", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
-Return	$["addr":"0x8000", "device":"/dev/fd0", "menu":"(hd0,0)/grub/menu.lst", "prefix":" --stage2=/boot/grub/stage2", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
-Return	$["addr":"0x8000", "device":"/dev/fd0", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
-Return	$["addr":"0x8000", "device":"/dev/fd0", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "prefix":" --stage2=/boot/grub/stage2 --force-lba=off", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "command":"install", "device":"/dev/fd0", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "prefix":" --stage2=/boot/grub/stage2", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "command":"install", "device":"/dev/fd0", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "command":"install", "device":"/dev/fd0", "menu":"(hd0,0)/grub/menu.lst", "prefix":" --stage2=/boot/grub/stage2", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "command":"install", "device":"/dev/fd0", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "command":"install", "device":"/dev/fd0", "discswitch":"d", "menu":"(hd0,0)/grub/menu.lst", "prefix":" --stage2=/boot/grub/stage2 --force-lba=off", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
 Return	$[]
 Dump	======================================
 Return	root (hd0,0)\ninstall  --stage2=/boot/grub/stage2 /grub/stage1 d (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit\n
@@ -51,6 +51,6 @@ Dump	======================================
 Return	root (hd0,0)\ninstall  --stage2=/boot/grub/stage2 --force-lba=off /grub/stage1 d (hd0,0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\ninstall  --stage2=/boot/grub/stage2 --force-lba=off /grub/stage1 d (hd1,0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit\n
 Return	root (hd0,0)\ninstall  --stage2=/boot/grub/stage2 --force-lba=off /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\ninstall  --stage2=/boot/grub/stage2 --force-lba=off /grub/stage1 d (hd1) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit\n
 Dump	======================================
-Return	$["addr":"0x8000", "device":"/dev/md0", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
-Return	$["addr":"0x8000", "device":"mbr_md", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "command":"install", "device":"/dev/md0", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
+Return	$["addr":"0x8000", "command":"install", "device":"mbr_md", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]
 Dump	======================================
