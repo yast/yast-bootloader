@@ -92,6 +92,7 @@
     Mode::test = true;
 
     import "Initrd";
+    include "bootloader/routines/routines.ycp";
     include "bootloader/routines/autoinstall.ycp";
 
     DUMP ("======================================");

@@ -147,7 +147,7 @@ Replace it with an entry  to boot from the floppy?");
       * @return map of widget
       */
     global define map<string,any> getGlobalSectionWidget () ``{
-	return TablePopup::CreateTableDescr (
+	return (map<string,any>)TablePopup::CreateTableDescr (
 	    $[
 		"add_delete" : true,
 		"up_down_buttons" : false,
@@ -645,7 +645,7 @@ Replace it with an entry  to boot from the floppy?");
       * @return map of widget
       */
     global define map<string,any> getSingleSectionWidget () ``{
-	return TablePopup::CreateTableDescr (
+	return (map<string,any>)TablePopup::CreateTableDescr (
 	    $[
 		"add_delete" : true,
 		"up_down_buttons" : true,
