@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan 22 14:30:26 CET 2003 - jsrain@suse.de
+
+- fixed meaningless log messages (#23025)
+
+-------------------------------------------------------------------
 Fri Jan 17 15:00:17 CET 2003 - jsrain@suse.de
 
 - fixed detection of disks configuration changes that may decide to
