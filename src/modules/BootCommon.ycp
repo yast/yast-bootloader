@@ -583,7 +583,9 @@ configuration files"));
       * @param bootloader string type of bootloader
       */
     global define void setLoaderType (string bootloader) ``{
-	if (contains(bootloaders, bootloader) && ! Mode::test)
+	if (bootloader != nil
+	    && contains(bootloaders, bootloader)
+	    && ! Mode::test)
 	{
 	    // don't configure package maneger during autoinstallation preparing
 	    if (Mode::normal && (! (Mode::config || Mode::repair)))
@@ -604,7 +606,8 @@ configuration files"));
 	    }
 	}
 	loader_type = bootloader;
-	setCurrentLoaderAttribs (loader_type);
+	if (loader_type != nil)
+	    setCurrentLoaderAttribs (loader_type);
     }
     /**
       * List bootloaders available for configured architecture

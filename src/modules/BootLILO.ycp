@@ -527,7 +527,7 @@
 	BootCommon::bootloader_attribs["lilo"] = $[
 	    "required_packages" : ["lilo"],
 	    "loader_name" : "LILO",
-	    "initializer" : ``(BootLILO::Initializer()),
+	    "initializer" : BootLILO::Initializer,
 	];
     }
 
