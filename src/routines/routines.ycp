@@ -196,7 +196,7 @@
 	string filtered = filterchars (translated, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _");
 	if (size (filtered) != size (translated))
 	{
-	    y2error ("Incorrect translation %1 -> %2", orig, translated);
+	    y2warning ("Incorrect translation %1 -> %2", orig, translated);
 	    return not_trans[orig]:orig;
 	}
 	if (BootCommon::getLoaderType (false) != "grub")
