@@ -1,6 +1,6 @@
 .elilo
 
 `ag_liloconf(
-  LiloConf("lilo", "/boot/elilo.conf")
+  LiloConf("elilo", "/boot/efi/SuSE/elilo.conf")
 )
 

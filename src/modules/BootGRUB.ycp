@@ -19,6 +19,8 @@
 {
     module "BootGRUB";
 
+    textdomain "bootloader";
+
     import "Kernel";
     import "Storage";
 
@@ -215,7 +217,9 @@
 	    if (-1 == SCR::Read (.target.size, gfxmenu))
 		BootCommon::globals = remove (BootCommon::globals, "gfxmenu");
 	}
-	return BootCommon::Save ();
+	boolean ret = BootCommon::Save ();
+	SCR::Execute (.target.bash, "/bin/chmod 600 /boot/grub/menu.lst");
+	return ret;
     }
     /**
       * Update read settings to new version of configuration files
@@ -251,8 +255,8 @@
 	    {
 		string log = SCR::Read (.target.string,
 		    "/var/log/YaST2/y2loggrub");
-		Report::Error (_("Error while installing GRUB occured")
-		    + "\n\n\n" + log);
+                errorWithLogPopup (_("Error while installing GRUB occured"),
+                    log);
 	    }
 	}
 	return ret;
@@ -476,9 +480,11 @@
 	list other_l = Storage::GetOtherLinuxPartitions();
 	y2milestone ("Other linux parts: %1", other_l);
 
+	string tmpdir = SCR::Read (.target.tmpdir) + "/bldetect/";
+
 	if (deep_propose && other_l != nil && size (other_l) > 0
-	    && 0 == SCR::Execute (.target.bash,
-		"test -d /tmp/bldetect || /bin/mkdir /tmp/bldetect")
+	    && 0 == SCR::Execute (.target.bash, sformat (
+		"test -d %1 || /bin/mkdir %1", tmpdir))
 	    )
 	{
 	    y2milestone ("Detectig other Linux parts");
@@ -506,13 +512,13 @@
 	    foreach (`o, other_l, ``{
 		string dev = o["device"]:"";
 		if (dev != "" && 0 == SCR::Execute (.target.bash,
-		    sformat ("/bin/mount %1 %2", dev, "/tmp/bldetect")))
+		    sformat ("/bin/mount %1 %2", dev, tmpdir)))
 		{
 		    y2milestone ("Mounted %1", dev);
 		    list(string) filenames = [];
 		    foreach (string fn, [
-			"/tmp/bldetect/grub/menu.lst",
-			"/tmp/bldetect/boot/grub/menu.lst"
+			tmpdir + "grub/menu.lst",
+			tmpdir + "boot/grub/menu.lst"
 		    ], ``{
 			if (-1 != SCR::Read (.target.size, fn))
 			    filenames = add (filenames, fn);
@@ -565,7 +571,7 @@
 			"/bin/umount %1", dev));
 		}
 	    });
-	    SCR::Execute (.target.bash, "/bin/rmdir /tmp/bldetect");
+	    SCR::Execute (.target.bash, sformat ("/bin/rmdir %1", tmpdir));
 	}
 
 	if (others != nil)

@@ -18,6 +18,8 @@
 
 {
 
+    textdomain "bootloader";
+
     /**
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets

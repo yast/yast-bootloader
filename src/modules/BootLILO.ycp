@@ -19,6 +19,8 @@
 {
     module "BootLILO";
 
+    textdomain "bootloader";
+
     import "Kernel";
     import "Storage";
 
@@ -142,7 +144,9 @@
                 BootCommon::globals = remove (BootCommon::globals, "message");
         }
 	BootCommon::globals["boot"] = BootCommon::loader_device;
-	return BootCommon::Save ();
+	boolean ret = BootCommon::Save ();
+	SCR::Execute (.target.bash, "/bin/chmod 600 /etc/lilo.conf");
+	return ret;
     }
 
     /**
@@ -172,8 +176,8 @@
 	    {
 		string log = SCR::Read (.target.string,
 		    "/var/log/YaST2/y2loglilo");
-		Report::Error (_("Error while saving LILO occured")
-		    + "\n\n\n" + log);
+                errorWithLogPopup (_("Error while installing LILO occured"),
+                    log);
 	    }
 	}
 	return ret;

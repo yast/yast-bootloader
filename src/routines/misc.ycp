@@ -435,6 +435,8 @@
             return BootCommon::RootPartitionDevice;
         if (BootCommon::location == "floppy")
             return StorageDevices::FloppyDevice;
+	if (BootCommon::location == "none")
+	    return "/dev/null";
         return BootCommon::loader_device;
     }
 
@@ -760,6 +762,26 @@
 	}
 	return ret;
     }
+
+    /**
+      * Translate device name to major/minor number
+      * @param device string
+      * @return integer major*256+minor
+      */
+    global define integer dev2majmin (string device) ``{
+        string ls = lookup (SCR::Execute (.target.bash_output, sformat (
+            "ls -ln %1", device)), "stdout", "");
+        list(string) parts = splitstring (ls, " ");
+        parts = filter (`p, parts, ``(p != ""));
+        string majs = parts[4]:"";
+        majs = substring (majs, 0, size (majs) -1);
+        string mins = parts[5]:"";
+        integer maj = tointeger (majs);
+        integer min = tointeger (mins);
+        y2milestone ("translated %1 to %2:%3", device, maj, min);
+        return maj * 256 + min;
+    }
+
 
     /**
       * Convert any to boolean

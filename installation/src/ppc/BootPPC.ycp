@@ -33,8 +33,9 @@
     global boolean  ppc_of_defaultdevice = true;
 
     // partition number for the bootloader (either 41PReP boot or Apple_HFS)
-    global integer  ppc_boot_partition = 1;
-
+    // start with disabled value and let the partition scanner find a match.
+    global integer  ppc_boot_partition = 0;
+    global integer  ppc_boot_partition_timestamp = 0;
 
     // filename for the iSeries kernel, for streamfile *STMF booting
     global string   ppc_iseries_streamfile		= "/boot/suse_linux_bootfile";
@@ -80,11 +81,18 @@
 		integer partition_number = 0;
 		integer partition_counter = 0;
 		boolean deleted = false;
+		string  boot_root_device = deletechars ( Boot::RootPartitionDevice, "0123456789");
 
 		y2milestone("old prep_boot_partitions %1", ppc_prep_boot_partitions);
 		ppc_prep_boot_partitions = $[];
 		ppc_possible_boot_partitions = [];
 
+		if ( Boot::last_change > ppc_boot_partition_timestamp )
+		{
+			ppc_boot_partition_timestamp = Boot::last_change;
+			ppc_boot_partition = 0;
+			y2milestone("reset timestamp and active prep boot partition (%1)", ppc_boot_partition_timestamp);
+		}
 		foreach (`dname, `ddata, targetMap,
 		``{
 		    list partitions = lookup (ddata, "partitions", []);
@@ -104,6 +112,16 @@
 				&& !deleted)
 			    {
 				partition_counter = partition_counter + 1;
+
+				// the 41 PReP boot partition must be on the same drive as the root partiton
+				// the bootloader yaboot expects the kernel on the same drive
+				// ppc_boot_partition==0 means, no user selection, yet
+				if ( ppc_boot_partition == 0 && dname == boot_root_device )
+				{
+					ppc_boot_partition = partition_counter;
+					y2milestone("activate partition on %1, partition_counter %2", dname, partition_counter);
+				}
+				// activate the prefered partition in the menu
 				if ( partition_counter == ppc_boot_partition )
 				{
 					ppc_possible_boot_partitions = add (ppc_possible_boot_partitions, `item(`id(partition_counter), lookup (pentry, "device", ""), true));
@@ -117,10 +135,10 @@
 			});
 		    }
 		});
-		if ( ppc_boot_partition > size (ppc_prep_boot_partitions) )
+		if ( ppc_boot_partition > size (ppc_prep_boot_partitions) || ppc_boot_partition == 0 )
 		{
+			y2milestone("RESET ppc_boot_partition to 1, was %1", ppc_boot_partition);
 			ppc_boot_partition = 1;
-			y2milestone("RESET ppc_boot_partition to 1");
 		}
 		y2milestone("new prep_boot_partitions %1 %2", partition_counter, ppc_prep_boot_partitions);
 		y2milestone("new ppc_possible_boot_partitions %1", ppc_possible_boot_partitions);
@@ -168,7 +186,7 @@
 
 		if ( ppc_iseries_write_prepboot )
 		{
-			Boot::device = ppc_prep_boot_partitions[ppc_boot_partition]:1;
+			Boot::device = ppc_prep_boot_partitions[ppc_boot_partition]:"/dev/null";
 			boot_strings = add ( boot_strings, sformat(_("The kernel will be written to %1. Use *NWSSTG on OS400 side."), Boot::device));
 		}
 
@@ -207,7 +225,7 @@
 
 		if ( size (ppc_prep_boot_partitions) > 0)
 		{
-			Boot::device = ppc_prep_boot_partitions[ppc_boot_partition]:1;
+			Boot::device = ppc_prep_boot_partitions[ppc_boot_partition]:"/dev/null";
 			boot_strings = add ( boot_strings, _("the zImage.prep from CD1/boot must be written to a 41 PReP boot partition"));
 		}
 		else
@@ -225,7 +243,7 @@
 
 		if ( size (ppc_prep_boot_partitions) > 0)
 		{
-			Boot::device = ppc_prep_boot_partitions[ppc_boot_partition]:1;
+			Boot::device = ppc_prep_boot_partitions[ppc_boot_partition]:"/dev/null";
 			boot_strings = add ( boot_strings, sformat(_("yaboot will be written to %1. use SMS Multiboot to boot from this drive"), Boot::device));
 		}
 		else
@@ -680,11 +698,11 @@ image = /boot/" + Kernel::binary + "
 		}
 		if ( ppc_iseries_write_prepboot && size (ppc_prep_boot_partitions) > 0 )
 		{
-			y2milestone("*NWSSTG: write %1 to %2", ppc_iseries_bootbinary, ppc_prep_boot_partitions[ppc_boot_partition]:1);
+			y2milestone("*NWSSTG: write %1 to %2", ppc_iseries_bootbinary, ppc_prep_boot_partitions[ppc_boot_partition]:"/dev/null");
 			SCR::Execute (.target.bash, "test -b " +
-			ppc_prep_boot_partitions[ppc_boot_partition]:1 +
+			ppc_prep_boot_partitions[ppc_boot_partition]:"/dev/null" +
 			" && dd if=" + ppc_iseries_bootbinary + " bs=4096 of=" +
-			ppc_prep_boot_partitions[ppc_boot_partition]:1
+			ppc_prep_boot_partitions[ppc_boot_partition]:"/dev/null"
 			);
 		}
 

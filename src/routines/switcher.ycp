@@ -18,14 +18,14 @@
 {
     import "BootGRUB";
     import "BootLILO";
-/*    import "BootSILO";
+    import "BootSILO";
     import "BootMILO";
     import "BootABOOT";
     import "BootELILO";
-    import "BootMIPS";
+//    import "BootMIPS";
     import "BootS390";
     import "BootPPC";
-*/
+
     global define map getFunctions (string bootloader) ``{
 	map bl_functions = $[
 	    "lilo"  : ``(BootLILO::GetFunctions ()),
@@ -79,7 +79,7 @@
         return eval (toEval);
     }
 
-    global define string blSummary () ``{
+    global define list(string) blSummary () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
         term toEval = functions["summary"]:``(BootCommon::Summary ());
         return eval (toEval);

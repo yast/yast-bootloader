@@ -18,6 +18,8 @@
 
 {
 
+    textdomain "bootloader";
+
     include "ui/common_messages.ycp";
     include "bootloader/routines/popups.ycp";
 
@@ -833,6 +835,5 @@
 	BootCommon::tmp_store["active_section"] = remove
 	    (BootCommon::tmp_store["active_section"]:$[], "__intern__");
     }
-
 
 } // include end

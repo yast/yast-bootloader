@@ -36,6 +36,14 @@ Change the settings of your bootloader. </P>");
       * Get help
       * @result string help text
       */
+    global define string getSaveProgressHelp () ``{
+	return "Write help";
+    }
+
+    /**
+      * Get help
+      * @result string help text
+      */
     global define string getSummaryButtonsHelp () ``{
 	string ins = "";
 	if (BootCommon::getLoaderType (false) == "grub")
@@ -69,7 +77,7 @@ detecting whether option was changed</P>");
 	if (BootCommon::getLoaderType (false) == "grub")
             // help text 3/3, optional
             help = help + _("<p> To reorder options use the <B>Up</B> and 
-<B>Down</B> buttons.");
+<B>Down</B> buttons.</P>");
 
         return help;
 

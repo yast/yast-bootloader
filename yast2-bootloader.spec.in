@@ -53,6 +53,7 @@ Summary:	Bootloader installation and configuration
 #@configdir@/*.y2cc
 @moduledir@/*.ycp
 @clientdir@/*.ycp
+@ybindir@/*
 
 # lilo
 #%dir @yncludedir@/lilo
@@ -71,6 +72,7 @@ Summary:	Bootloader installation and configuration
 @scrconfdir@/elilo.scr
 @scrconfdir@/silo.scr
 @scrconfdir@/grub.scr
+@scrconfdir@/cfg_bootloader.scr
 
 # lilo agent - devel
 @plugindir@/libpy2ag_liloconf.so

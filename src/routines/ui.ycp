@@ -214,6 +214,7 @@
 	selected_opt = options[0]:nil;
 	UI::ChangeWidget (`id (`settings), `Items, items);
 	singleSectionHandle (`settings, []);
+	UI::ChangeWidget (`id (`add), `Enabled, Bootloader::blOptions() != nil);
     }
 
     /**

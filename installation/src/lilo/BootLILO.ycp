@@ -115,7 +115,7 @@
 	    image = "/boot/vmlinuz";
 	SCR::Write(.lilo.sections.linux.image, image);
 	string initrd = SCR::Read (.lilo.sections.linux.initrd);
-	if ((initrd == "" || initrd == nil) && SCR::Read (.target.size, "/boot/initrd"))
+	if ((initrd == "" || initrd == nil) && -1 != SCR::Read (.target.size, "/boot/initrd"))
 	    initrd = "/boot/initrd";
 	SCR::Write(.lilo.sections.linux.initrd, initrd);
 	string root = SCR::Read (.lilo.sections.linux.root);

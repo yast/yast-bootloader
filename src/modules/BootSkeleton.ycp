@@ -78,11 +78,10 @@
     }
     /**
       * Display bootloader summary
-      * @param list of style attributes
-      * FIXME add attrib description
+      * @return summary string
       */
-    global define string Summary (list style) ``{
-	return BootCommon::Summary (style);
+    global define list(string) Summary () ``{
+	return BootCommon::Summary ();
     }
     /**
       * Update read settings to new version of configuration files

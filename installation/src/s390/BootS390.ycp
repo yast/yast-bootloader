@@ -58,7 +58,25 @@ dumpto=/dev/rtibm0
 
 	SCR::Write (.target.string, "/etc/zipl.conf", zipl_conf);
 
-	SCR::Execute (.target.bash, "/sbin/mk_initrd");
+	integer mkinitrd = SCR::Execute (.target.bash, "/sbin/mk_initrd > /var/log/YaST2/y2log_mkinitrd 2>&1");
+	if (0 != mkinitrd)
+	{
+	    string output = SCR::Read (.target.string, "/var/log/YaST2/y2log_mkinitrd");
+	    UI::OpenDialog ( `VBox (
+		// label
+		`Label (`id (`l1), sformat(_("/sbin/mk_initrd returned exit code %1"), mkinitrd)),
+		`VSpacing (1),
+		// label, richtext headline
+		`Label (`id (`l2), _("Log contents:")),
+		`RichText (`id (`out),  `opt(`plainText), output),
+		`VSpacing (1),
+		// pushbutton
+		`PushButton (`id (`ok), _("&Continue"))
+	    ));
+	    UI::UserInput ();
+	    UI::CloseDialog ();
+	    return false;
+	}
 
 	// append chandev to /etc/chandev.conf
 	string chandev = SCR::Read(.etc.install_inf.Chandev);
@@ -70,15 +88,16 @@ dumpto=/dev/rtibm0
 	{
 	    SCR::Execute (.target.bash, "/bin/echo '"+chandev+"' >> /etc/chandev.conf");
 	}
-	integer zipl = SCR::Execute (.target.bash, "/sbin/zipl > /var/log/inst-log.zipl 2>&1");
+
+	integer zipl = SCR::Execute (.target.bash, "/sbin/zipl > /var/log/YaST2/y2log_zipl 2>&1");
 	if (0 != zipl)
 	{
-	    string output = SCR::Read (.target.string, "/var/log/inst-log.zipl");
+	    string output = SCR::Read (.target.string, "/var/log/YaST2/y2log_zipl");
 	    UI::OpenDialog ( `VBox (
 		// label
 		`Label (`id (`l1), sformat(_("/sbin/zipl returned exit code %1"), zipl)),
 		`VSpacing (1),
-		// label, ruchtext headline
+		// label, richtext headline
 		`Label (`id (`l2), _("Log contents:")),
 		`RichText (`id (`out),  `opt(`plainText), output),
 		`VSpacing (1),

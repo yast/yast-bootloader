@@ -495,7 +495,7 @@ global define term TargetWidget(string mbr_dev, string bootdev) ``{
 	uninstall_label = sformat(_("&Uninstall boot loader from %1"), bootdev);
     }
 
-    if (Arch::i386)
+    if (Arch::i386 || Arch::x86_64)
     {
 	// i386
 	// radiobutton, %1 is device (eg. /dev/hda)
