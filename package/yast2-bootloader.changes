@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct 15 08:23:57 CEST 2003 - jsrain@suse.de
+
+- fixed option type for relocatable in elilo.conf (IA64) (#32210)
+
+-------------------------------------------------------------------
 Tue Oct 14 18:08:02 CEST 2003 - jsrain@suse.de
 
 - updated support of S390 bootloader
