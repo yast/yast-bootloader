@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar 17 09:41:07 CET 2003 - jsrain@suse.de
+
+- fixed updating GRUB configuration if entry with other system was
+  present and set as default (#25418)
+- 2.7.17
+
+-------------------------------------------------------------------
 Fri Mar 14 13:26:39 CET 2003 - jsrain@suse.de
 
 - fixed behaviour when iditing empty section, when creating new 

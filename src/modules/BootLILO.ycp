@@ -166,7 +166,7 @@
                 else
                     s["initrd"] = "/boot/initrd.shipped";
             }
-            if (s["label"]:"" == "linux")
+            if (s["label"]:"" == "linux" && s["append"]:nil != nil)
 		s["append"] = BootCommon::updateKernelParams (s["append"]:"");
             return s;
 	});
@@ -251,7 +251,7 @@
 	    ? "ide=nodma apm=off acpi=off vga=normal "
 	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp noapic ")
 	      + "maxcpus=0 3"
-	    : Kernel::cmdLine;
+	    : sformat ("%1 splash=silent", Kernel::cmdLine);
 	map ret = $[
 	    "label" : title,
 	    "image" : "/boot/" + image,
