@@ -517,8 +517,11 @@ configuration files"));
 	    // don't configure package maneger during autoinstallation preparing
 	    if (! Mode::config)
 	    {
+		// TODO ??? check if package manager is initialized
 		boolean installed = false;
 		foreach (`p, getBootloaderPackages (bootloader), ``{
+		    // FIXME: Don't check bootloader, but package name
+		    // doesn't matter on i386 and AMD64
 		    if (! Pkg::IsProvided (bootloader))
 		    {
 		        Pkg::PkgInstall (bootloader);
