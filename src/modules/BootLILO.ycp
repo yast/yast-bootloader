@@ -477,13 +477,18 @@
         });
         out = maplist (`s, out, ``{
             s = maplist (`p, s, ``{
-		if (p["key"]:"" != "__intern__")
+		if (p["key"]:"" == "image" || p["key"]:"" == "initrd")
 		{
 		    string option = p["value"]:"";
 		    if (regexpmatch (option, "^.*\.shipped.*$"))
 		    {
 			option = regexpsub (option,
 			    "^(.*)\.shipped(.*)$", "\\1\\2");
+		    }
+		    else if (regexpmatch (option, "^.*\.suse.*$"))
+		    {
+			option = regexpsub (option,
+			    "^(.*)\.suse(.*)$", "\\1\\2");
 		    }
 		    p["value"] = option;
 		}
