@@ -28,7 +28,7 @@
     import "BootCommon";
     import "Arch";
     import "Pkg";
-    impirt "ProductFeatures";
+    import "ProductFeatures";
 
     include "bootloader/lilo/widgets.ycp";
     include "bootloader/lilo/helps.ycp";
