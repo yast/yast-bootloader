@@ -24,6 +24,10 @@
 #include "LiloSection.h"
 #include "OptTypes.h"
 #include <ycp/y2log.h>
+#include <ycp/YCPPath.h>
+#include <ycp/YCPInteger.h>
+#include <ycp/YCPBoolean.h>
+#include <ycp/YCPMap.h>
 #include <ctype.h>
 
 #define WHITESPACE       " \t\n"
