@@ -188,20 +188,25 @@
     /**
       * Converts the md device to the list of devices building it
       * @param md_device string md device
-      * @return a list of devices building the md device
+      * @return a map of devices (from device name to BIOS ID or nil if
+      *   not detected) building the md device
       */
-    global define list<string> Md2Partitions (string md_device) {
-	list<string> ret = [];
+    global define map<string, integer> Md2Partitions (string md_device) {
+	map<string,integer> ret = $[];
 	map<string,any> tm = (map<string,map>)Storage::GetTargetMap();
 	foreach (string disk, any descr_a, tm, ``{
 	    map<string,any> descr = (map<string,any>)descr_a;
+	    string bios_id_str = descr["bios_id"]:"";
+	    integer bios_id = 128; // maximum + 1
+	    if (bios_id_str != "")
+		bios_id = tointeger (bios_id);
 	    list<map<string,any> > partitions = (list<map<string,any> >)
 		descr["partitions"]:[];
 	    foreach (map<string,any> partition, partitions, ``{
 		if (partition["raid_name"]:"" == md_device)
 		{
-		    ret = (list<string>)
-			add (ret, (string)(partition["device"]:""));
+		    string d = (string)(partition["device"]:"");
+		    ret[d] = bios_id;
 		}
 	    });
 	});
@@ -215,11 +220,21 @@
       * @return string one of devices building the md array
       */
     global define string Md2Partition (string md_device) {
-	list<string> devices = Md2Partitions (md_device);
+	map<string,integer> devices = Md2Partitions (md_device);
 	if (size (devices) == 0)
 	    return md_device;
-	devices = (list<string>)sort (devices);
-	return devices[0]:"";
+	integer minimal = 129; // maximum + 2
+	string found = "";
+	foreach (string k, integer v, devices, {
+	    if (v < minimal)
+	    {
+		found = k;
+		minimal = v;
+	    }
+	});
+	return found;
+//	devices = (list<string>)sort (devices);
+//	return devices[0]:"";
     }
 
     /**
