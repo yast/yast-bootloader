@@ -56,7 +56,7 @@
 	    "update" :	``(BootSILO::Update ()),
 	    "write" :	``(BootSILO::Write ()),
 	    "updoptlst":``(BootSILO::UpdateOptionsList ()),
-	    "getoptions":``(BootSILO::GetOptions ()),
+	    "getoptions":``(BootSILO::GetOptions ()), // FIXME to initializer
 	    "widgets"  :``(BootSILO::GetWidgets ()),
 	];
     }

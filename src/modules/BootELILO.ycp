@@ -79,6 +79,7 @@
             "restore_mbr" : false,
             "key_only_once" : true,
 	    "bootloader_on_disk" : false,
+	    "option_list" : GetOptions (),
         ];
     }
 
@@ -100,7 +101,6 @@
 	    "widgets"  : ``(BootELILO::GetWidgets ()),
 	    "getfiles" : ``(BootELILO::GetFiles ()),
 	    "setfiles" : ``(BootELILO::SetFiles ()),
-	    "getoptions":``(BootELILO::GetOptions ()),
 	    "updoptlst": ``(BootELILO::UpdateOptionsList ()),
 	];
     }

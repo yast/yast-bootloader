@@ -96,6 +96,7 @@
 	    "restore_mbr" : true,
 	    "key_only_once" : true,
 	    "bootloader_on_disk" : true,
+	    "option_list" : BootCommon::GetOptions (),
 	];
 	BootCommon::cwm_options = union (
 	    BootCommon::GetOptionMaps (),
