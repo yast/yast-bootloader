@@ -406,6 +406,8 @@
             BootCommon::tmp_store["changed_all_sects"]
 		= eval (BootCommon::changed_settings);
 	}
+	if (op == `delete)
+	    BootCommon::changed = true;
 
 	return ret;
     }
@@ -765,6 +767,8 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	    {
 		files[filename] = UI::QueryWidget (`id (`file), `Value);
 		Bootloader::blSetFiles (files);
+		BootCommon::changed = true;
+		BootCommon::location_changed = true;
 	    }
 	    if (ret == `abort)
 	    {

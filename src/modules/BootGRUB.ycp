@@ -321,7 +321,8 @@
 	    }
 	    else if (BootCommon::location == "floppy")
 	    {
-		BootCommon::updateTimeoutPopup (BootCommon::getLoaderName ("grub"));
+		BootCommon::updateTimeoutPopupForFloppy
+		    (BootCommon::getLoaderName ("grub"));
 	    }
 	}
 	return ret;

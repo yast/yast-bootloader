@@ -32,7 +32,7 @@
       * Update the text of countdown widget
       * @param bootloader string printable name of used bootloader
       */
-    global define void updateTimeoutPopup (string bootloader) ``{
+    global define void updateTimeoutPopupForFloppy (string bootloader) ``{
 	if (Mode::normal)
 	    return;
 
