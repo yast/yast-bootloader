@@ -16,6 +16,8 @@
  */
 
 {
+// testedfiles: BootGRUB.ycp bootloader/grub/misc.ycp
+
     include "testsuite.ycp";
 
     map READ_I = $[
@@ -38,6 +40,7 @@
             "floppy" : $[
                 "manual" : [],
             ],
+	    "disk" : [],
         ],
         "sysconfig" : $[
             "console" : $[
@@ -65,6 +68,7 @@
                     ],
                 ],
             ],
+	    "partitions" : [],
         ]
     ];
     map WRITE_I = $[];
@@ -78,10 +82,20 @@
     import "BootGRUB";
 
     map EXEC = $["target" : $["bash_output": $["stdout" : "(hd0)"]]];
-    map READ = $["target" : $["string" : "(hd0) /dev/hda
+    map READ = $[
+	"target" : $[
+	    "string" : "(hd0) /dev/hda
 (hd1)   /dev/ida/c0d0
 (fd0)   /dev/fd0
-"]];
+"
+	],
+	"proc" : $[
+	    "partitions" : [],
+	],
+	"probe" : $[
+	    "disk" : [],
+	],
+    ];
 
     BootGRUB::device_map = (list<list<string> >)TEST (``(BootGRUB::readDeviceMap ()), [READ, $[], $[]], 0);
 

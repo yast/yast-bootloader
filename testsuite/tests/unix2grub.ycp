@@ -16,6 +16,7 @@
  */
 
 {
+// testedfiles: BootGRUB.ycp bootloader/grub/misc.ycp
     include "testsuite.ycp";
 
     map READ_I = $[
