@@ -105,6 +105,7 @@
 		"summary" : ``(BootPPC::STMFSummary ()),
 		// label / table entry
 		"label" : _("Stream File for *STMF Booting")
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `textentry,
@@ -152,6 +153,7 @@
 		"summary" : ``(BootPPC::setDefaultOFSummary ()),
 		// label / table entry
 		"label" : _("Set Default OpenFirmware boot-device"),
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `checkbox,
@@ -204,6 +206,7 @@
 		"summary" : ``(BootPPC::PRePPartsSummary ()),
 		// label / table entry
 		"label" : _("41 PReP Boot Partition"),
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `func,
@@ -270,7 +273,7 @@
 		"label" : _("Boot Loader Location"),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 		"summary" : ``(BootPPC::iSeriesTargetSummary ()),
 	    ],
 	    "popup" : $[
@@ -430,7 +433,7 @@
 		"label" : _("Boot Loader Location"),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 		"summary" : ``(BootPPC::PRePTargetSummary ()),
 	    ],
 	    "popup" : $[

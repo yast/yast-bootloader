@@ -94,9 +94,9 @@
 		// table cell / label
 		"label" : _("Boot Loader Location"),
 		"summary" : ``(BootELILO::targetSummary ()),
-		"deletable" : false,
+		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `func,

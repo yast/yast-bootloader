@@ -82,7 +82,7 @@
 		"summary" : ``(BootCommon::targetSummary ()),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `func,
@@ -253,7 +253,7 @@
 		"summary" : ``(BootCommon::loaderTypeSummary ()),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 
 
 	    ],
@@ -304,7 +304,7 @@
 		"summary" : ``(BootCommon::backupMbrSummary ()),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"init" : ``(BootCommon::backupMbrInit ()),
@@ -368,7 +368,7 @@ and the sector to which the boot loader is installed."),
 		"summary" : ``(BootCommon::activateSummary ()),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"init" : ``(BootCommon::activateInit ()),
@@ -433,7 +433,7 @@ and the sector to which the boot loader is installed."),
 		"summary" : ``(BootCommon::replMbrSummary ()),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"init" : ``(BootCommon::replMbrInit ()),
@@ -495,7 +495,7 @@ and the sector to which the boot loader is installed."),
 		"summary" : ``(BootCommon::saveMethodSummary ()),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"init" : ``(BootCommon::saveMethodInit ()),
@@ -558,7 +558,7 @@ and the sector to which the boot loader is installed."),
 		"handle" : `sections,
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	];
     }
@@ -586,7 +586,7 @@ and the sector to which the boot loader is installed."),
 		"handle" : `sections,
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	];
     }
@@ -623,7 +623,7 @@ and the sector to which the boot loader is installed."),
 		"label" : _("Section Name"),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "option" : $[
 		"widget" : `textentry,
@@ -692,7 +692,7 @@ and the sector to which the boot loader is installed."),
 		"summary" : ``(BootCommon::sectionTypeSummary ()),
 		"optional" : false,
 		"ordering" : false,
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `custom,
@@ -763,7 +763,7 @@ and the sector to which the boot loader is installed."),
 	return $[
 	    "table" : $[
 		"summary" : ``(BootCommon::timeoutSummary ()),
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"init" : ``(BootCommon::timeoutInit ()),
@@ -822,7 +822,7 @@ and the sector to which the boot loader is installed."),
 	return $[
 	    "table" : $[
 		"summary" : ``(BootCommon::getPasswdSummary ()),
-		"key_only_once" : true,
+		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `custom,
@@ -962,6 +962,26 @@ and the sector to which the boot loader is installed."),
 	    return _("No password will be needed");
     }
 
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getMessageWidget () ``{
+	return $[
+	    "table" : $[
+		"delete" : ``(BootCommon::deleteMessage ()),
+		"unique_key" : true,
+	    ],
+	];
+    }
+
+    /**
+      * Delete function of widget
+      */
+    global define void deleteMessage () ``{
+	BootCommon::current_section = filter (`e, BootCommon::current_section,
+	    ``(e["key"]:"" != "__intern__"));
+    }
 
 
 
