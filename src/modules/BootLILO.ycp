@@ -362,6 +362,7 @@
 				"auto" : true,
 				"changed" : false,
 				"devs" : [dev],
+				"type" : label,
 			    ]],
 			];
 			out = add (out, m);
@@ -481,15 +482,16 @@
 	}
 	list old_sect_list = BootCommon::sections;
 	createSections ();
-	map old_sect = listmap (`s, old_sect_list, ``{
-	    return [lookup_value (s, "label", ""), s];
-	});
 	map new_sect = listmap (`s, BootCommon::sections, ``{
-	    return [lookup_value (s, "label", ""), s];
+	    string label = lookup_value (s, "label", "");
+	    map intern = lookup_value (s, "__intern__", $[]);
+	    string type = intern["type"]:label;
+	    return [type, s];
 	});
 	old_sect_list = maplist (`s, old_sect_list, ``{
 	    string label = lookup_value (s, "label", "");
 	    map intern = lookup_value (s, "__intern__", $[]);
+	    string type = intern["type"]:label;
 	    if (! intern["auto"]:false)
 	    {
 		y2milestone ("Leaving section %1", label);
@@ -498,14 +500,14 @@
 	    else if (! intern["changed"]:false)
 	    {
 		y2milestone ("Recreating section %1", label);
-		return new_sect[label]:[];
+		return new_sect[type]:[];
 	    }
 	    else
 	    {
 		y2milestone ("Warning on section %1", label);
 		boolean cont = true;
-                if (label != "linux" && label != "failsafe"
-                    && label != "memtest86")
+                if (type != "linux" && type != "failsafe"
+                    && type != "memtest86")
 		{
 		    foreach (`n, intern["devs"]:[], ``{
 		        if (! contains (parts, n))
@@ -514,9 +516,10 @@
 		        }
 		    });
 		}
-                list new_this_section = new_sect[label]:"";
+                list new_this_section = new_sect[type]:[];
                 map new_this_intern = lookup_value (
                     new_this_section, "__intern__", $[]);
+		list new_devs = toset(new_this_intern["devs"]:[]);
 		list old_devs = toset(intern["devs"]:[]);
                 if (size (new_devs) != size (old_devs))
                     cont = false;
@@ -528,10 +531,19 @@
                     });
                 }
 		if (! cont)
+		{
+		    intern["auto"] = false;
 		    displayDiskChangePopup (label);
+		}
+		s = maplist( `i, s, ``{
+		    if (i["key"]:"" == "__intern__")
+			i["value"] = intern;
+		     return i;
+		});
 		return s;
 	    }
 	});
+
 	y2milestone ("Checking for sections needing some of %1", del_parts);
 	list(string) to_remove = [];
 	foreach (`s, BootCommon::sections, ``{
