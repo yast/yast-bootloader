@@ -16,9 +16,9 @@ Summary:        -
 
 @PREP@
 
-@BUILD-AGENT@
+@BUILD-PROGRAM@
 
-@INSTALL-AGENT@
+@INSTALL-PROGRAM@
 
 @CLEAN@
 
