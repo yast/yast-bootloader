@@ -542,7 +542,11 @@
             {
                 Read ();
 		if (Mode::update)
+		{
 		    blUpdate ();
+		    BootCommon::changed = true;
+		    BootCommon::location_changed = true;
+		}
             }
         }
     }

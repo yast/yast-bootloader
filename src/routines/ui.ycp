@@ -273,6 +273,7 @@
 		item = "__sections";
 	    if (item == "__sections")
 	    {
+		BootCommon::sections_changed = false;
 		return `sections;
 	    }
            if (selected_opt == "__sep1" || selected_opt == "__sep2"
@@ -305,6 +306,7 @@
 		eval (toEval);
 	    BootCommon::tmp_store["active_section"] = remove (
 		BootCommon::tmp_store["active_section"]:$[], item);
+	    BootCommon::one_section_changed = true;
 	    ret = `ok;
         }
 	// ORDERING BUTTONS
@@ -320,6 +322,8 @@
 	    });
 	    order = BootCommon::swapItems (order, index, index - 1);
 	    BootCommon::tmp_store["active_section", "__order__"] = order;
+		// FIXME global sect if will be needed
+	    BootCommon::one_section_changed = true;
 	    ret = `ok;
 	}
 	else if (op == `down)
@@ -334,6 +338,8 @@
             });
             order = BootCommon::swapItems (order, index, index + 1);
 	    BootCommon::tmp_store["active_section", "__order__"] = order;
+		// FIXME global sect if will be needed
+	    BootCommon::one_section_changed = true;
 	    ret = `ok;
 	}
 
@@ -384,6 +390,8 @@
 	    BootCommon::changed_settings[as[ls]:""]
 		= BootCommon::changed_settings[old_name]:$[];
 	    y2milestone ("Saving section");
+	    if (BootCommon::one_section_changed)
+		BootCommon::sections_changed = true;
 	}
 	if (`back == op)
 	{
@@ -402,14 +410,13 @@
       */
     global define any globalSectionHandle (any op, list tosave) ``{
 	any ret = singleSectionHandle (op, tosave);
-	if (op == `sections)
+	if (ret == `sections) // was op, maybe wrong fix
 	{
             BootCommon::tmp_store["changed_all_sects"]
 		= eval (BootCommon::changed_settings);
 	}
 	if (op == `delete)
 	    BootCommon::changed = true;
-
 	return ret;
     }
 
