@@ -19,6 +19,7 @@
 {
     import "Pkg";
     include "testsuite.ycp";
+    import "Mode";
 
     map READ_I = $[
         "target" : $[
