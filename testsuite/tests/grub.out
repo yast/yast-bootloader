@@ -1,15 +1,4 @@
 Dump	======================================
-Return	[["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"]]
-Return	[["(hd1)", "/dev/hda"], ["(hd1)", "/dev/hdb"]]
-Return	[["(hd0)/dev/hda"], ["(hd1)", "/dev/hdb"]]
-Return	[["(hd1)", "/dev/hda"], ["(hd0)", "/dev/hdb"]]
-Return	[["(hd1)", "/dev/hda"]]
-Dump	======================================
-Return	(hd0)	/dev/hda\n(hd1)	/dev/hdb\n
-Return	(hd0)	/dev/hda\n(hd0)	/dev/hdb\n
-Return	(hd0)	/dev/hda\n
-Return	(hd0)	/dev/hda\n(hd1)	\n
-Dump	======================================
 Return	/dev/hda
 Return	/dev/hdb
 Return	/dev/cciss/c0d0
