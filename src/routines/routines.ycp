@@ -89,26 +89,27 @@
       * @param value any value to be set, nil for removing key
       * @return list modified section
       */
-    define list<map> modifySection (list<map> section, string key, any value) ``{
+    define list<map> modifySection (list<map> section, string key, any value)``{
 	boolean found = false;
-        section = filter (map cc,
-            (list<map>)maplist (map c, section, ``{
-                if (c["key"]:"" == key)
-                {
-		    found = true;
-                    if (value == nil)
-                        return nil;
-                    else
-                    {
-                        c["value"] = value;
-			c["changed"] = true;
-			value = nil;
-                        return c;
-                    }
-                }
-                return c;
-            }), ``(cc != nil && cc["value"]:nil != nil)
-        );
+	section = (list<map>)maplist (map c, section, ``{
+	    if (c["key"]:"" == key)
+	    {
+		found = true;
+		if (value == nil)
+		    return $[];
+		else
+		{
+		    c["value"] = value;
+		    c["changed"] = true;
+		    value = nil;
+		    return c;
+		}
+	    }
+	    return c;
+	});
+        section = (list<map>)filter (map cc, section, ``(
+	    cc != nil && cc["value"]:nil != nil
+	));
 	if (! found && value != nil)
 	{
 	    section = add (section, $[ "key" : key, "value" : value,

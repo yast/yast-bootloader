@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Feb 17 08:50:18 CET 2004 - jsrain@suse.de
+
+- enabled and fixed command line interface
+- properly updating proposed sections of LILO after disk
+  repartitioning
+
+-------------------------------------------------------------------
 Mon Feb 16 15:12:38 CET 2004 - jsrain@suse.de
 
 - fixed behavior during autoinstalation preparation

@@ -228,8 +228,7 @@
       *   relevant disk locations have changed
       */
     global define void fixSections (boolean disks_changed) ``{
-//	BootCommon::liloFixSections (BootLILO::createSections);
-	return;
+	BootCommon::liloFixSections (BootLILO::createSections);
     }
 
     /**
