@@ -69,6 +69,7 @@
 	    "specific" : blExport (),
 	    "write_settings" : BootCommon::write_settings,
 	];
+	y2milestone ("Exporting settings: %1", out);
 	return out;
     }
     /**
@@ -76,6 +77,7 @@
       * @param settings map of bootloader settings
       */
     global define void Import (map settings) ``{
+	y2milestone ("Importing settings: %1", settings);
 	Reset ();
 	BootCommon::was_read = true;
 	BootCommon::was_proposed = true;
@@ -94,6 +96,7 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
+	y2milestone ("Reading configuration");
 //	Initrd::Read ();
 	BootCommon::location
 	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
@@ -119,6 +122,7 @@
     global define void Reset () ``{
 	if (Mode::autoinst)
 	    return;
+	y2milestone ("Reseting configuration");
 	BootCommon::was_proposed = false;
 	BootCommon::was_read = false;
 	BootCommon::location = "";
@@ -135,6 +139,7 @@
       * Propose bootloader settings
       */
     global define void Propose () ``{
+	y2milestone ("Proposing configuration");
 	blPropose ();
 	BootCommon::was_proposed = true;
         BootCommon::changed = true;
@@ -519,6 +524,8 @@
     global define void ReadOrProposeIfNeeded () ``{
         if (! (BootCommon::was_read || BootCommon::was_proposed))
         {
+	    y2milestone ("Mode::initial: %1, update: %2",
+		Mode::initial, Mode::update);
             if (Mode::initial && ! Mode::update)
             {
                 Propose ();

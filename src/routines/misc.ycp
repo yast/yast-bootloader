@@ -920,7 +920,7 @@
         string comment = "";
 
         BootCommon::globals = sectOptions2Map(bl, "", "");
-	y2debug ("Parsed globals: %1", BootCommon::globals);
+	y2milestone ("Parsed globals: %1", BootCommon::globals);
 
         // iterate for all sections and do the same as before
 
@@ -935,7 +935,7 @@
             opts_tmp = sectOptions2Map(bl, "sections", e);
             BootCommon::sections = add(BootCommon::sections, opts_tmp);
         });
-	y2debug ("Parsed sections: %1", sections);
+	y2milestone ("Parsed sections: %1", sections);
 	return true;
     }
 
