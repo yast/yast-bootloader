@@ -526,6 +526,40 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
     }
 
     /**
+     * Add section for previous kernel and initrd (/boot/vmlinuz.previous,
+     * /boot/initrd.previous)
+     */
+    global define void AddPreviousSection () {
+	ReadOrProposeIfNeeded ();
+	string title_key = BootCommon::getSectionTitle ();
+	// check if there is already present "Previous" section
+	BootCommon::sections = filter (list<map> s, BootCommon::sections, {
+	    string title = (string)lookup_value (s, title_key, "");
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
+	    string type = intern["type"]:"";
+	    boolean preserve = type != "previous" && title != "previous"
+		&& BootCommon::translateSectionTitle (title) != "previous";
+	    return preserve;
+	});
+	// add the new section now
+	list<map> found_sect = nil;
+	string sect_name = getProposedDefaultSection ();
+	if (sect_name == "" || sect_name == nil)
+	    return;
+
+	foreach (list<map> s, BootCommon::sections, {
+	    if (lookup_value (s, title_key, "") == sect_name)
+		found_sect = s;
+	});
+	if (found_sect == nil)
+	    return;
+
+	list<map> previous_section = BootCommon::Linux2Previous (found_sect);
+	BootCommon::sections = add (BootCommon::sections, previous_section);
+	BootCommon::changed = true;
+    }
+
+    /**
       * get kernel parameters from bootloader configuration file
       * @param section string section title, use DEFAULT for default section
       * @param key string
