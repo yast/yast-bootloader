@@ -626,6 +626,11 @@
 	      + "3"
 	    : sformat ("%1 %2 %3", vgastring, Kernel::cmdLine,
 		"showopts");
+	if (title != "failsafe")
+	{
+	    append = BootCommon::setKernelParamToLine (append, "splash", "silent");
+	    append = BootCommon::setKernelParamToLine (append, "desktop", "true");
+	}
 	return [
 	    $[ "key" : "title", "value" : translateSectionTitle (title)],
 	    $[ "key" : "kernel", "value" : sformat ("%1 %2 %3",

@@ -336,6 +336,11 @@
 		: "nosmp noapic maxcpus=0 ")
 	      + "3"
 	    : Kernel::cmdLine;
+	if (title != "failsafe")
+	{
+	    append = BootCommon::setKernelParamToLine (append, "splash", "silent");
+	    append = BootCommon::setKernelParamToLine (append, "desktop", "true");
+	}
 	string root = BootCommon::dev2majminIfNonStandard (
             BootCommon::RootPartitionDevice);
 	if (regexpmatch (root, "^[0-9a-f]{4}$"))
