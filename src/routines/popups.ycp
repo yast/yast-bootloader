@@ -345,7 +345,7 @@ no options to set here."));
       * @param device string device to restore to
       */
     global define void restoreMBRPopup (string device) ``{
-	map stat = SCR::Read (.target.stat, "/boot/backup/mbr");
+	map stat = SCR::Read (.target.stat, "/boot/backup_mbr");
 	integer ctime = stat["ctime"]:0;
 	string command = sformat (
 	    "date --date='1970-01-01 00:00:00 %1 seconds'",

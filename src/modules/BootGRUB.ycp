@@ -588,13 +588,13 @@
 	{
             return [
                 $[ "key" : "chainloader",
-		   "value" : file2grub ("/boot/backup/mbr")],
+		   "value" : file2grub ("/boot/backup_mbr")],
                 $[ "key" : "title", "value" : translateSectionTitle (title)],
                 $[ "key" : "__intern__", "value" : $[
                     "auto" : true,
                     "changed" : false,
                     "devs" : [BootCommon::BootPartitionDevice],
-                    "kernel" : "/boot/backup/mbr",
+                    "kernel" : "/boot/backup_mbr",
 		    "original_mbr" : true,
 		    "type" : "original_mbr",
                 ]],
@@ -830,7 +830,7 @@
 	out = add (out, createLinuxSection ("memtest86"));
 	if (insert_saved_mbr
 	    && ( BootCommon::backup_mbr
-		|| 0 < SCR::Read (.target.size, "/boot/backup/mbr")))
+		|| 0 < SCR::Read (.target.size, "/boot/backup_mbr")))
 	{
 	    out = add (out, createLinuxSection ("original MBR"));
 	}
