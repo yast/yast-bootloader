@@ -24,10 +24,6 @@
 # Author: Andreas Schwab <schwab@suse.de>
 # (c) 2001 SuSE GmbH
 
-function log {
-  echo "$@" >>/var/log/doelilo.log 2>/dev/null
-}
-
 get_device () {
   x1=$(cat /proc/mounts 2>/dev/null | grep -F " /mnt$1 ")
   x2=$(echo "$x1" | wc -l)
@@ -52,16 +48,9 @@ get_device_number () {
   printf "%x\n" $(($major*256 + $minor))
 }
 
-: >/var/log/doelilo.log
-
-log "arguments: $*"
-printenv >> /var/log/doelilo.log
-
 root_dir=$1
 test -n "$root_dir" || root_dir=/
 shift
-
-log "root_dir=$root_dir"
 
 if test -z "$rootdev"; then
     rootdev=$(get_device "$root_dir")
@@ -75,27 +64,22 @@ else
   numeric_rootdev=$rootdev
 fi
 #echo "using \"$rootdev\" as root device (mounted on \"$root_dir\")"
-log "using \"$rootdev\" ($numeric_rootdev) as root device (mounted on \"$root_dir\")"
+echo "using \"$rootdev\" ($numeric_rootdev) as root device (mounted on \"$root_dir\")"
 
 if test -z "$(get_device /boot)"; then
-  log "/boot is not a separate partition"
+  echo "/boot is not a separate partition"
   exit 12
 fi
-
 
 PATH=/usr/lib/YaST2/bin:$root_dir/usr/lib/YaST2/bin:$root_dir/sbin:$PATH
 
 # create a fallback kernel
-cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.suse || exit 31
+if [ ! -f "$root_dir/boot/vmlinuz.suse" ] ; then
+  cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.suse || exit 31
+fi
 
 # make an initial ram disk
-$root_dir/sbin/mk_initrd $root_dir >>/var/log/doelilo.log 2>/dev/null
-ret_code=$?
-# ret_code 0 means success, 9 means: a module is missing, but we ignore it
-if test $ret_code -ne 0 -a $ret_code -ne 9; then
-  log "mk_initrd failed with $ret_code"
-  exit $ret_code
-fi
+mk_initrd $root_dir || exit
 
 {
   echo "# ELILO config file
@@ -118,10 +102,31 @@ read-only
       fi
       if test "$kernel" = .suse; then
 	echo "	append=\"ide=nodma${append:+ $append}\""
-      elif test -n "$append" then
+      elif test -n "$append"; then
 	echo "	append=\"$append\""
       fi
       echo
     fi
   done
+  echo -n "# Created by YaST2 on " 
+  date
 } > $root_dir/boot/elilo.conf
+
+# Now set the appropriate EFI environment variables 
+
+# boot device
+bootdev=$(get_device /boot)
+
+# disk /boot is on
+bootdsk=`echo $bootdev|tr -d 0-9`
+
+# partition of /boot
+bootprt=`echo $bootdev|tr -d '[:alpha:]' | tr -d '[=/=]'`
+
+# check for old SuSE Linux entries.
+BOOTENTRY="`/usr/sbin/efibootmgr |grep "SuSE Linux" |cut -f1 -d\* |cut -c5-`"
+if [ "$BOOTENTRY" != "" ]; then
+  /usr/sbin/efibootmgr -b $BOOTENTRY -B -q
+fi
+
+/usr/sbin/efibootmgr -c -L "SuSE Linux" -d $bootdsk  -l \\efi\\SuSE\\elilo.efi -p $bootprt -q
