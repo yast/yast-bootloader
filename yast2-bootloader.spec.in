@@ -5,8 +5,8 @@
 @HEADER@
 Requires:	yast2 yast2-core
 
-Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo yast2-agent-prom
-Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo yast2-agent-prom
+Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-liloconf yast2-agent-prom
+Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-liloconf yast2-agent-prom
 
 Summary:	YaST2 Modules for bootloader installation and configuration
 

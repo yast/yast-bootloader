@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul  8 16:01:04 CEST 2002 - mvidner@suse.cz
+
+- fixed Provides/Obsoletes (yast2-agent-liloconf)
+
+-------------------------------------------------------------------
 Thu Jul 04 20:50:02 CEST 2002 - arvin@suse.de
 
 - moved non binary files to /usr/share/YaST2
