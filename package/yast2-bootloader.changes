@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr  8 09:12:41 CEST 2003 - jsrain@suse.de
+
+- added possibility to save all settings and reinstall bootloader
+  although nothing was changed (#24346)
+
+-------------------------------------------------------------------
 Fri Apr  4 16:27:36 CEST 2003 - jsrain@suse.de
 
 - code cleanup and optimalization

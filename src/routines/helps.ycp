@@ -230,5 +230,14 @@ protect the computer from being booted by an unauthorized person.
 ");
 
     }
+    /**
+      * Get help
+      * @return string help text
+      */
+    global define string getSaveMethodHelp () ``{
+	// help text 1/1, displayed as label, no HTML tags!!!
+	return _("Forcing saving everything forces also
+bootloader reinstallation");
+    }
 
 }

@@ -209,11 +209,14 @@
       * Replace MBR with generic code after bootloader installation?
       */
     global boolean repl_mbr = false;
-
     /**
       * Activate bootloader partition during installation?
       */
     global boolean activate = true;
+    /**
+      * Save everything, not only changed settings
+      */
+    global boolean save_all = false;
 
 // generic versions of bootloader-specific functions
 
