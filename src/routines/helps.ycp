@@ -160,7 +160,7 @@ detecting whether the option was changed.</P>
 	// help text for the custom boot manager installation, 1 of 7
 	// %1 = name of boot loader (e.g. "LILO")
 	// this should be per architecture
-	string helptext = sformat (_("<p>
+/*	string helptext = sformat (_("<p>
 The boot manager (%1) can be installed in the following ways:
 </p>
 "), BootCommon::getLoaderType (false));
@@ -216,7 +216,8 @@ Enter the device name of the partition (e.g., <tt>/dev/hda3</tt>,
 <tt>/dev/sdb</tt>) in the input field.
 </p>
 ");
-	return helptext;
+	return helptext;*/
+	return "";
     }
 
     /**

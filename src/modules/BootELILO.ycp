@@ -540,7 +540,7 @@ fi", efi_label);
 
 		}
 		return m;
-	    vmlinuz});
+	    });
 	    return s;
 	});
 // TODO maybe change the paths? Probably not needed, to be decised

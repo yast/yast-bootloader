@@ -72,7 +72,7 @@
     global define string FindMbrDisk() ``{
         // can hwinfo find the disk ?
 
-        string probed_mbr_disk = SCR::Read(.probe.boot_disk);
+        string probed_mbr_disk = (string)SCR::Read(.probe.boot_disk);
         if (probed_mbr_disk != "")
         {
             y2milestone ("MBR probed as %1", probed_mbr_disk);
@@ -83,12 +83,11 @@
         string bootDisk = mp["/boot",2]:(mp["/",2]:"");
 
         // look for disk with bios_id 0x80
-        list disks = SCR::Read(.probe.disk);
+        list disks = (list)SCR::Read(.probe.disk);
 	// fallback
         string mbr_disk = disks[0,"dev_name"]:bootDisk;
 
-        foreach (`disk, disks,
-        ``{
+        foreach (map disk, disks, ``{
             if (disk["bios_id"]:"" == "0x80")
             {
                 y2milestone ("disk with bios_id 0x80: %1", disk);
@@ -98,6 +97,19 @@
 
         y2milestone("MBR Disk: %1", mbr_disk);
         return mbr_disk;
+    }
+
+    /**
+     * ConfigureLocation()
+     * Where to install the bootloader.
+     * It just gives "mbr" or "floppy"
+     * @return string location proposed to bootloader
+     */
+    global define string ConfigureLocation() ``{
+        string loc = "mbr";                       // default to mbr
+        string device   = BootCommon::mbrDisk;
+        y2milestone ("ConfigureLocation (%1 on %2)", loc, device);
+        return loc;
     }
 
     /**
@@ -195,6 +207,24 @@
     }
 
     /**
+      * Answer whether LBA is supported
+      * @return boolean true if supported
+      */
+    global define boolean LbaSupport() ``{
+        if (Arch::i386)
+        {
+            list internal_bios = (list<map>)SCR::Read (.probe.bios);
+            boolean lba_support = internal_bios[0, "lba_support"]:false;
+            if (getLoaderType (false) == "lilo")
+                return (boolean)lookup_value (globals, "lba32", lba_support);
+            else
+                return lba_support;
+        }
+        else
+            return true;
+    }
+
+    /**
      *  IsBootAccessible()
      *  @return boolean true if accessible
      */
@@ -224,8 +254,7 @@
                 list partitions = ddata["partitions"]:[];
                 if (partitions != [])
                 {
-                    foreach (`pentry, partitions,
-                    ``{
+                    foreach (map pentry, partitions, ``{
                         if (pentry["mount"]:"" == boot_mount_point)
                         {
                             boot_partition_accessible =
@@ -257,51 +286,6 @@
 	string bpd = data[0]:"";
 	// ???? FIXME ???? how about LVM/MD ????
 	return bpd == BootPartitionDevice;
-    }
-
-    /**
-     * ConfigureLocation()
-     * Where to install the bootloader.
-     * It just gives "mbr" or "floppy"
-     * @return string location proposed to bootloader
-     */
-    global define string ConfigureLocation() ``{
-        string loc = "mbr";                       // default to mbr
-        string device   = BootCommon::mbrDisk;
-
-// this doesn't solve anything, because stage2 must be loaded some way
-// nor bootsector on floppy doesn't have any possibility to load it
-// see bugzilla 29524
-/*        if (!IsBootAccessible()                 // above cyl 1024
-            && StorageDevices::FloppyPresent)
-        {
-            // if we're on an old system without lba support
-            // (the last needs a too big initrd, see bugzilla #7864)
-
-            loc = "floppy";                // floppy and fd0
-            device   = StorageDevices::FloppyDevice;
-        }*/
-
-        y2milestone ("ConfigureLocation (%1 on %2)", loc, device);
-        return loc;
-    }
-
-    /**
-      * Answer whether LBA is supported
-      * @return boolean true if supported
-      */
-    global define boolean LbaSupport() ``{
-        if (Arch::i386)
-        {
-            list internal_bios = SCR::Read (.probe.bios);
-            boolean lba_support = internal_bios[0, "lba_support"]:false;
-            if (getLoaderType (false) == "lilo")
-                return lookup_value (globals, "lba32", lba_support);
-            else
-                return lba_support;
-        }
-        else
-            return true;
     }
 
     /**
@@ -353,11 +337,11 @@
       */
     global define void finishReading () ``{
         BootCommon::loader_device
-            = lookup_value (BootCommon::globals, "boot", "");
-        if (lookup_value (BootCommon::globals, "default", "") == "")
+            = (string)lookup_value (BootCommon::globals, "boot", "");
+        if ((string)lookup_value (BootCommon::globals, "default", "") == "")
         {
             BootCommon::addValueToBootloaderSection (`globals, "default",
-                lookup_value (BootCommon::sections[0]:[],
+                (string)lookup_value (BootCommon::sections[0]:[],
                  "label", ""));
         }
     }
@@ -371,11 +355,11 @@
       */
     global define boolean installBootLoader (string command, string logfile) ``{
 	y2milestone ("Running command %1", command);
-	map exit = SCR::Execute (.target.bash_output, command);
+	map exit = (map)SCR::Execute (.target.bash_output, command);
 	boolean ret = 0 == exit["exit"]:1;
 	if (! ret)
 	{
-	    string log = SCR::Read (.target.string, logfile);
+	    string log = (string)SCR::Read (.target.string, logfile);
 	    log = log + exit["stdout"]:"" + exit["stderr"]:"";
 	    if (exit["exit"]:1 == 139)
 	    {
@@ -397,15 +381,14 @@
       * Fix global section of lilo-like bootloader
       */
     global define void liloFixGlobals () ``{
-	string default = lookup_value (BootCommon::globals, "default", "");
+	string default = (string)lookup_value (
+	    BootCommon::globals, "default", "");
 	string first = "";
 	if (default != "")
 	{
 	    boolean exists = false;
-	    foreach (`s, BootCommon::sections, ``{
-		string label = lookup_value (s, "label", "");
-
-
+	    foreach (list s, BootCommon::sections, ``{
+		string label = (string)lookup_value (s, "label", "");
 		if (label == default)
 		    exists = true;
 		if (first == "")
@@ -422,7 +405,7 @@
       */
     global define void liloFixSections (term create_sections) ``{
 	list parts = BootCommon::getPartitionList(`parts_old);
-	if (BootCommon::partitioning_last_change
+	if (partitioning_last_change
 		!= Storage::GetTargetChangeTime()
 	    && BootCommon::files_edited)
 	{
@@ -434,15 +417,15 @@
 //	createSections ();
 // this is the same
 	eval (create_sections);
-	map new_sect = listmap (`s, BootCommon::sections, ``{
-	    string label = lookup_value (s, "label", "");
-	    map intern = lookup_value (s, "__intern__", $[]);
+	map new_sect = listmap (list s, BootCommon::sections, ``{
+	    string label = (string)lookup_value (s, "label", "");
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:label;
 	    return [type, s];
 	});
-	old_sect_list = maplist (`s, old_sect_list, ``{
-	    string label = lookup_value (s, "label", "");
-	    map intern = lookup_value (s, "__intern__", $[]);
+	old_sect_list = maplist (list s, old_sect_list, ``{
+	    string label = (string)lookup_value (s, "label", "");
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:label;
 	    if (! intern["auto"]:false)
 	    {
@@ -470,7 +453,7 @@
 		    });
 		}
                 list new_this_section = new_sect[type]:[];
-                map new_this_intern = lookup_value (
+                map new_this_intern = (map)lookup_value (
                     new_this_section, "__intern__", $[]);
 		list new_devs = toset(new_this_intern["devs"]:[]);
 		list old_devs = toset(intern["devs"]:[]);
@@ -488,7 +471,7 @@
 		    intern["auto"] = false;
 		    displayDiskChangePopup (label);
 		}
-		s = maplist( `i, s, ``{
+		s = maplist(map i, s, ``{
 		    if (i["key"]:"" == "__intern__")
 			i["value"] = intern;
 		     return i;
@@ -498,11 +481,11 @@
 	});
 
 	y2milestone ("Checking for sections needing some of %1", del_parts);
-	list(string) to_remove = [];
-	foreach (`s, BootCommon::sections, ``{
-	    map intern = lookup_value (s, "__intern__", $[]);
-	    list(string) devs = intern["devs"]:[];
-	    string label = lookup_value (s, "label", "");
+	list<string> to_remove = [];
+	foreach (list s, BootCommon::sections, ``{
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
+	    list<string> devs = intern["devs"]:[];
+	    string label = (string)lookup_value (s, "label", "");
 	    y2milestone ("Section %1 needs %2", label, devs);
 	    boolean to_add = false;
 	    foreach (string d, devs, ``{
@@ -513,20 +496,20 @@
 	    });
 	    if (to_add)
 	    {
-		map old_sect = listmap (`s, old_sect_list, ``{
-		    return [label, s];
+		map old_sect = listmap (list os, old_sect_list, ``{
+		    return [label, os];
 		});
 
 		if (label != "" && ! haskey(old_sect, label))
 		{
 		    y2milestone ("Adding %1", s);
-		    to_remove = add (to_remove, d);
+		    to_remove = add (to_remove, s);
 		    old_sect_list = add (old_sect_list, s);
 		}
 	    }
 	});
 	del_parts = BootCommon::difflist (del_parts, to_remove);
-	old_sect_list = filter (`s, old_sect_list, ``(s != []));
+	old_sect_list = filter (list s, old_sect_list, ``(s != []));
 	BootCommon::sections = old_sect_list;
     }
 
@@ -534,18 +517,21 @@
       * Update sections of bootloader menu
       * modifies internal sreuctures
       * @param replace boolean true if old sectinos shall be replaced
+      * @param term to evaluate to create a linux section
       */
-    global define void liloUpdateSections (boolean replace) ``{
+    global define void liloUpdateSections (boolean replace,
+	term create_linux_section)
+    ``{
 	list out = BootCommon::sections;
 
 	foreach (`t, ["linux", "failsafe", "memtest86"], ``{
-	    list m = createLinuxSection (t);
+	    list m = (list)eval (add (create_linux_section, t));
 	    boolean changed = false;
-	    list out = maplist (`s, out, ``{
-		map interm = lookup_value (s, "__intern__", $[]);
+	    list out = maplist (list s, out, ``{
+		map intern = (map)lookup_value (s, "__intern__", $[]);
 		string sect_type = intern["type"]:"";
 		if (sect_type == "")
-		    sect_type = lookup_value (s, "label", "");
+		    sect_type = (string)lookup_value (s, "label", "");
 		if (sect_type == t)
 		{
 		    changed = true;
@@ -566,15 +552,15 @@
                     out = add (out, m);
         });
 
-        out = maplist (`s, out, ``{
+        out = maplist (list s, out, ``{
 	    string type = "";
-	    foreach (`p, s, ``{
+	    foreach (map p, s, ``{
 		if (p["key"]:"" == "label" && type == "")
 		    type = p["value"]:"";
 		if (p["key"]:"" == "__intern__")
 		    type = p["value", "type"]:type;
 	    });
-            s = maplist (`p, s, ``{
+            s = maplist (map p, s, ``{
 		if (p["key"]:"" == "image" || p["key"]:"" == "initrd")
 		{
 		    string option = p["value"]:"";
@@ -613,9 +599,9 @@
       */
     global define void liloRemoveUnexistentSections (string path_prefix,
 	string relative_path_prefix) ``{
-	BootCommon::sections = filter (`s, BootCommon::sections, ``{
-	    string label = lookup_value (s, "label", "");
-	    map intern = lookup_value (s, "__intern__", $[]);
+	BootCommon::sections = filter (list s, BootCommon::sections, ``{
+	    string label = (string)lookup_value (s, "label", "");
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
             if (label == "")
 	    {
@@ -625,7 +611,7 @@
 	    if (! contains (["linux", "failsafe", "memtest86"], type))
 		return true;
 
-	    string kernel = lookup_value (s, "image", "");
+	    string kernel = (string)lookup_value (s, "image", "");
 	    if (kernel == "")
 		return true;
 	    if (substring (kernel, 0, 1) == "/")
@@ -647,10 +633,10 @@
       *  parameters were changed
       */
     global define void liloUpdateInitrd () ``{
-        BootCommon::sections = maplist (`s, BootCommon::sections, ``{
-            string initrd = lookup_value (s, "initrd", "");
-	    string title = lookup_value (s, "label", "");
-	    map intern = lookup_value (s, "__intern__", $[]);
+        BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+            string initrd = (string)lookup_value (s, "initrd", "");
+	    string title = (string)lookup_value (s, "label", "");
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
 
             if ((type == "linux" || type == "failsafe")
@@ -672,14 +658,14 @@
       * Update append option if some parameters were changed
       */
     global define void liloUpdateAppend () ``{
-	BootCommon::sections = maplist (`s, BootCommon::sections, ``{
-	    map intern = lookup_value (s, "__intern__", $[]);
+	BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
             if (type == "linux" && lookup_value (s, "append", nil) != nil
 		&& Mode::initial)
 	    {
 		s = modifySection (s, "append", BootCommon::updateKernelParams (
-		    lookup_value (s, "append", "")));
+		    (string)lookup_value (s, "append", "")));
 	    }
             return s;
 	});

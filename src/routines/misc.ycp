@@ -460,6 +460,32 @@
     }
 
     /**
+      * replaces all occurences of 'from' to 'to' in src
+      * @param src input string
+      * @param from string to be replaced
+      * @param to string to be replaced by
+      * @return string modified string
+      */
+    global define string replaceAll(string src, string from, string to) ``{
+	if (from == "")
+	{
+	    return src;
+	}
+
+	list tokens = [];
+
+	integer p = find(src, from);
+	while(p >= 0)
+	{
+	    tokens = add(tokens, substring(src, 0, p));
+	    src = substring(src, p + size(from), size(src) - (p+size(from)));
+	    p = find(src, from);
+	}
+	tokens = add(tokens, src);
+	return mergestring(tokens, to);
+    }
+
+    /**
       * convert string values from agent representation to module representation
       * 1) if string is quoted, quotes are removed
       * 2) if string contains escaped quotes, they're unescaped
@@ -604,32 +630,6 @@
 	    return v;
 	}
 	return val;
-    }
-
-    /**
-      * replaces all occurences of 'from' to 'to' in src
-      * @param src input string
-      * @param from string to be replaced
-      * @param to string to be replaced by
-      * @return string modified string
-      */
-    global define string replaceAll(string src, string from, string to) ``{
-	if (from == "")
-	{
-	    return src;
-	}
-
-	list tokens = [];
-
-	integer p = find(src, from);
-	while(p >= 0)
-	{
-	    tokens = add(tokens, substring(src, 0, p));
-	    src = substring(src, p + size(from), size(src) - (p+size(from)));
-	    p = find(src, from);
-	}
-	tokens = add(tokens, src);
-	return mergestring(tokens, to);
     }
 
 

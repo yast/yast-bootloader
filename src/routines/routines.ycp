@@ -48,7 +48,7 @@
       * @return map of option, empty map if not found
       */
     global define map getValueMap (list section, string key) ``{
-        map ret = $[];
+	map ret = $[];
         foreach (map m, section, ``{
             if (m["key"]:"" == key)
                 ret = m;
@@ -147,7 +147,6 @@
 	    section[index, "changed"] = true;
 	    return section;
 	}
-
     }
 
     /**
@@ -201,7 +200,7 @@
 	}
 	if (BootCommon::getLoaderType (false) != "grub")
 	{
-	    filtered = BootCommon::replaceAll (filtered, " ", "_");
+	    filtered = mergestring (splitstring (filtered, " "), "_");
 	    if (size (filtered) > 15)
 		filtered = substring (filtered, 0, 15);
 	}
