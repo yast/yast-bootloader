@@ -1569,6 +1569,7 @@ global define symbol ExpertDialog() ``{
 	// multi line text widget label
 	`MultiLineEdit(`id(`editor), _("Bootloader &configuration:"), multi),
 	`VSpacing(1),
+	// pushbutton
 	Lilo::mode == `grub ? `PushButton (`id (`grub_conf), _("Edit /etc/&grub.conf")) : `VSpacing (0),
 	Lilo::mode == `grub ? `VSpacing (1) : `VSpacing (0)
     );

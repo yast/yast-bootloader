@@ -131,7 +131,7 @@ write_lilo_conf_linux () {
   if [ "$lilolabel" = failsafe ] ; then
     xx4="$append"
     [ "$xx4" ] && xx4=" $xx4"
-    append="ide=nodma apm=off acpi=off$xx4";
+    append="ide=nodma apm=off acpi=off vga=normal nosmp maxcpus=0 3$xx4";
   fi
   xx4=
   [ "$append" ] && xx4="  append = \"$append\""

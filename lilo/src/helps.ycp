@@ -79,12 +79,13 @@ options.
  */
 
 "target_dialog":
-// help
 Lilo::mode == `grub
+// help
 ?_("<p>
 Select a partition on which to install the boot loader.
 </P>
 ")
+// help
 :_("<p>
 Select a partition on which to install the boot loader or check
 <B>Uninstall boot loader</B> to uninstall the boot loader.

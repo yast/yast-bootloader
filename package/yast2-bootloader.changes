@@ -1,4 +1,18 @@
 -------------------------------------------------------------------
+Thu Aug  8 09:59:38 CEST 2002 - jsrain@suse.de
+
+- fixed device name translation for GRUB during installation for
+  other systems
+- 2.6.19
+
+-------------------------------------------------------------------
+Wed Aug  7 15:04:52 CEST 2002 - jsrain@suse.de
+
+- Fix adaptation for multiple 'other' partitions for booting 
+  for GRUB (#17458)
+- 2.6.18
+
+-------------------------------------------------------------------
 Wed Aug  7 12:39:25 CEST 2002 - kkaempf@suse.de
 
 - Allow for multiple 'other' partitions for booting (#17458)

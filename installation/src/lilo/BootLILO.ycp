@@ -399,7 +399,9 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 
 	if (size (Boot::others) > 0)
 	{
-	    docmd = docmd + " " + Boot::others[0]:"";
+	    foreach (`o, Boot::others, ``{
+		docmd = docmd + " -o \"" + o + "\"";
+	    });
 	}
 
 	// set lilo_opt_linear non-empty if checked
