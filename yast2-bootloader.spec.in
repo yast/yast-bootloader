@@ -46,9 +46,6 @@ Summary:	Bootloader installation and configuration
 @ydatadir@/mbr
 %endif
 
-
-@clientdir@/bootfloppy.ycp
-
 %doc @docdir@
 
 %dir @yncludedir@/bootloader

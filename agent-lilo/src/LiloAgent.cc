@@ -52,6 +52,7 @@ YCPValue LiloAgent::Read(const YCPPath &path, const YCPValue& arg) {
     }
     else 
     {
+	y2error ("File not initialized");
 	return YCPVoid();
     }
 }
@@ -75,9 +76,14 @@ YCPValue LiloAgent::Write(const YCPPath &path, const YCPValue& value, const YCPV
 YCPValue LiloAgent::Dir(const YCPPath& path) {
     y2debug ("Called LiloAgent::Dir");
     if(lilo)
+    {
 	return lilo->Dir(path);
+    }
     else
+    {
+	y2error ("File not initialized");
 	return YCPVoid();
+    }
 }
 
 /**
@@ -102,8 +108,6 @@ YCPValue LiloAgent::otherCommand(const YCPTerm& term) {
         if (term->value(1)->isString()) 
 	{
             YCPString s = term->value(1)->asString();
-            if (lilo)
-                delete lilo;
             lilo = new liloFile(s->value(), type);
 	    y2debug("Parsing %s", s->value().c_str());
 	    lilo->parse();

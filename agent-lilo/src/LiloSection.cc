@@ -425,6 +425,7 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
 
     if(path->length()==0)
     {
+	y2debug ("Writing section");
 	order.clear();
 	bool ret = true;
 	if (value.isNull () || ! value->isList ())
@@ -432,6 +433,7 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
         YCPList l = value->asList ();
 	for (int index = 0; index < l->size (); index ++)
         {
+	y2debug ("Writing option %d", index);
 	    if (l->value(index).isNull () || ! l->value(index)->isMap ())
 	    {
 		y2error ("Wrong arguments passed to section write");
@@ -468,8 +470,10 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
 // TODO: copy type checking here
 // TODO: check correct label when configuring lilo
 	    liloOption *op  = new liloOption (key, value, comment);
+	    y2debug ("Option %d created", (int) op);
 	    order.push_back (op);
         }
+	y2debug ("Returning %d", (int)ret);
         return YCPBoolean (ret);
     }
 

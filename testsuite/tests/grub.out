@@ -42,12 +42,12 @@ Return	root (hd0,0)\ninstall  /grub/stage1 (fd0) /grub/stage2 0x8000 (hd0,0)/gru
 Return	root (hd0,0)\ninstall  --stage2=/boot/grub/stage2 --force-lba=off /grub/stage1 d (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit\n
 Return	root \ninstall      \nquit\n
 Dump	======================================
-Return	$["A":"(hd1)(hd0)", "B":"aaa(hd0)aaa"]
-Return	$["A":"(hd1)(hd1)", "B":"aaa(hd1)aaa"]
-Return	$["A":"(hd1)(hd1)", "B":"aaa(hd1)aaa"]
-Return	$["A":"(hd0)(hd1)", "B":"aaa(hd1)aaa"]
-Return	$["A":"(hd1)(hd0)", "B":"aaa(hd2)aaa"]
-Return	$["A":"(hd1)(hd2)", "B":"aaa(hd0)aaa"]
+Return	[$["key":"A", "value":"(hd1)(hd0)"], $["key":"B", "value":"aaa(hd0)aaa"]]
+Return	[$["key":"A", "value":"(hd1)(hd1)"], $["key":"B", "value":"aaa(hd1)aaa"]]
+Return	[$["key":"A", "value":"(hd1)(hd1)"], $["key":"B", "value":"aaa(hd1)aaa"]]
+Return	[$["key":"A", "value":"(hd0)(hd1)"], $["key":"B", "value":"aaa(hd1)aaa"]]
+Return	[$["key":"A", "value":"(hd1)(hd0)"], $["key":"B", "value":"aaa(hd2)aaa"]]
+Return	[$["key":"A", "value":"(hd1)(hd2)"], $["key":"B", "value":"aaa(hd0)aaa"]]
 Dump	======================================
 Return	["(hd0,0)", "/boot/vmlinuz"]
 Return	["(hd0,0)", "/vmlinuz"]

@@ -90,12 +90,12 @@ quit")), [], 0);
 
     DUMP ("======================================");
 
-    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd1)aaa"], $["(hd0)" : "(hd1)", "(hd1)" : "(hd0)"])), [], 0);
-    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd1)aaa"], $["(hd0)" : "(hd1)", "(hd1)" : "(hd1)"])), [], 0);
-    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd1)aaa"], $["(hd0)" : "(hd1)"])), [], 0);
-    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd1)aaa"], $["(hd0)" : "(hd0)", "(hd1)" : "(hd1)"])), [], 0);
-    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd2)aaa"], $["(hd0)" : "(hd1)", "(hd1)" : "(hd0)"])), [], 0);
-    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd2)aaa"], $["(hd0)" : "(hd1)", "(hd1)" : "(hd2)", "(hd2)" : "(hd0)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ([$["key" : "A", "value" : "(hd0)(hd1)"], $[ "key" : "B", "value" : "aaa(hd1)aaa"]], $["(hd0)" : "(hd1)", "(hd1)" : "(hd0)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ([$["key" : "A", "value" : "(hd0)(hd1)"], $[ "key" : "B", "value" : "aaa(hd1)aaa"]], $["(hd0)" : "(hd1)", "(hd1)" : "(hd1)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ([$["key" : "A", "value" : "(hd0)(hd1)"], $[ "key" : "B", "value" : "aaa(hd1)aaa"]], $["(hd0)" : "(hd1)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ([$["key" : "A", "value" : "(hd0)(hd1)"], $[ "key" : "B", "value" : "aaa(hd1)aaa"]], $["(hd0)" : "(hd0)", "(hd1)" : "(hd1)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ([$["key" : "A", "value" : "(hd0)(hd1)"], $[ "key" : "B", "value" : "aaa(hd2)aaa"]], $["(hd0)" : "(hd1)", "(hd1)" : "(hd0)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ([$["key" : "A", "value" : "(hd0)(hd1)"], $[ "key" : "B", "value" : "aaa(hd2)aaa"]], $["(hd0)" : "(hd1)", "(hd1)" : "(hd2)", "(hd2)" : "(hd0)"])), [], 0);
 
     DUMP ("======================================");
 

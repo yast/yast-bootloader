@@ -429,7 +429,7 @@ fi", efi_label);
       *   relevant disk locations have changed
       */
     global define void fixSections () ``{
-	list(map) old_sect_list = BootCommon::sections;
+	list old_sect_list = BootCommon::sections;
 	createSections ();
 	map new_sect = listmap (`s, BootCommon::sections, ``{
 	    return [lookup_value (s, "label", ""), s];

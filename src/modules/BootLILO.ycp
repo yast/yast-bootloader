@@ -458,7 +458,7 @@
 	    BootCommon::files_edited = false;
 	    return;
 	}
-	list(map) old_sect_list = BootCommon::sections;
+	list old_sect_list = BootCommon::sections;
 	createSections ();
 	map old_sect = listmap (`s, old_sect_list, ``{
 	    return [lookup_value (s, "label", ""), s];

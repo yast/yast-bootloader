@@ -371,7 +371,7 @@
       * @param mapping map mapping description
       * @return map modified map
       */
-    global define map remapDisks (map src, map mapping) ``{
+    global define map remapDisks (list src, map mapping) ``{
 	foreach (`k, `v, mapping, ``{
 	   mapping = add (mapping, substring (k, 0, size (k) - 1) + ",",
 				substring (v, 0, size (v) - 1) + ",");
@@ -387,17 +387,17 @@
 	    counter = counter + 1;
 	});
 
-	map ret = mapmap (`k, `v, src, ``{
-	    if (is (v, string))
+	list ret = maplist (`v, src, ``{
+	    if (is (v["value"]:"",  string))
 	    {
 		foreach (`s, `d, m1, ``{
-		    v = BootCommon::replaceAll (v, s, d);
+		    v["value"] = BootCommon::replaceAll (v["value"]:"", s, d);
 		});
 		foreach (`s, `d, m2, ``{
-		    v = BootCommon::replaceAll (v, s, d);
+		    v["value"] = BootCommon::replaceAll (v["value"]:"", s, d);
 		});
 	    }
-	    return [k, v];
+	    return v;
 	});
 	return ret;
     }

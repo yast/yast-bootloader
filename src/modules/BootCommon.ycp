@@ -315,7 +315,7 @@
 	result = add (result, sformat (_("Location: %1"), target_name));
 	list(string) sects = [];
 	foreach (`s, sections, ``{
-	    string title = s[getSectionTitle ()]:"";
+	    string title = lookup_value (s, getSectionTitle (), "");
 		// section name "suffix" for default section
 	    string def = title == getDefaultSection () ? _(" (default)") : "";
 	    sects = add (sects, sformat ("%1%2", title, def));
