@@ -12,17 +12,15 @@
 {
     textdomain "bootloader";
 
-    import "Language";
     import "Arch";
-    import "Mode";
-    import "Bootloader";
     import "BootCommon";
-
+    import "Bootloader";
+    import "Language";
+    import "Mode";
     import "Popup";
-    include "bootloader/routines/ui.ycp";
 
-    string func  = WFM::Args(0);
-    map    param = WFM::Args(1);
+    string func  = (string)WFM::Args(0);
+    map    param = (map)WFM::Args(1);
     map    ret   = $[];
 
     // FIXME very very ugly solution, but don't know any better :-(
@@ -64,7 +62,7 @@
 		symbol ret = nil;
 		if ((pl && new_l != "lilo") || (! pl && new_l == "lilo"))
 		{
-		    ret = askSwitch (loader, new_l, `proposal);
+		    ret = Bootloader::askSwitch (loader, new_l, `proposal);
 		}
 		if (ret == nil)
 		{
@@ -74,9 +72,10 @@
 		{
 		    Bootloader::Reset ();
 		}
-		else if (action == `convert)
+		else if (ret == `convert)
 		{
-		    convertSettings (old_bl, new_bl);
+		    // FIXME are the parameters really correct?
+		    Bootloader::convertSettings (loader, new_l);
 		}
 	    }
 	    else
@@ -108,7 +107,7 @@
 	map settings = Bootloader::Export ();
 	// don't ask for abort confirm if nothing was changed (#29496)
 	BootCommon::changed = false;
-	symbol result = WFM::CallFunction (`bootloader (.noio));
+	symbol result = (symbol)WFM::call ("bootloader", [.noio]);
 	// set to true, simply because must be saved during installation
 	BootCommon::changed = true;
 	if (result != `next)

@@ -16,15 +16,14 @@
  */
 {
     textdomain "bootloader";
-    import "Bootloader";
-    import "BootCommon";
-    import "Wizard";
-    import "Progress";
-    import "Mode";
     import "Arch";
+    import "BootCommon";
+    import "Bootloader";
+    import "Mode";
+    import "Progress";
+    import "Wizard";
 
     include "bootloader/routines/helps.ycp";
-    include "bootloader/routines/ui.ycp";
 
     /**
      * Test for abort.
@@ -42,9 +41,9 @@
     y2milestone ("Starting bootloader configuration module");
     boolean skip_io = false;
     integer i = 0;
-    while (i < size (Args()))
+    while (i < size ((list)WFM::Args()))
     {
-	if (.noio == Args (i) || ".noio" == Args (i))
+	if (.noio == WFM::Args (i) || ".noio" == WFM::Args (i))
 	{
 	    skip_io = true;
 	    BootCommon::save_on_finish = false;
@@ -98,7 +97,7 @@
 	    return `back;
     }
 
-    symbol ret = runWizard ();
+    symbol ret = Bootloader::runWizard ();
 
     if (! skip_io)
     {

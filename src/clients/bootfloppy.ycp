@@ -106,10 +106,10 @@ FireWire and file systems modules floppy"),
       * @return map floppy mountpoint info
       */
     global define map isFloppyMounted (string floppy) ``{
-	list mounts =SCR::Read(.proc.mounts);
+	list mounts = (list)SCR::Read(.proc.mounts);
 
-	mounts = filter (`mount, mounts, ``(
-	    issubstring (mount["spec"]:"" ,floppy)));
+	mounts = filter (map mount, mounts, ``(
+	    issubstring (mount["spec"]:"", floppy)));
 
 	return mounts[0]:nil;
     }
@@ -350,7 +350,8 @@ and File Systems (modules disk 4)"))),
 	    if (ret == `next)
 	    {
 		string backup_file_image = file_image;
-		file_image = UI::QueryWidget (`id (`images), `CurrentButton);
+		file_image = (string)
+		    UI::QueryWidget (`id (`images), `CurrentButton);
 		if (file_image == "__modules")
 		{
 		    file_image = backup_file_image;
@@ -400,7 +401,7 @@ and File Systems (modules disk 4)"))),
 		ret = nil;
 	    }
 	}
-	return ret;
+	return (symbol)ret;
     };
 
     /**
@@ -439,12 +440,12 @@ and File Systems (modules disk 4)"))),
 
 	while (ret == nil)
 	{
-	    ret = UI::UserInput ();
+	    ret = (symbol)UI::UserInput ();
 	    if (ret == `cancel)
 		ret = `abort;
 	    if (ret == `browse)
 	    {
-		string name = UI::QueryWidget (`id (`filename), `Value);
+		string name = (string)UI::QueryWidget (`id (`filename), `Value);
 		name = UI::AskForExistingFile (name, "",
 		    // popup header
 		    _("Select Floppy Image"));
@@ -454,8 +455,8 @@ and File Systems (modules disk 4)"))),
 	    }
 	    else if (ret == `next)
 	    {
-		string name = UI::QueryWidget (`id (`filename), `Value);
-		if (SCR::Read (.target.size, name) > 0)
+		string name = (string)UI::QueryWidget (`id (`filename), `Value);
+		if ((integer)SCR::Read (.target.size, name) > 0)
 		    filename = name;
 		else
 		{
@@ -508,15 +509,15 @@ and File Systems (modules disk 4)"))),
 
 	while (ret == nil)
 	{
-	    ret = UI::UserInput ();
+	    ret = (symbol)UI::UserInput ();
 	    if (ret == `cancel)
 		ret = `abort;
 	    if (ret == `next)
 	    {
-		url = UI::QueryWidget (`id (`url), `Value);
-		user = UI::QueryWidget (`id (`user), `Value);
-		pass = UI::QueryWidget (`id (`pass), `Value);
-		string file = SCR::Read (.target.tmpdir) + "/image";
+		url = (string)UI::QueryWidget (`id (`url), `Value);
+		user = (string)UI::QueryWidget (`id (`user), `Value);
+		pass = (string)UI::QueryWidget (`id (`pass), `Value);
+		string file = (string)SCR::Read (.target.tmpdir) + "/image";
 		// label in a popup informing about currently processed action
 		showPopup (_("Downloading image..."));
 		if (user != "" && pass != "")
@@ -531,7 +532,7 @@ and File Systems (modules disk 4)"))),
 		    ret = nil;
 		    continue;
 		}
-		map response = SCR::Execute (.curl.get, url,
+		map response = (map)SCR::Execute (.curl.get, url,
 		    $["output": file]);
 		hidePopup ();
 		y2error ("Response: %1", response);
@@ -559,9 +560,10 @@ and password.
       * @return system
       */
     define symbol floppyInsertDisk() ``{
-	list floppies = SCR::Read (.probe.floppy);
-	floppies = maplist (`f, floppies, ``(f["dev_name"]:nil));
-	floppies = filter (`f, floppies, ``(f != nil));
+	list<map> floppies_m = (list<map>)SCR::Read (.probe.floppy);
+	list<string> floppies = maplist (map f, floppies_m,
+	    ``(f["dev_name"]:nil));
+	floppies = filter (string f, floppies, ``(f != nil));
 
 	term contents = `HSquash (
 	    `VBox (
@@ -607,8 +609,9 @@ All data on this floppy will be deleted.
 		ret = `abort;
 	    if (ret == `next)
 	    {
-		floppy_device = UI::QueryWidget (`id (`device), `Value);
-		format_floppy = UI::QueryWidget (`id (`format), `Value);
+		floppy_device = (string)UI::QueryWidget (`id (`device), `Value);
+		format_floppy = (boolean)
+		    UI::QueryWidget (`id (`format), `Value);
 
 		map floppymount = isFloppyMounted (floppy_device);
 
@@ -633,7 +636,7 @@ Unmount the floppy?
 		}
 	    }
 	}
-	return ret;
+	return (symbol)ret;
     }
 
     /**
@@ -663,7 +666,7 @@ Unmount the floppy?
 	{
 	    // label in a popup informing about currently processed action
 	    showPopup (_("Formatting the floppy..."));
-	    integer fd_ret = SCR::Execute
+	    integer fd_ret = (integer)SCR::Execute
 		(.target.bash, sformat ("/usr/bin/fdformat %1", floppy_device));
 	    hidePopup ();
 	    if (fd_ret != 0)
@@ -699,7 +702,7 @@ then try again.
 	    ignore  = ignore + 288;
 	    value   = value  + 10;
 
-	    ret_command = SCR::Execute(.target.bash , command );
+	    ret_command = (integer)SCR::Execute(.target.bash , command );
 	    if (ret_command != 0)
 	    {
 		failed = true;
@@ -735,7 +738,7 @@ root permissions then try again.
 	    ignore  = ignore + 288;
 	    value   = value  + 10;
 
-	    ret_command = SCR::Execute(.target.bash , command );
+	    ret_command = (integer)SCR::Execute(.target.bash , command );
 	    if (ret_command != 0)
 	    {
 		failed = true;
