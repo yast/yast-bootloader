@@ -355,19 +355,42 @@ YCPValue liloOrderedOptions::Read(const YCPPath& path)
     return YCPVoid();
 }
 
-YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value)
+YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, const YCPValue& _pos)
 {
     if(path->length()==0)
     {
         return YCPBoolean(true);
     }
 
+    int newpos = -1;
+    if ((! _pos.isNull ()) && _pos->isInteger())
+        newpos = _pos->asInteger()->value();
+
     int cpos=getPos(&order, path->component_str(0));
     if(cpos<0)
     {
 	liloOption* oop=new liloOption(path->component_str(0), "", "");
-	order.push_back(oop);
+	if (newpos == -1)
+	{
+	    order.push_back (oop);
+	}
+	else
+	{
+	    vector<liloOption*>::iterator it=order.begin();
+	    it+=newpos;
+	    order.insert(it, oop);
+	}
 	cpos=getPos(&order, path->component_str(0));
+    }
+    else if (newpos >= 0 && ! value->isVoid() && newpos != cpos)
+    {
+	vector<liloOption*>::iterator it=order.begin();
+	it+=cpos;
+	liloOption* oop = order[cpos];
+	order.erase (it);
+	vector<liloOption*>::iterator it2=order.begin();
+	it2+=newpos;
+	order.insert(it2, oop);
     }
 
     if(value->isVoid())
@@ -488,24 +511,7 @@ int liloOrderedOptions::saveToFile(ofstream* f, string indent)
 
     for(uint i=0; i<order.size(); i++)
     {
-        if (type == "grub" && (order[i]->optname == "lock"))
-        {
-            *f << "    " << order[i]->optname << separ << order[i]->value << endl;
-        }
-    }
-
-    for(uint i=0; i<order.size(); i++)
-    {
-        if (type == "grub" && ((order[i]->optname == "root") || (order[i]->optname == "kernel")))
-        {
-            *f << "    " << order[i]->optname << separ << order[i]->value << endl;
-        }
-    }
-
-    for(uint i=0; i<order.size(); i++)
-    {
-        if ((type == "grub" && (order[i]->optname == "title" || order[i]->optname == "root" 
-		|| order[i]->optname == "kernel" || order[i]->optname == "lock"))
+        if ((type == "grub" && (order[i]->optname == "title"))
             ||(type != "grub" && (order[i]->optname == "image" || order[i]->optname == "other")))
 	{
 	    continue;
@@ -609,9 +615,9 @@ YCPValue liloSection::Read(const YCPPath& path)
     return YCPVoid();
 }
 
-YCPValue liloSection::Write(const YCPPath& path, const YCPValue& val)
+YCPValue liloSection::Write(const YCPPath& path, const YCPValue& val, const YCPValue& pos)
 {
-    return options->Write(path, val);
+    return options->Write(path, val, pos);
 }
 
 YCPValue liloSection::Dir()

@@ -238,7 +238,7 @@ liloSection* liloFile::getSectPtr(const YCPPath& path)
     }
 }
 
-YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPValue& _UNUSED)
+YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPValue& pos)
 {
     bool ret;
     if(path->length()==0)
@@ -330,12 +330,12 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
 	//=====================
 	// and write some option value
 
-	return sect->Write(path->at(2), value);
+	return sect->Write(path->at(2), value, pos);
     }
 
     
  
-    return options.Write(path, value);
+    return options.Write(path, value, pos);
 }
 
 YCPValue liloFile::Read(const YCPPath &path, const YCPValue& _UNUSED)

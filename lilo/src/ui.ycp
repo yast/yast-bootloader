@@ -56,8 +56,7 @@ global define symbol LiloMainDialog() ``{
     map	    aliases = $[
 	"summary"	: ``(SummaryDialog()),
 	"target"	: ``(TargetDialog()),
-//	"save"		: ``(SummaryDialog()),
-	"expert"        : [ ``(ExpertDialog()), true ],
+	"expert"        : ``(ExpertDialog()),
         "abort"		: ``(AbortDialog()),
         "sections"		: ``(MainDlg()),
 	"ostype"	: ``(OSTypeDlg()),
@@ -94,7 +93,8 @@ global define symbol LiloMainDialog() ``{
 
 	"expert" : $[
 	    `next  : "summary",
-	    `abort : "abort"
+	    `abort : "abort" ,
+	    `grubabort: `abort,
 	],
         "sections" : $[
             `abort: "abort",
@@ -565,6 +565,12 @@ global define symbol MainDlg() ``{
             {
                 Lilo::sections = swapItems(Lilo::sections, currentSectionIndex, currentSectionIndex - 1);
 		currentSectionIndex = currentSectionIndex -1;
+		if (Lilo::mode == `grub)
+		{
+		    string def = lookup (Lilo::globals, "default", "1");
+		    def = sformat ("%1", tointeger (def) - 1);
+		    Lilo::globals = add(Lilo::globals, "default", def);
+		}
                 MainDlgRedraw();
             }
 	}
@@ -574,6 +580,13 @@ global define symbol MainDlg() ``{
 	    {
 		Lilo::sections = swapItems(Lilo::sections, currentSectionIndex, currentSectionIndex + 1);
 		currentSectionIndex = currentSectionIndex + 1;
+                if (Lilo::mode == `grub)
+                {
+                    string def = lookup (Lilo::globals, "default", "-1");
+                    def = sformat ("%1", tointeger (def) + 1);
+                    Lilo::globals = add(Lilo::globals, "default", def);
+                }
+
 		MainDlgRedraw();
 	    }
 	}
@@ -813,7 +826,25 @@ global define symbol LinuxSectDlg() ``{
 		kernel = kernel + sformat (" root=/dev/%1", UI::`QueryWidget(`id(`root), `Value));
 		kernel = kernel + " " + append;
                 currentOptions = add (currentOptions, "kernel", kernel);
+                list ord = lookup (currentOptions, "__order__", []);
+                if (! contains (ord, "kernel"))
+                {
+                    if (contains (ord, "lock"))
+                    {
+                        list tmp = ord;
+                        ord = [];
+                        foreach (`e, tmp, ``{
+                            ord = add (ord, e);
+                            if (e == "lock")
+                                ord = add (ord, "kernel");
+                        });
+                    }
+                    else
+                        ord = prepend (ord, "kernel");
+                    currentOptions = add (currentOptions, "__order__", ord);
+                }
             }
+
 
 	    if (Lilo::mode != `grub)
 	    {
@@ -864,10 +895,13 @@ global define symbol OtherSectDlg() ``{
 	// caption
     string  caption = _("Other OS section properties");
     string  help = lookup(HELP_STRINGS, "other_sect_dialog", "");
-    boolean adding = false;
 
-    if (currentOptions == $[])
-	adding = true;
+    if (currentOptions == $[] && Lilo::mode == `grub)
+    {
+	if (substring (UI::`QueryWidget(`id(`part), `Value), 0, 2) != "fd")
+	    currentOptions = add (currentOptions, "makeactive", "true");
+	currentOptions = add (currentOptions, "chainloader", "+1");
+    }
 
     term    widget = OtherSectWidget();
     Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
@@ -927,11 +961,22 @@ Please enter new section label."));
 	    if (Lilo::mode == `grub)
 	    {
 		currentOptions = add(currentOptions, "root", lilo2Grub (sformat ("/dev/%1", UI::`QueryWidget(`id(`part), `Value))));
-		if (adding)
+		list ord = lookup (currentOptions, "__order__", []);
+		if (! contains (ord, "root"))
 		{
-		    if (substring (UI::`QueryWidget(`id(`part), `Value), 0, 2) != "fd")
-			currentOptions = add (currentOptions, "makeactive", "true");
-		    currentOptions = add (currentOptions, "chainloader", "+1");
+		    if (contains (ord, "lock"))
+		    {
+			list tmp = ord;
+			ord = [];
+			foreach (`e, tmp, ``{
+			    ord = add (ord, e);
+			    if (e == "lock")
+				ord = add (ord, "root");
+			});
+		    }
+		    else
+			ord = prepend (ord, "root");
+		    currentOptions = add (currentOptions, "__order__", ord);
 		}
 	    }
 	    else
@@ -1205,6 +1250,7 @@ global define void enable_opt_dlg(boolean val) ``{
  */
 
 global define symbol OptionsDlg(map vals) ``{
+y2error ("Got map: %1", vals);
 	// caption
     string caption = _("Section options");
 
@@ -1215,11 +1261,16 @@ global define symbol OptionsDlg(map vals) ``{
 
     term widget = OptionsDlgWidget(opts);
     Wizard::SetContentsButtons(caption, widget, help, UI::`BackButtonLabel(),UI::`NextButtonLabel());
-
+    map originalVals = vals;
     // convert map of options to list and insert it into table
     UI::`ChangeWidget(`id(`opt_table), `Items, createOptsTable(vals));
 
-    map originalVals = vals;
+    list order = lookup (vals, "__order__", []);
+    vals = filter (`k, `v, vals, ``(k != "__order__"));
+    foreach (`k, `v, vals, ``{
+	if (! contains (order, k))
+	    order = add (order, k);
+    });
 
     if (size(vals) > 0)
     {
@@ -1233,11 +1284,59 @@ global define symbol OptionsDlg(map vals) ``{
 	enable_opt_dlg(false);
     }
 
+    vals = add (vals, "__order__", order);
 
     symbol a = nil;
     do {
+	string currentItem = UI::QueryWidget (`id (`opt_table), `CurrentItem);
+	list items = lookup (vals, "__order__", []);
+	integer pos = 0;
+	integer index = 0;
+	foreach (`e, items, ``{
+	    if (e == currentItem)
+		pos = index;
+	    index = index + 1;
+	});
+	if (select (items, 0, "") == currentItem || select (items, 0, "") == "")
+	    UI::ChangeWidget (`id (`up), `Enabled, false);
+	else
+	    UI::ChangeWidget (`id (`up), `Enabled, true);
+        if (select (items, size (items) - 1, "") == currentItem || select (items, size (items) - 1, "") == "")
+            UI::ChangeWidget (`id (`down), `Enabled, false);
+        else
+            UI::ChangeWidget (`id (`down), `Enabled, true);
+
 	a = UI::`UserInput();
 	if (a == `cancel) a = `abort;
+	if (a == `up)
+	{
+	    y2error ("Pushed up");
+	    if (pos > 0)
+	    {
+		y2error ("Moving");
+		list ordering = lookup (vals, "__order__", []);
+		string ci = UI::QueryWidget (`id (`opt_table), `CurrentItem);
+		ordering = swapItems (ordering, pos, pos-1);
+		vals = add (vals, "__order__", ordering);
+		UI::ChangeWidget (`id (`opt_table), `Items, createOptsTable(vals));
+		UI::ChangeWidget (`id (`opt_table), `CurrentItem, ci);
+	    }
+	}
+
+	if (a == `down)
+	{
+	    y2error ("Pushed down");
+	    list ordering = lookup (vals, "__order__", []);
+            if (pos < size (ordering) - 1)
+            {
+		y2error ("Moving");
+		string ci = UI::QueryWidget (`id (`opt_table), `CurrentItem);
+                ordering = swapItems (ordering, pos, pos+1);
+		vals = add (vals, "__order__", ordering);
+		UI::ChangeWidget (`id (`opt_table), `Items, createOptsTable(vals));
+		UI::ChangeWidget (`id (`opt_table), `CurrentItem, ci);
+            }
+	}
 
 	if (a == `set)
 	// the 'set' button has been pressed
@@ -1252,6 +1351,10 @@ global define symbol OptionsDlg(map vals) ``{
 	    if (size(retval) > 0)
 	    {
 		string value = normalizeValue(curitem, select(retval, 1, ""));
+                list ordering = lookup (vals, "__order__", []);
+                if (! contains (ordering, curitem))
+                    ordering = add (ordering, curitem);
+                vals = add (vals, "__order__", ordering);
 		vals = add(vals, curitem, value);
 	    }
 
@@ -1292,6 +1395,10 @@ global define symbol OptionsDlg(map vals) ``{
 	    {
 		string s1 = select(retval, 0, "");
 		string s2 = normalizeValue(s1, select(retval, 1, ""));
+		list ordering = lookup (vals, "__order__", []);
+		if (! contains (ordering, s1))
+		    ordering = add (ordering, s1);
+		vals = add (vals, "__order__", ordering);
 		vals = add(vals, s1, s2);
 		UI::`ChangeWidget(`id(`opt_table), `Items, createOptsTable(vals));
 		UI::`ChangeWidget(`id(`opt_table), `CurrentItem, s1);
@@ -1302,6 +1409,11 @@ global define symbol OptionsDlg(map vals) ``{
 	{
 	    string optn = UI::`QueryWidget(`id(`opt_table), `CurrentItem);
 	    vals = removekey(vals, optn);
+	    list ordering = lookup (vals, "__order__", []);
+            if (contains (ordering, optn))
+                ordering = filter (`e, ordering, e != optn);
+            vals = add (vals, "__order__", ordering);
+
 	    list items = createOptsTable(vals);
 	    UI::`ChangeWidget(`id(`opt_table), `Items, items);
 	    if (size(items) > 0)
@@ -1320,6 +1432,10 @@ global define symbol OptionsDlg(map vals) ``{
 
             // change value
             vals = add(vals, ci, lookup(originalVals, ci, ""));
+            list ordering = lookup (vals, "__order__", []);
+            if (! contains (ordering, ci))
+                ordering = add (ordering, ci);
+            vals = add (vals, "__order__", ordering);
 
 	    list items = createOptsTable(vals);
             UI::`ChangeWidget(`id(`opt_table), `Items, items);
@@ -1328,7 +1444,7 @@ global define symbol OptionsDlg(map vals) ``{
 	else if (a == `next)
 	{
 	    list wrongs = check_values(vals);
-	    if (size(wrongs) > 0)
+	    if (size(wrongs) > 0 && Lilo::mode != `grub)
 	    {
 		//error message
 		// %1 is coma separated list of option names
@@ -1362,6 +1478,49 @@ global define symbol OptionsDlg(map vals) ``{
 
 
 /**
+  * Expert dialog for editing /etc/grub/conf
+  * @return symbol UserInput() symbol
+  */
+
+global define symbol ExpertGrubConfDialog () ``{
+    symbol ret = nil;
+    string tmpdir = SCR::Read(.target.tmpdir);
+    string tmpfile = tmpdir + "/grub.conf.tmp";
+    // help text in dialog
+    string help =  _("<P><B>Expert manual configuration</B><BR>Here you can manually edit bootloader configuration.</P>
+<P>Note: Final configuration file can have different indenting.</P>");
+
+    saveGrubConfTo (Lilo::grub_set, tmpfile);
+    string multi = SCR::Read(.target.string, tmpfile);
+
+    term content = `VBox(
+        `VSpacing(1),
+        // multi line text widget label
+        `MultiLineEdit(`id(`editor), _("Bootloader &configuration:"), multi),
+        `VSpacing(1)
+    );
+
+    // dialog header
+    Wizard::SetContents(_("Expert configuration"), content, help, true, true);
+
+    do
+    {
+	ret = UI::UserInput();
+	if (ret == `abort && AbortDialog() != `yes)
+	    ret = nil;
+    }
+    while (ret != `next && ret != `back && ret != `abort);
+
+    if (ret == `next)
+    {
+	string config = UI::QueryWidget(`id(`editor), `Value);
+	SCR::Write(.target.string, tmpfile, config);
+	Lilo::grub_set = parseGrubConfFrom (tmpfile);
+    }
+    return ret;
+}
+
+/**
  * Expert dialog with multiline widget. 
  * @return symbol UserInput() symbol
  */
@@ -1370,6 +1529,12 @@ global define symbol ExpertDialog() ``{
     symbol ret = nil;
     string tmpdir = SCR::Read(.target.tmpdir);
     string tmpfile = tmpdir + "/bootloader.conf.tmp";
+    // help text in dialog
+    string help =  _("<P><B>Expert manual configuration</B><BR>Here you can manually edit bootloader configuration.</P>
+<P>Note: Final configuration file can have different indenting.</P>");
+    if (Lilo::mode == `grub)
+	// help text continuing
+	help = help + _("<P>To edit grub.conf file select <B>Edit /etc/grub.conf</B></P>");
 
     // store lilo.conf to temporary file
     Lilo::WriteTest(tmpfile);
@@ -1379,17 +1544,26 @@ global define symbol ExpertDialog() ``{
 	`VSpacing(1),
 	// multi line text widget label
 	`MultiLineEdit(`id(`editor), _("Bootloader &configuration:"), multi),
-	`VSpacing(1)
+	`VSpacing(1),
+	Lilo::mode == `grub ? `PushButton (`id (`grub_conf), _("Edit /etc/&grub.conf")) : `VSpacing (0),
+	Lilo::mode == `grub ? `VSpacing (1) : `VSpacing (0)
     );
 
     // dialog header
-    Wizard::SetContents(_("Expert configuration"), content,
-	// help text in dialog
-	_("<P><B>Expert manual configuration</B><BR>Here you can manually edit bootloader configuration.</P><P>Note: Final configuration file can have different indenting.</P>"), true, true);
+    Wizard::SetContents(_("Expert configuration"), content, help, true, true);
 
     do
     {
 	ret = UI::UserInput();
+	if (ret == `grub_conf)
+	{
+	    string config = UI::QueryWidget(`id(`editor), `Value);
+	    if (`abort == ExpertGrubConfDialog ())
+		return `grubabort;
+	    Wizard::SetContents(_("Expert configuration"), content, help, true, true);
+	    UI::ChangeWidget (`id(`editor), `Value, config);
+	    y2error ("Grub conf: %1", Lilo::grub_set);
+	}
     }
     while (ret != `next && ret != `back && ret != `abort);
 

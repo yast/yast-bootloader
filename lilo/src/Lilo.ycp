@@ -301,8 +301,6 @@
 	    p = list2path([boot(), "sections" , section]);
 	}
 
-	map retval = $[];
-
 	list optlist = SCR::Dir(p);
 
 	if (type == "")
@@ -311,6 +309,7 @@
 	}
 
 	any value = "";
+	map retval = $["__order__" : optlist];
 
 	// read global options and create map to be stored in settings
 
@@ -342,7 +341,7 @@
 	map liloconf = $[];
 	map sets = $[];
 
-	path p = list2path([boot(), Lilo::mode == `grub ? "setup" : "boot"]);
+//	path p = list2path([boot(), Lilo::mode == `grub ? "setup" : "boot"]);
 
 	list optlist = SCR::Dir(list2path([boot()]));
 
@@ -367,7 +366,10 @@
 
 	globals = options;
 
-	bootPart = SCR::`Read(list2path([boot(), Lilo::mode == `grub ? "setup" : "boot"]));
+	if (Lilo::mode == `grub)
+	    bootPart = lookup (grub_set, "device", "");
+	else
+	    bootPart = SCR::`Read(list2path([boot(), "boot"]));
 
 	return sets;
     }
