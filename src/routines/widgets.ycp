@@ -146,7 +146,7 @@
       */
     global define void targetRead () ``{
 	UI::ChangeWidget (`id (`loc), `Value, tmp_store["loader_device"]:"");
-	y2milestone ("tmp_store: %1", tmp_store);
+	y2debug ("tmp_store: %1", tmp_store);
 	UI::ChangeWidget (`id (`location), `CurrentButton,
 	    tmp_store["location"]:"");
     }

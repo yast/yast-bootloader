@@ -36,6 +36,7 @@
 	    "globalsection" : ``(BootGRUB::getGlobalSectionWidget ()),
 	    "passwd" : ``(BootGRUB::getPasswdWidget ()),
 	    "tableentries" :$[
+		"__location": ``(BootGRUB::getTargetWidget ()),
 		"__sections" : ``(BootGRUB::getSectionsTableEntry ()),
 		"__default_section" : ``(BootGRUB::getDefaultSectionTableEntry ()),
 		"__section_type" : ``(BootGRUB::getSectionTypeWidget ()),
@@ -47,6 +48,99 @@
 	    ],
         ];
     }
+
+    /**
+      * Get map of Target widget
+      * @return map of Target widget
+      */
+    global define map getTargetWidget () ``{
+	map ret = BootCommon::getTargetWidget ();
+	ret["handle"] = ``(BootGRUB::targetWrite ());
+	return ret;
+    }
+
+    global define boolean changeSection (string to) ``{
+	string message = "";
+	if (to == "floppy")
+		// yes-no popup
+	    message = _("You chose to install the boot loader to the floppy.
+The menu of the boot loader contains an entry to boot from the floppy.
+Replace it with an entry to boot from the hard disk?");
+	else
+		// yes-no popup
+	    message = _("You chose to install the boot loader to the hard disk.
+The menu of the boot loader contains an entry to boot from the hard disk.
+Replace it with an entry  to boot from the floppy?");
+	return UI::YesNoPopup (message);
+    }
+
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param tosave list of operations, which lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any targetWrite (any op, list tosave) ``{
+	any ret = BootCommon::targetWrite (op, tosave);
+	if (contains (tosave, op))
+	{
+//	    y2error ("SEC: %1", BootCommon::sections);
+//	    list sections = BootCommon::sections;
+	    list sections = BootCommon::tmp_store["sections"]:[];
+//	    y2milestone ("Possibly needed to change the floppy bl entry");
+	    if (issubstring (BootCommon::loader_device, "/dev/fd")||
+		BootCommon::location == "floppy")
+	    {
+//		y2milestone ("BL saving to floppy");
+		sections = maplist (`s, sections, ``{
+		    if (s["title"]:"" == "floppy" && changeSection ("floppy"))
+		    {
+//			y2milestone ("Floppy found");
+			s = $[
+			    "__order__" : ["title", "root", "chainloader"],
+			    "title" : "hard disk",
+			    "root" : "(hd0)",
+			    "chainloader" : "+1",
+	                    "__intern__" : $[
+		                "changed" : false,
+		                "auto" : true,
+		                "devs" : [],
+		            ],
+			];
+		    }
+		    return s;
+		});
+	    }
+	    else
+	    {
+//		y2milestone ("BL saving to disk");
+		sections = maplist (`s, sections, ``{
+		    if (s["title"]:"" == "hard disk"
+			&& changeSection ("disk"))
+		    {
+//			y2milestone ("Disk found");
+			s = $[
+			    "__order__" : ["title", "root", "chainloader"],
+			    "title" : "floppy",
+			    "root" : "(fd0)",
+			    "chainloader" : "+1",
+                            "__intern__" : $[
+                                "changed" : false,
+                                "auto" : true,
+                                "devs" : [],
+                            ],
+			];
+		    }
+		    return s;
+		});
+	    }
+//	    BootCommon::sections = sections;
+	    BootCommon::tmp_store["sections"] = sections;
+//	    y2error ("SEC: %1", BootCommon::sections);
+	}
+	return ret;
+    }
+
 
     /**
       * Update list of optoins to show in table

@@ -476,6 +476,7 @@
       * @param string root device
       */
     global define void setRootDevice (string device) ``{
+	ReadOrProposeIfNeeded ();
 	BootCommon::RootPartitionDevice = device;
     }
 
@@ -493,6 +494,7 @@
       * @param string boot device
       */
     global define void setBootDevice (string device) ``{
+	ReadOrProposeIfNeeded ();
 	BootCommon::BootPartitionDevice = device;
     }
 
