@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec 17 14:53:24 CET 2002 - jsrain@suse.de
+
+- now using fillup-template for sysconfig/bootloader
+
+-------------------------------------------------------------------
 Fri Dec 13 08:48:41 CET 2002 - jsrain@suse.de
 
 - fixed ordering of modules in initrd
