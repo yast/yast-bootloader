@@ -18,6 +18,7 @@
     module "Initrd";
 
     import "Arch";
+    import "Label";
     import "Misc";
     import "Mode";
     import "Report";
