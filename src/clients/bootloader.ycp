@@ -26,8 +26,6 @@
     include "bootloader/routines/helps.ycp";
     include "bootloader/routines/ui.ycp";
 
-    Arch::board_iseries = true;
-
     /**
      * Test for abort.
      * @return true if abort was pressed

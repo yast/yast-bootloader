@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 11 12:46:41 CEST 2003 - jsrain@suse.de
+
+- removed forgotten debug code (#30396)
+
+-------------------------------------------------------------------
 Wed Sep 10 08:13:04 CEST 2003 - jsrain@suse.de
 
 - fixed update of metadata for sysconfig variable LOADER_TYPE
