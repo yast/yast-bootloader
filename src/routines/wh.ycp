@@ -56,8 +56,8 @@
 	foreach (`w, widgets, ``{
 	    tosave = merge (tosave, w["exits"]:[]);
 	});
-	if (contains (tosave, action))
-	    action = `next;
+/*	if (contains (tosave, action))
+	    action = `next;*/
 	foreach (`w, widgets, ``{
 	    term t = w["handle"]:nil;
 	    if (t != nil)

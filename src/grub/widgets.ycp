@@ -96,7 +96,7 @@
 	sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
     }
 
-    global define symbol sectionsHandle (any op) ``{
+    global define symbol sectionsHandle (any op, list tosave) ``{
         string current = UI::QueryWidget (`id (`sects), `CurrentItem);
         integer counter = 0;
         integer index = 0;
@@ -154,11 +154,16 @@
 	    BootCommon::tmp_store["sections"] = sects;
 	    sectionsRedrawTable (sects);
 	}
-	else if (op == `reset && resetSectsPopup ())
+/*	else if (op == `reset && resetSectsPopup ())
 	{
 	    BootCommon::fetchSettings ();
 	    sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
-	}
+	}*/
+        if (contains (tosave, op))
+        {
+
+
+        }
     }
 
 

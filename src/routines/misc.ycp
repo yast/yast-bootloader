@@ -49,6 +49,7 @@
      *   `all - all partitions
      *   `parts_old - all partitions, except those what will be created
      *      during isntallation
+     *   `deleted - all partitions deleted in current proposal
      * @return list of strings
      */
     global define list getPartitionList(symbol type) ``{
@@ -67,6 +68,10 @@
 	floppies = filter (`f, floppies, ``(f != ""));
 
         partitions = filter (`p, partitions, ``(is (p, map)));
+	if (type == `deleted)
+	    return maplist (`x, filter (`p, partitions, ``(p["delete"]:false)),
+		``{return x["device"]:"";
+	    });
         partitions = filter (`p, partitions, ``(! p["delete"]:false));
 // FIXME: "lvm_group" and "raid_name" might be removed
 	list ret = all_disks;
@@ -404,7 +409,7 @@
 	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
 	else
             mountpoints = Storage::GetMountPoints();
-	string ret = "";
+	string ret = "/dev/null";
 	if (substring (devpth[1]:"", 0, 1) != "/")
 	    devpth[1] = "/" + devpth[1]:"";
         foreach (string k, `v, mountpoints, ``{
@@ -620,7 +625,7 @@
         string comment = "";
 
         BootCommon::globals = sectOptions2Map(bl, "", "");
-//	y2milestone ("Parsed globals: %1", BootCommon::globals);
+	y2milestone ("Parsed globals: %1", BootCommon::globals);
 
         // iterate for all sections and do the same as before
 
@@ -635,7 +640,7 @@
             opts_tmp = sectOptions2Map(bl, "sections", e);
             BootCommon::sections = add(BootCommon::sections, opts_tmp);
         });
-//	y2milestone ("Parsed sections: %1", sections);
+	y2milestone ("Parsed sections: %1", sections);
 	return true;
     }
 
@@ -645,9 +650,11 @@
       */
     global define map opttypes() ``{
 	string bl = getLoaderType (false);
-	if (opt_types[bl, "__fake__"]:"" == "b")
+	if (size (opt_types[bl]:$[]) > 0)
 	    return opt_types[bl]:$[];
-	map out = SCR::Read (list2path ([bl, "opttypes"]));
+//	SCR::Dir (.lilo);//list2path ([bl]));
+	map out = SCR::Read (/*.lilo.opttypes);*/list2path ([bl, "opttypes"]));
+	y2milestone ("Got opttypes %1", out);
 	opt_types[bl] = out;
 /*	if (Arch::ia64)
 	{

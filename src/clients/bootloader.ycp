@@ -38,47 +38,66 @@
         return false;
     }
 
-
+    y2milestone ("Starting bootloader configuration module");
+    boolean skip_io = false;
+    integer i = 0;
+    while (i < size (Args()))
+    {
+	if (.noio == Args (i) || ".noio" == Args (i))
+	{
+	    skip_io = true;
+	    BootCommon::save_on_finish = false;
+	}
+	i = i + 1;
+    }
 
     Wizard::CreateDialog ();
+
+    if (! skip_io)
+    {
 // run Progress bar
-    list stages = [
-	// progress stage, text in dialog (short)
-	_("Check bootloader."),
-	// progress stage, text in dialog (short)
-	_("Load bootloader settings."),
-    ];
-    list titles = [
-	// progress stage, text in dialog (short)
-	_("Checking environment..."),
-	// progress stage, text in dialog (short)
-	_("Loading current settings..."),
-    ];
-    // progress bar caption
-    Progress::New (_("Initializing bootloader configuration tool..."),
-	" ", 2, stages, titles, getInitProgressHelp ());
+	list stages = [
+	    // progress stage, text in dialog (short)
+	    _("Check bootloader."),
+	    // progress stage, text in dialog (short)
+	    _("Load bootloader settings."),
+	];
+	list titles = [
+	    // progress stage, text in dialog (short)
+	    _("Checking environment..."),
+	    // progress stage, text in dialog (short)
+	    _("Loading current settings..."),
+	];
+	// progress bar caption
+	Progress::New (_("Initializing bootloader configuration tool..."),
+	    " ", 2, stages, titles, getInitProgressHelp ());
 
-    Progress::NextStage ();
-    if (testAbort ())
-	return `back;
+	Progress::NextStage ();
+	if (testAbort ())
+	    return `back;
 
-    Bootloader::getLoaderType ();
+	Bootloader::getLoaderType ();
 
-    Progress::NextStage ();
-    if (testAbort ())
-        return `back;
+	Progress::NextStage ();
+	if (testAbort ())
+	    return `back;
 
-//    Bootloader::Read ();
-    Bootloader::Propose ();
-    Bootloader::Propose ();
-    Progress::Finish ();
-    if (testAbort ())
-        return `back;
+	Bootloader::Read ();
+//	Bootloader::Propose ();
+//	Bootloader::Propose ();
+	Progress::Finish ();
+	if (testAbort ())
+	    return `back;
+    }
 
     symbol ret = runWizard ();
 
-//    Bootloader::Write ();
+    if (! skip_io)
+    {
+//	Bootloader::Write ();
+    }
 
     UI::CloseDialog ();
+    y2milestone ("Finishing bootloader configuration module");
     return ret;
 }

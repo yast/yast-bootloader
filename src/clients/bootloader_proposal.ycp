@@ -33,73 +33,16 @@
 	}
 
 	Bootloader::Propose ();
-/*	{
-	    // Yes/No popup question, %1 is partition name (e.g. /dev/hda2)
-	    if (UI::YesNoPopup(sformat(_("Partition '%1' is not available.
-Do you want to set default boot loader location?"), Boot::device)))
-	    {
-		// reset configuration to default value
-		Boot::location = "";
 
-		Boot::Set();
-	    }
-	}*/
 	ret = $[ "raw_proposal" : [ Bootloader::Summary ([`short])]];
 
-/*	string info_msg = "";
-
-	if (Boot::location == "floppy")
-	{
-	    // Information about suggested bootloader installation:
-	    // Some other system present (MS Windows etc.) -
-	    // bootloader will be installed on floppy just to play safe
-	    // !! this is a normal message, without '&' !!
-	    info_msg = _("Create a boot floppy");
-	}
-	else if (Boot::location == "boot")
-	{
-	    // Information about suggested bootloader installation:
-	    // user selected _not_ to use a linux bootloader
-	    info_msg = _("Non-Linux boot loader (provided by user)");
-	}
-	else if (Boot::LoaderType == "ppc")
-	{
-		import "BootPPC";
-		return BootPPC::Proposal ();
-	}
-	else
-	{
-	    map targetMap = Storage::GetTargetMap ();
-	    map boot_target = targetMap[Boot::device]:$[];
-	    string target_name = "";
-	    if (boot_target == $[])
-		target_name = Boot::device;
-	    else
-		target_name = boot_target["name"]:"disk";
-
-	    // Information about suggested bootloader installation:
-	    // user selected a device
-	    info_msg = sformat (_("Booting from '%1'"), target_name);
-	}
-
-
-	// call some function that makes a proposal here:
-	//
-	// DummyMod::MakeProposal( force_reset );
-
-	// Fill return map
-
-	ret = $[ "raw_proposal" : [ info_msg ] ];*/
-
-	// FIXME: Something can go wrong
-
-/*        if (Boot::no_bootloader)
+	if (Bootloader::getLoaderType () == "")
         {
             y2error ("No bootloader selected");
             ret = add (ret, "warning_level", `error);
             ret = add (ret, "warning", _("No bootloader selected to be installed, your system can be unbootable"));
         }
-*/
+
 
     }
     else if ( func == "AskUser" )
@@ -107,10 +50,9 @@ Do you want to set default boot loader location?"), Boot::device)))
 	boolean has_next = param["has_next"]:false;
 
 	map settings = Bootloader::Export ();
-// FIXME sequence call
-	symbol result = WFM::CallFunction (`inst_bootloader (true, true));
+	symbol result = WFM::CallFunction (`bootloader (.noio));
 	if (result != `next)
-	    Bootlaoder::Import (settings);
+	    Bootloader::Import (settings);
 
 	// Fill return map
 	ret = $[ "workflow_sequence" : result ];

@@ -27,6 +27,7 @@
     include "bootloader/grub/misc.ycp";
     include "bootloader/grub/widgets.ycp";
 
+    include "bootloader/routines/popups.ycp";
 
 // private variables
 
@@ -42,6 +43,10 @@
       * was grub_conf changed by user manually?
       */
     global boolean gc_changed = false;
+    /**
+      * List of partitions deleted in primary proposal
+      */
+    list(string) del_parts = [];
 
 // general functions
 
@@ -90,7 +95,7 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
-	DetectDisks ();
+	BootCommon::DetectDisks ();
 	grub_conf = readGrubConf ();
 	device_map = readDeviceMap ();
 	boolean ret = BootCommon::Read ();
@@ -113,18 +118,26 @@
     global define void Propose () ``{
         if (! BootCommon::was_proposed)
 	{
-            DetectDisks ();
+            BootCommon::DetectDisks ();
 	    // refresh device map
 	    if (device_map == [])
 		device_map = proposeDeviceMap ();
 	    if (grub_conf == $[])
 		grub_conf = proposeGrubConf ();
+	    del_parts = BootCommon::getPartitionList (`deleted);
+	    y2milestone ("Partitions planned to be deleted: %1", del_parts);
 	}
 	boolean disks_changed = BootCommon::RefreshDisks();
 	if (disks_changed)
 	{
-	    // FIXME: show warning
+	    if (askLocationResetPopup (BootCommon::loader_device))
+	    {
+		BootCommon::location = "";
+		BootCommon::DetectDisks ();
+	    }
 	}
+
+	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 
 	if (size (BootCommon::sections) == 0)
 	{
@@ -145,6 +158,7 @@
 
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
 	y2milestone ("Proposed globals: %1", BootCommon::globals);
+	BootCommon::saveCfgFileToAgent ();
 	// generate configuration
     }
     /**
@@ -155,7 +169,24 @@
 	grub_conf["device"] = unixDev2grubDev (BootCommon::loader_device);
 	saveGrubConf (grub_conf);
 	saveDeviceMap (device_map);
+	BootCommon::sections = filter (`s, BootCommon::sections, ``{
+	    if (s["__intern__", "converted"]:false)
+		return true;
+	    string kernel = s["kernel"]:"";
+	    if (kernel == "")
+		return true;
+	    kernel = select (
+		filter (`k, splitstring (kernel, " "), ``(k != "")), 0, "");
+	    if (kernel == "")
+		return true;
+	    kernel = grub2file (kernel);
+	    if (SCR::Read (.target.size, kernel) == -1)
+		return false;
+	    return true;
+	});
 	BootCommon::sections = maplist (`s, BootCommon::sections, ``{
+	    if (s["__intern__", "converted"]:false)
+		return s;
 	    string initrd = s["initrd"]:"";
 	    if (initrd != "")
 	    {
@@ -165,6 +196,28 @@
 	    }
 	    return s;
 	});
+	string gfxmenu = BootCommon::globals["gfxmenu"]:"";
+	if (gfxmenu != "")
+	{
+	    gfxmenu = grub2file (gfxmenu);
+	    if (-1 == SCR::Read (.target.size, gfxmenu))
+		BootCommon::globals = remove (BootCommon::globals, "gfxmenu");
+/*	    else if (true)
+//(Storage::CheckForLvmRootFs() || Storage::CheckForMdRootFs())
+	    {
+		gfxmenu = BootCommon::globals["gfxmenu"]:"";
+		string commmand = sformat ("blocklist %1\nquit", gfxmenu);
+		command = sformat ("echo \"%1\" | grub --batch \
+--device-map=/boot/grub/device.map | grep -A 1 \"^grub>\"");
+		y2error ("Command: %1", command);
+		map out = SCR::Execute (.target.bash_output, command);
+		y2error ("Outmap: %1", out);
+		gfxmenu = select (splitstring (out["stdout"]:"", "\n"), 0, "");
+		y2error ("Gfxmenu: %1", gfxmenu);
+		if (gfxmenu != "")
+		    BootCommon::globals["gfxmenu"] = gfxmenu;
+	    }*/
+	}
 	return BootCommon::Save ();
     }
     /**
@@ -179,16 +232,19 @@
       * @return boolean true on success
       */
     global define boolean Write () ``{
-// TODO: Add gfxmenu if installing/update
 	boolean ret = true;
 	if (BootCommon::location_changed)
 	{
-	    ret = 0 == SCR::Execute (.target.bash,// FIXME: log
-"cat /etc/grub.conf | /usr/sbin/grub --bash --device-map=/boot/grub/device.map"
+	    ret = 0 == SCR::Execute (.target.bash, "cat /etc/grub.conf \
+| /usr/sbin/grub --batch --device-map=/boot/grub/device.map >> \
+/var/log/YaST2/y2loggrub 2>&1"
 	    );
 	    if (! ret)
 	    {
-		Report::Error (_("Error while saving GRUB occured"));
+		string log = SCR::Read (.target.string,
+		    "/var/log/YaST2/y2loggrub");
+		Report::Error (_("Error while saving GRUB occured")
+		    + "\n\n\n" + log);
 	    }
 	}
 	return ret;
@@ -197,51 +253,161 @@
 // end of mandatory functions
 //----------------------------------------------------------------------------
 
-    global define map createLinuxSection (symbol what) ``{
-	string title = what == `failsafe ? "failsafe" : "linux";
-	string initrd = what == `failsafe ? "initrd.shipped" : "initrd";
-	string image = what == `failsafe ? "vmlinuz.shipped" : "vmlinuz";
+    /**
+      * Create linux section
+      * @param title strign section title (linux, failsafe, memtest)
+      * @return section description structure
+      */
+    global define map createLinuxSection (string title) ``{
+	if (title == "memtest86")
+	{
+	    return $[
+		"__order__":["title", "kernel"],
+		"kernel" : file2grub ("/boot/memtest.bin"),
+		"title" : "memtest86",
+		"__intern__" : $[
+		    "auto" : true,
+		    "changed" : false,
+		    "devs" : [BootCommon::BootPartitionDevice],
+		    "kernel" : "/boot/memtest.bin",
+		],
+	    ];
+	}
+	string initrd = title == "failsafe" ? "initrd.shipped" : "initrd";
+	string image = title == "failsafe" ? "vmlinuz.shipped" : "vmlinuz";
+	string append = title == "failsafe"
+	    ? "ide=nodma apm=off acpi=off vga=normal "
+	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp disableapic ")
+	      + "maxcpus=0 3"
+	    : sformat ("vga=%1 %2", Kernel::vgaType, Kernel::cmdLine);
 	return $[
 	    "__order__":["title", "kernel", "initrd"],
 	    "title" : title,
 	    "kernel" : sformat ("%1 %2 %3",
-		sformat ("%1%2%3",
-		    unixDev2grubDev (BootCommon::BootPartitionDevice),
-		    prefix,
-		    image),
+		file2grub ("/boot/" + image),
 		sformat ("root=%1", BootCommon::RootPartitionDevice),
-		sformat ("%1 %2", Kernel::cmdLine, vgastring)
+		append
 	    ),
-	    "initrd" : sformat ("%1%2%3",
-		unixDev2grubDev (BootCommon::BootPartitionDevice),
-		prefix,
-		initrd
-	    ),
+	    "initrd" : file2grub ("/boot/" + initrd),
 	    "__intern__" : $[
 		"changed" : false,
 		"auto" : true,
 		"devs" : [
 		    BootCommon::BootPartitionDevice,
 		    BootCommon::RootPartitionDevice
-		]
+		],
+		"kernel" : "/boot/" + image,
+		"initrd" : "/boot/" + initrd,
 	    ]
 	];
     }
 
+    /**
+      * Propose sections to bootloader menu
+      * modifies internal sreuctures
+      */
     global define void createSections () ``{
-        string prefix = "";
-
-        if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice)
-            prefix = "/boot/";
-        else
-            prefix = "/";
-
-	string vgastring = "";
-
 	list out = [
-	    createLinuxSection (nil),
+	    createLinuxSection ("linux")
 	];
+	list(string) others_ignore = [];
 	list others = Storage::GetForeignPrimary();
+	y2milestone ("Other primaries: %1", others);
+	list other_l = Storage::GetOtherLinuxPartitions();
+	y2milestone ("Other linux parts: %1", other_l);
+
+	if (other_l != nil && size (other_l) > 0
+	    && 0 == SCR::Execute (.target.bash,
+		"test -d /tmp/bldetect || /bin/mkdir /tmp/bldetect")
+	    )
+	{
+	    y2milestone ("Detectig other Linux parts");
+	    list filesystems = maplist (`p, other_l, ``(p["used_fs"]:""));
+	    filesystems = toset (filter (`f, filesystems, ``(f != "")));
+	    filesystems = filter (`f, filesystems, ``(f != `ext2));
+	    y2milestone ("Have to modprobe %1", filesystems);
+	    foreach (`f, filesystems, ``{
+		map fsmods = $[
+		    `ext2 : "",
+		    `ext3 : "ext3",
+		    `reiser : "reiserfs",
+		    `xfs : "xfs",
+		    `jfs : "jfs"
+		];
+		string modname = fsmods[f]:"";
+		y2milestone ("Module name is %1", modname);
+		if (modname != "")
+		{
+		    integer r = SCR::Execute (.target.bash,
+			sformat ("/sbin/modprobe %1", modname));
+		    y2milestone ("result of loading %1 is %2", modname, r);
+		}
+	    });
+	    foreach (`o, other_l, ``{
+		string dev = o["device"]:"";
+		if (dev != "" && 0 == SCR::Execute (.target.bash,
+		    sformat ("/bin/mount %1 %2", dev, "/tmp/bldetect")))
+		{
+		    y2milestone ("Mounted %1", dev);
+		    list(string) filenames = [];
+		    foreach (string fn, [
+			"/tmp/bldetect/grub/menu.lst",
+			"/tmp/bldetect/boot/grub/menu.lst"
+		    ], ``{
+			if (-1 != SCR::Read (.target.size, fn))
+			    filenames = add (filenames, fn);
+		    });
+		    y2milestone ("Found files %1", filenames);
+		    integer count = 0;
+		    foreach (`f, filenames, ``{
+			y2milestone ("Checking file %1", f);
+			string fc = SCR::Read (.target.string, f);
+			SCR::Write (.grub.fromstring, fc);
+			list sects = SCR::Dir (.grub.sections);
+			y2milestone ("Found sections %1", sects);
+			count = count + size (sects);
+			foreach (`s, sects, ``{
+			    map opts_tmp = BootCommon::sectOptions2Map (
+				"grub", "sections", s);
+			    opts_tmp["title"] = sformat ("%1_%2",
+				dev, opts_tmp["title"]:"");
+			    opts_tmp["__intern__"] = $[
+				"changed" : false,
+				"auto" : true,
+				"converted" : true,
+			    ];
+			    list devs = [];
+			    devs = add (devs, grubDev2unixDev (select (
+				splitDevPath (
+				    opts_tmp["initrd"]:""), 0, "")));
+			    devs = add (devs, grubDev2unixDev (select (
+				splitDevPath (
+				    opts_tmp["kernel"]:""), 0, "")));
+			    devs = add (devs, grubDev2unixDev (
+				opts_tmp["root"]:""));
+			    devs = add (devs,
+				BootCommon::getKernelParamFromLine (
+				    opts_tmp["kernel"]:"", "root"));
+			    devs = filter (`d, devs, ``(d != ""
+				&& d != nil
+				&& d != "/dev/null" && d != "false"));
+			    devs = toset (devs);
+			    opts_tmp["__intern__", "devs"] = devs;
+			    y2milestone ("Converted sec: %1", opts_tmp);
+			    out = add (out, opts_tmp);
+			});
+		    });
+		    if (count > 0)
+		    {
+			others_ignore = add (others_ignore, dev);
+		    }
+		    SCR::Execute (.target.bash, sformat (
+			"/bin/umount %1", dev));
+		}
+	    });
+	    SCR::Execute (.target.bash, "/bin/rmdir /tmp/bldetect");
+	}
+
 	if (others != nil)
 	{
 	    if (size (others) > 0)
@@ -251,73 +417,8 @@
 		    while (select (parts, 0, " ") == "")
 			parts = remove (parts, 0);
 		    string dev = select (parts, 0, "");
-		    y2milestone ("Checking partition %1", dev);
-// TEST UNIX PARTITION
-		    boolean is_unix = false;
-		    SCR::Execute (.target.bash, "mkdir /tmp/mp");
-		    if (0 == SCR::Execute (.target.bash, sformat (
-			"/bin/mount %1 %2", dev, "/tmp/mp")))
-		    {
-// TEST EXISTENCE OF MENU.LST
-			y2milestone ("Mount successfull");
-			string filename = "";
-			if (-1 != SCR::Read (.target.size,
-			    "/tmp/mp/boot/grub/menu.lst"))
-			{
-			    filename = "/tmp/mp/boot/grub/menu.lst";
-			}
-			else if (-1 != SCR::Read (.target.size,
-			    "/tmp/mp/grub/menu.lst"))
-			{
-			    filename = "/tmp/mp/grub/menu.lst";
-			}
-			if (filename != "")
-			{
-			    y2milestone ("Found %1", filename);
-			    string old_filename
-				= SCR::Read (.grub.getfilename);
-			    SCR::Write (.grub.setfilename, filename);
-			    list sec = SCR::Dir (.grub.sections);
-// TEST CONTENTS OF MENU.LST
-			    if (sec != nil && is (sec, list) && size (sec) > 0)
-			    {
-				y2milestone ("Found sections %1", sec);
-				foreach (`e, sec, ``{
-				    map opts_tmp = BootCommon::sectOptions2Map (
-					"grub", "sections", e);
-				    opts_tmp["title"] = sformat ("%1_%2",
-					dev, opts_tmp["title"]:"");
-				    opts_tmp["__intern__"] = $[
-					"changed" : false,
-					"auto" : true,
-				    ];
-				    list devs = [];
-				    devs = add (devs, grubDev2unixDev (select (
-					splitDevPath (
-					opts_tmp["initrd"]:""), 0, "")));
-				    devs = add (devs, grubDev2unixDev (select (
-					splitDevPath (
-					opts_tmp["kernel"]:""), 0, "")));
-				    devs = add (devs, grubDev2unixDev (
-					opts_tmp["root"]:""));
-				    devs = add (devs,
-					BootCommon::getKernelParamFromLine (
-					    opts_tmp["kernel"]:"", "root"));
-				    devs = filter (`d, devs, ``(d != ""
-					&& d != "/dev/wrong" && d != "false"));
-				    opts_tmp["__intern__", "devs"] = devs;
-				    y2milestone ("Converted sec: %1", opts_tmp);
-				    out = add (out, opts_tmp);
-				});
-				is_unix = true;
-			    }
-			    SCR::Write (.grub.setfilename, old_filename);
-			}
-			SCR::Execute (.target.bash, sformat (
-			"/bin/umount %1", dev));
-		    }
-
-		    if (! is_unix)
+		    y2milestone ("Checking other partition %1", dev);
+		    if (! contains (others_ignore, dev))
 		    {
 			string g_dev = unixDev2grubDev (dev);
 			parts = remove (parts, 0);
@@ -346,35 +447,39 @@
 		});
 	    }
 	}
-	out = add (out, createLinuxSection (`failsafe));
-// FIXME: memtest if installed
-
-
+	out = add (out, $[
+	    "__order__" : ["title", "root", "chainloader"],
+	    "title" : "floppy",
+	    "root" : "(fd0)",
+	    "chainloader" : "+1",
+	]);
+	out = add (out, createLinuxSection ("failsafe"));
+	out = add (out, createLinuxSection ("memtest86"));
 	BootCommon::sections = out;
     }
 
+    /**
+      * Propose global options of bootloader
+      * modifies internal structures
+      */
     global define void createGlobals () ``{
 	map bcg = $[];
 	bcg["color"] = "white/blue black/light-gray";
-	bcg["default"] = "0";
+	bcg["default"] = 0;
 	bcg["timeout"] = 8;
+	bcg["gfxmenu"] = file2grub ("/boot/message");
 	BootCommon::globals = bcg;
     }
 
+    /**
+      * Update sections of bootloader menu
+      * modifies internal sreuctures
+      */
     global define list updateSections (boolean replace) ``{
-        string prefix = "";
-
-        if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice)
-            prefix = "/boot/";
-        else
-            prefix = "/";
-
-        string vgastring = "";
-
 	list out = BootCommon::sections;
 
-	foreach (`s, [nil, `failsafe], ``{
-	    map m = createLinuxSection (s);
+	foreach (`t, ["linux", "failsafe", "memtest86"], ``{
+	    map m = createLinuxSection (t);
 	    boolean changed = false;
 	    list out = maplist (`s, out, ``{
 		if (s["title"]:"" == m["title"]:"")
@@ -391,52 +496,119 @@
 		}
 	    });
 	    if (! changed)
-		out = add (out, m);
+		if (t == "normal")
+		    out = prepend (out, m);
+		else
+		    out = add (out, m);
 	});
 	BootCommon::sections = out;
     }
 
+    /**
+      * Update global options of bootloader
+      * modifies internal sreuctures
+      */
     global define void updateGlobals () ``{
         map bcg = BootCommon::globals;
         bcg["color"] = "white/blue black/light-gray";
         bcg["timeout"] = 8;
+	bcg["gfxmenu"] = file2grub ("/boot/message");
         BootCommon::globals = bcg;
     }
 
+    /**
+      * Fix sections of bootloader menu during proposal regeneration
+      * modifies internal sreuctures
+      */
     global define void fixSections (boolean disks_changed) ``{
-	list parts = BootCommon::getPartitionList(`parts_old);
-	BootCommon::sections = filter (`s, BootCommon::sections, ``{
-	    boolean contains = true;
-	    foreach (`n, s["__intern__", "devs"]:[], ``{
-		if (! contains (parts, n))
-		{
-		    contains = false;
-		}
-	    });
-	    if (contains)
-		return true;
-	    boolean ok = true;
-	    y2milestone ("sections %1 changed", s["title"]:"");
+	if (BootCommon::partitioning_last_change
+		!= Storage::GetTargetChangeTime()
+	    && BootCommon::files_edited)
+	{
+	    if (! BootCommon::files_edited_warned)
+	    {
+		displayFilesEditedPopup ();
+		BootCommon::files_edited_warned = true;
+	    }
+	    return;
+	}
+	list(map) old_sect_list = BootCommon::sections;
+	createSections ();
+	map new_sect = listmap (`s, BootCommon::sections, ``{
+	    return [s["title"]:"", s];
+	});
+	old_sect_list = maplist (`s, old_sect_list, ``{
+	    string title = s["title"]:"";
 	    if (! s["__intern__", "auto"]:false)
-	    {  // user created
-		return true;
+	    {
+		y2milestone ("Leaving section %1", title);
+		return s;
 	    }
 	    else if (! s["__intern__", "changed"]:false)
-	    { // not changed by user
-		return false;
+	    {
+		y2milestone ("Recreating section %1", title);
+		return new_sect[title]:$[];
 	    }
-	    UI::MessagePopup (sformat (_("Disk settings changed,
-please check section %1 settings"), s["title"]:""));
-	    return true;
+	    else
+	    {
+		y2milestone ("Warning on section %1", title);
+		boolean contains = true;
+		foreach (`n, s["__intern__", "devs"]:[], ``{
+		    if (! contains (parts, n))
+		    {
+			contains = false;
+		    }
+		});
+		if (! contains)
+		    displayDiskChangePopup (s["title"]:"");
+		return s;
+	    }
 	});
-	updateSections (false);
+	y2milestone ("Checking for sections needing some of %1", del_parts);
+	list(string) to_remove = [];
+	foreach (`s, BootCommon::sections, ``{
+	    list(string) devs = s["__intern__", "devs"]:[];
+	    y2milestone ("Section %1 needs %2", s["title"]:"", devs);
+	    boolean to_add = false;
+	    foreach (string d, devs, ``{
+		if (contains (del_parts, d))
+		{
+		    to_add = true;
+		}
+	    });
+	    if (to_add)
+	    {
+		map old_sect = listmap (`s, old_sect_list, ``{
+		    return [s["title"]:"", s];
+		});
+
+		string title = s["title"]:"";
+		if (title != "" && ! haskey(old_sect, title))
+		{
+		    y2milestone ("Adding %1", s);
+		    to_remove = add (to_remove, d);
+		    old_sect_list = add (old_sect_list, s);
+		}
+	    }
+	});
+	del_parts = BootCommon::difflist (del_parts, to_remove);
+	old_sect_list = filter (`s, old_sect_list, ``(s != $[]));
+	BootCommon::sections = old_sect_list;
     }
 
+    /**
+      * Fix global options of bootloader during proposal regeneration
+      * modifies internal sreuctures
+      */
     global define void fixGlobals (boolean disks_changed) ``{
-
+	if (size (BootCommon::sections) <= BootCommon::globals["default"]:0)
+	    BootCommon::globals["default"] = 0;
     }
 
-
+    /**
+      * Create strings representing cfg. files for by-hand editation
+      * @return map filename -> contents
+      */
     global define map GetFiles() ``{
 	BootCommon::saveCfgFileToAgent ();
 	grub_conf["device"] = unixDev2grubDev (BootCommon::loader_device);
@@ -448,16 +620,34 @@ please check section %1 settings"), s["title"]:""));
         ];
     }
 
+    /**
+      * Store strings representing cfg. files to internal structures
+      * @param files map filename -> contents
+      */
     global define void SetFiles (map files) ``{
+	BootCommon::files_edited_warned = false;
+	if ((devMap2string (device_map) != files["/boot/grub/device.map"]:"")
+	    || (SCR::Read (.grub.tostring) != files["/boot/grub/menu.lst"]:""))
+	{
+	    BootCommon::files_edited = true;
+	}
 	device_map = string2devMap (files["/boot/grub/device.map"]:"");
 	SCR::Write (.grub.fromstring, files["/boot/grub/menu.lst"]:"");
 	if (getGrubConf (grub_conf) != files["/etc/grub.conf"]:"")
+	{
+	    BootCommon::files_edited = true;
 	    BootCommon::location = "custom";
+	}
 	grub_conf = parseGrubConf (files["/etc/grub.conf"]:"");
 	BootCommon::loader_device = grubDev2unixDev (grub_conf["device"]:"");
 	BootCommon::loadCfgFileFromAgent ();
     }
 
+    /**
+      * Update bootlaoder configuration sequence
+      * @param ws_data map of wizard sequencer data
+      * @return map modified map of wizard sequencer data
+      */
     global define map FixSequence (map ws_data) ``{
 	map aliases = $[
 	    "order" : ``(BootGRUB::runOrderDialog ())
