@@ -877,6 +877,20 @@
 	     splitstring (BootCommon::kernelCmdLine, " "));
 	added = BootCommon::difflist (added, old);
 	old = merge (old, added);
+	if (Mode::initial)
+	{// move showopts apic to the end
+	    boolean showopts = false;
+	    boolean apic = false;
+	    if (contains (old, "showopts"))
+		showopts = true;
+	    if (contains (old, "apic"))
+		apic = true;
+	    old = filter (`o, old, ``(o != "apic" && o != "showopts"));
+	    if (showopts)
+		old = add (old, "showopts");
+	    if (apic)
+		old = add (old, "apic");
+	}
 	return mergestring (old, " ");
     }
 
