@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep 18 10:29:15 CEST 2003 - jsrain@suse.de
+
+- again adding maxcpus=0 to failsafe bootloader entry on AMD64
+  (#30519)
+
+-------------------------------------------------------------------
 Tue Sep 16 16:51:28 CEST 2003 - jsrain@suse.de
 
 - fixed merging of other GRUB menus (#30757)
