@@ -2,6 +2,7 @@
 Tue Mar  2 11:05:50 CET 2004 - jsrain@suse.de
 
 - finished making data types more strictly
+- fixed default section name in lilo.conf on PPC (#35229)
 
 -------------------------------------------------------------------
 Mon Mar  1 12:48:34 CET 2004 - jsrain@suse.de
