@@ -702,6 +702,7 @@ global define list getPartitionList() ``{
     list ret = all_disks;
     foreach (`d, all_disks, ``{
 	list partitions = SCR::Read (list2path (["disk", d, "partitions"]));
+	partitions = filter (`p, partitions, ``(is (p, map)));
 	partitions = filter (`p, partitions,
 	    ``(lookup (p, "type", `primary) == `primary || lookup (p, "type", `primary) == `extended));
 	partitions = filter (`p, partitions,
@@ -709,7 +710,6 @@ global define list getPartitionList() ``{
 	partitions = maplist (`p, partitions, ``{return sformat ("%1%2", d, lookup (p, "nr", 0));});
 	ret = union (ret, partitions);
     });
-    y2error ("Returning: %1", ret);
     return ret;
 }
 

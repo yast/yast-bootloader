@@ -91,7 +91,7 @@
     /**
      * @return list of strings: Other installed operating systems
      */
-    global list others = [""];
+    global list others = [];
 
     /**
      * @return boolean: IDE and SCSI System
@@ -486,6 +486,21 @@
 
 	if( Arch::s390 )
 	    LoaderType = "s390";
+
+	map m = SCR::Read (.target.ycp, "/var/lib/YaST2/bootloader");
+	if (m == nil || ! is (m, map))
+	    m = $[];
+	map orig = lookup (m, "original", $[]);
+	orig = add (orig, "device", device);
+	m = add (m, "original", orig);
+	SCR::Write (.target.ycp, "/var/lib/YaST2/bootloader", m);
+        if (Boot::BootPartitionDevice == "" || Boot::RootPartitionDevice == "")
+        {
+            import "Lilo";
+            Boot::BootPartitionDevice = lookup (lookup (Lilo::partmap, `boot, $[]), "dev", "/dev/hda3");
+            Boot::RootPartitionDevice = lookup (lookup (Lilo::partmap, `root, $[]), "dev", "/dev/hda3");
+            Boot::others = Storage::GetForeignPrimary();
+        }
 
 	SCR::Execute (.target.bash, "touch /etc/sysconfig/bootloader");
 

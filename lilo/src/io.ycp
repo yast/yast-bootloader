@@ -132,7 +132,15 @@ global define void restoreOriginalSettings() ``{
     {
         SCR::Execute (.target.bash, "/bin/cp /etc/lilo.conf /etc/lilo.conf.bak");
     }
-    if (boot () == "grub")
+    import "Boot";
+    Boot::Write ();
+    restoredLilo = true;
+    SCR::UnmountAgent (.grub);
+    SCR::UnmountAgent (.lilo);
+    SCR::UnmountAgent (.silo);
+    SCR::UnmountAgent (.elilo);
+
+/*    if (boot () == "grub")
     {
 	import "BootGRUB";
 	BootGRUB::Write ();
@@ -145,7 +153,7 @@ global define void restoreOriginalSettings() ``{
 	BootLILO::Write();
 	restoredLilo = true;
 	SCR::UnmountAgent( .lilo );
-    }
+    }*/
 
     Lilo::Read(``{});
     UI::`CloseDialog();
