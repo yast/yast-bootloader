@@ -384,7 +384,7 @@ enter them in the corresponding input field. Most users will not need this.
 	if (ret == `next || ret == `back)
 	{
 	    any option = UI::QueryWidget (`id(`options), `CurrentButton);
-		y2milestone("fooXXoption %1", option);
+	    y2milestone("option %1", option);
 	    if (option == nil)
 	    {
 		if ( ret == `next )
