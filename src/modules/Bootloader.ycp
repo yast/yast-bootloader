@@ -45,6 +45,8 @@
     global define void ReadOrProposeIfNeeded ();
     global define string getDefaultSection ();
     global define string getKernelParam (string section, string key);
+    global define boolean setKernelParam (string section, string key, string value);
+    global define list<string> listKernelParams (string section);
     global define string getLoaderType ();
 
 
@@ -234,6 +236,36 @@
     global define list<string> Summary () ``{
 	return blSummary ();
     }
+
+    /**
+      * Update read settings to new version of configuration files
+      */
+    global define void Update () ``{
+	// first run bootloader-specific update function
+	blUpdate ();
+
+	// remove ide-scsi emulation
+	list<string> parameters = listKernelParams ("LINUX_DEFAULT");
+	foreach (string p, parameters, ``{
+	    if (regexpmatch (p, "^hd.=ide-scsi$")
+		|| regexpmatch (p, "^hd.lun=.*$"))
+	    {
+		string param = regexpsub (p, "^(.*)=.*$", "\\1");
+		setKernelParam ("LINUX_DEFAULT", param, nil);
+	    }
+	});
+	// remove no more needed modules from MODULES_LOADED_ON_BOOT
+	string mlob = (string)
+	    SCR::Read (.sysconfig.kernel.MODULES_LOADED_ON_BOOT);
+	list<string> mod_list = splitstring (mlob, " ");
+	mod_list = filter (string s, mod_list, ``(
+	    s != "" && s != "cdrom" && s != "ide-cd" && s != "ide-scsi"
+	));
+	mlob = mergestring (mod_list, " ");
+	SCR::Write (.sysconfig.kernel.MODULES_LOADED_ON_BOOT, mlob);
+	SCR::Write (.sysconfig.kernel, nil);
+    }
+
     /**
       * Write bootloader settings to disk
       * @return boolean true on success
@@ -388,7 +420,7 @@
       */
     global define void SetWriteMode (map settings) ``{
 	y2milestone ("Setting mode for writing: %1", settings);
-	foreach (`k, `v, settings, ``{
+	foreach (string k, any v, settings, ``{
 	    BootCommon::write_settings[k] = v;
 	});
     }
@@ -475,6 +507,37 @@
 		BootCommon::sections[sectnum]:[], params[`other]:"", "");
 	    return BootCommon::getKernelParamFromLine (line, key);
 	}
+    }
+
+    /**
+      * List kernel parameters
+      * @param section string section title, use DEFAULT for default section
+      * @return a list of kernel parameters (in the form 'hdd=ide-scsi')
+      */
+    global define list<string> listKernelParams (string section) ``{
+	ReadOrProposeIfNeeded ();
+	if (section == "DEFAULT")
+	    section = getDefaultSection ();
+	else if (section == "LINUX_DEFAULT")
+	    section = getProposedDefaultSection ();
+	if (section == nil)
+	    return [];
+	map params = BootCommon::getKernelParamKeys ();
+	string label = BootCommon::getSectionTitle ();
+	integer sectnum = -1;
+	integer index = -1;
+	foreach (list<map> s, BootCommon::sections, ``{
+	    index = index + 1;
+	    if (lookup_value (s, label, "") == section)
+		sectnum = index;
+	});
+	if (sectnum == -1)
+	    return [];
+	string line = (string)lookup_value (
+	    BootCommon::sections[sectnum]:[], params[`other]:"", "");
+        list<string> par = splitstring (line, " ");
+        par = filter (string p, par, ``(p != ""));
+	return par;
     }
 
     /**
@@ -642,7 +705,7 @@
                 Read ();
 		if (Mode::update)
 		{
-		    blUpdate ();
+		    Update ();
 		    BootCommon::changed = true;
 		    BootCommon::location_changed = true;
 		}
