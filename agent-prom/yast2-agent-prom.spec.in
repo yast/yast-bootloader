@@ -8,7 +8,7 @@
 #
 # please send bugfixes or comments to @MAINTAINER@
 
-# neededforbuild  autoconf automake gpp libgpp ydoc libycp libycp-devel liby2 liby2-devel libscr libscr-devel
+# neededforbuild  yast2-devtools autoconf automake gpp libgpp ydoc libycp libycp-devel liby2 liby2-devel libscr libscr-devel
 
 Vendor:		SuSE GmbH, Nuernberg, Germany
 Distribution:	SuSE Linux 7.1 (i386)

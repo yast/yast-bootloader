@@ -17,3 +17,4 @@ ltmain.sh
 missing
 mkinstalldirs
 autom4te.cache
+Makefile.am
