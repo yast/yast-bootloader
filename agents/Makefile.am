@@ -8,7 +8,9 @@ fillup_DATA = sysconfig.bootloader
 
 fillupdir = /var/adm/fillup-templates
 
-EXTRA_DIST = $(scrconf_DATA) $(fillup_DATA) 
+SYSCONFIGSOURCES = $(wildcard sysconfig.bootloader.*)
+
+EXTRA_DIST = $(scrconf_DATA) $(SYSCONFIGSOURCES)
 
 if I386_OR_AMD64
 sysconfig.bootloader : sysconfig.bootloader.i386
