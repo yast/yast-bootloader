@@ -117,6 +117,7 @@
 	ret = Bootloader::Write();
     }
     else if (func == "Read") {
+	Initrd::Read ();
 	ret = Bootloader::Read();
     }
 

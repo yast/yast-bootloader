@@ -3,6 +3,8 @@ Fri Mar 14 13:26:39 CET 2003 - jsrain@suse.de
 
 - fixed behaviour when iditing empty section, when creating new 
   section, add most common keys (#25305)
+- fixed initrd modules cloning (#25351)
+- 2.7.16 
 
 -------------------------------------------------------------------
 Tue Mar 11 12:55:43 CET 2003 - jsrain@suse.de

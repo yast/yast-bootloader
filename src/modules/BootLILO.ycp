@@ -121,12 +121,13 @@
       */
     global define boolean Read () ``{
 	BootCommon::DetectDisks ();
-	BootCommon::Read ();
+	boolean ret = BootCommon::Read ();
 	BootCommon::loader_device
 	    = SCR::Read(BootCommon::list2path(["lilo", "boot"]));
 	if (BootCommon::globals["default"]:"" == "")
 	    BootCommon::globals["default"]
 		= BootCommon::sections[0, "label"]:"";
+	return ret;
     }
 
     /**
