@@ -246,6 +246,14 @@
 	{
 //	    Boot ();
 	    last_change = Storage::GetTargetChangeTime();
+
+	    // don't change configuration if partitioning
+	    // was changed and location is floppy
+	    if (Boot::location == "floppy")
+	    {
+		return;
+	    }
+
 	    device = "";
 	    location = "";
 	}

@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Sep 11 14:02:12 CEST 2002 - lslezak@suse.cz
+
+- don't change configuration if partitioning was changed
+  and bootloader location is floppy (at installation proposal) (#19388)
+- allow installation on extended partition (at installation) (#19184)
+- version 2.6.48
+
+-------------------------------------------------------------------
 Tue Sep 10 18:30:26 CEST 2002 - kkaempf@suse.de
 
 - ppc bugfix #18849

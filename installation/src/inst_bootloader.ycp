@@ -112,7 +112,10 @@
 	list parts = lookup (cont, "partitions", []);
 	parts = filter (`p, parts, ``(is (p, map)));
 	parts = filter (`p, parts, ``(lookup (p, "lvm_group", "") == "" && lookup (p, "raid_name", "") == "" && ! lookup (p, "delete", false)));
-	parts = filter (`p, parts, ``(lookup (p, "type", `primary) == `primary || lookup (p, "type", `primary) == `extended));
+
+	// TODO: filters out this call something after `logical was added? Is this filter call still needed?
+	parts = filter (`p, parts, ``(lookup (p, "type", `primary) == `primary || lookup (p, "type", `primary) == `extended || lookup (p, "type", `primary) == `logical));
+
 	parts = filter (`p, parts, ``(lookup (p, "fstype", "") != "Linux swap"));
 
 	foreach (`p, parts, ``{
