@@ -123,13 +123,6 @@
 		    iseries_write_prepboot = true;
 		    if (prep_boot_partition == "/dev/null")
 		    {
-			if (regexpmatch (target, "^/dev/hd.*$"))
-			{
-			    target = regexpsub (
-				target,
-				"^/dev/hd(.*)$",
-				"/dev/iseries/vd\\1");
-			}
 			prep_boot_partition = target;
 		    }
 		}
@@ -144,6 +137,15 @@
 	    }
 	});
 	iSeriesAssignDevice ();
+	return true;
+    }
+
+    /**
+      * Update the board-type-specific settings
+      * @return boolean true on success
+      */
+    global define boolean iSeriesUpdate () ``{
+	prep_boot_partition = BootCommon::UpdateDevice (prep_boot_partition);
 	return true;
     }
 

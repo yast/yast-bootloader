@@ -63,6 +63,14 @@
     }
 
     /**
+      * Update the board-type-specific settings
+      * @return boolean true on success
+      */
+    global define boolean PRePUpdate () ``{
+	return true;
+    }
+
+    /**
       * Save the board-type-specific settings
       * @return boolean true on success
       */
