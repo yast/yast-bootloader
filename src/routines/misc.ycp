@@ -389,7 +389,7 @@
 		``{return x["device"]:"";
 	    });
         partitions = filter (map p, partitions, ``(! p["delete"]:false));
-	list ret = all_disks;
+	list<string> ret = all_disks;
 	if (type == `boot_other || type == `root || type == `parts_old)
             ret = [];
 
@@ -428,8 +428,8 @@
 	    = maplist (map p, partitions, ``((string)(p["device"]:"")));
 	partition_names = filter (string p, partition_names, ``(p != ""));
         partition_names = (list<string>)merge (partition_names, floppies);
-        ret = union (ret, partitions);
-	ret = toset (ret);
+        ret = (list<string>)union (ret, partition_names);
+	ret = (list<string>)toset (ret);
 	return (list<string>)ret;
     }
 
@@ -1497,5 +1497,29 @@
 	return filtered;
     }
 
+    /**
+      * Check if device is MBR of a disk
+      * @param device string device to check
+      * @return boolean true if is MBR
+      */
+    global define boolean IsMbr (string device) ``{
+	if (regexpmatch (device, "^\/dev\/[a-z]+$"))
+	    return true;
+	if (regexpmatch (device, "^\/dev\/[a-z]+\/.*d[0-9]+$"))
+	    return true;
+	return false;
+    }
+
+    /**
+      * Add '(MBR)' to the disk description if it is a MBR of some partition
+      * @param descr string disk description
+      * @param device string disk device
+      * @return string updated description
+      */
+    global define string AddMbrToDescription (string descr, string device) ``{
+	return IsMbr (device)
+	    ? sformat ("%1 (MBR)", descr)
+	    : descr;
+    }
 
 } //end of include
