@@ -277,7 +277,7 @@ the BIOS of your machine to use this option.
     // custom bootloader help text, 4 of 9
     helptext = helptext + _("<p>
 - In the <b>/boot</b> partition.  Choose this option if you
-have installed several operating systems on your hard drive and want to
+have several operating systems installed on your hard drive and want to
 continue using your old boot manager, such as <tt>loadlin</tt>. No changes
 will be made to the existing MBR.<br>
 The boot manager is always installed on the <b>/boot</b> partition.

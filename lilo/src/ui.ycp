@@ -191,7 +191,8 @@ global define symbol SummaryDialog() ``{
             {
 		// popup
                 message = _("Settings will be saved to disk
-and bootloader will be removed.");
+and the boot loader will be removed.
+");
             }
             else
             {
@@ -968,8 +969,9 @@ global define symbol OtherSectDlg() ``{
 	    else if (lab != sectname_orig && checkSectionExistence(toascii(lab)))
 	    {
 		// popup
-		UI::`MessagePopup(_("Section with given label already exists.
-Please enter new section label."));
+		UI::`MessagePopup(_("A section with given label already exists.
+Enter new section label.
+"));
 		action = `skip_event;
 	    }
 	    else
@@ -1090,7 +1092,7 @@ global define symbol OSTypeDlg() ``{
 
 global define symbol GlobalOptsDlg() ``{
 	// caption
-    string  caption = _("Global bootloader properties");
+    string  caption = _("Global Boot Loader Properties");
     string  help = lookup(HELP_STRINGS, "global_opts_dialog", "");
 
     term    widget = GlobalOptsWidget();
@@ -1188,8 +1190,9 @@ global define symbol GlobalOptsDlg() ``{
 		if (ps1 != ps2)
 		{
 			// popup
-		    UI::`MessagePopup(_("Values in 'Password' and 'Retype password'
-fields differ. Please retype password."));
+		    UI::`MessagePopup(_("'Password' and 'Retype password'
+do not match. Retype the password.
+"));
 		    action=`skip_event;
 		}
 		else
@@ -1511,8 +1514,9 @@ global define symbol ExpertGrubConfDialog () ``{
     string tmpdir = SCR::Read(.target.tmpdir);
     string tmpfile = tmpdir + "/grub.conf.tmp";
     // help text in dialog
-    string help =  _("<P><B>Expert manual configuration</B><BR>Here you can manually edit bootloader configuration.</P>
-<P>Note: Final configuration file can have different indenting.</P>");
+    string help =  _("<P><B>Expert manual configuration</B><BR>Here, manually edit the boot loader configuration.</P>
+<P>Note: Final configuration file can have different indenting.</P>
+");
 
     saveGrubConfTo (Lilo::grub_set, tmpfile);
     string multi = SCR::Read(.target.string, tmpfile);
@@ -1520,7 +1524,7 @@ global define symbol ExpertGrubConfDialog () ``{
     term content = `VBox(
         `VSpacing(1),
         // multi line text widget label
-        `MultiLineEdit(`id(`editor), _("Bootloader &configuration:"), multi),
+        `MultiLineEdit(`id(`editor), _("Boot loader &configuration:"), multi),
         `VSpacing(1)
     );
 
@@ -1554,11 +1558,12 @@ global define symbol ExpertDialog() ``{
     string tmpdir = SCR::Read(.target.tmpdir);
     string tmpfile = tmpdir + "/bootloader.conf.tmp";
     // help text in dialog
-    string help =  _("<P><B>Expert manual configuration</B><BR>Here you can manually edit bootloader configuration.</P>
-<P>Note: Final configuration file can have different indenting.</P>");
+    string help =  _("<P><B>Expert manual configuration</B><BR>Here, manually edit the boot loader configuration.</P>
+<P>Note: Final configuration file can have different indenting.</P>
+");
     if (Lilo::mode == `grub)
 	// help text continuing
-	help = help + _("<P>To edit grub.conf file select <B>Edit /etc/grub.conf</B></P>");
+	help = help + _("<P>To edit grub.conf, select <B>Edit /etc/grub.conf</B>.</P>");
 
     // store lilo.conf to temporary file
     Lilo::WriteTest(tmpfile);
@@ -1567,7 +1572,7 @@ global define symbol ExpertDialog() ``{
     term content = `VBox(
 	`VSpacing(1),
 	// multi line text widget label
-	`MultiLineEdit(`id(`editor), _("Bootloader &configuration:"), multi),
+	`MultiLineEdit(`id(`editor), _("Boot loader &configuration:"), multi),
 	`VSpacing(1),
 	// pushbutton
 	Lilo::mode == `grub ? `PushButton (`id (`grub_conf), _("Edit /etc/&grub.conf")) : `VSpacing (0),
@@ -1780,12 +1785,12 @@ global define map AddOption(list optlist, string val, string origVal) ``{
 	    {
 		if (size (optlist) == 1)
 		    // help 1/3 alt. 1
-		    help = _("Set value of selected option.");
+		    help = _("Set the value of the selected option.");
 		else
 		    // help 1/3 alt. 2
-		    help = _("Set option name and it's value.");
+		    help = _("Set the option name and its value.");
 		    // help 2/3
-		string h2 = _("For help please look into the documentation of your bootloader. ");
+		string h2 = _("For help, refer to the documentation of your boot loader. ");
 		    // help 3/3
 		string h3 = _("If you set improper values, your system may be unbootable.");
 		help = sformat ("<P>%1 %2 %3</P>", help, h2, h3);
