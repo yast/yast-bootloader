@@ -143,25 +143,25 @@
 // run Progress bar
         list stages = [
             // progress stage, text in dialog (short)
-            _("Create initrd."),
+            _("Creating initrd..."),
             // progress stage, text in dialog (short)
-            _("Save bootloader configuration files."),
+            _("Saving boot loader configuration files..."),
             // progress stage, text in dialog (short)
-            _("Install bootloader"),
+            _("Installing boot loader..."),
         ];
         list titles = [
             // progress stage, text in dialog (short)
             _("Creating initrd..."),
             // progress stage, text in dialog (short)
-            _("Saving bootloader configuration files..."),
+            _("Saving boot loader configuration files..."),
             // progress stage, text in dialog (short)
-            _("Installing bootloader..."),
+            _("Installing boot loader..."),
         ];
         // progress bar caption
         if (Mode::normal)
 	{
 	    // progress line
-            Progress::New (_("Saving bootloader configuration..."),
+            Progress::New (_("Saving boot loader configuration..."),
                 " ", 2, stages, titles, BootCommon::getSaveProgressHelp ());
 	    Progress::NextStage ();
 	}

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan 29 13:23:45 CET 2003 - jsrain@suse.de
+
+- patched proofread texts
+
+-------------------------------------------------------------------
 Tue Jan 28 13:43:45 CET 2003 - jsrain@suse.de
 
 - fixed compilation of MBR only on selected platforms

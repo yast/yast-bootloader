@@ -366,7 +366,7 @@
 	    "handle" : ``(BootGRUB::handleOrderPopup ()),
 	    "summary" : ``(BootGRUB::orderSummary ()),
 		// label / table cell
-	    "label" : _("Disks order"),
+	    "label" : _("Disks Order"),
 	    "deletable" : false,
 	    "help" : getDiskOrderHelp (),
 	];

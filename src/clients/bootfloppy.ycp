@@ -110,10 +110,10 @@ define string floppyHelpSelectImage() ``{
     // help text
   string help_text = UI (_("<p>
 
-To create a boot, modules or, rescue floppy,
+To create a boot, modules, or rescue floppy,
 select the appropriate item from the list and
-click <b>Next</b> to start.</p>"
-			   ));
+click <b>Next</b> to start.</p>
+"));
 
   if ( i386disk_found || bootdisk_found )
   {
@@ -272,7 +272,9 @@ define symbol floppySelectImage() ``{
       moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules4"),
 								       `opt(`notify),
 								    // radio button
-								       _("&PCMCIA, old (non-ATAPI) CDROM, FireWire\nand file systems (modules disk 4)"), b_modules4)));
+								       _("&PCMCIA, Old (non-ATAPI) CD-ROM, FireWire,
+and File Systems (modules disk 4)
+"), b_modules4)));
   }
 
   term g_bootdisks_term = `Frame (

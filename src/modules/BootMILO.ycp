@@ -67,7 +67,7 @@
     }
 
     global define list(string) Summary () ``{
-	return [_("Install MILO bootloader")];
+	return [_("Install MILO Boot Loader")];
     }
 
     /**
