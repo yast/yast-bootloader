@@ -145,7 +145,7 @@ Do you want to try again?")) )
 	{
 	    if (0 != SCR::Execute(.target.bash, command))
 		// error popup
-		UI::ErrorPopup ("An error occured during saving bootloader configuration");
+		UI::ErrorPopup (_("An error occured during saving bootloader configuration"));
 	}
     }
 
@@ -443,7 +443,7 @@ Do you want to try again?")) )
 	    return 0 == SCR::Execute (.target.bash, sformat ("/sbin/sfdisk -A%1 %2", part, boot_sect));
 	}
 	if (! ret)
-	    UI::ErrorPopup ("An error occured during saving bootloader configuration");
+	    UI::ErrorPopup (_("An error occured during saving bootloader configuration"));
 	return ret;
     }
 
