@@ -484,9 +484,17 @@
 	list<string> stage1 = splitDevPath (file2grub ("/boot/grub/stage1"));
 	list<string> stage2 = splitDevPath (file2grub ("/boot/grub/stage2"));
 
-	map dev_info = Storage::GetDiskPartition (BootCommon::loader_device);
+	string s1_part = BootCommon::loader_device;
+	if (s1_part == "mbr_md")
+	{
+	    s1_part = BootCommon::BootPartitionDevice;
+	}
+	s1_part = BootCommon::Md2Partition (s1_part);
+	map dev_info = Storage::GetDiskPartition (s1_part);
 	string s1_dev = dev_info["disk"]:"";
-	dev_info = Storage::GetDiskPartition (grubDev2unixDev (stage2[0]:""));
+	string s2_part = grubDev2unixDev (stage2[0]:"");
+	s2_part = BootCommon::Md2Partition (s2_part);
+	dev_info = Storage::GetDiskPartition (s2_part);
 	string s2_dev = dev_info["disk"]:"";
 
 	string discswitch = "";
