@@ -28,7 +28,6 @@
     import "BootCommon";
     import "BootPPC";
 
-    include "bootloader/ppc/widgets.ycp";
     include "bootloader/ppc/misc.ycp";
     include "bootloader/routines/popups.ycp";
 
@@ -64,7 +63,8 @@
       * @return boolean true on success
       */
     global define boolean PRePRead () ``{
-	prep_boot_partition = lookup_value (BootCommon::globals, "boot", "");
+	prep_boot_partition = (string)
+	    lookup_value (BootCommon::globals, "boot", "");
 	BootCommon::loader_device = prep_boot_partition;
 	BootCommon::activate
 	    = prep_boot_partition != "" && prep_boot_partition != "/dev/null";

@@ -28,10 +28,69 @@
     import "BootCommon";
     import "BootPPC";
 
-    include "bootloader/ppc/widgets.ycp";
     include "bootloader/ppc/misc.ycp";
     include "bootloader/routines/popups.ycp";
 
+
+// misc. functions
+
+    /**
+      * Get the type of target (just a simple heuristic)
+      * @param target bootloader target
+      * @return symbol `slot, `prep, `file or `unknown
+      */
+    global define symbol iSeriesTarget2Type (string target) ``{
+	// one big letter means slot
+	if (size (target) == 1 && target == toupper (target))
+	{
+	    return `slot;
+	}
+	// /dev/ at the beginning means device, hopefully PReP partition
+	else if (substring (target, 0, 5) == "/dev/")
+	{
+	    return `prep;
+	}
+	// files should begin with the absolute path
+	else if (substring (target, 0, 1) == "/")
+	{
+	    return `file;
+	}
+	// didn't realize what it is -> unknown
+	return `unknown;
+    }
+
+    /**
+      * Assign the Boot::loader_device variable
+      */
+    global define void iSeriesAssignDevice () ``{
+	// the last entry wins
+	BootCommon::loader_device = "";
+	if (iseries_write_streamfile)
+	{
+	    BootCommon::loader_device = iseries_streamfile;
+	}
+
+	if (iseries_write_prepboot)
+	{
+	    BootCommon::loader_device = prep_boot_partition;
+	}
+
+	if ( iseries_write_slot_b )
+	{
+	    BootCommon::loader_device = "B";
+	}
+	if ( !  ( iseries_write_prepboot ||
+	    iseries_write_slot_b   ||
+	    iseries_write_slot_a   ||
+	    iseries_write_streamfile ) )
+	{
+	    BootCommon::activate = false;
+	}
+	else
+	{
+	    BootCommon::activate = true;
+	}
+     }
 
 
 // general functions
@@ -201,7 +260,7 @@
 	string iseries_bootbinary = "/boot/vmlinux64";
 	if (requires_initrd)
 	{
-	    iseries_bootbinary = SCR::Read (.target.tmpdir)
+	    iseries_bootbinary = (string)SCR::Read (.target.tmpdir)
 		+ "/vmlinux64.initrd";
 	    SCR::Execute (.target.bash, "/bin/addRamDisk64 /boot/initrd $(rpm -ql kernel-iseries64 | grep ^/lib/modules/.\\\*/System.map$)  $(rpm -ql kernel-iseries64 | grep ^/lib/modules/.\\\*/vmlinux$) " + iseries_bootbinary + " >> /var/log/YaST2/y2loglilo_iseries_bootbinary 2>&1 " );
 	}
@@ -261,64 +320,6 @@
 	table_items = [ "__iseries_location" ];
     }
 
-    /**
-      * Assign the Boot::loader_device variable
-      */
-    global define void iSeriesAssignDevice () ``{
-	// the last entry wins
-	BootCommon::loader_device = "";
-	if (iseries_write_streamfile)
-	{
-	    BootCommon::loader_device = iseries_streamfile;
-	}
-
-	if (iseries_write_prepboot)
-	{
-	    BootCommon::loader_device = prep_boot_partition;
-	}
-
-	if ( iseries_write_slot_b )
-	{
-	    BootCommon::loader_device = "B";
-	}
-	if ( !  ( iseries_write_prepboot ||
-	    iseries_write_slot_b   ||
-	    iseries_write_slot_a   ||
-	    iseries_write_streamfile ) )
-	{
-	    BootCommon::activate = false;
-	}
-	else
-	{
-	    BootCommon::activate = true;
-	}
-     }
-
-
-    /**
-      * Get the type of target (just a simple heuristic)
-      * @param target bootloader target
-      * @return symbol `slot, `prep, `file or `unknown
-      */
-    global define symbol iSeriesTarget2Type (string target) ``{
-	// one big letter means slot
-	if (size (target) == 1 && target == toupper (target))
-	{
-	    return `slot;
-	}
-	// /dev/ at the beginning means device, hopefully PReP partition
-	else if (substring (target, 0, 5) == "/dev/")
-	{
-	    return `prep;
-	}
-	// files should begin with the absolute path
-	else if (substring (target, 0, 1) == "/")
-	{
-	    return `file;
-	}
-	// didn't realize what it is -> unknown
-	return `unknown;
-    }
 
 
 } // EOF
