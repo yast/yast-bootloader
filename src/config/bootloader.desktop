@@ -1,0 +1,57 @@
+[Desktop Entry]
+Type=Application
+Categories=Qt;X-SuSE-YaST-System;
+
+X-KDE-ModuleType=Library
+X-KDE-RootOnly=true
+X-KDE-HasReadOnlyMode=true
+X-KDE-Library=yast2
+X-KDE-FactoryName=bootloader
+
+X-SuSE-YaST-Group=System
+X-SuSE-YaST-Argument=
+X-SuSE-YaST-RootOnly=true
+X-SuSE-YaST-AutoInst=configure
+X-SuSE-YaST-Geometry=
+X-SuSE-YaST-SortKey=
+X-SuSE-YaST-AutoinstResource=
+
+Icon=boot
+Exec=/sbin/yast2 bootloader 
+
+Name=Boot Loader Configuration
+GenericName=Bootloader configuration
+Name[cs]=Konfigurace zavaděče
+GenericName[cs]=Konfigurace zavaděče
+Name[de]=Konfiguration des Bootloaders
+GenericName[de]=Konfiguration des Bootloaders
+Name[es]=Configuración del cargador de arranque
+GenericName[es]=Configuración del cargador de arranque
+Name[hu]=Rendszertöltő beállítása
+GenericName[hu]=Rendszertöltő beállítása
+Name[it]=Configurazione bootloader
+GenericName[it]=Configurazione del bootloader
+Name[ko]=부트 로더 설정
+GenericName[ko]=부트 로더 설정
+Name[nl]=Bootloader configuratie
+GenericName[nl]=Bootloader configuratie
+Name[pt]=Configuração do Bootloader
+GenericName[pt]=Configuração do Bootloader
+Name[sk]=Správca štartu
+GenericName[sk]=Správca štartu
+Name[sv]=Ställ in starthanterare
+GenericName[sv]=Ställ in starthanterare
+Name[bg]=Настройка на зареждането на ОС
+GenericName[bg]=Настройка на зареждането на ОС
+GenericName[da]=Konfiguration af opstartsindlæser
+Name[el]=Ρύθμιση του Bootloader
+GenericName[el]=Ρύθμιση του Bootloader
+Name[fr]=Configuration du chargeur d'amorçage
+GenericName[fr]=Configuration du chargeur d'amorçage
+Name[ja]=ブート・ローダーの設定
+GenericName[ja]=ブートマネジャーの設定
+GenericName[lt]=Įkrovos tvarkyklės konfigūracija
+Name[sl]=Prilagoditev zagonskega nalagalnika
+GenericName[sl]=Nastavitev zagonskega programa
+Name[tr]=Açılış yükleyici yapılandırması
+GenericName[tr]=Açılış yükleyicisi yapılandırması
