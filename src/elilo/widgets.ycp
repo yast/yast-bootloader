@@ -22,7 +22,6 @@
 
     import "Label";
     import "Mode";
-    import "BootELILO";
     import "BootCommon";
     import "TablePopup";
     include "bootloader/routines/popups.ycp";

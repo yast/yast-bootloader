@@ -1,0 +1,65 @@
+#!/usr/bin/perl -w
+# update the partition layout on IPF
+
+$rootfs = "";
+$bootfs = "$rootfs/boot";
+$efifs = "$rootfs/boot/efi";
+$fstab = "$rootfs/etc/fstab";
+
+# determine device holding /boot filesystem from /etc/fstab
+sub GetBootDev {
+    open (IN, "$fstab") || die "failed to open $fstab for reading";
+    my $ret = undef;
+    while ($line = <IN>) {
+	chomp $line;
+	if ($line =~ /^([^ \t]+)[ \t]+\/boot[ \t]+.*$/)
+	{
+	    $ret = $1;
+	}
+    }
+    close (IN);
+    return $ret;
+}
+
+# unmount /boot (or /boot/efi) partition
+sub UnmountBootPartition {
+    system ("/bin/umount $bootdev") == 0 || die "Umounting $bootdev failed";
+}
+
+#update mountpoints in /etc/fstab (/boot -> /boot/efi)
+sub UpdateFstab {
+    system ("/bin/cp $fstab $fstab.tmp") == 0
+	|| die "cannot copy $fstab to $fstab.tmp";
+    open (IN, "$fstab.tmp") || die "failed to open $fstab.tmp for reading";
+    open (OUT, ">$fstab") || die "failed to open $fstab for writing";
+    while ($line = <IN>) {
+	chomp $line;
+	if ($line =~ /^[^ \t]+[ \t]+\/boot[ \t]+.*$/)
+	{
+	    $line =~ s/^([^ \t]+[ \t]+)\/boot([ \t]+.*)$/$1\/boot\/efi$2/;
+	}
+	print OUT "$line\n";
+    }
+    close (IN);
+    close (OUT);
+    system ("/bin/rm $fstab.tmp");
+}
+
+# mount the /boot/efi partition
+sub MountBootPartition {
+    system ("mkdir -p $efifs") == 0|| die "Failed to create EFI mount point";
+    system ("/bin/mount $bootdev $efifs") == 0|| die "Failed to mount the EFI partition";
+}
+
+#copy files from /boot/efi/* to /boot (everything except efi)
+sub MoveFiles {
+    system ("cd $efifs; mv `ls |grep -v '^efi\$'` $bootfs")
+	|| die "Copying files from $efifs to $bootfs failed";
+
+}
+
+$bootdev = GetBootDev () || die "Failed to determine the device with the EFI partition";
+UnmountBootPartition ();
+UpdateFstab ();
+MountBootPartition ();
+MoveFiles ();
