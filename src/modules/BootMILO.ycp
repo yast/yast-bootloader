@@ -90,16 +90,17 @@
       * @return boolean true on success
       */
     global define boolean Write () ``{
+	string tmpfile = SCR::Read (.target.tmpdir) + "boot.conf";
         string docmd = "/usr/lib/YaST2/bin/do"
-	    + BootCommon::getLoaderType (false) + " /";
+	    + BootCommon::getLoaderType (false) + " / " + tmpfile;
 
         // prepare /tmp/boot.conf
         byteblock milo_buffer = WFM::Read(.local.byte, Installation::sourcedir+ "/milo/boot.conf");
-        SCR::Write(.target.byte, "/tmp/boot.conf", milo_buffer);
+        SCR::Write(.target.byte, tmpfile, milo_buffer);
         // install milo in /boot
         SCR::Execute (.target.bash, docmd);
         // remove /tmp/boot.conf
-        SCR::Execute (.target.remove, "/tmp/boot.conf");
+        SCR::Execute (.target.remove, tmpfile);
 
         return true;
     }
