@@ -911,7 +911,6 @@
 			option = regexpsub (option,
 			    "^(.*)\.shipped(.*)$", "\\1\\2");
 		    }
-		    p["value"] = option;
 		    else if (regexpmatch (option, "^.*\.suse.*$"))
 		    {
 			option = regexpsub (option,
