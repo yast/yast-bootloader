@@ -341,8 +341,7 @@ and File Systems (modules disk 4)"))),
 	else
 	{
 	    Wizard::HideBackButton();
-	    Wizard::ReplaceAbortButton (
-		`PushButton (`id (`abort), Label::CancelButton ()));
+	    Wizard::SetAbortButton(`abort, Label::CancelButton () );
 	    UI::SetFocus (`id ("bootdisk"));
 	    string image_item = file_image;
 	    if (substring (image_item, 0, 7) == "modules")
