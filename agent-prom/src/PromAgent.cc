@@ -43,6 +43,8 @@ YCPValue PromAgent::Dir(const YCPPath& path)
  */
 YCPValue PromAgent::Read(const YCPPath &path, const YCPValue& arg = YCPNull())
 {
+  y2debug ("PromAgent::Read (.prom%s)", path->toString().c_str());
+
   if (path->length() == 1)
     {
       if (strcasecmp (path->component_str(0).c_str(), "hasaliases") == 0)
@@ -71,13 +73,16 @@ YCPValue PromAgent::Read(const YCPPath &path, const YCPValue& arg = YCPNull())
 
 	  close (promfd);
 
-	  if (strrchr (arg->toString().c_str(),'/') == NULL)
-	    dev = strdup (arg->toString().c_str());
-	  else
-	    dev = strdup (strrchr (arg->toString().c_str(), '/'));
+	  if (arg.isNull() || !arg->isString())
+            return YCPError ("Bad device name in call to Read(.prom.path)");
 
-	  ++dev;
-	  dev[strlen(dev) - 1] = '\0';
+	  if (strrchr (arg->asString()->value().c_str(),'/') == NULL)
+	    dev = strdup (arg->asString()->value().c_str());
+	  else
+	    {
+	      dev = strdup (strrchr (arg->asString()->value().c_str(), '/'));
+	      ++dev;
+	    }
 
 	  return YCPString(disk2PromPath(dev));
 	}
