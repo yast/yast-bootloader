@@ -131,12 +131,12 @@
       * Propose bootloader settings
       */
     global define void Propose () ``{
+	BootCommon::DetectDisks ();
 	string root_device = BootCommon::RootPartitionDevice;
-	string parameters = sformat ("\"%1 root=%2\"",
+	string parameters = sformat ("%1 root=%2",
 	    StorageControllers::dasdParam,
 	    root_device);
 
-	BootCommon::DetectDisks ();
 	BootCommon::globals = [];
 	BootCommon::sections = [
 	    [
