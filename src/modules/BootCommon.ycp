@@ -138,16 +138,6 @@
       */
     global map cwm_options = $[];
 
-//    global define string getLoaderType (boolean recheck);
-// FIXME uncomment for the new interpreter
-
-    include "bootloader/routines/helps.ycp";
-    include "bootloader/routines/misc.ycp";
-    include "bootloader/routines/lilolike.ycp";
-    include "bootloader/routines/options.ycp";
-    include "bootloader/routines/routines.ycp";
-    include "bootloader/routines/widgets.ycp";
-
 // common variables
 
     /**
@@ -173,40 +163,6 @@
 
 // variables for storing data
 
-// state variables
-
-    /**
-      * was the propose function called (== true)
-      */
-    global boolean was_proposed = false;
-    /**
-      * Were module settings read (== true)
-      */
-    global boolean was_read = false;
-    /**
-      * were sections settings changes (== true)
-      */
-    global boolean sections_changed = false;
-    /**
-      * Was bootloader location changed? (== true)
-      */
-    global boolean location_changed = false;
-    /**
-      * Were configuration files manually edited and chamged?
-      */
-    global boolean files_edited = false;
-    /**
-      * Has been files edited warning already shown?
-      */
-    global boolean files_edited_warned = false;
-    /**
-      * Shall be settings saved when finishing bootloader configuration?
-      */
-    global boolean save_on_finish = true;
-    /**
-      * time of last change of partitioning
-      */
-    global integer partitioning_last_change = 0;
 
 // saving mode setting functions
 
@@ -263,6 +219,55 @@
       * Widgets used by currently used bootloader
       */
     global map cwm_widgets = $[];
+// state variables
+
+    /**
+      * was the propose function called (== true)
+      */
+    global boolean was_proposed = false;
+    /**
+      * Were module settings read (== true)
+      */
+    global boolean was_read = false;
+    /**
+      * were sections settings changes (== true)
+      */
+    global boolean sections_changed = false;
+    /**
+      * Was bootloader location changed? (== true)
+      */
+    global boolean location_changed = false;
+    /**
+      * Were configuration files manually edited and chamged?
+      */
+    global boolean files_edited = false;
+    /**
+      * Has been files edited warning already shown?
+      */
+    global boolean files_edited_warned = false;
+    /**
+      * Shall be settings saved when finishing bootloader configuration?
+      */
+    global boolean save_on_finish = true;
+    /**
+      * time of last change of partitioning
+      */
+    global integer partitioning_last_change = 0;
+
+
+
+// FIXME uncomment
+//    global define string getLoaderType (boolean recheck);
+//    global define list getBootloaders ();
+
+    include "bootloader/routines/helps.ycp";
+    include "bootloader/routines/popups.ycp";
+    include "bootloader/routines/misc.ycp";
+    include "bootloader/routines/lilolike.ycp";
+    include "bootloader/routines/options.ycp";
+    include "bootloader/routines/routines.ycp";
+    include "bootloader/routines/widgets.ycp";
+
 
 // generic versions of bootloader-specific functions
 
@@ -307,7 +312,7 @@
 	    bl = "lilo";
 	SCR::Read (list2path ([bl, "reread"]));
 	loadCfgFileFromAgent ();
-	loader_device = lookup_value (globals, "boot", "/dev/null");
+	loader_device = (string)lookup_value (globals, "boot", "/dev/null");
         return true;
     }
 
@@ -368,8 +373,8 @@
 	// summary text, location is location description (eg. /dev/hda)
 	result = add (result, sformat (_("Location: %1"), target_name));
 	list<string> sects = [];
-	foreach (`s, sections, ``{
-	    string title = lookup_value (s, getSectionTitle (), "");
+	foreach (list s, sections, ``{
+	    string title = (string)lookup_value (s, getSectionTitle (), "");
 		// section name "suffix" for default section
 	    string def = title == getDefaultSection () ? _(" (default)") : "";
 	    sects = add (sects, sformat ("%1%2", title, def));
@@ -388,6 +393,7 @@ configuration files"));
       * Update read settings to new version of configuration files
       */
     global define void Update () ``{
+	y2debug ("No generic update function available");
     }
 
     /**
@@ -479,8 +485,8 @@ configuration files"));
       * @return sumbol wizard sequencer symbol
       */
     global define symbol fetchSettings () ``{
-	current_globals = eval(globals);
-	current_sections = eval(sections);
+	current_globals = (list)(eval(globals));
+	current_sections = (list)(eval(sections));
 	return `next;
     }
 
@@ -489,8 +495,8 @@ configuration files"));
       * @return wizard sequencer symbol
       */
     global define symbol storeSettings () ``{
-	globals = eval (current_globals);
-	sections = eval (current_sections);
+	globals = (list)(eval (current_globals));
+	sections = (list)(eval (current_sections));
 	loader_device = GetBootloaderDevice ();
 	return `next;
     }
@@ -537,7 +543,7 @@ configuration files"));
 	// read bootloader to use from disk
 	if (Mode::update || Mode::normal || Mode::repair)
 	{
-	    loader_type = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
+	    loader_type = (string)SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
 	    if (loader_type != nil && loader_type != "")
 	    {
 		y2milestone ("Sysconfig bootloader is %1, using", loader_type);
@@ -555,7 +561,7 @@ configuration files"));
 	    }
 	}
 	// detect bootloader
-	loader_type = SCR::Read (.probe.boot_arch);
+	loader_type = (string)SCR::Read (.probe.boot_arch);
 	y2milestone ("Bootloader detection returned %1", loader_type);
 	if (loader_type == "grub" && Storage::UseLilo())
 	{
@@ -581,7 +587,7 @@ configuration files"));
 	    // don't configure package maneger during autoinstallation preparing
 	    if (Mode::normal && (! (Mode::config || Mode::repair)))
 	    {
-		Require::RequireAndConflictPkg (
+		Require::RequireAndConflict (
 		    getBootloaderPackages (bootloader),
 		    [],
 		    _("YaST will install packages %1"));
