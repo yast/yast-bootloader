@@ -164,6 +164,7 @@ OptTypes::OptTypes(const string& type)
 	// add exra elilo options, not needed don't have to be removed
 	_options["noedd30"] = T_BOOL;
 	_options["chooser"] = T_STR;
+	_options["relocatable"] = T_BOOL;
 	_options.erase ("lba");
 	_options.erase ("lba32");
 	_options.erase ("linear");
