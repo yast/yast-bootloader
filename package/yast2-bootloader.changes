@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb 27 12:33:24 CET 2003 - jsrain@suse.de
+
+- fixed ordering of bootloader options (#24420)
+
+-------------------------------------------------------------------
 Mon Feb 24 09:20:59 CET 2003 - jsrain@suse.de
 
 - updated confirmation popup after bootloader is isntalled to

@@ -38,6 +38,7 @@
     global define any getOptionChoicePopup (any ot) ``{
 	list optnames = lookup (Bootloader::blOptions (),
 	    BootCommon::tmp_store["section_type"]:`global, []);
+	optnames = sort (optnames);
 	term widget = `HBox (`HSpacing (1), `VBox (
 	    `VSpacing (1),
 	    `ComboBox (`id (`optname), `opt (`editable),
