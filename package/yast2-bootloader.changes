@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep  3 17:37:37 CEST 2002 - kukuk@suse.de
+
+- installation/src/silo/BootSILO.ycp: Implement calling "dosilo"
+  script.
+
+-------------------------------------------------------------------
 Tue Sep  3 17:05:39 CEST 2002 - jsrain@suse.cz
 
 - fixed usage of Pkg::SourceProvideFile function
