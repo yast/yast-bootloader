@@ -390,7 +390,7 @@
     global define void updateGlobals () ``{
         map bcg = BootCommon::globals;
         bcg["menu-scheme"] = "Wg:kw:Wg:Wg";
-        bcg["timeout"] = 8;
+        bcg["timeout"] = 80;
 	bcg["message"] = "/boot/message";
         BootCommon::globals = bcg;
     }
