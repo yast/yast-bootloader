@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 21 14:44:31 CET 2003 - jsrain@suse.de
+
+- updated documentation
+- updated testsuite
+- several minor updates and optimalizations
+
+-------------------------------------------------------------------
 Tue Mar 18 13:09:02 CET 2003 - jsrain@suse.de
 
 - fixed undeclared variable title (#25560)

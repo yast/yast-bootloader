@@ -58,4 +58,47 @@
     TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 0, 0)), [], 0);
 
     DUMP ("======================================");
+
+    TEST (``(BootCommon::getLoaderName ("lilo")), [], 0);
+    TEST (``(BootCommon::getLoaderName ("grub")), [], 0);
+    TEST (``(BootCommon::getLoaderName ("s390")), [], 0);
+    TEST (``(BootCommon::getLoaderName ("other")), [], 0);
+
+    DUMP ("======================================");
+
+    Mode::test = true;
+
+    TEST (``(BootCommon::splitPath ("/boot/vmlinuz")), [], 0);
+    TEST (``(BootCommon::splitPath ("/")), [], 0);
+    TEST (``(BootCommon::splitPath ("/vmlinuz")), [], 0);
+    TEST (``(BootCommon::splitPath ("")), [], 0);
+    TEST (``(BootCommon::splitPath ("/boot")), [], 0);
+    TEST (``(BootCommon::splitPath ("/boot/")), [], 0);
+
+    DUMP ("======================================");
+
+    Mode::test = true;
+
+    TEST (``(BootCommon::mergePath (["/dev/hda1", "/vmlinuz"])), [], 0);
+    TEST (``(BootCommon::mergePath (["/dev/hda2", "/"])), [], 0);
+    TEST (``(BootCommon::mergePath (["/dev/hda2", "/vmlinuz"])), [], 0);
+    TEST (``(BootCommon::mergePath ([])), [], 0);
+    TEST (``(BootCommon::mergePath (["/dev/hda1", "/"])), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::tobool (true)), [], 0);
+    TEST (``(BootCommon::tobool (nil)), [], 0);
+    TEST (``(BootCommon::tobool (false)), [], 0);
+    TEST (``(BootCommon::tobool (0)), [], 0);
+    TEST (``(BootCommon::tobool ("aaa")), [], 0);
+
+    DUMP ("======================================");
+
+    map EXEC = $["target" : $["bash_output" : $["stdout" : "brw-rw----    1 0        6          3,   0 2003-03-14 14:07 /dev/hda"]]];
+
+    TEST (``(BootCommon::dev2majmin ("/dev/hda")), [$[], $[], EXEC], 0);
+
+    DUMP ("======================================");
+
 }

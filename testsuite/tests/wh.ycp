@@ -1,0 +1,98 @@
+/**
+ * File:
+ *  wh.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Widgets handling routines testsuite
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    import "Pkg";
+    include "testsuite.ycp";
+    include "bootloader/routines/wh.ycp";
+
+    DUMP ("======================================");
+
+    TEST (``(readWidgets ([$["restore" : ``(DUMP("W1"))]])), [], 0);
+    TEST (``(readWidgets ([$["restore" : ``(DUMP("W1"))], $["restore" : ``(DUMP("W2"))]])), [], 0);
+    TEST (``(readWidgets ([$[], $["restore" : ``(DUMP("W2"))]])), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(sformat (">>%1<<", mergestring (splitstring (mergeHelps ([$["help" : "H1"]]), "\n"), "\\n"))), [], 0);
+    TEST (``(sformat (">>%1<<", mergestring (splitstring (mergeHelps ([$["help" : "H1"], $["help" : "H2"]]), "\n"), "\\n"))), [], 0);
+    TEST (``(sformat (">>%1<<", mergestring (splitstring (mergeHelps ([$[], $["help" : "H2"]]), "\n"), "\\n"))), [], 0);
+    TEST (``(sformat (">>%1<<", mergestring (splitstring (mergeHelps ([]), "\n"), "\\n"))), [], 0);
+
+    DUMP ("======================================");
+
+    global define boolean _true () ``{DUMP ("TRUE"); return true;}
+    global define boolean _false () ``{DUMP ("FALSE");return false;}
+
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_true())]], `next)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false())]], `next)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_true())]], `something)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false())]], `something)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$[]], `next)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$[]], `something)), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_true())], $["validate": ``(_true())]], `next)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false())], $["validate": ``(_true())]], `next)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_true())], $["validate": ``(_false())]], `next)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false())], $["validate": ``(_false())]], `next)), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_true()), "exits" : [`something]]], `next)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false()), "exits" : [`something]]], `next)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_true()), "exits" : [`something]]], `something)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false()), "exits" : [`something]]], `something)), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false()), "exits" : [`something]], $["validate": ``(_false())]], `something)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false()), "exits" : [`something]], $["validate": ``(_false()), "exits" : [`else]]], `something)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_true()), "exits" : [`something]], $["validate": ``(_false()), "exits" : [`else]]], `else)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false())], $["validate": ``(_false()), "exits" : [`else]]], `else)), [], 0);
+
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false())]], `ok)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false())]], `next)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false())]], `accept)), [], 0);
+    TEST (``(validateWidgetsIfNeeded ([$["validate": ``(_false())]], `apply)), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(getExitEvents ([$["exits" : [`e1, `e2]], $["exits" : [`e1, `e3]]])), [], 0);
+    TEST (``(getExitEvents ([$["exits" : [`e1, `e2]], $["exits" : []]])), [], 0);
+    TEST (``(getExitEvents ([$[], $[]])), [], 0);
+    TEST (``(getExitEvents ([$["exits" : [`next, `back]], $["exits" : [`abort, `cancel]]])), [], 0);
+
+    DUMP ("======================================");
+
+    global define any _h1 (any op, list exits) ``{DUMP ("H1");}
+    global define any _h2 (any op, list exits) ``{DUMP ("H2");}
+    global define any _h3 (any op, list exits) ``{DUMP ("H3"); return `op;}
+    global define any _h4 (any op, list exits) ``{DUMP ("H4"); return `op2;}
+    global define any _h5 (any op, list exits) ``{DUMP ("H5");}
+
+    TEST (``(handleChange ([$["handle" : ``(_h1())], $["handle" : ``(_h2())]], `op)), [], 0);
+    TEST (``(handleChange ([$["handle" : ``(_h1())], $["handle" : ``(_h3())]], `op)), [], 0);
+    TEST (``(handleChange ([$["handle" : ``(_h1())], $["handle" : ``(_h4())]], `op)), [], 0);
+    TEST (``(handleChange ([$["handle" : ``(_h3())], $["handle" : ``(_h2())]], `op)), [], 0);
+    TEST (``(handleChange ([$["handle" : ``(_h4())], $["handle" : ``(_h2())]], `op)), [], 0);
+    TEST (``(handleChange ([$["handle" : ``(_h3())], $["handle" : ``(_h4())]], `op)), [], 0);
+    TEST (``(handleChange ([$["handle" : ``(_h4())], $["handle" : ``(_h3())]], `op)), [], 0);
+
+    DUMP ("======================================");
+}

@@ -2,9 +2,10 @@
 <section id = "grub">
     <title>GRUB bootloader</title>
     <para>
-GRUB is new bootloader currently being used on i386 and compatibles, and on AMD x86-64. It has following advantages:
+GRUB is new bootloader currently being used on i386 and compatibles, and on AMD x86-64. It is used as default bootloader on mentioned platforms,
+where it replaced LILO. It has following advantages:
 	<orderedlist>
-	    <listitem><para>Possible to boot unconfigured section, or update boot p[arameters at boot time</para></listitem>
+	    <listitem><para>Possible to boot unconfigured section, or update boot p[parameters at boot time</para></listitem>
 	    <listitem><para>Understands common filesystem, in case of new kernel there is no need to reinstall anything</para></listitem>
 	</orderedlist>
 Of course there are some problems with GRUB:
@@ -12,31 +13,37 @@ Of course there are some problems with GRUB:
             <listitem><para>Can't read kernel/initrd images from volumes located on LVM or MD</para></listitem>
             <listitem><para>Needs explicitly set mapping between UNIX-like devices and BIOS IDs</para></listitem>
         </orderedlist>
-First problem can be easily solved by adding blocklists instead of filenames into configuration files (which removes second advantage).
+First problem can be easily solved by adding block lists instead of filenames into configuration files (which removes second advantage).
+But this makes impossible to update the file if new kernel was installed without any additional info, because of this in this cases
+LILO is used instead of GRUB in SuSE Linux by default.
 If no device map is present, GRUB can detect it's own, but in case of multiple disk this detection is usually not correct.
+Because it isn't possible to set only known parts of device map and leave the rest on GRUB, in case of ATA RAID devices LILO is used instead of GRUB in SuSE Linux by default.
     </para>
     <section>
 	<title>Configuration files</title>
 	<para>
 There are three important files on the disk storing GRUB's configuration. First is device map located at <computeroutput>/boot/grub/device.map</computeroutput>.
-It stores only mapping between GRUB's device names and Linux device names (eg. <computeroutput>(hd0)   /dev/hda</computeroutput>).
+It stores only mapping between GRUB's device names and Linux device names (lines like eg. <computeroutput>(hd0)   /dev/hda</computeroutput>).
+If this file doesn't exist, GRUB detects own device map (but not always correctly).
 	</para>
 	<para>
 Second, <computeroutput>/etc/grub.conf</computeroutput> contains list of commands to be run for installing the GRUB bootloader.
-Contains location of GRUB's stages, file with bootloader menu, and others.
+Contains location of GRUB's stages, file with bootloader menu, and others. Is sent to stdin of grub command when installing.
         </para>
         <para>
 Third file contains the bootloader menu. It is located at <computeroutput>/boot/grub/menu.lst</computeroutput>. If using filesystem to read this file (and not reading
-as blocklist), it isn't needed to run any tool after this file is changed, changes file will be read next time system will boot.
+as block list), it isn't needed to run any tool after this file is changed, changes file will be read next time system will boot. In case block list is used, if file size changes,
+it must be updated, and GRUB reinstalled. In case of most common filesystems there is no need to use block list.
 	</para>
     </section>
     <section>
 	<title>Configuration reading and writing</title>
 	<para>
 <computeroutput>/boot/grub/device.map</computeroutput> and <computeroutput>/etc/grub.conf</computeroutput> are small text files, which are read and written as strings,
-and parsed by the YCP code inside the BootGRUB module (more percisely it's include). <computeroutput>/boot/grub/menu.lst</computeroutput> is larger, and to reading and writing.
+and parsed by the YCP code inside the BootGRUB module (more precisely it's include). <computeroutput>/boot/grub/menu.lst</computeroutput> is larger, and to reading and writing.
 this file the lilo agent is used. Some updates of this agent were needed to make it usable for GRUB (because of other syntax and importance of the order of lines inside a section).
-Only if bootloader location has changed, during installation or upon extra request bootloader is reinstalled after writing it's configuration.
+Only if bootloader location has changed, during installation or upon extra request bootloader is reinstalled after writing it's configuration (because there is no need to
+fully reinstall bootloader).
 	</para>
     </section>
     <section>
@@ -44,11 +51,16 @@ Only if bootloader location has changed, during installation or upon extra reque
 	<para>
 Proposing configuration of GRUB is much harder job than proposing configuration for LILO, because in case of lilo for kernel image normal path from root is written to configuration file,
 and it doesn't change when user chooses to repartition the disk, but in case of GRUB the path in configuration file contains device name and path from root of the filesystem.
-Eg. if user repartitiones the disk and adds extra partition for /boot filesystem, both path and device name must get changed.
+Eg. if user repartitions the disk and adds extra partition for /boot filesystem, both path and device name must get changed.
 	</para>
 	<para>
 The general proposing concept is nearly the same as in case of LILO (<xref linkend="lilo"/>). Additionally, there must be added for the gfxmenu entry the same handling as for sections
 and in them mentioned files.
+	</para>
+	<para>
+Each update of relevant parts of disk partitioning always forces update of GRUB configuration. Device map is stable (no physical disks are added or removed).
+Situation is different in case  of grub.conf and menu.lst, they are affected by most of partitioning changes (grub.conf contains /boot partition location and
+bootloader boot sector target and menu.lst contains informations about all sections).
 	</para>
     </section>
 </section>

@@ -79,10 +79,11 @@
     global define any handleChange (list widgets, any action) ``{
 	if (! validateWidgetsIfNeeded (widgets, action))
 	    return;
-	list tosave = [`next];
+	list tosave = [`next, `ok, `apply, `accept];
 	foreach (`w, widgets, ``{
 	    tosave = merge (tosave, w["exits"]:[]);
 	});
+	tosave = toset (tosave);
 	any ret = nil;
 	foreach (`w, widgets, ``{
 	    term t = w["handle"]:nil;
@@ -109,7 +110,7 @@
       *  needed, false  if something is wrong
       */
     global define boolean validateWidgetsIfNeeded (list widgets, any action) ``{
-	list needed = [`next];
+	list needed = [`next, `ok, `apply, `accept];
 	foreach (`w, widgets, ``{
 	    list spec = w["exits"]:[];
 	    needed = merge (needed, spec);
@@ -131,10 +132,11 @@
       * @return list of symbols, which should be handled as exits
       */
     global define list getExitEvents (list widgets) ``{
-	list exits = [`back, `next, `abort];
+	list exits = [`back, `next, `abort, `ok, `apply, `accept];
 	foreach (`w, widgets, ``{
 	    exits = merge (exits, w["exits"]:[]);
 	});
+	exits = toset (exits);
 	return exits;
     }
 
@@ -144,7 +146,8 @@
       * @return string merged helps
       */
     global define string mergeHelps (list widgets) ``{
-	list helps = maplist (`w, widgets, ``(w["help"]:""));
+	list helps = maplist (`w, widgets, ``(w["help"]:nil));
+	helps = filter (`h, helps, ``(h != nil));
 	return mergestring (helps, "\n");
     }
 

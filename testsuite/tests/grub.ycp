@@ -38,6 +38,67 @@
 
     DUMP ("======================================");
 
+    BootGRUB::device_map = [["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"], ["(hd2)", "/dev/cciss/c0d0"]];
+
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd0)")), [], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd1)")), [], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd2)")), [], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd0,0)")), [], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd1,4)")), [], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd2,2)")), [], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd3)")), [], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd3,3)")), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/hda")), [], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/hdb")), [], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/cciss/c0d0")), [], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/hda1")), [], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/hdb5")), [], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/cciss/c0d0p3")), [], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/hdc")), [], 0);
+    TEST (``(BootGRUB::unixDev2grubDev ("/dev/hdc3")), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootGRUB::parseGrubConf ("root (hd0,0)
+install  --stage2=/boot/grub/stage2 /grub/stage1 d (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+quit")), [], 0);
+    TEST (``(BootGRUB::parseGrubConf ("root (hd0,0)
+install  /grub/stage1 d (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+quit")), [], 0);
+    TEST (``(BootGRUB::parseGrubConf ("root (hd0,0)
+install  --stage2=/boot/grub/stage2 /grub/stage1 (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+quit")), [], 0);
+    TEST (``(BootGRUB::parseGrubConf ("root (hd0,0)
+install  /grub/stage1 (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+quit")), [], 0);
+    TEST (``(BootGRUB::parseGrubConf ("root (hd0,0)
+install  --stage2=/boot/grub/stage2 --force-lba=off /grub/stage1 d (fd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst
+quit")), [], 0);
+    TEST (``(BootGRUB::parseGrubConf ("")), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":true, "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":true, "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":false, "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($["addr":"0x8000", "device":"(fd0)", "discswitch":true, "menu":"(hd0,0)/grub/menu.lst", "root":"(hd0,0)", "prefix":" --stage2=/boot/grub/stage2 --force-lba=off", "stage1":"/grub/stage1", "stage2":"/grub/stage2"]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::getGrubConf ($[]), "\n"), "\\n")), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd1)aaa"], $["(hd0)" : "(hd1)", "(hd1)" : "(hd0)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd1)aaa"], $["(hd0)" : "(hd1)", "(hd1)" : "(hd1)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd1)aaa"], $["(hd0)" : "(hd1)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd1)aaa"], $["(hd0)" : "(hd0)", "(hd1)" : "(hd1)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd2)aaa"], $["(hd0)" : "(hd1)", "(hd1)" : "(hd0)"])), [], 0);
+    TEST (``(BootGRUB::remapDisks ($["A" : "(hd0)(hd1)", "B" : "aaa(hd2)aaa"], $["(hd0)" : "(hd1)", "(hd1)" : "(hd2)", "(hd2)" : "(hd0)"])), [], 0);
+
+    DUMP ("======================================");
+
     TEST (``(BootGRUB::splitDevPath ("(hd0,0)/boot/vmlinuz")), [], 0);
     TEST (``(BootGRUB::splitDevPath ("(hd0,0)/vmlinuz")), [], 0);
     TEST (``(BootGRUB::splitDevPath ("/boot/vmlinuz")), [], 0);

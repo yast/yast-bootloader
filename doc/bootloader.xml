@@ -35,6 +35,16 @@
 	</itemizedlist>
     </section>
 
+    <section>
+	<title>TODO</title>
+	<itemizedlist>
+	    <listitem><para>Optimize internal structures</para></listitem>
+	    <listitem><para>Make some parts of code more universal for multiple bootloaders</para></listitem>
+	    <listitem><para>Improve UI</para></listitem>
+	    <listitem><para>Improve GRUB - LILO configuration conversion</para></listitem>
+	</itemizedlist>
+    </section>
+
 &concept
 &switch
 &io

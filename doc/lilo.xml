@@ -3,19 +3,20 @@
     <title>LILO bootloader</title>
     <para>
 The LILO bootloader was a long time the default bootloader on i386 architecture.
-Now is used on i386 and compatibles, and on new AMD's platform x86-64.
+Now it is used on i386 and compatibles, and on new AMD's platform x86-64.
+Current default bootloader for these architectures is no longer LILO, but GRUB got it's place.
     </para>
     <section>
 	<title>Configuration files</title>
 	<para>
-LILO bootloader uses only one configuration file located at <computeroutput>/etc/lilo.conf</computeroutput>. Everytime this file is changed, <computeroutput>/sbin/lilo</computeroutput>
-must be callot to make the changes effect.
+LILO bootloader uses only one configuration file located at <computeroutput>/etc/lilo.conf</computeroutput>. Every time this file is changed, <computeroutput>/sbin/lilo</computeroutput>
+must be called to make the changes effect.
 	</para>
     </section>
     <section>
         <title>Configuration reading and writing</title>
         <para>
-Reading and writing of <computeroutput>/etc/lilo.conf</computeroutput> is made using the lilo agent. Everytime this file changes, <computeroutput>/sbin/lilo</computeroutput>
+Reading and writing of <computeroutput>/etc/lilo.conf</computeroutput> is made using the lilo agent. Every time this file changes, <computeroutput>/sbin/lilo</computeroutput>
 is called to make the changes effect.
 	</para>
     </section>
@@ -23,14 +24,15 @@ is called to make the changes effect.
         <title>Proposing configuration</title>
         <para>
 Initial proposing generates standard sections and implicit globals. Each section has additional internal attribute describing it's state (was proposed and not changed by user) and
-devices it uses (usually the device containing /boot and / (root) partitions, in case of loading bootsector of other partition the device of the partition).
-When checking the proposal, partitions of each sections get compared to partitions, which have been changed, and depending on the result section is recreated, left as is, or
-user gets warned.
+devices it uses (usually the device containing /boot and / (root) partitions, in case of loading boot sector of other partition the device of the partition).
+When checking the proposal, partitions of each sections get compared to partitions, which have been changed, current /boot and / (root) partitions are detected (because partitioning
+could be changed) and depending on the result section is recreated (if wasn't changed by user), left as is (created by user), or user gets warned (section was proposed, changed by user
+and partitioning has changed).
 	</para>
 	<para>
-Because when proposing configuration it does't have to be clear whether initrd will exist, memtest86 will be present or graphic menu available, there is additional checking done
+Because when proposing configuration it doesn't have to be clear whether initrd will exist, memtest86 will be present or graphic menu available, there is additional checking done
 when writing configuration. If in configuration file mentioned file doesn't exist (eg. initrd not created), corresponding record is removed from configuration file before writing
-ut to the disk.
+it to the disk.
 	</para>
     </section>
     
