@@ -123,7 +123,7 @@
                 return false;
             }
         }
-    return false;
+	return false;
     }
 
     /**
@@ -131,55 +131,78 @@
       * to internal variables
       */
     global define void DetectDisks () ``{
+	map tm = Storage::GetTargetMap ();
+	list partitions = [];
+
+	foreach ( string dev, map disk, tm, ``{
+	    if( Storage::IsRealDisk( dev, disk ) )
+	    {
+		list l = filter( map p, disk["partitions"]:[],
+		    ``(p["delete"]:false==false) );
+		partitions = merge (partitions, l);
+            }
+        });
+
 	if (Mode::config)
 	    return;
         map mp = Storage::GetMountPoints();
 
-        list mountdata_boot     = mp["/boot"]:(mp["/"]:[]);
+        list mountdata_boot = mp["/boot"]:(mp["/"]:[]);
+	list mountdata_root = mp["/"]:[];
 
         y2milestone( "mountPoints %1", mp );
         y2milestone( "mountdata_boot %1", mountdata_boot );
 
-        string bootDisk         = mountdata_boot[2]:(mp["/",2]:"");
+        BootCommon::RootPartitionDevice = mp["/", 0]:"";
 
-       // check if /boot is on raid1
-        boolean boot_is_raid1   = (mountdata_boot[3]:(mp["/",2]:"") == "raid1");
-
-        BootCommon::RootPartitionDevice     = mp["/", 0]:"";
-
-        if (bootDisk == ""
-            || BootCommon::RootPartitionDevice == "")
+        if (BootCommon::RootPartitionDevice == "")
         {
             y2error ("No mountpoint for / !!");
         }
 
         // if /boot changed, re-configure location
-        if (BootCommon::BootPartitionDevice
-            != mp["/boot", 0]:BootCommon::RootPartitionDevice)
-        {
-            BootCommon::BootPartitionDevice
-                = mp["/boot", 0]:BootCommon::RootPartitionDevice;
-        }
+        BootCommon::BootPartitionDevice
+            = mountdata_boot[0]:BootCommon::RootPartitionDevice;
 
 	if (BootCommon::mbrDisk == "" || BootCommon::mbrDisk == nil)
 	{
-	    if (boot_is_raid1)
-	    {
-		y2milestone ("/boot is on RAID1");
-		// use partitionName from GetMountPoints
-		BootCommon::mbrDisk = mountdata_boot[0]:RootPartitionDevice;
-	    }
-	    else
-	    {
-	        // normal mbr detection.
-	        BootCommon::mbrDisk = FindMbrDisk();
-	    }
+	    // mbr detection.
+	    BootCommon::mbrDisk = FindMbrDisk();
 	}
 
         if (BootCommon::location == "" || BootCommon::location == nil)
             BootCommon::location = ConfigureLocation ();
 
+	if (mountdata_boot[3]:"" == "raid1")
+	{
+	    list md_list = filter (`e, partitions,
+		``(e["raid_name"]:"" == mountdata_boot[0]:""));
+	    list dev_list = maplist (`e, md_list, ``(e["device"]:""));
+	    dev_list = filter (`d, dev_list, ``(d != ""));
+	    if (size (dev_list) > 0)
+	    {
+		dev_list = sort (dev_list);
+		BootCommon::BootPartitionDevice = dev_list[0]:"";
+	    }
+	}
+        if (mountdata_root[3]:"" == "raid1")
+        {
+            list md_list = filter (`e, partitions,
+                ``(e["raid_name"]:"" == mountdata_root[0]:""));
+            list dev_list = maplist (`e, md_list, ``(e["device"]:""));
+            dev_list = filter (`d, dev_list, ``(d != ""));
+            if (size (dev_list) > 0)
+            {
+                dev_list = sort (dev_list);
+                BootCommon::RootPartitionDevice = dev_list[0]:"";
+            }
+        }
+
         BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+	if (BootCommon::location != "floppy")
+	{
+	    BootCommon::activate = true;
+	}
     }
 
     /**
@@ -223,6 +246,7 @@
 
         // look for disk with bios_id 0x80
         list disks = SCR::Read(.probe.disk);
+	// fallback
         string mbr_disk = disks[0,"dev_name"]:bootDisk;
 
         foreach (`disk, disks,

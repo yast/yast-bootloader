@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Apr 18 09:31:35 CEST 2003 - jsrain@suse.de
+
+- no more retaking current kernel parameters to bootloader
+  configuration file when configuring installed system (#26304)
+- fixed devices for MBR/boot partition/root/partition when
+  installing on md (#26287)
+
+-------------------------------------------------------------------
 Tue Apr  8 09:12:41 CEST 2003 - jsrain@suse.de
 
 - added possibility to save all settings and reinstall bootloader
