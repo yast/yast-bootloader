@@ -488,7 +488,7 @@
         SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
         SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
 
-	BootCommon::liloRemoveUnexistentSections ("", "");
+//	BootCommon::liloRemoveUnexistentSections ("", "");
 	BootCommon::liloUpdateInitrd ();
 	BootCommon::liloUpdateAppend ();
 	// iSeries can have multiple locations, are stored during
