@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr  3 17:50:50 CEST 2003 - jsrain@suse.de
+
+- allowed bootfloppy to format floppy disk and select device
+- allowed bootfloppy to use custom image (22376)
+- other minor bootfloppy updates and code cleanup
+
+-------------------------------------------------------------------
 Mon Mar 24 12:07:34 CET 2003 - jsrain@suse.de
 
 - removed reading of initrd modules from install_inf (#24709)
