@@ -45,6 +45,8 @@ public:
     virtual YCPValue Dir(const YCPPath& path);
     
     virtual YCPValue otherCommand(const YCPTerm& term);
+private:
+    string type;
 };
 
 #endif /* _RcAgent_h */

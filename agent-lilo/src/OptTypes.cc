@@ -22,11 +22,84 @@
 #include <ycp/y2log.h>
 #include "OptTypes.h"
 
-map <string, int> _options;
 
-void initOptTypes()
+OptTypes::OptTypes(const string& type)
 {
     int val=T_BOOL;
+
+    _options["__fake__"]=val;
+
+    if (type == "grub")
+    {
+	_options["hiddenmenu"]=val;
+	_options["rarp"]=val;
+	_options["debug"]=val;
+	_options["displayapm"]=val;
+	_options["displaymem"]=val;
+	_options["fstest"]=val;
+	_options["lock"]=val;
+	_options["makeactive"]=val;
+
+
+    val=T_STR;
+	_options["geometry"]=val;
+	_options["embed"]=val;
+	_options["find"]=val;
+	_options["title"]=val;
+	_options["bootp"]=val;
+	_options["color"]=val;
+	_options["device"]=val;
+	_options["dhcp"]=val;
+	_options["hide"]=val;
+	_options["ifconfig"]=val;
+	_options["pager"]=val;
+	_options["partnew"]=val;
+	_options["parttype"]=val;
+	_options["password"]=val;
+	_options["serial"]=val;
+	_options["setkey"]=val;
+	_options["terminal"]=val;
+	_options["tftpserver"]=val;
+	_options["unhide"]=val;
+	_options["blocklist"]=val;
+	_options["cat"]=val;
+	_options["chainloader"]=val;
+	_options["cmp"]=val;
+	_options["configfile"]=val;
+	_options["halt"]=val;
+	_options["help"]=val;
+	_options["impsprobe"]=val;
+	_options["initrd"]=val;
+	_options["install"]=val;
+	_options["ioprobe"]=val;
+	_options["kernel"]=val;
+	_options["map"]=val;
+	_options["module"]=val;
+	_options["modulenounzip"]=val;
+	_options["pause"]=val;
+	_options["reboot"]=val;
+	_options["read"]=val;
+	_options["root"]=val;
+	_options["rootnoverify"]=val;
+	_options["savedefault"]=val;
+	_options["setup"]=val;
+	_options["testload"]=val;
+	_options["testvbe"]=val;
+	_options["uppermem"]=val;
+	_options["vbeprobe"]=val;
+
+    val=T_INT;
+
+	_options["default"]=val;
+	_options["timeout"]=val;
+	_options["fallback"]=val;
+
+	return;
+    }
+
+    val = T_BOOL;
+
+    _options["__fake__"]=val;
 
     _options["compact"]=val;	    _options["fix-table"]=val;
     _options["ignore-table"]=val;   _options["lba32"]=val;
@@ -86,21 +159,23 @@ void initOptTypes()
     _options["map-drive"]=val;	    _options["to"]=val;
 #endif
 
+    if (type == "grub")
+	_options["default"] = T_INT;
+
 }
 
-int getOptType(const string& optname)
+int OptTypes::getOptType(const string& optname)
 {
-    if(_options["lba32"]!=T_BOOL)
-    {
-	initOptTypes();
-    }
-	
-
     return _options[optname];
 }
 
-string getSpecGroup(const string& optname)
-{   
+string OptTypes::getSpecGroup(const string& optname)
+{
+//    if(_options["__fake__"]!=T_BOOL)
+//    {
+//        initOptTypes(type);
+//    }
+
     switch(_options[optname])
     {
 	case T_SPEC_CHANGE_RULES: return string("change-rules");
@@ -110,4 +185,38 @@ string getSpecGroup(const string& optname)
     }
 
     return "";
+}
+
+YCPMap OptTypes::getYCPOptTypes () {
+//    if(_options["__fake__"]!=T_BOOL)
+//    {
+//        initOptTypes(type);
+//    }
+
+    YCPMap m;
+    map <string, int>::iterator it = _options.begin ();
+    while (it != _options.end ()) {
+	switch(it->second)
+	{
+	    case T_UNKNOWN: {
+		m->add (YCPString (it->first), YCPString ("s"));
+		break;
+	    }
+	    case T_BOOL: {
+		m->add (YCPString (it->first), YCPString ("b"));
+		break;
+	    }
+	    case T_STR: {
+		m->add (YCPString (it->first), YCPString ("s"));
+		break;
+	    }
+	    case T_INT: {
+		m->add (YCPString (it->first), YCPString ("i"));
+		break;
+	    }
+	    default : m->add (YCPString (it->first), YCPString ("x"));
+	}
+	it ++;
+    }
+    return m;
 }

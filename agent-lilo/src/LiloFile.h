@@ -32,9 +32,24 @@ class liloFile
 {
 public:
     /**
+      *  type of parsed file
+      */
+    string type;
+
+    /**
      *  path to lilo.conf file
      */
     string fname;
+
+    /**
+     *  contents of lilo.conf file for restoring from string
+     */
+    string file_contents;
+
+    /**
+     *  use string for parsing/file generating instead of file
+     */
+    bool use_string;
 
     /**
      *  lilo.conf global comment (global comment is separated from first option comment by empty line)
@@ -55,7 +70,7 @@ public:
      *	does nothing but sets the path to lilo.conf file
      */
 
-	liloFile(string filename);
+	liloFile(string filename, const string& init_type);
 
     /**
      *  

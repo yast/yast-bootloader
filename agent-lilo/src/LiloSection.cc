@@ -28,8 +28,8 @@
 
 #define WHITESPACE       " \t\n"
 
-string commentBuffer;
-string type;
+//string commentBuffer;
+//string type;
 
 string strip(string str)
 {
@@ -63,9 +63,10 @@ string indentString(string str, string indent)
  *
  */
 
-inputLine::inputLine(const string& line)
+inputLine::inputLine(const string& line, const string& init_type)
 {
     src = line;
+    type = init_type;
 
     // initial state for parser
     int state = 1;
@@ -232,8 +233,10 @@ void liloOption::dump()
 //
 
 
-liloOrderedOptions::liloOrderedOptions()
+liloOrderedOptions::liloOrderedOptions(const string& init_type)
 {
+    type = init_type;
+    o = OptTypes(type);
 }
 
 int getPos(vector<liloOption*>* vect, const string& opt)
@@ -256,9 +259,9 @@ bool liloOrderedOptions::processLine(inputLine* li)
     bool spec=false;
     if(li->option=="") return false;
 
-    if(getOptType(li->option)>=T_SPEC)
+    if(o.getOptType(li->option)>=T_SPEC)
     {
-	optname=getSpecGroup(li->option);
+	optname=o.getSpecGroup(li->option);
 	value=li->option;
 	if(li->value!="")
 	{
@@ -323,7 +326,7 @@ YCPValue liloOrderedOptions::Read(const YCPPath& path)
     }
 
 
-    switch(getOptType(opt->optname))
+    switch(o.getOptType(opt->optname))
     {
 	case T_STR:
 	case T_UNKNOWN:
@@ -429,7 +432,7 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
 
     //==========================
     // set the option value
-    switch(getOptType(opt->optname))
+    switch(o.getOptType(opt->optname))
     {
 	case T_INT:
 	    if(!value->isInteger())
@@ -522,7 +525,8 @@ void liloOrderedOptions::dump(FILE* f)
     }
 }
 
-int liloOrderedOptions::saveToFile(ofstream* f, string indent)
+// CHANGED
+int liloOrderedOptions::saveToFile(ostream* f, string indent)
 {
     string separ = (type == "grub") ? " " : " = ";
     for(uint i=0; i<order.size(); i++)
@@ -549,7 +553,7 @@ int liloOrderedOptions::saveToFile(ofstream* f, string indent)
 	    *f << endl;
 	}
 	*f << indent;
-	switch(getOptType(order[i]->optname))
+	switch(o.getOptType(order[i]->optname))
 	{
 	    case T_BOOL:
 		if(order[i]->value=="true" || order[i]->value=="")
@@ -581,10 +585,12 @@ int liloOrderedOptions::saveToFile(ofstream* f, string indent)
 //
 //
 
-liloSection::liloSection()
+liloSection::liloSection(const string& init_type)
 {
 //    sectName=sname;
-    options=new liloOrderedOptions();
+    type = init_type;
+    options=new liloOrderedOptions(type);
+    
 }
 
 bool liloSection::processLine(inputLine* line)
@@ -651,7 +657,8 @@ YCPValue liloSection::Dir()
     return list;
 }
 
-int liloSection::saveToFile(ofstream* of, string indent)
+// CHANGED
+int liloSection::saveToFile(ostream* of, string indent)
 {
     return options->saveToFile(of, indent);
 }

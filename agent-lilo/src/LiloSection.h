@@ -30,9 +30,11 @@
 #include <iostream>
 #include <fstream>
 
+#include "OptTypes.h"
+
 using namespace std;
 
-extern string type;
+//extern string type;
 
 // using std::vector;
 // using std::map;
@@ -58,11 +60,13 @@ public:
     string value;
 	/** comment that goes after option on the same line ('#comment') */
     string comment;
+	/** type of file parsed */
+    string type;
 
 	/** not parsed source line */
     string src;    
 
-    inputLine(const string& line);
+    inputLine(const string& line, const string& init_type);
     void dump();
 };
 
@@ -98,7 +102,7 @@ public:
     vector<liloOption*>		order;
    
 	/** initialization of options members */ 
-	liloOrderedOptions();
+	liloOrderedOptions(const string & type);
 	/** creates new 'order' entry ands sets new value in 'options' */
 	bool processLine(inputLine* li);
 	/** returns value of the given path */
@@ -109,9 +113,14 @@ public:
 	YCPValue Dir();
 	/** */
 	void dump(FILE* f);
-    
+   
+	// CHANGED 
 	/** saves contents of this to given file */
-	int saveToFile(ofstream* f, string indent="");
+	int saveToFile(ostream* f, string indent="");
+	/** type of file */
+	string type;
+	/** opt types class */
+	OptTypes o;
 };
 
 
@@ -140,7 +149,7 @@ public:
     int	sectType; 
 
 	/** default. does nothing */
-	liloSection();
+	liloSection(const string& init_type);
 
 	virtual ~liloSection();
 
@@ -150,8 +159,9 @@ public:
 	/** returns section label. see man /lilo/conf 'label' description */
     string getSectName();
 
+	// CHANGED
 	/** only passes arguments to 'options' */
-    int	saveToFile(ofstream* f, string indent="");
+    int	saveToFile(ostream* f, string indent="");
 
 	/** method for reading from path */
     virtual YCPValue Read(const YCPPath& path);
@@ -162,6 +172,8 @@ public:
 
 	/** returns list of all set variables */
     virtual YCPValue Dir();
+
+    string type;
     
 };
 
