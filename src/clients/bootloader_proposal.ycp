@@ -98,8 +98,14 @@
 	    // warning text in the summary rixhtext
             ret = add (ret, "warning", _("No boot loader is selected for installation. Your system might not be bootable."));
         }
-
-
+	if (! BootCommon::BootloaderInstallable ())
+	{
+	    return $[
+		"warning_level" : `error,
+		// error in the proposal
+		"warning" : _("Because of the partitioning, the bootloader cannot be installed properly"),
+	    ];
+	}
     }
     else if ( func == "AskUser" )
     {

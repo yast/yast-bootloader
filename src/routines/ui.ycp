@@ -467,6 +467,8 @@ Proceed?
       * @return `next, `back or `abort
       */
     global define symbol runWizard () ``{
+	if (! BootCommon::BootloaderInstallable ())
+	    Report::Error (_("Because of the partitioning, the bootloader cannot be installed properly"));
 
 	map glob_seq = $[
 	    "ws_start" : "fetch",
