@@ -21,6 +21,8 @@
 
 textdomain "bootloader";
 
+import "Arch";
+
 /**
   * get kernel parameter from GRUB command line
   * @param line string original line
@@ -820,7 +822,7 @@ global define string getSectionType(string label)
  */
 
 global define map opttypes() ``{
-    return $[
+    map out = $[
 	"activate"	: "b",
 	"alias"		: "s",
 	"append"	: "s",
@@ -870,6 +872,16 @@ global define map opttypes() ``{
 	"makeactive"	: "b",
 	"hiddenmenu"	: "b"
 	];
+    if (Arch::ia64)
+    {
+        out = remove(out, "lba");
+	out = remove(out, "lba32");
+	out = remove(out, "linear");
+	out = add(out, "chooser", "s");
+	out = add(out, "noedd30", "b");
+    }
+
+    return out;
 
 }
 
