@@ -41,9 +41,11 @@
     ``{
 	return [
 	    `Left (`CheckBox (`id (`alias),
+		// check box
 		_("Create PROM alias '&linux'"),
 		promalias)),
 	    `Left (`CheckBox (`id (`change_prom),
+		// check box
 		_("Set default &PROM boot device"),
 		defaultdevice))
 	];

@@ -30,16 +30,19 @@
     ``{
 	map opthelps = $[
 	    "backup"	:
+// help text
 _("<p>Copy the original boot sector to <b>backup-file</b> (which
 may  also  be a device, e.g.  <b>/dev/null</b>) instead of
 <b>/boot/boot.NNNN.</b></p>"),
 
 	    "boot"	:
+// help text
 _("<p>Sets the name of the device (e.g. a hard disk  partition) 
 that contains the boot sector.</p>"),
 
 
 	    "append"	:
+// help text
 _("<p>Appends the specified options to the parameter line passed to the kernel. 
 Example:
 <pre>
@@ -48,6 +51,7 @@ Example:
 "),
 
 	    "change-rules":
+// help text
 _("<P>Value of this option is multiline. Lines are separated by commas.
 Example value:
 <PRE>
@@ -73,18 +77,22 @@ See 'man lilo.conf' for details.</P>
 "),
 
 	    "compact"	:
+// help text
 _("<P>Tries  to  merge read requests for adjacent sectors
 into  a  single  read  request. Using `compact' is especially  recommended  when  booting
 from a floppy disk.</P>"),
 
 	    "default"	:
+// help text
 _("<P>Uses the specified image as the default boot image.</P>"),
 
 	    "delay"	:
+// help text
 _("<P>Specifies the number of tenths of a second the boot
 loader should wait before booting the first  image.</P>"),
 
 	    "disk"	:
+// help text
 _("<P>Value of this option is multiline. Lines are separated by commas.
 Sample value:
 <PRE>
@@ -98,21 +106,26 @@ user.tex  for
 "),
 
 	    "disktab"	:
+// help text
 _("<P>Specifies the name of  the  disk  parameter  table.
 The use of  disktabs  is  discouraged.</p>"),
 
 	    "fix-table"	:
+// help text
 _("<P>This  allows  lilo to adjust 3D addresses in partition 
 tables. See 'man lilo.conf' for details.</P>
 "),
 
 	    "force-backup" :
+// help text
 _("<P>Similar to `backup', but overwrites an old backup copy if it exists.</P>"),
 
 	    "ignore-table"	:
+// help text
 _("tells lilo to ignore corrupt partition tables."),
 
 	    "install"	:
+// help text
 _("<P>Install  the specified file as the new boot loader.
 Starting with version 21.5, two  boot  loaders  are
 available: <B>boot-text.b</B> and <B>boot-menu.b</B>. <b>boot.b</B> is
@@ -121,6 +134,7 @@ a symbolic link to the latter. See 'man lilo.conf' for details</P>
 
 
 	    "lba32"	:
+// help text
 _("<P>Generate 32-bit logical block addresses instead  of
 sector/head/cylinder  addresses.  If  the BIOS supports 
 packet addressing, packet calls will  be
@@ -130,47 +144,57 @@ Use  of  'lba32' is recommended on all post-1998 systems.</P>
 "),
 
 	    "linear"	:
+// help text
 _("<P>Generate  linear  sector  addresses instead of
 sector/head/cylinder addresses.</P>"),
 
 	    "lock"	:
+// help text
 _("<P>Enables  automatic  recording of boot command lines
 as the defaults for the following boots.</P>"),
 
 	    "map"	:
+// help text
 _("<P>Specifies the location of the map file. If `map' is
 omitted, the file /boot/map is used.</P>"),
 
 	    "menu-title"    :
+// help text
 _("<P>Specifies  the title line (up to 37 characters) for
 the boot menu.  This  title  replaces  the  default
 \"LILO  Boot  Menu\"  title string.</P>"),
 
 	    "menu-scheme"   :
+// help text
 _("<P>Override the  default  color  scheme of the boot menu 
 on VGA displays with this option.  
 See 'man lilo.conf' for more information</P>
 "),
 
 	    "message"	:
+// help text
 _("<P>Specifies  a file containing a message to
 display before the boot prompt. See 'man lilo.conf' for details.</P>
 "),
 
 	    "nowarn"	:
+// help text
 _("<P>Disables warnings about possible future dangers.</P>"),
 
 	    "optional"	:
+// help text
 _("<P>The per-image option `optional' (see below) can be
 used with all image types.</P>
 "),
 
 	    "password"	:
+// help text
 _("<P>The per-image  option  `password=...' 
 can be used with all image types.</P>
 "),
 
 	    "prompt"	:
+// help text
 _("<P>The  boot  loader  will  issue the boot: prompt and
 wait for user input before proceeding (see  time out
 below). Unattended  reboots  are  impossible  if
@@ -178,11 +202,13 @@ below). Unattended  reboots  are  impossible  if
 "),
 
 	    "restricted"    :
+// help text
 _("<P>The  per-image  option  `restricted'  (see   below)
 can be used with all image types.</P>
 "),
 
 	    "serial"	:
+// help text
 _("<P>Enables  control  from a serial line. The specified
 serial port is initialized and the boot  loader 
 accepts input from it and from the PC's keyboard.
@@ -190,11 +216,13 @@ See 'man lilo.conf' for more information</P>
 "),
 
 	    "timeout"	:
+// help text
 _("<P>Sets a time out (in tenths of a second) for keyboard
 input at the  boot:  prompt.</P>
 "),
 
 	    "verbose"	:
+// help text
 _("<P>Activates verbose progress reporting.
 The maximum verbosity level is 5.</P>
 "),
@@ -203,6 +231,7 @@ The maximum verbosity level is 5.</P>
 
 	// image+other opts
 	    "range"	:
+// help text
 _("<P>In the former case, if an  image  line  specifies  booting
 from  a device, the range of sectors to map must be indicated with
 <PRE>
@@ -215,15 +244,18 @@ from  a device, the range of sectors to map must be indicated with
 	// other
 
 	    "loader"	:
+// help text
 _("<P>This  specifies  the  chain  loader  to
 use.  By  default,  /boot/chain.b  is  used.</P>
 "),
 
 
 	    "table"	:
+// help text
 _("This  specifies the device that contains the partition table."),
 
 	    "change"	:
+// help text
 _("<P>Value of this option is multiline. Lines are separated by commas.
 Sample value:
 <PRE>
@@ -237,6 +269,7 @@ Sample value:
 "),
 
 	    "map-drive"	:
+// help text
 _("<P>Value of this option is multiline. Lines are separated by commas.
 Example value:
 <PRE>
@@ -248,50 +281,62 @@ device code specified on the next line as to=<num>. See 'man lilo.conf' for deta
 "),
 
 	    "unsafe"	:
+// help text
 _("<P>Do not access the boot sector at map creation time.</P>"),
 
 	    "label"	:
+// help text
 _("<P>The boot loader uses the label entry in an image specification to identify
 that image.</P>
 "),
 
 	    "alias"	:
+// help text
 _("<P>Specify an alias to use a second  name 
 for the same entry.</P>
 "),
 
 	    "optional"	:
+// help text
 _("<P>Omit the image if it is not available at  map  creation time.</P>"),
 
 	    "restricted"    :
+// help text
 _("<P>A password is only required to boot the image.</P>"),
 
 	    "initrd"	:
+// help text
 _("<P>Specifies  the  initial  ramdisk image to be loaded with the kernel.</P>"),
 
 	    "literal"	:
+// help text
 _("<P>Like `append', but removes all other options  (e.g.,
 setting of the root device).</P>
 "),
 
 	    "ramdisk"	:
+// help text
 _("<P>This specifies the  size  (e.g.,  \"4096k\")  of  the
 optional  RAM  disk.</P>"),
 
 	    "read-only"	:
+// help text
 _("<P>Sets the root file system for mounting
 read-only.</P>
 "),
 
 	    "read-write"    :
+// help text
 _("<P>This  specifies that the root file system should be mounted read-write.</P>"),
 
 	    "root"	:
+// help text
 _("<P>This specifies the device to mount as
 root.</P>
 "),
 
 	    "vga"	:
+// help text
 _("<P>This  specifies  the  VGA  text mode to
 use when booting.</P>
 ")
@@ -300,6 +345,7 @@ use when booting.</P>
     ];
 
 
+	// help text
 	return lookup(opthelps,option, _("<P>No help for this option available.</P>"));
     }
 }

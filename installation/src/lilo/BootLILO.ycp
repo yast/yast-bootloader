@@ -50,6 +50,7 @@
 	    term text = `RichText( "<p>" + msg_text + "</p>" );
 	    OpenDialog(`opt ( `decorated ),
 		       `VBox (`HSpacing(75),
+				// heading
 			      `Heading( _("Error Log File")),
 			      text,	// e.g. `Richtext()
 			      `PushButton( `id(`ok_help), `opt(`default), OKButtonLabel() )
@@ -94,6 +95,7 @@
 	    // Rewrite lilo, if it has been booted from Floppy
 
 	    SCR::Execute(.target.umount, "/media/floppy"); // Just for safety
+		// popup
 	    UI::MessagePopup(_("The LILO boot sector will be written to a floppy disk.
 Insert a formatted floppy and confirm with 'OK'.
 "));
@@ -108,12 +110,14 @@ Insert a formatted floppy and confirm with 'OK'.
 		if (doresult==0)
 		{
 		    // data saved to floppy disk
+			// popup
 		    UI::MessagePopup(_("The LILO boot sector has been written to a floppy disk."));
 		    break;
 		}
 		else
 		{
 		    // boot write to floppy failed
+			// yes-no popup
 		    if ( !UI::YesNoPopup(_("Could not write LILO boot sector to the floppy.
 Please check that the floppy disk is formatted
 and that the write protection tab is removed.
@@ -414,6 +418,7 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	{
 
 	    SCR::Execute(.target.bash, "/bin/umount /media/floppy"); // Just for safety
+		// popup
 	    Report::Message(_("The LILO boot sector will be written onto a floppy disk.
 Please insert a formatted floppy and confirm with 'OK'."));
 
@@ -431,6 +436,7 @@ Please insert a formatted floppy and confirm with 'OK'."));
 
 		if (doresult == 0) {
 		    // data saved to floppy disk
+			// popup
 		    string msg = _("The LILO boot sector has been written to the floppy disk.");
 
 		    if ( size (confirm_boot_msg) > 0 )
@@ -442,6 +448,7 @@ Please insert a formatted floppy and confirm with 'OK'."));
 			    // to do a hard reboot (because a different kernel
 			    // was installed), tell the user to leave the floppy
 			    // inserted.
+			    // popup
 			    msg = msg + _("Leave the floppy disk in the drive. The system will now be rebooted.");
 			}
 			Misc::boot_msg=msg;;
@@ -452,6 +459,7 @@ Please insert a formatted floppy and confirm with 'OK'."));
 		}
 		else {
 		    // boot write to floppy failed
+			// yes-no popup
 		    if (!UI::YesNoPopup(_("Could not write the LILO boot sector to the floppy.
 Please check that the floppy disk is formatted
 and that the write protection tab is removed.
@@ -478,6 +486,7 @@ Do you want to try again?")))
 			|| (Boot::location == "custom"))
 		{
 		    // final information message for user after LILO write
+		    // popup. Leave \"lilo -u %1\" untouched
 		    string msg = sformat(_("The LILO boot sector has been written to disk. You can restore
 the old boot sector in the installed system with \"lilo -u %1\""), Boot::device);
 
@@ -494,6 +503,7 @@ the old boot sector in the installed system with \"lilo -u %1\""), Boot::device)
 	    }
 	    else
 	    {
+		// error popup
 		Report::Error(_("Could not write the LILO boot sector"));
 	    }
 

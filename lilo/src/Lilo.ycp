@@ -119,12 +119,16 @@
 	string bootpart_d = lookup(select(bootpart_l, 0, $[]), "spec", "/dev/hda1");
 	string fd_d = lookup(select(fd_l, 0, $[]), "spec", "/dev/fd0");
 
+				// label
         partmap = $[`mbr    : $["label": _("Master boot record"), "dev" : mbr_d],
+				// label
                     `boot   : $["label": _("Boot sector of boot partition"), "dev" : bootpart_d],
+				// label
                     `root   : $["label": _("Boot sector of root partition"), "dev": rootpart_d],
+				// label
                     `floppy : $["label": _("Floppy disk"), "dev": fd_d],
                     `uninstall :
-                            // Uninstall [lilo | silo | elilo]
+                            // label Uninstall [lilo | silo | elilo]
                               $["label": sformat(_("Uninstall %1"), boot())]
                     ];
     }
@@ -275,6 +279,7 @@
      * @return string Summary of the configuration.
      */
     global define string Summary () ``{
+	// summary headline
 	return _("Summary of the configuration...");
     }
 

@@ -95,7 +95,9 @@
 
 	ret =
 	    $[
+		// proposal part - bootloader label
 	      "rich_text_title"	:	_("Booting"),
+		// menubutton entry
 	      "menu_title"	:	_("&Booting"),
 	      "id"		:	"bootloader_stuff"
 	    ];

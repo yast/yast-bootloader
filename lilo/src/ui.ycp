@@ -146,6 +146,7 @@ global define symbol LiloMainDialog() ``{
 
 global define symbol SummaryDialog() ``{
     term widget = SummaryWidget();
+    // dialog caption
     string caption = _("Bootloader configuration");
     string help = lookup(HELP_STRINGS, "summary_dialog", "");
 
@@ -179,11 +180,13 @@ global define symbol SummaryDialog() ``{
 	    string message = "";
 	    if (Lilo::uninstallLilo)
             {
+		// popup
                 message = _("Settings will be saved to disk 
 and bootloader will be removed.");
             }
             else
             {
+		// popup
                 message = _("Settings will be tested now. If the test is
 successfull, settings will be saved to disk
 and bootloader will be installed. Do you wish to continue?");
@@ -236,6 +239,7 @@ and bootloader will be installed. Do you wish to continue?");
  */
 
 global define symbol TargetDialog() ``{
+	// dialog label
     string caption = _("Where should the boot loader be installed?");
     string help = lookup(HELP_STRINGS, "target_dialog", "");
 
@@ -384,7 +388,9 @@ global define symbol EndDialog() ``{
 	user_settings = change(user_settings, "lilo_conf", liloconf);
 	return `next;
     }
+    // help
     string  help = _("<P>New configuration test failed.</P>");
+    // caption
     string  caption = _("Failure");
 
     term    contents=nil;   
@@ -416,7 +422,9 @@ global define symbol EndDialog() ``{
     if (lookup(test_res, "exit", -1) != 0)
     {
           // something went wrong
+	  // popup
         contents = `VBox(`Label(_("Error occured while testing new configuration.")), `VSpacing(2.0),
+		// pushbutton
             `PushButton(`id(`log), _("&View error log")));
         Wizard::SetContents(caption,contents,help,true, false);
     }
@@ -448,6 +456,7 @@ global define symbol EndDialog() ``{
  */
 
 global define symbol MainDlg() ``{
+	// caption
     string  caption = _("Lilo configuration - Sections");
     any     action = nil; // any is essential here- may be symbol or string with device name
     string  help = lookup(HELP_STRINGS, "main_dialog", "");
@@ -491,6 +500,7 @@ global define symbol MainDlg() ``{
 	    untouched = false;
 	    continue;
 	}
+	// yes-no popup
 	else if (action == `b_delete && UI::`YesNoPopup(_("Really delete this item?")))
 	//===========  delete item
 	{
@@ -558,6 +568,7 @@ global define symbol MainDlg() ``{
 
 	    if (!Lilo::uninstallLilo && size1 == 0)    // zero sections
 	    {
+		// error popup
 		UI::`ErrorPopup(_("Configuration cannot be confirmed.
 There must be at least one boot section.
 "));
@@ -618,6 +629,7 @@ global define symbol MainDlgRedraw() ``{
 global define boolean LinuxSectDlg_validate(map vals, string sectname_orig) ``{
     if (strip(lookup(vals, Lilo::mode == `grub ? "title" : "label", "")) == "")
     {
+	// popup
 	UI::`MessagePopup(_("Please enter section label."));
 	return false;
     }
@@ -626,6 +638,7 @@ global define boolean LinuxSectDlg_validate(map vals, string sectname_orig) ``{
         if (SCR::Read(.target.size, lookup(vals, Lilo::mode == `grub ? "kernel" : "image", "")) == -1 ||
 	    ( Arch::sparc && SCR::Read(.target.size, "/boot"+lookup(vals, "image", "")) == -1))
 	{
+		// popup
 	    UI::`MessagePopup(_("File entered in 'Path to linux kernel' doesn't exist."));
 	    return false;
 	}
@@ -649,6 +662,7 @@ global define boolean LinuxSectDlg_validate(map vals, string sectname_orig) ``{
  */
 
 global define symbol LinuxSectDlg() ``{
+	// caption
     string caption = _("Linux section properties");
     string help = lookup(HELP_STRINGS, "linux_sect_dialog", "");
 
@@ -832,6 +846,7 @@ global define symbol LinuxSectDlg() ``{
  */
 
 global define symbol OtherSectDlg() ``{
+	// caption
     string  caption = _("Other OS section properties");
     string  help = lookup(HELP_STRINGS, "other_sect_dialog", "");
     boolean adding = false;
@@ -879,11 +894,13 @@ global define symbol OtherSectDlg() ``{
 	    }
 	    if (lab == "")
 	    {
+		// popup
 		UI::`MessagePopup(_("Please enter section label."));
 		action = `skip_event;
 	    }
 	    else if (lab != sectname_orig && checkSectionExistence(toascii(lab)))
 	    {
+		// popup
 		UI::`MessagePopup(_("Section with given label already exists. 
 Please enter new section label."));
 		action = `skip_event;
@@ -940,6 +957,7 @@ Please enter new section label."));
  */
 
 global define symbol OSTypeDlg() ``{
+	// caption
     string caption = _("Select action");
     string help = lookup(HELP_STRINGS, "os_type_dialog", "");
 //_("<P>In this dialog you can decide whether to add Linux or other OS section. 
@@ -991,6 +1009,7 @@ global define symbol OSTypeDlg() ``{
  */
 
 global define symbol GlobalOptsDlg() ``{
+	// caption
     string  caption = _("Global bootloader properties");
     string  help = lookup(HELP_STRINGS, "global_opts_dialog", "");
 
@@ -1086,6 +1105,7 @@ global define symbol GlobalOptsDlg() ``{
 		string ps2 = UI::`QueryWidget(`id(`pass2), `Value);
 		if (ps1 != ps2)
 		{
+			// popup
 		    UI::`MessagePopup(_("Values in 'Password' and 'Retype password' 
 fields differ. Please retype password."));
 		    action=`skip_event;
@@ -1170,6 +1190,7 @@ global define void enable_opt_dlg(boolean val) ``{
  */
 
 global define symbol OptionsDlg(map vals) ``{
+	// caption
     string caption = _("Section options");
 
     string help = lookup(HELP_STRINGS, "options_dialog", "");
@@ -1261,6 +1282,7 @@ global define symbol OptionsDlg(map vals) ``{
 		UI::`ChangeWidget(`id(`opt_table), `CurrentItem, s1);
 	    }
 	}
+	// yes-no popup
 	else if (a == `delete && UI(`YesNoPopup(_("Really remove selected option?"))))
 	{
 	    string optn = UI::`QueryWidget(`id(`opt_table), `CurrentItem);
@@ -1296,6 +1318,7 @@ global define symbol OptionsDlg(map vals) ``{
 		//error message
 		// %1 is coma separated list of option names
 		UI::`ErrorPopup(sformat(
+			// error popup, %1 is list of option names
 			_("Option %1 must not have empty value.", 
 			  "Options %1 must not have empty value.", size(wrongs)),
 			mergestring(wrongs, ", ")));
@@ -1330,6 +1353,7 @@ global define symbol OptionsDlg(map vals) ``{
  */
 
 global define symbol OSScanDlg() ``{
+	// caption
     string caption = _("Detected operating systems");
     string help = lookup(HELP_STRINGS, "scanner_dialog", "");
 
@@ -1346,6 +1370,7 @@ global define symbol OSScanDlg() ``{
     if (size(scanned_os) == 0)
     {
 	// no linux detected (? this should not happen, at least *this* linux must be detected)
+	// label
 	widget = `Label(_("No operating system detected on this system.\nPress 'Back' to continue."));
 	disable_next = true;
     }
@@ -1356,8 +1381,11 @@ global define symbol OSScanDlg() ``{
 	list ui_list = maplist(`e, scanned_os, 
 	``{
 	    map linux_info = lookup(e, "linux_info", $[]);
-	    string retval = sformat("%1 (Version %2) installed on %3", 
+		// label, eg. SuSE Linux (version 8.1) installed on /dev/hda1
+	    string retval = sformat(_("%1 (Version %2) installed on %3"),
+						// label above part (linux distribution)
                                                 lookup(linux_info, "dist", _("Unrecognized Linux")),
+						// label above part (version)
                                                 lookup(linux_info, "version", _("Unknown")),
 						lookup(e, "dev_name", ""));
 	    if (lookup(e, "dev_name", "") == root_device)
@@ -1426,11 +1454,16 @@ global define symbol OSScanDlg() ``{
 global define void showPropWidget(string optname, string value) ``{
     if (lookup(opttypes(), optname, "s") == "b")
     {
+	// combo box
 	UI::`ReplaceWidget(`id(`input), `ComboBox(`id(`val), `opt(`hstretch), _("Option &value (enter now or later)"),
-                [`item(`id("true"), _("Yes"), value == "true"),  `item(`id("false"), _("No"), value == "false")]));
+		// combobox item
+                [`item(`id("true"), _("Yes"), value == "true"),
+		// combobox item
+		 `item(`id("false"), _("No"), value == "false")]));
     }
     else
     {
+	// textentry
         UI::`ReplaceWidget(`id(`input), `TextEntry(`id(`val), _("Option &value (enter now or later)"), value));
     }
 }
@@ -1470,15 +1503,20 @@ global define map AddOption(list optlist, string val, string origVal) ``{
 	    if (Lilo::mode == `grub)
 	    {
 		if (size (optlist) == 1)
+		    // help 1/3 alt. 1
 		    help = _("Set value of selected option.");
 		else
+		    // help 1/3 alt. 2
 		    help = _("Set option name and it's value.");
+		    // help 2/3
 		string h2 = _("For help please look into the documentation of your bootloader. ");
+		    // help 3/3
 		string h3 = _("If you set improper values, your system may be unbootable.");
 		help = sformat ("<P>%1 %2 %3</P>", help, h2, h3);
 	    }
 	    else
 	    {
+		// help, %1 is option specific help
 		help = sformat(_("<P>Help for option <B>%1</B>:</P>"), optn) + OptionHelp(optn);
 	    }
 	    UI::ChangeWidget(`id(`help), `Value, help);
@@ -1519,6 +1557,7 @@ global define map AddOption(list optlist, string val, string origVal) ``{
 
 global define void ShowOptHelp(string option) ``{
 //    UI(`OpenDialog(OptionHelpWidget()));
+		// help, %1 is option specific help
     string text = sformat(_("Help for option '%1'"), option);
     UI::`LongTextPopup(text, `RichText(OptionHelp(option)), 48, 10);
 }
@@ -1539,7 +1578,7 @@ global define void ShowErrorLog(string stderr) ``{
 	list l = splitstring(s, "\n");
 	errline = select(l, i - 1, "");
     }
-			// %1 = lilo/silo
+			// popup, %1 = lilo/silo
     UI::`MessagePopup(sformat(_("%1 returned this error message: \n%2"), boot(), stderr)); //+"\n"+errline)));
 }
 

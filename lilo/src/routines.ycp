@@ -654,6 +654,7 @@ global define list createSummaryTable() ``{
 		descr = "other";
 		image = lookup(img, "chainload", "");
 		if (image == "")
+			// table item
 		    image = lookup(img, "root", _("none"));
 		if (image != "none")
 		    image = grub2Lilo (image);
@@ -661,6 +662,7 @@ global define list createSummaryTable() ``{
 	    else
 	    {
 		descr = "image";
+			// table item
 		image = lookup(img, "kernel", _("none"));
 		image = select ( splitstring (image, " "), 0, image);
 	    }
@@ -673,11 +675,13 @@ global define list createSummaryTable() ``{
 	    if (haskey(img, "other"))
 	    {
 		descr = "other";
+			// table item
 		image = lookup(img, "other", _("none"));
 	    }
 	    else
 	    {
 		descr = "image";
+			// table item
 		image = lookup(img, "image", _("none"));
 	    }
 	}
@@ -982,12 +986,18 @@ global define list check_values(map vals) ``{
  */ 
 
 global define string check_aliases(map liloconf, string omit_section, string new_name, string new_alias) ``{
+    // error popup, %s are labels of sections (strings)
     string s1 = _("Section label '%1' is already used.");
+    // error popup, %s are labels of sections (strings)
     string s2 = _("Label '%1' is already used as an alias for section '%2'.");
+    // error popup, %s are labels of sections (strings)
     string s3 = _("Alias '%1' conflicts with the name of another section.");
+    // error popup, %s are labels of sections (strings)
     string s4 = _("Alias '%1' is already used as an alias for section '%2'.");
 
+    // error popup
     string s7 = _("Use another section label.");
+    // error popup
     string s8 = _("Use another section alias.");
 
     list images = lookup(liloconf, "image", []);
@@ -1089,10 +1099,12 @@ global define string create_summary_text() ``{
     {
 	if (initial_mode)
 	{
+	    // part of summary
 	    return _("<P>The boot loader will not be installed.</P>");
 	}
 	else
 	{
+	    // part of summary
 	    return _("<P>The boot loader will be uninstalled.</P>");
 	}
     }
@@ -1129,24 +1141,29 @@ global define string create_summary_text() ``{
 	symbol partsymbol = lookup(parts, b_dev, `mbr);
 	if (partsymbol == `mbr)
 	{
+		// part of summary, %1 is device (eg. /dev/hda)
 	    bootdev = sformat(_("The boot loader will be installed on the master boot record
 of %1.
 "), b_dev);
 	}
 	else if (partsymbol == `boot)
 	{
+		// part of summary, %1 is device (eg. /dev/hda)
 	    bootdev = sformat(_("The boot loader will be installed on the boot sector of the /boot partition (%1)."), b_dev);
 	}
 	else if (partsymbol == `root)
 	{
+		// part of summary, %1 is device (eg. /dev/hda)
 	    bootdev = sformat(_("The boot loader will be installed on the boot sector of root partition (%1)."), b_dev);
 	}
 	else if (partsymbol == `floppy)
 	{
+		// part of summary, %1 is device (eg. /dev/hda)
 	    bootdev = _("The boot loader will be installed on a floppy disk.");
 	}
 	else
 	{
+		// part of summary, %1 is device (eg. /dev/hda)
 	    bootdev = sformat(_("The boot loader will be installed on the boot sector of partition %1."), b_dev);
 	}
     }
@@ -1155,6 +1172,7 @@ of %1.
 
     if (!haskey(Lilo::globals, "prompt") && (Lilo::mode != `grub))
     {
+		// part of summary
 	output = output + _("The boot prompt will not be shown and default section will be 
 booted automatically unless the left Shift key is pressed during booting.
 ") + " ";
@@ -1164,12 +1182,14 @@ booted automatically unless the left Shift key is pressed during booting.
 	if (haskey(Lilo::globals, "timeout"))
 	{
 	    integer divisor = (Lilo::mode == `grub) ? 1 : 10;
+		// part of summary, %1 is time in seconds
 	    output = output + sformat(_("The boot prompt will be shown. After %1 seconds of inactivity,
 the default section will be booted.
 "), tointeger(lookup(Lilo::globals, "timeout", "0")) / divisor) + " ";
 	}
 	else
 	{
+		// part of summary
 	    output = output + _("When booting, you will be prompted to select the
 section to boot. Unattended reboots are impossible.
 ") + " ";
@@ -1178,18 +1198,23 @@ section to boot. Unattended reboots are impossible.
 
     if (haskey(Lilo::globals, "password"))
     {
-	output = output + "Password will be required." + " ";
+		// part of summary
+	output = output + _("Password will be required.") + " ";
     }
 
     output = output + "</P><P></P>";
     // ===== end of paragraph
     if (size(image) == 0)
     {
+		// part of summary
 	output = output + _("<p>No sections.</p>");
     }
     else
     {
-	output = output + sformat("<P>%1 \n<UL>%2</UL>\n</P>", _("Sections:"), 
+		// part of summary %1 is Sections, %2 list of sections (one pre line)
+	output = output + sformat("<P>%1 \n<UL>%2</UL>\n</P>",
+		// part of summary
+	     _("Sections:"),
 	    create_sect_summary());
     }
 

@@ -76,6 +76,7 @@ map res = SCR::`Execute(.target.bash_output, "/usr/bin/whoami", $[]);
 list l_res = splitstring(lookup(res, "stdout", ""), "\n");
 if( !Mode::test && size(l_res) > 0 &&  select(l_res, 0, "") != "root")
 {
+	// popup
     UI::MessagePopup(_("You need to be logged in as root
 to configure the boot loader.
 "));

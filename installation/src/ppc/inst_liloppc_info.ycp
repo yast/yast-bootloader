@@ -120,6 +120,7 @@ y2milestone("user_settings %1",user_settings);
 		string volume_name = "";
 		integer partition_number = 0;
 		y2milestone("running on %1 ", lilo);
+		// info message
 		info_msg =  _( "
 A NewWorld PowerMacintosh must be booted with yaboot.
 
@@ -221,6 +222,7 @@ starting Linux as well as other operating systems.
 	contents = add(contents,
 			`VBox(
 				`ComboBox(`id(`real_boot_partition),
+					// combo box
 					_("Select your &boot volume:"),
 					pdisk_partitions)
 			)
@@ -230,6 +232,7 @@ starting Linux as well as other operating systems.
 			contents = add(contents,
 					`VBox(
 						`ComboBox(`id(`real_macos_partition),
+							// combo box
 							_("Select your partition for &MacOS:"),
 							pdisk_partitions)
 					)
@@ -241,6 +244,7 @@ starting Linux as well as other operating systems.
 	contents = add(contents,
 			`VBox(
 				`ComboBox(`id(`real_boot_partition),
+					// combo box
 					_("Select your partition for the &boot loader:"),
 					pdisk_partitions)
 			)

@@ -86,6 +86,7 @@
 
       if ( result != 0 )
       {
+	// yes-no popup
 	  any ret = UI::YesNoPopup(_("The source medium used in the previous installation is apparently not available.
 Would you like to choose a new installation source?"));
 
@@ -150,8 +151,8 @@ Would you like to choose a new installation source?"));
    */
 
   define string floppyHelpSelectImage() ``{
-
       string help_text = UI (_("<p>
+	// help text
 To create a boot, modules or rescue floppy please
 select the appropriate item from the list and
 click on <b>Next</b> to start.</p>"
@@ -160,6 +161,7 @@ click on <b>Next</b> to start.</p>"
       if ( i386disk_found || bootdisk_found )
       {
 	  help_text = help_text + UI (_(
+	// help text
 "<p><b>Boot floppies:</b><br>
 This boot floppy can be used to boot your installed system or a rescue system
 (from the first CDROM or the rescue floppy).</p>"
@@ -169,6 +171,7 @@ This boot floppy can be used to boot your installed system or a rescue system
       if( rescuedisk_found )
       {
 	help_text = help_text + UI (_(
+	// help text
 "<p><b>Rescue system:</b><br>
 To start the rescue system boot from the boot floppy or the SuSE CDROM
 and select <i>Manual installation</i> -> <i>Start installation / system</i>
@@ -179,6 +182,7 @@ and select <i>Manual installation</i> -> <i>Start installation / system</i>
       if( module2disk_found || moduledisk_found )
       {
 	help_text = help_text + UI (_(
+	// help text
 "<p><b><big>Module disks:</big></b><br>
 All SuSE kernels are modularized. This means that most of the drivers
 are loaded as kernel modules on demand. But since the space of one single floppy
@@ -198,12 +202,14 @@ the <b>module floppies</b>.</p>"
   define string floppyHelpInsertDisk() ``{
 
       string help_text = UI (_(
+	// help text
 "<p><b><big>Create a boot, rescue or module floppy:</big></b><br>
 Please insert a new, preformatted floppy disk (1440k) into the floppy drive<br>
 and press <b>Next</b> to continue.</p>"
         ));
 
     help_text = help_text + UI(_(
+	// help text
 				 "<p><b><big>Attention:</big></b><br>All data on the floppy will be deleted.</p>"));
 
     return help_text;
@@ -218,6 +224,7 @@ and press <b>Next</b> to continue.</p>"
   define string floppyHelpCopyImage() ``{
 
       return UI (_(
+	// help text
 		   "<p><b><big>Create floppy disk:</big></b><br>YaST2 is copying the image to the floppy disk. Please wait.</p>" ));
   }
 
@@ -255,6 +262,7 @@ and press <b>Next</b> to continue.</p>"
       {
 	  bootdisk_term = add( bootdisk_term , `Left(`RadioButton(`id("bootdisk"),
 								  `opt(`notify),
+									// radio button
 								  _("&Standard boot floppy"), b_bootdisk)));
       }
 
@@ -262,6 +270,7 @@ and press <b>Next</b> to continue.</p>"
       {
 	  bootdisk_term = add( bootdisk_term  , `Left(`RadioButton(`id("i386"),
 								  `opt(`notify),
+									// radio button
 								  _("&Fallback boot floppy for i386 and older Cyrix\nprocessors; without frame buffer support"), b_i386)));
       }
 
@@ -269,6 +278,7 @@ and press <b>Next</b> to continue.</p>"
       {
 	  rescuedisk_term = add( rescuedisk_term , `Left(`RadioButton(`id("rescue"),
 								      `opt(`notify),
+									// radio button
 								      _("&Rescue disk"), b_rescue)));
       }
 
@@ -276,6 +286,7 @@ and press <b>Next</b> to continue.</p>"
       {
 	    moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules"),
 								       `opt(`notify),
+									// radio button
 								       _("SCSI/RAID/EIDE and PCMCIA &modules, old\n(non-ATAPI) CDROM drivers"), b_modules)));
       }
 
@@ -283,6 +294,7 @@ and press <b>Next</b> to continue.</p>"
       {
 	  moduledisk_term = add( moduledisk_term, 	`Left(`RadioButton(`id("modules2"),
 									   `opt(`notify),
+									// radio button
 									   _("&Network modules"), b_modules2)));
       }
 
@@ -292,6 +304,7 @@ and press <b>Next</b> to continue.</p>"
 
 
       term g_bootdisks_term = `Frame (
+					// frame
 				       _("Boot disks:"),
 				       `HBox(
 					     `HSpacing(0.5),
@@ -303,6 +316,7 @@ and press <b>Next</b> to continue.</p>"
 
 
       term g_rescuedisk_term =  `Frame (
+					// frame
 					_("Rescue disks:"),
 					`HBox(
 					      `HSpacing(0.5),
@@ -316,6 +330,7 @@ and press <b>Next</b> to continue.</p>"
 					);
 
       term g_moduledisk_term = `Frame (
+					// frame
 				       _("Module disks:"),
 				       `HBox(
 					     `HSpacing(0.5),
@@ -434,6 +449,7 @@ All data on this floppy will be deleted.")),
       if ( floppymount != nillist)
       {
 	  //floppy is mounted
+	  // popup
 	  if( ! UI::ContinueCancelPopup(sformat(_("
 Your floppy device %1 is currently mounted on
 %2. To create a new boot floppy
@@ -453,16 +469,22 @@ Do you want to unmount the floppy?"), lookup(floppymount, "spec", ""),
 
       string image_text = "";
 
+	// image text - label
       if( file_image == "bootdisk" ) image_text = UI(_("Creating standard boot floppy"));
+	// image text - label
       if( file_image == "i386"     ) image_text = UI(_("Creating fallback boot floppy for i386 and\nolder Cyrix processors"));
+	// image text - label
       if( file_image == "rescue"   ) image_text = UI(_("Creating rescue floppy"));
+	// image text - label
       if( file_image == "modules"  ) image_text = UI(_("Creating SCSI/RAID/EIDE and PCMCIA\nmodules floppy"));
+	// image text - label
       if( file_image == "modules2" ) image_text = UI(_("Creating network modules floppy"));
 
 
       term contents =   `VBox(
 			      `VSpacing( 2 ),
 			      `Left(`Heading ( image_text )),
+				// progress bar status
 			      `HVCenter(`ProgressBar(`id(`bar), _("copy ......"))),
 			      `VSpacing( 2 )
 			      );
@@ -530,13 +552,14 @@ Do you want to unmount the floppy?"), lookup(floppymount, "spec", ""),
 		    {
 			//try to format the floppy with fdformat
 			if ( ! format)  return `format;
-
+			// error popup
 			UI::ErrorPopup(_("An error occurred during the creation of the floppy disk.
 Please try again."));
 			return `select_image;
 		    }
 
 		    else {
+			// popup
 			UI::MessagePopup(_("
 
 The requested floppy disk was successfully created.
@@ -547,6 +570,7 @@ The requested floppy disk was successfully created.
 		}
 	    }
 	    else {
+		// error popup
 		UI::ErrorPopup(_("
 Error copying the image file to the floppy disk.
 Please verify that you inserted a valid floppy medium

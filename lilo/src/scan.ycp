@@ -144,6 +144,7 @@ textdomain "bootloader";
 
     global define list scan_os() ``{
 
+	// popup label
 	UI::OpenDialog(`opt(`decorated), `Label(`id(`message), _("Reading partitions...") + 
 		// spaces for later messages
 		"                       "));
@@ -185,6 +186,7 @@ textdomain "bootloader";
 
 	partitions = maplist(`part_entry, partitions,
 	``{
+	// popup label
 	    UI::ChangeWidget(`id(`message), `Value, sformat(_("Analyzing partition %1..."), 
 		lookup(part_entry, "dev_name", "")));
 	    if (is_linux(part_entry))

@@ -103,6 +103,7 @@ global define boolean LiloFinish() ``{
  */
 
 global define void restoreOriginalSettings() ``{
+    // popup contents
     UI::`OpenDialog(`opt(`decorated), `Label(_("Restoring original configuration...")));
     if (Arch::sparc)
     {

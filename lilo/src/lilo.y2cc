@@ -7,7 +7,7 @@
 
 [Y2Module lilo]
 
-; name of the entry, shown in y2cc
+; // name of the entry, shown in y2cc
 Name = _("Bootloader configuration")
 
 ; "raw" group name to which this module belongs
@@ -17,7 +17,7 @@ Group = System
 ; icon displayed in y2cc
 Icon = boot.png
 
-; *one* *short* descriptive line for y2cc
+; // *one* *short* descriptive line for y2cc
 Helptext = _("Configure lilo")
 
 ; arguments, seperated by space

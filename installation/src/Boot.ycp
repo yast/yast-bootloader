@@ -504,12 +504,14 @@
     global define void Boot()
     ``{
 	LoaderType = SCR::Read (.probe.boot_arch);
+	y2error ("Probe arch: %1", LoaderType);
 	if (LoaderType == "grub" && Mode::update)
 	{
 	    string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
 	    if (sysconfig == "grub" || sysconfig == "lilo")
-		LoaderType = "lilo";
+		LoaderType = sysconfig;
 	}
+	y2milestone ("Setting bootloader type to %1", LoaderType);
 	return;
     }
 }

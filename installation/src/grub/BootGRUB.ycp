@@ -1,9 +1,9 @@
 /**
  * File:
- *	BootLILO.ycp
+ *	BootGRUB.ycp
  *
  * Module:
- *	BootLILO
+ *	BootGRUB
  *
  * Summary:
  *	functions for bootload setup
@@ -50,6 +50,7 @@
 	    term text = `RichText( "<p>" + msg_text + "</p>" );
 	    OpenDialog(`opt ( `decorated ),
 		       `VBox (`HSpacing(75),
+				// heading
 			      `Heading( _("Error Log File")),
 			      text,	// e.g. `Richtext()
 			      `PushButton( `id(`ok_help), `opt(`default), OKButtonLabel() )
@@ -223,7 +224,7 @@ Do you want to try again?")) )
     ``{
 	return "";
 	// custom bootloader help text, LILO only, 1 of 2
-	return _("<p>
+/*	return _("<p>
 The <b>linear option</b> is for backwards compatibility. Use this to make LILO
 cooperate with older hardware when the default does not work.
 Most users will not need this.
@@ -235,7 +236,7 @@ Most users will not need this.
 Check <b>Activate partition</b> to mark the partition as active. Usually this
 is not required, but, on some systems, the BIOS only boots from an active partition.
 </p>
-");
+");*/
     }
 
 
@@ -295,7 +296,10 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	SCR::Execute (.target.bash, "test -f /etc/grub.conf || touch /etc/grub.conf");
 	SCR::Execute (.target.bash, "test -d /boot/grub || mkdir /boot/grub;");
 	SCR::Execute (.target.bash, "test -f /boot/grub/menu.lst || touch /boot/grub/menu.lst;");
+	SCR::Execute (.target.bash, "test -f /boot/grub/device.map || rm /boot/grub/device.map");
 	SCR::Execute (.target.bash, "test -f /boot/grub/device.map || echo \"quit\" | /usr/sbin/grub --device-map=/boot/grub/device.map");
+
+	y2milestone ("Got device map: %1", SCR::Read (.target.string, "/boot/grub/device.map"));
 
 	if ( Mode::update )
 	{
@@ -353,7 +357,7 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	    sformat ("root=%1", Boot::RootPartitionDevice), Kernel::cmdLine);
 	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd");
 
-	y2error ("other = %1", Boot::other);
+	y2debug ("other = %1", Boot::other);
 	if (Boot::other != "")
         {
 	    list others = splitstring (Boot::other, "\"");
@@ -436,7 +440,7 @@ y2error ("Sections: %1", sections);
 	y2milestone ("Starting mk_initrd");
 	SCR::Execute(.target.bash, "/sbin/mk_initrd");
 	y2milestone ("Starting GRUB");
-	string command = sformat ("echo \"%1\" | grub --batch ", grub_conf);
+	string command = sformat ("echo \"%1\" | /usr/sbin/grub --batch ", grub_conf);
 	SCR::Execute(.target.bash, command);
 	y2milestone ("GRUB installed");
 
@@ -570,6 +574,7 @@ y2error ("Sections: %1", sections);
 	{
 
 	    SCR::Execute(.target.bash, "/bin/umount /media/floppy"); // Just for safety
+		// popup
 	    Report::Message(_("The LILO boot sector will be written onto a floppy disk.
 Please insert a formatted floppy and confirm with 'OK'."));
 
@@ -650,6 +655,7 @@ the old boot sector in the installed system with \"lilo -u %1\""), Boot::device)
 	    }
 	    else
 	    {
+		// error popup
 		Report::Error(_("Could not write the LILO boot sector"));
 	    }
 

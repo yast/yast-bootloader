@@ -7,7 +7,7 @@
 
 [Y2Module bootfloppy]
 
-; name of the entry, shown in y2cc
+; // name of the entry, shown in y2cc
 Name = _("Create a boot, rescue or module floppy")
 
 ; "raw" group name to which this module belongs
@@ -17,7 +17,7 @@ Group = System
 ; icon displayed in y2cc
 Icon = bootmode.png
 
-; *one* *short* descriptive line for y2cc
+; // *one* *short* descriptive line for y2cc
 Helptext = _("Insert a floppy disk and create a standalone boot, rescue or module floppy.")
 
 ; arguments, seperated by space

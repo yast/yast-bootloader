@@ -221,7 +221,7 @@
 			`HWeight(25, `HStretch()));
 
     parameters = `Frame(
-			// frame label for boot manager (%1) parameters
+			// frame label for boot manager (%1) parameters, %1 is bootloader (eg. LILO)
 			sformat (_("%1 parameters"), loadername),
 
 			`VBox(
@@ -321,6 +321,7 @@ enter them in the corresponding input field. Most users will not need this.
 
     helptext = helptext + help_parameters + "<br>";
 
+    // dialog caption
     Wizard::SetContents(_("Custom boot manager installation"),
 			    contents, helptext, WFM::Args(0), WFM::Args(1));
 
@@ -348,7 +349,7 @@ enter them in the corresponding input field. Most users will not need this.
 	    {
 		if ( ret == `next )
 		{
-		    // User MUST choose one of the options
+		    // popup User MUST choose one of the options
 		    UI::MessagePopup(_("You must choose one of the
 options to continue.
 "));
@@ -380,7 +381,7 @@ options to continue.
 			    || (option == "")
 			    || (substring (option, 0, 5) != "/dev/")))
 		    {
-			// custom boot loader field, must begin with "/dev/" but didn't
+			// popup custom boot loader field, must begin with "/dev/" but didn't
 			UI::MessagePopup(_("You did not enter a partition."));
 			continue;
 		    }
