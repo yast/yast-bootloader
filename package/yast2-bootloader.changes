@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug 13 14:07:32 CEST 2003 - jsrain@suse.de
+
+- fixed bootloader update
+- better comments around YaST2 metadata in generated cfg. files
+- 2.8.9
+
+-------------------------------------------------------------------
 Tue Aug 12 13:29:35 CEST 2003 - jsrain@suse.de
 
 - added support for not installing any bootloader

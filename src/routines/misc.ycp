@@ -442,11 +442,17 @@
 	map intern = $[];
 	options = maplist (`o, options, ``{
 	    string key = o["key"]:"";
-	    if (key == getSectionTitle ()
-		&& regexpmatch (o["comment"]:"", "###[a-z_]+###"))
+	    if (key == getSectionTitle ())
 	    {
-		intern["type"] = regexpsub (o["comment"]:"", "###([a-z_]+)###",
-		    "\\1");
+		if (regexpmatch (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: [a-z_]+###"))
+		{
+		    intern["type"]
+			= regexpsub (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: ([a-z_]+)###", "\\1");
+		}
+		else
+		{
+		    intern["type"] = o["value"]:"";
+		}
 	    }
 	    any value = mod2ui (o["value"]:"");
 	    if (isSpecial (key))
@@ -877,7 +883,8 @@
 		if (key == getSectionTitle ())
 		{
 		    title = value;
-		    o["comment"] = sformat ("###%1###", sect_type);
+		    o["comment"] = sformat ("###Don't change this comment - YaST2 identifier: Original name: %1###",
+			sect_type);
 		}
 		if (isSpecial (key))
 		    value = mergestring (splitstring (value, ","), "\n");

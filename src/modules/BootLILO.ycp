@@ -459,10 +459,16 @@
         });
         out = maplist (`s, out, ``{
             s = maplist (`p, s, ``{
-                string option = p["value"]:"";
-                if (regexpmatch (option, "^.*\.shipped.*$"))
-                   option = regexpsub (option, "^(.*)\.shipped(.*)$", "\\1\\2");
-                p["value"] = option;
+		if (p["key"]:"" != "__intern__")
+		{
+		    string option = p["value"]:"";
+		    if (regexpmatch (option, "^.*\.shipped.*$"))
+		    {
+			option = regexpsub (option,
+			    "^(.*)\.shipped(.*)$", "\\1\\2");
+		    }
+		    p["value"] = option;
+		}
 		return p;
             });
 	    return s;
