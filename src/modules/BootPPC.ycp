@@ -478,13 +478,11 @@
       * @return boolean true if success
       */
     global define boolean Save () ``{
-y2error ("BootPPC::Save");
         if (!( Arch::board_prep || Arch::board_chrp
 	    || Arch::board_mac_new || Arch::board_iseries ))
 	{
             return true;
 	}
-y2error ("Really saving");
 	boolean ret = currentBoardSave ();
 
         SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");

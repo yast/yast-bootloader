@@ -181,6 +181,7 @@ Replace it with an entry  to boot from the floppy?");
       * @param sects list of sections
       */
     global define void sectionsRedrawTable (list<list<map> > sects) ``{
+	y2milestone ("Redrawing list of GRUB's sections");
 	integer order = -1;
 	list sec = maplist (list<map> s, sects, ``{
 	    order = order + 1;

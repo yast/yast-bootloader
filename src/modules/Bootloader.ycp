@@ -115,13 +115,19 @@
     global define void Import (map<string, any> settings) ``{
 	y2milestone ("Importing settings: %1", settings);
 	Reset ();
+
 	BootCommon::was_read = true;
 	BootCommon::was_proposed = true;
 	BootCommon::changed = true;
 	BootCommon::location_changed = true;
 	BootCommon::location = settings["location"]:"";
 	BootCommon::loader_device = settings["loader_device"]:"";
+
+	if (settings["loader_type"]:nil == "")
+	    settings["loader_type"] = nil;
 	BootCommon::setLoaderType ((string) (settings["loader_type"]:nil));
+	BootCommon::getLoaderType (false);
+
 	if (settings["initrd"]:$[] != nil)
 	    Initrd::Import (settings["initrd"]:$[]);
 	blImport (settings["specific"]:$[]);
@@ -570,7 +576,7 @@
       * @param bootloader string type of bootloader
       */
     global define void setLoaderType (string bootloader) ``{
-	return BootCommon::setLoaderType (bootloader);
+	BootCommon::setLoaderType (bootloader);
     }
 
     /**

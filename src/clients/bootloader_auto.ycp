@@ -230,7 +230,6 @@
     y2debug("func=%1", func);
     y2debug("param=%1", param);
 
-
     if(func == "Import")
     {
 	ret = Bootloader::Import(AI2Export ((map<string,any>)param));
@@ -259,9 +258,7 @@
       * return symbol (i.e. `finish || `accept || `next || `cancel || `abort)
       */
     else if (func == "Change") {
-	Wizard::CreateDialog ();
-    ret = Bootloader::BootloaderAutoSequence ();
-    UI::CloseDialog ();
+	ret = Bootloader::BootloaderAutoSequence ();
 	return ret;
     }
     /**
