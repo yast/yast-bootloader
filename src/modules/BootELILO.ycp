@@ -215,6 +215,10 @@
             else if ((title == "linux" || title == "failsafe")
                 && BootCommon::write_settings["insert_initrd"]:false)
             {
+                initrd = select (
+		    Storage::GetDiskPartition ("/boot/initrd"),
+		    1, "/boot/initrd");
+		/* not using .shipped images any more
                 if (title == "linux")
                     initrd = select (
 			Storage::GetDiskPartition ("/boot/initrd"),
@@ -222,7 +226,7 @@
                 else
                     initrd = select (
 			Storage::GetDiskPartition ("/boot/initrd.shipped"),
-			1, "/boot/initrd.shipped");
+			1, "/boot/initrd.shipped");*/
                 s = modifySection (s, "initrd", initrd);
             }
             if (title == "linux" && s["append"]:nil != nil
@@ -385,8 +389,9 @@ fi", efi_label);
       * @return section description structure
       */
     global define list createLinuxSection (string title) ``{
-        string initrd = title == "failsafe" ? "initrd.shipped" : "initrd";
-        string image = title == "failsafe" ? "vmlinuz.shipped" : "vmlinuz";
+	// not using .shipped images any more
+        string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
+        string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
         string append = title == "failsafe"
             ? "ide=nodma"
             : sformat ("%1 splash=silent", Kernel::cmdLine);

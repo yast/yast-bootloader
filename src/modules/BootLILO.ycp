@@ -202,10 +202,12 @@
             else if ((type == "linux" || type == "failsafe")
 		&& BootCommon::write_settings["insert_initrd"]:false)
             {
+		initrd = "/boot/initrd";
+/* Not using .shipped images any more
                 if (type == "linux")
                     initrd = "/boot/initrd";
                 else
-                    initrd = "/boot/initrd.shipped";
+                    initrd = "/boot/initrd.shipped";*/
 		s = modifySection (s, "initrd", initrd);
             }
             if (type == "linux" && lookup_value (s, "append", nil) != nil
@@ -303,8 +305,9 @@
 	  else
 	    return $[];
 	}
-	string initrd = title == "failsafe" ? "initrd.shipped" : "initrd";
-	string image = title == "failsafe" ? "vmlinuz.shipped" : "vmlinuz";
+	// not using .shipped images any more
+	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
+	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
 	string append = title == "failsafe"
 	    ? "ide=nodma apm=off acpi=off vga=normal "
 	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp noapic ")
