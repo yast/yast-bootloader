@@ -27,16 +27,6 @@
 
 
     /**
-      * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootGRUB::Write ())])
-      */
-    global define map GetFunctions () ``{
-        return $[
-
-        ];
-    }
-
-    /**
       * Export bootloader settings to a map
       * @return bootloader settings
       */
@@ -80,7 +70,7 @@
       * Display bootloader summary
       * @return summary string
       */
-    global define list(string) Summary () ``{
+    global define list<string> Summary () ``{
 	return BootCommon::Summary ();
     }
     /**
@@ -95,6 +85,16 @@
       */
     global define boolean Write () ``{
 	return BootCommon::Write ();
+    }
+
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootGRUB::Write ())])
+      */
+    global define map GetFunctions () ``{
+        return $[
+
+        ];
     }
 
 }
