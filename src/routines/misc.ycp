@@ -27,7 +27,6 @@
     import "Mode";
     include "bootloader/routines/routines.ycp";
 
-    import "BootCommon";
     import "Storage";
     import "StorageDevices";
     import "Report";
@@ -271,10 +270,10 @@
 	integer index = 1;
 	list<string> existing = [];
         foreach (list<map> s, BootCommon::sections, ``{
-            existing = add (existing, lookup_value (
+            existing = add (existing, (string)lookup_value (
 		s, getSectionTitle (), ""));
             foreach (string a, (list<string>) getAnyTypeAttrib ("alias_keys", []), ``{
-                existing = add (existing, lookup_value (
+                existing = add (existing, (string)lookup_value (
 		    s, a, ""));
             });
         });
@@ -369,7 +368,7 @@
      * @return list of strings
      */
     global define list<string> getPartitionList(symbol type) ``{
-	map devices = Storage::GetTargetMap();
+	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
 	devices = filter (string k, map v, devices,
 	    ``(! v["is_lvm_vg"]:false));
 	if (type == `boot || type == `boot_other)
@@ -378,13 +377,13 @@
 		``(! issubstring (k, "/dev/md")));
 	}
 	list<string> all_disks = (list<string>) maplist (string k, map v, devices, ``(k));
-	list partitions = [];
+	list<map> partitions = [];
 	foreach (string k, map v, devices, ``{
-	    partitions = merge (partitions, v["partitions"]:[]);
+	    partitions = (list<map>)merge (partitions, (list<map>)(v["partitions"]:[]));
 	});
 	list<string> floppies = getFloppyDevices ();
 
-        partitions = filter (any p, partitions, ``(is (p, map)));
+
 	if (type == `deleted)
 	    return maplist (map x, filter (map p, partitions, ``(p["delete"]:false)),
 		``{return x["device"]:"";
@@ -425,9 +424,10 @@
                 ``(p["fstype"]:"" == "Linux native"
                     || p["fstype"]:"" == "Extended"));
 	}
-        partitions = maplist (map p, partitions, ``(p["device"]:""));
-	partitions = filter (string p, partitions, ``(p != ""));
-        partitions = merge (partitions, floppies);
+        list<string>partition_names
+	    = maplist (map p, partitions, ``((string)(p["device"]:"")));
+	partition_names = filter (string p, partition_names, ``(p != ""));
+        partition_names = (list<string>)merge (partition_names, floppies);
         ret = union (ret, partitions);
 	ret = toset (ret);
 	return (list<string>)ret;
@@ -581,7 +581,7 @@
             p = list2path([bl, "sections" , section]);
         }
 
-	list options = (list) SCR::Read (p);
+	list<map> options = (list<map>) SCR::Read (p);
 	map intern = $[];
 	options = maplist (map o, options, ``{
 	    string key = o["key"]:"";
@@ -620,7 +620,7 @@
       * @return list see above
       */
     global define list difflist(list a, list b) ``{
-	return filter(`e, a, ``(!contains(b, e)));
+	return filter(any e, a, ``(!contains(b, e)));
     }
 
     /**
@@ -668,7 +668,7 @@
 	}
 	list output = [];
 	integer pos = -1;
-	output = maplist(`e, input, ``{
+	output = maplist(any e, input, ``{
 	    pos = pos + 1;
 	    if (pos == index1)
 	    {
@@ -692,11 +692,11 @@
       */
     global define list<string> splitPath (string fullpth) ``{
 // UGHLY HACK because of testsuites
-	map mountpoints = $[];
+	map<string,list> mountpoints = $[];
 	if (Mode::test)
 	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
 	else
-	    mountpoints = Storage::GetMountPoints();
+	    mountpoints = (map<string,list>)Storage::GetMountPoints();
 	string dev = "";
 	string mp = "";
 	integer max = 0;
@@ -726,11 +726,11 @@
       */
     global define string mergePath (list<string> devpth) ``{
 // UGHLY HACK because of testsuites
-        map mountpoints = $[];
+        map<string,list> mountpoints = $[];
 	if (Mode::test)
 	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
 	else
-            mountpoints = Storage::GetMountPoints();
+            mountpoints = (map<string,list>)Storage::GetMountPoints();
 	string ret = "/dev/null";
 	if (substring (devpth[1]:"", 0, 1) != "/")
 	    devpth[1] = "/" + devpth[1]:"";
@@ -753,7 +753,7 @@
       */
     global define string getDeviceOfRaid (string device) ``{
 	// get list of all partitions (not marked to be deleted)
-	map tm = Storage::GetTargetMap ();
+	map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
 	list partitions = [];
 
 	foreach ( string dev, map disk, tm, ``{
@@ -943,11 +943,11 @@
 		return nil;
 	    return o;
 	});
-	options = filter (`o, options, ``(o != nil));
+	options = filter (any o, options, ``(o != nil));
 	SCR::Write (list2path ([bl]), options);
 	// now remove all sections
 	list sects = SCR::Dir(list2path([bl, "sections"]));
-	foreach(`sect, sects, ``{
+	foreach(any sect, sects, ``{
 	    SCR::Write(list2path([bl, "sections", sect]), nil);
 	});
 
@@ -955,7 +955,7 @@
 	foreach (list<map> s, sections, ``{
 	    string title = "";
 	    string sect_type = getCreationType (s);
-	    options = maplist (map o, (list) eval (s), ``{
+	    options = maplist (map o, (list<map>) eval (s), ``{
 		string key = o["key"]:"";
 		any value = o["value"]:nil;
 		if (value == nil)
@@ -975,7 +975,7 @@
 		    return nil;
 		return o;
 	    });
-	    options = filter (`o, options, ``(o != nil));
+	    options = filter (any o, options, ``(o != nil));
 	    SCR::Write (list2path ([bl, "sections", title]), options);
         });
 	return true;
@@ -1002,10 +1002,10 @@
 
         // iterate for all sections and do the same as before
 
-        list sects = [];
-	list opts_tmp = [];
+        list<string> sects = [];
+	list<map> opts_tmp = [];
 
-        sects = SCR::Dir(list2path([bl, "sections"]));
+        sects = (list<string>)SCR::Dir(list2path([bl, "sections"]));
         BootCommon::sections = [];
 
         foreach(string e, sects,
@@ -1058,7 +1058,7 @@
 	integer new_index = -1;
 	integer order_count = 0;
 	integer sorted_cound = 0;
-	foreach (map o, order, ``{
+	foreach (map o, (list<map>)order, ``{
 	    boolean ord_option = widgets[o["key"]:"", "table", "ordering"]:true;
 	    if (substring (o["key"]:"", 0, 2) == "__")
 		ord_option = false;
@@ -1108,7 +1108,7 @@
 	    {
 		y2milestone ("Bootloader partition type is logical");
 		map tm = Storage::GetTargetMap ();
-		list partitions = tm[mbr_dev, "partitions"]:[];
+		list<map> partitions = tm[mbr_dev, "partitions"]:[];
 		foreach (map p, partitions, ``{
 		    if (p["type"]:nil == `extended)
 		    {
@@ -1158,7 +1158,7 @@
 	    "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors");
 	if (SCR::Read (.target.size, device_file_path) > 0)
 	{
-	    list contents = (list) SCR::Read (.target.dir, "/var/lib/YaST2/backup_boot_sectors");
+	    list<string> contents = (list<string>) SCR::Read (.target.dir, "/var/lib/YaST2/backup_boot_sectors");
 	    contents = filter (string c, contents, ``(regexpmatch (c, sformat (
 		"%1-.*-.*-.*-.*-.*-.*", device_file))));
 	    contents = sort (contents);
@@ -1257,7 +1257,7 @@
 	    return device;
         string ls = exec_ret["stdout"]:"";
         list<string> parts = splitstring (ls, " ");
-        parts = filter (`p, parts, ``(p != ""));
+        parts = filter (string p, parts, ``(p != ""));
         string majs = parts[4]:"";
         majs = substring (majs, 0, size (majs) -1);
         string mins = parts[5]:"";
@@ -1332,7 +1332,7 @@
 		showopts = true;
 	    if (contains (old, "apic"))
 		apic = true;
-	    old = filter (`o, old, ``(o != "apic" && o != "showopts"));
+	    old = filter (string o, old, ``(o != "apic" && o != "showopts"));
 	    if (showopts)
 		old = add (old, "showopts");
 	    if (apic)
@@ -1372,7 +1372,7 @@
 	forbidden_keys = add (forbidden_keys, "__intern__");
 	integer index = -1;
 	map remap_prepend = $[];
-	map sortmap = $[];
+	map<any,integer> sortmap = $[];
 	list options = maplist (map opt, current_section, ``{
 	    index = index + 1;
 	    if (contains (prependlist, opt["key"]:""))
@@ -1412,7 +1412,7 @@
 
 	foreach (string k, map v, tm, ``{
 	    integer cyl_size = v["cyl_size"]:0;
-	    list partitions = v["partitions"]:[];
+	    list<map<string,any> > partitions = v["partitions"]:[];
 	    partitions = filter(map p, partitions, ``(p["mount"]:"" == "swap"));
 	    foreach (map<string, any> s, partitions, ``{
 		string dev = (string)(s["device"]:"");

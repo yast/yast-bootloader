@@ -258,7 +258,7 @@
 
 
     global define string getLoaderType (boolean recheck);
-    global define list getBootloaders ();
+    global define list<string> getBootloaders ();
 
     include "bootloader/routines/helps.ycp";
     include "bootloader/routines/popups.ycp";
@@ -624,11 +624,11 @@ configuration files"));
       * List bootloaders available for configured architecture
       * @return list of bootloaders
       */
-    global define list getBootloaders () ``{
-	list ret = [getLoaderType (false)];
+    global define list<string> getBootloaders () ``{
+	list<string> ret = [getLoaderType (false)];
 	if (Arch::i386 || Arch::x86_64)
 	{
-	    ret = merge (ret, ["lilo", "grub"]);
+	    ret = (list<string>)merge (ret, ["lilo", "grub"]);
 	}
 	ret = toset (ret);
 	ret = add (ret, "none");

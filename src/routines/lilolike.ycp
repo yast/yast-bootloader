@@ -19,7 +19,6 @@
     textdomain "bootloader";
 
     import "Arch";
-    import "BootCommon";
     import "Mode";
     import "Storage";
     import "StorageDevices";
@@ -82,7 +81,7 @@
         string bootDisk = mp["/boot",2]:(mp["/",2]:"");
 
         // look for disk with bios_id 0x80
-        list disks = (list)SCR::Read(.probe.disk);
+        list<map> disks = (list<map>)SCR::Read(.probe.disk);
 	// fallback
         string mbr_disk = disks[0,"dev_name"]:bootDisk;
 
@@ -248,9 +247,9 @@
 
             // check if boot mount point is below cyl 1024
 
-            foreach (string dname, map ddata, Storage::GetTargetMap(),
+            foreach (string dname, map ddata, (map<string,map>)Storage::GetTargetMap(),
             ``{
-                list partitions = ddata["partitions"]:[];
+                list<map> partitions = ddata["partitions"]:[];
                 if (partitions != [])
                 {
                     foreach (map pentry, partitions, ``{
@@ -444,7 +443,7 @@
                 if (type != "linux" && type != "failsafe"
                     && type != "memtest86")
 		{
-		    foreach (`n, intern["devs"]:[], ``{
+		    foreach (any n, intern["devs"]:[], ``{
 		        if (! contains (parts, n))
 		        {
 			    cont = false;
@@ -460,7 +459,7 @@
                     cont = false;
                 else
                 {
-                    foreach (`d, old_devs, ``{
+                    foreach (any d, old_devs, ``{
                         if (! contains (new_devs, d))
                             cont = false;
                     });
@@ -512,7 +511,7 @@
 	    });
 	    if (to_add)
 	    {
-		map old_sect = listmap (list os, old_sect_list, ``{
+		map old_sect = listmap (list<map> os, old_sect_list, ``{
 		    return $[label: os];
 		});
 
@@ -525,7 +524,7 @@
 	    }
 	});
 	del_parts = (list<string>)BootCommon::difflist (del_parts, to_remove);
-	old_sect_list = filter (list s, old_sect_list, ``(s != []));
+	old_sect_list = filter (list<map> s, old_sect_list, ``(s != []));
 	BootCommon::sections = old_sect_list;
     }
 
@@ -542,7 +541,7 @@
 
 	foreach (string t, ["linux", "failsafe", "memtest86"], ``{
 	    list m = create_linux_section (t);
-	    boolean changed = false;
+	    boolean f_changed = false;
 	    list out = maplist (list<map> s, out, ``{
 		map intern = (map)lookup_value (s, "__intern__", $[]);
 		string sect_type = intern["type"]:"";
@@ -550,7 +549,7 @@
 		    sect_type = (string)lookup_value (s, "label", "");
 		if (sect_type == t)
 		{
-		    changed = true;
+		    f_changed = true;
 		    if (replace)
 			return m;
 		    else if (t == "linux")
@@ -574,7 +573,7 @@
 		    return s;
 		}
 	    });
-            if (! changed)
+            if (! f_changed)
                 if (t == "lilo")
                     out = prepend (out, m);
                 else

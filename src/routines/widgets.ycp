@@ -205,7 +205,7 @@
       * Refresh and redraw widget wits sections
       * @param sects list of current sections
       */
-    global define void sectionsRedrawTable (list sects) ``{
+    global define void sectionsRedrawTable (list<list<map> > sects) ``{
 	boolean elilo = getLoaderType (false) == "elilo";
 	list sec = maplist (list<map> s, sects, ``{
 	    string image = (string)lookup_value (s,  getKernelKey (), nil);

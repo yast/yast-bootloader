@@ -245,7 +245,8 @@
       * @return map of widget
       */
     global define map getLoaderSelectionWidget () ``{
-        list loaders = maplist (string l, BootCommon::getBootloaders (), ``{
+        list loaders = maplist (string l,
+	    BootCommon::getBootloaders (), ``{
             return `item (`id (l), BootCommon::getLoaderName (l));
         });
 
