@@ -3,6 +3,8 @@ Tue Aug 12 13:29:35 CEST 2003 - jsrain@suse.de
 
 - added support for not installing any bootloader
 - recreate reset menubutton after bootloader switch
+- updated update functionality (replace vmlinuz.shipped images with
+  vmlinuz, dtto for initrd)
 
 -------------------------------------------------------------------
 Mon Aug 11 09:33:26 CEST 2003 - jsrain@suse.de
