@@ -103,7 +103,7 @@ FireWire and file systems modules floppy"),
     define void floppyMountSource() ``{
 	if (source_mounted)
 	    return;
-	list sources = Pkg::SourceStartCache (true);
+	list<integer> sources = Pkg::SourceStartCache (true);
 	source_id = sources[0]:0;
 	source_mounted = true;
     }
