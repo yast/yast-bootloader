@@ -118,6 +118,10 @@
 		= BootCommon::sections[0, "label"]:"";
     }
 
+    /**
+      * Save all bootloader configuration files
+      * @return boolean true if success
+      */
     global define boolean Save () ``{
 	SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
 	SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
@@ -327,6 +331,7 @@
     /**
       * Update sections of bootloader menu
       * modifies internal sreuctures
+      * @param replace boolean true if old sectinos shall be replaced
       */
     global define void updateSections (boolean replace) ``{
 	list out = BootCommon::sections;
@@ -372,6 +377,8 @@
     /**
       * Fix sections of bootloader menu during proposal regeneration
       * modifies internal sreuctures
+      * @param disks_changed boolean should be true if bootloader location
+      *   relevant disk locations have changed
       */
     global define void fixSections (boolean disks_changed) ``{
 	list parts = BootCommon::getPartitionList(`parts_old);
@@ -407,12 +414,16 @@
 	    {
 		y2milestone ("Warning on section %1", label);
 		boolean cont = true;
-		foreach (`n, s["__intern__", "devs"]:[], ``{
-		    if (! contains (parts, n))
-		    {
-			cont = false;
-		    }
-		});
+                if (s["label"]:"" != "linux" && s["label"]:"" != "failsafe"
+                    && s["label"]:"" != "memtest86")
+		{
+		    foreach (`n, s["__intern__", "devs"]:[], ``{
+		        if (! contains (parts, n))
+		        {
+			    cont = false;
+		        }
+		    });
+		}
                 list new_devs = toset(new_sect[title, "__intern__", "devs"]:[]);
                 list old_devs = toset(s["__intern__", "devs"]:[]);
                 if (size (new_devs) != size (old_devs))
@@ -464,6 +475,8 @@
     /**
       * Fix global options of bootloader during proposal regeneration
       * modifies internal sreuctures
+      * @param disks_changed boolean should be true if bootloader location
+      *   relevant disk locations have changed
       */
     global define void fixGlobals (boolean disks_changed) ``{
 	if (BootCommon::globals["default"]:"" != "")

@@ -71,6 +71,8 @@
 	}
 
 	Bootloader::Propose ();
+	// to make sure packages will get installed
+	BootCommon::setLoaderType (BootLoader::getLoaderType (false));
 
 	ret = $[ "raw_proposal" : Bootloader::Summary ()];
 

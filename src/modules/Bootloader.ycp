@@ -277,7 +277,7 @@
 
     /**
       * Set settings how to write bootloader
-      * @param map of settings
+      * @param settings map of settings
       */
     global define void SetWriteMode (map settings) ``{
 	y2milestone ("Setting mode for writing: %1", settings);

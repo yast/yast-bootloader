@@ -1,0 +1,28 @@
+Dump	======================================
+Return	."entry1"."entry2"."entry3"
+Return	."entry1"
+Return	.
+Dump	======================================
+Return	[`b]
+Return	[]
+Return	[`a, `b, `c]
+Return	[]
+Return	[]
+Dump	======================================
+Return	qwqwe
+Return	asdasdwasdasdwe
+Return	qqweqwewqweqweqwe
+Return	qaassddwaassddqwe
+Dump	======================================
+Return	>>Normal string<<
+Return	>>Normal string<<
+Return	>>Normal string<<
+Return	>>Normal string<<
+Dump	======================================
+Return	[`c, `b, `a, `d]
+Return	[`a, `b, `c, `d]
+Return	[`a, `b, `c, `d]
+Return	[`a, `b, `c, `d]
+Return	[`a, `b, `d, `c]
+Return	[`a, `b, `c, `d]
+Dump	======================================

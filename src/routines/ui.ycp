@@ -370,7 +370,31 @@
 		= BootCommon::changed_settings[old_name]:$[];
 	    y2milestone ("Saving section");
 	}
+	if (`back == op)
+	{
+	    string current_l = BootCommon::tmp_store["active_section_name"]:"";
+	    BootCommon::changed_settings[current_l]
+		= eval (BootCommon::tmp_store["changed_single_sect"]:$[]);
+	}
     }
+
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param tosave list of operations, which lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any globalSectionHandle (any op, list tosave) ``{
+	any ret = singleSectionHandle (op, tosave);
+	if (op == `sections)
+	{
+            BootCommon::tmp_store["changed_all_sects"]
+		= eval (BootCommon::changed_settings);
+	}
+
+	return ret;
+    }
+
 
     /**
       * Handle function of widget
@@ -423,6 +447,7 @@
       * @return symbol method
       */
     global define symbol askSwitch (string from, string to, symbol type) ``{
+	// warning - popup
 	string label = type == `user ? _("Warning!
 
 You chose to change your bootloader. When converting 
@@ -432,12 +457,18 @@ Current configuration will be saved and you will be able
 to restore it if you will return back to current bootloader.
 
 What do you want to do?")
+		// warning - popup
 	    : sformat (_("Warning!
 
 Your partitioning setup has changed. It is recommended
 to use %1 with current partitioning setup. 
 
-Switch bootloader?"), getLoaderName (to));
+When converting configuration some settings may get lost.
+
+Current configuration will be saved and you will be able
+to restore it if you will return back to current bootloader.
+
+Switch bootloader?"), BootCommon::getLoaderName (to));
 
 	term contents = `VBox (
 		// warning label

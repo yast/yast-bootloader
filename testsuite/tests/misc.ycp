@@ -1,0 +1,61 @@
+/**
+ * File:
+ *  misc.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Bootloader misc functions testsuite
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    import "Pkg";
+    include "testsuite.ycp";
+    import "BootCommon";
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::list2path (["entry1", "entry2", "entry3"])), [], 0);
+    TEST (``(BootCommon::list2path (["entry1"])), [], 0);
+    TEST (``(BootCommon::list2path ([])), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::difflist ([`a, `b, `c], [`a, `c])), [], 0);
+    TEST (``(BootCommon::difflist ([`a, `c], [`a, `b, `c])), [], 0);
+    TEST (``(BootCommon::difflist ([`a, `b, `c], [])), [], 0);
+    TEST (``(BootCommon::difflist ([], [`a, `c])), [], 0);
+    TEST (``(BootCommon::difflist ([`a, `b, `c], [`a, `c, `b])), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::replaceAll ("qasdwasdqwe", "asd", "")), [], 0);
+    TEST (``(BootCommon::replaceAll ("qasdwasdqwe", "q", "asd")), [], 0);
+    TEST (``(BootCommon::replaceAll ("qasdwasdqwe", "asd", "qweqwe")), [], 0);
+    TEST (``(BootCommon::replaceAll ("qasdwasdqwe", "asd", "aassdd")), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(sformat (">>%1<<", BootCommon::strip ("Normal string"))), [], 0);
+    TEST (``(sformat (">>%1<<", BootCommon::strip ("   Normal string	"))), [], 0);
+    TEST (``(sformat (">>%1<<", BootCommon::strip ("	  Normal string\n\n"))), [], 0);
+    TEST (``(sformat (">>%1<<", BootCommon::strip ("\n Normal string \n"))), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 0, 2)), [], 0);
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 2, 2)), [], 0);
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 0, 5)), [], 0);
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], -10, 2)), [], 0);
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 3, 2)), [], 0);
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 0, 0)), [], 0);
+
+    DUMP ("======================================");
+}

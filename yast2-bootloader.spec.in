@@ -42,6 +42,10 @@ Summary:	Bootloader installation and configuration
 @configdir@/bootloader.y2cc
 %endif
 
+%ifarch %ix86
+@ydatadir@/mbr
+%endif
+
 
 #@clientdir@/bootfloppy.ycp
 

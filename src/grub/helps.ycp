@@ -22,7 +22,7 @@
 
     /**
       * Get short popup help
-      * @result string help text
+      * @return string help text
       */
     global define string getDiskOrderHelp () ``{
 	// help label

@@ -1,0 +1,33 @@
+Dump	======================================
+Return	123
+Return	/dev/hda3
+Return	true
+Return	ide-scsi
+Return	false
+Dump	======================================
+Return	123
+Return	/dev/hda3
+Return	true
+Return	ide-scsi
+Return	false
+Dump	======================================
+Return	(hd0,0)/vmlinuz root=/dev/hda3 vga=321 noapic hdc=ide-scsi
+Return	(hd0,0)/vmlinuz root=/dev/hda3 noapic hdc=ide-scsi
+Return	(hd0,0)/vmlinuz root=/dev/hda3 vga noapic hdc=ide-scsi
+Return	(hd0,0)/vmlinuz root=/dev/hda3 vga=123 noapic=321 hdc=ide-scsi
+Return	(hd0,0)/vmlinuz root=/dev/hda3 vga=123 hdc=ide-scsi
+Return	(hd0,0)/vmlinuz root=/dev/hda3 vga=123 noapic hdc=ide-scsi
+Return	(hd0,0)/vmlinuz root=/dev/hda3 vga=123 noapic hdc=ide-scsi nosmp=321
+Return	(hd0,0)/vmlinuz root=/dev/hda3 vga=123 noapic hdc=ide-scsi
+Return	(hd0,0)/vmlinuz root=/dev/hda3 vga=123 noapic hdc=ide-scsi nosmp
+Dump	======================================
+Return	root=/dev/hda3 vga=321 noapic hdc=ide-scsi
+Return	root=/dev/hda3 noapic hdc=ide-scsi
+Return	root=/dev/hda3 vga noapic hdc=ide-scsi
+Return	root=/dev/hda3 vga=123 noapic=321 hdc=ide-scsi
+Return	root=/dev/hda3 vga=123 hdc=ide-scsi
+Return	root=/dev/hda3 vga=123 noapic hdc=ide-scsi
+Return	root=/dev/hda3 vga=123 noapic hdc=ide-scsi nosmp=321
+Return	root=/dev/hda3 vga=123 noapic hdc=ide-scsi
+Return	root=/dev/hda3 vga=123 noapic hdc=ide-scsi nosmp
+Dump	======================================

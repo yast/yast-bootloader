@@ -1,4 +1,19 @@
 -------------------------------------------------------------------
+Mon Jan 27 17:48:21 CET 2003 - jsrain@suse.de
+
+- added new testsuites
+- added missing translators comments
+- added missing functions comments
+- made Replace code in MBR function running
+- 2.7.4
+
+-------------------------------------------------------------------
+Fri Jan 24 13:04:19 CET 2003 - jsrain@suse.de
+
+- fixed too often blinking floppy
+- fixed Changed column modifying
+
+-------------------------------------------------------------------
 Thu Jan 23 13:44:33 CET 2003 - jsrain@suse.de
 
 - fixed fillup-template usage

@@ -61,6 +61,11 @@
 	BootCommon::DetectDisks ();
 	return true;
     }
+
+    /**
+      * Save all bootloader configuration files
+      * @return boolean true if success
+      */
     global define boolean Save () ``{
 	if (Mode::update)
 	    return true;
@@ -96,6 +101,10 @@ read-only
 	return SCR::Write (.target.string, filename, contents);
     }
 
+    /**
+      * Display bootloader summary
+      * @return a list of summary lines
+      */
     global define list(string) Summary () ``{
 	// summary text
 	return [_("Install ELILO bootloader")];

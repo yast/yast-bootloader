@@ -25,6 +25,8 @@
 
     textdomain "bootloader";
 
+    global list floppies = [];
+
     /**
       * List of all supported bootloaders
       */
@@ -88,11 +90,14 @@
 	foreach (`k, `v, devices, ``{
 	    partitions = merge (partitions, v["partitions"]:[]);
 	});
-	list floppies = SCR::Read (.probe.floppy);
-	floppies = filter (`f, floppies,
-	    ``(lookup (f, "model", "Floppy Disk") == "Floppy Disk"));
-	floppies = maplist (`f, floppies, ``(lookup (f, "dev_name", "")));
-	floppies = filter (`f, floppies, ``(f != ""));
+	if (floppies == [])  // not needed to detect floppies more than once
+	{
+	    floppies = SCR::Read (.probe.floppy);
+	    floppies = filter (`f, floppies,
+	        ``(lookup (f, "model", "Floppy Disk") == "Floppy Disk"));
+	    floppies = maplist (`f, floppies, ``(lookup (f, "dev_name", "")));
+	    floppies = filter (`f, floppies, ``(f != ""));
+	}
 
         partitions = filter (`p, partitions, ``(is (p, map)));
 	if (type == `deleted)
@@ -714,6 +719,7 @@
       * @param optname any option name
       */
     global define void markOptionChanged (any section, any optname) ``{
+	y2milestone ("Marking option %1 of section %2 changed", optname, section);
 	map current = BootCommon::changed_settings[section]:$[];
 	current[optname] = true;
 	BootCommon::changed_settings[section] = current;
@@ -798,9 +804,9 @@
 	}
 	if (repl_mbr && BootCommon::location != "mbr")
 	{
-// FIXME: Real filenames
 	    ret = ret && (0 == SCR::Execute (.target.bash, sformat (
-		"/bin/dd if=%1 of=%2", "file", BootCommon::mbrDisk)));
+		"/bin/dd bs=446 count=1 if=%1 of=%2",
+		    "/usr/share/YaST2/data/mbr", BootCommon::mbrDisk)));
 	}
 	return ret;
     }
