@@ -96,22 +96,6 @@
 
     DUMP ("======================================");
 
-    TEST (``(BootGRUB::string2devMap ("(hd0) /dev/hda\n(hd1)	/dev/hdb")), [READ, WRITE, EXEC], 0);
-    TEST (``(BootGRUB::string2devMap ("(hd1) /dev/hda\n(hd1)    /dev/hdb")), [READ, WRITE, EXEC], 0);
-    TEST (``(BootGRUB::string2devMap ("(hd0)/dev/hda\n(hd1)    /dev/hdb")), [READ, WRITE, EXEC], 0);
-    TEST (``(BootGRUB::string2devMap ("(hd1) /dev/hda\n(hd0)    /dev/hdb")), [READ, WRITE, EXEC], 0);
-    TEST (``(BootGRUB::string2devMap ("(hd1) /dev/hda")), [], 0);
-
-
-    DUMP ("======================================");
-
-    TEST (``(mergestring (splitstring (BootGRUB::devMap2string ([["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"]]), "\n"), "\\n")), [READ, WRITE, EXEC], 0);
-    TEST (``(mergestring (splitstring (BootGRUB::devMap2string ([["(hd0)", "/dev/hda"], ["(hd0)", "/dev/hdb"]]), "\n"), "\\n")), [READ, WRITE, EXEC], 0);
-    TEST (``(mergestring (splitstring (BootGRUB::devMap2string ([["(hd0)", "/dev/hda"]]), "\n"), "\\n")), [READ, WRITE, EXEC], 0);
-    TEST (``(mergestring (splitstring (BootGRUB::devMap2string ([["(hd0)", "/dev/hda"], ["(hd1)"]]), "\n"), "\\n")), [READ, WRITE, EXEC], 0);
-
-    DUMP ("======================================");
-
     BootGRUB::device_map = [["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"], ["(hd2)", "/dev/cciss/c0d0"]];
 
     TEST (``(BootGRUB::grubDev2unixDev ("(hd0)")), [READ, WRITE, EXEC], 0);

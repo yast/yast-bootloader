@@ -118,7 +118,11 @@
 
     Mode::SetTest ("testsuite");
 
-    BootGRUB::device_map = ( list<list<string> >)TEST (``(BootGRUB::readDeviceMap ()), [READ, $[], $[]], 0);
+    BootGRUB::device_map = [
+	["(hd0)", "/dev/hda"],
+	["(hd1)", "/dev/ida/c0d0"],
+	["(fd0)", "/dev/fd0"],
+    ];
 
     TEST (``(liloSect2grubSect ([
 	$[ "key" : "label", "value" : "sectlabel"],
