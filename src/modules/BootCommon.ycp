@@ -627,6 +627,10 @@ configuration files"));
       * @return list of bootloaders
       */
     global define list<string> getBootloaders () ``{
+	if (Mode::config)
+	{
+	    return ["grub", "lilo", "elilo", "s390", "ppc"];
+	}
 	list<string> ret = [getLoaderType (false)];
 	if (Arch::i386 || Arch::x86_64)
 	{

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 16 08:17:09 CET 2004 - jsrain@suse.cz
+
+- allow selecting all boot loaders in autoinstallation
+  configuration
+
+-------------------------------------------------------------------
 Mon Mar 15 12:58:34 CET 2004 - jsrain@suse.cz
 
 - correctly check for swap partitions (filter out the partitions
