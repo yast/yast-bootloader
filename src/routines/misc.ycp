@@ -1634,6 +1634,7 @@ global list<string> ListKernelParamsInLine (string line) {
             "memtest86" : "Memory Test",
             "original MBR" : "MBR before Installation",
             "windows" : "Windows",
+	    "xen" : "XEN",
         ];
 	string translated = trans[orig]:"\n"; // not allowed character
 		// not_translated version will be used
@@ -1649,7 +1650,7 @@ global list<string> ListKernelParamsInLine (string line) {
 	    if (size (filtered) > 15)
 		filtered = substring (filtered, 0, 15);
 	}
-	else if (contains (["linux", "failsafe", "previous"], orig)
+	else if (contains (["linux", "failsafe", "previous", "xen"], orig)
 	    && ! Mode::test ())
 	{
 	    import "Product";
@@ -1712,6 +1713,7 @@ global list<string> ListKernelParamsInLine (string line) {
 	    // be able to have translations with and without diacritics
 	    // please use diacritics here
             "Vendor diagnostics" : _("_Vendor Diagnostics"),
+	    "xen" : "XEN",
         ];
 /*	trans = filter (string k, string v, trans, {
 	    if (substring (v, 0, 1) == "_")
@@ -1728,7 +1730,7 @@ global list<string> ListKernelParamsInLine (string line) {
 	});
 	map<string,string> ret = mapmap (string k, string v, trans, {
 	    string il1 = translateSectionTitle (k);
-	    if (contains (["linux", "failsafe", "previous"], k) && ! Mode::test ())
+	    if (contains (["linux", "failsafe", "previous", "xen"], k) && ! Mode::test ())
 	    {
 		import "Product";
 		string product
@@ -2023,7 +2025,7 @@ global string UpdateDevice (string device) {
  * @return boolean true if memtest86 section is to be proposed
  */
 global boolean MemtestPresent () {
-    return ! memtest_removed
+    return (! memtest_removed)
 	&& (Mode::test ()
 	    || (Mode::normal () && Pkg::IsProvided ("memtest86"))
 	    || (! Mode::normal () && Pkg::IsSelected ("memtest86")));

@@ -402,6 +402,10 @@ Adapt it?
 	    {
 		BootCommon::memtest_removed = true;
 	    }
+	    if (del_intern["type"]:"" == "xen")
+	    {
+		xen_removed = true;
+	    }
 	    sects = remove (sects, index);
 	    BootCommon::current_sections = sects;
 	    if (size (sects) <= lookup_value (
