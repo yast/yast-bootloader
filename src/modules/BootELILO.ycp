@@ -96,7 +96,7 @@
         string initrd = "initrd";
         string image = "vmlinuz";
         string append = title == "failsafe"
-            ? "ide=nodma"
+            ? "ide=nodma " + BootCommon::GetAdditionalFailsafeParams ()
             : "";
 	list <string> split = BootCommon::splitPath (initrd);
 	initrd = split[1]:initrd;

@@ -198,6 +198,8 @@
     global symbol(any, map) reset_button_handle = nil;
     global void(any, any) loader_type_store = nil;
 
+    string additional_failsafe_params = "";
+
 
 // other variables
 

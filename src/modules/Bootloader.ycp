@@ -22,9 +22,10 @@
 
     import "BootCommon";
     import "Initrd";
+    import "Kernel";
     import "Mode";
-    import "Storage";
     import "Progress";
+    import "Storage";
 
     import "BootABOOT";
     import "BootELILO";
@@ -221,10 +222,7 @@
       */
     global define void Propose () ``{
 	y2milestone ("Proposing configuration");
-	if (! Mode::initial)
-	{
-	    BootCommon::UpdateVgaParam ();
-	}
+	BootCommon::UpdateInstallationKernelParameters ();
 	blPropose ();
 	BootCommon::was_proposed = true;
         BootCommon::changed = true;
@@ -389,8 +387,14 @@
             BootCommon::location);
 	SCR::Write (.sysconfig.bootloader, nil);
 
-	SCR::Write (.target.ycp, "/var/lib/YaST2/bootloader.ycp",
-	    params_to_save);
+	params_to_save["additional_failsafe_params"]
+	    = BootCommon::GetAdditionalFailsafeParams ();
+	params_to_save["installation_kernel_params"] = Kernel::cmdLine;
+	if (Mode::initial)
+	{
+	    SCR::Write (.target.ycp, "/var/lib/YaST2/bootloader.ycp",
+		params_to_save);
+	}
 
 	if (getLoaderType () == "none")
 	    return ret;

@@ -1592,15 +1592,52 @@
     /**
      * Update the Kernel::vgaType value to the saved one if not defined
      */
-    global define void UpdateVgaParam () ``{
+    global define void UpdateInstallationKernelParameters () ``{
+	map<string,any> saved_params = $[];
+	if (! Mode::initial)
+	{
+	    saved_params = (map<string,any>)SCR::Read (
+		.target.ycp, "/var/lib/YaST2/bootloader.ycp");
+	}
 	if (Kernel::vgaType == "")
 	{
-	    map<string,any> saved_params = (map<string,any>)SCR::Read (
-		.target.ycp, "/var/lib/YaST2/bootloader.ycp");
 	    string vgaType = (string)(saved_params["vga"]:"");
 	    if (vgaType != nil && vgaType != "")
 		Kernel::vgaType = vgaType;
 	}
+	if (! Mode::initial)
+	{
+	    Kernel::cmdLine = saved_params["installation_kernel_params"]:"";
+	}
+	else
+	{
+	    if (SCR::Read (.etc.install_inf.NoPCMCIA) == "1")
+	    {
+		Kernel::cmdLine = Kernel::cmdLine + " NOPCMCIA";
+	    }
+	}
+    }
+
+    /**
+     * Get additional kernel parameters
+     * @return additional kernel parameters
+     */
+    global define string GetAdditionalFailsafeParams () ``{
+	if (Mode::initial)
+	{
+	    additional_failsafe_params =
+		SCR::Read (.etc.install_inf.NoPCMCIA) == "1"
+		    ? " NOPCMCIA "
+		    : "";
+	}
+	else
+	{
+	    map<string,any> saved_params = (map<string,any>)SCR::Read (
+		.target.ycp, "/var/lib/YaST2/bootloader.ycp");
+	    additional_failsafe_params
+		= saved_params["additional_failsafe_params"]:"";
+	}
+	return additional_failsafe_params;
     }
 
     /**
@@ -1611,7 +1648,7 @@
 	string lang = (string)SCR::Read (.sysconfig.language.RC_LANG);
 	list<string> l = splitstring (lang, ".");
 	lang = l[0]:"";
-	y2milestone ("Default language for booring menu: %1", lang);
+	y2milestone ("Default language for booting menu: %1", lang);
 	string tmpdir = (string)SCR::Read (.target.tmpdir);
 	l = splitstring (lang, "_");
 	string lang_short = l[0]:"";
