@@ -54,7 +54,7 @@
                 foreach( `t, tmp_mod, ``{ AddModule(t,""); });
             }
         }
-        y2milestone( "initrdModules %1", modules );
+        y2milestone( "Initial Initrd modules %1", modules );
     }
 
     /**
@@ -104,6 +104,8 @@
 		modules [modname] = Misc::SplitOptions (modargs, $[]);
 	    }
         }
+	y2milestone ("Module %1 added to initrd, now contains %2",
+	    modname, ListModules ());
         return;
     }
 
@@ -176,6 +178,7 @@
       * reset settings to empty list of modules
       */
     global define void Reset () ``{
+	y2milestone ("Reseting initrd settings");
 	was_read = false;
 	changed = false;
 	modules = $[];
@@ -183,8 +186,11 @@
 
     /**
       * write settings to sysconfig, rebuild initrd images
+      * @return true on success
       */
-    global define void Write () ``{
+    global define boolean Write () ``{
+	y2milestone ("Initrd::Write called, changed: %1, list: %2", changed,
+	    ListModules ());
 	// check whether it is neccessary to write initrd
 	if ((! changed) && (Mode::normal))
 	    return;
@@ -207,18 +213,21 @@
 	// save sysconfig
         SCR::Execute (.target.bash,
 	    "/usr/bin/touch /etc/sysconfig/bootloader");
-	SCR::Write (.sysconfig.kernel.INITRD_MODULES,
-	    mergestring (maplist (`k, `v, modules, ``{return k;}), " "));
+	string mods = mergestring (maplist (`k,`v,modules, ``{return k;}), " ");
+	y2milestone ("Writing modules %1", mods);
+	SCR::Write (.sysconfig.kernel.INITRD_MODULES, mods);
+	SCR::Write (.sysconfig.kernel, nil);
 	// recreate initrd
 	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> \
 /var/log/YaST2/y2logmk_initrd 2>&1") != 0 )
 	{
 	    string log = SCR::Read (.target.string,
 		"/var/log/YaST2/y2logmk_initrd");
-	    Report::Error ("An error occured during initrd creation."
+	    Report::Error (_("An error occured during initrd creation.")
 		+ "\n\n\n" + log);
 	}
 	changed = false;
+	return true;
     }
 
 } // end of module
