@@ -163,9 +163,15 @@
 	map boot_target = targetMap[loader_device]:$[];
 	string target_name = "";
 	if (boot_target == $[])
+	{
 	    target_name = loader_device;
+	}
 	else
-	    target_name = boot_target["name"]:"disk";
+	{
+	    target_name = (string)(boot_target["name"]:nil);
+	    if (target_name == nil)
+		target_name = loader_device;
+	}
 	return target_name;
     }
 
@@ -178,19 +184,19 @@
 	    "table" : $[
 		// table cell / label
 		"label" : _("Boot Loader Location"),
-		"summary" : ``(BootCommon::targetSummary ()),
+		"summary" : BootCommon::targetSummary,
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `func,
-		"widget_func" : ``(BootCommon::getTargetWidget ()),
-		"init" : ``(BootCommon::targetInit ()),
-		"store" : ``(BootCommon::targetStore ()),
+		"widget_func" : BootCommon::getTargetWidget,
+		"init" : BootCommon::targetInit,
+		"store" : BootCommon::targetStore,
 		"help" : getLocationsHelp (),
 		"validate_type" : `function,
-		"validate_function" : ``(BootCommon::targetValidate ()),
+		"validate_function" : BootCommon::targetValidate,
 	    ],
 	];
     }
@@ -231,7 +237,7 @@
 	    "table" : $[
 		// table item / label
 		"label" : _("Boot Loader Type"),
-		"summary" : ``(BootCommon::loaderTypeSummary ()),
+		"summary" : BootCommon::loaderTypeSummary,
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
@@ -242,7 +248,7 @@
 			// combobox header
                         _("Boot &Loader Type"), loaders
                     )),
-		"init" : ``(BootCommon::loaderTypeInit ()),
+		"init" : BootCommon::loaderTypeInit,
 		"store" : BootCommon::loader_type_store,
 	    ],
 	];
@@ -294,14 +300,14 @@
 	    "table" : $[
 		// table item / label
 		"label" : _("Back up Affected Disk Areas"),
-		"summary" : ``(BootCommon::backupMbrSummary ()),
+		"summary" : BootCommon::backupMbrSummary,
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
-		"init" : ``(BootCommon::backupMbrInit ()),
-		"store" : ``(BootCommon::backupMbrStore ()),
+		"init" : BootCommon::backupMbrInit,
+		"store" : BootCommon::backupMbrStore,
 		"widget" : `checkbox,
 		// label displayed as help
 		"help" : _("Affected disk areas are the MBR of the first disk
@@ -363,14 +369,14 @@ and the sector to which the boot loader is installed."),
 	    "table" : $[
 		// table item
 		"label" : _("Activate Boot Loader Partition"),
-		"summary" : ``(BootCommon::activateSummary ()),
+		"summary" : BootCommon::activateSummary,
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
-		"init" : ``(BootCommon::activateInit ()),
-		"store" : ``(BootCommon::activateStore ()),
+		"init" : BootCommon::activateInit,
+		"store" : BootCommon::activateStore,
 		"widget" : `checkbox,
 	    ],
 	];
@@ -425,14 +431,14 @@ and the sector to which the boot loader is installed."),
 	    "table" : $[
 		// table item / label
 		"label" : _("Replace Code in MBR"),
-		"summary" : ``(BootCommon::replMbrSummary ()),
+		"summary" : BootCommon::replMbrSummary,
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
-		"init" : ``(BootCommon::replMbrInit ()),
-		"store" : ``(BootCommon::replMbrStore ()),
+		"init" : BootCommon::replMbrInit,
+		"store" : BootCommon::replMbrStore,
 		"widget" : `checkbox,
 	    ],
 	];
@@ -484,14 +490,14 @@ and the sector to which the boot loader is installed."),
 	    "table" : $[
 		// table item / label
 		"label" : _("Save Method"),
-		"summary" : ``(BootCommon::saveMethodSummary ()),
+		"summary" : BootCommon::saveMethodSummary,
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
-		"init" : ``(BootCommon::saveMethodInit ()),
-		"store" : ``(BootCommon::saveMethodStore ()),
+		"init" : BootCommon::saveMethodInit,
+		"store" : BootCommon::saveMethodStore,
 		"widget" : `checkbox,
 		"help" : BootCommon::getSaveMethodHelp (),
 		// table item / label
@@ -508,7 +514,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string defaultSectionSummary (any opt_id, any opt_key) ``{
+    global define string defaultSectionSummary (any opt_id, string opt_key) ``{
 	return getDefaultSection ();
     }
 
@@ -521,7 +527,7 @@ and the sector to which the boot loader is installed."),
 	    "table" : $[
 		// table item / label
 		"label" : _("Default Section"),
-		"summary" : ``(BootCommon:: defaultSectionSummary ()),
+		"summary" : BootCommon:: defaultSectionSummary,
 		"handle" : `sections,
 		"optional" : false,
 		"ordering" : false,
@@ -541,7 +547,7 @@ and the sector to which the boot loader is installed."),
     global define string getSectionsSummary (any opt_id, any opt_key) ``{
 	string default_name = BootCommon::getDefaultSection ();
 	string sect_title = BootCommon::getSectionTitle ();
-	list sects = maplist (list s, BootCommon::sections, ``{
+	list<string> sects = maplist (list<map> s, BootCommon::sections, ``{
             string title = (string) lookup_value (s, sect_title, "");
 	    boolean is_default = default_name == title;
 	    // suffix after section name, keep short, to summary and table
@@ -560,7 +566,7 @@ and the sector to which the boot loader is installed."),
 	    "table" : $[
 		// table item / label
 		"label" : _("Available Sections"),
-		"summary" : ``(BootCommon::getSectionsSummary ()),
+		"summary" : BootCommon::getSectionsSummary,
 		"handle" : `sections,
 		"optional" : false,
 		"ordering" : false,
@@ -590,10 +596,10 @@ and the sector to which the boot loader is installed."),
 		}
 	    });
 	});
-	existing = filter (string l, existing,
+	existing = (list<string>)filter (string l, existing,
 	    ``(l != BootCommon::current_section_name));
-	existing = add (existing, "");
-	string new = (string)UI::QueryWidget (`id (`value), `Value);
+	existing = (list<string>)add (existing, "");
+	string new = (string)UI::QueryWidget (`id (opt_key), `Value);
 
 	if (contains (existing, new))
 	{
@@ -619,7 +625,7 @@ and the sector to which the boot loader is installed."),
 	    "popup" : $[
 		"widget" : `textentry,
 		"validate_type" : `function,
-		"validate_function" : ``(BootCommon::labelValidate ()),
+		"validate_function" : BootCommon::labelValidate,
 	    ],
 	];
     }
@@ -693,7 +699,7 @@ and the sector to which the boot loader is installed."),
 	    "table" : $[
 		// table item / label
 		"label" : _("Section Type"),
-		"summary" : ``(BootCommon::sectionTypeSummary ()),
+		"summary" : BootCommon::sectionTypeSummary,
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
@@ -706,8 +712,8 @@ and the sector to which the boot loader is installed."),
 			    `item (`id ("image"), _("image")),
 			    `item (`id ("other"), _("other"))]
                     ),
-		"init" : ``(BootCommon::sectionTypeInit ()),
-		"store" : ``(BootCommon::sectionTypeStore ()),
+		"init" : BootCommon::sectionTypeInit,
+		"store" : BootCommon::sectionTypeStore,
 	    ],
         ];
     }
@@ -760,12 +766,12 @@ and the sector to which the boot loader is installed."),
     global define map getTimeoutWidget () ``{
 	return $[
 	    "table" : $[
-		"summary" : ``(BootCommon::timeoutSummary ()),
+		"summary" : BootCommon::timeoutSummary,
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
-		"init" : ``(BootCommon::timeoutInit ()),
-		"store" : ``(BootCommon::timeoutStore ()),
+		"init" : BootCommon::timeoutInit,
+		"store" : BootCommon::timeoutStore,
 		"widget" : `intfield,
 	    ],
 	];
@@ -893,7 +899,7 @@ and the sector to which the boot loader is installed."),
     global define map getPasswdWidget () ``{
 	return $[
 	    "table" : $[
-		"summary" : ``(BootCommon::getPasswdSummary ()),
+		"summary" : BootCommon::getPasswdSummary,
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
@@ -911,11 +917,11 @@ and the sector to which the boot loader is installed."),
 		    ),
 		    `VSpacing (0.4)
 		),
-		"init" : ``(BootCommon::initPasswdWidget ()),
-		"handle" : ``(BootCommon::handlePasswdWidget ()),
-		"store" : ``(BootCommon::storePasswdWidget ()),
+		"init" : BootCommon::initPasswdWidget,
+		"handle" : BootCommon::handlePasswdWidget,
+		"store" : BootCommon::storePasswdWidget,
 		"validate_type" : `function,
-		"validate_function" : ``(BootCommon::validatePasswdWidget ()),
+		"validate_function" : BootCommon::validatePasswdWidget,
 		"help" : getPasswdHelp (),
 	    ],
 	];
@@ -938,7 +944,7 @@ and the sector to which the boot loader is installed."),
     global define map getMessageWidget () ``{
 	return $[
 	    "table" : $[
-//		"delete" : ``(BootCommon::deleteMessage ()),
+//		"delete" : BootCommon::deleteMessage,
 		"unique_key" : true,
 	    ],
 	];
@@ -967,8 +973,8 @@ and the sector to which the boot loader is installed."),
       * Get map of all available Table/Popup options
       * @return map of options
       */
-    global define map GetOptionMaps () ``{
-	return union (generateOptionMaps (), $[
+    global define map<string,any> GetOptionMaps () ``{
+	return (map<string,any>)union (generateOptionMaps (), $[
 	    "__location"	: BootCommon::getTargetOption (),
 	    "__loader_type"	: BootCommon::getLoaderSelectionWidget (),
 	    "__sections"	: BootCommon::getSectionsTableEntry (),

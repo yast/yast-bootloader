@@ -426,7 +426,7 @@ string replaceBlanks (const string &s, char r)
     return s_result;
 }
 
-YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, const YCPValue& _pos)
+YCPBoolean liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, const YCPValue& _pos)
 {
 
     if(path->length()==0)
@@ -435,7 +435,10 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
 	order.clear();
 	bool ret = true;
 	if (value.isNull () || ! value->isList ())
-	    return YCPError ("Wrong arguments passed to section write");
+	{
+	    ycp2error ("Wrong arguments passed to section write");
+	    return YCPBoolean (false);
+	}
         YCPList l = value->asList ();
 	for (int index = 0; index < l->size (); index ++)
         {
@@ -449,17 +452,17 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
 	    string comment = "";
 	    string value = "";
 	    string key = "";
-	    if (m->haskey (YCPString ("key")))
+	    if (! m->value (YCPString ("key")).isNull ())
 	    {
 		key = m->value (YCPString ("key"))
 		    ->asString()->value_cstr();
 	    }
-	    if (m->haskey (YCPString ("comment")))
+	    if (! m->value (YCPString ("comment")).isNull ())
 	    {
 		comment = m->value (YCPString ("comment"))
 		    ->asString()->value_cstr();
 	    }
-	    if (m->haskey (YCPString ("value")))
+	    if (! m->value (YCPString ("value")).isNull ())
 	    {
 		if(m->value(YCPString ("value"))->isInteger()
 		    || m->value(YCPString ("value"))->isBoolean())
@@ -589,7 +592,8 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
 	{
 	    if(!lst->value(pos)->isString())
 	    {
-		return YCPError("error: list members must be strings when writing special value");
+		ycp2error("error: list members must be strings when writing special value");
+		return YCPBoolean (false);
 	    }
 	    else
 	    {
@@ -607,7 +611,7 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
     return YCPBoolean(false);
 }
 
-YCPValue liloOrderedOptions::Dir()
+YCPList liloOrderedOptions::Dir()
 {
     YCPList list;
     for(uint i=0; i<order.size(); i++)
@@ -762,14 +766,14 @@ WHY? The same is result of Dir ()
     return YCPVoid();
 }
 
-YCPValue liloSection::Write(const YCPPath& path, const YCPValue& val, const YCPValue& pos)
+YCPBoolean liloSection::Write(const YCPPath& path, const YCPValue& val, const YCPValue& pos)
 {
     return options->Write(path, val, pos);
 }
 
-YCPValue liloSection::Dir()
+YCPList liloSection::Dir()
 {
-    YCPList list=options->Dir()->asList();
+    YCPList list=options->Dir();
     return list;
 }
 

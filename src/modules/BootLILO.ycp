@@ -27,7 +27,7 @@
 
     import "BootCommon";
     import "Arch";
-    import "BootLILO";
+    import "Pkg";
 
     include "bootloader/lilo/widgets.ycp";
     include "bootloader/lilo/helps.ycp";
@@ -48,7 +48,7 @@
       * @param title strign section title (linux, failsafe, memtest)
       * @return section description structure
       */
-    global define list createLinuxSection (string title) ``{
+    global define list<map> createLinuxSection (string title) ``{
 	if (title == "memtest86")
 	{
           if ((Mode::normal && Pkg::IsProvided ("memtest86"))
@@ -91,7 +91,7 @@
 	{
 	    root = "0x" + root;
 	}
-	list ret = [
+	list<map> ret = [
 	    $[ "key" : "label", "value" : translateSectionTitle (title)],
 	    $[ "key" : "image", "value" : "/boot/" + image],
 	    $[ "key" : "initrd", "value" : "/boot/" + initrd],
@@ -114,7 +114,7 @@
       * modifies internal sreuctures
       */
     global define void createSections () ``{
-	list out = [
+	list<list<map> > out = [
 	    createLinuxSection ("linux")
 	];
 	list others = Storage::GetForeignPrimary();
@@ -163,7 +163,7 @@
       */
     global define void createGlobals () ``{
 	list internal_bios = (list)SCR::Read (.probe.bios);
-	list bcg = [
+	list<map> bcg = [
 	    $[ "key" : "menu-scheme", "value" : "Wb:kw:Wb:Wb"],
 	    $[ "key" : "default", "value" : translateSectionTitle ("linux")],
 	    $[ "key" : "timeout", "value" : 80],
@@ -201,7 +201,7 @@
       * @param replace boolean true if old sectinos shall be replaced
       */
     global define void updateSections (boolean replace) ``{
-	BootCommon::liloUpdateSections (replace);
+	BootCommon::liloUpdateSections (replace, BootLILO::createLinuxSection);
 	return;
     }
 
@@ -228,7 +228,7 @@
       *   relevant disk locations have changed
       */
     global define void fixSections (boolean disks_changed) ``{
-	BootCommon::liloFixSections (``(BootLILO::createSections ()));
+//	BootCommon::liloFixSections (BootLILO::createSections);
 	return;
     }
 
@@ -278,9 +278,9 @@
       * @param orig list original section
       * @return list new (converted) section
       */
-    global define list convertSection (string otype, string ntype, list orig)
+    global define list<map> convertSection (string otype, string ntype, list<map> orig)
     ``{
-	list ret = [];
+	list<map> ret = [];
 	if (orig == nil)
 	{
 	    if (ntype == "other")
@@ -473,16 +473,16 @@
       * Return map of provided functions
       * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
       */
-    global define map GetFunctions () ``{
+    global define map<string, any> GetFunctions () ``{
 	return $[
-	    "read" :	``(BootLILO::Read ()),
-	    "propose" : ``(BootLILO::Propose ()),
-	    "save" :	``(BootLILO::Save ()),
-	    "update" :	``(BootLILO::Update ()),
-	    "write" :	``(BootLILO::Write ()),
-	    "widgets" :	``(BootLILO::GetWidgetMaps ()),
-	    "getfiles" :``(BootLILO::GetFiles ()),
-	    "setfiles" :``(BootLILO::SetFiles ()),
+	    "read"	: BootLILO::Read,
+	    "propose"	: BootLILO::Propose,
+	    "save"	: BootLILO::Save,
+	    "update"	: BootLILO::Update,
+	    "write"	: BootLILO::Write,
+	    "widgets"	: BootLILO::GetWidgetMaps,
+	    "getfiles"	: BootLILO::GetFiles,
+	    "setfiles"	: BootLILO::SetFiles,
 	];
     }
 
@@ -498,7 +498,7 @@
 	    "default_type" : `label,
 	    "timeout_multiplier" : 10,
 	    "alias_keys" : ["alias"],
-	    "convert_function" : ``(BootLILO::convertSection ()),
+	    "convert_function" : BootLILO::convertSection,
 	    "kernel_params" : $[
 		"vga" : "vga",
 		"root" : "root",
@@ -512,7 +512,7 @@
 	    "bootloader_on_disk" : true,
 	    "option_list" : BootCommon::GetOptions (),
 	];
-	BootCommon::cwm_options = union (
+	BootCommon::cwm_options = (map<string, any>) union (
 	    BootCommon::GetOptionMaps (),
 	    BootLILO::GetOptionMaps ());
 	BootCommon::cwm_widgets = union (

@@ -33,17 +33,17 @@
       */
     global define map getFunctions (string bootloader) ``{
 	map bl_functions = $[
-	    "lilo"  : ``(BootLILO::GetFunctions ()),
-	    "grub"  : ``(BootGRUB::GetFunctions ()),
-	    "silo"  : ``(BootSILO::GetFunctions ()),
-	    "milo"  : ``(BootMILO::GetFunctions ()),
-	    "aboot" : ``(BootABOOT::GetFunctions ()),
-	    "elilo" : ``(BootELILO::GetFunctions ()),
-	    "s390"  : ``(BootS390::GetFunctions ()),
-	    "ppc"   : ``(BootPPC::GetFunctions ())
+	    "lilo"  : BootLILO::GetFunctions,
+	    "grub"  : BootGRUB::GetFunctions,
+	    "silo"  : BootSILO::GetFunctions,
+	    "milo"  : BootMILO::GetFunctions,
+	    "aboot" : BootABOOT::GetFunctions,
+	    "elilo" : BootELILO::GetFunctions,
+	    "s390"  : BootS390::GetFunctions,
+	    "ppc"   : BootPPC::GetFunctions
 	];
-	term gf = bl_functions[bootloader]:nil;
-	return (map)eval(gf);
+	map () gf = (map())(bl_functions[bootloader]:nil);
+	return gf();
     }
 
     /**
@@ -52,9 +52,8 @@
       */
     global define map blExport () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
-// FIXME don't use any
-        any toEval = functions["export"]:``(BootCommon::Export ());
-        return (map)eval (toEval);
+        map() toEval = functions["export"]:BootCommon::Export;
+        return toEval ();
     }
 
     /**
@@ -63,9 +62,8 @@
       */
     global define void blImport (map settings) ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
-	term toEval = functions["import"]:``(BootCommon::Import ());
-	toEval = add (toEval, settings);
-	eval (toEval);
+	void(map) toEval = functions["import"]:BootCommon::Import;
+	toEval (settings);
 	return;
     }
 
@@ -75,9 +73,8 @@
       */
     global define boolean blRead () ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
-// FIXME don't use any
-	any toEval = functions["read"]:``(BootCommon::Read ());
-	return (boolean)eval (toEval);
+	boolean() toEval = functions["read"]:BootCommon::Read;
+	return toEval ();
     }
 
     /**
@@ -85,9 +82,8 @@
       */
     global define void blReset () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
-// FIXME don't use any
-        any toEval = functions["reset"]:``(BootCommon::Reset ());
-        eval (toEval);
+        void() toEval = functions["reset"]:BootCommon::Reset;
+        toEval ();
     }
 
     /**
@@ -95,9 +91,8 @@
       */
     global define void blPropose () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
-// FIXME don't use any
-        any toEval = functions["propose"]:``(BootCommon::Propose ());
-        eval (toEval);
+        void() toEval = functions["propose"]:BootCommon::Propose;
+        toEval ();
     }
 
     /**
@@ -106,9 +101,8 @@
       */
     global define boolean blSave () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
-// FIXME don't use any
-        any toEval = functions["save"]:``(BootCommon::Save ());
-        return (boolean)eval (toEval);
+        boolean() toEval = functions["save"]:BootCommon::Save;
+        return toEval ();
     }
 
     /**
@@ -117,9 +111,8 @@
       */
     global define list<string> blSummary () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
-// FIXME don't use any
-        any toEval = functions["summary"]:``(BootCommon::Summary ());
-        return (list<string>)eval (toEval);
+        list<string>() toEval = functions["summary"]:BootCommon::Summary;
+        return toEval ();
     }
 
     /**
@@ -127,9 +120,8 @@
       */
     global define void blUpdate () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
-// FIXME don't use any
-        any toEval = functions["update"]:``(BootCommon::Update ());
-        eval (toEval);
+        void() toEval = functions["update"]:BootCommon::Update;
+        toEval ();
     }
 
     /**
@@ -138,9 +130,8 @@
       */
     global define boolean blWrite () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
-// FIXME don't use any
-        any toEval = functions["write"]:``(BootCommon::Write ());
-        return (boolean)eval (toEval);
+        boolean() toEval = functions["write"]:BootCommon::Write;
+        return toEval ();
     }
 
     /**
@@ -150,10 +141,8 @@
       */
     global define map blGetSequence (map ws_data) ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
-	term toEval = functions["sequence"]:``(BootCommon::FixSequence ());
-	toEval = add (toEval, ws_data);
-	return (map)eval (toEval);
-	return ws_data;
+	map(map) toEval = functions["sequence"]:BootCommon::FixSequence;
+	return toEval (ws_data);
     }
 
     /**
@@ -162,9 +151,8 @@
       */
     global define map blGetFiles () ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
-// FIXME don't use any
-	any toEval = functions["getfiles"]:nil;
-	return (map)eval (toEval);
+	map() toEval = (map())(functions["getfiles"]:nil);
+	return toEval ();
     }
 
     /**
@@ -173,11 +161,10 @@
       */
     global define void blSetFiles (map files) ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
-	term toEval = functions["setfiles"]:nil;
+	void(map) toEval = (void(map))(functions["setfiles"]:nil);
 	if (toEval == nil)
 	    return nil;
-	toEval = add (toEval, files);
-	eval (toEval);
+	toEval (files);
 	return;
     }
 

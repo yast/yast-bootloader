@@ -197,8 +197,8 @@
       * retuen the board-type-specific part of summary
       * @return a list of summary strings
       */
-    global define list iSeriesSummary () ``{
-	list ret = [];
+    global define list<string> iSeriesSummary () ``{
+	list<string> ret = [];
 	if ( iseries_write_streamfile )
 	{
 	    ret = add (ret, sformat (

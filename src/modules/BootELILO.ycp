@@ -91,7 +91,7 @@
       * @param title strign section title (linux, failsafe, memtest)
       * @return section description structure
       */
-    global define list createLinuxSection (string title) ``{
+    global define list<map> createLinuxSection (string title) ``{
 	// not using .shipped images any more
         string initrd = "initrd";
         string image = "vmlinuz";
@@ -102,7 +102,7 @@
 	initrd = split[1]:initrd;
 	split = BootCommon::splitPath (image);
 	image = split[1]:image;
-        list ret = [
+        list<map> ret = [
             $[ "key" : "label", "value" : translateSectionTitle (title)],
             $[ "key" : "image", "value" : image],
             $[ "key" : "initrd", "value" : initrd],
@@ -138,7 +138,7 @@
       * modifies internal sreuctures
       */
     global define void fixSections () ``{
-	BootCommon::liloFixSections (``(BootELILO::createSections ()));
+	BootCommon::liloFixSections (BootELILO::createSections);
 	return;
     }
 
@@ -164,8 +164,8 @@
       * @param replace boolean true if old sectinos shall be replaced
       */
     global define void updateSections (boolean replace) ``{
-	BootCommon::liloUpdateSections (replace);
-	BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	BootCommon::liloUpdateSections (replace, createLinuxSection);
+	BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
 	    s = maplist (map m, s, ``{
 		if (m["key"]:"" == "initrd")
 		{
@@ -191,7 +191,7 @@
       * modifies internal sreuctures
       */
     global define void updateGlobals () ``{
-	BootCommon::globals = maplist (list e, BootCommon::globals, ``{
+	BootCommon::globals = maplist (map e, BootCommon::globals, ``{
 	    if (e["key"]:"" == "timeout")
 		e["value"] = 80;
 	    return e;
@@ -218,9 +218,9 @@
       * Import settings from a map
       * @param settings map of bootloader settings
       */
-    global define void Import (map settings) ``{
+    global define void Import (map<string, any> settings) ``{
 	BootCommon::Import (settings);
-	old_efi_entry = settings["old_efi_entry"]:nil;
+	old_efi_entry = (string) (settings["old_efi_entry"]:nil);
 	remove_old_efi = settings["remove_old_efi"]:true;
 	elilo_conf_filename = getEliloConfFilename ();
     }
@@ -349,7 +349,7 @@
 	    elilo_conf_filename));
 
 	BootCommon::liloRemoveUnexistentSections (prefix, relative_prefix);
-        BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+        BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
             string initrd = (string)lookup_value (s, "initrd", "");
             string title = (string)lookup_value (s, "label", "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
@@ -376,7 +376,7 @@
 	BootCommon::globals = modifySection (BootCommon::globals,
 	    "append",
 	    BootCommon::updateKernelParams (
-		(string)lookup_value (s, "append", "")
+		(string)lookup_value (BootCommon::globals, "append", "")
 	    )
 	);
         boolean ret = BootCommon::Save ();
@@ -405,7 +405,7 @@
                 BootCommon::location));
 	}
         list<string> sects = [];
-        foreach (list s, BootCommon::sections, ``{
+        foreach (list<map> s, BootCommon::sections, ``{
             string title = (string)
 		lookup_value (s, BootCommon::getSectionTitle (), "");
                 // section name "suffix" for default section
@@ -525,17 +525,17 @@ fi", efi_label);
       */
     global define map GetFunctions () ``{
 	return $[
-	    "export"   : ``(BootELILO::Export ()),
-	    "import"   : ``(BootELILO::Import ()),
-	    "read"     : ``(BootELILO::Read ()),
-	    "reset"    : ``(BootELILO::Reset ()),
-	    "propose"  : ``(BootELILO::Propose ()),
-	    "save"     : ``(BootELILO::Save ()),
-	    "summary"  : ``(BootELILO::Summary ()),
-	    "update"   : ``(BootELILO::Update ()),
-	    "write"    : ``(BootELILO::Write ()),
-	    "getfiles" : ``(BootELILO::GetFiles ()),
-	    "setfiles" : ``(BootELILO::SetFiles ()),
+	    "export"	: BootELILO::Export,
+	    "import"	: BootELILO::Import,
+	    "read"	: BootELILO::Read,
+	    "reset"	: BootELILO::Reset,
+	    "propose"	: BootELILO::Propose,
+	    "save"	: BootELILO::Save,
+	    "summary"	: BootELILO::Summary,
+	    "update"	: BootELILO::Update,
+	    "write"	: BootELILO::Write,
+	    "getfiles"	: BootELILO::GetFiles,
+	    "setfiles"	: BootELILO::SetFiles,
 	];
     }
 
@@ -553,7 +553,7 @@ fi", efi_label);
             "default_type" : `label,
             "timeout_multiplier" : 10,
             "alias_keys" : ["alias"],
-	    "convert_function" : ``(BootCommon::convertSection ()),
+	    "convert_function" : BootCommon::convertSection,
             "kernel_params" : $[
                 "vga" : "vga",
                 "root" : "root",
@@ -567,7 +567,7 @@ fi", efi_label);
 	    "bootloader_on_disk" : false,
 	    "option_list" : GetOptions (),
 	];
-	BootCommon::cwm_options = union (
+	BootCommon::cwm_options = (map<string, any>) union (
 	    BootCommon::GetOptionMaps (),
 	    BootELILO::GetOptionMaps ());
 	BootCommon::cwm_widgets = union (
@@ -582,7 +582,7 @@ fi", efi_label);
         BootCommon::bootloader_attribs["elilo"] = $[
             "required_packages" : ["elilo"],
             "loader_name" : "ELILO",
-	    "initializer" : ``(BootELILO::Initializer()),
+	    "initializer" : BootELILO::Initializer,
         ];
     }
 

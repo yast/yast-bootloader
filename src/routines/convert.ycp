@@ -30,7 +30,7 @@
       * @param to string target settings format
       * @return boolean true if conversion possible
       */
-    global define boolean canConvert (string from, string to) ``{
+    define boolean canConvert (string from, string to) ``{
 	if (
 	    (from == "lilo" && to == "grub")
 	 || (from == "grub" && to == "lilo")
@@ -45,8 +45,8 @@
       * @param section list of section settings in LILO format
       * @return list of section settings in GRUB format
       */
-    global define list liloSect2grubSect (list section) ``{
-	list ret = [];
+    define list<map> liloSect2grubSect (list<map> section) ``{
+	list<map> ret = [];
 	if (lookup_value (section, "other", "") != "")
 	{
 	    ret = [
@@ -98,12 +98,12 @@
       * @param section list of section settings in GRUB format
       * @return list of section settings in LILO format
       */
-    global define list grubSect2liloSect (list section) ``{
+    define list<map> grubSect2liloSect (list<map> section) ``{
 	string chainloader = (string)
 	    lookup_value (section, "chainloader", "+1");
 	if (issubstring (chainloader, "/")) // means file, eg. saved MBR
 	    return [];
-	list ret= [$["key" : "label",
+	list<map> ret= [$["key" : "label",
 		     "value" : lookup_value (section, "title", "")]];
 	if (lookup_value (section, "kernel", "") == "")
 	{
@@ -150,8 +150,8 @@
       * @param globs list of global settings in LILO format
       * @return list of global settings in GRUB format
       */
-    global define list liloGlob2grubGlob (list globs) ``{
-	list ret = [];
+    define list<map> liloGlob2grubGlob (list<map> globs) ``{
+	list<map> ret = [];
 	if (lookup_value (globs, "message", "") != "")
 	    ret = appendValue (ret, "gfxmenu",
 		BootGRUB::file2grub (
@@ -165,7 +165,7 @@
 	    ret = appendValue (ret, "hiddenmenu", false);
 	string def = (string)lookup_value (globs, "default", "");
 	integer count = 0;
-	foreach (list e, BootCommon::sections, ``{
+	foreach (list<map> e, BootCommon::sections, ``{
 	    if ((string)lookup_value (e, "title", "") == def)
 		 ret = appendValue (ret, "default", count);
 	    count = count + 1;
@@ -183,8 +183,8 @@
       * @param globs list of global settings in GRUB format
       * @return list of global settings in LILO format
       */
-    global define list grubGlob2liloGlob (list globs) ``{
-	list ret = [];
+    define list<map> grubGlob2liloGlob (list<map> globs) ``{
+	list<map> ret = [];
 	if (lookup_value (globs, "gfxmenu", "") != "")
 	    ret = appendValue (ret, "message", BootGRUB::grub2file (
 		(string)lookup_value (globs, "gfxmenu", "")));
@@ -196,7 +196,7 @@
 	else
 	    ret = appendValue (ret, "prompt", false);
 	integer count = (integer)lookup_value (globs, "default", 0);
-	foreach (list e, BootCommon::sections, ``{
+	foreach (list<map> e, BootCommon::sections, ``{
 	    if (count == 0)
 		ret = appendValue (ret, "default",
 		    lookup_value (e, "label", ""));
@@ -215,7 +215,7 @@
       * @param to string target settings format
       * @return boolean true on success
       */
-    global define boolean convertSettings (string from, string to) ``{
+    define boolean convertSettings (string from, string to) ``{
 	if (! canConvert (from, to))
 	    return false;
 	if (from == "lilo" && to == "grub")
@@ -223,10 +223,10 @@
 	    import "BootGRUB";
 	    BootGRUB::device_map = BootGRUB::proposeDeviceMap ();
 	    BootGRUB::grub_conf = BootGRUB::proposeGrubConf ();
-	    BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	    BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
 		return liloSect2grubSect (s);
 	    });
-	    BootCommon::sections = filter (list s, BootCommon::sections, ``(
+	    BootCommon::sections = filter (list<map> s, BootCommon::sections, ``(
 		s != []
 	    ));
 	    BootCommon::globals = liloGlob2grubGlob (BootCommon::globals);
@@ -234,10 +234,10 @@
 
 	if (from == "grub" && to == "lilo")
 	{
-	    BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	    BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
 		return grubSect2liloSect (s);
 	    });
-            BootCommon::sections = filter (list s, BootCommon::sections, ``(
+            BootCommon::sections = filter (list<map> s, BootCommon::sections, ``(
                 s != []
             ));
 	    BootCommon::globals = grubGlob2liloGlob (BootCommon::globals);

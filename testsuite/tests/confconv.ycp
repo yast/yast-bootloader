@@ -17,7 +17,6 @@
 
 {
     include "testsuite.ycp";
-    import "Pkg";
     import "Mode";
 
     map READ_I = $[
@@ -79,7 +78,6 @@
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
     include "bootloader/routines/convert.ycp";
     import "BootGRUB";
-    TESTSUITE_CLEAN ();
 
     map EXEC = $["target" : $["bash_output": $["stdout" : "(hd0)"]]];
     map READ = $["target" : $["string" : "(hd0) /dev/hda
@@ -89,7 +87,7 @@
 
     Mode::test = true;
 
-    BootGRUB::device_map = TEST (``(BootGRUB::readDeviceMap ()), [READ, $[], $[]], 0);
+    BootGRUB::device_map = ( list<list<string> >)TEST (``(BootGRUB::readDeviceMap ()), [READ, $[], $[]], 0);
 
     TEST (``(liloSect2grubSect ([
 	$[ "key" : "label", "value" : "sectlabel"],

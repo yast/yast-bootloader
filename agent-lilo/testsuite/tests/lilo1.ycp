@@ -8,5 +8,5 @@
 
 {
     // basic Dir test
-    return [Dir(.), Dir(.sections), Dir(.other)];
+    return [SCR::Dir(.), SCR::Dir(.sections), SCR::Dir(.other)];
 }

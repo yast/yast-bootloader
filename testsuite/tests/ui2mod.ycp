@@ -79,10 +79,8 @@
     ];
 
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
-    import "Pkg";
     import "Mode";
     import "BootCommon";
-    TESTSUITE_CLEAN ();
 
     Mode::test = true;
 

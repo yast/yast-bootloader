@@ -18,7 +18,6 @@ runag_liloconf_LDADD = -lscr -ly2 -lycp
 runag_liloconf_LDFLAGS = -L$(libdir)	\
 	-Xlinker --whole-archive	\
 	$(plugindir)/libpy2stdio.la	\
-	$(plugindir)/libpy2script.la	\
 	$(srcdir)/../src/libpy2ag_liloconf.la	\
 	-Xlinker --no-whole-archive
 

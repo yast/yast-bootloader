@@ -27,17 +27,26 @@
     import "Storage";
     import "Progress";
 
-// FIXME uncomment for the new interpreter
-#    global define map Export ();
-#    global define void Import (map settings);
-#    global define void Propose ();
-#    global define boolean Read ();
-#    global define void Reset ();
+    import "BootABOOT";
+    import "BootELILO";
+    import "BootLILO";
+    import "BootMILO";
+    import "BootPPC";
+    import "BootSILO";
+    import "BootS390";
+    import "BootGRUB";
 
-#    global define void ReadOrProposeIfNeeded ();
-#    global define string getDefaultSection ();
-#    global define string getKernelParam (string section, string key);
-#    global define string getLoaderType ();
+    global define map Export ();
+    global define void Import (map<string,any> settings);
+    global define void Propose ();
+    global define boolean Read ();
+    global define void Reset ();
+    global define boolean Write ();
+
+    global define void ReadOrProposeIfNeeded ();
+    global define string getDefaultSection ();
+    global define string getKernelParam (string section, string key);
+    global define string getLoaderType ();
 
 
     /**
@@ -78,8 +87,8 @@
       * Constructor
       */
     global define void Bootloader () ``{
-	BootCommon::reset_button_handle = ``(Bootloader::resetButtonHandle ());
-	BootCommon::loader_type_store = ``(Bootloader::loaderTypeStore ());
+	BootCommon::reset_button_handle = Bootloader::resetButtonHandle;
+	BootCommon::loader_type_store = Bootloader::loaderTypeStore;
 	return;
     }
 
@@ -104,7 +113,7 @@
       * Import settings from a map
       * @param settings map of bootloader settings
       */
-    global define void Import (map settings) ``{
+    global define void Import (map<string, any> settings) ``{
 	y2milestone ("Importing settings: %1", settings);
 	Reset ();
 	BootCommon::was_read = true;
@@ -113,7 +122,7 @@
 	BootCommon::location_changed = true;
 	BootCommon::location = settings["location"]:"";
 	BootCommon::loader_device = settings["loader_device"]:"";
-	BootCommon::setLoaderType (settings["loader_type"]:nil);
+	BootCommon::setLoaderType ((string) (settings["loader_type"]:nil));
 	if (settings["initrd"]:$[] != nil)
 	    Initrd::Import (settings["initrd"]:$[]);
 	blImport (settings["specific"]:$[]);
@@ -148,18 +157,18 @@
 
 	Progress::NextStage ();
 	if (testAbort ())
-	    return `back;
+	    return false;
 
 	Bootloader::getLoaderType ();
 
 	Progress::NextStage ();
 	if (testAbort ())
-	    return `back;
+	    return false;
 
 	BootCommon::DetectDisks ();
         Progress::NextStage ();
         if (testAbort ())
-            return `back;
+            return false;
 
 	boolean ret = blRead ();
 	BootCommon::updateLoaderLocation ();
@@ -178,7 +187,7 @@
 
 	Progress::Finish ();
 	if (testAbort ())
-	    return `back;
+	    return false;
 	return ret;
     }
     /**
@@ -400,7 +409,7 @@
 	string default = "";
 	string first_image = "";
 	string default_image = "";
-	foreach (list s, BootCommon::sections, ``{
+	foreach (list<map> s, BootCommon::sections, ``{
 	    string title = (string)
 		lookup_value (s, BootCommon::getSectionTitle (), "");
 	    map intern = (map)lookup_value (s, "__intern__", "");
@@ -443,7 +452,7 @@
 	string label = BootCommon::getSectionTitle ();
 	integer sectnum = -1;
 	integer index = -1;
-	foreach (list s, BootCommon::sections, ``{
+	foreach (list<map> s, BootCommon::sections, ``{
 	    index = index + 1;
 	    if (lookup_value (s, label, "") == section)
 		sectnum = index;
@@ -474,7 +483,7 @@
 	string title = BootCommon::getSectionTitle ();
 	string linux = BootCommon::getKernelKey ();
 
-	list<list<map> > sects = BootCommon::sections;
+	list<list<map> > sects = (list<list<map> >)BootCommon::sections;
 	if (type == `other)
 	    sects = filter (list<map> s, sects, ``(
 		lookup_value (s, linux, nil) == nil));
@@ -511,7 +520,7 @@
 	map params = BootCommon::getKernelParamKeys ();
         integer sectnum = -1;
         integer index = -1;
-        foreach (list s, BootCommon::sections, ``{
+        foreach (list<map> s, BootCommon::sections, ``{
             index = index + 1;
             if (lookup_value (s, label, "") == section)
                 sectnum = index;
@@ -525,9 +534,10 @@
 	{
 	    if (value != "false")
 	    {
-		BootCommon::sections[sectnum, key] = value;
+		BootCommon::sections[sectnum] = modifySection (
+		    BootCommon::sections[sectnum]:[], key, value);
 	    }
-	    else if (haskey (BootCommon::sections[sectnum]:$[], key))
+	    else
 	    {
 		BootCommon::sections[sectnum] = modifySection
 		    (BootCommon::sections[sectnum]:[], key, nil);

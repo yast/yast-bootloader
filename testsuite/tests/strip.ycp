@@ -17,7 +17,6 @@
  */
 
 {
-    import "Pkg";
     include "testsuite.ycp";
 
     map READ_I = $[
@@ -77,19 +76,18 @@
     ];
 
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
-    include "bootloader/routines/misc.ycp";
-    TESTSUITE_CLEAN ();
+    import "BootCommon";
 
     TEST(``(sformat("a\nb\nc")), [], nil);
 
-    TEST(``(strip("")), [], nil);
-    TEST(``(strip(" ")), [], nil);
-    TEST(``(strip("a")), [], nil);
-    TEST(``(strip("    a")), [], nil);
-    TEST(``(strip("a    ")), [], nil);
-    TEST(``(strip("a   a")), [], nil);
-    TEST(``(strip("   a ")), [], nil);
-    TEST(``(sformat("%1", [strip(" \t  a ")])), [], nil);
-    TEST(``(sformat("%1", [strip(" \n   \n\t a\n  a\n ")])), [], nil);
-    TEST(``(sformat("%1", [strip("\t\t\t    s \t a\n ")])), [], nil);
+    TEST(``(BootCommon::strip("")), [], nil);
+    TEST(``(BootCommon::strip(" ")), [], nil);
+    TEST(``(BootCommon::strip("a")), [], nil);
+    TEST(``(BootCommon::strip("    a")), [], nil);
+    TEST(``(BootCommon::strip("a    ")), [], nil);
+    TEST(``(BootCommon::strip("a   a")), [], nil);
+    TEST(``(BootCommon::strip("   a ")), [], nil);
+    TEST(``(sformat("%1", [BootCommon::strip(" \t  a ")])), [], nil);
+    TEST(``(sformat("%1", [BootCommon::strip(" \n   \n\t a\n  a\n ")])), [], nil);
+    TEST(``(sformat("%1", [BootCommon::strip("\t\t\t    s \t a\n ")])), [], nil);
 }

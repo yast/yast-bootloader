@@ -16,7 +16,6 @@
  */
 
 {
-    import "Pkg";
     include "testsuite.ycp";
 
     map READ_I = $[
@@ -78,7 +77,6 @@
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
     import "BootS390";
     import "BootCommon";
-    TESTSUITE_CLEAN ();
 
         BootCommon::sections = [
             [
@@ -108,7 +106,7 @@
 
     DUMP ("======================================");
 
-    list dumps = TEST (``(BootS390::GetDumpDevices ()), [], nil);
+    list dumps = (list)TEST (``(BootS390::GetDumpDevices ()), [], nil);
 
     DUMP ("======================================");
 

@@ -27,6 +27,7 @@
     import "Mode";
     import "Storage";
     import "StorageDevices";
+    import "Pkg";
 
 
 // private variables
@@ -61,9 +62,8 @@
 
 // function prototypes
 
-// FIXME uncomment for NI
-//    global define list createLinuxSection (string title);
-//    global define map GetOptions ();
+    global define list<map> createLinuxSection (string title);
+    global define map GetOptions ();
 
 // includes
 
@@ -82,7 +82,7 @@
       * @param title strign section title (linux, failsafe, memtest)
       * @return section description structure
       */
-    global define list createLinuxSection (string title) ``{
+    global define list<map> createLinuxSection (string title) ``{
 	if (title == "memtest86")
 	{
 	  if (Pkg::IsProvided ("memtest86") || ! Mode::normal)
@@ -166,7 +166,7 @@
       */
     global define void createSections () ``{
 	y2debug ("Creating GRUB sections from scratch");
-	list out = [
+	list<list<map> > out = [
 	    createLinuxSection ("linux")
 	];
 	list<string> others_ignore = [];
@@ -231,7 +231,7 @@
 			y2debug ("Found sections %1", sects);
 			count = count + size (sects);
 			foreach (string s, sects, ``{
-			    list opts_tmp = BootCommon::sectOptions2Map (
+			    list<map> opts_tmp = BootCommon::sectOptions2Map (
 				"grub", "sections", s);
 			    map intern = $[
 				"changed" : false,
@@ -300,7 +300,7 @@
 		    {
 			string g_dev = unixDev2grubDev (dev);
 			parts = remove (parts, 0);
-			string label = mergestring (parts, " ");
+			string label = mergestring ((list<string>)parts, " ");
 
                         // don't add rewritten location (#19990)
 			if (g_dev != "" && label != ""
@@ -394,12 +394,12 @@
       * @param replace boolean true if old sectinos shall be replaced
       */
     global define void updateSections (boolean replace) ``{
-	list out = BootCommon::sections;
+	list<list<map> > out = BootCommon::sections;
 
 	foreach (string t, ["linux", "failsafe", "memtest86"], ``{
-	    list m = createLinuxSection (t);
+	    list<map> m = createLinuxSection (t);
 	    boolean changed = false;
-	    list out = maplist (list s, out, ``{
+	    list out = maplist (list<map> s, out, ``{
 		map intern = (map)lookup_value (s, "__intern__", $[]);
 		string sect_type = intern["type"]:"";
 		if (sect_type == "")
@@ -417,7 +417,7 @@
 			if (! haskey (BootCommon::getSwapPartitions (), resume))
 			{
 			    kernel = BootCommon::setKernelParamToLine (kernel,
-				"resume", BootCommon::getLargestSwapPartition);
+				"resume", BootCommon::getLargestSwapPartition ());
 			    s = modifySection (s, "kernel", kernel);
 			}
 			return s;
@@ -436,7 +436,7 @@
 		else
 		    out = add (out, m);
 	});
-	out = maplist (list s, out, ``{
+	out = maplist (list<map> s, out, ``{
 	    string type = "";
 	    foreach (map p, s, ``{
 		if (p["key"]:"" == "title" && type == "")
@@ -504,15 +504,15 @@
 	    BootCommon::files_edited_warned = true;
 	    return;
 	}
-	list old_sect_list = BootCommon::sections;
+	list<list<map> > old_sect_list = BootCommon::sections;
 	createSections ();
-	map new_sect = listmap (list s, BootCommon::sections, ``{
+	map new_sect = listmap (list<map> s, BootCommon::sections, ``{
 	    string title = (string)lookup_value (s, "title", "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:title;
-	    return [type, s];
+	    return $[type: s];
 	});
-	old_sect_list = maplist (list s, old_sect_list, ``{
+	old_sect_list = maplist (list<map> s, old_sect_list, ``{
 	    string title = (string)lookup_value (s, "title", "");
 	    map intern = (map)lookup_value (
 		s, "__intern__", $[]);
@@ -544,7 +544,7 @@
 		        }
 		    });
 		}
-		list new_this_section = new_sect[type]:[];
+		list<map> new_this_section = new_sect[type]:[];
 		map new_this_intern = (map)lookup_value(
 		    new_this_section, "__intern__", $[]);
 		list new_devs = toset(new_this_intern["devs"]:[]);
@@ -577,9 +577,9 @@
 	    }
 	});
 	boolean has_memtest = false;
-	foreach (list s, old_sect_list, ``{
-	    if (lookup ((map)lookup_value (s, "__intern__", $[]), "type", "")
-		== "memtest86")
+	foreach (list<map> s, old_sect_list, ``{
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
+	    if (intern["type"]:"" == "memtest86")
 	    {
 		has_memtest = true;
 	    }
@@ -588,7 +588,7 @@
 	    old_sect_list = add (old_sect_list, new_sect["memtest86"]:[]);
 
 	y2milestone ("Checking for sections using the resume parameter");
-	BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
 	    string kernel = (string)lookup_value (s, "kernel", "");
 	    string resume
 		= BootCommon::getKernelParamFromLine (kernel, "resume");
@@ -598,7 +598,7 @@
 	    // points to unexistent swap partition
 	    {
 		kernel = BootCommon::setKernelParamToLine (kernel,
-		    "resume", BootCommon::getLargestSwapPartition);
+		    "resume", BootCommon::getLargestSwapPartition ());
 		s = modifySection (s, "kernel", kernel);
 	    }
 	    return s;
@@ -607,7 +607,7 @@
 	y2milestone ("Checking for sections needing some of %1",
 	    BootCommon::del_parts);
 	list<string> to_remove = [];
-	foreach (list s, BootCommon::sections, ``{
+	foreach (list<map> s, BootCommon::sections, ``{
 	    map intern = (map)lookup_value (
 		s, "__intern__", $[]);
 	    list<string> devs = intern["devs"]:[];
@@ -624,7 +624,7 @@
 	    if (to_add)
 	    {
 		map old_sect = listmap (`s, old_sect_list, ``{
-		    return [title, s];
+		    return $[title: s];
 		});
 
 		if (title != "" && ! haskey(old_sect, title))
@@ -636,7 +636,7 @@
 	    }
 	});
 	BootCommon::del_parts
-	    = BootCommon::difflist (BootCommon::del_parts, to_remove);
+	    = (list<string>)BootCommon::difflist (BootCommon::del_parts, to_remove);
 	old_sect_list = filter (list s, old_sect_list, ``(s != []));
 	BootCommon::sections = old_sect_list;
     }
@@ -732,8 +732,8 @@
       * @param orig list original section
       * @return list new (converted) section
       */
-    global define list convertSection (string otype, string ntype, list orig)``{
-	list ret = [];
+    global define list<map> convertSection (string otype, string ntype, list<map> orig)``{
+	list<map> ret = [];
 	if (orig == nil)
 	{
 	    if (ntype == "other")
@@ -917,7 +917,7 @@
 	grub_conf["device"] = unixDev2grubDev (BootCommon::loader_device);
 	saveGrubConf (grub_conf);
 	saveDeviceMap (device_map);
-	BootCommon::sections = filter (list s, BootCommon::sections, ``{
+	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``{
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string title = (string)lookup_value (s, "title", "");
 	    string type = intern["type"]:"";
@@ -951,7 +951,7 @@
 	    }
 	    return true;
 	});
-	BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
 	    string title = (string)lookup_value (s, "title", "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
@@ -1227,19 +1227,19 @@
       * Return map of provided functions
       * @return map map of functions (eg. $["write":``(BootGRUB::Write ())])
       */
-    global define map GetFunctions () ``{
+    global define map<string, any> GetFunctions () ``{
 	return $[
-            "export"   : ``(BootGRUB::Export ()),
-	    "import"   : ``(BootGRUB::Import ()),
-            "read"     : ``(BootGRUB::Read ()),
-            "reset"    : ``(BootGRUB::Reset ()),
-            "propose"  : ``(BootGRUB::Propose ()),
-            "save"     : ``(BootGRUB::Save ()),
-            "update"   : ``(BootGRUB::Update ()),
-            "write"    : ``(BootGRUB::Write ()),
-	    "widgets"  : ``(BootGRUB::GetWidgetMaps ()),
-            "getfiles" : ``(BootGRUB::GetFiles ()),
-	    "setfiles" : ``(BootGRUB::SetFiles ()),
+            "export"   : BootGRUB::Export,
+	    "import"   : BootGRUB::Import,
+            "read"     : BootGRUB::Read,
+            "reset"    : BootGRUB::Reset,
+            "propose"  : BootGRUB::Propose,
+            "save"     : BootGRUB::Save,
+            "update"   : BootGRUB::Update,
+            "write"    : BootGRUB::Write,
+	    "widgets"  : BootGRUB::GetWidgetMaps,
+            "getfiles" : BootGRUB::GetFiles,
+	    "setfiles" : BootGRUB::SetFiles,
 	];
     }
 
@@ -1256,11 +1256,11 @@
 	    "default_index_first" : 0,
 	    "timeout_multiplier" : 1,
 	    "alias_keys" : [],
-	    "convert_function" : ``(BootGRUB::convertSection ()),
+	    "convert_function" : BootGRUB::convertSection,
 	    "kernel_params" : $[
 		`other : "kernel",
 	    ],
-	    "update_passwd" : ``(BootGRUB::updatePasswdBeforeSave ()),
+	    "update_passwd" : BootGRUB::updatePasswdBeforeSave,
 	    "propose" : true,
 	    "read" : true,
 	    "scratch" : true,
@@ -1272,7 +1272,7 @@
 	    "bootloader_on_disk" : true,
 	    "option_list" : GetOptions (),
 	];
-	BootCommon::cwm_options = union (
+	BootCommon::cwm_options = (map<string, any>) union (
 	    BootCommon::GetOptionMaps (),
 	    BootGRUB::GetOptionMaps ());
 	BootCommon::cwm_widgets = union (
@@ -1287,7 +1287,7 @@
 	BootCommon::bootloader_attribs["grub"] = $[
 	    "required_packages" : ["grub"],
 	    "loader_name" : "GRUB",
-	    "initializer" : ``(BootGRUB::Initializer()),
+	    "initializer" : BootGRUB::Initializer,
 	];
     }
 

@@ -59,11 +59,11 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define void targetStore (any opt_id, any opt_key) ``{
 	BootCommon::targetStore (opt_id, opt_key);
-	list sections = BootCommon::current_sections;
+	list<list<map> > sections = BootCommon::current_sections;
 	if (issubstring (BootCommon::loader_device, "/dev/fd")||
 	    BootCommon::installingToFloppy ())
 	{
-	    sections = maplist (list s, sections, ``{
+	    sections = maplist (list<map> s, sections, ``{
 		if ((getCreationType (s) == "floppy"
 			|| lookup_value (s, "root", "") == "(fd0)")
 		    && changeSection ("floppy"))
@@ -85,7 +85,7 @@ Replace it with an entry  to boot from the floppy?");
 	}
 	else
 	{
-	    sections = maplist (list s, sections, ``{
+	    sections = maplist (list<map> s, sections, ``{
 		if ((getCreationType (s) == "hard_disk"
 			    || lookup_value (s, "root", "") == "(hd0)")
 			&& changeSection ("disk"))
@@ -114,41 +114,8 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define map getTargetWidget () ``{
 	map ret = BootCommon::getTargetOption ();
-	ret["popup", "store"] = ``(BootGRUB::targetStore ());
+	ret["popup", "store"] = BootGRUB::targetStore;
 	return ret;
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map getGlobalSectionWidget () ``{
-	return TablePopup::CreateTableDescr (
-	    $[
-		"add_delete" : true,
-		"up_down_buttons" : false,
-		"changed_column" : true,
-		"unique_keys" : true,
-	    ],
-	    $[
-		"init" : ``(BootCommon::globalSectionInit ()),
-		"handle" : ``(BootCommon::globalSectionHandle ()),
-		"store" : ``(BootCommon::globalSectionStore ()),
-		"options": BootCommon::cwm_options,
-		"id2key": ``(BootCommon::id2key ()),
-		"ids": ``(BootGRUB::getTableContents ()),
-                "help": BootCommon::getGlobalSectionHelp (),
-                "fallback" : $[
-		    "init": ``(BootCommon::commonPopupInit ()),
-		    "store": ``(BootCommon::commonPopupStore ()),
-		    "summary": ``(BootCommon::commonTableEntrySummary ()),
-		    "changed" : ``(BootCommon::commonTableChanged ()),
-                ],
-		"option_move" : ``(BootCommon::moveTableItem ()),
-		"option_delete": ``(BootCommon::commonTableEntryDelete ()),
-                "add_items":  lookup (GetOptions (), `global, []),
-	    ]
-	);
     }
 
     /**
@@ -177,12 +144,45 @@ Replace it with an entry  to boot from the floppy?");
     }
 
     /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getGlobalSectionWidget () ``{
+	return TablePopup::CreateTableDescr (
+	    $[
+		"add_delete" : true,
+		"up_down_buttons" : false,
+		"changed_column" : true,
+		"unique_keys" : true,
+	    ],
+	    $[
+		"init" : BootCommon::globalSectionInit,
+		"handle" : BootCommon::globalSectionHandle,
+		"store" : BootCommon::globalSectionStore,
+		"options": BootCommon::cwm_options,
+		"id2key": BootCommon::id2key,
+		"ids": BootGRUB::getTableContents,
+                "help": BootCommon::getGlobalSectionHelp (),
+                "fallback" : $[
+		    "init": BootCommon::commonPopupInit,
+		    "store": BootCommon::commonPopupStore,
+		    "summary": BootCommon::commonTableEntrySummary,
+		    "changed" : BootCommon::commonTableChanged,
+                ],
+		"option_move" : BootCommon::moveTableItem,
+		"option_delete": BootCommon::commonTableEntryDelete,
+                "add_items":  lookup (GetOptions (), `global, []),
+	    ]
+	);
+    }
+
+    /**
       * Redraw table of sections
       * @param sects list of sections
       */
-    global define void sectionsRedrawTable (list sects) ``{
+    global define void sectionsRedrawTable (list<list<map> > sects) ``{
 	integer order = -1;
-	list sec = maplist (list s, sects, ``{
+	list sec = maplist (list<map> s, sects, ``{
 	    order = order + 1;
 	    string other_dev
 		= (string)lookup_value (s, "root",
@@ -239,7 +239,7 @@ Replace it with an entry  to boot from the floppy?");
     global define void sectionsAssignDefault (string title) ``{
 	integer index = 0;
 	integer counter = 0;
-	foreach (list s, BootCommon::current_sections, ``{
+	foreach (list<map> s, BootCommon::current_sections, ``{
 	    if ((string)lookup_value (s, "title", "")
 		== title)
 	    {
@@ -282,7 +282,7 @@ Replace it with an entry  to boot from the floppy?");
 	string default_title
 	    = (string)lookup_value (
 		BootCommon::current_sections[default]:[], "title", "");
-        foreach (list s, BootCommon::current_sections, ``{
+        foreach (list<map> s, BootCommon::current_sections, ``{
             if (lookup_value (s, "title", "")
 		== current)
 	    {
@@ -290,12 +290,12 @@ Replace it with an entry  to boot from the floppy?");
 	    }
             counter = counter + 1;
         });
-        list sects = BootCommon::current_sections;
+        list<list<map> > sects = BootCommon::current_sections;
         if (op == `up)
         {
             if (index > 0)
             {
-                sects = BootCommon::swapItems(sects, index, index - 1);
+                sects = (list<list<map> >)BootCommon::swapItems(sects, index, index - 1);
                 index = index - 1;
                 BootCommon::current_sections = sects;
 		sectionsAssignDefault (default_title);
@@ -310,7 +310,7 @@ Replace it with an entry  to boot from the floppy?");
         {
             if (index < (size(sects) - 1))
             {
-                sects = BootCommon::swapItems(sects, index, index + 1);
+                sects = (list<list<map> >)BootCommon::swapItems(sects, index, index + 1);
                 index = index + 1;
                 BootCommon::current_sections = sects;
 		sectionsAssignDefault (default_title);
@@ -333,13 +333,13 @@ Replace it with an entry  to boot from the floppy?");
 	}
 	else if (op == `add)
 	{
-	    list selected = sects[index]:[];
+	    list<map> selected = sects[index]:[];
 	    string name = (string)lookup_value (selected,
 		BootCommon::getSectionTitle (), "");
 	    if (askClone (name))
 	    {
 		selected = modifySection (
-		    (list)eval (selected),
+		    (list<map>)eval (selected),
 		    BootCommon::getSectionTitle (),
 		    BootCommon::getFreeSectionLabel ());
 		BootCommon::current_section = selected;
@@ -356,7 +356,7 @@ Replace it with an entry  to boot from the floppy?");
 	else if (op == `edit)
 	{
             y2milestone ("Editing title %1, index %2", current, index);
-            BootCommon::current_section = (list)eval (sects[index]:[]);
+            BootCommon::current_section = (list<map>)eval (sects[index]:[]);
             BootCommon::current_section_name
                 = lookup_value (sects[index]:[], "title", "");
 	    BootCommon::one_section_changed = false;
@@ -385,8 +385,8 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define map getSectionsWidget () ``{
 	map ret = BootCommon::getSectionsWidget ();
-	ret["init"] = ``(BootGRUB::sectionsInit ());
-	ret["handle"] = ``(BootGRUB::sectionsHandle ());
+	ret["init"] = BootGRUB::sectionsInit;
+	ret["handle"] = BootGRUB::sectionsHandle;
 	return ret;
     }
 
@@ -431,7 +431,7 @@ Replace it with an entry  to boot from the floppy?");
 	UI::ChangeWidget (`id (`down), `Enabled, pos < size (disks_order) - 1);
 	    if (op == `up)
 	    {
-		disks_order = BootCommon::swapItems (disks_order, pos, pos - 1);
+		disks_order = (list<string>)BootCommon::swapItems (disks_order, pos, pos - 1);
 		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
 		    `opt (`notify, `immediate),
 		    _("D&isks"), disks_order));
@@ -439,7 +439,7 @@ Replace it with an entry  to boot from the floppy?");
 	    }
 	    else if (op == `down)
 	    {
-		disks_order = BootCommon::swapItems (disks_order, pos, pos + 1);
+		disks_order = (list<string>)BootCommon::swapItems (disks_order, pos, pos + 1);
 		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
 		    `opt (`notify, `immediate),
 		    _("D&isks"), disks_order));
@@ -517,7 +517,7 @@ Replace it with an entry  to boot from the floppy?");
 	    });
 	    map remap = $[];
 	    integer pos = 0;
-	    list new_map = filter (list<string> i, device_map,
+	    list<list<string> > new_map = filter (list<string> i, device_map,
 		``(substring (i[0]:"", 0, 3) != "(hd"));
 	    foreach (`d, disks_order, ``{
 		string gd = sformat ("(hd%1)", pos);
@@ -531,16 +531,16 @@ Replace it with an entry  to boot from the floppy?");
 	    remap = filter (string k, string v, remap, ``(k != "" && v != ""));
 	    BootCommon::current_globals
 		= BootGRUB::remapDisks (BootCommon::current_globals, remap);
-	    BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	    BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
 		return BootGRUB::remapDisks (s, remap);
 	    });
 	    BootCommon::current_section = BootGRUB::remapDisks (
 		BootCommon::current_section, remap);
-	    list gcl = maplist (`k, `v, BootGRUB::grub_conf, ``(
+	    list<map> gcl = (list<map>)maplist (`k, `v, BootGRUB::grub_conf, ``(
 		$[ "key" : k, "value" : v]));
 	    gcl = BootGRUB::remapDisks (gcl, remap);
 	    BootGRUB::grub_conf = listmap (map e, gcl, ``(
-		[e["key"]:"", e["value"]:""]));
+		$[e["key"]:"": e["value"]:""]));
 	    BootGRUB::device_map = new_map;
 	    BootCommon::mbrDisk = disks_order[0]:BootCommon::mbrDisk;
 	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
@@ -557,7 +557,7 @@ Replace it with an entry  to boot from the floppy?");
     global define map getOrderPopup () ``{
 	return $[
 	    "table" : $[
-		"summary" : ``(BootGRUB::orderSummary ()),
+		"summary" : BootGRUB::orderSummary,
 		// label / table cell
 		"label" : _("Disk Order"),
 		"optional" : false,
@@ -588,9 +588,9 @@ Replace it with an entry  to boot from the floppy?");
                         `VStretch ()
                     )
                 )),
-		"init" : ``(BootGRUB::initOrderPopup ()),
-		"handle" : ``(BootGRUB::handleOrderPopup ()),
-		"store" : ``(BootGRUB::storeOrderPopup ()),
+		"init" : BootGRUB::initOrderPopup,
+		"handle" : BootGRUB::handleOrderPopup,
+		"store" : BootGRUB::storeOrderPopup,
 	    ],
 	];
     }
@@ -623,11 +623,11 @@ Replace it with an entry  to boot from the floppy?");
     global define map getGfxMenuWidget () ``{
 	return $[
 	    "table" : $[
-		"delete" : ``(BootCommon::deleteMessage ()),
+		"delete" : BootCommon::deleteMessage,
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
-		"store" : ``(BootGRUB::gfxMenuStore ()),
+		"store" : BootGRUB::gfxMenuStore,
 	    ],
 	];
     }
@@ -647,20 +647,20 @@ Replace it with an entry  to boot from the floppy?");
 		"unique_keys" : true,
 	    ],
 	    $[
-		"store" : ``(BootCommon::singleSectionStore ()),
+		"store" : BootCommon::singleSectionStore,
 		"options": BootCommon::cwm_options,
-		"id2key": ``(BootCommon::id2key ()),
-		"ids": ``(BootGRUB::getTableContents ()),
+		"id2key": BootCommon::id2key,
+		"ids": BootGRUB::getTableContents,
 		"help": BootCommon::getSingleSectionHelp (),
 		"fallback" : $[
-		    "init": ``(BootCommon::commonPopupInit ()),
-		    "store": ``(BootCommon::commonPopupStore ()),
-		    "summary": ``(BootCommon::commonTableEntrySummary ()),
-		    "changed" : ``(BootCommon::commonTableChanged ()),
+		    "init": BootCommon::commonPopupInit,
+		    "store": BootCommon::commonPopupStore,
+		    "summary": BootCommon::commonTableEntrySummary,
+		    "changed" : BootCommon::commonTableChanged,
 		],
-		"handle" : ``(BootCommon::singleSectionHandle ()),
-		"option_move" : ``(BootCommon::moveTableItem ()),
-		"option_delete": ``(BootCommon::commonTableEntryDelete ()),
+		"handle" : BootCommon::singleSectionHandle,
+		"option_move" : BootCommon::moveTableItem,
+		"option_delete": BootCommon::commonTableEntryDelete,
 	    ]
 	);
     }
@@ -685,7 +685,7 @@ Replace it with an entry  to boot from the floppy?");
 	if (insert_saved_mbr)
 	{
 	    boolean found = false;
-	    foreach (list s, BootCommon::sections, ``{
+	    foreach (list<map> s, BootCommon::sections, ``{
 		if (lookup (
 		    (map)lookup_value (s, "__intern__", $[]),
 		    "original_mbr",
@@ -704,7 +704,7 @@ Replace it with an entry  to boot from the floppy?");
 	}
 	else
 	{
-	    BootCommon::current_sections = filter (list s,
+	    BootCommon::current_sections = filter (list<map> s,
 		BootCommon::current_sections, ``(
 		! lookup (
 		    (map)lookup_value (s, "__intern__", $[]),
@@ -738,14 +738,14 @@ Replace it with an entry  to boot from the floppy?");
 	    "table" : $[
 		// table item / label
 		"label" : _("Add Saved MBR to Boot Loader Menu"),
-		"summary" : ``(BootGRUB::addOrigMbrSummary ()),
+		"summary" : BootGRUB::addOrigMbrSummary,
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
-		"init" : ``(BootGRUB::addOrigMbrInit ()),
-		"store" : ``(BootGRUB::addOrigMbrStore ()),
+		"init" : BootGRUB::addOrigMbrInit,
+		"store" : BootGRUB::addOrigMbrStore,
 		"widget" : `checkbox,
 
 	    ],

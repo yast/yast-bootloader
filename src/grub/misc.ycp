@@ -50,11 +50,11 @@
       * @param s_map string device map as string read from file
       * @return list device map
       */
-    global define list string2devMap (string s_map) ``{
-        list lines = splitstring (s_map, "\n");
+    global define list<list<string> > string2devMap (string s_map) ``{
+        list<string> lines = splitstring (s_map, "\n");
         lines = filter (string l, lines, ``(l != ""));
-        list devmap = maplist (string l, lines, ``(splitstring (l, " \t")));
-        devmap = maplist (list l, devmap,
+        list<list<string> > devmap = maplist (string l, lines, ``(splitstring (l, " \t")));
+        devmap = maplist (list<string> l, devmap,
 	    ``(filter (string e, l, ``(e != ""))));
 	return devmap;
     }
@@ -64,10 +64,10 @@
       * @return list of lists like
       * [["(hd0)", "/dev/hda"], ["(fd0)", "/dev/fd0"]]
       */
-    global define list readDeviceMap () ``{
+    global define list<list<string> > readDeviceMap () ``{
 	string s_map = (string)
 	    SCR::Read (.target.string, "/boot/grub/device.map");
-	list devmap = string2devMap (s_map);
+	list<list<string> > devmap = string2devMap (s_map);
 	y2milestone ("Read device map: %1", devmap);
 	return devmap;
     }
@@ -86,19 +86,19 @@
       * Generate device map proposal
       * @return list generated device map
       */
-    global define list proposeDeviceMap () ``{
+    global define list<list<string> > proposeDeviceMap () ``{
 	map ids = $[];
-	list mapping = [];
+	list<list<string> > mapping = [];
         map targetMap = $[];
 	if (Mode::config)
 	{
-	    import "AutoinstStorage";
+/*	    import "AutoinstStorage";
 	    targetMap = listmap (map d, AutoinstStorage::drives, ``(
 		[d["device"]:"", d]
 	    ));
 	    targetMap = filter (any k, any v, targetMap, ``(k != ""));
 	    y2debug ("Autoinst device map: %1", targetMap);
-	}
+*/	}
 	else
 	{
 	    targetMap = Storage::GetTargetMap();
@@ -149,7 +149,7 @@
 //	    return o_dev;
         integer i = 0;
         map p_dev = Storage::GetDiskPartition (o_dev);
-        any num = p_dev["nr"]:0;
+        any num = p_dev["nr"]:nil;
         o_dev = p_dev["disk"]:"";
         if (findlastof (o_dev, "/") == nil)
             o_dev = o_dev + "/dev/";
@@ -161,7 +161,7 @@
 	    );
 	if (dev == "")
 	    dev = "(null)";
-        else if (num != 0 && num != "")
+        else if (num != 0 && num != "" && num != nil)
         {
             integer int_num = (integer)num - 1;
             string number = sformat ("%1", int_num);
@@ -209,9 +209,11 @@
       * @return list containing device and relative path,
       *  eg. ["(hd0,0)", "/vmlinuz"]
       */
-    global define list splitDevPath (string devpth) ``{
-	integer brake = findfirstof (devpth, ")") + 1;
-	list ret = [];
+    global define list<string> splitDevPath (string devpth) ``{
+	integer brake = nil;
+	if (devpth != nil && issubstring (devpth, ")"))
+	    brake = findfirstof (devpth, ")") + 1;
+	list<string> ret = [];
 	if (brake != nil)
 	{
 	    ret[0] = substring (devpth, 0, brake);
@@ -235,6 +237,8 @@
     global define string mergeDevPath (list devpth) ``{
         if (substring (devpth[1]:"", 0, 1) != "/")
             devpth[1] = "/" + devpth[1]:"";
+	if (devpth[0]:"" == nil || devpth[1]:"" == nil)
+	    return nil;
 	string ret = devpth[0]:"" + devpth[1]:"";
         return ret;
     }
@@ -258,7 +262,7 @@
       * @return string UNIX-style filename (eg. "/boot/vmlinuz")
       */
     global define string grub2file (string grubpath) ``{
-	list split = splitDevPath (grubpath);
+	list<string> split = splitDevPath (grubpath);
 	split[0] = grubDev2unixDev (split[0]:"");
 	return BootCommon::mergePath (split);
     }
@@ -283,29 +287,36 @@
 	    else if (select (entries, 0, "") == "install")
 	    {
 	        integer shift = 0;
-	        string tmp = entries[1 + shift]:"";
+		integer shift1 = 1 + shift;
+	        string tmp = entries[shift1]:"";
 	        while (substring (tmp, 0, 2) == "--")
 	        {
 		    string prefix = settings["prefix"]:"";
 		    prefix = prefix + " " + tmp;
 	            settings = add (settings, "prefix", prefix);
 	            shift = shift + 1;
-	            tmp = entries[1 + shift]:"";
+		    shift1 = 1 + shift;
+	            tmp = entries[shift1]:"";
 	        }
 	        settings = add (settings, "stage1", tmp);
-	        tmp = entries[2 + shift]:"";
+		integer shift2 = 2 + shift;
+	        tmp = entries[shift2]:"";
 	        if ("d" == tmp)
 	        {
 	            settings = add (settings, "discswitch", true);
 	            shift = shift + 1;
-	            tmp = entries[2 + shift]:"";
+		    integer shift2 = 2 + shift;
+	            tmp = entries[shift2]:"";
 	        }
 	        settings = add (settings, "device", tmp);
-	        tmp = entries[3 + shift]:"";
+		integer shift3 = 3 + shift;
+	        tmp = entries[shift3]:"";
 	        settings = add (settings, "stage2", tmp);
-	        tmp = entries[4 + shift]:"";
+		integer shift4 = 4 + shift;
+	        tmp = entries[shift4]:"";
 	        settings = add (settings, "addr", tmp);
-	        tmp = entries[5 + shift]:"";
+		integer shift5 = 5 + shift;
+	        tmp = entries[shift5]:"";
 	        if (substring (tmp, 0, 1) == "/")
 	            tmp = sformat ("%1%2", root, tmp);
 	        settings = add (settings, "menu", tmp);
@@ -333,16 +344,16 @@
       */
     global define string getGrubConf (map settings) ``{
 	string res = "";
-	string root = sformat ("root %1\n", lookup (settings, "root", ""));
-	res = sformat (lookup (settings, "discswitch", false)
+	string root = sformat ("root %1\n", settings["root"]:"");
+	res = sformat (settings["discswitch"]:false
 	    ? "install %6 %1 d %2 %3 %4 %5"
 	    : "install %6 %1 %2 %3 %4 %5",
-	        lookup (settings, "stage1", ""),
-	        lookup (settings, "device", ""),
-	        lookup (settings, "stage2", ""),
-	        lookup (settings, "addr", ""),
-	        lookup (settings, "menu", ""),
-		lookup (settings, "prefix", ""));
+	        settings["stage1"]:"",
+	        settings["device"]:"",
+	        settings["stage2"]:"",
+	        settings["addr"]:"",
+	        settings["menu"]:"",
+		settings["prefix"]:"");
 	res = sformat ("%1%2\nquit\n", root, res);
 	return res;
     }
@@ -384,7 +395,7 @@
       * @param mapping map mapping description
       * @return list modified map
       */
-    global define list remapDisks (list src, map mapping) ``{
+    global define list<map> remapDisks (list<map> src, map mapping) ``{
 	foreach (string k, string v, mapping, ``{
 	   mapping = add (mapping, substring (k, 0, size (k) - 1) + ",",
 				substring (v, 0, size (v) - 1) + ",");
@@ -400,14 +411,18 @@
 	    counter = counter + 1;
 	});
 
-	list ret = maplist (map v, src, ``{
+	list<map> ret = maplist (map v, src, ``{
 	    if (v["key"]:"" != "__intern__" && is (v["value"]:"",  string))
 	    {
 		foreach (string s, string d, m1, ``{
-		    v["value"] = BootCommon::replaceAll (v["value"]:"", s, d);
+		    if (is (v["value"]:nil, string) && v["value"]:nil != nil)
+			v["value"]
+			    = BootCommon::replaceAll (v["value"]:"", s, d);
 		});
 		foreach (string s, string d, m2, ``{
-		    v["value"] = BootCommon::replaceAll (v["value"]:"", s, d);
+		    if (is (v["value"]:nil, string) && v["value"]:nil != nil)
+			v["value"]
+			    = BootCommon::replaceAll (v["value"]:"", s, d);
 		});
 	    }
 	    return v;

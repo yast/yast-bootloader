@@ -148,14 +148,13 @@
 	string label = getSectionTitle ();
 	integer index = -1;
 	integer sectnum = nil;
-	foreach (list s, sections, ``{
+	foreach (list<map> s, sections, ``{
 	    index = index + 1;
 	    if (lookup_value (s, label, "") == name)
 		sectnum = index;
 	});
 	return sectnum;
     }
-
 
     /**
       * Convert section orig from type otype to ntype
@@ -165,15 +164,17 @@
       * @param orig list original section
       * @return list new (converted) section
       */
-    global define list convertSection (string otype, string ntype, list orig)
+    global define list<map> convertSection (string otype, string ntype, list<map> orig)
     ``{
-        term f = current_bootloader_attribs["convert_function"]:nil;
+//	term f = current_bootloader_attribs["convert_function"]:nil;
+	list<map>(string,string,list<map>) f = (list<map>(string,string,list<map>))(current_bootloader_attribs["convert_function"]:nil);
 	if (f == nil)
 	    return orig;
-	f = add (f, otype);
-	f = add (f, ntype);
-	f = add (f, orig);
-	return (list) eval (f);
+	return f(otype, ntype, orig);
+//	f = add (f, otype);
+//	f = add (f, ntype);
+//	f = add (f, orig);
+//	return (list) eval (f);
     }
 
     /**
@@ -219,7 +220,7 @@
 	string key, any value)
     ``{
 	boolean found = false;
-	list section = [];
+	list<map> section = [];
 	if (s_section == `globals)
 	    section = globals;
 	else if (s_section == `current_globals)
@@ -233,7 +234,7 @@
 	}
 
 	section = filter (map cc,
-	    maplist (map c, section, ``{
+	    (list<map>)maplist (map c, section, ``{
 		if (c["key"]:"" == key)
 		{
 		    found = true;
@@ -246,7 +247,7 @@
 		    }
 		}
 		return c;
-	    }), ``(cc != nil && cc["value"]:"" != nil)
+	    }), ``(cc != nil && cc["value"]:nil != nil)
 	);
 	if (! found)
 	{
@@ -269,7 +270,7 @@
     global define string getFreeSectionLabel () ``{
 	integer index = 1;
 	list<string> existing = [];
-        foreach (list s, BootCommon::sections, ``{
+        foreach (list<map> s, BootCommon::sections, ``{
             existing = add (existing, lookup_value (
 		s, getSectionTitle (), ""));
             foreach (string a, (list<string>) getAnyTypeAttrib ("alias_keys", []), ``{
@@ -429,7 +430,7 @@
         partitions = merge (partitions, floppies);
         ret = union (ret, partitions);
 	ret = toset (ret);
-	return ret;
+	return (list<string>)ret;
     }
 
     /**
@@ -498,7 +499,7 @@
 	    p = find(src, from);
 	}
 	tokens = add(tokens, src);
-	return mergestring(tokens, to);
+	return mergestring((list<string>)tokens, to);
     }
 
     /**
@@ -596,7 +597,9 @@
 		    intern["type"] = o["value"]:"";
 		}
 	    }
-	    any value = mod2ui (o["value"]:"");
+	    any value = mod2ui (o["value"]:nil);
+	    if (value == nil)
+		value = "";
 	    if (isSpecial (key) && is (value, string))
 		value = mergestring (splitstring ((string) value, "\n"), ",");
 	    o["value"] = value;
@@ -607,7 +610,7 @@
 	    "value" : intern,
 	]);
 	y2debug ("Result of section options: %1", options);
-	return options;
+	return (list<map>)options;
     }
 
     /**
@@ -687,7 +690,7 @@
       * @return list containing device and relative path,
       *  eg. ["/dev/hda1", "/vmlinuz"]
       */
-    global define list splitPath (string fullpth) ``{
+    global define list<string> splitPath (string fullpth) ``{
 // UGHLY HACK because of testsuites
 	map mountpoints = $[];
 	if (Mode::test)
@@ -819,7 +822,7 @@
 	    string default = (string) lookup_value (globals,
 		getDefaultKey (), "");
 	    boolean exists = false;
-	    foreach (list s, sections, ``{
+	    foreach (list<map> s, sections, ``{
 		if (lookup_value (s, getSectionTitle (), "")
 		    == default)
 		{
@@ -836,7 +839,10 @@
 	else
 	{
 	    integer index = (integer) lookup_value (globals,
-		getDefaultKey (), 0) - getDefaultFirstIndex ();
+		getDefaultKey (), 0);
+	    if (index == nil)
+		index = 0;
+	    index = index - getDefaultFirstIndex ();
 	    if (index < 0 || index >= size (sections))
 		index = 0;
 	    return (string) lookup_value (sections[index]:[], getSectionTitle (), "");
@@ -875,7 +881,7 @@
     ``{
 	list<string> params = splitstring (line, " ");
 	params = filter (string p, params, ``(p != ""));
-	list rp = [];
+	list<string> rp = [];
 	boolean done = false;
 	foreach (string p, params, ``{
 	    list<string> l = filter (string e, splitstring (p, "="), ``(e != " " && e != ""));
@@ -925,7 +931,9 @@
 	// first synchronize global settings
 	list options = maplist (map o, (list<map>) eval (globals), ``{
 	    string key = o["key"]:"";
-	    any value = o["value"]:"";
+	    any value = o["value"]:nil;
+	    if (value == nil)
+		value = "";
 	    if (isSpecial (key) && is (value, string))
 		value = mergestring (splitstring ((string) value, ","), "\n");
 	    else
@@ -944,12 +952,14 @@
 	});
 
 	// now write new sections
-	foreach (list s, sections, ``{
+	foreach (list<map> s, sections, ``{
 	    string title = "";
 	    string sect_type = getCreationType (s);
 	    options = maplist (map o, (list) eval (s), ``{
 		string key = o["key"]:"";
-		any value = o["value"]:"";
+		any value = o["value"]:nil;
+		if (value == nil)
+		    value = "";
 		if (key == getSectionTitle () && sect_type != "")
 		{
 		    title = (string) value;
@@ -1310,9 +1320,9 @@
     global define string updateKernelParams (string orig) ``{
 	list<string> new = splitstring (Kernel::cmdLine, " ");
 	list<string> old = splitstring (orig, " ");
-	list<string> added = BootCommon::difflist (new,
+	list<string> added = (list<string>)BootCommon::difflist (new,
 	     splitstring (BootCommon::kernelCmdLine, " "));
-	added = BootCommon::difflist (added, old);
+	added = (list<string>)BootCommon::difflist (added, old);
 	old = (list<string>) merge (old, added);
 	if (Mode::initial)
 	{// move showopts apic to the end
@@ -1396,7 +1406,7 @@
       * @return map where key is partition name and value its size
       */
     global define map<string, integer> getSwapPartitions () ``{
-	map<string, map> tm = Storage::GetTargetMap ();
+	map<string, map> tm = (map<string,map>)Storage::GetTargetMap ();
 
 	map<string, integer> ret = $[];
 
@@ -1419,7 +1429,7 @@
       */
     global define string getLargestSwapPartition () ``{
 	map<string, integer> swap_sizes = getSwapPartitions ();
-	list<string> swap_parts = maplist (string name, integer siz,
+	list<string> swap_parts = (list<string>)maplist (string name, integer size,
 	    swap_sizes, ``(name));
 	swap_parts = sort (string a, string b, swap_parts, ``(
 	    swap_sizes[a]:0 > swap_sizes[b]:0

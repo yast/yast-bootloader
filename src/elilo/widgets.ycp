@@ -59,7 +59,7 @@
       */
     global define map getGlobalSectionWidget () ``{
 	map ret = BootCommon::getGlobalSectionWidget ();
-	ret["ids"] = ``(BootELILO::getTableContents ());
+	ret["ids"] = BootELILO::getTableContents;
 	return ret;
     }
 
@@ -189,19 +189,19 @@
 	    "table" : $[
 		// table cell / label
 		"label" : _("Boot Loader Location"),
-		"summary" : ``(BootELILO::targetSummary ()),
+		"summary" : BootELILO::targetSummary,
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `func,
-		"widget_func" : ``(BootELILO::getTargetWidget ()),
-		"init" : ``(BootELILO::targetInit ()),
-		"handle" : ``(BootELILO::targetHandle ()),
-		"store" : ``(BootELILO::targetStore ()),
+		"widget_func" : BootELILO::getTargetWidget,
+		"init" : BootELILO::targetInit,
+		"handle" : BootELILO::targetHandle,
+		"store" : BootELILO::targetStore,
 //		"help" : getLocationsHelp (),
-		"validate" : ``(BootELILO::targetValidate ()),
+		"validate" : BootELILO::targetValidate,
 
 	    ],
 	];

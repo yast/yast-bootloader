@@ -25,6 +25,7 @@
     import "Wizard";
 
     include "bootloader/routines/helps.ycp";
+    include "bootloader/routines/routines.ycp";
     include "commandline/commandline.ycp";
 
 // --------------------------------------------------------------------------
@@ -36,10 +37,7 @@
       */
     define boolean GuiHandler () ``{
         symbol ret = nil;
-        if (Mode::test)
-            testDialogs ();
-        else
-            ret = Bootloader::BootloaderSequence ();
+	ret = Bootloader::BootloaderSequence ();
 
         if (ret == `abort || ret == `back || ret == `nil)
             return false;
@@ -62,22 +60,21 @@
     ``{
 	if (section == nil)
 	{
-	    BootCommon::globals = BootCommon::modifySection (
+	    BootCommon::globals = modifySection (
 		BootCommon::globals,
-		option,
+		key,
 		value
 	    );
 	    return true;
 	}
 	else
 	{
-	    string section = options["section"]:"";
 	    integer index = BootCommon::getSectionIndex (section);
 	    if (index != nil)
 	    {
-		BootCommon::sections[index] = BootCommon::modifySection (
+		BootCommon::sections[index] = modifySection (
 		    BootCommon::sections[index]:[],
-		    option,
+		    key,
 		    value
 		);
 		return true;
@@ -174,14 +171,14 @@
 	any value = nil;
 	if (section == nil)
 	{
-	    value = BootCommon::lookup_value (BootCommon::globals, option, nil);
+	    value = lookup_value (BootCommon::globals, option, nil);
 	}
 	else
 	{
 	    integer index = BootCommon::getSectionIndex (section);
 	    if (index != nil)
 	    {
-		value = BootCommon::lookup_value (
+		value = lookup_value (
 		    BootCommon::sections[index]:[], option, nil);
 	    }
 	}
@@ -202,27 +199,27 @@
 	"finish"	: ``(Bootloader::Write()),
 	"actions"	: $[
 	    "summary"	: $[
-		"handler"	: ``(BootloaderSummaryHandler()),
+		"handler"	: BootloaderSummaryHandler,
 		// command line help text for summary action
 		"help"		: _("Configuration summary of bootloader")
 	    ],
 	    "delete"	: $[
-		"handler"	: ``(BootloaderDeleteHandler ()),
+		"handler"	: BootloaderDeleteHandler,
 		// command line help text for delete action
 		"help"		: _("Delete a global option or option of a section"),
 	    ],
 	    "set"	: $[
-		"handler"	: ``(BootloaderSetHandler ()),
+		"handler"	: BootloaderSetHandler,
 		// command line help text for set action
 		"help"		: _("Set a global option or option of a section"),
 	    ],
 	    "add"	: $[
-		"handler"	: ``(BootloaderAddHandler ()),
+		"handler"	: BootloaderAddHandler,
 		// command line help text for add action
 		"help"		: _("Add a new section"),
 	    ],
 	    "print"	: $[
-		"handler"	: ``(BootloaderPrintHandler ()),
+		"handler"	: BootloaderPrintHandler,
 		// command line help text for print action
 		"help"		: _("Print value of specified option"),
 	    ],
@@ -263,8 +260,64 @@
 	i = i + 1;
     }
 
-    boolean ret = CommandLineRun (cmdline);
+//    boolean ret = CommandLineRun (cmdline);
+    boolean ret = GuiHandler ();
+/*
+    Wizard::CreateDialog ();
 
+    if (! skip_io)
+    {
+// run Progress bar
+	list stages = [
+	    // progress stage, text in dialog (short, infinitiv)
+	    _("Check boot loader"),
+	    // progress stage, text in dialog (short, infinitiv)
+	    _("Read partitioning"),
+	    // progress stage, text in dialog (short, infinitiv)
+	    _("Load boot loader settings"),
+	];
+	list titles = [
+	    // progress stage, text in dialog (short)
+	    _("Checking boot loader..."),
+	    // progress stage, text in dialog (short)
+	    _("Reading partitioning..."),
+	    // progress stage, text in dialog (short)
+	    _("Loading boot loader settings..."),
+	];
+	// progress bar caption
+	Progress::New (_("Initializing boot loader configuration tool..."),
+	    " ", 3, stages, titles, getInitProgressHelp ());
+
+	Progress::NextStage ();
+	if (testAbort ())
+	    return `back;
+
+	Bootloader::getLoaderType ();
+
+	Progress::NextStage ();
+	if (testAbort ())
+	    return `back;
+
+	BootCommon::DetectDisks ();
+	BootCommon::getFloppyDevices ();
+        Progress::NextStage ();
+        if (testAbort ())
+            return `back;
+
+	Bootloader::Read ();
+	Progress::Finish ();
+	if (testAbort ())
+	    return `back;
+    }
+
+    symbol ret = Bootloader::runWizard ();
+
+    if (! skip_io)
+    {
+	if (ret == `next)
+	    Bootloader::Write ();
+    }
+*/
     y2milestone ("Finishing bootloader configuration module");
     return ret;
 }

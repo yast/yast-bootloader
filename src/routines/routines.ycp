@@ -30,7 +30,7 @@
       * @param default any default value to be returned if key not present
       * @return any found key
       */
-    global define any lookup_value (list section, string key,
+    define any lookup_value (list<map> section, string key,
 	any default)
     ``{
 	any ret = default;
@@ -47,7 +47,7 @@
       * @param key string key of requested parameter
       * @return map of option, empty map if not found
       */
-    global define map getValueMap (list section, string key) ``{
+    define map getValueMap (list<map> section, string key) ``{
 	map ret = $[];
         foreach (map m, section, ``{
             if (m["key"]:"" == key)
@@ -63,7 +63,7 @@
       * @param value any value to specified key
       * @return list modified section
       */
-    global define list appendValue (list section, string key, any value) ``{
+    define list<map> appendValue (list<map> section, string key, any value) ``{
 	map m = $[ "key" : key, "value" : value, "changed" : true];
 	return add (section, m);
     }
@@ -75,7 +75,7 @@
       * @param default any to be returned if specified entry not present
       * @return any value of specified entry of PPD file
       */
-    global define any lookupValueByIndex (list section, integer index,
+    define any lookupValueByIndex (list<map> section, integer index,
 	any default)
     ``{
 	return section[index, "value"]:default;
@@ -89,10 +89,10 @@
       * @param value any value to be set, nil for removing key
       * @return list modified section
       */
-    global define list modifySection (list section, string key, any value) ``{
+    define list<map> modifySection (list<map> section, string key, any value) ``{
 	boolean found = false;
         section = filter (map cc,
-            maplist (map c, section, ``{
+            (list<map>)maplist (map c, section, ``{
                 if (c["key"]:"" == key)
                 {
 		    found = true;
@@ -107,7 +107,7 @@
                     }
                 }
                 return c;
-            }), ``(cc != nil && cc["value"]:"" != nil)
+            }), ``(cc != nil && cc["value"]:nil != nil)
         );
 	if (! found && value != nil)
 	{
@@ -125,8 +125,8 @@
       * @param value any option value
       * @return list updated bootloader section
       */
-    global define list setValueByIndex (list section, integer index, string key,
-	any value)
+    define list<map> setValueByIndex (list<map> section, integer index,
+	string key, any value)
     ``{
 	if (index < 0)
 	{
@@ -154,7 +154,7 @@
       * @param orig string original section name
       * @return translated section name
       */
-    global define string translateSectionTitle (string orig) ``{
+    define string translateSectionTitle (string orig) ``{
         map trans = $[
 	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
 	    // are allowed, otherwise translartion won't be used
@@ -212,7 +212,7 @@
       * @param section map section description structure
       * @return string section type
       */
-    global define string getCreationType (list section) ``{
+    define string getCreationType (list<map> section) ``{
 	map intern = (map) lookup_value (section, "__intern__", $[]);
 	return intern["type"]:"";
     }

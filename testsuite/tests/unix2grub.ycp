@@ -16,7 +16,6 @@
  */
 
 {
-    import "Pkg";
     include "testsuite.ycp";
 
     map READ_I = $[
@@ -77,7 +76,6 @@
 
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
     import "BootGRUB";
-    TESTSUITE_CLEAN ();
 
     map EXEC = $["target" : $["bash_output": $["stdout" : "(hd0)"]]];
     map READ = $["target" : $["string" : "(hd0)	/dev/hda
@@ -85,7 +83,7 @@
 (fd0)	/dev/fd0
 "]];
 
-    BootGRUB::device_map = TEST (``(BootGRUB::readDeviceMap ()), [READ, $[], $[]], 0);
+    BootGRUB::device_map = (list<list<string> >)TEST (``(BootGRUB::readDeviceMap ()), [READ, $[], $[]], 0);
 
     TEST (``(BootGRUB::unixDev2grubDev ("/dev/hda")), [READ, $[], EXEC], 0);
     TEST (``(BootGRUB::unixDev2grubDev ("/dev/hda1")), [READ, $[], EXEC], 0);

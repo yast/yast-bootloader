@@ -2,7 +2,7 @@
 # Makefile.am for bootloader/mbr
 #
 
-datadir = /usr/share/YaST2/data
+datadir = @ydatadir@
 
 SOURCES = mbr.S asm.h
 

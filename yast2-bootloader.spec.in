@@ -1,6 +1,6 @@
 @HEADER-COMMENT@
 
-# neededforbuild  gpp libgpp libxcrypt libxcrypt-devel yast2-devel-packages hwinfo yast2-storage yast2-country yast2-installation yast2-packager
+# neededforbuild  gpp libgpp libxcrypt libxcrypt-devel yast2-devel-packages hwinfo yast2-storage yast2-country yast2-installation yast2 yast2-devel
 
 @HEADER@
 PreReq:         /bin/sed %fillup_prereq
@@ -53,7 +53,7 @@ Summary:	Bootloader installation and configuration
 
 %dir @yncludedir@/bootloader
 @yncludedir@/bootloader/*
-@moduledir@/*.ycp
+@moduledir@/*
 @clientdir@/*.ycp
 @ybindir@/*
 

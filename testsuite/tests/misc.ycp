@@ -16,7 +16,6 @@
  */
 
 {
-    import "Pkg";
     include "testsuite.ycp";
     import "Mode";
 
@@ -79,7 +78,6 @@
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
     import "Bootloader";
     import "BootCommon";
-    TESTSUITE_CLEAN ();
 
     DUMP ("======================================");
 

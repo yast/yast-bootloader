@@ -20,10 +20,13 @@
     y2milestone("----------------------------------------");
     y2milestone("bootloader auto started");
 
+    import "Arch";
     import "Bootloader";
     import "BootCommon";
     import "Wizard";
     import "Initrd";
+
+    include "bootloader/routines/routines.ycp";
 
 
     /**
@@ -31,7 +34,7 @@
       * @param ai map the autoinstallation map
       * @return map the export map
       */
-    define map AI2Export (map ai) ``{
+    define map<string,any> AI2Export (map<string,any> ai) ``{
 	// bootloader type and location stuff
 	map exp = $[
 	    "loader_type" : ai["loader_type"]:"",
@@ -80,12 +83,12 @@
 
 	// sections stuff
 	exp["specific", "sections"] = maplist (list s, ai["sections"]:[], ``{
-
+	    return nil;
 
 	});
+	string default_key = BootCommon::getDefaultKey ();
 	if (haskey (ai, "default"))
 	{
-	    string default_key = BootCommon::getDefaultKey ();
 	    any default_val = nil;
 	    if (BootCommon::getDefaultType () == `index)
 	    {
@@ -119,11 +122,12 @@
 	ai["default"] = nil;
 	any default_val
 	    = lookup_value (exp["specific", "global"]:[], default_key, nil);
+	string default = nil;
 	if (default_val != nil)
 	{
 	    if (BootCommon::getDefaultType () == `index)
 	    {
-		default = ai["sections", (integer)default_val, "title"]:nil;
+		default = (string)(ai["sections", (integer)default_val, "title"]:nil);
 	    }
 	    else
 	    {
@@ -133,7 +137,7 @@
 	if (default != nil)
 	    ai["default"] = default;
 
-	return exp;
+	return (map<string,any>)exp;
     }
 
     /**
@@ -141,7 +145,7 @@
       * @param exp map the export map
       * @return map the autoinstallation map
       */
-    define map Export2AI (map exp) ``{
+    define map<string,any> Export2AI (map<string,any> exp) ``{
 	// bootloader type and location stuff
 	map ai = $[
 	    "loader_type" : exp["loader_type"]:"",
@@ -190,8 +194,7 @@
 
 	// sections stuff
 	ai["sections"] = maplist (list s, exp["specific", "sections"]:[], ``{
-
-
+	    return nil;
 	});
 	string default = nil;
 	string default_key = BootCommon::getDefaultKey ();
@@ -201,7 +204,7 @@
 	{
 	    if (BootCommon::getDefaultType () == `index)
 	    {
-		default = ai["sections", (integer)default_val, "title"]:nil;
+		default = (string)(ai["sections", (integer)default_val, "title"]:nil);
 	    }
 	    else
 	    {
@@ -210,7 +213,7 @@
 	}
 	if (default != nil)
 	    ai["default"] = default;
-	return ai;
+	return (map<string,any>)ai;
     }
 
 
@@ -230,7 +233,7 @@
 
     if(func == "Import")
     {
-	ret = Bootloader::Import(AI2Export (param));
+	ret = Bootloader::Import(AI2Export ((map<string,any>)param));
     }
     /**
       * Create a summary
@@ -266,7 +269,7 @@
       * return map or list
       */
     else if (func == "Export") {
-	ret = Exp2AI (Bootloader::Export());
+	ret = Export2AI ((map<string,any>)Bootloader::Export());
     }
     /**
       * Write configuration data

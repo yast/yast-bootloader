@@ -118,7 +118,7 @@
 	    Bootloader::Propose ();
 	}
         BootCommon::fetchSettings ();
-        BootCommon::current_section = (list)eval (BootCommon::current_globals);
+        BootCommon::current_section = (list<map>)eval (BootCommon::current_globals);
         BootCommon::current_section_name = `global;
 
 	return `redraw;
@@ -261,7 +261,7 @@ Proceed?
 
 	    BootCommon::fetchSettings ();
             BootCommon::current_section =
-		(list)eval (BootCommon::current_globals);
+		(list<map>)eval (BootCommon::current_globals);
             BootCommon::current_section_name = `global;
 	}
 	BootCommon::location_changed = true;
@@ -273,7 +273,7 @@ Proceed?
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSectionsDialog () ``{
-        list widgets = CWM::CreateWidgets (["sections"],
+        list<map> widgets = CWM::CreateWidgets (["sections"],
 	    BootCommon::cwm_widgets);
         term contents = `HBox (`HSpacing (1), `VBox (
 		`VSpacing (1),
@@ -294,7 +294,7 @@ Proceed?
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSingleSectionDialog () ``{
-	list widgets = CWM::CreateWidgets (["singlesection"],
+	list<map> widgets = CWM::CreateWidgets (["singlesection"],
 	    BootCommon::cwm_widgets);
         term contents = `HBox (`HSpacing (1), `VBox (
                 `VSpacing (1),
@@ -315,7 +315,7 @@ Proceed?
       * @return symbol wizard sequencer symbol
       */
     global define symbol runSummaryDialog () ``{
-	list widgets = CWM::CreateWidgets (["globalsection", "resetbutton",
+	list<map> widgets = CWM::CreateWidgets (["globalsection", "resetbutton",
 	    "manual_edit_button"], BootCommon::cwm_widgets);
         term contents = `HBox (`HSpacing (1), `VBox (
                 `VSpacing (1),
@@ -388,7 +388,7 @@ Proceed?
 	UI::ChangeWidget (`id (`file), `Value, files[filename]:"");
 
         any ret = nil;
-        while (! contains (exits, ret))
+        while (ret == nil || ! contains (exits, ret))
         {
             ret = UI::UserInput ();
 	    if (ret == `filename)
