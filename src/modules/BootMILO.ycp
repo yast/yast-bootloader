@@ -33,23 +33,19 @@
 
     include "bootloader/routines/popups.ycp";
 
-// general functions
+// misc. functions
 
     /**
-      * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
+      * Empty summary dialog
+      * @return symbol always `back
       */
-    global define map GetFunctions () ``{
-	return $[
-	    "read" :	``(BootMILO::Read ()),
-	    "propose" : ``(BootMILO::Propose ()),
-	    "save" :	``(BootMILO::Save ()),
-	    "summary" :	``(BootMILO::Summary ()),
-	    "update" :	``(BootMILO::Update ()),
-	    "write" :	``(BootMILO::Write ()),
-	    "sequence" :``(BootMILO::FixSequence ()),
-	];
+    global define symbol runSummaryDialog () ``{
+	displayNoSupportPopup ();
+	return `back;
     }
+
+// general functions
+
     /**
       * Propose bootloader settings
       */
@@ -77,7 +73,7 @@
       * Display bootloader summary
       * @return a list of summary lines
       */
-    global define list(string) Summary () ``{
+    global define list<string> Summary () ``{
 	// summary
 	return [_("Install MILO Boot Loader")];
     }
@@ -86,6 +82,7 @@
       * Update read settings to new version of configuration files
       */
     global define void Update () ``{
+	y2milestone ("No update functionality implemented");
     }
 
     /**
@@ -93,12 +90,13 @@
       * @return boolean true on success
       */
     global define boolean Write () ``{
-	string tmpfile = SCR::Read (.target.tmpdir) + "boot.conf";
+	string tmpfile = (string)SCR::Read (.target.tmpdir) + "boot.conf";
         string docmd = "/usr/lib/YaST2/bin/do"
 	    + BootCommon::getLoaderType (false) + " / " + tmpfile;
 
         // prepare /tmp/boot.conf
-        byteblock milo_buffer = WFM::Read(.local.byte, Installation::sourcedir+ "/milo/boot.conf");
+        byteblock milo_buffer = (byteblock)
+	    WFM::Read(.local.byte, Installation::sourcedir+ "/milo/boot.conf");
         SCR::Write(.target.byte, tmpfile, milo_buffer);
         // install milo in /boot
         SCR::Execute (.target.bash, docmd);
@@ -121,17 +119,24 @@
         return ws_data;
     }
 
+    /**
+      * Return map of provided functions
+      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
+      */
+    global define map GetFunctions () ``{
+	return $[
+	    "read" :	``(BootMILO::Read ()),
+	    "propose" : ``(BootMILO::Propose ()),
+	    "save" :	``(BootMILO::Save ()),
+	    "summary" :	``(BootMILO::Summary ()),
+	    "update" :	``(BootMILO::Update ()),
+	    "write" :	``(BootMILO::Write ()),
+	    "sequence" :``(BootMILO::FixSequence ()),
+	];
+    }
 
 
 // end of mandatory functions
 //----------------------------------------------------------------------------
 
-    /**
-      * Empty summary dialog
-      * @return symbol always `back
-      */
-    global define symbol runSummaryDialog () ``{
-	displayNoSupportPopup ();
-	return `back;
-    }
 }
