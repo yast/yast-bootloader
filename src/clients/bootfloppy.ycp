@@ -237,11 +237,14 @@ click <b>Next</b> to continue.</p>");
 These boot floppies can be used to boot your installed system or a rescue system
 (from the first CD-ROM or the rescue floppy).</p>");
 
-	    // help text 3/5
-	    help_text = help_text + _("<p><b>Rescue Floppy:</b><br>
+	    if (Arch::i386 ())
+	    {
+		// help text 3/5
+		help_text = help_text + _("<p><b>Rescue Floppy:</b><br>
 To start the rescue system, boot from the boot floppy or the SuSE CD-ROM
 and select <i>Manual installation</i> -> <i>Start installation / system</i>
 -> <i>Rescue system</i>. You will be prompted for the rescue floppy.</p>");
+	    }
 
 if (false)
 	    // help text - former 4/5 - is skipped now
@@ -384,12 +387,14 @@ and File Systems (modules disk 4)"))),
 		images = add (images, sformat ("bootdsk%1", index));
 	    }
 	    images = (list<string>)merge (images, [
-		"rescuefloppy",
+//		"rescuefloppy",
 //		"__modules",
 //		"__other",
 		"__custom",
 		"__url"
 	    ]);
+	    if (Arch::i386 ())
+		images = prepend (images, "rescuefloppy");
 	    images_term = `VBox ();
 	    boolean first = true;
 	    foreach (string i, images, {
