@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Mon Jan 31 11:40:43 CET 2005 - jsrain@suse.cz
+Mon Jan 31 17:32:32 CET 2005 - jsrain@suse.cz
 
 - removed code obsolete after using the bootloader library
   (including the LILO agent)
@@ -7,6 +7,7 @@ Mon Jan 31 11:40:43 CET 2005 - jsrain@suse.cz
 - fixed handling of YaSTi's data in comments in configuration files
 - by default merging all found GRUB menus
 - clean-up of obsolete code
+- 2.11.8
 
 -------------------------------------------------------------------
 Fri Jan 28 13:46:53 CET 2005 - jsrain@suse.cz
