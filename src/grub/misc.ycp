@@ -106,8 +106,9 @@
 	}
 	targetMap = filter (string k, map v, targetMap, ``(
 	    ! v["is_lvm_vg"]:false && ! issubstring (k, "/dev/md")
+	    && ! issubstring (k, "/dev/evms")
 	));
-	y2debug ("Target map: %1", targetMap);
+	y2milestone ("Target map: %1", targetMap);
 	// add devices with know bios_id
         foreach (string target_dev, map target, targetMap, ``{
             string bios_id = target["bios_id"]:"";

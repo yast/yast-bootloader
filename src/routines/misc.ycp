@@ -373,8 +373,11 @@
 	    ``(! v["is_lvm_vg"]:false));
 	if (type == `boot || type == `boot_other)
 	{
-	    devices = filter (string k, map v, devices,
-		``(! issubstring (k, "/dev/md")));
+	    devices = filter (string k, map v, devices, ``(
+		! issubstring (k, "/dev/md")
+		&& ! issubstring (k, "/dev/evms")
+		&& ! v["is_lvm_vg"]:false
+	    ));
 	}
 	list<string> all_disks = (list<string>) maplist (string k, map v, devices, ``(k));
 	list<map> partitions = [];
