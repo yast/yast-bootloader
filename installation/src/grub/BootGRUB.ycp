@@ -92,8 +92,22 @@
 	list lines = splitstring (menu, "\n");
 	lines = filter (`l, lines, ``(substring (l, 0, 7) != "gfxmenu" && substring (l, 0, 5) != "color"));
 	lines = prepend (lines, "color white/green black/light-gray");
-	lines = prepend (lines, sformat ("gfxmenu %1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message"));
+	if (-1 != SCR::Read (.target.size, "/boot/message"))
+	    lines = prepend (lines, sformat ("gfxmenu %1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message"));
 	menu = mergestring (lines, "\n");
+
+        if (SCR::Read (.target.size, "/boot/initrd") == -1 || SCR::Read (.target.size, "/boot/initrd.shipped" == -1))
+        {
+            y2milestone ("no initrd created");
+            menu_l = splitstring (menu, "\n");
+            if (SCR::Read (.target.size, "/boot/initrd") == -1)
+                menu_l = filter (`i, menu_l, ``(! issubstring (i, "/boot/initrd")));
+            if (SCR::Read (.target.size, "/boot/initrd.shipped") == -1)
+                menu_l = filter (`i, menu_l, ``(! issubstring (i, "/boot/initrd.shipped")));
+            menu = mergestring (menu_l, "\n");
+            SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
+        }
+
 	SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
 
 	string grub_conf = SCR::Read (.target.string, "/etc/grub.conf");
@@ -112,6 +126,7 @@ Insert a formatted floppy and confirm with 'OK'.
 		    ret = SCR::Execute(.target.bash, command);
 		if (ret == 0)
 		{
+			// popup
 		    UI::MessagePopup(_("The GRUB boot sector has been written to a floppy disk."));
 		    break;
 		}
@@ -129,6 +144,7 @@ Do you want to try again?")) )
 	else
 	{
 	    if (0 != SCR::Execute(.target.bash, command))
+		// error popup
 		UI::ErrorPopup ("An error occured during saving bootloader configuration");
 	}
     }
@@ -298,7 +314,8 @@ Do you want to try again?")) )
 	string grub_conf = getGrubConf (settings);
 
 	string menu = "";
-	menu = menu + sformat ("gfxmenu %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message");
+	if (-1 != SCR::Read (.target.size, "/boot/message"))
+	    menu = menu + sformat ("gfxmenu %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message");
 	menu = menu + "color white/green black/light-gray\n";
 	menu = menu + "default 0\n";
 	menu = menu + "timeout 8\n";
@@ -368,6 +385,17 @@ Do you want to try again?")) )
 
 	y2milestone ("Starting mk_initrd");
 	boolean ret = (0 == SCR::Execute(.target.bash, "/sbin/mk_initrd"));
+	if (SCR::Read (.target.size, "/boot/initrd") == -1 || SCR::Read (.target.size, "/boot/initrd.shipped" == -1))
+	{
+	    y2milestone ("no initrd created");
+	    menu_l = splitstring (menu, "\n");
+	    if (SCR::Read (.target.size, "/boot/initrd") == -1)
+		menu_l = filter (`i, menu_l, ``(! issubstring (i, "/boot/initrd")));
+	    if (SCR::Read (.target.size, "/boot/initrd.shipped") == -1)
+		menu_l = filter (`i, menu_l, ``(! issubstring (i, "/boot/initrd.shipped")));
+	    menu = mergestring (menu_l, "\n");
+	    SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
+	}
 	y2milestone ("Starting GRUB");
 	string command = sformat ("echo \"%1\" | /usr/sbin/grub --batch --device-map=/boot/grub/device.map ", grub_conf);
 

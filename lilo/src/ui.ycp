@@ -293,7 +293,6 @@ global define symbol TargetDialog() ``{
     term widget = TargetWidget(lookup(lookup(Lilo::partmap, `mbr, $[]), "dev", "?"), Lilo::bootPart);
 
     Wizard::SetContents(caption, widget, help, true, true);
-y2error ("GS: %1", Lilo::grub_set);
     string b_dev = "";
     if (Lilo::mode == `grub)
     {
@@ -370,12 +369,10 @@ y2error ("GS: %1", Lilo::grub_set);
 	if (!contains([`other, `uninstall], sel))
 	{
 	    string b_dev = lookup(lookup(Lilo::partmap, sel, `mbr), "dev", "/dev/hda");
-y2error ("BD: %1", b_dev);
 	    if (Lilo::mode == `grub)
 	    {
 		b_dev = lilo2Grub (b_dev);
 		Lilo::grub_set = add (Lilo::grub_set, "device", b_dev);
-y2error ("GS: %1", Lilo::grub_set);
 	    }
 	    else
 	    {
@@ -1309,7 +1306,6 @@ global define void enable_opt_dlg(boolean val) ``{
  */
 
 global define symbol OptionsDlg(map vals) ``{
-y2error ("Got map: %1", vals);
 	// caption
     string caption = _("Section options");
 
