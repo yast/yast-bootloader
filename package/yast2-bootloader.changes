@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  5 21:14:47 CEST 2002 - kkaempf@suse.de
+
+- properly check for update when determing boot type
+- 2.6.38
+
+-------------------------------------------------------------------
 Thu Sep  5 11:49:23 CEST 2002 - jsrain@suse.cz
 
 - not calling Storage::UseLilo () in Boot module constructor
