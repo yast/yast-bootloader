@@ -1,3 +1,6 @@
+- added universal functions for accessing kernel parameters
+  independent on bootloader
+
 -------------------------------------------------------------------
 Tue Aug 13 06:49:05 CEST 2002 - jsrain@suse.cz
 

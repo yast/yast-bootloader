@@ -1,0 +1,61 @@
+/**
+ * File:
+ *  kernelParams.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Universal finctions for accessing kernel parameters.
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    include "testsuite.ycp";
+    include "lilo/misc.ycp";
+
+    map READ = $["grub": $["sections" : $["linux" : $["kernel" : "(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333 ide=nodma noarg init=/bin/bash"]]],
+		 "lilo": $["sections" : $["linux" : $["kernel" : "/boot/vmlinuz.suse", "vga" : "333", "root" : "/dev/hda3", "append" : "noarg ide=nodma init=/bin/bash"]]]];
+
+    global define boot () ``{return "grub";}
+    Lilo::mode = `grub;
+
+    TEST (``(getKernelParam ("linux", "root")), [READ, $[], $[]], 0);
+    TEST (``(getKernelParam ("linux", "vga")), [READ, $[], $[]], 0);
+    TEST (``(getKernelParam ("linux", "init")), [READ, $[], $[]], 0);
+    TEST (``(getKernelParam ("linux", "noarg")), [READ, $[], $[]], 0);
+    DUMP("==================================================================");
+    TEST (``(setKernelParam ("linux", "root", "/dev/hda5")), [READ, $[], $[]], 0);
+    TEST (``(setKernelParam ("linux", "vga", "555")), [READ, $[], $[]], 0);
+    TEST (``(setKernelParam ("linux", "ide", "false")), [READ, $[], $[]], 0);
+    TEST (``(setKernelParam ("linux", "extra", "true")), [READ, $[], $[]], 0);
+    TEST (``(setKernelParam ("linux", "vga", "false")), [READ, $[], $[]], 0);
+    DUMP("==================================================================");
+    TEST (``(saveBootloaderConfig (true)), [READ, $[], $[]], 0);
+    TEST (``(saveBootloaderConfig (false)), [READ, $[], $[]], 0);
+
+    global define boot () ``{return "lilo";}
+    Lilo::mode = `lilo;
+
+    DUMP("==================================================================");
+    TEST (``(getKernelParam ("linux", "root")), [READ, $[], $[]], 0);
+    TEST (``(getKernelParam ("linux", "vga")), [READ, $[], $[]], 0);
+    TEST (``(getKernelParam ("linux", "init")), [READ, $[], $[]], 0);
+    TEST (``(getKernelParam ("linux", "noarg")), [READ, $[], $[]], 0);
+    DUMP("==================================================================");
+    TEST (``(setKernelParam ("linux", "root", "/dev/hda5")), [READ, $[], $[]], 0);
+    TEST (``(setKernelParam ("linux", "vga", "555")), [READ, $[], $[]], 0);
+    TEST (``(setKernelParam ("linux", "ide", "false")), [READ, $[], $[]], 0);
+    TEST (``(setKernelParam ("linux", "extra", "true")), [READ, $[], $[]], 0);
+    TEST (``(setKernelParam ("linux", "vga", "true")), [READ, $[], $[]], 0);
+    DUMP("==================================================================");
+    TEST (``(saveBootloaderConfig (true)), [READ, $[], $[]], 0);
+    TEST (``(saveBootloaderConfig (false)), [READ, $[], $[]], 0);
+
+}
+
