@@ -801,9 +801,9 @@
     /**
       * Translate device name to major/minor number
       * @param device string
-      * @return integer major*256+minor
+      * @return string major*256+minor hexadecimal without leading 0x
       */
-    global define integer dev2majmin (string device) ``{
+    global define string dev2majmin (string device) ``{
         string ls = lookup (SCR::Execute (.target.bash_output, sformat (
             "ls -ln %1", device)), "stdout", "");
         list(string) parts = splitstring (ls, " ");
@@ -813,8 +813,17 @@
         string mins = parts[5]:"";
         integer maj = tointeger (majs);
         integer min = tointeger (mins);
-        y2milestone ("translated %1 to %2:%3", device, maj, min);
-        return maj * 256 + min;
+	majs = tohexstring (maj);
+	majs = substring (majs, 2);
+	while (size (majs) < 2)
+	    majs = "0" + majs;
+	mins = tohexstring (min);
+	mins = substring (mins, 2);
+	while (size (mins) < 2)
+	    mins = "0" +  mins;
+	y2milestone ("Translated %1 to %2:%3", device, majs, mins);
+	string ret = sformat ("%1%2", majs, mins);
+        return ret;
     }
 
 

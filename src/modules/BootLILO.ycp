@@ -294,8 +294,7 @@
 	bcg["change-rules"] = "change-rules,reset";
 	bcg["read-only"] = true;
 	bcg["prompt"] = true;
-	if (true) // always until situation with disks hda, hde, hdg fixes
-//	if (StorageDevices::mixedDevices)
+	if (Storage::DiskmapNeeded())
 	{
 	    string order = "";
 	    // check if bios_id is given for a target
