@@ -246,6 +246,7 @@
 	    )),
 	    `Left (`HBox (`HSpacing (2),
 		`TextEntry (`id (`iseries_streamfile_filename),
+		    // text entry
 		    _("Stream File for *&STMF Booting")))),
 	    `Left (`CheckBox (`id (`iseries_prepboot), `opt (`notify),
 		// checkbox
@@ -362,6 +363,7 @@
 	}
 	if (size (targets) == 0)
 	{
+	    // part of summatu
 	    return _("Do Not Install Boot Loader");
 	}
 	else
@@ -470,6 +472,7 @@
 	}
 	else
 	{
+	    // table cell
 	    return _("Do Not Install Boot Loader");
 	}
     }

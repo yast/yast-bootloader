@@ -605,6 +605,7 @@ configuration files"));
 		Require::RequireAndConflict (
 		    getBootloaderPackages (bootloader),
 		    [],
+		    // rich text, %1 is list of packages
 		    _("YaST will install packages %1."));
 	    }
 	    else if (Mode::initial && (! (Mode::repair)))
