@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri May 16 09:09:46 CEST 2003 - jsrain@suse.de
+
+- fixed collision with driver update (#26717)
+
+-------------------------------------------------------------------
 Thu May 15 14:27:25 CEST 2003 - jsrain@suse.de
 
 - updated ELILO (IA64 bootloader) support
