@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+
+    <section id="diagrams">
+        <title>Diagrams</title>
+            <figure>
+                <title>UI workflow</title>
+                <mediaobject>
+                  <imageobject>
+                    <imagedata fileref="./workflow.png" scale="40"/>
+                  </imageobject>
+                </mediaobject>
+              </figure>
+            <figure>
+                <title>Bootloader installation call sequence</title>
+                <mediaobject>
+                  <imageobject>
+                    <imagedata fileref="./inst_flowchart.png" scale="40"/>
+                  </imageobject>
+                </mediaobject>
+              </figure>
+            <figure>
+                <title>Bootloader configuration call sequence</title>
+                <mediaobject>
+                  <imageobject>
+                    <imagedata fileref="./conf_flowchart.png" scale="40"/>
+                  </imageobject>
+                </mediaobject>
+              </figure>
+            <figure>
+                <title>Bootloader call graph</title>
+                <mediaobject>
+                  <imageobject>
+                    <imagedata fileref="./callgraph.png" scale="40"/>
+                  </imageobject>
+                </mediaobject>
+              </figure>
+
+    </section>
+
+

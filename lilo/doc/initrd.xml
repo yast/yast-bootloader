@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+
+    <section id="initrd">
+        <title>Initrd module</title>
+        <section>
+            <title>List of declarations</title>
+            <itemizedlist>
+                <listitem><para><computeroutput>global define void AddModule (string modname, string modargs)</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define map Export ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define void Import (map settings)</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define list ListModules ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define boolean Read ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define void RemoveModule (string modname)</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define void Reset ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define void Write ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>map modules</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global boolean changed</computeroutput></para></listitem>
+                <listitem><para><computeroutput>boolean was_read</computeroutput></para></listitem>
+            </itemizedlist>
+        </section>
+        <section>
+            <title>Global functions</title>
+            <itemizedlist>
+                <listitem><para><computeroutput>global define void AddModule (string modname, string modargs)</computeroutput>
+                    inserts module to list of modules which shall be contained in initial
+                    ramdisk with it's parameters. When saving initial ramdisk will be recreated.</para></listitem>
+                <listitem><para><computeroutput>global define map Export ()</computeroutput> export settings of Initrd module to returning map.</para></listitem>
+                <listitem><para><computeroutput>global define void Import (map settings)</computeroutput>imports map of settings to module's internal structures.</para></listitem>
+                <listitem><para><computeroutput>global define list ListModules ()</computeroutput> returns list of modules which are (or will be) present in initial ramdisk.</para></listitem>
+                <listitem><para><computeroutput>global define boolean Read ()</computeroutput> reads list of initrd modules from sysconfig file. Sets changed variable to false.</para></listitem>
+                <listitem><para><computeroutput>global define void RemoveModule (string modname)</computeroutput>
+                    removes module from ramdisk when writing bootloader configuration to disk.</para></listitem>
+                <listitem><para><computeroutput>global define void Reset ()</computeroutput> resets modules list to empty and sets changed variable to false. </para></listitem>
+                <listitem><para><computeroutput>global define void Write ()</computeroutput> (if was changed) saves list of initrd modules to sysconfig files and rebuilds initrd.</para></listitem>
+            </itemizedlist>
+        </section>
+        <section>
+            <title>Internal variables</title>
+            <itemizedlist>
+                <listitem><para><computeroutput>map modules</computeroutput> is map from names of modules, which should be contained in initial ramdisk, to their
+                        parameters. For changing this variable should be appropriate functions used.</para></listitem>
+                <listitem><para><computeroutput>global boolean changed</computeroutput> is true if initrd needs to be rebuilt when saving configuration. Shall be directly used only
+                        from Bootloader module.</para></listitem>
+                <listitem><para><computeroutput>boolean was_read</computeroutput> is true if settings were already read from disk, otherwise false</para></listitem>
+            </itemizedlist>
+        </section>
+    </section>

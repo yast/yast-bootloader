@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+
+    <section id="bootspec">
+        <title>Bootloader-specific modules interface</title>
+        <section>
+            <title>Motivation</title>
+            <para>
+                Different bootloaders are installing different ways, require different informations, etc. The goal of new design is to allow different bootloaders to have
+                their own dialogs, proposal, and functions for several tasks, but to provide generic dialogs and functions too.
+                Common part of bootloader installer should not contain bootloader-specific code, everything bootloader-specific should be encapsulated in bootloader-specific
+                module.
+            </para>
+        </section>
+        <section>
+            <title>Bootloader-specific module description function</title>
+            <para>
+                <computeroutput>global define map GetFunctions ()</computeroutput> function shall return a map describing
+                what functions contains bootloader-specific part installator. It is used for checking for what functions can be used generic functions
+                and what functions need to be specific.
+            </para>
+            <para>
+                Returned map shall contains following keys (values are terms, they will be evaluated when function call is wanted):
+                <itemizedlist>
+		    <listitem><para><computeroutput>"export"</computeroutput> export function, should return map of bootloader specific settings.</para></listitem>
+                    <listitem><para><computeroutput>"import"</computeroutput> import function, must have one map parameter for settings to import.</para></listitem>
+                    <listitem><para><computeroutput>"read"</computeroutput> reads bootloader specific settings from disk to module's internal variables.
+			Returns boolean true if success.</para></listitem>
+                    <listitem><para><computeroutput>"reset"</computeroutput> resets all module variables to their default values.</para></listitem>
+                    <listitem><para><computeroutput>"propose"</computeroutput> proposes bootloader configuration. May be called repeatedly during installation proposal,
+			in this case shall only update settings according to changes of partitioning.</para></listitem>
+                    <listitem><para><computeroutput>"save"</computeroutput> saves all configuration files of bootloader to disk. Should backup old configuration files before rewriting them.
+			Returns boolean true on success.</para></listitem>
+                    <listitem><para><computeroutput>"summary"</computeroutput> creates the summary text for installation proposal. Returns string with summary text
+			in the "raw_proposal" format.</para></listitem>
+                    <listitem><para><computeroutput>"update"</computeroutput> updates read settings of bootloader to newer version if needed. Doesn't read or write anything.</para></listitem>
+                    <listitem><para><computeroutput>"write"</computeroutput> makes the real installation of bootloader when needed. On i386 this should call the lilo command,
+			may do some additional actions (activating partition,...). Returns boolean true on success.</para></listitem>
+                    <listitem><para><computeroutput>"widgets"</computeroutput> returns map of bootloader specific widgets. Special key "tableentries" is used for map of single bootloader
+			options. See more details in UI section.</para></listitem>
+                    <listitem><para><computeroutput>"sequence"</computeroutput> fixes the dialog aliases and workflow sequences according to specific bootloader needs.
+			Has parameter containing map of sequences, shall modify it and return with changes and added aliases which differ from generic version.
+			More details in UI section.</para></listitem>
+                    <listitem><para><computeroutput>"getfiles"</computeroutput> shall generate map from filenames to file contents. It shall be used to generate future bootloader cfg.
+			files for manual editing. Returns the map.</para></listitem>
+                    <listitem><para><computeroutput>"setfiles"</computeroutput> stores map with the same format as result of "getfiles" to internal structures (after parsing them).
+			Should change the BootCommon::files_edited variable if some file was changed. Has one map parameter.</para></listitem>
+                    <listitem><para><computeroutput>"getoptions"</computeroutput> returns map of options which can be present in bootloader. Map contains key `global for global options,
+			and keys "image" and "other" (can differ for different bootloaders) for sections. Value of each key is list of options.
+			If returns nil, the "Add" button for adding options will be disabled. To enable it if yuo don't want to create options list, just return empty map.
+			Combobox for choosing option is always editable, lists don't have to be complete. </para></listitem>
+                    <listitem><para><computeroutput>"updoptlst"</computeroutput> updates list of options to be shown in table. As parameter has map of options and values, returns list of
+			option keys. Must read from BootCommon::variables whether edits global section or single section.</para></listitem>
+                    <listitem><para><computeroutput></computeroutput></para></listitem>
+                </itemizedlist>
+		Value of each key shall be term, which will be evaluated in moment specified function is needed (after adding parameters if needed). Return value will be returned to caller
+		(if function has return value).
+		If some key is missing in the map, gemeric function is used (which typically means function usable for LiLo, because most of bootloaders for Linux are similar to LiLo.
+            </para>
+        </section>
+    </section>
