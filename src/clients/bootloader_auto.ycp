@@ -63,6 +63,13 @@
             + "</UL>";
     }
     /**
+      * did configuration changed
+      * return boolean
+      */
+    else if (func == "GetModified") {
+	ret =  BootCommon::changed;
+    }
+    /**
       * Reset configuration
       * return map or list
       */
