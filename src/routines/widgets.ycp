@@ -330,6 +330,12 @@
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
+	    map del_intern = (map)
+		lookup_value (sects[index]:[], "__intern__", $[]);
+	    if (del_intern["type"]:"" == "memtest86")
+	    {
+		BootCommon::memtest_removed = true;
+	    }
 	    sects = remove (sects, index);
 	    if (current ==lookup_value (current_globals,
 		"default", ""))

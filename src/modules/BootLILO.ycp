@@ -52,8 +52,7 @@
     global define list<map> createLinuxSection (string title) ``{
 	if (title == "memtest86")
 	{
-          if ((Mode::normal () && Pkg::IsProvided ("memtest86"))
-                || ! Mode::normal () || Mode::test ())
+	  if (BootCommon::MemtestPresent ())
 	  {
 	    return [
 		$[ "key" : "image", "value" : "/boot/memtest.bin"],
