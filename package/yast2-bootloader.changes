@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 29 18:16:56 CEST 2004 - jsrain@suse.de
+
+- do not propose to install any bootloader if installing user-mode
+  Linux (#37382)
+
+-------------------------------------------------------------------
 Mon Mar 29 10:30:31 CEST 2004 - jsrain@suse.de
 
 - fixed errors in log if root on LVM (#37290)
