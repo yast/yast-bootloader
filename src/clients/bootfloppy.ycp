@@ -21,14 +21,15 @@
     textdomain "bootloader";
 
     import "Label";
+    import "PackageCallbacksInit";
     import "Popup";
-
     import "Report";
     import "Sequencer";
     import "Wizard";
 
     Wizard::CreateDialog();
     Wizard::SetDesktopIcon("bootfloppy");
+    PackageCallbacksInit::InitPackageCallbacks ();
 
     string file_image = "bootdsk1"; //default
     string filename = "";
