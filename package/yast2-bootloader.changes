@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jul 25 15:54:25 CEST 2002 - schwab@suse.de
+
+- Fix doelilo script.
+
+-------------------------------------------------------------------
 Thu Jul 25 13:28:41 CEST 2002 - jsrain@suse.cz
 
 - added support for GRUB configuration on running system
