@@ -103,6 +103,14 @@
       */
     global boolean changed = false;
     /**
+      * were sections settings changes (== true)
+      */
+    global boolean sections_changed = false;
+    /**
+      * was currently edited section changed (== true)
+      */
+    global boolean one_section_changed = false;
+    /**
       * Was bootloader location changed? (== true)
       */
     global boolean location_changed = false;
@@ -379,7 +387,10 @@ configuration files
       * @return sumbol wizard sequencer symbol
       */
     global define symbol fetchSettings () ``{
+	map changed_all_sects = tmp_store["changed_all_sects"]:nil;
 	tmp_store = $[];
+	if (changed_all_sects != nil)
+	    tmp_store["changed_all_sects"] = changed_all_sects;
 	tmp_store["globals"] = eval(globals);
 	tmp_store["sections"] = eval(sections);
 	tmp_store["location"] = location;

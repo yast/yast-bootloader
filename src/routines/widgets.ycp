@@ -446,6 +446,7 @@
 		sectionsRedrawTable (sects);
 		UI::ChangeWidget (`id (`sects), `CurrentItem,
 		    sects[index, "label"]:0);
+		BootCommon::sections_changed = true;
 	    }
 	}
 	else if (op == `down)
@@ -458,7 +459,7 @@
 		sectionsRedrawTable (sects);
 		UI::ChangeWidget (`id (`sects), `CurrentItem,
 		    sects[index, "label"]:0);
-
+		BootCommon::sections_changed = true;
 	    }
 	}
 	else if (op == `default)
@@ -466,6 +467,7 @@
 	    BootCommon::tmp_store["globals", "default"] = current;
 	    sectionsRedrawTable (sects);
 	    UI::ChangeWidget (`id (`sects), `CurrentItem, current);
+	    BootCommon::sections_changed = true;
 	}
 	else if (op == `add)
 	{
@@ -473,6 +475,7 @@
 	    BootCommon::tmp_store["active_section_name"] = "";
 	    BootCommon::tmp_store["section_type"] = "image";
 	    BootCommon::changed_settings[""] = $[];
+	    BootCommon::one_section_changed = true;
 	}
 	else if (op == `edit)
 	{
@@ -486,6 +489,7 @@
 	    BootCommon::tmp_store["changed_single_sect"]
 		= eval (BootCommon::changed_settings[sects[index, "label"]:""]:$[]);
 	    y2milestone ("Changed settings: %1", BootCommon::tmp_store["changed_single_sect"]:$[]);
+	    BootCommon::one_section_changed = false;
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
@@ -497,11 +501,15 @@
 	    }
 	    BootCommon::tmp_store["sections"] = sects;
 	    sectionsRedrawTable (sects);
+	    BootCommon::sections_changed = true;
 	}
 	if (contains (tosave, op) && op != `edit && op != `add)
 	{
-	    BootCommon::markOptionChanged (`global, "__sections");
-	    BootCommon::markOptionChanged (`global, "__default_section");
+	    if (BootCommon::sections_changed)
+	    {
+		BootCommon::markOptionChanged (`global, "__sections");
+		BootCommon::markOptionChanged (`global, "__default_section");
+	    }
 	}
 	if (op == `back)
 	{

@@ -767,7 +767,13 @@
 	current[optname] = true;
 	BootCommon::changed_settings[section] = current;
 	if (section == `global)
+	{
 	    BootCommon::changed = true;
+	}
+	else
+	{
+	    BootCommon::one_section_changed = true;
+	}
     }
 
     /**

@@ -332,6 +332,7 @@ Replace it with an entry  to boot from the floppy?");
                 sectionsRedrawTable (sects);
                 UI::ChangeWidget (`id (`sects), `CurrentItem,
                     sects[index, "title"]:0);
+		BootCommon::sections_changed = true;
             }
         }
         else if (op == `down)
@@ -345,6 +346,7 @@ Replace it with an entry  to boot from the floppy?");
                 sectionsRedrawTable (sects);
                 UI::ChangeWidget (`id (`sects), `CurrentItem,
                     sects[index, "title"]:0);
+		BootCommon::sections_changed = true;
             }
         }
 	else if (op == `default)
@@ -353,12 +355,14 @@ Replace it with an entry  to boot from the floppy?");
 	    sectionsRedrawTable (sects);
 	    UI::ChangeWidget (`id (`sects), `CurrentItem,
 		sects[index, "title"]:0);
+	    BootCommon::sections_changed = true;
 	}
 	else if (op == `add)
 	{
             BootCommon::tmp_store["active_section"] = $[];
             BootCommon::tmp_store["active_section_name"] = "";
             BootCommon::tmp_store["section_type"] = "image";
+	    BootCommon::one_section_changed = true;
 	}
 	else if (op == `edit)
 	{
@@ -372,6 +376,7 @@ Replace it with an entry  to boot from the floppy?");
             BootCommon::tmp_store["changed_single_sect"]
                 = eval (BootCommon::changed_settings[sects[index, "title"]:""]:$[]);
             y2milestone ("Changed settings: %1", BootCommon::tmp_store["changed_single_sect"]:$[]);
+	    BootCommon::one_section_changed = false;
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
@@ -380,11 +385,15 @@ Replace it with an entry  to boot from the floppy?");
 	    if (size (sects) <= BootCommon::tmp_store["globals", "default"]:0)
 		BootCommon::tmp_store["globals", "default"] = 0;
 	    sectionsRedrawTable (sects);
+	    BootCommon::sections_changed = true;
 	}
         if (contains (tosave, op) && op != `edit && op != `add)
         {
-            BootCommon::markOptionChanged (`global, "__sections");
-            BootCommon::markOptionChanged (`global, "__default_section");
+            if (BootCommon::sections_changed)
+            {
+                BootCommon::markOptionChanged (`global, "__sections");
+                BootCommon::markOptionChanged (`global, "__default_section");
+            }
         }
         if (op == `back)
         {
