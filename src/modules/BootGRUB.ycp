@@ -137,7 +137,7 @@
 	string append = title == "failsafe"
 	    ? "showopts ide=nodma apm=off acpi=off vga=normal noresume selinux=0 barrier=off "
 	      + ((Arch::x86_64 ())
-		? "iommu=noforce maxcpus=0 "
+		? "iommu=noforce "
 		: "nosmp noapic maxcpus=0 ")
 	      + BootCommon::GetAdditionalFailsafeParams () + " 3"
 	    : sformat ("%1 %2 %3 %4 %5", vgastring, "selinux=0",

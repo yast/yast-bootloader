@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 11 16:43:52 CET 2005 - jsrain@suse.cz
+
+- do not append 'maxcpus=0' to failsafe kernel command line on
+  AMD64 (#49059)
+
+-------------------------------------------------------------------
 Thu Jan  6 14:14:23 CET 2005 - jsrain@suse.cz
 
 - propose all present kernels for GRUB
