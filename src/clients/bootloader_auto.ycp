@@ -70,6 +70,14 @@
 	ret =  BootCommon::changed;
     }
     /**
+     * set configuration as changed
+     * return boolean
+     */
+    else if (func == "SetModified") {
+        BootCommon::changed = true;
+        ret = true;
+    }
+    /**
       * Reset configuration
       * return map or list
       */
@@ -103,7 +111,6 @@
 	Initrd::Read ();
 	ret = Bootloader::Read();
     }
-
     /* unknown function */
     else {
 	y2error("unknown function: %1", func);

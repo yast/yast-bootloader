@@ -4,7 +4,8 @@ Fri Sep  3 13:16:28 CEST 2004 - jsrain@suse.cz
 - update devices in bootloader configuration files (SATA devices
   changed from /dev/hd* to /dev/sd*) (#44286)
 - provide general Bootloader::Update function that processes all
-  needed taska
+  needed tasks
+- added SetModified to _auto client
 
 -------------------------------------------------------------------
 Thu Sep  2 13:03:07 CEST 2004 - jsrain@suse.cz
