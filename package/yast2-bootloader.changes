@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Dec 19 16:27:40 CET 2002 - jsrain@suse.de
+
+- fixed path to elilo.conf (IA64 only affected) (#22502)
+
+-------------------------------------------------------------------
 Tue Dec 17 14:53:24 CET 2002 - jsrain@suse.de
 
 - now using fillup-template for sysconfig/bootloader

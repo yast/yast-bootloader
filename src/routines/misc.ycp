@@ -155,6 +155,7 @@
             "s390" : "zipl",
 //            "ppc" : _("boot loader")
         ];
+	// fallback bootloader name, keep short
 	return names[type]:_("boot loader");
     }
 

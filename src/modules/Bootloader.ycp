@@ -152,6 +152,7 @@
         // progress bar caption
         if (Mode::normal)
 	{
+	    // progress line
             Progress::New (_("Saving bootloader configuration..."),
                 " ", 2, stages, titles, BootCommon::getSaveProgressHelp ());
 	    Progress::NextStage ();

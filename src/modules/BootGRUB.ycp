@@ -291,6 +291,7 @@
 	    {
 		string log = SCR::Read (.target.string,
 		    "/var/log/YaST2/y2loggrub");
+		// error popup - label
                 errorWithLogPopup (_("Error while installing GRUB occured"),
                     log);
 	    }

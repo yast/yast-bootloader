@@ -245,20 +245,25 @@
 	target_name = boot_target["name"]:"disk";
 
 	list(string) result = [];
+	// summary text, %1 is bootloader name (eg. LILO)
 	result = add (result, sformat (_("Bootloader type: %1"),
 		getLoaderName (getLoaderType (false))));
+	// summary text, location is location description (eg. /dev/hda)
 	result = add (result, sformat (_("Location: %1"), target_name));
 	list(string) sects = [];
 	foreach (`s, sections, ``{
 	    string title = s[
 		getLoaderType (false) == "grub" ? "title" : "label"
 	    ]:"";
+		// section name "suffix" for default section
 	    string def = title == default ? _(" (default)") : "";
 	    sects = add (sects, sformat ("%1%2", title, def));
 	});
+	// summary text. %1 is list of bootloader sections
 	result = add (result, sformat (_("Sections: %1"),
 	    mergestring (sects, ", ")));
 	if (loader_device == "/dev/null")
+	    // summary text
 	    result = add (result, _("Don't install bootloader, just create
 configuration files"));
 	return result;
