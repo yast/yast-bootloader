@@ -1015,8 +1015,8 @@ global define symbol GlobalOptsDlg() ``{
 	// yes, check the checkbox
 	UI::`ChangeWidget(`id(`password_active), `Value, true);
 	// and insert text values
-	UI::`ChangeWidget(`id(`pass1), `Value, lookup(currentOptions, "password", ""));
-	UI::`ChangeWidget(`id(`pass2), `Value, lookup(currentOptions, "password", ""));
+	UI::`ChangeWidget(`id(`pass1), `Value, "******");
+	UI::`ChangeWidget(`id(`pass2), `Value, "******");
     }
     else
     {
@@ -1079,8 +1079,12 @@ fields differ. Please retype password."));
 		    action=`skip_event;
 		}
 		else
-		{   
-		    currentOptions = add(currentOptions, "password", ps1);
+		{
+		    if (ps1 != "******")
+		    {
+			ps1 = sformat ("--md5 %1", cryptmd5 (ps1));
+			currentOptions = add(currentOptions, "password", ps1);
+		    }
 		}   
 	    }
 	    else

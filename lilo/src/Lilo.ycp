@@ -88,8 +88,6 @@
      */
 
     global define void Lilo() ``{
-	if (true)//(Mode::installation)
-	    return;
 
 	list fstab = SCR::Read(.etc.fstab);
 

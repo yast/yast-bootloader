@@ -247,7 +247,9 @@ global define term GlobalOptsWidget() ``{
 			    )
 			),
 			`VSpacing(0.5),
-			`Frame(_("&Protect booting with a password"),
+			`Frame(Lilo::mode == `grub
+			    ? _("&Protect running GRUB commands with a password")
+			    : _("&Protect booting with a password"),
 			    `VBox(
 				`Left(`CheckBox(`id(`password_active), `opt(`notify), _("&Use password for booting"))),
 				`Left(`HBox(`HSpacing(3), `Password(`id(`pass1), _("P&assword")), `HStretch())),

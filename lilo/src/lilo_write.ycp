@@ -142,7 +142,7 @@ integer ret2 = 0;
 
 if (lookup(settings, "execute_lilo", false))
 {
-    ret2 = Lilo::mode == `grub ? DoGrub(true) : DoLilo();
+    ret2 = Lilo::mode == `grub ? DoGrub() : DoLilo();
 }
 
 boolean ret3 = LiloFinish();

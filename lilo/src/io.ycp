@@ -76,14 +76,12 @@ global define integer DoLilo() ``{
     return ret;
 }
 
-global define integer DoGrub(boolean conf) ``{
+global define integer DoGrub() ``{
     y2error ("Now starting DoGrub ()");
     integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
     y2error ("InitRD done");
-    if (conf)
-	saveGrubConf (Lilo::grub_set);
+    saveGrubConf (Lilo::grub_set);
     y2error ("Starting GRUB");
-    y2error ("After first start of GRUB");
     ret = SCR::Execute(.target.bash, "grub < /etc/grub.conf");
     y2error ("GRUB execution done");
     return ret;

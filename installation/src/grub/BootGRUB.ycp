@@ -366,6 +366,13 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	    });
 	}
 
+	if (StorageDevices::FloppyPresent)
+	{
+	    menu = menu + "title floppy\n";
+	    menu = menu + sformat ("   root %1\n   chainloader +1\n",
+		lilo2Grub (StorageDevices::FloppyDevice));
+	}
+
 	menu = menu + "title failsafe\n";
 	menu = menu + sformat ("   kernel %1 %2 %3\n", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz.suse"),
             sformat ("root=%1", Boot::RootPartitionDevice), "ide=nodma apm=off acpi=off");
