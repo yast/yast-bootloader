@@ -2,6 +2,7 @@
 Tue Aug 12 13:29:35 CEST 2003 - jsrain@suse.de
 
 - added support for not installing any bootloader
+- recreate reset menubutton after bootloader switch
 
 -------------------------------------------------------------------
 Mon Aug 11 09:33:26 CEST 2003 - jsrain@suse.de
