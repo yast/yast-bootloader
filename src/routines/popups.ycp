@@ -296,8 +296,8 @@ no options to set here."));
     global define void floppyWrittenPopup (string bootloader) ``{
 	string confirm_boot_msg = Misc::boot_msg;
 	// data saved to floppy disk
+	// popup, %1 is bootloader name
 	string msg = sformat (_(
-	    // popup, %1 is bootloader name
 	    "The %1 boot sector has been written to the floppy disk."),
 	    bootloader);
 	msg = msg + "\n";
