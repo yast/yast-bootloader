@@ -59,10 +59,14 @@
       * Set contents of main dialog for printer autoinstallation
       */
     define void set_contents() ``{
+	string summary = "<UL>"
+	    + mergestring (maplist (`l, Bootloader::Summary(), ``("<LI>" + l)),
+		"\n")
+	    + "</UL>";
         term contents =
             `VBox(
                   `VSpacing(1),
-                  `RichText( `id(`summary), Bootloader::Summary()),
+                  `RichText( `id(`summary), summary),
                   `VSpacing(),
                   `HBox(
                         // pushbutton
@@ -100,7 +104,7 @@
         else if ( ret == `reset)
         {
             settings= $[];
-            Bootloader::Reset ();
+            Bootloader::Propose ();
             set_contents();
         }
     } until (ret == `back || ret == `next || ret ==`key || ret ==`abort);

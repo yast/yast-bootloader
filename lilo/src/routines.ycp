@@ -287,6 +287,11 @@ global define string lilo2Grub (string o_dev) ``{
     integer first = findfirstof (dev, "\n");
     if (first != nil)
         dev = substring (dev, 0, first);
+    if (dev == "" || findlastof (dev, "(") != 0)
+    {
+        y2error ("Disk not found in device map, using (hd128)");
+        dev = "(hd128)";
+    }
     if (num != 0 && num != "")
     {
 //	integer num = tointeger (number);
@@ -319,6 +324,11 @@ global define string grub2Lilo (string o_dev) ``{
     integer first = findfirstof (dev, "\n");
     if (first != nil)
         dev = substring (dev, 0, first);
+    if (dev == "")
+    {
+        y2error ("Disk not found in device map, using /dev/null");
+        dev = "/dev/null";
+    }
     if (number != "")
     {
 	integer num = tointeger (number);

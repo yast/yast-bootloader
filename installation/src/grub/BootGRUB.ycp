@@ -350,7 +350,8 @@ Do you want to try again?")) )
 	menu = menu + "title linux\n";
 	menu = menu + sformat ("   kernel %1 %2 %3\n", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz"),
 	    sformat ("root=%1", Boot::RootPartitionDevice), sformat ("%1 %2", Kernel::cmdLine, vgastring));
-	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd");
+	if (-1 != SCR::Read (.target.size, "/boot/initrd"))
+	    menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd");
 
 	y2debug ("others = %1", Boot::others);
 	if (size (Boot::others) > 0)
@@ -385,7 +386,8 @@ Do you want to try again?")) )
 	menu = menu + sformat ("   kernel %1 %2 %3\n", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz.shipped"),
 	    // don't use nosmp and disableapic on x86_64, use iommu (#19903)
             sformat ("root=%1", Boot::RootPartitionDevice), "ide=nodma apm=off acpi=off vga=normal " + ((Arch::x86_64) ? "iommu=noforce " : "nosmp disableapic ") + "maxcpus=0 3");
-	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd.shipped");
+	if (-1 != SCR::Read (.target.size, "/boot/initrd.shipped"))
+	    menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd.shipped");
 
 	if (SCR::Read (.target.size, "/boot/memtest.bin") > 0)
         {

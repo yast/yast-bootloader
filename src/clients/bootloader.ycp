@@ -83,7 +83,8 @@
 	if (testAbort ())
 	    return `back;
 
-	Bootloader::Read ();
+//	Bootloader::Read ();
+	Bootloader::Propose ();
 	Progress::Finish ();
 	if (testAbort ())
 	    return `back;

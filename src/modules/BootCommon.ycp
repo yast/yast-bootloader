@@ -219,12 +219,9 @@
     }
     /**
       * Display bootloader summary
-      * @param list of style attributes
-      *   `short -> only one line text
-      *   `verbose -> maximal verbose output
-      *   `links -> contain hyperlinks
+      * @return list of summary lines
       */
-    global define string Summary () ``{
+    global define list(string) Summary () ``{
 	string default = BootCommon::getLoaderType (false) == "grub"
 	    ? sections[globals["default"]:0, "title"]:sections[0, "title"]:""
 	    : globals["default"]:sections[0, "label"]:"";
@@ -236,10 +233,10 @@
 	else
 	target_name = boot_target["name"]:"disk";
 
-	string result = "";
-	result = result + sformat (_("<LI>Bootloader type: %1"),
-		getLoaderName (getLoaderType (false)));
-	result = result + sformat (_("<LI>Location: %1"), target_name);
+	list(string) result = [];
+	result = add (result, sformat (_("Bootloader type: %1"),
+		getLoaderName (getLoaderType (false))));
+	result = add (result, sformat (_("Location: %1"), target_name));
 	list(string) sects = [];
 	foreach (`s, sections, ``{
 	    string title = s[
@@ -248,13 +245,20 @@
 	    string def = title == default ? _(" (default)") : "";
 	    sects = add (sects, sformat ("%1%2", title, def));
 	});
-	result = result + sformat (_("<LI>Sections: %1"),
-	    mergestring (sects, ", "));
+	result = add (result, sformat (_("Sections: %1"),
+	    mergestring (sects, ", ")));
 	if (loader_device == "/dev/null")
-	    result = result + _("<LI>Don't install bootloader, just create
-configuration files");
+	    result = add (result, _("Don't install bootloader, just create
+configuration files"));
 	return result;
     }
+
+    /**
+      * Update read settings to new version of configuration files
+      */
+    global define void Update () ``{
+    }
+
     /**
       * Write bootloader settings to disk
       * @return boolean true on success
@@ -419,7 +423,6 @@ configuration files");
 	{
 // TODO: install bootloader package
 	}
-	loader_type = "grub";
 	y2milestone ("Detected bootloader %1", loader_type);
 	return loader_type;
     }

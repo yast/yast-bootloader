@@ -114,10 +114,9 @@
     }
     /**
       * Display bootloader summary
-      * @param list of style attributes
-      * FIXME add attrib description
+      * @return list of summary lines
       */
-    global define string Summary () ``{
+    global define list(string) Summary () ``{
 	return blSummary ();
     }
     /**
@@ -151,7 +150,7 @@
         if (Mode::normal)
 	{
             Progress::New (_("Saving bootloader configuration..."),
-                " ", 2, stages, titles, getInitProgressHelp ());
+                " ", 2, stages, titles, BootCommon::getSaveProgressHelp ());
 	    Progress::NextStage ();
 	}
         else
@@ -231,6 +230,8 @@
 		    $[ "has_next": false]));
 		if (res["workflow_sequence"]:nil == `next)
 		    return Bootloader::Write ();
+		else
+		    break;
 	    }
 	    else
 		break;

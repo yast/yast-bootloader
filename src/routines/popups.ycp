@@ -214,7 +214,32 @@ please check gfxmenu settings"));
 	return UI::YesNoPopup (_("Really delete selected option?"));
     }
 
+    /**
+      * Display error popup with log
+      * @param header string error header
+      * @param log string logfile contents
+      */
+    global define void errorWithLogPopup (string header, string log) ``{
+	term text = `RichText( "<p>" + log + "</p>" );
+	UI::OpenDialog(`opt ( `decorated ),
+	    `VBox (`HSpacing(75),
+		// heading
+		`Heading(header),
+		text,     // e.g. `Richtext()
+		`PushButton( `id(`ok_help), `opt(`default), OKButtonLabel() )
+	    )
+	);
 
+	UI::SetFocus(`id(`ok_help) );
+	any r = UI::UserInput();
+	UI::CloseDialog();
+    }
 
-
+    /**
+      * Display popup
+      */
+    global define void displayNoSupportPopup () ``{
+	UI::MessagePopup (_("Sorry, there are currently
+no options to set here."));
+    }
 }

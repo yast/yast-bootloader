@@ -102,7 +102,7 @@
     /**
      * time of last change of partitioning
      */
-    integer last_change = 0;
+    global integer last_change = 0;
 
     /**
      * was already called the Set function?
@@ -657,6 +657,9 @@
 	    Save ();
 	    Set ();
 	}
+
+	if (Boot::location == "boot" && ! Mode::update)
+	    return true;
 
 	if (location == "boot")
 	    return true;
