@@ -256,6 +256,7 @@
       * Propose bootloader settings
       */
     global define void Propose () ``{
+	import "Product";
 	if (! BootCommon::was_proposed)
 	{
 	    create_efi_entry = true;
@@ -305,6 +306,7 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
+	import "Product";
 	boolean efi_entry_found = false;
 	elilo_conf_filename = getEliloConfFilename ();
 	// copy old elilo.conf from /boot/<something> to /etc in case of upgrade
