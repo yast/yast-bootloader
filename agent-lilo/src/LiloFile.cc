@@ -202,13 +202,13 @@ bool liloFile::save(const char* filename)
 	*of << comment << endl;
     }
 
-    options.saveToFile(/*&*/of, "");
+    options.saveToFile(of, "");
     uint pos;
 
     for(pos=0; pos<sections.size(); pos++)
     {
 	*of << endl;
-	sections[pos]->saveToFile(/*&*/of, "    ");
+	sections[pos]->saveToFile(of, "    ");
     }
     if (use_string)
     {
@@ -251,8 +251,11 @@ liloSection* liloFile::getSectPtr(const YCPPath& path)
     {
 	return NULL;
     }
-    
-    int pos=getSectPos(path->component_str(1));
+   
+    string title = path->component_str(1);
+    if (type != "grub")
+	title = replaceBlanks (title, '_');
+    int pos=getSectPos(title);
     
     if(pos>=0)
     {
@@ -329,7 +332,10 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
 	    // remove section
 	    if(sect)
 	    {
-		int pos=getSectPos(path->component_str(1));
+		string title = path->component_str(1);
+		if (type != "grub")
+		    title = replaceBlanks (title, '_');
+		int pos=getSectPos(title);
 
 		vector<liloSection*>::iterator it=sections.begin();
 		for(; pos>0; pos--)
@@ -369,7 +375,7 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
 
 	//=====================
 	// and write some option value
-
+	y2debug ("Adding to section");
 	return sect->Write(path->at(2), value, pos);
     }
 

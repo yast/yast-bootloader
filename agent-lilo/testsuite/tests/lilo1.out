@@ -1,4 +1,4 @@
-([["append", "boot", "lba32", "vga", "message", "menu-scheme", "read-only", "prompt", "change-rules", "timeout", "default", "sections"], ["linuxovadlo", "\"obskurni nazev\\\"\\\\\"", "sdf"], []])
+([["append", "boot", "lba32", "vga", "message", "menu-scheme", "read-only", "prompt", "change-rules", "timeout", "default", "sections"], ["linuxovadlo", "\"obskurni_nazev", "sdf"], []])
 # Modified by YaST2. Last modification on Fri Jul 27 13:39:35 2001
 
 
