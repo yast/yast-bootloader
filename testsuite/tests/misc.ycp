@@ -69,8 +69,14 @@
             ],
         ]
     ];
+    map WRITE_I = $[];
+    map EXEC_I = $[
+	"target" : $[
+	    "bash_output" : $[],
+	],
+    ];
 
-    TESTSUITE_INIT ([READ_I], 0);
+    TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
     import "Bootloader";
     import "BootCommon";
     TESTSUITE_CLEAN ();
