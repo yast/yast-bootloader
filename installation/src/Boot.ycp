@@ -136,7 +136,14 @@
 	y2milestone ("Setting bootloader type to %1", LoaderType);
 	return;
     }
-
+    /**
+     * reset configuration
+     */
+    global define void Reset () ``{
+	device = "";
+	location = "";
+	Set ();
+    }
 
     /**
      * LbaSupport ()
@@ -201,7 +208,7 @@
 
     global define void Set()
     ``{
-	y2error ("UseLilo: %1", Storage::UseLilo());
+	y2debug ("UseLilo: %1", Storage::UseLilo());
 	// get map of lists
 	// $[ "/mount_point" : [partitionName, fsid, targetdevice, raid_type], ...]
 	map mountPoints		= Storage::GetMountPoints();
@@ -252,7 +259,7 @@
 	else if (Mode::autoinst)
 	{
 	    if (location == "mbr")
-	    {		
+	    {
 		device = mbrDisk;
 		y2milestone("location MBR, device = %1", device);
 	    }
@@ -261,7 +268,7 @@
 		device   = StorageDevices::FloppyDevice;
 	    }
 	}
-	
+
 	y2milestone ("mbr at %1", mbrDisk);
 	return;
     }
