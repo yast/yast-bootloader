@@ -88,7 +88,6 @@
 	// Generate grafical login
 
 	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/update_lilo_conf / >>/var/log/y2loglilo 2>>/var/log/y2loglilo");
-	SCR::Execute (.target.bash, "/usr/lib/YaST2/bin/patch_lilo_conf / /etc/lilo.conf");
 
 	if (Boot::location == "floppy")
 	{
