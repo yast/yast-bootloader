@@ -153,7 +153,7 @@
 	// refresh device map
 	if (device_map == [] || device_map == nil)
 	    device_map = proposeDeviceMap ();
-	if ((grub_conf == $[] || grub_conf == nil) && ! Mode::config)
+	if (/*(grub_conf == $[] || grub_conf == nil) &&*/ ! Mode::config)
 	    grub_conf = proposeGrubConf ();
 	string mbrD = grubDev2unixDev ("(hd0)");
 	if (mbrD != "/dev/null" && mbrD != nil && mbrD != "")
@@ -665,7 +665,9 @@
 					"chainloader +1"],
 				"title" : label,
 				"root" : g_dev,
-				"makeactive" : "",
+// can bring problem if bootloader installed in bootsector of some partition
+// new systems don't mind not having active partitions
+//				"makeactive" : "",
 				"chainloader" : "+1",
 				"__intern__" : $[
 				    "changed" : false,
@@ -679,12 +681,35 @@
 		});
 	    }
 	}
-	out = add (out, $[
-	    "__order__" : ["title", "root", "chainloader"],
-	    "title" : "floppy",
-	    "root" : "(fd0)",
-	    "chainloader" : "+1",
-	]);
+	if (issubstring (BootCommon::loader_device, "/dev/fd")||
+	    BootCommon::location == "floppy")
+	{
+            out = add (out, $[
+                "__order__" : ["title", "root", "chainloader"],
+                "title" : "hard disk",
+                "root" : "(hd0)",
+                "chainloader" : "+1",
+                "__intern__" : $[
+		    "changed" : false,
+                    "auto" : true,
+                    "devs" : [],
+                ],
+            ]);
+	}
+	else
+	{
+	    out = add (out, $[
+		"__order__" : ["title", "root", "chainloader"],
+		"title" : "floppy",
+		"root" : "(fd0)",
+		"chainloader" : "+1",
+                "__intern__" : $[
+                    "changed" : false,
+                    "auto" : true,
+                    "devs" : [],
+                ],
+	    ]);
+	}
 	out = add (out, createLinuxSection ("failsafe"));
 	out = add (out, createLinuxSection ("memtest86"));
 	out = filter (`s, out, ``(s != $[] && s != nil));
@@ -781,7 +806,7 @@
 	    string title = s["title"]:"";
 	    if (! s["__intern__", "auto"]:false)
 	    {
-		y2debug ("Leaving section %1", title);
+		y2debug ("Leaving section %1 as is", title);
 		return s;
 	    }
 	    else if (! s["__intern__", "changed"]:false)

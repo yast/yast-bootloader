@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 13 10:41:08 CET 2003 - jsrain@suse.de
+
+- fixed floppy entry in bootloader menu behaviour - if installing
+  to floppy, hard disk is used instead (#23572)
+
+-------------------------------------------------------------------
 Mon Feb 10 16:06:25 CET 2003 - jsrain@suse.de
 
 - fixed proposing with merging GRUB menus, resulted in doubled

@@ -87,6 +87,14 @@ Summary:	Bootloader installation and configuration
 @plugindir@/libpy2ag_liloconf.la
 %docdir @docdir@
 
+#prom agent - sparc(64) only
+%ifarch sparc sparc64
+@plugindir@/libpy2ag_prom.so.*
+@scrconfdir@/prom.scr
+@plugindir@/libpy2ag_prom.so
+@plugindir@/libpy2ag_prom.la
+%endif
+
 /var/adm/fillup-templates/*
 
 #installation
