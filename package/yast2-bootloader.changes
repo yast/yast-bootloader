@@ -2,6 +2,7 @@
 Tue Mar 30 17:44:53 CEST 2004 - schwab@suse.de
 
 - Use dev2majminIfNonStandard instead of dev2majmin in BootELILO.
+- 2.9.18
 
 -------------------------------------------------------------------
 Mon Mar 29 18:16:56 CEST 2004 - jsrain@suse.de
