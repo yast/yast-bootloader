@@ -30,6 +30,9 @@
     import "Mode";
     import "TablePopup";
 
+    global define list<string> getDisksOrder ();
+    global define void storeOrderPopup (any opt_id, string opt_key);
+
     /**
       * Ask how to chang section floppy <-> hard disk when changing bootloader
       * location between disk and floppy
@@ -104,6 +107,27 @@ Replace it with an entry  to boot from the floppy?");
 		}
 		return s;
 	    });
+	}
+	disks_order = getDisksOrder ();
+	if (BootCommon::IsMbr (BootCommon::loader_device)
+	    && disks_order[0]:"" != BootCommon::loader_device)
+	{
+	    if (Popup::YesNo (sformat (
+// yes-no popup, %1 is device name (eg. /dev/hda)
+_("You selected master boot record of %1. According to the
+current configuration, %1 is not meant to be the boot disk
+of your machine.
+If your machine is configured to boot from %1, the order
+of the disks in the configuration of the bootloader should
+be adapted.
+Adapt it?"), BootCommon::loader_device)))
+	    {
+		disks_order = filter (string o, disks_order, {
+		    return o != BootCommon::loader_device;
+		});
+		disks_order = prepend (disks_order, BootCommon::loader_device);
+		storeOrderPopup (nil, opt_key);
+	    }
 	}
 	BootCommon::current_sections = sections;
     }
@@ -546,7 +570,7 @@ Replace it with an entry  to boot from the floppy?");
 		filter (string k, string v, remap, ``(k != "" && v != ""));
 	    BootCommon::current_globals
 		= BootGRUB::remapDisks (BootCommon::current_globals, remap);
-	    BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
+	    BootCommon::sections = maplist (list<map> s, BootCommon::sections, {
 		return BootGRUB::remapDisks (s, remap);
 	    });
 	    BootCommon::current_section = BootGRUB::remapDisks (
