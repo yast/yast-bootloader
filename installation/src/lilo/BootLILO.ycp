@@ -397,9 +397,9 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 
 	// add "-o <other>" entry if given
 
-	if (Boot::other != "")
+	if (size (Boot::others) > 0)
 	{
-	    docmd = docmd + " " + Boot::other;
+	    docmd = docmd + " " + Boot::others[0]:"";
 	}
 
 	// set lilo_opt_linear non-empty if checked

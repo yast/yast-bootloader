@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug  7 12:39:25 CEST 2002 - kkaempf@suse.de
+
+- Allow for multiple 'other' partitions for booting (#17458)
+
+-------------------------------------------------------------------
 Wed Aug  7 08:45:44 CEST 2002 - jsrain@suse.de
 
 - added support for changing kernel command line for other modules

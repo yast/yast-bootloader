@@ -357,10 +357,11 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	    sformat ("root=%1", Boot::RootPartitionDevice), Kernel::cmdLine);
 	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd");
 
-	y2debug ("other = %1", Boot::other);
-	if (Boot::other != "")
+	y2debug ("others = %1", Boot::others);
+	if (size (Boot::others) > 0)
         {
-	    list others = splitstring (Boot::other, "\"");
+	    // FIXME: Boot::others is a list of strings now !
+	    list others = splitstring (Boot::others[0]:"", "\"");
 	    foreach (`o, others, ``{
 		while (substring (o, 0, 1) == " ")
 		    o = substring (o, 1);
@@ -370,9 +371,11 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 		{
 		    list parts = splitstring (o, " ");
 		    parts = filter (`p, parts, ``(p != ""));
-		    if (size (parts) >= 2 && select (parts, 0, "") != "" && select (parts, 1, "") != "")
+		    if (size (parts) >= 2
+			&& (parts[0]:"" != "")
+			&& (parts[1]:"" != ""))
 		    {
-			string dev =  lilo2Grub (select (parts, 0, ""));
+			string dev =  lilo2Grub (parts[0]:"");
 			parts = remove (parts, 0);
 			string label = mergestring (parts, " ");
 			menu = menu + sformat ("title %1\n", label);

@@ -89,9 +89,9 @@
     global boolean single_target = false;
 
     /**
-     * @return string: Other installed operating systems
+     * @return list of strings: Other installed operating systems
      */
-    global string other = "";
+    global list others = [""];
 
     /**
      * @return boolean: IDE and SCSI System
@@ -520,7 +520,9 @@
 	}
 
 	LoaderType = SCR::Read (.probe.boot_arch);
-	if (LoaderType == "grub" && Mode::update && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
+	if (LoaderType == "grub"
+	    && Mode::update
+	    && SCR::Read (.target.size, "/etc/sysconfig/bootloader") > 0)
 	{
 	    string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
 	    if (sysconfig == "grub" || sysconfig == "lilo")
