@@ -181,6 +181,10 @@
 	    // are allowed, otherwise translartion won't be used
 	    // try to keep short, may be shortened due to bootloader limitations
             "original MBR" : _("MBR before Installation"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "windows" : _("Windows"),
         ];
 	string translated = trans[orig]:orig;
 	string filtered = filterchars (translated, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _");
