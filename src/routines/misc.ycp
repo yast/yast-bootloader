@@ -1391,4 +1391,40 @@
 	return merge (prependlist, options);
     }
 
+    /**
+      * Get map of swap partitions
+      * @return map where key is partition name and value its size
+      */
+    global define map<string, integer> getSwapPartitions () ``{
+	map<string, map> tm = Storage::GetTargetMap ();
+
+	map<string, integer> ret = $[];
+
+	foreach (string k, map v, tm, ``{
+	    integer cyl_size = v["cyl_size"]:0;
+	    list partitions = v["partitions"]:[];
+	    partitions = filter(map p, partitions, ``(p["mount"]:"" == "swap"));
+	    foreach (map<string, any> s, partitions, ``{
+		string dev = (string)(s["device"]:"");
+		ret[dev] = (integer)(s["region", 1]:0) * cyl_size;
+	    });
+	});
+	y2milestone ("Available swap partitions: %1", ret);
+	return ret;
+    }
+
+    /**
+      * Get the name of the largest available swap partition
+      * @return string name of the largest partition
+      */
+    global define string getLargestSwapPartition () ``{
+	map<string, integer> swap_sizes = getSwapPartitions ();
+	list<string> swap_parts = maplist (string name, integer siz,
+	    swap_sizes, ``(name));
+	swap_parts = sort (string a, string b, swap_parts, ``(
+	    swap_sizes[a]:0 > swap_sizes[b]:0
+	));
+	return swap_parts[0]:"";
+    }
+
 } //end of include

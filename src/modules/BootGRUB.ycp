@@ -119,6 +119,8 @@
 	string vgastring = Kernel::vgaType != ""
 	    ? sformat ("vga=%1", Kernel::vgaType)
 	    : "";
+	string resumestring = sformat ("resume=%1",
+	    BootCommon::getLargestSwapPartition ());
 	// not using .shipped images any more
 	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
 	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
@@ -128,7 +130,7 @@
 		? "iommu=noforce maxcpus=0 "
 		: "nosmp noapic maxcpus=0 ")
 	      + "3"
-	    : sformat ("%1 %2 %3", vgastring, Kernel::cmdLine,
+	    : sformat ("%1 %2 %3 %4", vgastring, Kernel::cmdLine, resumestring,
 		"showopts");
 	if (title != "failsafe")
 	{
@@ -407,6 +409,19 @@
 		    changed = true;
 		    if (replace)
 			return m;
+		    else if (t == "linux")
+		    {
+			string kernel = (string)lookup_value (s, "kernel", "");
+			string resume = BootCommon::getKernelParamFromLine (
+			    kernel, "resume");
+			if (! haskey (BootCommon::getSwapPartitions (), resume))
+			{
+			    kernel = BootCommon::setKernelParamToLine (kernel,
+				"resume", BootCommon::getLargestSwapPartition);
+			    s = modifySection (s, "kernel", kernel);
+			}
+			return s;
+		    }
 		    else
 			return s;
 		}
@@ -571,7 +586,25 @@
 	});
 	if (new_sect["memtest86"]:[] != [] && ! has_memtest)
 	    old_sect_list = add (old_sect_list, new_sect["memtest86"]:[]);
-	y2milestone ("Checking for sections needing some of %1dd",
+
+	y2milestone ("Checking for sections using the resume parameter");
+	BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	    string kernel = (string)lookup_value (s, "kernel", "");
+	    string resume
+		= BootCommon::getKernelParamFromLine (kernel, "resume");
+	    if (resume != "" && resume != nil
+		&& ! haskey (BootCommon::getSwapPartitions (), resume)
+	    )
+	    // points to unexistent swap partition
+	    {
+		kernel = BootCommon::setKernelParamToLine (kernel,
+		    "resume", BootCommon::getLargestSwapPartition);
+		s = modifySection (s, "kernel", kernel);
+	    }
+	    return s;
+	});
+
+	y2milestone ("Checking for sections needing some of %1",
 	    BootCommon::del_parts);
 	list<string> to_remove = [];
 	foreach (list s, BootCommon::sections, ``{
