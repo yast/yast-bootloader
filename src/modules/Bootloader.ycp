@@ -32,7 +32,6 @@
     import "BootLILO";
     import "BootMILO";
     import "BootPPC";
-    import "BootSILO";
     import "BootS390";
     import "BootGRUB";
 

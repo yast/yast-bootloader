@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 30 08:15:37 CET 2004 - jsrain@suse.de
+
+- dropped SILO support (SILO was dropped as SPARC is dead)
+- reenabled (and fixed) testsuite
+- 2.9.3
+
+-------------------------------------------------------------------
 Fri Jan 16 15:43:46 CET 2004 - jsrain@suse.de
 
 - merged NI changes from branch
