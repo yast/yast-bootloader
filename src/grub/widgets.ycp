@@ -113,13 +113,14 @@ Replace it with an entry  to boot from the floppy?");
 	{
 	    if (Popup::YesNo (sformat (
 // yes-no popup, %1 is device name (eg. /dev/hda)
-_("You selected master boot record of %1. According to the
+_("You selected the master boot record of %1. According to the
 current configuration, %1 is not meant to be the boot disk
 of your machine.
 If your machine is configured to boot from %1, the order
-of the disks in the configuration of the bootloader should
+of the disks in the configuration of the boot loader should
 be adapted.
-Adapt it?"), BootCommon::loader_device)))
+Adapt it?
+"), BootCommon::loader_device)))
 	    {
 		disks_order = filter (string o, disks_order, {
 		    return o != BootCommon::loader_device;
@@ -797,8 +798,9 @@ Adapt it?"), BootCommon::loader_device)))
 	{
 	    ret = Popup::YesNo (
 // yes-no popup
-_("If you set the password, the boot dialog will be displayed
-only in the text mode. Continue?"));
+_("If you set the password, the boot dialog is displayed
+only in the text mode. Continue?
+"));
 	}
 	return ret;
     }

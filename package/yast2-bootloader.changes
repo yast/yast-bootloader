@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb  7 14:31:48 CET 2005 - jsrain@suse.cz
+
+- merged texts from proofread
+
+-------------------------------------------------------------------
 Fri Feb  4 11:07:51 CET 2005 - jsrain@suse.cz
 
 - getting additional kernel parameters as one string (#50369)

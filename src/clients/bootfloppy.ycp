@@ -74,7 +74,7 @@ FireWire and file systems modules floppy"),
 	    // image text - label
 	    // %1 is index of the floppy
 	    // %2 is total count of the floppies
-	    _("Creating Standard Boot Floppy -- Part %1 of %2"),
+	    _("Creating Standard Boot Floppy--Part %1 of %2"),
 	    index,
 	    boot_floppy_count);
     }
@@ -85,7 +85,7 @@ FireWire and file systems modules floppy"),
 	// radiobutton - disk image name
 	"__modules" : _("&Module Floppies"),
 	// radiobutton - disk image name
-	"__other" : _("&Other installation disk"),
+	"__other" : _("&Other Installation Disk"),
 	// radiobutton - disk image name
 	"__custom" : _("&Custom Floppy"),
 	// radiobutton - disk image name
@@ -100,7 +100,7 @@ FireWire and file systems modules floppy"),
 	    // image text - label
 	    // %1 is index of the floppy
 	    // %2 is total count of the floppies
-	    _("Standard Boot Floppy -- Part %1 of %2"),
+	    _("Standard Boot Floppy--Part %1 of %2"),
 	    index,
 	    boot_floppy_count);
     }
@@ -211,8 +211,9 @@ be prompted for the file containing the floppy image.</p>");
 	    // help text 5/5
 	    help_text = help_text + _("<p><b>Download Floppy Image</b><br>
 To create a floppy from an image located on the network, select
-<b>Download Floppy Image</b>. You will be prompted for the location
-of the floppy image.</p>");
+<b>Download Floppy Image</b>. You are then prompted for the location
+of the floppy image.</p>
+");
 
 	    return help_text;
 	}

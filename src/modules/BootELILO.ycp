@@ -215,13 +215,16 @@
 	    else if (e["key"]:"" == "append")
 	    {
 		string option = e["value"]:"";
-		foreach (string o, ListAdditionalKernelParams (), {
-		    option = setKernelParamToLine (option, o, "false");
+		foreach (string o, BootCommon::ListAdditionalKernelParams (), {
+		    option = BootCommon::setKernelParamToLine
+			(option, o, "false");
 		});
-		option = option + " " + GetAdditionalKernelParams ();
-		if (getKernelParamFromLine (option, "splash") == "false")
+		option = option + " "
+		    + BootCommon::GetAdditionalKernelParams ();
+		if (BootCommon::getKernelParamFromLine
+		    (option, "splash") == "false")
 		{
-		    option = setKernelParamToLine
+		    option = BootCommon::setKernelParamToLine
 			(option, "splash", "silent");
 		}
 	    }
