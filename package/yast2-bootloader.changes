@@ -5,6 +5,7 @@ Thu Aug 28 14:20:10 CEST 2003 - jsrain@suse.de
   "other" sections (#29472)
 - don't ask for abort confirmation during installation if settings
   were changed in previous run of component from proposal (#29496)
+- 2.8.12
 
 -------------------------------------------------------------------
 Mon Aug 25 10:00:10 CEST 2003 - jsrain@suse.de
