@@ -2041,7 +2041,7 @@ global map<string,any> PrepareInitData () {
     ];
 }
 
-list<map> LinesYCP2IO (list<map> lines) {
+list<map> LinesYCP2IO (list<map> lines, map intern) {
     lines = filter (map l, lines, {
 	return l["value"]:nil != false;
     });
@@ -2058,6 +2058,17 @@ list<map> LinesYCP2IO (list<map> lines) {
 		    "value" : kv[1]:nil,
 		]);
 	    });
+	}
+	else if (key == getSectionTitle ())
+	{
+	    string type = intern["type"]:"";
+	    if (type != "")
+	    {
+		l["comment_before"] = sformat (
+		    "###Don't change this comment - YaST2 identifier: Original name: %1###",
+		    type);
+	    }
+	    ret = add (ret, l);
 	}
 	else
 	{
@@ -2076,11 +2087,29 @@ list<map> LinesIO2YCP (list<map> lines) {
     lines = filter (map o, lines, {
 	return ! isSpecial (o["key"]:"");
     });
+    string type = "";
     lines = maplist (map l, lines, {
 	if (opttypes ()[l["key"]:""]:"string" == "boolean")
 	    l["value"] = true;
+	if (l["key"]:"" == getSectionTitle ())
+	{
+	    string comment = l["comment_before"]:"";
+	    if (regexpmatch (l["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: [a-z0-9_]+###"))
+	    {
+		type = regexpsub (l["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: ([a-z0-9_]+)###", "\\1");
+	    }
+	}
 	return l;
     });
+    if (type != "")
+    {
+	lines = add (lines, $[
+	    "key" : "__intern__",
+	    "value" : $[
+		"type" : type,
+	    ],
+	]);
+    }
     map<string,list<string> > spec_types = $[
 	"change-rules" : ["change-rules", "type", "reset", "normal", "hidden"],
 	"disk" : ["disk", "heads", "inaccessible", "cylinders", "bios",
@@ -2134,9 +2163,10 @@ global void IO2Global () {
 
 global void Sections2IO () {
     list sects = maplist (list<map> s, sections, {
+	map intern = (map)lookup_value (s, "__intern__", $[]);
 	s = filter (map m, s, {return m["key"]:"" != "__intern__";});
 	return $[
-	    "__lines" : LinesYCP2IO (s),
+	    "__lines" : LinesYCP2IO (s, intern),
 	    "__do_not_change" : 1,
 	];
     });
@@ -2147,7 +2177,7 @@ global void Global2IO () {
     map glob = $[
 	"__lines" : LinesYCP2IO (filter (map m, globals, {
 	    return m["key"]:"" != "__intern__";
-	})),
+	}), $[]),
 	"stage1_dev" : [loader_device],
 	"__do_not_change" : 1,
     ];
