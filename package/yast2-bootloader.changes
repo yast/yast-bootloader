@@ -1,5 +1,13 @@
+-------------------------------------------------------------------
+Fri Aug 16 14:13:01 CEST 2002 - jsrain@suse.cz
+
 - added universal functions for accessing kernel parameters
   independent on bootloader
+- modified failsafe kernel image name
+- fixed kdoc comments
+- merged proofread texts
+- now building initrd on S390
+- 2.6.23
 
 -------------------------------------------------------------------
 Tue Aug 13 06:49:05 CEST 2002 - jsrain@suse.cz

@@ -1,3 +1,11 @@
+/*
+ * Authors:
+ *  Unknown <unknown@addres.xx>
+ *
+ * $Id$
+ *
+ */
+
 {
     include "testsuite.ycp";
     include "lilo/routines.ycp";

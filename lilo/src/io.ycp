@@ -21,7 +21,7 @@
 
 textdomain "bootloader";
 
-
+import "Lilo";
 
 /**
  * removes lilo from partition specified in 'bootPart'
@@ -72,27 +72,29 @@ global define map TestGrub () ``{
 global define map TestELilo () ``{
     return $["exit": 0];
 }
-
-
 /**
  * writes the config from agent to disk
- *
  * @return integer succes/error
  */
-
 global define integer DoLilo() ``{
     integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
     ret = SCR::Execute(.target.bash, boot(), $[]);
     return ret;
 }
-
+/**
+ * writes the config from agent to disk
+ * @return integer succes/error
+ */
 global define integer DoGrub() ``{
     integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
     saveGrubConf (Lilo::grub_set);
     ret = SCR::Execute(.target.bash, "grub < /etc/grub.conf");
     return ret;
 }
-
+/**
+ * writes the config from agent to disk
+ * @return integer succes/error
+ */
 global define integer DoELilo() ``{
     integer ret = SCR::Execute(.target.bash, "/sbin/mk_initrd");
     return ret;

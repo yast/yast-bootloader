@@ -74,8 +74,8 @@ fi
 PATH=/usr/lib/YaST2/bin:$root_dir/usr/lib/YaST2/bin:$root_dir/sbin:$PATH
 
 # create a fallback kernel
-if [ ! -f "$root_dir/boot/vmlinuz.suse" ] ; then
-  cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.suse || exit 31
+if [ ! -f "$root_dir/boot/vmlinuz.shipped" ] ; then
+  cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.shipped || exit 31
 fi
 
 # make an initial ram disk
@@ -88,10 +88,10 @@ timeout=80
 read-only
 "
 
-  for kernel in '' .suse; do
+  for kernel in '' .shipped; do
     if test -f $root_dir/boot/vmlinuz$kernel ; then
       echo "image=vmlinuz$kernel"
-      if test "$kernel" = .suse; then
+      if test "$kernel" = .shipped; then
 	echo "	label=failsafe"
       else
 	echo "	label=linux$kernel"
@@ -100,7 +100,7 @@ read-only
       if test -f $root_dir/boot/initrd$kernel; then
 	echo "	initrd=initrd$kernel"
       fi
-      if test "$kernel" = .suse; then
+      if test "$kernel" = .shipped; then
 	echo "	append=\"ide=nodma${append:+ $append}\""
       elif test -n "$append"; then
 	echo "	append=\"$append\""

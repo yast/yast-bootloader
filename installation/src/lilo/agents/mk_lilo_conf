@@ -50,13 +50,13 @@
 # general configurable parameters
 
 # the kernel images to use; must be in $boot_dir
-kernels="vmlinuz vmlinuz.suse"
+kernels="vmlinuz vmlinuz.shipped"
 
 # LILO entry names (corresponding to $kernels)
 lilolabels="linux failsafe"
 
 # initial ram disks (corresponding to $kernels); dto. in $boot_dir
-initrds="initrd initrd.suse"
+initrds="initrd initrd.shipped"
 
 # if we need an append line (*not* for the frame buffer vga=xxxx argument)
 #append=

@@ -1705,7 +1705,6 @@ global define symbol OSScanDlg() ``{
 	map linux_info = lookup(os_entry, "linux_info", $[]);
 	if (lookup(os_entry, "dev_name", "/dev/null") == root_device)
 	{
-	    // predefine some values for image section editor
 	    currentOptions = $[];
 	    currentOptions = add(currentOptions, "root", root_device);
 	    currentOptions = add(currentOptions, "label", lookup(linux_info, "dist", "Linux"));

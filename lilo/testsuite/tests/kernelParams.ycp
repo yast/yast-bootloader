@@ -17,6 +17,10 @@
 
 {
     include "testsuite.ycp";
+    map IREAD = $["target" : $["string" : "root (hd0,0)\ninstall /grub/stage1 d (hd0) /grub/stage2 0x8000 (hd0,0)/grub/menu.lst\nquit"],
+		  "etc" : $["fstab" : []],
+		  "probe" : $["disk" : [], "boot_arch" : "grub"]];
+    TESTSUITE_INIT ([IREAD, $[], $[]], 0);
     include "lilo/misc.ycp";
 
     map READ = $["grub": $["sections" : $["linux" : $["kernel" : "(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333 ide=nodma noarg init=/bin/bash"]]],
