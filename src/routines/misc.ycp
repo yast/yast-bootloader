@@ -175,8 +175,23 @@
 	}
     }
 
+    /**
+      * Get the list of installed floppy drives
+      * @return list of floppy devices
+      */
+    global define list(string) getFloppyDevices () ``{
+        if (floppy_devices == nil)
+        {
+            list(map) floppies = SCR::Read (.probe.floppy);
+            floppies = filter (`f, floppies,
+                ``(lookup (f, "model", "Floppy Disk") == "Floppy Disk"));
+            floppy_devices = maplist (`f, floppies,
+		``(lookup (f, "dev_name", "")));
+            floppy_devices = filter (`f, floppy_devices, ``(f != ""));
+        }
+	return floppy_devices;
+    }
 
-    global list floppies = [];
 
     /**
       * Update the text of countdown widget
@@ -255,14 +270,7 @@
 	foreach (`k, `v, devices, ``{
 	    partitions = merge (partitions, v["partitions"]:[]);
 	});
-	if (floppies == [])  // not needed to detect floppies more than once
-	{
-	    floppies = SCR::Read (.probe.floppy);
-	    floppies = filter (`f, floppies,
-	        ``(lookup (f, "model", "Floppy Disk") == "Floppy Disk"));
-	    floppies = maplist (`f, floppies, ``(lookup (f, "dev_name", "")));
-	    floppies = filter (`f, floppies, ``(f != ""));
-	}
+	list(string) floppies = getFloppyDevices ();
 
         partitions = filter (`p, partitions, ``(is (p, map)));
 	if (type == `deleted)
@@ -619,6 +627,20 @@
 	if (BootCommon::location == "none")
 	    return "/dev/null";
         return BootCommon::loader_device;
+    }
+
+    /**
+      *
+      * @return true if installing bootloader to floppy
+      */
+    global define boolean installingToFloppy () ``{
+	if (BootCommon::location == "floppy")
+	    return true;
+	if (BootCommon::loader_device == StorageDevices::FloppyDevice)
+	    return true;
+	if (contains (getFloppyDevices (), BootCommon::loader_device))
+	    return true;
+	return false;
     }
 
     /**

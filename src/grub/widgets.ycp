@@ -86,7 +86,7 @@ Replace it with an entry  to boot from the floppy?");
 	{
 	    list sections = BootCommon::current_sections;
 	    if (issubstring (BootCommon::loader_device, "/dev/fd")||
-		BootCommon::location == "floppy")
+		BootCommon::installingToFloppy ())
 	    {
 		sections = maplist (`s, sections, ``{
 		    if (s["title"]:"" == "floppy" && changeSection ("floppy"))
