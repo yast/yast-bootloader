@@ -22,6 +22,7 @@ Read	.sysconfig.console.CONSOLE_MAGIC ""
 Read	.sysconfig.console.CONSOLE_ENCODING ""
 Read	.sysconfig.language.RC_LANG ""
 Execute	.target.bash_output "locale -k charmap" $[]
+Log	No initializer found for lilo
 Return	string
 Return	"string with spaces"
 Return	string_with_\"quote
