@@ -180,7 +180,7 @@ be prompted for the file containing the floppy image.</p>
 	// help text 1/4
 	string help_text = _("<p><b><big>Create a Boot, Rescue
 or Module Floppy:</big></b><br>
-Insert a floppy disk (1440k) into the floppy drive
+Insert a floppy disk (1.44 MB) into the floppy drive
 and press <b>Next</b> to continue.</p>
 ");
 
