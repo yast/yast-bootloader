@@ -386,6 +386,8 @@ and File Systems (modules disk 4)"))),
 		index = index + 1;
 		images = add (images, sformat ("bootdsk%1", index));
 	    }
+	    if (Arch::i386 ())
+		images = add (images, "rescuefloppy");
 	    images = (list<string>)merge (images, [
 //		"rescuefloppy",
 //		"__modules",
@@ -393,8 +395,6 @@ and File Systems (modules disk 4)"))),
 		"__custom",
 		"__url"
 	    ]);
-	    if (Arch::i386 ())
-		images = prepend (images, "rescuefloppy");
 	    images_term = `VBox ();
 	    boolean first = true;
 	    foreach (string i, images, {

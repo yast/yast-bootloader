@@ -2,6 +2,7 @@
 Mon Mar  7 13:32:23 CET 2005 - jsrain@suse.cz
 
 - added ZIPL installation via perl-Bootloader
+- fixed the order of icons in bootfloppy creator
 
 -------------------------------------------------------------------
 Fri Mar  4 10:43:29 CET 2005 - jsrain@suse.cz
