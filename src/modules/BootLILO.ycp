@@ -386,7 +386,6 @@
 	y2milestone ("Proposed globals: %1", BootCommon::globals);
 	BootCommon::addValueToBootloaderSection (
 	    `globals, "boot", BootCommon::loader_device);
-	BootCommon::saveCfgFileToAgent ();
     }
 
     /**

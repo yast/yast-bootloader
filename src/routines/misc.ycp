@@ -566,8 +566,8 @@
 	    bl = "lilo";
 	if (size (opt_types[bl]:$[]) > 0)
 	    return opt_types[bl]:$[];
-	SCR::Execute (.bootloader.agent_init, bl);
-	SCR::Execute (.bootloader.disk_init, PrepareInitData ());
+//	SCR::Execute (.bootloader.agent_init, bl);
+//	SCR::Execute (.bootloader.disk_init, PrepareInitData ());
 	map<string,string> out = $[
 	    //default is string
 	    "compact" : "boolean",
@@ -641,60 +641,6 @@
     global define boolean isSpecial(string opt) ``{
 	list<string> special = GetSpecialOptions ();
 	return (contains (special, opt));
-    }
-
-    /**
-      * reads specified section and returns values as map
-      *   [$[option1:value1], $[option2:value2],...]
-      * @param bl string bootloader to read
-      * @param type string "sections" / ""
-      * @param section string
-      * @return list<map> as described above
-      */
-    global define list<map> sectOptions2Map(string bl, string type, string section)
-    ``{
-	if (bl == "ppc")
-	    bl = "lilo";
-        path p = .;
-        if (type == "")
-        {
-            p = list2path([bl]);
-        }
-        else
-        {
-            p = list2path([bl, "sections" , section]);
-        }
-
-	list<map> options = (list<map>) SCR::Read (p);
-	map intern = $[];
-	options = maplist (map o, options, ``{
-	    string key = o["key"]:"";
-	    if (key == getSectionTitle ())
-	    {
-		if (regexpmatch (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: [a-z0-9_]+###"))
-		{
-		    intern["type"]
-			= regexpsub (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: ([a-z0-9_]+)###", "\\1");
-		}
-		else
-		{
-		    intern["type"] = o["value"]:"";
-		}
-	    }
-	    any value = mod2ui (o["value"]:nil);
-	    if (value == nil)
-		value = "";
-	    if (isSpecial (key) && is (value, string))
-		value = mergestring (splitstring ((string) value, "\n"), ",");
-	    o["value"] = value;
-	    return o;
-	});
-	options = add (options, $[
-	    "key" : "__intern__",
-	    "value" : intern,
-	]);
-	y2debug ("Result of section options: %1", options);
-	return (list<map>)options;
     }
 
     /**
@@ -1016,109 +962,6 @@
 	params = filter (string p, params, ``(p != ""));
 	line = mergestring (params, " ");
 	return line;
-    }
-
-    /**
-      * Save settings stored in memory of module to Lilo agent
-      * @return boolean true on success
-      */
-    global define boolean saveCfgFileToAgent () ``{
-	y2milestone ("Saving: glob: %1, sec: %2", globals, sections);
-	string bl = getLoaderType (false);
-	if (bl == "s390")
-	    bl = "zipl";
-	else if (bl == "ppc")
-	    bl = "lilo";
-	// first synchronize global settings
-	list options = maplist (map o, (list<map>) eval (globals), ``{
-	    string key = o["key"]:"";
-	    any value = o["value"]:nil;
-	    if (value == nil)
-		value = "";
-	    if (isSpecial (key) && is (value, string))
-		value = mergestring (splitstring ((string) value, ","), "\n");
-	    else
-		value = ui2mod (value);
-	    o["value"] = value;
-	    if (key == "__intern__")
-		return nil;
-	    return o;
-	});
-	options = filter (any o, options, ``(o != nil));
-	SCR::Write (list2path ([bl]), options);
-	// now remove all sections
-	list sects = SCR::Dir(list2path([bl, "sections"]));
-	foreach(any sect, sects, ``{
-	    SCR::Write(list2path([bl, "sections", sect]), nil);
-	});
-
-	// now write new sections
-	foreach (list<map> s, sections, ``{
-	    string title = "";
-	    string sect_type = getCreationType (s);
-	    options = maplist (map o, (list<map>) eval (s), ``{
-		string key = o["key"]:"";
-		any value = o["value"]:nil;
-		if (value == nil)
-		    value = "";
-		if (key == getSectionTitle () && sect_type != "")
-		{
-		    title = (string) value;
-		    if (sect_type != title)
-		    {
-			o["comment"] = sformat ("###Don't change this comment - YaST2 identifier: Original name: %1###",
-			    sect_type);
-		    }
-		}
-		if (isSpecial (key) && is (value, string))
-		    value = mergestring (splitstring ((string) value, ","), "\n");
-		else
-		    value = ui2mod (value);
-		o["value"] = value;
-		if (key == "__intern__")
-		    return nil;
-		return o;
-	    });
-	    options = filter (any o, options, ``(o != nil));
-	    SCR::Write (list2path ([bl, "sections", title]), options);
-        });
-	return true;
-    }
-
-    /**
-      * Load settings from Lilo agent to module variables
-      * @return boolean true on success
-      */
-    global define boolean loadCfgFileFromAgent () ``{
-        string bl = getLoaderType (false);
-	if (bl == "s390")
-	    bl = "zipl";
-	else if (bl == "ppc")
-	    bl = "lilo";
-
-        list optlist = SCR::Dir(list2path([bl]));
-
-        any value = "";
-        string comment = "";
-
-        BootCommon::globals = sectOptions2Map(bl, "", "");
-	y2milestone ("Parsed globals: %1", BootCommon::globals);
-
-        // iterate for all sections and do the same as before
-
-        list<string> sects = [];
-	list<map> opts_tmp = [];
-
-        sects = (list<string>)SCR::Dir(list2path([bl, "sections"]));
-        BootCommon::sections = [];
-
-        foreach(string e, sects,
-        ``{
-            opts_tmp = sectOptions2Map(bl, "sections", e);
-            BootCommon::sections = add(BootCommon::sections, opts_tmp);
-        });
-	y2milestone ("Parsed sections: %1", sections);
-	return true;
     }
 
     /**
