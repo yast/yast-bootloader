@@ -1,10 +1,9 @@
 #
 # Makefile.am for y2m_inst/ycp/bootloader/milo
 #
+
 SUBDIRS = agents
 
-modulesdir = $(YAST2DIR)/modules
+module_DATA = BootMILO.ycp
 
-modules_DATA = BootMILO.ycp
-
-EXTRA_DIST = $(modules_DATA)
+EXTRA_DIST = $(module_DATA)

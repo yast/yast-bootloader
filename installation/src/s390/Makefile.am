@@ -2,8 +2,6 @@
 # Makefile.am for y2m_inst/ycp/bootloader/s390
 #
 
-modulesdir = $(YAST2DIR)/modules
+module_DATA = BootS390.ycp
 
-modules_DATA = BootS390.ycp
-
-EXTRA_DIST = $(modules_DATA)
+EXTRA_DIST = $(module_DATA)

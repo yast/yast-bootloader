@@ -1,4 +1,6 @@
+#
 # Makefile.am for YCP module .../doc/autodocs
+#
 
 htmldir = @docdir@/autodocs
 

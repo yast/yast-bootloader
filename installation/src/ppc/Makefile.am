@@ -1,10 +1,9 @@
 #
 # Makefile.am for y2m_inst/ycp/bootloader/ppc
 #
+
 SUBDIRS = agents
 
-modulesdir = $(YAST2DIR)/modules
+module_DATA = BootPPC.ycp
 
-modules_DATA = BootPPC.ycp
-
-EXTRA_DIST = $(modules_DATA)
+EXTRA_DIST = $(module_DATA)

@@ -1,8 +1,6 @@
 #
 # Makefile.am for y2a_rcnf/doc/autodocs
 #
-# $Id$
-#
 
 htmldir = $(docdir)/autodocs
 
