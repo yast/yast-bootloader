@@ -302,7 +302,7 @@
 	    list<map> selected = sects[index]:[];
 	    string name = (string)lookup_value (selected,
 		BootCommon::getSectionTitle (), "");
-	    if (askClone (name))
+	    if (size (current_sections) > 0 && askClone (name))
 	    {
 		selected = modifySection (
 		    (list<map>)eval (selected),

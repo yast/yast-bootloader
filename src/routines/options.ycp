@@ -158,6 +158,7 @@
 	loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::location_changed = true;
 	BootCommon::changed = true;
+	BootCommon::redraw_table = true;
 	markGeneralOptionChanged ((string)opt_key);
     }
 
@@ -200,8 +201,8 @@
 			    if (! Popup::YesNo (_("The partition selected for boot loader installation
 does not have enough free space in its boot sector
 to hold the boot loader because of the file system
-it contains. Using this partition for boot loader
-may lead to corrupting data on the partition.
+it contains. Using this partition for the boot loader
+may lead to corruption of data on the partition.
 
 Continue?")))
 			    {
@@ -431,13 +432,27 @@ and the sector to which the boot loader is installed."),
       */
     global define string activateSummary (any opt_id, any opt_key) ``{
         if (activate)
-		// table item, %1 is a device name (eg. /dev/hda1)
-		// FIXME partition %1 of %2 is better (in future)
-            return sformat (_("Yes, Activate %1"),
-		lookup (BootCommon::getPartitionToActivate (), "dev", ""));
+	{
+	    if (Mode::config)
+	    {
+		return _("Yes");
+	    }
+	    list<string> partitions
+		= maplist (map<string,any> p, getPartitionsToActivate (),
+	    {
+		return p["dev"]:"";
+	    });
+	    partitions = filter (string p, partitions, ``(p != nil && p != ""));
+	    string partitions_str = mergestring (partitions, ", ");
+	    // table item, %1 is a device name (eg. /dev/hda1)
+	    // FIXME partition %1 of %2 is better (in future)
+            return sformat (_("Yes, Activate %1"), partitions_str);
+	}
         else
+	{
 		// table item
             return _("No");
+	}
     }
 
     /**
@@ -494,12 +509,22 @@ and the sector to which the boot loader is installed."),
       */
     global define string replMbrSummary (any opt_id, any opt_key) ``{
 	if (repl_mbr)
-		// table item / label
-	    return sformat (_("Replace %1 with Generic Code"),
-		BootCommon::mbrDisk);
+	{
+	    if (Mode::config)
+	    {
+		return _("Yes");
+	    }
+	    list<string> mbrs = getMbrsToRewrite ();
+	    mbrs = filter (string m, mbrs, ``(m != "" && m != nil));
+	    string repl_disks = mergestring (mbrs, ", ");
+	    // table item / label
+	    return sformat (_("Replace %1 with Generic Code"), repl_disks);
+	}
 	else
+	{
 		// table item / label
 	    return _("Leave Untouched");
+	}
     }
 
     /**

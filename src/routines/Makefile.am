@@ -14,7 +14,8 @@ ynclude_DATA =			\
 	lilolike.ycp		\
 	popups.ycp		\
 	convert.ycp		\
-	routines.ycp
+	routines.ycp		\
+	autoinstall.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)

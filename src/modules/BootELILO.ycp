@@ -29,6 +29,7 @@
     import "Kernel";
     import "Mode";
     import "Product";
+    import "ProductFeatures";
     import "Storage";
 
 // private variables
@@ -52,6 +53,11 @@
       * True if EFI entry should be recreated
       */
     global boolean create_efi_entry = true;
+
+    /**
+      * True if the EFI layout was changed
+      */
+    global boolean efi_layout_changed = false;
 
 
     include "bootloader/elilo/misc.ycp";
@@ -96,7 +102,8 @@
         string initrd = "initrd";
         string image = "vmlinuz";
         string append = title == "failsafe"
-            ? "ide=nodma nohalt noresume " + BootCommon::GetAdditionalFailsafeParams ()
+            ? "ide=nodma nohalt noresume selinux=0 "
+		+ BootCommon::GetAdditionalFailsafeParams ()
             : "";
 	list <string> split = BootCommon::splitPath (initrd);
 	initrd = split[1]:initrd;
@@ -147,14 +154,22 @@
       * modifies internal structures
       */
     global define void createGlobals () ``{
+	string append = sformat ("%1 %2 splash=silent", "selinux=0",
+	    Kernel::cmdLine);
+	// always server product, FIXME when it changes
+	append = BootCommon::setKernelParamToLine (append, "desktop", "false");
+	if (ProductFeatures::io_scheduler != "")
+	{
+	    append = BootCommon::setKernelParamToLine (append, "elevator",
+		ProductFeatures::io_scheduler);
+	}
 	BootCommon::globals = [
 	    $[ "key" : "prompt", "value" : true ],
 	    $[ "key" : "timeout", "value" : 80 ],
 	    $[ "key" : "read-only", "value" : true ],
 	    $[ "key" : "relocatable", "value" : true ],
 	    $[ "key" : "default", "value" : BootCommon::translateSectionTitle ("linux") ],
-	    $[ "key" : "append",
-		"value" : sformat ("%1 splash=silent", Kernel::cmdLine) ],
+	    $[ "key" : "append", "value" : append ],
 	];
     }
 
@@ -194,6 +209,13 @@
 	BootCommon::globals = maplist (map e, BootCommon::globals, ``{
 	    if (e["key"]:"" == "timeout")
 		e["value"] = 80;
+	    if (e["key"]:"" == "append" && ProductFeatures::io_scheduler != "")
+	    {
+		e["value"] = BootCommon::setKernelParamToLine (
+		    e["value"]:"",
+		    "elevator",
+		    ProductFeatures::io_scheduler);
+	    }
 	    return e;
 	});
     }
@@ -211,6 +233,7 @@
 	ret["old_efi_entry"] = old_efi_entry;
         ret["remove_old_efi"] = remove_old_efi;
 	ret["elilo_conf_filename"] = elilo_conf_filename;
+	ret["create_efi_entry"] = create_efi_entry;
         return ret;
     }
 
@@ -223,6 +246,8 @@
 	old_efi_entry = (string) (settings["old_efi_entry"]:nil);
 	remove_old_efi = settings["remove_old_efi"]:true;
 	elilo_conf_filename = getEliloConfFilename ();
+	create_efi_entry
+	    = settings["create_efi_entry"]:(settings["location"]:"" != "");
 	return true;
     }
 
@@ -239,6 +264,8 @@
 	}
 	if (! Mode::initial)
 	    create_efi_entry = true;
+	if (Mode::update)
+	    create_efi_entry = false;
 	elilo_conf_filename = getEliloConfFilename ();
 	BootCommon::DetectDisks ();
 	BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
@@ -330,7 +357,7 @@
                 "/usr/sbin/efibootmgr |grep \"%1\"", BootCommon::location));
 	}
 	create_efi_entry = false;
-	old_efi_entry = efi_entry_found ? BootCommon::location : nil;
+	old_efi_entry = efi_entry_found ? BootCommon::location : (string)nil;
 	old_efi_entry = "XXXXX";
 	return ret;
     }
@@ -393,20 +420,6 @@
 	);
         boolean ret = BootCommon::Save ();
 
-	// update the partition layout if needed
-	if (getEfiMountPoint () == "/boot" && Mode::update)
-	{
-	    map output = (map)SCR::Execute (.target.bash,
-		"/usr/lib/YaST2/bin/update_efi_mountpoint");
-	    if (output["exit"]:0 != 0)
-	    {
-		y2error ("Directory structure update failed: %1", output);
-		// report error
-		Report::Error (_("Updating the directory layout 
-to match Intel's EFI specification failed.
-Update it manually before proceeding."));
-	    }
-	}
         return ret;
     }
 
@@ -553,7 +566,7 @@ fi", efi_label);
             "default_type" : `label,
             "timeout_multiplier" : 10,
             "alias_keys" : ["alias"],
-	    "convert_function" : BootCommon::convertSection,
+	    "convert_function" : BootCommon::liloConvertSection,
             "kernel_params" : $[
                 "vga" : "vga",
                 "root" : "root",

@@ -39,8 +39,6 @@
 	    return;
 	}
 
-	y2milestone("BootPPC::Proposal: BootCommon::loader_device %1", BootCommon::loader_device);
-
         if ( ! (size (prep_boot_partitions) > 0 ||
             (prep_boot_partition != "" && prep_boot_partition != "/dev/null")))
         {
@@ -51,9 +49,6 @@
 	{
 	    BootCommon::activate = true;
 	}
-
-	BootCommon::loader_device = prep_boot_partition;
-
     }
 
     /**
@@ -63,7 +58,6 @@
     global define boolean PRePRead () ``{
 	prep_boot_partition = (string)
 	    lookup_value (BootCommon::globals, "boot", "");
-	BootCommon::loader_device = prep_boot_partition;
 	BootCommon::activate
 	    = prep_boot_partition != "" && prep_boot_partition != "/dev/null";
 	return true;
@@ -85,7 +79,7 @@
       */
     global define list<string> PRePSummary () ``{
 	list<string> ret = [];
-	if (0 == size (prep_boot_partitions))
+	if ((! Mode::config) && 0 == size (prep_boot_partitions))
 	{
 	    ret = [
 		// summary part
@@ -132,7 +126,7 @@
     global define void PRePInit () ``{
 	y2milestone ("Initializing PReP attributes");
 	prep_only_active = true;
-	prep_only_hdx = false;
+	prep_only_iseries_vd = false;
 	prep_only_primary = true;
 	prep_same_disk_as_root = false;
 	table_items = [ "__prep_location" ];

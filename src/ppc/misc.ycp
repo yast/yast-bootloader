@@ -28,11 +28,13 @@
       * @return boolean true if list changed, false otherwise
       */
     global define boolean updatePrepBootPartitions () ``{
-	y2milestone ("Detecting PReP partitions: prep_only_active: %1, prep_only_hdx: %2, prep_only_primary: %3", prep_only_active, prep_only_hdx, prep_only_primary);
+	y2milestone ("Detecting PReP partitions: prep_only_active: %1, prep_only_iseries_vd: %2, prep_only_primary: %3", prep_only_active, prep_only_iseries_vd, prep_only_primary);
 	map<string,map> targetMap = (map<string,map>)Storage::GetTargetMap ();
 	y2milestone ("TargetMap: %1", targetMap);
 	list old_prep_boot_partitions = prep_boot_partitions;
+	list old_install_prep_boot_partitions = install_prep_boot_partitions;
 	prep_boot_partitions = [];
+	install_prep_boot_partitions = [];
 	y2milestone("old prep_boot_partitions %1", old_prep_boot_partitions);
 
 	foreach (string dname, map ddata, targetMap, ``{
@@ -52,10 +54,10 @@
 		    p["boot"]:false
 		));
 	    }*/
-	    if (prep_only_hdx)
+	    if (prep_only_iseries_vd)
 	    {
 		partitions = filter (map p, partitions, ``(
-		    regexpmatch (p["device"]:"", "\/dev\/hd.*")
+		    regexpmatch (p["device"]:"", "\/dev\/iseries\/vd.*")
 		));
 	    }
 	    if (prep_only_primary)
@@ -70,14 +72,28 @@
 		    p["device"]:""
 		))
 	    );
+	    partitions = filter (map p, partitions, ``(
+		p["prep_install"]:false
+	    ));
+	    y2milestone ("Finally filtered recommended partitions: %1",
+		partitions);
+	    install_prep_boot_partitions = (list<string>)merge (
+		install_prep_boot_partitions,
+		(list<string>)maplist (map p, partitions, ``(
+		    p["device"]:""
+		))
+	    );
 	});
 	prep_boot_partitions = filter (string p, prep_boot_partitions, ``(
 	    p != ""
 	));
 	prep_boot_partitions = sort (prep_boot_partitions);
 	y2milestone ("Detected PReP partitions: %1", prep_boot_partitions);
+	y2milestone ("Proposed PReP partitions: %1",
+	    install_prep_boot_partitions);
 
-	if (old_prep_boot_partitions == prep_boot_partitions)
+	if (old_prep_boot_partitions == prep_boot_partitions
+	    && old_install_prep_boot_partitions == install_prep_boot_partitions)
 	{
 	    y2milestone ("PReP Partitions unchanged");
 	    return false;
@@ -100,6 +116,9 @@
 		BootCommon::RootPartitionDevice), "disk", "");
 
 	prep_boot_partition = "";
+	prep_boot_partitions = (list<string>)merge (
+	    install_prep_boot_partitions,
+	    prep_boot_partitions);
 	foreach (string partition, prep_boot_partitions, ``{
 	    if (prep_boot_partition == "")
 	    {

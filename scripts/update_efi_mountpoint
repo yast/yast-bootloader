@@ -2,64 +2,79 @@
 # update the partition layout on IPF
 
 $rootfs = "";
-$bootfs = "$rootfs/boot";
-$efifs = "$rootfs/boot/efi";
+$oldboot = "$rootfs/boot";
+$newboot = "$rootfs/boot/efi";
+$tmpboot = "$rootfs/mnt";
 $fstab = "$rootfs/etc/fstab";
+$fstmp = "$rootfs/etc/fstab.YaST2-uEFImp-save";
+$mtabback = "$rootfs/etc/mtab~";
 
-# determine device holding /boot filesystem from /etc/fstab
+sub System {
+  print STDERR "@_\n";
+  #return 0;
+  return system(@_);
+}
+
+# determine device holding /boot file-system from /etc/fstab
+# '/boot/efi' is ignored (as are comments!) => nothing to do
 sub GetBootDev {
     open (IN, "$fstab") || die "failed to open $fstab for reading";
     my $ret = undef;
     while ($line = <IN>) {
-	chomp $line;
-	if ($line =~ /^([^ \t]+)[ \t]+\/boot[ \t]+.*$/)
-	{
+	if ($line =~ /^([^\# \t]+)[ \t]+\/boot[ \t]+.*$/) {
 	    $ret = $1;
+	    last;
+	} elsif ($line =~ /^([^\# \t]+)[ \t]+\/boot\/efi[ \t]+.*$/) {
+	    # everthing is fine!
+	    exit 0;
 	}
     }
     close (IN);
     return $ret;
 }
 
-# unmount /boot (or /boot/efi) partition
-sub UnmountBootPartition {
-    system ("/bin/umount $bootdev") == 0 || die "Umounting $bootdev failed";
+# unmount /boot partition
+sub MoveBootPartition2Tmp {
+    System ("/bin/rm -f $mtabback") if ( -e $mtabback);
+    System ("/bin/mount --move $oldboot $tmpboot") == 0 || die "Moving $oldboot to $tmpboot failed";
 }
 
 #update mountpoints in /etc/fstab (/boot -> /boot/efi)
 sub UpdateFstab {
-    system ("/bin/cp $fstab $fstab.tmp") == 0
-	|| die "cannot copy $fstab to $fstab.tmp";
-    open (IN, "$fstab.tmp") || die "failed to open $fstab.tmp for reading";
-    open (OUT, ">$fstab") || die "failed to open $fstab for writing";
+    System ("/bin/cp $fstab $fstmp") == 0
+	|| die "cannot copy $fstab to $fstmp";
+    return 0 unless ( -r $fstmp );
+    open (IN,  "< $fstmp") || die "failed to open $fstmp for reading";
+    open (OUT, "> $fstab") || die "failed to open $fstab for writing";
     while ($line = <IN>) {
-	chomp $line;
-	if ($line =~ /^[^ \t]+[ \t]+\/boot[ \t]+.*$/)
-	{
-	    $line =~ s/^([^ \t]+[ \t]+)\/boot([ \t]+.*)$/$1\/boot\/efi$2/;
+	if ($line =~ /^[^\# \t]+[ \t]+\/boot[ \t]+.*$/) {
+	    $line =~ s/^([^\# \t]+[ \t]+\/boot)([ \t]+.*)$/$1\/efi$2/;
 	}
-	print OUT "$line\n";
+	print OUT "$line";
     }
     close (IN);
     close (OUT);
-    system ("/bin/rm $fstab.tmp");
+    #System ("/bin/rm $fstmp");
 }
 
 # mount the /boot/efi partition
-sub MountBootPartition {
-    system ("mkdir -p $efifs") == 0|| die "Failed to create EFI mount point";
-    system ("/bin/mount $bootdev $efifs") == 0|| die "Failed to mount the EFI partition";
+sub MoveBootPartition2New {
+    System ("mkdir -p $newboot") == 0|| die "Failed to create EFI mount point";
+    System ("/bin/mount --move $tmpboot $newboot") == 0|| die "Failed to move EFI partition";
 }
 
-#copy files from /boot/efi/* to /boot (everything except efi)
+# move files from /boot/efi/* back to /boot (everything except efi)
 sub MoveFiles {
-    system ("cd $efifs && mv System.map* initrd* vmlinuz* modversions-* config-* $bootfs")
-	|| die "Copying files from $efifs to $bootfs failed";
-
+    my $files = "{System.map,initrd,vmlinuz,modversions-,config-}*";
+    foreach $f ( <$newboot/{$files}*> ) {
+      System ("mv '$f' $oldboot") == 0 ||
+        die "Moving files from old '/boot' file-system to new '/boot' directory failed";
+    }
 }
 
 $bootdev = GetBootDev () || die "Failed to determine the device with the EFI partition";
-UnmountBootPartition ();
+MoveBootPartition2Tmp ();
 UpdateFstab ();
-MountBootPartition ();
+MoveBootPartition2New ();
 MoveFiles ();
+

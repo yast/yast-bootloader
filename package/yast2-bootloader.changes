@@ -1,4 +1,109 @@
 -------------------------------------------------------------------
+Wed Jun 16 14:11:03 CEST 2004 - jsrain@suse.cz
+
+- prevent the "desktop" parameter from being added to kernel
+  command line for server products (#41916)
+- 2.9.31
+
+-------------------------------------------------------------------
+Thu Jun 10 11:36:30 CEST 2004 - jsrain@suse.cz
+
+- change /dev/hd* to /dev/iseries/vd* in the 'boot' option of
+  lilo.conf during update of iSeries (#41545)
+- fixed creating a new section on PPC and IA64 (#41550)
+- 2.9.30
+
+-------------------------------------------------------------------
+Sun Jun  6 01:59:50 CEST 2004 - nashif@suse.de
+
+- in autoinst mode, keep initrd modules list (#41681)
+
+-------------------------------------------------------------------
+Thu May 27 16:35:45 CEST 2004 - jsrain@suse.cz
+
+- don't display device name if user selected to activate boot
+  loader partition ot replace MBR with generic code when preparing
+  AutoYaST  profile, as the device names aren't known (#41258)
+- allow to install LILO to MD so that if any of disks bulding MD
+  array is removed, system still boots (#34122)
+- 2.9.29
+
+-------------------------------------------------------------------
+Thu May 27 02:38:48 CEST 2004 - nashif@suse.de
+
+- move conversion functions from bootloader_auto to external
+  file (#41227)
+- Also parse kernel parameters, moved from autoyast2 (#41227)
+
+-------------------------------------------------------------------
+Wed May 26 14:31:44 CEST 2004 - jsrain@suse.cz
+
+- fix autoinstallation on all PPC boards (#38991)
+- prefer proposed PReP boot partition to already existing (#41213)
+
+-------------------------------------------------------------------
+Tue May 25 14:27:40 CEST 2004 - jsrain@suse.cz
+
+- set the I/O scheduler on the kernel command line (#40688)
+- fixed bootloader installation on iSeries (jplack) (#41143)
+- 2.9.28
+
+-------------------------------------------------------------------
+Mon May 24 12:55:15 CEST 2004 - jsrain@suse.cz
+
+- avoid setting vga kernel parameter on PPC and S390 (#40998)
+- fixed messing of /etc/lilo.conf when setting the vga parameter
+  (#40998)
+
+-------------------------------------------------------------------
+Wed May 19 15:06:52 CEST 2004 - jsrain@suse.cz
+
+- fixed filter for possible PReP boot partitions on iSeries - allow
+  /dev/iseries/vd* instead of /dev/hd* (#40825)
+- 2.9.27
+
+-------------------------------------------------------------------
+Tue May 18 13:30:07 CEST 2004 - jsrain@suse.cz
+
+- init board type during autoinstallation on PPC properly (#38991)
+
+-------------------------------------------------------------------
+Thu May 13 17:54:54 CEST 2004 - jsrain@suse.cz
+
+- fixed installation on PPC (#34556)
+- 2.9.26
+
+-------------------------------------------------------------------
+Wed May 12 08:29:20 CEST 2004 - jsrain@suse.cz
+
+- use ELILO-specific entry for the EFI entry label in the
+  autoinstallation profile (#36061)
+- fix handling of multiple occurences of a kernel parameter in the
+  command line (used eg. for console) (#38177)
+- fix lilo.conf update on PPC (#39379)
+
+-------------------------------------------------------------------
+Tue May  4 09:02:47 CEST 2004 - jsrain@suse.cz
+
+- merged texts from proofread
+
+-------------------------------------------------------------------
+Tue May  4 07:58:45 CEST 2004 - jsrain@suse.cz
+
+- add 'selinux=0' kernel parameter for all archs (#39811)
+- add 'TERM=dumb' kernel parameter for S390 (#39386)
+- 2.9.25
+
+-------------------------------------------------------------------
+Tue Apr 27 09:28:42 CEST 2004 - jsrain@suse.cz
+
+- fixed script for updating /boot layout on IPF (#21644)
+- fixed the /boot layout update procedure (#21644)
+- do not change the EFI nvram on update (#21644)
+- fixed testsuite
+- 2.9.24
+
+-------------------------------------------------------------------
 Thu Apr  8 14:28:19 CEST 2004 - jsrain@suse.cz
 
 - use 'desktop' kernel parameter on desktop products only
@@ -16,16 +121,6 @@ Wed Apr  7 18:28:02 CEST 2004 - sh@suse.de
 Wed Apr  7 00:00:47 CEST 2004 - schwab@suse.de
 
 - Add nohalt to failsafe kernel command line on ia64.
-
--------------------------------------------------------------------
-Tue Apr  6 09:01:01 CEST 2004 - jsrain@suse.de
-
-- updating graphical boot menu to contain proper languages (and 
-  be small enough to fit in memory) also when running update from
-  YaST control center (#38339)
-- added 'noresume' parameter to failsafe kernel command line
-  (#38400)
-- 2.9.22
 
 -------------------------------------------------------------------
 Tue Apr  6 09:01:01 CEST 2004 - jsrain@suse.de

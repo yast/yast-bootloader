@@ -18,7 +18,9 @@
 {
     textdomain "bootloader";
 
+    import "Installation";
     import "Mode";
+    import "Report";
     import "Storage";
 
     /**
@@ -97,6 +99,58 @@
 	    getEfiVendor ());
 	y2milestone ("elilo.conf sould be located at %1", ret);
 	return ret;
+    }
+
+    /**
+      * Update the EFI partitioning layout if needed
+      */
+    global define void UpdateEfiPartitionLayout () {
+	// update the partition layout if needed
+	if (getEfiMountPoint () == "/boot" && Mode::update)
+	{
+	    map output = (map)SCR::Execute (.target.bash_output, sformat (
+	      "/bin/cp %1/boot/efi/SuSE/elilo.conf %1/etc/elilo.conf.YaST2save",
+	      Installation::destdir));
+	    y2milestone ("Result of backup original elilo.conf: %1", output);
+	    output = (map)SCR::Execute (.target.bash_output, sformat (
+		"/bin/cp /usr/lib/YaST2/bin/update_efi_mountpoint %1/usr/lib/YaST2/bin/",
+		Installation::destdir
+	    ));
+	    y2milestone ("Result of copying from / to %1: %2",
+		Installation::destdir,
+		output
+	    );
+	    output = (map)SCR::Execute (.target.bash_output, sformat (
+		"chroot %1 /usr/lib/YaST2/bin/update_efi_mountpoint",
+		Installation::destdir));
+	    if (output["exit"]:0 != 0)
+	    {
+		y2error ("Directory structure update failed: %1", output);
+		// report error
+		Report::Error (_("Updating the directory layout 
+to match Intel's EFI specification failed.
+Update it manually before proceeding."));
+	    }
+	    else
+	    {
+		efi_layout_changed = true;
+		// update also the partitioning data inside partitioner
+		map <string, map> target_map = Storage::GetTargetMap ();
+		map mp = Storage::GetMountPoints ();
+		list boot_part_l = mp["/boot"]:[];
+		string boot_part = boot_part_l[0]:"";
+		if (boot_part != "")
+		{
+		    target_map = Storage::SetPartitionData (
+			target_map,
+			boot_part,
+			"mount",
+			"/boot/efi");
+		    Storage::SetTargetMap (target_map);
+		}
+	    }
+	}
+
     }
 
 

@@ -624,7 +624,7 @@
 		if (sect_type == t)
 		{
 		    f_changed = true;
-		    if (replace)
+		    if (replace && m != [])
 			return m;
 		    else if (t == "linux")
 		    {
@@ -647,8 +647,8 @@
 		    return s;
 		}
 	    });
-            if (! f_changed)
-                if (t == "lilo")
+            if (! f_changed && m != [])
+                if (t == "linux")
                     out = prepend (out, m);
                 else
                     out = add (out, m);
@@ -676,16 +676,26 @@
 			option = regexpsub (option,
 			    "^(.*)\.suse(.*)$", "\\1\\2");
 		    }
-		    if (type == "linux" && p["key"]:"" == "append")
-		    {
+		    p["value"] = option;
+		}
+		else if (type == "linux" && p["key"]:"" == "append")
+		{
+		    string option = p["value"]:"";
 			if (! issubstring (option, "desktop"))
 			{
 			    if (ProductFeatures::use_desktop_scheduler)
 				option = option + " desktop";
 			}
+			if (! issubstring (option, " elevator"))
+			{
+			    if (ProductFeatures::io_scheduler != "")
+			    {
+				option = option + " elevator="
+				    + ProductFeatures::io_scheduler;
+			    }
+			}
 			if (! issubstring (option, "splash"))
 			    option = option + " splash=silent";
-		    }
 		    p["value"] = option;
 		}
 		return p;
@@ -775,5 +785,53 @@
 	});
     }
 
+    /**
+      * Convert section orig from type otype to ntype
+      * Some information gets lost. ntype must be different from otype
+      * @param otype string original section type, "image" or "other"
+      * @param ntype string new section type, "image" or "other"
+      * @param orig list original section
+      * @return list new (converted) section
+      */
+    global define list<map> liloConvertSection (
+	string otype, string ntype, list<map> orig)
+    {
+	list<map> ret = [];
+	if (orig == nil)
+	{
+	    if (ntype == "other")
+	    {
+		ret = [ $[ "key" : "other", "value" : "" ]];
+	    }
+	    else
+	    {
+		ret = [
+		    $[ "key" : "image", "value" : ""],
+		    $[ "key" : "initrd", "value" : ""],
+		    $[ "key" : "root", "value" : "" ]
+		];
+	    }
+	    ret = add (ret, $[ "key" : "label", "value" :
+		BootCommon::getFreeSectionLabel ()]);
+	    return ret;
+	}
+	map label_map = getValueMap (orig, "label");
+	if (ntype == "other")
+	{
+	    ret = [ $["key" : "other", "value" :
+		(string)select (BootCommon::splitPath (
+		    (string)lookup_value (orig, "image", "")), 0, "")]];
+	}
+	else
+	{
+	    ret = [
+		$[ "key" : "image", "value" : "/boot/vmlinuz"],
+		$[ "key" : "root", "value" : lookup_value (orig, "other", "")],
+		$[ "key" : "initrd", "value" : "/boot/initrd"],
+	    ];
+	}
+	ret = add (ret, label_map);
+	return ret;
+    }
 
 }

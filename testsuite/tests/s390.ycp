@@ -16,6 +16,7 @@
  */
 
 {
+// testedfiles: BootCommon.ycp bootloader/routines/lilolike.ycp bootloader/routines/misc.ycp BootS390.ycp s390.ycp
     include "testsuite.ycp";
 
     map READ_I = $[
@@ -66,7 +67,15 @@
                     ],
                 ],
             ],
-        ]
+        ],
+	"product" : $[
+	    "features" : $[
+		"USE_DESKTOP_SCHEDULER" : "0",
+		"ENABLE_AUTOLOGIN" : "0",
+		"EVMS_CONFIG" : "0",
+		"IO_SCHEDULER" : "cfg",
+	    ]
+	],
     ];
     map WRITE_I = $[];
     map EXEC_I = $[
