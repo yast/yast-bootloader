@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep  6 09:44:33 CEST 2004 - jsrain@suse.cz
+
+- avoid calling constructor of Product:: in testsuite (in order to
+  build properly)
+
+-------------------------------------------------------------------
 Fri Sep  3 13:16:28 CEST 2004 - jsrain@suse.cz
 
 - update devices in bootloader configuration files (SATA devices
