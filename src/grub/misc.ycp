@@ -78,7 +78,8 @@
         map targetMap = $[];
 	if (Mode::config)
 	{
-	    targetMap = listmap (map d, AIStorage::drives, ``(
+		import "AutoinstStorage";
+	    targetMap = listmap (map d, AutoinstStorage::drives, ``(
 		[d["device"]:"", d]
 	    ));
 	    targetMap = filter (`k, `v, targetMap, ``(k != ""));
