@@ -1,6 +1,6 @@
 @HEADER-COMMENT@
 
-# neededforbuild  autoconf automake dejagnu expect tcl yast2 yast2-core yast2-core-devel yast2-devtools yast2-testsuite gpp libgpp libxcrypt libxcrypt-devel
+# neededforbuild  autoconf automake dejagnu expect gpp libgpp libxcrypt libxcrypt-devel tcl yast2 yast2-core yast2-core-devel yast2-devtools yast2-testsuite
 
 @HEADER@
 Requires:	yast2 yast2-core
@@ -15,9 +15,9 @@ Summary:	YaST2 Modules for bootloader installation and configuration
 
 @PREP@
 
-@BUILD-YCP@
+@BUILD@
 
-@INSTALL-YCP@
+@INSTALL@
 
 @CLEAN@
 
