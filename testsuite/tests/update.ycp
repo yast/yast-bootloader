@@ -162,8 +162,8 @@
     ];
 
     TEST (``(Bootloader::Import (imp)), [READ, WRITE, EXEC], 0);
-    BootCommon::BootPartitionDevice = "/dev/hda1";
-    BootCommon::RootPartitionDevice = "/dev/hda3";
+    BootCommon::BootPartitionDevice = "/dev/sda1";
+    BootCommon::RootPartitionDevice = "/dev/sda3";
     TEST (``(Bootloader::UpdateConfiguration ()), [READ, WRITE, EXEC], 0);
     TEST (``(Bootloader::Export ()), [READ, WRITE, EXEC], 0);
 
@@ -219,8 +219,8 @@
     ];
 
     TEST (``(Bootloader::Import (imp)), [READ, WRITE, EXEC], 0);
-    BootCommon::BootPartitionDevice = "/dev/hda1";
-    BootCommon::RootPartitionDevice = "/dev/hda3";
+    BootCommon::BootPartitionDevice = "/dev/sda1";
+    BootCommon::RootPartitionDevice = "/dev/sda3";
     TEST (``(Bootloader::UpdateConfiguration ()), [READ, WRITE, EXEC], 0);
     TEST (``(Bootloader::Export ()), [READ, WRITE, EXEC], 0);
 
