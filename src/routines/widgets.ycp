@@ -427,11 +427,17 @@
       * @return symbol to return to wizard sequencer, or nil
       */
     global define symbol singleSectionHandle (string widget, map event) ``{
+	redraw_table = false;
 	map<string,any> current_table = CWM::GetProcessedWidget ();
 	map options = current_bootloader_attribs["option_list"]:$[];
 	string sect_type = (string)getSectionType (current_section);
 	current_table["add_items"] = options[sect_type]:[];
-	return TablePopup::TableHandle (current_table, widget, event);
+	symbol ret = TablePopup::TableHandle (current_table, widget, event);
+	if (redraw_table)
+	{
+	    TablePopup::TableInit (current_table, widget);
+	}
+	return ret;
     }
 
     /**
@@ -528,12 +534,22 @@
       * @return symbol to return to wizard sequencer, or nil
       */
     global define symbol globalSectionHandle (string widget, map event) ``{
+	redraw_table = false;
+	redraw_dialog = false;
 	map<string,any> current_table = CWM::GetProcessedWidget ();
 	map options = current_bootloader_attribs["option_list"]:$[];
 	current_table["add_items"] = options[`global]:[];
 	symbol ret = TablePopup::TableHandle (current_table, widget, event);
 	if (widget == "globalsection" && one_section_changed)
 	    BootCommon::changed = true;
+	if (redraw_dialog)
+	{
+	    return `redraw;
+	}
+	if (redraw_table)
+	{
+	    TablePopup::TableInit (current_table, widget);
+	}
 	return ret;
     }
 

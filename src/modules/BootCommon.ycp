@@ -190,6 +190,7 @@ global map<string,any> update_version = $[];
     global list<list<map> > current_sections = [];
 
     global boolean redraw_table = false;
+    global boolean redraw_dialog = false;
     global symbol(any, map) reset_button_handle = nil;
     global void(any, any) loader_type_store = nil;
 
@@ -668,6 +669,10 @@ configuration files"));
 	{
 	    ret = (list<string>)merge (ret, ["lilo", "grub"]);
 	}
+	// in order not to display it twice when "none" is selected
+	ret = filter (string l, ret, {
+	    return l != "none";
+	});
 	ret = toset (ret);
 	ret = add (ret, "none");
 	return ret;
