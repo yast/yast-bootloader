@@ -27,15 +27,15 @@ Summary:	YaST2 Modules for installation
 %defattr(-,root,root)
 
 # bootfloppy
-@configdir@/menuentry_bootfloppy.y2cc
-@clientdir@/bootfloppy.ycp
+@configdir@/bootfloppy.y2cc
+@moduledir@/bootfloppy.ycp
 %doc @docdir@/*
 
 # lilo
-%dir @yincludedir@/lilo
-@yincludedir@/lilo/*.ycp
+%dir @yncludedir@/lilo
+@yncludedir@/lilo/*.ycp
 @clientdir@/lilo*.ycp
-@configdir@/*.y2cc
+@configdir@/lilo.y2cc
 @moduledir@/Lilo.ycp
 
 #installation

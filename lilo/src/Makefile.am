@@ -1,11 +1,13 @@
 #
-# Makefile.am for y2c_lilo/src
+# Makefile.am for bootloader/lilo/src
 #
 
 client_DATA =		\
 	lilo.ycp	\
 	lilo_write.ycp	\
 	lilo_auto.ycp
+
+yncludedir = @yncludedir@/lilo
 
 ynclude_DATA =		\
 	io.ycp		\
