@@ -64,7 +64,7 @@
             targetlist = add (targetlist, `Left (
 		`RadioButton (`id ("mbr_md"), `opt (`notify),
 		// radiobutton, %1 is a list of devices (eg. /dev/hda1)
-                sformat(_("MB&Rs of disks %1"),
+                sformat(_("MB&Rs of Disks %1"),
 		    mergestring (mbrs, ", ")),
                 (location == "mbr_md")
             )));
@@ -237,7 +237,7 @@ Continue?")))
 		return p_dev["disk"]:"";
 	    });
 	    // table item, %1 is list of device names
-	    return sformat (_("MBRs of disks %1"),
+	    return sformat (_("MBRs of Disks %1"),
 		mergestring (mbrs, ", "));
 	}
 	if (loader_device == "")

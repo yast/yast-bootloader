@@ -48,11 +48,11 @@
 
     map image_labels = $[
 	// image text - label
-	"bootdsk1" : _("Creating standard boot floppy part 1 of 3"),
+	"bootdsk1" : _("Creating Standard Boot Floppy -- Part 1 of 3"),
 	// image text - label
-	"bootdsk2" : _("Creating standard boot floppy part 2 of 3"),
+	"bootdsk2" : _("Creating Standard Boot Floppy -- Part 2 of 3"),
 	// image text - label
-	"bootdsk3" : _("Creating standard boot floppy part 3 of 3"),
+	"bootdsk3" : _("Creating Standard Boot Floppy -- Part 3 of 3"),
 	// image text - label
 	"bootdisk" : _("Creating standard boot floppy"),
 	// image text - label
@@ -300,15 +300,15 @@ and File Systems (modules disk 4)"))),
 		`VSpacing (2),
 		`Left (`RadioButton (`id ("bootdsk1"),
 		    // radiobutton - disk image name
-		    _("&Standard Boot Floppy part 1 of 3"))),
+		    _("&Standard Boot Floppy -- Part 1 of 3"))),
 		`VSpacing (0.4),
 		`Left (`RadioButton (`id ("bootdsk2"),
 		    // radiobutton - disk image name
-		    _("&Standard Boot Floppy part 2 of 3"))),
+		    _("&Standard Boot Floppy -- Part 2 of 3"))),
 		`VSpacing (0.4),
 		`Left (`RadioButton (`id ("bootdsk3"),
 		    // radiobutton - disk image name
-		    _("&Standard Boot Floppy part 3 of 3"))),
+		    _("&Standard Boot Floppy -- Part 3 of 3"))),
 		`VSpacing (0.4),
 		`Left (`RadioButton (`id ("rescuefloppy"),
 		    // radiobutton - disk image name
