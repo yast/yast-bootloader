@@ -5,6 +5,7 @@ Mon Sep  1 10:04:55 CEST 2003 - jsrain@suse.de
   device specification (#29776)
 - not proposing booting from floppy if /boot is beyond 1024 cylinder
   as it doesn't solve anything (#29524)
+- 2.8.13
 
 -------------------------------------------------------------------
 Thu Aug 28 14:20:10 CEST 2003 - jsrain@suse.de
