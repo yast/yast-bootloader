@@ -2,13 +2,13 @@
     // read/write test
 
     // get first image section name
-    string str=select(Dir(.image), 0);
-   
-    list olddir=Dir(.image);
- 
+    string str=select(Dir(.sections), 0, "label");
+
+    list olddir=Dir(.sections);
+
     // change it's label
-    Write(add(add(.image, str), "label"), "\"New Label\"");
+    Write(add(add(.sections, str), "label"), "\"New Label\"");
     Write(., nil);
 
-    return [olddir, Dir(.image)];
+    return [olddir, Dir(.sections)];
 }

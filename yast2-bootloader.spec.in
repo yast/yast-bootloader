@@ -1,14 +1,12 @@
 @HEADER-COMMENT@
 
-# neededforbuild  autoconf automake dejagnu expect tcl yast2-core yast2-core-devel yast2-devtools yast2-testsuite
+# neededforbuild  autoconf automake dejagnu expect tcl yast2 yast2-core yast2-core-devel yast2-devtools yast2-testsuite gpp libgpp libxcrypt libxcrypt-devel
 
 @HEADER@
 Requires:	yast2 yast2-lib-sequencer yast2-lib-wizard
 
-Provides:	y2c_bootfloppy yast2-config-lilo yast2-config-bootloader
-Obsoletes:	y2c_bootfloppy yast2-config-lilo yast2-config-bootloader
-
-BuildArchitectures: noarch
+Provides:	y2c_bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo
+Obsoletes:	y2c_bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-lilo
 
 Summary:	YaST2 Modules for installation
 
@@ -37,6 +35,19 @@ Summary:	YaST2 Modules for installation
 @clientdir@/lilo*.ycp
 @configdir@/lilo.y2cc
 @moduledir@/Lilo.ycp
+
+# lilo agent
+%dir @plugindir@
+@plugindir@/libpy2ag_liloconf.so.*
+%dir @scrconfdir@
+@scrconfdir@/lilo.scr
+@scrconfdir@/elilo.scr
+@scrconfdir@/silo.scr
+
+# lilo agent - devel
+@plugindir@/libpy2ag_liloconf.so
+@plugindir@/libpy2ag_liloconf.la
+%docdir @docdir@
 
 #installation
 @scrconfdir@/cfg_bootloader.scr
