@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul  3 10:38:58 CEST 2002 - lslezak@suse.cz
+
+- fixed installation/src/ppc/agents/Makefile.am (ppc build bug)
+- version 2.6.2
+
+-------------------------------------------------------------------
 Tue Jul  2 15:31:29 CEST 2002 - lslezak@suse.cz
 
 - merged with yast2-agent-lilo, yast2-agent-prom,
