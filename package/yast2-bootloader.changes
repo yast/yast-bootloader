@@ -1,7 +1,13 @@
 -------------------------------------------------------------------
+Mon Sep  1 10:04:55 CEST 2003 - jsrain@suse.de
+
+- fixed bootloader installation with numeric (major-minor) root
+  device specification (#29776)
+
+-------------------------------------------------------------------
 Thu Aug 28 14:20:10 CEST 2003 - jsrain@suse.de
 
-- fixed dieplayed section type in sections summary dialog for
+- fixed displayed section type in sections summary dialog for
   "other" sections (#29472)
 - don't ask for abort confirmation during installation if settings
   were changed in previous run of component from proposal (#29496)
