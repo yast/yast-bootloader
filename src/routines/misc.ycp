@@ -2099,6 +2099,7 @@ global map<string,any> PrepareInitData () {
 	return parts;
     });
     list<list> partinfo = flatten (pi);
+    partinfo = filter (list p, partinfo, {return p != nil && p != [];});
     y2milestone ("Information about partitioning: %1", partinfo);
     y2milestone ("Information about MD arrays: %1", md_info);
 
@@ -2162,9 +2163,9 @@ list<map> LinesIO2YCP (list<map> lines) {
 	if (l["key"]:"" == getSectionTitle ())
 	{
 	    string comment = l["comment_before"]:"";
-	    if (regexpmatch (l["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: [a-z0-9_]+###"))
+	    if (regexpmatch (comment, "###Don't change this comment - YaST2 identifier: Original name: [a-z0-9_]+###"))
 	    {
-		type = regexpsub (l["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: ([a-z0-9_]+)###", "\\1");
+		type = regexpsub (comment, "###Don't change this comment - YaST2 identifier: Original name: ([a-z0-9_]+)###", "\\1");
 	    }
 	}
 	return l;

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Feb 25 14:43:58 CET 2005 - jsrain@suse.cz
+
+- fixed identifying bootloader sections while reading (#66612)
+
+-------------------------------------------------------------------
 Fri Feb 25 09:05:14 CET 2005 - jsrain@suse.cz
 
 - added missed translation mark (#8402)
