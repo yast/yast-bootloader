@@ -83,11 +83,13 @@
 
     /**
       * Reset bootloader-specific settings
+      * @param init boolean true if basic initialization of system-dependent
+      * settings should be done
       */
-    global define void blReset () ``{
+    global define void blReset (boolean init) ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
-        void() toEval = functions["reset"]:BootCommon::Reset;
-        toEval ();
+        void(boolean) toEval = functions["reset"]:BootCommon::Reset;
+        toEval (init);
     }
 
     /**

@@ -50,8 +50,8 @@
     /**
       * Reset bootloader settings
       */
-    global define void Reset () ``{
-	BootCommon::Reset ();
+    global define void Reset (boolean init) ``{
+	BootCommon::Reset (init);
     }
     /**
       * Propose bootloader settings

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep 23 13:04:08 CEST 2004 - jsrain@suse.cz
+
+- avoid initalizing GRUB structures earlier than needed data is
+  known (#45119)
+
+-------------------------------------------------------------------
 Mon Sep 20 16:30:38 CEST 2004 - jsrain@suse.cz
 
 - fixes update if SATA devices are used (#44286)

@@ -322,7 +322,7 @@ global list<string> update_section_types
     /**
       * Reset bootloader settings
       */
-    global define void Reset () ``{
+    global define void Reset (boolean init) ``{
         sections = [];
         globals = [];
 //	DetectDisks ();
@@ -542,6 +542,7 @@ configuration files"));
 	    y2milestone ("Running bootloader initializer");
 	    void () toEval = (void ()) (bootloader_attribs[loader_type, "initializer"]:nil);
 	    toEval ();
+	    y2milestone ("Initializer finished");
 	}
 	else if (loader_type == nil)
 	{
@@ -651,6 +652,7 @@ configuration files"));
 	loader_type = bootloader;
 	if (loader_type != nil)
 	    setCurrentLoaderAttribs (loader_type);
+	y2milestone ("Loader type set");
     }
     /**
       * List bootloaders available for configured architecture

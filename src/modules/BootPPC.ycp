@@ -603,8 +603,8 @@ global boolean currentBoardUpdate () {
     /**
       * Reset bootloader settings
       */
-    global define void Reset () ``{
-	BootCommon::Reset ();
+    global define void Reset (boolean init) ``{
+	BootCommon::Reset (init);
 	of_defaultdevice = true;
 	iseries_streamfile = "/boot/suse_linux_bootfile";
 	iseries_write_slot_a = false;

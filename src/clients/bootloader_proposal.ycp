@@ -48,7 +48,7 @@
 	if (! Bootloader::proposed_cfg_changed && ! Mode::autoinst)
 	{
 	    y2milestone ("Cfg not changed before, recreating");
-	    Bootloader::Reset ();
+	    Bootloader::ResetEx (false);
 	    BootCommon::setLoaderType (nil);
 	}
 	else if ((Arch::i386 || Arch::x86_64) && ! Mode::autoinst)

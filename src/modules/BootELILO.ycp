@@ -368,12 +368,12 @@
     /**
       * Reset bootloader settings
       */
-    global define void Reset () ``{
+    global define void Reset (boolean init) ``{
 	if (Mode::autoinst)
 	    return;
 	remove_old_efi = true;
 	create_efi_entry = true;
-	BootCommon::Reset ();
+	BootCommon::Reset (init);
     }
 
     /**
