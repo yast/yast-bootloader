@@ -87,6 +87,14 @@
 	    }
 	}
 
+	// Fix bug 19125
+	string prefix = "";
+	if (Boot::BootPartitionDevice == Boot::RootPartitionDevice)
+	    prefix = "/boot/";
+	else
+	    prefix = "/";
+	prefix = lilo2Grub (Boot::BootPartitionDevice) + prefix;
+
 	// Generate grafical login
 
 	string menu = SCR::Read (.target.string, "/boot/grub/menu.lst");
@@ -94,7 +102,7 @@
 	lines = filter (`l, lines, ``(substring (l, 0, 7) != "gfxmenu" && substring (l, 0, 5) != "color"));
 	lines = prepend (lines, "color white/blue black/light-gray");
 	if (SCR::Read (.target.size, "/boot/message") > 0)
-	    lines = prepend (lines, sformat ("gfxmenu %1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message"));
+	    lines = prepend (lines, sformat ("gfxmenu %1%2%3", "", prefix,  "message"));
 	menu = mergestring (lines, "\n");
 
         if ((SCR::Read (.target.size, "/boot/initrd") < 0)
@@ -103,9 +111,9 @@
             y2milestone ("no initrd created");
             list menu_l = splitstring (menu, "\n");
             if (SCR::Read (.target.size, "/boot/initrd") < 0)
-                menu_l = filter (`i, menu_l, ``(! issubstring (i, "/boot/initrd")));
+                menu_l = filter (`i, menu_l, ``(! issubstring (i, prefix + "initrd")));
             if (SCR::Read (.target.size, "/boot/initrd.shipped") < 0)
-                menu_l = filter (`i, menu_l, ``(! issubstring (i, "/boot/initrd.shipped")));
+                menu_l = filter (`i, menu_l, ``(! issubstring (i, prefix + "initrd.shipped")));
             menu = mergestring (menu_l, "\n");
             SCR::Write (.target.string, "/boot/grub/menu.lst", menu);
         }
