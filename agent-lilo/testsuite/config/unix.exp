@@ -1,0 +1,5 @@
+load_lib "ag_liloconf_init.exp"
+
+proc ag_liloconf_exit {} {}
+proc ag_liloconf_version {} {}
+

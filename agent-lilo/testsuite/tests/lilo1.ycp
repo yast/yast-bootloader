@@ -1,0 +1,4 @@
+{
+    // basic Dir test
+    return [Dir(.), Dir(.image), Dir(.other)];
+}

@@ -1,0 +1,10 @@
+Makefile
+Makefile.in
+.deps
+.libs
+runliloconf
+site.*
+*.log
+*.sum
+tmp.*
+runag_liloconf
