@@ -357,6 +357,7 @@
 	boolean ret = 0 == exit["exit"]:1;
 	if (! ret)
 	{
+	    y2error ("Exit code of %1: %2", command, exit["exit"]:-1);
 	    string log = (string)SCR::Read (.target.string, logfile);
 	    log = log + exit["stdout"]:"" + exit["stderr"]:"";
 	    if (exit["exit"]:1 == 139)
