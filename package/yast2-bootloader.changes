@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 24 18:02:01 CEST 2002 - msvec@suse.cz
+
+- temporary fix for lilo startup (#17142)
+
+-------------------------------------------------------------------
 Mon Jul 22 12:20:57 CEST 2002 - kkaempf@suse.de
 
 - prepare for GRUB support

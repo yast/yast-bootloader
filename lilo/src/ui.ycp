@@ -78,7 +78,7 @@ global define symbol LiloMainDialog() ``{
             `yes: `back
         ],
 	"summary" : $[
-	    `accept : "save",
+	    // FIXME #17142 `accept : "save",
 	    `modify : "target",
 	    `restore : "summary",
 	    `next  : "end",
