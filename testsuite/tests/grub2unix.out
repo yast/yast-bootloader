@@ -21,6 +21,7 @@ Read	.sysconfig.console.CONSOLE_SCREENMAP ""
 Read	.sysconfig.console.CONSOLE_UNICODEMAP ""
 Read	.sysconfig.console.CONSOLE_MAGIC ""
 Read	.sysconfig.console.CONSOLE_ENCODING ""
+Read	.sysconfig.language.RC_LANG ""
 Read	.target.string "/boot/grub/device.map" "(hd0) /dev/hda\n(hd1)   /dev/ida/c0d0\n(fd0)   /dev/fd0\n"
 Return	[["(hd0)", "/dev/hda"], ["(hd1)", "/dev/ida/c0d0"], ["(fd0)", "/dev/fd0"]]
 Return	/dev/hda

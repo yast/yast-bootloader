@@ -21,6 +21,7 @@ Read	.sysconfig.console.CONSOLE_SCREENMAP ""
 Read	.sysconfig.console.CONSOLE_UNICODEMAP ""
 Read	.sysconfig.console.CONSOLE_MAGIC ""
 Read	.sysconfig.console.CONSOLE_ENCODING ""
+Read	.sysconfig.language.RC_LANG ""
 Dump	======================================
 Dump	W1
 Return	nil

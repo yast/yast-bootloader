@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep 18 23:08:24 CEST 2003 - nashif@suse.de
+
+- Fixed testsuite
+- 2.8.20
+
+-------------------------------------------------------------------
 Thu Sep 18 10:29:15 CEST 2003 - jsrain@suse.de
 
 - again adding maxcpus=0 to failsafe bootloader entry on AMD64
