@@ -22,6 +22,11 @@
 textdomain "bootloader";
 
 import "Arch";
+import "Boot";
+
+global define boolean preferLilo () ``{
+    return Storage::UseLilo ();
+}
 
 /**
   * get kernel parameter from GRUB command line
@@ -253,15 +258,17 @@ global define string getLinuxPath (string pth) ``{
 global define string lilo2Grub (string o_dev) ``{
     string d = "";
     integer i = 0;
-    string number = "";
-    if (regexpmatch (o_dev, ".*c[0-9]+d[0-9]+.*"))
+    map p_dev = Storage::GetDiskPartition (o_dev);
+    any num = p_dev["nr"]:0;
+    o_dev = p_dev["disk"]:"";
+/*    if (regexpmatch (o_dev, ".*c[0-9]+d[0-9]+.*"))
 	number = regexpsub (o_dev, ".*c[0-9]+d[0-9]+(.*)", "\\1");
     else if (! regexpmatch (o_dev, ".*fd[0-9]+"))
 	number = regexpsub (o_dev, ".*[^0-9]([0-9]*)$", "\\1");
     y2debug ("Number: %1", number);
     o_dev = substring (o_dev, 0, size (o_dev) - size (number));
     while (filterchars (substring (number, 0, 1), "0123456789") == "" && size (number) > 0)
-	number = substring (number, 1);
+	number = substring (number, 1);*/
     if (findlastof (o_dev, "/") == nil)
 	o_dev = o_dev + "/dev/";
     while (i<size (o_dev))
@@ -280,11 +287,11 @@ global define string lilo2Grub (string o_dev) ``{
     integer first = findfirstof (dev, "\n");
     if (first != nil)
         dev = substring (dev, 0, first);
-    if (number != "")
+    if (num != 0 && num != "")
     {
-	integer num = tointeger (number);
+//	integer num = tointeger (number);
 	num = num - 1;
-	number = sformat ("%1", num);
+	string number = sformat ("%1", num);
 	dev = substring (dev, 0, size (dev) - 1) + "," + number + ")";
     }
     return dev;
@@ -316,10 +323,11 @@ global define string grub2Lilo (string o_dev) ``{
     {
 	integer num = tointeger (number);
 	num = num + 1;
-	number = sformat ("%1", num);
-	if (regexpmatch (dev, ".*c[0-9]+d[0-9]+"))
-	    dev = dev + "p";
-	dev = dev + number;
+//	number = sformat ("%1", num);
+	dev = Storage::GetDeviceName (dev, num);
+//	if (regexpmatch (dev, ".*c[0-9]+d[0-9]+"))
+//	    dev = dev + "p";
+//	dev = dev + number;
     }
     return dev;
 }

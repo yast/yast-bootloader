@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Aug 30 15:54:15 CEST 2002 - jsrain@suse.cz
+
+- fixed bootfloppy creation (not yet tested) (Bug #17430)
+- building fixed
+- removed shadowed symbols (Bug #18622)
+- 2.6.33
+
+-------------------------------------------------------------------
 Wed Aug 28 11:57:22 CEST 2002 - jsrain@suse.cz
 
 - fixed building on SPARC

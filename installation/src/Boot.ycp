@@ -113,10 +113,13 @@
 
     global define void Boot()
     ``{
-	string tmp_mods = SCR::Read (.etc.install_inf.InitrdModules);
-	if (tmp_mods != nil)
+	if (! Mode::normal)
 	{
-	    initrdModules = splitstring (tmp_mods, " ");
+	    string tmp_mods = SCR::Read (.etc.install_inf.InitrdModules);
+	    if (tmp_mods != nil)
+	    {
+		initrdModules = splitstring (tmp_mods, " ");
+	    }
 	}
 
 	LoaderType = SCR::Read (.probe.boot_arch);
@@ -128,6 +131,8 @@
 	    if (sysconfig == "grub" || sysconfig == "lilo")
 		LoaderType = sysconfig;
 	}
+	if (LoaderType == "grub" && Storage::UseLilo())
+	    LoaderType = "lilo";
 	y2milestone ("Setting bootloader type to %1", LoaderType);
 	return;
     }
@@ -196,6 +201,7 @@
 
     global define void Set()
     ``{
+	y2error ("UseLilo: %1", Storage::UseLilo());
 	// get map of lists
 	// $[ "/mount_point" : [partitionName, fsid, targetdevice, raid_type], ...]
 	map mountPoints		= Storage::GetMountPoints();

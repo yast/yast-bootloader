@@ -8,6 +8,7 @@
 
 {
     include "testsuite.ycp";
+    import "Pkg";
     include "lilo/routines.ycp";
 
     TEST(``(difflist([1, 2, 3, 4], [1, 3])), [], nil);

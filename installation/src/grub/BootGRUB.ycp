@@ -91,7 +91,7 @@
 	string menu = SCR::Read (.target.string, "/boot/grub/menu.lst");
 	list lines = splitstring (menu, "\n");
 	lines = filter (`l, lines, ``(substring (l, 0, 7) != "gfxmenu" && substring (l, 0, 5) != "color"));
-	lines = prepend (lines, "color white/green black/light-gray");
+	lines = prepend (lines, "color white/blue black/light-gray");
 	if (SCR::Read (.target.size, "/boot/message") > 0)
 	    lines = prepend (lines, sformat ("gfxmenu %1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message"));
 	menu = mergestring (lines, "\n");
@@ -317,7 +317,7 @@ Do you want to try again?")) )
 	string menu = "";
 	if (SCR::Read (.target.size, "/boot/message") > 0)
 	    menu = menu + sformat ("gfxmenu %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message");
-	menu = menu + "color white/green black/light-gray\n";
+	menu = menu + "color white/blue black/light-gray\n";
 	menu = menu + "default 0\n";
 	menu = menu + "timeout 8\n";
 

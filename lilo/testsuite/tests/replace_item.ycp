@@ -8,6 +8,7 @@
 
 {
     include "testsuite.ycp";
+    import "Pkg";
     include "lilo/routines.ycp";
 
     TEST(``(replaceitem([1,2,3,4,5], "v", 2)), [], nil);

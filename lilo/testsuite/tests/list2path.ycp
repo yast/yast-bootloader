@@ -8,6 +8,7 @@
 
 {
     include "testsuite.ycp";
+    import "Pkg";
     include "lilo/routines.ycp";
 
     TEST(``(list2path(["a","b","c"])), [], nil);

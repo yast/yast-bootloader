@@ -8,6 +8,7 @@
 
 {
     include "testsuite.ycp";
+    import "Pkg";
     include "lilo/routines.ycp";
     
     TEST(``(normalizeValue("change", "a,b,c,d")), [], nil);

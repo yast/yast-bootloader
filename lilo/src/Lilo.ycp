@@ -388,7 +388,7 @@
      */
 
 
-    define any mod2ui(any val) ``{
+/*    define any mod2ui(any val) ``{
 	if (is(val, string))
 	{
 	    string v = sformat("%1", val);
@@ -407,7 +407,7 @@
 	    return v;
 	}
 	return val;
-    }
+    }*/
 
     /**
      * reverse of ag2mod
@@ -415,7 +415,7 @@
      * @return any transformed value
      */
 
-    define any ui2mod(any val) ``{
+/*    define any ui2mod(any val) ``{
 	if (is(val, string))
 	{
 	    string v = sformat("%1", val);
@@ -436,7 +436,7 @@
 	    return v;
 	}
 	return val;
-    }
+    }*/
 
     /**
      * converts array of string to path

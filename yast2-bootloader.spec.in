@@ -1,8 +1,8 @@
 @HEADER-COMMENT@
-# neededforbuild gpp libgpp libxcrypt libxcrypt-devel yast2-devel-packages hwinfo
+# neededforbuild gpp libgpp libxcrypt libxcrypt-devel yast2-devel-packages hwinfo yast2-storage yast2-country yast2-installation
 
 @HEADER@
-Requires:	yast2 yast2-core
+Requires:	yast2 yast2-core yast2-storage
 
 Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-liloconf yast2-agent-prom yast2-trans-bootfloppy yast2-trans-inst-bootloader yast2-trans-lilo
 Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader yast2-agent-liloconf yast2-agent-prom yast2-trans-bootfloppy yast2-trans-inst-bootloader yast2-trans-lilo
