@@ -769,6 +769,8 @@
       */
     global define void liloRemoveUnexistentSections (string path_prefix,
 	string relative_path_prefix) ``{
+	string default = (string)lookup_value (globals, "default", "");
+	string first = nil;
 	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``{
 	    string label = (string)
 		lookup_value (s, BootCommon::getSectionTitle (), "");
@@ -777,14 +779,23 @@
             if (label == "")
 	    {
 		y2warning ("Removing section with empty title");
+		if (label == default)
+		    default = nil;
                 return false;
 	    }
 	    if (! contains (["linux", "failsafe", "memtest86"], type))
+	    {
+		if (first == nil)
+		    first = label;
 		return true;
-
+	    }
 	    string kernel = (string)lookup_value (s, "image", "");
 	    if (kernel == "")
+	    {
+		if (first == nil)
+		    first = label;
 		return true;
+	    }
 	    if (substring (kernel, 0, 1) == "/")
 		kernel = path_prefix + kernel;
 	    else
@@ -793,10 +804,17 @@
 	    {
 		y2warning ("Removing section %1 with unexistent kernel %2",
 		    label, kernel);
+		if (label == default)
+		    default = nil;
 		return false;
 	    }
+	    if (first == nil)
+		first = label;
 	    return true;
 	});
+	if (default == nil)
+	    default = first;
+	globals = modifySection (globals, "default", default);
     }
 
     /**

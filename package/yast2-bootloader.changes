@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep  7 10:09:14 CEST 2004 - jsrain@suse.cz
+
+- update the default boot section mark properly if a section was
+  removed (eg. because of missing kernel) (#44752)
+
+-------------------------------------------------------------------
 Mon Sep  6 13:56:56 CEST 2004 - jsrain@suse.cz
 
 - do not use obsolete include commandline/commandline.ycp
