@@ -476,7 +476,7 @@ configuration files
 			installed = true;
 		    }
 		});
-		if (installed && Mode::normal)
+		if (installed && Mode::normal && ! Mode::config)
 		{
 		    Pkg::PkgSolve ();
 		    Pkg::PkgCommit (0);

@@ -281,6 +281,7 @@
     global define map getPromAliasWidget () ``{
 	return $[
 	    "type" : "b",
+		// label / table entry
 	    "label" : _("Create PROM Alias 'linux'"),
 	    "restore" : ``(BootSILO::restorePromAlias ()),
 	    "handle" : ``(BootSILO::handlePromAlias ()),
@@ -295,6 +296,7 @@
     global define map getDefaultDeviceWidget () ``{
 	return $[
 	    "type" : "b",
+		// label / table entry
 	    "label" : _("Set Default PROM Boot Device"),
 	    "restore" : ``(BootSILO::restoreDefDev ()),
 	    "handle" : ``(BootSILO::handleDefDev ()),

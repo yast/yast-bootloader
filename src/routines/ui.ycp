@@ -54,6 +54,7 @@
 	    `VSpacing (1)
 	), `HSpacing (1));
 	UI::OpenDialog (widget);
+	UI::SetFocus (`id (`optname));
 	any ret = nil;
 	any option = nil;
 	while (ret != `ok && ret != `cancel)
@@ -153,6 +154,7 @@
 	    `VSpacing (1)
         ), `HSpacing (1));
         UI::OpenDialog (contents);
+	UI::SetFocus (`id (`value_rp));
 	eval (widget_data["restore"]:nil);
         any ret = nil;
         while (ret != `ok && ret != `cancel)
@@ -166,6 +168,8 @@
 		    toEval = add (add (toEval, ret), [`ok]);
 		    eval (toEval);
 		}
+		else
+		    UI::SetFocus (`id (`value_rp));
 	    }
 	    if (ret == `ok)
 	    {
@@ -376,6 +380,7 @@
 	    BootCommon::changed_settings[current_l]
 		= eval (BootCommon::tmp_store["changed_single_sect"]:$[]);
 	}
+	UI::SetFocus (`id (`settings));
     }
 
     /**
@@ -571,13 +576,27 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
       * @param help string help for the dialog
       * @param next_button string label of next button
       * @param exits list of symbols representing events to exit dialog
+      * @param back whether should be Abort/Back buttons shown (true),
+      *   or only Cancel button
       * @return symbol wizard sequencer symbol
       */
     global define symbol runDialog (list widgets, string caption,
-	term contents, string help, string next_button, list exits)
+	term contents, string help, string next_button, list exits,
+	boolean back)
     ``{
 	Wizard::SetContentsButtons (caption, contents, help,
 	    BackButtonLabel (), next_button);
+	if (back)
+	{
+	    Wizard::RestoreBackButton ();
+	    Wizard::RestoreAbortButton ();
+	}
+	else
+	{
+	    Wizard::ReplaceBackButton(`VSpacing (0));
+	    Wizard::ReplaceAbortButton (
+		`PushButton (`id (`abort), CancelButtonLabel ()));
+	}
 
 	readWidgets (widgets);
 
@@ -585,6 +604,8 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
 	while (! contains (exits, ret))
 	{
 	    ret = UI::UserInput ();
+	    if (ret == `abort && ! BootCommon::confirmAbort ())
+		ret = nil;
 	    if (! validateWidgetsIfNeeded (widgets, ret))
 		ret = nil;
 	    ret = handleChange (widgets, ret);
@@ -617,7 +638,7 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
         string help = mergeHelps (widgets);
 	list exits = getExitEvents (widgets);
 	return runDialog (widgets, caption, contents, help, OKButtonLabel (),
-	    exits);
+	    exits, true);
     }
 
     /**
@@ -636,7 +657,7 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
         string help = mergeHelps (widgets);
         list exits = getExitEvents (widgets);
         return runDialog (widgets, caption, contents, help, OKButtonLabel (),
-            exits);
+            exits, true);
     }
 
     /**
@@ -663,7 +684,7 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
         list exits = getExitEvents (widgets);
 
         return runDialog (widgets, caption, contents, help, OKButtonLabel (),
-            exits);
+            exits, false);
     }
 
     /**
@@ -706,6 +727,9 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
         Wizard::SetContentsButtons (caption, contents, help,
             BackButtonLabel (), OKButtonLabel ());
 
+	Wizard::RestoreBackButton ();
+	Wizard::RestoreAbortButton ();
+
 	string filename = filenames[0]:"";
 	if (default != "")
 	    filename = default;
@@ -727,6 +751,11 @@ Switch bootloader?"), BootCommon::getLoaderName (to));
 	    {
 		files[filename] = UI::QueryWidget (`id (`file), `Value);
 		Bootloader::blSetFiles (files);
+	    }
+	    if (ret == `abort)
+	    {
+		if (! confirmAbortPopup ())
+		    ret = nil;
 	    }
         }
         return ret;

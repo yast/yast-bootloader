@@ -5,26 +5,25 @@
 SUBDIRS = autodocs
 
 htmldir = $(docdir)
-pdfdir = $(docdir)
-pngdir = $(docdir)
 
-html_DATA = readme.mbr #bootloader.html
-pdf_DATA = #bootloader.pdf
-png_DATA = #$(wildcard *.png)
+dias := $(wildcard *.dia)
+pngs := $(dias:%.dia=%.png)
+xmls := $(wildcard *.xml)
 
-#bootloader.html:
-#	db2html --nochunks bootloader.xml >bootloader.html
+diagrams = \
+	$(pngs)	\
+	$(dias)
 
-#bootloader.pdf:
-#	db2pdf bootloader.xml
 
-#%.png: %.dia
-#	dia -n -e $@ $< 
+bootloader.html: $(xmls)
+	db2html --nochunks bootloader.xml >bootloader.html
 
-#dias := $(wildcard *.dia)
-#pngs := $(dias:%.dia=%.png)
+bootloader.pdf: $(xmls)
+	db2pdf bootloader.xml
 
-#distdir-local: bootloader.html bootloader.pdf $(pngs)
+%.png: %.dia
+	dia -n -e $@ $< 
 
-EXTRA_DIST = $(html_DATA) $(pdf_DATA) $(png_DATA)
+html_DATA = readme.mbr $(diagrams) bootloader.pdf bootloader.html
+EXTRA_DIST = $(html_DATA)
 

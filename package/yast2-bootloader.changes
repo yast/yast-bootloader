@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb  3 16:59:29 CET 2003 - jsrain@suse.de
+
+- fixed NCurses usability - focus setting
+- 2.7.6
+
+-------------------------------------------------------------------
 Fri Jan 31 11:59:29 CET 2003 - jsrain@suse.de
 
 - not adding lvm groups and md disks to device map (#23217)
