@@ -106,7 +106,7 @@
             $[ "key" : "label", "value" : BootCommon::translateSectionTitle (title)],
             $[ "key" : "image", "value" : image],
             $[ "key" : "initrd", "value" : initrd],
-            $[ "key" : "root", "value" : BootCommon::dev2majmin (
+            $[ "key" : "root", "value" : BootCommon::dev2majminIfNonStandard (
 		BootCommon::RootPartitionDevice)],
             $[ "key" : "__intern__", "value" : $[
                 "auto" : true,
