@@ -605,6 +605,8 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	while (! contains (exits, ret))
 	{
 	    ret = UI::UserInput ();
+	    if (ret == `cancel)
+		ret = `abort;
 	    if (ret == `abort && ! BootCommon::confirmAbort ())
 		ret = nil;
 	    if (! validateWidgetsIfNeeded (widgets, ret))
