@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr 24 11:19:57 CEST 2003 - jsrain@suse.de
+
+- updated doaboot script (ro@suse.de)
+
+-------------------------------------------------------------------
 Wed Apr 23 13:12:31 CEST 2003 - jsrain@suse.de
 
 - updated widget handling functions interface
