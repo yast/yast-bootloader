@@ -67,7 +67,7 @@
 	"modules4" : _("Creating PCMCIA, old (non-ATAPI) CDROM,
 FireWire and file systems modules floppy"),
 	// image text - label
-	"modules5" : _("Creating IDA/RAID/SCSI modules floppy"),
+	"modules5" : _("Creating IDE/RAID/SCSI modules floppy"),
     ];
 
     /**
