@@ -86,6 +86,21 @@
             });
 	}
 
+	// device map stuff
+	if (ai["loader_type"]:"" == "grub")
+	{
+	    list<map<string,string> > dm = ai["device_map"]:[];
+	    if (dm != nil && size (dm) > 0)
+	    {
+		list<list<string> > device_map = maplist (
+		    map<string,string> entry, dm,
+		{
+		    return [entry["firmware"]:"", entry["linux"]:""];
+		});
+		exp["specific", "device_map"] = device_map;
+	    }
+	}
+
 	// initrd stuff
 	list<string> modlist = [];
 	map<string,any> modsett = $[];
@@ -240,6 +255,26 @@
                     ai[k] = exp["specific", k]:nil;
                 }
             });
+	}
+
+	// device map stuff
+	if (ai["loader_type"]:"" == "grub")
+	{
+	    list<list<string> > device_map = exp["specific", "device_map"]:[];
+	    y2error ("DM: %1", device_map);
+	    if (device_map != nil && size (device_map) > 0)
+	    {
+		list<map<string,string> > dm = maplist (
+		    list<string> e,
+		    device_map,
+		{
+		    return $[
+			"linux" : e[1]:"",
+			"firmware" : e[0]:""
+		    ];
+		});
+		ai["device_map"] = dm;
+	    }
 	}
 
 	// initrd stuff

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 28 13:46:53 CET 2005 - jsrain@suse.cz
+
+- export GRUB device map information to AutoYaST profile (#49730)
+
+-------------------------------------------------------------------
 Tue Jan 25 13:08:49 CET 2005 - jsrain@suse.cz
 
 - adaptations to install properly on MD arrays
