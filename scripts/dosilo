@@ -154,7 +154,7 @@ echo "partition=$part" >> $root_dir/boot/silo.conf
 echo "#append=\"video=sbusfb:off\"" >> $root_dir/boot/silo.conf
 echo "read-only" >> $root_dir/boot/silo.conf
 
-head -1 /etc/SuSE-release > $root_dir/boot/message
+head -n 1 /etc/SuSE-release > $root_dir/boot/message
 if [ -f $root_dir/boot/message ] ; then
   echo "message=$boot_path/message" >> $root_dir/boot/silo.conf
 fi
