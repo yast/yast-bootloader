@@ -60,6 +60,8 @@
 	// image text - label
 	"modules4" : _("Creating PCMCIA, old (non-ATAPI) CDROM,
 FireWire and file systems modules floppy"),
+	// image text - label
+	"modules5" : _("Creating IDA/RAID/SCSI modules floppy"),
     ];
 
     /**
@@ -271,6 +273,10 @@ If necessary, also specify the user name and password for authentication.</p>
 		    // radiobutton - disk image name
                    _("&PCMCIA, Old (non-ATAPI) CD-ROM, FireWire,
 and File Systems (modules disk 4)"))),
+		`VSpacing (0.4),
+		`Left (`RadioButton (`id ("modules5"),
+		    // radiobutton - disk image name
+		    _("&More IDE/RAID/SCSI (modules disk 5)"))),
 		`VSpacing (2)
 	    );
 	}
