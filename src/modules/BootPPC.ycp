@@ -90,27 +90,27 @@
 // misc. functions
 
     global define void initBoardType () ``{
-        if (Arch::board_iseries)
+        if (Arch::board_iseries ())
         {
 	    board_type = "iseries";
         }
-        else if (Arch::board_prep)
+        else if (Arch::board_prep ())
         {
 	    board_type = "prep";
         }
-        else if (Arch::board_chrp)
+        else if (Arch::board_chrp ())
         {
 	    board_type = "chrp";
 	}
-        else if (Arch::board_mac_new)
+        else if (Arch::board_mac_new ())
         {
 	    board_type = "mac_new";
 	}
-        else if (Arch::board_mac_old)
+        else if (Arch::board_mac_old ())
         {
 	    board_type = "mac_old";
 	}
-        else if (Arch::board_mac_nubus)
+        else if (Arch::board_mac_nubus ())
         {
 	    board_type = "mac_nubus";
 	}

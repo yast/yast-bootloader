@@ -82,7 +82,7 @@
 	string image = title == "wildcard" ? "vmlinuz-*" : "vmlinuz";
 	string append = title == "failsafe"
 	    ? "ide=nodma apm=off acpi=off vga=normal noresume selinux=0 barrier=off "
-	      + ((Arch::x86_64)
+	      + ((Arch::x86_64 ())
 		? "iommu=noforce maxcpus=0 "
 		: "nosmp noapic maxcpus=0 ")
 	      + BootCommon::GetAdditionalFailsafeParams () + " 3"

@@ -51,7 +51,7 @@
 	    Bootloader::ResetEx (false);
 	    BootCommon::setLoaderType (nil);
 	}
-	else if ((Arch::i386 || Arch::x86_64) && ! Mode::autoinst)
+	else if ((Arch::i386 () || Arch::x86_64 ()) && ! Mode::autoinst)
 	{
 	    string loader = BootCommon::getLoaderType (false);
 	    boolean pl = BootCommon::prefer_lilo;

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Oct 11 16:09:03 CEST 2004 - jsrain@suse.cz
+
+- adapted to new Arch:: interface
+
+-------------------------------------------------------------------
 Wed Oct  6 10:04:38 CEST 2004 - jsrain@suse.cz
 
 - fixed summary if GRUB section name contains HTML tag (#46792)

@@ -296,11 +296,11 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
      */
     global define void PreUpdate () {
 	y2milestone ("Running bootloader pre-update stuff");
-	if (Arch::ia64)
+	if (Arch::ia64 ())
 	{
 	    BootELILO::UpdateEfiPartitionLayout ();
 	}
-	else if (Arch::s390)
+	else if (Arch::s390 ())
 	{
 	    BootS390::UpdateZiplConfBeforeUpdate ();
 	}
@@ -433,7 +433,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	}
 	y2milestone ("Saving configuration files");
 	string lt = getLoaderType ();
-	if (lt == "ppc" && Arch::ppc)
+	if (lt == "ppc" && Arch::ppc ())
 	    lt = "lilo";
         SCR::Write (.sysconfig.bootloader.LOADER_TYPE, lt);
         SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
@@ -694,7 +694,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	(string section, string key, string value)
     ``{
 	if ((! Mode::config) && key == "vga" && (
-	    Arch::s390 || Arch::ppc
+	    Arch::s390 () || Arch::ppc ()
 	))
 	{
 	    y2warning ("Kernel of this architecture does not support the vga parameter");
@@ -826,7 +826,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 		BootCommon::was_read = true;
 		BootCommon::was_proposed = true;
 	    }
-	    else if (Arch::ia64 && Mode::update
+	    else if (Arch::ia64 () && Mode::update
 		&& BootELILO::efi_layout_changed)
 	    { // recreate config on IPF from scratch - request by rw
 		y2milestone ("Reproposing new configuration - IPF, EFI layout has changed");

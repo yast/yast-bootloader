@@ -199,7 +199,7 @@ the BIOS of your machine to use this option.
 - In some <b>other</b> partition. Consider your system's restrictions
 when selecting this option.</p>
 ");
-	if (Arch::i386)
+	if (Arch::i386 ())
 	{
 	    // optional part, only inserted on x86 architectures. 6 of 7
 	    helptext = helptext + _("<p>For example, most PCs have a BIOS
