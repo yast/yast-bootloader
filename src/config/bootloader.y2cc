@@ -35,4 +35,9 @@ SortKey =
 ; which textdomain to use for translations (important!)
 Textdomain = bootloader
 
+; enable autoinst
+Autoinst = all
+
+AutoinstPath = install
+
 ; vim:syntax=dosini

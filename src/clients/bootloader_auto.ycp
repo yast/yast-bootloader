@@ -89,6 +89,9 @@
     else if (func == "Write") {
 	ret = Bootloader::Write();
     }
+    else if (func == "Read") {
+	ret = Bootloader::Read();
+    }
 
     /* unknown function */
     else {
