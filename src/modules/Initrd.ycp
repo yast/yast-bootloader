@@ -26,9 +26,13 @@
 // module variables
 
     /**
-      * map of modules for being contained in initrd and their settings
+      * List of modules for Initrd
       */
-    map modules = $[];
+    list modules = [];
+    /**
+      * map of settings for modules for being contained in initrd
+      */
+    map modules_settings = $[];
     /**
       * true if settings were changed and initrd needs to be rebuilt,
       * false otherwise
@@ -101,7 +105,8 @@
             if ( ! contains (modules_to_skip, modname))
 	    {
 		changed = true;
-		modules [modname] = Misc::SplitOptions (modargs, $[]);
+		modules = add (modules, modname);
+		modules_settings [modname] = Misc::SplitOptions (modargs, $[]);
 	    }
         }
 	y2milestone ("Module %1 added to initrd, now contains %2",
@@ -116,7 +121,10 @@
     global define map Export () ``{
 	if (! was_read)
 	    Read ();
-	return modules;
+	return $[
+	    "list" : modules,
+	    "settings" : modules_settings,
+	];
     }
 
     /**
@@ -124,7 +132,8 @@
       * @param settings map of initrd settings
       */
     global define void Import (map settings) ``{
-	modules = settings;
+	modules = settings["list"]:[];
+	modules_settings = settings["settings"]:$[];
 	was_read = true;
 	changed = true;
     }
@@ -136,7 +145,7 @@
     global define list ListModules () ``{
 	if (! was_read)
 	    Read ();
-	return maplist (`k, `v, modules, ``(k));
+	return modules;
     }
 
     /**
@@ -159,9 +168,9 @@
 	}
 
 	string s_modnames = SCR::Read (.sysconfig.kernel.INITRD_MODULES);
-	list modnames = splitstring (s_modnames, " ");
-	modnames = filter (`m, modnames, ``(m != ""));
-	foreach (`m, modnames, ``{modules [m] = $[];});
+	modules = splitstring (s_modnames, " ");
+	modules = filter (`m, modules, ``(m != ""));
+	foreach (`m, modules, ``{modules_settings [m] = $[];});
 	return true;
     }
     /**
@@ -171,7 +180,8 @@
     global define void RemoveModule (string modname) ``{
 	if (! was_read)
 	    Read ();
-	modules = filter (`k, `v, modules, ``(k != modname));
+	modules = filter (`k, modules, ``(k != modname));
+	modules_settings = filter (`k, `v, modules_settings, ``(k != modname));
 	changed = true;
     }
 
@@ -182,7 +192,8 @@
 	y2milestone ("Reseting initrd settings");
 	was_read = false;
 	changed = false;
-	modules = $[];
+	modules = [];
+	modules_settings = $[];
     }
 
     /**
@@ -198,7 +209,7 @@
 
 	boolean modules_written = false;
 
-	foreach (`modname, `optmap, modules, ``{
+	foreach (`modname, `optmap, modules_settings, ``{
 	    if (size (optmap) > 0)
 	    {
 		// write options to /etc/modules.conf
@@ -215,7 +226,7 @@
 	// save sysconfig
         SCR::Execute (.target.bash,
 	    "/usr/bin/touch /etc/sysconfig/bootloader");
-	string mods = mergestring (maplist (`k,`v,modules, ``{return k;}), " ");
+	string mods = mergestring (modules, " ");
 	y2milestone ("Writing modules %1", mods);
 	SCR::Write (.sysconfig.kernel.INITRD_MODULES, mods);
 	SCR::Write (.sysconfig.kernel, nil);

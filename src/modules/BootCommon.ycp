@@ -116,6 +116,13 @@
       */
     global integer partitioning_last_change = 0;
 
+// saving mode setting functions
+
+    /**
+      * map of save mode settings
+      */
+    global map write_settings = $[];
+
 // summary dialog state
 
     /**

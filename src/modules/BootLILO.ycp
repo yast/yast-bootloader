@@ -142,6 +142,14 @@
                 if (-1 == SCR::Read (.target.size, initrd))
                     s = remove (s, "initrd");
             }
+            else if ((title == "linux" || title == "failsafe")
+		&& BootCommon::write_settings["insert_initrd"]:false)
+            {
+                if (title == "linux")
+                    s["initrd"] = "/boot/initrd";
+                else
+                    s["initrd"] = "/boot/initrd.shipped";
+            }
             if (s["label"]:"" == "linux")
 		s["append"] = BootCommon::updateKernelParams (s["append"]:"");
             return s;
@@ -172,7 +180,7 @@
     global define boolean Write () ``{
 	BootCommon::updateMBR ();
 	boolean ret = true;
-	if (true) // save always
+	if (true) // save always in case of LILO
 //	if (BootCommon::location_changed)
 	{
 	    if (! (BootCommon::location == "floppy" && saveToFLoppyPopup ()))
