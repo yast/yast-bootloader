@@ -289,7 +289,7 @@ Proceed?
 	Wizard::SetContentsButtons (caption, contents, help,
             Label::BackButton (), Label::OKButton ());
 
-	return CWM::Run (widgets, $[]);
+	return CWM::Run (widgets, $[`abort : confirmAbortPopup]);
     }
 
     /**
@@ -311,7 +311,7 @@ Proceed?
 	Wizard::SetContentsButtons (caption, contents, help,
 	    Label::BackButton (), Label::OKButton ());
 
-	return CWM::Run (widgets, $[]);
+	return CWM::Run (widgets, $[`abort : confirmAbortPopup]);
     }
 
     /**
@@ -339,7 +339,7 @@ Proceed?
 	Wizard::SetContentsButtons (caption, contents, help,
             Label::BackButton (), Label::FinishButton ());
 
-	return CWM::Run (widgets, $[]);
+	return CWM::Run (widgets, $[`abort : confirmAbortPopup]);
     }
 
     /**
