@@ -181,14 +181,23 @@
 	    // are allowed, otherwise translartion won't be used
 	    // try to keep short, may be shortened due to bootloader limitations
             "original MBR" : _("MBR before Installation"),
+        ];
+        map not_trans = $[
+            "linux" : "Linux",
+            "failsafe" : "Failsafe",
+            "floppy" : "Floppy",
+            "hard disk" : "Hard Disk",
+            "memtest86" : "Memory Test",
+            "original MBR" : "MBR before Installation",
             "windows" : "Windows",
         ];
-	string translated = trans[orig]:orig;
+	string translated = trans[orig]:"\n"; // not allowed character
+		// not_translated version will be used
 	string filtered = filterchars (translated, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _");
 	if (size (filtered) != size (translated))
 	{
 	    y2error ("Incorrect translation %1 -> %2", orig, translated);
-	    return orig;
+	    return not_trans[orig]:orig;
 	}
 	if (BootCommon::getLoaderType (false) != "grub")
 	{
