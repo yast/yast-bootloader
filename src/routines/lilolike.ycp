@@ -183,10 +183,71 @@
         }*/
 
         BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
-/*	if (BootCommon::location != "floppy")
-	{
-	    BootCommon::activate = true;
-	}*/
+    }
+
+    /**
+      * Converts the md device to the list of devices building it
+      * @param md_device string md device
+      * @return a list of devices building the md device
+      */
+    global define list<string> Md2Partitions (string md_device) {
+	list<string> ret = [];
+	map<string,any> tm = (map<string,map>)Storage::GetTargetMap();
+	y2error ("TM: %1", tm);
+	foreach (string disk, any descr_a, tm, ``{
+	    map<string,any> descr = (map<string,any>)descr_a;
+	    list<map<string,any> > partitions = (list<map<string,any> >)
+		descr["partitions"]:[];
+	    foreach (map<string,any> partition, partitions, ``{
+		y2error ("Examining partition %1", partition);
+		if (partition["raid_name"]:"" == md_device)
+		{
+		    ret = (list<string>)
+			add (ret, (string)(partition["device"]:""));
+		}
+	    });
+	});
+	y2milestone ("Partitions building %1: %2", md_device, ret);
+	return ret;
+    }
+
+    /**
+      * Converts the md device to the first of its members
+      * @param md_device string md device
+      * @return string one of devices building the md array
+      */
+    global define string Md2Partition (string md_device) {
+	list<string> devices = Md2Partitions (md_device);
+	if (size (devices) == 0)
+	    return md_device;
+	devices = (list<string>)sort (devices);
+	return devices[0]:"";
+    }
+
+    /**
+      * Get the md device a partition belongs to (or the partition itself if
+      * it doesn't exist
+      * @param device string a partition
+      * @return string the md device
+      */
+    global define string Partition2Md (string device) {
+	string ret = device;
+	map<string,any> tm = (map<string,map>)Storage::GetTargetMap();
+	y2error ("TM: %1", tm);
+	foreach (string disk, any descr_a, tm, ``{
+	    map<string,any> descr = (map<string,any>)descr_a;
+	    list<map<string,any> > partitions = (list<map<string,any> >)
+		descr["partitions"]:[];
+	    foreach (map<string,any> partition, partitions, ``{
+		y2error ("Examining partition %1", partition);
+		if (partition["device"]:"" == device)
+		{
+		    ret = (string)(partition["raid_name"]:device);
+		}
+	    });
+	});
+	y2milestone ("Partition %1 builds %2", device, ret);
+	return ret;
     }
 
     /**

@@ -146,8 +146,11 @@
      * @return string grub device
      */
     global define string unixDev2grubDev (string o_dev) ``{
-//	if (Mode::config)
-//	    return o_dev;
+	// md can't be translated as they are, use one of partitions
+	if (regexpmatch (o_dev, "\/dev\/md[0-9]+"))
+	{
+	    o_dev = BootCommon::Md2Partition (o_dev);
+	}
         integer i = 0;
         map p_dev = Storage::GetDiskPartition (o_dev);
         any num = p_dev["nr"]:nil;
@@ -200,6 +203,7 @@
 	    num = num + 1;
 	    dev = Storage::GetDeviceName (dev, num);
 	}
+	dev = BootCommon::Partition2Md (dev);
 	return dev;
     }
 
