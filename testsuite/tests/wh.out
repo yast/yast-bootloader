@@ -85,4 +85,7 @@ Return	`op2
 Dump	H4
 Dump	H3
 Return	`op2
+Dump	H4
+Dump	H6
+Return	`op
 Dump	======================================

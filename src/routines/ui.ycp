@@ -193,7 +193,7 @@
 		if (widget_data["handle"]:nil != nil)
 		{
 		    term toEval = widget_data["handle"]:nil;
-		    toEval = add (add (toEval, `ok), [`ok]);
+		    toEval = add (add (toEval, `ok), contains ([`ok], ret));
 		    eval (toEval);
 		}
 		else
@@ -240,17 +240,17 @@
 	});
 	selected_opt = options[0]:nil;
 	UI::ChangeWidget (`id (`settings), `Items, items);
-	singleSectionHandle (`settings, []);
+	singleSectionHandle (`settings, false);
 	UI::ChangeWidget (`id (`add), `Enabled, Bootloader::blOptions() != nil);
     }
 
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any singleSectionHandle (any op, list tosave) ``{
+    global define any singleSectionHandle (any op, boolean save) ``{
 	symbol ret = nil;
 	any item = UI::QueryWidget (`id (`settings), `CurrentItem);
         if (op == `settings)
@@ -360,8 +360,7 @@
 	    }
 	    UI::ChangeWidget (`id (`settings), `CurrentItem, item);
 	}
-	if (contains (tosave, op)
-	    && BootCommon::current_section_name != `global)
+	if (save && BootCommon::current_section_name != `global)
 	{
 	    string ls = BootCommon::getSectionTitle ();
 	    string old_name = BootCommon::current_section_name;
@@ -400,17 +399,18 @@
 		= eval (BootCommon::changed_settings_single_sect);
 	}
 	UI::SetFocus (`id (`settings));
+	return nil;
     }
 
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any globalSectionHandle (any op, list tosave) ``{
-	any ret = singleSectionHandle (op, tosave);
-	if (ret == `sections) // was op, maybe wrong fix
+    global define any globalSectionHandle (any op, boolean save) ``{
+	any ret = singleSectionHandle (op, save);
+	if (op == `sections)
 	{
             BootCommon::changed_settings_all_sections
 		= eval (BootCommon::changed_settings);
@@ -424,10 +424,10 @@
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any resetButtonHandle (any op, list tosave) ``{
+    global define any resetButtonHandle (any op, boolean save) ``{
         if (op == `restore_mbr)
         {
             boolean doit = restoreMBRPopup (BootCommon::mbrDisk);
@@ -561,11 +561,11 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any loaderTypeSave (any op, list tosave) ``{
-	if (! contains (tosave, op))
+    global define any loaderTypeSave (any op, boolean save) ``{
+	if (! save)
 	    return;
 
 	string old_bl = Bootloader::getLoaderType ();

@@ -77,12 +77,12 @@ Replace it with an entry  to boot from the floppy?");
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any targetWrite (any op, list tosave) ``{
-	any ret = BootCommon::targetWrite (op, tosave);
-	if (contains (tosave, op))
+    global define any targetWrite (any op, boolean save) ``{
+	any ret = BootCommon::targetWrite (op, save);
+	if (save)
 	{
 	    list sections = BootCommon::current_sections;
 	    if (issubstring (BootCommon::loader_device, "/dev/fd")||
@@ -289,10 +289,10 @@ Replace it with an entry  to boot from the floppy?");
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any sectionsHandle (any op, list tosave) ``{
+    global define any sectionsHandle (any op, boolean save) ``{
         string current = UI::QueryWidget (`id (`sects), `CurrentItem);
         integer counter = 0;
         integer index = 0;
@@ -369,7 +369,7 @@ Replace it with an entry  to boot from the floppy?");
 	    sectionsRedrawTable (sects);
 	    BootCommon::sections_changed = true;
 	}
-        if (contains (tosave, op) && op != `edit && op != `add)
+        if (save && op != `edit && op != `add)
         {
             if (BootCommon::sections_changed)
             {
@@ -384,6 +384,7 @@ Replace it with an entry  to boot from the floppy?");
             y2milestone ("Restoring changed to %1", BootCommon::changed_settings);
         }
 	UI::SetFocus (`id (`sects));
+	return nil;
     }
 
 // grub-specific dialogs
@@ -445,8 +446,7 @@ Replace it with an entry  to boot from the floppy?");
       * @return string summary text
       */
     global define string orderSummary () ``{
-//	if (disks_order == nil)
-	    disks_order = getDisksOrder ();
+	disks_order = getDisksOrder ();
 	return mergestring (disks_order, ", ");
     }
 
@@ -454,9 +454,7 @@ Replace it with an entry  to boot from the floppy?");
       * Restore function of widget
       */
     global define void restoreOrderPopup () ``{
-//        if (disks_order == nil)
-            disks_order = getDisksOrder ();
-
+        disks_order = getDisksOrder ();
 	UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
                     `opt (`notify, `immediate),
                     _("D&isks"), disks_order));
@@ -468,17 +466,17 @@ Replace it with an entry  to boot from the floppy?");
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any handleOrderPopup (any op, list tosave) ``{
+    global define any handleOrderPopup (any op, boolean save) ``{
 	string active = UI::QueryWidget (`id (`disks), `CurrentItem);
 	integer pos = 0;
 	while (pos < size (disks_order) && disks_order[pos]:"" != active)
 	    pos = pos + 1;
 	UI::ChangeWidget (`id (`up), `Enabled, pos > 0);
 	UI::ChangeWidget (`id (`down), `Enabled, pos < size (disks_order) - 1);
-	if (! contains (tosave, op))
+	if (! save)
 	{
 	    if (op == `up)
 	    {
@@ -576,7 +574,7 @@ Replace it with an entry  to boot from the floppy?");
 	    disks_order = nil;
 	}
 	UI::SetFocus (`id (`disks));
-	return op;
+	return nil;
     }
 
     /**
@@ -593,15 +591,17 @@ Replace it with an entry  to boot from the floppy?");
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
+      * @return any changed op (if needed)
       */
-    global define void gfxMenuHandle (any op, list tosave) ``{
-	if (! contains (tosave, op))
-	    return;
+    global define any gfxMenuHandle (any op, boolean save) ``{
+	if (! save)
+	    return nil;
 	BootCommon::current_section["gfxmenu"]
 	    = UI::QueryWidget (`id (`value), `Value);
 	BootCommon::current_section["__intern__"] =
 	   add (BootCommon::current_section["__intern__"]:$[], "changed", true);
+	return nil;
     }
 
     /**
@@ -652,14 +652,13 @@ Replace it with an entry  to boot from the floppy?");
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any addOrigMbrSave (any op, list tosave) ``{
-        if (! contains (tosave, op))
-            return op;
+    global define any addOrigMbrSave (any op, boolean save) ``{
+        if (! save)
+            return nil;
         insert_saved_mbr = UI::QueryWidget (`id (`value), `Value);
-y2error ("Saved mbr: %1", insert_saved_mbr);
 	if (insert_saved_mbr)
 	{
 	    boolean found = false;
@@ -684,7 +683,7 @@ y2error ("Saved mbr: %1", insert_saved_mbr);
 		! s["__intern__", "original_mbr"]:false
 	    ));
 	}
-        return op;
+        return nil;
     }
 
     /**

@@ -45,10 +45,13 @@ Of course the concept allows to modify the base work flow for single bootloader,
 		    <listitem><para><computeroutput>"restore" : term</computeroutput>, will be evaluated after dialog gets shown.
 			Appropriate contents of dialog (eg. texts from textentries) should be set during evaluating this term.</para></listitem>
 		    <listitem><para><computeroutput>"handle" : term</computeroutput>, which will be evaluated every time some UI event is generated (at each UI::UserInput ()).
-			Before evaluating, symbol parameter will be added, containing result value of UI::UserInput (), second parameter containing list of events leading to exit
+			Before evaluating, symbol (typically, but for general use better specify any as parameter type)
+			parameter containing result value of UI::UserInput () and boolean parameter containing value saying whether this event leads to exit
 			widget with saving will be added.
-			Handler's return value must contain symbol, which may be the same, but can be changed. If nil is returned, it is handled the same way as if it wouldn't
-			be changed.</para></listitem>
+			Handler should return some value that will be interpreted by widget handling routines and may change the final result of operation.
+			If nil is returned, the final return value of all called handlers isn't changed by this widget.
+			If some other value is returned, the final return value of all called handlers is changed to this value (but may be changed again by any later
+			called widget handler). All widget handlers are called in the same order as widget are specified in the dialog.</para></listitem>
 		    <listitem><para><computeroutput>"help" : string</computeroutput> representing help, which should be displayed to the widget.
 			The help will be included in dialog help at appropriate place (left bar for normal dialog - in HTML format, as a label for pop-ups).</para></listitem>
 		    <listitem><para><computeroutput>"validate" : term</computeroutput>, will be evaluated when it will be needed (dialog will be exited other way than
@@ -68,6 +71,17 @@ Of course the concept allows to modify the base work flow for single bootloader,
 			Key not present means option name will be used.</para></listitem>
 		    <listitem><para><computeroutput>"summary" : term</computeroutput> will be evaluated to get the text to the settings table. Result of evaluation of this term
 			will be used. If key not present, raw value will be used if it is part of configuration file, otherwise will be empty.</para></listitem>
+		    <listitem><para><computeroutput>"widget_label" : string</computeroutput> is label of the widget shown in popup (if generic widget is used). Should contain shortcut
+			mark (ampersand).</para></listitem>
+		    <listitem><para><computeroutput>"deletable" : boolean</computeroutput> says whether table item may be deleted by user (typical line from bootloader section can be deleted,
+			but eg. allowint to delete bootloader type doesn't have too much sense). Default is true.</para></listitem>
+		    <listitem><para><computeroutput>"ordering" : boolean</computeroutput> says whether if ordering is needed by bootloader, moving selected item in the section up or down makes
+			sense. In case of GRUB should be allowed for sections contents (eg. kernel and initrd commands), but not for section title and section type.
+			Default is true.</para></listitem>
+		    <listitem><para><computeroutput>"type" : string</computeroutput> specifies what type the option has. Is used only to choose correct generic widget if no
+			specialized widget for option is set. Supported values are "s" for string, "b" for boolean and "i" for integer values. Additionally, opttype "x" exists for special
+			options (typically multi-line), and is handled the same way as "s". If no option type is specifies (or retaken from LILO agent), "s" is used by default.
+			If option type retaken from LILO agent differs from specified option type, the specified one is used.</para></listitem>
 		</itemizedlist>
             </para>
         </section>

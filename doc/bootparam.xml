@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+
+    <section id="param">
+        <title>Bootloader-specific parameters</title>
+	<section>
+	    <title>Motivation</title>
+	    <para>
+One of redesign goals was not to duplicate a lot of code between differnt bootloaders. One possibility was to parametrize code by used bootloader.
+This approach is wrong, and makes non-trivial to add support for new bootloader. Because both possibilities (code duplication and parametrization by bootloader)
+are wrong, I was looking for some better solution.
+	    </para>
+	    <para>
+As optimal I found to parametrize common functions not by bootloader name, but by some bootloader-specific attributes. This means that bootloader-specific part
+provides some information about the bootloader and configuration file (the same set of informations for all bootloaders), and all common functions are parametrized
+by these parameters. This solution reduces code duplicatoin and also allows common functions to be easily customized for any new bootloader. Customizing for new bootloader
+means just to create the set of specified parameters.
+	    </para>
+	</section>
+	<section>
+	    <title>How it works</title>
+	    <para>
+BootCommon.ycp module contains map for storing all bootloaders' parameters. Bootloader-specific module when initializing (best in constructor) must add it's parameters
+to this map and these parameters will then be used. There are wrapper functions for most common parameters and also generic function for getting any parameter available.
+Via these functions (or directly) are then read the parameters and used in common functions.
+	    </para>
+	</section>
+	<section>
+	    <title>Individual parameters</title>
+	    <para>
+Following individual bootloader parameters are currently supported:
+	    </para>
+	    <itemizedlist>
+<listitem><para><computeroutput>"section_title" : string</computeroutput> specifies the key of bootloader configuration file that holds the name of the section.
+    Accessable via <computeroutput>string BootCommon::getSectionTitle ()</computeroutput> wrapper.</para></listitem>
+<listitem><para><computeroutput>"kernel_key" : string</computeroutput> specifies the key of bootloader configuratino file that holds the kernel to boot specification.
+    Accessable via <computeroutput>string BootCommon::getKernelKey ()</computeroutput> wrapper.</para></listitem>
+<listitem><para><computeroutput>"required_packages" : list(string)</computeroutput> specifies list of names of packages that are required for bootloader to be installed.
+    Accessable via <computeroutput>list(string) BootCommon::getBootloaderPackages (string bootloader)</computeroutput> wrapper.</para></listitem>
+<listitem><para><computeroutput>"loader_name" : string</computeroutput> specifies name of bootloader to be displayed to user.
+    Accessable via <computeroutput>string BootCommon::getLoaderName (string bootloader)</computeroutput> wrapper.</para></listitem>
+<listitem><para><computeroutput>"default_key" : string</computeroutput> specifies the key of bootloader configuration file that holds information about default section to boot.
+    Accessable via <computeroutput>string BootCommon::getDefaultKey ()</computeroutput> wrapper.</para></listitem>
+<listitem><para><computeroutput>"default_type" : symbol</computeroutput> specifies the kind of information regarding default section is present in configuratino file.
+    Possible values are `index (index of default section is specified) or `label (label/title of default section is specified).
+    Accessable via <computeroutput>symbol BootCommon::getDefaultType ()</computeroutput> wrapper.</para></listitem>
+<listitem><para><computeroutput>"default_index_first" : integer</computeroutput> is used only if default_type is `index and specifies the index of first section.
+    Typically is 0 or 1.
+    Accessable via <computeroutput>integer BootCommon::getDefaultFirstIndex ()</computeroutput> wrapper.</para></listitem>
+<listitem><para><computeroutput>"timeout_multiplier" : integer</computeroutput> specifies the multiplier of timeout specified in configuration files. If time in cfg. file is specified
+    in seconds, should be 1. In case of LILO, where time is specified in 1/10s of second, should be 10.
+    Accessable via <computeroutput>integer BootCommon::getTimeoutMultiplier ()</computeroutput> wrapper.</para></listitem>
+<listitem><para><computeroutput>"alias_keys" : list(string)</computeroutput> specifies the list of bootloader cfg. file keys that can hold section name aliases. Is used when checking
+    for duplicate section names and section aliases.
+    Accessable via <computeroutput>list(string) BootCommon::getAliasesKeys ()</computeroutput> wrapper.</para></listitem>
+<listitem><para><computeroutput>"convert_function" : term</computeroutput> specifies function that is used for conversion between multiple section types. Function must have 3 parameters,
+    first means old section type (strign), second new section type (string) and third old section (map).</para></listitem>
+<listitem><para><computeroutput>"kernel_params" : map</computeroutput> specifies the keys where to look for kernel parameters. If key is string, then it means that value specified
+    by the key (eg. in case of LILO root) has special option in section of cfg. file named as the value. Special key `other says where to look for other kernel parameters in bootloader
+    configuration file.</para></listitem>
+<listitem><para><computeroutput>"update_passwd" : term</computeroutput> is evaluated when password is grabbed from widget. Is used to crypt password according to bootloader needs.
+    When evaluating, password is stored in password variable, and the same variable should be changed to contain correctly crypted password.</para></listitem>
+<listitem><para><computeroutput>"propose" : boolean</computeroutput> says whether proposing new configuration should be available from Reset menubutton.</para></listitem>
+<listitem><para><computeroutput>"read" : boolean</computeroutput> says whether rereading configuration from disk should be available from Reset menubutton.</para></listitem>
+<listitem><para><computeroutput>"scratch" : boolean</computeroutput> says whether reseting current configuration and starting from scratch should be available
+    from Reset menubutton.</para></listitem>
+<listitem><para><computeroutput>"addtional_entries" : list(`item)</computeroutput> contains list of additional items that should be available from Reset menubutton.
+    Items of this list should be in the format of menubutton item.</para></listitem>
+<listitem><para><computeroutput>"restore_mbr" : boolean</computeroutput> says whether possibility to restore MBR saved before bootloader installation should be available from
+    Reset menubutton.</para></listitem>
+<listitem><para><computeroutput></computeroutput></para></listitem>
+
+	    </itemizedlist>
+	    <para>
+According to menubutton-related items: Some of them may have additional conditions to be displayed (eg. some saved MBR must be on disk to make sense to restore it).
+	    </para>
+	</section>
+	<section>
+	    <title>Additional wrappers</title>
+	    <para>
+Additional generic wrappers are also available:
+	    </para>
+	    <itemizedlist>
+<listitem><para><computeroutput>boolean BootCommon::getBooleanAttrib (string attrib)</computeroutput> to get specified boolean parameter</para></listitem>
+<listitem><para><computeroutput>any BootCommon::getAnyTypeAttrib (string attrib)</computeroutput> to get specified parameter of any type</para></listitem>
+	    </itemizedlist>
+	</section>
+    </section>
+

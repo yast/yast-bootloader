@@ -155,18 +155,18 @@
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any targetWrite (any op, list tosave) ``{
-	if (! contains (tosave, op))
-	    return;
+    global define any targetWrite (any op, boolean save) ``{
+	if (! save)
+	    return nil;
 	location = UI::QueryWidget (`id (`location), `CurrentButton);
 	loader_device = UI::QueryWidget (`id (`loc), `Value);
 	BootCommon::storeSettings ();
 	loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::location_changed = true;
-	return;
+	return nil;
     }
 
     /**
@@ -264,17 +264,17 @@
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any handlePasswdWidget (any op, list tosave) ``{
+    global define any handlePasswdWidget (any op, boolean save) ``{
 	if (op == `usepas)
 	{
 	    boolean enabled = UI::QueryWidget (`id (`usepas), `Value);
 	    UI::ChangeWidget (`id (`pw1), `Enabled, enabled);
 	    UI::ChangeWidget (`id (`pw2), `Enabled, enabled);
 	}
-	else if (contains (tosave, op))
+	else if (save)
 	{
 	    boolean usepass = UI::QueryWidget (`id (`usepas), `Value);
 	    y2milestone ("Usepass: %1", usepass);
@@ -298,6 +298,7 @@
 		    = remove (current_section, "password");
 	    }
 	}
+	return nil;
     }
 
     /**
@@ -416,10 +417,10 @@
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return symbol changed op (if needed)
       */
-    global define symbol sectionsHandle (any op, list tosave) ``{
+    global define symbol sectionsHandle (any op, boolean save) ``{
 	y2milestone ("Handling event %1", op);
 	string current = UI::QueryWidget (`id (`sects), `CurrentItem);
 	integer counter = 0;
@@ -495,7 +496,7 @@
 	    sectionsRedrawTable (sects);
 	    BootCommon::sections_changed = true;
 	}
-	if (contains (tosave, op) && op != `edit && op != `add)
+	if (save && op != `edit && op != `add)
 	{
 	    if (BootCommon::sections_changed)
 	    {
@@ -510,6 +511,7 @@
 	    y2milestone ("Restoring changed to %1", BootCommon::changed_settings);
 	}
 	UI::SetFocus (`id (`sects));
+	return nil;
     }
 
     /**
@@ -792,18 +794,19 @@
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any sectionTypeSave (any op, list tosave) ``{
-	if (! contains (tosave, op))
+    global define any sectionTypeSave (any op, boolean save) ``{
+	if (! save)
 	    return;
         string ntype = UI::QueryWidget (`id (`section_type), `Value);
 	string otype = BootCommon::getSectionType (BootCommon::current_section);
 	if (otype == ntype)
-	    return;
+	    return nil;
 	BootCommon::current_section = BootCommon::convertSection (
 	    otype, ntype, BootCommon::current_section);
+	return nil;
     }
 
     /**
@@ -813,8 +816,8 @@
     global define string sectionTypeSummary () ``{
 	string key = BootCommon::getKernelKey ();
 	return BootCommon::current_section[key]:nil == nil
-	    ? "other"
-	    : "image";
+	    ? _("other")
+	    : _("image");
     }
 
     /**
@@ -831,7 +834,7 @@
 	    // table item / label
 	    "label" : _("Backup original MBR"),
 	    // checkbox label, %1 is device (eg. /dev/hda)
-	    "widget_label" : sformat (_("Backup MBR of %1"),
+	    "widget_label" : sformat (_("&Backup MBR of %1"),
 		BootCommon::mbrDisk),
 	    "summary" : ``(BootCommon::backupMbrSummary ()),
 	    "deletable" : false,
@@ -850,14 +853,14 @@
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any backupMbrSave (any op, list tosave) ``{
-        if (! contains (tosave, op))
-            return op;
+    global define any backupMbrSave (any op, boolean save) ``{
+        if (! save)
+            return nil;
         backup_mbr = UI::QueryWidget (`id (`value), `Value);
-        return op;
+        return nil;
     }
 
     /**
@@ -866,10 +869,10 @@
       */
     global define string backupMbrSummary () ``{
         if (backup_mbr)
-                // table item / label, %1 is device (eg. /dev/hda)
+            // table item / label, %1 is device (eg. /dev/hda)
             return sformat (_("Backup MBR of %1"), BootCommon::mbrDisk);
         else
-                // table item / label
+            // table item / label
             return _("Do not backup current MBR");
     }
 
@@ -906,14 +909,14 @@
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any saveMethodSave (any op, list tosave) ``{
-        if (! contains (tosave, op))
-            return op;
+    global define any saveMethodSave (any op, boolean save) ``{
+        if (! save)
+            return nil;
         save_all = UI::QueryWidget (`id (`value), `Value);
-        return op;
+        return nil;
     }
 
     /**
@@ -922,10 +925,10 @@
       */
     global define string saveMethodSummary () ``{
         if (save_all)
-                // table item / label
+            // table item / label
             return _("Force saving everything");
         else
-                // table item / label
+            // table item / label
             return _("Save only changed files");
     }
 
@@ -954,16 +957,16 @@
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any timeoutSave (any op, list tosave) ``{
-	if (! contains (tosave, op))
-	    return op;
+    global define any timeoutSave (any op, boolean save) ``{
+	if (! save)
+	    return nil;
 	integer timeout = UI::QueryWidget (`id (`value), `Value)
 	    * BootCommon::getTimeoutMultiplier ();
 	BootCommon::current_section["timeout"] = timeout;
-	return op;
+	return nil;
     }
 
     /**
@@ -1056,16 +1059,16 @@
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any replMbrHandle (any op, list tosave) ``{
-        if (! contains (tosave, op))
-            return op;
+    global define any replMbrHandle (any op, boolean save) ``{
+        if (! save)
+            return nil;
 	repl_mbr = UI::QueryWidget (`id (`value), `Value);
 	if (repl_mbr)
 	    BootCommon::location_changed = true;
-	return op;
+	return nil;
     }
 
     /**
@@ -1110,17 +1113,16 @@
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any activateHandle (any op, list tosave) ``{
-        if (! contains (tosave, op))
-            return op;
+    global define any activateHandle (any op, boolean save) ``{
+        if (! save)
+            return nil;
         activate = UI::QueryWidget (`id (`value), `Value);
         if (activate)
             BootCommon::location_changed = true;
-
-	return op;
+	return nil;
     }
 
     /**
@@ -1130,7 +1132,7 @@
     global define string activateSummary () ``{
         if (activate)
 		// table item
-		// FIXME
+		// FIXME partition %1 of %2
             return sformat (_("Yes, activate %1"),
 		lookup (BootCommon::getPartitionToActivate (), "dev", ""));
         else

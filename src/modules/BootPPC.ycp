@@ -617,10 +617,10 @@ image = /boot/" + Kernel::binary + "
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any handleLocationWidget (any op, list tosave) ``{
+    global define any handleLocationWidget (any op, boolean save) ``{
 /*
         y2milestone("UI_Poll %1 %2", ui_poll , ui_poll != "ppc_nobootloader");
         if (Arch::board_iseries)
@@ -665,7 +665,7 @@ image = /boot/" + Kernel::binary + "
 
 */
 
-	if (! contains (tosave, op))
+	if (save)
 	    return op;
         if ( Arch::board_iseries )
         {
@@ -787,11 +787,11 @@ image = /boot/" + Kernel::binary + "
     /**
       * Handle function of widget
       * @param op any operation to handle
-      * @param tosave list of operations, which lead to closing & saving widget
+      * @param save boolean true if op should lead to closing & saving widget
       * @return any changed op (if needed)
       */
-    global define any handleOptionsWidget (any op, list tosave) ``{
-	if (! contains (tosave, op))
+    global define any handleOptionsWidget (any op, boolean save) ``{
+	if (! save)
 	    return op;
         if ( ( Arch::board_iseries || Arch::board_chrp ) &&
                 size (ppc_prep_boot_partitions) > 0 )

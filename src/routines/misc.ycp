@@ -57,12 +57,12 @@
 
     /**
       * return printable name of bootloader
-      * @param type string bootloader type internal string
+      * @param bootloader string bootloader type internal string
       * @return string printable bootloader name
       */
-    global define string getLoaderName (string type) ``{
+    global define string getLoaderName (string bootloader) ``{
 	// fallback bootloader name, keep short
-	return bootloader_attribs[type, "loader_name"]:_("boot loader");
+	return bootloader_attribs[bootloader, "loader_name"]:_("boot loader");
     }
 
     /**
@@ -122,7 +122,7 @@
       * @param attrib string attribute name
       * @return any value of attribute
       */
-    global define boolean getAnyTypeAttrib (string attrib) ``{
+    global define any getAnyTypeAttrib (string attrib) ``{
         return current_bootloader_attribs[attrib]:false;
     }
 

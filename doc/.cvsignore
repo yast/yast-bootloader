@@ -8,3 +8,5 @@ bootloader.pdf
 bootloader.tex
 bootloader.junk
 db2html*
+CATALOG.local
+*.dsl
