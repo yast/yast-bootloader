@@ -470,7 +470,7 @@ global define any ui2mod(any val) ``{
 
 global define string boot() ``{
     string ret = SCR::Read(.probe.boot_arch);
-    if (ret == "grub" && SCR::Read (.sysconfig.bootloader.LOADER_TYPE) != "grub")
+    if (ret == "grub" && SCR::Read (.sysconfig.bootloader.LOADER_TYPE) != nil)
 	ret = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
     if (ret == "grub")
 	Lilo::mode = `grub;

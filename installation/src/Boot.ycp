@@ -504,12 +504,9 @@
     global define void Boot()
     ``{
 	LoaderType = SCR::Read (.probe.boot_arch);
-	y2error ("Probe Arch 1: %1", LoaderType);
-	// FIXME, wait for complete grub support
-	if (LoaderType == "grub" || LoaderType == "lilo")
+	if (LoaderType == "grub" && Mode::update)
 	{
 	    string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
-	    y2error ("Sysconfig: %1", sysconfig);
 	    if (sysconfig == "grub" || sysconfig == "lilo")
 		LoaderType = "lilo";
 	}

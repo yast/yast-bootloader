@@ -183,7 +183,8 @@ Do you want to try again?")) )
 
     global define list AskParameters ()
     ``{
-	return eval ([
+	return [];
+/*	return eval ([
 	    `Left (
 		`CheckBox (`id( `linear ),
 		// check box: use the 'linear' option?
@@ -195,7 +196,7 @@ Do you want to try again?")) )
 		_("Ac&tivate LILO partition"),
 		activate)
 	    )
-	]);
+	]);*/
     }
 
     /**
@@ -208,6 +209,7 @@ Do you want to try again?")) )
 
     global define string HelpParameters ()
     ``{
+	return "";
 	// custom bootloader help text, LILO only, 1 of 2
 	return _("<p>
 The <b>linear option</b> is for backwards compatibility. Use this to make LILO
@@ -235,7 +237,8 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 
     global define void HandleParameters ()
     ``{
-	any option = nil;
+	return;
+/*	any option = nil;
 
 	// on i386, no need for linear if bios has lba support
 	if (Arch::i386 && lba_support)
@@ -255,7 +258,7 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	{
 	    activate = option;
 	}
-	return;
+	return;*/
     }
 
 
@@ -320,6 +323,7 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	string grub_conf = getGrubConf (settings);
 
 	string menu = "";
+	menu = menu + sformat ("gfxmenu %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "message");
 	menu = menu + "default 0\n";
 	menu = menu + "timeout 8\n";
 
@@ -336,7 +340,31 @@ is not required, but, on some systems, the BIOS only boots from an active partit
 	    sformat ("root=%1", Boot::RootPartitionDevice), Kernel::cmdLine);
 	menu = menu + sformat ("   initrd %1%2%3\n", lilo2Grub (Boot::BootPartitionDevice), prefix,  "initrd");
 
-//TODO add non-linux sections
+	y2error ("other = %1", Boot::other);
+	if (Boot::other != "")
+        {
+	    list others = splitstring (Boot::other, "\"");
+	    foreach (`o, others, ``{
+		while (substring (o, 0, 1) == " ")
+		    o = substring (o, 1);
+		while (size (o) > 0 && substring (o, size (o) -1) == " ")
+		    o = substring (o, 0, size (o) - 1);
+		if (o != "" && o != "-o")
+		{
+		    list parts = splitstring (o, " ");
+		    parts = filter (`p, parts, ``(p != ""));
+		    if (size (parts) >= 2 && select (parts, 0, "") != "" && select (parts, 1, "") != "")
+		    {
+			string dev =  lilo2Grub (select (parts, 0, ""));
+			parts = remove (parts, 0);
+			string label = mergestring (parts, " ");
+			menu = menu + sformat ("title %1\n", label);
+			menu = menu + sformat ("   root %1\n", dev);
+			menu = menu + "   makeactive\n   chainloader +1\n";
+		    }
+		}
+	    });
+	}
 
 	menu = menu + "title failsafe\n";
 	menu = menu + sformat ("   kernel %1 %2 %3\n", sformat ("%1%2%3", lilo2Grub (Boot::BootPartitionDevice), prefix,  "vmlinuz.suse"),
@@ -390,7 +418,7 @@ y2error ("Sections: %1", sections);
 	y2milestone ("Starting GRUB");
 	string command = sformat ("echo \"%1\" | grub --batch ", grub_conf);
 	SCR::Execute(.target.bash, command);
-	y2milestone ("GRUB installed", ret);
+	y2milestone ("GRUB installed");
 
 
 

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jul 26 09:34:02 CEST 2002 - jsrain@suse.cz
+
+- added bootloader graphical screen support for GRUB
+- added other OS during installation support for GRUB
+- 2.6.8
+
+-------------------------------------------------------------------
 Thu Jul 25 15:54:25 CEST 2002 - schwab@suse.de
 
 - Fix doelilo script.
