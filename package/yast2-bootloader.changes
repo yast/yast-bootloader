@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar  7 13:32:23 CET 2005 - jsrain@suse.cz
+
+- added ZIPL installation via perl-Bootloader
+
+-------------------------------------------------------------------
 Fri Mar  4 10:43:29 CET 2005 - jsrain@suse.cz
 
 - propose XEN section if XEN and XEN kernels are installed/selected
