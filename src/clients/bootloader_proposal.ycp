@@ -13,9 +13,12 @@
     textdomain "bootloader";
 
     import "Language";
+    import "Arch";
     import "Bootloader";
+    import "BootCommon";
 
     include "ui/common_popups.ycp";
+    include "bootloader/routines/ui.ycp";
 
     string func  = WFM::Args(0);
     map    param = WFM::Args(1);
@@ -30,6 +33,41 @@
 	{
 	    // force re-calculation of bootloader proposal
 	    Bootloader::Reset ();
+	}
+
+	if (! Bootloader::proposed_cfg_changed)
+	{
+	    Bootloader::Reset ();
+	    BootCommon::setLoaderType (nil);
+	}
+	else if (Arch::i386 || Arch::x86_64)
+	{
+	    string loader = BootCommon::getLoaderType (false);
+	    boolean pl = BootCommon::prefer_lilo;
+	    string new_l = BootCommon::getLoaderType (true);
+
+	    y2milestone ("PL: %1, L: %2, NL: %3, NPL: %4", pl, loader, new_l, BootCommon::prefer_lilo);
+
+	    if (pl != BootCommon::prefer_lilo && new_l != loader)
+	    {
+		symbol ret = nil;
+		if ((pl && new_l != "lilo") || (! pl && new_l == "lilo"))
+		{
+		    ret = askSwitch (loader, new_l, `proposal);
+		}
+		if (ret == nil)
+		{
+		    BootCommon::setLoaderType (loader);
+		}
+		else if (ret == `propose)
+		{
+		    Bootloader::Reset ();
+		}
+		else if (action == `convert)
+		{
+		    convertSettings (old_bl, new_bl);
+		}
+	    }
 	}
 
 	Bootloader::Propose ();
@@ -54,6 +92,8 @@
 	symbol result = WFM::CallFunction (`bootloader (.noio));
 	if (result != `next)
 	    Bootloader::Import (settings);
+	else
+	    Bootloader::proposed_cfg_changed = true;
 
 	// Fill return map
 	ret = $[ "workflow_sequence" : result ];

@@ -542,6 +542,8 @@
     global define boolean saveCfgFileToAgent () ``{
 	y2milestone ("Saving: glob: %1, sec: %2", globals, sections);
 	string bl = getLoaderType (false);
+	if (bl == "s390")
+	    bl = "zipl";
 
         // first synchronize global settings
 
@@ -654,6 +656,8 @@
       */
     global define boolean loadCfgFileFromAgent () ``{
         string bl = getLoaderType (false);
+	if (bl == "s390")
+	    bl = "zipl";
 
         list optlist = SCR::Dir(list2path([bl]));
 
@@ -686,6 +690,8 @@
       */
     global define map opttypes() ``{
 	string bl = getLoaderType (false);
+	if (bl == "s390")
+	    bl = "zipl";
 	if (size (opt_types[bl]:$[]) > 0)
 	    return opt_types[bl]:$[];
 	map out = SCR::Read (list2path ([bl, "opttypes"]));

@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jan 17 15:00:17 CET 2003 - jsrain@suse.de
+
+- fixed detection of disks configuration changes that may decide to
+  use other bootloader (#22918)
+- updated S390 installation
+- 2.7.2
+
+-------------------------------------------------------------------
 Fri Jan 10 17:25:38 CET 2003 - jsrain@suse.de
 
 - fixed failsafe kernel parameters on i386 (#22539)

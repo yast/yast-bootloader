@@ -275,6 +275,14 @@ bool liloOrderedOptions::processLine(inputLine* li)
 	optname=li->option;
     }
 
+    if (type == "zipl" && optname[0] == '[')
+    {
+	norm_value = optname;
+	norm_value.erase (0,1);
+	int strsize = norm_value.size ();
+	norm_value.erase (strsize - 1, 1);
+        optname = "label";
+    }
     if (optname == "label")
 	norm_value = replaceBlanks (norm_value, '_');
 
@@ -284,7 +292,8 @@ bool liloOrderedOptions::processLine(inputLine* li)
     {
 	if(!spec)
 	{
-	    order.push_back(new liloOption(li->option, norm_value, li->comment));
+				// was li->option
+	    order.push_back(new liloOption(optname, norm_value, li->comment));
 	}
 	else
 	{
@@ -537,16 +546,21 @@ int liloOrderedOptions::saveToFile(ostream* f, string indent)
     for(uint i=0; i<order.size(); i++)
     {
 	if ((type == "grub" && (order[i]->optname == "title"))
-	    ||(type != "grub" && (order[i]->optname == "image" || order[i]->optname == "other")))
+	    ||(type == "zipl" && (order[i]->optname == "label"))
+	    ||(type != "grub" && type != "zipl" && (order[i]->optname == "image" || order[i]->optname == "other")))
 	{
-	    *f <<  order[i]->optname << separ << order[i]->value << endl;
+	    if (type == "zipl")
+		*f << "[" << order[i]->value << "]" << endl;
+	    else
+		*f <<  order[i]->optname << separ << order[i]->value << endl;
 	}
     }
 
     for(uint i=0; i<order.size(); i++)
     {
         if ((type == "grub" && (order[i]->optname == "title"))
-            ||(type != "grub" && (order[i]->optname == "image" || order[i]->optname == "other")))
+	    ||(type == "zipl" && (order[i]->optname == "label"))
+            ||(type != "grub" && type != "zipl" && (order[i]->optname == "image" || order[i]->optname == "other")))
 	{
 	    continue;
 	}

@@ -113,7 +113,7 @@ bool liloFile::parse()
 	    trail=false;
 	    commentBuffer="";
 	    continue;
-	}		
+	}
 
 	bool header = false;
 	if (type == "grub")
@@ -122,6 +122,17 @@ bool liloFile::parse()
 	    {
                 curSect=new liloSection(type);
                 curSect->processLine(li); 
+                sections.push_back(curSect);
+                retval=true;
+                header = true;
+	    }
+	}
+	else if (type == "zipl")
+	{
+	    if (li->option[0] == '[')
+	    {
+                curSect=new liloSection(type);
+                curSect->processLine(li);
                 sections.push_back(curSect);
                 retval=true;
                 header = true;

@@ -359,9 +359,9 @@
 		    )
 		),
 		`HBox (
-		    `PushButton (`id (`add), AddButtonLabel ()),
-		    `PushButton (`id (`edit), EditButtonLabel ()),
-		    `PushButton (`id (`delete), DeleteButtonLabel ()),
+		    `PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
+		    `PushButton (`id (`edit), `opt (`key_F4), EditButtonLabel ()),
+		    `PushButton (`id (`delete), `opt (`key_F5), DeleteButtonLabel ()),
 		    `HStretch (),
 			// pushbutton
 		    `PushButton (`id (`default), _("Set as de&fault"))
@@ -550,9 +550,9 @@
 		    `Table (`id (`settings), `opt (`notify, `keepSorting),
 			`header (_("Ch."), _("Option"), _("Value")), []),
 		    `HBox (
-			`PushButton (`id (`add), AddButtonLabel ()),
-			`PushButton (`id (`edit), EditButtonLabel ()),
-			`PushButton (`id (`delete), DeleteButtonLabel ()),
+			`PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
+			`PushButton (`id (`edit), `opt (`key_F4), EditButtonLabel ()),
+			`PushButton (`id (`delete), `opt (`key_F5), DeleteButtonLabel ()),
 			`HStretch ()
 		    )
 		), `HSpacing (2))),

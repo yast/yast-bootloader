@@ -34,6 +34,13 @@
       */
     global boolean repeating_write = false;
 
+// installation proposal help variables
+
+    /**
+      * Configuration was changed during inst. proposal if true
+      */
+    global boolean proposed_cfg_changed = false;
+
 // general functions
 
     /**
@@ -81,7 +88,7 @@
 	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
 	if (BootCommon::location == "none")
 	{
-	    BootCommon::locaion = "custom";
+	    BootCommon::location = "custom";
 	    BootCommon::loader_device = "/dev/null";
 	}
 	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
@@ -173,6 +180,7 @@
 	if (! (BootCommon::changed
 	    || BootCommon::write_settings["initrd_changed_externally"]:false))
 	{
+	    y2milestone ("No bootloader cfg. file saving needed, exiting");
 	    return true;
 	}
 
