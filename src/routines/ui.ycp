@@ -38,7 +38,8 @@
 	    return false;
         if (`abort == UI::PollInput ())
         {
-            UI::CloseDialog ();
+	    if (! Stage::initial ())
+		UI::CloseDialog ();
             return true;
         }
         return false;
