@@ -94,7 +94,7 @@ Replace it with an entry  to boot from the floppy?");
       * @param opt_key any option key
       */
     global define void targetStore (any opt_id, any opt_key) ``{
-	BootCommon::targetWrite (op, save);
+	BootCommon::targetStore (opt_id, opt_key);
 	list sections = BootCommon::current_sections;
 	if (issubstring (BootCommon::loader_device, "/dev/fd")||
 	    BootCommon::installingToFloppy ())

@@ -188,7 +188,6 @@
     global define void targetStore (any opt_id, any opt_key) ``{
 	location = UI::QueryWidget (`id (`location), `CurrentButton);
 	loader_device = UI::QueryWidget (`id (`loc), `Value);
-	BootCommon::storeSettings ();
 	loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::location_changed = true;
 	markGeneralOptionChanged (opt_key);
