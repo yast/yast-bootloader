@@ -93,7 +93,7 @@
 	return `redraw;
 
 	// FIXME this must be solved some way
-	readWidgets (CWM::CreateWidgets(["globalsection"], BootCommon::GetWidgets ()));
+//	readWidgets (CWM::CreateWidgets(["globalsection"], BootCommon::GetWidgets ()));
     }
 
     /**

@@ -283,7 +283,6 @@
                 ],
 		"handle" : ``(BootCommon::singleSectionHandle ()),
                 "option_delete": ``(BootCommon::commonTableEntryDelete ()),
-                "add_items":  lookup (GetOptions (), `global, []), // FIXME
 	    ]
 	);
     }
@@ -297,6 +296,9 @@
     global define symbol singleSectionHandle (any widget, map event) ``{
 	redraw_table = false;
 	map current_table = CWM::GetProcessedWidget ();
+	map options = current_bootloader_attribs["option_list"]:$[];
+	string sect_type = getSectionType (current_section);
+	current_table["add_items"] = options[sect_type]:[];
 	symbol ret = TablePopup::TableHandle (current_table, widget, event);
 	if (redraw_table)
 	{

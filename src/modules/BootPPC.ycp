@@ -105,7 +105,6 @@
 	    "save"	: ``(BootPPC::Save ()),
 	    "update"	: ``(BootPPC::Update ()),
 	    "write"	: ``(BootPPC::Write ()),
-	    "getoptions": ``(BootPPC::GetOptions ()),
 	    "widgets"	: ``(BootPPC::GetWidgets ()),
 	    "getfiles"	: ``(BootPPC::GetFiles ()),
 	    "setfiles"	: ``(BootPPC::SetFiles ()),
@@ -136,6 +135,7 @@
             "restore_mbr" : true,
             "key_only_once" : true,
             "bootloader_on_disk" : true,
+	    "option_list" : GetOptions (),
 	];
 	BootCommon::cwm_options = union (
 	    BootCommon::GetOptionMaps (),

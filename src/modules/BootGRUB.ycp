@@ -101,7 +101,6 @@
 	    "widgets"  : ``(BootGRUB::GetWidgetMapss ()),
             "getfiles" : ``(BootGRUB::GetFiles ()),
             "setfiles" : ``(BootGRUB::SetFiles ()),
-	    "getoptions":``(BootGRUB::GetOptions ()),
 	    "updoptlst": ``(BootGRUB::UpdateOptionsList ()),
 	];
     }
@@ -134,6 +133,7 @@
 	    "restore_mbr" : true,
 	    "key_only_once" : false,
 	    "bootloader_on_disk" : true,
+	    "option_list" : GetOptions (),
 	];
 	BootCommon::cwm_options = union (
 	    BootCommon::GetOptionMaps (),
