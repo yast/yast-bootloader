@@ -275,7 +275,12 @@
       */
     global define map getSingleSectionWidget () ``{
 	return TablePopup::CreateTableDescr (
-	    $["add_delete" : true, "up_down_buttons" : false, "changed_column" : true],
+	    $[
+		"add_delete" : true,
+		"up_down_buttons" : false,
+		"changed_column" : true,
+		"unique_keys" : true,
+	    ],
 	    $[
 		"store" : ``(BootCommon::singleSectionStore ()),
 		"options": BootCommon::cwm_options,
@@ -290,6 +295,7 @@
                 ],
 		"handle" : ``(BootCommon::singleSectionHandle ()),
                 "option_delete": ``(BootCommon::commonTableEntryDelete ()),
+		"add_unlisted" : false,
 	    ]
 	);
     }
@@ -363,7 +369,12 @@
       */
     global define map getGlobalSectionWidget () ``{
 	return TablePopup::CreateTableDescr (
-	    $["add_delete" : true, "up_down_buttons" : false, "changed_column" : true],
+	    $[
+		"add_delete" : true,
+		"up_down_buttons" : false,
+		"changed_column" : true,
+		"unique_keys" : true,
+	    ],
 	    $[
 		"init" : ``(BootCommon::globalSectionInit ()),
 		"handle" : ``(BootCommon::globalSectionHandle ()),
@@ -379,6 +390,7 @@
                     "changed" : ``(BootCommon::commonTableChanged ()),
                 ],
                 "option_delete": ``(BootCommon::commonTableEntryDelete ()),
+		"add_unlisted" : false,
 	    ]
 	);
     }

@@ -199,7 +199,7 @@
       * @param opt_id any option id
       * @param opt_key any option key
       * @param event map event that caused validation
-      * @return true if widget settings ok
+      * @return boolean true if widget settings ok
       */
     global define boolean targetValidate (any opt_id, any opt_key, map event)``{
 	string rb = UI::QueryWidget (`id (`location), `CurrentButton);
@@ -638,7 +638,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       * @param event map event that caused validation
-      * @return true if widget settings ok
+      * @return boolean true if widget settings ok
       */
     global define boolean labelValidate (any opt_id, any opt_key, map event) ``{
 	list(string) existing = [];
@@ -925,7 +925,7 @@ and the sector to which the boot loader is installed."),
       * @param opt_id any option id
       * @param opt_key any option key
       * @param event map event that caused validation
-      * @return true if widget settings ok
+      * @return boolean true if widget settings ok
       */
     global define boolean validatePasswdWidget (any opt_id, any opt_key,
 	map event)

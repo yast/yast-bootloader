@@ -125,6 +125,7 @@
 	BootCommon::cwm_widgets = union (
 	    BootCommon::GetWidgetMaps (),
 	    BootELILO::GetWidgetMaps ());
+	BootCommon::cwm_table_contents = ``(BootELILO::getTableContents ());
     }
 
     /**
@@ -234,11 +235,12 @@
 	}
 	else
 	{
-	    efi_entry_found = SCR::Execute (.target.bash_output, sformat (
+	    efi_entry_found = 0 == SCR::Execute (.target.bash, sformat (
                 "/usr/sbin/efibootmgr |grep \"%1\"", BootCommon::location));
 	}
 	create_efi_entry = false;
 	old_efi_entry = efi_entry_found ? BootCommon::location : nil;
+	old_efi_entry = "XXXXX";
 	return ret;
     }
 
@@ -387,7 +389,8 @@ fi", efi_label);
 	map ret = BootCommon::GetOptions ();
 	ret[`global] = filter (`o, ret[`global]:[], ``(
 	    o != "lba" && o != "lba32" && o != "linear"));
-	ret[`global] = merge (ret[`global]:[], [ "noedd30", "chooser"]);
+	ret[`global] = merge (ret[`global]:[], [ "noedd30", "chooser",
+	    "relocatable"]);
 	return ret;
     }
 
