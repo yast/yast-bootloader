@@ -2,6 +2,8 @@
 Thu Feb 19 11:27:28 CET 2004 - jsrain@suse.de
 
 - removed yast2-country from neededforbuild
+- writing hardware configuration to sysconfig on S390 instead of
+  /etc/chandev
 
 -------------------------------------------------------------------
 Tue Feb 17 08:50:18 CET 2004 - jsrain@suse.de
