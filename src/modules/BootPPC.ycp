@@ -703,9 +703,14 @@
 	    ret = BootCommon::installBootLoader (bl_command, bl_logfile) && ret;
 	}
 
-        SCR::Execute(.target.bash, "/usr/lib/YaST2/bin/ppc_postinstall.sh " + boot_device + " " + root_device);
+	string post_command = "/usr/lib/YaST2/bin/ppc_postinstall.sh "
+	    + boot_device + " " + root_device
+	    + " >> /var/log/YaST2/y2logppcpostinst 2>&1";
+	string post_log = "/var/log/YaST2/y2logppcpostinst";
 
-        return true;
+	ret = BootCommon::installBootLoader (post_command, post_log) && ret;
+
+        return ret;
     }
 
     /**
