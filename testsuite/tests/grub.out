@@ -22,6 +22,7 @@ Read	.sysconfig.console.CONSOLE_UNICODEMAP ""
 Read	.sysconfig.console.CONSOLE_MAGIC ""
 Read	.sysconfig.console.CONSOLE_ENCODING ""
 Read	.sysconfig.language.RC_LANG ""
+Execute	.target.bash_output "locale -k charmap" $[]
 Dump	======================================
 Return	[["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"]]
 Return	[["(hd1)", "/dev/hda"], ["(hd1)", "/dev/hdb"]]
