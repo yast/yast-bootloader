@@ -36,10 +36,6 @@
 
 // private variables
 
-    /**
-      * List of partitions deleted in primary proposal
-      */
-    list(string) del_parts = [];
 
 
 // general functions
@@ -115,8 +111,9 @@
 	if (! BootCommon::was_proposed)
 	{
             BootCommon::DetectDisks ();
-	    del_parts = BootCommon::getPartitionList (`deleted);
-	    y2milestone ("Partitions planned to be deleted: %1", del_parts);
+	    BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
+	    y2milestone ("Partitions planned to be deleted: %1",
+		BootCommon::del_parts);
 	}
 
 	boolean disks_changed = BootCommon::RefreshDisks();
@@ -192,7 +189,7 @@
 	SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
 	SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
 
-	BootCommon::liloRemoveUnexistentSections ("");
+	BootCommon::liloRemoveUnexistentSections ("", "");
 	BootCommon::liloUpdateInitrd ();
 	BootCommon::liloUpdateAppend ();
 	string message = lookup_value (BootCommon::globals, "message", "");
@@ -438,7 +435,7 @@
       *   relevant disk locations have changed
       */
     global define void fixSections (boolean disks_changed) ``{
-	BootCommon::liloFixSections ();
+	BootCommon::liloFixSections (``(BootLILO::createSections ()));
     }
 
     /**

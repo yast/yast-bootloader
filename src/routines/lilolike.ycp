@@ -420,18 +420,20 @@
     /**
       * Fix section of lilo-like bootloader
       */
-    global define void liloFixSections () ``{
+    global define void liloFixSections (term create_sections) ``{
 	list parts = BootCommon::getPartitionList(`parts_old);
 	if (BootCommon::partitioning_last_change
 		!= Storage::GetTargetChangeTime()
 	    && BootCommon::files_edited)
 	{
 	    displayFilesEditedPopup ();
-	    BootCommon::files_edited = false;
+	    BootCommon::files_edited_warned = true;
 	    return;
 	}
 	list old_sect_list = BootCommon::sections;
-	createSections ();
+//	createSections ();
+// this is the same
+	eval (create_sections);
 	map new_sect = listmap (`s, BootCommon::sections, ``{
 	    string label = lookup_value (s, "label", "");
 	    map intern = lookup_value (s, "__intern__", $[]);
@@ -606,8 +608,11 @@
     /**
       * Filter sections, remove those pointing to unexistent image
       * @param path_prefix string prefix to be added to kernel path
+      * @param relative_path_prefix prefix to be added to relative kernel
+      *  paths (without leading slash)
       */
-    global define void liloRemoveUnexistentSections (string path_prefix) ``{
+    global define void liloRemoveUnexistentSections (string path_prefix,
+	string relative_path_prefix) ``{
 	BootCommon::sections = filter (`s, BootCommon::sections, ``{
 	    string label = lookup_value (s, "label", "");
 	    map intern = lookup_value (s, "__intern__", $[]);
@@ -623,7 +628,10 @@
 	    string kernel = lookup_value (s, "image", "");
 	    if (kernel == "")
 		return true;
-	    kernel = path_prefix + kernel;
+	    if (substring (kernel, 0, 1) == "/")
+		kernel = path_prefix + kernel;
+	    else
+		kernel = relative_path_prefix + kernel;
 	    if (SCR::Read (.target.size, kernel) == -1)
 	    {
 		y2warning ("Removing section %1 with unexistent kernel %2",

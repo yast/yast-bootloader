@@ -159,6 +159,8 @@
 	    currentBoardInit ();
 	}
         BootCommon::DetectDisks ();
+	BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
+
 	if (updatePrepBootPartitions () || prep_boot_partition == "")
 	{
 	    // TODO warning to user
@@ -258,7 +260,7 @@
         SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
         SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
 
-	BootCommon::liloRemoveUnexistentSections ("");
+	BootCommon::liloRemoveUnexistentSections ("", "");
 	BootCommon::liloUpdateInitrd ();
 	BootCommon::liloUpdateAppend ();
 	// iSeries can have multiple locations, are stored during
@@ -495,7 +497,7 @@
       *   relevant disk locations have changed
       */
     global define void fixSections (boolean disks_changed) ``{
-	BootCommon::liloFixSections ();
+	BootCommon::liloFixSections (``(BootPPC::createSections ()));
     }
 
     /**

@@ -41,8 +41,8 @@
 	{
 	    mountpoint = "/boot";
 	}
+	y2milestone ("Mountpoint of EFI: %1", mountpoint);
 	return mountpoint;
-	y2milestone ("Mountpoing of EFI: %1", mountpoint);
     }
 
     /**
@@ -78,6 +78,17 @@
     }
 
     /**
+      * Get the absolute path to elilo.conf file
+      * @return absolut path of elilo.conf file, typically /boot/efi/efi/SuSE
+      */
+    global define string getEliloConfDir () ``{
+	string ret = sformat ("%1/efi/%2", getEfiMountPoint (),
+	    getEfiVendor ());
+	y2milestone ("elilo.conf directory: %1", ret);
+	return ret;
+    }
+
+    /**
       * Return path to elilo.conf file
       * @return string path to elilo.conf
       */
@@ -88,54 +99,5 @@
 	return ret;
     }
 
-    /**
-      * Probe path of elilo.conf, if not found, return default location
-      * @return string path of elilo.conf
-      */
-    global define string probeEliloConfFilename () ``{
-	list possibles = [
-	    "/boot/efi/efi/%1/elilo.conf",
-	    "/boot/efi/%1/elilo.conf",
-	];
-	possibles = maplist (string p, possibles, ``(
-	    sformat (p, getEfiVendor ())));
-	list probed = [];
-	foreach (string p, possibles, ``{
-	    if (-1 != SCR::Read (.target.size, p))
-	    {
-		probed = add (probed, p);
-	    }
-	});
-	string proposed = getEliloConfFilename ();
-	if (contains (probed, proposed))
-	{
-	    y2milestone ("Multiple elilo.conf files found, using %1", proposed);
-	    return proposed;
-	}
-	if (size (probed) == 0)
-	{
-	    y2milestone ("No elilo.conf found, using %1", proposed);
-	    return proposed;
-	}
-	if (size (probed) > 0)
-	{
-	    y2milestone (
-		"Multiple elilo.conf files found, using first one - %1",
-		probed[0]:nil
-	    );
-	    return probed[0]:nil;
-	}
-	// only one was found
-	y2milestone ("elilo.conf found at %1", probed[0]:nil);
-	return probed[0]:nil;
-    }
-
-    /**
-      * Set elilo.conf filename to the lilo agent
-      * @param filename abslut filename of elilo.conf
-      */
-    global define void setEliloConfFilename (string filename) ``{
-	SCR::Write (.elilo.setfilename, filename);
-    }
 
 }
