@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb 10 14:51:08 CET 2005 - jsrain@suse.cz
+
+- fixed errors when merging GRUB menus (#50643)
+
+-------------------------------------------------------------------
 Wed Feb  9 14:53:27 CET 2005 - jsrain@suse.cz
 
 - stopped using multiple variables from ProductFeatures for
