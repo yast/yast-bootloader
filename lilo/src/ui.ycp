@@ -257,6 +257,9 @@ global define symbol TargetDialog() ``{
     string caption = _("Where should the boot loader be installed?");
     string help = lookup(HELP_STRINGS, "target_dialog", "");
 
+    if (boot () == "elilo")
+	    return `next;
+
     term widget = TargetWidget(lookup(lookup(Lilo::partmap, `mbr, $[]), "dev", "?"), Lilo::bootPart);
 
     Wizard::SetContents(caption, widget, help, true, true);
