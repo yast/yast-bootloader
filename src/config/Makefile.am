@@ -12,8 +12,11 @@ config_DATA = \
 		bootloader.y2cc	\
 	  	bootfloppy.y2cc
 
+desktop_DATA = \
+		bootloader.desktop \
+	  	bootfloppy.desktop
+
 endif
 
 
-EXTRA_DIST = 			\
-	$(config_DATA)
+EXTRA_DIST = $(config_DATA) $(desktop_DATA)
