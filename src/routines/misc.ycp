@@ -1075,9 +1075,19 @@
       * @param original string
       * @return string fixed string
       */
-    global define string removeBlanks (string original) ``{
+    global define string removeBlanks (string original) {
 	if (getLoaderType (false) == "grub")
 	    return original;
+	// do not allow empty labels
+	while (size (original) > 1 && substring (original, 0, 1) == " ")
+	{
+	    original = substring (original, 1);
+	}
+	while (size (original) > 1
+	    && substring (original, size (original) -1, 1) == " ")
+	{
+	    original = substring (original, 0, size (original) - 1);
+	}
 	if (size (original) > 15)
 	   original = substring (original, 0, 15);
 	return replaceAll (original, " ", "_");

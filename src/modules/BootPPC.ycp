@@ -256,7 +256,7 @@
 		    if (label == "")
 		    {
 			label = "macos";
-			if (index != 0)
+			if (index > 1)
 			{
 			    label = sformat ("macos %1", index);
 			}
