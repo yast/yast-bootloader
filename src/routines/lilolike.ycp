@@ -20,7 +20,6 @@
 
     import "Arch";
     import "Mode";
-    import "ProductFeatures";
     import "Storage";
     import "StorageDevices";
 
@@ -704,21 +703,13 @@
 		}
 		else if (type == "linux" && p["key"]:"" == "append")
 		{
-			if (! issubstring (option, "desktop"))
-			{
-			    if (ProductFeatures::use_desktop_scheduler)
-				option = option + " desktop";
-			}
-			if (! issubstring (option, " elevator"))
-			{
-			    if (ProductFeatures::io_scheduler != "")
-			    {
-				option = option + " elevator="
-				    + ProductFeatures::io_scheduler;
-			    }
-			}
-			if (! issubstring (option, "splash"))
-			    option = option + " splash=silent";
+		    foreach (string o, ListAdditionalKernelParams (), {
+			option = setKernelParamToLine (option, o, "false");
+		    });
+		    option = option + " " + GetAdditionalKernelParams ();
+		    if (getKernelParamFromLine (option, "splash") == "false")
+			option = setKernelParamToLine
+			    (option, "splash", "silent");
 		}
 		else if (p["key"]:"" == "root" || p["key"]:"" == "other")
 		{

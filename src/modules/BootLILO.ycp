@@ -28,7 +28,6 @@
     import "BootCommon";
     import "Arch";
     import "Pkg";
-    import "ProductFeatures";
 
     include "bootloader/lilo/widgets.ycp";
     include "bootloader/lilo/helps.ycp";
@@ -85,7 +84,9 @@
 		? "iommu=noforce "
 		: "nosmp noapic maxcpus=0 ")
 	      + BootCommon::GetAdditionalFailsafeParams () + " 3"
-	    : sformat ("%1 %2 %3", resumestring, "selinux=0", Kernel::GetCmdLine ());
+	    : sformat ("%1 %2 %3 %4", resumestring, "selinux=0",
+		Kernel::GetCmdLine (),
+		BootCommon::GetAdditionalKernelParams ());
 	if (title != "failsafe")
 	{
 	    if (BootCommon::getKernelParamFromLine (append, "splash")
@@ -93,21 +94,6 @@
 	    {
 		append = BootCommon::setKernelParamToLine (
 		    append, "splash", "silent");
-	    }
-	    if (ProductFeatures::use_desktop_scheduler)
-	    {
-		append = BootCommon::setKernelParamToLine (
-		    append, "desktop", "true");
-	    }
-	    else
-	    {
-		append = BootCommon::setKernelParamToLine (
-		    append, "desktop", "false");
-	    }
-	    if (ProductFeatures::io_scheduler != "")
-	    {
-		append = BootCommon::setKernelParamToLine (append, "elevator",
-		    ProductFeatures::io_scheduler);
 	    }
 	}
 	string root = BootCommon::dev2majminIfNonStandard (

@@ -33,6 +33,7 @@
     import "Report";
     import "Kernel";
     import "Misc";
+    import "ProductFeatures";
 
 // bootloader attributes handling functions
 
@@ -879,6 +880,41 @@
 	}
     }
 
+global list<string> ListKernelParamsInLine (string line) {
+// FIXME this function is really similar to code in Kernel.ycp
+    list<string> cmdlist = [];
+    integer parse_index = 0;
+    boolean in_quotes = false;
+    boolean after_backslash = false;
+    string current_param = "";
+    while (parse_index < size (line))
+    {
+	string current_char = substring (line, parse_index, 1);
+	if (current_char == "\"" && ! after_backslash)
+	    in_quotes = ! in_quotes;
+	if (current_char == " " && ! in_quotes)
+	{
+	    cmdlist = add (cmdlist, current_param);
+	    current_param = "";
+	}
+	else
+	    current_param = current_param + current_char;
+	if (current_char == "\\")
+	    after_backslash = true;
+	else
+	    after_backslash = false;
+	parse_index = parse_index + 1;
+    }
+    cmdlist = add (cmdlist, current_param);
+    cmdlist = maplist (string c, cmdlist, {
+	if (regexpmatch (c, "^[^=]+="))
+	    c = regexpsub (c, "^([^=]+)=", "\\1");
+	return c;
+    });
+    return cmdlist;
+
+}
+
     /**
       * get kernel parameter from kernel command line
       * @param line string original line
@@ -887,6 +923,7 @@
       *   "true" if present key without value
       */
     global define string getKernelParamFromLine (string line, string key) ``{
+	// FIXME this doesn't work with quotes and spaces
 	string res = "false";
 	list<string> params = splitstring (line, " ");
 	params = filter (string p, params, ``(p != ""));
@@ -909,6 +946,7 @@
     global define string setKernelParamToLine
 	(string line, string key, string value)
     ``{
+	// FIXME this doesn't work with quotes and spaces
 	list<string> params = splitstring (line, " ");
 	params = filter (string p, params, ``(p != ""));
 	boolean done = false;
@@ -1787,6 +1825,19 @@
 	}
 	return additional_failsafe_params;
     }
+
+global string GetAdditionalKernelParams () {
+    string line = ProductFeatures::additional_kernel_parameters;
+    if (ProductFeatures::io_scheduler != "")
+	line = sformat ("%1 elevator=%2", line, ProductFeatures::io_scheduler);
+    if (ProductFeatures::use_desktop_scheduler)
+	line = line + " desktop";
+    return line;
+}
+
+global list<string> ListAdditionalKernelParams () {
+    return ListKernelParamsInLine (GetAdditionalKernelParams ());
+}
 
 /**
   * Update graphical bootloader to contain help text of current language
