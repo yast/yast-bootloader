@@ -1,5 +1,6 @@
 @HEADER-COMMENT@
-# neededforbuild  yast2-devtools autoconf automake gpp libgpp ydoc libycp libycp-devel liby2 liby2-devel libscr libscr-devel
+
+# neededforbuild  autoconf automake gpp libgpp libscr libscr-devel libxcrypt libxcrypt-devel liby2 liby2-devel libycp libycp-devel yast2-devtools ydoc
 
 @HEADER@
 Summary:        -
