@@ -444,9 +444,14 @@
     global define boolean Write () ``{
 	BootCommon::updateMBR ();
 	boolean ret = true;
-	if (! (BootCommon::installingToFloppy () && saveToFLoppyPopup ()))
-	    ret = false;
-
+	if (BootCommon::installingToFloppy ())
+	{
+	    if (! saveToFLoppyPopup ())
+	    {
+		y2error ("Preparing floppy disk failed.");
+		ret = false;
+	    }
+	}
 	// create backup copy first
 	if (BootCommon::createBackupBS ()
 	    && BootCommon::getDeviceOfRaid (BootCommon::BootPartitionDevice)
@@ -461,6 +466,8 @@
 	string bl_logfile = "/var/log/YaST2/y2loglilo";
 	boolean command_ret
 	    = BootCommon::installBootLoader (bl_command, bl_logfile);
+	if (! command_ret)
+	    y2error ("Execution of installation command failed");
 	ret = ret && command_ret;
 
 	if (command_ret && BootCommon::installingToFloppy ())

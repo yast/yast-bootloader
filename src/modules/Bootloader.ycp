@@ -340,6 +340,8 @@
 	    ret = Initrd::Write ();
 	    BootCommon::changed = true;
 	}
+	if (! ret)
+	    y2error ("Error occurred while creating initrd");
 
 	if (Mode::commandline)
 	    BootCommon::changed = true;
@@ -378,6 +380,8 @@
 
 	// save bootloader settings
 	ret = ret && blSave ();
+	if (! ret)
+	    y2error ("Error before configuration files saving finished");
 
         if (Mode::normal)
             Progress::NextStage ();
@@ -396,6 +400,7 @@
 	ret = ret && blWrite ();
 	while (! ret)
 	{
+	    y2error ("Installing bootloader failed");
 	    if (writeErrorPopup ())
 	    {
 		repeating_write = true;
