@@ -38,7 +38,7 @@
 	    "skeleton": "hwcfg-ctc",
 	    "target" : "ctc-bus-ccw-%1",
 	    "options" : $[
-		"CCW_CHAN_IDS" : "\"%1, %2\"",
+		"CCW_CHAN_IDS" : "\"%1 %2\"",
 		"CCW_CHAN_MODE" : "%3",
 	    ],
 	],
@@ -46,7 +46,7 @@
 	    "skeleton" : "hwcfg-qeth",
 	    "target" : "qeth-bus-ccw-%1",
 	    "options" : $[
-		"CCW_CHAN_IDS" : "\"%1,%2,%3\"",
+		"CCW_CHAN_IDS" : "\"%1 %2 %3\"",
 		"CCW_CHAN_MODE" : "%4",
 	    ],
 	],
