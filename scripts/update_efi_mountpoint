@@ -53,7 +53,7 @@ sub MountBootPartition {
 
 #copy files from /boot/efi/* to /boot (everything except efi)
 sub MoveFiles {
-    system ("cd $efifs; mv `ls |grep -v '^efi\$'` $bootfs")
+    system ("cd $efifs && mv System.map* initrd* vmlinuz* modversions-* config-* $bootfs")
 	|| die "Copying files from $efifs to $bootfs failed";
 
 }
