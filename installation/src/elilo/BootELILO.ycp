@@ -22,7 +22,7 @@
     import "Arch";
     import "Boot";
     import "Kernel";
-    
+
     /**
      * WriteUpdate
      * Calling mk_initrd while update.
@@ -71,6 +71,8 @@
     ``{
 	import "Mode";
 	import "Boot";
+	import "Report";
+	import "Product";
 
 	if (Mode::update)
 	  {
@@ -81,8 +83,15 @@
 	string docmd = "/usr/lib/YaST2/bin/doelilo /";
 	map doenv = $[ "bootdev" : Boot::BootPartitionDevice,
 		       "rootdev" : Boot::RootPartitionDevice,
-		       "append" : Kernel::cmdLine ];
+		       "append" : Kernel::cmdLine,
+		       "product" : Product::name ];
+	y2milestone ("doelilo doenv: %1", doenv);
 	integer doresult = SCR::Execute(.target.bash, docmd, doenv);
+
+	if (doresult != 0)
+	  {
+	    Report::Error (_("Could not write ELILO configuration"));
+	  }
 
 	return true;
     }
