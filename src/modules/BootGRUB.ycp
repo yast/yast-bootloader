@@ -66,6 +66,8 @@
     global define list<map> createLinuxSection (string title);
     global define map GetOptions ();
 
+    global boolean xen_removed = false;
+
 // includes
 
     include "bootloader/grub/misc.ycp";
@@ -77,6 +79,41 @@
 
 // end of mandatory functions
 //----------------------------------------------------------------------------
+
+define boolean XenPresent () {
+    return (! xen_removed)
+	&& (Mode::test ()
+	    || (Mode::normal () && Pkg::IsProvided ("xen")
+		&& Pkg::IsProvided ("kernel-xen"))
+	    || (! Mode::normal () && Pkg::IsSelected ("xen")
+		&& Pkg::IsSelected ("kernel-xen")));
+}
+
+
+define integer Dom0MemorySize () {
+    list<map> memory = (list<map>) SCR::Read(.probe.memory);
+
+    y2milestone("memory: %1", memory);
+    integer memory_size = 0;
+
+    foreach(map info, memory, ``{
+            // internal class, main memory
+            if (info["class_id"]:0 == 257 && info["sub_class_id"]:0 == 2)
+            {
+                list<map> minf = info["resource", "phys_mem"]:[];
+                foreach(map i, minf, ``{
+                        memory_size = memory_size + i["range"]:0;
+                    }
+                );
+            }
+        }
+    );
+    // size in kB lowered 64 MB for XEN itself
+    memory_size = memory_size / 1024 - (64 * 1024);
+    y2milestone ("Memory size for XEN domain 0: %1", memory_size);
+    return memory_size;
+}
+
 
     /**
       * Create linux section
@@ -183,6 +220,47 @@
 		"type" : type,
 	    ]]
 	];
+	if (title == "xen")
+	{
+	    if (XenPresent ())
+	    {
+		list<list<map> > xen_ret = maplist (map i, ret, {
+		    string key = i["key"]:"";
+		    if (key == "kernel")
+		    {
+			map xen = $[
+			    "key" : "kernel",
+			    "value" : sformat ("%1 dom0_mem=%2",
+				file2grub ("/boot/xen.gz"),
+				Dom0MemorySize ()),
+			];
+			i["key"] = "module";
+			list<string> split = splitstring (i["value"]:"", " ");
+			split[0] = file2grub ("/boot/vmlinuz-xen");
+			i["value"] = mergestring (split, " ");
+			return [xen, i];
+		    }
+		    else if (key == "initrd")
+		    {
+			i["key"] = "module";
+			i["value"] = file2grub ("/boot/initrd-xen");
+			return [i];
+		    }
+		    else
+		    {
+			return [i];
+		    }
+		});
+		ret = flatten (xen_ret);
+		return ret;
+	    }
+	  else
+	  {
+		return [];
+	  }
+	}
+
+
 	if (type == "wildcard")
 	{
 	    ret = prepend (ret, $[
@@ -200,7 +278,8 @@
     global define void createSections () ``{
 	y2debug ("Creating GRUB sections from scratch");
 	list<list<map> > out = [
-	    createLinuxSection ("linux")
+	    createLinuxSection ("linux"),
+	    createLinuxSection ("xen"),
 	];
 	list<string> others_ignore = [];
 	list<string> others = (list<string>)Storage::GetForeignPrimary();
@@ -979,6 +1058,7 @@
 	{
 	    device_map = proposeDeviceMap ();
 	}
+	xen_removed = false;
     }
     /**
       * Propose bootloader settings
