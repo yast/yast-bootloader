@@ -36,7 +36,7 @@ SortKey =
 Textdomain = bootloader
 
 ; enable autoinst
-Autoinst = all
+Autoinst = configure
 
 AutoinstPath = install
 
