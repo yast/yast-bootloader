@@ -418,7 +418,8 @@ Update it manually before proceeding."));
 	// summary text, %1 is bootloader name (eg. LILO)
 	list<string> result = [ sformat (_("Boot loader type: %1"),
 	    BootCommon::getLoaderName (BootCommon::getLoaderType (false))) ];
-	if (BootCommon::location == "" || BootCommon::location == nil)
+	if (BootCommon::location == "" || BootCommon::location == nil
+	    || ! create_efi_entry)
 	{
 	    result
 		// summary text
