@@ -47,6 +47,10 @@
       * used for choosing right size of splash
       */
     string splash = "";
+    /**
+      * List of modules which should be not added/removed to/from initrd
+      */
+    list modules_to_skip = [];
 
 // module functions
 
@@ -64,6 +68,38 @@
             }
         }
         y2milestone( "Initial Initrd modules %1", modules );
+
+        // usb and cdrom modules dont belong to initrd,
+        // they're loaded by hotplug
+	modules_to_skip = [
+	    "usbcore",
+	    "usb-uhci",
+	    "uhci",
+            "usb-ohci",
+            "input",
+            "hid",
+            "keybdev",
+            "mousedev",
+            "usb-storage",
+            "cdrom",
+            "ide-cd",
+            "sr_mod",
+	    "xfs_support",
+	    "xfs_dmapi",
+        ];
+        // some other modules don't belong to initrd on PPC
+        if (Arch::ppc)
+        {
+            list ppc_modules_to_skip = [
+		"reiserfs",
+                "ext3",
+                "jbd",
+                "jfs",
+                "xfs",
+            ];
+            modules_to_skip = union (modules_to_skip, ppc_modules_to_skip);
+	}
+
     }
 
     /**
@@ -80,6 +116,7 @@
 	    || ((modname == "aic7xxx_old")
 		&& !contains ( ListModules (), "aic7xxx")))
         {
+/* moved to constructor
             // usb and cdrom modules dont belong to initrd,
 	    // they're loaded by hotplug
             list modules_to_skip = [ "usbcore",
@@ -105,7 +142,7 @@
                                              "xfs",
                                              ];
                 modules_to_skip = union (modules_to_skip, ppc_modules_to_skip);
-            }
+            }*/
 
             if ( ! contains (modules_to_skip, modname))
 	    {
@@ -210,12 +247,26 @@
     }
 
     /**
+      * Update read settings to new version of configuration files
+      */
+    global define void Update () ``{
+	// add other required changes here
+	modules = filter (`m, modules,
+	    ``(! contains (modules_to_skip, m)));
+	modules_settings = filter (`k, `v, modules_settings,
+	    ``(! contains (modules_to_skip, k)));
+	changed = true;
+    }
+
+    /**
       * write settings to sysconfig, rebuild initrd images
       * @return true on success
       */
     global define boolean Write () ``{
 	if (! was_read)
 	    Read ();
+	if (Mode::update)
+	    Update ();
 	y2milestone ("Initrd::Write called, changed: %1, list: %2", changed,
 	    ListModules ());
 	// check whether it is neccessary to write initrd
