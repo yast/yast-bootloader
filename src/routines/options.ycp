@@ -1109,8 +1109,8 @@ y2error ("Value: %1", lookup_value (BootCommon::current_section, "password", nil
     global define map generateOptionMaps () ``{
 	map<string,string> types = BootCommon::opttypes ();
 	map<string,symbol> type2widget = $[
-	    "b" : `checkbox,
-	    "i" : `intfield,
+	    "boolean" : `checkbox,
+	    "integer" : `intfield,
 	];
 	map created_widgets = mapmap (string k, string v, types, ``{
 	    symbol w = type2widget[v]:`textentry;

@@ -33,41 +33,16 @@
     }
 
     /**
-      * generate string from device map list
-      * @param devmap list device map
-      * @return string device map as string to save to file
-      */
-    global define string devMap2string (list<list<string> > devmap) ``{
-        string res = "";
-        foreach (list<string> m, devmap, ``{
-            res = res + m[0]:"" + "\t" + m[1]:"" + "\n";
-        });
-	return res;
-    }
-
-    /**
-      * parse device map string to device-map list
-      * @param s_map string device map as string read from file
-      * @return list device map
-      */
-    global define list<list<string> > string2devMap (string s_map) ``{
-        list<string> lines = splitstring (s_map, "\n");
-        lines = filter (string l, lines, ``(l != ""));
-        list<list<string> > devmap = maplist (string l, lines, ``(splitstring (l, " \t")));
-        devmap = maplist (list<string> l, devmap,
-	    ``(filter (string e, l, ``(e != ""))));
-	return devmap;
-    }
-
-    /**
       * Read GRUB device maping from /boot/grub/device.map file
       * @return list of lists like
       * [["(hd0)", "/dev/hda"], ["(fd0)", "/dev/fd0"]]
       */
     global define list<list<string> > readDeviceMap () ``{
-	string s_map = (string)
-	    SCR::Read (.target.string, "/boot/grub/device.map");
-	list<list<string> > devmap = string2devMap (s_map);
+	list<list<string> > devmap = maplist (string k, string v,
+	    (map<string,string>)BootCommon::io_structure["device_map"]:$[],
+	{
+	    return [ v, k ];
+	});
 	y2milestone ("Read device map: %1", devmap);
 	return devmap;
     }
@@ -78,8 +53,11 @@
       * @return boolean true on success
       */
     global define boolean saveDeviceMap (list<list<string> > devmap) ``{
-	string res = devMap2string (devmap);
-	return SCR::Write (.target.string, "/boot/grub/device.map", res);
+	map<string,string> dm = listmap (list<string> e, devmap,
+	{
+	    return $[ e[1]:"" : e[0]:"" ];
+	});
+	BootCommon::io_structure["device_map"] = dm;
     }
 
     /**

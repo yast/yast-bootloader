@@ -143,6 +143,9 @@
 global map<string,any> installed_version = $[];
 global map<string,any> update_version = $[];
 
+global map io_structure = $[];
+
+global map<string,string> edited_files = $[];
 // common variables
 
     /**
@@ -319,9 +322,12 @@ global list<string> update_section_types
 	    bl = "zipl";
 	else if (bl == "ppc")
 	    bl = "lilo";
-	SCR::Read (list2path ([bl, "reread"]));
-	loadCfgFileFromAgent ();
-	loader_device = (string)lookup_value (globals, "boot", "/dev/null");
+	SCR::Execute (.bootloader.agent_init, bl);
+	SCR::Execute (.bootloader.disk_init, PrepareInitData ());
+	io_structure = (map)SCR::Read (.bootloader.settings);
+	IO2Sections ();
+	IO2Global ();
+	loader_device = io_structure["global", "stage1_dev", 0]:"/dev/null";
         return true;
     }
 
@@ -354,8 +360,13 @@ global list<string> update_section_types
 	    bl = "zipl";
 	else if (bl == "ppc")
 	    bl = "lilo";
-	saveCfgFileToAgent ();
-	SCR::Write(list2path([bl]), nil);
+	SCR::Execute (.bootloader.agent_init, bl);
+	SCR::Execute (.bootloader.disk_init, PrepareInitData ());
+	Sections2IO ();
+	Global2IO ();
+	io_structure["global", "stage1_dev", 0] = loader_device;
+	SCR::Write (.bootloader.settings, io_structure);
+	SCR::Execute (.bootloader.update);
 	return true;
     }
     /**
@@ -656,6 +667,10 @@ configuration files"));
 		}
 	    }
 	}
+	else if (! Mode::test ())
+	{
+	    y2error ("Unknown bootloader");
+	}
 	loader_type = bootloader;
 	if (loader_type != nil)
 	    setCurrentLoaderAttribs (loader_type);
@@ -666,7 +681,7 @@ configuration files"));
       * @return list of bootloaders
       */
     global define list<string> getBootloaders () ``{
-	if (Mode::config ())
+	if (Mode::config () || true)
 	{
 	    return ["grub", "lilo", "elilo", "s390", "ppc"];
 	}

@@ -2,6 +2,7 @@
 Mon Jan 24 16:08:30 CET 2005 - jsrain@suse.cz
 
 - added agent to interface for the bootloader library
+- using the now bootloader library for GRUB and LILO configuration
 
 -------------------------------------------------------------------
 Tue Jan 11 16:43:52 CET 2005 - jsrain@suse.cz

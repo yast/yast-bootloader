@@ -37,6 +37,7 @@
 // bootloader attributes handling functions
 
     global define map<string, integer> Md2Partitions (string md_device);
+    global map<string,any> PrepareInitData ();
 
     /**
       * Get the name of key containing section name of currently used bootloader
@@ -565,10 +566,71 @@
 	    bl = "lilo";
 	if (size (opt_types[bl]:$[]) > 0)
 	    return opt_types[bl]:$[];
-	map<string,string> out = (map<string,string>)
-	   SCR::Read (list2path ([bl, "opttypes"]));
+	SCR::Execute (.bootloader.agent_init, bl);
+	SCR::Execute (.bootloader.disk_init, PrepareInitData ());
+	map<string,string> out = $[
+	    //default is string
+	    "compact" : "boolean",
+	    "fix-table" : "boolean",
+	    "ignore-table" : "boolean",
+	    "lba32" : "boolean",
+	    "linear" : "boolean",
+	    "lock" : "boolean",
+	    "nowarn" : "boolean",
+	    "optional" : "boolean",
+	    "prompt" : "boolean",
+	    "read-only" : "boolean",
+	    "restricted" : "boolean",
+	    "read-write" : "boolean",
+	    "unsafe" : "boolean",
+	    "lock" : "boolean",
+	    "optional" : "boolean",
+	    "restricted" : "boolean",
+	    "makeactive" : "boolean",
+	    "hiddenmenu" : "boolean",
+	    "change-rules" : "boolean",
+	    "reset" : "boolean",
+	    "delay" : "integer",
+	    "verbose" : "integer",
+	    "timeout" : "integer",
+	];
+	if (bl == "grub")
+	{
+	    out = $[
+		//default is string
+		"hiddenmenu" : "boolean",
+		"rarp" : "boolean",
+		"debug" : "boolean",
+		"displayapm" : "boolean",
+		"displaymem" : "boolean",
+		"fstest" : "boolean",
+		"lock" : "boolean",
+		"makeactive" : "boolean",
+		"default" : "integer",
+		"timeout" : "integer",
+		"fallback" : "integer",
+	    ];
+	}
 	opt_types[bl] = out;
 	return out;
+    }
+
+    global list<string> GetSpecialOptions () {
+	list<string> special = [];
+	string bl = getLoaderType (false);
+	if (bl != "grub")
+	{
+	    special = [ "change-rules", "type", "reset", "normal", "hidden",
+		"disk", "heads", "inaccessible", "cylinders", "bios",
+		"sectors", "change", "set", "partition", "deactivate",
+		"partition", "automatic", "map-drive", "to",
+	    ];
+	}
+	if (bl != "ppc")
+	{
+	    special = add (special, "activate");
+	}
+	return special;
     }
 
     /**
@@ -577,7 +639,8 @@
       * @return boolean special/not
       */
     global define boolean isSpecial(string opt) ``{
-	return (opttypes()[opt]:"" == "x");
+	list<string> special = GetSpecialOptions ();
+	return (contains (special, opt));
     }
 
     /**
@@ -2093,5 +2156,150 @@ global list<map<string,string> > CheckAdditionalKernels () {
     return ret;
 }
 
+
+// FIXME use real data
+global map<string,any> PrepareInitData () {
+    map<string,any> mountpoints = mapmap (string k, list v,
+	(map<string,list>)Storage::GetMountPoints (),
+    {
+	return $[ k : (any)v[0]:nil];
+    });
+    mountpoints = filter (string k, any v, mountpoints, {
+	return is (v, string);
+    });
+    y2milestone ("Detected mountpoints: %1", mountpoints);
+
+
+    map tm = Storage::GetTargetMap ();
+    list<list<list> > pi = maplist (string disk, map info, (map<string,map>) tm,
+    {
+	list partitions = info["partitions"]:[];
+	list<list> parts = maplist (map p, (list<map>)partitions, {
+	    return [ p["device"]:"", disk, p["nr"]:0 ];
+	});
+	return parts;
+    });
+    list<list> partinfo = flatten (pi);
+    y2milestone ("Information about partitioning: %1", partinfo);
+
+    return $[
+	"mountpoints" : mountpoints,
+	"partitions" : partinfo,
+	"md_arrays" : $[],
+    ];
+}
+
+list<map> LinesYCP2IO (list<map> lines) {
+    lines = filter (map l, lines, {
+	return l["value"]:nil != false;
+    });
+    list<map> ret = [];
+    foreach (map l, lines, {
+	string key = l["key"]:"";
+	if (isSpecial (l["key"]:""))
+	{
+	    list<string> vals = splitstring (l["value"]:"", ",");
+	    foreach (string v, vals, {
+		list<string> kv = splitstring (v, "=");
+		ret = add (ret, $[
+		    "key" : kv[0]:"",
+		    "value" : kv[1]:nil,
+		]);
+	    });
+	}
+	else
+	{
+	    if (l["value"]:nil == true)
+		l["value"] = nil;
+	    ret = add (ret, l);
+	}
+    });
+    return ret;
+}
+
+list<map> LinesIO2YCP (list<map> lines) {
+    list<map> special = filter (map o, lines, {
+	return isSpecial (o["key"]:"");
+    });
+    lines = filter (map o, lines, {
+	return ! isSpecial (o["key"]:"");
+    });
+    lines = maplist (map l, lines, {
+	if (opttypes ()[l["key"]:""]:"string" == "boolean")
+	    l["value"] = true;
+	return l;
+    });
+    map<string,list<string> > spec_types = $[
+	"change-rules" : ["change-rules", "type", "reset", "normal", "hidden"],
+	"disk" : ["disk", "heads", "inaccessible", "cylinders", "bios",
+	    "sectors",],
+	"change" : [ "change", "set", "partition", "deactivate", "partition",
+	    "automatic" ],
+	"map-drive" : [ "map-drive", "to",],
+    ];
+    if (getLoaderType (false) != "ppc")
+	spec_types["change"] = add (spec_types["change"]:[], "activate");
+    map<string,string> spec = $[];
+    foreach (map o, special, {
+	string key = o["key"]:"";
+	string val = o["value"]:"";
+	foreach (string st, list<string> l, spec_types, {
+	    if (contains (l, key))
+	    {
+		string current = spec[st]:"";
+		if (current != "")
+		    current = current + ",";
+		if (o["value"]:"" != "")
+		    current = current + sformat ("%1=%2", key, val);
+		else
+		    current = current + key;
+		spec[st] = current;
+	    }
+	});
+    });
+    foreach (string k, string v, spec, {
+	lines = add (lines, $[
+	    "key" : k,
+	    "value" : v,
+	]);
+    });
+    return lines;
+}
+
+global void IO2Sections () {
+    list sects = io_structure["sections"]:[];
+    sects = maplist (any sa, sects, {
+	map s = (map)sa;
+	list<map>lines = LinesIO2YCP ((list<map>)s["__lines"]:[]);
+	return lines;
+    });
+    sections = (list<list<map> >)sects;
+}
+
+global void IO2Global () {
+    globals = LinesIO2YCP ((list<map>)io_structure["global", "__lines"]:[]);
+}
+
+global void Sections2IO () {
+    list sects = maplist (list<map> s, sections, {
+	s = filter (map m, s, {return m["key"]:"" != "__intern__";});
+	return $[
+	    "__lines" : LinesYCP2IO (s),
+	    "__do_not_change" : 1,
+	];
+    });
+    io_structure["sections"] = sects;
+}
+
+global void Global2IO () {
+    map glob = $[
+	"__lines" : LinesYCP2IO (filter (map m, globals, {
+	    return m["key"]:"" != "__intern__";
+	})),
+	"stage1_dev" : [loader_device],
+	"__do_not_change" : 1,
+    ];
+    io_structure["global"] = glob;
+}
 
 } //end of include

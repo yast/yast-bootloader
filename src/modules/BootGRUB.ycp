@@ -826,15 +826,16 @@
       * @return map filename -> contents
       */
     global define map<string,string> GetFiles() ``{
-	BootCommon::saveCfgFileToAgent ();
-	grub_conf["device"] = BootCommon::loader_device;
-	map<string,string> ret = $[
-	    "default" : "/boot/grub/menu.lst",
-            "/boot/grub/menu.lst" : (string)SCR::Read (.grub.tostring),
-	    "/boot/grub/device.map" : devMap2string (device_map),
-        ];
-	if (! Mode::config ())
-	    ret["/etc/grub.conf"] = getGrubConf (grub_conf);
+	SCR::Execute (.bootloader.agent_init, "grub");
+	SCR::Execute (.bootloader.disk_init, BootCommon::PrepareInitData ());
+	BootCommon::Sections2IO ();
+	BootCommon::Global2IO ();
+	saveDeviceMap (device_map);
+	BootCommon::io_structure["global", "stage1_dev", 0]
+	    = BootCommon::loader_device;
+	map<string,string> ret = (map<string,string>)
+	    SCR::Read (.bootloader.tostrings, BootCommon::io_structure);
+	BootCommon::edited_files = ret;
 	return ret;
     }
 
@@ -843,24 +844,19 @@
       * @param files map filename -> contents
       */
     global define void SetFiles (map<string,string> files) ``{
-	if ((devMap2string (device_map) != files["/boot/grub/device.map"]:"")
-	    || (SCR::Read (.grub.tostring) != files["/boot/grub/menu.lst"]:""))
+	SCR::Execute (.bootloader.agent_init, "grub");
+	SCR::Execute (.bootloader.disk_init, BootCommon::PrepareInitData ());
+	BootCommon::io_structure = (map)
+	    SCR::Read (.bootloader.fromstrings, files);
+	BootCommon::IO2Sections ();
+	BootCommon::IO2Global ();
+	device_map = readDeviceMap ();
+	BootCommon::loader_device
+	    = BootCommon::io_structure["global", "stage1_dev", 0]:"";
+	if (BootCommon::edited_files != BootCommon::io_structure)
 	{
 	    BootCommon::files_edited = true;
 	}
-	device_map = string2devMap (files["/boot/grub/device.map"]:"");
-	SCR::Write (.grub.fromstring, files["/boot/grub/menu.lst"]:"");
-	if (! Mode::config ())
-	{
-	    if (getGrubConf (grub_conf) != files["/etc/grub.conf"]:"")
-	    {
-	        BootCommon::files_edited = true;
-	        BootCommon::location = "custom";
-	    }
-	    grub_conf = parseGrubConf (files["/etc/grub.conf"]:"");
-	    BootCommon::loader_device = grub_conf["device"]:"";
-	}
-	BootCommon::loadCfgFileFromAgent ();
     }
 
     /**
@@ -950,13 +946,12 @@
       */
     global define boolean Read () ``{
 	BootCommon::DetectDisks ();
+	boolean ret = BootCommon::Read ();
 	device_map = readDeviceMap ();
-	grub_conf = readGrubConf ();
+//	grub_conf = readGrubConf ();
 	string mbrD = grubDev2unixDev ("(hd0)");
 	if (mbrD != "/dev/null" && mbrD != nil && mbrD != "")
 	    BootCommon::mbrDisk = mbrD;
-	boolean ret = BootCommon::Read ();
-	BootCommon::loader_device = grub_conf["device"]:"";
 	return ret;
     }
 
@@ -1061,8 +1056,8 @@
 	SCR::Execute (.target.bash, "test -f /boot/grub/menu.lst && /bin/cp /boot/grub/menu.lst /boot/grub/menu.lst.old");
 	SCR::Execute (.target.bash, "test -f /boot/grub/device.map && /bin/cp /boot/grub/device.map /boot/grub/device.map.old");
 	SCR::Execute (.target.bash, "test -f /etc/grub.conf && /bin/cp /etc/grub.conf /etc/grub.conf.old");
-	grub_conf["device"] = BootCommon::loader_device;
-	saveGrubConf (grub_conf);
+//	grub_conf["device"] = BootCommon::loader_device;
+//	saveGrubConf (grub_conf);
 	saveDeviceMap (device_map);
 	integer index = -1;
 	integer default = (integer)
@@ -1263,7 +1258,9 @@
 
 	    // remove the log
 	    SCR::Execute (.target.bash, "test -f /var/log/YaST2/y2loggrub && /bin/rm /var/log/YaST2/y2loggrub");
-	    map exit = (map)SCR::Execute (.target.bash_output,
+	    boolean grub_ret = (boolean)SCR::Execute (.bootloader.initialize);
+	    y2milestone ("GRUB return value: %1", grub_ret);
+/*	    map exit = (map)SCR::Execute (.target.bash_output,
 "cat /etc/grub.conf \
 | /usr/sbin/grub --batch --device-map=/boot/grub/device.map >> \
 /var/log/YaST2/y2loggrub 2>&1"
@@ -1273,20 +1270,20 @@
 	    {
 		grub_ret = 0 != SCR::Execute (.target.bash,
 		    "/usr/bin/grep \"Error [0-9]*: \" /var/log/YaST2/y2loggrub");
-	    }
+	    }*/
 	    if (! grub_ret)
 	    {
-		y2error ("Exit code of grub installation: %1", exit["exit"]:-1);
+//		y2error ("Exit code of grub installation: %1", exit["exit"]:-1);
 		string log = (string)SCR::Read (.target.string,
-		    "/var/log/YaST2/y2loggrub");
-		log = log + exit["stdout"]:"" + exit["stderr"]:"";
+		    "/var/log/YaST2/y2log_tool_grub");
+/*		log = log + exit["stdout"]:"" + exit["stderr"]:"";
 		if (exit["exit"]:1 == 139)
 		{
 		    // means: process received signal SIGSEGV
 		    // please, use some usual translation
 		    // proofreaders: don't change this text
 		    log = log + _("Segmentation fault");
-		}
+		}*/
 		// error popup - label
                 errorWithLogPopup (_("Error occurred while installing GRUB"),
                     log);

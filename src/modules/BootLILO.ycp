@@ -286,12 +286,16 @@
       * @return map filename -> contents
       */
     global define map<string,string> GetFiles() ``{
-	BootCommon::addValueToBootloaderSection (
-	    `globals, "boot", BootCommon::loader_device);
-        BootCommon::saveCfgFileToAgent ();
-        return $[
-            "/etc/lilo.conf" : (string)SCR::Read (.lilo.tostring),
-        ];
+	SCR::Execute (.bootloader.agent_init, "lilo");
+	SCR::Execute (.bootloader.disk_init, BootCommon::PrepareInitData ());
+	BootCommon::Sections2IO ();
+	BootCommon::Global2IO ();
+	BootCommon::io_structure["global", "stage1_dev", 0]
+	    = BootCommon::loader_device;
+	map<string,string> ret = (map<string,string>)
+	    SCR::Read (.bootloader.tostrings, BootCommon::io_structure);
+	BootCommon::edited_files = ret;
+	return ret;
     }
 
     /**
@@ -299,14 +303,18 @@
       * @param files map filename -> contents
       */
     global define void SetFiles (map<string,string> files) ``{
-	if (SCR::Read (.lilo.tostring) != files["/etc/lilo.conf"]:"")
+	SCR::Execute (.bootloader.agent_init, "LILO");
+	SCR::Execute (.bootloader.disk_init, BootCommon::PrepareInitData ());
+	BootCommon::io_structure = (map)
+	    SCR::Read (.bootloader.fromstrings, files);
+	BootCommon::IO2Sections ();
+	BootCommon::IO2Global ();
+	BootCommon::loader_device
+	    = BootCommon::io_structure["global", "stage1_dev", 0]:"";
+	if (BootCommon::edited_files != BootCommon::io_structure)
+	{
 	    BootCommon::files_edited = true;
-        SCR::Write (.lilo.fromstring, files["/etc/lilo.conf"]:"");
-        BootCommon::loadCfgFileFromAgent ();
-	if (lookup_value (BootCommon::globals, "boot", "") != BootCommon::loader_device)
-	    BootCommon::location = "custom";
-	BootCommon::loader_device = (string)
-	    lookup_value (BootCommon::globals, "boot", "");
+	}
     }
 
 // general functions
@@ -388,7 +396,6 @@
     global define boolean Read () ``{
 	BootCommon::DetectDisks ();
 	boolean ret = BootCommon::Read ();
-	BootCommon::finishReading ();
 	return ret;
     }
 
@@ -416,8 +423,6 @@
 		    BootCommon::globals, "message", nil);
 	    }
         }
-	BootCommon::globals = modifySection (BootCommon::globals, "boot",
-	    BootCommon::loader_device);
 	boolean ret = BootCommon::Save ();
 	SCR::Execute (.target.bash, "/bin/chmod 600 /etc/lilo.conf");
 	return ret;

@@ -199,7 +199,7 @@
 	Progress::Finish ();
 	if (testAbort ())
 	    return false;
-	y2milestone ("Read settings: %1", Export ());
+	y2debug ("Read settings: %1", Export ());
 	return ret;
     }
     /**
@@ -415,7 +415,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	    || BootCommon::write_settings["initrd_changed_externally"]:false))
 	{
 	    y2milestone ("No bootloader cfg. file saving needed, exiting");
-	    return true;
+//	    return true;
 	}
 
 	if (Mode::normal ())
