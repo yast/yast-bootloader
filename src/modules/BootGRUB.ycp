@@ -86,6 +86,7 @@
 	if (title == "memtest86")
 	{
 	  if (Pkg::IsProvided ("memtest86") || ! Mode::normal)
+	  {
 	    return [
 		$[ "key" : "kernel", "value" : file2grub ("/boot/memtest.bin")],
 		$[ "key" : "title", "value" : BootCommon::translateSectionTitle (title)],
@@ -97,8 +98,11 @@
 		    "type" : "memtest86",
 		]],
 	    ];
+	  }
 	  else
+	  {
 		return [];
+	  }
 	}
 	if (title == "original MBR")
 	{
