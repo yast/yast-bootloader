@@ -521,9 +521,12 @@ Proceed?
       */
     global define symbol BootloaderAutoSequence () ``{
 	Wizard::CreateDialog();
-	Wizard::SetDesktopIcon("bootloader");
 	Wizard::SetContentsButtons("", `VBox (), "",
 	    Label::BackButton(), Label::NextButton());
+	if ( Mode::initial )
+	    Wizard::SetTitleIcon("bootloader");	// no .desktop file in inst-sys
+	else
+	    Wizard::SetDesktopIcon("bootloader");
 	symbol ret = runWizard ();
 	UI::CloseDialog();
 	return ret;
