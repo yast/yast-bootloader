@@ -1,0 +1,880 @@
+/**
+ * File:
+ *      modules/Bootloader.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Bootloader installation and configuration base module
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    module "Bootloader";
+
+    textdomain "bootloader";
+
+    import "Arch";
+    import "BootCommon";
+    import "Initrd";
+    import "Kernel";
+    import "Mode";
+    import "Progress";
+    import "Stage";
+    import "Storage";
+
+    import "BootABOOT";
+    import "BootELILO";
+    import "BootLILO";
+    import "BootMILO";
+    import "BootPPC";
+    import "BootS390";
+    import "BootGRUB";
+
+    global define map Export ();
+    global define boolean Import (map<string,any> settings);
+    global define void Propose ();
+    global define boolean Read ();
+    global define void Reset ();
+    global define boolean Write ();
+
+    global define void ReadOrProposeIfNeeded ();
+    global define string getDefaultSection ();
+    global define string getKernelParam (string section, string key);
+    global define boolean setKernelParam (string section, string key, string value);
+    global define list<string> listKernelParams (string section);
+    global define string getLoaderType ();
+
+
+    /**
+      * Write is repeating again
+      * Because of progress bar during inst_finish
+      */
+    global boolean repeating_write = false;
+
+// installation proposal help variables
+
+    /**
+      * Configuration was changed during inst. proposal if true
+      */
+    global boolean proposed_cfg_changed = false;
+
+// old vga value handling function
+
+    /**
+      * old value of vga parameter of default bootloader section
+      */
+    string old_vga = nil;
+
+// UI helping variables
+
+    global map aliases = $[];
+    global map ws_data = $[];
+
+
+
+    include "bootloader/routines/switcher.ycp";
+    include "bootloader/routines/popups.ycp";
+    include "bootloader/routines/ui.ycp";
+
+
+// general functions
+
+    /**
+      * Constructor
+      */
+    global define void Bootloader () ``{
+	BootCommon::reset_button_handle = Bootloader::resetButtonHandle;
+	BootCommon::loader_type_store = Bootloader::loaderTypeStore;
+	return;
+    }
+
+    /**
+      * Export bootloader settings to a map
+      * @return bootloader settings
+      */
+    global define map Export () ``{
+	ReadOrProposeIfNeeded ();
+	map out = $[
+	    "location" : BootCommon::location,
+	    "loader_device" : BootCommon::loader_device,
+	    "loader_type" : getLoaderType (),
+	    "initrd" : Initrd::Export (),
+	    "specific" : blExport (),
+	    "write_settings" : BootCommon::write_settings,
+	];
+	y2milestone ("Exporting settings: %1", out);
+	return out;
+    }
+    /**
+      * Import settings from a map
+      * @param settings map of bootloader settings
+      */
+    global define boolean Import (map<string, any> settings) ``{
+	y2milestone ("Importing settings: %1", settings);
+	Reset ();
+
+	BootCommon::was_read = true;
+	BootCommon::was_proposed = true;
+	BootCommon::changed = true;
+	BootCommon::location_changed = true;
+	BootCommon::location = settings["location"]:"";
+	BootCommon::loader_device = settings["loader_device"]:"";
+
+	if (settings["loader_type"]:nil == "")
+	    settings["loader_type"] = nil;
+	string loader_type = (string) (settings["loader_type"]:nil);
+	BootCommon::setLoaderType (loader_type);
+	BootCommon::getLoaderType (false);
+
+	if (settings["initrd"]:$[] != nil)
+	    Initrd::Import (settings["initrd"]:$[]);
+	boolean ret = blImport (settings["specific"]:$[]);
+	BootCommon::write_settings = settings["write_settings"]:$[];
+	return ret;
+    }
+    /**
+      * Read settings from disk
+      * @return boolean true on success
+      */
+    global define boolean Read () ``{
+	y2milestone ("Reading configuration");
+// run Progress bar
+	list<string> stages = [
+	    // progress stage, text in dialog (short, infinitiv)
+	    _("Check boot loader"),
+	    // progress stage, text in dialog (short, infinitiv)
+	    _("Read partitioning"),
+	    // progress stage, text in dialog (short, infinitiv)
+	    _("Load boot loader settings"),
+	];
+	list<string> titles = [
+	    // progress stage, text in dialog (short)
+	    _("Checking boot loader..."),
+	    // progress stage, text in dialog (short)
+	    _("Reading partitioning..."),
+	    // progress stage, text in dialog (short)
+	    _("Loading boot loader settings..."),
+	];
+	// progress bar caption
+	Progress::New (_("Initializing boot loader configuration"),
+	    " ", 3, stages, titles, "");
+
+	Progress::NextStage ();
+	if (testAbort ())
+	    return false;
+
+	Bootloader::getLoaderType ();
+
+	Progress::NextStage ();
+	if (testAbort ())
+	    return false;
+
+	BootCommon::DetectDisks ();
+        Progress::NextStage ();
+        if (testAbort ())
+            return false;
+
+	boolean ret = blRead ();
+	BootCommon::updateLoaderLocation ();
+	if (BootCommon::location == "none")
+	{
+	    BootCommon::location = "custom";
+	    BootCommon::loader_device = "/dev/null";
+	}
+	else if (BootCommon::location == nil || BootCommon::location == "")
+	{
+	    BootCommon::location = "custom";
+	}
+	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+	BootCommon::was_read = true;
+	old_vga = getKernelParam (getDefaultSection (), "vga");
+
+	Progress::Finish ();
+	if (testAbort ())
+	    return false;
+	y2debug ("Read settings: %1", Export ());
+	return ret;
+    }
+    /**
+      * Reset bootloader settings
+      * @param init boolean true if basic initialization of system-dependent
+      * settings should be done
+      */
+    global define void ResetEx (boolean init) ``{
+	if (Mode::autoinst ())
+	    return;
+	y2milestone ("Reseting configuration");
+	BootCommon::was_proposed = false;
+	BootCommon::was_read = false;
+	BootCommon::location = "";
+	BootCommon::loader_device = "";
+//	BootCommon::setLoaderType (nil);
+	BootCommon::changed = false;
+	BootCommon::location_changed = false;
+//	BootCommon::other_bl = $[];
+	BootCommon::files_edited = false;
+	BootCommon::write_settings = $[];
+	blReset (init);
+    }
+
+    /**
+      * Reset bootloader settings
+      */
+    global define void Reset () ``{
+	return ResetEx (true);
+    }
+    /**
+      * Propose bootloader settings
+      */
+    global define void Propose () ``{
+	y2milestone ("Proposing configuration");
+	BootCommon::UpdateInstallationKernelParameters ();
+	blPropose ();
+	BootCommon::was_proposed = true;
+        BootCommon::changed = true;
+        BootCommon::location_changed = true;
+	BootCommon::partitioning_last_change = Storage::GetTargetChangeTime();
+	BootCommon::backup_mbr = true;
+	y2milestone ("Proposed settings: %1", Export ());
+    }
+    /**
+      * Display bootloader summary
+      * @return a list of summary lines
+      */
+    global define list<string> Summary () ``{
+	return blSummary ();
+    }
+
+    /**
+      * Update read settings to new version of configuration files
+      */
+    global define void UpdateConfiguration () ``{
+	// first run bootloader-specific update function
+	blUpdate ();
+
+	// remove ide-scsi emulation
+	list<string> parameters = listKernelParams ("LINUX_DEFAULT");
+	foreach (string p, parameters, ``{
+	    if (regexpmatch (p, "^hd.=ide-scsi$")
+		|| regexpmatch (p, "^hd.lun=.*$"))
+	    {
+		string param = regexpsub (p, "^(.*)=.*$", "\\1");
+		setKernelParam ("LINUX_DEFAULT", param, nil);
+	    }
+	});
+	// remove no more needed modules from MODULES_LOADED_ON_BOOT
+	string mlob = (string)
+	    SCR::Read (.sysconfig.kernel.MODULES_LOADED_ON_BOOT);
+	list<string> mod_list = splitstring (mlob, " ");
+	mod_list = filter (string s, mod_list, ``(
+	    s != "" && s != "cdrom" && s != "ide-cd" && s != "ide-scsi"
+	));
+	mlob = mergestring (mod_list, " ");
+	SCR::Write (.sysconfig.kernel.MODULES_LOADED_ON_BOOT, mlob);
+	SCR::Write (.sysconfig.kernel, nil);
+    }
+
+/**
+ * Update the whole confiuration
+ * @param iv a map representing the installed (original) version
+ * @param uv a map representing the version the system is upgraded to
+ * @return boolean true on success
+ */
+global boolean Update (map<string,any> iv, map<string,any> uv) {
+    BootCommon::installed_version = iv;
+    BootCommon::update_version = uv;
+    return Write (); // write also reads the configuration and updates it
+}
+
+    /**
+     * Process update actions needed before packages update starts
+     */
+    global define void PreUpdate () {
+	y2milestone ("Running bootloader pre-update stuff");
+	if (Arch::ia64 ())
+	{
+	    BootELILO::UpdateEfiPartitionLayout ();
+	}
+	else if (Arch::s390 ())
+	{
+	    BootS390::UpdateZiplConfBeforeUpdate ();
+	}
+    }
+
+    /**
+      * Write bootloader settings to disk
+      * @return boolean true on success
+      */
+    global define boolean Write () ``{
+	boolean ret = true;
+
+	// proposing anything is irrelevant during update, this forces reading
+	// if settings weren't read before
+	if (Mode::update ())
+	{
+	    BootCommon::was_proposed = false;
+	    BootCommon::changed = true;
+	    BootCommon::location_changed = true;
+	    BootCommon::getLoaderType (true);
+	}
+
+	ReadOrProposeIfNeeded ();
+
+	if (BootCommon::write_settings["save_all"]:false)
+	    BootCommon::save_all = true;
+	if (BootCommon::save_all)
+	{ // force saving everything
+	    BootCommon::changed = true;
+	    BootCommon::location_changed = true;
+	    Initrd::changed = true;
+	}
+
+	y2milestone ("Writing bootloader configuration");
+
+// run Progress bar
+        list<string> stages = [
+            // progress stage, text in dialog (short)
+            _("Creating initrd..."),
+            // progress stage, text in dialog (short)
+            _("Saving boot loader configuration files..."),
+            // progress stage, text in dialog (short)
+            _("Installing boot loader..."),
+        ];
+        list<string> titles = [
+            // progress stage, text in dialog (short)
+            _("Creating initrd..."),
+            // progress stage, text in dialog (short)
+            _("Saving boot loader configuration files..."),
+            // progress stage, text in dialog (short)
+            _("Installing boot loader..."),
+        ];
+        // progress bar caption
+        if (Mode::normal ())
+	{
+	    // progress line
+            Progress::New (_("Saving boot loader configuration"),
+                " ", 2, stages, titles, "");
+	    Progress::NextStage ();
+	}
+        else
+        {
+            Progress::Title (titles[0]:"");
+        }
+
+	map<string,any> params_to_save = $[];
+
+	string new_vga = getKernelParam (getDefaultSection (), "vga");
+	if (new_vga != old_vga && new_vga != "false" && new_vga != "")
+	{
+	    Initrd::setSplash (new_vga);
+	    if (Stage::initial ())
+		params_to_save["vga"] = new_vga;
+	}
+
+	// Initialize device mapper and LVM in target system
+	if (Stage::initial () || Mode::update ())
+	{
+	    map out = (map)SCR::Execute (.target.bash_output, "
+test -f /sbin/devmap_mknod.sh && /sbin/devmap_mknod.sh
+test -f /sbin/vgscan && /sbin/vgscan --mknodes");
+	    if (out["exit"]:0 != 0)
+	    {
+		y2error ("Failed to initialize device mapper");
+	    }
+	    y2milestone ("Device mapper and LVM initialization output: %1", out);
+	}
+
+	// save initrd
+	if ((Initrd::changed || ! Mode::normal ())
+	    && ! (BootCommon::write_settings["forbid_save_initrd"]:false))
+	{
+	    string vga = getKernelParam (getDefaultSection (), "vga");
+	    if (vga != "false" && vga != "")
+	    {
+		Initrd::setSplash (vga);
+		if (Stage::initial ())
+		    params_to_save["vga"] = new_vga;
+	    }
+	    ret = Initrd::Write ();
+	    BootCommon::changed = true;
+	}
+	if (! ret)
+	    y2error ("Error occurred while creating initrd");
+
+	if (Mode::commandline ())
+	    BootCommon::changed = true;
+
+	if (! (BootCommon::changed
+	    || BootCommon::write_settings["initrd_changed_externally"]:false))
+	{
+	    y2milestone ("No bootloader cfg. file saving needed, exiting");
+//	    return true;
+	}
+
+	if (Mode::normal ())
+	    Progress::NextStage ();
+	else
+        {
+	    if (! repeating_write)
+		Progress::NextStep ();
+            Progress::Title (titles[1]:"");
+        }
+
+	// Write settings to /etc/sysconfig/bootloader
+	if (BootCommon::location == "custom"
+	    && BootCommon::loader_device == "/dev/null")
+	{
+	    BootCommon::location = "none";
+	}
+	y2milestone ("Saving configuration files");
+	string lt = getLoaderType ();
+	if (lt == "ppc" && Arch::ppc ())
+	    lt = "lilo";
+        SCR::Write (.sysconfig.bootloader.LOADER_TYPE, lt);
+        SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
+            BootCommon::location);
+	SCR::Write (.sysconfig.bootloader, nil);
+
+	params_to_save["additional_failsafe_params"]
+	    = BootCommon::GetAdditionalFailsafeParams ();
+	params_to_save["installation_kernel_params"] = Kernel::GetCmdLine ();
+	if (Stage::initial ())
+	{
+	    SCR::Write (.target.ycp, "/var/lib/YaST2/bootloader.ycp",
+		params_to_save);
+	}
+
+	if (getLoaderType () == "none")
+	{
+	    return ret;
+	}
+
+	// save bootloader settings
+	ret = ret && blSave ();
+	if (! ret)
+	    y2error ("Error before configuration files saving finished");
+
+        if (Mode::normal ())
+            Progress::NextStage ();
+        else
+        {
+	    if (! repeating_write)
+		Progress::NextStep ();
+            Progress::Title (titles[2]:"");
+        }
+
+        if (BootCommon::location == "none" || BootCommon::location == "")
+	{
+	    return ret;
+	}
+
+	// call bootloader executable
+	y2milestone ("Calling bootloader executable");
+	ret = ret && blWrite ();
+
+	if (! ret)
+	{
+	    y2error ("Installing bootloader failed");
+	    if (writeErrorPopup ())
+	    {
+		repeating_write = true;
+		map res = (map)WFM::call( "bootloader_proposal", ["AskUser",
+		    $[ "has_next": false]]);
+		if (res["workflow_sequence"]:nil == `next)
+		{
+		    return Write ();
+		}
+	    }
+	}
+	return ret;
+    }
+
+// write mode settings function
+
+    /**
+      * Set settings how to write bootloader
+      * @param settings map of settings
+      */
+    global define void SetWriteMode (map<string,any> settings) ``{
+	y2milestone ("Setting mode for writing: %1", settings);
+	foreach (string k, any v, settings, ``{
+	    BootCommon::write_settings[k] = v;
+	});
+    }
+
+// sections handling functions
+
+    /**
+      * return default section label
+      * @return string default section label
+      */
+    global define string getDefaultSection () ``{
+	ReadOrProposeIfNeeded ();
+	return BootCommon::getDefaultSection ();
+    }
+
+    /**
+      * return section that was proposed as default during installation,
+      * if not known, return current default section if it is of type "image",
+      * if not found return first linux section, if no present, return empty
+      * string
+      */
+    global define string getProposedDefaultSection () ``{
+	ReadOrProposeIfNeeded ();
+	string default = "";
+	string first_image = "";
+	string default_image = "";
+	foreach (list<map> s, BootCommon::sections, ``{
+	    string title = (string)
+		lookup_value (s, BootCommon::getSectionTitle (), "");
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
+	    string kernel_key = BootCommon::getKernelKey ();
+	    if (lookup_value (s, kernel_key, nil) != nil)
+	    {
+		if (first_image == "")
+		    first_image = title;
+		if (title == getDefaultSection ())
+		    default_image = title;
+	    }
+	    if (default == "" && intern["type"]:"" == "linux")
+		default = title;
+	});
+	if (default != "")
+	    return default;
+	if (default_image != "")
+	    return default_image;
+	if (first_image != "")
+	    return first_image;
+	return "";
+    }
+
+    /**
+     * Add section for previous kernel and initrd (/boot/vmlinuz.previous,
+     * /boot/initrd.previous)
+     */
+    global define void AddPreviousSection () {
+	ReadOrProposeIfNeeded ();
+	string title_key = BootCommon::getSectionTitle ();
+	// check if there is already present "Previous" section
+	BootCommon::sections = filter (list<map> s, BootCommon::sections, {
+	    string title = (string)lookup_value (s, title_key, "");
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
+	    string type = intern["type"]:"";
+	    boolean preserve = type != "previous" && title != "previous"
+		&& BootCommon::translateSectionTitle (title) != "previous";
+	    return preserve;
+	});
+	// add the new section now
+	list<map> found_sect = nil;
+	string sect_name = getProposedDefaultSection ();
+	if (sect_name == "" || sect_name == nil)
+	    return;
+
+	foreach (list<map> s, BootCommon::sections, {
+	    if (lookup_value (s, title_key, "") == sect_name)
+		found_sect = s;
+	});
+	if (found_sect == nil)
+	    return;
+
+	list<map> previous_section = BootCommon::Linux2Previous (found_sect);
+	BootCommon::sections = add (BootCommon::sections, previous_section);
+	BootCommon::changed = true;
+    }
+
+    /**
+      * get kernel parameters from bootloader configuration file
+      * @param section string section title, use DEFAULT for default section
+      * @param key string
+      * @return string value, "false" if not present,
+      * "true" if present key without value
+      */
+    global define string getKernelParam (string section, string key) ``{
+	ReadOrProposeIfNeeded ();
+	if (section == "DEFAULT")
+	    section = getDefaultSection ();
+	else if (section == "LINUX_DEFAULT")
+	    section = getProposedDefaultSection ();
+	if (section == nil)
+	    return "";
+	map params = BootCommon::getKernelParamKeys ();
+	string label = BootCommon::getSectionTitle ();
+	integer sectnum = -1;
+	integer index = -1;
+	foreach (list<map> s, BootCommon::sections, ``{
+	    index = index + 1;
+	    if (lookup_value (s, label, "") == section)
+		sectnum = index;
+	});
+	if (sectnum == -1)
+	    return "";
+	string line = "";
+	if (haskey (params, key))
+	    return (string)lookup_value (
+		BootCommon::sections[sectnum]:[], key, "false");
+	else
+	{
+	    line = (string)lookup_value (
+		BootCommon::sections[sectnum]:[], params[`other]:"", "");
+	    return BootCommon::getKernelParamFromLine (line, key);
+	}
+    }
+
+    /**
+      * List kernel parameters
+      * @param section string section title, use DEFAULT for default section
+      * @return a list of kernel parameters (in the form 'hdd=ide-scsi')
+      */
+    global define list<string> listKernelParams (string section) ``{
+	ReadOrProposeIfNeeded ();
+	if (section == "DEFAULT")
+	    section = getDefaultSection ();
+	else if (section == "LINUX_DEFAULT")
+	    section = getProposedDefaultSection ();
+	if (section == nil)
+	    return [];
+	map params = BootCommon::getKernelParamKeys ();
+	string label = BootCommon::getSectionTitle ();
+	integer sectnum = -1;
+	integer index = -1;
+	foreach (list<map> s, BootCommon::sections, ``{
+	    index = index + 1;
+	    if (lookup_value (s, label, "") == section)
+		sectnum = index;
+	});
+	if (sectnum == -1)
+	    return [];
+	string line = (string)lookup_value (
+	    BootCommon::sections[sectnum]:[], params[`other]:"", "");
+        list<string> par = splitstring (line, " ");
+        par = filter (string p, par, ``(p != ""));
+	return par;
+    }
+
+    /**
+      * Get list of bootloader sections
+      * @param type symbol what sections to be returned
+      *  `linux -> linux sections
+      *  `other -> other sections
+      *  `all   -> all sections
+      * @return list of strings representing sections names
+      */
+    global define list getSectionsList (symbol type) ``{
+	string title = BootCommon::getSectionTitle ();
+	string linux = BootCommon::getKernelKey ();
+
+	list<list<map> > sects = (list<list<map> >)BootCommon::sections;
+	if (type == `other)
+	    sects = filter (list<map> s, sects, ``(
+		lookup_value (s, linux, nil) == nil));
+	else if (type == `linux)
+	    sects = filter (list<map> s, sects, ``(
+		lookup_value (s, linux, nil) != nil));
+	list<string> sects_titles = maplist (list<map> s, sects, ``(
+	    (string)lookup_value (s, title, "")));
+	sects_titles = filter (string s, sects_titles, ``(s != ""));
+	return sects_titles;
+    }
+
+
+    /**
+      * set kernel parameter to menu.lst
+      * @param section string section title, use DEFAULT for default section
+      * @param key string parameter key
+      * @param value string value, "false" to remove key,
+      *   "true" to add key without value
+      * @return boolean true on success
+      */
+    global define boolean setKernelParam
+	(string section, string key, string value)
+    ``{
+	if ((! Mode::config ()) && key == "vga" && (
+	    Arch::s390 () || Arch::ppc ()
+	))
+	{
+	    y2warning ("Kernel of this architecture does not support the vga parameter");
+	    return true;
+	}
+
+	ReadOrProposeIfNeeded ();
+
+	if (section == "DEFAULT")
+	    section = getDefaultSection ();
+	else if (section == "LINUX_DEFAULT")
+	    section = getProposedDefaultSection ();
+	if (section == nil)
+	    return false;
+        string label = BootCommon::getSectionTitle ();
+	map params = BootCommon::getKernelParamKeys ();
+        integer sectnum = -1;
+        integer index = -1;
+        foreach (list<map> s, BootCommon::sections, ``{
+            index = index + 1;
+            if (lookup_value (s, label, "") == section)
+                sectnum = index;
+        });
+        if (sectnum == -1)
+            return false;
+	string slabel = "";
+	if ((key == "vga" || key == "root") && (value == "true"))
+	    return false;
+	if (haskey (params, key))
+	{
+	    if (value != "false")
+	    {
+		BootCommon::sections[sectnum] = modifySection (
+		    BootCommon::sections[sectnum]:[], key, value);
+	    }
+	    else
+	    {
+		BootCommon::sections[sectnum] = modifySection
+		    (BootCommon::sections[sectnum]:[], key, nil);
+	    }
+	}
+	else
+	{
+	    slabel = params[`other]:"";
+	    string line = (string)
+		lookup_value (BootCommon::sections [sectnum]:[], slabel, "");
+	    line = BootCommon::setKernelParamToLine (line, key, value);
+	    BootCommon::sections [sectnum] = modifySection (
+		BootCommon::sections [sectnum]:[], slabel, line);
+	}
+	BootCommon::changed = true;
+	boolean ret = true;
+	return ret;
+    }
+
+    /**
+      * Get currently used bootloader, detect if not set yet
+      * @return string botloader type
+      */
+    global define string getLoaderType () ``{
+	return BootCommon::getLoaderType (false);
+    }
+
+    /**
+      * Set type of bootloader
+      * Just a wrapper to BootCommon::setLoaderType
+      * @param bootloader string type of bootloader
+      */
+    global define void setLoaderType (string bootloader) ``{
+	BootCommon::setLoaderType (bootloader);
+    }
+
+    /**
+      * Get root fs device
+      * @return string root device
+      */
+    global define string getRootDevice () ``{
+	ReadOrProposeIfNeeded ();
+	return BootCommon::RootPartitionDevice;
+    }
+
+    /**
+      * Set root fs device
+      * @param device string root device
+      */
+    global define void setRootDevice (string device) ``{
+	ReadOrProposeIfNeeded ();
+	BootCommon::RootPartitionDevice = device;
+    }
+
+    /**
+      * Get device containing /boot directory
+      * @return string boot device
+      */
+    global define string getBootDevice () ``{
+	ReadOrProposeIfNeeded ();
+	return BootCommon::BootPartitionDevice;
+    }
+
+    /**
+      * Set device containing /boot directory
+      * @param device string boot device
+      */
+    global define void setBootDevice (string device) ``{
+	ReadOrProposeIfNeeded ();
+	BootCommon::BootPartitionDevice = device;
+    }
+
+    /**
+      * Answer whether LBA is supported
+      * @return boolean true if supported
+      */
+    global define boolean LbaSupport() ``{
+	return BootCommon::LbaSupport ();
+    }
+
+    /**
+      * Check whether settings were read or proposed, if not, decide
+      * what to do and read or propose settings
+      */
+    global define void ReadOrProposeIfNeeded () ``{
+        if (! (BootCommon::was_read || BootCommon::was_proposed))
+        {
+	    y2milestone ("Stage::initial (): %1, update: %2, config: %3",
+		Stage::initial (), Mode::update (), Mode::config ());
+	    if (Mode::config ())
+	    {
+		y2milestone ("Not reading settings in Mode::config ()");
+		BootCommon::was_read = true;
+		BootCommon::was_proposed = true;
+	    }
+	    else if (Arch::ia64 () && Mode::update ()
+		&& BootELILO::efi_layout_changed)
+	    { // recreate config on IPF from scratch - request by rw
+		y2milestone ("Reproposing new configuration - IPF, EFI layout has changed");
+		Propose ();
+	    }
+            else if (Stage::initial () && ! Mode::update ())
+            {
+                Propose ();
+            }
+            else
+            {
+		boolean progress_orig = Progress::set (false);
+                Read ();
+		Progress::set (progress_orig);
+		if (Mode::update ())
+		{
+		    UpdateConfiguration ();
+		    BootCommon::changed = true;
+		    BootCommon::location_changed = true;
+		}
+            }
+        }
+    }
+
+    /**
+     * Update the language of GFX menu according to currently selected language
+     * @reuturn boolean true on success
+     */
+    global define boolean UpdateGfxMenu () {
+	if (! Mode::normal ())
+	    return true;
+	if (getLoaderType () != "lilo" && getLoaderType () != "grub")
+	    return true;
+
+	boolean ret = BootCommon::updateGfxMenu ();
+	if (getLoaderType () == "lilo")
+	{
+	    string bl_command = "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1";
+	    boolean command_ret = 0 == SCR::Execute (.target.bash, bl_command);
+	    if (! command_ret)
+	    {
+		y2error ("Execution of installation command failed");
+		return false;
+	    }
+	}
+	return ret;
+    }
+
+}

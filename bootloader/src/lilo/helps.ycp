@@ -1,0 +1,25 @@
+/**
+ * File:
+ *      include/bootloader/lilo/helps.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Help strings for bootloader installation and configuration
+ *	related to LILO bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+    textdomain "bootloader";
+
+    import "BootCommon";
+
+}

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+
+    <section id="initrd">
+        <title>Initrd module</title>
+	<section>
+	    <title>General information</title>
+	    <para>
+Initrd module is used for handling list of Initrd modules. Inside stores list of modules, which shall be contained in initial ramdisk, allows to add/remove any module to/from this list.
+Also when adding module to initrd, it is possible to specify parameters of the module.
+	    </para>
+	    <para>
+For storing of list of initrd modules variable INITRD_MODULES in /etc/sysconfig/kernel is used (contains list of modules separated by blank character). Parameters of modules are
+stored in /etc/modules.conf the same way like for modules which aren't to be a part of initrd.
+	    </para>
+	    <para>
+When calling the Write function of this module, first checking whether saving is really needed is done (if some module was added, or if function was called during installation,
+then it is needed). Modules settings are saved to /etc/modules.conf, list of modules to /etc/sysconfig/kernel, and after it /sbin/mkinitrd is called to create ramdisk.
+Note that even though list of modules is empty, /sbin/mkinitrd must be called, because some modules are added to initrd by this script.
+	    </para>
+	</section>
+        <section>
+            <title>List of declarations</title>
+            <itemizedlist>
+                <listitem><para><computeroutput>global define void AddModule (string modname, string modargs)</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define map Export ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define void Import (map settings)</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define list ListModules ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define boolean Read ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define void RemoveModule (string modname)</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define void Reset ()</computeroutput></para></listitem>
+		<listitem><para><computeroutput>global define void Update ()</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global define void Write ()</computeroutput></para></listitem>
+		<listitem><para><computeroutput>global define void setSplash (string vga)</computeroutput></para></listitem>
+		<listitem><para><computeroutput>list modules</computeroutput></para></listitem>
+                <listitem><para><computeroutput>map modules_settings</computeroutput></para></listitem>
+                <listitem><para><computeroutput>global boolean changed</computeroutput></para></listitem>
+                <listitem><para><computeroutput>boolean was_read</computeroutput></para></listitem>
+		<listitem><para><computeroutput>string splash</computeroutput></para></listitem>
+            </itemizedlist>
+        </section>
+        <section>
+            <title>Global functions</title>
+            <itemizedlist>
+                <listitem><para><computeroutput>global define void AddModule (string modname, string modargs)</computeroutput>
+                    inserts module to list of modules which shall be contained in initial
+                    ramdisk with it's parameters. When saving initial ramdisk will be recreated.</para></listitem>
+                <listitem><para><computeroutput>global define map Export ()</computeroutput> export settings of Initrd module to returning map.</para></listitem>
+                <listitem><para><computeroutput>global define void Import (map settings)</computeroutput>imports map of settings to module's internal structures.</para></listitem>
+                <listitem><para><computeroutput>global define list ListModules ()</computeroutput> returns list of modules which are (or will be) present in initial ramdisk.</para></listitem>
+                <listitem><para><computeroutput>global define boolean Read ()</computeroutput> reads list of initrd modules from sysconfig file. Sets changed variable to false.</para></listitem>
+                <listitem><para><computeroutput>global define void RemoveModule (string modname)</computeroutput>
+                    removes module from ramdisk when writing bootloader configuration to disk.</para></listitem>
+                <listitem><para><computeroutput>global define void Reset ()</computeroutput> resets modules list to empty and sets changed variable to false. </para></listitem>
+		<listitem><para><computeroutput>global define void Update ()</computeroutput> modifies internal structures according to changes which happened since previous versions
+		    (eg. modules split/merge, removing some modules,...). Is called only if <computeroutput>Mode::update</computeroutput> is set to true.</para></listitem>
+                <listitem><para><computeroutput>global define void Write ()</computeroutput> (if was changed) saves list of initrd modules to sysconfig files and rebuilds initrd.
+		    If updating the system, then after reading settings (if hasn't been read before) <computeroutput>Update</computeroutput> function is called to update
+		    list and settings of modules in initrd.</para></listitem>
+		<listitem><para><computeroutput>global define void setSplash (string vga)</computeroutput> is used to add proper splash screen to initrd.
+		    As parameter takes the kernel vga parameter, internally translates to resolution.</para></listitem>
+            </itemizedlist>
+        </section>
+        <section>
+            <title>Internal variables</title>
+            <itemizedlist>
+		<listitem><para><computeroutput>list modules</computeroutput> contains list of modules to be inserted to initrd. Is important, because map doesn't preserve order
+			of module, which is important.</para></listitem>
+                <listitem><para><computeroutput>map modules_settings</computeroutput> is map from names of modules, which should be contained in initial ramdisk, to their
+                        parameters. For changing this variable should be appropriate functions used.</para></listitem>
+                <listitem><para><computeroutput>global boolean changed</computeroutput> is true if initrd needs to be rebuilt when saving configuration. Shall be directly used only
+                        from Bootloader module.</para></listitem>
+                <listitem><para><computeroutput>boolean was_read</computeroutput> is true if settings were already read from disk, otherwise false</para></listitem>
+		<listitem><para><computeroutput>string splash</computeroutput> contains resolution of splash image</para></listitem>
+            </itemizedlist>
+        </section>
+    </section>

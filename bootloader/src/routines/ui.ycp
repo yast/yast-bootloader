@@ -1,0 +1,580 @@
+/**
+ * File:
+ *      include/bootloader/routines/ui.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      User interface for bootloader installation/configuration
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+    textdomain "bootloader";
+
+    import "BootCommon";
+    import "CWM";
+    import "Label";
+    import "Mode";
+    import "Popup";
+    import "Sequencer";
+    import "Wizard";
+
+    include "bootloader/routines/convert.ycp";
+
+    /**
+     * Test for abort.
+     * @return true if abort was pressed
+     */
+    global define boolean testAbort () ``{
+	if (Mode::commandline ())
+	    return false;
+        if (`abort == UI::PollInput ())
+        {
+            UI::CloseDialog ();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+      * Read settings dialog
+      * @return `abort if aborted and `next otherwise
+      */
+    global define symbol ReadDialog() ``{
+        Wizard::RestoreHelp (BootCommon::getInitProgressHelp ());
+        boolean ret = Bootloader::Read();
+        return ret ? `next : `abort;
+    }
+
+    /**
+      * Write settings dialog
+      * @return `abort if aborted and `next otherwise
+      */
+    global define symbol WriteDialog() ``{
+        Wizard::RestoreHelp (BootCommon::getSaveProgressHelp ());
+        boolean ret = Bootloader::Write();
+        return ret ? `next : `abort;
+    }
+
+    /**
+      * Handle function of a widget
+      * @param widget any widget key
+      * @param event map event description of event that occured
+      * @return symbol to return to wizard sequencer, or nil
+      */
+    global define symbol resetButtonHandle (string widget, map event) ``{
+	any op = event["ID"]:nil;
+        if (op == `restore_mbr)
+        {
+            boolean doit = restoreMBRPopup (BootCommon::mbrDisk);
+	    y2milestone ("Rewrite MBR with saved one: %1", doit);
+	    if (doit)
+	    {
+		boolean ret = BootCommon::restoreMBR (BootCommon::mbrDisk);
+		if (ret)
+		    // message popup
+		    Popup::Message (_("MBR restored successfully"));
+		else
+		    // message popup
+		    Popup::Message (_("Failed to restore MBR"));
+	    }
+            return nil;
+        }
+
+	if (! (is (op, symbol)
+	    && contains ([`scratch, `reread, `propose_deep, `propose],
+		(symbol)op)))
+	{
+	    return nil;
+	}
+	Bootloader::Reset ();
+	if (op == `scratch)
+	{
+	    y2debug ("Not reading anything for starting from scratch");
+	}
+	else if (op == `reread)
+	{
+	    Bootloader::Read ();
+	}
+	else if (op == `propose_deep)
+	{
+	    import "BootGRUB";
+	    BootGRUB::merge_level = `all;
+	    Bootloader::Propose ();
+	    BootGRUB::merge_level = `main;
+	}
+	else if (op == `propose)
+	{
+	    Bootloader::Propose ();
+	}
+        BootCommon::fetchSettings ();
+        BootCommon::current_section = (list<map>)eval (BootCommon::current_globals);
+        BootCommon::current_section_name = `global;
+
+	return `redraw;
+
+	// FIXME this must be solved some way
+//	readWidgets (CWM::CreateWidgets(["globalsection"], BootCommon::GetWidgets ()));
+    }
+
+    /**
+      * Ask for bootlaoder switch method
+      * @param from string current spooler
+      * @param to string new spooler
+      * @param type of switching,
+      *   `proposal for switching proposed because of disks changed
+      *   `user for switching upon user's request
+      * @return symbol method
+      */
+    global define symbol askSwitch (string from, string to, symbol type) ``{
+	// warning - popup
+	string label = type == `user ? _("Warning!
+
+You chose to change your boot loader. When converting 
+the configuration, some settings may be lost.
+
+The current configuration will be saved and you will be able
+to restore it if you return to the current boot loader.
+
+Select a course of action:
+")
+		// warning - popup
+	    : sformat (_("Warning!
+
+Your partitioning setup has changed. It is recommended
+to use %1 with the current partitioning setup. 
+
+When converting the configuration, some settings may be lost.
+The current configuration will be saved and you will be able
+to restore it if you return to the current boot loader.
+
+Switch boot loader?"), BootCommon::getLoaderName (to));
+
+	boolean can_convert = canConvert (from, to);
+	y2milestone ("Conversion from %1 to %2 possible: %3",
+	    from, to, can_convert);
+
+	term contents = `VBox (
+		// warning label
+	    `Label (label),
+	    `VSpacing (1),
+	    `RadioButtonGroup (`id (`action), `VBox (
+		can_convert
+		    ? `Left (`RadioButton (`id (`convert),
+			// radiobutton
+			_("Co&nvert Current Configuration")))
+		    : `VSpacing (0),
+		type == `proposal ? `VSpacing (0)
+		: `Left (`RadioButton (`id (`scratch),
+		    // radiobutton
+		    _("&Start New Configuration from Scratch"))),
+		`Left (`RadioButton (`id (`propose),
+		    // radiobutton
+		    _("&Propose New Configuration"))),
+		Mode::normal ()
+		    ? `Left (`RadioButton (`id (`read),
+			// radiobutton
+			_("&Read Configuration Saved on Disk")))
+		    : `VSpacing (0),
+		BootCommon::other_bl[to]:nil == nil || type == `proposal
+		    ? `VSpacing (0)
+		    : `Left (`RadioButton (`id (`prev),
+			// radiobutton
+			_("Res&tore Configuration Saved before Conversion")))
+	    )),
+	`VSpacing (1),
+	`HBox (
+	    `HStretch (),
+	    `PushButton (`id (`ok), `opt (`key_F10), Label::OKButton ()),
+	    `HSpacing (1),
+	    `PushButton (`id (`cancel), `opt (`key_F9), Label::CancelButton ()),
+	    `HStretch ()
+	));
+	UI::OpenDialog (contents);
+	symbol def = can_convert
+	    ? `convert
+	    : ((type == `proposal)
+		? `propose
+		: `scratch);
+	UI::ChangeWidget (`id (def), `Value, true);
+	symbol ret = (symbol)UI::UserInput ();
+	symbol action = (symbol)UI::QueryWidget (`id (`action), `CurrentButton);
+	UI::CloseDialog ();
+	if (ret != `ok)
+	    return nil;
+	return action;
+    }
+
+    /**
+      * Store function of a widget
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void loaderTypeStore (any opt_id, string opt_key) ``{
+
+	string old_bl = Bootloader::getLoaderType ();
+	string new_bl = (string)UI::QueryWidget (`id (`loader_type), `Value);
+	if (old_bl == new_bl)
+	    return;
+
+	if (new_bl == "none")
+	{
+	    // popup - Continue/Cancel
+	    if (Popup::ContinueCancel (_("Warning!
+
+If you do not install any boot loader, the system
+may not start.
+
+Proceed?
+")))
+	    {
+		BootCommon::other_bl[old_bl] = Bootloader::Export ();
+		BootCommon::setLoaderType ("none");
+		BootCommon::location_changed = true;
+	    }
+	    BootCommon::redraw_dialog = true;
+	    BootCommon::redraw_table = true;
+	    return;
+	}
+
+	symbol action = askSwitch (old_bl, new_bl, `user);
+	if (nil != action)
+	{
+	    y2milestone ("Switching bootloader");
+	    if (old_bl != "none")
+		BootCommon::other_bl[old_bl] = Bootloader::Export ();
+	    BootCommon::setLoaderType (new_bl);
+
+            if (action == `scratch)
+		Bootloader::Reset ();
+            else if (action == `read)
+                Bootloader::Read ();
+            else if (action == `propose)
+	    {
+		Bootloader::Reset ();
+		if (Bootloader::getLoaderType () == "grub")
+		{
+		    import "BootGRUB";
+		    BootGRUB::merge_level = `all;
+		    Bootloader::Propose ();
+		    BootGRUB::merge_level = `main;
+		}
+		else
+		{
+		    Bootloader::Propose ();
+		}
+	    }
+            else if (action == `convert)
+                convertSettings (old_bl, new_bl);
+            else if (action == `prev)
+                Bootloader::Import (BootCommon::other_bl[new_bl]:$[]);
+
+	    BootCommon::fetchSettings ();
+            BootCommon::current_section =
+		(list<map>)eval (BootCommon::current_globals);
+            BootCommon::current_section_name = `global;
+	}
+	BootCommon::location_changed = true;
+	BootCommon::changed = true;
+	BootCommon::redraw_dialog = true;
+	BootCommon::redraw_table = true;
+    }
+
+    /**
+      * Run dialog for sections managment
+      * @return symbol wizard sequencer symbol
+      */
+    global define symbol runSectionsDialog () ``{
+	y2milestone ("Running sections dialog");
+        list<map<string,any> > widgets = CWM::CreateWidgets (["sections"],
+	    BootCommon::cwm_widgets);
+        term contents = `HBox (`HSpacing (1), `VBox (
+		`VSpacing (1),
+                widgets[0, "widget"]:`VSpacing (0),
+                `VSpacing (1)
+                ), `HSpacing (1));
+	// dialog caption
+        string caption = _("Boot Loader Setup -- Sections Managment");
+        string help = CWM::MergeHelps (widgets);
+	Wizard::SetContentsButtons (caption, contents, help,
+            Label::BackButton (), Label::OKButton ());
+
+	return CWM::Run (widgets, $[`abort : confirmAbortPopup]);
+    }
+
+    /**
+      * Run dialog for single section managment
+      * @return symbol wizard sequencer symbol
+      */
+    global define symbol runSingleSectionDialog () ``{
+	y2milestone ("Running single section dialog");
+	list<map<string,any> > widgets = CWM::CreateWidgets (["singlesection"],
+	    BootCommon::cwm_widgets);
+        term contents = `HBox (`HSpacing (1), `VBox (
+                `VSpacing (1),
+                widgets[0, "widget"]:`VSpacing (0),
+		`VSpacing (1)
+                ), `HSpacing (1));
+	// dialog caption
+        string caption = _("Boot Loader Setup -- Sections Managment");
+        string help = CWM::MergeHelps (widgets);
+	Wizard::SetContentsButtons (caption, contents, help,
+	    Label::BackButton (), Label::OKButton ());
+
+	return CWM::Run (widgets, $[`abort : confirmAbortPopup]);
+    }
+
+    /**
+      * Run main summary dialog
+      * @return symbol wizard sequencer symbol
+      */
+    global define symbol runSummaryDialog () ``{
+	y2milestone ("Running summary dialog");
+	list<map<string,any> > widgets = CWM::CreateWidgets (["globalsection", "resetbutton",
+	    "manual_edit_button"], BootCommon::cwm_widgets);
+        term contents = `HBox (`HSpacing (1), `VBox (
+                `VSpacing (1),
+                widgets[0, "widget"]:`VSpacing (0),
+                `VSpacing (1),
+                widgets[2, "widget"]:`VSpacing (0),
+                `VSpacing (1)
+                ), `HSpacing (1));
+	// dialog caption
+        string caption = _("Boot Loader Setup");
+        string help = CWM::MergeHelps (widgets);
+	string next_button = (Stage::initial () || Mode::config ())
+	    ? Label::AcceptButton ()
+	    : Label::FinishButton ();
+
+	Wizard::SetContentsButtons (caption, contents, help,
+            Label::BackButton (), Label::FinishButton ());
+
+	return CWM::Run (widgets, $[`abort : BootCommon::confirmAbort]);
+    }
+
+    /**
+      * Run dialog
+      * @return symbol for wizard sequencer
+      */
+    global define symbol runEditFilesDialog () ``{
+        map<string,string> files = Bootloader::blGetFiles ();
+	string default = files["default"]:"";
+	files = filter (string k, string v, files, ``(k != "default"));
+        list filenames = [];
+        foreach (string k, string v, files, ``{
+            filenames = add (filenames, k);
+        });
+	term cb = nil;
+	if (size (files) > 1)
+	    cb = `ComboBox (`id (`filename), `opt (`notify, `hstretch),
+		// combobox label
+		_("&File Name"), filenames);
+	else
+	    // label. %1 is name of file (eg. /etc/lilo.conf
+	    cb = `Left (`Label (sformat (_("File Name: %1"), filenames[0]:"")));
+
+	term contents = `HBox (`HSpacing (2), `VBox (
+            `VSpacing (2),
+	    cb,
+            `VSpacing (2),
+            `MultiLineEdit (`id (`file), `opt (`hstretch, `vstretch),
+		// multiline edit header
+                _("Fi&le Contents")),
+            `VSpacing (2)
+	), `HSpacing (2));
+
+	// dialog caption
+        string caption = _("Expert Manual Configuration");
+        string help = BootCommon::getExpertManualHelp ();
+
+        list exits = [`back, `next, `abort, `ok, `apply, `accept];
+
+        Wizard::SetContentsButtons (caption, contents, help,
+            Label::BackButton (), Label::OKButton ());
+
+	Wizard::RestoreBackButton ();
+	Wizard::RestoreAbortButton ();
+
+	string filename = filenames[0]:"";
+	if (default != "")
+	    filename = default;
+	if (size (files) > 1)
+	    UI::ChangeWidget (`id (`filename), `Value, filename);
+	UI::ChangeWidget (`id (`file), `Value, files[filename]:"");
+
+        any ret = nil;
+        while (ret == nil || ! contains (exits, ret))
+        {
+            ret = UI::UserInput ();
+	    if (ret == `filename)
+	    {
+		files[filename] = (string)UI::QueryWidget (`id (`file), `Value);
+		filename = (string)UI::QueryWidget (`id (`filename), `Value);
+		UI::ChangeWidget (`id (`file), `Value, files[filename]:"");
+	    }
+	    if (ret == `next)
+	    {
+		files[filename] = (string)UI::QueryWidget (`id (`file), `Value);
+		Bootloader::blSetFiles (files);
+		BootCommon::changed = true;
+		BootCommon::location_changed = true;
+	    }
+	    if (ret == `abort)
+	    {
+		if (! confirmAbortPopup ())
+		    ret = nil;
+	    }
+        }
+        return (symbol)ret;
+    }
+
+
+    /**
+      * Get generic aliases
+      * @return map aliases
+      */
+    global define map getAliases () ``{
+	return $[
+	    "summary" : ``(runSummaryDialog ()),
+// general routines
+	    "fetch" : [``(BootCommon::fetchSettings ()), true],
+	    "store" : [``(BootCommon::storeSettings ()), true],
+// expert edit dialog
+	    "editfiles" : ``(runEditFilesDialog ()),
+// sections managment dialogs
+	    "sects" : ``(runSectionsDialog ()),
+	    "singlesect" : ``(runSingleSectionDialog ()),
+// sequences definitions
+	    "global_seq" :
+		``(Sequencer::Run (aliases, ws_data["glob_seq"]:$[])),
+	    "sect_seq" :
+		``(Sequencer::Run (aliases, ws_data["sect_seq"]:$[])),
+	];
+    }
+
+
+    /**
+      * Run wizard sequencer
+      * @return `next, `back or `abort
+      */
+    global define symbol runWizard () ``{
+
+	map glob_seq = $[
+	    "ws_start" : "fetch",
+	    "fetch" : $[ `next : "globals", `abort: `abort],
+	    "globals" : $[ `next: "target", `abort: `abort ],
+	    "target" : $[ `next: "store", `abort: `abort ],
+	    "store" : $[ `next: `next, `abort: `abort ],
+	];
+
+	map sect_seq = $[
+	    "ws_start" : "fetch",
+	    "fetch" : $[ `next : "sects", `abort: `abort],
+	    "sects" : $[ `next: "store", `add : "singlesect",
+		`edit : "singlesect", `abort: `abort ],
+	    "singlesect" : $[ `next: "sects", `abort: `abort],
+	    "store" : $[ `next: `next, `abort: `abort ],
+	];
+
+	map normal_sequence = $[
+	    "ws_start" : "summary",
+	    "summary" : $[
+		`next: `next,
+		`abort: `abort,
+		`glob : "global_seq",
+		`manual : "editfiles",
+		`sections : "sect_seq",
+		`redraw : "summary",
+	     ],
+	    "editfiles" : $[ `next : "summary", `abort: `abort ],
+	    "global_seq" : $[ `next : "summary", `abort: `abort ],
+	    "sect_seq" : $[ `next : "summary", `abort: `abort ],
+	];
+
+	ws_data = $[
+	    "start_seq" : "startseq",
+	    "startseq" : normal_sequence,
+	    "glob_seq" : glob_seq,
+	    "sect_seq" : sect_seq,
+	];
+
+	// add specific aliases and modify sequence if needed
+	ws_data = Bootloader::blGetSequence (ws_data);
+
+	aliases = getAliases ();
+	// merge new aliases
+	foreach (string k, any v, ws_data["aliases"]:$[], ``{
+	    aliases[k] = v;
+	});
+	string start_seq = ws_data["start_seq"]:"";
+	map sequence = ws_data[start_seq]:$[];
+
+	// run wizard
+	y2milestone ("Starting wizard sequencer");
+	return Sequencer::Run (aliases, sequence);
+    }
+
+    /**
+      * Whole configuration of printer but without reading and writing.
+      * For use with autoinstallation.
+      * @return sequence result
+      */
+    global define symbol BootloaderAutoSequence () ``{
+	Wizard::CreateDialog();
+	Wizard::SetContentsButtons("", `VBox (), "",
+	    Label::BackButton(), Label::NextButton());
+	if ( Stage::initial () )
+	    Wizard::SetTitleIcon("bootloader");	// no .desktop file in inst-sys
+	else
+	    Wizard::SetDesktopIcon("bootloader");
+	symbol ret = runWizard ();
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+      * Whole configuration of dns-server
+      * @return sequence result
+      */
+    global define symbol BootloaderSequence () ``{
+	map my_aliases = $[
+	    "read"	: [ ``(ReadDialog ()), true ],
+	    "main"	:   ``(runWizard ()),
+	    "write"	: [ ``(WriteDialog ()), true ],
+	];
+
+	map sequence = $[
+	    "ws_start"		: "read",
+	    "read" : $[
+		`abort		: `abort,
+		`next		: "main"
+	    ],
+	    "main" : $[
+		`abort		: `abort,
+		`next		: "write",
+	    ],
+	    "write" : $[
+		`abort		: `abort,
+		`next		: `next
+	    ]
+	];
+
+	Wizard::CreateDialog();
+	Wizard::SetDesktopIcon("bootloader");
+	Wizard::SetContentsButtons("", `VBox (), "",
+	    Label::BackButton(), Label::NextButton());
+	symbol ret = Sequencer::Run (my_aliases, sequence);
+
+	UI::CloseDialog();
+	return ret;
+    }
+
+}

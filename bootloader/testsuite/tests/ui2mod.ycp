@@ -1,0 +1,108 @@
+/**
+ * File:
+ *      ui2mod.ycp
+ *
+ * Module:
+ *      Bootloader
+ *
+ * Summary:
+ *      testsuite for translating of strings
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *      primary author unknown
+ *
+ * $Id$
+ *
+ */
+
+{
+// testedfiles: BootCommon.ycp bootloader/routines/lilolike.ycp bootloader/routines/misc.ycp
+    include "testsuite.ycp";
+
+    map READ_I = $[
+        "target" : $[
+            "size" : -1,
+            "tmpdir" : "/tmp/",
+	    "yast2" : nil,
+        ],
+        "probe" : $[
+            "architecture" : "i386",
+            "has_apm" : true,
+            "has_pcmcia" : false,
+            "has_smp" : false,
+            "system" : [],
+            "memory" : [],
+            "cpu" : [],
+            "cdrom" : $[
+                "manual" : [],
+            ],
+            "floppy" : $[
+                "manual" : [],
+            ],
+	    "is_uml" : false,
+        ],
+        "sysconfig" : $[
+            "console" : $[
+                "CONSOLE_FONT" : "",
+                "CONSOLE_SCREENMAP" : "",
+                "CONSOLE_UNICODEMAP" : "",
+                "CONSOLE_MAGIC" : "",
+                "CONSOLE_ENCODING" : "",
+            ],
+            "language" : $[
+                "RC_LANG" : "",
+                "DEFAULT_LANGUAGE" : "",
+            ],
+        ],
+        "etc" : $[
+            "install_inf" : $[
+                "Cmdline" : "",
+		"Cdrom" : "",
+            ],
+        ],
+        "proc" : $[
+            "cpuinfo" : $[
+                "value" : $[
+                    "0" : $[
+                        "flags" : ""
+                    ],
+                ],
+            ],
+        ],
+	"lilo" : $[
+	    "opttypes" : $[],
+	],
+	"product" : $[
+	    "features" : $[
+		"USE_DESKTOP_SCHEDULER" : "0",
+		"ENABLE_AUTOLOGIN" : "0",
+		"EVMS_CONFIG" : "0",
+		"IO_SCHEDULER" : "cfg",
+		"UI_MODE" : "expert",
+		"INCOMPLETE_TRANSLATION_TRESHOLD" : "95",
+	    ]
+	],
+    ];
+    map WRITE_I = $[];
+    map EXEC_I = $[
+	"target" : $[
+	    "bash_output" : $[],
+	],
+    ];
+
+    TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
+    import "Mode";
+    import "BootCommon";
+
+    Mode::SetTest ("testsuite");
+
+    BootCommon::setLoaderType ("lilo");
+
+    TEST(``(BootCommon::ui2mod("string")), [], nil);
+    TEST(``(BootCommon::ui2mod("string with spaces")), [], nil);
+    TEST(``(BootCommon::ui2mod("string_with_\"quote")), [], nil);
+    TEST(``(BootCommon::ui2mod("string with \\ backslash ")), [], nil);
+    TEST(``(BootCommon::ui2mod(5)), [], nil);
+    TEST(``(BootCommon::ui2mod("")), [], nil);
+}

@@ -1,0 +1,194 @@
+/**
+ * File:
+ *      include/bootloader/ppc/misc.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Miscelaneous functions for configuring and installing PPC bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+
+    textdomain "bootloader";
+
+    import "Storage";
+    import "BootCommon";
+    import "Arch";
+
+    /**
+      * Update list of 41 PReP boot partitions
+      * @return boolean true if list changed, false otherwise
+      */
+    global define boolean updatePrepBootPartitions () ``{
+	y2milestone ("Detecting PReP partitions: prep_only_active: %1, prep_only_iseries_vd: %2, prep_only_primary: %3", prep_only_active, prep_only_iseries_vd, prep_only_primary);
+	map<string,map> targetMap = (map<string,map>)Storage::GetTargetMap ();
+	y2milestone ("TargetMap: %1", targetMap);
+	list old_prep_boot_partitions = prep_boot_partitions;
+	list old_install_prep_boot_partitions = install_prep_boot_partitions;
+	prep_boot_partitions = [];
+	install_prep_boot_partitions = [];
+	y2milestone("old prep_boot_partitions %1", old_prep_boot_partitions);
+
+	foreach (string dname, map ddata, targetMap, ``{
+	    list<map> partitions = ddata["partitions"]:[];
+	    y2milestone ("Partitions: %1", partitions);
+	    partitions = filter (map p, partitions, ``(
+		(! p["delete"]:false)
+		&& (is (p["fsid"]:nil, integer) && p["fsid"]:nil == 65)
+		&& (! p["is_lv"]:false)
+		&& (p["raid_type"]:"" == "")
+	    ));
+	    y2milestone ("Filtered existing partitions: %1", partitions);
+// don't check it here, just activate the partition instead
+/*	    if (prep_only_active)
+	    {
+		partitions = filter (map p, partitions, ``(
+		    p["boot"]:false
+		));
+	    }*/
+	    if (prep_only_iseries_vd)
+	    {
+		partitions = filter (map p, partitions, ``(
+		    regexpmatch (p["device"]:"", "\/dev\/iseries\/vd.*")
+		));
+	    }
+	    if (prep_only_primary)
+	    {
+		partitions = filter (map p, partitions, ``(
+		    p["type"]:`primary == `primary
+		));
+	    }
+	    y2milestone ("Finally filtered partitions: %1", partitions);
+	    prep_boot_partitions = (list<string>)merge (prep_boot_partitions,
+		(list<string>)maplist (map p, partitions, ``(
+		    p["device"]:""
+		))
+	    );
+	    partitions = filter (map p, partitions, ``(
+		p["prep_install"]:false
+	    ));
+	    y2milestone ("Finally filtered recommended partitions: %1",
+		partitions);
+	    install_prep_boot_partitions = (list<string>)merge (
+		install_prep_boot_partitions,
+		(list<string>)maplist (map p, partitions, ``(
+		    p["device"]:""
+		))
+	    );
+	});
+	prep_boot_partitions = filter (string p, prep_boot_partitions, ``(
+	    p != ""
+	));
+	prep_boot_partitions = sort (prep_boot_partitions);
+	y2milestone ("Detected PReP partitions: %1", prep_boot_partitions);
+	y2milestone ("Proposed PReP partitions: %1",
+	    install_prep_boot_partitions);
+
+	if (old_prep_boot_partitions == prep_boot_partitions
+	    && old_install_prep_boot_partitions == install_prep_boot_partitions)
+	{
+	    y2milestone ("PReP Partitions unchanged");
+	    return false;
+	}
+	else
+	{
+	    y2milestone ("PReP Partitions changed");
+	    return true;
+	}
+    }
+
+    /**
+      * Select PReP boot partition to propose
+      * Changes internal variables.
+      */
+    global define void choosePrepBootPartition () ``{
+	y2milestone ("Resetting selected PReP boot partition");
+	string root_disk			// FIXME what about LVM?
+	    = Storage::GetDiskPartition (
+		BootCommon::RootPartitionDevice
+	    )["disk"]:"";
+
+	prep_boot_partition = "";
+	prep_boot_partitions = (list<string>)merge (
+	    install_prep_boot_partitions,
+	    prep_boot_partitions);
+	foreach (string partition, prep_boot_partitions, ``{
+	    if (prep_boot_partition == "")
+	    {
+		boolean usable = true;
+		if (prep_same_disk_as_root)
+		{
+		    map part_split = Storage::GetDiskPartition (partition);
+		    string part_disk = part_split["disk"]:"";
+		    if (part_disk != root_disk)
+			usable = false;
+		}
+		if (usable)
+		    prep_boot_partition = partition;
+	    }
+	});
+    }
+
+    map<string,string> board_type_names = $[
+	"iseries" : "iSeries",
+	"prep" : "PReP",
+	"chrp" : "CHRP",
+	// part of summary
+	"mac_new" : _("New World Power Macintosh"),
+	// part of summary
+	"mac_old" : _("Old World Power Macintosh"),
+	"nubus" : "Nubus",
+	// part of summary
+	"unnknown" : _("Unknown"),
+    ];
+
+    /**
+      * Get name of the currently used board
+      * @return string the name of the board
+      */
+    global define string getNameOfCurrentBoard () ``{
+	return board_type_names[getBoardType ()]:_("Unknown");
+/*	if ( getBoardType () == "iseries" )
+	{
+	    // part of summary
+	    return "iSeries";
+	}
+	else if ( getBoardType () == "prep" )
+	{
+	    // part of summary
+	    return "PReP";
+	}
+	else if ( getBoardType () == "chrp" )
+	{
+	    // part of summary
+	    return "CHRP";
+	}
+	else if ( getBoardType () == "mac_new" )
+	{
+	    // part of summary
+	    return _("New World Power Macintosh");
+	}
+	else if ( getBoardType () == "mac_old" )
+	{
+	    // part of summary
+	    return _("Old World Power Macintosh");
+	}
+	else if ( getBoardType () == "nubus" )
+	{
+	    // part of summary
+	    return "Nubus";
+	}
+	// part of summary
+	return _("Unknown");*/
+    }
+
+
+}

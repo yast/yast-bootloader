@@ -1,0 +1,387 @@
+/**
+ * File:
+ *      include/bootloader/routines/popups.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Popups for being used inside bootloader configurator
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+
+    textdomain "bootloader";
+
+    import "Encoding";
+    import "Label";
+    import "Misc";
+    import "Mode";
+    import "Popup";
+    import "Report";
+    import "String";
+
+    /**
+      * Display question
+      * @param name string name of currently selected section (to clone)
+      * @return boolean true if answered yes
+      */
+    global define boolean askClone (string name) ``{
+	// yes-no popup
+	return Popup::YesNo (sformat (_("Clone the selected section '%1' instead
+of creating a new empty section?
+"), name));
+    }
+    /**
+      * Display question
+      * @return boolean true if answered yes
+      */
+    global define boolean confirmAbortPopup () ``{
+	// yes-no popup question
+	return Popup::YesNo (_("Really leave the boot loader configuration without saving?
+All changes will be lost.
+"));
+    }
+
+    /**
+      * Display question
+      * @return boolean true if answered yes
+      */
+    global define boolean resetSectsPopup () ``{
+	// yes-no popup question
+	return Popup::YesNo (_("Really reset your settings for sections?
+All your changes made in section management will be lost.
+"));
+    }
+
+    /**
+      * Display question
+      * @param title string section title
+      * @return boolean true if answered yes
+      */
+    global define boolean confirmSectionDeletePopup (string title) ``{
+	// yes-no popup question
+	return Popup::YesNo (sformat(_("Really delete section %1?"), title));
+    }
+
+    /**
+      * Display question
+      * @return boolean true if answered yes
+      */
+    global define boolean resetAllPopup () ``{
+	// yes-no popup question
+	return Popup::YesNo (_("Really reset all
+your settings? All your changes will be lost.
+"));
+    }
+
+    /**
+      * Display error
+      */
+    global define void setLocationErrorPopup () ``{
+	// error popup
+	Report::Error (_("Set the boot loader location."));
+    }
+
+    /**
+      * Display error
+      */
+    global define void emptyPasswdErrorPopup () ``{
+	// error popup
+	Report::Error (_("The password must not be empty."));
+    }
+
+    /**
+      * Display error
+      */
+    global define void passwdMissmatchPopup () ``{
+	// error popup
+	Report::Error (_("'Password' and 'Retype password'
+do not match. Retype the password."));
+    }
+
+    /**
+      * Display popup about change of section
+      * @param sect_name string section name
+      */
+    global define void displayDiskChangePopup (string sect_name) ``{
+	// message popup, %1 is sectino label
+	Popup::Message (sformat (_("The disk settings have changed.
+Check section %1 settings.
+"), sect_name));
+    }
+
+    /**
+      * Display popup
+      */
+    global define void displayFilesEditedPopup () ``{
+	// message popup
+	Popup::Message (_("The disk settings have changed and you edited boot loader
+configuration files manually. Check the boot loader settings.
+"));
+    }
+
+    /**
+      * Ask for change of bootloader location because of device unavailability
+      * @param device string currently confiogured device
+      * @return boolean yes if shall be reset
+      */
+    global define boolean askLocationResetPopup (string device) ``{
+	// yes-no popup
+	return Popup::YesNo(sformat(_("Partition '%1' is not available.
+Set default boot loader location?
+"), device));
+    }
+
+    /**
+      * Show the popup before saving to floppy, handle actions
+      * @return true on success
+      */
+    global define boolean saveToFLoppyPopup () ``{
+	boolean retval = true;
+	boolean format = false;
+	symbol fs = `no;
+	list items = [
+		// combobox item
+	    `item (`id (`no), _("Do Not Create a File System")),
+		// combobox item
+	    `item (`id (`ext2), _("Create an ext2 File System")),
+	];
+	if (SCR::Read (.target.size, "/sbin/mkfs.msdos") != -1)
+		// combobox item
+	   items = add (items, `item (`id (`fat), _("Create a FAT File System")));
+	term contents = `VBox (
+		// label
+	    `Label (_("The boot loader boot sector will be written
+to a floppy disk. Insert a floppy disk
+and confirm with OK.
+")),
+	    `VSpacing (1),
+	    // checkbox
+	    `Left (`CheckBox (`id (`format), _("&Low Level Format"), false)),
+	    `VSpacing (1),
+	    // combobox
+	    `Left (`ComboBox (`id (`fs), _("&Create File System"), items)),
+	    `VSpacing (1),
+	    `PushButton (`id (`ok), Label::OKButton ())
+	);
+	UI::OpenDialog (contents);
+	any ret = nil;
+	while (ret != `ok)
+	{
+	    ret = UI::UserInput ();
+	}
+	if (ret == `ok)
+	{
+	    format = (boolean)UI::QueryWidget (`id (`format), `Value);
+	    fs = (symbol)UI::QueryWidget (`id (`fs), `Value);
+	}
+	UI::CloseDialog ();
+	string dev = BootCommon::loader_device;
+	if (format)
+	{
+	    boolean tmpretval = true;
+	    y2milestone ("Low level formating floppy");
+	    while (true)
+	    {
+		tmpretval = 0 == SCR::Execute
+		    (.target.bash, sformat ("/usr/bin/fdformat %1", dev));
+		if (tmpretval)
+		    break;
+		// yes-no popup
+		if (! Popup::YesNo (_("Low level format failed. Try again?")))
+		    break;
+	    }
+	    retval = retval && tmpretval;
+	}
+	if (fs == `ext2)
+	{
+	    y2milestone ("Creating ext2 on floppy");
+            boolean tmpretval = 0 == SCR::Execute
+		(.target.bash, sformat ("/sbin/mkfs.ext2 %1", dev));
+	    if (! tmpretval)
+		// error report
+		Report::Error (_("Creating file system failed."));
+            retval = retval && tmpretval;
+        }
+	else if (fs == `fat)
+	{
+	    y2milestone ("Creating msdosfs on floppy");
+	    boolean tmpretval = 0 == SCR::Execute
+		(.target.bash, sformat ("/sbin/mkfs.msdos %1", dev));
+	    if (! tmpretval)
+		// error report
+		Report::Error (_("Creating file system failed."));
+	    retval = retval && tmpretval;
+	}
+	return retval;
+    }
+
+    /**
+      * Display error
+      */
+    global define void usedNameErrorPopup () ``{
+        // error popup
+        Report::Error (_("The name selected is already used.
+Use a different one.
+"));
+    }
+
+    /**
+      * Display error
+      * @return true if shall retry
+      */
+    global define boolean writeErrorPopup () ``{
+        // yes-no popup
+	return Popup::YesNo (_("An error occurred during boot loader
+installation. Retry boot loader configuration?
+"));
+    }
+
+    /**
+      * Display popup
+      */
+    global define void displayGfxMenuChangePopup () ``{
+	// message popup, gfxmenu is option name, leave as is
+	Popup::Message (_("The disk settings have changed.
+Check the gfxmenu settings.
+"));
+    }
+
+    /**
+      * Display yes-no popup
+      * @return true if confirmed
+      */
+    global define boolean confirmOptionDeletePopup () ``{
+	// yes-no popup
+	return Popup::YesNo (_("Really delete the selected option?"));
+    }
+
+    /**
+      * Display error popup with log
+      * @param header string error header
+      * @param log string logfile contents
+      */
+    global define void errorWithLogPopup (string header, string log) ``{
+	if (log == nil)
+	    // FIXME too generic, but was already translated
+	    log = _("Unable to install the boot loader.");
+	term text = `RichText( `opt(`plainText), log );
+	UI::OpenDialog(`opt ( `decorated ),
+	    `VBox (`HSpacing(75),
+		// heading
+		`Heading(header),
+		text,     // e.g. `Richtext()
+		`PushButton( `id(`ok_help), `opt(`default), Label::OKButton() )
+	    )
+	);
+
+	UI::SetFocus(`id(`ok_help) );
+	any r = UI::UserInput();
+	UI::CloseDialog();
+    }
+
+    /**
+      * Display popup
+      */
+    global define void displayNoSupportPopup () ``{
+	// message popup
+	Popup::Message (_("Sorry, there are currently
+no options to set here."));
+    }
+
+    /**
+      * Display popup
+      */
+    global define void noBootloaderPopup () ``{
+	// error report
+	Report::Error (_("Unable to install the boot loader."));
+    }
+
+    /**
+      * Display popup
+      * @param bootloader string printable name of used bootloader
+      */
+    global define void floppyWrittenPopup (string bootloader) ``{
+	string confirm_boot_msg = Misc::boot_msg;
+	// data saved to floppy disk
+	// popup, %1 is bootloader name
+	string msg = sformat (_("The %1 boot sector has been written to the floppy disk."),
+	    bootloader);
+	msg = msg + "\n"
+	    // popup - continuing - alternative 1 ...
+	    + _("Leave the floppy disk in the drive. The system will now be rebooted.");
+
+	if ( size (confirm_boot_msg) > 0 )
+	{
+	    msg = msg + "\n\n" + confirm_boot_msg;
+	}
+	Misc::boot_msg = "";
+        // empty that  Misc::boot_msg indicate the message has been displayed
+	Report::Message(msg);
+    }
+
+    /**
+      * Display popup - confirmation befopre restoring MBR
+      * @param device string device to restore to
+      */
+    global define boolean restoreMBRPopup (string device) ``{
+	map stat = (map)SCR::Read (.target.stat, "/boot/backup_mbr");
+	integer ctime = stat["ctime"]:0;
+	string command = sformat (
+	    "date --date='1970-01-01 00:00:00 %1 seconds'",
+	    ctime);
+	map out = (map)SCR::Execute (.target.bash_output, command);
+	string c_time = out["stdout"]:"";
+	c_time = String::FirstChunk (c_time, "\n");
+	c_time = (string)UI::Recode (Encoding::console, "UTF-8", c_time);
+
+	// warning popup. %1 is device name, %2 is date/time in form of
+	// 'date' command output
+	string msg = sformat (_("Warning!
+
+Current MBR of %1 will now be rewritten with MBR
+saved at %2.
+
+Only the booting code in the MBR will be rewritten.
+The partition table remains unchanged.
+
+Continue?
+"), device, c_time);
+
+	term dialog = `HBox (
+	    `HSpacing (1),
+	    `VBox (
+		`VSpacing (0.2),
+		`Label (msg),
+		`HBox(
+		    // PushButton
+		   `PushButton (`id (`yes), _("&Yes, Rewrite")),
+		   `HStretch (),
+		   `PushButton (`id (`no), `opt (`default), Label::NoButton ())
+		),
+		`VSpacing (0.2)
+	    ),
+	    `HSpacing(1)
+	);
+
+	UI::OpenDialog (`opt (`decorated, `warncolor), dialog);
+
+	symbol  button = nil;
+	repeat
+	{
+	    button = (symbol)UI::UserInput ();
+	} until (button == `yes || button == `no);
+
+	UI::CloseDialog();
+
+	return (button == `yes);
+    }
+}

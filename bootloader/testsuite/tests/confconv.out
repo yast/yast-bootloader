@@ -1,0 +1,14 @@
+Return	[$["changed":false, "key":"title", "value":"sectlabel"], $["changed":false, "key":"root", "value":"(hd0,1)"], $["changed":false, "key":"chainloader", "value":"+1"], $["changed":false, "key":"makeactive", "value":true]]
+Return	[$["changed":false, "key":"title", "value":"section2"], $["changed":false, "key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 vga=789 append_opts"], $["changed":false, "key":"initrd", "value":"(hd0,0)/initrd"]]
+Return	[$["changed":false, "key":"title", "value":"section2"], $["changed":false, "key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 vga=789 append_opts"]]
+Dump	====================================================
+Return	[$["changed":false, "key":"label", "value":"section"], $["changed":false, "key":"other", "value":"/dev/hda3"]]
+Return	[$["changed":false, "key":"label", "value":"section"], $["changed":false, "key":"optional", "value":true], $["changed":false, "key":"root", "value":"/dev/hda3"], $["changed":false, "key":"vga", "value":"789"], $["changed":false, "key":"image", "value":"/boot/vmlinuz"], $["changed":false, "key":"append", "value":"app_opt1 app_opt2"]]
+Return	[$["changed":false, "key":"label", "value":"section"], $["changed":false, "key":"optional", "value":true], $["changed":false, "key":"root", "value":"/dev/hda3"], $["changed":false, "key":"image", "value":"/vmlinuz"], $["changed":false, "key":"append", "value":"app_opt1 app_opt2"]]
+Return	[$["changed":false, "key":"label", "value":"section"], $["changed":false, "key":"initrd", "value":"/boot/initrd"], $["changed":false, "key":"optional", "value":true], $["changed":false, "key":"root", "value":"/dev/hda3"], $["changed":false, "key":"vga", "value":"789"], $["changed":false, "key":"image", "value":"/boot/vmlinuz"], $["changed":false, "key":"append", "value":"app_opt1 app_opt2"]]
+Dump	====================================================
+Return	[$["changed":false, "key":"message", "value":"/boot/message"], $["changed":false, "key":"timeout", "value":80], $["changed":false, "key":"prompt", "value":true]]
+Return	[$["changed":false, "key":"message", "value":"/boot/message"], $["changed":false, "key":"timeout", "value":80], $["changed":false, "key":"prompt", "value":false]]
+Dump	====================================================
+Return	[$["changed":false, "key":"gfxmenu", "value":"(hd0,0)/message"], $["changed":false, "key":"timeout", "value":8], $["changed":false, "key":"hiddenmenu", "value":true]]
+Return	[$["changed":false, "key":"gfxmenu", "value":"(hd0,0)/message"], $["changed":false, "key":"timeout", "value":8], $["changed":false, "key":"hiddenmenu", "value":false]]

@@ -1,0 +1,157 @@
+/**
+ * File:
+ *      include/bootloader/elilo/misc.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Miscelaneous functions for configuring and installing ELILO bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    textdomain "bootloader";
+
+    import "Installation";
+    import "Mode";
+    import "Report";
+    import "Storage";
+
+    /**
+      * Return mountpoint of partition holding EFI data
+      * @return mountpoint if partition holding EFI data
+      */
+    global define string getEfiMountPoint () ``{
+	string mountpoint = "/";
+	// UGHLY HACK because of testsuites
+	map mountpoints = $[];
+	if (Mode::test ())
+	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
+	else
+	    mountpoints = Storage::GetMountPoints();
+	if (haskey (mountpoints, "/boot/efi"))
+	{
+	    mountpoint = "/boot/efi";
+	}
+	else if (haskey (mountpoints, "/boot"))
+	{
+	    mountpoint = "/boot";
+	}
+	y2milestone ("Mountpoint of EFI: %1", mountpoint);
+	return mountpoint;
+    }
+
+    /**
+      * Get used EFI vendor
+      * @return EFI vendor
+      */
+    global define string getEfiVendor () ``{
+	return "SuSE";
+    }
+
+    /**
+      * Get directory containing elilo.conf relative to EFI partition's root
+      * @return directory containing elilo.conf relative to EFI root
+      */
+    global define string getEliloConfSubdir () ``{
+	return sformat ("/efi/%1", getEfiVendor ());
+    }
+
+    /**
+      * Get directory containing kernel images relative to EFI partition's root
+      * @return directory containing kernel images relative to EFI root
+      */
+    global define string getKernelSubdir () ``{
+	return sformat ("/efi/%1", getEfiVendor ());
+    }
+
+    /**
+      * Get path of elilo.conf relative to EFI partition's root
+      * @return string path of elilo.conf relative to EFI partition's root
+      */
+    global define string getEliloConfSubpath () ``{
+	return sformat ("%1/elilo.conf", getEliloConfSubdir ());
+    }
+
+    /**
+      * Get the absolute path to elilo.conf file
+      * @return absolut path of elilo.conf file, typically /boot/efi/efi/SuSE
+      */
+    global define string getEliloConfDir () ``{
+	string ret = sformat ("%1/efi/%2", getEfiMountPoint (),
+	    getEfiVendor ());
+	y2milestone ("elilo.conf directory: %1", ret);
+	return ret;
+    }
+
+    /**
+      * Return path to elilo.conf file
+      * @return string path to elilo.conf
+      */
+    global define string getEliloConfFilename () ``{
+	string ret = sformat ("%1/efi/%2/elilo.conf", getEfiMountPoint (),
+	    getEfiVendor ());
+	y2milestone ("elilo.conf sould be located at %1", ret);
+	return ret;
+    }
+
+    /**
+      * Update the EFI partitioning layout if needed
+      */
+    global define void UpdateEfiPartitionLayout () {
+	// update the partition layout if needed
+	if (getEfiMountPoint () == "/boot" && Mode::update ())
+	{
+	    map output = (map)SCR::Execute (.target.bash_output, sformat (
+	      "/bin/cp %1/boot/efi/SuSE/elilo.conf %1/etc/elilo.conf.YaST2save",
+	      Installation::destdir));
+	    y2milestone ("Result of backup original elilo.conf: %1", output);
+	    output = (map)SCR::Execute (.target.bash_output, sformat (
+		"/bin/cp /usr/lib/YaST2/bin/update_efi_mountpoint %1/usr/lib/YaST2/bin/",
+		Installation::destdir
+	    ));
+	    y2milestone ("Result of copying from / to %1: %2",
+		Installation::destdir,
+		output
+	    );
+	    output = (map)SCR::Execute (.target.bash_output, sformat (
+		"chroot %1 /usr/lib/YaST2/bin/update_efi_mountpoint",
+		Installation::destdir));
+	    if (output["exit"]:0 != 0)
+	    {
+		y2error ("Directory structure update failed: %1", output);
+		// report error
+		Report::Error (_("Updating the directory layout 
+to match Intel's EFI specification failed.
+Update it manually before proceeding."));
+	    }
+	    else
+	    {
+		efi_layout_changed = true;
+		// update also the partitioning data inside partitioner
+		map <string, map> target_map = Storage::GetTargetMap ();
+		map mp = Storage::GetMountPoints ();
+		list boot_part_l = mp["/boot"]:[];
+		string boot_part = boot_part_l[0]:"";
+		if (boot_part != "")
+		{
+		    target_map = Storage::SetPartitionData (
+			target_map,
+			boot_part,
+			"mount",
+			"/boot/efi");
+		    Storage::SetTargetMap (target_map);
+		}
+	    }
+	}
+
+    }
+
+
+}
