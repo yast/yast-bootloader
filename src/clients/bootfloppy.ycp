@@ -150,8 +150,7 @@ This boot floppy can be used to boot your installed system or a rescue system
 	    help_text = help_text + _("<p><b>Rescue Floppy:</b><br>
 To start the rescue system, boot from the boot floppy or the SuSE CD-ROM
 and select <i>Manual installation</i> -> <i>Start installation / system</i>
--> <i>Rescue system</i>.</p>
-");
+-> <i>Rescue system</i>. You will be prompted for the rescue floppy.</p>");
 
 	    // help text 4/5
 	    help_text = help_text + _("<p><b>Module Floppies</b><br>
