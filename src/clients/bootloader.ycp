@@ -61,11 +61,15 @@
 	    // progress stage, text in dialog (short, infinitiv)
 	    _("Check boot loader"),
 	    // progress stage, text in dialog (short, infinitiv)
+	    _("Read disks partitioning"),
+	    // progress stage, text in dialog (short, infinitiv)
 	    _("Load boot loader settings"),
 	];
 	list titles = [
 	    // progress stage, text in dialog (short)
 	    _("Checking boot loader..."),
+	    // progress stage, text in dialog (short)
+	    _("Reading disks partitioning..."),
 	    // progress stage, text in dialog (short)
 	    _("Loading boot loader settings..."),
 	];
@@ -82,6 +86,11 @@
 	Progress::NextStage ();
 	if (testAbort ())
 	    return `back;
+
+	BootCommon::DetectDisks ();
+        Progress::NextStage ();
+        if (testAbort ())
+            return `back;
 
 	Bootloader::Read ();
 	Progress::Finish ();

@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Mon Feb 17 12:21:40 CET 2003 - jsrain@suse.de
+Mon Feb 17 15:57:17 CET 2003 - jsrain@suse.de
 
 - added popup when bootloader saved to floppy (#23571)
+- added extra stage in progress bar for reading disks partitioning
+  (#23712)
 
 -------------------------------------------------------------------
 Fri Feb 14 09:33:09 CET 2003 - jsrain@suse.de
