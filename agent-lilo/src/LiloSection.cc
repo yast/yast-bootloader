@@ -255,6 +255,7 @@ bool liloOrderedOptions::processLine(inputLine* li)
 {
     string optname;
     string value;
+    string norm_value = li->value;
 
     bool spec=false;
     if(li->option=="") return false;
@@ -274,13 +275,16 @@ bool liloOrderedOptions::processLine(inputLine* li)
 	optname=li->option;
     }
 
+    if (optname == "label")
+	norm_value = replaceBlanks (norm_value, '_');
+
     int cpos=getPos(&order, optname);
 
     if(cpos<0)
     {
 	if(!spec)
 	{
-	    order.push_back(new liloOption(li->option, li->value, li->comment));
+	    order.push_back(new liloOption(li->option, norm_value, li->comment));
 	}
 	else
 	{
@@ -296,7 +300,7 @@ bool liloOrderedOptions::processLine(inputLine* li)
 	else
 	{
 	    y2debug("lilo.conf waring: overriding option %s", li->option.c_str());
-	    order[cpos]->value=li->value;
+	    order[cpos]->value=norm_value;
 	    order[cpos]->comment=li->comment;
 	}
     }
@@ -359,6 +363,7 @@ YCPValue liloOrderedOptions::Read(const YCPPath& path)
 }
 
 // replace non-printable chars and space by r
+// short to 15 characters
 string replaceBlanks (const string &s, char r)
 {
     // the STL manual says that assigning to a string character
@@ -372,6 +377,8 @@ string replaceBlanks (const string &s, char r)
 
     string s_result = result;
     free (result);
+    if (s_result.size() > 15)
+	s_result = s_result.substr (0, 15);
     return s_result;
 }
 
@@ -385,7 +392,6 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
     int newpos = -1;
     if ((! _pos.isNull ()) && _pos->isInteger())
         newpos = _pos->asInteger()->value();
-
     int cpos=getPos(&order, path->component_str(0));
     if(cpos<0)
     {
@@ -410,9 +416,10 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
 	order.erase (it);
 	vector<liloOption*>::iterator it2=order.begin();
 	it2+=newpos;
-	order.insert(it2, oop);
+	if ((unsigned int)newpos > order.size ())
+	    newpos = order.size ();
+	order.insert(/*order.begin(), */it2, oop);
     }
-
     if(value->isVoid())
     {
 	vector<liloOption*>::iterator it=order.begin();
@@ -421,7 +428,6 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
 	order.erase(it);
 	return YCPBoolean(true);
     }
-
     liloOption* opt=order[cpos];
 
     if(path->length()==2 && path->component_str(1)=="comment")
@@ -429,7 +435,6 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
         opt->comment=value->asString()->value_cstr();
 	return YCPBoolean(true);
     }
-
     //==========================
     // set the option value
     switch(o.getOptType(opt->optname))
@@ -467,6 +472,7 @@ YCPValue liloOrderedOptions::Write(const YCPPath& path, const YCPValue& value, c
     {
 	string tmp = value->asString()->value();
 	// Ugh, type is a global variable.
+	// Is no more
 	// Anyway, this should fix bug #19181.
 	// yes, this is slow :(
 	if (opt->optname == "label" && type != "grub")
@@ -525,7 +531,6 @@ void liloOrderedOptions::dump(FILE* f)
     }
 }
 
-// CHANGED
 int liloOrderedOptions::saveToFile(ostream* f, string indent)
 {
     string separ = (type == "grub") ? " " : " = ";
@@ -657,7 +662,6 @@ YCPValue liloSection::Dir()
     return list;
 }
 
-// CHANGED
 int liloSection::saveToFile(ostream* of, string indent)
 {
     return options->saveToFile(of, indent);

@@ -1,4 +1,4 @@
-(["\"BOOT_FILE=/boot/vmlinuz mem=64M\"", true, "\"BOOT_FILE=/boot/vmlinuz mem=64M\"", ["linuxovadlo", "\"obskurni nazev\\\"\\\\\"", "sdf"], true, ["linuxovadlo", "\"obskurni_nazev\\\"\\\\\"", "sdf"], true, ["linuxovadlo", "\"obskurni_nazev\\\"\\\\\"", "sdf", "\"another_fine_section\""]])
+(["\"BOOT_FILE=/boot/vmlinuz mem=64M\"", true, "\"BOOT_FILE=/boot/vmlinuz mem=64M\"", ["linuxovadlo", "\"obskurni_nazev", "sdf"], true, ["linuxovadlo", "\"obskurni_nazev", "sdf"], true, ["linuxovadlo", "\"obskurni_nazev", "sdf", "\"another_fine_s"]])
 # Modified by YaST2. Last modification on Fri Jul 27 13:39:35 2001
 
 
