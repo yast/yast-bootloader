@@ -659,7 +659,6 @@ Replace it with an entry  to boot from the floppy?");
 	    "restore" : ``(BootGRUB::addOrigMbrRestore ()),
 	    "handle" : ``(BootGRUB::addOrigMbrSave ()),
 	    "type" : "b",
-	    "help" : "",//TODO BootGRUB::addOrigMbrHelp (),
 	    "exits" : [],
 	    // table item / label
 	    "label" : _("Add saved MBR to bootloader menu"),

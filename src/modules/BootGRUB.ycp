@@ -940,7 +940,6 @@
 		    s, "title", "");
 		map intern = lookup_value (s, "__intern__", $[]);
 		string type = intern["type"]:"";
-		// FIXME don't check title, but metadata
 		if (type != "linux" && type != "failsafe"
 		    && type != "memtest86" && type !="floppy"
 		    && type != "original_mbr")

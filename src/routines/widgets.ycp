@@ -1193,8 +1193,8 @@
       */
     global define string activateSummary () ``{
         if (activate)
-		// table item
-		// FIXME partition %1 of %2
+		// table item, %1 is a device name (eg. /dev/hda1)
+		// FIXME partition %1 of %2 is better (in future)
             return sformat (_("Yes, activate %1"),
 		lookup (BootCommon::getPartitionToActivate (), "dev", ""));
         else
