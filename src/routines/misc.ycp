@@ -1000,8 +1000,11 @@
 		if (key == getSectionTitle () && sect_type != "")
 		{
 		    title = (string) value;
-		    o["comment"] = sformat ("###Don't change this comment - YaST2 identifier: Original name: %1###",
-			sect_type);
+		    if (sect_type != title)
+		    {
+			o["comment"] = sformat ("###Don't change this comment - YaST2 identifier: Original name: %1###",
+			    sect_type);
+		    }
 		}
 		if (isSpecial (key) && is (value, string))
 		    value = mergestring (splitstring ((string) value, ","), "\n");
