@@ -1030,6 +1030,24 @@
 	SCR::Execute (.target.bash, "/bin/chmod 600 /boot/grub/menu.lst");
 	return ret;
     }
+
+    /**
+      * Display bootloader summary
+      * @return a list of summary lines
+      */
+    global define list<string> Summary () {
+	list<string> ret = BootCommon::Summary ();
+	list<string> order = getDisksOrder ();
+	if (size (order) > 0)
+	{
+	    ret = add (ret, sformat (
+		// part of summary, %1 is a list of hard disks device names
+		_("Order of Hard Disks: %1"),
+		mergestring (order, ", ")));
+	}
+	return ret;
+    }
+
     /**
       * Update read settings to new version of configuration files
       */
@@ -1275,6 +1293,7 @@
             "reset"    : BootGRUB::Reset,
             "propose"  : BootGRUB::Propose,
             "save"     : BootGRUB::Save,
+	    "summary"  : BootGRUB::Summary,
             "update"   : BootGRUB::Update,
             "write"    : BootGRUB::Write,
 	    "widgets"  : BootGRUB::GetWidgetMaps,
