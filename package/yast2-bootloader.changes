@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug  7 10:10:38 CEST 2003 - jsrain@suse.de
+
+- fixed lost sections when changhing bootloader location (#28552)
+
+-------------------------------------------------------------------
 Mon Aug  4 15:56:18 CEST 2003 - jsrain@suse.de
 
 - added .desktop files
