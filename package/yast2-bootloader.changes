@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep  6 21:34:54 CEST 2002 - kkaempf@suse.de
+
+- workaround for hwinfo bug (#19071)
+- 2.6.41
+
+-------------------------------------------------------------------
 Fri Sep  6 17:16:13 CEST 2002 - jsrain@suse.cz
 
 - fixed provides/obsoletes

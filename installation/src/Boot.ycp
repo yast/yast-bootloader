@@ -154,12 +154,16 @@ y2error ("Mode::Update: %1", Mode::update);
 y2error ("Mode::initial: %1", Mode::initial);
 y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
 */
-	if (LoaderType == "grub"
+	if (((LoaderType == "grub")
+	     || (LoaderType == "unknown"))		// hwinfo bug ?
 	    && (Mode::update || Mode::normal))
 	{
 	    string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
+	    y2milestone ("sysconfig:LOADER_TYPE %1", sysconfig);
 	    if (sysconfig == "grub" || sysconfig == "lilo")
 	        LoaderType = sysconfig;
+	    else if (LoaderType == "unknown")
+		LoaderType = "grub";
 	    y2milestone ("Bootloader update, using %1", LoaderType);
 	}
 //y2error ("Ask: %1", askStorage);
