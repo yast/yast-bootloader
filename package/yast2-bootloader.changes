@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul 31 09:29:28 CEST 2003 - jsrain@suse.de
+
+- don't offer extra /boot and / partition as bootloader location
+  if they are the same
+
+-------------------------------------------------------------------
 Tue Jul 29 08:28:53 CEST 2003 - jsrain@suse.de
 
 - added possibility to clone selected bootloader section (#26458)
