@@ -197,7 +197,7 @@
     /* the command line description map */
     map cmdline = $[
 	"id"		: "bootloader",
-	// command line help text for Printer module
+	// command line help text for Bootloader module
 	"help"		: _("Boot loader configuration module"),
 	"guihandler"	: GuiHandler,
 	"initialize"	: Bootloader::Read,
