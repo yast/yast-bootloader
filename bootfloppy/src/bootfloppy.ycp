@@ -80,30 +80,26 @@
    * @return symbol
    */
   define symbol floppyMountSource() ``{
-
-      list sources = Pkg::SourceList (true);
+      list sources = Pkg::SourceStartCache (true);
       source_id = sources[0]:0;
       return `next;
   }
 
 
   /**
-   * Search the images at the source media -/var/adm/mount -or a directory on
-   * the harddisk.
+   * Search the images at the source media
    * Called from the sequenser.
    * @return symbol
    */
   define symbol floppySearchImages() ``{
 
-      string begin_search = "boot/";
-
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "bootdisk"))!=-1) ) bootdisk_found    = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "i386"))!=-1)     ) i386disk_found    = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "rescuefloppy"))!=-1)   ) rescuedisk_found  = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "modules1"))!=-1) ) moduledisk_found  = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "modules2"))!=-1 )) module2disk_found = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "modules3"))!=-1 )) module3disk_found = true;
-      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(source_id, 1, begin_search + "modules4"))!=-1 )) module4disk_found = true;
+      if( Pkg::SourceProvideFile(source_id, 1, "boot/bootdisk") != nil ) bootdisk_found    = true;
+      if( Pkg::SourceProvideFile(source_id, 1, "boot/i386") != nil ) i386disk_found    = true;
+      if( Pkg::SourceProvideFile(source_id, 1, "boot/rescuefloppy") !=nil ) rescuedisk_found  = true;
+      if( Pkg::SourceProvideFile(source_id, 1, "boot/modules1") != nil) moduledisk_found  = true;
+      if( Pkg::SourceProvideFile(source_id, 1, "boot/modules2") != nil) module2disk_found = true;
+      if( Pkg::SourceProvideFile(source_id, 1, "boot/modules3") != nil) module3disk_found = true;
+      if( Pkg::SourceProvideFile(source_id, 1, "boot/modules4") != nil) module4disk_found = true;
 
       y2milestone("bootdisk_found: %1", bootdisk_found);
       y2milestone("i386disk_found: %1", i386disk_found);
@@ -113,7 +109,7 @@
       y2milestone("module3disk_found: %1", module3disk_found);
       y2milestone("module4disk_found: %1", module4disk_found);
 
-      //y2milestone("%1",  SCR::Read(.target.size, begin_search + "bootdisk"));
+      //y2milestone("%1",  SCR::Read(.target.size, "boot/" + "bootdisk"));
       return `next;
   }
 
@@ -294,11 +290,6 @@ and press <b>Next</b> to continue.</p>"
 									   _("&PCMCIA, old (non-ATAPI) CDROM, FireWire\nand file systems modules"), b_modules4)));
       }
 
-//      bootdisk_term    = add( bootdisk_term   ,  `VSpacing(0.6) );
-//      rescuedisk_term  = add( rescuedisk_term ,  `VSpacing(0.6) );
-//      moduledisk_term  = add( moduledisk_term ,  `VSpacing(0.6) );
-
-
       term g_bootdisks_term = `Frame (
 					// frame
 				       _("Boot disks:"),
@@ -306,8 +297,6 @@ and press <b>Next</b> to continue.</p>"
 					     bootdisk_term
 					     )
 				       );
-
-
 
       term g_rescuedisk_term =  `Frame (
 					// frame
@@ -494,24 +483,8 @@ Do you want to unmount the floppy?"), lookup(floppymount, "spec", ""),
 	string begin_str = "";
 	string diff_str  = "";
 
-
-	if ( bootmode == "Harddisk" )
-	{
-	    begin_str = sformat("/bin/dd if=%1/disks/", partition);
-	    diff_str  = sformat("/usr/bin/diff %1/disks/", partition);
-	}
-	else
-	{
-	    begin_str = "/bin/dd if=/var/adm/mount/disks/";
-	    diff_str  = sformat("/usr/bin/diff /var/adm/mount/disks/");
-	}
-
-	begin_str = begin_str + file_image;
-	begin_str = begin_str + " of=/dev/fd0u1440 bs=512";
-	diff_str  = diff_str  + file_image;
-	diff_str  = diff_str  + " /dev/fd0u1440";
-
-
+	begin_str = sformat ("/bin/dd if=%1 of=/dev/fd0u1440 bs=512", Pkg::SourceProvideFile(source_id, 1, sformat ("boot/%1", file_image)));
+	diff_str  = sformat("/usr/bin/diff %1 /dev/fd0u1440", Pkg::SourceProvideFile(source_id, 1, sformat ("boot/%1", file_image)));
 
 	integer count   = 0;
 	integer ignore  = 0;
@@ -545,6 +518,8 @@ Do you want to unmount the floppy?"), lookup(floppymount, "spec", ""),
 
 		    if( ret_diff != 0  )
 		    {
+			// FIXME: Don't know why is this here
+			boolean format = true;
 			//try to format the floppy with fdformat
 			if ( ! format)  return `format;
 			// error popup

@@ -337,7 +337,7 @@ global define string grub2Lilo (string o_dev) ``{
  * if indices are out of bounds, unmodified list is returned.
  * @param input list
  * @param index1 index of the first element
- * @param index2 index og the seconsd element
+ * @param index2 index og the second element
  * @return list modified list
  */
 
