@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Oct 29 10:07:20 CET 2003 - jsrain@suse.de
+
+- fixed ensuring that required packages are installed when
+  switching bootloader
+- fixed sorting of lines in table
+- 2.9.0
+
+-------------------------------------------------------------------
 Thu Oct 23 18:16:32 CEST 2003 - schwab@suse.de
 
 - Fix quoting in efibootmgr command line.

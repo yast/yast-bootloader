@@ -20,20 +20,20 @@
 {
     module "BootCommon";
 
-    import "Arch";
-    import "Storage";
-
     textdomain "bootloader";
 
-    include "bootloader/routines/misc.ycp";
-    include "bootloader/routines/options.ycp";
-    include "bootloader/routines/widgets.ycp";
+    import "Arch";
+    import "HTML";
+    import "Mode";
+    import "Require";
+    import "Storage";
+
     include "bootloader/routines/helps.ycp";
     include "bootloader/routines/lilolike.ycp";
+    include "bootloader/routines/misc.ycp";
+    include "bootloader/routines/options.ycp";
     include "bootloader/routines/routines.ycp";
-
-    import "Mode";
-    import "HTML";
+    include "bootloader/routines/widgets.ycp";
 
 // common variables
 
@@ -551,29 +551,24 @@ configuration files"));
       * @param bootloader string type of bootloader
       */
     global define void setLoaderType (string bootloader) ``{
-	if (contains(bootloaders, bootloader)
-	    && ! Mode::test)
+	if (contains(bootloaders, bootloader) && ! Mode::test)
 	{
 	    // don't configure package maneger during autoinstallation preparing
-	    if (! (Mode::config || Mode::repair))
+	    if (Mode::normal && (! (Mode::config || Mode::repair)))
 	    {
-		// TODO ??? check if package manager is initialized
-		boolean installed = false;
-		foreach (`p, getBootloaderPackages (bootloader), ``{
-		    // FIXME: Don't check bootloader, but package name
-		    // doesn't matter on i386 and AMD64
-		    if (! Pkg::IsProvided (bootloader))
+		Require::RequireAndConflictPkg (
+		    getBootloaderPackages (bootloader),
+		    [],
+		    _("YaST will install packages %1"));
+	    }
+	    else if (Mode::initial && (! (Mode::repair)))
+	    {
+		foreach (string p, getBootloaderPackages (bootloader), ``{
+		    if (! Pkg::IsSelected (p))
 		    {
 		        Pkg::PkgInstall (bootloader);
-			installed = true;
 		    }
 		});
-		if (installed && Mode::normal && ! Mode::config)
-		{
-		    Pkg::PkgSolve ();
-		    Pkg::PkgCommit (0);
-		    WFM::CallModule("inst_suseconfig", []);
-		}
 	    }
 	}
 	loader_type = bootloader;
@@ -589,8 +584,9 @@ configuration files"));
 	{
 	    ret = merge (ret, ["lilo", "grub"]);
 	}
+	ret = toset (ret);
 	ret = add (ret, "none");
-	return toset (ret);
+	return ret;
     }
 
 }

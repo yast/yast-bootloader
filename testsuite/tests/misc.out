@@ -4,12 +4,12 @@ Read	.probe.has_pcmcia false
 Read	.probe.has_smp false
 Read	.probe.system []
 Read	.target.tmpdir "/tmp/"
+Read	.target.tmpdir "/tmp/"
 Read	.proc.cpuinfo.value.0."flags" ""
 Read	.probe.memory []
 Read	.probe.cpu []
 Read	.probe.floppy.manual []
 Read	.probe.cdrom.manual []
-Read	.target.tmpdir "/tmp/"
 Execute	.target.bash "/usr/lib/YaST2/bin/version" 0
 Read	.sysconfig.language.RC_LANG ""
 Read	.sysconfig.language.DEFAULT_LANGUAGE ""

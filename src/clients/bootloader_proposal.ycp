@@ -27,11 +27,12 @@
 
     // FIXME very very ugly solution, but don't know any better :-(
     // see bugzilla 31054
-    BootCommon::bootloader_attribs["grub", "additional_entries"]
+    // should work now, can be finally removed after tested
+/*    BootCommon::bootloader_attribs["grub", "additional_entries"]
 	= [`item (`id (`propose_deep),
 	    // menubutton item, keep as short as possible
 	    _("Propose and &Merge with Existing GRUB Menus"))];
-
+*/
     if ( func == "MakeProposal" )
     {
 	boolean force_reset      = param["force_reset"     ]:false;
