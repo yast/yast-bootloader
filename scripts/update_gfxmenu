@@ -40,7 +40,7 @@ fi
 
 # set translations of bootloaer menu entries
 cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7A
-rm -r gfxmenu
 ls | cpio -o >/boot/message.new && mv /boot/message.new /boot/message || exit 99
+cd .. && rm -r gfxmenu
 exit 0
 
