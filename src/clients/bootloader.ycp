@@ -23,6 +23,7 @@
     import "Mode";
     import "Progress";
     import "Wizard";
+    import "RichText";
 
     include "bootloader/routines/helps.ycp";
     include "bootloader/routines/routines.ycp";
