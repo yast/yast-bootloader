@@ -1,16 +1,16 @@
 Read	.target.string "/boot/grub/device.map" "(hd0) /dev/hda\n(hd1)   /dev/ida/c0d0\n(fd0)   /dev/fd0\n"
 Return	[["(hd0)", "/dev/hda"], ["(hd1)", "/dev/ida/c0d0"], ["(fd0)", "/dev/fd0"]]
-Return	$["__order__":["title", "root", "makeactive", "chainloader"], "chainloader":"+1", "makeactive":true, "root":"(hd0,1)", "title":"sectlabel"]
-Return	$["__order__":["title", "kernel", "initrd"], "initrd":"(hd0,0)/initrd", "kernel":"(hd0,0)/vmlinuz root=/dev/hda3 vga=789 append_opts", "title":"section2"]
-Return	$["__order__":["title", "kernel"], "kernel":"(hd0,0)/vmlinuz root=/dev/hda3 vga=789 append_opts", "title":"section2"]
+Return	[$["changed":false, "key":"title", "value":"sectlabel"], $["changed":false, "key":"root", "value":"(hd0,1)"], $["changed":false, "key":"chainloader", "value":"+1"], $["changed":false, "key":"makeactive", "value":true]]
+Return	[$["changed":false, "key":"title", "value":"section2"], $["changed":false, "key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 vga=789 append_opts"], $["changed":false, "key":"initrd", "value":"(hd0,0)/initrd"]]
+Return	[$["changed":false, "key":"title", "value":"section2"], $["changed":false, "key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 vga=789 append_opts"]]
 Dump	====================================================
-Return	$["label":"section", "other":"/dev/hda3"]
-Return	$["append":"app_opt1 app_opt2", "image":"/boot/vmlinuz", "label":"section", "optional":true, "root":"/dev/hda3", "vga":"789"]
-Return	$["append":"app_opt1 app_opt2", "image":"/vmlinuz", "label":"section", "optional":true, "root":"/dev/hda3"]
-Return	$["append":"app_opt1 app_opt2", "image":"/boot/vmlinuz", "initrd":"/boot/initrd", "label":"section", "optional":true, "root":"/dev/hda3", "vga":"789"]
+Return	[$["changed":false, "key":"label", "value":"section"], $["changed":false, "key":"other", "value":"/dev/hda3"]]
+Return	[$["changed":false, "key":"label", "value":"section"], $["changed":false, "key":"optional", "value":true], $["changed":false, "key":"root", "value":"/dev/hda3"], $["changed":false, "key":"vga", "value":"789"], $["changed":false, "key":"image", "value":"/boot/vmlinuz"], $["changed":false, "key":"append", "value":"app_opt1 app_opt2"]]
+Return	[$["changed":false, "key":"label", "value":"section"], $["changed":false, "key":"optional", "value":true], $["changed":false, "key":"root", "value":"/dev/hda3"], $["changed":false, "key":"image", "value":"/vmlinuz"], $["changed":false, "key":"append", "value":"app_opt1 app_opt2"]]
+Return	[$["changed":false, "key":"label", "value":"section"], $["changed":false, "key":"initrd", "value":"/boot/initrd"], $["changed":false, "key":"optional", "value":true], $["changed":false, "key":"root", "value":"/dev/hda3"], $["changed":false, "key":"vga", "value":"789"], $["changed":false, "key":"image", "value":"/boot/vmlinuz"], $["changed":false, "key":"append", "value":"app_opt1 app_opt2"]]
 Dump	====================================================
-Return	$["message":"/boot/message", "prompt":true, "timeout":80]
-Return	$["message":"/boot/message", "prompt":false, "timeout":80]
+Return	[$["changed":false, "key":"message", "value":"/boot/message"], $["changed":false, "key":"timeout", "value":80], $["changed":false, "key":"prompt", "value":true]]
+Return	[$["changed":false, "key":"message", "value":"/boot/message"], $["changed":false, "key":"timeout", "value":80], $["changed":false, "key":"prompt", "value":false]]
 Dump	====================================================
-Return	$["gfxmenu":"(hd0,0)/message", "hiddenmenu":true, "timeout":8]
-Return	$["gfxmenu":"(hd0,0)/message", "hiddenmenu":false, "timeout":8]
+Return	[$["changed":false, "key":"gfxmenu", "value":"(hd0,0)/message"], $["changed":false, "key":"timeout", "value":8], $["changed":false, "key":"hiddenmenu", "value":true]]
+Return	[$["changed":false, "key":"gfxmenu", "value":"(hd0,0)/message"], $["changed":false, "key":"timeout", "value":8], $["changed":false, "key":"hiddenmenu", "value":false]]

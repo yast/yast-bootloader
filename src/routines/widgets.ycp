@@ -388,6 +388,7 @@
       * @param sects list of current sections
       */
     global define void sectionsRedrawTable (list sects) ``{
+	boolean elilo = getLoaderType (false) == "elilo";
 	list sec = maplist (map s, sects, ``{
 	    string image = lookup_value (s, "image", "");
 	    string root = lookup_value (s, "root", "");
@@ -400,9 +401,12 @@
                 image != ""
                 ? sformat ("%1   (%2%3)",
                     image,
-                    select (BootCommon::splitPath (image), 0, ""),
+                    elilo
+			? ""
+			: select (BootCommon::splitPath (image), 0, ""),
                     root == "" ? ""
-                        : sformat (", root=%1", root))
+                        : ((elilo ? "" : ", ")
+			    + sformat ("root=%1", root)))
                 : lookup_value (s, "other", "")
             );
         });

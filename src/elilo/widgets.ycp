@@ -1,0 +1,171 @@
+/**
+ * File:
+ *      include/bootloader/elilo/widgets.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Widgets specific for ELILO bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+
+    textdomain "bootloader";
+
+    include "ui/common_messages.ycp";
+    include "bootloader/routines/popups.ycp";
+
+    /**
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
+      */
+    global define map GetWidgets () ``{
+	return $[
+	    "tableentries"	: $[
+		"__location"	: ``(BootELILO::getTargetWidget ()),
+	    ],
+	];
+    }
+
+// Bootloader target widget
+
+    /**
+      * Get map of Target widget
+      * @return map of Target widget
+      */
+    global define map getTargetWidget () ``{
+	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
+	term widget = `VBox (
+	    `VSpacing (1),
+	    `TextEntry (`id (`location),
+		_("&EFI entry name")),
+	    have_old ? `VSpacing (1) : `VSpacing (0),
+	    have_old
+		? `CheckBox (`id (`remove_old),
+		    sformat (_("Remove old EFI entry (%1)"), old_efi_entry))
+		: `VSpacing (0),
+	    `VSpacing (1)
+	);
+
+	return $[
+	    "widget" : widget,
+	    "restore" : ``(BootELILO::targetRead ()),
+	    "handle" : ``(BootELILO::targetWrite ()),
+//	    "help" : getLocationsHelp (),
+	    "validate" : ``(BootELILO::targetValidate ()),
+		// table cell / label
+	    "label" : _("Boot Loader Location"),
+	    "summary" : ``(BootELILO::locationSummary ()),
+	    "deletable" : false,
+	    "ordering" : false,
+	    "key_only_once" : true,
+	];
+    }
+
+    /**
+      * Restore settings of Target widget
+      */
+    global define void targetRead () ``{
+	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
+	UI::ChangeWidget (`id (`location), `Value, BootCommon::location);
+	if (have_old)
+	    UI::ChangeWidget (`id (`remove_old), `Value, remove_old_efi);
+	UI::SetFocus (`id (`location));
+    }
+
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param save boolean true if op should lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any targetWrite (any op, boolean save) ``{
+	if (! save)
+	    return nil;
+	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
+	BootCommon::location = UI::QueryWidget (`id (`location), `Value);
+	if (have_old)
+	    remove_old_efi = UI::QueryWidget (`id (`remove_old), `Value);
+	BootCommon::storeSettings ();
+	BootCommon::location_changed = true;
+	return nil;
+    }
+
+    /**
+      * Validate the target widget
+      * @return true if everything is OK
+      */
+    global define boolean targetValidate () ``{
+	return true; // FIXME check for valid characters
+    }
+
+    /**
+      * Summary function for option
+      * @return string summary text
+      */
+    global define string locationSummary () ``{
+	if (BootCommon::location == "")
+	{
+	    // table entry, %1 is label of the entry of EFI boot manager
+	    return _("Do not create any EFI boot manager entry");
+	}
+	else
+	{
+	    // table entry
+	    return sformat (_("Create EFI boot manager entry %1"),
+		BootCommon::location);
+	}
+    }
+
+
+
+
+    /**
+      * Update list of optoins to show in table
+      * @param _options list of options including order
+      * @return list of option to show
+      */
+    global define list UpdateOptionsList (list _options) ``{
+	list prependlist = [];
+	list orig_opts = _options;
+	any type = BootCommon::getSectionType (BootCommon::current_section);
+	if (type == `global)
+	{
+            prependlist = ["__loader_type", "__sep2", "__location",
+                "__default_section", "__sections", "__save_method", "__sep1"];
+            _options = filter (`o, _options,
+                ``(o["key"]:"" != "default"));
+        }
+        else
+        {
+            prependlist = ["label", "__section_type", "__sep1"];
+        }
+
+        _options = filter (`o, _options, ``(! contains (
+            prependlist, o["key"]:"")));
+        if (Mode::initial)
+        {
+            prependlist = filter (`p, prependlist, ``(p != "__save_method"));
+        }
+        prependlist = maplist (`p, prependlist, ``{
+            map m = getValueMap (orig_opts, p);
+            if (m == $[])
+            {
+                m = $[ "key" : p];
+            }
+            return m;
+        });
+        list options = merge (prependlist, _options);
+        return options;
+    }
+
+
+}

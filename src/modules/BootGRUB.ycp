@@ -97,6 +97,7 @@
 		_("Propose and &Merge with Existing GRUB Menus"))],
 	    "restore_mbr" : true,
 	    "key_only_once" : false,
+	    "bootloader_on_disk" : true,
         ];
     }
 
@@ -250,21 +251,23 @@
 	saveGrubConf (grub_conf);
 	saveDeviceMap (device_map);
 	BootCommon::sections = filter (`s, BootCommon::sections, ``{
-	    if (s["__intern__", "converted"]:false)
+	    map intern = lookup_value (s, "__intern__", $[]);
+	    string title = lookup_value (s, "title", "");
+	    if (intern["converted"]:false)
 	    {
 		return true;
 	    }
-            if (s["title"]:"" == "")
+            if (title == "")
 	    {
 		y2debug ("Removing section with empty title");
                 return false;
 	    }
-            if (! contains (["linux", "failsafe", "memtest86"], s["title"]:""))
+            if (! contains (["linux", "failsafe", "memtest86"], title))
 	    {
                 return true;
 	    }
 
-	    string kernel = s["kernel"]:"";
+	    string kernel = lookup_value (s, "kernel", "");
 	    if (kernel == "")
 		return true;
 	    kernel = select (
@@ -275,34 +278,37 @@
 	    if (SCR::Read (.target.size, kernel) == -1)
 	    {
 		y2debug ("Removing section %1 with unexistent kernel",
-		    s["title"]:"");
+		    title);
 		return false;
 	    }
 	    return true;
 	});
 	BootCommon::sections = maplist (`s, BootCommon::sections, ``{
-	    string title = s["title"]:"";
-	    if (s["__intern__", "converted"]:false)
+	    string title = lookup_value (s, "title", "");
+	    map intern = lookup_value (s, "__intern__", $[]);
+	    string kernel = lookup_value (s, "kernel", "");
+	    if (intern["converted"]:false)
 		return s;
-            if (s["title"]:"" == "linux" && s["kernel"]:nil != nil
-		&& Mode::initial)
+            if (title == "linux" && kernel != "" && Mode::initial)
 	    {
-                s["kernel"] = BootCommon::updateKernelParams (s["kernel"]:"");
+                s = modifySection (s, "kernel", BootCommon::updateKernelParams (
+		    kernel));
 	    }
-	    string initrd = s["initrd"]:"";
+	    string initrd = lookup_value (s, "initrd", "");
 	    if (initrd != "")
 	    {
 		initrd = grub2file (initrd);
 		if (-1 == SCR::Read (.target.size, initrd))
-		    s = remove (s, "initrd");
+		    s = modify_section (s, "initrd", nil);
 	    }
 	    else if ((title == "linux" || title == "failsafe")
 		&& BootCommon::write_settings["insert_initrd"]:false)
 	    {
 		if (title == "linux")
-		    s["initrd"] = file2grub ("/boot/initrd");
+		    initrd = file2grub ("/boot/initrd");
 		else
-		    s["initrd"] = file2grub ("/boot/initrd.shipped");
+		    initrd = file2grub ("/boot/initrd.shipped");
+		s = modifySection (s, "initrd", initrd);
 	    }
 	    return s;
 	});
@@ -816,7 +822,7 @@
 	    map m = createLinuxSection (t);
 	    boolean changed = false;
 	    list out = maplist (`s, out, ``{
-		if (s["title"]:"" == m["title"]:"")
+		if (lookup_value (s, "title", "") == t)
 		{
 		    changed = true;
 		    if (replace)
