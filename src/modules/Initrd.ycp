@@ -43,7 +43,7 @@
       */
     boolean was_read = false;
     /**
-      * parametr for mk_initrd because of splash screen
+      * parametr for mkinitrd because of splash screen
       * used for choosing right size of splash
       */
     string splash = "";
@@ -249,11 +249,11 @@
 	string param = "";
 	if (splash != "" && splash != nil)
 	    param = sformat ("-s %1", splash);
-	if ( SCR::Execute (.target.bash, sformat ("/sbin/mk_initrd %1 >> \
-/var/log/YaST2/y2logmk_initrd 2>&1", param)) != 0 )
+	if ( SCR::Execute (.target.bash, sformat ("/sbin/mkinitrd %1 >> \
+/var/log/YaST2/y2logmkinitrd 2>&1", param)) != 0 )
 	{
 	    string log = SCR::Read (.target.string,
-		"/var/log/YaST2/y2logmk_initrd");
+		"/var/log/YaST2/y2logmkinitrd");
 	// TODO replace with other popup
 	    // error report
 	    Report::Error (_("An error occurred during initrd creation.")
@@ -264,7 +264,7 @@
     }
 
     /**
-      * Set the -s parameter of mk_initrd
+      * Set the -s parameter of mkinitrd
       * @param vga string the vga kernel parameter
       */
     global define void setSplash (string vga) ``{

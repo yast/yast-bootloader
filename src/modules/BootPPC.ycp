@@ -297,7 +297,6 @@ image = /boot/" + Kernel::binary + "
         if ( ppc_requires_initrd )
         {
             lilo_conf = lilo_conf + "\tinitrd = /boot/initrd" + "\n";
-//            SCR::Execute(.target.bash, "/sbin/mk_initrd >> /var/log/YaST2/y2log_mkinitrd 2>&1");
         }
 
         lilo_conf = lilo_conf + "\tappend = \"" + Kernel::cmdLine +"\"\n\n";

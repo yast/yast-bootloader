@@ -226,7 +226,7 @@
 
     /**
      * WriteUpdate
-     * Calling mk_initrd and lilo while update.
+     * Calling mkinitrd and lilo while update.
      * @ return void
      */
     global define void WriteUpdate()

@@ -104,11 +104,11 @@ PATH=/usr/lib/YaST2/bin:$root_dir/usr/lib/YaST2/bin:$root_dir/sbin:$PATH
 cp $root_dir/boot/vmlinuz $root_dir/boot/vmlinuz.shipped || exit 31
 
 # make an initial ram disk
-$root_dir/sbin/mk_initrd $root_dir >> $LOGFILE 2>&1
+$root_dir/sbin/mkinitrd $root_dir >> $LOGFILE 2>&1
 ret_code=$?
 # ret_code 0 means success, 9 means: a module is missing, but we ignore it
 if [ $ret_code -ne 0 -a $ret_code -ne 9 ] ; then
-  log "mk_initrd failed with $ret_code"
+  log "mkinitrd failed with $ret_code"
   exit $ret_code
 fi
 

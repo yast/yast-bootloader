@@ -14,8 +14,8 @@ stored in /etc/modules.conf the same way like for modules which aren't to be a p
 	    </para>
 	    <para>
 When calling the Write function of this module, first checking whether saving is really needed is done (if some module was added, or if function was called during installation,
-then it is needed). Modules settings are saved to /etc/modules.conf, list of modules to /etc/sysconfig/kernel, and after it /sbin/mk_initrd is called to create ramdisk.
-Note that even though list of modules is empty, /sbin/mk_initrd must be called, because some modules are added to initrd by this script.
+then it is needed). Modules settings are saved to /etc/modules.conf, list of modules to /etc/sysconfig/kernel, and after it /sbin/mkinitrd is called to create ramdisk.
+Note that even though list of modules is empty, /sbin/mkinitrd must be called, because some modules are added to initrd by this script.
 	    </para>
 	</section>
         <section>
