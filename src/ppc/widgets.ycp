@@ -66,7 +66,7 @@
       */
     global define map getGlobalSectionWidget () ``{
 	map ret = BootCommon::getGlobalSectionWidget ();
-	ret["ids"] = ``(BootPPC::getTableContents ());
+	ret["ids"] = BootPPC::getTableContents;
 	return ret;
     }
 
@@ -105,15 +105,15 @@
     global define map getSTMFWidget () ``{
 	return $[
 	    "table" : $[
-		"summary" : ``(BootPPC::STMFSummary ()),
+		"summary" : BootPPC::STMFSummary,
 		// label / table entry
 		"label" : _("Stream File for *STMF Booting"),
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `textentry,
-		"init" : ``(BootPPC::STMFInit ()),
-		"store" : ``(BootPPC::STMFStore ()),
+		"init" : BootPPC::STMFInit,
+		"store" : BootPPC::STMFStore,
 	    ],
 	];
     }
@@ -157,15 +157,15 @@
     global define map getSetDeafultOFWidget () ``{
 	return $[
 	    "table" : $[
-		"summary" : ``(BootPPC::setDefaultOFSummary ()),
+		"summary" : BootPPC::setDefaultOFSummary,
 		// label / table entry
 		"label" : _("Set Default OpenFirmware boot-device"),
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `checkbox,
-		"init" : ``(BootPPC::setDefaultOFInit ()),
-		"store" : ``(BootPPC::setDefaultOFStore ()),
+		"init" : BootPPC::setDefaultOFInit,
+		"store" : BootPPC::setDefaultOFStore,
 	    ],
 	];
     }
@@ -221,16 +221,16 @@
     global define map getPRePPartsWidget () ``{
 	return $[
 	    "table" : $[
-		"summary" : ``(BootPPC::PRePPartsSummary ()),
+		"summary" : BootPPC::PRePPartsSummary,
 		// label / table entry
 		"label" : _("41 PReP Boot Partition"),
 		"unique_key" : true,
 	    ],
 	    "popup" : $[
 		"widget" : `func,
-		"widget_func" : ``(BootPPC::getPRePPartsCombo ()),
-		"init" : ``(BootPPC::PRePPartsInit ()),
-		"store" : ``(BootPPC::PRePPartsStore ()),
+		"widget_func" : BootPPC::getPRePPartsCombo,
+		"init" : BootPPC::PRePPartsInit,
+		"store" : BootPPC::PRePPartsStore,
 	    ],
 	];
     }
@@ -367,7 +367,7 @@
 	}
 	else
 	{
-	    return mergestring (targets, ", ");
+	    return mergestring ((list<string>)targets, ", ");
 	}
     }
 
@@ -383,14 +383,14 @@
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
-		"summary" : ``(BootPPC::iSeriesTargetSummary ()),
+		"summary" : BootPPC::iSeriesTargetSummary,
 	    ],
 	    "popup" : $[
-		"init" : ``(BootPPC::iSeriesTargetInit ()),
-		"handle" : ``(BootPPC::iSeriesTargetHandle ()),
-		"store" : ``(BootPPC::iSeriesTargetStore ()),
+		"init" : BootPPC::iSeriesTargetInit,
+		"handle" : BootPPC::iSeriesTargetHandle,
+		"store" : BootPPC::iSeriesTargetStore,
 		"widget" : `func,
-		"widget_func" : ``(BootPPC::iSeriesTargetWidgetLayout ()),
+		"widget_func" : BootPPC::iSeriesTargetWidgetLayout,
 	    ],
 	];
     }
@@ -487,14 +487,14 @@
 		"optional" : false,
 		"ordering" : false,
 		"unique_key" : true,
-		"summary" : ``(BootPPC::PRePTargetSummary ()),
+		"summary" : BootPPC::PRePTargetSummary,
 	    ],
 	    "popup" : $[
-		"init" : ``(BootPPC::PRePTargetInit ()),
-		"handle" : ``(BootPPC::PRePTargetHandle ()),
-		"store" : ``(BootPPC::PRePTargetStore ()),
+		"init" : BootPPC::PRePTargetInit,
+		"handle" : BootPPC::PRePTargetHandle,
+		"store" : BootPPC::PRePTargetStore,
 		"widget" : `func,
-		"widget_func" : ``(BootPPC::PRePTargetWidgetLayout ()),
+		"widget_func" : BootPPC::PRePTargetWidgetLayout,
 	    ],
 	];
     }

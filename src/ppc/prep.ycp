@@ -85,8 +85,8 @@
       * retuen the board-type-specific part of summary
       * @return a list of summary strings
       */
-    global define list PRePSummary () ``{
-	list ret = [];
+    global define list<string> PRePSummary () ``{
+	list<string> ret = [];
 	if (0 == size (prep_boot_partitions))
 	{
 	    ret = [

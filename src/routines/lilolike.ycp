@@ -386,7 +386,7 @@
 	if (default != "")
 	{
 	    boolean exists = false;
-	    foreach (list s, BootCommon::sections, ``{
+	    foreach (list<map> s, BootCommon::sections, ``{
 		string label = (string)lookup_value (s, "label", "");
 		if (label == default)
 		    exists = true;
@@ -402,7 +402,7 @@
     /**
       * Fix section of lilo-like bootloader
       */
-    global define void liloFixSections (term create_sections) ``{
+    global define void liloFixSections (void() create_sections) ``{
 	list parts = BootCommon::getPartitionList(`parts_old);
 	if (partitioning_last_change
 		!= Storage::GetTargetChangeTime()
@@ -412,17 +412,17 @@
 	    BootCommon::files_edited_warned = true;
 	    return;
 	}
-	list old_sect_list = BootCommon::sections;
+	list<list<map> > old_sect_list = BootCommon::sections;
 //	createSections ();
 // this is the same
-	eval (create_sections);
-	map new_sect = listmap (list s, BootCommon::sections, ``{
+	create_sections ();
+	map new_sect = listmap (list<map> s, BootCommon::sections, ``{
 	    string label = (string)lookup_value (s, "label", "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:label;
-	    return [type, s];
+	    return $[type: s];
 	});
-	old_sect_list = maplist (list s, old_sect_list, ``{
+	old_sect_list = maplist (list<map> s, old_sect_list, ``{
 	    string label = (string)lookup_value (s, "label", "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:label;
@@ -451,7 +451,7 @@
 		        }
 		    });
 		}
-                list new_this_section = new_sect[type]:[];
+                list<map> new_this_section = new_sect[type]:[];
                 map new_this_intern = (map)lookup_value (
                     new_this_section, "__intern__", $[]);
 		list new_devs = toset(new_this_intern["devs"]:[]);
@@ -480,7 +480,7 @@
 	});
 
         y2milestone ("Checking for sections using the resume parameter");
-        BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+        BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
             string append = (string)lookup_value (s, "append", "");
             string resume
                 = BootCommon::getKernelParamFromLine (append, "resume");
@@ -490,7 +490,7 @@
             // points to unexistent swap partition
             {
                 append = BootCommon::setKernelParamToLine (append,
-                    "resume", BootCommon::getLargestSwapPartition);
+                    "resume", BootCommon::getLargestSwapPartition ());
                 s = modifySection (s, "append", append);
             }
             return s;
@@ -498,7 +498,7 @@
 
 	y2milestone ("Checking for sections needing some of %1", del_parts);
 	list<string> to_remove = [];
-	foreach (list s, BootCommon::sections, ``{
+	foreach (list<map> s, BootCommon::sections, ``{
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    list<string> devs = intern["devs"]:[];
 	    string label = (string)lookup_value (s, "label", "");
@@ -513,7 +513,7 @@
 	    if (to_add)
 	    {
 		map old_sect = listmap (list os, old_sect_list, ``{
-		    return [label, os];
+		    return $[label: os];
 		});
 
 		if (label != "" && ! haskey(old_sect, label))
@@ -524,7 +524,7 @@
 		}
 	    }
 	});
-	del_parts = BootCommon::difflist (del_parts, to_remove);
+	del_parts = (list<string>)BootCommon::difflist (del_parts, to_remove);
 	old_sect_list = filter (list s, old_sect_list, ``(s != []));
 	BootCommon::sections = old_sect_list;
     }
@@ -536,14 +536,14 @@
       * @param term to evaluate to create a linux section
       */
     global define void liloUpdateSections (boolean replace,
-	term create_linux_section)
+	list(string) create_linux_section)
     ``{
-	list out = BootCommon::sections;
+	list<list<map> > out = BootCommon::sections;
 
-	foreach (`t, ["linux", "failsafe", "memtest86"], ``{
-	    list m = (list)eval (add (create_linux_section, t));
+	foreach (string t, ["linux", "failsafe", "memtest86"], ``{
+	    list m = create_linux_section (t);
 	    boolean changed = false;
-	    list out = maplist (list s, out, ``{
+	    list out = maplist (list<map> s, out, ``{
 		map intern = (map)lookup_value (s, "__intern__", $[]);
 		string sect_type = intern["type"]:"";
 		if (sect_type == "")
@@ -561,7 +561,7 @@
                         if (! haskey (BootCommon::getSwapPartitions (), resume))
                         {
                             append = BootCommon::setKernelParamToLine (append,
-                                "resume", BootCommon::getLargestSwapPartition);
+                                "resume", BootCommon::getLargestSwapPartition ());
                             s = modifySection (s, "append", append);
                         }
                         return s;
@@ -581,7 +581,7 @@
                     out = add (out, m);
         });
 
-        out = maplist (list s, out, ``{
+        out = maplist (list<map> s, out, ``{
 	    string type = "";
 	    foreach (map p, s, ``{
 		if (p["key"]:"" == "label" && type == "")
@@ -628,7 +628,7 @@
       */
     global define void liloRemoveUnexistentSections (string path_prefix,
 	string relative_path_prefix) ``{
-	BootCommon::sections = filter (list s, BootCommon::sections, ``{
+	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``{
 	    string label = (string)lookup_value (s, "label", "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
@@ -662,7 +662,7 @@
       *  parameters were changed
       */
     global define void liloUpdateInitrd () ``{
-        BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+        BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
             string initrd = (string)lookup_value (s, "initrd", "");
 	    string title = (string)lookup_value (s, "label", "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
@@ -687,7 +687,7 @@
       * Update append option if some parameters were changed
       */
     global define void liloUpdateAppend () ``{
-	BootCommon::sections = maplist (list s, BootCommon::sections, ``{
+	BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string type = intern["type"]:"";
             if (type == "linux" && lookup_value (s, "append", nil) != nil

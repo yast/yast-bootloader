@@ -29,7 +29,6 @@
     import "BootCommon";
     import "Installation";
     import "Arch";
-    import "BootMILO";
 
     include "bootloader/routines/popups.ycp";
 
@@ -123,15 +122,15 @@
       * Return map of provided functions
       * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
       */
-    global define map GetFunctions () ``{
+    global define map<string, any> GetFunctions () ``{
 	return $[
-	    "read" :	``(BootMILO::Read ()),
-	    "propose" : ``(BootMILO::Propose ()),
-	    "save" :	``(BootMILO::Save ()),
-	    "summary" :	``(BootMILO::Summary ()),
-	    "update" :	``(BootMILO::Update ()),
-	    "write" :	``(BootMILO::Write ()),
-	    "sequence" :``(BootMILO::FixSequence ()),
+	    "read"	: BootMILO::Read,
+	    "propose"	: BootMILO::Propose,
+	    "save"	: BootMILO::Save,
+	    "summary"	: BootMILO::Summary,
+	    "update"	: BootMILO::Update,
+	    "write"	: BootMILO::Write ,
+	    "sequence"	: BootMILO::FixSequence,
 	];
     }
 

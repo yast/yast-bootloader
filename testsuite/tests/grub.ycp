@@ -16,7 +16,6 @@
  */
 
 {
-    import "Pkg";
     include "testsuite.ycp";
 
     map READ_I = $[
@@ -77,7 +76,6 @@
 
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
     import "BootGRUB";
-    TESTSUITE_CLEAN ();
 
     DUMP ("======================================");
 

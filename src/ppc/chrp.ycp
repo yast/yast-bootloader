@@ -89,8 +89,8 @@
       * retuen the board-type-specific part of summary
       * @return a list of summary strings
       */
-    global define list CHRPSummary () ``{
-	list ret = [];
+    global define list<string> CHRPSummary () ``{
+	list<string> ret = [];
 	if (0 == size (prep_boot_partitions))
 	{
 	    ret = [

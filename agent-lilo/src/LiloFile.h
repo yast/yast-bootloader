@@ -107,7 +107,7 @@ public:
     /**
      * writing to internal datastructure / writing structure to file
      */
-    YCPValue Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg);
+    YCPBoolean Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg);
 
     /**
      * reading from internal data structure
@@ -117,7 +117,7 @@ public:
     /**
      *	Dir from internal data structure
      */
-    YCPValue Dir(const YCPPath& path);
+    YCPList Dir(const YCPPath& path);
 
     /**
      *	returns corresponding section vector from the given path

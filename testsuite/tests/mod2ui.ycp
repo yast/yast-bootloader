@@ -17,7 +17,6 @@
  */
 
 {
-    import "Pkg";
     include "testsuite.ycp";
 
     map READ_I = $[
@@ -77,16 +76,15 @@
     ];
 
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
-    include "bootloader/routines/misc.ycp";
-    TESTSUITE_CLEAN ();
+    import "BootCommon";
 
-    TEST(``(mod2ui("")), [], nil);
-    TEST(``(mod2ui("simple_string")), [], nil);    
-    TEST(``(mod2ui("unquoted string")), [], nil);
-    TEST(``(mod2ui("\"quoted string\"")), [], nil);
-    TEST(``(mod2ui("\"  unstripped quoted string \"")), [], nil);
-    TEST(``(mod2ui("string with backslash \\\\ and spaces")), [], nil);
-    TEST(``(mod2ui("string with escaped \\\" quote")), [], nil);
-    TEST(``(mod2ui(5)), [], nil);
+    TEST(``(BootCommon::mod2ui("")), [], nil);
+    TEST(``(BootCommon::mod2ui("simple_string")), [], nil);
+    TEST(``(BootCommon::mod2ui("unquoted string")), [], nil);
+    TEST(``(BootCommon::mod2ui("\"quoted string\"")), [], nil);
+    TEST(``(BootCommon::mod2ui("\"  unstripped quoted string \"")), [], nil);
+    TEST(``(BootCommon::mod2ui("string with backslash \\\\ and spaces")), [], nil);
+    TEST(``(BootCommon::mod2ui("string with escaped \\\" quote")), [], nil);
+    TEST(``(BootCommon::mod2ui(5)), [], nil);
 
 }

@@ -44,7 +44,7 @@
 	if (index != nil)
 	{
 	    UI::ChangeWidget (`id (opt_key), `Value,
-		BootCommon::current_section[opt_id, "value"]:"");
+		BootCommon::current_section[index, "value"]:"");
 	}
 	UI::SetFocus (`id (opt_key));
     }
@@ -98,19 +98,20 @@
       * @param opt_key any option key
       * @return string summary to the table
       */
-    global define string commonTableEntrySummary (any opt_id, any opt_key) ``{
+    global define string commonTableEntrySummary (any opt_id, string opt_key)``{
 	if (is (opt_id, integer))
 	{
-	    if (is (BootCommon::current_section[opt_id, "value"]:"", boolean))
+	    integer opt_id_int = (integer)opt_id;
+	    if (is (BootCommon::current_section[opt_id_int, "value"]:"", boolean))
 	    {
-		return BootCommon::current_section[opt_id,"value"]:false
+		return BootCommon::current_section[opt_id_int,"value"]:false
 		    // table item
 		    ? _("Yes")
 		    // table item
 		    : _("No");
 	    }
 	    return sformat ("%1",
-		BootCommon::current_section[opt_id, "value"]:"");
+		BootCommon::current_section[opt_id_int, "value"]:"");
 	}
 	return "";
     }
@@ -182,13 +183,13 @@
       * @param opt_key any option key
       * @return map popup description map
       */
-    global define map key2descr (any opt_key) ``{
-        map ret = cwm_options[opt_key]:nil;
+    global define map key2descr (string opt_key) ``{
+        map ret = (map)(cwm_options[opt_key]:nil);
         if (ret != nil)
             return ret;
         return $[
-	    "init" : ``(BootCommon::commonPopupInit ()),
-	    "store" : ``(BootCommon::commonPopupStore ()),
+	    "init" : BootCommon::commonPopupInit,
+	    "store" : BootCommon::commonPopupStore,
         ];
     }
 
@@ -202,7 +203,7 @@
       */
     global define void sectionsRedrawTable (list sects) ``{
 	boolean elilo = getLoaderType (false) == "elilo";
-	list sec = maplist (list s, sects, ``{
+	list sec = maplist (list<map> s, sects, ``{
 	    string image = (string)lookup_value (s, "image", nil);
 	    string root = (string)lookup_value (s, "root", "");
             return `item (`id (lookup_value (s, "label", "")),
@@ -253,22 +254,22 @@
 	string current = (string)UI::QueryWidget (`id (`sects), `CurrentItem);
 	integer counter = 0;
 	integer index = 0;
-	foreach (list s, BootCommon::current_sections, ``{
+	foreach (list<map> s, BootCommon::current_sections, ``{
 	    if ((string)lookup_value (s, "label", "") == current)
 		index = counter;
 	    counter = counter + 1;
 	});
-	list sects = BootCommon::current_sections;
+	list<list<map> > sects = BootCommon::current_sections;
 	if (op == `up)
 	{
 	    if (index > 0)
 	    {
-		sects = swapItems(sects, index, index - 1);
+		sects = (list<list<map> >)swapItems(sects, index, index - 1);
 		index = index - 1;
 		BootCommon::current_sections = sects;
 		sectionsRedrawTable (sects);
 		UI::ChangeWidget (`id (`sects), `CurrentItem,
-		    sects[index, "label"]:0);
+		    lookup_value (sects[index]:[], "label", 0));
 		BootCommon::sections_changed = true;
 	    }
 	}
@@ -276,12 +277,12 @@
 	{
 	    if (index < (size(sects) - 1))
 	    {
-		sects = swapItems(sects, index, index + 1);
+		sects = (list<list<map> >)swapItems(sects, index, index + 1);
                 index = index + 1;
 		BootCommon::current_sections = sects;
 		sectionsRedrawTable (sects);
 		UI::ChangeWidget (`id (`sects), `CurrentItem,
-		    sects[index, "label"]:0);
+		    lookup_value (sects[index]:[], "label", 0));
 		BootCommon::sections_changed = true;
 	    }
 	}
@@ -294,13 +295,13 @@
 	}
 	else if (op == `add)
 	{
-	    list selected = sects[index]:[];
+	    list<map> selected = sects[index]:[];
 	    string name = (string)lookup_value (selected,
 		BootCommon::getSectionTitle (), "");
 	    if (askClone (name))
 	    {
 		selected = modifySection (
-		    (list)eval (selected),
+		    (list<map>)eval (selected),
 		    BootCommon::getSectionTitle (),
 		    BootCommon::getFreeSectionLabel ());
 		BootCommon::current_section = selected;
@@ -317,7 +318,7 @@
 	else if (op == `edit)
 	{
 	    y2milestone ("Editing title %1, index %2", current, index);
-	    BootCommon::current_section = (list)eval (sects[index]:$[]);
+	    BootCommon::current_section = (list<map>)eval (sects[index]:[]);
 	    BootCommon::current_section_name
 		= (string)lookup_value (sects[index]:[], "label", "");
 	    BootCommon::one_section_changed = false;
@@ -352,8 +353,16 @@
 	    if (BootCommon::sections_changed)
 	    {
 		BootCommon::changed = true;
+		BootCommon::current_section = BootCommon::current_globals;
 		BootCommon::markGeneralOptionChanged ("__sections");
-		BootCommon::markGeneralOptionChanged ("default");
+		BootCommon::current_globals = BootCommon::current_section;
+		BootCommon::current_globals = maplist (map m,
+		    BootCommon::current_globals,
+		``{
+		    if (m["key"]:"" == getDefaultKey ())
+			m["changed"] = true;
+		    return m;
+		});
 	    }
 	}
 
@@ -397,9 +406,9 @@
 		    `PushButton (`id (`default), _("Set as De&fault"))
 		)
 	    ),
-	    "init" : ``(BootCommon::sectionsInit ()),
-	    "handle" : ``(BootCommon::sectionsHandle ()),
-	    "store" : ``(BootCommon::sectionsStore ()),
+	    "init" : BootCommon::sectionsInit,
+	    "handle" : BootCommon::sectionsHandle,
+	    "store" : BootCommon::sectionsStore,
 	    "help" : getSectionsHelp (),
 	];
     }
@@ -415,7 +424,7 @@
       */
     global define symbol singleSectionHandle (any widget, map event) ``{
 	redraw_table = false;
-	map current_table = CWM::GetProcessedWidget ();
+	map<string,any> current_table = CWM::GetProcessedWidget ();
 	map options = current_bootloader_attribs["option_list"]:$[];
 	string sect_type = (string)getSectionType (current_section);
 	current_table["add_items"] = options[sect_type]:[];
@@ -440,7 +449,7 @@
 	intern["changed"] = true;
 	current_section = modifySection (current_section, "__intern__", intern);
 	boolean found = false;
-	BootCommon::current_sections = maplist (list s, current_sections, ``{
+	BootCommon::current_sections = maplist (list<map> s, current_sections, ``{
 	    if (lookup_value (s, ls, "") == old_name)
 	    {
 		found = true;
@@ -484,19 +493,19 @@
 		"unique_keys" : true,
 	    ],
 	    $[
-		"store" : ``(BootCommon::singleSectionStore ()),
+		"store" : BootCommon::singleSectionStore,
 		"options": BootCommon::cwm_options,
-		"id2key": ``(BootCommon::id2key ()),
-		"ids": ``(BootCommon::getTableContents ()),
+		"id2key": BootCommon::id2key,
+		"ids": BootCommon::getTableContents,
 		"help": getSingleSectionHelp (),
                 "fallback" : $[
-		     "init": ``(BootCommon::commonPopupInit ()),
-		     "store": ``(BootCommon::commonPopupStore ()),
-		     "summary": ``(BootCommon::commonTableEntrySummary ()),
-		     "changed" : ``(BootCommon::commonTableChanged ()),
+		     "init": BootCommon::commonPopupInit,
+		     "store": BootCommon::commonPopupStore,
+		     "summary": BootCommon::commonTableEntrySummary,
+		     "changed" : BootCommon::commonTableChanged,
                 ],
-		"handle" : ``(BootCommon::singleSectionHandle ()),
-		"option_delete": ``(BootCommon::commonTableEntryDelete ()),
+		"handle" : BootCommon::singleSectionHandle,
+		"option_delete": BootCommon::commonTableEntryDelete,
 		"add_unlisted" : false,
 	    ]
 	);
@@ -509,7 +518,7 @@
       * @param widget any id of the widget
       */
     global define void globalSectionInit (any widget) ``{
-	current_section = (list)(eval (globals));
+	current_section = (list<map>)(eval (globals));
 	current_section_name = `global;
 	TablePopup::TableInitWrapper (widget);
     }
@@ -522,7 +531,7 @@
       */
     global define symbol globalSectionHandle (any widget, map event) ``{
 	redraw_table = false;
-	map current_table = CWM::GetProcessedWidget ();
+	map<string,any> current_table = CWM::GetProcessedWidget ();
 	map options = current_bootloader_attribs["option_list"]:$[];
 	current_table["add_items"] = options[`global]:[];
 	symbol ret = TablePopup::TableHandle (current_table, widget, event);
@@ -559,20 +568,20 @@
 		"unique_keys" : true,
 	    ],
 	    $[
-		"init" : ``(BootCommon::globalSectionInit ()),
-		"handle" : ``(BootCommon::globalSectionHandle ()),
-		"store" : ``(BootCommon::globalSectionStore ()),
+		"init" : BootCommon::globalSectionInit,
+		"handle" : BootCommon::globalSectionHandle,
+		"store" : BootCommon::globalSectionStore,
 		"options": BootCommon::cwm_options,
-		"id2key": ``(BootCommon::id2key ()),
-		"ids": ``(BootCommon::getTableContents ()),
+		"id2key": BootCommon::id2key,
+		"ids": BootCommon::getTableContents,
 		"help": getGlobalSectionHelp (),
                 "fallback" : $[
-		    "init": ``(BootCommon::commonPopupInit ()),
-		    "store": ``(BootCommon::commonPopupStore ()),
-		    "summary": ``(BootCommon::commonTableEntrySummary ()),
-		    "changed" : ``(BootCommon::commonTableChanged ()),
+		    "init": BootCommon::commonPopupInit,
+		    "store": BootCommon::commonPopupStore,
+		    "summary": BootCommon::commonTableEntrySummary,
+		    "changed" : BootCommon::commonTableChanged,
                 ],
-		"option_delete": ``(BootCommon::commonTableEntryDelete ()),
+		"option_delete": BootCommon::commonTableEntryDelete,
 		"add_unlisted" : false,
 	    ]
 	);
@@ -598,12 +607,12 @@
 	if (reordered["items"]:nil == nil || reordered["index"]:nil == nil)
 	    return nil;
 
-	index = reordered["index"]:nil;
-	list items = reordered["items"]:nil;
+	index = (integer)(reordered["index"]:nil);
+	list items = (list)(reordered["items"]:nil);
 
 	if (dir == `up)
 	{
-	    BootCommon::current_section = BootCommon::swapItems (
+	    BootCommon::current_section = (list<map>)BootCommon::swapItems (
 		items, index, index - 1);
 	    BootCommon::one_section_changed = true;
 	    if (index > 0)
@@ -613,7 +622,7 @@
 	}
 	if (dir == `down)
 	{
-            BootCommon::current_section = BootCommon::swapItems (
+            BootCommon::current_section = (list<map>)BootCommon::swapItems (
 		items, index, index + 1);
 	    BootCommon::one_section_changed = true;
 	    if (index + 1 < size (items))
@@ -685,7 +694,7 @@
 	    "widget" : `custom,
 	    "custom_widget" : `VSpacing (0),
 	    "handle" : reset_button_handle,
-	    "init" : ``(BootCommon::resetButtonInit ()),
+	    "init" : BootCommon::resetButtonInit,
 	    "help" : getSummaryButtonsHelp (),
 	];
     }
@@ -715,7 +724,7 @@
 		`HStretch ()
 	    ),
 	    "handle_events" : [`manual],
-	    "handle" : ``(BootCommon::manualEditHandle ()),
+	    "handle" : BootCommon::manualEditHandle,
 	    "help" : getManualEditHelp (),
 	];
     }
@@ -726,7 +735,7 @@
       * Get map of dialogs and widgets
       * @return map of dialogs and widgets
       */
-    global define map GetWidgetMaps () ``{
+    global define map<string,any> GetWidgetMaps () ``{
 	return $[
 	    "sections"		: BootCommon::getSectionsWidget (),
 	    "singlesection"	: BootCommon::getSingleSectionWidget (),

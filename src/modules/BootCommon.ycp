@@ -27,6 +27,7 @@
     import "Mode";
     import "Require";
     import "Storage";
+    import "Pkg";
 
     /* These global variables and functions is needed in included files */
 
@@ -51,12 +52,12 @@
     /**
       * Parameters of currently used bootloader
       */
-    global map current_bootloader_attribs = $[];
+    global map<string, any> current_bootloader_attribs = $[];
 
     /**
       * Parameters of all bootloaders
       */
-    global map bootloader_attribs = $[];
+    global map<string, any> bootloader_attribs = $[];
 
     /**
       * Name of currently edited section, `global for global section
@@ -66,27 +67,27 @@
     /**
       * Curtrently edited section -- tmp store
       */
-    global list current_section = [];
+    global list<map> current_section = [];
 
     /**
       * map of global options and values
       */
-    global list globals = [];
+    global list<map> globals = [];
 
     /**
       * Updated, but not yet confirmed globals -- tmp store
       */
-    global list current_globals = [];
+    global list<map> current_globals = [];
 
     /**
       * list of section
       */
-    global list sections = [];
+    global list<list<map> > sections = [];
 
     /**
       * list of installed floppy devices
       */
-    global list floppy_devices = nil;
+    global list<string> floppy_devices = nil;
 
     /**
       * Option types for differnt bootloaders
@@ -136,7 +137,7 @@
     /**
       * Table/Popup options used by currently used bootloader
       */
-    global map cwm_options = $[];
+    global map<string, any> cwm_options = $[];
 
 // common variables
 
@@ -183,7 +184,7 @@
     /**
       * Updated, but not yet confirmed sections -- tmp store
       */
-    global list current_sections = [];
+    global list<list<map> > current_sections = [];
     /**
       * Name of option, which is currently being edited in popup
       */
@@ -194,8 +195,8 @@
     global integer current_option_index = -1;
 
     global boolean redraw_table = false;
-    global term reset_button_handle = nil;
-    global term loader_type_store = nil;
+    global symbol(any, map) reset_button_handle = nil;
+    global void(any, any) loader_type_store = nil;
 
 
 // other variables
@@ -256,9 +257,8 @@
 
 
 
-// FIXME uncomment for NI
-//    global define string getLoaderType (boolean recheck);
-//    global define list getBootloaders ();
+    global define string getLoaderType (boolean recheck);
+    global define list getBootloaders ();
 
     include "bootloader/routines/helps.ycp";
     include "bootloader/routines/popups.ycp";
@@ -290,8 +290,8 @@
       * @param settings map of bootloader settings
       */
     global define void Import (map settings) ``{
-        globals = lookup(settings, "global", []);
-        sections  = lookup(settings, "sections", []);
+        globals = settings["global"]:[];
+        sections  = settings["sections"]:[];
         repl_mbr = settings["repl_mbr"]:false;
         activate = settings["activate"]:false;
 	activate_changed = true;
@@ -373,7 +373,7 @@
 	// summary text, location is location description (eg. /dev/hda)
 	result = add (result, sformat (_("Location: %1"), target_name));
 	list<string> sects = [];
-	foreach (list s, sections, ``{
+	foreach (list<map> s, sections, ``{
 	    string title = (string)lookup_value (s, getSectionTitle (), "");
 		// section name "suffix" for default section
 	    string def = title == getDefaultSection () ? _(" (default)") : "";
@@ -485,8 +485,8 @@ configuration files"));
       * @return sumbol wizard sequencer symbol
       */
     global define symbol fetchSettings () ``{
-	current_globals = (list)(eval(globals));
-	current_sections = (list)(eval(sections));
+	current_globals = (list<map>)(eval(globals));
+	current_sections = (list<list<map> >)(eval(sections));
 	return `next;
     }
 
@@ -495,8 +495,8 @@ configuration files"));
       * @return wizard sequencer symbol
       */
     global define symbol storeSettings () ``{
-	globals = (list)(eval (current_globals));
-	sections = (list)(eval (current_sections));
+	globals = (list<map>)(eval (current_globals));
+	sections = (list<list<map> >)(eval (current_sections));
 	loader_device = GetBootloaderDevice ();
 	return `next;
     }
@@ -518,7 +518,8 @@ configuration files"));
 	if (bootloader_attribs[loader_type, "initializer"]:nil != nil)
 	{
 	    y2milestone ("Running bootloader initializer");
-	    eval (bootloader_attribs[loader_type, "initializer"]:nil);
+	    void () toEval = (void ()) (bootloader_attribs[loader_type, "initializer"]:nil);
+	    toEval ();
 	}
 	else
 	{
@@ -527,9 +528,9 @@ configuration files"));
 	    cwm_options = GetOptionMaps ();
 	    cwm_widgets = GetWidgetMaps ();
 	}
-	current_bootloader_attribs = union (
+	current_bootloader_attribs = (map<string, any>) union (
 	    current_bootloader_attribs,
-	    bootloader_attribs[loader_type]:$[]);
+	    (map<string, any>) eval (bootloader_attribs[loader_type]:$[]));
     }
 
     /**

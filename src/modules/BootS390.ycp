@@ -164,7 +164,7 @@
     global define list GetDumpDevices () ``{
 	list dd = maplist (list d, BootCommon::sections, ``(
 	    listmap (map e, d, ``(
-		[ e["key"]:"", e["value"]:"" ]
+		$[ e["key"]:"": e["value"]:"" ]
 	    ))
 	));
 	return filter (map s, dd, ``(
@@ -177,7 +177,7 @@
       * @param dump_devices list in the same form as result of GetDumpDevices ()
       */
     global define void SetDumpDevices (list dump_devices) ``{
-	BootCommon::sections = filter (list s, BootCommon::sections, ``(
+	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``(
 	    lookup_value (s, "dumpto", "") == ""
 	));
 	dump_devices = maplist (map d, dump_devices, ``{
@@ -190,32 +190,32 @@
 	    return d;
 	});
 	dump_devices = filter (map d, dump_devices, ``(d != nil));
-	list dd = maplist (map d, dump_devices, ``(
-	    maplist (string k, string v, d, ``(
+	list<list<map> > dd = maplist (map d, dump_devices, ``(
+	    (list<map>)maplist (string k, string v, d, ``(
 		$[ "key" : k, "value" : v ]
 	    ))
 	));
-	BootCommon::sections = merge (BootCommon::sections, dd);
+	BootCommon::sections = (list<list<map> >)merge (BootCommon::sections, dd);
     }
 
     /**
       * Return map of provided functions
       * @return map map of functions (eg. $["write":``(BootS390::Write ())])
       */
-    global define map GetFunctions () ``{
+    global define map<string, any> GetFunctions () ``{
 	return $[
-	    "read" :	``(BootS390::Read ()),
-	    "propose" : ``(BootS390::Propose ()),
-	    "save" :	``(BootS390::Save ()),
-	    "summary" :	``(BootS390::Summary ()),
-	    "update" :	``(BootS390::Update ()),
-	    "write" :	``(BootS390::Write ()),
-	    "sequence" :``(BootS390::FixSequence ()),
+	    "read"	: BootS390::Read,
+	    "propose"	: BootS390::Propose,
+	    "save"	: BootS390::Save,
+	    "summary"	: BootS390::Summary,
+	    "update"	: BootS390::Update,
+	    "write"	: BootS390::Write,
+	    "sequence"	: BootS390::FixSequence,
 	];
     }
 
     /**
-      * Initializer of LILO bootloader
+      * Initializer of S390 bootloader
       */
     global define void Initializer () ``{
 	y2milestone ("Called S390 (zipl) initializer");
@@ -227,7 +227,7 @@
 	    "scratch" : true,
 	];
 	// TODO no UI available yet
-	BootCommon::cwm_options = union (
+	BootCommon::cwm_options = (map<string, any>) union (
 	    BootCommon::GetOptionMaps (),
 	    $[]);//BootS390::GetOptionMaps ());
 	BootCommon::cwm_widgets = union (
@@ -243,7 +243,7 @@
 	BootCommon::bootloader_attribs["s390"] = $[
             "loader_name" : "zipl",
 	    "required_packages" : [], // FIXME
-	    "initializer" : ``(BootS390::Initializer()),
+	    "initializer" : BootS390::Initializer,
         ];
     }
 

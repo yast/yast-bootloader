@@ -3,25 +3,14 @@ Read	.probe.has_apm true
 Read	.probe.has_pcmcia false
 Read	.probe.has_smp false
 Read	.probe.system []
-Read	.target.tmpdir "/tmp/"
-Read	.target.tmpdir "/tmp/"
-Execute	.target.bash "/usr/lib/YaST2/bin/version" 0
-Read	.sysconfig.language.RC_LANG ""
-Read	.sysconfig.language.DEFAULT_LANGUAGE ""
-Read	.target.yast2 "lang2iso.ycp" nil
-Read	.target.size "/etc/sysconfig/language" -1
-Read	.sysconfig.console.CONSOLE_FONT ""
-Read	.sysconfig.console.CONSOLE_SCREENMAP ""
-Read	.sysconfig.console.CONSOLE_UNICODEMAP ""
-Read	.sysconfig.console.CONSOLE_MAGIC ""
-Read	.sysconfig.console.CONSOLE_ENCODING ""
-Read	.sysconfig.language.RC_LANG ""
-Execute	.target.bash_output "locale -k charmap" $[]
-Read	.proc.cpuinfo.value.0."flags" ""
+Read	.proc.cpuinfo.value."0"."flags" ""
 Read	.probe.memory []
 Read	.probe.cpu []
 Read	.probe.floppy.manual []
 Read	.probe.cdrom.manual []
+Read	.sysconfig.console.CONSOLE_ENCODING ""
+Execute	.target.bash_output "locale -k charmap" $[]
+Read	.target.tmpdir "/tmp/"
 Read	.target.string "/boot/grub/device.map" "(hd0) /dev/hda\n(hd1)   /dev/ida/c0d0\n(fd0)   /dev/fd0\n"
 Return	[["(hd0)", "/dev/hda"], ["(hd1)", "/dev/ida/c0d0"], ["(fd0)", "/dev/fd0"]]
 Return	[$["changed":false, "key":"title", "value":"sectlabel"], $["changed":false, "key":"root", "value":"(hd0,1)"], $["changed":false, "key":"chainloader", "value":"+1"], $["changed":false, "key":"makeactive", "value":true]]

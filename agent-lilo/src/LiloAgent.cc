@@ -37,7 +37,8 @@ LiloAgent::~LiloAgent() {
  * method for reading from lilo memory representation
  */
 
-YCPValue LiloAgent::Read(const YCPPath &path, const YCPValue& arg) {
+YCPValue LiloAgent::Read(const YCPPath &path, const YCPValue& arg, const YCPValue& opt)
+{
     y2debug ("Called LiloAgent::Read");
     if (path->length() > 0 && path->component_str(0)=="opttypes")
     {
@@ -61,19 +62,19 @@ YCPValue LiloAgent::Read(const YCPPath &path, const YCPValue& arg) {
  * method for writing to lilo memory representation 
  */
 
-YCPValue LiloAgent::Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg) {
+YCPBoolean LiloAgent::Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg) {
     y2debug ("Called LiloAgent::Write");
     if(lilo)
 	return lilo->Write(path, value, arg);
     else
-	return YCPVoid();
+	return YCPBoolean(false);
 }
 
 /** 
  * returns list of items in given path (see lilo agent docs)
  */
 
-YCPValue LiloAgent::Dir(const YCPPath& path) {
+YCPList LiloAgent::Dir(const YCPPath& path) {
     y2debug ("Called LiloAgent::Dir");
     if(lilo)
     {
@@ -82,8 +83,13 @@ YCPValue LiloAgent::Dir(const YCPPath& path) {
     else
     {
 	y2error ("File not initialized");
-	return YCPVoid();
+	return YCPNull();
     }
+}
+
+YCPValue LiloAgent::Execute (const YCPPath& path, const YCPValue& value, const YCPValue& arg)
+{
+    return YCPValue (YCPNull ());
 }
 
 /**
@@ -97,7 +103,7 @@ YCPValue LiloAgent::otherCommand(const YCPTerm& term) {
     {
 	delete lilo;
     }
-    string sym = term->symbol()->symbol();
+    string sym = term->name();
     if (sym == "LiloConf" && term->size() == 2) 
     {
 	if (term->value(0)->isString())

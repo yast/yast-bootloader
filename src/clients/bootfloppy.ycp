@@ -111,7 +111,7 @@ FireWire and file systems modules floppy"),
 	mounts = filter (map mount, mounts, ``(
 	    issubstring (mount["spec"]:"", floppy)));
 
-	return mounts[0]:nil;
+	return (map)(mounts[0]:nil);
     }
 
     /**
@@ -561,7 +561,7 @@ and password.
       */
     define symbol floppyInsertDisk() ``{
 	list<map> floppies_m = (list<map>)SCR::Read (.probe.floppy);
-	list<string> floppies = maplist (map f, floppies_m,
+	list<string> floppies = (list<string>)maplist (map f, floppies_m,
 	    ``(f["dev_name"]:nil));
 	floppies = filter (string f, floppies, ``(f != nil));
 

@@ -21,7 +21,7 @@
     textdomain "bootloader";
 
     import "BootCommon";
-    import "Console";
+    import "Encoding";
     import "Label";
     import "Misc";
     import "Mode";
@@ -352,7 +352,7 @@ no options to set here."));
 	map out = (map)SCR::Execute (.target.bash_output, command);
 	string c_time = out["stdout"]:"";
 	c_time = select (splitstring (c_time, "\n"), 0, "");
-	c_time = (string)UI::Recode (Console::encoding, "UTF-8", c_time);
+	c_time = (string)UI::Recode (Encoding::console, "UTF-8", c_time);
 
 	// warning popup. %1 is device name, %2 is date/time in form of
 	// 'date' command output

@@ -108,9 +108,9 @@ public:
 	/** returns value of the given path */
 	YCPValue Read(const YCPPath& path);
 	/** writes new value to the given path */
-	YCPValue Write(const YCPPath& path, const YCPValue& val, const YCPValue& _pos);
+	YCPBoolean Write(const YCPPath& path, const YCPValue& val, const YCPValue& _pos);
 	/** dir of sub-stuff... see lilo_agent docs */
-	YCPValue Dir();
+	YCPList Dir();
 	/** */
 	void dump(FILE* f);
    
@@ -167,11 +167,11 @@ public:
     virtual YCPValue Read(const YCPPath& path);
 
 	/** method for reading to path */
-    virtual YCPValue Write(const YCPPath& path, const YCPValue& val, const YCPValue& pos);
+    virtual YCPBoolean Write(const YCPPath& path, const YCPValue& val, const YCPValue& pos);
 
 
 	/** returns list of all set variables */
-    virtual YCPValue Dir();
+    virtual YCPList Dir();
 
     string type;
     

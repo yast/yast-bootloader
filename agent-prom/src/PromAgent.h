@@ -47,12 +47,12 @@ class PromAgent : public SCRAgent
         /**
          * Provides SCR Write ().
          */
-        virtual YCPValue Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg);
+        virtual YCPBoolean Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg);
 
         /**
          * Provides SCR Write ().
          */
-        virtual YCPValue Dir(const YCPPath& path);
+        virtual YCPList Dir(const YCPPath& path);
 
         /**
          * Used for mounting the agent.

@@ -149,10 +149,10 @@
       * @param title strign section title (linux, failsafe, memtest)
       * @return section description structure
       */
-    global define list createLinuxSection (string title) ``{
-	list section = [
+    global define list<map> createLinuxSection (string title) ``{
+	list<map> section = [
 	    $[ "key" : "image", "value" : "/boot/" + Kernel::binary ],
-	    $[ "key" : "label", "value" : "linux" ],
+	    $[ "key" : "label", "value" : translateSectionTitle ("linux") ],
 	    $[ "key" : "root", "value" : BootCommon::RootPartitionDevice ],
 	    $[ "key" : "initrd", "value" : "/boot/initrd" ],
 	    $[ "key" : "append", "value" : Kernel::cmdLine ],
@@ -172,7 +172,7 @@
       * FIXME very similar to the one in BootLILO
       */
     global define void createSections () ``{
-	list out = [
+	list<list<map> > out = [
 	    createLinuxSection ("linux")
 	];
 	list others = Storage::GetForeignPrimary();
@@ -239,7 +239,7 @@
       * @param replace boolean true if old sectinos shall be replaced
       */
     global define void updateSections (boolean replace) ``{
-	BootCommon::liloUpdateSections (replace);
+	BootCommon::liloUpdateSections (replace, BootPPC::createLinuxSection);
 	return;
     }
 
@@ -258,7 +258,7 @@
       *   relevant disk locations have changed
       */
     global define void fixSections (boolean disks_changed) ``{
-	BootCommon::liloFixSections (``(BootPPC::createSections ()));
+	BootCommon::liloFixSections (BootPPC::createSections);
 	return;
     }
 
@@ -478,11 +478,13 @@
       * @return boolean true if success
       */
     global define boolean Save () ``{
+y2error ("BootPPC::Save");
         if (!( Arch::board_prep || Arch::board_chrp
 	    || Arch::board_mac_new || Arch::board_iseries ))
 	{
             return true;
 	}
+y2error ("Really saving");
 	boolean ret = currentBoardSave ();
 
         SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
@@ -610,7 +612,7 @@
     }
 
     /**
-      * Initializer of LILO bootloader
+      * Initializer of the bootloader
       */
     global define void Initializer () ``{
 	y2milestone ("Called PPC initializer");
@@ -621,7 +623,7 @@
             "default_type" : `label,
             "timeout_multiplier" : 10,
             "alias_keys" : ["alias"],
-	    "convert_function" : ``(BootCommon::convertSection ()),
+	    "convert_function" : BootCommon::convertSection,
             "kernel_params" : $[
                 "vga" : "vga",
                 "root" : "root",
@@ -635,7 +637,7 @@
             "bootloader_on_disk" : true,
 	    "option_list" : GetOptions (),
 	];
-	BootCommon::cwm_options = union (
+	BootCommon::cwm_options = (map<string, any>) union (
 	    BootCommon::GetOptionMaps (),
 	    BootPPC::GetOptionMaps ());
 	BootCommon::cwm_widgets = union (
@@ -647,17 +649,17 @@
       * Return map of provided functions
       * @return map map of functions (eg. $["write":``(BootPPC::Write ())])
       */
-    global define map GetFunctions () ``{
+    global define map<string, any> GetFunctions () ``{
 	return $[
-	    "read"	: ``(BootPPC::Read ()),
-	    "reset"	: ``(BootPPC::Reset ()),
-	    "propose"	: ``(BootPPC::Propose ()),
-	    "save"	: ``(BootPPC::Save ()),
-	    "update"	: ``(BootPPC::Update ()),
-	    "write"	: ``(BootPPC::Write ()),
-	    "widgets"	: ``(BootPPC::GetWidgetMaps ()),
-	    "getfiles"	: ``(BootPPC::GetFiles ()),
-	    "setfiles"	: ``(BootPPC::SetFiles ()),
+	    "read"	: BootPPC::Read,
+	    "reset"	: BootPPC::Reset,
+	    "propose"	: BootPPC::Propose,
+	    "save"	: BootPPC::Save,
+	    "update"	: BootPPC::Update,
+	    "write"	: BootPPC::Write,
+	    "widgets"	: BootPPC::GetWidgetMaps,
+	    "getfiles"	: BootPPC::GetFiles,
+	    "setfiles"	: BootPPC::SetFiles,
 	];
     }
 
@@ -668,7 +670,7 @@
         BootCommon::bootloader_attribs["ppc"] = $[
             "required_packages" : [],// FIXME
             "loader_name" : "yaboot",
-            "initializer" : ``(BootPPC::Initializer()),
+            "initializer" : BootPPC::Initializer,
         ];
     }
 

@@ -37,10 +37,10 @@ PromAgent::~PromAgent()
 /**
  * Dir
  */
-YCPValue PromAgent::Dir(const YCPPath& path)
+YCPList PromAgent::Dir(const YCPPath& path)
 {
     y2error("Wrong path '%s' in Read().", path->toString().c_str());
-    return YCPVoid();
+    return YCPNull ();
 }
 
 /**
@@ -124,7 +124,7 @@ YCPValue PromAgent::Read(const YCPPath &path, const YCPValue& arg = YCPNull())
 /**
  * Write
  */
-YCPValue PromAgent::Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg = YCPNull())
+YCPBoolean PromAgent::Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg = YCPNull())
 {
   y2debug ("PromAgent::Write (.prom%s, %s)", path->toString().c_str(),
 	   value->toString().c_str());
@@ -159,7 +159,7 @@ YCPValue PromAgent::Write(const YCPPath &path, const YCPValue& value, const YCPV
 	  close (promfd);
 
 	  // return YCPString(old_device);
-	  return YCPVoid();
+	  return YCPBoolean(true);
 	}
 
     }
@@ -174,7 +174,7 @@ YCPValue PromAgent::Write(const YCPPath &path, const YCPValue& value, const YCPV
             return YCPError ("Bad argument in call to Write(.prom.alias)");
 
 	  if ((promfd = prom_init (O_RDWR)) < 0)
-	    return YCPVoid();
+	    return YCPBoolean (false);
 
 	  if (check_aliases (promfd) == 0)
 	    return YCPError("No aliases in PROM");

@@ -278,7 +278,7 @@ liloSection* liloFile::getSectPtr(const YCPPath& path)
     }
 }
 
-YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPValue& pos)
+YCPBoolean liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPValue& pos)
 {
     bool ret;
     if(path->length()==0)
@@ -297,7 +297,8 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
 	}
 	if (!ret)
 	{
-	    return YCPError("Error: cannot open output file for writing");
+	    ycp2error ("Error: cannot open output file for writing");
+	    return YCPBoolean (false);
 	}
         return YCPBoolean(ret);
     }
@@ -336,7 +337,8 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
     {
 	if(path->length()==1)
 	{
-	    return YCPError("attenpt to write to .lilo.sections", YCPBoolean(false));
+	    ycp2error ("attenpt to write to .lilo.sections");
+	    return YCPBoolean (false);
 	}
     
 	liloSection* sect=getSectPtr(path);
@@ -384,7 +386,8 @@ YCPValue liloFile::Write(const YCPPath &path, const YCPValue& value, const YCPVa
 	    }
 	    else
 	    {
-		return YCPError("Cannot create new section");
+		ycp2error("Cannot create new section");
+		return YCPBoolean (false);
 	    }
 	}
 
@@ -456,16 +459,16 @@ YCPValue liloFile::Read(const YCPPath &path, const YCPValue& _UNUSED)
     return options.Read(path);	
 }
 
-YCPValue liloFile::Dir(const YCPPath& path)
+YCPList liloFile::Dir(const YCPPath& path)
 {
     YCPList list;
     if(path->length()>2)
     {
-	return YCPVoid();
+	return YCPNull();
     }
     if(path->length()==0)
     {
-	list=options.Dir()->asList();
+	list=options.Dir();
 	list->add(YCPString("sections"));
 	return list;
     }

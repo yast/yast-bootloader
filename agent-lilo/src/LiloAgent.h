@@ -24,7 +24,7 @@
 
 #include <Y2.h>
 #include <scr/SCRAgent.h>
-#include <scr/SCRInterpreter.h>
+//#include <scr/SCRInterpreter.h>
 
 #include "LiloFile.h"
 
@@ -38,9 +38,10 @@ public:
     LiloAgent();
     virtual ~LiloAgent();
     
-    virtual YCPValue Read(const YCPPath &path, const YCPValue& arg = YCPNull());
-    virtual YCPValue Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg = YCPNull());
-    virtual YCPValue Dir(const YCPPath& path);
+    virtual YCPValue Read(const YCPPath &path, const YCPValue& arg = YCPNull(), const YCPValue& opt = YCPNull());
+    virtual YCPBoolean Write(const YCPPath &path, const YCPValue& value, const YCPValue& arg = YCPNull());
+    virtual YCPList Dir(const YCPPath& path);
+    virtual YCPValue Execute (const YCPPath& path, const YCPValue& value = YCPNull(), const YCPValue& arg = YCPNull());
     
     virtual YCPValue otherCommand(const YCPTerm& term);
 private:

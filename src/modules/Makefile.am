@@ -2,8 +2,9 @@
 # Makefile.am for bootloader/src
 #
 
+YCPCFLAGS = -I .
+
 module_DATA =			\
-	Initrd.ycp		\
 	Bootloader.ycp		\
 	BootCommon.ycp		\
 	BootGRUB.ycp		\
@@ -17,3 +18,11 @@ module_DATA =			\
 
 EXTRA_DIST = 			\
 	$(module_DATA) 
+
+symlinks:
+	test -L bootloader || ln -sf .. bootloader
+
+ycpchook = symlinks
+
+
+include $(top_srcdir)/Makefile.am.common
