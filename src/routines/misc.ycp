@@ -1054,6 +1054,8 @@
 	ch = toset (add (ch, optname));
 	intern["changed_opts"] = ch;
 	current_section = modifySection (current_section, "__intern__", intern);
+	if (current_section_name == `global)
+	    changed = true;
 	one_section_changed = true;
     }
 

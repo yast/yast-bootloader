@@ -539,6 +539,8 @@
 	map options = current_bootloader_attribs["option_list"]:$[];
 	current_table["add_items"] = options[`global]:[];
 	symbol ret = TablePopup::TableHandle (current_table, widget, event);
+	if (widget == "globalsection" && one_section_changed)
+	    BootCommon::changed = true;
 	if (redraw_table)
 	{
 	    return `redraw;

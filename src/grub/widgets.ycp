@@ -550,6 +550,7 @@ Replace it with an entry  to boot from the floppy?");
 	    disks_order = nil;
 	    BootCommon::markGeneralOptionChanged ((string)opt_key);
 	    BootCommon::location_changed = true;
+	    BootCommon::changed = true;
 	    BootCommon::redraw_table = true;
     }
 

@@ -157,6 +157,7 @@
 	loader_device = (string)UI::QueryWidget (`id (`loc), `Value);
 	loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::location_changed = true;
+	BootCommon::changed = true;
 	markGeneralOptionChanged ((string)opt_key);
     }
 
