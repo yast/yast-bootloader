@@ -16,6 +16,7 @@ LOCALE_SHORT=$2;
 
 LOCALE_LIST=$LOCALE_SHORT;
 EN_PRESENT=0;
+LIMIT=9; # + English
 
 # create temporarry directory
 cd $TMP_DIR || exit 1;
@@ -37,10 +38,15 @@ while [ ! -z $LOCALE ] ; do
   || test -f $SRC_DIR/$LOCALE_SHORT.hlp && cp $SRC_DIR/$LOCALE_SHORT.hlp .
  if [ $LOCALE_SHORT = "en" ] ; then
   EN_PRESENT=1;
+ else
+  LIMIT=$(($LIMIT-1));
  fi;
  shift 2;
  LOCALE=$1;
  LOCALE_SHORT=$2;
+ if [ $LIMIT = 0 ]; then
+  LOCALE="";
+ fi;
  if [ ! -z $LOCALE ] ; then
   LOCALE_LIST=`echo "$LOCALE_LIST
 $LOCALE_SHORT"`;
