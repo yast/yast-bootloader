@@ -1,8 +1,10 @@
 -------------------------------------------------------------------
-Fri Nov 19 15:35:24 CET 2004 - jsrain@suse.cz
+Fri Nov 19 16:52:11 CET 2004 - jsrain@suse.cz
 
 - removed the generic MBR code from the package (moved to
   master-boot-code package) (#46406)
+- if user selects MBR of other than booting disk as location for
+  GRUB, offer changing the order of the disks (#48051)
 
 -------------------------------------------------------------------
 Tue Nov  9 10:40:18 CET 2004 - jsrain@suse.cz
