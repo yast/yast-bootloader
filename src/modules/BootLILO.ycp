@@ -210,7 +210,7 @@
 	}
         else if (BootCommon::location == "floppy")
         {
-            floppyWrittenPopup (BootCommon::getLoaderName ("lilo"));
+            BootCommon::updateTimeoutPopup (BootCommon::getLoaderName ("lilo"));
         }
 
 	return ret;
