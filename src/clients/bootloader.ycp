@@ -16,7 +16,6 @@
  */
 {
     textdomain "bootloader";
-    import "Arch";
     import "BootCommon";
     import "Bootloader";
     import "CommandLine";

@@ -20,7 +20,6 @@
 
     textdomain "bootloader";
 
-    import "Arch";
     import "BootCommon";
     import "Initrd";
     import "Mode";
@@ -717,9 +716,15 @@
     global define void ReadOrProposeIfNeeded () ``{
         if (! (BootCommon::was_read || BootCommon::was_proposed))
         {
-	    y2milestone ("Mode::initial: %1, update: %2",
-		Mode::initial, Mode::update);
-            if (Mode::initial && ! Mode::update)
+	    y2milestone ("Mode::initial: %1, update: %2, config: %3",
+		Mode::initial, Mode::update, Mode::config);
+	    if (Mode::config)
+	    {
+		y2milestone ("Not reading settings in Mode::config");
+		BootCommon::was_read = true;
+		BootCommon::was_proposed = true;
+	    }
+            else if (Mode::initial && ! Mode::update)
             {
                 Propose ();
             }

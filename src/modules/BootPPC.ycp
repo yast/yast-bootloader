@@ -68,6 +68,12 @@
     global string boot_device = "";
     global string root_device = "";
 
+    string board_type = nil;
+
+    global define string getBoardType ();
+    global define void setBoardType (string board);
+    global define void currentBoardInit ();
+
     include "bootloader/routines/popups.ycp";
     include "bootloader/routines/routines.ycp";
     include "bootloader/ppc/misc.ycp";
@@ -79,19 +85,61 @@
 
 // misc. functions
 
+    global define void initBoardType () ``{
+        if (Arch::board_iseries)
+        {
+	    board_type = "iseries";
+        }
+        else if (Arch::board_prep)
+        {
+	    board_type = "prep";
+        }
+        else if (Arch::board_chrp)
+        {
+	    board_type = "chrp";
+	}
+        else if (Arch::board_mac_new)
+        {
+	    board_type = "mac_new";
+	}
+        else if (Arch::board_mac_old)
+        {
+	    board_type = "mac_old";
+	}
+        else if (Arch::board_mac_nubus)
+        {
+	    board_type = "mac_nubus";
+	}
+	else
+	{
+	    board_type = "unknown";
+	}
+    }
+
+    global define string getBoardType () ``{
+	if (board_type == nil)
+	    initBoardType ();
+	return board_type;
+    }
+
+    global define void setBoardType (string board) ``{
+	board_type = board;
+	currentBoardInit ();
+    }
+
     /**
       * Initialize the attribute of currently used board type
       */
     global define void currentBoardInit () ``{
-        if (Arch::board_iseries)
+        if (getBoardType () == "iseries")
         {
 	    iSeriesInit ();
         }
-        else if (Arch::board_prep)
+        else if (getBoardType () == "prep")
         {
 	    PRePInit ();
         }
-        else if (Arch::board_chrp)
+        else if (getBoardType () == "chrp")
         {
 	    CHRPInit ();
 	}
@@ -104,15 +152,15 @@
       * @return boolean true on success
       */
     global define boolean currentBoardRead () ``{
-	if ( Arch::board_iseries )
+	if ( getBoardType () == "iseries" )
 	{
 	    return iSeriesRead ();
 	}
-	else if ( Arch::board_prep )
+	else if ( getBoardType () == "prep" )
 	{
 	    return PRePRead ();
 	}
-	else if ( Arch::board_chrp )
+	else if ( getBoardType () == "chrp" )
 	{
 	    return CHRPRead ();
 	}
@@ -127,15 +175,15 @@
       * @return boolean true on success
       */
     global define boolean currentBoardSave () ``{
-	if ( Arch::board_iseries )
+	if ( getBoardType () == "iseries" )
 	{
 	    return iSeriesSave ();
 	}
-	else if ( Arch::board_prep )
+	else if ( getBoardType () == "prep" )
 	{
 	    return PRePSave ();
 	}
-	else if ( Arch::board_chrp )
+	else if ( getBoardType () == "chrp" )
 	{
 	    return CHRPSave ();
 	}
@@ -374,6 +422,53 @@
 // general functions
 
     /**
+      * Export bootloader settings to a map
+      * @return bootloader settings
+      */
+    global define map Export () ``{
+	map ret = BootCommon::Export ();
+	ret["board_type"] = getBoardType ();
+	if (getBoardType () == "iseries")
+	{
+	    ret["iseries_streamfile"] = iseries_streamfile;
+	    ret["iseries_write_slot_a"] = iseries_write_slot_a;
+	    ret["iseries_write_slot_b"] = iseries_write_slot_b;
+	    ret["iseries_write_streamfile"] = iseries_write_streamfile;
+	    ret["iseries_write_prepboot"] = iseries_write_prepboot;
+	    ret["prep_boot_partition"] = prep_boot_partition;
+	}
+	else if (getBoardType () == "prep")
+	{
+	    ret["prep_boot_partition"] = prep_boot_partition;
+	}
+	else if (getBoardType () == "chrp")
+	{
+	    ret["prep_boot_partition"] = prep_boot_partition;
+	    ret["of_defaultdevice"] = of_defaultdevice;
+	}
+	return ret;
+    }
+    /**
+      * Import settings from a map
+      * @param settings map of bootloader settings
+      */
+    global define boolean Import (map settings) ``{
+	BootCommon::Import (settings);
+	iseries_streamfile
+	    = settings["iseries_streamfile"]:"/boot/suse_linux_bootfile";
+	iseries_write_streamfile = settings["iseries_write_streamfile"]:false;
+	iseries_write_prepboot = settings["iseries_write_prepboot"]:false;
+	iseries_write_slot_a = settings["iseries_write_slot_a"]:false;
+	iseries_write_slot_b = settings["iseries_write_slot_b"]:false;
+	prep_boot_partition = settings["prep_boot_partition"]:"/dev/null";
+	of_defaultdevice = settings["of_defaultdevice"]:true;
+	if (! Mode::initial)
+	{
+	    setBoardType ((string)(settings["board_type"]:nil));
+	}
+	return true;
+    }
+    /**
       * Propose bootloader settings
       */
     global define void Propose () ``{
@@ -397,15 +492,15 @@
 	}
         y2milestone("BootPPC::Proposal: BootCommon::loader_device %1", BootCommon::loader_device);
 
-        if ( Arch::board_iseries )
+        if ( getBoardType () == "iseries" )
         {
 	    iSeriesPropose (initial_propose);
         }
-        else if ( Arch::board_prep )
+        else if ( getBoardType () == "prep" )
         {
 	    PRePPropose (initial_propose);
         }
-        else if ( Arch::board_chrp )
+        else if ( getBoardType () == "chrp" )
         {
 	    CHRPPropose (initial_propose);
 	}
@@ -481,8 +576,8 @@
       * @return boolean true if success
       */
     global define boolean Save () ``{
-        if (!( Arch::board_prep || Arch::board_chrp
-	    || Arch::board_mac_new || Arch::board_iseries ))
+        if (!( getBoardType () == "prep" || getBoardType () == "chrp"
+	    || getBoardType () == "mac_new" || getBoardType () == "iseries" ))
 	{
             return true;
 	}
@@ -496,7 +591,7 @@
 	BootCommon::liloUpdateAppend ();
 	// iSeries can have multiple locations, are stored during
         // iSeriesSave ()
-	if (! Arch::board_iseries )
+	if (! (getBoardType () == "iseries") )
 	{
 	    BootCommon::globals = modifySection (BootCommon::globals, "boot",
 		BootCommon::loader_device);
@@ -514,34 +609,34 @@
     global define list<string> Summary () ``{
 	list<string> ret = [];
 
-	if ( Arch::board_iseries )
+	if ( getBoardType () == "iseries" )
 	{
 	    ret = iSeriesSummary ();
 	}
-	else if ( Arch::board_prep )
+	else if ( getBoardType () == "prep" )
 	{
 	    ret = PRePSummary ();
 	}
-	else if ( Arch::board_chrp )
+	else if ( getBoardType () == "chrp" )
 	{
 	    ret = CHRPSummary ();
 	}
 	// TODO modularize the rest when support exists
-	else if ( Arch::board_mac_new )
+	else if ( getBoardType () == "mac_new" )
 	{
 	    ret = [
 		// summary part
 		_("Boot configuration on new PowerMacs is not yet implemented.")
 	    ];
 	}
-	else if ( Arch::board_mac_old )
+	else if ( getBoardType () == "mac_old" )
 	{
 	    ret = [
 		// summary part
 		_("Configure the BootX App in classic MacOS to boot the file 'vmlinuz-oldworld'")
 	    ];
 	}
-	else if ( Arch::board_mac_nubus )
+	else if ( getBoardType () == "mac_nubus" )
 	{
 	    // summary part
 	    ret = [ _("Use the Apple MkLinux Booter to boot the kernel.")];
@@ -574,8 +669,8 @@
       */
     global define boolean Write () ``{
 	boolean ret = true;
-	if (!( Arch::board_prep || Arch::board_chrp
-	    || Arch::board_mac_new || Arch::board_iseries ))
+	if (!( getBoardType () == "prep" || getBoardType () == "chrp"
+	    || getBoardType () == "mac_new" || getBoardType () == "iseries" ))
 	{
             return true;
 	}
@@ -586,15 +681,15 @@
 	boot_device = BootCommon::loader_device;
 	root_device = BootCommon::RootPartitionDevice;
 
-        if (Arch::board_iseries)
+        if (getBoardType () == "iseries")
         {
 	    iSeriesWrite (requires_initrd);
         }
-        else if (Arch::board_prep)
+        else if (getBoardType () == "prep")
         {
 	    PRePWrite (requires_initrd);
         }
-	else if (Arch::board_chrp)
+	else if (getBoardType () == "chrp")
 	{
 	    CHRPWrite (requires_initrd);
 	}
@@ -653,6 +748,8 @@
       */
     global define map<string, any> GetFunctions () ``{
 	return $[
+            "export"	: BootPPC::Export,
+	    "import"	: BootPPC::Import,
 	    "read"	: BootPPC::Read,
 	    "reset"	: BootPPC::Reset,
 	    "propose"	: BootPPC::Propose,

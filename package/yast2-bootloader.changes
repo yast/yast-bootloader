@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Mar 17 14:27:15 CET 2004 - jsrain@suse.cz
+
+- allowed to select PPC board type when preparing autoinstallation
+  (#36109)
+- not reading settings from disk in Mode::config if not explicitly
+  asked
+
+-------------------------------------------------------------------
 Tue Mar 16 08:17:09 CET 2004 - jsrain@suse.cz
 
 - allow selecting all boot loaders in autoinstallation
