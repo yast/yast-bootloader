@@ -13,8 +13,6 @@
 #ifndef _PromAgent_h
 #define _PromAgent_h
 
-#undef y2log_component
-#define y2log_component "ag_prom"
 #include <Y2.h>
 #include <scr/SCRAgent.h>
 #include <scr/SCRInterpreter.h>

@@ -22,8 +22,6 @@
 #ifndef __LILOAGENT
 #define __LILOAGENT
 
-#undef y2log_component
-#define y2log_component "ag_liloconf"
 #include <Y2.h>
 #include <scr/SCRAgent.h>
 #include <scr/SCRInterpreter.h>
