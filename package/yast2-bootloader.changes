@@ -5,6 +5,7 @@ Mon Mar 15 12:58:34 CET 2004 - jsrain@suse.cz
   that are marked for getting deleted) (#35953)
 - avoid writing LILO to /dev/md? (use one of devices building the
   array instead) (#33565)
+- prevent kernel options from being added multiple times (#32362)
 
 -------------------------------------------------------------------
 Fri Mar 12 10:14:26 CET 2004 - jsrain@suse.de

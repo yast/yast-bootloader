@@ -884,23 +884,38 @@
 	params = filter (string p, params, ``(p != ""));
 	list<string> rp = [];
 	boolean done = false;
+	// count occurences of every parameter, use only the last one
+	map<string,integer> occurences = $[];
 	foreach (string p, params, ``{
 	    list<string> l = filter (string e, splitstring (p, "="), ``(e != " " && e != ""));
-	    if (l[0]:"" == key)
+	    string k = l[0]:"";
+	    occurences[k] = occurences[k]:0 + 1;
+	});
+	foreach (string p, params, ``{
+	    list<string> l = filter (string e, splitstring (p, "="), ``(e != " " && e != ""));
+	    string k = l[0]:"";
+	    if (occurences[k]:0 <= 1)
 	    {
-	        done = true;
-	        if (value == "true")
-	        {
-	            rp = add (rp, key);
-	        }
-	        else if (value != "false")
-	        {
-	            rp = add (rp, sformat ("%1=%2", key, value));
-	        }
+		if (k == key)
+		{
+	            done = true;
+		    if (value == "true")
+		    {
+			rp = add (rp, key);
+		    }
+		    else if (value != "false")
+		    {
+			rp = add (rp, sformat ("%1=%2", key, value));
+		    }
+		}
+		else
+		{
+		    rp = add (rp, p);
+		}
 	    }
 	    else
 	    {
-	        rp = add (rp, p);
+		occurences[k] = occurences[k]:0 - 1;
 	    }
 	});
 	if (! done)
