@@ -1415,7 +1415,8 @@
 	    integer cyl_size = v["cyl_size"]:0;
 	    list<map<string,any> > partitions = v["partitions"]:[];
 	    partitions = filter(map<string,any> p, partitions,
-		``(p["mount"]:"" == "swap"));
+		``(p["mount"]:"" == "swap"
+		    && ! p["delete"]:false));
 	    foreach (map<string, any> s, partitions, ``{
 		string dev = (string)(s["device"]:"");
 		ret[dev] = (integer)(s["region", 1]:0) * cyl_size;
