@@ -428,9 +428,9 @@
       * @param event map event description of event that occured
       */
     global define void globalSectionStore (any widget, map event) ``{
+	globals = current_section;
 	if (event["ID"]:nil == `redraw)
 	    return;
-	globals = current_section;
 	if (one_section_changed)
 	    changed = true;
     }

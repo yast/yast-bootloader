@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 30 16:16:42 CET 2003 - jsrain@suse.de
+
+- fixed handling of disks reorder dialog for GRUB configuration
+
+-------------------------------------------------------------------
 Wed Oct 29 10:07:20 CET 2003 - jsrain@suse.de
 
 - fixed ensuring that required packages are installed when

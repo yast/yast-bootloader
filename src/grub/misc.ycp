@@ -387,13 +387,13 @@
 	    counter = counter + 1;
 	});
 
-	list ret = maplist (`v, src, ``{
-	    if (is (v["value"]:"",  string))
+	list ret = maplist (map v, src, ``{
+	    if (v["key"]:"" != "__intern__" && is (v["value"]:"",  string))
 	    {
-		foreach (`s, `d, m1, ``{
+		foreach (string s, string d, m1, ``{
 		    v["value"] = BootCommon::replaceAll (v["value"]:"", s, d);
 		});
-		foreach (`s, `d, m2, ``{
+		foreach (string s, string d, m2, ``{
 		    v["value"] = BootCommon::replaceAll (v["value"]:"", s, d);
 		});
 	    }

@@ -597,14 +597,11 @@ Replace it with an entry  to boot from the floppy?");
 		new_map = add (new_map, [gd, d]);
 		pos = pos + 1;
 	    });
-	    list glob = BootCommon::current_globals;
-	    glob = BootGRUB::remapDisks (glob, remap);
-	    BootCommon::current_globals = glob;
-	    list sects = BootCommon::current_sections;
-	    sects = maplist (`s, sects, ``{
+	    BootCommon::current_globals
+		= BootGRUB::remapDisks (BootCommon::current_globals, remap);
+	    BootCommon::sections = maplist (`s, BootCommon::sections, ``{
 		return BootGRUB::remapDisks (s, remap);
 	    });
-	    BootCommon::current_sections = sects;
 	    BootCommon::current_section = BootGRUB::remapDisks (
 		BootCommon::current_section, remap);
 	    list gcl = maplist (`k, `v, BootGRUB::grub_conf, ``(
@@ -616,6 +613,9 @@ Replace it with an entry  to boot from the floppy?");
 	    BootCommon::mbrDisk = disks_order[0]:BootCommon::mbrDisk;
 	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 	    disks_order = nil;
+	    BootCommon::markGeneralOptionChanged (opt_key);
+	    BootCommon::location_changed = true;
+	    BootCommon::redraw_table = true;
     }
 
     /**
