@@ -25,5 +25,5 @@
 .prom
 
 `ag_prom(
-  PromAgent()
+  SCR::PromAgent()
 )

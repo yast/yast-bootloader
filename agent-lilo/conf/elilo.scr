@@ -1,6 +1,6 @@
 .elilo
 
 `ag_liloconf(
-  LiloConf("/boot/elilo.conf")
+  SCR::LiloConf("/boot/elilo.conf")
 )
 
