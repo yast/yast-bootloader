@@ -26,6 +26,140 @@
     textdomain "bootloader";
     import "Mode";
 
+
+// bootloader attributes handling functions
+
+    /**
+      * Get the name of key containing section name of currently used bootloader
+      * @return string section name key
+      */
+    global define string getSectionTitle () ``{
+	return current_bootloader_attribs["section_title"]:"label";
+    }
+
+    /**
+      * Get the name of key containing kernel in currently used bootloader
+      * @return string section name key
+      */
+    global define string getKernelKey () ``{
+	return current_bootloader_attribs["kernel_key"]:"image";
+    }
+
+    /**
+      * Get packages needed by specified bootloader
+      * maybe should be moved to bootloader specific modules
+      * @param bootloader string name of bootloader
+      * @return a list of required packages names
+      */
+    global define list(string) getBootloaderPackages (string bootloader) ``{
+	return bootloader_attribs[bootloader, "required_packages"]:[];
+    }
+
+    /**
+      * return printable name of bootloader
+      * @param type string bootloader type internal string
+      * @return string printable bootloader name
+      */
+    global define string getLoaderName (string type) ``{
+	// fallback bootloader name, keep short
+	return bootloader_attribs[type, "loader_name"]:_("boot loader");
+    }
+
+    /**
+      * Get the name of key containing default section identification
+      * in currently used bootloader
+      * @return string default section option key
+      */
+    global define string getDefaultKey () ``{
+	return current_bootloader_attribs["default_key"]:"image";
+    }
+
+    /**
+      * Get type of value containing default section identification
+      * in currently used bootloader
+      * @return symbol `label or `index (type of contents)
+      */
+    global define symbol getDefaultType () ``{
+        return current_bootloader_attribs["default_type"]:`label;
+    }
+
+    /**
+      * Get index of first section when index identificatipno is used
+      * @return integer index of first section
+      */
+    global define integer getDefaultFirstIndex () ``{
+        return current_bootloader_attribs["default_index_start"]:0;
+    }
+
+    /**
+      * Get the value which multiplies timeout (in seconds) before writing
+      * to bootloader configuration file (eg. 10 for lilo)
+      * @return integer index of first section
+      */
+    global define integer getTimeoutMultiplier () ``{
+	return current_bootloader_attribs["timeout_multiplier"]:1;
+    }
+
+    /**
+      * Get list of keys which mean section alias
+      * @return list of such keys
+      */
+    global define list(string) getAliasesKeys () ``{
+        return current_bootloader_attribs["alias_keys"]:[];
+    }
+
+    /**
+      * Convert section orig from type otype to ntype
+      * Some information gets lost. ntype must be different from otype
+      * @param otype string original section type, "image" or "other"
+      * @param ntype string new section type, "image" or "other"
+      * @param orig map original section
+      * @return map new (converted) section
+      */
+    global define map convertSection (string otype, string ntype, map orig) ``{
+        term f = current_bootloader_attribs["convert_function"]:nil;
+	if (f == nil)
+	    return f;
+	f = add (f, otype);
+	f = add (f, ntype);
+	f = add (f, orig);
+	return eval (f);
+    }
+
+    /**
+      * Get map where to store kernel parameters
+      * @return map describing where to store which kernel parameter
+      */
+    global define map getKernelParamKeys () ``{
+        return current_bootloader_attribs["kernel_params"]:$[];
+    }
+
+
+// other misc functions
+
+    /**
+      * Generates unused section label for new section
+      * @return string label for new section
+      */
+    global define string getFreeSectionLabel () ``{
+	integer index = 1;
+	list(string) existing = [];
+        foreach (`s, BootCommon::sections, ``{
+            existing = add (existing, s[getSectionTitle ()]:"");
+            foreach (`a, aliases, ``{
+                existing = add (existing, s[a]:"");
+            });
+        });
+	while (true)
+	{
+	    string title = sformat ("section %1", index);
+	    if (! contains (existing, title))
+		return title;
+	    index = index + 1;
+	}
+    }
+
+
     global list floppies = [];
 
     /**
@@ -64,28 +198,6 @@
       */
     global list(string) bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
 	"aboot", "s390", "ppc", "mips"];
-
-    /**
-      * Get packages needed by specified bootloader
-      * maybe should be moved to bootloader specific modules
-      * @param bootloader string name of bootloader
-      * @return a list of required packages names
-      */
-    global define list(string) getBootloaderPackages (string bootloader) ``{
-	map packages = $[
-	    "lilo" : ["lilo"],
-	    "grub" : ["grub"],
-	    "elilo": ["elilo"],
-	    "milo" : ["milo"],
-	    "silo" : ["silo"],
-	    "aboot": ["aboot"],
-	    "s390" : ["s390"],
-	    "ppc"  : ["ppc"],
-	    "mips" : ["mips"],
-	];
-	return packages[bootloader]:[];
-    }
-
 
     /**
      * converts array of string to path
@@ -184,27 +296,6 @@
         ret = union (ret, partitions);
 	ret = toset (ret);
 	return ret;
-    }
-
-    /**
-      * return printable name of bootloader
-      * @param type string bootloader type internal string
-      * @return string printable bootloader name
-      */
-    global define string getLoaderName (string type) ``{
-        map names = $[
-            "lilo" : "LILO",
-            "grub" : "GRUB",
-            "silo" : "SILO",
-            "milo" : "MILO",
-            "aboot" : "aboot",
-            "elilo" : "ELILO",
-            "mips" : "dvh",
-            "s390" : "zipl",
-//            "ppc" : _("boot loader")
-        ];
-	// fallback bootloader name, keep short
-	return names[type]:_("boot loader");
     }
 
     /**
@@ -516,6 +607,34 @@
     }
 
     /**
+      * Get the label of default section
+      * @return string label default section label
+      */
+    global define string getDefaultSection () ``{
+	if (getDefaultType () == `label)
+	{
+	    string default = globals[getDefaultKey ()]:"";
+	    boolean exists = false;
+	    foreach (`s, sections, ``{
+		if (s[getSectionTitle ()]:"" == default)
+		    found = true;
+	    });
+	    if (exists)
+		return default;
+	    else
+		return sections[0, getSectionTitle ()]:"";
+	}
+	else
+	{
+	    integer index = globals[getDefaultKey ()]:0
+		- getDefaultFirstIndex ();
+	    if (index < 0 || index >= size (sections))
+		index = 0;
+	    return sections[index, getSectionTitle ()]:"";
+	}
+    }
+
+    /**
       * get kernel parameter from kernel command line
       * @param line string original line
       * @param key string parameter key
@@ -649,14 +768,14 @@
         // now write new sections
         foreach(`sect, sections,
         ``{
-            sname = lookup(sect, bl == "grub" ? "title" : "label", "");
+            sname = sect[getSectionTitle ()]:"";
             list sect_order = lookup  (sect, "__order__", []);
             sect = filter (`k, `v, sect, ``(k != "__order__"));
 	    sect = filter (`k, `v, sect,
 		``(k != "__intern__"));
             sect_order = filter (`e, sect_order, ``(haskey (sect, e)));
             SCR::Write(list2path([bl, "sections", ui2mod(sname),
-                bl == "grub" ? "title" : "label"]), ui2mod(sname));
+                getSectionTitle ()]), ui2mod(sname));
             if (sect_order != [])
             {
                 integer index = 0;

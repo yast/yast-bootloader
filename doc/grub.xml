@@ -5,7 +5,7 @@
 GRUB is new bootloader currently being used on i386 and compatibles, and on AMD x86-64. It is used as default bootloader on mentioned platforms,
 where it replaced LILO. It has following advantages:
 	<orderedlist>
-	    <listitem><para>Possible to boot unconfigured section, or update boot p[parameters at boot time</para></listitem>
+	    <listitem><para>Possible to boot un-configured section, or update boot p[parameters at boot time</para></listitem>
 	    <listitem><para>Understands common filesystem, in case of new kernel there is no need to reinstall anything</para></listitem>
 	</orderedlist>
 Of course there are some problems with GRUB:
@@ -22,13 +22,13 @@ Because it isn't possible to set only known parts of device map and leave the re
     <section>
 	<title>Configuration files</title>
 	<para>
-There are three important files on the disk storing GRUB's configuration. First is device map located at <computeroutput>/boot/grub/device.map</computeroutput>.
-It stores only mapping between GRUB's device names and Linux device names (lines like eg. <computeroutput>(hd0)   /dev/hda</computeroutput>).
+There are three important files on the disk storing Grub's configuration. First is device map located at <computeroutput>/boot/grub/device.map</computeroutput>.
+It stores only mapping between Grub's device names and Linux device names (lines like eg. <computeroutput>(hd0)   /dev/hda</computeroutput>).
 If this file doesn't exist, GRUB detects own device map (but not always correctly).
 	</para>
 	<para>
 Second, <computeroutput>/etc/grub.conf</computeroutput> contains list of commands to be run for installing the GRUB bootloader.
-Contains location of GRUB's stages, file with bootloader menu, and others. Is sent to stdin of grub command when installing.
+Contains location of Grub's stages, file with bootloader menu, and others. Is sent to stdin of grub command when installing.
         </para>
         <para>
 Third file contains the bootloader menu. It is located at <computeroutput>/boot/grub/menu.lst</computeroutput>. If using filesystem to read this file (and not reading

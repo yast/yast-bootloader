@@ -121,6 +121,7 @@
 		return;
         }
 
+	BootCommon::current_option_name = optname;
 	map widget_data = getPopupWidget (optname);
 
 	y2milestone ("Popup widget: %1", widget_data);
@@ -359,8 +360,7 @@
 	if (contains (tosave, op)
 	    && BootCommon::current_section_type != `global)
 	{
-	    string ls = BootCommon::getLoaderType (false) == "grub"
-		? "title" : "label";
+	    string ls = BootCommon::getSectionTitle ();
 	    string old_name = BootCommon::current_section_name;
 	    y2milestone ("Old name: %1", old_name);
 	    map as = BootCommon::current_section;
@@ -443,7 +443,7 @@
 	}
 	else if (op == `propose)
 	{
-	    if (BootCommon::getLoaderType (false) == "grub")
+	    if (Bootloader::getLoaderType () == "grub")
 	    {
 		import "BootGRUB";
 		BootGRUB::deep_propose = false;
@@ -547,7 +547,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	if (! contains (tosave, op))
 	    return;
 
-	string old_bl = BootCommon::getLoaderType (false);
+	string old_bl = Bootloader::getLoaderType ();
 	string new_bl = UI::QueryWidget (`id (`loader_type), `Value);
 	if (old_bl == new_bl)
 	    return;

@@ -65,6 +65,27 @@
 // general functions
 
     /**
+      * Constructor
+      */
+    global define BootGRUB () ``{
+        BootCommon::bootloader_attribs["grub"] = $[
+            "section_title" : "title",
+	    "kernel_key" : "kernel",
+	    "required_packages" : ["grub"],
+	    "loader_name" : "GRUB",
+	    "default_key" : "default",
+	    "default_type" : `index,
+	    "default_index_first" : 0,
+	    "timeout_multiplier" : 1,
+	    "alias_keys" : [],
+            "convert_function" : ``(BootGRUB::convertSection ()),
+	    "kernel_params" : $[
+		`other : "kernel",
+	    ],
+        ];
+    }
+
+    /**
       * Return map of provided functions
       * @return map map of functions (eg. $["write":``(BootGRUB::Write ())])
       */
@@ -939,7 +960,6 @@
 	    "default" : "/boot/grub/menu.lst",
             "/boot/grub/menu.lst" : SCR::Read (.grub.tostring),
 	    "/boot/grub/device.map" : devMap2string (device_map),
-//	    "/etc/grub.conf" : getGrubConf (grub_conf),
         ];
 	if (! Mode::config)
 	    ret["/etc/grub.conf"] = getGrubConf (grub_conf);
@@ -988,6 +1008,43 @@
 	ws_data["aliases"] = aliases;
 	ws_data["glob_seq"] = gs;
 	return ws_data;
+    }
+
+    /**
+      * Convert section orig from type otype to ntype
+      * Some information gets lost. ntype must be different from otype
+      * @param otype string original section type, "image" or "other"
+      * @param ntype string new section type, "image" or "other"
+      * @param orig map original section
+      * @return map new (converted) section
+      */
+    global define map convertSection (string otype, string ntype, map orig) ``{
+	map ret = $[];
+	if (ntype == "other")
+	{
+	    string root = select (splitDevPath (orig["kernel"]:""), 0,"");
+            root = orig["root"]:root;
+	    if (root == nil)
+		root = "";
+	    ret = $[
+		"root": root,
+		"chainloader" : "+1",
+		"__order__" : ["root", "chainloader"],
+	    ];
+	}
+	else
+	{
+	    ret = $[
+                "root" : orig["root"]:"",
+                "kernel" : sformat ("/vmlinuz root=%1",
+		    grubDev2unixDev (orig["root"]:"")),
+		"initrd" : "/initrd",
+		"__order__" : ["root", "kernel", "initrd"],
+	    ];
+	}
+	ret["title"] = orig["title"]:"";
+y2error ("Converted: %1", ret);
+	return ret;
     }
 
 }

@@ -120,7 +120,7 @@ FireWire and file systems modules floppy"),
 	{
 	    // help text 1/1
 	    string help_text = _("<p>According to modules you need, select
-appropriate item from the list of module floppies, and click <b>Next</b>
+appropriate floppy from the list of module floppies, and click <b>Next</b>
 to continue.</p>");
 
 	    return help_text;
@@ -455,7 +455,8 @@ All data on this floppy will be deleted.")),
 		`VSpacing (3),
 		`HSquash (
 		    // combo box label
-		    `ComboBox (`id (`device), _("Floppy device"), floppies)
+		    `ComboBox (`id (`device), `opt (`editable),
+			_("Floppy device"), floppies)
 		),
 		`VSpacing (3),
 		`HSquash (

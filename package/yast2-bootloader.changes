@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Apr  4 16:27:36 CEST 2003 - jsrain@suse.de
+
+- code cleanup and optimalization
+- added bootloader parameters support, made routines more universal
+- documentation update
+
+-------------------------------------------------------------------
 Thu Apr  3 17:50:50 CEST 2003 - jsrain@suse.de
 
 - allowed bootfloppy to format floppy disk and select device

@@ -42,6 +42,28 @@
 // general functions
 
     /**
+      * Constructor
+      */
+    global define BootLILO () ``{
+	BootCommon::bootloader_attribs["lilo"] = $[
+	    "section_title" : "label",
+	    "kernel_key" : "image",
+	    "required_packages" : ["lilo"],
+	    "loader_name" : "LILO",
+	    "default_key" : "default",
+	    "default_type" : `label,
+	    "timeout_multiplier" : 10,
+	    "alias_keys" : ["alias"],
+	    "convert_function" : ``(BootLILO::convertSection ()),
+	    "kernel_params" : $[
+		"vga" : "vga",
+		"root" : "root",
+		`other : "append",
+	    ],
+	];
+    }
+
+    /**
       * Return map of provided functions
       * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
       */
@@ -560,6 +582,33 @@
 	if (BootCommon::globals["boot"]:"" != BootCommon::loader_device)
 	    BootCommon::location = "custom";
 	BootCommon::loader_device = BootCommon::globals["boot"]:"";
+    }
+
+    /**
+      * Convert section orig from type otype to ntype
+      * Some information gets lost. ntype must be different from otype
+      * @param otype string original section type, "image" or "other"
+      * @param ntype string new section type, "image" or "other"
+      * @param orig map original section
+      * @return map new (converted) section
+      */
+    global define map convertSection (string otype, string ntype, map orig) ``{
+	map ret = $[];
+	if (ntype == "other")
+	{
+	    ret = $["other":
+		select (BootCommon::splitPath (orig["image"]:""), 0, "")];
+	}
+	else
+	{
+	    ret = $[
+		"image" : "/boot/vmlinuz",
+		"root" : orig["other"]:"",
+		"initrd" : "/boot/initrd",
+	    ];
+	}
+	ret["label"] = orig["label"]:"";
+	return ret;
     }
 
 }

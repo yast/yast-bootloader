@@ -239,7 +239,7 @@
       * Restore function of widget
       */
     global define void restorePasswdWidget () ``{
-	string passwd = current_globals["password"]:nil;
+	string passwd = current_globals[current_option_name]:nil;
 	if (passwd == nil)
 	{
 	    UI::ChangeWidget (`id (`usepas), `Value, false);
@@ -275,14 +275,18 @@
 	else if (contains (tosave, op))
 	{
 	    boolean usepass = UI::QueryWidget (`id (`usepas), `Value);
-	y2milestone ("Usepass: %1", usepass);
+	    y2milestone ("Usepass: %1", usepass);
 	    if (usepass)
 	    {
 		if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
-		    current_section["password"]
-		        = UI::QueryWidget (`id (`pw1), `Value);
+		{
+		    string ps = UI::QueryWidget (`id (`pw1), `Value);
+		    if (getLoaderType (false) == "grub")
+			ps = sformat ("--md5 %1", cryptmd5 (ps));
+		    current_section["password"] = ps;
+		}
 	    }
-	    else
+	    else if (haskey (current_section, "password"))
 	    {
 		current_section
 		    = remove (current_section, "password");
@@ -469,13 +473,14 @@
 	else if (op == `add)
 	{
 	    BootCommon::current_section = $[
+		"label" : getFreeSectionLabel (),
 		"image" : "",
 		"initrd" : "",
 		"root" : "",
 	    ];
 	    BootCommon::current_section_name = "";
 	    BootCommon::current_section_type = "image";
-	    BootCommon::changed_settings[""] = $[];
+	    BootCommon::changed_settings[""] = $[];// FIXME this is wrong due to name and "current" variable
 	    BootCommon::one_section_changed = true;
 	}
 	else if (op == `edit)
@@ -683,13 +688,14 @@
       * @return string summary text
       */
     global define string getSectionsSummary () ``{
-	string default = BootCommon::globals["default"]:"";
-        list sects = [];
-        foreach (`s, BootCommon::sections, ``{
-            string title = s["label"]:"";
-		// suffix after section name, keep short, to summary and table
-            string def = title == default ? _(" (default)") : "";
-            sects = add (sects, sformat ("%1%2", title, def));
+	string default_name = BootCommon::getDefaultSection ();
+	string sect_title = BootCommon::getSectionTitle ();
+	list sects = maplist (`s, BootCommon::sections, ``{
+            string title = s[sect_title]:"";
+	    boolean is_default = default_name == title;
+	    // suffix after section name, keep short, to summary and table
+            string def = is_default ? _(" (default)") : "";
+	    return sformat ("%1%2", title, def);
         });
 	return mergestring (sects, ", ");
     }
@@ -702,18 +708,10 @@
 	return $[
 		// table item / label
 	    "label" : _("Default Section"),
-	    "summary" : ``(BootCommon::getDefaultSectionSummary ()),
+	    "summary" : ``(BootCommon::getDefaultSection ()),
 	    "deletable" : false,
 	    "ordering" : false,
 	];
-    }
-
-    /**
-      * Summary function for option
-      * @return string summary text
-      */
-    global define string getDefaultSectionSummary () ``{
-	return BootCommon::globals["default"]:"";
     }
 
     /**
@@ -742,8 +740,7 @@
       * Restore function of widget
       */
     global define void sectionTypeRestore () ``{
-	string key = BootCommon::getLoaderType (false) == "grub"
-	    ? "kernel" : "image";
+	string key = BootCommon::getKernelKey ();
         UI::ChangeWidget (`id (`section_type), `Value,
 	    BootCommon::current_section[key]:nil == nil
 		? "other"
@@ -761,28 +758,14 @@
 	if (! contains (tosave, op))
 	    return;
         string ntype = UI::QueryWidget (`id (`section_type), `Value);
-	string otype = BootCommon::current_section["image"]:nil == nil
+	string otype = BootCommon::current_section[
+		BootCommon::getKernelKey ()]:nil == nil
 	    ? "other"
 	    : "image";
 	if (otype == ntype)
 	    return;
-	string label = BootCommon::current_section["label"]:"";
-	if (ntype == "other")
-	{
-	    map tmp = eval (BootCommon::current_section);
-	    BootCommon::current_section = $["other":
-		select (BootCommon::splitPath (tmp["image"]:""), 0, "")];
-	}
-	else
-	{
-	    map tmp = eval (BootCommon::current_section);
-	    BootCommon::current_section = $[
-		"image" : "/boot/vmlinuz",
-		"root" : tmp["other"]:"",
-		"initrd" : "/boot/initrd",
-	    ];
-	}
-	BootCommon::current_section["label"] = label;
+	BootCommon::current_section = BootCommon::convertSection (
+	    otype, ntype, BootCommon::current_section);
 	BootCommon::current_section_type = ntype;
     }
 
@@ -791,8 +774,7 @@
       * @return string summary text
       */
     global define string sectionTypeSummary () ``{
-	string key = BootCommon::getLoaderType (false) == "grub"
-	    ? "kernel" : "image";
+	string key = BootCommon::getKernelKey ();
 	return BootCommon::current_section[key]:nil == nil
 	    ? "other"
 	    : "image";
@@ -815,7 +797,8 @@
       */
     global define void timeoutRestore () ``{
 	integer timeout = BootCommon::current_section["timeout"]:0;
-	UI::ChangeWidget (`id (`value), `Value, timeout / 10);
+	UI::ChangeWidget (`id (`value), `Value,
+	    timeout / BootCommon::getTimeoutMultiplier ());
 	UI::SetFocus (`id (`value));
     }
 
@@ -828,7 +811,8 @@
     global define any timeoutSave (any op, list tosave) ``{
 	if (! contains (tosave, op))
 	    return op;
-	integer timeout = UI::QueryWidget (`id (`value), `Value) * 10;
+	integer timeout = UI::QueryWidget (`id (`value), `Value)
+	    * BootCommon::getTimeoutMultiplier ();
 	BootCommon::current_section["timeout"] = timeout;
 	return op;
     }
@@ -839,7 +823,8 @@
       */
     global define string timeoutSummary () ``{
 	integer timeout = BootCommon::current_section["timeout"]:0;
-	return sformat (_("%1 s"), timeout / 10);
+	return sformat (_("%1 s"),
+	    timeout / BootCommon::getTimeoutMultiplier ());
     }
 
     /**
@@ -862,9 +847,12 @@
       */
     global define boolean labelValidate () ``{
 	list(string) existing = [];
+	list(string) aliases = BootCommon::getAliasesKeys ();
 	foreach (`s, BootCommon::current_sections, ``{
-	    existing = add (existing, s["label"]:"");
-	    existing = add (existing, s["alias"]:"");
+	    existing = add (existing, s[BootCommon::getSectionTitle ()]:"");
+	    foreach (`a, aliases, ``{
+		existing = add (existing, s[a]:"");
+	    });
 	});
 	existing = filter (string l, existing,
 	    ``(l != BootCommon::current_section_name));
