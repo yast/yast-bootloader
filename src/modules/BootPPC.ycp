@@ -304,7 +304,7 @@ y2error ("Glob: %1, Sect: %2", BootCommon::globals, BootCommon::sections);
             if (initrd != "")
             {
                 if (-1 == SCR::Read (.target.size, initrd))
-                    s = modify_section (s, "initrd", nil);
+                    s = modifySection (s, "initrd", nil);
             }
             else if ((title == "linux")
                 && BootCommon::write_settings["insert_initrd"]:false)

@@ -210,7 +210,7 @@
             if (initrd != "")
             {
                 if (-1 == SCR::Read (.target.size, prefix + initrd))
-                    s = modify_section (s, "initrd", nil);
+                    s = modifySection (s, "initrd", nil);
             }
             else if ((title == "linux" || title == "failsafe")
                 && BootCommon::write_settings["insert_initrd"]:false)
