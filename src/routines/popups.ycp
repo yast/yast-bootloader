@@ -257,7 +257,7 @@ Check the gfxmenu settings.
       * @param log string logfile contents
       */
     global define void errorWithLogPopup (string header, string log) ``{
-	term text = `RichText( "<p>" + log + "</p>" );
+	term text = `RichText( `opt(`plainText), log );
 	UI::OpenDialog(`opt ( `decorated ),
 	    `VBox (`HSpacing(75),
 		// heading
