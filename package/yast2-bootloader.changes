@@ -2,9 +2,13 @@
 Tue Mar 16 08:17:09 CET 2004 - jsrain@suse.cz
 
 - allow selecting all boot loaders in autoinstallation
-  configuration
+  configuration (#36109)
 - correctly display in summary that no EFI entry will be created
   on IA64 (#35346)
+- export global settings of the bootloader properly (#32384,
+  #36012)
+- support for having both /boot/initrd and (hdx,y)/initrd in
+  autoinstallation profile (#32384)
 
 -------------------------------------------------------------------
 Mon Mar 15 12:58:34 CET 2004 - jsrain@suse.cz
