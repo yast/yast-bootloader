@@ -68,6 +68,7 @@
 	BootCommon::loader_device = prep_boot_partition;
 	BootCommon::activate
 	    = prep_boot_partition != "" && prep_boot_partition != "/dev/null";
+	return true;
     }
 
     /**
@@ -77,6 +78,7 @@
     global define boolean PRePSave () ``{
 	BootCommon::globals = modifySection (BootCommon::globals, "boot",
 	    prep_boot_partition);
+	return true;
     }
 
     /**
