@@ -987,18 +987,18 @@
 	    string type = intern["type"]:title;
 	    if (! intern["auto"]:false)
 	    {
-		y2milestone ("Leaving section %1 as is", title);
+		y2milestone ("Leaving section %1 (%2) as is", title, type);
 		return s;
 	    }
 	    else if (! intern["changed"]:false)
 	    {
-		y2milestone ("Recreating section %1, new is %2",
-		    title, new_sect[type]:[]);
+		y2milestone ("Recreating section %1 (%3), new is %2",
+		    title, new_sect[type]:[], type);
 		return new_sect[type]:[];
 	    }
 	    else
 	    {
-		y2milestone ("Possible warning on section %1", title);
+		y2milestone ("Possible warning on section %1 (%2)", title,type);
 		boolean cont = true;
 		string type = intern["type"]:"";
 		if (type != "linux" && type != "failsafe"
