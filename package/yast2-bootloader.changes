@@ -2,6 +2,7 @@
 Mon Mar  8 08:45:50 CET 2004 - jsrain@suse.de
 
 - fixed post install script on PPC (#35436)
+- fixed testsuite
 
 -------------------------------------------------------------------
 Thu Mar  4 10:30:52 CET 2004 - jsrain@suse.de

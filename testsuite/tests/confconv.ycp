@@ -16,6 +16,9 @@
  */
 
 {
+
+// testedfiles: BootGRUB.ycp bootloader/routines/confconv.ycp bootloader/grub/misc.ycp
+
     include "testsuite.ycp";
     import "Mode";
 
@@ -67,6 +70,10 @@
 		],
 	    ],
 	],
+	"target" : $[
+	    "tmpdir" : "/tmp",
+	    "yast2" : $[],
+	],
     ];
     map WRITE_I = $[];
     map EXEC_I = $[
@@ -80,10 +87,16 @@
     import "BootGRUB";
 
     map EXEC = $["target" : $["bash_output": $["stdout" : "(hd0)"]]];
-    map READ = $["target" : $["string" : "(hd0) /dev/hda
+    map WRITE = $[];
+    map READ = $[
+	"target" : $[
+	    "string" : "(hd0) /dev/hda
 (hd1)   /dev/ida/c0d0
 (fd0)   /dev/fd0
-"]];
+",
+	    "yast2" : $[],
+	]
+    ];
 
     Mode::test = true;
 
@@ -92,7 +105,7 @@
     TEST (``(liloSect2grubSect ([
 	$[ "key" : "label", "value" : "sectlabel"],
 	$[ "key" : "other", "value" : "/dev/hda2"]
-	])), [], 0);
+	])), [READ, WRITE, EXEC], 0);
 
     TEST (``(liloSect2grubSect ([
 	$[ "key" : "label", "value" : "section2"],
@@ -101,7 +114,7 @@
 	$[ "key" : "append", "value" : "append_opts"],
 	$[ "key" : "vga", "value" : "789"],
 	$[ "key" : "initrd", "value" : "/boot/initrd"],
-	])), [], 0);
+	])), [READ, WRITE, EXEC], 0);
 
     TEST (``(liloSect2grubSect ([
         $[ "key" : "label", "value" : "section2"],
@@ -109,7 +122,7 @@
         $[ "key" : "root", "value" : "/dev/hda3"],
         $[ "key" : "append", "value" : "append_opts"],
         $[ "key" : "vga", "value" : "789"],
-        ])), [], 0);
+        ])), [READ, WRITE, EXEC], 0);
 
     DUMP ("====================================================");
 
@@ -118,37 +131,37 @@
 	$[ "key" : "makeactive", "value" : "true"],
 	$[ "key" : "chainloader", "value" : "+1"],
 	$[ "key" : "root", "value" : "(hd0,2)"],
-        ])), [], 0);
+        ])), [READ, WRITE, EXEC], 0);
 
     TEST (``(grubSect2liloSect ([
         $[ "key" : "title", "value" : "section"],
 	$[ "key" : "kernel", "value" : "(hd0,0)/vmlinuz root=/dev/hda3 vga=789 app_opt1 app_opt2"],
-        ])), [], 0);
+        ])), [READ, WRITE, EXEC], 0);
 
     TEST (``(grubSect2liloSect ([
         $[ "key" : "title", "value" : "section"],
         $[ "key" : "kernel", "value" : "(hd0,1)/vmlinuz root=/dev/hda3 app_opt1 app_opt2"],
-        ])), [], 0);
+        ])), [READ, WRITE, EXEC], 0);
 
 
     TEST (``(grubSect2liloSect ([
         $[ "key" : "title", "value" : "section"],
         $[ "key" : "kernel", "value" : "(hd0,0)/vmlinuz root=/dev/hda3 vga=789 app_opt1 app_opt2"],
 	$[ "key" : "initrd", "value" : "(hd0,0)/initrd"],
-        ])), [], 0);
+        ])), [READ, WRITE, EXEC], 0);
 
     DUMP ("====================================================");
 
     TEST (``(grubGlob2liloGlob ([
 	$[ "key" : "timeout", "value" : 8],
 	$[ "key" : "gfxmenu", "value" : "(hd0,0)/message"],
-	])), [], 0);
+	])), [READ, WRITE, EXEC], 0);
 
     TEST (``(grubGlob2liloGlob ([
         $[ "key" : "timeout", "value" : 8],
         $[ "key" : "gfxmenu", "value" : "(hd0,0)/message"],
 	$[ "key" : "hiddenmenu", "value" : "true"],
-        ])), [], 0);
+        ])), [READ, WRITE, EXEC], 0);
 
 
     DUMP ("====================================================");
@@ -156,13 +169,13 @@
     TEST (``(liloGlob2grubGlob ([
         $[ "key" : "timeout", "value" : 80],
         $[ "key" : "message", "value" : "/boot/message"],
-        ])), [], 0);
+        ])), [READ, WRITE, EXEC], 0);
 
     TEST (``(liloGlob2grubGlob ([
         $[ "key" : "timeout", "value" : 80],
         $[ "key" : "message", "value" : "/boot/message"],
 	$[ "key" : "prompt", "value" : "true"],
-        ])), [], 0);
+        ])), [READ, WRITE, EXEC], 0);
 
 
 }
