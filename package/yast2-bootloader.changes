@@ -2,6 +2,8 @@
 Mon Sep 13 10:59:50 CEST 2004 - jsrain@suse.cz
 
 - allowed to add wildcard entry to GRUB and LILO boot menu (#44742)
+- removed dead code (related to items in GRUB section reordering,
+  now it is fully handled by Table/Popup
 
 -------------------------------------------------------------------
 Tue Sep  7 10:09:14 CEST 2004 - jsrain@suse.cz
