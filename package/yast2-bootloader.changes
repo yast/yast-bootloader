@@ -6,6 +6,7 @@ Mon Feb 24 09:20:59 CET 2003 - jsrain@suse.de
 - fixed forgotten saving of cfg. files in some cases (#24073)
 - in repair mode reading bootloader type from sysconfig, no probing
   (#24062)
+- 2.7.10
 
 -------------------------------------------------------------------
 Fri Feb 21 13:11:08 CET 2003 - jsrain@suse.de
