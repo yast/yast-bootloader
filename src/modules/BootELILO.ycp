@@ -97,6 +97,7 @@ read-only
     }
 
     global define list(string) Summary () ``{
+	// summary text
 	return [_("Install ELILO bootloader")];
     }
 
@@ -134,6 +135,7 @@ fi", efi_label));
 	{
 		string log = SCR::Read (.target.string,
 		    "/var/log/YaST2/y2logefi");
+		// error popup error description - label
 		errorWithLogPopup (_("Error while installing ELILO occured"),
 		    log);
 	}

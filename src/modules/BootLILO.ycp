@@ -193,6 +193,7 @@
 	    {
 		string log = SCR::Read (.target.string,
 		    "/var/log/YaST2/y2loglilo");
+		// error popup - label
                 errorWithLogPopup (_("Error while installing LILO occured"),
                     log);
 	    }

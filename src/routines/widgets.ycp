@@ -74,17 +74,20 @@
         term targetlist = `VBox (
             `VSpacing (0.4),
             `Left (`RadioButton (`id ("mbr"), `opt (`notify),
+		// radiobutton, %1 is device (eg. /dev/hda)
                 sformat(_("&Master boot record of %1"), mbrDisk),
                 (location == "mbr")
             )),
             `VSpacing (0.4),
             `Left (`RadioButton (`id ("boot"), `opt (`notify),
+		// radiobutton, %1 is device (eg. /dev/hda1)
                 sformat(_("Boot&sector of boot partition %1"),
                      BootPartitionDevice),
                 (location == "boot")
             )),
             `VSpacing (0.4),
             `Left (`RadioButton (`id ("root"), `opt (`notify),
+		// radiobutton, %1 is device (eg. /dev/hda1)
                 sformat(_("Bootsector of roo&t partition %1"),
                     RootPartitionDevice),
                 (location == "root")
@@ -96,6 +99,7 @@
             targetlist = add (targetlist, `VSpacing (1));
             targetlist = add (targetlist, `Left (`RadioButton (`id ("floppy"),
 		 `opt (`notify),
+		// radiobutton
                 _("&Floppy disk"),
                 (location == "floppy")
             )));
@@ -103,7 +107,8 @@
 
         targetlist = add (targetlist, `HBox (
             `VBox (`Label (""), `RadioButton (`id ("custom"), `opt (`notify),
-		 _("Ot&her"),
+		// radiobutton
+		_("Ot&her"),
                 (location == "custom"))),
             `HSpacing (2),
             `VBox (
@@ -116,6 +121,7 @@
 
         targetlist = add (targetlist, `VSpacing (0.4));
 
+	// frame
         term widget = `Frame (_("Bootloader location"),
             `RadioButtonGroup (`id (`location),
                 targetlist
@@ -127,6 +133,7 @@
 	    "handle" : ``(BootCommon::targetWrite ()),
 //	    "help" : getLocationsHelp (),
 	    "validate" : ``(BootCommon::targetValidate ()),
+		// table cell / label
 	    "label" : _("Bootloader location"),
 	    "summary" : ``(BootCommon::locationSummary ()),
 	    "deletable" : false,
@@ -208,12 +215,16 @@
       */
     global define map getPasswdWidget () ``{
 	return $[
+		// frame
 	    "widget" : `Frame (_("Security settings"), `VBox (
                 `Left (`CheckBox (`id (`usepas), `opt (`notify),
+			// checkbox
                     _("&Enable bootloader password protection"))),
                 `HBox (
+			// password textentry
                     `HWeight (1, `Password (`id (`pw1), _("&Password"))),
                     `HSpacing (2),
+			// password textentry
                     `HWeight (1, `Password (`id (`pw2), _("Re&type password")))
                 ),
                 `VSpacing (0.4)
@@ -308,8 +319,10 @@
       */
     global define string getPasswdSummary () ``{
 	if (BootCommon::tmp_store["active_section", "password"]:nil != nil)
+		// table cell
 	    return _("Password will be needed");
 	else
+		// table cell
 	    return _("No password will be needed");
     }
 
@@ -325,13 +338,22 @@
 		`HBox (
 		    `ReplacePoint (`id (`sects_rp),
 			`Table (`id (`sects), `opt (`keepSorting), `header (
-			_("Def."), _("Label"), _("Type"), _("Image / Device")
+			// table header
+			_("Def."),
+			// table header
+			_("Label"),
+			// table header
+			_("Type"),
+			// table header
+			_("Image / Device")
 			), [])
 		    ),
 		    `HSpacing (1),
 		    `VBox (
 			`VStretch (),
+			// pushbutton
 			`PushButton (`id (`up), _("&Up")),
+			// pushbutton
 			`PushButton (`id (`down), _("&Down")),
 			`VStretch ()
 		    )
@@ -341,6 +363,7 @@
 		    `PushButton (`id (`edit), EditButtonLabel ()),
 		    `PushButton (`id (`delete), DeleteButtonLabel ()),
 		    `HStretch (),
+			// pushbutton
 		    `PushButton (`id (`default), _("Set as de&fault"))
 		)
 	    ),
@@ -374,7 +397,14 @@
         });
 	UI::ReplaceWidget (`id (`sects_rp),
 	    `Table (`id (`sects), `opt (`keepSorting), `header (
-		_("Default"), _("Label"), _("Type"), _("Image / Device")
+		// table header
+		_("Default"),
+		// table header
+		_("Label"),
+		// table header
+		_("Type"),
+		// table header
+		_("Image / Device")
 	    ), sec)
 	);
     }
@@ -479,12 +509,14 @@
 
 	return $[
 	    "widget" : (`ComboBox (`id (`loader_type), `opt (`notify),
+			// combobox header
                         _("Boot&loader type"), loaders
                     )),
 	    "restore" : ``(BootCommon::loaderTypeRestore ()),
 	    "handle" : ``(loaderTypeSave ()),
 	    "help" : nil,
 	    "exits" : [],
+		// table item / label
 	    "label" : _("Bootloader type"),
 	    "summary" : ``(BootCommon::loaderTypeSummary ()),
 	    "deletable" : false,
@@ -581,16 +613,21 @@
       */
     global define map getSummaryButtonsWidget () ``{
 	list items = [
+		// menubutton item, keep as short as possible
             `item (`id (`propose), _("&Propose new configuration")),
+		// menubutton item, keep as short as possible
             `item (`id (`scratch), _("&Start from scratch")),
+		// menubutton item, keep as short as possible
             `item (`id (`reread), _("&Reread configuration from disk")),
 	];
 	if (/*Mode::initial &&*/ BootCommon::getLoaderType (false) == "grub")
 	    items = add (items, `item (`id (`propose_deep),
+		// menubutton item, keep as short as possible
 		_("Propose new configuration and merge existing menus")));
 	return $[
 	    "widget" : `HBox (`HStretch (),
 //		`MenuButton (`id (`restore), _("Res&et"), items),
+		// pushbutton
                 `PushButton (`id (`manual), _("Edit &configuration files")),
 		`HStretch ()
 	    ),
@@ -606,6 +643,7 @@
       */
     global define map getSectionsTableEntry () ``{
 	return $[
+		// table item / label
 	    "label" : _("Available sections"),
 	    "summary" : ``(BootCommon::getSectionsSummary ()),
 	    "deletable" : false,
@@ -622,6 +660,7 @@
         list sects = [];
         foreach (`s, BootCommon::sections, ``{
             string title = s["label"]:"";
+		// suffix after section name, keep short, to summary and table
             string def = title == default ? _(" (default)") : "";
             sects = add (sects, sformat ("%1%2", title, def));
         });
@@ -634,6 +673,7 @@
       */
     global define map getDefaultSectionTableEntry () ``{
 	return $[
+		// table item / label
 	    "label" : _("Default section"),
 	    "summary" : ``(BootCommon::getDefaultSectionSummary ()),
 	    "deletable" : false,
@@ -656,12 +696,14 @@
     global define map getSectionTypeWidget () ``{
         return $[
             "widget" : (`ComboBox (`id (`section_type), `opt (`notify),
+			// combobox header
                         _("Section &type"), ["image", "other"]
                     )),
             "restore" : ``(BootCommon::sectionTypeRestore ()),
             "handle" : ``(BootCommon::sectionTypeSave ()),
             "help" : nil,
             "exits" : [],
+		// table item / label
             "label" : _("Section type"),
             "summary" : ``(BootCommon::sectionTypeSummary ()),
 	    "deletable" : false,
@@ -776,6 +818,7 @@
       */
     global define map getLabelWidget () ``{
 	return $[
+		// table item / label
 	    "label" : "Section name",
 	    "validate" : ``(BootCommon::labelValidate ()),
 	    "deletable" : false,
@@ -824,6 +867,7 @@
       */
     global define map getReplMbrWidget () ``{
 	return $[
+		// table item / label
 	    "label" : _("Replace code in MBR"),
 	    "restore" : ``(BootCommon::replMbrRestore ()),
 	    "handle" : ``(BootCommon::replMbrHandle ()),
@@ -860,8 +904,10 @@
       */
     global define string replMbrSummary () ``{
 	if (tmp_store["repl_mbr"]:false)
+		// table item / label
 	    return _("Replace with generic code");
 	else
+		// table item / label
 	    return _("Leave untouched");
     }
 
@@ -871,6 +917,7 @@
       */
     global define map getActivateWidget () ``{
 	return $[
+		// table item
 	    "label" : _("Activate bootloader partition"),
 	    "restore" : ``(BootCommon::activateRestore ()),
 	    "handle" : ``(BootCommon::activateHandle ()),
@@ -907,8 +954,10 @@
       */
     global define string activateSummary () ``{
         if (tmp_store["activate"]:false)
+		// table item
             return _("Yes");
         else
+		// table item
             return _("No");
     }
 

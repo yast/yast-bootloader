@@ -236,6 +236,8 @@
 	{
 	    string log = SCR::Read (.target.string,
 		"/var/log/YaST2/y2logmk_initrd");
+	// TODO replace with other popup
+	    // error report
 	    Report::Error (_("An error occured during initrd creation.")
 		+ "\n\n\n" + log);
 	}

@@ -151,7 +151,10 @@
 		BootCommon::tmp_store["globals", "default"]:0 == order
 		    ? UI::Glyph (`CheckMark) : "",
 		s["title"]:"",
-		s["kernel"]:"" == "" ? _("other") : _("image"),
+		// table cell
+		s["kernel"]:"" == "" ? _("other")
+			// table cell
+		    : _("image"),
 		s["kernel"]:"" != ""
 		? sformat ("%1   (%2%3)",
 		    kernel_img,
@@ -294,6 +297,7 @@
                     `ReplacePoint (`id (`disks_rp),
                         `SelectionBox (`id (`disks),
                             `opt (`notify, `immediate),
+			    // selectionn box label
                             _("D&isks"), [])
                     )
                 ),
@@ -309,6 +313,7 @@
 	    "restore" : ``(BootGRUB::restoreOrderPopup ()),
 	    "handle" : ``(BootGRUB::handleOrderPopup ()),
 	    "summary" : ``(BootGRUB::orderSummary ()),
+		// label / table cell
 	    "label" : _("Disks order"),
 	    "help" : getDiskOrderHelp (),
 	];
@@ -504,6 +509,7 @@
 
     global define void timeoutSummary () ``{
         integer timeout = BootCommon::tmp_store["active_section", "timeout"]:0;
+	// table cell, means eg. 5 s (like 5 seconds)
         return sformat (_("%1 s"), timeout);
     }
 
@@ -544,7 +550,7 @@
 	    return;
 	BootCommon::tmp_store["active_section", "gfxmenu"]
 	    = UI::QueryWidget (`id (`value), `Value);
-	BootCommon::tmp_store["active_section", "__intern__"] = 
+	BootCommon::tmp_store["active_section", "__intern__"] =
 	   add (BootCommon::tmp_store["active_section", "__intern__"]:$[],
 		"changed", true);
     }
@@ -565,21 +571,31 @@
 
     global define map getGlobalSectionWidget () ``{
 	list items = [
+		// menubutton item
             `item (`id (`propose), _("&Propose new configuration")),
+		// menubutton item
             `item (`id (`scratch), _("&Start from scratch")),
+		// menubutton item
             `item (`id (`reread), _("&Reread configuration from disk")),
 	    `item (`id (`propose_deep),
+		// menubutton item
                 _("Propose new configuration and merge existing menus")),
         ];
 	map ret = BootCommon::getGlobalSectionWidget ();
 	ret["widget"] = (`HBox (`HSpacing (2), `VBox (
                     `Table (`id (`settings), `opt (`notify, `keepSorting),
-                        `header (_("Ch."), _("Option"), _("Value")), []),
+			// table header
+                        `header (_("Ch."),
+			// table header
+			_("Option"),
+			// table header
+			_("Value")), []),
                     `HBox (
                         `PushButton (`id (`add), AddButtonLabel ()),
                         `PushButton (`id (`edit), EditButtonLabel ()),
                         `PushButton (`id (`delete), DeleteButtonLabel ()),
                         `HStretch (),
+			// menubutton
 			`MenuButton (`id (`restore), _("Res&et"), items)
                     )
                 ), `HSpacing (2)));

@@ -41,6 +41,7 @@
 	term widget = `HBox (`HSpacing (1), `VBox (
 	    `VSpacing (1),
 	    `ComboBox (`id (`optname), `opt (`editable),
+		// combobox header
 		_("&Selected option"), optnames),
 	    `VSpacing (1),
 	    `HBox (
@@ -86,12 +87,15 @@
             string type = widget_data["type"]:lookup (
                 BootCommon::opttypes (), optname, "s");
             if (type == "b")
+		// checkbox
                 widget = `CheckBox (`id (`value), _("&Set"),
                     sect[optname]:true);
             else if (type == "i")
+		// intfield header
                 widget = `IntField (`id (`value), _("&Value"), 0, 999999,
                     sect[optname]:0);
             else
+		// textentry header
                 widget = `TextEntry (`id (`value), _("&Value"),
                     sect[optname]:"");
         }
@@ -119,6 +123,7 @@
 	y2milestone ("Popup widget: %1", widget_data);
         string label = sformat ("%1", widget_data["label"]:optname);
         term header = `HBox (
+	    // heading / label
 	    `Heading (_("Current option: ")),
 	    `Label (label),
 	    `HStretch ()
@@ -416,11 +421,11 @@
       */
     global define symbol askSwitch (string from, string to) ``{
 	term contents = `VBox (
+		// warning label
 	    `Label (_("Warning!
 
-You chose to change your bootloader. This is very complex
-operation. When converting configuration some settings
-may get lost.
+You chose to change your bootloader. When converting 
+configuration some settings may get lost.
 
 Current configuration will be saved and you will be able
 to restore it if you will return back to current bootloader.
@@ -430,19 +435,24 @@ What do you want to do?")),
 	    `RadioButtonGroup (`id (`action), `VBox (
 		canConvert (from, to)
 		    ? `Left (`RadioButton (`id (`convert),
+			// radiobutton
 			_("Co&nvert current configuration")))
 		    : `VSpacing (0),
 		`Left (`RadioButton (`id (`scratch),
+		    // radiobutton
 		    _("&Start new configuration from scratch"))),
 		`Left (`RadioButton (`id (`propose),
+		    // radiobutton
 		    _("&Propose new configuration"))),
 		Mode::normal
 		    ? `Left (`RadioButton (`id (`read),
+			// radiobutton
 			_("&Read configuration saved on disk")))
 		    : `VSpacing (0),
 		BootCommon::other_bl[to]:nil == nil
 		    ? `VSpacing (0)
 		    : `Left (`RadioButton (`id (`prev),
+			// radiobutton
 			_("Res&tore to configuration saved before conversion")))
 	    )),
 	`VSpacing (1),
@@ -558,6 +568,7 @@ What do you want to do?")),
                 widgets[0, "widget"]:`VSpacing (0),
                 `VSpacing (1)
                 ), `HSpacing (2));
+	// dialog caption
         string caption = _("Bootloader setup - Sections managment");
         string help = mergeHelps (widgets);
 	list exits = getExitEvents (widgets);
@@ -576,6 +587,7 @@ What do you want to do?")),
                 widgets[0, "widget"]:`VSpacing (0),
 		`VSpacing (1)
                 ), `HSpacing (2));
+	// dialog caption
         string caption = _("Bootloader setup - Sections managment");
         string help = mergeHelps (widgets);
         list exits = getExitEvents (widgets);
@@ -601,6 +613,7 @@ What do you want to do?")),
                 widgets[1, "widget"]:`VSpacing (0),
                 `VSpacing (1)
                 ), `HSpacing (2));
+	// dialog caption
         string caption = _("Bootloader setup");
         string help = mergeHelps (widgets);
         list exits = getExitEvents (widgets);
@@ -635,6 +648,7 @@ What do you want to do?")),
 	    cb,
             `VSpacing (2),
             `MultiLineEdit (`id (`file), `opt (`hstretch, `vstretch),
+		// multiline edit header
                 _("File &contents")),
             `VSpacing (2)
 	), `HSpacing (2));

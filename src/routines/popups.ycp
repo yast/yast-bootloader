@@ -105,6 +105,7 @@ configuration files manually, please check bootloader settings."));
       * @return boolean yes if shall be reset
       */
     global define boolean askLocationResetPopup (string device) ``{
+	// yes-no popup
 	return UI::YesNoPopup(sformat(_("Partition '%1' is not available.
 Do you want to set default boot loader location?"), device));
     }
@@ -118,18 +119,24 @@ Do you want to set default boot loader location?"), device));
 	boolean format = false;
 	symbol fs = `no;
 	list items = [
+		// combobox item
 	    `item (`id (`no), _("Don't create filesystem")),
+		// combobox item
 	    `item (`id (`ext2), _("Create ext2 filesystem")),
 	];
 	if (SCR::Read (.target.size, "/sbin/mkfs.msdos") != -1)
+		// combobox item
 	   items = add (items, `item (`id (`fat), _("Create FAT filesystem")));
 	term contents = `VBox (
+		// label
 	    `Label (_("The bootloader bootsector will be written
 to a floppy disk. Insert a floppy disk
 and confirm with OK.")),
 	    `VSpacing (1),
+	    // checkbox
 	    `Left (`CheckBox (`id (`format), _("&Low level format"), false)),
 	    `VSpacing (1),
+	    // combobox
 	    `Left (`ComboBox (`id (`fs), _("&Create filesystem"), items)),
 	    `VSpacing (1),
 	    `PushButton (`id (`ok), OKButtonLabel ())
@@ -157,6 +164,7 @@ and confirm with OK.")),
 		    (.target.bash, sformat ("/usr/bin/fdformat %1", dev));
 		if (tmpretval)
 		    break;
+		// yes-no popup
 		if (! UI::YesNoPopup (_("Low level format failed. Try again?")))
 		    break;
 	    }
@@ -168,6 +176,7 @@ and confirm with OK.")),
             boolean tmpretval = 0 == SCR::Execute
 		(.target.bash, sformat ("/sbin/mkfs.ext2 %1", dev));
 	    if (! tmpretval)
+		// error report
 		Report::Error (_("Creating filesystem failed."));
             retval = retval && tmpretval;
         }
@@ -177,6 +186,7 @@ and confirm with OK.")),
 	    boolean tmpretval = 0 == SCR::Execute
 		(.target.bash, sformat ("/sbin/mkfs.msdos %1", dev));
 	    if (! tmpretval)
+		// error report
 		Report::Error (_("Creating filesystem failed."));
 	    retval = retval && tmpretval;
 	}
@@ -245,6 +255,7 @@ please check gfxmenu settings"));
       * Display popup
       */
     global define void displayNoSupportPopup () ``{
+	// message popup
 	UI::MessagePopup (_("Sorry, there are currently
 no options to set here."));
     }
@@ -253,6 +264,7 @@ no options to set here."));
       * Display popup
       */
     global define void noBootloaderPopup () ``{
+	// error report
 	Report::Error (_("Unable to install bootloader."));
     }
 }
