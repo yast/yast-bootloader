@@ -25,6 +25,14 @@
     import "Initrd";
 
     include "bootloader/routines/switcher.ycp";
+    include "bootloader/routines/popups.ycp";
+
+
+    /**
+      * Write is repeating again
+      * Because of progress bar during inst_finish
+      */
+    global boolean repeating_write = false;
 
 // general functions
 
@@ -69,6 +77,11 @@
 	boolean ret = blRead ();
 	BootCommon::location
 	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
+	if (BootCommon::location == "none")
+	{
+	    BootCommon::locaion = "custom";
+	    BootCommon::loader_device = "/dev/null";
+	}
 	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::was_read = true;
 	return ret;
@@ -84,9 +97,7 @@
 //	BootCommon::setLoaderType (nil);
 	BootCommon::changed = false;
 	BootCommon::location_changed = false;
-	BootCommon::install = true;
 //	BootCommon::other_bl = $[];
-	BootCommon::install = true;
 	BootCommon::files_edited = false;
 	BootCommon::changed_settings = $[];
 	blReset ();
@@ -106,8 +117,8 @@
       * @param list of style attributes
       * FIXME add attrib description
       */
-    global define string Summary (list style) ``{
-	return blSummary (style);
+    global define string Summary () ``{
+	return blSummary ();
     }
     /**
       * Write bootloader settings to disk
@@ -115,8 +126,38 @@
       */
     global define boolean Write () ``{
 	y2milestone ("Writing bootloader configuration");
+
 	boolean ret = true;
 	ReadOrProposeIfNeeded ();
+
+// run Progress bar
+        list stages = [
+            // progress stage, text in dialog (short)
+            _("Create initrd."),
+            // progress stage, text in dialog (short)
+            _("Save bootloader configuration files."),
+            // progress stage, text in dialog (short)
+            _("Install bootloader"),
+        ];
+        list titles = [
+            // progress stage, text in dialog (short)
+            _("Creating initrd..."),
+            // progress stage, text in dialog (short)
+            _("Saving bootloader configuration files..."),
+            // progress stage, text in dialog (short)
+            _("Installing bootloader..."),
+        ];
+        // progress bar caption
+        if (Mode::normal)
+	{
+            Progress::New (_("Saving bootloader configuration..."),
+                " ", 2, stages, titles, getInitProgressHelp ());
+	    Progress::NextStage ();
+	}
+        else
+        {
+            Progress::Title (titles[0]:"");
+        }
 
 	// save initrd
 	if (Initrd::changed || ! Mode::normal)
@@ -128,7 +169,22 @@
 	if (! BootCommon::changed)
 	    return true;
 
+	if (Mode::normal)
+	    Progress::NextStage ();
+	else
+        {
+	    if (! repeating_write)
+		Progress::NextStep ();
+            Progress::Title (titles[1]:"");
+        }
+
 	// Write settings to /etc/sysconfig/bootloader
+	if (BootCommon::location == "custom"
+	    && BootCommon::loader_device == "/dev/null")
+	{
+	    BootCommon::location = "none";
+	}
+	y2milestone ("Saving configuration files");
         SCR::Write (.sysconfig.bootloader.LOADER_TYPE,
 	    BootCommon::getLoaderType (false));
         SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
@@ -151,12 +207,34 @@
 	// save bootloader settings
 	ret = ret && blSave ();
 
-        if (BootCommon::location == "none" || BootCommon::install == false
-	    || BootCommon::location == "")
+        if (Mode::normal)
+            Progress::NextStage ();
+        else
+        {
+	    if (! repeating_write)
+		Progress::NextStep ();
+            Progress::Title (titles[2]:"");
+        }
+
+        if (BootCommon::location == "none" || BootCommon::location == "")
             return ret;
 
 	// call bootloader executable
+	y2milestone ("Calling bootloader executable");
 	ret = ret && blWrite ();
+	while (! ret)
+	{
+	    if (writeErrorPopup ())
+	    {
+		repeating_write = true;
+		map res = WFM::CallFunction( `bootloader_proposal ("AskUser",
+		    $[ "has_next": false]));
+		if (res["workflow_sequence"]:nil == `next)
+		    return Bootloader::Write ();
+	    }
+	    else
+		break;
+	}
 	return ret;
     }
 
@@ -322,17 +400,6 @@
       */
     global define boolean LbaSupport() ``{
 	return BootCommon::LbaSupport ();
-/*	if (Arch::i386)
-	{
-	    list internal_bios = SCR::Read (.probe.bios);
-	    boolean lba_support = internal_bios[0, "lba_support"]:false;
-	    if (getLoaderType () == "lilo")
-		return BootCommon::globals["lba32"]:lba_support;
-	    else
-		return lba_support;
-	}
-	else
-	    return true;*/
     }
 
     /**
@@ -349,6 +416,8 @@
             else
             {
                 Read ();
+		if (Mode::update)
+		    blUpdate ();
             }
         }
     }

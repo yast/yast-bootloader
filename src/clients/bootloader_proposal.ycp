@@ -34,7 +34,7 @@
 
 	Bootloader::Propose ();
 
-	ret = $[ "raw_proposal" : [ Bootloader::Summary ([`short])]];
+	ret = $[ "raw_proposal" : [ Bootloader::Summary ()]];
 
 	if (Bootloader::getLoaderType () == "")
         {

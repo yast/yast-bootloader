@@ -18,4 +18,95 @@
 
 {
 
+    textdomain "printer";
+    import "Bootloader";
+    import "Wizard";
+    import "Installation";
+    import "Mode";
+    import "Summary";
+    include "bootloader/routines/ui.ycp";
+
+    // global variables
+    boolean do_abort_now = false;       // abort now
+    boolean auto_mode = true;           // preparing data for autoinstallation?
+    map settings = $[];
+
+    Mode::config = true;
+    /**
+     * Test for abort.
+     * @return true if abort was pressed
+     */
+    define boolean testAbort () ``{
+        if (`abort == UI::PollInput ())
+        {
+            UI::CloseDialog ();
+            return true;
+        }
+        return false;
+    }
+    // ===== arguments ================================================
+
+    {
+        integer i = 0;
+        while (i < size (Args()))
+        {
+            if (is (Args (i), map) && nil != Args (i))  settings = Args (i);
+            i = i + 1;
+        }
+    }
+        Bootloader::Import(settings);
+    /**
+      * Set contents of main dialog for printer autoinstallation
+      */
+    define void set_contents() ``{
+        term contents =
+            `VBox(
+                  `VSpacing(1),
+                  `RichText( `id(`summary), Bootloader::Summary()),
+                  `VSpacing(),
+                  `HBox(
+                        // pushbutton
+                        `PushButton(`id(`configure), _("&Configure bootloader")),
+                        `HStretch(),
+                        // pushbutton
+                        `PushButton(`id(`reset), _("&Reset Configuration"))
+                        )
+                  );
+        // dialog caption
+        Wizard::SetContents(_("Bootloader Configuration"),
+                            contents, "", true, true);
+    }
+
+    // Create Summary and buttons for launching
+    // in auto mode
+
+    set_contents();
+    any result = nil;
+    any ret = nil;
+    repeat {
+        ret = UI::UserInput();
+        if (ret == `configure)
+        {
+                Wizard::CreateDialog ();
+                result = runWizard (true);
+                UI::CloseDialog ();
+                if (result == `next || result == `finish)
+                {
+                     settings = Bootloader::Export ();
+                }
+                Bootloader::Import(settings);
+                set_contents();
+        }
+        else if ( ret == `reset)
+        {
+            settings= $[];
+            Bootloader::Reset ();
+            set_contents();
+        }
+    } until (ret == `back || ret == `next || ret ==`key || ret ==`abort);
+
+    return [ret, settings];
+
 }
+
+

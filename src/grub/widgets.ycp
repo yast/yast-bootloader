@@ -30,13 +30,18 @@
     global define map GetWidgets () ``{
         return $[
 	    "sections" : BootGRUB::getSectionsWidget (),
+	    "singlesection" : getSingleSectionWidget (),
 	    "passwd" : getPasswdWidget (),
 	    "orderbutton" : getOrderButton (),
 	    "tableentries" :$[
 		`sections : getSectionsTableEntry (),
 		`default_section : getDefaultSectionTableEntry (),
 		`section_type : getSectionTypeWidget (),
-		"title" : $["label" : "Section name"],
+		"title" : getTitleWidget (),
+		"timeout" : getTimeoutWidget (),
+		"password" : getPasswdWidget (),
+		"gfxmenu" : getGfxMenuWidget (),
+		`diskorder : getOrderPopup (),
 	    ],
         ];
     }
@@ -46,7 +51,41 @@
 	list _options = [];
 	if (type == `global)
 	{
-	    return BootCommon::UpdateOptionsList (options);
+            options = filter (`o, `v, options,
+		``(o != "boot" && o != "default"));
+            options = filter (`o, `v, options, ``(o != "loader_type"
+                && o != "location" && o != "default_section" && o != "sections"
+                && o != `repl_mbr && o != "activate" && o != `diskorder
+            ));
+
+            list done = [];
+            map cont = $[];
+            list order = options["__order__"]:[];
+            foreach (`o, order, ``{
+                if (haskey (options, o))
+                {
+                    done = add (done, o);
+                    cont = add (cont, o, "");
+                }
+            });
+            foreach (`k, `v, options, ``{
+                if (! haskey (cont, k))
+                {
+                    done = add (done, k);
+                    cont = add (cont, k, "");
+                }
+            });
+            _options = done;
+
+            _options = prepend (_options, `sep1);
+            _options = prepend (_options, `repl_mbr);
+            _options = prepend (_options, "activate");
+            _options = prepend (_options, `sections);
+            _options = prepend (_options, `default_section);
+	    _options = prepend (_options, `diskorder);
+            _options = prepend (_options, `location);
+            _options = prepend (_options, `sep2);
+            _options = prepend (_options, `loader_type);
 	}
 	else
 	{
@@ -70,7 +109,7 @@
 	    });
 	    _options = done;
 
-	    _options = prepend (_options, "-");
+	    _options = prepend (_options, `sep1);
 	    _options = prepend (_options, `section_type);
 	    _options = prepend (_options, "title");
 	}
@@ -187,17 +226,15 @@
 	else if (op == `add)
 	{
             BootCommon::tmp_store["active_section"] = $[];
-// FIXME
-            BootCommon::tmp_store["active_section_name"]
-                = sects[index, "label"]:"";
+            BootCommon::tmp_store["active_section_name"] = "";
             BootCommon::tmp_store["section_type"] = "image";
 	}
 	else if (op == `edit)
 	{
             y2milestone ("Editing title %1, index %2", current, index);
-            BootCommon::tmp_store["active_section"] = sects[index]:$[];
+            BootCommon::tmp_store["active_section"] = eval (sects[index]:$[]);
             BootCommon::tmp_store["active_section_name"]
-                = sects[index, "label"]:"";
+                = sects[index, "title"]:"";
             BootCommon::tmp_store["section_type"]
                 = sects[index, "image"]:"" == "" ? "other" : "image";
 	}
@@ -216,8 +253,8 @@
 	}*/
         if (contains (tosave, op))
         {
-
-
+            BootCommon::markOptionChanged (`global, `sections);
+            BootCommon::markOptionChanged (`global, `default_section);
         }
     }
 
@@ -253,83 +290,88 @@
 
 
 // grub-specific dialogs
-    global define symbol runOrderDialog () ``{
-	list(list(string)) dl = filter (list(string) i, device_map,
-	    ``(substring (i[0]:"", 0, 3) == "(hd"));
 
-// FIXME: remove
-	dl = [["(hd0)", "/dev/hda"], ["(hd1)", "/dev/sda"],
-		["(hd2)", "/dev/ica/c0d0"]];
+    global define map getOrderPopup () ``{
+	return $[
+	    "widget" : `HBox (
+                `VBox (
+                    `ReplacePoint (`id (`disks_rp),
+                        `SelectionBox (`id (`disks),
+                            `opt (`notify, `immediate),
+                            _("D&isks"), [])
+                    )
+                ),
+                `HSquash (
+                    `VBox (
+                        `VStretch (),
+                        `PushButton (`id (`up), `opt (`hstretch), _("&Up")),
+                        `PushButton (`id (`down), `opt (`hstretch), _("&Down")),
+                        `VStretch ()
+                    )
+                )
+            ),
+	    "restore" : ``(BootGRUB::restoreOrderPopup ()),
+	    "handle" : ``(BootGRUB::handleOrderPopup ()),
+	    "summary" : ``(BootGRUB::orderSummary ()),
+	    "label" : _("Disks order"),
+	];
+    }
 
+    global define list(string) getDisksOrder () ``{
+        list(list(string)) dl = filter (list(string) i, device_map,
+            ``(substring (i[0]:"", 0, 3) == "(hd"));
+        dl = sort (list(string) a, list(string) b, dl, ``(a[0]:"" < b[0]:""));
+        return maplist (list(string) i, dl, ``{return i[1]:"";});
 
-	dl = sort (list(string) a, list(string) b, dl, ``(a[0]:"" < b[0]:""));
-	list(string) disks = maplist (list(string) i, dl, ``{return i[1]:"";});
+    }
 
-	term contents = `HBox (`HStretch (), `VBox (
-	    `VSpacing (2),
-	    `HBox (
-		`VBox (
-		    `ReplacePoint (`id (`disks_rp),
-			`SelectionBox (`id (`disks),
-			    `opt (`notify, `immediate),
-			    _("D&isks"), disks)
-/*		    ),
-		    `HBox (
-			`HStretch (),
-			`PushButton (`id (`add), AddButtonLabel ()),
-			`PushButton (`id (`del), DeleteButtonLabel ()),
-			`HStretch ()
-*/		    )
-		),
-		`HSquash (
-		    `VBox (
-			`VStretch (),
-			`PushButton (`id (`up), `opt (`hstretch), _("&Up")),
-			`PushButton (`id (`down), `opt (`hstretch), _("&Down")),
-			`VStretch ()
-		    )
-		)
-	    ),
-	    `VStretch ()
-	), `HStretch ());
+    global define string orderSummary () ``{
+	if (disks_order == nil)
+	    disks_order = getDisksOrder ();
+	return mergestring (disks_order, ", ");
+    }
 
-	Wizard::SetContentsButtons (_("Disks order"), contents,
-	    getDiskOrderHelp (), BackButtonLabel (), NextButtonLabel ());
+    global define void restoreOrderPopup () ``{
+        if (disks_order == nil)
+            disks_order = getDisksOrder ();
 
-	UI::ChangeWidget (`id (`disks), `CurrentItem, disks[0]:"");
-	any ret = nil;
-	while (true)
+	UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
+                    `opt (`notify, `immediate),
+                    _("D&isks"), disks_order));
+    }
+
+    global define void handleOrderPopup (any op, list tosave) ``{
+	string active = UI::QueryWidget (`id (`disks), `CurrentItem);
+	integer pos = 0;
+	while (pos < size (disks_order) && disks_order[pos]:"" != active)
+	    pos = pos + 1;
+	UI::ChangeWidget (`id (`up), `Enabled, pos > 0);
+	UI::ChangeWidget (`id (`down), `Enabled, pos < size (disks_order) - 1);
+	if (! contains (tosave, op))
 	{
-	    string active = UI::QueryWidget (`id (`disks), `CurrentItem);
-	    integer pos = 0;
-	    while (pos < size (disks) && disks[pos]:"" != active)
-		pos = pos + 1;
-	    UI::ChangeWidget (`id (`up), `Enabled, pos > 0);
-	    UI::ChangeWidget (`id (`down), `Enabled, pos < size (disks) - 1);
-	    ret = UI::UserInput ();
-	    if (ret == `next || ret == `abort || ret == `back)
-		break;
-	    if (ret == `up)
+	    if (op == `up)
 	    {
-		disks = BootCommon::swapItems (disks, pos, pos - 1);
+		disks_order = BootCommon::swapItems (disks_order, pos, pos - 1);
 		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
 		    `opt (`notify, `immediate),
-		    _("D&isks"), disks));
+		    _("D&isks"), disks_order));
 		UI::ChangeWidget (`id (`disks), `CurrentItem, active);
 	    }
-	    else if (ret == `down)
+	    else if (op == `down)
 	    {
-		disks = BootCommon::swapItems (disks, pos, pos + 1);
+		disks_order = BootCommon::swapItems (disks_order, pos, pos + 1);
 		UI::ReplaceWidget (`id (`disks_rp), `SelectionBox(`id (`disks),
 		    `opt (`notify, `immediate),
-		    _("D&isks"), disks));
+		    _("D&isks"), disks_order));
 		UI::ChangeWidget (`id (`disks), `CurrentItem, active);
 	    }
 	}
-	if (ret == `next)
+	else
 	{
-	    list(string) o_disks
-		= maplist (list(string) i, dl, ``{return i[1]:"";});
+
+            list(list(string)) dl = filter (list(string) i, device_map,
+                ``(substring (i[0]:"", 0, 3) == "(hd"));
+            dl=sort (list(string) a, list(string) b, dl, ``(a[0]:"" < b[0]:""));
 
 	    map olddiskmap = $[];
 	    foreach (list(string) d, dl, ``{
@@ -339,7 +381,7 @@
 	    integer pos = 0;
 	    list new_map = filter (list(string) i, device_map,
 		``(substring (i[0]:"", 0, 3) != "(hd"));
-	    foreach (`d, disks, ``{
+	    foreach (`d, disks_order, ``{
 		string gd = sformat ("(hd%1)", pos);
 		if (gd != olddiskmap[d]:"")
 		{
@@ -356,10 +398,11 @@
 		return BootGRUB::remapDisks (s, remap);
 	    });
 	    BootCommon::tmp_store["sections"] = sects;
-	    y2error ("tmp_store: %1", BootCommon::tmp_store["sections"]:[]);
+	    BootCommon::tmp_store["active_section"] = BootGRUB::remapDisks (
+		BootCommon::tmp_store["active_section"]:$[], remap);
 	    BootGRUB::device_map = new_map;
+	    disks_order = nil;
 	}
-	return ret;
     }
 
     global define map getSectionsTableEntry () ``{
@@ -401,7 +444,7 @@
     }
 
 
-    global define void sectionTypeSave () ``{
+    global define void sectionTypeSave (any op, list tosave) ``{
         string ntype = UI::QueryWidget (`id (`section_type), `Value);
 	y2milestone ("New type: %1", ntype);
         string otype = BootCommon::tmp_store["active_section","kernel"]:"" == ""
@@ -440,8 +483,83 @@
     }
 
 
+    global define map getTimeoutWidget () ``{
+        return $[
+            "restore" : ``(BootGRUB::timeoutRestore ()),
+            "handle" : ``(BootGRUB::timeoutSave ()),
+            "summary" : ``(BootGRUB::timeoutSummary ()),
+        ];
+    }
 
+    global define void timeoutRestore () ``{
+        integer timeout = BootCommon::tmp_store["active_section", "timeout"]:0;
+        UI::ChangeWidget (`id (`value), `Value, timeout);
+    }
 
+    global define void timeoutSave (any op, list tosave) ``{
+        integer timeout = UI::QueryWidget (`id (`value), `Value);
+        BootCommon::tmp_store["active_section", "timeout"] = timeout;
+    }
 
+    global define void timeoutSummary () ``{
+        integer timeout = BootCommon::tmp_store["active_section", "timeout"]:0;
+        return sformat (_("%1 s"), timeout);
+    }
+
+    global define map getTitleWidget () ``{
+	map ret = BootCommon::getLabelWidget ();
+	ret["validate"] = ``(BootGRUB::titleValidate ());
+	return ret;
+    }
+
+    global define boolean titleValidate () ``{
+        list(string) existing = [];
+        foreach (`s, BootCommon::tmp_store["sections"]:[], ``{
+            existing = add (existing, s["title"]:"");
+        });
+	y2milestone ("Active is %1", BootCommon::tmp_store["active_section_name"]:"");
+        existing = filter (string l, existing,
+            ``(l != BootCommon::tmp_store["active_section_name"]:""));
+        existing = add (existing, "");
+        string new = UI::QueryWidget (`id (`value), `Value);
+
+        if (contains (existing, new))
+        {
+            usedNameErrorPopup ();
+            return false;
+        }
+        return true;
+    }
+
+    global define map getGfxMenuWidget () ``{
+	return $[
+	    "handle" : ``(BootGRUB::gfxMenuHandle ()),
+	    "delete" : ``(BootCommon::deleteMessage ()),
+	];
+    }
+
+    global define void gfxMenuHandle (any op, list tosave) ``{
+	if (! contains (tosave, op))
+	    return;
+	BootCommon::tmp_store["active_section", "gfxmenu"]
+	    = UI::QueryWidget (`id (`value), `Value);
+	BootCommon::tmp_store["active_section", "__intern__"] = 
+	   add (BootCommon::tmp_store["active_section", "__intern__"]:$[],
+		"changed", true);
+    }
+
+    global define map getSingleSectionWidget () ``{
+	map ret = BootCommon::getSingleSectionWidget ();
+        ret["widget"] = `HBox (ret["widget"]:`VSpacing (0),
+            `VBox (
+                `VStretch (),
+                `PushButton (`id (`up), _("&Up")),
+                `PushButton (`id (`down), _("&Down")),
+                `VStretch ()
+            ),
+            `HSpacing (1)
+        );
+	return ret;
+    }
 
 }

@@ -26,13 +26,14 @@
       * @return boolean true if bootloader location should be set again
       */
     global define boolean RefreshDisks() ``{
+	boolean ret = true;
 	if (! DisksChanged ())
-	    return false;
+	    ret = false;
 
 	y2milestone ("Reconfiguring locations");
 	DetectDisks ();
 
-	return true;
+	return ret;
     }
 
     /**

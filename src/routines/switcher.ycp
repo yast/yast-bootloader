@@ -79,10 +79,9 @@
         return eval (toEval);
     }
 
-    global define string blSummary (list style) ``{
+    global define string blSummary () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
         term toEval = functions["summary"]:``(BootCommon::Summary ());
-	toEval = add (toEval, style);
         return eval (toEval);
     }
 
