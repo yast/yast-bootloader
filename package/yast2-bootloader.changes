@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Aug 19 14:10:01 CEST 2002 - jsrain@suse.cz
+
+- modified failsafe kernel image name for update of lilo
+- fixed GRUB save after configuration
+- not deleting old device map during installation
+- /sbin/elilo now not running after configuration change 
+- 2.6.24
+
+-------------------------------------------------------------------
 Fri Aug 16 14:13:01 CEST 2002 - jsrain@suse.cz
 
 - added universal functions for accessing kernel parameters

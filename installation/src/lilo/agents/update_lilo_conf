@@ -70,4 +70,5 @@ awk '
 ' <$lc_tmp >$lc_tmp2
 
 rm $lc_tmp
-mv $lc_tmp2 $lc
+sed -e 's/vmlinuz.suse/vmlinuz.shipped/' -e 's/initrd.suse/initrd.shipped/' <$lc_tmp2 >$lc
+rm $lc_tmp2
