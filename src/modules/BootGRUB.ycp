@@ -98,7 +98,7 @@
     }
     /**
       * Import settings from a map
-      * @param settigns map of bootloader settings
+      * @param settings map of bootloader settings
       */
     global define void Import (map settings) ``{
 	BootCommon::Import (settings);
@@ -684,8 +684,9 @@
     /**
       * Update sections of bootloader menu
       * modifies internal sreuctures
+      * @param replace boolean true if old sectinos shall be replaced
       */
-    global define list updateSections (boolean replace) ``{
+    global define void updateSections (boolean replace) ``{
 	list out = BootCommon::sections;
 
 	foreach (`t, ["linux", "failsafe", "memtest86"], ``{
@@ -729,6 +730,8 @@
     /**
       * Fix sections of bootloader menu during proposal regeneration
       * modifies internal sreuctures
+      * @param disks_changed boolean should be true if bootloader location
+      *   relevant disk locations have changed
       */
     global define void fixSections (boolean disks_changed) ``{
 	list parts = BootCommon::getPartitionList(`parts_old);
@@ -759,18 +762,24 @@
 	    }
 	    else
 	    {
-		y2milestone ("Warning on section %1", title);
+		y2milestone ("Possible warning on section %1", title);
 		boolean cont = true;
-		foreach (`n, s["__intern__", "devs"]:[], ``{
-		    if (! contains (parts, n))
-		    {
-			cont = false;
-		    }
-		});
+		if (s["title"]:"" != "linux" && s["title"]:"" != "failsafe"
+		    && s["title"]:"" != "memtest86" && s["title"]:"" !="gloppy")
+		{
+		    foreach (`n, s["__intern__", "devs"]:[], ``{
+		        if (! contains (parts, n))
+		        {
+			    cont = false;
+		        }
+		    });
+		}
 		list new_devs = toset(new_sect[title, "__intern__", "devs"]:[]);
 		list old_devs = toset(s["__intern__", "devs"]:[]);
 		if (size (new_devs) != size (old_devs))
+		{
 		    cont = false;
+		}
 		else
 		{
 		    foreach (`d, old_devs, ``{
@@ -781,6 +790,8 @@
 		if (! cont)
 		{
 		    s["__intern__", "auto"] = false;
+		    y2milestone ("Warning, ND: %1, OD: %2, P: %3",
+			new_devs, old_devs, parts);
 		    displayDiskChangePopup (s["title"]:"");
 		}
 		return s;
@@ -828,6 +839,8 @@
     /**
       * Fix global options of bootloader during proposal regeneration
       * modifies internal sreuctures
+      * @param disks_changed boolean should be true if bootloader location
+      *   relevant disk locations have changed
       */
     global define void fixGlobals (boolean disks_changed) ``{
 	if (size (BootCommon::sections) <= BootCommon::globals["default"]:0)
@@ -841,7 +854,7 @@
 		BootCommon::globals["gfxmenu"] = file2grub ("/boot/message");
 	    else if (BootCommon::globals["__intern__", "auto"]:false)
 	    { // automatic, but changed
-	y2error ("Checking %1", BootCommon::globals);
+//	y2error ("Checking %1", BootCommon::globals);
 		if (BootCommon::BootPartitionDevice
 		    != BootCommon::globals["__intern__", "disks", 0]:""
 		    && ! BootCommon::globals["__intern__", "warned"]:false)

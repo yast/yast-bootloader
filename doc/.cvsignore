@@ -1,2 +1,10 @@
 Makefile
 Makefile.in
+bootloader
+bootloader.aux
+bootloader.html
+bootloader.log
+bootloader.out
+bootloader.pdf
+bootloader.tex
+*.png

@@ -1,0 +1,56 @@
+/**
+ * File:
+ *  grub.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Bootloader GRUB misc functions testsuite
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    import "Pkg";
+    include "testsuite.ycp";
+    import "BootGRUB";
+
+    DUMP ("======================================");
+
+    TEST (``(BootGRUB::string2devMap ("(hd0) /dev/hda\n(hd1)	/dev/hdb")), [], 0);
+    TEST (``(BootGRUB::string2devMap ("(hd1) /dev/hda\n(hd1)    /dev/hdb")), [], 0);
+    TEST (``(BootGRUB::string2devMap ("(hd0)/dev/hda\n(hd1)    /dev/hdb")), [], 0);
+    TEST (``(BootGRUB::string2devMap ("(hd1) /dev/hda\n(hd0)    /dev/hdb")), [], 0);
+    TEST (``(BootGRUB::string2devMap ("(hd1) /dev/hda")), [], 0);
+
+
+    DUMP ("======================================");
+
+    TEST (``(mergestring (splitstring (BootGRUB::devMap2string ([["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"]]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::devMap2string ([["(hd0)", "/dev/hda"], ["(hd0)", "/dev/hdb"]]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::devMap2string ([["(hd0)", "/dev/hda"]]), "\n"), "\\n")), [], 0);
+    TEST (``(mergestring (splitstring (BootGRUB::devMap2string ([["(hd0)", "/dev/hda"], ["(hd1)"]]), "\n"), "\\n")), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootGRUB::splitDevPath ("(hd0,0)/boot/vmlinuz")), [], 0);
+    TEST (``(BootGRUB::splitDevPath ("(hd0,0)/vmlinuz")), [], 0);
+    TEST (``(BootGRUB::splitDevPath ("/boot/vmlinuz")), [], 0);
+    TEST (``(BootGRUB::splitDevPath ("(hd0,0)")), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootGRUB::mergeDevPath (["(hd0,0)", "/boot/vmlinuz"])), [], 0);
+    TEST (``(BootGRUB::mergeDevPath (["(hd0,0)", "boot/vmlinuz"])), [], 0);
+    TEST (``(BootGRUB::mergeDevPath (["(hd0,0)", ""])), [], 0);
+    TEST (``(BootGRUB::mergeDevPath ([nil, "/boot/vmlinuz"])), [], 0);
+
+
+    DUMP ("======================================");
+
+}

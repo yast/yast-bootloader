@@ -191,7 +191,7 @@
 
     /**
       * Import settings from a map
-      * @param settigns map of bootloader settings
+      * @param settings map of bootloader settings
       */
     global define void Import (map settings) ``{
         globals = lookup(settings, "global", $[]);
@@ -239,7 +239,7 @@
     }
     /**
       * Display bootloader summary
-      * @return list of summary lines
+      * @return a list of summary lines
       */
     global define list(string) Summary () ``{
 	string default = BootCommon::getLoaderType (false) == "grub"
@@ -435,7 +435,8 @@ configuration files"));
 	}
 
 	// this shall install packages if possible
-	setLoaderType (loader_type);
+	// not needed, called from _proposal client
+//	setLoaderType (loader_type);
 
 	// this was wrong - storage, which initializes before package maneger,
 	// needs calls this function
@@ -462,25 +463,27 @@ configuration files"));
 	if (contains(BootCommon::bootloaders, bootloader)
 	    && ! Mode::test)
 	{
-	    if (Mode::normal)
-	    {
+// select packages always, just move checking bellow !!!
+// FIXME autoinstallation !!!!
+//	    if (Mode::normal)
+//	    {
 		boolean installed = false;
 		foreach (`p, getBootloaderPackages (bootloader), ``{
 		    if (! Pkg::IsProvided (bootloader))
 		    {
 		        Pkg::PkgInstall (bootloader);
-			installed = false;
+			installed = true;
 		    }
 		});
-		if (installed)
+		if (installed && Mode::normal)
 		{
 		    Pkg::PkgSolve ();
 		    Pkg::PkgCommit (0);
 		    WFM::CallModule("inst_suseconfig", []);
 		}
-	    }
+/*	    }
 	    else
-	    {/* FIXME some checking must be added, this idea might be correct
+	    { //FIXME some checking must be added, this idea might be correct
 		import "ForcedPackages";
 		foreach (`b, bootloaders, ``{
 		    foreach (p, getBootloaderPackages (b), ``{
@@ -491,8 +494,7 @@ configuration files"));
 		    ForcedPackages::RemoveFromForceNotInstall (p);
 		    ForcedPackages::ForceInstall (p);
 		});
-	*/
-	    }
+	    }*/
 	}
 	loader_type = bootloader;
     }

@@ -30,7 +30,7 @@
 	map spec_widgets = Bootloader::blGetWidgets ();
 	map common_widgets = BootCommon::GetWidgets ();
 	return maplist (`w, names, ``(
-	    spec_widgets[w]:common_widgets[w]:$[]//`VSpacing(0)
+	    eval (spec_widgets[w]:common_widgets[w]:$[])//`VSpacing(0)
 	));
     }
 
@@ -44,7 +44,7 @@
 	map common_widgets = BootCommon::GetWidgets ();
 	spec_widgets = spec_widgets["tableentries"]:$[];
 	common_widgets = common_widgets["tableentries"]:$[];
-	return spec_widgets[name]:common_widgets[name]:$[];
+	return eval (spec_widgets[name]:common_widgets[name]:$[]);
     }
 
     /**
@@ -54,8 +54,8 @@
     global define map getPopupWidgets () ``{
 	map spec_widgets = Bootloader::blGetWidgets ();
 	map common_widgets = BootCommon::GetWidgets ();
-	spec_widgets = spec_widgets["tableentries"]:$[];
-	common_widgets = common_widgets["tableentries"]:$[];
+	spec_widgets = eval (spec_widgets["tableentries"]:$[]);
+	common_widgets = eval (common_widgets["tableentries"]:$[]);
 	return union (common_widgets, spec_widgets);
     }
 

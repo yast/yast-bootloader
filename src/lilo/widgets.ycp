@@ -26,7 +26,7 @@
       */
     global define map GetWidgets () ``{
         return $[
-		"globalsection" : getGlobalSectionWidget (),
+		"globalsection" : ``(BootLILO::getGlobalSectionWidget ()),
         ];
     }
 
@@ -42,7 +42,7 @@
         ];
         map ret = BootCommon::getGlobalSectionWidget ();
         ret["widget"] = (`HBox (`HSpacing (2), `VBox (
-                    `Table (`id (`settings), `opt (`immediate, `keepSorting),
+                    `Table (`id (`settings), `opt (`immediate, `notify, `keepSorting),
                         `header (_("Ch."), _("Option"), _("Value")), []),
                     `HBox (
                         `PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),

@@ -1,0 +1,79 @@
+/**
+ * File:
+ *  kernelParams.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Bootloader kernel parameters handling testsuites
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    import "Pkg";
+    include "testsuite.ycp";
+    import "BootCommon";
+
+    string line = "";
+
+    DUMP ("======================================");
+
+    line = "(hd0,0)/vmlinuz root=/dev/hda3 vga=123 noapic hdc=ide-scsi";
+
+    TEST (``(BootCommon::getKernelParamFromLine (line, "vga")), [], 0);
+    TEST (``(BootCommon::getKernelParamFromLine (line, "root")), [], 0);
+    TEST (``(BootCommon::getKernelParamFromLine (line, "noapic")), [], 0);
+    TEST (``(BootCommon::getKernelParamFromLine (line, "hdc")), [], 0);
+    TEST (``(BootCommon::getKernelParamFromLine (line, "nosmp")), [], 0);
+
+    DUMP ("======================================");
+
+    line = "root=/dev/hda3 vga=123 noapic hdc=ide-scsi";
+
+    TEST (``(BootCommon::getKernelParamFromLine (line, "vga")), [], 0);
+    TEST (``(BootCommon::getKernelParamFromLine (line, "root")), [], 0);
+    TEST (``(BootCommon::getKernelParamFromLine (line, "noapic")), [], 0);
+    TEST (``(BootCommon::getKernelParamFromLine (line, "hdc")), [], 0);
+    TEST (``(BootCommon::getKernelParamFromLine (line, "nosmp")), [], 0);
+
+    DUMP ("======================================");
+
+    line = "(hd0,0)/vmlinuz root=/dev/hda3 vga=123 noapic hdc=ide-scsi";
+
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "321")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "false")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "true")), [], 0);
+
+    TEST (``(BootCommon::setKernelParamToLine (line, "noapic", "321")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "noapic", "false")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "noapic", "true")), [], 0);
+
+    TEST (``(BootCommon::setKernelParamToLine (line, "nosmp", "321")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "nosmp", "false")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "nosmp", "true")), [], 0);
+
+    DUMP ("======================================");
+
+    line = "root=/dev/hda3 vga=123 noapic hdc=ide-scsi";
+
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "321")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "false")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "vga", "true")), [], 0);
+
+    TEST (``(BootCommon::setKernelParamToLine (line, "noapic", "321")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "noapic", "false")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "noapic", "true")), [], 0);
+
+    TEST (``(BootCommon::setKernelParamToLine (line, "nosmp", "321")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "nosmp", "false")), [], 0);
+    TEST (``(BootCommon::setKernelParamToLine (line, "nosmp", "true")), [], 0);
+
+    DUMP ("======================================");
+}
+

@@ -7,8 +7,10 @@
 	    <para>
 		Function <computeroutput>global define map GetWidgets ()</computeroutput> returns map describing all bootloader-specific widgets or whole dialogs.
 		Resulting map should contain (may be empty) map from widget 
-		name (string) to widget description map. This map is then used to display widget, initialize it, handle it's events and displaying
-		appropriate help.
+		name (string) to term, which will after evaluation return widget description map. 
+		Don't use maps containing terms as functions directly, but better use functions returning the map, because terms ase evaluated into depth, 
+		including all map entries.
+		This map is then used to display widget, initialize it, handle it's events and displaying appropriate help.
 	    </para>
 	</section>
 	<section>

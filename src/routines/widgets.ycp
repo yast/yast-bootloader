@@ -30,26 +30,26 @@
     global define map GetWidgets () ``{
 	return $[
 //		"prompt" : getPromptWidget (),
-		"sections" : getSectionsWidget (),
-		"singlesection" : getSingleSectionWidget (),
-		"globalsection" : getGlobalSectionWidget (),
-		"summarybuttons" : getSummaryButtonsWidget (),
+		"sections" : ``(BootCommon::getSectionsWidget ()),
+		"singlesection" : ``(BootCommon::getSingleSectionWidget ()),
+		"globalsection" : ``(BootCommon::getGlobalSectionWidget ()),
+		"summarybuttons" : ``(BootCommon::getSummaryButtonsWidget ()),
 		"tableentries" : $[
-		    "__location": getTargetWidget (),
-		    "__loader_type" : getLoaderSelectionWidget (),
-		    "__sections" : getSectionsTableEntry (),
-		    "__default_section" : getDefaultSectionTableEntry (),
-		    "__section_type" : getSectionTypeWidget (),
+		    "__location": ``(BootCommon::getTargetWidget ()),
+		    "__loader_type" : ``(BootCommon::getLoaderSelectionWidget ()),
+		    "__sections" : ``(BootCommon::getSectionsTableEntry ()),
+		    "__default_section" : ``(BootCommon::getDefaultSectionTableEntry ()),
+		    "__section_type" : ``(BootCommon::getSectionTypeWidget ()),
 		    "__sep1" : $["label" : "---------------"],
 		    "__sep2" : $["label" : "---------------"],
 		    "__sep3" : $["label" : "---------------"],
-		    "label" : getLabelWidget (),
-		    "alias" : getAliasWidget (),
-		    "timeout" : getTimeoutWidget (),
-		    "password" : getPasswdWidget (),
-		    "__repl_mbr" : getReplMbrWidget (),
-		    "activate" : getActivateWidget (),
-		    "message" : getMessageWidget (),
+		    "label" : ``(BootCommon::getLabelWidget ()),
+		    "alias" : ``(BootCommon::getAliasWidget ()),
+		    "timeout" : ``(BootCommon::getTimeoutWidget ()),
+		    "password" : ``(BootCommon::getPasswdWidget ()),
+		    "__repl_mbr" : ``(BootCommon::getReplMbrWidget ()),
+		    "activate" : ``(BootCommon::getActivateWidget ()),
+		    "message" : ``(BootCommon::getMessageWidget ()),
 		],
 	];
     }
@@ -479,6 +479,10 @@
 		= sects[index, "label"]:"";
 	    BootCommon::tmp_store["section_type"]
 		= sects[index, "image"]:"" == "" ? "other" : "image";
+
+	    BootCommon::tmp_store["changed_single_sect"]
+		= eval (BootCommon::changed_settings[sects[index, "label"]:""]:$[]);
+	    y2milestone ("Changed settings: %1", BootCommon::tmp_store["changed_single_sect"]:$[]);
 	}
 	else if (op == `delete && confirmSectionDeletePopup (current))
 	{
@@ -491,10 +495,16 @@
 	    BootCommon::tmp_store["sections"] = sects;
 	    sectionsRedrawTable (sects);
 	}
-	if (contains (tosave, op))
+	if (contains (tosave, op) && op != `edit && op != `add)
 	{
 	    BootCommon::markOptionChanged (`global, "__sections");
 	    BootCommon::markOptionChanged (`global, "__default_section");
+	}
+	if (op == `back)
+	{
+	    BootCommon::changed_settings
+		= eval (BootCommon::tmp_store["changed_all_sects"]:$[]);
+	    y2milestone ("Restoring changed to %1", BootCommon::changed_settings);
 	}
     }
 
@@ -547,7 +557,7 @@
     global define map getSingleSectionWidget () ``{
 	return $[
 	    "widget" : (`HBox (`HSpacing (2), `VBox (
-		    `Table (`id (`settings), `opt (`immediate, `keepSorting),
+		    `Table (`id (`settings), `opt (`immediate, `notify, `keepSorting),
 			`header (_("Ch."), _("Option"), _("Value")), []),
 		    `HBox (
 			`PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
@@ -569,7 +579,8 @@
       */
     global define map getGlobalSectionWidget () ``{
 	map ret = getSingleSectionWidget ();
-	ret ["help"] = getGlobalSectionHelp ();
+	ret["help"] = getGlobalSectionHelp ();
+	ret["handle"] = ``(globalSectionHandle ());
 	return ret;
     }
 

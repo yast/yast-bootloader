@@ -12,5 +12,10 @@
 
 AM_CONDITIONAL(SPARC, test $target_cpu = "sparc" -o $target_cpu = "sparc64")
 
+case $target_cpu in
+    i?86) MBR=true ;;
+esac
+AC_SUBST([MBR])
+
 ## and generate the output...
 @YAST2-OUTPUT@

@@ -86,6 +86,10 @@
 	return BootCommon::Read ();
     }
 
+    /**
+      * Save all bootloader configuration files
+      * @return boolean true if success
+      */
     global define boolean Save () ``{
 	y2milestone ("Saving S390 cfg. file");
 /*	string root_device = BootCommon::RootPartitionDevice;
@@ -134,6 +138,10 @@ dumpto=/dev/rtibm0
 	return ret;
     }
 
+    /**
+      * Display bootloader summary
+      * @return a list of summary lines
+      */
     global define list(string) Summary () ``{
 	return [_("Install S390 bootloader")];
     }

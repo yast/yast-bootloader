@@ -171,7 +171,7 @@
     /**
       * translate filename path (eg. (hd0,0)/kernel) to list of device
       *  and relative path
-      * @param pth string fileststem path (eg. (hd0,0)/vmlinuz)
+      * @param devpth string fileststem path (eg. (hd0,0)/vmlinuz)
       * @return list containing device and relative path,
       *  eg. ["(hd0,0)", "/vmlinuz"]
       */
@@ -237,7 +237,7 @@
 
     /**
       * parse /etc/grub file from other file
-      * @param filename string name of file
+      * @param file string contents of grub.conf file
       * @return map of settings
       */
     global define map parseGrubConf (string file) ``{
@@ -289,7 +289,7 @@
 
 
 
-    /*e
+    /**
       * get /etc/grub.conf file from settings as string
       * @param settings map of settings
       * @return string file contents
