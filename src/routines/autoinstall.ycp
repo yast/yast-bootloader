@@ -17,8 +17,13 @@
 {
 
     import "Bootloader";
-    import "Product";
+    import "BootCommon";
+    import "Initrd";
+    import "Kernel";
     import "Mode";
+    import "Product";
+
+    include "bootloader/routines/routines.ycp";
 
     /**
       * Translate the autoinstallation map to the Export map
@@ -77,32 +82,46 @@
             });
 	}
 
-	list modlist = [];
-        if (Mode::autoinst)
-        {
-            string parameters = ai["kernel_parameters"]:"";
-            if ( size(parameters) > 0)
-            {
-                foreach ( string parameter, splitstring(parameters, " "),
-                        ``{
-                        list param_value_list = splitstring (parameter, "=");
-                        if (size (param_value_list) > 0)
-                        {
-                        Kernel::AddCmdLine (param_value_list[0]:"", param_value_list[1]:"");
-                        }
-                        });
-            }
-            map current = Initrd::Export();
-            y2milestone("Current initrd modules: %1", current);
-            modlist = current["list"]:[];
-        }
-
 	// initrd stuff
-	map modsett = $[];
+	list<string> modlist = [];
+	map<string,any> modsett = $[];
 	foreach(map mod, ai["initrd_modules"]:[], ``{
 	    modlist = add(modlist, mod["module"]:"");
 	    modsett = add(modsett, mod["module"]:"", mod["module_args"]:$[]);
 	});
+        if (Mode::autoinst)
+        {
+	    map current = Initrd::Export();
+            y2milestone("Automatically detected initrd modules: %1", current);
+	    list<string> modules = current["list"]:[];
+	    map<string,any> modules_settings = current["settings"]:$[];
+	    foreach (string m, modules, {
+		if (! contains (modlist, m))
+		{
+		    // add only if it isn't present
+		    modlist = add (modlist, m);
+		}
+		if (! haskey (modsett, m) && haskey (modules_settings, m))
+		{
+		    // if the argument is in profile, prefer it
+		    modsett[m] = modules_settings[m]:nil;
+		}
+	    });
+            string parameters = ai["kernel_parameters"]:"";
+            if ( size(parameters) > 0)
+            {
+                foreach ( string parameter, splitstring(parameters, " "), {
+		    list param_value_list = splitstring (parameter, "=");
+		    if (size (param_value_list) > 0)
+		    {
+			Kernel::AddCmdLine (
+			    param_value_list[0]:"",
+			    param_value_list[1]:"");
+		    }
+		});
+            }
+	}
+
 	if (size(modlist) > 0 )
 	    exp["initrd"] = $[ "list": modlist, "settings" : modsett ];
 
