@@ -42,6 +42,11 @@
       * true if settings were already read, flase otherwise
       */
     boolean was_read = false;
+    /**
+      * parametr for mk_initrd because of splash screen
+      * used for choosing right size of splash
+      */
+    string splash = "";
 
 // module functions
 
@@ -239,8 +244,11 @@
 	SCR::Write (.sysconfig.kernel.INITRD_MODULES, mods);
 	SCR::Write (.sysconfig.kernel, nil);
 	// recreate initrd
-	if ( SCR::Execute (.target.bash, "/sbin/mk_initrd >> \
-/var/log/YaST2/y2logmk_initrd 2>&1") != 0 )
+	string param = "";
+	if (splash != "" && splash != nil)
+	    param = sformat ("-s %1", splash);
+	if ( SCR::Execute (.target.bash, sformat ("/sbin/mk_initrd %1 >> \
+/var/log/YaST2/y2logmk_initrd 2>&1", param)) != 0 )
 	{
 	    string log = SCR::Read (.target.string,
 		"/var/log/YaST2/y2logmk_initrd");
@@ -251,6 +259,37 @@
 	}
 	changed = false;
 	return true;
+    }
+
+    /**
+      * Set the -s parameter of mk_initrd
+      * @param spl string the parameter
+      */
+    global define void setSplash (string spl) ``{
+	if (! Arch::s390)
+	{
+	    changed = true;
+	    integer splint = tointeger (spl);
+	    integer modulo = splint % 16;
+	    integer num2 = (splint / 16) % 16;
+	    // FIXME: Just guessing how to translate to size, but seems to work
+	    if (num2 == 0 || num2 == 2)
+	    {
+		modulo = modulo / 2;
+	    }
+	    else
+	    {
+		modulo = modulo / 3;
+	    }
+	    if (modulo == 0)
+		splash = "640x480";
+	    else if (modulo == 1)
+		splash = "800x600";
+	    else if (modulo == 2)
+		splash = "1024x768";
+	    else //if (modulo == 3)
+		splash = "1280x1024";
+	}
     }
 
 } // end of module

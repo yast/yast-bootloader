@@ -41,6 +41,14 @@
       */
     global boolean proposed_cfg_changed = false;
 
+// old vga value handling function
+
+    /**
+      * old value of vga parameter of default bootloader section
+      */
+    string old_vga = nil;
+
+
 // general functions
 
     /**
@@ -95,6 +103,7 @@
 	}
 	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::was_read = true;
+	old_vga = getKernelParam (getDefaultSection (), "vga");
 	return ret;
     }
     /**
@@ -171,10 +180,17 @@
             Progress::Title (titles[0]:"");
         }
 
+	string new_vga = getKernelParam (getDefaultSection (), "vga");
+	if (new_vga != old_vga && new_vga != "false" && new_vga != "")
+	    Initrd::setSplash (new_vga);
+
 	// save initrd
 	if ((Initrd::changed || ! Mode::normal)
 	    && ! (BootCommon::write_settings["forbid_save_initrd"]:false))
 	{
+	    string vga = getKernelParam (getDefaultSection (), "vga");
+	    if (vga != "false" && vga != "")
+		Initrd::setSplash (vga);
 	    ret = Initrd::Write ();
 	    BootCommon::changed = true;
 	}
@@ -297,17 +313,17 @@
 	ReadOrProposeIfNeeded ();
 	string bl = BootCommon::getLoaderType(false);
 	list all = [];
-	string def = BootCommon::globals["default"]:nil;
+	string def = sformat ("%1", BootCommon::globals["default"]:nil);
 	if (bl != "grub")
 	{
-	    if (def == nil)
+	    if (def == nil || def == "nil")
 		def = "0";
 	    else
 		return def;
 	}
 	else
 	{
-	   if (def == nil)
+	   if (def == nil || def == "nil")
 		def = "0";
 	}
 	string titlename = BootCommon::getLoaderType (false) == "grub"
