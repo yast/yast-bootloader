@@ -1280,6 +1280,11 @@
     global define string dev2majmin (string device) ``{
 	map exec_ret = (map) SCR::Execute (.target.bash_output, sformat (
 	    "ls -ln %1", device));
+	if (exec_ret["exit"]:1 != 0 && Mode::initial)
+	{
+	    exec_ret = (map) WFM::Execute (.local.bash_output, sformat (
+		"ls -ln %1", device));
+	}
 	if (exec_ret["exit"]:1 != 0)
 	    return device;
         string ls = exec_ret["stdout"]:"";

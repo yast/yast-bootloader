@@ -757,4 +757,52 @@
 	});
     }
 
+    global define string createRootDeviceNode () {
+	string to_remove = nil;
+	map part = Storage::GetEntryForMountpoint ("/");
+	string device = part["device"]:"";
+	if (Mode::initial && Storage::CheckForLvmRootFs ()
+	    && SCR::Read (.target.stat, device) == $[])
+	{
+	    y2milestone ("Root node %1 not found on target", device);
+	    list<string> split = splitstring (device, "/");
+	    split = filter (string s, split, ``(s != ""));
+	    integer last_index = size (split) - 1;
+	    string last = split[last_index]:"";
+	    split[last_index] = "";
+	    split = filter (string s, split, ``(s != ""));
+	    string pth = "";
+	    foreach (string s, split, {
+		pth = pth + "/" + s;
+		integer ret = (integer)SCR::Execute (.target.bash, sformat (
+		    "test -d %1 && exit 0 || mkdir %1 && exit 255", pth));
+		if (ret == 255 && to_remove == nil)
+		    to_remove = pth;
+	    });
+	    pth = pth + "/" + last;
+	    map stat = (map)WFM::Read (.local.lstat, device);
+	    integer depth = 0;
+	    while (stat["islink"]:false && depth < 10)
+	    {
+		depth = depth + 1;
+		device = (string)WFM::Read (.local.symlink, device);
+		stat = (map)WFM::Read (.local.lstat, device);
+	    }
+	    if (stat["isblock"]:false)
+	    {
+		if (to_remove == nil)
+		    to_remove = device;
+		string majmin = BootCommon::dev2majmin (device);
+		integer maj = tointeger (sformat ("0x%1",
+		    substring (majmin, 0, 2)));
+		integer min = tointeger (sformat ("0x%1",
+		    substring (majmin, 2, 2)));
+		SCR::Execute (.target.bash, sformat (
+		    "/bin/mknod %1 b %2 %3", pth, maj, min));
+	    }
+	    y2milestone ("File/Dir to remove: %1", to_remove);
+	}
+	return to_remove;
+    }
+
 }
