@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb  6 12:33:54 CET 2003 - jsrain@suse.de
+
+- merged proofread texts from second round
+
+-------------------------------------------------------------------
 Wed Feb  5 13:36:05 CET 2003 - jsrain@suse.de
 
 - fixed bootloader changing during installation (#20759)
