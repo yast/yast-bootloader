@@ -59,7 +59,7 @@
       * @param bootloader string name of bootloader
       * @return a list of required packages names
       */
-    global define list(string) getBootloaderPackages (string bootloader) ``{
+    global define list<string> getBootloaderPackages (string bootloader) ``{
 	return bootloader_attribs[bootloader, "required_packages"]:[];
     }
 
@@ -117,7 +117,7 @@
       * Get list of keys which mean section alias
       * @return a list of such keys
       */
-    global define list(string) getAliasesKeys () ``{
+    global define list<string> getAliasesKeys () ``{
         return current_bootloader_attribs["alias_keys"]:[];
     }
 
@@ -157,7 +157,7 @@
 	f = add (f, otype);
 	f = add (f, ntype);
 	f = add (f, orig);
-	return eval (f);
+	return (list) eval (f);
     }
 
     /**
@@ -216,8 +216,8 @@
 	    section = [];
 	}
 
-	section = filter (`cc,
-	    maplist (`c, section, ``{
+	section = filter (map cc,
+	    maplist (map c, section, ``{
 		if (c["key"]:"" == key)
 		{
 		    found = true;
@@ -252,11 +252,11 @@
       */
     global define string getFreeSectionLabel () ``{
 	integer index = 1;
-	list(string) existing = [];
-        foreach (`s, BootCommon::sections, ``{
+	list<string> existing = [];
+        foreach (list s, BootCommon::sections, ``{
             existing = add (existing, lookup_value (
 		s, getSectionTitle (), ""));
-            foreach (`a, getAnyTypeAttrib ("alias_keys", []), ``{
+            foreach (string a, (list<string>) getAnyTypeAttrib ("alias_keys", []), ``{
                 existing = add (existing, lookup_value (
 		    s, a, ""));
             });
@@ -274,15 +274,15 @@
       * Get the list of installed floppy drives
       * @return a list of floppy devices
       */
-    global define list(string) getFloppyDevices () ``{
+    global define list<string> getFloppyDevices () ``{
         if (floppy_devices == nil)
         {
-            list floppies = SCR::Read (.probe.floppy);
-            floppies = filter (`f, floppies,
-                ``(lookup (f, "model", "Floppy Disk") == "Floppy Disk"));
-            floppy_devices = maplist (`f, floppies,
-		``(lookup (f, "dev_name", "")));
-            floppy_devices = filter (`f, floppy_devices, ``(f != ""));
+            list<map> floppies = (list<map>) SCR::Read (.probe.floppy);
+            floppies = filter (map f, floppies,
+                ``(f["model"]:"Floppy Disk" == "Floppy Disk"));
+            floppy_devices = maplist (map f, floppies,
+		``(f["dev_name"]:""));
+            floppy_devices = filter (string f, floppy_devices, ``(f != ""));
         }
 	return floppy_devices;
     }
@@ -322,7 +322,7 @@
     /**
       * List of all supported bootloaders
       */
-    global list(string) bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
+    global list<string> bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
 	"aboot", "s390", "ppc", "mips"];
 
     /**
@@ -330,9 +330,9 @@
      * @param strs list of string
      * @return path whose components are taken from strs
      */
-    global define path list2path(list strs) ``{
+    global define path list2path(list<string> strs) ``{
         path pth = .;
-        foreach(`e, strs, ``{
+        foreach(string e, strs, ``{
             pth = add(pth, e);
         });
         return pth;
@@ -351,65 +351,65 @@
      *   `deleted - all partitions deleted in current proposal
      * @return list of strings
      */
-    global define list getPartitionList(symbol type) ``{
+    global define list<string> getPartitionList(symbol type) ``{
 	map devices = Storage::GetTargetMap();
-	devices = filter (`k, `v, devices,
-	    ``(! lookup (v, "is_lvm_vg", false)));
+	devices = filter (string k, map v, devices,
+	    ``(! v["is_lvm_vg"]:false));
 	if (type == `boot || type == `boot_other)
 	{
-	    devices = filter (`k, `v, devices,
+	    devices = filter (string k, map v, devices,
 		``(! issubstring (k, "/dev/md")));
 	}
-	list all_disks = maplist (`k, `v, devices, ``(k));
+	list<string> all_disks = (list<string>) maplist (string k, map v, devices, ``(k));
 	list partitions = [];
-	foreach (`k, `v, devices, ``{
+	foreach (string k, map v, devices, ``{
 	    partitions = merge (partitions, v["partitions"]:[]);
 	});
-	list(string) floppies = getFloppyDevices ();
+	list<string> floppies = getFloppyDevices ();
 
-        partitions = filter (`p, partitions, ``(is (p, map)));
+        partitions = filter (any p, partitions, ``(is (p, map)));
 	if (type == `deleted)
-	    return maplist (`x, filter (`p, partitions, ``(p["delete"]:false)),
+	    return maplist (map x, filter (map p, partitions, ``(p["delete"]:false)),
 		``{return x["device"]:"";
 	    });
-        partitions = filter (`p, partitions, ``(! p["delete"]:false));
+        partitions = filter (map p, partitions, ``(! p["delete"]:false));
 	list ret = all_disks;
 	if (type == `boot_other || type == `root || type == `parts_old)
             ret = [];
 
 	if (type == `boot_other)
 	{
-	    partitions = filter (`p, partitions,
+	    partitions = filter (map p, partitions,
 		``(p["type"]:`primary == `primary));
 	}
         else if (type == `boot)
         {
-            partitions = filter (`p, partitions,
+            partitions = filter (map p, partitions,
                 ``(p["type"]:`primary == `primary
 		    || p["type"]:`primary == `extended));
         }
         else if (type == `root)
         {
-            partitions = filter (`p, partitions,
+            partitions = filter (map p, partitions,
                     ``(p["type"]:`primary != `extended));
         }
 	else if (type == `parts_old)
 	{
-	    partitions = filter (`p, partitions, ``(! p["create"]:false));
+	    partitions = filter (map p, partitions, ``(! p["create"]:false));
 	}
         if (type != `all && type != `parts_old)
         {
-            partitions = filter (`p, partitions,
-                ``(lookup (p, "fstype", "") != "Linux swap"));
+            partitions = filter (map p, partitions,
+                ``(p["fstype"]:"" != "Linux swap"));
         }
 	if (type == `boot)
 	{
-	    partitions = filter (`p, partitions,
+	    partitions = filter (map p, partitions,
                 ``(p["fstype"]:"" == "Linux native"
                     || p["fstype"]:"" == "Extended"));
 	}
-        partitions = maplist (`p, partitions, ``(p["device"]:""));
-	partitions = filter (`p, partitions, ``(p != ""));
+        partitions = maplist (map p, partitions, ``(p["device"]:""));
+	partitions = filter (string p, partitions, ``(p != ""));
         partitions = merge (partitions, floppies);
         ret = union (ret, partitions);
 	ret = toset (ret);
@@ -417,74 +417,46 @@
     }
 
     /**
-      * reads specified section and returns values as map
-      *   $[option1:value1, option2:value2,...]]
-      * @param bl string bootloader to read
-      * @param type string "sections" / ""
-      * @param section string
-      * @return map map as described above
+      * returns true if char is blank (newline, tab or space)
+      * @param s single char string
+      * @return boolean blank/non blank
       */
-    global define map sectOptions2Map(string bl, string type, string section)
-    ``{
-	if (bl == "ppc")
-	    bl = "lilo";
-        path p = .;
-        if (type == "")
-        {
-            p = list2path([bl]);
-        }
-        else
-        {
-            p = list2path([bl, "sections" , section]);
-        }
-
-	list options = SCR::Read (p);
-	map intern = $[];
-	options = maplist (`o, options, ``{
-	    string key = o["key"]:"";
-	    if (key == getSectionTitle ())
-	    {
-		if (regexpmatch (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: [a-z_]+###"))
-		{
-		    intern["type"]
-			= regexpsub (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: ([a-z_]+)###", "\\1");
-		}
-		else
-		{
-		    intern["type"] = o["value"]:"";
-		}
-	    }
-	    any value = mod2ui (o["value"]:"");
-	    if (isSpecial (key) && is (value, string))
-		value = mergestring (splitstring (value, "\n"), ",");
-	    o["value"] = value;
-	    return o;
-	});
-	options = add (options, $[
-	    "key" : "__intern__",
-	    "value" : intern,
-	]);
-	y2debug ("Result of section options: %1", options);
-	return options;
+    global define boolean isBlank(string s) ``{
+	if (s == "\n" || s == "\t" || s == " ")
+	{
+	    return true;
+	}
+	return false;
     }
 
     /**
-      * returns list difference A \ B (items that are in A and are not in B)
-      * @param a list A
-      * @param b list B
-      * @return list see above
+      * removes trailing and leading blank chars from string.
+      *   eg: "  as df  " -> "as df"
+      * @param str string source string
+      * @return string stripped string
       */
-    global define list difflist(list a, list b) ``{
-	return filter(`e, a, ``(!contains(b, e)));
-    }
+    global define string strip(string str)``{
+	//emtpy  string
+	if (size(str) == 0) return "";
 
-    /**
-      * return true if given option is special
-      * @param opt option name
-      * @return boolean special/not
-      */
-    global define boolean isSpecial(string opt) ``{
-	return (lookup(opttypes(), opt, "") == "x");
+	integer bound = size(str);
+	integer first = 0;
+	integer last = size(str) - 1;
+	// find first non-blank char
+	while(first < bound && isBlank(substring(str, first, 1)))
+	{
+	    first = first + 1;
+	}
+
+	while(last >= 0 && isBlank(substring(str, last, 1)))
+	{
+	    last = last - 1;
+	}
+	if (last >= first)
+	{
+	    return substring(str, first, last - first + 1);
+	}
+	return "";
     }
 
     /**
@@ -514,6 +486,96 @@
 	    return v;
 	}
 	return val;
+    }
+
+    /**
+      * returns map of options and their types
+      * @return map option types
+      */
+    global define map opttypes() ``{
+	string bl = getLoaderType (false);
+	if (bl == "none")
+	    return $[];
+	if (bl == "s390")
+	    bl = "zipl";
+	else if (bl == "ppc")
+	    bl = "lilo";
+	if (size (opt_types[bl]:$[]) > 0)
+	    return opt_types[bl]:$[];
+	map out = (map) SCR::Read (list2path ([bl, "opttypes"]));
+	opt_types[bl] = out;
+	return out;
+    }
+
+    /**
+      * return true if given option is special
+      * @param opt option name
+      * @return boolean special/not
+      */
+    global define boolean isSpecial(string opt) ``{
+	return (lookup(opttypes(), opt, "") == "x");
+    }
+
+    /**
+      * reads specified section and returns values as map
+      *   [$[option1:value1], $[option2:value2],...]
+      * @param bl string bootloader to read
+      * @param type string "sections" / ""
+      * @param section string
+      * @return list<map> as described above
+      */
+    global define list<map> sectOptions2Map(string bl, string type, string section)
+    ``{
+	if (bl == "ppc")
+	    bl = "lilo";
+        path p = .;
+        if (type == "")
+        {
+            p = list2path([bl]);
+        }
+        else
+        {
+            p = list2path([bl, "sections" , section]);
+        }
+
+	list options = (list) SCR::Read (p);
+	map intern = $[];
+	options = maplist (map o, options, ``{
+	    string key = o["key"]:"";
+	    if (key == getSectionTitle ())
+	    {
+		if (regexpmatch (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: [a-z_]+###"))
+		{
+		    intern["type"]
+			= regexpsub (o["comment"]:"", "###Don't change this comment - YaST2 identifier: Original name: ([a-z_]+)###", "\\1");
+		}
+		else
+		{
+		    intern["type"] = o["value"]:"";
+		}
+	    }
+	    any value = mod2ui (o["value"]:"");
+	    if (isSpecial (key) && is (value, string))
+		value = mergestring (splitstring ((string) value, "\n"), ",");
+	    o["value"] = value;
+	    return o;
+	});
+	options = add (options, $[
+	    "key" : "__intern__",
+	    "value" : intern,
+	]);
+	y2debug ("Result of section options: %1", options);
+	return options;
+    }
+
+    /**
+      * returns list difference A \ B (items that are in A and are not in B)
+      * @param a list A
+      * @param b list B
+      * @return list see above
+      */
+    global define list difflist(list a, list b) ``{
+	return filter(`e, a, ``(!contains(b, e)));
     }
 
     /**
@@ -572,49 +634,6 @@
 
 
     /**
-      * returns true if char is blank (newline, tab or space)
-      * @param s single char string
-      * @return boolean blank/non blank
-      */
-    global define boolean isBlank(string s) ``{
-	if (s == "\n" || s == "\t" || s == " ")
-	{
-	    return true;
-	}
-	return false;
-    }
-
-    /**
-      * removes trailing and leading blank chars from string.
-      *   eg: "  as df  " -> "as df"
-      * @param str string source string
-      * @return string stripped string
-      */
-    global define string strip(string str)``{
-	//emtpy  string
-	if (size(str) == 0) return "";
-
-	integer bound = size(str);
-	integer first = 0;
-	integer last = size(str) - 1;
-	// find first non-blank char
-	while(first < bound && isBlank(substring(str, first, 1)))
-	{
-	    first = first + 1;
-	}
-
-	while(last >= 0 && isBlank(substring(str, last, 1)))
-	{
-	    last = last - 1;
-	}
-	if (last >= first)
-	{
-	    return substring(str, first, last - first + 1);
-	}
-	return "";
-    }
-
-    /**
       * returns modified list where items index1 and index2 are swapped.
       * if indices are out of bounds, unmodified list is returned.
       * @param input list
@@ -662,7 +681,7 @@
 	string dev = "";
 	string mp = "";
 	integer max = 0;
-	foreach (`k, `v, mountpoints, ``{
+	foreach (string k, list v, mountpoints, ``{
 	    if (issubstring (fullpth, k) && size (k) > max)
 	    {
 	        max = size (k);
@@ -686,7 +705,7 @@
       *  relative path (eg. ["/dev/hda1", "/vmlinuz"])
       * @return string fileststem path (eg. /boot/vmlinuz)
       */
-    global define string mergePath (list(string) devpth) ``{
+    global define string mergePath (list<string> devpth) ``{
 // UGHLY HACK because of testsuites
         map mountpoints = $[];
 	if (Mode::test)
@@ -696,7 +715,7 @@
 	string ret = "/dev/null";
 	if (substring (devpth[1]:"", 0, 1) != "/")
 	    devpth[1] = "/" + devpth[1]:"";
-        foreach (string k, `v, mountpoints, ``{
+        foreach (string k, list v, mountpoints, ``{
 	    if (v[0]:"" == devpth[0]:"")
 	    {
 		if (substring (k, size (k) - 1, 1) == "/")
@@ -705,6 +724,39 @@
 	    }
 	});
 	return ret;
+    }
+
+    /**
+      * If device is part of RAID (md), then return first of its members
+      * otherwise return the same as argument
+      * @param device string device of the RAID
+      * @return string first member of the RAID
+      */
+    global define string getDeviceOfRaid (string device) ``{
+	// get list of all partitions (not marked to be deleted)
+	map tm = Storage::GetTargetMap ();
+	list partitions = [];
+
+	foreach ( string dev, map disk, tm, ``{
+	    if( Storage::IsRealDisk( dev, disk ) )
+	    {
+		list l = filter( map p, disk["partitions"]:[],
+		    ``(p["delete"]:false==false) );
+		partitions = merge (partitions, l);
+            }
+        });
+
+	// filter partitions to relevant list according to raid name
+	list md_list = filter (map e, partitions, ``(e["raid_name"]:"" == device));
+	// get the devices
+	list dev_list = maplist (map e, md_list, ``(e["device"]:""));
+	dev_list = filter (string d, dev_list, ``(d != ""));
+	if (size (dev_list) > 0)
+	{
+	    dev_list = sort (dev_list);
+	    return dev_list[0]:"";
+	}
+	return device;
     }
 
     /**
@@ -748,10 +800,10 @@
     global define string getDefaultSection () ``{
 	if (getDefaultType () == `label)
 	{
-	    string default = lookup_value (globals,
+	    string default = (string) lookup_value (globals,
 		getDefaultKey (), "");
 	    boolean exists = false;
-	    foreach (`s, sections, ``{
+	    foreach (list s, sections, ``{
 		if (lookup_value (s, getSectionTitle (), "")
 		    == default)
 		{
@@ -762,16 +814,16 @@
 		return default;
 	    else
 	    {
-		return lookup_value (sections[0]:[], getSectionTitle (), "");
+		return (string) lookup_value (sections[0]:[], getSectionTitle (), "");
 	    }
 	}
 	else
 	{
-	    integer index = lookup_value (globals,
+	    integer index = (integer) lookup_value (globals,
 		getDefaultKey (), 0) - getDefaultFirstIndex ();
 	    if (index < 0 || index >= size (sections))
 		index = 0;
-	    return lookup_value (sections[index]:[], getSectionTitle (), "");
+	    return (string) lookup_value (sections[index]:[], getSectionTitle (), "");
 	}
     }
 
@@ -784,12 +836,12 @@
       */
     global define string getKernelParamFromLine (string line, string key) ``{
 	string res = "false";
-	list params = splitstring (line, " ");
-	params = filter (`p, params, ``(p != ""));
-	foreach (`p, params, ``{
-	    list l = filter (`e, splitstring (p, "="), ``(e != " " && e != ""));
-	    if (select (l, 0, "") == key)
-	        res = select (l, 1, "true");
+	list<string> params = splitstring (line, " ");
+	params = filter (string p, params, ``(p != ""));
+	foreach (string p, params, ``{
+	    list<string> l = (list<string>) filter (string e, splitstring (p, "="), ``(e != " " && e != ""));
+	    if (l[0]:"" == key)
+	        res = l[1]:"true";
 	});
 	return res;
     }
@@ -805,13 +857,13 @@
     global define string setKernelParamToLine
 	(string line, string key, string value)
     ``{
-	list params = splitstring (line, " ");
-	params = filter (`p, params, ``(p != ""));
+	list<string> params = splitstring (line, " ");
+	params = filter (string p, params, ``(p != ""));
 	list rp = [];
 	boolean done = false;
-	foreach (`p, params, ``{
-	    list l = filter (`e, splitstring (p, "="), ``(e != " " && e != ""));
-	    if (select (l, 0, "") == key)
+	foreach (string p, params, ``{
+	    list<string> l = filter (string e, splitstring (p, "="), ``(e != " " && e != ""));
+	    if (l[0]:"" == key)
 	    {
 	        done = true;
 	        if (value == "true")
@@ -855,11 +907,11 @@
 	else if (bl == "ppc")
 	    bl = "lilo";
 	// first synchronize global settings
-	list options = maplist (`o, eval (globals), ``{
+	list options = maplist (map o, (list<map>) eval (globals), ``{
 	    string key = o["key"]:"";
 	    any value = o["value"]:"";
 	    if (isSpecial (key) && is (value, string))
-		value = mergestring (splitstring (value, ","), "\n");
+		value = mergestring (splitstring ((string) value, ","), "\n");
 	    else
 		value = ui2mod (value);
 	    o["value"] = value;
@@ -876,20 +928,20 @@
 	});
 
 	// now write new sections
-	foreach (`s, sections, ``{
+	foreach (list s, sections, ``{
 	    string title = "";
 	    string sect_type = getCreationType (s);
-	    options = maplist (`o, eval (s), ``{
+	    options = maplist (map o, (list) eval (s), ``{
 		string key = o["key"]:"";
 		any value = o["value"]:"";
 		if (key == getSectionTitle () && sect_type != "")
 		{
-		    title = value;
+		    title = (string) value;
 		    o["comment"] = sformat ("###Don't change this comment - YaST2 identifier: Original name: %1###",
 			sect_type);
 		}
 		if (isSpecial (key) && is (value, string))
-		    value = mergestring (splitstring (value, ","), "\n");
+		    value = mergestring (splitstring ((string) value, ","), "\n");
 		else
 		    value = ui2mod (value);
 		o["value"] = value;
@@ -930,7 +982,7 @@
         sects = SCR::Dir(list2path([bl, "sections"]));
         BootCommon::sections = [];
 
-        foreach(`e, sects,
+        foreach(string e, sects,
         ``{
             opts_tmp = sectOptions2Map(bl, "sections", e);
             BootCommon::sections = add(BootCommon::sections, opts_tmp);
@@ -940,30 +992,11 @@
     }
 
     /**
-      * returns map of options and their types
-      * @return map option types
-      */
-    global define map opttypes() ``{
-	string bl = getLoaderType (false);
-	if (bl == "none")
-	    return $[];
-	if (bl == "s390")
-	    bl = "zipl";
-	else if (bl == "ppc")
-	    bl = "lilo";
-	if (size (opt_types[bl]:$[]) > 0)
-	    return opt_types[bl]:$[];
-	map out = SCR::Read (list2path ([bl, "opttypes"]));
-	opt_types[bl] = out;
-	return out;
-    }
-
-    /**
       * Mark general bootloader option as changed by user
       * @param optname string option name
       */
     global define void markGeneralOptionChanged (string optname) ``{
-	map intern = lookup_value (current_section, "__intern__", $[]);
+	map intern = (map) lookup_value (current_section, "__intern__", $[]);
 	list ch = intern["changed_opts"]:[];
 	ch = toset (add (ch, optname));
 	intern["changed_opts"] = ch;
@@ -999,7 +1032,7 @@
 	integer new_index = -1;
 	integer order_count = 0;
 	integer sorted_cound = 0;
-	foreach (`o, order, ``{
+	foreach (map o, order, ``{
 	    boolean ord_option = widgets[o["key"]:"", "table", "ordering"]:true;
 	    if (substring (o["key"]:"", 0, 2) == "__")
 		ord_option = false;
@@ -1049,8 +1082,8 @@
 	    {
 		y2milestone ("Bootloader partition type is logical");
 		map tm = Storage::GetTargetMap ();
-		list partitions = tm[mbr_dev, "partitions"]:$[];
-		foreach (`p, partitions, ``{
+		list partitions = tm[mbr_dev, "partitions"]:[];
+		foreach (map p, partitions, ``{
 		    if (p["type"]:nil == `extended)
 		    {
 			num = p["nr"]:num;
@@ -1066,6 +1099,66 @@
 	    "dev" : Storage::GetDeviceName (mbr_dev, num),
 	];
 	return ret;
+    }
+
+    /**
+      * Get last change time of file
+      * @param filename string name of file
+      * @return string last change date as YYYY-MM-DD-HH-MM-SS
+      */
+    global define string getFileChangeDate (string filename) ``{
+	map stat = (map) SCR::Read (.target.stat, filename);
+	integer ctime = stat["ctime"]:0;
+	string command = sformat (
+	  "date --date='1970-01-01 00:00:00 %1 seconds' +\"%%Y-%%m-%%d-%%H-%%M-%%S\"",
+	  ctime);
+	map out = (map) SCR::Execute (.target.bash_output, command);
+	string c_time = out["stdout"]:"";
+	y2debug ("File %1: last change %2", filename, c_time);
+	return c_time;
+    }
+
+    /**
+      * Save current MBR to /boot/backup_mbr
+      * Also save to /var/lib/YaST2/backup_boot_sectors/%device, if some
+      * existing, rename it
+      * @param device string name of device
+      */
+    global define void saveMBR (string device) ``{
+	string device_file = mergestring (splitstring (device, "/"), "_");
+	string device_file_path = "/var/lib/YaST2/backup_boot_sectors/"
+	    + device_file;
+	SCR::Execute (.target.bash,
+	    "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors");
+	if (SCR::Read (.target.size, device_file_path) > 0)
+	{
+	    list contents = (list) SCR::Read (.target.dir, "/var/lib/YaST2/backup_boot_sectors");
+	    contents = filter (string c, contents, ``(regexpmatch (c, sformat (
+		"%1-.*-.*-.*-.*-.*-.*", device_file))));
+	    contents = sort (contents);
+	    integer index = 0;
+	    integer siz = size (contents);
+	    while (index + 10 < siz)
+	    {
+		SCR::Execute (.target.remove,
+		    sformat ("/var/lib/YaST2/backup_boot_sectors/%1", contents[index]:""));
+		index = index + 1;
+	    }
+	    string change_date = getFileChangeDate (device_file_path);
+	    SCR::Execute (.target.bash, sformat (
+		"/bin/mv %1 %1-%2",
+		device_file_path, change_date));
+	}
+	SCR::Execute (.target.bash, sformat (
+	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+	    device, device_file_path));
+	if (device == mbrDisk)
+	{
+	    SCR::Execute (.target.bash, sformat (
+		"/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+		device, "/boot/backup_mbr"));
+
+	}
     }
 
     /**
@@ -1106,66 +1199,6 @@
     }
 
     /**
-      * Get last change time of file
-      * @param filename string name of file
-      * @return string last change date as YYYY-MM-DD-HH-MM-SS
-      */
-    global define string getFileChangeDate (string filename) ``{
-	map stat = SCR::Read (.target.stat, filename);
-	integer ctime = stat["ctime"]:0;
-	string command = sformat (
-	  "date --date='1970-01-01 00:00:00 %1 seconds' +\"%%Y-%%m-%%d-%%H-%%M-%%S\"",
-	  ctime);
-	map out = SCR::Execute (.target.bash_output, command);
-	string c_time = out["stdout"]:"";
-	y2debug ("File %1: last change %2", filename, c_time);
-	return c_time;
-    }
-
-    /**
-      * Save current MBR to /boot/backup_mbr
-      * Also save to /var/lib/YaST2/backup_boot_sectors/%device, if some
-      * existing, rename it
-      * @param device string name of device
-      */
-    global define void saveMBR (string device) ``{
-	string device_file = mergestring (splitstring (device, "/"), "_");
-	string device_file_path = "/var/lib/YaST2/backup_boot_sectors/"
-	    + device_file;
-	SCR::Execute (.target.bash,
-	    "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors");
-	if (SCR::Read (.target.size, device_file_path) > 0)
-	{
-	    list contents = SCR::Read (.target.dir, "/var/lib/YaST2/backup_boot_sectors");
-	    contents = filter (`c, contents, ``(regexpmatch (c, sformat (
-		"%1-.*-.*-.*-.*-.*-.*", device_file))));
-	    contents = sort (contents);
-	    integer index = 0;
-	    integer siz = size (contents);
-	    while (index + 10 < siz)
-	    {
-		SCR::Execute (.target.remove,
-		    sformat ("/var/lib/YaST2/backup_boot_sectors/%1", contents[index]:""));
-		index = index + 1;
-	    }
-	    string change_date = getFileChangeDate (device_file_path);
-	    SCR::Execute (.target.bash, sformat (
-		"/bin/mv %1 %1-%2",
-		device_file_path, change_date));
-	}
-	SCR::Execute (.target.bash, sformat (
-	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
-	    device, device_file_path));
-	if (device == mbrDisk)
-	{
-	    SCR::Execute (.target.bash, sformat (
-		"/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
-		device, "/boot/backup_mbr"));
-
-	}
-    }
-
-    /**
       * Rewrite current MBR with /var/lib/YaST2/backup_boot_sectors/%device
       * Warning!!! don't use for bootsectors, 446 bytes of sector are written
       * @param device string device to rewrite MBR to
@@ -1179,31 +1212,10 @@
 	    Report::Error ("Can't restore MBR. No saved MBR found");
 	    return false;
 	}
-	integer ret = SCR::Execute (.target.bash, sformat (
+	integer ret = (integer) SCR::Execute (.target.bash, sformat (
 	    "/bin/dd of=%1 if=/var/lib/YaST2/backup_boot_sectors/%2 bs=446 count=1",
 	    device, device_file));
 	return (ret == 0);
-    }
-
-    /**
-      * Translate device name to major/minor number if the device is not
-      * "usual"
-      * @param device string
-      * @return string the original device parameter if it is "usual",
-      *  same as dev2majmin otherwise
-      */
-    global define string dev2majminIfNonStandard (string device) ``{
-	// don't use major/minor numbers for LVM and MD (seems to be able
-	// to make system unbootable
-	if (Storage::CheckForLvmRootFs() || Storage::CheckForMdRootFs())
-	    return device;
-	if (regexpmatch (device, "^/dev/hd.+$")
-	    || regexpmatch (device, "^/dev/sd.+$")
-	    || regexpmatch (device, "^/dev/ataraid/.+$"))
-	{
-	    return device;
-	}
-	return dev2majmin (device);
     }
 
     /**
@@ -1213,12 +1225,12 @@
       *  of any fail return unchanged device node
       */
     global define string dev2majmin (string device) ``{
-	map exec_ret = SCR::Execute (.target.bash_output, sformat (
+	map exec_ret = (map) SCR::Execute (.target.bash_output, sformat (
 	    "ls -ln %1", device));
 	if (exec_ret["exit"]:1 != 0)
 	    return device;
         string ls = exec_ret["stdout"]:"";
-        list(string) parts = splitstring (ls, " ");
+        list<string> parts = splitstring (ls, " ");
         parts = filter (`p, parts, ``(p != ""));
         string majs = parts[4]:"";
         majs = substring (majs, 0, size (majs) -1);
@@ -1242,6 +1254,27 @@
 
 
     /**
+      * Translate device name to major/minor number if the device is not
+      * "usual"
+      * @param device string
+      * @return string the original device parameter if it is "usual",
+      *  same as dev2majmin otherwise
+      */
+    global define string dev2majminIfNonStandard (string device) ``{
+	// don't use major/minor numbers for LVM and MD (seems to be able
+	// to make system unbootable
+	if (Storage::CheckForLvmRootFs() || Storage::CheckForMdRootFs())
+	    return device;
+	if (regexpmatch (device, "^/dev/hd.+$")
+	    || regexpmatch (device, "^/dev/sd.+$")
+	    || regexpmatch (device, "^/dev/ataraid/.+$"))
+	{
+	    return device;
+	}
+	return dev2majmin (device);
+    }
+
+    /**
       * Convert any to boolean
       * @param v any value
       * @return boolean retyped value
@@ -1259,12 +1292,12 @@
       * @return kernel command line or parameters with added new parameters
       */
     global define string updateKernelParams (string orig) ``{
-	list(string) new = splitstring (Kernel::cmdLine, " ");
-	list(string) old = splitstring (orig, " ");
-	list(string) added = BootCommon::difflist (new,
+	list<string> new = splitstring (Kernel::cmdLine, " ");
+	list<string> old = splitstring (orig, " ");
+	list<string> added = BootCommon::difflist (new,
 	     splitstring (BootCommon::kernelCmdLine, " "));
 	added = BootCommon::difflist (added, old);
-	old = merge (old, added);
+	old = (list<string>) merge (old, added);
 	if (Mode::initial)
 	{// move showopts apic to the end
 	    boolean showopts = false;
