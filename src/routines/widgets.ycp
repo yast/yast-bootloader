@@ -100,8 +100,8 @@
             targetlist = add (targetlist, `VSpacing (1));
             targetlist = add (targetlist, `Left (`RadioButton (`id ("floppy"),
 		 `opt (`notify),
-		// radiobutton
-                _("&Floppy disk"),
+		// radiobutton, %1 is device name, typically /dev/fd0
+                sformat (_("&Floppy disk %1"), StorageDevices::FloppyDevice),
                 (location == "floppy")
             )));
         }

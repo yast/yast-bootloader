@@ -93,9 +93,10 @@
       */
     global define boolean Read () ``{
 	Initrd::Read ();
-	boolean ret = blRead ();
 	BootCommon::location
 	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
+	boolean ret = blRead ();
+	BootCommon::updateLoaderLocation ();
 	if (BootCommon::location == "none")
 	{
 	    BootCommon::location = "custom";

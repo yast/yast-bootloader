@@ -87,6 +87,10 @@
       * device holding MBR for bootloader
       */
     global string mbrDisk = "";
+    /**
+      * list of installed floppy devices
+      */
+    global list floppy_devices = nil;
 
 // state variables
 

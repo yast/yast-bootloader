@@ -321,7 +321,7 @@
 	BootCommon::updateMBR ();
 	if (BootCommon::location_changed)
 	{
-	    if (! (BootCommon::location == "floppy" && saveToFLoppyPopup ()))
+	    if (! (BootCommon::installingToFloppy () && saveToFLoppyPopup ()))
 		ret = false;
 // save if mkfs or fdformat failed too
 //	    if (ret)
@@ -345,7 +345,7 @@
                 errorWithLogPopup (_("Error occurred while installing GRUB"),
                     log);
 	    }
-	    else if (BootCommon::location == "floppy")
+	    else if (BootCommon::installingToFloppy ())
 	    {
 		BootCommon::updateTimeoutPopupForFloppy
 		    (BootCommon::getLoaderName ("grub"));
@@ -715,8 +715,7 @@
 		});
 	    }
 	}
-	if (issubstring (BootCommon::loader_device, "/dev/fd")||
-	    BootCommon::location == "floppy")
+	if (BootCommon::installingToFloppy ())
 	{
             out = add (out, $[
                 "__order__" : ["title", "root", "chainloader"],

@@ -222,7 +222,7 @@
     global define boolean Write () ``{
 	BootCommon::updateMBR ();
 	boolean ret = true;
-	if (! (BootCommon::location == "floppy" && saveToFLoppyPopup ()))
+	if (! (BootCommon::installingToFloppy () && saveToFLoppyPopup ()))
 	    ret = false;
 // save if mkfs or fdformat failed too
 //            if (ret)
@@ -235,7 +235,7 @@
 	    // error popup - label
             errorWithLogPopup (_("Error occurred while installing LILO"), log);
 	}
-        else if (BootCommon::location == "floppy")
+        else if (BootCommon::installingToFloppy ())
         {
             BootCommon::updateTimeoutPopupForFloppy
 		(BootCommon::getLoaderName ("lilo"));
