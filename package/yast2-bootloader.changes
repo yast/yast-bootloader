@@ -6,6 +6,8 @@ Mon Mar 29 10:30:31 CEST 2004 - jsrain@suse.de
 - include desktop file for boot floppy disk creator on i386 only
   (#37209)
 - write "lilo" as bootloader type to sysconfig on PPC (#37263)
+- do not report incorrect error of PPC bootloader post-install
+  script (#37262)
 
 -------------------------------------------------------------------
 Fri Mar 26 10:03:50 CET 2004 - jsrain@suse.de
