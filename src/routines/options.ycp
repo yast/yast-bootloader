@@ -142,7 +142,7 @@
 	}
 	if (loader_device != "mbr_md")
 	UI::ChangeWidget (`id (`loc), `Value, loader_device == "mbr_md"
-	    ? select (getPartitionList(`boot), 0, "")
+	    ? getPartitionList(`boot)[0]:""
 	    : loader_device);
 	UI::ChangeWidget (`id (`location), `CurrentButton, location);
 	UI::SetFocus (`id (`loc));

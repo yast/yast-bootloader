@@ -309,7 +309,7 @@
             string boot_mount_point = "";
             // check, if no /boot partition exists
 
-            if (lookup (Storage::GetMountPoints(), "/boot", "") == "")
+            if (Storage::GetMountPoints()["/boot"]:"" == "")
             {
                 boot_mount_point = "/";
             }
@@ -912,9 +912,9 @@
 	map label_map = getValueMap (orig, "label");
 	if (ntype == "other")
 	{
-	    ret = [ $["key" : "other", "value" :
-		(string)select (BootCommon::splitPath (
-		    (string)lookup_value (orig, "image", "")), 0, "")]];
+	    list<string> _dp = BootCommon::splitPath (
+		(string)lookup_value (orig, "image", ""));
+	    ret = [ $["key" : "other", "value" : _dp[0]:""]];
 	}
 	else
 	{

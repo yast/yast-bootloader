@@ -271,9 +271,9 @@ global boolean currentBoardUpdate () {
 		foreach (string o, others, ``{
 		    index = index + 1;
 		    list<string> parts = splitstring (o, " ");
-		    while (select (parts, 0, " ") == "")
+		    while (parts[0]:" " == "")
 			parts = remove (parts, 0);
-		    string dev = (string)select (parts, 0, "");
+		    string dev = parts[0]:"";
 		    parts = remove (parts, 0);
 		    string label = mergestring (parts, " ");
 		    if (label == "")

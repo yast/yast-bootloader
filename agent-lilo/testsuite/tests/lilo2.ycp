@@ -10,7 +10,7 @@
     // read/write test
 
     // get first image section name
-    string str=(string)select(SCR::Dir(.sections), 0, "label");
+    string str=SCR::Dir(.sections)[0]:"label";
 
     list olddir=SCR::Dir(.sections);
 
