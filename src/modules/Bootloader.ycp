@@ -36,7 +36,7 @@
     import "BootGRUB";
 
     global define map Export ();
-    global define void Import (map<string,any> settings);
+    global define boolean Import (map<string,any> settings);
     global define void Propose ();
     global define boolean Read ();
     global define void Reset ();
@@ -112,7 +112,7 @@
       * Import settings from a map
       * @param settings map of bootloader settings
       */
-    global define void Import (map<string, any> settings) ``{
+    global define boolean Import (map<string, any> settings) ``{
 	y2milestone ("Importing settings: %1", settings);
 	Reset ();
 
@@ -130,8 +130,9 @@
 
 	if (settings["initrd"]:$[] != nil)
 	    Initrd::Import (settings["initrd"]:$[]);
-	blImport (settings["specific"]:$[]);
+	boolean ret = blImport (settings["specific"]:$[]);
 	BootCommon::write_settings = settings["write_settings"]:$[];
+	return ret;
     }
     /**
       * Read settings from disk

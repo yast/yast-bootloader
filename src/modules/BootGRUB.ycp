@@ -796,13 +796,14 @@
       * Import settings from a map
       * @param settings map of bootloader settings
       */
-    global define void Import (map settings) ``{
+    global define boolean Import (map settings) ``{
 	y2debug ("Started BootGRUB::Import ()");
 	BootCommon::Import (settings);
 	y2debug ("Importing GRUB-specific settings %1", settings);
 	device_map = settings["device_map"]:proposeDeviceMap ();
 	grub_conf = settings["grub_conf"]:proposeGrubConf ();
 	y2debug ("GRUB import done");
+	return true;
     }
     /**
       * Read settings from disk

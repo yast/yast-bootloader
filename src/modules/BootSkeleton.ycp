@@ -37,8 +37,8 @@
       * Import settings from a map
       * @param settings map of bootloader settings
       */
-    global define void Import (map settings) ``{
-	BootCommon::Import (settings);
+    global define boolean Import (map settings) ``{
+	return BootCommon::Import (settings);
     }
     /**
       * Read settings from disk

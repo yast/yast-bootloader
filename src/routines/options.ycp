@@ -39,8 +39,11 @@
         term targetlist = `VBox (
             `VSpacing (0.4),
             `Left (`RadioButton (`id ("mbr"), `opt (`notify),
-		// radiobutton, %1 is device (eg. /dev/hda)
-                sformat(_("&Master boot record of %1"), mbrDisk),
+		mbrDisk == ""
+		    // radio button
+		    ? _("&Master boot record")
+		    // radiobutton, %1 is device (eg. /dev/hda)
+		    : sformat(_("&Master boot record of %1"), mbrDisk),
                 (location == "mbr")
             )),
             `VSpacing (0.4),

@@ -65,11 +65,10 @@
       * Import settings to bootloader
       * @param settings map of settingss
       */
-    global define void blImport (map settings) ``{
+    global define boolean blImport (map settings) ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
-	void(map) toEval = functions["import"]:BootCommon::Import;
-	toEval (settings);
-	return;
+	boolean(map) toEval = functions["import"]:BootCommon::Import;
+	return toEval (settings);
     }
 
     /**
