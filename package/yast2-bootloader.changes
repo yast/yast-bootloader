@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Jan 23 13:44:33 CET 2003 - jsrain@suse.de
+
+- fixed fillup-template usage
+- changed symbols in export map to strings because of
+  autoinstallation
+- 2.7.3
+
+-------------------------------------------------------------------
 Wed Jan 22 14:30:26 CET 2003 - jsrain@suse.de
 
 - fixed meaningless log messages (#23025)

@@ -244,8 +244,8 @@
         {
             any prev = selected_opt;
             selected_opt = UI::QueryWidget (`id (`settings), `CurrentItem);
-	    if (selected_opt == `sep1 || selected_opt == `sep2
-		|| selected_opt == `sep3)
+	    if (selected_opt == "__sep1" || selected_opt == "__sep2"
+		|| selected_opt == "__sep3")
 	    {
 		map orig = BootCommon::tmp_store["active_section"]:$[];
 		list entries = Bootloader::blUpdateOptionsList (orig);
@@ -260,14 +260,14 @@
         }
         else if (op == `edit)
         {
-	    if (item == `default_section)
-		item = `sections;
-	    if (item == `sections)
+	    if (item == "__default_section")
+		item = "__sections";
+	    if (item == "__sections")
 	    {
 		return `sections;
 	    }
-           if (selected_opt == `sep1 || selected_opt == `sep2
-		    || selected_opt == `sep3)
+           if (selected_opt == "__sep1" || selected_opt == "__sep2"
+		    || selected_opt == "__sep3")
 		return op;
             map options = Bootloader::blOptions ();
             ret = singleOptionEditPopup (

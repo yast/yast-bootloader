@@ -35,19 +35,19 @@
 		"globalsection" : getGlobalSectionWidget (),
 		"summarybuttons" : getSummaryButtonsWidget (),
 		"tableentries" : $[
-		    `location: getTargetWidget (),
-		    `loader_type : getLoaderSelectionWidget (),
-		    `sections : getSectionsTableEntry (),
-		    `default_section : getDefaultSectionTableEntry (),
-		    `section_type : getSectionTypeWidget (),
-		    `sep1 : $["label" : "---------------"],
-		    `sep2 : $["label" : "---------------"],
-		    `sep3 : $["label" : "---------------"],
+		    "__location": getTargetWidget (),
+		    "__loader_type" : getLoaderSelectionWidget (),
+		    "__sections" : getSectionsTableEntry (),
+		    "__default_section" : getDefaultSectionTableEntry (),
+		    "__section_type" : getSectionTypeWidget (),
+		    "__sep1" : $["label" : "---------------"],
+		    "__sep2" : $["label" : "---------------"],
+		    "__sep3" : $["label" : "---------------"],
 		    "label" : getLabelWidget (),
 		    "alias" : getAliasWidget (),
 		    "timeout" : getTimeoutWidget (),
 		    "password" : getPasswdWidget (),
-		    `repl_mbr : getReplMbrWidget (),
+		    "__repl_mbr" : getReplMbrWidget (),
 		    "activate" : getActivateWidget (),
 		    "message" : getMessageWidget (),
 		],
@@ -493,8 +493,8 @@
 	}
 	if (contains (tosave, op))
 	{
-	    BootCommon::markOptionChanged (`global, `sections);
-	    BootCommon::markOptionChanged (`global, `default_section);
+	    BootCommon::markOptionChanged (`global, "__sections");
+	    BootCommon::markOptionChanged (`global, "__default_section");
 	}
     }
 
@@ -547,7 +547,7 @@
     global define map getSingleSectionWidget () ``{
 	return $[
 	    "widget" : (`HBox (`HSpacing (2), `VBox (
-		    `Table (`id (`settings), `opt (`notify, `keepSorting),
+		    `Table (`id (`settings), `opt (`immediate, `keepSorting),
 			`header (_("Ch."), _("Option"), _("Value")), []),
 		    `HBox (
 			`PushButton (`id (`add), `opt (`key_F3), AddButtonLabel ()),
@@ -588,20 +588,20 @@
 		&& o != "location" && o != "default_section" && o != "sections"
 		&& o != `repl_mbr && o != "activate"
 	    ));
-	    options = prepend (options, `sep1);
-	    options = prepend (options, `repl_mbr);
+	    options = prepend (options, "__sep1");
+	    options = prepend (options, "__repl_mbr");
 	    options = prepend (options, "activate");
-	    options = prepend (options, `sections);
-	    options = prepend (options, `default_section);
-	    options = prepend (options, `location);
-	    options = prepend (options, `sep2);
-	    options = prepend (options, `loader_type);
+	    options = prepend (options, "__sections");
+	    options = prepend (options, "__default_section");
+	    options = prepend (options, "__location");
+	    options = prepend (options, "__sep2");
+	    options = prepend (options, "__loader_type");
 	}
 	else
 	{
 	    options = filter (`o, options, ``(o != "type" && o != "label"));
-	    options = prepend (options, `sep1);
-	    options = prepend (options, `section_type);
+	    options = prepend (options, "__sep1");
+	    options = prepend (options, "__section_type");
 	    options = prepend (options, "label");
 	}
 	return options;
@@ -617,9 +617,11 @@
             `item (`id (`propose), _("&Propose new configuration")),
 		// menubutton item, keep as short as possible
             `item (`id (`scratch), _("&Start from scratch")),
-		// menubutton item, keep as short as possible
-            `item (`id (`reread), _("&Reread configuration from disk")),
 	];
+	if (Mode::normal)
+	    items = add (items,
+		// menubutton item, keep as short as possible
+                `item (`id (`reread), _("&Reread configuration from disk")));
 	if (/*Mode::initial &&*/ BootCommon::getLoaderType (false) == "grub")
 	    items = add (items, `item (`id (`propose_deep),
 		// menubutton item, keep as short as possible
