@@ -155,8 +155,7 @@ y2error ("Mode::initial: %1", Mode::initial);
 y2error ("Size: %1", SCR::Read (.target.size, "/etc/sysconfig/bootloader"));
 */
         if (LoaderType == "grub"
-//            && Mode::update
-	    && (! Mode::initial)
+            && (Mode::update || Mode::normal)
             && SCR::Read (.target.size, "/etc/sysconfig/bootloader") != -1)
         {
             string sysconfig = SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
