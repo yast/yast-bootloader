@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 11 12:50:06 CEST 2004 - jsrain@suse.cz
+
+- prevent from adding trailing blank space to section name on PPC
+  (#43599)
+
+-------------------------------------------------------------------
 Tue Aug 10 09:15:42 CEST 2004 - jsrain@suse.cz
 
 - merged texts from proofread
