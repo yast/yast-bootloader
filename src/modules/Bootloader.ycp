@@ -472,12 +472,28 @@
     }
 
     /**
+      * Set root fs device
+      * @param string root device
+      */
+    global define void setRootDevice (string device) ``{
+	BootCommon::RootPartitionDevice = device;
+    }
+
+    /**
       * Get device containing /boot directory
       * @return string boot device
       */
     global define string getBootDevice () ``{
 	ReadOrProposeIfNeeded ();
 	return BootCommon::BootPartitionDevice;
+    }
+
+    /**
+      * Set device containing /boot directory
+      * @param string boot device
+      */
+    global define void setBootDevice (string device) ``{
+	BootCommon::BootPartitionDevice = device;
     }
 
     /**
