@@ -237,6 +237,8 @@
 	    BootCommon::location
 		= sformat ("%1 %2", Product::name, Product::version);
 	}
+	if (! Mode::initial)
+	    create_efi_entry = true;
 	elilo_conf_filename = getEliloConfFilename ();
 	BootCommon::DetectDisks ();
 	BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
@@ -340,6 +342,7 @@
 	if (Mode::autoinst)
 	    return;
 	remove_old_efi = true;
+	create_efi_entry = true;
 	BootCommon::Reset ();
     }
 
