@@ -4,6 +4,8 @@ Thu Mar 18 10:44:48 CET 2004 - jsrain@suse.cz
 - mark settings as changed after bootloader switch (#36269)
 - avoid putting /dev/evms to GRUB's device map and allowing it as
   device to install bootloader to
+- create only one entry in the language selection in graphical
+  boot menu if English selected
 
 -------------------------------------------------------------------
 Wed Mar 17 14:27:15 CET 2004 - jsrain@suse.cz
