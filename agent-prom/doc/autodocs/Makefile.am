@@ -14,7 +14,7 @@ html_DATA =				\
 
 EXTRA_DIST = $(html_DATA)
 
-MAINTAINERCLEANFILES = $(html_DATA)
+CLEANFILES = $(html_DATA)
 
 $(filter-out index.html, $(html_DATA)): index.html
 index.html: $(srcdir)/../../src/*.h
