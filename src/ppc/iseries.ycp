@@ -270,7 +270,7 @@
 		list<integer> sources = Pkg::SourceStartCache (true);
 		integer source_id = sources[0]:0;
 		string src_filename
-		    = Pkg::SourceProvideFile(source_id, 1, "/boot/bootdsk1");
+		    = Pkg::SourceProvideFile(source_id, 1, "/ISERIES64");
 		rescue_bootbinary = (string)SCR::Read (.target.tmpdir)
 		    + "/rescue_bootbinary";
 		string tg_rescue_bootbinary
