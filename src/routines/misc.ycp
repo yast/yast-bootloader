@@ -985,6 +985,49 @@
     }
 
     /**
+      * Get partition which should be activated if doing it during bl inst.
+      * @return map $[ "dev" : string, "mbr": string, "num": any]
+      *  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
+      *  partition number (eg. 4)
+      */
+    global define map getPartitionToActivate () ``{
+	map p_dev = Storage::GetDiskPartition (BootCommon::loader_device);
+	any num = p_dev["nr"]:0;
+	string mbr_dev = p_dev["disk"]:"";
+	// if bootloader in MBR, activate /boot partition
+	// (partiall fix of #20637)
+	if (! (num != 0 && num != ""))
+	{
+	    p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+	    num = p_dev["nr"]:0;
+	    mbr_dev = p_dev["disk"]:"";
+	}
+	if (is (num, integer) && num != 0 && num != "")
+	{
+	    if (num > 4)
+	    {
+		y2milestone ("Bootloader partition type is logical");
+		map tm = Storage::GetTargetMap ();
+		list partitions = tm[mbr_dev, "partitions"]:$[];
+		foreach (`p, partitions, ``{
+		    if (p["type"]:nil == `extended)
+		    {
+			num = p["nr"]:num;
+			y2milestone ("Using extended partition %1 instead",
+			num);
+		    }
+		});
+	    }
+	}
+	map ret = $[
+	    "num" : num,
+	    "mbr" : mbr_dev,
+	    "dev" : Storage::GetDeviceName (mbr_dev, num),
+	];
+	return ret;
+    }
+
+    /**
       * Update contents of MBR (active partition and booting code)
       * @return boolean true on success
       */
@@ -992,35 +1035,12 @@
 	boolean ret = true;
 	if (activate)
 	{
-	    map p_dev = Storage::GetDiskPartition (BootCommon::loader_device);
-	    any num = p_dev["nr"]:0;
-	    string mbr_dev = p_dev["disk"]:"";
-            // if bootloader in MBR, activate /boot partition
-	    // (partiall fix of #20637)
-	    if (! (num != 0 && num != ""))
+	    map activate = getPartitionToActivate ();
+	    any num = activate["num"]:0;
+	    string mbr_dev = activate["mbr"]:"";
+	    if (num != 0 && mbr_dev != "")
 	    {
-		p_dev = Storage::GetDiskPartition (
-		    BootCommon::BootPartitionDevice);
-		num = p_dev["nr"]:0;
-		mbr_dev = p_dev["disk"]:"";
-	    }
-	    if (num != 0 && num != "")
-	    {
-		if (num > 4)
-		{
-		    y2milestone ("Bootloader partition type is logical");
-		    map tm = Storage::GetTargetMap ();
-		    list partitions = tm[mbr_dev, "partitions"]:$[];
-		    foreach (`p, partitions, ``{
-			if (p["type"]:nil == `extended)
-			{
-			    num = p["nr"]:num;
-			    y2milestone ("Using extended partition %1 instead",
-				num);
-			}
-		    });
-		}
-		if (num <= 4)
+		if ((! is (num, integer)) || num <= 4)
 		{
 		    y2milestone ("Activating partition %1 on %2", num, mbr_dev);
 		    ret = ret && (0 == SCR::Execute (.target.bash,

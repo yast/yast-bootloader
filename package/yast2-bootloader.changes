@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Fri Apr 18 11:28:38 CEST 2003 - jsrain@suse.de
+Fri Apr 18 13:18:24 CEST 2003 - jsrain@suse.de
 
 - no more retaking current kernel parameters to bootloader
   configuration file when configuring installed system (#26304)
@@ -11,6 +11,8 @@ Fri Apr 18 11:28:38 CEST 2003 - jsrain@suse.de
   file bootloader cfg.file is prefered (#26323)
 - fixed possible tmp filename security problem of installation
   on AXP (#26357)
+- displaying partition that will be activated and MBR device that
+  will be replaced with generic code (partial fix of #26278)
 
 -------------------------------------------------------------------
 Tue Apr  8 09:12:41 CEST 2003 - jsrain@suse.de
