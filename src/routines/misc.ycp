@@ -86,6 +86,11 @@
 	map devices = Storage::GetTargetMap();
 	devices = filter (`k, `v, devices,
 	    ``(! lookup (v, "is_lvm_vg", false)));
+	if (type == `boot || type == `boot_other)
+	{
+	    devices = filter (`k, `v, devices,
+		``(! issubstring (k, "/dev/md")));
+	}
 	list all_disks = maplist (`k, `v, devices, ``(k));
 	list partitions = [];
 	foreach (`k, `v, devices, ``{
@@ -119,8 +124,8 @@
         {
             partitions = filter (`p, partitions,
                 ``(lookup (p, "type", `primary) == `primary
-			|| lookup (p, "type", `primary) == `extended
-			|| lookup (p, "type", `primary) == `logical));
+			|| lookup (p, "type", `primary) == `extended));
+//			|| lookup (p, "type", `primary) == `logical));
         }
         else if (type == `root)
         {
@@ -134,13 +139,19 @@
         if (type != `all && type != `parts_old)
         {
             partitions = filter (`p, partitions,
-                    ``(lookup (p, "fstype", "") != "Linux swap"));
+                ``(lookup (p, "fstype", "") != "Linux swap"));
         }
+	if (type == `boot)
+	{
+	    partitions = filter (`p, partitions,
+                ``(p["fstype"]:"" == "Linux native"
+                    || p["fstype"]:"" == "Extended"));
+	}
         partitions = maplist (`p, partitions, ``(p["device"]:""));
 	partitions = filter (`p, partitions, ``(p != ""));
         partitions = merge (partitions, floppies);
         ret = union (ret, partitions);
-
+	ret = toset (ret);
 	return ret;
     }
 

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  5 13:36:05 CET 2003 - jsrain@suse.de
+
+- fixed bootloader changing during installation (#20759)
+- fixed list of locations to hold bootloader bootsector (#17320)
+
+-------------------------------------------------------------------
 Tue Feb  4 13:50:29 CET 2003 - jsrain@suse.de
 
 - updates of autoinstallation
