@@ -687,6 +687,7 @@ then try again.
 	    filename, floppy_device);
 	diff_str = sformat (" %1 %2", filename, floppy_device);
 
+	integer image_size = (integer)SCR::Read (.target.size, filename);
 	integer count = 0;
 	integer ignore = 0;
 	integer value = 0;
@@ -734,8 +735,15 @@ root permissions then try again.
 	{
 	    UI::ChangeWidget(`id(`bar), `Value, value );
 	    count = count + 288;
+	    integer check_size = 512 * 288;
+	    if (512 * ignore + check_size > image_size)
+	    {
+		check_size = image_size - 512 * ignore;
+		if (check_size < 0)
+		    check_size = 0;
+	    }
 	    command = sformat ("/usr/bin/cmp -i %1:%1 -n %2",
-		512 * ignore, 512 * 288 ) + diff_str + ">/dev/null 2>&1";
+		512 * ignore, check_size ) + diff_str + ">/dev/null 2>&1";
 	    ignore  = ignore + 288;
 	    value   = value  + 10;
 
