@@ -105,7 +105,7 @@ FireWire and file systems modules floppy"),
       * @param floppy string device name of floppy to check
       * @return map floppy mountpoint info
       */
-    global define map isFloppyMounteded (string floppy)``{
+    global define map isFloppyMounted (string floppy) ``{
 	list mounts =SCR::Read(.proc.mounts);
 
 	mounts = filter (`mount, mounts, ``(
@@ -597,7 +597,7 @@ All data on this floppy will be deleted.
 
 	Wizard::RestoreBackButton ();
 	Wizard::RestoreAbortButton ();
-	UI::ChangeWidget (`id (`device), floppy_device);
+	UI::ChangeWidget (`id (`device), `Value, floppy_device);
 
 	any ret = nil;
 	while (ret == nil)
