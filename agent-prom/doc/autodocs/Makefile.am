@@ -1,5 +1,5 @@
 #
-# Makefile.am for y2a_prom/doc/autodocs
+# Makefile.am for bootloader/agent-prom/doc/autodocs
 #
 
 htmldir = $(docdir)/autodocs
@@ -15,5 +15,5 @@ CLEANFILES = $(html_DATA)
 
 $(filter-out index.html, $(html_DATA)): index.html
 index.html: $(srcdir)/../../src/*.h
-	cd $(srcdir)/../../src && @ybindir@/ydoc @RPMNAME@ *.h
+	cd $(srcdir)/../../src && @ybindir@/ydoc agent-prom *.h
 	mv -f $(srcdir)/../../src/*.html .
