@@ -46,12 +46,12 @@
     if(func == "Import")
     {
 	list modlist = [];
-	list modsett = [];
+	map modsett = [];
 	foreach(map mod, param["initrd_modules"]:[], ``{
 		modlist = add(modlist, mod["module"]:"");
-		modsett = add(modsett, mod["module_args"]:"");
+		modsett = add(modsett, mod["module"]:"", mod["module_args"]:"");
 	});
-	if (size(modelist) > 0 )
+	if (size(modlist) > 0 )
 		param["initrd"] = $[ "list": modlist, "settings" : modsett ];
 
 	// cleanup
