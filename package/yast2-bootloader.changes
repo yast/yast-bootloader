@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug  9 16:10:37 CEST 2002 - jsrain@suse.de
+
+- fixed installation on S390 (Bug #17244)
+- 2.6.21
+
+-------------------------------------------------------------------
 Fri Aug  9 09:24:57 CEST 2002 - jsrain@suse.de
 
 - now setting framebuffer vga mode (Bug #17537)

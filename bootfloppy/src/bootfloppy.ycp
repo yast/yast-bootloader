@@ -315,6 +315,7 @@ and press <b>Next</b> to continue.</p>"
       {
 	  moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules2"),
 									   `opt(`notify),
+									// radio button
 									   _("&IDE/RAID/SCSI modules"), b_modules2)));
       }
 
