@@ -349,7 +349,7 @@ Proceed?
 	Wizard::SetContentsButtons (caption, contents, help,
             Label::BackButton (), Label::FinishButton ());
 
-	return CWM::Run (widgets, $[`abort : confirmAbortPopup]);
+	return CWM::Run (widgets, $[`abort : BootCommon::confirmAbort]);
     }
 
     /**
