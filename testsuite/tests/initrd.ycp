@@ -19,6 +19,7 @@
     import "Pkg";
     include "testsuite.ycp";
     import "Initrd";
+    import "Mode";
 
     // minimal "don't care" SCR data to work with the constructor
     map READ = $[
