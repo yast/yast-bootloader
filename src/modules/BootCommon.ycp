@@ -32,7 +32,7 @@
     include "bootloader/routines/routines.ycp";
 
     import "Mode";
-    import "BootCommon";
+    import "HTML";
 
 // common variables
 
@@ -260,6 +260,8 @@
       */
     global define boolean Read () ``{
 	string bl = getLoaderType (false);
+	if (bl == "none")
+	    return true;
 	if (bl == "s390")
 	    bl = "zipl";
 	else if (bl == "ppc")
@@ -305,6 +307,11 @@
       * @return a list of summary lines
       */
     global define list(string) Summary () ``{
+	if (getLoaderType (false) == "none")
+	{
+	    return [HTML::Colorize (getLoaderName (getLoaderType (false)),
+		"red") ];
+	}
 	map targetMap = Storage::GetTargetMap ();
 	map boot_target = targetMap[loader_device]:$[];
 	string target_name = "";
@@ -539,6 +546,7 @@ configuration files"));
 	{
 	    ret = merge (ret, ["lilo", "grub"]);
 	}
+	ret = add (ret, "none");
 	return toset (ret);
     }
 
