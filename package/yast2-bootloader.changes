@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Aug 26 23:39:13 EDT 2002 - nashif@suse.de
+
+- do not reset location value in autoinst mode
+- if location is not empty, configure boot device in autoinst
+  mode (Avoid calling ConfigureLocation)
+- 2.6.29
+
+-------------------------------------------------------------------
 Mon Aug 26 17:12:14 CEST 2002 - jsrain@suse.cz
 
 - removed icons from control center on S390 (Bugs #18371 and #18367)
