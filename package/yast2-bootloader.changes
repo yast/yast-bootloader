@@ -3,6 +3,8 @@ Tue Mar 16 08:17:09 CET 2004 - jsrain@suse.cz
 
 - allow selecting all boot loaders in autoinstallation
   configuration
+- correctly display in summary that no EFI entry will be created
+  on IA64 (#35346)
 
 -------------------------------------------------------------------
 Mon Mar 15 12:58:34 CET 2004 - jsrain@suse.cz
