@@ -198,29 +198,8 @@ Replace it with an entry  to boot from the floppy?");
 	{
 	    prependlist = ["title", "__section_type", "__sep1"];
 	}
-	if (Mode::initial)
-	{
-	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
-	}
-	// FIXME from here it is the same as generic version
-	forbidden_keys = merge (forbidden_keys, prependlist);
-	forbidden_keys = add (forbidden_keys, "__intern__");
-	integer index = -1;
-	map remap_prepend = $[];
-	list options = maplist (map opt, BootCommon::current_section, ``{
-	    index = index + 1;
-	    if (contains (prependlist, opt["key"]:""))
-	    {
-		remap_prepend[opt["key"]:""] = index;
-		return nil;
-	    }
-	    return contains (forbidden_keys, opt["key"]:"")
-		? nil
-		: index;
-	});
-	prependlist = maplist (`e, prependlist, ``(remap_prepend[e]:e));
-	options = filter (any opt, options, ``(opt != nil));
-	return merge (prependlist, options);
+	return BootCommon::createSectionItemsList (
+	    prependlist, forbidden_keys, true);
     }
 
     /**
