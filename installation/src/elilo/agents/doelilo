@@ -90,7 +90,7 @@ read-only
 
   for kernel in '' .shipped; do
     if test -f $root_dir/boot/vmlinuz$kernel ; then
-      echo "image=vmlinuz$kernel"
+      echo "image=/vmlinuz$kernel"
       if test "$kernel" = .shipped; then
 	echo "	label=failsafe"
       else
@@ -98,7 +98,7 @@ read-only
       fi
       echo "	root=$numeric_rootdev"
       if test -f $root_dir/boot/initrd$kernel; then
-	echo "	initrd=initrd$kernel"
+	echo "	initrd=/initrd$kernel"
       fi
       if test "$kernel" = .shipped; then
 	echo "	append=\"ide=nodma${append:+ $append}\""
@@ -110,7 +110,7 @@ read-only
   done
   echo -n "# Created by YaST2 on " 
   date
-} > $root_dir/boot/elilo.conf
+} > $root_dir/boot/efi/SuSE/elilo.conf
 
 # Now set the appropriate EFI environment variables 
 
@@ -118,10 +118,10 @@ read-only
 bootdev=$(get_device /boot)
 
 # disk /boot is on
-bootdsk=`echo $bootdev|tr -d 0-9`
+bootdsk=`echo $bootdev | sed -e 's/[0-9]*$//' -e 's/\([0-9]\)p/\1/'`
 
 # partition of /boot
-bootprt=`echo $bootdev|tr -d '[:alpha:]' | tr -d '[=/=]'`
+bootprt=${bootdev#$bootdsk}
 
 # check for old SuSE Linux entries.
 BOOTENTRY="`/usr/sbin/efibootmgr |grep "SuSE Linux" |cut -f1 -d\* |cut -c5-`"
