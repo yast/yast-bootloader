@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr  5 15:23:21 CEST 2004 - jsrain@suse.de
+
+- fixed installation if root is on LVM (initializing device mapper
+  and LVM properly) (#37290)
+- 2.9.21
+
+-------------------------------------------------------------------
 Fri Apr  2 15:59:41 CEST 2004 - jsrain@suse.de
 
 - changed license to GPL
