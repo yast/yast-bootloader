@@ -26,6 +26,7 @@
 
     include "bootloader/lilo/widgets.ycp";
     include "bootloader/lilo/helps.ycp";
+    include "bootloader/routines/popups.ycp";
 
 // private variables
 
@@ -43,16 +44,11 @@
       */
     global define map GetFunctions () ``{
 	return $[
-//	    "export" :	``(BootLILO::Export ()),
-//	    "import" :	``(BootLILO::Import ()),
 	    "read" :	``(BootLILO::Read ()),
-//	    "reset" :	``(BootLILO::Reset ()),
 	    "propose" : ``(BootLILO::Propose ()),
 	    "save" :	``(BootLILO::Save ()),
-//	    "summary" :	``(BootLILO::Summary ()),
 	    "update" :	``(BootLILO::Update ()),
 	    "write" :	``(BootLILO::Write ()),
-
 	    "widgets" :	``(BootLILO::GetWidgets ()),
 	    "getfiles" : ``(BootLILO::GetFiles ()),
 	    "setfiles" : ``(BootLILO::SetFiles ())
@@ -161,11 +157,17 @@
       * @return boolean true on success
       */
     global define boolean Write () ``{
+	BootCommon::updateMBR ();
 	boolean ret = true;
-	if (BootCommon::location_changed)
+	if (true) // save always
+//	if (BootCommon::location_changed)
 	{
-	    ret = 0 == SCR::Execute (.target.bash,
-		"/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1");
+	    if (! (BootCommon::location == "floppy" && saveToFLoppyPopup ()))
+		ret = false;
+// save if mkfs or fdformat failed too
+//            if (ret)
+		ret = 0 == SCR::Execute (.target.bash,
+		    "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1");
 	    if (! ret)
 	    {
 		string log = SCR::Read (.target.string,
@@ -246,7 +248,7 @@
 			&& dev != BootCommon::loader_device)
 		    {
 			map m = $[
-			    "label" : label,
+			    "label" : BootCommon::removeBlanks (label),
 			    "other" : dev,
 			    "__intern__" : $[
 				"auto" : true,
@@ -279,6 +281,24 @@
 	bcg["change-rules"] = "change-rules,reset";
 	bcg["read-only"] = true;
 	bcg["prompt"] = true;
+	if (StorageDevices::mixedDevices)
+	{
+	    string order = "";
+	    // check if bios_id is given for a target
+	    map targetMap = Storage::GetTargetMap();
+	    foreach (`target_dev, `target, targetMap, ``{
+		string bios_id = target["bios_id"]:"";
+		if (bios_id != "")
+		{
+		    if (order != "")
+			order = order + ",";
+		    order = order + sformat ("disk=%1,bios=%2", target_dev,
+			bios_id);
+		}
+	    });
+	    if (order != "")
+		bcg["disk"] = order;
+	}
 	BootCommon::globals = bcg;
     }
 
@@ -332,15 +352,13 @@
       * modifies internal sreuctures
       */
     global define void fixSections (boolean disks_changed) ``{
+	list parts = BootCommon::getPartitionList(`parts_old);
 	if (BootCommon::partitioning_last_change
 		!= Storage::GetTargetChangeTime()
 	    && BootCommon::files_edited)
 	{
-	    if (! BootCommon::files_edited_warned)
-	    {
-		displayFilesEditedPopup ();
-		BootCommon::files_edited_warned = true;
-	    }
+	    displayFilesEditedPopup ();
+	    BootCommon::files_edited = false;
 	    return;
 	}
 	list(map) old_sect_list = BootCommon::sections;
@@ -366,14 +384,25 @@
 	    else
 	    {
 		y2milestone ("Warning on section %1", label);
-		boolean contains = true;
+		boolean cont = true;
 		foreach (`n, s["__intern__", "devs"]:[], ``{
 		    if (! contains (parts, n))
 		    {
-			contains = false;
+			cont = false;
 		    }
 		});
-		if (! contains)
+                list new_devs = toset(new_sect[title, "__intern__", "devs"]:[]);
+                list old_devs = toset(s["__intern__", "devs"]:[]);
+                if (size (new_devs) != size (old_devs))
+                    cont = false;
+                else
+                {
+                    foreach (`d, old_devs, ``{
+                        if (! contains (new_devs, d))
+                            cont = false;
+                    });
+                }
+		if (! cont)
 		    displayDiskChangePopup (s["label"]:"");
 		return s;
 	    }
@@ -445,7 +474,6 @@
       * @param files map filename -> contents
       */
     global define void SetFiles (map files) ``{
-	BootCommon::files_edited_warned = false;
 	if (SCR::Read (.lilo.tostring) != files["/etc/lilo.conf"]:"")
 	    BootCommon::files_edited = true;
         SCR::Write (.lilo.fromstring, files["/etc/lilo.conf"]:"");

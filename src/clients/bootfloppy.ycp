@@ -253,7 +253,7 @@ and press <b>Next</b> to continue.</p>"
 	    moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules1"),
 								       `opt(`notify),
 									// radio button
-								       _("&USB modules"), b_modules)));
+								       _("&USB (modules disk 1)"), b_modules)));
       }
 
       if ( module2disk_found  )
@@ -261,7 +261,7 @@ and press <b>Next</b> to continue.</p>"
 	  moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules2"),
 									   `opt(`notify),
 									// radio button
-									   _("&IDE/RAID/SCSI modules"), b_modules2)));
+									   _("&IDE/RAID/SCSI (modules disk 2)"), b_modules2)));
       }
 
       if ( module3disk_found  )
@@ -269,7 +269,7 @@ and press <b>Next</b> to continue.</p>"
 	  moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules3"),
 									   `opt(`notify),
 									// radio button
-									   _("&Network modules"), b_modules3)));
+									   _("&Network (modules disk 3)"), b_modules3)));
       }
 
       if ( module4disk_found  )
@@ -277,7 +277,7 @@ and press <b>Next</b> to continue.</p>"
 	  moduledisk_term = add( moduledisk_term, `Left(`RadioButton(`id("modules4"),
 									   `opt(`notify),
 									// radio button
-									   _("&PCMCIA, old (non-ATAPI) CDROM, FireWire\nand file systems modules"), b_modules4)));
+									   _("&PCMCIA, old (non-ATAPI) CDROM, FireWire\nand file systems (modules disk 4)"), b_modules4)));
       }
 
       term g_bootdisks_term = `Frame (

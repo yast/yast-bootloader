@@ -94,7 +94,7 @@
     /**
       * were settings changed (== true)
       */
-    global boolean changed = true;//FIXME false;
+    global boolean changed = false;
     /**
       * Was bootloader location changed? (== true)
       */
@@ -118,10 +118,6 @@
 
 // summary dialog state
 
-    /**
-      * Install bootloader (location must be set too to save botloader)
-      */
-    global boolean install = true;
     /**
       * Show verbose summary output
       */
@@ -189,8 +185,8 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
-	loader_device = SCR::Read (.sysconfig.bootloader.LOADER_DEVICE);
 	loadCfgFileFromAgent ();
+	loader_device = globals["boot"]:"/dev/null";
         return true;
     }
 
@@ -216,7 +212,6 @@
       * @return boolean true if success
       */
     global define boolean Save () ``{
-	SCR::Write (.sysconfig.bootloader.LOADER_DEVICE, loader_device);
 	string bl = getLoaderType (false);
 	saveCfgFileToAgent ();
 	SCR::Write(list2path([bl]), nil);
@@ -229,7 +224,7 @@
       *   `verbose -> maximal verbose output
       *   `links -> contain hyperlinks
       */
-    global define string Summary (list style) ``{
+    global define string Summary () ``{
 	string default = BootCommon::getLoaderType (false) == "grub"
 	    ? sections[globals["default"]:0, "title"]:sections[0, "title"]:""
 	    : globals["default"]:sections[0, "label"]:"";
@@ -239,96 +234,25 @@
 	if (boot_target == $[])
 	    target_name = loader_device;
 	else
-	    target_name = boot_target["name"]:"disk";
+	target_name = boot_target["name"]:"disk";
 
-	if (contains (style, `short))
-	{
-	    string result = "";
-	    result = result + sformat (_("<LI>Bootloader type: %1"),
-		getLoaderName (getLoaderType (false)));
-	    result = result + sformat (_("<LI>Locartion: %1"), target_name);
-	    list(string) sects = [];
-	    foreach (`s, sections, ``{
-		string title = s[
-		    getLoaderType (false) == "grub" ? "title" : "label"
-		]:"";
-		string def = title == default ? _(" (default)") : "";
-		sects = add (sects, sformat ("%1%2", title, def));
-	    });
-	    result = result + sformat (_("<LI>Sections: %1"),
-		mergestring (sects, ", "));
-	    if (! install)
-		result = result + _("<LI>Don't install bootloader, just create
-configuration files");
-	    return result;
-	}
 	string result = "";
-	if (! (install && location != "none"))
-	    return _("Don't install any bootloader");
-
-	if (contains (style, `links))
-	    result = result +
-		_("<B><A HREF=\"global\">Global settings:</A></B><BR>");
-	else
-	    result = result + _("<B>Global settings:<BR></B>");
-
-	result = result + "<UL>";
-	result = result + sformat(_("<LI><I>Bootloader type:</I> %1"),
-	    getLoaderName (getLoaderType (false)));
-	result = result + sformat (_("<LI><I>Location:</I> %1"), target_name);
-
-	if (contains (style, `verbose))
-	{
-	    if ((getLoaderType (false) == "grub" && globals["hiddenmenu"]:false)
-		||(getLoaderType (false) != "grub" && !globals["prompt"]:false))
-	    {
-		result = result + _("<LI><I>Boot menu:</I> will not be shown");
-	    }
-	    else
-	    {
-		result = result + _("<LI><I>Boot menu:</I> will be shown");
-	    }
-	    integer timeout = globals["timeout"]:0;
-	    if (timeout > 0)
-	    {
-		integer divisor = getLoaderType (false) == "grub" ? 1 : 10;
-		result = result + sformat (
-		    _("<LI><I>Timeout:</I> Automatic start of default section
-			after %1 seconds"), timeout / divisor
-		);
-	    }
-	    else
-	    {
-		result = result + _("<LI><I>Timeout:</I> Default section will
-		   be never started automatically");
-	    }
-	    if (globals["password"]:"" != "")
-		result = result + _("<LI><I>Password:</I>
-		    will be required to boot");
-	    else
-		result = result + _("<LI><I>Password:</I>
-		    will not be required to boot");
-	}
-
-	result = result + "</UL>";
-
-        if (contains (style, `links))
-            result = result +
-		_("<B><A HREF=\"sects\">Configured sections:</A></B><BR>");
-        else
-            result = result + _("<B>Configured sections:</B><BR>");
-
-	result = result + "<UL>";
+	result = result + sformat (_("<LI>Bootloader type: %1"),
+		getLoaderName (getLoaderType (false)));
+	result = result + sformat (_("<LI>Location: %1"), target_name);
+	list(string) sects = [];
 	foreach (`s, sections, ``{
 	    string title = s[
 		getLoaderType (false) == "grub" ? "title" : "label"
 	    ]:"";
 	    string def = title == default ? _(" (default)") : "";
-	    result = result + sformat (_("<LI>%1%2"),
-		title, def);
+	    sects = add (sects, sformat ("%1%2", title, def));
 	});
-	result = result + "</UL>";
-
+	result = result + sformat (_("<LI>Sections: %1"),
+	    mergestring (sects, ", "));
+	if (loader_device == "/dev/null")
+	    result = result + _("<LI>Don't install bootloader, just create
+configuration files");
 	return result;
     }
     /**
@@ -415,6 +339,10 @@ configuration files");
 
 // functions for fetching settings to tmp map and storing back
 
+    /**
+      * Fetch settings to temporary variables
+      * @return sumbol wizard sequencer symbol
+      */
     global define symbol fetchSettings () ``{
 	tmp_store = $[];
 	tmp_store["globals"] = eval(globals);
@@ -426,6 +354,10 @@ configuration files");
 	return `next;
     }
 
+    /**
+      * Store settings from temporary variables to globals
+      * @return wizard sequencer symbol
+      */
     global define symbol storeSettings () ``{
 	globals = tmp_store["globals"]:$[];
 	sections = tmp_store["sections"]:[];
@@ -487,7 +419,7 @@ configuration files");
 	{
 // TODO: install bootloader package
 	}
-
+	loader_type = "grub";
 	y2milestone ("Detected bootloader %1", loader_type);
 	return loader_type;
     }

@@ -30,10 +30,11 @@
 //		"target": getTargetWidget (),
 		"experttarget" : getExpertWidget (),
 		"prompt" : getPromptWidget (),
-		"passwd" : getPasswdWidget (),
+//		"passwd" : getPasswdWidget (),
 //		"loader" : getLoaderSelectionWidget (),
 		"sections" : getSectionsWidget (),
 		"singlesection" : getSingleSectionWidget (),
+		"globalsection" : getGlobalSectionWidget (),
 		"summarybuttons" : getSummaryButtonsWidget (),
 		"tableentries" : $[
 		    `location: getTargetWidget (),
@@ -41,8 +42,16 @@
 		    `sections : getSectionsTableEntry (),
 		    `default_section : getDefaultSectionTableEntry (),
 		    `section_type : getSectionTypeWidget (),
-		    "-" : $["label" : "---------------"],
-		    "label" : $["label" : "Section name"],
+		    `sep1 : $["label" : "---------------"],
+		    `sep2 : $["label" : "---------------"],
+		    `sep3 : $["label" : "---------------"],
+		    "label" : getLabelWidget (),
+		    "alias" : getAliasWidget (),
+		    "timeout" : getTimeoutWidget (),
+		    "password" : getPasswdWidget (),
+		    `repl_mbr : getReplMbrWidget (),
+		    "activate" : getActivateWidget (),
+		    "message" : getMessageWidget (),
 		],
 	];
     }
@@ -122,6 +131,8 @@
 	    "validate" : ``(BootCommon::targetValidate ()),
 	    "label" : _("Bootloader location"),
 	    "summary" : ``(BootCommon::locationSummary ()),
+	    "deletable" : false,
+	    "ordering" : false,
 	];
     }
 
@@ -140,13 +151,16 @@
       * @param op symbol of event
       * @return symbol of event
       */
-    global define symbol targetWrite (/*any op, list tosave*/) ``{
+    global define void targetWrite (any op, list tosave) ``{
+	if (! contains (tosave, op))
+	    return;
 	tmp_store["location"]
 	    = UI::QueryWidget (`id (`location), `CurrentButton);
 	tmp_store["loader_device"] = UI::QueryWidget (`id (`loc), `Value);
 	BootCommon::storeSettings ();
 	tmp_store["loader_device"] = BootCommon::GetBootloaderDevice ();
-	return;// op;
+	BootCommon::location_changed = true;
+	return;
     }
 
     /**
@@ -172,7 +186,6 @@
 
     global define boolean locationSummary () ``{
 	map targetMap = Storage::GetTargetMap ();
-	y2milestone ("LD: %1", BootCommon::loader_device);
 	map boot_target = targetMap[loader_device]:$[];
 	string target_name = "";
 	if (boot_target == $[])
@@ -266,6 +279,7 @@
 	    "handle" : ``(BootCommon::handlePasswdWidget ()),
 	    "validate" : ``(BootCommon::validatePasswdWidget ()),
 	    "help" : getPasswdHelp (),
+	    "summary" : ``(BootCommon::getPasswdSummary ()),
 	];
     }
 
@@ -281,10 +295,10 @@
 	}
 	else
 	{
-	    UI::ChangeWidget (`id (`usepas), `Value, false);
-	    UI::ChangeWidget (`id (`pw1), `Enabled, false);
+	    UI::ChangeWidget (`id (`usepas), `Value, true);
+	    UI::ChangeWidget (`id (`pw1), `Enabled, true);
 	    UI::ChangeWidget (`id (`pw1), `Value, "**********");
-	    UI::ChangeWidget (`id (`pw2), `Enabled, false);
+	    UI::ChangeWidget (`id (`pw2), `Enabled, true);
 	    UI::ChangeWidget (`id (`pw2), `Value, "**********");
 	}
     }
@@ -298,9 +312,19 @@
 	}
 	else if (contains (tosave, op))
 	{
-	    if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
-		tmp_store["globals", "password"]
-		    = UI::QueryWidget (`id (`pw1), `Value);
+	    boolean usepass = UI::QueryWidget (`id (`usepas), `Value);
+	y2milestone ("Usepass: %1", usepass);
+	    if (usepass)
+	    {
+		if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
+		    tmp_store["active_section", "password"]
+		        = UI::QueryWidget (`id (`pw1), `Value);
+	    }
+	    else
+	    {
+		tmp_store["active_section"]
+		    = remove (tmp_store["active_section"]:$[], "password");
+	    }
 	}
     }
 
@@ -320,6 +344,13 @@
 	passwdMissmatchPopup ();
 	UI::SetFocus (`id (`pw1));
 	return false;
+    }
+
+    global define string getPasswdSummary () ``{
+	if (BootCommon::tmp_store["active_section", "password"]:nil != nil)
+	    return _("Password will be needed");
+	else
+	    return _("No password will be needed");
     }
 
 
@@ -365,7 +396,7 @@
 	    ),
 	    "restore" : ``(BootCommon::sectionsRead ()),
 	    "handle" : ``(BootCommon::sectionsHandle ()),
-	    "help" : "help",
+	    "help" : getSectionsHelp (),
 	    "exits" : [`add, `edit],
 	];
     }
@@ -443,16 +474,14 @@
 	else if (op == `add)
 	{
 	    BootCommon::tmp_store["active_section"] = $[];
-// FIXME
-	    BootCommon::tmp_store["active_section_name"]
-                = sects[index, "label"]:"";
+	    BootCommon::tmp_store["active_section_name"] = "";
 	    BootCommon::tmp_store["section_type"] = "image";
-
+	    BootCommon::changed_settings[""] = $[];
 	}
 	else if (op == `edit)
 	{
 	    y2milestone ("Editing title %1, index %2", current, index);
-	    BootCommon::tmp_store["active_section"] = sects[index]:$[];
+	    BootCommon::tmp_store["active_section"] = eval (sects[index]:$[]);
 	    BootCommon::tmp_store["active_section_name"]
 		= sects[index, "label"]:"";
 	    BootCommon::tmp_store["section_type"]
@@ -469,11 +498,6 @@
 	    BootCommon::tmp_store["sections"] = sects;
 	    sectionsRedrawTable (sects);
 	}
-/*	else if (op == `reset && resetSectsPopup ())
-	{
-	    BootCommon::fetchSettings ();
-	    sectionsRedrawTable (BootCommon::tmp_store["sections"]:[]);
-	}*/
 	if (contains (tosave, op))
 	{
 	    BootCommon::markOptionChanged (`global, `sections);
@@ -491,22 +515,19 @@
                         _("Boot&loader type"), loaders
                     )),
 	    "restore" : ``(BootCommon::loaderTypeRestore ()),
-	    "handle" : ``(BootCommon::loaderTypeSave ()),
+	    "handle" : ``(loaderTypeSave ()),
 	    "help" : nil,
 	    "exits" : [],
 	    "label" : _("Bootloader type"),
 	    "summary" : ``(BootCommon::loaderTypeSummary ()),
+	    "deletable" : false,
+	    "ordering" : false,
 	];
     }
 
     global define void loaderTypeRestore () ``{
 	UI::ChangeWidget (`id (`loader_type), `Value,
 	    BootCommon::getLoaderType (false));
-    }
-
-    global define void loaderTypeSave () ``{
-	BootCommon::setLoaderType (UI::QueryWidget (`id (`loader_type),
-	    `Value));
     }
 
     global define string loaderTypeSummary () ``{
@@ -528,9 +549,15 @@
 		), `HSpacing (2))),
 	    "restore" : ``(singleSectionRead ()),
 	    "handle" : ``(singleSectionHandle ()),
-	    "help" : nil,
+	    "help" : getSingleSectionHelp (),
 	    "exits" : [`sections],
 	];
+    }
+
+    global define map getGlobalSectionWidget () ``{
+	map ret = getSingleSectionWidget ();
+	ret ["help"] = getGlobalSectionHelp ();
+	return ret;
     }
 
     global define list UpdateOptionsList (map _options) ``{
@@ -541,18 +568,21 @@
 	    options = filter (`o, options, ``(o != "boot" && o != "default"));
 	    options = filter (`o, options, ``(o != "loader_type"
 		&& o != "location" && o != "default_section" && o != "sections"
+		&& o != `repl_mbr && o != "activate"
 	    ));
-	    options = prepend (options, "-");
+	    options = prepend (options, `sep1);
+	    options = prepend (options, `repl_mbr);
+	    options = prepend (options, "activate");
 	    options = prepend (options, `sections);
 	    options = prepend (options, `default_section);
 	    options = prepend (options, `location);
-	    options = prepend (options, "-");
+	    options = prepend (options, `sep2);
 	    options = prepend (options, `loader_type);
 	}
 	else
 	{
 	    options = filter (`o, options, ``(o != "type" && o != "label"));
-	    options = prepend (options, "-");
+	    options = prepend (options, `sep1);
 	    options = prepend (options, `section_type);
 	    options = prepend (options, "label");
 	}
@@ -560,15 +590,22 @@
     }
 
     global define map getSummaryButtonsWidget () ``{
+	list items = [
+            `item (`id (`propose), _("&Propose new configuration")),
+            `item (`id (`scratch), _("&Start from scratch")),
+            `item (`id (`reread), _("&Reread configuration from disk")),
+	];
+	if (/*Mode::initial &&*/ BootCommon::getLoaderType (false) == "grub")
+	    items = add (items, `item (`id (`propose_deep),
+		_("Propose new configuration and merge existing menus")));
 	return $[
 	    "widget" : `HBox (`HStretch (),
-		`MenuButton (`id (`restore), _("Res&et"), [
-                    `item (`id (`propose), _("&Propose new configuration")),
-                    `item (`id (`scratch), _("&Start from scratch")),
-                ]),
+		`MenuButton (`id (`restore), _("Res&et"), items),
                 `PushButton (`id (`manual), _("Edit &configuration files"))
 	    ),
-	    "exits" : [`manual, `propose, `scratch],
+	    "exits" : [`manual],
+	    "handle" : ``(resetButtonHandle ()),
+	    "help" : getSummaryButtonsHelp (),
 	];
     }
 
@@ -576,6 +613,8 @@
 	return $[
 	    "label" : _("Available sections"),
 	    "summary" : ``(BootCommon::getSectionsSummary ()),
+	    "deletable" : false,
+	    "ordering" : false,
 	];
     }
 
@@ -594,6 +633,8 @@
 	return $[
 	    "label" : _("Default section"),
 	    "summary" : ``(BootCommon::getDefaultSectionSummary ()),
+	    "deletable" : false,
+	    "ordering" : false,
 	];
     }
 
@@ -612,6 +653,8 @@
             "exits" : [],
             "label" : _("Section type"),
             "summary" : ``(BootCommon::sectionTypeSummary ()),
+	    "deletable" : false,
+	    "ordering" : false,
         ];
     }
 
@@ -624,7 +667,9 @@
 		: "image");
     }
 
-    global define void sectionTypeSave () ``{
+    global define void sectionTypeSave (any op, list tosave) ``{
+	if (! contains (tosave, op))
+	    return;
         string ntype = UI::QueryWidget (`id (`section_type), `Value);
 	string otype = BootCommon::tmp_store["active_section", "image"]:"" == ""
 	    ? "other"
@@ -657,5 +702,137 @@
 	    ? "other"
 	    : "image";
     }
+
+    global define map getTimeoutWidget () ``{
+	return $[
+	    "restore" : ``(BootCommon::timeoutRestore ()),
+	    "handle" : ``(BootCommon::timeoutSave ()),
+	    "summary" : ``(BootCommon::timeoutSummary ()),
+	];
+    }
+
+    global define void timeoutRestore () ``{
+	integer timeout = BootCommon::tmp_store["active_section", "timeout"]:0;
+	UI::ChangeWidget (`id (`value), `Value, timeout / 10);
+    }
+
+    global define void timeoutSave (any op, list tosave) ``{
+	if (! contains (tosave, op))
+	    return;
+	integer timeout = UI::QueryWidget (`id (`value), `Value) * 10;
+	BootCommon::tmp_store["active_section", "timeout"] = timeout;
+    }
+
+    global define void timeoutSummary () ``{
+	integer timeout = BootCommon::tmp_store["active_section", "timeout"]:0;
+	return sformat (_("%1 s"), timeout / 10);
+    }
+
+    global define map getLabelWidget () ``{
+	return $[
+	    "label" : "Section name",
+	    "validate" : ``(BootCommon::labelValidate ()),
+	    "deletable" : false,
+	    "ordering" : false,
+	];
+    }
+
+    global define boolean labelValidate () ``{
+	list(string) existing = [];
+	foreach (`s, BootCommon::tmp_store["sections"]:[], ``{
+	    existing = add (existing, s["label"]:"");
+	    existing = add (existing, s["alias"]:"");
+	});
+	existing = filter (string l, existing,
+	    ``(l != BootCommon::tmp_store["active_section_name"]:""));
+	existing = add (existing, "");
+	string new = UI::QueryWidget (`id (`value), `Value);
+
+	if (contains (existing, new))
+	{
+	    usedNameErrorPopup ();
+	    return false;
+	}
+	return true;
+    }
+
+    global define map getAliasWidget () ``{
+	map ret = getLabelWidget ();
+	ret["deletable"] = true;
+	ret["ordering"] = true;
+        ret["validate"] = ``(BootCommon::labelValidate ());
+        return ret;
+    }
+
+    global define map getReplMbrWidget () ``{
+	return $[
+	    "label" : _("Code in MBR"),
+	    "restore" : ``(BootCommon::replMbrRestore ()),
+	    "handle" : ``(BootCommon::replMbrHandle ()),
+	    "summary" : ``(BootCommon::replMbrSummary ()),
+	    "type" : "b",
+	    "deletable" : false,
+	    "ordering" : false,
+// FIXME: maybe extra widget
+	];
+    }
+
+    global define void replMbrRestore () ``{
+	UI::ChangeWidget (`id (`value), `Value, tmp_store["repl_mbr"]:false);
+    }
+
+    global define void replMbrHandle (any op, list tosave) ``{
+        if (! contains (tosave, op))
+            return;
+	tmp_store["repl_mbr"] = UI::QueryWidget (`id (`value), `Value);
+    }
+
+    global define string replMbrSummary () ``{
+	if (tmp_store["repl_mbr"]:false)
+	    return _("Replace with generic code");
+	else
+	    return _("Leave untouched");
+    }
+
+    global define string getActivateWidget () ``{
+	return $[
+	    "label" : _("Activate bootloader partition"),
+	    "restore" : ``(BootCommon::activateRestore ()),
+	    "handle" : ``(BootCommon::activateHandle ()),
+	    "summary" : ``(BootCommon::activateSummary ()),
+	    "type" : "b",
+	    "deletable" : false,
+	    "ordering" : false,
+	];
+    }
+
+    global define void activateRestore () ``{
+        UI::ChangeWidget (`id (`value), `Value, tmp_store["activate"]:false);
+    }
+
+    global define void activateHandle (any op, list tosave) ``{
+        if (! contains (tosave, op))
+            return;
+        tmp_store["activate"] = UI::QueryWidget (`id (`value), `Value);
+    }
+
+    global define string activateSummary () ``{
+        if (tmp_store["activate"]:false)
+            return _("Yes");
+        else
+            return _("No");
+    }
+
+    global define map getMessageWidget () ``{
+	return $[
+	    "delete" : ``(BootCommon::deleteMessage ()),
+	];
+    }
+
+    global define void deleteMessage () ``{
+	BootCommon::tmp_store["active_section"] = remove
+	    (BootCommon::tmp_store["active_section"]:$[], "__intern__");
+    }
+
 
 } // include end

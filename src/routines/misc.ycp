@@ -109,7 +109,6 @@
         partitions = merge (partitions, floppies);
         ret = union (ret, partitions);
 
-//	y2milestone ("getPartitionList for %1 returning %2", type, ret);
 	return ret;
     }
 
@@ -507,7 +506,11 @@
 	return line;
     }
 
+    /**
+      * Save settings stored in memory of module to Lilo agent
+      */
     global define boolean saveCfgFileToAgent () ``{
+	y2milestone ("Saving: glob: %1, sec: %2", globals, sections);
 	string bl = getLoaderType (false);
 
         // first synchronize global settings
@@ -562,7 +565,6 @@
         foreach(`sect, sects, ``{
            SCR::Write(list2path([bl, "sections", sect]), nil);
         });
-
         string sname = "";
         // now write new sections
         foreach(`sect, sections,
@@ -616,6 +618,10 @@
 	return true;
     }
 
+    /**
+      * Load settings from Lilo agent to module variables
+      * @return boolean true on success
+      */
     global define boolean loadCfgFileFromAgent () ``{
         string bl = getLoaderType (false);
 
@@ -653,7 +659,6 @@
 	if (size (opt_types[bl]:$[]) > 0)
 	    return opt_types[bl]:$[];
 	map out = SCR::Read (list2path ([bl, "opttypes"]));
-	y2milestone ("Got opttypes %1", out);
 	opt_types[bl] = out;
 /*	if (Arch::ia64)
 	{
@@ -676,8 +681,84 @@
 	map current = BootCommon::changed_settings[section]:$[];
 	current[optname] = true;
 	BootCommon::changed_settings[section] = current;
+	if (section == `global)
+	    BootCommon::changed = true;
+    }
 
+    /**
+      * remove blanks from section name and replace them with _
+      * when not using GRUB
+      * @param original string
+      * @return string fixed string
+      */
+    global define string removeBlanks (string original) ``{
+	if (getLoaderType (false) == "grub")
+	    return original;
+	if (size (original) > 15)
+	   original = substring (original, 0, 15);
+	return replaceAll (original, " ", "_");
+    }
 
+    /**
+      * The SelectionBox "----" divider hack
+      * @param opts list of options for the current selection
+      * @param prev previously selected item
+      * @return new item selection
+      */
+    global define any dividerHack(list opts, any prev, any current) ``{
+	integer p = -1;
+	find(`e, opts, ``{
+	    p = p + 1;
+	    return e == prev;
+	});
+	integer i = -1;
+	find(`e, opts, ``{
+	    i = i + 1;
+	    return e == current;
+	});
+	return select(opts, p < i ? i + 1 : i - 1, "");
+    }
+
+    global define list filterOrder (list order, map widgets) ``{
+	order = filter (`o, order, ``(
+	    widgets[o, "ordering"]:true
+	));
+	return order;
+    }
+
+    /**
+      * Update contents of MBR (active partition and booting code)
+      * @return boolean true on success
+      */
+    global define boolean updateMBR () ``{
+	boolean ret = true;
+	if (activate)
+	{
+	    map p_dev = Storage::GetDiskPartition (boot_sect);
+	    any num = p_dev["nr"]:0;
+	    string mbr_dev = p_dev["disk"]:"";
+            // if bootloader in MBR, activate /boot partition
+	    // (partiall fix of #20637)
+	    if (! (num != 0 && num != ""))
+	    {
+		p_dev = Storage::GetDiskPartition (Boot::BootPartitionDevice);
+		num = p_dev["nr"]:0;
+		mbr_dev = p_dev["disk"]:"";
+	    }
+	    if (num != 0 && num != "")
+	    {
+		y2milestone ("Activating partition %1 on %2", num, mbr_dev);
+		ret = ret && (0 == SCR::Execute (.target.bash,
+		    sformat ("/sbin/sfdisk -A%1 %2", num, mbr_dev)));
+	    }
+	}
+	if (repl_mbr && BootCommon::location != "mbr")
+	{
+// FIXME: Real filenames
+	    ret = ret && (0 == SCR::Execute (.target.bash, sformat (
+		"/bin/dd if=%1 of=%2", "file", "mbr")));
+	}
+	return ret;
     }
 
     /**

@@ -34,6 +34,11 @@
 	));
     }
 
+    /**
+      * Read popup widget with specified name
+      * @param names list of strings names of widgets
+      * @return map representing widget
+      */
     global define map getPopupWidget (any name) ``{
 	map spec_widgets = Bootloader::blGetWidgets ();
 	map common_widgets = BootCommon::GetWidgets ();
@@ -42,6 +47,10 @@
 	return spec_widgets[name]:common_widgets[name]:$[];
     }
 
+    /**
+      * Read all popup widgets
+      * @return map from widget id to map representing widget
+      */
     global define map getPopupWidgets () ``{
 	map spec_widgets = Bootloader::blGetWidgets ();
 	map common_widgets = BootCommon::GetWidgets ();
@@ -73,13 +82,15 @@
 	foreach (`w, widgets, ``{
 	    tosave = merge (tosave, w["exits"]:[]);
 	});
-/*	if (contains (tosave, action))
-	    action = `next;*/
 	any ret = nil;
 	foreach (`w, widgets, ``{
 	    term t = w["handle"]:nil;
 	    if (t != nil)
-		ret = eval (add (add (t, action), tosave));
+	    {
+		any tmpret = eval (add (add (t, action), tosave));
+		if (tmpret != action && tmpret != nil)
+		    ret = tmpret;
+	    }
 	});
 	if (ret != nil)
 	    return ret;
@@ -126,6 +137,11 @@
 	return exits;
     }
 
+    /**
+      * Merge helps of specified widgets to one string
+      * @param widgets list of widgets
+      * @return string merged helps
+      */
     global define string mergeHelps (list widgets) ``{
 	list helps = maplist (`w, widgets, ``(w["help"]:""));
 	return mergestring (helps, "\n");

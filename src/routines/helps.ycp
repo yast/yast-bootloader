@@ -19,6 +19,9 @@
 {
     textdomain "bootloader";
 
+
+// wizard sequecer widgets helps
+
     /**
       * Get help
       * @result string help text
@@ -33,9 +36,89 @@ Change the settings of your bootloader. </P>");
       * Get help
       * @result string help text
       */
-    global define string getSummaryHelp() ``{
-        return _("Summary...");
+    global define string getSummaryButtonsHelp () ``{
+	string ins = "";
+	if (BootCommon::getLoaderType (false) == "grub")
+	    // help text, optional part of following
+	    ins = _("If you have multiple Linux system installed,
+YaST can try to find them and merge their menus.");
+	// help text 1/2 (%1 may be following sentence, optionally empty)
+	string help = sformat (_("<P>Via the <B>Reset</B> button
+you can clear current 
+configuration and propose new configration, start from scratch, reread
+configuration saved on your disk. %1</P>"), ins);
+	// help text 2/2
+	help = help + _("<P>To edit bootloader configuration files
+manually, push <B>Edit configuration files</B> button</P>");
+	return help;
     }
+
+    /**
+      * Get help
+      * @result string help text
+      */
+    global define string getSingleSectionHelp () ``{
+        // help text 1/3
+        string help = _("<P>To edit settings of current section choose
+appropriate entry of the table, and push the <B>Edit</B> button.
+To add new option use <B>Add</B> button, to remove
+optoin push the <B>Delete</B> button.</P>");
+	// help text 2/3
+	help = help + _("<P>The<B> Ch.</B> column of the table is meant for
+detecting whether option was changed</P>");
+	if (BootCommon::getLoaderType (false) == "grub")
+            // help text 3/3, optional
+            help = help + _("<p> To reorder options use the <B>Up</B> and 
+<B>Down</B> buttons.");
+
+        return help;
+
+    }
+
+    /**
+      * Get help
+      * @result string help text
+      */
+    global define string getSectionsHelp () ``{
+	// help 1/4
+	return _("<P> In the table, each section represents one item
+in the boot menu.</P>") +
+	// help 2/4
+	_("<P> Press <B>Edit</B> to display the properties of the
+selected section.</P>") +
+	// help 3/4
+	_("<P> By pressing <b>Set as default</b>, mark the selected 
+section as default. When booting, the boot loader will provide 
+a boot menu and wait for the user to select the kernel or other 
+OS to boot. If no key is pressed before the time out, the default 
+kernel or OS will be booted. The order of sections in the bootloader
+menu can be changed using the <B>Up</B> and <B>Down</B> buttons.</P>") +
+	// help 4/4
+	_("<P>Press <B>Add</B> to create a new boot loader section
+or <B>Delete</B> to delete selected section.</P>");
+    }
+
+    /**
+      * Get help
+      * @result string help text
+      */
+    global define string getGlobalSectionHelp () ``{
+	// help text 1/3
+	string help = _("<P>To edit bootloader settings choose appropriate
+entry of the table, and push the <B>Edit</B> button.
+To add new option use <B>Add</B> button, to remove
+optoin push the <B>Delete</B> button.</P>");
+	// help text 2/3
+	help = help + _("<P>To edit sections settings, choose
+<B>Available sections</B> or <B>Default section</B> and edit them.</P>");
+	// help text 3/3
+	help = help + _("<P>The<B> Ch.</B> column of the table is meant for
+detecting whether option was changed</P>");
+	return help;
+    }
+
+
+// popup widgets helps
 
     /**
       * Get help

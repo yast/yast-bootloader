@@ -6,6 +6,10 @@ Mon Nov 18 09:59:37 CET 2002 - jsrain@suse.cz
 - Added GRUB option types to LiloAgent
 - Removed test mode and possible security problem from bootfloppy
   (#20962) 
+- Fixed several problems of LiloAgent
+- Fixed ask for floppy popup (#10485)
+- If no initrd created, GRUB's menu.lst doesn't contain it now
+  (#21469)
 
 -------------------------------------------------------------------
 Tue Nov 19 15:19:59 CET 2002 - schwab@suse.de

@@ -47,6 +47,17 @@
       * List of partitions deleted in primary proposal
       */
     list(string) del_parts = [];
+    /**
+      * Shall proposal merge menus?
+      */
+    global boolean deep_propose = false;
+
+// variables for temporary data
+
+    /**
+      * Disks order for ordering widget purproses
+      */
+    global list(string) disks_order = nil;
 
 // general functions
 
@@ -62,7 +73,6 @@
             "reset"    : ``(BootGRUB::Reset ()),
             "propose"  : ``(BootGRUB::Propose ()),
             "save"     : ``(BootGRUB::Save ()),
-//	    "summary"  : ``(BootGRUB::Summary ()),
             "update"   : ``(BootGRUB::Update ()),
             "write"    : ``(BootGRUB::Write ()),
 	    "sequence" : ``(BootGRUB::FixSequence ()),
@@ -128,7 +138,6 @@
 	    if (grub_conf == $[])
 		grub_conf = proposeGrubConf ();
 	    del_parts = BootCommon::getPartitionList (`deleted);
-	    y2milestone ("Partitions planned to be deleted: %1", del_parts);
 	}
 	boolean disks_changed = BootCommon::RefreshDisks();
 	if (disks_changed)
@@ -162,8 +171,8 @@
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
 	y2milestone ("Proposed globals: %1", BootCommon::globals);
 	BootCommon::saveCfgFileToAgent ();
-	// generate configuration
     }
+
     /**
       * Save all bootloader configuration files
       * @return boolean true if success
@@ -205,21 +214,6 @@
 	    gfxmenu = grub2file (gfxmenu);
 	    if (-1 == SCR::Read (.target.size, gfxmenu))
 		BootCommon::globals = remove (BootCommon::globals, "gfxmenu");
-/*	    else if (true)
-//(Storage::CheckForLvmRootFs() || Storage::CheckForMdRootFs())
-	    {
-		gfxmenu = BootCommon::globals["gfxmenu"]:"";
-		string commmand = sformat ("blocklist %1\nquit", gfxmenu);
-		command = sformat ("echo \"%1\" | grub --batch \
---device-map=/boot/grub/device.map | grep -A 1 \"^grub>\"");
-		y2error ("Command: %1", command);
-		map out = SCR::Execute (.target.bash_output, command);
-		y2error ("Outmap: %1", out);
-		gfxmenu = select (splitstring (out["stdout"]:"", "\n"), 0, "");
-		y2error ("Gfxmenu: %1", gfxmenu);
-		if (gfxmenu != "")
-		    BootCommon::globals["gfxmenu"] = gfxmenu;
-	    }*/
 	}
 	return BootCommon::Save ();
     }
@@ -236,17 +230,28 @@
       */
     global define boolean Write () ``{
 	boolean ret = true;
+	BootCommon::updateMBR ();
 	if (BootCommon::location_changed)
 	{
-	    ret = 0 == SCR::Execute (.target.bash, "cat /etc/grub.conf \
+	    if (! (BootCommon::location == "floppy" && saveToFLoppyPopup ()))
+		ret = false;
+// save if mkfs or fdformat failed too
+//	    if (ret)
+		SCR::Execute (.target.bash, "test -f /var/log/YaST2/y2loggrub && /bin/rm /var/log/YaST2/y2loggrub");
+		ret = 0 == SCR::Execute (.target.bash, "cat /etc/grub.conf \
 | /usr/sbin/grub --batch --device-map=/boot/grub/device.map >> \
 /var/log/YaST2/y2loggrub 2>&1"
 	    );
+	    if (ret)
+	    {
+		ret = 0 != SCR::Execute (.target.bash,
+		    "/usr/bin/grep \"Error [0-9]*: \" /var/log/YaST2/y2loggrub");
+	    }
 	    if (! ret)
 	    {
 		string log = SCR::Read (.target.string,
 		    "/var/log/YaST2/y2loggrub");
-		Report::Error (_("Error while saving GRUB occured")
+		Report::Error (_("Error while installing GRUB occured")
 		    + "\n\n\n" + log);
 	    }
 	}
@@ -265,7 +270,8 @@
                 "hiddenmenu",
                 "timeout",
                 "title",
-
+		"gfxmenu",
+		"timeout",
                 "bootp",
                 "color",
                 "device",
@@ -411,6 +417,8 @@
     global define map createLinuxSection (string title) ``{
 	if (title == "memtest86")
 	{
+	  if ((Mode::normal && Pkg::IsProvided ("gfxboot"))
+		|| ((! Mode::normal) && Pkg::IsSelected ("gfxboot")))
 	    return $[
 		"__order__":["title", "kernel"],
 		"kernel" : file2grub ("/boot/memtest.bin"),
@@ -422,6 +430,8 @@
 		    "kernel" : "/boot/memtest.bin",
 		],
 	    ];
+	  else
+		return $[];
 	}
 	string initrd = title == "failsafe" ? "initrd.shipped" : "initrd";
 	string image = title == "failsafe" ? "vmlinuz.shipped" : "vmlinuz";
@@ -466,7 +476,7 @@
 	list other_l = Storage::GetOtherLinuxPartitions();
 	y2milestone ("Other linux parts: %1", other_l);
 
-	if (other_l != nil && size (other_l) > 0
+	if (deep_propose && other_l != nil && size (other_l) > 0
 	    && 0 == SCR::Execute (.target.bash,
 		"test -d /tmp/bldetect || /bin/mkdir /tmp/bldetect")
 	    )
@@ -605,6 +615,7 @@
 	]);
 	out = add (out, createLinuxSection ("failsafe"));
 	out = add (out, createLinuxSection ("memtest86"));
+	out = filter (`s, out, ``(s != $[] && s != nil));
 	BootCommon::sections = out;
     }
 
@@ -618,6 +629,11 @@
 	bcg["default"] = 0;
 	bcg["timeout"] = 8;
 	bcg["gfxmenu"] = file2grub ("/boot/message");
+	bcg["__intern__"] = $[
+	    "changed" : false,
+	    "auto" : true,
+	    "disks" : [BootCommon::BootPartitionDevice],
+        ];
 	BootCommon::globals = bcg;
     }
 
@@ -671,15 +687,13 @@
       * modifies internal sreuctures
       */
     global define void fixSections (boolean disks_changed) ``{
+	list parts = BootCommon::getPartitionList(`parts_old);
 	if (BootCommon::partitioning_last_change
 		!= Storage::GetTargetChangeTime()
 	    && BootCommon::files_edited)
 	{
-	    if (! BootCommon::files_edited_warned)
-	    {
-		displayFilesEditedPopup ();
-		BootCommon::files_edited_warned = true;
-	    }
+	    displayFilesEditedPopup ();
+	    BootCommon::files_edited = false;
 	    return;
 	}
 	list(map) old_sect_list = BootCommon::sections;
@@ -702,19 +716,40 @@
 	    else
 	    {
 		y2milestone ("Warning on section %1", title);
-		boolean contains = true;
+		boolean cont = true;
 		foreach (`n, s["__intern__", "devs"]:[], ``{
 		    if (! contains (parts, n))
 		    {
-			contains = false;
+			cont = false;
 		    }
 		});
-		if (! contains)
+		list new_devs = toset(new_sect[title, "__intern__", "devs"]:[]);
+		list old_devs = toset(s["__intern__", "devs"]:[]);
+		if (size (new_devs) != size (old_devs))
+		    cont = false;
+		else
+		{
+		    foreach (`d, old_devs, ``{
+			if (! contains (new_devs, d))
+			    cont = false;
+		    });
+		}
+		if (! cont)
+		{
+		    s["__intern__", "auto"] = false;
 		    displayDiskChangePopup (s["title"]:"");
+		}
 		return s;
 	    }
 	});
-	y2milestone ("Checking for sections needing some of %1", del_parts);
+	boolean has_memtest = false;
+	foreach (`s, old_sect_list, ``{
+	    if (s["title"]:"" == "memtest86")
+		has_memtest = true;
+	});
+	if (new_sect["memtest86"]:$[] != $[] && ! has_memtest)
+	    old_sect_list = add (old_sect_list, new_sect["memtest86"]:$[]);
+	y2milestone ("Checking for sections needing some of %1dd", del_parts);
 	list(string) to_remove = [];
 	foreach (`s, BootCommon::sections, ``{
 	    list(string) devs = s["__intern__", "devs"]:[];
@@ -753,6 +788,25 @@
     global define void fixGlobals (boolean disks_changed) ``{
 	if (size (BootCommon::sections) <= BootCommon::globals["default"]:0)
 	    BootCommon::globals["default"] = 0;
+	if (BootCommon::globals["gfxmenu"]:"" == "")
+	    BootCommon::globals["__intern__", "auto"] = false;
+	y2milestone ("Have GFXMenu");
+	if (BootCommon::globals["gfxmenu"]:"" != "")
+	{
+	    if (! BootCommon::globals["__intern__", "changed"]:false)
+		BootCommon::globals["gfxmenu"] = file2grub ("/boot/message");
+	    else if (BootCommon::globals["__intern__", "auto"]:false)
+	    { // automatic, but changed
+	y2error ("Checking %1", BootCommon::globals);
+		if (BootCommon::BootPartitionDevice
+		    != BootCommon::globals["__intern__", "disks", 0]:""
+		    && ! BootCommon::globals["__intern__", "warned"]:false)
+		{
+		    BootCommon::globals["__intern__", "warned"] = true;
+		    displayGfxMenuChangePopup ();
+		}
+	    }
+	}
     }
 
     /**
@@ -775,7 +829,6 @@
       * @param files map filename -> contents
       */
     global define void SetFiles (map files) ``{
-	BootCommon::files_edited_warned = false;
 	if ((devMap2string (device_map) != files["/boot/grub/device.map"]:"")
 	    || (SCR::Read (.grub.tostring) != files["/boot/grub/menu.lst"]:""))
 	{

@@ -20,6 +20,8 @@
 
     textdomain "bootloader";
 
+    include "ui/common_messages.ycp";
+
     import "Report";
 
     /**
@@ -106,5 +108,113 @@ configuration files manually, please check bootloader settings."));
 	return UI::YesNoPopup(sformat(_("Partition '%1' is not available.
 Do you want to set default boot loader location?"), device));
     }
+
+    global define boolean saveToFLoppyPopup () ``{
+	boolean retval = true;
+	boolean format = false;
+	symbol fs = `no;
+	list items = [
+	    `item (`id (`no), _("Don't create filesystem")),
+	    `item (`id (`ext2), _("Create ext2 filesystem")),
+	];
+	if (SCR::Read (.target.size, "/sbin/mkfs.msdos") != -1)
+	   items = add (items, `item (`id (`fat), _("Create FAT filesystem")));
+	term contents = `VBox (
+	    `Label (_("The bootloader bootsector will be written
+to a floppy disk. Insert a floppy disk
+and confirm with OK.")),
+	    `VSpacing (1),
+	    `Left (`CheckBox (`id (`format), _("&Low level format"), false)),
+	    `VSpacing (1),
+	    `Left (`ComboBox (`id (`fs), _("&Create filesystem"), items)),
+	    `VSpacing (1),
+	    `PushButton (`id (`ok), OKButtonLabel ())
+	);
+	UI::OpenDialog (contents);
+	any ret = nil;
+	while (ret != `ok)
+	{
+	    ret = UI::UserInput ();
+	}
+	if (ret == `ok)
+	{
+	    format = UI::QueryWidget (`id (`format), `Value);
+	    fs = UI::QueryWidget (`id (`fs), `Value);
+	}
+	UI::CloseDialog ();
+	string dev = BootCommon::loader_device;
+	if (format)
+	{
+	    boolean tmpretval = true;
+	    y2milestone ("Low level formating floppy");
+	    while (true)
+	    {
+		tmpretval = 0 == SCR::Execute
+		    (.target.bash, sformat ("/usr/bin/fdformat %1", dev));
+		if (tmpretval)
+		    break;
+		if (! UI::YesNoPopup (_("Low level format failed. Try again?")))
+		    break;
+	    }
+	    retval = retval && tmpretval;
+	}
+	if (fs == `ext2)
+	{
+	    y2milestone ("Creating ext2 on floppy");
+            boolean tmpretval = 0 == SCR::Execute
+		(.target.bash, sformat ("/sbin/mkfs.ext2 %1", dev));
+	    if (! tmpretval)
+		Report::Error (_("Creating filesystem failed."));
+            retval = retval && tmpretval;
+        }
+	else if (fs == `fat)
+	{
+	    y2milestone ("Creating msdosfs on floppy");
+	    boolean tmpretval = 0 == SCR::Execute
+		(.target.bash, sformat ("/sbin/mkfs.msdos %1", dev));
+	    if (! tmpretval)
+		Report::Error (_("Creating filesystem failed."));
+	    retval = retval && tmpretval;
+	}
+	return retval;
+    }
+
+    /**
+      * Display error
+      */
+    global define void usedNameErrorPopup () ``{
+        // error popup
+        Report::Error (_("Name you set is already used
+Use other one."));
+    }
+
+    /**
+      * Display error
+      */
+    global define boolean writeErrorPopup () ``{
+        // yes-no popup
+	return UI::YesNoPopup (_("An error occured during bootloader
+installation. Retry to configure bootloader?"));
+    }
+
+    /**
+      * Display popup
+      */
+    global define void displayGfxMenuChangePopup () ``{
+	// message popup, gfxmenu is option name, leave as is
+	UI::MessagePopup (_("Disks settings changed,
+please check gfxmenu settings"));
+    }
+
+    /**
+      * Display yes-no popup
+      */
+    global define boolean confirmOptionDeletePopup () ``{
+	// yes-no popup
+	return UI::YesNoPopup (_("Really delete selected option?"));
+    }
+
+
+
 
 }
