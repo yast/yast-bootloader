@@ -210,7 +210,7 @@
       * @return list of options as should bve displayed
       */
     global define list UpdateOptionsList (map options) ``{
-        any type = BootCommon::current_section_type;
+        any type = BootCommon::getSectionType (BootCommon::current_section);
         list _options = [];
         if (type == `global)
         {

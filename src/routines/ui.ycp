@@ -37,7 +37,7 @@
       */
     global define any getOptionChoicePopup (any ot) ``{
 	list optnames = lookup (Bootloader::blOptions (),
-	    BootCommon::current_section_type, []);
+	    BootCommon::getSectionType (BootCommon::current_section), []);
 	optnames = sort (optnames);
 	term widget = `HBox (`HSpacing (1), `VBox (
 	    `VSpacing (1),
@@ -282,12 +282,12 @@
 		return op;
             map options = Bootloader::blOptions ();
             ret = singleOptionEditPopup (
-		BootCommon::current_section_type, item);
+		BootCommon::getSectionType (BootCommon::current_section), item);
         }
         else if (op == `add)
         {
             ret = singleOptionEditPopup (
-		BootCommon::current_section_type, "");
+		BootCommon::getSectionType (BootCommon::current_section), "");
 	    if (ret == `ok
 		&& ! contains (
 		    BootCommon::current_section["__order__"]:[], selected_opt)
@@ -345,7 +345,7 @@
 	if ((op == `add || op == `edit || op == `delete || op == `up
 	    || op == `down) && ret == `ok)
 	{
-	    if (BootCommon::current_section_type == `global)
+	    if (BootCommon::current_section_name == `global)
 	    {
 		BootCommon::current_globals = BootCommon::current_section;
 		BootCommon::storeSettings ();
@@ -358,7 +358,7 @@
 	    UI::ChangeWidget (`id (`settings), `CurrentItem, item);
 	}
 	if (contains (tosave, op)
-	    && BootCommon::current_section_type != `global)
+	    && BootCommon::current_section_name != `global)
 	{
 	    string ls = BootCommon::getSectionTitle ();
 	    string old_name = BootCommon::current_section_name;
@@ -453,7 +453,6 @@
         BootCommon::fetchSettings ();
         BootCommon::current_section = eval (current_globals);
         BootCommon::current_section_name = `global;
-        BootCommon::current_section_type = `global;
 
 	readWidgets (getWidgets(["globalsection"]));
     }
@@ -576,7 +575,6 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	    BootCommon::fetchSettings ();
             BootCommon::current_section = eval (BootCommon::current_globals);
             BootCommon::current_section_name = `global;
-            BootCommon::current_section_type = `global;
 	}
 	BootCommon::location_changed = true;
 	return nil;
@@ -686,7 +684,6 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 	BootCommon::current_section
 	    = eval (BootCommon::current_globals);
 	BootCommon::current_section_name = `global;
-	BootCommon::current_section_type = `global;
         list widgets = getWidgets (["globalsection", "summarybuttons"]);
         term contents = `HBox (`HSpacing (2), `VBox (
                 `VSpacing (1),

@@ -338,7 +338,7 @@
 	    section = getDefaultSection ();
 	if (section == nil)
 	    return "";
-	map params = getKernelParamKeys ();
+	map params = BootCommon::getKernelParamKeys ();
 	string label = BootCommon::getSectionTitle ();
 	integer sectnum = -1;
 	integer index = -1;

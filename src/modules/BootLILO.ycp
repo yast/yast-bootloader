@@ -594,6 +594,19 @@
       */
     global define map convertSection (string otype, string ntype, map orig) ``{
 	map ret = $[];
+	if (orig == nil)
+	{
+	    if (ntype == "other")
+	    {
+		ret = $[ "other" : "" ];
+	    }
+	    else
+	    {
+		ret = $[ "image" : "", "initrd" : "", "root" : "" ];
+	    }
+	    ret["label"] = BootCommon::getFreeSectionLabel ();
+	    return ret;
+	}
 	if (ntype == "other")
 	{
 	    ret = $["other":
