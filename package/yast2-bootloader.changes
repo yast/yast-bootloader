@@ -2,6 +2,7 @@
 Mon Aug  5 12:55:29 CEST 2002 - fehr@suse.de
 
 - make BootS390.ycp work again (was broken after 8.0 changes)
+- 2.6.13
 
 -------------------------------------------------------------------
 Thu Aug  1 15:15:24 CEST 2002 - jsrain@suse.cz
