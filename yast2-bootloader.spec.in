@@ -58,30 +58,6 @@ Group:          System/YaST
 @ybindir@/*
 @agentdir@/ag_*
 
-# lilo agent
-@plugindir@/libpy2ag_liloconf.so.*
-@scrconfdir@/lilo.scr
-@scrconfdir@/elilo.scr
-@scrconfdir@/silo.scr
-@scrconfdir@/grub.scr
-@scrconfdir@/zipl.scr
-@scrconfdir@/bootloader.scr
-@scrconfdir@/cfg_bootloader.scr
-@scrconfdir@/cfg_bootsplash.scr
-
-# lilo agent - devel
-@plugindir@/libpy2ag_liloconf.so
-@plugindir@/libpy2ag_liloconf.la
-%docdir @docdir@
-
-#prom agent - sparc(64) only
-%ifarch sparc sparc64
-@plugindir@/libpy2ag_prom.so.*
-@scrconfdir@/prom.scr
-@plugindir@/libpy2ag_prom.so
-@plugindir@/libpy2ag_prom.la
-%endif
-
 /var/adm/fillup-templates/*
 
 %files -n yast2-bootfloppy
