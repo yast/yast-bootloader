@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug  7 08:45:44 CEST 2002 - jsrain@suse.de
+
+- added support for changing kernel command line for other modules
+  when using GRUB easily
+- 2.6.17
+
+-------------------------------------------------------------------
 Tue Aug  6 16:43:24 CEST 2002 - jsrain@suse.de
 
 - fixed abort button behaviour

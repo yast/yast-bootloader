@@ -13,6 +13,7 @@ ynclude_DATA =		\
 	io.ycp		\
 	ui.ycp		\
 	routines.ycp	\
+	misc.ycp	\
 	texts.ycp	\
 	widgets.ycp	\
 	helps.ycp	\

@@ -1,0 +1,55 @@
+/**
+ * File:
+ *   misc.ycp
+ *
+ * Module:
+ *   Configuration of lilo
+ *
+ * Summary:
+ *   miscellaneous functions.
+ *
+ * Authors:
+ *   Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ *   miscellaneous functions.
+ *
+ */
+
+{
+
+textdomain "bootloader";
+
+/**
+  * get kernel parameters from menu.lst
+  * @param string section title
+  * @param string key
+  * @return string value, "false" if not present, "true" if present key without value
+  */
+global define string getGrubKernelParam (string section, string key) ``{
+    path p = list2path (["grub", "sections", section, "kernel"]);
+    string command = SCR::Read (p);
+    if (command == "")
+	return "";
+    return getGrubKernelParamFromLine (command, key);
+}
+
+/** set kernel parameter to menu.lst
+  * @param string section title
+  * @param string parameter key
+  * @param string value, "false" to remove key, "true" to add key without value
+  * @return boolean true on success
+  */
+global define boolean setGrubKernelParam (string section, string key, string value) ``{
+    path p = list2path (["grub", "sections", section, "kernel"]);
+    string command = SCR::Read (p);
+    if (command == "")
+	return false;
+    command = setGrubKernelParamToLine (command, key, value);
+    boolean ret = SCR::Write (p, command);
+    ret = ret && SCR::Write (.grub, nil);
+    return ret;
+}
+
+}
