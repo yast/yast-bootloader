@@ -865,7 +865,7 @@ global define map<string,any> getEmbed15Widget () ``{
     return $[
 	"table" : $[
 	    // table item / label
-	    "label" : _("Use dedicated partition boot loader area."),
+	    "label" : _("Use Dedicated Boot Loader Area"),
 	    "summary" : embed15Summary,
 	    "optional" : false,
 	    "ordering" : false,
@@ -876,12 +876,12 @@ global define map<string,any> getEmbed15Widget () ``{
 	    "store" : embed15Store,
 	    "widget" : `checkbox,
 	    // label displayed as help
-	    "help" : _("Using dedicated disk partition boot loader area prevents
-from moving bootloader files which may occurre due to
-automatic disk defragmentation and may break loading
-boot loader."),
+	    "help" : _("Using the dedicated boot loader area prevents
+boot loader files from being moved during
+automatic disk defragmentation.  The movement could prevent the
+boot loader from loading."),
 	    // checkbox label
-	    "widget_label" : _("Use dedicated partition boot loader area."),
+	    "widget_label" : _("Use Dedicated Boot Loader Area"),
 	],
     ];
 }
