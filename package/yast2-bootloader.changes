@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Apr  6 09:01:01 CEST 2004 - jsrain@suse.de
+
+- updating graphical boot menu to contain proper languages (and 
+  be small enough to fit in memory) also when running update from
+  YaST control center (#38339)
+- added 'noresume' parameter to failsafe kernel command line
+  (#38400)
+- 2.9.22
+
+-------------------------------------------------------------------
 Mon Apr  5 15:23:21 CEST 2004 - jsrain@suse.de
 
 - fixed installation if root is on LVM (initializing device mapper
