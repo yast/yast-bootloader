@@ -17,7 +17,7 @@ X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoinstResource=
 
 Icon=bootmode
-Exec=/sbin/yast2 bootfloppy 
+Exec=/sbin/yast2 bootfloppy
 
 Name=Create a Boot, Rescue, or Module Floppy
 GenericName=Insert a floppy disk and create a standalone boot, rescue or module floppy.
@@ -49,8 +49,7 @@ GenericName[el]=Εισάγετε μια δισκέτα και δημιουργε
 Name[fr]=Créer une disquette d'amorçage, de secours ou de modules
 GenericName[fr]=Insérer une disquette et créer une disquette d'amorçage, de secours ou de modules.
 Name[ja]=ブート・フロッピー、レスキュー・フロッピーあるいはモジュール・フロッピーを作成する
-GenericName[ja]=フロッピーを入れて、ブート・フロッピー、レスキュー・フロッピー
-あるいはモジュール・フロッピーを作成する。
+GenericName[ja]=フロッピーを入れて、ブート・フロッピー、レスキュー・フロッピーあるいはモジュール・フロッピーを作成する。
 GenericName[lt]=Įdėkite diskelį ir sukurkite įkrovos, avarinį arba modulių diską
 Name[sl]=Kreiraj zagonsko, reševalno ali modulno disketo
 GenericName[sl]=Vstavite disketo in naredite samostojno zagonsko, reševalno ali modulno disketo.
