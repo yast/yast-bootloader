@@ -272,7 +272,7 @@
 	    $["add_delete" : true, "up_down_buttons" : false, "changed_column" : true],
 	    $[
 		"store" : ``(BootCommon::singleSectionStore ()),
-		"options": BootCommon::GetOptionMaps (),
+		"options": BootCommon::cwm_options,
 		"id2key": ``(BootCommon::id2key ()),
 		"ids": ``(BootCommon::getTableContents ()),
                 "help": getSingleSectionHelp (),
@@ -362,7 +362,7 @@
 		"init" : ``(BootCommon::globalSectionInit ()),
 		"handle" : ``(BootCommon::globalSectionHandle ()),
 		"store" : ``(BootCommon::globalSectionStore ()),
-		"options": BootCommon::GetOptionMaps (),
+		"options": BootCommon::cwm_options,
 		"id2key": ``(BootCommon::id2key ()),
 		"ids": ``(BootCommon::getTableContents ()),
                 "help": getGlobalSectionHelp (),
@@ -373,7 +373,6 @@
                     "changed" : ``(BootCommon::commonTableChanged ()),
                 ],
                 "option_delete": ``(BootCommon::commonTableEntryDelete ()),
-                "add_items":  lookup (GetOptions (), `global, []),
 	    ]
 	);
     }
@@ -397,6 +396,8 @@
     global define symbol globalSectionHandle (any widget, map event) ``{
 	redraw_table = false;
 	map current_table = CWM::GetProcessedWidget ();
+	map options = current_bootloader_attribs["option_list"]:$[];
+	current_table["add_items"] = options[`global]:[];
 	symbol ret = TablePopup::TableHandle (current_table, widget, event);
 	if (redraw_table)
 	{
@@ -435,34 +436,13 @@
 	    prependlist = ["__loader_type", "__sep2", "__location",
 		"default", "__sections", "__activate", "__repl_mbr",
 		"__backup_mbr", "__save_method", "__sep1"];
-	    forbidden_keys = ["boot", "default"];
+	    forbidden_keys = ["boot", "default", "activate"];
 	}
 	else
 	{
 	    prependlist = ["label", "__section_type", "__sep1"];
 	}
-	if (Mode::initial)
-	{
-	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
-	}
-	forbidden_keys = merge (forbidden_keys, prependlist);
-	forbidden_keys = add (forbidden_keys, "__intern__");
-	integer index = -1;
-	map remap_prepend = $[];
-	list options = maplist (map opt, BootCommon::current_section, ``{
-	    index = index + 1;
-	    if (contains (prependlist, opt["key"]:""))
-	    {
-		remap_prepend[opt["key"]:""] = index;
-		return nil;
-	    }
-	    return contains (forbidden_keys, opt["key"]:"")
-		? nil
-		: index;
-	});
-	prependlist = maplist (`e, prependlist, ``(remap_prepend[e]:e));
-	options = filter (any opt, options, ``(opt != nil));
-	return merge (prependlist, options);
+	return createSectionItemsList (prependlist, forbidden_keys, true);
     }
 
     /**

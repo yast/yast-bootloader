@@ -192,8 +192,9 @@
 	SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
 	SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
 
-	BootCommon::liloRemoveUnexistentSections ();
-	BootCommon::liloUpdateIninrdAppend ();
+	BootCommon::liloRemoveUnexistentSections ("");
+	BootCommon::liloUpdateInitrd ();
+	BootCommon::liloUpdateAppend ();
 	string message = lookup_value (BootCommon::globals, "message", "");
         if (message != "")
         {
@@ -411,68 +412,7 @@
       * @param replace boolean true if old sectinos shall be replaced
       */
     global define void updateSections (boolean replace) ``{
-	list out = BootCommon::sections;
-
-	foreach (`t, ["linux", "failsafe", "memtest86"], ``{
-	    list m = createLinuxSection (t);
-	    boolean changed = false;
-	    list out = maplist (`s, out, ``{
-		if (lookup_value (s, "label", "") == t)
-		{
-		    changed = true;
-		    if (replace)
-			return m;
-		    else
-			return s;
-		}
-		else
-		{
-		    return s;
-		}
-	    });
-            if (! changed)
-                if (t == "normal")
-                    out = prepend (out, m);
-                else
-                    out = add (out, m);
-        });
-        out = maplist (`s, out, ``{
-	    string type = "";
-	    foreach (`p, s, ``{
-		if (p["key"]:"" == "label" && type == "")
-		    type = p["value"]:"";
-		if (p["key"]:"" == "__intern__")
-		    type = p["value", "type"]:type;
-	    });
-            s = maplist (`p, s, ``{
-		if (p["key"]:"" == "image" || p["key"]:"" == "initrd")
-		{
-		    string option = p["value"]:"";
-		    if (regexpmatch (option, "^.*\.shipped.*$"))
-		    {
-			option = regexpsub (option,
-			    "^(.*)\.shipped(.*)$", "\\1\\2");
-		    }
-		    else if (regexpmatch (option, "^.*\.suse.*$"))
-		    {
-			option = regexpsub (option,
-			    "^(.*)\.suse(.*)$", "\\1\\2");
-		    }
-		    if (type == "linux" && p["key"]:"" == "append")
-		    {
-			// FIXME check the product
-			if (! issubstring (option, "desktop"))
-			    option = option + " desktop";
-			if (! issubstring (option, "splash"))
-			    option = option + " splash=silent";
-		    }
-		    p["value"] = option;
-		}
-		return p;
-            });
-	    return s;
-        });
-        BootCommon::sections = out;
+	BootCommon::liloUpdateSections (replace);
     }
 
     /**

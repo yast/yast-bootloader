@@ -507,7 +507,6 @@ configuration files"));
       * @return string botloader type
       */
     global define string getLoaderType (boolean recheck) ``{
-	Arch::board_iseries = true;
 	if ((! recheck) && (loader_type != nil))
 	    return loader_type;
 	// read bootloader to use from disk
