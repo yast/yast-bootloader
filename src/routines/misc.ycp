@@ -1968,5 +1968,48 @@
 	return section;
     }
 
+/**
+ * Update device name according to changes in kernel (eg. SATA)
+ * @param string device the original device name
+ * @return string updated device
+ */
+global string UpdateDevice (string device) {
+    if (Mode::test)
+    {
+	map mapping = $[
+	    "/dev/hda" : "/dev/sda",
+	    "/dev/hdb" : "/dev/sdb",
+	];
+
+	map d = Storage::GetDiskPartition( device );
+	if( haskey( mapping, d["disk"]:"" ))
+	{
+	    if (d["nr"]:nil == nil || d["nr"]:nil == 0)
+	    {
+		device = mapping[d["disk"]:""]:"";
+	    }
+	    else
+	    {
+		device = Storage::GetDeviceName(
+		    mapping[d["disk"]:""]:"",
+		    d["nr"]:nil);
+	    }
+	}
+    }
+    else
+    {
+	device = select (
+	    Storage::GetTranslatedDevices (
+		installed_version,
+		update_version,
+		[ device ]
+	    ),
+	    0,
+	    device
+	);
+    }
+    return device;
+}
+
 
 } //end of include

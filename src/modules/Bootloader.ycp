@@ -42,7 +42,6 @@
     global define boolean Read ();
     global define void Reset ();
     global define boolean Write ();
-    global define void Update ();
 
     global define void ReadOrProposeIfNeeded ();
     global define string getDefaultSection ();
@@ -198,6 +197,7 @@
 	Progress::Finish ();
 	if (testAbort ())
 	    return false;
+	y2milestone ("Read settings: %1", Export ());
 	return ret;
     }
     /**
@@ -244,7 +244,11 @@
     /**
       * Update read settings to new version of configuration files
       */
-    global define void Update () ``{
+    global define void UpdateConfiguration () ``{
+	BootCommon::BootPartitionDevice
+	    = BootCommon::UpdateDevice (BootCommon::BootPartitionDevice);
+	BootCommon::RootPartitionDevice
+	    = BootCommon::UpdateDevice (BootCommon::RootPartitionDevice);
 	// first run bootloader-specific update function
 	blUpdate ();
 
@@ -269,6 +273,18 @@
 	SCR::Write (.sysconfig.kernel.MODULES_LOADED_ON_BOOT, mlob);
 	SCR::Write (.sysconfig.kernel, nil);
     }
+
+/**
+ * Update the whole confiuration
+ * @param iv a map representing the installed (original) version
+ * @param uv a map representing the version the system is upgraded to
+ * @return boolean true on success
+ */
+global boolean Update (map<string,any> iv, map<string,any> uv) {
+    BootCommon::installed_version = iv;
+    BootCommon::update_version = uv;
+    return Write (); // write also reads the configuration and updates it
+}
 
     /**
      * Process update actions needed before packages update starts
@@ -511,7 +527,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	foreach (list<map> s, BootCommon::sections, ``{
 	    string title = (string)
 		lookup_value (s, BootCommon::getSectionTitle (), "");
-	    map intern = (map)lookup_value (s, "__intern__", "");
+	    map intern = (map)lookup_value (s, "__intern__", $[]);
 	    string kernel_key = BootCommon::getKernelKey ();
 	    if (lookup_value (s, kernel_key, nil) != nil)
 	    {
@@ -822,7 +838,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 		Progress::on ();
 		if (Mode::update)
 		{
-		    Update ();
+		    UpdateConfiguration ();
 		    BootCommon::changed = true;
 		    BootCommon::location_changed = true;
 		}

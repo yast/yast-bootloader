@@ -71,8 +71,12 @@
 	    return [];
 	  }
 	}
-	string resumestring = sformat ("resume=%1",
-	    BootCommon::getLargestSwapPartition ());
+	string resumestring = "";
+	if (BootCommon::getLargestSwapPartition () != "")
+	{
+	    resumestring = sformat ("resume=%1",
+		BootCommon::getLargestSwapPartition ());
+	}
 	// not using .shipped images any more
 	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
 	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
@@ -230,6 +234,8 @@
 		e["value"] = 80;
 	    else if (e["key"]:"" == "message")
 		e["value"] = "/boot/message";
+	    else if (e["key"]:"" == "boot")
+		e["value"] = BootCommon::UpdateDevice (e["value"]:"");
 	    return e;
 	});
     }
@@ -402,6 +408,8 @@
     global define void Update () ``{
 	updateSections (true);
 	updateGlobals ();
+	BootCommon::loader_device
+	    = BootCommon::UpdateDevice (BootCommon::loader_device);
     }
     /**
       * Write bootloader settings to disk
