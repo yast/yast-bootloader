@@ -25,6 +25,7 @@
 
     textdomain "bootloader";
     import "Mode";
+    import "Stage";
     include "bootloader/routines/routines.ycp";
 
     import "Storage";
@@ -318,7 +319,7 @@
       * @param bootloader string printable name of used bootloader
       */
     global define void updateTimeoutPopupForFloppy (string bootloader) ``{
-	if (Mode::normal)
+	if (Mode::normal ())
 	    return;
 
         string confirm_boot_msg = Misc::boot_msg;
@@ -713,7 +714,7 @@
     global define list<string> splitPath (string fullpth) ``{
 // UGHLY HACK because of testsuites
 	map<string,list> mountpoints = $[];
-	if (Mode::test)
+	if (Mode::test ())
 	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
 	else
 	    mountpoints = (map<string,list>)Storage::GetMountPoints();
@@ -747,7 +748,7 @@
     global define string mergePath (list<string> devpth) ``{
 // UGHLY HACK because of testsuites
         map<string,list> mountpoints = $[];
-	if (Mode::test)
+	if (Mode::test ())
 	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
 	else
             mountpoints = (map<string,list>)Storage::GetMountPoints();
@@ -1422,7 +1423,7 @@
     global define string dev2majmin (string device) ``{
 	map exec_ret = (map) SCR::Execute (.target.bash_output, sformat (
 	    "ls -ln %1", device));
-	if (exec_ret["exit"]:1 != 0 && Mode::initial)
+	if (exec_ret["exit"]:1 != 0 && Stage::initial ())
 	{
 	    exec_ret = (map) WFM::Execute (.local.bash_output, sformat (
 		"ls -ln %1", device));
@@ -1501,7 +1502,7 @@
 	     splitstring (BootCommon::kernelCmdLine, " "));
 	added = (list<string>)BootCommon::difflist (added, old);
 	old = (list<string>) merge (old, added);
-	if (Mode::initial)
+	if (Stage::initial ())
 	{// move showopts apic to the end
 	    boolean showopts = false;
 	    boolean apic = false;
@@ -1541,7 +1542,7 @@
     global define list createSectionItemsList (list prependlist,
 	list forbidden_keys, boolean alpha_order)
     ``{
-	if (Mode::initial)
+	if (Stage::initial ())
 	{
 	    prependlist = filter (any p, prependlist, ``(p != "__save_method"));
 	}
@@ -1680,7 +1681,7 @@
 		filtered = substring (filtered, 0, 15);
 	}
 	else if (contains (["linux", "failsafe", "previous"], orig)
-	    && ! Mode::test)
+	    && ! Mode::test ())
 	{
 	    import "Product";
 	    string product = sformat ("%1 %2", Product::name, Product::version);
@@ -1758,7 +1759,7 @@
 	});
 	map<string,string> ret = mapmap (string k, string v, trans, {
 	    string il1 = translateSectionTitle (k);
-	    if (contains (["linux", "failsafe", "previous"], k) && ! Mode::test)
+	    if (contains (["linux", "failsafe", "previous"], k) && ! Mode::test ())
 	    {
 		import "Product";
 		string product
@@ -1810,7 +1811,7 @@
      */
     global define void UpdateInstallationKernelParameters () ``{
 	map<string,any> saved_params = $[];
-	if (! Mode::initial)
+	if (! Stage::initial ())
 	{
 	    saved_params = (map<string,any>)SCR::Read (
 		.target.ycp, "/var/lib/YaST2/bootloader.ycp");
@@ -1821,7 +1822,7 @@
 	    if (vgaType != nil && vgaType != "")
 		Kernel::vgaType = vgaType;
 	}
-	if (! Mode::initial)
+	if (! Stage::initial ())
 	{
 	    Kernel::cmdLine = saved_params["installation_kernel_params"]:"";
 	}
@@ -1839,7 +1840,7 @@
      * @return additional kernel parameters
      */
     global define string GetAdditionalFailsafeParams () ``{
-	if (Mode::initial)
+	if (Stage::initial ())
 	{
 	    additional_failsafe_params =
 		SCR::Read (.etc.install_inf.NoPCMCIA) == "1"
@@ -1985,7 +1986,7 @@
  * @return string updated device
  */
 global string UpdateDevice (string device) {
-    if (Mode::test)
+    if (Mode::test ())
     {
 	map mapping = $[
 	    "/dev/hda" : "/dev/sda",

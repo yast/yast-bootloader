@@ -26,6 +26,7 @@
     import "Kernel";
     import "Mode";
     import "ProductFeatures";
+    import "Stage";
     import "Storage";
     import "StorageDevices";
     import "Pkg";
@@ -86,7 +87,7 @@
     global define list<map> createLinuxSection (string title) ``{
 	if (title == "memtest86")
 	{
-	  if (Pkg::IsProvided ("memtest86") || ! Mode::normal || Mode::test)
+	  if (Pkg::IsProvided ("memtest86") || ! Mode::normal () || Mode::test ())
 	  {
 	    return [
 		$[ "key" : "kernel", "value" : file2grub ("/boot/memtest.bin")],
@@ -809,7 +810,7 @@
             "/boot/grub/menu.lst" : (string)SCR::Read (.grub.tostring),
 	    "/boot/grub/device.map" : devMap2string (device_map),
         ];
-	if (! Mode::config)
+	if (! Mode::config ())
 	    ret["/etc/grub.conf"] = getGrubConf (grub_conf);
 	return ret;
     }
@@ -826,7 +827,7 @@
 	}
 	device_map = string2devMap (files["/boot/grub/device.map"]:"");
 	SCR::Write (.grub.fromstring, files["/boot/grub/menu.lst"]:"");
-	if (! Mode::config)
+	if (! Mode::config ())
 	{
 	    if (getGrubConf (grub_conf) != files["/etc/grub.conf"]:"")
 	    {
@@ -940,7 +941,7 @@
       * Reset bootloader settings
       */
     global define void Reset (boolean init) ``{
-	if (Mode::autoinst)
+	if (Mode::autoinst ())
 	    return;
 	device_map = [];
 	grub_conf = $[];
@@ -948,7 +949,7 @@
 	if (init)
 	{
 	    device_map = proposeDeviceMap ();
-	    if (! Mode::config)
+	    if (! Mode::config ())
 		grub_conf = proposeGrubConf ();
 	}
     }
@@ -967,13 +968,13 @@
 	// refresh device map
 	if (device_map == [] || device_map == nil)
 	    device_map = proposeDeviceMap ();
-	if (/*(grub_conf == $[] || grub_conf == nil) &&*/ ! Mode::config)
+	if (/*(grub_conf == $[] || grub_conf == nil) &&*/ ! Mode::config ())
 	    grub_conf = proposeGrubConf ();
 	string mbrD = grubDev2unixDev ("(hd0)");
 	if (mbrD != "/dev/null" && mbrD != nil && mbrD != "")
 	    BootCommon::mbrDisk = mbrD;
 	boolean disks_changed = BootCommon::RefreshDisks();
-	if (disks_changed && ! Mode::autoinst)
+	if (disks_changed && ! Mode::autoinst ())
 	{
 	    if (askLocationResetPopup (BootCommon::loader_device))
 	    {
@@ -998,7 +999,7 @@
 	}
 	else
 	{
-	    if (Mode::autoinst)
+	    if (Mode::autoinst ())
 	    {
 		// TODO whatever will be needed
 		y2debug ("nothing to to in AI mode if sections exist");
@@ -1012,7 +1013,7 @@
 	}
 	else
 	{
-            if (Mode::autoinst)
+            if (Mode::autoinst ())
             {
                 // TODO whatever will be needed
 		y2debug ("nothing to to in AI mode if globals are defined");
@@ -1116,7 +1117,7 @@
 		return s;
 	    }
 
-            if (type == "linux" && kernel != "" && Mode::initial)
+            if (type == "linux" && kernel != "" && Stage::initial ())
 	    {
                 s = modifySection (s, "kernel", BootCommon::updateKernelParams (
 		    kernel));

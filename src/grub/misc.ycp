@@ -90,7 +90,7 @@
 	map ids = $[];
 	list<list<string> > mapping = [];
         map<string,map> targetMap = $[];
-	if (Mode::config)
+	if (Mode::config ())
 	{
 	    y2milestone ("Skipping device map proposing in Config mode");
 /*	    import "AutoinstStorage";
@@ -274,7 +274,7 @@ global void updateDeviceMap () {
       * @return string GRUB-like filename (eg. "(hd0,0)/vmlinuz")
       */
     global define string file2grub (string filename) ``{
-	if (Mode::config)
+	if (Mode::config ())
 	    return filename;
 	if (regexpmatch (filename, "^\\(.+\\)\\/.+$"))
 	    return filename;
@@ -367,7 +367,7 @@ global void updateDeviceMap () {
 	    list<string> md = maplist (map m, tm["/dev/md", "partitions"]:[], {
 		return m["device"]:"";
 	    });
-	    if (Mode::test)
+	    if (Mode::test ())
 		md = ["/dev/md0"];
 	    find (string md_disk, md, {
 		list<string> md_members = sort (maplist (
@@ -377,7 +377,7 @@ global void updateDeviceMap () {
 		{
 		    return s;
 		}));
-		if (Mode::test)
+		if (Mode::test ())
 		    md_members = ["/dev/hda1", "/dev/hdb1"];
 		if (md_members == boot_devices)
 		{
@@ -392,7 +392,7 @@ global void updateDeviceMap () {
 		map<string,integer> boot_md
 		    = BootCommon::Md2Partitions (
 			BootCommon::BootPartitionDevice);
-		if (Mode::test)
+		if (Mode::test ())
 		    boot_md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
 		list<string> md_disks = maplist (string d, integer b, boot_md, {
 		    map p_dev = Storage::GetDiskPartition (d);
@@ -435,7 +435,7 @@ global void updateDeviceMap () {
 	{
 	    dev = BootCommon::BootPartitionDevice;
 	    map<string,integer> md =  BootCommon::Md2Partitions (dev);
-	    if (Mode::test)
+	    if (Mode::test ())
 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
 	    devices = maplist (string d, integer b, md, {
 		map p_dev = Storage::GetDiskPartition (d);
@@ -446,7 +446,7 @@ global void updateDeviceMap () {
 	else if (regexpmatch (dev, "^\\/dev\\/md.*$"))
 	{
 	    map<string,integer> md =  BootCommon::Md2Partitions (dev);
-	    if (Mode::test)
+	    if (Mode::test ())
 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
 	    devices = maplist (string d, integer b, md, { return d;});
 	    remap = true;

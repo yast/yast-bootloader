@@ -44,7 +44,7 @@
 	if (type == `global)
 	{
 	    prependlist = ["__loader_type"];
-	    if (Mode::config)
+	    if (Mode::config ())
 	    {
 		prependlist = add (prependlist, "__board_type");
 	    }

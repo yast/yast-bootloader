@@ -116,7 +116,7 @@
 	],
     ];
 
-    Mode::test = true;
+    Mode::SetTest ("testsuite");
 
     BootGRUB::device_map = ( list<list<string> >)TEST (``(BootGRUB::readDeviceMap ()), [READ, $[], $[]], 0);
 

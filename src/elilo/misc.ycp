@@ -31,7 +31,7 @@
 	string mountpoint = "/";
 	// UGHLY HACK because of testsuites
 	map mountpoints = $[];
-	if (Mode::test)
+	if (Mode::test ())
 	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
 	else
 	    mountpoints = Storage::GetMountPoints();
@@ -106,7 +106,7 @@
       */
     global define void UpdateEfiPartitionLayout () {
 	// update the partition layout if needed
-	if (getEfiMountPoint () == "/boot" && Mode::update)
+	if (getEfiMountPoint () == "/boot" && Mode::update ())
 	{
 	    map output = (map)SCR::Execute (.target.bash_output, sformat (
 	      "/bin/cp %1/boot/efi/SuSE/elilo.conf %1/etc/elilo.conf.YaST2save",

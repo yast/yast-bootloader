@@ -29,6 +29,7 @@
     import "Kernel";
     import "Mode";
     import "ProductFeatures";
+    import "Stage";
     import "Storage";
 
 // private variables
@@ -278,9 +279,9 @@
 	    BootCommon::location
 		= sformat ("%1 %2", Product::name, Product::version);
 	}
-	if (! Mode::initial)
+	if (! Stage::initial ())
 	    create_efi_entry = true;
-	if (Mode::update)
+	if (Mode::update ())
 	    create_efi_entry = false;
 	elilo_conf_filename = getEliloConfFilename ();
 	BootCommon::DetectDisks ();
@@ -293,7 +294,7 @@
 	}
 	else
 	{
-	    if (Mode::autoinst)
+	    if (Mode::autoinst ())
 	    {
 		y2debug ("Nothing to do for propose in AI mode");
 	    }
@@ -383,7 +384,7 @@
       * Reset bootloader settings
       */
     global define void Reset (boolean init) ``{
-	if (Mode::autoinst)
+	if (Mode::autoinst ())
 	    return;
 	remove_old_efi = true;
 	create_efi_entry = true;

@@ -52,8 +52,8 @@
     global define list<map> createLinuxSection (string title) ``{
 	if (title == "memtest86")
 	{
-          if ((Mode::normal && Pkg::IsProvided ("memtest86"))
-                || ! Mode::normal || Mode::test)
+          if ((Mode::normal () && Pkg::IsProvided ("memtest86"))
+                || ! Mode::normal () || Mode::test ())
 	  {
 	    return [
 		$[ "key" : "image", "value" : "/boot/memtest.bin"],
@@ -327,7 +327,7 @@
 	}
 
 	boolean disks_changed = BootCommon::RefreshDisks();
-	if (disks_changed && ! Mode::autoinst)
+	if (disks_changed && ! Mode::autoinst ())
 	{
 	    if (askLocationResetPopup (BootCommon::loader_device))
 	    {
@@ -352,7 +352,7 @@
 	}
 	else
 	{
-            if (Mode::autoinst)
+            if (Mode::autoinst ())
             {
                 // TODO whatever will be needed
 		y2debug ("nothing to to in AI mode if sections exist");
@@ -366,7 +366,7 @@
 	}
 	else
 	{
-            if (Mode::autoinst)
+            if (Mode::autoinst ())
             {
                 // TODO whatever will be needed
 		y2debug ("nothing to to in AI mode if globals are defined");

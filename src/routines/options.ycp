@@ -447,7 +447,7 @@ and the sector to which the boot loader is installed."),
     global define string activateSummary (any opt_id, string opt_key) ``{
         if (activate)
 	{
-	    if (Mode::config)
+	    if (Mode::config ())
 	    {
 		return _("Yes");
 	    }
@@ -524,7 +524,7 @@ and the sector to which the boot loader is installed."),
     global define string replMbrSummary (any opt_id, string opt_key) ``{
 	if (repl_mbr)
 	{
-	    if (Mode::config)
+	    if (Mode::config ())
 	    {
 		return _("Yes");
 	    }

@@ -536,7 +536,7 @@ configuration files"));
     global define void setCurrentLoaderAttribs (string loader_type) ``{
 	y2milestone ("Setting attributes for bootloader %1", loader_type);
 	// testsuite hack
-	if (Mode::test)
+	if (Mode::test ())
 	    return;
 	if (loader_type != nil &&
 	    bootloader_attribs[loader_type, "initializer"]:nil != nil)
@@ -575,7 +575,7 @@ configuration files"));
 	if ((! recheck) && (loader_type != nil))
 	    return loader_type;
 	// read bootloader to use from disk
-	if (Mode::update || Mode::normal || Mode::repair)
+	if (Mode::update () || Mode::normal () || Mode::repair ())
 	{
 	    loader_type = (string)SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
 	    if (loader_type != nil && loader_type != "")
@@ -586,7 +586,7 @@ configuration files"));
 		setCurrentLoaderAttribs (loader_type);
 		return loader_type;
 	    }
-	    if (Mode::update)
+	    if (Mode::update ())
 	    {
 		if (Arch::i386 ())
 		{ // no sysconfig variable -> old version installed -> use LILO
@@ -626,14 +626,14 @@ configuration files"));
 	y2milestone ("Setting bootloader to >>%1<<", bootloader);
 	if (bootloader != nil
 	    && contains(bootloaders, bootloader)
-	    && ! Mode::test)
+	    && ! Mode::test ())
 	{
 	    // don't configure package maneger during autoinstallation preparing
-	    if (Mode::normal && (! (Mode::config || Mode::repair)))
+	    if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
 	    {
 		PackageSystem::InstallAll (getBootloaderPackages (bootloader));
 	    }
-	    else if (Mode::initial && (! (Mode::repair)))
+	    else if (Stage::initial () && (! (Mode::repair ())))
 	    {
 		boolean pkg_added = false;
 		foreach (string p, getBootloaderPackages (bootloader), ``{
@@ -661,7 +661,7 @@ configuration files"));
       * @return list of bootloaders
       */
     global define list<string> getBootloaders () ``{
-	if (Mode::config)
+	if (Mode::config ())
 	{
 	    return ["grub", "lilo", "elilo", "s390", "ppc"];
 	}

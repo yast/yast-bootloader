@@ -86,7 +86,7 @@
       */
     global define list<string> PRePSummary () ``{
 	list<string> ret = [];
-	if ((! Mode::config) && 0 == size (prep_boot_partitions))
+	if ((! Mode::config ()) && 0 == size (prep_boot_partitions))
 	{
 	    ret = [
 		// summary part

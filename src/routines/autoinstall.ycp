@@ -30,7 +30,7 @@
     define map<string,any> AI2Export (map<string,any> ai) ``{
 	// prepare settings for default bootloader if not specified in the
 	// profile
-	if (Mode::autoinst && ! haskey (ai, "loader_type"))
+	if (Mode::autoinst () && ! haskey (ai, "loader_type"))
 	    ai["loader_type"] = Bootloader::getLoaderType ();
 
 	// bootloader type and location stuff
@@ -59,10 +59,10 @@
 	if (ai["loader_type"]:"" == "elilo")
 	{
 	    string def_label = "";
-	    if (! Mode::test)
+	    if (! Mode::test ())
 	    {
 	    import "Product";
-		if (Mode::autoinst)
+		if (Mode::autoinst ())
 		{
 		    def_label
 			= sformat ("%1 %2", Product::name, Product::version);
@@ -93,7 +93,7 @@
 	    modlist = add(modlist, mod["module"]:"");
 	    modsett = add(modsett, mod["module"]:"", mod["module_args"]:$[]);
 	});
-        if (Mode::autoinst)
+        if (Mode::autoinst ())
         {
 	    map current = Initrd::Export();
             y2milestone("Automatically detected initrd modules: %1", current);

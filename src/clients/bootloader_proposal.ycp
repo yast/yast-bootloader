@@ -38,20 +38,20 @@
 	boolean force_reset      = param["force_reset"     ]:false;
 	boolean language_changed = param["language_changed"]:false;
 
-	if (force_reset && !Mode::autoinst)
+	if (force_reset && !Mode::autoinst ())
 	{
 	    // force re-calculation of bootloader proposal
 	    y2milestone ("Recalculation of bootloader configuration forced");
 	    Bootloader::Reset ();
 	}
 
-	if (! Bootloader::proposed_cfg_changed && ! Mode::autoinst)
+	if (! Bootloader::proposed_cfg_changed && ! Mode::autoinst ())
 	{
 	    y2milestone ("Cfg not changed before, recreating");
 	    Bootloader::ResetEx (false);
 	    BootCommon::setLoaderType (nil);
 	}
-	else if ((Arch::i386 () || Arch::x86_64 ()) && ! Mode::autoinst)
+	else if ((Arch::i386 () || Arch::x86_64 ()) && ! Mode::autoinst ())
 	{
 	    string loader = BootCommon::getLoaderType (false);
 	    boolean pl = BootCommon::prefer_lilo;

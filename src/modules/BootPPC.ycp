@@ -29,6 +29,7 @@
     import "Kernel";
     import "Mode";
     import "ProductFeatures";
+    import "Stage";
     import "Storage";
 
     // ppc specific global settings
@@ -502,7 +503,7 @@ global boolean currentBoardUpdate () {
 	iseries_write_slot_b = settings["iseries_write_slot_b"]:false;
 	prep_boot_partition = settings["prep_boot_partition"]:"/dev/null";
 	of_defaultdevice = settings["of_defaultdevice"]:true;
-	if (! Mode::config)
+	if (! Mode::config ())
 	{
 	    board_type = nil;
 	    string bt = getBoardType ();
@@ -513,7 +514,7 @@ global boolean currentBoardUpdate () {
 		    bt);
 	    }
 	}
-	setBoardType ((string)(settings["board_type"]:nil));
+	setBoardType (settings["board_type"]:"");
 	currentBoardInit ();
 	return true;
     }
@@ -560,7 +561,7 @@ global boolean currentBoardUpdate () {
 	}
 	else
 	{
-            if (Mode::autoinst)
+            if (Mode::autoinst ())
             {
 		y2debug ("nothing to to in AI mode if sections exist");
                 // TODO whatever will be needed
@@ -574,7 +575,7 @@ global boolean currentBoardUpdate () {
 	}
 	else
 	{
-            if (Mode::autoinst)
+            if (Mode::autoinst ())
             {
 		y2debug ("nothing to to in AI mode if globals are defined");
                 // TODO whatever will be needed

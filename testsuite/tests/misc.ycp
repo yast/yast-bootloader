@@ -88,11 +88,11 @@
 
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
     import "Mode";
-    Mode::config = true; // yes, this is ugly, bus solves Product:: constructor
+    Mode::SetMode ("autoinst_config"); // yes, this is ugly, bus solves Product:: constructor
+    Mode::SetTest ("testsuite");
+
     import "Bootloader";
     import "BootCommon";
-
-    Mode::test = true;
 
     DUMP ("======================================");
 
@@ -140,7 +140,7 @@
 
     DUMP ("======================================");
 
-    Mode::test = true;
+    Mode::SetTest ("testsuite");
 
     TEST (``(BootCommon::splitPath ("/boot/vmlinuz")), [], 0);
     TEST (``(BootCommon::splitPath ("/")), [], 0);
@@ -151,7 +151,7 @@
 
     DUMP ("======================================");
 
-    Mode::test = true;
+    Mode::SetTest ("testsuite");
 
     TEST (``(BootCommon::mergePath (["/dev/hda1", "/vmlinuz"])), [], 0);
     TEST (``(BootCommon::mergePath (["/dev/hda2", "/"])), [], 0);

@@ -100,7 +100,8 @@
     import "BootCommon";
     import "Mode";
 
-    Mode::test = true;
+    Mode::SetTest ("testsuite");
+
     BootCommon::update_section_types = add (BootCommon::update_section_types,
 	"test_sect");
 

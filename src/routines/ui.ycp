@@ -34,7 +34,7 @@
      * @return true if abort was pressed
      */
     global define boolean testAbort () ``{
-	if (Mode::commandline)
+	if (Mode::commandline ())
 	    return false;
         if (`abort == UI::PollInput ())
         {
@@ -183,7 +183,7 @@ Switch boot loader?"), BootCommon::getLoaderName (to));
 		`Left (`RadioButton (`id (`propose),
 		    // radiobutton
 		    _("&Propose New Configuration"))),
-		Mode::normal
+		Mode::normal ()
 		    ? `Left (`RadioButton (`id (`read),
 			// radiobutton
 			_("&Read Configuration Saved on Disk")))
@@ -344,7 +344,7 @@ Proceed?
 	// dialog caption
         string caption = _("Boot Loader Setup");
         string help = CWM::MergeHelps (widgets);
-	string next_button = (Mode::initial || Mode::config)
+	string next_button = (Stage::initial () || Mode::config ())
 	    ? Label::AcceptButton ()
 	    : Label::FinishButton ();
 
@@ -525,7 +525,7 @@ Proceed?
 	Wizard::CreateDialog();
 	Wizard::SetContentsButtons("", `VBox (), "",
 	    Label::BackButton(), Label::NextButton());
-	if ( Mode::initial )
+	if ( Stage::initial () )
 	    Wizard::SetTitleIcon("bootloader");	// no .desktop file in inst-sys
 	else
 	    Wizard::SetDesktopIcon("bootloader");

@@ -88,8 +88,8 @@
 
     TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
     import "Mode";
-    Mode::autoinst = true;
-    Mode::test = true;
+    Mode::SetMode ("autoinstallation");
+    Mode::SetTest ("testsuite");
 
     import "Initrd";
     include "bootloader/routines/routines.ycp";

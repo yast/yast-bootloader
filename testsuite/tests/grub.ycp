@@ -92,7 +92,7 @@
     import "BootGRUB";
     import "Mode";
 
-    Mode::test = true;
+    Mode::SetTest ("testsuite");
 
     DUMP ("======================================");
 
