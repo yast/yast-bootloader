@@ -45,6 +45,19 @@
 
     if(func == "Import")
     {
+	list modlist = [];
+	list modsett = [];
+	foreach(map mod, param["initrd_modules"]:[], ``{
+		modlist = add(modlist, mod["module"]:"");
+		modsett = add(modsett, mod["module_args"]:"");
+	});
+	if (size(modelist) > 0 )
+		param["initrd"] = $[ "list": modlist, "settings" : modsett ];
+
+	// cleanup
+	if (haskey(param, "initrd_modules"))
+		param = remove(param, "initrd_modules");
+
 	ret = Bootloader::Import(param);
     }
     /**
@@ -88,9 +101,12 @@
 			tmp["module_args"] = ret["initrd", "settings", m]:"";
 		return (tmp);
 	});
-	ret = remove(ret, "initrd");
+	if (haskey(ret, "initrd"))
+		ret = remove(ret, "initrd");
+
 	if (size(ayinitrd) > 0 )
 		ret["initrd_modules"] = ayinitrd;
+
 	ret = filter (`k, `v, ret, ``(k != "changed_settings"));
     }
     /**
