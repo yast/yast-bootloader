@@ -88,7 +88,7 @@
             `Left (`RadioButton (`id ("boot"), `opt (`notify),
 		// radiobutton, %1 is device (eg. /dev/hda1)
                 sformat(_("Boot &Sector of Boot Partition %1"),
-                     BootPartitionDevice),
+                     BootCommon::getDeviceOfRaid (BootPartitionDevice)),
                 (location == "boot")
             ))
 	);
@@ -99,7 +99,7 @@
 		`RadioButton (`id ("root"), `opt (`notify),
 		// radiobutton, %1 is device (eg. /dev/hda1)
                 sformat(_("Boot Sector of Roo&t Partition %1"),
-                    RootPartitionDevice),
+                    BootCommon::getDeviceOfRaid (RootPartitionDevice)),
                 (location == "root")
             )));
         };
@@ -157,9 +157,9 @@
       */
     global define void targetRead () ``{
 	if (BootPartitionDevice == RootPartitionDevice
-	    && loader_device == "root")
+	    && location == "root")
 	{
-	    loader_device = "root";
+	    location = "boot";
 	}
 	UI::ChangeWidget (`id (`loc), `Value, loader_device);
 	UI::ChangeWidget (`id (`location), `CurrentButton, location);

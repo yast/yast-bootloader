@@ -362,7 +362,9 @@
 		ret = false;
 
 	    // create backup copy first
-	    if (BootCommon::createBackupBS ())
+	    if (BootCommon::createBackupBS ()
+		&& BootCommon::getDeviceOfRaid (BootCommon::BootPartitionDevice)
+		    != BootCommon::BootPartitionDevice)
 	    {
 		y2milestone ("Creating backup copy to bootsector");
 		// want a copy here

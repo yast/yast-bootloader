@@ -142,10 +142,13 @@
     }
 
     /**
-      * Detect /boot and / (root) partition devices and store settings
-      * to internal variables
+      * If device is part of RAID (md), then return first of its members
+      * otherwise return the same as argument
+      * @param device string device of the RAID
+      * @return string first member of the RAID
       */
-    global define void DetectDisks () ``{
+    global define string getDeviceOfRaid (string device) ``{
+	// get list of all partitions (not marked to be deleted)
 	map tm = Storage::GetTargetMap ();
 	list partitions = [];
 
@@ -157,6 +160,36 @@
 		partitions = merge (partitions, l);
             }
         });
+
+	// filter partitions to relevant list according to raid name
+	list md_list = filter (`e, partitions, ``(e["raid_name"]:"" == device));
+	// get the devices
+	list dev_list = maplist (`e, md_list, ``(e["device"]:""));
+	dev_list = filter (`d, dev_list, ``(d != ""));
+	if (size (dev_list) > 0)
+	{
+	    dev_list = sort (dev_list);
+	    return dev_list[0]:"";
+	}
+	return device;
+    }
+
+    /**
+      * Detect /boot and / (root) partition devices and store settings
+      * to internal variables
+      */
+    global define void DetectDisks () ``{
+/*	map tm = Storage::GetTargetMap ();
+	list partitions = [];
+
+	foreach ( string dev, map disk, tm, ``{
+	    if( Storage::IsRealDisk( dev, disk ) )
+	    {
+		list l = filter( map p, disk["partitions"]:[],
+		    ``(p["delete"]:false==false) );
+		partitions = merge (partitions, l);
+            }
+        });*/
 
 	if (Mode::config)
 	    return;
@@ -188,7 +221,7 @@
         if (BootCommon::location == "" || BootCommon::location == nil)
             BootCommon::location = ConfigureLocation ();
 
-	if (mountdata_boot[3]:"" == "raid1")
+/*	if (mountdata_boot[3]:"" == "raid1")
 	{
 	    list md_list = filter (`e, partitions,
 		``(e["raid_name"]:"" == mountdata_boot[0]:""));
@@ -211,7 +244,7 @@
                 dev_list = sort (dev_list);
                 BootCommon::RootPartitionDevice = dev_list[0]:"";
             }
-        }
+        }*/
 
         BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 /*	if (BootCommon::location != "floppy")
@@ -324,13 +357,13 @@
 	    return;
 	}
 	// bootsector of boot partition
-	if (loader_device == BootPartitionDevice)
+	if (loader_device == getDeviceOfRaid (BootPartitionDevice))
 	{
 	    location = "boot";
 	    return;
 	}
 	// bootsector of root partition
-	if (loader_device == RootPartitionDevice)
+	if (loader_device == getDeviceOfRaid (RootPartitionDevice))
 	{
 	    location = "root";
 	    return;
