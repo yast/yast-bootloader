@@ -406,7 +406,7 @@ image = /boot/" + Kernel::binary + "
 	label = linux
 	root = " + root_device + "\n";
 
-	lilo_conf = lilo_conf + "\tappend = \"" + Boot::parameters +"\"\n\n";
+	lilo_conf = lilo_conf + "\tappend = \"" + Kernel::cmdLine +"\"\n\n";
 
 	other_device = select (filter (`d, splitstring (other_device, " "), ``(d != "")), 0, "");
 
@@ -427,7 +427,7 @@ image = /boot/" + Kernel::binary + "
 			"/boot/install-prep* /boot/zImage.initrd.prep");
 	}
 	if (ppc_activate_bootloader == true)
-		SCR::Execute(.target.bash, "/sbin/lilo --lilo-rootdrive " + root_device);
+		SCR::Execute(.target.bash, "/sbin/lilo --lilo-rootdrive " + root_device + ">>/var/log/YaST2/y2loglilo 2>>/var/log/YaST2/y2loglilo");
 
 	SCR::Execute(.target.bash, "/usr/lib/YaST2/bin/ppc_postinstall.sh " + boot_device + " " + root_device);
 

@@ -7,9 +7,9 @@
  */
 
 {
-    include "lilo/routines.ycp";
     include "testsuite.ycp";
-
+    import "Pkg";
+    include "lilo/routines.ycp";
 
     // global settings
     map liloconf =

@@ -50,7 +50,7 @@ if [ "$has_timeout" -a "$has_ro" ] ; then
 
   if [ ! "$has_scheme" ] ; then
     mv $lc_tmp $lc
-    sed -e ' /^read-only/ a\' -e 'menu-scheme = Wg:kw:Wg:Wg' $lc >$lc_tmp
+    sed -e ' /^read-only/ a\' -e 'menu-scheme = Wb:kw:Wb:Wb' $lc >$lc_tmp
   fi
 
 fi

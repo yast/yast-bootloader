@@ -9,6 +9,7 @@
 
 {
     include "testsuite.ycp";
+    import "Pkg";
     include "lilo/routines.ycp";
 
     // this one should make no problem

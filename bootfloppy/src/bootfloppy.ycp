@@ -49,6 +49,7 @@
   string bootmode           = "";
   string partition          = "";
 
+  integer source_id = 0;
 
   // This is the headline of the bootfloppy module
   string dialog_header = _("Create boot or rescue floppies");
@@ -80,33 +81,8 @@
    */
   define symbol floppyMountSource() ``{
 
-      // initialize InstMedia from running system
-      InstMedia::initializeInstMedia ($[]);
-
-      // is CD1/directory with CD1 sources inserted/available ?
-      integer result = InstMedia::MountMedium ( 1 );
-
-      if ( result != 0 )
-      {
-	// yes-no popup
-	  any ret = UI::YesNoPopup(_("The source medium used in the previous installation is apparently not available.
-Would you like to choose a new installation source?"));
-
-	  if ( ret )
-	  {
-	      // choose new installation source
-	      any result = WFM::CallFunction( `inst_source( true, true ) );
-
-	      if( result == `abort || result == `back || result == `cancel ) return `abort;
-	  }
-	  else
-	  {
-	      // exit the installation dialog
-	      //UI::CloseDialog();
-	      SCR::Execute(.target.bash, "/bin/umount /var/adm/mount");
-	      return `abort;
-	  }
-      }
+      list sources = Pkg::SourceList (true);
+      source_id = sources[0]:0;
       return `next;
   }
 
@@ -119,32 +95,15 @@ Would you like to choose a new installation source?"));
    */
   define symbol floppySearchImages() ``{
 
-      // FIXME: this is nonsense
-      /*
-      map    installMap = Mode::installMap;
-      //y2milestone("%1", installMap);
-      bootmode   = lookup ( installMap, "bootmode", "" );
-      partition   =lookup ( installMap, "partition" , "");
-      string begin_search = "";
-      if ( bootmode == "Harddisk" )
-      {
-	  begin_search = sformat("%1/disks/", partition);
-      }
-      else
-      {
-	  begin_search = "/var/adm/mount/disks/";
-      }
-      */
+      string begin_search = "boot/";
 
-      string begin_search = "/var/adm/mount/boot/";
-
-      if( ( SCR::Read(.target.size, begin_search + "bootdisk")!=-1) ) bootdisk_found    = true;
-      if( ( SCR::Read(.target.size, begin_search + "i386")!=-1)     ) i386disk_found    = true;
-      if( ( SCR::Read(.target.size, begin_search + "rescuefloppy")!=-1)   ) rescuedisk_found  = true;
-      if( ( SCR::Read(.target.size, begin_search + "modules1")!=-1) ) moduledisk_found  = true;
-      if( ( SCR::Read(.target.size, begin_search + "modules2"))!=-1 ) module2disk_found = true;
-      if( ( SCR::Read(.target.size, begin_search + "modules3"))!=-1 ) module3disk_found = true;
-      if( ( SCR::Read(.target.size, begin_search + "modules4"))!=-1 ) module4disk_found = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "bootdisk"))!=-1) ) bootdisk_found    = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "i386"))!=-1)     ) i386disk_found    = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "rescuefloppy"))!=-1)   ) rescuedisk_found  = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "modules1"))!=-1) ) moduledisk_found  = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "modules2"))!=-1 )) module2disk_found = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "modules3"))!=-1 )) module3disk_found = true;
+      if( ( SCR::Read(.target.size, Pkg::SourceProvideFile(begin_search + "modules4"))!=-1 )) module4disk_found = true;
 
       y2milestone("bootdisk_found: %1", bootdisk_found);
       y2milestone("i386disk_found: %1", i386disk_found);
@@ -274,9 +233,9 @@ and press <b>Next</b> to continue.</p>"
       // build main dialog:
       term contents        = `HSquash( );
       term contents_vbox   = `VBox( `VSpacing(0.5) );
-      term bootdisk_term   = `VBox( `VSpacing(0.4) );
-      term rescuedisk_term = `VBox( `VSpacing(0.4) );
-      term moduledisk_term = `VBox( `VSpacing(0.4) );
+      term bootdisk_term   = `VBox();
+      term rescuedisk_term = `VBox();
+      term moduledisk_term = `VBox();
 
 
       if ( bootdisk_found )
@@ -335,18 +294,16 @@ and press <b>Next</b> to continue.</p>"
 									   _("&PCMCIA, old (non-ATAPI) CDROM, FireWire\nand file systems modules"), b_modules4)));
       }
 
-      bootdisk_term    = add( bootdisk_term   ,  `VSpacing(0.6) );
-      rescuedisk_term  = add( rescuedisk_term ,  `VSpacing(0.6) );
-      moduledisk_term  = add( moduledisk_term ,  `VSpacing(0.6) );
+//      bootdisk_term    = add( bootdisk_term   ,  `VSpacing(0.6) );
+//      rescuedisk_term  = add( rescuedisk_term ,  `VSpacing(0.6) );
+//      moduledisk_term  = add( moduledisk_term ,  `VSpacing(0.6) );
 
 
       term g_bootdisks_term = `Frame (
 					// frame
 				       _("Boot disks:"),
 				       `HBox(
-					     `HSpacing(0.5),
-					     bootdisk_term,
-					     `HSpacing(0.5)
+					     bootdisk_term
 					     )
 				       );
 
@@ -358,9 +315,7 @@ and press <b>Next</b> to continue.</p>"
 					`HBox(
 					      `HSpacing(0.5),
 					      `VBox(
-						    `VSpacing(0.4),
-						    rescuedisk_term,
-						    `VSpacing(0.6)
+						    rescuedisk_term
 						    ),
 					      `HSpacing(0.5)
 					      )
@@ -372,9 +327,7 @@ and press <b>Next</b> to continue.</p>"
 				       `HBox(
 					     `HSpacing(0.5),
 					     `VBox(
-						   `VSpacing(0.4),
-						   moduledisk_term,
-						   `VSpacing(0.5)
+						   moduledisk_term
 						   ),
 					     `HSpacing(0.5)
 					     )

@@ -33,6 +33,9 @@ import "Mode";
 include "lilo/routines.ycp";
 include "lilo/misc.ycp";
 
+import "Boot";
+import "Storage";
+
 if (Mode::test)
 {
     Lilo::autoinstallation = true;

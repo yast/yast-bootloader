@@ -111,7 +111,7 @@ write_lilo_conf_global () {
 	change-rules
 	reset
 	read-only
-	menu-scheme = Wg:kw:Wg:Wg
+	menu-scheme = Wb:kw:Wb:Wb
 	blubber
   [ "$linear" ] && echo "linear" >>$tmp_msg
   [ "$lba32" ] && echo "lba32" >>$tmp_msg

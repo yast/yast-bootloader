@@ -17,6 +17,7 @@
 
 {
     include "testsuite.ycp";
+    import "Pkg";
     include "lilo/routines.ycp";
 
     map READ = $["grub": $["sections" : $["linux" : $["kernel" : "(hd0,0)/vmlinuz.suse noval root=/dev/hda3 vga=333"]]]];
