@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb  1 21:39:12 CET 2005 - nashif@suse.de
+
+- Disabled @YAST2-CHECKS-PROGRAM@ to fix build
+- 2.11.9
+
+-------------------------------------------------------------------
 Mon Jan 31 17:32:32 CET 2005 - jsrain@suse.cz
 
 - removed code obsolete after using the bootloader library
