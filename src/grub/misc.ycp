@@ -256,6 +256,8 @@
     global define string file2grub (string filename) ``{
 	if (Mode::config)
 	    return filename;
+	if (regexpmatch (filename, "^\\(.+\\)\\/.+$"))
+	    return filename;
 	list split = BootCommon::splitPath (filename);
 	split[0] = unixDev2grubDev (split[0]:"");
 	return mergeDevPath (split);
@@ -267,6 +269,8 @@
       * @return string UNIX-style filename (eg. "/boot/vmlinuz")
       */
     global define string grub2file (string grubpath) ``{
+	if (regexpmatch (grubpath, "^\\/.+$"))
+	    return grubpath;
 	list<string> split = splitDevPath (grubpath);
 	split[0] = grubDev2unixDev (split[0]:"");
 	return BootCommon::mergePath (split);
