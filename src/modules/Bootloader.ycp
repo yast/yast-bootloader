@@ -232,6 +232,7 @@
         BootCommon::location_changed = true;
 	BootCommon::partitioning_last_change = Storage::GetTargetChangeTime();
 	BootCommon::backup_mbr = true;
+	y2milestone ("Proposed settings: %1", Export ());
     }
     /**
       * Display bootloader summary
