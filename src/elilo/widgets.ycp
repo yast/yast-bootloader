@@ -33,7 +33,7 @@
       */
     global define map GetWidgetMaps () ``{
 	return $[
-	    "globalsection" : BootELILO::getGlobalSectionWidget (),
+	    "globalsection" : getGlobalSectionWidget (),
 	];
     }
 
@@ -43,7 +43,7 @@
       */
     global define map GetOptionMaps () ``{
 	return $[
-	    "__location"	: BootELILO::getTargetOption (),
+	    "__location"	: getTargetOption (),
         ];
     }
 
@@ -54,26 +54,9 @@
       * @return map of widget
       */
     global define map getGlobalSectionWidget () ``{
-	return TablePopup::CreateTableDescr (
-	    $["add_delete" : true, "up_down_buttons" : false, "changed_column" : true],
-	    $[
-		"init" : ``(BootCommon::globalSectionInit ()),
-		"handle" : ``(BootCommon::globalSectionHandle ()),
-		"store" : ``(BootCommon::globalSectionStore ()),
-		"options": BootCommon::cwm_options,
-		"id2key": ``(BootCommon::id2key ()),
-		"ids": ``(BootELILO::getTableContents ()),
-                "help": BootCommon::getGlobalSectionHelp (),
-                "fallback" : $[
-                    "init": ``(BootCommon::commonPopupInit ()),
-                    "store": ``(BootCommon::commonPopupStore ()),
-                    "summary": ``(BootCommon::commonTableEntrySummary ()),
-                    "changed" : ``(BootCommon::commonTableChanged ()),
-                ],
-		"option_move" : ``(BootCommon::moveTableItem ()),
-                "option_delete": ``(BootCommon::commonTableEntryDelete ()),
-	    ]
-	);
+	map ret = BootCommon::getGlobalSectionWidget ();
+	ret["ids"] = ``(BootELILO::getTableContents ());
+	return ret;
     }
 
     /**
@@ -119,6 +102,7 @@
 		"widget" : `func,
 		"widget_func" : ``(BootELILO::getTargetWidget ()),
 		"init" : ``(BootELILO::targetInit ()),
+		"handle" : ``(BootELILO::targetHandle ()),
 		"store" : ``(BootELILO::targetStore ()),
 //		"help" : getLocationsHelp (),
 		"validate" : ``(BootELILO::targetValidate ()),
@@ -136,14 +120,18 @@
 
 	term widget = `VBox (
 	    `VSpacing (1),
-	    `TextEntry (`id (`location),
+	    `Left (`CheckBox (`id (`create_entry), `opt (`notify),
+		// check box
+		_("&Create EFI entry"))),
+	    `VSpacing (0.6),
+	    `Left (`TextEntry (`id (`location),
 		// text entry label
-		_("&EFI Entry Name")),
+		_("&EFI Entry Name"))),
 	    have_old ? `VSpacing (1) : `VSpacing (0),
 	    have_old
-		? `CheckBox (`id (`remove_old),
+		? `Left (`CheckBox (`id (`remove_old),
 		    // check box
-		    sformat (_("Remove Old EFI Entry (%1)"), old_efi_entry))
+		    sformat (_("&Remove Old EFI Entry (%1)"), old_efi_entry)))
 		: `VSpacing (0),
 	    `VSpacing (1)
 	);
@@ -151,21 +139,44 @@
     }
 
     /**
-      * Restore settings of Target widget
+      * Init function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
       */
     global define void targetInit (any opt_id, any opt_key) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
+	UI::ChangeWidget (`id (`create_entry), `Value, create_efi_entry);
 	UI::ChangeWidget (`id (`location), `Value, BootCommon::location);
+	UI::ChangeWidget (`id (`location), `Enabled, create_efi_entry);
 	if (have_old)
+	{
 	    UI::ChangeWidget (`id (`remove_old), `Value, remove_old_efi);
-	UI::SetFocus (`id (`location));
+	    UI::ChangeWidget (`id (`remove_old), `Enabled, create_efi_entry);
+	}
+	UI::SetFocus (`id (`create_entry));
     }
 
     /**
       * Handle function of widget
-      * @param op any operation to handle
-      * @param save boolean true if op should lead to closing & saving widget
-      * @return any changed op (if needed)
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @param event map event that occured
+      */
+    global define void targetHandle (any opt_id, any opt_key, map event) ``{
+	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
+	UI::ChangeWidget (`id (`location), `Enabled,
+	    UI::QueryWidget (`id (`create_entry), `Value));
+	if (have_old)
+	{
+	    UI::ChangeWidget (`id (`remove_old), `Enabled,
+		UI::QueryWidget (`id (`create_entry), `Value));
+	}
+    }
+
+    /**
+      * Store function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
       */
     global define void targetStore (any opt_id, any opt_key) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
@@ -174,22 +185,28 @@
 	    remove_old_efi = UI::QueryWidget (`id (`remove_old), `Value);
 	BootCommon::storeSettings ();
 	BootCommon::location_changed = true;
-	create_efi_entry = true;
+	create_efi_entry = UI::QueryWidget (`id (`create_entry), `Value);
 	BootCommon::location_changed = true;
 	BootCommon::markGeneralOptionChanged (opt_key);
     }
 
     /**
-      * Validate the target widget
-      * @return true if everything is OK
+      * Validate function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @param event map event that caused validation
+      * @return boolean true if widget settings ok
       */
-    global define boolean targetValidate (any opt_id, any opt_key) ``{
+    global define boolean targetValidate (any opt_id, any opt_key, map event)``{
 	return true; // FIXME check for valid characters
+			// FIXME check if not empty
     }
 
     /**
-      * Summary function for option
-      * @return string summary text
+      * Summary function of a table entry
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @return string summary to the table
       */
     global define string targetSummary (any opt_id, any opt_key) ``{
 	if (BootCommon::location == "" || ! create_efi_entry)

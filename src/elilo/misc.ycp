@@ -71,7 +71,7 @@
 
     /**
       * Get path of elilo.conf relative to EFI partition's root
-      * @return path of elilo.conf relative to EFI partition's root
+      * @return string path of elilo.conf relative to EFI partition's root
       */
     global define string getEliloConfSubpath () ``{
 	return sformat ("%1/elilo.conf", getEliloConfSubdir ());
@@ -79,7 +79,7 @@
 
     /**
       * Return path to elilo.conf file
-      * @return path to elilo.conf
+      * @return string path to elilo.conf
       */
     global define string getEliloConfFilename () ``{
 	string ret = sformat ("%1/efi/%2/elilo.conf", getEfiMountPoint (),
@@ -90,7 +90,7 @@
 
     /**
       * Probe path of elilo.conf, if not found, return default location
-      * @return path of elilo.conf
+      * @return string path of elilo.conf
       */
     global define string probeEliloConfFilename () ``{
 	list possibles = [
@@ -134,7 +134,7 @@
       * Set elilo.conf filename to the lilo agent
       * @param filename abslut filename of elilo.conf
       */
-    global define string setEliloConfFilename (string filename) ``{
+    global define void setEliloConfFilename (string filename) ``{
 	SCR::Write (.elilo.setfilename, filename);
     }
 

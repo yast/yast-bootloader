@@ -858,7 +858,6 @@
 	list options = maplist (`o, eval (globals), ``{
 	    string key = o["key"]:"";
 	    any value = o["value"]:"";
-y2error ("Checking key %1, Value: %2", key, value);
 	    if (isSpecial (key) && is (value, string))
 		value = mergestring (splitstring (value, ","), "\n");
 	    else
@@ -1297,10 +1296,10 @@ y2error ("Checking key %1, Value: %2", key, value);
 
     /**
       * Create list of items to be displayed in bootloader section
-      * @param prepend_list list of items, that should be at the beginning
+      * @param prependlist list of items, that should be at the beginning
       * @param forbidden_keys list of keys, that shouldn't be added to the list
       * @param alpha_order boolean true if items should be alphabetically
-      *  ordered (except prependlist) FIXME not yet implemented
+      *  ordered (except prependlist)
       * @return list of items
       */
     global define list createSectionItemsList (list prependlist,
@@ -1314,6 +1313,7 @@ y2error ("Checking key %1, Value: %2", key, value);
 	forbidden_keys = add (forbidden_keys, "__intern__");
 	integer index = -1;
 	map remap_prepend = $[];
+	map sortmap = $[];
 	list options = maplist (map opt, current_section, ``{
 	    index = index + 1;
 	    if (contains (prependlist, opt["key"]:""))
@@ -1321,10 +1321,18 @@ y2error ("Checking key %1, Value: %2", key, value);
 		remap_prepend[opt["key"]:""] = index;
 		return nil;
 	    }
-	    return contains (forbidden_keys, opt["key"]:"")
+	    integer retval = contains (forbidden_keys, opt["key"]:"")
 		? nil
 		: index;
+	    if (nil != retval)
+		sortmap[opt["key"]:""] = retval;
+	    return retval;
 	});
+	if (alpha_order)
+	{
+	    // FIXME takes option keys, not labels, doesn't mater now
+	    options = maplist (any k, integer v, sortmap, ``(v));
+	}
 	prependlist = maplist (`e, prependlist, ``(remap_prepend[e]:e));
 	options = filter (any opt, options, ``(opt != nil));
 	return merge (prependlist, options);

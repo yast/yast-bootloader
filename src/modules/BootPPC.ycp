@@ -556,6 +556,7 @@
     /**
       * Write the settings specific to current board
       * Cannot use SCR!!!
+      * @return boolean true on success
       */
     global define boolean currentBoardRead () ``{
 	if ( Arch::board_iseries )
@@ -578,6 +579,7 @@
     /**
       * Read the settings specific to current board
       * Cannot use SCR!!!
+      * @return boolean true on success
       */
     global define boolean currentBoardSave () ``{
 	if ( Arch::board_iseries )

@@ -155,7 +155,12 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define map getGlobalSectionWidget () ``{
 	return TablePopup::CreateTableDescr (
-	    $["add_delete" : true, "up_down_buttons" : false, "changed_column" : true],
+	    $[
+		"add_delete" : true,
+		"up_down_buttons" : false,
+		"changed_column" : true,
+		"unique_keys" : true,
+	    ],
 	    $[
 		"init" : ``(BootCommon::globalSectionInit ()),
 		"handle" : ``(BootCommon::globalSectionHandle ()),
@@ -199,7 +204,7 @@ Replace it with an entry  to boot from the floppy?");
 	    prependlist = ["title", "__section_type", "__sep1"];
 	}
 	return BootCommon::createSectionItemsList (
-	    prependlist, forbidden_keys, true);
+	    prependlist, forbidden_keys, false);
     }
 
     /**
@@ -659,7 +664,12 @@ Replace it with an entry  to boot from the floppy?");
       */
     global define map getSingleSectionWidget () ``{
 	return TablePopup::CreateTableDescr (
-	    $["add_delete" : true, "up_down_buttons" : true, "changed_column" : true],
+	    $[
+		"add_delete" : true,
+		"up_down_buttons" : true,
+		"changed_column" : true,
+		"unique_keys" : true,
+	    ],
 	    $[
 		"store" : ``(BootCommon::singleSectionStore ()),
 		"options": BootCommon::cwm_options,

@@ -62,26 +62,9 @@
       * @return map of widget
       */
     global define map getGlobalSectionWidget () ``{
-	return TablePopup::CreateTableDescr (
-	    $["add_delete" : false, "up_down_buttons" : false, "changed_column" : true],
-	    $[
-		"init" : ``(BootCommon::globalSectionInit ()),
-		"handle" : ``(BootCommon::globalSectionHandle ()),
-		"store" : ``(BootCommon::globalSectionStore ()),
-		"options": BootCommon::cwm_options,
-		"id2key": ``(BootCommon::id2key ()),
-		"ids": ``(BootPPC::getTableContents ()),
-                "help": BootCommon::getGlobalSectionHelp (),
-                "fallback" : $[
-                    "init": ``(BootCommon::commonPopupInit ()),
-                    "store": ``(BootCommon::commonPopupStore ()),
-                    "summary": ``(BootCommon::commonTableEntrySummary ()),
-                    "changed" : ``(BootCommon::commonTableChanged ()),
-                ],
-		"option_move" : ``(BootCommon::moveTableItem ()),
-                "option_delete": ``(BootCommon::commonTableEntryDelete ()),
-	    ]
-	);
+	map ret = BootCommon::getGlobalSectionWidget ();
+	ret["ids"] = ``(BootPPC::getTableContents ());
+	return ret;
     }
 
     /**
