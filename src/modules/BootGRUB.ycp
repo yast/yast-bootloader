@@ -513,7 +513,7 @@
 	      + ((Arch::x86_64) ? "iommu=noforce " : "nosmp noapic ")
 	      + "maxcpus=0 3"
 	    : sformat ("%1 %2 %3", vgastring, Kernel::cmdLine,
-		"splash=silent showopts apic");
+		"splash=silent showopts");
 	return $[
 	    "__order__":["title", "kernel", "initrd"],
 	    "title" : title,

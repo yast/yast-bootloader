@@ -3,6 +3,7 @@ Wed Mar  5 13:48:29 CET 2003 - jsrain@suse.de
 
 - fixed multiple occurences of map option in one GRUB section
   (#24627)
+- not adding automatically the apic kernel option (#24668)
 
 -------------------------------------------------------------------
 Mon Mar  3 12:51:51 CET 2003 - jsrain@suse.de
