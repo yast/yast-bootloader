@@ -25,6 +25,7 @@
     import "BootCommon";
     import "Kernel";
     import "Mode";
+    import "ProductFeatures";
     import "Storage";
     import "StorageDevices";
     import "Pkg";
@@ -139,7 +140,8 @@
 	if (title != "failsafe")
 	{
 	    append = BootCommon::setKernelParamToLine (append, "splash", "silent");
-	    append = BootCommon::setKernelParamToLine (append, "desktop", "true");
+	    if (ProductFeatures::use_desktop_scheduler)
+		append = BootCommon::setKernelParamToLine (append, "desktop", "true");
 	}
 	return [
 	    $[ "key" : "title", "value" : BootCommon::translateSectionTitle (title)],
@@ -470,7 +472,10 @@
 		    {
 			// FIXME check the product
 			if (! issubstring (option, "desktop"))
-			    option = option + " desktop";
+			{
+			    if (ProductFeatures::use_desktop_scheduler)
+				option = option + " desktop";
+			}
 			if (! issubstring (option, "splash"))
 			    option = option + " splash=silent";
 		    }

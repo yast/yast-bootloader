@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr  8 14:28:19 CEST 2004 - jsrain@suse.cz
+
+- use 'desktop' kernel parameter on desktop products onlyx
+
+-------------------------------------------------------------------
 Wed Apr  7 18:28:02 CEST 2004 - sh@suse.de
 
 - Fixed excessive whitespace after Module:: - bug #38327 

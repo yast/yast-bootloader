@@ -20,6 +20,7 @@
 
     import "Arch";
     import "Mode";
+    import "ProductFeatures";
     import "Storage";
     import "StorageDevices";
 
@@ -677,9 +678,11 @@
 		    }
 		    if (type == "linux" && p["key"]:"" == "append")
 		    {
-			// FIXME check the product
 			if (! issubstring (option, "desktop"))
-			    option = option + " desktop";
+			{
+			    if (ProductFeatures::use_desktop_scheduler)
+				option = option + " desktop";
+			}
 			if (! issubstring (option, "splash"))
 			    option = option + " splash=silent";
 		    }
