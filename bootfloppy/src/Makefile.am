@@ -1,12 +1,9 @@
 #
-# Makefile.am for y2c_bootfloppy/src
+# Makefile.am for bootloader/bootfloppy/src
 #
 
-modulesdir = $(YAST2DIR)/clients
-menudir = $(YAST2DIR)/menuentries
+module_DATA = bootfloppy.ycp
 
-modules_DATA = bootfloppy.ycp
+config_DATA = bootfloppy.y2cc
 
-menu_DATA = menuentry_bootfloppy.y2cc
-
-EXTRA_DIST = $(modules_DATA) $(menu_DATA)
+EXTRA_DIST = $(module_DATA) $(config_DATA)
