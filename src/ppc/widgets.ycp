@@ -456,7 +456,6 @@
 	prep_boot_partition = (string)
 	    UI::QueryWidget (`id (`prepboot_part), `Value);
 
-	BootCommon::loader_device = prep_boot_partition;
 	BootCommon::markGeneralOptionChanged ((string)opt_id);
 	BootCommon::location_changed = true;
     }

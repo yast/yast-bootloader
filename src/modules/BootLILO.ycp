@@ -77,17 +77,24 @@
 	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
 	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
 	string append = title == "failsafe"
-	    ? "ide=nodma apm=off acpi=off vga=normal noresume "
+	    ? "ide=nodma apm=off acpi=off vga=normal noresume selinux=0 "
 	      + ((Arch::x86_64)
 		? "iommu=noforce maxcpus=0 "
 		: "nosmp noapic maxcpus=0 ")
 	      + BootCommon::GetAdditionalFailsafeParams () + " 3"
-	    : sformat ("%1 %2", resumestring, Kernel::cmdLine);
+	    : sformat ("%1 %2 %3", resumestring, "selinux=0", Kernel::cmdLine);
 	if (title != "failsafe")
 	{
 	    append = BootCommon::setKernelParamToLine (append, "splash", "silent");
 	    if (ProductFeatures::use_desktop_scheduler)
 		append = BootCommon::setKernelParamToLine (append, "desktop", "true");
+	    else
+		append = BootCommon::setKernelParamToLine (append, "desktop", "false");
+	    if (ProductFeatures::io_scheduler != "")
+	    {
+		append = BootCommon::setKernelParamToLine (append, "elevator",
+		    ProductFeatures::io_scheduler);
+	    }
 	}
 	string root = BootCommon::dev2majminIfNonStandard (
             BootCommon::RootPartitionDevice);
@@ -275,54 +282,6 @@
 	    lookup_value (BootCommon::globals, "boot", "");
     }
 
-    /**
-      * Convert section orig from type otype to ntype
-      * Some information gets lost. ntype must be different from otype
-      * @param otype string original section type, "image" or "other"
-      * @param ntype string new section type, "image" or "other"
-      * @param orig list original section
-      * @return list new (converted) section
-      */
-    global define list<map> convertSection (string otype, string ntype, list<map> orig)
-    ``{
-	list<map> ret = [];
-	if (orig == nil)
-	{
-	    if (ntype == "other")
-	    {
-		ret = [ $[ "key" : "other", "value" : "" ]];
-	    }
-	    else
-	    {
-		ret = [
-		    $[ "key" : "image", "value" : ""],
-		    $[ "key" : "initrd", "value" : ""],
-		    $[ "key" : "root", "value" : "" ]
-		];
-	    }
-	    ret = add (ret, $[ "key" : "label", "value" :
-		BootCommon::getFreeSectionLabel ()]);
-	    return ret;
-	}
-	map label_map = getValueMap (orig, "label");
-	if (ntype == "other")
-	{
-	    ret = [ $["key" : "other", "value" :
-		(string)select (BootCommon::splitPath (
-		    (string)lookup_value (orig, "image", "")), 0, "")]];
-	}
-	else
-	{
-	    ret = [
-		$[ "key" : "image", "value" : "/boot/vmlinuz"],
-		$[ "key" : "root", "value" : lookup_value (orig, "other", "")],
-		$[ "key" : "initrd", "value" : "/boot/initrd"],
-	    ];
-	}
-	ret = add (ret, label_map);
-	return ret;
-    }
-
 // general functions
 
     /**
@@ -434,7 +393,7 @@
 	    }
         }
 	BootCommon::globals = modifySection (BootCommon::globals, "boot",
-	    BootCommon::Md2Partition (BootCommon::loader_device));
+	    BootCommon::loader_device);
 	boolean ret = BootCommon::Save ();
 	SCR::Execute (.target.bash, "/bin/chmod 600 /etc/lilo.conf");
 	return ret;
@@ -518,7 +477,7 @@
 	    "default_type" : `label,
 	    "timeout_multiplier" : 10,
 	    "alias_keys" : ["alias"],
-	    "convert_function" : BootLILO::convertSection,
+	    "convert_function" : BootCommon::liloConvertSection,
 	    "kernel_params" : $[
 		"vga" : "vga",
 		"root" : "root",

@@ -1,0 +1,267 @@
+/**
+ * File:
+ *      autoinstall.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Bootloader autoinstallation preparation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+{
+
+
+    /**
+      * Translate the autoinstallation map to the Export map
+      * @param ai map the autoinstallation map
+      * @return map the export map
+      */
+    define map<string,any> AI2Export (map<string,any> ai) ``{
+	// bootloader type and location stuff
+	map exp = $[
+	    "loader_type" : ai["loader_type"]:"",
+	    "location" : ai["location"]:"",
+	    "loader_device" : ai["loader_device"]:"",
+	    "specific" : $[],
+	];
+	// global PPC stuff
+	if (ai["loader_type"]:"" == "ppc")
+	{
+	    exp["specific", "activate"] = true;
+	    foreach (string k, ["iseries_streamfile", "iseries_write_slot_a",
+		"iseries_write_slot_b", "iseries_write_streamfile",
+		"iseries_write_prepboot", "prep_boot_partition",
+		"of_defaultdevice", "board_type", "activate"],
+	    {
+		if (haskey (ai, k))
+		{
+		    exp["specific", k] = ai[k]:nil;
+		}
+	    });
+	}
+	// global ELILO stuff
+	if (ai["loader_type"]:"" == "elilo")
+	{
+	    exp["location"] = ai["efi_entry_label"]:ai["location"]:"";
+	    exp["specific", "create_efi_entry"]
+		= ai["create_efi_entry"]:(exp["location"]:"" != "");
+	}
+
+	// LILO and GRUB stuff
+	if (ai["loader_type"]:"" == "lilo" || ai["loader_type"]:"" == "grub")
+	{
+	    foreach (string k, ["repl_mbr", "activate", ],
+            {
+		if (haskey (ai, k))
+		{
+		    exp["specific", k] = ai[k]:nil;
+		}
+            });
+	}
+
+	list modlist = [];
+        if (Mode::autoinst)
+        {
+            string parameters = ai["kernel_parameters"]:"";
+            if ( size(parameters) > 0)
+            {
+                foreach ( string parameter, splitstring(parameters, " "),
+                        ``{
+                        list param_value_list = splitstring (parameter, "=");
+                        if (size (param_value_list) > 0)
+                        {
+                        Kernel::AddCmdLine (param_value_list[0]:"", param_value_list[1]:"");
+                        }
+                        });
+            }
+            map current = Initrd::Export();
+            y2milestone("Current initrd modules: %1", current);
+            modlist = current["list"]:[];
+        }
+
+	// initrd stuff
+	map modsett = $[];
+	foreach(map mod, ai["initrd_modules"]:[], ``{
+	    modlist = add(modlist, mod["module"]:"");
+	    modsett = add(modsett, mod["module"]:"", mod["module_args"]:$[]);
+	});
+	if (size(modlist) > 0 )
+	    exp["initrd"] = $[ "list": modlist, "settings" : modsett ];
+
+	// sections stuff
+	exp["specific", "sections"] = maplist (list<map<string,any> > s,
+	    ai["sections"]:[],
+	``{
+	    return s;
+	});
+	// global options stuff
+	exp["specific", "global"] = ai["global"]:[];
+
+	string default_key = BootCommon::getDefaultKey ();
+	if (haskey (ai, "default"))
+	{
+	    any default_val = nil;
+	    if (BootCommon::getDefaultType () == `index)
+	    {
+		integer index = BootCommon::getDefaultFirstIndex () -1;
+		foreach (map s, ai["sections"]:[], ``{
+		    index = index + 1;
+		    if (s["title"]:"" == ai["default"]:"")
+			default_val = index;
+		});
+	    }
+	    else
+	    {
+		default_val = ai["default"]:"";
+	    }
+	    if (default_val != nil) // TODO check section existence
+	    {
+		exp["specific", "global"] = filter (
+		    map m,
+		    exp["specific", "global"]:[],
+		``(
+		    m["key"]:"" != default_key
+		));
+		exp["specific", "global"] = add (exp["specific", "global"]:[],
+		    $[
+			"key" : default_key,
+			"value" : default_val,
+		    ]
+		);
+	    }
+	}
+	ai["default"] = nil;
+	any default_val
+	    = lookup_value (exp["specific", "global"]:[], default_key, nil);
+	string default = nil;
+	if (default_val != nil)
+	{
+	    if (BootCommon::getDefaultType () == `index)
+	    {
+		default = (string)(ai["sections", (integer)default_val, "title"]:nil);
+	    }
+	    else
+	    {
+		default = (string) default_val;
+	    }
+	}
+	if (default != nil)
+	    ai["default"] = default;
+
+	return (map<string,any>)exp;
+    }
+
+    /**
+      * Translate the Export map to the autoinstallation map
+      * @param exp map the export map
+      * @return map the autoinstallation map
+      */
+    define map<string,any> Export2AI (map<string,any> exp) ``{
+	// bootloader type and location stuff
+	map<string,any> ai = $[
+	    "loader_type" : exp["loader_type"]:"",
+	    "location" : exp["location"]:"",
+	    "loader_device" : exp["loader_device"]:"",
+	];
+	// global PPC stuff
+	if (ai["loader_type"]:"" == "ppc")
+	{
+	    foreach (string k, ["iseries_streamfile", "iseries_write_slot_a",
+		"iseries_write_slot_b", "iseries_write_streamfile",
+		"iseries_write_prepboot", "prep_boot_partition",
+		"of_defaultdevice", "board_type", "activate", ],
+	    {
+		if (haskey (exp["specific"]:$[], k))
+		{
+		    ai[k] = exp["specific", k]:nil;
+		}
+	    });
+	}
+
+	// global ELILO stuff
+	if (ai["loader_type"]:"" == "elilo")
+	{
+	    // discards location and loader device, it is correct.
+	    ai = $[
+		"loader_type" : exp["loader_type"]:"",
+		"efi_entry_label" : exp["location"]:"",
+		"create_efi_entry" : exp["specific", "create_efi_entry"]:false,
+	    ];
+	}
+
+	// LILO and GRUB stuff
+	if (ai["loader_type"]:"" == "lilo" || ai["loader_type"]:"" == "grub")
+	{
+	    foreach (string k, ["repl_mbr", "activate", ],
+            {
+                if (haskey (exp["specific"]:$[], k))
+                {
+                    ai[k] = exp["specific", k]:nil;
+                }
+            });
+	}
+
+	// initrd stuff
+	list<map> ayinitrd = maplist(string m, exp["initrd", "list"]:[], ``{
+	    map tmp = $[];
+	    tmp["module"] = m;
+	    if (exp["initrd", "settings", m]:$[] != $[])
+		tmp["module_args"] = exp["initrd", "settings", m]:$[];
+	    return (tmp);
+	});
+	if (size(ayinitrd) > 0 )
+	    ai["initrd_modules"] = ayinitrd;
+
+	// sections stuff
+	ai["sections"] = maplist (list<map<string,any> > s,
+	    exp["specific", "sections"]:[],
+	``{
+	    s = (list<map<string,any> >)filter (map<string,any> o, s, ``(
+		o["key"]:"" != "__intern__"
+	    ));
+	    s = maplist (map<string,any> o, s, ``{
+		return $[
+		    "key" : o["key"]:"",
+		    "value" : o["value"]:(any)"",
+		];
+	    });
+	    return s;
+	});
+	// global options stuff
+	ai["global"] = filter (map<string,any> o, exp["specific", "global"]:[],
+	{
+	    return o["key"]:"" != "__intern__";
+	});
+	ai["global"] = maplist (map<string,any> o, ai["global"]:[], ``{
+	    return $[
+		"key" : o["key"]:"",
+		"value" : o["value"]:(any)"",
+	    ];
+	});
+	string default = nil;
+	string default_key = BootCommon::getDefaultKey ();
+	any default_val
+	    = lookup_value (exp["specific", "global"]:[], default_key, nil);
+	if (default_val != nil)
+	{
+	    if (BootCommon::getDefaultType () == `index)
+	    {
+		default = (string)(ai["sections", (integer)default_val, "title"]:nil);
+	    }
+	    else
+	    {
+		default = (string) default_val;
+	    }
+	}
+	if (default != nil)
+	    ai["default"] = default;
+	return (map<string,any>)ai;
+    }
+
+}

@@ -39,8 +39,6 @@
 	    return;
 	}
 
-	y2milestone("BootPPC::Proposal: BootCommon::loader_device %1", BootCommon::loader_device);
-
         if ( ! (size (prep_boot_partitions) > 0 ||
             (prep_boot_partition != "" && prep_boot_partition != "/dev/null")))
         {
@@ -51,9 +49,6 @@
 	{
 	    BootCommon::activate = true;
 	}
-
-	BootCommon::loader_device = prep_boot_partition;
-
     }
 
     /**
@@ -63,7 +58,6 @@
     global define boolean CHRPRead () ``{
 	prep_boot_partition = (string)
 	    lookup_value (BootCommon::globals, "boot", "");
-	BootCommon::loader_device = prep_boot_partition;
 	BootCommon::activate
 	    = prep_boot_partition != "" && prep_boot_partition != "/dev/null";
 	of_defaultdevice = (boolean)
@@ -89,7 +83,7 @@
       */
     global define list<string> CHRPSummary () ``{
 	list<string> ret = [];
-	if (0 == size (prep_boot_partitions))
+	if ((! Mode::config) && 0 == size (prep_boot_partitions))
 	{
 	    ret = [
 		// summary part
@@ -109,7 +103,7 @@
 		sformat(
 		    // summary part
 		    _("yaboot will be written to %1. Use SMS Multiboot to boot from this drive."),
-		    BootCommon::loader_device
+		    prep_boot_partition
 		)
 	    ];
 	}
@@ -133,7 +127,7 @@
     global define void CHRPInit () ``{
 	y2milestone ("Initializing CHRP attributes");
 	prep_only_active = true;
-	prep_only_hdx = false;
+	prep_only_iseries_vd = false;
 	prep_only_primary = true;
 	prep_same_disk_as_root = true;
 	table_items = [ "__chrp_location", "__set_default_of" ];

@@ -70,7 +70,15 @@
                 ],
             ],
 	    "partitions" : [],
-        ]
+        ],
+	"product" : $[
+	    "features" : $[
+		"USE_DESKTOP_SCHEDULER" : "0",
+		"ENABLE_AUTOLOGIN" : "0",
+		"EVMS_CONFIG" : "0",
+		"IO_SCHEDULER" : "cfg",
+	    ]
+	],
     ];
     map WRITE = $[];
     map EXEC = $[

@@ -35,7 +35,7 @@ Return	root=/dev/hda3 noapic hdc=ide-scsi vga=321
 Return	root=/dev/hda3 noapic hdc=ide-scsi
 Return	root=/dev/hda3 noapic hdc=ide-scsi vga
 Dump	======================================
-Return	root=/dev/hda3 hdc=ide-scsi vga=321 noapic
-Return	root=/dev/hda3 hdc=ide-scsi noapic
-Return	root=/dev/hda3 hdc=ide-scsi vga noapic
+Return	root=/dev/hda3 noapic hdc=ide-scsi vga=321 noapic
+Return	root=/dev/hda3 noapic hdc=ide-scsi noapic
+Return	root=/dev/hda3 noapic hdc=ide-scsi vga noapic
 Dump	======================================

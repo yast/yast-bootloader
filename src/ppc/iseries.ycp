@@ -58,25 +58,9 @@
     }
 
     /**
-      * Assign the Boot::loader_device variable
+      * Assign the Boot::activate variable
       */
     global define void iSeriesAssignDevice () ``{
-	// the last entry wins
-	BootCommon::loader_device = "";
-	if (iseries_write_streamfile)
-	{
-	    BootCommon::loader_device = iseries_streamfile;
-	}
-
-	if (iseries_write_prepboot)
-	{
-	    BootCommon::loader_device = prep_boot_partition;
-	}
-
-	if ( iseries_write_slot_b )
-	{
-	    BootCommon::loader_device = "B";
-	}
 	if ( !  ( iseries_write_prepboot ||
 	    iseries_write_slot_b   ||
 	    iseries_write_slot_a   ||
@@ -102,8 +86,6 @@
 	{
 	    return;
 	}
-
-        y2milestone("BootPPC::Proposal: BootCommon::loader_device %1", BootCommon::loader_device);
 
 	iseries_write_slot_a = true;
 	iseries_write_slot_b = true;
@@ -142,6 +124,13 @@
 		    iseries_write_prepboot = true;
 		    if (prep_boot_partition == "/dev/null")
 		    {
+			if (regexpmatch (target, "^/dev/hd.*$"))
+			{
+			    target = regexpsub (
+				target,
+				"^/dev/hd(.*)$",
+				"/dev/iseries/vd\\1");
+			}
 			prep_boot_partition = target;
 		    }
 		}
@@ -210,7 +199,7 @@
 	    ret = add (ret, sformat(
 		// summary part, %1 is filename
 		_("The kernel will be written to %1. Use *NWSSTG on OS400 side."),
-		BootCommon::loader_device));
+		prep_boot_partition));
 	}
 
 	if ( iseries_write_slot_b )
@@ -260,8 +249,12 @@
 	{
 	    iseries_bootbinary = (string)SCR::Read (.target.tmpdir)
 		+ "/vmlinux64.initrd";
-	    SCR::Execute (.target.bash, "/bin/addRamDisk64 /boot/initrd $(rpm -ql kernel-iseries64 | grep ^/lib/modules/.\\\*/System.map$)  $(rpm -ql kernel-iseries64 | grep ^/lib/modules/.\\\*/vmlinux$) " + iseries_bootbinary + " >> /var/log/YaST2/y2loglilo_iseries_bootbinary 2>&1 " );
+	    SCR::Execute (.target.bash, "/lib/lilo/iseries/make_zimage_iseries.sh"
+		+ " --vmlinux /boot/vmlinux --initrd /boot/initrd --output "
+		+ iseries_bootbinary
+		+ " >> /var/log/YaST2/y2loglilo_iseries_bootbinary 2>&1 " );
 	}
+
 	if ( iseries_write_slot_a )
 	{
 	    string rescue_bootbinary = iseries_bootbinary;
@@ -281,44 +274,15 @@
 		    src_filename, tg_rescue_bootbinary));
 	    }
 	    y2milestone("start writing rescue kernel to slot A ...");
-	    SCR::Execute (.target.bash, "time dd if=" + rescue_bootbinary + " of=/proc/iSeries/mf/A/vmlinux bs=4096 >>/var/log/YaST2/y2loglilo_iseries_slot_a 2>&1 ");
+	    SCR::Execute (.target.bash, "time dd if=" + rescue_bootbinary
+		+ " of=/proc/iSeries/mf/A/vmlinux bs=64k "
+		+ ">>/var/log/YaST2/y2loglilo_iseries_slot_a 2>&1 ");
 	    SCR::Execute (.target.bash, "dd if=/dev/zero of=/proc/iSeries/mf/A/cmdline bs=255 count=1");
-	    SCR::Execute (.target.bash, "echo -en 'root=" + root_device + " start_shell manual=1\\0' > /proc/iSeries/mf/A/cmdline");
+	    SCR::Execute (.target.bash, "echo -en 'root=" + root_device
+		+ " start_shell manual=1\\0' > /proc/iSeries/mf/A/cmdline");
 	    y2milestone("done writing rescue kernel to slot A.");
 	}
-	if ( iseries_write_slot_b )
-	{
-	    if ( boot_device == "B" )
-	    {
-		y2milestone("lilo will write the kernel to slot B. B is now activated");
-		SCR::Execute (.target.bash, "echo B > /proc/iSeries/mf/side");
-	    }
-	    else
-	    {
-		y2milestone("start writing boot kernel to slot B ...");
-		SCR::Execute (.target.bash, "time dd if=" + iseries_bootbinary + " of=/proc/iSeries/mf/B/vmlinux bs=4096 >>/var/log/YaST2/y2loglilo_iseries_slot_b 2>&1 ");
-		SCR::Execute (.target.bash, "dd if=/dev/zero of=/proc/iSeries/mf/B/cmdline bs=255 count=1");
-		SCR::Execute (.target.bash, "echo -en 'root="
-		    + root_device
-		    + " " + Kernel::cmdLine +
-		    "\\0' > /proc/iSeries/mf/B/cmdline");
-		SCR::Execute (.target.bash, "echo B > /proc/iSeries/mf/side");
-		y2milestone("done writing boot kernel to slot B.");
-	    }
-	}
-	if ( iseries_write_streamfile )
-	{
-	    y2milestone("create *STMF file %1 from %2", iseries_streamfile, iseries_bootbinary);
-	    SCR::Execute (.target.bash, "cd / ; cp -av " + iseries_bootbinary + " " + iseries_streamfile);
-	}
-	if ( iseries_write_prepboot && size (prep_boot_partitions) > 0 )
-	{
-	    y2milestone("*NWSSTG: write %1 to %2", iseries_bootbinary, prep_boot_partition);
-	    SCR::Execute (.target.bash, "test -b " + prep_boot_partition +
-		" && dd if=" + iseries_bootbinary + " bs=4096 of=" +
-		prep_boot_partition
-	    );
-	}
+
 	return true;
     }
 
@@ -328,7 +292,7 @@
     global define void iSeriesInit () ``{
 	y2milestone ("Initializing iSeries attributes");
 	prep_only_active = true;
-	prep_only_hdx = true;
+	prep_only_iseries_vd = true;
 	prep_only_primary = true;
 	prep_same_disk_as_root = false;
 	table_items = [ "__iseries_location" ];

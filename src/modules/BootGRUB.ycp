@@ -130,18 +130,25 @@
 	string initrd = /*title == "failsafe" ? "initrd.shipped" :*/ "initrd";
 	string image = /*title == "failsafe" ? "vmlinuz.shipped" :*/ "vmlinuz";
 	string append = title == "failsafe"
-	    ? "showopts ide=nodma apm=off acpi=off vga=normal noresume "
+	    ? "showopts ide=nodma apm=off acpi=off vga=normal noresume selinux=0 "
 	      + ((Arch::x86_64)
 		? "iommu=noforce maxcpus=0 "
 		: "nosmp noapic maxcpus=0 ")
 	      + BootCommon::GetAdditionalFailsafeParams () + " 3"
-	    : sformat ("%1 %2 %3 %4", vgastring, Kernel::cmdLine, resumestring,
-		"showopts");
+	    : sformat ("%1 %2 %3 %4 %5", vgastring, "selinux=0",
+		Kernel::cmdLine, resumestring, "showopts");
 	if (title != "failsafe")
 	{
 	    append = BootCommon::setKernelParamToLine (append, "splash", "silent");
 	    if (ProductFeatures::use_desktop_scheduler)
 		append = BootCommon::setKernelParamToLine (append, "desktop", "true");
+	    else
+		append = BootCommon::setKernelParamToLine (append, "desktop", "false");
+	    if (ProductFeatures::io_scheduler != "")
+	    {
+		append = BootCommon::setKernelParamToLine (append, "elevator",
+		    ProductFeatures::io_scheduler);
+	    }
 	}
 	return [
 	    $[ "key" : "title", "value" : BootCommon::translateSectionTitle (title)],
@@ -470,11 +477,18 @@
 		    }
 		    if (type == "linux" && p["key"]:"" == "kernel")
 		    {
-			// FIXME check the product
 			if (! issubstring (option, "desktop"))
 			{
 			    if (ProductFeatures::use_desktop_scheduler)
 				option = option + " desktop";
+			}
+			if (! issubstring (option, " elevator"))
+			{
+			    if (ProductFeatures::io_scheduler != "")
+			    {
+				option = option + " elevator="
+				    + ProductFeatures::io_scheduler;
+			    }
 			}
 			if (! issubstring (option, "splash"))
 			    option = option + " splash=silent";

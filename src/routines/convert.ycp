@@ -46,6 +46,7 @@
       * @return list of section settings in GRUB format
       */
     define list<map> liloSect2grubSect (list<map> section) ``{
+	y2milestone ("Converting section %1", section);
 	list<map> ret = [];
 	if (lookup_value (section, "other", "") != "")
 	{
@@ -89,6 +90,7 @@
             r["changed"] = false;
             return r;
         });
+	y2milestone ("Conversion result: %1", ret);
 	return ret;
     }
 
@@ -99,10 +101,14 @@
       * @return list of section settings in LILO format
       */
     define list<map> grubSect2liloSect (list<map> section) ``{
+	y2milestone ("Converting section %1", section);
 	string chainloader = (string)
 	    lookup_value (section, "chainloader", "+1");
 	if (issubstring (chainloader, "/")) // means file, eg. saved MBR
+	{
+	    y2milestone ("Section not supported by LILO");
 	    return [];
+	}
 	list<map> ret= [$["key" : "label",
 	    "value" : BootCommon::removeBlanks (
 		(string)lookup_value (section, "title", ""))]];
@@ -137,11 +143,15 @@
 	    ret = appendValue (ret, "append", mergestring (kline, " "));
 	}
 	if (issubstring ((string)lookup_value (ret, "other", ""), "/dev/fd"))
+	{
+	    y2milestone ("Section (floppy) not supported for LILO");
 	    return [];
+	}
         ret = maplist (map r, ret, ``{
             r["changed"] = false;
             return r;
         });
+	y2milestone ("Conversion result: %1", ret);
 	return ret;
     }
 

@@ -42,6 +42,7 @@
     global define boolean Read ();
     global define void Reset ();
     global define boolean Write ();
+    global define void Update ();
 
     global define void ReadOrProposeIfNeeded ();
     global define string getDefaultSection ();
@@ -267,6 +268,17 @@
 	mlob = mergestring (mod_list, " ");
 	SCR::Write (.sysconfig.kernel.MODULES_LOADED_ON_BOOT, mlob);
 	SCR::Write (.sysconfig.kernel, nil);
+    }
+
+    /**
+     * Process update actions needed before packages update starts
+     */
+    global define void PreUpdate () {
+	y2milestone ("Running bootloader pre-update stuff");
+	if (Arch::ia64)
+	{
+	    BootELILO::UpdateEfiPartitionLayout ();
+	}
     }
 
     /**
@@ -619,6 +631,14 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
     global define boolean setKernelParam
 	(string section, string key, string value)
     ``{
+	if ((! Mode::config) && key == "vga" && (
+	    Arch::s390 || Arch::ppc
+	))
+	{
+	    y2warning ("Kernel of this architecture does not support the vga parameter");
+	    return true;
+	}
+
 	ReadOrProposeIfNeeded ();
 
 	if (section == "DEFAULT")
@@ -657,12 +677,12 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	else
 	{
 	    slabel = params[`other]:"";
+	    string line = (string)
+		lookup_value (BootCommon::sections [sectnum]:[], slabel, "");
+	    line = BootCommon::setKernelParamToLine (line, key, value);
+	    BootCommon::sections [sectnum] = modifySection (
+		BootCommon::sections [sectnum]:[], slabel, line);
 	}
-	string line = (string)
-	    lookup_value (BootCommon::sections [sectnum]:[], slabel, "");
-	line = BootCommon::setKernelParamToLine (line, key, value);
-	BootCommon::sections [sectnum]
-	    = modifySection (BootCommon::sections [sectnum]:[], slabel, line);
 	BootCommon::changed = true;
 	boolean ret = true;
 	return ret;
@@ -743,6 +763,12 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 		y2milestone ("Not reading settings in Mode::config");
 		BootCommon::was_read = true;
 		BootCommon::was_proposed = true;
+	    }
+	    else if (Arch::ia64 && Mode::update
+		&& BootELILO::efi_layout_changed)
+	    { // recreate config on IPF from scratch - request by rw
+		y2milestone ("Reproposing new configuration - IPF, EFI layout has changed");
+		Propose ();
 	    }
             else if (Mode::initial && ! Mode::update)
             {

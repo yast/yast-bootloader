@@ -35,6 +35,8 @@
 
 // bootloader attributes handling functions
 
+    global define map<string, integer> Md2Partitions (string md_device);
+
     /**
       * Get the name of key containing section name of currently used bootloader
       * @return string section name key
@@ -165,15 +167,14 @@
       */
     global define list<map> convertSection (string otype, string ntype, list<map> orig)
     ``{
-//	term f = current_bootloader_attribs["convert_function"]:nil;
 	list<map>(string,string,list<map>) f = (list<map>(string,string,list<map>))(current_bootloader_attribs["convert_function"]:nil);
 	if (f == nil)
+	{
+	    if (orig == nil)
+		orig = [];
 	    return orig;
+	}
 	return f(otype, ntype, orig);
-//	f = add (f, otype);
-//	f = add (f, ntype);
-//	f = add (f, orig);
-//	return (list) eval (f);
     }
 
     /**
@@ -893,54 +894,56 @@
     ``{
 	list<string> params = splitstring (line, " ");
 	params = filter (string p, params, ``(p != ""));
-	list<string> rp = [];
 	boolean done = false;
-	// count occurences of every parameter, use only the last one
+	// count occurences of every parameter
 	map<string,integer> occurences = $[];
 	foreach (string p, params, ``{
 	    list<string> l = filter (string e, splitstring (p, "="), ``(e != " " && e != ""));
 	    string k = l[0]:"";
 	    occurences[k] = occurences[k]:0 + 1;
 	});
-	foreach (string p, params, ``{
+	params = maplist (string p, params, ``{
 	    list<string> l = filter (string e, splitstring (p, "="), ``(e != " " && e != ""));
 	    string k = l[0]:"";
-	    if (occurences[k]:0 <= 1)
+	    if (k == key)
 	    {
-		if (k == key)
+		if (value == "false")
+		{
+		    return "";
+		}
+		else if (occurences[k]:0 <= 1)
 		{
 	            done = true;
 		    if (value == "true")
 		    {
-			rp = add (rp, key);
+			return key;
 		    }
 		    else if (value != "false")
 		    {
-			rp = add (rp, sformat ("%1=%2", key, value));
+			return sformat ("%1=%2", key, value);
 		    }
 		}
 		else
 		{
-		    rp = add (rp, p);
+		    occurences[k] = occurences[k]:0 - 1;
+		    return "";
 		}
 	    }
-	    else
-	    {
-		occurences[k] = occurences[k]:0 - 1;
-	    }
+	    return p;
 	});
 	if (! done)
 	{
 	    if (value == "true")
 	    {
-	        rp = add (rp, key);
+	        params = add (params, key);
 	    }
 	    else if (value != "false")
 	    {
-	        rp = add (rp, sformat ("%1=%2", key, value));
+	        params = add (params, sformat ("%1=%2", key, value));
 	    }
 	}
-	line = mergestring (rp, " ");
+	params = filter (string p, params, ``(p != ""));
+	line = mergestring (params, " ");
 	return line;
     }
 
@@ -1119,20 +1122,57 @@
       *  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
       *  partition number (eg. 4)
       */
-    global define map getPartitionToActivate () ``{
-	map p_dev = Storage::GetDiskPartition (BootCommon::loader_device);
+    global define map<string,any> getPartitionToActivate (string boot_partition,
+	string loader_device)
+    {
+	map p_dev = Storage::GetDiskPartition (loader_device);
 	integer num = p_dev["nr"]:0;
 	string mbr_dev = p_dev["disk"]:"";
+	// if bootloader is installed to /dev/md*
+	if (substring (loader_device, 0, 7) == "/dev/md")
+	{
+	    map<string,integer> md = Md2Partitions (BootCommon::loader_device);
+	    integer min = 128; // max. is 127
+	    string device = "";
+	    foreach (string d, integer id, md, {
+		if (id < min)
+		{
+		    min = id;
+		    device = d;
+		}
+	    });
+	    if (device != "")
+	    {
+		map p_dev = Storage::GetDiskPartition (loader_device);
+		integer num = p_dev["nr"]:0;
+		string mbr_dev = p_dev["disk"]:"";
+	    }
+	}
 	// if bootloader in MBR, activate /boot partition
 	// (partiall fix of #20637)
-	if (num == 0)
+	else if (num == 0)
 	{
-	    p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+	    p_dev = Storage::GetDiskPartition (boot_partition);
 	    any num_any = p_dev["nr"]:nil;
 	    if (num_any != nil && is (num_any, integer))
 	    {
 		num = p_dev["nr"]:0;
 		mbr_dev = p_dev["disk"]:"";
+	    }
+	    if (size (Md2Partitions (boot_partition)) > 1)
+	    {
+		foreach (string k, integer v, Md2Partitions (boot_partition),{
+		    if (find (k, loader_device) == 0)
+		    {
+			p_dev = Storage::GetDiskPartition (k);
+			any num_any = p_dev["nr"]:nil;
+			if (num_any != nil && is (num_any, integer))
+			{
+			    num = p_dev["nr"]:0;
+			    mbr_dev = p_dev["disk"]:"";
+			}
+		    }
+		});
 	    }
 	}
 	if (num != 0)
@@ -1152,12 +1192,44 @@
 		});
 	    }
 	}
-	map ret = $[
+	map<string,any> ret = $[
 	    "num" : num,
 	    "mbr" : mbr_dev,
 	    "dev" : Storage::GetDeviceName (mbr_dev, num),
 	];
 	return ret;
+    }
+
+    global define list<map<string, any> > getPartitionsToActivate () {
+	map<string,integer> md =  Md2Partitions (BootCommon::loader_device);
+	list<string> partitions = maplist (string k, integer v, md, ``(k));
+	if (size (partitions) == 0)
+	{
+	    partitions = [BootCommon::loader_device];
+	}
+	list<map<string,any> > ret = maplist (string partition, partitions, {
+	    return getPartitionToActivate (
+		BootCommon::BootPartitionDevice,
+		partition);
+	});
+	return ret;
+    }
+
+    global define list<string> getMbrsToRewrite () {
+	list<string> ret = [BootCommon::mbrDisk];
+	map<string,integer> md = Md2Partitions (BootCommon::loader_device);
+	list<string> mbrs = maplist (string d, integer b, md, {
+	    d = lookup (
+		getPartitionToActivate (BootCommon::BootPartitionDevice, d),
+		"mbr",
+		mbrDisk);
+	    return d;
+	});
+	if (contains (mbrs, BootCommon::mbrDisk))
+	{
+	    ret = (list<string>)merge (ret, mbrs);
+	}
+	return toset (ret);
     }
 
     /**
@@ -1222,19 +1294,27 @@
 
     /**
       * Update contents of MBR (active partition and booting code)
+      * FIXME move tis function to lilolike.ycp
       * @return boolean true on success
       */
     global define boolean updateMBR () ``{
 	if (backup_mbr)
 	{
-	    saveMBR (BootCommon::mbrDisk);
-	    if (BootCommon::mbrDisk != BootCommon::loader_device)
-		saveMBR (BootCommon::loader_device);
+	    y2milestone ("Doing MBR backup: MBR Disk: %1, loader device: %2",
+		BootCommon::mbrDisk, BootCommon::loader_device);
+	    list<string> disks_to_rewrite = (list<string>)toset (merge (
+		getMbrsToRewrite (),
+		[BootCommon::mbrDisk, BootCommon::loader_device]));
+	    y2milestone ("Creating backup of boot sectors of %1",
+		disks_to_rewrite);
+	    foreach (string d, disks_to_rewrite, {
+		saveMBR (d);
+	    });
 	}
 	boolean ret = true;
 	if (activate)
 	{
-	    map m_activate = getPartitionToActivate ();
+	  foreach (map m_activate, getPartitionsToActivate (), {
 	    any num = m_activate["num"]:0;
 	    string mbr_dev = m_activate["mbr"]:"";
 	    if (num != 0 && mbr_dev != "")
@@ -1246,13 +1326,23 @@
 			sformat ("/sbin/activate %2 %1", num, mbr_dev)));
 		}
 	    }
+	    else
+	    {
+		y2error ("Cannot activate %1", m_activate);
+	    }
+	  });
 	}
 	if (repl_mbr && BootCommon::location != "mbr")
 	{
-	    y2milestone ("Copying generic MBR code to MBR");
-	    ret = ret && (0 == SCR::Execute (.target.bash, sformat (
-		"/bin/dd bs=446 count=1 if=%1 of=%2",
-		    "/usr/share/YaST2/data/mbr", BootCommon::mbrDisk)));
+	    y2milestone("Updating code in MBR: MBR Disk: %1, loader device: %2",
+		BootCommon::mbrDisk, BootCommon::loader_device);
+	    list<string> disks_to_rewrite = getMbrsToRewrite ();
+	    foreach (string d, disks_to_rewrite, {
+		y2milestone ("Copying generic MBR code to %1", d);
+		ret = ret && (0 == SCR::Execute (.target.bash, sformat (
+		    "/bin/dd bs=446 count=1 if=%1 of=%2",
+			"/usr/share/YaST2/data/mbr", BootCommon::mbrDisk)));
+	    });
 	}
 	return ret;
     }

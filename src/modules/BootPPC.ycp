@@ -28,6 +28,7 @@
     import "Installation";
     import "Kernel";
     import "Mode";
+    import "ProductFeatures";
     import "Storage";
 
     // ppc specific global settings
@@ -41,6 +42,9 @@
 
     // map available of 41 PReP partitions, used on iSeries and CHRP
     global list<string> prep_boot_partitions = [];
+
+    // PReP boot partitions that were proposed by partitioner to install BL
+    global list<string> install_prep_boot_partitions = [];
 
     // iSeries specific global settings
 
@@ -61,7 +65,7 @@
 
     // current board attribs
     global boolean prep_only_active = true;
-    global boolean prep_only_hdx = true;
+    global boolean prep_only_iseries_vd = true;
     global boolean prep_only_primary = true;
     global boolean prep_same_disk_as_root = true;
     global list table_items = [];
@@ -198,12 +202,24 @@
       * @return section description structure
       */
     global define list<map> createLinuxSection (string title) ``{
+	if (title != "linux")
+	{
+	    return [];
+	}
+	string append = sformat ("%1 %2", Kernel::cmdLine, "selinux=0");
+	if (ProductFeatures::io_scheduler != "")
+	{
+	    append = BootCommon::setKernelParamToLine (append, "elevator",
+		ProductFeatures::io_scheduler);
+	}
+	// always server product, FIXME when it changes
+	append = BootCommon::setKernelParamToLine (append, "desktop", "false");
 	list<map> section = [
 	    $[ "key" : "image", "value" : "/boot/" + Kernel::binary ],
 	    $[ "key" : "label", "value" : "linux" ],
 	    $[ "key" : "root", "value" : BootCommon::RootPartitionDevice ],
 	    $[ "key" : "initrd", "value" : "/boot/initrd" ],
-	    $[ "key" : "append", "value" : Kernel::cmdLine ],
+	    $[ "key" : "append", "value" : append ],
 	    $[ "key" : "__intern__", "value" : $[
 		"auto" : true,
 		"changed" : false,
@@ -247,7 +263,8 @@
 		    }
 
 		    // don't add rewritten location (#19990)
-		    if (dev != "" && dev != BootCommon::loader_device)
+		    // FIXME may not be sufficient for Macs
+		    if (dev != "" && dev != prep_boot_partition)
 		    {
 			list<map> m = [
 			    $["key" : "label",
@@ -341,8 +358,6 @@
 	    BootCommon::files_edited = true;
         SCR::Write (.lilo.fromstring, files["/etc/lilo.conf"]:"");
         BootCommon::loadCfgFileFromAgent ();
-	if (lookup_value (BootCommon::globals, "boot", "") != BootCommon::loader_device)
-	    BootCommon::location = "custom";
 	currentBoardRead ();
     }
 
@@ -461,10 +476,19 @@
 	iseries_write_slot_b = settings["iseries_write_slot_b"]:false;
 	prep_boot_partition = settings["prep_boot_partition"]:"/dev/null";
 	of_defaultdevice = settings["of_defaultdevice"]:true;
-	if (! Mode::initial)
+	if (! Mode::config)
 	{
-	    setBoardType ((string)(settings["board_type"]:nil));
+	    board_type = nil;
+	    string bt = getBoardType ();
+	    if (bt != (string)(settings["board_type"]:nil))
+	    {
+		y2error ("Importing data for board %1, current is %2",
+		    (string)(settings["board_type"]:nil),
+		    bt);
+	    }
 	}
+	setBoardType ((string)(settings["board_type"]:nil));
+	currentBoardInit ();
 	return true;
     }
     /**
@@ -489,7 +513,6 @@
 	    // TODO warning to user
 	    choosePrepBootPartition ();
 	}
-        y2milestone("BootPPC::Proposal: BootCommon::loader_device %1", BootCommon::loader_device);
 
         if ( getBoardType () == "iseries" )
         {
@@ -503,8 +526,6 @@
         {
 	    CHRPPropose (initial_propose);
 	}
-
-        y2milestone("BootPPC::Proposal: BootCommon::loader_device %1", BootCommon::loader_device);
 
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
@@ -588,13 +609,6 @@
 //	BootCommon::liloRemoveUnexistentSections ("", "");
 	BootCommon::liloUpdateInitrd ();
 	BootCommon::liloUpdateAppend ();
-	// iSeries can have multiple locations, are stored during
-        // iSeriesSave ()
-	if (! (getBoardType () == "iseries") )
-	{
-	    BootCommon::globals = modifySection (BootCommon::globals, "boot",
-		BootCommon::loader_device);
-	}
 	ret = BootCommon::Save () && ret;
         SCR::Execute (.target.bash, "/bin/chmod 600 /etc/lilo.conf");
         return ret;
@@ -677,7 +691,7 @@
 	boolean requires_initrd
 	    = SCR::Read (.target.size, "/boot/initrd") != -1;
 
-	boot_device = BootCommon::loader_device;
+	boot_device = BootCommon::BootPartitionDevice;
 	root_device = BootCommon::RootPartitionDevice;
 
         if (getBoardType () == "iseries")
@@ -724,7 +738,7 @@
             "default_type" : `label,
             "timeout_multiplier" : 10,
             "alias_keys" : ["alias"],
-	    "convert_function" : BootCommon::convertSection,
+	    "convert_function" : BootCommon::liloConvertSection,
             "kernel_params" : $[
                 "vga" : "vga",
                 "root" : "root",
@@ -758,6 +772,7 @@
 	    "reset"	: BootPPC::Reset,
 	    "propose"	: BootPPC::Propose,
 	    "save"	: BootPPC::Save,
+	    "summary"	: BootPPC::Summary,
 	    "update"	: BootPPC::Update,
 	    "write"	: BootPPC::Write,
 	    "widgets"	: BootPPC::GetWidgetMaps,
