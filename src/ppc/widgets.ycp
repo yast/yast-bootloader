@@ -403,7 +403,7 @@
 	return `VBox (
 	    `Left (`CheckBox (`id (`install_prepboot), `opt (`notify),
 		// checkbox
-		_("Write the Kernel to 41 &PReP Boot Partition (for *NWSSTG)")
+		_("Write the Kernel to 41 &PReP Boot Partition")
 	    )),
 	    `Left (`HBox (`HSpacing (2),
 		`ComboBox (`id (`prepboot_part),
