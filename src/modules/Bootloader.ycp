@@ -125,6 +125,42 @@
       */
     global define boolean Read () ``{
 	y2milestone ("Reading configuration");
+// run Progress bar
+	list stages = [
+	    // progress stage, text in dialog (short, infinitiv)
+	    _("Check boot loader"),
+	    // progress stage, text in dialog (short, infinitiv)
+	    _("Read partitioning"),
+	    // progress stage, text in dialog (short, infinitiv)
+	    _("Load boot loader settings"),
+	];
+	list titles = [
+	    // progress stage, text in dialog (short)
+	    _("Checking boot loader..."),
+	    // progress stage, text in dialog (short)
+	    _("Reading partitioning..."),
+	    // progress stage, text in dialog (short)
+	    _("Loading boot loader settings..."),
+	];
+	// progress bar caption
+	Progress::New (_("Initializing boot loader configuration tool..."),
+	    " ", 3, stages, titles, "");
+
+	Progress::NextStage ();
+	if (testAbort ())
+	    return `back;
+
+	Bootloader::getLoaderType ();
+
+	Progress::NextStage ();
+	if (testAbort ())
+	    return `back;
+
+	BootCommon::DetectDisks ();
+        Progress::NextStage ();
+        if (testAbort ())
+            return `back;
+
 	boolean ret = blRead ();
 	BootCommon::updateLoaderLocation ();
 	if (BootCommon::location == "none")
@@ -139,6 +175,10 @@
 	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 	BootCommon::was_read = true;
 	old_vga = getKernelParam (getDefaultSection (), "vga");
+
+	Progress::Finish ();
+	if (testAbort ())
+	    return `back;
 	return ret;
     }
     /**
@@ -231,7 +271,7 @@
 	{
 	    // progress line
             Progress::New (_("Saving boot loader configuration..."),
-                " ", 2, stages, titles, BootCommon::getSaveProgressHelp ());
+                " ", 2, stages, titles, "");
 	    Progress::NextStage ();
 	}
         else
@@ -253,6 +293,9 @@
 	    ret = Initrd::Write ();
 	    BootCommon::changed = true;
 	}
+
+	if (Mode::commandline)
+	    BootCommon::changed = true;
 
 	if (! (BootCommon::changed
 	    || BootCommon::write_settings["initrd_changed_externally"]:false))

@@ -19,24 +19,236 @@
     import "Arch";
     import "BootCommon";
     import "Bootloader";
+    import "CommandLine";
     import "Mode";
     import "Progress";
     import "Wizard";
 
     include "bootloader/routines/helps.ycp";
+    include "commandline/commandline.ycp";
+
+// --------------------------------------------------------------------------
+// --------------------------------- cmd-line handlers
 
     /**
-     * Test for abort.
-     * @return true if abort was pressed
-     */
-    define boolean testAbort () ``{
-        if (`abort == UI::PollInput ())
-        {
-            UI::CloseDialog ();
-            return true;
-        }
-        return false;
+      * CommandLine handler for running GUI
+      * @return boolean true if settings were saved
+      */
+    define boolean GuiHandler () ``{
+        symbol ret = nil;
+        if (Mode::test)
+            testDialogs ();
+        else
+            ret = Bootloader::BootloaderSequence ();
+
+        if (ret == `abort || ret == `back || ret == `nil)
+            return false;
+        return true;
     }
+
+    /**
+     * Print summary of basic options
+     * @param options a list of parameters passed as args
+     * @return boolean false
+     */
+    global define boolean BootloaderSummaryHandler (map options ) ``{
+        CommandLine::Print (RichText::Rich2Plain(
+            "<br>"+mergestring (Bootloader::Summary (), "<br>")));
+        return false; // do not call Write...
+    }
+
+    global define boolean BootloaderModifySection (string section,
+	string key, any value)
+    ``{
+	if (section == nil)
+	{
+	    BootCommon::globals = BootCommon::modifySection (
+		BootCommon::globals,
+		option,
+		value
+	    );
+	    return true;
+	}
+	else
+	{
+	    string section = options["section"]:"";
+	    integer index = BootCommon::getSectionIndex (section);
+	    if (index != nil)
+	    {
+		BootCommon::sections[index] = BootCommon::modifySection (
+		    BootCommon::sections[index]:[],
+		    option,
+		    value
+		);
+		return true;
+	    }
+	    else
+	    {
+		CommandLine::Print (sformat (_("Section %1 not found"),
+		    section));
+		return false;
+	    }
+	}
+	return false;
+
+
+    }
+
+    /**
+     * Set specified option in specified section
+     * @param options a list of parameters passed as args
+     * @return boolean true on success
+     */
+    global define boolean BootloaderSetHandler (map options) ``{
+	string section = (string)(options["section"]:nil);
+	string option = (string)(options["option"]:nil);
+	any value = options["value"]:nil;
+	if (value == nil)
+	{
+	    CommandLine::Print (_("Value was not specified"));
+	    return false;
+	}
+	return BootloaderModifySection (section, option, value);
+    }
+
+    /**
+     * Delete specified option in specified section
+     * @param options a list of parameters passed as args
+     * @return boolean true on success
+     */
+    global define boolean BootloaderDeleteHandler (map options) ``{
+	string section = (string)(options["section"]:nil);
+	if (! haskey (options, "option"))
+	{
+	    integer index = BootCommon::getSectionIndex (section);
+	    if (index == nil)
+	    {
+		CommandLine::Print (sformat (_("Section %1 not found"),
+		    section));
+		return false;
+	    }
+	    BootCommon::sections[index] = nil;
+	    BootCommon::sections = filter (list s, BootCommon::sections, ``(
+		s != nil
+	    ));
+	    return true;
+	}
+	string option = (string)(options["option"]:nil);
+	return BootloaderModifySection (section, option, nil);
+    }
+
+    /**
+     * Add a new bootloader section with specified name
+     * @param options a list of parameters passed as args
+     * @return boolean true on success
+     */
+    global define boolean BootloaderAddHandler (map options) ``{
+	// TODO check existence of such section
+	string section = (string)(options["section"]:nil);
+	if (section == nil)
+	{
+	    CommandLine::Print (_("Section name must be specified"));
+	    return false;
+	}
+	BootCommon::sections = add (BootCommon::sections, [
+	    $[
+		"key" : BootCommon::getSectionTitle (),
+		"value" : section,
+	    ]
+	]);
+    }
+
+    /**
+     * Print the value of specified option of specified section
+     * @param options a list of parameters passed as args
+     * @return boolean true on success
+     */
+    global define boolean BootloaderPrintHandler (map options) ``{
+	string section = (string)(options["section"]:nil);
+	string option = (string)(options["option"]:nil);
+	if (option == nil)
+	{
+	    CommandLine::Print (_("Option was not specified"));
+	    return false;
+	}
+	any value = nil;
+	if (section == nil)
+	{
+	    value = BootCommon::lookup_value (BootCommon::globals, option, nil);
+	}
+	else
+	{
+	    integer index = BootCommon::getSectionIndex (section);
+	    if (index != nil)
+	    {
+		value = BootCommon::lookup_value (
+		    BootCommon::sections[index]:[], option, nil);
+	    }
+	}
+	if (value == nil)
+	    CommandLine::Print (_("Specified option doesn't exist"));
+	else
+	    CommandLine::Print (sformat (_("Value: %1"), value));
+	return false;
+    }
+
+    /* the command line description map */
+    map cmdline = $[
+	"id"		: "bootloader",
+	// command line help text for Printer module
+	"help"		: _("Bootloader configuration module."),
+	"guihandler"	: ``(GuiHandler ()),
+	"initialize"	: ``(Bootloader::Read()),
+	"finish"	: ``(Bootloader::Write()),
+	"actions"	: $[
+	    "summary"	: $[
+		"handler"	: ``(BootloaderSummaryHandler()),
+		// command line help text for summary action
+		"help"		: _("Configuration summary of bootloader")
+	    ],
+	    "delete"	: $[
+		"handler"	: ``(BootloaderDeleteHandler ()),
+		// command line help text for delete action
+		"help"		: _("Delete a global option or option of a section"),
+	    ],
+	    "set"	: $[
+		"handler"	: ``(BootloaderSetHandler ()),
+		// command line help text for set action
+		"help"		: _("Set a global option or option of a section"),
+	    ],
+	    "add"	: $[
+		"handler"	: ``(BootloaderAddHandler ()),
+		// command line help text for add action
+		"help"		: _("Add a new section"),
+	    ],
+	    "print"	: $[
+		"handler"	: ``(BootloaderPrintHandler ()),
+		// command line help text for print action
+		"help"		: _("Print value of specified option"),
+	    ],
+	],
+        "options"	: $[
+	    "section"	: $[
+		"help"		: _("The name of the section"),
+		"type"		: "string",
+            ],
+	    "option"	: $[
+		"help"		: _("The key of the option"),
+		"type"		: "string",
+            ],
+	    "value"	: $[
+		"help"		: _("The value of the option"),
+		"type"		: "string",
+            ],
+	],
+        "mappings"	: $[
+            "summary"		: [],
+	    "delete"		: [ "section", "option" ],
+	    "set"		: [ "section", "option", "value" ],
+	    "add"		: [ "section" ],
+	    "print"		: [ "section", "option" ],
+	],
+    ];
 
     y2milestone ("Starting bootloader configuration module");
     boolean skip_io = false;
@@ -51,61 +263,8 @@
 	i = i + 1;
     }
 
-    Wizard::CreateDialog ();
+    boolean ret = CommandLineRun (cmdline);
 
-    if (! skip_io)
-    {
-// run Progress bar
-	list stages = [
-	    // progress stage, text in dialog (short, infinitiv)
-	    _("Check boot loader"),
-	    // progress stage, text in dialog (short, infinitiv)
-	    _("Read partitioning"),
-	    // progress stage, text in dialog (short, infinitiv)
-	    _("Load boot loader settings"),
-	];
-	list titles = [
-	    // progress stage, text in dialog (short)
-	    _("Checking boot loader..."),
-	    // progress stage, text in dialog (short)
-	    _("Reading partitioning..."),
-	    // progress stage, text in dialog (short)
-	    _("Loading boot loader settings..."),
-	];
-	// progress bar caption
-	Progress::New (_("Initializing boot loader configuration tool..."),
-	    " ", 3, stages, titles, getInitProgressHelp ());
-
-	Progress::NextStage ();
-	if (testAbort ())
-	    return `back;
-
-	Bootloader::getLoaderType ();
-
-	Progress::NextStage ();
-	if (testAbort ())
-	    return `back;
-
-	BootCommon::DetectDisks ();
-        Progress::NextStage ();
-        if (testAbort ())
-            return `back;
-
-	Bootloader::Read ();
-	Progress::Finish ();
-	if (testAbort ())
-	    return `back;
-    }
-
-    symbol ret = Bootloader::runWizard ();
-
-    if (! skip_io)
-    {
-	if (ret == `next)
-	    Bootloader::Write ();
-    }
-
-    UI::CloseDialog ();
     y2milestone ("Finishing bootloader configuration module");
     return ret;
 }

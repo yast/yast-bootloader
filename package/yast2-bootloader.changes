@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec  9 15:36:47 CET 2003 - jsrain@suse.de
+
+- added command line interface support
+
+-------------------------------------------------------------------
 Thu Nov 27 17:20:19 CET 2003 - jsrain@suse.de
 
 - fixes for the new interpreter

@@ -257,7 +257,7 @@
       */
     else if (func == "Change") {
 	Wizard::CreateDialog ();
-    ret = Bootloader::runWizard ();
+    ret = Bootloader::BootloaderAutoSequence ();
     UI::CloseDialog ();
 	return ret;
     }

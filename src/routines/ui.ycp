@@ -31,6 +31,41 @@
     include "wizard/sequencer.ycp";
 
     /**
+     * Test for abort.
+     * @return true if abort was pressed
+     */
+    global define boolean testAbort () ``{
+	if (Mode::commandline)
+	    return false;
+        if (`abort == UI::PollInput ())
+        {
+            UI::CloseDialog ();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+      * Read settings dialog
+      * @return `abort if aborted and `next otherwise
+      */
+    global define symbol ReadDialog() ``{
+        Wizard::RestoreHelp (BootCommon::getInitProgressHelp ());
+        boolean ret = Bootloader::Read();
+        return ret ? `next : `abort;
+    }
+
+    /**
+      * Write settings dialog
+      * @return `abort if aborted and `next otherwise
+      */
+    global define symbol WriteDialog() ``{
+        Wizard::RestoreHelp (BootCommon::getSaveProgressHelp ());
+        boolean ret = Bootloader::Write();
+        return ret ? `next : `abort;
+    }
+
+    /**
       * Handle function of a widget
       * @param widget any widget key
       * @param event map event description of event that occured
@@ -462,6 +497,56 @@ Proceed?
 	// run wizard
 	y2milestone ("Starting wizard sequencer");
 	return WizardSequencer (aliases, sequence);
+    }
+
+    /**
+      * Whole configuration of printer but without reading and writing.
+      * For use with autoinstallation.
+      * @return sequence result
+      */
+    global define symbol BootloaderAutoSequence () ``{
+	Wizard::CreateDialog();
+	Wizard::SetContentsButtons("", `VBox (), "",
+	    Label::BackButton(), Label::NextButton());
+	symbol ret = runWizard ();
+	UI::CloseDialog();
+	return ret;
+    }
+
+    /**
+      * Whole configuration of dns-server
+      * @return sequence result
+      */
+    global define symbol BootloaderSequence () ``{
+	map aliases = $[
+	    "read"	: [ ``(ReadDialog ()), true ],
+	    "main"	:   ``(runWizard ()),
+	    "write"	: [ ``(WriteDialog ()), true ],
+	];
+
+	map sequence = $[
+	    "ws_start"		: "read",
+	    "read" : $[
+		`abort		: `abort,
+		`next		: "main"
+	    ],
+	    "main" : $[
+		`abort		: `abort,
+		`next		: "write",
+	    ],
+	    "write" : $[
+		`abort		: `abort,
+		`next		: `next
+	    ]
+	];
+
+	Wizard::CreateDialog();
+	Wizard::SetContentsButtons("", `VBox (), "",
+	    Label::BackButton(), Label::NextButton());
+	symbol ret = WizardSequencer(aliases, sequence);
+
+	UI::CloseDialog();
+	return ret;
     }
 
 }
