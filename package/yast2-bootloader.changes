@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct 19 13:59:33 CEST 2004 - jsrain@suse.cz
+
+- use unified messages from Label.ycp
+
+-------------------------------------------------------------------
 Wed Oct 13 12:44:42 CEST 2004 - jsrain@suse.cz
 
 - add "thash_entries=2097152" to kernel command line on Altix

@@ -519,7 +519,7 @@ and File Systems (modules disk 4)"))),
 		    `TextEntry (`id (`user), _("&User"), user),
 		    `HSpacing (2),
 		    // text entry label
-		    `Password (`id (`pass), _("&Password"), pass)
+		    `Password (`id (`pass), Label::Password (), pass)
 		),
 		`VStretch ()
 	    ), `HStretch ()
