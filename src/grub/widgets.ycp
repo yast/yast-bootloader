@@ -39,6 +39,7 @@
 		"title" : ``(BootCommon::getLabelWidget ()),
 		"gfxmenu" : ``(BootGRUB::getGfxMenuWidget ()),
 		"__diskorder" : ``(BootGRUB::getOrderPopup ()),
+		"__add_orig_mbr" : ``(BootGRUB::getAddOrigMbrWidget ()),
 	    ],
         ];
     }
@@ -146,7 +147,8 @@ Replace it with an entry  to boot from the floppy?");
 	{
 	    prependlist = ["__loader_type", "__sep2", "__location",
 		"__diskorder", "__default_section", "__sections", "activate",
-		"__repl_mbr", "__save_method", "__sep1"];
+		"__repl_mbr", "__backup_mbr", "__add_orig_mbr",
+		"__save_method", "__sep1"];
             options = filter (`o, `v, options,
 		``(o != "boot" && o != "default"));
 
@@ -196,6 +198,11 @@ Replace it with an entry  to boot from the floppy?");
 	if (Mode::initial)
 	{
 	    prependlist = filter (`p, prependlist, ``(p != "__save_method"));
+	}
+	if ((! BootCommon::backup_mbr) && 0 >= SCR::Read (.target.size,
+	    "/boot/backup/mbr"))
+	{
+	    prependlist = filter (`p, prependlist, ``(p != "__add_orig_mbr"));
 	}
 	_options = merge (prependlist, _options);
 	return _options;
@@ -661,4 +668,83 @@ Replace it with an entry  to boot from the floppy?");
 	);
 	return ret;
     }
+
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getAddOrigMbrWidget () ``{
+	return $[
+	    "restore" : ``(BootGRUB::addOrigMbrRestore ()),
+	    "handle" : ``(BootGRUB::addOrigMbrSave ()),
+	    "type" : "b",
+	    "help" : "",//TODO BootGRUB::addOrigMbrHelp (),
+	    "exits" : [],
+	    // table item / label
+	    "label" : _("Add saved MBR to bootloader menu"),
+	    "summary" : ``(BootGRUB::addOrigMbrSummary ()),
+	    "deletable" : false,
+	    "ordering" : false,
+	];
+    }
+
+    /**
+      * Restore function of widget
+      */
+    global define void addOrigMbrRestore () ``{
+        UI::ChangeWidget (`id (`value), `Value, insert_saved_mbr);
+        UI::SetFocus (`id (`value));
+    }
+
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param tosave list of operations, which lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any addOrigMbrSave (any op, list tosave) ``{
+        if (! contains (tosave, op))
+            return op;
+        insert_saved_mbr = UI::QueryWidget (`id (`value), `Value);
+y2error ("Saved mbr: %1", insert_saved_mbr);
+	if (insert_saved_mbr)
+	{
+	    boolean found = false;
+	    foreach (`s, BootCommon::sections, ``{
+		if (s["__intern__", "original_mbr"]:false)
+		{
+		    found = true;
+		    y2error ("Found %1", s);
+		}
+	    });
+	    if (! found)
+	    {
+		BootCommon::current_sections = add (
+		    BootCommon::current_sections,
+		    createLinuxSection ("original MBR"));
+	    }
+	}
+	else
+	{
+	    BootCommon::current_sections = filter (`s,
+		BootCommon::current_sections, ``(
+		! s["__intern__", "original_mbr"]:false
+	    ));
+	}
+        return op;
+    }
+
+    /**
+      * Summary function for option
+      * @return string summary text
+      */
+    global define string addOrigMbrSummary () ``{
+        if (insert_saved_mbr)
+            // table item / label
+            return _("Yes");
+        else
+            // table item / label
+            return _("No");
+    }
+
 }

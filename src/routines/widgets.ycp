@@ -41,6 +41,7 @@
 		    "__default_section" : ``(BootCommon::getDefaultSectionTableEntry ()),
 		    "__section_type" : ``(BootCommon::getSectionTypeWidget ()),
 		    "__save_method" : ``(BootCommon::getSaveMethod ()),
+		    "__backup_mbr" : ``(BootCommon::getBackupMbrWidget ()),
 		    "__sep1" : $["label" : "---------------"],
 		    "__sep2" : $["label" : "---------------"],
 		    "__sep3" : $["label" : "---------------"],
@@ -601,7 +602,7 @@
 	{
 	    prependlist = ["__loader_type", "__sep2", "__location",
 		"__default_section", "__sections", "activate", "__repl_mbr",
-		"__save_method", "__sep1"];
+		"__backup_mbr", "__save_method", "__sep1"];
 	    options = filter (`o, options, ``(o != "boot" && o != "default"));
 	}
 	else
@@ -756,6 +757,60 @@
 	    ? "other"
 	    : "image";
     }
+
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map getBackupMbrWidget () ``{
+	return $[
+	    "restore" : ``(BootCommon::backupMbrRestore ()),
+	    "handle" : ``(BootCommon::backupMbrSave ()),
+	    "type" : "b",
+	    "help" : "", //TODO BootCommon::backupMbrHelp (),
+	    "exits" : [],
+	    // table item / label
+	    "label" : _("Backup original MBR"),
+	    "summary" : ``(BootCommon::backupMbrSummary ()),
+	    "deletable" : false,
+	    "ordering" : false,
+	];
+    }
+
+    /**
+      * Restore function of widget
+      */
+    global define void backupMbrRestore () ``{
+        UI::ChangeWidget (`id (`value), `Value, backup_mbr);
+        UI::SetFocus (`id (`value));
+    }
+
+    /**
+      * Handle function of widget
+      * @param op any operation to handle
+      * @param tosave list of operations, which lead to closing & saving widget
+      * @return any changed op (if needed)
+      */
+    global define any backupMbrSave (any op, list tosave) ``{
+        if (! contains (tosave, op))
+            return op;
+        backup_mbr = UI::QueryWidget (`id (`value), `Value);
+        return op;
+    }
+
+    /**
+      * Summary function for option
+      * @return string summary text
+      */
+    global define string backupMbrSummary () ``{
+        if (backup_mbr)
+                // table item / label
+            return _("Backup Current MBR");
+        else
+                // table item / label
+            return _("Do not backup current MBR");
+    }
+
 
     /**
       * Get map of widget

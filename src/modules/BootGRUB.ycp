@@ -54,6 +54,10 @@
       * Shall proposal merge menus?
       */
     global boolean deep_propose = false;
+    /**
+      * Insert saved MBR to bootloader menu?
+      */
+    global boolean insert_saved_mbr = false;
 
 // variables for temporary data
 
@@ -529,6 +533,21 @@
 	  else
 		return $[];
 	}
+	if (title == "original MBR")
+	{
+            return $[
+                "__order__":["title", "chainloader"],
+                "chainloader" : file2grub ("/boot/backup/mbr"),
+                "title" : title,
+                "__intern__" : $[
+                    "auto" : true,
+                    "changed" : false,
+                    "devs" : [BootCommon::BootPartitionDevice],
+                    "kernel" : "/boot/backup/mbr",
+		    "original_mbr" : true,
+                ],
+            ];
+	}
 	string vgastring = Kernel::vgaType != ""
 	    ? sformat ("vga=%1", Kernel::vgaType)
 	    : "";
@@ -745,6 +764,12 @@
 	}
 	out = add (out, createLinuxSection ("failsafe"));
 	out = add (out, createLinuxSection ("memtest86"));
+	if (insert_saved_mbr
+	    && ( BootCommon::backup_mbr
+		|| 0 < SCR::Read (.target.size, "/boot/backup/mbr")))
+	{
+	    out = add (out, createLinuxSection ("original MBR"));
+	}
 	out = filter (`s, out, ``(s != $[] && s != nil));
 	BootCommon::sections = out;
     }
@@ -852,7 +877,8 @@
 		y2debug ("Possible warning on section %1", title);
 		boolean cont = true;
 		if (s["title"]:"" != "linux" && s["title"]:"" != "failsafe"
-		    && s["title"]:"" != "memtest86" && s["title"]:"" !="gloppy")
+		    && s["title"]:"" != "memtest86" && s["title"]:"" !="floppy"
+		    && s["title"]:"" != "original MBR")
 		{
 		    foreach (`n, s["__intern__", "devs"]:[], ``{
 		        if (! contains (parts, n))

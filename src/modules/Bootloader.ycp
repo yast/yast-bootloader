@@ -92,7 +92,7 @@
       * @return boolean true on success
       */
     global define boolean Read () ``{
-	Initrd::Read ();
+//	Initrd::Read ();
 	BootCommon::location
 	    = SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
 	boolean ret = blRead ();
@@ -137,6 +137,8 @@
         BootCommon::changed = true;
         BootCommon::location_changed = true;
 	BootCommon::partitioning_last_change = Storage::GetTargetChangeTime();
+	BootCommon::backup_mbr = true;
+	BootCommon::activate = true;// FIXME do it only if needed
     }
     /**
       * Display bootloader summary

@@ -13,6 +13,9 @@ Fri Apr 18 13:18:24 CEST 2003 - jsrain@suse.de
   on AXP (#26357)
 - displaying partition that will be activated and MBR device that
   will be replaced with generic code (partial fix of #26278)
+- added possibility to save MBR before bootloader installation and
+  insert saved MBR image to GRUB menu (#16338)
+- 2.8.0
 
 -------------------------------------------------------------------
 Tue Apr  8 09:12:41 CEST 2003 - jsrain@suse.de
