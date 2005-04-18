@@ -1829,7 +1829,7 @@ global list<string> ListKernelParamsInLine (string line) {
     }
 
 global string GetAdditionalKernelParams () {
-    string line = ProductFeatures::additional_kernel_parameters;
+    string line = ProductFeatures::GetStringFeature ("globals", "additional_kernel_parameters");
     return line;
 }
 
