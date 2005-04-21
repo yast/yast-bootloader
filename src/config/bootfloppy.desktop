@@ -16,7 +16,7 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 
-Icon=bootmode
+Icon=yast-bootfloppy
 Exec=/sbin/yast2 bootfloppy
 
 Name=Create a Boot or Rescue Floppy
