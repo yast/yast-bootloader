@@ -1232,7 +1232,7 @@ define integer Dom0MemorySize () {
 	SCR::Execute (.target.bash, "test -f /etc/grub.conf && /bin/cp /etc/grub.conf /etc/grub.conf.old");
 	saveDeviceMap (device_map);
 	integer index = -1;
-	integer default = (integer)
+	integer defaultv = (integer)
 	    lookup_value (BootCommon::globals, "default", 0);
 	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``{
 	    index = index + 1;
@@ -1251,10 +1251,10 @@ define integer Dom0MemorySize () {
             if (title == "")
 	    {
 		y2warning ("Removing section with empty title");
-		if (default == index)
-		    default = 0;
-		if (default > index)
-		    default = default - 1;
+		if (defaultv == index)
+		    defaultv = 0;
+		if (defaultv > index)
+		    defaultv = defaultv - 1;
                 return false;
 	    }
             if (! contains (["linux", "failsafe", "memtest86"], type))
@@ -1286,16 +1286,16 @@ define integer Dom0MemorySize () {
 	    {
 		y2warning ("Removing section %1 with unexistent kernel %2",
 		    title, kernel);
-		if (default == index)
-		    default = 0;
-		if (default > index)
-		    default = default - 1;
+		if (defaultv == index)
+		    defaultv = 0;
+		if (defaultv > index)
+		    defaultv = defaultv - 1;
 		return false;
 	    }
 	    return true;
 	});
 	BootCommon::globals = modifySection (BootCommon::globals, "default",
-	    default);
+	    defaultv);
 	BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
 	    string root = (string)lookup_value (s, "root", "");
 	    string title = (string)lookup_value (s, "title", "");

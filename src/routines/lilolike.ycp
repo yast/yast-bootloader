@@ -458,15 +458,15 @@
       * Fix global section of lilo-like bootloader
       */
     global define void liloFixGlobals () ``{
-	string default = (string)lookup_value (
+	string defaultv = (string)lookup_value (
 	    BootCommon::globals, "default", "");
 	string first = "";
-	if (default != "")
+	if (defaultv != "")
 	{
 	    boolean exists = false;
 	    foreach (list<map> s, BootCommon::sections, ``{
 		string label = (string)lookup_value (s, "label", "");
-		if (label == default)
+		if (label == defaultv)
 		    exists = true;
 		if (first == "")
 		    first = label;
@@ -764,7 +764,7 @@
       */
     global define void liloRemoveUnexistentSections (string path_prefix,
 	string relative_path_prefix) ``{
-	string default = (string)lookup_value (globals, "default", "");
+	string defaultv = (string)lookup_value (globals, "default", "");
 	string first = nil;
 	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``{
 	    string label = (string)
@@ -783,8 +783,8 @@
             if (label == "")
 	    {
 		y2warning ("Removing section with empty title");
-		if (label == default)
-		    default = nil;
+		if (label == defaultv)
+		    defaultv = nil;
                 return false;
 	    }
 	    if (! contains (["linux", "failsafe", "memtest86"], type))
@@ -808,17 +808,17 @@
 	    {
 		y2warning ("Removing section %1 with unexistent kernel %2",
 		    label, kernel);
-		if (label == default)
-		    default = nil;
+		if (label == defaultv)
+		    defaultv = nil;
 		return false;
 	    }
 	    if (first == nil)
 		first = label;
 	    return true;
 	});
-	if (default == nil)
-	    default = first;
-	globals = modifySection (globals, "default", default);
+	if (defaultv == nil)
+	    defaultv = first;
+	globals = modifySection (globals, "default", defaultv);
     }
 
     /**

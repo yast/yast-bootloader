@@ -367,7 +367,7 @@ Proceed?
       */
     global define symbol runEditFilesDialog () ``{
         map<string,string> files = Bootloader::blGetFiles ();
-	string default = files["default"]:"";
+	string defaultv = files["default"]:"";
 	files = filter (string k, string v, files, ``(k != "default"));
         list filenames = [];
         foreach (string k, string v, files, ``{
@@ -405,8 +405,8 @@ Proceed?
 	Wizard::RestoreAbortButton ();
 
 	string filename = filenames[0]:"";
-	if (default != "")
-	    filename = default;
+	if (defaultv != "")
+	    filename = defaultv;
 	if (size (files) > 1)
 	    UI::ChangeWidget (`id (`filename), `Value, filename);
 	UI::ChangeWidget (`id (`file), `Value, files[filename]:"");

@@ -144,11 +144,11 @@
     /**
       * Get value of specified bootloader attribute
       * @param attrib string attribute name
-      * @param default any default value of the attribute (if not found)
+      * @param defaultv any default value of the attribute (if not found)
       * @return any value of attribute
       */
-    global define any getAnyTypeAttrib (string attrib, any default) ``{
-        return current_bootloader_attribs[attrib]:default;
+    global define any getAnyTypeAttrib (string attrib, any defaultv) ``{
+        return current_bootloader_attribs[attrib]:defaultv;
     }
 
     /**
@@ -850,18 +850,18 @@
     global define string getDefaultSection () ``{
 	if (getDefaultType () == `label)
 	{
-	    string default = (string) lookup_value (globals,
+	    string defaultv = (string) lookup_value (globals,
 		getDefaultKey (), "");
 	    boolean exists = false;
 	    foreach (list<map> s, sections, ``{
 		if (lookup_value (s, getSectionTitle (), "")
-		    == default)
+		    == defaultv)
 		{
 		    exists = true;
 		}
 	    });
 	    if (exists)
-		return default;
+		return defaultv;
 	    else
 	    {
 		return (string) lookup_value (sections[0]:[], getSectionTitle (), "");
@@ -2045,11 +2045,11 @@ global list<map<string,string> > CheckAdditionalKernels () {
     });
     if (contains (kernels, binary))
     {
-	string default = (string)SCR::Read (.target.symlink,
+	string defaultv = (string)SCR::Read (.target.symlink,
 	    sformat ("/boot/%1", binary));
-	default = ""; // FIXME remove this line
+	defaultv = ""; // FIXME remove this line
 	kernels = filter (string k, kernels, {
-	    return k != default;
+	    return k != defaultv;
 	});
     }
     list<map<string,string> > ret = maplist (string k, kernels, {
