@@ -25,16 +25,16 @@
       * Get value of some key in bootloader section
       * @param section list representating bootloader section
       * @param key string key of requested parameter
-      * @param default any default value to be returned if key not present
+      * @param defaultv any default value to be returned if key not present
       * @return any found key
       */
     define any lookup_value (list<map> section, string key,
-	any default)
+	any defaultv)
     ``{
-	any ret = default;
+	any ret = defaultv;
 	foreach (map m, section, ``{
 	    if (m["key"]:"" == key)
-		ret = m["value"]:default;
+		ret = m["value"]:defaultv;
 	});
 	return ret;
     }
@@ -70,13 +70,13 @@
       * Lookup at value of entry with specified index in the section
       * @param section list section list
       * @param index integer index of entry in section
-      * @param default any to be returned if specified entry not present
+      * @param defaultv any to be returned if specified entry not present
       * @return any value of specified entry of PPD file
       */
     define any lookupValueByIndex (list<map> section, integer index,
-	any default)
+	any defaultv)
     ``{
-	return section[index, "value"]:default;
+	return section[index, "value"]:defaultv;
     }
 
     /**

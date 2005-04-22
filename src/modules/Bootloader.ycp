@@ -531,7 +531,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       */
     global define string getProposedDefaultSection () ``{
 	ReadOrProposeIfNeeded ();
-	string default = "";
+	string defaultv = "";
 	string first_image = "";
 	string default_image = "";
 	foreach (list<map> s, BootCommon::sections, ``{
@@ -546,11 +546,11 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 		if (title == getDefaultSection ())
 		    default_image = title;
 	    }
-	    if (default == "" && intern["type"]:"" == "linux")
-		default = title;
+	    if (defaultv == "" && intern["type"]:"" == "linux")
+		defaultv = title;
 	});
-	if (default != "")
-	    return default;
+	if (defaultv != "")
+	    return defaultv;
 	if (default_image != "")
 	    return default_image;
 	if (first_image != "")

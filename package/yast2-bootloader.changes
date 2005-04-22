@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 22 13:17:27 CEST 2005 - mvidner@suse.cz
+
+- Do not use "default" as an identifier.
+
+-------------------------------------------------------------------
 Mon Apr 18 16:00:36 CEST 2005 - jsrain@suse.cz
 
 - updated for new interface of ProductFeatures.ycp
