@@ -2263,18 +2263,27 @@ global boolean BootloaderInstallable () {
     {
 	// EVMS
 	if (find (BootPartitionDevice, "/dev/evms/") == 0)
+	{
+	    y2milestone ("Cannot install bootloader on EVMS");
 	    return false;
+	}
 	// LVM
 	map dev = Storage::GetDiskPartition( BootCommon::BootPartitionDevice);
-	if (is( dev["nr"]:(any)0, integer ))
+	if (! is( dev["nr"]:(any)0, integer ))
+	{
+	    y2milestone ("Cannot install bootloader on LVM");
 	    return false;
+	}
 	// MD, but not mirroring
 	if (dev["disk"]:"" == "/dev/md")
 	{
 	    map tm = Storage::GetTargetMap ();
 	    map info = tm["/dev/md",BootPartitionDevice]:$[];
 	    if (tolower (info["raid_type"]:"") != "raid1")
+	    {
+		y2milestone ("Cannot install bootloader on RAID (not mirror)");
 		return false;
+	    }
 	}
 
 	return true;

@@ -686,7 +686,7 @@ Adapt it?
 		"add_delete_buttons" : true,
 		"up_down_buttons" : true,
 		"changed_column" : true,
-		"unique_keys" : true,
+		"unique_keys" : false,
 	    ],
 	    $[
 		"store" : BootCommon::singleSectionStore,
