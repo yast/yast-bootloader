@@ -4,6 +4,7 @@ Wed Apr 27 08:27:43 CEST 2005 - jsrain@suse.cz
 - allow to remap devices in GRUB section (#77119)
 - don not report void error in installation proposal
 - added bootloader-related part of inst_finish to extra client
+- 2.12.1
 
 -------------------------------------------------------------------
 Fri Apr 22 13:17:27 CEST 2005 - mvidner@suse.cz
