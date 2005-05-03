@@ -111,10 +111,42 @@
       */
     global define void choosePrepBootPartition () ``{
 	y2milestone ("Resetting selected PReP boot partition");
-	string root_disk			// FIXME what about LVM?
-	    = Storage::GetDiskPartition (
-		BootCommon::RootPartitionDevice
-	    )["disk"]:"";
+	list<string> root_disks = [];
+	if (Storage::CheckForLvmRootFs ())
+	{
+	    map<string,map> tm = Storage::GetTargetMap ();
+	    string vg = "";
+	    foreach (string dev, map info, tm, {
+		if (info["is_lvm_vg"]:false)
+		{
+		    list<map> volumes = info["partitions"]:[];
+		    foreach (map v, volumes, {
+			if (v["mount"]:"" == "/")
+			{
+			    vg = info["name"]:"";
+			    y2milestone ("Volume group of root FS: %1", vg);
+			}
+		    });
+		}
+	    });
+	    foreach (string dev, map info, tm, {
+		list<map> partitions = info["partitions"]:[];
+		foreach (map p, partitions, {
+		    if (p["lvm_group"]:"" == vg)
+		    {
+			root_disks = add (root_disks, dev);
+		    }
+		});
+	    });
+	    y2milestone ("Disks holding LVM with root fs: %1", root_disks);
+	}
+	else
+	{
+	    root_disks = [
+		lookup (Storage::GetDiskPartition (
+		    BootCommon::RootPartitionDevice), "disk", "")
+	    ];
+	}
 
 	prep_boot_partition = "";
 	prep_boot_partitions = (list<string>)merge (
@@ -128,7 +160,7 @@
 		{
 		    map part_split = Storage::GetDiskPartition (partition);
 		    string part_disk = part_split["disk"]:"";
-		    if (part_disk != root_disk)
+		    if (! contains (root_disks, part_disk))
 			usable = false;
 		}
 		if (usable)
