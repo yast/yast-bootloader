@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue May  3 12:35:05 CEST 2005 - jsrain@suse.cz
+
+- select PReP boot partition on CHRP (PPC) if root on LVM (#80204)
+
+-------------------------------------------------------------------
 Wed Apr 27 08:27:43 CEST 2005 - jsrain@suse.cz
 
 - allow to remap devices in GRUB section (#77119)
