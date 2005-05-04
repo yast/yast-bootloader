@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed May  4 08:02:37 CEST 2005 - jsrain@suse.cz
+
+- more "default" variable renames
+
+-------------------------------------------------------------------
 Tue May  3 12:35:05 CEST 2005 - jsrain@suse.cz
 
 - select PReP boot partition on CHRP (PPC) if root on LVM (#80204)
