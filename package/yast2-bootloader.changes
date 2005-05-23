@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon May 23 17:20:27 CEST 2005 - jsrain@suse.cz
+
+- fixed detection fo PReP partition on CHRP (PPC) (#80204)
+- block proposal if bootloader noc configured correctly on PPC
+  (#82893)
+
+-------------------------------------------------------------------
 Wed May  4 08:02:37 CEST 2005 - jsrain@suse.cz
 
 - more "default" variable renames

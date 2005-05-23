@@ -42,7 +42,9 @@
 	    y2milestone ("Partitions: %1", partitions);
 	    partitions = filter (map p, partitions, ``(
 		(! p["delete"]:false)
-		&& (is (p["fsid"]:nil, integer) && p["fsid"]:nil == 65)
+		&& is (p["fsid"]:nil, integer)
+		// both partition types 0x41 and FAT16 can be handled through lilo
+		&& (p["fsid"]:nil == 65 ||  p["fsid"]:nil == 6)
 		&& (! p["is_lv"]:false)
 		&& (p["raid_type"]:"" == "")
 	    ));
@@ -167,6 +169,18 @@
 		    prep_boot_partition = partition;
 	    }
 	});
+
+	// For CHRP lilo can handle PReP partition on other disks now
+	// If all above fails, take the first one then ...
+	if ( (prep_boot_partition == "") && (getBoardType () == "chrp") )
+	{
+	    prep_boot_partition = prep_boot_partitions[0]:"";
+	}
+
+	y2milestone ("Selected PReP boot partition: %1", prep_boot_partition);
+	BootCommon::activate = (prep_boot_partition != ""
+	    && prep_boot_partition != "/dev/null");
+	y2milestone ("Install bootloader: %1", BootCommon::activate);
     }
 
     map<string,string> board_type_names = $[

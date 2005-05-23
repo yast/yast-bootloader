@@ -106,6 +106,21 @@
 		"warning" : _("Because of the partitioning, the bootloader cannot be installed properly"),
 	    ];
 	}
+	else if (Bootloader::getLoaderType () == "ppc")
+	{
+	    if (Arch::board_chrp)
+	    {
+		if (! BootCommon::activate)
+		{
+		    ret = union (ret, $[
+			"warning_level" : `blocker,
+			"warning" :
+			    _("Configure a valid boot loader location before continuing.<br>
+In case that no selection can be made it may be necessary to create a PReP Boot partition."),
+		    ]);
+		}
+	    }
+	}
     }
     else if ( func == "AskUser" )
     {
