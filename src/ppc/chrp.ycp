@@ -93,7 +93,7 @@
 	{
 	    ret = [
 		// summary part
-		_("There is no 41 PReP boot partition. You cannot boot from the hard disk."),
+		_("There is no 41 PReP boot nor a FAT16 partition. You cannot boot from the hard disk."),
 	    ];
 	}
 	else if (BootCommon::activate == false)
@@ -108,7 +108,7 @@
 	    ret = [
 		sformat(
 		    // summary part
-		    _("yaboot will be written to %1. Use SMS Multiboot to boot from this drive."),
+		    _("yaboot will be written to %1. A correct boot path will be prepended to boot-device variable."),
 		    prep_boot_partition
 		)
 	    ];

@@ -737,7 +737,7 @@ global boolean currentBoardUpdate () {
 	}
 	// TODO other subarchitectures
 
-        if (BootCommon::activate)
+        if (BootCommon::activate || getBoardType () == "chrp")
 	{
 	    string bl_command = "/sbin/lilo "
 		+ " >> /var/log/YaST2/y2loglilo 2>&1";
