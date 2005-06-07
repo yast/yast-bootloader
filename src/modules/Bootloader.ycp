@@ -50,6 +50,7 @@
     global define boolean setKernelParam (string section, string key, string value);
     global define list<string> listKernelParams (string section);
     global define string getLoaderType ();
+    global define string getProposedDefaultSection ();
 
 
     /**
@@ -249,7 +250,34 @@
       * @return a list of summary lines
       */
     global define list<string> Summary () ``{
-	return blSummary ();
+	list<string> ret = blSummary ();
+	// check if default section was changed or not
+        string main_section = getProposedDefaultSection ();
+        if (main_section == nil)
+            return ret;
+        string label = BootCommon::getSectionTitle ();
+	integer index = -1;
+	integer sectnum = -1;
+        foreach (list<map> s, BootCommon::sections, ``{
+            index = index + 1;
+            if (lookup_value (s, label, "") == main_section)
+                sectnum = index;
+        });
+        if (sectnum == -1)
+            return ret;
+	map intern = (map)lookup_value (BootCommon::sections[sectnum]:[],
+	    "__intern__", $[]);
+	if (intern["changed"]:false)
+	    return ret;
+	string filtered_cmdline = filterchars (Kernel::GetCmdLine (),
+	    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
+	if (size (filtered_cmdline) > 0)
+	{
+	    ret = add (ret, sformat (
+		_("Additionally added kernel parameters: %1"),
+		Kernel::GetCmdLine ()));
+	}
+	return ret;
     }
 
     /**

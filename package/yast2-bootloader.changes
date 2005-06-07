@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun  7 10:40:08 CEST 2005 - jsrain@suse.cz
+
+- display info of additional kernel parameters from installation
+  kernel command line (#83837)
+
+-------------------------------------------------------------------
 Mon May 23 17:20:27 CEST 2005 - jsrain@suse.cz
 
 - fixed detection fo PReP partition on CHRP (PPC) (#80204)

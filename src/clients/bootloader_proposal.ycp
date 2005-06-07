@@ -108,11 +108,11 @@
 	}
 	else if (Bootloader::getLoaderType () == "ppc")
 	{
-	    if (Arch::board_chrp)
+	    if (Arch::board_chrp ())
 	    {
 		if (! BootCommon::activate)
 		{
-		    ret = union (ret, $[
+		    ret = (map<string,any>)union (ret, $[
 			"warning_level" : `blocker,
 			"warning" :
 			    _("Configure a valid boot loader location before continuing.<br>
