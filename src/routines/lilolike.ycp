@@ -23,6 +23,8 @@
     import "Storage";
     import "StorageDevices";
 
+    include "bootloader/routines/i386.ycp";
+
     /**
       * Check whether disk settings were changed since last checking
       * @return boolean true if needs to recheck
@@ -106,6 +108,11 @@
     global define string ConfigureLocation() ``{
         string loc = "mbr";                       // default to mbr
         string device   = BootCommon::mbrDisk;
+	if (KeepMBR (device))
+	{
+	    device = BootPartitionDevice;
+	    loc = "boot";
+	}
         y2milestone ("ConfigureLocation (%1 on %2)", loc, device);
         return loc;
     }
