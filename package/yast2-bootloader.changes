@@ -3,6 +3,7 @@ Tue Jun 14 16:45:20 CEST 2005 - jsrain@suse.cz
 
 - don't change MBR on IBM ThinkPad laptops in order to keep their
   rescue functionality working (#86762)
+- 2.12.3
 
 -------------------------------------------------------------------
 Tue Jun  7 10:40:08 CEST 2005 - jsrain@suse.cz
