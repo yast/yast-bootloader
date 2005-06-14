@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 14 16:45:20 CEST 2005 - jsrain@suse.cz
+
+- don't change MBR on IBM ThinkPad laptops in order to keep their
+  rescue functionality working (#86762)
+
+-------------------------------------------------------------------
 Tue Jun  7 10:40:08 CEST 2005 - jsrain@suse.cz
 
 - display info of additional kernel parameters from installation

@@ -1,0 +1,71 @@
+/**
+ * File:
+ *      include/bootloader/routines/i386.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions for i386 architecture
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: lilolike.ycp 23132 2005-04-22 11:17:41Z mvidner $
+ *
+ */
+{
+
+textdomain "bootloader";
+
+/**
+ * Keep the MBR contents?
+ */
+boolean _keep_mbr = nil;
+
+/**
+ * The last disk that was checked for the sequence
+ */
+string _old_mbr_disk = nil;
+
+/**
+ * Sequence specific for IBM ThinkPad laptops, see bug 86762
+ */
+string thinkpad_seq = "50e46124108ae0e461241038e074f8e2f458c332edb80103ba8000cd13c3be05068a04240cc0e802c3";
+
+/**
+ * Keep the MBR contents on the specified disk? Check whether the contents
+ * should be kept because ot contains vendor-specific data
+ * @param disk string the disk to be checked
+ * @return boolean true to keep the contents
+ */
+global boolean KeepMBR (string disk) {
+    if (_keep_mbr == nil || disk != _old_mbr_disk)
+    {
+	_old_mbr_disk = disk;
+	_keep_mbr = false;
+	map out = (map)SCR::Execute (.target.bash_output, sformat (
+	    "dd if=%1 bs=512 count=1 | od -v -t x1 -", disk));
+	if (out["exit"]:0 != 0)
+	{
+	    y2error ("Reading MBR contents failed");
+	    return _keep_mbr;
+	}
+	string mbr = out["stdout"]:"";
+	list<string> mbrl = splitstring (mbr, "\n");
+	mbrl = maplist (string s, mbrl, {
+	    list<string> l = splitstring (s, " ");
+	    l[0] = "";
+	    return mergestring (l, "");
+	});
+	mbr = mergestring (mbrl, "");
+	y2internal ("MBR: %1", mbr);
+	if (issubstring (mbr, thinkpad_seq))
+	    _keep_mbr = true;
+    }
+    y2milestone ("Keep MBR contents: %1", _keep_mbr);
+    return _keep_mbr;
+}
+
+
+} // EOF

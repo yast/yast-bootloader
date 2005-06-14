@@ -15,7 +15,8 @@ ynclude_DATA =			\
 	popups.ycp		\
 	convert.ycp		\
 	routines.ycp		\
-	autoinstall.ycp
+	autoinstall.ycp		\
+	i386.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)
