@@ -8,7 +8,6 @@ ynclude_DATA =			\
 	misc.ycp		\
 	section_widgets.ycp	\
 	global_widgets.ycp	\
-	options.ycp		\
 	switcher.ycp		\
 	helps.ycp		\
 	ui.ycp			\
