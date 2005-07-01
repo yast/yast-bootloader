@@ -1,0 +1,7 @@
+string.i is copied from pluglib-bindings. It should get installed to
+a SWIG directory probably.
+
+I have svn/limal/limal-head/limal-bootloader/src/Bootloader_API.pm
+symlinked to the yast module dir.
+And svn/limal/limal-head/limal-bootloader/src/libbootldr.so to /usr/local/lib.
+

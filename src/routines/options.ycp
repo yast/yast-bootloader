@@ -345,7 +345,6 @@ Continue?")))
                         _("Boot &Loader Type"), loaders
                     )),
 		"init" : BootCommon::loaderTypeInit,
-		"store" : BootCommon::loader_type_store,
 	    ],
 	];
     }
@@ -414,159 +413,6 @@ and the sector to which the boot loader is installed."),
 	];
     }
 
-// activate bootloader partition widget
-
-    /**
-      * Init function of a popup
-      * @param opt_id any option id
-      * @param opt_key any option key
-      */
-    global define void activateInit (any opt_id, string opt_key) ``{
-        UI::ChangeWidget (`id (opt_key), `Value, activate);
-	UI::SetFocus (`id (opt_key));
-    }
-
-    /**
-      * Store function of a popup
-      * @param opt_id any option id
-      * @param opt_key any option key
-      */
-    global define void activateStore (any opt_id, string opt_key) ``{
-        activate = (boolean)UI::QueryWidget (`id (opt_key), `Value);
-        if (activate)
-            BootCommon::location_changed = true;
-	activate_changed = true;
-	markGeneralOptionChanged ((string)opt_key);
-    }
-
-    /**
-      * Summary function of a table entry
-      * @param opt_id any option id
-      * @param opt_key any option key
-      * @return string summary to the table
-      */
-    global define string activateSummary (any opt_id, string opt_key) ``{
-        if (activate)
-	{
-	    if (Mode::config ())
-	    {
-		return _("Yes");
-	    }
-	    list<string> partitions
-		= maplist (map<string,any> p, getPartitionsToActivate (),
-	    {
-		return p["dev"]:"";
-	    });
-	    partitions = filter (string p, partitions, ``(p != nil && p != ""));
-	    string partitions_str = mergestring (partitions, ", ");
-	    // table item, %1 is a device name (eg. /dev/hda1)
-	    // FIXME partition %1 of %2 is better (in future)
-            return sformat (_("Yes, Activate %1"), partitions_str);
-	}
-        else
-	{
-		// table item
-            return _("No");
-	}
-    }
-
-    /**
-      * Get widget map
-      * @return map of widget
-      */
-    global define map<string,any> getActivateWidget () ``{
-	return $[
-	    "table" : $[
-		// table item
-		"label" : _("Activate Boot Loader Partition"),
-		"summary" : BootCommon::activateSummary,
-		"optional" : false,
-		"ordering" : false,
-		"unique_key" : true,
-	    ],
-	    "popup" : $[
-		"init" : BootCommon::activateInit,
-		"store" : BootCommon::activateStore,
-		"widget" : `checkbox,
-	    ],
-	];
-    }
-
-// replace MBR with generic code widget
-
-    /**
-      * Init function of a popup
-      * @param opt_id any option id
-      * @param opt_key any option key
-      */
-    global define void replMbrInit (any opt_id, string opt_key) ``{
-	UI::ChangeWidget (`id (opt_key), `Value, repl_mbr);
-	UI::SetFocus (`id (opt_key));
-    }
-
-    /**
-      * Store function of a popup
-      * @param opt_id any option id
-      * @param opt_key any option key
-      */
-    global define void replMbrStore (any opt_id, string opt_key) ``{
-	repl_mbr = (boolean)UI::QueryWidget (`id (opt_key), `Value);
-	if (repl_mbr)
-	{
-	    BootCommon::location_changed = true;
-	    if (Stage::initial ())
-		Pkg::PkgInstall ("master-boot-code");
-	}
-	markGeneralOptionChanged ((string)opt_key);
-    }
-
-    /**
-      * Summary function of a table entry
-      * @param opt_id any option id
-      * @param opt_key any option key
-      * @return string summary to the table
-      */
-    global define string replMbrSummary (any opt_id, string opt_key) ``{
-	if (repl_mbr)
-	{
-	    if (Mode::config ())
-	    {
-		return _("Yes");
-	    }
-	    list<string> mbrs = getMbrsToRewrite ();
-	    mbrs = filter (string m, mbrs, ``(m != "" && m != nil));
-	    string repl_disks = mergestring (mbrs, ", ");
-	    // table item / label
-	    return sformat (_("Replace %1 with Generic Code"), repl_disks);
-	}
-	else
-	{
-		// table item / label
-	    return _("Leave Untouched");
-	}
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map<string,any> getReplMbrWidget () ``{
-	return $[
-	    "table" : $[
-		// table item / label
-		"label" : _("Replace Code in MBR"),
-		"summary" : BootCommon::replMbrSummary,
-		"optional" : false,
-		"ordering" : false,
-		"unique_key" : true,
-	    ],
-	    "popup" : $[
-		"init" : BootCommon::replMbrInit,
-		"store" : BootCommon::replMbrStore,
-		"widget" : `checkbox,
-	    ],
-	];
-    }
 
 // save method widget
 
@@ -1081,14 +927,6 @@ y2error ("Value: %1", lookup_value (BootCommon::current_section, "password", nil
 // boot message widget
 
     /**
-      * Delete function of widget
-      */
-    global define void deleteMessage () ``{
-	BootCommon::current_section = filter (map e, current_section,
-	    ``(e["key"]:"" != "__intern__"));
-    }
-
-    /**
       * Get map of widget
       * @return map of widget
       */
@@ -1137,8 +975,6 @@ y2error ("Value: %1", lookup_value (BootCommon::current_section, "password", nil
 	    "alias"		: BootCommon::getAliasWidget (),
 	    "timeout"		: BootCommon::getTimeoutWidget (),
 	    "password"		: BootCommon::getPasswdWidget (),
-	    "__repl_mbr"	: BootCommon::getReplMbrWidget (),
-	    "__activate"	: BootCommon::getActivateWidget (),
 	    "message"		: BootCommon::getMessageWidget (),
 	]);
     }

@@ -18,11 +18,11 @@
 {
     import "BootGRUB";
     import "BootLILO";
-    import "BootMILO";
-    import "BootABOOT";
-    import "BootELILO";
-    import "BootS390";
-    import "BootPPC";
+//    import "BootMILO";
+//    import "BootABOOT";
+//    import "BootELILO";
+//    import "BootPPC";
+    import "BootZIPL";
     import "BootCommon";
 
     /**
@@ -36,11 +36,11 @@
 	map bl_functions = $[
 	    "lilo"  : BootLILO::GetFunctions,
 	    "grub"  : BootGRUB::GetFunctions,
-	    "milo"  : BootMILO::GetFunctions,
-	    "aboot" : BootABOOT::GetFunctions,
-	    "elilo" : BootELILO::GetFunctions,
-	    "s390"  : BootS390::GetFunctions,
-	    "ppc"   : BootPPC::GetFunctions
+//	    "milo"  : BootMILO::GetFunctions,
+//	    "aboot" : BootABOOT::GetFunctions,
+//	    "elilo" : BootELILO::GetFunctions,
+	    "zipl"  : BootZIPL::GetFunctions,
+//	    "ppc"   : BootPPC::GetFunctions
 	];
 	map<string,any> () gf = (map<string,any>())(bl_functions[bootloader]:nil);
 	if (gf == nil)
@@ -71,15 +71,16 @@
 	return toEval (settings);
     }
 
-    /**
-      * Read bootloader-specific settings
-      * @return boolean true on success
-      */
-    global define boolean blRead () ``{
-	map functions = getFunctions (BootCommon::getLoaderType (false));
-	boolean() toEval = functions["read"]:BootCommon::Read;
-	return toEval ();
-    }
+/**
+ * Read bootloader-specific settings
+ * @param reread boolean true to force rereading the settings from the disk
+ * @return boolean true on success
+ */
+global define boolean blRead (boolean reread) ``{
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    boolean(boolean) toEval = functions["read"]:BootCommon::Read;
+    return toEval (reread);
+}
 
     /**
       * Reset bootloader-specific settings
@@ -101,15 +102,16 @@
         toEval ();
     }
 
-    /**
-      * Save bootloader cfg. files
-      * @return boolean true on success
-      */
-    global define boolean blSave () ``{
-        map functions = getFunctions (BootCommon::getLoaderType (false));
-        boolean() toEval = functions["save"]:BootCommon::Save;
-        return toEval ();
-    }
+/**
+ * Save bootloader cfg. files to the cache of the pluglib
+ * @return boolean true on success
+ */
+global boolean blSave (boolean clean, boolean init, boolean flush) {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    boolean(boolean,boolean,boolean) toEval
+	= functions["save"]:BootCommon::Save;
+    return toEval (clean, init, flush);
+}
 
     /**
       * Get cfg. summary
@@ -146,34 +148,43 @@
       * @return map updates sequence
       */
     global define map blGetSequence (map ws_data) ``{
-	map functions = getFunctions (BootCommon::getLoaderType (false));
+	return ws_data; // FIXME
+/*	map functions = getFunctions (BootCommon::getLoaderType (false));
 	map(map) toEval = functions["sequence"]:BootCommon::FixSequence;
-	return toEval (ws_data);
+	return toEval (ws_data);*/
     }
 
-    /**
-      * Create map future cfg. files from internal variables
-      * @return map filename -> contents
-      */
-    global define map<string,string> blGetFiles () ``{
-	map functions = getFunctions (BootCommon::getLoaderType (false));
-	map<string,string>() toEval = (map<string,string>())
-	    (functions["getfiles"]:nil);
+// TODO document
+global map<string,map<string,any> > blWidgetMaps () {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    map<string,map<string,any> >() toEval = (map<string,map<string,any> >())
+	functions["widgets"]:nil;
+    if (toEval != nil)
 	return toEval ();
-    }
-
-    /**
-      * Store map of future cfg. files to  internal variables
-      * @param files map filename -> contents
-      */
-    global define void blSetFiles (map<string,string> files) ``{
-	map functions = getFunctions (BootCommon::getLoaderType (false));
-	void(map<string,string>) toEval = (void(map<string,string>))
-	    (functions["setfiles"]:nil);
-	if (toEval == nil)
-	    return nil;
-	toEval (files);
-	return;
-    }
-
+    else
+	return $[];
 }
+
+// TODO document
+global symbol blMainSequence () {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    symbol () toEval = (symbol ())functions["wizard_sequencer"]:nil;
+    if (toEval != nil)
+	return toEval ();
+    else
+	return `generic;
+}
+
+// TODO document
+global map<string,symbol()> blDialogs () {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    map<string,symbol()> () toEval = (map<string,symbol()> ())
+	functions["dialogs"]:nil;
+    if (toEval != nil)
+	return toEval ();
+    else
+	return $[];
+}
+
+
+} // EOF

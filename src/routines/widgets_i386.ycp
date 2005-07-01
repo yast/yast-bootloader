@@ -1,0 +1,35 @@
+/**
+ * File:
+ *      include/bootloader/routines/widgets_i386.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Widgets for being used by bootloader for i368
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: widgets.ycp 20246 2004-11-09 07:17:07Z jsrain $
+ *
+ */
+
+
+{
+
+map<string,map<string,any> > _i386_widgets = nil;
+
+map<string,map<string,any> > i386Widgets () {
+    if (_i386_widgets == nil)
+    {
+	_i386_widgets = $[
+	    "show_menu" : $[],
+	    "timeout" : $[],
+	    "password" : $[],
+	];
+    }
+    return _i386_widgets;
+}
+
+} // include end

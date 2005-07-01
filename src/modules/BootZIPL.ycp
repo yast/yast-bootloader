@@ -1,12 +1,12 @@
 /**
  * File:
- *      modules/BootS390.ycp
+ *      modules/BootZIPL.ycp
  *
  * Module:
  *      Bootloader installation and configuration
  *
  * Summary:
- *      Module containing specific functions for S390 configuration
+ *      Module containing specific functions for ZIPL configuration
  *      and installation
  *
  * Authors:
@@ -17,7 +17,7 @@
  */
 
 {
-    module "BootS390";
+    module "BootZIPL";
 
     textdomain "bootloader";
 
@@ -29,7 +29,8 @@
     import "Installation";
 
     include "bootloader/routines/popups.ycp";
-    include "bootloader/routines/routines.ycp";
+    include "bootloader/zipl/widgets.ycp";
+
 
 // local data
 
@@ -73,7 +74,7 @@
       * @return map of widget
       */
     global define map<string,any> getGlobalSectionWidget () ``{
-	map<string,any> ret = BootCommon::getGlobalSectionWidget ();
+	map<string,any> ret = $[];//BootCommon::getGlobalSectionWidget ();
 	ret["ids"] = getTableContents;
 	return ret;
     }
@@ -212,7 +213,7 @@
 	    "selinux=0",
 	    "TERM=dumb");
 
-	BootCommon::globals = [];
+/*	BootCommon::globals = $[];
 	BootCommon::sections = [
 	    [
 		$[ "key" : "label", "value" : "defaultboot" ],
@@ -236,28 +237,46 @@
 		$[ "key" : "target", "value" : "/boot/zipl" ],
 		$[ "key" : "dumpto", "value" : "/dev/rtibm0" ],
 	    ],
-	];
+	];*/
     }
 
-    /**
-      * Read settings from disk
-      * @return boolean true on success
-      */
-    global define boolean Read () ``{
-	BootCommon::DetectDisks ();
-	BootCommon::changed = true;
-	boolean ret = BootCommon::Read ();
-	y2error ("Read: %1", BootCommon::io_structure);
+/**
+ * Read settings from disk
+ * @return boolean true on success
+ */
+global boolean Read (boolean reread) {
+    BootCommon::InitializeLibrary (reread, "zipl");
+    if (reread)
+    {
+	BootCommon::ReadFiles ();
+    }
+    BootCommon::DetectDisks ();
+    boolean ret = BootCommon::Read (false);
+    return ret;
+}
+
+/**
+ * Save all bootloader configuration files to the cache of the PlugLib
+ * PlugLib must be initialized properly !!!
+ * @param clean boolean true if settings should be cleaned up (checking their
+ *  correctness, supposing all files are on the disk
+ * @param init boolean true to init the library
+ * @param flush boolean true to flush settings to the disk
+ * @return boolean true if success
+ */
+global boolean Save (boolean clean, boolean init, boolean flush) {
+    boolean ret = BootCommon::Save (clean, init, flush);
+    if (Mode::normal ())
 	return ret;
-    }
 
+    updateHardwareConfig ();
+    return ret;
+}
     /**
       * Save all bootloader configuration files
       * @return boolean true if success
       */
-    global define boolean Save () ``{
-	y2milestone ("Saving S390 cfg. file");
-
+/*
 map settings = $[
   "global":$[
     "default":"ipl",
@@ -301,41 +320,8 @@ map settings = $[
       "type":"dump"
     ]
   ]
-];
-	SCR::Execute (.bootloader.agent_init, "zipl");
-	SCR::Execute (.bootloader.disk_init, BootCommon::PrepareInitData ());
-	SCR::Write (.bootloader.settings, settings);
-	SCR::Execute (.bootloader.update);
-	return true;
+];*/
 
-
-
-	boolean ret = BootCommon::Save ();
-
-	integer exit = (integer)SCR::Execute (.target.bash,
-	    "test -d /boot/zipl || mkdir -p /boot/zipl");
-	ret =  ret && (exit == 0);
-
-	if (Mode::normal ())
-	    return ret;
-
-	updateHardwareConfig ();
-// chandev is obsolete, syscofnig/hardware is used instead
-/*	// append chandev to /etc/chandev.conf
-	string chandev = (string)SCR::Read(.etc.install_inf.Chandev);
-	if( chandev == nil )
-	{
-	    chandev = "";
-	}
-
-	if (chandev != ""
-	    && (SCR::Read (.target.size, "/etc/chandev.conf") == -1))
-	{
-	    ret = ret && (0 == SCR::Execute (.target.bash,
-		"/bin/echo '"+chandev+"' >> /etc/chandev.conf"));
-	}*/
-	return ret;
-    }
 
     /**
       * Display bootloader summary
@@ -358,10 +344,11 @@ map settings = $[
       * @return boolean true on success
       */
     global define boolean Write () ``{
-	string bl_command = "/sbin/zipl > /var/log/YaST2/y2logzipl 2>&1";
-	string bl_logfile = "/var/log/YaST2/y2logzipl";
-	return BootCommon::installBootLoader (bl_command, bl_logfile);
+	boolean ret = BootCommon::UpdateBootloader ();
+	ret = ret && BootCommon::InitializeBootloader ();
+	return ret;
     }
+
 
     /**
       * Update bootlaoder configuration sequence
@@ -370,7 +357,7 @@ map settings = $[
       */
     global define map FixSequence (map ws_data) ``{
         map aliases = $[
-	    "summary" : ``(BootS390::runSummaryDialog ()),
+	    "summary" : ``(BootZIPL::runSummaryDialog ()),
         ];
         ws_data["aliases"] = aliases;
         return ws_data;
@@ -381,7 +368,7 @@ map settings = $[
       * @return list of all dump devices, as list of maps containg keys
       *  "label", "target" and "dumpto"
       */
-    global define list<map<string,string> > GetDumpDevices () ``{
+/*    global define list<map<string,string> > GetDumpDevices () ``{
 	list<map<string,string> > dd = maplist (list<map> d,
 	    BootCommon::sections,
 	``(
@@ -392,13 +379,13 @@ map settings = $[
 	return filter (map<string,string> s, dd, ``(
 	    s["dumpto"]:"" != ""
 	));
-    }
+    }*/
 
     /**
       * Set the list of all dump devices
       * @param dump_devices list in the same form as result of GetDumpDevices ()
       */
-    global define void SetDumpDevices (list<map<string,string> > dump_devices) {
+/*    global define void SetDumpDevices (list<map<string,string> > dump_devices) {
 	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``(
 	    lookup_value (s, "dumpto", "") == ""
 	));
@@ -418,21 +405,20 @@ map settings = $[
 	    ))
 	));
 	BootCommon::sections = (list<list<map> >)merge (BootCommon::sections, dd);
-    }
+    }*/
 
     /**
       * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootS390::Write ())])
+      * @return map map of functions (eg. $["write":``(BootZIPL::Write ())])
       */
     global define map<string, any> GetFunctions () ``{
 	return $[
-	    "read"	: BootS390::Read,
-	    "propose"	: BootS390::Propose,
-	    "save"	: BootS390::Save,
-	    "summary"	: BootS390::Summary,
-	    "update"	: BootS390::Update,
-	    "write"	: BootS390::Write,
-//	    "sequence"	: BootS390::FixSequence,
+	    "read"	: Read,
+	    "propose"	: Propose,
+	    "save"	: Save,
+	    "summary"	: Summary,
+	    "update"	: Update,
+	    "widgets"	: Widgets,
 	];
     }
 
@@ -448,25 +434,18 @@ map settings = $[
 	    "read" : true,
 	    "scratch" : true,
 	];
-	// TODO no UI available yet
-	BootCommon::cwm_options = (map<string, map<string,any> >)union (
-	    BootCommon::GetOptionMaps (),
-	    $[]);//BootS390::GetOptionMaps ());
-	BootCommon::cwm_widgets = (map<string, map<string,any> >)union (
-	    BootCommon::GetWidgetMaps (),
-	    BootS390::GetWidgetMaps ());
     }
 
 
-    /**
-      * Constructor
-      */
-    global define void BootS390 () ``{
-	BootCommon::bootloader_attribs["s390"] = $[
-            "loader_name" : "zipl",
-	    "required_packages" : [], // FIXME
-	    "initializer" : BootS390::Initializer,
-        ];
-    }
-
+/**
+ * Constructor
+ */
+global void BootZIPL () {
+    BootCommon::bootloader_attribs["zipl"] = $[
+        "loader_name" : "zipl",
+	"required_packages" : [], // FIXME
+	"initializer" : BootZIPL::Initializer,
+    ];
 }
+
+} // EOF

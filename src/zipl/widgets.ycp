@@ -1,0 +1,61 @@
+/**
+ * File:
+ *      include/bootloader/zipl/widgets.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Widgets specific for ZIPL bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: widgets.ycp 18640 2004-08-17 09:26:39Z jsrain $
+ *
+ */
+
+
+{
+
+textdomain "bootloader";
+
+import "Label";
+import "Mode";
+import "BootCommon";
+import "TablePopup";
+include "bootloader/routines/popups.ycp";
+
+
+void ZIPLTargetInit (string widget) {
+    UI::ChangeWidget (`id (widget), `Value,
+	BootCommon::current_section["target"]:"");
+}
+
+void ZIPLTargetStore (string widget) {
+    BootCommon::current_section["target"] = (string)
+	UI::QueryWidget (`id (widget), `Value);
+}
+
+map<string,map<string,any> > _widgets = nil;
+
+global map<string,map<string,any> > Widgets () {
+    if (_widgets == nil)
+    {
+	_widgets = $[
+	    // ugly, but then there is no need to replace dialog
+	    // used for ZIPL target
+	    "vga" : $[
+		// text entry
+		"label" : _("ZIPL &Target"),
+		"widget" : `textentry,
+		"init" : ZIPLTargetInit,
+		"store" : ZIPLTargetStore,
+	    ],
+	];
+    }
+    return _widgets;
+}
+
+
+}
