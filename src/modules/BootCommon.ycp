@@ -277,8 +277,6 @@ global list<string> update_section_types
     include "bootloader/routines/misc.ycp";
     include "bootloader/routines/lilolike.ycp";
     include "bootloader/routines/lib_iface.ycp";
-//    include "bootloader/routines/options.ycp";
-//    include "bootloader/routines/widgets.ycp";
 
 
 
