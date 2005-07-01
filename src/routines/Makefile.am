@@ -6,17 +6,21 @@ yncludedir = @yncludedir@/bootloader/routines
 
 ynclude_DATA =			\
 	misc.ycp		\
-	widgets.ycp		\
+	section_widgets.ycp	\
+	global_widgets.ycp	\
 	options.ycp		\
 	switcher.ycp		\
 	helps.ycp		\
 	ui.ycp			\
 	lilolike.ycp		\
 	popups.ycp		\
-	convert.ycp		\
-	routines.ycp		\
-	autoinstall.ycp		\
-	i386.ycp
+	i386.ycp		\
+	lib_iface.ycp		\
+	wizards.ycp		\
+	dialogs.ycp		\
+	dialogs_i386.ycp	\
+	widgets_i386.ycp	\
+	helps_i386.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)

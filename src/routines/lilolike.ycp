@@ -22,47 +22,67 @@
     import "Mode";
     import "Storage";
     import "StorageDevices";
+    import "BootArch";
 
     include "bootloader/routines/i386.ycp";
 
-    /**
-      * Check whether disk settings were changed since last checking
-      * @return boolean true if needs to recheck
-      */
-    global define boolean DisksChanged () ``{
-	if (Mode::config ())
-	    return false;
-        map mp = Storage::GetMountPoints();
-        string actual_root = mp["/", 0]:"";
-        string actual_boot = mp["/boot", 0]:actual_root;
-
-        // don't change configuration if '/' and '/boot' were not changed
-        // and location is "floppy", "mbr" or "boot"
-        if (actual_boot == BootCommon::BootPartitionDevice
-            && actual_root == BootCommon::RootPartitionDevice
-            && BootCommon::location != "custom"
-            && BootCommon::location != "")
-        {
-            return false;
-        }
-
-        if (BootCommon::location == "custom")
-        {
-	    list all_partitions = BootCommon::getPartitionList(`boot);
-
-            if (!contains(all_partitions, BootCommon::loader_device))
-            {
-                y2milestone ("Location should be set again");
-                return true;
-            }
-            else if (actual_boot == BootPartitionDevice
-                && actual_root == RootPartitionDevice)
-            {
-                return false;
-            }
-        }
+global boolean allowEmbed15 () {
+    // allow only for /boot or /root device selected
+    if (! (BootCommon::loader_device == BootCommon::BootPartitionDevice
+	|| BootCommon::loader_device == BootCommon::RootPartitionDevice
+	|| BootCommon::loader_device == BootCommon::mbrDisk
+    ))
+    {
 	return false;
     }
+    // check filesystem on /boot for Reiserfs and JFS
+    map mp = Storage::GetMountPoints ();
+    list bp_info
+	= mp["/boot"]:mp["/"]:[];
+    list<map> partitions
+	= Storage::GetTargetMap ()[bp_info[2]:"", "partitions"]:[];
+    boolean ret = false;
+    foreach (map p, partitions, {
+	if (p["device"]:"" == BootCommon::BootPartitionDevice)
+	{
+	    symbol fs = (symbol)p["used_fs"]:nil;
+	    if (fs == `reiser || fs == `jfs)
+		ret = true;
+	}
+    });
+    return ret;
+}
+/**
+ * Check whether disk settings were changed since last checking
+ * @return boolean true if needs to recheck
+ */
+global boolean DisksChanged () {
+    if (Mode::config ())
+	return false;
+    map mp = Storage::GetMountPoints();
+    string actual_root = mp["/", 0]:"";
+    string actual_boot = mp["/boot", 0]:actual_root;
+
+    // don't change configuration if '/' and '/boot' were not changed
+    // and location is "floppy", "mbr" or "boot"
+    if (actual_boot == BootCommon::BootPartitionDevice
+	&& actual_root == BootCommon::RootPartitionDevice
+            && selected_location != "custom"
+            && selected_location != ""
+	    && selected_location != nil)
+    {
+	return false;
+    }
+
+    list all_partitions = BootCommon::getPartitionList(`boot);
+
+    if (!contains(all_partitions, BootCommon::loader_device))
+    {
+	y2milestone ("Location should be set again");
+	return true;
+    }
+    return false;
+}
 
     /**
       * FindMbrDisk()
@@ -106,15 +126,16 @@
      * @return string location proposed to bootloader
      */
     global define string ConfigureLocation() ``{
-        string loc = "mbr";                       // default to mbr
-        string device   = BootCommon::mbrDisk;
-	if (KeepMBR (device))
+        selected_location = "mbr";             // default to mbr
+        loader_device   = BootCommon::mbrDisk;
+	if (KeepMBR (loader_device))
 	{
-	    device = BootPartitionDevice;
-	    loc = "boot";
+	    loader_device = BootPartitionDevice;
+	    selected_location = "boot";
 	}
-        y2milestone ("ConfigureLocation (%1 on %2)", loc, device);
-        return loc;
+        y2milestone ("ConfigureLocation (%1 on %2)",
+	    selected_location, loader_device);
+        return selected_location;
     }
 
     /**
@@ -161,8 +182,8 @@
 	    BootCommon::mbrDisk = FindMbrDisk();
 	}
 
-        if (BootCommon::location == "" || BootCommon::location == nil)
-            BootCommon::location = ConfigureLocation ();
+	if (loader_device == nil || loader_device == "")
+            ConfigureLocation ();
 
 /*	if (mountdata_boot[3]:"" == "raid1")
 	{
@@ -188,8 +209,6 @@
                 BootCommon::RootPartitionDevice = dev_list[0]:"";
             }
         }*/
-
-        BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
     }
 
     /**
@@ -283,23 +302,19 @@
 	return ret;
     }
 
-    /**
-      * Answer whether LBA is supported
-      * @return boolean true if supported
-      */
-    global define boolean LbaSupport() ``{
-        if (Arch::i386 ())
-        {
-            list internal_bios = (list<map>)SCR::Read (.probe.bios);
-            boolean lba_support = internal_bios[0, "lba_support"]:false;
-            if (getLoaderType (false) == "lilo")
-                return (boolean)lookup_value (globals, "lba32", lba_support);
-            else
-                return lba_support;
-        }
-        else
-            return true;
+/**
+ * Answer whether LBA is supported
+ * @return boolean true if supported
+ */
+global boolean LbaSupport() {
+    if (Arch::i386 ())
+    {
+	list internal_bios = (list<map>)SCR::Read (.probe.bios);
+	return internal_bios[0, "lba_support"]:false;
     }
+    else
+	return true;
+}
 
     /**
      *  IsBootAccessible()
@@ -365,567 +380,456 @@
 	return bpd == BootPartitionDevice;
     }
 
-    /**
-      * Update /etc/sysconfig/bootloader:LOADER_LOCATION according to
-      * current location in bootloader configuration file
-      */
-    global define void updateLoaderLocation () ``{
-	if (! getBooleanAttrib ("bootloader_on_disk"))
-	    return;
-	// custom is always OK
-	if (location == "custom")
-	    return;
-	// first floppy disk
-	if (loader_device == StorageDevices::FloppyDevice)
-	{
-	    location = "floppy";
-	    return;
-	}
-	// mbr
-	if (loader_device == mbrDisk)
-	{
-	    location = "mbr";
-	    return;
-	}
-	// bootsector of boot partition
-	if (loader_device == BootPartitionDevice)
-	{
-	    location = "boot";
-	    return;
-	}
-	// bootsector of root partition
-	if (loader_device == RootPartitionDevice)
-	{
-	    location = "root";
-	    return;
-	}
-	// MBRs of all disks containing /boot MD array
-	if (loader_device == "mbr_md")
-	{
-	    location = "mbr_md";
-	    return;
-	}
-	// /dev/null or empty means bootloader not installed
-	if (loader_device == "/dev/null" || loader_device == "")
-	{
-	    location = "none";
-	    return;
-	}
-	// other
-	location = "custom";
-    }
-
-    /**
-      * Set default section and loader device in lilo-style bootloader
-      */
-    global define void finishReading () ``{
-        BootCommon::loader_device
-            = (string)lookup_value (BootCommon::globals, "boot", "");
-        if ((string)lookup_value (BootCommon::globals, "default", "") == "")
-        {
-            BootCommon::addValueToBootloaderSection (`globals, "default",
-                (string)lookup_value (BootCommon::sections[0]:[],
-                 "label", ""));
-        }
-    }
-
-    /**
-      * Install the bootloader, display a popup with log if something
-      *  goes wrong
-      * @param command string command to install the bootloader
-      * @param logfile string filename of file used to write bootloader log
-      * @return boolean true on success
-      */
-    global define boolean installBootLoader (string command, string logfile) ``{
-	y2milestone ("Running command %1", command);
-	map exit = (map)SCR::Execute (.target.bash_output, command);
-	boolean ret = 0 == exit["exit"]:1;
-	if (! ret)
-	{
-	    y2milestone ("Exit code of %1: %2", command, exit["exit"]:-1);
-	    string log = (string)SCR::Read (.target.string, logfile);
-	    log = log + exit["stdout"]:"" + exit["stderr"]:"";
-	    if (exit["exit"]:1 == 139)
-	    {
-		// means: process received signal SIGSEGV
-		// please, use some usual translation
-		// proofreaders: don't change this text
-		log = log + _("Segmentation fault");
-	    }
-
-            errorWithLogPopup (sformat (
-		// error popup - label, %1 is bootloader name
-		_("Error Occurred while Installing %1"),
-		getLoaderName (getLoaderType (false))), log);
-	}
-	return ret;
-    }
-
-    /**
-      * Fix global section of lilo-like bootloader
-      */
-    global define void liloFixGlobals () ``{
-	string defaultv = (string)lookup_value (
-	    BootCommon::globals, "default", "");
-	string first = "";
-	if (defaultv != "")
-	{
-	    boolean exists = false;
-	    foreach (list<map> s, BootCommon::sections, ``{
-		string label = (string)lookup_value (s, "label", "");
-		if (label == defaultv)
-		    exists = true;
-		if (first == "")
-		    first = label;
-	    });
-	    if (! exists)
-		BootCommon::addValueToBootloaderSection (
-		    `globals, "default", first);
-	}
-    }
-
-    /**
-      * Fix section of lilo-like bootloader
-      */
-    global define void liloFixSections (void() create_sections) ``{
-	list parts = BootCommon::getPartitionList(`parts_old);
-	if (partitioning_last_change
-		!= Storage::GetTargetChangeTime()
-	    && BootCommon::files_edited)
-	{
-	    displayFilesEditedPopup ();
-	    BootCommon::files_edited_warned = true;
-	    return;
-	}
-	list<list<map> > old_sect_list = BootCommon::sections;
-//	createSections ();
-// this is the same
-	create_sections ();
-	map new_sect = listmap (list<map> s, BootCommon::sections, ``{
-	    string label = (string)lookup_value (s, "label", "");
-	    map intern = (map)lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:label;
-	    return $[type: s];
-	});
-	old_sect_list = maplist (list<map> s, old_sect_list, ``{
-	    string label = (string)lookup_value (s, "label", "");
-	    map intern = (map)lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:label;
-	    if (! intern["auto"]:false)
-	    {
-		y2milestone ("Leaving section %1", label);
-		return s;
-	    }
-	    else if (! intern["changed"]:false)
-	    {
-		y2milestone ("Recreating section %1, new is %2",
-		    label, new_sect[type]:[]);
-		return new_sect[type]:[];
-	    }
-	    else
-	    {
-		y2milestone ("Warning on section %1", label);
-		boolean cont = true;
-                if (type != "linux" && type != "failsafe"
-                    && type != "memtest86" && type != "wildcard")
-		{
-		    foreach (any n, intern["devs"]:[], ``{
-		        if (! contains (parts, n))
-		        {
-			    cont = false;
-		        }
-		    });
-		}
-                list<map> new_this_section = new_sect[type]:[];
-		if (new_this_section == [])
-		    return [];
-                map new_this_intern = (map)lookup_value (
-                    new_this_section, "__intern__", $[]);
-		list new_devs = toset(new_this_intern["devs"]:[]);
-		list old_devs = toset(intern["devs"]:[]);
-                if (size (new_devs) != size (old_devs))
-                    cont = false;
-                else
-                {
-                    foreach (any d, old_devs, ``{
-                        if (! contains (new_devs, d))
-                            cont = false;
-                    });
-                }
-		if (! cont)
-		{
-		    intern["auto"] = false;
-		    displayDiskChangePopup (label);
-		}
-		s = maplist(map i, s, ``{
-		    if (i["key"]:"" == "__intern__")
-			i["value"] = intern;
-		     return i;
-		});
-		return s;
-	    }
-	});
-
-        y2milestone ("Checking for sections using the resume parameter");
-        BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
-            string append = (string)lookup_value (s, "append", "");
-            string resume
-                = BootCommon::getKernelParamFromLine (append, "resume");
-            if (resume != "" && resume != nil
-                && ! haskey (BootCommon::getSwapPartitions (), resume)
-            )
-            // points to unexistent swap partition
-            {
-                append = BootCommon::setKernelParamToLine (append,
-                    "resume", BootCommon::getLargestSwapPartition ());
-                s = modifySection (s, "append", append);
-            }
-            return s;
-        });
-
-	y2milestone ("Checking for sections needing some of %1", del_parts);
-	list<string> to_remove = [];
-	foreach (list<map> s, BootCommon::sections, ``{
-	    map intern = (map)lookup_value (s, "__intern__", $[]);
-	    list<string> devs = intern["devs"]:[];
-	    string label = (string)lookup_value (s, "label", "");
-	    y2milestone ("Section %1 needs %2", label, devs);
-	    boolean to_add = false;
-	    foreach (string d, devs, ``{
-		if (contains (del_parts, d))
-		{
-		    to_add = true;
-		}
-	    });
-	    if (to_add)
-	    {
-		map old_sect = listmap (list<map> os, old_sect_list, ``{
-		    return $[label: os];
-		});
-
-		if (label != "" && ! haskey(old_sect, label))
-		{
-		    y2milestone ("Adding %1", s);
-		    to_remove = add (to_remove, label);
-		    old_sect_list = add (old_sect_list, s);
-		}
-	    }
-	});
-	del_parts = (list<string>)BootCommon::difflist (del_parts, to_remove);
-	old_sect_list = filter (list<map> s, old_sect_list, ``(s != []));
-	BootCommon::sections = old_sect_list;
-    }
-
-    /**
-      * Update sections of bootloader menu
-      * modifies internal sreuctures
-      * @param replace boolean true if old sectinos shall be replaced
-      * @param term to evaluate to create a linux section
-      */
-    global define void liloUpdateSections (boolean replace,
-	list<map>(string) create_linux_section)
-    ``{
-	list<list<map> > out = BootCommon::sections;
-	list<string> recreated = [];
-	boolean linux_resume_added = false;
-
-	foreach (string t, ["linux", "failsafe", "memtest86"], ``{
-	    list<map> m = create_linux_section (t);
-	    boolean f_changed = false;
-	    out = maplist (list<map> s, out, ``{
-		map intern = (map)lookup_value (s, "__intern__", $[]);
-		string label = (string)
-		    lookup_value (s, BootCommon::getSectionTitle (), "");
-		string sect_type = intern["type"]:"";
-		if (sect_type == "")
-		    sect_type = label;
-		if (sect_type == t)
-		{
-		    f_changed = true;
-		    if (replace && m != [])
-		    {
-			recreated = add (recreated, label);
-			return m;
-		    }
-		    else if (t == "linux")
-		    {
-			string append = (string)lookup_value (s, "append", "");
-                        string resume = BootCommon::getKernelParamFromLine (
-                            append, "resume");
-                        if (! haskey (BootCommon::getSwapPartitions (), resume))
-                        {
-                            append = BootCommon::setKernelParamToLine (append,
-                                "resume", BootCommon::getLargestSwapPartition ());
-                            s = modifySection (s, "append", append);
-			    linux_resume_added = true;
-                        }
-                        return s;
-                    }
-		    else
-			return s;
-		}
-		else
-		{
-		    return s;
-		}
-	    });
-            if (! f_changed && m != [])
-	    {
-		recreated = (list<string>)add (recreated, (string)
-		    lookup_value (m, BootCommon::getSectionTitle (), ""));
-                if (t == "linux")
-                    out = prepend (out, m);
-                else
-                    out = add (out, m);
-	    }
-        });
-
-        out = maplist (list<map> s, out, ``{
-	    string type = "";
-	    string label = "";
-	    foreach (map p, s, ``{
-		if (p["key"]:"" == BootCommon::getSectionTitle ())
-		{
-		    label = p["value"]:"";
-		    if (type == "")
-			type = label;
-		}
-		if (p["key"]:"" == "__intern__")
-		    type = p["value", "type"]:type;
-	    });
-            s = maplist (map p, s, ``{
-		string option = "";
-		if (p["key"]:"" != "__intern__")
-		    option = p["value"]:"";
-		if (p["key"]:"" == "image" || p["key"]:"" == "initrd")
-		{
-		    if (regexpmatch (option, "^.*\.shipped.*$"))
-		    {
-			option = regexpsub (option,
-			    "^(.*)\.shipped(.*)$", "\\1\\2");
-		    }
-		    else if (regexpmatch (option, "^.*\.suse.*$"))
-		    {
-			option = regexpsub (option,
-			    "^(.*)\.suse(.*)$", "\\1\\2");
-		    }
-		}
-		else if (type == "linux" && p["key"]:"" == "append")
-		{
-		    foreach (string o, ListAdditionalKernelParams (), {
-			option = setKernelParamToLine (option, o, "false");
-		    });
-		    option = option + " " + GetAdditionalKernelParams ();
-		    if (getKernelParamFromLine (option, "splash") == "false")
-			option = setKernelParamToLine
-			    (option, "splash", "silent");
-		}
-		else if (p["key"]:"" == "root" || p["key"]:"" == "other")
-		{
-		    if ((contains (BootCommon::update_section_types, type)
-			    && ! contains (recreated, label))
-			|| p["key"]:"" == "other")
-		    {
-			string device = option;
-			if (device != nil)
-			{
-			    y2milestone ("Updating root/other device of section %1", label);
-			    device = BootCommon::UpdateDevice (device);
-			    option = device;
-			}
-		    }
-		}
-		// else cannot be here - see conditions above
-		if (p["key"]:"" == "append"
-		    && contains (BootCommon::update_section_types, type)
-		    && ! contains (recreated, label))
-		{
-		    if (type != "linux" || ! linux_resume_added)
-		    {
-			string resume
-			    = BootCommon::getKernelParamFromLine (
-				option, "resume");
-			if (resume != "false")
-			{
-			    y2milestone ("Updating resume device of section %1", label);
-			    resume = BootCommon::UpdateDevice (resume);
-			    option = BootCommon::setKernelParamToLine (
-				option, "resume", resume);
-			}
-		    }
-		}
-		if (p["key"]:"" != "__intern__")
-		    p["value"] = option;
-		return p;
-            });
-	    return s;
-        });
-        BootCommon::sections = out;
-    }
-
-    /**
-      * Filter sections, remove those pointing to unexistent image
-      * @param path_prefix string prefix to be added to kernel path
-      * @param relative_path_prefix prefix to be added to relative kernel
-      *  paths (without leading slash)
-      */
-    global define void liloRemoveUnexistentSections (string path_prefix,
-	string relative_path_prefix) ``{
-	string defaultv = (string)lookup_value (globals, "default", "");
-	string first = nil;
-	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``{
-	    string label = (string)
-		lookup_value (s, BootCommon::getSectionTitle (), "");
-
-	    // do not touch the wildcard section
-	    if (lookup_value (s, "wildcard", "") != "")
-	    {
-		if (first == nil)
-		    first = label;
-		return true;
-	    }
-
-	    map intern = (map)lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:"";
-            if (label == "")
-	    {
-		y2warning ("Removing section with empty title");
-		if (label == defaultv)
-		    defaultv = nil;
-                return false;
-	    }
-	    if (! contains (["linux", "failsafe", "memtest86"], type))
-	    {
-		if (first == nil)
-		    first = label;
-		return true;
-	    }
-	    string kernel = (string)lookup_value (s, "image", "");
-	    if (kernel == "")
-	    {
-		if (first == nil)
-		    first = label;
-		return true;
-	    }
-	    if (substring (kernel, 0, 1) == "/")
-		kernel = path_prefix + kernel;
-	    else
-		kernel = relative_path_prefix + kernel;
-	    if (SCR::Read (.target.size, kernel) == -1)
-	    {
-		y2warning ("Removing section %1 with unexistent kernel %2",
-		    label, kernel);
-		if (label == defaultv)
-		    defaultv = nil;
-		return false;
-	    }
-	    if (first == nil)
-		first = label;
-	    return true;
-	});
-	if (defaultv == nil)
-	    defaultv = first;
-	globals = modifySection (globals, "default", defaultv);
-    }
-
-    /**
-      * Remove or add initrd option if needed, update append option if some
-      *  parameters were changed
-      */
-    global define void liloUpdateInitrd () ``{
-        BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
-            string initrd = (string)lookup_value (s, "initrd", "");
-	    string title = (string)
-		lookup_value (s, BootCommon::getSectionTitle (), "");
-	    map intern = (map)lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:"";
-
-	    // do not touch the wildcard section
-	    if (lookup_value (s, "wildcard", "") != "")
-	    {
-		return s;
-	    }
-
-            if ((type == "linux" || type == "failsafe")
-		&& BootCommon::write_settings["insert_initrd"]:false)
-            {
-		initrd = "/boot/initrd";
-		s = modifySection (s, "initrd", initrd);
-            }
-            if (initrd != "")
-            {
-                if (-1 == SCR::Read (.target.size, initrd))
-		    s = modifySection (s, "initrd", nil);
-            }
-	    return s;
-	});
-    }
-
-    /**
-      * Update append option if some parameters were changed
-      */
-    global define void liloUpdateAppend () ``{
-	BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
-	    map intern = (map)lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:"";
-            if ((type == "linux" || type == "wildcard")
-		&& lookup_value (s, "append", nil) != nil
-		&& Stage::initial ())
-	    {
-		s = modifySection (s, "append", BootCommon::updateKernelParams (
-		    (string)lookup_value (s, "append", "")));
-	    }
-            return s;
-	});
-    }
-
-    /**
-      * Convert section orig from type otype to ntype
-      * Some information gets lost. ntype must be different from otype
-      * @param otype string original section type, "image" or "other"
-      * @param ntype string new section type, "image" or "other"
-      * @param orig list original section
-      * @return list new (converted) section
-      */
-    global define list<map> liloConvertSection (
-	string otype, string ntype, list<map> orig)
+/**
+ * Fix global section of lilo-like bootloader
+ */
+global void FixGlobals () {
+    string defaultv = globals["default"]:"";
+    string first = "";
+    if (defaultv != "")
     {
-	list<map> ret = [];
-	if (orig == nil)
+	boolean exists = false;
+	foreach (map<string,any> s, sections, {
+	    string label = s["name"]:"";
+	    if (label == defaultv)
+		exists = true;
+	    if (first == "")
+		first = label;
+	});
+	if (! exists)
+	    globals["default"] = first;
+    }
+}
+
+/**
+ * Fix section of lilo-like bootloader
+ */
+global void FixSections (void() create_sections) {
+    list<string> parts = getPartitionList(`parts_old);
+    if (partitioning_last_change
+	    != Storage::GetTargetChangeTime()
+	&& BootCommon::files_edited)
+    {
+	displayFilesEditedPopup ();
+	files_edited_warned = true;
+	return;
+    }
+    list<map<string,any> > old_sect_list = sections;
+    create_sections ();
+    map<string,map<string,any> > new_sect = listmap (map<string,any> s,
+	sections,
+    {
+	string label = s["name"]:"";
+	string type = s["__type"]:label;
+	return $[type: s];
+    });
+    old_sect_list = maplist (map<string,any> s, old_sect_list, {
+	string label = s["name"]:"";
+	string type = s["__type"]:label;
+	if (! s["__auto"]:false)
 	{
-	    if (ntype == "other")
-	    {
-		ret = [ $[ "key" : "other", "value" : "" ]];
-	    }
-	    else
-	    {
-		ret = [
-		    $[ "key" : "image", "value" : ""],
-		    $[ "key" : "initrd", "value" : ""],
-		    $[ "key" : "root", "value" : "" ]
-		];
-	    }
-	    ret = add (ret, $[ "key" : "label", "value" :
-		BootCommon::getFreeSectionLabel ()]);
-	    return ret;
+	    y2milestone ("Leaving section %1", label);
+	    return s;
 	}
-	map label_map = getValueMap (orig, "label");
-	if (ntype == "other")
+	else if (! s["__changed"]:false)
 	{
-	    list<string> _dp = BootCommon::splitPath (
-		(string)lookup_value (orig, "image", ""));
-	    ret = [ $["key" : "other", "value" : _dp[0]:""]];
+	    y2milestone ("Recreating section %1, new is %2",
+		label, new_sect[type]:$[]);
+	    return new_sect[type]:$[];
 	}
 	else
 	{
-	    ret = [
-		$[ "key" : "image", "value" : "/boot/vmlinuz"],
-		$[ "key" : "root", "value" : lookup_value (orig, "other", "")],
-		$[ "key" : "initrd", "value" : "/boot/initrd"],
-	    ];
+	    y2milestone ("Warning on section %1", label);
+	    boolean cont = true;
+	    if (type != "linux" && type != "failsafe"
+		&& type != "memtest86" && type != "wildcard")
+	    {
+		foreach (string n, s["__devs"]:[], {
+		    if (! contains (parts, n))
+		    {
+			cont = false;
+		    }
+		});
+	    }
+	    map<string,any> new_this_section = new_sect[type]:$[];
+	    if (new_this_section == $[])
+		return $[];
+	    list new_devs = toset(new_this_section["devs"]:[]);
+	    list old_devs = toset(s["__devs"]:[]);
+	    if (size (new_devs) != size (old_devs))
+		cont = false;
+	    else
+	    {
+                foreach (any d, old_devs, ``{
+		    if (! contains (new_devs, d))
+			cont = false;
+                });
+	    }
+	    if (! cont)
+	    {
+		s["__auto"] = false;
+		displayDiskChangePopup (label);
+	    }
+	    return s;
 	}
-	ret = add (ret, label_map);
-	return ret;
+    });
+
+    y2milestone ("Checking for sections using the resume parameter");
+    sections = maplist (map<string,any> s, BootCommon::sections, ``{
+	string append = s["append"]:"";
+	string resume = getKernelParamFromLine (append, "resume");
+	if (resume != "" && resume != nil
+	    && ! haskey (getSwapPartitions (), resume))
+	// points to unexistent swap partition
+	{
+	    append = setKernelParamToLine (append,
+		"resume", getLargestSwapPartition ());
+	    s["append"] = append;
+	}
+	return s;
+    });
+
+    y2milestone ("Checking for sections needing some of %1", del_parts);
+    list<string> to_remove = [];
+    foreach (map<string,any> s, sections, {
+	list<string> devs = s["__devs"]:[];
+	string label = s["name"]:"";
+	y2milestone ("Section %1 needs %2", label, devs);
+	boolean to_add = false;
+	foreach (string d, devs, {
+	   if (contains (del_parts, d))
+	    {
+		to_add = true;
+	    }
+	});
+	if (to_add)
+	{
+	    map old_sect = listmap (map<string,any> os, old_sect_list, {
+		return $[label: os];
+	    });
+
+	    if (label != "" && ! haskey(old_sect, label))
+	    {
+		y2milestone ("Adding %1", s);
+		to_remove = add (to_remove, label);
+		old_sect_list = add (old_sect_list, s);
+	    }
+	}
+    });
+    del_parts = (list<string>)difflist (del_parts, to_remove);
+    old_sect_list = filter (map<string,any> s, old_sect_list, {
+	return s != $[];
+    });
+    sections = old_sect_list;
+}
+
+/**
+ * Update sections of bootloader menu
+ * modifies internal structures
+ * @param replace boolean true if old sectinos shall be replaced
+ * @param term to evaluate to create a linux section
+ */
+global void UpdateSections (boolean replace,
+    map<string,any>(string) create_linux_section)
+{
+    list<map<string,any> > out = BootCommon::sections;
+    list<string> recreated = [];
+    boolean linux_resume_added = false;
+
+    foreach (string t, ["linux", "failsafe", "memtest86", "xen"], {
+	map<string,any> m = create_linux_section (t);
+	boolean f_changed = false;
+	out = maplist (map<string,any> s, out, {
+	    string label = s["name"]:"";
+	    string sect_type = s["__type"]:"";
+	    if (sect_type == "")
+		sect_type = label;
+	    if (sect_type == t)
+	    {
+		f_changed = true;
+		if (replace && m != $[])
+		{
+		    recreated = add (recreated, label);
+		    return m;
+		}
+		else if (t == "linux")
+		{
+		    string append = s["append"]:"";
+		    string resume = BootCommon::getKernelParamFromLine (
+			append, "resume");
+		    if (! haskey (BootCommon::getSwapPartitions (), resume))
+		    {
+			append = setKernelParamToLine (append,
+			    "resume", getLargestSwapPartition ());
+			s["append"] = append;
+			linux_resume_added = true;
+		    }
+		    return s;
+                }
+		else
+		    return s;
+	    }
+	    else
+	    {
+		return s;
+	    }
+	});
+        if (! f_changed && m != $[])
+	{
+	    recreated = add (recreated, m["name"]:"");
+            if (t == "linux")
+		out = prepend (out, m);
+            else
+		out = add (out, m);
+	}
+    });
+
+    out = maplist (map<string,any> s, out, {
+	string label = s["name"]:"";
+	string type = s["__type"]:label;
+	foreach (string key, ["kernel", "initrd"], {
+	    string value = s[key]:"";
+	    if (regexpmatch (value, "^.*\.shipped.*$"))
+	    {
+		value = regexpsub (value,
+		    "^(.*)\.shipped(.*)$", "\\1\\2");
+	    }
+	    else if (regexpmatch (value, "^.*\.suse.*$"))
+	    {
+		value = regexpsub (value,
+		    "^(.*)\.suse(.*)$", "\\1\\2");
+	    }
+	    s["key"] = value;
+	});
+	foreach (string key, ["root", "chainloader"], {
+	    if ((contains (update_section_types, type)
+		    && ! contains (recreated, label))
+		|| key == "chainloader")
+	    {
+		string device = s["key"]:"";
+		if (device != nil)
+		{
+		    y2milestone ("Updating root/other device of section %1",
+			label);
+		    device = BootCommon::UpdateDevice (device);
+		    s["key"] = device;
+		}
+	    }
+	});
+	if (type == "linux" && haskey (s, "append"))
+	{
+	    string option = s["append"]:"";
+	    foreach (string o, ListAdditionalKernelParams (), {
+		option = setKernelParamToLine (option, o, "false");
+	    });
+	    option = option + " " + GetAdditionalKernelParams ();
+	    if (getKernelParamFromLine (option, "splash") == "false")
+		option = setKernelParamToLine
+		    (option, "splash", "silent");
+	    s["append"] = option;
+	}
+	else if (haskey (s, "append")
+	    && contains (BootCommon::update_section_types, type)
+	   && ! contains (recreated, label))
+	{
+	    string option = s["append"]:"";
+	    if (type != "linux" || ! linux_resume_added)
+	    {
+		string resume
+		    = BootCommon::getKernelParamFromLine (
+			option, "resume");
+		if (resume != "false")
+		{
+		    y2milestone ("Updating resume device of section %1", label);
+		    resume = BootCommon::UpdateDevice (resume);
+		    option = BootCommon::setKernelParamToLine (
+			option, "resume", resume);
+		}
+	    }
+	    s["append"] = option;
+	}
+	return s;
+    });
+    sections = out;
+}
+
+/**
+ * Filter sections, remove those pointing to unexistent image
+ * @param path_prefix string prefix to be added to kernel path
+ * @param relative_path_prefix prefix to be added to relative kernel
+ *  paths (without leading slash)
+ */
+global void RemoveUnexistentSections (string path_prefix,
+    string relative_path_prefix)
+{
+    string defaultv = globals["default"]:"";
+    string first = nil;
+    BootCommon::sections = filter (map<string,any> s, BootCommon::sections, {
+	string label = s["name"]:"";
+
+	// do not touch the wildcard section
+	if (regexpmatch (s["kernel"]:"", ".+\\-\\*"))
+	{
+	    if (first == nil)
+		first = label;
+	    return true;
+	}
+
+	string type = s["__type"]:"";
+        if (label == "")
+	{
+	    y2warning ("Removing section with empty title");
+	    if (label == defaultv)
+		defaultv = nil;
+	    return false;
+	}
+	if (! contains (["linux", "failsafe", "memtest86", "xen"], type))
+	{
+	    if (first == nil)
+		first = label;
+	    return true;
+	}
+	string kernel = s["kernel"]:"";
+	if (kernel == "")
+	{
+	    if (first == nil)
+		first = label;
+	    return true;
+	}
+	if (substring (kernel, 0, 1) == "/")
+	    kernel = path_prefix + kernel;
+	else
+	    kernel = relative_path_prefix + kernel;
+	if (SCR::Read (.target.size, kernel) == -1)
+	{
+	    y2warning ("Removing section %1 with unexistent kernel %2",
+		label, kernel);
+	    if (label == defaultv)
+		defaultv = nil;
+	    return false;
+	}
+	if (first == nil)
+	    first = label;
+	return true;
+    });
+    if (defaultv == nil)
+	defaultv = first;
+    globals["default"] = defaultv;
+}
+
+/**
+ * Remove or add initrd option if needed, update append option if some
+ *  parameters were changed
+ */
+global void UpdateInitrdLine () {
+    sections = maplist (map<string,any> s, sections, {
+        string initrd = s["initrd"]:"";
+	string title = s["name"]:"";
+	string type = s["__type"]:"";
+
+	// do not touch the wildcard section
+	if (regexpmatch (s["initrd"]:"", ".+\\-\\*"))
+	{
+	    return s;
+	}
+
+        if ((type == "linux" || type == "failsafe")
+	    && write_settings["insert_initrd"]:false)
+        {
+	    s["initrd"] = BootArch::InitrdImage ();
+        }
+        if (initrd != "")
+        {
+	    if (-1 == SCR::Read (.target.size, initrd) && haskey (s, "initrd"))
+		s = remove (s, "initrd");
+        }
+	return s;
+    });
+}
+
+/**
+  * Update append option if some parameters were changed
+  */
+global void UpdateAppend () {
+    sections = maplist (map<string,any> s, sections, {
+	string type = s["__type"]:"";
+        if ((type == "linux" || type == "wildcard" || type == "global")
+	    && s["append"]:nil != nil
+	    && Stage::initial ())
+	{
+	    s["append"] = UpdateKernelParams (s["append"]:"");
+	}
+        return s;
+    });
+    if (haskey (globals, "append"))
+    {
+	globals["append"] = UpdateKernelParams (globals["append"]:"");
+    }
+}
+
+/**
+ * Update the gfxboot/message/... line if exists
+ */
+global void UpdateGfxMenu () {
+    string message = globals["gfxmenu"]:"";
+    if (message != "")
+    {
+	if (-1 == SCR::Read (.target.size, message))
+	{
+	    globals = remove (globals, "gfxmenu");
+	}
     }
 
 }
+
+/**
+ * Generate device map proposal
+ * @return list generated device map
+ */
+global void ProposeDeviceMap () {
+    device_mapping = $[];
+
+    map<string,map> targetMap = $[];
+    if (Mode::config ())
+	y2milestone ("Skipping device map proposing in Config mode");
+    else
+	targetMap = (map<string,map>)Storage::GetTargetMap();
+    targetMap = filter (string k, map v, targetMap, {
+	return ! v["is_lvm_vg"]:false && ! issubstring (k, "/dev/md")
+	    && ! issubstring (k, "/dev/evms");
+    });
+    y2milestone ("Target map: %1", targetMap);
+
+    // add devices with know bios_id
+    // collect BIOS IDs which are used
+    map ids = $[];
+    foreach (string target_dev, map target, targetMap, {
+        string bios_id = target["bios_id"]:"";
+        if (bios_id != "")
+        {
+            integer index = tointeger (bios_id) - tointeger ("0x80");
+            string grub_dev = sformat ("(hd%1)", index);
+	    device_mapping[target_dev] = grub_dev;
+            ids[index] = true;
+        }
+    });
+    // and guess other devices
+    // don't use already used BIOS IDs
+    foreach (string target_dev, map target, targetMap, {
+        string bios_id = target["bios_id"]:"";
+        if (bios_id == "")
+        {
+            integer index = 0;
+            while (ids[index]:false)
+                index = index + 1;
+            string grub_dev = sformat ("(hd%1)", index);
+	    device_mapping[target_dev] = grub_dev;
+            ids[index] = true;
+        }
+    });
+    if (StorageDevices::FloppyPresent)
+	device_mapping[StorageDevices::FloppyDevice] = "(fd0)";
+    y2milestone ("Detected device mapping: %1", device_mapping);
+}
+
+} // EOF

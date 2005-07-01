@@ -21,11 +21,12 @@
 
     // FIXME paths will be probably changed because of bugzilla 21644
 
-    module "BootELILO";
+module "BootELILO";
 
-    textdomain "bootloader";
+textdomain "bootloader";
 
-    import "BootCommon";
+import "BootArch";
+import "BootCommon";
     import "Kernel";
     import "Mode";
     import "Stage";
@@ -60,8 +61,7 @@
 
 
     include "bootloader/elilo/misc.ycp";
-    include "bootloader/elilo/widgets.ycp";
-    include "bootloader/routines/routines.ycp";
+//    include "bootloader/elilo/widgets.ycp";
 
 
 // misc. functions
@@ -95,153 +95,73 @@
 //        BootCommon::loadCfgFileFromAgent ();
     }
 
-    /**
-      * Create linux section
-      * @param title strign section title (linux, failsafe, memtest)
-      * @return section description structure
-      */
-    global define list<map> createLinuxSection (string title) ``{
-	// not using .shipped images any more
-        string initrd = "initrd";
-        string image = "vmlinuz";
-        string append = title == "failsafe"
-            ? "ide=nodma nohalt noresume selinux=0 barrier=off "
-		+ BootCommon::GetAdditionalFailsafeParams ()
-            : "";
-	list <string> split = BootCommon::splitPath (initrd);
-	initrd = split[1]:initrd;
-	split = BootCommon::splitPath (image);
-	image = split[1]:image;
-        list<map> ret = [
-            $[ "key" : "label", "value" : BootCommon::translateSectionTitle (title)],
-            $[ "key" : "image", "value" : image],
-            $[ "key" : "initrd", "value" : initrd],
-            $[ "key" : "root", "value" : BootCommon::dev2majminIfNonStandard (
-		BootCommon::RootPartitionDevice)],
-            $[ "key" : "__intern__", "value" : $[
-                "auto" : true,
-                "changed" : false,
-                "devs" : [BootCommon::RootPartitionDevice],
-		"type" : title,
-            ]],
-        ];
-	if (append != "")
-	    ret = add (ret, $[ "key" : "append", "value" : append]);
-        if (Kernel::GetVgaType () != "" && title != "failsafe")
-            ret = add (ret, $["key" : "vga", "value" : Kernel::GetVgaType ()]);
-        return ret;
+
+/**
+ * Propose sections to bootloader menu
+ * modifies internal sreuctures
+ */
+global void CreateSections () {
+    map<string,any> linux = BootCommon::CreateLinuxSection ("linux");
+    map<string,any> failsafe = BootCommon::CreateLinuxSection ("failsafe");
+    // append for default section is in global
+    if (haskey (linux, "append"))
+	linux = remove (linux, "append");
+
+    BootCommon::sections = [ linux, failsafe ];
     }
 
+/**
+ * Fix sections of bootloader menu during proposal regeneration
+ * modifies internal sreuctures
+ */
+global void FixSections () {
+    BootCommon::FixSections (BootELILO::CreateSections);
+    return;
+}
 
-
-    /**
-      * Propose sections to bootloader menu
-      * modifies internal sreuctures
-      */
-    global define void createSections () ``{
-	BootCommon::sections = [ createLinuxSection ("linux"),
-	    createLinuxSection ("failsafe") ];
-    }
-
-    /**
-      * Fix sections of bootloader menu during proposal regeneration
-      * modifies internal sreuctures
-      */
-    global define void fixSections () ``{
-	BootCommon::liloFixSections (BootELILO::createSections);
-	return;
-    }
-
-    /**
-      * Propose global options of bootloader
-      * modifies internal structures
-      */
-    global define void createGlobals () ``{
-	string append = sformat ("%1 %2 %3 splash=silent",
-	    "selinux=0",
-	    BootCommon::GetAdditionalKernelParams (),
-	    Kernel::GetCmdLine ());
-	// on SIG Altix change kernel default hash tables sizes
-	if (SCR::Read (.target.stat, "/proc/sgi_sn") != $[])
-	{
-	    append = append + " thash_entries=2097152";
-	}
-	BootCommon::globals = [
+/**
+ * Propose global options of bootloader
+ * modifies internal structures
+ */
+global void CreateGlobals () ``{
+    BootCommon::globals = $[
+	"append" : BootArch::DefaultKernelParams (""),
+	"default" : BootCommon::translateSectionTitle ("linux"),
+	"timeout" : 8,
+    ];
+// TODO in the library
+/*	BootCommon::globals = [
 	    $[ "key" : "prompt", "value" : true ],
-	    $[ "key" : "timeout", "value" : 80 ],
 	    $[ "key" : "read-only", "value" : true ],
 	    $[ "key" : "relocatable", "value" : true ],
-	    $[ "key" : "default", "value" : BootCommon::translateSectionTitle ("linux") ],
-	    $[ "key" : "append", "value" : append ],
-	];
-    }
+	];*/
+}
 
-    /**
-      * Update sections of bootloader menu
-      * modifies internal sreuctures
-      * @param replace boolean true if old sectinos shall be replaced
-      */
-    global define void updateSections (boolean replace) ``{
-	BootCommon::liloUpdateSections (replace, createLinuxSection);
-	BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
-	    s = maplist (map m, s, ``{
-		if (m["key"]:"" == "initrd")
-		{
-		    if (substring (m["value"]:"", 0, 7) == "/initrd")
-			m["value"] = "initrd";
+/**
+ * Update sections of bootloader menu
+ * modifies internal sreuctures
+ * @param replace boolean true if old sectinos shall be replaced
+ */
+global void UpdateSections (boolean replace) {
+    BootCommon::UpdateSections (replace, BootCommon::CreateLinuxSection);
+    BootCommon::sections = maplist (map<string,any> s, BootCommon::sections, {
+	if (substring (s["initrd"]:"", 0, 7) == "/initrd")
+	    s["initrd"] = "/boot/initrd";
+	if (substring (s["kernel"]:"", 0, 8) == "/vmlinuz")
+	    s["kernel"] = "/boot/vmlinuz";
+	return s;
+    });
+// TODO in the library make paths relative
+}
 
-		}
-		if (m["key"]:"" == "image")
-		{
-		    if (substring (m["value"]:"", 0, 8) == "/vmlinuz")
-			m["value"] = "vmlinuz";
-
-		}
-		return m;
-	    });
-	    return s;
-	});
-// TODO maybe change the paths? Probably not needed, to be decised
-    }
-
-    /**
-      * Update global options of bootloader
-      * modifies internal sreuctures
-      */
-    global define void updateGlobals () ``{
-	BootCommon::globals = maplist (map e, BootCommon::globals, ``{
-	    if (e["key"]:"" == "timeout")
-		e["value"] = 80;
-	    else if (e["key"]:"" == "append")
-	    {
-		string option = e["value"]:"";
-		foreach (string o, BootCommon::ListAdditionalKernelParams (), {
-		    option = BootCommon::setKernelParamToLine
-			(option, o, "false");
-		});
-		option = option + " "
-		    + BootCommon::GetAdditionalKernelParams ();
-		if (BootCommon::getKernelParamFromLine
-		    (option, "splash") == "false")
-		{
-		    option = BootCommon::setKernelParamToLine
-			(option, "splash", "silent");
-		}
-	    }
-	    // and on SGI Altix, change default kernel hash table sizes
-	    if (e["key"]:"" == "append"
-		&& SCR::Read (.target.stat, "/proc/sgi_sn") != $[])
-	    {
-		e["value"] = BootCommon::setKernelParamToLine (
-		    e["value"]:"",
-		    "thash_entries",
-		    "2097152");
-	    }
-	    else if (e["key"]:"" == "boot")
-		e["value"] = BootCommon::UpdateDevice (e["value"]:"");
-	    return e;
-	});
-    }
+/**
+ * Update global options of bootloader
+ * modifies internal sreuctures
+ */
+global void UpdateGlobals () {
+    BootCommon::globals["timeout"] = 8;
+    BootCommon::globals["append"] = BootArch::DefaultKernelParams ("");
+}
 
 
 // general functions
@@ -296,7 +216,7 @@
 
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
-	    createSections ();
+	    CreateSections ();
 	    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
 	}
 	else
@@ -306,11 +226,11 @@
 		y2debug ("Nothing to do for propose in AI mode");
 	    }
 	    else
-		fixSections ();
+		FixSections ();
 	}
 	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
 	{
-	    createGlobals ();
+	    CreateGlobals ();
 	}
 
 	if (BootCommon::location == "" || BootCommon::location == nil)
@@ -397,11 +317,11 @@
 	BootCommon::Reset (init);
     }
 
-    /**
-      * Save all bootloader configuration files
-      * @return boolean true if success
-      */
-    global define boolean Save () ``{
+/**
+ * Save all bootloader configuration files
+ * @return boolean true if success
+ */
+global boolean Save () {
 	string prefix = "";//getEfiMountPoint ();
 	string relative_prefix = "/boot/";//getEliloConfDir () + "/";
 	SCR::Execute (.target.bash,
@@ -412,7 +332,8 @@
 	    elilo_conf_filename));
 
 	BootCommon::liloRemoveUnexistentSections (prefix, relative_prefix);
-        BootCommon::sections = maplist (list<map> s, BootCommon::sections, ``{
+        BootCommon::sections = maplist (map<string,any> s,
+	    BootCommon::sections, {
             string initrd = (string)lookup_value (s, "initrd", "");
             string title = (string)lookup_value (s, "label", "");
 	    map intern = (map)lookup_value (s, "__intern__", $[]);
@@ -445,7 +366,7 @@
         boolean ret = BootCommon::Save ();
 
         return ret;
-    }
+}
 
     /**
       * Display bootloader summary
@@ -604,12 +525,6 @@ fi", efi_label);
 	    "bootloader_on_disk" : false,
 	    "option_list" : GetOptions (),
 	];
-	BootCommon::cwm_options = (map<string, map<string,any> >)union (
-	    BootCommon::GetOptionMaps (),
-	    BootELILO::GetOptionMaps ());
-	BootCommon::cwm_widgets = (map<string, map<string,any> >)union (
-	    BootCommon::GetWidgetMaps (),
-	    BootELILO::GetWidgetMaps ());
     }
 
     /**

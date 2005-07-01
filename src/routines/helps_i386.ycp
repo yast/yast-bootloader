@@ -1,0 +1,55 @@
+/**
+ * File:
+ *      include/bootloader/routines/helps_i386.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Help strings for bootloader installation and configuration
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: helps.ycp 19779 2004-10-11 14:12:13Z jsrain $
+ *
+ */
+
+
+{
+textdomain "bootloader";
+
+string i386InstallDetailsHelp () {
+    // help text 1/5
+    return _("<p><big><b>Disks Order</b></big><br>
+To specify the order of the disks according to the order in BIOS, use
+the <b>Up</b> and <b>Down</b> buttons to reorder the disks.</p>")
+    + (Mode::config ()
+	// help text 2/5, optional (only for autoinstallation)
+	?  _("<p>To add a disk, push <b>Add</b>.
+ To remove a disk, push <b>Remove</b>.</p>")
+	: "")
+    // help text 3/5
+    + _("<p><big><b>Replacing MBR With Generic Code</b></big><br>
+To replace the master boot record of your disk with generic code (which
+boots the active partition), set <b>Replace MBR with Generic Code</b>.</p>")
+    // help text 4/5
+    + _("<p><big><b>Activating Bootloader Partition</b></big><br>
+To activate the partition which contains the boot loader, set
+<b>Activate Bootloader Partition</b>. The generic MBR code boots
+the active partition. Older BIOSes require one partition active even
+if boot loader is installed in MBR.</p>")
+    + (BootCommon::getLoaderType (false) == "grub"
+	    && BootCommon::allowEmbed15 ()
+    // help text 4/5
+	?  _("<p><big><b>Dedicated Boot Loader Area</b></big><br>
+Using the dedicated boot loader area prevents
+boot loader files from being moved during
+automatic disk defragmentation.  The movement could prevent the
+boot loader from loading.
+To use dedicated boot loader area, set <b>Use Dedicated Boot Loader
+Area</b>.</p>")
+	: "");
+}
+
+} //EOF

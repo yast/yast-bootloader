@@ -33,7 +33,7 @@
       * @param name string name of currently selected section (to clone)
       * @return boolean true if answered yes
       */
-    global define boolean askClone (string name) ``{
+     boolean askClone (string name) ``{
 	// yes-no popup
 	return Popup::YesNo (sformat (_("Clone the selected section '%1' instead
 of creating a new empty section?
@@ -43,7 +43,7 @@ of creating a new empty section?
       * Display question
       * @return boolean true if answered yes
       */
-    global define boolean confirmAbortPopup () ``{
+     boolean confirmAbortPopup () ``{
 	// yes-no popup question
 	return Popup::YesNo (_("Really leave the boot loader configuration without saving?
 All changes will be lost.
@@ -54,7 +54,7 @@ All changes will be lost.
       * Display question
       * @return boolean true if answered yes
       */
-    global define boolean resetSectsPopup () ``{
+     boolean resetSectsPopup () ``{
 	// yes-no popup question
 	return Popup::YesNo (_("Really reset your settings for sections?
 All your changes made in section management will be lost.
@@ -66,7 +66,7 @@ All your changes made in section management will be lost.
       * @param title string section title
       * @return boolean true if answered yes
       */
-    global define boolean confirmSectionDeletePopup (string title) ``{
+     boolean confirmSectionDeletePopup (string title) ``{
 	// yes-no popup question
 	return Popup::YesNo (sformat(_("Really delete section %1?"), title));
     }
@@ -75,7 +75,7 @@ All your changes made in section management will be lost.
       * Display question
       * @return boolean true if answered yes
       */
-    global define boolean resetAllPopup () ``{
+     boolean resetAllPopup () ``{
 	// yes-no popup question
 	return Popup::YesNo (_("Really reset all
 your settings? All your changes will be lost.
@@ -85,7 +85,7 @@ your settings? All your changes will be lost.
     /**
       * Display error
       */
-    global define void setLocationErrorPopup () ``{
+     void setLocationErrorPopup () ``{
 	// error popup
 	Report::Error (_("Set the boot loader location."));
     }
@@ -93,7 +93,7 @@ your settings? All your changes will be lost.
     /**
       * Display error
       */
-    global define void emptyPasswdErrorPopup () ``{
+     void emptyPasswdErrorPopup () ``{
 	// error popup
 	Report::Error (_("The password must not be empty."));
     }
@@ -101,7 +101,7 @@ your settings? All your changes will be lost.
     /**
       * Display error
       */
-    global define void passwdMissmatchPopup () ``{
+     void passwdMissmatchPopup () ``{
 	// error popup
 	Report::Error (_("'Password' and 'Retype password'
 do not match. Retype the password."));
@@ -111,7 +111,7 @@ do not match. Retype the password."));
       * Display popup about change of section
       * @param sect_name string section name
       */
-    global define void displayDiskChangePopup (string sect_name) ``{
+     void displayDiskChangePopup (string sect_name) ``{
 	// message popup, %1 is sectino label
 	Popup::Message (sformat (_("The disk settings have changed.
 Check section %1 settings.
@@ -121,7 +121,7 @@ Check section %1 settings.
     /**
       * Display popup
       */
-    global define void displayFilesEditedPopup () ``{
+     void displayFilesEditedPopup () ``{
 	// message popup
 	Popup::Message (_("The disk settings have changed and you edited boot loader
 configuration files manually. Check the boot loader settings.
@@ -133,7 +133,7 @@ configuration files manually. Check the boot loader settings.
       * @param device string currently confiogured device
       * @return boolean yes if shall be reset
       */
-    global define boolean askLocationResetPopup (string device) ``{
+     boolean askLocationResetPopup (string device) ``{
 	// yes-no popup
 	return Popup::YesNo(sformat(_("Partition '%1' is not available.
 Set default boot loader location?
@@ -144,7 +144,7 @@ Set default boot loader location?
       * Show the popup before saving to floppy, handle actions
       * @return true on success
       */
-    global define boolean saveToFLoppyPopup () ``{
+     boolean saveToFLoppyPopup () ``{
 	boolean retval = true;
 	boolean format = false;
 	symbol fs = `no;
@@ -227,7 +227,7 @@ and confirm with OK.
     /**
       * Display error
       */
-    global define void usedNameErrorPopup () ``{
+     void usedNameErrorPopup () ``{
         // error popup
         Report::Error (_("The name selected is already used.
 Use a different one.
@@ -238,7 +238,7 @@ Use a different one.
       * Display error
       * @return true if shall retry
       */
-    global define boolean writeErrorPopup () ``{
+     boolean writeErrorPopup () ``{
         // yes-no popup
 	return Popup::YesNo (_("An error occurred during boot loader
 installation. Retry boot loader configuration?
@@ -248,7 +248,7 @@ installation. Retry boot loader configuration?
     /**
       * Display popup
       */
-    global define void displayGfxMenuChangePopup () ``{
+     void displayGfxMenuChangePopup () ``{
 	// message popup, gfxmenu is option name, leave as is
 	Popup::Message (_("The disk settings have changed.
 Check the gfxmenu settings.
@@ -259,7 +259,7 @@ Check the gfxmenu settings.
       * Display yes-no popup
       * @return true if confirmed
       */
-    global define boolean confirmOptionDeletePopup () ``{
+     boolean confirmOptionDeletePopup () ``{
 	// yes-no popup
 	return Popup::YesNo (_("Really delete the selected option?"));
     }
@@ -269,7 +269,7 @@ Check the gfxmenu settings.
       * @param header string error header
       * @param log string logfile contents
       */
-    global define void errorWithLogPopup (string header, string log) ``{
+     void errorWithLogPopup (string header, string log) ``{
 	if (log == nil)
 	    // FIXME too generic, but was already translated
 	    log = _("Unable to install the boot loader.");
@@ -291,7 +291,7 @@ Check the gfxmenu settings.
     /**
       * Display popup
       */
-    global define void displayNoSupportPopup () ``{
+     void displayNoSupportPopup () ``{
 	// message popup
 	Popup::Message (_("Sorry, there are currently
 no options to set here."));
@@ -300,7 +300,7 @@ no options to set here."));
     /**
       * Display popup
       */
-    global define void noBootloaderPopup () ``{
+     void noBootloaderPopup () ``{
 	// error report
 	Report::Error (_("Unable to install the boot loader."));
     }
@@ -309,7 +309,7 @@ no options to set here."));
       * Display popup
       * @param bootloader string printable name of used bootloader
       */
-    global define void floppyWrittenPopup (string bootloader) ``{
+     void floppyWrittenPopup (string bootloader) ``{
 	string confirm_boot_msg = Misc::boot_msg;
 	// data saved to floppy disk
 	// popup, %1 is bootloader name
@@ -332,7 +332,7 @@ no options to set here."));
       * Display popup - confirmation befopre restoring MBR
       * @param device string device to restore to
       */
-    global define boolean restoreMBRPopup (string device) ``{
+     boolean restoreMBRPopup (string device) ``{
 	map stat = (map)SCR::Read (.target.stat, "/boot/backup_mbr");
 	integer ctime = stat["ctime"]:0;
 	string command = sformat (

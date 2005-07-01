@@ -29,10 +29,9 @@
     import "Arch";
     import "Pkg";
 
-    include "bootloader/lilo/widgets.ycp";
+//    include "bootloader/lilo/widgets.ycp";
     include "bootloader/lilo/helps.ycp";
     include "bootloader/routines/popups.ycp";
-    include "bootloader/routines/routines.ycp";
 
 // private variables
 
@@ -40,107 +39,17 @@
 
 
 
-// end of mandatory functions
-//----------------------------------------------------------------------------
-
-    /**
-      * Create linux section
-      * @param title strign section title (linux, failsafe, memtest)
-      * @return section description structure
-      */
-    global define list<map> createLinuxSection (string title) ``{
-	if (title == "memtest86")
-	{
-	  if (BootCommon::MemtestPresent ())
-	  {
-	    return [
-		$[ "key" : "image", "value" : "/boot/memtest.bin"],
-		$[ "key" : "label", "value" : BootCommon::translateSectionTitle (title)],
-		$[ "key" : "__intern__", "value" : $[
-		    "auto" : true,
-		    "changed" : false,
-		    "devs" : [],
-		    "type" : "memtest86",
-		]],
-	    ];
-	  }
-	  else
-	  {
-	    return [];
-	  }
-	}
-	string resumestring = "";
-	if (BootCommon::getLargestSwapPartition () != "")
-	{
-	    resumestring = sformat ("resume=%1",
-		BootCommon::getLargestSwapPartition ());
-	}
-	// not using .shipped images any more
-	string initrd = title == "wildcard" ? "initrd-*" : "initrd";
-	string image = title == "wildcard" ? "vmlinuz-*" : "vmlinuz";
-	string append = title == "failsafe"
-	    ? "ide=nodma apm=off acpi=off vga=normal noresume selinux=0 barrier=off "
-	      + ((Arch::x86_64 ())
-		? "iommu=noforce "
-		: "nosmp noapic maxcpus=0 ")
-	      + BootCommon::GetAdditionalFailsafeParams () + " 3"
-	    : sformat ("%1 %2 %3 %4", resumestring, "selinux=0",
-		Kernel::GetCmdLine (),
-		BootCommon::GetAdditionalKernelParams ());
-	if (title != "failsafe")
-	{
-	    if (BootCommon::getKernelParamFromLine (append, "splash")
-		== "false")
-	    {
-		append = BootCommon::setKernelParamToLine (
-		    append, "splash", "silent");
-	    }
-	}
-	string root = BootCommon::dev2majminIfNonStandard (
-            BootCommon::RootPartitionDevice);
-	if (regexpmatch (root, "^[0-9a-f]{4}$"))
-	{
-	    root = "0x" + root;
-	}
-	string type = title;
-	if (type == "wildcard")
-	    title = "*";
-	list<map> ret = [
-	    $[ "key" : "label", "value" : BootCommon::translateSectionTitle (title)],
-	    $[ "key" : "image", "value" : "/boot/" + image],
-	    $[ "key" : "initrd", "value" : "/boot/" + initrd],
-	    $[ "key" : "root", "value" : root ],
-	    $[ "key" : "append", "value" : append],
-	    $[ "key" : "__intern__", "value" : $[
-		"auto" : true,
-		"changed" : false,
-		"devs" : [BootCommon::RootPartitionDevice],
-		"type" : type,
-	    ]],
-	];
-	if (Kernel::GetVgaType () != "" && title != "failsafe")
-	    ret = add (ret, $["key" : "vga", "value" : Kernel::GetVgaType ()]);
-	if (type == "wildcard")
-	{
-	    ret = prepend (ret, $[
-		"key" : "wildcard",
-		"value" : "/boot/" + image,
-	    ]);
-	}
-	return ret;
-    }
-
-    /**
-      * Propose sections to bootloader menu
-      * modifies internal sreuctures
-      */
-    global define void createSections () ``{
-	list<list<map> > out = [
-	    createLinuxSection ("linux")
-	];
-	list<string> others = (list<string>)Storage::GetForeignPrimary();
-	if (others != nil)
-	{
+/**
+ * Propose sections to bootloader menu
+ * modifies internal sreuctures
+ */
+global void CreateSections () {
+    list<map<string,any> > out = [
+	BootCommon::CreateLinuxSection ("linux")
+    ];
+    list<string> others = (list<string>)Storage::GetForeignPrimary();
+    if (others != nil)
+    {
 	    if (size (others) > 0)
 	    {
 		foreach (string o, others, ``{
@@ -155,85 +64,58 @@
 		    if (dev != "" && label != ""
 			&& dev != BootCommon::loader_device)
 		    {
-			list<map> m = [
-			    $["key" : "label",
-				"value" : BootCommon::translateSectionTitle (
-				BootCommon::removeBlanks (label))],
-			    $[ "key" : "other", "value" : dev],
-			    $[ "key" : "__intern__", "value" : $[
-				"auto" : true,
-				"changed" : false,
-				"devs" : [dev],
-				"type" : label,
-			    ]],
+			map<string,any> m = $[
+			    "name" : BootCommon::translateSectionTitle (
+				BootCommon::removeBlanks (label)),
+			    "original_name" : label,
+			    "type" : "chainloader",
+			    "chainloader" : dev,
+			    "__auto" : true,
+			    "__changed" : false,
+			    "__devs" : [dev],
+			    "__type" : label,
 			];
 			out = add (out, m);
 		    }
 		});
 	    }
-	}
-        out = add (out, createLinuxSection ("failsafe"));
-	out = add (out, createLinuxSection ("memtest86"));
-//	out = add (out, createLinuxSection ("wildcard"));
-	out = (list<list<map> >)
-	    filter (list<map> s, out, ``(s != [] && s != nil));
-	BootCommon::sections = out;
     }
+    out = add (out, BootCommon::CreateLinuxSection ("failsafe"));
+    out = add (out, BootCommon::CreateLinuxSection ("memtest86"));
+//    out = add (out, BootCommon::CreateLinuxSection ("wildcard"));
+    out = filter (map<string,any> s, out, { return s != $[] && s != nil;});
+    BootCommon::sections = out;
+}
 
-    /**
-      * Propose global options of bootloader
-      * modifies internal structures
-      */
-    global define void createGlobals () ``{
-	list internal_bios = (list)SCR::Read (.probe.bios);
-	list<map> bcg = [
-	    $[ "key" : "menu-scheme", "value" : "Wb:kw:Wb:Wb"],
-	    $[ "key" : "default", "value" : BootCommon::translateSectionTitle ("linux")],
-	    $[ "key" : "timeout", "value" : 80],
-	    $[ "key" : "message", "value" : "/boot/message"],
-	    $[ "key" : "lba32",
-	       "value" : internal_bios[0, "lba_support"]:false],
-	    $[ "key" : "change-rules", "value" : "change-rules,reset"],
-	    $[ "key" : "read-only", "value" :  true],
-	    $[ "key" : "prompt", "value" : true],
-	];
-	if (Storage::DiskmapNeeded())
-	{
-	    string order = "";
-	    // check if bios_id is given for a target
-	    map<string,map> targetMap
-		= (map<string,map>)Storage::GetTargetMap ();
-	    foreach (string target_dev, map target, targetMap, ``{
-		string bios_id = target["bios_id"]:"";
-		if (bios_id != "")
-		{
-		    if (order != "")
-			order = order + ",";
-		    order = order + sformat ("disk=%1,bios=%2", target_dev,
-			bios_id);
-		}
-	    });
-	    if (order != "")
-		bcg = add (bcg, $[ "key" : "disk", "value" : order]);
-	}
-	BootCommon::globals = bcg;
-    }
+/**
+ * Propose global options of bootloader
+ * modifies internal structures
+ */
+global void CreateGlobals () {
+    BootCommon::globals = $[
+	"default" : BootCommon::sections[0, "name"]:"",
+	"timeout" : "8",
+	"gfxmenu" : "/boot/message",
+    ];
+}
 
-    /**
-      * Update sections of bootloader menu
-      * modifies internal sreuctures
-      * @param replace boolean true if old sectinos shall be replaced
-      */
-    global define void updateSections (boolean replace) ``{
-	BootCommon::liloUpdateSections (replace, BootLILO::createLinuxSection);
-	return;
-    }
+/**
+ * Update sections of bootloader menu
+ * modifies internal sreuctures
+ * @param replace boolean true if old sectinos shall be replaced
+ */
+global define void UpdateSections (boolean replace) {
+    BootCommon::UpdateSections (replace, BootCommon::CreateLinuxSection);
+}
 
     /**
       * Update global options of bootloader
       * modifies internal sreuctures
       */
-    global define void updateGlobals () ``{
+    global define void UpdateGlobals () ``{
+// FIXME whole function
+return;
+/*
 	BootCommon::globals = maplist (map e, BootCommon::globals, ``{
 	    if (e["key"]:"" == "menu-scheme")
 		e["value"] = "Wb:kw:Wb:Wb";
@@ -244,64 +126,29 @@
 	    else if (e["key"]:"" == "boot")
 		e["value"] = BootCommon::UpdateDevice (e["value"]:"");
 	    return e;
-	});
+	});*/
     }
 
-    /**
-      * Fix sections of bootloader menu during proposal regeneration
-      * modifies internal sreuctures
-      * @param disks_changed boolean should be true if bootloader location
-      *   relevant disk locations have changed
-      */
-    global define void fixSections (boolean disks_changed) ``{
-	BootCommon::liloFixSections (BootLILO::createSections);
-    }
+/**
+ * Fix sections of bootloader menu during proposal regeneration
+ * modifies internal sreuctures
+ * @param disks_changed boolean should be true if bootloader location
+ *   relevant disk locations have changed
+ */
+global void FixSections (boolean disks_changed) {
+    BootCommon::FixSections (BootLILO::CreateSections);
+}
 
-    /**
-      * Fix global options of bootloader during proposal regeneration
-      * modifies internal sreuctures
-      * @param disks_changed boolean should be true if bootloader location
-      *   relevant disk locations have changed
-      */
-    global define void fixGlobals (boolean disks_changed) ``{
-	BootCommon::liloFixGlobals ();
-    }
+/**
+ * Fix global options of bootloader during proposal regeneration
+ * modifies internal sreuctures
+ * @param disks_changed boolean should be true if bootloader location
+ *   relevant disk locations have changed
+ */
+global void FixGlobals (boolean disks_changed) {
+    BootCommon::FixGlobals ();
+}
 
-    /**
-      * Create strings representing cfg. files for by-hand editation
-      * @return map filename -> contents
-      */
-    global define map<string,string> GetFiles() ``{
-	SCR::Execute (.bootloader.agent_init, "lilo");
-	SCR::Execute (.bootloader.disk_init, BootCommon::PrepareInitData ());
-	BootCommon::Sections2IO ();
-	BootCommon::Global2IO ();
-	BootCommon::io_structure["global", "stage1_dev", 0]
-	    = BootCommon::loader_device;
-	map<string,string> ret = (map<string,string>)
-	    SCR::Read (.bootloader.tostrings, BootCommon::io_structure);
-	BootCommon::edited_files = ret;
-	return ret;
-    }
-
-    /**
-      * Store strings representing cfg. files to internal structures
-      * @param files map filename -> contents
-      */
-    global define void SetFiles (map<string,string> files) ``{
-	SCR::Execute (.bootloader.agent_init, "LILO");
-	SCR::Execute (.bootloader.disk_init, BootCommon::PrepareInitData ());
-	BootCommon::io_structure = (map)
-	    SCR::Read (.bootloader.fromstrings, files);
-	BootCommon::IO2Sections ();
-	BootCommon::IO2Global ();
-	BootCommon::loader_device
-	    = BootCommon::io_structure["global", "stage1_dev", 0]:"";
-	if (BootCommon::edited_files != BootCommon::io_structure)
-	{
-	    BootCommon::files_edited = true;
-	}
-    }
 
 // general functions
 
@@ -324,12 +171,11 @@
 	{
 	    if (askLocationResetPopup (BootCommon::loader_device))
 	    {
-		BootCommon::location = "";
+		BootCommon::selected_location = nil;
+		BootCommon::loader_device = nil;
 		BootCommon::DetectDisks ();
 	    }
 	}
-
-	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
 
 	// set activate flag
 	if (! BootCommon::activate_changed)
@@ -340,7 +186,7 @@
 
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
-	    createSections ();
+	    CreateSections ();
 	    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
 	}
 	else
@@ -351,11 +197,11 @@
 		y2debug ("nothing to to in AI mode if sections exist");
             }
             else
-		fixSections (disks_changed);
+		FixSections (disks_changed);
 	}
 	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
 	{
-	    createGlobals ();
+	    CreateGlobals ();
 	}
 	else
 	{
@@ -365,60 +211,50 @@
 		y2debug ("nothing to to in AI mode if globals are defined");
             }
             else
-		fixGlobals (disks_changed);
+		FixGlobals (disks_changed);
 	}
 
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
 	y2milestone ("Proposed globals: %1", BootCommon::globals);
-	BootCommon::addValueToBootloaderSection (
-	    `globals, "boot", BootCommon::loader_device);
     }
 
-    /**
-      * Read settings from disk
-      * @return boolean true on success
-      */
-    global define boolean Read () ``{
-	BootCommon::DetectDisks ();
-	boolean ret = BootCommon::Read ();
-	return ret;
+/**
+ * Read settings from disk
+ * @return boolean true on success
+ */
+global boolean Read (boolean reread) {
+    BootCommon::InitializeLibrary (reread, "lilo");
+    if (reread)
+    {
+	BootCommon::ReadFiles ();
     }
+    BootCommon::DetectDisks ();
+    boolean ret = BootCommon::Read (false);
+    BootCommon::loader_device = BootCommon::globals["stage1_dev"]:"";
+    return ret;
+}
 
-    /**
-      * Save all bootloader configuration files
-      * @return boolean true if success
-      */
-    global define boolean Save () ``{
-	// update graphical bootloaer menu
-	BootCommon::updateGfxMenu ();
-
-	SCR::Execute (.target.bash, "test -f /etc/lilo.conf && /bin/cp /etc/lilo.conf /etc/lilo.conf.old");
-	SCR::Execute (.target.bash, "/usr/bin/touch /etc/lilo.conf");
-
-	BootCommon::liloRemoveUnexistentSections ("", "");
-	BootCommon::liloUpdateInitrd ();
-	BootCommon::liloUpdateAppend ();
-	string message = (string)
-	    lookup_value (BootCommon::globals, "message", "");
-        if (message != "")
-        {
-            if (-1 == SCR::Read (.target.size, message))
-	    {
-                BootCommon::globals = modifySection (
-		    BootCommon::globals, "message", nil);
-	    }
-        }
-	boolean ret = BootCommon::Save ();
-	SCR::Execute (.target.bash, "/bin/chmod 600 /etc/lilo.conf");
-	return ret;
-    }
+/**
+ * Save all bootloader configuration files to the cache of the PlugLib
+ * PlugLib must be initialized properly !!!
+ * @param clean boolean true if settings should be cleaned up (checking their
+ *  correctness, supposing all files are on the disk
+ * @param init boolean true to init the library
+ * @param flush boolean true to flush settings to the disk
+ * @return boolean true if success
+ */
+global boolean Save (boolean clean, boolean init, boolean flush) {
+    BootCommon::globals["stage1_dev"] = BootCommon::loader_device;
+    boolean ret = BootCommon::Save (clean, init, flush);
+    return ret;
+}
 
     /**
       * Update read settings to new version of configuration files
       */
     global define void Update () ``{
-	updateSections (true);
-	updateGlobals ();
+	UpdateSections (true);
+	UpdateGlobals ();
 	BootCommon::loader_device
 	    = BootCommon::UpdateDevice (BootCommon::loader_device);
     }
@@ -427,9 +263,9 @@
       * @return boolean true on success
       */
     global define boolean Write () ``{
+	boolean ret = BootCommon::UpdateBootloader ();
 	BootCommon::updateMBR ();
-	boolean ret = true;
-	if (BootCommon::installingToFloppy ())
+	if (BootCommon::InstallingToFloppy ())
 	{
 	    if (! saveToFLoppyPopup ())
 	    {
@@ -447,20 +283,7 @@
 		BootCommon::BootPartitionDevice));
 	}
 
-	string bl_command = "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1";
-	string bl_logfile = "/var/log/YaST2/y2loglilo";
-	boolean command_ret
-	    = BootCommon::installBootLoader (bl_command, bl_logfile);
-	if (! command_ret)
-	    y2error ("Execution of installation command failed");
-	ret = ret && command_ret;
-
-	if (command_ret && BootCommon::installingToFloppy ())
-        {
-            BootCommon::updateTimeoutPopupForFloppy
-		(BootCommon::getLoaderName ("lilo"));
-        }
-
+	ret = ret && BootCommon::InitializeBootloader ();
 	return ret;
     }
 
@@ -475,9 +298,7 @@
 	    "save"	: BootLILO::Save,
 	    "update"	: BootLILO::Update,
 	    "write"	: BootLILO::Write,
-	    "widgets"	: BootLILO::GetWidgetMaps,
-	    "getfiles"	: BootLILO::GetFiles,
-	    "setfiles"	: BootLILO::SetFiles,
+//	    "widgets"	: BootLILO::GetWidgetMaps,
 	];
     }
 
@@ -493,7 +314,6 @@
 	    "default_type" : `label,
 	    "timeout_multiplier" : 10,
 	    "alias_keys" : ["alias"],
-	    "convert_function" : BootCommon::liloConvertSection,
 	    "kernel_params" : $[
 		"vga" : "vga",
 		"root" : "root",
@@ -507,12 +327,6 @@
 	    "bootloader_on_disk" : true,
 	    "option_list" : BootCommon::GetOptions (),
 	];
-	BootCommon::cwm_options = (map<string, map<string,any> >)union (
-	    BootCommon::GetOptionMaps (),
-	    BootLILO::GetOptionMaps ());
-	BootCommon::cwm_widgets = (map<string, map<string,any> >)union (
-	    BootCommon::GetWidgetMaps (),
-	    BootLILO::GetWidgetMaps ());
     }
 
     /**

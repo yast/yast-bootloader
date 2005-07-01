@@ -1,0 +1,330 @@
+/**
+ * File:
+ *      include/bootloader/routines/widgets.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Common widgets for being used by several bootloaders
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: widgets.ycp 20246 2004-11-09 07:17:07Z jsrain $
+ *
+ */
+
+
+{
+
+textdomain "bootloader";
+
+import "CWM";
+import "Initrd";
+import "Label";
+import "Mode";
+import "Storage";
+import "StorageDevices";
+import "TablePopup";
+
+/**
+ * Init function of widget
+ * @param widget any id of the widget
+ */
+void SectionOptionInit (string widget) {
+    UI::ChangeWidget (`id (widget), `Value,
+	BootCommon::current_section[widget]:"");
+}
+
+/**
+ * Store function of a widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ */
+void SectionOptionStore (string widget, map event) {
+    BootCommon::current_section[widget]
+	= UI::QueryWidget (`id (widget), `Value);
+}
+
+/**
+ * Map of fallback handlers for events on sections
+ */
+map<string,any> section_handlers = $[
+    "init" : SectionOptionInit,
+    "store" : SectionOptionStore,
+];
+
+
+/**
+ * Validate function of a widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return boolean true if widget settings ok
+ */
+boolean SectionNameValidate (string widget, map event) {
+    list<string> existing = [];
+    foreach (map<string,any> s, BootCommon::sections, {
+	existing = add (existing, s["name"]:"");
+    });
+    existing = (list<string>)filter (string l, existing, {
+	return l != BootCommon::current_section_name;
+    });
+    existing = (list<string>)add (existing, "");
+    string new = (string)UI::QueryWidget (`id (widget), `Value);
+
+    if (contains (existing, new))
+    {
+	usedNameErrorPopup ();
+	return false;
+    }
+    return true;
+}
+
+/**
+ * Store function of a widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ */
+void SectionNameStore (string widget, map event) {
+    string value = (string)UI::QueryWidget (`id (widget), `Value);
+    if (Bootloader::getLoaderType () != "grub")
+    {
+	value = BootCommon::replaceAll (value, " ", "_");
+	if (size (value) > 15)
+	    value = substring (value, 0, 15);
+    }
+    BootCommon::current_section[widget] = value;
+}
+
+/**
+ * Init function of widget
+ * @param widget any id of the widget
+ */
+void KernelImageInit (string widget) {
+    list<string> available = (list<string>)SCR::Read (.target.dir, "/boot");
+    available = filter (string f, available, {
+	return substring (f, 0, 13) == "/boot/vmlinuz";
+    });
+    if (size (available) == 0)
+	available = ["/boot/vmlinuz"];
+    UI::ChangeWidget (`id (widget), `Items, available);
+    SectionOptionInit (widget);
+}
+
+/**
+ * Init function of widget
+ * @param widget any id of the widget
+ */
+void InitrdInit (string widget) {
+    list<string> available = (list<string>)SCR::Read (.target.dir, "/boot");
+    available = filter (string f, available, {
+	return substring (f, 0, 12) == "/boot/initrd";
+    });
+    if (size (available) == 0)
+	available = ["/boot/initrd"];
+    UI::ChangeWidget (`id (widget), `Items, available);
+    SectionOptionInit (widget);
+}
+
+/**
+ * Init function of widget
+ * @param widget any id of the widget
+ */
+void RootDeviceInit (string widget) {
+    list<string> available = BootCommon::getPartitionList (`root);
+    UI::ChangeWidget (`id (widget), `Items, available);
+    SectionOptionInit (widget);
+}
+
+/**
+ * Init function of widget
+ * @param widget any id of the widget
+ */
+void VgaModeInit (string widget) {
+    list<map> vga_modes = Initrd::VgaModes ();
+    list items = maplist (map m, vga_modes, {
+	return `item (`id (sformat ("%1", m["mode"]:0)),
+	    sformat (_("%1x%2, %3 bits (mode %4)"),
+		m["width"]:0, m["height"]:0, m["color"]:0, m["mode"]:0));
+    });
+    items = prepend (items, `item (`id ("normal"), _("Text Mode")));
+    UI::ChangeWidget (`id (widget), `Items, items);
+    SectionOptionInit (widget);
+}
+
+/**
+ * Init function of widget
+ * @param widget any id of the widget
+ */
+void ChainloaderInit (string widget) {
+    list<string> available = BootCommon::getPartitionList (`boot_other);
+    UI::ChangeWidget (`id (widget), `Items, available);
+    SectionOptionInit (widget);
+}
+
+/**
+ * Widget for selecting section type
+ * @return term widget
+ */
+term SectionTypesWidget () {
+    integer count = 0;
+    term contents = `VBox ();
+    if (BootCommon::current_section_name != "")
+    {
+	contents = add (contents, `Left (`RadioButton (`id ("clone"),
+	    // radio button
+	    _("Clone Selected Section"), true)));
+	count = count + 1;
+    }
+    list<string> section_types = ["kernel", "xen", "chainloader"];
+    map<string,string> section_types_descr = $[
+	// radio button
+	"kernel" : _("Kernel (Linux)"),
+	// radio button
+	"xen" : _("Kernel via XEN"),
+	// radio button (don't translate 'chainloader')
+	"chainloader" : _("Other System (Chainloader)"),
+    ];
+    foreach (string t, section_types, {
+	if (count > 0)
+	    contents = add (contents, `VSpacing (0.4));
+	count = count + 1;
+	contents = add (contents, `Left (`RadioButton (`id (t),
+	    section_types_descr[t]:t, count == 1)));
+    });
+    contents = `Frame (_("Section Type"), `VBox (
+	`VSpacing (1),
+	`HBox (
+	    `HSpacing (2),
+	    `RadioButtonGroup (`id (`sect_type), contents),
+	    `HSpacing (2)
+	),
+	`VSpacing (1)
+    ));
+    return contents;
+}
+
+/**
+ * Handle function of a widget
+ * @param widget string widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
+symbol SectionTypeHandle (string widget, map event) {
+    if (event["ID"]:nil != `next)
+	return nil;
+    string selected = (string)
+	UI::QueryWidget (`id (`sect_type), `CurrentButton);
+    if (selected != "clone")
+    {
+	BootCommon::current_section = $[
+	    "type" : selected,
+	];
+    }
+    else
+    {
+	BootCommon::current_section["name"] = "";
+	BootCommon::current_section["original_name"] = "";
+    }
+    y2milestone ("Added section template: %1", BootCommon::current_section);
+    return nil;
+}
+
+map<string,map<string,any> > _common_section_widgets = nil;
+
+map<string,map<string,any> > CommonSectionWidgets () {
+    if (_common_section_widgets == nil)
+    {
+	  _common_section_widgets = $[
+	    "name" : $[
+		// text entry
+		"label" : _("Section &Name"),
+		"widget" : `textentry,
+		"validate_type" : `function,
+		"validate_function" : SectionNameValidate,
+		"store" : SectionNameStore,
+	    ],
+	    "kernel" : $[
+		"widget" : `custom,
+		"custom_widget" : Stage::initial ()
+		    ? `TextEntry (`id ("kernel"), `opt (`hstretch),
+			// text entry
+			_("&Kernel"))
+		    : `HBox (
+			`ComboBox (`id ("kernel"), `opt (`editable, `hstretch),
+			    // combo box
+			    _("&Kernel"),
+			    []),
+			`VBox (
+			    `Label (""),
+			    `PushButton (`id (`browse), Label::BrowseButton ())
+			)
+		    ),
+		"init" : KernelImageInit,
+	    ],
+	    "initrd" : $[
+		"widget" : `custom,
+		"custom_widget" : Stage::initial ()
+		    ? `TextEntry (`id ("initrd"), `opt (`hstretch),
+			// text entry
+			_("&Initial Ramdisk"))
+		    : `HBox (
+			`ComboBox (`id ("initrd"), `opt (`editable, `hstretch),
+			    // combo box
+			    _("&Initial Ramdisk"),
+			    []),
+			`VBox (
+			    `Label (""),
+			    `PushButton (`id (`browse), Label::BrowseButton ())
+			)
+		    ),
+		"init" : InitrdInit,
+	    ],
+	    "root" : $[
+		"widget" : `combobox,
+		"label" : _("Root &Device"),
+		"opt" : [ `editable, `hstretch ],
+		"init" : RootDeviceInit,
+	    ],
+	    "vga" : $[
+		"widget" : `combobox,
+		// combo box
+		"label" : _("&VGA Mode"),
+		"opt" : [ `editable, `hstretch ],
+		"init" : VgaModeInit,
+	    ],
+	    "append" : $[
+		// text entry
+		"label" : _("Other Kernel &Parameters"),
+		"widget" : `textentry,
+	    ],
+	    "chainloader" : $[
+		"widget" : `custom,
+		"custom_widget" : `HBox (
+			`ComboBox (`id ("chainloader"),
+			    `opt (`editable, `hstretch),
+			    // combo box
+			    _("&Device"),
+			    []),
+			Stage::initial ()
+			    ? `VBox ()
+			    : `VBox (
+				`Label (""),
+				`PushButton (`id (`browse),
+				    Label::BrowseButton ())
+			    )
+		    ),
+		"init" : ChainloaderInit,
+	    ],
+	    "section_type" : $[
+		"widget" : `func,
+		"widget_func" : SectionTypesWidget,
+		"handle" : SectionTypeHandle,
+	    ],
+	];
+    }
+    return _common_section_widgets;
+}
+
+} // include end

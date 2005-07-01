@@ -79,7 +79,6 @@
     global define void currentBoardInit ();
 
     include "bootloader/routines/popups.ycp";
-    include "bootloader/routines/routines.ycp";
     include "bootloader/ppc/misc.ycp";
     include "bootloader/ppc/prep.ycp";
     include "bootloader/ppc/chrp.ycp";
@@ -781,12 +780,6 @@ global boolean currentBoardUpdate () {
             "bootloader_on_disk" : true,
 	    "option_list" : GetOptions (),
 	];
-	BootCommon::cwm_options = (map<string, map<string,any> >)union (
-	    BootCommon::GetOptionMaps (),
-	    BootPPC::GetOptionMaps ());
-	BootCommon::cwm_widgets = (map<string, map<string,any> >)union (
-	    BootCommon::GetWidgetMaps (),
-	    BootPPC::GetWidgetMaps ());
     }
 
     /**

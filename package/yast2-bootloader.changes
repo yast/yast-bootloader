@@ -1,3 +1,11 @@
+DO NOT SUBMIT THIS PACKAGE IN ANY CASE, IT WOULD BREAK INSTALLATION
+
+-------------------------------------------------------------------
+Fri Jul  1 16:52:05 CEST 2005 - jsrain@suse.cz
+
+- created new UI
+- accessing perl-Bootloader library through LiMaL instead of SCR
+
 -------------------------------------------------------------------
 Tue Jun 14 16:45:20 CEST 2005 - jsrain@suse.cz
 

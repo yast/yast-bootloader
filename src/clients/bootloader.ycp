@@ -22,7 +22,7 @@
     import "Mode";
     import "RichText";
 
-    include "bootloader/routines/routines.ycp";
+    include "bootloader/routines/wizards.ycp";
 
 // --------------------------------------------------------------------------
 // --------------------------------- cmd-line handlers
@@ -33,7 +33,7 @@
       */
     define boolean GuiHandler () ``{
         symbol ret = nil;
-	ret = Bootloader::BootloaderSequence ();
+	ret = BootloaderSequence ();
 
         if (ret == `abort || ret == `back || ret == `nil)
             return false;
@@ -52,15 +52,11 @@
     }
 
     define boolean BootloaderModifySection (string section,
-	string key, any value)
+	string key, string value)
     ``{
 	if (section == nil)
 	{
-	    BootCommon::globals = modifySection (
-		BootCommon::globals,
-		key,
-		value
-	    );
+	    BootCommon::globals[key] = value;
 	    return true;
 	}
 	else
@@ -68,11 +64,7 @@
 	    integer index = BootCommon::getSectionIndex (section);
 	    if (index != nil)
 	    {
-		BootCommon::sections[index] = modifySection (
-		    BootCommon::sections[index]:[],
-		    key,
-		    value
-		);
+		BootCommon::sections[index, key] = value;
 		return true;
 	    }
 	    else
@@ -103,7 +95,7 @@
 	    CommandLine::Print (_("Value was not specified."));
 	    return false;
 	}
-	return BootloaderModifySection (section, option, value);
+	return BootloaderModifySection (section, option, (string)value);
     }
 
     /**
@@ -124,7 +116,7 @@
 		return false;
 	    }
 	    BootCommon::sections[index] = nil;
-	    BootCommon::sections = filter (list<map> s, BootCommon::sections, ``(
+	    BootCommon::sections = filter (map<string,any> s, BootCommon::sections, ``(
 		s != nil
 	    ));
 	    return true;
@@ -146,12 +138,10 @@
 	    CommandLine::Print (_("Section name must be specified."));
 	    return false;
 	}
-	BootCommon::sections = add (BootCommon::sections, [
+	BootCommon::sections = add (BootCommon::sections,
 	    $[
-		"key" : BootCommon::getSectionTitle (),
-		"value" : section,
-	    ]
-	]);
+		"name" : section
+	    ]);
     }
 
     /**
@@ -171,15 +161,14 @@
 	any value = nil;
 	if (section == nil)
 	{
-	    value = lookup_value (BootCommon::globals, option, nil);
+	    value = BootCommon::globals[option]:nil;
 	}
 	else
 	{
 	    integer index = BootCommon::getSectionIndex (section);
 	    if (index != nil)
 	    {
-		value = lookup_value (
-		    BootCommon::sections[index]:[], option, nil);
+		value = BootCommon::sections[index,option]:nil;
 	    }
 	}
 	if (value == nil)

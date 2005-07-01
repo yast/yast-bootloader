@@ -2,11 +2,10 @@
 # Makefile.am for bootloader/src
 #
 
-yncludedir = @yncludedir@/bootloader/grub
+yncludedir = @yncludedir@/bootloader/zipl
 
 ynclude_DATA =			\
-	misc.ycp		\
-	helps.ycp
+	widgets.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)

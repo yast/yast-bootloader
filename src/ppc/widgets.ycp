@@ -26,7 +26,6 @@
 
     include "bootloader/grub/helps.ycp";
     include "bootloader/routines/popups.ycp";
-    include "bootloader/routines/routines.ycp";
 
 
 

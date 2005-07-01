@@ -7,13 +7,18 @@ YCPCFLAGS = -I .
 module_DATA =			\
 	Bootloader.ycp		\
 	BootCommon.ycp		\
+	BootArch.ycp		\
 	BootGRUB.ycp		\
 	BootLILO.ycp		\
-	BootELILO.ycp		\
-	BootS390.ycp		\
-	BootMILO.ycp		\
-	BootABOOT.ycp		\
-	BootPPC.ycp
+	BootZIPL.ycp
+
+#	BootELILO.ycp		
+#	BootS390.ycp		\
+#	BootMILO.ycp		\
+#	BootABOOT.ycp		\
+#	BootPPC.ycp		
+
+
 
 EXTRA_DIST = 			\
 	$(module_DATA) 

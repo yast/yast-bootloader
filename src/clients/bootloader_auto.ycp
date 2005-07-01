@@ -26,8 +26,8 @@
     import "Progress";
     import "Mode";
 
-    include "bootloader/routines/routines.ycp";
-    include "bootloader/routines/autoinstall.ycp";
+//    include "bootloader/routines/autoinstall.ycp";
+    include "bootloader/routines/wizards.ycp";
 
     boolean progress_orig = Progress::set (false);
 
@@ -47,7 +47,7 @@
 
     if(func == "Import")
     {
-	ret = Bootloader::Import(AI2Export ((map<string,any>)param));
+	ret = Bootloader::Import(/*AI2Export (*/(map<string,any>)param/*)*/);
     }
     /**
       * Create a summary
@@ -88,7 +88,7 @@
       * return symbol (i.e. `finish || `accept || `next || `cancel || `abort)
       */
     else if (func == "Change") {
-	ret = Bootloader::BootloaderAutoSequence ();
+	ret = BootloaderAutoSequence ();
 	return ret;
     }
     /**
@@ -96,7 +96,7 @@
       * return map or list
       */
     else if (func == "Export") {
-	ret = Export2AI ((map<string,any>)Bootloader::Export());
+	ret = /*Export2AI (*/(map<string,any>)Bootloader::Export()/*)*/;
     }
     /**
       * Write configuration data

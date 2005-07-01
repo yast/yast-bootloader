@@ -1,0 +1,226 @@
+/**
+ * File:
+ *      include/bootloader/routines/lib-iface.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions to interface the bootloader library
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: misc.ycp 22859 2005-03-30 12:57:16Z jsrain $
+ *
+ * WARNING:
+ *      To be included to BootCommon.ycp only
+ *      Use import "BootCommon" instead.
+ */
+
+
+
+{
+
+textdomain "bootloader";
+
+import "System::Bootloader_API";
+import "Storage";
+
+/**
+ * Loader the library has been initialized to use
+ */
+string library_initialized = nil;
+
+// TODO update when iface is available
+map<string,any> PrepareInitData () {
+    map<string,any> mountpoints = mapmap (string k, list v,
+	(map<string,list>)Storage::GetMountPoints (),
+    {
+	return $[ k : (any)v[0]:nil];
+    });
+    mountpoints = filter (string k, any v, mountpoints, {
+	return is (v, string);
+    });
+    y2milestone ("Detected mountpoints: %1", mountpoints);
+
+    map<string,list<string> > md_info = $[];
+    map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
+    list<list<list> > pi = maplist (string disk, map info, tm,
+    {
+	if (info["is_lvm_vg"]:false)
+	    return [];
+	list partitions = info["partitions"]:[];
+	list<list> parts = maplist (map p, (list<map>)partitions, {
+	    string raid = p["raid_name"]:"";
+	    string device = p["device"]:"";
+	    if (raid != "")
+	    {
+		list<string> members = md_info[raid]:[];
+		members = add (members, device);
+		md_info[raid] = members;
+	    }
+	    any nr = p["nr"]:nil;
+	    if (nr == nil)
+		nr = 0;
+	    string nr_str = sformat ("%1", nr);
+	    return [ device, disk, nr_str ];
+	});
+	return parts;
+    });
+    list<list> partinfo = flatten (pi);
+    partinfo = filter (list p, partinfo, {return p != nil && p != [];});
+    y2milestone ("Information about partitioning: %1", partinfo);
+    y2milestone ("Information about MD arrays: %1", md_info);
+
+    return $[
+	"mountpoints" : mountpoints,
+	"partitions" : partinfo,
+	"md_arrays" : md_info,
+    ];
+}
+
+/**
+ * Initialize the bootloader library
+ * @param force boolean true if the initialization is to be forced
+ * @param loader string the loader to initialize the library for
+ * @return boolean true on success
+ */
+global boolean InitializeLibrary (boolean force, string loader) {
+    if (force || loader != library_initialized)
+    {
+	y2milestone ("Initializing lib for %1", loader);
+	System::Bootloader_API::initBootloader (loader);
+    }
+    y2milestone ("Putting partitioning into library");
+    map<string,any> init_data = PrepareInitData ();
+    map<string,string> mountpoints = init_data["mountpoints"]:$[];
+    list<list<string> > partitions = init_data["partitions"]:[];
+    map<string,list<string> > md_arrays = init_data["md_arrays"]:$[];
+    System::Bootloader_API::setMountPoints (mountpoints);
+    System::Bootloader_API::setPartitions (partitions);
+    System::Bootloader_API::setMDArrays (md_arrays);
+    y2milestone ("Library initialization finished");
+    library_initialized = loader;
+    return true; // FIXME error checking
+}
+
+global list<map<string,string> > GetSections ();
+
+global boolean SetSections (list<map<string,string> > sections) {
+    y2milestone ("Storing bootloader sections %1", sections);
+    sections = maplist (map<string,string> s, sections, {
+	s["__modified"] = "1";
+	return s;
+    });
+    boolean ret = System::Bootloader_API::setSections (sections);
+    if (! ret)
+	y2error ("Storing bootloader sections failed");
+    return ret;
+}
+
+global list<map<string,string> > GetSections () {
+    y2milestone ("Reading bootloader sections");
+    list<map<string,string> > sects = System::Bootloader_API::getSections ();
+    if (sects == nil)
+    {
+	y2error ("Reading sections failed");
+	return [];
+    }
+    y2milestone ("Read sections: %1", sects);
+    return sects;
+}
+
+global boolean SetGlobal (map<string,string> globals) {
+    y2milestone ("Storing global options %1", globals);
+    globals["__modified"] = "1";
+    boolean ret = System::Bootloader_API::setGlobalOptions (globals);
+    if (! ret)
+	y2error ("Storing global options failed");
+    return ret;
+}
+
+global map<string,string> GetGlobal () {
+    y2milestone ("Reading bootloader global options");
+    map<string,string> glob = System::Bootloader_API::getGlobalOptions ();
+    if (glob == nil)
+    {
+	y2error ("Reading global options failed");
+	return $[];
+    }
+    y2milestone ("Read global options: %1", glob);
+    return glob;
+}
+
+global boolean SetDeviceMap (map<string,string> device_map) {
+    y2milestone ("Storing device map");
+    boolean ret = System::Bootloader_API::setDeviceMapping (device_map);
+    if (! ret)
+	y2error ("Storing device map failed");
+    return ret;
+}
+
+global map<string,string> GetDeviceMap () {
+    y2milestone ("Reading device mapping");
+    map<string,string> devmap = System::Bootloader_API::getDeviceMapping ();
+    if (devmap == nil)
+    {
+	y2error ("Reading device mapping failed");
+	return $[];
+    }
+    y2milestone ("Read device mapping: %1", devmap);
+    return devmap;
+}
+
+global boolean ReadFiles () {
+    y2milestone ("Reading Files");
+    boolean ret = System::Bootloader_API::initConfig ();
+    if (! ret)
+	y2error ("Reading files failed");
+    return ret;
+}
+
+global boolean FlushCache () {
+    y2milestone ("Writing files to system");
+    boolean ret = System::Bootloader_API::commitSettings ();
+    if (! ret)
+	y2error ("Writing files to system failed");
+    return ret;
+}
+
+global boolean UpdateBootloader () {
+    y2milestone ("Updating bootloader configuration");
+    boolean ret = System::Bootloader_API::updateBootloader (true);
+    if (! ret)
+	y2error ("Error occurred while updating configuration files");
+    return ret;
+}
+
+global boolean InitializeBootloader () {
+    y2milestone ("Initializing bootloader");
+    boolean ret = System::Bootloader_API::initializeBootloader ();
+    if (! ret)
+        y2error ("Error occurred while initializing bootloader");
+    return ret;
+}
+
+global map<string,string> GetFilesContents () {
+    y2milestone ("Getting contents of files");
+    map<string,string> ret = System::Bootloader_API::getFilesContents ();
+    if (ret == nil)
+    {
+	y2error ("Getting contents of files failed");
+	return $[];
+    }
+    return ret;
+}
+
+global boolean SetFilesContents (map<string,string> files) {
+    y2milestone ("Storing contents of files");
+    boolean ret = System::Bootloader_API::setFilesFromStrings (files);
+    if (! ret)
+	y2error ("Settingg file contents failed");
+    return ret;
+}
+
+} //end of include

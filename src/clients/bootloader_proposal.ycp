@@ -17,7 +17,7 @@
     import "Bootloader";
     import "Mode";
 
-    include "bootloader/routines/convert.ycp";
+    include "bootloader/routines/wizards.ycp";
 
     string func  = (string)WFM::Args(0);
     map    param = (map)WFM::Args(1);
@@ -41,40 +41,7 @@
 	    Bootloader::ResetEx (false);
 	    BootCommon::setLoaderType (nil);
 	}
-	else if ((Arch::i386 () || Arch::x86_64 ()) && ! Mode::autoinst ())
-	{
-	    string loader = BootCommon::getLoaderType (false);
-	    boolean pl = BootCommon::prefer_lilo;
-	    string new_l = BootCommon::getLoaderType (true);
 
-	    y2milestone ("PL: %1, L: %2, NL: %3, NPL: %4", pl, loader, new_l, BootCommon::prefer_lilo);
-
-	    if (pl != BootCommon::prefer_lilo && new_l != loader && loader != "none")
-	    {
-		symbol ret = nil;
-		if ((pl && new_l != "lilo") || (! pl && new_l == "lilo"))
-		{
-		    ret = Bootloader::askSwitch (loader, new_l, `proposal);
-		}
-		if (ret == nil)
-		{
-		    BootCommon::setLoaderType (loader);
-		}
-		else if (ret == `propose)
-		{
-		    Bootloader::Reset ();
-		}
-		else if (ret == `convert)
-		{
-		    // FIXME are the parameters really correct?
-		    convertSettings (loader, new_l);
-		}
-	    }
-	    else
-	    {
-		BootCommon::setLoaderType (loader);
-	    }
-	}
 	if (Bootloader::getLoaderType () == "grub")
 	{
 	    import "BootGRUB";
@@ -129,7 +96,7 @@ In case that no selection can be made it may be necessary to create a PReP Boot 
 	map settings = Bootloader::Export ();
 	// don't ask for abort confirm if nothing was changed (#29496)
 	BootCommon::changed = false;
-	symbol result = Bootloader::BootloaderAutoSequence ();
+	symbol result = BootloaderAutoSequence ();
 	// set to true, simply because must be saved during installation
 	BootCommon::changed = true;
 	if (result != `next)

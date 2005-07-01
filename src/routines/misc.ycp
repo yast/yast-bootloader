@@ -26,7 +26,6 @@
     textdomain "bootloader";
     import "Mode";
     import "Stage";
-    include "bootloader/routines/routines.ycp";
 
     import "Storage";
     import "StorageDevices";
@@ -38,31 +37,6 @@
 // bootloader attributes handling functions
 
     global define map<string, integer> Md2Partitions (string md_device);
-    global map<string,any> PrepareInitData ();
-
-    /**
-      * Get the name of key containing section name of currently used bootloader
-      * @return string section name key
-      */
-    global define string getSectionTitle () ``{
-	return current_bootloader_attribs["section_title"]:"label";
-    }
-
-    /**
-      * Get the name of key containing kernel in currently used bootloader
-      * @return string kernel path key
-      */
-    global define string getKernelKey () ``{
-	return current_bootloader_attribs["kernel_key"]:"image";
-    }
-
-    /**
-      * Get the name of key containing initrd in currently used bootloader
-      * @return string initrd path key
-      */
-    global define string getInitrdKey () ``{
-	return current_bootloader_attribs["initrd_key"]:"initrd";
-    }
 
     /**
       * Get packages needed by specified bootloader
@@ -90,49 +64,6 @@
     }
 
     /**
-      * Get the name of key containing default section identification
-      * in currently used bootloader
-      * @return string default section option key
-      */
-    global define string getDefaultKey () ``{
-	return current_bootloader_attribs["default_key"]:"image";
-    }
-
-    /**
-      * Get type of value containing default section identification
-      * in currently used bootloader
-      * @return symbol `label or `index (type of contents)
-      */
-    global define symbol getDefaultType () ``{
-        return current_bootloader_attribs["default_type"]:`label;
-    }
-
-    /**
-      * Get index of first section when index identificatipno is used
-      * @return integer index of first section
-      */
-    global define integer getDefaultFirstIndex () ``{
-        return current_bootloader_attribs["default_index_start"]:0;
-    }
-
-    /**
-      * Get the value which multiplies timeout (in seconds) before writing
-      * to bootloader configuration file (eg. 10 for lilo)
-      * @return integer index of first section
-      */
-    global define integer getTimeoutMultiplier () ``{
-	return current_bootloader_attribs["timeout_multiplier"]:1;
-    }
-
-    /**
-      * Get list of keys which mean section alias
-      * @return a list of such keys
-      */
-    global define list<string> getAliasesKeys () ``{
-        return current_bootloader_attribs["alias_keys"]:[];
-    }
-
-    /**
       * Get value of specified boolean bootloader attribute
       * @param attrib string attribute name
       * @return boolean value of attribute
@@ -151,22 +82,21 @@
         return current_bootloader_attribs[attrib]:defaultv;
     }
 
-    /**
-      * Get index of a section specified by name
-      * @param string section name
-      * @return integer index of the section or nil if not found
-      */
-    global define integer getSectionIndex (string name) ``{
-	string label = getSectionTitle ();
-	integer index = -1;
-	integer sectnum = nil;
-	foreach (list<map> s, sections, ``{
-	    index = index + 1;
-	    if (lookup_value (s, label, "") == name)
-		sectnum = index;
-	});
-	return sectnum;
-    }
+/**
+ * Get index of a section specified by name
+ * @param string section name
+ * @return integer index of the section or nil if not found
+ */
+global integer getSectionIndex (string name) {
+    integer index = -1;
+    integer sectnum = nil;
+    foreach (map<string,any> s, sections, {
+	index = index + 1;
+	if (s["name"]:"" == name)
+	    sectnum = index;
+    });
+    return sectnum;
+}
 
     /**
       * Convert section orig from type otype to ntype
@@ -196,107 +126,31 @@
         return current_bootloader_attribs["kernel_params"]:$[];
     }
 
-    /**
-      * Get type of specified section
-      * Type depends on currently used bootloader
-      * @param section map of the section
-      * @return any section type
-      */
-    global define any getSectionType (list section) ``{
-	if (is (current_section_name, symbol))
-	    return current_section_name;
-// TODO: ask bootloader-specific function if exists
-	if (lookup_value (current_section, getKernelKey (),
-	    nil) != nil)
-	{
-	    return "image";
-	}
-	else
-	{
-	    return "other";
-	}
-    }
-
 
 // other misc functions
 
-    /**
-      * Add value to key in bootloader section
-      * @param s_section symbol representing section, values are
-      *  `globals, `current_globals, `current_section
-      * @param key string key of requested parameter
-      * @param value any value to be set, nil for remiving key
-      */
-    global define void addValueToBootloaderSection (symbol s_section,
-	string key, any value)
-    ``{
-	boolean found = false;
-	list<map> section = [];
-	if (s_section == `globals)
-	    section = globals;
-	else if (s_section == `current_globals)
-	    section = current_globals;
-	else if (s_section == `current_section)
-	    section = current_section;
-	else
-	{
-	    y2error ("Incorrect parameter for addValueToBootloaderSection");
-	    section = [];
-	}
-
-	section = filter (map cc,
-	    (list<map>)maplist (map c, section, ``{
-		if (c["key"]:"" == key)
-		{
-		    found = true;
-		    if (value == nil)
-			return nil;
-		    else
-		    {
-			c["value"] = value;
-			return c;
-		    }
-		}
-		return c;
-	    }), ``(cc != nil && cc["value"]:nil != nil)
-	);
-	if (! found)
-	{
-	    section = add (section, $[ "key" : key, "value" : value]);
-	}
-
-        if (s_section == `globals)
-            globals = section;
-        else if (s_section == `current_globals)
-            current_globals = section;
-        else if (s_section == `current_section)
-            current_section = section;
+/**
+ * Generates unused section label for new section
+ * @return string label for new section
+ */
+global string getFreeSectionLabel () {
+    integer index = 1;
+    list<string> existing = [];
+    foreach (map<string,any> s, sections, {
+	existing = add (existing, s["name"]:"");
+	list<string> aliases = splitstring (s["aliases"]:"", ";");
+	foreach (string a, aliases, {
+	    existing = add (existing, a);
+	});
+    });
+    while (true)
+    {
+	string title = sformat ("section %1", index);
+	if (! contains (existing, title))
+	    return title;
+	index = index + 1;
     }
-
-
-    /**
-      * Generates unused section label for new section
-      * @return string label for new section
-      */
-    global define string getFreeSectionLabel () ``{
-	integer index = 1;
-	list<string> existing = [];
-        foreach (list<map> s, BootCommon::sections, ``{
-            existing = add (existing, (string)lookup_value (
-		s, getSectionTitle (), ""));
-            foreach (string a, (list<string>) getAnyTypeAttrib ("alias_keys", []), ``{
-                existing = add (existing, (string)lookup_value (
-		    s, a, ""));
-            });
-        });
-	while (true)
-	{
-	    string title = sformat ("section %1", index);
-	    if (! contains (existing, title))
-		return title;
-	    index = index + 1;
-	}
-    }
+}
 
     /**
       * Get the list of installed floppy drives
@@ -351,7 +205,7 @@
       * List of all supported bootloaders
       */
     global list<string> bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
-	"aboot", "s390", "ppc", "mips"];
+	"aboot", "zipl", "ppc", "mips"];
 
     /**
      * converts array of string to path
@@ -567,8 +421,6 @@
 	    bl = "lilo";
 	if (size (opt_types[bl]:$[]) > 0)
 	    return opt_types[bl]:$[];
-//	SCR::Execute (.bootloader.agent_init, bl);
-//	SCR::Execute (.bootloader.disk_init, PrepareInitData ());
 	map<string,string> out = $[
 	    //default is string
 	    "compact" : "boolean",
@@ -814,70 +666,46 @@
       * @return string device name
       */
     global define string GetBootloaderDevice () ``{
-        if (BootCommon::location == "mbr")
+        if (BootCommon::selected_location == "mbr")
             return BootCommon::mbrDisk;
-        if (BootCommon::location == "boot")
+        if (BootCommon::selected_location == "boot")
 	    return BootCommon::BootPartitionDevice;
-        if (BootCommon::location == "root")
+        if (BootCommon::selected_location == "root")
 	    return  BootCommon::RootPartitionDevice;
-        if (BootCommon::location == "floppy")
+        if (BootCommon::selected_location == "floppy")
             return StorageDevices::FloppyDevice;
-        if (BootCommon::location == "mbr_md")
+        if (BootCommon::selected_location == "mbr_md")
 	    return "mbr_md";
-	if (BootCommon::location == "none")
+	if (BootCommon::selected_location == "none")
 	    return "/dev/null";
         return BootCommon::loader_device;
     }
+
+
+/**
+ * Check if installation to floppy is performed
+ * @return true if installing bootloader to floppy
+ */
+global boolean InstallingToFloppy () {
+    boolean ret = false;
+    if (loader_device == StorageDevices::FloppyDevice)
+	ret = true;
+    else if (contains (getFloppyDevices (), loader_device))
+	ret = true;
+    y2milestone ("Installing to floppy: %1", ret);
+    return ret;
+}
 
     /**
       *
       * @return true if installing bootloader to floppy
       */
     global define boolean installingToFloppy () ``{
-	if (BootCommon::location == "floppy")
-	    return true;
 	if (BootCommon::loader_device == StorageDevices::FloppyDevice)
 	    return true;
 	if (contains (getFloppyDevices (), BootCommon::loader_device))
 	    return true;
 	return false;
-    }
-
-    /**
-      * Get the label of default section
-      * @return string label default section label
-      */
-    global define string getDefaultSection () ``{
-	if (getDefaultType () == `label)
-	{
-	    string defaultv = (string) lookup_value (globals,
-		getDefaultKey (), "");
-	    boolean exists = false;
-	    foreach (list<map> s, sections, ``{
-		if (lookup_value (s, getSectionTitle (), "")
-		    == defaultv)
-		{
-		    exists = true;
-		}
-	    });
-	    if (exists)
-		return defaultv;
-	    else
-	    {
-		return (string) lookup_value (sections[0]:[], getSectionTitle (), "");
-	    }
-	}
-	else
-	{
-	    integer index = (integer) lookup_value (globals,
-		getDefaultKey (), 0);
-	    if (index == nil)
-		index = 0;
-	    index = index - getDefaultFirstIndex ();
-	    if (index < 0 || index >= size (sections))
-		index = 0;
-	    return (string) lookup_value (sections[index]:[], getSectionTitle (), "");
-	}
     }
 
 global list<string> ListKernelParamsInLine (string line) {
@@ -1000,21 +828,6 @@ global list<string> ListKernelParamsInLine (string line) {
 	params = filter (string p, params, ``(p != ""));
 	line = mergestring (params, " ");
 	return line;
-    }
-
-    /**
-      * Mark general bootloader option as changed by user
-      * @param optname string option name
-      */
-    global define void markGeneralOptionChanged (string optname) ``{
-	map intern = (map) lookup_value (current_section, "__intern__", $[]);
-	list ch = intern["changed_opts"]:[];
-	ch = toset (add (ch, optname));
-	intern["changed_opts"] = ch;
-	current_section = modifySection (current_section, "__intern__", intern);
-	if (current_section_name == `global)
-	    changed = true;
-	one_section_changed = true;
     }
 
     /**
@@ -1192,6 +1005,7 @@ global list<string> ListKernelParamsInLine (string line) {
      * @return a list of partitions to activate
      */
     global define list<map<string, any> > getPartitionsToActivate () {
+/* FIXME this whole function
 	map<string,integer> md = $[];
 	if (BootCommon::loader_device == "mbr_md")
 	{
@@ -1212,6 +1026,8 @@ global list<string> ListKernelParamsInLine (string line) {
 		partition);
 	});
 	return toset (ret);
+*/
+	return [];
     }
 
     /**
@@ -1221,6 +1037,7 @@ global list<string> ListKernelParamsInLine (string line) {
      */
     global define list<string> getMbrsToRewrite () {
 	list<string> ret = [BootCommon::mbrDisk];
+/* FIXME this whole function
 	map<string,integer> md = $[];
 	if (BootCommon::loader_device == "mbr_md")
 	{
@@ -1240,7 +1057,8 @@ global list<string> ListKernelParamsInLine (string line) {
 	{
 	    ret = (list<string>)merge (ret, mbrs);
 	}
-	return toset (ret);
+	return toset (ret);*/
+	return [];
     }
 
     /**
@@ -1309,6 +1127,8 @@ global list<string> ListKernelParamsInLine (string line) {
       * @return boolean true on success
       */
     global define boolean updateMBR () ``{
+	return true;
+/* FIXME this whole function
 	if (backup_mbr)
 	{
 	    y2milestone ("Doing MBR backup: MBR Disk: %1, loader device: %2",
@@ -1360,7 +1180,7 @@ global list<string> ListKernelParamsInLine (string line) {
 			BootCommon::mbrDisk)));
 	    });
 	}
-	return ret;
+	return ret;*/
     }
 
     /**
@@ -1464,7 +1284,7 @@ global list<string> ListKernelParamsInLine (string line) {
       * @param orig original kernel parameters or kernel command line
       * @return kernel command line or parameters with added new parameters
       */
-    global define string updateKernelParams (string orig) ``{
+    global define string UpdateKernelParams (string orig) ``{
 	list<string> new = splitstring (Kernel::GetCmdLine (), " ");
 	list<string> old = splitstring (orig, " ");
 	list<string> added = (list<string>)BootCommon::difflist (new,
@@ -1488,6 +1308,8 @@ global list<string> ListKernelParamsInLine (string line) {
 	return mergestring (old, " ");
     }
 
+
+
     /**
       * Check whether settings were changed and if yes, ask for exit
       * without saving
@@ -1498,54 +1320,6 @@ global list<string> ListKernelParamsInLine (string line) {
 	    return true;
 	else
 	    return false;
-    }
-
-    /**
-      * Create list of items to be displayed in bootloader section
-      * @param prependlist list of items, that should be at the beginning
-      * @param forbidden_keys list of keys, that shouldn't be added to the list
-      * @param alpha_order boolean true if items should be alphabetically
-      *  ordered (except prependlist)
-      * @return list of items
-      */
-    global define list createSectionItemsList (list prependlist,
-	list forbidden_keys, boolean alpha_order)
-    ``{
-	if (Stage::initial ())
-	{
-	    prependlist = filter (any p, prependlist, ``(p != "__save_method"));
-	}
-	forbidden_keys = merge (forbidden_keys, prependlist);
-	forbidden_keys = add (forbidden_keys, "__intern__");
-	integer index = -1;
-	map remap_prepend = $[];
-	map<any,integer> sortmap = $[];
-	list options = maplist (map opt, current_section, ``{
-	    index = index + 1;
-	    if (contains (prependlist, opt["key"]:""))
-	    {
-		remap_prepend[opt["key"]:""] = index;
-		return nil;
-	    }
-	    integer retval = contains (forbidden_keys, opt["key"]:"")
-		? nil
-		: index;
-	    if (nil != retval)
-	    {
-		string label = opt["key"]:"";
-		map opt_map = BootCommon::cwm_options[label]:$[];
-		label = opt_map["label"]:label;
-		sortmap[label] = retval;
-	    }
-	    return retval;
-	});
-	if (alpha_order)
-	{
-	    options = maplist (any k, integer v, sortmap, ``(v));
-	}
-	prependlist = maplist (any e, prependlist, ``(remap_prepend[e]:e));
-	options = filter (any opt, options, ``(opt != nil));
-	return merge (prependlist, options);
     }
 
     /**
@@ -1829,8 +1603,9 @@ global list<string> ListKernelParamsInLine (string line) {
     }
 
 global string GetAdditionalKernelParams () {
-    string line = ProductFeatures::GetStringFeature ("globals", "additional_kernel_parameters");
-    return line;
+    return ProductFeatures::GetStringFeature (
+		"globals",
+		"additional_kernel_parameters");
 }
 
 global list<string> ListAdditionalKernelParams () {
@@ -1841,7 +1616,7 @@ global list<string> ListAdditionalKernelParams () {
   * Update graphical bootloader to contain help text of current language
   * And make the selected installation language default
   */
-global define boolean updateGfxMenu () {
+global define boolean UpdateGfxMenuContents () {
     y2milestone ("Updating GFX boot menu");
     if (SCR::Read (.target.size, "/boot/message") == -1)
 	return true;
@@ -1922,64 +1697,29 @@ global define boolean updateGfxMenu () {
     return ret["exit"]:0 == 0;
 }
 
-    /**
-     * Transform the selected linux section to section for previous kernel
-     * @param section a list representing the bootloader section
-     * @return a list representing the updated section
-     */
-    global define list<map> Linux2Previous (list<map> section) {
-	string title_key = getSectionTitle ();
-	string kernel_key = getKernelKey ();
-	string initrd_key = getInitrdKey ();
-	boolean intern_found = false;
-
-	section = maplist (map s, section, {
-	    if (s["key"]:nil == title_key)
-	    {
-		s["value"] = translateSectionTitle ("previous");
-	    }
-	    else if (s["key"]:nil == kernel_key)
-	    {
-		list<string> l = splitstring (s["value"]:"", " \t");
-		l = filter (string p, l, {return p != "";});
-		if (regexpmatch (l[0]:"", sformat ("^.*%1[^ ]*.*$",
-		    Kernel::GetBinary ())))
-		{
-		    l[0] = regexpsub (
-			l[0]:"",
-			sformat ("^(.*)%1[^ ]*(.*)$", Kernel::GetBinary ()),
-			sformat ("\\1%1.previous\\2", Kernel::GetBinary()));
-		}
-		s["value"] = mergestring (l, " ");
-	    }
-	    else if (s["key"]:nil == initrd_key)
-	    {
-		if (regexpmatch (s["value"]:"", "^.*initrd[^ ]*.*$"))
-		{
-		    s["value"] = regexpsub (
-			s["value"]:"",
-			"^(.*)initrd[^ ]*(.*)$",
-			"\\1initrd.previous\\2");
-		}
-	    }
-	    else if (s["key"]:nil == "__intern__")
-	    {
-		s["value", "type"] = "previous";
-		intern_found = true;
-	    }
-	    return s;
-	});
-	if (! intern_found)
-	{
-	    section = add (section, $[
-		"key" : "__intern__",
-		"value" : $[
-		    "type" : "previous",
-		],
-	    ]);
-	}
-	return section;
+/**
+ * Transform the selected linux section to section for previous kernel
+ * @param section a list representing the bootloader section
+ * @return a list representing the updated section
+ */
+global map<string,any> Linux2Previous (map<string,any> section) {
+    boolean intern_found = false;
+    section["name"] = translateSectionTitle ("previous");
+    section["original_name"] = "previous";
+    section["kernel"] = regexpsub (
+	section["kernel"]:"",
+	sformat ("^(.*)%1[^ ]*(.*)$", Kernel::GetBinary ()),
+	sformat ("\\1%1.previous\\2", Kernel::GetBinary()));
+    if (haskey (section, "initrd"))
+    {
+	section["initrd"] = regexpsub (
+	    section["initrd"]:"",
+	    "^(.*)initrd[^ ]*(.*)$",
+	    "\\1initrd.previous\\2");
     }
+    section["__type"] = "previous";
+    return section;
+}
 
 /**
  * Update device name according to changes in kernel (eg. SATA)
@@ -2025,7 +1765,7 @@ global string UpdateDevice (string device) {
  * @return boolean true if memtest86 section is to be proposed
  */
 global boolean MemtestPresent () {
-    return (! memtest_removed)
+    return (! contains (removed_sections, "memtest"))
 	&& (Mode::test ()
 	    || (Mode::normal () && Pkg::IsProvided ("memtest86"))
 	    || (! Mode::normal () && Pkg::IsSelected ("memtest86")));
@@ -2069,190 +1809,6 @@ global list<map<string,string> > CheckAdditionalKernels () {
     return ret;
 }
 
-global map<string,any> PrepareInitData () {
-    map<string,any> mountpoints = mapmap (string k, list v,
-	(map<string,list>)Storage::GetMountPoints (),
-    {
-	return $[ k : (any)v[0]:nil];
-    });
-    mountpoints = filter (string k, any v, mountpoints, {
-	return is (v, string);
-    });
-    y2milestone ("Detected mountpoints: %1", mountpoints);
-
-    map<string,list<string> > md_info = $[];
-    map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
-    list<list<list> > pi = maplist (string disk, map info, tm,
-    {
-	if (info["is_lvm_vg"]:false)
-	    return [];
-	list partitions = info["partitions"]:[];
-	list<list> parts = maplist (map p, (list<map>)partitions, {
-	    string raid = p["raid_name"]:"";
-	    string device = p["device"]:"";
-	    if (raid != "")
-	    {
-		list<string> members = md_info[raid]:[];
-		members = add (members, device);
-		md_info[raid] = members;
-	    }
-	    return [ device, disk, p["nr"]:0 ];
-	});
-	return parts;
-    });
-    list<list> partinfo = flatten (pi);
-    partinfo = filter (list p, partinfo, {return p != nil && p != [];});
-    y2milestone ("Information about partitioning: %1", partinfo);
-    y2milestone ("Information about MD arrays: %1", md_info);
-
-    return $[
-	"mountpoints" : mountpoints,
-	"partitions" : partinfo,
-	"md_arrays" : md_info,
-    ];
-}
-
-list<map> LinesYCP2IO (list<map> lines, map intern) {
-    lines = filter (map l, lines, {
-	return l["value"]:nil != false;
-    });
-    list<map> ret = [];
-    foreach (map l, lines, {
-	string key = l["key"]:"";
-	if (isSpecial (l["key"]:""))
-	{
-	    list<string> vals = splitstring (l["value"]:"", ",");
-	    foreach (string v, vals, {
-		list<string> kv = splitstring (v, "=");
-		ret = add (ret, $[
-		    "key" : kv[0]:"",
-		    "value" : kv[1]:nil,
-		]);
-	    });
-	}
-	else if (key == getSectionTitle ())
-	{
-	    string type = intern["type"]:"";
-	    if (type != "")
-	    {
-		l["comment_before"] = sformat (
-		    "###Don't change this comment - YaST2 identifier: Original name: %1###",
-		    type);
-	    }
-	    ret = add (ret, l);
-	}
-	else
-	{
-	    if (l["value"]:nil == true)
-		l["value"] = nil;
-	    ret = add (ret, l);
-	}
-    });
-    return ret;
-}
-
-list<map> LinesIO2YCP (list<map> lines) {
-    list<map> special = filter (map o, lines, {
-	return isSpecial (o["key"]:"");
-    });
-    lines = filter (map o, lines, {
-	return ! isSpecial (o["key"]:"");
-    });
-    string type = "";
-    lines = maplist (map l, lines, {
-	if (opttypes ()[l["key"]:""]:"string" == "boolean")
-	    l["value"] = true;
-	if (l["key"]:"" == getSectionTitle ())
-	{
-	    string comment = l["comment_before"]:"";
-	    if (regexpmatch (comment, "###Don't change this comment - YaST2 identifier: Original name: [a-z0-9_]+###"))
-	    {
-		type = regexpsub (comment, "###Don't change this comment - YaST2 identifier: Original name: ([a-z0-9_]+)###", "\\1");
-	    }
-	}
-	return l;
-    });
-    if (type != "")
-    {
-	lines = add (lines, $[
-	    "key" : "__intern__",
-	    "value" : $[
-		"type" : type,
-	    ],
-	]);
-    }
-    map<string,list<string> > spec_types = $[
-	"change-rules" : ["change-rules", "type", "reset", "normal", "hidden"],
-	"disk" : ["disk", "heads", "inaccessible", "cylinders", "bios",
-	    "sectors",],
-	"change" : [ "change", "set", "partition", "deactivate", "partition",
-	    "automatic" ],
-	"map-drive" : [ "map-drive", "to",],
-    ];
-    if (getLoaderType (false) != "ppc")
-	spec_types["change"] = add (spec_types["change"]:[], "activate");
-    map<string,string> spec = $[];
-    foreach (map o, special, {
-	string key = o["key"]:"";
-	string val = o["value"]:"";
-	foreach (string st, list<string> l, spec_types, {
-	    if (contains (l, key))
-	    {
-		string current = spec[st]:"";
-		if (current != "")
-		    current = current + ",";
-		if (o["value"]:"" != "")
-		    current = current + sformat ("%1=%2", key, val);
-		else
-		    current = current + key;
-		spec[st] = current;
-	    }
-	});
-    });
-    foreach (string k, string v, spec, {
-	lines = add (lines, $[
-	    "key" : k,
-	    "value" : v,
-	]);
-    });
-    return lines;
-}
-
-global void IO2Sections () {
-    list sects = io_structure["sections"]:[];
-    sects = maplist (any sa, sects, {
-	map s = (map)sa;
-	list<map>lines = LinesIO2YCP ((list<map>)s["__lines"]:[]);
-	return lines;
-    });
-    sections = (list<list<map> >)sects;
-}
-
-global void IO2Global () {
-    globals = LinesIO2YCP ((list<map>)io_structure["global", "__lines"]:[]);
-}
-
-global void Sections2IO () {
-    list sects = maplist (list<map> s, sections, {
-	map intern = (map)lookup_value (s, "__intern__", $[]);
-	s = filter (map m, s, {return m["key"]:"" != "__intern__";});
-	return $[
-	    "__lines" : LinesYCP2IO (s, intern),
-	];
-    });
-    io_structure["sections"] = sects;
-}
-
-global void Global2IO () {
-    map glob = $[
-	"__lines" : LinesYCP2IO (filter (map m, globals, {
-	    return m["key"]:"" != "__intern__";
-	}), $[]),
-	"stage1_dev" : [loader_device],
-    ];
-    io_structure["global"] = glob;
-}
-
 /**
  * Check if the bootloader can be installed at all with current configuration
  * @return boolean true if it can
@@ -2293,5 +1849,15 @@ global boolean BootloaderInstallable () {
 	return true;
     }
 }
+
+/**
+ * Get creator type of the section
+ * @param section map section description structure
+ * @return string section type
+ */
+string getCreationType (map<string,any> section) {
+    return section["__type"]:"";
+}
+
 
 } //end of include

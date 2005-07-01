@@ -1,5 +1,5 @@
 @HEADER-COMMENT@
-# neededforbuild yast2-devel-packages yast2-storage yast2-installation yast2 yast2-devel
+# neededforbuild yast2-devel-packages yast2-storage yast2-installation yast2 yast2-devel perl-Bootloader
 
 @HEADER@
 PreReq:         /bin/sed %fillup_prereq

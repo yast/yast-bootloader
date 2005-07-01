@@ -28,6 +28,7 @@
       * @return map the export map
       */
     define map<string,any> AI2Export (map<string,any> ai) ``{
+	return ai;/* FIXME
 	// prepare settings for default bootloader if not specified in the
 	// profile
 	if (Mode::autoinst () && ! haskey (ai, "loader_type"))
@@ -204,7 +205,7 @@
 	if (default_sect != nil)
 	    ai["default"] = default_sect;
 
-	return (map<string,any>)exp;
+	return (map<string,any>)exp;*/
     }
 
     /**
@@ -213,6 +214,7 @@
       * @return map the autoinstallation map
       */
     define map<string,any> Export2AI (map<string,any> exp) ``{
+	return exp; /* FIXME
 	// bootloader type and location stuff
 	map<string,any> ai = $[
 	    "loader_type" : exp["loader_type"]:"",
@@ -331,7 +333,7 @@
 	}
 	if (default_sect != nil)
 	    ai["default"] = default_sect;
-	return (map<string,any>)ai;
+	return (map<string,any>)ai;*/
     }
 
 }

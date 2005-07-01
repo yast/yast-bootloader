@@ -29,12 +29,12 @@
     import "Stage";
     import "Storage";
 
-    import "BootABOOT";
-    import "BootELILO";
+//    import "BootABOOT";
+//    import "BootELILO";
     import "BootLILO";
-    import "BootMILO";
-    import "BootPPC";
-    import "BootS390";
+//    import "BootMILO";
+//    import "BootPPC";
+//    import "BootS390";
     import "BootGRUB";
 
     global define map Export ();
@@ -51,6 +51,7 @@
     global define list<string> listKernelParams (string section);
     global define string getLoaderType ();
     global define string getProposedDefaultSection ();
+    global define boolean UpdateGfxMenu ();
 
 
     /**
@@ -92,7 +93,6 @@
       */
     global define void Bootloader () ``{
 	BootCommon::reset_button_handle = Bootloader::resetButtonHandle;
-	BootCommon::loader_type_store = Bootloader::loaderTypeStore;
 	return;
     }
 
@@ -103,7 +103,6 @@
     global define map Export () ``{
 	ReadOrProposeIfNeeded ();
 	map out = $[
-	    "location" : BootCommon::location,
 	    "loader_device" : BootCommon::loader_device,
 	    "loader_type" : getLoaderType (),
 	    "initrd" : Initrd::Export (),
@@ -125,7 +124,6 @@
 	BootCommon::was_proposed = true;
 	BootCommon::changed = true;
 	BootCommon::location_changed = true;
-	BootCommon::location = settings["location"]:"";
 	BootCommon::loader_device = settings["loader_device"]:"";
 
 	if (settings["loader_type"]:nil == "")
@@ -182,18 +180,7 @@
         if (testAbort ())
             return false;
 
-	boolean ret = blRead ();
-	BootCommon::updateLoaderLocation ();
-	if (BootCommon::location == "none")
-	{
-	    BootCommon::location = "custom";
-	    BootCommon::loader_device = "/dev/null";
-	}
-	else if (BootCommon::location == nil || BootCommon::location == "")
-	{
-	    BootCommon::location = "custom";
-	}
-	BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+	boolean ret = blRead (true);
 	BootCommon::was_read = true;
 	old_vga = getKernelParam (getDefaultSection (), "vga");
 
@@ -214,7 +201,6 @@
 	y2milestone ("Reseting configuration");
 	BootCommon::was_proposed = false;
 	BootCommon::was_read = false;
-	BootCommon::location = "";
 	BootCommon::loader_device = "";
 //	BootCommon::setLoaderType (nil);
 	BootCommon::changed = false;
@@ -255,19 +241,16 @@
         string main_section = getProposedDefaultSection ();
         if (main_section == nil)
             return ret;
-        string label = BootCommon::getSectionTitle ();
 	integer index = -1;
 	integer sectnum = -1;
-        foreach (list<map> s, BootCommon::sections, ``{
+        foreach (map<string,any> s, BootCommon::sections, {
             index = index + 1;
-            if (lookup_value (s, label, "") == main_section)
+            if (s["name"]:"" == main_section)
                 sectnum = index;
         });
         if (sectnum == -1)
             return ret;
-	map intern = (map)lookup_value (BootCommon::sections[sectnum]:[],
-	    "__intern__", $[]);
-	if (intern["changed"]:false)
+	if (BootCommon::sections[sectnum, "__changed"]:false)
 	    return ret;
 	string filtered_cmdline = filterchars (Kernel::GetCmdLine (),
 	    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
@@ -328,11 +311,11 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
 	y2milestone ("Running bootloader pre-update stuff");
 	if (Arch::ia64 ())
 	{
-	    BootELILO::UpdateEfiPartitionLayout ();
+//	    BootELILO::UpdateEfiPartitionLayout ();
 	}
 	else if (Arch::s390 ())
 	{
-	    BootS390::UpdateZiplConfBeforeUpdate ();
+//	    BootS390::UpdateZiplConfBeforeUpdate ();
 	}
     }
 
@@ -459,18 +442,14 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
         }
 
 	// Write settings to /etc/sysconfig/bootloader
-	if (BootCommon::location == "custom"
-	    && BootCommon::loader_device == "/dev/null")
-	{
-	    BootCommon::location = "none";
-	}
 	y2milestone ("Saving configuration files");
 	string lt = getLoaderType ();
 	if (lt == "ppc" && Arch::ppc ())
 	    lt = "lilo";
         SCR::Write (.sysconfig.bootloader.LOADER_TYPE, lt);
-        SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
-            BootCommon::location);
+//        SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
+//            BootCommon::location);
+// FIXME
 	SCR::Write (.sysconfig.bootloader, nil);
 
 	params_to_save["additional_failsafe_params"]
@@ -487,8 +466,11 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	    return ret;
 	}
 
+	// update graphics menu where possible
+	UpdateGfxMenu ();
+
 	// save bootloader settings
-	ret = ret && blSave ();
+	ret = blSave (true, true, true) && ret;
 	if (! ret)
 	    y2error ("Error before configuration files saving finished");
 
@@ -501,17 +483,12 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
             Progress::Title (titles[2]:"");
         }
 
-        if (BootCommon::location == "none" || BootCommon::location == "")
-	{
-	    return ret;
-	}
-
 	// call bootloader executable
 	y2milestone ("Calling bootloader executable");
 	ret = ret && blWrite ();
 
-	if (! ret)
-	{
+    if (! ret)
+    {
 	    y2error ("Installing bootloader failed");
 	    if (writeErrorPopup ())
 	    {
@@ -523,9 +500,19 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 		    return Write ();
 		}
 	    }
-	}
-	return ret;
     }
+    else
+    {
+	if (BootCommon::InstallingToFloppy ())
+	{
+	    BootCommon::updateTimeoutPopupForFloppy
+		(BootCommon::getLoaderName (getLoaderType ()));
+	}
+
+
+    }
+    return ret;
+}
 
 // write mode settings function
 
@@ -548,7 +535,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       */
     global define string getDefaultSection () ``{
 	ReadOrProposeIfNeeded ();
-	return BootCommon::getDefaultSection ();
+	return BootCommon::globals["default"]:"";
     }
 
     /**
@@ -562,19 +549,16 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	string defaultv = "";
 	string first_image = "";
 	string default_image = "";
-	foreach (list<map> s, BootCommon::sections, ``{
-	    string title = (string)
-		lookup_value (s, BootCommon::getSectionTitle (), "");
-	    map intern = (map)lookup_value (s, "__intern__", $[]);
-	    string kernel_key = BootCommon::getKernelKey ();
-	    if (lookup_value (s, kernel_key, nil) != nil)
+	foreach (map<string,any> s, BootCommon::sections, ``{
+	    string title = s["name"]:"";
+	    if (s["kernel"]:nil != nil)
 	    {
 		if (first_image == "")
 		    first_image = title;
 		if (title == getDefaultSection ())
 		    default_image = title;
 	    }
-	    if (defaultv == "" && intern["type"]:"" == "linux")
+	    if (defaultv == "" && s["__type"]:"" == "linux")
 		defaultv = title;
 	});
 	if (defaultv != "")
@@ -592,30 +576,29 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
      */
     global define void AddPreviousSection () {
 	ReadOrProposeIfNeeded ();
-	string title_key = BootCommon::getSectionTitle ();
 	// check if there is already present "Previous" section
-	BootCommon::sections = filter (list<map> s, BootCommon::sections, {
-	    string title = (string)lookup_value (s, title_key, "");
-	    map intern = (map)lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:"";
+	BootCommon::sections = filter (map<string,any> s,BootCommon::sections,{
+	    string title = s["name"]:"";
+	    string type = s["__type"]:"";
 	    boolean preserve = type != "previous" && title != "previous"
 		&& BootCommon::translateSectionTitle (title) != "previous";
 	    return preserve;
 	});
 	// add the new section now
-	list<map> found_sect = nil;
+	map<string,any> found_sect = nil;
 	string sect_name = getProposedDefaultSection ();
 	if (sect_name == "" || sect_name == nil)
 	    return;
 
-	foreach (list<map> s, BootCommon::sections, {
-	    if (lookup_value (s, title_key, "") == sect_name)
+	foreach (map<string,any> s, BootCommon::sections, {
+	    if (s["name"]:"" == sect_name)
 		found_sect = s;
 	});
 	if (found_sect == nil)
 	    return;
 
-	list<map> previous_section = BootCommon::Linux2Previous (found_sect);
+	map<string,any> previous_section
+	    = BootCommon::Linux2Previous (found_sect);
 	BootCommon::sections = add (BootCommon::sections, previous_section);
 	BootCommon::changed = true;
     }
@@ -636,24 +619,21 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	if (section == nil)
 	    return "";
 	map params = BootCommon::getKernelParamKeys ();
-	string label = BootCommon::getSectionTitle ();
 	integer sectnum = -1;
 	integer index = -1;
-	foreach (list<map> s, BootCommon::sections, ``{
+	foreach (map<string,any> s, BootCommon::sections, {
 	    index = index + 1;
-	    if (lookup_value (s, label, "") == section)
+	    if (s["name"]:"" == section)
 		sectnum = index;
 	});
 	if (sectnum == -1)
 	    return "";
 	string line = "";
-	if (haskey (params, key))
-	    return (string)lookup_value (
-		BootCommon::sections[sectnum]:[], key, "false");
+	if (contains (["root", "vga"], key))
+	    return BootCommon::sections[sectnum, key]:"false";
 	else
 	{
-	    line = (string)lookup_value (
-		BootCommon::sections[sectnum]:[], params[`other]:"", "");
+	    line = BootCommon::sections[sectnum, "append"]:"";
 	    return BootCommon::getKernelParamFromLine (line, key);
 	}
     }
@@ -671,19 +651,16 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	    section = getProposedDefaultSection ();
 	if (section == nil)
 	    return [];
-	map params = BootCommon::getKernelParamKeys ();
-	string label = BootCommon::getSectionTitle ();
 	integer sectnum = -1;
 	integer index = -1;
-	foreach (list<map> s, BootCommon::sections, ``{
+	foreach (map<string,any> s, BootCommon::sections, {
 	    index = index + 1;
-	    if (lookup_value (s, label, "") == section)
+	    if (s["name"]:"" == section)
 		sectnum = index;
 	});
 	if (sectnum == -1)
 	    return [];
-	string line = (string)lookup_value (
-	    BootCommon::sections[sectnum]:[], params[`other]:"", "");
+	string line = BootCommon::sections[sectnum, "append"]:"";
         list<string> par = splitstring (line, " ");
         par = filter (string p, par, ``(p != ""));
 	return par;
@@ -698,18 +675,19 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * @return list of strings representing sections names
       */
     global define list getSectionsList (symbol type) ``{
-	string title = BootCommon::getSectionTitle ();
-	string linux = BootCommon::getKernelKey ();
-
-	list<list<map> > sects = (list<list<map> >)BootCommon::sections;
+	list<map<string,any> > sects = BootCommon::sections;
 	if (type == `other)
-	    sects = filter (list<map> s, sects, ``(
-		lookup_value (s, linux, nil) == nil));
+	{
+	    sects = filter (map<string,any> s, sects, ``(
+		! haskey (s, "chainloader")));
+	}
 	else if (type == `linux)
-	    sects = filter (list<map> s, sects, ``(
-		lookup_value (s, linux, nil) != nil));
-	list<string> sects_titles = maplist (list<map> s, sects, ``(
-	    (string)lookup_value (s, title, "")));
+	{
+	    sects = filter (map<string,any> s, sects, ``(
+		! haskey (s, "kernel")));
+	}
+	list<string> sects_titles = maplist (map<string,any> s, sects, ``(
+	    s["name"]:""));
 	sects_titles = filter (string s, sects_titles, ``(s != ""));
 	return sects_titles;
     }
@@ -742,13 +720,11 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	    section = getProposedDefaultSection ();
 	if (section == nil)
 	    return false;
-        string label = BootCommon::getSectionTitle ();
-	map params = BootCommon::getKernelParamKeys ();
         integer sectnum = -1;
         integer index = -1;
-        foreach (list<map> s, BootCommon::sections, ``{
+        foreach (map<string,any> s, BootCommon::sections, ``{
             index = index + 1;
-            if (lookup_value (s, label, "") == section)
+            if (s["name"]:"" == section)
                 sectnum = index;
         });
         if (sectnum == -1)
@@ -756,27 +732,23 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	string slabel = "";
 	if ((key == "vga" || key == "root") && (value == "true"))
 	    return false;
-	if (haskey (params, key))
+	if (contains (["root", "vga"], key))
 	{
 	    if (value != "false")
 	    {
-		BootCommon::sections[sectnum] = modifySection (
-		    BootCommon::sections[sectnum]:[], key, value);
+		BootCommon::sections[sectnum, key] = value;
 	    }
 	    else
 	    {
-		BootCommon::sections[sectnum] = modifySection
-		    (BootCommon::sections[sectnum]:[], key, nil);
+		BootCommon::sections[sectnum] = remove (
+		    BootCommon::sections[sectnum]:$[], key);
 	    }
 	}
 	else
 	{
-	    slabel = params[`other]:"";
-	    string line = (string)
-		lookup_value (BootCommon::sections [sectnum]:[], slabel, "");
+	    string line = BootCommon::sections [sectnum, "append"]:"";
 	    line = BootCommon::setKernelParamToLine (line, key, value);
-	    BootCommon::sections [sectnum] = modifySection (
-		BootCommon::sections [sectnum]:[], slabel, line);
+	    BootCommon::sections [sectnum, "append"] = line;
 	}
 	BootCommon::changed = true;
 	boolean ret = true;
@@ -860,7 +832,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 		BootCommon::was_proposed = true;
 	    }
 	    else if (Arch::ia64 () && Mode::update ()
-		&& BootELILO::efi_layout_changed)
+)// FIXME		&& BootELILO::efi_layout_changed)
 	    { // recreate config on IPF from scratch - request by rw
 		y2milestone ("Reproposing new configuration - IPF, EFI layout has changed");
 		Propose ();
@@ -894,7 +866,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	if (getLoaderType () != "lilo" && getLoaderType () != "grub")
 	    return true;
 
-	boolean ret = BootCommon::updateGfxMenu ();
+	boolean ret = BootCommon::UpdateGfxMenuContents ();
 	if (getLoaderType () == "lilo")
 	{
 	    string bl_command = "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1";
