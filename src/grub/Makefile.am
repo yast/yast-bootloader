@@ -5,8 +5,7 @@
 yncludedir = @yncludedir@/bootloader/grub
 
 ynclude_DATA =			\
-	misc.ycp		\
-	helps.ycp
+	misc.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)
