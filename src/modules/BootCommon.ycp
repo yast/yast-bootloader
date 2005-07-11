@@ -507,7 +507,7 @@ y2internal ("3: %1", BootCommon::sections);
 		    return p_dev["disk"]:"";
 		});
 		// summary part, %1 is a list of device names
-		target_name = sformat (_("Master Boot Records of Disks %1"),
+		target_name = sformat (_("Master boot records of disks %1"),
 		    mergestring (mbrs, ", "));
 	    }
 	}
@@ -519,7 +519,7 @@ y2internal ("3: %1", BootCommon::sections);
 
 	list<string> result = [];
 	// summary text, %1 is bootloader name (eg. LILO)
-	result = add (result, sformat (_("Boot loader type: %1"),
+	result = add (result, sformat (_("Boot Loader Type: %1"),
 		getLoaderName (getLoaderType (false))));
 	// summary text, location is location description (eg. /dev/hda)
 	result = add (result, sformat (_("Location: %1"), target_name));
@@ -535,7 +535,7 @@ y2internal ("3: %1", BootCommon::sections);
 	    String::EscapeTags (mergestring (sects, ", "))));
 	if (loader_device == "/dev/null")
 	    // summary text
-	    result = add (result, _("Do not install boot loader -- just create
+	    result = add (result, _("Do not install boot loader; just create
 configuration files"));
 	return result;
     }

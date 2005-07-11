@@ -786,7 +786,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 		// error popup - label, %1 is bootloader name
 // FIXME use general label		_("Error Occurred while Installing %1"),
 		// error popup - label
-                errorWithLogPopup (_("Error occurred while installing GRUB"),
+                errorWithLogPopup (_("Error occurred while installing GRUB."),
                     log);
 	    }
 	    else if (BootCommon::InstallingToFloppy ())

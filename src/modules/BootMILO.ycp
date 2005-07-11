@@ -73,7 +73,7 @@
       */
     global define list<string> Summary () ``{
 	// summary
-	return [_("Install MILO Boot Loader")];
+	return [_("Install MILO boot loader")];
     }
 
     /**

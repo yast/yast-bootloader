@@ -80,10 +80,10 @@
 		boolean ret = BootCommon::restoreMBR (BootCommon::mbrDisk);
 		if (ret)
 		    // message popup
-		    Popup::Message (_("MBR restored successfully"));
+		    Popup::Message (_("MBR restored successfully."));
 		else
 		    // message popup
-		    Popup::Message (_("Failed to restore MBR"));
+		    Popup::Message (_("Failed to restore MBR."));
 	    }
             return nil;
         }

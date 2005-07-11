@@ -154,15 +154,15 @@
 	    _("Load boot loader settings"),
 	];
 	list<string> titles = [
-	    // progress stage, text in dialog (short)
+	    // progress step, text in dialog (short)
 	    _("Checking boot loader..."),
-	    // progress stage, text in dialog (short)
+	    // progress step, text in dialog (short)
 	    _("Reading partitioning..."),
-	    // progress stage, text in dialog (short)
+	    // progress step, text in dialog (short)
 	    _("Loading boot loader settings..."),
 	];
 	// progress bar caption
-	Progress::New (_("Initializing boot loader configuration"),
+	Progress::New (_("Initializing Boot Loader Configuration"),
 	    " ", 3, stages, titles, "");
 
 	Progress::NextStage ();
@@ -257,7 +257,7 @@
 	if (size (filtered_cmdline) > 0)
 	{
 	    ret = add (ret, sformat (
-		_("Additionally added kernel parameters: %1"),
+		_("Added Kernel Parameters: %1"),
 		Kernel::GetCmdLine ()));
 	}
 	return ret;
@@ -355,25 +355,25 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
 // run Progress bar
         list<string> stages = [
             // progress stage, text in dialog (short)
-            _("Creating initrd..."),
+            _("Create initrd"),
             // progress stage, text in dialog (short)
-            _("Saving boot loader configuration files..."),
+            _("Save boot loader configuration files"),
             // progress stage, text in dialog (short)
-            _("Installing boot loader..."),
+            _("Install boot loader"),
         ];
         list<string> titles = [
-            // progress stage, text in dialog (short)
+            // progress step, text in dialog (short)
             _("Creating initrd..."),
-            // progress stage, text in dialog (short)
+            // progress step, text in dialog (short)
             _("Saving boot loader configuration files..."),
-            // progress stage, text in dialog (short)
+            // progress step, text in dialog (short)
             _("Installing boot loader..."),
         ];
         // progress bar caption
         if (Mode::normal ())
 	{
 	    // progress line
-            Progress::New (_("Saving boot loader configuration"),
+            Progress::New (_("Saving Boot Loader Configuration"),
                 " ", 2, stages, titles, "");
 	    Progress::NextStage ();
 	}

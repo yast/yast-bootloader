@@ -72,7 +72,7 @@
       */
     global define list<string> Summary () ``{
 	// summary
-	return [_("Install ABOOT Boot Loader")];
+	return [_("Install ABOOT boot loader")];
     }
 
     /**

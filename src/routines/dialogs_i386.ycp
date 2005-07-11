@@ -34,7 +34,7 @@ include "bootloader/routines/widgets_i386.ycp";
 symbol i386InstallDetailsDialog () {
     term contents = `HBox (`HStretch (), `VBox (
 	`VStretch (),
-	`Frame (_("Disks Order"),
+	`Frame (_("Disk Order"),
 	    `HBox (`HSpacing (2), `VBox (
 		    `SelectionBox (`id (`disks),
 			`opt (`notify, `immediate),
@@ -67,7 +67,7 @@ symbol i386InstallDetailsDialog () {
 		_("Replace MBR with Generic Code"))),
 	    `Left (`CheckBox (`id (`activate),
 		// check box
-		_("Activate Bootloader Partition"))),
+		_("Activate Boot Loader Partition"))),
 	    BootCommon::getLoaderType (false) == "grub"
 		    && BootCommon::allowEmbed15 ()
 		? `Left (`CheckBox (`id (`embed),
@@ -80,7 +80,7 @@ symbol i386InstallDetailsDialog () {
     ), `HStretch ());
 
     Wizard::SetContentsButtons (
-	_("Bootloader Installation Details"),
+	_("Boot Loader Installation Details"),
 	contents,
 	i386InstallDetailsHelp (),
 	Label::BackButton (),
@@ -213,7 +213,7 @@ symbol i386LoaderDetailsDialog () {
 	    `HSpacing (2), `VBox (
 		`VSpacing (0.4),
 		`Left (`CheckBox (`id (`show_menu), _("Show Boot Menu"))),
-		`IntField (`id (`timeout), _("Boot Menu Timeout"), 0, 60, 0),
+		`IntField (`id (`timeout), _("Boot Menu Time-Out"), 0, 60, 0),
 		`VSpacing (0.4)
 	    ), `HSpacing (2)
 	)),
@@ -222,7 +222,7 @@ symbol i386LoaderDetailsDialog () {
 	    `VSpacing (0.4),
 	    `HBox (
 		`HSpacing (2), `VBox (
-		    `Left (`CheckBox (_("Protect Bootloader by Password"))),
+		    `Left (`CheckBox (_("Protect Boot Loader with Password"))),
 		    `HBox (
 			`TextEntry (`id (`pass), _("Password")),
 			`TextEntry (`id (`pass2), _("Retype Password"))
@@ -238,7 +238,7 @@ symbol i386LoaderDetailsDialog () {
     map<string,map<string,any> > widget_descr = (map<string,map<string,any> >)
 	i386Widgets ();
    // dialog caption
-    string caption = _("Bootloader Options");
+    string caption = _("Boot Loader Options");
     return CWM::ShowAndRun ($[
 	"widget_descr" : widget_descr,
 	"widget_names" : widget_names,

@@ -96,7 +96,7 @@ symbol MainDialog () {
     ]);
 
     // dialog caption
-    string caption = _("Bootloader Settings");
+    string caption = _("Boot Loader Settings");
     symbol ret = CWM::ShowAndRun ($[
 	"widget_descr" : widget_descr,
 	"widget_names" : widget_names,
@@ -121,7 +121,7 @@ symbol DetailsDialog (string type) {
     {
 	Report::Message (
 	    // message
-	    _("There are no options to be set for the current bootloader."));
+	    _("There are no options to set for the current boot loader."));
 	return `back;
     }
     symbol () dialog = (symbol())dialogs[type]:nil;
@@ -162,7 +162,7 @@ symbol KernelSectionDialog () {
     map<string,map<string,any> > widget_descr = (map<string,map<string,any> >)
 	union (CommonSectionWidgets (), Bootloader::blWidgetMaps ());
    // dialog caption
-    string caption = _("Bootloader Settings -- Section Management");
+    string caption = _("Boot Loader Settings: Section Management");
     return CWM::ShowAndRun ($[
 	"widget_descr" : widget_descr,
 	"widget_names" : widget_names,
@@ -196,7 +196,7 @@ symbol ChainloaderSectionDialog () {
                 `ComboBox (`id (`device), `opt (`editable, `hstretch), _("Device"), ["/dev/hda1", "/dev/hda2", "other as detected"]),
                 `VBox (
                     `Label (" "),
-                    `PushButton (`id (`browse), _("Browse"))
+                    `PushButton (`id (`browse), _("Browse..."))
                 ),
                 `HSpacing (4)
             ),
@@ -209,7 +209,7 @@ symbol ChainloaderSectionDialog () {
     map<string,map<string,any> > widget_descr = (map<string,map<string,any> >)
 	union (CommonSectionWidgets (), Bootloader::blWidgetMaps ());
     // dialog caption
-    string caption = _("Bootloader Settings -- Section Management");
+    string caption = _("Boot Loader Settings: Section Management");
     return CWM::ShowAndRun ($[
 	"widget_descr" : widget_descr,
 	"widget_names" : widget_names,
@@ -239,7 +239,7 @@ symbol AddNewSectionDialog () {
     map<string,map<string,any> > widget_descr = (map<string,map<string,any> >)
 	union (CommonSectionWidgets (), Bootloader::blWidgetMaps ());
     // dialog caption
-    string caption = _("Bootloader Settings -- Section Management");
+    string caption = _("Boot Loader Settings: Section Management");
     return CWM::ShowAndRun ($[
 	"widget_descr" : widget_descr,
 	"widget_names" : widget_names,
@@ -296,10 +296,10 @@ y2internal ("Contents; %1", files);
 	if (size (files) > 1)
 	    cb = `ComboBox (`id (`filename), `opt (`notify, `hstretch),
 		// combobox label
-		_("&File Name"), filenames);
+		_("&Filename"), filenames);
 	else
 	    // label. %1 is name of file (eg. /etc/lilo.conf
-	    cb = `Left (`Label (sformat (_("File Name: %1"), filenames[0]:"")));
+	    cb = `Left (`Label (sformat (_("Filename: %1"), filenames[0]:"")));
 
 	term contents = `HBox (`HSpacing (2), `VBox (
             `VSpacing (2),
