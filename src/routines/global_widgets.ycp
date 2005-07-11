@@ -73,7 +73,7 @@ void RedrawSectionsTable (list<map<string,any> > sects) {
 		    == tolower (s["name"]:"")
 		? UI::Glyph (`CheckMark) : "",
 	    s["name"]:"",
-	    image == nil ? _("other") : _("image"),
+	    image == nil ? _("Other") : _("Image"),
 	    (image != "" && image != nil)
 		? sformat ("%1   (%2%3)",
 		    image,
@@ -197,13 +197,15 @@ map<string,any> getSectionsWidget () {
 		`Table (`id (`sects),
 		    `opt (`keepSorting, `notify),
 		    `header (
-			// table header
+			// table header, Def stands for default
 			_("Def."),
 			// table header
 			_("Label"),
 			// table header
 			_("Type"),
-			// table header
+			// table header; header for section details, either
+			// the specification of the kernel image to load,
+			// or the specification of device to boot from
 			_("Image / Device")
 			), []),
 		`HSpacing (1),
@@ -261,8 +263,7 @@ symbol LoaderTypeComboHandle (string key, map event) {
 	if (new_bl == "none")
 	{
 	    // popup - Continue/Cancel
-	    if (Popup::ContinueCancel (_("Warning!
-
+	    if (Popup::ContinueCancel (_("
 If you do not install any boot loader, the system
 may not start.
 
@@ -277,8 +278,7 @@ Proceed?
 	}
 
 	// warning - popup, followed by radio buttons
-	string label = _("Warning!
-
+	string label = _("
 You chose to change your boot loader. When converting 
 the configuration, some settings may be lost.
 
@@ -389,7 +389,7 @@ term TargetWidget () {
 		    // radio button
 		    ? _("&Master Boot Record")
 		    // radiobutton, %1 is device (eg. /dev/hda)
-		    : sformat(_("&Master boot record of %1"),
+		    : sformat(_("&Master Boot Record of %1"),
 			BootCommon::mbrDisk),
                 (BootCommon::selected_location == "mbr")
 	))
@@ -664,10 +664,10 @@ Continue?")))
 		boolean ret = BootCommon::restoreMBR (BootCommon::mbrDisk);
 		if (ret)
 		    // message popup
-		    Popup::Message (_("MBR restored successfully"));
+		    Popup::Message (_("MBR restored successfully."));
 		else
 		    // message popup
-		    Popup::Message (_("Failed to restore MBR"));
+		    Popup::Message (_("Failed to restore MBR."));
 	    }
             return nil;
         }
@@ -732,7 +732,7 @@ map TabsDescr () {
   return $[
     "sections": $[
 	// tab header
-	"header" : _("&Sections Management"),
+	"header" : _("&Section Management"),
         "contents": `HBox (
 	    `HSpacing (3), `VBox (
 		`VSpacing (1),
@@ -743,10 +743,10 @@ map TabsDescr () {
     ],
     "installation": $[
 	// tab header
-	"header" : _("Bootloader &Installation"),
+	"header" : _("Boot Loader &Installation"),
 	"contents" : `HBox (`HStretch (), `VBox (
 	    `VStretch (),
-	    `Frame (_("Loader Type"), `VBox (
+	    `Frame (_("Type"), `VBox (
 		`VSpacing (0.4),
 		`HBox (
 		    `HSpacing (2),
@@ -803,7 +803,7 @@ map<string,map<string,any> > CommonGlobalWidgets () {
     "inst_details" : $[
 	"widget" : `push_button,
 	// push button
-	"label" : _("Bootloader Installation &Details"),
+	"label" : _("Boot Loader Installation &Details"),
 	"handle_events" : ["inst_details"],
 	"handle" : InstDetailsButtonHandle,
     ],

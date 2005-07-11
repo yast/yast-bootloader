@@ -145,6 +145,11 @@ void VgaModeInit (string widget) {
     list<map> vga_modes = Initrd::VgaModes ();
     list items = maplist (map m, vga_modes, {
 	return `item (`id (sformat ("%1", m["mode"]:0)),
+	    // combo box item
+	    // %1 is X resolution (width) in pixels
+	    // %2 is Y serolution (height) in pixels
+	    // %3 is color depth (usually one of 8, 16, 24, 32)
+	    // %4 is the VGA mode ID (hexadecimal number)
 	    sformat (_("%1x%2, %3 bits (mode %4)"),
 		m["width"]:0, m["height"]:0, m["color"]:0, m["mode"]:0));
     });
@@ -268,11 +273,11 @@ map<string,map<string,any> > CommonSectionWidgets () {
 		"custom_widget" : Stage::initial ()
 		    ? `TextEntry (`id ("initrd"), `opt (`hstretch),
 			// text entry
-			_("&Initial Ramdisk"))
+			_("&Initial RAM Disk"))
 		    : `HBox (
 			`ComboBox (`id ("initrd"), `opt (`editable, `hstretch),
 			    // combo box
-			    _("&Initial Ramdisk"),
+			    _("&Initial RAM Disk"),
 			    []),
 			`VBox (
 			    `Label (""),

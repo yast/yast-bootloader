@@ -32,8 +32,8 @@ include "bootloader/routines/dialogs.ycp";
 symbol MainSequence () {
     if (! BootCommon::BootloaderInstallable ())
 	// error report
-	Report::Error (_("Because of the partitioning, the bootloader
-cannot be installed properly"));
+	Report::Error (_("Because of the partitioning, the boot loader
+cannot be installed properly."));
 
     // check loader-specific sequence
     symbol spec_ret = Bootloader::blMainSequence ();

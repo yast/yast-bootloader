@@ -60,7 +60,7 @@
 	    return _("Do Not Install Any Boot Loader");
 	}
 	// fallback bootloader name, keep short
-	return bootloader_attribs[bootloader, "loader_name"]:_("boot loader");
+	return bootloader_attribs[bootloader, "loader_name"]:_("Boot Loader");
     }
 
     /**
