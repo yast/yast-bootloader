@@ -271,6 +271,7 @@ global list<string> update_section_types
 
     global define string getLoaderType (boolean recheck);
     global define list<string> getBootloaders ();
+    global define list<string> Summary ();
 
     include "bootloader/routines/helps.ycp";
     include "bootloader/routines/popups.ycp";
@@ -286,7 +287,7 @@ global list<string> update_section_types
 
 
 // FIXME 2x functions should not be finally here...
-define boolean XenPresent () {
+global boolean XenPresent () {
     return (! contains (removed_sections, "xen"))
 	&& (Mode::test ()
 	    || (Mode::normal () && Pkg::IsProvided ("xen")
@@ -295,7 +296,7 @@ define boolean XenPresent () {
 		&& Pkg::IsSelected ("kernel-xen")));
 }
 
-define integer Dom0MemorySize () {
+global integer Dom0MemorySize () {
     list<map> memory = (list<map>) SCR::Read(.probe.memory);
 
     y2milestone("memory: %1", memory);
@@ -435,6 +436,10 @@ global boolean Read (boolean reread) {
 	activate_changed = false;
 	removed_sections = [];
 	was_proposed = false;
+	if (init)
+	{
+	    device_mapping = ProposeDeviceMap ();
+	}
     }
 
 /**

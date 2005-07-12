@@ -24,7 +24,14 @@
     import "StorageDevices";
     import "BootArch";
 
-    include "bootloader/routines/i386.ycp";
+global string DiskOrderSummary ();
+global list<string> DisksOrder ();
+global define void DetectDisks ();
+global define boolean RefreshDisks();
+global void ProposeDeviceMap ();
+
+
+include "bootloader/routines/i386.ycp";
 
 global boolean allowEmbed15 () {
     // allow only for /boot or /root device selected
@@ -84,40 +91,27 @@ global boolean DisksChanged () {
     return false;
 }
 
-    /**
-      * FindMbrDisk()
-      * try to find the system's mbr device
-      * @return string   mbr device
-      */
-    global define string FindMbrDisk() ``{
-        // can hwinfo find the disk ?
-
-        string probed_mbr_disk = (string)SCR::Read(.probe.boot_disk);
-        if (probed_mbr_disk != "")
-        {
-            y2milestone ("MBR probed as %1", probed_mbr_disk);
-            return probed_mbr_disk;
-        }
-
-	map mp = Storage::GetMountPoints();
-        string bootDisk = mp["/boot",2]:(mp["/",2]:"");
-
-        // look for disk with bios_id 0x80
-        list<map> disks = (list<map>)SCR::Read(.probe.disk);
-	// fallback
-        string mbr_disk = disks[0,"dev_name"]:bootDisk;
-
-        foreach (map disk, disks, ``{
-            if (disk["bios_id"]:"" == "0x80")
-            {
-                y2milestone ("disk with bios_id 0x80: %1", disk);
-                mbr_disk = disk["dev_name"]:bootDisk;
-            }
-        });
-
-        y2milestone("MBR Disk: %1", mbr_disk);
-        return mbr_disk;
+/**
+ * FindMbrDisk()
+ * try to find the system's mbr device
+ * @return string   mbr device
+ */
+global string FindMBRDisk() {
+    // check the disks order, first has MBR
+    list<string> order = DisksOrder ();
+    if (size (order) > 0)
+    {
+	string ret = order[0]:"";
+	y2milestone ("First disk in the order: %1, using for MBR", ret);
+	return ret;
     }
+
+    // OK, order empty, use the disk with boot partition
+    map mp = Storage::GetMountPoints();
+    string boot_disk = mp["/boot",2]:(mp["/",2]:"");
+    y2milestone ("Disk with boot partition: %1, using for MBR", boot_disk);
+    return boot_disk;
+}
 
     /**
      * ConfigureLocation()
@@ -179,7 +173,7 @@ global boolean DisksChanged () {
 	if (BootCommon::mbrDisk == "" || BootCommon::mbrDisk == nil)
 	{
 	    // mbr detection.
-	    BootCommon::mbrDisk = FindMbrDisk();
+	    BootCommon::mbrDisk = FindMBRDisk();
 	}
 
 	if (loader_device == nil || loader_device == "")
@@ -654,6 +648,36 @@ global void UpdateSections (boolean replace,
 }
 
 /**
+ * Update global options of bootloader
+ * modifies internal sreuctures
+ */
+global void UpdateGlobals () {
+    BootCommon::globals["timeout"] = "8";
+    list<string> s1_devs
+	= splitstring (BootCommon::globals["stage1_dev"]:"", ",");
+    s1_devs = maplist (string d, s1_devs, {
+	return UpdateDevice (d);
+    });
+    BootCommon::globals["stage1_dev"] = mergestring (s1_devs, ",");
+    BootCommon::globals["gfxmenu"] = "/boot/message";
+}
+
+/**
+ * Update the device map according to changed device names
+ * @param devmap list original device map
+ * @return list updated device map
+ */
+global void UpdateDeviceMap () {
+    device_mapping = mapmap (string unix, string fw, device_mapping, {
+	y2milestone ("Updating device in devmap entry %1 -> %2",
+	    unix, fw);
+	unix = BootCommon::UpdateDevice (unix);
+	return $[ unix : fw ];
+    });
+    y2milestone ("Updated device map: %1", device_mapping);
+}
+
+/**
  * Filter sections, remove those pointing to unexistent image
  * @param path_prefix string prefix to be added to kernel path
  * @param relative_path_prefix prefix to be added to relative kernel
@@ -831,5 +855,35 @@ global void ProposeDeviceMap () {
 	device_mapping[StorageDevices::FloppyDevice] = "(fd0)";
     y2milestone ("Detected device mapping: %1", device_mapping);
 }
+
+global list<string> DisksOrder () {
+    if (device_mapping == nil || size (device_mapping) == 0)
+    {
+	ProposeDeviceMap ();
+    }
+    map<string,string> devmap_rev = mapmap (string k, string v,
+	BootCommon::device_mapping,
+    {
+	return $[ v : k ];
+    });
+    list<string> order = maplist (string k, string v, devmap_rev, {
+	return v;
+    });
+    return order;
+}
+
+global string DiskOrderSummary () {
+    list<string> order = DisksOrder ();
+    string ret = nil;
+    if (size (order) > 1)
+    {
+	ret = sformat (
+	    // part of summary, %1 is a list of hard disks device names
+	    _("Order of Hard Disks: %1"),
+	    mergestring (order, ", "));
+    }
+    return ret;
+}
+
 
 } // EOF

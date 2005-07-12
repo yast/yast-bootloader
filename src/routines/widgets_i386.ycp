@@ -18,6 +18,166 @@
 
 {
 
+include "bootloader/routines/popups.ycp";
+
+void InitBootMenu (string key) {
+    integer timeout = tointeger (BootCommon::globals["timeout"]:"0");
+    UI::ChangeWidget (`id (`timeout), `Value, timeout);
+    boolean show_menu = BootCommon::globals["show_menu"]:"0" != "0";
+    UI::ChangeWidget (`id (`show_menu), `Value, show_menu);
+}
+
+void StoreBootMenu (string key) {
+    integer timeout = (integer)UI::QueryWidget (`id (`timeout), `Value);
+    BootCommon::globals["timeout"] = sformat ("%1", timeout);
+    boolean show_menu = (boolean)UI::QueryWidget (`id (`show_menu), `Value);
+    BootCommon::globals["show_menu"] = show_menu ? "1" : "0";
+}
+
+map<string,any> BootMenuWidget () {
+    return $[
+	"widget" : `custom,
+	// frame
+	"custom_widget" : `Frame (_("Boot Menu"), `HBox (
+	    `HSpacing (2), `VBox (
+		`VSpacing (0.4),
+		// check box
+		`Left (`CheckBox (`id (`show_menu), _("Show Boot Menu"))),
+		// integer field
+	`IntField (`id (`timeout), _("Boot Menu Time-Out"), 0, 60, 0),
+		`VSpacing (0.4)
+	    ), `HSpacing (2)
+	)),
+	"init" : InitBootMenu,
+	"store" : StoreBootMenu,
+	"help" : i386BootMenuHelp (),
+    ];
+}
+
+/**
+ * Init function of a popup
+ * @param key any widget key
+ */
+void InitPasswdWidget (string key) {
+    string passwd = BootCommon::globals["password"]:"";
+    if (passwd == nil)
+    {
+	UI::ChangeWidget (`id (`usepas), `Value, false);
+	UI::ChangeWidget (`id (`pw1), `Enabled, false);
+	UI::ChangeWidget (`id (`pw1), `Value, "");
+	UI::ChangeWidget (`id (`pw2), `Enabled, false);
+	UI::ChangeWidget (`id (`pw2), `Value, "");
+    }
+    else
+    {
+	UI::ChangeWidget (`id (`usepas), `Value, true);
+	UI::ChangeWidget (`id (`pw1), `Enabled, true);
+	UI::ChangeWidget (`id (`pw1), `Value, "**********");
+	UI::ChangeWidget (`id (`pw2), `Enabled, true);
+	UI::ChangeWidget (`id (`pw2), `Value, "**********");
+    }
+    UI::SetFocus (`id (`usepas));
+}
+
+/**
+ * Handle function of a widget
+ * @param key any widget key
+ * @param event map event description of event that occured
+ * @return symbol always nil
+ */
+void HandlePasswdWidget (string key, map event) {
+    if (event["ID"]:nil == `usepas)
+    {
+	boolean enabled = (boolean)UI::QueryWidget (`id (`usepas), `Value);
+	UI::ChangeWidget (`id (`pw1), `Enabled, enabled);
+	UI::ChangeWidget (`id (`pw2), `Enabled, enabled);
+    }
+}
+
+/**
+ * Store function of a popup
+ * @param key any widget key
+ */
+void StorePasswdWidget (string key) {
+    string password = nil;
+    boolean usepass = (boolean)UI::QueryWidget (`id (`usepas), `Value);
+    y2milestone ("Usepass: %1", usepass);
+    if (usepass)
+    {
+	if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
+	{
+	    password = (string)UI::QueryWidget (`id (`pw1), `Value);
+	    if (haskey (BootCommon::current_bootloader_attribs,
+		"update_passwd"))
+	    {
+		string(string) f = (string(string))
+		    BootCommon::current_bootloader_attribs[
+			"update_passwd"]:nil;
+		password = f (password);
+	    }
+	}
+    }
+    BootCommon::globals["password"] = password;
+    return nil;
+}
+
+
+/**
+ * Validate function of a popup
+ * @param key any widget key
+ * @param event map event that caused validation
+ * @return boolean true if widget settings ok
+ */
+boolean ValidatePasswdWidget (string key, map event) {
+    if (! (boolean)UI::QueryWidget (`id (`usepas), `Value))
+	return true;
+    if (UI::QueryWidget (`id (`pw1), `Value) == "")
+    {
+	emptyPasswdErrorPopup ();
+	UI::SetFocus (`id (`pw1));
+	return false;
+    }
+    if (UI::QueryWidget (`id (`pw1), `Value)
+	== UI::QueryWidget (`id (`pw2), `Value)
+    )
+	return true;
+    passwdMissmatchPopup ();
+    UI::SetFocus (`id (`pw1));
+    return false;
+}
+
+
+
+
+map<string,any> PasswordWidget () {
+    return $[
+	"widget" : `custom,
+	// frame
+	"custom_widget" : `Frame (_("Password Protection"), `VBox (
+	    `VSpacing (0.4),
+	    `HBox (
+		`HSpacing (2), `VBox (
+		    // check box
+		    `Left (`CheckBox (_("Protect Boot Loader with Password"))),
+		    `HBox (
+			// text entry
+			`TextEntry (`id (`pass), _("&Password")),
+			// text entry
+			`TextEntry (`id (`pass2), _("Re&type Password"))
+		    )
+		), `HSpacing (2)
+	    ),
+	    `VSpacing (0.4)
+	)),
+	"init" : InitPasswdWidget,
+	"handle" : HandlePasswdWidget,
+	"store" : StorePasswdWidget,
+	"validate_type" : `function,
+	"validate_function" : ValidatePasswdWidget,
+	"help" : i386PasswdHelp (),
+    ];
+}
+
 map<string,map<string,any> > _i386_widgets = nil;
 
 map<string,map<string,any> > i386Widgets () {
@@ -26,7 +186,8 @@ map<string,map<string,any> > i386Widgets () {
 	_i386_widgets = $[
 	    "show_menu" : $[],
 	    "timeout" : $[],
-	    "password" : $[],
+	    "boot_menu" : BootMenuWidget (),
+	    "password" : PasswordWidget (),
 	];
     }
     return _i386_widgets;

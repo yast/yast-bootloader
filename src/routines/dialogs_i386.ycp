@@ -23,6 +23,7 @@ import "Label";
 import "Wizard";
 import "CWM";
 import "BootCommon";
+import "Stage";
 
 include "bootloader/routines/helps_i386.ycp";
 include "bootloader/routines/widgets_i386.ycp";
@@ -36,6 +37,7 @@ symbol i386InstallDetailsDialog () {
 	`VStretch (),
 	`Frame (_("Disk Order"),
 	    `HBox (`HSpacing (2), `VBox (
+		    `VSpacing (1),
 		    `SelectionBox (`id (`disks),
 			`opt (`notify, `immediate),
 			// selectionn box label
@@ -47,7 +49,8 @@ symbol i386InstallDetailsDialog () {
 			    `PushButton (`id (`delete), `opt(`key_F5), Label::DeleteButton ()),
 			    `HStretch ()
 			)
-			: `HBox ()
+			: `HBox (),
+		    `VSpacing (1)
 		),
 		`HSquash (
 		    `VBox (
@@ -56,7 +59,9 @@ symbol i386InstallDetailsDialog () {
 			`PushButton (`id (`down), `opt (`hstretch), _("&Down")),
 			`VStretch ()
 		    )
-	    ), `HSpacing (2))
+		),
+	        `HSpacing (2)
+	    )
 	),
 	`VStretch (),
 	// frame
@@ -209,32 +214,21 @@ symbol i386LoaderDetailsDialog () {
 
     term contents = `HBox (`HSpacing (2), `VBox (
         `VStretch (),
-	`Frame (_("Boot Menu"), `HBox (
+/*	`Frame (_("Boot Menu"), `HBox (
 	    `HSpacing (2), `VBox (
 		`VSpacing (0.4),
 		`Left (`CheckBox (`id (`show_menu), _("Show Boot Menu"))),
 		`IntField (`id (`timeout), _("Boot Menu Time-Out"), 0, 60, 0),
 		`VSpacing (0.4)
 	    ), `HSpacing (2)
-	)),
+	)),*/
+	"boot_menu",
 	`VStretch (),
-	`Frame (_("Password Protection"), `VBox (
-	    `VSpacing (0.4),
-	    `HBox (
-		`HSpacing (2), `VBox (
-		    `Left (`CheckBox (_("Protect Boot Loader with Password"))),
-		    `HBox (
-			`TextEntry (`id (`pass), _("Password")),
-			`TextEntry (`id (`pass2), _("Retype Password"))
-		    )
-		), `HSpacing (2)
-	    ),
-	    `VSpacing (0.4)
-	)),
+	"password",
 	`VStretch ()
     ), `HSpacing (2));
 
-    list<string> widget_names = [];
+    list<string> widget_names = ["boot_menu", "password"];
     map<string,map<string,any> > widget_descr = (map<string,map<string,any> >)
 	i386Widgets ();
    // dialog caption

@@ -76,30 +76,6 @@ the configuration saved on your disk. %1</P>
 manually, click <B>Edit Configuration Files</B>.</P>");
     }
 
-    /**
-      * Get help
-      * @return string help text
-      */
-    global define string getSingleSectionHelp () ``{
-        // help text 1/3
-        string help = _("<P>To edit the settings of the current section, select
-the appropriate entry of the table and click <B>Edit</B>.
-To add new options, use <B>Add</B>.  To remove the selected option,
-click <B>Delete</B>.</P>
-");
-	// help text 2/3
-	help = help + _("<P>The<B> Ch.</B> column of the table is meant for
-detecting whether the option was changed.</P>
-");
-	if (BootCommon::getLoaderType (false) == "grub")
-            // help text 3/3, optional
-            help = help + _("<p> To reorder options, use the <B>Up</B> and 
-<B>Down</B> buttons.</P>
-");
-
-        return help;
-
-    }
 
     /**
       * Get help
@@ -124,28 +100,6 @@ menu can be changed using the <B>Up</B> and <B>Down</B> buttons.</P>
 	_("<P>Press <B>Add</B> to create a new boot loader section
 or <B>Delete</B> to delete the selected section.</P>
 ");
-    }
-
-    /**
-      * Get help
-      * @return string help text
-      */
-    global define string getGlobalSectionHelp () ``{
-	// help text 1/3
-	string help = _("<P>To edit boot loader settings, choose the appropriate
-entry of the table then click <B>Edit</B>.
-To add a new option, use <B>Add</B>. To remove
-an option, click <B>Delete</B>.</P>
-");
-	// help text 2/3
-	help = help + _("<P>To edit the settings of sections, choose
-<B>Available Sections</B> or <B>Default Section</B> and edit them.</P>
-");
-	// help text 3/3
-	help = help + _("<P>The<B> Ch.</B> column of the table is meant for
-detecting whether the option was changed.</P>
-");
-	return help;
     }
 
 
@@ -231,26 +185,5 @@ Here, manually edit the boot loader configuration.</P>
 ");
     }
 
-    /**
-      * Get help
-      * @return string help text
-      */
-    global define string getPasswdHelp () ``{
-	// help text 1/1, displayed as label, no HTML tags!!!
-	return _("By checking Enable Boot Loader Password Protection and setting a password,
-protect the computer from being booted by an unauthorized person.
-");
-
-    }
-    /**
-      * Get help
-      * @return string help text
-      */
-    global define string getSaveMethodHelp () ``{
-	// help text 1/1, displayed as label, no HTML tags!!!
-	return _("Forcing saving everything also forces 
-boot loader reinstallation
-");
-    }
 
 }

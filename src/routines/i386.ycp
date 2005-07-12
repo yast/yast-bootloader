@@ -78,7 +78,7 @@ string GetMBRContents (string disk) {
 	    return mergestring (l, "");
 	});
 	mbr = mergestring (mbrl, "");
-	y2internal ("MBR contents: %1", mbr);
+	y2debug ("MBR contents: %1", mbr);
 	_old_mbr = mbr;
     }
     return _old_mbr;
@@ -121,5 +121,48 @@ global boolean AddFirmwareToBootloader (string disk) {
     return ! ThinkPadMBR (disk);
 }
 
+/**
+ * Display bootloader summary
+ * @return a list of summary lines
+ */
+global list<string> i386Summary () {
+    list<string> ret = Summary ();
+    string order_sum = DiskOrderSummary ();
+    if (order_sum != nil)
+	ret = add (ret, order_sum);
+    return ret;
+}
+
+global void i386LocationProposal () {
+    if (! was_proposed)
+    {
+	DetectDisks ();
+	del_parts = getPartitionList (`deleted);
+    }
+
+    // refresh device map
+    if (device_mapping == nil
+	|| size (device_mapping) == 0)
+    {
+	ProposeDeviceMap ();
+    }
+    boolean disks_changed = RefreshDisks();
+    if (disks_changed && ! Mode::autoinst ())
+    {
+	if (askLocationResetPopup (loader_device))
+	{
+	    selected_location = nil;
+	    loader_device = nil;
+	    DetectDisks ();
+	}
+    }
+
+    // set activate flag
+    if (! activate_changed)
+    {
+	activate
+	    = size (Storage::GetBootPartition (mbrDisk)) == 0;
+    }
+}
 
 } // EOF

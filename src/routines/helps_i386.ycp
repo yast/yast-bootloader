@@ -19,6 +19,10 @@
 {
 textdomain "bootloader";
 
+/**
+ * Get help
+ * @return string help text
+ */
 string i386InstallDetailsHelp () {
     // help text 1/5
     return _("<p><big><b>Disks Order</b></big><br>
@@ -51,5 +55,29 @@ To use dedicated boot loader area, set <b>Use Dedicated Boot Loader
 Area</b>.</p>")
 	: "");
 }
+
+/**
+ * Get help
+ * @return string help text
+ */
+string i386PasswdHelp () {
+    // help text 1/1
+    return _("<p><big><b>Password Protection</b></big><br>
+To protect the computer from being booted by an unauthorized person,
+set <b>Protect Boot Loader with Password</b> and set the <b>Password</b>
+and <b>Retype Password</b>.</p>");
+}
+
+/**
+ * Get help
+ * @return string help text
+ */
+string i386BootMenuHelp () {
+    return _("<p><big><b>Boot Menu</b></big><br>
+To show the boot loader menu during the boot process, set
+<b>Show Boot Menu</b>. To specify the timeout after which the default
+kernel is loaded, set <b>Boot Menu Time-Out</b>.</p>");
+}
+
 
 } //EOF
