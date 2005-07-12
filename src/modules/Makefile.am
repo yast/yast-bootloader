@@ -35,6 +35,6 @@ dep: Booltloader_API.pm
 install: install_Bootloader_API
 
 install_Bootloader_API:
-	 /usr/bin/install -c -p -m 644 'Bootloader_API.pm' '/usr/share/YaST2/modules/Bootloader_API.pm'
+	 /bin/cp -f -d 'Bootloader_API.pm' '/usr/share/YaST2/modules/Bootloader_API.pm'
 
 include $(top_srcdir)/Makefile.am.common

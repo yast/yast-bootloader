@@ -81,7 +81,7 @@ include "bootloader/routines/dialogs_i386.ycp";
 	];
 	if (BootCommon::XenPresent ())
 	    out = add (out, BootCommon::CreateLinuxSection ("xen"));
-/*	list<string> others_ignore = [];
+	list<string> others_ignore = [];
 	list<string> others = (list<string>)Storage::GetForeignPrimary();
 	y2debug ("Other primaries: %1", others);
 	list<map> other_l = (list<map>)Storage::GetOtherLinuxPartitions();
@@ -140,46 +140,47 @@ include "bootloader/routines/dialogs_i386.ycp";
 		    foreach (string f, filenames, ``{
 			y2debug ("Checking file %1", f);
 			string fc = (string)SCR::Read (.target.string, f);
+			string dm = (string)SCR::Read (.target.string,
+			    regexpsub (f, "\\(.*\\)menu.lst$",
+				"\\1device.map"));
+y2internal ("DM FN: %1", regexpsub (f, "\\(.*\\)menu.lst$", 
+                                "\\1device.map"));
+y2internal ("DM: %1", dm);
 			map<string,string> files = $[
 			    "/boot/grub/menu.lst" : fc,
 			];
-			map settings = (map)
-			    SCR::Read (.bootloader.fromstrings, files);
-			list<map> sects = settings["sections"]:[];
+			if (dm != nil)
+			    files["/boot/grub/device.map"] = dm;
+			BootCommon::InitializeLibrary (false, "grub");
+			BootCommon::SetFilesContents (files);
+			list<map<string,string> > sects
+			    = BootCommon::GetSections ();
 			y2debug ("Found sections %1", sects);
 			if (merge_level == `main)
 			{
-			    sects = filter (map s, sects, {
+			    sects = filter (map<string,string> s, sects, {
 				return s["initial"]:nil != nil;
 			    });
 			}
 			count = count + size (sects);
-			foreach (map s, sects, ``{
-			    map intern = $[
-				"changed" : false,
-				"auto" : true,
-				"converted" : true,
-			    ];
-			    list<map> opts_tmp = s["__lines"]:[];
-			    opts_tmp = maplist (map o, opts_tmp, ``{
-				if (o["key"]:"" == "title")
-				{
-				    // no need to translate here...
-				    o["value"] = sformat ("%2 (%1)",
-					dev, o["value"]:"");
-				    intern["type"] = o["value"]:"";
-				}
-				return o;
-			    });
-			    opts_tmp = filter (map o, opts_tmp, ``(o != nil));
+			foreach (map<string,any> s, sects, ``{
+			    s = (map<string,any>)union (s, $[
+				"__changed" : false,
+				"__auto" : true,
+				"__converted" : true,
+			    ]);
+			    // no need to translate here...
+			    s["name"] = sformat ("%2 (%1)",
+				dev, s["name"]:"");
+			    s["__type"] = s["name"]:"";
+			    s["original_name"] = s["name"]:"";
 			    list<string> devs = [];
 			    list<string> _dp = [];
 
-			    string _d = (string)
-				lookup_value (opts_tmp, "root", "");
+			    string _d = s["root"]:"";
 			    if (_d != nil && _d != "")
 				devs = add (devs, _d);
-
+/*
 			    string _gp =
 				(string)lookup_value (opts_tmp, "initrd", "");
 			    if (_gp != "" && _gp != nil)
@@ -206,18 +207,14 @@ include "bootloader/routines/dialogs_i386.ycp";
 				    devs = add (devs, _root);
 				}
 			    }
-
+*/
 			    devs = (list<string>)filter (string d, devs,
 				``(d != ""
 				    && d != nil
 				    && d != "/dev/null" && d != "false"));
 			    devs = toset (devs);
-			    intern["devs"] = devs;
-			    opts_tmp = add (opts_tmp, $[
-				"key" : "__intern__",
-				"value" : intern]);
-			    y2debug ("Converted sec: %1", opts_tmp);
-			    out = add (out, opts_tmp);
+			    s["__devs"] = devs;
+			    out = add (out, s);
 			});
 		    });
 		    if (count > 0)
@@ -243,35 +240,29 @@ include "bootloader/routines/dialogs_i386.ycp";
 		    y2milestone ("Checking other partition %1", dev);
 		    if (! contains (others_ignore, dev))
 		    {
-			string g_dev = unixDev2grubDev (dev);
 			parts = remove (parts, 0);
 			string label = mergestring ((list<string>)parts, " ");
 
                         // don't add rewritten location (#19990)
-			if (g_dev != "" && label != ""
+			if (dev != "" && label != ""
 			    && dev != BootCommon::loader_device)
 			{
-			    list<map> m = [
-				$[ "key" : "title",
-				    "value" : BootCommon::translateSectionTitle (label)],
-				$[ "key" : "root", "value" : g_dev],
-// can bring problem if bootloader installed in bootsector of some partition
-// new systems don't mind not having active partitions
-//				$[ "key" : "makeactive", "value" : ""],
-				$[ "key" : "chainloader", "value" : "+1"],
-				$[ "key" : "__intern__", "value" : $[
-				    "changed" : false,
-				    "auto" : true,
-				    "devs" : [dev],
-				    "type" : label,
-				]],
+			    map<string,any> m = $[
+				"name" : BootCommon::translateSectionTitle (label),
+				"type" : "chainloader",
+				"original_name" : label,
+				"chainloader" : dev,
+				"__changed" : false,
+				"__auto" : true,
+				"__devs" : [dev],
+				"__type" : label,
 			    ];
 			   out = add (out, m);
 			}
 		    }
 		});
 	    }
-	}*/
+	}
 	if (BootCommon::InstallingToFloppy ())
 	{
             out = add (out, $[
