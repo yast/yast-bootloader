@@ -27,6 +27,7 @@ import "Mode";
 import "Storage";
 import "StorageDevices";
 import "Bootloader";
+import "Progress";
 
 include "bootloader/routines/helps.ycp";
 
@@ -340,16 +341,20 @@ Select a course of action:");
             if (action == `scratch)
 		Bootloader::Reset ();
             else if (action == `read)
+	    {
+		boolean progress_status = Progress::set (false);
                 Bootloader::Read ();
+		Progress::set (progress_status);
+	    }
             else if (action == `propose)
 	    {
 		Bootloader::Reset ();
 		if (Bootloader::getLoaderType () == "grub")
 		{
-/*		    import "BootGRUB";
-		    BootGRUB::merge_level = `all;
+// FIXME		    import "BootGRUB";
+//		    BootGRUB::merge_level = `all;
 		    Bootloader::Propose ();
-		    BootGRUB::merge_level = `main; FIXME */
+//		    BootGRUB::merge_level = `main;
 		}
 		else
 		{

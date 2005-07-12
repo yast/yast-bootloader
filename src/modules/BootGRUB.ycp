@@ -56,10 +56,6 @@ include "bootloader/routines/dialogs_i386.ycp";
 
 // function prototypes
 
-    global define map GetOptions ();
-
-    global boolean xen_removed = false;
-
     global boolean backup_to_bootsector = true;
 
 // includes
@@ -71,39 +67,6 @@ include "bootloader/routines/dialogs_i386.ycp";
 // end of mandatory functions
 //----------------------------------------------------------------------------
 
-define boolean XenPresent () {
-    return (! xen_removed)
-	&& (Mode::test ()
-	    || (Mode::normal () && Pkg::IsProvided ("xen")
-		&& Pkg::IsProvided ("kernel-xen"))
-	    || (! Mode::normal () && Pkg::IsSelected ("xen")
-		&& Pkg::IsSelected ("kernel-xen")));
-}
-
-
-define integer Dom0MemorySize () {
-    list<map> memory = (list<map>) SCR::Read(.probe.memory);
-
-    y2milestone("memory: %1", memory);
-    integer memory_size = 0;
-
-    foreach(map info, memory, ``{
-            // internal class, main memory
-            if (info["class_id"]:0 == 257 && info["sub_class_id"]:0 == 2)
-            {
-                list<map> minf = info["resource", "phys_mem"]:[];
-                foreach(map i, minf, ``{
-                        memory_size = memory_size + i["range"]:0;
-                    }
-                );
-            }
-        }
-    );
-    // size in kB lowered 64 MB for XEN itself
-    memory_size = memory_size / 1024 - (64 * 1024);
-    y2milestone ("Memory size for XEN domain 0: %1", memory_size);
-    return memory_size;
-}
 
 
 
@@ -116,7 +79,7 @@ define integer Dom0MemorySize () {
 	list<map<string,any> > out = [
 	    BootCommon::CreateLinuxSection ("linux"),
 	];
-	if (XenPresent ())
+	if (BootCommon::XenPresent ())
 	    out = add (out, BootCommon::CreateLinuxSection ("xen"));
 /*	list<string> others_ignore = [];
 	list<string> others = (list<string>)Storage::GetForeignPrimary();
@@ -344,7 +307,7 @@ define integer Dom0MemorySize () {
 		BootCommon::CheckAdditionalKernels (),
 	    {
 		string type = additional["version"]:"";
-		type = sformat ("version=%1", type);
+		type = sformat ("%1", type);
 		out = add (out, BootCommon::CreateLinuxSection (type));
 	    });
 	}
@@ -365,87 +328,6 @@ global void CreateGlobals () {
     ];
 }
 
-/**
- * Update sections of bootloader menu
- * modifies internal sreuctures
- * @param replace boolean true if old sectinos shall be replaced
- */
-global void UpdateSections (boolean replace) {
-    BootCommon::UpdateSections (replace, BootCommon::CreateLinuxSection);
-}
-
-    /**
-      * Update global options of bootloader
-      * modifies internal sreuctures
-      */
-    global define void UpdateGlobals () ``{
-/*	BootCommon::addValueToBootloaderSection (
-	    `globals, "color", "white/blue black/light-gray");
-	BootCommon::addValueToBootloaderSection (
-            `globals, "timeout", 8);
-	if (lookup_value (BootCommon::globals, "gfxmenu", nil) != nil
-	    || lookup_value (BootCommon::globals, "serial", nil) == nil)
-	{
-	    BootCommon::addValueToBootloaderSection (
-		`globals, "gfxmenu", file2grub ("/boot/message"));
-	} FIXME */
-	return;
-    }
-
-/**
- * Fix sections of bootloader menu during proposal regeneration
- * modifies internal sreuctures
- * @param disks_changed boolean should be true if bootloader location
- *   relevant disk locations have changed
- */
-global void FixSections (boolean disks_changed) {
-    BootCommon::FixSections (BootGRUB::CreateSections);
-}
-
-    /**
-      * Fix global options of bootloader during proposal regeneration
-      * modifies internal sreuctures
-      * @param disks_changed boolean should be true if bootloader location
-      *   relevant disk locations have changed
-      */
-    global define void FixGlobals (boolean disks_changed) ``{
-/* FIXME
-	if (size (BootCommon::sections) <= lookup_value (
-	    BootCommon::globals, "default", 0))
-	{
-	    BootCommon::addValueToBootloaderSection (`globals, "default", 0);
-	}
-	map intern = (map)lookup_value (
-	    BootCommon::globals, "__intern__", $[]);
-	if (lookup_value (
-	    BootCommon::globals, "gfxmenu", "") == "")
-	{
-	    intern["auto"] = false;
-	}
-	if (lookup_value (
-	    BootCommon::globals, "gfxmenu", "") != "")
-	{
-	    y2debug ("Have GFXMenu");
-	    if (! intern["changed"]:false)
-		BootCommon::addValueToBootloaderSection (
-		    `globals, "gfxmenu", file2grub ("/boot/message"));
-	    else if (intern["auto"]:false)
-	    { // automatic, but changed
-		if (BootCommon::BootPartitionDevice
-		    != intern["disks", 0]:""
-		    && ! intern["warned"]:false)
-		{
-		    intern["warned"] = true;
-		    displayGfxMenuChangePopup ();
-		}
-	    }
-	}
-	BootCommon::addValueToBootloaderSection (`globals, "__intern__",
-	    intern);
-*/
-return;
-    }
-
 
 // general functions
 
@@ -455,7 +337,6 @@ return;
       */
     global define map Export () ``{
 	map ret = BootCommon::Export ();
-	ret["device_map"] = device_map;
 	return ret;
     }
     /**
@@ -466,7 +347,6 @@ return;
 	y2debug ("Started BootGRUB::Import ()");
 	BootCommon::Import (settings);
 	y2debug ("Importing GRUB-specific settings %1", settings);
-	device_map = settings["device_map"]:proposeDeviceMap ();
 	y2debug ("GRUB import done");
 	return true;
     }
@@ -565,13 +445,7 @@ global boolean Read (boolean reread) {
     global define void Reset (boolean init) ``{
 	if (Mode::autoinst ())
 	    return;
-	device_map = [];
 	BootCommon::Reset (init);
-	if (init)
-	{
-	    device_map = proposeDeviceMap ();
-	}
-	xen_removed = false;
     }
     /**
       * Propose bootloader settings
@@ -579,40 +453,7 @@ global boolean Read (boolean reread) {
     global define void Propose () ``{
 	y2debug ("Started propose: Glob: %1, Sec: %2",
 	    BootCommon::globals, BootCommon::sections);
-        if (! BootCommon::was_proposed)
-	{
-            BootCommon::DetectDisks ();
-	    BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
-	}
-
-	// refresh device map
-	if (BootCommon::device_mapping == nil
-	    || size (BootCommon::device_mapping) == 0)
-	{
-	    BootCommon::ProposeDeviceMap ();
-	}
-	if (device_map == [] || device_map == nil)
-	    device_map = proposeDeviceMap ();
-	string mbrD = grubDev2unixDev ("(hd0)");
-	if (mbrD != "/dev/null" && mbrD != nil && mbrD != "")
-	    BootCommon::mbrDisk = mbrD;
-	boolean disks_changed = BootCommon::RefreshDisks();
-	if (disks_changed && ! Mode::autoinst ())
-	{
-	    if (askLocationResetPopup (BootCommon::loader_device))
-	    {
-		BootCommon::selected_location = nil;
-		BootCommon::loader_device = nil;
-		BootCommon::DetectDisks ();
-	    }
-	}
-
-	// set activate flag
-	if (! BootCommon::activate_changed)
-	{
-	    BootCommon::activate
-		= size (Storage::GetBootPartition (BootCommon::mbrDisk)) == 0;
-	}
+	BootCommon::i386LocationProposal ();
 
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
@@ -627,7 +468,7 @@ global boolean Read (boolean reread) {
 		y2debug ("nothing to to in AI mode if sections exist");
 	    }
 	    else
-		FixSections (disks_changed);
+		BootCommon::FixSections (BootGRUB::CreateSections);
 	}
 	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
 	{
@@ -641,7 +482,7 @@ global boolean Read (boolean reread) {
 		y2debug ("nothing to to in AI mode if globals are defined");
             }
             else
-		FixGlobals (disks_changed);
+		BootCommon::FixGlobals ();
 	}
 
         if (! BootCommon::was_proposed)
@@ -710,33 +551,14 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 
 
     /**
-      * Display bootloader summary
-      * @return a list of summary lines
-      */
-    global define list<string> Summary () {
-	list<string> ret = BootCommon::Summary ();
-/*	list<string> order = getDisksOrder ();
-	if (size (order) > 1)
-	{
-	    ret = add (ret, sformat (
-		// part of summary, %1 is a list of hard disks device names
-		_("Order of Hard Disks: %1"),
-		mergestring (order, ", ")));
-	}TODO */
-	return ret;
-    }
-
-    /**
       * Update read settings to new version of configuration files
       */
     global define void Update () ``{
-// TODO (SATA disk rename)	UpdateDeviceMap ();
-	UpdateSections (true);
-	UpdateGlobals ();
-	y2milestone ("Updating bootloader device");
+	BootCommon::UpdateDeviceMap ();
+	BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
+	BootCommon::UpdateGlobals ();
 	BootCommon::loader_device
 	    = BootCommon::UpdateDevice (BootCommon::loader_device);
-	y2milestone ("Updating device in /etc/grub.conf");
     }
     /**
       * Write bootloader settings to disk
@@ -799,154 +621,6 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	return ret;
     }
 
-    /**
-      * Get map of bootloader options
-      * @return map of options
-      */
-    global define map GetOptions () ``{
-	return $[
-	    `global: [
-                "default",
-                "fallback",
-                "hiddenmenu",
-                "timeout",
-                "title",
-		"gfxmenu",
-		"timeout",
-                "bootp",
-                "color",
-                "device",
-                "dhcp",
-                "hide",
-                "ifconfig",
-                "pager",
-                "partnew",
-                "parttype",
-                "password",
-                "rarp",
-                "serial",
-                "setkey",
-                "terminal",
-                "tftpserver",
-                "unhide",
-
-
-	    ],
-	    "image" : [
-                "bootp",
-                "color",
-                "device",
-                "dhcp",
-                "hide",
-                "ifconfig",
-                "pager",
-                "partnew",
-                "parttype",
-                "password",
-                "rarp",
-                "serial",
-                "setkey",
-                "terminal",
-                "tftpserver",
-                "unhide",
-
-                "blocklist",
-                "boot",
-                "cat",
-                "cmp",
-                "configfile",
-                "debug",
-                "displayapm",
-                "displaymem",
-                "embed",
-                "find",
-                "fstest",
-                "geometry",
-                "halt",
-                "help",
-                "impsprobe",
-                "initrd",
-                "install",
-                "ioprobe",
-                "kernel",
-                "lock",
-                "makeactive",
-                "map",
-                "md5crypt",
-                "module",
-                "modulenounzip",
-                "pause",
-                "quit",
-                "reboot",
-                "read",
-                "root",
-                "rootnoverify",
-                "savedefault",
-                "setup",
-                "testload",
-                "testvbe",
-                "uppermem",
-                "vbeprobe",
-
-	    ],
-	    "other" : [
-                "bootp",
-                "color",
-                "device",
-                "dhcp",
-                "hide",
-                "ifconfig",
-                "pager",
-                "partnew",
-                "parttype",
-                "password",
-                "rarp",
-                "serial",
-                "setkey",
-                "terminal",
-                "tftpserver",
-                "unhide",
-
-                "blocklist",
-                "boot",
-                "cat",
-                "chainloader",
-                "cmp",
-                "configfile",
-                "debug",
-                "displayapm",
-                "displaymem",
-                "embed",
-                "find",
-                "fstest",
-                "geometry",
-                "halt",
-                "help",
-                "impsprobe",
-                "install",
-                "ioprobe",
-                "lock",
-                "makeactive",
-                "map",
-                "md5crypt",
-                "module",
-                "modulenounzip",
-                "pause",
-                "quit",
-                "reboot",
-                "read",
-                "root",
-                "rootnoverify",
-                "savedefault",
-                "setup",
-                "testload",
-                "testvbe",
-                "uppermem",
-                "vbeprobe"
-	    ],
-	];
-    }
-
 global map<string,symbol()> Dialogs () {
     return $[
 	"installation"	: i386InstallDetailsDialog,
@@ -956,21 +630,20 @@ global map<string,symbol()> Dialogs () {
 
     /**
       * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootGRUB::Write ())])
+      * @return map map of functions (eg. $["write"::Write])
       */
     global define map<string, any> GetFunctions () ``{
 	return $[
-            "export"   : BootGRUB::Export,
-	    "import"   : BootGRUB::Import,
-            "read"     : BootGRUB::Read,
-            "reset"    : BootGRUB::Reset,
-            "propose"  : BootGRUB::Propose,
-            "save"     : BootGRUB::Save,
-	    "summary"  : BootGRUB::Summary,
-            "update"   : BootGRUB::Update,
-            "write"    : BootGRUB::Write,
-	    "dialogs"  : BootGRUB::Dialogs,
-//	    "widgets"  : BootGRUB::GetWidgetMaps,
+            "export"	: Export,
+	    "import"	: Import,
+            "read"	: Read,
+            "reset"	: Reset,
+            "propose"	: Propose,
+            "save"	: Save,
+	    "summary"	: BootCommon::i386Summary,
+            "update"	: Update,
+            "write"	: Write,
+	    "dialogs"	: Dialogs,
 	];
     }
 
@@ -991,7 +664,6 @@ global map<string,symbol()> Dialogs () {
 	    "restore_mbr" : true,
 	    "key_only_once" : false,
 	    "bootloader_on_disk" : true,
-	    "option_list" : GetOptions (),
 	];
     }
 
