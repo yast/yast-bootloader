@@ -32,6 +32,8 @@ ycpchook = bootloader
 
 dep: Booltloader_API.pm
 
+BootCommon: Booltloader_API.pm
+
 install: install_Bootloader_API
 
 install_Bootloader_API:
