@@ -82,8 +82,7 @@ define boolean allowEmbed15 () {
 	    targetMap = (map<string,map>)Storage::GetTargetMap();
 	}
 	targetMap = filter (string k, map v, targetMap, ``(
-	    ! v["is_lvm_vg"]:false && ! issubstring (k, "/dev/md")
-	    && ! issubstring (k, "/dev/evms")
+	    v["type"]:`CT_UNKNOWN==`CT_DISK
 	));
 	y2milestone ("Target map: %1", targetMap);
 	// add devices with know bios_id

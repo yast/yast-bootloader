@@ -141,7 +141,7 @@ global string FindMBRDisk() {
 	list partitions = [];
 
 	foreach ( string dev, map disk, tm, ``{
-	    if( Storage::IsRealDisk( dev, disk ) )
+	    if( Storage::IsRealDisk( disk ) )
 	    {
 		list l = filter( map p, disk["partitions"]:[],
 		    ``(p["delete"]:false==false) );
@@ -182,7 +182,7 @@ global string FindMBRDisk() {
 /*	if (mountdata_boot[3]:"" == "raid1")
 	{
 	    list md_list = filter (`e, partitions,
-		``(e["raid_name"]:"" == mountdata_boot[0]:""));
+		``(e["used_by"]:"" == substring(mountdata_boot[0]:"",5)));
 	    list dev_list = maplist (`e, md_list, ``(e["device"]:""));
 	    dev_list = filter (`d, dev_list, ``(d != ""));
 	    if (size (dev_list) > 0)
@@ -194,7 +194,7 @@ global string FindMBRDisk() {
         if (mountdata_root[3]:"" == "raid1")
         {
             list md_list = filter (`e, partitions,
-                ``(e["raid_name"]:"" == mountdata_root[0]:""));
+		``(e["used_by"]:"" == substring(mountdata_root[0]:"",5)));
             list dev_list = maplist (`e, md_list, ``(e["device"]:""));
             dev_list = filter (`d, dev_list, ``(d != ""));
             if (size (dev_list) > 0)
@@ -223,7 +223,7 @@ global string FindMBRDisk() {
 	    list<map<string,any> > partitions = (list<map<string,any> >)
 		descr["partitions"]:[];
 	    foreach (map<string,any> partition, partitions, ``{
-		if (partition["raid_name"]:"" == md_device)
+		if (partition["used_by"]:"" == substring(md_device,5))
 		{
 		    string d = (string)(partition["device"]:"");
 		    ret[d] = bios_id;
@@ -273,7 +273,9 @@ global string FindMBRDisk() {
 	    foreach (map<string,any> partition, partitions, ``{
 		if (partition["device"]:"" == device)
 		{
-		    ret = (string)(partition["raid_name"]:device);
+		    ret = (string)(partition["used_by"]:device);
+		    if( find( ret, "/dev/" )!=0 )
+			ret = "/dev/"+ret;
 		}
 	    });
 	});
@@ -819,8 +821,7 @@ global void ProposeDeviceMap () {
     else
 	targetMap = (map<string,map>)Storage::GetTargetMap();
     targetMap = filter (string k, map v, targetMap, {
-	return ! v["is_lvm_vg"]:false && ! issubstring (k, "/dev/md")
-	    && ! issubstring (k, "/dev/evms");
+	return v["type"]:`CT_UNKNOWN==`CT_DISK;
     });
     y2milestone ("Target map: %1", targetMap);
 

@@ -242,14 +242,11 @@ global string getFreeSectionLabel () {
 	list<string> floppies = getFloppyDevices ();
 
 	devices = filter (string k, map v, devices,
-	    ``(! v["is_lvm_vg"]:false));
+	                  ``(v["type"]:`CT_UNKNONW!=`CT_LVM));
 	if (type == `boot || type == `boot_other)
 	{
-	    devices = filter (string k, map v, devices, ``(
-		! issubstring (k, "/dev/md")
-		&& ! issubstring (k, "/dev/evms")
-		&& ! v["is_lvm_vg"]:false
-	    ));
+	    devices = filter (string k, map v, devices, 
+	                      ``(v["type"]:`CT_UNKNONW==`CT_DISK));
 	}
 	list<string> all_disks = (list<string>) maplist (string k, map v, devices, ``(k));
 
@@ -640,7 +637,7 @@ global string getFreeSectionLabel () {
 	list<map> partitions = [];
 
 	foreach ( string dev, map disk, tm, ``{
-	    if( Storage::IsRealDisk( dev, disk ) )
+	    if( Storage::IsRealDisk( disk ) )
 	    {
 		list<map> l = (list<map>)filter( map p, disk["partitions"]:[],
 		    ``(p["delete"]:false==false) );
@@ -649,7 +646,7 @@ global string getFreeSectionLabel () {
         });
 
 	// filter partitions to relevant list according to raid name
-	list<map> md_list = filter (map e, partitions, ``(e["raid_name"]:"" == device));
+	list<map> md_list = filter (map e, partitions, ``(e["used_by"]:"" == substring(device,5)));
 	// get the devices
 	list<string> dev_list = maplist (map e, md_list, ``(e["device"]:""));
 	dev_list = filter (string d, dev_list, ``(d != ""));

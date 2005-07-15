@@ -45,8 +45,7 @@
 		&& is (p["fsid"]:nil, integer)
 		// both partition types 0x41 and FAT16 can be handled through lilo
 		&& (p["fsid"]:nil == 65 ||  p["fsid"]:nil == 6)
-		&& (! p["is_lv"]:false)
-		&& (p["raid_type"]:"" == "")
+		&& !contains( [`lvm, `evms, `sw_raid], p["type"]:`primary )
 	    ));
 	    y2milestone ("Filtered existing partitions: %1", partitions);
 // don't check it here, just activate the partition instead
@@ -119,7 +118,7 @@
 	    map<string,map> tm = Storage::GetTargetMap ();
 	    string vg = "";
 	    foreach (string dev, map info, tm, {
-		if (info["is_lvm_vg"]:false)
+		if (info["type"]:`CT_UNKNONW==`CT_LVM)
 		{
 		    list<map> volumes = info["partitions"]:[];
 		    foreach (map v, volumes, {
@@ -134,7 +133,7 @@
 	    foreach (string dev, map info, tm, {
 		list<map> partitions = info["partitions"]:[];
 		foreach (map p, partitions, {
-		    if (p["lvm_group"]:"" == vg)
+		    if (p["used_by"]:"" == vg)
 		    {
 			root_disks = add (root_disks, dev);
 		    }
