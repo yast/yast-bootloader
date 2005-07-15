@@ -1,4 +1,8 @@
-DO NOT SUBMIT THIS PACKAGE IN ANY CASE, IT WOULD BREAK INSTALLATION
+-------------------------------------------------------------------
+Fri Jul 15 15:48:47 CEST 2005 - jsrain@suse.cz
+
+- adapted to new partitioner using storage-lib (arvin)
+- fixed makefiles and nfb to build against limal-bootloader
 
 -------------------------------------------------------------------
 Tue Jul 12 13:03:23 CEST 2005 - jsrain@suse.cz

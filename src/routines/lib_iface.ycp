@@ -48,11 +48,13 @@ map<string,any> PrepareInitData () {
     map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
     list<list<list> > pi = maplist (string disk, map info, tm,
     {
-	if (info["is_lvm_vg"]:false)
+	if (info["type"]:`CT_UNKNOWN==`CT_LVM)
 	    return [];
 	list partitions = info["partitions"]:[];
 	list<list> parts = maplist (map p, (list<map>)partitions, {
-	    string raid = p["raid_name"]:"";
+	    string raid = "";
+	    if( p["used_by_type"]:`UB_NONE==`UB_MD )
+		raid = p["used_by"]:"";
 	    string device = p["device"]:"";
 	    if (raid != "")
 	    {
