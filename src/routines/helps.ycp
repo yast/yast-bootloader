@@ -81,7 +81,7 @@ manually, click <B>Edit Configuration Files</B>.</P>");
       * Get help
       * @return string help text
       */
-    global define string getSectionsHelp () ``{
+    global define string SectionsHelp () ``{
 	// help 1/4
 	return _("<P> In the table, each section represents one item
 in the boot menu.</P>") +
@@ -109,21 +109,17 @@ or <B>Delete</B> to delete the selected section.</P>
       * Get help
       * @return string help text
       */
-    global define string getLocationsHelp () ``{
+    global define string LocationsHelp () ``{
 	// help text for the custom boot manager installation, 1 of 7
 	// %1 = name of boot loader (e.g. "LILO")
 	// this should be per architecture
-/*	string helptext = sformat (_("<p>
-The boot manager (%1) can be installed in the following ways:
-</p>
-"), BootCommon::getLoaderType (false));
+	string helptext = sformat (_("<p><big><b>Boot Loader Location</b></big><br>
+The boot manager (%1) can be installed in the following ways:</p>"),
+BootCommon::getLoaderType (false));
 
 	// custom bootloader help text, 2 of 7
-	helptext = helptext + _("<p>
-- In the <b>MBR</b> (the Master Boot Record).  This is recommended whenever &Product
-determines the system can be booted this way.
-</p>
-");
+	helptext = helptext + _("<p>- In the <b>MBR</b> (the Master Boot Record).  This is recommended whenever &Product
+determines the system can be booted this way.</p>");
 
 	// custom bootloader help text, 3 of 7
 	helptext = helptext + _("<p>
@@ -131,9 +127,7 @@ determines the system can be booted this way.
 have several operating systems installed on your hard drive and want to
 continue using your old boot manager, such as <tt>loadlin</tt>. 
 The code currently in your MBR remains unchanged.<br>
-Configure your <b>other boot manager</b> to start &product;.
-</p>
-");
+Configure your <b>other boot manager</b> to start &product;.</p>");
 
        if (StorageDevices::FloppyPresent)
         {
@@ -143,35 +137,42 @@ Configure your <b>other boot manager</b> to start &product;.
 - On a <b>floppy</b> disk.
 Use this to avoid the risk of interference with an already existing
 boot mechanism. Enable booting from floppy disk in
-the BIOS of your machine to use this option.
-</p>
-");
+the BIOS of your machine to use this option.</p>");
         }
 
 	// custom bootloader help text, 5 of 7
 	helptext = helptext + _("<p>
 - In some <b>other</b> partition. Consider your system's restrictions
-when selecting this option.</p>
-");
+when selecting this option.</p>");
 	if (Arch::i386 ())
 	{
 	    // optional part, only inserted on x86 architectures. 6 of 7
 	    helptext = helptext + _("<p>For example, most PCs have a BIOS
 limit that restricts booting to
 hard disk cylinders smaller than 1024. Depending on the boot manager used,
-you may or may not be able to boot from a logical partition.
-</p>");
+you may or may not be able to boot from a logical partition.</p>");
 	}
 
 	// custom bootloader help text, 7 of 7
 	helptext = helptext + _("<p>
 Enter the device name of the partition (e.g., <tt>/dev/hda3</tt>,
-<tt>/dev/sdb</tt>) in the input field.
-</p>
-");
-	return helptext;*/
-	return "";
+<tt>/dev/sdb</tt>) in the input field.</p>");
+	return helptext;
     }
+
+global string InstDetailsHelp () {
+    // help text 1/1
+    return _("<p><big><b>Boot Loader Installation Details</b></big><br>
+To adjust advanced boot loader installation options (for example the device
+mapping), push <b>Boot Loader Installation Details</b>.</p>");
+}
+
+global string LoaderOptionsHelp () {
+    // help text 1/1
+    return _("<p><big><b>Boot Loader Options</b></big><br>
+To adjust options of the boot loader (eg. the time out), click
+<b>Boot Loader Options</b>.</p>");
+}
 
     /**
       * Get help

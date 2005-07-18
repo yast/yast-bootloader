@@ -231,7 +231,7 @@ map<string,any> getSectionsWidget () {
 	),
 	"init" : SectionsInit,
 	"handle" : SectionsHandle,
-	"help" : BootCommon::getSectionsHelp (),
+	"help" : BootCommon::SectionsHelp (),
     ];
 }
 
@@ -795,13 +795,14 @@ map<string,map<string,any> > CommonGlobalWidgets () {
 	"label" : _("Boot Loader Options"),
 	"handle_events" : ["loader_options"],
 	"handle" : LoaderOptionsButtonHandle,
+	"help" : BootCommon::LoaderOptionsHelp (),
     ],
     "loader_location" : $[
 	"widget" : `func,
 	"widget_func" : TargetWidget,
 	"init" : TargetInit,
 	"store" : TargetStore,
-	"help" : getLocationsHelp (),
+	"help" : BootCommon::LocationsHelp (),
 	"validate_type" : `function,
 	"validate_function" : TargetValidate,
     ],
@@ -811,6 +812,7 @@ map<string,map<string,any> > CommonGlobalWidgets () {
 	"label" : _("Boot Loader Installation &Details"),
 	"handle_events" : ["inst_details"],
 	"handle" : InstDetailsButtonHandle,
+	"help" : BootCommon::InstDetailsHelp (),
     ],
   ];
   return _common_global_widgets;
