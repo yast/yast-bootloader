@@ -18,11 +18,6 @@ module_DATA =			\
 #	BootABOOT.ycp		\
 #	BootPPC.ycp		
 
-module_do_not_pack_DATA =
-	Bootloader_API.pm
-
-module_do_not_packdir = @moduledir@
-
 Booltloader_API.pm:
 	test -f Bootloader_API.pm || ln -sf `find /usr/lib/perl5 -name Bootloader_API.pm`
 
@@ -39,9 +34,10 @@ dep: Booltloader_API.pm
 
 BootCommon.ybc: Booltloader_API.pm
 
-#install: install_Bootloader_API
-#
-#install_Bootloader_API:
-#	 /bin/cp -f -d Bootloader_API.pm @moduledir@/Bootloader_API.pm
+install: install_Bootloader_API install-am
+
+install_Bootloader_API:
+	test -d ${RPM_BUILD_ROOT}/@moduledir@ || mkdir -p ${RPM_BUILD_ROOT}/@moduledir@
+	 /bin/cp -f -d Bootloader_API.pm ${RPM_BUILD_ROOT}/@moduledir@
 
 include $(top_srcdir)/Makefile.am.common

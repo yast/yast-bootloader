@@ -438,7 +438,7 @@ global boolean Read (boolean reread) {
 	was_proposed = false;
 	if (init)
 	{
-	    device_mapping = ProposeDeviceMap ();
+	    ProposeDeviceMap ();
 	}
     }
 
