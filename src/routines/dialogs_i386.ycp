@@ -91,14 +91,8 @@ symbol i386InstallDetailsDialog () {
 	Label::BackButton (),
 	Label::OKButton ());
 
-    map<string,string> devmap_rev = mapmap (string k, string v,
-	BootCommon::device_mapping,
-    {
-	return $[ v : k ];
-    });
-    list<string> disks_order = maplist (string k, string v, devmap_rev, {
-	return v;
-    });
+    list<string> disks_order = BootCommon::DisksOrder ();
+
     UI::ChangeWidget (`id (`disks), `Items, disks_order);
     UI::ChangeWidget (`id (`disks), `CurrentItem, disks_order[0]:"");
     UI::ChangeWidget (`id (`repl_mbr), `Value, BootCommon::repl_mbr);
@@ -184,11 +178,19 @@ symbol i386InstallDetailsDialog () {
     if (ret == `next)
     {
 	integer index = 0;
-	BootCommon::device_mapping = listmap (string d, disks_order, {
-	    string hex_index = substring (tohexstring (index), 2);
-	    return $[ d : sformat ("(hd%1)", hex_index) ];
-	    index = index + 1;
+	BootCommon::device_mapping = filter (string k, string v,
+	    BootCommon::device_mapping,
+	{
+	    return substring (v, 0, 3) != "(hd";
 	});
+	BootCommon::device_mapping = (map<string,string>)union (
+	    BootCommon::device_mapping,
+	    listmap (string d, disks_order, {
+		string hex_index = substring (tohexstring (index), 2);
+		 return $[ d : sformat ("(hd%1)", hex_index) ];
+		index = index + 1;
+	    })
+	);
 	BootCommon::repl_mbr = (boolean)
 	    UI::QueryWidget (`id (`repl_mbr), `Value);
 	BootCommon::activate = (boolean)

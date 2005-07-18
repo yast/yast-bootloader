@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 18 13:26:43 CEST 2005 - jsrain@suse.cz
+
+- fixed proposing and handling device map
+
+-------------------------------------------------------------------
 Mon Jul 18 08:42:16 CEST 2005 - jsrain@suse.cz
 
 - fixed makefiles in order to pack all needed files

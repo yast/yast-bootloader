@@ -867,6 +867,9 @@ global list<string> DisksOrder () {
     {
 	return $[ v : k ];
     });
+    devmap_rev = filter (string k, string v, devmap_rev, {
+	return substring (k, 0, 3) == "(hd";
+    });
     list<string> order = maplist (string k, string v, devmap_rev, {
 	return v;
     });
