@@ -83,16 +83,22 @@
 
     include "bootloader/routines/switcher.ycp";
     include "bootloader/routines/popups.ycp";
-    include "bootloader/routines/ui.ycp";
 
 
 // general functions
+
+global boolean() test_abort = nil;
+
+boolean testAbort () {
+    if (test_abort == nil)
+	return false;
+    return test_abort ();
+}
 
     /**
       * Constructor
       */
     global define void Bootloader () ``{
-	BootCommon::reset_button_handle = Bootloader::resetButtonHandle;
 	return;
     }
 
@@ -861,12 +867,12 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
      * @reuturn boolean true on success
      */
     global define boolean UpdateGfxMenu () {
-	if (! Mode::normal ())
-	    return true;
 	if (getLoaderType () != "lilo" && getLoaderType () != "grub")
 	    return true;
 
 	boolean ret = BootCommon::UpdateGfxMenuContents ();
+	if (! Mode::normal ())
+	    return true;
 	if (getLoaderType () == "lilo")
 	{
 	    string bl_command = "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1";

@@ -28,7 +28,7 @@
       * Get help
       * @return string help text
       */
-    global define string getInitProgressHelp() ``{
+    string getInitProgressHelp() ``{
 	// help text 1/1 (shown during settings reading progress)
 	return _("<P><BIG><B>Boot Loader Configuration Tool</B></BIG><BR>
 Change the settings of your boot loader. </P>
@@ -39,7 +39,7 @@ Change the settings of your boot loader. </P>
       * Get help
       * @return string help text
       */
-    global define string getSaveProgressHelp () ``{
+    string getSaveProgressHelp () ``{
 	// help text
 	return _("<P><B><BIG>Saving Boot Loader Configuration</BIG></B><BR>
 Please wait...<br></p>
@@ -50,7 +50,7 @@ Please wait...<br></p>
       * Get help
       * @return string help text
       */
-    global define string getSummaryButtonsHelp () ``{
+    string getAdvancedButtonHelp () ``{
 	string ins = "";
 	if (BootCommon::getLoaderType (false) == "grub")
 	    // help text, optional part of following
@@ -58,8 +58,8 @@ Please wait...<br></p>
 YaST can try to find them and merge their menus.
 ");
 	// help text 1/2 (%1 may be following sentence, optionally empty)
-	string help = sformat (_("<P>Via the <B>Reset</B> button,
-you can clear the current 
+	string help = sformat (_("<P>Via the <B>Advanced</B> button,
+you can manually edit the bootloader configuration files, clear the current 
 configuration and propose a new configuration, start from scratch, or reread
 the configuration saved on your disk. %1</P>
 "), ins);
@@ -70,7 +70,7 @@ the configuration saved on your disk. %1</P>
       * Get help
       * @return string help text
       */
-    global define string getManualEditHelp () ``{
+    string getManualEditHelp () ``{
 	// help text 1/1
 	return _("<P>To edit boot loader configuration files
 manually, click <B>Edit Configuration Files</B>.</P>");
@@ -81,7 +81,7 @@ manually, click <B>Edit Configuration Files</B>.</P>");
       * Get help
       * @return string help text
       */
-    global define string SectionsHelp () ``{
+    string SectionsHelp () ``{
 	// help 1/4
 	return _("<P> In the table, each section represents one item
 in the boot menu.</P>") +
@@ -109,7 +109,7 @@ or <B>Delete</B> to delete the selected section.</P>
       * Get help
       * @return string help text
       */
-    global define string LocationsHelp () ``{
+    string LocationsHelp () ``{
 	// help text for the custom boot manager installation, 1 of 7
 	// %1 = name of boot loader (e.g. "LILO")
 	// this should be per architecture
@@ -160,14 +160,22 @@ Enter the device name of the partition (e.g., <tt>/dev/hda3</tt>,
 	return helptext;
     }
 
-global string InstDetailsHelp () {
+string InstDetailsHelp () {
     // help text 1/1
     return _("<p><big><b>Boot Loader Installation Details</b></big><br>
 To adjust advanced boot loader installation options (for example the device
 mapping), push <b>Boot Loader Installation Details</b>.</p>");
 }
 
-global string LoaderOptionsHelp () {
+string LoaderTypeHelp () {
+    // help text 1/1
+    return _("<p><big><b>Boot Loader Type</b></big><br>
+To select whether to install bootloader at all and which bootloader to install,
+use <b>Boot Loader</b>.</p>");
+}
+
+
+string LoaderOptionsHelp () {
     // help text 1/1
     return _("<p><big><b>Boot Loader Options</b></big><br>
 To adjust options of the boot loader (eg. the time out), click
@@ -178,7 +186,7 @@ To adjust options of the boot loader (eg. the time out), click
       * Get help
       * @return string help text
       */
-    global define string getExpertManualHelp () ``{
+    string getExpertManualHelp () ``{
 	// help text 1/1
 	return _("<P><B>Expert Manual Configuration</B><BR>
 Here, manually edit the boot loader configuration.</P>

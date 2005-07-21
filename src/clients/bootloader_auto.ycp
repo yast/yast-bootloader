@@ -26,7 +26,7 @@
     import "Progress";
     import "Mode";
 
-//    include "bootloader/routines/autoinstall.ycp";
+    include "bootloader/routines/autoinstall.ycp";
     include "bootloader/routines/wizards.ycp";
 
     boolean progress_orig = Progress::set (false);

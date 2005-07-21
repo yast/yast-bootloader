@@ -231,7 +231,7 @@ map<string,any> getSectionsWidget () {
 	),
 	"init" : SectionsInit,
 	"handle" : SectionsHandle,
-	"help" : BootCommon::SectionsHelp (),
+	"help" : SectionsHelp (),
     ];
 }
 
@@ -241,7 +241,7 @@ map<string,any> getSectionsWidget () {
 
 term LoaderTypeComboWidget () {
     return `ComboBox (`id ("loader_type"),
-	`opt (`notify, `immediate),
+	`opt (`notify),
 	// combo box
 	_("Boot Loader"),
 	maplist (string l,
@@ -608,6 +608,10 @@ Continue?")))
       */
     void resetButtonInit (string widget) ``{
 	list items = [];
+	items = add (items, `item (
+	    `id (`manual),
+	    // menu button entry
+	    _("E&dit Configuration Files")));
 	if (BootCommon::getBooleanAttrib ("propose"))
 	{
 	    items = add (items,
@@ -642,13 +646,13 @@ Continue?")))
 
 	if (size (items) > 0)
 	{
-	    UI::ReplaceWidget (`id (`_tp_table_repl),
+	    UI::ReplaceWidget (`id (`adv_rp),
 		// menu button
 		`MenuButton (`id (`reset), _("Res&et"), items));
 	}
 	else
 	{
-	    UI::ReplaceWidget (`id (`_tp_table_repl), `VSpacing (0));
+	    UI::ReplaceWidget (`id (`adv_rp), `VSpacing (0));
 	}
     }
 
@@ -658,8 +662,12 @@ Continue?")))
       * @param event map event description of event that occured
       * @return symbol to return to wizard sequencer, or nil
       */
-    global define symbol resetButtonHandle (string widget, map event) ``{
+    symbol resetButtonHandle (string widget, map event) ``{
 	any op = event["ID"]:nil;
+	if (op == `manual)
+	{
+	    return `manual;
+	}
         if (op == `restore_mbr)
         {
             boolean doit = restoreMBRPopup (BootCommon::mbrDisk);
@@ -703,14 +711,8 @@ Continue?")))
 	{
 	    Bootloader::Propose ();
 	}
-//        BootCommon::fetchSettings ();
-//        BootCommon::current_section = BootCommon::current_globals;
-//        BootCommon::current_section_name = `global;
 
 	return `redraw;
-
-	// FIXME this must be solved some way
-//	readWidgets (CWM::CreateWidgets(["globalsection"], BootCommon::GetWidgets ()));
     }
 
 
@@ -721,13 +723,13 @@ Continue?")))
  * Get map of widget
  * @return map of widget
  */
-global map<string,any> getResetButtonWidget () {
+map<string,any> getAdvancedButtonWidget () {
     return $[
 	"widget" : `custom,
-	"custom_widget" : `VSpacing (0),
-	"handle" : BootCommon::reset_button_handle,
+	"custom_widget" : `ReplacePoint (`id (`adv_rp), `VBox ()),
+	"handle" : resetButtonHandle,
 	"init" : resetButtonInit,
-//	"help" : getSummaryButtonsHelp (),
+	"help" : getAdvancedButtonHelp (),
     ];
 }
 
@@ -780,29 +782,29 @@ map<string,map<string,any> > CommonGlobalWidgets () {
   if (_common_global_widgets != nil)
 	return _common_global_widgets;
   _common_global_widgets = $[
-    "manual_edit_button": getManualEditWidget (),
-    "resetbutton"	: getResetButtonWidget (),
+    "adv_button"	: getAdvancedButtonWidget (),
     "sections" : getSectionsWidget (),
     "loader_type" : $[
 	"widget" : `func,
 	"widget_func" : LoaderTypeComboWidget,
 	"init" : LoaderTypeComboInit,
 	"handle" : LoaderTypeComboHandle,
+	"help" : LoaderTypeHelp (),
     ],
     "loader_options" : $[
 	"widget" : `push_button,
 	// push button
-	"label" : _("Boot Loader Options"),
+	"label" : _("Boot &Loader Options"),
 	"handle_events" : ["loader_options"],
 	"handle" : LoaderOptionsButtonHandle,
-	"help" : BootCommon::LoaderOptionsHelp (),
+	"help" : LoaderOptionsHelp (),
     ],
     "loader_location" : $[
 	"widget" : `func,
 	"widget_func" : TargetWidget,
 	"init" : TargetInit,
 	"store" : TargetStore,
-	"help" : BootCommon::LocationsHelp (),
+	"help" : LocationsHelp (),
 	"validate_type" : `function,
 	"validate_function" : TargetValidate,
     ],
@@ -812,7 +814,7 @@ map<string,map<string,any> > CommonGlobalWidgets () {
 	"label" : _("Boot Loader Installation &Details"),
 	"handle_events" : ["inst_details"],
 	"handle" : InstDetailsButtonHandle,
-	"help" : BootCommon::InstDetailsHelp (),
+	"help" : InstDetailsHelp (),
     ],
   ];
   return _common_global_widgets;

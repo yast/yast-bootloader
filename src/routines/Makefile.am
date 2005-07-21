@@ -10,7 +10,6 @@ ynclude_DATA =			\
 	global_widgets.ycp	\
 	switcher.ycp		\
 	helps.ycp		\
-	ui.ycp			\
 	lilolike.ycp		\
 	popups.ycp		\
 	i386.ycp		\
@@ -19,7 +18,8 @@ ynclude_DATA =			\
 	dialogs.ycp		\
 	dialogs_i386.ycp	\
 	widgets_i386.ycp	\
-	helps_i386.ycp
+	helps_i386.ycp		\
+	autoinstall.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)
