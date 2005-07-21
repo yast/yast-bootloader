@@ -197,10 +197,6 @@ global map<string,string> edited_files = $[];
 // ui help variables
 
 
-    global boolean redraw_table = false;
-    global boolean redraw_dialog = false;
-    global symbol(any, map) reset_button_handle = nil;
-
     string additional_failsafe_params = "";
 
 
@@ -273,7 +269,6 @@ global list<string> update_section_types
     global define list<string> getBootloaders ();
     global define list<string> Summary ();
 
-    include "bootloader/routines/helps.ycp";
     include "bootloader/routines/popups.ycp";
     include "bootloader/routines/misc.ycp";
     include "bootloader/routines/lilolike.ycp";

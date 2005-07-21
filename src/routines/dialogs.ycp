@@ -53,7 +53,8 @@ boolean testAbort () {
  * @return `abort if aborted and `next otherwise
  */
 symbol ReadDialog() {
-    Wizard::RestoreHelp (BootCommon::getInitProgressHelp ());
+    Bootloader::test_abort = testAbort;
+    Wizard::RestoreHelp (getInitProgressHelp ());
     boolean ret = Bootloader::Read();
     return ret ? `next : `abort;
 }
@@ -63,7 +64,9 @@ symbol ReadDialog() {
  * @return `abort if aborted and `next otherwise
  */
 symbol WriteDialog() {
-    Wizard::RestoreHelp (BootCommon::getSaveProgressHelp ());
+    if (! Stage::initial ())
+	Bootloader::test_abort = testAbort;
+    Wizard::RestoreHelp (getSaveProgressHelp ());
     boolean ret = Bootloader::Write();
     return ret ? `next : `abort;
 }
@@ -80,11 +83,10 @@ symbol MainDialog () {
 
     term contents = `VBox (
 	"tab",
-	"manual_edit_button",
-	`ReplacePoint (`id (`_tp_table_repl), `VBox ())
+	`Right ("adv_button")
     );
 
-    list<string> widget_names = ["tab", "manual_edit_button", "resetbutton"];
+    list<string> widget_names = ["tab", "adv_button"];
     map<string,map<string,any> > widget_descr = (map<string,map<string,any> >)
 	union (CommonGlobalWidgets (), Bootloader::blWidgetMaps ());
     widget_descr["tab"] = CWMTab::CreateWidget($[
@@ -92,8 +94,8 @@ symbol MainDialog () {
 	"tabs": TabsDescr (),
 	"widget_descr": widget_descr,
 	"initial_tab" : return_tab,
-	"tab_help" : "", // FIXME help
     ]);
+    widget_descr["tab", "no_help"] = "";
 
     // dialog caption
     string caption = _("Boot Loader Settings");
@@ -313,7 +315,7 @@ y2internal ("Contents; %1", files);
 
 	// dialog caption
         string caption = _("Expert Manual Configuration");
-        string help = BootCommon::getExpertManualHelp ();
+        string help = getExpertManualHelp ();
 
         list exits = [`back, `next, `abort, `ok, `apply, `accept];
 
