@@ -124,7 +124,28 @@ global string FindMBRDisk() {
         loader_device   = BootCommon::mbrDisk;
 	if (KeepMBR (loader_device))
 	{
-	    loader_device = BootPartitionDevice;
+	    map<string,any> tm = Storage::GetTargetMap ();
+	    map dp = Storage::GetDiskPartition (BootPartitionDevice);
+	    string disk = dp["disk"]:"";
+	    map dm = tm[disk]:$[];
+	    list<map> partitions = dm["partitions"]:[];
+	    boolean is_logical = false;
+	    string extended = nil;
+	    foreach (map p, partitions, {
+		if (p["type"]:nil == `extended)
+		{
+		    extended = (string)p["device"]:nil;
+		}
+		else if (p["device"]:"" == BootPartitionDevice
+		    && p["type"]:nil == `logical)
+		{
+		    is_logical = true;
+		}
+	    });
+	    if (is_logical && extended != nil)
+		loader_device = extended;
+	    else
+		loader_device = BootPartitionDevice;
 	    selected_location = "boot";
 	}
         y2milestone ("ConfigureLocation (%1 on %2)",
