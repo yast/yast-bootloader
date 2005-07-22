@@ -350,7 +350,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	"type" : "image",
 	"kernel" : kernel_fn,
 	"initrd" : initrd_fn,
-	"root" : BootPartitionDevice,
+	"root" : RootPartitionDevice,
 	"append" : BootArch::DefaultKernelParams (resume),
 	"__auto" : true,
 	"__changed" : false,
