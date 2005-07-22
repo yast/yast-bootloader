@@ -1,9 +1,10 @@
 -------------------------------------------------------------------
-Fri Jul 22 14:58:31 CEST 2005 - jsrain@suse.cz
+Fri Jul 22 15:24:24 CEST 2005 - jsrain@suse.cz
 
 - set correct root device to kernel command line (#97574)
 - fixed installation on ThinkPad laptops (select the partition
   correctly) (#86762)
+- 2.12.9
 
 -------------------------------------------------------------------
 Fri Jul 22 12:18:23 CEST 2005 - jsrain@suse.cz
