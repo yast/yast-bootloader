@@ -47,7 +47,7 @@
 
     if(func == "Import")
     {
-	ret = Bootloader::Import(/*AI2Export (*/(map<string,any>)param/*)*/);
+	ret = Bootloader::Import(AI2Export ((map<string,any>)param));
     }
     /**
       * Create a summary
@@ -96,7 +96,7 @@
       * return map or list
       */
     else if (func == "Export") {
-	ret = /*Export2AI (*/(map<string,any>)Bootloader::Export()/*)*/;
+	ret = Export2AI ((map<string,any>)Bootloader::Export());
     }
     /**
       * Write configuration data

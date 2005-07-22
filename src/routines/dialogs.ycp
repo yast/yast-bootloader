@@ -107,7 +107,7 @@ symbol MainDialog () {
 	"back_button" : Label::BackButton (),
 	"abort_button" : Label::AbortButton (),
 	"next_button" : Label::FinishButton (),
-	"fallback_functions" : section_handlers,
+	"fallback_functions" : global_handlers,
     ]);
     if (ret != `back && ret != `abort && ret != `cancel)
     {
@@ -284,10 +284,9 @@ symbol StoreSection () {
       * Run dialog
       * @return symbol for wizard sequencer
       */
-    global define symbol runEditFilesDialog () ``{
+    symbol runEditFilesDialog () ``{
 	Bootloader::blSave (false, false, false);
 	map<string,string> files = BootCommon::GetFilesContents ();
-y2internal ("Contents; %1", files);
 	string defaultv = files["default"]:"";
 	files = filter (string k, string v, files, ``(k != "default"));
         list filenames = [];

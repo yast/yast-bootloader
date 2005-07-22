@@ -28,11 +28,15 @@
       * @return map the export map
       */
     define map<string,any> AI2Export (map<string,any> ai) ``{
-	return ai;/* FIXME
 	// prepare settings for default bootloader if not specified in the
 	// profile
-	if (Mode::autoinst () && ! haskey (ai, "loader_type"))
+	if (Mode::autoinst () && (
+	    ai["loader_type"]:"default" == "default"
+	    || ai["loader_type"]:"default" == ""
+	    )
+	) {
 	    ai["loader_type"] = Bootloader::getLoaderType ();
+	}
 
 	// bootloader type and location stuff
 	map exp = $[
@@ -41,6 +45,7 @@
 	    "loader_device" : ai["loader_device"]:"",
 	    "specific" : $[],
 	];
+/* FIXME
 	// global PPC stuff
 	if (ai["loader_type"]:"" == "ppc")
 	{
@@ -101,7 +106,7 @@
 		exp["specific", "device_map"] = device_map;
 	    }
 	}
-
+*/
 	// initrd stuff
 	list<string> modlist = [];
 	map<string,any> modsett = $[];
@@ -144,7 +149,7 @@
 
 	if (size(modlist) > 0 )
 	    exp["initrd"] = $[ "list": modlist, "settings" : modsett ];
-
+/*
 	// sections stuff
 	exp["specific", "sections"] = maplist (list<map<string,any> > s,
 	    ai["sections"]:[],
@@ -204,8 +209,9 @@
 	}
 	if (default_sect != nil)
 	    ai["default"] = default_sect;
+*/
 
-	return (map<string,any>)exp;*/
+	return (map<string,any>)exp;
     }
 
     /**
@@ -214,13 +220,36 @@
       * @return map the autoinstallation map
       */
     define map<string,any> Export2AI (map<string,any> exp) ``{
-	return exp; /* FIXME
+y2error ("Exp: %1", exp);
 	// bootloader type and location stuff
 	map<string,any> ai = $[
-	    "loader_type" : exp["loader_type"]:"",
-	    "location" : exp["location"]:"",
-	    "loader_device" : exp["loader_device"]:"",
+	    "loader_type" : exp["loader_type"]:"default",
 	];
+	map<string,string> glob = filter (string k, string v,
+	    exp["specific", "global"]:$[],
+	{
+	    return substring (k, 0, 2) != "__";
+	});
+	if (size (glob) > 0)
+	{
+	    ai["global"] = mapmap (string k, string v, glob, {
+		if (k == "timeout")
+		    return (map<string,any>)$[ k : tointeger (v) ];
+		else if (k == "embed_stage1.5")
+		    return (map<string,any>)
+			$[ k : (v == "0" || v == "") ? false : true ];
+		return (map<string,any>)$[ k : v ];
+	    });
+	}
+	ai["sections"] = maplist (map<string,any> s,
+	    exp["specific", "sections"]:[],
+	{
+	    s = filter (string k, any v, s, {
+		return substring (k, 0, 2) != "__";
+	    });
+	    return s;
+	});
+/*
 	// global PPC stuff
 	if (ai["loader_type"]:"" == "ppc")
 	{
@@ -246,7 +275,7 @@
 		"create_efi_entry" : exp["specific", "create_efi_entry"]:false,
 	    ];
 	}
-
+*/
 	// LILO and GRUB stuff
 	if (ai["loader_type"]:"" == "lilo" || ai["loader_type"]:"" == "grub")
 	{
@@ -260,19 +289,20 @@
 	}
 
 	// device map stuff
-	if (ai["loader_type"]:"" == "grub")
+	if (size (exp["specific", "device_map"]:[]) > 0)
 	{
-	    list<list<string> > device_map = exp["specific", "device_map"]:[];
+	    map<string,string> device_map = exp["specific", "device_map"]:$[];
 	    y2error ("DM: %1", device_map);
 	    if (device_map != nil && size (device_map) > 0)
 	    {
 		list<map<string,string> > dm = maplist (
-		    list<string> e,
+		    string linux,
+		    string firmware,
 		    device_map,
 		{
 		    return $[
-			"linux" : e[1]:"",
-			"firmware" : e[0]:""
+			"linux" : linux,
+			"firmware" : firmware,
 		    ];
 		});
 		ai["device_map"] = dm;
@@ -289,7 +319,7 @@
 	});
 	if (size(ayinitrd) > 0 )
 	    ai["initrd_modules"] = ayinitrd;
-
+/*
 	// sections stuff
 	ai["sections"] = maplist (list<map<string,any> > s,
 	    exp["specific", "sections"]:[],
@@ -333,7 +363,8 @@
 	}
 	if (default_sect != nil)
 	    ai["default"] = default_sect;
-	return (map<string,any>)ai;*/
+*/
+	return ai;
     }
 
 }

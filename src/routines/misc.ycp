@@ -59,6 +59,11 @@
 	    // combo box item, summary string, table item
 	    return _("Do Not Install Any Boot Loader");
 	}
+	if (bootloader == "default")
+	{
+	    // combo box item, summary string, table item
+	    return _("Install Default Boot Loader");
+	}
 	// fallback bootloader name, keep short
 	return bootloader_attribs[bootloader, "loader_name"]:_("Boot Loader");
     }
