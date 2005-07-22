@@ -96,7 +96,7 @@
 	    list<map<string,string> > dm = ai["device_map"]:[];
 	    if (dm != nil && size (dm) > 0)
 	    {
-		list<list<string> > device_map = listmap (
+		map<string,string> device_map = listmap (
 		    map<string,string> entry, dm,
 		{
 		    return $[entry["firmware"]:"" : entry["linux"]:""];
@@ -148,6 +148,8 @@
 	if (size(modlist) > 0 )
 	    exp["initrd"] = $[ "list": modlist, "settings" : modsett ];
 
+	boolean old_format = false;
+
 	// section stuff
 	list<string> section_names = [];
 	if (size (ai["sections"]:[]) > 0)
@@ -155,11 +157,13 @@
 	    exp["specific", "sections"] = maplist (any s, ai["sections"]:[], {
 		if (is (s, map))
 		{
-		    section_names = add (section_names, s["name"]:"");
+		    section_names = (list<string>)add (section_names,
+			((map)s)["name"]:"");
 		    return (map<string,any>)s;
 		}
 		else // old format
 		{
+		    old_format = true;
 		    return $[];
 		}
 	    });
@@ -176,7 +180,39 @@
 	}
 	else // old format
 	{
+	    old_format = true;
 	}
+	if (old_format)
+	{
+	    list<list<map> > sections = ai["sections"]:[];
+	    list<map> globals = ai["global"]:[];
+	    sections = prepend (sections, globals);
+	    list<map> flat = flatten (sections);
+	    string loader = ai["loader_type"]:"";
+	    string separator = loader == "grub" ? " " : " = ";
+	    list<string> lines = maplist (map f, flat, {
+		return sformat ("%1%2%3",
+		    f["key"]:"", separator, f["value"]:"");
+	    });
+	    string file = mergestring (lines, "\n");
+	    BootCommon::InitializeLibrary (true, loader);
+	    BootCommon::SetDeviceMap (BootCommon::device_mapping);
+	    map<string,string> files = BootCommon::GetFilesContents ();
+	    map<string,string> bl2file = $[
+		"grub" : "/boot/grub/menu.lst",
+		"lilo" : "/etc/lilo.conf",
+		// TODO the other bootloaders
+	    ];
+	    files[bl2file[loader]:""] = file;
+	    BootCommon::SetFilesContents (files);
+	    exp["specific", "global"] = BootCommon::GetGlobal ();
+	    list<map<string,any> > sect = BootCommon::GetSections ();
+	    exp["specific", "sections"] = sect;
+	    section_names = maplist (map<string,any> s, sect, {
+		return s["name"]:"";
+	    });
+	}
+
 	if (haskey (exp["specific", "global"]:$[], "default")
 	    && ! contains (section_names,
 		exp["specific", "global", "default"]:""))
@@ -184,19 +220,6 @@
 	    exp["specific", "global"]
 		= remove (exp["specific", "global"]:$[], "default");
 	}
-
-/*
-	// sections stuff
-	exp["specific", "sections"] = maplist (list<map<string,any> > s,
-	    ai["sections"]:[],
-	``{
-	    return s;
-	});
-	// global options stuff
-	exp["specific", "global"] = ai["global"]:[];
-
-	string default_key = BootCommon::getDefaultKey ();
-*/
 
 	return exp;
     }
@@ -207,7 +230,6 @@
       * @return map the autoinstallation map
       */
     define map<string,any> Export2AI (map<string,any> exp) ``{
-y2error ("Exp: %1", exp);
 	// bootloader type and location stuff
 	map<string,any> ai = $[
 	    "loader_type" : exp["loader_type"]:"default",

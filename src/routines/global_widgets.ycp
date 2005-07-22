@@ -738,10 +738,10 @@ Continue?")))
 	}
 	else if (op == `propose_deep)
 	{
-/*	    import "BootGRUB";
+	    import "BootGRUB";
 	    BootGRUB::merge_level = `all;
 	    Bootloader::Propose ();
-	    BootGRUB::merge_level = `main; FIXME */
+	    BootGRUB::merge_level = `main;
 	}
 	else if (op == `propose)
 	{
