@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jul 22 13:35:03 CEST 2005 - jsrain@suse.cz
+
+- set correct root device to kernel command line (#97574)
+
+-------------------------------------------------------------------
 Fri Jul 22 12:18:23 CEST 2005 - jsrain@suse.cz
 
 - added last missing help texts
