@@ -4,8 +4,7 @@
 
 yncludedir = @yncludedir@/bootloader/lilo
 
-ynclude_DATA =			\
-	helps.ycp		
+ynclude_DATA =
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)
