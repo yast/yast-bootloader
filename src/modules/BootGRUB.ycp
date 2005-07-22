@@ -245,7 +245,12 @@ y2internal ("DM: %1", dm);
 
                         // don't add rewritten location (#19990)
 			if (dev != "" && label != ""
-			    && dev != BootCommon::loader_device)
+			    && dev != BootCommon::loader_device
+			    && (
+				AddFirmwareToBootloader (BootCommon::mbrDisk)
+				|| label != "Vendor diagnostics"
+			    )
+			)
 			{
 			    map<string,any> m = $[
 				"name" : BootCommon::translateSectionTitle (label),
