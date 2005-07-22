@@ -247,7 +247,8 @@ y2internal ("DM: %1", dm);
 			if (dev != "" && label != ""
 			    && dev != BootCommon::loader_device
 			    && (
-				AddFirmwareToBootloader (BootCommon::mbrDisk)
+				BootCommon::AddFirmwareToBootloader (
+					BootCommon::mbrDisk)
 				|| label != "Vendor diagnostics"
 			    )
 			)
