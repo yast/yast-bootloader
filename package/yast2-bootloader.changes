@@ -5,6 +5,7 @@ Fri Jul 22 12:18:23 CEST 2005 - jsrain@suse.cz
 - several minor fixes
 - updated to run correctly in Mode::config
 - added autoinstallation support
+- 2.12.8
 
 -------------------------------------------------------------------
 Thu Jul 21 10:08:27 CEST 2005 - jsrain@suse.cz
