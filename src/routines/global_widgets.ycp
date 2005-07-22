@@ -36,24 +36,40 @@ include "bootloader/routines/helps.ycp";
  * @param widget any id of the widget
  */
 void GlobalOptionInit (string widget) {
+    if (widget == "adv_button")
+	return;
     UI::ChangeWidget (`id (widget), `Value, BootCommon::globals[widget]:"");
 }
 
 void GlobalOptionStore (string widget, map event) {
+    if (widget == "adv_button")
+	return;
     BootCommon::globals[widget] = (string)
 	UI::QueryWidget (`id (widget), `Value);
 }
 
-map<string,any> globals_handlers = $[
+map<string,any> global_handlers = $[
     "init" : GlobalOptionInit,
     "store" : GlobalOptionStore,
 ];
 
 symbol InstDetailsButtonHandle (string widget, map event) {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	NoLoaderAvailable ();
+	return nil;
+    }
     return `inst_details;
 }
 
 symbol LoaderOptionsButtonHandle (string widget, map event) {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	NoLoaderAvailable ();
+	return nil;
+    }
     return `loader_details;
 }
 
@@ -379,6 +395,11 @@ Select a course of action:");
  * @return term widget to be displayed
  */
 term TargetWidget () {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	return `Empty ();
+    }
     list<string> boot_devices = BootCommon::getPartitionList(`boot);
     boolean allow_boot = contains (boot_devices,
 	BootCommon::BootPartitionDevice);
@@ -483,6 +504,11 @@ term TargetWidget () {
  * @param widget any widget key
  */
 void TargetInit (string widget) {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	return;
+    }
     if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice
 	&& BootCommon::selected_location == "root")
     {
@@ -503,6 +529,11 @@ void TargetInit (string widget) {
  * @param event map event that caused the operation
  */
 void TargetStore (string widget, map event) {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	return;
+    }
     BootCommon::selected_location = (string)
 	UI::QueryWidget (`id (`location), `CurrentButton);
     BootCommon::loader_device = (string)UI::QueryWidget (`id (`loc), `Value);
@@ -518,6 +549,11 @@ void TargetStore (string widget, map event) {
  * @return boolean true if validation succeeded
  */
 boolean TargetValidate (string widgget, map event){
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	return true;
+    }
     string rb = (string)UI::QueryWidget (`id (`location), `CurrentButton);
     if (rb == nil)
     {

@@ -194,5 +194,72 @@ Here, manually edit the boot loader configuration.</P>
 ");
     }
 
-
+string SectionNameHelp () {
+    // help text 1/1
+    return _("<p><b><big>Section Name</big></b><br>
+Use <b>Section Name</b> to specify the boot loader section name. The section
+name must be unique.</p>");
 }
+
+string KernelHelp () {
+    // help text 1/1
+    return _("<p><big><b>Kernel</b></big><br>
+Use <b>Kernel</b> to specify the kernel image to load.</p>");
+}
+
+string InitrdHelp () {
+    // help text 1/1
+    return _("<p><big><b>Initial RAM Disk</b></big><br>
+Use <b>Initial RAM Disk</b> to specify the imitial ram disk to load. If it is
+left empty, no initial ram disk is loaded during boot.</p>");
+}
+
+string RootDeviceHelp () {
+    // help text 1/1
+    return _("<p><big><b>Root Device<b></big><br>
+Use <b>Root Device</b> to specify the root filesystem to mount after kernel is
+loaded.");
+}
+
+string VgaModeHelp () {
+    // help text 1/1
+    return _("<p><big><b>VGA Mode</b></big><br>
+Use <b>VGA Mode</b> to specify the resolution and color depth to be set after
+the kernel has booted.</p>");
+}
+
+string AppendHelp () {
+    // help text 1/1
+    return _("<p><big><b>Append</b></big><br>
+Use <b>Append</b> to set other parameters which will be appended to the kernel
+command line.");
+}
+
+string ChainloaderHelp () {
+    // help text 1/1
+    return _("<p><big><b>Device</b></big><br>
+Use <b>Device</b> to set the device to load the operationg system from.
+In most cases, it is the disk partition the other system is installed in.</p>");
+}
+
+string SectionTypeHelp () {
+    // help text 1/5
+    return _("<p><big><b>Type of the New Section</b></big><br>
+Select the type of the new section to create.</p>") +
+    // help text 2/5
+    _("<p>Select <b>Clone Selected Section</b> to clone the currently selected
+section. You will just need to modify the options you want to differ from the
+selected section.</p>") +
+    // help text 3/5
+    _("<p>Select <b>Kernel (Linux)</b> to add a new Linux Kernel or other image
+to load and start.</p>") +
+    // help text 4/5
+    _("<p>Select <b>Kernel via XEN<b? to add a new Linux Kernel or other image,
+but to start it in XEN environment.</p>") +
+    // help text 5/5
+    _("<p>Select <b>Other System (Chainloader)</b> to add a section which 
+loads and starts a boot sector of a partition of the disk. This is used for
+booting other operating systems");
+}
+
+} // EOF

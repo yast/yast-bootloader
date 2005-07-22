@@ -384,6 +384,7 @@ global map<string,any> CreateLinuxSection (string title) {
 		"sections" : sections,
 		"repl_mbr" : repl_mbr,
 		"activate" : activate,
+		"device_map" : device_mapping,
 	    ];
 	return exp;
     }
@@ -397,6 +398,7 @@ global map<string,any> CreateLinuxSection (string title) {
         sections  = settings["sections"]:[];
         repl_mbr = settings["repl_mbr"]:false;
         activate = settings["activate"]:false;
+	device_mapping = settings["device_map"]:$[];
 	return true;
     }
 
@@ -773,7 +775,7 @@ global define boolean Write () {
     global define list<string> getBootloaders () ``{
 	if (Mode::config ())
 	{
-	    return ["grub", "lilo", "elilo", "zipl", "ppc"];
+	    return ["grub", "lilo", "elilo", "zipl", "ppc", "default", "none"];
 	}
 	list<string> ret =
 	    [getLoaderType (false),

@@ -28,6 +28,8 @@ import "Storage";
 import "StorageDevices";
 import "TablePopup";
 
+include "bootloader/routines/helps.ycp";
+
 /**
  * Init function of widget
  * @param widget any id of the widget
@@ -249,6 +251,7 @@ map<string,map<string,any> > CommonSectionWidgets () {
 		"validate_type" : `function,
 		"validate_function" : SectionNameValidate,
 		"store" : SectionNameStore,
+		"help" : SectionNameHelp (),
 	    ],
 	    "kernel" : $[
 		"widget" : `custom,
@@ -267,6 +270,7 @@ map<string,map<string,any> > CommonSectionWidgets () {
 			)
 		    ),
 		"init" : KernelImageInit,
+		"help" : KernelHelp (),
 	    ],
 	    "initrd" : $[
 		"widget" : `custom,
@@ -285,12 +289,14 @@ map<string,map<string,any> > CommonSectionWidgets () {
 			)
 		    ),
 		"init" : InitrdInit,
+		"help" : InitrdHelp (),
 	    ],
 	    "root" : $[
 		"widget" : `combobox,
 		"label" : _("Root &Device"),
 		"opt" : [ `editable, `hstretch ],
 		"init" : RootDeviceInit,
+		"help" : RootDeviceHelp (),
 	    ],
 	    "vga" : $[
 		"widget" : `combobox,
@@ -298,11 +304,13 @@ map<string,map<string,any> > CommonSectionWidgets () {
 		"label" : _("&VGA Mode"),
 		"opt" : [ `editable, `hstretch ],
 		"init" : VgaModeInit,
+		"help" : VgaModeHelp (),
 	    ],
 	    "append" : $[
 		// text entry
 		"label" : _("Other Kernel &Parameters"),
 		"widget" : `textentry,
+		"help" : AppendHelp (),
 	    ],
 	    "chainloader" : $[
 		"widget" : `custom,
@@ -321,11 +329,13 @@ map<string,map<string,any> > CommonSectionWidgets () {
 			    )
 		    ),
 		"init" : ChainloaderInit,
+		"help" : ChainloaderHelp (),
 	    ],
 	    "section_type" : $[
 		"widget" : `func,
 		"widget_func" : SectionTypesWidget,
 		"handle" : SectionTypeHandle,
+		"help" : SectionTypeHelp (),
 	    ],
 	];
     }

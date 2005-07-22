@@ -85,13 +85,14 @@ void InitPasswdWidget (string key) {
  * @param event map event description of event that occured
  * @return symbol always nil
  */
-void HandlePasswdWidget (string key, map event) {
+symbol HandlePasswdWidget (string key, map event) {
     if (event["ID"]:nil == `usepas)
     {
 	boolean enabled = (boolean)UI::QueryWidget (`id (`usepas), `Value);
 	UI::ChangeWidget (`id (`pw1), `Enabled, enabled);
 	UI::ChangeWidget (`id (`pw2), `Enabled, enabled);
     }
+    return nil;
 }
 
 /**
@@ -157,13 +158,14 @@ map<string,any> PasswordWidget () {
 	    `VSpacing (0.4),
 	    `HBox (
 		`HSpacing (2), `VBox (
-		    // check box
-		    `Left (`CheckBox (_("Protect Boot Loader with Password"))),
+		    `Left (`CheckBox (`id (`use_pas),
+			// check box
+			_("Protect Boot Loader with Password"))),
 		    `HBox (
 			// text entry
-			`TextEntry (`id (`pass), _("&Password")),
+			`TextEntry (`id (`pw1), _("&Password")),
 			// text entry
-			`TextEntry (`id (`pass2), _("Re&type Password"))
+			`TextEntry (`id (`pw2), _("Re&type Password"))
 		    )
 		), `HSpacing (2)
 	    ),

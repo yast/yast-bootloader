@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jul 22 10:10:22 CEST 2005 - jsrain@suse.cz
+
+- added last missing help texts
+- several minor fixes
+- updated to run correctly in Mode::config
+
+-------------------------------------------------------------------
 Thu Jul 21 10:08:27 CEST 2005 - jsrain@suse.cz
 
 - added missing file to package

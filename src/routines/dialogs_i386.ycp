@@ -97,7 +97,8 @@ symbol i386InstallDetailsDialog () {
     UI::ChangeWidget (`id (`disks), `CurrentItem, disks_order[0]:"");
     UI::ChangeWidget (`id (`repl_mbr), `Value, BootCommon::repl_mbr);
     UI::ChangeWidget (`id (`activate), `Value, BootCommon::activate);
-    UI::ChangeWidget (`id (`embed), `Value, BootCommon::embed_stage15);
+    if (UI::WidgetExists (`id (`embed)))
+	UI::ChangeWidget (`id (`embed), `Value, BootCommon::embed_stage15);
     boolean save_embed = BootCommon::embed_stage15;
 
     any ret = nil;
@@ -195,8 +196,11 @@ symbol i386InstallDetailsDialog () {
 	    UI::QueryWidget (`id (`repl_mbr), `Value);
 	BootCommon::activate = (boolean)
 	    UI::QueryWidget (`id (`avtivate), `Value);
-	BootCommon::embed_stage15 = (boolean)
-	    UI::QueryWidget (`id (`embed), `Value);
+	if (UI::WidgetExists (`id (`embed)))
+	{
+	    BootCommon::embed_stage15 = (boolean)
+		UI::QueryWidget (`id (`embed), `Value);
+	}
 	if (BootCommon::repl_mbr)
 	{
 	    if (Stage::initial ())
@@ -216,14 +220,6 @@ symbol i386LoaderDetailsDialog () {
 
     term contents = `HBox (`HSpacing (2), `VBox (
         `VStretch (),
-/*	`Frame (_("Boot Menu"), `HBox (
-	    `HSpacing (2), `VBox (
-		`VSpacing (0.4),
-		`Left (`CheckBox (`id (`show_menu), _("Show Boot Menu"))),
-		`IntField (`id (`timeout), _("Boot Menu Time-Out"), 0, 60, 0),
-		`VSpacing (0.4)
-	    ), `HSpacing (2)
-	)),*/
 	"boot_menu",
 	`VStretch (),
 	"password",
