@@ -28,7 +28,6 @@ import "Mode";
 import "Pkg";
 import "Storage";
 
-include "bootloader/lilo/helps.ycp";
 include "bootloader/routines/popups.ycp";
 include "bootloader/routines/dialogs_i386.ycp";
 

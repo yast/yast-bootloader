@@ -24,7 +24,6 @@
     import "Mode";
     import "TablePopup";
 
-    include "bootloader/grub/helps.ycp";
     include "bootloader/routines/popups.ycp";
 
 
