@@ -167,7 +167,7 @@ boolean testAbort () {
 	    // progress step, text in dialog (short)
 	    _("Loading boot loader settings..."),
 	];
-	// progress bar caption
+	// dialog header
 	Progress::New (_("Initializing Boot Loader Configuration"),
 	    " ", 3, stages, titles, "");
 
