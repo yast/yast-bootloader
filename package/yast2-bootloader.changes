@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 26 10:16:14 CEST 2005 - jsrain@suse.cz
+
+- fixed GRUB menus merging
+
+-------------------------------------------------------------------
 Fri Jul 22 15:24:24 CEST 2005 - jsrain@suse.cz
 
 - set correct root device to kernel command line (#97574)

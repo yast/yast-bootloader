@@ -141,14 +141,17 @@ include "bootloader/routines/dialogs_i386.ycp";
 			y2debug ("Checking file %1", f);
 			string fc = (string)SCR::Read (.target.string, f);
 			string dm = (string)SCR::Read (.target.string,
-			    regexpsub (f, "\\(.*\\)menu.lst$",
+			    regexpsub (f, "(.*)menu.lst$",
 				"\\1device.map"));
-y2internal ("DM FN: %1", regexpsub (f, "\\(.*\\)menu.lst$", 
-                                "\\1device.map"));
-y2internal ("DM: %1", dm);
+			    y2debug ("Device map file name: %1",
+				regexpsub (f, "(.*)menu.lst$",
+				    "\\1device.map"));
+			    y2debug ("Device map coontents: %1", dm);
 			map<string,string> files = $[
 			    "/boot/grub/menu.lst" : fc,
 			];
+			if (dm == nil)
+			    return;
 			if (dm != nil)
 			    files["/boot/grub/device.map"] = dm;
 			BootCommon::InitializeLibrary (false, "grub");
@@ -180,34 +183,6 @@ y2internal ("DM: %1", dm);
 			    string _d = s["root"]:"";
 			    if (_d != nil && _d != "")
 				devs = add (devs, _d);
-/*
-			    string _gp =
-				(string)lookup_value (opts_tmp, "initrd", "");
-			    if (_gp != "" && _gp != nil)
-			    {
-				_dp = splitDevPath (_gp);
-				_d = _dp[0]:"";
-				if (_d != "" && _d != nil)
-				    devs = add (devs, grubDev2unixDev (_d));
-			    }
-			    _gp =
-				(string)lookup_value (opts_tmp, "kernel", "");
-			    if (_gp != "" && _gp != nil)
-			    {
-				_dp = splitDevPath (_gp);
-				_d = _dp[0]:"";
-				if (_d != "" && _d != nil)
-				    devs = add (devs, grubDev2unixDev (_d));
-				string _root =
-				    BootCommon::getKernelParamFromLine (
-					_gp, "root");
-				if (_root != "false" && _root != ""
-				    && _root != nil)
-				{
-				    devs = add (devs, _root);
-				}
-			    }
-*/
 			    devs = (list<string>)filter (string d, devs,
 				``(d != ""
 				    && d != nil
