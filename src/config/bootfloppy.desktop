@@ -19,8 +19,8 @@ X-SuSE-YaST-AutoInstResource=
 Icon=yast-bootfloppy
 Exec=/sbin/yast2 bootfloppy
 
-Name=Create a Boot or Rescue Floppy
-GenericName=Insert a floppy disk and create a standalone boot or rescue floppy.
+Name=Boot or Rescue Floppy
+GenericName=Insert a floppy disk and create a stand-alone boot or rescue floppy
 Name[cs]=Vytvořit systémovou disketu
 GenericName[cs]=Vložte disketu a vytvořte disketu startovací, záchrannou nebo s moduly
 Name[de]=Erstellen einer Boot-, Rettungs- oder Moduldiskette
