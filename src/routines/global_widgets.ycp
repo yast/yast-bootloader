@@ -291,7 +291,7 @@ Proceed?
 		BootCommon::setLoaderType ("none");
 		BootCommon::location_changed = true;
 	    }
-	    return nil;
+	    return `redraw;
 	}
 
 	// warning - popup, followed by radio buttons
@@ -772,6 +772,7 @@ map<string,any> getAdvancedButtonWidget () {
 
 
 map TabsDescr () {
+    string lt = Bootloader::getLoaderType ();
   return $[
     "sections": $[
 	// tab header
@@ -801,12 +802,18 @@ map TabsDescr () {
 		`VSpacing (0.4)
 	    )),
 	    `VStretch (),
-	    "loader_location",
+	    (lt == "none" || lt == "default")
+		? `Empty ()
+		: "loader_location",
 	    `VStretch (),
-	    "inst_details",
+	    (lt == "none" || lt == "default")
+		? `Empty ()
+		: "inst_details",
 	    `VStretch ()
 	), `HStretch ()),
-        "widget_names": [ "loader_type", "loader_options", "loader_location",
+        "widget_names": (lt == "none" || lt == "default")
+	    ? [ "loader_type", "loader_options" ]
+	    : [ "loader_type", "loader_options", "loader_location",
 	    "inst_details" ]
     ],
   ];

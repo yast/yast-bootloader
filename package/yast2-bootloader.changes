@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul 27 14:28:02 CEST 2005 - jsrain@suse.cz
+
+- added option to enable/disable boot timeout
+- fixed boot password setting
+- location widget not shown if no loader is to be installed (#97888)
+
+-------------------------------------------------------------------
 Tue Jul 26 10:16:14 CEST 2005 - jsrain@suse.cz
 
 - fixed GRUB menus merging
