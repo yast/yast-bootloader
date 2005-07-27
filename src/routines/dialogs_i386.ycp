@@ -195,7 +195,7 @@ symbol i386InstallDetailsDialog () {
 	BootCommon::repl_mbr = (boolean)
 	    UI::QueryWidget (`id (`repl_mbr), `Value);
 	BootCommon::activate = (boolean)
-	    UI::QueryWidget (`id (`avtivate), `Value);
+	    UI::QueryWidget (`id (`activate), `Value);
 	if (UI::WidgetExists (`id (`embed)))
 	{
 	    BootCommon::embed_stage15 = (boolean)

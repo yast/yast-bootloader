@@ -297,6 +297,7 @@ global void CreateGlobals () {
 	"default" : BootCommon::sections[0, "name"]:"",
 	"timeout" : "8",
 	"gfxmenu" : "/boot/message",
+	"prompt" : "1",
     ];
 }
 
