@@ -20,8 +20,8 @@ X-SuSE-YaST-AutoInstPath=install
 Icon=yast-bootloader
 Exec=/sbin/yast2 bootloader 
 
-Name=Boot Loader Configuration
-GenericName=Bootloader configuration
+Name=Boot Loader
+GenericName=Configure the boot loader
 Name[cs]=Konfigurace zavaděče
 GenericName[cs]=Konfigurace zavaděče
 Name[de]=Konfiguration des Bootloaders
