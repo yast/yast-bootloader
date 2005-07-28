@@ -31,8 +31,7 @@
     string getInitProgressHelp() ``{
 	// help text 1/1 (shown during settings reading progress)
 	return _("<P><BIG><B>Boot Loader Configuration Tool</B></BIG><BR>
-Change the settings of your boot loader. </P>
-");
+Change the settings of your boot loader.</P>");
     }
 
     /**
@@ -42,8 +41,7 @@ Change the settings of your boot loader. </P>
     string getSaveProgressHelp () ``{
 	// help text
 	return _("<P><B><BIG>Saving Boot Loader Configuration</BIG></B><BR>
-Please wait...<br></p>
-");
+Please wait...<br></p>");
     }
 
     /**
@@ -55,14 +53,12 @@ Please wait...<br></p>
 	if (BootCommon::getLoaderType (false) == "grub")
 	    // help text, optional part of following
 	    ins = _("If you have multiple Linux systems installed,
-YaST can try to find them and merge their menus.
-");
+YaST can try to find them and merge their menus.");
 	// help text 1/2 (%1 may be following sentence, optionally empty)
 	string help = sformat (_("<P>Via the <B>Advanced</B> button,
 you can manually edit the bootloader configuration files, clear the current 
 configuration and propose a new configuration, start from scratch, or reread
-the configuration saved on your disk. %1</P>
-"), ins);
+the configuration saved on your disk. %1</P>"), ins);
 	return help;
     }
 
@@ -94,12 +90,10 @@ section as default. When booting, the boot loader will provide
 a boot menu and wait for the user to select the kernel or other 
 OS to boot. If no key is pressed before the time-out, the default 
 kernel or OS will be booted. The order of sections in the boot loader
-menu can be changed using the <B>Up</B> and <B>Down</B> buttons.</P>
-") +
+menu can be changed using the <B>Up</B> and <B>Down</B> buttons.</P>") +
 	// help 4/4
 	_("<P>Press <B>Add</B> to create a new boot loader section
-or <B>Delete</B> to delete the selected section.</P>
-");
+or <B>Delete</B> to delete the selected section.</P>");
     }
 
 
@@ -118,23 +112,25 @@ The boot manager (%1) can be installed in the following ways:</p>"),
 BootCommon::getLoaderType (false));
 
 	// custom bootloader help text, 2 of 7
-	helptext = helptext + _("<p>- In the <b>MBR</b> (the Master Boot Record).  This is recommended whenever &Product
-determines the system can be booted this way.</p>");
+	helptext = helptext + _("<p>- In the <b>Master Boot Record</b> (MBR).  This is recommended 
+whenever &product;
+determines that the system can be booted this way.</p>");
 
 	// custom bootloader help text, 3 of 7
 	helptext = helptext + _("<p>
-- In the <b>/boot</b> or <B>/</B> (root) partition.  Choose this option if you
+- In the <b>Boot Sector</b> of the <tt>/boot</tt> or <tt>/</tt> (root) 
+partition.  Choose this option if you  
 have several operating systems installed on your hard drive and want to
 continue using your old boot manager, such as <tt>loadlin</tt>. 
-The code currently in your MBR remains unchanged.<br>
-Configure your <b>other boot manager</b> to start &product;.</p>");
+The code currently in your MBR remains unchanged.
+Configure your other boot manager to start &product;.</p>");
 
        if (StorageDevices::FloppyPresent)
         {
             // custom bootloader help text, 4 of 7
             // this part will only be shown if a floppy drive is attached.
             helptext = helptext + _("<p>
-- On a <b>floppy</b> disk.
+- On a <b>Floppy Disk</b>.
 Use this to avoid the risk of interference with an already existing
 boot mechanism. Enable booting from floppy disk in
 the BIOS of your machine to use this option.</p>");
@@ -142,7 +138,7 @@ the BIOS of your machine to use this option.</p>");
 
 	// custom bootloader help text, 5 of 7
 	helptext = helptext + _("<p>
-- In some <b>other</b> partition. Consider your system's restrictions
+- In some <b>Other</b> partition. Consider your system's restrictions
 when selecting this option.</p>");
 	if (Arch::i386 ())
 	{
@@ -155,7 +151,7 @@ you may or may not be able to boot from a logical partition.</p>");
 
 	// custom bootloader help text, 7 of 7
 	helptext = helptext + _("<p>
-Enter the device name of the partition (e.g., <tt>/dev/hda3</tt>,
+Enter the device name of the partition (for example, <tt>/dev/hda3</tt> or
 <tt>/dev/sdb</tt>) in the input field.</p>");
 	return helptext;
     }
@@ -163,14 +159,14 @@ Enter the device name of the partition (e.g., <tt>/dev/hda3</tt>,
 string InstDetailsHelp () {
     // help text 1/1
     return _("<p><big><b>Boot Loader Installation Details</b></big><br>
-To adjust advanced boot loader installation options (for example the device
+To adjust advanced boot loader installation options (for example, the device
 mapping), push <b>Boot Loader Installation Details</b>.</p>");
 }
 
 string LoaderTypeHelp () {
     // help text 1/1
     return _("<p><big><b>Boot Loader Type</b></big><br>
-To select whether to install bootloader at all and which bootloader to install,
+To select whether to install boot loader and which bootloader to install,
 use <b>Boot Loader</b>.</p>");
 }
 
@@ -178,7 +174,7 @@ use <b>Boot Loader</b>.</p>");
 string LoaderOptionsHelp () {
     // help text 1/1
     return _("<p><big><b>Boot Loader Options</b></big><br>
-To adjust options of the boot loader (eg. the time out), click
+To adjust options of the boot loader, such as the time-out, click
 <b>Boot Loader Options</b>.</p>");
 }
 
@@ -190,8 +186,7 @@ To adjust options of the boot loader (eg. the time out), click
 	// help text 1/1
 	return _("<P><B>Expert Manual Configuration</B><BR>
 Here, manually edit the boot loader configuration.</P>
-<P>Note: The final configuration file may have different indenting.</P>
-");
+<P>Note: The final configuration file may have different indenting.</P>");
     }
 
 string SectionNameHelp () {
@@ -210,36 +205,37 @@ Use <b>Kernel</b> to specify the kernel image to load.</p>");
 string InitrdHelp () {
     // help text 1/1
     return _("<p><big><b>Initial RAM Disk</b></big><br>
-Use <b>Initial RAM Disk</b> to specify the imitial ram disk to load. If it is
-left empty, no initial ram disk is loaded during boot.</p>");
+Use <b>Initial RAM Disk</b> to specify the initial RAM disk (initrd) to load. If it is
+left empty, no initial RAM disk is loaded during boot.</p>");
 }
 
 string RootDeviceHelp () {
     // help text 1/1
     return _("<p><big><b>Root Device<b></big><br>
-Use <b>Root Device</b> to specify the root filesystem to mount after kernel is
+Use <b>Root Device</b> to specify the root file system to mount after kernel is
 loaded.");
 }
 
 string VgaModeHelp () {
     // help text 1/1
     return _("<p><big><b>VGA Mode</b></big><br>
-Use <b>VGA Mode</b> to specify the resolution and color depth to be set after
+Use <b>VGA Mode</b> to specify the resolution and color depth to set after
 the kernel has booted.</p>");
 }
 
 string AppendHelp () {
     // help text 1/1
     return _("<p><big><b>Append</b></big><br>
-Use <b>Append</b> to set other parameters which will be appended to the kernel
-command line.");
+Use <b>Append</b> to set other parameters to append to the kernel
+command line.</p>");
 }
 
 string ChainloaderHelp () {
     // help text 1/1
     return _("<p><big><b>Device</b></big><br>
-Use <b>Device</b> to set the device to load the operationg system from.
-In most cases, it is the disk partition the other system is installed in.</p>");
+Use <b>Device</b> to set the device from which to load the operating system.
+In most cases, it is the disk partition the other system
+is installed in.</p>");
 }
 
 string SectionTypeHelp () {
@@ -248,18 +244,18 @@ string SectionTypeHelp () {
 Select the type of the new section to create.</p>") +
     // help text 2/5
     _("<p>Select <b>Clone Selected Section</b> to clone the currently selected
-section. You will just need to modify the options you want to differ from the
+section. Then modify the options you want to differ from the
 selected section.</p>") +
     // help text 3/5
     _("<p>Select <b>Kernel (Linux)</b> to add a new Linux Kernel or other image
 to load and start.</p>") +
     // help text 4/5
-    _("<p>Select <b>Kernel via XEN<b? to add a new Linux Kernel or other image,
-but to start it in XEN environment.</p>") +
+    _("<p>Select <b>Kernel via XEN<b> to add a new Linux Kernel or other image,
+but to start it in a XEN environment.</p>") +
     // help text 5/5
-    _("<p>Select <b>Other System (Chainloader)</b> to add a section which 
+    _("<p>Select <b>Other System (Chainloader)</b> to add a section that 
 loads and starts a boot sector of a partition of the disk. This is used for
-booting other operating systems");
+booting other operating systems.</p>");
 }
 
 } // EOF

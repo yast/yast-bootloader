@@ -579,9 +579,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 		string log = (string)SCR::Read (.target.string,
 		    "/var/log/YaST2/y2log_tool_grub");
 		// error popup - label, %1 is bootloader name
-// FIXME use general label		_("Error Occurred while Installing %1"),
-		// error popup - label
-                errorWithLogPopup (_("Error occurred while installing GRUB."),
+                errorWithLogPopup (sformat (
+		    _("Error occurred while installing %1."), "GRUB"),
                     log);
 	    }
 	    else if (BootCommon::InstallingToFloppy ())
