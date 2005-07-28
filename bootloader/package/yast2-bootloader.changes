@@ -1,0 +1,2462 @@
+-------------------------------------------------------------------
+Thu Jul 28 16:15:45 CEST 2005 - jsrain@suse.cz
+
+- merged texts from proofread
+- 2.12.12
+
+-------------------------------------------------------------------
+Wed Jul 27 14:28:02 CEST 2005 - jsrain@suse.cz
+
+- added option to enable/disable boot timeout
+- fixed boot password setting
+- location widget not shown if no loader is to be installed (#97888)
+- 2.12.11
+
+-------------------------------------------------------------------
+Tue Jul 26 10:16:14 CEST 2005 - jsrain@suse.cz
+
+- fixed GRUB menus merging
+- 2.12.10
+
+-------------------------------------------------------------------
+Fri Jul 22 15:24:24 CEST 2005 - jsrain@suse.cz
+
+- set correct root device to kernel command line (#97574)
+- fixed installation on ThinkPad laptops (select the partition
+  correctly) (#86762)
+- 2.12.9
+
+-------------------------------------------------------------------
+Fri Jul 22 12:18:23 CEST 2005 - jsrain@suse.cz
+
+- added last missing help texts
+- several minor fixes
+- updated to run correctly in Mode::config
+- added autoinstallation support
+- 2.12.8
+
+-------------------------------------------------------------------
+Thu Jul 21 10:08:27 CEST 2005 - jsrain@suse.cz
+
+- added missing file to package
+- added missing helps
+- fixed retranslating boot menu during installation
+- 2.12.7
+
+-------------------------------------------------------------------
+Mon Jul 18 13:26:43 CEST 2005 - jsrain@suse.cz
+
+- fixed proposing and handling device map
+- 2.12.6
+
+-------------------------------------------------------------------
+Mon Jul 18 08:42:16 CEST 2005 - jsrain@suse.cz
+
+- fixed makefiles in order to pack all needed files
+- added some help texts
+- 2.12.5
+
+-------------------------------------------------------------------
+Fri Jul 15 15:48:47 CEST 2005 - jsrain@suse.cz
+
+- adapted to new partitioner using storage-lib (arvin)
+- fixed makefiles and nfb to build against limal-bootloader
+- 2.12.4
+
+-------------------------------------------------------------------
+Tue Jul 12 13:03:23 CEST 2005 - jsrain@suse.cz
+
+- more code cleanup
+
+-------------------------------------------------------------------
+Mon Jul 11 09:14:33 CEST 2005 - jsrain@suse.cz
+
+- merged texts from proofread
+
+-------------------------------------------------------------------
+Fri Jul  1 16:52:05 CEST 2005 - jsrain@suse.cz
+
+- created new UI
+- accessing perl-Bootloader library through LiMaL instead of SCR
+
+-------------------------------------------------------------------
+Tue Jun 14 16:45:20 CEST 2005 - jsrain@suse.cz
+
+- don't change MBR on IBM ThinkPad laptops in order to keep their
+  rescue functionality working (#86762)
+- 2.12.3
+
+-------------------------------------------------------------------
+Tue Jun  7 10:40:08 CEST 2005 - jsrain@suse.cz
+
+- display info of additional kernel parameters from installation
+  kernel command line (#83837)
+
+-------------------------------------------------------------------
+Mon May 23 17:20:27 CEST 2005 - jsrain@suse.cz
+
+- fixed detection fo PReP partition on CHRP (PPC) (#80204)
+- block proposal if bootloader noc configured correctly on PPC
+  (#82893)
+
+-------------------------------------------------------------------
+Wed May  4 08:02:37 CEST 2005 - jsrain@suse.cz
+
+- more "default" variable renames
+- 2.12.2
+
+-------------------------------------------------------------------
+Tue May  3 12:35:05 CEST 2005 - jsrain@suse.cz
+
+- select PReP boot partition on CHRP (PPC) if root on LVM (#80204)
+
+-------------------------------------------------------------------
+Wed Apr 27 08:27:43 CEST 2005 - jsrain@suse.cz
+
+- allow to remap devices in GRUB section (#77119)
+- don not report void error in installation proposal
+- added bootloader-related part of inst_finish to extra client
+- 2.12.1
+
+-------------------------------------------------------------------
+Fri Apr 22 13:17:27 CEST 2005 - mvidner@suse.cz
+
+- Do not use "default" as an identifier.
+
+-------------------------------------------------------------------
+Mon Apr 18 16:00:36 CEST 2005 - jsrain@suse.cz
+
+- updated for new interface of ProductFeatures.ycp
+- 2.12.0
+
+-------------------------------------------------------------------
+Wed Mar 30 14:53:02 CEST 2005 - jsrain@suse.cz
+
+- inform user in proposal if it is not possible to install
+  bootloader due to partitioning (#71949)
+
+-------------------------------------------------------------------
+Thu Mar 24 13:36:48 CET 2005 - jsrain@suse.cz
+
+- fixed bootfloppy icon description (#71084)
+
+-------------------------------------------------------------------
+Tue Mar 15 13:15:55 CET 2005 - jsrain@suse.cz
+
+- fixed modification of bootloader configuration if installation
+  fails during update (#72814)
+
+-------------------------------------------------------------------
+Mon Mar 14 09:48:35 CET 2005 - jsrain@suse.cz
+
+- fixed manual configuration files editation (#72389)
+- recreate grub.conf during update (#72361)
+
+-------------------------------------------------------------------
+Mon Mar  7 13:32:23 CET 2005 - jsrain@suse.cz
+
+- added ZIPL installation via perl-Bootloader
+- fixed the order of icons in bootfloppy creator
+
+-------------------------------------------------------------------
+Fri Mar  4 10:43:29 CET 2005 - jsrain@suse.cz
+
+- propose XEN section if XEN and XEN kernels are installed/selected
+
+-------------------------------------------------------------------
+Thu Mar  3 18:20:39 CET 2005 - jsrain@suse.cz
+
+- reverted to older version update_gfxmenu due to recent problems
+  (#67288)
+
+-------------------------------------------------------------------
+Wed Mar  2 10:15:35 CET 2005 - jsrain@suse.cz
+
+- merged texts from proofread
+
+-------------------------------------------------------------------
+Wed Mar  2 09:55:37 CET 2005 - jsrain@suse.cz
+
+- fixed neverending loop in update_gfxmenu
+
+-------------------------------------------------------------------
+Tue Mar  1 10:34:51 CET 2005 - jsrain@suse.cz
+
+- provide info about grub.conf to repair module if embedding
+  GRUB stage1.5
+- display proper list of bootloaders (#66933)
+- limit the size of the /boot/message archive (#66878)
+
+-------------------------------------------------------------------
+Mon Feb 28 16:07:36 CET 2005 - jsrain@suse.cz
+
+- fixed aborting during inst_finish (was crashing YaST)
+
+-------------------------------------------------------------------
+Fri Feb 25 14:43:58 CET 2005 - jsrain@suse.cz
+
+- fixed identifying bootloader sections while reading (#66612)
+
+-------------------------------------------------------------------
+Fri Feb 25 09:05:14 CET 2005 - jsrain@suse.cz
+
+- added missed translation mark (#8402)
+- fixed testsuites
+- enabled the bootfloppy icon also on AMD64
+- disabled rescue floppy creation on other archs than i386
+- 2.11.15
+
+-------------------------------------------------------------------
+Mon Feb 21 10:58:13 CET 2005 - jsrain@suse.cz
+
+- use the new scripts for creating boot floppy (images are no
+  longer on installation media)
+- 2.11.14
+
+-------------------------------------------------------------------
+Thu Feb 17 12:14:22 CET 2005 - jsrain@suse.cz
+
+- prevent from inserting language to the offer of boot menu twice
+  (#50930)
+
+-------------------------------------------------------------------
+Wed Feb 16 13:54:34 CET 2005 - jsrain@suse.cz
+
+- added support for embedding GRUB's stage 1.5
+- 2.11.13
+
+-------------------------------------------------------------------
+Mon Feb 14 17:32:02 CET 2005 - jsrain@suse.cz
+
+- by default don't merge whole GRUB menus, but only the default
+  entry (#50688)
+- fixed errors of the bootloader library if using LVM
+- 2.11.12
+
+-------------------------------------------------------------------
+Thu Feb 10 14:51:08 CET 2005 - jsrain@suse.cz
+
+- fixed errors when merging GRUB menus (#50643)
+
+-------------------------------------------------------------------
+Wed Feb  9 14:53:27 CET 2005 - jsrain@suse.cz
+
+- stopped using multiple variables from ProductFeatures for
+  creating kernel command line (#50369)
+- 2.11.11
+
+-------------------------------------------------------------------
+Tue Feb  8 12:58:56 CET 2005 - jsrain@suse.cz
+
+- fixed warning when removed memtest package after modifying
+  memtest section in bootloader menu (#50498)
+
+-------------------------------------------------------------------
+Mon Feb  7 14:31:48 CET 2005 - jsrain@suse.cz
+
+- merged texts from proofread
+- 2.11.10
+
+-------------------------------------------------------------------
+Fri Feb  4 11:07:51 CET 2005 - jsrain@suse.cz
+
+- getting additional kernel parameters as one string (#50369)
+
+-------------------------------------------------------------------
+Wed Feb  2 18:22:09 CET 2005 - jsrain@suse.cz
+
+- fixed support for localized boot menu, allowed multiple languages
+  to be used at once
+
+-------------------------------------------------------------------
+Tue Feb  1 21:39:12 CET 2005 - nashif@suse.de
+
+- Disabled @YAST2-CHECKS-PROGRAM@ to fix build
+- 2.11.9
+
+-------------------------------------------------------------------
+Mon Jan 31 17:32:32 CET 2005 - jsrain@suse.cz
+
+- removed code obsolete after using the bootloader library
+  (including the LILO agent)
+- adapted to new filenames in GFX menu
+- fixed handling of YaSTi's data in comments in configuration files
+- by default merging all found GRUB menus
+- clean-up of obsolete code
+- 2.11.8
+
+-------------------------------------------------------------------
+Fri Jan 28 13:46:53 CET 2005 - jsrain@suse.cz
+
+- export GRUB device map information to AutoYaST profile (#49730)
+
+-------------------------------------------------------------------
+Tue Jan 25 13:08:49 CET 2005 - jsrain@suse.cz
+
+- adaptations to install properly on MD arrays
+- 2.11.7
+
+-------------------------------------------------------------------
+Mon Jan 24 16:08:30 CET 2005 - jsrain@suse.cz
+
+- added agent to interface for the bootloader library
+- using the now bootloader library for GRUB and LILO configuration
+- 2.11.6
+
+-------------------------------------------------------------------
+Tue Jan 11 16:43:52 CET 2005 - jsrain@suse.cz
+
+- do not append 'maxcpus=0' to failsafe kernel command line on
+  AMD64 (#49059)
+
+-------------------------------------------------------------------
+Thu Jan  6 14:14:23 CET 2005 - jsrain@suse.cz
+
+- propose all present kernels for GRUB
+
+-------------------------------------------------------------------
+Wed Jan  5 17:10:56 CET 2005 - jsrain@suse.cz
+
+- adapted to interface change of Kernel.ycp
+- 2.11.5
+
+-------------------------------------------------------------------
+Wed Dec 15 13:13:58 CET 2004 - jsrain@suse.cz
+
+- using new interface of Progress.ycp
+- 2.11.4
+
+-------------------------------------------------------------------
+Mon Dec 13 18:15:29 CET 2004 - jsrain@suse.cz
+
+- fixed setting GRUB password (#48999)
+
+-------------------------------------------------------------------
+Fri Nov 19 16:52:11 CET 2004 - jsrain@suse.cz
+
+- removed the generic MBR code from the package (moved to
+  master-boot-code package) (#46406)
+- if user selects MBR of other than booting disk as location for
+  GRUB, offer changing the order of the disks (#48051)
+- 2.11.3
+
+-------------------------------------------------------------------
+Tue Nov  9 10:40:18 CET 2004 - jsrain@suse.cz
+
+- fixed automatical boot partition activating during installation
+  (#20329)
+
+-------------------------------------------------------------------
+Tue Nov  9 08:16:53 CET 2004 - jsrain@suse.cz
+
+- enhanced memtest handling during installation (#46796)
+
+-------------------------------------------------------------------
+Mon Nov  8 13:23:42 CET 2004 - jsrain@suse.cz
+
+- better fix of kernel image name update (#46750)
+
+-------------------------------------------------------------------
+Thu Nov  4 14:00:10 CET 2004 - jsrain@suse.cz
+
+- removed select () and lookup () builtins usage
+- fixed types for CWM
+- 2.11.2
+
+-------------------------------------------------------------------
+Wed Oct 27 09:49:59 CEST 2004 - jsrain@suse.cz
+
+- adapted to new Mode/Stage interface
+- 2.11.1
+
+-------------------------------------------------------------------
+Tue Oct 19 13:59:33 CEST 2004 - jsrain@suse.cz
+
+- use unified messages from Label.ycp
+- changed boot floppy creator according to new layout of boot
+  floppy disks (#43634)
+- 2.11.0
+
+-------------------------------------------------------------------
+Wed Oct 13 12:44:42 CEST 2004 - jsrain@suse.cz
+
+- add "thash_entries=2097152" to kernel command line on Altix
+  Scalable Node (#44174)
+
+-------------------------------------------------------------------
+Mon Oct 11 16:09:03 CEST 2004 - jsrain@suse.cz
+
+- adapted to new Arch:: interface
+
+-------------------------------------------------------------------
+Wed Oct  6 10:04:38 CEST 2004 - jsrain@suse.cz
+
+- fixed summary if GRUB section name contains HTML tag (#46792)
+
+-------------------------------------------------------------------
+Tue Oct  5 12:55:53 CEST 2004 - jsrain@suse.cz
+
+- replace blank spaces in LILO section name with underscores,
+  shorten it if it is longer than 15 chars (#46778)
+- 2.10.17
+
+-------------------------------------------------------------------
+Mon Oct  4 18:59:27 CEST 2004 - jsrain@suse.cz
+
+- if serial parameter is present in menu.lst, don't add gfxboot
+  during update (#46680)
+- fixed update if root device name contained 'suse' or 'shipped'
+  (#46750)
+- 2.10.16
+
+-------------------------------------------------------------------
+Wed Sep 29 09:14:29 CEST 2004 - jsrain@suse.cz
+
+- do not show the disks order if there is only one disk (#46346)
+- 2.10.15
+
+-------------------------------------------------------------------
+Thu Sep 23 13:04:08 CEST 2004 - jsrain@suse.cz
+
+- avoid initalizing GRUB structures earlier than needed data is
+  known (#45119)
+- fixed redrawing the main dialog if loader type changed (#45877)
+- 2.10.14
+
+-------------------------------------------------------------------
+Mon Sep 20 16:30:38 CEST 2004 - jsrain@suse.cz
+
+- fixes update if SATA devices are used (#44286)
+- 2.10.13
+
+-------------------------------------------------------------------
+Mon Sep 13 10:59:50 CEST 2004 - jsrain@suse.cz
+
+- allowed to add wildcard entry to GRUB and LILO boot menu (#44742)
+- removed dead code (related to items in GRUB section reordering,
+  now it is fully handled by Table/Popup
+- initialize package manager callbacks before getting boot floppy
+  image (in order to ask for media) (#45049)
+- prevent from displaying the target device in the summary
+  multiple times (#45119)
+- 2.10.12
+
+-------------------------------------------------------------------
+Tue Sep  7 10:09:14 CEST 2004 - jsrain@suse.cz
+
+- update the default boot section mark properly if a section was
+  removed (eg. because of missing kernel) (#44752)
+
+-------------------------------------------------------------------
+Mon Sep  6 13:56:56 CEST 2004 - jsrain@suse.cz
+
+- do not use obsolete include commandline/commandline.ycp
+
+-------------------------------------------------------------------
+Mon Sep  6 09:44:33 CEST 2004 - jsrain@suse.cz
+
+- avoid calling constructor of Product:: in testsuite (in order to
+  build properly)
+- save splash type from installation kernel command line to created
+  bootloader configuration files (#44683)
+- 2.10.11
+
+-------------------------------------------------------------------
+Fri Sep  3 13:16:28 CEST 2004 - jsrain@suse.cz
+
+- update devices in bootloader configuration files (SATA devices
+  changed from /dev/hd* to /dev/sd*) (#44286)
+- provide general Bootloader::Update function that processes all
+  needed tasks
+- added SetModified to _auto client
+- 2.10.10
+
+-------------------------------------------------------------------
+Thu Sep  2 13:03:07 CEST 2004 - jsrain@suse.cz
+
+- check dependencies of bootloader-related packages when selecting
+  them for installation (#44615)
+
+-------------------------------------------------------------------
+Wed Sep  1 08:59:59 CEST 2004 - jsrain@suse.cz
+
+- fixed proposing /etc/grub.conf if /boot is on /dev/md*
+
+-------------------------------------------------------------------
+Tue Aug 31 16:46:46 CEST 2004 - jsrain@suse.cz
+
+- fixed building on other archs than i386
+- 2.10.9
+
+-------------------------------------------------------------------
+Tue Aug 31 14:43:04 CEST 2004 - jsrain@suse.cz
+
+- branched yast2-bootfloppy package (so that the bootfloppy
+  functionality is not present in personal as floppy images are
+  not present on the media (#44163)
+- 2.10.8
+
+-------------------------------------------------------------------
+Mon Aug 30 05:19:51 CEST 2004 - nashif@suse.de
+
+- Added GetModified function to _auto client
+
+-------------------------------------------------------------------
+Thu Aug 19 12:40:11 CEST 2004 - jsrain@suse.cz
+
+- translate the "Vendor Diagnostic" section in bootloader menu
+- removed some unneeded impmorts
+- 2.10.7
+
+-------------------------------------------------------------------
+Tue Aug 17 11:27:21 CEST 2004 - jsrain@suse.cz
+
+- fixed signatures of handler functions of Table/Popup options
+- call efibootmgr with '-v' instead of '-q' (in order to have more
+  verbose output in log) (#43625)
+
+-------------------------------------------------------------------
+Mon Aug 16 11:16:44 CEST 2004 - jsrain@suse.cz
+
+- fixed printing of summary if location set to all MBRs of disks
+  holding the /boot partition on /dev/md*
+- fixed activating partitions and writing generic code to MBR if
+  installing on /dev/md*
+- work correctly with kernel image names also on other archs than
+  i386 when creating the previous kernel section
+- 2.10.5
+
+-------------------------------------------------------------------
+Fri Aug 13 14:55:49 CEST 2004 - jsrain@suse.cz
+
+- log the output of devmap_mknod.sh and /sbin/vgscan (#43758)
+
+-------------------------------------------------------------------
+Wed Aug 11 12:50:06 CEST 2004 - jsrain@suse.cz
+
+- prevent from adding trailing blank space to section name on PPC
+  (#43599)
+
+-------------------------------------------------------------------
+Tue Aug 10 09:15:42 CEST 2004 - jsrain@suse.cz
+
+- merged texts from proofread
+
+-------------------------------------------------------------------
+Mon Aug  9 10:25:27 CEST 2004 - jsrain@suse.cz
+
+- fixed crippling of sections of other distros in case of multiboot
+  (#43491)
+- add 'd' to GRUB installation command only if 1st and 2nd stage
+  are on different disks (#43198)
+- 2.10.4
+
+-------------------------------------------------------------------
+Fri Aug  6 13:19:45 CEST 2004 - jsrain@suse.cz
+
+- minor fixes that made autoinstallation work
+
+-------------------------------------------------------------------
+Wed Aug  4 10:10:40 CEST 2004 - jsrain@suse.cz
+
+- more type information for CWM structures
+- fixed testsuite
+- 2.10.3
+
+-------------------------------------------------------------------
+Mon Jul 26 12:58:55 CEST 2004 - jsrain@suse.cz
+
+- fixed routine of merging detected modules for initrd with those
+  present in the AI profile during autoinstallation (#43103)
+
+-------------------------------------------------------------------
+Mon Jul 19 12:50:24 CEST 2004 - jsrain@suse.cz
+
+- use PackageSystem.ycp modules instead of Require.ycp
+- import "Product.ycp" when it is really needed (in order to build)
+- 2.10.2
+
+-------------------------------------------------------------------
+Fri Jul 16 15:53:09 CEST 2004 - jsrain@suse.cz
+
+- fixed displaying and changing order of disks for GRUB (#42454)
+- displaying GRUB's disks order in the summary
+
+-------------------------------------------------------------------
+Mon Jul 12 14:27:25 CEST 2004 - jsrain@suse.cz
+
+- writing product name and version as section label to bootloader
+  menu (GRUB both text and graphical, lilo graphical) (#31250)
+- fixed error messages of the script for /boot/message recreating
+- added general function to recreate /boot/message file on
+  relevant architectures
+- 2.10.1
+
+-------------------------------------------------------------------
+Tue Jun 29 13:45:04 CEST 2004 - jsrain@suse.cz
+
+- added possibility to install GRUB on MD device (the way that if
+  any of the disks building MD is removed system still boots)
+- update zipl.conf before packages update on S390 (#40629)
+- added "barrier=off" to failsafe kernel command line on i386, IA64
+  and AMD64 (#42526)
+
+-------------------------------------------------------------------
+Fri Jun 25 15:36:31 CEST 2004 - jsrain@suse.cz
+
+- added functionality to add section with previous kernel (#36624)
+- fixed confusing labels for the boot floppies (#37094)
+- fixed confusing code in Bootloader::Write (#40445)
+
+-------------------------------------------------------------------
+Thu Jun 24 13:29:08 CEST 2004 - jsrain@suse.cz
+
+- fixed autoinstallation with empty bootloader-related part of the
+  AI profile on PPC and IA64 (#41805)
+
+-------------------------------------------------------------------
+Thu Jun 17 15:00:57 CEST 2004 - jsrain@suse.cz
+
+- 2.10.0
+
+-------------------------------------------------------------------
+Wed Jun 16 14:11:03 CEST 2004 - jsrain@suse.cz
+
+- prevent the "desktop" parameter from being added to kernel
+  command line for server products (#41916)
+- 2.9.31
+
+-------------------------------------------------------------------
+Thu Jun 10 11:36:30 CEST 2004 - jsrain@suse.cz
+
+- change /dev/hd* to /dev/iseries/vd* in the 'boot' option of
+  lilo.conf during update of iSeries (#41545)
+- fixed creating a new section on PPC and IA64 (#41550)
+- 2.9.30
+
+-------------------------------------------------------------------
+Sun Jun  6 01:59:50 CEST 2004 - nashif@suse.de
+
+- in autoinst mode, keep initrd modules list (#41681)
+
+-------------------------------------------------------------------
+Thu May 27 16:35:45 CEST 2004 - jsrain@suse.cz
+
+- don't display device name if user selected to activate boot
+  loader partition ot replace MBR with generic code when preparing
+  AutoYaST  profile, as the device names aren't known (#41258)
+- allow to install LILO to MD so that if any of disks bulding MD
+  array is removed, system still boots (#34122)
+- 2.9.29
+
+-------------------------------------------------------------------
+Thu May 27 02:38:48 CEST 2004 - nashif@suse.de
+
+- move conversion functions from bootloader_auto to external
+  file (#41227)
+- Also parse kernel parameters, moved from autoyast2 (#41227)
+
+-------------------------------------------------------------------
+Wed May 26 14:31:44 CEST 2004 - jsrain@suse.cz
+
+- fix autoinstallation on all PPC boards (#38991)
+- prefer proposed PReP boot partition to already existing (#41213)
+
+-------------------------------------------------------------------
+Tue May 25 14:27:40 CEST 2004 - jsrain@suse.cz
+
+- set the I/O scheduler on the kernel command line (#40688)
+- fixed bootloader installation on iSeries (jplack) (#41143)
+- 2.9.28
+
+-------------------------------------------------------------------
+Mon May 24 12:55:15 CEST 2004 - jsrain@suse.cz
+
+- avoid setting vga kernel parameter on PPC and S390 (#40998)
+- fixed messing of /etc/lilo.conf when setting the vga parameter
+  (#40998)
+
+-------------------------------------------------------------------
+Wed May 19 15:06:52 CEST 2004 - jsrain@suse.cz
+
+- fixed filter for possible PReP boot partitions on iSeries - allow
+  /dev/iseries/vd* instead of /dev/hd* (#40825)
+- 2.9.27
+
+-------------------------------------------------------------------
+Tue May 18 13:30:07 CEST 2004 - jsrain@suse.cz
+
+- init board type during autoinstallation on PPC properly (#38991)
+
+-------------------------------------------------------------------
+Thu May 13 17:54:54 CEST 2004 - jsrain@suse.cz
+
+- fixed installation on PPC (#34556)
+- 2.9.26
+
+-------------------------------------------------------------------
+Wed May 12 08:29:20 CEST 2004 - jsrain@suse.cz
+
+- use ELILO-specific entry for the EFI entry label in the
+  autoinstallation profile (#36061)
+- fix handling of multiple occurences of a kernel parameter in the
+  command line (used eg. for console) (#38177)
+- fix lilo.conf update on PPC (#39379)
+
+-------------------------------------------------------------------
+Tue May  4 09:02:47 CEST 2004 - jsrain@suse.cz
+
+- merged texts from proofread
+
+-------------------------------------------------------------------
+Tue May  4 07:58:45 CEST 2004 - jsrain@suse.cz
+
+- add 'selinux=0' kernel parameter for all archs (#39811)
+- add 'TERM=dumb' kernel parameter for S390 (#39386)
+- 2.9.25
+
+-------------------------------------------------------------------
+Tue Apr 27 09:28:42 CEST 2004 - jsrain@suse.cz
+
+- fixed script for updating /boot layout on IPF (#21644)
+- fixed the /boot layout update procedure (#21644)
+- do not change the EFI nvram on update (#21644)
+- fixed testsuite
+- 2.9.24
+
+-------------------------------------------------------------------
+Thu Apr  8 14:28:19 CEST 2004 - jsrain@suse.cz
+
+- use 'desktop' kernel parameter on desktop products only
+- fixed blank spaces in section name after conversion from GRUB to
+  LILO (#38017)
+- fixed installing rescue kernel to slot A on iSeries (PPC) during
+  installation (#35566)
+
+-------------------------------------------------------------------
+Wed Apr  7 18:28:02 CEST 2004 - sh@suse.de
+
+- Fixed excessive whitespace after Module:: - bug #38327 
+
+-------------------------------------------------------------------
+Wed Apr  7 00:00:47 CEST 2004 - schwab@suse.de
+
+- Add nohalt to failsafe kernel command line on ia64.
+
+-------------------------------------------------------------------
+Tue Apr  6 09:01:01 CEST 2004 - jsrain@suse.de
+
+- updating graphical boot menu to contain proper languages (and 
+  be small enough to fit in memory) also when running update from
+  YaST control center (#38339)
+- added 'noresume' parameter to failsafe kernel command line
+  (#38400)
+- 2.9.22
+
+-------------------------------------------------------------------
+Mon Apr  5 15:23:21 CEST 2004 - jsrain@suse.de
+
+- fixed installation if root is on LVM (initializing device mapper
+  and LVM properly) (#37290)
+- 2.9.21
+
+-------------------------------------------------------------------
+Fri Apr  2 15:59:41 CEST 2004 - jsrain@suse.de
+
+- changed license to GPL
+- 2.9.20
+
+-------------------------------------------------------------------
+Fri Apr  2 09:39:47 CEST 2004 - jsrain@suse.de
+
+- fixed reading and writing of the 'map' option of sections in the
+  GRUB's menu.lst (#37971)
+- again fixed PPC post-install script (#37262)
+- 2.9.19
+
+-------------------------------------------------------------------
+Tue Mar 30 17:44:53 CEST 2004 - schwab@suse.de
+
+- Use dev2majminIfNonStandard instead of dev2majmin in BootELILO.
+- 2.9.18
+
+-------------------------------------------------------------------
+Mon Mar 29 18:16:56 CEST 2004 - jsrain@suse.de
+
+- do not propose to install any bootloader if installing user-mode
+  Linux (#37382)
+
+-------------------------------------------------------------------
+Mon Mar 29 10:30:31 CEST 2004 - jsrain@suse.de
+
+- fixed errors in log if root on LVM (#37290)
+- adapted to changes in CWM
+- include desktop file for boot floppy disk creator on i386 only
+  (#37209)
+- write "lilo" as bootloader type to sysconfig on PPC (#37263)
+- do not report incorrect error of PPC bootloader post-install
+  script (#37262)
+- label the bootloader section on PPC 'linux' (lowercase 'l')
+  (#37264)
+- do not ask about aborting if just entered and left (#37099)
+- write correct kernel to slot A on iSeries (PPC) when configuring
+  installed system (#35566)
+- 2.9.17
+
+-------------------------------------------------------------------
+Fri Mar 26 10:03:50 CET 2004 - jsrain@suse.de
+
+- check for nil output of runnign bootloader installer (#36927)
+- avoid displaying reading progress while updating configuraiton
+- 2.9.16
+
+-------------------------------------------------------------------
+Thu Mar 25 11:43:52 CET 2004 - jsrain@suse.de
+
+- fixed behavior if installing bootloader to boot sector of
+  MD device (#34122)
+- do not update graphical boot menu if it is not installed (#36893)
+- 2.9.15
+
+-------------------------------------------------------------------
+Wed Mar 24 15:33:24 CET 2004 - jsrain@suse.cz
+
+- fixed installation when root is on LVM device
+- prepared for EVMS (handle it the same way as LVM)
+
+-------------------------------------------------------------------
+Tue Mar 23 12:54:11 CET 2004 - jsrain@suse.cz
+
+- warn user before installing on XFS partition (boot sector doesn't
+  have enough free space for containing boot loader) (#36708)
+
+-------------------------------------------------------------------
+Mon Mar 22 08:47:51 CET 2004 - jsrain@suse.cz
+
+- logging output of PPC postinstall script (#35833)
+- fixed handling of NoPCMCIA kernel parameter (#35674)
+- check if language is supported by gfxmenu before setting it as
+  default (#36487)
+- 2.9.14
+
+-------------------------------------------------------------------
+Fri Mar 19 14:55:58 CET 2004 - mvidner@suse.cz
+
+- added AGENT_LIBADD so that agents work from standalone Perl
+
+-------------------------------------------------------------------
+Thu Mar 18 10:44:48 CET 2004 - jsrain@suse.cz
+
+- mark settings as changed after bootloader switch (#36269)
+- avoid putting /dev/evms to GRUB's device map and allowing it as
+  device to install bootloader to
+- create only one entry in the language selection in graphical
+  boot menu if English selected
+
+-------------------------------------------------------------------
+Wed Mar 17 14:27:15 CET 2004 - jsrain@suse.cz
+
+- allowed to select PPC board type when preparing autoinstallation
+  (#36109)
+- not reading settings from disk in Mode::config if not explicitly
+  asked
+- correctly assigning default radio button when asking how to
+  switch bootloader
+- zipl (S390 loader) switched to Table/Popup interface with just
+  one entry (loader type) because of autoinstallation
+
+-------------------------------------------------------------------
+Tue Mar 16 08:17:09 CET 2004 - jsrain@suse.cz
+
+- allow selecting all boot loaders in autoinstallation
+  configuration (#36109)
+- correctly display in summary that no EFI entry will be created
+  on IA64 (#35346)
+- export global settings of the bootloader properly (#32384,
+  #36012)
+- support for having both /boot/initrd and (hdx,y)/initrd in
+  autoinstallation profile (#32384)
+- fixed storing of the gfxmenu option
+
+-------------------------------------------------------------------
+Mon Mar 15 12:58:34 CET 2004 - jsrain@suse.cz
+
+- correctly check for swap partitions (filter out the partitions
+  that are marked for getting deleted) (#35953)
+- avoid writing LILO to /dev/md? (use one of devices building the
+  array instead) (#33565)
+- prevent kernel options from being added multiple times (#32362)
+- 2.9.13
+
+-------------------------------------------------------------------
+Fri Mar 12 10:14:26 CET 2004 - jsrain@suse.de
+
+- setting the default language of graphical boot loader, adding
+  localized texts
+- added support for boot loader entries with diacritics in
+  graphical bootloader menu
+- creating /boot/zipl directory on S390 (#35662)
+- 2.9.12
+
+-------------------------------------------------------------------
+Wed Mar 10 10:28:41 CET 2004 - jsrain@suse.de
+
+- adapted boot disks creator to new floppy image names (#33675)
+
+-------------------------------------------------------------------
+Wed Mar 10 02:06:47 CET 2004 - sh@suse.de
+
+- V 2.9.11
+- Migration to new wizard 
+
+-------------------------------------------------------------------
+Tue Mar  9 12:44:48 CET 2004 - jsrain@suse.de
+
+- fixed creating floppy from image with size smaller than the disk
+  size (#33675)
+
+-------------------------------------------------------------------
+Mon Mar  8 08:45:50 CET 2004 - jsrain@suse.de
+
+- fixed post install script on PPC (#35436)
+- fixed testsuite
+- ask user before aborting
+- setting icon
+- 2.9.10
+
+-------------------------------------------------------------------
+Thu Mar  4 10:30:52 CET 2004 - jsrain@suse.de
+
+- storing vga value determined during installation, using it when
+  proposing new configuration in installed system (#33368)
+- preserving user's choce not to create EFI entry while running
+  through installation proposal (#35346)
+
+-------------------------------------------------------------------
+Wed Mar  3 09:27:42 CET 2004 - jsrain@suse.de
+
+- appending text '(MBR)' to bootloader location description if it
+  is MBR of a hard disk (#35255)
+- fixed exporting settings for autoinstallation (#35232)
+- log exit code of command used to install bootloaer in case of
+  failure
+- fixed incorrectly reported error when installing LILO (#33905)
+- made md-only installation of GRUB possible (#34122)
+
+-------------------------------------------------------------------
+Tue Mar  2 11:05:50 CET 2004 - jsrain@suse.de
+
+- finished making data types more strictly
+- fixed default section name in lilo.conf on PPC (#35229)
+
+-------------------------------------------------------------------
+Mon Mar  1 12:48:34 CET 2004 - jsrain@suse.de
+
+- merged texts from proofread
+- more strictly data types (still WIP)
+- 2.9.8
+
+-------------------------------------------------------------------
+Tue Feb 24 08:31:10 CET 2004 - jsrain@suse.de
+
+- removing ide-scsi emulation parameters from kernel command line
+  (#34694)
+- use PReP boot partition on the same disk as root partition on
+  chrp (PPC) (#34891)
+- updated ELILO installation, change partitioning layout during
+  ELILO update in order to match Intel's EFI specification (#21644)
+
+-------------------------------------------------------------------
+Mon Feb 23 12:39:36 CET 2004 - jsrain@suse.de
+
+- fixed used kernel image name on S390 (now using the one from
+  Kernel.ycp) (#34735)
+- fixed kernel command line on S390 (#34734)
+- 2.9.7
+
+-------------------------------------------------------------------
+Thu Feb 19 11:27:28 CET 2004 - jsrain@suse.de
+
+- removed yast2-country from neededforbuild
+- writing hardware configuration to sysconfig on S390 instead of
+  /etc/chandev
+
+-------------------------------------------------------------------
+Tue Feb 17 08:50:18 CET 2004 - jsrain@suse.de
+
+- enabled and fixed command line interface
+- properly updating proposed sections of LILO after disk
+  repartitioning
+
+-------------------------------------------------------------------
+Mon Feb 16 15:12:38 CET 2004 - jsrain@suse.de
+
+- fixed behavior during autoinstalation preparation
+- fixed selectin PReP boot partition for installation on PPC (#34570)
+- fixed return value of Import function
+- fixed text of MBR radio button in AI configuration mode
+- keeping corrupted sections in lilo.conf on PPC (#34588)
+- 2.9.6
+
+-------------------------------------------------------------------
+Tue Feb 10 19:56:37 CET 2004 - arvin@suse.de
+
+- fixed testsuite
+
+-------------------------------------------------------------------
+Sat Feb 07 20:47:15 CET 2004 - arvin@suse.de
+
+- removed config files (*.y2cc)
+- 2.9.4
+
+-------------------------------------------------------------------
+Fri Jan 30 08:15:37 CET 2004 - jsrain@suse.de
+
+- dropped SILO support (SILO was dropped as SPARC is dead)
+- reenabled (and fixed) testsuite
+- 2.9.3
+
+-------------------------------------------------------------------
+Fri Jan 16 15:43:46 CET 2004 - jsrain@suse.de
+
+- merged NI changes from branch
+- 2.9.2
+
+-------------------------------------------------------------------
+Mon Jan  5 11:32:29 CET 2004 - jsrain@suse.de
+
+- adding resume= kernel parameter for GRUB and LILO (#33640)
+- writing kernel append parameters to global section of elilo.conf
+  (IA64) (#31736)
+
+-------------------------------------------------------------------
+Wed Dec 10 14:55:12 CET 2003 - jsrain@suse.de
+
+- translating also section label in the "default" entry in
+  elilo.conf (IA64)
+
+-------------------------------------------------------------------
+Tue Dec  9 15:36:47 CET 2003 - jsrain@suse.de
+
+- added command line interface support
+
+-------------------------------------------------------------------
+Thu Nov 27 17:20:19 CET 2003 - jsrain@suse.de
+
+- fixes for the new interpreter
+- 2.9.1
+
+-------------------------------------------------------------------
+Mon Nov 24 18:24:47 CET 2003 - jsrain@suse.de
+
+- fixed changing of GRUB location (#33297)
+- updated support of ELILO, several fixes
+
+-------------------------------------------------------------------
+Tue Nov 18 13:45:02 CET 2003 - jsrain@suse.de
+
+- switched from kdoc to doxygen
+
+-------------------------------------------------------------------
+Thu Oct 30 17:49:22 CET 2003 - jsrain@suse.de
+
+- fixed handling of disks reorder dialog for GRUB configuration
+- fixed modifying configuration data according to changed GRUB's
+  device map (#32667)
+
+-------------------------------------------------------------------
+Wed Oct 29 10:07:20 CET 2003 - jsrain@suse.de
+
+- fixed ensuring that required packages are installed when
+  switching bootloader
+- fixed sorting of lines in table
+- 2.9.0
+
+-------------------------------------------------------------------
+Thu Oct 23 18:16:32 CEST 2003 - schwab@suse.de
+
+- Fix quoting in efibootmgr command line.
+
+-------------------------------------------------------------------
+Thu Oct 23 12:50:39 CEST 2003 - jsrain@suse.de
+
+- fixed routines used to modify parameters of specified kernel
+
+-------------------------------------------------------------------
+Fri Oct 17 11:13:36 CEST 2003 - jsrain@suse.de
+
+- not proceeding with creating boot floppy if image not found
+  (#32428)
+
+-------------------------------------------------------------------
+Wed Oct 15 16:27:26 CEST 2003 - jsrain@suse.de
+
+- fixed option type for relocatable in elilo.conf (IA64) (#32210)
+- fixed option type of "activate" option on PPC
+- fixed handling of doublieclick on sections list table
+- updated support of IA64 bootloader
+
+-------------------------------------------------------------------
+Tue Oct 14 18:08:02 CEST 2003 - jsrain@suse.de
+
+- updated support of S390 bootloader
+
+-------------------------------------------------------------------
+Mon Oct 13 10:45:18 CEST 2003 - jsrain@suse.de
+
+- updated support of PPC bootloader
+
+-------------------------------------------------------------------
+Mon Oct  6 16:53:52 CEST 2003 - jsrain@suse.de
+
+- added separate fillup templates for different architectures
+
+-------------------------------------------------------------------
+Fri Oct  3 14:59:17 CEST 2003 - jsrain@suse.de
+
+- changed internals so that bootloader module now uses CWM
+
+-------------------------------------------------------------------
+Mon Sep 22 13:54:59 CEST 2003 - jsrain@suse.de
+
+- fixed assigning of default section when changed default secion's
+  label in LILO (#30122)
+- 2.8.22
+
+-------------------------------------------------------------------
+Fri Sep 19 16:47:07 CEST 2003 - jsrain@suse.de
+
+- fixed testsuite (again)
+- 2.8.21
+
+-------------------------------------------------------------------
+Thu Sep 18 23:08:24 CEST 2003 - nashif@suse.de
+
+- Fixed testsuite
+- 2.8.20
+
+-------------------------------------------------------------------
+Thu Sep 18 10:29:15 CEST 2003 - jsrain@suse.de
+
+- again adding maxcpus=0 to failsafe bootloader entry on AMD64
+  (#30519)
+- fixed possibily missing "splash=silent" in default kernel's
+  command line (#31256)
+- 2.8.19
+
+-------------------------------------------------------------------
+Tue Sep 16 16:51:28 CEST 2003 - jsrain@suse.de
+
+- fixed merging of other GRUB menus (#30757)
+- fixed translating of menubutton entry during installation (#31054)
+- 2.8.18
+
+-------------------------------------------------------------------
+Mon Sep 15 17:44:56 CEST 2003 - jsrain@suse.de
+
+- fixed popup reporting error when creating initrd (#30714)
+- fixed detection if root kernel parameter is specified via major
+  and minor number (#30842)
+- adding only one "splash=silent" to kernel command line (#30860)
+- adding "splash=silent desktop" to kernel command line during
+  update (#28780)
+- propose "floppy" entry to bootloader menu only if floppy drive
+  is present (#30772)
+- don't install bootloader packages in repair mode (#30272)
+- 2.8.17
+
+-------------------------------------------------------------------
+Sun Sep 14 21:02:56 CEST 2003 - adrian@suse.de
+
+- make it working in kcontrol
+
+-------------------------------------------------------------------
+Fri Sep 12 08:17:22 CEST 2003 - jsrain@suse.de
+
+- not adding maxcpus=0 to failsafe kernel parameters on AMD64
+  (#30519)
+- fixed updating of kernel image name in bootloader configuration
+  files (#30627)
+- fixed original bootloader configuration reading during update
+  (#30625)
+
+-------------------------------------------------------------------
+Thu Sep 11 12:46:41 CEST 2003 - jsrain@suse.de
+
+- removed forgotten debug code (#30396)
+
+-------------------------------------------------------------------
+Wed Sep 10 08:13:04 CEST 2003 - jsrain@suse.de
+
+- fixed update of metadata for sysconfig variable LOADER_TYPE
+  (#30352)
+
+-------------------------------------------------------------------
+Mon Sep  8 09:18:48 CEST 2003 - jsrain@suse.de
+
+- fixed bootloader menu entry - windows -> Windows (like other
+  entries) (#29600)
+- use device file name when specifying root device for LVM and MD
+  instead of using major and minor number (#28028)
+- prefix 0x should be added to major/minor number identifying root
+  device only for LILO (#29776)
+- 2.8.15
+
+-------------------------------------------------------------------
+Fri Sep  5 15:10:35 CEST 2003 - jsrain@suse.de
+
+- merged texts from proofread
+- fixed configuration proposal when root or boot partition is on md
+  (#30122)
+- 2.8.14
+
+-------------------------------------------------------------------
+Thu Sep  4 12:37:04 CEST 2003 - jsrain@suse.de
+
+- if variable with list of initrd modules in sysconfig doesn't
+  exist, set default value to empty (#30020)
+
+-------------------------------------------------------------------
+Wed Sep  3 13:34:51 CEST 2003 - jsrain@suse.de
+
+- don't write 'single' to slot A kernel command line on IBM iSeries
+  (arch. PPC) (#27984) (olh@suse.de)
+
+-------------------------------------------------------------------
+Mon Sep  1 10:04:55 CEST 2003 - jsrain@suse.de
+
+- fixed bootloader installation with numeric (major-minor) root
+  device specification (#29776)
+- not proposing booting from floppy if /boot is beyond 1024 cylinder
+  as it doesn't solve anything (#29524)
+- 2.8.13
+
+-------------------------------------------------------------------
+Thu Aug 28 14:20:10 CEST 2003 - jsrain@suse.de
+
+- fixed displayed section type in sections summary dialog for
+  "other" sections (#29472)
+- don't ask for abort confirmation during installation if settings
+  were changed in previous run of component from proposal (#29496)
+- 2.8.12
+
+-------------------------------------------------------------------
+Mon Aug 25 10:00:10 CEST 2003 - jsrain@suse.de
+
+- fixed inconsistence of floppy size (1440kB -> 1.44 MB) (#29142)
+- reporting segmentation fault when running bootloader binary
+  (#29199)
+- added correct help for configuration writing dialog
+- improved help text for rescue floppy (#29143)
+- 2.8.11
+
+-------------------------------------------------------------------
+Mon Aug 18 09:20:32 CEST 2003 - jsrain@suse.de
+
+- fixed creating of boot floppy (#28994)
+- updated comments in susconfig fillup (#28845)
+- moved dir for backup MBR to /var/lib/YaST2, in /boot leaving just
+  last MBR (this way it can be inserted to GRUB menu) (#28802)
+- backup-ing areas really affected when saving bootloader
+  configuration (MBR of first disk and sector bootloader is
+  installed to) (#28803)
+- 2.8.10
+
+-------------------------------------------------------------------
+Wed Aug 13 14:07:32 CEST 2003 - jsrain@suse.de
+
+- fixed bootloader update
+- better comments around YaST2 metadata in generated cfg. files
+- 2.8.9
+
+-------------------------------------------------------------------
+Tue Aug 12 13:29:35 CEST 2003 - jsrain@suse.de
+
+- added support for not installing any bootloader
+- recreate reset menubutton after bootloader switch
+- updated update functionality (replace vmlinuz.shipped images with
+  vmlinuz, dtto for initrd)
+
+-------------------------------------------------------------------
+Mon Aug 11 09:33:26 CEST 2003 - jsrain@suse.de
+
+- not using .shipped image any more (kernel package doesn't contain
+  it)
+- merged texts from proofread
+- added more verbose logging of proposing configuration
+- 2.8.8
+
+-------------------------------------------------------------------
+Thu Aug  7 15:46:44 CEST 2003 - jsrain@suse.de
+
+- fixed lost sections when changhing bootloader location (#28552)
+- not offering to replace partition booting from HDD with partition
+  for booting from floppy when changed GRUB location to other disk
+  partition if entry for booting from HDD doesn't exist
+- fixed proposing of LILO configuration (put multiple times into
+  quotes, some options weren't displayed correctly in summary table)
+- fixed lost sections in many other cases
+- removed popup informing about changed disk partitioning although
+  it was unchanged during installation proposal
+- 2.8.7
+
+-------------------------------------------------------------------
+Mon Aug  4 15:56:18 CEST 2003 - jsrain@suse.de
+
+- added .desktop files
+- 2.8.6
+
+-------------------------------------------------------------------
+Thu Jul 31 09:29:28 CEST 2003 - jsrain@suse.de
+
+- don't offer extra /boot and / partition as bootloader location
+  if they are the same
+
+-------------------------------------------------------------------
+Tue Jul 29 08:28:53 CEST 2003 - jsrain@suse.de
+
+- added possibility to clone selected bootloader section (#26458)
+- fixed creation of lilo.conf - quotes were missing
+- entries to bootloader are to be translated (#26800)
+
+-------------------------------------------------------------------
+Wed Jul 23 09:04:04 CEST 2003 - jsrain@suse.de
+
+- Using major/minor number for unusual devices instead of device
+  node name in root kernel parameter (#28028)
+
+-------------------------------------------------------------------
+Mon Jul 21 17:00:59 CEST 2003 - jsrain@suse.de
+
+- double click on tables now triggers Edit (#25156)
+- fixed testuite and building
+- 2.8.5
+
+-------------------------------------------------------------------
+Tue Jul  8 16:35:47 CEST 2003 - jsrain@suse.de
+
+- fixed question popup if canceling configuration (#27479)
+- installing additional copy of bootloader bootsector to bootsector
+  of /boot partition for LILO and GRUB (#27389)
+- not activating any partition by default if some already active
+  (#26278)
+- 2.8.4
+
+-------------------------------------------------------------------
+Wed Jun 25 10:11:41 CEST 2003 - jsrain@suse.de
+
+- fixed several minor bugs
+- 2.8.3
+
+-------------------------------------------------------------------
+Mon Jun 23 14:09:14 CEST 2003 - jsrain@suse.de
+
+- fixed common_popups, common_messages -> YCP modules
+- fixed missing imports
+- 2.8.2
+
+-------------------------------------------------------------------
+Thu Jun 12 13:03:52 CEST 2003 - jsrain@suse.de
+
+- fixed file list
+- fixed user interface
+- 2.8.1
+
+-------------------------------------------------------------------
+Wed May 28 15:00:47 CEST 2003 - jsrain@suse.de
+
+- updated PPC bootloader support
+
+-------------------------------------------------------------------
+Fri May 16 09:09:46 CEST 2003 - jsrain@suse.de
+
+- fixed collision with driver update (#26717)
+
+-------------------------------------------------------------------
+Thu May 15 14:27:25 CEST 2003 - jsrain@suse.de
+
+- updated ELILO (IA64 bootloader) support
+
+-------------------------------------------------------------------
+Mon May  5 16:38:39 CEST 2003 - jsrain@suse.de
+
+- updated and optimized some internal structures and related
+  functions
+
+-------------------------------------------------------------------
+Thu Apr 24 11:19:57 CEST 2003 - jsrain@suse.de
+
+- updated doaboot script (ro@suse.de)
+
+-------------------------------------------------------------------
+Wed Apr 23 13:12:31 CEST 2003 - jsrain@suse.de
+
+- updated widget handling functions interface
+- updated documentation
+
+-------------------------------------------------------------------
+Tue Apr 22 09:57:55 CEST 2003 - jsrain@suse.de
+
+- added possibility to download boot floppy image via FTP/HTTP
+  (#26175)
+- added possibility to restore last MBR saved during isntallation
+  or bootloader configuration (#16338)
+
+-------------------------------------------------------------------
+Fri Apr 18 13:18:24 CEST 2003 - jsrain@suse.de
+
+- no more retaking current kernel parameters to bootloader
+  configuration file when configuring installed system (#26304)
+- fixed devices for MBR/boot partition/root/partition when
+  installing on md (#26287)
+- not activating any partition during update (#26323)
+- better checkign of bootloader-on-floppy installation (#26323)
+- in case of inconsistence between sysconfig and bootlaoder cfg.
+  file bootloader cfg.file is prefered (#26323)
+- fixed possible tmp filename security problem of installation
+  on AXP (#26357)
+- displaying partition that will be activated and MBR device that
+  will be replaced with generic code (partial fix of #26278)
+- added possibility to save MBR before bootloader installation and
+  insert saved MBR image to GRUB menu (#16338)
+- 2.8.0
+
+-------------------------------------------------------------------
+Tue Apr  8 09:12:41 CEST 2003 - jsrain@suse.de
+
+- added possibility to save all settings and reinstall bootloader
+  although nothing was changed (#24346)
+
+-------------------------------------------------------------------
+Fri Apr  4 16:27:36 CEST 2003 - jsrain@suse.de
+
+- code cleanup and optimalization
+- added bootloader parameters support, made routines more universal
+- documentation update
+
+-------------------------------------------------------------------
+Thu Apr  3 17:50:50 CEST 2003 - jsrain@suse.de
+
+- allowed bootfloppy to format floppy disk and select device
+- allowed bootfloppy to use custom image (22376)
+- other minor bootfloppy updates and code cleanup
+
+-------------------------------------------------------------------
+Mon Mar 24 12:07:34 CET 2003 - jsrain@suse.de
+
+- removed reading of initrd modules from install_inf (#24709)
+
+-------------------------------------------------------------------
+Fri Mar 21 14:44:31 CET 2003 - jsrain@suse.de
+
+- updated documentation
+- updated testsuite
+- several minor updates and optimalizations
+
+-------------------------------------------------------------------
+Tue Mar 18 13:09:02 CET 2003 - jsrain@suse.de
+
+- fixed undeclared variable title (#25560)
+- 2.7.19
+
+-------------------------------------------------------------------
+Mon Mar 17 14:24:01 CET 2003 - jsrain@suse.de
+
+- fixed displaying of logs on bootloader errors (#25470)
+- 2.7.18
+
+-------------------------------------------------------------------
+Mon Mar 17 09:41:07 CET 2003 - jsrain@suse.de
+
+- fixed updating GRUB configuration if entry with other system was
+  present and set as default (#25418)
+- 2.7.17
+
+-------------------------------------------------------------------
+Fri Mar 14 13:26:39 CET 2003 - jsrain@suse.de
+
+- fixed behaviour when iditing empty section, when creating new
+  section, add most common keys (#25305)
+- fixed initrd modules cloning (#25351)
+- 2.7.16
+
+-------------------------------------------------------------------
+Tue Mar 11 12:55:43 CET 2003 - jsrain@suse.de
+
+- using activate instead of sfdisk to activate bootloader
+  partition, because sfdisk has unwanted side effects (#24740)
+- 2.7.15
+
+-------------------------------------------------------------------
+Mon Mar 10 11:05:07 CET 2003 - jsrain@suse.de
+
+- fixed filtering of modules added to initrd (#24709)
+- fixed partition activation if bootloader in logical disk (#24740)
+- 2.7.14
+
+-------------------------------------------------------------------
+Fri Mar  7 10:16:51 CET 2003 - jsrain@suse.de
+
+- fixed update from version without sysconfig variables specifying
+  used bootloader (#24783)
+- fixed reading configuration, not using agent's cache (#24821)
+- 2.7.13
+
+-------------------------------------------------------------------
+Wed Mar  5 13:48:29 CET 2003 - jsrain@suse.de
+
+- fixed multiple occurences of map option in one GRUB section
+  (#24627)
+- not adding automatically the apic kernel option (#24668)
+- fixed error message in log during saving (#24705)
+
+-------------------------------------------------------------------
+Mon Mar  3 12:51:51 CET 2003 - jsrain@suse.de
+
+- added possibility to force complete bootloader save (not save
+  only if settings have changed - no UI change, only for other
+  modules that need it)
+- merged texts from final proofreading
+- 2.7.12
+
+-------------------------------------------------------------------
+Fri Feb 28 11:04:26 CET 2003 - jsrain@suse.de
+
+- updated the detection of changes of settings (#24422)
+- 2.7.11
+
+-------------------------------------------------------------------
+Thu Feb 27 12:33:24 CET 2003 - jsrain@suse.de
+
+- fixed ordering of bootloader options (#24420)
+
+-------------------------------------------------------------------
+Mon Feb 24 09:20:59 CET 2003 - jsrain@suse.de
+
+- updated confirmation popup after bootloader is isntalled to
+  floppy (#23903)
+- fixed forgotten saving of cfg. files in some cases (#24073)
+- in repair mode reading bootloader type from sysconfig, no probing
+  (#24062)
+- 2.7.10
+
+-------------------------------------------------------------------
+Fri Feb 21 13:11:08 CET 2003 - jsrain@suse.de
+
+- fixed adding of memtest to bootloader menu (#23924)
+- fixed help text and behaviour of password option popup (#23954)
+- added support for easy updating initrd contents during system
+  update (#23976)
+- fixed setting focus in popups (#24050)
+
+-------------------------------------------------------------------
+Thu Feb 20 09:50:57 CET 2003 - jsrain@suse.de
+
+- changed executing /sbin/mk_initrd -> /sbin/mkinitrd
+- reorganized kernel parameters when using GRUB (#23829)
+- fixed capitalization of YCC labels (#23848)
+- 2.7.9
+
+-------------------------------------------------------------------
+Wed Feb 19 14:17:58 CET 2003 - jsrain@suse.de
+
+- changed color of text-mode LILO menu - now is blue
+- removed unwanted reseting of "disk" LILO option when reproposing
+  configuraition - some systems could be unbootable with LILO
+  without possibility to prevent it at installation time
+- updated ydoc comments
+- fixed conversion between GRUB and LILO (#23826)
+
+-------------------------------------------------------------------
+Mon Feb 17 15:57:17 CET 2003 - jsrain@suse.de
+
+- added popup when bootloader saved to floppy (#23571)
+- added extra stage in progress bar for reading disks partitioning
+  (#23712)
+- 2.7.8
+
+-------------------------------------------------------------------
+Fri Feb 14 09:33:09 CET 2003 - jsrain@suse.de
+
+- added splash-screen's size parameter when calling mk_initrd
+  (#23579)
+
+-------------------------------------------------------------------
+Thu Feb 13 10:41:08 CET 2003 - jsrain@suse.de
+
+- fixed floppy entry in bootloader menu behaviour - if installing
+  to floppy, hard disk is used instead (#23572)
+
+-------------------------------------------------------------------
+Mon Feb 10 16:06:25 CET 2003 - jsrain@suse.de
+
+- fixed proposing with merging GRUB menus, resulted in doubled
+  items (#23346)
+- merged proofread texts from second and third round
+- 2.7.7
+
+-------------------------------------------------------------------
+Wed Feb  5 13:36:05 CET 2003 - jsrain@suse.de
+
+- fixed bootloader changing during installation (#20759)
+- fixed list of locations to hold bootloader bootsector (#17320)
+
+-------------------------------------------------------------------
+Tue Feb  4 13:50:29 CET 2003 - jsrain@suse.de
+
+- updates of autoinstallation
+
+-------------------------------------------------------------------
+Mon Feb  3 16:59:29 CET 2003 - jsrain@suse.de
+
+- fixed NCurses usability - focus setting
+- 2.7.6
+
+-------------------------------------------------------------------
+Fri Jan 31 11:59:29 CET 2003 - jsrain@suse.de
+
+- not adding lvm groups and md disks to device map (#23217)
+
+-------------------------------------------------------------------
+Thu Jan 30 09:15:45 CET 2003 - jsrain@suse.cz
+
+- fixed setting of vga= kernel parameter (#23188)
+
+-------------------------------------------------------------------
+Wed Jan 29 13:23:45 CET 2003 - jsrain@suse.de
+
+- patched proofread texts
+
+-------------------------------------------------------------------
+Tue Jan 28 13:43:45 CET 2003 - jsrain@suse.de
+
+- fixed compilation of MBR only on selected platforms
+- 2.7.5
+
+-------------------------------------------------------------------
+Mon Jan 27 17:48:21 CET 2003 - jsrain@suse.de
+
+- added new testsuites
+- added missing translators comments
+- added missing functions comments
+- made Replace code in MBR function running
+- 2.7.4
+
+-------------------------------------------------------------------
+Fri Jan 24 13:04:19 CET 2003 - jsrain@suse.de
+
+- fixed too often blinking floppy
+- fixed Changed column modifying
+
+-------------------------------------------------------------------
+Thu Jan 23 13:44:33 CET 2003 - jsrain@suse.de
+
+- fixed fillup-template usage
+- changed symbols in export map to strings because of
+  autoinstallation
+- 2.7.3
+
+-------------------------------------------------------------------
+Wed Jan 22 14:30:26 CET 2003 - jsrain@suse.de
+
+- fixed meaningless log messages (#23025)
+
+-------------------------------------------------------------------
+Fri Jan 17 15:00:17 CET 2003 - jsrain@suse.de
+
+- fixed detection of disks configuration changes that may decide to
+  use other bootloader (#22918)
+- updated S390 installation
+- 2.7.2
+
+-------------------------------------------------------------------
+Fri Jan 10 17:25:38 CET 2003 - jsrain@suse.de
+
+- fixed failsafe kernel parameters on i386 (#22539)
+
+-------------------------------------------------------------------
+Fri Dec 20 16:37:56 CET 2002 - jsrain@suse.de
+
+- added documentation files
+
+-------------------------------------------------------------------
+Thu Dec 19 16:27:40 CET 2002 - jsrain@suse.de
+
+- fixed path to elilo.conf (IA64 only affected) (#22502)
+
+-------------------------------------------------------------------
+Tue Dec 17 14:53:24 CET 2002 - jsrain@suse.de
+
+- now using fillup-template for sysconfig/bootloader
+
+-------------------------------------------------------------------
+Fri Dec 13 08:48:41 CET 2002 - jsrain@suse.de
+
+- fixed ordering of modules in initrd
+- added function for changing write process settings
+
+-------------------------------------------------------------------
+Wed Dec 11 11:14:58 CET 2002 - jsrain@suse.de
+
+- if something goes wrong during bootloader installation saving, it
+  is now possible to fix configuration (#21076)
+- possible to change section type an easy way (#19451)
+- dialogs updates
+- other updates and fixes
+- adding sysconfig metadata
+- 2.7.1
+
+-------------------------------------------------------------------
+Wed Dec  4 17:46:46 CET 2002 - jsrain@suse.cz
+
+- Removed global variables from Liloagent, now able to be used at
+  once for more bootloaders
+- Added GRUB option types to LiloAgent
+- Removed test mode and possible security problem from bootfloppy
+  (#20962)
+- Fixed several problems of LiloAgent
+- Fixed ask for floppy popup (#10485)
+- If no initrd created, GRUB's menu.lst doesn't contain it now
+  (#21469)
+- 2.7.0
+
+-------------------------------------------------------------------
+Tue Nov 19 15:19:59 CET 2002 - schwab@suse.de
+
+- Use product name for EFI boot manager entry (#21879).
+- Report error when boot loader installation fails.
+
+-------------------------------------------------------------------
+Wed Oct 30 21:44:47 CET 2002 - kukuk@suse.de
+
+- fix log path in dosilo script
+- update_silo_conf: modify version number in /boot/message
+- BootSILO.ycp: Don't show popup on success when installing silo
+
+-------------------------------------------------------------------
+Wed Nov 13 09:08:12 CET 2002 - jsrain@suse.cz
+
+- again fixed installing a kernel to *NWSSTG when root is on RAID
+  on PPC (#21368)
+- creating syntactically correct menu.lst file for GRUB, contents
+  may be still incorrect on some servers (#20637)
+- 2.6.66
+
+-------------------------------------------------------------------
+Tue Nov  5 09:41:05 CET 2002 - jsrain@suse.cz
+
+- Bugfix - LTC1394 - FTP installation to root on LVM didn't install
+  a kernel on PPC (#20933)
+- 2.6.65
+
+-------------------------------------------------------------------
+Wed Oct 30 21:39:20 CET 2002 - kukuk@suse.de
+
+- fix log path in dosilo script
+- update_silo_conf: modify version number in /boot/message
+- BootSILO.ycp: Don't show popup on success when installing silo
+
+-------------------------------------------------------------------
+Tue Oct 29 10:13:28 CET 2002 - jsrain@suse.cz
+
+- fixed target dialog for x86-64 (#21258)
+- fixed selecting a prep boot partition on the root drive on PPC
+  (#21315)
+- fixed installing a kernel to *NWSSTG when root is on RAID on PPC
+  (#21368)
+- 2.6.64
+
+-------------------------------------------------------------------
+Fri Oct 25 14:38:02 CEST 2002 - arvin@suse.de
+
+- log output of mk_initrd also on S390 (bug #21273)
+- 2.6.63
+
+-------------------------------------------------------------------
+Mon Oct 14 16:50:46 CEST 2002 - jsrain@suse.cz
+
+- fixed activating of boot partition if not instaling bootloader
+  (#20874)
+- 2.6.62
+
+-------------------------------------------------------------------
+Fri Oct 11 11:10:43 CEST 2002 - jsrain@suse.cz
+
+- fixed security problem with permissions of /boot/grub/menu.lst
+  (#20803)
+- activating /boot partition if grub installed to mbr (part of
+  #20637)
+- 2.6.61
+
+-------------------------------------------------------------------
+Thu Oct 10 17:32:15 CEST 2002 - jsrain@suse.cz
+
+- if bootloader which should be used is not selected for
+  installation, backup one is installed on i386 and x86-64
+  (grub instead of lilo and lilo instead of grub) (#20759)
+
+-------------------------------------------------------------------
+Wed Oct  9 09:22:09 CEST 2002 - jsrain@suse.cz
+
+- now not enabling 2 gettys on same serial line on p690 (#19788)
+
+-------------------------------------------------------------------
+Tue Oct  8 14:16:06 CEST 2002 - jsrain@suse.cz
+
+- fixed type in initrd modules ignore list for PPC (#20684)
+- 2.6.59
+
+-------------------------------------------------------------------
+Mon Oct  7 08:23:36 CEST 2002 - jsrain@suse.cz
+
+- fixed activating boot method on PPC (#20407)
+- fixed helptexts on PPC (#20605)
+- fixed translating of PPC-specific strings
+- 2.6.58
+
+-------------------------------------------------------------------
+Fri Oct  4 10:38:02 CEST 2002 - jsrain@suse.cz
+
+- added more comments to bootloader in sysconfig/bootloader (#20385)
+- fixed restoring original configuration - could caused unbootable
+  system (#20391)
+- 2.6.57
+
+-------------------------------------------------------------------
+Wed Oct  2 14:01:36 CEST 2002 - jsrain@suse.cz
+
+- fixed update of lilo, resulted in corrupted lilo.conf (#20320)
+- fixed errors reporting during bootloader update (#20321)
+- fixed activating of initrd at update (#19643)
+
+-------------------------------------------------------------------
+Tue Oct  1 15:34:28 CEST 2002 - jsrain@suse.cz
+
+- fixed nasty trap in bootloader installation (now not reseting
+  configuration without question) (#20073)
+
+-------------------------------------------------------------------
+Fri Sep 27 16:45:01 CEST 2002 - jsrain@suse.cz
+
+- applied patches for PPC (#20178 and #20205 - initrd modules list)
+
+-------------------------------------------------------------------
+Fri Sep 27 08:45:51 CEST 2002 - lslezak@suse.cz
+
+- fixed configuration reset at installation proposal
+  if partitioning was changed (#20073)
+- fixed failsafe options on x86-64 (removed disableapic,
+  added iommu=noforce) (#19903)
+
+-------------------------------------------------------------------
+Tue Sep 24 11:23:39 CEST 2002 - lslezak@suse.cz
+
+- check if label already exists (in section edit),
+  allow labels longer than 15 chars for grub (#19874)
+- removed 'nosmp' from failsafe options on x86-64 (#19903)
+- don't add rewritten other section to menu (#19990)
+- version 2.6.56
+
+-------------------------------------------------------------------
+Tue Sep 17 17:13:23 CEST 2002 - lslezak@suse.de
+
+- fixed obsoleted help text in y2cc (#19466)
+- version 2.6.55
+
+-------------------------------------------------------------------
+Fri Sep 13 13:52:12 CEST 2002 - mvidner@suse.cz
+
+- bootfloppy: enable asking the user for the CD (#19628).
+- 2.6.54
+
+-------------------------------------------------------------------
+Fri Sep 13 13:25:06 CEST 2002 - fehr@suse.de
+
+- make supression of certain modules (cdrom and usb) work
+- version 2.6.53
+
+-------------------------------------------------------------------
+Thu Sep 12 19:58:13 CEST 2002 - lslezak@suse.cz
+
+- do not regenerate device.map file at update (part of #19555)
+- version 2.6.52
+
+-------------------------------------------------------------------
+Thu Sep 12 18:17:11 CEST 2002 - fehr@suse.de
+
+- fix to use lilo on update if there is no /etc/sysconfig/bootloader
+  (#19558)
+
+-------------------------------------------------------------------
+Thu Sep 12 16:12:56 CEST 2002 - lslezak@suse.cz
+
+- add current kernel parameters to lilo.conf at update (#19415)
+- added missing function DisplayLogFile to BootSILO.ycp, BootELILO.ycp
+- version 2.6.51
+
+-------------------------------------------------------------------
+Thu Sep 12 16:02:49 CEST 2002 - kkaempf@suse.de
+
+- run mkinitrd on PPC if needed (#18276)
+- 2.6.50
+
+-------------------------------------------------------------------
+Thu Sep 12 11:23:17 CEST 2002 - kkaempf@suse.de
+
+- exclude usb modules from initrd (#19432)
+- 2.6.49
+
+-------------------------------------------------------------------
+Wed Sep 11 14:02:12 CEST 2002 - lslezak@suse.cz
+
+- don't change configuration if partitioning was changed
+  and bootloader location is floppy (at installation proposal) (#19388)
+- allow installation on extended partition (at installation) (#19184)
+- version 2.6.48
+
+-------------------------------------------------------------------
+Tue Sep 10 18:30:26 CEST 2002 - kkaempf@suse.de
+
+- ppc bugfix #18849
+- 2.6.47
+
+-------------------------------------------------------------------
+Tue Sep 10 17:32:18 CEST 2002 - lslezak@suse.cz
+
+- use lilo instead grub at update
+- version 2.6.46
+
+-------------------------------------------------------------------
+Tue Sep 10 12:15:10 CEST 2002 - fehr@suse.de
+
+- fix root device detection of mk_lilo_conf
+- change default mbr detection in Boot.ycp (#19117)
+- prevent blanks in label in BootLILO.ycp (#19181)
+- version 2.6.45
+
+-------------------------------------------------------------------
+Mon Sep  9 17:59:48 CEST 2002 - lslezak@suse.cz
+
+- allow installation on extended partion (#19184)
+- version 2.6.44
+
+-------------------------------------------------------------------
+Mon Sep  9 13:40:09 CEST 2002 - mvidner@suse.cz
+
+- Replace whitespace (and nonprintable characters)
+  in lilo section labels by an underscore (#19181).
+- Properly use / or /boot/ in /boot/grub/menu.lst during upgrade (#19125).
+- 2.6.43
+
+-------------------------------------------------------------------
+Sun Sep  8 19:47:38 CEST 2002 - mvidner@suse.cz
+
+- Fixed the testsuite.
+- 2.6.42
+
+-------------------------------------------------------------------
+Sun Sep  8 13:30:47 CEST 2002 - kkaempf@suse.de
+
+- drop "make check" for the moment.
+
+-------------------------------------------------------------------
+Fri Sep  6 21:34:54 CEST 2002 - kkaempf@suse.de
+
+- workaround for hwinfo bug (#19071)
+- 2.6.41
+
+-------------------------------------------------------------------
+Fri Sep  6 17:16:13 CEST 2002 - jsrain@suse.cz
+
+- fixed provides/obsoletes
+- 2.6.40
+
+-------------------------------------------------------------------
+Fri Sep  6 12:45:21 CEST 2002 - jsrain@suse.cz
+
+- fixed deletion of cfg. file entries wjen using GRUB (Bug #18962)
+- fixed rendering GRUB menu on installed system (Bug #18973)
+- fixed handling of errors during bootlaoder installation
+  (Bug #19020)
+- 2.6.39
+
+-------------------------------------------------------------------
+Thu Sep  5 21:14:47 CEST 2002 - kkaempf@suse.de
+
+- properly check for update when determing boot type
+- 2.6.38
+
+-------------------------------------------------------------------
+Thu Sep  5 11:49:23 CEST 2002 - jsrain@suse.cz
+
+- not calling Storage::UseLilo () in Boot module constructor
+- 2.6.37
+
+-------------------------------------------------------------------
+Thu Sep  5 10:36:55 CEST 2002 - schwab@suse.de
+
+- Move elilo.conf to /boot/efi/SuSE.
+
+-------------------------------------------------------------------
+Wed Sep  4 12:35:39 CEST 2002 - jsrain@suse.cz
+
+- fixed bootfloppy function (Bug #17430)
+- fixed checking for need to set active partition (Bug #18835)
+- fixed reseting bootloader type after partitioning change
+- fixed label of sections dialog (Bug #18877)
+- 2.6.36
+
+-------------------------------------------------------------------
+Tue Sep  3 20:37:36 CEST 2002 - kukuk@suse.de
+
+- installation/src/silo/agents/update_silo_conf: New
+  file, modifies silo.conf and boot/message if an update is done.
+- installation/src/silo/BootSILO.ycp: Implement calling "dosilo"
+  script.
+- prom.cc: Add reg string if prom name exists at least once.
+
+-------------------------------------------------------------------
+Tue Sep  3 17:05:39 CEST 2002 - jsrain@suse.cz
+
+- fixed usage of Pkg::SourceProvideFile function
+
+-------------------------------------------------------------------
+Tue Sep  3 10:28:02 CEST 2002 - jsrain@suse.cz
+
+- if partitioning changes, resets bootloader location to MBR, only
+  meaningful partitions possible as bootloader bootsector locations
+  (Bug #18744)
+- 2.6.35
+
+-------------------------------------------------------------------
+Mon Sep  2 17:33:54 CEST 2002 - jsrain@suse.cz
+
+- added reset function (for calling after partitioning changes
+  during installation) (Bug #18744)
+
+-------------------------------------------------------------------
+Mon Sep  2 10:55:24 CEST 2002 - jsrain@suse.cz
+
+- updating prep boot partition during installation on PPC
+  (Bug #18689)
+- 2.6.34
+
+-------------------------------------------------------------------
+Fri Aug 30 15:54:15 CEST 2002 - jsrain@suse.cz
+
+- fixed bootfloppy creation (not yet tested) (Bug #17430)
+- building fixed
+- removed shadowed symbols (Bug #18622)
+- 2.6.33
+
+-------------------------------------------------------------------
+Wed Aug 28 11:57:22 CEST 2002 - jsrain@suse.cz
+
+- fixed building on SPARC
+- removed unneeded files from GRUB installation
+- fixed boot floppies location
+- fixed logging
+- 2.6.32
+
+-------------------------------------------------------------------
+Wed Aug 28 12:13:05 CEST 2002 - kkaempf@suse.de
+
+- fix checking for splashscreen
+- 2.6.31
+
+-------------------------------------------------------------------
+Tue Aug 27 16:19:25 CEST 2002 - jsrain@suse.cz
+
+- if no boot message exists not including in menu.lst (Bug #18381)
+- fixed ordering of list of kernel images / other partitions
+- 2.6.30
+
+-------------------------------------------------------------------
+Mon Aug 26 23:39:13 EDT 2002 - nashif@suse.de
+
+- do not reset location value in autoinst mode
+- if location is not empty, configure boot device in autoinst
+  mode (Avoid calling ConfigureLocation)
+- 2.6.29
+
+-------------------------------------------------------------------
+Mon Aug 26 17:12:14 CEST 2002 - jsrain@suse.cz
+
+- removed icons from control center on S390 (Bugs #18371 and #18367)
+- fixed curses UI buttons (Bug #18333)
+- fixed handling of nonwritable floppy (Bug #18312)
+- fixed PPC installation (Bug #18140)
+- 2.6.28
+
+-------------------------------------------------------------------
+Fri Aug 23 18:34:27 CEST 2002 - jsrain@suse.cz
+
+- fixed lists of devices (Bug #18269)
+- fixed installation on compaq disk array (Bug #18134)
+- 2.6.27
+
+-------------------------------------------------------------------
+Tue Aug 20 17:05:05 CEST 2002 - arvin@suse.de
+
+- correctly handle hvc console on ppc
+- 2.6.26
+
+-------------------------------------------------------------------
+Tue Aug 20 14:48:13 CEST 2002 - jsrain@suse.cz
+
+- fixed original configuration restore when using GRUB
+- fixed partition list reading
+- 2.6.25
+
+-------------------------------------------------------------------
+Mon Aug 19 14:10:01 CEST 2002 - jsrain@suse.cz
+
+- modified failsafe kernel image name for update of lilo
+- fixed GRUB save after configuration
+- not deleting old device map during installation
+- /sbin/elilo now not running after configuration change
+- 2.6.24
+
+-------------------------------------------------------------------
+Fri Aug 16 14:13:01 CEST 2002 - jsrain@suse.cz
+
+- added universal functions for accessing kernel parameters
+  independent on bootloader
+- modified failsafe kernel image name
+- fixed kdoc comments
+- merged proofread texts
+- now building initrd on S390
+- 2.6.23
+
+-------------------------------------------------------------------
+Tue Aug 13 06:49:05 CEST 2002 - jsrain@suse.cz
+
+- fixed handling different BIOS Ids (Bug #17594)
+- added disableapic to failsafe kernel command
+- 2.6.22
+
+-------------------------------------------------------------------
+Fri Aug  9 16:10:37 CEST 2002 - jsrain@suse.de
+
+- fixed installation on S390 (Bug #17244)
+- 2.6.21
+
+-------------------------------------------------------------------
+Fri Aug  9 09:24:57 CEST 2002 - jsrain@suse.de
+
+- now setting framebuffer vga mode (Bug #17537)
+- 2.6.20
+
+-------------------------------------------------------------------
+Thu Aug  8 09:59:38 CEST 2002 - jsrain@suse.de
+
+- fixed device name translation for GRUB during installation for
+  other systems
+- 2.6.19
+
+-------------------------------------------------------------------
+Wed Aug  7 15:04:52 CEST 2002 - jsrain@suse.de
+
+- Fix adaptation for multiple 'other' partitions for booting
+  for GRUB (#17458)
+- 2.6.18
+
+-------------------------------------------------------------------
+Wed Aug  7 12:39:25 CEST 2002 - kkaempf@suse.de
+
+- Allow for multiple 'other' partitions for booting (#17458)
+
+-------------------------------------------------------------------
+Wed Aug  7 08:45:44 CEST 2002 - jsrain@suse.de
+
+- added support for changing kernel command line for other modules
+  when using GRUB easily
+- 2.6.17
+
+-------------------------------------------------------------------
+Tue Aug  6 16:43:24 CEST 2002 - jsrain@suse.de
+
+- fixed abort button behaviour
+- 2.6.16
+
+-------------------------------------------------------------------
+Tue Aug  6 15:07:04 CEST 2002 - jsrain@suse.de
+
+- fixed ordering of GRUB commands in menu.lst
+- added expert configuration of /etc/grub.conf
+- 2.6.15
+
+-------------------------------------------------------------------
+Mon Aug  5 18:00:24 CEST 2002 - jsrain@suse.cz
+
+- fixed lilo update problem (Bug #15819)
+- fixed bootloader loaction dialog contents (Bug #17320)
+
+-------------------------------------------------------------------
+Mon Aug 05 13:11:26 CEST 2002 - arvin@suse.de
+
+- changes for new /etc/install.inf agent
+
+-------------------------------------------------------------------
+Mon Aug  5 12:55:29 CEST 2002 - fehr@suse.de
+
+- make BootS390.ycp work again (was broken after 8.0 changes)
+- 2.6.13
+
+-------------------------------------------------------------------
+Thu Aug  1 15:15:24 CEST 2002 - jsrain@suse.cz
+
+- minor updates and fixes
+- 2.6.12
+
+-------------------------------------------------------------------
+Tue Jul 30 16:15:24 CEST 2002 - jsrain@suse.cz
+
+- added comments for translators
+
+-------------------------------------------------------------------
+Tue Jul 30 15:27:45 CEST 2002 - arvin@suse.de
+
+- fixed configuration of grub
+
+-------------------------------------------------------------------
+Mon Jul 29 11:26:24 CEST 2002 - jsrain@suse.cz
+
+- added basic expert dialogs for GRUB
+- several fixes
+- 2.6.10
+
+-------------------------------------------------------------------
+Fri Jul 26 15:44:32 CEST 2002 - jsrain@suse.cz
+
+- fixed configuration of installed system for GRUB
+- added password support for GRUB
+- added boot from floppy support for GRUB
+- 2.6.9
+
+-------------------------------------------------------------------
+Fri Jul 26 09:34:02 CEST 2002 - jsrain@suse.cz
+
+- added bootloader graphical screen support for GRUB
+- added other OS during installation support for GRUB
+- 2.6.8
+
+-------------------------------------------------------------------
+Thu Jul 25 15:54:25 CEST 2002 - schwab@suse.de
+
+- Fix doelilo script.
+
+-------------------------------------------------------------------
+Thu Jul 25 13:28:41 CEST 2002 - jsrain@suse.cz
+
+- added support for GRUB configuration on running system
+- added support for installing GRUB during installation process
+- fixed for lilo startup (#17142)
+- 2.6.7
+
+-------------------------------------------------------------------
+Mon Jul 22 12:20:57 CEST 2002 - kkaempf@suse.de
+
+- prepare for GRUB support
+
+-------------------------------------------------------------------
+Wed Jul 17 11:28:44 CEST 2002 - arvin@suse.de
+
+- fixed file list for i386 (use %ix86 macro)
+
+-------------------------------------------------------------------
+Fri Jul 12 12:33:34 CEST 2002 - arvin@suse.de
+
+- use proper namespace for Args and CallFunction (#16776)
+
+-------------------------------------------------------------------
+Mon Jul  8 16:01:04 CEST 2002 - mvidner@suse.cz
+
+- fixed Provides/Obsoletes (yast2-agent-liloconf)
+
+-------------------------------------------------------------------
+Thu Jul 04 20:50:02 CEST 2002 - arvin@suse.de
+
+- moved non binary files to /usr/share/YaST2
+
+-------------------------------------------------------------------
+Wed Jul  3 10:38:58 CEST 2002 - lslezak@suse.cz
+
+- fixed installation/src/ppc/agents/Makefile.am (ppc build bug)
+- version 2.6.2
+
+-------------------------------------------------------------------
+Tue Jul  2 15:31:29 CEST 2002 - lslezak@suse.cz
+
+- merged with yast2-agent-lilo, yast2-agent-prom,
+  yast2-config-bootfloppy and yast2 lilo installation part
+- renamed to yast2-bootloader
+- version 2.6.1
+
+-------------------------------------------------------------------
+Tue Jun 25 16:57:19 CEST 2002 - lslezak@suse.cz
+
+- addded editor for expert user
+- changed ABC::`abc -> ABC::abc
+- version 2.6.0
+
+-------------------------------------------------------------------
+Thu Apr 11 11:01:31 CEST 2002 - lslezak@suse.cz
+
+- SuSE-8_0-Branch merged to the head
+
+-------------------------------------------------------------------
+Thu Mar 21 15:04:50 CET 2002 - mvidner@suse.cz
+
+- Obsoletes yast2-config-bootloader. (#15135)
+- 2.5.13
+
+-------------------------------------------------------------------
+Fri Mar 15 12:01:57 CET 2002 - dmeszar@suse.cz
+
+- fixed #14935 (can't close with WM)
+
+-------------------------------------------------------------------
+Mon Mar  4 12:12:49 CET 2002 - dmeszar@suse.cz
+
+- fixed bug #14100 (main dialog not hiden when exiting)
+- screenshot mode implemented
+
+-------------------------------------------------------------------
+Mon Feb 18 19:29:06 CET 2002 - dmeszar@suse.cz
+
+- fixed bug #13505 (incomplete label "Uninstall boot loader from"->
+  device name is missing)
+- fixed bug #13524 (broken writing of special lilo options
+  (like change-rules, disk, map-drive...)
+
+-------------------------------------------------------------------
+Mon Feb 11 15:19:24 CET 2002 - dmeszar@suse.cz
+
+- fixed restoring original settings from installation
+
+-------------------------------------------------------------------
+Tue Feb  5 13:24:57 CET 2002 - dmeszar@suse.cz
+
+- implemented section order changing
+
+-------------------------------------------------------------------
+Mon Jan 28 17:04:55 CET 2002 - dmeszar@suse.cz
+
+- don't read 'user_settings'
+
+-------------------------------------------------------------------
+Wed Jan 23 17:44:13 CET 2002 - dmeszar@suse.cz
+
+- fixed rpm dependencied
+
+-------------------------------------------------------------------
+Fri Jan 11 19:38:30 CET 2002 - dmeszar@suse.cz
+
+- fixed original lilo.conf restoring
+
+-------------------------------------------------------------------
+Sat Dec 22 18:45:31 CET 2001 - dmeszar@suse.cz
+
+- autoinstallation adaptation
+- installed linux's scanner
+- 3rd param for 'select', fixed specfile
+
+-------------------------------------------------------------------
+Fri Nov  9 13:21:52 CET 2001 - dmeszar@suse.cz
+
+- major ui changes- new startup dialog, sequence changed
+- addaptation for installation
+
+-------------------------------------------------------------------
+Thu Sep 20 19:08:32 CEST 2001 - dmeszar@suse.cz
+
+- module icon changed to 'boot.png' ;)
+
+-------------------------------------------------------------------
+Tue Sep 18 15:36:00 CEST 2001 - dmeszar@suse.cz
+
+- module icon changed to 'lilo.png' (#10656)
+
+-------------------------------------------------------------------
+Mon Sep 17 14:01:01 CEST 2001 - dmeszar@suse.cz
+
+- bug #10661 fixed (lilo configuration written without change !!)
+- bug #10667 fixed (No section is marked as default, if there is the
+    keyword 'default' missing in the lilo.conf.)
+
+-------------------------------------------------------------------
+Thu Sep 13 16:51:28 CEST 2001 - kendy@suse.cz
+
+- Write the lilo.conf first and then run lilo (not in the reverse
+  order...)
+- Some unused code removed, lilo_write.ycp is not distributed.
+
+-------------------------------------------------------------------
+Mon Sep 10 14:47:28 CEST 2001 - dmeszar@suse.cz
+
+- use Arch:: instead of user_settings
+
+-------------------------------------------------------------------
+Tue Sep  4 15:02:23 CEST 2001 - dmeszar@suse.cz
+
+- fix #10062
+- fixed the qt-IntField update bug (after creation of
+  dialog the intfield doesn't show its actual value
+  but shows 0 under qt)
+
+-------------------------------------------------------------------
+Fri Aug 31 13:49:03 CEST 2001 - dmeszar@suse.cz
+
+- use 'Add other section' radio button instead of 'add windows/os2 section'
+  for sparcs
+- removed debug logging
+
+-------------------------------------------------------------------
+Mon Aug 27 12:54:32 CEST 2001 - dmeszar@suse.cz
+
+- removed 'uninstall silo', 'install to boot/root' for sparcs
+- sparc: if kernel image's path is /'kernel', add '/boot' as prefix
+  when checking the kernel existence and description
+
+-------------------------------------------------------------------
+Mon Aug 20 16:58:35 CEST 2001 - dmeszar@suse.cz
+
+- fixed section label displaying in summary table ("section label" - > section label)
+
+-------------------------------------------------------------------
+Mon Aug 13 17:14:39 CEST 2001 - dmeszar@suse.cz
+
+- fixed description for other sections in summary table
+
+-------------------------------------------------------------------
+Wed Aug  8 15:09:04 CEST 2001 - dmeszar@suse.cz
+
+- correct handling od '\' '"' chars when reading ui input fields
+- fixed 'other' section removing
+- section quota set to 16
+
+-------------------------------------------------------------------
+Tue Jul 31 19:07:59 CEST 2001 - dmeszar@suse.cz
+
+- uninstall ability implemnted
+- section removing fixed
+- don't show 'image' option in options list of image/other section
+- help text for options stripped to minimal acceptable extent
+- options dialog layout changes
+- option editing dialog added
+
+-------------------------------------------------------------------
+Mon Jul 30 16:49:14 CEST 2001 - dmeszar@suse.cz
+
+- save confirm dialog added
+
+-------------------------------------------------------------------
+Thu Jul 26 18:59:25 CEST 2001 - dmeszar@suse.cz
+
+- proof-read texts, platform dependent code added
+
+-------------------------------------------------------------------
+Thu Mar 22 09:27:24 CET 2001 - dmeszar@suse.cz
+
+- initial version

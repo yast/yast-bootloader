@@ -1,0 +1,169 @@
+/**
+ * File:
+ *      include/bootloader/routines/wizards.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Wizard sequences for bootloader installation/configuration
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: ui.ycp 23184 2005-04-27 06:47:39Z jsrain $
+ *
+ */
+
+
+{
+textdomain "bootloader";
+
+import "Sequencer";
+import "Wizard";
+import "Report";
+include "bootloader/routines/dialogs.ycp";
+
+
+/**
+ * Run wizard sequencer
+ * @return `next, `back or `abort
+ */
+symbol MainSequence () {
+    if (! BootCommon::BootloaderInstallable ())
+	// error report
+	Report::Error (_("Because of the partitioning, the boot loader
+cannot be installed properly."));
+
+    // check loader-specific sequence
+    symbol spec_ret = Bootloader::blMainSequence ();
+    if (spec_ret != `generic)
+	return spec_ret;
+
+    // run generic sequence
+    map aliases = $[
+	"edit_section_switch"	: [``(EditSectionSwitch ()), true],
+	"kernel_section"	: ``(KernelSectionDialog ()),
+	"kernel_details"	: ``(DetailsDialog ("kernel_section")),
+	"chainloader_section"	: ``(ChainloaderSectionDialog ()),
+	"chainloader_details"	: ``(DetailsDialog ("chainloader_section")),
+	"main"			: ``(MainDialog ()),
+	"installation_details"	: ``(DetailsDialog ("installation")),
+	"loader_details"	: ``(DetailsDialog ("loader")),
+	"add_new_section"	: ``(AddNewSectionDialog ()),
+	"store_section"		: [``(StoreSection ()), true],
+	"manual_edit"		: ``(runEditFilesDialog ()),
+    ];
+
+    map sequence = $[
+	"ws_start" : "main",
+	"main" : $[
+	    `next : `next,
+	    `abort : `abort,
+	    `add : "add_new_section",
+	    `edit : "edit_section_switch",
+	    `inst_details : "installation_details",
+	    `loader_details : "loader_details",
+	    `manual : "manual_edit",
+	    `redraw : "main",
+	],
+	"manual_edit" : $[
+	    `abort : `abort,
+	    `next : "main",
+	],
+	"installation_details" : $[
+	    `next : "main",
+	    `abort : `abort,
+	],
+	"loader_details" : $[
+	    `next : "main",
+	    `abort : `abort,
+	],
+	"kernel_section" : $[
+	    `next : "store_section",
+	    `abort : `abort,
+	],
+	"kernel_details" : $[
+	    `next : "kernel_section",
+	    `abort : `abort,
+	],
+	"chainloader_section" : $[
+	    `next : "store_section",
+	    `abort : `abort,
+	],
+	"chainloader_details" : $[
+	    `next : "chainloader_section",
+	    `abort : `abort,
+	],
+	"add_new_section" : $[
+	    `next : "edit_section_switch",
+	    `abort : `abort,
+	],
+	"store_section" : $[
+	    `next : "main",
+	],
+	"edit_section_switch" : $[
+	    `kernel : "kernel_section",
+	    `chainloader : "chainloader_section",
+	],
+    ];
+
+    return Sequencer::Run (aliases, sequence);
+}
+
+/**
+ * Whole configuration of printer but without reading and writing.
+ * For use with autoinstallation.
+ * @return sequence result
+ */
+symbol BootloaderAutoSequence () {
+    Wizard::CreateDialog();
+    Wizard::SetContentsButtons("", `VBox (), "",
+	Label::BackButton(), Label::NextButton());
+    if ( Stage::initial () )
+	Wizard::SetTitleIcon("bootloader");	// no .desktop file in inst-sys
+    else
+	Wizard::SetDesktopIcon("bootloader");
+    symbol ret = MainSequence ();
+    UI::CloseDialog();
+    return ret;
+}
+
+/**
+ * Whole configuration of dns-server
+ * @return sequence result
+ */
+symbol BootloaderSequence () {
+    map my_aliases = $[
+	"read"	: [ ``(ReadDialog ()), true ],
+	"main"	:   ``(MainSequence ()),
+	"write"	: [ ``(WriteDialog ()), true ],
+    ];
+
+    map sequence = $[
+	"ws_start"		: "read",
+	"read" : $[
+	    `abort		: `abort,
+	    `next		: "main"
+	],
+	"main" : $[
+	    `abort		: `abort,
+	    `next		: "write",
+	],
+	"write" : $[
+	    `abort		: `abort,
+	    `next		: `next
+	]
+    ];
+
+    Wizard::CreateDialog();
+    Wizard::SetDesktopIcon("bootloader");
+    Wizard::SetContentsButtons("", `VBox (), "",
+	Label::BackButton(), Label::NextButton());
+    symbol ret = Sequencer::Run (my_aliases, sequence);
+
+    UI::CloseDialog();
+    return ret;
+}
+
+} // EOF

@@ -1,0 +1,231 @@
+/**
+ * File:
+ *      include/bootloader/elilo/widgets.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Widgets specific for ELILO bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+
+    textdomain "bootloader";
+
+    import "Label";
+    import "Mode";
+    import "BootCommon";
+    import "TablePopup";
+    include "bootloader/routines/popups.ycp";
+
+
+// Global section widget
+
+    /**
+      * Create a list of options for the table
+      * @param descr map description of the table
+      * @return list of option ids as it should be displayed
+      */
+    global define list getTableContents (map descr) ``{
+	list prependlist = [];
+	list forbidden_keys = [];
+	any type = BootCommon::getSectionType (BootCommon::current_section);
+	if (type == `global)
+	{
+	    prependlist = ["__loader_type", "__sep2", "__location",
+		"default", "__sections", "__save_method", "__sep1"];
+	    forbidden_keys = ["boot", "default"];
+	}
+	else
+	{
+	    prependlist = ["label", "__section_type", "__sep1"];
+	}
+	return BootCommon::createSectionItemsList (
+	    prependlist, forbidden_keys, true);
+    }
+
+    /**
+      * Get map of widget
+      * @return map of widget
+      */
+    global define map<string,any> getGlobalSectionWidget () ``{
+	map<string,any> ret = BootCommon::getGlobalSectionWidget ();
+	ret["ids"] = BootELILO::getTableContents;
+	return ret;
+    }
+
+// Bootloader target widget
+
+    /**
+      * Get widget term
+      * @return widget term
+      */
+    global define term getTargetWidget () ``{
+	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
+
+	term widget = `VBox (
+	    `VSpacing (1),
+	    `Left (`CheckBox (`id (`create_entry), `opt (`notify),
+		// check box
+		_("&Create EFI Entry"))),
+	    `VSpacing (0.6),
+	    `Left (`TextEntry (`id (`location),
+		// text entry label
+		_("&EFI Entry Name"))),
+	    have_old ? `VSpacing (1) : `VSpacing (0),
+	    have_old
+		? `Left (`CheckBox (`id (`remove_old),
+		    // check box
+		    sformat (_("&Remove Old EFI Entry (%1)"), old_efi_entry)))
+		: `VSpacing (0),
+	    `VSpacing (1)
+	);
+	return widget;
+    }
+
+    /**
+      * Init function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void targetInit (any opt_id, string opt_key) ``{
+	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
+	UI::ChangeWidget (`id (`create_entry), `Value, create_efi_entry);
+	UI::ChangeWidget (`id (`location), `Value, BootCommon::location);
+	UI::ChangeWidget (`id (`location), `Enabled, create_efi_entry);
+	if (have_old)
+	{
+	    UI::ChangeWidget (`id (`remove_old), `Value, remove_old_efi);
+	    UI::ChangeWidget (`id (`remove_old), `Enabled, create_efi_entry);
+	}
+	UI::SetFocus (`id (`create_entry));
+    }
+
+    /**
+      * Handle function of widget
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @param event map event that occured
+      */
+    global define void targetHandle (any opt_id, string opt_key, map event) ``{
+	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
+	UI::ChangeWidget (`id (`location), `Enabled,
+	    UI::QueryWidget (`id (`create_entry), `Value));
+	if (have_old)
+	{
+	    UI::ChangeWidget (`id (`remove_old), `Enabled,
+		UI::QueryWidget (`id (`create_entry), `Value));
+	}
+    }
+
+    /**
+      * Store function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      */
+    global define void targetStore (any opt_id, string opt_key) ``{
+	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
+	BootCommon::location = (string)
+	    UI::QueryWidget (`id (`location), `Value);
+	if (have_old)
+	{
+	    remove_old_efi = (boolean)
+		UI::QueryWidget (`id (`remove_old), `Value);
+	}
+	BootCommon::location_changed = true;
+	create_efi_entry = (boolean)
+	    UI::QueryWidget (`id (`create_entry), `Value);
+	BootCommon::location_changed = true;
+	BootCommon::markGeneralOptionChanged ((string)opt_key);
+    }
+
+    /**
+      * Validate function of a popup
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @param event map event that caused validation
+      * @return boolean true if widget settings ok
+      */
+    global define boolean targetValidate (any opt_id, string opt_key, map event)``{
+	return true; // FIXME check for valid characters
+			// FIXME check if not empty
+    }
+
+    /**
+      * Summary function of a table entry
+      * @param opt_id any option id
+      * @param opt_key any option key
+      * @return string summary to the table
+      */
+    global define string targetSummary (any opt_id, string opt_key) ``{
+	if (BootCommon::location == "" || ! create_efi_entry)
+	{
+	    // table entry, %1 is label of the entry of EFI boot manager
+	    return _("Do Not Create EFI Boot Manager Entry");
+	}
+	else
+	{
+	    // table entry
+	    return sformat (_("Create EFI Boot Manager Entry %1"),
+		BootCommon::location);
+	}
+    }
+
+    /**
+      * Get map of Target widget
+      * @return map of Target widget
+      */
+    global define map<string,any> getTargetOption () ``{
+	return $[
+	    "table" : $[
+		// table cell / label
+		"label" : _("Boot Loader Location"),
+		"summary" : BootELILO::targetSummary,
+		"optional" : false,
+		"ordering" : false,
+		"unique_key" : true,
+	    ],
+	    "popup" : $[
+		"widget" : `func,
+		"widget_func" : BootELILO::getTargetWidget,
+		"init" : BootELILO::targetInit,
+		"handle" : BootELILO::targetHandle,
+		"store" : BootELILO::targetStore,
+//		"help" : getLocationsHelp (),
+		"validate" : BootELILO::targetValidate,
+
+	    ],
+	];
+    }
+
+// general functions
+
+    /**
+      * Get map of dialogs and widgets
+      * @return map of dialogs and widgets
+      */
+    global define map<string,map<string,any> > GetWidgetMaps () ``{
+	return $[
+	    "globalsection" : getGlobalSectionWidget (),
+	];
+    }
+
+    /**
+      * Get map of all available Table/Popup options
+      * @return map of options
+      */
+    global define map<string,map<string,any> > GetOptionMaps () ``{
+	return $[
+	    "__location"	: getTargetOption (),
+        ];
+    }
+
+}

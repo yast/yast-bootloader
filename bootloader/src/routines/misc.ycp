@@ -1,0 +1,1865 @@
+/**
+ * File:
+ *      include/bootloader/routines/misc-common.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Miscelaneous functions for bootloader configuration and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ * WARNING:
+ *      To be included to BootCommon.ycp only, requires function
+ *      getLoaderType to avoid include-import cycle
+ *      Use import "BootCommon" instead.
+ */
+
+
+
+{
+
+    textdomain "bootloader";
+    import "Mode";
+    import "Stage";
+
+    import "Storage";
+    import "StorageDevices";
+    import "Report";
+    import "Kernel";
+    import "Misc";
+    import "ProductFeatures";
+
+// bootloader attributes handling functions
+
+    global define map<string, integer> Md2Partitions (string md_device);
+
+    /**
+      * Get packages needed by specified bootloader
+      * maybe should be moved to bootloader specific modules
+      * @param bootloader string name of bootloader
+      * @return a list of required packages names
+      */
+    global define list<string> getBootloaderPackages (string bootloader) ``{
+	return bootloader_attribs[bootloader, "required_packages"]:[];
+    }
+
+    /**
+      * return printable name of bootloader
+      * @param bootloader string bootloader type internal string
+      * @return string printable bootloader name
+      */
+    global define string getLoaderName (string bootloader) ``{
+	if (bootloader == "none")
+	{
+	    // combo box item, summary string, table item
+	    return _("Do Not Install Any Boot Loader");
+	}
+	if (bootloader == "default")
+	{
+	    // combo box item, summary string, table item
+	    return _("Install Default Boot Loader");
+	}
+	// fallback bootloader name, keep short
+	return bootloader_attribs[bootloader, "loader_name"]:_("Boot Loader");
+    }
+
+    /**
+      * Get value of specified boolean bootloader attribute
+      * @param attrib string attribute name
+      * @return boolean value of attribute
+      */
+    global define boolean getBooleanAttrib (string attrib) ``{
+	return current_bootloader_attribs[attrib]:false;
+    }
+
+    /**
+      * Get value of specified bootloader attribute
+      * @param attrib string attribute name
+      * @param defaultv any default value of the attribute (if not found)
+      * @return any value of attribute
+      */
+    global define any getAnyTypeAttrib (string attrib, any defaultv) ``{
+        return current_bootloader_attribs[attrib]:defaultv;
+    }
+
+/**
+ * Get index of a section specified by name
+ * @param string section name
+ * @return integer index of the section or nil if not found
+ */
+global integer getSectionIndex (string name) {
+    integer index = -1;
+    integer sectnum = nil;
+    foreach (map<string,any> s, sections, {
+	index = index + 1;
+	if (s["name"]:"" == name)
+	    sectnum = index;
+    });
+    return sectnum;
+}
+
+    /**
+      * Convert section orig from type otype to ntype
+      * Some information gets lost. ntype must be different from otype
+      * @param otype string original section type, "image" or "other"
+      * @param ntype string new section type, "image" or "other"
+      * @param orig list original section
+      * @return list new (converted) section
+      */
+    global define list<map> convertSection (string otype, string ntype, list<map> orig)
+    ``{
+	list<map>(string,string,list<map>) f = (list<map>(string,string,list<map>))(current_bootloader_attribs["convert_function"]:nil);
+	if (f == nil)
+	{
+	    if (orig == nil)
+		orig = [];
+	    return orig;
+	}
+	return f(otype, ntype, orig);
+    }
+
+    /**
+      * Get map where to store kernel parameters
+      * @return map describing where to store which kernel parameter
+      */
+    global define map getKernelParamKeys () ``{
+        return current_bootloader_attribs["kernel_params"]:$[];
+    }
+
+
+// other misc functions
+
+/**
+ * Generates unused section label for new section
+ * @return string label for new section
+ */
+global string getFreeSectionLabel () {
+    integer index = 1;
+    list<string> existing = [];
+    foreach (map<string,any> s, sections, {
+	existing = add (existing, s["name"]:"");
+	list<string> aliases = splitstring (s["aliases"]:"", ";");
+	foreach (string a, aliases, {
+	    existing = add (existing, a);
+	});
+    });
+    while (true)
+    {
+	string title = sformat ("section %1", index);
+	if (! contains (existing, title))
+	    return title;
+	index = index + 1;
+    }
+}
+
+    /**
+      * Get the list of installed floppy drives
+      * @return a list of floppy devices
+      */
+    global define list<string> getFloppyDevices () ``{
+        if (floppy_devices == nil)
+        {
+            list<map> floppies = (list<map>) SCR::Read (.probe.floppy);
+            floppies = filter (map f, floppies,
+                ``(f["model"]:"Floppy Disk" == "Floppy Disk"));
+            floppy_devices = maplist (map f, floppies,
+		``(f["dev_name"]:""));
+            floppy_devices = filter (string f, floppy_devices, ``(f != ""));
+        }
+	return floppy_devices;
+    }
+
+
+    /**
+      * Update the text of countdown widget
+      * @param bootloader string printable name of used bootloader
+      */
+    global define void updateTimeoutPopupForFloppy (string bootloader) ``{
+	if (Mode::normal ())
+	    return;
+
+        string confirm_boot_msg = Misc::boot_msg;
+        // data saved to floppy disk
+        string msg = sformat (
+            // popup, %1 is bootloader name
+            _("The %1 boot sector has been written to the floppy disk."),
+            bootloader);
+        msg = msg + "\n";
+	// always hard boot
+        // If LILO was written on floppy disk and we need
+        // to do a hard reboot (because a different kernel
+        // was installed), tell the user to leave the floppy
+        // inserted.
+        msg = msg
+            // popup - continuing
+            + _("Leave the floppy disk in the drive.");
+
+        if ( size (confirm_boot_msg) > 0 )
+        {
+            msg = msg + "\n" + confirm_boot_msg;
+        }
+        Misc::boot_msg = msg;
+    }
+
+    /**
+      * List of all supported bootloaders
+      */
+    global list<string> bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
+	"aboot", "zipl", "ppc", "mips"];
+
+    /**
+     * converts array of string to path
+     * @param strs list of string
+     * @return path whose components are taken from strs
+     */
+    global define path list2path(list<string> strs) ``{
+        path pth = .;
+        foreach(string e, strs, ``{
+            pth = add(pth, e);
+        });
+        return pth;
+    }
+
+    /**
+     * returns list of partitions. looks at '/proc/partitions' and creates list
+     * of partition for combobox or menu
+     * @param type symbol
+     *   `boot - for botloader installation
+     *   `root - for kernel root
+     *   `boot_other - for bootable partitions of other systems
+     *   `all - all partitions
+     *   `parts_old - all partitions, except those what will be created
+     *      during isntallation
+     *   `deleted - all partitions deleted in current proposal
+     * @return list of strings
+     */
+    global define list<string> getPartitionList(symbol type) ``{
+	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
+	list<map> partitions = [];
+	foreach (string k, map v, devices, ``{
+	    partitions = (list<map>)merge (partitions, (list<map>)(v["partitions"]:[]));
+	});
+	list<string> floppies = getFloppyDevices ();
+
+	devices = filter (string k, map v, devices,
+	                  ``(v["type"]:`CT_UNKNONW!=`CT_LVM));
+	if (type == `boot || type == `boot_other)
+	{
+	    devices = filter (string k, map v, devices, 
+	                      ``(v["type"]:`CT_UNKNONW==`CT_DISK));
+	}
+	list<string> all_disks = (list<string>) maplist (string k, map v, devices, ``(k));
+
+	if (type == `deleted)
+	    return maplist (map x, filter (map p, partitions, ``(p["delete"]:false)),
+		``{return x["device"]:"";
+	    });
+        partitions = filter (map p, partitions, ``(! p["delete"]:false));
+	list<string> ret = all_disks;
+	if (type == `boot_other || type == `root || type == `parts_old)
+            ret = [];
+
+	if (type == `boot)
+        {
+	    partitions = filter (map p, partitions,
+                ``(p["type"]:`primary == `primary
+		    || p["type"]:`primary == `extended
+		    || p["type"]:`primary == `logical
+		    || p["type"]:`primary == `sw_raid));
+	    // FIXME this checking is performed on 3 places, one function should
+	    // be developed for it
+	    partitions = filter (map p, partitions, {
+		symbol fs = (symbol)(p["used_fs"]:p["detected_fs"]:nil);
+		if (fs == `xfs)
+		    return false;
+		return true;
+	    });
+        }
+        else if (type == `root)
+        {
+            partitions = filter (map p, partitions,
+                    ``(p["type"]:`primary != `extended));
+        }
+	else if (type == `parts_old)
+	{
+	    partitions = filter (map p, partitions, ``(! p["create"]:false));
+	}
+        if (type != `all && type != `parts_old)
+        {
+            partitions = filter (map p, partitions,
+                ``(p["fstype"]:"" != "Linux swap"));
+        }
+	if (type == `boot)
+	{
+	    partitions = filter (map p, partitions,
+                ``(p["fstype"]:"" == "Linux native"
+                    || p["fstype"]:"" == "Extended"
+		    || p["fstype"]:"" == "Linux RAID"
+		    || p["fstype"]:"" == "MD Raid"));
+	}
+        list<string>partition_names
+	    = maplist (map p, partitions, ``((string)(p["device"]:"")));
+	partition_names = filter (string p, partition_names, ``(p != ""));
+        partition_names = (list<string>)merge (partition_names, floppies);
+        ret = (list<string>)union (ret, partition_names);
+	ret = (list<string>)toset (ret);
+	return (list<string>)ret;
+    }
+
+    /**
+      * returns true if char is blank (newline, tab or space)
+      * @param s single char string
+      * @return boolean blank/non blank
+      */
+    global define boolean isBlank(string s) ``{
+	if (s == "\n" || s == "\t" || s == " ")
+	{
+	    return true;
+	}
+	return false;
+    }
+
+    /**
+      * removes trailing and leading blank chars from string.
+      *   eg: "  as df  " -> "as df"
+      * @param str string source string
+      * @return string stripped string
+      */
+    global define string strip(string str)``{
+	//emtpy  string
+	if (size(str) == 0) return "";
+
+	integer bound = size(str);
+	integer first = 0;
+	integer last = size(str) - 1;
+	// find first non-blank char
+	while(first < bound && isBlank(substring(str, first, 1)))
+	{
+	    first = first + 1;
+	}
+
+	while(last >= 0 && isBlank(substring(str, last, 1)))
+	{
+	    last = last - 1;
+	}
+	if (last >= first)
+	{
+	    return substring(str, first, last - first + 1);
+	}
+	return "";
+    }
+
+    /**
+      * replaces all occurences of 'from' to 'to' in src
+      * @param src input string
+      * @param from string to be replaced
+      * @param to string to be replaced by
+      * @return string modified string
+      */
+    global define string replaceAll(string src, string from, string to) ``{
+	if (from == "")
+	{
+	    return src;
+	}
+
+	list tokens = [];
+
+	integer p = find(src, from);
+	while(p >= 0)
+	{
+	    tokens = add(tokens, substring(src, 0, p));
+	    src = substring(src, p + size(from), size(src) - (p+size(from)));
+	    p = find(src, from);
+	}
+	tokens = add(tokens, src);
+	return mergestring((list<string>)tokens, to);
+    }
+
+    /**
+      * convert string values from agent representation to module representation
+      * 1) if string is quoted, quotes are removed
+      * 2) if string contains escaped quotes, they're unescaped
+      * @param val value to transform
+      * @return any transformed value
+      */
+    global define any mod2ui(any val) ``{
+	if (is(val, string))
+	{
+	    string v = sformat("%1", val);
+	    v = strip(v);
+	    // remove leading and trailing quotes
+	    if (substring(v, 0, 1) == "\""
+		&& substring(v, size(v)-1, 1) == "\"")
+	    {
+		v = substring(v, 1, size(v)-2);
+	    }
+
+	    // unescape backslashes
+	    v = replaceAll(v, "\\\\", "\\");
+
+	    // unescape quotes
+	    v = replaceAll(v, "\\\"", "\"");
+	    return v;
+	}
+	return val;
+    }
+
+    /**
+      * returns map of options and their types
+      * @return map option types
+      */
+    global define map<string,string> opttypes() ``{
+	string bl = getLoaderType (false);
+	if (bl == "none")
+	    return $[];
+	if (bl == "s390")
+	    bl = "zipl";
+	else if (bl == "ppc")
+	    bl = "lilo";
+	if (size (opt_types[bl]:$[]) > 0)
+	    return opt_types[bl]:$[];
+	map<string,string> out = $[
+	    //default is string
+	    "compact" : "boolean",
+	    "fix-table" : "boolean",
+	    "ignore-table" : "boolean",
+	    "lba32" : "boolean",
+	    "linear" : "boolean",
+	    "lock" : "boolean",
+	    "nowarn" : "boolean",
+	    "optional" : "boolean",
+	    "prompt" : "boolean",
+	    "read-only" : "boolean",
+	    "restricted" : "boolean",
+	    "read-write" : "boolean",
+	    "unsafe" : "boolean",
+	    "lock" : "boolean",
+	    "optional" : "boolean",
+	    "restricted" : "boolean",
+	    "makeactive" : "boolean",
+	    "hiddenmenu" : "boolean",
+	    "change-rules" : "boolean",
+	    "reset" : "boolean",
+	    "delay" : "integer",
+	    "verbose" : "integer",
+	    "timeout" : "integer",
+	];
+	if (bl == "grub")
+	{
+	    out = $[
+		//default is string
+		"hiddenmenu" : "boolean",
+		"rarp" : "boolean",
+		"debug" : "boolean",
+		"displayapm" : "boolean",
+		"displaymem" : "boolean",
+		"fstest" : "boolean",
+		"lock" : "boolean",
+		"makeactive" : "boolean",
+		"default" : "integer",
+		"timeout" : "integer",
+		"fallback" : "integer",
+	    ];
+	}
+	opt_types[bl] = out;
+	return out;
+    }
+
+    global list<string> GetSpecialOptions () {
+	list<string> special = [];
+	string bl = getLoaderType (false);
+	if (bl != "grub")
+	{
+	    special = [ "change-rules", "type", "reset", "normal", "hidden",
+		"disk", "heads", "inaccessible", "cylinders", "bios",
+		"sectors", "change", "set", "partition", "deactivate",
+		"partition", "automatic", "map-drive", "to",
+	    ];
+	}
+	if (bl != "ppc")
+	{
+	    special = add (special, "activate");
+	}
+	return special;
+    }
+
+    /**
+      * return true if given option is special
+      * @param opt option name
+      * @return boolean special/not
+      */
+    global define boolean isSpecial(string opt) ``{
+	list<string> special = GetSpecialOptions ();
+	return (contains (special, opt));
+    }
+
+    /**
+      * returns list difference A \ B (items that are in A and are not in B)
+      * @param a list A
+      * @param b list B
+      * @return list see above
+      */
+    global define list difflist(list a, list b) ``{
+	return filter(any e, a, ``(!contains(b, e)));
+    }
+
+    /**
+      * reverse of mod2ui
+      * @param val value to transform
+      * @return any transformed value
+      */
+    global define any ui2mod(any val) ``{
+	if (is(val, string))
+	{
+	    string v = sformat("%1", val);
+	    v = strip(v);
+	    // if string contains backslashes, escape them
+	    v = replaceAll(v, "\\", "\\\\");
+
+	    // if string contains quotes, escape them
+	    v = replaceAll(v, "\"", "\\\"");
+	    // if string contains spaces or equal sign or is empty, quote it
+
+	    if ((size(splitstring(v, " ")) >= 2 || size(v) == 0
+		|| findfirstof(v, "=") != nil)
+	        &&(getLoaderType (false) != "grub"))
+	    {
+		v = "\"" + v + "\"";
+	    }
+	    return v;
+	}
+	return val;
+    }
+
+
+    /**
+      * returns modified list where items index1 and index2 are swapped.
+      * if indices are out of bounds, unmodified list is returned.
+      * @param input list
+      * @param index1 index of the first element
+      * @param index2 index og the second element
+      * @return list modified list
+      */
+    global define list swapItems(list input, integer index1, integer index2) ``{
+	if (index1 >= size(input) || index2 >= size(input)
+	    || index1 < 0 || index2 < 0)
+	{
+	    return input;
+	}
+	list output = [];
+	integer pos = -1;
+	output = maplist(any e, input, {
+	    pos = pos + 1;
+	    if (pos == index1)
+	    {
+	        return (any)(input[index2]:(any)$[]);
+	    }
+	    else if (pos == index2)
+	    {
+	        return (any)(input[index1]:(any)$[]);
+	    }
+	    return e;
+	});
+	return output;
+    }
+
+    /**
+      * translate filename path (eg. /boot/kernel) to list of device
+      *  and relative path
+      * @param fullpth string fileststem path (eg. /boot/vmlinuz)
+      * @return list containing device and relative path,
+      *  eg. ["/dev/hda1", "/vmlinuz"]
+      */
+    global define list<string> splitPath (string fullpth) ``{
+// UGHLY HACK because of testsuites
+	map<string,list> mountpoints = $[];
+	if (Mode::test ())
+	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
+	else
+	    mountpoints = (map<string,list>)Storage::GetMountPoints();
+	string dev = "";
+	string mp = "";
+	integer max = 0;
+	foreach (string k, list v, mountpoints, ``{
+	    if (k != "swap" && issubstring (fullpth, k) && size (k) > max)
+	    {
+	        max = size (k);
+	        dev = v[0]:"";
+	        mp = k;
+	    }
+	});
+	if (mp == "")
+	    return [];
+
+	string pth = substring (fullpth, size (mp));
+	if (substring (pth, 0, 1) != "/")
+	    pth = "/" + pth;
+	return [dev, pth];
+    }
+
+    /**
+      * translate list of device and relative path
+      *  to filename path (eg. /boot/kernel)
+      * @param devpth list of two strings, first for device name, second for
+      *  relative path (eg. ["/dev/hda1", "/vmlinuz"])
+      * @return string fileststem path (eg. /boot/vmlinuz)
+      */
+    global define string mergePath (list<string> devpth) ``{
+// UGHLY HACK because of testsuites
+        map<string,list> mountpoints = $[];
+	if (Mode::test ())
+	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
+	else
+            mountpoints = (map<string,list>)Storage::GetMountPoints();
+	string ret = "/dev/null";
+	if (substring (devpth[1]:"", 0, 1) != "/")
+	    devpth[1] = "/" + devpth[1]:"";
+        foreach (string k, list v, mountpoints, ``{
+	    if (k != "swap" && v[0]:"" == devpth[0]:"")
+	    {
+		if (substring (k, size (k) - 1, 1) == "/")
+		    k = substring (k, 0, size (k) - 1);
+		ret = k + devpth[1]:"";
+	    }
+	});
+	return ret;
+    }
+
+    /**
+      * If device is part of RAID (md), then return first of its members
+      * otherwise return the same as argument
+      * @param device string device of the RAID
+      * @return string first member of the RAID
+      */
+    global define string getDeviceOfRaid (string device) ``{
+	// get list of all partitions (not marked to be deleted)
+	map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
+	list<map> partitions = [];
+
+	foreach ( string dev, map disk, tm, ``{
+	    if( Storage::IsRealDisk( disk ) )
+	    {
+		list<map> l = (list<map>)filter( map p, disk["partitions"]:[],
+		    ``(p["delete"]:false==false) );
+		partitions = (list<map>)merge (partitions, l);
+            }
+        });
+
+	// filter partitions to relevant list according to raid name
+	list<map> md_list = filter (map e, partitions, ``(e["used_by"]:"" == substring(device,5)));
+	// get the devices
+	list<string> dev_list = maplist (map e, md_list, ``(e["device"]:""));
+	dev_list = filter (string d, dev_list, ``(d != ""));
+	if (size (dev_list) > 0)
+	{
+	    dev_list = sort (dev_list);
+	    return dev_list[0]:"";
+	}
+	return device;
+    }
+
+    /**
+      * Get bootloader device for specified location
+      * @return string device name
+      */
+    global define string GetBootloaderDevice () ``{
+        if (BootCommon::selected_location == "mbr")
+            return BootCommon::mbrDisk;
+        if (BootCommon::selected_location == "boot")
+	    return BootCommon::BootPartitionDevice;
+        if (BootCommon::selected_location == "root")
+	    return  BootCommon::RootPartitionDevice;
+        if (BootCommon::selected_location == "floppy")
+            return StorageDevices::FloppyDevice;
+        if (BootCommon::selected_location == "mbr_md")
+	    return "mbr_md";
+	if (BootCommon::selected_location == "none")
+	    return "/dev/null";
+        return BootCommon::loader_device;
+    }
+
+
+/**
+ * Check if installation to floppy is performed
+ * @return true if installing bootloader to floppy
+ */
+global boolean InstallingToFloppy () {
+    boolean ret = false;
+    if (loader_device == StorageDevices::FloppyDevice)
+	ret = true;
+    else if (contains (getFloppyDevices (), loader_device))
+	ret = true;
+    y2milestone ("Installing to floppy: %1", ret);
+    return ret;
+}
+
+    /**
+      *
+      * @return true if installing bootloader to floppy
+      */
+    global define boolean installingToFloppy () ``{
+	if (BootCommon::loader_device == StorageDevices::FloppyDevice)
+	    return true;
+	if (contains (getFloppyDevices (), BootCommon::loader_device))
+	    return true;
+	return false;
+    }
+
+global list<string> ListKernelParamsInLine (string line) {
+// FIXME this function is really similar to code in Kernel.ycp
+    list<string> cmdlist = [];
+    integer parse_index = 0;
+    boolean in_quotes = false;
+    boolean after_backslash = false;
+    string current_param = "";
+    while (parse_index < size (line))
+    {
+	string current_char = substring (line, parse_index, 1);
+	if (current_char == "\"" && ! after_backslash)
+	    in_quotes = ! in_quotes;
+	if (current_char == " " && ! in_quotes)
+	{
+	    cmdlist = add (cmdlist, current_param);
+	    current_param = "";
+	}
+	else
+	    current_param = current_param + current_char;
+	if (current_char == "\\")
+	    after_backslash = true;
+	else
+	    after_backslash = false;
+	parse_index = parse_index + 1;
+    }
+    cmdlist = add (cmdlist, current_param);
+    cmdlist = maplist (string c, cmdlist, {
+	if (regexpmatch (c, "^[^=]+="))
+	    c = regexpsub (c, "^([^=]+)=", "\\1");
+	return c;
+    });
+    return cmdlist;
+
+}
+
+    /**
+      * get kernel parameter from kernel command line
+      * @param line string original line
+      * @param key string parameter key
+      * @return string value, "false" if not present,
+      *   "true" if present key without value
+      */
+    global define string getKernelParamFromLine (string line, string key) ``{
+	// FIXME this doesn't work with quotes and spaces
+	string res = "false";
+	list<string> params = splitstring (line, " ");
+	params = filter (string p, params, ``(p != ""));
+	foreach (string p, params, ``{
+	    list<string> l = (list<string>) filter (string e, splitstring (p, "="), ``(e != " " && e != ""));
+	    if (l[0]:"" == key)
+	        res = l[1]:"true";
+	});
+	return res;
+    }
+
+    /**
+      * set kernel parameter to GRUB command line
+      * @param line string original line
+      * @param key string parameter key
+      * @param value string value, "false" to remove key,
+      *   "true" to add key without value
+      * @return string new kernel command line
+      */
+    global define string setKernelParamToLine
+	(string line, string key, string value)
+    ``{
+	// FIXME this doesn't work with quotes and spaces
+	list<string> params = splitstring (line, " ");
+	params = filter (string p, params, ``(p != ""));
+	boolean done = false;
+	// count occurences of every parameter
+	map<string,integer> occurences = $[];
+	foreach (string p, params, ``{
+	    list<string> l = filter (string e, splitstring (p, "="), ``(e != " " && e != ""));
+	    string k = l[0]:"";
+	    occurences[k] = occurences[k]:0 + 1;
+	});
+	params = maplist (string p, params, ``{
+	    list<string> l = filter (string e, splitstring (p, "="), ``(e != " " && e != ""));
+	    string k = l[0]:"";
+	    if (k == key)
+	    {
+		if (value == "false")
+		{
+		    return "";
+		}
+		else if (occurences[k]:0 <= 1)
+		{
+	            done = true;
+		    if (value == "true")
+		    {
+			return key;
+		    }
+		    else if (value != "false")
+		    {
+			return sformat ("%1=%2", key, value);
+		    }
+		}
+		else
+		{
+		    occurences[k] = occurences[k]:0 - 1;
+		    return "";
+		}
+	    }
+	    return p;
+	});
+	if (! done)
+	{
+	    if (value == "true")
+	    {
+	        params = add (params, key);
+	    }
+	    else if (value != "false")
+	    {
+	        params = add (params, sformat ("%1=%2", key, value));
+	    }
+	}
+	params = filter (string p, params, ``(p != ""));
+	line = mergestring (params, " ");
+	return line;
+    }
+
+    /**
+      * remove blanks from section name and replace them with _
+      * when not using GRUB
+      * @param original string
+      * @return string fixed string
+      */
+    global define string removeBlanks (string original) {
+	if (getLoaderType (false) == "grub")
+	    return original;
+	// do not allow empty labels
+	while (size (original) > 1 && substring (original, 0, 1) == " ")
+	{
+	    original = substring (original, 1);
+	}
+	while (size (original) > 1
+	    && substring (original, size (original) -1, 1) == " ")
+	{
+	    original = substring (original, 0, size (original) - 1);
+	}
+	if (size (original) > 15)
+	   original = substring (original, 0, 15);
+	return replaceAll (original, " ", "_");
+    }
+
+    /**
+      * Filter list to only entries which are present as keys in map
+      * @param order list (ordered) of settings
+      * @param widgets map of present widgets
+      * @param index of selected option
+      * @return map containing new index of selected option and list of options
+      *  where options that aren't ordered precede ordered options
+      */
+    global define map filterOrder (list order, map widgets, integer index) ``{
+	list ordering = [];
+	list unordering = [];
+	integer new_index = -1;
+	integer order_count = 0;
+	integer sorted_cound = 0;
+	foreach (map o, (list<map>)order, ``{
+	    boolean ord_option = widgets[o["key"]:"", "table", "ordering"]:true;
+	    if (substring (o["key"]:"", 0, 2) == "__")
+		ord_option = false;
+	    if (ord_option)
+	    {
+		ordering = add (ordering, o);
+		order_count = order_count + 1;
+	    }
+	    else
+	    {
+		unordering = add (unordering, o);
+	    }
+	    if (index == 0)
+	    {
+		new_index = order_count - 1;
+	    }
+	    index = index - 1;
+	});
+	new_index = new_index + size (unordering);
+	return $[
+	    "items" : merge (unordering, ordering),
+	    "index" : new_index,
+	];
+    }
+
+    /**
+      * Get partition which should be activated if doing it during bl inst.
+      * @return map $[ "dev" : string, "mbr": string, "num": any]
+      *  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
+      *  partition number (eg. 4)
+      */
+    global define map<string,any> getPartitionToActivate (string boot_partition,
+	string loader_device)
+    {
+	map p_dev = Storage::GetDiskPartition (loader_device);
+	any num_any = p_dev["nr"]:nil;
+	integer num = 0;
+	if (num_any != nil)
+	{
+	    if (is (num_any, integer))
+		num = (integer)num_any;
+	    else if (is (num_any, string))
+		num = tointeger ((string)num_any);
+	}
+	string mbr_dev = p_dev["disk"]:"";
+	// if bootloader is installed to /dev/md*
+	if (substring (loader_device, 0, 7) == "/dev/md")
+	{
+	    map<string,integer> md = Md2Partitions (BootCommon::loader_device);
+	    integer min = 128; // max. is 127
+	    string device = "";
+	    foreach (string d, integer id, md, {
+		if (id < min)
+		{
+		    min = id;
+		    device = d;
+		}
+	    });
+	    if (device != "")
+	    {
+		map p_dev = Storage::GetDiskPartition (loader_device);
+		any num_any = p_dev["nr"]:nil;
+		if (num_any != nil)
+		{
+		    if (is (num_any, integer))
+			num = (integer)num_any;
+		    else if (is (num_any, string))
+			num = tointeger ((string)num_any);
+		}
+		mbr_dev = p_dev["disk"]:"";
+	    }
+	}
+	// if bootloader in MBR, activate /boot partition
+	// (partiall fix of #20637)
+	else if (num == 0)
+	{
+	    p_dev = Storage::GetDiskPartition (boot_partition);
+	    any num_any = p_dev["nr"]:nil;
+	    if (num_any != nil)
+	    {
+		if (is (num_any, integer))
+		    num = (integer)num_any;
+		else if (is (num_any, string))
+		    num = tointeger ((string)num_any);
+		mbr_dev = p_dev["disk"]:"";
+	    }
+	    if (size (Md2Partitions (boot_partition)) > 1)
+	    {
+		foreach (string k, integer v, Md2Partitions (boot_partition),{
+		    if (find (k, loader_device) == 0)
+		    {
+			p_dev = Storage::GetDiskPartition (k);
+			any num_any = p_dev["nr"]:nil;
+			if (num_any != nil)
+			{
+			    if (is (num_any, integer))
+				num = (integer)num_any;
+			    else if (is (num_any, string))
+				num = tointeger ((string)num_any);
+			    mbr_dev = p_dev["disk"]:"";
+			}
+		    }
+		});
+	    }
+	}
+	if (num != 0)
+	{
+	    if (num > 4)
+	    {
+		y2milestone ("Bootloader partition type is logical");
+		map tm = Storage::GetTargetMap ();
+		list<map> partitions = tm[mbr_dev, "partitions"]:[];
+		foreach (map p, partitions, ``{
+		    if (p["type"]:nil == `extended)
+		    {
+			num = p["nr"]:num;
+			y2milestone ("Using extended partition %1 instead",
+			num);
+		    }
+		});
+	    }
+	}
+	map<string,any> ret = $[
+	    "num" : num,
+	    "mbr" : mbr_dev,
+	    "dev" : Storage::GetDeviceName (mbr_dev, num),
+	];
+	return ret;
+    }
+
+    /**
+     * Get a list of partitions to activate if user wants to activate
+     * boot partition
+     * @return a list of partitions to activate
+     */
+    global define list<map<string, any> > getPartitionsToActivate () {
+/* FIXME this whole function
+	map<string,integer> md = $[];
+	if (BootCommon::loader_device == "mbr_md")
+	{
+	    md =  Md2Partitions (BootCommon::BootPartitionDevice);
+	}
+	else
+	{
+	    md =  Md2Partitions (BootCommon::loader_device);
+	}
+	list<string> partitions = maplist (string k, integer v, md, ``(k));
+	if (size (partitions) == 0)
+	{
+	    partitions = [BootCommon::loader_device];
+	}
+	list<map<string,any> > ret = maplist (string partition, partitions, {
+	    return getPartitionToActivate (
+		BootCommon::BootPartitionDevice,
+		partition);
+	});
+	return toset (ret);
+*/
+	return [];
+    }
+
+    /**
+     * Get the list of MBR disks that should be rewritten by generic code
+     * if user wants to do so
+     * @return a list of device names to be rewritten
+     */
+    global define list<string> getMbrsToRewrite () {
+	list<string> ret = [BootCommon::mbrDisk];
+/* FIXME this whole function
+	map<string,integer> md = $[];
+	if (BootCommon::loader_device == "mbr_md")
+	{
+	    md =  Md2Partitions (BootCommon::BootPartitionDevice);
+	}
+	else
+	{
+	    md = Md2Partitions (BootCommon::loader_device);
+	}
+	list<string> mbrs = maplist (string d, integer b, md, {
+	    d = getPartitionToActivate (
+		BootCommon::BootPartitionDevice, d
+	    )["mbr"]:mbrDisk;
+	    return d;
+	});
+	if (contains (mbrs, BootCommon::mbrDisk))
+	{
+	    ret = (list<string>)merge (ret, mbrs);
+	}
+	return toset (ret);*/
+	return [];
+    }
+
+    /**
+      * Get last change time of file
+      * @param filename string name of file
+      * @return string last change date as YYYY-MM-DD-HH-MM-SS
+      */
+    global define string getFileChangeDate (string filename) ``{
+	map stat = (map) SCR::Read (.target.stat, filename);
+	integer ctime = stat["ctime"]:0;
+	string command = sformat (
+	  "date --date='1970-01-01 00:00:00 %1 seconds' +\"%%Y-%%m-%%d-%%H-%%M-%%S\"",
+	  ctime);
+	map out = (map) SCR::Execute (.target.bash_output, command);
+	string c_time = out["stdout"]:"";
+	y2debug ("File %1: last change %2", filename, c_time);
+	return c_time;
+    }
+
+    /**
+      * Save current MBR to /boot/backup_mbr
+      * Also save to /var/lib/YaST2/backup_boot_sectors/%device, if some
+      * existing, rename it
+      * @param device string name of device
+      */
+    global define void saveMBR (string device) ``{
+	string device_file = mergestring (splitstring (device, "/"), "_");
+	string device_file_path = "/var/lib/YaST2/backup_boot_sectors/"
+	    + device_file;
+	SCR::Execute (.target.bash,
+	    "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors");
+	if (SCR::Read (.target.size, device_file_path) > 0)
+	{
+	    list<string> contents = (list<string>) SCR::Read (.target.dir, "/var/lib/YaST2/backup_boot_sectors");
+	    contents = filter (string c, contents, ``(regexpmatch (c, sformat (
+		"%1-.*-.*-.*-.*-.*-.*", device_file))));
+	    contents = sort (contents);
+	    integer index = 0;
+	    integer siz = size (contents);
+	    while (index + 10 < siz)
+	    {
+		SCR::Execute (.target.remove,
+		    sformat ("/var/lib/YaST2/backup_boot_sectors/%1", contents[index]:""));
+		index = index + 1;
+	    }
+	    string change_date = getFileChangeDate (device_file_path);
+	    SCR::Execute (.target.bash, sformat (
+		"/bin/mv %1 %1-%2",
+		device_file_path, change_date));
+	}
+	SCR::Execute (.target.bash, sformat (
+	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+	    device, device_file_path));
+	if (device == mbrDisk)
+	{
+	    SCR::Execute (.target.bash, sformat (
+		"/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+		device, "/boot/backup_mbr"));
+
+	}
+    }
+
+    /**
+      * Update contents of MBR (active partition and booting code)
+      * FIXME move tis function to lilolike.ycp
+      * @return boolean true on success
+      */
+    global define boolean updateMBR () ``{
+	return true;
+/* FIXME this whole function
+	if (backup_mbr)
+	{
+	    y2milestone ("Doing MBR backup: MBR Disk: %1, loader device: %2",
+		BootCommon::mbrDisk, BootCommon::loader_device);
+	    list<string> disks_to_rewrite = (list<string>)toset (merge (
+		getMbrsToRewrite (),
+		[BootCommon::mbrDisk, BootCommon::loader_device]));
+	    y2milestone ("Creating backup of boot sectors of %1",
+		disks_to_rewrite);
+	    foreach (string d, disks_to_rewrite, {
+		saveMBR (d);
+	    });
+	}
+	boolean ret = true;
+	if (activate)
+	{
+	  foreach (map m_activate, getPartitionsToActivate (), {
+	    any num = m_activate["num"]:0;
+	    string mbr_dev = m_activate["mbr"]:"";
+	    if (num != 0 && mbr_dev != "")
+	    {
+		if ((! is (num, integer)) || num <= 4)
+		{
+		    y2milestone ("Activating partition %1 on %2", num, mbr_dev);
+		    ret = ret && (0 == SCR::Execute (.target.bash,
+			sformat ("/sbin/activate %2 %1", num, mbr_dev)));
+		}
+	    }
+	    else
+	    {
+		y2error ("Cannot activate %1", m_activate);
+	    }
+	  });
+	}
+	if (repl_mbr && BootCommon::location != "mbr")
+	{
+	    if (! Stage::initial ())
+	    {
+		PackageSystem::Install ("master-boot-code");
+	    }
+	    y2milestone("Updating code in MBR: MBR Disk: %1, loader device: %2",
+		BootCommon::mbrDisk, BootCommon::loader_device);
+	    list<string> disks_to_rewrite = getMbrsToRewrite ();
+	    foreach (string d, disks_to_rewrite, {
+		y2milestone ("Copying generic MBR code to %1", d);
+		ret = ret && (0 == SCR::Execute (.target.bash, sformat (
+		    "/bin/dd bs=446 count=1 if=%1 of=%2",
+			"/usr/lib/boot/master-boot-code",
+			BootCommon::mbrDisk)));
+	    });
+	}
+	return ret;*/
+    }
+
+    /**
+      * Rewrite current MBR with /var/lib/YaST2/backup_boot_sectors/%device
+      * Warning!!! don't use for bootsectors, 446 bytes of sector are written
+      * @param device string device to rewrite MBR to
+      * @return boolean true on success
+      */
+    global define boolean restoreMBR (string device) ``{
+	string device_file = mergestring (splitstring (device, "/"), "_");
+	if (SCR::Read (.target.size, sformat ("/var/lib/YaST2/backup_boot_sectors/%1", device_file))
+	    <= 0)
+	{
+	    Report::Error ("Can't restore MBR. No saved MBR found");
+	    return false;
+	}
+	integer ret = (integer) SCR::Execute (.target.bash, sformat (
+	    "/bin/dd of=%1 if=/var/lib/YaST2/backup_boot_sectors/%2 bs=446 count=1",
+	    device, device_file));
+	return (ret == 0);
+    }
+
+    /**
+      * Translate device name to major/minor number
+      * @param device string
+      * @return string major*256+minor hexadecimal without leading 0x, in case
+      *  of any fail return unchanged device node
+      */
+    global define string dev2majmin (string device) ``{
+	map exec_ret = (map) SCR::Execute (.target.bash_output, sformat (
+	    "ls -ln %1", device));
+	if (exec_ret["exit"]:1 != 0 && Stage::initial ())
+	{
+	    exec_ret = (map) WFM::Execute (.local.bash_output, sformat (
+		"ls -ln %1", device));
+	}
+	if (exec_ret["exit"]:1 != 0)
+	    return device;
+        string ls = exec_ret["stdout"]:"";
+        list<string> parts = splitstring (ls, " ");
+        parts = filter (string p, parts, ``(p != ""));
+        string majs = parts[4]:"";
+        majs = substring (majs, 0, size (majs) -1);
+        string mins = parts[5]:"";
+	if (majs == "" || majs == nil || mins == "" || mins == nil)
+	    return device;
+        integer maj = tointeger (majs);
+        integer min = tointeger (mins);
+	majs = tohexstring (maj);
+	majs = substring (majs, 2);
+	while (size (majs) < 2)
+	    majs = "0" + majs;
+	mins = tohexstring (min);
+	mins = substring (mins, 2);
+	while (size (mins) < 2)
+	    mins = "0" +  mins;
+	y2debug ("Translated %1 to %2:%3", device, majs, mins);
+	string ret = sformat ("%1%2", majs, mins);
+        return ret;
+    }
+
+
+    /**
+      * Translate device name to major/minor number if the device is not
+      * "usual"
+      * @param device string
+      * @return string the original device parameter if it is "usual",
+      *  same as dev2majmin otherwise
+      */
+    global define string dev2majminIfNonStandard (string device) ``{
+	// don't use major/minor numbers for LVM and MD (seems to be able
+	// to make system unbootable
+	if (Storage::CheckForLvmRootFs() || Storage::CheckForEvmsRootFs ()
+	    || Storage::CheckForMdRootFs())
+	{
+	    return device;
+	}
+	if (regexpmatch (device, "^/dev/hd.+$")
+	    || regexpmatch (device, "^/dev/sd.+$")
+	    || regexpmatch (device, "^/dev/ataraid/.+$"))
+	{
+	    return device;
+	}
+	return dev2majmin (device);
+    }
+
+    /**
+      * Convert any to boolean
+      * @param v any value
+      * @return boolean retyped value
+      */
+    global define boolean tobool (any v) ``{
+	if (v == true)
+	    return true;
+	else
+	    return false;
+    }
+
+    /**
+      * Update kernel parameters if some were added in Kernel module
+      * @param orig original kernel parameters or kernel command line
+      * @return kernel command line or parameters with added new parameters
+      */
+    global define string UpdateKernelParams (string orig) ``{
+	list<string> new = splitstring (Kernel::GetCmdLine (), " ");
+	list<string> old = splitstring (orig, " ");
+	list<string> added = (list<string>)BootCommon::difflist (new,
+	     splitstring (BootCommon::kernelCmdLine, " "));
+	added = (list<string>)BootCommon::difflist (added, old);
+	old = (list<string>) merge (old, added);
+	if (Stage::initial ())
+	{// move showopts apic to the end
+	    boolean showopts = false;
+	    boolean apic = false;
+	    if (contains (old, "showopts"))
+		showopts = true;
+	    if (contains (old, "apic"))
+		apic = true;
+	    old = filter (string o, old, ``(o != "apic" && o != "showopts"));
+	    if (showopts)
+		old = add (old, "showopts");
+	    if (apic)
+		old = add (old, "apic");
+	}
+	return mergestring (old, " ");
+    }
+
+
+
+    /**
+      * Check whether settings were changed and if yes, ask for exit
+      * without saving
+      * @return true if shall exit
+      */
+    global define boolean confirmAbort () ``{
+	if ((! changed) || confirmAbortPopup ())
+	    return true;
+	else
+	    return false;
+    }
+
+    /**
+      * Get map of swap partitions
+      * @return map where key is partition name and value its size
+      */
+    global define map<string, integer> getSwapPartitions () ``{
+	map<string, map> tm = (map<string,map>)Storage::GetTargetMap ();
+
+	map<string, integer> ret = $[];
+
+	foreach (string k, map v, tm, ``{
+	    integer cyl_size = v["cyl_size"]:0;
+	    list<map<string,any> > partitions = v["partitions"]:[];
+	    partitions = filter(map<string,any> p, partitions,
+		``(p["mount"]:"" == "swap"
+		    && ! p["delete"]:false));
+	    foreach (map<string, any> s, partitions, ``{
+		string dev = (string)(s["device"]:"");
+		ret[dev] = (integer)(s["region", 1]:0) * cyl_size;
+	    });
+	});
+	y2milestone ("Available swap partitions: %1", ret);
+	return ret;
+    }
+
+    /**
+      * Get the name of the largest available swap partition
+      * @return string name of the largest partition
+      */
+    global define string getLargestSwapPartition () ``{
+	map<string, integer> swap_sizes = getSwapPartitions ();
+	list<string> swap_parts = (list<string>)maplist (string name, integer size,
+	    swap_sizes, ``(name));
+	swap_parts = sort (string a, string b, swap_parts, ``(
+	    swap_sizes[a]:0 > swap_sizes[b]:0
+	));
+	return swap_parts[0]:"";
+    }
+
+    /**
+      * Create translated name of a section
+      * @param orig string original section name
+      * @return translated section name
+      */
+    global define string translateSectionTitle (string orig) ``{
+        map trans = $[
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "linux" : _("Linux"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "failsafe" : _("Failsafe"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "floppy" : _("Floppy"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "hard disk" : _("Hard Disk"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "memtest86" : _("Memory Test"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "original MBR" : _("MBR before Installation"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "previous" : _("Previous Kernel"),
+	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
+	    // are allowed, otherwise translartion won't be used
+	    // try to keep short, may be shortened due to bootloader limitations
+            "Vendor diagnostics" : _("Vendor Diagnostics"),
+        ];
+        map not_trans = $[
+            "linux" : "Linux",
+            "failsafe" : "Failsafe",
+            "floppy" : "Floppy",
+            "hard disk" : "Hard Disk",
+            "memtest86" : "Memory Test",
+            "original MBR" : "MBR before Installation",
+            "windows" : "Windows",
+	    "xen" : "XEN",
+        ];
+	string translated = trans[orig]:"\n"; // not allowed character
+		// not_translated version will be used
+	string filtered = filterchars (translated, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _");
+	if (size (filtered) != size (translated))
+	{
+	    y2warning ("Incorrect translation %1 -> %2", orig, translated);
+	    return not_trans[orig]:orig;
+	}
+	if (BootCommon::getLoaderType (false) != "grub")
+	{
+	    filtered = mergestring (splitstring (filtered, " "), "_");
+	    if (size (filtered) > 15)
+		filtered = substring (filtered, 0, 15);
+	}
+	else if (contains (["linux", "failsafe", "previous", "xen"], orig)
+	    && ! Mode::test ())
+	{
+	    import "Product";
+	    string product = sformat ("%1 %2", Product::name, Product::version);
+	    string prod_filtered = filterchars (product, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.");
+	    if (product == prod_filtered && product != " ")
+	    {
+		if (orig == "linux")
+		{
+		    filtered = prod_filtered;
+		}
+		else
+		{
+		    filtered = sformat ("%1 -- %2", filtered, prod_filtered);
+		}
+	    }
+	}
+	return filtered;
+    }
+
+    global define map<string,string> getTranslationsToDiacritics () ``{
+        map<string,string> trans = $[
+	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
+	    // are allowed. Always remove the leading '_', its just to
+	    // be able to have translations with and without diacritics
+	    // please use diacritics here
+            "linux" : _("_Linux"),
+	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
+	    // are allowed. Always remove the leading '_', its just to
+	    // be able to have translations with and without diacritics
+	    // please use diacritics here
+            "failsafe" : _("_Failsafe"),
+	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
+	    // are allowed. Always remove the leading '_', its just to
+	    // be able to have translations with and without diacritics
+	    // please use diacritics here
+            "floppy" : _("_Floppy"),
+	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
+	    // are allowed. Always remove the leading '_', its just to
+	    // be able to have translations with and without diacritics
+	    // please use diacritics here
+            "hard disk" : _("_Hard Disk"),
+	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
+	    // are allowed. Always remove the leading '_', its just to
+	    // be able to have translations with and without diacritics
+	    // please use diacritics here
+            "memtest86" : _("_Memory Test"),
+	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
+	    // are allowed. Always remove the leading '_', its just to
+	    // be able to have translations with and without diacritics
+	    // please use diacritics here
+            "original MBR" : _("_MBR before Installation"),
+	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
+	    // are allowed. Always remove the leading '_', its just to
+	    // be able to have translations with and without diacritics
+	    // please use diacritics here
+            "previous" : _("_Previous Kernel"),
+	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
+	    // are allowed. Always remove the leading '_', its just to
+	    // be able to have translations with and without diacritics
+	    // please use diacritics here
+            "Vendor diagnostics" : _("_Vendor Diagnostics"),
+	    "xen" : "XEN",
+        ];
+/*	trans = filter (string k, string v, trans, {
+	    if (substring (v, 0, 1) == "_")
+	    {
+		y2warning ("Translation %1 contains leading underscore", v);
+		return false;
+	    }
+	    return true;
+	});*/
+	trans = mapmap (string k, string v, trans, {
+	    if (substring (v, 0, 1) == "_")
+		v = substring (v, 1);
+	    return $[ k : v ];
+	});
+	map<string,string> ret = mapmap (string k, string v, trans, {
+	    string il1 = translateSectionTitle (k);
+	    if (contains (["linux", "failsafe", "previous", "xen"], k) && ! Mode::test ())
+	    {
+		import "Product";
+		string product
+		    = sformat ("%1 %2", Product::name, Product::version);
+		if (product != " ")
+		{
+		    if (k == "linux")
+		    {
+			v = product;
+		    }
+		    else
+		    {
+			v = sformat ("%1 (%2)", product, v);
+		    }
+		}
+	    }
+	    return $[il1 : v];
+	});
+	return ret;
+    }
+
+    /**
+      * Check if device is MBR of a disk
+      * @param device string device to check
+      * @return boolean true if is MBR
+      */
+    global define boolean IsMbr (string device) ``{
+	if (regexpmatch (device, "^\/dev\/[a-z]+$"))
+	    return true;
+	if (regexpmatch (device, "^\/dev\/[a-z]+\/.*d[0-9]+$"))
+	    return true;
+	return false;
+    }
+
+    /**
+      * Add '(MBR)' to the disk description if it is a MBR of some partition
+      * @param descr string disk description
+      * @param device string disk device
+      * @return string updated description
+      */
+    global define string AddMbrToDescription (string descr, string device) ``{
+	return IsMbr (device)
+	    ? sformat ("%1 (MBR)", descr)
+	    : descr;
+    }
+
+    /**
+     * Update the Kernel::vgaType value to the saved one if not defined
+     */
+    global define void UpdateInstallationKernelParameters () ``{
+	map<string,any> saved_params = $[];
+	if (! Stage::initial ())
+	{
+	    saved_params = (map<string,any>)SCR::Read (
+		.target.ycp, "/var/lib/YaST2/bootloader.ycp");
+	}
+	if (Kernel::GetVgaType () == "")
+	{
+	    string vgaType = (string)(saved_params["vga"]:"");
+	    if (vgaType != nil && vgaType != "")
+		Kernel::SetVgaType (vgaType);
+	}
+	if (! Stage::initial ())
+	{
+	    Kernel::SetCmdLine (saved_params["installation_kernel_params"]:"");
+	}
+	else
+	{
+	    if (SCR::Read (.etc.install_inf.NoPCMCIA) == "1")
+	    {
+		Kernel::SetCmdLine (Kernel::GetCmdLine () + " NOPCMCIA");
+	    }
+	}
+    }
+
+    /**
+     * Get additional kernel parameters
+     * @return additional kernel parameters
+     */
+    global define string GetAdditionalFailsafeParams () ``{
+	if (Stage::initial ())
+	{
+	    additional_failsafe_params =
+		SCR::Read (.etc.install_inf.NoPCMCIA) == "1"
+		    ? " NOPCMCIA "
+		    : "";
+	}
+	else
+	{
+	    map<string,any> saved_params = (map<string,any>)SCR::Read (
+		.target.ycp, "/var/lib/YaST2/bootloader.ycp");
+	    additional_failsafe_params
+		= saved_params["additional_failsafe_params"]:"";
+	}
+	return additional_failsafe_params;
+    }
+
+global string GetAdditionalKernelParams () {
+    return ProductFeatures::GetStringFeature (
+		"globals",
+		"additional_kernel_parameters");
+}
+
+global list<string> ListAdditionalKernelParams () {
+    return ListKernelParamsInLine (GetAdditionalKernelParams ());
+}
+
+/**
+  * Update graphical bootloader to contain help text of current language
+  * And make the selected installation language default
+  */
+global define boolean UpdateGfxMenuContents () {
+    y2milestone ("Updating GFX boot menu");
+    if (SCR::Read (.target.size, "/boot/message") == -1)
+	return true;
+    if (SCR::Read (.target.size, "/etc/sysconfig/bootsplash") == -1)
+	return true;
+    // select the current language
+    string main_lang = (string)SCR::Read (.sysconfig.language.RC_LANG);
+    string langs = (string)
+	SCR::Read (.sysconfig.language.INSTALLED_LANGUAGES);
+    if (langs == nil)
+	langs = "";
+    list<string> languages = splitstring (langs, ",");
+    languages = prepend (languages, main_lang);
+    languages = filter (string l, languages, {return l != nil;});
+    if (size (languages) == 0)
+	return true;
+    // check if theme is set
+    string boot_theme = (string)SCR::Read (.sysconfig.bootsplash.THEME);
+    if (boot_theme == nil)
+    {
+	return true;
+    }
+    // get available languages
+    string data_dir = sformat ("/etc/bootsplash/themes/%1/bootloader",
+	boot_theme);
+    list<string> files = (list<string>)SCR::Read (.target.dir, data_dir);
+    list<string> helps = filter (string f, files, {
+	return regexpmatch (f, "\\.hlp$");
+    });
+    list<string> texts = filter (string f, files, {
+	return regexpmatch (f, "\\.tr$");
+    });
+    helps = maplist (string h, helps, ``(substring (h, 0, 2)));
+    texts = maplist (string t, texts, ``(substring (t, 0, 2)));
+    y2milestone ("Texts available for %1", sort (texts));
+    y2milestone ("Helps available for %1", sort (helps));
+    string tmpdir = (string)SCR::Read (.target.tmpdir);
+    string lang_params = "";
+
+    list<string> selected = [];
+    foreach (string lang, languages, {
+	list<string> l = splitstring (lang, ".");
+	lang = l[0]:"";
+	y2milestone ("Selected language for booting menu: %1", lang);
+	l = splitstring (lang, "_");
+	string lang_short = l[0]:"";
+	// check if lang is supported
+	if (! (contains (helps, lang_short) || contains (texts, lang_short)))
+	{
+	    y2milestone ("Language %1 is not supported by gfxmenu", lang_short);
+	}
+	else if (! (contains (selected, lang)
+		    || contains (selected, lang_short)))
+	{
+	    lang_params = sformat ("%1 %2 %3", lang_params, lang, lang_short);
+	    selected = add (selected, lang);
+	    selected = add (selected, lang_short);
+	}
+    });
+    // update the boot message
+    string trans_file = sformat ("%1/boot_translations", tmpdir);
+    map<string,string> trans_map = getTranslationsToDiacritics ();
+    list<string> trans_list = maplist (string k, string v, trans_map, {
+	return sformat ("%1\n%2", k, v);
+    });
+    string trans_str = mergestring (trans_list, "\n");
+    trans_str = trans_str + "\n";
+    SCR::Write (.target.string, trans_file, trans_str);
+    if (lang_params == "")
+	lang_params = "en_EN en";
+    string command = sformat (
+	"/usr/lib/YaST2/bin/update_gfxmenu %1 %2 %3 %4",
+	tmpdir, data_dir, trans_file, lang_params);
+
+    y2milestone ("Runnign command %1", command);
+    map ret = (map)SCR::Execute (.target.bash_output, command);
+    y2milestone ("GFXMenu update result: %1", ret);
+    return ret["exit"]:0 == 0;
+}
+
+/**
+ * Transform the selected linux section to section for previous kernel
+ * @param section a list representing the bootloader section
+ * @return a list representing the updated section
+ */
+global map<string,any> Linux2Previous (map<string,any> section) {
+    boolean intern_found = false;
+    section["name"] = translateSectionTitle ("previous");
+    section["original_name"] = "previous";
+    section["kernel"] = regexpsub (
+	section["kernel"]:"",
+	sformat ("^(.*)%1[^ ]*(.*)$", Kernel::GetBinary ()),
+	sformat ("\\1%1.previous\\2", Kernel::GetBinary()));
+    if (haskey (section, "initrd"))
+    {
+	section["initrd"] = regexpsub (
+	    section["initrd"]:"",
+	    "^(.*)initrd[^ ]*(.*)$",
+	    "\\1initrd.previous\\2");
+    }
+    section["__type"] = "previous";
+    return section;
+}
+
+/**
+ * Update device name according to changes in kernel (eg. SATA)
+ * @param string device the original device name
+ * @return string updated device
+ */
+global string UpdateDevice (string device) {
+    if (Mode::test ())
+    {
+	map mapping = $[
+	    "/dev/hda" : "/dev/sda",
+	    "/dev/hdb" : "/dev/sdb",
+	];
+
+	map d = Storage::GetDiskPartition( device );
+	if( haskey( mapping, d["disk"]:"" ))
+	{
+	    if (d["nr"]:nil == nil || d["nr"]:nil == 0)
+	    {
+		device = mapping[d["disk"]:""]:"";
+	    }
+	    else
+	    {
+		device = Storage::GetDeviceName(
+		    mapping[d["disk"]:""]:"",
+		    d["nr"]:nil);
+	    }
+	}
+    }
+    else
+    {
+	list<string> devices = Storage::GetTranslatedDevices (
+	    installed_version,
+	    update_version,
+	    [ device ]);
+	device = devices[0]:device;
+    }
+    return device;
+}
+
+/**
+ * Check if memtest86 is present
+ * @return boolean true if memtest86 section is to be proposed
+ */
+global boolean MemtestPresent () {
+    return (! contains (removed_sections, "memtest"))
+	&& (Mode::test ()
+	    || (Mode::normal () && Pkg::IsProvided ("memtest86"))
+	    || (! Mode::normal () && Pkg::IsSelected ("memtest86")));
+
+}
+
+global list<map<string,string> > CheckAdditionalKernels () {
+    list<string> files = (list<string>)SCR::Read (.target.dir, "/boot");
+    string binary = Kernel::GetBinary ();
+    list<string> kernels = filter (string k, files, {
+	return substring (k, 0, size (binary)) == binary;
+    });
+    kernels = filter (string k, kernels, {
+	return k != ""
+	    && k != binary
+	    && regexpmatch (k, sformat ("^%1-.+$", binary));
+    });
+    if (contains (kernels, binary))
+    {
+	string defaultv = (string)SCR::Read (.target.symlink,
+	    sformat ("/boot/%1", binary));
+	defaultv = ""; // FIXME remove this line
+	kernels = filter (string k, kernels, {
+	    return k != defaultv;
+	});
+    }
+    list<map<string,string> > ret = maplist (string k, kernels, {
+	string version = regexpsub (k, sformat ("^%1-(.+)$", binary), "\\1");
+	map<string,string> info = $[
+	    "version" : version,
+	    "kernel" : sformat ("/boot/%1", k)
+	];
+	if (contains (files, sformat ("initrd-%1", version)))
+	{
+	    info["initrd"] = sformat ("/boot/initrd-%1", version);
+	}
+	return info;
+    });
+
+    y2milestone ("Additional sectinos to propose: %1", ret);
+    return ret;
+}
+
+/**
+ * Check if the bootloader can be installed at all with current configuration
+ * @return boolean true if it can
+ */
+global boolean BootloaderInstallable () {
+    if (Arch::i386 () || Arch::ia64 ())
+    // the only relevant is the partition holding the /boot filesystem
+    {
+	// EVMS
+	if (find (BootPartitionDevice, "/dev/evms/") == 0)
+	{
+	    y2milestone ("Cannot install bootloader on EVMS");
+	    return false;
+	}
+	// LVM
+	map dev = Storage::GetDiskPartition( BootCommon::BootPartitionDevice);
+	if (! is( dev["nr"]:(any)0, integer ))
+	{
+	    y2milestone ("Cannot install bootloader on LVM");
+	    return false;
+	}
+	// MD, but not mirroring
+	if (dev["disk"]:"" == "/dev/md")
+	{
+	    map tm = Storage::GetTargetMap ();
+	    map info = tm["/dev/md",BootPartitionDevice]:$[];
+	    if (tolower (info["raid_type"]:"") != "raid1")
+	    {
+		y2milestone ("Cannot install bootloader on RAID (not mirror)");
+		return false;
+	    }
+	}
+
+	return true;
+    }
+    else
+    {
+	return true;
+    }
+}
+
+/**
+ * Get creator type of the section
+ * @param section map section description structure
+ * @return string section type
+ */
+string getCreationType (map<string,any> section) {
+    return section["__type"]:"";
+}
+
+
+} //end of include

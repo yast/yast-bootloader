@@ -1,0 +1,134 @@
+/**
+ * File:
+ *  lilo2Grub.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Translating device names from UNIX to grub
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+// testedfiles: BootGRUB.ycp bootloader/grub/misc.ycp
+
+    include "testsuite.ycp";
+
+    map READ_I = $[
+        "target" : $[
+            "size" : -1,
+            "tmpdir" : "/tmp/",
+	    "yast2" : nil,
+        ],
+        "probe" : $[
+            "architecture" : "i386",
+            "has_apm" : true,
+            "has_pcmcia" : false,
+            "has_smp" : false,
+            "system" : [],
+            "memory" : [],
+            "cpu" : [],
+            "cdrom" : $[
+                "manual" : [],
+            ],
+            "floppy" : $[
+                "manual" : [],
+            ],
+	    "is_uml" : false,
+	    "disk" : [],
+        ],
+        "sysconfig" : $[
+            "console" : $[
+                "CONSOLE_FONT" : "",
+                "CONSOLE_SCREENMAP" : "",
+                "CONSOLE_UNICODEMAP" : "",
+                "CONSOLE_MAGIC" : "",
+                "CONSOLE_ENCODING" : "",
+            ],
+            "language" : $[
+                "RC_LANG" : "",
+                "DEFAULT_LANGUAGE" : "",
+            ],
+        ],
+        "etc" : $[
+            "install_inf" : $[
+                "Cmdline" : "",
+		"Cdrom" : "",
+            ],
+        ],
+        "proc" : $[
+            "cpuinfo" : $[
+                "value" : $[
+                    "0" : $[
+                        "flags" : ""
+                    ],
+                ],
+            ],
+	    "partitions" : [],
+        ],
+	"product" : $[
+	    "features" : $[
+		"USE_DESKTOP_SCHEDULER" : "0",
+		"ENABLE_AUTOLOGIN" : "0",
+		"EVMS_CONFIG" : "0",
+		"IO_SCHEDULER" : "cfg",
+		"UI_MODE" : "expert",
+		"INCOMPLETE_TRANSLATION_TRESHOLD" : "95",
+	    ]
+	],
+    ];
+    map WRITE_I = $[];
+    map EXEC_I = $[
+	"target" : $[
+	    "bash_output" : $[],
+	],
+    ];
+
+    TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
+    import "BootGRUB";
+
+    map EXEC = $["target" : $["bash_output": $["stdout" : "(hd0)"]]];
+    map READ = $[
+	"target" : $[
+	    "string" : "(hd0) /dev/hda
+(hd1)   /dev/ida/c0d0
+(fd0)   /dev/fd0
+"
+	],
+	"proc" : $[
+	    "partitions" : [],
+	],
+	"probe" : $[
+	    "disk" : [],
+	],
+    ];
+
+    BootGRUB::device_map = [
+	["(hd0)", "/dev/hda"],
+	["(hd1)", "/dev/ida/c0d0"],
+	["(fd0)", "/dev/fd0"],
+    ];
+
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd0)")), [READ, $[], EXEC], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd0,0)")), [READ, $[], EXEC], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd0,11)")), [READ, $[], EXEC], 0);
+
+    EXEC = $["target" : $["bash_output": $["stdout" : "/dev/ida/c0d0"]]];
+
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd1)")), [READ, $[], EXEC], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd1,0)")), [READ, $[], EXEC], 0);
+    TEST (``(BootGRUB::grubDev2unixDev ("(hd1,11)")), [READ, $[], EXEC], 0);
+
+    EXEC = $["target" : $["bash_output": $["stdout" : "/dev/fd0"]]];
+
+    TEST (``(BootGRUB::grubDev2unixDev ("(fd0)")), [READ, $[], EXEC], 0);
+
+//    TEST (``(BootGRUB::grubDev2unixDev ("")), [READ, $[], EXEC], 0);
+//    TEST (``(BootGRUB::grubDev2unixDev ("nil")), [READ, $[], EXEC], 0)
+}

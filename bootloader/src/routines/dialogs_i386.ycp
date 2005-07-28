@@ -1,0 +1,246 @@
+/**
+ * File:
+ *      include/bootloader/routines/dialogs.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Dialogs for configuraion i386-specific functions
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: ui.ycp 23184 2005-04-27 06:47:39Z jsrain $
+ *
+ */
+
+
+{
+textdomain "bootloader";
+
+import "Label";
+import "Wizard";
+import "CWM";
+import "BootCommon";
+import "Stage";
+
+include "bootloader/routines/helps_i386.ycp";
+include "bootloader/routines/widgets_i386.ycp";
+
+/**
+ * Run dialog to adjust installation on i386 and AMD64
+ * @return symbol for wizard sequencer
+ */
+symbol i386InstallDetailsDialog () {
+    term contents = `HBox (`HStretch (), `VBox (
+	`VStretch (),
+	`Frame (_("Disk Order"),
+	    `HBox (`HSpacing (2), `VBox (
+		    `VSpacing (1),
+		    `SelectionBox (`id (`disks),
+			`opt (`notify, `immediate),
+			// selectionn box label
+			_("D&isks"), []),
+		    Mode::config ()
+			? `HBox (
+			    `HStretch (),
+			    `PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),
+			    `PushButton (`id (`delete), `opt(`key_F5), Label::DeleteButton ()),
+			    `HStretch ()
+			)
+			: `HBox (),
+		    `VSpacing (1)
+		),
+		`HSquash (
+		    `VBox (
+			`VStretch (),
+			`PushButton (`id (`up), `opt (`hstretch), _("&Up")),
+			`PushButton (`id (`down), `opt (`hstretch), _("&Down")),
+			`VStretch ()
+		    )
+		),
+	        `HSpacing (2)
+	    )
+	),
+	`VStretch (),
+	// frame
+	`Frame (_("Disk System Area Update"), `HBox (`HSpacing (2), `VBox (
+	    `VSpacing (1),
+	    `Left (`CheckBox (`id (`repl_mbr),
+		// check box
+		_("Replace MBR with Generic Code"))),
+	    `Left (`CheckBox (`id (`activate),
+		// check box
+		_("Activate Boot Loader Partition"))),
+	    BootCommon::getLoaderType (false) == "grub"
+		    && BootCommon::allowEmbed15 ()
+		? `Left (`CheckBox (`id (`embed),
+		    // check box
+		    _("Use Dedicated Boot Loader Area")))
+		: `VBox (),
+	    `VSpacing (1)
+	), `HSpacing (2))),
+	`VStretch ()
+    ), `HStretch ());
+
+    Wizard::SetContentsButtons (
+	_("Boot Loader Installation Details"),
+	contents,
+	i386InstallDetailsHelp (),
+	Label::BackButton (),
+	Label::OKButton ());
+
+    list<string> disks_order = BootCommon::DisksOrder ();
+
+    UI::ChangeWidget (`id (`disks), `Items, disks_order);
+    UI::ChangeWidget (`id (`disks), `CurrentItem, disks_order[0]:"");
+    UI::ChangeWidget (`id (`repl_mbr), `Value, BootCommon::repl_mbr);
+    UI::ChangeWidget (`id (`activate), `Value, BootCommon::activate);
+    if (UI::WidgetExists (`id (`embed)))
+	UI::ChangeWidget (`id (`embed), `Value, BootCommon::embed_stage15);
+    boolean save_embed = BootCommon::embed_stage15;
+
+    any ret = nil;
+    while (ret == nil)
+    {
+	string current = (string)UI::QueryWidget (`id (`disks), `CurrentItem);
+	integer pos = 0;
+	while (pos < size (disks_order) && disks_order[pos]:"" != current)
+	    pos = pos + 1;
+	UI::ChangeWidget (`id (`up), `Enabled,
+	    pos > 0 && pos < size (disks_order));
+	UI::ChangeWidget (`id (`down), `Enabled, pos < size (disks_order) - 1);
+
+	ret = UI::UserInput ();
+	boolean order_changed = false;
+
+	if (ret == `add)
+	{
+	    term popup = `VBox (`VSpacing (1),
+		// textentry header
+		`TextEntry (`id (`devname), _("&Device")),
+		`VSpacing (1),
+		`HBox (`HStretch (),
+		    `PushButton (`id (`ok), `opt (`key_F10, `default),
+			Label::OKButton ()),
+		    `HStretch (),
+		    `PushButton (`id (`cancel), `opt (`key_F8),
+			Label::CancelButton ()),
+		    `HStretch ()
+		),
+		`VSpacing (1)
+	    );
+	    UI::OpenDialog (popup);
+	    symbol pushed = (symbol)UI::UserInput ();
+	    string new_dev = (string)
+		UI::QueryWidget (`id (`devname), `Value);
+	    UI::CloseDialog ();
+	    if (pushed == `ok)
+	    {
+		disks_order = add (disks_order, new_dev);
+		order_changed = true;
+		current = new_dev;
+	    }
+	}
+	else if (ret == `delete)
+	{
+	    disks_order = filter (string d, disks_order, {
+		return d != current;
+	    });
+	    order_changed = true;
+	    current = disks_order[0]:nil;
+	}
+	else if (ret == `up)
+	{
+	    disks_order = (list<string>)
+		BootCommon::swapItems (disks_order, pos, pos - 1);
+	    order_changed = true;
+	}
+	else if (ret == `down)
+	{
+	    disks_order = (list<string>)
+		BootCommon::swapItems (disks_order, pos, pos + 1);
+	    order_changed = true;
+	}
+
+	if (ret == `cancel)
+	    ret = `abort;
+	if (ret != `next && ret != `abort && ret != `back)
+	{
+	    if (order_changed)
+	    {
+		UI::ChangeWidget (`id (`disks), `Items, disks_order);
+		UI::ChangeWidget (`id (`disks), `CurrentItem, current);
+	    }
+	    ret = nil;
+	}
+    }
+    if (ret == `next)
+    {
+	integer index = 0;
+	BootCommon::device_mapping = filter (string k, string v,
+	    BootCommon::device_mapping,
+	{
+	    return substring (v, 0, 3) != "(hd";
+	});
+	BootCommon::device_mapping = (map<string,string>)union (
+	    BootCommon::device_mapping,
+	    listmap (string d, disks_order, {
+		string hex_index = substring (tohexstring (index), 2);
+		 return $[ d : sformat ("(hd%1)", hex_index) ];
+		index = index + 1;
+	    })
+	);
+	BootCommon::repl_mbr = (boolean)
+	    UI::QueryWidget (`id (`repl_mbr), `Value);
+	BootCommon::activate = (boolean)
+	    UI::QueryWidget (`id (`activate), `Value);
+	if (UI::WidgetExists (`id (`embed)))
+	{
+	    BootCommon::embed_stage15 = (boolean)
+		UI::QueryWidget (`id (`embed), `Value);
+	}
+	if (BootCommon::repl_mbr)
+	{
+	    if (Stage::initial ())
+		Pkg::PkgInstall ("master-boot-code");
+	    BootCommon::location_changed = true;
+	}
+	if (BootCommon::activate || BootCommon::embed_stage15 != save_embed)
+	{
+	    BootCommon::location_changed = true;
+	}
+    }
+    return (symbol)ret;
+}
+
+symbol i386LoaderDetailsDialog () {
+    y2milestone ("Running i386 loader details dialog");
+
+    term contents = `HBox (`HSpacing (2), `VBox (
+        `VStretch (),
+	"boot_menu",
+	`VStretch (),
+	"password",
+	`VStretch ()
+    ), `HSpacing (2));
+
+    list<string> widget_names = ["boot_menu", "password"];
+    map<string,map<string,any> > widget_descr = (map<string,map<string,any> >)
+	i386Widgets ();
+   // dialog caption
+    string caption = _("Boot Loader Options");
+    return CWM::ShowAndRun ($[
+	"widget_descr" : widget_descr,
+	"widget_names" : widget_names,
+	"contents" : contents,
+	"caption" : caption,
+	"back_button" : Label::BackButton (),
+	"abort_button" : Label::AbortButton (),
+	"next_button" : Label::OKButton (),
+//	"fallback_functions" : section_handlers,
+    ]);
+}
+
+} // EOF

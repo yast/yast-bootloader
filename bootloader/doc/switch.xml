@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<section id = "switch">
+    <title>Bootloader-specific function calling mechanism</title>
+    <para>
+Each bootloader-specific module must provide function, which returns map describing the functions provided by the bootloader-specific module.
+Details about return value are available in Bootloader-specific module description section.
+    </para>
+    <para>
+Since future versions of YCP interpreter may need to parse and check all (possibly) used module and include files, all files of all boot loaders
+must be present (which forbids architecture-dependent conditional presence of bootloader-related files in .spec file).
+    </para>
+    <para>
+The <computeroutput>GetFunctions</computeroutput> function is the only point, where all bootloader must be listed. It's task is to choose
+depending on parameter specifying bootloader which set of bootloader-specific functions should be used. In the body of this functions, there
+is stored map from bootloader identifiers to term, which after evaluation returns the set of bootloader-specific functions.
+From this map term to evaluate is chosen and evaluated, and this map is a return value of this function.
+    </para>
+    <para>
+Each function, which should be able to be called without checking of bootloader, has s shortcut (usually called like eg.
+<computeroutput>blRead</computeroutput> for <computeroutput>Read</computeroutput> function). This function gets list of functions for currently
+used bootloader, chooses term appropriate to the concrete function, depending on concrete function and it's parameters adds some parameters if needed,
+and evaluates the term. If some value should be returned (depending on concrete function), returns result of the evaluation of the term.
+If there is no entry in map representing appropriate bootloader-specific function, then generic version of the function (locater in the BootCommon module)
+is called.
+    </para>
+    <para>
+There is (at least currently) no Automatical way to generate these functions, each of them must be written manually.
+    </para>
+    <para>
+Additionally, since bootloaders attributes are supported and attributes can be values of any types including terms,
+the bootloader attribute can be a function to be evaluated. This adds another point where it is possible to call bootloader-specific functions.
+    </para>
+</section>

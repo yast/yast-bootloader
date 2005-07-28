@@ -1,0 +1,135 @@
+/**
+ * Module:		bootloader_proposal.ycp
+ *
+ * $Id$
+ *
+ * Author:		Klaus Kaempf <kkaempf@suse.de>
+ *
+ * Purpose:		Proposal function dispatcher - bootloader.
+ *
+ *			See also file proposal-API.txt for details.
+ */
+{
+    textdomain "bootloader";
+
+    import "Arch";
+    import "BootCommon";
+    import "Bootloader";
+    import "Mode";
+
+    include "bootloader/routines/wizards.ycp";
+
+    string func  = (string)WFM::Args(0);
+    map    param = (map)WFM::Args(1);
+    map<string,any>    ret   = $[];
+
+    if ( func == "MakeProposal" )
+    {
+	boolean force_reset      = param["force_reset"     ]:false;
+	boolean language_changed = param["language_changed"]:false;
+
+	if (force_reset && !Mode::autoinst ())
+	{
+	    // force re-calculation of bootloader proposal
+	    y2milestone ("Recalculation of bootloader configuration forced");
+	    Bootloader::Reset ();
+	}
+
+	if (! Bootloader::proposed_cfg_changed && ! Mode::autoinst ())
+	{
+	    y2milestone ("Cfg not changed before, recreating");
+	    Bootloader::ResetEx (false);
+	    BootCommon::setLoaderType (nil);
+	}
+
+	if (Bootloader::getLoaderType () == "grub")
+	{
+	    import "BootGRUB";
+	    BootGRUB::merge_level = `main;
+	    Bootloader::Propose ();
+	    BootGRUB::merge_level = `none;
+	}
+	else
+	{
+	    Bootloader::Propose ();
+	}
+	// to make sure packages will get installed
+	BootCommon::setLoaderType (BootCommon::getLoaderType (false));
+
+	ret = $[ "raw_proposal" : Bootloader::Summary ()];
+
+	if (Bootloader::getLoaderType () == "")
+        {
+            y2error ("No bootloader selected");
+            ret = add (ret, "warning_level", `error);
+	    // warning text in the summary rixhtext
+            ret = add (ret, "warning", _("No boot loader is selected for installation. Your system might not be bootable."));
+        }
+	if (! BootCommon::BootloaderInstallable ())
+	{
+	    return $[
+		"warning_level" : `error,
+		// error in the proposal
+		"warning" : _("Because of the partitioning, the bootloader cannot be installed properly"),
+	    ];
+	}
+	else if (Bootloader::getLoaderType () == "ppc")
+	{
+	    if (Arch::board_chrp ())
+	    {
+		if (! BootCommon::activate)
+		{
+		    ret = (map<string,any>)union (ret, $[
+			"warning_level" : `blocker,
+			"warning" :
+			    _("Configure a valid boot loader location before continuing.<br>
+In case that no selection can be made it may be necessary to create a PReP Boot partition."),
+		    ]);
+		}
+	    }
+	}
+    }
+    else if ( func == "AskUser" )
+    {
+	boolean has_next = param["has_next"]:false;
+
+	map settings = Bootloader::Export ();
+	// don't ask for abort confirm if nothing was changed (#29496)
+	BootCommon::changed = false;
+	symbol result = BootloaderAutoSequence ();
+	// set to true, simply because must be saved during installation
+	BootCommon::changed = true;
+	if (result != `next)
+	    Bootloader::Import ((map<string,any>)settings);
+	else
+	    Bootloader::proposed_cfg_changed = true;
+
+	// Fill return map
+	ret = $[ "workflow_sequence" : result ];
+    }
+    else if ( func == "Description" )
+    {
+	// Fill return map.
+	//
+	// Static values do just nicely here, no need to call a function.
+
+	ret =
+	    $[
+		// proposal part - bootloader label
+	      "rich_text_title"	:	_("Booting"),
+		// menubutton entry
+	      "menu_title"	:	_("&Booting"),
+	      "id"		:	"bootloader_stuff"
+	    ];
+    }
+    else if (func == "Write")
+    {
+	boolean succ = Bootloader::Write ();
+	ret =
+	    $[
+		"success"	:	succ
+	    ];
+    }
+
+    return ret;
+}

@@ -1,0 +1,55 @@
+#! /bin/sh
+
+#
+# In SLES8, the kernel image was located at /boot/kernel/image. SLES9
+# has it in /boot/image. Update zipl.conf.
+#
+
+update_zipl_conf() {
+	local zipl_conf=$1
+	local common='
+	function uq(x)	{ return gensub(/^"(.*)"$/, "\\1", "", x) }
+	function fields(a,x) \
+			{ x=$a ; 
+			  while (++a<=NF) x=x OFS $a
+			  return x }
+        $1 ~ /[^ ]*=[^ ]*/	{ sub(/=/, " = ") }
+	/^\[.*\]$/	{ sec = gensub(/^\[(.*)\]$/, "\\1", "", $0) }
+	'
+
+	# Find out the default boot section defined by the
+	# default=* setting in [defaultboot]
+	local boot=$(
+	awk "$common"'
+        /^\#/            { next }
+        /^ *$/            { next }
+	sec == "defaultboot" && $1 == "default" \
+			{ print uq($3) ; exit(0) }
+	' "$zipl_conf")
+
+	mv "$zipl_conf" "$zipl_conf".rpmorig
+	# Update the default boot section
+	# - image is always '/boot/image'
+	# - ramdisk is always '/boot/initrd'
+	# - Add a parameter 'TERM=dumb' to the kernel commandline
+	#   if no 'TERM' parameter is set
+	awk "$common"'
+	sec == "'"$boot"'" \
+			{ $1 == "image"		&& $3 = "/boot/image"
+			  $1 == "ramdisk"	&& $3 = "/boot/initrd"
+                          if ($1 == "parameters" && $0 !~ /TERM=/) { \
+			      $0 = "parameters = \"" uq(fields(3)) \
+			         " TERM=dumb\"" } }
+			{ print }
+	' "$zipl_conf".rpmorig > "$zipl_conf"
+}
+
+
+ZIPL_CONF=/etc/zipl.conf
+
+if [ -f "$ZIPL_CONF" ]; then
+    update_zipl_conf $ZIPL_CONF
+else
+    echo "$ZIPL_CONF not found"
+    exit 1
+fi

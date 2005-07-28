@@ -1,0 +1,914 @@
+/**
+ * File:
+ *      include/bootloader/routines/lilolike.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions common for lilo-like bootloaders only
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+{
+
+    textdomain "bootloader";
+
+    import "Arch";
+    import "Mode";
+    import "Storage";
+    import "StorageDevices";
+    import "BootArch";
+
+global string DiskOrderSummary ();
+global list<string> DisksOrder ();
+global define void DetectDisks ();
+global define boolean RefreshDisks();
+global void ProposeDeviceMap ();
+
+
+include "bootloader/routines/i386.ycp";
+
+global boolean allowEmbed15 () {
+    // allow only for /boot or /root device selected
+    if (! (BootCommon::loader_device == BootCommon::BootPartitionDevice
+	|| BootCommon::loader_device == BootCommon::RootPartitionDevice
+	|| BootCommon::loader_device == BootCommon::mbrDisk
+    ))
+    {
+	return false;
+    }
+    // check filesystem on /boot for Reiserfs and JFS
+    map mp = Storage::GetMountPoints ();
+    list bp_info
+	= mp["/boot"]:mp["/"]:[];
+    list<map> partitions
+	= Storage::GetTargetMap ()[bp_info[2]:"", "partitions"]:[];
+    boolean ret = false;
+    foreach (map p, partitions, {
+	if (p["device"]:"" == BootCommon::BootPartitionDevice)
+	{
+	    symbol fs = (symbol)p["used_fs"]:nil;
+	    if (fs == `reiser || fs == `jfs)
+		ret = true;
+	}
+    });
+    return ret;
+}
+/**
+ * Check whether disk settings were changed since last checking
+ * @return boolean true if needs to recheck
+ */
+global boolean DisksChanged () {
+    if (Mode::config ())
+	return false;
+    map mp = Storage::GetMountPoints();
+    string actual_root = mp["/", 0]:"";
+    string actual_boot = mp["/boot", 0]:actual_root;
+
+    // don't change configuration if '/' and '/boot' were not changed
+    // and location is "floppy", "mbr" or "boot"
+    if (actual_boot == BootCommon::BootPartitionDevice
+	&& actual_root == BootCommon::RootPartitionDevice
+            && selected_location != "custom"
+            && selected_location != ""
+	    && selected_location != nil)
+    {
+	return false;
+    }
+
+    list all_partitions = BootCommon::getPartitionList(`boot);
+
+    if (!contains(all_partitions, BootCommon::loader_device))
+    {
+	y2milestone ("Location should be set again");
+	return true;
+    }
+    return false;
+}
+
+/**
+ * FindMbrDisk()
+ * try to find the system's mbr device
+ * @return string   mbr device
+ */
+global string FindMBRDisk() {
+    // check the disks order, first has MBR
+    list<string> order = DisksOrder ();
+    if (size (order) > 0)
+    {
+	string ret = order[0]:"";
+	y2milestone ("First disk in the order: %1, using for MBR", ret);
+	return ret;
+    }
+
+    // OK, order empty, use the disk with boot partition
+    map mp = Storage::GetMountPoints();
+    string boot_disk = mp["/boot",2]:(mp["/",2]:"");
+    y2milestone ("Disk with boot partition: %1, using for MBR", boot_disk);
+    return boot_disk;
+}
+
+    /**
+     * ConfigureLocation()
+     * Where to install the bootloader.
+     * It just gives "mbr" or "floppy"
+     * @return string location proposed to bootloader
+     */
+    global define string ConfigureLocation() ``{
+        selected_location = "mbr";             // default to mbr
+        loader_device   = BootCommon::mbrDisk;
+	if (KeepMBR (loader_device))
+	{
+	    map<string,any> tm = Storage::GetTargetMap ();
+	    map dp = Storage::GetDiskPartition (BootPartitionDevice);
+	    string disk = dp["disk"]:"";
+	    map dm = tm[disk]:$[];
+	    list<map> partitions = dm["partitions"]:[];
+	    boolean is_logical = false;
+	    string extended = nil;
+	    foreach (map p, partitions, {
+		if (p["type"]:nil == `extended)
+		{
+		    extended = (string)p["device"]:nil;
+		}
+		else if (p["device"]:"" == BootPartitionDevice
+		    && p["type"]:nil == `logical)
+		{
+		    is_logical = true;
+		}
+	    });
+	    if (is_logical && extended != nil)
+		loader_device = extended;
+	    else
+		loader_device = BootPartitionDevice;
+	    selected_location = "boot";
+	}
+        y2milestone ("ConfigureLocation (%1 on %2)",
+	    selected_location, loader_device);
+        return selected_location;
+    }
+
+    /**
+      * Detect /boot and / (root) partition devices and store settings
+      * to internal variables
+      */
+    global define void DetectDisks () ``{
+/*	map tm = Storage::GetTargetMap ();
+	list partitions = [];
+
+	foreach ( string dev, map disk, tm, ``{
+	    if( Storage::IsRealDisk( disk ) )
+	    {
+		list l = filter( map p, disk["partitions"]:[],
+		    ``(p["delete"]:false==false) );
+		partitions = merge (partitions, l);
+            }
+        });*/
+
+	if (Mode::config ())
+	    return;
+        map mp = Storage::GetMountPoints();
+
+        list mountdata_boot = mp["/boot"]:(mp["/"]:[]);
+	list mountdata_root = mp["/"]:[];
+
+        y2milestone( "mountPoints %1", mp );
+        y2milestone( "mountdata_boot %1", mountdata_boot );
+
+        BootCommon::RootPartitionDevice = mp["/", 0]:"";
+
+        if (BootCommon::RootPartitionDevice == "")
+        {
+            y2error ("No mountpoint for / !!");
+        }
+
+        // if /boot changed, re-configure location
+        BootCommon::BootPartitionDevice
+            = mountdata_boot[0]:BootCommon::RootPartitionDevice;
+
+	if (BootCommon::mbrDisk == "" || BootCommon::mbrDisk == nil)
+	{
+	    // mbr detection.
+	    BootCommon::mbrDisk = FindMBRDisk();
+	}
+
+	if (loader_device == nil || loader_device == "")
+            ConfigureLocation ();
+
+/*	if (mountdata_boot[3]:"" == "raid1")
+	{
+	    list md_list = filter (`e, partitions,
+		``(e["used_by"]:"" == substring(mountdata_boot[0]:"",5)));
+	    list dev_list = maplist (`e, md_list, ``(e["device"]:""));
+	    dev_list = filter (`d, dev_list, ``(d != ""));
+	    if (size (dev_list) > 0)
+	    {
+		dev_list = sort (dev_list);
+		BootCommon::BootPartitionDevice = dev_list[0]:"";
+	    }
+	}
+        if (mountdata_root[3]:"" == "raid1")
+        {
+            list md_list = filter (`e, partitions,
+		``(e["used_by"]:"" == substring(mountdata_root[0]:"",5)));
+            list dev_list = maplist (`e, md_list, ``(e["device"]:""));
+            dev_list = filter (`d, dev_list, ``(d != ""));
+            if (size (dev_list) > 0)
+            {
+                dev_list = sort (dev_list);
+                BootCommon::RootPartitionDevice = dev_list[0]:"";
+            }
+        }*/
+    }
+
+    /**
+      * Converts the md device to the list of devices building it
+      * @param md_device string md device
+      * @return a map of devices (from device name to BIOS ID or nil if
+      *   not detected) building the md device
+      */
+    global define map<string, integer> Md2Partitions (string md_device) {
+	map<string,integer> ret = $[];
+	map<string,any> tm = (map<string,map>)Storage::GetTargetMap();
+	foreach (string disk, any descr_a, tm, ``{
+	    map<string,any> descr = (map<string,any>)descr_a;
+	    string bios_id_str = descr["bios_id"]:"";
+	    integer bios_id = 128; // maximum + 1
+	    if (bios_id_str != "")
+		bios_id = tointeger (bios_id);
+	    list<map<string,any> > partitions = (list<map<string,any> >)
+		descr["partitions"]:[];
+	    foreach (map<string,any> partition, partitions, ``{
+		if (partition["used_by"]:"" == substring(md_device,5))
+		{
+		    string d = (string)(partition["device"]:"");
+		    ret[d] = bios_id;
+		}
+	    });
+	});
+	y2milestone ("Partitions building %1: %2", md_device, ret);
+	return ret;
+    }
+
+    /**
+      * Converts the md device to the first of its members
+      * @param md_device string md device
+      * @return string one of devices building the md array
+      */
+    global define string Md2Partition (string md_device) {
+	map<string,integer> devices = Md2Partitions (md_device);
+	if (size (devices) == 0)
+	    return md_device;
+	integer minimal = 129; // maximum + 2
+	string found = "";
+	foreach (string k, integer v, devices, {
+	    if (v < minimal)
+	    {
+		found = k;
+		minimal = v;
+	    }
+	});
+	return found;
+//	devices = (list<string>)sort (devices);
+//	return devices[0]:"";
+    }
+
+    /**
+      * Get the md device a partition belongs to (or the partition itself if
+      * it doesn't exist
+      * @param device string a partition
+      * @return string the md device
+      */
+    global define string Partition2Md (string device) {
+	string ret = device;
+	map<string,any> tm = (map<string,map>)Storage::GetTargetMap();
+	foreach (string disk, any descr_a, tm, ``{
+	    map<string,any> descr = (map<string,any>)descr_a;
+	    list<map<string,any> > partitions = (list<map<string,any> >)
+		descr["partitions"]:[];
+	    foreach (map<string,any> partition, partitions, ``{
+		if (partition["device"]:"" == device)
+		{
+		    ret = (string)(partition["used_by"]:device);
+		    if( find( ret, "/dev/" )!=0 )
+			ret = "/dev/"+ret;
+		}
+	    });
+	});
+	y2milestone ("Partition %1 builds %2", device, ret);
+	return ret;
+    }
+
+    /**
+      * Refresh disk locations
+      * @return boolean true if bootloader location should be set again
+      */
+    global define boolean RefreshDisks() ``{
+	boolean ret = true;
+	if (! DisksChanged ())
+	    ret = false;
+
+	y2milestone ("Reconfiguring locations");
+	DetectDisks ();
+
+	return ret;
+    }
+
+/**
+ * Answer whether LBA is supported
+ * @return boolean true if supported
+ */
+global boolean LbaSupport() {
+    if (Arch::i386 ())
+    {
+	list internal_bios = (list<map>)SCR::Read (.probe.bios);
+	return internal_bios[0, "lba_support"]:false;
+    }
+    else
+	return true;
+}
+
+    /**
+     *  IsBootAccessible()
+     *  @return boolean true if accessible
+     */
+    global define boolean IsBootAccessible() ``{
+	if (Mode::config ())
+	    return true;
+        boolean boot_partition_accessible = true;
+
+        if (!LbaSupport())
+        {
+            string boot_mount_point = "";
+            // check, if no /boot partition exists
+
+            if (Storage::GetMountPoints()["/boot"]:"" == "")
+            {
+                boot_mount_point = "/";
+            }
+            else
+            {
+                boot_mount_point = "/boot";
+            }
+
+            // check if boot mount point is below cyl 1024
+
+            foreach (string dname, map ddata, (map<string,map>)Storage::GetTargetMap(),
+            ``{
+                list<map> partitions = ddata["partitions"]:[];
+                if (partitions != [])
+                {
+                    foreach (map pentry, partitions, ``{
+                        if (pentry["mount"]:"" == boot_mount_point)
+                        {
+                            boot_partition_accessible =
+				(1024 > pentry["region",0]:0);
+                        }
+                    });
+                }
+
+            });
+
+        }
+        if (boot_partition_accessible)
+            y2milestone("Boot partition accessible");
+        else
+            y2milestone("Boot partition unaccessible");
+
+        return (boot_partition_accessible);
+    }
+
+    /**
+      * Should backup copy of bootloader bootsector be created?
+      * @return boolean true if yes.
+      */
+    global define boolean createBackupBS () ``{
+	if (! Stage::initial ())
+	    return false;
+	map mp = Storage::GetMountPoints ();
+	list data = mp["/boot"]:(mp["/"]:[]);
+	string bpd = data[0]:"";
+	// ???? FIXME ???? how about LVM/MD ????
+	return bpd == BootPartitionDevice;
+    }
+
+/**
+ * Fix global section of lilo-like bootloader
+ */
+global void FixGlobals () {
+    string defaultv = globals["default"]:"";
+    string first = "";
+    if (defaultv != "")
+    {
+	boolean exists = false;
+	foreach (map<string,any> s, sections, {
+	    string label = s["name"]:"";
+	    if (label == defaultv)
+		exists = true;
+	    if (first == "")
+		first = label;
+	});
+	if (! exists)
+	    globals["default"] = first;
+    }
+}
+
+/**
+ * Fix section of lilo-like bootloader
+ */
+global void FixSections (void() create_sections) {
+    list<string> parts = getPartitionList(`parts_old);
+    if (partitioning_last_change
+	    != Storage::GetTargetChangeTime()
+	&& BootCommon::files_edited)
+    {
+	displayFilesEditedPopup ();
+	files_edited_warned = true;
+	return;
+    }
+    list<map<string,any> > old_sect_list = sections;
+    create_sections ();
+    map<string,map<string,any> > new_sect = listmap (map<string,any> s,
+	sections,
+    {
+	string label = s["name"]:"";
+	string type = s["__type"]:label;
+	return $[type: s];
+    });
+    old_sect_list = maplist (map<string,any> s, old_sect_list, {
+	string label = s["name"]:"";
+	string type = s["__type"]:label;
+	if (! s["__auto"]:false)
+	{
+	    y2milestone ("Leaving section %1", label);
+	    return s;
+	}
+	else if (! s["__changed"]:false)
+	{
+	    y2milestone ("Recreating section %1, new is %2",
+		label, new_sect[type]:$[]);
+	    return new_sect[type]:$[];
+	}
+	else
+	{
+	    y2milestone ("Warning on section %1", label);
+	    boolean cont = true;
+	    if (type != "linux" && type != "failsafe"
+		&& type != "memtest86" && type != "wildcard")
+	    {
+		foreach (string n, s["__devs"]:[], {
+		    if (! contains (parts, n))
+		    {
+			cont = false;
+		    }
+		});
+	    }
+	    map<string,any> new_this_section = new_sect[type]:$[];
+	    if (new_this_section == $[])
+		return $[];
+	    list new_devs = toset(new_this_section["devs"]:[]);
+	    list old_devs = toset(s["__devs"]:[]);
+	    if (size (new_devs) != size (old_devs))
+		cont = false;
+	    else
+	    {
+                foreach (any d, old_devs, ``{
+		    if (! contains (new_devs, d))
+			cont = false;
+                });
+	    }
+	    if (! cont)
+	    {
+		s["__auto"] = false;
+		displayDiskChangePopup (label);
+	    }
+	    return s;
+	}
+    });
+
+    y2milestone ("Checking for sections using the resume parameter");
+    sections = maplist (map<string,any> s, BootCommon::sections, ``{
+	string append = s["append"]:"";
+	string resume = getKernelParamFromLine (append, "resume");
+	if (resume != "" && resume != nil
+	    && ! haskey (getSwapPartitions (), resume))
+	// points to unexistent swap partition
+	{
+	    append = setKernelParamToLine (append,
+		"resume", getLargestSwapPartition ());
+	    s["append"] = append;
+	}
+	return s;
+    });
+
+    y2milestone ("Checking for sections needing some of %1", del_parts);
+    list<string> to_remove = [];
+    foreach (map<string,any> s, sections, {
+	list<string> devs = s["__devs"]:[];
+	string label = s["name"]:"";
+	y2milestone ("Section %1 needs %2", label, devs);
+	boolean to_add = false;
+	foreach (string d, devs, {
+	   if (contains (del_parts, d))
+	    {
+		to_add = true;
+	    }
+	});
+	if (to_add)
+	{
+	    map old_sect = listmap (map<string,any> os, old_sect_list, {
+		return $[label: os];
+	    });
+
+	    if (label != "" && ! haskey(old_sect, label))
+	    {
+		y2milestone ("Adding %1", s);
+		to_remove = add (to_remove, label);
+		old_sect_list = add (old_sect_list, s);
+	    }
+	}
+    });
+    del_parts = (list<string>)difflist (del_parts, to_remove);
+    old_sect_list = filter (map<string,any> s, old_sect_list, {
+	return s != $[];
+    });
+    sections = old_sect_list;
+}
+
+/**
+ * Update sections of bootloader menu
+ * modifies internal structures
+ * @param replace boolean true if old sectinos shall be replaced
+ * @param term to evaluate to create a linux section
+ */
+global void UpdateSections (boolean replace,
+    map<string,any>(string) create_linux_section)
+{
+    list<map<string,any> > out = BootCommon::sections;
+    list<string> recreated = [];
+    boolean linux_resume_added = false;
+
+    foreach (string t, ["linux", "failsafe", "memtest86", "xen"], {
+	map<string,any> m = create_linux_section (t);
+	boolean f_changed = false;
+	out = maplist (map<string,any> s, out, {
+	    string label = s["name"]:"";
+	    string sect_type = s["__type"]:"";
+	    if (sect_type == "")
+		sect_type = label;
+	    if (sect_type == t)
+	    {
+		f_changed = true;
+		if (replace && m != $[])
+		{
+		    recreated = add (recreated, label);
+		    return m;
+		}
+		else if (t == "linux")
+		{
+		    string append = s["append"]:"";
+		    string resume = BootCommon::getKernelParamFromLine (
+			append, "resume");
+		    if (! haskey (BootCommon::getSwapPartitions (), resume))
+		    {
+			append = setKernelParamToLine (append,
+			    "resume", getLargestSwapPartition ());
+			s["append"] = append;
+			linux_resume_added = true;
+		    }
+		    return s;
+                }
+		else
+		    return s;
+	    }
+	    else
+	    {
+		return s;
+	    }
+	});
+        if (! f_changed && m != $[])
+	{
+	    recreated = add (recreated, m["name"]:"");
+            if (t == "linux")
+		out = prepend (out, m);
+            else
+		out = add (out, m);
+	}
+    });
+
+    out = maplist (map<string,any> s, out, {
+	string label = s["name"]:"";
+	string type = s["__type"]:label;
+	foreach (string key, ["kernel", "initrd"], {
+	    string value = s[key]:"";
+	    if (regexpmatch (value, "^.*\.shipped.*$"))
+	    {
+		value = regexpsub (value,
+		    "^(.*)\.shipped(.*)$", "\\1\\2");
+	    }
+	    else if (regexpmatch (value, "^.*\.suse.*$"))
+	    {
+		value = regexpsub (value,
+		    "^(.*)\.suse(.*)$", "\\1\\2");
+	    }
+	    s["key"] = value;
+	});
+	foreach (string key, ["root", "chainloader"], {
+	    if ((contains (update_section_types, type)
+		    && ! contains (recreated, label))
+		|| key == "chainloader")
+	    {
+		string device = s["key"]:"";
+		if (device != nil)
+		{
+		    y2milestone ("Updating root/other device of section %1",
+			label);
+		    device = BootCommon::UpdateDevice (device);
+		    s["key"] = device;
+		}
+	    }
+	});
+	if (type == "linux" && haskey (s, "append"))
+	{
+	    string option = s["append"]:"";
+	    foreach (string o, ListAdditionalKernelParams (), {
+		option = setKernelParamToLine (option, o, "false");
+	    });
+	    option = option + " " + GetAdditionalKernelParams ();
+	    if (getKernelParamFromLine (option, "splash") == "false")
+		option = setKernelParamToLine
+		    (option, "splash", "silent");
+	    s["append"] = option;
+	}
+	else if (haskey (s, "append")
+	    && contains (BootCommon::update_section_types, type)
+	   && ! contains (recreated, label))
+	{
+	    string option = s["append"]:"";
+	    if (type != "linux" || ! linux_resume_added)
+	    {
+		string resume
+		    = BootCommon::getKernelParamFromLine (
+			option, "resume");
+		if (resume != "false")
+		{
+		    y2milestone ("Updating resume device of section %1", label);
+		    resume = BootCommon::UpdateDevice (resume);
+		    option = BootCommon::setKernelParamToLine (
+			option, "resume", resume);
+		}
+	    }
+	    s["append"] = option;
+	}
+	return s;
+    });
+    sections = out;
+}
+
+/**
+ * Update global options of bootloader
+ * modifies internal sreuctures
+ */
+global void UpdateGlobals () {
+    BootCommon::globals["timeout"] = "8";
+    list<string> s1_devs
+	= splitstring (BootCommon::globals["stage1_dev"]:"", ",");
+    s1_devs = maplist (string d, s1_devs, {
+	return UpdateDevice (d);
+    });
+    BootCommon::globals["stage1_dev"] = mergestring (s1_devs, ",");
+    BootCommon::globals["gfxmenu"] = "/boot/message";
+}
+
+/**
+ * Update the device map according to changed device names
+ * @param devmap list original device map
+ * @return list updated device map
+ */
+global void UpdateDeviceMap () {
+    device_mapping = mapmap (string unix, string fw, device_mapping, {
+	y2milestone ("Updating device in devmap entry %1 -> %2",
+	    unix, fw);
+	unix = BootCommon::UpdateDevice (unix);
+	return $[ unix : fw ];
+    });
+    y2milestone ("Updated device map: %1", device_mapping);
+}
+
+/**
+ * Filter sections, remove those pointing to unexistent image
+ * @param path_prefix string prefix to be added to kernel path
+ * @param relative_path_prefix prefix to be added to relative kernel
+ *  paths (without leading slash)
+ */
+global void RemoveUnexistentSections (string path_prefix,
+    string relative_path_prefix)
+{
+    string defaultv = globals["default"]:"";
+    string first = nil;
+    BootCommon::sections = filter (map<string,any> s, BootCommon::sections, {
+	string label = s["name"]:"";
+
+	// do not touch the wildcard section
+	if (regexpmatch (s["kernel"]:"", ".+\\-\\*"))
+	{
+	    if (first == nil)
+		first = label;
+	    return true;
+	}
+
+	string type = s["__type"]:"";
+        if (label == "")
+	{
+	    y2warning ("Removing section with empty title");
+	    if (label == defaultv)
+		defaultv = nil;
+	    return false;
+	}
+	if (! contains (["linux", "failsafe", "memtest86", "xen"], type))
+	{
+	    if (first == nil)
+		first = label;
+	    return true;
+	}
+	string kernel = s["kernel"]:"";
+	if (kernel == "")
+	{
+	    if (first == nil)
+		first = label;
+	    return true;
+	}
+	if (substring (kernel, 0, 1) == "/")
+	    kernel = path_prefix + kernel;
+	else
+	    kernel = relative_path_prefix + kernel;
+	if (SCR::Read (.target.size, kernel) == -1)
+	{
+	    y2warning ("Removing section %1 with unexistent kernel %2",
+		label, kernel);
+	    if (label == defaultv)
+		defaultv = nil;
+	    return false;
+	}
+	if (first == nil)
+	    first = label;
+	return true;
+    });
+    if (defaultv == nil)
+	defaultv = first;
+    globals["default"] = defaultv;
+}
+
+/**
+ * Remove or add initrd option if needed, update append option if some
+ *  parameters were changed
+ */
+global void UpdateInitrdLine () {
+    sections = maplist (map<string,any> s, sections, {
+        string initrd = s["initrd"]:"";
+	string title = s["name"]:"";
+	string type = s["__type"]:"";
+
+	// do not touch the wildcard section
+	if (regexpmatch (s["initrd"]:"", ".+\\-\\*"))
+	{
+	    return s;
+	}
+
+        if ((type == "linux" || type == "failsafe")
+	    && write_settings["insert_initrd"]:false)
+        {
+	    s["initrd"] = BootArch::InitrdImage ();
+        }
+        if (initrd != "")
+        {
+	    if (-1 == SCR::Read (.target.size, initrd) && haskey (s, "initrd"))
+		s = remove (s, "initrd");
+        }
+	return s;
+    });
+}
+
+/**
+  * Update append option if some parameters were changed
+  */
+global void UpdateAppend () {
+    sections = maplist (map<string,any> s, sections, {
+	string type = s["__type"]:"";
+        if ((type == "linux" || type == "wildcard" || type == "global")
+	    && s["append"]:nil != nil
+	    && Stage::initial ())
+	{
+	    s["append"] = UpdateKernelParams (s["append"]:"");
+	}
+        return s;
+    });
+    if (haskey (globals, "append"))
+    {
+	globals["append"] = UpdateKernelParams (globals["append"]:"");
+    }
+}
+
+/**
+ * Update the gfxboot/message/... line if exists
+ */
+global void UpdateGfxMenu () {
+    string message = globals["gfxmenu"]:"";
+    if (message != "")
+    {
+	if (-1 == SCR::Read (.target.size, message))
+	{
+	    globals = remove (globals, "gfxmenu");
+	}
+    }
+
+}
+
+/**
+ * Generate device map proposal
+ * @return list generated device map
+ */
+global void ProposeDeviceMap () {
+    device_mapping = $[];
+
+    map<string,map> targetMap = $[];
+    if (Mode::config ())
+	y2milestone ("Skipping device map proposing in Config mode");
+    else
+	targetMap = (map<string,map>)Storage::GetTargetMap();
+    targetMap = filter (string k, map v, targetMap, {
+	return v["type"]:`CT_UNKNOWN==`CT_DISK;
+    });
+    y2milestone ("Target map: %1", targetMap);
+
+    // add devices with know bios_id
+    // collect BIOS IDs which are used
+    map ids = $[];
+    foreach (string target_dev, map target, targetMap, {
+        string bios_id = target["bios_id"]:"";
+        if (bios_id != "")
+        {
+            integer index = tointeger (bios_id) - tointeger ("0x80");
+            string grub_dev = sformat ("(hd%1)", index);
+	    device_mapping[target_dev] = grub_dev;
+            ids[index] = true;
+        }
+    });
+    // and guess other devices
+    // don't use already used BIOS IDs
+    foreach (string target_dev, map target, targetMap, {
+        string bios_id = target["bios_id"]:"";
+        if (bios_id == "")
+        {
+            integer index = 0;
+            while (ids[index]:false)
+                index = index + 1;
+            string grub_dev = sformat ("(hd%1)", index);
+	    device_mapping[target_dev] = grub_dev;
+            ids[index] = true;
+        }
+    });
+    if (StorageDevices::FloppyPresent)
+	device_mapping[StorageDevices::FloppyDevice] = "(fd0)";
+    y2milestone ("Detected device mapping: %1", device_mapping);
+}
+
+global list<string> DisksOrder () {
+    if (device_mapping == nil || size (device_mapping) == 0)
+    {
+	ProposeDeviceMap ();
+    }
+    map<string,string> devmap_rev = mapmap (string k, string v,
+	BootCommon::device_mapping,
+    {
+	return $[ v : k ];
+    });
+    devmap_rev = filter (string k, string v, devmap_rev, {
+	return substring (k, 0, 3) == "(hd";
+    });
+    list<string> order = maplist (string k, string v, devmap_rev, {
+	return v;
+    });
+    return order;
+}
+
+global string DiskOrderSummary () {
+    list<string> order = DisksOrder ();
+    string ret = nil;
+    if (size (order) > 1)
+    {
+	ret = sformat (
+	    // part of summary, %1 is a list of hard disks device names
+	    _("Order of Hard Disks: %1"),
+	    mergestring (order, ", "));
+    }
+    return ret;
+}
+
+
+} // EOF

@@ -1,0 +1,12 @@
+Makefile
+Makefile.in
+bootloader
+bootloader.aux
+bootloader.log
+bootloader.out
+bootloader.pdf
+bootloader.tex
+bootloader.junk
+db2html*
+CATALOG.local
+*.dsl
