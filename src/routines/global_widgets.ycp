@@ -367,10 +367,10 @@ Select a course of action:");
 		Bootloader::Reset ();
 		if (Bootloader::getLoaderType () == "grub")
 		{
-// FIXME		    import "BootGRUB";
-//		    BootGRUB::merge_level = `all;
+		    import "BootGRUB";
+		    BootGRUB::merge_level = `all;
 		    Bootloader::Propose ();
-//		    BootGRUB::merge_level = `main;
+		    BootGRUB::merge_level = `main;
 		}
 		else
 		{
@@ -684,7 +684,7 @@ Continue?")))
 	{
 	    UI::ReplaceWidget (`id (`adv_rp),
 		// menu button
-		`MenuButton (`id (`reset), _("Res&et"), items));
+		`MenuButton (`id (`reset), _("Other"), items));
 	}
 	else
 	{

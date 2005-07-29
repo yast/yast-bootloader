@@ -55,7 +55,7 @@ Please wait...<br></p>");
 	    ins = _("If you have multiple Linux systems installed,
 YaST can try to find them and merge their menus.");
 	// help text 1/2 (%1 may be following sentence, optionally empty)
-	string help = sformat (_("<P>Via the <B>Advanced</B> button,
+	string help = sformat (_("<P>Via the <B>Other</B> button,
 you can manually edit the bootloader configuration files, clear the current 
 configuration and propose a new configuration, start from scratch, or reread
 the configuration saved on your disk. %1</P>"), ins);
