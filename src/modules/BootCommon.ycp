@@ -491,7 +491,8 @@ y2internal ("3: %1", BootCommon::sections);
     global define list<string> Summary () ``{
 	if (getLoaderType (false) == "none")
 	{
-	    return [HTML::Colorize (getLoaderName (getLoaderType (false)),
+	    return [HTML::Colorize (
+		getLoaderName (getLoaderType (false), `summary),
 		"red") ];
 	}
 	map targetMap = Storage::GetTargetMap ();
@@ -522,7 +523,7 @@ y2internal ("3: %1", BootCommon::sections);
 	list<string> result = [];
 	// summary text, %1 is bootloader name (eg. LILO)
 	result = add (result, sformat (_("Boot Loader Type: %1"),
-		getLoaderName (getLoaderType (false))));
+		getLoaderName (getLoaderType (false), `summary)));
 	// summary text, location is location description (eg. /dev/hda)
 	result = add (result, sformat (_("Location: %1"), target_name));
 	list<string> sects = [];

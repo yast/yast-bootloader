@@ -73,9 +73,9 @@
 	}
 	string fallback_name = mode == `summary
 	    // summary string
-	    _("Boot loader")
+	    ? _("Boot loader")
 	    // combo box item
-	    _("Boot Loader")
+	    : _("Boot Loader");
 	// fallback bootloader name, keep short
 	return bootloader_attribs[bootloader, "loader_name"]:fallback_name;
     }
@@ -1161,8 +1161,10 @@ global list<string> ListKernelParamsInLine (string line) {
 		if ((! is (num, integer)) || num <= 4)
 		{
 		    y2milestone ("Activating partition %1 on %2", num, mbr_dev);
-		    ret = ret && (0 == SCR::Execute (.target.bash,
-			sformat ("/sbin/activate %2 %1", num, mbr_dev)));
+		    string command = sformat
+			("/sbin/activate %2 %1", num, mbr_dev);
+		    y2milestone ("Running command %1", command);
+		    ret = ret && (0 == SCR::Execute (.target.bash, command));
 		}
 	    }
 	    else
