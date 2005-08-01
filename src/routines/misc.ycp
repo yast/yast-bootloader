@@ -51,21 +51,33 @@
     /**
       * return printable name of bootloader
       * @param bootloader string bootloader type internal string
+      * @param mode symbol `combo or `summary (because of capitalization)
       * @return string printable bootloader name
       */
-    global define string getLoaderName (string bootloader) ``{
+    global define string getLoaderName (string bootloader, symbol mode) ``{
 	if (bootloader == "none")
 	{
-	    // combo box item, summary string, table item
-	    return _("Do Not Install Any Boot Loader");
+	    return mode == `summary
+		// summary string
+		? _("Do not install any boot loader")
+		// combo box item
+		: _("Do Not Install Any Boot Loader");
 	}
 	if (bootloader == "default")
 	{
-	    // combo box item, summary string, table item
-	    return _("Install Default Boot Loader");
+	    return mode == `summary
+		// summary string
+		? _("Install default boot loader")
+		// combo box item
+		: _("Install Default Boot Loader");
 	}
+	string fallback_name = mode == `summary
+	    // summary string
+	    _("Boot loader")
+	    // combo box item
+	    _("Boot Loader")
 	// fallback bootloader name, keep short
-	return bootloader_attribs[bootloader, "loader_name"]:_("Boot Loader");
+	return bootloader_attribs[bootloader, "loader_name"]:fallback_name;
     }
 
     /**
