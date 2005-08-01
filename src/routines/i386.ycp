@@ -109,7 +109,9 @@ global boolean ThinkPadMBR (string disk) {
  * @return boolean true to keep the contents
  */
 global boolean KeepMBR (string disk) {
-    return ThinkPadMBR (disk);
+    if (ThinkPadMBR (disk))
+	return true;
+    return false;
 }
 
 /**

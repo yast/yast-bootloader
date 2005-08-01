@@ -1007,7 +1007,6 @@ global list<string> ListKernelParamsInLine (string line) {
      * @return a list of partitions to activate
      */
     global define list<map<string, any> > getPartitionsToActivate () {
-/* FIXME this whole function
 	map<string,integer> md = $[];
 	if (BootCommon::loader_device == "mbr_md")
 	{
@@ -1028,8 +1027,6 @@ global list<string> ListKernelParamsInLine (string line) {
 		partition);
 	});
 	return toset (ret);
-*/
-	return [];
     }
 
     /**
@@ -1039,7 +1036,6 @@ global list<string> ListKernelParamsInLine (string line) {
      */
     global define list<string> getMbrsToRewrite () {
 	list<string> ret = [BootCommon::mbrDisk];
-/* FIXME this whole function
 	map<string,integer> md = $[];
 	if (BootCommon::loader_device == "mbr_md")
 	{
@@ -1059,8 +1055,7 @@ global list<string> ListKernelParamsInLine (string line) {
 	{
 	    ret = (list<string>)merge (ret, mbrs);
 	}
-	return toset (ret);*/
-	return [];
+	return toset (ret);
     }
 
     /**
@@ -1129,8 +1124,7 @@ global list<string> ListKernelParamsInLine (string line) {
       * @return boolean true on success
       */
     global define boolean updateMBR () ``{
-	return true;
-/* FIXME this whole function
+	y2milestone ("Updating disk system area, activate partition: %1, replace MBR: %2", activate, repl_mbr);
 	if (backup_mbr)
 	{
 	    y2milestone ("Doing MBR backup: MBR Disk: %1, loader device: %2",
@@ -1165,7 +1159,7 @@ global list<string> ListKernelParamsInLine (string line) {
 	    }
 	  });
 	}
-	if (repl_mbr && BootCommon::location != "mbr")
+	if (repl_mbr && BootCommon::loader_device != mbrDisk)
 	{
 	    if (! Stage::initial ())
 	    {
@@ -1182,7 +1176,7 @@ global list<string> ListKernelParamsInLine (string line) {
 			BootCommon::mbrDisk)));
 	    });
 	}
-	return ret;*/
+	return ret;
     }
 
     /**

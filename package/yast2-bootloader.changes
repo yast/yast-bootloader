@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug  1 12:29:41 CEST 2005 - jsrain@suse.cz
+
+- do not propose installing bootloader to MBR by default
+
+-------------------------------------------------------------------
 Thu Jul 28 16:15:45 CEST 2005 - jsrain@suse.cz
 
 - merged texts from proofread
