@@ -122,26 +122,42 @@ global string FindMBRDisk() {
     global define string ConfigureLocation() ``{
         selected_location = "mbr";             // default to mbr
         loader_device   = BootCommon::mbrDisk;
-	if (KeepMBR (loader_device))
+	// check whether the /boot partition is primary
+	map<string,any> tm = Storage::GetTargetMap ();
+	map dp = Storage::GetDiskPartition (BootPartitionDevice);
+	string disk = dp["disk"]:"";
+	map dm = tm[disk]:$[];
+	list<map> partitions = dm["partitions"]:[];
+	boolean is_logical = false;
+	string extended = nil;
+	foreach (map p, partitions, {
+	    if (p["type"]:nil == `extended)
+	    {
+		extended = (string)p["device"]:nil;
+	    }
+	    else if (p["device"]:"" == BootPartitionDevice
+	        && p["type"]:nil == `logical)
+	    {
+		is_logical = true;
+	    }
+	});
+	boolean keep_mbr = KeepMBR (loader_device);
+	// if is primary, store bootloader there
+	if (! is_logical)
 	{
-	    map<string,any> tm = Storage::GetTargetMap ();
-	    map dp = Storage::GetDiskPartition (BootPartitionDevice);
-	    string disk = dp["disk"]:"";
-	    map dm = tm[disk]:$[];
-	    list<map> partitions = dm["partitions"]:[];
-	    boolean is_logical = false;
-	    string extended = nil;
-	    foreach (map p, partitions, {
-		if (p["type"]:nil == `extended)
-		{
-		    extended = (string)p["device"]:nil;
-		}
-		else if (p["device"]:"" == BootPartitionDevice
-		    && p["type"]:nil == `logical)
-		{
-		    is_logical = true;
-		}
-	    });
+	    selected_location = "boot";
+	    loader_device = BootPartitionDevice;
+	    activate = true;
+	    activate_changed = true;
+	    map out = (map)SCR::Execute (.target.bash_output, sformat (
+		"/usr/lib/YaST2/bin/examine_mbr.pl %1", disk));
+	    y2milestone ("MBR examining script returned %1", out);
+	    integer exit = out["exit"]:0;
+	    repl_mbr = (exit == 0) && (! keep_mbr);
+	}
+
+	if (keep_mbr)
+	{
 	    if (is_logical && extended != nil)
 		loader_device = extended;
 	    else
