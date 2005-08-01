@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Mon Aug  1 15:19:40 CEST 2005 - jsrain@suse.cz
+Mon Aug  1 16:21:36 CEST 2005 - jsrain@suse.cz
 
 - fixed capitalization in module summary
+- added master-boot-code to RPM dependencies on i386/x86_64, as it
+  is needed for the default installation
 
 -------------------------------------------------------------------
 Mon Aug  1 12:29:41 CEST 2005 - jsrain@suse.cz
