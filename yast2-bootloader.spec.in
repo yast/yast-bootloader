@@ -4,6 +4,9 @@
 @HEADER@
 PreReq:         /bin/sed %fillup_prereq
 Requires:	yast2 yast2-core yast2-storage perl-Bootloader limal-bootloader
+%ifarch %ix86 x86_64
+Requires:	master-boot-code
+%endif
 
 Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader
 Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader
