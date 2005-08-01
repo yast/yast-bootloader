@@ -1,0 +1,799 @@
+/**
+ * File:
+ *      modules/BootCommon.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Data to be shared between common and bootloader-specific parts of
+ *      bootloader configurator/installator, generic versions of bootloader
+ *      specific functions
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    module "BootCommon";
+
+    textdomain "bootloader";
+
+    import "Arch";
+    import "HTML";
+    import "Mode";
+    import "PackageSystem";
+    import "Storage";
+    import "String";
+    import "Pkg";
+
+
+// General bootloader settings
+
+/**
+ * map of global options and values
+ */
+global map<string,string> globals = $[];
+
+/**
+ * list of section
+ */
+global list<map<string,any> > sections = [];
+
+/**
+ * device mapping between Linux and firmware
+ */
+global map<string,string> device_mapping = $[];
+
+/**
+ * device to save loader stage 1 to
+ */
+global string loader_device = nil;
+
+/**
+ * Embed stage 1.5 of the bootloader to dedicated area (if supported)?
+ */
+global boolean embed_stage15 = true;
+
+
+
+// proposal helping variables
+
+global string selected_location = nil;
+
+
+
+    /* These global variables and functions is needed in included files */
+
+    /**
+      * string sepresenting device name of /boot partition
+      * same as RootPartitionDevice if no separate /boot partition
+      */
+    global string BootPartitionDevice = "";
+
+    /**
+      * string representing device name of / partition
+      */
+    global string RootPartitionDevice = "";
+
+    /**
+      * Parameters of currently used bootloader
+      */
+    global map<string, any> current_bootloader_attribs = $[];
+
+    /**
+      * Parameters of all bootloaders
+      */
+    global map<string,map<string, any> > bootloader_attribs = $[];
+
+    /**
+      * Name of currently edited section
+      */
+    global string current_section_name = nil;
+
+    /**
+     * Index of current section, -1 for new created section
+     */
+    global integer current_section_index = -1;
+
+    /**
+      * Curtrently edited section -- tmp store
+      */
+    global map<string,any> current_section = $[];
+
+
+    /**
+      * list of installed floppy devices
+      */
+    global list<string> floppy_devices = nil;
+
+    /**
+      * Option types for differnt bootloaders
+      */
+    global map<string,map<string,string> > opt_types = $[];
+
+    /**
+      * device holding MBR for bootloader
+      */
+    global string mbrDisk = "";
+
+    /**
+      * was currently edited section changed (== true)
+      */
+    global boolean one_section_changed = false;
+
+    /**
+      * Backup original MBR before installing bootloader
+      */
+    global boolean backup_mbr = false;
+
+    /**
+      * Activate bootloader partition during installation?
+      */
+    global boolean activate = false;
+
+    /**
+      * Replace MBR with generic code after bootloader installation?
+      */
+    global boolean repl_mbr = false;
+
+    /**
+      * Kernel parameters at previous detection
+      */
+    global string kernelCmdLine = "";
+
+    /**
+      * were settings changed (== true)
+      */
+    global boolean changed = false;
+
+
+global map<string,any> installed_version = $[];
+global map<string,any> update_version = $[];
+
+global map<string,string> edited_files = $[];
+// common variables
+
+    /**
+      * type of bootloader to configuer/being configured
+      * shall be one of "lilo", "grub", "silo", "milo", "aboot",
+      * "elilo", "ppc", "zipl", "mips"
+      */
+    string loader_type = nil;
+
+// sysconfig variables
+
+// installation proposal help variables
+
+    /**
+      * Last detection proposed to prefer lilo instead of grub
+      */
+    global boolean prefer_lilo = false;
+
+    /**
+      * List of partitions deleted in primary proposal
+      */
+    global list<string> del_parts = [];
+
+// variables for storing data
+
+// saving mode setting functions
+
+    /**
+      * map of save mode settings
+      */
+    global map write_settings = $[];
+
+// summary dialog state
+
+    /**
+      * Show verbose summary output
+      */
+    global boolean verbose = false;
+
+// ui help variables
+
+
+    string additional_failsafe_params = "";
+
+
+// other variables
+
+    /**
+      * Settings of other bootloaders used when switching bootloader
+      */
+    global map other_bl = $[];
+
+// bootloader installation variables
+
+    /**
+      * Was the activate flag changed by user?
+      */
+    global boolean activate_changed = false;
+    /**
+      * Save everything, not only changed settings
+      */
+    global boolean save_all = false;
+// state variables
+
+    /**
+      * was the propose function called (== true)
+      */
+    global boolean was_proposed = false;
+    /**
+      * Were module settings read (== true)
+      */
+    global boolean was_read = false;
+    /**
+      * were sections settings changes (== true)
+      */
+    global boolean sections_changed = false;
+    /**
+      * Was bootloader location changed? (== true)
+      */
+    global boolean location_changed = false;
+    /**
+      * Were configuration files manually edited and chamged?
+      */
+    global boolean files_edited = false;
+    /**
+      * Has been files edited warning already shown?
+      */
+    global boolean files_edited_warned = false;
+    /**
+      * Shall be settings saved when finishing bootloader configuration?
+      */
+    global boolean save_on_finish = true;
+    /**
+      * time of last change of partitioning
+      */
+    global integer partitioning_last_change = 0;
+    /**
+     * true if memtest was removed by user (manually) during the installation
+     * proposal
+     */
+    global list<string> removed_sections = [];
+
+/**
+ * Types of sections that should be updated (changed device names)
+ */
+global list<string> update_section_types
+    = [ "linux", "failsafe", "initrd", "floppy" ];
+
+
+
+    global define string getLoaderType (boolean recheck);
+    global define list<string> getBootloaders ();
+    global define list<string> Summary ();
+
+    include "bootloader/routines/popups.ycp";
+    include "bootloader/routines/misc.ycp";
+    include "bootloader/routines/lilolike.ycp";
+    include "bootloader/routines/lib_iface.ycp";
+
+
+
+// interface to bootloader library
+
+
+
+
+// FIXME 2x functions should not be finally here...
+global boolean XenPresent () {
+    return (! contains (removed_sections, "xen"))
+	&& (Mode::test ()
+	    || (Mode::normal () && Pkg::IsProvided ("xen")
+		&& Pkg::IsProvided ("kernel-xen"))
+	    || (! Mode::normal () && Pkg::IsSelected ("xen")
+		&& Pkg::IsSelected ("kernel-xen")));
+}
+
+global integer Dom0MemorySize () {
+    list<map> memory = (list<map>) SCR::Read(.probe.memory);
+
+    y2milestone("memory: %1", memory);
+    integer memory_size = 0;
+
+    foreach(map info, memory, ``{
+            // internal class, main memory
+            if (info["class_id"]:0 == 257 && info["sub_class_id"]:0 == 2)
+            {
+                list<map> minf = info["resource", "phys_mem"]:[];
+                foreach(map i, minf, ``{
+                        memory_size = memory_size + i["range"]:0;
+                    }
+                );
+            }
+        }
+    );
+    // size in kB lowered 64 MB for XEN itself
+    memory_size = memory_size / 1024 - (64 * 1024);
+    y2milestone ("Memory size for XEN domain 0: %1", memory_size);
+    return memory_size;
+}
+
+
+
+global map<string,any> CreateLinuxSection (string title) {
+    if (title == "memtest86")
+    {
+	if (MemtestPresent ())
+	{
+	    return $[
+		"name" : translateSectionTitle (title),
+		"original_name" : title,
+		"type" : "image",
+		"kernel" : "/boot/memtest.bin",
+		"__auto" : true,
+		"__changed" : false,
+		"__devs" : [BootCommon::BootPartitionDevice],
+		"__type" : "memtest86",
+	    ];
+	}
+	else
+	{
+	    return $[];
+	}
+    }
+    string resume = BootArch::ResumeAvailable ()
+	? getLargestSwapPartition ()
+	: "";
+    string kernel_fn = "/boot/" + Kernel::GetBinary ()
+	+ (title == "wildcard" ? "-*" : "");
+    string initrd_fn = "/boot/initrd" + (title == "wildcard" ? "-*" : "");
+    map<string,any> ret = $[
+	"name" : translateSectionTitle (title),
+	"original_name" : title,
+	"type" : "image",
+	"kernel" : kernel_fn,
+	"initrd" : initrd_fn,
+	"root" : RootPartitionDevice,
+	"append" : BootArch::DefaultKernelParams (resume),
+	"__auto" : true,
+	"__changed" : false,
+	"__devs" : [BootPartitionDevice, RootPartitionDevice],
+	"__type" : title,
+    ];
+    if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
+	ret["vga"] = Kernel::GetVgaType ();
+    if (title == "xen")
+    {
+	ret["xen"] = "/boot/xen.gz";
+	ret["xen_append"] = sformat ("dom0_mem=%1", Dom0MemorySize ());
+    }
+    else if (title == "wildcard")
+    {
+	ret["wildcard"] = kernel_fn;
+	ret["name"] = "*";
+    }
+    return ret;
+}
+
+// generic versions of bootloader-specific functions
+
+    /**
+      * Export bootloader settings to a map
+      * @return bootloader settings
+      */
+    global define map Export () ``{
+        map exp = $[
+		"global": globals,
+		"sections" : sections,
+		"repl_mbr" : repl_mbr,
+		"activate" : activate,
+		"device_map" : device_mapping,
+	    ];
+	return exp;
+    }
+
+    /**
+      * Import settings from a map
+      * @param settings map of bootloader settings
+      */
+    global define boolean Import (map settings) ``{
+        globals = settings["global"]:$[];
+        sections  = settings["sections"]:[];
+        repl_mbr = settings["repl_mbr"]:false;
+        activate = settings["activate"]:false;
+	device_mapping = settings["device_map"]:$[];
+	return true;
+    }
+
+/**
+ * Read settings from disk
+ * @return boolean true on success
+ */
+global boolean Read (boolean reread) {
+    string bl = getLoaderType (false);
+    if (bl == "none")
+	return true;
+    BootCommon::InitializeLibrary (reread, bl);
+    if (reread)
+    {
+	BootCommon::ReadFiles ();
+    }
+    sections = GetSections ();
+    globals = GetGlobal ();
+    device_mapping = GetDeviceMap ();
+    return true;
+}
+
+    /**
+      * Reset bootloader settings
+      */
+    global define void Reset (boolean init) ``{
+        sections = [];
+        globals = $[];
+//	DetectDisks ();
+	repl_mbr = false;
+	activate = false;
+	activate_changed = false;
+	removed_sections = [];
+	was_proposed = false;
+	if (init)
+	{
+	    ProposeDeviceMap ();
+	}
+    }
+
+/**
+ * Propose bootloader settings
+ */
+global void Propose () {
+    y2error ("No generic propose function available");
+}
+
+/**
+ * Save all bootloader configuration files to the cache of the PlugLib
+ * PlugLib must be initialized properly !!!
+ * @param clean boolean true if settings should be cleaned up (checking their
+ *  correctness, supposing all files are on the disk
+ * @param init boolean true to init the library
+ * @param flush boolean true to flush settings to the disk
+ * @return boolean true if success
+ */
+global boolean Save (boolean clean, boolean init, boolean flush) {
+    if (clean)
+    {
+	BootCommon::RemoveUnexistentSections ("", "");
+y2internal ("2: %1", BootCommon::sections);
+	BootCommon::UpdateInitrdLine ();
+y2internal ("3: %1", BootCommon::sections);
+	BootCommon::UpdateAppend ();
+	BootCommon::UpdateGfxMenu ();
+    }
+    boolean ret = true;
+    string bl = getLoaderType (false);
+    if (bl == "none")
+	return true;
+    if (! InitializeLibrary (init, bl))
+	return false;
+    list<map<string,string> > sects = maplist (map<string,any> s, sections, {
+	return (map<string,string>)
+	    filter (string k, any v, s, { return is (v, string); });
+    });
+    ret = ret && SetDeviceMap (device_mapping);
+    ret = ret && SetSections (sects);
+    ret = ret && SetGlobal (globals);
+    if (flush)
+    {
+	ret = ret && FlushCache ();
+    }
+    return ret;
+}
+    /**
+      * Display bootloader summary
+      * @return a list of summary lines
+      */
+    global define list<string> Summary () ``{
+	if (getLoaderType (false) == "none")
+	{
+	    return [HTML::Colorize (getLoaderName (getLoaderType (false)),
+		"red") ];
+	}
+	map targetMap = Storage::GetTargetMap ();
+	map boot_target = targetMap[loader_device]:$[];
+	string target_name = "";
+	if (boot_target == $[])
+	{
+	    target_name = loader_device;
+	    if (target_name == "mbr_md")
+	    {
+		list<string> mbrs = maplist (string d, integer id,
+		    Md2Partitions (BootPartitionDevice),
+		{
+		    map p_dev = Storage::GetDiskPartition (d);
+		    return p_dev["disk"]:"";
+		});
+		// summary part, %1 is a list of device names
+		target_name = sformat (_("Master boot records of disks %1"),
+		    mergestring (mbrs, ", "));
+	    }
+	}
+	else
+	{
+	    target_name = boot_target["name"]:"disk";
+	}
+	target_name = AddMbrToDescription (target_name, loader_device);
+
+	list<string> result = [];
+	// summary text, %1 is bootloader name (eg. LILO)
+	result = add (result, sformat (_("Boot Loader Type: %1"),
+		getLoaderName (getLoaderType (false))));
+	// summary text, location is location description (eg. /dev/hda)
+	result = add (result, sformat (_("Location: %1"), target_name));
+	list<string> sects = [];
+	foreach (map<string,any> s, sections, {
+	    string title = s["name"]:"";
+		// section name "suffix" for default section
+	    string def = title == globals["default"]:"" ? _(" (default)") : "";
+	    sects = add (sects, sformat ("%1%2", title, def));
+	});
+	// summary text. %1 is list of bootloader sections
+	result = add (result, sformat (_("Sections: %1"),
+	    String::EscapeTags (mergestring (sects, ", "))));
+	if (loader_device == "/dev/null")
+	    // summary text
+	    result = add (result, _("Do not install boot loader; just create
+configuration files"));
+	return result;
+    }
+
+    /**
+      * Update read settings to new version of configuration files
+      */
+    global define void Update () ``{
+	y2debug ("No generic update function available");
+    }
+
+/**
+ * Write bootloader settings to disk
+ * @return boolean true on success
+ */
+global define boolean Write () {
+    y2error ("No generic write function available");
+    return false;
+}
+
+    /**
+      * Get map of bootloader options
+      * @return map of options
+      */
+    global define map GetOptions () ``{
+	map opts = $[
+	    `global: [
+	        "append",
+	        "backup",
+	        "boot",
+	        "change-rules",
+	        "compact",
+	        "default",
+	        "delay",
+	        "disk",
+	        "disktab",
+	        "fix-table",
+		"force-backup",
+	        "ignore-table",
+	        "install",
+	        "lba32",
+	        "linear",
+	        "lock",
+	        "map",
+	        "menu-title",
+	        "menu-scheme",
+	        "message",
+	        "nowarn",
+	        "optional",
+	        "password",
+	        "prompt",
+	        "restricted",
+	        "serial",
+	        "timeout",
+	        "verbose",
+	        "vga",
+	    ],
+	    "image" : [
+	        "append",
+	        "initrd",
+	        "literal",
+	        "ramdisk",
+	        "read-only",
+	        "read-write",
+	        "root",
+	        "vga",
+	        "label",
+	        "alias",
+	        "lock",
+	        "optional",
+	        "password",
+	        "restricted",
+	    ],
+	    "other" : [
+	        "loader",
+	        "table",
+	        "change",
+	        "map-drive",
+	        "unsafe",
+	        "label",
+	        "alias",
+	        "lock",
+	        "optional",
+	        "password",
+	        "restricted",
+	    ]
+	];
+	return opts;
+    }
+
+// end of generic versions of bootloader-specific functions
+//-----------------------------------------------------------------------------
+// common functions start
+
+// bootloader type handling functions
+
+    /**
+      * Set attributes of specified bootloader to variable containing
+      * attributes of currently used bootloader, call its initializer
+      * @param loader_type string loader type to initialize
+      */
+    global define void setCurrentLoaderAttribs (string loader_type) ``{
+	y2milestone ("Setting attributes for bootloader %1", loader_type);
+	// testsuite hack
+	if (Mode::test ())
+	    return;
+	if (loader_type != nil &&
+	    bootloader_attribs[loader_type, "initializer"]:nil != nil)
+	{
+	    y2milestone ("Running bootloader initializer");
+	    void () toEval = (void ()) (bootloader_attribs[loader_type, "initializer"]:nil);
+	    toEval ();
+	    y2milestone ("Initializer finished");
+	}
+	else if (loader_type == nil)
+	{
+	    y2error ("Setting loader type to nil, this is wrong");
+	    return;
+	}
+	else
+	{
+	    y2error ("No initializer found for >>%1<<", loader_type);
+	    current_bootloader_attribs = $[];
+	}
+	if (loader_type != nil)
+	{
+	    current_bootloader_attribs = (map<string, any>) union (
+		current_bootloader_attribs,
+		(map<string, any>) eval (bootloader_attribs[loader_type]:$[]));
+	}
+    }
+
+    /**
+      * Get currently used bootloader, detect if not set yet
+      * @param recheck boolean force checking bootloader
+      * @return string botloader type
+      */
+    global define string getLoaderType (boolean recheck) ``{
+	if ((! recheck) && (loader_type != nil))
+	    return loader_type;
+	// read bootloader to use from disk
+	if (Mode::update () || Mode::normal () || Mode::repair ())
+	{
+	    loader_type = (string)SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
+	    if (loader_type != nil && loader_type != "")
+	    {
+		y2milestone ("Sysconfig bootloader is %1, using", loader_type);
+		if (loader_type == "lilo" && Arch::ppc ())
+		    loader_type = "ppc";
+		else if (loader_type == "s390")
+		    loader_type = "zipl";
+		setCurrentLoaderAttribs (loader_type);
+		return loader_type;
+	    }
+	    if (Mode::update ())
+	    {
+		if (Arch::i386 ())
+		{ // no sysconfig variable -> old version installed -> use LILO
+		    loader_type = "lilo";
+		    setCurrentLoaderAttribs (loader_type);
+		    return loader_type;
+		}
+	    }
+	}
+	// detect bootloader
+	loader_type = (string)SCR::Read (.probe.boot_arch);
+	if (loader_type == "s390")
+	    loader_type = "zipl";
+	y2milestone ("Bootloader detection returned %1", loader_type);
+	if (Arch::is_uml ())
+	{
+	    y2milestone ("Not installing any bootloader for UML");
+	    loader_type = "none";
+	}
+	if (loader_type == "grub" && Storage::UseLilo())
+	{
+	    loader_type = "lilo";
+	    prefer_lilo = true;
+	}
+	else
+	{
+	    prefer_lilo = false;
+	}
+
+	y2milestone ("Detected bootloader %1", loader_type);
+	setCurrentLoaderAttribs (loader_type);
+	return loader_type;
+    }
+    /**
+      * set type of bootloader
+      * @param bootloader string type of bootloader
+      */
+    global define void setLoaderType (string bootloader) ``{
+	y2milestone ("Setting bootloader to >>%1<<", bootloader);
+	if (bootloader != nil
+	    && contains(bootloaders, bootloader)
+	    && ! Mode::test ())
+	{
+	    // don't configure package maneger during autoinstallation preparing
+	    if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
+	    {
+		PackageSystem::InstallAll (getBootloaderPackages (bootloader));
+	    }
+	    else if (Stage::initial () && (! (Mode::repair ())))
+	    {
+		boolean pkg_added = false;
+		foreach (string p, getBootloaderPackages (bootloader), ``{
+		    if (! Pkg::IsSelected (p))
+		    {
+		        Pkg::PkgInstall (bootloader);
+			pkg_added = true;
+		    }
+		});
+		if (pkg_added)
+		{
+		    // if package was added in inst. proposal, I can't be sure
+		    // that dependencies will be solved
+		    Pkg::PkgSolve (false);
+		}
+	    }
+	}
+	else if (! Mode::test ())
+	{
+	    y2error ("Unknown bootloader");
+	}
+	loader_type = bootloader;
+	if (loader_type != nil)
+	    setCurrentLoaderAttribs (loader_type);
+	y2milestone ("Loader type set");
+    }
+    /**
+      * List bootloaders available for configured architecture
+      * @return list of bootloaders
+      */
+    global define list<string> getBootloaders () ``{
+	if (Mode::config ())
+	{
+	    return ["grub", "lilo", "elilo", "zipl", "ppc", "default", "none"];
+	}
+	list<string> ret =
+	    [getLoaderType (false),
+	    (string)SCR::Read (.probe.boot_arch)];
+// FIXME uncomment
+//	if (Arch::i386 () || Arch::x86_64 ())
+//	{
+	    ret = (list<string>)merge (ret, ["lilo", "grub"]);
+//	}
+	// in order not to display it twice when "none" is selected
+	ret = filter (string l, ret, {
+	    return l != "none";
+	});
+	ret = toset (ret);
+	ret = add (ret, "none");
+	return ret;
+    }
+
+}
+
+

@@ -1,0 +1,110 @@
+/**
+ * File:
+ *  bootloader_finish.ycp
+ *
+ * Module:
+ *  Step of base instalaltion finish
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: printer_auto.ycp 20576 2004-12-15 15:00:18Z jsrain $
+ *
+ */
+
+{
+
+textdomain "bootloader";
+
+import "Arch";
+import "Bootloader";
+import "Misc";
+import "Mode";
+import "Update";
+
+any ret = nil;
+string func = "";
+map param = $[];
+
+/* Check arguments */
+if(size(WFM::Args()) > 0 && is(WFM::Args(0), string)) {
+    func = (string)WFM::Args(0);
+    if(size(WFM::Args()) > 1 && is(WFM::Args(1), map))
+	param = (map)WFM::Args(1);
+}
+
+y2milestone ("starting bootloader_finish");
+y2debug("func=%1", func);
+y2debug("param=%1", param);
+
+if (func == "Info")
+{
+    return (any)$[
+	"steps" : 3,
+	// progress step title
+	"title" : _("Saving bootloader configuration..."),
+	"when" : [ `installation, `update, `autoinst ],
+    ];
+}
+else if (func == "Write")
+{
+    SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
+    // --------------------------------------------------------------
+    // message after first round of packet installation
+    // now the installed system is run and more packages installed
+    // just warn the user that the screen is going back to text mode
+    // and yast2 will come up again.
+    // dont mention this "going back to text mode" here, maybe this
+    // wont be necessary in the final version
+
+    // we should tell the user to remove the cd on an SMP or Laptop system
+    // where we do a hard reboot. However, the cdrom is still mounted here
+    // and cant be removed.
+
+    if (Arch::s390 ())
+    {
+        // for s390:
+        // Message that will be displayed along with information
+        // how the boot loader was installed
+        Misc::boot_msg = _("
+Your system will now be shut down.
+After shutdown, reload the system
+with the load address of your root DASD.
+");
+    }
+    else
+    {
+        // Final message after all packages from CD1 are installed
+        // and we're ready to start (boot into) the installed system
+        // Message that will be displayed along with information
+        // how the boot loader was installed
+        Misc::boot_msg = _("The system will reboot now...");
+    }
+
+    //--------------------------------------------------------------
+    // Install bootloader (always, see #23018)
+    // should also set Misc::boot_msg appropriate
+
+    if (!Mode::update ())
+    {
+	return Bootloader::Write ();
+    }
+    else
+    {
+	return Bootloader::Update (
+	    Update::installedVersion,
+	    Update::updateVersion);
+    }
+}
+else
+{
+    y2error ("unknown function: %1", func);
+    ret = nil;
+}
+
+y2debug("ret=%1", ret);
+y2milestone("bootloader_finish finished");
+return ret;
+
+
+} /* EOF */

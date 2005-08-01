@@ -1,0 +1,264 @@
+/**
+ * File:
+ *      modules/BootLILO.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Module containing specific functions for LILO configuration
+ *      and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+module "BootLILO";
+
+textdomain "bootloader";
+
+import "Arch";
+import "BootCommon";
+import "Kernel";
+import "Mode";
+import "Pkg";
+import "Storage";
+
+include "bootloader/routines/popups.ycp";
+include "bootloader/routines/dialogs_i386.ycp";
+
+/**
+ * Propose sections to bootloader menu
+ * modifies internal sreuctures
+ */
+global void CreateSections () {
+    list<map<string,any> > out = [
+	BootCommon::CreateLinuxSection ("linux")
+    ];
+    list<string> others = (list<string>)Storage::GetForeignPrimary();
+    if (others != nil && size (others) > 0)
+    {
+	foreach (string o, others, {
+	    list<string> parts = splitstring (o, " ");
+	    while (parts[0]:" " == "")
+		parts = remove (parts, 0);
+	    string dev = parts[0]:"";
+	    parts = remove (parts, 0);
+	    string label = mergestring (parts, " ");
+
+	    // don't add rewritten location (#19990)
+	    if (dev != "" && label != ""
+		&& dev != BootCommon::loader_device
+		&& (
+		    BootCommon::AddFirmwareToBootloader (BootCommon::mbrDisk)
+		    || label != "Vendor diagnostics"
+		)
+	    )
+	    {
+		map<string,any> m = $[
+		    "name" : BootCommon::translateSectionTitle (
+			BootCommon::removeBlanks (label)),
+		    "original_name" : label,
+		    "type" : "chainloader",
+		    "chainloader" : dev,
+		    "__auto" : true,
+		    "__changed" : false,
+		    "__devs" : [dev],
+		    "__type" : label,
+		];
+		out = add (out, m);
+	    }
+	});
+    }
+    out = add (out, BootCommon::CreateLinuxSection ("failsafe"));
+    out = add (out, BootCommon::CreateLinuxSection ("memtest86"));
+//    out = add (out, BootCommon::CreateLinuxSection ("wildcard"));
+    out = filter (map<string,any> s, out, { return s != $[] && s != nil;});
+    BootCommon::sections = out;
+}
+
+/**
+ * Propose global options of bootloader
+ * modifies internal structures
+ */
+global void CreateGlobals () {
+    BootCommon::globals = $[
+	"default" : BootCommon::sections[0, "name"]:"",
+	"timeout" : "8",
+	"gfxmenu" : "/boot/message",
+	"prompt" : "1",
+    ];
+}
+
+// general functions
+
+    /**
+      * Propose bootloader settings
+      */
+    global define void Propose () ``{
+	y2debug ("Started propose: Glob: %1, Sec: %2",
+	    BootCommon::globals, BootCommon::sections);
+	BootCommon::i386LocationProposal ();
+
+	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
+	{
+	    CreateSections ();
+	    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
+	}
+	else
+	{
+            if (Mode::autoinst ())
+            {
+                // TODO whatever will be needed
+		y2debug ("nothing to to in AI mode if sections exist");
+            }
+            else
+		BootCommon::FixSections (BootLILO::CreateSections);
+	}
+	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
+	{
+	    CreateGlobals ();
+	}
+	else
+	{
+            if (Mode::autoinst ())
+            {
+                // TODO whatever will be needed
+		y2debug ("nothing to to in AI mode if globals are defined");
+            }
+            else
+		BootCommon::FixGlobals ();
+	}
+
+	y2milestone ("Proposed sections: %1", BootCommon::sections);
+	y2milestone ("Proposed globals: %1", BootCommon::globals);
+    }
+
+/**
+ * Read settings from disk
+ * @return boolean true on success
+ */
+global boolean Read (boolean reread) {
+    BootCommon::InitializeLibrary (reread, "lilo");
+    if (reread)
+    {
+	BootCommon::ReadFiles ();
+    }
+    BootCommon::DetectDisks ();
+    boolean ret = BootCommon::Read (false);
+    BootCommon::loader_device = BootCommon::globals["stage1_dev"]:"";
+    return ret;
+}
+
+/**
+ * Save all bootloader configuration files to the cache of the PlugLib
+ * PlugLib must be initialized properly !!!
+ * @param clean boolean true if settings should be cleaned up (checking their
+ *  correctness, supposing all files are on the disk
+ * @param init boolean true to init the library
+ * @param flush boolean true to flush settings to the disk
+ * @return boolean true if success
+ */
+global boolean Save (boolean clean, boolean init, boolean flush) {
+    BootCommon::globals["stage1_dev"] = BootCommon::loader_device;
+    boolean ret = BootCommon::Save (clean, init, flush);
+    return ret;
+}
+
+
+/**
+ * Update read settings to new version of configuration files
+ */
+global void Update () {
+    BootCommon::UpdateDeviceMap ();
+    BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
+    BootCommon::UpdateGlobals ();
+    BootCommon::loader_device
+	= BootCommon::UpdateDevice (BootCommon::loader_device);
+}
+
+    /**
+      * Write bootloader settings to disk
+      * @return boolean true on success
+      */
+    global define boolean Write () {
+	boolean ret = BootCommon::UpdateBootloader ();
+	BootCommon::updateMBR ();
+	if (BootCommon::InstallingToFloppy ())
+	{
+	    if (! saveToFLoppyPopup ())
+	    {
+		y2error ("Preparing floppy disk failed.");
+		ret = false;
+	    }
+	}
+	// create backup copy first
+	if (BootCommon::createBackupBS ()
+	    && BootCommon::getDeviceOfRaid (BootCommon::BootPartitionDevice)
+		!= BootCommon::BootPartitionDevice)
+	{
+	    y2milestone ("Creating backup copy to bootsector");
+	    SCR::Execute (.target.bash, sformat ("/sbin/lilo -b %1",
+		BootCommon::BootPartitionDevice));
+	}
+
+	ret = ret && BootCommon::InitializeBootloader ();
+	return ret;
+    }
+
+global map<string,symbol()> Dialogs () {
+    return $[
+	"installation"	: i386InstallDetailsDialog,
+	"loader"	: i386LoaderDetailsDialog,
+    ];
+}
+
+
+/**
+ * Return map of provided functions
+ * @return map map of functions (eg. $["write":BootLILO::Write])
+ */
+global map<string, any> GetFunctions () {
+    return $[
+	"dialogs"	: Dialogs,
+	"read"	: Read,
+	"propose"	: Propose,
+	"save"	: Save,
+	"summary"	: BootCommon::i386Summary,
+	"update"	: Update,
+	"write"	: Write,
+    ];
+}
+
+/**
+  * Initializer of LILO bootloader
+  */
+global void Initializer () {
+    y2milestone ("Called LILO initializer");
+    BootCommon::current_bootloader_attribs = $[
+	"propose" : true,
+	"read" : true,
+	"scratch" : true,
+	"restore_mbr" : true,
+	"bootloader_on_disk" : true,
+    ];
+}
+
+/**
+  * Constructor
+  */
+global void BootLILO () {
+    BootCommon::bootloader_attribs["lilo"] = $[
+	"required_packages" : ["lilo"],
+	"loader_name" : "LILO",
+	"initializer" : BootLILO::Initializer,
+    ];
+}
+
+
+
+}

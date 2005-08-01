@@ -1,0 +1,207 @@
+/**
+ * File:
+ *  confconv.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Testsuite for converting settings between bootloaders
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+
+// testedfiles: BootGRUB.ycp bootloader/routines/confconv.ycp bootloader/grub/misc.ycp
+
+    include "testsuite.ycp";
+    import "Mode";
+
+    map READ_I = $[
+	"target" : $[
+	    "size" : -1,
+	    "tmpdir" : "/tmp/",
+	    "yast2" : nil,
+	],
+	"probe" : $[
+	    "architecture" : "i386",
+	    "has_apm" : true,
+	    "has_pcmcia" : false,
+	    "has_smp" : false,
+	    "system" : [],
+	    "memory" : [],
+	    "cpu" : [],
+	    "cdrom" : $[
+		"manual" : [],
+	    ],
+	    "floppy" : $[
+		"manual" : [],
+	    ],
+	    "is_uml" : false,
+	],
+	"sysconfig" : $[
+	    "console" : $[
+		"CONSOLE_FONT" : "",
+		"CONSOLE_SCREENMAP" : "",
+		"CONSOLE_UNICODEMAP" : "",
+		"CONSOLE_MAGIC" : "",
+		"CONSOLE_ENCODING" : "",
+	    ],
+	    "language" : $[
+		"RC_LANG" : "",
+		"DEFAULT_LANGUAGE" : "",
+	    ],
+	],
+	"etc" : $[
+	    "install_inf" : $[
+		"Cmdline" : "",
+		"Cdrom" : "",
+	    ],
+	],
+	"proc" : $[
+	    "cpuinfo" : $[
+		"value" : $[
+		    "0" : $[
+			"flags" : ""
+		    ],
+		],
+	    ],
+	],
+	"target" : $[
+	    "tmpdir" : "/tmp",
+	    "yast2" : $[],
+	],
+	"product" : $[
+	    "features" : $[
+		"USE_DESKTOP_SCHEDULER" : "0",
+		"ENABLE_AUTOLOGIN" : "0",
+		"EVMS_CONFIG" : "0",
+		"IO_SCHEDULER" : "cfg",
+		"UI_MODE" : "expert",
+		"INCOMPLETE_TRANSLATION_TRESHOLD" : "95",
+	    ]
+	],
+    ];
+    map WRITE_I = $[];
+    map EXEC_I = $[
+	"target" : $[
+	    "bash_output" : $[],
+	],
+    ];
+
+    TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
+    include "bootloader/routines/convert.ycp";
+    import "BootGRUB";
+
+    map EXEC = $["target" : $["bash_output": $["stdout" : "(hd0)"]]];
+    map WRITE = $[];
+    map READ = $[
+	"target" : $[
+	    "string" : "(hd0) /dev/hda
+(hd1)   /dev/ida/c0d0
+(fd0)   /dev/fd0
+",
+	    "yast2" : $[],
+	],
+	"probe" : $[
+	    "boot_arch" : "grub",
+	],
+	"sysconfig" : $[
+	    "bootloader" : $[
+		"LOADER_TYPE" : "grub",
+	    ],
+	],
+    ];
+
+    Mode::SetTest ("testsuite");
+
+    BootGRUB::device_map = [
+	["(hd0)", "/dev/hda"],
+	["(hd1)", "/dev/ida/c0d0"],
+	["(fd0)", "/dev/fd0"],
+    ];
+
+    TEST (``(liloSect2grubSect ([
+	$[ "key" : "label", "value" : "sectlabel"],
+	$[ "key" : "other", "value" : "/dev/hda2"]
+	])), [READ, WRITE, EXEC], 0);
+
+    TEST (``(liloSect2grubSect ([
+	$[ "key" : "label", "value" : "section2"],
+	$[ "key" : "image", "value" : "/boot/vmlinuz"],
+	$[ "key" : "root", "value" : "/dev/hda3"],
+	$[ "key" : "append", "value" : "append_opts"],
+	$[ "key" : "vga", "value" : "789"],
+	$[ "key" : "initrd", "value" : "/boot/initrd"],
+	])), [READ, WRITE, EXEC], 0);
+
+    TEST (``(liloSect2grubSect ([
+        $[ "key" : "label", "value" : "section2"],
+        $[ "key" : "image", "value" : "/boot/vmlinuz"],
+        $[ "key" : "root", "value" : "/dev/hda3"],
+        $[ "key" : "append", "value" : "append_opts"],
+        $[ "key" : "vga", "value" : "789"],
+        ])), [READ, WRITE, EXEC], 0);
+
+    DUMP ("====================================================");
+
+    TEST (``(grubSect2liloSect ([
+	$[ "key" : "title", "value" : "section"],
+	$[ "key" : "makeactive", "value" : "true"],
+	$[ "key" : "chainloader", "value" : "+1"],
+	$[ "key" : "root", "value" : "(hd0,2)"],
+        ])), [READ, WRITE, EXEC], 0);
+
+    TEST (``(grubSect2liloSect ([
+        $[ "key" : "title", "value" : "section"],
+	$[ "key" : "kernel", "value" : "(hd0,0)/vmlinuz root=/dev/hda3 vga=789 app_opt1 app_opt2"],
+        ])), [READ, WRITE, EXEC], 0);
+
+    TEST (``(grubSect2liloSect ([
+        $[ "key" : "title", "value" : "section"],
+        $[ "key" : "kernel", "value" : "(hd0,1)/vmlinuz root=/dev/hda3 app_opt1 app_opt2"],
+        ])), [READ, WRITE, EXEC], 0);
+
+
+    TEST (``(grubSect2liloSect ([
+        $[ "key" : "title", "value" : "section"],
+        $[ "key" : "kernel", "value" : "(hd0,0)/vmlinuz root=/dev/hda3 vga=789 app_opt1 app_opt2"],
+	$[ "key" : "initrd", "value" : "(hd0,0)/initrd"],
+        ])), [READ, WRITE, EXEC], 0);
+
+    DUMP ("====================================================");
+
+    TEST (``(grubGlob2liloGlob ([
+	$[ "key" : "timeout", "value" : 8],
+	$[ "key" : "gfxmenu", "value" : "(hd0,0)/message"],
+	])), [READ, WRITE, EXEC], 0);
+
+    TEST (``(grubGlob2liloGlob ([
+        $[ "key" : "timeout", "value" : 8],
+        $[ "key" : "gfxmenu", "value" : "(hd0,0)/message"],
+	$[ "key" : "hiddenmenu", "value" : "true"],
+        ])), [READ, WRITE, EXEC], 0);
+
+
+    DUMP ("====================================================");
+
+    TEST (``(liloGlob2grubGlob ([
+        $[ "key" : "timeout", "value" : 80],
+        $[ "key" : "message", "value" : "/boot/message"],
+        ])), [READ, WRITE, EXEC], 0);
+
+    TEST (``(liloGlob2grubGlob ([
+        $[ "key" : "timeout", "value" : 80],
+        $[ "key" : "message", "value" : "/boot/message"],
+	$[ "key" : "prompt", "value" : "true"],
+        ])), [READ, WRITE, EXEC], 0);
+
+
+}
+
+

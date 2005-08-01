@@ -1,0 +1,170 @@
+/**
+ * File:
+ *      include/bootloader/routines/i386.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions for i386 architecture
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: lilolike.ycp 23132 2005-04-22 11:17:41Z mvidner $
+ *
+ */
+{
+
+textdomain "bootloader";
+
+// general MBR reading cache
+
+/**
+ * The last disk that was checked for the sequence
+ */
+string _old_mbr_disk = nil;
+
+/**
+ * Contents of the last read MBR
+ */
+string _old_mbr = nil;
+
+// info about ThinkPad
+
+/**
+ * Does MBR contain special thinkpadd stuff?
+ */
+boolean _thinkpad_mbr = nil;
+
+/**
+ * The last disk that was checked for the sequence
+ */
+string _old_thinkpad_disk = nil;
+
+// Info about keeping MBR contents
+
+/**
+ * Keep the MBR contents?
+ */
+boolean _keep_mbr = nil;
+
+/**
+ * Sequence specific for IBM ThinkPad laptops, see bug 86762
+ */
+string thinkpad_seq = "50e46124108ae0e461241038e074f8e2f458c332edb80103ba8000cd13c3be05068a04240cc0e802c3";
+
+/**
+ * Get the contents of the MBR of a disk
+ * @param disk string the disk to be checked
+ * @return strign the contents of the MBR of the disk in hexa form
+ */
+string GetMBRContents (string disk) {
+    if (_old_mbr == nil || disk != _old_mbr_disk)
+    {
+	_old_mbr_disk = disk;
+	map out = (map)SCR::Execute (.target.bash_output, sformat (
+	    "dd if=%1 bs=512 count=1 | od -v -t x1 -", disk));
+	if (out["exit"]:0 != 0)
+	{
+	    y2error ("Reading MBR contents failed");
+	    return nil;
+	}
+	string mbr = out["stdout"]:"";
+	list<string> mbrl = splitstring (mbr, "\n");
+	mbrl = maplist (string s, mbrl, {
+	    list<string> l = splitstring (s, " ");
+	    l[0] = "";
+	    return mergestring (l, "");
+	});
+	mbr = mergestring (mbrl, "");
+	y2debug ("MBR contents: %1", mbr);
+	_old_mbr = mbr;
+    }
+    return _old_mbr;
+}
+
+/**
+ * Does MBR of the disk contain special IBM ThinkPad stuff?
+ * @param disk string the disk to be checked
+ * @return boolean true if it is MBR
+ */
+global boolean ThinkPadMBR (string disk) {
+    if (_thinkpad_mbr == nil || disk != _old_thinkpad_disk)
+    {
+	_old_thinkpad_disk = disk;
+	string mbr = GetMBRContents (disk);
+	_thinkpad_mbr = issubstring (mbr, thinkpad_seq);
+    }
+    y2milestone ("MBR of %1 contains ThinkPad sequence: %2",
+	disk, _thinkpad_mbr);
+    return _thinkpad_mbr;
+
+}
+
+/**
+ * Keep the MBR contents on the specified disk? Check whether the contents
+ * should be kept because ot contains vendor-specific data
+ * @param disk string the disk to be checked
+ * @return boolean true to keep the contents
+ */
+global boolean KeepMBR (string disk) {
+    if (ThinkPadMBR (disk))
+	return true;
+    return false;
+}
+
+/**
+ * Add the partition holding firmware to bootloader?
+ * @param disk string the disk to be checked
+ * @return boolean true if firmware partition is to be added
+ */
+global boolean AddFirmwareToBootloader (string disk) {
+    return ! ThinkPadMBR (disk);
+}
+
+/**
+ * Display bootloader summary
+ * @return a list of summary lines
+ */
+global list<string> i386Summary () {
+    list<string> ret = Summary ();
+    string order_sum = DiskOrderSummary ();
+    if (order_sum != nil)
+	ret = add (ret, order_sum);
+    return ret;
+}
+
+global void i386LocationProposal () {
+    if (! was_proposed)
+    {
+	DetectDisks ();
+	del_parts = getPartitionList (`deleted);
+    }
+
+    // refresh device map
+    if (device_mapping == nil
+	|| size (device_mapping) == 0)
+    {
+	ProposeDeviceMap ();
+    }
+    boolean disks_changed = RefreshDisks();
+    if (disks_changed && ! Mode::autoinst ())
+    {
+	if (askLocationResetPopup (loader_device))
+	{
+	    selected_location = nil;
+	    loader_device = nil;
+	    DetectDisks ();
+	}
+    }
+
+    // set activate flag
+    if (! activate_changed)
+    {
+	activate
+	    = size (Storage::GetBootPartition (mbrDisk)) == 0;
+    }
+}
+
+} // EOF

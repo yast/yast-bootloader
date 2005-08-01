@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<?$$?>
+<section id = "concept">
+    <title>Bootloader module concept</title>
+
+    <section>
+	<title>Encapsulation</title>
+	<para>
+Every other module, which needs to access bootloader, shouldn't need to know that there are many different boot loaders. Because of this there is the
+<computeroutput>Bootloader</computeroutput> module, which encapsulates functions of other boot loaders, and calls appropriate function of appropriate 
+module depending on currently used bootloader. This interface should stay stable as long as possible, the probability that some internal interfaces will 
+change in future, is much higher.
+	</para>
+    </section>
+
+    <section>
+	<title>One-way import</title>
+	<para>
+Since cyclic importing of modules may bring a lot of problems because of cyclic calling inside constructors, in the whole bootloader module all importing is done
+only one way. The only exception is interaction with Storage module forced by needs to regard the disk situation when deciding what bootloader to use on one side,
+and the need to know what bootloader is used when proposing partitioning on the other side. There is no import cycle inside whole bootloader module, the bootloader
+module's modules are strictly layered, each module imports only modules from bellow layers.
+	</para>
+	<para>
+On the other hand, because calling of functions between modules in both directions can be needed sometimes, calling of two functions from two different modules each other is possible
+if we can be sure that called module has already been loaded.
+	</para>
+    </section>
+
+    <section>
+	<title>Files included only once</title>
+	<para>
+Since included file is parsed on every place where it is included (often many times during one run of YaST2), it takes some time. Because of this include files
+from bootloader-related modules are included into just one module/client file. This brings the advantage of performance, and helps avoiding import-include cycles.
+Since the file is imported by one module only, it isn't needed to import this module nor use it's identifier when accessing it's variables and/or functions.
+Here are two exceptions: One is the pop-ups.ycp include file, which doesn't need any functions of any module from bootloader package, and the other one is ui.ycp,
+which is included by several clients.
+	</para>
+    </section>
+
+    <section>
+	<title>Bootloader dependent/independent parts border</title>
+	<para>
+Since there are many different boot loaders supported (currently should be supported at least LILO, GRUB, ELILO, S390 bootloader and PPC bootloader), there was really needed
+to define clearly the border between code, which is bootloader dependent and code which is bootloader independent.
+	</para>
+	<para>
+There are three main layers. The top one is made by the Bootloader module and it's includes, partially the ui.ycp include. This is the point clients and other
+modules should use to use bootloader functions. This layer is bootloader independent, but there are some locations regarding different boot loaders. There are bootloader
+switching (configuration conversion) mechanisms, bootloader-dependent function choosing mechanism, maybe some others.
+	</para>
+	<para>
+Second, middle layer, is made of bootloader-dependent modules, and their includes. Every supported bootloader should have it's module. It should be the only point,
+where common part of bootloader module accesses the bootloader-dependent parts. This module must contain function describing what function specific to this bootloader
+are present. Should contain all bootloader-specific routines.
+	</para>
+	<para>
+The last, bottom layer, contains routines, which may be used by more boot loaders, and generic versions of bootloader-specific functions, which get called if no specific function
+for currently used bootloader is present. Also contains many variables for storing general information and for some by more bootloader used variables.
+	</para>
+    </section>
+
+    <section>
+	<title>Bootloader attributes</title>
+	<para>
+As many functions for different boot loaders are very similar, but still differ, it would make developers duplicate a lot of code. Because of it many functions use some parameters
+describing bootloader which we are configuring now. These parameters are eg. key of section title in cfg. file, packages required for running the bootloader, and others.
+Functions aren't parameterized by the bootloader, but by these parameters, which results in less "iffing", and adding support for other bootloader means to set these parameters,
+and not update the whole code.
+	</para>
+    </section>
+
+    <section>
+	<title>Installation vs. configuration of installed system</title>
+	<para>
+There is only one module for both of these tasks. Only one UI, only one internals. There are proposing functions available during configuration of installed system,
+this way it is possible to recreate original configuration.
+	</para>
+    </section>
+    <section>
+	<title>Installation</title>
+	<para>
+There is full control of the installation process - not only location and few additional parameters, but everything,
+including bootloader sections and manual editing of future configuration files.
+This brought some problems (because after user creates/modifies sections, many things including disk partitioning may change), but they seem to be
+solved and configuration (automatically set settings) are updated every time disk configuration changes. Sections created/modified by user of course can't be changed.
+	</para>
+    </section>
+    <section>
+	<title>UI</title>
+	<para>
+The concept of UI is described in separate chapter.
+	</para>
+    </section>
+</section>
