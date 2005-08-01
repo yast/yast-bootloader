@@ -512,7 +512,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	if (BootCommon::InstallingToFloppy ())
 	{
 	    BootCommon::updateTimeoutPopupForFloppy
-		(BootCommon::getLoaderName (getLoaderType ()));
+		(BootCommon::getLoaderName (getLoaderType (), `summary));
 	}
 
 

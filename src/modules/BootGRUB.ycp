@@ -586,7 +586,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    else if (BootCommon::InstallingToFloppy ())
 	    {
 		BootCommon::updateTimeoutPopupForFloppy
-		    (BootCommon::getLoaderName ("grub"));
+		    (BootCommon::getLoaderName ("grub", `summary));
 	    }
 	    ret = ret && grub_ret;
 	}

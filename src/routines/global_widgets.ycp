@@ -262,7 +262,7 @@ term LoaderTypeComboWidget () {
 	_("Boot Loader"),
 	maplist (string l,
 	    BootCommon::getBootloaders (), {
-	    return `item (`id (l), BootCommon::getLoaderName (l));
+	    return `item (`id (l), BootCommon::getLoaderName (l, `combo));
 	}));
 }
 
