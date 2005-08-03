@@ -249,6 +249,8 @@ boolean testAbort () {
             return ret;
 	integer index = -1;
 	integer sectnum = -1;
+	if (getLoaderType () == "none")
+	    return ret;
         foreach (map<string,any> s, BootCommon::sections, {
             index = index + 1;
             if (s["name"]:"" == main_section)
