@@ -1,10 +1,11 @@
 -------------------------------------------------------------------
-Wed Aug  3 13:26:24 CEST 2005 - jsrain@suse.cz
+Wed Aug  3 13:50:36 CEST 2005 - jsrain@suse.cz
 
 - do not display additional kernel parameters in summary if no boot
   loader is selected to be installed (#100409)
 - propose not to install bootloader if the available one is not
   supported (#100406)
+- fixed widgets allignment
 
 -------------------------------------------------------------------
 Mon Aug  1 16:21:36 CEST 2005 - jsrain@suse.cz

@@ -796,7 +796,10 @@ map TabsDescr () {
 		    `HSpacing (2),
 		    "loader_type",
 		    `HStretch (),
-		    "loader_options",
+		    `VBox (
+			`Label (""),
+			"loader_options"
+		    ),
 		    `HSpacing (2)
 		),
 		`VSpacing (0.4)
