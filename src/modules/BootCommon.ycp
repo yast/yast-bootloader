@@ -671,6 +671,12 @@ global define boolean Write () {
 	}
     }
 
+string SupportedLoader (string loader) {
+    if (contains (["grub", "lilo", "zipl"], loader))
+	return loader;
+    return "none";
+}
+
     /**
       * Get currently used bootloader, detect if not set yet
       * @param recheck boolean force checking bootloader
@@ -690,6 +696,7 @@ global define boolean Write () {
 		    loader_type = "ppc";
 		else if (loader_type == "s390")
 		    loader_type = "zipl";
+		loader_type = SupportedLoader (loader_type);
 		setCurrentLoaderAttribs (loader_type);
 		return loader_type;
 	    }
@@ -698,6 +705,7 @@ global define boolean Write () {
 		if (Arch::i386 ())
 		{ // no sysconfig variable -> old version installed -> use LILO
 		    loader_type = "lilo";
+		    loader_type = SupportedLoader (loader_type);
 		    setCurrentLoaderAttribs (loader_type);
 		    return loader_type;
 		}
@@ -723,6 +731,7 @@ global define boolean Write () {
 	    prefer_lilo = false;
 	}
 
+	loader_type = SupportedLoader (loader_type);
 	y2milestone ("Detected bootloader %1", loader_type);
 	setCurrentLoaderAttribs (loader_type);
 	return loader_type;
