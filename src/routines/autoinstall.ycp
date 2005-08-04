@@ -170,7 +170,7 @@
 	}
 
 	// global stuff
-	if (haskey (ai, "global") && is (ai["global"]:nil, map))
+	if ((! haskey (ai, "global")) || is (ai["global"]:nil, map))
 	{
 	    exp["specific", "global"] = maplist (string k, any v,
 		ai["global"]:$[],
@@ -182,6 +182,7 @@
 	{
 	    old_format = true;
 	}
+	y2milestone ("SLES9 format detected: %1", old_format);
 	if (old_format)
 	{
 	    list<list<map> > sections = ai["sections"]:[];
