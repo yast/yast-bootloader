@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug  4 08:03:23 CEST 2005 - jsrain@suse.cz
+
+- do not offer GRUB and LILO on all architectures (#100219)
+
+-------------------------------------------------------------------
 Wed Aug  3 13:50:36 CEST 2005 - jsrain@suse.cz
 
 - do not display additional kernel parameters in summary if no boot
