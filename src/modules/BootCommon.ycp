@@ -790,11 +790,10 @@ string SupportedLoader (string loader) {
 	list<string> ret =
 	    [getLoaderType (false),
 	    (string)SCR::Read (.probe.boot_arch)];
-// FIXME uncomment
-//	if (Arch::i386 () || Arch::x86_64 ())
-//	{
+	if (Arch::i386 () || Arch::x86_64 ())
+	{
 	    ret = (list<string>)merge (ret, ["lilo", "grub"]);
-//	}
+	}
 	// in order not to display it twice when "none" is selected
 	ret = filter (string l, ret, {
 	    return l != "none";
