@@ -1,6 +1,7 @@
 -------------------------------------------------------------------
-Thu Aug  4 08:03:23 CEST 2005 - jsrain@suse.cz
+Thu Aug  4 15:40:52 CEST 2005 - jsrain@suse.cz
 
+- fixed crash during autoinstallation
 - do not offer GRUB and LILO on all architectures (#100219)
 
 -------------------------------------------------------------------
