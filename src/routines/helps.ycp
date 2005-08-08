@@ -225,9 +225,9 @@ the kernel has booted.</p>");
 
 string AppendHelp () {
     // help text 1/1
-    return _("<p><big><b>Append</b></big><br>
-Use <b>Append</b> to set other parameters to append to the kernel
-command line.</p>");
+    return _("<p><big><b>Other Kernel Parameters</b></big><br>
+Use <b>Other Kernel Parameters</b> to set other parameters to append
+to the kernel command line.</p>");
 }
 
 string ChainloaderHelp () {
