@@ -22,12 +22,31 @@
     import "Kernel";
     import "Mode";
 
+list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
+    sect = maplist (map<string,any> s, sect, {
+	y2milestone ("Updating imported section %1", s);
+	string orig_name = s["original_name"]:s["name"]:"linux";
+	string type = s["type"]:"image";
+	if (type != "image")
+	    return s;
+	s = (map<string,any>)union (
+	    BootCommon::CreateLinuxSection (orig_name),
+	    s);
+	return s;
+    });
+    return sect;
+}
+
     /**
       * Translate the autoinstallation map to the Export map
       * @param ai map the autoinstallation map
       * @return map the export map
       */
     define map<string,any> AI2Export (map<string,any> ai) ``{
+	if (Mode::autoinst ())
+	{
+	    BootCommon::DetectDisks ();
+	}
 	// prepare settings for default bootloader if not specified in the
 	// profile
 	if (Mode::autoinst () && (
@@ -37,6 +56,7 @@
 	) {
 	    ai["loader_type"] = Bootloader::getLoaderType ();
 	}
+	y2milestone ("Bootloader settings from profile: %1", ai);
 
 	// bootloader type and location stuff
 	map<string,any> exp = $[
@@ -154,19 +174,17 @@
 	list<string> section_names = [];
 	if (size (ai["sections"]:[]) > 0)
 	{
-	    exp["specific", "sections"] = maplist (any s, ai["sections"]:[], {
-		if (is (s, map))
-		{
-		    section_names = (list<string>)add (section_names,
-			((map)s)["name"]:"");
-		    return (map<string,any>)s;
-		}
-		else // old format
-		{
+	    foreach (any s, ai["sections"]:[], {
+		if (! is (s, map<string,any>))
 		    old_format = true;
-		    return $[];
-		}
 	    });
+	    if (! old_format)
+	    {
+		list<map<string,any> > sect = (list<map<string,any> >)
+		    ai["sections"]:[];
+		sect = UpdateImportedSections (sect);
+		exp["specific", "sections"] = sect;
+	    }
 	}
 
 	// global stuff
@@ -198,6 +216,8 @@
 	    string file = mergestring (lines, "\n");
 	    BootCommon::InitializeLibrary (true, loader);
 	    BootCommon::SetDeviceMap (BootCommon::device_mapping);
+	    BootCommon::SetSections ([]);
+	    BootCommon::SetGlobal ($[]);
 	    map<string,string> files = BootCommon::GetFilesContents ();
 	    map<string,string> bl2file = $[
 		"grub" : "/boot/grub/menu.lst",
@@ -208,6 +228,7 @@
 	    BootCommon::SetFilesContents (files);
 	    exp["specific", "global"] = BootCommon::GetGlobal ();
 	    list<map<string,any> > sect = BootCommon::GetSections ();
+	    sect = UpdateImportedSections (sect);
 	    exp["specific", "sections"] = sect;
 	    section_names = maplist (map<string,any> s, sect, {
 		return s["name"]:"";
