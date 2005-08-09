@@ -1,9 +1,10 @@
 -------------------------------------------------------------------
-Tue Aug  9 10:17:11 CEST 2005 - jsrain@suse.cz
+Tue Aug  9 11:19:27 CEST 2005 - jsrain@suse.cz
 
 - don't put 'splash=silent' twice to kernel command line (#102706)
 - install bootloader to boot sector by default only if /boot
   partition is on the first disk (#100728)
+- fixed modification of bootloader sections during installation
 
 -------------------------------------------------------------------
 Mon Aug  8 10:37:49 CEST 2005 - jsrain@suse.cz
