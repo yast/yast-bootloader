@@ -388,6 +388,17 @@ Select a course of action:");
     return nil;
 }
 
+boolean LoaderTypeValidate (string widgget, map event){
+    if (event["ID"]:nil == "sections"
+	&& BootCommon::getLoaderType (false) == "none")
+    {
+	// popup message
+	Popup::Message (_("Select the boot loader before editing sections."));
+	return false;
+    }
+    return true;
+}
+
 // loader target widget
 
 /**
@@ -836,6 +847,8 @@ map<string,map<string,any> > CommonGlobalWidgets () {
 	"init" : LoaderTypeComboInit,
 	"handle" : LoaderTypeComboHandle,
 	"help" : LoaderTypeHelp (),
+	"validate_type" : `function,
+	"validate_function" : LoaderTypeValidate,
     ],
     "loader_options" : $[
 	"widget" : `push_button,

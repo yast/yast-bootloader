@@ -55,6 +55,10 @@ cannot be installed properly."));
 	"manual_edit"		: ``(runEditFilesDialog ()),
     ];
 
+    return_tab = Bootloader::getLoaderType () != "none"
+	? "sections"
+	: "installation";
+
     map sequence = $[
 	"ws_start" : "main",
 	"main" : $[
