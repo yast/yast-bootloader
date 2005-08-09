@@ -358,7 +358,12 @@ global map<string,any> CreateLinuxSection (string title) {
 	"__type" : title,
     ];
     if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
-	ret["vga"] = Kernel::GetVgaType ();
+    {
+	if (title == "failsafe")
+	    ret["vga"] = "normal";
+	else
+	    ret["vga"] = Kernel::GetVgaType ();
+    }
     if (title == "xen")
     {
 	ret["xen"] = "/boot/xen.gz";
