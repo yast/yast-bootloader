@@ -89,7 +89,7 @@ include "bootloader/routines/dialogs_i386.ycp";
 
 	string tmpdir = (string)SCR::Read (.target.tmpdir) + "/bldetect/";
 
-	if (merge_level != `none && other_l != nil && size (other_l) > 0
+	if (false && merge_level != `none && other_l != nil && size (other_l) > 0
 	    && 0 == SCR::Execute (.target.bash, sformat (
 		"test -d %1 || /bin/mkdir %1", tmpdir))
 	    )

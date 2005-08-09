@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Tue Aug  9 13:29:59 CEST 2005 - jsrain@suse.cz
+Tue Aug  9 15:36:57 CEST 2005 - jsrain@suse.cz
 
 - don't put 'splash=silent' twice to kernel command line (#102706)
 - install bootloader to boot sector by default only if /boot
@@ -11,6 +11,8 @@ Tue Aug  9 13:29:59 CEST 2005 - jsrain@suse.cz
 - updated help text for bootloader location (#102626)
 - fixed syntax of created lilo.conf (vga= cannot be in append)
   (#102942)
+- displaying meaningful information for chainloader sections
+  (#103008)
 
 -------------------------------------------------------------------
 Mon Aug  8 10:37:49 CEST 2005 - jsrain@suse.cz

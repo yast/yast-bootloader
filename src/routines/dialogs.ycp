@@ -195,11 +195,7 @@ symbol ChainloaderSectionDialog () {
             `VSpacing (2),
             `HBox (
                 `HSpacing (4),
-                `ComboBox (`id (`device), `opt (`editable, `hstretch), _("Device"), ["/dev/hda1", "/dev/hda2", "other as detected"]),
-                `VBox (
-                    `Label (" "),
-                    `PushButton (`id (`browse), _("Browse..."))
-                ),
+		"chainloader",
                 `HSpacing (4)
             ),
             `VSpacing (2)
