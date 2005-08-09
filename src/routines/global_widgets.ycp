@@ -90,7 +90,7 @@ void RedrawSectionsTable (list<map<string,any> > sects) {
 		    == tolower (s["name"]:"")
 		? UI::Glyph (`CheckMark) : "",
 	    s["name"]:"",
-	    image == nil ? _("Other") : _("Image"),
+	    (image == nil || image == "") ? _("Other") : _("Image"),
 	    (image != "" && image != nil)
 		? sformat ("%1   (%2%3)",
 		    image,

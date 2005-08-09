@@ -114,6 +114,15 @@ void KernelImageInit (string widget) {
     SectionOptionInit (widget);
 }
 
+symbol KernelImageHandle (string widget, map event) {
+    string current = (string)UI::QueryWidget (`id (widget), `Value);
+    // file open popup caption
+    current = UI::AskForExistingFile (current, "*", _("Kernel Image"));
+    if (current != nil)
+	UI::ChangeWidget (`id (widget), `Value, current);
+    return nil;
+}
+
 /**
  * Init function of widget
  * @param widget any id of the widget
@@ -128,6 +137,16 @@ void InitrdInit (string widget) {
     UI::ChangeWidget (`id (widget), `Items, available);
     SectionOptionInit (widget);
 }
+
+symbol InitrdHandle (string widget, map event) {
+    string current = (string)UI::QueryWidget (`id (widget), `Value);
+    // file open popup caption
+    current = UI::AskForExistingFile (current, "*", _("Initial Ramdisk"));
+    if (current != nil)
+	UI::ChangeWidget (`id (widget), `Value, current);
+    return nil;
+}
+
 
 /**
  * Init function of widget
@@ -168,6 +187,15 @@ void ChainloaderInit (string widget) {
     list<string> available = BootCommon::getPartitionList (`boot_other);
     UI::ChangeWidget (`id (widget), `Items, available);
     SectionOptionInit (widget);
+}
+
+symbol ChainloaderHandle (string widget, map event) {
+    string current = (string)UI::QueryWidget (`id (widget), `Value);
+    // file open popup caption
+    current = UI::AskForExistingFile (current, "*", _("Device To Boot"));
+    if (current != nil)
+	UI::ChangeWidget (`id (widget), `Value, current);
+    return nil;
 }
 
 /**
@@ -266,11 +294,14 @@ map<string,map<string,any> > CommonSectionWidgets () {
 			    []),
 			`VBox (
 			    `Label (""),
-			    `PushButton (`id (`browse), Label::BrowseButton ())
+			    `PushButton (`id (`kernel_browse),
+				Label::BrowseButton ())
 			)
 		    ),
 		"init" : KernelImageInit,
 		"help" : KernelHelp (),
+		"handle" : KernelImageHandle,
+		"handle_events" : [ `kernel_browse ],
 	    ],
 	    "initrd" : $[
 		"widget" : `custom,
@@ -285,10 +316,13 @@ map<string,map<string,any> > CommonSectionWidgets () {
 			    []),
 			`VBox (
 			    `Label (""),
-			    `PushButton (`id (`browse), Label::BrowseButton ())
+			    `PushButton (`id (`initrd_browse),
+				Label::BrowseButton ())
 			)
 		    ),
 		"init" : InitrdInit,
+		"handle" : InitrdHandle,
+		"handle_events" : [ `initrd_browse ],
 		"help" : InitrdHelp (),
 	    ],
 	    "root" : $[
@@ -324,11 +358,13 @@ map<string,map<string,any> > CommonSectionWidgets () {
 			    ? `VBox ()
 			    : `VBox (
 				`Label (""),
-				`PushButton (`id (`browse),
+				`PushButton (`id (`chainloader_browse),
 				    Label::BrowseButton ())
 			    )
 		    ),
 		"init" : ChainloaderInit,
+		"handle" : ChainloaderHandle,
+		"handle_events" : [ `chainloader_browse ],
 		"help" : ChainloaderHelp (),
 	    ],
 	    "section_type" : $[
