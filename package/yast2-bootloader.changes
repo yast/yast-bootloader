@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug  9 09:55:08 CEST 2005 - jsrain@suse.cz
+
+- don't put 'splash=silent' twice to kernel command line (#102706)
+
+-------------------------------------------------------------------
 Mon Aug  8 10:37:49 CEST 2005 - jsrain@suse.cz
 
 - fixed importing settings during autoinstallation, avoiding crash

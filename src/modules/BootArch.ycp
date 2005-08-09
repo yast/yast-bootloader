@@ -67,15 +67,17 @@ global string DefaultKernelParams (string resume) {
 	string resumestring = "";
 	if (resume != "")
 	    resumestring = sformat ("resume=%1", resume);
-	return sformat ("%1 %2 %3 %4 %5 %6",
+	string ret = sformat ("%1 %2 %3 %4",
 	    "selinux=0",
 	    Kernel::GetCmdLine (),
 	    resumestring,
 	    ProductFeatures::GetStringFeature (
 		"globals",
-		"additional_kernel_parameters"),
-	    "splash=silent",
-	    "showopts");
+		"additional_kernel_parameters"));
+	if (regexpmatch (ret, "^(.* )?splash=[a-z]+( .*)?$"))
+	    ret = regexpsub (ret, "^((.* ))?splash=[a-z]+(( .*)?)$", "\\1 \\3");
+	ret = ret + " splash=silent showopts";
+	return ret;
     }
     else if (Arch::ia64 ())
     {
