@@ -121,7 +121,8 @@ on the computer.</p>");
 - In the <b>Boot Sector</b> of the <tt>/boot</tt> or <tt>/</tt> (root) 
 partition.  This is the recommended option whenever there is a suitable
 partition. Either set <b>Activate Bootloader Partition</b> and
-<b>Replace MBR with Generic Code</b> to update the master boot record
+<b>Replace MBR with Generic Code</b> in <b>Boot Loader Installation Details</b>
+to update the master boot record
 if it is needed, or configure your other boot manager
 to start &product;.</p>");
 
