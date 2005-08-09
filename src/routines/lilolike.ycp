@@ -143,7 +143,7 @@ global string FindMBRDisk() {
 	});
 	boolean keep_mbr = KeepMBR (loader_device);
 	// if is primary, store bootloader there
-	if (! is_logical)
+	if (disk == mbrDisk && ! is_logical)
 	{
 	    selected_location = "boot";
 	    loader_device = BootPartitionDevice;
