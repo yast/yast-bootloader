@@ -487,7 +487,7 @@ global void FixSections (void() create_sections) {
 	    map<string,any> new_this_section = new_sect[type]:$[];
 	    if (new_this_section == $[])
 		return $[];
-	    list new_devs = toset(new_this_section["devs"]:[]);
+	    list new_devs = toset(new_this_section["__devs"]:[]);
 	    list old_devs = toset(s["__devs"]:[]);
 	    if (size (new_devs) != size (old_devs))
 		cont = false;
