@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 10 09:07:24 CEST 2005 - jsrain@suse.cz
+
+- fixed changing the order of disks (#102964)
+
+-------------------------------------------------------------------
 Tue Aug  9 15:36:57 CEST 2005 - jsrain@suse.cz
 
 - don't put 'splash=silent' twice to kernel command line (#102706)

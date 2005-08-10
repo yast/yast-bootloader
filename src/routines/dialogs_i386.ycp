@@ -184,12 +184,13 @@ symbol i386InstallDetailsDialog () {
 	{
 	    return substring (v, 0, 3) != "(hd";
 	});
+	BootCommon::mbrDisk = disks_order[0]:"";
 	BootCommon::device_mapping = (map<string,string>)union (
 	    BootCommon::device_mapping,
 	    listmap (string d, disks_order, {
 		string hex_index = substring (tohexstring (index), 2);
-		 return $[ d : sformat ("(hd%1)", hex_index) ];
 		index = index + 1;
+		return $[ d : sformat ("(hd%1)", hex_index) ];
 	    })
 	);
 	BootCommon::repl_mbr = (boolean)
