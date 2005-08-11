@@ -566,7 +566,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 		if (title == getDefaultSection ())
 		    default_image = title;
 	    }
-	    if (defaultv == "" && s["__type"]:"" == "linux")
+	    if (defaultv == "" && s["original_name"]:"" == "linux")
 		defaultv = title;
 	});
 	if (defaultv != "")
@@ -587,7 +587,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	// check if there is already present "Previous" section
 	BootCommon::sections = filter (map<string,any> s,BootCommon::sections,{
 	    string title = s["name"]:"";
-	    string type = s["__type"]:"";
+	    string type = s["original_name"]:"";
 	    boolean preserve = type != "previous" && title != "previous"
 		&& BootCommon::translateSectionTitle (title) != "previous";
 	    return preserve;

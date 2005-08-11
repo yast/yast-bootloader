@@ -175,7 +175,6 @@ include "bootloader/routines/dialogs_i386.ycp";
 			    // no need to translate here...
 			    s["name"] = sformat ("%2 (%1)",
 				dev, s["name"]:"");
-			    s["__type"] = s["name"]:"";
 			    s["original_name"] = s["name"]:"";
 			    list<string> devs = [];
 			    list<string> _dp = [];
@@ -236,7 +235,6 @@ include "bootloader/routines/dialogs_i386.ycp";
 				"__changed" : false,
 				"__auto" : true,
 				"__devs" : [dev],
-				"__type" : label,
 			    ];
 			   out = add (out, m);
 			}
@@ -248,13 +246,12 @@ include "bootloader/routines/dialogs_i386.ycp";
 	{
             out = add (out, $[
 		"name" : BootCommon::translateSectionTitle("hard disk"),
-		"original_name" : "hard disk",
+		"original_name" : "hard_disk",
 		"type" : "chainloader",
 		"chainloader" : BootCommon::mbrDisk,
 		"__changed" : false,
                 "__auto" : true,
                 "__devs" : [],
-		"__type" : "hard_disk",
             ]);
 	}
 	else if (StorageDevices::FloppyPresent)
@@ -267,7 +264,6 @@ include "bootloader/routines/dialogs_i386.ycp";
                 "__changed" : false,
                 "__auto" : true,
                 "__devs" : [],
-		"__type" : "floppy",
 	    ]);
 	}
 	out = add (out, BootCommon::CreateLinuxSection ("failsafe"));

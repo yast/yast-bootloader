@@ -1164,7 +1164,10 @@ global list<string> ListKernelParamsInLine (string line) {
 		    string command = sformat
 			("/sbin/activate %2 %1", num, mbr_dev);
 		    y2milestone ("Running command %1", command);
-		    ret = ret && (0 == SCR::Execute (.target.bash, command));
+		    map out = (map)SCR::Execute (.target.bash_output, command);
+		    integer exit = out["exit"]:0;
+		    y2milestone ("Command output: %1", out);
+		    ret = ret && (0 == exit);
 		}
 	    }
 	    else
@@ -1184,10 +1187,15 @@ global list<string> ListKernelParamsInLine (string line) {
 	    list<string> disks_to_rewrite = getMbrsToRewrite ();
 	    foreach (string d, disks_to_rewrite, {
 		y2milestone ("Copying generic MBR code to %1", d);
-		ret = ret && (0 == SCR::Execute (.target.bash, sformat (
+		string command = sformat (
 		    "/bin/dd bs=446 count=1 if=%1 of=%2",
-			"/usr/lib/boot/master-boot-code",
-			BootCommon::mbrDisk)));
+		    "/usr/lib/boot/master-boot-code",
+		    BootCommon::mbrDisk);
+		y2milestone ("Running command %1", command);
+		map out = (map)SCR::Execute (.target.bash_output, command);
+		integer exit = out["exit"]:0;
+		y2milestone ("Command output: %1", out);
+		ret = ret && (0 == exit);
 	    });
 	}
 	return ret;
@@ -1727,7 +1735,6 @@ global map<string,any> Linux2Previous (map<string,any> section) {
 	    "^(.*)initrd[^ ]*(.*)$",
 	    "\\1initrd.previous\\2");
     }
-    section["__type"] = "previous";
     return section;
 }
 
@@ -1860,14 +1867,7 @@ global boolean BootloaderInstallable () {
     }
 }
 
-/**
- * Get creator type of the section
- * @param section map section description structure
- * @return string section type
- */
-string getCreationType (map<string,any> section) {
-    return section["__type"]:"";
-}
+
 
 
 } //end of include

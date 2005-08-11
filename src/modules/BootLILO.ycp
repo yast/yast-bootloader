@@ -68,7 +68,6 @@ global void CreateSections () {
 		    "__auto" : true,
 		    "__changed" : false,
 		    "__devs" : [dev],
-		    "__type" : label,
 		];
 		out = add (out, m);
 	    }

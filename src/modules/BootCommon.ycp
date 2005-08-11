@@ -330,7 +330,6 @@ global map<string,any> CreateLinuxSection (string title) {
 		"__auto" : true,
 		"__changed" : false,
 		"__devs" : [BootCommon::BootPartitionDevice],
-		"__type" : "memtest86",
 	    ];
 	}
 	else
@@ -357,7 +356,6 @@ global map<string,any> CreateLinuxSection (string title) {
 	"__auto" : true,
 	"__changed" : false,
 	"__devs" : [BootPartitionDevice, RootPartitionDevice],
-	"__type" : title,
     ];
     if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
     {
@@ -370,6 +368,7 @@ global map<string,any> CreateLinuxSection (string title) {
     {
 	ret["xen"] = "/boot/xen.gz";
 	ret["xen_append"] = sformat ("dom0_mem=%1", Dom0MemorySize ());
+	ret["kernel"] = "/boot/" + Kernel::GetBinary () + "-xen";
     }
     else if (title == "wildcard")
     {
@@ -466,9 +465,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if (clean)
     {
 	BootCommon::RemoveUnexistentSections ("", "");
-y2internal ("2: %1", BootCommon::sections);
 	BootCommon::UpdateInitrdLine ();
-y2internal ("3: %1", BootCommon::sections);
 	BootCommon::UpdateAppend ();
 	BootCommon::UpdateGfxMenu ();
     }
