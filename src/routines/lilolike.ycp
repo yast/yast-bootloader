@@ -453,12 +453,12 @@ global void FixSections (void() create_sections) {
 	sections,
     {
 	string label = s["name"]:"";
-	string type = s["__type"]:label;
+	string type = s["original_name"]:label;
 	return $[type: s];
     });
     old_sect_list = maplist (map<string,any> s, old_sect_list, {
 	string label = s["name"]:"";
-	string type = s["__type"]:label;
+	string type = s["original_name"]:label;
 	if (! s["__auto"]:false)
 	{
 	    y2milestone ("Leaving section %1", label);
@@ -574,7 +574,7 @@ global void UpdateSections (boolean replace,
 	boolean f_changed = false;
 	out = maplist (map<string,any> s, out, {
 	    string label = s["name"]:"";
-	    string sect_type = s["__type"]:"";
+	    string sect_type = s["original_name"]:"";
 	    if (sect_type == "")
 		sect_type = label;
 	    if (sect_type == t)
@@ -619,7 +619,7 @@ global void UpdateSections (boolean replace,
 
     out = maplist (map<string,any> s, out, {
 	string label = s["name"]:"";
-	string type = s["__type"]:label;
+	string type = s["original_name"]:label;
 	foreach (string key, ["kernel", "initrd"], {
 	    string value = s[key]:"";
 	    if (regexpmatch (value, "^.*\.shipped.*$"))
@@ -738,7 +738,7 @@ global void RemoveUnexistentSections (string path_prefix,
 	    return true;
 	}
 
-	string type = s["__type"]:"";
+	string type = s["original_name"]:"";
         if (label == "")
 	{
 	    y2warning ("Removing section with empty title");
@@ -788,7 +788,7 @@ global void UpdateInitrdLine () {
     sections = maplist (map<string,any> s, sections, {
         string initrd = s["initrd"]:"";
 	string title = s["name"]:"";
-	string type = s["__type"]:"";
+	string type = s["original_name"]:"";
 
 	// do not touch the wildcard section
 	if (regexpmatch (s["initrd"]:"", ".+\\-\\*"))
@@ -815,7 +815,7 @@ global void UpdateInitrdLine () {
   */
 global void UpdateAppend () {
     sections = maplist (map<string,any> s, sections, {
-	string type = s["__type"]:"";
+	string type = s["original_name"]:"";
         if ((type == "linux" || type == "wildcard" || type == "global")
 	    && s["append"]:nil != nil
 	    && Stage::initial ())
