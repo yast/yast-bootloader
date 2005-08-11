@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 11 09:16:32 CEST 2005 - jsrain@suse.cz
+
+- set correct parameters to failsafe kernel (#103865)
+
+-------------------------------------------------------------------
 Wed Aug 10 09:07:24 CEST 2005 - jsrain@suse.cz
 
 - fixed changing the order of disks (#102964)

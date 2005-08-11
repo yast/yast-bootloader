@@ -351,7 +351,9 @@ global map<string,any> CreateLinuxSection (string title) {
 	"kernel" : kernel_fn,
 	"initrd" : initrd_fn,
 	"root" : RootPartitionDevice,
-	"append" : BootArch::DefaultKernelParams (resume),
+	"append" : (title == "failsafe")
+	    ? BootArch::FailsafeKernelParams ()
+	    : BootArch::DefaultKernelParams (resume),
 	"__auto" : true,
 	"__changed" : false,
 	"__devs" : [BootPartitionDevice, RootPartitionDevice],

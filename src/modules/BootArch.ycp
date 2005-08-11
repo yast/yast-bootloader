@@ -47,6 +47,10 @@ global string FailsafeKernelParams () {
     {
 	ret = "ide=nodma nohalt noresume selinux=0 barrier=off";
     }
+    else
+    {
+	y2warning ("Parameters for Failsafe boot option not defined");
+    }
     if (Stage::initial ())
     {
 	if (Linuxrc::InstallInf ("NOPCMCIA") == "1")
@@ -59,6 +63,7 @@ global string FailsafeKernelParams () {
 	ret = ret + " " + saved_params["additional_failsafe_params"]:"";
     }
     ret = ret + " 3";
+    return ret;
 }
 
 global string DefaultKernelParams (string resume) {
@@ -96,7 +101,8 @@ global string DefaultKernelParams (string resume) {
     }
     else
     {
-	return "";
+	y2warning ("Default kernel parameters not defined");
+	return Kernel::GetCmdLine ();
     }
 }
 
