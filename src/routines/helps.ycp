@@ -214,7 +214,7 @@ string RootDeviceHelp () {
     // help text 1/1
     return _("<p><big><b>Root Device<b></big><br>
 Use <b>Root Device</b> to specify the root file system to mount after kernel is
-loaded.");
+loaded.</p>");
 }
 
 string VgaModeHelp () {

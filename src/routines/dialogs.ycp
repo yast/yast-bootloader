@@ -139,7 +139,7 @@ symbol KernelSectionDialog () {
 
     term contents = `HBox (`HSpacing (2), `VBox (
         `VStretch (),
-        `Left (`Heading ("Kernel Section")),
+        `Left (`Heading (_("Kernel Section"))),
 	`VSpacing (1),
 	"name",
         `VStretch (),

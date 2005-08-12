@@ -69,15 +69,15 @@ symbol i386InstallDetailsDialog () {
 	    `VSpacing (1),
 	    `Left (`CheckBox (`id (`repl_mbr),
 		// check box
-		_("Replace MBR with Generic Code"))),
+		_("R&eplace MBR with Generic Code"))),
 	    `Left (`CheckBox (`id (`activate),
 		// check box
-		_("Activate Boot Loader Partition"))),
+		_("&Activate Boot Loader Partition"))),
 	    BootCommon::getLoaderType (false) == "grub"
 		    && BootCommon::allowEmbed15 ()
 		? `Left (`CheckBox (`id (`embed),
 		    // check box
-		    _("Use Dedicated Boot Loader Area")))
+		    _("U&se Dedicated Boot Loader Area")))
 		: `VBox (),
 	    `VSpacing (1)
 	), `HSpacing (2))),

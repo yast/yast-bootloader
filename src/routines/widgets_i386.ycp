@@ -18,6 +18,8 @@
 
 {
 
+textdomain "bootloader";
+
 include "bootloader/routines/popups.ycp";
 
 void InitBootMenu (string key) {
@@ -55,13 +57,13 @@ map<string,any> BootMenuWidget () {
 	    `HSpacing (2), `VBox (
 		`VSpacing (0.4),
 		// check box
-		`Left (`CheckBox (`id (`show_menu), _("Show Boot Menu"))),
+		`Left (`CheckBox (`id (`show_menu), _("&Show Boot Menu"))),
 		`VSpacing (0.4),
 		`Left (`CheckBox (`id (`timeout_act), `opt (`notify),
 		    // check box
 		    _("&Continue booting after a timeout"))),
 		// integer field
-		`IntField (`id (`timeout), _("Boot Menu Time-Out"), 0, 60, 0),
+		`IntField (`id (`timeout), _("Boot &Menu Time-Out"), 0, 60, 0),
 		`VSpacing (0.4)
 	    ), `HSpacing (2)
 	)),
@@ -183,7 +185,7 @@ map<string,any> PasswordWidget () {
 		`HSpacing (2), `VBox (
 		    `Left (`CheckBox (`id (`use_pas), `opt (`notify),
 			// check box
-			_("Protect Boot Loader with Password"))),
+			_("Prot&ect Boot Loader with Password"))),
 		    `HBox (
 			// text entry
 			`Password (`id (`pw1), _("&Password")),
