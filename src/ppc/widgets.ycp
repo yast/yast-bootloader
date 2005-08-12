@@ -147,7 +147,9 @@
       */
     global define string setDefaultOFSummary (any opt_id, string opt_key) ``{
 	return of_defaultdevice
+	    // table cell
 	    ? _("Yes")
+	    // table cell
 	    : _("No");
     }
 

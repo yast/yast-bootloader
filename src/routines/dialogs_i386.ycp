@@ -35,6 +35,7 @@ include "bootloader/routines/widgets_i386.ycp";
 symbol i386InstallDetailsDialog () {
     term contents = `HBox (`HStretch (), `VBox (
 	`VStretch (),
+	// frame
 	`Frame (_("Disk Order"),
 	    `HBox (`HSpacing (2), `VBox (
 		    `VSpacing (1),
@@ -85,6 +86,7 @@ symbol i386InstallDetailsDialog () {
     ), `HStretch ());
 
     Wizard::SetContentsButtons (
+	// dialog caption
 	_("Boot Loader Installation Details"),
 	contents,
 	i386InstallDetailsHelp (),

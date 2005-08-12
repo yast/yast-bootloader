@@ -574,8 +574,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    {
 		string log = (string)SCR::Read (.target.string,
 		    "/var/log/YaST2/y2log_tool_grub");
-		// error popup - label, %1 is bootloader name
                 errorWithLogPopup (sformat (
+		    // error popup - label, %1 is bootloader name
 		    _("Error occurred while installing %1."), "GRUB"),
                     log);
 	    }

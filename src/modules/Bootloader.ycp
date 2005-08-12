@@ -265,6 +265,7 @@ boolean testAbort () {
 	if (size (filtered_cmdline) > 0)
 	{
 	    ret = add (ret, sformat (
+		// part of summary, %1 is a part of kernel command line
 		_("Added Kernel Parameters: %1"),
 		Kernel::GetCmdLine ()));
 	}

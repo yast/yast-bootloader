@@ -22,7 +22,11 @@ textdomain "bootloader";
 
 include "bootloader/routines/popups.ycp";
 
-void InitBootMenu (string key) {
+/**
+ * Init function of widget
+ * @param widget string id of the widget
+ */
+void InitBootMenu (string widget) {
     boolean timeout_active = haskey (BootCommon::globals, "timeout");
     UI::ChangeWidget (`id (`timeout_act), `Value, timeout_active);
     UI::ChangeWidget (`id (`timeout), `Enabled, timeout_active);
@@ -32,7 +36,12 @@ void InitBootMenu (string key) {
     UI::ChangeWidget (`id (`show_menu), `Value, show_menu);
 }
 
-void StoreBootMenu (string key, map event) {
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
+void StoreBootMenu (string widget, map event) {
     integer timeout = (integer)UI::QueryWidget (`id (`timeout), `Value);
     boolean timeout_act = (boolean)UI::QueryWidget (`id (`timeout_act), `Value);
     if (timeout_act)
@@ -43,12 +52,22 @@ void StoreBootMenu (string key, map event) {
     BootCommon::globals["prompt"] = show_menu ? "1" : "0";
 }
 
+/**
+ * Handle function of a widget
+ * @param key any widget key
+ * @param event map event description of event that occured
+ * @return symbol always nil
+ */
 symbol HandleBootMenu (string key, map event) {
     boolean active = (boolean)UI::QueryWidget (`id (`timeout_act), `Value);
     UI::ChangeWidget (`id (`timeout), `Enabled, active);
     return nil;
 }
 
+/**
+ * Build a map describing a widget
+ * @return a map describing a widget
+ */
 map<string,any> BootMenuWidget () {
     return $[
 	"widget" : `custom,
@@ -76,10 +95,10 @@ map<string,any> BootMenuWidget () {
 }
 
 /**
- * Init function of a popup
- * @param key any widget key
+ * Init function of widget
+ * @param widget string id of the widget
  */
-void InitPasswdWidget (string key) {
+void InitPasswdWidget (string widget) {
     string passwd = BootCommon::globals["password"]:"";
     if (passwd == nil || passwd == "")
     {
@@ -102,11 +121,11 @@ void InitPasswdWidget (string key) {
 
 /**
  * Handle function of a widget
- * @param key any widget key
+ * @param widget string id of the widget
  * @param event map event description of event that occured
  * @return symbol always nil
  */
-symbol HandlePasswdWidget (string key, map event) {
+symbol HandlePasswdWidget (string widget, map event) {
     if (event["ID"]:nil == `use_pas)
     {
 	boolean enabled = (boolean)UI::QueryWidget (`id (`use_pas), `Value);
@@ -119,6 +138,7 @@ symbol HandlePasswdWidget (string key, map event) {
 /**
  * Store function of a popup
  * @param key any widget key
+ * @param event map event that caused the operation
  */
 void StorePasswdWidget (string key, map event) {
     string password = nil;
@@ -174,7 +194,10 @@ boolean ValidatePasswdWidget (string key, map event) {
 
 
 
-
+/**
+ * Build a map describing a widget
+ * @return a map describing a widget
+ */
 map<string,any> PasswordWidget () {
     return $[
 	"widget" : `custom,
@@ -205,8 +228,15 @@ map<string,any> PasswordWidget () {
     ];
 }
 
+/**
+ * Cache for i386Widgets function
+ */
 map<string,map<string,any> > _i386_widgets = nil;
 
+/**
+ * Get widgets specific for i386
+ * @return a map describing all i386-specific widgets
+ */
 map<string,map<string,any> > i386Widgets () {
     if (_i386_widgets == nil)
     {
