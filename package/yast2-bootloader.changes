@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 12 09:28:42 CEST 2005 - jsrain@suse.cz
+
+- fixed several errors in code, added missign shortcuts
+
+-------------------------------------------------------------------
 Thu Aug 11 15:24:52 CEST 2005 - jsrain@suse.cz
 
 - set correct parameters to failsafe kernel (#103865)

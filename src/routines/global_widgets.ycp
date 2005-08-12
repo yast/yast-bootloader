@@ -259,7 +259,7 @@ term LoaderTypeComboWidget () {
     return `ComboBox (`id ("loader_type"),
 	`opt (`notify),
 	// combo box
-	_("Boot Loader"),
+	_("&Boot Loader"),
 	maplist (string l,
 	    BootCommon::getBootloaders (), {
 	    return `item (`id (l), BootCommon::getLoaderName (l, `combo));
