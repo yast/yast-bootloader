@@ -73,6 +73,7 @@ and <b>Retype Password</b>.</p>");
  * @return string help text
  */
 string i386BootMenuHelp () {
+    // help text 1/1
     return _("<p><big><b>Boot Menu</b></big><br>
 To show the boot loader menu during the boot process, set
 <b>Show Boot Menu</b>, otherwise the boot loader menu will be hidden.

@@ -139,10 +139,12 @@ symbol KernelSectionDialog () {
 
     term contents = `HBox (`HSpacing (2), `VBox (
         `VStretch (),
+	// heading
         `Left (`Heading (_("Kernel Section"))),
 	`VSpacing (1),
 	"name",
         `VStretch (),
+	// frame
         `Frame (_("Section Settings"), `HBox (`HSpacing (2), `VBox (
             `VSpacing (1),
 	    "kernel",
@@ -185,12 +187,14 @@ symbol ChainloaderSectionDialog () {
     y2milestone ("Running chainloader section dialog");
 
     term contents = `HBox (`HSpacing (4), `VBox (
+	// label
         `Left (`Heading (_("Other System Section"))),
         `VSpacing (2),
 	"name",
         `VStretch (),
         // part two - section settings
         `HBox (
+	// frame
         `Frame (_("Section Settings"), `HBox (`HSpacing (2), `VBox (
             `VSpacing (2),
             `HBox (

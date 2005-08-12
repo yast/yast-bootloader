@@ -16,14 +16,15 @@
  */
 
 {
-    import "BootGRUB";
-    import "BootLILO";
+
+import "BootGRUB";
+import "BootLILO";
 //    import "BootMILO";
 //    import "BootABOOT";
 //    import "BootELILO";
 //    import "BootPPC";
-    import "BootZIPL";
-    import "BootCommon";
+import "BootZIPL";
+import "BootCommon";
 
     /**
       * Get map of main functions for bootloader
@@ -64,6 +65,7 @@
     /**
       * Import settings to bootloader
       * @param settings map of settingss
+      * @return boolean true on success
       */
     global define boolean blImport (map settings) ``{
 	map functions = getFunctions (BootCommon::getLoaderType (false));
@@ -104,6 +106,9 @@ global define boolean blRead (boolean reread) ``{
 
 /**
  * Save bootloader cfg. files to the cache of the pluglib
+ * @param clean boolean true to perform checks on the settings
+ * @param init boolean true to reinitialize the library
+ * @param flush boolean true to flush the settings to the disk
  * @return boolean true on success
  */
 global boolean blSave (boolean clean, boolean init, boolean flush) {
@@ -115,7 +120,7 @@ global boolean blSave (boolean clean, boolean init, boolean flush) {
 
     /**
       * Get cfg. summary
-      * @return list summary items
+      * @return a list summary items
       */
     global define list<string> blSummary () ``{
         map functions = getFunctions (BootCommon::getLoaderType (false));
@@ -142,19 +147,10 @@ global boolean blSave (boolean clean, boolean init, boolean flush) {
         return toEval ();
     }
 
-    /**
-      * Update bootloader module cfg. sequence
-      * @param ws_data map containing original sequence
-      * @return map updates sequence
-      */
-    global define map blGetSequence (map ws_data) ``{
-	return ws_data; // FIXME
-/*	map functions = getFunctions (BootCommon::getLoaderType (false));
-	map(map) toEval = functions["sequence"]:BootCommon::FixSequence;
-	return toEval (ws_data);*/
-    }
-
-// TODO document
+/**
+ * Get description maps of loader-specific widgets
+ * @return a map containing description of all loader-specific widgets
+ */
 global map<string,map<string,any> > blWidgetMaps () {
     map functions = getFunctions (BootCommon::getLoaderType (false));
     map<string,map<string,any> >() toEval = (map<string,map<string,any> >())
@@ -165,7 +161,11 @@ global map<string,map<string,any> > blWidgetMaps () {
 	return $[];
 }
 
-// TODO document
+/**
+ * Get the main sequence for the specified bootloader
+ * @return symbol the result of the sequence, or `generic to run generic
+ *  sequence instead
+ */
 global symbol blMainSequence () {
     map functions = getFunctions (BootCommon::getLoaderType (false));
     symbol () toEval = (symbol ())functions["wizard_sequencer"]:nil;
@@ -175,7 +175,10 @@ global symbol blMainSequence () {
 	return `generic;
 }
 
-// TODO document
+/**
+ * Get the loader-specific dialogs
+ * @return a map of loader-specific dialogs
+ */
 global map<string,symbol()> blDialogs () {
     map functions = getFunctions (BootCommon::getLoaderType (false));
     map<string,symbol()> () toEval = (map<string,symbol()> ())

@@ -27,18 +27,34 @@ import "TablePopup";
 include "bootloader/routines/popups.ycp";
 
 
+/**
+ * Init function of widget
+ * @param widget string id of the widget
+ */
 void ZIPLTargetInit (string widget) {
     UI::ChangeWidget (`id (widget), `Value,
 	BootCommon::current_section["target"]:"");
 }
 
-void ZIPLTargetStore (string widget) {
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
+void ZIPLTargetStore (string widget, map event) {
     BootCommon::current_section["target"] = (string)
 	UI::QueryWidget (`id (widget), `Value);
 }
 
+/**
+ * Cache for Widgets function
+ */
 map<string,map<string,any> > _widgets = nil;
 
+/**
+ * Get widgets specific for ZIPL
+ * @return a map describing all ZIPL-specific widgets
+ */
 global map<string,map<string,any> > Widgets () {
     if (_widgets == nil)
     {

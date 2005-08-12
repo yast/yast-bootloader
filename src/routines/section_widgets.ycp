@@ -114,6 +114,12 @@ void KernelImageInit (string widget) {
     SectionOptionInit (widget);
 }
 
+/**
+ * Handle function of a widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
 symbol KernelImageHandle (string widget, map event) {
     string current = (string)UI::QueryWidget (`id (widget), `Value);
     // file open popup caption
@@ -138,6 +144,12 @@ void InitrdInit (string widget) {
     SectionOptionInit (widget);
 }
 
+/**
+ * Handle function of a widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
 symbol InitrdHandle (string widget, map event) {
     string current = (string)UI::QueryWidget (`id (widget), `Value);
     // file open popup caption
@@ -174,6 +186,7 @@ void VgaModeInit (string widget) {
 	    sformat (_("%1x%2, %3 bits (mode %4)"),
 		m["width"]:0, m["height"]:0, m["color"]:0, m["mode"]:0));
     });
+    // item of a combo box
     items = prepend (items, `item (`id ("normal"), _("Text Mode")));
     UI::ChangeWidget (`id (widget), `Items, items);
     SectionOptionInit (widget);
@@ -189,6 +202,12 @@ void ChainloaderInit (string widget) {
     SectionOptionInit (widget);
 }
 
+/**
+ * Handle function of a widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
 symbol ChainloaderHandle (string widget, map event) {
     string current = (string)UI::QueryWidget (`id (widget), `Value);
     // file open popup caption
@@ -228,6 +247,7 @@ term SectionTypesWidget () {
 	contents = add (contents, `Left (`RadioButton (`id (t),
 	    section_types_descr[t]:t, count == 1)));
     });
+    // frame
     contents = `Frame (_("Section Type"), `VBox (
 	`VSpacing (1),
 	`HBox (
@@ -266,8 +286,15 @@ symbol SectionTypeHandle (string widget, map event) {
     return nil;
 }
 
+/**
+ * Cache for CommonSectionWidgets
+ */
 map<string,map<string,any> > _common_section_widgets = nil;
 
+/**
+ * Get common widgets for loader sections
+ * @return a map describing common loader section related widgets
+ */
 map<string,map<string,any> > CommonSectionWidgets () {
     if (_common_section_widgets == nil)
     {
@@ -327,6 +354,7 @@ map<string,map<string,any> > CommonSectionWidgets () {
 	    ],
 	    "root" : $[
 		"widget" : `combobox,
+		// combo box
 		"label" : _("Root &Device"),
 		"opt" : [ `editable, `hstretch ],
 		"init" : RootDeviceInit,

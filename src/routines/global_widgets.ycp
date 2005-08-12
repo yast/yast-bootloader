@@ -90,7 +90,11 @@ void RedrawSectionsTable (list<map<string,any> > sects) {
 		    == tolower (s["name"]:"")
 		? UI::Glyph (`CheckMark) : "",
 	    s["name"]:"",
-	    (image == nil || image == "") ? _("Other") : _("Image"),
+	    (image == nil || image == "")
+		// table header
+		? _("Other")
+		// table header
+		: _("Image"),
 	    (image != "" && image != nil)
 		? sformat ("%1   (%2%3)",
 		    image,
@@ -266,6 +270,10 @@ term LoaderTypeComboWidget () {
 	}));
 }
 
+/**
+ * Init function of widget
+ * @param widget any id of the widget
+ */
 void LoaderTypeComboInit (string key) {
     UI::ChangeWidget (`id (key), `Value, Bootloader::getLoaderType ());
 }

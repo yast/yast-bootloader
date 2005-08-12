@@ -910,7 +910,7 @@ global list<string> ListKernelParamsInLine (string line) {
 
     /**
       * Get partition which should be activated if doing it during bl inst.
-      * @return map $[ "dev" : string, "mbr": string, "num": any]
+      * @return a map $[ "dev" : string, "mbr": string, "num": any]
       *  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
       *  partition number (eg. 4)
       */
@@ -1342,7 +1342,7 @@ global list<string> ListKernelParamsInLine (string line) {
 
     /**
       * Get map of swap partitions
-      * @return map where key is partition name and value its size
+      * @return a map where key is partition name and value its size
       */
     global define map<string, integer> getSwapPartitions () ``{
 	map<string, map> tm = (map<string,map>)Storage::GetTargetMap ();
@@ -1463,6 +1463,10 @@ global list<string> ListKernelParamsInLine (string line) {
 	return filtered;
     }
 
+    /**
+     * Get translated section names, including diacritics
+     * @return a map section names translations
+     */
     global define map<string,string> getTranslationsToDiacritics () ``{
         map<string,string> trans = $[
 	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
@@ -1620,20 +1624,29 @@ global list<string> ListKernelParamsInLine (string line) {
 	return additional_failsafe_params;
     }
 
+/**
+ * Get additional kernel parameters from control file
+ * @return string additional kernel parameters
+ */
 global string GetAdditionalKernelParams () {
     return ProductFeatures::GetStringFeature (
 		"globals",
 		"additional_kernel_parameters");
 }
 
+/**
+ * Get additional kernel parameters splitted to a list
+ * @return a list of additional kernel parameters
+ */
 global list<string> ListAdditionalKernelParams () {
     return ListKernelParamsInLine (GetAdditionalKernelParams ());
 }
 
 /**
-  * Update graphical bootloader to contain help text of current language
-  * And make the selected installation language default
-  */
+ * Update graphical bootloader to contain help text of current language
+ * And make the selected installation language default
+ * @return boolean true on success
+ */
 global define boolean UpdateGfxMenuContents () {
     y2milestone ("Updating GFX boot menu");
     if (SCR::Read (.target.size, "/boot/message") == -1)
@@ -1740,7 +1753,7 @@ global map<string,any> Linux2Previous (map<string,any> section) {
 
 /**
  * Update device name according to changes in kernel (eg. SATA)
- * @param string device the original device name
+ * @param device string the original device name
  * @return string updated device
  */
 global string UpdateDevice (string device) {
@@ -1789,6 +1802,10 @@ global boolean MemtestPresent () {
 
 }
 
+/**
+ * Check for additional kernels which could go to the proposed settings
+ * @return a list of kernels to propose
+ */
 global list<map<string,string> > CheckAdditionalKernels () {
     list<string> files = (list<string>)SCR::Read (.target.dir, "/boot");
     string binary = Kernel::GetBinary ();

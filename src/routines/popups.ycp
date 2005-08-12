@@ -28,6 +28,9 @@
     import "Report";
     import "String";
 
+/**
+ * Inform about not available functionality when no loader selected
+ */
 void NoLoaderAvailable () {
     // popup message
     Popup::Message (_("This function is not available if the boot
@@ -337,6 +340,7 @@ no options to set here."));
     /**
       * Display popup - confirmation befopre restoring MBR
       * @param device string device to restore to
+      * @return boolean true of MBR restore confirmed
       */
      boolean restoreMBRPopup (string device) ``{
 	map stat = (map)SCR::Read (.target.stat, "/boot/backup_mbr");
