@@ -80,7 +80,7 @@ map<string,any> BootMenuWidget () {
 		`VSpacing (0.4),
 		`Left (`CheckBox (`id (`timeout_act), `opt (`notify),
 		    // check box
-		    _("&Continue booting after a timeout"))),
+		    _("&Continue Booting after a Time-Out"))),
 		// integer field
 		`IntField (`id (`timeout), _("Boot &Menu Time-Out"), 0, 60, 0),
 		`VSpacing (0.4)
