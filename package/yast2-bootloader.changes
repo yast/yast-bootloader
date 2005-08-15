@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 15 12:43:52 CEST 2005 - jsrain@suse.cz
+
+- fixed section updates durng system update (#103868)
+
+-------------------------------------------------------------------
 Fri Aug 12 09:28:42 CEST 2005 - jsrain@suse.cz
 
 - fixed several errors in code, added missign shortcuts

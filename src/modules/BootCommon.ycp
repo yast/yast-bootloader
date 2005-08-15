@@ -258,6 +258,11 @@ global map<string,string> edited_files = $[];
     global list<string> removed_sections = [];
 
 /**
+ * The name of the default section as it was read
+ */
+string read_default_section_name = "";
+
+/**
  * Types of sections that should be updated (changed device names)
  */
 global list<string> update_section_types
@@ -424,6 +429,15 @@ global boolean Read (boolean reread) {
     sections = GetSections ();
     globals = GetGlobal ();
     device_mapping = GetDeviceMap ();
+    read_default_section_name = "";
+    foreach (map<string,any> s, sections, {
+	if (s["original_name"]:"" == "linux"
+	    && read_default_section_name == "")
+	{
+y2internal ("Read default sectino name: %1",  s["name"]:"");
+	    read_default_section_name = s["name"]:"";
+	}
+    });
     return true;
 }
 
