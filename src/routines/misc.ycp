@@ -67,7 +67,7 @@
 	{
 	    return mode == `summary
 		// summary string
-		? _("Install default boot loader")
+		? _("Install the default boot loader")
 		// combo box item
 		: _("Install Default Boot Loader");
 	}

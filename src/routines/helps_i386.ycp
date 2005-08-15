@@ -76,9 +76,9 @@ string i386BootMenuHelp () {
     // help text 1/1
     return _("<p><big><b>Boot Menu</b></big><br>
 To show the boot loader menu during the boot process, set
-<b>Show Boot Menu</b>, otherwise the boot loader menu will be hidden.
+<b>Show Boot Menu</b>. Otherwise the boot loader menu will be hidden.
 To specify the time-out after which the default
-kernel is loaded, set <b>Continue booting after a timeout</b> and
+kernel is loaded, set <b>Continue Booting after a Time-Out</b> and
 <b>Boot Menu Time-Out</b>.</p>");
 }
 

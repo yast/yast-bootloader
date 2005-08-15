@@ -153,7 +153,7 @@ void InitrdInit (string widget) {
 symbol InitrdHandle (string widget, map event) {
     string current = (string)UI::QueryWidget (`id (widget), `Value);
     // file open popup caption
-    current = UI::AskForExistingFile (current, "*", _("Initial Ramdisk"));
+    current = UI::AskForExistingFile (current, "*", _("Initial RAM Disk"));
     if (current != nil)
 	UI::ChangeWidget (`id (widget), `Value, current);
     return nil;
@@ -211,7 +211,7 @@ void ChainloaderInit (string widget) {
 symbol ChainloaderHandle (string widget, map event) {
     string current = (string)UI::QueryWidget (`id (widget), `Value);
     // file open popup caption
-    current = UI::AskForExistingFile (current, "*", _("Device To Boot"));
+    current = UI::AskForExistingFile (current, "*", _("Device to Boot"));
     if (current != nil)
 	UI::ChangeWidget (`id (widget), `Value, current);
     return nil;
