@@ -569,6 +569,11 @@ global void UpdateSections (boolean replace,
     list<string> recreated = [];
     boolean linux_resume_added = false;
 
+    map<string,any> default_sect = create_linux_section ("linux");
+    string default_kernel = default_sect["kernel"]:"";
+    string default_initrd = default_sect["initrd"]:"";
+    string default_name = default_sect["name"]:"";
+
     foreach (string t, ["linux", "failsafe", "memtest86", "xen"], {
 	map<string,any> m = create_linux_section (t);
 	boolean f_changed = false;
@@ -634,6 +639,21 @@ global void UpdateSections (boolean replace,
 	    }
 	    s["key"] = value;
 	});
+	if (s["kernel"]:"" == default_kernel
+	    && s["initrd"]:"" == default_initrd
+	    && issubstring (s["name"]:"", read_default_section_name)
+	    && read_default_section_name != ""
+	    && read_default_section_name != default_name)
+	{
+	    y2milestone ("Updating label of section %1...", s["name"]:"");
+	    string old_name = s["name"]:"";
+	    integer i1 = find (old_name, read_default_section_name);
+	    integer i2 = i1 + size (read_default_section_name);
+	    s["name"] = substring (old_name, 0, i1) + default_name
+		+ substring (old_name, i2);
+	    y2milestone ("... to %1", s["name"]:"");
+	}
+
 	foreach (string key, ["root", "chainloader"], {
 	    if ((contains (update_section_types, type)
 		    && ! contains (recreated, label))
