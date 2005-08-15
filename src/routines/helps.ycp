@@ -55,8 +55,8 @@ Please wait...<br></p>");
 	    ins = _("If you have multiple Linux systems installed,
 YaST can try to find them and merge their menus.");
 	// help text 1/2 (%1 may be following sentence, optionally empty)
-	string help = sformat (_("<P>Via the <B>Other</B> button,
-you can manually edit the bootloader configuration files, clear the current 
+	string help = sformat (_("<P>From <B>Other</B>,
+you can manually edit the boot loader configuration files, clear the current 
 configuration and propose a new configuration, start from scratch, or reread
 the configuration saved on your disk. %1</P>"), ins);
 	return help;
@@ -120,10 +120,10 @@ on the computer.</p>");
 	helptext = helptext + _("<p>
 - In the <b>Boot Sector</b> of the <tt>/boot</tt> or <tt>/</tt> (root) 
 partition.  This is the recommended option whenever there is a suitable
-partition. Either set <b>Activate Bootloader Partition</b> and
+partition. Either set <b>Activate Boot Loader Partition</b> and
 <b>Replace MBR with Generic Code</b> in <b>Boot Loader Installation Details</b>
 to update the master boot record
-if it is needed, or configure your other boot manager
+if it is needed or configure your other boot manager
 to start &product;.</p>");
 
 	if (StorageDevices::FloppyPresent)
@@ -132,7 +132,7 @@ to start &product;.</p>");
             // this part will only be shown if a floppy drive is attached.
             helptext = helptext + _("<p>
 - On a <b>Floppy Disk</b>.
-Use this to avoid the risk of interference with an already existing
+Use this to avoid the risk of interfering with an already existing
 boot mechanism. Enable booting from floppy disk in
 the BIOS of your machine to use this option.</p>");
         }
@@ -160,14 +160,14 @@ Enter the device name of the partition (for example, <tt>/dev/hda3</tt> or
 string InstDetailsHelp () {
     // help text 1/1
     return _("<p><big><b>Boot Loader Installation Details</b></big><br>
-To adjust advanced boot loader installation options (for example, the device
-mapping), push <b>Boot Loader Installation Details</b>.</p>");
+To adjust advanced boot loader installation options (such as the device
+mapping), click <b>Boot Loader Installation Details</b>.</p>");
 }
 
 string LoaderTypeHelp () {
     // help text 1/1
     return _("<p><big><b>Boot Loader Type</b></big><br>
-To select whether to install boot loader and which bootloader to install,
+To select whether to install a boot loader and which bootloader to install,
 use <b>Boot Loader</b>.</p>");
 }
 
@@ -235,8 +235,8 @@ string ChainloaderHelp () {
     // help text 1/1
     return _("<p><big><b>Device</b></big><br>
 Use <b>Device</b> to set the device from which to load the operating system.
-In most cases, it is the disk partition the other system
-is installed in.</p>");
+In most cases, it is the disk partition in which 
+the other system is installed.</p>");
 }
 
 string SectionTypeHelp () {
@@ -245,13 +245,13 @@ string SectionTypeHelp () {
 Select the type of the new section to create.</p>") +
     // help text 2/5
     _("<p>Select <b>Clone Selected Section</b> to clone the currently selected
-section. Then modify the options you want to differ from the
+section. Then modify the options that should differ from the
 selected section.</p>") +
     // help text 3/5
-    _("<p>Select <b>Kernel (Linux)</b> to add a new Linux Kernel or other image
+    _("<p>Select <b>Kernel (Linux)</b> to add a new Linux kernel or other image
 to load and start.</p>") +
     // help text 4/5
-    _("<p>Select <b>Kernel via XEN<b> to add a new Linux Kernel or other image,
+    _("<p>Select <b>Kernel via XEN<b> to add a new Linux kernel or other image,
 but to start it in a XEN environment.</p>") +
     // help text 5/5
     _("<p>Select <b>Other System (Chainloader)</b> to add a section that 

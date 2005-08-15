@@ -290,7 +290,7 @@ symbol LoaderTypeComboHandle (string key, map event) {
 	    // popup - Continue/Cancel
 	    if (Popup::ContinueCancel (_("
 If you do not install any boot loader, the system
-may not start.
+might not start.
 
 Proceed?
 ")))
@@ -305,12 +305,13 @@ Proceed?
 	// warning - popup, followed by radio buttons
 	string label = _("
 You chose to change your boot loader. When converting 
-the configuration, some settings may be lost.
+the configuration, some settings might be lost.
 
-The current configuration will be saved and you will be able
-to restore it if you return to the current boot loader.
+The current configuration will be saved and you can
+restore it if you return to the current boot loader.
 
-Select a course of action:");
+Select a course of action:
+");
 
 	term contents = `VBox (
 		// warning label
