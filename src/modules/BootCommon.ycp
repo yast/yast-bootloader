@@ -287,6 +287,10 @@ global list<string> update_section_types
 
 
 // FIXME 2x functions should not be finally here...
+/**
+ * Check whether XEN is selected for installation resp. selected
+ * @return boolean true of XEN installed/selected
+ */
 global boolean XenPresent () {
     return (! contains (removed_sections, "xen"))
 	&& (Mode::test ()
@@ -296,6 +300,10 @@ global boolean XenPresent () {
 		&& Pkg::IsSelected ("kernel-xen")));
 }
 
+/**
+ * Get the size of memory for XEN's domain 0
+ * @return the memory size in kB
+ */
 global integer Dom0MemorySize () {
     list<map> memory = (list<map>) SCR::Read(.probe.memory);
 
@@ -321,7 +329,11 @@ global integer Dom0MemorySize () {
 }
 
 
-
+/**
+ * Create section for linux kernel
+ * @param title string the section name to create (untranslated)
+ * @return a map describing the section
+ */
 global map<string,any> CreateLinuxSection (string title) {
     if (title == "memtest86")
     {
@@ -403,6 +415,7 @@ global map<string,any> CreateLinuxSection (string title) {
     /**
       * Import settings from a map
       * @param settings map of bootloader settings
+      * @return boolean true on success
       */
     global define boolean Import (map settings) ``{
         globals = settings["global"]:$[];
@@ -415,6 +428,7 @@ global map<string,any> CreateLinuxSection (string title) {
 
 /**
  * Read settings from disk
+ * @param reread boolean true to force reread settings from system
  * @return boolean true on success
  */
 global boolean Read (boolean reread) {
@@ -443,6 +457,7 @@ y2internal ("Read default sectino name: %1",  s["name"]:"");
 
     /**
       * Reset bootloader settings
+      * @param init boolean true to repropose also device map
       */
     global define void Reset (boolean init) ``{
         sections = [];
@@ -577,75 +592,6 @@ global define boolean Write () {
     return false;
 }
 
-    /**
-      * Get map of bootloader options
-      * @return map of options
-      */
-    global define map GetOptions () ``{
-	map opts = $[
-	    `global: [
-	        "append",
-	        "backup",
-	        "boot",
-	        "change-rules",
-	        "compact",
-	        "default",
-	        "delay",
-	        "disk",
-	        "disktab",
-	        "fix-table",
-		"force-backup",
-	        "ignore-table",
-	        "install",
-	        "lba32",
-	        "linear",
-	        "lock",
-	        "map",
-	        "menu-title",
-	        "menu-scheme",
-	        "message",
-	        "nowarn",
-	        "optional",
-	        "password",
-	        "prompt",
-	        "restricted",
-	        "serial",
-	        "timeout",
-	        "verbose",
-	        "vga",
-	    ],
-	    "image" : [
-	        "append",
-	        "initrd",
-	        "literal",
-	        "ramdisk",
-	        "read-only",
-	        "read-write",
-	        "root",
-	        "vga",
-	        "label",
-	        "alias",
-	        "lock",
-	        "optional",
-	        "password",
-	        "restricted",
-	    ],
-	    "other" : [
-	        "loader",
-	        "table",
-	        "change",
-	        "map-drive",
-	        "unsafe",
-	        "label",
-	        "alias",
-	        "lock",
-	        "optional",
-	        "password",
-	        "restricted",
-	    ]
-	];
-	return opts;
-    }
 
 // end of generic versions of bootloader-specific functions
 //-----------------------------------------------------------------------------
@@ -689,6 +635,11 @@ global define boolean Write () {
 	}
     }
 
+/**
+ * Check whether loader with specified name is supported
+ * @param loader string name of loader to check
+ * @return string the loader name if supported, "none" otherwise
+ */
 string SupportedLoader (string loader) {
     if (contains (["grub", "lilo", "zipl"], loader))
 	return loader;
@@ -798,7 +749,7 @@ string SupportedLoader (string loader) {
     }
     /**
       * List bootloaders available for configured architecture
-      * @return list of bootloaders
+      * @return a list of bootloaders
       */
     global define list<string> getBootloaders () ``{
 	if (Mode::config ())

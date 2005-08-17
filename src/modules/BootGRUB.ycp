@@ -300,28 +300,9 @@ global void CreateGlobals () {
 
 // general functions
 
-    /**
-      * Export bootloader settings to a map
-      * @return bootloader settings
-      */
-    global define map Export () ``{
-	map ret = BootCommon::Export ();
-	return ret;
-    }
-    /**
-      * Import settings from a map
-      * @param settings map of bootloader settings
-      */
-    global define boolean Import (map settings) ``{
-	y2debug ("Started BootGRUB::Import ()");
-	BootCommon::Import (settings);
-	y2debug ("Importing GRUB-specific settings %1", settings);
-	y2debug ("GRUB import done");
-	return true;
-    }
-
 /**
  * Read settings from disk
+ * @param reread boolean true to force reread settings from system
  * @return boolean true on success
  */
 global boolean Read (boolean reread) {
@@ -410,6 +391,7 @@ global boolean Read (boolean reread) {
 
     /**
       * Reset bootloader settings
+      * @param init boolean true to repropose also device map
       */
     global define void Reset (boolean init) ``{
 	if (Mode::autoinst ())
@@ -547,27 +529,6 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 		}
 	    }
 
-	    // create backup copy first
-	    if (BootCommon::createBackupBS ()
-		&& BootCommon::getDeviceOfRaid (BootCommon::BootPartitionDevice)
-		    != BootCommon::BootPartitionDevice)
-	    {
-		y2milestone ("Creating backup copy to bootsector");
-		// want a copy here
-		map<string,string> gc_backup = proposeGrubConf ();
-		map<string,string> backup_gc = add (gc_backup, "device",
-		    BootCommon::BootPartitionDevice);
-		string conf_file = "";//getGrubConf (backup_gc);
-		string tmp_file = (string)SCR::Read (.target.tmpdir)
-		    + "/grub.conf";
-		SCR::Write (.target.string, tmp_file, conf_file);
-		if (0 != SCR::Execute (.target.bash, sformat ("cat %1 \
-| /usr/sbin/grub --batch --device-map=/boot/grub/device.map", tmp_file)))
-		{
-		    y2error ("Error occured while creating backup copy of bootloader bootsector");
-		}
-	    }
-
 	    boolean grub_ret = BootCommon::InitializeBootloader ();
 	    y2milestone ("GRUB return value: %1", grub_ret);
 	    if (! grub_ret)
@@ -598,12 +559,10 @@ global map<string,symbol()> Dialogs () {
 
     /**
       * Return map of provided functions
-      * @return map map of functions (eg. $["write"::Write])
+      * @return a map of functions (eg. $["write"::Write])
       */
-    global define map<string, any> GetFunctions () ``{
+    global map<string, any> GetFunctions () ``{
 	return $[
-            "export"	: Export,
-	    "import"	: Import,
             "read"	: Read,
             "reset"	: Reset,
             "propose"	: Propose,

@@ -469,7 +469,7 @@ fi", efi_label);
       * @return map of options
       */
     global define map GetOptions () ``{
-	map ret = BootCommon::GetOptions ();
+	map ret = $[];//BootCommon::GetOptions ();
 	ret[`global] = filter (any o, ret[`global]:[], ``(
 	    o != "lba" && o != "lba32" && o != "linear"));
 	ret[`global] = merge (ret[`global]:[], [ "noedd30", "chooser",

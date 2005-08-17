@@ -218,6 +218,10 @@ symbol i386InstallDetailsDialog () {
     return (symbol)ret;
 }
 
+/**
+ * Run dialog for loader installation details on i386
+ * @return symbol for wizard sequencer
+ */
 symbol i386LoaderDetailsDialog () {
     y2milestone ("Running i386 loader details dialog");
 

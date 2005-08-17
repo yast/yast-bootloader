@@ -117,6 +117,11 @@ symbol MainDialog () {
     return ret;
 }
 
+/**
+ * Run dialog with detailed settings
+ * @param type string specification of the type of detail settings
+ * @return symbol for wizard sequencer
+ */
 symbol DetailsDialog (string type) {
     map<string,symbol()> dialogs = Bootloader::blDialogs ();
     if (! haskey (dialogs, type))
@@ -254,6 +259,10 @@ symbol AddNewSectionDialog () {
     ]);
 }
 
+/**
+ * Switch the section type to be edited
+ * @return symbol for wizard sequencer to determine which dialog to show
+ */
 symbol EditSectionSwitch () {
     string type = BootCommon::current_section["type"]:"";
     if (type == "chainloader")
@@ -263,6 +272,10 @@ symbol EditSectionSwitch () {
 	return `kernel;
 }
 
+/**
+ * Store the modified section
+ * @return symbol always `next
+ */
 symbol StoreSection () {
     y2milestone ("Storing section: index:  %1, contents: %2",
 	BootCommon::current_section_index,

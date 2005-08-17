@@ -135,6 +135,9 @@ global list<string> i386Summary () {
     return ret;
 }
 
+/**
+ * Propose the boot loader location for i386 (and similar) platform
+ */
 global void i386LocationProposal () {
     if (! was_proposed)
     {

@@ -58,38 +58,6 @@
 	],
     ];
 
-// very simple UI - only select loader type
-
-    /**
-      * Create a list of options for the table
-      * @param descr map description of the table
-      * @return list of option ids as it should be displayed
-      */
-    global define list getTableContents (map descr) ``{
-	return ["__loader_type"];
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map<string,any> getGlobalSectionWidget () ``{
-	map<string,any> ret = $[];//BootCommon::getGlobalSectionWidget ();
-	ret["ids"] = getTableContents;
-	return ret;
-    }
-
-    /**
-      * Get map of dialogs and widgets
-      * @return map of dialogs and widgets
-      */
-    global define map<string,map<string,any> > GetWidgetMaps () ``{
-	return $[
-	    "globalsection" : getGlobalSectionWidget (),
-	];
-    }
-
-
 
 // misc. functions
 
@@ -242,6 +210,7 @@
 
 /**
  * Read settings from disk
+ * @param reread boolean true to force reread settings from system
  * @return boolean true on success
  */
 global boolean Read (boolean reread) {
@@ -409,7 +378,7 @@ map settings = $[
 
     /**
       * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootZIPL::Write ())])
+      * @return a map of functions (eg. $["write":``(BootZIPL::Write ())])
       */
     global define map<string, any> GetFunctions () ``{
 	return $[

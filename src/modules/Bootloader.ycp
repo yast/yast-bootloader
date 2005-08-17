@@ -89,6 +89,10 @@
 
 global boolean() test_abort = nil;
 
+/**
+ * Check whether abort was pressed
+ * @return boolean true if abort was pressed
+ */
 boolean testAbort () {
     if (test_abort == nil)
 	return false;
@@ -121,6 +125,7 @@ boolean testAbort () {
     /**
       * Import settings from a map
       * @param settings map of bootloader settings
+      * @return boolean true on success
       */
     global define boolean Import (map<string, any> settings) ``{
 	y2milestone ("Importing settings: %1", settings);
@@ -548,7 +553,8 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
     }
 
     /**
-      * return section that was proposed as default during installation,
+      * Get default section as proposed during installation
+      * @return section that was proposed as default during installation,
       * if not known, return current default section if it is of type "image",
       * if not found return first linux section, if no present, return empty
       * string
@@ -867,7 +873,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 
     /**
      * Update the language of GFX menu according to currently selected language
-     * @reuturn boolean true on success
+     * @return boolean true on success
      */
     global define boolean UpdateGfxMenu () {
 	if (getLoaderType () != "lilo" && getLoaderType () != "grub")

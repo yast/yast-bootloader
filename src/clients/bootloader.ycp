@@ -51,6 +51,13 @@
         return false; // do not call Write...
     }
 
+    /**
+     * Modify the boot laoder section
+     * @param section string the section name
+     * @param key string the key to modify
+     * @param value string the value to set
+     * @return boolean true on success
+     */
     define boolean BootloaderModifySection (string section,
 	string key, string value)
     ``{

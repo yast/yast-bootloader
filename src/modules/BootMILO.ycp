@@ -117,7 +117,7 @@
 
     /**
       * Return map of provided functions
-      * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
+      * @return a map of functions (eg. $["write":``(BootLILO::Write ())])
       */
     global define map<string, any> GetFunctions () ``{
 	return $[

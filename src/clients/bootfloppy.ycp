@@ -134,6 +134,11 @@ FireWire and file systems modules floppy"),
 	UI::CloseDialog ();
     }
 
+/**
+ * Create the image of the floppy disk
+ * @param file_image string
+ * @return string file name with the floppy image
+ */
 define string createFloppyImage (string file_image) {
     if (! images_created)
     {
@@ -750,6 +755,9 @@ Unmount the floppy?
 	return (symbol)ret;
     }
 
+/**
+ * Ask user whether to remount floppy, do it if wanted
+ */
 define void OfferFloppyRemount () {
     if (floppymount == nil)
 	return;
