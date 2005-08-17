@@ -711,6 +711,11 @@ string SupportedLoader (string loader) {
       * @param bootloader string type of bootloader
       */
     global define void setLoaderType (string bootloader) ``{
+	if (bootloader == nil)
+	{
+	    y2milestone ("Resetting the loader type");
+	    loader_type = nil;
+	}
 	y2milestone ("Setting bootloader to >>%1<<", bootloader);
 	if (bootloader != nil
 	    && contains(bootloaders, bootloader)
