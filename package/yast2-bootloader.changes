@@ -1,11 +1,12 @@
 -------------------------------------------------------------------
-Wed Aug 17 14:59:56 CEST 2005 - jsrain@suse.cz
+Wed Aug 17 15:03:00 CEST 2005 - jsrain@suse.cz
 
 - fixed detection whether bootloader can be installed if /boot is
   on MD (#104908)
 - fixed comments for ycpdoc
 - fixed proposing configuration if /boot is on MD (#104908)
 - set correct initrd image for XEN (#105171)
+- fixed errors in log while proposing loader type (#105152)
 
 -------------------------------------------------------------------
 Mon Aug 15 16:10:00 CEST 2005 - jsrain@suse.cz
