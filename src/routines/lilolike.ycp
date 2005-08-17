@@ -130,16 +130,33 @@ global string FindMBRDisk() {
 	map<string,any> tm = Storage::GetTargetMap ();
 	map dp = Storage::GetDiskPartition (BootPartitionDevice);
 	string disk = dp["disk"]:"";
+	boolean disk_is_mbr = disk == mbrDisk;
 	map dm = tm[disk]:$[];
 	list<map> partitions = dm["partitions"]:[];
 	boolean is_logical = false;
 	string extended = nil;
+	list<string> needed_devices = [ BootPartitionDevice ];
+	map<string,integer> md_info = Md2Partitions (BootPartitionDevice);
+y2internal ("MI: %1", md_info);
+	if (md_info != nil)
+	{
+	    disk_is_mbr = false;
+	    needed_devices = maplist (string d, integer b, md_info, {
+		map pdp = Storage::GetDiskPartition (d);
+		string p_disk = pdp["disk"]:"";
+y2internal ("D: %1; MBRD: %2", p_disk, mbrDisk);
+		if (p_disk == mbrDisk)
+		    disk_is_mbr = true;
+		return d;
+	    });
+	}
+	y2milestone ("Boot partition devices: %1", needed_devices);
 	foreach (map p, partitions, {
 	    if (p["type"]:nil == `extended)
 	    {
 		extended = (string)p["device"]:nil;
 	    }
-	    else if (p["device"]:"" == BootPartitionDevice
+	    else if (contains (needed_devices, p["device"]:"")
 	        && p["type"]:nil == `logical)
 	    {
 		is_logical = true;
@@ -147,7 +164,9 @@ global string FindMBRDisk() {
 	});
 	boolean keep_mbr = KeepMBR (loader_device);
 	// if is primary, store bootloader there
-	if (disk == mbrDisk && ! is_logical)
+	y2milestone ("/boot on 1st disk: %1; /boot in logical partition: %2",
+	    disk_is_mbr, is_logical);
+	if (disk_is_mbr && ! is_logical)
 	{
 	    selected_location = "boot";
 	    loader_device = BootPartitionDevice;
@@ -158,6 +177,11 @@ global string FindMBRDisk() {
 	    y2milestone ("MBR examining script returned %1", out);
 	    integer exit = out["exit"]:0;
 	    repl_mbr = (exit != 0) && (! keep_mbr);
+	}
+	else if (size (needed_devices) > 1)
+	{
+	    loader_device = "mbr_md";
+	    selected_location = "mbr_md";
 	}
 
 	if (keep_mbr)
