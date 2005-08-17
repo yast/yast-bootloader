@@ -386,6 +386,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	ret["xen"] = "/boot/xen.gz";
 	ret["xen_append"] = sformat ("dom0_mem=%1", Dom0MemorySize ());
 	ret["kernel"] = "/boot/" + Kernel::GetBinary () + "-xen";
+	ret["initrd"] = "/boot/initrd-xen"
     }
     else if (title == "wildcard")
     {
