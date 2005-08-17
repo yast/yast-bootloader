@@ -137,14 +137,12 @@ global string FindMBRDisk() {
 	string extended = nil;
 	list<string> needed_devices = [ BootPartitionDevice ];
 	map<string,integer> md_info = Md2Partitions (BootPartitionDevice);
-y2internal ("MI: %1", md_info);
 	if (md_info != nil)
 	{
 	    disk_is_mbr = false;
 	    needed_devices = maplist (string d, integer b, md_info, {
 		map pdp = Storage::GetDiskPartition (d);
 		string p_disk = pdp["disk"]:"";
-y2internal ("D: %1; MBRD: %2", p_disk, mbrDisk);
 		if (p_disk == mbrDisk)
 		    disk_is_mbr = true;
 		return d;
@@ -849,8 +847,18 @@ global void UpdateInitrdLine () {
         {
 	    s["initrd"] = BootArch::InitrdImage ();
         }
+	else if (type == "xen" && write_settings["insert_initrd"]:false)
+	{
+	    s["initrd"] = "/boot/initrd-xen";
+	}
         if (initrd != "")
         {
+	    // check for initrd in GRUB format, keep them
+	    if (getLoaderType (false) == "grub"
+		&& substring (initrd, 0, 1) == "(")
+	    {
+		return s;
+	    }
 	    if (-1 == SCR::Read (.target.size, initrd) && haskey (s, "initrd"))
 		s = remove (s, "initrd");
         }
