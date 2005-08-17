@@ -33,6 +33,10 @@ global void ProposeDeviceMap ();
 
 include "bootloader/routines/i386.ycp";
 
+/**
+ * Is embedding 1.5 stage of bootloader to dedicated partition area possible?
+ * @return true if it is possible
+ */
 global boolean allowEmbed15 () {
     // allow only for /boot or /root device selected
     if (! (BootCommon::loader_device == BootCommon::BootPartitionDevice
@@ -560,7 +564,8 @@ global void FixSections (void() create_sections) {
  * Update sections of bootloader menu
  * modifies internal structures
  * @param replace boolean true if old sectinos shall be replaced
- * @param term to evaluate to create a linux section
+ * @param create_linux_section a reference to a function to create linux
+ *   section anew
  */
 global void UpdateSections (boolean replace,
     map<string,any>(string) create_linux_section)
@@ -723,8 +728,7 @@ global void UpdateGlobals () {
 
 /**
  * Update the device map according to changed device names
- * @param devmap list original device map
- * @return list updated device map
+ * Read device map and store it in internal structures
  */
 global void UpdateDeviceMap () {
     device_mapping = mapmap (string unix, string fw, device_mapping, {
@@ -866,8 +870,7 @@ global void UpdateGfxMenu () {
 }
 
 /**
- * Generate device map proposal
- * @return list generated device map
+ * Generate device map proposal, store it in internal variables
  */
 global void ProposeDeviceMap () {
     device_mapping = $[];
@@ -914,6 +917,10 @@ global void ProposeDeviceMap () {
     y2milestone ("Detected device mapping: %1", device_mapping);
 }
 
+/**
+ * Get the order of disks according to BIOS mapping
+ * @return a list of all disks in the order BIOS sees them
+ */
 global list<string> DisksOrder () {
     if (device_mapping == nil || size (device_mapping) == 0)
     {
@@ -933,6 +940,10 @@ global list<string> DisksOrder () {
     return order;
 }
 
+/**
+ * Get the summary of disks order for the proposal
+ * @return string a line for the summary (or nil if not intended to be shown)
+ */
 global string DiskOrderSummary () {
     list<string> order = DisksOrder ();
     string ret = nil;

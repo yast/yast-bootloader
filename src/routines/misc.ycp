@@ -37,6 +37,7 @@
 // bootloader attributes handling functions
 
     global define map<string, integer> Md2Partitions (string md_device);
+    global define void DetectDisks ();
 
     /**
       * Get packages needed by specified bootloader
@@ -101,7 +102,7 @@
 
 /**
  * Get index of a section specified by name
- * @param string section name
+ * @param name string section name
  * @return integer index of the section or nil if not found
  */
 global integer getSectionIndex (string name) {
@@ -114,26 +115,6 @@ global integer getSectionIndex (string name) {
     });
     return sectnum;
 }
-
-    /**
-      * Convert section orig from type otype to ntype
-      * Some information gets lost. ntype must be different from otype
-      * @param otype string original section type, "image" or "other"
-      * @param ntype string new section type, "image" or "other"
-      * @param orig list original section
-      * @return list new (converted) section
-      */
-    global define list<map> convertSection (string otype, string ntype, list<map> orig)
-    ``{
-	list<map>(string,string,list<map>) f = (list<map>(string,string,list<map>))(current_bootloader_attribs["convert_function"]:nil);
-	if (f == nil)
-	{
-	    if (orig == nil)
-		orig = [];
-	    return orig;
-	}
-	return f(otype, ntype, orig);
-    }
 
     /**
       * Get map where to store kernel parameters
@@ -248,7 +229,7 @@ global string getFreeSectionLabel () {
      *   `parts_old - all partitions, except those what will be created
      *      during isntallation
      *   `deleted - all partitions deleted in current proposal
-     * @return list of strings
+     * @return a list of strings
      */
     global define list<string> getPartitionList(symbol type) ``{
 	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
@@ -422,95 +403,6 @@ global string getFreeSectionLabel () {
     }
 
     /**
-      * returns map of options and their types
-      * @return map option types
-      */
-    global define map<string,string> opttypes() ``{
-	string bl = getLoaderType (false);
-	if (bl == "none")
-	    return $[];
-	if (bl == "s390")
-	    bl = "zipl";
-	else if (bl == "ppc")
-	    bl = "lilo";
-	if (size (opt_types[bl]:$[]) > 0)
-	    return opt_types[bl]:$[];
-	map<string,string> out = $[
-	    //default is string
-	    "compact" : "boolean",
-	    "fix-table" : "boolean",
-	    "ignore-table" : "boolean",
-	    "lba32" : "boolean",
-	    "linear" : "boolean",
-	    "lock" : "boolean",
-	    "nowarn" : "boolean",
-	    "optional" : "boolean",
-	    "prompt" : "boolean",
-	    "read-only" : "boolean",
-	    "restricted" : "boolean",
-	    "read-write" : "boolean",
-	    "unsafe" : "boolean",
-	    "lock" : "boolean",
-	    "optional" : "boolean",
-	    "restricted" : "boolean",
-	    "makeactive" : "boolean",
-	    "hiddenmenu" : "boolean",
-	    "change-rules" : "boolean",
-	    "reset" : "boolean",
-	    "delay" : "integer",
-	    "verbose" : "integer",
-	    "timeout" : "integer",
-	];
-	if (bl == "grub")
-	{
-	    out = $[
-		//default is string
-		"hiddenmenu" : "boolean",
-		"rarp" : "boolean",
-		"debug" : "boolean",
-		"displayapm" : "boolean",
-		"displaymem" : "boolean",
-		"fstest" : "boolean",
-		"lock" : "boolean",
-		"makeactive" : "boolean",
-		"default" : "integer",
-		"timeout" : "integer",
-		"fallback" : "integer",
-	    ];
-	}
-	opt_types[bl] = out;
-	return out;
-    }
-
-    global list<string> GetSpecialOptions () {
-	list<string> special = [];
-	string bl = getLoaderType (false);
-	if (bl != "grub")
-	{
-	    special = [ "change-rules", "type", "reset", "normal", "hidden",
-		"disk", "heads", "inaccessible", "cylinders", "bios",
-		"sectors", "change", "set", "partition", "deactivate",
-		"partition", "automatic", "map-drive", "to",
-	    ];
-	}
-	if (bl != "ppc")
-	{
-	    special = add (special, "activate");
-	}
-	return special;
-    }
-
-    /**
-      * return true if given option is special
-      * @param opt option name
-      * @return boolean special/not
-      */
-    global define boolean isSpecial(string opt) ``{
-	list<string> special = GetSpecialOptions ();
-	return (contains (special, opt));
-    }
-
-    /**
       * returns list difference A \ B (items that are in A and are not in B)
       * @param a list A
       * @param b list B
@@ -584,7 +476,7 @@ global string getFreeSectionLabel () {
       * translate filename path (eg. /boot/kernel) to list of device
       *  and relative path
       * @param fullpth string fileststem path (eg. /boot/vmlinuz)
-      * @return list containing device and relative path,
+      * @return a list containing device and relative path,
       *  eg. ["/dev/hda1", "/vmlinuz"]
       */
     global define list<string> splitPath (string fullpth) ``{
@@ -722,6 +614,11 @@ global boolean InstallingToFloppy () {
 	return false;
     }
 
+/**
+ * Get the list of particular kernel parameters
+ * @param line string the whole kernel command line
+ * @return a list of the kernel parameters split each separaterlly
+ */
 global list<string> ListKernelParamsInLine (string line) {
 // FIXME this function is really similar to code in Kernel.ycp
     list<string> cmdlist = [];
@@ -910,6 +807,8 @@ global list<string> ListKernelParamsInLine (string line) {
 
     /**
       * Get partition which should be activated if doing it during bl inst.
+      * @param boot_partition string the partition holding /boot subtree
+      * @param loader_device string the device to install bootloader to
       * @return a map $[ "dev" : string, "mbr": string, "num": any]
       *  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
       *  partition number (eg. 4)
@@ -1848,32 +1747,44 @@ global list<map<string,string> > CheckAdditionalKernels () {
  * @return boolean true if it can
  */
 global boolean BootloaderInstallable () {
-    if (Arch::i386 () || Arch::ia64 ())
+    if (Mode::config ())
+	return true;
+    if (Arch::i386 () || Arch::x86_64 ())
     // the only relevant is the partition holding the /boot filesystem
     {
-	// EVMS
-	if (find (BootPartitionDevice, "/dev/evms/") == 0)
-	{
-	    y2milestone ("Cannot install bootloader on EVMS");
-	    return false;
-	}
-	// LVM
+	DetectDisks ();
+	y2milestone ("Boot partition device: %1",
+	    BootCommon::BootPartitionDevice);
 	map dev = Storage::GetDiskPartition( BootCommon::BootPartitionDevice);
-	if (! is( dev["nr"]:(any)0, integer ))
-	{
-	    y2milestone ("Cannot install bootloader on LVM");
-	    return false;
-	}
-	// MD, but not mirroring
+	y2milestone ("Disk info: %1", dev);
+	// MD, but not mirroring is OK
 	if (dev["disk"]:"" == "/dev/md")
 	{
 	    map tm = Storage::GetTargetMap ();
-	    map info = tm["/dev/md",BootPartitionDevice]:$[];
+	    map md = tm["/dev/md"]:$[];
+	    list<map> parts = md["partitions"]:[];
+	    map info = $[];
+	    foreach (map p, parts, {
+		if (p["device"]:"" == BootPartitionDevice)
+		    info = p;
+	    });
 	    if (tolower (info["raid_type"]:"") != "raid1")
 	    {
 		y2milestone ("Cannot install bootloader on RAID (not mirror)");
 		return false;
 	    }
+	}
+	// EVMS
+	else if (find (BootPartitionDevice, "/dev/evms/") == 0)
+	{
+	    y2milestone ("Cannot install bootloader on EVMS");
+	    return false;
+	}
+	// LVM
+	else if (! is( dev["nr"]:(any)0, integer ))
+	{
+	    y2milestone ("Cannot install bootloader on LVM");
+	    return false;
 	}
 
 	return true;

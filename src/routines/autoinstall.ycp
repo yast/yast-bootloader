@@ -22,6 +22,11 @@
     import "Kernel";
     import "Mode";
 
+/**
+ * Add missing data (eg. root filesystem) to sections imported from profile
+ * @param sect a list of all sections
+ * @return a lit of all updated sections
+ */
 list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
     sect = maplist (map<string,any> s, sect, {
 	y2milestone ("Updating imported section %1", s);
@@ -39,8 +44,8 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 
     /**
       * Translate the autoinstallation map to the Export map
-      * @param ai map the autoinstallation map
-      * @return map the export map
+      * @param ai a map the autoinstallation map
+      * @return a map the export map
       */
     define map<string,any> AI2Export (map<string,any> ai) ``{
 	if (Mode::autoinst ())
@@ -248,8 +253,8 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 
     /**
       * Translate the Export map to the autoinstallation map
-      * @param exp map the export map
-      * @return map the autoinstallation map
+      * @param exp a map the export map
+      * @return a map the autoinstallation map
       */
     define map<string,any> Export2AI (map<string,any> exp) ``{
 	// bootloader type and location stuff

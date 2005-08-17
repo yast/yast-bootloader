@@ -33,7 +33,7 @@ include "bootloader/routines/helps.ycp";
 
 /**
  * Init function of widget
- * @param widget any id of the widget
+ * @param widget string id of the widget
  */
 void GlobalOptionInit (string widget) {
     if (widget == "adv_button")
@@ -41,6 +41,11 @@ void GlobalOptionInit (string widget) {
     UI::ChangeWidget (`id (widget), `Value, BootCommon::globals[widget]:"");
 }
 
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
 void GlobalOptionStore (string widget, map event) {
     if (widget == "adv_button")
 	return;
@@ -48,11 +53,20 @@ void GlobalOptionStore (string widget, map event) {
 	UI::QueryWidget (`id (widget), `Value);
 }
 
+/**
+ * Map of default (fallback) handlers for widget events on global widgets
+ */
 map<string,any> global_handlers = $[
     "init" : GlobalOptionInit,
     "store" : GlobalOptionStore,
 ];
 
+/**
+ * Handle function of a widget
+ * @param widget string widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
 symbol InstDetailsButtonHandle (string widget, map event) {
     string lt = Bootloader::getLoaderType ();
     if (lt == "none" || lt == "default")
@@ -63,6 +77,12 @@ symbol InstDetailsButtonHandle (string widget, map event) {
     return `inst_details;
 }
 
+/**
+ * Handle function of a widget
+ * @param widget string widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
 symbol LoaderOptionsButtonHandle (string widget, map event) {
     string lt = Bootloader::getLoaderType ();
     if (lt == "none" || lt == "default")
@@ -112,7 +132,7 @@ void RedrawSectionsTable (list<map<string,any> > sects) {
 
 /**
  * Init function of widget
- * @param widget any id of the widget
+ * @param widget string id of the widget
  */
 void SectionsInit (string widget) {
     RedrawSectionsTable (BootCommon::sections);
@@ -122,7 +142,7 @@ void SectionsInit (string widget) {
 
 /**
  * Handle function of a widget
- * @param widget any widget key
+ * @param widget string widget key
  * @param event map event description of event that occured
  * @return symbol to return to wizard sequencer, or nil
  */
@@ -208,7 +228,7 @@ symbol SectionsHandle (string widget, map event) {
 
 /**
  * Get map of widget
- * @return map of widget
+ * @return a map of widget
  */
 map<string,any> getSectionsWidget () {
     return $[
@@ -259,24 +279,34 @@ map<string,any> getSectionsWidget () {
 
 // loader type widget
 
+/**
+ * Get the widget for boot laoder selection combo
+ * @return term the widget
+ */
 term LoaderTypeComboWidget () {
     return `ComboBox (`id ("loader_type"),
 	`opt (`notify),
 	// combo box
 	_("&Boot Loader"),
-	maplist (string l,
-	    BootCommon::getBootloaders (), {
+	maplist (string l, BootCommon::getBootloaders (), {
 	    return `item (`id (l), BootCommon::getLoaderName (l, `combo));
 	}));
 }
 
 /**
  * Init function of widget
- * @param widget any id of the widget
+ * @param widget string id of the widget
  */
-void LoaderTypeComboInit (string key) {
-    UI::ChangeWidget (`id (key), `Value, Bootloader::getLoaderType ());
+void LoaderTypeComboInit (string widget) {
+    UI::ChangeWidget (`id (widget), `Value, Bootloader::getLoaderType ());
 }
+
+/**
+ * Handle function of a widget
+ * @param key any widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
 symbol LoaderTypeComboHandle (string key, map event) {
     if (event["ID"]:nil == key)
     {
@@ -397,7 +427,13 @@ Select a course of action:
     return nil;
 }
 
-boolean LoaderTypeValidate (string widgget, map event){
+/**
+ * Validate function of a widget
+ * @param widget string widget key
+ * @param event map event that caused validation
+ * @return boolean true if validation succeeded
+ */
+boolean LoaderTypeValidate (string widget, map event){
     if (event["ID"]:nil == "sections"
 	&& BootCommon::getLoaderType (false) == "none")
     {
@@ -521,7 +557,7 @@ term TargetWidget () {
 
 /**
  * Init function of a widget
- * @param widget any widget key
+ * @param widget string widget key
  */
 void TargetInit (string widget) {
     string lt = Bootloader::getLoaderType ();
@@ -545,7 +581,7 @@ void TargetInit (string widget) {
 
 /**
  * Store function of a widget
- * @param widget any widget key
+ * @param widget string widget key
  * @param event map event that caused the operation
  */
 void TargetStore (string widget, map event) {
@@ -564,11 +600,11 @@ void TargetStore (string widget, map event) {
 
 /**
  * Validate function of a widget
- * @param widget any widget key
+ * @param widget string widget key
  * @param event map event that caused validation
  * @return boolean true if validation succeeded
  */
-boolean TargetValidate (string widgget, map event){
+boolean TargetValidate (string widget, map event){
     string lt = Bootloader::getLoaderType ();
     if (lt == "none" || lt == "default")
     {
@@ -639,7 +675,7 @@ Continue?")))
 
     /**
       * Get map of widget
-      * @return map of widget
+      * @return a map of widget
       */
     map<string,any> getManualEditWidget () ``{
 	return $[
@@ -777,7 +813,7 @@ Continue?")))
 
 /**
  * Get map of widget
- * @return map of widget
+ * @return a map of widget
  */
 map<string,any> getAdvancedButtonWidget () {
     return $[
@@ -790,7 +826,10 @@ map<string,any> getAdvancedButtonWidget () {
 }
 
 
-
+/**
+ * Get the main dialog tabs description
+ * @return a map the description of the tabs
+ */
 map TabsDescr () {
     string lt = Bootloader::getLoaderType ();
   return $[
@@ -842,8 +881,15 @@ map TabsDescr () {
   ];
 };
 
+/**
+ * Cache for CommonGlobalWidgets function
+ */
 map<string,map<string,any> > _common_global_widgets = nil;
 
+/**
+ * Get general widgets for global bootloader options
+ * @return a map describing all general widgets for global options
+ */
 map<string,map<string,any> > CommonGlobalWidgets () {
   if (_common_global_widgets != nil)
 	return _common_global_widgets;

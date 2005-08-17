@@ -139,6 +139,7 @@ global void CreateGlobals () {
 
 /**
  * Read settings from disk
+ * @param reread boolean true to force reread settings from system
  * @return boolean true on success
  */
 global boolean Read (boolean reread) {
@@ -219,17 +220,17 @@ global map<string,symbol()> Dialogs () {
 
 /**
  * Return map of provided functions
- * @return map map of functions (eg. $["write":BootLILO::Write])
+ * @return a map of functions (eg. $["write":BootLILO::Write])
  */
 global map<string, any> GetFunctions () {
     return $[
 	"dialogs"	: Dialogs,
-	"read"	: Read,
+	"read"		: Read,
 	"propose"	: Propose,
-	"save"	: Save,
+	"save"		: Save,
 	"summary"	: BootCommon::i386Summary,
 	"update"	: Update,
-	"write"	: Write,
+	"write"		: Write,
     ];
 }
 

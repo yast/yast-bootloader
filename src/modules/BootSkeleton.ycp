@@ -36,6 +36,7 @@
     /**
       * Import settings from a map
       * @param settings map of bootloader settings
+      * @return boolean true on success
       */
     global define boolean Import (map settings) ``{
 	return BootCommon::Import (settings);
@@ -49,6 +50,7 @@
     }
     /**
       * Reset bootloader settings
+      * @param init boolean true to repropose also device map
       */
     global define void Reset (boolean init) ``{
 	BootCommon::Reset (init);

@@ -29,10 +29,18 @@ import "Linuxrc";
 import "ProductFeatures";
 import "Stage";
 
+/**
+ * Get the file holding the initd imahe
+ * @return string the initrd image
+ */
 global string InitrdImage () {
     return "/boot/initrd";
 }
 
+/**
+ * Get parameters for the failsafe kernel
+ * @return string parameters for failsafe kernel
+ */
 global string FailsafeKernelParams () {
     string ret = "";
     if (Arch::i386 ())
@@ -66,6 +74,11 @@ global string FailsafeKernelParams () {
     return ret;
 }
 
+/**
+ * Get parameters for the default kernel
+ * @param resume string device to resume from (or empty not to set it)
+ * @return string parameters for default kernel
+ */
 global string DefaultKernelParams (string resume) {
     if (Arch::i386 () || Arch::x86_64 ())
     {
@@ -106,10 +119,18 @@ global string DefaultKernelParams (string resume) {
     }
 }
 
+/**
+ * Is VGA parameter setting available
+ * @return true if vga= can be set
+ */
 global boolean VgaAvailable () {
     return (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ());
 }
 
+/**
+ * Is Suspend to Disk available?
+ * @return true if STD is available
+ */
 global boolean ResumeAvailable () {
     return (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ());
 }

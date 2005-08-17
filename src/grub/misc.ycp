@@ -22,6 +22,10 @@
     import "Mode";
     import "BootCommon";
 
+/**
+ * Propose whether allow or not embedding of 1.5 stage
+ * @return boolean true to allow
+ */
 define boolean allowEmbed15 () {
     // allow only for /boot or /root device selected
     if (! (BootCommon::loader_device == BootCommon::BootPartitionDevice
@@ -60,154 +64,10 @@ define boolean allowEmbed15 () {
     }
 
     /**
-      * Generate device map proposal
-      * @return list generated device map
-      */
-    global define list<list<string> > proposeDeviceMap () ``{
-	map ids = $[];
-	list<list<string> > mapping = [];
-        map<string,map> targetMap = $[];
-	if (Mode::config ())
-	{
-	    y2milestone ("Skipping device map proposing in Config mode");
-/*	    import "AutoinstStorage";
-	    targetMap = listmap (map d, AutoinstStorage::drives, ``(
-		[d["device"]:"", d]
-	    ));
-	    targetMap = filter (any k, any v, targetMap, ``(k != ""));
-	    y2debug ("Autoinst device map: %1", targetMap);
-*/	}
-	else
-	{
-	    targetMap = (map<string,map>)Storage::GetTargetMap();
-	}
-	targetMap = filter (string k, map v, targetMap, ``(
-	    v["type"]:`CT_UNKNOWN==`CT_DISK
-	));
-	y2milestone ("Target map: %1", targetMap);
-	// add devices with know bios_id
-        foreach (string target_dev, map target, targetMap, ``{
-            string bios_id = target["bios_id"]:"";
-            if (bios_id != "")
-            {
-		integer index = tointeger (bios_id) - tointeger ("0x80");
-                string grub_dev = sformat ("(hd%1)", index);
-                mapping = add (mapping, [grub_dev, target_dev]);
-		ids[index] = true;
-            }
-        });
-	// and guess other devices
-	foreach (string target_dev, map target, targetMap, ``{
-            string bios_id = target["bios_id"]:"";
-            if (bios_id == "")
-            {
-		integer index = 0;
-		while (ids[index]:false)
-		    index = index + 1;
-                string grub_dev = sformat ("(hd%1)", index);
-                mapping = add (mapping, [grub_dev, target_dev]);
-		ids[index] = true;
-            }
-        });
-	if (StorageDevices::FloppyPresent)
-	{
-	    mapping = add (mapping, ["(fd0)", StorageDevices::FloppyDevice]);
-	}
-	y2milestone ("Detected device mapping: %1", mapping);
-	return mapping;
-    }
-list<list<string> > device_map = []; // FIXME remove this variable
-/**
- * Update the device map according to changed device names
- * @param devmap list original device map
- * @return list updated device map
- */
-global void updateDeviceMap () {
-    device_map = maplist (list<string> entry, device_map, {
-	y2milestone ("Updating device in devmap entry %1:%2",
-	    entry[0]:"", entry[1]:"");
-	entry[1] = BootCommon::UpdateDevice (entry[1]:"");
-	return entry;
-    });
-    y2milestone ("Updated device map: %1", device_map);
-}
-
-    /**
-     * translate UNIX device /dev/hda to grub device (hd0)
-     * @param o_dev string UNIX device
-     * @return string grub device
-     */
-    global define string unixDev2grubDev (string o_dev) ``{
-	if (o_dev != nil && o_dev != "" && regexpmatch (o_dev, "^\\(.*\\)$"))
-	    return o_dev;
-	// md can't be translated as they are, use one of partitions
-	if (regexpmatch (o_dev, "\/dev\/md[0-9]+"))
-	{
-	    o_dev = BootCommon::Md2Partition (o_dev);
-	}
-        integer i = 0;
-        map p_dev = Storage::GetDiskPartition (o_dev);
-        any num = p_dev["nr"]:nil;
-        o_dev = p_dev["disk"]:"";
-        if (findlastof (o_dev, "/") == nil)
-            o_dev = o_dev + "/dev/";
-	list<list<string> > dm_lines = (list<list<string> >)filter (
-	    list l,
-	    device_map,
-	    ``(l[1]:"" == o_dev));
-	list<string> dm_line = dm_lines[0]:[];
-	string dev = dm_line[0]:"";
-	if (dev == "")
-	    dev = "(null)";
-        else if (num != 0 && num != "" && num != nil)
-        {
-            integer int_num = (integer)num - 1;
-            string number = sformat ("%1", int_num);
-            dev = substring (dev, 0, size (dev) - 1) + "," + number + ")";
-        }
-        return dev;
-    }
-
-    /**
-      * translate grub device (hd0) to UNIX device /dev/hda
-      * @param o_dev string grub device
-      * @return string UNIX device
-      */
-    global define string grubDev2unixDev (string o_dev) ``{
-	if (o_dev != nil && o_dev != "" && ! regexpmatch (o_dev, "^\\(.*\\)$"))
-	    return o_dev;
-	string number = "";
-	if (o_dev == nil)
-	    return o_dev;
-	if (findfirstof (o_dev, ",") != nil)
-	{
-	    number = substring (o_dev, (findfirstof (o_dev, ",") + 1));
-	    number = substring (number, 0, (size (number) - 1));
-	    o_dev = substring (o_dev, 0, findfirstof (o_dev, ",")) + ")";
-	}
-	list<list<string> > dm_lines = (list<list<string> >)filter (
-	    list l,
-	    device_map,
-	    ``(l[0]:"" == o_dev));
-	list<string> dm_line = dm_lines[0]:[];
-	string dev = dm_line[1]:"";
-	if (dev == "")
-	    dev = "/dev/null";
-	else if (number != "")
-	{
-	    integer num = tointeger (number);
-	    num = num + 1;
-	    dev = Storage::GetDeviceName (dev, num);
-	}
-	dev = BootCommon::Partition2Md (dev);
-	return dev;
-    }
-
-    /**
       * translate filename path (eg. (hd0,0)/kernel) to list of device
       *  and relative path
       * @param devpth string fileststem path (eg. (hd0,0)/vmlinuz)
-      * @return list containing device and relative path,
+      * @return a list containing device and relative path,
       *  eg. ["(hd0,0)", "/vmlinuz"]
       */
     global define list<string> splitDevPath (string devpth) ``{
@@ -243,76 +103,6 @@ global void updateDeviceMap () {
 	string ret = devpth[0]:"" + devpth[1]:"";
         return ret;
     }
-
-    /**
-      * translate UNIX filename to grub path
-      * @param filename string UNIX-style filename (eg. "/boot/vmlinuz")
-      * @return string GRUB-like filename (eg. "(hd0,0)/vmlinuz")
-      */
-    global define string file2grub (string filename) ``{
-	if (Mode::config ())
-	    return filename;
-	if (regexpmatch (filename, "^\\(.+\\)\\/.+$"))
-	    return filename;
-	list split = BootCommon::splitPath (filename);
-	split[0] = unixDev2grubDev (split[0]:"");
-	return mergeDevPath (split);
-    }
-
-    /**
-      * translate grub path to UNIX filename
-      * @param grubpath string GRUB-like filename (eg. "(hd0,0)/vmlinux")
-      * @return string UNIX-style filename (eg. "/boot/vmlinuz")
-      */
-    global define string grub2file (string grubpath) ``{
-	if (regexpmatch (grubpath, "^\\/.+$"))
-	    return grubpath;
-	list<string> split = splitDevPath (grubpath);
-	split[0] = grubDev2unixDev (split[0]:"");
-	return BootCommon::mergePath (split);
-    }
-
-    /**
-      * Propose /etc/grub.con
-      * @return map grub-conf file
-      */
-    global define map<string,string> proposeGrubConf () ``{
-	list<string> stage1 = splitDevPath (file2grub ("/boot/grub/stage1"));
-	list<string> stage2 = splitDevPath (file2grub ("/boot/grub/stage2"));
-	y2milestone ("Proposed grub.conf: Stage1: %1, Stage2: %2",
-	    stage1, stage2);
-
-	string s1_part = BootCommon::loader_device;
-	if (s1_part == "mbr_md")
-	{
-	    s1_part = BootCommon::BootPartitionDevice;
-	}
-	s1_part = BootCommon::Md2Partition (s1_part);
-	map dev_info = Storage::GetDiskPartition (s1_part);
-	string s1_dev = dev_info["disk"]:"";
-	string s2_part = grubDev2unixDev (stage2[0]:"");
-	s2_part = BootCommon::Md2Partition (s2_part);
-	dev_info = Storage::GetDiskPartition (s2_part);
-	string s2_dev = dev_info["disk"]:"";
-
-	string discswitch = "";
-	if (s1_dev != s2_dev)
-	{
-	    discswitch = "d";
-	}
-
-	return $[
-	    "discswitch" : discswitch,
-	    "root" : stage1[0]:"",
-	    "stage1" : stage1[1]:"",
-	    "device" : BootCommon::loader_device,
-	    "stage2" : stage2[1]:"",
-	    "addr" : "0x8000",
-	    "menu" : file2grub ("/boot/grub/menu.lst"),
-	    "prefix" : "--stage2=/boot/grub/stage2",
-	];
-    }
-
 
 
 }
