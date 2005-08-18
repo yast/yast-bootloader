@@ -255,7 +255,6 @@ symbol AddNewSectionDialog () {
 	"back_button" : Label::BackButton (),
 	"abort_button" : Label::AbortButton (),
 	"next_button" : Label::NextButton (),
-	"fallback_functions" : section_handlers,
     ]);
 }
 
@@ -277,10 +276,17 @@ symbol EditSectionSwitch () {
  * @return symbol always `next
  */
 symbol StoreSection () {
+    BootCommon::current_section["__changed"] = true;
+    BootCommon::current_section = (map<string,any>)union (
+	$[
+	    "xen" : "/boot/xen.gz",
+	    "xen_append" : sformat ("dom0_mem=%1",
+		BootCommon::Dom0MemorySize ()),
+	],
+	BootCommon::current_section);
     y2milestone ("Storing section: index:  %1, contents: %2",
 	BootCommon::current_section_index,
 	BootCommon::current_section);
-    BootCommon::current_section["__changed"] = true;
     if (BootCommon::current_section_index == -1)
     {
 	BootCommon::sections
