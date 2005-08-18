@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Thu Aug 18 13:01:12 CEST 2005 - jsrain@suse.cz
+Thu Aug 18 15:29:01 CEST 2005 - jsrain@suse.cz
 
 - fixed new created XEN sections (#105171)
+- do not install backup of stage1 if /boot is on XFS (#105483)
 
 -------------------------------------------------------------------
 Wed Aug 17 15:34:30 CEST 2005 - jsrain@suse.cz
