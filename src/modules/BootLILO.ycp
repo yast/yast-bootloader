@@ -199,7 +199,9 @@ global void Update () {
 	// create backup copy first
 	if (BootCommon::createBackupBS ()
 	    && BootCommon::getDeviceOfRaid (BootCommon::BootPartitionDevice)
-		!= BootCommon::BootPartitionDevice)
+		!= BootCommon::BootPartitionDevice
+	    && contains (BootCommon::getPartitionList(`boot),
+		BootCommon::BootPartitionDevice))
 	{
 	    y2milestone ("Creating backup copy to bootsector");
 	    SCR::Execute (.target.bash, sformat ("/sbin/lilo -b %1",

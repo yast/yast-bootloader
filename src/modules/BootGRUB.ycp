@@ -457,7 +457,8 @@ global boolean Read (boolean reread) {
 global boolean Save (boolean clean, boolean init, boolean flush) {
     // update list of devices
     list<string> loader_devices = [BootCommon::loader_device];
-    if (backup_to_bootsector)
+    if (backup_to_bootsector && contains (BootCommon::getPartitionList(`boot),
+	BootCommon::BootPartitionDevice))
     {
 	if (loader_devices[0]:"" != nil && loader_devices[0]:"" != "/dev/null"
 	    && loader_devices[0]:"" != "")
