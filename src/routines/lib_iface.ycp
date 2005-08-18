@@ -119,6 +119,9 @@ global boolean SetSections (list<map<string,string> > sections) {
     y2milestone ("Storing bootloader sections %1", sections);
     sections = maplist (map<string,string> s, sections, {
 	s["__modified"] = "1";
+	s = filter (string key, string value, s, {
+	    return (! is (value, string)) || (value != "");
+	});
 	return s;
     });
     boolean ret = System::Bootloader_API::setSections (sections);

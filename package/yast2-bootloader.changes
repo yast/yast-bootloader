@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Aug 18 13:01:12 CEST 2005 - jsrain@suse.cz
+
+- fixed new created XEN sections (#105171)
+
+-------------------------------------------------------------------
 Wed Aug 17 15:34:30 CEST 2005 - jsrain@suse.cz
 
 - fixed detection whether bootloader can be installed if /boot is
