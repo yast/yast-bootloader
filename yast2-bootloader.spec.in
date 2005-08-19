@@ -1,5 +1,5 @@
 @HEADER-COMMENT@
-# neededforbuild yast2-devel-packages yast2-storage yast2-storage-lib yast2-installation yast2 yast2-devel perl-Bootloader limal-bootloader limal limal-devel limal-perl gpp libgpp
+# neededforbuild yast2-devel-packages yast2-storage yast2-storage-lib yast2-installation yast2 yast2-devel perl-Bootloader limal-bootloader limal limal-devel limal-perl gpp libgpp glibc-devel-32bit
 
 @HEADER@
 PreReq:         /bin/sed %fillup_prereq
