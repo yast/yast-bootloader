@@ -530,8 +530,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
       * @return boolean true on success
       */
     global define boolean Write () ``{
-	boolean ret = BootCommon::UpdateBootloader ();
 	BootCommon::updateMBR ();
+	boolean ret = BootCommon::UpdateBootloader ();
 	if (BootCommon::location_changed || BootCommon::InstallingToFloppy ())
 	{
 	    if (BootCommon::InstallingToFloppy ())

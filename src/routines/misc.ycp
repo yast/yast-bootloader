@@ -33,6 +33,7 @@
     import "Kernel";
     import "Misc";
     import "ProductFeatures";
+    import "Directory";
 
 // bootloader attributes handling functions
 
@@ -1069,6 +1070,7 @@ global list<string> ListKernelParamsInLine (string line) {
 	    });
 	}
 	boolean ret = true;
+	map<string,any> to_fix_chs = $[];
 	if (activate)
 	{
 	  foreach (map m_activate, getPartitionsToActivate (), {
@@ -1086,6 +1088,7 @@ global list<string> ListKernelParamsInLine (string line) {
 		    integer exit = out["exit"]:0;
 		    y2milestone ("Command output: %1", out);
 		    ret = ret && (0 == exit);
+		    to_fix_chs[mbr_dev] = num;
 		}
 	    }
 	    else
@@ -1108,12 +1111,24 @@ global list<string> ListKernelParamsInLine (string line) {
 		string command = sformat (
 		    "/bin/dd bs=446 count=1 if=%1 of=%2",
 		    "/usr/lib/boot/master-boot-code",
-		    BootCommon::mbrDisk);
+		    d);
 		y2milestone ("Running command %1", command);
 		map out = (map)SCR::Execute (.target.bash_output, command);
 		integer exit = out["exit"]:0;
 		y2milestone ("Command output: %1", out);
 		ret = ret && (0 == exit);
+		if (haskey (to_fix_chs, d))
+		{
+		    command = sformat ("%1/FixCHS %2 %3",
+			Directory::ybindir,
+			d,
+			to_fix_chs[d]:(any)"");
+		    y2milestone ("Running command %1", command);
+		    out = (map)SCR::Execute (.target.bash_output, command);
+		    exit = out["exit"]:0;
+		    y2milestone ("Command output: %1", out);
+		    ret = ret && (0 == exit);
+		}
 	    });
 	}
 	return ret;

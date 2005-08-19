@@ -137,7 +137,7 @@ global string FindMBRDisk() {
 	string extended = nil;
 	list<string> needed_devices = [ BootPartitionDevice ];
 	map<string,integer> md_info = Md2Partitions (BootPartitionDevice);
-	if (md_info != nil)
+	if (md_info != nil && size (md_info) > 0)
 	{
 	    disk_is_mbr = false;
 	    needed_devices = maplist (string d, integer b, md_info, {
