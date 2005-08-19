@@ -3,6 +3,7 @@ Fri Aug 19 10:59:54 CEST 2005 - jsrain@suse.cz
 
 - enhanced checking whether merged section is still valid (#74252)
 - fix information about disk geometry in MBR if needed (#103031)
+- 2.12.20
 
 -------------------------------------------------------------------
 Thu Aug 18 15:29:01 CEST 2005 - jsrain@suse.cz
