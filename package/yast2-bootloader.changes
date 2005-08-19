@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Aug 19 10:59:54 CEST 2005 - jsrain@suse.cz
+
+- enhanced checking whether merged section is still valid (#74252)
+
+-------------------------------------------------------------------
 Thu Aug 18 15:29:01 CEST 2005 - jsrain@suse.cz
 
 - fixed new created XEN sections (#105171)

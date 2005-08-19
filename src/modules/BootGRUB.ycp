@@ -86,6 +86,8 @@ include "bootloader/routines/dialogs_i386.ycp";
 	y2debug ("Other primaries: %1", others);
 	list<map> other_l = (list<map>)Storage::GetOtherLinuxPartitions();
 	y2debug ("Other linux parts: %1", other_l);
+	list<string> destroyed_partitions
+	    = BootCommon::getPartitionList (`destroyed);
 
 	string tmpdir = (string)SCR::Read (.target.tmpdir) + "/bldetect/";
 
@@ -176,7 +178,7 @@ include "bootloader/routines/dialogs_i386.ycp";
 			    s["name"] = sformat ("%2 (%1)",
 				dev, s["name"]:"");
 			    s["original_name"] = s["name"]:"";
-			    list<string> devs = [];
+			    list<string> devs = [dev];
 			    list<string> _dp = [];
 
 			    string _d = s["root"]:"";
@@ -187,8 +189,19 @@ include "bootloader/routines/dialogs_i386.ycp";
 				    && d != nil
 				    && d != "/dev/null" && d != "false"));
 			    devs = toset (devs);
-			    s["__devs"] = devs;
-			    out = add (out, s);
+			    devs = maplist (string d, devs, {
+				return BootCommon::UpdateDevice (d);
+			    });
+			    boolean _add = true;
+			    foreach (string _d, devs, {
+				if (contains (destroyed_partitions, _d))
+				    _add = false;
+			    });
+			    if (_add)
+			    {
+				s["__devs"] = devs;
+				out = add (out, s);
+			    }
 			});
 		    });
 		    if (count > 0)
