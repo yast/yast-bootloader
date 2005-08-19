@@ -229,6 +229,8 @@ global string getFreeSectionLabel () {
      *   `parts_old - all partitions, except those what will be created
      *      during isntallation
      *   `deleted - all partitions deleted in current proposal
+     *   `kept - all partitions that won't be deleted, new created or formatted
+     *   `destroyed - all partition which are new, deleted or formatted
      * @return a list of strings
      */
     global define list<string> getPartitionList(symbol type) ``{
@@ -252,9 +254,20 @@ global string getFreeSectionLabel () {
 	    return maplist (map x, filter (map p, partitions, ``(p["delete"]:false)),
 		``{return x["device"]:"";
 	    });
+	else if (type == `destroyed)
+	{
+	    return maplist (map x, filter (map p, partitions, {
+		    return p["delete"]:false || p["format"]:false
+			|| p["create"]:false;
+		}),
+	    {
+		return x["device"]:"";
+	    });
+	}
         partitions = filter (map p, partitions, ``(! p["delete"]:false));
 	list<string> ret = all_disks;
-	if (type == `boot_other || type == `root || type == `parts_old)
+	if (type == `boot_other || type == `root || type == `parts_old
+	    || type == `kept)
             ret = [];
 
 	if (type == `boot)
@@ -282,7 +295,13 @@ global string getFreeSectionLabel () {
 	{
 	    partitions = filter (map p, partitions, ``(! p["create"]:false));
 	}
-        if (type != `all && type != `parts_old)
+	else if (type == `kept)
+	{
+	    partitions = filter (map p, partitions, {
+		return ! (p["create"]:false || p["format"]:false);
+	    });
+	}
+        if (type != `all && type != `parts_old && type != `kept)
         {
             partitions = filter (map p, partitions,
                 ``(p["fstype"]:"" != "Linux swap"));
