@@ -122,6 +122,8 @@ global boolean SetSections (list<map<string,string> > sections) {
 	s = filter (string key, string value, s, {
 	    return (! is (value, string)) || (value != "");
 	});
+	if (s["type"]:"" == "xen")
+	    s["type"] = "image";
 	return s;
     });
     boolean ret = System::Bootloader_API::setSections (sections);
