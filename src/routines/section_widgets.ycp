@@ -231,10 +231,10 @@ term SectionTypesWidget () {
 	    _("Clone Selected Section"), true)));
 	count = count + 1;
     }
-    list<string> section_types = ["kernel", "xen", "chainloader"];
+    list<string> section_types = ["image", "xen", "chainloader"];
     map<string,string> section_types_descr = $[
 	// radio button
-	"kernel" : _("Kernel (Linux)"),
+	"image" : _("Kernel (Linux)"),
 	// radio button
 	"xen" : _("Kernel via XEN"),
 	// radio button (don't translate 'chainloader')

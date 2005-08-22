@@ -277,13 +277,16 @@ symbol EditSectionSwitch () {
  */
 symbol StoreSection () {
     BootCommon::current_section["__changed"] = true;
-    BootCommon::current_section = (map<string,any>)union (
-	$[
-	    "xen" : "/boot/xen.gz",
-	    "xen_append" : sformat ("dom0_mem=%1",
-		BootCommon::Dom0MemorySize ()),
-	],
-	BootCommon::current_section);
+    if (BootCommon::current_section["type"]:"" == "xen")
+    {
+	BootCommon::current_section = (map<string,any>)union (
+	    $[
+		"xen" : "/boot/xen.gz",
+		"xen_append" : sformat ("dom0_mem=%1",
+		    BootCommon::Dom0MemorySize ()),
+	    ],
+	    BootCommon::current_section);
+    }
     y2milestone ("Storing section: index:  %1, contents: %2",
 	BootCommon::current_section_index,
 	BootCommon::current_section);
