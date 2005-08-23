@@ -394,8 +394,15 @@ global boolean Read (boolean reread) {
 		return d != BootCommon::BootPartitionDevice;
 	    });
 	    backup_to_bootsector = true;
-	    loader_devices = sort (loader_devices);
-	    BootCommon::loader_device = loader_devices[0]:"";
+	    if (size (loader_devices) > 0)
+	    {
+		loader_devices = sort (loader_devices);
+		BootCommon::loader_device = loader_devices[0]:"";
+	    }
+	    else
+	    {
+		BootCommon::loader_device = BootCommon::BootPartitionDevice;
+	    }
 	}
     }
     return ret;
