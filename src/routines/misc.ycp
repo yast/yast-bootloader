@@ -1119,8 +1119,7 @@ global list<string> ListKernelParamsInLine (string line) {
 		ret = ret && (0 == exit);
 		if (haskey (to_fix_chs, d))
 		{
-		    command = sformat ("%1/FixCHS %2 %3",
-			Directory::ybindir,
+		    command = sformat ("/usr/sbin/fix_chs %1 %2",
 			d,
 			to_fix_chs[d]:(any)"");
 		    y2milestone ("Running command %1", command);
@@ -1279,6 +1278,8 @@ global list<string> ListKernelParamsInLine (string line) {
       */
     global define map<string, integer> getSwapPartitions () ``{
 	map<string, map> tm = (map<string,map>)Storage::GetTargetMap ();
+
+y2internal ("TM: %1", tm);
 
 	map<string, integer> ret = $[];
 
