@@ -190,6 +190,11 @@ global string FindMBRDisk() {
 		loader_device = BootPartitionDevice;
 	    selected_location = "boot";
 	}
+	if (! contains (getPartitionList (`boot), loader_device))
+	{
+	    selected_location = "mbr";             // default to mbr
+	    loader_device   = BootCommon::mbrDisk;
+	}
         y2milestone ("ConfigureLocation (%1 on %2)",
 	    selected_location, loader_device);
         return selected_location;
@@ -239,7 +244,8 @@ global string FindMBRDisk() {
 	    BootCommon::mbrDisk = FindMBRDisk();
 	}
 
-	if (loader_device == nil || loader_device == "")
+	if (loader_device == nil || loader_device == ""
+	    || ! contains (getPartitionList (`boot), loader_device))
             ConfigureLocation ();
 
 /*	if (mountdata_boot[3]:"" == "raid1")

@@ -1,8 +1,9 @@
 -------------------------------------------------------------------
-Thu Aug 25 11:05:08 CEST 2005 - jsrain@suse.cz
+Thu Aug 25 13:33:37 CEST 2005 - jsrain@suse.cz
 
 - fixed setting the resume kernel parameter during update (#112794)
 - do not add 'barrier=off' to failsafe kernel parameters (#112891)
+- do not propose to install bootloader on XFS partition (#112810)
 
 -------------------------------------------------------------------
 Tue Aug 23 13:59:20 CEST 2005 - jsrain@suse.cz
