@@ -449,7 +449,6 @@ global boolean Read (boolean reread) {
 	if (s["original_name"]:"" == "linux"
 	    && read_default_section_name == "")
 	{
-y2internal ("Read default sectino name: %1",  s["name"]:"");
 	    read_default_section_name = s["name"]:"";
 	}
     });

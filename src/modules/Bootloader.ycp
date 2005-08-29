@@ -484,7 +484,10 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	UpdateGfxMenu ();
 
 	// save bootloader settings
-	ret = blSave (true, true, true) && ret;
+	boolean reinit = ! (Mode::update () || Mode::normal ());
+	y2milestone ("Reinitialize bootloader library before saving: %1",
+	    reinit);
+	ret = blSave (true, reinit, true) && ret;
 	if (! ret)
 	    y2error ("Error before configuration files saving finished");
 
