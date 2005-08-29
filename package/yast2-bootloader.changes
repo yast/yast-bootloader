@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Mon Aug 29 09:21:07 CEST 2005 - jsrain@suse.cz
+Mon Aug 29 10:46:08 CEST 2005 - jsrain@suse.cz
 
 - updated failsafe kernel parameters for i386/x86_64 (#113600)
+- avoid reinitializing limal-bootloader before writing settings
+  during update and in installed system (#113683)
 
 -------------------------------------------------------------------
 Thu Aug 25 13:33:37 CEST 2005 - jsrain@suse.cz
