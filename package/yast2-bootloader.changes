@@ -5,6 +5,7 @@ Mon Aug 29 11:49:37 CEST 2005 - jsrain@suse.cz
 - avoid reinitializing limal-bootloader before writing settings
   during update and in installed system (#113683)
 - added support for booting on PPC
+- 2.12.23
 
 -------------------------------------------------------------------
 Thu Aug 25 13:33:37 CEST 2005 - jsrain@suse.cz
