@@ -10,13 +10,13 @@ module_DATA =			\
 	BootArch.ycp		\
 	BootGRUB.ycp		\
 	BootLILO.ycp		\
+	BootPOWERLILO.ycp	\
 	BootZIPL.ycp
 
-#	BootELILO.ycp		
 #	BootS390.ycp		\
 #	BootMILO.ycp		\
 #	BootABOOT.ycp		\
-#	BootPPC.ycp		
+#	BootELILO.ycp		
 
 Booltloader_API.pm:
 	test -f Bootloader_API.pm || ln -sf `find /usr/lib/perl5 -name Bootloader_API.pm`

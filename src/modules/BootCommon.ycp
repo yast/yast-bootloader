@@ -641,7 +641,7 @@ global define boolean Write () {
  * @return string the loader name if supported, "none" otherwise
  */
 string SupportedLoader (string loader) {
-    if (contains (["grub", "lilo", "zipl"], loader))
+    if (contains (["grub", "lilo", "zipl", "ppc"], loader))
 	return loader;
     return "none";
 }
@@ -660,12 +660,11 @@ string SupportedLoader (string loader) {
 	    loader_type = (string)SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
 	    if (loader_type != nil && loader_type != "")
 	    {
-		y2milestone ("Sysconfig bootloader is %1, using", loader_type);
-		if (loader_type == "lilo" && Arch::ppc ())
-		    loader_type = "ppc";
-		else if (loader_type == "s390")
+		if (loader_type == "s390")
 		    loader_type = "zipl";
+		y2milestone ("Sysconfig bootloader is %1, using", loader_type);
 		loader_type = SupportedLoader (loader_type);
+		y2milestone ("Sysconfig bootloader is %1, using", loader_type);
 		setCurrentLoaderAttribs (loader_type);
 		return loader_type;
 	    }
