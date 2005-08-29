@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 29 09:21:07 CEST 2005 - jsrain@suse.cz
+
+- updated failsafe kernel parameters for i386/x86_64 (#113600)
+
+-------------------------------------------------------------------
 Thu Aug 25 13:33:37 CEST 2005 - jsrain@suse.cz
 
 - fixed setting the resume kernel parameter during update (#112794)
