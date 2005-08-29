@@ -33,9 +33,9 @@
 //    import "BootELILO";
     import "BootLILO";
 //    import "BootMILO";
-//    import "BootPPC";
 //    import "BootS390";
     import "BootGRUB";
+    import "BootPOWERLILO"; // The ppc-LILO File
 
     global define map Export ();
     global define boolean Import (map<string,any> settings);
@@ -458,8 +458,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	// Write settings to /etc/sysconfig/bootloader
 	y2milestone ("Saving configuration files");
 	string lt = getLoaderType ();
-	if (lt == "ppc" && Arch::ppc ())
-	    lt = "lilo";
+
         SCR::Write (.sysconfig.bootloader.LOADER_TYPE, lt);
 //        SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
 //            BootCommon::location);

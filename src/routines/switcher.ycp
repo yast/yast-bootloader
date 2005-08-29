@@ -19,12 +19,13 @@
 
 import "BootGRUB";
 import "BootLILO";
+import "BootPOWERLILO";
+import "BootZIPL";
+import "BootCommon";
+
 //    import "BootMILO";
 //    import "BootABOOT";
 //    import "BootELILO";
-//    import "BootPPC";
-import "BootZIPL";
-import "BootCommon";
 
     /**
       * Get map of main functions for bootloader
@@ -41,7 +42,7 @@ import "BootCommon";
 //	    "aboot" : BootABOOT::GetFunctions,
 //	    "elilo" : BootELILO::GetFunctions,
 	    "zipl"  : BootZIPL::GetFunctions,
-//	    "ppc"   : BootPPC::GetFunctions
+	    "ppc"   : BootPOWERLILO::GetFunctions
 	];
 	map<string,any> () gf = (map<string,any>())(bl_functions[bootloader]:nil);
 	if (gf == nil)

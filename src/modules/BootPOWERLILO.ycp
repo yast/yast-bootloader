@@ -1,0 +1,261 @@
+/**
+ * File:
+ *      modules/BootPOWERLILO.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Module containing specific functions for LILO configuration
+ *      and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: BootPOWERLILO.ycp 24818 2005-08-11 13:25:29Z jsrain $
+ *
+ */
+
+{
+module "BootPOWERLILO";
+
+textdomain "bootloader";
+
+import "Arch";
+import "BootCommon";
+import "Kernel";
+import "Mode";
+import "Pkg";
+import "Storage";
+
+// This files should contain PPC specific messages
+//
+include "bootloader/routines/popups.ycp";
+include "bootloader/ppc/dialogs.ycp";
+include "bootloader/ppc/widgets2.ycp";
+
+/**
+ * Propose sections to bootloader menu
+ * modifies internal sreuctures
+ */
+global void CreateSections () {
+    list<map<string,any> > out = [
+	BootCommon::CreateLinuxSection ("linux")
+    ];
+    list<string> others = (list<string>)Storage::GetForeignPrimary();
+    if (others != nil && size (others) > 0)
+    {
+	foreach (string o, others, {
+	    list<string> parts = splitstring (o, " ");
+	    while (parts[0]:" " == "")
+		parts = remove (parts, 0);
+	    string dev = parts[0]:"";
+	    parts = remove (parts, 0);
+	    string label = mergestring (parts, " ");
+		// The mac label should be included, like once in Bootppc
+	    // don't add rewritten location (#19990)
+	    if (dev != "" && label != ""
+		&& dev != BootCommon::loader_device
+		//&& (
+		    //BootCommon::AddFirmwareToBootloader from file ./src/routines/i386.ycp
+		    // i think it is not neccessary, because Jack solved this.
+		    // BootCommon::AddFirmwareToBootloader (BootCommon::mbrDisk)
+		    // TODO: there is no MBR in PPC,
+		    //|| label != "Vendor diagnostics"
+		//)
+	    )
+	    {
+		map<string,any> m = $[
+		    "name" : BootCommon::translateSectionTitle (
+			BootCommon::removeBlanks (label)),
+		    "original_name" : label,
+		    "type" : "chainloader",
+		    "chainloader" : dev,
+		    "__auto" : true,
+		    "__changed" : false,
+		    "__devs" : [dev],
+		];
+		// on PPC there is no chainloader, (i think of an chain to load windows)
+		out = add (out, m);
+	    }
+	});
+    }
+    //    out = add (out, BootCommon::CreateLinuxSection ("failsafe"));
+
+    out = filter (map<string,any> s, out, { return s != $[] && s != nil;});
+    BootCommon::sections = out;
+}
+
+/**
+ * Propose global options of bootloader
+ * modifies internal structures
+ */
+global void CreateGlobals () {
+    BootCommon::globals = $[
+	"default" : BootCommon::sections[0, "name"]:"",
+	"timeout" : "8",
+    ];
+}
+
+// general functions
+
+/**
+  * Propose bootloader settings
+  */
+global define void Propose () ``{
+    y2debug ("Started propose: Glob: %1, Sec: %2",
+    	BootCommon::globals, BootCommon::sections);
+
+    if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
+    {
+        CreateSections ();  // make an initial proposal for at least one section
+        BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
+    }
+    else
+    {
+    	if (Mode::autoinst ())
+    	{
+    	    // TODO whatever will be needed
+	    y2debug ("nothing to to in AI mode if sections exist");
+    	}
+    	else
+	    BootCommon::FixSections (BootPOWERLILO::CreateSections);
+    }
+    if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
+    {
+        CreateGlobals ();
+    }
+    else
+    {
+    	if (Mode::autoinst ())
+    	{
+    	    // TODO whatever will be needed
+	    y2debug ("nothing to to in AI mode if globals are defined");
+    	}
+    	else
+	    BootCommon::FixGlobals ();
+    }
+
+    y2milestone ("Proposed sections: %1", BootCommon::sections);
+    y2milestone ("Proposed globals: %1", BootCommon::globals);
+}
+
+/**
+ * Read settings from disk
+ * @return boolean true on success
+ */
+global boolean Read (boolean reread) {
+    BootCommon::InitializeLibrary (reread, "ppc");
+    if (reread)
+    {
+	BootCommon::ReadFiles ();
+    }
+    // Do we have to detect disks ?
+    // in /src/routines/lilolike.ycp is usesless for PPC (calls FindMBRDisk)
+    // BootCommon::DetectDisks ();
+
+    boolean ret = BootCommon::Read (false);
+    // BootCommon::loader_device = BootCommon::globals["stage1_dev"]:"";
+	/* IMHO:
+	BootCommon::globals = maplist (map e, BootCommon::globals, ``{
+	           if (e["key"]:"" == "boot")
+                  e["value"] = BootCommon::UpdateDevice (e["value"]:"");
+
+
+	*/
+   
+    return ret;
+}
+
+/**
+ * Save all bootloader configuration files to the cache of the PlugLib
+ * PlugLib must be initialized properly !!!
+ * @param clean boolean true if settings should be cleaned up (checking their
+ *  correctness, supposing all files are on the disk
+ * @param init boolean true to init the library
+ * @param flush boolean true to flush settings to the disk
+ * @return boolean true if success
+ */
+global boolean Save (boolean clean, boolean init, boolean flush) {
+    // stage1_dev (from Bootloader_API.pm)converts to a single string
+    BootCommon::globals["stage1_dev"] = BootCommon::loader_device;
+    boolean ret = BootCommon::Save (clean, init, flush);
+    return ret;
+}
+
+
+/**
+ * Update read settings to new version of configuration files
+ */
+global void Update () {
+    // PPC does not need : said jsrain@
+    // in routines/lilolike.ycp
+    //BootCommon::UpdateDeviceMap ();
+    BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
+    BootCommon::UpdateGlobals ();
+    BootCommon::loader_device
+	= BootCommon::UpdateDevice (BootCommon::loader_device);
+}
+
+/**
+  * Write bootloader settings to disk
+  * @return boolean true on success
+  */
+global define boolean Write () {
+    boolean ret = BootCommon::UpdateBootloader ();
+
+    ret = ret && BootCommon::InitializeBootloader ();
+    return ret;
+}
+
+global map<string,symbol()> Dialogs () {
+    // PPC definitly needs other text modules
+    return $[
+//	"installation"	: ppcInstallDetailsDialog,
+//	"loader"	: ppcLoaderDetailsDialog,
+    ];
+}
+
+
+/**
+ * Return map of provided functions
+ * @return map map of functions (eg. $["write":BootPOWERLILO::Write])
+ */
+global map<string, any> GetFunctions () {
+    return $[
+	"dialogs"	: Dialogs,
+	"read"		: Read,
+	"propose"	: Propose,
+	"save"		: Save,
+	"update"	: Update,
+	"write"		: Write,
+    ];
+}
+
+/**
+  * Initializer of PowerLILO bootloader
+  */
+global void Initializer () {
+    y2milestone ("Called PowerLILO initializer");
+    BootCommon::current_bootloader_attribs = $[
+	"propose" : true,
+	"read" : true,
+	"scratch" : true,
+	"bootloader_on_disk" : true,
+    ];
+}
+
+/**
+  * Constructor
+  */
+global void BootPOWERLILO () {
+    BootCommon::bootloader_attribs["ppc"] = $[
+	"required_packages" : ["lilo"],
+	"loader_name" : "ppc",
+	"initializer" : BootPOWERLILO::Initializer,
+    ];
+}
+
+
+
+}
