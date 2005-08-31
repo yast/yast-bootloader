@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Aug 30 11:47:29 CEST 2005 - jsrain@suse.cz
+
+- added ELILO support (for IA64)
+
+-------------------------------------------------------------------
 Mon Aug 29 11:49:37 CEST 2005 - jsrain@suse.cz
 
 - updated failsafe kernel parameters for i386/x86_64 (#113600)

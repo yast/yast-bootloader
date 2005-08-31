@@ -27,40 +27,6 @@
     include "bootloader/routines/popups.ycp";
 
 
-// Global section widget
-
-    /**
-      * Create a list of options for the table
-      * @param descr map description of the table
-      * @return list of option ids as it should be displayed
-      */
-    global define list getTableContents (map descr) ``{
-	list prependlist = [];
-	list forbidden_keys = [];
-	any type = BootCommon::getSectionType (BootCommon::current_section);
-	if (type == `global)
-	{
-	    prependlist = ["__loader_type", "__sep2", "__location",
-		"default", "__sections", "__save_method", "__sep1"];
-	    forbidden_keys = ["boot", "default"];
-	}
-	else
-	{
-	    prependlist = ["label", "__section_type", "__sep1"];
-	}
-	return BootCommon::createSectionItemsList (
-	    prependlist, forbidden_keys, true);
-    }
-
-    /**
-      * Get map of widget
-      * @return map of widget
-      */
-    global define map<string,any> getGlobalSectionWidget () ``{
-	map<string,any> ret = BootCommon::getGlobalSectionWidget ();
-	ret["ids"] = BootELILO::getTableContents;
-	return ret;
-    }
 
 // Bootloader target widget
 
@@ -96,10 +62,10 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void targetInit (any opt_id, string opt_key) ``{
+    global define void targetInit (string widget) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
 	UI::ChangeWidget (`id (`create_entry), `Value, create_efi_entry);
-	UI::ChangeWidget (`id (`location), `Value, BootCommon::location);
+	UI::ChangeWidget (`id (`location), `Value, efi_entry_name);
 	UI::ChangeWidget (`id (`location), `Enabled, create_efi_entry);
 	if (have_old)
 	{
@@ -115,7 +81,7 @@
       * @param opt_key any option key
       * @param event map event that occured
       */
-    global define void targetHandle (any opt_id, string opt_key, map event) ``{
+    global symbol targetHandle (string widget, map event) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
 	UI::ChangeWidget (`id (`location), `Enabled,
 	    UI::QueryWidget (`id (`create_entry), `Value));
@@ -131,9 +97,9 @@
       * @param opt_id any option id
       * @param opt_key any option key
       */
-    global define void targetStore (any opt_id, string opt_key) ``{
+    global define void targetStore (string widget, map event) ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
-	BootCommon::location = (string)
+	efi_entry_name = (string)
 	    UI::QueryWidget (`id (`location), `Value);
 	if (have_old)
 	{
@@ -144,7 +110,6 @@
 	create_efi_entry = (boolean)
 	    UI::QueryWidget (`id (`create_entry), `Value);
 	BootCommon::location_changed = true;
-	BootCommon::markGeneralOptionChanged ((string)opt_key);
     }
 
     /**
@@ -154,78 +119,41 @@
       * @param event map event that caused validation
       * @return boolean true if widget settings ok
       */
-    global define boolean targetValidate (any opt_id, string opt_key, map event)``{
+    global define boolean targetValidate (string widget, map event)``{
 	return true; // FIXME check for valid characters
 			// FIXME check if not empty
     }
 
-    /**
-      * Summary function of a table entry
-      * @param opt_id any option id
-      * @param opt_key any option key
-      * @return string summary to the table
-      */
-    global define string targetSummary (any opt_id, string opt_key) ``{
-	if (BootCommon::location == "" || ! create_efi_entry)
-	{
-	    // table entry, %1 is label of the entry of EFI boot manager
-	    return _("Do Not Create EFI Boot Manager Entry");
-	}
-	else
-	{
-	    // table entry
-	    return sformat (_("Create EFI Boot Manager Entry %1"),
-		BootCommon::location);
-	}
-    }
 
-    /**
-      * Get map of Target widget
-      * @return map of Target widget
-      */
-    global define map<string,any> getTargetOption () ``{
-	return $[
-	    "table" : $[
-		// table cell / label
-		"label" : _("Boot Loader Location"),
-		"summary" : BootELILO::targetSummary,
-		"optional" : false,
-		"ordering" : false,
-		"unique_key" : true,
-	    ],
-	    "popup" : $[
+
+/**
+ * Cache for ppcWidgets function
+ */
+map<string,map<string,any> > _elilo_widgets = nil;
+
+/**
+ * Get widgets specific for ppc
+ * @return a map describing all ppc-specific widgets
+ */
+map<string,map<string,any> > Widgets () {
+    if (_elilo_widgets == nil)
+    {
+        _elilo_widgets = $[
+            "loader_location" : $[
 		"widget" : `func,
-		"widget_func" : BootELILO::getTargetWidget,
-		"init" : BootELILO::targetInit,
-		"handle" : BootELILO::targetHandle,
-		"store" : BootELILO::targetStore,
-//		"help" : getLocationsHelp (),
-		"validate" : BootELILO::targetValidate,
-
-	    ],
-	];
-    }
-
-// general functions
-
-    /**
-      * Get map of dialogs and widgets
-      * @return map of dialogs and widgets
-      */
-    global define map<string,map<string,any> > GetWidgetMaps () ``{
-	return $[
-	    "globalsection" : getGlobalSectionWidget (),
-	];
-    }
-
-    /**
-      * Get map of all available Table/Popup options
-      * @return map of options
-      */
-    global define map<string,map<string,any> > GetOptionMaps () ``{
-	return $[
-	    "__location"	: getTargetOption (),
+		"widget_func" : getTargetWidget,
+		"init" : targetInit,
+		"handle" : targetHandle,
+		"store" : targetStore,
+                "validate_type" : `function,
+		"validate" : targetValidate,
+                "help" : " ",
+            ],
         ];
     }
+    return _elilo_widgets;
+}
+
+
 
 }

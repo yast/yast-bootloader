@@ -641,7 +641,7 @@ global define boolean Write () {
  * @return string the loader name if supported, "none" otherwise
  */
 string SupportedLoader (string loader) {
-    if (contains (["grub", "lilo", "zipl", "ppc"], loader))
+    if (contains (["grub", "lilo", "zipl", "ppc", "elilo"], loader))
 	return loader;
     return "none";
 }

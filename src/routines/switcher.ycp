@@ -17,6 +17,7 @@
 
 {
 
+import "BootELILO";
 import "BootGRUB";
 import "BootLILO";
 import "BootPOWERLILO";
@@ -25,7 +26,6 @@ import "BootCommon";
 
 //    import "BootMILO";
 //    import "BootABOOT";
-//    import "BootELILO";
 
     /**
       * Get map of main functions for bootloader
@@ -40,7 +40,7 @@ import "BootCommon";
 	    "grub"  : BootGRUB::GetFunctions,
 //	    "milo"  : BootMILO::GetFunctions,
 //	    "aboot" : BootABOOT::GetFunctions,
-//	    "elilo" : BootELILO::GetFunctions,
+	    "elilo" : BootELILO::GetFunctions,
 	    "zipl"  : BootZIPL::GetFunctions,
 	    "ppc"   : BootPOWERLILO::GetFunctions
 	];
