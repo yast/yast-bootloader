@@ -59,41 +59,17 @@ import "BootCommon";
       */
     global boolean efi_layout_changed = false;
 
+/**
+ * The name of the entry in the EFI menu
+ */
+    global string efi_entry_name = "";
+
 
     include "bootloader/elilo/misc.ycp";
-//    include "bootloader/elilo/widgets.ycp";
+    include "bootloader/elilo/widgets.ycp";
 
 
 // misc. functions
-
-    /**
-      * Create strings representing cfg. files for by-hand editation
-      * @return map filename -> contents
-      */
-    global define map<string,string> GetFiles() ``{
-	return $[]; // FIXME remove
-// TODO rewrite using the library
-//        BootCommon::saveCfgFileToAgent ();
-        return $[
-            elilo_conf_filename : (string)SCR::Read (.elilo.tostring),
-        ];
-    }
-
-    /**
-      * Store strings representing cfg. files to internal structures
-      * @param files map filename -> contents
-      */
-    global define void SetFiles (map<string,string> files) ``{
-	return; // FIXME remove
-        if (SCR::Read (.elilo.tostring)
-	    != files[elilo_conf_filename]:"")
-	{
-            BootCommon::files_edited = true;
-	}
-        SCR::Write (.elilo.fromstring, files[elilo_conf_filename]:"");
-// TODO rewrite using the library
-//        BootCommon::loadCfgFileFromAgent ();
-    }
 
 
 /**
@@ -104,20 +80,14 @@ global void CreateSections () {
     map<string,any> linux = BootCommon::CreateLinuxSection ("linux");
     map<string,any> failsafe = BootCommon::CreateLinuxSection ("failsafe");
     // append for default section is in global
-    if (haskey (linux, "append"))
-	linux = remove (linux, "append");
+// FIXME do it later
+//    if (haskey (linux, "append"))
+//	linux = remove (linux, "append");
 
     BootCommon::sections = [ linux, failsafe ];
     }
 
-/**
- * Fix sections of bootloader menu during proposal regeneration
- * modifies internal sreuctures
- */
-global void FixSections () {
-    BootCommon::FixSections (BootELILO::CreateSections);
-    return;
-}
+
 
 /**
  * Propose global options of bootloader
@@ -125,9 +95,11 @@ global void FixSections () {
  */
 global void CreateGlobals () ``{
     BootCommon::globals = $[
-	"append" : BootArch::DefaultKernelParams (""),
+// FIXME do it later
+//	"append" : BootArch::DefaultKernelParams (""),
 	"default" : BootCommon::translateSectionTitle ("linux"),
-	"timeout" : 8,
+	"timeout" : "8",
+	"prompt" : "1",
     ];
 // TODO in the library
 /*	BootCommon::globals = [
@@ -138,28 +110,11 @@ global void CreateGlobals () ``{
 }
 
 /**
- * Update sections of bootloader menu
- * modifies internal sreuctures
- * @param replace boolean true if old sectinos shall be replaced
- */
-global void UpdateSections (boolean replace) {
-    BootCommon::UpdateSections (replace, BootCommon::CreateLinuxSection);
-    BootCommon::sections = maplist (map<string,any> s, BootCommon::sections, {
-	if (substring (s["initrd"]:"", 0, 7) == "/initrd")
-	    s["initrd"] = "/boot/initrd";
-	if (substring (s["kernel"]:"", 0, 8) == "/vmlinuz")
-	    s["kernel"] = "/boot/vmlinuz";
-	return s;
-    });
-// TODO in the library make paths relative
-}
-
-/**
  * Update global options of bootloader
  * modifies internal sreuctures
  */
 global void UpdateGlobals () {
-    BootCommon::globals["timeout"] = 8;
+    BootCommon::globals["timeout"] = "8";
     BootCommon::globals["append"] = BootArch::DefaultKernelParams ("");
 }
 
@@ -203,7 +158,7 @@ global void UpdateGlobals () {
 	if (! BootCommon::was_proposed)
 	{
 	    create_efi_entry = true;
-	    BootCommon::location
+	    efi_entry_name
 		= sformat ("%1 %2", Product::name, Product::version);
 	}
 	if (! Stage::initial ())
@@ -226,19 +181,19 @@ global void UpdateGlobals () {
 		y2debug ("Nothing to do for propose in AI mode");
 	    }
 	    else
-		FixSections ();
+		BootCommon::FixSections (BootELILO::CreateSections);
 	}
 	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
 	{
 	    CreateGlobals ();
 	}
 
-	if (BootCommon::location == "" || BootCommon::location == nil)
+	if (efi_entry_name == "" || efi_entry_name == nil)
 	{
-	    BootCommon::location
+	    efi_entry_name
 		= sformat ("%1 %2", Product::name, Product::version);
 	}
-	y2milestone ("EFI entry name: %1", BootCommon::location);
+	y2milestone ("EFI entry name: %1", efi_entry_name);
         y2milestone ("Proposed sections: %1", BootCommon::sections);
         y2milestone ("Proposed globals: %1", BootCommon::globals);
     }
@@ -247,7 +202,7 @@ global void UpdateGlobals () {
       * Read settings from disk
       * @return boolean true on success
       */
-    global define boolean Read () ``{
+    global define boolean Read (boolean reread) ``{
 	import "Product";
 	boolean efi_entry_found = false;
 	elilo_conf_filename = getEliloConfFilename ();
@@ -261,12 +216,13 @@ global void UpdateGlobals () {
 	}
 	SCR::Execute (.target.bash, "/bin/touch /etc/elilo.conf");
 	BootCommon::DetectDisks ();
-	boolean ret = BootCommon::Read ();
-	BootCommon::location
+	boolean ret = BootCommon::Read (reread);
+	efi_entry_name
 	    = (string)SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
+y2internal ("EFI entry: %1", efi_entry_name);
 	// check for meaningless EFI entry name in sysconfig
-	if ("mbr" == BootCommon::location || "" == BootCommon::location
-	    || nil == BootCommon::location)
+	if ("mbr" == efi_entry_name || "" == efi_entry_name
+	    || nil == efi_entry_name)
 	{
 	    string efi_path = BootCommon::replaceAll (
 		getEliloConfSubpath (), "/", "\\");
@@ -274,7 +230,7 @@ global void UpdateGlobals () {
 		"/usr/sbin/efibootmgr |grep \"%1\"", efi_path));
 	    if (efi_status["exit"]:0 != 0)
 	    {
-		BootCommon::location
+		efi_entry_name
 		    = sformat ("%1 %2", Product::name, Product::version);
 	    }
 	    else
@@ -284,13 +240,13 @@ global void UpdateGlobals () {
 		output = lines[0]:"";
 		if (regexpmatch (output, "Boot.*\* (.*)  HD"))
 		{
-		    BootCommon::location
+		    efi_entry_name
 			= regexpsub (output, "Boot.*\* (.*)  HD", "\\1");
 		    efi_entry_found = true;
 		}
 		else
 		{
-		    BootCommon::location
+		    efi_entry_name
 			= sformat ("%1 %2", Product::name, Product::version);
 		}
 	    }
@@ -298,11 +254,10 @@ global void UpdateGlobals () {
 	else
 	{
 	    efi_entry_found = 0 == SCR::Execute (.target.bash, sformat (
-                "/usr/sbin/efibootmgr |grep \"%1\"", BootCommon::location));
+                "/usr/sbin/efibootmgr |grep \"%1\"", efi_entry_name));
 	}
 	create_efi_entry = false;
-	old_efi_entry = efi_entry_found ? BootCommon::location : (string)nil;
-	old_efi_entry = "XXXXX";
+	old_efi_entry = efi_entry_found ? efi_entry_name : (string)nil;
 	return ret;
     }
 
@@ -321,51 +276,11 @@ global void UpdateGlobals () {
  * Save all bootloader configuration files
  * @return boolean true if success
  */
-global boolean Save () {
-	string prefix = "";//getEfiMountPoint ();
-	string relative_prefix = "/boot/";//getEliloConfDir () + "/";
-	SCR::Execute (.target.bash,
-	    sformat ("test -d %1 || /bin/mkdir -p %1", getEliloConfDir ()));
-        SCR::Execute (.target.bash, sformat (
-	    "test -f %1 && /bin/cp %1 %1.old", elilo_conf_filename));
-        SCR::Execute (.target.bash, sformat ("/usr/bin/touch %1",
-	    elilo_conf_filename));
-
-	BootCommon::liloRemoveUnexistentSections (prefix, relative_prefix);
-        BootCommon::sections = maplist (map<string,any> s,
-	    BootCommon::sections, {
-            string initrd = (string)lookup_value (s, "initrd", "");
-            string title = (string)lookup_value (s, "label", "");
-	    map intern = (map)lookup_value (s, "__intern__", $[]);
-	    string type = intern["type"]:"";
-
-            if ((type == "linux" || type == "failsafe")
-                && BootCommon::write_settings["insert_initrd"]:false)
-            {
-		initrd = "initrd";
-                s = modifySection (s, "initrd", initrd);
-            }
-            if (initrd != "")
-            {
-		string check_prefix = "";
-		if (substring (initrd, 0, 1) == "/")
-		    check_prefix = prefix;
-		else
-		    check_prefix = relative_prefix;
-                if (-1 == SCR::Read (.target.size, check_prefix + initrd))
-                    s = modifySection (s, "initrd", nil);
-            }
-            return s;
-        });
-	BootCommon::globals = modifySection (BootCommon::globals,
-	    "append",
-	    BootCommon::updateKernelParams (
-		(string)lookup_value (BootCommon::globals, "append", "")
-	    )
-	);
-        boolean ret = BootCommon::Save ();
-
-        return ret;
+global boolean Save (boolean clean, boolean init, boolean flush) {
+    BootCommon::globals["efi_entry_name"] = efi_entry_name;
+    // FIXME modify EFI? Entries to remove...
+    boolean ret = BootCommon::Save (clean, init, flush);
+    return ret;
 }
 
     /**
@@ -375,8 +290,8 @@ global boolean Save () {
     global define list<string> Summary () ``{
 	// summary text, %1 is bootloader name (eg. LILO)
 	list<string> result = [ sformat (_("Boot loader type: %1"),
-	    BootCommon::getLoaderName (BootCommon::getLoaderType (false))) ];
-	if (BootCommon::location == "" || BootCommon::location == nil
+	    BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)) ];
+	if (efi_entry_name == "" || efi_entry_name == nil
 	    || ! create_efi_entry)
 	{
 	    result
@@ -388,14 +303,13 @@ global boolean Save () {
 	    result = add (result, sformat (
 		// summary text, %1 is label of the entry of EFI boot manager
 		_("Create EFI Boot Manager Entry %1"),
-                BootCommon::location));
+                efi_entry_name));
 	}
         list<string> sects = [];
-        foreach (list<map> s, BootCommon::sections, ``{
-            string title = (string)
-		lookup_value (s, BootCommon::getSectionTitle (), "");
+        foreach (map<string,any> s, BootCommon::sections, ``{
+            string title = s["name"]:"";
                 // section name "suffix" for default section
-            string def = title == BootCommon::getDefaultSection ()
+            string def = title == BootCommon::globals["default"]:""
 		? _(" (default)")
 		: "";
             sects = add (sects, sformat ("%1%2", title, def));
@@ -406,13 +320,48 @@ global boolean Save () {
         return result;
     }
 
+/**
+ * Update read settings to new version of configuration files
+ */
+global define void Update () ``{
+    UpdateGlobals ();
+    BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
+    // FIXME EFI entry name
+}
+
     /**
-      * Update read settings to new version of configuration files
+      * Install the bootloader, display a popup with log if something
+      *  goes wrong
+      * @param command string command to install the bootloader
+      * @param logfile string filename of file used to write bootloader log
+      * @return boolean true on success
       */
-    global define void Update () ``{
-	updateSections (true);
-	updateGlobals ();
+// FIXME get rid of this function
+    global define boolean installBootLoader (string command, string logfile) ``{
+        y2milestone ("Running command %1", command);
+        map exit = (map)SCR::Execute (.target.bash_output, command);
+        boolean ret = 0 == exit["exit"]:1;
+        if (! ret)
+        {
+            y2milestone ("Exit code of %1: %2", command, exit["exit"]:-1);
+            string log = (string)SCR::Read (.target.string, logfile);
+            log = log + exit["stdout"]:"" + exit["stderr"]:"";
+            if (exit["exit"]:1 == 139)
+            {
+                // means: process received signal SIGSEGV
+                // please, use some usual translation
+                // proofreaders: don't change this text
+                log = log + _("Segmentation fault");
+            }
+
+            errorWithLogPopup (sformat (
+                // error popup - label, %1 is bootloader name
+                _("Error Occurred while Installing %1"),
+                BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)), log);
+        }
+        return ret;
     }
+
 
     /**
       * Write bootloader settings to disk
@@ -422,12 +371,13 @@ global boolean Save () {
 	SCR::Execute (.target.bash, "/sbin/elilo");
 	if (! create_efi_entry)
 	    return true;
-	boolean ret = true;
+	boolean ret = BootCommon::UpdateBootloader ();
 	if (BootCommon::location_changed)
 	{
+// FIXME shuold be handled completly through the library
 	    // remove existing end old menu entry
 	    list<string> efi_entries_to_remove = toset ([
-		BootCommon::location,
+		efi_entry_name,
 		remove_old_efi ? old_efi_entry : ""
 	    ]);
 	    efi_entries_to_remove = filter (string e, efi_entries_to_remove, ``(
@@ -450,32 +400,24 @@ fi", efi_label);
 	    any boot_disk = splited["disk"]:"";
 	    y2milestone ("Disk: %1, Part: %2", boot_disk, boot_part);
 
-	    if (BootCommon::location != "" && BootCommon::location != nil)
+	    if (efi_entry_name != "" && efi_entry_name != nil)
 	    {
 		string bl_command = sformat (
 		    "/usr/sbin/efibootmgr -c -L \"%1\" -d %2 -l '\\efi\\SuSE\\elilo.efi' -p %3 -v -w >> /var/log/YaST2/y2logefi 2>&1",
-		    BootCommon::location, boot_disk, boot_part);
+		    efi_entry_name, boot_disk, boot_part);
 		string bl_logfile = "/var/log/YaST2/y2logefi";
 		boolean command_ret
-		    = BootCommon::installBootLoader (bl_command, bl_logfile);
+		    = installBootLoader (bl_command, bl_logfile);
 		ret = ret && command_ret;
 	    }
 	}
 	return ret;
     }
 
-    /**
-      * Get map of bootloader options
-      * @return map of options
-      */
-    global define map GetOptions () ``{
-	map ret = $[];//BootCommon::GetOptions ();
-	ret[`global] = filter (any o, ret[`global]:[], ``(
-	    o != "lba" && o != "lba32" && o != "linear"));
-	ret[`global] = merge (ret[`global]:[], [ "noedd30", "chooser",
-	    "relocatable"]);
-	return ret;
-    }
+
+global map<string,symbol()> Dialogs () {
+    return $[];
+}
 
     /**
       * Return map of provided functions
@@ -483,8 +425,9 @@ fi", efi_label);
       */
     global define map GetFunctions () ``{
 	return $[
-	    "export"	: BootELILO::Export,
-	    "import"	: BootELILO::Import,
+	    "dilogs"	: Dialogs (),
+//	    "export"	: BootELILO::Export,
+//	    "import"	: BootELILO::Import,
 	    "read"	: BootELILO::Read,
 	    "reset"	: BootELILO::Reset,
 	    "propose"	: BootELILO::Propose,
@@ -492,40 +435,23 @@ fi", efi_label);
 	    "summary"	: BootELILO::Summary,
 	    "update"	: BootELILO::Update,
 	    "write"	: BootELILO::Write,
-	    "getfiles"	: BootELILO::GetFiles,
-	    "setfiles"	: BootELILO::SetFiles,
+	    "widgets"	: Widgets,
 	];
     }
 
-    /**
-      * Initializer of LILO bootloader
-      */
-    global define void Initializer () ``{
-	y2milestone ("Called ELILO initializer");
-	BootCommon::current_bootloader_attribs = $[
-            "section_title" : "label",
-            "kernel_key" : "image",
-            "required_packages" : ["elilo"],
-            "loader_name" : "ELILO",
-            "default_key" : "default",
-            "default_type" : `label,
-            "timeout_multiplier" : 10,
-            "alias_keys" : ["alias"],
-	    "convert_function" : BootCommon::liloConvertSection,
-            "kernel_params" : $[
-                "vga" : "vga",
-                "root" : "root",
-                `other : "append",
-            ],
-            "propose" : true,
-            "read" : true,
-            "scratch" : true,
-            "restore_mbr" : false,
-            "key_only_once" : true,
-	    "bootloader_on_disk" : false,
-	    "option_list" : GetOptions (),
-	];
-    }
+/**
+ * Initializer of ELILO bootloader
+ */
+global void Initializer () {
+    y2milestone ("Called ELILO initializer");
+    BootCommon::current_bootloader_attribs = $[
+        "propose" : true,
+        "read" : true,
+        "scratch" : true,
+        "restore_mbr" : true,
+        "bootloader_on_disk" : true,
+    ];
+}
 
     /**
       * Constructor
