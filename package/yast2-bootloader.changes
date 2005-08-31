@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Tue Aug 30 11:47:29 CEST 2005 - jsrain@suse.cz
+Wed Aug 31 08:38:41 CEST 2005 - jsrain@suse.cz
 
 - added ELILO support (for IA64)
+- added basic ZIPL support (for S/390)
 
 -------------------------------------------------------------------
 Mon Aug 29 11:49:37 CEST 2005 - jsrain@suse.cz
