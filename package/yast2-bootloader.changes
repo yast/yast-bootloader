@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep  2 12:00:28 CEST 2005 - jsrain@suse.cz
+
+- added RC1 bootloader background
+
+-------------------------------------------------------------------
 Wed Aug 31 08:38:41 CEST 2005 - jsrain@suse.cz
 
 - added ELILO support (for IA64)
