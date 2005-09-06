@@ -170,4 +170,27 @@ global void i386LocationProposal () {
     }
 }
 
+/**
+ * Do updates of MBR after the bootloader is installed
+ * @return boolean true on success
+ */
+global boolean PostUpdateMBR () {
+    boolean ret = true;
+    if (ThinkPadMBR (mbrDisk))
+    {
+	if (loader_device != mbrDisk)
+	{
+	    string command = sformat
+		("/usr/lib/YaST2/bin/tp_mbr %1", mbrDisk);
+	    y2milestone ("Running command %1", command);
+	    map out = (map)SCR::Execute (.target.bash_output, command);
+	    integer exit = out["exit"]:0;
+	    y2milestone ("Command output: %1", out);
+	    ret = ret && (0 == exit);
+	}
+    }
+
+    return ret;
+}
+
 } // EOF

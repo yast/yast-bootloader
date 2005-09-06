@@ -209,6 +209,7 @@ global void Update () {
 	}
 
 	ret = ret && BootCommon::InitializeBootloader ();
+	ret = ret && BootCommon::PostUpdateMBR ();
 	return ret;
     }
 
