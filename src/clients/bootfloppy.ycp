@@ -32,7 +32,7 @@
     Wizard::SetDesktopIcon("bootfloppy");
     PackageCallbacksInit::InitPackageCallbacks ();
 
-    integer boot_floppy_count = 6;
+    integer boot_floppy_count = Arch::x86_64 () ? 7 : 8;
 
     string file_image = "bootdsk1"; //default
     string filename = "";
