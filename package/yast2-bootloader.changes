@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep  6 10:55:16 CEST 2005 - jsrain@suse.cz
+
+- changed the bootloader background (#115331)
+- 2.12.26
+
+-------------------------------------------------------------------
 Fri Sep  2 12:00:28 CEST 2005 - jsrain@suse.cz
 
 - added RC1 bootloader background
