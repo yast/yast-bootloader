@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Sep  6 13:41:54 CEST 2005 - jsrain@suse.cz
+
+- changed the count of boot floppies (#114959)
+
+-------------------------------------------------------------------
 Tue Sep  6 10:55:16 CEST 2005 - jsrain@suse.cz
 
 - changed the bootloader background (#115331)
