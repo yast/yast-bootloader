@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Tue Sep  6 13:41:54 CEST 2005 - jsrain@suse.cz
+Tue Sep  6 14:00:52 CEST 2005 - jsrain@suse.cz
 
 - changed the count of boot floppies (#114959)
+- run fix_chs on each partition which is marked active (#103031)
 
 -------------------------------------------------------------------
 Tue Sep  6 10:55:16 CEST 2005 - jsrain@suse.cz

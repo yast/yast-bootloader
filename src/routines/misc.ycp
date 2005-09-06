@@ -1070,7 +1070,6 @@ global list<string> ListKernelParamsInLine (string line) {
 	    });
 	}
 	boolean ret = true;
-	map<string,any> to_fix_chs = $[];
 	if (activate)
 	{
 	  foreach (map m_activate, getPartitionsToActivate (), {
@@ -1088,7 +1087,14 @@ global list<string> ListKernelParamsInLine (string line) {
 		    integer exit = out["exit"]:0;
 		    y2milestone ("Command output: %1", out);
 		    ret = ret && (0 == exit);
-		    to_fix_chs[mbr_dev] = num;
+		    command = sformat ("/usr/sbin/fix_chs %1 %2",
+			mbr_dev,
+			num);
+		    y2milestone ("Running command %1", command);
+		    out = (map)SCR::Execute (.target.bash_output, command);
+		    exit = out["exit"]:0;
+		    y2milestone ("Command output: %1", out);
+		    ret = ret && (0 == exit);
 		}
 	    }
 	    else
@@ -1117,17 +1123,6 @@ global list<string> ListKernelParamsInLine (string line) {
 		integer exit = out["exit"]:0;
 		y2milestone ("Command output: %1", out);
 		ret = ret && (0 == exit);
-		if (haskey (to_fix_chs, d))
-		{
-		    command = sformat ("/usr/sbin/fix_chs %1 %2",
-			d,
-			to_fix_chs[d]:(any)"");
-		    y2milestone ("Running command %1", command);
-		    out = (map)SCR::Execute (.target.bash_output, command);
-		    exit = out["exit"]:0;
-		    y2milestone ("Command output: %1", out);
-		    ret = ret && (0 == exit);
-		}
 	    });
 	}
 	return ret;
