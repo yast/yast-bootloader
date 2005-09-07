@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep  7 15:30:04 CEST 2005 - jsrain@suse.cz
+
+- load EDD module during proposal (and not during inst_finish, as
+  it doesn't work if other than default kernel is used) (#115592)
+
+-------------------------------------------------------------------
 Wed Sep  7 13:05:32 CEST 2005 - jsrain@suse.cz
 
 - install bootloader to MBR by default (except ThinkPads)

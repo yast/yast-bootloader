@@ -143,6 +143,19 @@ global void i386LocationProposal () {
     {
 	DetectDisks ();
 	del_parts = getPartitionList (`deleted);
+	// check whether edd is loaded
+	string lsmod_command = "lsmod | grep edd";
+	y2milestone ("Running command %1", lsmod_command);
+	map lsmod_out = (map)SCR::Execute (.target.bash_output, lsmod_command);
+	y2milestone ("Command output: %1", lsmod_out);
+	boolean edd_loaded = lsmod_out["exit"]:0 == 0;
+	if (! edd_loaded)
+	{
+	    string command = "/sbin/modprobe edd";
+	    y2milestone ("Loading EDD module, running %1", command);
+	    map out = (map)SCR::Execute (.target.bash_output, command);
+	    y2milestone ("Command output: %1", out);
+	}
     }
 
     // refresh device map

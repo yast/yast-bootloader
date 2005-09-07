@@ -1092,21 +1092,6 @@ global list<string> ListKernelParamsInLine (string line) {
 		ret = ret && (0 == exit);
 	    });
 	}
-	// check whether edd is loaded
-	string lsmod_command = "lsmod | grep edd";
-	y2milestone ("Running command %1", lsmod_command);
-	map lsmod_out = (map)SCR::Execute (.target.bash_output, lsmod_command);
-	y2milestone ("Command output: %1", lsmod_out);
-	boolean edd_loaded = lsmod_out["exit"]:0 == 0;
-	if (! edd_loaded)
-	{
-	    string command = "/sbin/modprobe edd";
-	    y2milestone ("Loading EDD module, running %1", command);
-	    map out = (map)SCR::Execute (.target.bash_output, command);
-	    y2milestone ("Command output: %1", out);
-	    integer exit = out["exit"]:0;
-	    ret = ret && (0 == exit);
-	}
 	if (activate)
 	{
 	  foreach (map m_activate, getPartitionsToActivate (), {
