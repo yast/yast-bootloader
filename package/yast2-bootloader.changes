@@ -4,6 +4,7 @@ Wed Sep  7 13:05:32 CEST 2005 - jsrain@suse.cz
 - install bootloader to MBR by default (except ThinkPads)
 - load EDD module before running fix_chs script (#103031)
 - import device map correctly during autoinstallation (#115327)
+- 2.12.28
 
 -------------------------------------------------------------------
 Tue Sep  6 14:00:52 CEST 2005 - jsrain@suse.cz
