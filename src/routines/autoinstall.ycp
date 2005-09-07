@@ -124,7 +124,7 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 		map<string,string> device_map = listmap (
 		    map<string,string> entry, dm,
 		{
-		    return $[entry["firmware"]:"" : entry["linux"]:""];
+		    return $[ entry["linux"]:"" : entry["firmware"]:"" ];
 		});
 		exp["specific", "device_map"] = device_map;
 	    }
