@@ -2,6 +2,7 @@
 Thu Sep  8 14:24:25 CEST 2005 - jsrain@suse.cz
 
 - fixed reading GRUB location from configuration file (#115581)
+- 2.12.30
 
 -------------------------------------------------------------------
 Wed Sep  7 15:30:04 CEST 2005 - jsrain@suse.cz
