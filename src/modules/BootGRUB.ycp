@@ -405,6 +405,10 @@ global boolean Read (boolean reread) {
 	    }
 	}
     }
+    else if (size (loader_devices) == 1)
+    {
+	BootCommon::loader_device = loader_devices[0]:"";
+    }
     return ret;
 }
 
