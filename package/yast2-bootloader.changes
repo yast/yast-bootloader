@@ -2,6 +2,7 @@
 Fri Sep  9 17:11:10 CEST 2005 - jsrain@suse.cz
 
 - activate the /boot partition if installing to ThinkPad (#116129)
+- 2.12.32
 
 -------------------------------------------------------------------
 Fri Sep  9 15:16:39 CEST 2005 - jsrain@suse.cz
