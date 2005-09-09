@@ -174,13 +174,6 @@ global void i386LocationProposal () {
 	    DetectDisks ();
 	}
     }
-
-    // set activate flag
-    if (! activate_changed)
-    {
-	activate
-	    = size (Storage::GetBootPartition (mbrDisk)) == 0;
-    }
 }
 
 /**

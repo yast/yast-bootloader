@@ -200,6 +200,17 @@ global string FindMBRDisk() {
 	}
         y2milestone ("ConfigureLocation (%1 on %2)",
 	    selected_location, loader_device);
+	// set active flag
+	if (selected_location == "mbr")
+	{
+	    // if there is no active partition if installing into MBR
+	    activate = size (Storage::GetBootPartition (mbrDisk)) == 0;
+	}
+	else
+	{
+	    // always if installing not to MBR
+	    activate = true;
+	}
         return selected_location;
     }
 

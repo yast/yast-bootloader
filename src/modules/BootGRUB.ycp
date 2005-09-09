@@ -236,7 +236,8 @@ include "bootloader/routines/dialogs_i386.ycp";
 			    && (
 				BootCommon::AddFirmwareToBootloader (
 					BootCommon::mbrDisk)
-				|| label != "Vendor diagnostics"
+				|| (label != "Vendor diagnostics"
+				    && label != "Vendor diagnostic")
 			    )
 			)
 			{

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep  9 17:11:10 CEST 2005 - jsrain@suse.cz
+
+- activate the /boot partition if installing to ThinkPad (#116129)
+
+-------------------------------------------------------------------
 Fri Sep  9 15:16:39 CEST 2005 - jsrain@suse.cz
 
 - propose GRUB's device map if the one which was read from the
