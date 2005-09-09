@@ -326,6 +326,12 @@ global boolean Read (boolean reread) {
     }
     BootCommon::DetectDisks ();
     boolean ret = BootCommon::Read (false);
+    // refresh device map if not read
+    if (BootCommon::device_mapping == nil
+	|| size (BootCommon::device_mapping) == 0)
+    {
+	BootCommon::ProposeDeviceMap ();
+    }
 
     list<string> loader_devices = splitstring (
 	BootCommon::globals["stage1_dev"]:"",
