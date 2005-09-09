@@ -3,6 +3,7 @@ Fri Sep  9 15:16:39 CEST 2005 - jsrain@suse.cz
 
 - propose GRUB's device map if the one which was read from the
   system is empty (#115936)
+- 2.12.31
 
 -------------------------------------------------------------------
 Thu Sep  8 14:24:25 CEST 2005 - jsrain@suse.cz
