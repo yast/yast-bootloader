@@ -3,6 +3,7 @@ Mon Sep 26 15:49:16 CEST 2005 - jsrain@suse.cz
 
 - added bootloader background picture for Alpha1
 - do not install bootloader to MBR by default
+- 2.13.0
 
 -------------------------------------------------------------------
 Fri Sep  9 17:11:10 CEST 2005 - jsrain@suse.cz
