@@ -165,7 +165,7 @@ global string FindMBRDisk() {
 	y2milestone ("The extended partition: %1", extended);
 	boolean keep_mbr = KeepMBR (loader_device);
 	// if is primary, store bootloader there
-/*	if (disk_is_mbr && ! is_logical)
+	if (disk_is_mbr && ! is_logical)
 	{
 	    selected_location = "boot";
 	    loader_device = BootPartitionDevice;
@@ -177,9 +177,7 @@ global string FindMBRDisk() {
 	    integer exit = out["exit"]:0;
 	    repl_mbr = (exit != 0) && (! keep_mbr);
 	}
-	else */
-
-	if (size (needed_devices) > 1)
+	else if (size (needed_devices) > 1)
 	{
 	    loader_device = "mbr_md";
 	    selected_location = "mbr_md";
