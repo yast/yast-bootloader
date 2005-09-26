@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep 26 15:49:16 CEST 2005 - jsrain@suse.cz
+
+- added bootloader background picture for Alpha1
+- do not install bootloader to MBR by default
+
+-------------------------------------------------------------------
 Fri Sep  9 17:11:10 CEST 2005 - jsrain@suse.cz
 
 - activate the /boot partition if installing to ThinkPad (#116129)
