@@ -113,6 +113,7 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 		    exp["specific", k] = ai[k]:nil;
 		}
             });
+	    exp["loader_location"] = ai["location"]:"custom";
 	}
 
 	// device map stuff
@@ -324,6 +325,8 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
                     ai[k] = exp["specific", k]:nil;
                 }
             });
+	    if (haskey (exp, "loader_location"))
+		ai["location"] = exp["loader_location"]:"";
 	}
 
 	// device map stuff

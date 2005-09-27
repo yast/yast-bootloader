@@ -114,6 +114,7 @@ boolean testAbort () {
 	ReadOrProposeIfNeeded ();
 	map out = $[
 	    "loader_device" : BootCommon::loader_device,
+	    "loader_location" : BootCommon::selected_location,
 	    "loader_type" : getLoaderType (),
 	    "initrd" : Initrd::Export (),
 	    "specific" : blExport (),
@@ -135,13 +136,20 @@ boolean testAbort () {
 	BootCommon::was_proposed = true;
 	BootCommon::changed = true;
 	BootCommon::location_changed = true;
-	BootCommon::loader_device = settings["loader_device"]:"";
 
 	if (settings["loader_type"]:nil == "")
 	    settings["loader_type"] = nil;
 	string loader_type = (string) (settings["loader_type"]:nil);
 	BootCommon::setLoaderType (loader_type);
 	BootCommon::getLoaderType (false);
+
+	BootCommon::loader_device = settings["loader_device"]:"";
+	BootCommon::selected_location = settings["loader_location"]:"custom";
+	if (loader_type == "lilo" || loader_type == "grub"
+	    || Arch::i386 () || Arch::x86_64 ())
+	{
+	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+	}
 
 	if (settings["initrd"]:$[] != nil)
 	    Initrd::Import (settings["initrd"]:$[]);
