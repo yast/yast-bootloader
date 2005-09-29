@@ -113,7 +113,14 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 		    exp["specific", k] = ai[k]:nil;
 		}
             });
+	    // loader_location needs other default and key
 	    exp["loader_location"] = ai["location"]:"custom";
+	    foreach (string k, [/*"loader_location",*/ "loader_device"], {
+		if (haskey (ai, k))
+		{
+		    exp[k] = ai[k]:nil;
+		}
+	    });
 	}
 
 	// device map stuff
@@ -196,7 +203,7 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	// global stuff
 	if ((! haskey (ai, "global")) || is (ai["global"]:nil, map))
 	{
-	    exp["specific", "global"] = maplist (string k, any v,
+	    exp["specific", "global"] = mapmap (string k, any v,
 		ai["global"]:$[],
 	    {
 		return $[ k : sformat ("%1", v) ];
@@ -327,6 +334,12 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
             });
 	    if (haskey (exp, "loader_location"))
 		ai["location"] = exp["loader_location"]:"";
+	    foreach (string k, ["loader_device"], {
+		if (haskey (exp, k))
+		{
+		    ai[k] = exp[k]:nil;
+		}
+	    });
 	}
 
 	// device map stuff
