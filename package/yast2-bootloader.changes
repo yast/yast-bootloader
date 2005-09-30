@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Fri Sep 30 09:37:38 CEST 2005 - jsrain@suse.cz
+Fri Sep 30 11:06:11 CEST 2005 - jsrain@suse.cz
 
 - fixed reproposing configuration in installed system (#119428)
+- fixed disappearing initrd lines from configuratiln file (#104048)
 
 -------------------------------------------------------------------
 Thu Sep 29 17:00:04 CEST 2005 - jsrain@suse.cz

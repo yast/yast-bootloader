@@ -810,6 +810,7 @@ global void RemoveUnexistentSections (string path_prefix,
 		defaultv = nil;
 	    return false;
 	}
+	// FIXME the following check makes sense for all sections`
 	if (! contains (["linux", "failsafe", "memtest86", "xen"], type))
 	{
 	    if (first == nil)
@@ -872,6 +873,7 @@ global void UpdateInitrdLine () {
         if (initrd != "")
         {
 	    // check for initrd in GRUB format, keep them
+	    // FIXME change the check for leading slash
 	    if (getLoaderType (false) == "grub"
 		&& substring (initrd, 0, 1) == "(")
 	    {
