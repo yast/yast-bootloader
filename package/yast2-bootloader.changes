@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Sep 30 12:54:08 CEST 2005 - jsrain@suse.cz
+
+- fixed reproposing configuration in installed system (#119428)
+- fixed disappearing initrd lines from configuratiln file (#104048)
+- 2.12.33
+
+-------------------------------------------------------------------
 Fri Sep  9 17:11:10 CEST 2005 - jsrain@suse.cz
 
 - activate the /boot partition if installing to ThinkPad (#116129)

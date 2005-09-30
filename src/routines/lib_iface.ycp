@@ -42,9 +42,24 @@ map<string,any> PrepareInitData () {
     {
 	return $[ k : (any)v[0]:nil];
     });
-    mountpoints = filter (string k, any v, mountpoints, {
-	return is (v, string);
+    // get what's really mounted
+    list<map<string,any> > mounted_list = (list<map<string,any> >)
+	SCR::Read (.proc.mounts);
+    map<string,string> mounted = listmap (map<string,any> m, mounted_list, {
+	return $[ m["file"]:"" : m["spec"]:"" ];
     });
+    y2milestone ("Really mounted: %1", mounted);
+    mountpoints = filter (string k, any v, mountpoints, {
+	string tmpdir = (string)SCR::Read (.target.tmpdir);
+	integer tmp_sz = size (tmpdir);
+	return is (v, string) && substring (k, 0, tmp_sz) != tmpdir;
+    });
+    if (! Stage::initial ())
+    {
+	mountpoints = filter (string k, any v, mountpoints, {
+	    return mounted[k]:nil == v;
+	});
+    }
     y2milestone ("Detected mountpoints: %1", mountpoints);
 
     map<string,list<string> > md_info = $[];
