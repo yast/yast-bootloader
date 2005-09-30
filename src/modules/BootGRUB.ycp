@@ -290,7 +290,11 @@ include "bootloader/routines/dialogs_i386.ycp";
 	    {
 		string type = additional["version"]:"";
 		type = sformat ("%1", type);
-		out = add (out, BootCommon::CreateLinuxSection (type));
+		map<string,any> s = BootCommon::CreateLinuxSection (type);
+		s["kernel"] = additional["kernel"]:"";
+		if (haskey (additional, "initrd"))
+		    s["initrd"] = additional["initrd"]:"";
+		out = add (out, s);
 	    });
 	}
 	out = filter (map<string,any> s, out, {return s != $[] && s != nil;});

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 30 09:37:38 CEST 2005 - jsrain@suse.cz
+
+- fixed reproposing configuration in installed system (#119428)
+
+-------------------------------------------------------------------
 Thu Sep 29 17:00:04 CEST 2005 - jsrain@suse.cz
 
 - fixed importing the global bootloader settings from AutoYaST
