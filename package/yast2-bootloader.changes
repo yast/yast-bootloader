@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct  3 12:54:10 CEST 2005 - jsrain@suse.cz
+
+- change selected radio button for loader location if loader
+  location specified in combo box (#114193)
+
+-------------------------------------------------------------------
 Fri Sep 30 11:06:11 CEST 2005 - jsrain@suse.cz
 
 - fixed reproposing configuration in installed system (#119428)

@@ -537,7 +537,7 @@ term TargetWidget () {
                 (BootCommon::selected_location == "custom"))),
             `HSpacing (2),
             `VBox (
-                `ComboBox (`id (`loc), `opt (`editable, `hstretch, `notify), "",
+                `ComboBox (`id (`loc), `opt (`editable, `hstretch, `notify, `notify, `immediate), "",
 		    boot_devices),
                 `HSpacing (15)
             ),
@@ -577,6 +577,11 @@ void TargetInit (string widget) {
     UI::ChangeWidget (`id (`location), `CurrentButton,
 	BootCommon::selected_location);
     UI::SetFocus (`id (`loc));
+}
+
+symbol TargetHandle (string widget, map event) {
+    UI::ChangeWidget (`id (`location), `CurrentButton, "custom");
+    return nil;
 }
 
 /**
@@ -917,6 +922,8 @@ map<string,map<string,any> > CommonGlobalWidgets () {
 	"widget" : `func,
 	"widget_func" : TargetWidget,
 	"init" : TargetInit,
+	"handle" : TargetHandle,
+	"handle_events" : [ `loc ],
 	"store" : TargetStore,
 	"help" : LocationsHelp (),
 	"validate_type" : `function,
