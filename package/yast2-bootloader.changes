@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct  4 12:43:30 CEST 2005 - jsrain@suse.cz
+
+- fixed password setting help (#119591)
+
+-------------------------------------------------------------------
 Mon Oct  3 12:54:10 CEST 2005 - jsrain@suse.cz
 
 - change selected radio button for loader location if loader
