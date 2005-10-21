@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Oct 21 09:24:26 CEST 2005 - jsrain@suse.cz
+
+- do not set dom0_mem option for XEN (#121947)
+
+-------------------------------------------------------------------
 Tue Oct  4 12:43:30 CEST 2005 - jsrain@suse.cz
 
 - fixed password setting help (#119591)
