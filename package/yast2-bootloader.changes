@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Fri Oct 21 09:24:26 CEST 2005 - jsrain@suse.cz
+Fri Oct 21 12:36:16 CEST 2005 - jsrain@suse.cz
 
 - do not set dom0_mem option for XEN (#121947)
+- fixed selecting the swap partition for suspend to disk in other
+  situations than installation (#128702)
 
 -------------------------------------------------------------------
 Tue Oct  4 12:43:30 CEST 2005 - jsrain@suse.cz
