@@ -282,8 +282,7 @@ symbol StoreSection () {
 	BootCommon::current_section = (map<string,any>)union (
 	    $[
 		"xen" : "/boot/xen.gz",
-		"xen_append" : sformat ("dom0_mem=%1",
-		    BootCommon::Dom0MemorySize ()),
+		"xen_append" : "",
 	    ],
 	    BootCommon::current_section);
     }
