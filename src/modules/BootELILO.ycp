@@ -368,7 +368,7 @@ global define void Update () ``{
       * @return boolean true on success
       */
     global define boolean Write () ``{
-	SCR::Execute (.target.bash, "/sbin/elilo");
+//	SCR::Execute (.target.bash, "/sbin/elilo");
 	if (! create_efi_entry)
 	    return true;
 	boolean ret = BootCommon::UpdateBootloader ();
