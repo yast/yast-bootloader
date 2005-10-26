@@ -622,7 +622,7 @@ global void UpdateSections (boolean replace,
     list<string> sections_to_recreate = ["linux", "failsafe", "memtest86"];
     if (getLoaderType (false) == "grub")
     {
-	sections_to_recreate = add (sections_to_recreate, "xen")
+	sections_to_recreate = add (sections_to_recreate, "xen");
     }
 
     foreach (string t, sections_to_recreate, {
