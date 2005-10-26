@@ -619,7 +619,13 @@ global void UpdateSections (boolean replace,
     string default_initrd = default_sect["initrd"]:"";
     string default_name = default_sect["name"]:"";
 
-    foreach (string t, ["linux", "failsafe", "memtest86", "xen"], {
+    list<string> sections_to_recreate = ["linux", "failsafe", "memtest86"];
+    if (getLoaderType (false) == "grub")
+    {
+	sections_to_recreate = add (sections_to_recreate, "xen")
+    }
+
+    foreach (string t, sections_to_recreate, {
 	map<string,any> m = create_linux_section (t);
 	boolean f_changed = false;
 	out = maplist (map<string,any> s, out, {

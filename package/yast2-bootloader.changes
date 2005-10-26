@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 26 10:22:57 CEST 2005 - jsrain@suse.cz
+
+- do not create section for XEN if ungrading other bootloader than
+  GRUB (#130474)
+
+-------------------------------------------------------------------
 Fri Oct 21 12:36:16 CEST 2005 - jsrain@suse.cz
 
 - do not set dom0_mem option for XEN (#121947)
