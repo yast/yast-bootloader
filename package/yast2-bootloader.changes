@@ -1,8 +1,10 @@
 -------------------------------------------------------------------
-Wed Oct 26 10:22:57 CEST 2005 - jsrain@suse.cz
+Wed Oct 26 13:29:26 CEST 2005 - jsrain@suse.cz
 
 - do not create section for XEN if ungrading other bootloader than
   GRUB (#130474)
+- fixed clonning a section, it changed also the original one
+  (#129511)
 
 -------------------------------------------------------------------
 Fri Oct 21 12:36:16 CEST 2005 - jsrain@suse.cz
