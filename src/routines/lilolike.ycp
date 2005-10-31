@@ -831,9 +831,15 @@ global void RemoveUnexistentSections (string path_prefix,
 	    return true;
 	}
 	if (substring (kernel, 0, 1) == "/")
+	{
 	    kernel = path_prefix + kernel;
+	}
 	else
+	{
+	    if (relative_path_prefix == "")
+		return true;
 	    kernel = relative_path_prefix + kernel;
+	}
 	if (SCR::Read (.target.size, kernel) == -1)
 	{
 	    y2warning ("Removing section %1 with unexistent kernel %2",
