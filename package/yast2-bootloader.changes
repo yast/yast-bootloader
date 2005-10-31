@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 26 13:29:26 CEST 2005 - jsrain@suse.cz
+ 
+- fixed clonning a section, it changed also the original one
+  (#129511)
+ 
+-------------------------------------------------------------------
 Fri Sep 30 12:54:08 CEST 2005 - jsrain@suse.cz
 
 - fixed reproposing configuration in installed system (#119428)
