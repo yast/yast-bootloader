@@ -2,7 +2,7 @@
 # Makefile.am for bootloader/src
 #
 
-YCPCFLAGS = -I .
+YCPCFLAGS = -I . -M .
 
 module_DATA =			\
 	Bootloader.ycp		\
@@ -18,7 +18,7 @@ module_DATA =			\
 #	BootMILO.ycp		\
 #	BootABOOT.ycp
 
-Booltloader_API.pm:
+Bootloader_API.pm:
 	test -f Bootloader_API.pm || ln -sf `find /usr/lib/perl5 -name Bootloader_API.pm`
 
 
@@ -30,9 +30,9 @@ bootloader:
 
 ycpchook = bootloader
 
-dep: Booltloader_API.pm
+dep: Bootloader_API.pm
 
-BootCommon.ybc: Booltloader_API.pm
+BootCommon.ybc: Bootloader_API.pm
 
 install: install_Bootloader_API install-am
 
