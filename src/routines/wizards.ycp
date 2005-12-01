@@ -23,6 +23,7 @@ import "Sequencer";
 import "Wizard";
 import "Report";
 include "bootloader/routines/dialogs.ycp";
+include "bootloader/generic/wizards.ycp";
 
 
 /**
@@ -37,6 +38,9 @@ cannot be installed properly."));
 
     // check loader-specific sequence
     symbol spec_ret = Bootloader::blMainSequence ();
+    if (spec_ret == `generic_new)
+	return GenericMainSequence();
+
     if (spec_ret != `generic)
 	return spec_ret;
 

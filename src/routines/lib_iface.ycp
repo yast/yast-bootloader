@@ -84,7 +84,19 @@ map<string,any> PrepareInitData () {
 	    if (nr == nil)
 		nr = 0;
 	    string nr_str = sformat ("%1", nr);
-	    return [ device, disk, nr_str ];
+     /* FIXME: And the other information about the disk ?:
+            p["fsid"] = LibStorage::PartitionInfo::swig_id_get(info);
+            p["fstype"] = Partitions::FsIdToString( p["fsid"]:0 );
+            p["region"] = [ LibStorage::PartitionInfo::swig_cylStart_get(info),
+                            LibStorage::PartitionInfo::swig_cylSize_get(info) ];
+            p["type"] = toSymbol( conv_ptype, t );
+            p["boot"] = true;
+      */
+
+	    return [ device, disk, nr_str, tostring(p["fsid"]:0),
+		p["fstype"]:"unknown", tostring(p["type"]:nil),
+		p["region", 0]:0, p["region", 1]:0
+	    ];
 	});
 	return parts;
     });
