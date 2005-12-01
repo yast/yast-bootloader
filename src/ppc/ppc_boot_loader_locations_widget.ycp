@@ -1,0 +1,136 @@
+/**
+ * File:
+ *      include/bootloader/ppc/ppc_boot_loader_location_widget.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Widgets for configuring the boot loader location for PowerPC
+ *
+ * Authors:
+ *      Joachim Plack <jplack@suse.de>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+textdomain "bootloader";
+
+import "BootCommon";
+
+include "bootloader/generic/widget_funcs.ycp";
+
+
+// boot loader location widget
+
+/**
+ * option cache and reader function
+ */
+map<string,any> _bll_options = nil;
+
+map<string,any> BLL_options () {
+    if ( _bll_options == nil)
+    {
+	_bll_options = filter( string key, any value, global_options, {
+	    return substring(key,0,5) == "boot_";
+	});
+
+	y2milestone("_bll_options initialized");
+    }
+    return _bll_options;
+}
+
+
+/**
+ * Get the target widget to be displayed
+ * @return term widget to be displayed
+ */
+term BLL_Widget () {
+    // construct widget from information about global boot options
+    map<string,any> options = BLL_options();
+
+    list<string> val = splitstring((string)global_options["boot"]:"", ":");
+    string boottype = val[0]:"select";
+
+    term targetlist = nil;
+
+    if (boottype == "multi") {
+	map<string, any> gt_map = generic_Term(options, "check");
+	targetlist = (term) gt_map["term"]:nil;
+    }
+    else if (boottype == "select") {
+	map<string, any> gt_map = generic_Term(options, "radio");
+	targetlist = `RadioButtonGroup (`id (`location), (term) gt_map["term"]:nil);
+    }
+    else {
+	y2error("Unknown option type %1 for boot loader dialog. Ignored\n", boottype);
+	return nil;
+    }
+
+    // add frame and return
+    return `Frame (_("Boot Loader Location"), targetlist);
+}
+
+
+/**
+ * Init function of a widget
+ * @param widget string widget key
+ */
+void BLL_Init (string widget) {
+    generic_Init(widget, BLL_options(), BootCommon::globals);
+}
+
+
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
+void BLL_Store (string widget, map event) {
+    generic_Store(widget, event, BLL_options(), _globals_store_data);
+}
+
+
+/**
+ * Handle function of a widget
+ * @param key any widget key
+ * @param event map event description of event that occured
+ * @return symbol always nil
+ */
+symbol BLL_Handle (string key, map event) {
+    return generic_Handle (key, event);
+}
+
+/**
+ * Validate function of a widget
+ * @param widget string widget key
+ * @param event map event that caused validation
+ * @return boolean true if validation succeeded
+ */
+boolean BLL_Validate (string widget, map event)
+{
+    y2milestone("Called from widget %1 through event %2", widget, event);
+    // FIXME: call perl-Bootloader
+    return true;
+}
+
+
+map<string,any> PpcLoaderLocationWidget () {
+    return $[
+	"widget" : `func,
+	"widget_func" : BLL_Widget,
+	"init" : BLL_Init,
+	"store" : BLL_Store,
+	// FIXME: get help from perl-Bootloader
+	"help" : "<p>No BLL help implemented yet</p>",
+	"handle" : BLL_Handle,
+	"validate_type" : `function,
+	"validate_function" : BLL_Validate,
+    ];
+}
+
+
+} // include end
