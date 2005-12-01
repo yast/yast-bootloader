@@ -28,11 +28,28 @@ import "Mode";
 import "Pkg";
 import "Storage";
 
+/**
+ * map of global options and types
+ */
+global map<string,any> global_options = $[];
+
+/**
+ * map of section options and types
+ */
+global map<string,any>   section_options = $[];
+
+/**
+ * map of other exported information
+ */
+global map<string,any>   exports = $[];
+
+
+
 // This files should contain PPC specific messages
 //
-include "bootloader/routines/popups.ycp";
+
 include "bootloader/ppc/dialogs.ycp";
-include "bootloader/ppc/widgets2.ycp";
+// include "bootloader/routines/dialogs.ycp";
 
 /**
  * Propose sections to bootloader menu
@@ -56,13 +73,6 @@ global void CreateSections () {
 	    // don't add rewritten location (#19990)
 	    if (dev != "" && label != ""
 		&& dev != BootCommon::loader_device
-		//&& (
-		    //BootCommon::AddFirmwareToBootloader from file ./src/routines/i386.ycp
-		    // i think it is not neccessary, because Jack solved this.
-		    // BootCommon::AddFirmwareToBootloader (BootCommon::mbrDisk)
-		    // TODO: there is no MBR in PPC,
-		    //|| label != "Vendor diagnostics"
-		//)
 	    )
 	    {
 		map<string,any> m = $[
@@ -80,7 +90,6 @@ global void CreateSections () {
 	    }
 	});
     }
-    //    out = add (out, BootCommon::CreateLinuxSection ("failsafe"));
 
     out = filter (map<string,any> s, out, { return s != $[] && s != nil;});
     BootCommon::sections = out;
@@ -140,6 +149,34 @@ global define void Propose () ``{
     y2milestone ("Proposed globals: %1", BootCommon::globals);
 }
 
+
+/**
+  * Export bootloader settings to a map
+  * @return bootloader settings
+  */
+global define map Export () ``{
+    map exp = $[
+		"global": BootCommon::globals,
+		"sections" : BootCommon::sections,
+		"activate" : BootCommon::activate,
+	    ];
+    return exp;
+}
+
+
+/**
+  * Import settings from a map
+  * @param settings map of bootloader settings
+  * @return boolean true on success
+  */
+global define boolean Import (map settings) ``{
+    BootCommon::globals = settings["global"]:$[];
+    BootCommon::sections  = settings["sections"]:[];
+    BootCommon::activate = settings["activate"]:false;
+    return true;
+}
+
+
 /**
  * Read settings from disk
  * @return boolean true on success
@@ -155,15 +192,54 @@ global boolean Read (boolean reread) {
     // BootCommon::DetectDisks ();
 
     boolean ret = BootCommon::Read (false);
-    // BootCommon::loader_device = BootCommon::globals["stage1_dev"]:"";
-	/* IMHO:
-	BootCommon::globals = maplist (map e, BootCommon::globals, ``{
-	           if (e["key"]:"" == "boot")
-                  e["value"] = BootCommon::UpdateDevice (e["value"]:"");
+    y2milestone (":: Read globals: %1", BootCommon::globals);
 
+    // Extract exports from globals
+    foreach(string key, any value, BootCommon::globals, {
+	if (substring (key, 0, size ("__exports__")) != "__exports__")
+	    continue;
+	// FIXME: delete(BootCommon::globals[key]);
 
-	*/
-   
+	key = substring(key, size("__exports__"));
+
+	if (substring (key, 0, 1) == "%") {
+	    list<string> s = splitstring(key,"%");
+	    string hash = s[1]:"";
+
+	    key = substring(key, 2 + size(hash));
+	    if (hash == "global_options") {
+		global_options[key] = value;
+	    }
+	    else if (hash == "section_options") {
+		section_options[key] = value;
+	    }
+	    else {
+		if ( !haskey(exports, hash) ) exports[hash] = $[];
+		exports[hash, key] = value;
+	    }
+	}
+	else if (substring (key, 0, 1) == "#") {
+	    list<string> s = splitstring(key,"#");
+	    string array = s[1]:"";
+
+	    key = substring(key, 2 + size(array));
+	    if ( ! haskey(exports, array) ) exports[array] = [];
+	    exports[array, tointeger(key)] = value;
+	}
+	else {
+	    exports[key] = value;
+	}
+    });
+
+    if (size(global_options)>0)
+    	y2milestone (":: Contains global options: %1", global_options);
+
+    if (size(section_options)>0)
+    	y2milestone (":: Contains section options: %1", section_options);
+
+    if (size(exports)>0)
+    	y2milestone (":: Contains exports: %1", exports);
+
     return ret;
 }
 
@@ -178,7 +254,7 @@ global boolean Read (boolean reread) {
  */
 global boolean Save (boolean clean, boolean init, boolean flush) {
     // stage1_dev (from Bootloader_API.pm)converts to a single string
-    BootCommon::globals["stage1_dev"] = BootCommon::loader_device;
+    // BootCommon::globals["stage1_dev"] = BootCommon::loader_device;
     boolean ret = BootCommon::Save (clean, init, flush);
     return ret;
 }
@@ -188,9 +264,6 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
  * Update read settings to new version of configuration files
  */
 global void Update () {
-    // PPC does not need : said jsrain@
-    // in routines/lilolike.ycp
-    //BootCommon::UpdateDeviceMap ();
     BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
     BootCommon::UpdateGlobals ();
     BootCommon::loader_device
@@ -208,11 +281,27 @@ global define boolean Write () {
     return ret;
 }
 
+
+global symbol WizardSequenzer() {
+/*
+blMainSequence () {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    symbol () toEval = (symbol ())functions["wizard_sequencer"]:nil;
+    if (toEval != nil)
+	return toEval ();
+    else
+	return `generic;
+*/
+    y2milestone("Call PPC WizardSequenzer");
+    return `generic_new;
+}
+
+
 global map<string,symbol()> Dialogs () {
     // PPC definitly needs other text modules
     return $[
+	"loader"	: ppcBootLoaderOptionsDialog,
 //	"installation"	: ppcInstallDetailsDialog,
-//	"loader"	: ppcLoaderDetailsDialog,
     ];
 }
 
@@ -223,12 +312,19 @@ global map<string,symbol()> Dialogs () {
  */
 global map<string, any> GetFunctions () {
     return $[
-	"dialogs"	: Dialogs,
-	"read"		: Read,
-	"propose"	: Propose,
-	"save"		: Save,
-	"update"	: Update,
-	"write"		: Write,
+	"export"	   : Export,
+	"import"	   : Import,
+	"read"		   : Read,
+	// "reset"
+	"propose"	   : Propose,
+	"save"		   : Save,
+	// "summary"
+	"update"	   : Update,
+	"write"		   : Write,
+	"widgets"	   : ppcWidgets,
+	"wizard_sequencer" : WizardSequenzer,
+	"dialogs"	   : Dialogs,
+	"section_types"	   : section_types,
     ];
 }
 
@@ -250,12 +346,11 @@ global void Initializer () {
   */
 global void BootPOWERLILO () {
     BootCommon::bootloader_attribs["ppc"] = $[
-	"required_packages" : ["lilo"],
-	"loader_name" : "ppc",
-	"initializer" : BootPOWERLILO::Initializer,
+	"required_packages"	: ["lilo"],
+	"loader_name"		: "ppc",
+	"initializer"		: BootPOWERLILO::Initializer,
     ];
 }
-
 
 
 }
