@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Dec  8 18:25:07 CET 2005 - od@suse.de
+
+- changes by jplack@suse.de:
+  - use generic dialogs in PowerPC boot loader code
+  - new files to build widgets from type information
+  - changes for support of all options on POWER - generic stuff
+- 2.13.2
+
+-------------------------------------------------------------------
 Mon Oct 31 09:44:19 CET 2005 - jsrain@suse.cz
 
 - fixed losing GRUB sections in some cases (#130236)
