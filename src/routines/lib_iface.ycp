@@ -95,7 +95,7 @@ map<string,any> PrepareInitData () {
 
 	    return [ device, disk, nr_str, tostring(p["fsid"]:0),
 		p["fstype"]:"unknown", tostring(p["type"]:nil),
-		p["region", 0]:0, p["region", 1]:0
+		tostring(p["region", 0]:0), tostring(p["region", 1]:0)
 	    ];
 	});
 	return parts;
