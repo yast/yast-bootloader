@@ -8,8 +8,6 @@ agent_SCRIPTS = ag_bootloader
 
 fillup_DATA = sysconfig.bootloader
 
-fillupdir = /var/adm/fillup-templates
-
 SYSCONFIGSOURCES = $(wildcard sysconfig.bootloader.*)
 
 EXTRA_DIST = $(scrconf_DATA) $(SYSCONFIGSOURCES) $(agent_SCRIPTS)

@@ -61,8 +61,7 @@ Group:          System/YaST
 @ybindir@/*
 @agentdir@/ag_*
 @scrconfdir@/*.scr
-
-/var/adm/fillup-templates/*
+@fillupdir@/*
 
 %files -n yast2-bootfloppy
 %defattr(-,root,root)
