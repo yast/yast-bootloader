@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec 13 19:25:12 CET 2005 - mvidner@suse.cz
+
+- Fixed a type mismatch, hopefully fixing the installation (#138328).
+- 2.13.3
+
+-------------------------------------------------------------------
 Thu Dec  8 18:25:07 CET 2005 - od@suse.de
 
 - changes by jplack@suse.de:
