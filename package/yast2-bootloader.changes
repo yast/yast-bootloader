@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Dec 15 15:00:16 CET 2005 - uli@suse.de
+
+- s390: dumped obsolete dump sections and dead code
+
+-------------------------------------------------------------------
 Tue Dec 13 19:25:12 CET 2005 - mvidner@suse.cz
 
 - Fixed a type mismatch, hopefully fixing the installation (#138328).

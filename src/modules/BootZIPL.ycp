@@ -207,19 +207,6 @@
 		"root":BootCommon::RootPartitionDevice,
 		"target":"/boot/zipl",
 		"type":"image"
-	    ],
-	    $["dumpto":"/dev/dasd??",
-		"name":"dumpdasd",
-		"original_name":"dumpdasd",
-		"target":"/boot/zipl",
-		"type":"dump"
-	    ],
-	    $[
-		"dumpto":"/dev/rtibm0",
-		"name":"dumptape",
-		"original_name":"dumptape",
-		"target":"/boot/zipl",
-		"type":"dump"
 	    ]
 	];
     }
@@ -289,20 +276,6 @@ map settings = $[
       "root":BootCommon::RootPartitionDevice,
       "target":"/boot/zipl",
       "type":"image"
-    ],
-    $[
-      "dumpto":"/dev/dasd??",
-      "name":"dumpdasd",
-      "original_name":"dumpdasd",
-      "target":"/boot/zipl",
-      "type":"dump"
-    ],
-    $[
-      "dumpto":"/dev/rtibm0",
-      "name":"dumptape",
-      "original_name":"dumptape",
-      "target":"/boot/zipl",
-      "type":"dump"
     ]
   ]
 ];*/
@@ -364,32 +337,6 @@ map settings = $[
 	return filter (map<string,string> s, dd, ``(
 	    s["dumpto"]:"" != ""
 	));
-    }*/
-
-    /**
-      * Set the list of all dump devices
-      * @param dump_devices list in the same form as result of GetDumpDevices ()
-      */
-/*    global define void SetDumpDevices (list<map<string,string> > dump_devices) {
-	BootCommon::sections = filter (list<map> s, BootCommon::sections, ``(
-	    lookup_value (s, "dumpto", "") == ""
-	));
-	dump_devices = maplist (map<string,string> d, dump_devices, ``{
-	    if (d["dumpto"]:"" == "")
-		return nil;
-	    if (d["target"]:"" == "")
-		d["target"] = "/boot/zipl";
-	    if (d["label"]:"" == "")
-		d["label"] = "dump" + filterchars (d["dumpto"]:"", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-	    return d;
-	});
-	dump_devices = filter (map<string,string> d, dump_devices,``(d != nil));
-	list<list<map> > dd = maplist (map<string,string> d, dump_devices, ``(
-	    (list<map>)maplist (string k, string v, d, ``(
-		$[ "key" : k, "value" : v ]
-	    ))
-	));
-	BootCommon::sections = (list<list<map> >)merge (BootCommon::sections, dd);
     }*/
 
     /**
