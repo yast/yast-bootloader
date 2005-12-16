@@ -6,6 +6,7 @@ YCPCFLAGS = -I . -M .
 
 module_DATA =			\
 	Bootloader.ycp		\
+	GfxMenu.ycp		\
 	BootCommon.ycp		\
 	BootArch.ycp		\
 	BootELILO.ycp		\

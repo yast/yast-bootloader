@@ -23,6 +23,7 @@
     textdomain "bootloader";
 
     import "Arch";
+    import "GfxMenu";
     import "HTML";
     import "Mode";
     import "PackageSystem";
