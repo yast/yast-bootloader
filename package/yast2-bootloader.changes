@@ -3,6 +3,7 @@ Fri Dec 16 15:28:39 CET 2005 - jsrain@suse.cz
 
 - moved bootloader background picture to separate package
 - moved /boot/message handling to separate module
+- 2.13.5
 
 -------------------------------------------------------------------
 Thu Dec 15 15:00:16 CET 2005 - uli@suse.de
