@@ -79,8 +79,6 @@
     global map aliases = $[];
     global map ws_data = $[];
 
-
-
     include "bootloader/routines/switcher.ycp";
     include "bootloader/routines/popups.ycp";
 
@@ -331,14 +329,15 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
      */
     global define void PreUpdate () {
 	y2milestone ("Running bootloader pre-update stuff");
-	if (Arch::ia64 ())
+    /*	if (Arch::ia64 ())
 	{
-//	    BootELILO::UpdateEfiPartitionLayout ();
+	    BootELILO::UpdateEfiPartitionLayout ();
 	}
 	else if (Arch::s390 ())
 	{
-//	    BootS390::UpdateZiplConfBeforeUpdate ();
+	    BootS390::UpdateZiplConfBeforeUpdate ();
 	}
+    */
     }
 
     /**
