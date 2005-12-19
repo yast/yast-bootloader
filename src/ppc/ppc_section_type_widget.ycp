@@ -36,7 +36,7 @@ map<string,any> ST_options () {
     if ( _st_options == nil)
     {
 	_st_options = (map<string,any>)union(
-	    $[ "clone":"bool:Clone Selected Section" ],
+	    $[ "type_clone":"bool:Clone Selected Section" ],
 	    filter( string key, any value, section_options, {
 		return substring(key,0,5) == "type_";
 	    })
@@ -45,26 +45,6 @@ map<string,any> ST_options () {
     return _st_options;
 }
 
-
-/**
- * Widget for selecting section type
- * @return term widget
- */
-term ST_Widget () {
-    map<string,any> options = ST_options();
-
-    map<string, any> gt_map = generic_Term(options, "radio");
-
-    return `Frame (_("Section Type"), `VBox (
-	`VSpacing (1),
-	`HBox (
-	    `HSpacing (2),
-	    `RadioButtonGroup (`id (`section_type), (term) gt_map["term"]:nil),
-	    `HSpacing (2)
-	),
-	`VSpacing (1)
-    ));
-}
 
 /**
  * Handle function of a widget
@@ -77,7 +57,7 @@ symbol ST_Handle (string widget, map event) {
 	return nil;
     string selected = (string)
 	UI::QueryWidget (`id (`section_type), `CurrentButton);
-    if (selected != "clone")
+    if (selected != "type_clone")
     {
 	BootCommon::current_section = $[
 	    "type" : substring(selected,5),
@@ -96,13 +76,22 @@ symbol ST_Handle (string widget, map event) {
  * Build a map describing a widget
  * @return a map describing a widget
  */
-map<string,any> PpcSectionTypeWidget() {
+map<string,any> genericSectionTypeWidget() {
+    map<string,any> gt_map = generic_Term(ST_options(), "radio");
+
     return $[
-	"widget" : `func,
-	"widget_func" : ST_Widget,
+        "widget" : `custom,
+        "custom_widget" : `Frame (_("Section Type"), `VBox (
+	    `VSpacing (1),
+	    `HBox (
+	        `HSpacing (2),
+	        `RadioButtonGroup (`id (`section_type), (term) gt_map["term"]:nil),
+	        `HSpacing (2)
+	    ),
+	    `VSpacing (1)
+        )),
 	"handle" : ST_Handle,
-	// FIXME: help
-	"help" : _("<p>ST_Help is not yet implemented</p>"),
+        "help" : generic_Help("section-type") + (string) gt_map["help"]:"",
     ];
 }
 

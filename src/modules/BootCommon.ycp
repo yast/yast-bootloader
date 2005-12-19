@@ -44,6 +44,11 @@ global map<string,string> globals = $[];
  */
 global list<map<string,any> > sections = [];
 
+/*
+ * map of UI help messages
+ */
+global map<string,string>help_messages = $[];
+
 /**
  * device mapping between Linux and firmware
  */

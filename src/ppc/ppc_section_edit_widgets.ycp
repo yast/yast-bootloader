@@ -59,29 +59,6 @@ map<string,any> SE_Options (string type) {
 
 
 /**
- * Widget for editing config section
- * @return term widget
- */
-term SE_Widget (string type) {
-    map<string,any> options = SE_Options(type);
-
-    map<string, any> gt_map = generic_Term(options, "normal");
-
-    return (term) gt_map["term"]:nil;
-}
-
-
-string SE_Help (string type) ``{
-    // FIXME
-    return (
-	_("<p>Help function for section type <b>") +
-	type +
-	_("</b> is not yet implemented on ppc</p>")
-    );
-}
-
-
-/**
  * Init function of widget
  * @param widget string id of the widget
  */
@@ -128,15 +105,17 @@ symbol SE_Handle (string key, map event) {
  * Build a map describing a widget
  * @return a map describing a widget
  */
-map<string,any> PpcSectionEditWidget(string type) {
+map<string,any> genericSectionEditWidget(string type) {
+    map<string,any> options = SE_Options(type);
+    map<string, any> gt_map = generic_Term(options, "normal");
 
     return $[
 	"widget" : `custom,
-	"custom_widget" : SE_Widget(type),
+	"custom_widget" : (term) gt_map["term"]:nil,
 	"init" : SE_Init,
 	"store" : SE_Store,
 	"handle" : SE_Handle,
-	"help" : SE_Help (type),
+	"help" : generic_Help("section-settings") + (string) gt_map["help"]:"",
     ];
 }
 

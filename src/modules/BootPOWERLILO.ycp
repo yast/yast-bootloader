@@ -44,12 +44,15 @@ global map<string,any>   section_options = $[];
 global map<string,any>   exports = $[];
 
 
+/*
+ * include ppc specific help messages
+ */
+include "bootloader/ppc/helps.ycp";
 
-// This files should contain PPC specific messages
-//
-
+/*
+ * read my dialogs
+ */
 include "bootloader/ppc/dialogs.ycp";
-// include "bootloader/routines/dialogs.ycp";
 
 /**
  * Propose sections to bootloader menu
@@ -339,6 +342,9 @@ global void Initializer () {
 	"scratch" : true,
 	"bootloader_on_disk" : true,
     ];
+    BootCommon::help_messages = (map<string,string>)
+        union(BootCommon::help_messages,  ppc_help_messages);
+    y2milestone("Initialized help_messages to %1", BootCommon::help_messages);
 }
 
 /**
