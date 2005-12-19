@@ -345,6 +345,9 @@ global void Initializer () {
     BootCommon::help_messages = (map<string,string>)
         union(BootCommon::help_messages,  ppc_help_messages);
     y2milestone("Initialized help_messages to %1", BootCommon::help_messages);
+    // always read the config from perl-Bootloader as were piping our type
+    // discription through here
+    Read(false);
 }
 
 /**
