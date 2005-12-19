@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Dec 19 17:58:20 CET 2005 - jplack@suse.de
+
+- always read the config from perl-Bootloader (#140127)
+- activate generic help system
+- give help messages that make sense
+- avoid this i386 LILO bootloader config on ppc (#140127)
+- 2.13.6
+
+-------------------------------------------------------------------
 Fri Dec 16 15:28:39 CET 2005 - jsrain@suse.cz
 
 - moved bootloader background picture to separate package
