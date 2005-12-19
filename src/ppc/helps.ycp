@@ -40,7 +40,7 @@ selected section.</p>"),
 _("<p>Select <b>Kernel (Linux)</b> to add a new Linux kernel or other image
 to load and start.</p>"),
     "type_other"		:
-_("<p>Select <b>Other System (Chainloader)</b> to add a section that
+_("<p>Select <b>Other System</b> to add a section that
 loads and starts a boot sector of a partition of the disk. This is used for
 booting other operating systems.</p>"),
 
