@@ -26,11 +26,6 @@ include "bootloader/routines/popups.ycp";
 
 // sections list widget
 
-string _SectionsHelp() {
-    return _("<p> Unimplemented section list help </p>");
-}
-
-
 /**
  * Refresh and redraw widget wits sections
  * @param sects list of current sections
@@ -199,7 +194,7 @@ symbol _SectionsHandle (string widget, map event) {
  * Get map of widget
  * @return a map of widget
  */
-map<string,any> PpcSectionsWidget () {
+map<string,any> genericSectionsListWidget () {
     return $[
 	"widget" : `custom,
 	"custom_widget" : `VBox (
@@ -240,7 +235,7 @@ map<string,any> PpcSectionsWidget () {
 	),
 	"init" : _SectionsInit,
 	"handle" : _SectionsHandle,
-	"help" : _SectionsHelp (),
+	"help" : generic_Help("section-list"),
     ];
 }
 

@@ -19,6 +19,15 @@
 {
 textdomain "bootloader";
 
+string generic_Help (string widget_name) {
+
+    if ( haskey(BootCommon::help_messages, widget_name) )
+        return(BootCommon::help_messages[widget_name]:"" );
+    return( BootCommon::help_messages[Arch::arch_short() + "_" + widget_name]:"" );
+}
+
+
+
 map<string,any> generic_Term (map<string,any> options, string type) {
     // type is any of 'check', 'radio', or else
     term option_term = `VBox (`VSpacing (0.4));

@@ -66,18 +66,6 @@ void _SectionNameStore (string widget, map event) {
 }
 
 
-
-
-string __ppc_unimplemented_help = _("This help function is not yet implemented on ppc");
-
-string _SectionNameHelp () ``{ return __ppc_unimplemented_help; }
-string _getExpertManualHelp () ``{ return __ppc_unimplemented_help; }
-string _getInitProgressHelp () ``{ return __ppc_unimplemented_help; }
-string _getSaveProgressHelp () ``{ return __ppc_unimplemented_help; }
-
-
-
-
 /**
  * Cache for CommonSectionWidgets
  */
@@ -98,7 +86,7 @@ map<string,map<string,any> > _CommonSectionWidgets () {
 		"validate_type" : `function,
 		"validate_function" : _SectionNameValidate,
 		"store" : _SectionNameStore,
-		"help" : _SectionNameHelp (),
+		"help" : generic_Help("section-name"),
 	    ],
 	];
     }

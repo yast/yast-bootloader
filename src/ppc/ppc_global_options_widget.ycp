@@ -22,7 +22,6 @@ textdomain "bootloader";
 import "BootCommon";
 
 include "bootloader/generic/widget_funcs.ycp";
-include "bootloader/ppc/helps.ycp";
 
 
 /**
@@ -90,14 +89,14 @@ boolean GOW_Validate (string widget, map event){
  * Build a map describing a widget
  * @return a map describing a widget
  */
-map<string,any> PpcGlobalOptionWidget () {
+map<string,any> genericGlobalBootOptionWidget () {
     // construct widget from information about global options
     map<string,any> gt_map = generic_Term(GOW_options(), "normal");
 
     return $[
 	"widget" : `custom,
 	// frame
-	"custom_widget" : `Frame (_("Boot Menu PPC"), `HBox (
+	"custom_widget" : `Frame (_("Boot Menu"), `HBox (
 	    `HSpacing (2),
 	    gt_map["term"]:nil,
 	    `HSpacing (2)
@@ -108,7 +107,7 @@ map<string,any> PpcGlobalOptionWidget () {
 	// "handle_events" : gt_map["events"]:[],
 	"validate_type" : `function,
 	"validate_function" : GOW_Validate,
-	"help" : ppcBootMenuHelp (),
+	"help" : generic_Help("boot-menu") + (string)gt_map["help"]:"",
     ];
 }
 

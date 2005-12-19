@@ -38,7 +38,6 @@ include "bootloader/ppc/ppc_section_type_widget.ycp";
 include "bootloader/ppc/ppc_section_edit_widgets.ycp";
 include "bootloader/ppc/ppc_sections_widget.ycp";
 
-
 /**
  * Cache for ppcWidgets function
  */
@@ -52,15 +51,15 @@ global map<string,map<string,any> > ppcWidgets () {
     if (_ppc_widgets == nil)
     {
 	_ppc_widgets = $[
-	    "boot_loader_options" : PpcGlobalOptionWidget (),
-	    "loader_location"	  : PpcLoaderLocationWidget (),
-	    "section_type"	  : PpcSectionTypeWidget(),
-	    "sections"		  : PpcSectionsWidget(),
+	    "boot_loader_options" : genericGlobalBootOptionWidget (),
+	    "loader_location"	  : genericBootLoaderLocationWidget (),
+	    "section_type"	  : genericSectionTypeWidget(),
+	    "sections"		  : genericSectionsListWidget(),
 	];
 
 	foreach(string type, section_types(), {
 	    _ppc_widgets = add(_ppc_widgets, "section_edit_" + type,
-		 PpcSectionEditWidget(type));
+		 genericSectionEditWidget(type));
 	});
 
     }
