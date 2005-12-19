@@ -32,6 +32,7 @@ map<string,any> generic_Term (map<string,any> options, string type) {
     // type is any of 'check', 'radio', or else
     term option_term = `VBox (`VSpacing (0.4));
     list<string> __events = [];
+    string help = "";
     term def_opt = `opt (`notify, `autoShortcut);
 
     foreach (string key, any value, options, {
@@ -52,6 +53,7 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	}
 
 	__events = add(__events, key); 
+	help = help + generic_Help(key);
     });
 
     add(option_term, `VSpacing (0.4));
@@ -167,11 +169,12 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	    __events = add(__events, key_e); 
 
 	option_term = add(option_term, new);	
+	help = help + generic_Help(key);
     });
 
     option_term = add(option_term, `VSpacing (0.4));
 
-    return $[ "term":option_term, "events":__events ];
+    return $[ "term":option_term, "events":__events, "help":help ];
 }
 
 
