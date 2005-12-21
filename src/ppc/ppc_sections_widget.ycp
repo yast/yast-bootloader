@@ -211,7 +211,7 @@ map<string,any> genericSectionsListWidget () {
 			// table header; header for section details, either
 			// the specification of the kernel image to load,
 			// or the specification of device to boot from
-			_("Section summary")
+			_("Section Summary")
 			), []),
 		`HSpacing (1),
 		`VBox (
