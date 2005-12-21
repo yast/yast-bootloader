@@ -63,9 +63,10 @@ Area</b>.</p>")
 string i386PasswdHelp () {
     // help text 1/1
     return _("<p><big><b>Password Protection</b></big><br>
-To protect the boot loader using password,
+To protect the boot loader using a password,
 set <b>Protect Boot Loader with Password</b> and set the <b>Password</b>
-and <b>Retype Password</b>.</p>");
+and <b>Retype Password</b>.</p>
+");
 }
 
 /**
