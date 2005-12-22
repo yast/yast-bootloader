@@ -351,6 +351,7 @@ map settings = $[
 	    "summary"	: Summary,
 	    "update"	: Update,
 	    "widgets"	: Widgets,
+	    "write"	: Write,
 	];
     }
 
