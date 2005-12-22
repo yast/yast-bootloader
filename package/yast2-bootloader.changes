@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Dec 22 11:50:08 CET 2005 - uli@suse.de
+
+- declare Write method implemented in BootZIPL.ycp
+
+-------------------------------------------------------------------
 Wed Dec 21 10:31:30 CET 2005 - visnov@suse.cz
 
 - merged proofread texts 
