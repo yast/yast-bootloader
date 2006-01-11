@@ -71,7 +71,7 @@ void _RedrawSectionsTable (list<map<string,any> > sects) {
 		string k, any v,
 		filter(string k, any v, s,
 		    ``( k!="name" && k!="type" && k!="lines_cache_id" &&
-		        k!= "__changed" && k!="initial" && k!="original_name" &&
+		        substring(k,0,2) != "__" && k!="initial" && k!="original_name" &&
 			v != "false"
 		    )
 		),
