@@ -63,7 +63,8 @@
             y2error ("No bootloader selected");
             ret = add (ret, "warning_level", `error);
 	    // warning text in the summary rixhtext
-            ret = add (ret, "warning", _("No boot loader is selected for installation. Your system might not be bootable."));
+            ret = add (ret, "warning",
+		       _("No boot loader is selected for installation. Your system might not be bootable."));
         }
 	if (! BootCommon::BootloaderInstallable ())
 	{
@@ -77,15 +78,25 @@
 	{
 	    if (Arch::board_chrp ())
 	    {
-		if (! BootCommon::activate)
+	        if (BootCommon::globals["activate"]:"false" == "false")
 		{
-		    ret = (map<string,any>)union (ret, $[
-			"warning_level" : `blocker,
-			"warning" :
-			    // warning in summary
-			    _("Configure a valid boot loader location before continuing.<br>
-In case that no selection can be made it may be necessary to create a PReP Boot partition."),
+		    ret = (map<string,any>)
+		      union(ret,
+			    $[
+			      "warning_level" : `error,
+			      "warning" :
+			      _("The selected boot path will not be activated for your installation. Your system might not be bootable."),
 		    ]);
+
+
+		//		    ret = (map<string,any>)union (ret, $[
+		//	"warning_level" : `blocker,
+		//	"warning" :
+			    // warning in summary
+		//	    _("Configure a valid boot loader location before continuing.<br>
+In case that no selection can be made it may be necessary to create a PReP Boot partition."),
+		//    ]);
+
 		}
 	    }
 	}
