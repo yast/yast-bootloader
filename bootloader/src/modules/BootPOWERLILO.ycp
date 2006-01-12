@@ -1,0 +1,365 @@
+/**
+ * File:
+ *      modules/BootPOWERLILO.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Module containing specific functions for LILO configuration
+ *      and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: BootPOWERLILO.ycp 24818 2005-08-11 13:25:29Z jsrain $
+ *
+ */
+
+{
+module "BootPOWERLILO";
+
+textdomain "bootloader";
+
+import "Arch";
+import "BootCommon";
+import "Kernel";
+import "Mode";
+import "Pkg";
+import "Storage";
+
+/**
+ * map of global options and types
+ */
+global map<string,any> global_options = $[];
+
+/**
+ * map of section options and types
+ */
+global map<string,any>   section_options = $[];
+
+/**
+ * map of other exported information
+ */
+global map<string,any>   exports = $[];
+
+
+/*
+ * include ppc specific help messages
+ */
+include "bootloader/ppc/helps.ycp";
+
+/*
+ * read my dialogs
+ */
+include "bootloader/ppc/dialogs.ycp";
+
+/**
+ * Propose sections to bootloader menu
+ * modifies internal sreuctures
+ */
+global void CreateSections () {
+    list<map<string,any> > out = [
+	BootCommon::CreateLinuxSection ("linux")
+    ];
+    list<string> others = (list<string>)Storage::GetForeignPrimary();
+    if (others != nil && size (others) > 0)
+    {
+	foreach (string o, others, {
+	    list<string> parts = splitstring (o, " ");
+	    while (parts[0]:" " == "")
+		parts = remove (parts, 0);
+	    string dev = parts[0]:"";
+	    parts = remove (parts, 0);
+	    string label = mergestring (parts, " ");
+		// The mac label should be included, like once in Bootppc
+	    // don't add rewritten location (#19990)
+	    if (dev != "" && label != ""
+		&& dev != BootCommon::loader_device
+	    )
+	    {
+		map<string,any> m = $[
+		    "name" : BootCommon::translateSectionTitle (
+			BootCommon::removeBlanks (label)),
+		    "original_name" : label,
+		    "type" : "chainloader",
+		    "chainloader" : dev,
+		    "__auto" : true,
+		    "__changed" : false,
+		    "__devs" : [dev],
+		];
+		// on PPC there is no chainloader, (i think of an chain to load windows)
+		out = add (out, m);
+	    }
+	});
+    }
+
+    out = filter (map<string,any> s, out, { return s != $[] && s != nil;});
+    BootCommon::sections = out;
+}
+
+/**
+ * Propose global options of bootloader
+ * modifies internal structures
+ */
+global void CreateGlobals () {
+    BootCommon::globals = $[
+	"default" : BootCommon::sections[0, "name"]:"",
+	"timeout" : "8",
+    ];
+}
+
+// general functions
+
+/**
+  * Propose bootloader settings
+  */
+global define void Propose () ``{
+    y2debug ("Started propose: Glob: %1, Sec: %2",
+    	BootCommon::globals, BootCommon::sections);
+
+    if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
+    {
+        CreateSections ();  // make an initial proposal for at least one section
+        BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
+    }
+    else
+    {
+    	if (Mode::autoinst ())
+    	{
+    	    // TODO whatever will be needed
+	    y2debug ("nothing to to in AI mode if sections exist");
+    	}
+    	else
+	    BootCommon::FixSections (BootPOWERLILO::CreateSections);
+    }
+    if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
+    {
+        CreateGlobals ();
+    }
+    else
+    {
+    	if (Mode::autoinst ())
+    	{
+    	    // TODO whatever will be needed
+	    y2debug ("nothing to to in AI mode if globals are defined");
+    	}
+    	else
+	    BootCommon::FixGlobals ();
+    }
+
+    y2milestone ("Proposed sections: %1", BootCommon::sections);
+    y2milestone ("Proposed globals: %1", BootCommon::globals);
+}
+
+
+/**
+  * Export bootloader settings to a map
+  * @return bootloader settings
+  */
+global define map Export () ``{
+    map exp = $[
+		"global": BootCommon::globals,
+		"sections" : BootCommon::sections,
+		"activate" : BootCommon::activate,
+	    ];
+    return exp;
+}
+
+
+/**
+  * Import settings from a map
+  * @param settings map of bootloader settings
+  * @return boolean true on success
+  */
+global define boolean Import (map settings) ``{
+    BootCommon::globals = settings["global"]:$[];
+    BootCommon::sections  = settings["sections"]:[];
+    BootCommon::activate = settings["activate"]:false;
+    return true;
+}
+
+
+/**
+ * Read settings from disk
+ * @return boolean true on success
+ */
+global boolean Read (boolean reread) {
+    BootCommon::InitializeLibrary (reread, "ppc");
+    if (reread)
+    {
+	BootCommon::ReadFiles ();
+    }
+    // Do we have to detect disks ?
+    // in /src/routines/lilolike.ycp is usesless for PPC (calls FindMBRDisk)
+    // BootCommon::DetectDisks ();
+
+    boolean ret = BootCommon::Read (false);
+    y2milestone (":: Read globals: %1", BootCommon::globals);
+
+    // Extract exports from globals
+    foreach(string key, any value, BootCommon::globals, {
+	if (substring (key, 0, size ("__exports__")) != "__exports__")
+	    continue;
+	// FIXME: delete(BootCommon::globals[key]);
+
+	key = substring(key, size("__exports__"));
+
+	if (substring (key, 0, 1) == "%") {
+	    list<string> s = splitstring(key,"%");
+	    string hash = s[1]:"";
+
+	    key = substring(key, 2 + size(hash));
+	    if (hash == "global_options") {
+		global_options[key] = value;
+	    }
+	    else if (hash == "section_options") {
+		section_options[key] = value;
+	    }
+	    else {
+		if ( !haskey(exports, hash) ) exports[hash] = $[];
+		exports[hash, key] = value;
+	    }
+	}
+	else if (substring (key, 0, 1) == "#") {
+	    list<string> s = splitstring(key,"#");
+	    string array = s[1]:"";
+
+	    key = substring(key, 2 + size(array));
+	    if ( ! haskey(exports, array) ) exports[array] = [];
+	    exports[array, tointeger(key)] = value;
+	}
+	else {
+	    exports[key] = value;
+	}
+    });
+
+    if (size(global_options)>0)
+    	y2milestone (":: Contains global options: %1", global_options);
+
+    if (size(section_options)>0)
+    	y2milestone (":: Contains section options: %1", section_options);
+
+    if (size(exports)>0)
+    	y2milestone (":: Contains exports: %1", exports);
+
+    return ret;
+}
+
+/**
+ * Save all bootloader configuration files to the cache of the PlugLib
+ * PlugLib must be initialized properly !!!
+ * @param clean boolean true if settings should be cleaned up (checking their
+ *  correctness, supposing all files are on the disk
+ * @param init boolean true to init the library
+ * @param flush boolean true to flush settings to the disk
+ * @return boolean true if success
+ */
+global boolean Save (boolean clean, boolean init, boolean flush) {
+    // stage1_dev (from Bootloader_API.pm)converts to a single string
+    // BootCommon::globals["stage1_dev"] = BootCommon::loader_device;
+    boolean ret = BootCommon::Save (clean, init, flush);
+    return ret;
+}
+
+
+/**
+ * Update read settings to new version of configuration files
+ */
+global void Update () {
+    BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
+    BootCommon::UpdateGlobals ();
+    BootCommon::loader_device
+	= BootCommon::UpdateDevice (BootCommon::loader_device);
+}
+
+/**
+  * Write bootloader settings to disk
+  * @return boolean true on success
+  */
+global define boolean Write () {
+    boolean ret = BootCommon::UpdateBootloader ();
+
+    ret = ret && BootCommon::InitializeBootloader ();
+    return ret;
+}
+
+
+global symbol WizardSequenzer() {
+/*
+blMainSequence () {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    symbol () toEval = (symbol ())functions["wizard_sequencer"]:nil;
+    if (toEval != nil)
+	return toEval ();
+    else
+	return `generic;
+*/
+    y2milestone("Call PPC WizardSequenzer");
+    return `generic_new;
+}
+
+
+global map<string,symbol()> Dialogs () {
+    // PPC definitly needs other text modules
+    return $[
+	"loader"	: ppcBootLoaderOptionsDialog,
+//	"installation"	: ppcInstallDetailsDialog,
+    ];
+}
+
+
+/**
+ * Return map of provided functions
+ * @return map map of functions (eg. $["write":BootPOWERLILO::Write])
+ */
+global map<string, any> GetFunctions () {
+    return $[
+	"export"	   : Export,
+	"import"	   : Import,
+	"read"		   : Read,
+	// "reset"
+	"propose"	   : Propose,
+	"save"		   : Save,
+	// "summary"
+	"update"	   : Update,
+	"write"		   : Write,
+	"widgets"	   : ppcWidgets,
+	"wizard_sequencer" : WizardSequenzer,
+	"dialogs"	   : Dialogs,
+	"section_types"	   : section_types,
+    ];
+}
+
+/**
+  * Initializer of PowerLILO bootloader
+  */
+global void Initializer () {
+    y2milestone ("Called PowerLILO initializer");
+    BootCommon::current_bootloader_attribs = $[
+	"propose" : true,
+	"read" : true,
+	"scratch" : true,
+	"bootloader_on_disk" : true,
+    ];
+    BootCommon::help_messages = (map<string,string>)
+        union(BootCommon::help_messages,  ppc_help_messages);
+    y2milestone("Initialized help_messages to %1", BootCommon::help_messages);
+    // always read the config from perl-Bootloader as were piping our type
+    // discription through here
+    Read(false);
+}
+
+/**
+  * Constructor
+  */
+global void BootPOWERLILO () {
+    BootCommon::bootloader_attribs["ppc"] = $[
+	"required_packages"	: ["lilo"],
+	"loader_name"		: "ppc",
+	"initializer"		: BootPOWERLILO::Initializer,
+    ];
+}
+
+
+}

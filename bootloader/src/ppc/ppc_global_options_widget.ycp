@@ -1,0 +1,114 @@
+/**
+ * File:
+ *      include/bootloader/ppc/ppc_global_options_widget.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Widget for configuring global boot options for PowerPC
+ *
+ * Authors:
+ *      Joachim Plack <jplack@suse.de>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+textdomain "bootloader";
+
+import "BootCommon";
+
+include "bootloader/generic/widget_funcs.ycp";
+
+
+/**
+ * option cache and reader function
+ */
+map<string,any> _gow_options = nil;
+
+map<string,any> GOW_options () {
+    if ( _gow_options == nil)
+    {
+	_gow_options = filter( string key, any value, global_options, {
+	    return key != "boot" && substring(key,0,5) != "boot_";
+	});
+    }
+    return _gow_options;
+}
+
+
+/**
+ * Init function of widget
+ * @param widget string id of the widget
+ */
+void GOW_Init (string widget) {
+    generic_Init(widget, GOW_options(), BootCommon::globals);
+}
+
+
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
+void GOW_Store (string widget, map event) {
+    generic_Store(widget, event, GOW_options(), _globals_store_data);
+}
+
+
+/**
+ * Handle function of a widget
+ * @param key any widget key
+ * @param event map event description of event that occured
+ * @return symbol always nil
+ */
+symbol GOW_Handle (string key, map event) {
+    y2milestone("Called for key %1 through event %2", key, event);
+    // FIXME: is that the right way? "path" widget managed right?
+    return generic_Handle (key, event);
+}
+
+
+/**
+ * Validate function of a widget
+ * @param widget string widget key
+ * @param event map event that caused validation
+ * @return boolean true if validation succeeded
+ */
+boolean GOW_Validate (string widget, map event){
+    y2milestone("Called from widget %1 through event %2", widget, event);
+    // FIXME: here we need a callback to the architcture specific perl interface
+    return true;
+}
+
+
+/**
+ * Build a map describing a widget
+ * @return a map describing a widget
+ */
+map<string,any> genericGlobalBootOptionWidget () {
+    // construct widget from information about global options
+    map<string,any> gt_map = generic_Term(GOW_options(), "normal");
+
+    return $[
+	"widget" : `custom,
+	// frame
+	"custom_widget" : `Frame (_("Boot Menu"), `HBox (
+	    `HSpacing (2),
+	    gt_map["term"]:nil,
+	    `HSpacing (2)
+	)),
+	"init" : GOW_Init,
+	"store" : GOW_Store,
+	"handle" : GOW_Handle,
+	// "handle_events" : gt_map["events"]:[],
+	"validate_type" : `function,
+	"validate_function" : GOW_Validate,
+	"help" : generic_Help("boot-menu") + (string)gt_map["help"]:"",
+    ];
+}
+
+} // include end

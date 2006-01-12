@@ -1,0 +1,2037 @@
+<HTML
+><HEAD
+><TITLE
+>yast2-bootloader</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+><BODY
+CLASS="article"
+><DIV
+CLASS="ARTICLE"
+><DIV
+CLASS="TITLEPAGE"
+><H1
+CLASS="title"
+><A
+NAME="AEN1"
+></A
+>yast2-bootloader</H1
+><HR></DIV
+><DIV
+CLASS="TOC"
+><DL
+><DT
+><B
+>Table of Contents</B
+></DT
+><DT
+><A
+HREF="#goals"
+>Main goals for 8.2</A
+></DT
+><DT
+><A
+HREF="#concept"
+>Bootloader module concept</A
+></DT
+><DT
+><A
+HREF="#switch"
+>Bootloader-specific function calling mechanism</A
+></DT
+><DT
+><A
+HREF="#io"
+>Bootloader configuration reading/writitng/proposing</A
+></DT
+><DT
+><A
+HREF="#diagrams"
+>Diagrams</A
+></DT
+><DT
+><A
+HREF="#initrd"
+>Initrd module</A
+></DT
+><DT
+><A
+HREF="#boottop"
+>Bootloader module</A
+></DT
+><DT
+><A
+HREF="#common"
+>BootCommon module</A
+></DT
+><DT
+><A
+HREF="#bootspec"
+>Bootloader-specific modules interface</A
+></DT
+><DT
+><A
+HREF="#ui"
+>User interface</A
+></DT
+><DT
+><A
+HREF="#grub"
+>GRUB bootloader</A
+></DT
+><DT
+><A
+HREF="#lilo"
+>LILO bootloader</A
+></DT
+></DL
+></DIV
+><DIV
+CLASS="section"
+><H1
+CLASS="section"
+><A
+NAME="goals"
+></A
+>Main goals for 8.2</H1
+><P
+></P
+><UL
+><LI
+><P
+>Automatical installation of bootloader package (if package manager permits, then during installation too for being sure)</P
+></LI
+><LI
+><P
+>As little as possible code duplicated for installation and installed system configuration</P
+></LI
+><LI
+><P
+>Clear border and interface between bootloader-dependent and -independent code</P
+></LI
+><LI
+><P
+>Bootloader-independent interface to most common functions for other modules</P
+></LI
+><LI
+><P
+>Allow the bootloader-specific part affect bootloader user interface or fully replace it</P
+></LI
+><LI
+><P
+>More unified user interface for installation and configuration of installed system</P
+></LI
+><LI
+><P
+>Possibility to switch bootloader (only where platform allows more bootloaders)</P
+></LI
+><LI
+><P
+>Remove or start using during configuration of running system currently unused variables from 
+		<TT
+CLASS="computeroutput"
+>/etc/sysconfig/bootloader</TT
+> file</P
+></LI
+><LI
+><P
+>Inteligently merge bootloader configuration files if Linux installation in other partition present</P
+></LI
+></UL
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="concept"
+></A
+>Bootloader module concept</H1
+><DIV
+CLASS="section"
+><H2
+CLASS="section"
+><A
+NAME="AEN27"
+></A
+>Encapsulation</H2
+><P
+>&#13;Every other module, which needs to access bootloader, shouldn't need to know that there are many different bootloaders. Because of this there is the
+<TT
+CLASS="computeroutput"
+>Bootloader</TT
+> module, which encapsulates functions of other bootloaders, and calls appropriate function of appropriate 
+module depending on currently used bootloader. This interface should stay stable as long as possible, the probablity that some internal interfaces will 
+change in future, is much higher.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN31"
+></A
+>One-way import</H2
+><P
+>&#13;Since cyclic importing of modules may bring a lot of problems because of cyclic calling inside constructors, in the whole bootloader module all importing is done
+only one way. The only exception is interaction with Storage module forced by needs to regard the disk situation when deciding what bootloader to use on one side,
+and the need to know what bootloader is used when proposing partitioning on the other side. There is no import cycle insude whole bootloader module, the bootloader
+module's modules are strictly layered, each module imports only modules from bellow layers.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN34"
+></A
+>Files included only once</H2
+><P
+>&#13;Since included file is parsed on every place where it is included (often many times during one run of YaST2), it takes some time. Because of this include files
+from bootloader-related modules are included into just one module/client file. This brings the advantage of performance, and helps avoiding import-include cycles.
+Since the file is imported by one module only, it isn't needed to import this module nor use it's identifier when accessing it's variables and/or functions.
+Here are two exceptinos: One is the popups.ycp include file, which doesn't need any functions of any module from bootloader package, and the other one is ui.ycp,
+which is included by several clients.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN37"
+></A
+>Bootloader dependent/independent parts border</H2
+><P
+>&#13;Since there are many different bootloaders supported (currently should be supported at least LILO, GRUB, ELILO, S390 bootloader and PPC bootloader), there was really needed
+to define clearly the border between code, which is bootloader dependent and conde which is bootloader independent.
+	</P
+><P
+>&#13;There are three main layers. The top one is made by the Bootloader module and it's includes, partially the ui.ycp include. This is the point clients and other
+modules should use to use bootloader functions. This layer is bootloader independent, but there are some locations regarding different bootloaders. There are bootloader
+switching (configuration conversion) mechanisms, bootloader-dependent function choosing mecahnism, maybe some others.
+	</P
+><P
+>&#13;Second, middle layer, is made of bootloader-dependent modules, and their includes. Every supported bootloader should have it's module. It should be the onlo point,
+where common part of bootloader module accesses the bootloader-dependent parts. This module must contain function describing what function specific to this bootloader
+are present. Should contain all bootloader-specific routines.
+	</P
+><P
+>&#13;The last, bottom layer, contains routines, which may be used by more bootloaders, and generic versions of bootloader-specific functions, which get called if no specific function
+for currently used bootloader is present. Also contains many variables for storing general information and for some by more bootloader used variables.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN43"
+></A
+>Installation vs. configuration of installed system</H2
+><P
+>&#13;There is only one module for both of these tasks. Only one UI, only one internals. There are proposing functions available during configuration of installed system,
+this way it is possible to recreate original configuration.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN46"
+></A
+>Installation</H2
+><P
+>&#13;There is full control of the installation process - not only location and few additional parameters, but everything,
+including bootloader sections and manual editing of future configuration files.
+This brought some problems (because after user creates/modifies sections, many things including disk partitioning may change), but they seem to be
+solved and configuration (automatically set settings) are updated everytime disk configuration changes. Sections created/modified by user of course can't be changed.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN49"
+></A
+>UI</H2
+><P
+>&#13;The concept of UI is described in separate chapter.
+	</P
+></DIV
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="switch"
+></A
+>Bootloader-specific function calling mechanism</H1
+><P
+>&#13;Each bootloader-specific module must provide function, which returns map describing the functions provided by the bootloader-specific module.
+Details about return value are available in Bootloader-specific module description section.
+    </P
+><P
+>&#13;Since future versions of YCP interpreter may need to parse and check all (possibly) used module and include files, all files of all bootloaders
+must be present (which forbids architecture-dependent conditional presence of bootloader-related files in .spec file).
+    </P
+><P
+>&#13;The <TT
+CLASS="computeroutput"
+>getFunctions</TT
+> function is the only point, where all bootloader must be listed. It's task is to choose
+depending on parameter specifying bootloader which set of bootloader-specific functions should be used. In the body of this functions, there
+is stored map from bootloader identifiers to term, which after evaluation returns the set of bootloader-specific functions.
+From this map term to evaluate is choosen and evaluated, and this map is a return value of this function.
+    </P
+><P
+>&#13;Each function, which should be able to be called without checking of bootloader, has s shortcut (usually called like eg.
+<TT
+CLASS="computeroutput"
+>blRead</TT
+> for <TT
+CLASS="computeroutput"
+>Read</TT
+> function). This function gets list of functions for currently
+used bootloader, chooses term appropriate to the concrete function, depending on concrete function and it's parameters adds some parameters if needed,
+and evaluates the term. If some value should be returned (depending on concrete function), returns result of the evaluation of the term.
+If there is no entry in map representing appropriate bootloader-specific function, then generic version of the function (locater in the BootCommon module)
+is called.
+    </P
+><P
+>&#13;There is (at least currently) no automatical way to generate these functions, each of them must be written manually.
+    </P
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="io"
+></A
+>Bootloader configuration reading/writitng/proposing</H1
+><DIV
+CLASS="section"
+><H2
+CLASS="section"
+><A
+NAME="AEN64"
+></A
+>Reading</H2
+><P
+>&#13;Bootloader configuration reading process consists from two steps. First is to detect which bootloader is in use (reading appropriate sysconfig variable), and the second step is
+to read bootloader-dependent setetings. The only common part of bootloader reading process is to assign device to match the sysconfig variable (eg. if in sysconfig is as location
+written MBR, then /dev/hda2 as bootloader device must be changed to MBR of first disk). Additionally, Read function of Initrd module is called.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN67"
+></A
+>Writing</H2
+><P
+>&#13;Writing configuration is much more complex process. It consists from three steps: save Initrd, save bootloader configuration files and call required binary (eg. /sbin/lilo).
+	</P
+><P
+>&#13;Saving configuration files consists from two steps. First is to save common sysconfig variables (file /etc/sysconfig/bootloader, variables LOADER_TYPE and LOADER_LOCATION).
+Second step is call bootloader-specific function to write it's configuration files.
+	</P
+><P
+>&#13;Running bootloader executable is bootloader-dependent operation. In some cases there is needed to call bootloader executable every time anything is changed (eg. LILO), in some cases
+only if bootloader location is to be changed (eg. GRUB), some bootloaders have no executable (eg. ELILO).
+	</P
+><P
+>&#13;Before running bootloader's specific write, in some cases should be run functions that should modify the MBR of the first hard disk. There are currently functions for setting active partition
+and for replacing code in MBR with generic code (which loads bootsector of bootloader partition). It is upon bootloader-specific code whether it will run these functions.
+	</P
+><P
+>&#13;Since many other modules can call the Write function just to reinstall bootloader (eg. after manual changing of initrd settings), it was needed to allow to customize the write process.
+Function to modify the write process and possibilities of modification are described in <A
+HREF="#boottop"
+>the Section called <I
+>Bootloader module</I
+></A
+>.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN75"
+></A
+>Proposing</H2
+><P
+>&#13;Proposing configuration is very complex operation. The main problem is that it must be regarded that configuration of disks isn't final and can change in future, and reproposing
+must combine previous configuration, which could be changed by user, and new state of disks. Of course this doesn't affect reproposing of configuration when user wants to
+recreate original configuration, but there is one proposing mechanism. The proposing mechanism must be able to propose the configuration from scratch, but must be able to
+detect changes done inside disks configuration, and update the configuration according to these changes.
+        </P
+><P
+>&#13;There are some rules how to handle each section when proposing function is called when there has been any configuration proposed.
+Section could be proposed, or manually added, can be modified, or left as it was proposed. The same as for sections
+must be done for global section.
+	<P
+></P
+><UL
+><LI
+><P
+>If section was added by user manually, then never change it when partitioning changes.</P
+></LI
+><LI
+><P
+>If section was proposed, but not changed by user, then recreate it new.</P
+></LI
+><LI
+><P
+>If section was proposed and then modified by user, the situation is much harder. The big question is what has been changed by user.
+If there was no change in partitioning of the disk, then everything is OK and section can be left as is. But if disks have been repartitioned, and at least one
+partition affecting this section was changed, then the section may be incorrect and user must get warned. Currently warning the user is the only mechanism
+to solve these situations, because there is no easy way to fix the configuration of the section and not destroy any changes made by the user.
+In case any configuratino file was changed manually inside the editor, then no reproposing is done, and user gets only a warning.</P
+></LI
+></UL
+>
+        </P
+><P
+>&#13;The proposing mechanism mainly depends on bootloader, which is used, and is described in bootloader-specific chapters describing single bootloaders.
+	</P
+></DIV
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="diagrams"
+></A
+>Diagrams</H1
+><DIV
+CLASS="figure"
+><A
+NAME="AEN89"
+></A
+><P
+><B
+>Figure 1. UI workflow</B
+></P
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="./workflow.png"></P
+></DIV
+></DIV
+><DIV
+CLASS="figure"
+><A
+NAME="AEN94"
+></A
+><P
+><B
+>Figure 2. Bootloader installation call sequence</B
+></P
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="./inst_flowchart.png"></P
+></DIV
+></DIV
+><DIV
+CLASS="figure"
+><A
+NAME="AEN99"
+></A
+><P
+><B
+>Figure 3. Bootloader configuration call sequence</B
+></P
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="./conf_flowchart.png"></P
+></DIV
+></DIV
+><DIV
+CLASS="figure"
+><A
+NAME="AEN104"
+></A
+><P
+><B
+>Figure 4. Bootloader call graph</B
+></P
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="./callgraph.png"></P
+></DIV
+></DIV
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="initrd"
+></A
+>Initrd module</H1
+><DIV
+CLASS="section"
+><H2
+CLASS="section"
+><A
+NAME="AEN111"
+></A
+>General information</H2
+><P
+>&#13;Initrd module is used for handling list of Initrd modules. Inside stores list of modules, which shall be contained in initial ramdisk, allows to add/remove any module to/from this list.
+Also when adding module to initrd, it is possible to specify parameters of the module.
+	    </P
+><P
+>&#13;For storing of list of initrd modules variable INITRD_MODULES in /etc/sysconfig/kernel is used (contains list of modules separated by blank character). Parameters of modules are
+stored in /etc/modules.conf the same way like for modules which aren't to be a part of initrd.
+	    </P
+><P
+>&#13;When calling the Write function of this module, first checking whether saving is really needed is done (if some module was added, or if function was called during installation,
+then it is needed). Modules settings are saved to /etc/modules.conf, list of modules to /etc/sysconfig/kernel, and after it /sbin/mkinitrd is called to create ramdisk.
+Note that even though list of modules is empty, /sbin/mkinitrd must be called, because some modules are added to initrd by this script.
+	    </P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN116"
+></A
+>List of declarations</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void AddModule (string modname, string modargs)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define map Export ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Import (map settings)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define list ListModules ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean Read ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void RemoveModule (string modname)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Reset ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Update ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Write ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void setSplash (string vga)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>list modules</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>map modules_settings</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global boolean changed</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>boolean was_read</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>string splash</TT
+></P
+></LI
+></UL
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN164"
+></A
+>Global functions</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void AddModule (string modname, string modargs)</TT
+>
+                    inserts module to list of modules which shall be contained in initial
+                    ramdisk with it's parameters. When saving initial ramdisk will be recreated.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define map Export ()</TT
+> export settings of Initrd module to returning map.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Import (map settings)</TT
+>imports map of settings to module's internal structures.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define list ListModules ()</TT
+> returns list of modules which are (or will be) present in initial ramdisk.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean Read ()</TT
+> reads list of initrd modules from sysconfig file. Sets changed variable to false.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void RemoveModule (string modname)</TT
+>
+                    removes module from ramdisk when writing bootloader configuration to disk.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Reset ()</TT
+> resets modules list to empty and sets changed variable to false. </P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Update ()</TT
+> modifies internal structures according to changes which happened since previous versions
+		    (eg. modules split/merge, removing some modules,...). Is called only if <TT
+CLASS="computeroutput"
+>Mode::update</TT
+> is set to true.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Write ()</TT
+> (if was changed) saves list of initrd modules to sysconfig files and rebuilds initrd.
+		    If updating the system, then after reading settings (if hasn't been read before) <TT
+CLASS="computeroutput"
+>Update</TT
+> function is called to update
+		    list and settings of modules in initrd.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void setSplash (string vga)</TT
+> is used to add proper splash screen to initrd.
+		    As parameter takes the kernel vga parameter, internally translates to resolution.</P
+></LI
+></UL
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN199"
+></A
+>Internal variables</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>list modules</TT
+> contains list of modules to be inserted to initrd. Is important, because map doesn't preserve order
+			of module, which is imnportant.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>map modules_settings</TT
+> is map from names of modules, which should be contained in initial ramdisk, to their
+                        parameters. For changing this variable should be appropriate functions used.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global boolean changed</TT
+> is true if initrd needs to be rebuilt when saving configuration. Shall be directly used only
+                        from Bootloader module.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>boolean was_read</TT
+> is true if settings were already read from disk, otherwise false</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>string splash</TT
+> contains resolution of splash image</P
+></LI
+></UL
+></DIV
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="boottop"
+></A
+>Bootloader module</H1
+><DIV
+CLASS="section"
+><H2
+CLASS="section"
+><A
+NAME="AEN219"
+></A
+>List of declarations</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define map Export ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Import (map settings)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean Read ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Reset ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Propose ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string Summary (list style)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean Write ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void SetWriteMode (map settings)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string getDefaultSection ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string getKernelParam (string section, string key)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define list getSectionsList (symbol type)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean setKernelParam (string section, string key, string value)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string getLoaderType ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void getLoaderType (string bootloader)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string getRootDevice ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string getBootDevice ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void setRootDevice (string device)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void setBootDevice (string device)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean LbaSupport()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void ReadOrProposeIfNeeded ()</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global boolean repeating_write</TT
+></P
+></LI
+></UL
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN285"
+></A
+>Main functions</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define map Export ()</TT
+> returns map containing all internal settings of bootloader, including bootloader-specific
+                    settings.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Import (map settings)</TT
+> imports map of settings to bootloader module's internal memory. Shall contain
+                    bootloader-specific and initrd settings too.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean Read ()</TT
+> reads all saved settings from disk to module's internal memory. Returns true on success,
+                    false on fail.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Reset ()</TT
+> resets all settings stored in bootloader's internal memory to initial values.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void Propose ()</TT
+> generates proposed settings and stores them in module's internal memory.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string Summary (list style)</TT
+> generates bootloader summary and returns it in result string.
+                    Parameter is list of symbols specifying style of summary (see autogenerated documentation)</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean Write ()</TT
+> writes bootloader configuration to disk or eprom (platform-dependent).</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void SetWriteMode (map settings)</TT
+> sets variables, which may change the bootloader writing process.
+		    As parameter takes a map, where keys are variable names (as strings), values will be set into appropriate variables. If some key is missing, variable stays unchanged.
+		    Available variables are:
+		    <P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"insert_initrd" : boolean</TT
+> forces (if true) or forbids (if false) inserting initrd to bootloader configuration files
+			    when saving bootloader configuration if exists. Doesn't remove it if present and set to false. Default is false.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"initrd_changed_externally" : boolean</TT
+> makes (if true) saving process saving cfg. files the same way like
+			    if initrd might be added or removed. Default is false. In case of LILO and other bootloaders which need to recreate lists of blocks
+			    calls the bootloader installed (eg. lilo).</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"forbid_save_initrd" : boolean</TT
+> forbids (if true) or allows (if false) saving and creating initrd. Doesn't affect function
+			    Initrd::Write, only avoids calling this function from Bootloader::Write. Default is false.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"save_all" : boolean</TT
+> if true forces saving of all bootloader settings, including recreating initrd, saving
+			    bootloader configuration file(s) and calling required executable. The process is the same as during installation.</P
+></LI
+></UL
+>
+		</P
+></LI
+></UL
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN325"
+></A
+>Linux sections handling functions</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string getDefaultSection ()</TT
+> returns string containing label (or title) of currently set
+                    default section.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string getKernelParam (string section, string key)</TT
+> parses kernel parameters in specified section,
+                    selects specified parameter, and returns it's value. Returns "false" if option or section is not present, "true" if present without value (eg. nosmp).
+                    Set section name to "DEFAULT" to use default section.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define list getSectionsList (symbol type)</TT
+> returns list of strings representing section names. Argument
+                    type can be set to `all (list of all sections), `linux (list of linux sections only) and `other (list other sections only).</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean setKernelParam (string section, string key, string value)</TT
+> adds or replaces kernel parameter
+                    in specified section. Returns true on success, false on fail. If value is set to "true", parameter without value is added, if "false", parameter is removed. </P
+></LI
+></UL
+><P
+>&#13;		Note, that after changing of kernel parameters, you must call the Bootloader::Write () function.
+	    </P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN341"
+></A
+>Other functions</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string getLoaderType ()</TT
+> returns currently used or configured bootloader. There will be no global
+                    variable for detecting current bootloader.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void setLoaderType (string bootloader)</TT
+> sets the bootloader to use. If parameter is nil, then
+		    next time <TT
+CLASS="computeroutput"
+>getLoaderType ()</TT
+> will be called bootloader will be reread from disk or redetected.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string getRootDevice ()</TT
+> returns device which contains the / (root) directory.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string getBootDevice ()</TT
+> returns device containing the /boot directory. Returns the same as getRootDevice ()
+		    if no extra /boot partition exists.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void setRootDevice (string device)</TT
+> sets device containing the / (root) directory. Should be set to real
+		    root partition of installed/configured machine. Normally this function isn't needed to be used, everything gets detected.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void setBootDevice (string device)</TT
+> sets device containing the /boot directory. Should be set to real
+		    /boot partition of installed/configured machine. Normally this function isn't needed to be used, everything gets detected.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean LbaSupport()</TT
+> returns true if current configuration supports LBA-32 mode (and in this case
+		    no extra /boot partition is required).</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void ReadOrProposeIfNeeded ()</TT
+> checks whether settings were read or proposed, and if not,
+		    reads or proposes new settings (according to current Mode::* variables). Should be used only from internal functions of bootloader module.</P
+></LI
+></UL
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN369"
+></A
+>Variables</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global boolean repeating_write</TT
+> is used just for internal moduel's needs (detects, whether repeated writing is running
+		    and in case of installation the installation progress bar shall not be moved).</P
+></LI
+></UL
+></DIV
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="common"
+></A
+>BootCommon module</H1
+><DIV
+CLASS="section"
+><H2
+CLASS="section"
+><A
+NAME="AEN377"
+></A
+>Note</H2
+><P
+>This module contains all declarations as bootloader specific module, which are used as common versions of bootloader-specific functions, if special function is not needed,
+                except the <TT
+CLASS="computeroutput"
+>GetFunctions ()</TT
+> function.
+                Only additional declarations are listed
+            </P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN381"
+></A
+>List of declarations</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define symbol getLoaderType (boolean recheck)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define symbol setLoaderType (symbol bootloader)</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>string loader_type</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global boolean was_proposed</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global boolean was_read</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global map dependent_settings</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global boolean changed</TT
+></P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global boolean location_changed</TT
+></P
+></LI
+></UL
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN408"
+></A
+>Bootloader type handling functions</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define symbol getLoaderType (boolean recheck)</TT
+> returns currently used bootloader. If parameter set to true,
+                    bootloader type is checked again, if false, then read previously detected or by user set settings.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define symbol setLoaderType (symbol bootloader)</TT
+> sets current bootloader to use.</P
+></LI
+></UL
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN417"
+></A
+>Variables for being used inside yast2-bootlaoder package only</H2
+><P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global map dependent_settings</TT
+> for storing bootloader-dependent settings (because module is more usable for storing
+                        bootloader-dependent settings than include file which is used).</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global boolean changed</TT
+> is true if bootloader configuration has changed and must be saved.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>string loader_type</TT
+> stores type of currently used bootloader. Shouldn't be used directly because of initialization,
+                    function <TT
+CLASS="computeroutput"
+>getLoaderType</TT
+> shall be used instead.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global boolean location_changed</TT
+> is true if bootloader location was changed and bootloader must be installed
+                        again (eg. grub doesn't have to be installed again if only menu was changed).</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>boolean was_proposed</TT
+> is true is Propose function was already called, otherwise false.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>boolean was_read</TT
+> is true if settings were already read from disk, otherwise false.</P
+></LI
+></UL
+></DIV
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="bootspec"
+></A
+>Bootloader-specific modules interface</H1
+><DIV
+CLASS="section"
+><H2
+CLASS="section"
+><A
+NAME="AEN441"
+></A
+>Motivation</H2
+><P
+>&#13;                Different bootloaders are installing different ways, require different informations, etc. The goal of new design is to allow different bootloaders to have
+                their own dialogs, proposal, and functions for several tasks, but to provide generic dialogs and functions too.
+                Common part of bootloader installer should not contain bootloader-specific code, everything bootloader-specific should be encapsulated in bootloader-specific
+                module.
+            </P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN444"
+></A
+>Bootloader-specific module description function</H2
+><P
+>&#13;                <TT
+CLASS="computeroutput"
+>global define map GetFunctions ()</TT
+> function shall return a map describing
+                what functions contains bootloader-specific part installator. It is used for checking for what functions can be used generic functions
+                and what functions need to be specific.
+            </P
+><P
+>&#13;                Returned map shall contains following keys (values are terms, they will be evaluated when function call is wanted):
+                <P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"export"</TT
+> export function, should return map of bootloader specific settings.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"import"</TT
+> import function, must have one map parameter for settings to import.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"read"</TT
+> reads bootloader specific settings from disk to module's internal variables.
+			Returns boolean true if success.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"reset"</TT
+> resets all module variables to their default values.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"propose"</TT
+> proposes bootloader configuration. May be called repeatedly during installation proposal,
+			in this case shall only update settings according to changes of partitioning.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"save"</TT
+> saves all configuration files of bootloader to disk. Should backup old configuration files before rewriting them.
+			Returns boolean true on success.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"summary"</TT
+> creates the summary text for installation proposal. Returns string with summary text
+			in the "raw_proposal" format.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"update"</TT
+> updates read settings of bootloader to newer version if needed. Doesn't read or write anything.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"write"</TT
+> makes the real installation of bootloader when needed. On i386 this should call the lilo command,
+			may do some additional actions (activating partition,...). Returns boolean true on success.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"widgets"</TT
+> returns map of bootloader specific widgets. Special key "tableentries" is used for map of single bootloader
+			options. See more details in UI section.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"sequence"</TT
+> fixes the dialog aliases and workflow sequences according to specific bootloader needs.
+			Has parameter containing map of sequences, shall modify it and return with changes and added aliases which differ from generic version.
+			More details in UI section.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"getfiles"</TT
+> shall generate map from filenames to file contents. It shall be used to generate future bootloader cfg.
+			files for manual editing. Returns the map.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"setfiles"</TT
+> stores map with the same format as result of "getfiles" to internal structures (after parsing them).
+			Should change the BootCommon::files_edited variable if some file was changed. Has one map parameter.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"getoptions"</TT
+> returns map of options which can be present in bootloader. Map contains key `global for global options,
+			and keys "image" and "other" (can differ for different bootloaders) for sections. Value of each key is list of options.
+			If returns nil, the "Add" button for adding options will be disabled. To enable it if yuo don't want to create options list, just return empty map.
+			Combobox for choosing option is always editable, lists don't have to be complete. </P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"updoptlst"</TT
+> updates list of options to be shown in table. As parameter has map of options and values, returns list of
+			option keys. Must read from BootCommon::variables whether edits global section or single section.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+></TT
+></P
+></LI
+></UL
+>
+		Value of each key shall be term, which will be evaluated in moment specified function is needed (after adding parameters if needed). Return value will be returned to caller
+		(if function has return value).
+		If some key is missing in the map, gemeric function is used (which typically means function usable for LiLo, because most of bootloaders for Linux are similar to LiLo.
+            </P
+></DIV
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="ui"
+></A
+>User interface</H1
+><DIV
+CLASS="section"
+><H2
+CLASS="section"
+><A
+NAME="AEN500"
+></A
+>UI concept</H2
+><P
+>&#13;The general user interface and workflow is the same for all supported bootloaders. But usually some widgets need to have a little different behaviour or look for 
+different bootloaders. Because of this there is common workflow, which can be used for all bootloaders, and common set of widgets (or widget groups), which can be
+replaced by bootloader-specific widget (widget group). Each widget has defined it's look and behaviour. It has various functions for restoring settings when shown,
+handle changes, check whether currently set settings are OK,...).
+This makes possible to write whole dialog at once and not duplicate code between different bootloaders if it isn't needed.
+	    </P
+><P
+>&#13;The function for displaying dialog creates a look of the dialog from the widgets (some may be general, some bootloader-specific according to inidividual bootloader's set of widgets),
+creates help using helps of dialog member widgets, collects events which may result to replacing the dialog with other one, and call generic dialog function with parameters specifying
+wizard sequencer buttons, help, caption and everything else what is needed to display the dialog. (Not all dialogs do this, it is still possible to create and handle dialog
+completly inside specific dialog function). Generic dialog function calls appropriate function of all widgets which are part of the dialog.
+	    </P
+><P
+>&#13;Popup widgets related to single option behave mainly the same way as widgets in the wizard sequencer dialog. The map describing the widget only must have function
+for displaying one-line summary in the table (otherwise generic one is used), and optionaly help is in the format of label widget (no HTML).
+	    </P
+><P
+>&#13;Of course the concept allows to modify the base workflow for single bootloader, or completely replace it.
+	    </P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN506"
+></A
+>GetWidgets function</H2
+><P
+>&#13;		Function <TT
+CLASS="computeroutput"
+>global define map GetWidgets ()</TT
+> returns map describing all bootloader-specific widgets or whole dialogs.
+		Resulting map should contain (may be empty) map from widget 
+		name (string) to term, which will after evaluation return widget description map. 
+		Don't use maps containing terms as functions directly, but better use functions returning the map, because terms ase evaluated into depth, 
+		including all map entries.
+		This map is then used to display widget, initialize it, handle it's events and displaying appropriate help.
+	    </P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN510"
+></A
+>Widget description map</H2
+><P
+>&#13;		Widget description map contains following fields:
+		<P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"widget" : term</TT
+> contains widget to be displayed in the dialog.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"restore" : term</TT
+>, will be evaluated after dialog gets shown.
+			Appropriate contents of dialog (eg. texts from textentries) shoud be set during evaluating this term.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"handle" : term</TT
+>, which will be evaluated everytime some UI event is generated (at each UI::UserInput ()).
+			Before evaluating, symbol parameter will be added, containing result value of UI::UserInput (), second parameter containing list of events leading to exit
+			widget with saving will be added.
+			Handler's return value must contain symbol, which may be the same, but can be changed. If nil is returned, it is handled the same wasy as if it wouldn't
+			be changed.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"help" : string</TT
+> representing help, which should be displayed to the widget.
+			The help will be included in dialog help at appropriate place (left bar for normal dialog - in HTML format, as a label for popups).</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"validate" : term</TT
+>, will be evaluated when it will be needed (dialog will be exited other way than
+			Back or Abort button). Shall return true if everything is OK, false if not. If there is any problem, should display appropriate popup
+			and change focus to problematic widget.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"exits" : list</TT
+> contains list of symbols, which if are generated and dialog is correctly validated,
+			dialog is left returning this symbol to wizard sequencer. </P
+></LI
+></UL
+>
+	    </P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN532"
+></A
+>Option widget description map</H2
+><P
+>&#13;		Option widget description map contains all fields as widget description map, additionally following:
+		<P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"label" : string</TT
+> label, which will be shown in the table of settings.
+			Key not present means option name will be used.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>"summary" : term</TT
+> will be evaluated to get the text to the settings table. Result of evaluation of this term
+			will be used. If key not present, raw value will be used if it is part of configuration file, otherwise will be empty.</P
+></LI
+></UL
+>
+            </P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN542"
+></A
+>Widgets handling functions</H2
+><P
+>&#13;		These unctions may be usefull for complete dialog writers, and are used in generic versions of dialogs.
+		They are used to apply all needed actions on list of widgets and create widget maps from widget names.
+		<P
+></P
+><UL
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define list getWidgets (list names)</TT
+> transforms list of widget names to list of widget maps
+			(contents described above). If bootloader-specific version of widhet exists, then is returned, otherwise generic widget is returned in the list.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define map getPopupWidget (any name)</TT
+> returns map of specified single-option widget.
+			If bootloader-specific versin exists, it is returned, otherwise generic (if exists) is used or widget is generated according to option type
+			</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define map getPopupWidgets ()</TT
+> gets maps of all popup widgets. Specific/common version
+			is choosen the same way as in getPopupWidget case.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void readWidgets (list widgets)</TT
+> evaluates the "restore" terms of all maps in list.
+			This is used to read all widgets settings.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define void handleChange (list widgets, any action)</TT
+> takes the list of widgets and
+			evaluates the "handle" terms (after adding the action symbol and list of actions causing exiting including save).
+			Before evaluating checks whether it is needed to validate widgets data
+			and if yes, then if validation is OK (using validateWidgetsIfNeeded function). If validation fails, doesn't do anything.
+			Validation must succeed for all widgets present in dialog/popup.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define boolean validateWidgetsIfNeeded (list widgets, any action)</TT
+>
+			checks whether generated event is reason to validate (leaving dialog other way than Back or Abort), and if yes, then
+			checks all widget whether they have proper values set. Returns true if no validation is needed or everything is OK
+			and action can be handled properly,
+			false if validation of some widget failed. Widget validation function should display some warning or change focus
+			if validation fails.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define list getExitEvents (list widgets)</TT
+> returns merge of all "exits" lists of widgets in dialog,
+			adds symbols `back, `abort and `next.</P
+></LI
+><LI
+><P
+><TT
+CLASS="computeroutput"
+>global define string mergeHelps (list widgets)</TT
+> merges helps of specified widgets to one string.</P
+></LI
+></UL
+>
+	    </P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN570"
+></A
+>Workflow sequence changes</H2
+><P
+>&#13;		Universal UI allows to add new dialogs to sequence or modify the sequence any way.
+		What bootloader-specific module must do, is to provide key "sequence" in bootloader description
+		function result. As argument the function when calling receives map containing
+		current sections (key is section name, value map of sequence). Function can modify them, add new sequences, remove existing.
+		Additionally can add "aliases" entry (value map of aliases). which is needed for adding new dialogs to sequence.
+		This map is mesged with common aliases map (in case of conflict bootloader-specific alias is used).
+		Return value of this function must contain updated wizard sequencer data.
+	    </P
+></DIV
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="grub"
+></A
+>GRUB bootloader</H1
+><P
+>&#13;GRUB is new bootloader currently being used on i386 and compatibles, and on AMD x86-64. It has following advantages:
+	<P
+></P
+><OL
+TYPE="1"
+><LI
+><P
+>Possible to boot unconfigured section, or update boot p[arameters at boot time</P
+></LI
+><LI
+><P
+>Understands common filesystem, in case of new kernel there is no need to reinstall anything</P
+></LI
+></OL
+>
+Of course there are some problems with GRUB:
+        <P
+></P
+><OL
+TYPE="1"
+><LI
+><P
+>Can't read kernel/initrd images from volumes located on LVM or MD</P
+></LI
+><LI
+><P
+>Needs explicitly set mapping between UNIX-like devices and BIOS IDs</P
+></LI
+></OL
+>
+First problem can be easily solved by adding blocklists instead of filenames into configuration files (which removes second advantage).
+If no device map is present, GRUB can detect it's own, but in case of multiple disk this detection is usually not correct.
+    </P
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN586"
+></A
+>Configuration files</H2
+><P
+>&#13;There are three important files on the disk storing GRUB's configuration. First is device map located at <TT
+CLASS="computeroutput"
+>/boot/grub/device.map</TT
+>.
+It stores only mapping between GRUB's device names and Linux device names (eg. <TT
+CLASS="computeroutput"
+>(hd0)   /dev/hda</TT
+>).
+	</P
+><P
+>&#13;Second, <TT
+CLASS="computeroutput"
+>/etc/grub.conf</TT
+> contains list of commands to be run for installing the GRUB bootloader.
+Contains location of GRUB's stages, file with bootloader menu, and others.
+        </P
+><P
+>&#13;Third file contains the bootloader menu. It is located at <TT
+CLASS="computeroutput"
+>/boot/grub/menu.lst</TT
+>. If using filesystem to read this file (and not reading
+as blocklist), it isn't needed to run any tool after this file is changed, changes file will be read next time system will boot.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN595"
+></A
+>Configuration reading and writing</H2
+><P
+>&#13;<TT
+CLASS="computeroutput"
+>/boot/grub/device.map</TT
+> and <TT
+CLASS="computeroutput"
+>/etc/grub.conf</TT
+> are small text files, which are read and written as strings,
+and parsed by the YCP code inside the BootGRUB module (more percisely it's include). <TT
+CLASS="computeroutput"
+>/boot/grub/menu.lst</TT
+> is larger, and to reading and writing.
+this file the lilo agent is used. Some updates of this agent were needed to make it usable for GRUB (because of other syntax and importance of the order of lines inside a section).
+Only if bootloader location has changed, during installation or upon extra request bootloader is reinstalled after writing it's configuration.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN601"
+></A
+>Proposing configuration</H2
+><P
+>&#13;Proposing configuration of GRUB is much harder job than proposing configuration for LILO, because in case of lilo for kernel image normal path from root is written to configuration file,
+and it doesn't change when user chooses to repartition the disk, but in case of GRUB the path in configuration file contains device name and path from root of the filesystem.
+Eg. if user repartitiones the disk and adds extra partition for /boot filesystem, both path and device name must get changed.
+	</P
+><P
+>&#13;The general proposing concept is nearly the same as in case of LILO (<A
+HREF="#lilo"
+>the Section called <I
+>LILO bootloader</I
+></A
+>). Additionally, there must be added for the gfxmenu entry the same handling as for sections
+and in them mentioned files.
+	</P
+></DIV
+></DIV
+><DIV
+CLASS="section"
+><HR><H1
+CLASS="section"
+><A
+NAME="lilo"
+></A
+>LILO bootloader</H1
+><P
+>&#13;The LILO bootloader was a long time the default bootloader on i386 architecture.
+Now is used on i386 and compatibles, and on new AMD's platform x86-64.
+    </P
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN609"
+></A
+>Configuration files</H2
+><P
+>&#13;LILO bootloader uses only one configuration file located at <TT
+CLASS="computeroutput"
+>/etc/lilo.conf</TT
+>. Everytime this file is changed, <TT
+CLASS="computeroutput"
+>/sbin/lilo</TT
+>
+must be callot to make the changes effect.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN614"
+></A
+>Configuration reading and writing</H2
+><P
+>&#13;Reading and writing of <TT
+CLASS="computeroutput"
+>/etc/lilo.conf</TT
+> is made using the lilo agent. Everytime this file changes, <TT
+CLASS="computeroutput"
+>/sbin/lilo</TT
+>
+is called to make the changes effect.
+	</P
+></DIV
+><DIV
+CLASS="section"
+><HR><H2
+CLASS="section"
+><A
+NAME="AEN619"
+></A
+>Proposing configuration</H2
+><P
+>&#13;Initial proposing generates standard sections and implicit globals. Each section has additional internal attribute describing it's state (was proposed and not changed by user) and
+devices it uses (usually the device containing /boot and / (root) partitions, in case of loading bootsector of other partition the device of the partition).
+When checking the proposal, partitions of each sections get compared to partitions, which have been changed, and depending on the result section is recreated, left as is, or
+user gets warned.
+	</P
+><P
+>&#13;Because when proposing configuration it does't have to be clear whether initrd will exist, memtest86 will be present or graphic menu available, there is additional checking done
+when writing configuration. If in configuration file mentioned file doesn't exist (eg. initrd not created), corresponding record is removed from configuration file before writing
+ut to the disk.
+	</P
+></DIV
+></DIV
+></DIV
+></BODY
+></HTML
+>

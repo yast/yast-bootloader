@@ -1,0 +1,54 @@
+#!/bin/bash
+#Update /boot/message to contain help for actual language
+#$1 is tmp dir to work in
+#$2 is directory with sources (usually /etc/bootsplash/themes/SuSE/bootloader)
+#$3 is file containing translation of names of bootloaer entries
+#$4 is locale in longer form (eg. cs_CZ)
+#$5 is locale in shorter form (eg. cs) 
+# secondary (and following) languages can be appended (eg. $6=de_DE, $7=de,...)
+
+TMP_DIR=$1;
+SRC_DIR=$2;
+MENU_ENTRIES=$3
+shift 3;
+LOCALE=$1;
+LOCALE_SHORT=$2;
+
+# create temporarry directory
+cd $TMP_DIR || exit 1;
+test -e gfxmenu && rm -rf gfxmenu;
+mkdir gfxmenu || exit 2;
+cd gfxmenu || exit 3;
+# unpack current message file
+/usr/bin/cpio -i < /boot/message || exit 4;
+# set default language
+echo $LOCALE >lang || exit 5
+# replace original texts with localized
+rm `ls *tr | grep -v en.tr`
+rm `ls *hlp | grep -v en.hlp`
+test -f $SRC_DIR/$LOCALE.tr && cp $SRC_DIR/$LOCALE.tr . \
+ || test -f $SRC_DIR/$LOCALE_SHORT.tr && cp $SRC_DIR/$LOCALE_SHORT.tr .
+test -f $SRC_DIR/$LOCALE.hlp && cp I4/$LOCALE.hlp . \
+ || test -f $SRC_DIR/$LOCALE_SHORT.hlp && cp $SRC_DIR/$LOCALE_SHORT.hlp .
+# set languages to choose
+if [ "$LOCALE_SHORT" = "en" ] ; then
+    echo -n "en
+" >languages || exit 6
+else
+    echo -n "$LOCALE_SHORT
+en
+" >languages || exit 6
+fi
+
+# set translations of bootloaer menu entries
+cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7;
+
+test -f $SRC_DIR/background.jpg && cp $SRC_DIR/background.jpg back.jpg
+
+ls | cpio -o >/boot/message.new && mv /boot/message.new /boot/message || exit 99
+cd .. && rm -r gfxmenu
+
+exit 0
+
+
+

@@ -1,0 +1,233 @@
+/**
+ * File:
+ *  grub.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Bootloader GRUB misc functions testsuite
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+// testedfiles: BootGRUB.ycp
+
+    include "testsuite.ycp";
+
+    map READ = $[
+        "target" : $[
+            "size" : -1,
+            "tmpdir" : "/tmp/",
+	    "yast2" : nil,
+	    "ycp" : $[],
+        ],
+        "probe" : $[
+            "architecture" : "i386",
+            "has_apm" : true,
+            "has_pcmcia" : false,
+            "has_smp" : false,
+            "system" : [],
+            "memory" : [],
+            "cpu" : [],
+            "cdrom" : $[
+                "manual" : [],
+            ],
+            "floppy" : $[
+                "manual" : [],
+            ],
+	    "disk" : [],
+	    "is_uml" : false,
+        ],
+        "sysconfig" : $[
+            "console" : $[
+                "CONSOLE_FONT" : "",
+                "CONSOLE_SCREENMAP" : "",
+                "CONSOLE_UNICODEMAP" : "",
+                "CONSOLE_MAGIC" : "",
+                "CONSOLE_ENCODING" : "",
+            ],
+            "language" : $[
+                "RC_LANG" : "",
+                "DEFAULT_LANGUAGE" : "",
+            ],
+	    "bootloader" : $[
+		"LOADER_TYPE" : "grub",
+	    ],
+	    "kernel" : $[
+		"MODULES_LOADED_ON_BOOT" : "",
+	    ],
+        ],
+        "etc" : $[
+            "install_inf" : $[
+                "Cmdline" : "",
+		"Cdrom" : "",
+            ],
+        ],
+        "proc" : $[
+            "cpuinfo" : $[
+                "value" : $[
+                    "0" : $[
+                        "flags" : ""
+                    ],
+                ],
+            ],
+	    "partitions" : [],
+        ],
+	"product" : $[
+	    "features" : $[
+		"USE_DESKTOP_SCHEDULER" : "0",
+		"ENABLE_AUTOLOGIN" : "0",
+		"EVMS_CONFIG" : "0",
+		"IO_SCHEDULER" : "cfg",
+		"UI_MODE" : "expert",
+		"INCOMPLETE_TRANSLATION_TRESHOLD" : "95",
+	    ]
+	],
+    ];
+    map WRITE = $[];
+    map EXEC = $[
+	"target" : $[
+	    "bash_output" : $[],
+	],
+    ];
+
+    TESTSUITE_INIT ([READ, WRITE, EXEC], 0);
+    import "Bootloader";
+    import "BootCommon";
+    import "Mode";
+
+    Mode::SetTest ("testsuite");
+
+    BootCommon::update_section_types = add (BootCommon::update_section_types,
+	"test_sect");
+
+    DUMP ("======================================");
+
+    map<string,any> imp = $[
+	"initrd":$["list":["reiserfs"], "settings":$["reiserfs":$[]]],
+	"loader_device":"/dev/hda",
+	"loader_type":"grub",
+	"location":"mbr",
+	"specific": $[
+	    "activate":false,
+	    "device_map":[["(hd0)", "/dev/hda"], ["(hd1)", "/dev/hdb"], ["(fd0)", "/dev/fd0"]],
+	    "grub_conf":$[
+		"addr":"0x8000",
+		"device":"/dev/hda",
+		"discswitch":"d",
+		"menu":"(hd0,0)/grub/menu.lst",
+		"prefix":" --stage2=/boot/grub/stage2",
+		"root":"(hd0,0)",
+		"stage1":"/grub/stage1",
+		"stage2":"/grub/stage2"
+	    ],
+	    "repl_mbr":false,
+	    "sections":[
+		[
+		    $["key":"title", "value":"linux"],
+		    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 vga=0x31a selinux=0 splash=silent"],
+		    $["key":"initrd", "value":"(hd0,0)/initrd"],
+		    $["key":"__intern__", "value":$["type":"linux"]]
+		],
+		[
+		   $["key":"title", "value":"Disketa"],
+		   $["key":"root", "value":"(fd0)"],
+		   $["key":"chainloader", "value":"+1"],
+		   $["key":"__intern__", "value":$["type":"floppy"]]
+		],
+		[
+		    $["key":"title", "value":"test_sect"],
+		    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hdb4 vga=0x31a selinux=0 splash=silent resume=/dev/hdb2"],
+		    $["key":"initrd", "value":"(hd0,0)/initrd"],
+		],
+		[
+		    $["key":"title", "value":"other"],
+		    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hdb4 vga=0x31a selinux=0 splash=silent resume=/dev/hdb2"],
+		    $["key":"initrd", "value":"(hd0,0)/initrd"],
+		],
+		[
+		   $["key":"title", "value":"other2"],
+		   $["key":"root", "value":"(hd1)"],
+		   $["key":"chainloader", "value":"+1"],
+		],
+		 [
+		    $["key":"title", "value":"Test pameti"],
+		    $["key":"kernel", "value":"(hd0,0)/memtest.bin"],
+		],
+	    ],
+	]
+    ];
+
+    TEST (``(Bootloader::Import (imp)), [READ, WRITE, EXEC], 0);
+    BootCommon::BootPartitionDevice = "/dev/sda1";
+    BootCommon::RootPartitionDevice = "/dev/sda3";
+    TEST (``(Bootloader::UpdateConfiguration ()), [READ, WRITE, EXEC], 0);
+    TEST (``(Bootloader::Export ()), [READ, WRITE, EXEC], 0);
+
+    DUMP ("======================================");
+
+    imp = $[
+	"initrd":$["list":["reiserfs"], "settings":$["reiserfs":$[]]],
+	"loader_device":"/dev/hda",
+	"loader_type":"lilo",
+	"location":"mbr",
+	"specific": $[
+	    "activate":false,
+	    "repl_mbr":false,
+	    "global" : [
+		$["key":"boot", "value":"/dev/hda"]
+	    ],
+	    "sections":[
+		[
+		    $["key":"image", "value":"/boot/vmlinuz"],
+		    $["key":"label", "value":"Linux"],
+		    $["key":"initrd", "value":"/boot/initrd"],
+		    $["key":"root", "value":"/dev/hda3"],
+		    $["key":"append", "value":"resume=/dev/hda2 selinux=0"],
+		    $["key":"vga", "value":"0x31a"],
+		    $["key":"__intern__", "value":$["type":"linux"]]
+		],
+		[
+		    $["key":"image", "value":"/boot/vmlinuz"],
+		    $["key":"label", "value":"test_sect"],
+		    $["key":"initrd", "value":"/boot/initrd"],
+		    $["key":"root", "value":"/dev/hdb4"],
+		    $["key":"append", "value":"resume=/dev/hdb2 selinux=0"],
+		    $["key":"vga", "value":"0x31a"],
+		],
+		[
+		    $["key":"image", "value":"/boot/vmlinuz"],
+		    $["key":"label", "value":"Other"],
+		    $["key":"initrd", "value":"/boot/initrd"],
+		    $["key":"root", "value":"/dev/hdb4"],
+		    $["key":"append", "value":"resume=/dev/hdb2 selinux=0"],
+		    $["key":"vga", "value":"0x31a"],
+		],
+		[
+		   $["key":"value", "value":"other2"],
+		   $["key":"other", "value":"/dev/hdb3"],
+		],
+		 [
+		    $["key":"label", "value":"Test_pameti"],
+		    $["key" : "image", "value" : "/boot/memtest.bin"],
+		],
+	    ],
+	]
+    ];
+
+    TEST (``(Bootloader::Import (imp)), [READ, WRITE, EXEC], 0);
+    BootCommon::BootPartitionDevice = "/dev/sda1";
+    BootCommon::RootPartitionDevice = "/dev/sda3";
+    TEST (``(Bootloader::UpdateConfiguration ()), [READ, WRITE, EXEC], 0);
+    TEST (``(Bootloader::Export ()), [READ, WRITE, EXEC], 0);
+
+    DUMP ("======================================");
+
+    DUMP ("======================================");
+}

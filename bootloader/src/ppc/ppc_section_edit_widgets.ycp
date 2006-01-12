@@ -1,0 +1,123 @@
+/**
+ * File:
+ *      include/bootloader/ppc/ppc_section_edit_widgets.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Widgets to create or change the contents of the different types
+ *      of sections in a boot configuration file
+ *
+ * Authors:
+ *      Joachim Plack <jplack@suse.de>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+
+textdomain "bootloader";
+
+import "BootCommon";
+
+include "bootloader/generic/widget_funcs.ycp";
+
+
+
+
+// calculate the list of available section types
+global list<string> section_types () {
+    list<string> st_list = [];
+
+    foreach( string key, any value, section_options, {
+	if (substring(key,0,5) == "type_")
+	    st_list = add (st_list, substring(key,5) );
+
+    });
+
+    return st_list;
+}
+
+
+// extract edit dialog discription for a specific type of section
+map<string,any> SE_Options (string type) {
+    map<string,any> se_options = nil;
+
+    se_options = mapmap(
+	string key, any value,
+	filter( string key, any value, section_options,
+	    ``( substring(key, 0, size(type)+1) == type + "_")
+	),
+	``( $[ substring(key, size(type)+1) : value ] )
+    );
+
+    return se_options;
+}
+
+
+/**
+ * Init function of widget
+ * @param widget string id of the widget
+ */
+void SE_Init (string widget) {
+    string type = BootCommon::current_section["type"]:"";
+    generic_Init(widget, SE_Options(type), BootCommon::current_section);
+}
+
+
+void _section_store_data( string key, string value ) {
+    if (value != nil && value != "")
+	BootCommon::current_section[key] = value;
+    else {
+	BootCommon::current_section = filter(string k, any v,
+	    BootCommon::current_section, ``(key != k)
+	);
+    }
+} 
+
+
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
+void SE_Store (string widget, map event) {
+    string type = BootCommon::current_section["type"]:"";
+    generic_Store(widget, event, SE_Options(type), _section_store_data);
+}
+
+
+/**
+ * Handle function of a widget
+ * @param key any widget key
+ * @param event map event description of event that occured
+ * @return symbol always nil
+ */
+symbol SE_Handle (string key, map event) {
+    return generic_Handle (key, event);
+}
+
+
+/**
+ * Build a map describing a widget
+ * @return a map describing a widget
+ */
+map<string,any> genericSectionEditWidget(string type) {
+    map<string,any> options = SE_Options(type);
+    map<string, any> gt_map = generic_Term(options, "normal");
+
+    return $[
+	"widget" : `custom,
+	"custom_widget" : (term) gt_map["term"]:nil,
+	"init" : SE_Init,
+	"store" : SE_Store,
+	"handle" : SE_Handle,
+	"help" : generic_Help("section-settings") + (string) gt_map["help"]:"",
+    ];
+}
+
+
+} // EOF

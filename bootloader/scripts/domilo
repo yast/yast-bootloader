@@ -1,0 +1,10 @@
+#!/bin/bash
+# Compute MILO bootloader on Alpha...
+# CD1/milo/boot.conf must be in file $2
+
+SYSTYPE=`cat /proc/cpuinfo  | grep "system type" | colrm 1 26`
+SYSVAR=`cat /proc/cpuinfo  | grep "system variation" | colrm 1 26`
+
+MILO=`cat $2 | grep "$SYSTYPE:$SYSVAR" | cut -f 3 -d :` 
+
+/bin/cp /usr/lib/$MILO/* /boot

@@ -1,0 +1,20 @@
+/**
+ * File:
+ *   bootloader.scr
+ * Summary:
+ *   SCR Agent for accessing bootloader configuration
+ * Access:
+ *   read/write
+ * Authors:
+ *   Jiri Srain <jsrain@suse.cz>
+ * See:
+ *   libscr
+ *
+ * $Id: cron.scr,v 1.1 2004/01/29 15:32:49 nashif Exp $
+ *
+ */
+.bootloader
+
+`ag_bootloader ()
+~
+

@@ -1,0 +1,300 @@
+/**
+ * File:
+ *      include/bootloader/generic/widget_funcs.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions to generate generic widgets
+ *
+ * Authors:
+ *      Joachim Plack <jplack@suse.de>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+textdomain "bootloader";
+
+string generic_Help (string widget_name) {
+
+    if ( haskey(BootCommon::help_messages, widget_name) )
+        return(BootCommon::help_messages[widget_name]:"" );
+    return( BootCommon::help_messages[Arch::arch_short() + "_" + widget_name]:"" );
+}
+
+
+
+map<string,any> generic_Term (map<string,any> options, string type) {
+    // type is any of 'check', 'radio', or else
+    term option_term = `VBox (`VSpacing (0.4));
+    list<string> __events = [];
+    string help = "";
+    term def_opt = `opt (`notify, `autoShortcut);
+
+    foreach (string key, any value, options, {
+	list<string> val = splitstring((string)value, ":");
+
+	if (val[0]:"undef" != "bool")
+	    continue;
+
+	if (type == "radio") {
+	    option_term = add(option_term,
+		`Left(`RadioButton (`id (key), def_opt,
+		    dgettext( "base", val[1]:key ))));	
+	}
+	else  {
+	    option_term = add(option_term,
+		`Left(`CheckBox (`id (key), def_opt,
+		    dgettext( "base", val[1]:key ))));	
+	}
+
+	__events = add(__events, key); 
+	help = help + generic_Help(key);
+    });
+
+    add(option_term, `VSpacing (0.4));
+
+    foreach (string key, any value, options, {
+	list<string> val = splitstring((string)value, ":");
+	value = val[0]:"undef";
+	if (value == "bool") continue;
+	string key_e = key + "_enabled";
+	string desc = dgettext( "base", val[1]:key );
+	term new = nil;
+	term enable_widget = (type == "radio") ?
+		`RadioButton(`id(key_e), def_opt, desc) :
+		`CheckBox(`id(key + "_enabled"), def_opt, desc);
+
+	val[0] = nil; val[1] = nil;
+	val = filter(string v, val, ``(v!=nil) );
+
+	if (value == "string") {
+	    if ( type == "radio" || type == "check") {
+		new = `Left(`HBox (
+		    enable_widget,
+		    `TextEntry(`id( key ), "")
+		));
+	    }
+	    else  {
+	    	new = `TextEntry(`id( key ), desc);
+	    }
+	}
+	else if (value == "path") {
+	    if ( type == "radio" || type == "check") {
+		new = `HBox (
+		    enable_widget,
+		    `ComboBox (`id (key), add(add(def_opt, `editable), `hstretch), "", val),
+		    `PushButton (`id (key + "_browse"),
+		        Label::BrowseButton ()
+		    )
+	    	);
+	    }
+	    else  {
+		new = `HBox (
+		    `ComboBox (`id (key), `opt (`editable, `hstretch), desc, val),
+		    `VBox (
+		        `Label (""),
+			`PushButton (`id (key + "_browse"),
+			    Label::BrowseButton ()
+			)
+		    )
+	    	);
+	    }
+	}
+	else if (value == "multi") {
+	    if ( type == "radio" || type == "check") {
+		new = `Left(`HBox (
+		    enable_widget,
+		    `MultiSelectionBox (`id (key), def_opt, "",
+		    	maplist(string v, val, ``( `item(`id(v), v ) ))
+	    	    )
+	       	));
+	    }
+	    else  {
+	    	new = `Left(`MultiSelectionBox (`id (key), def_opt,
+		    desc, maplist(string v, val, ``( `item(`id(v), v) ) )
+	    	));
+	    }
+	}
+	else if (value == "select") {
+	    if ( type == "radio" || type == "check") {
+		new = `Left(`HBox (
+		    enable_widget,
+		    `ComboBox (`id (key), def_opt, "",
+		    	maplist(string v, val, ``( `item(`id(v), v) ) )
+	    	    )
+	       	));
+	    }
+	    else  {
+	    	new = `Left(`ComboBox (`id (key), add(def_opt, `editable), desc,
+		    maplist(string v, val, ``( `item(`id(v), v) ) )
+	    	));
+	    }
+	}
+	else if (value == "int") {
+	    // integer field
+	    if ( type == "radio" || type == "check") {
+		new = `Left(`HBox (
+		    enable_widget,
+	    	    `IntField (`id (key), "",
+	    	 	tointeger(val[0]:"0"),    // min
+	    	 	tointeger(val[1]:"1000"), // max
+ 	    	 	tointeger(val[2]:"0")	  // default
+		    )
+	        ));
+	    }
+	    else {
+	        new = `IntField (`id (key), desc,
+	    	    tointeger(val[0]:"0"),    // min
+	    	    tointeger(val[1]:"1000"), // max
+ 	    	    tointeger(val[2]:"0")	  // default
+	        );
+	    }
+	}
+	else { 
+	    y2error("Unknown option type %1 for %2. Ignored\n", value, key);
+	    continue;
+	}
+	if (new == nil) {
+	    y2error("Could not create widget for option %1. Ignored\n", key);
+	    continue;
+	}
+
+	__events = add(__events, key); 
+	if ( type == "radio" || type == "check")
+	    __events = add(__events, key_e); 
+
+	option_term = add(option_term, new);	
+	help = help + generic_Help(key);
+    });
+
+    option_term = add(option_term, `VSpacing (0.4));
+
+    return $[ "term":option_term, "events":__events, "help":help ];
+}
+
+
+void generic_Init (
+	string widget,
+	map<string,any>options,
+	map<string,any>data
+) {
+    foreach (string key, any value, options, {
+	list val = splitstring((string)value, ":");
+	value = val[0]:"undef";
+	string key_e = key + "_enabled";
+	boolean enabled_exists = UI::WidgetExists(`id(key_e));
+
+	if (!haskey (data, key)) {
+	    if (enabled_exists) {
+		UI::ChangeWidget (`id (key_e), `Value, false);
+	    }
+	    continue;
+	}
+
+	if (enabled_exists)
+		UI::ChangeWidget (`id (key_e), `Value, true);
+
+	if (value == "bool") {
+	    UI::ChangeWidget (`id (key), `Value,
+		data[key]:"" == "true" ? true : false);
+	}
+	else if ((value == "string") || (value == "path") || (value == "select")) {
+	    UI::ChangeWidget (`id (key), `Value, data[key]:"");
+	}
+	else if (value == "multi") {
+	    list<string> selections = maplist(string s,
+		splitstring(data[key]:"", ","),
+		{ return substring(s,0,1)==" " ? substring(s,1) : s; }
+	    );
+	    UI::ChangeWidget (`id (key), `SelectedItems, selections);
+	}
+	else if (value == "int") {
+	    UI::ChangeWidget (`id (key), `Value, tointeger(data[key]:"0"));
+	}
+    });
+}
+
+
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
+void generic_Store(
+	string widget,
+	map event,
+	map<string,any>options,
+	void(string, string)storeData
+) {
+    foreach (string key, any value, options, {
+	list val = splitstring((string)value, ":");
+	value = val[0]:"undef";
+
+	string newval = "";
+
+	if (UI::WidgetExists(`id(key + "_enabled")) &&
+	    (boolean)UI::QueryWidget(`id(key + "_enabled"), `Value) == false)
+	{
+	    storeData(key, nil);
+	    continue;
+	}
+
+	if (value == "multi") {
+	    newval = mergestring(
+		(list<string>) UI::QueryWidget(`id(key), `SelectedItems),
+		", "
+	    );
+	}
+	else {
+	    newval = sformat("%1", UI::QueryWidget (`id(key), `Value));
+	}
+
+	if ((value == "bool") || (value == "int") || (value == "multi") ||
+	  (value == "string") || (value == "path") || (value == "select"))
+	{
+	    storeData(key, newval);
+	}
+    });
+}
+
+
+integer __last_event = -1;
+
+symbol generic_Handle (string key, map event) {
+    string id = event["ID"]:"";
+    string reason = event["EventReason"]:"";
+
+    // for unknown reason some event get duplicated so lets filter them out
+    if (event["EventSerialNo"]:-1 == __last_event)
+	return nil;
+
+    __last_event = event["EventSerialNo"]:-1;
+
+    if (substring(id, size(id)-size("_browse")) == "_browse") {
+	string base_id = substring(id, 0, size(id)-size("_browse"));
+	string file_name = UI::AskForExistingFile(
+	    (string)UI::QueryWidget(`id(base_id), `Value), "*",
+	    "Select a file name");
+	if (file_name != "" && file_name != nil) {
+	    UI::ChangeWidget(`id(base_id), `Value, file_name);
+	    reason = "ValueChanged";
+	    id = base_id;
+	}
+    }
+
+    if (reason == "ValueChanged") {
+	term id_e = `id(id + "_enabled");
+	if (UI::WidgetExists(id_e)) {
+	    UI::ChangeWidget(id_e, `Value, true);
+	}
+    }
+
+    return nil;
+}
+
+} // include end

@@ -1,0 +1,380 @@
+/**
+ * File:
+ *      autoinstall.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Bootloader autoinstallation preparation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+{
+
+    import "Bootloader";
+    import "BootCommon";
+    import "Initrd";
+    import "Kernel";
+    import "Mode";
+
+/**
+ * Add missing data (eg. root filesystem) to sections imported from profile
+ * @param sect a list of all sections
+ * @return a lit of all updated sections
+ */
+list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
+    sect = maplist (map<string,any> s, sect, {
+	y2milestone ("Updating imported section %1", s);
+	string orig_name = s["original_name"]:s["name"]:"linux";
+	string type = s["type"]:"image";
+	if (type != "image")
+	    return s;
+	s = (map<string,any>)union (
+	    BootCommon::CreateLinuxSection (orig_name),
+	    s);
+	return s;
+    });
+    return sect;
+}
+
+    /**
+      * Translate the autoinstallation map to the Export map
+      * @param ai a map the autoinstallation map
+      * @return a map the export map
+      */
+    define map<string,any> AI2Export (map<string,any> ai) ``{
+	if (Mode::autoinst ())
+	{
+	    BootCommon::DetectDisks ();
+	}
+	// prepare settings for default bootloader if not specified in the
+	// profile
+	if (Mode::autoinst () && (
+	    ai["loader_type"]:"default" == "default"
+	    || ai["loader_type"]:"default" == ""
+	    )
+	) {
+	    ai["loader_type"] = Bootloader::getLoaderType ();
+	}
+	y2milestone ("Bootloader settings from profile: %1", ai);
+
+	// bootloader type and location stuff
+	map<string,any> exp = $[
+	    "loader_type" : ai["loader_type"]:"",
+	    "specific" : $[],
+	];
+/* FIXME
+	// global PPC stuff
+	if (ai["loader_type"]:"" == "ppc")
+	{
+	    exp["specific", "activate"] = true;
+	    foreach (string k, ["iseries_streamfile", "iseries_write_slot_a",
+		"iseries_write_slot_b", "iseries_write_streamfile",
+		"iseries_write_prepboot", "prep_boot_partition",
+		"of_defaultdevice", "board_type", "activate"],
+	    {
+		if (haskey (ai, k))
+		{
+		    exp["specific", k] = ai[k]:nil;
+		}
+	    });
+	}
+	// global ELILO stuff
+	if (ai["loader_type"]:"" == "elilo")
+	{
+	    string def_label = "";
+	    if (! Mode::test ())
+	    {
+	    import "Product";
+		if (Mode::autoinst ())
+		{
+		    def_label
+			= sformat ("%1 %2", Product::name, Product::version);
+		}
+	    }
+	    // if EFI label not specified, use default label
+	    exp["location"] = ai["efi_entry_label"]:ai["location"]:def_label;
+	    exp["specific", "create_efi_entry"]
+		= ai["create_efi_entry"]:(exp["location"]:"" != "");
+	}
+*/
+	// LILO and GRUB stuff
+	if (ai["loader_type"]:"" == "lilo" || ai["loader_type"]:"" == "grub")
+	{
+	    foreach (string k, ["repl_mbr", "activate", ],
+            {
+		if (haskey (ai, k))
+		{
+		    exp["specific", k] = ai[k]:nil;
+		}
+            });
+	    // loader_location needs other default and key
+	    exp["loader_location"] = ai["location"]:"custom";
+	    foreach (string k, [/*"loader_location",*/ "loader_device"], {
+		if (haskey (ai, k))
+		{
+		    exp[k] = ai[k]:nil;
+		}
+	    });
+	}
+
+	// device map stuff
+	if (size (ai["device_map"]:[]) > 0)
+	{
+	    list<map<string,string> > dm = ai["device_map"]:[];
+	    if (dm != nil && size (dm) > 0)
+	    {
+		map<string,string> device_map = listmap (
+		    map<string,string> entry, dm,
+		{
+		    return $[ entry["linux"]:"" : entry["firmware"]:"" ];
+		});
+		exp["specific", "device_map"] = device_map;
+	    }
+	}
+
+	// initrd stuff
+	list<string> modlist = [];
+	map<string,any> modsett = $[];
+	foreach(map mod, ai["initrd_modules"]:[], ``{
+	    modlist = add(modlist, mod["module"]:"");
+	    modsett = add(modsett, mod["module"]:"", mod["module_args"]:$[]);
+	});
+        if (Mode::autoinst ())
+        {
+	    map current = Initrd::Export();
+            y2milestone("Automatically detected initrd modules: %1", current);
+	    list<string> modules = current["list"]:[];
+	    map<string,any> modules_settings = current["settings"]:$[];
+	    foreach (string m, modules, {
+		if (! contains (modlist, m))
+		{
+		    // add only if it isn't present
+		    modlist = add (modlist, m);
+		}
+		if (! haskey (modsett, m) && haskey (modules_settings, m))
+		{
+		    // if the argument is in profile, prefer it
+		    modsett[m] = modules_settings[m]:nil;
+		}
+	    });
+            string parameters = ai["kernel_parameters"]:"";
+            if ( size(parameters) > 0)
+            {
+                foreach ( string parameter, splitstring(parameters, " "), {
+		    list param_value_list = splitstring (parameter, "=");
+		    if (size (param_value_list) > 0)
+		    {
+			Kernel::AddCmdLine (
+			    param_value_list[0]:"",
+			    param_value_list[1]:"");
+		    }
+		});
+            }
+	}
+
+	if (size(modlist) > 0 )
+	    exp["initrd"] = $[ "list": modlist, "settings" : modsett ];
+
+	boolean old_format = false;
+
+	// section stuff
+	list<string> section_names = [];
+	if (size (ai["sections"]:[]) > 0)
+	{
+	    foreach (any s, ai["sections"]:[], {
+		if (! is (s, map<string,any>))
+		    old_format = true;
+	    });
+	    if (! old_format)
+	    {
+		list<map<string,any> > sect = (list<map<string,any> >)
+		    ai["sections"]:[];
+		sect = UpdateImportedSections (sect);
+		exp["specific", "sections"] = sect;
+	    }
+	}
+
+	// global stuff
+	if ((! haskey (ai, "global")) || is (ai["global"]:nil, map))
+	{
+	    exp["specific", "global"] = mapmap (string k, any v,
+		ai["global"]:$[],
+	    {
+		return $[ k : sformat ("%1", v) ];
+	    });
+	}
+	else // old format
+	{
+	    old_format = true;
+	}
+	y2milestone ("SLES9 format detected: %1", old_format);
+	if (old_format)
+	{
+	    list<list<map> > sections = ai["sections"]:[];
+	    list<map> globals = ai["global"]:[];
+	    sections = prepend (sections, globals);
+	    list<map> flat = flatten (sections);
+	    string loader = ai["loader_type"]:"";
+	    string separator = loader == "grub" ? " " : " = ";
+	    list<string> lines = maplist (map f, flat, {
+		return sformat ("%1%2%3",
+		    f["key"]:"", separator, f["value"]:"");
+	    });
+	    string file = mergestring (lines, "\n");
+	    BootCommon::InitializeLibrary (true, loader);
+	    BootCommon::SetDeviceMap (BootCommon::device_mapping);
+	    BootCommon::SetSections ([]);
+	    BootCommon::SetGlobal ($[]);
+	    map<string,string> files = BootCommon::GetFilesContents ();
+	    map<string,string> bl2file = $[
+		"grub" : "/boot/grub/menu.lst",
+		"lilo" : "/etc/lilo.conf",
+		// TODO the other bootloaders
+	    ];
+	    files[bl2file[loader]:""] = file;
+	    BootCommon::SetFilesContents (files);
+	    exp["specific", "global"] = BootCommon::GetGlobal ();
+	    list<map<string,any> > sect = BootCommon::GetSections ();
+	    sect = UpdateImportedSections (sect);
+	    exp["specific", "sections"] = sect;
+	    section_names = maplist (map<string,any> s, sect, {
+		return s["name"]:"";
+	    });
+	}
+
+	if (haskey (exp["specific", "global"]:$[], "default")
+	    && ! contains (section_names,
+		exp["specific", "global", "default"]:""))
+	{
+	    exp["specific", "global"]
+		= remove (exp["specific", "global"]:$[], "default");
+	}
+
+	return exp;
+    }
+
+    /**
+      * Translate the Export map to the autoinstallation map
+      * @param exp a map the export map
+      * @return a map the autoinstallation map
+      */
+    define map<string,any> Export2AI (map<string,any> exp) ``{
+	// bootloader type and location stuff
+	map<string,any> ai = $[
+	    "loader_type" : exp["loader_type"]:"default",
+	];
+	map<string,string> glob = filter (string k, string v,
+	    exp["specific", "global"]:$[],
+	{
+	    return substring (k, 0, 2) != "__";
+	});
+	// global options stuff
+	if (size (glob) > 0)
+	{
+	    ai["global"] = mapmap (string k, string v, glob, {
+		if (k == "timeout")
+		    return (map<string,any>)$[ k : tointeger (v) ];
+		else if (k == "embed_stage1.5")
+		    return (map<string,any>)
+			$[ k : (v == "0" || v == "") ? false : true ];
+		return (map<string,any>)$[ k : v ];
+	    });
+	}
+	// sections stuff
+	ai["sections"] = maplist (map<string,any> s,
+	    exp["specific", "sections"]:[],
+	{
+	    s = filter (string k, any v, s, {
+		return substring (k, 0, 2) != "__";
+	    });
+	    return s;
+	});
+/*
+	// global PPC stuff
+	if (ai["loader_type"]:"" == "ppc")
+	{
+	    foreach (string k, ["iseries_streamfile", "iseries_write_slot_a",
+		"iseries_write_slot_b", "iseries_write_streamfile",
+		"iseries_write_prepboot", "prep_boot_partition",
+		"of_defaultdevice", "board_type", "activate", ],
+	    {
+		if (haskey (exp["specific"]:$[], k))
+		{
+		    ai[k] = exp["specific", k]:nil;
+		}
+	    });
+	}
+
+	// global ELILO stuff
+	if (ai["loader_type"]:"" == "elilo")
+	{
+	    // discards location and loader device, it is correct.
+	    ai = $[
+		"loader_type" : exp["loader_type"]:"",
+		"efi_entry_label" : exp["location"]:"",
+		"create_efi_entry" : exp["specific", "create_efi_entry"]:false,
+	    ];
+	}
+*/
+	// LILO and GRUB stuff
+	if (ai["loader_type"]:"" == "lilo" || ai["loader_type"]:"" == "grub")
+	{
+	    foreach (string k, ["repl_mbr", "activate", ],
+            {
+                if (haskey (exp["specific"]:$[], k))
+                {
+                    ai[k] = exp["specific", k]:nil;
+                }
+            });
+	    if (haskey (exp, "loader_location"))
+		ai["location"] = exp["loader_location"]:"";
+	    foreach (string k, ["loader_device"], {
+		if (haskey (exp, k))
+		{
+		    ai[k] = exp[k]:nil;
+		}
+	    });
+	}
+
+	// device map stuff
+	if (size (exp["specific", "device_map"]:[]) > 0)
+	{
+	    map<string,string> device_map = exp["specific", "device_map"]:$[];
+	    y2error ("DM: %1", device_map);
+	    if (device_map != nil && size (device_map) > 0)
+	    {
+		list<map<string,string> > dm = maplist (
+		    string linux,
+		    string firmware,
+		    device_map,
+		{
+		    return $[
+			"linux" : linux,
+			"firmware" : firmware,
+		    ];
+		});
+		ai["device_map"] = dm;
+	    }
+	}
+
+	// initrd stuff
+	list<map> ayinitrd = maplist(string m, exp["initrd", "list"]:[], ``{
+	    map tmp = $[];
+	    tmp["module"] = m;
+	    if (exp["initrd", "settings", m]:$[] != $[])
+		tmp["module_args"] = exp["initrd", "settings", m]:$[];
+	    return (tmp);
+	});
+	if (size(ayinitrd) > 0 )
+	    ai["initrd_modules"] = ayinitrd;
+
+	return ai;
+    }
+
+}

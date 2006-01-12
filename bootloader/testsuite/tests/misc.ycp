@@ -1,0 +1,180 @@
+/**
+ * File:
+ *  misc.ycp
+ *
+ * Module:
+ *  Bootloader configurator
+ *
+ * Summary:
+ *  Bootloader misc functions testsuite
+ *
+ * Authors:
+ *  Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+// testedfiles: BootCommon.ycp bootloader/routines/lilolike.ycp bootloader/routines/misc.ycp
+    include "testsuite.ycp";
+    import "Mode";
+
+    map READ_I = $[
+        "target" : $[
+            "size" : -1,
+            "tmpdir" : "/tmp/",
+	    "yast2" : nil,
+        ],
+        "probe" : $[
+            "architecture" : "i386",
+            "has_apm" : true,
+            "has_pcmcia" : false,
+            "has_smp" : false,
+            "system" : [],
+            "memory" : [],
+            "cpu" : [],
+            "cdrom" : $[
+                "manual" : [],
+            ],
+            "floppy" : $[
+                "manual" : [],
+            ],
+	    "is_uml" : false,
+        ],
+        "sysconfig" : $[
+            "console" : $[
+                "CONSOLE_FONT" : "",
+                "CONSOLE_SCREENMAP" : "",
+                "CONSOLE_UNICODEMAP" : "",
+                "CONSOLE_MAGIC" : "",
+                "CONSOLE_ENCODING" : "",
+            ],
+            "language" : $[
+                "RC_LANG" : "",
+                "DEFAULT_LANGUAGE" : "",
+            ],
+        ],
+        "etc" : $[
+            "install_inf" : $[
+                "Cmdline" : "",
+		"Cdrom" : "",
+            ],
+        ],
+        "proc" : $[
+            "cpuinfo" : $[
+                "value" : $[
+                    "0" : $[
+                        "flags" : ""
+                    ],
+                ],
+            ],
+        ],
+	"product" : $[
+	    "features" : $[
+		"USE_DESKTOP_SCHEDULER" : "0",
+		"ENABLE_AUTOLOGIN" : "0",
+		"EVMS_CONFIG" : "0",
+		"IO_SCHEDULER" : "cfg",
+		"UI_MODE" : "expert",
+		"INCOMPLETE_TRANSLATION_TRESHOLD" : "95",
+	    ]
+	],
+    ];
+    map WRITE_I = $[];
+    map EXEC_I = $[
+	"target" : $[
+	    "bash_output" : $[],
+	],
+    ];
+
+    TESTSUITE_INIT ([READ_I, WRITE_I, EXEC_I], 0);
+    import "Mode";
+    Mode::SetMode ("autoinst_config"); // yes, this is ugly, bus solves Product:: constructor
+    Mode::SetTest ("testsuite");
+
+    import "Bootloader";
+    import "BootCommon";
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::list2path (["entry1", "entry2", "entry3"])), [], 0);
+    TEST (``(BootCommon::list2path (["entry1"])), [], 0);
+    TEST (``(BootCommon::list2path ([])), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::difflist ([`a, `b, `c], [`a, `c])), [], 0);
+    TEST (``(BootCommon::difflist ([`a, `c], [`a, `b, `c])), [], 0);
+    TEST (``(BootCommon::difflist ([`a, `b, `c], [])), [], 0);
+    TEST (``(BootCommon::difflist ([], [`a, `c])), [], 0);
+    TEST (``(BootCommon::difflist ([`a, `b, `c], [`a, `c, `b])), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::replaceAll ("qasdwasdqwe", "asd", "")), [], 0);
+    TEST (``(BootCommon::replaceAll ("qasdwasdqwe", "q", "asd")), [], 0);
+    TEST (``(BootCommon::replaceAll ("qasdwasdqwe", "asd", "qweqwe")), [], 0);
+    TEST (``(BootCommon::replaceAll ("qasdwasdqwe", "asd", "aassdd")), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(sformat (">>%1<<", BootCommon::strip ("Normal string"))), [], 0);
+    TEST (``(sformat (">>%1<<", BootCommon::strip ("   Normal string	"))), [], 0);
+    TEST (``(sformat (">>%1<<", BootCommon::strip ("	  Normal string\n\n"))), [], 0);
+    TEST (``(sformat (">>%1<<", BootCommon::strip ("\n Normal string \n"))), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 0, 2)), [], 0);
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 2, 2)), [], 0);
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 0, 5)), [], 0);
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], -10, 2)), [], 0);
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 3, 2)), [], 0);
+    TEST (``(BootCommon::swapItems ([`a, `b, `c, `d], 0, 0)), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::getLoaderName ("lilo")), [], 0);
+    TEST (``(BootCommon::getLoaderName ("grub")), [], 0);
+    TEST (``(BootCommon::getLoaderName ("s390")), [], 0);
+    TEST (``(BootCommon::getLoaderName ("other")), [], 0);
+
+    DUMP ("======================================");
+
+    Mode::SetTest ("testsuite");
+
+    TEST (``(BootCommon::splitPath ("/boot/vmlinuz")), [], 0);
+    TEST (``(BootCommon::splitPath ("/")), [], 0);
+    TEST (``(BootCommon::splitPath ("/vmlinuz")), [], 0);
+    TEST (``(BootCommon::splitPath ("")), [], 0);
+    TEST (``(BootCommon::splitPath ("/boot")), [], 0);
+    TEST (``(BootCommon::splitPath ("/boot/")), [], 0);
+
+    DUMP ("======================================");
+
+    Mode::SetTest ("testsuite");
+
+    TEST (``(BootCommon::mergePath (["/dev/hda1", "/vmlinuz"])), [], 0);
+    TEST (``(BootCommon::mergePath (["/dev/hda2", "/"])), [], 0);
+    TEST (``(BootCommon::mergePath (["/dev/hda2", "/vmlinuz"])), [], 0);
+    TEST (``(BootCommon::mergePath ([])), [], 0);
+    TEST (``(BootCommon::mergePath (["/dev/hda1", "/"])), [], 0);
+
+    DUMP ("======================================");
+
+    TEST (``(BootCommon::tobool (true)), [], 0);
+    TEST (``(BootCommon::tobool (nil)), [], 0);
+    TEST (``(BootCommon::tobool (false)), [], 0);
+    TEST (``(BootCommon::tobool (0)), [], 0);
+    TEST (``(BootCommon::tobool ("aaa")), [], 0);
+
+    DUMP ("======================================");
+
+    map EXEC = $["target" : $["bash_output" : $["stdout" : "brw-rw----    1 0        6          3,   0 2003-03-14 14:07 /dev/hda", "exit" : 0]]];
+
+    TEST (``(BootCommon::dev2majmin ("/dev/hda")), [$[], $[], EXEC], 0);
+
+    DUMP ("======================================");
+
+}

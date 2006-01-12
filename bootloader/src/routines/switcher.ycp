@@ -1,0 +1,194 @@
+/**
+ * File:
+ *      include/bootloader/routines/switcher.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions for choosing proper bootloader-specific functions
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+
+import "BootELILO";
+import "BootGRUB";
+import "BootLILO";
+import "BootPOWERLILO";
+import "BootZIPL";
+import "BootCommon";
+
+//    import "BootMILO";
+//    import "BootABOOT";
+
+    /**
+      * Get map of main functions for bootloader
+      * @param bootloader string bootloader name
+      * @return map of function
+      */
+    global define map getFunctions (string bootloader) ``{
+	if (bootloader == nil || bootloader == "")
+	    return $[];
+	map bl_functions = $[
+	    "lilo"  : BootLILO::GetFunctions,
+	    "grub"  : BootGRUB::GetFunctions,
+//	    "milo"  : BootMILO::GetFunctions,
+//	    "aboot" : BootABOOT::GetFunctions,
+	    "elilo" : BootELILO::GetFunctions,
+	    "zipl"  : BootZIPL::GetFunctions,
+	    "ppc"   : BootPOWERLILO::GetFunctions
+	];
+	map<string,any> () gf = (map<string,any>())(bl_functions[bootloader]:nil);
+	if (gf == nil)
+	{
+	    y2warning ("No bootloader-specific functions specified");
+	    return $[];
+	}
+	return gf();
+    }
+
+    /**
+      * Export bootloader-specific settings
+      * @return map of settings
+      */
+    global define map blExport () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        map() toEval = functions["export"]:BootCommon::Export;
+        return toEval ();
+    }
+
+    /**
+      * Import settings to bootloader
+      * @param settings map of settingss
+      * @return boolean true on success
+      */
+    global define boolean blImport (map settings) ``{
+	map functions = getFunctions (BootCommon::getLoaderType (false));
+	boolean(map) toEval = functions["import"]:BootCommon::Import;
+	return toEval (settings);
+    }
+
+/**
+ * Read bootloader-specific settings
+ * @param reread boolean true to force rereading the settings from the disk
+ * @return boolean true on success
+ */
+global define boolean blRead (boolean reread) ``{
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    boolean(boolean) toEval = functions["read"]:BootCommon::Read;
+    return toEval (reread);
+}
+
+    /**
+      * Reset bootloader-specific settings
+      * @param init boolean true if basic initialization of system-dependent
+      * settings should be done
+      */
+    global define void blReset (boolean init) ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        void(boolean) toEval = functions["reset"]:BootCommon::Reset;
+        toEval (init);
+    }
+
+    /**
+      * Propose bootloader settings
+      */
+    global define void blPropose () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        void() toEval = functions["propose"]:BootCommon::Propose;
+        toEval ();
+    }
+
+/**
+ * Save bootloader cfg. files to the cache of the pluglib
+ * @param clean boolean true to perform checks on the settings
+ * @param init boolean true to reinitialize the library
+ * @param flush boolean true to flush the settings to the disk
+ * @return boolean true on success
+ */
+global boolean blSave (boolean clean, boolean init, boolean flush) {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    boolean(boolean,boolean,boolean) toEval
+	= functions["save"]:BootCommon::Save;
+    return toEval (clean, init, flush);
+}
+
+    /**
+      * Get cfg. summary
+      * @return a list summary items
+      */
+    global define list<string> blSummary () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        list<string>() toEval = functions["summary"]:BootCommon::Summary;
+        return toEval ();
+    }
+
+    /**
+      * Update bootloader-specific settings
+      */
+    global define void blUpdate () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        void() toEval = functions["update"]:BootCommon::Update;
+        toEval ();
+    }
+
+    /**
+      * Do the bootloader installation
+      * @return boolean true on success
+      */
+    global define boolean blWrite () ``{
+        map functions = getFunctions (BootCommon::getLoaderType (false));
+        boolean() toEval = functions["write"]:BootCommon::Write;
+        return toEval ();
+    }
+
+/**
+ * Get description maps of loader-specific widgets
+ * @return a map containing description of all loader-specific widgets
+ */
+global map<string,map<string,any> > blWidgetMaps () {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    map<string,map<string,any> >() toEval = (map<string,map<string,any> >())
+	functions["widgets"]:nil;
+    if (toEval != nil)
+	return toEval ();
+    else
+	return $[];
+}
+
+/**
+ * Get the main sequence for the specified bootloader
+ * @return symbol the result of the sequence, or `generic to run generic
+ *  sequence instead
+ */
+global symbol blMainSequence () {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    symbol () toEval = (symbol ())functions["wizard_sequencer"]:nil;
+    if (toEval != nil)
+	return toEval ();
+    else
+	return `generic;
+}
+
+/**
+ * Get the loader-specific dialogs
+ * @return a map of loader-specific dialogs
+ */
+global map<string,symbol()> blDialogs () {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    map<string,symbol()> () toEval = (map<string,symbol()> ())
+	functions["dialogs"]:nil;
+    if (toEval != nil)
+	return toEval ();
+    else
+	return $[];
+}
+
+
+} // EOF

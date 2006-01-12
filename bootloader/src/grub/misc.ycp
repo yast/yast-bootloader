@@ -1,0 +1,108 @@
+/**
+ * File:
+ *      include/bootloader/grub/misc.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Miscelaneous functions for configuring and installing GRUB bootloader
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id$
+ *
+ */
+
+{
+    textdomain "bootloader";
+    import "Storage";
+    import "StorageDevices";
+    import "Mode";
+    import "BootCommon";
+
+/**
+ * Propose whether allow or not embedding of 1.5 stage
+ * @return boolean true to allow
+ */
+define boolean allowEmbed15 () {
+    // allow only for /boot or /root device selected
+    if (! (BootCommon::loader_device == BootCommon::BootPartitionDevice
+	|| BootCommon::loader_device == BootCommon::RootPartitionDevice
+	|| BootCommon::loader_device == BootCommon::mbrDisk
+    ))
+    {
+	return false;
+    }
+    // check filesystem on /boot for Reiserfs and JFS
+    map mp = Storage::GetMountPoints ();
+    list bp_info
+	= mp["/boot"]:mp["/"]:[];
+    list<map> partitions
+	= Storage::GetTargetMap ()[bp_info[2]:"", "partitions"]:[];
+    boolean ret = false;
+    foreach (map p, partitions, {
+	if (p["device"]:"" == BootCommon::BootPartitionDevice)
+	{
+	    symbol fs = (symbol)p["used_fs"]:nil;
+	    if (fs == `reiser || fs == `jfs)
+		ret = true;
+	}
+    });
+    return ret;
+}
+
+    /**
+      * Encrypt the password before storing it in variables
+      * @param passwd string unencrypted password
+      * @return string password in the form to write to GRUB's menu.lst
+      */
+    global define string updatePasswdBeforeSave (string passwd) ``{
+	passwd = sformat ("--md5 %1", cryptmd5 (passwd));
+	return passwd;
+    }
+
+    /**
+      * translate filename path (eg. (hd0,0)/kernel) to list of device
+      *  and relative path
+      * @param devpth string fileststem path (eg. (hd0,0)/vmlinuz)
+      * @return a list containing device and relative path,
+      *  eg. ["(hd0,0)", "/vmlinuz"]
+      */
+    global define list<string> splitDevPath (string devpth) ``{
+	integer brake = nil;
+	if (devpth != nil && issubstring (devpth, ")"))
+	    brake = findfirstof (devpth, ")") + 1;
+	list<string> ret = [];
+	if (brake != nil)
+	{
+	    ret[0] = substring (devpth, 0, brake);
+	    ret[1] = substring (devpth, brake);
+	}
+	else
+	{
+	    ret[0] = nil;
+	    ret[1] = devpth;
+	}
+        return ret;
+    }
+
+    /**
+      * translate list of device and relative path
+      *  to filename path (eg. (hd0,0)/kernel)
+      * @param devpth list of two strings, first for device name, second for
+      *  relative path (eg. ["(hd0,0)", "/vmlinuz"])
+      * @return string fileststem path (eg. (hd0,0)/vmlinuz)
+      */
+    global define string mergeDevPath (list devpth) ``{
+        if (substring (devpth[1]:"", 0, 1) != "/")
+            devpth[1] = "/" + devpth[1]:"";
+	if (devpth[0]:"" == nil || devpth[1]:"" == nil)
+	    return nil;
+	string ret = devpth[0]:"" + devpth[1]:"";
+        return ret;
+    }
+
+
+}

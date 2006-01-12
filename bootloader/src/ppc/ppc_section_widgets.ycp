@@ -1,0 +1,96 @@
+/**
+ * File:
+ *      include/bootloader/routines/widgets.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Common widgets for being used by several bootloaders
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: widgets.ycp 20246 2004-11-09 07:17:07Z jsrain $
+ *
+ */
+
+
+{
+
+textdomain "bootloader";
+
+import "BootCommon";
+import "Label";
+import "Stage";
+
+include "bootloader/generic/widget_funcs.ycp";
+
+
+
+
+
+/**
+ * Validate function of a widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return boolean true if widget settings ok
+ */
+boolean _SectionNameValidate (string widget, map event) {
+    list<string> existing = [];
+    foreach (map<string,any> s, BootCommon::sections, {
+	existing = add (existing, s["name"]:"");
+    });
+    existing = (list<string>)filter (string l, existing, {
+	return l != BootCommon::current_section_name;
+    });
+    existing = (list<string>)add (existing, "");
+    string new = (string)UI::QueryWidget (`id (widget), `Value);
+
+    if (contains (existing, new))
+    {
+	usedNameErrorPopup ();
+	return false;
+    }
+    return true;
+}
+
+/**
+ * Store function of a widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ */
+void _SectionNameStore (string widget, map event) {
+    string value = (string)UI::QueryWidget (`id (widget), `Value);
+    BootCommon::current_section[widget] = value;
+}
+
+
+/**
+ * Cache for CommonSectionWidgets
+ */
+map<string,map<string,any> > _ppc_common_section_widgets = nil;
+
+/**
+ * Get common widgets for loader sections
+ * @return a map describing common loader section related widgets
+ */
+map<string,map<string,any> > _CommonSectionWidgets () {
+    if (_ppc_common_section_widgets == nil)
+    {
+	  _ppc_common_section_widgets = $[
+	    "name" : $[
+		// text entry
+		"label" : _("Section &Name"),
+		"widget" : `textentry,
+		"validate_type" : `function,
+		"validate_function" : _SectionNameValidate,
+		"store" : _SectionNameStore,
+		"help" : generic_Help("section-name"),
+	    ],
+	];
+    }
+    return _ppc_common_section_widgets;
+}
+
+} // include end

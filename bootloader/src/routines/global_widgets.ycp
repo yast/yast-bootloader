@@ -1,0 +1,944 @@
+/**
+ * File:
+ *      include/bootloader/routines/widgets.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Common widgets for being used by several bootloaders
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: widgets.ycp 20246 2004-11-09 07:17:07Z jsrain $
+ *
+ */
+
+
+{
+
+textdomain "bootloader";
+
+import "CWM";
+import "CWMTab";
+import "Label";
+import "Mode";
+import "Storage";
+import "StorageDevices";
+import "Bootloader";
+import "Progress";
+
+include "bootloader/routines/helps.ycp";
+
+/**
+ * Init function of widget
+ * @param widget string id of the widget
+ */
+void GlobalOptionInit (string widget) {
+    if (widget == "adv_button")
+	return;
+    UI::ChangeWidget (`id (widget), `Value, BootCommon::globals[widget]:"");
+}
+
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
+void GlobalOptionStore (string widget, map event) {
+    if (widget == "adv_button")
+	return;
+    BootCommon::globals[widget] = (string)
+	UI::QueryWidget (`id (widget), `Value);
+}
+
+/**
+ * Map of default (fallback) handlers for widget events on global widgets
+ */
+map<string,any> global_handlers = $[
+    "init" : GlobalOptionInit,
+    "store" : GlobalOptionStore,
+];
+
+/**
+ * Handle function of a widget
+ * @param widget string widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
+symbol InstDetailsButtonHandle (string widget, map event) {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	NoLoaderAvailable ();
+	return nil;
+    }
+    return `inst_details;
+}
+
+/**
+ * Handle function of a widget
+ * @param widget string widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
+symbol LoaderOptionsButtonHandle (string widget, map event) {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	NoLoaderAvailable ();
+	return nil;
+    }
+    return `loader_details;
+}
+
+// sections list widget
+
+
+/**
+ * Refresh and redraw widget wits sections
+ * @param sects list of current sections
+ */
+void RedrawSectionsTable (list<map<string,any> > sects) {
+    boolean elilo = Bootloader::getLoaderType () == "elilo";
+    list sec = maplist (map<string,any> s, sects, {
+	string image = s["kernel"]:"";
+	string root = s["root"]:"";
+        return `item (`id (s["name"]:""),
+	    tolower (BootCommon::globals["default"]:"")
+		    == tolower (s["name"]:"")
+		? UI::Glyph (`CheckMark) : "",
+	    s["name"]:"",
+	    (image == nil || image == "")
+		// table header
+		? _("Other")
+		// table header
+		: _("Image"),
+	    (image != "" && image != nil)
+		? sformat ("%1   (%2%3)",
+		    image,
+		    elilo
+			? ""
+			: BootCommon::splitPath (image)[0]:"",
+		    root == "" ? ""
+			: ((elilo ? "" : ", ")
+			+ sformat ("root=%1", root)))
+		: s["chainloader"]:""
+        );
+    });
+    UI::ChangeWidget (`id (`sects), `Items, sec);
+}
+
+/**
+ * Init function of widget
+ * @param widget string id of the widget
+ */
+void SectionsInit (string widget) {
+    RedrawSectionsTable (BootCommon::sections);
+    UI::SetFocus (`id (`sects));
+}
+
+
+/**
+ * Handle function of a widget
+ * @param widget string widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
+symbol SectionsHandle (string widget, map event) {
+    any op = event["ID"]:nil;
+    if (event["ID"]:nil == `sects
+	&& event["EventReason"]:"" == "Activated"
+	&& event["EventType"]:"" == "WidgetEvent")
+    {
+	op = `edit;
+    }
+    y2milestone ("Handling sections widget, event %1", op);
+    string current = (string)UI::QueryWidget (`id (`sects), `CurrentItem);
+    integer counter = 0;
+    integer index = 0;
+    foreach (map<string,any> s, BootCommon::sections, {
+	if (s["name"]:"" == current)
+	    index = counter;
+	counter = counter + 1;
+    });
+    list<map<string,any> > sects = BootCommon::sections;
+    if (op == `up)
+    {
+	if (index > 0)
+	{
+	    sects = (list<map<string,any > >)
+		BootCommon::swapItems(sects, index, index - 1);
+	    index = index - 1;
+	    BootCommon::sections = sects;
+	    RedrawSectionsTable (sects);
+	    UI::ChangeWidget (`id (`sects), `CurrentItem,
+		sects[index, "name"]:"");
+	    BootCommon::changed = true;
+	}
+    }
+    else if (op == `down)
+    {
+	if (index < (size(sects) - 1))
+	{
+	    sects = (list<map<string,any> >)
+		BootCommon::swapItems(sects, index, index + 1);
+	    index = index + 1;
+	    BootCommon::sections = sects;
+	    RedrawSectionsTable (sects);
+	    UI::ChangeWidget (`id (`sects), `CurrentItem,
+		sects[index, "name"]:"");
+	    BootCommon::changed = true;
+	}
+    }
+    else if (op == `default)
+    {
+	BootCommon::globals["default"] = current;
+	RedrawSectionsTable (sects);
+	UI::ChangeWidget (`id (`sects), `CurrentItem, current);
+	BootCommon::changed = true;
+    }
+    else if (op == `add || op == `edit)
+    {
+	map<string,any> selected = sects[index]:$[];
+	string name = selected["name"]:"";
+	BootCommon::current_section = selected;
+	BootCommon::current_section_index = op == `add ? -1 : index;
+	BootCommon::current_section_name = name;
+	y2internal ("Selected section: %1", BootCommon::current_section);
+	return (symbol)op;
+    }
+    else if (op == `delete && confirmSectionDeletePopup (current))
+    {
+	BootCommon::removed_sections = add (BootCommon::removed_sections,
+	    sects[index, "original_name"]:"");
+	sects = remove (sects, index);
+	if (current == BootCommon::globals["default"]:"")
+	{
+	    BootCommon::globals["default"] = BootCommon::sections[0, "name"]:"";
+	}
+	BootCommon::sections = sects;
+	RedrawSectionsTable (sects);
+	BootCommon::changed = true;
+    }
+    UI::SetFocus (`id (`sects));
+    return nil;
+}
+
+/**
+ * Get map of widget
+ * @return a map of widget
+ */
+map<string,any> getSectionsWidget () {
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `VBox (
+	    `HBox (
+		`Table (`id (`sects),
+		    `opt (`keepSorting, `notify),
+		    `header (
+			// table header, Def stands for default
+			_("Def."),
+			// table header
+			_("Label"),
+			// table header
+			_("Type"),
+			// table header; header for section details, either
+			// the specification of the kernel image to load,
+			// or the specification of device to boot from
+			_("Image / Device")
+			), []),
+		`HSpacing (1),
+		`VBox (
+		    `VStretch (),
+		    // pushbutton
+		    `PushButton (`id (`up), _("&Up")),
+		    // pushbutton
+		    `PushButton (`id (`down), _("&Down")),
+		    `VStretch ()
+		)
+	    ),
+	    `HBox (
+		`PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),
+		`PushButton (`id (`edit), `opt (`key_F4), Label::EditButton ()),
+		`PushButton (`id (`delete), `opt (`key_F5),
+		    Label::DeleteButton ()),
+		`HStretch (),
+		// pushbutton
+		`PushButton (`id (`default), _("Set as De&fault"))
+	    )
+	),
+	"init" : SectionsInit,
+	"handle" : SectionsHandle,
+	"help" : SectionsHelp (),
+    ];
+}
+
+
+
+// loader type widget
+
+/**
+ * Get the widget for boot laoder selection combo
+ * @return term the widget
+ */
+term LoaderTypeComboWidget () {
+    return `ComboBox (`id ("loader_type"),
+	`opt (`notify),
+	// combo box
+	_("&Boot Loader"),
+	maplist (string l, BootCommon::getBootloaders (), {
+	    return `item (`id (l), BootCommon::getLoaderName (l, `combo));
+	}));
+}
+
+/**
+ * Init function of widget
+ * @param widget string id of the widget
+ */
+void LoaderTypeComboInit (string widget) {
+    UI::ChangeWidget (`id (widget), `Value, Bootloader::getLoaderType ());
+}
+
+/**
+ * Handle function of a widget
+ * @param key any widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
+symbol LoaderTypeComboHandle (string key, map event) {
+    if (event["ID"]:nil == key)
+    {
+	string old_bl = Bootloader::getLoaderType ();
+	string new_bl = (string)UI::QueryWidget (`id (key), `Value);
+	if (old_bl == new_bl)
+	    return nil;
+
+	if (new_bl == "none")
+	{
+	    // popup - Continue/Cancel
+	    if (Popup::ContinueCancel (_("
+If you do not install any boot loader, the system
+might not start.
+
+Proceed?
+")))
+	    {
+		BootCommon::other_bl[old_bl] = Bootloader::Export ();
+		BootCommon::setLoaderType ("none");
+		BootCommon::location_changed = true;
+	    }
+	    return `redraw;
+	}
+
+	// warning - popup, followed by radio buttons
+	string label = _("
+You chose to change your boot loader. When converting 
+the configuration, some settings might be lost.
+
+The current configuration will be saved and you can
+restore it if you return to the current boot loader.
+
+Select a course of action:
+");
+
+	term contents = `VBox (
+		// warning label
+	    `Label (label),
+	    `VSpacing (1),
+	    `RadioButtonGroup (`id (`action), `VBox (
+		`Left (`RadioButton (`id (`propose),
+		    // radiobutton
+		    _("&Propose New Configuration"))),
+		`Left (`RadioButton (`id (`convert),
+			// radiobutton
+			_("Co&nvert Current Configuration"))),
+		Stage::initial () ? `VSpacing (0)
+		: `Left (`RadioButton (`id (`scratch),
+		    // radiobutton
+		    _("&Start New Configuration from Scratch"))),
+		Mode::normal ()
+		    ? `Left (`RadioButton (`id (`read),
+			// radiobutton
+			_("&Read Configuration Saved on Disk")))
+		    : `VSpacing (0),
+		BootCommon::other_bl[new_bl]:nil == nil || Stage::initial ()
+		    ? `VSpacing (0)
+		    : `Left (`RadioButton (`id (`prev),
+			// radiobutton
+			_("Res&tore Configuration Saved before Conversion")))
+	    )),
+	`VSpacing (1),
+	`HBox (
+	    `HStretch (),
+	    `PushButton (`id (`ok), `opt (`key_F10), Label::OKButton ()),
+	    `HSpacing (1),
+	    `PushButton (`id (`cancel), `opt (`key_F9), Label::CancelButton ()),
+	    `HStretch ()
+	));
+	UI::OpenDialog (contents);
+	symbol def = `propose;
+	UI::ChangeWidget (`id (def), `Value, true);
+	symbol ret = (symbol)UI::UserInput ();
+	symbol action = (symbol)UI::QueryWidget (`id (`action), `CurrentButton);
+	UI::CloseDialog ();
+	if (ret != `ok)
+	    return nil;
+
+	if (nil != action)
+	{
+	    y2milestone ("Switching bootloader");
+	    if (old_bl != "none")
+		BootCommon::other_bl[old_bl] = Bootloader::Export ();
+	    BootCommon::setLoaderType (new_bl);
+
+            if (action == `scratch)
+		Bootloader::Reset ();
+            else if (action == `read)
+	    {
+		boolean progress_status = Progress::set (false);
+                Bootloader::Read ();
+		Progress::set (progress_status);
+	    }
+            else if (action == `propose)
+	    {
+		Bootloader::Reset ();
+		if (Bootloader::getLoaderType () == "grub")
+		{
+		    import "BootGRUB";
+		    BootGRUB::merge_level = `all;
+		    Bootloader::Propose ();
+		    BootGRUB::merge_level = `main;
+		}
+		else
+		{
+		    Bootloader::Propose ();
+		}
+	    }
+            else if (action == `prev)
+                Bootloader::Import (BootCommon::other_bl[new_bl]:$[]);
+
+	}
+	BootCommon::location_changed = true;
+	BootCommon::changed = true;
+	return `redraw;
+    }
+    return nil;
+}
+
+/**
+ * Validate function of a widget
+ * @param widget string widget key
+ * @param event map event that caused validation
+ * @return boolean true if validation succeeded
+ */
+boolean LoaderTypeValidate (string widget, map event){
+    if (event["ID"]:nil == "sections"
+	&& BootCommon::getLoaderType (false) == "none")
+    {
+	// popup message
+	Popup::Message (_("Select the boot loader before editing sections."));
+	return false;
+    }
+    return true;
+}
+
+// loader target widget
+
+/**
+ * Get the target widget to be displayed
+ * @return term widget to be displayed
+ */
+term TargetWidget () {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	return `Empty ();
+    }
+    list<string> boot_devices = BootCommon::getPartitionList(`boot);
+    boolean allow_boot = contains (boot_devices,
+	BootCommon::BootPartitionDevice);
+    boolean allow_root = contains (boot_devices,
+	BootCommon::RootPartitionDevice);
+    boolean all_mbr = size (BootCommon::Md2Partitions (
+	BootCommon::BootPartitionDevice)) > 1;
+
+    term targetlist = `VBox (
+	`VSpacing (0.4),
+	`Left (`RadioButton (`id ("mbr"), `opt (`notify),
+		BootCommon::mbrDisk == ""
+		    // radio button
+		    ? _("&Master Boot Record")
+		    // radiobutton, %1 is device (eg. /dev/hda)
+		    : sformat(_("&Master Boot Record of %1"),
+			BootCommon::mbrDisk),
+                (BootCommon::selected_location == "mbr")
+	))
+    );
+
+    if (all_mbr && Bootloader::getLoaderType () == "grub")
+    {
+	    list<string> mbrs = maplist (string d, integer id,
+		BootCommon::Md2Partitions (BootCommon::BootPartitionDevice),
+	    {
+		map p_dev = Storage::GetDiskPartition (d);
+		return p_dev["disk"]:"";
+	    });
+	    mbrs = toset (mbrs);
+	    targetlist = add (targetlist, `VSpacing (0.4));
+            targetlist = add (targetlist, `Left (
+		`RadioButton (`id ("mbr_md"), `opt (`notify),
+		// radiobutton, %1 is a list of devices (eg. /dev/hda1)
+                sformat(_("MB&Rs of Disks %1"),
+		    mergestring (mbrs, ", ")),
+                (BootCommon::selected_location == "mbr_md")
+            )));
+    }
+    if (allow_boot)
+    {
+	    targetlist = add (targetlist, `VSpacing (0.4));
+            targetlist = add (targetlist, `Left (
+		`RadioButton (`id ("boot"), `opt (`notify),
+		// radiobutton, %1 is device (eg. /dev/hda1)
+                sformat(_("Boot &Sector of Boot Partition %1"),
+                     BootCommon::BootPartitionDevice),
+                (BootCommon::selected_location == "boot")
+            )));
+    };
+    if (allow_root
+	&& BootCommon::BootPartitionDevice != BootCommon::RootPartitionDevice)
+    {
+	    targetlist = add (targetlist, `VSpacing (0.4));
+	    targetlist = add (targetlist, `Left (
+		`RadioButton (`id ("root"), `opt (`notify),
+		// radiobutton, %1 is device (eg. /dev/hda1)
+                sformat(_("Boot Sector of Roo&t Partition %1"),
+                    BootCommon::RootPartitionDevice),
+                (BootCommon::selected_location == "root")
+            )));
+    };
+
+    if (StorageDevices::FloppyPresent)
+    {
+            targetlist = add (targetlist, `VSpacing (1));
+            targetlist = add (targetlist, `Left (`RadioButton (`id ("floppy"),
+		 `opt (`notify),
+		// radiobutton, %1 is device name, typically /dev/fd0
+                sformat (_("&Floppy Disk %1"), StorageDevices::FloppyDevice),
+                (BootCommon::selected_location == "floppy")
+            )));
+    }
+
+    targetlist = add (targetlist, `HBox (
+            `VBox (`Label (""), `RadioButton (`id ("custom"), `opt (`notify),
+		// radiobutton
+		_("Ot&her"),
+                (BootCommon::selected_location == "custom"))),
+            `HSpacing (2),
+            `VBox (
+                `ComboBox (`id (`loc), `opt (`editable, `hstretch, `notify, `notify, `immediate), "",
+		    boot_devices),
+                `HSpacing (15)
+            ),
+            `HStretch ()
+    ));
+
+    targetlist = add (targetlist, `VSpacing (0.4));
+
+    // frame
+    term widget = `Frame (_("Boot Loader Location"),
+	`RadioButtonGroup (`id (`location),
+	    targetlist
+	)
+    );
+    return widget;
+}
+
+/**
+ * Init function of a widget
+ * @param widget string widget key
+ */
+void TargetInit (string widget) {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	return;
+    }
+    if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice
+	&& BootCommon::selected_location == "root")
+    {
+	BootCommon::selected_location = "boot";
+    }
+    if (BootCommon::loader_device != "mbr_md")
+    UI::ChangeWidget (`id (`loc), `Value, BootCommon::loader_device == "mbr_md"
+	? BootCommon::getPartitionList(`boot)[0]:""
+	: BootCommon::loader_device);
+    UI::ChangeWidget (`id (`location), `CurrentButton,
+	BootCommon::selected_location);
+    UI::SetFocus (`id (`loc));
+}
+
+symbol TargetHandle (string widget, map event) {
+    UI::ChangeWidget (`id (`location), `CurrentButton, "custom");
+    return nil;
+}
+
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
+void TargetStore (string widget, map event) {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	return;
+    }
+    BootCommon::selected_location = (string)
+	UI::QueryWidget (`id (`location), `CurrentButton);
+    BootCommon::loader_device = (string)UI::QueryWidget (`id (`loc), `Value);
+    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+    BootCommon::location_changed = true;
+    BootCommon::changed = true;
+}
+
+/**
+ * Validate function of a widget
+ * @param widget string widget key
+ * @param event map event that caused validation
+ * @return boolean true if validation succeeded
+ */
+boolean TargetValidate (string widget, map event){
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	return true;
+    }
+    string rb = (string)UI::QueryWidget (`id (`location), `CurrentButton);
+    if (rb == nil)
+    {
+	setLocationErrorPopup ();
+	UI::SetFocus (`id (`location));
+	return false;
+    }
+    if (rb == "custom" && UI::QueryWidget (`id (`loc), `Value) == "")
+    {
+	setLocationErrorPopup ();
+	UI::SetFocus (`id (`loc));
+	return false;
+    }
+    if (rb == "custom")
+    {
+	boolean ok = true;
+	string ld = (string)UI::QueryWidget (`id (`loc), `Value);
+	map<string,map> tm = Storage::GetTargetMap ();
+	foreach (string disk_dev, map disk, tm, {
+	    list<map<string,any> > partitions
+		= (list<map<string,any> >) disk["partitions"]:[];
+	    foreach (map<string,any> p, partitions, {
+		if (! p["delete"]:false)
+		{
+		    symbol fs = (symbol)(p["used_fs"]:p["detected_fs"]:nil);
+		    // FIXME this checking is performed on 3 places
+		    if (p["device"]:"" == ld && fs == `xfs)
+		    {
+			// yes-no popup
+			if (! Popup::YesNo (_("The partition selected for boot loader installation
+does not have enough free space in its boot sector
+to hold the boot loader because of the file system
+it contains. Using this partition for the boot loader
+may lead to corruption of data on the partition.
+
+Continue?")))
+			{
+			    UI::SetFocus (`id (`loc));
+			    ok = false;
+			}
+		    }
+		}
+	    });
+	});
+	if (! ok)
+	    return false;
+    }
+    return true;
+}
+
+
+// manual edit button
+
+    /**
+      * Handle function of a widget
+      * @param key any widget key
+      * @param event map event description of event that occured
+      * @return symbol to return to wizard sequencer, or nil
+      */
+    symbol manualEditHandle(string key, map event)``{
+	return `manual;
+    }
+
+    /**
+      * Get map of widget
+      * @return a map of widget
+      */
+    map<string,any> getManualEditWidget () ``{
+	return $[
+	    "widget" : `custom,
+	    "custom_widget" : `HBox (`HStretch (),
+		// pushbutton
+		`PushButton (`id (`manual), _("E&dit Configuration Files")),
+		`HStretch ()
+	    ),
+	    "handle_events" : [`manual],
+	    "handle" : manualEditHandle,
+//	    "help" : getManualEditHelp (),
+	];
+    }
+
+// reset menu button
+
+
+    /**
+      * Init function of widget
+      * @param widget any id of the widget
+      */
+    void resetButtonInit (string widget) ``{
+	list items = [];
+	items = add (items, `item (
+	    `id (`manual),
+	    // menu button entry
+	    _("E&dit Configuration Files")));
+	if (BootCommon::getBooleanAttrib ("propose"))
+	{
+	    items = add (items,
+		// menubutton item, keep as short as possible
+		`item (`id (`propose), _("&Propose New Configuration")));
+	}
+	if (BootCommon::getBooleanAttrib ("scratch"))
+	{
+	    items = add (items,
+		// menubutton item, keep as short as possible
+		`item (`id (`scratch), _("&Start from Scratch")));
+	}
+        if ((Mode::normal () || Mode::config () || Mode::repair ())
+	    && BootCommon::getBooleanAttrib ("read"))
+	{
+	    items = add (items,
+		// menubutton item, keep as short as possible
+		`item (`id (`reread), _("&Reread Configuration from Disk")));
+	}
+	list additional_entries = (list)BootCommon::getAnyTypeAttrib (
+	    "additional_entries", []);
+	items = merge (items, additional_entries);
+
+	if ((Mode::normal () || Mode::repair ())
+	    && BootCommon::getBooleanAttrib ("restore_mbr")
+	    && SCR::Read (.target.size, "/boot/backup_mbr") > 0)
+	{
+	    items = add (items,
+		// menubutton item, keep as short as possible
+		`item (`id (`restore_mbr), _("Restore MBR of Hard Disk")));
+	}
+
+	if (size (items) > 0)
+	{
+	    UI::ReplaceWidget (`id (`adv_rp),
+		// menu button
+		`MenuButton (`id (`reset), _("Other"), items));
+	}
+	else
+	{
+	    UI::ReplaceWidget (`id (`adv_rp), `VSpacing (0));
+	}
+    }
+
+    /**
+      * Handle function of a widget
+      * @param widget any widget key
+      * @param event map event description of event that occured
+      * @return symbol to return to wizard sequencer, or nil
+      */
+    symbol resetButtonHandle (string widget, map event) ``{
+	any op = event["ID"]:nil;
+	if (op == `manual)
+	{
+	    return `manual;
+	}
+        if (op == `restore_mbr)
+        {
+            boolean doit = restoreMBRPopup (BootCommon::mbrDisk);
+	    y2milestone ("Rewrite MBR with saved one: %1", doit);
+	    if (doit)
+	    {
+		boolean ret = BootCommon::restoreMBR (BootCommon::mbrDisk);
+		if (ret)
+		    // message popup
+		    Popup::Message (_("MBR restored successfully."));
+		else
+		    // message popup
+		    Popup::Message (_("Failed to restore MBR."));
+	    }
+            return nil;
+        }
+
+	if (! (is (op, symbol)
+	    && contains ([`scratch, `reread, `propose_deep, `propose],
+		(symbol)op)))
+	{
+	    return nil;
+	}
+	Bootloader::Reset ();
+	if (op == `scratch)
+	{
+	    y2debug ("Not reading anything for starting from scratch");
+	}
+	else if (op == `reread)
+	{
+	    Bootloader::Read ();
+	}
+	else if (op == `propose_deep)
+	{
+	    import "BootGRUB";
+	    BootGRUB::merge_level = `all;
+	    Bootloader::Propose ();
+	    BootGRUB::merge_level = `main;
+	}
+	else if (op == `propose)
+	{
+	    Bootloader::Propose ();
+	}
+
+	return `redraw;
+    }
+
+
+
+
+
+/**
+ * Get map of widget
+ * @return a map of widget
+ */
+map<string,any> getAdvancedButtonWidget () {
+    return $[
+	"widget" : `custom,
+	"custom_widget" : `ReplacePoint (`id (`adv_rp), `VBox ()),
+	"handle" : resetButtonHandle,
+	"init" : resetButtonInit,
+	"help" : getAdvancedButtonHelp (),
+    ];
+}
+
+
+/**
+ * Get the main dialog tabs description
+ * @return a map the description of the tabs
+ */
+map TabsDescr () {
+    string lt = Bootloader::getLoaderType ();
+  return $[
+    "sections": $[
+	// tab header
+	"header" : _("&Section Management"),
+        "contents": `HBox (
+	    `HSpacing (3), `VBox (
+		`VSpacing (1),
+		"sections",
+		`VSpacing (1)
+	    ), `HSpacing (3)),
+        "widget_names": ["sections"]
+    ],
+    "installation": $[
+	// tab header
+	"header" : _("Boot Loader &Installation"),
+	"contents" : `HBox (`HStretch (), `VBox (
+	    `VStretch (),
+	    `Frame (_("Type"), `VBox (
+		`VSpacing (0.4),
+		`HBox (
+		    `HSpacing (2),
+		    "loader_type",
+		    `HStretch (),
+		    `VBox (
+			`Label (""),
+			"loader_options"
+		    ),
+		    `HSpacing (2)
+		),
+		`VSpacing (0.4)
+	    )),
+	    `VStretch (),
+	    (lt == "none" || lt == "default")
+		? `Empty ()
+		: "loader_location",
+	    `VStretch (),
+	    (lt == "none" || lt == "default")
+		? `Empty ()
+		: "inst_details",
+	    `VStretch ()
+	), `HStretch ()),
+        "widget_names": (lt == "none" || lt == "default")
+	    ? [ "loader_type", "loader_options" ]
+	    : [ "loader_type", "loader_options", "loader_location",
+	    "inst_details" ]
+    ],
+  ];
+};
+
+/**
+ * Cache for CommonGlobalWidgets function
+ */
+map<string,map<string,any> > _common_global_widgets = nil;
+
+/**
+ * Get general widgets for global bootloader options
+ * @return a map describing all general widgets for global options
+ */
+map<string,map<string,any> > CommonGlobalWidgets () {
+  if (_common_global_widgets != nil)
+	return _common_global_widgets;
+  _common_global_widgets = $[
+    "adv_button"	: getAdvancedButtonWidget (),
+    "sections" : getSectionsWidget (),
+    "loader_type" : $[
+	"widget" : `func,
+	"widget_func" : LoaderTypeComboWidget,
+	"init" : LoaderTypeComboInit,
+	"handle" : LoaderTypeComboHandle,
+	"help" : LoaderTypeHelp (),
+	"validate_type" : `function,
+	"validate_function" : LoaderTypeValidate,
+    ],
+    "loader_options" : $[
+	"widget" : `push_button,
+	// push button
+	"label" : _("Boot &Loader Options"),
+	"handle_events" : ["loader_options"],
+	"handle" : LoaderOptionsButtonHandle,
+	"help" : LoaderOptionsHelp (),
+    ],
+    "loader_location" : $[
+	"widget" : `func,
+	"widget_func" : TargetWidget,
+	"init" : TargetInit,
+	"handle" : TargetHandle,
+	"handle_events" : [ `loc ],
+	"store" : TargetStore,
+	"help" : LocationsHelp (),
+	"validate_type" : `function,
+	"validate_function" : TargetValidate,
+    ],
+    "inst_details" : $[
+	"widget" : `push_button,
+	// push button
+	"label" : _("Boot Loader Installation &Details"),
+	"handle_events" : ["inst_details"],
+	"handle" : InstDetailsButtonHandle,
+	"help" : InstDetailsHelp (),
+    ],
+  ];
+  return _common_global_widgets;
+}
+
+} // include end

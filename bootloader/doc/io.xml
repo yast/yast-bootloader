@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<section id = "io">
+    <title>Bootloader configuration reading/writing/proposing</title>
+    <section>
+	<title>Reading</title>
+	<para>
+Bootloader configuration reading process consists from two steps. First is to detect which bootloader is in use (reading appropriate sysconfig variable), and the second step is
+to read bootloader-dependent settings. The only common part of bootloader reading process is to assign device to match the sysconfig variable (eg. if in sysconfig is as location
+written MBR, then /dev/hda2 as bootloader device must be changed to MBR of first disk). Additionally, Read function of Initrd module is called.
+	</para>
+    </section>
+
+    <section>
+	<title>Writing</title>
+	<para>
+Writing configuration is much more complex process. It consists from three steps: save Initrd, save bootloader configuration files and call required binary (eg. /sbin/lilo).
+	</para>
+	<para>
+Saving configuration files consists from two steps. First is to save common sysconfig variables (file /etc/sysconfig/bootloader, variables LOADER_TYPE and LOADER_LOCATION).
+Second step is call bootloader-specific function to write it's configuration files.
+	</para>
+	<para>
+Running bootloader executable is bootloader-dependent operation. In some cases there is needed to call bootloader executable every time anything is changed (eg. LILO), in some cases
+only if bootloader location is to be changed (eg. GRUB), some boot loaders have no executable (eg. ELILO).
+	</para>
+	<para>
+Before running boot loader's specific write, in some cases should be run functions that should modify the MBR of the first hard disk. There are currently functions for setting active partition
+and for replacing code in MBR with generic code (which loads boot sector of bootloader partition). It is upon bootloader-specific code whether it will run these functions.
+	</para>
+	<para>
+Since many other modules can call the Write function just to reinstall bootloader (eg. after manual changing of initrd settings), it was needed to allow to customize the write process.
+Function to modify the write process and possibilities of modification are described in <xref linkend="boottop"/>.
+	</para>
+
+    </section>
+
+    <section>
+        <title>Proposing</title>
+        <para>
+Proposing configuration is very complex operation. The main problem is that it must be regarded that configuration of disks isn't final and can change in future, and re-proposing
+must combine previous configuration, which could be changed by user, and new state of disks. Of course this doesn't affect re-proposing of configuration when user wants to
+recreate original configuration, but there is one proposing mechanism. The proposing mechanism must be able to propose the configuration from scratch, but must be able to
+detect changes done inside disks configuration, and update the configuration according to these changes.
+        </para>
+        <para>
+There are some rules how to handle each section when proposing function is called when there has been any configuration proposed.
+Section could be proposed, or manually added, can be modified, or left as it was proposed. The same as for sections
+must be done for global section.
+	<itemizedlist>
+	    <listitem><para>If section was added by user manually, then never change it when partitioning changes.</para></listitem>
+	    <listitem><para>If section was proposed, but not changed by user, then recreate it new.</para></listitem>
+	    <listitem><para>If section was proposed and then modified by user, the situation is much harder. The big question is what has been changed by user.
+If there was no change in partitioning of the disk, then everything is OK and section can be left as is. But if disks have been repartitioned, and at least one
+partition affecting this section was changed, then the section may be incorrect and user must get warned. Currently warning the user is the only mechanism
+to solve these situations, because there is no easy way to fix the configuration of the section and not destroy any changes made by the user.
+In case any configuration file was changed manually inside the editor, then no re-proposing is done, and user gets only a warning.</para></listitem>
+	</itemizedlist>
+        </para>
+	<para>
+The proposing mechanism mainly depends on bootloader, which is used, and is described in bootloader-specific chapters describing single boot loaders.
+	</para>
+
+    </section>
+
+
+</section>

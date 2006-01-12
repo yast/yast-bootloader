@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding='ISO-8859-1'?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+          "/usr/share/sgml/db41xml/docbookx.dtd"
+[
+<!ENTITY version "0.01">
+<!ENTITY dx "DocBook-XML">
+<!ENTITY initrd SYSTEM "initrd.xml">
+<!ENTITY diagrams SYSTEM "diagrams.xml">
+<!ENTITY bootloader SYSTEM "boottop.xml">
+<!ENTITY bootcommon SYSTEM "bootcommon.xml">
+<!ENTITY bootspec SYSTEM "bootspec.xml">
+<!ENTITY ui SYSTEM "ui.xml">
+<!ENTITY concept SYSTEM "concept.xml">
+<!ENTITY switch SYSTEM "switch.xml">
+<!ENTITY io SYSTEM "io.xml">
+<!ENTITY lilo SYSTEM "lilo.xml">
+<!ENTITY grub SYSTEM "grub.xml">
+<!ENTITY bootparam SYSTEM "bootparam.xml">
+]>
+
+<article id="bootloader">
+<title>yast2-bootloader</title>
+    <section id="goals">
+	<title>Main goals for 8.2</title>
+	<itemizedlist>
+	    <listitem><para>Automatical installation of bootloader package (if package manager permits, then during installation too for being sure)</para></listitem>
+	    <listitem><para>As little as possible code duplicated for installation and installed system configuration</para></listitem>
+	    <listitem><para>Clear border and interface between bootloader-dependent and -independent code</para></listitem>
+	    <listitem><para>Bootloader-independent interface to most common functions for other modules</para></listitem>
+	    <listitem><para>Allow the bootloader-specific part affect bootloader user interface or fully replace it</para></listitem>
+	    <listitem><para>More unified user interface for installation and configuration of installed system</para></listitem>
+	    <listitem><para>Possibility to switch bootloader (only where platform allows more boot loaders)</para></listitem>
+	    <listitem><para>Remove or start using during configuration of running system currently unused variables from 
+		<computeroutput>/etc/sysconfig/bootloader</computeroutput> file</para></listitem>
+	    <listitem><para>Intelligently merge bootloader configuration files if Linux installation in other partition present</para></listitem>
+	</itemizedlist>
+    </section>
+
+    <section id="todo">
+	<title>TODO</title>
+	<itemizedlist>
+	    <listitem><para>Optimize internal structures</para></listitem>
+	    <listitem><para>Make some parts of code more universal for multiple boot loaders</para></listitem>
+	    <listitem><para>Improve UI</para></listitem>
+	    <listitem><para>Improve GRUB - LILO configuration conversion</para></listitem>
+	</itemizedlist>
+    </section>
+
+&concept
+&switch
+&io
+&diagrams
+&initrd
+&bootloader
+&bootcommon
+&bootspec
+&bootparam
+&ui
+&grub
+&lilo
+</article>
+      
+	    

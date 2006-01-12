@@ -1,0 +1,138 @@
+/**
+ * File:
+ *      modules/BootArch.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Module containing specific data for differnt architecturese
+ *      (as some architectures support multiple bootloaders, some bootloaders
+ *      support multiple architectures)
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: BootABOOT.ycp 20172 2004-11-04 13:06:16Z jsrain $
+ *
+ */
+
+{
+
+module "BootArch";
+
+textdomain "bootloader";
+
+import "Arch";
+import "Kernel";
+import "Linuxrc";
+import "ProductFeatures";
+import "Stage";
+
+/**
+ * Get the file holding the initd imahe
+ * @return string the initrd image
+ */
+global string InitrdImage () {
+    return "/boot/initrd";
+}
+
+/**
+ * Get parameters for the failsafe kernel
+ * @return string parameters for failsafe kernel
+ */
+global string FailsafeKernelParams () {
+    string ret = "";
+    if (Arch::i386 ())
+    {
+	ret = "showopts ide=nodma apm=off acpi=off noresume selinux=0 nosmp noapic maxcpus=0 edd=off";
+    }
+    else if (Arch::x86_64 ())
+    {
+	ret = "showopts ide=nodma apm=off acpi=off noresume selinux=0 edd=off";
+    }
+    else if (Arch::ia64 ())
+    {
+	ret = "ide=nodma nohalt noresume selinux=0";
+    }
+    else
+    {
+	y2warning ("Parameters for Failsafe boot option not defined");
+    }
+    if (Stage::initial ())
+    {
+	if (Linuxrc::InstallInf ("NOPCMCIA") == "1")
+	    ret = ret + " NOPCMCIA";
+    }
+    else
+    {
+	map<string,any> saved_params = (map<string,any>)SCR::Read (
+	    .target.ycp, "/var/lib/YaST2/bootloader.ycp");
+	ret = ret + " " + saved_params["additional_failsafe_params"]:"";
+    }
+    ret = ret + " 3";
+    return ret;
+}
+
+/**
+ * Get parameters for the default kernel
+ * @param resume string device to resume from (or empty not to set it)
+ * @return string parameters for default kernel
+ */
+global string DefaultKernelParams (string resume) {
+    if (Arch::i386 () || Arch::x86_64 ())
+    {
+	string resumestring = "";
+	if (resume != "")
+	    resumestring = sformat ("resume=%1", resume);
+	string ret = sformat ("%1 %2 %3 %4",
+	    "selinux=0",
+	    Kernel::GetCmdLine (),
+	    resumestring,
+	    ProductFeatures::GetStringFeature (
+		"globals",
+		"additional_kernel_parameters"));
+	if (regexpmatch (ret, "^(.* )?splash=[a-z]+( .*)?$"))
+	    ret = regexpsub (ret, "^((.* ))?splash=[a-z]+(( .*)?)$", "\\1 \\3");
+	ret = ret + " splash=silent showopts";
+	return ret;
+    }
+    else if (Arch::ia64 ())
+    {
+	string append = sformat ("%1 %2 %3 splash=silent",
+	    "selinux=0",
+	    ProductFeatures::GetStringFeature (
+		"globals",
+		"additional_kernel_parameters"),
+	    Kernel::GetCmdLine ());
+	// on SIG Altix change kernel default hash tables sizes
+	if (SCR::Read (.target.stat, "/proc/sgi_sn") != $[])
+	{
+	    append = append + " thash_entries=2097152";
+	}
+	return append;
+    }
+    else
+    {
+	y2warning ("Default kernel parameters not defined");
+	return Kernel::GetCmdLine ();
+    }
+}
+
+/**
+ * Is VGA parameter setting available
+ * @return true if vga= can be set
+ */
+global boolean VgaAvailable () {
+    return (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ());
+}
+
+/**
+ * Is Suspend to Disk available?
+ * @return true if STD is available
+ */
+global boolean ResumeAvailable () {
+    return (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ());
+}
+
+} // EOF
