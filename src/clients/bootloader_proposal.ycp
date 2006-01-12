@@ -94,7 +94,7 @@
 		//	"warning" :
 			    // warning in summary
 		//	    _("Configure a valid boot loader location before continuing.<br>
-In case that no selection can be made it may be necessary to create a PReP Boot partition."),
+//In case that no selection can be made it may be necessary to create a PReP Boot partition."),
 		//    ]);
 
 		}
