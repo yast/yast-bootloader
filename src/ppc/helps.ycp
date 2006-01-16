@@ -6,7 +6,7 @@
  *      Bootloader installation and configuration
  *
  * Summary:
- *      Help strings for bootloader installation and configuration
+ *      Help and label strings for bootloader installation and configuration
  *
  * Authors:
  *      Joachim Plack <jplack@suse.de>
@@ -43,30 +43,37 @@ to load and start.</p>"),
 _("<p>Select <b>Other System</b> to add a section that
 loads and starts a boot sector of a partition of the disk. This is used for
 booting other operating systems.</p>"),
+    ];
 
-        // boot		 => ( "$arch" eq "iseries" ) ?  "multi:iSeries boot image location:" : "select:PPC Boot loader location:",
-        // activate	 => "bool:Change boot-device in NV-RAM",
-        // timeout	 =>  "int:Timeout in 1/10th seconds:0:600:50",
-        // default	 =>  "string:Default boot section:linux",
-        // root		 =>     "select:Default root device:" . $root_devices,
-        // append	 =>   "string:Append options for kernel command line",
-        // initrd	 =>   "path:Default initrd path"
-        // clone	} = "select:Partition for boot loader duplication:" . $boot_partitions;
-        // force_fat	} = "bool:Always boot from FAT partition ";
-        // force	} = "bool:Install boot loader even on errors";
-        // boot_custom	} = "select:PReP or FAT partition:" . $boot_partitions;
-        // bootfolder	} = "string:Bootfolder path";
-        // boot_custom	} = "select:PReP partition:" . $boot_partitions;
-        // boot_slot	} = "select:Write to boot slot:A:B:C:D";
-        // boot_file	} = "path:Create boot image in file:/tmp/suse_boot_image";
-        // boot_custom	} = "select:PReP partition:" . $boot_partitions;
-        // boot_custom	} = "select:HFS boot partition:" . $boot_partitions;
-        // "image_image"		:
-        // image_root   => "select:Root device:" . $root_devices,
-        // image_append => "string:Optional kernel command line parameter",
-        // image_initrd => "path:Initial RAM disk:/boot/initrd",
-        // image_copy}   = "bool:Copy image to boot partition";
-        // other_other}  = "select:Boot partition of other system:" . join
+
+global map<string,string> ppc_descriptions = $[
+    "boot" 	 	 : ( exports["$arch"]:"" == "iseries" )
+                           ? _("iSeries boot image location")
+                           : _("PPC boot loader location"),
+    "activate" 	 	 : _("Change boot-device in NV-RAM"),
+    "timeout" 	 	 : _("Timeout in 1/10th seconds"),
+    "default" 	 	 : _("Default boot section"),
+    "root" 	 	 : _("Default root device"),
+    "append" 	 	 : _("Append options for kernel command line"),
+    "initrd" 	 	 : _("Default initrd path"),
+    "clone" 	 	 : _("Partition for boot loader duplication"),
+    "force_fat" 	 : _("Always boot from FAT partition"),
+    "force" 	 	 : _("Install boot loader even on errors"),
+    "boot_chrp_custom"   : _("PReP or FAT partition"),
+    "bootfolder" 	 : _("Bootfolder path"),
+    "boot_prep_custom"   : _("PReP partition"),
+    "boot_slot" 	 : _("Write to boot slot"),
+    "boot_file" 	 : _("Create boot image in file"),
+    "boot_iseries_custom": _("PReP partition"),
+    "boot_pmac_custom"   : _("HFS boot partition"),
+    "type_image"         : _("Kernel section"),
+    "image_image"        : _("Kernel image"),
+    "image_root"     	 : _("Root device"),
+    "image_append"   	 : _("Optional kernel command line parameter"),
+    "image_initrd"   	 : _("Initial RAM disk"),
+    "image_copy"     	 : _("Copy image to boot partition"),
+    "type_other"         : _("Boot other system"),
+    "other_other"    	 : _("Boot partition of other system"),
 ];
 
 
