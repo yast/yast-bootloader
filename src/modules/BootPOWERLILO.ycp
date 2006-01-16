@@ -100,43 +100,18 @@ void extract_exports() {
  * modifies internal sreuctures
  */
 global void CreateSections () {
-    list<map<string,any> > out = [
-	BootCommon::CreateLinuxSection ("linux")
-    ];
-    list<string> others = (list<string>)Storage::GetForeignPrimary();
-    if (others != nil && size (others) > 0)
-    {
-	foreach (string o, others, {
-	    list<string> parts = splitstring (o, " ");
-	    while (parts[0]:" " == "")
-		parts = remove (parts, 0);
-	    string dev = parts[0]:"";
-	    parts = remove (parts, 0);
-	    string label = mergestring (parts, " ");
-		// The mac label should be included, like once in Bootppc
-	    // don't add rewritten location (#19990)
-	    if (dev != "" && label != ""
-		&& dev != BootCommon::loader_device
-	    )
-	    {
-		map<string,any> m = $[
-		    "name" : BootCommon::translateSectionTitle (
-			BootCommon::removeBlanks (label)),
-		    "original_name" : label,
-		    "type" : "chainloader",
-		    "chainloader" : dev,
-		    "__auto" : true,
-		    "__changed" : false,
-		    "__devs" : [dev],
-		];
-		// on PPC there is no chainloader, (i think of an chain to load windows)
-		out = add (out, m);
-	    }
-	});
-    }
+    // FIXME: use that bogus i386ism function no longer, works for now
+    map<string,any> linux = BootCommon::CreateLinuxSection ("linux");
 
-    out = filter (map<string,any> s, out, { return s != $[] && s != nil;});
-    BootCommon::sections = out;
+    // FIXME: I hate that i386 crap!!
+    if (haskey(linux, "kernel")) {
+        linux["image"] = linux["kernel"]:"boot/vmlinux";
+        linux = remove(linux, "kernel");
+    };
+
+    // FIXME: create an 'other' section for MACs to boot MacOS
+
+    BootCommon::sections = [ linux, ];
 }
 
 /**
@@ -144,10 +119,49 @@ global void CreateSections () {
  * modifies internal structures
  */
 global void CreateGlobals () {
+    // FIXME: for iseries there are typically more than one boot option;
+    //	  boot = B
+    //	  boot = /dev/iseries/vda1
+    //	  boot = /boot/suse_linux_bootfile
+
     BootCommon::globals = $[
+	"activate": "true",
 	"default" : BootCommon::sections[0, "name"]:"",
-	"timeout" : "8",
+	"timeout" : "80",
     ];
+
+    string arch = exports["arch"]:"chrp";
+    map<string, string> boot_map = $[];
+
+    y2milestone("RootPartDevice is %1",BootCommon::RootPartitionDevice);
+
+/*
+    if ( arch == "chrp" ) {
+        boot_map = $[
+    	    "boot_chrp_custom" : GoodPrepOrFatPartition(BootCommon::RootPartitionDevice),
+        ];
+    }
+    // FIXME: create code for the cases below
+    else if ( arch == "prep" ) {
+        boot_map = $[
+	    "boot_prep_custom"   :  GoodPrepPartition(BootCommon::RootPartitionDevice),
+	];
+    }
+    else if ( arch == "pmac" ) {
+        boot_map = $[
+	    "boot_pmac_custom" : GoodHFSBootPartition(BootCommon::RootPartitionDevice),
+        ]
+    }
+    else if ( arch == "iseries" ) {
+        boot_map = $[
+	    "boot_slot" 	 : "B",
+            "boot_file" 	 : "/tmp/suse_linux_image",
+	    "boot_iseries_custom": GoodPRePPartitionOnVDisk(BootCommon::RootPartitionDevice),
+	 ];
+    }
+*/
+    BootCommon::globals = (map<string, string>) union(BootCommon::globals, boot_map);
+
 }
 
 // general functions
@@ -159,8 +173,6 @@ global define void Propose () ``{
     y2debug ("Started propose: Glob: %1, Sec: %2",
     	BootCommon::globals, BootCommon::sections);
 
-
-
     if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
     {
         CreateSections ();  // make an initial proposal for at least one section
@@ -170,12 +182,12 @@ global define void Propose () ``{
     {
     	if (Mode::autoinst ())
     	{
-    	    // TODO whatever will be needed
-	    y2debug ("nothing to to in AI mode if sections exist");
+	    y2debug ("Nothing to do in AI mode if sections exist");
     	}
     	else
 	    BootCommon::FixSections (BootPOWERLILO::CreateSections);
     }
+
     if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
     {
         CreateGlobals ();
@@ -184,8 +196,7 @@ global define void Propose () ``{
     {
     	if (Mode::autoinst ())
     	{
-    	    // TODO whatever will be needed
-	    y2debug ("nothing to to in AI mode if globals are defined");
+	    y2debug ("Nothing to do in AI mode if globals are defined");
     	}
     	else
 	    BootCommon::FixGlobals ();
@@ -256,9 +267,31 @@ global boolean Read (boolean reread) {
  * @return boolean true if success
  */
 global boolean Save (boolean clean, boolean init, boolean flush) {
-    // stage1_dev (from Bootloader_API.pm)converts to a single string
-    // BootCommon::globals["stage1_dev"] = BootCommon::loader_device;
-    boolean ret = BootCommon::Save (clean, init, flush);
+    boolean ret = true;
+
+    // FIXME: this is currently a copy from BootCommon::Save
+    if (clean)
+    {
+	BootCommon::RemoveUnexistentSections ("", "");
+	BootCommon::UpdateInitrdLine ();
+	BootCommon::UpdateAppend ();
+	// BootCommon::UpdateGfxMenu ();
+    }
+
+    if (! BootCommon::InitializeLibrary (init, "ppc"))
+	return false;
+    // Sanity check the sections list: we can only pass strings
+    // through the perl interface
+    list<map<string,string> > sects = maplist (map<string,any> s, BootCommon::sections, {
+	return (map<string,string>)
+	    filter (string k, any v, s, { return is (v, string); });
+    });
+    // ret = ret && BootCommon::SetDeviceMap (device_mapping);
+    ret = ret && BootCommon::SetSections (sects);
+    ret = ret && BootCommon::SetGlobal (BootCommon::globals);
+    if (flush)
+	ret = ret && BootCommon::FlushCache ();
+
     return ret;
 }
 
@@ -304,6 +337,7 @@ global define list<string> Summary () {
     result = add (result, sformat (_("Sections: %1"),
         String::EscapeTags (mergestring (sects, ", "))));
 
+    // FIXME: does the following code make any sense for ppc?
     if (BootCommon::loader_device == "/dev/null")
         // summary text
         result = add (result,
