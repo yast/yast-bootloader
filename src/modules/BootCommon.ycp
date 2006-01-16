@@ -288,6 +288,7 @@ global list<string> update_section_types
 
     include "bootloader/routines/popups.ycp";
     include "bootloader/routines/misc.ycp";
+    // FIXME: there are other archs than i386
     include "bootloader/routines/lilolike.ycp";
     include "bootloader/routines/lib_iface.ycp";
 
