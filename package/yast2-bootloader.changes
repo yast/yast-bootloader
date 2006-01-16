@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 16 20:23:26 CET 2006 - jplack@suse.de
+
+- moved widget descriptions (labels) to yast2-bootloader
+- handle unified type descriptions: now <type>:<desc>:<default>:...
+- add arch-specific Summary function
+
+-------------------------------------------------------------------
 Thu Dec 22 11:50:08 CET 2005 - uli@suse.de
 
 - declare Write method implemented in BootZIPL.ycp
