@@ -11,8 +11,9 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Joachim Plack <jplack@suse.de>
  *
- * $Id: BootPOWERLILO.ycp 24818 2005-08-11 13:25:29Z jsrain $
+ * $Id$
  *
  */
 
@@ -53,6 +54,46 @@ include "bootloader/ppc/helps.ycp";
  * read my dialogs
  */
 include "bootloader/ppc/dialogs.ycp";
+
+void extract_exports() {
+   // Extract exports from globals
+    foreach(string key, any value, BootCommon::globals, {
+        if (substring (key, 0, size ("__exports__")) != "__exports__")
+            continue;
+        // FIXME: delete(BootCommon::globals[key]);
+
+        key = substring(key, size("__exports__"));
+
+        if (substring (key, 0, 1) == "%") {
+            list<string> s = splitstring(key,"%");
+            string hash = s[1]:"";
+
+            key = substring(key, 2 + size(hash));
+            if (hash == "global_options") {
+                global_options[key] = value;
+            }
+            else if (hash == "section_options") {
+                section_options[key] = value;
+            }
+            else {
+                if ( !haskey(exports, hash) ) exports[hash] = $[];
+                exports[hash, key] = value;
+            }
+        }
+        else if (substring (key, 0, 1) == "#") {
+            list<string> s = splitstring(key,"#");
+            string array = s[1]:"";
+
+            key = substring(key, 2 + size(array));
+            if ( ! haskey(exports, array) ) exports[array] = [];
+            exports[array, tointeger(key)] = value;
+        }
+        else {
+            exports[key] = value;
+        }
+    });
+}
+
 
 /**
  * Propose sections to bootloader menu
@@ -117,6 +158,8 @@ global void CreateGlobals () {
 global define void Propose () ``{
     y2debug ("Started propose: Glob: %1, Sec: %2",
     	BootCommon::globals, BootCommon::sections);
+
+
 
     if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
     {
@@ -197,54 +240,11 @@ global boolean Read (boolean reread) {
     boolean ret = BootCommon::Read (false);
     y2milestone (":: Read globals: %1", BootCommon::globals);
 
-    // Extract exports from globals
-    foreach(string key, any value, BootCommon::globals, {
-	if (substring (key, 0, size ("__exports__")) != "__exports__")
-	    continue;
-	// FIXME: delete(BootCommon::globals[key]);
-
-	key = substring(key, size("__exports__"));
-
-	if (substring (key, 0, 1) == "%") {
-	    list<string> s = splitstring(key,"%");
-	    string hash = s[1]:"";
-
-	    key = substring(key, 2 + size(hash));
-	    if (hash == "global_options") {
-		global_options[key] = value;
-	    }
-	    else if (hash == "section_options") {
-		section_options[key] = value;
-	    }
-	    else {
-		if ( !haskey(exports, hash) ) exports[hash] = $[];
-		exports[hash, key] = value;
-	    }
-	}
-	else if (substring (key, 0, 1) == "#") {
-	    list<string> s = splitstring(key,"#");
-	    string array = s[1]:"";
-
-	    key = substring(key, 2 + size(array));
-	    if ( ! haskey(exports, array) ) exports[array] = [];
-	    exports[array, tointeger(key)] = value;
-	}
-	else {
-	    exports[key] = value;
-	}
-    });
-
-    if (size(global_options)>0)
-    	y2milestone (":: Contains global options: %1", global_options);
-
-    if (size(section_options)>0)
-    	y2milestone (":: Contains section options: %1", section_options);
-
-    if (size(exports)>0)
-    	y2milestone (":: Contains exports: %1", exports);
+    extract_exports();
 
     return ret;
 }
+
 
 /**
  * Save all bootloader configuration files to the cache of the PlugLib
@@ -260,6 +260,55 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // BootCommon::globals["stage1_dev"] = BootCommon::loader_device;
     boolean ret = BootCommon::Save (clean, init, flush);
     return ret;
+}
+
+
+/**
+  * Display bootloader summary
+  * @return a list of summary lines
+  */
+global define list<string> Summary () {
+
+    string target_name = BootCommon::loader_device;
+    list<string> result = [];
+
+    // summary text, %1 is bootloader name
+    result = add (result,
+		  sformat (_("Boot loader type: %1"),
+			   BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)));
+
+    // summary text for boot loader locations, sum up all locations to one string
+    string boot_loader_locations = 
+        mergestring(
+	    filter( string bll,
+		maplist( string key, any value, global_options, {
+		    return (substring(key,0,5) == "boot_")
+		            ? BootCommon::globals[key]:"" : "";
+		}),
+	        { return bll != ""; }
+	    ),
+	    ", "
+	);
+    result = add (result, sformat (_("Location: %1"), boot_loader_locations));
+
+    list<string> sects = [];
+    foreach (map<string,any> s, BootCommon::sections, {
+        string title = s["name"]:"";
+    	// section name "suffix" for default section
+        string def = (title == BootCommon::globals["default"]:"")
+	  ? _(" (default)")
+	  : "";
+        sects = add (sects, sformat ("%1%2", title, def));
+    });
+    // summary text. %1 is list of bootloader sections
+    result = add (result, sformat (_("Sections: %1"),
+        String::EscapeTags (mergestring (sects, ", "))));
+
+    if (BootCommon::loader_device == "/dev/null")
+        // summary text
+        result = add (result,
+    		  _("Do not install boot loader; just create configuration files"));
+    return result;
 }
 
 
@@ -321,7 +370,7 @@ global map<string, any> GetFunctions () {
 	// "reset"
 	"propose"	   : Propose,
 	"save"		   : Save,
-	// "summary"
+	"summary"	   : Summary,
 	"update"	   : Update,
 	"write"		   : Write,
 	"widgets"	   : ppcWidgets,
@@ -343,8 +392,19 @@ global void Initializer () {
 	"bootloader_on_disk" : true,
     ];
     BootCommon::help_messages = (map<string,string>)
-        union(BootCommon::help_messages,  ppc_help_messages);
-    y2milestone("Initialized help_messages to %1", BootCommon::help_messages);
+        union(BootCommon::help_messages,
+	      mapmap(string key, string val, ppc_help_messages,
+		     { return $[ "ppc_" + key : val ]; }
+		     )
+	      );
+    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
+    BootCommon::descriptions = (map<string,string>)
+        union(BootCommon::descriptions,
+	      mapmap(string key, string val, ppc_descriptions,
+		     { return $[ "ppc_" + key : val ]; }
+		     )
+	      );
+    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
     // always read the config from perl-Bootloader as were piping our type
     // discription through here
     Read(false);
