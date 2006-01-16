@@ -12,6 +12,7 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Joachim Plack <jplack@suse.de>
  *
  * $Id$
  *
@@ -48,6 +49,11 @@ global list<map<string,any> > sections = [];
  * map of UI help messages
  */
 global map<string,string>help_messages = $[];
+
+/*
+ * map of UI widget decriptive labels
+ */
+global map<string,string>descriptions = $[];
 
 /**
  * device mapping between Linux and firmware
