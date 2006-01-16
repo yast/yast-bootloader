@@ -20,13 +20,22 @@
 textdomain "bootloader";
 
 string generic_Help (string widget_name) {
+    string arch_widget_name = Arch::arch_short() + "_" + widget_name;
 
-    if ( haskey(BootCommon::help_messages, widget_name) )
-        return(BootCommon::help_messages[widget_name]:"" );
-    return( BootCommon::help_messages[Arch::arch_short() + "_" + widget_name]:"" );
+    if ( haskey( BootCommon::help_messages, arch_widget_name ) )
+        return(BootCommon::help_messages[arch_widget_name]:"" );
+    return(BootCommon::help_messages[widget_name]:"" );
 }
 
+string generic_Description (string widget_name, string fallback) {
+    string arch_widget_name = Arch::arch_short() + "_" + widget_name;
 
+    if ( haskey( BootCommon::descriptions, arch_widget_name ) )
+        return(BootCommon::descriptions[arch_widget_name]:"" );
+    if ( haskey( BootCommon::descriptions, widget_name ) )
+        return(BootCommon::descriptions[widget_name]:"" );
+    return( dgettext( "base", fallback ) );
+}
 
 map<string,any> generic_Term (map<string,any> options, string type) {
     // type is any of 'check', 'radio', or else
@@ -37,19 +46,20 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 
     foreach (string key, any value, options, {
 	list<string> val = splitstring((string)value, ":");
+	string desc = generic_Description( key, val[1]:key );
 
 	if (val[0]:"undef" != "bool")
 	    continue;
 
 	if (type == "radio") {
 	    option_term = add(option_term,
-		`Left(`RadioButton (`id (key), def_opt,
-		    dgettext( "base", val[1]:key ))));	
+		`Left(`RadioButton (`id (key), def_opt, desc ))
+	    );	
 	}
 	else  {
 	    option_term = add(option_term,
-		`Left(`CheckBox (`id (key), def_opt,
-		    dgettext( "base", val[1]:key ))));	
+		`Left(`CheckBox (`id (key), def_opt, desc ))
+	    );	
 	}
 
 	__events = add(__events, key); 
@@ -63,13 +73,15 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	value = val[0]:"undef";
 	if (value == "bool") continue;
 	string key_e = key + "_enabled";
-	string desc = dgettext( "base", val[1]:key );
+	string desc = generic_Description( key, val[1]:key );
+	string defval = val[2]:"" ;
+
 	term new = nil;
 	term enable_widget = (type == "radio") ?
 		`RadioButton(`id(key_e), def_opt, desc) :
 		`CheckBox(`id(key + "_enabled"), def_opt, desc);
 
-	val[0] = nil; val[1] = nil;
+	val[0] = nil; val[1] = nil; val[2] = nil;
 	val = filter(string v, val, ``(v!=nil) );
 
 	if (value == "string") {
@@ -143,7 +155,7 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	    	    `IntField (`id (key), "",
 	    	 	tointeger(val[0]:"0"),    // min
 	    	 	tointeger(val[1]:"1000"), // max
- 	    	 	tointeger(val[2]:"0")	  // default
+ 	    	 	tointeger(defval)	  // default
 		    )
 	        ));
 	    }
@@ -151,7 +163,7 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	        new = `IntField (`id (key), desc,
 	    	    tointeger(val[0]:"0"),    // min
 	    	    tointeger(val[1]:"1000"), // max
- 	    	    tointeger(val[2]:"0")	  // default
+ 	    	    tointeger(defval)	      // default
 	        );
 	    }
 	}
