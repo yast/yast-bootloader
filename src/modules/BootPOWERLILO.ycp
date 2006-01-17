@@ -94,6 +94,14 @@ void extract_exports() {
     });
 }
 
+// FIXME: evaluate partitions from Storage with the algorithm used in lilo to
+// find a good prep or fat partition
+global string GoodPrepOrFatPartition (string rootpartitiondev) {
+    string bootpartitiondev = regexpsub (rootpartitiondev, "^(.*[^0-9])[0-9]*", "\\1");
+    bootpartitiondev = bootpartitiondev != nil ? bootpartitiondev : rootpartitiondev;
+    y2milestone("bootpartitiondev is %1", bootpartitiondev);
+    return bootpartitiondev;
+}
 
 /**
  * Propose sections to bootloader menu
@@ -135,12 +143,12 @@ global void CreateGlobals () {
 
     y2milestone("RootPartDevice is %1",BootCommon::RootPartitionDevice);
 
-/*
     if ( arch == "chrp" ) {
         boot_map = $[
     	    "boot_chrp_custom" : GoodPrepOrFatPartition(BootCommon::RootPartitionDevice),
         ];
     }
+/*
     // FIXME: create code for the cases below
     else if ( arch == "prep" ) {
         boot_map = $[
