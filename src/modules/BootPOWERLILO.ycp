@@ -94,6 +94,59 @@ void extract_exports() {
     });
 }
 
+/**
+  * Propose the location of the root device on disk and the boot device (if
+  * any), according to the subarchitecture.
+  * Results are stored in global variables.
+  *
+  */
+global void LocationProposal () {
+    // get map of lists: mountpoint -> [partitionName, fsid, targetdevice, raid_type]
+    map mp = Storage::GetMountPoints();
+
+    y2milestone( "mountPoints %1", mp );
+
+    BootCommon::RootPartitionDevice = mp["/", 0]:"";
+    if (BootCommon::RootPartitionDevice == "")
+	y2error ("No mountpoint for / !!");
+    else
+	y2milestone("Root partition is %1", BootCommon::RootPartitionDevice);
+
+    string arch = exports["arch"]:"chrp";
+    if ( arch == "chrp" ) {
+	// FIXME: really detect the boot partition (instead of leaving this to
+	// lilo), see /lib/lilo/lilo-chrp.lib:76 (ie. GoodPrepOrFatPartition()
+	// functionality)
+	BootCommon::BootPartitionDevice =
+	    regexpsub (BootCommon::RootPartitionDevice, "^(.*[^0-9])[0-9]*", "\\1");
+	if (BootCommon::BootPartitionDevice == nil)
+	    BootCommon::BootPartitionDevice = BootCommon::RootPartitionDevice;
+
+	y2milestone("Boot partition is %1", BootCommon::BootPartitionDevice);
+    }
+
+/*
+    // FIXME: create code for the cases below
+    else if ( arch == "prep" ) {
+        boot_map = $[
+	    "boot_prep_custom"   :  GoodPrepPartition(BootCommon::RootPartitionDevice),
+	];
+    }
+    else if ( arch == "pmac" ) {
+        boot_map = $[
+	    "boot_pmac_custom" : GoodHFSBootPartition(BootCommon::RootPartitionDevice),
+        ]
+    }
+    else if ( arch == "iseries" ) {
+        boot_map = $[
+	    "boot_slot" 	 : "B",
+            "boot_file" 	 : "/tmp/suse_linux_image",
+	    "boot_iseries_custom": GoodPRePPartitionOnVDisk(BootCommon::RootPartitionDevice),
+	 ];
+    }
+*/
+}
+
 // FIXME: evaluate partitions from Storage with the algorithm used in lilo to
 // find a good prep or fat partition
 global string GoodPrepOrFatPartition (string rootpartitiondev) {
@@ -145,7 +198,7 @@ global void CreateGlobals () {
 
     if ( arch == "chrp" ) {
         boot_map = $[
-    	    "boot_chrp_custom" : GoodPrepOrFatPartition(BootCommon::RootPartitionDevice),
+	    "boot_chrp_custom" : BootCommon::BootPartitionDevice,
         ];
     }
 /*
@@ -180,6 +233,9 @@ global void CreateGlobals () {
 global define void Propose () ``{
     y2debug ("Started propose: Glob: %1, Sec: %2",
     	BootCommon::globals, BootCommon::sections);
+
+    // Get root and boot partition (if any)
+    LocationProposal();
 
     if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
     {

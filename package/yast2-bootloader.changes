@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan 17 19:10:45 CET 2006 - od@suse.de
+
+- actually find and propose root and boot devices
+
+-------------------------------------------------------------------
 Tue Jan 17 15:45:18 CET 2006 - od@suse.de
 
 - added comments in bootloader_proposal
