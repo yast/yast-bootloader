@@ -23,6 +23,10 @@
     map    param = (map)WFM::Args(1);
     map<string,any>    ret   = $[];
 
+    // This will be called every time we enter the proposal widget. Here we can
+    // return cached data, but when force_reset is set, we must create a new
+    // proposal based on freshly discovered data (ie. from Storage:: and
+    // perl-Bootloader (etc.?)).
     if ( func == "MakeProposal" )
     {
 	boolean force_reset      = param["force_reset"     ]:false;
@@ -85,7 +89,7 @@
 			    $[
 			      "warning_level" : `error,
 			      "warning" :
-			      _("The selected boot path will not be activated for your installation. Your system might not be bootable."),
+			      _("The selected boot path will not be activated for your installation. Your system may not be bootable."),
 		    ]);
 
 
@@ -101,6 +105,9 @@
 	    }
 	}
     }
+    // This is a request to start some dialog and interact with the user to set
+    // up the Bootloader setting. Called when the user presses the link to set
+    // up the Bootloader.
     else if ( func == "AskUser" )
     {
 	boolean has_next = param["has_next"]:false;
@@ -119,6 +126,7 @@
 	// Fill return map
 	ret = $[ "workflow_sequence" : result ];
     }
+    // This describes the "active" parts of the Bootloader proposal section.
     else if ( func == "Description" )
     {
 	// Fill return map.
@@ -134,6 +142,9 @@
 	      "id"		:	"bootloader_stuff"
 	    ];
     }
+    // Before the system is installed there is no place to write to yet. This
+    // code is not called. The bootloader will be installed later during
+    // inst_finish.
     else if (func == "Write")
     {
 	boolean succ = Bootloader::Write ();
