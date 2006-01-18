@@ -60,8 +60,6 @@ void     extract_exports_from_globals() {
     foreach(string key, any value, BootCommon::globals, {
         if (substring (key, 0, size ("__exports__")) != "__exports__")
             continue;
-        // FIXME: delete(BootCommon::globals[key]);
-
         key = substring(key, size("__exports__"));
 
         if (substring (key, 0, 1) == "%") {
@@ -91,6 +89,10 @@ void     extract_exports_from_globals() {
         else {
             exports[key] = value;
         }
+    });
+    // delete all __exports__ option tags from BootCommon::globals
+    BootCommon::globals = filter (string key, string value, BootCommon::globals, {
+        return (substring (key, 0, size ("__exports__")) != "__exports__");
     });
 }
 
@@ -122,7 +124,11 @@ global void LocationProposal () {
 	if (BootCommon::BootPartitionDevice == nil)
 	    BootCommon::BootPartitionDevice = BootCommon::RootPartitionDevice;
 
-	y2milestone("Boot partition is %1", BootCommon::BootPartitionDevice);
+	// These need to be set (FIXME: find out why) --
+	// see ConfigureLocation() in lilolike.ycp
+	BootCommon::loader_device = BootCommon::BootPartitionDevice;
+	BootCommon::activate = true;
+	y2milestone("Boot partition is %1", BootCommon::loader_device);
     }
 
 /*
@@ -145,15 +151,6 @@ global void LocationProposal () {
 	 ];
     }
 */
-}
-
-// FIXME: evaluate partitions from Storage with the algorithm used in lilo to
-// find a good prep or fat partition
-global string GoodPrepOrFatPartition (string rootpartitiondev) {
-    string bootpartitiondev = regexpsub (rootpartitiondev, "^(.*[^0-9])[0-9]*", "\\1");
-    bootpartitiondev = bootpartitiondev != nil ? bootpartitiondev : rootpartitiondev;
-    y2milestone("bootpartitiondev is %1", bootpartitiondev);
-    return bootpartitiondev;
 }
 
 /**
@@ -252,7 +249,10 @@ global define void Propose () ``{
 	    BootCommon::FixSections (BootPOWERLILO::CreateSections);
     }
 
-    if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
+    if (BootCommon::globals == nil ||
+	size (filter(string key, any v, BootCommon::globals, {
+		return key != "lines_cache_id";
+	    })) == 0)
     {
         CreateGlobals ();
     }
@@ -365,8 +365,6 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
   * @return a list of summary lines
   */
 global define list<string> Summary () {
-
-    string target_name = BootCommon::loader_device;
     list<string> result = [];
 
     // summary text, %1 is bootloader name
@@ -515,16 +513,16 @@ global void BootPOWERLILO () {
 	      );
     y2debug("Initialized help_messages to %1", BootCommon::help_messages);
     // always read the config from perl-Bootloader as were piping our
-    // type discription through here 
+    // type discription through here
     // FIXME: This is a hack: we need another interface to get the
-    // global and section options
+    // type descriptions
     BootCommon::InitializeLibrary (false, "ppc");
-    map<string,any> exports =
-      filter(
-	     string key, any v, BootCommon::GetGlobal(), {
-	       return substring (key, 0, size ("__exports__")) == "__exports__";
-	     });
-    BootCommon::globals = union(BootCommon::globals, exports);
+    BootCommon::globals = (map<string,string>)
+	union(BootCommon::globals,
+	    filter(string key, string val, BootCommon::GetGlobal(),
+		{ return substring (key, 0, size ("__exports__")) == "__exports__"; }
+		)
+	    );
     extract_exports_from_globals();
 
     y2milestone ("Read exports into globals: %1", BootCommon::globals);
