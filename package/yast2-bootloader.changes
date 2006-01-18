@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Jan 18 21:00:49 CET 2006 - od@suse.de
+
+- remove __exports__ from globals in extract_exports_from_globals()
+- delete obsolete function GoodPrepOrFatPartition()
+- consider globals empty even if lines_cache_id is present
+- fix merging of __exports__ in BootPOWERLILO constructor
+- 2.13.10
+
+-------------------------------------------------------------------
 Tue Jan 17 19:10:45 CET 2006 - od@suse.de
 
 - actually find and propose root and boot devices
