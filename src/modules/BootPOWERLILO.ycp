@@ -503,9 +503,18 @@ global void Initializer () {
 		     )
 	      );
     y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-    // always read the config from perl-Bootloader as were piping our type
-    // discription through here
-    Read(false);
+    // always read the config from perl-Bootloader as were piping our
+    // type discription through here 
+    // FIXME: This is a hack: we need another interface to get the
+    // global and section options
+    map<string,any> exports =
+      filter(
+	     string key, any v, BootCommon::GetGlobal(), {
+	       return substring (key, 0, size ("__exports__")) == "__exports__";
+	     });
+    BootCommon::globals = union(BootCommon::globals, exports
+
+    y2milestone ("Read exports into globals: %1", BootCommon::globals);
 }
 
 /**
