@@ -55,7 +55,7 @@ include "bootloader/ppc/helps.ycp";
  */
 include "bootloader/ppc/dialogs.ycp";
 
-void extract_exports() {
+void     extract_exports_from_globals() {
    // Extract exports from globals
     foreach(string key, any value, BootCommon::globals, {
         if (substring (key, 0, size ("__exports__")) != "__exports__")
@@ -315,7 +315,7 @@ global boolean Read (boolean reread) {
     boolean ret = BootCommon::Read (false);
     y2milestone (":: Read globals: %1", BootCommon::globals);
 
-    extract_exports();
+    extract_exports_from_globals();
 
     return ret;
 }
@@ -524,7 +524,8 @@ global void BootPOWERLILO () {
 	     string key, any v, BootCommon::GetGlobal(), {
 	       return substring (key, 0, size ("__exports__")) == "__exports__";
 	     });
-    BootCommon::globals = union(BootCommon::globals, exports
+    BootCommon::globals = union(BootCommon::globals, exports);
+    extract_exports_from_globals();
 
     y2milestone ("Read exports into globals: %1", BootCommon::globals);
 }
