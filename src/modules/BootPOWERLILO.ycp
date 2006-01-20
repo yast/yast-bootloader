@@ -487,17 +487,6 @@ global void Initializer () {
 	"scratch" : true,
 	"bootloader_on_disk" : true,
     ];
-}
-
-/**
-  * Constructor
-  */
-global void BootPOWERLILO () {
-    BootCommon::bootloader_attribs["ppc"] = $[
-	"required_packages"	: ["lilo"],
-	"loader_name"		: "ppc",
-	"initializer"		: BootPOWERLILO::Initializer,
-    ];
     BootCommon::help_messages = (map<string,string>)
         union(BootCommon::help_messages,
 	      mapmap(string key, string val, ppc_help_messages,
@@ -528,5 +517,15 @@ global void BootPOWERLILO () {
     y2milestone ("Read exports into globals: %1", BootCommon::globals);
 }
 
+/**
+  * Constructor
+  */
+global void BootPOWERLILO () {
+    BootCommon::bootloader_attribs["ppc"] = $[
+	"required_packages"	: ["lilo"],
+	"loader_name"		: "ppc",
+	"initializer"		: BootPOWERLILO::Initializer,
+    ];
+}
 
 }
