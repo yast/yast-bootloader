@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 20 14:24:33 CET 2006 - od@suse.de
+
+- moved BootPOWERLILO initialization code out of constructor again
+  -- this unconditionally initialized lib_iface for ppc
+- 2.13.11
+
+-------------------------------------------------------------------
 Wed Jan 18 21:00:49 CET 2006 - od@suse.de
 
 - remove __exports__ from globals in extract_exports_from_globals()
