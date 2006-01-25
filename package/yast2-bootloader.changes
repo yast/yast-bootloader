@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jan 25 16:10:02 CET 2006 - od@suse.de
+
+- added print-product.ycp, used by update-bootloader from
+  perl-Bootloader 
+- 2.13.12
+
+-------------------------------------------------------------------
 Fri Jan 20 14:24:33 CET 2006 - od@suse.de
 
 - moved BootPOWERLILO initialization code out of constructor again
