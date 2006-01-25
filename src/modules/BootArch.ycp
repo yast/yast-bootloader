@@ -80,7 +80,6 @@ global string FailsafeKernelParams () {
  * @return string parameters for default kernel
  */
 global string DefaultKernelParams (string resume) {
-    y2milestone ("Defining default kernel parameters: resume is %1", resume);
     if (Arch::i386 () || Arch::x86_64 ())
     {
 	string resumestring = "";
@@ -96,7 +95,6 @@ global string DefaultKernelParams (string resume) {
 	if (regexpmatch (ret, "^(.* )?splash=[a-z]+( .*)?$"))
 	    ret = regexpsub (ret, "^((.* ))?splash=[a-z]+(( .*)?)$", "\\1 \\3");
 	ret = ret + " splash=silent showopts";
-	y2milestone ("Default kernel parameters: %1", ret);
 	return ret;
     }
     else if (Arch::ia64 ())
