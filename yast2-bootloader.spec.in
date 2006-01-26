@@ -1,7 +1,7 @@
 @HEADER-COMMENT@
-# neededforbuild yast2-devel-packages yast2-storage yast2-storage-lib yast2-installation yast2 yast2-devel perl-Bootloader limal-bootloader limal limal-devel limal-perl gpp libgpp
 
 @HEADER@
+BuildRequires:	gcc-c++ limal-devel yast2-devel yast2-devel-packages yast2-installation limal-bootloader
 PreReq:         /bin/sed %fillup_prereq
 Requires:	yast2 yast2-core yast2-storage perl-Bootloader limal-bootloader
 %ifarch %ix86 x86_64
