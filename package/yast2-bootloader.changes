@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Jan 27 09:28:04 CET 2006 - locilka@suse.cz
+
+- merged texts from proofread
+
+-------------------------------------------------------------------
 Wed Jan 25 16:10:02 CET 2006 - od@suse.de
 
 - added print-product.ycp, used by update-bootloader from
