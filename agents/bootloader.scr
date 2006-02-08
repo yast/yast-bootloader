@@ -10,7 +10,7 @@
  * See:
  *   libscr
  *
- * $Id: cron.scr,v 1.1 2004/01/29 15:32:49 nashif Exp $
+ * $Id$
  *
  */
 .bootloader

@@ -11,7 +11,7 @@
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
  *
- * $Id: misc.ycp 22859 2005-03-30 12:57:16Z jsrain $
+ * $Id$
  *
  * WARNING:
  *      To be included to BootCommon.ycp only
