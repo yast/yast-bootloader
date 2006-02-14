@@ -191,7 +191,7 @@
 	// part of summary
 	"mac_old" : _("Old World Power Macintosh"),
 	// part of summary
-	"unnknown" : _("Unknown"),
+	"unknown" : _("Unknown"),
     ];
 
     /**
