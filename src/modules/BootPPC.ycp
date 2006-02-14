@@ -109,10 +109,6 @@
         {
 	    board_type = "mac_old";
 	}
-        else if (Arch::board_mac_nubus ())
-        {
-	    board_type = "mac_nubus";
-	}
 	else
 	{
 	    board_type = "unknown";
@@ -675,11 +671,6 @@ global boolean currentBoardUpdate () {
 		// summary part
 		_("Configure the BootX App in classic MacOS to boot the file 'vmlinuz-oldworld'")
 	    ];
-	}
-	else if ( getBoardType () == "mac_nubus" )
-	{
-	    // summary part
-	    ret = [ _("Use the Apple MkLinux Booter to boot the kernel.")];
 	}
 	else
 	{

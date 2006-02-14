@@ -190,7 +190,6 @@
 	"mac_new" : _("New World Power Macintosh"),
 	// part of summary
 	"mac_old" : _("Old World Power Macintosh"),
-	"nubus" : "Nubus",
 	// part of summary
 	"unnknown" : _("Unknown"),
     ];
@@ -225,11 +224,6 @@
 	{
 	    // part of summary
 	    return _("Old World Power Macintosh");
-	}
-	else if ( getBoardType () == "nubus" )
-	{
-	    // part of summary
-	    return "Nubus";
 	}
 	// part of summary
 	return _("Unknown");*/
