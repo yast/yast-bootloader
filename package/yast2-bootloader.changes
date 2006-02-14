@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb 14 13:30:19 CET 2006 - olh@suse.de
+
+- remove nubus support
+
+-------------------------------------------------------------------
 Wed Feb  1 16:31:31 CET 2006 - od@suse.de
 
 - added to package: src/modules/print-product.ycp
