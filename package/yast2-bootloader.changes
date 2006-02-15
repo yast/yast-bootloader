@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Wed Feb 15 15:28:00 CET 2006 - od@suse.de
+
+- olh:
+  - setting svn:keyword property to 'Author Date Id Revision'
+  - typo s/instalaltion/installation/
+- od:
+  - restrict LILO section names to 11 chars -- use same algorithm
+    as in perl-Bootloader, LILO.pm, sub FixSectionName()
+- 2.13.14
+
+-------------------------------------------------------------------
 Tue Feb 14 13:34:23 CET 2006 - olh@suse.de
 
 - fix typo in board_type_names
