@@ -10,6 +10,7 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Olaf Dabrunz <od@suse.de>
  *
  * $Id$
  *
@@ -23,6 +24,9 @@
     import "Mode";
 
     /**
+      * FIXME: handling of bootloader-specific restrictions should be handled
+      * in perl-Bootloader
+      *
       * Create translated name of a section
       * @param orig string original section name
       * @param allow_blanks boolean true if blanks are allowed in section name
@@ -82,11 +86,33 @@
 	    y2warning ("Incorrect translation %1 -> %2", orig, translated);
 	    return not_trans[orig]:orig;
 	}
+	// FIXME: find a better name: "! allow_blanks" really means that the bootloader is lilo
 	if (! allow_blanks)
 	{
-	    filtered = mergestring (splitstring (filtered, " "), "_");
-	    if (size (filtered) > 15)
-		filtered = substring (filtered, 0, 15);
+	    // label tag for lilo.conf has a restricted valid character set and
+	    // limited allowed string length
+	    string cutoff = "";
+
+	    // Limit length to 11 characters, but keep it "nice"
+	    // 1. cut off linux- prefix if found
+	    if (size(filtered) > 11)
+		filtered = regexpsub (filtered, "^[Ll][Ii][Nn][Uu][Xx]-", "");
+
+	    while (size(filtered) > 11) {
+		// 2. cut off last word, break if no more found
+		cutoff = regexpsub (filtered, " [^ ]*$", "");
+		if (size(cutoff) == size(filtered))
+		    break;
+		filtered = cutoff;
+	    }
+
+	    // 3. last resort: cutoff excess characters
+	    filtered = substring (filtered, 0, 11);
+
+	    // 4. convert not allowed chars to "_"
+	    // (NOTE: this converts according to lilo requirements, ATM we do
+	    // not allow ".-" above already; so ATM this converts only " ")
+	    filtered = regexpsub (filtered, "^[a-zA-Z.-]", "_");
 	}
 	else if (contains (["linux", "failsafe", "previous", "xen"], orig)
 	    && ! Mode::test ())
