@@ -313,7 +313,7 @@ boolean testAbort () {
     }
 
 /**
- * Update the whole confiuration
+ * Update the whole configuration
  * @param iv a map representing the installed (original) version
  * @param uv a map representing the version the system is upgraded to
  * @return boolean true on success
