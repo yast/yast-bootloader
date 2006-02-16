@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Feb 16 17:18:17 CET 2006 - od@suse.de
+
+- wrote ReplaceRegexMatch() to globally replace matching regexes
+- fix filtering of lilo bootloader section name with
+  ReplaceRegexMatch()
+- 2.13.16
+
+-------------------------------------------------------------------
 Thu Feb 16 15:50:30 CET 2006 - od@suse.de
 
 - fixed typo in filtering of forbidden chars for lilo section titles
