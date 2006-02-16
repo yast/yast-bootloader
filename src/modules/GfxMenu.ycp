@@ -31,7 +31,7 @@
      *
      * @param input string that may contain substrings matching regex
      * @param regex regular expression to search for, must not contain brackets
-     * @param repl  string that replaces every string of characters matching the regex
+     * @param repl  string that replaces every substring matching the regex
      * @return string that has matches replaced
      */
     global define string ReplaceRegexMatch(string input, string regex, string repl) ``{
@@ -128,17 +128,21 @@
 
 	    // Limit length to 11 characters, but keep it "nice"
 	    // 1. cut off linux- prefix if found
-	    if (size(filtered) > 11)
-		filtered = regexpsub (filtered, "^[Ll][Ii][Nn][Uu][Xx]-", "");
+	    if (size(filtered) > 11) {
+		cutoff = regexpsub (filtered, "^[Ll][Ii][Nn][Uu][Xx]-", "");
+		if (cutoff != nil)
+		    filtered = cutoff;
+	    }
 
 	    while (size(filtered) > 11) {
 		// 2. cut off last word, break if no more found
-		cutoff = regexpsub (filtered, " [^ ]*$", "");
-		if (size(cutoff) == size(filtered))
+		cutoff = regexpsub (filtered, "^(.*) [^ ]*$", "\\1");
+		y2milestone ("cutoff is: %1", cutoff);
+		if (cutoff == nil || size(cutoff) == size(filtered))
 		    break;
 		filtered = cutoff;
 	    }
-	    y2milestone ("section title for lilo without execess words: %1", filtered);
+	    y2milestone ("section title for lilo without excess words: %1", filtered);
 
 	    // 3. last resort: cutoff excess characters
 	    filtered = substring (filtered, 0, 11);
