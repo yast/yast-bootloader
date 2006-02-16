@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Thu Feb 16 19:31:10 CET 2006 - od@suse.de
+
+- translateSectionTitle():
+  - handle results properly when regexpsub() is called with a non-matching
+    regex
+  - fixed comment for ReplaceRegexMatch()
+  - fixed execess -> excess in y2milestone()
+  - added another y2milestone() for cutting off words
+- 2.13.17
+
+-------------------------------------------------------------------
 Thu Feb 16 17:18:17 CET 2006 - od@suse.de
 
 - wrote ReplaceRegexMatch() to globally replace matching regexes
