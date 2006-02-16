@@ -24,9 +24,37 @@
     import "Mode";
 
     /**
-      * FIXME: handling of bootloader-specific restrictions should be handled
-      * in perl-Bootloader
-      *
+     * Replace every match of given regular expression in a string with a
+     * replacement string
+     *
+     * e.g. ReplaceRegexMatch( "abcdef12ef34gh000", "[0-9]+", "_A_" ) -> "abcdef_A_ef_A_gh_A_"
+     *
+     * @param input string that may contain substrings matching regex
+     * @param regex regular expression to search for, must not contain brackets
+     * @param repl  string that replaces every string of characters matching the regex
+     * @return string that has matches replaced
+     */
+    global define string ReplaceRegexMatch(string input, string regex, string repl) ``{
+	if(input == nil || size(input) < 1) return "";
+	string rest = input;
+	string output = "";
+	if( regexpmatch( rest, regex ) )
+	    {
+	    list p = regexppos( rest, regex );
+	    do
+		{
+		output = output +
+			 substring( rest, 0, p[0]:0 ) +
+		         repl;
+		rest = substring( rest, p[0]:0+p[1]:0 );
+		p = regexppos( rest, regex );
+		}
+	    while( size(p)>0 );
+	    }
+	return output + rest;
+    }
+
+    /**
       * Create translated name of a section
       * @param orig string original section name
       * @param allow_blanks boolean true if blanks are allowed in section name
@@ -34,6 +62,10 @@
       */
     global define string translateSectionTitle (string orig, boolean allow_blanks)
     ``{
+	//
+	// FIXME: handling of bootloader-specific restrictions should be done
+	// in perl-Bootloader
+	//
         map trans = $[
 	    // entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
 	    // are allowed, otherwise translartion won't be used
@@ -115,7 +147,7 @@
 	    // 4. convert not allowed chars to "_"
 	    // (NOTE: this converts according to lilo requirements, ATM we do
 	    // not allow ".-" above already; so ATM this converts only " ")
-	    filtered = regexpsub (filtered, "[^a-zA-Z.-]", "_");
+	    filtered = ReplaceRegexMatch (filtered, "[^a-zA-Z.-]", "_");
 	    y2milestone ("section title for lilo: filtered unallowed characters: %1", filtered);
 	}
 	else if (contains (["linux", "failsafe", "previous", "xen"], orig)
