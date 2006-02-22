@@ -18,6 +18,7 @@ textdomain "bootloader";
 
 import "Arch";
 import "Bootloader";
+import "Installation";
 import "Misc";
 import "Mode";
 import "Update";
@@ -48,6 +49,31 @@ if (func == "Info")
 }
 else if (func == "Write")
 {
+    // provide the /dev content from the inst-sys also inside the chroot of just the upgraded system
+    // umount of this bind mount will happen in umount_finish
+    if (Mode::update ())
+    {
+	string cmd = "targetdir=" + Installation::destdir + "
+if test ${targetdir} = / ; then echo targetdir is / ; exit 1 ; fi
+grep -E \"^[^ ]+ ${targetdir}/dev \" < /proc/mounts
+if test $? = 0
+then
+	echo targetdir ${targetdir} already mounted.
+	exit 1
+else
+	mkdir -vp ${targetdir}/dev
+	cp --preserve=all --recursive --remove-destination /lib/udev/devices/* ${targetdir}/dev
+	mount -v --bind /dev ${targetdir}/dev
+fi
+";
+	y2milestone ("mount --bind cmd: %1", cmd);
+	map out = (map)WFM::Execute (.local.bash_output, cmd);
+	if (out["exit"]:0 != 0)
+	{
+	y2error ("unable to bind mount /dev in chroot");
+	}
+	y2milestone ("mount --bind /dev /mnt/dev output: %1", out);
+    }
     SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
     // --------------------------------------------------------------
     // message after first round of packet installation

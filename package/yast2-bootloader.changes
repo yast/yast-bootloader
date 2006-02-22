@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Feb 22 21:08:10 CET 2006 - olh@suse.de
+
+- do a mount --bind /dev /mnt/dev in bootloader_finish.ycp (#144773)
+
+-------------------------------------------------------------------
 Thu Feb 16 19:31:10 CET 2006 - od@suse.de
 
 - translateSectionTitle():
