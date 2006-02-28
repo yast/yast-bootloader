@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 28 12:35:40 CET 2006 - od@suse.de
+
+- olh also fixed a typo in Bootloader.ycp
+- 2.13.18
+
+-------------------------------------------------------------------
 Wed Feb 22 21:08:10 CET 2006 - olh@suse.de
 
 - do a mount --bind /dev /mnt/dev in bootloader_finish.ycp (#144773)
