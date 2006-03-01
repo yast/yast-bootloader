@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar  1 09:06:08 CET 2006 - olh@suse.de
+
+- use correct path to mkzimage for iSeries bootfile
+
+-------------------------------------------------------------------
 Tue Feb 28 12:35:40 CET 2006 - od@suse.de
 
 - olh also fixed a typo in Bootloader.ycp

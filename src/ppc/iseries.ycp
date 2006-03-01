@@ -250,7 +250,7 @@
 	{
 	    iseries_bootbinary = (string)SCR::Read (.target.tmpdir)
 		+ "/vmlinux64.initrd";
-	    SCR::Execute (.target.bash, "/lib/lilo/iseries/make_zimage_iseries.sh"
+	    SCR::Execute (.target.bash, "/bin/mkzimage --board iseries "
 		+ " --vmlinux /boot/vmlinux --initrd /boot/initrd --output "
 		+ iseries_bootbinary
 		+ " >> /var/log/YaST2/y2loglilo_iseries_bootbinary 2>&1 " );
