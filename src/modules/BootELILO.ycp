@@ -407,13 +407,12 @@ global define boolean Write () {
 
 	if (efi_entry_name != "" && efi_entry_name != nil)
 	{
+	    string bl_logfile = "/var/log/YaST2/y2log_bootloader";
 	    string bl_command = sformat (
-		"/usr/sbin/efibootmgr -c -L \"%1\" -d %2 -l '\\efi\\SuSE\\elilo.efi' -p %3 -v -w >> /var/log/YaST2/y2logefi 2>&1",
-		efi_entry_name, boot_disk, boot_part);
-	    string bl_logfile = "/var/log/YaST2/y2logefi";
-	    boolean command_ret
-		    = installBootLoader (bl_command, bl_logfile);
-	    ret = ret && command_ret;
+		"/usr/sbin/efibootmgr -c -L \"%1\" -d %2 " +
+		"-l '\\efi\\SuSE\\elilo.efi' -p %3 -v -w >> %4 2>&1",
+		efi_entry_name, boot_disk, boot_part, bl_logfile);
+	    ret = ret && installBootLoader (bl_command, bl_logfile);
 	}
     }
     return ret;

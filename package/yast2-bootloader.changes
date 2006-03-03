@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar  3 20:27:17 CET 2006 - jplack@suse.de
+
+- give an error popoup with log like in SLES9 (#145106)
+- use only one log file for all bootloaders (#145106)
+- fix one update problem on POWER
+
+-------------------------------------------------------------------
 Fri Mar  3 18:55:09 CET 2006 - jplack@suse.de
 
 - fixed: activate on i386 did not work when p_dev["nr"] == "" (mean

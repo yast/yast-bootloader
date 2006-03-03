@@ -567,16 +567,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 
 	    boolean grub_ret = BootCommon::InitializeBootloader ();
 	    y2milestone ("GRUB return value: %1", grub_ret);
-	    if (! grub_ret)
-	    {
-		string log = (string)SCR::Read (.target.string,
-		    "/var/log/YaST2/y2log_tool_grub");
-                errorWithLogPopup (sformat (
-		    // error popup - label, %1 is bootloader name
-		    _("Error occurred while installing %1."), "GRUB"),
-                    log);
-	    }
-	    else if (BootCommon::InstallingToFloppy ())
+	    if (BootCommon::InstallingToFloppy ())
 	    {
 		BootCommon::updateTimeoutPopupForFloppy
 		    (BootCommon::getLoaderName ("grub", `summary));
