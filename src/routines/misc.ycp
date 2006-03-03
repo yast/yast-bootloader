@@ -825,6 +825,19 @@ global list<string> ListKernelParamsInLine (string line) {
 	];
     }
 
+    /*
+     *  convert any value to an integer and return 0 for nonsense
+     */	
+    define integer myToInteger(any num_any) {
+	if (num_any == nil)
+    	    return 0;
+	if (is (num_any, integer))
+	    return (integer)num_any;
+	if (is (num_any, string))
+	    return (num_any == "") ? 0 : tointeger((string)num_any);
+	return 0;
+    } 
+
     /**
       * Get partition which should be activated if doing it during bl inst.
       * @param boot_partition string the partition holding /boot subtree
@@ -837,17 +850,11 @@ global list<string> ListKernelParamsInLine (string line) {
 	string loader_device)
     {
 	map p_dev = Storage::GetDiskPartition (loader_device);
-	any num_any = p_dev["nr"]:nil;
-	integer num = 0;
-	if (num_any != nil)
-	{
-	    if (is (num_any, integer))
-		num = (integer)num_any;
-	    else if (is (num_any, string))
-		num = tointeger ((string)num_any);
-	}
+	integer num = myToInteger( p_dev["nr"]:nil );
 	string mbr_dev = p_dev["disk"]:"";
+
 	// if bootloader is installed to /dev/md*
+	// FIXME: use ::storage to detect md devices, not by name!
 	if (substring (loader_device, 0, 7) == "/dev/md")
 	{
 	    map<string,integer> md = Md2Partitions (BootCommon::loader_device);
@@ -863,14 +870,7 @@ global list<string> ListKernelParamsInLine (string line) {
 	    if (device != "")
 	    {
 		map p_dev = Storage::GetDiskPartition (loader_device);
-		any num_any = p_dev["nr"]:nil;
-		if (num_any != nil)
-		{
-		    if (is (num_any, integer))
-			num = (integer)num_any;
-		    else if (is (num_any, string))
-			num = tointeger ((string)num_any);
-		}
+		num = myToInteger( p_dev["nr"]:nil );
 		mbr_dev = p_dev["disk"]:"";
 	    }
 	}
@@ -879,30 +879,17 @@ global list<string> ListKernelParamsInLine (string line) {
 	else if (num == 0)
 	{
 	    p_dev = Storage::GetDiskPartition (boot_partition);
-	    any num_any = p_dev["nr"]:nil;
-	    if (num_any != nil)
-	    {
-		if (is (num_any, integer))
-		    num = (integer)num_any;
-		else if (is (num_any, string))
-		    num = tointeger ((string)num_any);
-		mbr_dev = p_dev["disk"]:"";
-	    }
+	    num = myToInteger( p_dev["nr"]:nil );
+	    mbr_dev = p_dev["disk"]:"";
+
 	    if (size (Md2Partitions (boot_partition)) > 1)
 	    {
 		foreach (string k, integer v, Md2Partitions (boot_partition),{
 		    if (find (k, loader_device) == 0)
 		    {
 			p_dev = Storage::GetDiskPartition (k);
-			any num_any = p_dev["nr"]:nil;
-			if (num_any != nil)
-			{
-			    if (is (num_any, integer))
-				num = (integer)num_any;
-			    else if (is (num_any, string))
-				num = tointeger ((string)num_any);
-			    mbr_dev = p_dev["disk"]:"";
-			}
+			num = myToInteger( p_dev["nr"]:nil );
+			mbr_dev = p_dev["disk"]:"";
 		    }
 		});
 	    }
@@ -1092,6 +1079,7 @@ global list<string> ListKernelParamsInLine (string line) {
 		ret = ret && (0 == exit);
 	    });
 	}
+
 	if (activate)
 	{
 	  foreach (map m_activate, getPartitionsToActivate (), {
@@ -1099,9 +1087,12 @@ global list<string> ListKernelParamsInLine (string line) {
 	    string mbr_dev = m_activate["mbr"]:"";
 	    if (num != 0 && mbr_dev != "")
 	    {
+		// if primary partition
 		if ((! is (num, integer)) || num <= 4)
 		{
 		    y2milestone ("Activating partition %1 on %2", num, mbr_dev);
+		    // FIXME: this is the most rotten code since molded sliced bread
+		    // move to bootloader/Core/GRUB.pm or similar
 		    string command = sformat
 			("/sbin/activate %2 %1", num, mbr_dev);
 		    y2milestone ("Running command %1", command);
@@ -1203,6 +1194,8 @@ global list<string> ListKernelParamsInLine (string line) {
 	{
 	    return device;
 	}
+
+	// FIXME: this is broken, detection by name is deprecated
 	if (regexpmatch (device, "^/dev/hd.+$")
 	    || regexpmatch (device, "^/dev/sd.+$")
 	    || regexpmatch (device, "^/dev/ataraid/.+$"))
@@ -1548,6 +1541,7 @@ global boolean BootloaderInstallable () {
 	map dev = Storage::GetDiskPartition( BootCommon::BootPartitionDevice);
 	y2milestone ("Disk info: %1", dev);
 	// MD, but not mirroring is OK
+	// FIXME: type detection by name deprecated
 	if (dev["disk"]:"" == "/dev/md")
 	{
 	    map tm = Storage::GetTargetMap ();
@@ -1565,6 +1559,7 @@ global boolean BootloaderInstallable () {
 	    }
 	}
 	// EVMS
+	// FIXME: type detection by name deprecated
 	else if (find (BootPartitionDevice, "/dev/evms/") == 0)
 	{
 	    y2milestone ("Cannot install bootloader on EVMS");

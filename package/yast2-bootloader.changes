@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar  3 18:55:09 CET 2006 - jplack@suse.de
+
+- fixed: activate on i386 did not work when p_dev["nr"] == "" (mean
+  whole disk) was one of loader_device or boot_partition
+
+-------------------------------------------------------------------
 Wed Mar  1 09:06:08 CET 2006 - olh@suse.de
 
 - use correct path to mkzimage for iSeries bootfile
