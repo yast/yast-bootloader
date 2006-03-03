@@ -354,7 +354,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     ret = ret && BootCommon::SetSections (sects);
     ret = ret && BootCommon::SetGlobal (BootCommon::globals);
     if (flush)
-	ret = ret && BootCommon::FlushCache ();
+	ret = ret && BootCommon::CommitSettings ();
 
     return ret;
 }
@@ -368,9 +368,13 @@ global define list<string> Summary () {
     list<string> result = [];
 
     // summary text, %1 is bootloader name
-    result = add (result,
-		  sformat (_("Boot loader type: %1"),
-			   BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)));
+    result = add(
+	result,
+	sformat(
+	    _("Boot loader type: %1"),
+	    BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)
+	)
+    );
 
     // summary text for boot loader locations, sum up all locations to one string
     string boot_loader_locations = 
@@ -413,7 +417,7 @@ global define list<string> Summary () {
  */
 global void Update () {
     BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
-    BootCommon::UpdateGlobals ();
+    // this is soo broken ... BootCommon::UpdateGlobals ();
     BootCommon::loader_device
 	= BootCommon::UpdateDevice (BootCommon::loader_device);
 }

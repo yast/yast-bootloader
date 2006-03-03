@@ -236,6 +236,24 @@ global map<string,string> GetDeviceMap () {
     return devmap;
 }
 
+/*
+ * Display the log file written by the underlying bootloader libraries 
+ */
+bootloaderError (string error) {
+    string bl_logfile = "/var/log/YaST2/y2log_bootloader";
+    string bl_log = (string)SCR::Read (.target.string, bl_logfile);
+
+    errorWithLogPopup (
+	sformat (
+	    // error popup - label, %1 is bootloader name
+	    _("Error Occurred while Installing %1"),
+	    BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)
+	),
+	bl_log
+    );
+    y2error (error);
+}
+
 /**
  * Read the files from the system to internal cache of the library
  * @return boolean true on success
@@ -252,11 +270,11 @@ global boolean ReadFiles () {
  * Flush the internal cache of the library to the disk
  * @return boolean true on success
  */
-global boolean FlushCache () {
+global boolean CommitSettings () {
     y2milestone ("Writing files to system");
     boolean ret = System::Bootloader_API::commitSettings ();
     if (! ret)
-	y2error ("Writing files to system failed");
+	bootloaderError ("Writing files to system failed");
     return ret;
 }
 
@@ -268,9 +286,10 @@ global boolean UpdateBootloader () {
     y2milestone ("Updating bootloader configuration");
     boolean ret = System::Bootloader_API::updateBootloader (true);
     if (! ret)
-	y2error ("Error occurred while updating configuration files");
+	bootloaderError ("Error occurred while updating configuration files");
     return ret;
 }
+
 /**
  * Initialize the boot loader (eg. modify firmware, depending on architecture)
  * @return boolean true on success
@@ -279,7 +298,7 @@ global boolean InitializeBootloader () {
     y2milestone ("Initializing bootloader");
     boolean ret = System::Bootloader_API::initializeBootloader ();
     if (! ret)
-        y2error ("Error occurred while initializing bootloader");
+        BootloaderError ("Error occurred while initializing bootloader");
     return ret;
 }
 
