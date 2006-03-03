@@ -246,7 +246,7 @@ bootloaderError (string error) {
     errorWithLogPopup (
 	sformat (
 	    // error popup - label, %1 is bootloader name
-	    _("Error Occurred while Installing %1"),
+	    _("Error occurred while installing %1."),
 	    BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)
 	),
 	bl_log
@@ -298,7 +298,7 @@ global boolean InitializeBootloader () {
     y2milestone ("Initializing bootloader");
     boolean ret = System::Bootloader_API::initializeBootloader ();
     if (! ret)
-        BootloaderError ("Error occurred while initializing bootloader");
+        bootloaderError ("Error occurred while initializing bootloader");
     return ret;
 }
 

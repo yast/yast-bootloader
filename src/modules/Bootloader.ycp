@@ -893,7 +893,10 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	    return true;
 	if (getLoaderType () == "lilo")
 	{
-	    string bl_command = "/sbin/lilo >> /var/log/YaST2/y2loglilo 2>&1";
+	  /*
+	   * This is extreme boolshit, Bootloader::Library has to be called
+	   */
+	    string bl_command = "/sbin/lilo >> /var/log/YaST2/y2log_bootloader 2>&1";
 	    boolean command_ret = 0 == SCR::Execute (.target.bash, bl_command);
 	    if (! command_ret)
 	    {
