@@ -526,7 +526,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     ret = ret && SetGlobal (globals);
     if (flush)
     {
-	ret = ret && FlushCache ();
+	ret = ret && CommitSettings ();
     }
     return ret;
 }

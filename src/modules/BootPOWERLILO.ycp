@@ -6,12 +6,13 @@
  *      Bootloader installation and configuration
  *
  * Summary:
- *      Module containing specific functions for LILO configuration
+ *      Module containing specific functions for POWERLILO configuration
  *      and installation
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
  *      Joachim Plack <jplack@suse.de>
+ *      Olaf Dabrunz <od@suse.de>
  *
  * $Id$
  *
@@ -27,7 +28,129 @@ import "BootCommon";
 import "Kernel";
 import "Mode";
 import "Pkg";
+import "Stage";
 import "Storage";
+
+/*
+ * This whole code is a big mess. To have a solution at all I included and
+ * adapted copies of the code from the old BootPPC.ycp, from common code in
+ * lilolike.ycp and others.
+ *
+ * od - February and March 2006
+ */
+
+    // change the OpenFirmware variable 'boot-device' on CHRP or new PowerMacs
+    global boolean of_defaultdevice = true;
+
+    // partition number for the bootloader (either 41PReP boot or Apple_HFS)
+    // start with disabled value and let the partition scanner find a match.
+    global string prep_boot_partition = "/dev/null";
+
+    // map available of 41 PReP partitions, used on iSeries and CHRP
+    global list<string> prep_boot_partitions = [];
+
+    // PReP boot partitions that were proposed by partitioner to install BL
+    global list<string> install_prep_boot_partitions = [];
+
+    // iSeries specific global settings
+
+    // filename for the iSeries kernel, for streamfile *STMF booting
+    global string   iseries_streamfile  = "/boot/suse_linux_bootfile";
+
+    // write the install kernel to slot A, for rescue purpose
+    global boolean  iseries_write_slot_a = false;
+
+    // write the kernel to slot B
+    global boolean  iseries_write_slot_b = false;
+
+    // write the kernel to an 41 PReP boot partition
+    global boolean  iseries_write_prepboot = false;
+
+    // write the kernel to file, this must be transfered to OS/400
+    global boolean  iseries_write_streamfile = false;
+
+    // current board attribs
+    global boolean prep_only_active = true;
+    global boolean prep_only_iseries_vd = true;
+    global boolean prep_only_primary = true;
+    global boolean prep_same_disk_as_root = true;
+    global list table_items = [];
+    global string boot_device = "";
+    global string root_device = "";
+
+    string board_type = nil;
+
+    global define string getBoardType ();
+    global define void setBoardType (string board);
+    global define void currentBoardInit ();
+
+    include "bootloader/routines/popups.ycp";
+    include "bootloader/ppc/misc.ycp";
+    include "bootloader/ppc/prep.ycp";
+    include "bootloader/ppc/chrp.ycp";
+    include "bootloader/ppc/iseries.ycp";
+
+// misc. functions
+
+    global define void initBoardType () ``{
+        if (Arch::board_iseries ())
+        {
+	    board_type = "iseries";
+        }
+        else if (Arch::board_prep ())
+        {
+	    board_type = "prep";
+        }
+        else if (Arch::board_chrp ())
+        {
+	    board_type = "chrp";
+	}
+        else if (Arch::board_mac_new ())
+        {
+	    board_type = "mac_new";
+	}
+        else if (Arch::board_mac_old ())
+        {
+	    board_type = "mac_old";
+	}
+	else
+	{
+	    board_type = "unknown";
+	}
+    }
+
+    global define string getBoardType () ``{
+	if (board_type == nil)
+	    initBoardType ();
+	return board_type;
+    }
+
+    global define void setBoardType (string board) ``{
+	board_type = board;
+	currentBoardInit ();
+    }
+
+    /**
+      * Initialize the attribute of currently used board type
+      */
+    global define void currentBoardInit () ``{
+        if (getBoardType () == "iseries")
+        {
+	    iSeriesInit ();
+        }
+        else if (getBoardType () == "prep")
+        {
+	    PRePInit ();
+        }
+        else if (getBoardType () == "chrp")
+        {
+	    CHRPInit ();
+	}
+	// TODO other boards
+    }
+
+
+
 
 /**
  * map of global options and types
@@ -103,6 +226,18 @@ void     extract_exports_from_globals() {
   *
   */
 global void LocationProposal () {
+    BootCommon::DetectDisks ();
+    // del_parts is used by FixSections() in lilolike.ycp (imported by BootCommon.ycp)
+    BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
+    boolean disks_changed = BootCommon::RefreshDisks();
+
+    if (updatePrepBootPartitions () || prep_boot_partition == "")
+    {
+	// TODO warning to user
+	choosePrepBootPartition ();
+    }
+
+/*  FIXME: remove this code (it was a simple proposal)
     // get map of lists: mountpoint -> [partitionName, fsid, targetdevice, raid_type]
     map mp = Storage::GetMountPoints();
 
@@ -113,9 +248,11 @@ global void LocationProposal () {
 	y2error ("No mountpoint for / !!");
     else
 	y2milestone("Root partition is %1", BootCommon::RootPartitionDevice);
+*/
 
     string arch = exports["arch"]:"chrp";
     if ( arch == "chrp" ) {
+/*  FIXME: remove this code (it was a simple proposal)
 	// FIXME: really detect the boot partition (instead of leaving this to
 	// lilo), see /lib/lilo/lilo-chrp.lib:76 (ie. GoodPrepOrFatPartition()
 	// functionality)
@@ -123,6 +260,8 @@ global void LocationProposal () {
 	    regexpsub (BootCommon::RootPartitionDevice, "^(.*[^0-9])[0-9]*", "\\1");
 	if (BootCommon::BootPartitionDevice == nil)
 	    BootCommon::BootPartitionDevice = BootCommon::RootPartitionDevice;
+*/
+	BootCommon::BootPartitionDevice = prep_boot_partition;
 
 	// These need to be set (FIXME: find out why) --
 	// see ConfigureLocation() in lilolike.ycp
@@ -229,10 +368,31 @@ global void CreateGlobals () {
   */
 global define void Propose () ``{
     y2debug ("Started propose: Glob: %1, Sec: %2",
-    	BootCommon::globals, BootCommon::sections);
+	BootCommon::globals, BootCommon::sections);
 
+    // FIXME: make modern code out of these conditionals
+    //        - comments
+    //        - simplify
+    //        - check validity
+    boolean initial_propose = true;
+    if (BootCommon::was_proposed)
+    {
+	initial_propose = false;
+    }
+    else
+    {
+	currentBoardInit ();
+    }
     // Get root and boot partition (if any)
     LocationProposal();
+    // Put proposed bootloader device as default into boot_chrp_custom widget
+    // list
+    // "select:PReP or FAT partition::/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1" ->
+    // "select:PReP or FAT partition:/dev/sda3:/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1"
+    global_options["boot_chrp_custom"] =
+	regexpsub( global_options["boot_chrp_custom"]:"", "^([^:]*:[^:]*:).*$", "\\1") +
+	BootCommon::BootPartitionDevice +
+	regexpsub( global_options["boot_chrp_custom"]:"", "^[^:]*:[^:]*:[^:]*(:.*)$", "\\1");
 
     if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
     {
@@ -241,11 +401,11 @@ global define void Propose () ``{
     }
     else
     {
-    	if (Mode::autoinst ())
-    	{
+	if (Mode::autoinst ())
+	{
 	    y2debug ("Nothing to do in AI mode if sections exist");
-    	}
-    	else
+	}
+	else
 	    BootCommon::FixSections (BootPOWERLILO::CreateSections);
     }
 
@@ -258,11 +418,11 @@ global define void Propose () ``{
     }
     else
     {
-    	if (Mode::autoinst ())
-    	{
+	if (Mode::autoinst ())
+	{
 	    y2debug ("Nothing to do in AI mode if globals are defined");
-    	}
-    	else
+	}
+	else
 	    BootCommon::FixGlobals ();
     }
 
@@ -270,6 +430,75 @@ global define void Propose () ``{
     y2milestone ("Proposed globals: %1", BootCommon::globals);
 }
 
+
+    /**
+      * Propose bootloader settings
+      *
+    global define void Propose () ``{
+	boolean initial_propose = true;
+	if (BootCommon::was_proposed)
+	{
+	    initial_propose = false;
+	}
+	else
+	{
+	    currentBoardInit ();
+	}
+        BootCommon::DetectDisks ();
+	BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
+	boolean disks_changed = BootCommon::RefreshDisks();
+
+	if (updatePrepBootPartitions () || prep_boot_partition == "")
+	{
+	    // TODO warning to user
+	    choosePrepBootPartition ();
+	}
+
+        if ( getBoardType () == "iseries" )
+        {
+	    iSeriesPropose (initial_propose);
+        }
+        else if ( getBoardType () == "prep" )
+        {
+	    PRePPropose (initial_propose);
+        }
+        else if ( getBoardType () == "chrp" )
+        {
+	    CHRPPropose (initial_propose);
+	}
+
+	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
+	{
+	    createSections ();
+	    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
+	}
+	else
+	{
+            if (Mode::autoinst ())
+            {
+		y2debug ("nothing to to in AI mode if sections exist");
+                // TODO whatever will be needed
+            }
+            else
+		fixSections (disks_changed);
+	}
+	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
+	{
+	    createGlobals ();
+	}
+	else
+	{
+            if (Mode::autoinst ())
+            {
+		y2debug ("nothing to to in AI mode if globals are defined");
+                // TODO whatever will be needed
+            }
+            else
+		fixGlobals (disks_changed);
+	}
+    }
+
+    */
 
 /**
   * Export bootloader settings to a map

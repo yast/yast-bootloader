@@ -55,8 +55,7 @@
       * @return boolean true on success
       */
     global define boolean PRePRead () ``{
-	prep_boot_partition = (string)
-	    lookup_value (BootCommon::globals, "boot", "");
+	prep_boot_partition = (string) BootCommon::globals["boot"]:"";
 	BootCommon::activate
 	    = prep_boot_partition != "" && prep_boot_partition != "/dev/null";
 	return true;
@@ -75,8 +74,7 @@
       * @return boolean true on success
       */
     global define boolean PRePSave () ``{
-	BootCommon::globals = modifySection (BootCommon::globals, "boot",
-	    prep_boot_partition);
+	BootCommon::globals["boot"] = prep_boot_partition;
 	return true;
     }
 

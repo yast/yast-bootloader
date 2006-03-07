@@ -239,7 +239,7 @@ global map<string,string> GetDeviceMap () {
 /*
  * Display the log file written by the underlying bootloader libraries 
  */
-bootloaderError (string error) {
+global void bootloaderError (string error) {
     string bl_logfile = "/var/log/YaST2/y2log_bootloader";
     string bl_log = (string)SCR::Read (.target.string, bl_logfile);
 
@@ -251,7 +251,7 @@ bootloaderError (string error) {
 	),
 	bl_log
     );
-    y2error (error);
+    y2error ("%1", error);
 }
 
 /**

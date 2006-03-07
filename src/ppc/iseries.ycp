@@ -106,10 +106,10 @@
 	iseries_write_slot_b = false;
 	iseries_write_prepboot = false;
 	iseries_write_streamfile = false;
-	foreach (map g, BootCommon::globals, ``{
-	    if (g["key"]:"" == "boot")
+	foreach (string key, string value, BootCommon::globals, ``{
+	    if (key == "boot")
 	    {
-		string target = g["value"]:"";
+		string target = value;
 		symbol type = iSeriesTarget2Type (target);
 		if (type == `slot)
 		{
@@ -154,29 +154,20 @@
       * @return boolean true on success
       */
     global define boolean iSeriesSave () ``{
-	BootCommon::globals = filter (map g, BootCommon::globals, ``(
-	    g["key"]:"" != "boot"
+	BootCommon::globals = filter (string key, string value, BootCommon::globals, ``(
+	    key != "boot"
 	));
 	if (iseries_write_slot_b)
 	{
-	    BootCommon::globals = add (BootCommon::globals, $[
-		"key" : "boot",
-		"value" : "B",
-	    ]);
+	    BootCommon::globals["boot"] = "B";
 	}
 	if (iseries_write_prepboot)
 	{
-	    BootCommon::globals = add (BootCommon::globals, $[
-		"key" : "boot",
-		"value" : prep_boot_partition,
-	    ]);
+	    BootCommon::globals["boot"] = prep_boot_partition;
 	}
 	if (iseries_write_streamfile)
 	{
-	    BootCommon::globals = add (BootCommon::globals, $[
-		"key" : "boot",
-		"value" : iseries_streamfile,
-	    ]);
+	    BootCommon::globals["boot"] = iseries_streamfile;
 	}
 	return true;
     }
