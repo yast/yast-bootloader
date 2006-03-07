@@ -1,4 +1,31 @@
 -------------------------------------------------------------------
+Tue Mar  7 22:17:31 CET 2006 - od@suse.de
+
+- #145597:
+  - use old working proposal code from BootPPC in BootPOWERLILO
+  - add comments where needed to understand the code
+  - change lookup, lookup_value and modifySection and use []: instead
+  - use search instead of find(string, string)
+  - fixed header of BootPOWERLILO
+  - fixed LocationProposal to use old BootPPC code
+  - fixed some whitespace
+  - call old currentBoardInit() from new Propose()
+  - set proposed boot partition as default in widget
+- add "global void" to jplack's bootloaderError()
+- fix y2error format string
+- fixed an obsolete FlushCache() -> CommitSettings()
+- give an error popoup with log like in SLES9 (#145106)
+- use only one log file for all bootloaders (#145106)
+- cleanups, mostly indentation to make code readable
+- fixed: activate on i386 did not work when p_dev["nr"] == "" (mean 
+  whole disk) was one of loader_device or boot_partition
+- unify confusing interface names: FlushCache -> CommitSettings
+- give an error popoup with log like in SLES9 (#145106)
+- fix one update problem on POWER
+- use correct path to mkzimage for iSeries bootfile
+- 2.13.19
+
+-------------------------------------------------------------------
 Fri Mar  3 20:27:17 CET 2006 - jplack@suse.de
 
 - give an error popoup with log like in SLES9 (#145106)
