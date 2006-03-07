@@ -355,7 +355,7 @@ global string FindMBRDisk() {
 		if (partition["device"]:"" == device)
 		{
 		    ret = (string)(partition["used_by"]:device);
-		    if( find( ret, "/dev/" )!=0 )
+		    if( search( ret, "/dev/" )!=0 )
 			ret = "/dev/"+ret;
 		}
 	    });
@@ -698,7 +698,7 @@ global void UpdateSections (boolean replace,
 	{
 	    y2milestone ("Updating label of section %1...", s["name"]:"");
 	    string old_name = s["name"]:"";
-	    integer i1 = find (old_name, read_default_section_name);
+	    integer i1 = search (old_name, read_default_section_name);
 	    integer i2 = i1 + size (read_default_section_name);
 	    s["name"] = substring (old_name, 0, i1) + default_name
 		+ substring (old_name, i2);

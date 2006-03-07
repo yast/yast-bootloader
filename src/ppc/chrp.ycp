@@ -54,12 +54,10 @@
       * @return boolean true on success
       */
     global define boolean CHRPRead () ``{
-	prep_boot_partition = (string)
-	    lookup_value (BootCommon::globals, "boot", "");
+	prep_boot_partition = (string) BootCommon::globals["boot"]:"";
 	BootCommon::activate
 	    = prep_boot_partition != "" && prep_boot_partition != "/dev/null";
-	of_defaultdevice = (boolean)
-	    lookup_value (BootCommon::globals, "activate", false);
+	of_defaultdevice = ( BootCommon::globals["activate"]:"false" == "true" ? true : false );
 	return true;
     }
 
@@ -76,10 +74,8 @@
       * @return boolean true on success
       */
     global define boolean CHRPSave () ``{
-	BootCommon::globals = modifySection (BootCommon::globals, "boot",
-	    prep_boot_partition);
-	BootCommon::globals = modifySection (BootCommon::globals, "activate",
-	    of_defaultdevice);
+	BootCommon::globals["boot"] = prep_boot_partition;
+	BootCommon::globals["activate"] = ( of_defaultdevice ? "true" : "false" );
 	return true;
     }
 
@@ -135,6 +131,9 @@
 	prep_only_active = true;
 	prep_only_iseries_vd = false;
 	prep_only_primary = true;
+	// FIXME: ask jplack@ if this is correct -- what to do if there is no
+	// bootable partition on the disk containing "/"? Take the first prep
+	// partition in the system?
 	prep_same_disk_as_root = true;
 	table_items = [ "__chrp_location", "__set_default_of" ];
     }

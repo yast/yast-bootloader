@@ -55,6 +55,7 @@
 		    p["boot"]:false
 		));
 	    }*/
+	    // prep_only_iseries_vd means: use only partitions on /dev/iseries/vd*
 	    if (prep_only_iseries_vd)
 	    {
 		partitions = filter (map p, partitions, ``(
@@ -80,7 +81,7 @@
 		partitions);
 	    install_prep_boot_partitions = (list<string>)merge (
 		install_prep_boot_partitions,
-		(list<string>)maplist (map p, partitions, ``(
+		(list<string>) maplist(map p, partitions, ``(
 		    p["device"]:""
 		))
 	    );
@@ -144,15 +145,21 @@
 	else
 	{
 	    root_disks = [
-		lookup (Storage::GetDiskPartition (
-		    BootCommon::RootPartitionDevice), "disk", "")
+		Storage::GetDiskPartition(BootCommon::RootPartitionDevice)["disk"]:""
 	    ];
 	}
 
 	prep_boot_partition = "";
+	// First take the partitions that Storage:: hinted us to take, then
+	// consider the other prep_boot_partitions
 	prep_boot_partitions = (list<string>)merge (
 	    install_prep_boot_partitions,
 	    prep_boot_partitions);
+	// in the combined list, look for "usable" partitions:
+	//	- if we require the boot partition to be on the same disk as
+	//	  the root partition ("prep_same_disk_as_root"), select the
+	//	  first prep partition from that disk
+	//	- otherwise take the first prep partition in the list
 	foreach (string partition, prep_boot_partitions, ``{
 	    if (prep_boot_partition == "")
 	    {

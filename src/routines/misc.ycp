@@ -382,12 +382,12 @@ global string getFreeSectionLabel () {
 
 	list tokens = [];
 
-	integer p = find(src, from);
-	while(p >= 0)
+	integer p = search(src, from);
+	while(p != nil)
 	{
 	    tokens = add(tokens, substring(src, 0, p));
 	    src = substring(src, p + size(from), size(src) - (p+size(from)));
-	    p = find(src, from);
+	    p = search(src, from);
 	}
 	tokens = add(tokens, src);
 	return mergestring((list<string>)tokens, to);
@@ -885,7 +885,7 @@ global list<string> ListKernelParamsInLine (string line) {
 	    if (size (Md2Partitions (boot_partition)) > 1)
 	    {
 		foreach (string k, integer v, Md2Partitions (boot_partition),{
-		    if (find (k, loader_device) == 0)
+		    if (search (k, loader_device) == 0)
 		    {
 			p_dev = Storage::GetDiskPartition (k);
 			num = myToInteger( p_dev["nr"]:nil );
@@ -1560,7 +1560,7 @@ global boolean BootloaderInstallable () {
 	}
 	// EVMS
 	// FIXME: type detection by name deprecated
-	else if (find (BootPartitionDevice, "/dev/evms/") == 0)
+	else if (search (BootPartitionDevice, "/dev/evms/") == 0)
 	{
 	    y2milestone ("Cannot install bootloader on EVMS");
 	    return false;
