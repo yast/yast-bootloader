@@ -219,6 +219,19 @@ void     extract_exports_from_globals() {
     });
 }
 
+void     change_widget_default_value (string itemname, string defaultvalue) {
+    // Put defaultvalue as default value into widget description item like
+    // "boot_{chrp,prep,iseries,...}_custom".
+    // Example:
+    // "select:PReP or FAT partition::/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1" ->
+    // "select:PReP or FAT partition:/dev/sda3:/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1"
+    string old_description = global_options[itemname]:"";
+    global_options[itemname] =
+	regexpsub( old_description, "^([^:]*:[^:]*:).*$", "\\1") +
+	defaultvalue +
+	regexpsub( old_description, "^[^:]*:[^:]*:[^:]*(:.*)$", "\\1");
+}
+
 /**
   * Propose the location of the root device on disk and the boot device (if
   * any), according to the subarchitecture.
@@ -262,32 +275,30 @@ global void LocationProposal () {
 	    BootCommon::BootPartitionDevice = BootCommon::RootPartitionDevice;
 */
 	BootCommon::BootPartitionDevice = prep_boot_partition;
-
-	// These need to be set (FIXME: find out why) --
-	// see ConfigureLocation() in lilolike.ycp
-	BootCommon::loader_device = BootCommon::BootPartitionDevice;
-	BootCommon::activate = true;
-	y2milestone("Boot partition is %1", BootCommon::loader_device);
+	// also set as default value in widget
+        change_widget_default_value("boot_chrp_custom", prep_boot_partition);
     }
+    else if ( arch == "prep" ) {
+	BootCommon::BootPartitionDevice = prep_boot_partition;
+        change_widget_default_value("boot_prep_custom", prep_boot_partition);
+    }
+    else if ( arch == "iseries" ) {
+	BootCommon::BootPartitionDevice = prep_boot_partition;
+        change_widget_default_value("boot_iseries_custom", prep_boot_partition);
+    }
+
+    // These need to be set (FIXME: find out why) --
+    // see ConfigureLocation() in lilolike.ycp
+    BootCommon::loader_device = BootCommon::BootPartitionDevice;
+    BootCommon::activate = true;
+    y2milestone("Boot partition is %1", BootCommon::loader_device);
 
 /*
     // FIXME: create code for the cases below
-    else if ( arch == "prep" ) {
-        boot_map = $[
-	    "boot_prep_custom"   :  GoodPrepPartition(BootCommon::RootPartitionDevice),
-	];
-    }
     else if ( arch == "pmac" ) {
         boot_map = $[
 	    "boot_pmac_custom" : GoodHFSBootPartition(BootCommon::RootPartitionDevice),
         ]
-    }
-    else if ( arch == "iseries" ) {
-        boot_map = $[
-	    "boot_slot" 	 : "B",
-            "boot_file" 	 : "/tmp/suse_linux_image",
-	    "boot_iseries_custom": GoodPRePPartitionOnVDisk(BootCommon::RootPartitionDevice),
-	 ];
     }
 */
 }
@@ -337,26 +348,29 @@ global void CreateGlobals () {
 	    "boot_chrp_custom" : BootCommon::BootPartitionDevice,
         ];
     }
-/*
-    // FIXME: create code for the cases below
     else if ( arch == "prep" ) {
         boot_map = $[
-	    "boot_prep_custom"   :  GoodPrepPartition(BootCommon::RootPartitionDevice),
+	    "boot_prep_custom" : BootCommon::BootPartitionDevice,
 	];
     }
+/*
+    // FIXME: create code for the cases below
     else if ( arch == "pmac" ) {
         boot_map = $[
 	    "boot_pmac_custom" : GoodHFSBootPartition(BootCommon::RootPartitionDevice),
         ]
     }
+*/
     else if ( arch == "iseries" ) {
         boot_map = $[
 	    "boot_slot" 	 : "B",
+	    // FIXME: what file should be used here?
             "boot_file" 	 : "/tmp/suse_linux_image",
-	    "boot_iseries_custom": GoodPRePPartitionOnVDisk(BootCommon::RootPartitionDevice),
+				   // GoodPRePPartitionOnVDisk(BootCommon::RootPartitionDevice)
+	    "boot_iseries_custom": BootCommon::BootPartitionDevice,
 	 ];
     }
-*/
+    // Finally merge results into "globals": new values replace old ones
     BootCommon::globals = (map<string, string>) union(BootCommon::globals, boot_map);
 
 }
@@ -385,14 +399,6 @@ global define void Propose () ``{
     }
     // Get root and boot partition (if any)
     LocationProposal();
-    // Put proposed bootloader device as default into boot_chrp_custom widget
-    // list
-    // "select:PReP or FAT partition::/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1" ->
-    // "select:PReP or FAT partition:/dev/sda3:/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1"
-    global_options["boot_chrp_custom"] =
-	regexpsub( global_options["boot_chrp_custom"]:"", "^([^:]*:[^:]*:).*$", "\\1") +
-	BootCommon::BootPartitionDevice +
-	regexpsub( global_options["boot_chrp_custom"]:"", "^[^:]*:[^:]*:[^:]*(:.*)$", "\\1");
 
     if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
     {
@@ -595,6 +601,11 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
   */
 global define list<string> Summary () {
     list<string> result = [];
+
+    // FIXME:
+    //	- evaluate and use the text from iSeriesSummary(), PRePSummary() and
+    //	  CHRPSummary()
+    //  - add the cases for mac_old and mac_new (see BootPPC::Summary())
 
     // summary text, %1 is bootloader name
     result = add(
