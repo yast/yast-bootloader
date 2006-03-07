@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Wed Mar  8 00:41:02 CET 2006 - od@suse.de
+
+- added proposal for prep and iseries (pmac still missing)
+- created new function change_widget_default_value() and moved code
+  from Propose() into this function
+- proposal for prep and iseries set the default values for their
+  widgets using change_widget_default_value()
+- added FIXME: for improving the summary function
+- fixed comment in chrp.ycp explaining the use of
+  prep_same_disk_as_root
+- 2.13.20
+
+-------------------------------------------------------------------
 Tue Mar  7 22:17:31 CET 2006 - od@suse.de
 
 - #145597:
