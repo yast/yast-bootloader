@@ -64,7 +64,7 @@ global map<string,string> ppc_descriptions = $[
     "boot_prep_custom"   : _("PReP Partition"),
     "boot_slot" 	 : _("Write to Boot Slot"),
     "boot_file" 	 : _("Create Boot Image in File"),
-    "boot_iseries_custom": _("PReP partition"),
+    "boot_iseries_custom": _("PReP Partition"),
     "boot_pmac_custom"   : _("HFS Boot Partition"),
     "type_image"         : _("Kernel Section"),
     "image_image"        : _("Kernel Image"),
