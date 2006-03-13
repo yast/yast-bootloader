@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Mon Mar 13 16:04:51 CET 2006 - od@suse.de
+
+- changed some whitespace
+- corrected fallback kernel to "/boot/vmlinux"
+- copied UpdateSections() from lilolike.ycp to BootPOWERLILO.ycp and adapted
+  to new interfaces
+- made read_default_section_name global in BootCommon.ycp
+- syntax cleanups
+- proofread
+- 2.13.21
+
+-------------------------------------------------------------------
 Wed Mar  8 00:41:02 CET 2006 - od@suse.de
 
 - added proposal for prep and iseries (pmac still missing)
