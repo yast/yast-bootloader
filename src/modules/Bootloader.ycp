@@ -85,17 +85,17 @@
 
 // general functions
 
-global boolean() test_abort = nil;
+    global boolean() test_abort = nil;
 
-/**
- * Check whether abort was pressed
- * @return boolean true if abort was pressed
- */
-boolean testAbort () {
-    if (test_abort == nil)
-	return false;
-    return test_abort ();
-}
+    /**
+     * Check whether abort was pressed
+     * @return boolean true if abort was pressed
+     */
+    boolean testAbort () {
+        if (test_abort == nil)
+    	return false;
+        return test_abort ();
+    }
 
     /**
       * Constructor
@@ -304,7 +304,7 @@ boolean testAbort () {
 	string mlob = (string)
 	    SCR::Read (.sysconfig.kernel.MODULES_LOADED_ON_BOOT);
 	list<string> mod_list = splitstring (mlob, " ");
-	mod_list = filter (string s, mod_list, (
+	mod_list = filter (string s, mod_list, ``(
 	    s != "" && s != "cdrom" && s != "ide-cd" && s != "ide-scsi"
 	));
 	mlob = mergestring (mod_list, " ");
@@ -312,17 +312,17 @@ boolean testAbort () {
 	SCR::Write (.sysconfig.kernel, nil);
     }
 
-/**
- * Update the whole configuration
- * @param iv a map representing the installed (original) version
- * @param uv a map representing the version the system is upgraded to
- * @return boolean true on success
- */
-global boolean Update (map<string,any> iv, map<string,any> uv) {
-    BootCommon::installed_version = iv;
-    BootCommon::update_version = uv;
-    return Write (); // write also reads the configuration and updates it
-}
+    /**
+     * Update the whole configuration
+     * @param iv a map representing the installed (original) version
+     * @param uv a map representing the version the system is upgraded to
+     * @return boolean true on success
+     */
+    global boolean Update (map<string,any> iv, map<string,any> uv) {
+        BootCommon::installed_version = iv;
+        BootCommon::update_version = uv;
+        return Write (); // write also reads the configuration and updates it
+    }
 
     /**
      * Process update actions needed before packages update starts
@@ -364,7 +364,7 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
 
 	y2milestone ("Writing bootloader configuration");
 
-// run Progress bar
+	// run Progress bar
         list<string> stages = [
             // progress stage, text in dialog (short)
             _("Create initrd"),
@@ -407,9 +407,10 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
 	// Initialize device mapper and LVM in target system
 	if (Stage::initial () || Mode::update ())
 	{
-	    map out = (map)SCR::Execute (.target.bash_output, "
-test -f /sbin/devmap_mknod.sh && /sbin/devmap_mknod.sh
-test -f /sbin/vgscan && /sbin/vgscan --mknodes");
+	    map out = (map)SCR::Execute (.target.bash_output,
+		"test -f /sbin/devmap_mknod.sh && /sbin/devmap_mknod.sh;" +
+		"test -f /sbin/vgscan && /sbin/vgscan --mknodes"
+	    );
 	    if (out["exit"]:0 != 0)
 	    {
 		y2error ("Failed to initialize device mapper");
