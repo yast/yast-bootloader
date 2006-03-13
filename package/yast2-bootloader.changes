@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Mar 13 16:48:18 CET 2006 - od@suse.de
+
+- jplack:
+  - remove dead/unused code
+  - add some FIXME comments
+  - more cleanups
+- 2.13.23
+
+-------------------------------------------------------------------
 Mon Mar 13 16:04:51 CET 2006 - od@suse.de
 
 - changed some whitespace
