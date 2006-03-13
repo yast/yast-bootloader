@@ -3,9 +3,9 @@ Mon Mar 13 16:04:51 CET 2006 - od@suse.de
 
 - changed some whitespace
 - corrected fallback kernel to "/boot/vmlinux"
-- copied UpdateSections() from lilolike.ycp to BootPOWERLILO.ycp and adapted
-  to new interfaces
-- made read_default_section_name global in BootCommon.ycp
+- copied UpdateSections() from lilolike.ycp to BootPOWERLILO.ycp
+  and adapted to new interfaces (#144553)
+- made read_default_section_name global in BootCommon.ycp (#144553)
 - syntax cleanups
 - proofread
 - 2.13.21
