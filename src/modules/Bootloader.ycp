@@ -100,7 +100,7 @@ boolean testAbort () {
     /**
       * Constructor
       */
-    global define void Bootloader () ``{
+    global define void Bootloader () {
 	return;
     }
 
@@ -108,7 +108,7 @@ boolean testAbort () {
       * Export bootloader settings to a map
       * @return bootloader settings
       */
-    global define map Export () ``{
+    global define map Export () {
 	ReadOrProposeIfNeeded ();
 	map out = $[
 	    "loader_device" : BootCommon::loader_device,
@@ -126,7 +126,7 @@ boolean testAbort () {
       * @param settings map of bootloader settings
       * @return boolean true on success
       */
-    global define boolean Import (map<string, any> settings) ``{
+    global define boolean Import (map<string, any> settings) {
 	y2milestone ("Importing settings: %1", settings);
 	Reset ();
 
@@ -159,7 +159,7 @@ boolean testAbort () {
       * Read settings from disk
       * @return boolean true on success
       */
-    global define boolean Read () ``{
+    global define boolean Read () {
 	y2milestone ("Reading configuration");
 // run Progress bar
 	list<string> stages = [
@@ -212,7 +212,7 @@ boolean testAbort () {
       * @param init boolean true if basic initialization of system-dependent
       * settings should be done
       */
-    global define void ResetEx (boolean init) ``{
+    global define void ResetEx (boolean init) {
 	if (Mode::autoinst ())
 	    return;
 	y2milestone ("Reseting configuration");
@@ -231,13 +231,13 @@ boolean testAbort () {
     /**
       * Reset bootloader settings
       */
-    global define void Reset () ``{
+    global define void Reset () {
 	return ResetEx (true);
     }
     /**
       * Propose bootloader settings
       */
-    global define void Propose () ``{
+    global define void Propose () {
 	y2milestone ("Proposing configuration");
 	BootCommon::UpdateInstallationKernelParameters ();
 	blPropose ();
@@ -252,7 +252,7 @@ boolean testAbort () {
       * Display bootloader summary
       * @return a list of summary lines
       */
-    global define list<string> Summary () ``{
+    global define list<string> Summary () {
 	list<string> ret = blSummary ();
 	// check if default section was changed or not
         string main_section = getProposedDefaultSection ();
@@ -286,13 +286,13 @@ boolean testAbort () {
     /**
       * Update read settings to new version of configuration files
       */
-    global define void UpdateConfiguration () ``{
+    global define void UpdateConfiguration () {
 	// first run bootloader-specific update function
 	blUpdate ();
 
 	// remove ide-scsi emulation
 	list<string> parameters = listKernelParams ("LINUX_DEFAULT");
-	foreach (string p, parameters, ``{
+	foreach (string p, parameters, {
 	    if (regexpmatch (p, "^hd.=ide-scsi$")
 		|| regexpmatch (p, "^hd.lun=.*$"))
 	    {
@@ -304,7 +304,7 @@ boolean testAbort () {
 	string mlob = (string)
 	    SCR::Read (.sysconfig.kernel.MODULES_LOADED_ON_BOOT);
 	list<string> mod_list = splitstring (mlob, " ");
-	mod_list = filter (string s, mod_list, ``(
+	mod_list = filter (string s, mod_list, (
 	    s != "" && s != "cdrom" && s != "ide-cd" && s != "ide-scsi"
 	));
 	mlob = mergestring (mod_list, " ");
@@ -329,22 +329,13 @@ global boolean Update (map<string,any> iv, map<string,any> uv) {
      */
     global define void PreUpdate () {
 	y2milestone ("Running bootloader pre-update stuff");
-    /*	if (Arch::ia64 ())
-	{
-	    BootELILO::UpdateEfiPartitionLayout ();
-	}
-	else if (Arch::s390 ())
-	{
-	    BootS390::UpdateZiplConfBeforeUpdate ();
-	}
-    */
     }
 
     /**
       * Write bootloader settings to disk
       * @return boolean true on success
       */
-    global define boolean Write () ``{
+    global define boolean Write () {
 	boolean ret = true;
 
 	// proposing anything is irrelevant during update, this forces reading
@@ -543,9 +534,9 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * Set settings how to write bootloader
       * @param settings map of settings
       */
-    global define void SetWriteMode (map<string,any> settings) ``{
+    global define void SetWriteMode (map<string,any> settings) {
 	y2milestone ("Setting mode for writing: %1", settings);
-	foreach (string k, any v, settings, ``{
+	foreach (string k, any v, settings, {
 	    BootCommon::write_settings[k] = v;
 	});
     }
@@ -556,7 +547,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * return default section label
       * @return string default section label
       */
-    global define string getDefaultSection () ``{
+    global define string getDefaultSection () {
 	ReadOrProposeIfNeeded ();
 	return BootCommon::globals["default"]:"";
     }
@@ -568,12 +559,12 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * if not found return first linux section, if no present, return empty
       * string
       */
-    global define string getProposedDefaultSection () ``{
+    global define string getProposedDefaultSection () {
 	ReadOrProposeIfNeeded ();
 	string defaultv = "";
 	string first_image = "";
 	string default_image = "";
-	foreach (map<string,any> s, BootCommon::sections, ``{
+	foreach (map<string,any> s, BootCommon::sections, {
 	    string title = s["name"]:"";
 	    if (s["kernel"]:nil != nil)
 	    {
@@ -634,7 +625,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * @return string value, "false" if not present,
       * "true" if present key without value
       */
-    global define string getKernelParam (string section, string key) ``{
+    global define string getKernelParam (string section, string key) {
 	ReadOrProposeIfNeeded ();
 	if (section == "DEFAULT")
 	    section = getDefaultSection ();
@@ -667,7 +658,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * @param section string section title, use DEFAULT for default section
       * @return a list of kernel parameters (in the form 'hdd=ide-scsi')
       */
-    global define list<string> listKernelParams (string section) ``{
+    global define list<string> listKernelParams (string section) {
 	ReadOrProposeIfNeeded ();
 	if (section == "DEFAULT")
 	    section = getDefaultSection ();
@@ -698,12 +689,13 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       *  `all   -> all sections
       * @return list of strings representing sections names
       */
-    global define list getSectionsList (symbol type) ``{
+    global define list getSectionsList (symbol type) {
 	list<map<string,any> > sects = BootCommon::sections;
 	if (type == `other)
 	{
 	    sects = filter (map<string,any> s, sects, ``(
-		! haskey (s, "chainloader")));
+		! haskey (s, "chainloader")
+	    ));
 	}
 	else if (type == `linux)
 	{
@@ -727,7 +719,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       */
     global define boolean setKernelParam
 	(string section, string key, string value)
-    ``{
+    {
 	if ((! Mode::config ()) && key == "vga" && (
 	    Arch::s390 () || Arch::ppc ()
 	))
@@ -746,7 +738,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
 	    return false;
         integer sectnum = -1;
         integer index = -1;
-        foreach (map<string,any> s, BootCommon::sections, ``{
+        foreach (map<string,any> s, BootCommon::sections, {
             index = index + 1;
             if (s["name"]:"" == section)
                 sectnum = index;
@@ -783,7 +775,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * Get currently used bootloader, detect if not set yet
       * @return string botloader type
       */
-    global define string getLoaderType () ``{
+    global define string getLoaderType () {
 	return BootCommon::getLoaderType (false);
     }
 
@@ -792,7 +784,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * Just a wrapper to BootCommon::setLoaderType
       * @param bootloader string type of bootloader
       */
-    global define void setLoaderType (string bootloader) ``{
+    global define void setLoaderType (string bootloader) {
 	BootCommon::setLoaderType (bootloader);
     }
 
@@ -800,7 +792,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * Get root fs device
       * @return string root device
       */
-    global define string getRootDevice () ``{
+    global define string getRootDevice () {
 	ReadOrProposeIfNeeded ();
 	return BootCommon::RootPartitionDevice;
     }
@@ -809,7 +801,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * Set root fs device
       * @param device string root device
       */
-    global define void setRootDevice (string device) ``{
+    global define void setRootDevice (string device) {
 	ReadOrProposeIfNeeded ();
 	BootCommon::RootPartitionDevice = device;
     }
@@ -818,7 +810,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * Get device containing /boot directory
       * @return string boot device
       */
-    global define string getBootDevice () ``{
+    global define string getBootDevice () {
 	ReadOrProposeIfNeeded ();
 	return BootCommon::BootPartitionDevice;
     }
@@ -827,7 +819,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * Set device containing /boot directory
       * @param device string boot device
       */
-    global define void setBootDevice (string device) ``{
+    global define void setBootDevice (string device) {
 	ReadOrProposeIfNeeded ();
 	BootCommon::BootPartitionDevice = device;
     }
@@ -836,7 +828,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * Answer whether LBA is supported
       * @return boolean true if supported
       */
-    global define boolean LbaSupport() ``{
+    global define boolean LbaSupport() {
 	return BootCommon::LbaSupport ();
     }
 
@@ -844,7 +836,7 @@ test -f /sbin/vgscan && /sbin/vgscan --mknodes");
       * Check whether settings were read or proposed, if not, decide
       * what to do and read or propose settings
       */
-    global define void ReadOrProposeIfNeeded () ``{
+    global define void ReadOrProposeIfNeeded () {
         if (! (BootCommon::was_read || BootCommon::was_proposed))
         {
 	    y2milestone ("Stage::initial (): %1, update: %2, config: %3",
