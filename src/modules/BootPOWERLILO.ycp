@@ -276,15 +276,15 @@ global void LocationProposal () {
 */
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	// also set as default value in widget
-        change_widget_default_value("boot_chrp_custom", prep_boot_partition);
+	change_widget_default_value("boot_chrp_custom", prep_boot_partition);
     }
     else if ( arch == "prep" ) {
 	BootCommon::BootPartitionDevice = prep_boot_partition;
-        change_widget_default_value("boot_prep_custom", prep_boot_partition);
+	change_widget_default_value("boot_prep_custom", prep_boot_partition);
     }
     else if ( arch == "iseries" ) {
 	BootCommon::BootPartitionDevice = prep_boot_partition;
-        change_widget_default_value("boot_iseries_custom", prep_boot_partition);
+	change_widget_default_value("boot_iseries_custom", prep_boot_partition);
     }
 
     // These need to be set (FIXME: find out why) --
@@ -313,7 +313,7 @@ global void CreateSections () {
 
     // FIXME: I hate that i386 crap!!
     if (haskey(linux, "kernel")) {
-        linux["image"] = linux["kernel"]:"boot/vmlinux";
+        linux["image"] = linux["kernel"]:"/boot/vmlinux";
         linux = remove(linux, "kernel");
     };
 
@@ -617,7 +617,7 @@ global define list<string> Summary () {
     );
 
     // summary text for boot loader locations, sum up all locations to one string
-    string boot_loader_locations = 
+    string boot_loader_locations =
         mergestring(
 	    filter( string bll,
 		maplist( string key, any value, global_options, {
@@ -633,7 +633,7 @@ global define list<string> Summary () {
     list<string> sects = [];
     foreach (map<string,any> s, BootCommon::sections, {
         string title = s["name"]:"";
-    	// section name "suffix" for default section
+	// section name "suffix" for default section
         string def = (title == BootCommon::globals["default"]:"")
 	  ? _(" (default)")
 	  : "";
@@ -647,16 +647,185 @@ global define list<string> Summary () {
     if (BootCommon::loader_device == "/dev/null")
         // summary text
         result = add (result,
-    		  _("Do not install boot loader; just create configuration files"));
+		_("Do not install boot loader; just create configuration files"));
     return result;
 }
 
+/**
+ * Update sections of bootloader menu
+ * modifies internal structures
+ * @param replace               true:  also replace all old sections in the
+ *                                     sections_to_recreate list (see below)
+ *                              false: update resume= parameter in "linux" section
+ * @param create_linux_section  a reference to a function to create linux
+ *                              section anew
+ */
+void UpdateSections (boolean replace,
+    map<string,any>(string) create_linux_section)
+{
+    // This function has been copied from lilolike.ycp and adapted to conform
+    // with the image parameter BootPOWERLILO.ycp/perl-Bootloader uses. Some
+    // unneeded code has been removed.
+    // FIXME: check for problems, throw out unneccessary code
+    // FIXME: SLES9 -> SLES10 update: check loader_type = lilo in
+    //        /etc/sysconfig/bootloader
+
+    // take current sections as starting point
+    list<map<string,any> > my_sections = BootCommon::sections;
+    list<string> recreated = [];
+    boolean linux_resume_added = false;
+
+    map<string,any> default_sect = create_linux_section ("linux");
+    string default_image = default_sect["image"]:"";
+    string default_initrd = default_sect["initrd"]:"";
+    string default_name = default_sect["name"]:"";
+
+    list<string> sections_to_recreate = ["linux", "failsafe"];
+
+    // recreate sections or update "resume=" parameter (if device is gone)
+    foreach (string section_name, sections_to_recreate, {
+	map<string,any> new_section = create_linux_section (section_name);
+	boolean f_changed = false;
+	my_sections = maplist (map<string,any> this_section, my_sections, {
+	    string label = this_section["name"]:"";
+	    string sect_type = this_section["original_name"]:"";
+	    if (sect_type == "")
+		sect_type = label;
+	    if (sect_type == section_name)
+	    {
+		f_changed = true;
+		if (replace && new_section != $[])
+		{
+		    recreated = add (recreated, label);
+		    return new_section;
+		}
+		else if (section_name == "linux")
+		{
+		    // update "resume=" parameter if device from old one does
+		    // not exist anymore
+		    string append = this_section["append"]:"";
+		    string resume = BootCommon::getKernelParamFromLine (
+			append, "resume");
+		    if (! haskey (BootCommon::getSwapPartitions (), resume))
+		    {
+			append = BootCommon::setKernelParamToLine (append,
+			    "resume", BootCommon::getLargestSwapPartition ());
+			this_section["append"] = append;
+			linux_resume_added = true;
+		    }
+		    return this_section;
+                }
+		else
+		    return this_section;
+	    }
+	    else
+	    {
+		return this_section;
+	    }
+	});
+	// there was no original section matching the section we want to
+	// recreate but we have a newly created section
+        if (! f_changed && new_section != $[])
+	{
+	    recreated = add (recreated, new_section["name"]:"");
+            if (section_name == "linux")
+		my_sections = prepend (my_sections, new_section);
+            else
+		my_sections = add (my_sections, new_section);
+	}
+    });
+
+    my_sections = maplist (map<string,any> s, my_sections, {
+	string label = s["name"]:"";
+	string type = s["original_name"]:label;
+	foreach (string key, ["image", "initrd"], {
+	    string value = s[key]:"";
+	    if (regexpmatch (value, "^.*\.shipped.*$"))
+	    {
+		value = regexpsub (value,
+		    "^(.*)\.shipped(.*)$", "\\1\\2");
+	    }
+	    else if (regexpmatch (value, "^.*\.suse.*$"))
+	    {
+		value = regexpsub (value,
+		    "^(.*)\.suse(.*)$", "\\1\\2");
+	    }
+	    s["key"] = value;
+	});
+	if (s["image"]:"" == default_image
+	    && s["initrd"]:"" == default_initrd
+	    && issubstring (s["name"]:"", BootCommon::read_default_section_name)
+	    && BootCommon::read_default_section_name != ""
+	    && BootCommon::read_default_section_name != default_name)
+	{
+	    y2milestone ("Updating label of section %1...", s["name"]:"");
+	    string old_name = s["name"]:"";
+	    integer i1 = search (old_name, BootCommon::read_default_section_name);
+	    integer i2 = i1 + size (BootCommon::read_default_section_name);
+	    s["name"] = substring (old_name, 0, i1) + default_name
+		+ substring (old_name, i2);
+	    y2milestone ("... to %1", s["name"]:"");
+	}
+
+	foreach (string key, ["root", "chainloader"], {
+	    if ((contains (BootCommon::update_section_types, type)
+		    && ! contains (recreated, label))
+		|| key == "chainloader")
+	    {
+		string device = s["key"]:"";
+		if (device != nil)
+		{
+		    y2milestone ("Updating root/other device of section %1",
+			label);
+		    device = BootCommon::UpdateDevice (device);
+		    s["key"] = device;
+		}
+	    }
+	});
+	if (type == "linux" && haskey (s, "append"))
+	{
+	    string option = s["append"]:"";
+	    foreach (string o, BootCommon::ListAdditionalKernelParams (), {
+		option = BootCommon::setKernelParamToLine (option, o, "false");
+	    });
+	    option = option + " " + BootCommon::GetAdditionalKernelParams ();
+	    if (BootCommon::getKernelParamFromLine (option, "splash") == "false")
+		option = BootCommon::setKernelParamToLine
+		    (option, "splash", "silent");
+	    s["append"] = option;
+	}
+	else if (haskey (s, "append")
+	    && contains (BootCommon::update_section_types, type)
+	   && ! contains (recreated, label))
+	{
+	    string option = s["append"]:"";
+	    if (type != "linux" || ! linux_resume_added)
+	    {
+		string resume
+		    = BootCommon::getKernelParamFromLine (
+			option, "resume");
+		if (resume != "false")
+		{
+		    y2milestone ("Updating resume device of section %1", label);
+		    resume = BootCommon::UpdateDevice (resume);
+		    option = BootCommon::setKernelParamToLine (
+			option, "resume", resume);
+		}
+	    }
+	    s["append"] = option;
+	}
+	return s;
+    });
+    BootCommon::sections = my_sections;
+}
 
 /**
  * Update read settings to new version of configuration files
  */
 global void Update () {
-    BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
+    // FIXME: we need to eventually write and migrate to our own
+    //        CreateLinuxSection()
+    UpdateSections (true, BootCommon::CreateLinuxSection);
     // this is soo broken ... BootCommon::UpdateGlobals ();
     BootCommon::loader_device
 	= BootCommon::UpdateDevice (BootCommon::loader_device);

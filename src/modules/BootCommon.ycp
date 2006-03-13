@@ -272,7 +272,7 @@ global map<string,string> edited_files = $[];
 /**
  * The name of the default section as it was read
  */
-string read_default_section_name = "";
+global string read_default_section_name = "";
 
 /**
  * Types of sections that should be updated (changed device names)
