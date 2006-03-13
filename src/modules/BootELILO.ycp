@@ -218,6 +218,7 @@ global define boolean Read (boolean reread) ``{
 	{
 	    string efi_path = BootCommon::replaceAll (
 		getEliloConfSubpath (), "/", "\\");
+	    // Read Firmware setting from NVRam
 	    map efi_status = (map)SCR::Execute (.target.bash_output, sformat (
 		"/usr/sbin/efibootmgr |grep \"%1\"", efi_path));
 	    if (efi_status["exit"]:0 != 0)
@@ -259,10 +260,10 @@ global define boolean Read (boolean reread) ``{
   */
 global define void Reset (boolean init) {
     if (Mode::autoinst ())
-    return;
-  remove_old_efi = true;
-create_efi_entry = true;
-BootCommon::Reset (init);
+        return;
+    remove_old_efi = true;
+    create_efi_entry = true;
+    BootCommon::Reset(init);
 }
 
 /**
@@ -336,7 +337,7 @@ global define void Update () {
   * @return boolean true on success
   */
 // FIXME get rid of this function
-global define boolean installBootLoader (string command, string logfile) {
+define boolean installBootLoader (string command, string logfile) {
     y2milestone ("Running command %1", command);
     map exit = (map)SCR::Execute (.target.bash_output, command);
     boolean ret = 0 == exit["exit"]:1;
@@ -386,11 +387,12 @@ global define boolean Write () {
 	);
 
         foreach (string efi_label, efi_entries_to_remove, {
+	    // delete bootentry for efi_label if available
 	    string command = sformat(
 		"BOOTENTRY=\"" +
 		"`/usr/sbin/efibootmgr |grep \"%1\" |cut -f1 -d\* |cut -c5-`\";" +
 		"if [ \"$BOOTENTRY\" ]; then " + 
-		    "/usr/sbin/efibootmgr -b $BOOTENTRY -B -q;" + 
+		    "/usr/sbin/efibootmgr --delete-bootnum --bootnum $BOOTENTRY -q;" + 
 		"fi",
 		efi_label
 	    );
@@ -409,8 +411,9 @@ global define boolean Write () {
 	{
 	    string bl_logfile = "/var/log/YaST2/y2log_bootloader";
 	    string bl_command = sformat (
-		"/usr/sbin/efibootmgr -c -L \"%1\" -d %2 " +
-		"-l '\\efi\\SuSE\\elilo.efi' -p %3 -v -w >> %4 2>&1",
+		"/usr/sbin/efibootmgr -v --create --label \"%1\" " +
+		"--disk %2 --part %3 " +
+		"--loader '\\efi\\SuSE\\elilo.efi' --write-signature >> %4 2>&1",
 		efi_entry_name, boot_disk, boot_part, bl_logfile);
 	    ret = ret && installBootLoader (bl_command, bl_logfile);
 	}
@@ -427,11 +430,11 @@ global map<string,symbol()> Dialogs () {
   * Return map of provided functions
   * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
   */
-global define map GetFunctions () ``{
+global define map GetFunctions () {
     return $[
 	"dialogs" : Dialogs,
-//	"export"  : Export,
-//	"import"  : Import,
+	"export"  : Export,
+	"import"  : Import,
 	"read"	  : Read,
 	"reset"	  : Reset,
 	"propose" : Propose,
