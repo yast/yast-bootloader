@@ -671,7 +671,7 @@ void UpdateSections (boolean replace,
     //        /etc/sysconfig/bootloader
 
     // take current sections as starting point
-    list<map<string,any> > my_sections = BootCommon::sections;
+    list<map<string,any> > updated_sections = BootCommon::sections;
     list<string> recreated = [];
     boolean linux_resume_added = false;
 
@@ -686,7 +686,7 @@ void UpdateSections (boolean replace,
     foreach (string section_name, sections_to_recreate, {
 	map<string,any> new_section = create_linux_section (section_name);
 	boolean f_changed = false;
-	my_sections = maplist (map<string,any> this_section, my_sections, {
+	updated_sections = maplist (map<string,any> this_section, updated_sections, {
 	    string label = this_section["name"]:"";
 	    string sect_type = this_section["original_name"]:"";
 	    if (sect_type == "")
@@ -724,18 +724,19 @@ void UpdateSections (boolean replace,
 	    }
 	});
 	// there was no original section matching the section we want to
-	// recreate but we have a newly created section
+	// recreate but we have a newly created section, so prepend or append
+	// this new section to the list of updated sections
         if (! f_changed && new_section != $[])
 	{
 	    recreated = add (recreated, new_section["name"]:"");
             if (section_name == "linux")
-		my_sections = prepend (my_sections, new_section);
+		updated_sections = prepend (updated_sections, new_section);
             else
-		my_sections = add (my_sections, new_section);
+		updated_sections = add (updated_sections, new_section);
 	}
     });
 
-    my_sections = maplist (map<string,any> s, my_sections, {
+    updated_sections = maplist (map<string,any> s, updated_sections, {
 	string label = s["name"]:"";
 	string type = s["original_name"]:label;
 	foreach (string key, ["image", "initrd"], {
@@ -816,7 +817,7 @@ void UpdateSections (boolean replace,
 	}
 	return s;
     });
-    BootCommon::sections = my_sections;
+    BootCommon::sections = updated_sections;
 }
 
 /**

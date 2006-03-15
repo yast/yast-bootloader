@@ -285,6 +285,7 @@ global boolean CommitSettings () {
 global boolean UpdateBootloader () {
     y2milestone ("Updating bootloader configuration");
     boolean ret = System::Bootloader_API::updateBootloader (true);
+    y2milestone ("return value from updateBootloader: %1", ret);
     if (! ret)
 	bootloaderError ("Error occurred while updating configuration files");
     return ret;
