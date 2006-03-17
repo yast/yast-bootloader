@@ -363,6 +363,7 @@ global boolean Read (boolean reread) {
 	    }));
 	    if (Mode::test ())
 		md_members = ["/dev/hda1", "/dev/hdb1"];
+
 	    boolean reduce = true;
 	    foreach (string member, md_members, {
 		if (! contains (loader_devices, member))
@@ -578,12 +579,12 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	return ret;
     }
 
-global map<string,symbol()> Dialogs () {
-    return $[
-	"installation"	: i386InstallDetailsDialog,
-	"loader"	: i386LoaderDetailsDialog,
-    ];
-}
+    global map<string,symbol()> Dialogs () {
+        return $[
+	    "installation"  : i386InstallDetailsDialog,
+    	    "loader"        : i386LoaderDetailsDialog,
+        ];
+    }
 
     /**
       * Return map of provided functions
