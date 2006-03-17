@@ -285,9 +285,12 @@ Check the gfxmenu settings.
 	term text = `RichText( `opt(`plainText), log );
 	UI::OpenDialog(`opt ( `decorated ),
 	    `VBox (`HSpacing(75),
-		// heading
 		`Heading(header),
-		text,     // e.g. `Richtext()
+		// heading
+		`HBox(
+		    `VSpacing(14),
+		    text      // e.g. `Richtext()
+		),
 		`PushButton( `id(`ok_help), `opt(`default), Label::OKButton() )
 	    )
 	);
