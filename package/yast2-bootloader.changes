@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar 17 18:25:03 CET 2006 - od@suse.de
+
+- removed bootloader-theme from Requires: (#158588)
+- 2.13.26
+
+-------------------------------------------------------------------
 Fri Mar 17 16:06:36 CET 2006 - od@suse.de
 
 - moved CreateLinuxSection() to BootPOWERLILO.ycp and adapted for
