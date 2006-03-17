@@ -24,7 +24,9 @@ module "BootPOWERLILO";
 textdomain "bootloader";
 
 import "Arch";
+import "BootArch";
 import "BootCommon";
+import "GfxMenu";
 import "Kernel";
 import "Mode";
 import "Pkg";
@@ -652,6 +654,43 @@ global define list<string> Summary () {
 }
 
 /**
+ * Create section for linux kernel
+ * @param   title   string	the section name to create (untranslated)
+ * @return	    map		describes the section
+ */
+global map<string,any> CreateLinuxSection (string title) {
+    // code removed: no wildcard entries possible on ppc (yaboot)
+    string kernel_fn = "/boot/" + Kernel::GetBinary ();
+    string initrd_fn = "/boot/initrd";
+    map<string,any> ret = $[
+		// false: translate as for lilo, not as for grub
+	"name" : GfxMenu::translateSectionTitle (title, false),
+	"original_name" : title,
+	"type" : "image",
+	"image" : kernel_fn,
+	"initrd" : initrd_fn,
+	"root" : BootCommon::RootPartitionDevice,
+		// "": do not include resume parameter on ppc
+	"append" : (title == "failsafe")
+	    ? BootArch::FailsafeKernelParams ()
+	    : BootArch::DefaultKernelParams (""),
+	"__auto" : true,
+	"__changed" : false,
+	"__devs" : [BootCommon::BootPartitionDevice, BootCommon::RootPartitionDevice],
+    ];
+    // code removed: no vga parameter on ppc
+    // code for xen kept, may be needed soon enough...
+    if (title == "xen")
+    {
+	ret["xen"] = "/boot/xen.gz";
+	ret["xen_append"] = "";
+	ret["image"] = "/boot/" + Kernel::GetBinary () + "-xen";
+	ret["initrd"] = "/boot/initrd-xen";
+    }
+    return ret;
+}
+
+/**
  * Update sections of bootloader menu
  * modifies internal structures
  * @param replace               true:  also replace all old sections in the
@@ -818,6 +857,7 @@ void UpdateSections (boolean replace,
 	return s;
     });
     BootCommon::sections = updated_sections;
+    y2milestone("finished updating sections: %1", updated_sections);
 }
 
 /**
@@ -826,7 +866,7 @@ void UpdateSections (boolean replace,
 global void Update () {
     // FIXME: we need to eventually write and migrate to our own
     //        CreateLinuxSection()
-    UpdateSections (true, BootCommon::CreateLinuxSection);
+    UpdateSections (true, CreateLinuxSection);
     // this is soo broken ... BootCommon::UpdateGlobals ();
     BootCommon::loader_device
 	= BootCommon::UpdateDevice (BootCommon::loader_device);
