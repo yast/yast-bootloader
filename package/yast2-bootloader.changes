@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Mar 17 16:06:36 CET 2006 - od@suse.de
+
+- moved CreateLinuxSection() to BootPOWERLILO.ycp and adapted for
+  ppc (#144553):
+   - kernel -> image 
+   - removed code that is not used on ppc
+   - added comments
+- moved CreateLinuxSection up and using it for installation as well
+- 2.13.25
+
+-------------------------------------------------------------------
 Wed Mar 15 16:34:50 CET 2006 - od@suse.de
 
 - added debug output for (#156993)
