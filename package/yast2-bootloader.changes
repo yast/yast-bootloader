@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 17 23:37:22 CET 2006 - od@suse.de
+
+- made text widget in error log message popup higher (#159264)
+- fix indentation
+- 2.13.27
+
+-------------------------------------------------------------------
 Fri Mar 17 18:25:03 CET 2006 - od@suse.de
 
 - removed bootloader-theme from Requires: (#158588)
