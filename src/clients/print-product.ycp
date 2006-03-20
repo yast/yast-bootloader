@@ -7,7 +7,7 @@
     Mode::SetUI("commandline");
     string name = Product::name;
     string ver = Product::version;
-    string namever = sformat(" -- %1 %2", name, ver);
+    string namever = sformat("%1 %2", name, ver);
     //string namever = name + version;
     CommandLine::Print(namever);
 }
