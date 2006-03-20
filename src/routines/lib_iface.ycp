@@ -119,11 +119,11 @@ map<string,any> PrepareInitData () {
  * @return boolean true on success
  */
 global boolean InitializeLibrary (boolean force, string loader) {
-    if (force || loader != library_initialized)
-    {
-	y2milestone ("Initializing lib for %1", loader);
-	System::Bootloader_API::initBootloader (loader);
-    }
+    if (!force && loader == library_initialized)
+        return true;
+
+    y2milestone ("Initializing lib for %1", loader);
+    System::Bootloader_API::initBootloader (loader);
     y2milestone ("Putting partitioning into library");
     map<string,any> init_data = PrepareInitData ();
     map<string,string> mountpoints = init_data["mountpoints"]:$[];
