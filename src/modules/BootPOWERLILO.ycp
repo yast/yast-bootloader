@@ -244,6 +244,7 @@ map<string,any> CreateImageSection (string title) {
 	"__changed" : false,
 	"__devs" : [BootCommon::BootPartitionDevice, BootCommon::RootPartitionDevice],
     ];
+    return ret;
 }
 
 void     change_widget_default_value (string itemname, string defaultvalue) {
@@ -715,7 +716,9 @@ void UpdateSections () {
 	// from the installer, replace with the actual "good" proposal
 	if (contains(sections_to_recreate, oname)) {
 	    recreated = add (recreated, oname);
-	    sections_to_recreate = remove (sections_to_recreate, oname);
+	    sections_to_recreate = filter (string this_name, sections_to_recreate, ``(
+		this_name != oname
+	    ));
 	    return CreateImageSection(oname);
 	}
 
@@ -805,7 +808,7 @@ void UpdateSections () {
  * Update read settings to new version of configuration files
  */
 global void Update () {
-    UpdateSections (true, CreateImageSection);
+    UpdateSections ();
     // this is soo broken ... BootCommon::UpdateGlobals ();
     BootCommon::loader_device
 	= BootCommon::UpdateDevice (BootCommon::loader_device);
