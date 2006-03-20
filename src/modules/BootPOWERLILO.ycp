@@ -863,6 +863,8 @@ void UpdateSections (boolean replace,
  * Update read settings to new version of configuration files
  */
 global void Update () {
+    // UpdateAppendEntries() !! #155397
+
     UpdateSections (true, CreateLinuxSection);
     // this is soo broken ... BootCommon::UpdateGlobals ();
     BootCommon::loader_device
