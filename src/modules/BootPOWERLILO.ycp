@@ -26,7 +26,6 @@ textdomain "bootloader";
 import "Arch";
 import "BootArch";
 import "BootCommon";
-import "GfxMenu";
 import "Kernel";
 import "Mode";
 import "Pkg";
@@ -222,23 +221,22 @@ void extract_exports_from_globals() {
 }
 
 /**
- * Create section for linux kernel
+ * Create section for bootable image
  * @param   title   string	the section name to create (untranslated)
  * @return	    map		describes the section
  */
-global map<string,any> CreateLinuxSection (string title) {
+map<string,any> CreateImageSection (string title) {
     // code removed: no wildcard entries possible on ppc (yaboot)
-    string kernel_fn = "/boot/" + Kernel::GetBinary ();
+    string image_fn = "/boot/" + Kernel::GetBinary ();
     string initrd_fn = "/boot/initrd";
     map<string,any> ret = $[
-		// false: translate as for lilo, not as for grub
-	"name" : GfxMenu::translateSectionTitle (title, false),
-	"original_name" : title,
 	"type" : "image",
-	"image" : kernel_fn,
+	"name" : title,
+	"original_name" : title,
+	"image" : image_fn,
 	"initrd" : initrd_fn,
 	"root" : BootCommon::RootPartitionDevice,
-		// "": do not include resume parameter on ppc
+	// "": do not include resume parameter on ppc
 	"append" : (title == "failsafe")
 	    ? BootArch::FailsafeKernelParams ()
 	    : BootArch::DefaultKernelParams (""),
@@ -246,16 +244,6 @@ global map<string,any> CreateLinuxSection (string title) {
 	"__changed" : false,
 	"__devs" : [BootCommon::BootPartitionDevice, BootCommon::RootPartitionDevice],
     ];
-    // code removed: no vga parameter on ppc
-    // code for xen kept, may be needed soon enough...
-    if (title == "xen")
-    {
-	ret["xen"] = "/boot/xen.gz";
-	ret["xen_append"] = "";
-	ret["image"] = "/boot/" + Kernel::GetBinary () + "-xen";
-	ret["initrd"] = "/boot/initrd-xen";
-    }
-    return ret;
 }
 
 void     change_widget_default_value (string itemname, string defaultvalue) {
@@ -347,7 +335,7 @@ global void LocationProposal () {
  * modifies internal sreuctures
  */
 global void CreateSections () {
-    map<string,any> linux = CreateLinuxSection ("linux");
+    map<string,any> linux = CreateImageSection ("linux");
 
     // FIXME: I hate that i386 crap!!
     if (haskey(linux, "kernel")) {
@@ -613,7 +601,6 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	BootCommon::RemoveUnexistentSections ("", "");
 	BootCommon::UpdateInitrdLine ();
 	BootCommon::UpdateAppend ();
-	// BootCommon::UpdateGfxMenu ();
     }
 
     if (! BootCommon::InitializeLibrary (init, "ppc"))
@@ -691,17 +678,15 @@ global define list<string> Summary () {
 }
 
 /**
- * Update sections of bootloader menu
- * modifies internal structures
- * @param replace               true:  also replace all old sections in the
- *                                     sections_to_recreate list (see below)
- *                              false: update resume= parameter in "linux" section
- * @param create_linux_section  a reference to a function to create linux
- *                              section anew
+ * Update sections of bootloader configuration and modify internal structures
+ * as needed. This means right now:
+ * 
+ * - no change of "resume=" parameter in append entry, not used on ppc yet  
+ * - delete console= parameters as console autodetection now works
+ * 
+ *
  */
-void UpdateSections (boolean replace,
-    map<string,any>(string) create_linux_section)
-{
+void UpdateSections () {
     // This function has been copied from lilolike.ycp and adapted to conform
     // with the image parameter BootPOWERLILO.ycp/perl-Bootloader uses. Some
     // unneeded code has been removed.
@@ -714,72 +699,32 @@ void UpdateSections (boolean replace,
     list<string> recreated = [];
     boolean linux_resume_added = false;
 
-    map<string,any> default_sect = create_linux_section ("linux");
-    string default_image = default_sect["image"]:"";
-    string default_initrd = default_sect["initrd"]:"";
+    map<string,any> default_sect = CreateImageSection("linux");
     string default_name = default_sect["name"]:"";
 
+    // assumption is that all of the following section names ar "good" names
+    // meaning that we will return a valid section description from
+    // CreateImageSection for them.
     list<string> sections_to_recreate = ["linux", "failsafe"];
 
-    // recreate sections or update "resume=" parameter (if device is gone)
-    foreach (string section_name, sections_to_recreate, {
-	map<string,any> new_section = create_linux_section (section_name);
-	boolean f_changed = false;
-	updated_sections = maplist (map<string,any> this_section, updated_sections, {
-	    string label = this_section["name"]:"";
-	    string sect_type = this_section["original_name"]:"";
-	    if (sect_type == "")
-		sect_type = label;
-	    if (sect_type == section_name)
-	    {
-		f_changed = true;
-		if (replace && new_section != $[])
-		{
-		    recreated = add (recreated, label);
-		    return new_section;
-		}
-		else if (section_name == "linux")
-		{
-		    // update "resume=" parameter if device from old one does
-		    // not exist anymore
-		    string append = this_section["append"]:"";
-		    string resume = BootCommon::getKernelParamFromLine (
-			append, "resume");
-		    if (! haskey (BootCommon::getSwapPartitions (), resume))
-		    {
-			append = BootCommon::setKernelParamToLine (append,
-			    "resume", BootCommon::getLargestSwapPartition ());
-			this_section["append"] = append;
-			linux_resume_added = true;
-		    }
-		    return this_section;
-                }
-		else
-		    return this_section;
-	    }
-	    else
-	    {
-		return this_section;
-	    }
-	});
-	// there was no original section matching the section we want to
-	// recreate but we have a newly created section, so prepend or append
-	// this new section to the list of updated sections
-        if (! f_changed && new_section != $[])
-	{
-	    recreated = add (recreated, new_section["name"]:"");
-            if (section_name == "linux")
-		updated_sections = prepend (updated_sections, new_section);
-            else
-		updated_sections = add (updated_sections, new_section);
-	}
-    });
-
     updated_sections = maplist (map<string,any> s, updated_sections, {
-	string label = s["name"]:"";
-	string type = s["original_name"]:label;
+	string name = s["name"]:"";
+	string oname = s["original_name"]:name;
+
+	// if we find a section that looks like it has been initially proposed
+	// from the installer, replace with the actual "good" proposal
+	if (contains(sections_to_recreate, oname)) {
+	    recreated = add (recreated, oname);
+	    sections_to_recreate = remove (sections_to_recreate, oname);
+	    return CreateImageSection(oname);
+	}
+
+	// else adjust the entries of the found section according to some
+	// fancy rules
 	foreach (string key, ["image", "initrd"], {
 	    string value = s[key]:"";
+	    // FIXME: check whether this is code for update from SLES8?
+	    //        then we would delete it.
 	    if (regexpmatch (value, "^.*\.shipped.*$"))
 	    {
 		value = regexpsub (value,
@@ -790,72 +735,68 @@ void UpdateSections (boolean replace,
 		value = regexpsub (value,
 		    "^(.*)\.suse(.*)$", "\\1\\2");
 	    }
-	    s["key"] = value;
+	    s[key] = value;
 	});
-	if (s["image"]:"" == default_image
-	    && s["initrd"]:"" == default_initrd
-	    && issubstring (s["name"]:"", BootCommon::read_default_section_name)
+
+	// If this section s looks like the former default section
+	if (s["image"]:"" == default_sect["image"]:""
+	    && s["initrd"]:"" == default_sect["initrd"]:""
+	    && issubstring (name, BootCommon::read_default_section_name)
 	    && BootCommon::read_default_section_name != ""
 	    && BootCommon::read_default_section_name != default_name)
 	{
-	    y2milestone ("Updating label of section %1...", s["name"]:"");
-	    string old_name = s["name"]:"";
-	    integer i1 = search (old_name, BootCommon::read_default_section_name);
+	    y2milestone ("Updating name of section %1...", name);
+	    integer i1 = search (name, BootCommon::read_default_section_name);
 	    integer i2 = i1 + size (BootCommon::read_default_section_name);
-	    s["name"] = substring (old_name, 0, i1) + default_name
-		+ substring (old_name, i2);
+	    s["name"] = substring (name, 0, i1) + default_name
+		+ substring (name, i2);
 	    y2milestone ("... to %1", s["name"]:"");
 	}
 
-	foreach (string key, ["root", "chainloader"], {
-	    if ((contains (BootCommon::update_section_types, type)
-		    && ! contains (recreated, label))
-		|| key == "chainloader")
-	    {
-		string device = s["key"]:"";
-		if (device != nil)
-		{
-		    y2milestone ("Updating root/other device of section %1",
-			label);
-		    device = BootCommon::UpdateDevice (device);
-		    s["key"] = device;
-		}
-	    }
-	});
-	if (type == "linux" && haskey (s, "append"))
+	// update root= entry in selected sections as the device naming
+	// changes in the linux kernel from time to time ...
+	if (contains (BootCommon::update_section_types, oname) && haskey(s, "root"))
 	{
-	    string option = s["append"]:"";
-	    foreach (string o, BootCommon::ListAdditionalKernelParams (), {
-		option = BootCommon::setKernelParamToLine (option, o, "false");
-	    });
-	    option = option + " " + BootCommon::GetAdditionalKernelParams ();
-	    if (BootCommon::getKernelParamFromLine (option, "splash") == "false")
-		option = BootCommon::setKernelParamToLine
-		    (option, "splash", "silent");
-	    s["append"] = option;
+  	    y2milestone ("Updating root device of section %1", name);
+	    s["root"] = BootCommon::UpdateDevice (s["root"]:"");
 	}
-	else if (haskey (s, "append")
-	    && contains (BootCommon::update_section_types, type)
-	   && ! contains (recreated, label))
-	{
-	    string option = s["append"]:"";
-	    if (type != "linux" || ! linux_resume_added)
+
+	// handle the append line
+	if (haskey (s, "append")) {
+	    // FIXME: Update AppendEntries() !! #155397
+
+  	    if (oname == "linux")
 	    {
-		string resume
-		    = BootCommon::getKernelParamFromLine (
-			option, "resume");
-		if (resume != "false")
-		{
-		    y2milestone ("Updating resume device of section %1", label);
-		    resume = BootCommon::UpdateDevice (resume);
-		    option = BootCommon::setKernelParamToLine (
-			option, "resume", resume);
-		}
+	        string option = s["append"]:"";
+		foreach (string o, BootCommon::ListAdditionalKernelParams (), {
+		  option = BootCommon::setKernelParamToLine (option, o, "false");
+		});
+		option = option + " " + BootCommon::GetAdditionalKernelParams ();
+		if (BootCommon::getKernelParamFromLine (option, "splash") == "false")
+		option = BootCommon::setKernelParamToLine (option, "splash", "silent");
+		s["append"] = option;
 	    }
-	    s["append"] = option;
+	    else if (contains (BootCommon::update_section_types, oname))
+	    {
+	      string option = s["append"]:"";
+	      s["append"] = option;
+	    }
 	}
 	return s;
     });
+
+    // if there was no original section matching the sections we want to
+    // recreate, so do prepend or append newly created sections to the list of
+    // updated sections
+    foreach (string section_name, sections_to_recreate, {
+        map<string,any> new_section =  CreateImageSection(section_name);
+	recreated = add (recreated, new_section["name"]:"");
+	if (section_name == "linux")
+  	    updated_sections = prepend (updated_sections, new_section);
+	else
+	    updated_sections = add (updated_sections, new_section);
+    });
+
     BootCommon::sections = updated_sections;
     y2milestone("finished updating sections: %1", updated_sections);
 }
@@ -864,12 +805,13 @@ void UpdateSections (boolean replace,
  * Update read settings to new version of configuration files
  */
 global void Update () {
-    // UpdateAppendEntries() !! #155397
-
-    UpdateSections (true, CreateLinuxSection);
+    UpdateSections (true, CreateImageSection);
     // this is soo broken ... BootCommon::UpdateGlobals ();
     BootCommon::loader_device
 	= BootCommon::UpdateDevice (BootCommon::loader_device);
+    // FIXME we should update device names for root= and all boot_*_custom as
+    // well
+    // FIXME: Update global AppendEntries() !! #155397
 }
 
 /**
