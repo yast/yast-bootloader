@@ -405,7 +405,7 @@ global void CreateGlobals () {
 	    // FIXME: what file should be used here?
             "boot_file" 	 : "/tmp/suse_linux_image",
 				   // GoodPRePPartitionOnVDisk(BootCommon::RootPartitionDevice)
-	    // FIXME: this doen´t make sense for empty BootPartitionDevice
+	    // FIXME: this doesn´t make sense for empty BootPartitionDevice
 	    "boot_iseries_custom": BootCommon::BootPartitionDevice,
 	 ];
     }
