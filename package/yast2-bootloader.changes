@@ -1,4 +1,18 @@
 -------------------------------------------------------------------
+Mon Mar 20 18:46:11 CET 2006 - od@suse.de
+
+- fixes for #155397:
+  - major cleanup of Update() code to be able to fix #155397
+  - added "return ret" to CreateImageSection()
+  - fixed parameters in call to UpdateSections()
+  - fixed list element removal: remove() -> filter()
+  - also removed translation of section title (GfxMenu) for ppc
+    (perl-Bootloader will take care of this)
+- print-product.ycp: remove " -- " from arguments to
+  CommandLine::Print()
+- 2.13.29
+
+-------------------------------------------------------------------
 Mon Mar 20 17:20:39 CET 2006 - od@suse.de
 
 - doing the right thing for InitializeLibrary
