@@ -5,7 +5,6 @@
 YCPCFLAGS = -I . -M .
 
 module_DATA =			\
-	print-product.ycp	\
 	Bootloader.ycp		\
 	GfxMenu.ycp		\
 	BootCommon.ycp		\
