@@ -58,6 +58,7 @@ Group:          System/YaST
 @yncludedir@/bootloader/*
 @moduledir@/*
 @clientdir@/bootloader*.ycp
+@clientdir@/print-product.ycp
 @ybindir@/*
 @agentdir@/ag_*
 @scrconfdir@/*.scr
