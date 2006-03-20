@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Mar 20 17:20:39 CET 2006 - od@suse.de
+
+- doing the right thing for InitializeLibrary
+- fix indentation/code style
+- print-product.ycp was wrong in modules, moved to clients
+- 2.13.28
+
+-------------------------------------------------------------------
 Fri Mar 17 23:37:22 CET 2006 - od@suse.de
 
 - made text widget in error log message popup higher (#159264)
