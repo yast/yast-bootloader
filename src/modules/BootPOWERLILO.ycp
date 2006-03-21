@@ -842,13 +842,15 @@ global void Update () {
     foreach (string key, ["root", "boot_prep_custom", "boot_chrp_custom",
 			  "boot_iseries_custom","boot_pmac_custom"], {
 	if (haskey(BootCommon::globals, key)) {
-	    y2milestone ("Updating global %1 device", key);
-	    s["root"] = BootCommon::UpdateDevice (BootCommon::globals[key]:"");
+	    y2milestone ("Updating global %1= setting, currently %2",
+			 key, BootCommon::globals[key]:"");
+	    BootCommon::globals[key] =
+	      BootCommon::UpdateDevice (BootCommon::globals[key]:"");
 	}
     });
 
     // remove console= entries from globals, console auto detection now works
-    if (haskey (globals, "append")) {
+    if (haskey (BootCommon::globals, "append")) {
         string append = BootCommon::globals["append"]:"";
 	append = BootCommon::setKernelParamToLine (append, "console", "false");
 	if (append != "")
