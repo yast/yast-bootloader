@@ -561,7 +561,7 @@ global define map Export () ``{
   */
 global define boolean Import (map settings) ``{
     BootCommon::globals = settings["global"]:$[];
-    BootCommon::sections  = settings["sections"]:[];
+    BootCommon::sections = settings["sections"]:[];
     BootCommon::activate = settings["activate"]:false;
     return true;
 }
@@ -774,26 +774,39 @@ global void Update () {
 	}
 
 	// handle the append line
-	if (haskey (s, "append")) {
-	    // FIXME: Update AppendEntries() !! #155397
+	string append = s["append"]:"";
 
-  	    if (oname == "linux")
-	    {
-	        string option = s["append"]:"";
-		foreach (string o, BootCommon::ListAdditionalKernelParams (), {
-		  option = BootCommon::setKernelParamToLine (option, o, "false");
-		});
-		option = option + " " + BootCommon::GetAdditionalKernelParams ();
-		if (BootCommon::getKernelParamFromLine (option, "splash") == "false")
-		option = BootCommon::setKernelParamToLine (option, "splash", "silent");
-		s["append"] = option;
-	    }
-	    else if (contains (BootCommon::update_section_types, oname))
-	    {
-	      string option = s["append"]:"";
-	      s["append"] = option;
-	    }
+	// FIXME: how should we handle root= entries in append= lines?
+
+	// add additional kernel parameters to the end of the append entry
+	// of special image section 'linux'
+	// 
+	if (oname == "linux") {
+	    foreach (string o, BootCommon::ListAdditionalKernelParams (), {
+	        append = BootCommon::setKernelParamToLine (append, o, "false");
+	    });
+	    append = append + " " + BootCommon::GetAdditionalKernelParams ();
+
+	    if (BootCommon::getKernelParamFromLine (append, "splash") == "false")
+	        append = BootCommon::setKernelParamToLine (append, "splash", "silent");
 	}
+
+	// remove console= entries from kernel parameters, console auto
+	// detection now works. For special sections take what´s given on boot
+	// command line
+	string console = "false"; // false means delete to 'setKernelParamToLine'
+	if (contains (BootCommon::update_section_types, oname))
+	{
+	    console = BootCommon::getKernelParamFromLine (Kernel::GetCmdLine(), "console") ;
+	}
+	append = BootCommon::setKernelParamToLine (append, "console", console);
+
+	// finally append entry is written back
+	if (append != "")
+	    s["append"] = append;
+	else 
+	    s = remove(s, "append");
+
 	return s;
     });
 
@@ -812,14 +825,37 @@ global void Update () {
     y2milestone("finished updating sections: %1", updated_sections);
     // End of UpdateSections ();
 
-
-
-    // this is soo broken ... BootCommon::UpdateGlobals ();
+   /**
+    * Secondly update global settings of bootloader configuration:
+    * 
+    * - no change of 'activate'
+    * - no change of 'timeout'
+    * - no change of default section
+    * - no change of default initrd
+    * - update device names that might have changed in as needed
+    * - delete console= parameters as console autodetection now works
+    */
     BootCommon::loader_device
 	= BootCommon::UpdateDevice (BootCommon::loader_device);
-    // FIXME we should update device names for root= and all boot_*_custom as
-    // well
-    // FIXME: Update global AppendEntries() !! #155397
+
+    // update device naming of default root and boot_* entries
+    foreach (string key, ["root", "boot_prep_custom", "boot_chrp_custom",
+			  "boot_iseries_custom","boot_pmac_custom"], {
+	if (haskey(BootCommon::globals, key)) {
+	    y2milestone ("Updating global %1 device", key);
+	    s["root"] = BootCommon::UpdateDevice (BootCommon::globals[key]:"");
+	}
+    });
+
+    // remove console= entries from globals, console auto detection now works
+    if (haskey (globals, "append")) {
+        string append = BootCommon::globals["append"]:"";
+	append = BootCommon::setKernelParamToLine (append, "console", "false");
+	if (append != "")
+	    BootCommon::globals["append"] = append;
+	else 
+	    BootCommon::globals = remove(BootCommon::globals, "append");
+    }
 }
 
 /**
