@@ -390,13 +390,19 @@ global void CreateGlobals () {
 */
     else if ( arch == "iseries" ) {
         boot_map = $[
-	    "boot_slot" 	 : "B",
+	    "boot_slot"		 : "B",
 	    // FIXME: what file should be used here?
-            "boot_file" 	 : "/tmp/suse_linux_image",
+            "boot_file"		 : "/tmp/suse_linux_image",
 				   // GoodPRePPartitionOnVDisk(BootCommon::RootPartitionDevice)
-	    // FIXME: this doesn´t make sense for empty BootPartitionDevice
-	    "boot_iseries_custom": BootCommon::BootPartitionDevice,
 	 ];
+
+	// If we have an empty BootPartitionDevice on iseries, this means:
+	// do not boot from BootPartitionDevice but from some other place.
+	// Do not pass down to perl-Bootloader, lilo fails on an empty "boot =" line.
+	if (BootCommon::BootPartitionDevice != nil &&
+	    BootCommon::BootPartitionDevice != "") {
+	    add(boot_map, "boot_iseries_custom", BootCommon::BootPartitionDevice);
+	}
     }
     // Finally merge results into "globals": new values replace old ones
     BootCommon::globals = (map<string, string>) union(BootCommon::globals, boot_map);
