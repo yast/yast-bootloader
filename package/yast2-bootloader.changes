@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Mar 21 15:16:32 CET 2006 - od@suse.de
+
+- cleanup: move UpdateSections function into Update()'s body
+- fixed #157939: iseries can boot even if no prep boot partition
+  exists and/or is configured
+- 2.13.31
+
+-------------------------------------------------------------------
 Mon Mar 20 23:49:04 CET 2006 - od@suse.de
 
 - package clients/print-product.ycp
