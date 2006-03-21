@@ -678,26 +678,29 @@ global define list<string> Summary () {
     return result;
 }
 
+
 /**
- * Update sections of bootloader configuration and modify internal structures
- * as needed. This means right now:
- * 
- * - no change of "resume=" parameter in append entry, not used on ppc yet  
- * - delete console= parameters as console autodetection now works
- * 
- *
+ * Update read settings to new version of configuration files
  */
-void UpdateSections () {
-    // This function has been copied from lilolike.ycp and adapted to conform
-    // with the image parameter BootPOWERLILO.ycp/perl-Bootloader uses. Some
-    // unneeded code has been removed.
-    // FIXME: check for problems, throw out unneccessary code
+global void Update () {
+
+   /**
+    * Firstly update sections of bootloader configuration and modify internal
+    * structures as needed. This means right now:
+    * 
+    * - no change of "resume=" parameter in append entry, not used on ppc yet  
+    * - delete console= parameters as console autodetection now works
+    */
+
+    // This function has been copied from lilolike.ycp::UpdateSections and
+    // adapted to conform with the image parameter
+    // BootPOWERLILO.ycp/perl-Bootloader uses. Some unneeded code has been
+    // removed.
     // FIXME: SLES9 -> SLES10 update: check loader_type = lilo in
-    //        /etc/sysconfig/bootloader
+    // /etc/sysconfig/bootloader
 
     // take current sections as starting point
     list<map<string,any> > updated_sections = BootCommon::sections;
-    list<string> recreated = [];
     boolean linux_resume_added = false;
 
     map<string,any> default_sect = CreateImageSection("linux");
@@ -715,7 +718,6 @@ void UpdateSections () {
 	// if we find a section that looks like it has been initially proposed
 	// from the installer, replace with the actual "good" proposal
 	if (contains(sections_to_recreate, oname)) {
-	    recreated = add (recreated, oname);
 	    sections_to_recreate = filter (string this_name, sections_to_recreate, ``(
 		this_name != oname
 	    ));
@@ -741,7 +743,8 @@ void UpdateSections () {
 	    s[key] = value;
 	});
 
-	// If this section s looks like the former default section
+	// If this section s looks like the former default section, then do
+	// ?what?, FIXME if you understand
 	if (s["image"]:"" == default_sect["image"]:""
 	    && s["initrd"]:"" == default_sect["initrd"]:""
 	    && issubstring (name, BootCommon::read_default_section_name)
@@ -793,7 +796,6 @@ void UpdateSections () {
     // updated sections
     foreach (string section_name, sections_to_recreate, {
         map<string,any> new_section =  CreateImageSection(section_name);
-	recreated = add (recreated, new_section["name"]:"");
 	if (section_name == "linux")
   	    updated_sections = prepend (updated_sections, new_section);
 	else
@@ -802,13 +804,10 @@ void UpdateSections () {
 
     BootCommon::sections = updated_sections;
     y2milestone("finished updating sections: %1", updated_sections);
-}
+    // End of UpdateSections ();
 
-/**
- * Update read settings to new version of configuration files
- */
-global void Update () {
-    UpdateSections ();
+
+
     // this is soo broken ... BootCommon::UpdateGlobals ();
     BootCommon::loader_device
 	= BootCommon::UpdateDevice (BootCommon::loader_device);
