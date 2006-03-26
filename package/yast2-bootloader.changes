@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Sun Mar 26 06:14:08 CEST 2006 - od@suse.de
+
+- removed yast2-devel-packages from BuildRequires
+- add replacements for yast2-devel-packages to BuildRequires
+- 2.13.33
+
+-------------------------------------------------------------------
 Tue Mar 21 17:31:03 CET 2006 - jplack@suse.de
 
 - fix console= handling on update, and some more update fixes (#155397)
