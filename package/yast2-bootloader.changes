@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 27 15:36:27 CEST 2006 - uli@suse.de
+
+- changed s390* reboot message (bug #160045)
+
+-------------------------------------------------------------------
 Sun Mar 26 06:14:08 CEST 2006 - od@suse.de
 
 - removed yast2-devel-packages from BuildRequires

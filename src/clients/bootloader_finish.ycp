@@ -95,7 +95,10 @@ fi
         Misc::boot_msg = _("
 Your system will now be shut down.
 After shutdown, reload the system
-with the load address of your root DASD.
+with the load address of your root DASD or
+the load address of your zFCP device.
+For details, read the related chapter
+in the documentation.
 ");
     }
     else
