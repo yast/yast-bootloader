@@ -223,7 +223,7 @@ global string getFreeSectionLabel () {
      * returns list of partitions. looks at '/proc/partitions' and creates list
      * of partition for combobox or menu
      * @param type symbol
-     *   `boot - for botloader installation
+     *   `boot - for bootloader installation
      *   `root - for kernel root
      *   `boot_other - for bootable partitions of other systems
      *   `all - all partitions
@@ -243,11 +243,12 @@ global string getFreeSectionLabel () {
 	list<string> floppies = getFloppyDevices ();
 
 	devices = filter (string k, map v, devices,
-	                  ``(v["type"]:`CT_UNKNONW!=`CT_LVM));
+	                  ``(v["type"]:`CT_UNKNONW != `CT_LVM));
+
 	if (type == `boot || type == `boot_other)
 	{
 	    devices = filter (string k, map v, devices, 
-	                      ``(v["type"]:`CT_UNKNONW==`CT_DISK));
+	                      ``(v["type"]:`CT_UNKNONW == `CT_DISK));
 	}
 	list<string> all_disks = (list<string>) maplist (string k, map v, devices, ``(k));
 
@@ -1094,7 +1095,7 @@ global list<string> ListKernelParamsInLine (string line) {
 		    // FIXME: this is the most rotten code since molded sliced bread
 		    // move to bootloader/Core/GRUB.pm or similar
 		    string command = sformat
-			("/sbin/activate %2 %1", num, mbr_dev);
+			("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
 		    y2milestone ("Running command %1", command);
 		    map out = (map)SCR::Execute (.target.bash_output, command);
 		    integer exit = out["exit"]:0;
