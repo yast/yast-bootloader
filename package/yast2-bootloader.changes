@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Mar 29 18:52:24 CEST 2006 - od@suse.de
+
+- using parted for activation of boot partition now (instead of
+  /sbin/activate from the lilo package) (#161316)
+- fixed a typo
+- fixed some whitespace
+- added update-alternatives to BuildRequires
+- 2.13.34
+
+-------------------------------------------------------------------
 Mon Mar 27 15:36:27 CEST 2006 - uli@suse.de
 
 - changed s390* reboot message (bug #160045)
