@@ -1,7 +1,7 @@
 @HEADER-COMMENT@
 
 @HEADER@
-BuildRequires:	gcc-c++ limal-devel yast2-devel yast2-devtools yast2-testsuite yast2-installation limal-bootloader update-desktop-files swig docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel yast2-perl-bindings perl-gettext
+BuildRequires:	gcc-c++ limal-devel yast2-devel yast2-devtools yast2-testsuite yast2-installation limal-bootloader update-desktop-files swig docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel yast2-perl-bindings perl-gettext update-alternatives
 PreReq:         /bin/sed %fillup_prereq
 Requires:	yast2 yast2-core yast2-storage perl-Bootloader limal-bootloader
 %ifarch %ix86 x86_64
