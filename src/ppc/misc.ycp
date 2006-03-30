@@ -119,7 +119,7 @@
 	    map<string,map> tm = Storage::GetTargetMap ();
 	    string vg = "";
 	    foreach (string dev, map info, tm, {
-		if (info["type"]:`CT_UNKNONW==`CT_LVM)
+		if (info["type"]:`CT_UNKNOWN==`CT_LVM)
 		{
 		    list<map> volumes = info["partitions"]:[];
 		    foreach (map v, volumes, {

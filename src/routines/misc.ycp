@@ -243,12 +243,12 @@ global string getFreeSectionLabel () {
 	list<string> floppies = getFloppyDevices ();
 
 	devices = filter (string k, map v, devices,
-	                  ``(v["type"]:`CT_UNKNONW != `CT_LVM));
+	                  ``(v["type"]:`CT_UNKNOWN != `CT_LVM));
 
 	if (type == `boot || type == `boot_other)
 	{
 	    devices = filter (string k, map v, devices, 
-	                      ``(v["type"]:`CT_UNKNONW == `CT_DISK));
+	                      ``(v["type"]:`CT_UNKNOWN == `CT_DISK));
 	}
 	list<string> all_disks = (list<string>) maplist (string k, map v, devices, ``(k));
 
