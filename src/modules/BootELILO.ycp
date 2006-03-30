@@ -211,7 +211,7 @@ global define boolean Read (boolean reread) ``{
 	boolean ret = BootCommon::Read (reread);
 	efi_entry_name
 	    = (string)SCR::Read (.sysconfig.bootloader.LOADER_LOCATION);
-	y2internal ("EFI entry: %1", efi_entry_name);
+	y2milestone ("EFI entry: %1", efi_entry_name);
 	// check for meaningless EFI entry name in sysconfig
 	if ("mbr" == efi_entry_name || "" == efi_entry_name
 	    || nil == efi_entry_name)
