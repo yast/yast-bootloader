@@ -93,7 +93,7 @@ include "bootloader/ppc/iseries.ycp";
 
 // misc. functions
 
-global define void initBoardType () ``{
+global define void initBoardType () {
     if (Arch::board_iseries ())
     {
 	board_type = "iseries";
@@ -120,13 +120,13 @@ global define void initBoardType () ``{
     }
 }
 
-global define string getBoardType () ``{
+global define string getBoardType () {
 	if (board_type == nil)
 	    initBoardType ();
 	return board_type;
 }
 
-global define void setBoardType (string board) ``{
+global define void setBoardType (string board) {
 	board_type = board;
 	currentBoardInit ();
 }
@@ -134,7 +134,7 @@ global define void setBoardType (string board) ``{
 /**
   * Initialize the attribute of currently used board type
   */
- global define void currentBoardInit () ``{
+ global define void currentBoardInit () {
      if (getBoardType () == "iseries")
      {
        iSeriesInit ();
@@ -414,7 +414,7 @@ global void CreateGlobals () {
 /**
   * Propose bootloader settings
   */
-global define void Propose () ``{
+global define void Propose () {
     y2debug ("Started propose: Glob: %1, Sec: %2",
 	BootCommon::globals, BootCommon::sections);
 
@@ -474,7 +474,7 @@ global define void Propose () ``{
     /**
       * Propose bootloader settings
       *
-    global define void Propose () ``{
+    global define void Propose () {
 	boolean initial_propose = true;
 	if (BootCommon::was_proposed)
 	{
@@ -544,7 +544,7 @@ global define void Propose () ``{
   * Export bootloader settings to a map
   * @return bootloader settings
   */
-global define map Export () ``{
+global define map Export () {
     map exp = $[
 		"global": BootCommon::globals,
 		"sections" : BootCommon::sections,
@@ -559,7 +559,7 @@ global define map Export () ``{
   * @param settings map of bootloader settings
   * @return boolean true on success
   */
-global define boolean Import (map settings) ``{
+global define boolean Import (map settings) {
     BootCommon::globals = settings["global"]:$[];
     BootCommon::sections = settings["sections"]:[];
     BootCommon::activate = settings["activate"]:false;
@@ -606,7 +606,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if (clean)
     {
 	BootCommon::RemoveUnexistentSections ("", "");
-	BootCommon::UpdateInitrdLine ();
+	// FIXME: this is not needed, unclear code
+	// BootCommon::UpdateInitrdLine ();
 	BootCommon::UpdateAppend ();
     }
 
@@ -724,9 +725,9 @@ global void Update () {
 	// if we find a section that looks like it has been initially proposed
 	// from the installer, replace with the actual "good" proposal
 	if (contains(sections_to_recreate, oname)) {
-	    sections_to_recreate = filter (string this_name, sections_to_recreate, ``(
-		this_name != oname
-	    ));
+	    sections_to_recreate = filter (string this_name,
+		sections_to_recreate, ``(this_name != oname)
+	    );
 	    return CreateImageSection(oname);
 	}
 
