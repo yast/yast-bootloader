@@ -510,6 +510,8 @@ global string getFreeSectionLabel () {
 	string dev = "";
 	string mp = "";
 	integer max = 0;
+	//
+	// FIXME: this is broken code, implement a proper prefix match!! see below
 	foreach (string k, list v, mountpoints, ``{
 	    if (k != "swap" && issubstring (fullpth, k) && size (k) > max)
 	    {
@@ -521,6 +523,7 @@ global string getFreeSectionLabel () {
 	if (mp == "")
 	    return [];
 
+	// FIXME: pth will be wrong for fullpth=='(hd0,1)/boot/vmlinux' !!
 	string pth = substring (fullpth, size (mp));
 	if (substring (pth, 0, 1) != "/")
 	    pth = "/" + pth;
