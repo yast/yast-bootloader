@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Sat Apr  1 23:25:58 CEST 2006 - od@suse.de
+
+- added TESTME comment: test parted partition activation with BSD
+  slices
+- remove more old-style backticks
+- add needed comments
+- added parted to Requires (#161316)
+- changed a y2internal -> y2milestone
+- fixed harmless typos
+- 2.13.35
+
+-------------------------------------------------------------------
 Wed Mar 29 18:52:24 CEST 2006 - od@suse.de
 
 - using parted for activation of boot partition now (instead of
