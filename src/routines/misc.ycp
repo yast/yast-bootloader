@@ -1097,6 +1097,13 @@ global list<string> ListKernelParamsInLine (string line) {
 		    y2milestone ("Activating partition %1 on %2", num, mbr_dev);
 		    // FIXME: this is the most rotten code since molded sliced bread
 		    // move to bootloader/Core/GRUB.pm or similar
+		    // TESTME: make sure that parted does not destroy BSD
+		    // slices (#suse24740): cf. section 5.1 of "info parted":
+		    //   Parted only supports the BSD disk label system.
+		    //   Parted is unlikely to support the partition slice
+		    //   system in the future because the semantics are rather
+		    //   strange, and don't work like "normal" partition tables
+		    //   do.
 		    string command = sformat
 			("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
 		    y2milestone ("Running command %1", command);
