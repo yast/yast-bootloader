@@ -619,6 +619,12 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	return (map<string,string>)
 	    filter (string k, any v, s, { return is (v, string); });
     });
+
+    // FIXME: remove all mountpoints of type 'boot/boot' through some Storage::<func>
+
+    // FIXME: set one mountpoint 'boot/boot' for every boot target means all
+    // partitions in 'boot_<arch>_custom' and 'clone' (chrp)
+
     // ret = ret && BootCommon::SetDeviceMap (device_mapping);
     ret = ret && BootCommon::SetSections (sects);
     ret = ret && BootCommon::SetGlobal (BootCommon::globals);
