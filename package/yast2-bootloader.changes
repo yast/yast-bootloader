@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr  3 20:51:38 CEST 2006 - od@suse.de
+
+- do not add kernel option "selinux=0" on any architecture (#155856)
+- fixed compilation errors in lib_iface.ycp
+- 2.13.36
+
+-------------------------------------------------------------------
 Mon Apr  3 20:27:48 CEST 2006 - jplack@suse.de
 
 - ppc: update default name if denoted section has been updated
