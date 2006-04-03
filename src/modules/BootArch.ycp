@@ -45,15 +45,15 @@ global string FailsafeKernelParams () {
     string ret = "";
     if (Arch::i386 ())
     {
-	ret = "showopts ide=nodma apm=off acpi=off noresume selinux=0 nosmp noapic maxcpus=0 edd=off";
+	ret = "showopts ide=nodma apm=off acpi=off noresume nosmp noapic maxcpus=0 edd=off";
     }
     else if (Arch::x86_64 ())
     {
-	ret = "showopts ide=nodma apm=off acpi=off noresume selinux=0 edd=off";
+	ret = "showopts ide=nodma apm=off acpi=off noresume edd=off";
     }
     else if (Arch::ia64 ())
     {
-	ret = "ide=nodma nohalt noresume selinux=0";
+	ret = "ide=nodma nohalt noresume";
     }
     else
     {
@@ -85,8 +85,7 @@ global string DefaultKernelParams (string resume) {
 	string resumestring = "";
 	if (resume != "")
 	    resumestring = sformat ("resume=%1", resume);
-	string ret = sformat ("%1 %2 %3 %4",
-	    "selinux=0",
+	string ret = sformat ("%1 %2 %3",
 	    Kernel::GetCmdLine (),
 	    resumestring,
 	    ProductFeatures::GetStringFeature (
@@ -99,8 +98,7 @@ global string DefaultKernelParams (string resume) {
     }
     else if (Arch::ia64 ())
     {
-	string append = sformat ("%1 %2 %3 splash=silent",
-	    "selinux=0",
+	string append = sformat ("%1 %2 splash=silent",
 	    ProductFeatures::GetStringFeature (
 		"globals",
 		"additional_kernel_parameters"),

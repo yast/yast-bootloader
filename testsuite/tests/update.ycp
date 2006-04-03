@@ -131,7 +131,7 @@
 	    "sections":[
 		[
 		    $["key":"title", "value":"linux"],
-		    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 vga=0x31a selinux=0 splash=silent"],
+		    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hda3 vga=0x31a splash=silent"],
 		    $["key":"initrd", "value":"(hd0,0)/initrd"],
 		    $["key":"__intern__", "value":$["type":"linux"]]
 		],
@@ -143,12 +143,12 @@
 		],
 		[
 		    $["key":"title", "value":"test_sect"],
-		    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hdb4 vga=0x31a selinux=0 splash=silent resume=/dev/hdb2"],
+		    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hdb4 vga=0x31a splash=silent resume=/dev/hdb2"],
 		    $["key":"initrd", "value":"(hd0,0)/initrd"],
 		],
 		[
 		    $["key":"title", "value":"other"],
-		    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hdb4 vga=0x31a selinux=0 splash=silent resume=/dev/hdb2"],
+		    $["key":"kernel", "value":"(hd0,0)/vmlinuz root=/dev/hdb4 vga=0x31a splash=silent resume=/dev/hdb2"],
 		    $["key":"initrd", "value":"(hd0,0)/initrd"],
 		],
 		[
@@ -189,7 +189,7 @@
 		    $["key":"label", "value":"Linux"],
 		    $["key":"initrd", "value":"/boot/initrd"],
 		    $["key":"root", "value":"/dev/hda3"],
-		    $["key":"append", "value":"resume=/dev/hda2 selinux=0"],
+		    $["key":"append", "value":"resume=/dev/hda2"],
 		    $["key":"vga", "value":"0x31a"],
 		    $["key":"__intern__", "value":$["type":"linux"]]
 		],
@@ -198,7 +198,7 @@
 		    $["key":"label", "value":"test_sect"],
 		    $["key":"initrd", "value":"/boot/initrd"],
 		    $["key":"root", "value":"/dev/hdb4"],
-		    $["key":"append", "value":"resume=/dev/hdb2 selinux=0"],
+		    $["key":"append", "value":"resume=/dev/hdb2"],
 		    $["key":"vga", "value":"0x31a"],
 		],
 		[
@@ -206,7 +206,7 @@
 		    $["key":"label", "value":"Other"],
 		    $["key":"initrd", "value":"/boot/initrd"],
 		    $["key":"root", "value":"/dev/hdb4"],
-		    $["key":"append", "value":"resume=/dev/hdb2 selinux=0"],
+		    $["key":"append", "value":"resume=/dev/hdb2"],
 		    $["key":"vga", "value":"0x31a"],
 		],
 		[
