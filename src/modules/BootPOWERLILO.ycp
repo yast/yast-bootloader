@@ -738,6 +738,12 @@ global void Update () {
 	    sections_to_recreate = filter (string this_name,
 		sections_to_recreate, ``(this_name != oname)
 	    );
+	    // check for a new global default if oname != name
+	    if ( name == BootCommon::globals["default"]:"" ) {
+	        // we assume that the new name produced by CreateImageSection
+	        // will be oname
+  	        BootCommon::globals["default"] = oname;
+	    }
 	    return CreateImageSection(oname);
 	}
 
@@ -851,7 +857,7 @@ global void Update () {
 
     // update device naming of default root and boot_* entries
     foreach (string key, ["root", "boot_prep_custom", "boot_chrp_custom",
-			  "boot_iseries_custom","boot_pmac_custom"], {
+			  "boot_iseries_custom","boot_pmac_custom", "clone"], {
 	if (haskey(BootCommon::globals, key)) {
 	    y2milestone ("Updating global %1= setting, currently %2",
 			 key, BootCommon::globals[key]:"");
