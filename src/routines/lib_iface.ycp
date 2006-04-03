@@ -33,22 +33,17 @@ import "Storage";
 string library_initialized = nil;
 
 /**
- * Prepare the data for perl-Bootloader library initialization
- * @return a map of data needed for the library initialization
+ *  Retrieve the data for perl-Bootloader library from Storage module
+ *  and pass it along
+ *  @return nothing
  */
-map<string,any> PrepareInitData () {
+// FIXME: this should be done directly in perl-Bootloader through LibStorage.pm
+global SetDiskInfo () {
     map<string,any> mountpoints = mapmap (string k, list v,
 	(map<string,list>)Storage::GetMountPoints (),
     {
 	return $[ k : (any)v[0]:nil];
     });
-    // get what's really mounted
-    list<map<string,any> > mounted_list = (list<map<string,any> >)
-	SCR::Read (.proc.mounts);
-    map<string,string> mounted = listmap (map<string,any> m, mounted_list, {
-	return $[ m["file"]:"" : m["spec"]:"" ];
-    });
-    y2milestone ("Really mounted: %1", mounted);
     mountpoints = filter (string k, any v, mountpoints, {
 	string tmpdir = (string)SCR::Read (.target.tmpdir);
 	integer tmp_sz = size (tmpdir);
@@ -56,6 +51,13 @@ map<string,any> PrepareInitData () {
     });
     if (! Stage::initial ())
     {
+        // get what's really mounted
+        list<map<string,any> > mounted_list = (list<map<string,any> >)
+	    SCR::Read (.proc.mounts);
+	map<string,string> mounted = listmap (map<string,any> m, mounted_list, {
+	    return $[ m["file"]:"" : m["spec"]:"" ];
+	});
+	y2milestone ("Really mounted: %1", mounted);
 	mountpoints = filter (string k, any v, mountpoints, {
 	    return mounted[k]:nil == v;
 	});
@@ -67,6 +69,8 @@ map<string,any> PrepareInitData () {
     list<list<list> > pi = maplist (string disk, map info, tm,
     {
 	if (info["type"]:`CT_UNKNOWN==`CT_LVM)
+	    return [];
+	if (info["type"]:`CT_UNKNOWN==`CT_EVMS)
 	    return [];
 	list partitions = info["partitions"]:[];
 	list<list> parts = maplist (map p, (list<map>)partitions, {
@@ -105,11 +109,9 @@ map<string,any> PrepareInitData () {
     y2milestone ("Information about partitioning: %1", partinfo);
     y2milestone ("Information about MD arrays: %1", md_info);
 
-    return $[
-	"mountpoints" : mountpoints,
-	"partitions" : partinfo,
-	"md_arrays" : md_info,
-    ];
+    System::Bootloader_API::setMountPoints (mountpoints);
+    System::Bootloader_API::setPartitions (partinfo);
+    System::Bootloader_API::setMDArrays (md_arrays);
 }
 
 /**
@@ -125,13 +127,8 @@ global boolean InitializeLibrary (boolean force, string loader) {
     y2milestone ("Initializing lib for %1", loader);
     System::Bootloader_API::initBootloader (loader);
     y2milestone ("Putting partitioning into library");
-    map<string,any> init_data = PrepareInitData ();
-    map<string,string> mountpoints = init_data["mountpoints"]:$[];
-    list<list<string> > partitions = init_data["partitions"]:[];
-    map<string,list<string> > md_arrays = init_data["md_arrays"]:$[];
-    System::Bootloader_API::setMountPoints (mountpoints);
-    System::Bootloader_API::setPartitions (partitions);
-    System::Bootloader_API::setMDArrays (md_arrays);
+    // pass all needed disk/partition information to library
+    SetDiskInfo();
     y2milestone ("Library initialization finished");
     library_initialized = loader;
     return true; // FIXME error checking
