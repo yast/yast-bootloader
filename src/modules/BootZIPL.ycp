@@ -174,10 +174,9 @@
     global define void Propose () ``{
 	BootCommon::DetectDisks ();
 	string root_device = BootCommon::RootPartitionDevice;
-	string parameters = sformat ("%1 %3 %4 %5",
+	string parameters = sformat ("%1 %3 %4",
 	    StorageControllers::dasdParam,
 	    BootCommon::GetAdditionalKernelParams (),
-	    "selinux=0",
 	    "TERM=dumb");
 
 	BootCommon::globals = $[

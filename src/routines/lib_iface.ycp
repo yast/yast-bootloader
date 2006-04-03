@@ -38,7 +38,7 @@ string library_initialized = nil;
  *  @return nothing
  */
 // FIXME: this should be done directly in perl-Bootloader through LibStorage.pm
-global SetDiskInfo () {
+global void SetDiskInfo () {
     map<string,any> mountpoints = mapmap (string k, list v,
 	(map<string,list>)Storage::GetMountPoints (),
     {
@@ -109,9 +109,9 @@ global SetDiskInfo () {
     y2milestone ("Information about partitioning: %1", partinfo);
     y2milestone ("Information about MD arrays: %1", md_info);
 
-    System::Bootloader_API::setMountPoints (mountpoints);
-    System::Bootloader_API::setPartitions (partinfo);
-    System::Bootloader_API::setMDArrays (md_arrays);
+    System::Bootloader_API::setMountPoints ((map<string,string>) mountpoints);
+    System::Bootloader_API::setPartitions ((list<list<string> >) partinfo);
+    System::Bootloader_API::setMDArrays ((map<string,list<string> >) md_info);
 }
 
 /**

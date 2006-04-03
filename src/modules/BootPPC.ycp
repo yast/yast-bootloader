@@ -223,10 +223,9 @@ global boolean currentBoardUpdate () {
 	{
 	    return [];
 	}
-	string append = sformat ("%1 %2 %3",
+	string append = sformat ("%1 %2",
 	    Kernel::GetCmdLine (),
-	    BootCommon::GetAdditionalKernelParams (),
-	    "selinux=0");
+	    BootCommon::GetAdditionalKernelParams ());
 	// always server product, FIXME when it changes
 	append = BootCommon::setKernelParamToLine (append, "desktop", "false");
 	list<map> section = [
