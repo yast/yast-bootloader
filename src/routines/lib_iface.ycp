@@ -122,7 +122,7 @@ global SetDiskInfo () {
  */
 global boolean InitializeLibrary (boolean force, string loader) {
     if (!force && loader == library_initialized)
-        return true;
+        return false;
 
     y2milestone ("Initializing lib for %1", loader);
     System::Bootloader_API::initBootloader (loader);
@@ -131,7 +131,7 @@ global boolean InitializeLibrary (boolean force, string loader) {
     SetDiskInfo();
     y2milestone ("Library initialization finished");
     library_initialized = loader;
-    return true; // FIXME error checking
+    return true;
 }
 
 /**

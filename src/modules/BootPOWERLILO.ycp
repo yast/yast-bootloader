@@ -572,9 +572,11 @@ global define boolean Import (map settings) {
  * @return boolean true on success
  */
 global boolean Read (boolean reread) {
-    BootCommon::InitializeLibrary (reread, "ppc");
-    if (reread)
-    {
+    if (!BootCommon::InitializeLibrary (reread, "ppc")) {
+        // send current disk/partition information to perl-Bootloader
+	BootCommon::SetDiskInfo ();
+    }
+    if (reread) {
 	BootCommon::ReadFiles ();
     }
     // Do we have to detect disks ?
@@ -612,7 +614,9 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     }
 
     if (! BootCommon::InitializeLibrary (init, "ppc"))
-	return false;
+        // send current disk/partition information to perl-Bootloader
+	BootCommon::SetDiskInfo ();
+
     // Sanity check the sections list: we can only pass strings
     // through the perl interface
     list<map<string,string> > sects = maplist (map<string,any> s, BootCommon::sections, {
