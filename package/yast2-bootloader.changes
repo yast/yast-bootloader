@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Mon Apr  3 20:27:48 CEST 2006 - jplack@suse.de
+
+- ppc: update default name if denoted section has been updated
+- ppc: update global clone entry, too, if device names changed
+- fix for #161755, send partition/disk info where neccessary
+- reorder code so that new function SetDiskInfo is formed and can
+  be used in various places to fix #161755 
+- add proposed code change for virtual 'boot' mountpoints (#162242)
+
+-------------------------------------------------------------------
 Sat Apr  1 23:25:58 CEST 2006 - od@suse.de
 
 - added TESTME comment: test parted partition activation with BSD
