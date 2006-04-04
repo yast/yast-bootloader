@@ -196,10 +196,19 @@ void generic_Init (
 	map<string,any>data
 ) {
     foreach (string key, any value, options, {
-	list val = splitstring((string)value, ":");
+	list<string> val = splitstring((string)value, ":");
 	value = val[0]:"undef";
 	string key_e = key + "_enabled";
 	boolean enabled_exists = UI::WidgetExists(`id(key_e));
+
+	if ((value == "select") || (value == "multi")) {
+	    val[0] = nil; val[1] = nil; val[2] = nil;
+	    val = filter(string v, val, ``(v!=nil) );
+	    // update list of possible selections
+	    UI::ChangeWidget (`id (key), `Items,
+	        maplist(string v, val, ``( `item(`id(v), v ) ))
+	    );
+	}
 
 	if (!haskey (data, key)) {
 	    if (enabled_exists) {
@@ -215,7 +224,7 @@ void generic_Init (
 	    UI::ChangeWidget (`id (key), `Value,
 		data[key]:"" == "true" ? true : false);
 	}
-	else if ((value == "string") || (value == "path") || (value == "select")) {
+	else if (contains(["string", "path", "select"], (string)value)) {
 	    UI::ChangeWidget (`id (key), `Value, data[key]:"");
 	}
 	else if (value == "multi") {
@@ -310,3 +319,13 @@ symbol generic_Handle (string key, map event) {
 }
 
 } // include end
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */
