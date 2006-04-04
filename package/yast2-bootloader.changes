@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr  5 01:49:23 CEST 2006 - od@suse.de
+
+- changed more prep_boot_partition from "/dev/null" to "" (#163387)
+- 2.13.38
+
+-------------------------------------------------------------------
 Wed Apr  5 01:21:17 CEST 2006 - od@suse.de
 
 - use empty string when no prep boot or FAT partition is found
