@@ -45,7 +45,7 @@ global boolean of_defaultdevice = true;
 
 // partition number for the bootloader (either 41PReP boot or Apple_HFS)
 // start with disabled value and let the partition scanner find a match.
-global string prep_boot_partition = "/dev/null";
+global string prep_boot_partition = "";
 
 // map available of 41 PReP partitions, used on iSeries and CHRP
 global list<string> prep_boot_partitions = [];
