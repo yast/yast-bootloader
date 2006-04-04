@@ -38,7 +38,7 @@
 
     // partition number for the bootloader (either 41PReP boot or Apple_HFS)
     // start with disabled value and let the partition scanner find a match.
-    global string prep_boot_partition = "/dev/null";
+    global string prep_boot_partition = "";
 
     // map available of 41 PReP partitions, used on iSeries and CHRP
     global list<string> prep_boot_partitions = [];
@@ -496,7 +496,7 @@ global boolean currentBoardUpdate () {
 	iseries_write_prepboot = settings["iseries_write_prepboot"]:false;
 	iseries_write_slot_a = settings["iseries_write_slot_a"]:false;
 	iseries_write_slot_b = settings["iseries_write_slot_b"]:false;
-	prep_boot_partition = settings["prep_boot_partition"]:"/dev/null";
+	prep_boot_partition = settings["prep_boot_partition"]:"";
 	of_defaultdevice = settings["of_defaultdevice"]:true;
 	if (! Mode::config ())
 	{
@@ -608,7 +608,7 @@ global boolean currentBoardUpdate () {
 	iseries_write_prepboot = false;
 	iseries_write_streamfile = false;
 	prep_boot_partitions = [];
-	prep_boot_partition = "/dev/null";
+	prep_boot_partition = "";
 	BootCommon::activate = true;
 	currentBoardInit ();
     }

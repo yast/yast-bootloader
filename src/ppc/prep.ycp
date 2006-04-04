@@ -38,11 +38,10 @@
 	    return;
 	}
 
-        if ( ! (size (prep_boot_partitions) > 0 ||
-            (prep_boot_partition != "" && prep_boot_partition != "/dev/null")))
+        if ( ! (size (prep_boot_partitions) > 0 || prep_boot_partition != ""))
         {
             BootCommon::activate = false;
-	    prep_boot_partition = "/dev/null";
+	    prep_boot_partition = "";
         }
 	else
 	{
@@ -56,8 +55,7 @@
       */
     global define boolean PRePRead () ``{
 	prep_boot_partition = (string) BootCommon::globals["boot"]:"";
-	BootCommon::activate
-	    = prep_boot_partition != "" && prep_boot_partition != "/dev/null";
+	BootCommon::activate = prep_boot_partition != "";
 	return true;
     }
 

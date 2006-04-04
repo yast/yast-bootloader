@@ -209,7 +209,7 @@
       * @return string summary to the table
       */
     global define string PRePPartsSummary (any opt_id, string opt_key) ``{
-	if (prep_boot_partition == "" || prep_boot_partition == "/dev/null")
+	if (prep_boot_partition == "")
 	{
 	    // table item
 	    return _("None");

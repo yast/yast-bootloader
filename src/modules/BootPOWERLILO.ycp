@@ -687,7 +687,7 @@ global define list<string> Summary () {
     result = add (result, sformat (_("Sections: %1"),
         String::EscapeTags (mergestring (sects, ", "))));
 
-    // FIXME: does the following code make any sense for ppc?
+    // FIXME: does the following code make any sense for ppc? (see also #163387)
     if (BootCommon::loader_device == "/dev/null")
         // summary text
         result = add (result,
