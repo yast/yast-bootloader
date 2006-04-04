@@ -1,8 +1,16 @@
 -------------------------------------------------------------------
+Wed Apr  5 01:21:17 CEST 2006 - od@suse.de
+
+- use empty string when no prep boot or FAT partition is found
+  (#163387)
+- 2.13.37
+
+-------------------------------------------------------------------
 Tue Apr  4 17:00:12 CEST 2006 - jplack@suse.de
 
 - update list of possible selections, each time a generic widget is
   "called" (#161755)
+
 -------------------------------------------------------------------
 Mon Apr  3 20:51:38 CEST 2006 - od@suse.de
 
