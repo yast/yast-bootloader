@@ -184,8 +184,7 @@
 	}
 
 	y2milestone ("Selected PReP boot partition: %1", prep_boot_partition);
-	BootCommon::activate = (prep_boot_partition != ""
-	    && prep_boot_partition != "/dev/null");
+	BootCommon::activate = (prep_boot_partition != "");
 	y2milestone ("Install bootloader: %1", BootCommon::activate);
     }
 

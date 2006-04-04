@@ -101,7 +101,7 @@
       * @return boolean true on success
       */
     global define boolean iSeriesRead () ``{
-	prep_boot_partition = "/dev/null";
+	prep_boot_partition = "";
 	iseries_streamfile = "";
 	iseries_write_slot_b = false;
 	iseries_write_prepboot = false;
@@ -121,7 +121,7 @@
 		else if (type == `prep)
 		{
 		    iseries_write_prepboot = true;
-		    if (prep_boot_partition == "/dev/null")
+		    if (prep_boot_partition == "")
 		    {
 			prep_boot_partition = target;
 		    }
