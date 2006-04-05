@@ -91,17 +91,19 @@
 			      "warning" :
 			      _("The selected boot path will not be activated for your installation. Your system may not be bootable."),
 		    ]);
-
-
-		//		    ret = (map<string,any>)union (ret, $[
-		//	"warning_level" : `blocker,
-		//	"warning" :
-			    // warning in summary
-		//	    _("Configure a valid boot loader location before continuing.<br>
-//In case that no selection can be made it may be necessary to create a PReP Boot partition."),
-		//    ]);
-
 		}
+	    }
+	    // FIXME: better eliminate use of loader_device in the
+	    // future, no one knows what it is for
+	    if ( BootCommon::loader_device == "" ) {
+		ret = (map<string,any>)union (ret, $[
+			"warning_level" : `blocker,
+			"warning" :
+			    ret["warning"]:"" +
+			    _("Configure a valid boot loader location before continuing.<br>
+In case that no selection can be made it may be necessary to create a PReP Boot partition."),
+			]
+	        );
 	    }
 	}
     }
