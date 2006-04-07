@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Apr  7 12:28:21 CEST 2006 - od@suse.de
+
+- update_gfxmenu: added -f to rm to avoid error message on English
+  installs (#163693)
+- commented out dead code
+- jplack/od: stop work flow for an illegal boot= selection
+- 2.13.39
+
+-------------------------------------------------------------------
 Wed Apr  5 01:49:23 CEST 2006 - od@suse.de
 
 - changed more prep_boot_partition from "/dev/null" to "" (#163387)
