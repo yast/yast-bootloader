@@ -688,11 +688,13 @@ global define list<string> Summary () {
         String::EscapeTags (mergestring (sects, ", "))));
 
     // FIXME: does the following code make any sense for ppc? (see also #163387)
-    if (BootCommon::loader_device == "/dev/null")
-        // summary text
-        result = add (result,
-		_("Do not install boot loader; just create configuration files"));
-    return result;
+    // It seems not. (We do not do this, cf. jplack.) Keeping the code cadaver
+    // around until finally ready for removal.
+    // if (BootCommon::loader_device == "/dev/null")
+    //    // summary text
+    //    result = add (result,
+//		_("Do not install boot loader; just create configuration files"));
+    //return result;
 }
 
 
