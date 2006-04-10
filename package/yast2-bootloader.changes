@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 11 01:10:20 CEST 2006 - jplack@suse.de
+
+- write config even if no create_efi_entry has been requested
+  (#163260)
+
+-------------------------------------------------------------------
 Mon Apr 10 20:35:50 CEST 2006 - od@suse.de
 
 - fixed invalid error on bootloader initialization (#164925)
