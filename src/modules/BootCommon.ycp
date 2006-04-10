@@ -450,7 +450,7 @@ global boolean Read (boolean reread) {
     string bl = getLoaderType (false);
     if (bl == "none")
 	return true;
-    BootCommon::InitializeLibrary (reread, bl);
+    InitializeLibrary (reread, bl);
     if (reread)
     {
 	BootCommon::ReadFiles ();
