@@ -516,8 +516,9 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     string bl = getLoaderType (false);
     if (bl == "none")
 	return true;
-    if (! InitializeLibrary (init, bl))
-	return false;
+
+    InitializeLibrary (init, bl);
+
     list<map<string,string> > sects = maplist (map<string,any> s, sections, {
 	return (map<string,string>)
 	    filter (string k, any v, s, { return is (v, string); });
