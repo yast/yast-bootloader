@@ -694,7 +694,7 @@ global define list<string> Summary () {
     //    // summary text
     //    result = add (result,
 //		_("Do not install boot loader; just create configuration files"));
-    //return result;
+    return result;
 }
 
 

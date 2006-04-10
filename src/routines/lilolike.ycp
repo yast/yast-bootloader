@@ -201,12 +201,14 @@ global string FindMBRDisk() {
 	// set active flag
 	if (selected_location == "mbr")
 	{
-	    // if there is no active partition if installing into MBR
+	    // we are installing into MBR:
+	    // if there is an active partition, then we do not need to activate
+	    // one (otherwise we do)
 	    activate = size (Storage::GetBootPartition (mbrDisk)) == 0;
 	}
 	else
 	{
-	    // always if installing not to MBR
+	    // if not installing to MBR, always activate
 	    activate = true;
 	}
         return selected_location;
