@@ -369,10 +369,9 @@ define boolean installBootLoader (string command, string logfile) {
   */
 global define boolean Write () {
     //	SCR::Execute (.target.bash, "/sbin/elilo");
-    if (! create_efi_entry)
-        return true;
     boolean ret = BootCommon::UpdateBootloader ();
-    if (BootCommon::location_changed)
+  
+    if (BootCommon::location_changed || create_efi_entry)
     {
         // FIXME shuold be handled completly through the library
         // remove existing end old menu entry
