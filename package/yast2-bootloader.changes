@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 11 17:20:56 CEST 2006 - od@suse.de
+
+- clone activate flag and loader_device for AutoYaST (#151501)
+- 2.13.43
+
+-------------------------------------------------------------------
 Tue Apr 11 01:10:20 CEST 2006 - jplack@suse.de
 
 - write config even if no create_efi_entry has been requested
