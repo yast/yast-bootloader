@@ -260,6 +260,68 @@ void     change_widget_default_value (string itemname, string defaultvalue) {
 	regexpsub( old_description, "^[^:]*:[^:]*:[^:]*(:.*)$", "\\1");
 }
 
+
+/**
+  * Choose a boot partition on pmac
+  * type == Apple_HFS|Apple_Bootstrap && size < 20 cyl
+  * @return string device name of pmac boot partition
+  */
+string GoodPmacBootPartition() {
+    y2milestone ("Detecting pmac boot partition");
+    map<string,map> targetMap = (map<string,map>)Storage::GetTargetMap ();
+    y2milestone ("TargetMap: %1", targetMap);
+
+    list<string> boot_partitions = [];
+    string selected_boot_partition = "";
+
+    foreach (string dname, map ddata, targetMap, ``{
+	list<map> partitions = ddata["partitions"]:[];
+	y2milestone ("Partitions: %1", partitions);
+
+	// does this device contain the root partition?
+	boolean hasrootdev = ( find (map p, partitions, ``(
+	    (! p["delete"]:false)
+	    && p["device"]:"" == BootCommon::RootPartitionDevice
+	    && !contains( [`lvm, `evms, `sw_raid], p["type"]:`primary )
+	)) != nil );
+
+	// find possible boot partitions
+	partitions = filter (map p, partitions, ``(
+	    (! p["delete"]:false)
+	    && is (p["fsid"]:nil, integer)
+	    // both partition types Apple_Bootstrap and Apple_HFS can be
+	    // handled by PPC lilo; Storage maps both to fsid 258
+	    && (p["fsid"]:nil == 258)
+	    && !contains( [`lvm, `evms, `sw_raid], p["type"]:`primary )
+	));
+	y2milestone ("Filtered existing partitions: %1", partitions);
+
+	// found a boot partition on the same device as the root partition?
+	if (hasrootdev && size (partitions) > 0
+	    && selected_boot_partition == "")
+	{
+	    y2milestone ("Selected pmac boot partition %1 on device with root partition %2",
+			 partitions[0, "device"]:"", BootCommon::RootPartitionDevice);
+	    selected_boot_partition = partitions[0, "device"]:"";
+	}
+
+	// collect found boot partitions
+	boot_partitions = (list<string>)merge (boot_partitions,
+	    (list<string>)maplist (map p, partitions, ``(
+		p["device"]:""
+	    ))
+	);
+    });
+    y2milestone ("Detected pmac boot partitions: %1", boot_partitions);
+
+    if (selected_boot_partition == "")
+    {
+        selected_boot_partition = boot_partitions[0]:"";
+    }
+    y2milestone ("Selected pmac boot partition: %1", selected_boot_partition);
+    return selected_boot_partition;
+}
+
 /**
   * Propose the location of the root device on disk and the boot device (if
   * any), according to the subarchitecture.
@@ -314,21 +376,16 @@ global void LocationProposal () {
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	change_widget_default_value("boot_iseries_custom", prep_boot_partition);
     }
+    else if ( arch == "pmac" ) {
+	BootCommon::BootPartitionDevice = GoodPmacBootPartition();
+	change_widget_default_value("boot_pmac_custom", BootCommon::BootPartitionDevice);
+    }
 
     // These need to be set (FIXME: find out why) --
     // see ConfigureLocation() in lilolike.ycp
     BootCommon::loader_device = BootCommon::BootPartitionDevice;
     BootCommon::activate = true;
     y2milestone("Boot partition is %1", BootCommon::loader_device);
-
-/*
-    // FIXME: create code for the cases below
-    else if ( arch == "pmac" ) {
-        boot_map = $[
-	    "boot_pmac_custom" : GoodHFSBootPartition(BootCommon::RootPartitionDevice),
-        ]
-    }
-*/
 }
 
 /**
@@ -380,14 +437,11 @@ global void CreateGlobals () {
 	    "boot_prep_custom" : BootCommon::BootPartitionDevice,
 	];
     }
-/*
-    // FIXME: create code for the cases below
     else if ( arch == "pmac" ) {
         boot_map = $[
-	    "boot_pmac_custom" : GoodHFSBootPartition(BootCommon::RootPartitionDevice),
-        ]
+	    "boot_pmac_custom" : BootCommon::BootPartitionDevice,
+        ];
     }
-*/
     else if ( arch == "iseries" ) {
         boot_map = $[
 	    "boot_slot"		 : "B",

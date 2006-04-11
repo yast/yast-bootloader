@@ -43,7 +43,7 @@
 	    partitions = filter (map p, partitions, ``(
 		(! p["delete"]:false)
 		&& is (p["fsid"]:nil, integer)
-		// both partition types 0x41 and FAT16 can be handled through lilo
+		// both partition types 0x41 and FAT16 can be handled by PPC lilo
 		&& (p["fsid"]:nil == 65 ||  p["fsid"]:nil == 6)
 		&& !contains( [`lvm, `evms, `sw_raid], p["type"]:`primary )
 	    ));
