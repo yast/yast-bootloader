@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 11 20:59:57 CEST 2006 - od@suse.de
+
+- propose bootloader location on pmac systems (#158543)
+- changed comment
+- 2.13.44
+
+-------------------------------------------------------------------
 Tue Apr 11 17:20:56 CEST 2006 - od@suse.de
 
 - clone activate flag and loader_device for AutoYaST (#151501)
