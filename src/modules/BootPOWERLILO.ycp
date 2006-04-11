@@ -296,7 +296,7 @@ string GoodPmacBootPartition() {
 	    // takes that size as well); estimating the kiBytes:
 	    // 255 heads * 63 sectors * 20 cylinders * 512 bytes / 1024 bytes =
 	    // 160650 kiBytes
-	    && (p["size_k"]:nil < 160650)
+	    && (p["size_k"]:0 < 160650)
 	    && !contains( [`lvm, `evms, `sw_raid], p["type"]:`primary )
 	));
 	y2milestone ("Filtered existing partitions: %1", partitions);
