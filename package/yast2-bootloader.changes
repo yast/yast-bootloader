@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 11 22:17:59 CEST 2006 - od@suse.de
+
+- on pmac: propose only partitions smaller than 20 cylinders
+  (#158543)
+- 2.13.45
+
+-------------------------------------------------------------------
 Tue Apr 11 20:59:57 CEST 2006 - od@suse.de
 
 - propose bootloader location on pmac systems (#158543)
