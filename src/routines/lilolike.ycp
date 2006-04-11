@@ -231,8 +231,15 @@ global string FindMBRDisk() {
             }
         });*/
 
-	if (Mode::config ())
-	    return;
+	// #151501: AutoYaST needs to know the activate flag and the
+	// loader_device; jsrain also said this code is probably a bug:
+	// commenting out, but this may need to be changed and made dependend
+	// on a "clone" flag (i.e. make the choice to provide minimal (i.e. let
+	// YaST do partial proposals on the target system) or maximal (i.e.
+	// stay as closely as possible to this system) info in the AutoYaST XML
+	// file)
+	// if (Mode::config ())
+	//    return;
         map mp = Storage::GetMountPoints();
 
         list mountdata_boot = mp["/boot"]:(mp["/"]:[]);
