@@ -121,6 +121,16 @@
 	// FIXME: find a better name: "! allow_blanks" really means that the bootloader is lilo
 	if (! allow_blanks)
 	{
+	    if (orig == "linux")
+	    {
+		import "Product";
+		string product = Product::short_name;
+		string prod_filtered = filterchars (product, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.");
+		if (product == prod_filtered && product != " ")
+		{
+		    filtered = prod_filtered;
+		}
+	    }
 	    y2milestone ("adapting section title for lilo: %1", filtered);
 	    // label tag for lilo.conf has a restricted valid character set and
 	    // limited allowed string length
