@@ -1,14 +1,38 @@
+/**
+ * File:
+ *      clients/print-product.ycp
+ *
+ * Module:
+ *      Print product name
+ *
+ * Summary:
+ *      Prints the product name -- used by update-bootloader
+ *
+ * Authors:
+ *      Stefan Fent <sf@suse.de>
+ *      Olaf Dabrunz <od@suse.de>
+ *
+ * $Id$
+ *
+ */
+
 {
     import "Product";
     import "CommandLine";
     import "Mode";
 
+    string name = "";
+
     // activate command line mode
     Mode::SetUI("commandline");
-    string name = Product::name;
-    string ver = Product::version;
-    string namever = sformat("%1 %2", name, ver);
-    //string namever = name + version;
-    CommandLine::Print(namever);
+    // get loader type
+    string loader = (string)SCR::Read(.sysconfig.bootloader.LOADER_TYPE);
+    if (loader == "grub")
+    {
+	name = Product::name;
+    } else {
+        name = Product::short_name;
+    }
+    CommandLine::Print(name);
 }
 
