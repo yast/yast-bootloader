@@ -158,7 +158,7 @@
 	    && ! Mode::test ())
 	{
 	    import "Product";
-	    string product = sformat ("%1 %2", Product::name, Product::version);
+	    string product = Product::name;
 	    string prod_filtered = filterchars (product, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.");
 	    if (product == prod_filtered && product != " ")
 	    {
@@ -242,8 +242,7 @@
 	    if (contains (["linux", "failsafe", "previous", "xen"], k) && ! Mode::test ())
 	    {
 		import "Product";
-		string product
-		    = sformat ("%1 %2", Product::name, Product::version);
+		string product = Product::name;
 		if (product != " ")
 		{
 		    if (k == "linux")
@@ -342,7 +341,7 @@ global define boolean UpdateGfxMenuContents (boolean allow_blanks) {
 	"/usr/lib/YaST2/bin/update_gfxmenu %1 %2 %3 %4",
 	tmpdir, data_dir, trans_file, lang_params);
 
-    y2milestone ("Runnign command %1", command);
+    y2milestone ("Running command %1", command);
     map ret = (map)SCR::Execute (.target.bash_output, command);
     y2milestone ("GFXMenu update result: %1", ret);
     return ret["exit"]:0 == 0;
