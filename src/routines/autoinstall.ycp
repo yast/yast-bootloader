@@ -93,8 +93,7 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	    import "Product";
 		if (Mode::autoinst ())
 		{
-		    def_label
-			= sformat ("%1 %2", Product::name, Product::version);
+		    def_label = Product::name;
 		}
 	    }
 	    // if EFI label not specified, use default label

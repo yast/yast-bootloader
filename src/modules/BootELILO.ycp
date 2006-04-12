@@ -149,8 +149,7 @@ global define void Propose () ``{
     if (! BootCommon::was_proposed)
     {
         create_efi_entry = true;
-        efi_entry_name
-    	= sformat ("%1 %2", Product::name, Product::version);
+        efi_entry_name = Product::name;
     }
     if (! Stage::initial ())
         create_efi_entry = true;
@@ -181,8 +180,7 @@ global define void Propose () ``{
 
     if (efi_entry_name == "" || efi_entry_name == nil)
     {
-        efi_entry_name
-    	= sformat ("%1 %2", Product::name, Product::version);
+        efi_entry_name = Product::name;
     }
     y2milestone ("EFI entry name: %1", efi_entry_name);
     y2milestone ("Proposed sections: %1", BootCommon::sections);
@@ -223,8 +221,7 @@ global define boolean Read (boolean reread) ``{
 		"/usr/sbin/efibootmgr |grep \"%1\"", efi_path));
 	    if (efi_status["exit"]:0 != 0)
 	    {
-		efi_entry_name
-		    = sformat ("%1 %2", Product::name, Product::version);
+		efi_entry_name = Product::name;
 	    }
 	    else
 	    {
@@ -239,8 +236,7 @@ global define boolean Read (boolean reread) ``{
 		}
 		else
 		{
-		    efi_entry_name
-			= sformat ("%1 %2", Product::name, Product::version);
+		    efi_entry_name = Product::name;
 		}
 	    }
 	}
