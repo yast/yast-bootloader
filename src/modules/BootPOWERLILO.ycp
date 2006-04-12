@@ -290,8 +290,9 @@ string GoodPmacBootPartition() {
 	    (! p["delete"]:false)
 	    && is (p["fsid"]:nil, integer)
 	    // both partition types Apple_Bootstrap and Apple_HFS can be
-	    // handled by PPC lilo; Storage maps both to fsid 258
-	    && (p["fsid"]:nil == 258)
+	    // handled by PPC lilo; Storage was supposed to map both to fsid
+	    // 258, but did not so far... using 257 as well
+	    && (p["fsid"]:nil == 257 || p["fsid"]:nil == 258)
 	    // the partition should be smaller than 20 cylinders (PPC lilo
 	    // takes that size as well); estimating the kiBytes:
 	    // 255 heads * 63 sectors * 20 cylinders * 512 bytes / 1024 bytes =
