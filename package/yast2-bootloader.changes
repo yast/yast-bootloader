@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Apr 20 13:49:50 CEST 2006 - od@suse.de
+
+- using /sbin/activate again (#167602)
+- do not accept fsid 257 (on pmac) anymore, Apple_Bootstrap is now
+  reported as fsid 258 (#167934)
+- 2.13.49
+
+-------------------------------------------------------------------
 Wed Apr 12 18:30:49 CEST 2006 - od@suse.de
 
 - accept fsid 257 (Apple_Bootstrap) as pmac boot partition
