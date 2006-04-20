@@ -1104,8 +1104,16 @@ global list<string> ListKernelParamsInLine (string line) {
 		    //   system in the future because the semantics are rather
 		    //   strange, and don't work like "normal" partition tables
 		    //   do.
+//		    string command = sformat
+//			("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
+		    // As a workaround for #167602, moved back to
+		    // /sbin/activate, because it does not cause the kernel to
+		    // forget about an activated extended partition (it changes
+		    // the data on disk without using any ioctl).
+		    // FIXME: investigate proper handling of the activate flag
+		    // (kernel ioctls in parted etc.) and fix parted
 		    string command = sformat
-			("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
+			("/sbin/activate %2 %1", num, mbr_dev);
 		    y2milestone ("Running command %1", command);
 		    map out = (map)SCR::Execute (.target.bash_output, command);
 		    integer exit = out["exit"]:0;
