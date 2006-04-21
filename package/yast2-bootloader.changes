@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Fri Apr 21 19:23:12 CEST 2006 - od@suse.de
+
+- (#148931, #164950), fixes features #300383, #300160, #300358:
+  - for root partitions in bootloader config: automatically use mount
+    by id, path, uuid and label as set up in yast2-storage
+  - also display these as "hints" in the UI
+- fixed some comments
+- added a y2milestone in getPartitionList()
+- fixed some whitespace
+- 2.13.50
+
+-------------------------------------------------------------------
 Thu Apr 20 13:49:50 CEST 2006 - od@suse.de
 
 - using /sbin/activate again (#167602)
