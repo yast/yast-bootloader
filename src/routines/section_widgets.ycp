@@ -31,7 +31,7 @@ import "TablePopup";
 include "bootloader/routines/helps.ycp";
 
 /**
- * Init function of widget
+ * Init function for widget value
  * @param widget any id of the widget
  */
 void SectionOptionInit (string widget) {
@@ -59,7 +59,7 @@ map<string,any> section_handlers = $[
 
 
 /**
- * Validate function of a widget
+ * Validate function of the name widget
  * @param widget any widget key
  * @param event map event description of event that occured
  * @return boolean true if widget settings ok
@@ -84,7 +84,7 @@ boolean SectionNameValidate (string widget, map event) {
 }
 
 /**
- * Store function of a widget
+ * Store function of the name widget
  * @param widget any widget key
  * @param event map event description of event that occured
  */
@@ -145,7 +145,7 @@ void InitrdInit (string widget) {
 }
 
 /**
- * Handle function of a widget
+ * Handle function of the initrd widget
  * @param widget any widget key
  * @param event map event description of event that occured
  * @return symbol to return to wizard sequencer, or nil
@@ -161,13 +161,49 @@ symbol InitrdHandle (string widget, map event) {
 
 
 /**
- * Init function of widget
+ * Init function of the root device widget
  * @param widget any id of the widget
  */
 void RootDeviceInit (string widget) {
+    y2milestone ("RootDeviceInit: %1", widget);
     list<string> available = BootCommon::getPartitionList (`root);
+    // if we mount any of these devices by id, label etc., we add a hint to
+    // that effect to the item
+    y2milestone ("RootDeviceInit: getHintedPartitionList for %1", available);
+    available = BootCommon::getHintedPartitionList (available);
     UI::ChangeWidget (`id (widget), `Items, available);
-    SectionOptionInit (widget);
+    UI::ChangeWidget (`id (widget), `Value,
+	(BootCommon::getHintedPartitionList ([BootCommon::current_section[widget]:""]))[0]:"");
+}
+
+/**
+ * Store function of the root device widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ */
+void RootDeviceStore (string widget, map event) {
+    BootCommon::current_section[widget]
+	= (splitstring( (string)UI::QueryWidget (`id (widget), `Value), " "))[0]:"";
+}
+
+/**
+ * Handle function of the root device widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
+symbol RootDeviceHandle (string widget, map event) {
+    if (event["EventReason"]:nil != "ValueChanged")
+	return nil;
+    // append hint string when user changed root device
+    string current
+	= (splitstring( (string)UI::QueryWidget (`id (widget), `Value), " "))[0]:"";
+    // check against the list of existing partitions
+    list<string> available = BootCommon::getPartitionList (`root);
+    if (contains(available, current))
+	UI::ChangeWidget (`id (widget), `Value,
+	    (BootCommon::getHintedPartitionList ([current]))[0]:"");
+    return nil;
 }
 
 /**
@@ -203,7 +239,7 @@ void ChainloaderInit (string widget) {
 }
 
 /**
- * Handle function of a widget
+ * Handle function of the chainloader widget
  * @param widget any widget key
  * @param event map event description of event that occured
  * @return symbol to return to wizard sequencer, or nil
@@ -357,8 +393,10 @@ map<string,map<string,any> > CommonSectionWidgets () {
 		"widget" : `combobox,
 		// combo box
 		"label" : _("Root &Device"),
-		"opt" : [ `editable, `hstretch ],
+		"opt" : [ `editable, `hstretch, `notify ],
 		"init" : RootDeviceInit,
+		"handle" : RootDeviceHandle,
+		"store" : RootDeviceStore,
 		"help" : RootDeviceHelp (),
 	    ],
 	    "vga" : $[

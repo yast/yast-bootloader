@@ -10,6 +10,7 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Olaf Dabrunz <od@suse.de>
  *
  * $Id$
  *
@@ -220,8 +221,152 @@ global string getFreeSectionLabel () {
     }
 
     /**
-     * returns list of partitions. looks at '/proc/partitions' and creates list
-     * of partition for combobox or menu
+     * Converts a "/dev/disk/by-" device name to the corresponding kernel
+     * device name, according to the "mountby" setting for the device from
+     * yast2-storage. If the given device name is not a "/dev/disk/by-" device
+     * name, it is left unchanged. Also, if the information about the device
+     * name cannot be found in the target map from yast2-storage, the device
+     * name is left unchanged.
+     *
+     * @param dev string device name
+     * @return string kernel device name
+     */
+    global define string MountByDev2Dev(string dev) ``{
+	y2milestone ("MountByDev2Dev: %1", dev);
+
+	if (!regexpmatch(dev, "^/dev/disk/by-"))
+	    return dev;
+
+	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
+
+	// make a map: "type/identifier" -> info_map_for_this_partition
+	// e.g.: "id/scsi-SATA_ST3120813AS_3LS09W21-part5" -> info_map_for_this_partition
+	symbol mountby = `device;
+	map<string,map> partitions = $[];
+	foreach (string k, map v, devices, ``{
+	    foreach (map p, (list<map>)(v["partitions"]:[]), ``{
+		mountby = (symbol) p["mountby"]:nil;
+		if ( mountby == `uuid )
+		{
+		    partitions["uuid/" + p["uuid"]:""] = p;
+		} else if ( mountby == `label )
+		{
+		    partitions["label/" + p["label"]:""] = p;
+		} else if ( mountby == `id )
+		{
+		    partitions["id/" + p["udev_id", 0]:""] = p;
+		} else if ( mountby == `path )
+		{
+		    partitions["path/" + p["udev_path"]:""] = p;
+		}
+	    });
+	});
+	y2milestone ("MountByDev2Dev: partitions %1", partitions);
+
+	// ident is "id/<id>", "path/<path>", "uuid/<uuid>" or "label/<label>"
+	string ident = regexpsub(dev, "^/dev/disk/by-(.*)", "\\1");
+	y2milestone ("MountByDev2Dev: ident %1", ident);
+	// if exists, get the kernel name, otherwise leave unchanged
+	string ret = partitions[ident, "device"]:dev;
+
+	y2milestone ("MountByDev2Dev: ret %1", ret);
+	return ret;
+    }
+
+    /**
+     * Converts a device name to the corresponding device name it should be
+     * mounted by, according to the "mountby" setting for the device from
+     * yast2-storage.
+     *
+     * @param dev string device name
+     * @return string device name according to "mountby"
+     */
+    global define string Dev2MountByDev(string dev) ``{
+	y2milestone ("Dev2MountByDev: %1", dev);
+	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
+
+	// make a map: "/dev/hda1" -> info_map_for_this_partition
+	map<string,map> partitions = $[];
+	foreach (string k, map v, devices, ``{
+	    foreach (map p, (list<map>)(v["partitions"]:[]), ``{
+		partitions[p["device"]:""] = p;
+	    });
+	});
+//	y2milestone ("Dev2MountByDev: partitions %1", partitions);
+
+	string ret = dev;
+
+	symbol mountby = `device;
+	mountby = (symbol) partitions[dev, "mountby"]:nil;
+	if ( mountby == `uuid )
+	{
+	    ret = sformat ("/dev/disk/by-uuid/%1", partitions[dev, "uuid"]:"");
+	} else if ( mountby == `label )
+	{
+	    ret = sformat ("/dev/disk/by-label/%1", partitions[dev, "label"]:"");
+	} else if ( mountby == `id )
+	{
+	    ret = sformat ("/dev/disk/by-id/%1", partitions[dev, "udev_id", 0]:"");
+	} else if ( mountby == `path )
+	{
+	    ret = sformat ("/dev/disk/by-path/%1", partitions[dev, "udev_path"]:"");
+	}
+
+	y2milestone ("Dev2MountByDev: ret %1", ret);
+	return ret;
+    }
+
+    /**
+     * Returns list of partitions with "mount by" hints. Goes through the list
+     * of partitions passed as a parameter and creates a list of partitions with
+     * hints according to the current partitioning requested from
+     * yast2-storage. To be used in a combobox or menu.
+     *
+     * @param parts_to_get list<string> partitions to list
+     * @return a list of strings containing a partition name and a hint (if applicable)
+     */
+    global define list<string> getHintedPartitionList(list<string> parts_to_get) ``{
+	y2milestone ("getHintedPartitionList: %1", parts_to_get);
+	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
+
+	// make a map: "/dev/hda1" -> info_map_for_this_partition
+	map<string,map> partitions = $[];
+	foreach (string k, map v, devices, ``{
+	    foreach (map p, (list<map>)(v["partitions"]:[]), ``{
+		partitions[p["device"]:""] = p;
+	    });
+	});
+	y2milestone ("getHintedPartitionList: partitions %1", partitions);
+
+	symbol mountby = `device;
+	list<string> ret = maplist (string dev, parts_to_get, ``{
+	    mountby = (symbol) partitions[dev, "mountby"]:nil;
+	    if ( mountby == `uuid )
+	    {
+		return sformat ("%1 (mount by UUID: %2)", dev, partitions[dev, "uuid"]:"");
+	    } else if ( mountby == `label )
+	    {
+		return sformat ("%1 (mount by LABEL: %2)", dev, partitions[dev, "label"]:"");
+	    } else if ( mountby == `id )
+	    {
+		return sformat ("%1 (mount by ID: %2)", dev, partitions[dev, "udev_id", 0]:"");
+	    } else if ( mountby == `path )
+	    {
+		return sformat ("%1 (mount by PATH: %2)", dev, partitions[dev, "udev_path"]:"");
+	    } else if ( mountby == nil || mountby == `device )
+	    {
+		return dev;
+	    }
+	});
+
+	y2milestone ("getHintedPartitionList: ret %1", ret);
+	return ret;
+    }
+
+    /**
+     * Returns list of partitions. Requests current partitioning from
+     * yast2-storage and creates list of partition for combobox, menu or other
+     * purpose.
      * @param type symbol
      *   `boot - for bootloader installation
      *   `root - for kernel root
@@ -235,6 +380,7 @@ global string getFreeSectionLabel () {
      * @return a list of strings
      */
     global define list<string> getPartitionList(symbol type) ``{
+	y2milestone ("getPartitionList: %1", type);
 	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
 	list<map> partitions = [];
 	foreach (string k, map v, devices, ``{
@@ -247,7 +393,7 @@ global string getFreeSectionLabel () {
 
 	if (type == `boot || type == `boot_other)
 	{
-	    devices = filter (string k, map v, devices, 
+	    devices = filter (string k, map v, devices,
 	                      ``(v["type"]:`CT_UNKNOWN == `CT_DISK));
 	}
 	list<string> all_disks = (list<string>) maplist (string k, map v, devices, ``(k));
