@@ -104,7 +104,7 @@ void RedrawSectionsTable (list<map<string,any> > sects) {
     boolean elilo = Bootloader::getLoaderType () == "elilo";
     list sec = maplist (map<string,any> s, sects, {
 	string image = s["kernel"]:"";
-	string root = s["root"]:"";
+	string root = (BootCommon::getHintedPartitionList ([s["root"]:""]))[0]:"";
         return `item (`id (s["name"]:""),
 	    tolower (BootCommon::globals["default"]:"")
 		    == tolower (s["name"]:"")

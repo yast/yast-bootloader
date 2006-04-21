@@ -78,7 +78,7 @@ global string selected_location = nil;
 
 
 
-/* These global variables and functions is needed in included files */
+/* These global variables and functions are needed in included files */
 
 /**
   * string sepresenting device name of /boot partition
@@ -466,6 +466,14 @@ global boolean Read (boolean reread) {
 	    read_default_section_name = s["name"]:"";
 	}
     });
+
+    // convert root device names in sections to kernel device names, if
+    // possible
+    sections = maplist (map<string,any> s, sections, {
+	s["root"] = BootCommon::MountByDev2Dev(s["root"]:"");
+	return s;
+    });
+
     return true;
 }
 
@@ -499,7 +507,7 @@ global void Propose () {
  * Save all bootloader configuration files to the cache of the PlugLib
  * PlugLib must be initialized properly !!!
  * @param clean boolean true if settings should be cleaned up (checking their
- *  correctness, supposing all files are on the disk
+ *  correctness, supposing all files are on the disk)
  * @param init boolean true to init the library
  * @param flush boolean true to flush settings to the disk
  * @return boolean true if success
@@ -523,6 +531,14 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	return (map<string,string>)
 	    filter (string k, any v, s, { return is (v, string); });
     });
+
+    // convert root device names in sections to the device names indicated by
+    // "mountby"
+    sects = maplist (map<string,string> s, sects, {
+	s["root"] = BootCommon::Dev2MountByDev(s["root"]:"");
+	return s;
+    });
+
     ret = ret && SetDeviceMap (device_mapping);
     ret = ret && SetSections (sects);
     ret = ret && SetGlobal (globals);
