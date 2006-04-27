@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 27 16:05:59 CEST 2006 - od@suse.de
+
+- examine_mbr.pl needs perl-Compress-Zlib
+- 2.13.53
+
+-------------------------------------------------------------------
 Thu Apr 27 15:56:18 CEST 2006 - od@suse.de
 
 - on ia64, do not use the short product name in the "second
