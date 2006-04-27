@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Apr 27 15:56:18 CEST 2006 - od@suse.de
+
+- on ia64, do not use the short product name in the "second
+  level" bootloader elilo -- use "linux" again instead (also
+  sidesteps bug #170129)
+- added a comment for a future feature that may introduce two "menu
+  levels" for grub as well
+- 2.13.52
+
+-------------------------------------------------------------------
 Mon Apr 24 16:10:54 CEST 2006 - sf@suse.de
 
 - fixed regexp (Bug #168594) 
