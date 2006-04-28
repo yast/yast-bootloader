@@ -57,10 +57,10 @@
     /**
       * Create translated name of a section
       * @param orig string original section name
-      * @param allow_blanks boolean true if blanks are allowed in section name
+      * @param loader string bootloader type
       * @return translated section name
       */
-    global define string translateSectionTitle (string orig, boolean allow_blanks)
+    global define string translateSectionTitle (string orig, string loader)
     ``{
 	//
 	// FIXME: handling of bootloader-specific restrictions should be done
@@ -118,8 +118,7 @@
 	    y2warning ("Incorrect translation %1 -> %2", orig, translated);
 	    return not_trans[orig]:orig;
 	}
-	// FIXME: find a better name: "! allow_blanks" really means that the bootloader is lilo
-	if (! allow_blanks)
+	if (loader != "grub")
 	{
 	    // FIXME / FEATURE: At least for IA64, there is a two level boot
 	    // hierarchy (efibootmgr, elilo): the first level boot menu can be
@@ -135,7 +134,6 @@
 	    // ATM, this is only available for IA64.
 	    // Thus, for "elilo", the second level string should remain
 	    // "linux", the product name already appears in the efi menu.
-	    string loader = (string)SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
 	    if (loader != "elilo" && orig == "linux")
 	    {
 		import "Product";
@@ -146,7 +144,7 @@
 		    filtered = prod_filtered;
 		}
 	    }
-	    y2milestone ("adapting section title for lilo: %1", filtered);
+	    y2milestone ("adapting section title: %1", filtered);
 	    // label tag for lilo.conf has a restricted valid character set and
 	    // limited allowed string length
 	    string cutoff = "";
@@ -167,17 +165,17 @@
 		    break;
 		filtered = cutoff;
 	    }
-	    y2milestone ("section title for lilo without excess words: %1", filtered);
+	    y2milestone ("section title without excess words: %1", filtered);
 
 	    // 3. last resort: cutoff excess characters
 	    filtered = substring (filtered, 0, 11);
-	    y2milestone ("section title for lilo limited to 11 chars: %1", filtered);
+	    y2milestone ("section title limited to 11 chars: %1", filtered);
 
 	    // 4. convert not allowed chars to "_"
 	    // (NOTE: this converts according to lilo requirements, ATM we do
 	    // not allow ".-" above already; so ATM this converts only " ")
 	    filtered = ReplaceRegexMatch (filtered, "[^a-zA-Z0-9.-]", "_");
-	    y2milestone ("section title for lilo: filtered unallowed characters: %1", filtered);
+	    y2milestone ("section title: filtered unallowed characters: %1", filtered);
 	}
 	else if (contains (["linux", "failsafe", "previous", "xen"], orig)
 	    && ! Mode::test ())
@@ -202,10 +200,10 @@
 
     /**
      * Get translated section names, including diacritics
-     * @param allow_blanks boolean true if blanks are allowed in section name
+     * @param loader string bootloader type
      * @return a map section names translations
      */
-    global define map<string,string> getTranslationsToDiacritics (boolean allow_blanks) ``{
+    global define map<string,string> getTranslationsToDiacritics (string loader) ``{
         map<string,string> trans = $[
 	    // entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
 	    // are allowed. Always remove the leading '_', its just to
@@ -263,7 +261,7 @@
 	    return $[ k : v ];
 	});
 	map<string,string> ret = mapmap (string k, string v, trans, {
-	    string il1 = translateSectionTitle (k, allow_blanks);
+	    string il1 = translateSectionTitle (k, loader);
 	    if (contains (["linux", "failsafe", "previous", "xen"], k) && ! Mode::test ())
 	    {
 		import "Product";
@@ -288,10 +286,10 @@
 /**
  * Update graphical bootloader to contain help text of current language
  * And make the selected installation language default
- * @param allow_blanks boolean true if blanks are allowed in section name
+ * @param loader string bootloader type
  * @return boolean true on success
  */
-global define boolean UpdateGfxMenuContents (boolean allow_blanks) {
+global define boolean UpdateGfxMenuContents (string loader) {
     y2milestone ("Updating GFX boot menu");
     if (SCR::Read (.target.size, "/boot/message") == -1)
 	return true;
@@ -353,7 +351,7 @@ global define boolean UpdateGfxMenuContents (boolean allow_blanks) {
     });
     // update the boot message
     string trans_file = sformat ("%1/boot_translations", tmpdir);
-    map<string,string> trans_map = getTranslationsToDiacritics (allow_blanks);
+    map<string,string> trans_map = getTranslationsToDiacritics (loader);
     list<string> trans_list = maplist (string k, string v, trans_map, {
 	return sformat ("%1\n%2", k, v);
     });
@@ -379,7 +377,7 @@ global define boolean UpdateGfxMenuContents (boolean allow_blanks) {
  */
 global boolean Update() {
     string loader = (string)SCR::Read (.sysconfig.bootloader.LOADER_TYPE);
-    if (! UpdateGfxMenuContents (loader == "grub"))
+    if (! UpdateGfxMenuContents (loader))
 	return false;
 
     if (loader == "lilo")
