@@ -1,4 +1,22 @@
 -------------------------------------------------------------------
+Fri Apr 28 14:32:22 CEST 2006 - od@suse.de
+
+- fixed elilo section name fix from #170129:
+  - getLoaderType() cannot be called from GfxMenu.ycp, so changed
+    internal Interface of GfxMenu::translateSectionTitle() to
+    accept "loader" parameter instead of "allow_blanks" parameter
+  - updated other functions to use/pass through the "loader"
+    parameter now:
+      GfxMenu::UpdateGfxMenuContents()
+      GfxMenu::getTranslationsToDiacritics()
+      BootCommon::translateSectionTitle()
+      BootCommon::UpdateGfxMenuContents()
+- changed some y2milestone() messages: do not mention "lilo" when
+  it can be any bootloader type other than "grub"
+- added me as co-author to BootCommon.ycp
+- 2.13.54
+
+-------------------------------------------------------------------
 Thu Apr 27 16:05:59 CEST 2006 - od@suse.de
 
 - examine_mbr.pl needs perl-Compress-Zlib
