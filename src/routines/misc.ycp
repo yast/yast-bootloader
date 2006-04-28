@@ -1469,7 +1469,7 @@ global list<string> ListKernelParamsInLine (string line) {
       */
     global define string translateSectionTitle (string orig) ``{
 	return GfxMenu::translateSectionTitle(orig,
-					      getLoaderType(false) == "grub");
+					      getLoaderType(false));
     }
 
     /**
@@ -1572,7 +1572,7 @@ global list<string> ListAdditionalKernelParams () {
  * @return boolean true on success
  */
 global define boolean UpdateGfxMenuContents () {
-    return GfxMenu::UpdateGfxMenuContents(getLoaderType(false) == "grub");
+    return GfxMenu::UpdateGfxMenuContents(getLoaderType(false));
 }
 
 /**
