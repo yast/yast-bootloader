@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May  2 18:53:10 CEST 2006 - od@suse.de
+
+- on ppc, never create a "failsafe" section (#170565)
+- 2.13.56
+
+-------------------------------------------------------------------
 Tue May  2 18:01:17 CEST 2006 - od@suse.de
 
 - in UI, show explanatory message instead of missing UUID (before
