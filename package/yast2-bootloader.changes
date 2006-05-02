@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue May  2 18:01:17 CEST 2006 - od@suse.de
+
+- in UI, show explanatory message instead of missing UUID (before
+  partition is formatted)
+- added code readability comment
+- 2.13.55
+
+-------------------------------------------------------------------
 Fri Apr 28 14:32:22 CEST 2006 - od@suse.de
 
 - fixed elilo section name fix from #170129:
