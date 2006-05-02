@@ -237,9 +237,7 @@ map<string,any> CreateImageSection (string title) {
 	"initrd" : initrd_fn,
 	"root" : BootCommon::RootPartitionDevice,
 	// "": do not include resume parameter on ppc
-	"append" : (title == "failsafe")
-	    ? BootArch::FailsafeKernelParams ()
-	    : BootArch::DefaultKernelParams (""),
+	"append" : BootArch::DefaultKernelParams (""),
 	"__auto" : true,
 	"__changed" : false,
 	"__devs" : [BootCommon::BootPartitionDevice, BootCommon::RootPartitionDevice],
@@ -788,7 +786,7 @@ global void Update () {
     // assumption is that all of the following section names ar "good" names
     // meaning that we will return a valid section description from
     // CreateImageSection for them.
-    list<string> sections_to_recreate = ["linux", "failsafe"];
+    list<string> sections_to_recreate = ["linux"];
 
     updated_sections = maplist (map<string,any> s, updated_sections, {
 	string name = s["name"]:"";
