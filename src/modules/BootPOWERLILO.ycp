@@ -509,6 +509,7 @@ global define void Propose () {
     }
 
     if (BootCommon::globals == nil ||
+	// consider globals empty even if lines_cache_id is present
 	size (filter(string key, any v, BootCommon::globals, {
 		return key != "lines_cache_id";
 	    })) == 0)
