@@ -343,7 +343,10 @@ global string getFreeSectionLabel () {
 	    mountby = (symbol) partitions[dev, "mountby"]:nil;
 	    if ( mountby == `uuid )
 	    {
-		return sformat ("%1 (mount by UUID: %2)", dev, partitions[dev, "uuid"]:"");
+		return sformat ("%1 (mount by UUID: %2)", dev,
+				partitions[dev, "uuid"]:nil != nil ?
+				partitions[dev, "uuid"]:"" :
+				"<UUID to be created later during format>");
 	    } else if ( mountby == `label )
 	    {
 		return sformat ("%1 (mount by LABEL: %2)", dev, partitions[dev, "label"]:"");
