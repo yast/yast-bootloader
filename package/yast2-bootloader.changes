@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May  4 11:02:00 CEST 2006 - jsrain@suse.cz
+
+- change the message before reboot if performing an SSH
+  installation (#160301)
+
+-------------------------------------------------------------------
 Tue May  2 18:53:10 CEST 2006 - od@suse.de
 
 - on ppc, never create a "failsafe" section (#170565)
