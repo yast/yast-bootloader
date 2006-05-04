@@ -19,6 +19,7 @@ textdomain "bootloader";
 import "Arch";
 import "Bootloader";
 import "Installation";
+import "Linuxrc";
 import "Misc";
 import "Mode";
 import "Update";
@@ -89,10 +90,25 @@ fi
 
     if (Arch::s390 ())
     {
-        // for s390:
-        // Message that will be displayed along with information
-        // how the boot loader was installed
-        Misc::boot_msg = _("
+	if (Linuxrc::usessh ())
+	    // for s390:
+	    // Message that will be displayed along with information
+	    // how the boot loader was installed
+	    Misc::boot_msg = _("
+Your system will now shut down.
+After shutdown, reload the system
+with the load address of your root DASD or
+the load adress of your zFCP device.
+Then reconnect and run the following:
+/usr/lib/YaST2/startup/YaST2.ssh
+For details, read the related chapter
+in the documentation.
+");
+	else
+	    // for s390:
+	    // Message that will be displayed along with information
+	    // how the boot loader was installed
+	    Misc::boot_msg = _("
 Your system will now be shut down.
 After shutdown, reload the system
 with the load address of your root DASD or
@@ -103,11 +119,20 @@ in the documentation.
     }
     else
     {
-        // Final message after all packages from CD1 are installed
-        // and we're ready to start (boot into) the installed system
-        // Message that will be displayed along with information
-        // how the boot loader was installed
-        Misc::boot_msg = _("The system will reboot now...");
+	if (Linuxrc::usessh ())
+	    // Final message after all packages from CD1 are installed
+	    // and we're ready to start (boot into) the installed system
+	    // Message that will be displayed along with information
+	    // how the boot loader was installed
+	    Misc::boot_msg = _("The system will reboot now.
+After reboot, reconnect and run the following:
+/usr/lib/YaST2/startup/YaST2.ssh");
+	else
+	    // Final message after all packages from CD1 are installed
+	    // and we're ready to start (boot into) the installed system
+	    // Message that will be displayed along with information
+	    // how the boot loader was installed
+	    Misc::boot_msg = _("The system will reboot now...");
     }
 
     //--------------------------------------------------------------
