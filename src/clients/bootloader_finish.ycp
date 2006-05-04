@@ -109,11 +109,11 @@ in the documentation.
 	    // Message that will be displayed along with information
 	    // how the boot loader was installed
 	    Misc::boot_msg = _("
-Your system will now be shut down.
+Your system will shut down now.
 After shutdown, reload the system
 with the load address of your root DASD or
 the load address of your zFCP device.
-For details, read the related chapter
+For details, read the relevant chapter
 in the documentation.
 ");
     }
