@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed May 10 15:49:39 CEST 2006 - od@suse.de
+
+- fix broken consistency check for legacy iSeries with DASD only
+  (#166378)
+- make it possible to manually add a value to selection list
+  (needed for work arounds #166378 et. al.)
+- fix error typo in lib_iface.ycp
+- 2.13.58
+
+-------------------------------------------------------------------
 Thu May  4 15:02:21 CEST 2006 - locilka@suse.cz
 
 - merged texts from proofread 
