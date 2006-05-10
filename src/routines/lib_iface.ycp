@@ -324,7 +324,7 @@ global boolean SetFilesContents (map<string,string> files) {
     y2milestone ("Storing contents of files");
     boolean ret = System::Bootloader_API::setFilesFromStrings (files);
     if (! ret)
-	y2error ("Settingg file contents failed");
+	y2error ("Setting file contents failed");
     return ret;
 }
 
