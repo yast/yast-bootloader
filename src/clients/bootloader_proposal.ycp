@@ -93,17 +93,24 @@
 		    ]);
 		}
 	    }
-	    // FIXME: better eliminate use of loader_device in the
-	    // future, no one knows what it is for
-	    if ( BootCommon::loader_device == "" ) {
-		ret = (map<string,any>)union (ret, $[
-			"warning_level" : `blocker,
-			"warning" :
-			    ret["warning"]:"" +
-			    _("Configure a valid boot loader location before continuing.<br>
+	    if (Arch::board_iseries()) {
+	      // FIXME: handle consistency test for iseries configuration
+	      // currently: none
+	      y2debug("No consistency check implemented for iSeries boot configuration");
+	    }
+	    else {
+	    	// FIXME: better eliminate use of loader_device in the
+	    	// future, no one knows what it is for
+	    	if ( BootCommon::loader_device == "" ) {
+	    		ret = (map<string,any>)union (ret, $[
+	    			"warning_level" : `blocker,
+	    			"warning" :
+	    			    ret["warning"]:"" +
+	    			    _("Configure a valid boot loader location before continuing.<br>
 In case that no selection can be made it may be necessary to create a PReP Boot partition."),
-			]
-	        );
+	        		]
+	            );
+	        }
 	    }
 	}
     }
