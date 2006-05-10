@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 10 19:07:38 CEST 2006 - od@suse.de
+
+- added comments to update code
+- fixed mangled section titles after update (#170579)
+- 2.13.59
+
+-------------------------------------------------------------------
 Wed May 10 15:49:39 CEST 2006 - od@suse.de
 
 - fix broken consistency check for legacy iSeries with DASD only
