@@ -634,6 +634,12 @@ global void UpdateSections (boolean replace,
 	sections_to_recreate = add (sections_to_recreate, "xen");
     }
 
+    // if replace == true,  replace all sections that have a type in
+    //                      sections_to_recreate with a newly created version
+    // if replace == false, only adjust "append" line of "linux" section
+    //
+    // at the end of the loop, if one of the sections_to_recreate does not
+    // exist, create it
     foreach (string t, sections_to_recreate, {
 	map<string,any> m = create_linux_section (t);
 	boolean f_changed = false;
@@ -672,6 +678,9 @@ global void UpdateSections (boolean replace,
 		return s;
 	    }
 	});
+	// if we did NOT change or replace the old section (meaning: there was
+	// none), but create_linux_section() gave us a new section, then
+	// prepend or append the section created by create_linux_section()
         if (! f_changed && m != $[])
 	{
 	    recreated = add (recreated, m["name"]:"");
@@ -682,6 +691,12 @@ global void UpdateSections (boolean replace,
 	}
     });
 
+    // now adjust these keys in sections that need it:
+    //  - kernel
+    //  - initrd
+    //  - name
+    //  - device (e.g. for SATA: /dev/hda -> /dev/sda)
+    //  - append
     out = maplist (map<string,any> s, out, {
 	string label = s["name"]:"";
 	string type = s["original_name"]:label;
@@ -699,12 +714,23 @@ global void UpdateSections (boolean replace,
 	    }
 	    s["key"] = value;
 	});
-	if (s["kernel"]:"" == default_kernel
+	// If we did not replace the sections anyway, adjust the section titles:
+	// Does this section
+	//  - use the default kernel of a linux section \ i.e. it uses the updated kernel
+	//  - use the default initrd of a linux section /
+	//  - contain the name of the first "linux" section read from disk in
+	//    its name
+	// then, update the section name
+	if (!replace
+	    && s["kernel"]:"" == default_kernel
 	    && s["initrd"]:"" == default_initrd
 	    && issubstring (s["name"]:"", read_default_section_name)
 	    && read_default_section_name != ""
 	    && read_default_section_name != default_name)
 	{
+	    // idea of this:
+	    // orig_name == "linux":    "Linux"		    -> "<new name>"
+	    // orig_name == "failsafe": "Failsafe -- Linux" -> "Failsafe -- <new name>"
 	    y2milestone ("Updating label of section %1...", s["name"]:"");
 	    string old_name = s["name"]:"";
 	    integer i1 = search (old_name, read_default_section_name);
