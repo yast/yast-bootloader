@@ -204,6 +204,10 @@ void generic_Init (
 	if ((value == "select") || (value == "multi")) {
 	    val[0] = nil; val[1] = nil; val[2] = nil;
 	    val = filter(string v, val, ``(v!=nil) );
+	    // add current value to list if needed
+	    if (!contains(val, (string)data[key]:"")) {
+	        val = add(val, (string)data[key]:"");
+	    }	        
 	    // update list of possible selections
 	    UI::ChangeWidget (`id (key), `Items,
 	        maplist(string v, val, ``( `item(`id(v), v ) ))
