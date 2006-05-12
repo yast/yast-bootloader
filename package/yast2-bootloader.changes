@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri May 12 16:02:34 CEST 2006 - od@suse.de
+
+- during installation/update on ppc iseries, unconditionally
+  install the ISERIES64 file from the installation media as rescue
+  kernel into slot A (#165497)
+- fixed some whitespace
+- 2.13.61
+
+-------------------------------------------------------------------
 Fri May 12 13:24:19 CEST 2006 - od@suse.de
 
 - adapted to ppc/BootPOWERLILO.ycp: fixed mangled section titles
