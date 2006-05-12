@@ -229,49 +229,69 @@
     }
 
     /**
-      * Install the board-type-specific part of bootloader
-      * @param requires_initrd boolean true if initrd is required
+      * Helper function that executes a command with the shell, appending
+      * stdout and stderr to a logfile. On error, it writes log entries to the
+      * yast2 log.
+      * @param command string command to execute
+      * @param logfile string logfile for the commands output
       * @return boolean true on success
       */
-    global define boolean iSeriesWrite (boolean requires_initrd) ``{
+    global define boolean iSeriesExecute (string command, string logfile) ``{
+	command = command + " >>" + logfile + " 2>&1";
+	integer command_ret = (integer)SCR::Execute (.target.bash, command);
+	if (command_ret != 0) {
+	    y2error ("Execution of command failed: %1, error code: %2", command, command_ret);
+	    string log = (string)SCR::Read (.target.string, logfile);
+	    y2error ("stderr and stdout of the command: %1", log);
+	    return false;
+	}
+	return true;
+    }
+
+    /**
+      * Install the board-type-specific part of bootloader
+      * @return boolean true on success
+      */
+    global define boolean iSeriesWrite () ``{
 	if (! BootCommon::activate)
 	    return true;
-	string iseries_bootbinary = "/boot/vmlinux64";
-	if (requires_initrd)
-	{
-	    iseries_bootbinary = (string)SCR::Read (.target.tmpdir)
-		+ "/vmlinux64.initrd";
-	    SCR::Execute (.target.bash, "/bin/mkzimage --board iseries "
-		+ " --vmlinux /boot/vmlinux --initrd /boot/initrd --output "
-		+ iseries_bootbinary
-		+ " >> /var/log/YaST2/y2loglilo_iseries_bootbinary 2>&1 " );
-	}
 
-	if ( iseries_write_slot_a )
+	// during installation (fresh or update), always install the ISERIES64
+	// file into slot A as a "rescue system"
+	if (Stage::initial ())
 	{
-	    string rescue_bootbinary = iseries_bootbinary;
-	    if (Stage::initial ())
-	    {
-		list<integer> sources = Pkg::SourceStartCache (true);
-		integer source_id = sources[0]:0;
-		string src_filename
-		    = Pkg::SourceProvideFile(source_id, 1, "/ISERIES64");
-		rescue_bootbinary = (string)SCR::Read (.target.tmpdir)
-		    + "/rescue_bootbinary";
-		string tg_rescue_bootbinary
-		   = Installation::destdir + rescue_bootbinary;
-		y2milestone ("Copying %1 to %2",
-		    src_filename, tg_rescue_bootbinary);
-		WFM::Execute (.local.bash, sformat ("/bin/cp %1 %2",
-		    src_filename, tg_rescue_bootbinary));
-	    }
+	    string command = "";
+	    string my_log = "/var/log/YaST2/y2log_bootloader_iseries_slot_a";
+
+	    list<integer> sources = Pkg::SourceStartCache (true);
+	    integer source_id = sources[0]:0;
+	    string src_filename
+		= Pkg::SourceProvideFile(source_id, 1, "/ISERIES64");
+	    string rescue_bootbinary = (string)SCR::Read (.target.tmpdir)
+		+ "/rescue_bootbinary";
+	    string tg_rescue_bootbinary
+	       = Installation::destdir + rescue_bootbinary;
+	    y2milestone ("Copying %1 to %2",
+		src_filename, tg_rescue_bootbinary);
+	    WFM::Execute (.local.bash, sformat ("/bin/cp %1 %2",
+		src_filename, tg_rescue_bootbinary));
+
 	    y2milestone("start writing rescue kernel to slot A ...");
-	    SCR::Execute (.target.bash, "time dd if=" + rescue_bootbinary
-		+ " of=/proc/iSeries/mf/A/vmlinux bs=64k "
-		+ ">>/var/log/YaST2/y2loglilo_iseries_slot_a 2>&1 ");
-	    SCR::Execute (.target.bash, "dd if=/dev/zero of=/proc/iSeries/mf/A/cmdline bs=255 count=1");
-	    SCR::Execute (.target.bash, "echo -en 'root=" + root_device
-		+ " start_shell manual=1\\0' > /proc/iSeries/mf/A/cmdline");
+	    command = "time dd if=" + rescue_bootbinary
+		+ " of=/proc/iSeries/mf/A/vmlinux bs=64k";
+	    if (! iSeriesExecute (command, my_log))
+		return false;
+
+	    if (! iSeriesExecute (
+		"dd if=/dev/zero of=/proc/iSeries/mf/A/cmdline bs=255 count=1",
+		my_log))
+		return false;
+
+	    // NOTE: on SLES10, the "root=" paramter is not handled by the
+	    // initrd in the ISERIES64 file. The initrd just boots up to a
+	    // shell.
+	    SCR::Execute (.target.bash,
+		"echo -en 'start_shell manual=1\\0' > /proc/iSeries/mf/A/cmdline");
 	    y2milestone("done writing rescue kernel to slot A.");
 	}
 
