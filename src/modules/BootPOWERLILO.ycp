@@ -826,21 +826,6 @@ global void Update () {
 	    s[key] = value;
 	});
 
-	// If this section s looks like the former default section, then do
-	// ?what?, FIXME if you understand
-	if (s["image"]:"" == default_sect["image"]:""
-	    && s["initrd"]:"" == default_sect["initrd"]:""
-	    && issubstring (name, BootCommon::read_default_section_name)
-	    && BootCommon::read_default_section_name != ""
-	    && BootCommon::read_default_section_name != default_name)
-	{
-	    y2milestone ("Updating name of section %1...", name);
-	    integer i1 = search (name, BootCommon::read_default_section_name);
-	    integer i2 = i1 + size (BootCommon::read_default_section_name);
-	    s["name"] = substring (name, 0, i1) + default_name
-		+ substring (name, i2);
-	    y2milestone ("... to %1", s["name"]:"");
-	}
 
 	// update root= entry in selected sections as the device naming
 	// changes in the linux kernel from time to time ...
