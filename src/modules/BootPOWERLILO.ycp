@@ -77,7 +77,6 @@ global boolean prep_only_primary = true;
 global boolean prep_same_disk_as_root = true;
 global list table_items = [];
 global string boot_device = "";
-global string root_device = "";
 
 string board_type = nil;
 
@@ -764,8 +763,8 @@ global void Update () {
    /**
     * Firstly update sections of bootloader configuration and modify internal
     * structures as needed. This means right now:
-    * 
-    * - no change of "resume=" parameter in append entry, not used on ppc yet  
+    *
+    * - no change of "resume=" parameter in append entry, not used on ppc yet
     * - delete console= parameters as console autodetection now works
     */
 
@@ -802,7 +801,7 @@ global void Update () {
 	    if ( name == BootCommon::globals["default"]:"" ) {
 	        // we assume that the new name produced by CreateImageSection
 	        // will be oname
-  	        BootCommon::globals["default"] = oname;
+		BootCommon::globals["default"] = oname;
 	    }
 	    return CreateImageSection(oname);
 	}
@@ -831,7 +830,7 @@ global void Update () {
 	// changes in the linux kernel from time to time ...
 	if (contains (BootCommon::update_section_types, oname) && haskey(s, "root"))
 	{
-  	    y2milestone ("Updating root device of section %1", name);
+	    y2milestone ("Updating root device of section %1", name);
 	    s["root"] = BootCommon::UpdateDevice (s["root"]:"");
 	}
 
@@ -842,7 +841,7 @@ global void Update () {
 
 	// add additional kernel parameters to the end of the append entry
 	// of special image section 'linux'
-	// 
+	//
 	if (oname == "linux") {
 	    foreach (string o, BootCommon::ListAdditionalKernelParams (), {
 	        append = BootCommon::setKernelParamToLine (append, o, "false");
@@ -866,7 +865,7 @@ global void Update () {
 	// finally append entry is written back
 	if (append != "")
 	    s["append"] = append;
-	else 
+	else
 	    s = remove(s, "append");
 
 	return s;
@@ -878,7 +877,7 @@ global void Update () {
     foreach (string section_name, sections_to_recreate, {
         map<string,any> new_section =  CreateImageSection(section_name);
 	if (section_name == "linux")
-  	    updated_sections = prepend (updated_sections, new_section);
+	    updated_sections = prepend (updated_sections, new_section);
 	else
 	    updated_sections = add (updated_sections, new_section);
     });
@@ -889,7 +888,7 @@ global void Update () {
 
    /**
     * Secondly update global settings of bootloader configuration:
-    * 
+    *
     * - no change of 'activate'
     * - no change of 'timeout'
     * - no change of default section
@@ -917,7 +916,7 @@ global void Update () {
 	append = BootCommon::setKernelParamToLine (append, "console", "false");
 	if (append != "")
 	    BootCommon::globals["append"] = append;
-	else 
+	else
 	    BootCommon::globals = remove(BootCommon::globals, "append");
     }
 }
@@ -927,6 +926,12 @@ global void Update () {
   * @return boolean true on success
   */
 global define boolean Write () {
+
+    if (getBoardType () == "iseries")
+    {
+	iSeriesWrite ();
+    }
+
     boolean ret = BootCommon::UpdateBootloader ();
 
     ret = ret && BootCommon::InitializeBootloader ();
