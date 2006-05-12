@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May 12 13:24:19 CEST 2006 - od@suse.de
+
+- adapted to ppc/BootPOWERLILO.ycp: fixed mangled section titles
+  after update (#170579)
+- 2.13.60
+
+-------------------------------------------------------------------
 Wed May 10 19:07:38 CEST 2006 - od@suse.de
 
 - added comments to update code
