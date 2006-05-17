@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed May 17 16:52:30 CEST 2006 - od@suse.de
+
+- added bootloader device conversion for mount by ID, UUID etc. to
+  BootPOWERLILO (#174349)
+- added debug messages to Dev2MountByDev()
+- changed 2x y2milestone() -> y2debug() in MountByDev2Dev()
+- 2.13.62
+
+-------------------------------------------------------------------
 Fri May 12 16:02:34 CEST 2006 - od@suse.de
 
 - during installation/update on ppc iseries, unconditionally
