@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed May 17 22:42:52 CEST 2006 - od@suse.de
+
+- fix backwards mapping of "mount by" device names when bl
+  configuration is read (#176201)
+- revert last change in MountByDev2Dev() and use y2milestone()
+  again
+- 2.13.63
+
+-------------------------------------------------------------------
 Wed May 17 16:52:30 CEST 2006 - od@suse.de
 
 - added bootloader device conversion for mount by ID, UUID etc. to
