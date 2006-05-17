@@ -681,6 +681,13 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    filter (string k, any v, s, { return is (v, string); });
     });
 
+    // convert root device names in sections to the device names indicated by
+    // "mountby"
+    sects = maplist (map<string,string> s, sects, {
+	s["root"] = BootCommon::Dev2MountByDev(s["root"]:"");
+	return s;
+    });
+
     // FIXME: remove all mountpoints of type 'boot/boot' through some Storage::<func>
 
     // FIXME: set one mountpoint 'boot/boot' for every boot target means all
