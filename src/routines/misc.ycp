@@ -222,7 +222,7 @@ global string getFreeSectionLabel () {
 
     /**
      * Converts a "/dev/disk/by-" device name to the corresponding kernel
-     * device name, according to the "mountby" setting for the device from
+     * device name, if a mapping for this name can be found in the map from
      * yast2-storage. If the given device name is not a "/dev/disk/by-" device
      * name, it is left unchanged. Also, if the information about the device
      * name cannot be found in the target map from yast2-storage, the device
@@ -239,35 +239,36 @@ global string getFreeSectionLabel () {
 
 	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
 
-	// make a map: "type/identifier" -> info_map_for_this_partition
-	// e.g.: "id/scsi-SATA_ST3120813AS_3LS09W21-part5" -> info_map_for_this_partition
-	symbol mountby = `device;
-	map<string,map> partitions = $[];
+	// make a map: "type/identifier" -> kernel_device_name
+	// e.g.: "id/scsi-SATA_ST3120813AS_3LS09W21-part5" -> "/dev/sda2"
+	map<string,string> partitions = $[];
 	foreach (string k, map v, devices, ``{
 	    foreach (map p, (list<map>)(v["partitions"]:[]), ``{
-		mountby = (symbol) p["mountby"]:nil;
-		if ( mountby == `uuid )
+		if ( haskey(p, "uuid") )
 		{
-		    partitions["uuid/" + p["uuid"]:""] = p;
-		} else if ( mountby == `label )
+		    partitions["uuid/" + p["uuid"]:""] = p["device"]:dev;
+		}
+		if ( haskey(p, "label") )
 		{
-		    partitions["label/" + p["label"]:""] = p;
-		} else if ( mountby == `id )
+		    partitions["label/" + p["label"]:""] = p["device"]:dev;
+		}
+		if ( haskey(p, "udev_id") )
 		{
-		    partitions["id/" + p["udev_id", 0]:""] = p;
-		} else if ( mountby == `path )
+		    partitions["id/" + p["udev_id", 0]:""] = p["device"]:dev;
+		}
+		if ( haskey(p, "udev_path") )
 		{
-		    partitions["path/" + p["udev_path"]:""] = p;
+		    partitions["path/" + p["udev_path"]:""] = p["device"]:dev;
 		}
 	    });
 	});
-	y2debug ("MountByDev2Dev: partitions %1", partitions);
+	y2milestone ("MountByDev2Dev: partitions %1", partitions);
 
 	// ident is "id/<id>", "path/<path>", "uuid/<uuid>" or "label/<label>"
 	string ident = regexpsub(dev, "^/dev/disk/by-(.*)", "\\1");
-	y2debug ("MountByDev2Dev: ident %1", ident);
+	y2milestone ("MountByDev2Dev: ident %1", ident);
 	// if exists, get the kernel name, otherwise leave unchanged
-	string ret = partitions[ident, "device"]:dev;
+	string ret = partitions[ident]:dev;
 
 	y2milestone ("MountByDev2Dev: ret %1", ret);
 	return ret;
