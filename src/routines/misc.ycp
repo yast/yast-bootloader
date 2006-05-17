@@ -261,11 +261,11 @@ global string getFreeSectionLabel () {
 		}
 	    });
 	});
-	y2milestone ("MountByDev2Dev: partitions %1", partitions);
+	y2debug ("MountByDev2Dev: partitions %1", partitions);
 
 	// ident is "id/<id>", "path/<path>", "uuid/<uuid>" or "label/<label>"
 	string ident = regexpsub(dev, "^/dev/disk/by-(.*)", "\\1");
-	y2milestone ("MountByDev2Dev: ident %1", ident);
+	y2debug ("MountByDev2Dev: ident %1", ident);
 	// if exists, get the kernel name, otherwise leave unchanged
 	string ret = partitions[ident, "device"]:dev;
 
@@ -292,7 +292,7 @@ global string getFreeSectionLabel () {
 		partitions[p["device"]:""] = p;
 	    });
 	});
-//	y2milestone ("Dev2MountByDev: partitions %1", partitions);
+	y2debug ("Dev2MountByDev: partitions %1", partitions);
 
 	string ret = dev;
 
