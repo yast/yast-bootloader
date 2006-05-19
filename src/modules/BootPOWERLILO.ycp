@@ -1065,7 +1065,10 @@ global void Initializer () {
     // type discription through here
     // FIXME: This is a hack: we need another interface to get the
     // type descriptions
-    BootCommon::InitializeLibrary (false, "ppc");
+    if(!BootCommon::InitializeLibrary (false, "ppc")) {
+        // send current disk/partition information to perl-Bootloader
+	BootCommon::SetDiskInfo ();
+    };
     BootCommon::globals = (map<string,string>)
 	union(BootCommon::globals,
 	    filter(string key, string val, BootCommon::GetGlobal(),
