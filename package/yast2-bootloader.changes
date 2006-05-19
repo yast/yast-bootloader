@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May 19 16:05:32 CEST 2006 - od@suse.de
+
+- added FIXME note to Bootloader.ycp
+- send partitioning info always when Initializer called (#161755)
+- 2.13.65
+
+-------------------------------------------------------------------
 Fri May 19 12:25:09 CEST 2006 - od@suse.de
 
 - fixed installation of installation kernel (ISERIES64) into slot A
