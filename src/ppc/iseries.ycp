@@ -263,10 +263,14 @@
 	    string command = "";
 	    string my_log = "/var/log/YaST2/y2log_bootloader_iseries_slot_a";
 
-	    list<integer> sources = Pkg::SourceStartCache (true);
-	    integer source_id = sources[0]:0;
 	    string src_filename
-		= Pkg::SourceProvideFile(source_id, 1, "/ISERIES64");
+		= Pkg::SourceProvideFile(base_source, 1, "/ISERIES64");
+
+	    if (base_source == -1 || src_filename == nil) {
+		y2milestone ("Cannot write rescue kernel to slot A, base source not found");
+		return false;
+	    }
+
 	    string rescue_bootbinary = (string)SCR::Read (.target.tmpdir)
 		+ "/rescue_bootbinary";
 	    string tg_rescue_bootbinary
@@ -287,7 +291,7 @@
 		my_log))
 		return false;
 
-	    // NOTE: on SLES10, the "root=" paramter is not handled by the
+	    // NOTE: on SLES10, the "root=" parameter is not handled by the
 	    // initrd in the ISERIES64 file. The initrd just boots up to a
 	    // shell.
 	    SCR::Execute (.target.bash,

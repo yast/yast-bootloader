@@ -53,6 +53,9 @@ global list<string> prep_boot_partitions = [];
 // PReP boot partitions that were proposed by partitioner to install BL
 global list<string> install_prep_boot_partitions = [];
 
+// saved ID of the base installation source
+global integer base_source = -1;
+
 // iSeries specific global settings
 
 // filename for the iSeries kernel, for streamfile *STMF booting
@@ -465,6 +468,41 @@ global void CreateGlobals () {
 
 }
 
+/**
+ * Save the ID of the base installation source
+ * modifies internal variable
+ */
+global void SaveInstSourceId () {
+
+    base_source = -1;
+
+    // Find the source ID of the base product:
+    // list all products
+    list<map<string,any> > products =
+	Pkg::ResolvableProperties ("", `product, "");
+    y2internal ("products: %1", products);
+    // filter products to be installed
+    products = filter (map<string,any> p, products, {
+	return p["source"]:-1 != -1;
+    });
+    // get base products
+    list<map<string,any> > base_products =
+	filter (map<string,any> p, products, {
+	    return p["category"]:"" == "base";
+	});
+    if (size (base_products) == 0)
+	base_products = products; // just to be safe in case of a bug...
+    list<integer> sources = maplist (map<string,any> p, base_products, {
+	return p["source"]:-1;
+    });
+    y2internal ("remaining products: %1, sources: %2",
+	products, sources);
+    sources = sort (sources);
+    base_source = sources[0]:-1;
+
+    y2milestone ("Base source: %1", base_source);
+}
+
 // general functions
 
 /**
@@ -473,6 +511,12 @@ global void CreateGlobals () {
 global define void Propose () {
     y2debug ("Started propose: Glob: %1, Sec: %2",
 	BootCommon::globals, BootCommon::sections);
+
+    // Need to remember inst source ID now to get the ISERIES64 file from the
+    // inst source later on (see Bug #165497, Comment #16). This won't work
+    // later during inst_finish, so we need to do it earlier -- only the
+    // proposal is a possible place.
+    SaveInstSourceId();
 
     // FIXME: make modern code out of these conditionals
     //        - comments
