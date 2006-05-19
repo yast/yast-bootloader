@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May 19 12:25:09 CEST 2006 - od@suse.de
+
+- fixed installation of installation kernel (ISERIES64) into slot A
+  on iSeries (#165497)
+- 2.13.64
+
+-------------------------------------------------------------------
 Wed May 17 22:42:52 CEST 2006 - od@suse.de
 
 - fix backwards mapping of "mount by" device names when bl
