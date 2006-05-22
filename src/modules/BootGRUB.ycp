@@ -96,7 +96,7 @@ include "bootloader/routines/dialogs_i386.ycp";
 		"test -d %1 || /bin/mkdir %1", tmpdir))
 	    )
 	{
-	    y2milestone ("Detectig other Linux parts");
+	    y2milestone ("Detecting other Linux parts");
 	    list filesystems = maplist (map p, other_l,
 		``(p["used_fs"]:(any)""));
 	    filesystems = toset (filter (any f, filesystems, ``(f != "")));
