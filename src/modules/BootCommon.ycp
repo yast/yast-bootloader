@@ -287,6 +287,7 @@ global list<string> update_section_types
 global define string getLoaderType (boolean recheck);
 global define list<string> getBootloaders ();
 global define list<string> Summary ();
+global define boolean UsingXenPae();
 
 include "bootloader/routines/popups.ycp";
 include "bootloader/routines/misc.ycp";
@@ -312,7 +313,16 @@ global boolean XenPresent () {
 	    || (Mode::normal () && Pkg::IsProvided ("xen")
 		&& Pkg::IsProvided ("kernel-xen"))
 	    || (! Mode::normal () && Pkg::IsSelected ("xen")
-		&& Pkg::IsSelected ("kernel-xen")));
+		&& Pkg::IsSelected ("kernel-xen"))
+	    || UsingXenPae());
+}
+
+global boolean UsingXenPae() {
+    if (Mode::test())
+	return true;
+    if (Mode::normal())
+        return Pkg::IsProvided ("kernel-xenpae");
+    return Pkg::IsSelected ("kernel-xenpae");
 }
 
 /**
@@ -398,10 +408,16 @@ global map<string,any> CreateLinuxSection (string title) {
     }
     if (title == "xen")
     {
-	ret["xen"] = "/boot/xen.gz";
 	ret["xen_append"] = "";
-	ret["kernel"] = "/boot/" + Kernel::GetBinary () + "-xen";
-	ret["initrd"] = "/boot/initrd-xen";
+        if (UsingXenPae()) {
+	    ret["xen"] = "/boot/xen-pae.gz";
+	    ret["kernel"] = "/boot/" + Kernel::GetBinary () + "-xenpae";
+	    ret["initrd"] = "/boot/initrd-xenpae";
+	} else {
+	    ret["xen"] = "/boot/xen.gz";
+	    ret["kernel"] = "/boot/" + Kernel::GetBinary () + "-xen";
+	    ret["initrd"] = "/boot/initrd-xen";
+	}
     }
     else if (title == "wildcard")
     {

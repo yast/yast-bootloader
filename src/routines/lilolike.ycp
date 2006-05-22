@@ -915,7 +915,10 @@ global void UpdateInitrdLine () {
         }
 	else if (type == "xen" && write_settings["insert_initrd"]:false)
 	{
-	    s["initrd"] = "/boot/initrd-xen";
+	    if (BootCommon::UsingXenPae())
+	        s["initrd"] = "/boot/initrd-xenpae";
+	    else
+	        s["initrd"] = "/boot/initrd-xen";
 	}
         if (initrd != "")
         {
