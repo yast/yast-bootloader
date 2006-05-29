@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon May 29 13:06:10 CEST 2006 - od@suse.de
+
+- iseries: fix proposal for NWSSTG boot device (#167390)
+- 2.13.67
+
+-------------------------------------------------------------------
 Mon May 22 18:30:52 CEST 2006 - jplack@suse.de
 
 - add initial support for xenpae (#177051)
@@ -12,7 +18,6 @@ Fri May 19 16:05:32 CEST 2006 - od@suse.de
 - 2.13.65
 
 -------------------------------------------------------------------
->>>>>>> .r31100
 Fri May 19 12:25:09 CEST 2006 - od@suse.de
 
 - fixed installation of installation kernel (ISERIES64) into slot A
