@@ -460,7 +460,7 @@ global void CreateGlobals () {
 	// Do not pass down to perl-Bootloader, lilo fails on an empty "boot =" line.
 	if (BootCommon::BootPartitionDevice != nil &&
 	    BootCommon::BootPartitionDevice != "") {
-	    add(boot_map, "boot_iseries_custom", BootCommon::BootPartitionDevice);
+	    boot_map["boot_iseries_custom"] = BootCommon::BootPartitionDevice;
 	}
     }
     // Finally merge results into "globals": new values replace old ones
