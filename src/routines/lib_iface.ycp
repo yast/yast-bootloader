@@ -78,7 +78,9 @@ global void SetDiskInfo () {
 	    if( p["used_by_type"]:`UB_NONE==`UB_MD )
 		raid = p["used_by"]:"";
 	    string device = p["device"]:"";
-	    if (raid != "")
+	    // We only pass along RAID1 devices as all other causes
+	    // severe breakage in the bootloader stack
+	    if ((raid != "") && (p["raid_type"]:"" == "raid1"))
 	    {
 		list<string> members = md_info[raid]:[];
 		members = add (members, device);
