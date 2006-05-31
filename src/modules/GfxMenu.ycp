@@ -174,7 +174,7 @@
 	    // 4. convert not allowed chars to "_"
 	    // (NOTE: this converts according to lilo requirements, ATM we do
 	    // not allow ".-" above already; so ATM this converts only " ")
-	    filtered = ReplaceRegexMatch (filtered, "[^a-zA-Z0-9.-]", "_");
+	    filtered = ReplaceRegexMatch (filtered, "[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.-]", "_");
 	    y2milestone ("section title: filtered unallowed characters: %1", filtered);
 	}
 	else if (contains (["linux", "failsafe", "previous", "xen"], orig)

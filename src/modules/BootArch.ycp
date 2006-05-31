@@ -91,8 +91,8 @@ global string DefaultKernelParams (string resume) {
 	    ProductFeatures::GetStringFeature (
 		"globals",
 		"additional_kernel_parameters"));
-	if (regexpmatch (ret, "^(.* )?splash=[a-z]+( .*)?$"))
-	    ret = regexpsub (ret, "^((.* ))?splash=[a-z]+(( .*)?)$", "\\1 \\3");
+	if (regexpmatch (ret, "^(.* )?splash=[[:lower:]]+( .*)?$"))
+	    ret = regexpsub (ret, "^((.* ))?splash=[[:lower:]]+(( .*)?)$", "\\1 \\3");
 	ret = ret + " splash=silent showopts";
 	return ret;
     }

@@ -1482,9 +1482,9 @@ global list<string> ListKernelParamsInLine (string line) {
       * @return boolean true if is MBR
       */
     global define boolean IsMbr (string device) ``{
-	if (regexpmatch (device, "^\/dev\/[a-z]+$"))
+	if (regexpmatch (device, "^\/dev\/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]+$"))
 	    return true;
-	if (regexpmatch (device, "^\/dev\/[a-z]+\/.*d[0-9]+$"))
+	if (regexpmatch (device, "^\/dev\/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]+\/.*d[0-9]+$"))
 	    return true;
 	return false;
     }
