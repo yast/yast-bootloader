@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 31 16:11:36 CEST 2006 - od@suse.de
+
+- check for RAID1 md arrays as all others will break on reboot
+  (#178802)
+- 2.13.69
+
+-------------------------------------------------------------------
 Wed May 31 13:49:59 CEST 2006 - od@suse.de
 
 - replace occurences of a-z and A-Z with character lists to prevent
