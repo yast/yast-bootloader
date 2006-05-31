@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 31 13:49:59 CEST 2006 - od@suse.de
+
+- replace occurences of a-z and A-Z with character lists to prevent
+  problems in some locales (#177560)
+- 2.13.68
+
+-------------------------------------------------------------------
 Mon May 29 13:06:10 CEST 2006 - od@suse.de
 
 - iseries: fix proposal for NWSSTG boot device (#167390)
