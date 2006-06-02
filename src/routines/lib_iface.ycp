@@ -39,10 +39,15 @@ string library_initialized = nil;
  */
 // FIXME: this should be done directly in perl-Bootloader through LibStorage.pm
 global void SetDiskInfo () {
+    map<string,list<string> > md_info = $[];
     map<string,any> mountpoints = mapmap (string k, list v,
 	(map<string,list>)Storage::GetMountPoints (),
     {
-	return $[ k : (any)v[0]:nil];
+        // detect all raid1 md devices and mark them in md_info
+        string device = v[0]:"";
+	if (v[3]:"" == "raid1")
+	   md_info[device]=[];
+	return $[ k : device ];
     });
     mountpoints = filter (string k, any v, mountpoints, {
 	string tmpdir = (string)SCR::Read (.target.tmpdir);
@@ -64,7 +69,6 @@ global void SetDiskInfo () {
     }
     y2milestone ("Detected mountpoints: %1", mountpoints);
 
-    map<string,list<string> > md_info = $[];
     map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
     list<list<list> > pi = maplist (string disk, map info, tm,
     {
@@ -80,7 +84,7 @@ global void SetDiskInfo () {
 	    string device = p["device"]:"";
 	    // We only pass along RAID1 devices as all other causes
 	    // severe breakage in the bootloader stack
-	    if ((raid != "") && (p["raid_type"]:"" == "raid1"))
+	    if ((raid != "") && (haskey (md_info, raid)))
 	    {
 		list<string> members = md_info[raid]:[];
 		members = add (members, device);
@@ -331,3 +335,13 @@ global boolean SetFilesContents (map<string,string> files) {
 }
 
 } //end of include
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */
