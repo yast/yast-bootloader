@@ -84,11 +84,13 @@ global void SetDiskInfo () {
 	    string device = p["device"]:"";
 	    // We only pass along RAID1 devices as all other causes
 	    // severe breakage in the bootloader stack
-	    if ((raid != "") && (haskey (md_info, raid)))
-	    {
-		list<string> members = md_info[raid]:[];
-		members = add (members, device);
-		md_info[raid] = members;
+	    if (raid != "") {
+	        raid = "/dev/" + raid;
+		if (haskey (md_info, raid)) {
+		    list<string> members = md_info[raid]:[];
+		    members = add (members, device);
+		    md_info[raid] = members;
+		}
 	    }
 	    any nr = p["nr"]:nil;
 	    if (nr == nil)
