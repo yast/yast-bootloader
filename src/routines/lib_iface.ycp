@@ -44,9 +44,9 @@ global void SetDiskInfo () {
 	(map<string,list>)Storage::GetMountPoints (),
     {
         // detect all raid1 md devices and mark them in md_info
-        string device = v[0]:"";
+        any device = v[0]:nil;
 	if (v[3]:"" == "raid1")
-	   md_info[device]=[];
+	   md_info[(string)device]=[];
 	return $[ k : device ];
     });
     mountpoints = filter (string k, any v, mountpoints, {
