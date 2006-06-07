@@ -45,15 +45,15 @@ global string FailsafeKernelParams () {
     string ret = "";
     if (Arch::i386 ())
     {
-	ret = "showopts ide=nodma apm=off acpi=off noresume nosmp noapic maxcpus=0 edd=off";
+	ret = "showopts ide=nodma apm=off acpi=off noresume nosmp noapic maxcpus=0 edd=off powersaved=off";
     }
     else if (Arch::x86_64 ())
     {
-	ret = "showopts ide=nodma apm=off acpi=off noresume edd=off";
+	ret = "showopts ide=nodma apm=off acpi=off noresume edd=off powersaved=off";
     }
     else if (Arch::ia64 ())
     {
-	ret = "ide=nodma nohalt noresume";
+	ret = "ide=nodma nohalt noresume powersaved=off";
     }
     else
     {
