@@ -120,6 +120,7 @@ global define void initBoardType () {
     {
 	board_type = "unknown";
     }
+    y2milestone ("setting board type to: %1", board_type);
 }
 
 global define string getBoardType () {
@@ -525,12 +526,25 @@ global define void Propose () {
     boolean initial_propose = true;
     if (BootCommon::was_proposed)
     {
+	// FIXME: autoyast settings are simply Import()ed and was_proposed is
+	// set to true. The settings for the current board still need to be
+	// initialized though. We do this every time the bootloader proposal is
+	// called, because it also does not harm (results for the board
+	// detection are cached both in Arch.ycp and in our variable
+	// board_type.) To fix: make the "where does the information come
+	// from", when, more clear and obvious (in the code and/or in docs).
+	if (Mode::autoinst ())
+	{
+	    currentBoardInit ();
+	}
 	initial_propose = false;
     }
     else
     {
 	currentBoardInit ();
     }
+    y2milestone ("board type is: %1", board_type);
+
     // Get root and boot partition (if any)
     LocationProposal();
 
