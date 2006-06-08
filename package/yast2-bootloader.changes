@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jun  8 17:23:54 CEST 2006 - od@suse.de
+
+- ppc: always initialize board type when making a proposal in an
+  autoyast installation (#178831)
+- 2.13.72
+
+-------------------------------------------------------------------
 Wed Jun  7 18:30:11 CEST 2006 - od@suse.de
 
 - add "powersaved=off" to append line in failsafe section for i386,
