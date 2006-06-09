@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Fri Jun  9 19:14:30 CEST 2006 - od@suse.de
+
+- when a change somewhere in the proposal causes a new section to
+  be created (e.g. for a xen kernel), if the section does not yet
+  exist and has not explicitly been deleted, add it to our proposal
+  (#170469)
+- added lots of commentary to FixSections()
+- revert patch that added "powersaved=off" to append line in
+  failsafe section - more testing needed (#153345)
+- 2.13.73
+
+-------------------------------------------------------------------
 Thu Jun  8 17:23:54 CEST 2006 - od@suse.de
 
 - ppc: always initialize board type when making a proposal in an
