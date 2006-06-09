@@ -500,8 +500,15 @@ global void FixSections (void() create_sections) {
 	files_edited_warned = true;
 	return;
     }
+
+    // save old sections and propose new ones in global "sections"
+    // (the updated list of old sections will become the new section list in
+    // the end)
     list<map<string,any> > old_sect_list = sections;
+
     create_sections ();
+
+    // new_sect is a map with elements containing: "type" -> section
     map<string,map<string,any> > new_sect = listmap (map<string,any> s,
 	sections,
     {
@@ -509,6 +516,22 @@ global void FixSections (void() create_sections) {
 	string type = s["original_name"]:label;
 	return $[type: s];
     });
+
+    // remember a list with all the section "types" in the old section list
+    // (needed later in this function to find newly created sections)
+    list<string> old_section_types = maplist (map<string,any> s, old_sect_list,
+    {
+	return s["original_name"]:"";
+    });
+
+    // in the old list of sections:
+    //	- only keep sections that the user created (no "__auto", or false) or
+    //	  changed ("__changed") in the UI
+    //  - replace unchanged sections with ones we proposed just now (if
+    //    available)
+    //  - also notify user when devices for a "changed by user" section are
+    //    unavailable or would now be proposed differently (and mark section as
+    //    "created by user")
     old_sect_list = maplist (map<string,any> s, old_sect_list, {
 	string label = s["name"]:"";
 	string type = s["original_name"]:label;
@@ -525,8 +548,14 @@ global void FixSections (void() create_sections) {
 	}
 	else
 	{
+	    // section was created by us, then changed by the user:
+	    //	- keep it
+	    //  - maybe notify user to check it (and then mark it as a "user
+	    //    defined section")
 	    y2milestone ("Warning on section %1", label);
 	    boolean cont = true;
+	    // if "non-standard" section name and a used device is not
+	    // available anymore, notify user
 	    if (type != "linux" && type != "failsafe"
 		&& type != "memtest86" && type != "wildcard")
 	    {
@@ -537,6 +566,8 @@ global void FixSections (void() create_sections) {
 		    }
 		});
 	    }
+	    // if the devices for this section and the freshly created one of
+	    // the same type are different, notify user
 	    map<string,any> new_this_section = new_sect[type]:$[];
 	    if (new_this_section == $[])
 		return $[];
@@ -551,6 +582,9 @@ global void FixSections (void() create_sections) {
 			cont = false;
                 });
 	    }
+	    // display popup for this section;
+	    // also, next time we come through this function, consider this
+	    // section as a section created by the user (and leave it as it is)
 	    if (! cont)
 	    {
 		s["__auto"] = false;
@@ -560,6 +594,8 @@ global void FixSections (void() create_sections) {
 	}
     });
 
+    // in newly created sections, fix "resume" parameter in append line if
+    // necessary
     y2milestone ("Checking for sections using the resume parameter");
     sections = maplist (map<string,any> s, BootCommon::sections, ``{
 	string append = s["append"]:"";
@@ -575,6 +611,25 @@ global void FixSections (void() create_sections) {
 	return s;
     });
 
+    // now add sections from newly created ones that were unknown before in the
+    // old section list, if not already removed by the user (#170469)
+    foreach (map<string,any> s, sections, {
+	string label = s["name"]:"";
+	string type = s["original_name"]:label;
+	if (! contains (old_section_types, type) &&
+	    ! contains (removed_sections, type))
+	{
+	    y2milestone ("Adding new section \"%1\": %2",
+		label, s);
+	    old_sect_list = add(old_sect_list, s);
+	    return s;
+	}
+    });
+
+    // Strange (I must have misread the code here):
+    // if a newly created section uses one or more deleted devices, and a
+    // section of that type does not exist anymore in the old section list, add
+    // it to the old section list
     y2milestone ("Checking for sections needing some of %1", del_parts);
     list<string> to_remove = [];
     foreach (map<string,any> s, sections, {
@@ -602,10 +657,17 @@ global void FixSections (void() create_sections) {
 	    }
 	}
     });
+
+    // FIXME: BUG: looks like a bug to remove a list of labels from the list of
+    // deleted devices
     del_parts = (list<string>)difflist (del_parts, to_remove);
+
+    // cleanup: throw away empty sections
     old_sect_list = filter (map<string,any> s, old_sect_list, {
 	return s != $[];
     });
+
+    // save old, updated section list as proposed section list
     sections = old_sect_list;
 }
 
