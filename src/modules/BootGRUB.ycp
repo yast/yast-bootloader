@@ -148,7 +148,7 @@ include "bootloader/routines/dialogs_i386.ycp";
 			    y2debug ("Device map file name: %1",
 				regexpsub (f, "(.*)menu.lst$",
 				    "\\1device.map"));
-			    y2debug ("Device map coontents: %1", dm);
+			    y2debug ("Device map contents: %1", dm);
 			map<string,string> files = $[
 			    "/boot/grub/menu.lst" : fc,
 			];
