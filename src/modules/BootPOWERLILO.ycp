@@ -708,6 +708,18 @@ global boolean Read (boolean reread) {
 
 
 /**
+ * Reset bootloader settings
+ */
+global define void Reset (boolean init) {
+    // Reset global variables to default values
+    prep_boot_partition = "";
+    prep_boot_partitions = [];
+    install_prep_boot_partitions = [];
+    BootCommon::Reset (init);
+}
+
+
+/**
  * Save all bootloader configuration files to the cache of the PlugLib
  * PlugLib must be initialized properly !!!
  * @param clean boolean true if settings should be cleaned up (checking their
@@ -1037,7 +1049,7 @@ global map<string, any> GetFunctions () {
 	"export"	   : Export,
 	"import"	   : Import,
 	"read"		   : Read,
-	// "reset"
+	"reset"		   : Reset,
 	"propose"	   : Propose,
 	"save"		   : Save,
 	"summary"	   : Summary,
