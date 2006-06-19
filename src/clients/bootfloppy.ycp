@@ -142,18 +142,23 @@ FireWire and file systems modules floppy"),
 define string createFloppyImage (string file_image) {
     if (! images_created)
     {
+	// obtain the architecture name, which is
+	// part of the directory path
+	string archname = Arch::architecture();
+	string bootdisk_path = "/boot/" + archname + "/mkbootdisk";
 	// first download the mkbootfloppy script
 	string script = Pkg::SourceProvideFile(source_id, 1,
-	    "/boot/mkbootdisk");
+	    bootdisk_path);
 	// build command to build the images
 	string tmpdir = (string)SCR::Read (.target.tmpdir);
 	imagedir = sformat ("%1/floppy", tmpdir);
 	string srcdir = sformat ("%1/src", tmpdir);
 	SCR::Execute (.target.mkdir, imagedir);
 	SCR::Execute (.target.mkdir, srcdir);
+	string dir_yast_path = "/boot/" + archname + "/loader/directory.yast";
 	// get the list of files
 	string filelist_str = Pkg::SourceProvideFile (source_id, 1,
-	    "/boot/loader/directory.yast");
+	    dir_yast_path);
 	filelist_str = (string)SCR::Read (.target.string, filelist_str);
 	list<string> filelist = splitstring (filelist_str, "\n");
 	filelist = filter (string f, filelist, {return f != "";});
