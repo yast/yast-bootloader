@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun 21 14:28:21 CEST 2006 - uli@suse.de
+
+- zipl: add "TERM=linux console=..." to proposal if booted with 
+  TERM=linux (bug #186970)
+
+-------------------------------------------------------------------
 Fri Jun  9 19:14:30 CEST 2006 - od@suse.de
 
 - when a change somewhere in the proposal causes a new section to
