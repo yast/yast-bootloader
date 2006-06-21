@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jun 21 14:32:53 CEST 2006 - uli@suse.de
+
+- zipl: add "TERM=linux console=..." to proposal if run with
+  TERM=linux (bug #186970)
+- 2.13.74
+
+-------------------------------------------------------------------
 Fri Jun  9 19:14:30 CEST 2006 - od@suse.de
 
 - when a change somewhere in the proposal causes a new section to

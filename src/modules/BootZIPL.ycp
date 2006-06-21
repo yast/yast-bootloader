@@ -174,10 +174,17 @@
     global define void Propose () ``{
 	BootCommon::DetectDisks ();
 	string root_device = BootCommon::RootPartitionDevice;
-	string parameters = sformat ("%1 %3 %4",
-	    StorageControllers::dasdParam,
-	    BootCommon::GetAdditionalKernelParams (),
-	    "TERM=dumb");
+	map <string, any> file_desc = ( map<string, any> ) SCR::Execute( .target.bash_output, "echo $TERM" );
+	string env_term = file_desc[ "stdout" ]: "";
+	string termparm = "TERM=dumb";
+	if ( env_term == "linux\n" )
+	{
+	  termparm = "TERM=linux console=ttyS0 console=ttyS1";
+	}
+	string parameters = sformat ("%1 %2 %3",
+	  StorageControllers::dasdParam,
+	  BootCommon::GetAdditionalKernelParams (),
+	  termparm);
 
 	BootCommon::globals = $[
 	    "default":"ipl",
