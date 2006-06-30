@@ -166,7 +166,7 @@ define string createFloppyImage (string file_image) {
 	// copy all files to the local disk
 	foreach (string f, filelist, {
 	    f = Pkg::SourceProvideFile (source_id, 1,
-		sformat ("/boot/loader/%1", f));
+		sformat ("/boot/%1/loader/%2", archname, f));
 	    SCR::Execute (.target.bash, sformat ("/bin/cp %1 %2",
 		f, srcdir));
 	});
