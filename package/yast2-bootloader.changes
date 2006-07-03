@@ -5,6 +5,8 @@ Mon Jul  3 16:52:22 CEST 2006 - aosthof@suse.de
   (Bug #180240)
 - reconstructed last submission and submit now with normal YaST2
   submission tools from SVN, rather than as a patch
+- jplack: fix for #184186, reset global variables to default in
+  private Reset function
 - 2.13.75
 
 -------------------------------------------------------------------
