@@ -1,9 +1,24 @@
 -------------------------------------------------------------------
+Mon Jul  3 16:52:22 CEST 2006 - aosthof@suse.de
+
+- a few corrections had to be done related to several wrong paths
+  (Bug #180240)
+- reconstructed last submission and submit now with normal YaST2
+  submission tools from SVN, rather than as a patch
+- 2.13.75
+
+-------------------------------------------------------------------
 Wed Jun 21 14:32:53 CEST 2006 - uli@suse.de
 
 - zipl: add "TERM=linux console=..." to proposal if run with
   TERM=linux (bug #186970)
 - 2.13.74
+
+-------------------------------------------------------------------
+Mon Jun 19 15:18:29 CEST 2006 - aosthof@suse.de
+
+- Fixed erroneous pathes in function createFloppyImage() in 
+  bootfloppy.ycp (#180240) 
 
 -------------------------------------------------------------------
 Fri Jun  9 19:14:30 CEST 2006 - od@suse.de
