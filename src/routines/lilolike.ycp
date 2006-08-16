@@ -1036,6 +1036,7 @@ global void UpdateGfxMenu () {
 /**
  * Generate device map proposal, store it in internal variables
  */
+// FIXME: move that funbction out here, as it is grub only
 global void ProposeDeviceMap () {
     device_mapping = $[];
 
@@ -1057,7 +1058,7 @@ global void ProposeDeviceMap () {
         if (bios_id != "")
         {
             integer index = tointeger (bios_id) - tointeger ("0x80");
-            string grub_dev = sformat ("(hd%1)", index);
+            string grub_dev = sformat ("hd%1", index);
 	    device_mapping[target_dev] = grub_dev;
             ids[index] = true;
         }
@@ -1071,13 +1072,13 @@ global void ProposeDeviceMap () {
             integer index = 0;
             while (ids[index]:false)
                 index = index + 1;
-            string grub_dev = sformat ("(hd%1)", index);
+            string grub_dev = sformat ("hd%1", index);
 	    device_mapping[target_dev] = grub_dev;
             ids[index] = true;
         }
     });
     if (StorageDevices::FloppyPresent)
-	device_mapping[StorageDevices::FloppyDevice] = "(fd0)";
+	device_mapping[StorageDevices::FloppyDevice] = "fd0";
     y2milestone ("Detected device mapping: %1", device_mapping);
 }
 
@@ -1096,7 +1097,7 @@ global list<string> DisksOrder () {
 	return $[ v : k ];
     });
     devmap_rev = filter (string k, string v, devmap_rev, {
-	return substring (k, 0, 3) == "(hd";
+	return substring (k, 0, 2) == "hd";
     });
     list<string> order = maplist (string k, string v, devmap_rev, {
 	return v;
