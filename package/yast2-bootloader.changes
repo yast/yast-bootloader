@@ -5,6 +5,12 @@ Wed Jun 21 14:28:21 CEST 2006 - uli@suse.de
   TERM=linux (bug #186970)
 
 -------------------------------------------------------------------
+Mon Jun 19 15:18:29 CEST 2006 - aosthof@suse.de
+
+- Fixed erroneous pathes in function createFloppyImage() in 
+  bootfloppy.ycp (#180240) 
+
+-------------------------------------------------------------------
 Fri Jun  9 19:14:30 CEST 2006 - od@suse.de
 
 - when a change somewhere in the proposal causes a new section to
