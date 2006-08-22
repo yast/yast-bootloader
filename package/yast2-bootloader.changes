@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug 22 15:21:30 CEST 2006 - od@suse.de
+
+- jplack: use new device_map format (#198244)
+- 2.13.74
+
+-------------------------------------------------------------------
 Wed Jun 21 14:28:21 CEST 2006 - uli@suse.de
 
 - zipl: add "TERM=linux console=..." to proposal if booted with 
