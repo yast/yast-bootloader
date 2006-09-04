@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep  4 17:20:15 CEST 2006 - jplack@suse.de
+
+- support new options no_os_chooser and optional (#202069, #202072)
+
+-------------------------------------------------------------------
 Tue Aug 22 15:21:30 CEST 2006 - od@suse.de
 
 - jplack: use new device_map format (#198244)
