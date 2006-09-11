@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep 11 13:45:44 CEST 2006 - mvidner@suse.cz
+
+- Fixed autodocs.
+
+-------------------------------------------------------------------
 Mon Sep  4 17:20:15 CEST 2006 - jplack@suse.de
 
 - support new options no_os_chooser and optional (#202069, #202072)
