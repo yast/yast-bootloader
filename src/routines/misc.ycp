@@ -1263,7 +1263,7 @@ global list<string> ListKernelParamsInLine (string line) {
 		    // FIXME: investigate proper handling of the activate flag
 		    // (kernel ioctls in parted etc.) and fix parted
 		    string command = sformat
-			("/sbin/activate %2 %1", num, mbr_dev);
+			("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
 		    y2milestone ("Running command %1", command);
 		    map out = (map)SCR::Execute (.target.bash_output, command);
 		    integer exit = out["exit"]:0;
