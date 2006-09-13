@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Wed Sep 13 20:19:07 CEST 2006 - od@suse.de
+
+- reverted last change (in SVN) to bootfloppy.ycp, so the final
+  correction to include this change of aosthof again:
+  A few corrections had to be done related to wrong pathes (Bug
+  #180240)
+- using parted for activation of boot partition again (instead of
+  /sbin/activate from the lilo package) -- extended partition
+  handling was fixed (#167602)
+- 2.13.75
+
+-------------------------------------------------------------------
 Mon Sep 11 13:45:44 CEST 2006 - mvidner@suse.cz
 
 - Fixed autodocs.
