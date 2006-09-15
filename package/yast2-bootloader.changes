@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Sep 15 19:00:21 CEST 2006 - od@suse.de
+
+- added caching of bootloader proposal patch by lslezak@suse.de,
+  with some changed variable names and added comments (feature
+  #300709)
+- 2.13.76
+
+-------------------------------------------------------------------
 Wed Sep 13 20:19:07 CEST 2006 - od@suse.de
 
 - reverted last change (in SVN) to bootfloppy.ycp, so the final
