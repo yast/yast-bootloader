@@ -44,6 +44,10 @@ map<string,any> generic_Term (map<string,any> options, string type) {
     string help = "";
     term def_opt = `opt (`notify, `autoShortcut);
 
+    // TODO: evaluate the proposal to omit the radio button if size of options
+    // is one and type==radio. Possible implementation:
+    //          if sizeof(options) == 1 then type:=normal
+
     foreach (string key, any value, options, {
 	list<string> val = splitstring((string)value, ":");
 	string desc = generic_Description( key, val[1]:key );
@@ -133,6 +137,26 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	    }
 	}
 	else if (value == "select") {
+	    if ( type == "radio" || type == "check") {
+		new = `Left(`HBox (
+		    enable_widget,
+		    `ComboBox (`id (key), def_opt, "",
+		    	maplist(string v, val, ``( `item(`id(v), v) ) )
+	    	    )
+	       	));
+	    }
+	    else  {
+	    	new = `Left(`ComboBox (`id (key), add(def_opt, `editable), desc,
+		    maplist(string v, val, ``( `item(`id(v), v) ) )
+	    	));
+	    }
+	else if (value == "selectdevice") {
+	    // FIXME right now this type visualization is just a copy of the
+	    // "select" type code
+	    // Idea: add some radio buttons in a rb-group: "Identify by:"
+	    // <RB> Name <RB> UUID <RB> Label <RB> id <RB> path <RB> EDD
+	    // and change the list (string representation of devices)
+	    // dynamically due to the selected identification type. 
 	    if ( type == "radio" || type == "check") {
 		new = `Left(`HBox (
 		    enable_widget,
