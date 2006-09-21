@@ -150,6 +150,7 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 		    maplist(string v, val, ``( `item(`id(v), v) ) )
 	    	));
 	    }
+	}
 	else if (value == "selectdevice") {
 	    // FIXME right now this type visualization is just a copy of the
 	    // "select" type code
