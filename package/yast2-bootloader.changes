@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Sep 21 10:19:54 CEST 2006 - od@suse.de
+
+- jplack@suse.de: basic implementation for 'selectdevice' entry
+  type which will act as a hook for more sophisticated UI handling
+  for device-by-id selection and such.
+- 2.13.77
+
+-------------------------------------------------------------------
 Fri Sep 15 19:00:21 CEST 2006 - od@suse.de
 
 - added caching of bootloader proposal patch by lslezak@suse.de,
