@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Sep 26 14:47:58 CEST 2006 - jplack@suse.de
+
+- implementation for FATE#120026: button to initialize bootloader
+
+-------------------------------------------------------------------
 Thu Sep 21 10:19:54 CEST 2006 - od@suse.de
 
 - jplack@suse.de: basic implementation for 'selectdevice' entry
