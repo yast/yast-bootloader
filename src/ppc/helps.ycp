@@ -58,6 +58,7 @@ global map<string,string> ppc_descriptions = $[
     "initrd" 	 	 : _("Default initrd Path"),
     "clone" 	 	 : _("Partition for Boot Loader Duplication"),
     "force_fat" 	 : _("Always Boot from FAT Partition"),
+    "no_os_chooser" 	 : _("Do not use os-chooser"),
     "force" 	 	 : _("Install Boot Loader Even on Errors"),
     "boot_chrp_custom"   : _("PReP or FAT Partition"),
     "bootfolder" 	 : _("Boot Folder Path"),
@@ -72,6 +73,7 @@ global map<string,string> ppc_descriptions = $[
     "image_append"   	 : _("Optional Kernel Command Line Parameter"),
     "image_initrd"   	 : _("Initial RAM Disk"),
     "image_copy"     	 : _("Copy Image to Boot Partition"),
+    "image_optional"	 : _("Skip section gracefully on errors"),
     "type_other"         : _("Boot Other System"),
     "other_other"    	 : _("Boot Partition of Other System"),
 ];
