@@ -73,7 +73,7 @@ global map<string,string> ppc_descriptions = $[
     "image_append"   	 : _("Optional Kernel Command Line Parameter"),
     "image_initrd"   	 : _("Initial RAM Disk"),
     "image_copy"     	 : _("Copy Image to Boot Partition"),
-    "image_optional"	 : _("Skip section gracefully on errors"),
+    "image_optional"	 : _("Skip Section gracefully on Errors"),
     "type_other"         : _("Boot Other System"),
     "other_other"    	 : _("Boot Partition of Other System"),
 ];
