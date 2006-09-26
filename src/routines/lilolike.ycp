@@ -100,7 +100,6 @@ global boolean DisksChanged () {
  * try to find the system's mbr device
  * @return string   mbr device
  */
-// FIXME: eliminate that function
 global string FindMBRDisk() {
     // check the disks order, first has MBR
     list<string> order = DisksOrder ();
