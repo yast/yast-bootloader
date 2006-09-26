@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Sep 26 17:23:23 CEST 2006 - jplack@suse.de
+
+- new interface for FATE#300732
+
+-------------------------------------------------------------------
 Tue Sep 26 14:47:58 CEST 2006 - jplack@suse.de
 
 - implementation for FATE#120026: button to initialize bootloader
