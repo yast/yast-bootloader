@@ -745,7 +745,7 @@ Continue?")))
 	{
 	    items = add (items,
 		// menubutton item, keep as short as possible
-		`item (`id (`init), _("Write bootloader firmware code to disk")));
+		`item (`id (`init), _("Write bootloader boot code to disk")));
 	}
 
 	if (size (items) > 0)
