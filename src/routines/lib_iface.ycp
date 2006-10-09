@@ -217,9 +217,14 @@ global map<string,string> GetGlobal () {
  * @return a map of meta data for global and section entries
  */
 global map<string,string> GetMetaData () {
-    y2milestone ("Reading meata data for global and section settings");
+    y2milestone ("Reading meta data for global and section settings");
+    // FIXME: DiskInfo should be read directly by perl-Bootloader
+    // send current disk/partition information to perl-Bootloader
     SetDiskInfo();
+
+    y2milestone ("Calling getMetaData");
     map<string,string> meta = System::Bootloader_API::getMetaData ();
+    y2milestone ("Returned from getMetaData");
     if (meta == nil)
     {
 	y2error ("Reading meta data failed");

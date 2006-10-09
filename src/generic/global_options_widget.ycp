@@ -1,12 +1,12 @@
 /**
  * File:
- *      include/bootloader/ppc/ppc_global_options_widget.ycp
+ *      include/bootloader/generic/global_options_widget.ycp
  *
  * Module:
  *      Bootloader installation and configuration
  *
  * Summary:
- *      Widget for configuring global boot options for PowerPC
+ *      Widget for configuring global boot options
  *
  * Authors:
  *      Joachim Plack <jplack@suse.de>

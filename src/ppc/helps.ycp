@@ -80,3 +80,13 @@ global map<string,string> ppc_descriptions = $[
 
 
 } //EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */

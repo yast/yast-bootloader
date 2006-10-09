@@ -1,6 +1,6 @@
 /**
  * File:
- *      include/bootloader/ppc/ppc_sections_widget.ycp
+ *      include/bootloader/generic/sections_widget.ycp
  *
  * Module:
  *      Bootloader installation and configuration
