@@ -99,6 +99,9 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	    	new = `TextEntry(`id( key ), desc);
 	    }
 	}
+	// FIXME: implement new type : 'password'
+	// FIXME:        menu
+	// FIXME:     ordered list
 	else if (value == "path") {
 	    if ( type == "radio" || type == "check") {
 		new = `HBox (

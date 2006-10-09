@@ -1,12 +1,12 @@
 /**
  * File:
- *      include/bootloader/ppc/ppc_boot_loader_location_widget.ycp
+ *      include/bootloader/generic/boot_loader_location_widget.ycp
  *
  * Module:
  *      Bootloader installation and configuration
  *
  * Summary:
- *      Widgets for configuring the boot loader location for PowerPC
+ *      Widgets for configuring the boot loader location
  *
  * Authors:
  *      Joachim Plack <jplack@suse.de>
