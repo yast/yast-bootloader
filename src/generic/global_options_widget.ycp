@@ -81,7 +81,7 @@ symbol GOW_Handle (string key, map event) {
 boolean GOW_Validate (string widget, map event){
     y2milestone("Called from widget %1 through event %2", widget, event);
     // FIXME: here we need a callback to the architcture specific perl interface
-    return true;
+    return generic_Validate(widget, event, GOW_options(), _globals_store_data);
 }
 
 
