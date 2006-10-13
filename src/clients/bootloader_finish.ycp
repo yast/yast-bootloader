@@ -119,7 +119,7 @@ in the documentation.
     }
     else
     {
-	if (Linuxrc::usessh ())
+	if (Linuxrc::usessh () && !Linuxrc::vnc())
 	    // Final message after all packages from CD1 are installed
 	    // and we're ready to start (boot into) the installed system
 	    // Message that will be displayed along with information
