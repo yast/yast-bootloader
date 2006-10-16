@@ -180,6 +180,7 @@
 	else if (contains (["linux", "failsafe", "previous", "xen"], orig)
 	    && ! Mode::test ())
 	{
+	    /* for bootloaders that support long section names, like grub: */
 	    import "Product";
 	    string product = Product::name;
 	    string prod_filtered = filterchars (product, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.");
@@ -284,18 +285,23 @@
     }
 
 /**
- * Update graphical bootloader to contain help text of current language
+ * Update graphical bootloader to contain translations for section labels in
+ * the currently selected installation language (set in
+ * /etc/sysconfig/language, RC_LANG)
  * And make the selected installation language default
  * @param loader string bootloader type
  * @return boolean true on success
  */
 global define boolean UpdateGfxMenuContents (string loader) {
     y2milestone ("Updating GFX boot menu");
+    // if the boot menu does not exist, return without updating it
     if (SCR::Read (.target.size, "/boot/message") == -1)
 	return true;
     if (SCR::Read (.target.size, "/etc/sysconfig/bootsplash") == -1)
 	return true;
-    // select the current language
+
+    // get a list containing the system default language and the installed languages
+    // get the current language
     string main_lang = (string)SCR::Read (.sysconfig.language.RC_LANG);
     string langs = (string)
 	SCR::Read (.sysconfig.language.INSTALLED_LANGUAGES);
@@ -304,15 +310,25 @@ global define boolean UpdateGfxMenuContents (string loader) {
     list<string> languages = splitstring (langs, ",");
     languages = prepend (languages, main_lang);
     languages = filter (string l, languages, {return l != nil;});
+    // if no languages are installed and no main language is defined, we can do
+    // nothing: simply return
     if (size (languages) == 0)
 	return true;
-    // check if theme is set
+
+    // if no boot theme is defined, we cannot create the GfxMenu: just leave
     string boot_theme = (string)SCR::Read (.sysconfig.bootsplash.THEME);
     if (boot_theme == nil)
-    {
 	return true;
-    }
-    // get available languages
+
+
+    // in the list of the system default language and the installed languages
+    // find the subset that is supported by either a help text or a translation
+    // file (for the GUI messages) or both
+    // results:
+    // selected    -- list of supported languages (both long form (de_DE) and short form (de))
+    // lang_params -- string of supported languages (both long form (de_DE) and short form (de))
+
+    // get names of available languages
     string data_dir = sformat ("/etc/bootsplash/themes/%1/bootloader",
 	boot_theme);
     list<string> files = (list<string>)SCR::Read (.target.dir, data_dir);
@@ -326,6 +342,7 @@ global define boolean UpdateGfxMenuContents (string loader) {
     texts = maplist (string t, texts, ``(substring (t, 0, 2)));
     y2milestone ("Texts available for %1", sort (texts));
     y2milestone ("Helps available for %1", sort (helps));
+
     string tmpdir = (string)SCR::Read (.target.tmpdir);
     string lang_params = "";
 
@@ -336,7 +353,8 @@ global define boolean UpdateGfxMenuContents (string loader) {
 	y2milestone ("Selected language for booting menu: %1", lang);
 	l = splitstring (lang, "_");
 	string lang_short = l[0]:"";
-	// check if lang is supported
+	// check if lang is supported by a help text and/or a GUI message
+	// translation file
 	if (! (contains (helps, lang_short) || contains (texts, lang_short)))
 	{
 	    y2milestone ("Language %1 is not supported by gfxmenu", lang_short);
@@ -349,7 +367,10 @@ global define boolean UpdateGfxMenuContents (string loader) {
 	    selected = add (selected, lang_short);
 	}
     });
-    // update the boot message
+
+    // create translation map (in temp file) for the currently active language
+    // for gettext (AFAICT), i.e. whatever is found in LANG or LC_MESSAGES --
+    // this should be RC_LANG
     string trans_file = sformat ("%1/boot_translations", tmpdir);
     map<string,string> trans_map = getTranslationsToDiacritics (loader);
     list<string> trans_list = maplist (string k, string v, trans_map, {
@@ -360,6 +381,18 @@ global define boolean UpdateGfxMenuContents (string loader) {
     SCR::Write (.target.string, trans_file, trans_str);
     if (lang_params == "")
 	lang_params = "en_EN en";
+
+    // update the boot message (/boot/message cpio archive) with menu entry
+    // translation file (trans_file) and translation files for help texts and
+    // UI texts
+    //  - currently (2006/09) update_gfxmenu includes the hlp and tr files only
+    //    for the first language (e.g. "de_DE de") from lang_params, the others
+    //    are ignored
+    //  - tr and hlp files that match the long language name ("de_DE") are
+    //    preferred over files that contain only the short language name
+    //  - English ("en") is always included in the list of selectable
+    //    languages, and the English tr and hlp files are never removed from
+    //    the message archive
     string command = sformat (
 	"/usr/lib/YaST2/bin/update_gfxmenu %1 %2 %3 %4",
 	tmpdir, data_dir, trans_file, lang_params);
