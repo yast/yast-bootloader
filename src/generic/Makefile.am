@@ -7,6 +7,7 @@ yncludedir = @yncludedir@/bootloader/generic
 ynclude_DATA =			\
 	dialogs.ycp		\
 	global_options_widget.ycp	\
+	helps.ycp		\
 	boot_loader_locations_widget.ycp	\
 	section_type_widget.ycp	\
 	section_edit_widgets.ycp	\
