@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri 13 Oct 11:45:28 CEST 2006 - sf@suse.de
+
+- Bug #173486: do not display ssh message when installed with ssh 
+  and vnc
+
+-------------------------------------------------------------------
 Thu Oct 12 09:35:16 CEST 2006 - jplack@suse.de
 
 - implementation of generic password widget (FATE#300732)
