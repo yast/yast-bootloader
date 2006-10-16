@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct 17 00:35:45 CEST 2006 - od@suse.de
+
+- packaged missing grub/help.ycp and generic/help.ycp
+- added comments to UpdateGfxMenuContents()
+- 2.13.80
+
+-------------------------------------------------------------------
 Fri Oct 13 11:45:28 CEST 2006 - sf@suse.de
 
 - Bug #173486: do not display ssh message when installed with ssh 
