@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Oct 31 17:08:26 CET 2006 - od@suse.de
+
+- autoyast Relax-NG Compact schema file added (#215263)
+- 2.13.82
+
+-------------------------------------------------------------------
 Tue Oct 31 02:51:33 CET 2006 - od@suse.de
 
 - fixed exporting the device map to autoyast (#211908)
