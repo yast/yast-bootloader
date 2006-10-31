@@ -342,7 +342,7 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	}
 
 	// device map stuff
-	if (size (exp["specific", "device_map"]:[]) > 0)
+	if (size (exp["specific", "device_map"]:$[]) > 0)
 	{
 	    map<string,string> device_map = exp["specific", "device_map"]:$[];
 	    y2error ("DM: %1", device_map);
