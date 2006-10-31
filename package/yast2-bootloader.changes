@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct 31 02:51:33 CET 2006 - od@suse.de
+
+- fixed exporting the device map to autoyast (#211908)
+
+-------------------------------------------------------------------
 Tue Oct 17 00:35:45 CEST 2006 - od@suse.de
 
 - packaged missing grub/help.ycp and generic/help.ycp
