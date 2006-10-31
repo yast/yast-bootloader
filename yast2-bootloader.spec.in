@@ -63,6 +63,7 @@ Group:          System/YaST
 @agentdir@/ag_*
 @scrconfdir@/*.scr
 @fillupdir@/*
+@schemadir@/autoyast/rnc/bootloader.rnc
 
 %files -n yast2-bootfloppy
 %defattr(-,root,root)
