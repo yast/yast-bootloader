@@ -11,8 +11,19 @@ bootloader =
     loader_type? &
     bl_location? &
     repl_mbr? &
+    device_map? &
     sections?
   }
+device_map = element device_map {
+    LIST,
+    device_map_entry*
+}
+device_map_entry = element device_map_entry {
+    bl_firmware? &
+    bl_linux?
+}
+bl_firmware = element firmware { text }
+bl_linux    = element linux    { text }
 activate =
   element activate { BOOLEAN }
 repl_mbr =
@@ -31,10 +42,14 @@ bl_location = element location { text }
 bl_global =
   element global {
     lines_cache_id? &
+    bl_timeout? &
+    gfxmenu? &
     stage1_dev?
   }
 lines_cache_id = element lines_cache_id { text }
 stage1_dev = element stage1_dev { text }
+bl_timeout = element timeout { INTEGER }
+gfxmenu = element gfxmenu { text }
 
 sections =
   element sections {
