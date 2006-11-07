@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Nov  7 18:25:55 CET 2006 - od@suse.de
+
+- removed unused variable
+- changed and added some documentation in comments
+- fixed global options filtering for global options widget
+  (#213256)
+- 2.13.83
+
+-------------------------------------------------------------------
 Tue Oct 31 17:08:26 CET 2006 - od@suse.de
 
 - autoyast Relax-NG Compact schema file added (#215263)
