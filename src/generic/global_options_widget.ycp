@@ -33,7 +33,7 @@ map<string,any> GOW_options () {
     if ( _gow_options == nil)
     {
 	_gow_options = filter( string key, any value, global_options, {
-	    return key != "boot" && substring(key,0,5) != "boot_";
+	    return key != "boot" && key != "default" && substring(key,0,5) != "boot_";
 	});
     }
     return _gow_options;
