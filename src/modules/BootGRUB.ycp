@@ -11,6 +11,7 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Joachim Plack <jplack@suse.de>
  *
  * $Id$
  *
@@ -32,10 +33,6 @@ import "Pkg";
 
 // private variables
 
-/**
-  * was grub_conf changed by user manually?
-  */
-global boolean gc_changed = false;
 /**
   * Shall proposal merge menus?
   */
@@ -228,46 +225,41 @@ global define void CreateSections () ``{
 	SCR::Execute (.target.bash, sformat ("/bin/rmdir %1", tmpdir));
     }
 
-    if (others != nil)
-    {
-        if (size (others) > 0)
-	{
-	    foreach (string o, others, {
-	        list parts = splitstring (o, " ");
-		while (parts[0]:" " == "")
-		    parts = remove (parts, 0);
-		string dev = parts[0]:"";
-		    y2milestone ("Checking other partition %1", dev);
-		    if (! contains (others_ignore, dev))
-		    {
-			parts = remove (parts, 0);
-			string label = mergestring ((list<string>)parts, " ");
+    if (others != nil && (size (others) > 0)) {
+	foreach (string o, others, {
+	    list parts = splitstring (o, " ");
+	    while (parts[0]:" " == "")
+	      parts = remove (parts, 0);
+	    string dev = parts[0]:"";
+	    y2milestone ("Checking other partition %1", dev);
+	    if (! contains (others_ignore, dev)) {
+	        parts = remove (parts, 0);
+		string label = mergestring ((list<string>)parts, " ");
 
-			// don't add rewritten location (#19990)
-			if (dev != "" && label != ""
-			    && dev != BootCommon::loader_device
-			    && (
-				BootCommon::AddFirmwareToBootloader (
-					BootCommon::mbrDisk)
-				|| (label != "Vendor diagnostics"
-				    && label != "Vendor diagnostic")
-				)
-			    )
-			{
-			    map<string,any> m = $[
-				"name" : BootCommon::translateSectionTitle (label),
-				"type" : "chainloader",
-				"original_name" : label,
-				"chainloader" : dev,
-				"__changed" : false,
-				"__auto" : true,
-				"__devs" : [dev],
-			    ];
-			    out = add (out, m);
-			}
-		    }
-	    });
-	}
+		// don't add rewritten location (#19990)
+		if (dev != "" && label != ""
+		    && dev != BootCommon::loader_device
+		    && (
+			BootCommon::AddFirmwareToBootloader (
+							     BootCommon::mbrDisk)
+			|| (label != "Vendor diagnostics"
+			    && label != "Vendor diagnostic")
+			)
+		    )
+		{
+		    map<string,any> m = $[
+			"name" : BootCommon::translateSectionTitle (label),
+			"type" : "chainloader",
+			"original_name" : label,
+			"chainloader" : dev,
+			"__changed" : false,
+			"__auto" : true,
+			"__devs" : [dev],
+		    ];
+		    out = add (out, m);
+		}
+	    }
+	});
     }
     if (BootCommon::InstallingToFloppy ())
     {
