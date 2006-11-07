@@ -347,8 +347,20 @@ global void LocationProposal () {
 	change_widget_default_value("boot_pmac_custom", BootCommon::BootPartitionDevice);
     }
 
-    // These need to be set (FIXME: find out why) --
-    // see ConfigureLocation() in lilolike.ycp
+    // These need to be set, for POWERLILO probably only to interface with
+    // autoyast, others base subsequent decisions on this.
+    // See ConfigureLocation() in lilolike.ycp.
+    //
+    // Mini-discussion: If autoyast is mainly used to clone configs, the
+    // loader_device and repl_mbr interface is enough, because loader_device
+    // simply contains the name of the device (partition, disk MBR, RAID
+    // device) to use for the bootloader.
+    // But if autoyast some day is used to transport configurations to less
+    // similar machines and setups, or to specify some sort of generic setup
+    // with special settings that will work on most machines, it may (or may
+    // not) be helpful to be able to specify boot_* variables in the autoyast
+    // file. This may apply better to the boot_* variables in BootGRUB.ycp
+    // though.
     BootCommon::loader_device = BootCommon::BootPartitionDevice;
     BootCommon::activate = true;
     y2milestone("Boot partition is %1", BootCommon::loader_device);

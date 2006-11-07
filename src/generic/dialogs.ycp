@@ -24,6 +24,11 @@ import "CWM";
 
 include "bootloader/generic/widget_funcs.ycp";
 
+
+/**
+ * Stores key/value pair in the BootCommon::globals map, or deletes it if the
+ * value is empty or nil
+ */
 void _globals_store_data( string key, string value ) {
     if (value != nil && value != "")
 	BootCommon::globals[key] = value;
@@ -32,7 +37,7 @@ void _globals_store_data( string key, string value ) {
 	    BootCommon::globals, ``(key != k)
 	);
     }
-} 
+}
 
 
 include "bootloader/generic/global_options_widget.ycp";

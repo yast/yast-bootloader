@@ -299,9 +299,11 @@ void generic_Init (
 
 
 /**
- * Store function of a widget
+ * Generic store function of a generic widget
  * @param widget string widget key
  * @param event map event that caused the operation
+ * @param options map names of keys to store with storeData() from widgets with same name
+ * @param storeData function storage function that takes a key/value pair
  */
 void generic_Store(
 	string widget,
@@ -315,6 +317,7 @@ void generic_Store(
 
 	string newval = "";
 
+	// if widget for this key is disabled, delete the key in globals
 	if (UI::WidgetExists(`id(key + "_enabled")) &&
 	    (boolean)UI::QueryWidget(`id(key + "_enabled"), `Value) == false)
 	{
@@ -333,7 +336,7 @@ void generic_Store(
 	    if (password == "**********") {
 	        // do not do anything on unchanged value
 	        continue;
-	    } 
+	    }
 	    if (password == "") {
 	        newval = nil;
 	    }
@@ -347,6 +350,8 @@ void generic_Store(
 	    newval = sformat("%1", UI::QueryWidget (`id(key), `Value));
 	}
 
+	// if widget type of generic widget is known, simply store the value of
+	// the widget
 	if (contains(["bool", "int", "multi", "string", "path", "select",
 		      "selectdevice", "password"], (string)value))
 	{
