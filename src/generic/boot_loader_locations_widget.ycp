@@ -31,6 +31,10 @@ include "bootloader/generic/widget_funcs.ycp";
  */
 map<string,any> _bll_options = nil;
 
+/**
+ * return map of boot loader options from global_options, cache them if
+ * necessary
+ */
 map<string,any> BLL_options () {
     if ( _bll_options == nil)
     {

@@ -59,14 +59,28 @@ global string loader_device = nil;
 
 /**
  * Embed stage 1.5 of the bootloader to dedicated area (if supported)?
+ * This is currently only supported by GRUB. A stage 1.5 can be put into the
+ * area after the MBR (into the rest of the very first cylinder) or into the
+ * "boot loader area" of some filesystems such as FFS and ReiserFS. For more
+ * information, see the grub documentation, esp.
+ *	"info '(grub.info.gz)Bootstrap tricks'"
+ *	"info '(grub.info.gz)Images'"
  */
-// FIXME: what is this variable needed for, this is obviously grub only, kick ass
+// This needs to be defined here so that various files can include it.
+// BootCommon.ycp is currently the only central include file, separate include
+// files that are central and specific to each bootloader do not exist (yet?).
 global boolean embed_stage15 = true;
 
 
 
 // proposal helping variables
 
+/**
+ * The kind of bootloader location that the user selected last time he went to
+ * the dialog. Used to as a hint next time a proposal is requested, so the
+ * proposal can try to satisfy the user's previous preference.
+ * Currently, valid values are: mbr, boot, root, floppy, mbr_md, none
+ */
 global string selected_location = nil;
 
 

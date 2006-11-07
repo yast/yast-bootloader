@@ -514,6 +514,15 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    loader_devices = [ BootCommon::BootPartitionDevice ];
 	}
     }
+
+    // get the list of device names to install the boot loader stage 1 into:
+    //   - for non-md devices, use just the device name
+    //   - for installation to md arrays: get the list of device names from
+    //     name of md array, either
+    //	     - just the container-partitions (according to yast2-storage) or
+    //         ("/dev/md0" -> ["/dev/hda1", ...])
+    //       - the (cut off) name of the corresponding disk devices
+    //         ("/dev/md0" -> ["/dev/hda1", ...] -> ["/dev/hda", ...])
     list<list<string> > dev_lists = maplist (string d, loader_devices, {
 	if (substring (d, 0, 7) == "/dev/md")
 	{
@@ -531,6 +540,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    if (Mode::test ())
 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
 	    return maplist (string d, integer b, md, {
+		// get disk device name for this partition or disk device name
 		map p_dev = Storage::GetDiskPartition (d);
 		return p_dev["disk"]:"";
 	    });
@@ -598,7 +608,7 @@ global map<string,symbol()> Dialogs () {
    
     return $[
 	"loader"	: genericBootLoaderOptionsDialog,
-	// do we really need the latter?
+	// do we really need the following dialog?
 //	"installation"	: genericInstallDetailsDialog,
     ];
 }
