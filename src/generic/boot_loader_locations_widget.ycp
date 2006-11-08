@@ -38,7 +38,7 @@ map<string,any> _bll_options = nil;
 map<string,any> BLL_options () {
     if ( _bll_options == nil)
     {
-	_bll_options = filter( string key, any value, global_options, {
+	_bll_options = filter( string key, any value, BootCommon::global_options, {
 	    return substring(key,0,5) == "boot_";
 	});
 
@@ -94,7 +94,7 @@ boolean BLL_Validate (string widget, map event)
 map<string,any> genericBootLoaderLocationWidget () {
     map<string,any> options = BLL_options();
 
-    list<string> val = splitstring((string)global_options["boot"]:"", ":");
+    list<string> val = splitstring((string)BootCommon::global_options["boot"]:"", ":");
     string boottype = val[0]:"select";
 
     map<string, any> gt_map = $[];

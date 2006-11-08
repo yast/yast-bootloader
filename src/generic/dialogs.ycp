@@ -48,24 +48,24 @@ include "bootloader/generic/sections_widget.ycp";
 
 
 global void importMetaData() {
-    exports = BootCommon::GetMetaData ();
+    BootCommon::exports = BootCommon::GetMetaData ();
 
     // Extract type descriptions from exports
-    foreach(string key, any value, exports, {
+    foreach(string key, any value, BootCommon::exports, {
         if (substring (key, 0, 1) == "%") {
 	    list<string> s = splitstring(key,"%");
             string hash = s[1]:"";
 
             key = substring(key, 2 + size(hash));
             if (hash == "global_options") {
-                global_options[key] = value;
+                BootCommon::global_options[key] = value;
             }
             else if (hash == "section_options") {
-                section_options[key] = value;
+                BootCommon::section_options[key] = value;
             }
             else {
-                if ( !haskey(exports, hash) ) exports[hash] = $[];
-                exports[hash, key] = value;
+                if ( !haskey(BootCommon::exports, hash) ) BootCommon::exports[hash] = $[];
+                BootCommon::exports[hash, key] = value;
             }
         }
         else if (substring (key, 0, 1) == "#") {
@@ -73,12 +73,12 @@ global void importMetaData() {
             string array = s[1]:"";
 
             key = substring(key, 2 + size(array));
-            if ( ! haskey(exports, array) ) exports[array] = [];
-            exports[array, tointeger(key)] = value;
+            if ( ! haskey(BootCommon::exports, array) ) BootCommon::exports[array] = [];
+            BootCommon::exports[array, tointeger(key)] = value;
         }
     });
     // delete all encoded option tags from exports
-    exports = filter (string key, any value, exports, {
+    BootCommon::exports = filter (string key, any value, BootCommon::exports, {
         string s = substring (key, 0, 1);
         return (s != "%" && s != "#");
     });

@@ -196,6 +196,18 @@ global string FindMBRDisk() {
 	    selected_location = "mbr";             // default to mbr
 	    loader_device   = BootCommon::mbrDisk;
 	}
+
+	// pass down proposal to the variables of the new perl-Bootloader code
+	if ( loader_device == BootPartitionDevice ) {
+	    global_options["boot_boot"] = true;
+	} else if ( loader_device == RootPartitionDevice ) {
+	    global_options["boot_root"] = true;
+	} else if ( loader_device == BootCommon::mbrDisk ) {
+	    global_options["boot_mbr"] = true;
+	} else {
+	    global_options["boot_custom"] = [ loader_device ];
+	}
+
         y2milestone ("ConfigureLocation (%1 on %2)",
 	    selected_location, loader_device);
 	// set active flag
@@ -211,6 +223,9 @@ global string FindMBRDisk() {
 	    // if not installing to MBR, always activate
 	    activate = true;
 	}
+
+	global_options["activate"] = activate;
+
         return selected_location;
     }
 

@@ -37,6 +37,21 @@ import "Pkg";
 // General bootloader settings
 
 /**
+ * map of global options and types for new perl-Bootloader interface
+ */
+global map<string,any> global_options = $[];
+
+/**
+ * map of section options and types for new perl-Bootloader interface
+ */
+global map<string,any> section_options = $[];
+
+/**
+ * map of other exported information for new perl-Bootloader interface
+ */
+global map<string,any> exports = $[];
+
+/**
  * map of global options and values
  */
 global map<string,string> globals = $[];
