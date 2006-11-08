@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Nov  8 18:16:57 CET 2006 - od@suse.de
+
+- changed some comments
+- move global_options, section_options and exports (new
+  perl-Bootloader interface) to BootCommon.ycp
+- pass proposal for grub to new perl-Bootloader interface (#213256)
+- 2.13.84
+
+-------------------------------------------------------------------
 Tue Nov  7 18:25:55 CET 2006 - od@suse.de
 
 - removed unused variable
