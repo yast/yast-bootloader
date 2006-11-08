@@ -192,20 +192,6 @@ map<string,any> CreateImageSection (string title) {
     return ret;
 }
 
-void     change_widget_default_value (string itemname, string defaultvalue) {
-    // Put defaultvalue as default value into widget description item like
-    // "boot_{chrp,prep,iseries,...}_custom".
-    // Example:
-    // "select:PReP or FAT partition::/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1" ->
-    // "select:PReP or FAT partition:/dev/sda3:/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1"
-    string old_description = BootCommon::global_options[itemname]:"";
-    BootCommon::global_options[itemname] =
-	regexpsub( old_description, "^([^:]*:[^:]*:).*$", "\\1") +
-	defaultvalue +
-	regexpsub( old_description, "^[^:]*:[^:]*:[^:]*(:.*)$", "\\1");
-}
-
-
 /**
   * Choose a boot partition on pmac
   * type == Apple_HFS|Apple_Bootstrap && size < 20 cyl
@@ -316,19 +302,19 @@ global void LocationProposal () {
 */
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	// also set as default value in widget
-	change_widget_default_value("boot_chrp_custom", prep_boot_partition);
+	BootCommon::change_widget_default_value("boot_chrp_custom", prep_boot_partition);
     }
     else if ( arch == "prep" ) {
 	BootCommon::BootPartitionDevice = prep_boot_partition;
-	change_widget_default_value("boot_prep_custom", prep_boot_partition);
+	BootCommon::change_widget_default_value("boot_prep_custom", prep_boot_partition);
     }
     else if ( arch == "iseries" ) {
 	BootCommon::BootPartitionDevice = prep_boot_partition;
-	change_widget_default_value("boot_iseries_custom", prep_boot_partition);
+	BootCommon::change_widget_default_value("boot_iseries_custom", prep_boot_partition);
     }
     else if ( arch == "pmac" ) {
 	BootCommon::BootPartitionDevice = GoodPmacBootPartition();
-	change_widget_default_value("boot_pmac_custom", BootCommon::BootPartitionDevice);
+	BootCommon::change_widget_default_value("boot_pmac_custom", BootCommon::BootPartitionDevice);
     }
 
     // These need to be set, for POWERLILO probably only to interface with
