@@ -310,6 +310,29 @@ global define list<string> getBootloaders ();
 global define list<string> Summary ();
 global define boolean UsingXenPae();
 
+
+//
+// FIXME: the select and selectdevice seem to be broken: the default value of
+// the widget description string needs to be patched with the current value of
+// the widget
+//
+global void change_widget_default_value (string itemname, string defaultvalue) {
+    // Put defaultvalue as default value into widget description item like
+    // "boot_{chrp,prep,iseries,...}_custom" or "boot_custom".
+    // Examples:
+    // "select:PReP or FAT partition::/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1" ->
+    // "select:PReP or FAT partition:/dev/sda3:/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1"
+    //
+    // "selectdevice:Custom Boot Partition::/dev/sda3" ->
+    // "selectdevice:Custom Boot Partition:/dev/sda3:/dev/sda3"
+    string old_description = global_options[itemname]:"";
+    global_options[itemname] =
+	regexpsub( old_description, "^([^:]*:[^:]*:).*$", "\\1") +
+	defaultvalue +
+	regexpsub( old_description, "^[^:]*:[^:]*:[^:]*(:.*)$", "\\1");
+}
+
+
 /*
  * help message and dscription definitions
  */
