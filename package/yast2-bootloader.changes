@@ -7,7 +7,7 @@ Wed Nov  8 20:49:52 CET 2006 - od@suse.de
 - logging variables filled by grub proposal
 - using correct variable (globals) for new perl-Bootloader
   interface (#213256)
-- 2.14.1
+- 2.13.85
 
 -------------------------------------------------------------------
 Wed Nov  8 18:16:57 CET 2006 - od@suse.de
