@@ -47,7 +47,7 @@ booting other operating systems.</p>"),
 
 
 global map<string,string> ppc_descriptions = $[
-    "boot" 	 	 : ( exports["$arch"]:"" == "iseries" )
+    "boot" 	 	 : ( BootCommon::exports["$arch"]:"" == "iseries" )
                            ? _("iSeries Boot Image Location")
                            : _("PPC Boot Loader Location"),
     "activate" 	 	 : _("Change Boot Device in NV-RAM"),

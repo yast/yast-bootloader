@@ -143,7 +143,7 @@ global void i386LocationProposal () {
     {
 	DetectDisks ();
 	del_parts = getPartitionList (`deleted);
-	// check whether edd is loaded
+	// check whether edd is loaded; if not: load it
 	string lsmod_command = "lsmod | grep edd";
 	y2milestone ("Running command %1", lsmod_command);
 	map lsmod_out = (map)SCR::Execute (.target.bash_output, lsmod_command);
