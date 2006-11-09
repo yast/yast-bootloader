@@ -201,13 +201,13 @@ global string FindMBRDisk() {
 	    selected_location, loader_device);
 
 	// pass down proposal to the variables of the new perl-Bootloader code
+	// first, default to all off:
 	globals["boot_boot"] = sformat("%1", false);
 	globals["boot_root"] = sformat("%1", false);
 	globals["boot_mbr"] =  sformat("%1", false);
-	globals = filter(string k, string v,
-	    globals, ``("boot_custom" != k)
-	);
-	change_widget_default_value("boot_custom", "");
+	// need to remove the boot_custom key to switch this value off
+	globals = remove (globals, "boot_custom");
+	change_widget_default_value("boot_custom", "");	// FIXME: kludge, maybe obsolete
 
 	if ( loader_device == BootPartitionDevice ) {
 	    globals["boot_boot"] = sformat("%1", true);
@@ -217,7 +217,7 @@ global string FindMBRDisk() {
 	    globals["boot_mbr"] =  sformat("%1", true);
 	} else {
 	    globals["boot_custom"] = loader_device;
-	    change_widget_default_value("boot_custom", loader_device);
+	    change_widget_default_value("boot_custom", loader_device);	// FIXME: kludge, maybe obsolete
 	}
 
         y2milestone ("ConfigureLocation boot_boot=%1 boot_root=%2 boot_mbr=%3 boot_custom=%4)",
