@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Nov  9 21:54:15 CET 2006 - od@suse.de
+
+- added a few comments to the new code
+- fix trashing globals in grub et al.: use remove() to remove
+  values from a map (#219409)
+- 2.13.86
+
+-------------------------------------------------------------------
 Wed Nov  8 20:49:52 CET 2006 - od@suse.de
 
 - moved change_widget_default_value() to BootCommon.ycp
