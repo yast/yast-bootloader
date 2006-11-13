@@ -1196,6 +1196,12 @@ global list<string> ListKernelParamsInLine (string line) {
       * @return boolean true on success
       */
     global define boolean updateMBR () ``{
+      	// FIXME: do the real thing in perl_Bootloader
+      	if (getLoaderType (false) == "grub") {  
+      	    activate = ( globals["activate"]:"false" == "true" );
+      	    repl_mbr = ( globals["generic_mbr"]:"false" == "true" );
+      	}
+
 	y2milestone ("Updating disk system area, activate partition: %1, replace MBR: %2", activate, repl_mbr);
 	if (backup_mbr)
 	{
