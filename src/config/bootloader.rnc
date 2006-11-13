@@ -44,12 +44,16 @@ bl_global =
     lines_cache_id? &
     bl_timeout? &
     gfxmenu? &
+    bl_activate? &
+    boot_root? &
     stage1_dev?
   }
 lines_cache_id = element lines_cache_id { text }
 stage1_dev = element stage1_dev { text }
 bl_timeout = element timeout { INTEGER }
 gfxmenu = element gfxmenu { text }
+bl_activate = element activate { "true" | "false" }
+boot_root = element boot_root { "true" | "false" }
 
 sections =
   element sections {
