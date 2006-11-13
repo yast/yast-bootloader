@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov 13 12:58:18 CET 2006 - jplack@suse.de
+
+- generic MBR not written/activate flag not set due to incomplete
+  impl. of FATE#300732
+
+-------------------------------------------------------------------
 Mon Nov 13 12:36:50 CET 2006 - ug@suse.de
 
 - schema file for autyast fixed
