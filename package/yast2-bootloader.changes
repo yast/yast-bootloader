@@ -1,4 +1,21 @@
 -------------------------------------------------------------------
+Mon Nov 13 16:40:04 CET 2006 - od@suse.de
+
+- add more variables for the new perl-Bootloader interface to the
+  autoyast DTD for yast2-bootloader: currently, the user needs to
+  specify them if he wants to specify any global variable (which
+  probably is the right interface for him)
+- reverted BootGRUB to use FixGlobals(), this functionality is not
+  a bug
+- added comments to FixGlobals() and the call from BootGRUB to it
+- move setting of boot_* and activate keys in globals for new
+  perl-Bootloader interface from BootCommon::i386LocationProposal()
+  in lilolike to the end of BootGRUB::Propose(), so that the need
+  to set defaults for the other values in globals is detected and
+  these are proposed as well (#219409)
+- 2.14.1
+
+-------------------------------------------------------------------
 Mon Nov 13 13:19:01 CET 2006 - jplack@suse.de
 
 - remove in ycp has bogus semantics (#220365)
