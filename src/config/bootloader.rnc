@@ -52,6 +52,8 @@ lines_cache_id = element lines_cache_id { text }
 stage1_dev = element stage1_dev { text }
 bl_timeout = element timeout { INTEGER }
 gfxmenu = element gfxmenu { text }
+
+# really "true"|"false", without config:type=boolean
 bl_activate = element activate { "true" | "false" }
 boot_root = element boot_root { "true" | "false" }
 
