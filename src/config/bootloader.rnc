@@ -46,6 +46,8 @@ bl_global =
     gfxmenu? &
     bl_activate? &
     boot_root? &
+    boot_boot? &
+    boot_mbr? &
     stage1_dev?
   }
 lines_cache_id = element lines_cache_id { text }
@@ -56,6 +58,8 @@ gfxmenu = element gfxmenu { text }
 # really "true"|"false", without config:type=boolean
 bl_activate = element activate { "true" | "false" }
 boot_root = element boot_root { "true" | "false" }
+boot_boot = element boot_boot { "true" | "false" }
+boot_mbr = element boot_mbr { "true" | "false" }
 
 sections =
   element sections {
