@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Nov 13 12:36:50 CET 2006 - ug@suse.de
+
+- schema file for autyast fixed
+
+-------------------------------------------------------------------
 Mon Nov 13 11:15:20 CET 2006 - jplack@suse.de
 
 - fix missing proposal of global values during installation
