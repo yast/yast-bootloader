@@ -200,32 +200,6 @@ global string FindMBRDisk() {
         y2milestone ("ConfigureLocation (%1 on %2)",
 	    selected_location, loader_device);
 
-	// pass down proposal to the variables of the new perl-Bootloader code
-	// first, default to all off:
-	globals["boot_boot"] = sformat("%1", false);
-	globals["boot_root"] = sformat("%1", false);
-	globals["boot_mbr"] =  sformat("%1", false);
-	// need to remove the boot_custom key to switch this value off
-	if (haskey (globals, "boot_custom"))
-	    globals = remove (globals, "boot_custom");
-	}
-	change_widget_default_value("boot_custom", "");	// FIXME: kludge, maybe obsolete
-
-	if ( loader_device == BootPartitionDevice ) {
-	    globals["boot_boot"] = sformat("%1", true);
-	} else if ( loader_device == RootPartitionDevice ) {
-	    globals["boot_root"] = sformat("%1", true);
-	} else if ( loader_device == BootCommon::mbrDisk ) {
-	    globals["boot_mbr"] = sformat("%1", true);
-	} else {
-	    globals["boot_custom"] = loader_device;
-	    change_widget_default_value("boot_custom", loader_device);	// FIXME: kludge, maybe obsolete
-	}
-
-        y2milestone ("ConfigureLocation boot_boot=%1 boot_root=%2 boot_mbr=%3 boot_custom=%4)",
-	    globals["boot_boot"]:"", globals["boot_root"]:"",
-	    globals["boot_mbr"]:"", globals["boot_custom"]:"");
-
 	// set active flag
 	if (selected_location == "mbr")
 	{
@@ -239,9 +213,6 @@ global string FindMBRDisk() {
 	    // if not installing to MBR, always activate
 	    activate = true;
 	}
-
-	globals["activate"] = sformat("%1", activate);
-        y2milestone ("ConfigureLocation activate=%1", activate);
 
         return selected_location;
     }
@@ -500,6 +471,9 @@ global boolean LbaSupport() {
 
 /**
  * Fix global section of lilo-like bootloader
+ * This currently only changes the "default" key to point to the first section,
+ * in case the referenced section does not exist anymore. An empty "default"
+ * value is not changed.
  */
 global void FixGlobals () {
     string defaultv = globals["default"]:"";
