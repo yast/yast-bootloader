@@ -293,15 +293,13 @@ global define void CreateSections () ``{
 
 /**
  * Propose global options of bootloader
- * modifies internal structures
  */
-global void CreateGlobals () {
-    y2debug ("Creating GRUB globals from scratch");
-    BootCommon::globals = $[
+global map<string,string> StandardGlobals () {
+    return $[
+	"activate": "true",
 	"default" : BootCommon::sections[0, "name"]:"",
 	"timeout" : "8",
 	"gfxmenu" : "/boot/message",
-	"prompt"  : "1",
     ];
 }
 
@@ -452,7 +450,7 @@ global boolean Read (boolean reread) {
 	}
 	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
 	{
-	    CreateGlobals ();
+	    BootCommon::globals = StandardGlobals();
 	}
 	else
 	{
@@ -461,8 +459,13 @@ global boolean Read (boolean reread) {
                 // TODO whatever will be needed
 		y2debug ("nothing to to in AI mode if globals are defined");
             }
-            else
-		BootCommon::FixGlobals ();
+            else {
+		// Merge default globals where not yet set
+	        BootCommon::globals = (map<string, string>) union(
+		    StandardGlobals(),
+		    BootCommon::globals
+		);
+	    }
 	}
 
         if (! BootCommon::was_proposed)
