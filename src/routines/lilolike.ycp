@@ -206,7 +206,9 @@ global string FindMBRDisk() {
 	globals["boot_root"] = sformat("%1", false);
 	globals["boot_mbr"] =  sformat("%1", false);
 	// need to remove the boot_custom key to switch this value off
-	globals = remove (globals, "boot_custom");
+	if (haskey (globals, "boot_custom"))
+	    globals = remove (globals, "boot_custom");
+	}
 	change_widget_default_value("boot_custom", "");	// FIXME: kludge, maybe obsolete
 
 	if ( loader_device == BootPartitionDevice ) {
@@ -214,7 +216,7 @@ global string FindMBRDisk() {
 	} else if ( loader_device == RootPartitionDevice ) {
 	    globals["boot_root"] = sformat("%1", true);
 	} else if ( loader_device == BootCommon::mbrDisk ) {
-	    globals["boot_mbr"] =  sformat("%1", true);
+	    globals["boot_mbr"] = sformat("%1", true);
 	} else {
 	    globals["boot_custom"] = loader_device;
 	    change_widget_default_value("boot_custom", loader_device);	// FIXME: kludge, maybe obsolete
