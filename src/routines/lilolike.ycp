@@ -16,13 +16,13 @@
  */
 {
 
-    textdomain "bootloader";
+textdomain "bootloader";
 
-    import "Arch";
-    import "Mode";
-    import "Storage";
-    import "StorageDevices";
-    import "BootArch";
+import "Arch";
+import "Mode";
+import "Storage";
+import "StorageDevices";
+import "BootArch";
 
 global string DiskOrderSummary ();
 global list<string> DisksOrder ();
@@ -1130,3 +1130,13 @@ global string DiskOrderSummary () {
 
 
 } // EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */
