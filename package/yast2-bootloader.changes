@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 15 16:21:37 CET 2006 - jplack@suse.de
+
+- fixed Summary generation for Grub (#220285), did still consider
+  old-style variable loader-device
+
+-------------------------------------------------------------------
 Wed Nov 15 11:19:04 CET 2006 - jplack@suse.de
 
 - widget for type selectdevice did not get initialized (#221180)
