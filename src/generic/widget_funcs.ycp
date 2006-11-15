@@ -250,7 +250,8 @@ void generic_Init (
 	string key_e = key + "_enabled";
 	boolean enabled_exists = UI::WidgetExists(`id(key_e));
 
-	if ((value == "select") || (value == "multi")) {
+	if (contains(["multi", "select", "selectdevice"],
+		     (string)value)) {
 	    val[0] = nil; val[1] = nil; val[2] = nil;
 	    val = filter(string v, val, ``(v!=nil) );
 	    // add current value to list if needed
@@ -277,7 +278,8 @@ void generic_Init (
 	    UI::ChangeWidget (`id (key), `Value,
 		data[key]:"" == "true" ? true : false);
 	}
-	else if (contains(["string", "path", "select"], (string)value)) {
+	else if (contains(["string", "path", "select", "selectdevice"],
+			  (string)value)) {
 	    UI::ChangeWidget (`id (key), `Value, data[key]:"");
 	}
 	else if (value == "password") {

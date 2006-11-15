@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov 15 11:19:04 CET 2006 - jplack@suse.de
+
+- widget for type selectdevice did not get initialized (#221180)
+
+-------------------------------------------------------------------
 Mon Nov 13 16:40:04 CET 2006 - od@suse.de
 
 - add more variables for the new perl-Bootloader interface to the
