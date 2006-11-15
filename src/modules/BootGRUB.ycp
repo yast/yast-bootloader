@@ -30,6 +30,7 @@ import "Stage";
 import "Storage";
 import "StorageDevices";
 import "Pkg";
+import "HTML";
 
 // private variables
 
@@ -443,7 +444,7 @@ global boolean Read (boolean reread) {
 	    if (Mode::autoinst ())
 	    {
 		// TODO whatever will be needed
-		y2debug ("nothing to to in AI mode if sections exist");
+		y2debug ("nothing to do in AI mode if sections exist");
 	    }
 	    else
 		BootCommon::FixSections (BootGRUB::CreateSections);
@@ -471,10 +472,10 @@ global boolean Read (boolean reread) {
 	    BootCommon::FixGlobals ();
 	}
 
-        if (! BootCommon::was_proposed)
-	{
-	    BootCommon::globals["embed_stage1.5"] = allowEmbed15 () ? "1" : "0";
-	}
+//         if (! BootCommon::was_proposed)
+// 	{
+// 	    BootCommon::globals["embed_stage1.5"] = allowEmbed15 () ? "1" : "0";
+// 	}
 
 	// FIXME: The setting of the boot_* and activate variables for the new
 	// perl-Bootloader interface should probably be put in a function of
@@ -519,20 +520,20 @@ global boolean Read (boolean reread) {
  */
 global boolean Save (boolean clean, boolean init, boolean flush) {
     // update list of devices
-    list<string> loader_devices = [BootCommon::loader_device];
-    if (backup_to_bootsector && contains (BootCommon::getPartitionList(`boot),
-	BootCommon::BootPartitionDevice))
-    {
-	if (loader_devices[0]:"" != nil && loader_devices[0]:"" != "/dev/null"
-	    && loader_devices[0]:"" != "")
-	{
-	    loader_devices[1] = BootCommon::BootPartitionDevice;
-	}
-	else
-	{
-	    loader_devices = [ BootCommon::BootPartitionDevice ];
-	}
-    }
+//     list<string> loader_devices = [BootCommon::loader_device];
+//     if (backup_to_bootsector && contains (BootCommon::getPartitionList(`boot),
+// 	BootCommon::BootPartitionDevice))
+//     {
+// 	if (loader_devices[0]:"" != nil && loader_devices[0]:"" != "/dev/null"
+// 	    && loader_devices[0]:"" != "")
+// 	{
+// 	    loader_devices[1] = BootCommon::BootPartitionDevice;
+// 	}
+// 	else
+// 	{
+// 	    loader_devices = [ BootCommon::BootPartitionDevice ];
+// 	}
+//     }
 
     // get the list of device names to install the boot loader stage 1 into:
     //   - for non-md devices, use just the device name
@@ -542,35 +543,94 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     //         ("/dev/md0" -> ["/dev/hda1", ...])
     //       - the (cut off) name of the corresponding disk devices
     //         ("/dev/md0" -> ["/dev/hda1", ...] -> ["/dev/hda", ...])
-    list<list<string> > dev_lists = maplist (string d, loader_devices, {
-	if (substring (d, 0, 7) == "/dev/md")
-	{
-	    map<string,integer> md = BootCommon::Md2Partitions (d);
-	    if (Mode::test ())
-		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
-	    return maplist (string d, integer b, md, {
-		return d;
-	    });
-	}
-	if (d == "mbr_md")
-	{
-	    map<string,integer> md = BootCommon::Md2Partitions
-		(BootCommon::BootPartitionDevice);
-	    if (Mode::test ())
-		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
-	    return maplist (string d, integer b, md, {
-		// get disk device name for this partition or disk device name
-		map p_dev = Storage::GetDiskPartition (d);
-		return p_dev["disk"]:"";
-	    });
-	}
-	return [d];
-    });
-    loader_devices = flatten (dev_lists);
-    BootCommon::globals["stage1_dev"] = mergestring (loader_devices, ",");
+//     list<list<string> > dev_lists = maplist (string d, loader_devices, {
+// 	if (substring (d, 0, 7) == "/dev/md")
+// 	{
+// 	    map<string,integer> md = BootCommon::Md2Partitions (d);
+// 	    if (Mode::test ())
+// 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+// 	    return maplist (string d, integer b, md, {
+// 		return d;
+// 	    });
+// 	}
+// 	if (d == "mbr_md")
+// 	{
+// 	    map<string,integer> md = BootCommon::Md2Partitions
+// 		(BootCommon::BootPartitionDevice);
+// 	    if (Mode::test ())
+// 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+// 	    return maplist (string d, integer b, md, {
+// 		// get disk device name for this partition or disk device name
+// 		map p_dev = Storage::GetDiskPartition (d);
+// 		return p_dev["disk"]:"";
+// 	    });
+// 	}
+// 	return [d];
+//     });
+//     loader_devices = flatten (dev_lists);
+//     BootCommon::globals["stage1_dev"] = mergestring (loader_devices, ",");
 
     // now really save the settings
     boolean ret = BootCommon::Save (clean, init, flush);
+    return ret;
+	}
+
+
+/**
+ * Display bootloader summary
+ * @return a list of summary lines
+ */
+global define list<string> Summary () {
+    list<string> ret = [];
+    string lt = BootCommon::getLoaderType (false);
+    string ln = BootCommon::getLoaderName (lt, `summary);
+
+    if (lt == "none") {
+        ret = [ HTML::Colorize (ln, "red") ];
+	}
+
+    // summary text, %1 is bootloader name (eg. LILO)
+    ret = add (ret, sformat (_("Boot Loader Type: %1"), ln));
+
+    // summary text, location is location description (eg. /dev/hda)
+    list<string> locations = [];
+
+    if (BootCommon::globals["boot_boot"]:"" == "true")
+        locations = add(locations, BootCommon::BootPartitionDevice);
+    if (BootCommon::globals["boot_root"]:"" == "true")
+        locations = add(locations, BootCommon::RootPartitionDevice);
+    if (BootCommon::globals["boot_mbr"]:"" == "true")
+        locations = add(locations, BootCommon::mbrDisk);
+    if (haskey (BootCommon::globals, "boot_custom"))
+        locations = add(locations, BootCommon::globals["boot_custom"]:"");
+
+    if (size(locations) > 0) {
+        // FIXME: should we translate all devices to names and add MBR suffixes?
+        ret = add (ret, sformat (_("Location: %1"),
+				 mergestring (locations, ", "))
+		   );
+    }
+
+    // summary text. %1 is list of bootloader sections
+    list<string> sects = [];
+    foreach (map<string,any> s, BootCommon::sections, {
+        string title = s["name"]:"";
+	// section name "suffix" for default section
+	string def = title == BootCommon::globals["default"]:"" ? _(" (default)") : "";
+	sects = add (sects, sformat ("%1%2", title, def));
+    });
+
+    ret = add (ret, sformat (_("Sections: %1"),
+	       String::EscapeTags (mergestring (sects, ", "))));
+
+    if (size(locations) == 0) {
+        // summary text
+        ret = add (ret, _("Do not install boot loader; just create configuration files"));
+    }
+
+    string order_sum = BootCommon::DiskOrderSummary ();
+    if (order_sum != nil)
+	ret = add (ret, order_sum);
     return ret;
 }
 
@@ -578,12 +638,12 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     /**
       * Update read settings to new version of configuration files
       */
-    global define void Update () ``{
+global define void Update () {
 	BootCommon::UpdateDeviceMap ();
 	BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
 	BootCommon::UpdateGlobals ();
-	BootCommon::loader_device
-	    = BootCommon::UpdateDevice (BootCommon::loader_device);
+    // BootCommon::loader_device
+    //  = BootCommon::UpdateDevice (BootCommon::loader_device);
     }
     /**
       * Write bootloader settings to disk
@@ -647,7 +707,7 @@ global map<string,symbol()> Dialogs () {
             "reset"		: Reset,
             "propose"		: Propose,
             "save"		: Save,
-	    "summary"		: BootCommon::i386Summary,
+	    "summary"		: Summary,
             "update"		: Update,
             "write"		: Write,
 	    "widgets"		: genericWidgets,
