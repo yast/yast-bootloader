@@ -154,10 +154,7 @@ global boolean SetSections (list<map<string,string> > sections) {
 	s = filter (string key, string value, s, {
 	    return (! is (value, string)) || (value != "");
 	});
-	// FIXME: this distinction should be done in perl-Bootloader,
-	// this is not generic
-	if (s["type"]:"" == "xen")
-	    s["type"] = "image";
+
 	return s;
     });
     boolean ret = System::Bootloader_API::setSections (sections);

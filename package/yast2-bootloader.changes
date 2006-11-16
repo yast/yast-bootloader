@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Nov 16 13:32:48 CET 2006 - jplack@suse.de
+
+- section type of 'xen' is now handled (FATE#300732)
+
+-------------------------------------------------------------------
 Wed Nov 15 16:21:37 CET 2006 - jplack@suse.de
 
 - fixed Summary generation for Grub (#220285), did still consider
