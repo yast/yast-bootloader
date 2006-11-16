@@ -68,7 +68,7 @@ include "bootloader/generic/dialogs.ycp";
 
 /**
   * Propose sections to bootloader menu
-  * modifies internal sreuctures
+  * modifies internal structures
   */
 global define void CreateSections () ``{
     y2debug ("Creating GRUB sections from scratch");
