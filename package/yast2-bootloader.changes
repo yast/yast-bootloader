@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Fri Nov 17 13:17:50 CET 2006 - od@suse.de
+
+- added comments
+- fix finding the correct names for kernel image and initrd (not
+  yet fixed for powerlilo) (#214935)
+- first part of fix for resetting user changes when going to expert
+  settings
+- 2.14.3
+
+-------------------------------------------------------------------
 Thu Nov 16 13:32:48 CET 2006 - jplack@suse.de
 
 - section type of 'xen' is now handled (FATE#300732)
