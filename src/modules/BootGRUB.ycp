@@ -432,7 +432,65 @@ global boolean Read (boolean reread) {
     global define void Propose () ``{
 	y2debug ("Started propose: Glob: %1, Sec: %2",
 	    BootCommon::globals, BootCommon::sections);
+
+	string old_loader_device = BootCommon::loader_device;
+	// if NOT was_proposed (i.e. blPropose() has not been called yet), then
+	// - set up BootPartitionDevice, RootPartitionDevice
+	// - if empty, set up mbrDisk
+	// - if loader_device is empty or the device is not a boot device, go
+	//   to ConfigureLocation() and
+	//	- propose
+	//	    - loader_device
+	//	    - selected_location (according to loader_device)
+	//	    - activate (when needed, but try to be nice to Windows)
+	//	- do not touch these, except when /boot partition is selected_location:
+	//	    - activate_changed (set to true)
+	//	    - repl_mbr (set to true when we need to update existing GRUB, lilo MBRs,
+	//			or when it looks like there is no code in the MBR at all,
+	//			but NOT if this is a "Generic" (DOS) MBR, some unknown code
+	//			or a Thinkpad MBR)
+	//
+	// always propose:
+	//  - device_mapping (from "bios_id"s delivered by Storage, then let
+	//                    devices with unknown "bios_id"s drop into the
+	//                    gaps of this mapping or append at the end)
+	//
+	// if '/' and '/boot' were changed and selected_location is set and not
+	// "custom", ask user with popup whether it is OK to change the
+	// location and change it (with DetectDisks() and ConfigureLocation()
+	// (see above))
 	BootCommon::i386LocationProposal ();
+
+	// The Propose() function is called every time before Summary() is
+	// called. We have to take the current state of the boot_* and activate
+	// keys from the globals variable (where the new generic widgets put
+	// the current settings and/or a previous proposal left them there, see
+	// below) and put this information in the loader_device and activate
+	// variables for the internal routines to use.
+	// FIXME: This should probably be put in a function of its own. ATM,
+	// this code looks still too specific to put it in a function, though.
+	// But I may be wrong here.
+
+	if ( old_loader_device == BootCommon::loader_device ) {
+	    // if we did not re-propose, use user-supplied settings (if any)
+	    if ( haskey(BootCommon::globals, "boot_boot") && BootCommon::globals["boot_boot"]:"false" == "true" ) {
+		BootCommon::loader_device = BootCommon::BootPartitionDevice;
+	    } else if ( haskey(BootCommon::globals, "boot_root") && BootCommon::globals["boot_root"]:"false" == "true" ) {
+		BootCommon::loader_device = BootCommon::RootPartitionDevice;
+	    } else if ( haskey(BootCommon::globals, "boot_mbr") && BootCommon::globals["boot_mbr"]:"false" == "true" ) {
+		BootCommon::loader_device = BootCommon::mbrDisk;
+	    } else if ( haskey(BootCommon::globals, "boot_custom") ) {
+		BootCommon::loader_device = BootCommon::globals["boot_custom"]:"";
+	    }
+
+	    if ( haskey(BootCommon::globals, "activate") ) {
+		if ( BootCommon::globals["activate"]:"false" == "true" ) {
+		    BootCommon::activate = true;
+		} else {
+		    BootCommon::activate = false;
+		}
+	    }
+	}
 
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
@@ -477,10 +535,10 @@ global boolean Read (boolean reread) {
 // 	    BootCommon::globals["embed_stage1.5"] = allowEmbed15 () ? "1" : "0";
 // 	}
 
-	// FIXME: The setting of the boot_* and activate variables for the new
-	// perl-Bootloader interface should probably be put in a function of
-	// its own. ATM, this code looks still too specific to put it in a
-	// function, though. But I may be wrong here.
+	// FIXME: The setting of the boot_* and activate keys in globals for
+	// the new perl-Bootloader interface should probably be put in a
+	// function of its own. ATM, this code looks still too specific to put
+	// it in a function, though. But I may be wrong here.
 	// Pass down proposal to the variables of the new perl-Bootloader code
 	// first, default to all off:
 	BootCommon::globals["boot_boot"] = sformat("%1", false);
