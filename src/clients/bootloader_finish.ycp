@@ -139,6 +139,11 @@ After reboot, reconnect and run the following:
     // Install bootloader (always, see #23018)
     // should also set Misc::boot_msg appropriate
 
+    // FIXME: this is the plan B solution, try to solve plan A in
+    //        BootCommon.ycp:CreateLinuxSection() (line 435)
+    // resolve symlinks in kernel and initrd paths
+    Bootloader::ResolveSymlinksInSections();
+
     if (!Mode::update ())
     {
 	return Bootloader::Write ();
