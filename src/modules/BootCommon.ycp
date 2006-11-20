@@ -435,6 +435,10 @@ global map<string,any> CreateLinuxSection (string title) {
     // FIXME:
     // This only works in the installed system (problem with GetFinalKernel))),
     // in all other cases we use the symlinks.
+
+    string kernel_fn = "";
+    string initrd_fn = "";
+
     if (Mode::normal ()) {
 	// Find out the file names of the "real" kernel and initrd files, with
 	// version etc. pp. whatever (currently version-flavor) attached.
@@ -452,7 +456,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	list<string> files_filtered = filter (string file, files, {
 	    return ( substring(file, 0, size(kernel_prefix)) == kernel_prefix );
 	});
-	string kernel_fn = (
+	kernel_fn = (
 	    title == "wildcard" ?
 		"/boot/" + Kernel::GetBinary () + "-*" :
 		files_filtered[0]:""
@@ -461,15 +465,15 @@ global map<string,any> CreateLinuxSection (string title) {
 	files_filtered = filter (string file, files, {
 	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix ;
 	});
-	string initrd_fn = (
+	initrd_fn = (
 	    title == "wildcard" ?
 		"/boot/initrd-*" :
 		files_filtered[0]:""
 	);
     } else {
-	string kernel_fn = "/boot/" + Kernel::GetBinary ()
+	kernel_fn = "/boot/" + Kernel::GetBinary ()
 	    + (title == "wildcard" ? "-*" : "");
-	string initrd_fn = "/boot/initrd" + (title == "wildcard" ? "-*" : "");
+	initrd_fn = "/boot/initrd" + (title == "wildcard" ? "-*" : "");
     }
     // done: kernel_fn and initrd_fn are the results
     y2milestone ("kernel_fn: %1 initrd_fn: %2", kernel_fn, initrd_fn);
