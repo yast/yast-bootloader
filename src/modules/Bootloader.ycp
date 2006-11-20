@@ -414,7 +414,7 @@
 	// Initialize device mapper and LVM in target system
 	if (Stage::initial () || Mode::update ())
 	{
-	    # FIXME: should be handled by partitioner
+	    // FIXME: should be handled by partitioner
 	    map out = (map)SCR::Execute (.target.bash_output,
 		"test -f /sbin/devmap_mknod.sh && /sbin/devmap_mknod.sh;" +
 		"test -f /sbin/vgscan && /sbin/vgscan --mknodes"
