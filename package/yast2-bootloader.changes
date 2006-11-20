@@ -1,4 +1,18 @@
 -------------------------------------------------------------------
+Mon Nov 20 22:57:32 CET 2006 - od@suse.de
+
+- #214935:
+  - added more comments
+  - only resolve symlinks for linux, xen and failsafe sections,
+    type image and xen
+  - do not resolve symlinks for files that are not on the default
+    boot partition (because they have a grub device name prefix)
+  - added more logging
+  - actually use the resolved symlinks for kernel and initrd
+- moved some comments to the right position in the code
+- 2.14.6
+
+-------------------------------------------------------------------
 Mon Nov 20 16:10:03 CET 2006 - jplack@suse.de
 
 - quick fix for problems with Xen pattern selection (#208380):
