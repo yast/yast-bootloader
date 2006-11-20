@@ -22,6 +22,7 @@
 
     import "Arch";
     import "BootCommon";
+    import "Installation";
     import "Initrd";
     import "Kernel";
     import "Mode";
@@ -551,6 +552,64 @@
     }
 
 // sections handling functions
+
+/**
+  * Resolve a single symlink in key image_key in section map s
+  * @param section map map of section to change
+  * @param image_key string key in section that contains the link
+  */
+global define void ResolveSymlink(map<string,any> section, string key) {
+    string readlink_cmd = "/usr/bin/readlink -m " + Installation::destdir;
+    map out = $[];
+    string newval = "";
+
+    // FIXME: find out why we need WFM::Execute() here (as olh used it above)
+    out = (map) WFM::Execute (.local.bash_output, readlink_cmd + section[key]:"");
+    if (out["exit"]:0 == 0 && out["stdout"]:"" != "" ) {
+	newval = substring(out["stdout"]:"", size(Installation::destdir));
+	y2milestone("section %1: converting old %2 parameter from %3 to %4",
+	    section["name"]:"", key, section[key]:"", newval);
+	section[key] = newval;
+    } else {
+	y2error ("section %1: failed to remap %2 parameter",
+	    section["name"]:"", key);
+    }
+//  y2milestone("old kernel parameter in section %1: %2", s["name"], s["kernel"]);
+//  s["kernel"] = SCR::Execute (.target.bash, "/usr/bin/readlink " + s["kernel"]);
+//  y2milestone("converted kernel parameter to: %2", s["kernel"]);
+}
+
+/**
+  * Resolve symlinks in kernel and initrd paths
+  */
+// FIXME: this is the plan B solution, try to solve plan A in
+//        BootCommon.ycp:CreateLinuxSection() (line 435)
+global define void ResolveSymlinksInSections() {
+    // The "-m" is needed in case the link is an absolute link, so that it does
+    // not fail to resolve when the root partition is mounted in
+    // Installation::destdir.
+    list image_key_names = ["kernel", "image"];
+    string image_key_name = "";
+    integer i = 0;
+
+    BootCommon::sections = maplist (map<string,any> s, BootCommon::sections, {
+	// FIXME: did not make a function out of this, because this file looks
+	// like a script and defining functions in here scares me. Need to try
+	// this next time.
+	//
+	// first, resolve kernel link name
+	while ( i < size(image_key_names) ) {
+	    image_key_name = image_key_names[i]:"";
+	    if (haskey (s, image_key_name)) {
+		ResolveSymlink(s, image_key_name);
+	    }
+	    i = i + 1;
+	}
+	// resolve initrd link name
+	ResolveSymlink(s, "initrd");
+	return s;
+    });
+}
 
     /**
       * return default section label
