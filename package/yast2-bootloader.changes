@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Mon Nov 20 15:52:07 CET 2006 - od@suse.de
+
+- reverted initrd and kernel names to links for everything but
+  Mode::normal() (#214935)
+- resolve symlinks for kernel and initrd during inst_finish, so
+  that the "real names" are put into the bootloader configuration
+  -- this is the plan B solution, plan A (which shows correct
+  filenames instead of link names in the proposal) does not
+  currently work (#214935)
+- 2.14.4
+
+-------------------------------------------------------------------
 Mon Nov 20 15:31:58 CET 2006 - jplack@suse.de
 
 - fix format for DefaultKernelParams
