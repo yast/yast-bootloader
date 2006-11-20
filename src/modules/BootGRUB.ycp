@@ -66,6 +66,27 @@ include "bootloader/generic/dialogs.ycp";
 //----------------------------------------------------------------------------
 
 
+// wrapper function to adjuct to new grub name sceme
+global map<string,any> CreateLinuxSection (string title) {
+    map<string,any> section =
+      BootCommon::CreateLinuxSection (title);
+
+    // replace "kernel" by "image"
+    if (haskey(section, "kernel")) {
+      section["image"] = section["kernel"]:"";
+      section = remove(section, "kernel");
+    }
+    // replace "vga" by "vgamode"
+    if (haskey(section, "vga")) {
+      section["vgamode"] = section["vga"]:"";
+      section = remove(section, "vga");
+    }
+
+    return section;
+}
+
+
+
 /**
   * Propose sections to bootloader menu
   * modifies internal structures
@@ -73,10 +94,10 @@ include "bootloader/generic/dialogs.ycp";
 global define void CreateSections () ``{
     y2debug ("Creating GRUB sections from scratch");
     list<map<string,any> > out = [
-	BootCommon::CreateLinuxSection ("linux"),
+	CreateLinuxSection ("linux"),
     ];
     if (BootCommon::XenPresent ())
-        out = add (out, BootCommon::CreateLinuxSection ("xen"));
+        out = add (out, CreateLinuxSection ("xen"));
     list<string> others_ignore = [];
     list<string> others = (list<string>)Storage::GetForeignPrimary();
     y2debug ("Other primaries: %1", others);
@@ -235,7 +256,7 @@ global define void CreateSections () ``{
 		{
 		    map<string,any> m = $[
 			"name" : BootCommon::translateSectionTitle (label),
-			"type" : "chainloader",
+			"type" : "other",
 			"original_name" : label,
 			"chainloader" : dev,
 			"__changed" : false,
@@ -252,7 +273,7 @@ global define void CreateSections () ``{
         out = add (out, $[
 		"name" : BootCommon::translateSectionTitle("hard disk"),
 		"original_name" : "hard_disk",
-		"type" : "chainloader",
+		"type" : "other",
 		"chainloader" : BootCommon::mbrDisk,
 		"__changed" : false,
 		"__auto" : true,
@@ -264,16 +285,16 @@ global define void CreateSections () ``{
         out = add (out, $[
 		"name" : BootCommon::translateSectionTitle("floppy"),
 		"original_name" : "floppy",
-		"type" : "chainloader",
+		"type" : "other",
 		"chainloader" : "/dev/fd0",
 		"__changed" : false,
 		"__auto" : true,
 		"__devs" : [],
 	    ]);
     }
-    out = add (out, BootCommon::CreateLinuxSection ("failsafe"));
-    out = add (out, BootCommon::CreateLinuxSection ("memtest86"));
-    //	out = add (out, BootCommon::CreateLinuxSection ("wildcard"));
+    out = add (out, CreateLinuxSection ("failsafe"));
+    out = add (out, CreateLinuxSection ("memtest86"));
+
     if (Mode::normal ())
     {
         foreach (map<string,string> additional,
@@ -281,8 +302,8 @@ global define void CreateSections () ``{
 	{
 	    string type = additional["version"]:"";
 	    type = sformat ("%1", type);
-	    map<string,any> s = BootCommon::CreateLinuxSection (type);
-	    s["kernel"] = additional["kernel"]:"";
+	    map<string,any> s = CreateLinuxSection (type);
+	    s["image"] = additional["image"]:"";
 	    if (haskey (additional, "initrd"))
 	        s["initrd"] = additional["initrd"]:"";
 	    out = add (out, s);
@@ -698,7 +719,7 @@ global define list<string> Summary () {
       */
 global define void Update () {
 	BootCommon::UpdateDeviceMap ();
-	BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
+	BootCommon::UpdateSections (true, CreateLinuxSection);
 	BootCommon::UpdateGlobals ();
     // BootCommon::loader_device
     //  = BootCommon::UpdateDevice (BootCommon::loader_device);
