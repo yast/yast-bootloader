@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Nov 20 15:29:50 CET 2006 - jplack@suse.de
+
+- fix boot loader location mapping: check boot_root before
+  boot_boot (#219409)
+
+-------------------------------------------------------------------
 Mon Nov 20 13:12:45 CET 2006 - jplack@suse.de
 
 - fix full adoption to new grub name sceme ((#214935, FATE#300732)
