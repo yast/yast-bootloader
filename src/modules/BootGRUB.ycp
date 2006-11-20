@@ -571,10 +571,10 @@ global boolean Read (boolean reread) {
 	}
 	BootCommon::change_widget_default_value("boot_custom", "");	// FIXME: kludge, maybe obsolete
 
-	if ( BootCommon::loader_device == BootCommon::BootPartitionDevice ) {
-	    BootCommon::globals["boot_boot"] = sformat("%1", true);
-	} else if ( BootCommon::loader_device == BootCommon::RootPartitionDevice ) {
+	if ( BootCommon::loader_device == BootCommon::RootPartitionDevice ) {
 	    BootCommon::globals["boot_root"] = sformat("%1", true);
+	} else if ( BootCommon::loader_device == BootCommon::BootPartitionDevice ) {
+	    BootCommon::globals["boot_boot"] = sformat("%1", true);
 	} else if ( BootCommon::loader_device == BootCommon::mbrDisk ) {
 	    BootCommon::globals["boot_mbr"] = sformat("%1", true);
 	} else {
