@@ -497,6 +497,7 @@ global map<string,any> CreateLinuxSection (string title) {
     }
     if (title == "xen")
     {
+        ret["type"] = "xen";
 	ret["xen_append"] = "";
         if (UsingXenPae()) {
 	    ret["xen"] = "/boot/xen-pae.gz";
