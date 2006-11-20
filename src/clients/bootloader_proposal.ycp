@@ -35,9 +35,13 @@
 
 	// use the cache if possible
 	    // if not asked to recreate and we have a cached proposal and
-	if (!force_reset && Bootloader::cached_proposal != nil
+	if (false
+	    && !force_reset
+	    && Bootloader::cached_proposal != nil
+
 	    // has the configuration been changed?
 	    && Bootloader::cached_settings == Bootloader::Export()
+
 	    // has the partitioning been changed?
 	    // This is correct as long as the proposal is only dependent on the
 	    // settings in Storage. AFAICT all information relevant to a
@@ -48,6 +52,14 @@
 	    // through Storage, so the change time of Storage data should be
 	    // sufficient.
 	    && Bootloader::cached_settings_base_data_change_time == Storage::GetTargetChangeTime())
+
+
+	  // FIXME: has the software selection changed?: esp. has the
+	  // Xen pattern been activated ? then we'd have to make the
+	  // proposal again.
+
+
+
 	{
 	    y2milestone("Using cached proposal");
 	    return Bootloader::cached_proposal;
