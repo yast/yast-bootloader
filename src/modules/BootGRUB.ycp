@@ -512,6 +512,12 @@ global boolean Read (boolean reread) {
 		}
 	    }
 	}
+	else {
+  	    BootCommon::globals["activate"] =
+	        BootCommon::activate ? "true" : "false";
+	    BootCommon::globals["generic_mbr"] =
+	        BootCommon::repl_mbr ? "true" : "false";
+	}
 
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
