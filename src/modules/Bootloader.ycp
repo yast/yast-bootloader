@@ -563,7 +563,7 @@ global define map<string,any> ResolveSymlink(map<string,any> section, string key
     // The "-m" is needed in case the link is an absolute link, so that it does
     // not fail to resolve when the root partition is mounted in
     // Installation::destdir.
-    string readlink_cmd = "/usr/bin/readlink -m " + Installation::destdir;
+    string readlink_cmd = "/usr/bin/readlink -n -m " + Installation::destdir;
     map out = $[];
     string newval = "";
 
