@@ -627,7 +627,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if (clean)
     {
 	BootCommon::RemoveUnexistentSections ("", "");
-	BootCommon::UpdateInitrdLine ();
+	// BootCommon::UpdateInitrdLine ();
 	BootCommon::UpdateAppend ();
 	BootCommon::UpdateGfxMenu ();
     }
