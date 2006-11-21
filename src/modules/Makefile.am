@@ -20,7 +20,7 @@ module_DATA =			\
 #	BootABOOT.ycp
 
 Bootloader_API.pm:
-	test -f Bootloader_API.pm || ln -sf `find /usr/lib/perl5 -name Bootloader_API.pm`
+	test -f Bootloader_API.pm || ln -sf `find /usr/lib/perl5 -name Bootloader_API.pm | tail -1`
 
 
 EXTRA_DIST = 			\
