@@ -598,6 +598,8 @@ global define void ResolveSymlinksInSections() {
     string image_key_name = "";
     integer i = 0;
 
+    y2milestone("sections before remapping: %1", BootCommon::sections);
+
     // change only linux, failsafe and xen sections
     BootCommon::sections = maplist (map<string,any> s, BootCommon::sections, {
 	// skip sections that are not linux, xen or failsafe
@@ -609,6 +611,7 @@ global define void ResolveSymlinksInSections() {
 	}
 
 	// first, resolve kernel link name
+	i = 0;
 	while ( i < size(image_key_names) ) {
 	    image_key_name = image_key_names[i]:"";
 	    // also skip sections that start with a grub device name
@@ -636,6 +639,8 @@ global define void ResolveSymlinksInSections() {
 	}
 	return s;
     });
+
+    y2milestone("sections after remapping: %1", BootCommon::sections);
 }
 
     /**
