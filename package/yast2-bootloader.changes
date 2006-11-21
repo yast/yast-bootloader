@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 21 11:45:46 CET 2006 - jplack@suse.de
+
+- suppress newline from readlink command, breaks config files
+
+-------------------------------------------------------------------
 Tue Nov 21 10:16:22 CET 2006 - jplack@suse.de
 
 - "activate" and "generic_mbr" do now get set if newly proposed
