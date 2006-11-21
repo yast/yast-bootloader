@@ -1,7 +1,17 @@
 -------------------------------------------------------------------
+Tue Nov 21 14:56:00 CET 2006 - od@suse.de
+
+- have a current target map available in the log when we debug
+- added y2milestone()s around remapping
+- fix forgetting to rewrite some kernel/image entries (ycp really
+  should have a for loop, so resetting variables is not forgotten)
+  (#214935)
+- 2.14.8
+
+-------------------------------------------------------------------
 Tue Nov 21 14:29:08 CET 2006 - jplack@suse.de
 
-- UpdateInitrdLine function is old, broken, wrotten and completely
+- UpdateInitrdLine function is old, broken, rotten and completely
   useless now
 
 -------------------------------------------------------------------
