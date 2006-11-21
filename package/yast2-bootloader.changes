@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov 21 20:59:51 CET 2006 - aosthof@suse.de
+
+- Fixed target map for dmraids (aka FakeRAIDs) in lilolike.ycp
+  (#222471)
+- 2.14.9
+
+-------------------------------------------------------------------
 Tue Nov 21 14:56:00 CET 2006 - od@suse.de
 
 - have a current target map available in the log when we debug
