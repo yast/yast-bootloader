@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 21 14:29:08 CET 2006 - jplack@suse.de
+
+- UpdateInitrdLine function is old, broken, wrotten and completely
+  useless now
+
+-------------------------------------------------------------------
 Tue Nov 21 11:45:46 CET 2006 - jplack@suse.de
 
 - suppress newline from readlink command, breaks config files
