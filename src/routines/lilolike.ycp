@@ -1088,9 +1088,25 @@ global void ProposeDeviceMap () {
 	y2milestone ("Skipping device map proposing in Config mode");
     else
 	targetMap = (map<string,map>)Storage::GetTargetMap();
-    targetMap = filter (string k, map v, targetMap, {
-	return v["type"]:`CT_UNKNOWN==`CT_DISK;
+
+//FIXME: This is not the final solution, we must be able to handle both,
+//FakeRAIDs _and_ single disks.
+
+    // Search in complete target map for "CT_DMRAID" types
+    map <string, map> DMTargetMap = filter (string k, map v, targetMap, {
+	return v["type"]:`CT_UNKNOWN==`CT_DMRAID;
     });
+
+    // If no dmraids are present, search in complete target map for "CT_DISK"
+    // types. This should be the "normal" case.
+    if ( size(DMTargetMap) == 0 ) {
+	targetMap = filter (string k, map v, targetMap, {
+	    return v["type"]:`CT_UNKNOWN==`CT_DMRAID;
+        });
+    } else {
+	targetMap = DMTargetMap;    // If dmraid were found, only use them
+    }
+
     y2milestone ("Target map: %1", targetMap);
 
     // add devices with know bios_id
