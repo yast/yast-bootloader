@@ -1101,7 +1101,7 @@ global void ProposeDeviceMap () {
     // types. This should be the "normal" case.
     if ( size(DMTargetMap) == 0 ) {
 	targetMap = filter (string k, map v, targetMap, {
-	    return v["type"]:`CT_UNKNOWN==`CT_DMRAID;
+	    return v["type"]:`CT_UNKNOWN==`CT_DISK;
         });
     } else {
 	targetMap = DMTargetMap;    // If dmraid were found, only use them
