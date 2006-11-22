@@ -79,6 +79,10 @@ section =
     element vga     {text}? &
     element chainloader {text}? &
     element lines_cache_id {text}? &
-    element sectors {text}?
+    element sectors {text}? &
+    element blockoffset {text}? &
+    element vgamode     {text}? &
+    element noverifyroot { "true" | "false" }? &
+    element image   {text}?
   }
 kernel_parameters = element kernel_parameters { text }
