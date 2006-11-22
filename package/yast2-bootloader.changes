@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 22 09:33:25 CET 2006 - aosthof@suse.de
+
+- Fixed typo in lilolike.ycp (#223145)
+- 2.14.10
+
+-------------------------------------------------------------------
 Tue Nov 21 20:59:51 CET 2006 - aosthof@suse.de
 
 - Fixed target map for dmraids (aka FakeRAIDs) in lilolike.ycp
