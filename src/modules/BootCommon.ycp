@@ -442,6 +442,7 @@ global map<string,any> CreateLinuxSection (string title) {
     if (Mode::normal ()) {
 	// Find out the file names of the "real" kernel and initrd files, with
 	// version etc. pp. whatever (currently version-flavor) attached.
+	// FIXME: also do this for xen and xenpae kernels as found below
 	//
 	// First, get the file names in the "selected" kernel package,
 	string kernel_package = Kernel::GetFinalKernel();
