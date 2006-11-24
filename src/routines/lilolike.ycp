@@ -1115,12 +1115,25 @@ global void ProposeDeviceMap () {
 
 	    // Remove last list entry (because it is empty)
 	    integer index_empty = size(DMRaid_devices_in_BIOS_order) - 1;
-	    remove(DMRaid_devices_in_BIOS_order, index_empty);
+	    DMRaid_devices_in_BIOS_order =
+		remove(DMRaid_devices_in_BIOS_order, index_empty);
 
-	    // Sort the Target Map by BIOS order
+	    integer DMRaidBiosID = 128;
+
+	    // FIXME: This code only work when YaST2-Storage either assigns
+	    // BIOS-IDs to all available DMRaid devices or to none of them.
+	    // Probably it's best to throw this code away once YaST2-Storage
+	    // assigns BIOS-IDs to all available DMRaid devices.
+
+	    // Assign BIOS-IDs to DMRaid devices in the Target Map in BIOS
+	    // order
 	    DMTargetMap = listmap (string DMRaidDevice, DMRaid_devices_in_BIOS_order, {
 		DMRaidDevice = "/dev/mapper/" + DMRaidDevice;
 		if (haskey(DMTargetMap, DMRaidDevice)) {
+		    if ( !haskey(DMTargetMap[DMRaidDevice]:$[], "bios_id") ) {
+			DMTargetMap[DMRaidDevice, "bios_id"] = tohexstring(DMRaidBiosID);
+			DMRaidBiosID = DMRaidBiosID + 1;
+		    }
 		    return $[ DMRaidDevice : DMTargetMap[DMRaidDevice]:$[] ];
 		}
 	    });
@@ -1134,7 +1147,7 @@ global void ProposeDeviceMap () {
 
     y2milestone ("Target map: %1", targetMap);
 
-    // add devices with know bios_id
+    // add devices with known bios_id
     // collect BIOS IDs which are used
     map ids = $[];
     foreach (string target_dev, map target, targetMap, {
