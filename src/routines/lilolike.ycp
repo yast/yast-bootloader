@@ -1109,9 +1109,9 @@ global void ProposeDeviceMap () {
 	// Get all available dmraids in the proper BIOS order
 	map out = (map) SCR::Execute (.target.bash_output, "dmraid -s -c");
 
-	if  out["exit"]:0 == 0 && out["stdout"]:"" != "" ) {
+	if ( out["exit"]:0 == 0 && out["stdout"]:"" != "" ) {
 	    list<string> DMRaid_devices_in_BIOS_order =
-		splitstring (out["stdout"], "\n");
+		splitstring (out["stdout"]:"", "\n");
 
 	    // Remove last list entry (because it is empty)
 	    integer index_empty = size(DMRaid_devices_in_BIOS_order) - 1;
