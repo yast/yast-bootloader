@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Nov 24 19:35:33 CET 2006 - aosthof@suse.de
+
+- fixed usage of function remove()
+- added FIXME
+- fixed typo in comment
+- actually use sorted DMTargetMap by adding bios_ids (#223473)
+- 2.14.13
+
+-------------------------------------------------------------------
 Fri Nov 24 17:03:10 CET 2006 - od@suse.de
 
 - fixed typo in a comment
