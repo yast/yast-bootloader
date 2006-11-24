@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Nov 24 17:03:10 CET 2006 - od@suse.de
+
+- fixed typo in a comment
+- added a FIXME in BootCommon
+- added kernel and image file link resolve code to
+  BootPOWERLILO.ycp (adapted from BootCommon.ycp)
+- Fix broken bootloader configuration on ppc: initialize library
+  at the appropriate point again (#210535)
+- 2.14.12
+
+-------------------------------------------------------------------
 Fri Nov 24 14:47:00 CET 2006 - aosthof@suse.de
 
 - Sorted DMTargetMap in lilolike.ycp to match the BIOS order
