@@ -173,9 +173,48 @@ global define void setBoardType (string board) {
  * @return	    map		describes the section
  */
 map<string,any> CreateImageSection (string title) {
-    // code removed: no wildcard entries possible on ppc (yaboot)
-    string image_fn = "/boot/" + Kernel::GetBinary ();
-    string initrd_fn = "/boot/initrd";
+
+    // FIXME: This really should be a function and not be duplicated in
+    //        BootCommon.ycp (although that code there also handles wildcard
+    //        entries for lilo)
+    // FIXME:
+    // This only works in the installed system (problem with GetFinalKernel))),
+    // in all other cases we use the symlinks.
+
+    string image_fn = "";
+    string initrd_fn = "";
+
+    if (Mode::normal ()) {
+	// Find out the file names of the "real" kernel and initrd files, with
+	// version etc. pp. whatever (currently version-flavor) attached.
+	//
+	// First, get the file names in the "selected" kernel package,
+	string kernel_package = Kernel::GetFinalKernel();
+	list<string> files = Pkg::PkgGetFilelist( kernel_package, `any );
+	y2milestone ("kernel package %1 has these files: %2", kernel_package, files);
+
+	// then find the first file that matches the arch-dependent kernel file
+	// name prefix and the initrd filename prefix.
+	string kernel_prefix = "/boot/" + Kernel::GetBinary ();
+	string initrd_prefix = "/boot/initrd";
+
+	list<string> files_filtered = filter (string file, files, {
+	    return ( substring(file, 0, size(kernel_prefix)) == kernel_prefix );
+	});
+	image_fn = files_filtered[0]:"";
+
+	files_filtered = filter (string file, files, {
+	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix ;
+	});
+	initrd_fn = files_filtered[0]:"";
+    } else {
+	// code removed: no wildcard entries possible on ppc (yaboot)
+	image_fn = "/boot/" + Kernel::GetBinary ();
+	initrd_fn = "/boot/initrd";
+    }
+    // done: image_fn and initrd_fn are the results
+    y2milestone ("image_fn: %1 initrd_fn: %2", image_fn, initrd_fn);
+
     map<string,any> ret = $[
 	"type" : "image",
 	"name" : title,
@@ -869,7 +908,7 @@ global void Update () {
 	}
 
 	// remove console= entries from kernel parameters, console auto
-	// detection now works. For special sections take what´s given on boot
+	// detection now works. For special sections take what's given on boot
 	// command line
 	string console = "false"; // false means delete to 'setKernelParamToLine'
 	if (contains (BootCommon::update_section_types, oname))
@@ -1027,6 +1066,7 @@ global void Initializer () {
 	      );
     y2debug("Initialized help_messages to %1", BootCommon::help_messages);
 
+    BootCommon::InitializeLibrary (false, "ppc");
     importMetaData();
 }
 
