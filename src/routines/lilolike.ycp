@@ -1104,7 +1104,32 @@ global void ProposeDeviceMap () {
 	    return v["type"]:`CT_UNKNOWN==`CT_DISK;
         });
     } else {
-	targetMap = DMTargetMap;    // If dmraid were found, only use them
+	// If dmraid(s) are found, only use them
+
+	// Get all available dmraids in the proper BIOS order
+	map out = (map) SCR::Execute (.target.bash_output, "dmraid -s -c");
+
+	if  out["exit"]:0 == 0 && out["stdout"]:"" != "" ) {
+	    list<string> DMRaid_devices_in_BIOS_order =
+		splitstring (out["stdout"], "\n");
+
+	    // Remove last list entry (because it is empty)
+	    integer index_empty = size(DMRaid_devices_in_BIOS_order) - 1;
+	    remove(DMRaid_devices_in_BIOS_order, index_empty);
+
+	    // Sort the Target Map by BIOS order
+	    DMTargetMap = listmap (string DMRaidDevice, DMRaid_devices_in_BIOS_order, {
+		DMRaidDevice = "/dev/mapper/" + DMRaidDevice;
+		if (haskey(DMTargetMap, DMRaidDevice)) {
+		    return $[ DMRaidDevice : DMTargetMap[DMRaidDevice]:$[] ];
+		}
+	    });
+	    y2milestone("sorted (according to BIOS) DMTargetMap: %1", DMTargetMap);
+	} else {
+	    y2error ("Command: \"dmraid -s -c\" failed, no sorting of DMTargetMap.");
+	}
+
+	targetMap = DMTargetMap;
     }
 
     y2milestone ("Target map: %1", targetMap);
