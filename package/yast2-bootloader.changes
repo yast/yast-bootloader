@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Dec  1 16:58:24 CET 2006 - od@suse.de
+
+- use kernel and initrd softlinks in Failsafe entry again, thus
+  preventing the removal of the Failsafe entry when the kernel is
+  updated (#224481)
+- 2.14.15
+
+-------------------------------------------------------------------
 Fri Dec  1 11:32:49 CET 2006 - jplack@suse.de
 
 - signal change of boot loader location so that the boot loader can
