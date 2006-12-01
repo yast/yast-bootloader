@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Dec  1 11:32:49 CET 2006 - jplack@suse.de
+
+- signal change of boot loader location so that the boot loader can
+  be rewritten if needed (#225023)
+- 2.14.14
+
+-------------------------------------------------------------------
 Fri Nov 24 19:35:33 CET 2006 - aosthof@suse.de
 
 - fixed usage of function remove()

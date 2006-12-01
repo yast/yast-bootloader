@@ -217,6 +217,10 @@ global define void CreateSections () ``{
 			});
 			if (_add)
 			{
+			  // FIXME: fallback to vmlinux and initrd symlink if
+			  // present in the chroot environment of the other
+			  // Linux System ... #224481
+
 			    s["__devs"] = devs;
 			    out = add (out, s);
 			}
