@@ -74,6 +74,9 @@ void BLL_Store (string widget, map event) {
  * @return symbol always nil
  */
 symbol BLL_Handle (string key, map event) {
+    if (event["EventReason"]:"" == "ValueChanged") {
+        BootCommon::location_changed = true;
+    }
     return generic_Handle (key, event);
 }
 
@@ -125,6 +128,14 @@ map<string,any> genericBootLoaderLocationWidget () {
     ];
 }
 
-
-
 } // include end
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */
