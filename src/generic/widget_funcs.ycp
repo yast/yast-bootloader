@@ -30,10 +30,23 @@ string generic_Help (string widget_name) {
 string generic_Description (string widget_name, string fallback) {
     string arch_widget_name = Arch::arch_short() + "_" + widget_name;
 
+    // use "<arch>_widget_name" to find descriptive text
     if ( haskey( BootCommon::descriptions, arch_widget_name ) )
         return(BootCommon::descriptions[arch_widget_name]:"" );
+
+    // OR use "widget_name" to find descriptive text
     if ( haskey( BootCommon::descriptions, widget_name ) )
         return(BootCommon::descriptions[widget_name]:"" );
+
+    // OR if no descriptive text exists, log a warning
+    y2warning("missing description for generic widget %1," +
+	      "falling back to (translated in \"base\"?)" +
+	      "text from global_options: %2", widget_name, fallback);
+
+    // THEN use "<descriptive-text>" (from global_options) to find some other
+    //      descriptive text in "base" textdomain
+    //      OR fall back to the (untranslated) descriptive text (from
+    //         global_options)
     return( dgettext( "base", fallback ) );
 }
 
