@@ -52,13 +52,21 @@ booting other operating systems.</p>"),
 
 /*
  * map of UI widget decriptive labels
- * (keys not found here fall back to the untranslated descriptive labels from
- * global_options)
+ *
+ * keys not found here or in the merged-in maps from <loader-type>/helps.ycp
+ * fall back to the untranslated descriptive labels from global_options
+ *
  * key			    -> translated label
  *
- * Possible entries (first variants in the list are found first):
- * <arch>_<widget_label>    -> translated label	    ex.: "ppc_boot_custom"	    -> _("PPC Custom Boot Partition")
- * <widget_label>	    -> translated label	    ex.: "boot_custom"		    -> _("Custom Boot Partition")
+ * Possible entries (more specific variants have priority):
+ *
+ * <loader-type>_<widget_label>	    -> translated label
+ *	- ex.: "ppc_boot_custom"    -> _("PPC Custom Boot Partition")
+ *      - these are merged from <loader-type>/helps.ycp
+ *
+ * <widget_label>		    -> translated label
+ *	- ex.: "boot_custom"	    -> _("Custom Boot Partition")
+ *	- these are specified here
  */
 global map<string,string> descriptions = $[
     "boot"			: _("Boot Image Location"),
