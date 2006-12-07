@@ -339,8 +339,7 @@ global map<string,string> StandardGlobals () {
  */
 global boolean Read (boolean reread) {
     BootCommon::InitializeLibrary (reread, "grub");
-    if (reread)
-    {
+    if (reread) {
 	BootCommon::ReadFiles ();
     }
     BootCommon::DetectDisks ();
@@ -356,8 +355,7 @@ global boolean Read (boolean reread) {
 	BootCommon::globals["stage1_dev"]:"",
 	",");
 
-    if (size (loader_devices) > 1)
-    {
+    if (size (loader_devices) > 1) {
 	// check if members of a MD are present
 	map<string,map> tm = Storage::GetTargetMap ();
 	list<string> md = maplist (map m, tm["/dev/md", "partitions"]:[], {
@@ -383,8 +381,7 @@ global boolean Read (boolean reread) {
 		if (! contains (loader_devices, member))
 		    reduce = false;
 	    });
-	    if (reduce)
-	    {
+	    if (reduce) {
 		loader_devices = filter (string d, loader_devices, {
 		    return ! contains (md_members, d);
 		});
@@ -442,15 +439,16 @@ global boolean Read (boolean reread) {
 }
 
 
-    /**
-      * Reset bootloader settings
-      * @param init boolean true to repropose also device map
-      */
-    global define void Reset (boolean init) ``{
-	if (Mode::autoinst ())
-	    return;
-	BootCommon::Reset (init);
-    }
+/**
+  * Reset bootloader settings
+  * @param init boolean true to repropose also device map
+  */
+global define void Reset (boolean init) {
+    if (Mode::autoinst ())
+        return;
+    BootCommon::Reset (init);
+}
+
     /**
       * Propose bootloader settings
       */
@@ -662,7 +660,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // now really save the settings
     boolean ret = BootCommon::Save (clean, init, flush);
     return ret;
-	}
+}
 
 
 /**
@@ -724,46 +722,42 @@ global define list<string> Summary () {
 }
 
 
-    /**
-      * Update read settings to new version of configuration files
-      */
+/**
+  * Update read settings to new version of configuration files
+  */
 global define void Update () {
-	BootCommon::UpdateDeviceMap ();
-	BootCommon::UpdateSections (true, CreateLinuxSection);
-	BootCommon::UpdateGlobals ();
-    // BootCommon::loader_device
-    //  = BootCommon::UpdateDevice (BootCommon::loader_device);
-    }
-    /**
-      * Write bootloader settings to disk
-      * @return boolean true on success
-      */
-    global define boolean Write () ``{
-	BootCommon::updateMBR ();
-	boolean ret = BootCommon::UpdateBootloader ();
-	if (BootCommon::location_changed || BootCommon::InstallingToFloppy ())
-	{
-	    if (BootCommon::InstallingToFloppy ())
-	    {
-		if (! saveToFLoppyPopup ())
-		{
-		    y2error ("Preparing floppy disk failed.");
-		    ret = false;
-		}
-	    }
+    BootCommon::UpdateDeviceMap ();
+    BootCommon::UpdateSections (true, CreateLinuxSection);
+    BootCommon::UpdateGlobals ();
+}
 
-	    boolean grub_ret = BootCommon::InitializeBootloader ();
-	    y2milestone ("GRUB return value: %1", grub_ret);
-	    if (BootCommon::InstallingToFloppy ())
-	    {
-		BootCommon::updateTimeoutPopupForFloppy
-		    (BootCommon::getLoaderName ("grub", `summary));
+
+/**
+  * Write bootloader settings to disk
+  * @return boolean true on success
+  */
+global define boolean Write () ``{
+    BootCommon::updateMBR ();
+    boolean ret = BootCommon::UpdateBootloader ();
+    if (BootCommon::location_changed || BootCommon::InstallingToFloppy ()) {
+        if (BootCommon::InstallingToFloppy ()) {
+	    if (! saveToFLoppyPopup ()) {
+	        y2error ("Preparing floppy disk failed.");
+		ret = false;
 	    }
-	    ret = ret && grub_ret;
-	    ret = ret && BootCommon::PostUpdateMBR ();
+        }
+	
+        boolean grub_ret = BootCommon::InitializeBootloader ();
+        y2milestone ("GRUB return value: %1", grub_ret);
+        if (BootCommon::InstallingToFloppy ()) {
+	    BootCommon::updateTimeoutPopupForFloppy
+	      (BootCommon::getLoaderName ("grub", `summary));
 	}
-	return ret;
+        ret = ret && grub_ret;
+        ret = ret && BootCommon::PostUpdateMBR ();
     }
+    return ret;
+}
 
 
 global symbol WizardSequenzer() {
@@ -773,90 +767,84 @@ global symbol WizardSequenzer() {
 
 
 global map<string,symbol()> Dialogs () {
-   
     return $[
 	"loader"	: genericBootLoaderOptionsDialog,
-	// do we really need the following dialog?
-//	"installation"	: genericInstallDetailsDialog,
     ];
 }
 
 
-  
-
-    /**
-      * Return map of provided functions
-      * @return a map of functions (eg. $["write"::Write])
-      */
-    global map<string, any> GetFunctions () ``{
-	return $[
-	     //"export"	   : Export,
-	     //"import"	   : Import,
-            "read"		: Read,
-            "reset"		: Reset,
-            "propose"		: Propose,
-            "save"		: Save,
-	    "summary"		: Summary,
-            "update"		: Update,
-            "write"		: Write,
-	    "widgets"		: genericWidgets,
-	    "wizard_sequencer"	: WizardSequenzer,
-	    "dialogs"		: Dialogs,
-	    "section_types"	: section_types,
-	];
-    }
-
-    /**
-      * Initializer of GRUB bootloader
-      */
-    global define void Initializer () ``{
-	y2milestone ("Called GRUB initializer");
-	BootCommon::current_bootloader_attribs = $[
-	    "alias_keys" : [],
-	    "update_passwd" : BootGRUB::updatePasswdBeforeSave,
-	    "propose" : true,
-	    "read" : true,
-	    "scratch" : true,
-	    "additional_entries" : [`item (`id (`propose_deep),
-		// menubutton item, keep as short as possible
-		_("Propose and &Merge with Existing GRUB Menus"))],
-	    "restore_mbr" : true,
-	    "key_only_once" : false,
-	    "bootloader_on_disk" : true,
-	];
-
-	BootCommon::help_messages = (map<string,string>)
-	  union(BootCommon::help_messages,
-		mapmap(string key, string val, grub_help_messages,
-		    { return $[ "grub_" + key : val ]; }
-		       )
-		);
-	y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-	BootCommon::descriptions = (map<string,string>)
-	  union(BootCommon::descriptions,
-		mapmap(string key, string val, grub_descriptions,
-		    { return $[ "grub_" + key : val ]; }
-		       )
-		);
-	y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-	
-	BootCommon::InitializeLibrary (false, "grub");
-	importMetaData();
-    }
-
-    /**
-      * Constructor
-      */
-    global define void BootGRUB () ``{
-	BootCommon::bootloader_attribs["grub"] = $[
-	    "required_packages" : ["grub"],
-	    "loader_name" : "GRUB",
-	    "initializer" : BootGRUB::Initializer,
-	];
-    }
-
-
+/**
+  * Return map of provided functions
+  * @return a map of functions (eg. $["write"::Write])
+  */
+global map<string, any> GetFunctions () {
+    return $[
+         //"export"	   : Export,
+         //"import"	   : Import,
+        "read"		   : Read,
+        "reset"		   : Reset,
+        "propose"	   : Propose,
+        "save"		   : Save,
+        "summary"	   : Summary,
+        "update"	   : Update,
+        "write"		   : Write,
+        "widgets"	   : genericWidgets,
+        "wizard_sequencer" : WizardSequenzer,
+        "dialogs"	   : Dialogs,
+        "section_types"	   : section_types,
+    ];
 }
+
+/**
+  * Initializer of GRUB bootloader
+  */
+global define void Initializer () {
+    y2milestone ("Called GRUB initializer");
+    BootCommon::current_bootloader_attribs = $[
+        "alias_keys" : [],
+        "update_passwd" : BootGRUB::updatePasswdBeforeSave,
+        "propose" : true,
+        "read" : true,
+        "scratch" : true,
+        "additional_entries" : [`item (`id (`propose_deep),
+    	// menubutton item, keep as short as possible
+    	_("Propose and &Merge with Existing GRUB Menus"))],
+        "restore_mbr" : true,
+        "key_only_once" : false,
+        "bootloader_on_disk" : true,
+    ];
+
+    BootCommon::help_messages = (map<string,string>)
+      union(BootCommon::help_messages,
+    	mapmap(string key, string val, grub_help_messages,
+    	    { return $[ "grub_" + key : val ]; }
+    	       )
+    	);
+    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
+    BootCommon::descriptions = (map<string,string>)
+      union(BootCommon::descriptions,
+    	mapmap(string key, string val, grub_descriptions,
+    	    { return $[ "grub_" + key : val ]; }
+    	       )
+    	);
+    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
+
+    BootCommon::InitializeLibrary (false, "grub");
+    importMetaData();
+}
+
+/**
+  * Constructor
+  */
+global define void BootGRUB () {
+    BootCommon::bootloader_attribs["grub"] = $[
+	"required_packages" : ["grub"],
+	"loader_name" : "GRUB",
+	"initializer" : BootGRUB::Initializer,
+    ];
+}
+
+} // EOF
 
 /*
  * Local variables:
