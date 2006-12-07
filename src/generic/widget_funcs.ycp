@@ -20,7 +20,7 @@
 textdomain "bootloader";
 
 string generic_Help (string widget_name) {
-    string arch_widget_name = Arch::arch_short() + "_" + widget_name;
+    string arch_widget_name = BootCommon::getLoaderType(false) + "_" + widget_name;
 
     if ( haskey( BootCommon::help_messages, arch_widget_name ) )
         return(BootCommon::help_messages[arch_widget_name]:"" );
@@ -28,7 +28,7 @@ string generic_Help (string widget_name) {
 }
 
 string generic_Description (string widget_name, string fallback) {
-    string arch_widget_name = Arch::arch_short() + "_" + widget_name;
+    string arch_widget_name = BootCommon::getLoaderType(false) + "_" + widget_name;
 
     // use "<arch>_widget_name" to find descriptive text
     if ( haskey( BootCommon::descriptions, arch_widget_name ) )
