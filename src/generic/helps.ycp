@@ -60,13 +60,13 @@ booting other operating systems.</p>"),
  *
  * Possible entries (more specific variants have priority):
  *
- * <loader-type>_<widget_label>	    -> translated label
- *	- ex.: "ppc_boot_custom"    -> _("PPC Custom Boot Partition")
- *      - these are merged from <loader-type>/helps.ycp
+ * merged from other *_description tables in <loader-type>/helps.ycp:
+ *  <loader-type>_<widget_label>    -> translated label
+ *	ex.: "ppc_boot_custom"	    -> _("PPC Custom Boot Partition")
  *
- * <widget_label>		    -> translated label
+ * these are specified here:
+ *  <widget_label>		    -> translated label
  *	- ex.: "boot_custom"	    -> _("Custom Boot Partition")
- *	- these are specified here
  */
 global map<string,string> descriptions = $[
     "boot"			: _("Boot Image Location"),
