@@ -1064,7 +1064,7 @@ global void Initializer () {
 		     { return $[ "ppc_" + key : val ]; }
 		     )
 	      );
-    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
+    y2debug("Initialized descriptions to %1", BootCommon::descriptions);
 
     BootCommon::InitializeLibrary (false, "ppc");
     importMetaData();
