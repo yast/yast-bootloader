@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Dec  8 19:14:25 CET 2006 - od@suse.de
+
+- related to help_messages and descriptions:
+  - added comments to generic_Description() and the descriptions
+    variable
+  - corrected one warning and one debug message
+  - renamed arch_widget_name to loader_widget_name, matching new
+    functionality
+- 2.15.1
+
+-------------------------------------------------------------------
 Fri Dec  8 15:40:38 CET 2006 - jplack@suse.de
 
 - basic implementation for generic bootloader widgets for ELILO
