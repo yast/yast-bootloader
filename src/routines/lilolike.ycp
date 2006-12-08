@@ -134,10 +134,12 @@ global string FindMBRDisk() {
      *				    - booting from a primary /boot partition on the first disk, then set to true when
      *					- the examination of the code in the MBR
      *					    - by examine_mbr.pl shows that it
-     *						- DOES     look like a LILO or GRUB MBR (always replace them with new versions)			    AND
-     *						- DOES NOT look like a "generic MBR" (= DOS MBR) (OK as stage 1 to boot primary part. on 1st disk)  AND
-     *						- DOES NOT look like a valid "stage 1" at all (not enough entropy to contain valid code)	    AND
-     *						- DOES     look like some "stage 1" code (has enough entropy, but no known signature)		    AND
+     *						- DOES NOT look like a valid "stage 1" at all (not enough entropy to contain valid code)	    OR
+     *						- DOES NOT look like a "generic MBR" (= DOS MBR) (OK as stage 1 to boot primary part. on 1st disk)  OR
+     *						- DOES     look like a LILO or GRUB MBR (replace them with generic code
+     *							   (if stage 1 is not in MBR, see code in updateMBR()),
+     *							   they probably contain an obsolete block list for stage 2)				    OR
+     *						- DOES     look like some "stage 1" code (has enough entropy, but no known signature)		    OR
      *					    - by KeepMBR() -> ThinkPadMBR() shows that it
      *						- DOES NOT look like a Thinkpad MBR (begins with specific code sequence from that one)
      *				      otherwise set to false
@@ -200,11 +202,12 @@ global string FindMBRDisk() {
 	    activate = true;
 	    activate_changed = true;
 	    // examine_mbr.pl returns
-	    //	    - 0 for a "Generic MBR" (DOS MBR)
-	    //	    - 0 for an unknown MBR
-	    //	    - 1 for a GRUB or lilo "stage 1"
+	    //	    - != 0 for a read error: "cannot read 512 bytes from <dev>"
 	    //	    - 1 for an "invalid MBR", i.e. without enough entropy to
 	    //		contain boot code
+	    //	    - 0 for a "Generic MBR" (DOS MBR)
+	    //	    - 1 for a GRUB or lilo "stage 1"
+	    //	    - 0 for an unknown MBR
 	    map out = (map)SCR::Execute (.target.bash_output, sformat (
 		"/usr/lib/YaST2/bin/examine_mbr.pl %1", disk));
 	    y2milestone ("MBR examining script returned %1", out);
