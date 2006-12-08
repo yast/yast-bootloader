@@ -121,3 +121,13 @@ map<string,any> genericSectionEditWidget(string type) {
 
 
 } // EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */
