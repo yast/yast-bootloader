@@ -1217,6 +1217,10 @@ global list<string> ListKernelParamsInLine (string line) {
 	    });
 	}
 	boolean ret = true;
+	// if the bootloader stage 1 is not installed in the MBR, but
+	// ConfigureLocation() asked us to replace some problematic existing
+	// MBR, then overwrite the boot code (only, not the partition list!) in
+	// the MBR with a generic (currently DOS?) bootloader
 	if (repl_mbr && BootCommon::loader_device != mbrDisk)
 	{
 	    if (! Stage::initial ())
