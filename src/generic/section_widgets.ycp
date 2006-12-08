@@ -27,9 +27,6 @@ import "Stage";
 include "bootloader/generic/widget_funcs.ycp";
 
 
-
-
-
 /**
  * Validate function of a widget
  * @param widget any widget key

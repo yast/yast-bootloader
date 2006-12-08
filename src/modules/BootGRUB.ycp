@@ -659,6 +659,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 
     // now really save the settings
     boolean ret = BootCommon::Save (clean, init, flush);
+    importMetaData();
     return ret;
 }
 

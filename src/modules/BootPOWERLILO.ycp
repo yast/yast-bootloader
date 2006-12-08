@@ -747,6 +747,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if (flush)
 	ret = ret && BootCommon::CommitSettings ();
 
+    importMetaData();
     return ret;
 }
 
