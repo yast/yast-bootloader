@@ -1,0 +1,88 @@
+default namespace = "http://www.suse.com/1.0/yast2ns"
+namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
+namespace config = "http://www.suse.com/1.0/configns"
+
+bootloader =
+  element bootloader {
+    activate? &
+    bl_global? &
+    initrd_modules? &
+    loader_device? &
+    loader_type? &
+    bl_location? &
+    repl_mbr? &
+    device_map? &
+    sections?
+  }
+device_map = element device_map {
+    LIST,
+    device_map_entry*
+}
+device_map_entry = element device_map_entry {
+    bl_firmware? &
+    bl_linux?
+}
+bl_firmware = element firmware { text }
+bl_linux    = element linux    { text }
+activate =
+  element activate { BOOLEAN }
+repl_mbr =
+  element repl_mbr { BOOLEAN }
+initrd_modules =
+  element initrd_modules {
+    LIST,
+    initrd_module+
+  }
+initrd_module = element initrd_module { bl_module, module_args? }
+module_args = element module_args { text }
+bl_module = element module { text }
+loader_device = element loader_device { text }
+loader_type = element loader_type { text }
+bl_location = element location { text }
+bl_global =
+  element global {
+    lines_cache_id? &
+    bl_timeout? &
+    gfxmenu? &
+    bl_activate? &
+    boot_root? &
+    boot_boot? &
+    boot_mbr? &
+    stage1_dev?
+  }
+lines_cache_id = element lines_cache_id { text }
+stage1_dev = element stage1_dev { text }
+bl_timeout = element timeout { INTEGER }
+gfxmenu = element gfxmenu { text }
+
+# really "true"|"false", without config:type=boolean
+bl_activate = element activate { "true" | "false" }
+boot_root = element boot_root { "true" | "false" }
+boot_boot = element boot_boot { "true" | "false" }
+boot_mbr = element boot_mbr { "true" | "false" }
+
+sections =
+  element sections {
+    LIST,
+    section+
+  }
+section =
+  element section {
+    element append  {text}? &
+    element initial {text}? &
+    element initrd  {text}? &
+    element kernel  {text}? &
+    element name    {text}? &
+    element original_name {text}? &
+    element root    {text}? &
+    element type    {text}? &
+    element vga     {text}? &
+    element chainloader {text}? &
+    element lines_cache_id {text}? &
+    element sectors {text}? &
+    element blockoffset {text}? &
+    element vgamode     {text}? &
+    element noverifyroot { "true" | "false" }? &
+    element image   {text}?
+  }
+kernel_parameters = element kernel_parameters { text }

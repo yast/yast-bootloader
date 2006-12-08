@@ -11,307 +11,321 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Joachim Plack <jplack@suse.de>
  *
  * $Id$
  *
  */
 
 {
-    module "BootGRUB";
+module "BootGRUB";
 
-    textdomain "bootloader";
+textdomain "bootloader";
 
-    import "Arch";
-    import "BootCommon";
-    import "Kernel";
-    import "Mode";
-    import "Stage";
-    import "Storage";
-    import "StorageDevices";
-    import "Pkg";
-
-include "bootloader/routines/dialogs_i386.ycp";
+import "Arch";
+import "BootCommon";
+import "Kernel";
+import "Mode";
+import "Stage";
+import "Storage";
+import "StorageDevices";
+import "Pkg";
+import "HTML";
 
 // private variables
 
-    /**
-      * was grub_conf changed by user manually?
-      */
-    global boolean gc_changed = false;
-    /**
-      * Shall proposal merge menus?
-      */
-    global symbol merge_level = `main;
-    /**
-      * Insert saved MBR to bootloader menu?
-      */
-    global boolean insert_saved_mbr = false;
+/**
+  * Shall proposal merge menus?
+  */
+global symbol merge_level = `main;
+/**
+  * Insert saved MBR to bootloader menu?
+  */
+global boolean insert_saved_mbr = false;
 
 // variables for temporary data
 
-    /**
-      * Disks order for ordering widget purproses
-      */
-    global list<string> disks_order = nil;
+/**
+  * Disks order for ordering widget purproses
+  */
+global list<string> disks_order = nil;
 
 // function prototypes
 
-    global boolean backup_to_bootsector = true;
+global boolean backup_to_bootsector = true;
 
 // includes
 
-    include "bootloader/grub/misc.ycp";
-    include "bootloader/routines/popups.ycp";
+include "bootloader/grub/misc.ycp";
+include "bootloader/routines/popups.ycp";
+include "bootloader/grub/helps.ycp";
+include "bootloader/generic/dialogs.ycp";
 
 
 // end of mandatory functions
 //----------------------------------------------------------------------------
 
 
+// wrapper function to adjuct to new grub name sceme
+global map<string,any> CreateLinuxSection (string title) {
+    map<string,any> section =
+      BootCommon::CreateLinuxSection (title);
+
+    // replace "kernel" by "image"
+    if (haskey(section, "kernel")) {
+      section["image"] = section["kernel"]:"";
+      section = remove(section, "kernel");
+    }
+    // replace "vga" by "vgamode"
+    if (haskey(section, "vga")) {
+      section["vgamode"] = section["vga"]:"";
+      section = remove(section, "vga");
+    }
+
+    return section;
+}
 
 
-    /**
-      * Propose sections to bootloader menu
-      * modifies internal sreuctures
-      */
-    global define void CreateSections () ``{
-	y2debug ("Creating GRUB sections from scratch");
-	list<map<string,any> > out = [
-	    BootCommon::CreateLinuxSection ("linux"),
-	];
-	if (BootCommon::XenPresent ())
-	    out = add (out, BootCommon::CreateLinuxSection ("xen"));
-	list<string> others_ignore = [];
-	list<string> others = (list<string>)Storage::GetForeignPrimary();
-	y2debug ("Other primaries: %1", others);
-	list<map> other_l = (list<map>)Storage::GetOtherLinuxPartitions();
-	y2debug ("Other linux parts: %1", other_l);
-	list<string> destroyed_partitions
-	    = BootCommon::getPartitionList (`destroyed);
 
-	string tmpdir = (string)SCR::Read (.target.tmpdir) + "/bldetect/";
+/**
+  * Propose sections to bootloader menu
+  * modifies internal structures
+  */
+global define void CreateSections () ``{
+    y2debug ("Creating GRUB sections from scratch");
+    list<map<string,any> > out = [
+	CreateLinuxSection ("linux"),
+    ];
+    if (BootCommon::XenPresent ())
+        out = add (out, CreateLinuxSection ("xen"));
+    list<string> others_ignore = [];
+    list<string> others = (list<string>)Storage::GetForeignPrimary();
+    y2debug ("Other primaries: %1", others);
+    list<map> other_l = (list<map>)Storage::GetOtherLinuxPartitions();
+    y2debug ("Other linux parts: %1", other_l);
+    list<string> destroyed_partitions
+        = BootCommon::getPartitionList (`destroyed);
 
-	if (merge_level != `none && other_l != nil && size (other_l) > 0
-	    && 0 == SCR::Execute (.target.bash, sformat (
-		"test -d %1 || /bin/mkdir %1", tmpdir))
-	    )
-	{
-	    y2milestone ("Detecting other Linux parts");
-	    list filesystems = maplist (map p, other_l,
-		``(p["used_fs"]:(any)""));
-	    filesystems = toset (filter (any f, filesystems, ``(f != "")));
-	    filesystems = filter (any f, filesystems, ``(f != `ext2));
-	    y2debug ("Have to modprobe %1", filesystems);
-	    foreach (any f, filesystems, ``{
-		map fsmods = $[
-		    `ext2 : "",
-		    `ext3 : "ext3",
-		    `reiser : "reiserfs",
-		    `xfs : "xfs",
-		    `jfs : "jfs"
-		];
-		string modname = fsmods[f]:"";
-		y2debug ("Module name is %1", modname);
-		if (modname != "")
-		{
-		    integer r = (integer)SCR::Execute (.target.bash,
-			sformat ("/sbin/modprobe %1", modname));
-		    y2debug ("result of loading %1 is %2", modname, r);
-		}
-	    });
-	    BootCommon::InitializeLibrary (true, "grub");
-	    foreach (map o, other_l, ``{
-		string dev = o["device"]:"";
-		if (dev != "" && 0 == SCR::Execute (.target.bash,
-		    sformat ("/bin/mount %1 %2", dev, tmpdir)))
-		{
-		    y2milestone ("Mounted %1", dev);
-		    list<string> filenames = [];
-		    foreach (string fn, [
+    string tmpdir = (string)SCR::Read (.target.tmpdir) + "/bldetect/";
+
+    if (merge_level != `none && other_l != nil && size (other_l) > 0
+	&& 0 == SCR::Execute (.target.bash,
+	   sformat ("test -d %1 || /bin/mkdir %1", tmpdir))
+	)
+    {
+        y2milestone ("Detecting other Linux parts");
+	list filesystems = maplist (map p, other_l,
+				    ``(p["used_fs"]:(any)""));
+	filesystems = toset (filter (any f, filesystems, ``(f != "")));
+	filesystems = filter (any f, filesystems, ``(f != `ext2));
+	y2debug ("Have to modprobe %1", filesystems);
+	foreach (any f, filesystems, {
+	    map fsmods = $[
+		`ext2 : "",
+		`ext3 : "ext3",
+		`reiser : "reiserfs",
+		`xfs : "xfs",
+		`jfs : "jfs"
+	    ];
+	    string modname = fsmods[f]:"";
+	    y2debug ("Module name is %1", modname);
+	    if (modname != "")
+	    {
+		integer r = (integer)SCR::Execute (.target.bash,
+		    sformat ("/sbin/modprobe %1", modname));
+		y2debug ("result of loading %1 is %2", modname, r);
+	    }
+	});
+	BootCommon::InitializeLibrary (true, "grub");
+	foreach (map o, other_l, {
+	    string dev = o["device"]:"";
+	    if (dev != "" && 0 == SCR::Execute (.target.bash,
+		    sformat ("/bin/mount %1 %2", dev, tmpdir))
+		)
+	    {
+	        y2milestone ("Mounted %1", dev);
+		list<string> filenames = [];
+		foreach (string fn, [
 // not needed since there is a symlink in /boot directory
 // named boot pointing to the /boot directory
 // this caused bug #23346 - the file was found twice
 //			tmpdir + "grub/menu.lst",
 			tmpdir + "boot/grub/menu.lst"
-		    ], ``{
+		    ], {
 			if (-1 != (integer)SCR::Read (.target.size, fn))
 			    filenames = add (filenames, fn);
-		    });
-		    y2milestone ("Found files %1", filenames);
-		    integer count = 0;
-		    foreach (string f, filenames, ``{
-			y2debug ("Checking file %1", f);
-			string fc = (string)SCR::Read (.target.string, f);
-			string dm = (string)SCR::Read (.target.string,
-			    regexpsub (f, "(.*)menu.lst$",
-				"\\1device.map"));
-			    y2debug ("Device map file name: %1",
-				regexpsub (f, "(.*)menu.lst$",
-				    "\\1device.map"));
-			    y2debug ("Device map contents: %1", dm);
-			map<string,string> files = $[
-			    "/boot/grub/menu.lst" : fc,
-			];
-			if (dm == nil)
-			    return;
-			if (dm != nil)
-			    files["/boot/grub/device.map"] = dm;
-			BootCommon::InitializeLibrary (false, "grub");
-			BootCommon::SetFilesContents (files);
-			list<map<string,string> > sects
-			    = BootCommon::GetSections ();
-			y2debug ("Found sections %1", sects);
-			if (merge_level == `main)
-			{
-			    sects = filter (map<string,string> s, sects, {
-				return s["initial"]:nil != nil;
-			    });
-			}
-			count = count + size (sects);
-			foreach (map<string,any> s, sects, ``{
-			    s = (map<string,any>)union (s, $[
+		});
+		y2milestone ("Found files %1", filenames);
+		integer count = 0;
+		foreach (string f, filenames, {
+		    y2debug ("Checking file %1", f);
+		    string fc = (string)SCR::Read (.target.string, f);
+		    string dm = (string)SCR::Read (.target.string,
+			regexpsub (f, "(.*)menu.lst$",
+				   "\\1device.map"));
+		    y2debug ("Device map file name: %1",
+			     regexpsub (f, "(.*)menu.lst$",
+					"\\1device.map"));
+		    y2debug ("Device map contents: %1", dm);
+		    map<string,string> files = $[
+						 "/boot/grub/menu.lst" : fc,
+						 ];
+		    if (dm == nil)
+		        return;
+
+		    files["/boot/grub/device.map"] = dm;
+		    BootCommon::InitializeLibrary (false, "grub");
+		    BootCommon::SetFilesContents (files);
+		    list<map<string,string> > sects
+		        = BootCommon::GetSections ();
+		    y2debug ("Found sections %1", sects);
+		    if (merge_level == `main)
+		    {
+		        sects = filter (map<string,string> s, sects, {
+			    return s["initial"]:nil != nil;
+			});
+		    }
+		    count = count + size (sects);
+		    foreach (map<string,any> s, sects, ``{
+		        s = (map<string,any>)union (s, $[
 				"__changed" : false,
 				"__auto" : true,
 				"__converted" : true,
-			    ]);
-			    // no need to translate here...
-			    s["name"] = sformat ("%2 (%1)",
+			]);
+			// no need to translate here...
+			s["name"] = sformat ("%2 (%1)",
 				dev, s["name"]:"");
-			    s["original_name"] = s["name"]:"";
-			    list<string> devs = [dev];
-			    list<string> _dp = [];
+			s["original_name"] = s["name"]:"";
+			list<string> devs = [dev];
+			list<string> _dp = [];
 
-			    string _d = s["root"]:"";
-			    if (_d != nil && _d != "")
-				devs = add (devs, _d);
-			    devs = (list<string>)filter (string d, devs,
+			string _d = s["root"]:"";
+			if (_d != nil && _d != "")
+			    devs = add (devs, _d);
+			devs = (list<string>)filter (string d, devs,
 				``(d != ""
-				    && d != nil
-				    && d != "/dev/null" && d != "false"));
-			    devs = toset (devs);
-			    devs = maplist (string d, devs, {
-				return BootCommon::UpdateDevice (d);
-			    });
-			    boolean _add = true;
-			    foreach (string _d, devs, {
-				if (contains (destroyed_partitions, _d))
-				    _add = false;
-			    });
-			    if (_add)
-			    {
-				s["__devs"] = devs;
-				out = add (out, s);
-			    }
+				   && d != nil
+				   && d != "/dev/null" && d != "false"));
+			devs = toset (devs);
+			devs = maplist (string d, devs, {
+			    return BootCommon::UpdateDevice (d);
 			});
-		    });
-		    if (count > 0)
-		    {
-			others_ignore = add (others_ignore, dev);
-		    }
-		    SCR::Execute (.target.bash, sformat (
-			"/bin/umount %1", dev));
-		}
-	    });
-	    SCR::Execute (.target.bash, sformat ("/bin/rmdir %1", tmpdir));
-	}
-
-	if (others != nil)
-	{
-	    if (size (others) > 0)
-	    {
-		foreach (string o, others, ``{
-		    list parts = splitstring (o, " ");
-		    while (parts[0]:" " == "")
-			parts = remove (parts, 0);
-		    string dev = parts[0]:"";
-		    y2milestone ("Checking other partition %1", dev);
-		    if (! contains (others_ignore, dev))
-		    {
-			parts = remove (parts, 0);
-			string label = mergestring ((list<string>)parts, " ");
-
-                        // don't add rewritten location (#19990)
-			if (dev != "" && label != ""
-			    && dev != BootCommon::loader_device
-			    && (
-				BootCommon::AddFirmwareToBootloader (
-					BootCommon::mbrDisk)
-				|| (label != "Vendor diagnostics"
-				    && label != "Vendor diagnostic")
-			    )
-			)
+			boolean _add = true;
+			foreach (string _d, devs, {
+			    if (contains (destroyed_partitions, _d))
+			        _add = false;
+			});
+			if (_add)
 			{
-			    map<string,any> m = $[
-				"name" : BootCommon::translateSectionTitle (label),
-				"type" : "chainloader",
-				"original_name" : label,
-				"chainloader" : dev,
-				"__changed" : false,
-				"__auto" : true,
-				"__devs" : [dev],
-			    ];
-			   out = add (out, m);
+			  // FIXME: fallback to vmlinux and initrd symlink if
+			  // present in the chroot environment of the other
+			  // Linux System ... #224481
+
+			    s["__devs"] = devs;
+			    out = add (out, s);
 			}
-		    }
+		    });
 		});
+		if (count > 0)
+		    others_ignore = add (others_ignore, dev);
+
+		SCR::Execute (.target.bash, sformat (
+			"/bin/umount %1", dev));
 	    }
-	}
-	if (BootCommon::InstallingToFloppy ())
-	{
-            out = add (out, $[
+	});
+	SCR::Execute (.target.bash, sformat ("/bin/rmdir %1", tmpdir));
+    }
+
+    if (others != nil && (size (others) > 0)) {
+	foreach (string o, others, {
+	    list parts = splitstring (o, " ");
+	    while (parts[0]:" " == "")
+	      parts = remove (parts, 0);
+	    string dev = parts[0]:"";
+	    y2milestone ("Checking other partition %1", dev);
+	    if (! contains (others_ignore, dev)) {
+	        parts = remove (parts, 0);
+		string label = mergestring ((list<string>)parts, " ");
+
+		// don't add rewritten location (#19990)
+		if (dev != "" && label != ""
+		    && dev != BootCommon::loader_device
+		    && (
+			BootCommon::AddFirmwareToBootloader (
+							     BootCommon::mbrDisk)
+			|| (label != "Vendor diagnostics"
+			    && label != "Vendor diagnostic")
+			)
+		    )
+		{
+		    map<string,any> m = $[
+			"name" : BootCommon::translateSectionTitle (label),
+			"type" : "other",
+			"original_name" : label,
+			"chainloader" : dev,
+			"__changed" : false,
+			"__auto" : true,
+			"__devs" : [dev],
+		    ];
+		    out = add (out, m);
+		}
+	    }
+	});
+    }
+    if (BootCommon::InstallingToFloppy ())
+    {
+        out = add (out, $[
 		"name" : BootCommon::translateSectionTitle("hard disk"),
 		"original_name" : "hard_disk",
-		"type" : "chainloader",
+		"type" : "other",
 		"chainloader" : BootCommon::mbrDisk,
 		"__changed" : false,
-                "__auto" : true,
-                "__devs" : [],
-            ]);
-	}
-	else if (StorageDevices::FloppyPresent)
-	{
-	    out = add (out, $[
+		"__auto" : true,
+		"__devs" : [],
+        ]);
+    }
+    else if (StorageDevices::FloppyPresent)
+    {
+        out = add (out, $[
 		"name" : BootCommon::translateSectionTitle("floppy"),
 		"original_name" : "floppy",
-		"type" : "chainloader",
+		"type" : "other",
 		"chainloader" : "/dev/fd0",
-                "__changed" : false,
-                "__auto" : true,
-                "__devs" : [],
+		"__changed" : false,
+		"__auto" : true,
+		"__devs" : [],
 	    ]);
-	}
-	out = add (out, BootCommon::CreateLinuxSection ("failsafe"));
-	out = add (out, BootCommon::CreateLinuxSection ("memtest86"));
-//	out = add (out, BootCommon::CreateLinuxSection ("wildcard"));
-	if (Mode::normal ())
-	{
-	    foreach (map<string,string> additional,
-		BootCommon::CheckAdditionalKernels (),
-	    {
-		string type = additional["version"]:"";
-		type = sformat ("%1", type);
-		map<string,any> s = BootCommon::CreateLinuxSection (type);
-		s["kernel"] = additional["kernel"]:"";
-		if (haskey (additional, "initrd"))
-		    s["initrd"] = additional["initrd"]:"";
-		out = add (out, s);
-	    });
-	}
-	out = filter (map<string,any> s, out, {return s != $[] && s != nil;});
-	BootCommon::sections = out;
     }
+    out = add (out, CreateLinuxSection ("failsafe"));
+    out = add (out, CreateLinuxSection ("memtest86"));
+
+    if (Mode::normal ())
+    {
+        foreach (map<string,string> additional,
+		 BootCommon::CheckAdditionalKernels (),
+	{
+	    string type = additional["version"]:"";
+	    type = sformat ("%1", type);
+	    map<string,any> s = CreateLinuxSection (type);
+	    s["image"] = additional["image"]:"";
+	    if (haskey (additional, "initrd"))
+	        s["initrd"] = additional["initrd"]:"";
+	    out = add (out, s);
+	});
+    }
+    out = filter (map<string,any> s, out, {return s != $[] && s != nil;});
+    BootCommon::sections = out;
+}
 
 /**
  * Propose global options of bootloader
- * modifies internal structures
  */
-global void CreateGlobals () {
-    y2debug ("Creating GRUB globals from scratch");
-    BootCommon::globals = $[
+global map<string,string> StandardGlobals () {
+    return $[
+	"activate": "true",
 	"default" : BootCommon::sections[0, "name"]:"",
 	"timeout" : "8",
 	"gfxmenu" : "/boot/message",
-	"prompt" : "1",
     ];
 }
 
@@ -325,8 +339,7 @@ global void CreateGlobals () {
  */
 global boolean Read (boolean reread) {
     BootCommon::InitializeLibrary (reread, "grub");
-    if (reread)
-    {
+    if (reread) {
 	BootCommon::ReadFiles ();
     }
     BootCommon::DetectDisks ();
@@ -342,8 +355,7 @@ global boolean Read (boolean reread) {
 	BootCommon::globals["stage1_dev"]:"",
 	",");
 
-    if (size (loader_devices) > 1)
-    {
+    if (size (loader_devices) > 1) {
 	// check if members of a MD are present
 	map<string,map> tm = Storage::GetTargetMap ();
 	list<string> md = maplist (map m, tm["/dev/md", "partitions"]:[], {
@@ -369,8 +381,7 @@ global boolean Read (boolean reread) {
 		if (! contains (loader_devices, member))
 		    reduce = false;
 	    });
-	    if (reduce)
-	    {
+	    if (reduce) {
 		loader_devices = filter (string d, loader_devices, {
 		    return ! contains (md_members, d);
 		});
@@ -421,26 +432,94 @@ global boolean Read (boolean reread) {
     {
 	BootCommon::loader_device = loader_devices[0]:"";
     }
+
+    importMetaData();
+
     return ret;
 }
 
 
-    /**
-      * Reset bootloader settings
-      * @param init boolean true to repropose also device map
-      */
-    global define void Reset (boolean init) ``{
-	if (Mode::autoinst ())
-	    return;
-	BootCommon::Reset (init);
-    }
+/**
+  * Reset bootloader settings
+  * @param init boolean true to repropose also device map
+  */
+global define void Reset (boolean init) {
+    if (Mode::autoinst ())
+        return;
+    BootCommon::Reset (init);
+}
+
     /**
       * Propose bootloader settings
       */
     global define void Propose () ``{
 	y2debug ("Started propose: Glob: %1, Sec: %2",
 	    BootCommon::globals, BootCommon::sections);
+
+	string old_loader_device = BootCommon::loader_device;
+	// if NOT was_proposed (i.e. blPropose() has not been called yet), then
+	// - set up BootPartitionDevice, RootPartitionDevice
+	// - if empty, set up mbrDisk
+	// - if loader_device is empty or the device is not a boot device, go
+	//   to ConfigureLocation() and
+	//	- propose
+	//	    - loader_device
+	//	    - selected_location (according to loader_device)
+	//	    - activate (when needed, but try to be nice to Windows)
+	//	- do not touch these, except when /boot partition is selected_location:
+	//	    - activate_changed (set to true)
+	//	    - repl_mbr (set to true when we need to update existing GRUB, lilo MBRs,
+	//			or when it looks like there is no code in the MBR at all,
+	//			but NOT if this is a "Generic" (DOS) MBR, some unknown code
+	//			or a Thinkpad MBR)
+	//
+	// always propose:
+	//  - device_mapping (from "bios_id"s delivered by Storage, then let
+	//                    devices with unknown "bios_id"s drop into the
+	//                    gaps of this mapping or append at the end)
+	//
+	// if '/' and '/boot' were changed and selected_location is set and not
+	// "custom", ask user with popup whether it is OK to change the
+	// location and change it (with DetectDisks() and ConfigureLocation()
+	// (see above))
 	BootCommon::i386LocationProposal ();
+
+	// The Propose() function is called every time before Summary() is
+	// called. We have to take the current state of the boot_* and activate
+	// keys from the globals variable (where the new generic widgets put
+	// the current settings and/or a previous proposal left them there, see
+	// below) and put this information in the loader_device and activate
+	// variables for the internal routines to use.
+	// FIXME: This should probably be put in a function of its own. ATM,
+	// this code looks still too specific to put it in a function, though.
+	// But I may be wrong here.
+
+	if ( old_loader_device == BootCommon::loader_device ) {
+	    // if we did not re-propose, use user-supplied settings (if any)
+	    if ( haskey(BootCommon::globals, "boot_boot") && BootCommon::globals["boot_boot"]:"false" == "true" ) {
+		BootCommon::loader_device = BootCommon::BootPartitionDevice;
+	    } else if ( haskey(BootCommon::globals, "boot_root") && BootCommon::globals["boot_root"]:"false" == "true" ) {
+		BootCommon::loader_device = BootCommon::RootPartitionDevice;
+	    } else if ( haskey(BootCommon::globals, "boot_mbr") && BootCommon::globals["boot_mbr"]:"false" == "true" ) {
+		BootCommon::loader_device = BootCommon::mbrDisk;
+	    } else if ( haskey(BootCommon::globals, "boot_custom") ) {
+		BootCommon::loader_device = BootCommon::globals["boot_custom"]:"";
+	    }
+
+	    if ( haskey(BootCommon::globals, "activate") ) {
+		if ( BootCommon::globals["activate"]:"false" == "true" ) {
+		    BootCommon::activate = true;
+		} else {
+		    BootCommon::activate = false;
+		}
+	    }
+	}
+	else {
+  	    BootCommon::globals["activate"] =
+	        BootCommon::activate ? "true" : "false";
+	    BootCommon::globals["generic_mbr"] =
+	        BootCommon::repl_mbr ? "true" : "false";
+	}
 
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
@@ -452,14 +531,14 @@ global boolean Read (boolean reread) {
 	    if (Mode::autoinst ())
 	    {
 		// TODO whatever will be needed
-		y2debug ("nothing to to in AI mode if sections exist");
+		y2debug ("nothing to do in AI mode if sections exist");
 	    }
 	    else
 		BootCommon::FixSections (BootGRUB::CreateSections);
 	}
 	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
 	{
-	    CreateGlobals ();
+	    BootCommon::globals = StandardGlobals();
 	}
 	else
 	{
@@ -468,14 +547,50 @@ global boolean Read (boolean reread) {
                 // TODO whatever will be needed
 		y2debug ("nothing to to in AI mode if globals are defined");
             }
-            else
-		BootCommon::FixGlobals ();
+            else {
+		// Merge default globals where not yet set
+	        BootCommon::globals = (map<string, string>) union(
+		    StandardGlobals(),
+		    BootCommon::globals
+		);
+	    }
+	    // this currently does nothing more than fixing the "default" key,
+	    // if that points to a section that does not exist anymore
+	    BootCommon::FixGlobals ();
 	}
 
-        if (! BootCommon::was_proposed)
-	{
-	    BootCommon::globals["embed_stage1.5"] = allowEmbed15 () ? "1" : "0";
+//         if (! BootCommon::was_proposed)
+// 	{
+// 	    BootCommon::globals["embed_stage1.5"] = allowEmbed15 () ? "1" : "0";
+// 	}
+
+	// FIXME: The setting of the boot_* and activate keys in globals for
+	// the new perl-Bootloader interface should probably be put in a
+	// function of its own. ATM, this code looks still too specific to put
+	// it in a function, though. But I may be wrong here.
+	// Pass down proposal to the variables of the new perl-Bootloader code
+	// first, default to all off:
+	BootCommon::globals["boot_boot"] = sformat("%1", false);
+	BootCommon::globals["boot_root"] = sformat("%1", false);
+	BootCommon::globals["boot_mbr"] =  sformat("%1", false);
+	// need to remove the boot_custom key to switch this value off
+	if (haskey (BootCommon::globals, "boot_custom")) {
+	    BootCommon::globals = remove (BootCommon::globals, "boot_custom");
 	}
+	BootCommon::change_widget_default_value("boot_custom", "");	// FIXME: kludge, maybe obsolete
+
+	if ( BootCommon::loader_device == BootCommon::RootPartitionDevice ) {
+	    BootCommon::globals["boot_root"] = sformat("%1", true);
+	} else if ( BootCommon::loader_device == BootCommon::BootPartitionDevice ) {
+	    BootCommon::globals["boot_boot"] = sformat("%1", true);
+	} else if ( BootCommon::loader_device == BootCommon::mbrDisk ) {
+	    BootCommon::globals["boot_mbr"] = sformat("%1", true);
+	} else {
+	    BootCommon::globals["boot_custom"] = BootCommon::loader_device;
+	    BootCommon::change_widget_default_value("boot_custom", BootCommon::loader_device);	// FIXME: kludge, maybe obsolete
+	}
+
+	BootCommon::globals["activate"] = sformat("%1", BootCommon::activate);
 
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
 	y2milestone ("Proposed globals: %1", BootCommon::globals);
@@ -492,147 +607,252 @@ global boolean Read (boolean reread) {
  */
 global boolean Save (boolean clean, boolean init, boolean flush) {
     // update list of devices
-    list<string> loader_devices = [BootCommon::loader_device];
-    if (backup_to_bootsector && contains (BootCommon::getPartitionList(`boot),
-	BootCommon::BootPartitionDevice))
-    {
-	if (loader_devices[0]:"" != nil && loader_devices[0]:"" != "/dev/null"
-	    && loader_devices[0]:"" != "")
-	{
-	    loader_devices[1] = BootCommon::BootPartitionDevice;
-	}
-	else
-	{
-	    loader_devices = [ BootCommon::BootPartitionDevice ];
-	}
-    }
-    list<list<string> > dev_lists = maplist (string d, loader_devices, {
-	if (substring (d, 0, 7) == "/dev/md")
-	{
-	    map<string,integer> md = BootCommon::Md2Partitions (d);
-	    if (Mode::test ())
-		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
-	    return maplist (string d, integer b, md, {
-		return d;
-	    });
-	}
-	if (d == "mbr_md")
-	{
-	    map<string,integer> md = BootCommon::Md2Partitions
-		(BootCommon::BootPartitionDevice);
-	    if (Mode::test ())
-		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
-	    return maplist (string d, integer b, md, {
-		map p_dev = Storage::GetDiskPartition (d);
-		return p_dev["disk"]:"";
-	    });
-	}
-	return [d];
-    });
-    loader_devices = flatten (dev_lists);
-    BootCommon::globals["stage1_dev"] = mergestring (loader_devices, ",");
+//     list<string> loader_devices = [BootCommon::loader_device];
+//     if (backup_to_bootsector && contains (BootCommon::getPartitionList(`boot),
+// 	BootCommon::BootPartitionDevice))
+//     {
+// 	if (loader_devices[0]:"" != nil && loader_devices[0]:"" != "/dev/null"
+// 	    && loader_devices[0]:"" != "")
+// 	{
+// 	    loader_devices[1] = BootCommon::BootPartitionDevice;
+// 	}
+// 	else
+// 	{
+// 	    loader_devices = [ BootCommon::BootPartitionDevice ];
+// 	}
+//     }
+
+    // get the list of device names to install the boot loader stage 1 into:
+    //   - for non-md devices, use just the device name
+    //   - for installation to md arrays: get the list of device names from
+    //     name of md array, either
+    //	     - just the container-partitions (according to yast2-storage) or
+    //         ("/dev/md0" -> ["/dev/hda1", ...])
+    //       - the (cut off) name of the corresponding disk devices
+    //         ("/dev/md0" -> ["/dev/hda1", ...] -> ["/dev/hda", ...])
+//     list<list<string> > dev_lists = maplist (string d, loader_devices, {
+// 	if (substring (d, 0, 7) == "/dev/md")
+// 	{
+// 	    map<string,integer> md = BootCommon::Md2Partitions (d);
+// 	    if (Mode::test ())
+// 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+// 	    return maplist (string d, integer b, md, {
+// 		return d;
+// 	    });
+// 	}
+// 	if (d == "mbr_md")
+// 	{
+// 	    map<string,integer> md = BootCommon::Md2Partitions
+// 		(BootCommon::BootPartitionDevice);
+// 	    if (Mode::test ())
+// 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+// 	    return maplist (string d, integer b, md, {
+// 		// get disk device name for this partition or disk device name
+// 		map p_dev = Storage::GetDiskPartition (d);
+// 		return p_dev["disk"]:"";
+// 	    });
+// 	}
+// 	return [d];
+//     });
+//     loader_devices = flatten (dev_lists);
+//     BootCommon::globals["stage1_dev"] = mergestring (loader_devices, ",");
 
     // now really save the settings
     boolean ret = BootCommon::Save (clean, init, flush);
+    importMetaData();
     return ret;
 }
 
 
-    /**
-      * Update read settings to new version of configuration files
-      */
-    global define void Update () ``{
-	BootCommon::UpdateDeviceMap ();
-	BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
-	BootCommon::UpdateGlobals ();
-	BootCommon::loader_device
-	    = BootCommon::UpdateDevice (BootCommon::loader_device);
-    }
-    /**
-      * Write bootloader settings to disk
-      * @return boolean true on success
-      */
-    global define boolean Write () ``{
-	BootCommon::updateMBR ();
-	boolean ret = BootCommon::UpdateBootloader ();
-	if (BootCommon::location_changed || BootCommon::InstallingToFloppy ())
-	{
-	    if (BootCommon::InstallingToFloppy ())
-	    {
-		if (! saveToFLoppyPopup ())
-		{
-		    y2error ("Preparing floppy disk failed.");
-		    ret = false;
-		}
-	    }
+/**
+ * Display bootloader summary
+ * @return a list of summary lines
+ */
+global define list<string> Summary () {
+    list<string> ret = [];
+    string lt = BootCommon::getLoaderType (false);
+    string ln = BootCommon::getLoaderName (lt, `summary);
 
-	    boolean grub_ret = BootCommon::InitializeBootloader ();
-	    y2milestone ("GRUB return value: %1", grub_ret);
-	    if (BootCommon::InstallingToFloppy ())
-	    {
-		BootCommon::updateTimeoutPopupForFloppy
-		    (BootCommon::getLoaderName ("grub", `summary));
-	    }
-	    ret = ret && grub_ret;
-	    ret = ret && BootCommon::PostUpdateMBR ();
+    if (lt == "none") {
+        ret = [ HTML::Colorize (ln, "red") ];
 	}
-	return ret;
+
+    // summary text, %1 is bootloader name (eg. LILO)
+    ret = add (ret, sformat (_("Boot Loader Type: %1"), ln));
+
+    // summary text, location is location description (eg. /dev/hda)
+    list<string> locations = [];
+
+    if (BootCommon::globals["boot_boot"]:"" == "true")
+        locations = add(locations, BootCommon::BootPartitionDevice);
+    if (BootCommon::globals["boot_root"]:"" == "true")
+        locations = add(locations, BootCommon::RootPartitionDevice);
+    if (BootCommon::globals["boot_mbr"]:"" == "true")
+        locations = add(locations, BootCommon::mbrDisk);
+    if (haskey (BootCommon::globals, "boot_custom"))
+        locations = add(locations, BootCommon::globals["boot_custom"]:"");
+
+    if (size(locations) > 0) {
+        // FIXME: should we translate all devices to names and add MBR suffixes?
+        ret = add (ret, sformat (_("Location: %1"),
+				 mergestring (locations, ", "))
+		   );
     }
 
-    global map<string,symbol()> Dialogs () {
-        return $[
-	    "installation"  : i386InstallDetailsDialog,
-    	    "loader"        : i386LoaderDetailsDialog,
-        ];
+    // summary text. %1 is list of bootloader sections
+    list<string> sects = [];
+    foreach (map<string,any> s, BootCommon::sections, {
+        string title = s["name"]:"";
+	// section name "suffix" for default section
+	string def = title == BootCommon::globals["default"]:"" ? _(" (default)") : "";
+	sects = add (sects, sformat ("%1%2", title, def));
+    });
+
+    ret = add (ret, sformat (_("Sections: %1"),
+	       String::EscapeTags (mergestring (sects, ", "))));
+
+    if (size(locations) == 0) {
+        // summary text
+        ret = add (ret, _("Do not install boot loader; just create configuration files"));
     }
 
-    /**
-      * Return map of provided functions
-      * @return a map of functions (eg. $["write"::Write])
-      */
-    global map<string, any> GetFunctions () ``{
-	return $[
-            "read"	: Read,
-            "reset"	: Reset,
-            "propose"	: Propose,
-            "save"	: Save,
-	    "summary"	: BootCommon::i386Summary,
-            "update"	: Update,
-            "write"	: Write,
-	    "dialogs"	: Dialogs,
-	];
-    }
-
-    /**
-      * Initializer of GRUB bootloader
-      */
-    global define void Initializer () ``{
-	y2milestone ("Called GRUB initializer");
-	BootCommon::current_bootloader_attribs = $[
-	    "alias_keys" : [],
-	    "update_passwd" : BootGRUB::updatePasswdBeforeSave,
-	    "propose" : true,
-	    "read" : true,
-	    "scratch" : true,
-	    "additional_entries" : [`item (`id (`propose_deep),
-		// menubutton item, keep as short as possible
-		_("Propose and &Merge with Existing GRUB Menus"))],
-	    "restore_mbr" : true,
-	    "key_only_once" : false,
-	    "bootloader_on_disk" : true,
-	];
-    }
-
-    /**
-      * Constructor
-      */
-    global define void BootGRUB () ``{
-	BootCommon::bootloader_attribs["grub"] = $[
-	    "required_packages" : ["grub"],
-	    "loader_name" : "GRUB",
-	    "initializer" : BootGRUB::Initializer,
-	];
-    }
-
-
+    string order_sum = BootCommon::DiskOrderSummary ();
+    if (order_sum != nil)
+	ret = add (ret, order_sum);
+    return ret;
 }
+
+
+/**
+  * Update read settings to new version of configuration files
+  */
+global define void Update () {
+    BootCommon::UpdateDeviceMap ();
+    BootCommon::UpdateSections (true, CreateLinuxSection);
+    BootCommon::UpdateGlobals ();
+}
+
+
+/**
+  * Write bootloader settings to disk
+  * @return boolean true on success
+  */
+global define boolean Write () ``{
+    BootCommon::updateMBR ();
+    boolean ret = BootCommon::UpdateBootloader ();
+    if (BootCommon::location_changed || BootCommon::InstallingToFloppy ()) {
+        if (BootCommon::InstallingToFloppy ()) {
+	    if (! saveToFLoppyPopup ()) {
+	        y2error ("Preparing floppy disk failed.");
+		ret = false;
+	    }
+        }
+	
+        boolean grub_ret = BootCommon::InitializeBootloader ();
+        y2milestone ("GRUB return value: %1", grub_ret);
+        if (BootCommon::InstallingToFloppy ()) {
+	    BootCommon::updateTimeoutPopupForFloppy
+	      (BootCommon::getLoaderName ("grub", `summary));
+	}
+        ret = ret && grub_ret;
+        ret = ret && BootCommon::PostUpdateMBR ();
+    }
+    return ret;
+}
+
+
+global symbol WizardSequenzer() {
+    y2milestone("Call generic WizardSequenzer");
+    return `generic_new;
+}
+
+
+global map<string,symbol()> Dialogs () {
+    return $[
+	"loader"	: genericBootLoaderOptionsDialog,
+    ];
+}
+
+
+/**
+  * Return map of provided functions
+  * @return a map of functions (eg. $["write"::Write])
+  */
+global map<string, any> GetFunctions () {
+    return $[
+         //"export"	   : Export,
+         //"import"	   : Import,
+        "read"		   : Read,
+        "reset"		   : Reset,
+        "propose"	   : Propose,
+        "save"		   : Save,
+        "summary"	   : Summary,
+        "update"	   : Update,
+        "write"		   : Write,
+        "widgets"	   : genericWidgets,
+        "wizard_sequencer" : WizardSequenzer,
+        "dialogs"	   : Dialogs,
+        "section_types"	   : section_types,
+    ];
+}
+
+/**
+  * Initializer of GRUB bootloader
+  */
+global define void Initializer () {
+    y2milestone ("Called GRUB initializer");
+    BootCommon::current_bootloader_attribs = $[
+        "alias_keys" : [],
+        "update_passwd" : BootGRUB::updatePasswdBeforeSave,
+        "propose" : true,
+        "read" : true,
+        "scratch" : true,
+        "additional_entries" : [`item (`id (`propose_deep),
+    	// menubutton item, keep as short as possible
+    	_("Propose and &Merge with Existing GRUB Menus"))],
+        "restore_mbr" : true,
+        "key_only_once" : false,
+        "bootloader_on_disk" : true,
+    ];
+
+    BootCommon::help_messages = (map<string,string>)
+      union(BootCommon::help_messages,
+    	mapmap(string key, string val, grub_help_messages,
+    	    { return $[ "grub_" + key : val ]; }
+    	       )
+    	);
+    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
+    BootCommon::descriptions = (map<string,string>)
+      union(BootCommon::descriptions,
+    	mapmap(string key, string val, grub_descriptions,
+    	    { return $[ "grub_" + key : val ]; }
+    	       )
+    	);
+    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
+
+    BootCommon::InitializeLibrary (false, "grub");
+    importMetaData();
+}
+
+/**
+  * Constructor
+  */
+global define void BootGRUB () {
+    BootCommon::bootloader_attribs["grub"] = $[
+	"required_packages" : ["grub"],
+	"loader_name" : "GRUB",
+	"initializer" : BootGRUB::Initializer,
+    ];
+}
+
+} // EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */

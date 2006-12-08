@@ -22,6 +22,7 @@
 
     import "Arch";
     import "BootCommon";
+    import "Installation";
     import "Initrd";
     import "Kernel";
     import "Mode";
@@ -66,6 +67,13 @@
       * Configuration was changed during inst. proposal if true
       */
     global boolean proposed_cfg_changed = false;
+
+    /**
+     * Cache for the installation proposal
+     */
+    global map cached_proposal = nil;
+    global map cached_settings = $[];
+    global integer cached_settings_base_data_change_time = nil;
 
 // old vga value handling function
 
@@ -239,6 +247,8 @@
       */
     global define void Propose () {
 	y2milestone ("Proposing configuration");
+	// have a current target map available in the log when we debug
+	y2debug ("Unfiltered target map: %1", (map<string,map>)Storage::GetTargetMap());
 	BootCommon::UpdateInstallationKernelParameters ();
 	blPropose ();
 	BootCommon::was_proposed = true;
@@ -407,7 +417,7 @@
 	// Initialize device mapper and LVM in target system
 	if (Stage::initial () || Mode::update ())
 	{
-	    # FIXME: should be handled by partitioner
+	    // FIXME: should be handled by partitioner
 	    map out = (map)SCR::Execute (.target.bash_output,
 		"test -f /sbin/devmap_mknod.sh && /sbin/devmap_mknod.sh;" +
 		"test -f /sbin/vgscan && /sbin/vgscan --mknodes"
@@ -544,6 +554,94 @@
     }
 
 // sections handling functions
+
+/**
+  * Resolve a single symlink in key image_key in section map s
+  * @param section map map of section to change
+  * @param image_key string key in section that contains the link
+  * @return section map of the changed section
+  */
+global define map<string,any> ResolveSymlink(map<string,any> section, string key) {
+    // The "-m" is needed in case the link is an absolute link, so that it does
+    // not fail to resolve when the root partition is mounted in
+    // Installation::destdir.
+    string readlink_cmd = "/usr/bin/readlink -n -m " + Installation::destdir;
+    map out = $[];
+    string newval = "";
+
+    // FIXME: find out why we need WFM::Execute() here (as olh used it above)
+    out = (map) WFM::Execute (.local.bash_output, readlink_cmd + section[key]:"");
+    if ( out["exit"]:0 == 0 && out["stdout"]:"" != "" ) {
+	newval = substring(out["stdout"]:"", size(Installation::destdir));
+	y2milestone("section %1: converting old %2 parameter from %3 to %4",
+	    section["name"]:"", key, section[key]:"", newval);
+	section[key] = newval;
+    } else {
+	y2error ("section %1: failed to remap %2 parameter",
+	    section["name"]:"", key);
+    }
+
+    return section;
+//  y2milestone("old kernel parameter in section %1: %2", s["name"], s["kernel"]);
+//  s["kernel"] = SCR::Execute (.target.bash, "/usr/bin/readlink " + s["kernel"]);
+//  y2milestone("converted kernel parameter to: %2", s["kernel"]);
+}
+
+/**
+  * Resolve symlinks in kernel and initrd paths, for existing linux, xen and
+  * failsafe sections
+  */
+// FIXME: this is the plan B solution, try to solve plan A in
+//        BootCommon.ycp:CreateLinuxSection() (line 435)
+global define void ResolveSymlinksInSections() {
+    list image_key_names = ["kernel", "image"];
+    string image_key_name = "";
+    integer i = 0;
+
+    y2milestone("sections before remapping: %1", BootCommon::sections);
+
+    // change only linux, failsafe and xen sections
+    BootCommon::sections = maplist (map<string,any> s, BootCommon::sections, {
+	// skip sections that are not linux, xen or failsafe
+	if ( !contains ( ["linux", "xen"] , s["original_name"]:"") ||
+	     !contains ( ["image", "xen"] , s["type"]:"") ) {
+	    y2milestone("section %1: not linux or xen, skipping kernel and initrd remapping",
+		s["name"]:"");
+	    return s;
+	}
+
+	// first, resolve kernel link name
+	i = 0;
+	while ( i < size(image_key_names) ) {
+	    image_key_name = image_key_names[i]:"";
+	    // also skip sections that start with a grub device name
+	    // "(hd0,7)/boot/vmlinuz", and are not on the default (currently
+	    // mounted) boot partition
+	    if ( haskey (s, image_key_name) ) {
+		if ( !regexpmatch(s[image_key_name]:"", "^\(hd.*\)") ) {
+		    s = ResolveSymlink(s, image_key_name);
+		} else {
+		    y2milestone("section %1: skipping remapping kernel symlink on other partition: %2",
+			s["name"]:"", s[image_key_name]:"");
+		}
+	    }
+	    i = i + 1;
+	}
+	// resolve initrd link name, but skip if it is on a non-default boot
+	// partition (see above)
+	if ( haskey (s, "initrd") ) {
+	    if ( !regexpmatch(s["initrd"]:"", "^\(hd.*\)") ) {
+		s = ResolveSymlink(s, "initrd");
+	    } else {
+		y2milestone("section %1: skipping remapping initrd symlink on other partition: %2",
+		    s["name"]:"", s["initrd"]:"");
+	    }
+	}
+	return s;
+    });
+
+    y2milestone("sections after remapping: %1", BootCommon::sections);
+}
 
     /**
       * return default section label

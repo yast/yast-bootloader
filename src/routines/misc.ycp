@@ -1196,6 +1196,12 @@ global list<string> ListKernelParamsInLine (string line) {
       * @return boolean true on success
       */
     global define boolean updateMBR () ``{
+      	// FIXME: do the real thing in perl_Bootloader
+      	if (getLoaderType (false) == "grub") {  
+      	    activate = ( globals["activate"]:"false" == "true" );
+      	    repl_mbr = ( globals["generic_mbr"]:"false" == "true" );
+      	}
+
 	y2milestone ("Updating disk system area, activate partition: %1, replace MBR: %2", activate, repl_mbr);
 	if (backup_mbr)
 	{
@@ -1211,6 +1217,10 @@ global list<string> ListKernelParamsInLine (string line) {
 	    });
 	}
 	boolean ret = true;
+	// if the bootloader stage 1 is not installed in the MBR, but
+	// ConfigureLocation() asked us to replace some problematic existing
+	// MBR, then overwrite the boot code (only, not the partition list!) in
+	// the MBR with a generic (currently DOS?) bootloader
 	if (repl_mbr && BootCommon::loader_device != mbrDisk)
 	{
 	    if (! Stage::initial ())
@@ -1263,7 +1273,7 @@ global list<string> ListKernelParamsInLine (string line) {
 		    // FIXME: investigate proper handling of the activate flag
 		    // (kernel ioctls in parted etc.) and fix parted
 		    string command = sformat
-			("/sbin/activate %2 %1", num, mbr_dev);
+			("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
 		    y2milestone ("Running command %1", command);
 		    map out = (map)SCR::Execute (.target.bash_output, command);
 		    integer exit = out["exit"]:0;

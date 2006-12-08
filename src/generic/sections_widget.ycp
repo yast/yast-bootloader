@@ -1,6 +1,6 @@
 /**
  * File:
- *      include/bootloader/ppc/ppc_sections_widget.ycp
+ *      include/bootloader/generic/sections_widget.ycp
  *
  * Module:
  *      Bootloader installation and configuration
@@ -81,6 +81,9 @@ void _RedrawSectionsTable (list<map<string,any> > sects) {
 	    ),
 	    ", "
 	);
+	// Upcase word 'type'
+	type = toupper(substring(type,0,1)) + substring(type,1);
+
         return `item (`id (name),
 	    BootCommon::globals["default"]:"" == name ? UI::Glyph (`CheckMark) : "",
 	    name,

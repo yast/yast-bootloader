@@ -1,6 +1,6 @@
 /**
  * File:
- *      include/bootloader/routines/widgets.ycp
+ *      include/bootloader/routines/sections_widgets.ycp
  *
  * Module:
  *      Bootloader installation and configuration
@@ -9,7 +9,7 @@
  *      Common widgets for being used by several bootloaders
  *
  * Authors:
- *      Jiri Srain <jsrain@suse.cz>
+ *      Joachim Plack <jplack@suse.de>
  *
  * $Id$
  *
@@ -25,9 +25,6 @@ import "Label";
 import "Stage";
 
 include "bootloader/generic/widget_funcs.ycp";
-
-
-
 
 
 /**
@@ -69,16 +66,16 @@ void _SectionNameStore (string widget, map event) {
 /**
  * Cache for CommonSectionWidgets
  */
-map<string,map<string,any> > _ppc_common_section_widgets = nil;
+map<string,map<string,any> > _generic_common_section_widgets = nil;
 
 /**
  * Get common widgets for loader sections
  * @return a map describing common loader section related widgets
  */
 map<string,map<string,any> > _CommonSectionWidgets () {
-    if (_ppc_common_section_widgets == nil)
+    if (_generic_common_section_widgets == nil)
     {
-	  _ppc_common_section_widgets = $[
+	  _generic_common_section_widgets = $[
 	    "name" : $[
 		// text entry
 		"label" : _("Section &Name"),
@@ -90,7 +87,7 @@ map<string,map<string,any> > _CommonSectionWidgets () {
 	    ],
 	];
     }
-    return _ppc_common_section_widgets;
+    return _generic_common_section_widgets;
 }
 
 } // include end

@@ -133,7 +133,7 @@ global boolean InitializeLibrary (boolean force, string loader) {
         return false;
 
     y2milestone ("Initializing lib for %1", loader);
-    System::Bootloader_API::initBootloader (loader);
+    System::Bootloader_API::setLoaderType (loader);
     y2milestone ("Putting partitioning into library");
     // pass all needed disk/partition information to library
     SetDiskInfo();
@@ -154,10 +154,7 @@ global boolean SetSections (list<map<string,string> > sections) {
 	s = filter (string key, string value, s, {
 	    return (! is (value, string)) || (value != "");
 	});
-	// FIXME: this distinction should be done in perl-Bootloader,
-	// this is not generic
-	if (s["type"]:"" == "xen")
-	    s["type"] = "image";
+
 	return s;
     });
     boolean ret = System::Bootloader_API::setSections (sections);
@@ -188,11 +185,11 @@ global list<map<string,string> > GetSections () {
  * @return boolean true on success
  */
 global boolean SetGlobal (map<string,string> globals) {
-    y2milestone ("Storing global options %1", globals);
+    y2milestone ("Storing global settings %1", globals);
     globals["__modified"] = "1";
-    boolean ret = System::Bootloader_API::setGlobalOptions (globals);
+    boolean ret = System::Bootloader_API::setGlobalSettings (globals);
     if (! ret)
-	y2error ("Storing global options failed");
+	y2error ("Storing global settings failed");
     return ret;
 }
 
@@ -201,15 +198,37 @@ global boolean SetGlobal (map<string,string> globals) {
  * @return a map of global bootloader options
  */
 global map<string,string> GetGlobal () {
-    y2milestone ("Reading bootloader global options");
-    map<string,string> glob = System::Bootloader_API::getGlobalOptions ();
+    y2milestone ("Reading bootloader global settings");
+    map<string,string> glob = System::Bootloader_API::getGlobalSettings ();
     if (glob == nil)
     {
-	y2error ("Reading global options failed");
+	y2error ("Reading global settings failed");
 	return $[];
     }
-    y2milestone ("Read global options: %1", glob);
+    y2milestone ("Read global settings: %1", glob);
     return glob;
+}
+
+/**
+ * Get bootloader configuration meta data such as field type descriptions
+ * @return a map of meta data for global and section entries
+ */
+global map<string,string> GetMetaData () {
+    y2milestone ("Reading meta data for global and section settings");
+    // FIXME: DiskInfo should be read directly by perl-Bootloader
+    // send current disk/partition information to perl-Bootloader
+    SetDiskInfo();
+
+    y2milestone ("Calling getMetaData");
+    map<string,string> meta = System::Bootloader_API::getMetaData ();
+    y2milestone ("Returned from getMetaData");
+    if (meta == nil)
+    {
+	y2error ("Reading meta data failed");
+	return $[];
+    }
+    y2milestone ("Read meta data settings: %1", meta);
+    return meta;
 }
 
 /**
@@ -265,7 +284,7 @@ global void bootloaderError (string error) {
  */
 global boolean ReadFiles () {
     y2milestone ("Reading Files");
-    boolean ret = System::Bootloader_API::initConfig ();
+    boolean ret = System::Bootloader_API::readSettings ();
     if (! ret)
 	y2error ("Reading files failed");
     return ret;
@@ -277,7 +296,7 @@ global boolean ReadFiles () {
  */
 global boolean CommitSettings () {
     y2milestone ("Writing files to system");
-    boolean ret = System::Bootloader_API::commitSettings ();
+    boolean ret = System::Bootloader_API::writeSettings ();
     if (! ret)
 	bootloaderError ("Writing files to system failed");
     return ret;
@@ -330,7 +349,7 @@ global map<string,string> GetFilesContents () {
  */
 global boolean SetFilesContents (map<string,string> files) {
     y2milestone ("Storing contents of files");
-    boolean ret = System::Bootloader_API::setFilesFromStrings (files);
+    boolean ret = System::Bootloader_API::setFilesContents (files);
     if (! ret)
 	y2error ("Setting file contents failed");
     return ret;

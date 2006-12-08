@@ -1,3 +1,4 @@
+
 /**
  * File:
  *      modules/BootPOWERLILO.ycp
@@ -83,15 +84,27 @@ global string boot_device = "";
 
 string board_type = nil;
 
+
 global define string getBoardType ();
 global define void setBoardType (string board);
 global define void currentBoardInit ();
 
-include "bootloader/routines/popups.ycp";
 include "bootloader/ppc/misc.ycp";
 include "bootloader/ppc/prep.ycp";
 include "bootloader/ppc/chrp.ycp";
 include "bootloader/ppc/iseries.ycp";
+
+/*
+ * include ppc specific help messages
+ */
+include "bootloader/ppc/helps.ycp";
+
+/*
+ * read my dialogs
+ */
+include "bootloader/routines/popups.ycp"; // define confirmSectionDeletePopup
+include "bootloader/generic/dialogs.ycp";
+
 
 // misc. functions
 
@@ -154,84 +167,54 @@ global define void setBoardType (string board) {
  }
 
 
-
-
-/**
- * map of global options and types
- */
-global map<string,any> global_options = $[];
-
-/**
- * map of section options and types
- */
-global map<string,any>   section_options = $[];
-
-/**
- * map of other exported information
- */
-global map<string,any>   exports = $[];
-
-
-/*
- * include ppc specific help messages
- */
-include "bootloader/ppc/helps.ycp";
-
-/*
- * read my dialogs
- */
-include "bootloader/ppc/dialogs.ycp";
-
-void extract_exports_from_globals() {
-    // Extract exports from globals
-    foreach(string key, any value, BootCommon::globals, {
-        if (substring (key, 0, size ("__exports__")) != "__exports__")
-            continue;
-        key = substring(key, size("__exports__"));
-
-        if (substring (key, 0, 1) == "%") {
-            list<string> s = splitstring(key,"%");
-            string hash = s[1]:"";
-
-            key = substring(key, 2 + size(hash));
-            if (hash == "global_options") {
-                global_options[key] = value;
-            }
-            else if (hash == "section_options") {
-                section_options[key] = value;
-            }
-            else {
-                if ( !haskey(exports, hash) ) exports[hash] = $[];
-                exports[hash, key] = value;
-            }
-        }
-        else if (substring (key, 0, 1) == "#") {
-            list<string> s = splitstring(key,"#");
-            string array = s[1]:"";
-
-            key = substring(key, 2 + size(array));
-            if ( ! haskey(exports, array) ) exports[array] = [];
-            exports[array, tointeger(key)] = value;
-        }
-        else {
-            exports[key] = value;
-        }
-    });
-    // delete all __exports__ option tags from BootCommon::globals
-    BootCommon::globals = filter (string key, string value, BootCommon::globals, {
-        return (substring (key, 0, size ("__exports__")) != "__exports__");
-    });
-}
-
 /**
  * Create section for bootable image
  * @param   title   string	the section name to create (untranslated)
  * @return	    map		describes the section
  */
 map<string,any> CreateImageSection (string title) {
-    // code removed: no wildcard entries possible on ppc (yaboot)
-    string image_fn = "/boot/" + Kernel::GetBinary ();
-    string initrd_fn = "/boot/initrd";
+
+    // FIXME: This really should be a function and not be duplicated in
+    //        BootCommon.ycp (although that code there also handles wildcard
+    //        entries for lilo)
+    // FIXME:
+    // This only works in the installed system (problem with GetFinalKernel))),
+    // in all other cases we use the symlinks.
+
+    string image_fn = "";
+    string initrd_fn = "";
+
+    if (Mode::normal ()) {
+	// Find out the file names of the "real" kernel and initrd files, with
+	// version etc. pp. whatever (currently version-flavor) attached.
+	//
+	// First, get the file names in the "selected" kernel package,
+	string kernel_package = Kernel::GetFinalKernel();
+	list<string> files = Pkg::PkgGetFilelist( kernel_package, `any );
+	y2milestone ("kernel package %1 has these files: %2", kernel_package, files);
+
+	// then find the first file that matches the arch-dependent kernel file
+	// name prefix and the initrd filename prefix.
+	string kernel_prefix = "/boot/" + Kernel::GetBinary ();
+	string initrd_prefix = "/boot/initrd";
+
+	list<string> files_filtered = filter (string file, files, {
+	    return ( substring(file, 0, size(kernel_prefix)) == kernel_prefix );
+	});
+	image_fn = files_filtered[0]:"";
+
+	files_filtered = filter (string file, files, {
+	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix ;
+	});
+	initrd_fn = files_filtered[0]:"";
+    } else {
+	// code removed: no wildcard entries possible on ppc (yaboot)
+	image_fn = "/boot/" + Kernel::GetBinary ();
+	initrd_fn = "/boot/initrd";
+    }
+    // done: image_fn and initrd_fn are the results
+    y2milestone ("image_fn: %1 initrd_fn: %2", image_fn, initrd_fn);
+
     map<string,any> ret = $[
 	"type" : "image",
 	"name" : title,
@@ -247,20 +230,6 @@ map<string,any> CreateImageSection (string title) {
     ];
     return ret;
 }
-
-void     change_widget_default_value (string itemname, string defaultvalue) {
-    // Put defaultvalue as default value into widget description item like
-    // "boot_{chrp,prep,iseries,...}_custom".
-    // Example:
-    // "select:PReP or FAT partition::/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1" ->
-    // "select:PReP or FAT partition:/dev/sda3:/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1"
-    string old_description = global_options[itemname]:"";
-    global_options[itemname] =
-	regexpsub( old_description, "^([^:]*:[^:]*:).*$", "\\1") +
-	defaultvalue +
-	regexpsub( old_description, "^[^:]*:[^:]*:[^:]*(:.*)$", "\\1");
-}
-
 
 /**
   * Choose a boot partition on pmac
@@ -359,7 +328,7 @@ global void LocationProposal () {
 	y2milestone("Root partition is %1", BootCommon::RootPartitionDevice);
 */
 
-    string arch = exports["arch"]:"chrp";
+    string arch = BootCommon::exports["arch"]:"chrp";
     if ( arch == "chrp" ) {
 /*  FIXME: remove this code (it was a simple proposal)
 	// FIXME: really detect the boot partition (instead of leaving this to
@@ -372,23 +341,35 @@ global void LocationProposal () {
 */
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	// also set as default value in widget
-	change_widget_default_value("boot_chrp_custom", prep_boot_partition);
+	BootCommon::change_widget_default_value("boot_chrp_custom", prep_boot_partition);
     }
     else if ( arch == "prep" ) {
 	BootCommon::BootPartitionDevice = prep_boot_partition;
-	change_widget_default_value("boot_prep_custom", prep_boot_partition);
+	BootCommon::change_widget_default_value("boot_prep_custom", prep_boot_partition);
     }
     else if ( arch == "iseries" ) {
 	BootCommon::BootPartitionDevice = prep_boot_partition;
-	change_widget_default_value("boot_iseries_custom", prep_boot_partition);
+	BootCommon::change_widget_default_value("boot_iseries_custom", prep_boot_partition);
     }
     else if ( arch == "pmac" ) {
 	BootCommon::BootPartitionDevice = GoodPmacBootPartition();
-	change_widget_default_value("boot_pmac_custom", BootCommon::BootPartitionDevice);
+	BootCommon::change_widget_default_value("boot_pmac_custom", BootCommon::BootPartitionDevice);
     }
 
-    // These need to be set (FIXME: find out why) --
-    // see ConfigureLocation() in lilolike.ycp
+    // These need to be set, for POWERLILO probably only to interface with
+    // autoyast, others base subsequent decisions on this.
+    // See ConfigureLocation() in lilolike.ycp.
+    //
+    // Mini-discussion: If autoyast is mainly used to clone configs, the
+    // loader_device and repl_mbr interface is enough, because loader_device
+    // simply contains the name of the device (partition, disk MBR, RAID
+    // device) to use for the bootloader.
+    // But if autoyast some day is used to transport configurations to less
+    // similar machines and setups, or to specify some sort of generic setup
+    // with special settings that will work on most machines, it may (or may
+    // not) be helpful to be able to specify boot_* variables in the autoyast
+    // file. This may apply better to the boot_* variables in BootGRUB.ycp
+    // though.
     BootCommon::loader_device = BootCommon::BootPartitionDevice;
     BootCommon::activate = true;
     y2milestone("Boot partition is %1", BootCommon::loader_device);
@@ -428,7 +409,7 @@ global void CreateGlobals () {
 	"timeout" : "80",
     ];
 
-    string arch = exports["arch"]:"chrp";
+    string arch = BootCommon::exports["arch"]:"chrp";
     map<string, string> boot_map = $[];
 
     y2milestone("RootPartDevice is %1",BootCommon::RootPartitionDevice);
@@ -687,10 +668,7 @@ global define boolean Import (map settings) {
  * @return boolean true on success
  */
 global boolean Read (boolean reread) {
-    if (!BootCommon::InitializeLibrary (reread, "ppc")) {
-        // send current disk/partition information to perl-Bootloader
-	BootCommon::SetDiskInfo ();
-    }
+    BootCommon::InitializeLibrary (reread, "ppc");
     if (reread) {
 	BootCommon::ReadFiles ();
     }
@@ -701,7 +679,7 @@ global boolean Read (boolean reread) {
     boolean ret = BootCommon::Read (false);
     y2milestone (":: Read globals: %1", BootCommon::globals);
 
-    extract_exports_from_globals();
+    importMetaData();
 
     return ret;
 }
@@ -769,6 +747,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if (flush)
 	ret = ret && BootCommon::CommitSettings ();
 
+    importMetaData();
     return ret;
 }
 
@@ -798,7 +777,7 @@ global define list<string> Summary () {
     string boot_loader_locations =
         mergestring(
 	    filter( string bll,
-		maplist( string key, any value, global_options, {
+		maplist( string key, any value, BootCommon::global_options, {
 		    return (substring(key,0,5) == "boot_")
 		            ? BootCommon::globals[key]:"" : "";
 		}),
@@ -930,7 +909,7 @@ global void Update () {
 	}
 
 	// remove console= entries from kernel parameters, console auto
-	// detection now works. For special sections take what´s given on boot
+	// detection now works. For special sections take what's given on boot
 	// command line
 	string console = "false"; // false means delete to 'setKernelParamToLine'
 	if (contains (BootCommon::update_section_types, oname))
@@ -1026,7 +1005,7 @@ blMainSequence () {
     else
 	return `generic;
 */
-    y2milestone("Call PPC WizardSequenzer");
+    y2milestone("Call generic WizardSequenzer");
     return `generic_new;
 }
 
@@ -1034,7 +1013,7 @@ blMainSequence () {
 global map<string,symbol()> Dialogs () {
     // PPC definitly needs other text modules
     return $[
-	"loader"	: ppcBootLoaderOptionsDialog,
+	"loader"	: genericBootLoaderOptionsDialog,
 //	"installation"	: ppcInstallDetailsDialog,
     ];
 }
@@ -1055,7 +1034,7 @@ global map<string, any> GetFunctions () {
 	"summary"	   : Summary,
 	"update"	   : Update,
 	"write"		   : Write,
-	"widgets"	   : ppcWidgets,
+	"widgets"	   : genericWidgets,
 	"wizard_sequencer" : WizardSequenzer,
 	"dialogs"	   : Dialogs,
 	"section_types"	   : section_types,
@@ -1086,24 +1065,10 @@ global void Initializer () {
 		     { return $[ "ppc_" + key : val ]; }
 		     )
 	      );
-    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-    // always read the config from perl-Bootloader as were piping our
-    // type discription through here
-    // FIXME: This is a hack: we need another interface to get the
-    // type descriptions
-    if(!BootCommon::InitializeLibrary (false, "ppc")) {
-        // send current disk/partition information to perl-Bootloader
-	BootCommon::SetDiskInfo ();
-    };
-    BootCommon::globals = (map<string,string>)
-	union(BootCommon::globals,
-	    filter(string key, string val, BootCommon::GetGlobal(),
-		{ return substring (key, 0, size ("__exports__")) == "__exports__"; }
-		)
-	    );
-    extract_exports_from_globals();
+    y2debug("Initialized descriptions to %1", BootCommon::descriptions);
 
-    y2milestone ("Read exports into globals: %1", BootCommon::globals);
+    BootCommon::InitializeLibrary (false, "ppc");
+    importMetaData();
 }
 
 /**
@@ -1128,3 +1093,4 @@ global void BootPOWERLILO () {
  *     fill-column: 78
  * End:
  */
+

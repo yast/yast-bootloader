@@ -1,6 +1,6 @@
 /**
  * File:
- *      include/bootloader/ppc/ppc_section_type_widget.ycp
+ *      include/bootloader/generic/section_type_widget.ycp
  *
  * Module:
  *      Bootloader installation and configuration
@@ -37,7 +37,7 @@ map<string,any> ST_options () {
     {
 	_st_options = (map<string,any>)union(
 	    $[ "type_clone":"bool:Clone Selected Section" ],
-	    filter( string key, any value, section_options, {
+	    filter( string key, any value, BootCommon::section_options, {
 		return substring(key,0,5) == "type_";
 	    })
 	);

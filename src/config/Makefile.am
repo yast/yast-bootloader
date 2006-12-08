@@ -21,5 +21,7 @@ endif
 
 endif
 
+rncdir =  $(schemadir)/autoyast/rnc
+rnc_DATA = bootloader.rnc
 
-EXTRA_DIST = bootloader.desktop bootfloppy.desktop
+EXTRA_DIST = bootloader.desktop bootfloppy.desktop bootloader.rnc

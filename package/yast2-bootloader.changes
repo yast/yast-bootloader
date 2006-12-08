@@ -1,8 +1,371 @@
 -------------------------------------------------------------------
+Fri Dec  8 19:14:25 CET 2006 - od@suse.de
+
+- related to help_messages and descriptions:
+  - added comments to generic_Description() and the descriptions
+    variable
+  - corrected one warning and one debug message
+  - renamed arch_widget_name to loader_widget_name, matching new
+    functionality
+- 2.15.1
+
+-------------------------------------------------------------------
+Fri Dec  8 15:40:38 CET 2006 - jplack@suse.de
+
+- basic implementation for generic bootloader widgets for ELILO
+  (Fate#300732)
+
+-------------------------------------------------------------------
+Fri Dec  8 12:03:16 CET 2006 - jplack@suse.de
+
+- more zipl changes for Fate#300732
+- merge elilo/misc into basic module
+
+-------------------------------------------------------------------
+Fri Dec  8 11:25:20 CET 2006 - jplack@suse.de
+
+- basic implementation for generic bootloader widgets for ZIPL
+  (Fate#300732)
+
+-------------------------------------------------------------------
+Fri Dec  1 16:58:24 CET 2006 - od@suse.de
+
+- use kernel and initrd softlinks in Failsafe entry again, thus
+  preventing the removal of the Failsafe entry when the kernel is
+  updated (#224481)
+- 2.14.15
+
+-------------------------------------------------------------------
+Fri Dec  1 11:32:49 CET 2006 - jplack@suse.de
+
+- signal change of boot loader location so that the boot loader can
+  be rewritten if needed (#225023)
+- 2.14.14
+
+-------------------------------------------------------------------
+Fri Nov 24 19:35:33 CET 2006 - aosthof@suse.de
+
+- fixed usage of function remove()
+- added FIXME
+- fixed typo in comment
+- actually use sorted DMTargetMap by adding bios_ids (#223473)
+- 2.14.13
+
+-------------------------------------------------------------------
+Fri Nov 24 17:03:10 CET 2006 - od@suse.de
+
+- fixed typo in a comment
+- added a FIXME in BootCommon
+- added kernel and image file link resolve code to
+  BootPOWERLILO.ycp (adapted from BootCommon.ycp)
+- Fix broken bootloader configuration on ppc: initialize library
+  at the appropriate point again (#210535)
+- 2.14.12
+
+-------------------------------------------------------------------
+Fri Nov 24 14:47:00 CET 2006 - aosthof@suse.de
+
+- Sorted DMTargetMap in lilolike.ycp to match the BIOS order
+  (#223473)
+- Fixed typos in lilolike.ycp
+- 2.14.11
+
+-------------------------------------------------------------------
+Wed Nov 22 17:08:09 CET 2006 - ug@suse.de
+
+- schema file fixes (#215263)
+
+-------------------------------------------------------------------
+Wed Nov 22 09:33:25 CET 2006 - aosthof@suse.de
+
+- Fixed typo in lilolike.ycp (#223145)
+- 2.14.10
+
+-------------------------------------------------------------------
+Tue Nov 21 20:59:51 CET 2006 - aosthof@suse.de
+
+- Fixed target map for dmraids (aka FakeRAIDs) in lilolike.ycp
+  (#222471)
+- 2.14.9
+
+-------------------------------------------------------------------
+Tue Nov 21 14:56:00 CET 2006 - od@suse.de
+
+- have a current target map available in the log when we debug
+- added y2milestone()s around remapping
+- fix forgetting to rewrite some kernel/image entries (ycp really
+  should have a for loop, so resetting variables is not forgotten)
+  (#214935)
+- 2.14.8
+
+-------------------------------------------------------------------
+Tue Nov 21 14:29:08 CET 2006 - jplack@suse.de
+
+- UpdateInitrdLine function is old, broken, rotten and completely
+  useless now
+
+-------------------------------------------------------------------
+Tue Nov 21 11:45:46 CET 2006 - jplack@suse.de
+
+- suppress newline from readlink command, breaks config files
+- 2.14.7
+
+-------------------------------------------------------------------
+Tue Nov 21 10:16:22 CET 2006 - jplack@suse.de
+
+- "activate" and "generic_mbr" do now get set if newly proposed
+
+-------------------------------------------------------------------
+Mon Nov 20 22:57:32 CET 2006 - od@suse.de
+
+- #214935:
+  - added more comments
+  - only resolve symlinks for linux, xen and failsafe sections,
+    type image and xen
+  - do not resolve symlinks for files that are not on the default
+    boot partition (because they have a grub device name prefix)
+  - added more logging
+  - actually use the resolved symlinks for kernel and initrd
+- moved some comments to the right position in the code
+- 2.14.6
+
+-------------------------------------------------------------------
+Mon Nov 20 16:10:03 CET 2006 - jplack@suse.de
+
+- quick fix for problems with Xen pattern selection (#208380):
+  never use cached_proposal for now
+
+-------------------------------------------------------------------
+Mon Nov 20 15:52:07 CET 2006 - od@suse.de
+
+- reverted initrd and kernel names to links for everything but
+  Mode::normal() (#214935)
+- resolve symlinks for kernel and initrd during inst_finish, so
+  that the "real names" are put into the bootloader configuration
+  -- this is the plan B solution, plan A (which shows correct
+  filenames instead of link names in the proposal) does not
+  currently work (#214935)
+- 2.14.4
+
+-------------------------------------------------------------------
+Mon Nov 20 15:31:58 CET 2006 - jplack@suse.de
+
+- fix format for DefaultKernelParams
+
+-------------------------------------------------------------------
+Mon Nov 20 15:29:50 CET 2006 - jplack@suse.de
+
+- fix boot loader location mapping: check boot_root before
+  boot_boot (#219409)
+
+-------------------------------------------------------------------
+Mon Nov 20 13:12:45 CET 2006 - jplack@suse.de
+
+- fix full adoption to new grub name sceme ((#214935, FATE#300732)
+
+-------------------------------------------------------------------
+Fri Nov 17 13:17:50 CET 2006 - od@suse.de
+
+- added comments
+- fix finding the correct names for kernel image and initrd (not
+  yet fixed for powerlilo) (#214935)
+- first part of fix for resetting user changes when going to expert
+  settings
+- 2.14.3
+
+-------------------------------------------------------------------
+Thu Nov 16 13:32:48 CET 2006 - jplack@suse.de
+
+- section type of 'xen' is now handled (FATE#300732)
+
+-------------------------------------------------------------------
+Wed Nov 15 16:21:37 CET 2006 - jplack@suse.de
+
+- fixed Summary generation for Grub (#220285), did still consider
+  old-style variable loader-device
+
+-------------------------------------------------------------------
+Wed Nov 15 11:19:04 CET 2006 - jplack@suse.de
+
+- widget for type selectdevice did not get initialized (#221180)
+
+-------------------------------------------------------------------
+Mon Nov 13 16:40:04 CET 2006 - od@suse.de
+
+- add more variables for the new perl-Bootloader interface to the
+  autoyast DTD for yast2-bootloader: currently, the user needs to
+  specify them if he wants to specify any global variable (which
+  probably is the right interface for him)
+- reverted BootGRUB to use FixGlobals(), this functionality is not
+  a bug
+- added comments to FixGlobals() and the call from BootGRUB to it
+- move setting of boot_* and activate keys in globals for new
+  perl-Bootloader interface from BootCommon::i386LocationProposal()
+  in lilolike to the end of BootGRUB::Propose(), so that the need
+  to set defaults for the other values in globals is detected and
+  these are proposed as well (#219409)
+- 2.14.1
+
+-------------------------------------------------------------------
+Mon Nov 13 13:19:01 CET 2006 - jplack@suse.de
+
+- remove in ycp has bogus semantics (#220365)
+
+-------------------------------------------------------------------
+Mon Nov 13 12:58:18 CET 2006 - jplack@suse.de
+
+- generic MBR not written/activate flag not set due to incomplete
+  impl. of FATE#300732
+
+-------------------------------------------------------------------
+Mon Nov 13 12:36:50 CET 2006 - ug@suse.de
+
+- schema file for autyast fixed
+
+-------------------------------------------------------------------
+Mon Nov 13 11:15:20 CET 2006 - jplack@suse.de
+
+- fix missing proposal of global values during installation
+  (#219409), function FixGlobals was inappropriate
+
+-------------------------------------------------------------------
+Thu Nov  9 21:54:15 CET 2006 - od@suse.de
+
+- added a few comments to the new code
+- fix trashing globals in grub et al.: use remove() to remove
+  values from a map (#219409)
+- 2.13.86
+
+-------------------------------------------------------------------
+Wed Nov  8 20:49:52 CET 2006 - od@suse.de
+
+- moved change_widget_default_value() to BootCommon.ycp
+- use change_widget_default_value() to work around "select" widget
+  default value bug
+- logging variables filled by grub proposal
+- using correct variable (globals) for new perl-Bootloader
+  interface (#213256)
+- 2.13.85
+
+-------------------------------------------------------------------
+Wed Nov  8 18:16:57 CET 2006 - od@suse.de
+
+- changed some comments
+- move global_options, section_options and exports (new
+  perl-Bootloader interface) to BootCommon.ycp
+- pass proposal for grub to new perl-Bootloader interface (#213256)
+- 2.13.84
+
+-------------------------------------------------------------------
+Tue Nov  7 18:25:55 CET 2006 - od@suse.de
+
+- removed unused variable
+- changed and added some documentation in comments
+- fixed global options filtering for global options widget
+  (#213256)
+- 2.13.83
+
+-------------------------------------------------------------------
+Tue Oct 31 17:08:26 CET 2006 - od@suse.de
+
+- autoyast Relax-NG Compact schema file added (#215263)
+- 2.13.82
+
+-------------------------------------------------------------------
+Tue Oct 31 02:51:33 CET 2006 - od@suse.de
+
+- fixed exporting the device map to autoyast (#211908)
+
+-------------------------------------------------------------------
+Tue Oct 17 00:35:45 CEST 2006 - od@suse.de
+
+- packaged missing grub/help.ycp and generic/help.ycp
+- added comments to UpdateGfxMenuContents()
+- 2.13.80
+
+-------------------------------------------------------------------
+Fri Oct 13 11:45:28 CEST 2006 - sf@suse.de
+
+- Bug #173486: do not display ssh message when installed with ssh 
+  and vnc
+
+-------------------------------------------------------------------
+Thu Oct 12 09:35:16 CEST 2006 - jplack@suse.de
+
+- implementation of generic password widget (FATE#300732)
+
+-------------------------------------------------------------------
+Mon Oct  9 19:09:25 CEST 2006 - jplack@suse.de
+
+- implement generic widget functionality for Grub (FATE#300732)
+- 2.13.79
+
+-------------------------------------------------------------------
+Tue Sep 26 17:23:23 CEST 2006 - jplack@suse.de
+
+- part of new interface for FATE#300732
+- 2.13.78
+
+-------------------------------------------------------------------
+Tue Sep 26 14:47:58 CEST 2006 - jplack@suse.de
+
+- implementation for FATE#120026: button to initialize bootloader
+
+-------------------------------------------------------------------
+Thu Sep 21 10:19:54 CEST 2006 - od@suse.de
+
+- jplack@suse.de: basic implementation for 'selectdevice' entry
+  type which will act as a hook for more sophisticated UI handling
+  for device-by-id selection and such.
+- 2.13.77
+
+-------------------------------------------------------------------
+Fri Sep 15 19:00:21 CEST 2006 - od@suse.de
+
+- added caching of bootloader proposal patch by lslezak@suse.de,
+  with some changed variable names and added comments (feature
+  #300709)
+- 2.13.76
+
+-------------------------------------------------------------------
+Wed Sep 13 20:19:07 CEST 2006 - od@suse.de
+
+- reverted last change (in SVN) to bootfloppy.ycp, so the final
+  correction to include this change of aosthof again:
+  A few corrections had to be done related to wrong pathes (Bug
+  #180240)
+- using parted for activation of boot partition again (instead of
+  /sbin/activate from the lilo package) -- extended partition
+  handling was fixed (#167602)
+- 2.13.75
+
+-------------------------------------------------------------------
+Mon Sep 11 13:45:44 CEST 2006 - mvidner@suse.cz
+
+- Fixed autodocs.
+
+-------------------------------------------------------------------
+Mon Sep  4 17:20:15 CEST 2006 - jplack@suse.de
+
+- support new options no_os_chooser and optional (#202069, #202072)
+
+-------------------------------------------------------------------
+Tue Aug 22 15:21:30 CEST 2006 - od@suse.de
+
+- jplack: use new device_map format (#198244)
+- 2.13.74
+
+-------------------------------------------------------------------
 Wed Jun 21 14:28:21 CEST 2006 - uli@suse.de
 
 - zipl: add "TERM=linux console=..." to proposal if booted with 
   TERM=linux (bug #186970)
+
+-------------------------------------------------------------------
+Mon Jun 19 15:18:29 CEST 2006 - aosthof@suse.de
+
+- Fixed erroneous pathes in function createFloppyImage() in 
+  bootfloppy.ycp (#180240) 
 
 -------------------------------------------------------------------
 Fri Jun  9 19:14:30 CEST 2006 - od@suse.de

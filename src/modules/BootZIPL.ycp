@@ -10,6 +10,7 @@
  *      and installation
  *
  * Authors:
+ *      Joachim Plack <jplack@suse.de>
  *      Jiri Srain <jsrain@suse.cz>
  *
  * $Id$
@@ -17,46 +18,46 @@
  */
 
 {
-    module "BootZIPL";
+module "BootZIPL";
 
-    textdomain "bootloader";
+textdomain "bootloader";
 
-    import "Kernel";
-    import "StorageControllers";
-    import "BootCommon";
-    import "Mode";
-    import "Stage";
-    import "Installation";
+import "BootCommon";
+import "Installation";
+import "Kernel";
+import "Mode";
+import "Stage";
+import "StorageControllers";
 
-    include "bootloader/routines/popups.ycp";
-    include "bootloader/zipl/widgets.ycp";
+// include "bootloader/zipl/widgets.ycp";
+include "bootloader/routines/popups.ycp";
+include "bootloader/zipl/helps.ycp";
+include "bootloader/generic/dialogs.ycp";
 
 
 // local data
-
-
-    map<string,map<string,any> > hw_descr = $[
-	"ctc" : $[
-	    "skeleton": "hwcfg-ctc",
-	    "target" : "ctc-bus-ccw-%1",
-	    "options" : $[
-		"CCW_CHAN_IDS" : "%1 %2",
-		"CCW_CHAN_MODE" : "%3",
-	    ],
-	],
-	"qeth" : $[
-	    "skeleton" : "hwcfg-qeth",
-	    "target" : "qeth-bus-ccw-%1",
-	    "options" : $[
-		"CCW_CHAN_IDS" : "%1 %2 %3",
-		"CCW_CHAN_MODE" : "%4",
-	    ],
-	],
-	"iucv" : $[
-	    "skeleton" : "hwcfg-iucv",
-	    "target" : "iucv-id-%1",
-	],
-    ];
+map<string,map<string,any> > hw_descr = $[
+    "ctc" : $[
+        "skeleton": "hwcfg-ctc",
+        "target" : "ctc-bus-ccw-%1",
+        "options" : $[
+    	"CCW_CHAN_IDS" : "%1 %2",
+    	"CCW_CHAN_MODE" : "%3",
+        ],
+    ],
+    "qeth" : $[
+        "skeleton" : "hwcfg-qeth",
+        "target" : "qeth-bus-ccw-%1",
+        "options" : $[
+    	"CCW_CHAN_IDS" : "%1 %2 %3",
+    	"CCW_CHAN_MODE" : "%4",
+        ],
+    ],
+    "iucv" : $[
+        "skeleton" : "hwcfg-iucv",
+        "target" : "iucv-id-%1",
+    ],
+];
 
 
 // misc. functions
@@ -64,158 +65,100 @@
     /**
       * Update /etc/zip.conf before the update (fix kernel path)
       */
-    global define void UpdateZiplConfBeforeUpdate () {
-	// update the partition layout if needed
-	// ?? FIXME any other conditions?
-	if (Mode::update ())
-	{
-	    map output = (map)SCR::Execute (.target.bash_output, sformat (
-	      "/bin/cp %1/etc/zipl.conf %1/etc/zipl.conf.YaST2save",
-	      Installation::destdir));
-	    y2milestone ("Result of backup original elilo.conf: %1", output);
-	    output = (map)SCR::Execute (.target.bash_output, sformat (
-		"/bin/cp /usr/lib/YaST2/bin/update_zipl_conf %1/usr/lib/YaST2/bin/",
-		Installation::destdir
-	    ));
-	    y2milestone ("Result of copying from / to %1: %2",
-		Installation::destdir,
-		output
-	    );
-	    output = (map)SCR::Execute (.target.bash_output, sformat (
-		"chroot %1 /usr/lib/YaST2/bin/update_zipl_conf",
-		Installation::destdir));
-	    if (output["exit"]:0 != 0)
-	    {
-		y2error ("Update of /etc/zipl.conf failed: %1", output);
-	    }
-	    else
-	    {
-		BootCommon::was_proposed = false;
-		BootCommon::was_read = false;
-	    }
-	}
-    }
+//     global define void UpdateZiplConfBeforeUpdate () {
+// 	// update the partition layout if needed
+// 	// ?? FIXME any other conditions?
+// 	if (Mode::update ())
+// 	{
+// 	    map output = (map)SCR::Execute (.target.bash_output, sformat (
+// 	      "/bin/cp %1/etc/zipl.conf %1/etc/zipl.conf.YaST2save",
+// 	      Installation::destdir));
+// 	    y2milestone ("Result of backup original elilo.conf: %1", output);
+// 	    output = (map)SCR::Execute (.target.bash_output, sformat (
+// 		"/bin/cp /usr/lib/YaST2/bin/update_zipl_conf %1/usr/lib/YaST2/bin/",
+// 		Installation::destdir
+// 	    ));
+// 	    y2milestone ("Result of copying from / to %1: %2",
+// 		Installation::destdir,
+// 		output
+// 	    );
+// 	    output = (map)SCR::Execute (.target.bash_output, sformat (
+// 		"chroot %1 /usr/lib/YaST2/bin/update_zipl_conf",
+// 		Installation::destdir));
+// 	    if (output["exit"]:0 != 0)
+// 	    {
+// 		y2error ("Update of /etc/zipl.conf failed: %1", output);
+// 	    }
+// 	    else
+// 	    {
+// 		BootCommon::was_proposed = false;
+// 		BootCommon::was_read = false;
+// 	    }
+// 	}
+//     }
 
-    /**
-      * Empty summary dialog
-      * @return symbol always `back
-      */
-    global define symbol runSummaryDialog () ``{
-	displayNoSupportPopup ();
-	return `back;
-    }
+/**
+  * Update /etc/sysconfig/hardware configuration
+  * Use data from install.inf file
+  * @return boolean true on success
+  */
+global define boolean updateHardwareConfig () {
+    if (! Stage::initial () || Mode::update ())
+        return true;
 
-    /**
-      * Update /etc/sysconfig/hardware configuration
-      * Use data from install.inf file
-      * @return boolean true on success
-      */
-    global define boolean updateHardwareConfig () ``{
-	if (! Stage::initial () || Mode::update ())
-	    return true;
-
-	boolean failed = false;
-	string cfg = (string)SCR::Read (.etc.install_inf.Hardware);
-	y2milestone ("Read hardware configuration from install.inf: %1", cfg);
-	list<string> l = splitstring (cfg, ";");
-	foreach (string s, l, ``{
-	    list<string> args = splitstring (s, ",");
-	    args = maplist (string a, args, ``{
-		while (a != "" && substring (a, 0, 1) == " ")
-		    a = substring (a, 1);
-		while (a != "" && substring (a, size (a) - 1, 1) == " ")
-		    a = substring (a, 0, size (a) - 1);
-		return a;
-	    });
-	    string key = args[0]:"";
-	    string a1 = args[1]:"";
-	    string a2 = args[2]:"";
-	    string a3 = args[3]:"";
-	    string a4 = args[4]:"";
-	    if (key != "")
-	    {
-		map<string,any> descr = hw_descr[key]:$[];
-		string src = (string)(descr["skeleton"]:"");
-		string dst = sformat ((string)(descr["target"]:""),
-		    a1, a2, a3, a4);
-		y2milestone ("Template: %1, Target: %2", src, dst);
-		string command = sformat (
-    "/bin/cp /etc/sysconfig/hardware/skel/%1 /etc/sysconfig/hardware/hwcfg-%2",
-		    src, dst);
-		if (0 != SCR::Execute (.target.bash, command))
-		{
-		    Report::Error (
-		        // error report
-			_("Copying hardware configuration template failed."));
-		    failed = true;
-		}
-		path p = add (.sysconfig.hardware.value, dst);
-		foreach (string k, string v,
-		    (map<string,string>)(descr["options"]:$[]),
-		``{
-		    path op = add (p, k);
-		    v = sformat (v, a1, a2, a3, a4);
-		    if (! SCR::Write (op, v))
-			failed = true;
-		});
-	    }
-	});
-	if (! SCR::Write (.sysconfig.hardware, nil))
-	    failed = true;;
-	return failed;
-    }
+    boolean failed = false;
+    string cfg = (string)SCR::Read (.etc.install_inf.Hardware);
+    y2milestone ("Read hardware configuration from install.inf: %1", cfg);
+    list<string> l = splitstring (cfg, ";");
+    foreach (string s, l, ``{
+        list<string> args = splitstring (s, ",");
+        args = maplist (string a, args, ``{
+    	while (a != "" && substring (a, 0, 1) == " ")
+    	    a = substring (a, 1);
+    	while (a != "" && substring (a, size (a) - 1, 1) == " ")
+    	    a = substring (a, 0, size (a) - 1);
+    	return a;
+        });
+        string key = args[0]:"";
+        string a1 = args[1]:"";
+        string a2 = args[2]:"";
+        string a3 = args[3]:"";
+        string a4 = args[4]:"";
+        if (key != "")
+        {
+    	map<string,any> descr = hw_descr[key]:$[];
+    	string src = (string)(descr["skeleton"]:"");
+    	string dst = sformat ((string)(descr["target"]:""),
+    	    a1, a2, a3, a4);
+    	y2milestone ("Template: %1, Target: %2", src, dst);
+    	string command = sformat (
+    				  "/bin/cp /etc/sysconfig/hardware/skel/%1 /etc/sysconfig/hardware/hwcfg-%2",
+    	    src, dst);
+    	if (0 != SCR::Execute (.target.bash, command))
+    	{
+    	    Report::Error (
+    	        // error report
+    		_("Copying hardware configuration template failed."));
+    	    failed = true;
+    	}
+    	path p = add (.sysconfig.hardware.value, dst);
+    	foreach (string k, string v,
+    	    (map<string,string>)(descr["options"]:$[]),
+    	``{
+    	    path op = add (p, k);
+    	    v = sformat (v, a1, a2, a3, a4);
+    	    if (! SCR::Write (op, v))
+    		failed = true;
+    	});
+        }
+    });
+    if (! SCR::Write (.sysconfig.hardware, nil))
+        failed = true;;
+    return failed;
+}
 
 
 // general functions
-
-    /**
-      * Propose bootloader settings
-      */
-    global define void Propose () ``{
-	BootCommon::DetectDisks ();
-	string root_device = BootCommon::RootPartitionDevice;
-	map <string, any> file_desc = ( map<string, any> ) SCR::Execute( .target.bash_output, "echo $TERM" );
-	string env_term = file_desc[ "stdout" ]: "";
-	string termparm = "TERM=dumb";
-	if ( env_term == "linux\n" )
-	{
-	  termparm = "TERM=linux console=ttyS0 console=ttyS1";
-	}
-	string parameters = sformat ("%1 %2 %3",
-	  StorageControllers::dasdParam,
-	  BootCommon::GetAdditionalKernelParams (),
-	  termparm);
-
-	BootCommon::globals = $[
-	    "default":"ipl",
-	    "menuname":"menu",
-	    "prompt":"1",
-	    "target":"/boot/zipl",
-	    "timeout":"10"
-	];
-	BootCommon::sections = [
-	    $[
-		"append":parameters,
-		"initrd":"/boot/initrd",
-		"kernel":"/boot/image",
-		"name":"ipl",
-		"original_name":"ipl",
-		"root":BootCommon::RootPartitionDevice,
-		"target":"/boot/zipl",
-		"type":"image"
-	    ],
-	    $[
-		"append":parameters,
-		"initrd":"/boot/initrd",
-		"kernel":"/boot/image",
-		"name":"failsafe",
-		"original_name":"failsafe",
-		"root":BootCommon::RootPartitionDevice,
-		"target":"/boot/zipl",
-		"type":"image"
-	    ]
-	];
-    }
 
 /**
  * Read settings from disk
@@ -224,14 +167,64 @@
  */
 global boolean Read (boolean reread) {
     BootCommon::InitializeLibrary (reread, "zipl");
-    if (reread)
-    {
+    if (reread) {
 	BootCommon::ReadFiles ();
     }
     BootCommon::DetectDisks ();
     boolean ret = BootCommon::Read (false);
     return ret;
 }
+
+
+/**
+  * Propose bootloader settings
+  */
+global define void Propose () {
+    BootCommon::DetectDisks ();
+    string root_device = BootCommon::RootPartitionDevice;
+    map <string, any> file_desc = ( map<string, any> ) SCR::Execute( .target.bash_output, "echo $TERM" );
+    string env_term = file_desc[ "stdout" ]: "";
+    string termparm = "TERM=dumb";
+    if ( env_term == "linux\n" )
+    {
+      termparm = "TERM=linux console=ttyS0 console=ttyS1";
+    }
+    string parameters = sformat ("%1 %2 %3",
+      StorageControllers::dasdParam,
+      BootCommon::GetAdditionalKernelParams (),
+      termparm);
+
+    BootCommon::globals = $[
+        "default":"ipl",
+        "menuname":"menu",
+        "prompt":"1",
+        "target":"/boot/zipl",
+        "timeout":"10"
+    ];
+    BootCommon::sections = [
+        $[
+    	"append":parameters,
+    	"initrd":"/boot/initrd",
+    	"kernel":"/boot/image",
+    	"name":"ipl",
+    	"original_name":"ipl",
+    	"root":BootCommon::RootPartitionDevice,
+    	"target":"/boot/zipl",
+    	"type":"image"
+        ],
+        $[
+    	"append":parameters,
+    	"initrd":"/boot/initrd",
+    	"kernel":"/boot/image",
+    	"name":"failsafe",
+    	"original_name":"failsafe",
+    	"root":BootCommon::RootPartitionDevice,
+    	"target":"/boot/zipl",
+    	"type":"image"
+        ]
+    ];
+}
+
 
 /**
  * Save all bootloader configuration files to the cache of the PlugLib
@@ -244,137 +237,111 @@ global boolean Read (boolean reread) {
  */
 global boolean Save (boolean clean, boolean init, boolean flush) {
     boolean ret = BootCommon::Save (clean, init, flush);
+    importMetaData();
+
     if (Mode::normal ())
 	return ret;
 
     updateHardwareConfig ();
     return ret;
 }
-    /**
-      * Save all bootloader configuration files
-      * @return boolean true if success
-      */
-/*
-map settings = $[
-  "global":$[
-    "default":"ipl",
-    "menuname":"menu1",
-    "prompt":1,
-    "timeout":10
-  ],
-  "sections":[
-    $[
-      "append":"selinux=0 TERM=dumb elevator=cfq",
-      "initrd":"/boot/initrd",
-      "kernel":"/boot/image",
-      "name":"ipl",
-      "original_name":"ipl",
-      "root":BootCommon::RootPartitionDevice,
-      "target":"/boot/zipl",
-      "type":"image"
-    ],
-    $[
-      "append":"selinux=0 TERM=dumb",
-      "initrd":"/boot/initrd",
-      "kernel":"/boot/image",
-      "name":"failsafe",
-      "original_name":"ipl",
-      "root":BootCommon::RootPartitionDevice,
-      "target":"/boot/zipl",
-      "type":"image"
-    ]
-  ]
-];*/
 
 
-    /**
-      * Display bootloader summary
-      * @return a list of summary lines
-      */
-    global define list<string> Summary () ``{
-	// summary
-	return [_("Install S390 Boot Loader")];
-    }
-
-    /**
-      * Update read settings to new version of configuration files
-      */
-    global define void Update () ``{
-	y2milestone ("No update functionality implemented");
-    }
-
-    /**
-      * Write bootloader settings to disk
-      * @return boolean true on success
-      */
-    global define boolean Write () ``{
-	boolean ret = BootCommon::UpdateBootloader ();
-	ret = ret && BootCommon::InitializeBootloader ();
-	return ret;
-    }
+/**
+  * Display bootloader summary
+  * @return a list of summary lines
+  */
+global define list<string> Summary () {
+    // summary
+    return [_("Install S390 Boot Loader")];
+}
 
 
-    /**
-      * Update bootlaoder configuration sequence
-      * @param ws_data map of wizard sequencer data
-      * @return map modified map of wizard sequencer data
-      */
-    global define map FixSequence (map ws_data) ``{
-        map aliases = $[
-	    "summary" : ``(BootZIPL::runSummaryDialog ()),
-        ];
-        ws_data["aliases"] = aliases;
-        return ws_data;
-    }
+/**
+  * Update read settings to new version of configuration files
+  */
+global define void Update () {
+    y2milestone ("No update functionality implemented");
+}
 
-    /**
-      * Get the list of all dump devices
-      * @return list of all dump devices, as list of maps containg keys
-      *  "label", "target" and "dumpto"
-      */
-/*    global define list<map<string,string> > GetDumpDevices () ``{
-	list<map<string,string> > dd = maplist (list<map> d,
-	    BootCommon::sections,
-	``(
-	    listmap (map e, d, ``(
-		$[ e["key"]:"": e["value"]:"" ]
-	    ))
-	));
-	return filter (map<string,string> s, dd, ``(
-	    s["dumpto"]:"" != ""
-	));
-    }*/
 
-    /**
-      * Return map of provided functions
-      * @return a map of functions (eg. $["write":``(BootZIPL::Write ())])
-      */
-    global define map<string, any> GetFunctions () ``{
-	return $[
-	    "read"	: Read,
-	    "propose"	: Propose,
-	    "save"	: Save,
-	    "summary"	: Summary,
-	    "update"	: Update,
-	    "widgets"	: Widgets,
-	    "write"	: Write,
-	];
-    }
+/**
+  * Write bootloader settings to disk
+  * @return boolean true on success
+  */
+global define boolean Write () {
+    boolean ret = BootCommon::UpdateBootloader ();
+    ret = ret && BootCommon::InitializeBootloader ();
+    return ret;
+}
 
-    /**
-      * Initializer of S390 bootloader
-      */
-    global define void Initializer () ``{
-	y2milestone ("Called S390 (zipl) initializer");
-	BootCommon::current_bootloader_attribs = $[
-	    "section_title" : "label",
-	    "kernel_key" : "image",
-	    "propose" : true,
-	    "read" : true,
-	    "scratch" : true,
-	];
-    }
 
+global symbol WizardSequenzer() {
+    y2milestone("Call generic WizardSequenzer");
+    return `generic_new;
+}
+
+
+global map<string,symbol()> Dialogs () {
+    return $[
+	"loader"	: genericBootLoaderOptionsDialog,
+    ];
+}
+
+
+/**
+  * Return map of provided functions
+  * @return a map of functions (eg. $["write"::Write])
+  */
+global map<string, any> GetFunctions () {
+    return $[
+        //"export"	   : Export,
+        //"import"	   : Import,
+        "read"		   : Read,
+	// "reset"	   : Reset,
+        "propose"	   : Propose,
+        "save"		   : Save,
+        "summary"	   : Summary,
+        "update"	   : Update,
+        "write"		   : Write,
+        "widgets"	   : genericWidgets,
+        "wizard_sequencer" : WizardSequenzer,
+        "dialogs"	   : Dialogs,
+        "section_types"	   : section_types,
+    ];
+}
+
+/**
+  * Initializer of S390 bootloader
+  */
+global define void Initializer () {
+    y2milestone ("Called ZIPL initializer");
+    BootCommon::current_bootloader_attribs = $[
+        "section_title" : "label",
+        "kernel_key" : "image",
+        "propose" : true,
+        "read" : true,
+        "scratch" : true,
+    ];
+
+    BootCommon::help_messages = (map<string,string>)
+      union(BootCommon::help_messages,
+    	mapmap(string key, string val, zipl_help_messages,
+    	    { return $[ "zipl_" + key : val ]; }
+    	       )
+    	);
+    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
+    BootCommon::descriptions = (map<string,string>)
+      union(BootCommon::descriptions,
+    	mapmap(string key, string val, zipl_descriptions,
+    	    { return $[ "zipl_" + key : val ]; }
+    	       )
+    	);
+    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
+
+    BootCommon::InitializeLibrary (false, "zipl");
+    importMetaData();
+}
 
 /**
  * Constructor
@@ -388,3 +355,13 @@ global void BootZIPL () {
 }
 
 } // EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */

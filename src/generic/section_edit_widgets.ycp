@@ -1,6 +1,6 @@
 /**
  * File:
- *      include/bootloader/ppc/ppc_section_edit_widgets.ycp
+ *      include/bootloader/generic/section_edit_widgets.ycp
  *
  * Module:
  *      Bootloader installation and configuration
@@ -32,7 +32,7 @@ include "bootloader/generic/widget_funcs.ycp";
 global list<string> section_types () {
     list<string> st_list = [];
 
-    foreach( string key, any value, section_options, {
+    foreach( string key, any value, BootCommon::section_options, {
 	if (substring(key,0,5) == "type_")
 	    st_list = add (st_list, substring(key,5) );
 
@@ -48,7 +48,7 @@ map<string,any> SE_Options (string type) {
 
     se_options = mapmap(
 	string key, any value,
-	filter( string key, any value, section_options,
+	filter( string key, any value, BootCommon::section_options,
 	    ``( substring(key, 0, size(type)+1) == type + "_")
 	),
 	``( $[ substring(key, size(type)+1) : value ] )
@@ -121,3 +121,13 @@ map<string,any> genericSectionEditWidget(string type) {
 
 
 } // EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */

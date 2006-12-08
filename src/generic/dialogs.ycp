@@ -1,0 +1,151 @@
+/**
+ * File:
+ *      include/bootloader/generic/dialogs.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Generic ialogs for configuration
+ *
+ * Authors:
+ *      Joachim Plack <jplack@suse.de>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+textdomain "bootloader";
+
+import "Label";
+import "CWM";
+
+include "bootloader/generic/widget_funcs.ycp";
+
+
+/**
+ * Stores key/value pair in the BootCommon::globals map, or deletes it if the
+ * value is empty or nil
+ */
+void _globals_store_data( string key, string value ) {
+    if (value != nil && value != "")
+	BootCommon::globals[key] = value;
+    else {
+	BootCommon::globals = filter(string k, string v,
+	    BootCommon::globals, ``(key != k)
+	);
+    }
+}
+
+
+include "bootloader/generic/global_options_widget.ycp";
+include "bootloader/generic/boot_loader_locations_widget.ycp";
+include "bootloader/generic/section_type_widget.ycp";
+include "bootloader/generic/section_edit_widgets.ycp";
+include "bootloader/generic/sections_widget.ycp";
+
+
+global void importMetaData() {
+    BootCommon::exports = BootCommon::GetMetaData ();
+
+    // Extract type descriptions from exports
+    foreach(string key, any value, BootCommon::exports, {
+        if (substring (key, 0, 1) == "%") {
+	    list<string> s = splitstring(key,"%");
+            string hash = s[1]:"";
+
+            key = substring(key, 2 + size(hash));
+            if (hash == "global_options") {
+                BootCommon::global_options[key] = value;
+            }
+            else if (hash == "section_options") {
+                BootCommon::section_options[key] = value;
+            }
+            else {
+                if ( !haskey(BootCommon::exports, hash) ) BootCommon::exports[hash] = $[];
+                BootCommon::exports[hash, key] = value;
+            }
+        }
+        else if (substring (key, 0, 1) == "#") {
+            list<string> s = splitstring(key,"#");
+            string array = s[1]:"";
+
+            key = substring(key, 2 + size(array));
+            if ( ! haskey(BootCommon::exports, array) ) BootCommon::exports[array] = [];
+            BootCommon::exports[array, tointeger(key)] = value;
+        }
+    });
+    // delete all encoded option tags from exports
+    BootCommon::exports = filter (string key, any value, BootCommon::exports, {
+        string s = substring (key, 0, 1);
+        return (s != "%" && s != "#");
+    });
+}
+
+
+/**
+ * Cache for genericWidgets function
+ */
+map<string,map<string,any> > _generic_widgets = nil;
+
+/**
+ * Get generic widgets
+ * @return a map describing all generic widgets
+ */
+global map<string,map<string,any> > genericWidgets () {
+    if (_generic_widgets == nil)
+    {
+	_generic_widgets = $[
+	    "boot_loader_options" : genericGlobalBootOptionWidget (),
+	    "loader_location"	  : genericBootLoaderLocationWidget (),
+	    "section_type"	  : genericSectionTypeWidget(),
+	    "sections"		  : genericSectionsListWidget(),
+	];
+
+	foreach(string type, section_types(), {
+	    _generic_widgets = add(_generic_widgets, "section_edit_" + type,
+		 genericSectionEditWidget(type));
+	});
+
+    }
+    return _generic_widgets;
+}
+
+/**
+ * Run generic dialog to adjust installation
+ * @return symbol for wizard sequencer
+ */
+symbol genericBootLoaderOptionsDialog () {
+
+    term contents = `HBox (`HSpacing (2), `VBox (
+        `VStretch (),
+	"boot_loader_options",
+	`VStretch ()
+    ), `HSpacing (2));
+
+    return CWM::ShowAndRun ($[
+	"widget_descr" : genericWidgets (),
+	"widget_names" : ["boot_loader_options"],
+	"contents" : contents,
+	"caption" :  _("Boot Loader Options"),
+	"back_button" : Label::BackButton (),
+	"abort_button" : Label::AbortButton (),
+	"next_button" : Label::OKButton (),
+    ]);
+}
+
+
+
+} // include end
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */

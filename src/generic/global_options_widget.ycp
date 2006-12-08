@@ -1,12 +1,12 @@
 /**
  * File:
- *      include/bootloader/ppc/ppc_global_options_widget.ycp
+ *      include/bootloader/generic/global_options_widget.ycp
  *
  * Module:
  *      Bootloader installation and configuration
  *
  * Summary:
- *      Widget for configuring global boot options for PowerPC
+ *      Widget for configuring global boot options
  *
  * Authors:
  *      Joachim Plack <jplack@suse.de>
@@ -32,8 +32,8 @@ map<string,any> _gow_options = nil;
 map<string,any> GOW_options () {
     if ( _gow_options == nil)
     {
-	_gow_options = filter( string key, any value, global_options, {
-	    return key != "boot" && substring(key,0,5) != "boot_";
+	_gow_options = filter( string key, any value, BootCommon::global_options, {
+	    return key != "boot" && key != "default" && substring(key,0,5) != "boot_";
 	});
     }
     return _gow_options;
@@ -81,7 +81,7 @@ symbol GOW_Handle (string key, map event) {
 boolean GOW_Validate (string widget, map event){
     y2milestone("Called from widget %1 through event %2", widget, event);
     // FIXME: here we need a callback to the architcture specific perl interface
-    return true;
+    return generic_Validate(widget, event, GOW_options(), _globals_store_data);
 }
 
 

@@ -1,12 +1,12 @@
 /**
  * File:
- *      include/bootloader/ppc/ppc_boot_loader_location_widget.ycp
+ *      include/bootloader/generic/boot_loader_location_widget.ycp
  *
  * Module:
  *      Bootloader installation and configuration
  *
  * Summary:
- *      Widgets for configuring the boot loader location for PowerPC
+ *      Widgets for configuring the boot loader location
  *
  * Authors:
  *      Joachim Plack <jplack@suse.de>
@@ -31,10 +31,14 @@ include "bootloader/generic/widget_funcs.ycp";
  */
 map<string,any> _bll_options = nil;
 
+/**
+ * return map of boot loader options from global_options, cache them if
+ * necessary
+ */
 map<string,any> BLL_options () {
     if ( _bll_options == nil)
     {
-	_bll_options = filter( string key, any value, global_options, {
+	_bll_options = filter( string key, any value, BootCommon::global_options, {
 	    return substring(key,0,5) == "boot_";
 	});
 
@@ -70,6 +74,9 @@ void BLL_Store (string widget, map event) {
  * @return symbol always nil
  */
 symbol BLL_Handle (string key, map event) {
+    if (event["EventReason"]:"" == "ValueChanged") {
+        BootCommon::location_changed = true;
+    }
     return generic_Handle (key, event);
 }
 
@@ -90,7 +97,7 @@ boolean BLL_Validate (string widget, map event)
 map<string,any> genericBootLoaderLocationWidget () {
     map<string,any> options = BLL_options();
 
-    list<string> val = splitstring((string)global_options["boot"]:"", ":");
+    list<string> val = splitstring((string)BootCommon::global_options["boot"]:"", ":");
     string boottype = val[0]:"select";
 
     map<string, any> gt_map = $[];
@@ -121,6 +128,14 @@ map<string,any> genericBootLoaderLocationWidget () {
     ];
 }
 
-
-
 } // include end
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */

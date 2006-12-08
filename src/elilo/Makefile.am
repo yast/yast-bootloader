@@ -5,8 +5,7 @@
 yncludedir = @yncludedir@/bootloader/elilo
 
 ynclude_DATA =			\
-	widgets.ycp		\
-	misc.ycp
+	helps.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)

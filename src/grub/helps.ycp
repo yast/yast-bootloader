@@ -1,6 +1,6 @@
 /**
  * File:
- *      include/bootloader/ppc/helps.ycp
+ *      include/bootloader/grup/helps.ycp
  *
  * Module:
  *      Bootloader installation and configuration
@@ -19,7 +19,11 @@
 {
 textdomain "bootloader";
 
-global map<string,string>   ppc_help_messages = $[
+global map<string,string>   grub_help_messages = $[
+
+
+
+
     "boot-loader-location"	: _("<p><big><b>Boot Loader Location</b></big><br>"),
     "boot-menu"			: _("<p><big><b>Boot Menu</b></big><br>
 To show the boot loader menu during the boot process, set
@@ -46,36 +50,8 @@ booting other operating systems.</p>"),
     ];
 
 
-global map<string,string> ppc_descriptions = $[
-    "boot" 	 	 : ( BootCommon::exports["$arch"]:"" == "iseries" )
-                           ? _("iSeries Boot Image Location")
-                           : _("PPC Boot Loader Location"),
-    "activate" 	 	 : _("Change Boot Device in NV-RAM"),
-    "timeout" 	 	 : _("Time-Out in Tenths of Seconds"),
-    "default" 	 	 : _("Default Boot Section"),
-    "root" 	 	 : _("Default Root Device"),
-    "append" 	 	 : _("Append Options for Kernel Command Line"),
-    "initrd" 	 	 : _("Default initrd Path"),
-    "clone" 	 	 : _("Partition for Boot Loader Duplication"),
-    "force_fat" 	 : _("Always Boot from FAT Partition"),
-    "no_os_chooser" 	 : _("Do not use os-chooser"),
-    "force" 	 	 : _("Install Boot Loader Even on Errors"),
-    "boot_chrp_custom"   : _("PReP or FAT Partition"),
-    "bootfolder" 	 : _("Boot Folder Path"),
-    "boot_prep_custom"   : _("PReP Partition"),
-    "boot_slot" 	 : _("Write to Boot Slot"),
-    "boot_file" 	 : _("Create Boot Image in File"),
-    "boot_iseries_custom": _("PReP Partition"),
-    "boot_pmac_custom"   : _("HFS Boot Partition"),
-    "type_image"         : _("Kernel Section"),
-    "image_image"        : _("Kernel Image"),
-    "image_root"     	 : _("Root Device"),
-    "image_append"   	 : _("Optional Kernel Command Line Parameter"),
-    "image_initrd"   	 : _("Initial RAM Disk"),
-    "image_copy"     	 : _("Copy Image to Boot Partition"),
-    "image_optional"	 : _("Skip Section gracefully on Errors"),
-    "type_other"         : _("Boot Other System"),
-    "other_other"    	 : _("Boot Partition of Other System"),
+global map<string,string> grub_descriptions = $[
+    "boot" 	 	 : _("Boot Image Location"),
 ];
 
 

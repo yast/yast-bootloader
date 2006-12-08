@@ -37,6 +37,21 @@ import "Pkg";
 // General bootloader settings
 
 /**
+ * map of global options and types for new perl-Bootloader interface
+ */
+global map<string,any> global_options = $[];
+
+/**
+ * map of section options and types for new perl-Bootloader interface
+ */
+global map<string,any> section_options = $[];
+
+/**
+ * map of other exported information for new perl-Bootloader interface
+ */
+global map<string,any> exports = $[];
+
+/**
  * map of global options and values
  */
 global map<string,string> globals = $[];
@@ -46,16 +61,6 @@ global map<string,string> globals = $[];
  */
 global list<map<string,any> > sections = [];
 
-/*
- * map of UI help messages
- */
-global map<string,string>help_messages = $[];
-
-/*
- * map of UI widget decriptive labels
- */
-global map<string,string>descriptions = $[];
-
 /**
  * device mapping between Linux and firmware
  */
@@ -64,17 +69,33 @@ global map<string,string> device_mapping = $[];
 /**
  * device to save loader stage 1 to
  */
+// FIXME: what is this variable needed for
 global string loader_device = nil;
 
 /**
  * Embed stage 1.5 of the bootloader to dedicated area (if supported)?
+ * This is currently only supported by GRUB. A stage 1.5 can be put into the
+ * area after the MBR (into the rest of the very first cylinder) or into the
+ * "boot loader area" of some filesystems such as FFS and ReiserFS. For more
+ * information, see the grub documentation, esp.
+ *	"info '(grub.info.gz)Bootstrap tricks'"
+ *	"info '(grub.info.gz)Images'"
  */
+// This needs to be defined here so that various files can include it.
+// BootCommon.ycp is currently the only central include file, separate include
+// files that are central and specific to each bootloader do not exist (yet?).
 global boolean embed_stage15 = true;
 
 
 
 // proposal helping variables
 
+/**
+ * The kind of bootloader location that the user selected last time he went to
+ * the dialog. Used to as a hint next time a proposal is requested, so the
+ * proposal can try to satisfy the user's previous preference.
+ * Currently, valid values are: mbr, boot, root, floppy, mbr_md, none
+ */
 global string selected_location = nil;
 
 
@@ -124,7 +145,7 @@ global map<string,any> current_section = $[];
 global list<string> floppy_devices = nil;
 
 /**
-  * Option types for differnt bootloaders
+  * Option types for different bootloaders
   */
 global map<string,map<string,string> > opt_types = $[];
 
@@ -171,7 +192,7 @@ global map<string,string> edited_files = $[];
 // common variables
 
 /**
-  * type of bootloader to configuer/being configured
+  * type of bootloader to configure/being configured
   * shall be one of "lilo", "grub", "silo", "milo", "aboot",
   * "elilo", "ppc", "zipl", "mips"
   */
@@ -289,9 +310,37 @@ global define list<string> getBootloaders ();
 global define list<string> Summary ();
 global define boolean UsingXenPae();
 
+
+//
+// FIXME: the select and selectdevice seem to be broken: the default value of
+// the widget description string needs to be patched with the current value of
+// the widget
+//
+global void change_widget_default_value (string itemname, string defaultvalue) {
+    // Put defaultvalue as default value into widget description item like
+    // "boot_{chrp,prep,iseries,...}_custom" or "boot_custom".
+    // Examples:
+    // "select:PReP or FAT partition::/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1" ->
+    // "select:PReP or FAT partition:/dev/sda3:/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1"
+    //
+    // "selectdevice:Custom Boot Partition::/dev/sda3" ->
+    // "selectdevice:Custom Boot Partition:/dev/sda3:/dev/sda3"
+    string old_description = global_options[itemname]:"";
+    global_options[itemname] =
+	regexpsub( old_description, "^([^:]*:[^:]*:).*$", "\\1") +
+	defaultvalue +
+	regexpsub( old_description, "^[^:]*:[^:]*:[^:]*(:.*)$", "\\1");
+}
+
+
+/*
+ * help message and dscription definitions
+ */
+include "bootloader/generic/helps.ycp";
+
 include "bootloader/routines/popups.ycp";
 include "bootloader/routines/misc.ycp";
-// FIXME: there are other archs than i386
+// FIXME: there are other archs than i386, this is not 'commmon'
 include "bootloader/routines/lilolike.ycp";
 include "bootloader/routines/lib_iface.ycp";
 
@@ -382,9 +431,54 @@ global map<string,any> CreateLinuxSection (string title) {
     string resume = BootArch::ResumeAvailable ()
 	? getLargestSwapPartition ()
 	: "";
-    string kernel_fn = "/boot/" + Kernel::GetBinary ()
-	+ (title == "wildcard" ? "-*" : "");
-    string initrd_fn = "/boot/initrd" + (title == "wildcard" ? "-*" : "");
+
+    // FIXME:
+    // This only works in the installed system (problem with GetFinalKernel))),
+    // in all other cases we use the symlinks.
+
+    string kernel_fn = "";
+    string initrd_fn = "";
+
+    if (Mode::normal ()) {
+	// Find out the file names of the "real" kernel and initrd files, with
+	// version etc. pp. whatever (currently version-flavor) attached.
+	// FIXME: also do this for xen and xenpae kernels as found below
+	//
+	// First, get the file names in the "selected" kernel package,
+	string kernel_package = Kernel::GetFinalKernel();
+	list<string> files = Pkg::PkgGetFilelist( kernel_package, `any );
+	y2milestone ("kernel package %1 has these files: %2", kernel_package, files);
+
+	// then find the first file that matches the arch-dependent kernel file
+	// name prefix and the initrd filename prefix.
+	string kernel_prefix = "/boot/" + Kernel::GetBinary ();
+	string initrd_prefix = "/boot/initrd";
+
+	list<string> files_filtered = filter (string file, files, {
+	    return ( substring(file, 0, size(kernel_prefix)) == kernel_prefix );
+	});
+	kernel_fn = (
+	    title == "wildcard" ?
+		"/boot/" + Kernel::GetBinary () + "-*" :
+		files_filtered[0]:""
+	);
+
+	files_filtered = filter (string file, files, {
+	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix ;
+	});
+	initrd_fn = (
+	    title == "wildcard" ?
+		"/boot/initrd-*" :
+		files_filtered[0]:""
+	);
+    } else {
+	kernel_fn = "/boot/" + Kernel::GetBinary ()
+	    + (title == "wildcard" ? "-*" : "");
+	initrd_fn = "/boot/initrd" + (title == "wildcard" ? "-*" : "");
+    }
+    // done: kernel_fn and initrd_fn are the results
+    y2milestone ("kernel_fn: %1 initrd_fn: %2", kernel_fn, initrd_fn);
+
     map<string,any> ret = $[
 	"name" : translateSectionTitle (title),
 	"original_name" : title,
@@ -408,6 +502,7 @@ global map<string,any> CreateLinuxSection (string title) {
     }
     if (title == "xen")
     {
+        ret["type"] = "xen";
 	ret["xen_append"] = "";
         if (UsingXenPae()) {
 	    ret["xen"] = "/boot/xen-pae.gz";
@@ -533,7 +628,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if (clean)
     {
 	BootCommon::RemoveUnexistentSections ("", "");
-	BootCommon::UpdateInitrdLine ();
+	// BootCommon::UpdateInitrdLine ();
 	BootCommon::UpdateAppend ();
 	BootCommon::UpdateGfxMenu ();
     }

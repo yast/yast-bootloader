@@ -20,7 +20,7 @@
 textdomain "bootloader";
 
 string generic_Help (string widget_name) {
-    string arch_widget_name = Arch::arch_short() + "_" + widget_name;
+    string arch_widget_name = BootCommon::getLoaderType(false) + "_" + widget_name;
 
     if ( haskey( BootCommon::help_messages, arch_widget_name ) )
         return(BootCommon::help_messages[arch_widget_name]:"" );
@@ -28,12 +28,28 @@ string generic_Help (string widget_name) {
 }
 
 string generic_Description (string widget_name, string fallback) {
-    string arch_widget_name = Arch::arch_short() + "_" + widget_name;
+    string loader_widget_name = BootCommon::getLoaderType(false) + "_" + widget_name;
 
-    if ( haskey( BootCommon::descriptions, arch_widget_name ) )
-        return(BootCommon::descriptions[arch_widget_name]:"" );
+    // use "<loader_type>_widget_name" to find descriptive text
+    //  (these are merged to BootCommon::descriptions by the Initializer() in
+    //   Boot<LOADER>.ycp from includes/bootloader/<loader>/helps.ycp)
+    if ( haskey( BootCommon::descriptions, loader_widget_name ) )
+        return(BootCommon::descriptions[loader_widget_name]:"" );
+
+    // OR use "widget_name" to find a generic descriptive text
     if ( haskey( BootCommon::descriptions, widget_name ) )
         return(BootCommon::descriptions[widget_name]:"" );
+
+    // OR if no descriptive text exists, log a warning
+    y2warning("missing description for generic widget %1," +
+	      "falling back to (translated in \"base\"?)" +
+	      "text from {global,section,...}_options: %2",
+	      widget_name, fallback);
+
+    // THEN use "<descriptive-text>" (from *_options) to find some other
+    //      descriptive text in "base" textdomain
+    //      OR fall back to the (untranslated) descriptive text (from
+    //         *_options)
     return( dgettext( "base", fallback ) );
 }
 
@@ -43,6 +59,10 @@ map<string,any> generic_Term (map<string,any> options, string type) {
     list<string> __events = [];
     string help = "";
     term def_opt = `opt (`notify, `autoShortcut);
+
+    // TODO: evaluate the proposal to omit the radio button if size of options
+    // is one and type==radio. Possible implementation:
+    //          if sizeof(options) == 1 then type:=normal
 
     foreach (string key, any value, options, {
 	list<string> val = splitstring((string)value, ":");
@@ -95,6 +115,30 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	    	new = `TextEntry(`id( key ), desc);
 	    }
 	}
+	else if (value == "password") {
+	    	new = `Frame (desc, `VBox (
+		    `VSpacing (0.4),
+		    `HBox (
+			`HSpacing (2),
+			// text entry
+			`Password (`id (key + "_pw1"), _("&Password")),
+			// text entry
+			`Password (`id (key + "_pw2"), _("Re&type Password")),
+			`HSpacing (2)
+		    ),
+		    `VSpacing (0.4)
+		));
+		if ( type == "radio" || type == "check") {
+		new = `Left(`HBox (
+		    enable_widget,
+		    new
+		));
+	    }
+	    else  {
+	    }
+	}
+	// FIXME:        menu
+	// FIXME:     ordered list
 	else if (value == "path") {
 	    if ( type == "radio" || type == "check") {
 		new = `HBox (
@@ -133,6 +177,27 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	    }
 	}
 	else if (value == "select") {
+	    if ( type == "radio" || type == "check") {
+		new = `Left(`HBox (
+		    enable_widget,
+		    `ComboBox (`id (key), def_opt, "",
+		    	maplist(string v, val, ``( `item(`id(v), v) ) )
+	    	    )
+	       	));
+	    }
+	    else  {
+	    	new = `Left(`ComboBox (`id (key), add(def_opt, `editable), desc,
+		    maplist(string v, val, ``( `item(`id(v), v) ) )
+	    	));
+	    }
+	}
+	else if (value == "selectdevice") {
+	    // FIXME right now this type visualization is just a copy of the
+	    // "select" type code
+	    // Idea: add some radio buttons in a rb-group: "Identify by:"
+	    // <RB> Name <RB> UUID <RB> Label <RB> id <RB> path <RB> EDD
+	    // and change the list (string representation of devices)
+	    // dynamically due to the selected identification type. 
 	    if ( type == "radio" || type == "check") {
 		new = `Left(`HBox (
 		    enable_widget,
@@ -201,7 +266,8 @@ void generic_Init (
 	string key_e = key + "_enabled";
 	boolean enabled_exists = UI::WidgetExists(`id(key_e));
 
-	if ((value == "select") || (value == "multi")) {
+	if (contains(["multi", "select", "selectdevice"],
+		     (string)value)) {
 	    val[0] = nil; val[1] = nil; val[2] = nil;
 	    val = filter(string v, val, ``(v!=nil) );
 	    // add current value to list if needed
@@ -228,8 +294,13 @@ void generic_Init (
 	    UI::ChangeWidget (`id (key), `Value,
 		data[key]:"" == "true" ? true : false);
 	}
-	else if (contains(["string", "path", "select"], (string)value)) {
+	else if (contains(["string", "path", "select", "selectdevice"],
+			  (string)value)) {
 	    UI::ChangeWidget (`id (key), `Value, data[key]:"");
+	}
+	else if (value == "password") {
+	    UI::ChangeWidget (`id (key + "_pw1"), `Value, "**********");
+	    UI::ChangeWidget (`id (key + "_pw2"), `Value, "**********");
 	}
 	else if (value == "multi") {
 	    list<string> selections = maplist(string s,
@@ -246,11 +317,69 @@ void generic_Init (
 
 
 /**
- * Store function of a widget
+ * Generic store function of a generic widget
  * @param widget string widget key
  * @param event map event that caused the operation
+ * @param options map names of keys to store with storeData() from widgets with same name
+ * @param storeData function storage function that takes a key/value pair
  */
 void generic_Store(
+	string widget,
+	map event,
+	map<string,any>options,
+	void(string, string)storeData
+) {
+    foreach (string key, any value, options, {
+	list val = splitstring((string)value, ":");
+	value = val[0]:"undef";
+
+	string newval = "";
+
+	// if widget for this key is disabled, delete the key in globals
+	if (UI::WidgetExists(`id(key + "_enabled")) &&
+	    (boolean)UI::QueryWidget(`id(key + "_enabled"), `Value) == false)
+	{
+	    storeData(key, nil);
+	    continue;
+	}
+
+	if (value == "multi") {
+	    newval = mergestring(
+		(list<string>) UI::QueryWidget(`id(key), `SelectedItems),
+		", "
+	    );
+	}
+	else if (value == "password") {
+	    string password = (string)UI::QueryWidget (`id (key + "_pw1"), `Value);
+	    if (password == "**********") {
+	        // do not do anything on unchanged value
+	        continue;
+	    }
+	    if (password == "") {
+	        newval = nil;
+	    }
+	    else {
+	        string(string) f = (string(string))
+		  BootCommon::current_bootloader_attribs["update_passwd"]:nil;
+		newval = f (password);
+	    }
+	}
+	else {
+	    newval = sformat("%1", UI::QueryWidget (`id(key), `Value));
+	}
+
+	// if widget type of generic widget is known, simply store the value of
+	// the widget
+	if (contains(["bool", "int", "multi", "string", "path", "select",
+		      "selectdevice", "password"], (string)value))
+	{
+	    storeData(key, newval);
+	}
+    });
+}
+
+
+boolean generic_Validate(
 	string widget,
 	map event,
 	map<string,any>options,
@@ -265,26 +394,20 @@ void generic_Store(
 	if (UI::WidgetExists(`id(key + "_enabled")) &&
 	    (boolean)UI::QueryWidget(`id(key + "_enabled"), `Value) == false)
 	{
-	    storeData(key, nil);
+	    // Widget not enabled, so this is always valid
 	    continue;
 	}
 
-	if (value == "multi") {
-	    newval = mergestring(
-		(list<string>) UI::QueryWidget(`id(key), `SelectedItems),
-		", "
-	    );
-	}
-	else {
-	    newval = sformat("%1", UI::QueryWidget (`id(key), `Value));
-	}
-
-	if ((value == "bool") || (value == "int") || (value == "multi") ||
-	  (value == "string") || (value == "path") || (value == "select"))
-	{
-	    storeData(key, newval);
+	if (value == "password") {
+	    if (UI::QueryWidget (`id (key + "_pw1"), `Value) !=
+		UI::QueryWidget (`id (key + "_pw2"), `Value))
+	    {
+	        passwdMissmatchPopup ();
+	        return false;
+	    }
 	}
     });
+    return true;
 }
 
 

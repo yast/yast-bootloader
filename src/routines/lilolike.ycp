@@ -16,13 +16,13 @@
  */
 {
 
-    textdomain "bootloader";
+textdomain "bootloader";
 
-    import "Arch";
-    import "Mode";
-    import "Storage";
-    import "StorageDevices";
-    import "BootArch";
+import "Arch";
+import "Mode";
+import "Storage";
+import "StorageDevices";
+import "BootArch";
 
 global string DiskOrderSummary ();
 global list<string> DisksOrder ();
@@ -120,13 +120,38 @@ global string FindMBRDisk() {
     /**
      * ConfigureLocation()
      * Where to install the bootloader.
-     * It just gives "mbr" or "floppy"
-     * @return string location proposed to bootloader
+     * Returns the type of device where to install: one of "boot", "root", "mbr", "mbr_md"
+     * Also sets internal global variable selected_location to this.
+     *
+     * Sets internal global variables:
+     *	    - selected_location	to the type of bootloader device (currently one of: "boot", "root", "mbr", "mbr_md")
+     *	    - loader_device	to the actual device name to install the bootloader to (e.g. "/dev/hda1") or to "mbr_md"
+     *	    - activate		to true if the loader_device needs to be activated in the MBR
+     *      - activate_changed	leave untouched, except when
+     *				    - booting from a primary /boot partition on the first disk (the one with the MBR seen by the BIOS), then set to true
+     *				      (FIXME: why only then?)
+     *	    - repl_mbr		leave untouched, except when
+     *				    - booting from a primary /boot partition on the first disk, then set to true when
+     *					- the examination of the code in the MBR
+     *					    - by examine_mbr.pl shows that it
+     *						- DOES NOT look like a valid "stage 1" at all (not enough entropy to contain valid code)	    OR
+     *						- DOES NOT look like a "generic MBR" (= DOS MBR) (OK as stage 1 to boot primary part. on 1st disk)  OR
+     *						- DOES     look like a LILO or GRUB MBR (replace them with generic code
+     *							   (if stage 1 is not in MBR, see code in updateMBR()),
+     *							   they probably contain an obsolete block list for stage 2)				    OR
+     *						- DOES     look like some "stage 1" code (has enough entropy, but no known signature)		    OR
+     *					    - by KeepMBR() -> ThinkPadMBR() shows that it
+     *						- DOES NOT look like a Thinkpad MBR (begins with specific code sequence from that one)
+     *				      otherwise set to false
+     *
+     * @return string type of location proposed to bootloader
      */
     global define string ConfigureLocation() ``{
         selected_location = "mbr";             // default to mbr
         loader_device   = BootCommon::mbrDisk;
-	// check whether the /boot partition is primary
+	// check whether the /boot partition
+	//  - is primary:			    is_logical	-> false
+	//  - is on the first disk (with the MBR):  disk_is_mbr -> true
 	map<string,any> tm = Storage::GetTargetMap ();
 	map dp = Storage::GetDiskPartition (BootPartitionDevice);
 	string disk = dp["disk"]:"";
@@ -163,7 +188,12 @@ global string FindMBRDisk() {
 	y2milestone ("/boot is on 1st disk: %1", disk_is_mbr);
 	y2milestone ("/boot is in logical partition: %1", is_logical);
 	y2milestone ("The extended partition: %1", extended);
+
+	// keep_mbr, if the MBR contains special code that needs to be kept,
+	//           like Thinkpad boot code (and ATM only Thinkpad boot code
+	//           is recognized)
 	boolean keep_mbr = KeepMBR (loader_device);
+
 	// if is primary, store bootloader there
 	if (disk_is_mbr && ! is_logical)
 	{
@@ -171,6 +201,13 @@ global string FindMBRDisk() {
 	    loader_device = BootPartitionDevice;
 	    activate = true;
 	    activate_changed = true;
+	    // examine_mbr.pl returns
+	    //	    - != 0 for a read error: "cannot read 512 bytes from <dev>"
+	    //	    - 1 for an "invalid MBR", i.e. without enough entropy to
+	    //		contain boot code
+	    //	    - 0 for a "Generic MBR" (DOS MBR)
+	    //	    - 1 for a GRUB or lilo "stage 1"
+	    //	    - 0 for an unknown MBR
 	    map out = (map)SCR::Execute (.target.bash_output, sformat (
 		"/usr/lib/YaST2/bin/examine_mbr.pl %1", disk));
 	    y2milestone ("MBR examining script returned %1", out);
@@ -196,8 +233,10 @@ global string FindMBRDisk() {
 	    selected_location = "mbr";             // default to mbr
 	    loader_device   = BootCommon::mbrDisk;
 	}
+
         y2milestone ("ConfigureLocation (%1 on %2)",
 	    selected_location, loader_device);
+
 	// set active flag
 	if (selected_location == "mbr")
 	{
@@ -211,12 +250,16 @@ global string FindMBRDisk() {
 	    // if not installing to MBR, always activate
 	    activate = true;
 	}
+
         return selected_location;
     }
 
     /**
-      * Detect /boot and / (root) partition devices and store settings
-      * to internal variables
+      * Detect /boot and / (root) partition devices
+      * If loader_device is empty or the device is not available as a boot
+      * partition, also calls ConfigureLocation to configure loader_device, set
+      * selected_location and set the activate flag if needed
+      * all these settings are stored in internal variables
       */
     global define void DetectDisks () ``{
 /*	map tm = Storage::GetTargetMap ();
@@ -233,7 +276,7 @@ global string FindMBRDisk() {
 
 	// #151501: AutoYaST needs to know the activate flag and the
 	// loader_device; jsrain also said this code is probably a bug:
-	// commenting out, but this may need to be changed and made dependend
+	// commenting out, but this may need to be changed and made dependent
 	// on a "clone" flag (i.e. make the choice to provide minimal (i.e. let
 	// YaST do partial proposals on the target system) or maximal (i.e.
 	// stay as closely as possible to this system) info in the AutoYaST XML
@@ -468,6 +511,9 @@ global boolean LbaSupport() {
 
 /**
  * Fix global section of lilo-like bootloader
+ * This currently only changes the "default" key to point to the first section,
+ * in case the referenced section does not exist anymore. An empty "default"
+ * value is not changed.
  */
 global void FixGlobals () {
     string defaultv = globals["default"]:"";
@@ -1036,6 +1082,7 @@ global void UpdateGfxMenu () {
 /**
  * Generate device map proposal, store it in internal variables
  */
+// FIXME: move that funbction out here, as it is grub only
 global void ProposeDeviceMap () {
     device_mapping = $[];
 
@@ -1044,12 +1091,66 @@ global void ProposeDeviceMap () {
 	y2milestone ("Skipping device map proposing in Config mode");
     else
 	targetMap = (map<string,map>)Storage::GetTargetMap();
-    targetMap = filter (string k, map v, targetMap, {
-	return v["type"]:`CT_UNKNOWN==`CT_DISK;
+
+//FIXME: This is not the final solution, we must be able to handle both,
+//FakeRAIDs _and_ single disks.
+
+    // Search in complete target map for "CT_DMRAID" types
+    map <string, map> DMTargetMap = filter (string k, map v, targetMap, {
+	return v["type"]:`CT_UNKNOWN==`CT_DMRAID;
     });
+
+    // If no dmraids are present, search in complete target map for "CT_DISK"
+    // types. This should be the "normal" case.
+    if ( size(DMTargetMap) == 0 ) {
+	targetMap = filter (string k, map v, targetMap, {
+	    return v["type"]:`CT_UNKNOWN==`CT_DISK;
+        });
+    } else {
+	// If dmraid(s) are found, only use them
+
+	// Get all available dmraids in the proper BIOS order
+	map out = (map) SCR::Execute (.target.bash_output, "dmraid -s -c");
+
+	if ( out["exit"]:0 == 0 && out["stdout"]:"" != "" ) {
+	    list<string> DMRaid_devices_in_BIOS_order =
+		splitstring (out["stdout"]:"", "\n");
+
+	    // Remove last list entry (because it is empty)
+	    integer index_empty = size(DMRaid_devices_in_BIOS_order) - 1;
+	    DMRaid_devices_in_BIOS_order =
+		remove(DMRaid_devices_in_BIOS_order, index_empty);
+
+	    integer DMRaidBiosID = 128;
+
+	    // FIXME: This code only work when YaST2-Storage either assigns
+	    // BIOS-IDs to all available DMRaid devices or to none of them.
+	    // Probably it's best to throw this code away once YaST2-Storage
+	    // assigns BIOS-IDs to all available DMRaid devices.
+
+	    // Assign BIOS-IDs to DMRaid devices in the Target Map in BIOS
+	    // order
+	    DMTargetMap = listmap (string DMRaidDevice, DMRaid_devices_in_BIOS_order, {
+		DMRaidDevice = "/dev/mapper/" + DMRaidDevice;
+		if (haskey(DMTargetMap, DMRaidDevice)) {
+		    if ( !haskey(DMTargetMap[DMRaidDevice]:$[], "bios_id") ) {
+			DMTargetMap[DMRaidDevice, "bios_id"] = tohexstring(DMRaidBiosID);
+			DMRaidBiosID = DMRaidBiosID + 1;
+		    }
+		    return $[ DMRaidDevice : DMTargetMap[DMRaidDevice]:$[] ];
+		}
+	    });
+	    y2milestone("sorted (according to BIOS) DMTargetMap: %1", DMTargetMap);
+	} else {
+	    y2error ("Command: \"dmraid -s -c\" failed, no sorting of DMTargetMap.");
+	}
+
+	targetMap = DMTargetMap;
+    }
+
     y2milestone ("Target map: %1", targetMap);
 
-    // add devices with know bios_id
+    // add devices with known bios_id
     // collect BIOS IDs which are used
     map ids = $[];
     foreach (string target_dev, map target, targetMap, {
@@ -1057,7 +1158,7 @@ global void ProposeDeviceMap () {
         if (bios_id != "")
         {
             integer index = tointeger (bios_id) - tointeger ("0x80");
-            string grub_dev = sformat ("(hd%1)", index);
+            string grub_dev = sformat ("hd%1", index);
 	    device_mapping[target_dev] = grub_dev;
             ids[index] = true;
         }
@@ -1071,13 +1172,13 @@ global void ProposeDeviceMap () {
             integer index = 0;
             while (ids[index]:false)
                 index = index + 1;
-            string grub_dev = sformat ("(hd%1)", index);
+            string grub_dev = sformat ("hd%1", index);
 	    device_mapping[target_dev] = grub_dev;
             ids[index] = true;
         }
     });
     if (StorageDevices::FloppyPresent)
-	device_mapping[StorageDevices::FloppyDevice] = "(fd0)";
+	device_mapping[StorageDevices::FloppyDevice] = "fd0";
     y2milestone ("Detected device mapping: %1", device_mapping);
 }
 
@@ -1096,7 +1197,7 @@ global list<string> DisksOrder () {
 	return $[ v : k ];
     });
     devmap_rev = filter (string k, string v, devmap_rev, {
-	return substring (k, 0, 3) == "(hd";
+	return substring (k, 0, 2) == "hd";
     });
     list<string> order = maplist (string k, string v, devmap_rev, {
 	return v;
@@ -1123,3 +1224,13 @@ global string DiskOrderSummary () {
 
 
 } // EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */

@@ -741,6 +741,13 @@ Continue?")))
 		`item (`id (`restore_mbr), _("Restore MBR of Hard Disk")));
 	}
 
+	if (Mode::normal () || Mode::repair ())
+	{
+	    items = add (items,
+		// menubutton item, keep as short as possible
+		`item (`id (`init), _("Write bootloader boot code to disk")));
+	}
+
 	if (size (items) > 0)
 	{
 	    UI::ReplaceWidget (`id (`adv_rp),
@@ -796,6 +803,11 @@ Continue?")))
 	else if (op == `reread)
 	{
 	    Bootloader::Read ();
+	}
+	else if (op == `init)
+	{
+	    // Bootloader::blSave (false, false, false);
+	    BootCommon::InitializeBootloader ();
 	}
 	else if (op == `propose_deep)
 	{

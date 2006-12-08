@@ -15,6 +15,7 @@
     import "Arch";
     import "BootCommon";
     import "Bootloader";
+    import "Storage";
     import "Mode";
 
     include "bootloader/routines/wizards.ycp";
@@ -32,9 +33,43 @@
 	boolean force_reset      = param["force_reset"     ]:false;
 	boolean language_changed = param["language_changed"]:false;
 
+	// use the cache if possible
+	    // if not asked to recreate and we have a cached proposal and
+	if (false
+	    && !force_reset
+	    && Bootloader::cached_proposal != nil
+
+	    // has the configuration been changed?
+	    && Bootloader::cached_settings == Bootloader::Export()
+
+	    // has the partitioning been changed?
+	    // This is correct as long as the proposal is only dependent on the
+	    // settings in Storage. AFAICT all information relevant to a
+	    // proposal in yast2-bootloader comes from yast2-storage. Even the
+	    // information from perl-Bootloader only depends on the settings in
+	    // Storage or libstorage. So this should be OK. At this point all
+	    // changes relevant to the yast2-bootloader settings are made
+	    // through Storage, so the change time of Storage data should be
+	    // sufficient.
+	    && Bootloader::cached_settings_base_data_change_time == Storage::GetTargetChangeTime())
+
+
+	  // FIXME: has the software selection changed?: esp. has the
+	  // Xen pattern been activated ? then we'd have to make the
+	  // proposal again.
+
+
+
+	{
+	    y2milestone("Using cached proposal");
+	    return Bootloader::cached_proposal;
+	}
+
 	if (force_reset && !Mode::autoinst ())
 	{
 	    // force re-calculation of bootloader proposal
+	    // this deletes any internally cached values, a new proposal will
+	    // not be partially based on old data now any more
 	    y2milestone ("Recalculation of bootloader configuration forced");
 	    Bootloader::Reset ();
 	}
@@ -72,7 +107,7 @@
         }
 	if (! BootCommon::BootloaderInstallable ())
 	{
-	    return $[
+	    ret = $[
 		"warning_level" : `error,
 		// error in the proposal
 		"warning" : _("Because of the partitioning, the bootloader cannot be installed properly"),
@@ -113,6 +148,11 @@ In case that no selection can be made it may be necessary to create a PReP Boot 
 	        }
 	    }
 	}
+
+	// cache the values
+	Bootloader::cached_settings = Bootloader::Export();
+	Bootloader::cached_settings_base_data_change_time = Storage::GetTargetChangeTime();
+	Bootloader::cached_proposal = ret;
     }
     // This is a request to start some dialog and interact with the user to set
     // up the Bootloader setting. Called when the user presses the link to set
