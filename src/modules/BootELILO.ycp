@@ -1,3 +1,4 @@
+
 /**
  * File:
  *      modules/BootELILO.ycp
@@ -10,6 +11,7 @@
  *      and installation
  *
  * Authors:
+ *      Joachim Plack <jplack@suse.de>
  *      Jiri Srain <jsrain@suse.cz>
  *      Andreas Schwab <schwab@suse.de>
  *
@@ -27,10 +29,19 @@ textdomain "bootloader";
 
 import "BootArch";
 import "BootCommon";
+import "Installation";
 import "Kernel";
 import "Mode";
+import "Report";
 import "Stage";
 import "Storage";
+
+//include "bootloader/elilo/misc.ycp";
+//include "bootloader/elilo/widgets.ycp";
+include "bootloader/routines/popups.ycp";
+include "bootloader/elilo/helps.ycp";
+include "bootloader/generic/dialogs.ycp";
+
 
 // private variables
 
@@ -64,11 +75,65 @@ global boolean efi_layout_changed = false;
  */
 global string efi_entry_name = "";
 
-include "bootloader/elilo/misc.ycp";
-include "bootloader/elilo/widgets.ycp";
-
+string efi_vendor = "SuSE";
 
 // misc. functions
+
+/**
+  * Return mountpoint of partition holding EFI data
+  * @return mountpoint if partition holding EFI data
+  */
+global define string getEfiMountPoint () {
+    string mountpoint = "/";
+    // FIXME: UGLY HACK because of testsuites
+    map mountpoints = $[];
+    if (Mode::test ())
+        mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
+    else
+        mountpoints = Storage::GetMountPoints();
+    if (haskey (mountpoints, "/boot/efi"))
+    {
+        mountpoint = "/boot/efi";
+    }
+    else if (haskey (mountpoints, "/boot"))
+    {
+        mountpoint = "/boot";
+    }
+    y2milestone ("Mountpoint of EFI: %1", mountpoint);
+    return mountpoint;
+}
+
+
+/**
+  * Get directory containing elilo.conf relative to EFI partition's root
+  * @return directory containing elilo.conf relative to EFI root
+  */
+global define string getEliloConfSubdir () {
+    return sformat ("/efi/%1", efi_vendor);
+}
+
+
+/**
+  * Get path of elilo.conf relative to EFI partition's root
+  * @return string path of elilo.conf relative to EFI partition's root
+  */
+global define string getEliloConfSubpath () {
+    return sformat ("%1/elilo.conf", getEliloConfSubdir ());
+}
+
+
+/**
+  * Return path to elilo.conf file
+  * @return string path to elilo.conf
+  */
+global define string getEliloConfFilename () {
+    // FIXME config file name location should be read from Library
+    //  and it should not be needed here!!!
+    string ret = sformat ("%1/efi/%2/elilo.conf", getEfiMountPoint (),
+        efi_vendor);
+    y2milestone ("elilo.conf sould be located at %1", ret);
+    return ret;
+}
 
 
 /**
@@ -130,7 +195,7 @@ global define map Export () {
   * Import settings from a map
   * @param settings map of bootloader settings
   */
-global define boolean Import (map<string, any> settings) ``{
+global define boolean Import (map<string, any> settings) {
     BootCommon::Import (settings);
     old_efi_entry = (string) (settings["old_efi_entry"]:nil);
     remove_old_efi = settings["remove_old_efi"]:true;
@@ -142,57 +207,10 @@ global define boolean Import (map<string, any> settings) ``{
 
 
 /**
-  * Propose bootloader settings
-  */
-global define void Propose () ``{
-    import "Product";
-    if (! BootCommon::was_proposed)
-    {
-        create_efi_entry = true;
-        efi_entry_name = Product::name;
-    }
-    if (! Stage::initial ())
-        create_efi_entry = true;
-    if (Mode::update ())
-        create_efi_entry = false;
-    elilo_conf_filename = getEliloConfFilename ();
-    BootCommon::DetectDisks ();
-    BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
-
-    if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
-    {
-        CreateSections ();
-        BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
-    }
-    else
-    {
-        if (Mode::autoinst ())
-        {
-    	y2debug ("Nothing to do for propose in AI mode");
-        }
-        else
-    	BootCommon::FixSections (BootELILO::CreateSections);
-    }
-    if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
-    {
-        CreateGlobals ();
-    }
-
-    if (efi_entry_name == "" || efi_entry_name == nil)
-    {
-        efi_entry_name = Product::name;
-    }
-    y2milestone ("EFI entry name: %1", efi_entry_name);
-    y2milestone ("Proposed sections: %1", BootCommon::sections);
-    y2milestone ("Proposed globals: %1", BootCommon::globals);
-}
-
-
-/**
   * Read settings from disk
   * @return boolean true on success
   */
-global define boolean Read (boolean reread) ``{
+global define boolean Read (boolean reread) {
 	import "Product";
 	boolean efi_entry_found = false;
 	elilo_conf_filename = getEliloConfFilename ();
@@ -262,6 +280,54 @@ global define void Reset (boolean init) {
     BootCommon::Reset(init);
 }
 
+
+/**
+  * Propose bootloader settings
+  */
+global define void Propose () {
+    import "Product";
+    if (! BootCommon::was_proposed)
+    {
+        create_efi_entry = true;
+        efi_entry_name = Product::name;
+    }
+    if (! Stage::initial ())
+        create_efi_entry = true;
+    if (Mode::update ())
+        create_efi_entry = false;
+    elilo_conf_filename = getEliloConfFilename ();
+    BootCommon::DetectDisks ();
+    BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
+
+    if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
+    {
+        CreateSections ();
+        BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
+    }
+    else
+    {
+        if (Mode::autoinst ())
+        {
+    	y2debug ("Nothing to do for propose in AI mode");
+        }
+        else
+    	BootCommon::FixSections (BootELILO::CreateSections);
+    }
+    if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
+    {
+        CreateGlobals ();
+    }
+
+    if (efi_entry_name == "" || efi_entry_name == nil)
+    {
+        efi_entry_name = Product::name;
+    }
+    y2milestone ("EFI entry name: %1", efi_entry_name);
+    y2milestone ("Proposed sections: %1", BootCommon::sections);
+    y2milestone ("Proposed globals: %1", BootCommon::globals);
+}
+
+
 /**
  * Save all bootloader configuration files
  * @return boolean true if success
@@ -270,8 +336,10 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     BootCommon::globals["efi_entry_name"] = efi_entry_name;
     // FIXME modify EFI? Entries to remove...
     boolean ret = BootCommon::Save (clean, init, flush);
+    importMetaData();
     return ret;
 }
+
 
 /**
   * Display bootloader summary
@@ -308,6 +376,7 @@ global define list<string> Summary () {
         mergestring (sects, ", ")));
     return result;
 }
+
 
 /**
  * Update read settings to new version of configuration files
@@ -417,29 +486,41 @@ global define boolean Write () {
 }
 
 
-global map<string,symbol()> Dialogs () {
-    return $[];
+global symbol WizardSequenzer() {
+    y2milestone("Call generic WizardSequenzer");
+    return `generic_new;
 }
+
+
+global map<string,symbol()> Dialogs () {
+    return $[
+	"loader"	: genericBootLoaderOptionsDialog,
+    ];
+}
+
 
 /**
   * Return map of provided functions
-  * @return map map of functions (eg. $["write":``(BootLILO::Write ())])
+  * @return a map of functions (eg. $["write"::Write])
   */
-global define map GetFunctions () {
+global map<string, any> GetFunctions () {
     return $[
-	"dialogs" : Dialogs,
-	"export"  : Export,
-	"import"  : Import,
-	"read"	  : Read,
-	"reset"	  : Reset,
-	"propose" : Propose,
-	"save"	  : Save,
-	"summary" : Summary,
-	"update"  : Update,
-	"write"	  : Write,
-	"widgets" : Widgets,
+        "export"	   : Export,
+        "import"	   : Import,
+        "read"		   : Read,
+	"reset"		   : Reset,
+        "propose"	   : Propose,
+        "save"		   : Save,
+        "summary"	   : Summary,
+        "update"	   : Update,
+        "write"		   : Write,
+        "widgets"	   : genericWidgets,
+        "wizard_sequencer" : WizardSequenzer,
+        "dialogs"	   : Dialogs,
+        "section_types"	   : section_types,
     ];
 }
+
 
 /**
  * Initializer of ELILO bootloader
@@ -453,6 +534,24 @@ global void Initializer () {
         "restore_mbr" : true,
         "bootloader_on_disk" : true,
     ];
+
+    BootCommon::help_messages = (map<string,string>)
+      union(BootCommon::help_messages,
+    	mapmap(string key, string val, elilo_help_messages,
+    	    { return $[ "elilo_" + key : val ]; }
+    	       )
+    	);
+    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
+    BootCommon::descriptions = (map<string,string>)
+      union(BootCommon::descriptions,
+    	mapmap(string key, string val, elilo_descriptions,
+    	    { return $[ "elilo_" + key : val ]; }
+    	       )
+    	);
+    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
+
+    BootCommon::InitializeLibrary (false, "elilo");
+    importMetaData();
 }
 
 /**
@@ -466,7 +565,7 @@ global define void BootELILO () {
     ];
 }
  
-}
+} // EOF
 
 /*
  * Local variables:

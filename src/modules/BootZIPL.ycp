@@ -22,12 +22,12 @@ module "BootZIPL";
 
 textdomain "bootloader";
 
-import "Kernel";
-import "StorageControllers";
 import "BootCommon";
+import "Installation";
+import "Kernel";
 import "Mode";
 import "Stage";
-import "Installation";
+import "StorageControllers";
 
 // include "bootloader/zipl/widgets.ycp";
 include "bootloader/routines/popups.ycp";
