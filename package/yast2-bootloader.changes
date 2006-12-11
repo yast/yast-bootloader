@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Dec 11 17:05:58 CET 2006 - jplack@suse.de
+
+- replace Kernel::GetFinalKernel function which is broken by design
+  by Kernel::ComputePackage.
+
+-------------------------------------------------------------------
 Mon Dec 11 16:27:16 CET 2006 - jplack@suse.de
 
 - move CheckAdditionalKernels from misc to Grub and fix that crappy

@@ -445,7 +445,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	// FIXME: also do this for xen and xenpae kernels as found below
 	//
 	// First, get the file names in the "selected" kernel package,
-	string kernel_package = Kernel::GetFinalKernel();
+	string kernel_package = Kernel::ComputePackage();
 	list<string> files = Pkg::PkgGetFilelist( kernel_package, `any );
 	y2milestone ("kernel package %1 has these files: %2", kernel_package, files);
 
