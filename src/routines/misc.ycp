@@ -1663,46 +1663,6 @@ global boolean MemtestPresent () {
 
 }
 
-/**
- * Check for additional kernels which could go to the proposed settings
- * @return a list of kernels to propose
- */
-global list<map<string,string> > CheckAdditionalKernels () {
-    list<string> files = (list<string>)SCR::Read (.target.dir, "/boot");
-    string binary = Kernel::GetBinary ();
-    list<string> kernels = filter (string k, files, {
-	return substring (k, 0, size (binary)) == binary;
-    });
-    kernels = filter (string k, kernels, {
-	return k != ""
-	    && k != binary
-	    && regexpmatch (k, sformat ("^%1-.+$", binary));
-    });
-    if (contains (kernels, binary))
-    {
-	string defaultv = (string)SCR::Read (.target.symlink,
-	    sformat ("/boot/%1", binary));
-	defaultv = ""; // FIXME remove this line
-	kernels = filter (string k, kernels, {
-	    return k != defaultv;
-	});
-    }
-    list<map<string,string> > ret = maplist (string k, kernels, {
-	string version = regexpsub (k, sformat ("^%1-(.+)$", binary), "\\1");
-	map<string,string> info = $[
-	    "version" : version,
-	    "kernel" : sformat ("/boot/%1", k)
-	];
-	if (contains (files, sformat ("initrd-%1", version)))
-	{
-	    info["initrd"] = sformat ("/boot/initrd-%1", version);
-	}
-	return info;
-    });
-
-    y2milestone ("Additional sectinos to propose: %1", ret);
-    return ret;
-}
 
 /**
  * Check if the bootloader can be installed at all with current configuration

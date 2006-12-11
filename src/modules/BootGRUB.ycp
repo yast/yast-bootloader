@@ -86,12 +86,53 @@ global map<string,any> CreateLinuxSection (string title) {
 }
 
 
+/**
+ * Check for additional kernels which could go to the proposed settings
+ * @return a list of kernels to propose
+ */
+global list<map<string,string> > CheckAdditionalKernels () {
+    list<string> files = (list<string>)SCR::Read (.target.dir, "/boot");
+    string binary = Kernel::GetBinary ();
+    list<string> kernels = filter (string k, files, {
+	return substring (k, 0, size (binary)) == binary;
+    });
+    kernels = filter (string k, kernels, {
+	return k != ""
+	    && k != binary
+	    && regexpmatch (k, sformat ("^%1-.+$", binary));
+    });
+    if (contains (kernels, binary))
+    {
+	string defaultv = (string)SCR::Read (.target.symlink,
+	    sformat ("/boot/%1", binary));
+	defaultv = ""; // FIXME remove this line
+	kernels = filter (string k, kernels, {
+	    return k != defaultv;
+	});
+    }
+    list<map<string,string> > ret = maplist (string k, kernels, {
+	string version = regexpsub (k, sformat ("^%1-(.+)$", binary), "\\1");
+	map<string,string> info = $[
+	    "version" : version,
+	    "image" : sformat ("/boot/%1", k)
+	];
+	if (contains (files, sformat ("initrd-%1", version)))
+	{
+	    info["initrd"] = sformat ("/boot/initrd-%1", version);
+	}
+	return info;
+    });
+
+    y2milestone ("Additional sections to propose: %1", ret);
+    return ret;
+}
+
 
 /**
   * Propose sections to bootloader menu
   * modifies internal structures
   */
-global define void CreateSections () ``{
+global define void CreateSections () {
     y2debug ("Creating GRUB sections from scratch");
     list<map<string,any> > out = [
 	CreateLinuxSection ("linux"),
@@ -302,7 +343,7 @@ global define void CreateSections () ``{
     if (Mode::normal ())
     {
         foreach (map<string,string> additional,
-		 BootCommon::CheckAdditionalKernels (),
+		 CheckAdditionalKernels (),
 	{
 	    string type = additional["version"]:"";
 	    type = sformat ("%1", type);

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Dec 11 16:27:16 CET 2006 - jplack@suse.de
+
+- move CheckAdditionalKernels from misc to Grub and fix that crappy
+  stuff
+
+-------------------------------------------------------------------
 Fri Dec  8 19:14:25 CET 2006 - od@suse.de
 
 - related to help_messages and descriptions:
