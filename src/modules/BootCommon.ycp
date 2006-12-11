@@ -303,6 +303,12 @@ global string read_default_section_name = "";
 global list<string> update_section_types
     = [ "linux", "failsafe", "initrd", "floppy" ];
 
+/**
+ * List of all supported bootloaders
+ */
+global list<string> bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
+				   "aboot", "zipl", "ppc", "mips"];
+
 
 
 global define string getLoaderType (boolean recheck);
@@ -868,15 +874,17 @@ global define void setLoaderType (string bootloader) {
         && contains(bootloaders, bootloader)
         && ! Mode::test ())
     {
-        // don't configure package maneger during autoinstallation preparing
+        list<string> bootloader_packages =
+	    bootloader_attribs[bootloader, "required_packages"]:[];
+        // don't configure package manager during autoinstallation preparing
         if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
         {
-	    PackageSystem::InstallAll (getBootloaderPackages (bootloader));
+	    PackageSystem::InstallAll (bootloader_packages);
         }
         else if (Stage::initial () && (! (Mode::repair ())))
         {
 	    boolean pkg_added = false;
-	    foreach (string p, getBootloaderPackages (bootloader), {
+	    foreach (string p, bootloader_packages, {
 	        if (! Pkg::IsSelected (p))
 		{
 		    Pkg::PkgInstall (bootloader);

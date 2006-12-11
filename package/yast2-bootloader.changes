@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Dec 11 18:38:35 CET 2006 - jplack@suse.de
+
+- code review and cleanup: eliminate dead code, eliminate simple
+  functions used once, keep local functions local (part1)
+
+-------------------------------------------------------------------
 Mon Dec 11 17:05:58 CET 2006 - jplack@suse.de
 
 - replace Kernel::GetFinalKernel function which is broken by design
