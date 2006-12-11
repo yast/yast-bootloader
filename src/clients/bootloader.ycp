@@ -52,7 +52,7 @@
     }
 
     /**
-     * Modify the boot laoder section
+     * Modify the boot loader section
      * @param section string the section name
      * @param key string the key to modify
      * @param value string the value to set
@@ -60,31 +60,30 @@
      */
     define boolean BootloaderModifySection (string section,
 	string key, string value)
-    ``{
+    {
 	if (section == nil)
 	{
 	    BootCommon::globals[key] = value;
 	    return true;
 	}
 	else
-	{
-	    integer index = BootCommon::getSectionIndex (section);
-	    if (index != nil)
-	    {
-		BootCommon::sections[index, key] = value;
-		return true;
-	    }
-	    else
-	    {
-		// command line error report, %1 is section name
-		CommandLine::Print (sformat (_("Section %1 not found."),
-		    section));
-		return false;
-	    }
+	{ 
+	    // change value in section specified by name in 'section'
+	    integer i = 0;
+	    while (i < size(BootCommon::sections)) {
+	        if (BootCommon::sections[i, "name"]:"" == section) {
+		    BootCommon::sections[i, key] = value;
+		    return true;
+		}
+	        i = i + 1;
+	    };
+
+	    // command line error report, %1 is section name
+	    CommandLine::Print (sformat (_("Section %1 not found."),
+					 section));
+	    return false;
 	}
 	return false;
-
-
     }
 
     /**

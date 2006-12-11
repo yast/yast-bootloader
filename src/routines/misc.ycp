@@ -42,16 +42,6 @@
     global define void DetectDisks ();
 
     /**
-      * Get packages needed by specified bootloader
-      * maybe should be moved to bootloader specific modules
-      * @param bootloader string name of bootloader
-      * @return a list of required packages names
-      */
-    global define list<string> getBootloaderPackages (string bootloader) ``{
-	return bootloader_attribs[bootloader, "required_packages"]:[];
-    }
-
-    /**
       * return printable name of bootloader
       * @param bootloader string bootloader type internal string
       * @param mode symbol `combo or `summary (because of capitalization)
@@ -102,72 +92,8 @@
         return current_bootloader_attribs[attrib]:defaultv;
     }
 
-/**
- * Get index of a section specified by name
- * @param name string section name
- * @return integer index of the section or nil if not found
- */
-global integer getSectionIndex (string name) {
-    integer index = -1;
-    integer sectnum = nil;
-    foreach (map<string,any> s, sections, {
-	index = index + 1;
-	if (s["name"]:"" == name)
-	    sectnum = index;
-    });
-    return sectnum;
-}
-
-    /**
-      * Get map where to store kernel parameters
-      * @return map describing where to store which kernel parameter
-      */
-    global define map getKernelParamKeys () ``{
-        return current_bootloader_attribs["kernel_params"]:$[];
-    }
-
-
 // other misc functions
 
-/**
- * Generates unused section label for new section
- * @return string label for new section
- */
-global string getFreeSectionLabel () {
-    integer index = 1;
-    list<string> existing = [];
-    foreach (map<string,any> s, sections, {
-	existing = add (existing, s["name"]:"");
-	list<string> aliases = splitstring (s["aliases"]:"", ";");
-	foreach (string a, aliases, {
-	    existing = add (existing, a);
-	});
-    });
-    while (true)
-    {
-	string title = sformat ("section %1", index);
-	if (! contains (existing, title))
-	    return title;
-	index = index + 1;
-    }
-}
-
-    /**
-      * Get the list of installed floppy drives
-      * @return a list of floppy devices
-      */
-    global define list<string> getFloppyDevices () ``{
-        if (floppy_devices == nil)
-        {
-            list<map> floppies = (list<map>) SCR::Read (.probe.floppy);
-            floppies = filter (map f, floppies,
-                ``(f["model"]:"Floppy Disk" == "Floppy Disk"));
-            floppy_devices = maplist (map f, floppies,
-		``(f["dev_name"]:""));
-            floppy_devices = filter (string f, floppy_devices, ``(f != ""));
-        }
-	return floppy_devices;
-    }
 
 
     /**
@@ -202,10 +128,21 @@ global string getFreeSectionLabel () {
     }
 
     /**
-      * List of all supported bootloaders
+      * Get the list of installed floppy drives
+      * @return a list of floppy devices
       */
-    global list<string> bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
-	"aboot", "zipl", "ppc", "mips"];
+    define list<string> getFloppyDevices () ``{
+        if (floppy_devices == nil)
+        {
+            list<map> floppies = (list<map>) SCR::Read (.probe.floppy);
+            floppies = filter (map f, floppies,
+                ``(f["model"]:"Floppy Disk" == "Floppy Disk"));
+            floppy_devices = maplist (map f, floppies,
+		``(f["dev_name"]:""));
+            floppy_devices = filter (string f, floppy_devices, ``(f != ""));
+        }
+	return floppy_devices;
+    }
 
     /**
      * converts array of string to path
@@ -494,7 +431,7 @@ global string getFreeSectionLabel () {
       * @param str string source string
       * @return string stripped string
       */
-    global define string strip(string str)``{
+    define string strip(string str)``{
 	//emtpy  string
 	if (size(str) == 0) return "";
 
@@ -776,17 +713,6 @@ global boolean InstallingToFloppy () {
     return ret;
 }
 
-    /**
-      *
-      * @return true if installing bootloader to floppy
-      */
-    global define boolean installingToFloppy () ``{
-	if (BootCommon::loader_device == StorageDevices::FloppyDevice)
-	    return true;
-	if (contains (getFloppyDevices (), BootCommon::loader_device))
-	    return true;
-	return false;
-    }
 
 /**
  * Get the list of particular kernel parameters
@@ -1491,7 +1417,7 @@ global list<string> ListKernelParamsInLine (string line) {
       * @param device string device to check
       * @return boolean true if is MBR
       */
-    global define boolean IsMbr (string device) ``{
+    define boolean IsMbr (string device) ``{
 	if (regexpmatch (device, "^\/dev\/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]+$"))
 	    return true;
 	if (regexpmatch (device, "^\/dev\/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]+\/.*d[0-9]+$"))
@@ -1505,7 +1431,7 @@ global list<string> ListKernelParamsInLine (string line) {
       * @param device string disk device
       * @return string updated description
       */
-    global define string AddMbrToDescription (string descr, string device) ``{
+    define string AddMbrToDescription (string descr, string device) ``{
 	return IsMbr (device)
 	    ? sformat ("%1 (MBR)", descr)
 	    : descr;
@@ -1589,28 +1515,6 @@ global define boolean UpdateGfxMenuContents () {
     return GfxMenu::UpdateGfxMenuContents(getLoaderType(false));
 }
 
-/**
- * Transform the selected linux section to section for previous kernel
- * @param section a list representing the bootloader section
- * @return a list representing the updated section
- */
-global map<string,any> Linux2Previous (map<string,any> section) {
-    boolean intern_found = false;
-    section["name"] = translateSectionTitle ("previous");
-    section["original_name"] = "previous";
-    section["kernel"] = regexpsub (
-	section["kernel"]:"",
-	sformat ("^(.*)%1[^ ]*(.*)$", Kernel::GetBinary ()),
-	sformat ("\\1%1.previous\\2", Kernel::GetBinary()));
-    if (haskey (section, "initrd"))
-    {
-	section["initrd"] = regexpsub (
-	    section["initrd"]:"",
-	    "^(.*)initrd[^ ]*(.*)$",
-	    "\\1initrd.previous\\2");
-    }
-    return section;
-}
 
 /**
  * Update device name according to changes in kernel (eg. SATA)
