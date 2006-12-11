@@ -314,7 +314,6 @@ Wed Sep 13 20:19:07 CEST 2006 - od@suse.de
 - using parted for activation of boot partition again (instead of
   /sbin/activate from the lilo package) -- extended partition
   handling was fixed (#167602)
-- 2.13.75
 
 -------------------------------------------------------------------
 Mon Sep 11 13:45:44 CEST 2006 - mvidner@suse.cz
@@ -330,13 +329,24 @@ Mon Sep  4 17:20:15 CEST 2006 - jplack@suse.de
 Tue Aug 22 15:21:30 CEST 2006 - od@suse.de
 
 - jplack: use new device_map format (#198244)
-- 2.13.74
 
 -------------------------------------------------------------------
-Wed Jun 21 14:28:21 CEST 2006 - uli@suse.de
+Mon Jul  3 16:52:22 CEST 2006 - aosthof@suse.de
 
-- zipl: add "TERM=linux console=..." to proposal if booted with 
+- a few corrections had to be done related to several wrong paths
+  (Bug #180240)
+- reconstructed last submission and submit now with normal YaST2
+  submission tools from SVN, rather than as a patch
+- jplack: fix for #184186, reset global variables to default in
+  private Reset function
+- 2.13.75
+
+-------------------------------------------------------------------
+Wed Jun 21 14:32:53 CEST 2006 - uli@suse.de
+
+- zipl: add "TERM=linux console=..." to proposal if run with
   TERM=linux (bug #186970)
+- 2.13.74
 
 -------------------------------------------------------------------
 Mon Jun 19 15:18:29 CEST 2006 - aosthof@suse.de
