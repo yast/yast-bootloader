@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Dec 14 13:56:26 CET 2006 - jplack@suse.de
+
+- code review and cleanup: eliminate dead code, eliminate simple
+  functions used once, keep local functions local (part2)
+
+-------------------------------------------------------------------
 Mon Dec 11 18:38:35 CET 2006 - jplack@suse.de
 
 - code review and cleanup: eliminate dead code, eliminate simple

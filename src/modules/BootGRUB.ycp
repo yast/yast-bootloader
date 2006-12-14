@@ -600,11 +600,6 @@ global define void Reset (boolean init) {
 	    BootCommon::FixGlobals ();
 	}
 
-//         if (! BootCommon::was_proposed)
-// 	{
-// 	    BootCommon::globals["embed_stage1.5"] = allowEmbed15 () ? "1" : "0";
-// 	}
-
 	// FIXME: The setting of the boot_* and activate keys in globals for
 	// the new perl-Bootloader interface should probably be put in a
 	// function of its own. ATM, this code looks still too specific to put

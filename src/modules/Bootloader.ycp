@@ -893,14 +893,6 @@ global define void ResolveSymlinksInSections() {
     }
 
     /**
-      * Answer whether LBA is supported
-      * @return boolean true if supported
-      */
-    global define boolean LbaSupport() {
-	return BootCommon::LbaSupport ();
-    }
-
-    /**
       * Check whether settings were read or proposed, if not, decide
       * what to do and read or propose settings
       */

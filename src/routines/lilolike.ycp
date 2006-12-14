@@ -26,10 +26,9 @@ import "BootArch";
 
 global string DiskOrderSummary ();
 global list<string> DisksOrder ();
-global define void DetectDisks ();
-global define boolean RefreshDisks();
+global void DetectDisks ();
 global void ProposeDeviceMap ();
-
+global boolean DisksChanged ();
 
 include "bootloader/routines/i386.ycp";
 
@@ -100,7 +99,7 @@ global boolean DisksChanged () {
  * try to find the system's mbr device
  * @return string   mbr device
  */
-global string FindMBRDisk() {
+string FindMBRDisk() {
     // check the disks order, first has MBR
     list<string> order = DisksOrder ();
     if (size (order) > 0)
@@ -146,7 +145,7 @@ global string FindMBRDisk() {
      *
      * @return string type of location proposed to bootloader
      */
-    global define string ConfigureLocation() ``{
+    string ConfigureLocation() {
         selected_location = "mbr";             // default to mbr
         loader_device   = BootCommon::mbrDisk;
 	// check whether the /boot partition
@@ -261,19 +260,7 @@ global string FindMBRDisk() {
       * selected_location and set the activate flag if needed
       * all these settings are stored in internal variables
       */
-    global define void DetectDisks () ``{
-/*	map tm = Storage::GetTargetMap ();
-	list partitions = [];
-
-	foreach ( string dev, map disk, tm, ``{
-	    if( Storage::IsRealDisk( disk ) )
-	    {
-		list l = filter( map p, disk["partitions"]:[],
-		    ``(p["delete"]:false==false) );
-		partitions = merge (partitions, l);
-            }
-        });*/
-
+    global void DetectDisks () {
 	// #151501: AutoYaST needs to know the activate flag and the
 	// loader_device; jsrain also said this code is probably a bug:
 	// commenting out, but this may need to be changed and made dependent
@@ -312,30 +299,6 @@ global string FindMBRDisk() {
 	    || ! contains (getPartitionList (`boot), loader_device))
             ConfigureLocation ();
 
-/*	if (mountdata_boot[3]:"" == "raid1")
-	{
-	    list md_list = filter (`e, partitions,
-		``(e["used_by"]:"" == substring(mountdata_boot[0]:"",5)));
-	    list dev_list = maplist (`e, md_list, ``(e["device"]:""));
-	    dev_list = filter (`d, dev_list, ``(d != ""));
-	    if (size (dev_list) > 0)
-	    {
-		dev_list = sort (dev_list);
-		BootCommon::BootPartitionDevice = dev_list[0]:"";
-	    }
-	}
-        if (mountdata_root[3]:"" == "raid1")
-        {
-            list md_list = filter (`e, partitions,
-		``(e["used_by"]:"" == substring(mountdata_root[0]:"",5)));
-            list dev_list = maplist (`e, md_list, ``(e["device"]:""));
-            dev_list = filter (`d, dev_list, ``(d != ""));
-            if (size (dev_list) > 0)
-            {
-                dev_list = sort (dev_list);
-                BootCommon::RootPartitionDevice = dev_list[0]:"";
-            }
-        }*/
     }
 
     /**
@@ -386,128 +349,8 @@ global string FindMBRDisk() {
 	    }
 	});
 	return found;
-//	devices = (list<string>)sort (devices);
-//	return devices[0]:"";
     }
 
-    /**
-      * Get the md device a partition belongs to (or the partition itself if
-      * it doesn't exist
-      * @param device string a partition
-      * @return string the md device
-      */
-    global define string Partition2Md (string device) {
-	string ret = device;
-	map<string,any> tm = (map<string,map>)Storage::GetTargetMap();
-	foreach (string disk, any descr_a, tm, ``{
-	    map<string,any> descr = (map<string,any>)descr_a;
-	    list<map<string,any> > partitions = (list<map<string,any> >)
-		descr["partitions"]:[];
-	    foreach (map<string,any> partition, partitions, ``{
-		if (partition["device"]:"" == device)
-		{
-		    ret = (string)(partition["used_by"]:device);
-		    if( search( ret, "/dev/" )!=0 )
-			ret = "/dev/"+ret;
-		}
-	    });
-	});
-	y2milestone ("Partition %1 builds %2", device, ret);
-	return ret;
-    }
-
-    /**
-      * Refresh disk locations
-      * @return boolean true if bootloader location should be set again
-      */
-    global define boolean RefreshDisks() ``{
-	boolean ret = true;
-	if (! DisksChanged ())
-	    ret = false;
-
-	y2milestone ("Reconfiguring locations");
-	DetectDisks ();
-
-	return ret;
-    }
-
-/**
- * Answer whether LBA is supported
- * @return boolean true if supported
- */
-global boolean LbaSupport() {
-    if (Arch::i386 ())
-    {
-	list internal_bios = (list<map>)SCR::Read (.probe.bios);
-	return internal_bios[0, "lba_support"]:false;
-    }
-    else
-	return true;
-}
-
-    /**
-     *  IsBootAccessible()
-     *  @return boolean true if accessible
-     */
-    global define boolean IsBootAccessible() ``{
-	if (Mode::config ())
-	    return true;
-        boolean boot_partition_accessible = true;
-
-        if (!LbaSupport())
-        {
-            string boot_mount_point = "";
-            // check, if no /boot partition exists
-
-            if (Storage::GetMountPoints()["/boot"]:"" == "")
-            {
-                boot_mount_point = "/";
-            }
-            else
-            {
-                boot_mount_point = "/boot";
-            }
-
-            // check if boot mount point is below cyl 1024
-
-            foreach (string dname, map ddata, (map<string,map>)Storage::GetTargetMap(),
-            ``{
-                list<map> partitions = ddata["partitions"]:[];
-                if (partitions != [])
-                {
-                    foreach (map pentry, partitions, ``{
-                        if (pentry["mount"]:"" == boot_mount_point)
-                        {
-                            boot_partition_accessible =
-				(1024 > pentry["region",0]:0);
-                        }
-                    });
-                }
-
-            });
-
-        }
-        if (boot_partition_accessible)
-            y2milestone("Boot partition accessible");
-        else
-            y2milestone("Boot partition unaccessible");
-
-        return (boot_partition_accessible);
-    }
-
-    /**
-      * Should backup copy of bootloader bootsector be created?
-      * @return boolean true if yes.
-      */
-    global define boolean createBackupBS () ``{
-	if (! Stage::initial ())
-	    return false;
-	map mp = Storage::GetMountPoints ();
-	list data = mp["/boot"]:(mp["/"]:[]);
-	string bpd = data[0]:"";
-	// ???? FIXME ???? how about LVM/MD ????
-	return bpd == BootPartitionDevice;
-    }
 
 /**
  * Fix global section of lilo-like bootloader
@@ -532,6 +375,18 @@ global void FixGlobals () {
 	    globals["default"] = first;
     }
 }
+
+
+string getLargestSwapPartition () {
+    map<string, integer> swap_sizes = getSwapPartitions ();
+    list<string> swap_parts = (list<string>)
+        maplist (string name, integer size, swap_sizes, ``(name));
+    swap_parts = sort (string a, string b, swap_parts,
+		       ``(swap_sizes[a]:0 > swap_sizes[b]:0)
+		       );
+    return swap_parts[0]:"";
+}
+
 
 /**
  * Fix section of lilo-like bootloader
