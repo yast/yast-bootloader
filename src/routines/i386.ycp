@@ -164,17 +164,17 @@ global void i386LocationProposal () {
     {
 	ProposeDeviceMap ();
     }
-    boolean disks_changed = RefreshDisks();
-    if (disks_changed && ! Mode::autoinst ())
-    {
-	if (askLocationResetPopup (loader_device))
-	{
+
+    if (DisksChanged () && ! Mode::autoinst ()) {
+        if (askLocationResetPopup (loader_device)) {
 	    selected_location = nil;
 	    loader_device = nil;
+	    y2milestone ("Reconfiguring locations");
 	    DetectDisks ();
 	}
     }
 }
+
 
 /**
  * Do updates of MBR after the bootloader is installed

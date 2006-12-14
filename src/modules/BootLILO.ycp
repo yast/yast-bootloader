@@ -31,6 +31,28 @@ import "Storage";
 include "bootloader/routines/popups.ycp";
 include "bootloader/routines/dialogs_i386.ycp";
 
+
+/**
+ * remove blanks from section name and replace them with _
+ * @param original string
+ * @return string fixed string
+ */
+string removeBlanks (string original) {
+    // do not allow empty labels
+    while (size (original) > 1 && substring (original, 0, 1) == " ") {
+        original = substring (original, 1);
+    }
+    while (size (original) > 1
+	   && substring (original, size (original) -1, 1) == " ")
+    {
+	original = substring (original, 0, size (original) - 1);
+    }
+    if (size (original) > 15)
+        original = substring (original, 0, 15);
+    return BootCommon::replaceAll (original, " ", "_");
+}
+
+
 /**
  * Propose sections to bootloader menu
  * modifies internal sreuctures
@@ -61,7 +83,7 @@ global void CreateSections () {
 	    {
 		map<string,any> m = $[
 		    "name" : BootCommon::translateSectionTitle (
-			BootCommon::removeBlanks (label)),
+			removeBlanks (label)),
 		    "original_name" : label,
 		    "type" : "chainloader",
 		    "chainloader" : dev,
@@ -181,6 +203,39 @@ global void Update () {
 	= BootCommon::UpdateDevice (BootCommon::loader_device);
 }
 
+
+/**
+ * If device is part of RAID (md), then return first of its members
+ * otherwise return the same as argument
+ * @param device string device of the RAID
+ * @return string first member of the RAID
+ */
+string getDeviceOfRaid (string device) {
+    // get list of all partitions (not marked to be deleted)
+    map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
+    list<map> partitions = [];
+
+    foreach ( string dev, map disk, tm, ``{
+        if( Storage::IsRealDisk( disk ) ) {
+	    list<map> l = (list<map>)filter( map p, disk["partitions"]:[],
+					     ``(p["delete"]:false==false) );
+	    partitions = (list<map>)merge (partitions, l);
+	}
+    });
+
+    // filter partitions to relevant list according to raid name
+    list<map> md_list = filter (map e, partitions, ``(e["used_by"]:"" == substring(device,5)));
+    // get the devices
+    list<string> dev_list = maplist (map e, md_list, ``(e["device"]:""));
+    dev_list = filter (string d, dev_list, ``(d != ""));
+    if (size (dev_list) > 0) {
+        dev_list = sort (dev_list);
+	return dev_list[0]:"";
+    }
+    return device;
+}
+
+
     /**
       * Write bootloader settings to disk
       * @return boolean true on success
@@ -196,16 +251,23 @@ global void Update () {
 		ret = false;
 	    }
 	}
-	// create backup copy first
-	if (BootCommon::createBackupBS ()
-	    && BootCommon::getDeviceOfRaid (BootCommon::BootPartitionDevice)
+
+	// Should we create a backup copy of bootloader bootsector?
+ 	if (Stage::initial ()) {
+	    map mp = Storage::GetMountPoints ();
+	    list data = mp["/boot"]:(mp["/"]:[]);
+	    string bpd = data[0]:"";
+	    // ???? FIXME ???? how about LVM/MD ????
+	    if (bpd == BootCommon::BootPartitionDevice
+		&& getDeviceOfRaid (BootCommon::BootPartitionDevice)
 		!= BootCommon::BootPartitionDevice
-	    && contains (BootCommon::getPartitionList(`boot),
-		BootCommon::BootPartitionDevice))
-	{
-	    y2milestone ("Creating backup copy to bootsector");
-	    SCR::Execute (.target.bash, sformat ("/sbin/lilo -b %1",
-		BootCommon::BootPartitionDevice));
+		&& contains (BootCommon::getPartitionList(`boot),
+			     BootCommon::BootPartitionDevice))
+	      {
+		y2milestone ("Creating backup copy to bootsector");
+		SCR::Execute (.target.bash, sformat ("/sbin/lilo -b %1",
+			      BootCommon::BootPartitionDevice));
+	      }
 	}
 
 	ret = ret && BootCommon::InitializeBootloader ();
@@ -265,3 +327,13 @@ global void BootLILO () {
 
 
 }
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */

@@ -27,11 +27,25 @@ textdomain "bootloader";
 import "Arch";
 import "BootArch";
 import "BootCommon";
+import "Installation";
 import "Kernel";
 import "Mode";
 import "Pkg";
 import "Stage";
 import "Storage";
+
+/*
+ * include ppc specific help messages
+ */
+include "bootloader/ppc/helps.ycp";
+
+/*
+ * read my dialogs
+ */
+include "bootloader/routines/popups.ycp"; // define confirmSectionDeletePopup
+include "bootloader/generic/dialogs.ycp";
+
+
 
 /*
  * This whole code is a big mess. To have a solution at all I included and
@@ -40,9 +54,6 @@ import "Storage";
  *
  * od - February and March 2006
  */
-
-// change the OpenFirmware variable 'boot-device' on CHRP or new PowerMacs
-global boolean of_defaultdevice = true;
 
 // partition number for the bootloader (either 41PReP boot or Apple_HFS)
 // start with disabled value and let the partition scanner find a match.
@@ -59,21 +70,6 @@ global integer base_source = -1;
 
 // iSeries specific global settings
 
-// filename for the iSeries kernel, for streamfile *STMF booting
-global string   iseries_streamfile  = "/boot/suse_linux_bootfile";
-
-// write the install kernel to slot A, for rescue purpose
-global boolean  iseries_write_slot_a = false;
-
-// write the kernel to slot B
-global boolean  iseries_write_slot_b = false;
-
-// write the kernel to an 41 PReP boot partition
-global boolean  iseries_write_prepboot = false;
-
-// write the kernel to file, this must be transfered to OS/400
-global boolean  iseries_write_streamfile = false;
-
 // current board attribs
 global boolean prep_only_active = true;
 global boolean prep_only_iseries_vd = true;
@@ -89,21 +85,265 @@ global define string getBoardType ();
 global define void setBoardType (string board);
 global define void currentBoardInit ();
 
-include "bootloader/ppc/misc.ycp";
-include "bootloader/ppc/prep.ycp";
-include "bootloader/ppc/chrp.ycp";
-include "bootloader/ppc/iseries.ycp";
-
-/*
- * include ppc specific help messages
+/**
+ * Update list of 41 PReP boot partitions
+ * @return boolean true if list changed, false otherwise
  */
-include "bootloader/ppc/helps.ycp";
+boolean updatePrepBootPartitions () {
+    y2milestone ("Detecting PReP partitions: prep_only_active: %1, prep_only_iseries_vd: %2, prep_only_primary: %3", prep_only_active, prep_only_iseries_vd, prep_only_primary);
+    map<string,map> targetMap = (map<string,map>)Storage::GetTargetMap ();
+    y2milestone ("TargetMap: %1", targetMap);
+    list old_prep_boot_partitions = prep_boot_partitions;
+    list old_install_prep_boot_partitions = install_prep_boot_partitions;
+    prep_boot_partitions = [];
+    install_prep_boot_partitions = [];
+    y2milestone("old prep_boot_partitions %1", old_prep_boot_partitions);
 
-/*
- * read my dialogs
+    foreach (string dname, map ddata, targetMap, ``{
+        list<map> partitions = ddata["partitions"]:[];
+	y2milestone ("Partitions: %1", partitions);
+	partitions = filter (map p, partitions,
+	    ``((! p["delete"]:false) && is (p["fsid"]:nil, integer)
+		// both partition types 0x41 and FAT16 can be handled by PPC lilo
+		&& (p["fsid"]:nil == 65 ||  p["fsid"]:nil == 6)
+		&& !contains( [`lvm, `evms, `sw_raid], p["type"]:`primary )
+	       ));
+	y2milestone ("Filtered existing partitions: %1", partitions);
+
+	// prep_only_iseries_vd means: use only partitions on /dev/iseries/vd*
+	if (prep_only_iseries_vd) {
+	    partitions = filter (map p, partitions, ``(
+		regexpmatch (p["device"]:"", "\/dev\/iseries\/vd.*")
+	    ));
+	}
+	if (prep_only_primary) {
+	    partitions = filter (map p, partitions, ``(
+		p["type"]:`primary == `primary
+	    ));
+	}
+	y2milestone ("Finally filtered partitions: %1", partitions);
+	prep_boot_partitions = (list<string>)
+	    merge (prep_boot_partitions,
+		   (list<string>)maplist (map p, partitions, ``(p["device"]:""))
+	    );
+	partitions = filter (map p, partitions, ``(p["prep_install"]:false));
+	y2milestone ("Finally filtered recommended partitions: %1",
+		     partitions);
+	install_prep_boot_partitions = (list<string>)
+	    merge (
+		   install_prep_boot_partitions,
+		   (list<string>) maplist(map p, partitions, ``(p["device"]:""))
+	    );
+    });
+    prep_boot_partitions = filter (string p, prep_boot_partitions, ``(p != ""));
+    prep_boot_partitions = sort (prep_boot_partitions);
+    y2milestone ("Detected PReP partitions: %1", prep_boot_partitions);
+    y2milestone ("Proposed PReP partitions: %1",
+		 install_prep_boot_partitions);
+
+    if (old_prep_boot_partitions == prep_boot_partitions
+	&& old_install_prep_boot_partitions == install_prep_boot_partitions)
+    {
+        y2milestone ("PReP Partitions unchanged");
+	return false;
+    }
+    else {
+        y2milestone ("PReP Partitions changed");
+	return true;
+    }
+}
+
+/**
+ * Select PReP boot partition to propose
+ * Changes internal variables.
  */
-include "bootloader/routines/popups.ycp"; // define confirmSectionDeletePopup
-include "bootloader/generic/dialogs.ycp";
+void choosePrepBootPartition () {
+    y2milestone ("Resetting selected PReP boot partition");
+    list<string> root_disks = [];
+    if (Storage::CheckForLvmRootFs ()) {
+        map<string,map> tm = Storage::GetTargetMap ();
+	string vg = "";
+	foreach (string dev, map info, tm, {
+	    if (info["type"]:`CT_UNKNOWN==`CT_LVM) {
+	        list<map> volumes = info["partitions"]:[];
+		foreach (map v, volumes, {
+		    if (v["mount"]:"" == "/") {
+			vg = info["name"]:"";
+			y2milestone ("Volume group of root FS: %1", vg);
+		    }
+		});
+	    }
+	});
+	foreach (string dev, map info, tm, {
+	    list<map> partitions = info["partitions"]:[];
+	    foreach (map p, partitions, {
+	        if (p["used_by"]:"" == vg) {
+		    root_disks = add (root_disks, dev);
+		}
+	    });
+	});
+	y2milestone ("Disks holding LVM with root fs: %1", root_disks);
+    }
+    else {
+        root_disks = [
+	    Storage::GetDiskPartition(BootCommon::RootPartitionDevice)["disk"]:""
+	];
+    }
+
+    prep_boot_partition = "";
+    // First take the partitions that Storage:: hinted us to take, then
+    // consider the other prep_boot_partitions
+    prep_boot_partitions = (list<string>)
+      merge (
+	     install_prep_boot_partitions,
+	     prep_boot_partitions);
+    // in the combined list, look for "usable" partitions:
+    //	- if we require the boot partition to be on the same disk as
+    //	  the root partition ("prep_same_disk_as_root"), select the
+    //	  first prep partition from that disk
+    //	- otherwise take the first prep partition in the list
+    foreach (string partition, prep_boot_partitions, ``{
+        if (prep_boot_partition == "") {
+	    boolean usable = true;
+	    if (prep_same_disk_as_root) {
+	        map part_split = Storage::GetDiskPartition (partition);
+		string part_disk = part_split["disk"]:"";
+		if (! contains (root_disks, part_disk))
+		    usable = false;
+	    }
+	    if (usable)
+	        prep_boot_partition = partition;
+	}
+    });
+
+    // For CHRP lilo can handle PReP partition on other disks now
+    // If all above fails, take the first one then ...
+    if ( (prep_boot_partition == "") && (getBoardType () == "chrp") ) {
+      prep_boot_partition = prep_boot_partitions[0]:"";
+    }
+
+    y2milestone ("Selected PReP boot partition: %1", prep_boot_partition);
+    BootCommon::activate = (prep_boot_partition != "");
+    y2milestone ("Install bootloader: %1", BootCommon::activate);
+}
+
+
+/**
+ * Initialize attributes of the board type
+ */
+void PRePInit () {
+    y2milestone ("Initializing PReP attributes");
+    prep_only_active = true;
+    prep_only_iseries_vd = false;
+    prep_only_primary = true;
+    prep_same_disk_as_root = false;
+    table_items = [ "__prep_location" ];
+}
+
+
+/**
+ * Initialize attributes of the board type
+ */
+void CHRPInit () {
+    y2milestone ("Initializing CHRP attributes");
+    prep_only_active = true;
+    prep_only_iseries_vd = false;
+    prep_only_primary = true;
+    // On CHRP, if there is no bootable partition on the disk containing
+    // "/", there is CHRP-specific code in choosePrepBootPartition that
+    // takes the first prep partition in the system.
+    prep_same_disk_as_root = true;
+    table_items = [ "__chrp_location", "__set_default_of" ];
+}
+
+
+/**
+ * Helper function that executes a command with the shell, appending
+ * stdout and stderr to a logfile. On error, it writes log entries to the
+ * yast2 log.
+ * @param command string command to execute
+ * @param logfile string logfile for the commands output
+ * @return boolean true on success
+ */
+boolean iSeriesExecute (string command, string logfile) ``{
+    command = command + " >>" + logfile + " 2>&1";
+    integer command_ret = (integer)SCR::Execute (.target.bash, command);
+    if (command_ret != 0) {
+        y2error ("Execution of command failed: %1, error code: %2", command, command_ret);
+	string log = (string)SCR::Read (.target.string, logfile);
+	y2error ("stderr and stdout of the command: %1", log);
+	return false;
+    }
+    return true;
+}
+
+
+/**
+ * Install the board-type-specific part of bootloader
+ * @return boolean true on success
+ */
+global define boolean iSeriesWrite () {
+    if (! BootCommon::activate)
+        return true;
+
+    // during installation (fresh or update), always install the ISERIES64
+    // file into slot A as a "rescue system"
+    if (Stage::initial ()) {
+        string command = "";
+	string my_log = "/var/log/YaST2/y2log_bootloader_iseries_slot_a";
+
+	string src_filename
+	    = Pkg::SourceProvideFile(base_source, 1, "/ISERIES64");
+
+	if (base_source == -1 || src_filename == nil) {
+	    y2milestone ("Cannot write rescue kernel to slot A, base source not found");
+	    return false;
+	}
+
+	string rescue_bootbinary = (string)SCR::Read (.target.tmpdir)
+	    + "/rescue_bootbinary";
+	string tg_rescue_bootbinary
+	    = Installation::destdir + rescue_bootbinary;
+	y2milestone ("Copying %1 to %2",
+		     src_filename, tg_rescue_bootbinary);
+	WFM::Execute (.local.bash, sformat ("/bin/cp %1 %2",
+					    src_filename, tg_rescue_bootbinary));
+
+	y2milestone("start writing rescue kernel to slot A ...");
+	command = "time dd if=" + rescue_bootbinary
+	  + " of=/proc/iSeries/mf/A/vmlinux bs=64k";
+	if (! iSeriesExecute (command, my_log))
+	    return false;
+
+	if (! iSeriesExecute (
+	    "dd if=/dev/zero of=/proc/iSeries/mf/A/cmdline bs=255 count=1",
+	    my_log)
+	    )
+	  return false;
+
+	// NOTE: on SLES10, the "root=" parameter is not handled by the
+	// initrd in the ISERIES64 file. The initrd just boots up to a
+	// shell.
+	SCR::Execute (.target.bash,
+		      "echo -en 'start_shell manual=1\\0' > /proc/iSeries/mf/A/cmdline");
+	y2milestone("done writing rescue kernel to slot A.");
+    }
+
+    return true;
+}
+
+
+/**
+ * Initialize attributes of the board type
+ */
+global define void iSeriesInit () {
+    y2milestone ("Initializing iSeries attributes");
+    prep_only_active = true;
+    prep_only_iseries_vd = true;
+    prep_only_primary = true;
+    prep_same_disk_as_root = false;
+    table_items = [ "__iseries_location" ];
+}
 
 
 // misc. functions
@@ -307,7 +547,11 @@ global void LocationProposal () {
     BootCommon::DetectDisks ();
     // del_parts is used by FixSections() in lilolike.ycp (imported by BootCommon.ycp)
     BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
-    boolean disks_changed = BootCommon::RefreshDisks();
+
+    if (BootCommon::DisksChanged ()) {
+        y2milestone ("Reconfiguring locations");
+	BootCommon::DetectDisks ();
+    }
 
     if (updatePrepBootPartitions () || prep_boot_partition == "")
     {
@@ -315,30 +559,8 @@ global void LocationProposal () {
 	choosePrepBootPartition ();
     }
 
-/*  FIXME: remove this code (it was a simple proposal)
-    // get map of lists: mountpoint -> [partitionName, fsid, targetdevice, raid_type]
-    map mp = Storage::GetMountPoints();
-
-    y2milestone( "mountPoints %1", mp );
-
-    BootCommon::RootPartitionDevice = mp["/", 0]:"";
-    if (BootCommon::RootPartitionDevice == "")
-	y2error ("No mountpoint for / !!");
-    else
-	y2milestone("Root partition is %1", BootCommon::RootPartitionDevice);
-*/
-
     string arch = BootCommon::exports["arch"]:"chrp";
     if ( arch == "chrp" ) {
-/*  FIXME: remove this code (it was a simple proposal)
-	// FIXME: really detect the boot partition (instead of leaving this to
-	// lilo), see /lib/lilo/lilo-chrp.lib:76 (ie. GoodPrepOrFatPartition()
-	// functionality)
-	BootCommon::BootPartitionDevice =
-	    regexpsub (BootCommon::RootPartitionDevice, "^(.*[^0-9])[0-9]*", "\\1");
-	if (BootCommon::BootPartitionDevice == nil)
-	    BootCommon::BootPartitionDevice = BootCommon::RootPartitionDevice;
-*/
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	// also set as default value in widget
 	BootCommon::change_widget_default_value("boot_chrp_custom", prep_boot_partition);
@@ -567,74 +789,6 @@ global define void Propose () {
 }
 
 
-    /**
-      * Propose bootloader settings
-      *
-    global define void Propose () {
-	boolean initial_propose = true;
-	if (BootCommon::was_proposed)
-	{
-	    initial_propose = false;
-	}
-	else
-	{
-	    currentBoardInit ();
-	}
-        BootCommon::DetectDisks ();
-	BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
-	boolean disks_changed = BootCommon::RefreshDisks();
-
-	if (updatePrepBootPartitions () || prep_boot_partition == "")
-	{
-	    // TODO warning to user
-	    choosePrepBootPartition ();
-	}
-
-        if ( getBoardType () == "iseries" )
-        {
-	    iSeriesPropose (initial_propose);
-        }
-        else if ( getBoardType () == "prep" )
-        {
-	    PRePPropose (initial_propose);
-        }
-        else if ( getBoardType () == "chrp" )
-        {
-	    CHRPPropose (initial_propose);
-	}
-
-	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
-	{
-	    createSections ();
-	    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
-	}
-	else
-	{
-            if (Mode::autoinst ())
-            {
-		y2debug ("nothing to to in AI mode if sections exist");
-                // TODO whatever will be needed
-            }
-            else
-		fixSections (disks_changed);
-	}
-	if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
-	{
-	    createGlobals ();
-	}
-	else
-	{
-            if (Mode::autoinst ())
-            {
-		y2debug ("nothing to to in AI mode if globals are defined");
-                // TODO whatever will be needed
-            }
-            else
-		fixGlobals (disks_changed);
-	}
-    }
-
-    */
 
 /**
   * Export bootloader settings to a map
@@ -672,9 +826,6 @@ global boolean Read (boolean reread) {
     if (reread) {
 	BootCommon::ReadFiles ();
     }
-    // Do we have to detect disks ?
-    // in /src/routines/lilolike.ycp is usesless for PPC (calls FindMBRDisk)
-    // BootCommon::DetectDisks ();
 
     boolean ret = BootCommon::Read (false);
     y2milestone (":: Read globals: %1", BootCommon::globals);
