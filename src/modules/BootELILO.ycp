@@ -36,10 +36,8 @@ import "Report";
 import "Stage";
 import "Storage";
 
-//include "bootloader/elilo/misc.ycp";
-//include "bootloader/elilo/widgets.ycp";
-include "bootloader/routines/popups.ycp";
 include "bootloader/elilo/helps.ycp";
+include "bootloader/routines/popups.ycp";
 include "bootloader/generic/dialogs.ycp";
 
 

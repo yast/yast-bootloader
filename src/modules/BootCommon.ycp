@@ -415,25 +415,25 @@ global integer Dom0MemorySize () {
  * @return a map describing the section
  */
 global map<string,any> CreateLinuxSection (string title) {
-    if (title == "memtest86")
-    {
-	if (MemtestPresent ())
-	{
-	    return $[
-		"name" : translateSectionTitle (title),
-		"original_name" : title,
-		"type" : "image",
-		"kernel" : "/boot/memtest.bin",
-		"__auto" : true,
-		"__changed" : false,
-		"__devs" : [BootCommon::BootPartitionDevice],
-	    ];
+    map<string,any> ret = $[
+	"name" : translateSectionTitle (title),
+	"original_name" : title,
+	"type" : "image",
+	"__auto" : true,
+	"__changed" : false,
+    ];
+
+    if (title == "memtest86") {
+	if (MemtestPresent ()) {
+	    ret["kernel"] = "/boot/memtest.bin";
+	    ret["__devs"] = [BootCommon::BootPartitionDevice];
+	    return ret;
 	}
-	else
-	{
+	else {
 	    return $[];
 	}
     }
+
     string resume = BootArch::ResumeAvailable ()
 	? getLargestSwapPartition ()
 	: "";
@@ -485,20 +485,15 @@ global map<string,any> CreateLinuxSection (string title) {
     // done: kernel_fn and initrd_fn are the results
     y2milestone ("kernel_fn: %1 initrd_fn: %2", kernel_fn, initrd_fn);
 
-    map<string,any> ret = $[
-	"name" : translateSectionTitle (title),
-	"original_name" : title,
-	"type" : "image",
+    ret = (map <string, any>)union (ret, $[
 	"kernel" : kernel_fn,
 	"initrd" : initrd_fn,
 	"root" : RootPartitionDevice,
 	"append" : (title == "failsafe")
 	    ? BootArch::FailsafeKernelParams ()
 	    : BootArch::DefaultKernelParams (resume),
-	"__auto" : true,
-	"__changed" : false,
 	"__devs" : [BootPartitionDevice, RootPartitionDevice],
-    ];
+    ]);
     if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
     {
 	if (title == "failsafe")

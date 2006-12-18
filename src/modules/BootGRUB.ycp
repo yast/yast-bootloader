@@ -66,8 +66,8 @@ include "bootloader/generic/dialogs.ycp";
 //----------------------------------------------------------------------------
 
 
-// wrapper function to adjuct to new grub name sceme
-global map<string,any> CreateLinuxSection (string title) {
+// wrapper function to adjust to new grub name sceme
+map<string,any> CreateLinuxSection (string title) {
     map<string,any> section =
       BootCommon::CreateLinuxSection (title);
 
@@ -490,10 +490,10 @@ global define void Reset (boolean init) {
     BootCommon::Reset (init);
 }
 
-    /**
-      * Propose bootloader settings
-      */
-    global define void Propose () ``{
+/**
+ * Propose bootloader settings
+ */
+global define void Propose () {
 	y2debug ("Started propose: Glob: %1, Sec: %2",
 	    BootCommon::globals, BootCommon::sections);
 
