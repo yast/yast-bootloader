@@ -113,7 +113,7 @@ global list<map<string,string> > CheckAdditionalKernels () {
     list<map<string,string> > ret = maplist (string k, kernels, {
 	string version = regexpsub (k, sformat ("^%1-(.+)$", binary), "\\1");
 	map<string,string> info = $[
-	    "version" : version,
+	    "version" : "Kernel-" + version,
 	    "image" : sformat ("/boot/%1", k)
 	];
 	if (contains (files, sformat ("initrd-%1", version)))
