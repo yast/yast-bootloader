@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Dec 22 09:57:53 CET 2006 - aosthof@suse.de
+
+- Fixed "Propose New Configuration" in Bootloader Settings in YaST
+  - Part 1 (#230230)
+- Fixed "Propose New Configuration" in Bootloader Settings in YaST
+  - Part 2 (#230230)
+- 2.15.2
+
+-------------------------------------------------------------------
 Thu Dec 14 13:56:26 CET 2006 - jplack@suse.de
 
 - code review and cleanup: eliminate dead code, eliminate simple
