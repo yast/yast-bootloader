@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Dec 22 16:45:54 CET 2006 - jplack@suse.de
+
+- do map "kernel" tag to "image" tag for now, so that proposal gets
+  interpreted right.
+
+-------------------------------------------------------------------
 Fri Dec 22 09:57:53 CET 2006 - aosthof@suse.de
 
 - Fixed "Propose New Configuration" in Bootloader Settings in YaST

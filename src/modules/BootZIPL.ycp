@@ -180,6 +180,13 @@ global boolean Read (boolean reread) {
 map<string,any> CreateLinuxSection(string title) {
     map<string,any>section = BootCommon::CreateLinuxSection(title);
     section["target"] = "/boot/zipl";
+
+    // replace "kernel" by "image"
+    if (haskey(section, "kernel")) {
+        section["image"] = section["kernel"]:"";
+        section = remove(section, "kernel");
+    }
+
     return section;
 }
 
