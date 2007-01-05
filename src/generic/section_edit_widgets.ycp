@@ -51,7 +51,7 @@ map<string,any> SE_Options (string type) {
 	filter( string key, any value, BootCommon::section_options,
 	    ``( substring(key, 0, size(type)+1) == type + "_")
 	),
-	``( $[ substring(key, size(type)+1) : value ] )
+	``( $[ key : value ] )
     );
 
     return se_options;

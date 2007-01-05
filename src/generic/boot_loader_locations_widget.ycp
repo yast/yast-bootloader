@@ -101,18 +101,26 @@ map<string,any> genericBootLoaderLocationWidget () {
     string boottype = val[0]:"select";
 
     map<string, any> gt_map = $[];
-    term targetlist = nil;
+    term targetlist = `HBox(`Label (_("Nothing to select")));
 
     if (boottype == "multi") {
 	gt_map = generic_Term(options, "check");
-	targetlist = (term) gt_map["term"]:nil;
+	if (haskey(gt_map, "term")) {
+	    targetlist = (term) gt_map["term"]:nil;
+	}
     }
     else if (boottype == "select") {
 	gt_map = generic_Term(options, "radio");
-	targetlist = `RadioButtonGroup (`id (`location), (term) gt_map["term"]:nil);
+	if (haskey(gt_map, "term")) {
+	    targetlist = `RadioButtonGroup (
+			     `id (`location),
+			     (term) gt_map["term"]:nil
+	    );
+	}
     }
     else {
-	y2error("Unknown option type %1 for boot loader location dialog. Ignored\n", boottype);
+	y2error("Unknown option type %1 for boot loader location dialog. Ignored\n",
+		boottype);
 	return nil;
     }
 

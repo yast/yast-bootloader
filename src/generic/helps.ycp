@@ -69,7 +69,8 @@ booting other operating systems.</p>"),
  *	- ex.: "boot_custom"	    -> _("Custom Boot Partition")
  */
 global map<string,string> descriptions = $[
-    "boot"			: _("Boot Image Location"),
+    "boot"		: _("Boot Image Location"),
+    "type_clone"	: _("Clone Selected Section"),
 ];
 
 

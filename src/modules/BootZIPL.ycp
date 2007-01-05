@@ -277,6 +277,8 @@ global symbol WizardSequenzer() {
 
 
 global map<string,symbol()> Dialogs () {
+    if (size(GOW_options()) == 0)
+        return $[];
     return $[
 	"loader"	: genericBootLoaderOptionsDialog,
     ];
@@ -292,7 +294,7 @@ global map<string, any> GetFunctions () {
         //"export"	   : Export,
         //"import"	   : Import,
         "read"		   : Read,
-	// "reset"	   : Reset,
+	//"reset"	   : Reset,
         "propose"	   : Propose,
         "save"		   : Save,
         "summary"	   : Summary,
