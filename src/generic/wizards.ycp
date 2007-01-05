@@ -125,41 +125,6 @@ symbol GenericStoreSection () {
 }
 
 
-/*
- *   Imported from routines/dialogs.ycp ... temporarily
- */
-
-
-/**
- * Run dialog with detailed settings
- * @param type string specification of the type of detail settings
- * @return symbol for wizard sequencer
- */
-symbol _DetailsDialog (string type) {
-    map<string,symbol()> dialogs = Bootloader::blDialogs ();
-    if (! haskey (dialogs, type))
-    {
-	Report::Message (
-	    // message
-	    _("There are no options to set for the current boot loader."));
-	return `back;
-    }
-    symbol () dialog = (symbol())dialogs[type]:nil;
-    return dialog ();
-}
-
-
-
-/*
- *   End of imported stuff from routines/dialogs.ycp ... 
- */ 
-
-
-
-
-
-
-
 /**
  * Run wizard sequencer
  * @return `next, `back or `abort
@@ -216,11 +181,6 @@ symbol GenericMainSequence () {
 	    `abort : `abort,
 	],
     ];
-
-
-
-	// FIXME DetailDialog is not yet replaced by a generic function
-
 
     foreach (string st, section_types(), {
 	string section = st + "_section";
