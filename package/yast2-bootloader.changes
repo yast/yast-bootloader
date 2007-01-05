@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan  5 19:01:07 CET 2007 - jplack@suse.de
+
+- fixed message handling, proposal, dialog handling for zipl, etc.
+  (#228841, Fate#300732)
+
+-------------------------------------------------------------------
 Fri Dec 22 16:45:54 CET 2006 - jplack@suse.de
 
 - do map "kernel" tag to "image" tag for now, so that proposal gets

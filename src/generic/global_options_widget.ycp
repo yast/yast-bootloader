@@ -93,6 +93,11 @@ map<string,any> genericGlobalBootOptionWidget () {
     // construct widget from information about global options
     map<string,any> gt_map = generic_Term(GOW_options(), "normal");
 
+    if (!haskey(gt_map, "term")) {
+    	y2milestone("genericGlobalBootOptionWidget: Trying to generate empty widget");
+        return nil;
+    }
+
     return $[
 	"widget" : `custom,
 	// frame
