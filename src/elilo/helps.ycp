@@ -46,24 +46,34 @@ booting other operating systems.</p>"),
     ];
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 global map<string,string> elilo_descriptions = $[
     "boot" 	 	 : _("Boot Image Location"),
+    "default"		 : _("Default Boot Section"),
+    "timeout"		 : _("Timeout in Seconds"),
+    "delay"		 : _("Delay to wait before auto booting in seconds"),
+    "prompt"		 : _("Show boot menu"),
+    "verbose"		 : _("Set level of verbosity [0-5]"),
+    "root"		 : _("Set global root filesystem"),
+    "readonly"	         : _("Force rootfs to be mounted read-only"),
+    "append"		 : _("Append string of options to kernel command line"),
+    "initrd"		 : _("Name of initrd file"),
+    "image"		 : _("Name of image file"),
+    "chooser"		 : _("Specify kernel chooser to use"),
+    "message"		 : _("Message printed on main screen (if supported)"),
+    "fX"		 : _("Display the content of a file by function keys"),
+    "noedd30"		 : _("Don't force EDD30 mode if not set"),
+    "fpswa"		 : _("Specify the filename for a specific FPSWA to load"),
+    "relocatable"	 : _("Allow attempt to relocate"),
+    "boot_custom"	 : _("Custom Boot Partition"),
+    "type_image"         : _("Image Section"),
+    "image_append"       : _("Optional kernel command line parameter"),
+    "image_description"  : _("One line text description of the image"),
+    "image_image"        : _("Kernel image"),
+    "image_initrd"       : _("Initial RAM disk"),
+    "image_noverifyroot" : _("Do not verify filesystem before booting"),
+    "image_readonly"	 : _("Force root filesystem to be mounted read-only"),
+    "image_relocatable"  : _("Allow attempt to relocate"),
+    "image_root"	 : _("Root device"),
 ];
 
 
