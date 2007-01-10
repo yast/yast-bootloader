@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan 10 18:06:26 CET 2007 - jplack@suse.de
+
+- mostly complete fix for #228833, wrong elilo configurator
+
+-------------------------------------------------------------------
 Fri Jan  5 19:01:07 CET 2007 - jplack@suse.de
 
 - fixed message handling, proposal, dialog handling for zipl, etc.
