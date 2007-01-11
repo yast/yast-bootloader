@@ -134,11 +134,11 @@ global list<map<string,string> > CheckAdditionalKernels () {
   */
 global define void CreateSections () {
     y2debug ("Creating GRUB sections from scratch");
-    list<map<string,any> > out = [
-	CreateLinuxSection ("linux"),
-    ];
+    list<map<string,any> > out = [];
+
     if (BootCommon::XenPresent ())
         out = add (out, CreateLinuxSection ("xen"));
+    out = add (out, CreateLinuxSection ("linux"));
     list<string> others_ignore = [];
     list<string> others = (list<string>)Storage::GetForeignPrimary();
     y2debug ("Other primaries: %1", others);
