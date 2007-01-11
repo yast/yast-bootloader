@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan 11 14:10:31 CET 2007 - jplack@suse.de
+
+- make xen section the first entry which will get the default
+  though (FATE#301384)
+
+-------------------------------------------------------------------
 Wed Jan 10 18:06:26 CET 2007 - jplack@suse.de
 
 - mostly complete fix for #228833, wrong elilo configurator
