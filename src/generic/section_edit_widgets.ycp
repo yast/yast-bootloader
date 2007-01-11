@@ -50,8 +50,8 @@ map<string,any> SE_Options (string type) {
 	string key, any value,
 	filter( string key, any value, BootCommon::section_options,
 	    ``( substring(key, 0, size(type)+1) == type + "_")
-	),
-	``( $[ substring(key, size(type)+1) : value ] )
+        ),
+	``( $[ key : value ] )
     );
 
     return se_options;
@@ -64,11 +64,18 @@ map<string,any> SE_Options (string type) {
  */
 void SE_Init (string widget) {
     string type = BootCommon::current_section["type"]:"";
-    generic_Init(widget, SE_Options(type), BootCommon::current_section);
+    map<string,any>data = mapmap(string key, any value,
+	BootCommon::current_section,
+	``( $[ type + "_" + key : value ] )
+    );
+    generic_Init(widget, SE_Options(type), data);
 }
 
 
 void _section_store_data( string key, string value ) {
+    string type = BootCommon::current_section["type"]:"";
+    key = substring(key, size(type)+1);
+
     if (value != nil && value != "")
 	BootCommon::current_section[key] = value;
     else {
@@ -91,30 +98,18 @@ void SE_Store (string widget, map event) {
 
 
 /**
- * Handle function of a widget
- * @param key any widget key
- * @param event map event description of event that occured
- * @return symbol always nil
- */
-symbol SE_Handle (string key, map event) {
-    return generic_Handle (key, event);
-}
-
-
-/**
  * Build a map describing a widget
  * @return a map describing a widget
  */
 map<string,any> genericSectionEditWidget(string type) {
-    map<string,any> options = SE_Options(type);
-    map<string, any> gt_map = generic_Term(options, "normal");
+    map<string, any> gt_map = generic_Term(SE_Options(type), "normal");
 
     return $[
 	"widget" : `custom,
 	"custom_widget" : (term) gt_map["term"]:nil,
 	"init" : SE_Init,
 	"store" : SE_Store,
-	"handle" : SE_Handle,
+	"handle" : generic_Handle,
 	"help" : generic_Help("section-settings") + (string) gt_map["help"]:"",
     ];
 }

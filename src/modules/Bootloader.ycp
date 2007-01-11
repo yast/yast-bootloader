@@ -685,38 +685,6 @@ global define void ResolveSymlinksInSections() {
 	return "";
     }
 
-    /**
-     * Add section for previous kernel and initrd (/boot/vmlinuz.previous,
-     * /boot/initrd.previous)
-     */
-    global define void AddPreviousSection () {
-	ReadOrProposeIfNeeded ();
-	// check if there is already present "Previous" section
-	BootCommon::sections = filter (map<string,any> s,BootCommon::sections,{
-	    string title = s["name"]:"";
-	    string type = s["original_name"]:"";
-	    boolean preserve = type != "previous" && title != "previous"
-		&& BootCommon::translateSectionTitle (title) != "previous";
-	    return preserve;
-	});
-	// add the new section now
-	map<string,any> found_sect = nil;
-	string sect_name = getProposedDefaultSection ();
-	if (sect_name == "" || sect_name == nil)
-	    return;
-
-	foreach (map<string,any> s, BootCommon::sections, {
-	    if (s["name"]:"" == sect_name)
-		found_sect = s;
-	});
-	if (found_sect == nil)
-	    return;
-
-	map<string,any> previous_section
-	    = BootCommon::Linux2Previous (found_sect);
-	BootCommon::sections = add (BootCommon::sections, previous_section);
-	BootCommon::changed = true;
-    }
 
     /**
       * get kernel parameters from bootloader configuration file
@@ -733,7 +701,7 @@ global define void ResolveSymlinksInSections() {
 	    section = getProposedDefaultSection ();
 	if (section == nil)
 	    return "";
-	map params = BootCommon::getKernelParamKeys ();
+	map params = (map)BootCommon::getAnyTypeAttrib("kernel_params",$[]);
 	integer sectnum = -1;
 	integer index = -1;
 	foreach (map<string,any> s, BootCommon::sections, {
@@ -922,14 +890,6 @@ global define void ResolveSymlinksInSections() {
     global define void setBootDevice (string device) {
 	ReadOrProposeIfNeeded ();
 	BootCommon::BootPartitionDevice = device;
-    }
-
-    /**
-      * Answer whether LBA is supported
-      * @return boolean true if supported
-      */
-    global define boolean LbaSupport() {
-	return BootCommon::LbaSupport ();
     }
 
     /**

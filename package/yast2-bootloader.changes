@@ -1,4 +1,60 @@
 -------------------------------------------------------------------
+Thu Jan 11 14:10:31 CET 2007 - jplack@suse.de
+
+- make xen section the first entry which will get the default
+  though (FATE#301384)
+- 2.13.77
+
+-------------------------------------------------------------------
+Wed Jan 10 18:06:26 CET 2007 - jplack@suse.de
+
+- mostly complete fix for #228833, wrong elilo configurator
+
+-------------------------------------------------------------------
+Fri Jan  5 19:01:07 CET 2007 - jplack@suse.de
+
+- fixed message handling, proposal, dialog handling for zipl, etc.
+  (#228841, Fate#300732)
+
+-------------------------------------------------------------------
+Fri Dec 22 16:45:54 CET 2006 - jplack@suse.de
+
+- do map "kernel" tag to "image" tag for now, so that proposal gets
+  interpreted right.
+
+-------------------------------------------------------------------
+Fri Dec 22 09:57:53 CET 2006 - aosthof@suse.de
+
+- Fixed "Propose New Configuration" in Bootloader Settings in YaST
+  - Part 1 (#230230)
+- Fixed "Propose New Configuration" in Bootloader Settings in YaST
+  - Part 2 (#230230)
+
+-------------------------------------------------------------------
+Thu Dec 14 13:56:26 CET 2006 - jplack@suse.de
+
+- code review and cleanup: eliminate dead code, eliminate simple
+  functions used once, keep local functions local (part2)
+
+-------------------------------------------------------------------
+Mon Dec 11 18:38:35 CET 2006 - jplack@suse.de
+
+- code review and cleanup: eliminate dead code, eliminate simple
+  functions used once, keep local functions local (part1)
+
+-------------------------------------------------------------------
+Mon Dec 11 17:05:58 CET 2006 - jplack@suse.de
+
+- replace Kernel::GetFinalKernel function which is broken by design
+  by Kernel::ComputePackage.
+
+-------------------------------------------------------------------
+Mon Dec 11 16:27:16 CET 2006 - jplack@suse.de
+
+- move CheckAdditionalKernels from misc to Grub and fix that crappy
+  stuff
+
+-------------------------------------------------------------------
 Fri Dec  8 19:14:25 CET 2006 - od@suse.de
 
 - related to help_messages and descriptions:

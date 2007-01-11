@@ -47,7 +47,25 @@ booting other operating systems.</p>"),
 
 
 global map<string,string> zipl_descriptions = $[
-    "boot" 	 	 : _("Boot Image Location"),
+    "boot" 	     : _("Boot Image Location"),
+    "default"        : _("Default Boot Section/Menu"),
+    "type_image"     : _("Image Section"),
+    "image_target"   : _("Target Directory for Image Section"),
+    "image_image"    : _("Kernel Image"),
+    "image_initrd"   : _("Initial RAM Disk"),
+    "image_append"   : _("Optional Kernel Parameters"),
+    "image_root"     : _("Root device"),
+    "image_parmfile" : _("Optional Parameter File"),
+    "type_dump"      : _("Dump Section (obsolete)"),
+    "dump_target"    : _("Target Directory for Dump Section"),
+    "dump_dumpto"    : _("Dump Device"),
+    "dump_dumptofs"  : _("SCSI Dump Device"),
+    "type_menu"      : _("Menu Section"),
+    "menu_target"    : _("Target Directory for Menu Section"),
+    "menu_list"      : _("List of Menu Entries"),
+    "menu_default"   : _("Number of Default Entry"),
+    "menu_timeout"   : _("Timeout in seconds"),
+    "menu_prompt"    : _("Show boot menu"),
 ];
 
 

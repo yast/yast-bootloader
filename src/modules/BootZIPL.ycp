@@ -22,16 +22,15 @@ module "BootZIPL";
 
 textdomain "bootloader";
 
+import "BootArch";
 import "BootCommon";
 import "Installation";
 import "Kernel";
 import "Mode";
 import "Stage";
-import "StorageControllers";
 
-// include "bootloader/zipl/widgets.ycp";
-include "bootloader/routines/popups.ycp";
 include "bootloader/zipl/helps.ycp";
+include "bootloader/routines/popups.ycp";
 include "bootloader/generic/dialogs.ycp";
 
 
@@ -176,52 +175,47 @@ global boolean Read (boolean reread) {
 }
 
 
+
+// wrapper function to adjust to special zipl needs
+map<string,any> CreateLinuxSection(string title) {
+    map<string,any>section = BootCommon::CreateLinuxSection(title);
+    section["target"] = "/boot/zipl";
+
+    // replace "kernel" by "image"
+    if (haskey(section, "kernel")) {
+        section["image"] = section["kernel"]:"";
+        section = remove(section, "kernel");
+    }
+
+    return section;
+}
+
+
+
+
 /**
   * Propose bootloader settings
   */
 global define void Propose () {
     BootCommon::DetectDisks ();
-    string root_device = BootCommon::RootPartitionDevice;
-    map <string, any> file_desc = ( map<string, any> ) SCR::Execute( .target.bash_output, "echo $TERM" );
-    string env_term = file_desc[ "stdout" ]: "";
-    string termparm = "TERM=dumb";
-    if ( env_term == "linux\n" )
-    {
-      termparm = "TERM=linux console=ttyS0 console=ttyS1";
-    }
-    string parameters = sformat ("%1 %2 %3",
-      StorageControllers::dasdParam,
-      BootCommon::GetAdditionalKernelParams (),
-      termparm);
+    string parameters = BootArch::DefaultKernelParams ("");
 
     BootCommon::globals = $[
-        "default":"ipl",
-        "menuname":"menu",
-        "prompt":"1",
-        "target":"/boot/zipl",
-        "timeout":"10"
+        "default":"menu",
     ];
+
     BootCommon::sections = [
-        $[
-    	"append":parameters,
-    	"initrd":"/boot/initrd",
-    	"kernel":"/boot/image",
-    	"name":"ipl",
-    	"original_name":"ipl",
-    	"root":BootCommon::RootPartitionDevice,
-    	"target":"/boot/zipl",
-    	"type":"image"
-        ],
-        $[
-    	"append":parameters,
-    	"initrd":"/boot/initrd",
-    	"kernel":"/boot/image",
-    	"name":"failsafe",
-    	"original_name":"failsafe",
-    	"root":BootCommon::RootPartitionDevice,
-    	"target":"/boot/zipl",
-    	"type":"image"
-        ]
+	$[
+	  "name":"menu",
+	  "default":"ipl",
+	  "prompt":"true",
+	  "target":"/boot/zipl",
+	  "timeout":"10",
+	  "list":"ipl,failsafe",
+	  "type":"menu",
+	],
+	CreateLinuxSection("ipl"),
+	CreateLinuxSection("failsafe"),
     ];
 }
 
@@ -283,6 +277,8 @@ global symbol WizardSequenzer() {
 
 
 global map<string,symbol()> Dialogs () {
+    if (size(GOW_options()) == 0)
+        return $[];
     return $[
 	"loader"	: genericBootLoaderOptionsDialog,
     ];
@@ -298,7 +294,7 @@ global map<string, any> GetFunctions () {
         //"export"	   : Export,
         //"import"	   : Import,
         "read"		   : Read,
-	// "reset"	   : Reset,
+	//"reset"	   : Reset,
         "propose"	   : Propose,
         "save"		   : Save,
         "summary"	   : Summary,

@@ -28,6 +28,7 @@ import "Kernel";
 import "Linuxrc";
 import "ProductFeatures";
 import "Stage";
+import "StorageControllers";
 
 /**
  * Get the file holding the initd imahe
@@ -35,43 +36,6 @@ import "Stage";
  */
 global string InitrdImage () {
     return "/boot/initrd";
-}
-
-/**
- * Get parameters for the failsafe kernel
- * @return string parameters for failsafe kernel
- */
-global string FailsafeKernelParams () {
-    string ret = "";
-    if (Arch::i386 ())
-    {
-	ret = "showopts ide=nodma apm=off acpi=off noresume nosmp noapic maxcpus=0 edd=off";
-    }
-    else if (Arch::x86_64 ())
-    {
-	ret = "showopts ide=nodma apm=off acpi=off noresume edd=off";
-    }
-    else if (Arch::ia64 ())
-    {
-	ret = "ide=nodma nohalt noresume";
-    }
-    else
-    {
-	y2warning ("Parameters for Failsafe boot option not defined");
-    }
-    if (Stage::initial ())
-    {
-	if (Linuxrc::InstallInf ("NOPCMCIA") == "1")
-	    ret = ret + " NOPCMCIA";
-    }
-    else
-    {
-	map<string,any> saved_params = (map<string,any>)SCR::Read (
-	    .target.ycp, "/var/lib/YaST2/bootloader.ycp");
-	ret = ret + " " + saved_params["additional_failsafe_params"]:"";
-    }
-    ret = ret + " 3";
-    return ret;
 }
 
 /**
@@ -112,11 +76,65 @@ global string DefaultKernelParams (string resume) {
 	}
 	return ret;
     }
+    else if (Arch::s390 ()) {
+        map <string, any> file_desc = ( map<string, any> )
+	  SCR::Execute( .target.bash_output, "echo $TERM" );
+	string env_term = file_desc[ "stdout" ]: "";
+	string termparm = "TERM=dumb";
+	if ( env_term == "linux\n" ) {
+	    termparm = "TERM=linux console=ttyS0 console=ttyS1";
+	}
+	string parameters = sformat ("%1 %2 %3",
+	    StorageControllers::dasdParam,
+	    features,
+	    termparm);
+    }
     else
     {
 	y2warning ("Default kernel parameters not defined");
 	return kernel_cmdline;
     }
+}
+
+/**
+ * Get parameters for the failsafe kernel
+ * @return string parameters for failsafe kernel
+ */
+global string FailsafeKernelParams () {
+    string ret = "";
+    if (Arch::i386 ())
+    {
+	ret = "showopts ide=nodma apm=off acpi=off noresume nosmp noapic maxcpus=0 edd=off";
+    }
+    else if (Arch::x86_64 ())
+    {
+	ret = "showopts ide=nodma apm=off acpi=off noresume edd=off";
+    }
+    else if (Arch::ia64 ())
+    {
+	ret = "ide=nodma nohalt noresume";
+    }
+    else if (Arch::s390 ())
+    {
+	ret = DefaultKernelParams("");
+    }
+    else
+    {
+	y2warning ("Parameters for Failsafe boot option not defined");
+    }
+    if (Stage::initial ())
+    {
+	if (Linuxrc::InstallInf ("NOPCMCIA") == "1")
+	    ret = ret + " NOPCMCIA";
+    }
+    else
+    {
+	map<string,any> saved_params = (map<string,any>)SCR::Read (
+	    .target.ycp, "/var/lib/YaST2/bootloader.ycp");
+	ret = ret + " " + saved_params["additional_failsafe_params"]:"";
+    }
+    ret = ret + " 3";
+    return ret;
 }
 
 /**
@@ -136,3 +154,13 @@ global boolean ResumeAvailable () {
 }
 
 } // EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */

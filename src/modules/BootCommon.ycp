@@ -303,6 +303,12 @@ global string read_default_section_name = "";
 global list<string> update_section_types
     = [ "linux", "failsafe", "initrd", "floppy" ];
 
+/**
+ * List of all supported bootloaders
+ */
+global list<string> bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
+				   "aboot", "zipl", "ppc", "mips"];
+
 
 
 global define string getLoaderType (boolean recheck);
@@ -409,25 +415,25 @@ global integer Dom0MemorySize () {
  * @return a map describing the section
  */
 global map<string,any> CreateLinuxSection (string title) {
-    if (title == "memtest86")
-    {
-	if (MemtestPresent ())
-	{
-	    return $[
-		"name" : translateSectionTitle (title),
-		"original_name" : title,
-		"type" : "image",
-		"kernel" : "/boot/memtest.bin",
-		"__auto" : true,
-		"__changed" : false,
-		"__devs" : [BootCommon::BootPartitionDevice],
-	    ];
+    map<string,any> ret = $[
+	"name" : translateSectionTitle (title),
+	"original_name" : title,
+	"type" : "image",
+	"__auto" : true,
+	"__changed" : false,
+    ];
+
+    if (title == "memtest86") {
+	if (MemtestPresent ()) {
+	    ret["kernel"] = "/boot/memtest.bin";
+	    ret["__devs"] = [BootCommon::BootPartitionDevice];
+	    return ret;
 	}
-	else
-	{
+	else {
 	    return $[];
 	}
     }
+
     string resume = BootArch::ResumeAvailable ()
 	? getLargestSwapPartition ()
 	: "";
@@ -444,8 +450,13 @@ global map<string,any> CreateLinuxSection (string title) {
 	// version etc. pp. whatever (currently version-flavor) attached.
 	// FIXME: also do this for xen and xenpae kernels as found below
 	//
-	// First, get the file names in the "selected" kernel package,
-	string kernel_package = Kernel::GetFinalKernel();
+
+	// First of all, we have to initialize the RPM database
+	Pkg::TargetInit ( "/",	// installed system
+		false );	// don't create a new RPM database
+
+	// Then, get the file names in the "selected" kernel package,
+	string kernel_package = Kernel::ComputePackage();
 	list<string> files = Pkg::PkgGetFilelist( kernel_package, `any );
 	y2milestone ("kernel package %1 has these files: %2", kernel_package, files);
 
@@ -457,6 +468,14 @@ global map<string,any> CreateLinuxSection (string title) {
 	list<string> files_filtered = filter (string file, files, {
 	    return ( substring(file, 0, size(kernel_prefix)) == kernel_prefix );
 	});
+
+	// Sort the filtered files, thus the image strings by length, the big ones
+	// at the beginning, the small ones at the end of the list.
+	// So, the first element of the sorted list files_filtered is the image string
+	// containing the version and flavor.
+	files_filtered = sort ( string kbig, string ksmall, files_filtered, ``(
+		size(kbig) > size(ksmall) ) );
+
 	kernel_fn = (
 	    title == "wildcard" ?
 		"/boot/" + Kernel::GetBinary () + "-*" :
@@ -466,6 +485,14 @@ global map<string,any> CreateLinuxSection (string title) {
 	files_filtered = filter (string file, files, {
 	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix ;
 	});
+
+	// Sort the filtered files, thus the initrd strings by length, the big ones
+	// at the beginning, the small ones at the end of the list.
+	// So, the first element of the sorted list files_filtered is the initrd string
+	// containing the version and flavor.
+	files_filtered = sort ( string ibig, string ismall, files_filtered, ``(
+		size(ibig) > size(ismall) ) );
+
 	initrd_fn = (
 	    title == "wildcard" ?
 		"/boot/initrd-*" :
@@ -479,20 +506,15 @@ global map<string,any> CreateLinuxSection (string title) {
     // done: kernel_fn and initrd_fn are the results
     y2milestone ("kernel_fn: %1 initrd_fn: %2", kernel_fn, initrd_fn);
 
-    map<string,any> ret = $[
-	"name" : translateSectionTitle (title),
-	"original_name" : title,
-	"type" : "image",
+    ret = (map <string, any>)union (ret, $[
 	"kernel" : kernel_fn,
 	"initrd" : initrd_fn,
 	"root" : RootPartitionDevice,
 	"append" : (title == "failsafe")
 	    ? BootArch::FailsafeKernelParams ()
 	    : BootArch::DefaultKernelParams (resume),
-	"__auto" : true,
-	"__changed" : false,
 	"__devs" : [BootPartitionDevice, RootPartitionDevice],
-    ];
+    ]);
     if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
     {
 	if (title == "failsafe")
@@ -868,15 +890,17 @@ global define void setLoaderType (string bootloader) {
         && contains(bootloaders, bootloader)
         && ! Mode::test ())
     {
-        // don't configure package maneger during autoinstallation preparing
+        list<string> bootloader_packages =
+	    bootloader_attribs[bootloader, "required_packages"]:[];
+        // don't configure package manager during autoinstallation preparing
         if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
         {
-	    PackageSystem::InstallAll (getBootloaderPackages (bootloader));
+	    PackageSystem::InstallAll (bootloader_packages);
         }
         else if (Stage::initial () && (! (Mode::repair ())))
         {
 	    boolean pkg_added = false;
-	    foreach (string p, getBootloaderPackages (bootloader), {
+	    foreach (string p, bootloader_packages, {
 	        if (! Pkg::IsSelected (p))
 		{
 		    Pkg::PkgInstall (bootloader);

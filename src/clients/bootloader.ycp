@@ -52,7 +52,7 @@
     }
 
     /**
-     * Modify the boot laoder section
+     * Modify the boot loader section
      * @param section string the section name
      * @param key string the key to modify
      * @param value string the value to set
@@ -60,31 +60,30 @@
      */
     define boolean BootloaderModifySection (string section,
 	string key, string value)
-    ``{
+    {
 	if (section == nil)
 	{
 	    BootCommon::globals[key] = value;
 	    return true;
 	}
 	else
-	{
-	    integer index = BootCommon::getSectionIndex (section);
-	    if (index != nil)
-	    {
-		BootCommon::sections[index, key] = value;
-		return true;
-	    }
-	    else
-	    {
-		// command line error report, %1 is section name
-		CommandLine::Print (sformat (_("Section %1 not found."),
-		    section));
-		return false;
-	    }
+	{ 
+	    // change value in section specified by name in 'section'
+	    integer i = 0;
+	    while (i < size(BootCommon::sections)) {
+	        if (BootCommon::sections[i, "name"]:"" == section) {
+		    BootCommon::sections[i, key] = value;
+		    return true;
+		}
+	        i = i + 1;
+	    };
+
+	    // command line error report, %1 is section name
+	    CommandLine::Print (sformat (_("Section %1 not found."),
+					 section));
+	    return false;
 	}
 	return false;
-
-
     }
 
     /**
@@ -114,19 +113,20 @@
 	string section = (string)(options["section"]:nil);
 	if (! haskey (options, "option"))
 	{
-	    integer index = BootCommon::getSectionIndex (section);
-	    if (index == nil)
-	    {
-		// command line error report, %1 is section name
-		CommandLine::Print (sformat (_("Section %1 not found."),
-		    section));
-		return false;
-	    }
-	    BootCommon::sections[index] = nil;
-	    BootCommon::sections = filter (map<string,any> s, BootCommon::sections, ``(
-		s != nil
-	    ));
-	    return true;
+	    // remove section specified by name in 'section'
+	    integer i = 0;
+	    while (i < size(BootCommon::sections)) {
+	        if (BootCommon::sections[i, "name"]:"" == section) {
+		    BootCommon::sections = remove(BootCommon::sections, i);
+		    return true;
+		}
+	        i = i + 1;
+	    };
+
+	    // command line error report, %1 is section name
+	    CommandLine::Print (sformat (_("Section %1 not found."),
+					 section));
+	    return false;
 	}
 	string option = (string)(options["option"]:nil);
 	return BootloaderModifySection (section, option, nil);
@@ -172,11 +172,14 @@
 	}
 	else
 	{
-	    integer index = BootCommon::getSectionIndex (section);
-	    if (index != nil)
-	    {
-		value = BootCommon::sections[index,option]:nil;
-	    }
+	    // change value in section specified by name in 'section'
+	    integer i = 0;
+	    while (i < size(BootCommon::sections) && value == nil) {
+	        if (BootCommon::sections[i, "name"]:"" == section) {
+		    value = BootCommon::sections[i, option]:nil;
+		}
+	        i = i + 1;
+	    };
 	}
 	if (value == nil)
 	    // command line error report

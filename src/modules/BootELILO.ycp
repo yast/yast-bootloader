@@ -36,10 +36,8 @@ import "Report";
 import "Stage";
 import "Storage";
 
-//include "bootloader/elilo/misc.ycp";
-//include "bootloader/elilo/widgets.ycp";
-include "bootloader/routines/popups.ycp";
 include "bootloader/elilo/helps.ycp";
+include "bootloader/routines/popups.ycp";
 include "bootloader/generic/dialogs.ycp";
 
 
@@ -135,14 +133,29 @@ global define string getEliloConfFilename () {
     return ret;
 }
 
+// wrapper function to adjust to new grub name sceme
+map<string,any> CreateLinuxSection (string title) {
+    map<string,any> section =
+      BootCommon::CreateLinuxSection (title);
+
+    // replace "kernel" by "image"
+    if (haskey(section, "kernel")) {
+      section["image"] = section["kernel"]:"";
+      section = remove(section, "kernel");
+    }
+ 
+    return section;
+}
+
+
 
 /**
  * Propose sections to bootloader menu
  * modifies internal sreuctures
  */
 global void CreateSections () {
-    map<string,any> linux = BootCommon::CreateLinuxSection ("linux");
-    map<string,any> failsafe = BootCommon::CreateLinuxSection ("failsafe");
+    map<string,any> linux = CreateLinuxSection ("linux");
+    map<string,any> failsafe = CreateLinuxSection ("failsafe");
 
     // append for default section is in global
     // FIXME do it later
@@ -389,7 +402,7 @@ global define void Update () {
     BootCommon::globals["timeout"] = "8";
     BootCommon::globals["append"] = BootArch::DefaultKernelParams ("");
 
-    BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
+    BootCommon::UpdateSections (true, CreateLinuxSection);
     // FIXME EFI entry name
 }
 

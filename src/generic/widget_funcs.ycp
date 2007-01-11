@@ -60,6 +60,9 @@ map<string,any> generic_Term (map<string,any> options, string type) {
     string help = "";
     term def_opt = `opt (`notify, `autoShortcut);
 
+    if (size(options) == 0) {
+        return $[];
+    }
     // TODO: evaluate the proposal to omit the radio button if size of options
     // is one and type==radio. Possible implementation:
     //          if sizeof(options) == 1 then type:=normal

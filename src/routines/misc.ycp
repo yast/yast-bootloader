@@ -38,18 +38,8 @@
 
 // bootloader attributes handling functions
 
-    global define map<string, integer> Md2Partitions (string md_device);
-    global define void DetectDisks ();
-
-    /**
-      * Get packages needed by specified bootloader
-      * maybe should be moved to bootloader specific modules
-      * @param bootloader string name of bootloader
-      * @return a list of required packages names
-      */
-    global define list<string> getBootloaderPackages (string bootloader) ``{
-	return bootloader_attribs[bootloader, "required_packages"]:[];
-    }
+    global map<string, integer> Md2Partitions (string md_device);
+    global void DetectDisks ();
 
     /**
       * return printable name of bootloader
@@ -102,72 +92,8 @@
         return current_bootloader_attribs[attrib]:defaultv;
     }
 
-/**
- * Get index of a section specified by name
- * @param name string section name
- * @return integer index of the section or nil if not found
- */
-global integer getSectionIndex (string name) {
-    integer index = -1;
-    integer sectnum = nil;
-    foreach (map<string,any> s, sections, {
-	index = index + 1;
-	if (s["name"]:"" == name)
-	    sectnum = index;
-    });
-    return sectnum;
-}
-
-    /**
-      * Get map where to store kernel parameters
-      * @return map describing where to store which kernel parameter
-      */
-    global define map getKernelParamKeys () ``{
-        return current_bootloader_attribs["kernel_params"]:$[];
-    }
-
-
 // other misc functions
 
-/**
- * Generates unused section label for new section
- * @return string label for new section
- */
-global string getFreeSectionLabel () {
-    integer index = 1;
-    list<string> existing = [];
-    foreach (map<string,any> s, sections, {
-	existing = add (existing, s["name"]:"");
-	list<string> aliases = splitstring (s["aliases"]:"", ";");
-	foreach (string a, aliases, {
-	    existing = add (existing, a);
-	});
-    });
-    while (true)
-    {
-	string title = sformat ("section %1", index);
-	if (! contains (existing, title))
-	    return title;
-	index = index + 1;
-    }
-}
-
-    /**
-      * Get the list of installed floppy drives
-      * @return a list of floppy devices
-      */
-    global define list<string> getFloppyDevices () ``{
-        if (floppy_devices == nil)
-        {
-            list<map> floppies = (list<map>) SCR::Read (.probe.floppy);
-            floppies = filter (map f, floppies,
-                ``(f["model"]:"Floppy Disk" == "Floppy Disk"));
-            floppy_devices = maplist (map f, floppies,
-		``(f["dev_name"]:""));
-            floppy_devices = filter (string f, floppy_devices, ``(f != ""));
-        }
-	return floppy_devices;
-    }
 
 
     /**
@@ -202,10 +128,21 @@ global string getFreeSectionLabel () {
     }
 
     /**
-      * List of all supported bootloaders
+      * Get the list of installed floppy drives
+      * @return a list of floppy devices
       */
-    global list<string> bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
-	"aboot", "zipl", "ppc", "mips"];
+    define list<string> getFloppyDevices () ``{
+        if (floppy_devices == nil)
+        {
+            list<map> floppies = (list<map>) SCR::Read (.probe.floppy);
+            floppies = filter (map f, floppies,
+                ``(f["model"]:"Floppy Disk" == "Floppy Disk"));
+            floppy_devices = maplist (map f, floppies,
+		``(f["dev_name"]:""));
+            floppy_devices = filter (string f, floppy_devices, ``(f != ""));
+        }
+	return floppy_devices;
+    }
 
     /**
      * converts array of string to path
@@ -494,7 +431,7 @@ global string getFreeSectionLabel () {
       * @param str string source string
       * @return string stripped string
       */
-    global define string strip(string str)``{
+    define string strip(string str)``{
 	//emtpy  string
 	if (size(str) == 0) return "";
 
@@ -579,36 +516,8 @@ global string getFreeSectionLabel () {
       * @param b list B
       * @return list see above
       */
-    global define list difflist(list a, list b) ``{
+    list difflist(list a, list b) ``{
 	return filter(any e, a, ``(!contains(b, e)));
-    }
-
-    /**
-      * reverse of mod2ui
-      * @param val value to transform
-      * @return any transformed value
-      */
-    global define any ui2mod(any val) ``{
-	if (is(val, string))
-	{
-	    string v = sformat("%1", val);
-	    v = strip(v);
-	    // if string contains backslashes, escape them
-	    v = replaceAll(v, "\\", "\\\\");
-
-	    // if string contains quotes, escape them
-	    v = replaceAll(v, "\"", "\\\"");
-	    // if string contains spaces or equal sign or is empty, quote it
-
-	    if ((size(splitstring(v, " ")) >= 2 || size(v) == 0
-		|| findfirstof(v, "=") != nil)
-	        &&(getLoaderType (false) != "grub"))
-	    {
-		v = "\"" + v + "\"";
-	    }
-	    return v;
-	}
-	return val;
     }
 
 
@@ -680,66 +589,6 @@ global string getFreeSectionLabel () {
 	return [dev, pth];
     }
 
-    /**
-      * translate list of device and relative path
-      *  to filename path (eg. /boot/kernel)
-      * @param devpth list of two strings, first for device name, second for
-      *  relative path (eg. ["/dev/hda1", "/vmlinuz"])
-      * @return string fileststem path (eg. /boot/vmlinuz)
-      */
-    global define string mergePath (list<string> devpth) ``{
-// UGHLY HACK because of testsuites
-        map<string,list> mountpoints = $[];
-	if (Mode::test ())
-	    mountpoints = $["/" : ["/dev/hda2"], "/boot" : ["/dev/hda1"]];
-	else
-            mountpoints = (map<string,list>)Storage::GetMountPoints();
-	string ret = "/dev/null";
-	if (substring (devpth[1]:"", 0, 1) != "/")
-	    devpth[1] = "/" + devpth[1]:"";
-        foreach (string k, list v, mountpoints, ``{
-	    if (k != "swap" && v[0]:"" == devpth[0]:"")
-	    {
-		if (substring (k, size (k) - 1, 1) == "/")
-		    k = substring (k, 0, size (k) - 1);
-		ret = k + devpth[1]:"";
-	    }
-	});
-	return ret;
-    }
-
-    /**
-      * If device is part of RAID (md), then return first of its members
-      * otherwise return the same as argument
-      * @param device string device of the RAID
-      * @return string first member of the RAID
-      */
-    global define string getDeviceOfRaid (string device) ``{
-	// get list of all partitions (not marked to be deleted)
-	map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
-	list<map> partitions = [];
-
-	foreach ( string dev, map disk, tm, ``{
-	    if( Storage::IsRealDisk( disk ) )
-	    {
-		list<map> l = (list<map>)filter( map p, disk["partitions"]:[],
-		    ``(p["delete"]:false==false) );
-		partitions = (list<map>)merge (partitions, l);
-            }
-        });
-
-	// filter partitions to relevant list according to raid name
-	list<map> md_list = filter (map e, partitions, ``(e["used_by"]:"" == substring(device,5)));
-	// get the devices
-	list<string> dev_list = maplist (map e, md_list, ``(e["device"]:""));
-	dev_list = filter (string d, dev_list, ``(d != ""));
-	if (size (dev_list) > 0)
-	{
-	    dev_list = sort (dev_list);
-	    return dev_list[0]:"";
-	}
-	return device;
-    }
 
     /**
       * Get bootloader device for specified location
@@ -776,24 +625,13 @@ global boolean InstallingToFloppy () {
     return ret;
 }
 
-    /**
-      *
-      * @return true if installing bootloader to floppy
-      */
-    global define boolean installingToFloppy () ``{
-	if (BootCommon::loader_device == StorageDevices::FloppyDevice)
-	    return true;
-	if (contains (getFloppyDevices (), BootCommon::loader_device))
-	    return true;
-	return false;
-    }
 
 /**
  * Get the list of particular kernel parameters
  * @param line string the whole kernel command line
  * @return a list of the kernel parameters split each separaterlly
  */
-global list<string> ListKernelParamsInLine (string line) {
+list<string> ListKernelParamsInLine (string line) {
 // FIXME this function is really similar to code in Kernel.ycp
     list<string> cmdlist = [];
     integer parse_index = 0;
@@ -915,69 +753,6 @@ global list<string> ListKernelParamsInLine (string line) {
 	return line;
     }
 
-    /**
-      * remove blanks from section name and replace them with _
-      * when not using GRUB
-      * @param original string
-      * @return string fixed string
-      */
-    global define string removeBlanks (string original) {
-	if (getLoaderType (false) == "grub")
-	    return original;
-	// do not allow empty labels
-	while (size (original) > 1 && substring (original, 0, 1) == " ")
-	{
-	    original = substring (original, 1);
-	}
-	while (size (original) > 1
-	    && substring (original, size (original) -1, 1) == " ")
-	{
-	    original = substring (original, 0, size (original) - 1);
-	}
-	if (size (original) > 15)
-	   original = substring (original, 0, 15);
-	return replaceAll (original, " ", "_");
-    }
-
-    /**
-      * Filter list to only entries which are present as keys in map
-      * @param order list (ordered) of settings
-      * @param widgets map of present widgets
-      * @param index of selected option
-      * @return map containing new index of selected option and list of options
-      *  where options that aren't ordered precede ordered options
-      */
-    global define map filterOrder (list order, map widgets, integer index) ``{
-	list ordering = [];
-	list unordering = [];
-	integer new_index = -1;
-	integer order_count = 0;
-	integer sorted_cound = 0;
-	foreach (map o, (list<map>)order, ``{
-	    boolean ord_option = widgets[o["key"]:"", "table", "ordering"]:true;
-	    if (substring (o["key"]:"", 0, 2) == "__")
-		ord_option = false;
-	    if (ord_option)
-	    {
-		ordering = add (ordering, o);
-		order_count = order_count + 1;
-	    }
-	    else
-	    {
-		unordering = add (unordering, o);
-	    }
-	    if (index == 0)
-	    {
-		new_index = order_count - 1;
-	    }
-	    index = index - 1;
-	});
-	new_index = new_index + size (unordering);
-	return $[
-	    "items" : merge (unordering, ordering),
-	    "index" : new_index,
-	];
-    }
 
     /*
      *  convert any value to an integer and return 0 for nonsense
@@ -1000,7 +775,7 @@ global list<string> ListKernelParamsInLine (string line) {
       *  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
       *  partition number (eg. 4)
       */
-    global define map<string,any> getPartitionToActivate (string boot_partition,
+    map<string,any> getPartitionToActivate (string boot_partition,
 	string loader_device)
     {
 	map p_dev = Storage::GetDiskPartition (loader_device);
@@ -1078,7 +853,7 @@ global list<string> ListKernelParamsInLine (string line) {
      * boot partition
      * @return a list of partitions to activate
      */
-    global define list<map<string, any> > getPartitionsToActivate () {
+    list<map<string, any> > getPartitionsToActivate () {
 	map<string,integer> md = $[];
 	if (BootCommon::loader_device == "mbr_md")
 	{
@@ -1106,7 +881,7 @@ global list<string> ListKernelParamsInLine (string line) {
      * if user wants to do so
      * @return a list of device names to be rewritten
      */
-    global define list<string> getMbrsToRewrite () {
+    list<string> getMbrsToRewrite () {
 	list<string> ret = [BootCommon::mbrDisk];
 	map<string,integer> md = $[];
 	if (BootCommon::loader_device == "mbr_md")
@@ -1135,7 +910,7 @@ global list<string> ListKernelParamsInLine (string line) {
       * @param filename string name of file
       * @return string last change date as YYYY-MM-DD-HH-MM-SS
       */
-    global define string getFileChangeDate (string filename) ``{
+     string getFileChangeDate (string filename) {
 	map stat = (map) SCR::Read (.target.stat, filename);
 	integer ctime = stat["ctime"]:0;
 	string command = sformat (
@@ -1153,7 +928,7 @@ global list<string> ListKernelParamsInLine (string line) {
       * existing, rename it
       * @param device string name of device
       */
-    global define void saveMBR (string device) ``{
+    void saveMBR (string device) {
 	string device_file = mergestring (splitstring (device, "/"), "_");
 	string device_file_path = "/var/lib/YaST2/backup_boot_sectors/"
 	    + device_file;
@@ -1324,7 +1099,7 @@ global list<string> ListKernelParamsInLine (string line) {
       * @return string major*256+minor hexadecimal without leading 0x, in case
       *  of any fail return unchanged device node
       */
-    global define string dev2majmin (string device) ``{
+    string dev2majmin (string device) {
 	map exec_ret = (map) SCR::Execute (.target.bash_output, sformat (
 	    "ls -ln %1", device));
 	if (exec_ret["exit"]:1 != 0 && Stage::initial ())
@@ -1359,44 +1134,6 @@ global list<string> ListKernelParamsInLine (string line) {
 
 
     /**
-      * Translate device name to major/minor number if the device is not
-      * "usual"
-      * @param device string
-      * @return string the original device parameter if it is "usual",
-      *  same as dev2majmin otherwise
-      */
-    global define string dev2majminIfNonStandard (string device) ``{
-	// don't use major/minor numbers for LVM and MD (seems to be able
-	// to make system unbootable
-	if (Storage::CheckForLvmRootFs() || Storage::CheckForEvmsRootFs ()
-	    || Storage::CheckForMdRootFs())
-	{
-	    return device;
-	}
-
-	// FIXME: this is broken, detection by name is deprecated
-	if (regexpmatch (device, "^/dev/hd.+$")
-	    || regexpmatch (device, "^/dev/sd.+$")
-	    || regexpmatch (device, "^/dev/ataraid/.+$"))
-	{
-	    return device;
-	}
-	return dev2majmin (device);
-    }
-
-    /**
-      * Convert any to boolean
-      * @param v any value
-      * @return boolean retyped value
-      */
-    global define boolean tobool (any v) ``{
-	if (v == true)
-	    return true;
-	else
-	    return false;
-    }
-
-    /**
       * Update kernel parameters if some were added in Kernel module
       * @param orig original kernel parameters or kernel command line
       * @return kernel command line or parameters with added new parameters
@@ -1404,9 +1141,9 @@ global list<string> ListKernelParamsInLine (string line) {
     global define string UpdateKernelParams (string orig) ``{
 	list<string> new = splitstring (Kernel::GetCmdLine (), " ");
 	list<string> old = splitstring (orig, " ");
-	list<string> added = (list<string>)BootCommon::difflist (new,
+	list<string> added = (list<string>)difflist (new,
 	     splitstring (BootCommon::kernelCmdLine, " "));
-	added = (list<string>)BootCommon::difflist (added, old);
+	added = (list<string>)difflist (added, old);
 	old = (list<string>) merge (old, added);
 	if (Stage::initial ())
 	{// move showopts apic to the end
@@ -1425,19 +1162,6 @@ global list<string> ListKernelParamsInLine (string line) {
 	return mergestring (old, " ");
     }
 
-
-
-    /**
-      * Check whether settings were changed and if yes, ask for exit
-      * without saving
-      * @return true if shall exit
-      */
-    global define boolean confirmAbort () ``{
-	if ((! changed) || confirmAbortPopup ())
-	    return true;
-	else
-	    return false;
-    }
 
     /**
       * Get map of swap partitions
@@ -1462,19 +1186,7 @@ global list<string> ListKernelParamsInLine (string line) {
 	return ret;
     }
 
-    /**
-      * Get the name of the largest available swap partition
-      * @return string name of the largest partition
-      */
-    global define string getLargestSwapPartition () ``{
-	map<string, integer> swap_sizes = getSwapPartitions ();
-	list<string> swap_parts = (list<string>)maplist (string name, integer size,
-	    swap_sizes, ``(name));
-	swap_parts = sort (string a, string b, swap_parts, ``(
-	    swap_sizes[a]:0 > swap_sizes[b]:0
-	));
-	return swap_parts[0]:"";
-    }
+    
 
     /**
       * Create translated name of a section
@@ -1491,7 +1203,7 @@ global list<string> ListKernelParamsInLine (string line) {
       * @param device string device to check
       * @return boolean true if is MBR
       */
-    global define boolean IsMbr (string device) ``{
+    define boolean IsMbr (string device) ``{
 	if (regexpmatch (device, "^\/dev\/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]+$"))
 	    return true;
 	if (regexpmatch (device, "^\/dev\/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]+\/.*d[0-9]+$"))
@@ -1505,7 +1217,7 @@ global list<string> ListKernelParamsInLine (string line) {
       * @param device string disk device
       * @return string updated description
       */
-    global define string AddMbrToDescription (string descr, string device) ``{
+    define string AddMbrToDescription (string descr, string device) ``{
 	return IsMbr (device)
 	    ? sformat ("%1 (MBR)", descr)
 	    : descr;
@@ -1589,28 +1301,6 @@ global define boolean UpdateGfxMenuContents () {
     return GfxMenu::UpdateGfxMenuContents(getLoaderType(false));
 }
 
-/**
- * Transform the selected linux section to section for previous kernel
- * @param section a list representing the bootloader section
- * @return a list representing the updated section
- */
-global map<string,any> Linux2Previous (map<string,any> section) {
-    boolean intern_found = false;
-    section["name"] = translateSectionTitle ("previous");
-    section["original_name"] = "previous";
-    section["kernel"] = regexpsub (
-	section["kernel"]:"",
-	sformat ("^(.*)%1[^ ]*(.*)$", Kernel::GetBinary ()),
-	sformat ("\\1%1.previous\\2", Kernel::GetBinary()));
-    if (haskey (section, "initrd"))
-    {
-	section["initrd"] = regexpsub (
-	    section["initrd"]:"",
-	    "^(.*)initrd[^ ]*(.*)$",
-	    "\\1initrd.previous\\2");
-    }
-    return section;
-}
 
 /**
  * Update device name according to changes in kernel (eg. SATA)
@@ -1663,46 +1353,6 @@ global boolean MemtestPresent () {
 
 }
 
-/**
- * Check for additional kernels which could go to the proposed settings
- * @return a list of kernels to propose
- */
-global list<map<string,string> > CheckAdditionalKernels () {
-    list<string> files = (list<string>)SCR::Read (.target.dir, "/boot");
-    string binary = Kernel::GetBinary ();
-    list<string> kernels = filter (string k, files, {
-	return substring (k, 0, size (binary)) == binary;
-    });
-    kernels = filter (string k, kernels, {
-	return k != ""
-	    && k != binary
-	    && regexpmatch (k, sformat ("^%1-.+$", binary));
-    });
-    if (contains (kernels, binary))
-    {
-	string defaultv = (string)SCR::Read (.target.symlink,
-	    sformat ("/boot/%1", binary));
-	defaultv = ""; // FIXME remove this line
-	kernels = filter (string k, kernels, {
-	    return k != defaultv;
-	});
-    }
-    list<map<string,string> > ret = maplist (string k, kernels, {
-	string version = regexpsub (k, sformat ("^%1-(.+)$", binary), "\\1");
-	map<string,string> info = $[
-	    "version" : version,
-	    "kernel" : sformat ("/boot/%1", k)
-	];
-	if (contains (files, sformat ("initrd-%1", version)))
-	{
-	    info["initrd"] = sformat ("/boot/initrd-%1", version);
-	}
-	return info;
-    });
-
-    y2milestone ("Additional sectinos to propose: %1", ret);
-    return ret;
-}
 
 /**
  * Check if the bootloader can be installed at all with current configuration

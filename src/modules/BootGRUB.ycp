@@ -66,8 +66,8 @@ include "bootloader/generic/dialogs.ycp";
 //----------------------------------------------------------------------------
 
 
-// wrapper function to adjuct to new grub name sceme
-global map<string,any> CreateLinuxSection (string title) {
+// wrapper function to adjust to new grub name sceme
+map<string,any> CreateLinuxSection (string title) {
     map<string,any> section =
       BootCommon::CreateLinuxSection (title);
 
@@ -86,18 +86,59 @@ global map<string,any> CreateLinuxSection (string title) {
 }
 
 
+/**
+ * Check for additional kernels which could go to the proposed settings
+ * @return a list of kernels to propose
+ */
+global list<map<string,string> > CheckAdditionalKernels () {
+    list<string> files = (list<string>)SCR::Read (.target.dir, "/boot");
+    string binary = Kernel::GetBinary ();
+    list<string> kernels = filter (string k, files, {
+	return substring (k, 0, size (binary)) == binary;
+    });
+    kernels = filter (string k, kernels, {
+	return k != ""
+	    && k != binary
+	    && regexpmatch (k, sformat ("^%1-.+$", binary));
+    });
+    if (contains (kernels, binary))
+    {
+	string defaultv = (string)SCR::Read (.target.symlink,
+	    sformat ("/boot/%1", binary));
+	defaultv = ""; // FIXME remove this line
+	kernels = filter (string k, kernels, {
+	    return k != defaultv;
+	});
+    }
+    list<map<string,string> > ret = maplist (string k, kernels, {
+	string version = regexpsub (k, sformat ("^%1-(.+)$", binary), "\\1");
+	map<string,string> info = $[
+	    "version" : "Kernel-" + version,
+	    "image" : sformat ("/boot/%1", k)
+	];
+	if (contains (files, sformat ("initrd-%1", version)))
+	{
+	    info["initrd"] = sformat ("/boot/initrd-%1", version);
+	}
+	return info;
+    });
+
+    y2milestone ("Additional sections to propose: %1", ret);
+    return ret;
+}
+
 
 /**
   * Propose sections to bootloader menu
   * modifies internal structures
   */
-global define void CreateSections () ``{
+global define void CreateSections () {
     y2debug ("Creating GRUB sections from scratch");
-    list<map<string,any> > out = [
-	CreateLinuxSection ("linux"),
-    ];
+    list<map<string,any> > out = [];
+
     if (BootCommon::XenPresent ())
         out = add (out, CreateLinuxSection ("xen"));
+    out = add (out, CreateLinuxSection ("linux"));
     list<string> others_ignore = [];
     list<string> others = (list<string>)Storage::GetForeignPrimary();
     y2debug ("Other primaries: %1", others);
@@ -302,7 +343,7 @@ global define void CreateSections () ``{
     if (Mode::normal ())
     {
         foreach (map<string,string> additional,
-		 BootCommon::CheckAdditionalKernels (),
+		 CheckAdditionalKernels (),
 	{
 	    string type = additional["version"]:"";
 	    type = sformat ("%1", type);
@@ -449,10 +490,10 @@ global define void Reset (boolean init) {
     BootCommon::Reset (init);
 }
 
-    /**
-      * Propose bootloader settings
-      */
-    global define void Propose () ``{
+/**
+ * Propose bootloader settings
+ */
+global define void Propose () {
 	y2debug ("Started propose: Glob: %1, Sec: %2",
 	    BootCommon::globals, BootCommon::sections);
 
@@ -558,11 +599,6 @@ global define void Reset (boolean init) {
 	    // if that points to a section that does not exist anymore
 	    BootCommon::FixGlobals ();
 	}
-
-//         if (! BootCommon::was_proposed)
-// 	{
-// 	    BootCommon::globals["embed_stage1.5"] = allowEmbed15 () ? "1" : "0";
-// 	}
 
 	// FIXME: The setting of the boot_* and activate keys in globals for
 	// the new perl-Bootloader interface should probably be put in a
