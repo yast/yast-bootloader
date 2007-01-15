@@ -69,6 +69,8 @@ global string DefaultKernelParams (string resume) {
 	    ret = ret + features + " "; 
 	ret = ret + "splash=silent";
 
+        // FIXME: this does not belong here, it cannot be tracked or maintained
+        // and is undocumented
 	// on SGI Altix change kernel default hash tables sizes
 	if (SCR::Read (.target.stat, "/proc/sgi_sn") != $[])
 	{
