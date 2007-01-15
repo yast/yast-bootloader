@@ -37,7 +37,8 @@ Select the type of the new section to create.</p>"),
     "section-editor"		: _("<p><big><b>Section Editor</b></big><br>"),
     "section-name"		: _("<p><big><b>Section Name</b></big><br>"),
     "section-settings"		: _("<p><big><b>Section Settings</b></big><br>"),
-    "type_clone"		: _("<p>Select <b>Clone Selected Section</b> to clone the currently selected
+    "type_clone"		:
+    _("<p>Select <b>Clone Selected Section</b> to clone the currently selected
 section. Then modify the options that should differ from the
 selected section.</p>"),
     "type_image"		:

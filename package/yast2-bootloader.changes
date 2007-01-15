@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 15 15:03:49 CET 2007 - jplack@suse.de
+
+- more stream lining in help messages
+
+-------------------------------------------------------------------
 Mon Jan 15 14:44:26 CET 2007 - jplack@suse.de
 
 - handle efi boot manager entries properly (#233537)
