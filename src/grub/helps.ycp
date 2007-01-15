@@ -20,38 +20,10 @@
 textdomain "bootloader";
 
 global map<string,string>   grub_help_messages = $[
-
-
-
-
-    "boot-loader-location"	: _("<p><big><b>Boot Loader Location</b></big><br>"),
-    "boot-menu"			: _("<p><big><b>Boot Menu</b></big><br>
-To show the boot loader menu during the boot process, set
-<b>Show Boot Menu</b>. Otherwise the boot loader menu will be hidden.
-To specify the time-out after which the default
-kernel is loaded, set <b>Continue Booting after a Time-Out</b> and
-<b>Boot Menu Time-Out</b>.</p>"),
-    "section-type"		: _("<p><big><b>Type of the New Section</b></big><br>
-Select the type of the new section to create.</p>"),
-    "section-list"		: _("<p><big><b>Section List</b></big><br>"),
-    "section-editor"		: _("<p><big><b>Section Editor</b></big><br>"),
-    "section-name"		: _("<p><big><b>Section Name</b></big><br>"),
-    "section-settings"		: _("<p><big><b>Section Settings</b></big><br>"),
-    "type_clone"		: _("<p>Select <b>Clone Selected Section</b> to clone the currently selected
-section. Then modify the options that should differ from the
-selected section.</p>"),
-    "type_image"		:
-_("<p>Select <b>Kernel (Linux)</b> to add a new Linux kernel or other image
-to load and start.</p>"),
-    "type_other"		:
-_("<p>Select <b>Other System</b> to add a section that
-loads and starts a boot sector of a partition of the disk. This is used for
-booting other operating systems.</p>"),
     "fallback"                  :
     _("<b>Fallback</b> contains a list of section numbers that will be used for
 booting in case the default section is unbootable."),
-
-    ];
+];
 
 
 global map<string,string> grub_descriptions = $[
