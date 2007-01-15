@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 15 14:44:26 CET 2007 - jplack@suse.de
+
+- handle efi boot manager entries properly (#233537)
+
+-------------------------------------------------------------------
 Mon Jan 15 13:33:00 CET 2007 - jplack@suse.de
 
 - add label text snippets for grub so that they can get translated
