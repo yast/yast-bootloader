@@ -47,11 +47,54 @@ to load and start.</p>"),
 _("<p>Select <b>Other System</b> to add a section that
 loads and starts a boot sector of a partition of the disk. This is used for
 booting other operating systems.</p>"),
+    "fallback"                  :
+    _("<b>Fallback</b> contains a list of section numbers that will be used for
+booting in case the default section is unbootable."),
+
     ];
 
 
 global map<string,string> grub_descriptions = $[
-    "boot" 	 	 : _("Boot Image Location"),
+    "boot"               : _("Boot Loader Locations"),
+    "activate"    	 : _("Set active Flag in Partition Table for Boot Partition"),
+    "timeout"     	 : _("Timeout in Seconds"),
+    "default"     	 : _("Default Boot Section"),
+    "generic_mbr" 	 : _("Write generic Boot Code to MBR"),
+    "boot_custom" 	 : _("Custom Boot Partition"),
+    "boot_mbr"    	 : _("Boot from Master Boot Record"),
+    "boot_root"   	 : _("Boot from Root Partition"),
+    "boot_boot"   	 : _("Boot from Boot Partition"),
+    "serial"      	 : _("Serial Connection Parameters"),
+    "terminal"    	 : _("Terminal Definition"),
+    "fallback"    	 : _("Fallback Sections if default Fails"),
+    "hiddenmenu"  	 : _("Hide Menu on Boot"),
+    "gfxmenu"     	 : _("Graphical Menu File"),
+    "password"    	 : _("Password for the Menu Interface"),
+    "debug"       	 : _("Debugging Flag"),
+    "type_image"  	 : _("Image Section"),
+    "image_image" 	 : _("Kernel Image"),
+    "image_root"  	 : _("Root Device"),
+    "image_vgamode"	 : _("Vga Mode"),
+    "image_append" 	 : _("Optional Kernel Command Line Parameter"),
+    "image_initrd" 	 : _("Initial RAM Disk"),
+    "image_noverifyroot" : _("Do not verify Filesystem before Booting"),
+    "type_other"         : _("Chainloader Section"),
+    "other_lock"         : _("Use Password Protection"),
+    "other_chainloader"  : _("Other System"),
+    "other_noverifyroot" : _("Do not verify Filesystem before Booting"),
+    "other_makeactive"   : _("Activate this Partition when selected for Boot"),
+    "other_blockoffset"  : _("Block Offset for Chainloading"),
+    "type_xen"           : _("Xen Section"),
+    "xen_xen"            : _("Hypervisor"),
+    "xen_xen_append"     : _("Additional Xen Hypervisor Parameters"),
+    "xen_image"  	 : _("Kernel Image"),
+    "xen_root"   	 : _("Root Device"),
+    "xen_vgamode"	 : _("Vga Mode"),
+    "xen_append" 	 : _("Optional Kernel Command Line Parameter"),
+    "xen_initrd" 	 : _("Initial RAM Disk"),
+    "type_menu"  	 : _("Menu Section"),
+    "menu_root"  	 : _("Partition of Menu File"),
+    "menu_configfile"    : _("Menu Description File"),
 ];
 
 
