@@ -467,7 +467,7 @@ global define boolean Write () {
 	    // delete bootentry for efi_label if available
 	    string command = sformat(
 		"BOOTENTRY=\"" +
-		"`/usr/sbin/efibootmgr |grep \"%1\" |cut -f1 -d\* |cut -c5-`\";" +
+		"`/usr/sbin/efibootmgr|sed -n 's/Boot\([0-9]*\)\* %1$/\1/p' `\";" +
 		"if [ \"$BOOTENTRY\" ]; then " + 
 		    "/usr/sbin/efibootmgr --delete-bootnum --bootnum $BOOTENTRY -q;" + 
 		"fi",
