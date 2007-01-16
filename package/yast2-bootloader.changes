@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan 16 23:46:27 CET 2007 - jplack@suse.de
+
+- fix various zipl configuration problems (#235486)
+
+-------------------------------------------------------------------
 Mon Jan 15 15:03:49 CET 2007 - jplack@suse.de
 
 - more stream lining in help messages
