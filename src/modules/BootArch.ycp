@@ -90,6 +90,7 @@ global string DefaultKernelParams (string resume) {
 	    StorageControllers::dasdParam,
 	    features,
 	    termparm);
+	return parameters;
     }
     else
     {

@@ -207,11 +207,12 @@ global define void Propose () {
     BootCommon::sections = [
 	$[
 	  "name":"menu",
-	  "default":"ipl",
+	  "default":"1",
 	  "prompt":"true",
 	  "target":"/boot/zipl",
 	  "timeout":"10",
-	  "list":"ipl,failsafe",
+	  "list": BootCommon::translateSectionTitle ("ipl") + ","
+	          + BootCommon::translateSectionTitle ("failsafe"),
 	  "type":"menu",
 	],
 	CreateLinuxSection("ipl"),

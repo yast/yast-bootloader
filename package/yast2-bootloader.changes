@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jan 16 23:46:27 CET 2007 - jplack@suse.de
+
+- fix various zipl configuration problems (#235486)
+
+-------------------------------------------------------------------
 Tue Jan 16 20:35:49 CET 2007 - aosthof@suse.de
 
 - IA 64: Added missing options in elilo.conf (#235400)
