@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jan 17 13:09:10 CET 2007 - jplack@suse.de
+
+- revise efi boot manager entry handling (#233537)
+
+-------------------------------------------------------------------
 Tue Jan 16 23:46:27 CET 2007 - jplack@suse.de
 
 - fix various zipl configuration problems (#235486)
