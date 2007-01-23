@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 23 10:56:42 CET 2007 - aosthof@suse.de
+
+- Removed bootfloppy module due to malfunction (#218437)
+- 2.15.4
+
+-------------------------------------------------------------------
 Wed Jan 17 13:09:10 CET 2007 - jplack@suse.de
 
 - revise efi boot manager entry handling (#233537)
