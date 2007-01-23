@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 23 12:58:51 CET 2007 - aosthof@suse.de
+
+- Forgot to delete "src/clients/bootfloppy.ycp" and
+  "src/config/bootfloppy.desktop" from SVN (#218437)
+
+-------------------------------------------------------------------
 Tue Jan 23 10:56:42 CET 2007 - aosthof@suse.de
 
 - Removed bootfloppy module due to malfunction (#218437)
