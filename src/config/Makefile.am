@@ -5,8 +5,7 @@
 if I386_OR_AMD64
 
 desktop_DATA = \
-		bootloader.desktop \
-	  	bootfloppy.desktop
+		bootloader.desktop
 
 else
 
@@ -24,4 +23,4 @@ endif
 rncdir =  $(schemadir)/autoyast/rnc
 rnc_DATA = bootloader.rnc
 
-EXTRA_DIST = bootloader.desktop bootfloppy.desktop bootloader.rnc
+EXTRA_DIST = bootloader.desktop bootloader.rnc
