@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 26 15:41:42 CET 2007 - od@suse.de
+
+- let "SLES 9 style" autoyast xml files configure bootloader
+  timeout (#214468, #183051)
+- 2.13.80
+
+-------------------------------------------------------------------
 Tue Jan 16 23:46:27 CET 2007 - jplack@suse.de
 
 - fix various zipl configuration problems (#235486)
