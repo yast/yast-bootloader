@@ -20,10 +20,10 @@
 textdomain "bootloader";
 
 string generic_Help (string widget_name) {
-    string arch_widget_name = BootCommon::getLoaderType(false) + "_" + widget_name;
+    string loader_widget_name = BootCommon::getLoaderType(false) + "_" + widget_name;
 
-    if ( haskey( BootCommon::help_messages, arch_widget_name ) )
-        return(BootCommon::help_messages[arch_widget_name]:"" );
+    if ( haskey( BootCommon::help_messages, loader_widget_name ) )
+        return(BootCommon::help_messages[loader_widget_name]:"" );
     return(BootCommon::help_messages[widget_name]:"" );
 }
 
