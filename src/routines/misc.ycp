@@ -214,7 +214,9 @@
     /**
      * Converts a device name to the corresponding device name it should be
      * mounted by, according to the "mountby" setting for the device from
-     * yast2-storage.
+     * yast2-storage. As a safeguard against problems, if the "mountby" device
+     * name does not exist in the information from yast2-storage, it will
+     * fallback to the "kernel name" ("/dev/hda1").
      *
      * @param dev string device name
      * @return string device name according to "mountby"
@@ -236,16 +238,16 @@
 
 	symbol mountby = `device;
 	mountby = (symbol) partitions[dev, "mountby"]:nil;
-	if ( mountby == `uuid )
+	if ( mountby == `uuid && partitions[dev, "uuid"]:nil != nil )
 	{
 	    ret = sformat ("/dev/disk/by-uuid/%1", partitions[dev, "uuid"]:"");
-	} else if ( mountby == `label )
+	} else if ( mountby == `label && partitions[dev, "label"]:nil != nil )
 	{
 	    ret = sformat ("/dev/disk/by-label/%1", partitions[dev, "label"]:"");
-	} else if ( mountby == `id )
+	} else if ( mountby == `id && partitions[dev, "udev_id"]:nil != nil )
 	{
 	    ret = sformat ("/dev/disk/by-id/%1", partitions[dev, "udev_id", 0]:"");
-	} else if ( mountby == `path )
+	} else if ( mountby == `path && partitions[dev, "udev_path"]:nil != nil )
 	{
 	    ret = sformat ("/dev/disk/by-path/%1", partitions[dev, "udev_path"]:"");
 	}
