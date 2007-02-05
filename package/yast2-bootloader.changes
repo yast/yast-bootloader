@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb  5 12:02:43 CET 2007 - aosthof@suse.de
+
+- Reverted Fate #301384: Make Xen kernel default boot kernel
+  if Xen pattern or Xen RPMs are installed.
+
+-------------------------------------------------------------------
 Fri Jan 26 15:41:42 CET 2007 - od@suse.de
 
 - let "SLES 9 style" autoyast xml files configure bootloader
