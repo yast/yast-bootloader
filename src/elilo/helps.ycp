@@ -21,25 +21,67 @@ textdomain "bootloader";
 
 global map<string,string>   elilo_help_messages = $[
     "boot-loader-location"	: _("<p><big><b>Boot Loader Location</b></big><br>"),
+    "boot"		 :  _("<p><b>Boot Image Location</b></p>"),
+    "default"		 :  _("<p><b>Default Boot Section</b></p>"),
+    "timeout"		 :
+    _("<p><b>Timeout in tenth of seconds</b><br> Specifies the the time the
+bootloader will wait in interactive mode until the default entry is
+booted.</p>"),
+    "verbose"		 :
+    _("<p><b>Set level of verbosity [0-5]</b><br> Increase verbosity of ELILO
+in case of boot problems.</p>"),
+    "append"		 :
+    _("<p><b>Global Append string of options to kernel command line</b><br>
+Lets you define global, additional parameters to pass to the kernel. These are
+used if no 'append' appears in a given section.</p>"),
+    "initrd"		 :
+    _("<p><b>Name of default initrd file</b>, if non-empty, defines the initial
+ramdisk to use. Either enter the path and file name directly or choose by using
+<b>Browse</b></p>"),
+    "image"		 :
+    _("<p><b>Name of default image file</b></p>"),
+    "chooser"		 :
+    _("<p><b>Specify user interface for ELILO ('simple' or 'textmenu')</b><br>
+Beware: 'textmenu' has occasionally caused problems on some machines.</p>"),
+    "noedd30"		 :
+    _("<p><b>Prevent EDD30 mode</b><br>
+By default, if EDD30 is off, elilo will try and set the variable to TRUE.
+However, some controllers do not support EDD30 and forcing the variable
+may cause problems. Therefore as of elilo-3.2, there is an option to 
+avoid forcing the variable.</p>"),
+    "relocatable"	 :
+    _("<p><b>Allow attempt to relocate</b><br>
+In case of memory allocation error at initial load point of
+kernel, allow attempt to relocate (assume this kernel is relocatable).
+</p>"),
+    "image_append"       :
+    _("<p><b>Optional kernel command line parameter</b></p>
+May be empty, if already specified in global section.</p>"),
+    "image_readonly"	 :
+     _("<p><b>Force root filesystem to be mounted read-only</b><br>
+Usually specified in global section</p>"),
+    "image_relocatable"  :
+    _("<p><b>Allow attempt to relocate</b></p>
+Usually specified in global section</p>"),
     ];
 
 
 global map<string,string> elilo_descriptions = $[
     "boot" 	 	 : _("Boot Image Location"),
     "default"		 : _("Default Boot Section"),
-    "timeout"		 : _("Timeout in Seconds"),
-    "delay"		 : _("Delay to wait before auto booting in seconds"),
-    "prompt"		 : _("Show boot menu"),
+    "timeout"		 : _("Timeout in tenth of seconds (in interactive mode)"),
+    "delay"		 : _("Delay to wait before auto booting in seconds (used if not in interactive mode)"),
+    "prompt"		 : _("Force interactive mode"),
     "verbose"		 : _("Set level of verbosity [0-5]"),
-    "root"		 : _("Set global root filesystem"),
+    "root"		 : _("Set default root filesystem"),
     "readonly"	         : _("Force rootfs to be mounted read-only"),
-    "append"		 : _("Append string of options to kernel command line"),
-    "initrd"		 : _("Name of initrd file"),
-    "image"		 : _("Name of image file"),
-    "chooser"		 : _("Specify kernel chooser to use"),
+    "append"		 : _("Global append string of options to kernel command line"),
+    "initrd"		 : _("Name of default initrd file"),
+    "image"		 : _("Name of default image file"),
+    "chooser"		 : _("Specify user interface for ELILO ('simple' or 'textmenu')"),
     "message"		 : _("Message printed on main screen (if supported)"),
     "fX"		 : _("Display the content of a file by function keys"),
-    "noedd30"		 : _("Don't force EDD30 mode if not set"),
+    "noedd30"		 : _("Prevent EDD30 mode"),
     "fpswa"		 : _("Specify the filename for a specific FPSWA to load"),
     "relocatable"	 : _("Allow attempt to relocate"),
     "boot_custom"	 : _("Custom Boot Partition"),
