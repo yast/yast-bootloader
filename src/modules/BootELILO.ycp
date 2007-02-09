@@ -470,7 +470,9 @@ global define boolean Write () {
 		efi_label
 	    );
 	    y2milestone ("Running command %1", command);
-	    ret = 0 == SCR::Execute (.target.bash, command);
+	    map ret_map = (map)SCR::Execute (.target.bash_output, command);
+	    y2milestone ("result: %1", ret);
+	    ret = (ret_map["exit"] == 0);
 	});
 
 	map mp = Storage::GetMountPoints();
