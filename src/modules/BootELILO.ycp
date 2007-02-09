@@ -471,8 +471,8 @@ global define boolean Write () {
 	    );
 	    y2milestone ("Running command %1", command);
 	    map ret_map = (map)SCR::Execute (.target.bash_output, command);
-	    y2milestone ("result: %1", ret);
-	    ret = (ret_map["exit"] == 0);
+	    y2milestone ("result: %1", ret_map);
+	    ret = (ret_map["exit"]:1 == 0);
 	});
 
 	map mp = Storage::GetMountPoints();
@@ -587,3 +587,4 @@ global define void BootELILO () {
  *     fill-column: 78
  * End:
  */
+
