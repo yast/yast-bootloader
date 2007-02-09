@@ -204,7 +204,7 @@ global define map Export () {
   * Import settings from a map
   * @param settings map of bootloader settings
   */
-global define boolean Import (map<string, any> settings) {
+global define boolean Import (map settings) {
     BootCommon::Import (settings);
     old_efi_entry = (string) (settings["old_efi_entry"]:nil);
     remove_old_efi = settings["remove_old_efi"]:true;
