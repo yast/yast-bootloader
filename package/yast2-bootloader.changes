@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Feb  9 15:15:37 CET 2007 - aosthof@suse.de
+
+- Fixed type of passed arguments in function Import() (in
+  modules/Bootloader.ycp & modules/BootELILO.ycp) (#236163)
+- 2.13.82
+
+-------------------------------------------------------------------
 Tue Feb  6 19:48:20 CET 2007 - od@suse.de
 
 - added help texts and widget descriptions to grub and elilo
