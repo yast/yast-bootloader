@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Feb 12 19:25:01 CET 2007 - od@suse.de
+
+- set __auto key to false when user clones sections (#241158)
+- added log message when FixSections() silently discards a section
+  (#241158)
+- 2.13.83
+
+-------------------------------------------------------------------
 Mon Feb 12 11:23:37 CET 2007 - ug@suse.de
 
 - bootloader.rnc fixed for autoyast schema check
