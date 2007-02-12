@@ -256,6 +256,11 @@ global define void CreateSections () {
 			    if (contains (destroyed_partitions, _d))
 			        _add = false;
 			});
+
+			// FIXME: create a new config file section instead of
+			// using <s> which only shares the name/original_name
+			// This makes it possible to support cascaded boot
+			// environments in a supportable way !
 			if (_add)
 			{
 			  // FIXME: fallback to vmlinux and initrd symlink if
