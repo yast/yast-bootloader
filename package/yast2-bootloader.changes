@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Feb 12 11:23:37 CET 2007 - ug@suse.de
+
+- bootloader.rnc fixed for autoyast schema check
+
+-------------------------------------------------------------------
 Fri Feb  9 15:15:37 CET 2007 - aosthof@suse.de
 
 - Fixed type of passed arguments in function Import() (in
