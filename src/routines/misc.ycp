@@ -1350,8 +1350,8 @@ global string UpdateDevice (string device) {
 global boolean MemtestPresent () {
     return (! contains (removed_sections, "memtest"))
 	&& (Mode::test ()
-	    || (Mode::normal () && Pkg::IsProvided ("memtest86"))
-	    || (! Mode::normal () && Pkg::IsSelected ("memtest86")));
+	    || (Mode::normal () && Pkg::IsProvided ("memtest86+"))
+	    || (! Mode::normal () && Pkg::IsSelected ("memtest86+")));
 
 }
 
