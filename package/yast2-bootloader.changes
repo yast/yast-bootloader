@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Feb 14 16:59:46 CET 2007 - od@suse.de
+
+- collecting device information for perl-Bootloader now works with
+  persistent device names; this caused a bug in the grub
+  configuration where the gfxmenu entry was discarded because the
+  device name could not be translated (#244566)
+- 2.13.84
+
+-------------------------------------------------------------------
 Mon Feb 12 19:25:01 CET 2007 - od@suse.de
 
 - set __auto key to false when user clones sections (#241158)
