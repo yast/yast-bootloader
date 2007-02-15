@@ -7,7 +7,6 @@ client_DATA =			\
 	bootloader_auto.ycp	\
 	bootloader_proposal.ycp	\
 	bootloader_finish.ycp	\
-	bootfloppy.ycp		\
 	print-product.ycp
 
 EXTRA_DIST = 			\

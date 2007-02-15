@@ -8,10 +8,10 @@ Requires:	yast2 yast2-core yast2-storage perl-Bootloader limal-bootloader parted
 Requires:	master-boot-code
 %endif
 
-Provides:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader
-Obsoletes:	yast2-config-bootfloppy yast2-config-lilo yast2-config-bootloader
-Provides:	yast2-agent-liloconf yast2-agent-prom yast2-trans-bootfloppy
-Obsoletes:	yast2-agent-liloconf yast2-agent-prom yast2-trans-bootfloppy
+Provides:	yast2-config-lilo yast2-config-bootloader
+Obsoletes:	yast2-config-lilo yast2-config-bootloader
+Provides:	yast2-agent-liloconf yast2-agent-prom 
+Obsoletes:	yast2-agent-liloconf yast2-agent-prom 
 Provides:	yast2-trans-inst-bootloader yast2-trans-lilo yast2-trans-boot
 Obsoletes:	yast2-trans-inst-bootloader yast2-trans-lilo yast2-trans-boot
 Provides:	y2c_boot y2t_boot
@@ -24,13 +24,6 @@ Summary:	Bootloader installation and configuration
 %description
 -
 
-
-%package -n yast2-bootfloppy
-Summary:        Tool for creating boot floppy disks
-Group:          System/YaST
-
-%description -n yast2-bootfloppy
--
 
 @PREP@
 
@@ -64,11 +57,3 @@ Group:          System/YaST
 @scrconfdir@/*.scr
 @fillupdir@/*
 @schemadir@/autoyast/rnc/bootloader.rnc
-
-%files -n yast2-bootfloppy
-%defattr(-,root,root)
-
-%ifarch %ix86 x86_64
-@desktopdir@/bootfloppy.desktop
-%endif
-@clientdir@/bootfloppy.ycp

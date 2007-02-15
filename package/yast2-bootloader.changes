@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 15 12:46:01 CET 2007 - aosthof@suse.de
+
+- Removed bootfloppy module due to malfunction (#218437)
+- 2.13.85
+
+-------------------------------------------------------------------
 Wed Feb 14 16:59:46 CET 2007 - od@suse.de
 
 - collecting device information for perl-Bootloader now works with
