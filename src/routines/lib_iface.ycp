@@ -40,6 +40,8 @@ string library_initialized = nil;
 // FIXME: this should be done directly in perl-Bootloader through LibStorage.pm
 global void SetDiskInfo () {
     map<string,list<string> > md_info = $[];
+    map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
+
     map<string,any> mountpoints = mapmap (string k, list v,
 	(map<string,list>)Storage::GetMountPoints (),
     {
@@ -60,7 +62,10 @@ global void SetDiskInfo () {
         list<map<string,any> > mounted_list = (list<map<string,any> >)
 	    SCR::Read (.proc.mounts);
 	map<string,string> mounted = listmap (map<string,any> m, mounted_list, {
-	    return $[ m["file"]:"" : m["spec"]:"" ];
+	    // make partition canonical ("/dev/disk/by-id/..." -> "/dev/sda5")
+	    map p = Storage::GetPartition( tm, m["spec"]:"" );
+	    y2debug ("Translated device %1 to canonical device %2", m["spec"]:"", p["device"]:"");
+	    return $[ m["file"]:"" : p["device"]:"" ];
 	});
 	y2milestone ("Really mounted: %1", mounted);
 	mountpoints = filter (string k, any v, mountpoints, {
@@ -69,7 +74,6 @@ global void SetDiskInfo () {
     }
     y2milestone ("Detected mountpoints: %1", mountpoints);
 
-    map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
     list<list<list> > pi = maplist (string disk, map info, tm,
     {
 	if (info["type"]:`CT_UNKNOWN==`CT_LVM)
