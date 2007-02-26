@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Mon Feb 26 18:44:18 CET 2007 - od@suse.de
+
+- safeguard against mount-by device that does not exist (yet): fall  
+  back to kernel name (#239473, #223608)
+- fix entry for memtest86, it is named memtest86+ meanwhile
+- collecting device information for perl-Bootloader now works with
+  persistent device names; this caused a bug in the grub
+  configuration where the gfxmenu entry was discarded because the
+  device name could not be translated, as well as unbootable system
+  (#244566, #247775)
+- 2.15.5
+
+-------------------------------------------------------------------
 Tue Jan 23 12:58:51 CET 2007 - aosthof@suse.de
 
 - Forgot to delete "src/clients/bootfloppy.ycp" and
