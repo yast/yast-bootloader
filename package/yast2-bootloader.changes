@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 27 16:33:32 CET 2007 - od@suse.de
+
+- include yast2-storage in BuildRequires
+- 2.15.6
+
+-------------------------------------------------------------------
 Mon Feb 26 18:44:18 CET 2007 - od@suse.de
 
 - safeguard against mount-by device that does not exist (yet): fall  
