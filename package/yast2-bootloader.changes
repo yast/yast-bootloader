@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Mar  1 10:04:44 CET 2007 - aosthof@suse.de
+
+- Reverted to make Xen kernel default boot kernel if Xen pattern
+  or Xen RPMs are installed. (Fate #301384)
+- 2.15.7
+
+-------------------------------------------------------------------
 Tue Feb 27 16:33:32 CET 2007 - od@suse.de
 
 - include yast2-storage in BuildRequires
