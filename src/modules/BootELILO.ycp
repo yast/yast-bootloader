@@ -35,6 +35,7 @@ import "Mode";
 import "Report";
 import "Stage";
 import "Storage";
+import "String";
 
 include "bootloader/elilo/helps.ycp";
 include "bootloader/routines/popups.ycp";
@@ -444,54 +445,122 @@ define boolean installBootLoader (string command, string logfile) {
 global define boolean Write () {
     //	SCR::Execute (.target.bash, "/sbin/elilo");
     boolean ret = BootCommon::UpdateBootloader ();
-  
+
     if (BootCommon::location_changed || create_efi_entry)
     {
-        // FIXME shuold be handled completly through the library
+        // FIXME should be handled completly through the library
         // remove existing end old menu entry
         list<string> efi_entries_to_remove = toset ([
-	    efi_entry_name,
-	    remove_old_efi ? old_efi_entry : ""
+			efi_entry_name,
+			remove_old_efi ? old_efi_entry : ""
         ]);
         efi_entries_to_remove = filter (
-	    string e,
-	    efi_entries_to_remove,
-	    ``(	e != nil && e != "")
-	);
+			string e,
+			efi_entries_to_remove,
+			``(	e != nil && e != "")
+		);
 
-        foreach (string efi_label, efi_entries_to_remove, {
-	    // delete bootentry for efi_label if available
-	    string command = sformat(
-		"BOOTENTRY=\"" +
-		"`/usr/sbin/efibootmgr|sed -n 's/Boot\([0-9]*\)\* %1$/\1/p' `\";" +
-		"if [ \"$BOOTENTRY\" ]; then " + 
-		    "/usr/sbin/efibootmgr --delete-bootnum --bootnum $BOOTENTRY -q;" + 
-		"fi",
-		efi_label
-	    );
-	    y2milestone ("Running command %1", command);
-	    map ret_map = (map)SCR::Execute (.target.bash_output, command);
-	    y2milestone ("result: %1", ret_map);
-	    ret = (ret_map["exit"]:1 == 0);
-	});
+		map mp = Storage::GetMountPoints();
+		string boot_dev = mp[getEfiMountPoint (), 0]:"/boot/efi";
+		map splited = Storage::GetDiskPartition (boot_dev);
+		any boot_part = splited["nr"]:0;
+		any	boot_disk = splited["disk"]:"";
+		y2milestone ("Disk: %1, Part: %2", boot_disk, boot_part);
 
-	map mp = Storage::GetMountPoints();
-	string boot_dev = mp[getEfiMountPoint (), 0]:"/boot/efi";
-	map splited = Storage::GetDiskPartition (boot_dev);
-	any boot_part = splited["nr"]:0;
-	any boot_disk = splited["disk"]:"";
-	y2milestone ("Disk: %1, Part: %2", boot_disk, boot_part);
+		if (efi_entry_name != "" && efi_entry_name != nil)
+		{
+			string bl_logfile = "/var/log/YaST2/y2log_bootloader";
+		    string bl_command = sformat (
+			"/usr/sbin/efibootmgr -v --create --label \"%1\" " +
+			"--disk %2 --part %3 " +
+			"--loader '\\efi\\SuSE\\elilo.efi' --write-signature >> %4 2>&1",
+			efi_entry_name, boot_disk, boot_part, bl_logfile);
+			ret = ret && installBootLoader (bl_command, bl_logfile);
+		}
 
-	if (efi_entry_name != "" && efi_entry_name != nil)
-	{
-	    string bl_logfile = "/var/log/YaST2/y2log_bootloader";
-	    string bl_command = sformat (
-		"/usr/sbin/efibootmgr -v --create --label \"%1\" " +
-		"--disk %2 --part %3 " +
-		"--loader '\\efi\\SuSE\\elilo.efi' --write-signature >> %4 2>&1",
-		efi_entry_name, boot_disk, boot_part, bl_logfile);
-	    ret = ret && installBootLoader (bl_command, bl_logfile);
-	}
+		// Detect the current default boot entry (e.g. "0007")
+		map default_entry_map = (map)SCR::Execute (.target.bash_output,
+			"/usr/sbin/efibootmgr |grep ^BootOrder: | " +
+			"cut -d ' ' -f 2 | cut -d ',' -f 1"
+		);
+		string new_entry = default_entry_map["stdout"]:"";
+
+		// Check for validity -- returned default_entry has to be 4 chars long
+		// and be composed of numbers and characters only
+		if (size (new_entry) != 4
+		&& regexpmatch (new_entry, "[0-9A-F]") == false) {
+			y2error ("BootELILO: Found default boot entry %1 isn't valid",
+				new_entry);
+		}
+		else {
+			// Remove newlines and carriage returns in string
+			new_entry = deletechars (new_entry, "\n\r");
+
+			// Attach prefix "Boot" for proper matching
+			new_entry = "Boot" + new_entry;
+
+			// Prepare command for fetching string "HD(...)"
+			// from efibootmgr output
+			string command = sformat (
+				"set -o pipefail; /usr/sbin/efibootmgr -v | " +
+				"grep '%1' | sed 's/%1.*\\(HD.*\\)File.*$/\\1/'",
+				String::Quote (new_entry)
+			);
+
+			map hd_descr_map = (map)SCR::Execute (.target.bash_output, command);
+			y2milestone ("BootELILO: hd_descr_map = %1", hd_descr_map);
+
+			// Remove newlines and carriage returns in string
+			string hd_descr = deletechars (hd_descr_map["stdout"]:"", "\n\r");
+
+			// Prepare command for fetching boot entry number corresponding
+			// to "HD(...)" string from efibootmgr output
+			command = sformat (
+				"set -o pipefail; /usr/sbin/efibootmgr -v |" +
+				"grep '%1' |awk '{print $1}'",
+				String::Quote (hd_descr)
+			);
+
+			map entries2remove_map = (map)SCR::Execute (.target.bash_output, command);
+			y2milestone ("BootELILO: entries2remove_map = %1", entries2remove_map);
+			string entries2remove_string = entries2remove_map["stdout"]:"";
+
+			// Convert the string containing the entries to be removed to a list
+			list<string> entries2remove_list = splitstring (entries2remove_string, "\n");
+
+			// Check if there are entries to remove, thus if listsize is greater than 0
+			integer listsize = size (entries2remove_list);
+			if (listsize > 0) {
+				// Rermove the last entry of the list (because it's an empty one)
+				integer lastentry = listsize - 1;
+				remove (entries2remove_list, lastentry);
+				y2milestone ("BootELILO: entries2remove_list = %1", entries2remove_list);
+
+				// Filter the bootnumbers from strings for further usage
+				entries2remove_list = maplist (string entry2remove, entries2remove_list, {
+					if (issubstring (entry2remove, new_entry) == false) {
+						entry2remove = substring (entry2remove, 4, 4);
+						return entry2remove;
+					}
+				});
+
+				// Delete obsolete bootentries by bootnumbers
+				foreach (string entry2remove, entries2remove_list, {
+				    string command = sformat (
+						"/usr/sbin/efibootmgr --delete-bootnum --bootnum %1 -q;",
+						entry2remove
+					);
+
+				    map ret_map = (map)SCR::Execute (.target.bash_output, command);
+					y2milestone ("BootELILO: ret_map = %1", ret_map);
+				    ret = (ret_map["exit"]:1 == 0);
+				});
+			}
+			else {
+				y2milestone ("BootELILO: No obsolete entry to remove");
+			}
+
+		}
     }
     return ret;
 }

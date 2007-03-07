@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Mar  7 16:36:04 CET 2007 - aosthof@suse.de
+
+- Fixed removal of obsolete boot entries in BootELILO.ycp 
+  (#233537 and #237873)
+- 2.13.86
+
+-------------------------------------------------------------------
 Thu Feb 15 12:46:01 CET 2007 - aosthof@suse.de
 
 - Removed bootfloppy module due to malfunction (#218437)
