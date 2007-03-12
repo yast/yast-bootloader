@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Mar 12 15:20:56 CET 2007 - ug@suse.de
+
+- bootloader.rnc fixed for autoyast schema check
+  (#211014)
+
+-------------------------------------------------------------------
 Wed Mar  7 16:36:04 CET 2007 - aosthof@suse.de
 
 - Fixed removal of obsolete boot entries in BootELILO.ycp 
