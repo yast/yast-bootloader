@@ -765,7 +765,8 @@ list<string> ListKernelParamsInLine (string line) {
 	if (is (num_any, integer))
 	    return (integer)num_any;
 	if (is (num_any, string))
-	    return (num_any == "") ? 0 : tointeger((string)num_any);
+	    return (num_any == "") ? 0 :
+		(tointeger((string)num_any) == nil ? 0 : tointeger((string)num_any));
 	return 0;
     } 
 

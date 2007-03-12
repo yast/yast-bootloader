@@ -556,7 +556,7 @@ global define void Propose () {
 	    }
 	}
 	else {
-  	    BootCommon::globals["activate"] =
+	    BootCommon::globals["activate"] =
 	        BootCommon::activate ? "true" : "false";
 	    BootCommon::globals["generic_mbr"] =
 	        BootCommon::repl_mbr ? "true" : "false";
