@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 14 16:44:14 CET 2007 - od@suse.de
+
+- fixed last change in bootloader rnc schema (#214468)
+- 2.13.88
+
+-------------------------------------------------------------------
 Wed Mar 14 16:27:15 CET 2007 - od@suse.de
 
 - fixed myToInteger(): return 0 if string cannot be converted to
