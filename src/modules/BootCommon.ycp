@@ -683,9 +683,9 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // indicated by "mountby"
     my_globals = mapmap (string k , string v, my_globals, {
 	if ( regexpmatch(k, "^boot_.*custom$" ) )
-	    return [k, BootCommon::Dev2MountByDev(v)];
+	    return $[k : BootCommon::Dev2MountByDev(v)];
 	else
-	    return [k, v];
+	    return $[k : v];
     });
 
     ret = ret && SetDeviceMap (device_mapping);
