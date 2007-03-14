@@ -1,4 +1,22 @@
 -------------------------------------------------------------------
+Wed Mar 14 16:27:15 CET 2007 - od@suse.de
+
+- fixed myToInteger(): return 0 if string cannot be converted to
+  integer
+- always log the target map when Propose() is called (not only when
+  we debug)
+- convert custom boot device names to the names indicated by the
+  mountby setting; this is one part of a change to use persistent
+  device names for the bootloader boot device, the rest requires
+  simultaneously changing perl-Bootloader because of an
+  incompatible interface change
+  (#248162)
+- #214468:
+  - fixed autoyast schema
+  - fixed import of autoyast data: do not remove the "default" option
+- 2.13.87
+
+-------------------------------------------------------------------
 Mon Mar 12 15:20:56 CET 2007 - ug@suse.de
 
 - bootloader.rnc fixed for autoyast schema check
