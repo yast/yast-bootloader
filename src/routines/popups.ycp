@@ -142,7 +142,7 @@ configuration files manually. Check the boot loader settings.
       * @param device string currently confiogured device
       * @return boolean yes if shall be reset
       */
-     boolean askLocationResetPopup (string device) ``{
+     global boolean askLocationResetPopup (string device) ``{
 	// yes-no popup
 	return Popup::YesNo(sformat(_("Partition '%1' is not available.
 Set default boot loader location?
@@ -193,6 +193,9 @@ and confirm with OK.
 	    fs = (symbol)UI::QueryWidget (`id (`fs), `Value);
 	}
 	UI::CloseDialog ();
+	// FIXME: loader_device cannot be used for grub anymore; but this
+	// function should not be used anymore anyway, because BootFloppy has
+	// been disabled.
 	string dev = BootCommon::loader_device;
 	if (format)
 	{

@@ -383,7 +383,7 @@ global boolean Read (boolean reread) {
     if (reread) {
 	BootCommon::ReadFiles ();
     }
-    BootCommon::DetectDisks ();
+    grub_DetectDisks ();
     boolean ret = BootCommon::Read (false);
     // refresh device map if not read
     if (BootCommon::device_mapping == nil
@@ -392,6 +392,13 @@ global boolean Read (boolean reread) {
 	BootCommon::ProposeDeviceMap ();
     }
 
+    // FIXME: This code can probably be removed. perl-Bootloader sets boot_*
+    // flags in the globals map. That is all the UI and the proposal code deal
+    // with. The decision to install the bootloader stage 1 on multiple devices
+    // (for softraid, dmraid etc.) can be based on the information in the
+    // boot_{root,boot,mbr} flags and the disk, partitioning and md information
+    // alone. Thus, perl-Bootloader is able to do this.
+/*
     list<string> loader_devices = splitstring (
 	BootCommon::globals["stage1_dev"]:"",
 	",");
@@ -473,6 +480,7 @@ global boolean Read (boolean reread) {
     {
 	BootCommon::loader_device = loader_devices[0]:"";
     }
+*/
 
     importMetaData();
 
@@ -497,15 +505,13 @@ global define void Propose () {
 	y2debug ("Started propose: Glob: %1, Sec: %2",
 	    BootCommon::globals, BootCommon::sections);
 
-	string old_loader_device = BootCommon::loader_device;
 	// if NOT was_proposed (i.e. blPropose() has not been called yet), then
 	// - set up BootPartitionDevice, RootPartitionDevice
 	// - if empty, set up mbrDisk
 	// - if loader_device is empty or the device is not a boot device, go
-	//   to ConfigureLocation() and
+	//   to grub_ConfigureLocation() and
 	//	- propose
-	//	    - loader_device
-	//	    - selected_location (according to loader_device)
+	//	    - select one loader device in the boot_* keys of the globals map
 	//	    - activate (when needed, but try to be nice to Windows)
 	//	- do not touch these, except when /boot partition is selected_location:
 	//	    - activate_changed (set to true)
@@ -521,46 +527,12 @@ global define void Propose () {
 	//
 	// if '/' and '/boot' were changed and selected_location is set and not
 	// "custom", ask user with popup whether it is OK to change the
-	// location and change it (with DetectDisks() and ConfigureLocation()
+	// location and change it (with grub_DetectDisks() and grub_ConfigureLocation()
 	// (see above))
-	BootCommon::i386LocationProposal ();
+	grub_LocationProposal ();
 
-	// The Propose() function is called every time before Summary() is
-	// called. We have to take the current state of the boot_* and activate
-	// keys from the globals variable (where the new generic widgets put
-	// the current settings and/or a previous proposal left them there, see
-	// below) and put this information in the loader_device and activate
-	// variables for the internal routines to use.
-	// FIXME: This should probably be put in a function of its own. ATM,
-	// this code looks still too specific to put it in a function, though.
-	// But I may be wrong here.
-
-	if ( old_loader_device == BootCommon::loader_device ) {
-	    // if we did not re-propose, use user-supplied settings (if any)
-	    if ( haskey(BootCommon::globals, "boot_boot") && BootCommon::globals["boot_boot"]:"false" == "true" ) {
-		BootCommon::loader_device = BootCommon::BootPartitionDevice;
-	    } else if ( haskey(BootCommon::globals, "boot_root") && BootCommon::globals["boot_root"]:"false" == "true" ) {
-		BootCommon::loader_device = BootCommon::RootPartitionDevice;
-	    } else if ( haskey(BootCommon::globals, "boot_mbr") && BootCommon::globals["boot_mbr"]:"false" == "true" ) {
-		BootCommon::loader_device = BootCommon::mbrDisk;
-	    } else if ( haskey(BootCommon::globals, "boot_custom") ) {
-		BootCommon::loader_device = BootCommon::globals["boot_custom"]:"";
-	    }
-
-	    if ( haskey(BootCommon::globals, "activate") ) {
-		if ( BootCommon::globals["activate"]:"false" == "true" ) {
-		    BootCommon::activate = true;
-		} else {
-		    BootCommon::activate = false;
-		}
-	    }
-	}
-	else {
-	    BootCommon::globals["activate"] =
-	        BootCommon::activate ? "true" : "false";
-	    BootCommon::globals["generic_mbr"] =
-	        BootCommon::repl_mbr ? "true" : "false";
-	}
+	// Note that the Propose() function is called every time before
+	// Summary() is called.
 
 	if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
 	{
@@ -599,34 +571,6 @@ global define void Propose () {
 	    // if that points to a section that does not exist anymore
 	    BootCommon::FixGlobals ();
 	}
-
-	// FIXME: The setting of the boot_* and activate keys in globals for
-	// the new perl-Bootloader interface should probably be put in a
-	// function of its own. ATM, this code looks still too specific to put
-	// it in a function, though. But I may be wrong here.
-	// Pass down proposal to the variables of the new perl-Bootloader code
-	// first, default to all off:
-	BootCommon::globals["boot_boot"] = sformat("%1", false);
-	BootCommon::globals["boot_root"] = sformat("%1", false);
-	BootCommon::globals["boot_mbr"] =  sformat("%1", false);
-	// need to remove the boot_custom key to switch this value off
-	if (haskey (BootCommon::globals, "boot_custom")) {
-	    BootCommon::globals = remove (BootCommon::globals, "boot_custom");
-	}
-	BootCommon::change_widget_default_value("boot_custom", "");	// FIXME: kludge, maybe obsolete
-
-	if ( BootCommon::loader_device == BootCommon::RootPartitionDevice ) {
-	    BootCommon::globals["boot_root"] = sformat("%1", true);
-	} else if ( BootCommon::loader_device == BootCommon::BootPartitionDevice ) {
-	    BootCommon::globals["boot_boot"] = sformat("%1", true);
-	} else if ( BootCommon::loader_device == BootCommon::mbrDisk ) {
-	    BootCommon::globals["boot_mbr"] = sformat("%1", true);
-	} else {
-	    BootCommon::globals["boot_custom"] = BootCommon::loader_device;
-	    BootCommon::change_widget_default_value("boot_custom", BootCommon::loader_device);	// FIXME: kludge, maybe obsolete
-	}
-
-	BootCommon::globals["activate"] = sformat("%1", BootCommon::activate);
 
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
 	y2milestone ("Proposed globals: %1", BootCommon::globals);
@@ -774,7 +718,7 @@ global define void Update () {
   * @return boolean true on success
   */
 global define boolean Write () ``{
-    BootCommon::updateMBR ();
+    grub_updateMBR ();
     boolean ret = BootCommon::UpdateBootloader ();
     if (BootCommon::location_changed || BootCommon::InstallingToFloppy ()) {
         if (BootCommon::InstallingToFloppy ()) {
