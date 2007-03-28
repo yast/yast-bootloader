@@ -1,4 +1,101 @@
 -------------------------------------------------------------------
+Wed Mar 28 17:01:33 CEST 2007 - od@suse.de
+
+- GRUB only: integrated the new boot_*, generic_mbr and activate
+  keys (found in the "globals" map) from the new
+  widget/perl-Bootloader interface into the internal workings of
+  the grub code
+  - for grub, this obsoletes the global variables loader_device,
+    selected_location (aka loader_location), repl_mbr and activate
+  - fixes loosing the information of multiple selected bootloader
+    installation devices (#245680)
+  - partially fixes faulty detection of user-changes to the "/boot"
+    and "/" devices from yast2-storage (#247852)
+  - decided that boot_mbr_md key is unneeded, because the decision
+    to write to the MBRs of all underlying devices of a soft-RAID
+    is automatic (kept commented-out sample code for boot_mbr_md)
+  - decided that boot_extended is unneeded, because the decision to
+    write the bootloader to the extended partition instead of to an
+    un-activatable "/boot" or "/" partition is automatic (kept
+    commented-out sample code for boot_extended)
+  - removed wrapper code for variable translation from
+    BootGRUB::Propose()
+  - made private copies of functions in grub/misc.ycp and changed
+    the code to use the new interface variables only (this is also
+    wanted for better code separation between bootloaders, to
+    reduce amount of special-case handling (to be worked on)):
+
+      * from routines/misc.ycp:
+          grub_getPartitionToActivate ()
+          grub_getPartitionsToActivate ()
+          grub_getMbrsToRewrite ()
+          grub_getFileChangeDate ()
+          grub_saveMBR ()
+          grub_updateMBR ()
+          grub_DetectDisks ()
+
+      * from routines/lilolike.ycp:
+          grub_ProposeDeviceMap ()
+            ( ^^ really needed? no changes here, it just "belongs"
+            to grub...)
+          grub_ConfigureLocation()
+          grub_DetectDisks ()
+          grub_DisksChanged ()
+          grub_LocationProposal ()
+
+  - added helper functions:
+      grub/misc.ycp:          SetBootloaderDevice()
+      routines/misc.ycp:      GetBootloaderDevices()
+
+  - added note to to-be-phased-out functions:
+      routines/misc.ycp:      GetBootloaderDevice()
+
+  - made some functions globally accessible:
+      routines/popup.ycp:     askLocationResetPopup ()
+      routines/misc.ycp:      myToInteger ()
+      routines/lilolike.ycp:  FindMBRDisk ()
+
+  - fixed bug with the detection of MD-RAID devices (both in
+    grub_getPartitionToActivate and getPartitionToActivate): BIOS
+    ID was assumed to be less than 128, but it starts at 128
+
+  - commented out some obsolete and broken code that would activate
+    the "/boot" device on installation of the bootloader to MBR;
+    the code was cancelled out by program logic ("activate" flag)
+    though;
+    this also simplified the interface to getPartitionToActivate ()
+
+  - added conditionals to Bootloader.ycp and BootCommon.ycp: do not
+    handle obsolete variables for grub
+
+  - commented out probably obsolete code in BootGRUB::Read() to
+    determine old_style loader_device from read devices (including
+    old-style "mbr_md")
+
+  - added several FIXME:s
+  - changed a fixed FIXME to FIXED
+
+- when reading settings from the system: convert custom boot device
+  names in globals to the kernel device names (#248162)
+- corrected whitespace in grub/helps.ycp and ppc/helps.ycp
+- fix faulty detection of user-changes to the "/boot" and "/"
+  devices from yast2-storage: rewrote grub_DisksChanged() to work
+  properly with boot_* variables (previous fix did not work
+  correctly) (#247852)
+- grub_DisksChanged() now returns a message summarizing all changes
+  for selected bootloader devices; this message is now used in the
+  popup that asks the user if he wants to repropose after a
+  partitioning change (in askLocationResetPopup()) (#247852)
+- rewrote check for disk changes to work with multiple selected
+  bootloader locations in grub_DetectDisks() and
+  grub_LocationProposal() (#247852)
+- the summary message for GRUB now includes a short string ("/",
+  "/boot", MBR) that gives the reason why each device has been
+  selected for bootloader stage 1 installation
+- changed comment for GetBootloaderDevices()
+- 2.13.89
+
+-------------------------------------------------------------------
 Wed Mar 14 16:44:14 CET 2007 - od@suse.de
 
 - fixed last change in bootloader rnc schema (#214468)
