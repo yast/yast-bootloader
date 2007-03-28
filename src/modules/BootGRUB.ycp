@@ -664,11 +664,11 @@ global define list<string> Summary () {
     list<string> locations = [];
 
     if (BootCommon::globals["boot_boot"]:"" == "true")
-        locations = add(locations, BootCommon::BootPartitionDevice);
+        locations = add(locations, BootCommon::BootPartitionDevice + " (\"/boot\")");
     if (BootCommon::globals["boot_root"]:"" == "true")
-        locations = add(locations, BootCommon::RootPartitionDevice);
+        locations = add(locations, BootCommon::RootPartitionDevice + " (\"/\")");
     if (BootCommon::globals["boot_mbr"]:"" == "true")
-        locations = add(locations, BootCommon::mbrDisk);
+        locations = add(locations, BootCommon::mbrDisk + " (MBR)");
     if (haskey (BootCommon::globals, "boot_custom"))
         locations = add(locations, BootCommon::globals["boot_custom"]:"");
 

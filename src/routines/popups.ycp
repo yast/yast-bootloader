@@ -139,14 +139,13 @@ configuration files manually. Check the boot loader settings.
 
     /**
       * Ask for change of bootloader location because of device unavailability
-      * @param device string currently confiogured device
+      * @param string reason text stating why the location should be re-proposed
       * @return boolean yes if shall be reset
       */
-     global boolean askLocationResetPopup (string device) ``{
+     global boolean askLocationResetPopup (string reason) ``{
 	// yes-no popup
-	return Popup::YesNo(sformat(_("Partition '%1' is not available.
-Set default boot loader location?
-"), device));
+	return Popup::YesNo(sformat(_("%1Set default boot loader location?
+"), reason));
     }
 
     /**

@@ -615,7 +615,8 @@
     }
 
     /**
-      * Get bootloader devices for specified locations
+      * Get list of bootloader device names for all selected or specified
+      * locations
       * @return list device names
       */
     global define list<string> GetBootloaderDevices () ``{

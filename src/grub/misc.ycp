@@ -763,57 +763,123 @@ define void grub_DetectDisks () {
 	BootCommon::mbrDisk = BootCommon::FindMBRDisk();
     }
 
+    // if no bootloader devices have been set up, or any of the set up
+    // bootloader devices have become unavailable, then re-propose the
+    // bootloader location.
+    list<string> all_boot_partitions = BootCommon::getPartitionList(`boot);
     list<string> bldevs = BootCommon::GetBootloaderDevices();
-    if (bldevs == nil || bldevs == ["/dev/null"]
-	// FIXME: check for all bldevs that they are still available
-	|| ! contains (BootCommon::getPartitionList (`boot), bldevs[0]:nil))
+    boolean need_location_reconfigure = false;
+
+    if ( bldevs == nil || bldevs == ["/dev/null"] )
+	need_location_reconfigure = true;
+    else {
+	foreach (string dev, bldevs, {
+	    if (!contains(all_boot_partitions, dev))
+		need_location_reconfigure = true;
+	});
+    }
+
+    if ( need_location_reconfigure )
 	grub_ConfigureLocation ();
 }
 
 /**
- * Check whether disk settings were changed since last checking
- * @return boolean true if needs to recheck
+ * Check whether any disk settings for the disks we currently use were changed
+ * since last checking
+ * @return map map containing boolean "status" and string "reason"
  */
-define boolean grub_DisksChanged () {
+define map<string, any> grub_DisksChanged () {
+    map<string, any> ret = $[
+	"changed" : false,
+	"reason"  : ""
+    ];
+
     if (Mode::config ())
-	return false;
+	return ret;
+
     map mp = Storage::GetMountPoints();
     string actual_root = mp["/", 0]:"";
     string actual_boot = mp["/boot", 0]:actual_root;
 
-    // FIXME: improve comment
-    // don't change configuration if '/' and '/boot' were not changed
-    // and location is "floppy", "mbr" or "boot"
-    if (actual_boot == BootCommon::BootPartitionDevice
-	&& actual_root == BootCommon::RootPartitionDevice
-	    && ! haskey( BootCommon::globals, "boot_custom")
-	    &&  (
-		    BootCommon::globals["boot_root"]:"false" == "true" ||
-		    BootCommon::globals["boot_boot"]:"false" == "true" ||
-		    BootCommon::globals["boot_mbr"]:"false" == "true"
+    if ( BootCommon::globals["boot_boot"]:"false" == "true" &&
+	 actual_boot != BootCommon::BootPartitionDevice )
+	ret = $[
+	    "changed" :	true,
+	    "reason"  :	(string) ret["reason"]:"" +
+			"Selected bootloader location \"/boot\" is not on " +
+			BootCommon::BootPartitionDevice +
+			" any more.\n"
+	];
+
+    if ( BootCommon::globals["boot_root"]:"false" == "true" &&
+	 actual_root != BootCommon::RootPartitionDevice )
+	ret = $[
+	    "changed" :	true,
+	    "reason"  :	(string) ret["reason"]:"" +
+			"Selected bootloader location \"/\" is not on " +
+			BootCommon::RootPartitionDevice +
+			" any more.\n"
+	];
+
+    if ( BootCommon::globals["boot_mbr"]:"false" == "true" ) {
+	map p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+	string actual_mbr = p_dev["disk"]:"";
+
+	if ( actual_mbr != BootCommon::mbrDisk )
+	    ret = $[
+		"changed" : true,
+		"reason"  : (string) ret["reason"]:"" +
+			    "Selected bootloader location MBR is not on " +
+			    BootCommon::mbrDisk +
+			    " any more.\n"
+	    ];
+    }
+
 // FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
 // decisions are automatic anyway and perl-Bootloader should be able to make
 // these decisions without help from the user or the proposal.
-//		    BootCommon::globals["boot_extended"]:"false" == "true" ||
-//		    BootCommon::globals["boot_mbr_md"]:"false" == "true"
-		)
-	)
-    {
-	return false;
+//    if ( BootCommon::globals["boot_extended"]:"false" == "true" &&
+//	 actual_boot != BootCommon::BootPartitionDevice )
+//	ret = true;	// FIXME: use new return structure
+//
+//    if ( BootCommon::globals["boot_mbr_md"]:"false" == "true" ) {
+//	// FIXME: handle Md2Partitions() etc. here
+//	map p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+//	string actual_mbr = p_dev["disk"]:"";
+//
+//	if ( actual_mbr != BootCommon::mbrDisk )
+//	    ret = true;	// FIXME: use new return structure
+//    }
+
+    if ( BootCommon::globals["boot_custom"]:nil != nil ) {
+	list all_boot_partitions = BootCommon::getPartitionList(`boot);
+
+	if ( ! contains(all_boot_partitions, BootCommon::globals["boot_custom"]:nil) )
+	    ret = $[
+		"changed" : true,
+		"reason"  : (string) ret["reason"]:"" +
+			    "Selected custom bootloader partition " +
+			    BootCommon::globals["boot_custom"]:nil +
+			    " is not available any more.\n"
+	    ];
     }
 
-    list all_partitions = BootCommon::getPartitionList(`boot);
-
-    if (!contains(all_partitions, (BootCommon::GetBootloaderDevices())[0]:nil))
-    {
+    if ( ret["changed"]:false )
 	y2milestone ("Location should be set again");
-	return true;
-    }
-    return false;
+
+    return ret;
 }
 
 /**
  * Propose the boot loader location for grub
+ *  - if no proposal has been made, collects the devices for "/", "/boot", MBR
+ *    and makes a new proposal
+ *  - if no device mapping exists, creates a device mapping
+ *  - if the devices that were somehow (proposal, user interface) selected for
+ *    bootloader installation do not match the current partitioning any more
+ *    (e.g. "/boot" partition was selected but is not available anymore (and
+ *    "/" did not move there), "/" was selected but has moved, etc.), then also
+ *    re-collect the devices for "/", "/boot", MBR and make a new proposal
  */
 define void grub_LocationProposal () {
     if (! BootCommon::was_proposed)
@@ -842,11 +908,14 @@ define void grub_LocationProposal () {
 	grub_ProposeDeviceMap ();
     }
 
-    if (grub_DisksChanged () && ! Mode::autoinst ()) {
-        if (BootCommon::askLocationResetPopup ((BootCommon::GetBootloaderDevices())[0]:nil)) {
-	    SetBootloaderDevice(`none);
-	    y2milestone ("Reconfiguring locations");
-	    grub_DetectDisks ();
+    if ( ! Mode::autoinst () ) {
+	map<string, any> changed = grub_DisksChanged ();
+	if ( changed["changed"]:false ) {
+	    if (BootCommon::askLocationResetPopup (changed["reason"]:"Disk configuration changed.\n")) {
+		SetBootloaderDevice(`none);
+		y2milestone ("Reconfiguring locations");
+		grub_DetectDisks ();
+	    }
 	}
     }
 }
