@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Mar 28 19:56:56 CEST 2007 - od@suse.de
+
+- GRUB only: for backwards compatibility, accept old-style autoyast
+  keys "repl_mbr" "activate" and "location" when importing an
+  autoyast profile; "loader_device" is ignored (which may be
+  fixable if we can make sure a target map is available) (#245680)
+- 2.13.90
+
+-------------------------------------------------------------------
 Wed Mar 28 17:01:33 CEST 2007 - od@suse.de
 
 - GRUB only: integrated the new boot_*, generic_mbr and activate
