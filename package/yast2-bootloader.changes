@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Apr 10 17:29:33 CEST 2007 - aosthof@suse.de
+
+- Fixed erroneous EFI Bootloader Label (#242985) in BootELILO.ycp
+  using modified patch of revision 35434 from trunk
+- Fixed removal of obsolete entries in EFI Boot Menu in
+  BootELILO.ycp (#237873)
+- 2.13.91
+
+-------------------------------------------------------------------
 Wed Mar 28 19:56:56 CEST 2007 - od@suse.de
 
 - GRUB only: for backwards compatibility, accept old-style autoyast
