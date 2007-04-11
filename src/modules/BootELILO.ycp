@@ -35,6 +35,7 @@ import "Mode";
 import "Report";
 import "Stage";
 import "Storage";
+import "String";
 
 include "bootloader/elilo/helps.ycp";
 include "bootloader/routines/popups.ycp";
@@ -136,7 +137,7 @@ map<string,any> CreateLinuxSection (string title) {
 
 /**
  * Propose sections to bootloader menu
- * modifies internal sreuctures
+ * modifies internal structures
  */
 global void CreateSections () {
     map<string,any> linux = CreateLinuxSection ("linux");
@@ -160,15 +161,11 @@ global void CreateGlobals () {
     // FIXME do it later
     //	"append" : BootArch::DefaultKernelParams (""),
 	"default" : BootCommon::translateSectionTitle ("linux"),
-	"timeout" : "8",
-	"prompt" : "1",
+	"timeout" : "80",
+	"prompt" : "true",
+	"read-only" : "true",
+	"relocatable" : "true"
     ];
-    // FIXME TODO in the library
-    /*	BootCommon::globals = [
-	    $[ "key" : "prompt", "value" : true ],
-	    $[ "key" : "read-only", "value" : true ],
-	    $[ "key" : "relocatable", "value" : true ],
-	];*/
 }
 
 
@@ -192,7 +189,7 @@ global define map Export () {
   * Import settings from a map
   * @param settings map of bootloader settings
   */
-global define boolean Import (map<string, any> settings) {
+global define boolean Import (map settings) {
     BootCommon::Import (settings);
     old_efi_entry = (string) (settings["old_efi_entry"]:nil);
     elilo_conf_filename = getEliloConfFilename ();
@@ -223,7 +220,11 @@ global define boolean Read (boolean reread) {
 	boolean ret = BootCommon::Read (reread);
 
 	// check for meaningless EFI entry name in sysconfig
-	if (!haskey(BootCommon::globals,"boot_efilabel")) {
+	if ( !haskey(BootCommon::globals,"efilabel")
+	    || BootCommon::globals["efilabel"]:"" == "mbr"
+	    || BootCommon::globals["efilabel"]:"" == ""
+	    || BootCommon::globals["efilabel"]:"" == nil )
+	{
 	    string efi_path = BootCommon::replaceAll (
 		getEliloConfSubpath (), "/", "\\");
 	    // Read Firmware setting from NVRam
@@ -231,7 +232,7 @@ global define boolean Read (boolean reread) {
 		"/usr/sbin/efibootmgr |grep \"%1\"", efi_path));
 	    if (efi_status["exit"]:0 != 0)
 	    {
-		BootCommon::globals["boot_efilabel"] = Product::name;
+		BootCommon::globals["efilabel"] = Product::name;
 	    }
 	    else
 	    {
@@ -240,27 +241,27 @@ global define boolean Read (boolean reread) {
 		output = lines[0]:"";
 		if (regexpmatch (output, "Boot.*\* (.*)  HD"))
 		{
-		    BootCommon::globals["boot_efilabel"]
+		    BootCommon::globals["efilabel"]
 			= regexpsub (output, "Boot.*\* (.*)  HD", "\\1");
 		    efi_entry_found = true;
 		}
 		else
 		{
-		    BootCommon::globals["boot_efilabel"] = Product::name;
+		    BootCommon::globals["efilabel"] = Product::name;
 		}
 	    }
 	}
 	else
 	{
 	    efi_entry_found = 0 == SCR::Execute (.target.bash, sformat (
-                "/usr/sbin/efibootmgr |grep \"%1\"",
-		BootCommon::globals["boot_efilabel"]:"")
+		"/usr/sbin/efibootmgr |grep \"%1\"",
+		BootCommon::globals["efilabel"]:"")
 	    );
 	}
 	create_efi_entry = !efi_entry_found;
 	old_efi_entry = efi_entry_found
-	      ? BootCommon::globals["boot_efilabel"]:""
-	      : (string)nil;
+	    ? BootCommon::globals["efilabel"]:""
+	    : (string)nil;
 	return ret;
 }
 
@@ -284,7 +285,10 @@ global define void Propose () {
     if (! BootCommon::was_proposed)
     {
         create_efi_entry = true;
-        BootCommon::globals["boot_efilabel"] = Product::name;
+	// make sure the code handling globals below triggers and that
+	// efilabel is recreated
+	if ( haskey(BootCommon::globals, "efilabel") )
+	    BootCommon::globals = remove(BootCommon::globals, "efilabel");
     }
     if (! Stage::initial ())
         create_efi_entry = true;
@@ -303,20 +307,24 @@ global define void Propose () {
     {
         if (Mode::autoinst ())
         {
-    	y2debug ("Nothing to do for propose in AI mode");
+	    y2debug ("Nothing to do for propose in AI mode");
         }
         else
-    	BootCommon::FixSections (BootELILO::CreateSections);
+	BootCommon::FixSections (BootELILO::CreateSections);
     }
+
     if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
     {
         CreateGlobals ();
     }
 
-    if (!haskey(BootCommon::globals, "boot_efilabel")) {
-        BootCommon::globals["boot_efilabel"] = Product::name;
+    if (BootCommon::globals["efilabel"]:nil == nil ||
+	BootCommon::globals["efilabel"]:nil == "")
+    {
+	BootCommon::globals["efilabel"] = Product::name;
     }
-    y2milestone ("EFI entry name: %1", BootCommon::globals["boot_efilabel"]:"");
+
+    y2milestone ("EFI entry name: %1", BootCommon::globals["efilabel"]:"");
     y2milestone ("Proposed sections: %1", BootCommon::sections);
     y2milestone ("Proposed globals: %1", BootCommon::globals);
 }
@@ -327,7 +335,6 @@ global define void Propose () {
  * @return boolean true if success
  */
 global boolean Save (boolean clean, boolean init, boolean flush) {
-    // FIXME modify EFI? Entries to remove...
     boolean ret = BootCommon::Save (clean, init, flush);
     importMetaData();
     return ret;
@@ -343,17 +350,18 @@ global define list<string> Summary () {
     list<string> result = [ sformat (_("Boot loader type: %1"),
         BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)) ];
 
-    if (BootCommon::globals["boot_efilabel"]:"" == "" || !create_efi_entry ) {
+    if (BootCommon::globals["efilabel"]:"" == "" || !create_efi_entry )
+    {
         result =
-    	    // summary text
-    	    add (result, _("Do Not Create EFI Boot Manager Entry"));
+	    // summary text
+	    add (result, _("Do Not Create EFI Boot Manager Entry"));
     }
     else
     {
         result = add (result, sformat (
-    	// summary text, %1 is label of the entry of EFI boot manager
-    	_("Create EFI Boot Manager Entry %1"),
-        BootCommon::globals["boot_efilabel"]:""));
+	// summary text, %1 is label of the entry of EFI boot manager
+	_("Create EFI Boot Manager Entry %1"),
+	BootCommon::globals["efilabel"]:""));
     }
     list<string> sects = [];
     foreach (map<string,any> s, BootCommon::sections, {
@@ -426,30 +434,11 @@ define boolean installBootLoader (string command, string logfile) {
   * @return boolean true on success
   */
 global define boolean Write () {
+    //	SCR::Execute (.target.bash, "/sbin/elilo");
     boolean ret = BootCommon::UpdateBootloader ();
-  
+
     if (BootCommon::location_changed || create_efi_entry)
     {
-        // FIXME shuold be handled completly through the library
-        // remove existing end old menu entry
-	
-	if (BootCommon::globals["boot_rm_efilabel"]:"true" == "true") {
-            foreach (string efi_label,
-	    	 [ BootCommon::globals["boot_efilabel"]:"", old_efi_entry], {
-	        // delete boot entry for efi_label if available
-	        string command = sformat(
-	    	    "BOOTENTRY=\"" +
-	    	    "`/usr/sbin/efibootmgr|sed -n 's/Boot\([0-9]*\)\* %1$/\1/p' `\";" +
-	    	    "if [ \"$BOOTENTRY\" ]; then " + 
-	    	        "/usr/sbin/efibootmgr --delete-bootnum --bootnum $BOOTENTRY -q;" + 
-	    	    "fi",
-	    	    efi_label
-	        );
-	        y2milestone ("Running command %1", command);
-	        ret = 0 == SCR::Execute (.target.bash, command);
-	    });
-	}
-
 	map mp = Storage::GetMountPoints();
 	string boot_dev = mp[getEfiMountPoint (), 0]:"/boot/efi";
 	map splited = Storage::GetDiskPartition (boot_dev);
@@ -457,15 +446,114 @@ global define boolean Write () {
 	any boot_disk = splited["disk"]:"";
 	y2milestone ("Disk: %1, Part: %2", boot_disk, boot_part);
 
-	if (BootCommon::globals["boot_efilabel"]:"" != "")
+	/*
+	 * Create new EFI Bootmgr Label if specified
+	 */
+	if (BootCommon::globals["efilabel"]:"" != "")
 	{
 	    string bl_logfile = "/var/log/YaST2/y2log_bootloader";
 	    string bl_command = sformat (
 		"/usr/sbin/efibootmgr -v --create --label \"%1\" " +
 		"--disk %2 --part %3 " +
 		"--loader '\\efi\\SuSE\\elilo.efi' --write-signature >> %4 2>&1",
-		BootCommon::globals["boot_efilabel"]:"", boot_disk, boot_part, bl_logfile);
+		BootCommon::globals["efilabel"]:"", boot_disk, boot_part, bl_logfile
+	    );
 	    ret = ret && installBootLoader (bl_command, bl_logfile);
+	}
+
+
+	/*
+         * Remove existing old, obsolete menu entries
+	 *
+	 * FIXME should be handled completly through the library
+	 */
+
+	// Detect the current default boot entry (e.g. "0007")
+	map default_entry_map = (map)SCR::Execute (.target.bash_output,
+	    "/usr/sbin/efibootmgr |grep ^BootOrder: | " +
+	    "cut -d ' ' -f 2 | cut -d ',' -f 1"
+	);
+	string new_entry = default_entry_map["stdout"]:"";
+
+	// Check for validity -- returned default_entry has to be 4 chars long
+	// and be composed of numbers and characters only
+	if (size (new_entry) != 4
+	    && regexpmatch (new_entry, "[0-9A-F]") == false)
+	{
+	    y2error ("BootELILO: Found default boot entry %1 isn't valid",
+		    new_entry);
+	}
+	else
+	{
+	    // Remove newlines and carriage returns in string
+	    new_entry = deletechars (new_entry, "\n\r");
+
+	    // Attach prefix "Boot" for proper matching
+	    new_entry = "Boot" + new_entry;
+
+	    // Prepare command for fetching string "HD(...)"
+	    // from efibootmgr output
+	    string command = sformat (
+		"set -o pipefail; /usr/sbin/efibootmgr -v | " +
+		"grep '%1' |sed 's/%1.*\\(HD([0-9]\\+,[a-fA-F0-9]\\+,[a-fA-F0-9]\\+,\\).*$/\\1/'",
+		String::Quote (new_entry)
+	    );
+
+	    map hd_descr_map = (map)SCR::Execute (.target.bash_output, command);
+	    y2milestone ("BootELILO: hd_descr_map = %1", hd_descr_map);
+
+	    // Remove newlines and carriage returns in string
+	    string hd_descr = deletechars (hd_descr_map["stdout"]:"", "\n\r");
+
+	    // Prepare command for fetching boot entry number corresponding
+	    // to "HD(...)" string from efibootmgr output
+	    command = sformat (
+		"set -o pipefail; /usr/sbin/efibootmgr -v |" +
+		"grep '%1' |awk '{print $1}'",
+		String::Quote (hd_descr)
+	    );
+
+	    map entries2remove_map = (map)SCR::Execute (.target.bash_output, command);
+	    y2milestone ("BootELILO: entries2remove_map = %1", entries2remove_map);
+	    string entries2remove_string = entries2remove_map["stdout"]:"";
+
+	    // Convert the string containing the entries to be removed to a list
+	    list<string> entries2remove_list = splitstring (entries2remove_string, "\n");
+
+	    // Check if there are entries to remove, thus if listsize is greater than 0
+	    integer listsize = size (entries2remove_list);
+	    if (listsize > 0)
+	    {
+		// Rermove the last entry of the list (because it's an empty one)
+		integer lastentry = listsize - 1;
+		entries2remove_list = remove (entries2remove_list, lastentry);
+		y2milestone ("BootELILO: entries2remove_list = %1", entries2remove_list);
+
+		// Filter the bootnumbers from strings for further usage
+		entries2remove_list = maplist (string entry2remove, entries2remove_list, {
+		    if (issubstring (entry2remove, new_entry) == false)
+		    {
+			entry2remove = substring (entry2remove, 4, 4);
+			return entry2remove;
+		    }
+		});
+
+		// Delete obsolete bootentries by bootnumbers
+		foreach (string entry2remove, entries2remove_list, {
+		    string command = sformat (
+			"/usr/sbin/efibootmgr --delete-bootnum --bootnum %1 -q;",
+			entry2remove
+		    );
+
+		    map ret_map = (map)SCR::Execute (.target.bash_output, command);
+		    y2milestone ("BootELILO: ret_map = %1", ret_map);
+		    ret = (ret_map["exit"]:1 == 0);
+		});
+	    }
+	    else
+	    {
+		y2milestone ("BootELILO: No obsolete entry to remove");
+	    }
 	}
     }
     return ret;
