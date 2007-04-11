@@ -4,6 +4,7 @@ Wed Apr 11 19:14:30 CEST 2007 - aosthof@suse.de
 - Fixed erroneous EFI Bootloader Label (#242985) in BootELILO.ycp
 - Fixed removal of obsolete entries in EFI Boot Menu in
   BootELILO.ycp (#237873)
+- 2.15.8
 
 -------------------------------------------------------------------
 Thu Mar  1 10:04:44 CET 2007 - aosthof@suse.de
