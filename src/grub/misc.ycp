@@ -10,6 +10,7 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Olaf Dabrunz <od@suse.de>
  *
  * $Id$
  *
@@ -882,7 +883,28 @@ define map<string, any> grub_DisksChanged () {
  *    re-collect the devices for "/", "/boot", MBR and make a new proposal
  */
 define void grub_LocationProposal () {
-    if (! BootCommon::was_proposed)
+    y2milestone("globals: %1", BootCommon::globals);
+    y2milestone("Mode::autoinst: %1", Mode::autoinst());
+    y2milestone("haskey( BootCommon::globals, boot_boot ): %1", haskey( BootCommon::globals, "boot_boot" ));
+    if (! BootCommon::was_proposed ||
+	  // During autoinstall, the autoyast profile must contain a bootloader
+	  // device specification (we currently really only support system
+	  // *cloning* with autoyast...). But as a convenience, and because
+	  // this kind of magic is available for empty globals and sections, we
+	  // propose a bootloader location if none was specified.
+	  // Note that "no bootloader device" can be specified by explicitly
+	  // setting this up, e.g. by setting one or all boot_* flags to
+	  // "false".
+	  // FIXME: add to LILO, ELILO; POWERLILO already should have this
+	  // (check again)
+	  ( Mode::autoinst() &&
+	    ! haskey( BootCommon::globals, "boot_boot" ) &&
+	    ! haskey( BootCommon::globals, "boot_root" ) &&
+	    ! haskey( BootCommon::globals, "boot_mbr" ) &&
+//	    ! haskey( BootCommon::globals, "boot_extended" ) &&
+//	    ! haskey( BootCommon::globals, "boot_mbr_md" ) &&
+	    ! haskey( BootCommon::globals, "boot_custom" )
+	  ))
     {
 	grub_DetectDisks ();
 	BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
@@ -900,6 +922,7 @@ define void grub_LocationProposal () {
 	    y2milestone ("Command output: %1", out);
 	}
     }
+    y2milestone("(2) globals: %1", BootCommon::globals);
 
     // refresh device map
     if (BootCommon::device_mapping == nil
