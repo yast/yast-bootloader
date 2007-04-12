@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Apr 13 00:19:34 CEST 2007 - od@suse.de
+
+- grub:
+  - if autoyast profile does not specify a bootloader location,
+    propose one (#263305)
+  - if autoyast profile does not specify a key for the default keys
+    set by a yast-bootloader proposal, add these missing
+    keys/values
+- 2.13.92
+
+-------------------------------------------------------------------
 Tue Apr 10 17:29:33 CEST 2007 - aosthof@suse.de
 
 - Fixed erroneous EFI Bootloader Label (#242985) in BootELILO.ycp
