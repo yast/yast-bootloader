@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Apr 13 14:59:52 CEST 2007 - od@suse.de
+
+- enabled translation of the kernel image name from the symlink to
+  the real kernel file for the "failsafe" section; perl-Bootloader
+  can handle this now
+- 2.13.93
+
+-------------------------------------------------------------------
 Fri Apr 13 00:19:34 CEST 2007 - od@suse.de
 
 - grub:
