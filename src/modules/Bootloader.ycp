@@ -616,10 +616,11 @@ global define void ResolveSymlinksInSections() {
 
     // change only linux, failsafe and xen sections
     BootCommon::sections = maplist (map<string,any> s, BootCommon::sections, {
-	// skip sections that are not linux, xen or failsafe
-	if ( !contains ( ["linux", "xen"] , s["original_name"]:"") ||
+	// skip sections that are not linux, xen or failsafe,
+	// or that are not of type "image" (or "xen" <- needed?)
+	if ( !contains ( ["linux", "xen", "failsafe"] , s["original_name"]:"") ||
 	     !contains ( ["image", "xen"] , s["type"]:"") ) {
-	    y2milestone("section %1: not linux or xen, skipping kernel and initrd remapping",
+	    y2milestone("section %1: not linux, xen or failsafe, skipping kernel and initrd remapping",
 		s["name"]:"");
 	    return s;
 	}
