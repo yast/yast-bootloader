@@ -625,6 +625,12 @@ global boolean Read (boolean reread) {
 	}
     });
 
+    // convert device names in device map to the kernel device names
+    map<string,string> device_mapping =
+	mapmap (string k , string v, device_mapping, {
+	    return $[BootCommon::MountByDev2Dev(k) : v];
+    });
+
     // convert custom boot device names in globals to the kernel device names
     globals = mapmap (string k , string v, globals, {
 	if ( regexpmatch(k, "^boot_.*custom$" ) )
@@ -705,22 +711,27 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	return s;
     });
 
-    map<string,string> my_globals = globals;
-
     // FIXME: give mountby information to perl-Bootloader (or define some
     // better interface), so that perl-Bootloader can use mountby device names
     // for these devices instead. Tracked in bug #248162.
 
     // convert custom boot device names in globals to the device names
     // indicated by "mountby"
-    my_globals = mapmap (string k , string v, my_globals, {
+    map<string,string> my_globals = mapmap (string k , string v, globals, {
 	if ( regexpmatch(k, "^boot_.*custom$" ) )
 	    return $[k : BootCommon::Dev2MountByDev(v)];
 	else
 	    return $[k : v];
     });
 
-    ret = ret && SetDeviceMap (device_mapping);
+    // convert device names in device map to the device names indicated by
+    // "mountby"
+    map<string,string> my_device_mapping =
+	mapmap (string k , string v, device_mapping, {
+	    return $[BootCommon::Dev2MountByDev(k) : v];
+    });
+
+    ret = ret && SetDeviceMap (my_device_mapping);
     ret = ret && SetSections (sects);
     ret = ret && SetGlobal (my_globals);
     if (flush)
