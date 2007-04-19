@@ -220,10 +220,10 @@ global define boolean Read (boolean reread) {
 	boolean ret = BootCommon::Read (reread);
 
 	// check for meaningless EFI entry name in sysconfig
-	if ( !haskey(BootCommon::globals,"efilabel")
-	    || BootCommon::globals["efilabel"]:"" == "mbr"
-	    || BootCommon::globals["efilabel"]:"" == ""
-	    || BootCommon::globals["efilabel"]:"" == nil )
+	if ( !haskey(BootCommon::globals,"boot_efilabel")
+	    || BootCommon::globals["boot_efilabel"]:"" == "mbr"
+	    || BootCommon::globals["boot_efilabel"]:"" == ""
+	    || BootCommon::globals["boot_efilabel"]:"" == nil )
 	{
 	    string efi_path = BootCommon::replaceAll (
 		getEliloConfSubpath (), "/", "\\");
@@ -232,7 +232,7 @@ global define boolean Read (boolean reread) {
 		"/usr/sbin/efibootmgr |grep \"%1\"", efi_path));
 	    if (efi_status["exit"]:0 != 0)
 	    {
-		BootCommon::globals["efilabel"] = Product::name;
+		BootCommon::globals["boot_efilabel"] = Product::name;
 	    }
 	    else
 	    {
@@ -241,13 +241,13 @@ global define boolean Read (boolean reread) {
 		output = lines[0]:"";
 		if (regexpmatch (output, "Boot.*\* (.*)  HD"))
 		{
-		    BootCommon::globals["efilabel"]
+		    BootCommon::globals["boot_efilabel"]
 			= regexpsub (output, "Boot.*\* (.*)  HD", "\\1");
 		    efi_entry_found = true;
 		}
 		else
 		{
-		    BootCommon::globals["efilabel"] = Product::name;
+		    BootCommon::globals["boot_efilabel"] = Product::name;
 		}
 	    }
 	}
@@ -255,12 +255,12 @@ global define boolean Read (boolean reread) {
 	{
 	    efi_entry_found = 0 == SCR::Execute (.target.bash, sformat (
 		"/usr/sbin/efibootmgr |grep \"%1\"",
-		BootCommon::globals["efilabel"]:"")
+		BootCommon::globals["boot_efilabel"]:"")
 	    );
 	}
 	create_efi_entry = !efi_entry_found;
 	old_efi_entry = efi_entry_found
-	    ? BootCommon::globals["efilabel"]:""
+	    ? BootCommon::globals["boot_efilabel"]:""
 	    : (string)nil;
 	return ret;
 }
@@ -286,9 +286,9 @@ global define void Propose () {
     {
         create_efi_entry = true;
 	// make sure the code handling globals below triggers and that
-	// efilabel is recreated
-	if ( haskey(BootCommon::globals, "efilabel") )
-	    BootCommon::globals = remove(BootCommon::globals, "efilabel");
+	// boot_efilabel is recreated
+	if ( haskey(BootCommon::globals, "boot_efilabel") )
+	    BootCommon::globals = remove(BootCommon::globals, "boot_efilabel");
     }
     if (! Stage::initial ())
         create_efi_entry = true;
@@ -318,13 +318,13 @@ global define void Propose () {
         CreateGlobals ();
     }
 
-    if (BootCommon::globals["efilabel"]:nil == nil ||
-	BootCommon::globals["efilabel"]:nil == "")
+    if (BootCommon::globals["boot_efilabel"]:nil == nil ||
+	BootCommon::globals["boot_efilabel"]:nil == "")
     {
-	BootCommon::globals["efilabel"] = Product::name;
+	BootCommon::globals["boot_efilabel"] = Product::name;
     }
 
-    y2milestone ("EFI entry name: %1", BootCommon::globals["efilabel"]:"");
+    y2milestone ("EFI entry name: %1", BootCommon::globals["boot_efilabel"]:"");
     y2milestone ("Proposed sections: %1", BootCommon::sections);
     y2milestone ("Proposed globals: %1", BootCommon::globals);
 }
@@ -350,7 +350,7 @@ global define list<string> Summary () {
     list<string> result = [ sformat (_("Boot loader type: %1"),
         BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)) ];
 
-    if (BootCommon::globals["efilabel"]:"" == "" || !create_efi_entry )
+    if (BootCommon::globals["boot_efilabel"]:"" == "" || !create_efi_entry )
     {
         result =
 	    // summary text
@@ -361,7 +361,7 @@ global define list<string> Summary () {
         result = add (result, sformat (
 	// summary text, %1 is label of the entry of EFI boot manager
 	_("Create EFI Boot Manager Entry %1"),
-	BootCommon::globals["efilabel"]:""));
+	BootCommon::globals["boot_efilabel"]:""));
     }
     list<string> sects = [];
     foreach (map<string,any> s, BootCommon::sections, {
@@ -449,14 +449,14 @@ global define boolean Write () {
 	/*
 	 * Create new EFI Bootmgr Label if specified
 	 */
-	if (BootCommon::globals["efilabel"]:"" != "")
+	if (BootCommon::globals["boot_efilabel"]:"" != "")
 	{
 	    string bl_logfile = "/var/log/YaST2/y2log_bootloader";
 	    string bl_command = sformat (
 		"/usr/sbin/efibootmgr -v --create --label \"%1\" " +
 		"--disk %2 --part %3 " +
 		"--loader '\\efi\\SuSE\\elilo.efi' --write-signature >> %4 2>&1",
-		BootCommon::globals["efilabel"]:"", boot_disk, boot_part, bl_logfile
+		BootCommon::globals["boot_efilabel"]:"", boot_disk, boot_part, bl_logfile
 	    );
 	    ret = ret && installBootLoader (bl_command, bl_logfile);
 	}
