@@ -827,8 +827,7 @@ define map<string, any> grub_DisksChanged () {
 	];
 
     if ( BootCommon::globals["boot_mbr"]:"false" == "true" ) {
-	map p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
-	string actual_mbr = p_dev["disk"]:"";
+	string actual_mbr = BootCommon::FindMBRDisk();
 
 	if ( actual_mbr != BootCommon::mbrDisk )
 	    ret = $[
