@@ -629,8 +629,10 @@ global boolean Read (boolean reread) {
     });
 
     // convert custom boot device names in globals to the kernel device names
+    // also, for legacy bootloaders like LILO that still pass device names,
+    // convert the stage1_dev
     globals = mapmap (string k , string v, globals, {
-	if ( regexpmatch(k, "^boot_.*custom$" ) )
+	if ( k == "stage1_dev" || regexpmatch(k, "^boot_.*custom$" ) )
 	    return $[k : BootCommon::MountByDev2Dev(v)];
 	else
 	    return $[k : v];
@@ -714,8 +716,10 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 
     // convert custom boot device names in globals to the device names
     // indicated by "mountby"
+    // also, for legacy bootloaders like LILO that still pass device names,
+    // convert the stage1_dev
     map<string,string> my_globals = mapmap (string k , string v, globals, {
-	if ( regexpmatch(k, "^boot_.*custom$" ) )
+	if ( k == "stage1_dev" || regexpmatch(k, "^boot_.*custom$" ) )
 	    return $[k : BootCommon::Dev2MountByDev(v)];
 	else
 	    return $[k : v];
