@@ -630,9 +630,9 @@
 	if (BootCommon::globals["boot_mbr"]:"false" == "true") {
 	    ret = add(ret, BootCommon::mbrDisk);
 	}
-// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
-// decisions are automatic anyway and perl-Bootloader should be able to make
-// these decisions without help from the user or the proposal.
+// FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
+// automatic anyway and perl-Bootloader should be able to make it without help
+// from the user or the proposal.
 //	if (BootCommon::globals["boot_mbr_md"]:"false" == "true") {
 	    // FIXME: make this work; this code was copied from
 	    // BootGRUB::Save(), where it was commented out (changes in
@@ -671,10 +671,10 @@
 	//     });
 	    // ret = add(ret, BootCommon::mbrDisk);
 //	}
-//	if ( haskey(BootCommon::globals, "boot_extended") &&
-//	    BootCommon::globals["boot_extended"]:"false" == "true" ) {
-//	    ret = add(ret, BootCommon::ExtendedPartitionDevice);
-//	}
+	if ( haskey(BootCommon::globals, "boot_extended") &&
+	    BootCommon::globals["boot_extended"]:"false" == "true" ) {
+	    ret = add(ret, BootCommon::ExtendedPartitionDevice);
+	}
 	// FIXME: floppy support is probably obsolete
 	if ( haskey(BootCommon::globals, "boot_floppy") &&
 	    BootCommon::globals["boot_floppy"]:"false" == "true" ) {
