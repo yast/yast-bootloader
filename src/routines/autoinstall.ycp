@@ -145,6 +145,8 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	    // (and it will be overwritten later when we import the boot_* keys
 	    // from the ai map)
 	    if ( ai["loader_type"]:"" == "grub" && haskey(ai, "location") ) {
+		if ( ai["location"]:nil == "extended" )
+		    exp["specific", "global", "boot_extended"] = "true";
 		if ( ai["location"]:nil == "boot" )
 		    exp["specific", "global", "boot_boot"] = "true";
 		else if ( ai["location"]:nil == "root" )

@@ -496,15 +496,15 @@ global void grub_ProposeDeviceMap () {
  * with this function. The function cannot be used to set a custom boot device.
  * It will always be deleted.
  *
- * FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
- * decisions are automatic anyway and perl-Bootloader should be able to make
- * these decisions without help from the user or the proposal.
+ * FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
+ * automatic anyway and perl-Bootloader should be able to make it without help
+ * from the user or the proposal.
  *
  * @param selected_location symbol one of `boot `root `mbr `extended `mbr_md `none
  */
 define void SetBootloaderDevice(symbol selected_location) {
     // first, default to all off:
-    foreach (string flag, ["boot_boot", "boot_root", "boot_mbr"], {
+    foreach (string flag, ["boot_boot", "boot_root", "boot_mbr", "boot_extended"], {
 	BootCommon::globals[flag] = sformat("%1", false);
     });
     // need to remove the boot_custom key to switch this value off
@@ -519,11 +519,11 @@ define void SetBootloaderDevice(symbol selected_location) {
 	BootCommon::globals["boot_boot"] = sformat("%1", true);
     } else if ( selected_location == `mbr ) {
 	BootCommon::globals["boot_mbr"] = sformat("%1", true);
-// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
-// decisions are automatic anyway and perl-Bootloader should be able to make
-// these decisions without help from the user or the proposal.
-//    } else if ( selected_location == `extended ) {
-//	BootCommon::globals["boot_extended"] = sformat("%1", true);
+    } else if ( selected_location == `extended ) {
+	BootCommon::globals["boot_extended"] = sformat("%1", true);
+// FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
+// automatic anyway and perl-Bootloader should be able to make it without help
+// from the user or the proposal.
 //    } else if ( selected_location == `mbr_md ) {
 //	BootCommon::globals["boot_mbr_md"] = sformat("%1", true);
     }
@@ -575,7 +575,7 @@ define symbol grub_ConfigureLocation() {
     map dm = tm[boot_partition_disk]:$[];
     list<map> partitions_on_boot_partition_disk = dm["partitions"]:[];
     boolean is_logical = false;
-//    string extended = nil;
+    string extended = nil;
 
     // determine the underlying devices for the "/boot" partition (either the
     // BootPartitionDevice, or the devices from which the soft-RAID device for
@@ -596,15 +596,11 @@ define symbol grub_ConfigureLocation() {
     y2milestone ("Boot partition devices: %1", underlying_boot_partition_devices);
 
     foreach (map p, partitions_on_boot_partition_disk, {
-// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
-// decisions are automatic anyway and perl-Bootloader should be able to make
-// these decisions without help from the user or the proposal.
-//	if (p["type"]:nil == `extended)
-//	{
-//	    extended = (string)p["device"]:nil;
-//	}
-//	else if (contains (underlying_boot_partition_devices, p["device"]:"")
-	if (contains (underlying_boot_partition_devices, p["device"]:"")
+	if (p["type"]:nil == `extended)
+	{
+	    extended = (string)p["device"]:nil;
+	}
+	else if (contains (underlying_boot_partition_devices, p["device"]:"")
 	    && p["type"]:nil == `logical)
 	{
 	    // If any of the underlying_boot_partition_devices can be found on
@@ -617,10 +613,7 @@ define symbol grub_ConfigureLocation() {
     });
     y2milestone ("/boot is on 1st disk: %1", boot_partition_is_on_mbr_disk);
     y2milestone ("/boot is in logical partition: %1", is_logical);
-// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
-// decisions are automatic anyway and perl-Bootloader should be able to make
-// these decisions without help from the user or the proposal.
-//    y2milestone ("The extended partition: %1", extended);
+    y2milestone ("The extended partition: %1", extended);
 
     // keep_mbr, if the MBR contains special code that needs to be kept,
     //           like Thinkpad boot code (and ATM only Thinkpad boot code
@@ -648,9 +641,9 @@ define symbol grub_ConfigureLocation() {
     }
     else if (size (underlying_boot_partition_devices) > 1)
     {
-// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
-// decisions are automatic anyway and perl-Bootloader should be able to make
-// these decisions without help from the user or the proposal.
+// FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
+// automatic anyway and perl-Bootloader should be able to make it without help
+// from the user or the proposal.
 // In one or two places yast2-bootloader needs to find out all underlying MBR
 // devices, if we install stage 1 to a soft-RAID. These places need to find out
 // themselves if we have MBRs on a soft-RAID or not.
@@ -660,12 +653,9 @@ define symbol grub_ConfigureLocation() {
 
     if (keep_mbr)
     {
-// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
-// decisions are automatic anyway and perl-Bootloader should be able to make
-// these decisions without help from the user or the proposal.
-//	if (is_logical && extended != nil)
-//	    selected_location = `extended;
-//	else
+	if (is_logical && extended != nil)
+	    selected_location = `extended;
+	else
 	    selected_location = `boot;
     }
 
@@ -704,8 +694,34 @@ define symbol grub_ConfigureLocation() {
 }
 
 /**
-  * Detect "/boot", "/" (root) and extended partition devices and MBR disk
-  * device
+  * Find extended partition device (if it exists) on the same device where the
+  * BootPartitionDevice is located
+  *
+  * BootPartitionDevice must be set
+  *
+  * @return string device name of extended partition, or nil if none found
+  */
+string grub_GetExtendedPartitionDev () {
+    string ret = nil;
+
+    map<string,any> tm = Storage::GetTargetMap ();
+    map dp = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+    string disk = dp["disk"]:"";
+    map dm = tm[disk]:$[];
+    list<map> partitions = dm["partitions"]:[];
+    foreach (map p, partitions, {
+	if (p["type"]:nil == `extended)
+	{
+	    ret = (string)p["device"]:nil;
+	}
+    });
+
+    return ret;
+}
+
+/**
+  * Detect "/boot", "/" (root), extended partition device and MBR disk device
+  *
   * If no bootloader device has been set up yet (globals["boot_*"]), or the
   * first (FIXME(!)) device is not available as a boot partition, also call
   * grub_ConfigureLocation to configure globals["boot_*"] and set the
@@ -742,21 +758,8 @@ define void grub_DetectDisks () {
     BootCommon::BootPartitionDevice
 	= mountdata_boot[0]:BootCommon::RootPartitionDevice;
 
-// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
-// decisions are automatic anyway and perl-Bootloader should be able to make
-// these decisions without help from the user or the proposal.
-//    map<string,any> tm = Storage::GetTargetMap ();
-//    map dp = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
-//    string disk = dp["disk"]:"";
-//    map dm = tm[disk]:$[];
-//    list<map> partitions = dm["partitions"]:[];
-//    foreach (map p, partitions, {
-//	if (p["type"]:nil == `extended)
-//	{
-//	    BootCommon::ExtendedPartitionDevice =
-//		(string)p["device"]:nil;
-//	}
-//    });
+    // get extended partition device (if exists)
+    BootCommon::ExtendedPartitionDevice = grub_GetExtendedPartitionDev();
 
     if (BootCommon::mbrDisk == "" || BootCommon::mbrDisk == nil)
     {
@@ -787,7 +790,7 @@ define void grub_DetectDisks () {
 /**
  * Check whether any disk settings for the disks we currently use were changed
  * since last checking
- * @return map map containing boolean "status" and string "reason"
+ * @return map map containing boolean "changed" and string "reason"
  */
 define map<string, any> grub_DisksChanged () {
     map<string, any> ret = $[
@@ -801,6 +804,7 @@ define map<string, any> grub_DisksChanged () {
     map mp = Storage::GetMountPoints();
     string actual_root = mp["/", 0]:"";
     string actual_boot = mp["/boot", 0]:actual_root;
+    string actual_extended = grub_GetExtendedPartitionDev();
 
     if ( BootCommon::globals["boot_boot"]:"false" == "true" &&
 	 actual_boot != BootCommon::BootPartitionDevice )
@@ -836,13 +840,19 @@ define map<string, any> grub_DisksChanged () {
 	    ];
     }
 
-// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
-// decisions are automatic anyway and perl-Bootloader should be able to make
-// these decisions without help from the user or the proposal.
-//    if ( BootCommon::globals["boot_extended"]:"false" == "true" &&
-//	 actual_boot != BootCommon::BootPartitionDevice )
-//	ret = true;	// FIXME: use new return structure
-//
+    if ( BootCommon::globals["boot_extended"]:"false" == "true" &&
+	 actual_extended != BootCommon::ExtendedPartitionDevice )
+	ret = $[
+	    "changed" : true,
+	    "reason"  : (string) ret["reason"]:"" +
+			"Selected bootloader location \"extended partition\" is not on " +
+			BootCommon::ExtendedPartitionDevice +
+			" any more.\n"
+	];
+
+// FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
+// automatic anyway and perl-Bootloader should be able to make it without help
+// from the user or the proposal.
 //    if ( BootCommon::globals["boot_mbr_md"]:"false" == "true" ) {
 //	// FIXME: handle Md2Partitions() etc. here
 //	map p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
@@ -901,7 +911,7 @@ define void grub_LocationProposal () {
 	    ! haskey( BootCommon::globals, "boot_boot" ) &&
 	    ! haskey( BootCommon::globals, "boot_root" ) &&
 	    ! haskey( BootCommon::globals, "boot_mbr" ) &&
-//	    ! haskey( BootCommon::globals, "boot_extended" ) &&
+	    ! haskey( BootCommon::globals, "boot_extended" ) &&
 //	    ! haskey( BootCommon::globals, "boot_mbr_md" ) &&
 	    ! haskey( BootCommon::globals, "boot_custom" )
 	  ))

@@ -671,6 +671,8 @@ global define list<string> Summary () {
 
     if (BootCommon::globals["boot_boot"]:"" == "true")
         locations = add(locations, BootCommon::BootPartitionDevice + " (\"/boot\")");
+    if (BootCommon::globals["boot_extended"]:"" == "true")
+        locations = add(locations, BootCommon::ExtendedPartitionDevice + " (extended)");
     if (BootCommon::globals["boot_root"]:"" == "true")
         locations = add(locations, BootCommon::RootPartitionDevice + " (\"/\")");
     if (BootCommon::globals["boot_mbr"]:"" == "true")

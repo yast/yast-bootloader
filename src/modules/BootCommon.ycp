@@ -124,10 +124,7 @@ global string RootPartitionDevice = "";
 /**
   * string representing device name of extended partition
   */
-// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
-// decisions are automatic anyway and perl-Bootloader should be able to make
-// these decisions without help from the user or the proposal.
-//global string ExtendedPartitionDevice = "";
+global string ExtendedPartitionDevice = "";
 
 /**
   * Parameters of currently used bootloader
