@@ -127,7 +127,7 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 			exp["specific", "global", old_key_to_new_global_key[k]:nil] =
 			    (ai[k]:false) ? "true" : "false";
 			y2milestone("converted old key %1 to key %2 in globals: %3",
-			    k, old_key_to_new_global_key[k]:nil, exp["specific", "global"]);
+			    k, old_key_to_new_global_key[k]:nil, exp["specific", "global"]:nil);
 		    } else {
 			exp["specific", k] = ai[k]:nil;
 		    }
