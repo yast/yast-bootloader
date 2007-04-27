@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 27 15:50:46 CEST 2007 - aosthof@suse.de
+
+- Fix for removal of wrong efiboot entries (#269130)
+
+-------------------------------------------------------------------
 Tue Apr 24 02:26:04 CEST 2007 - od@suse.de
 
 - Changed location of EFI Bootloader Label widget in YaST2 gui (#242985)

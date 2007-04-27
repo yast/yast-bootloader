@@ -495,7 +495,7 @@ global define boolean Write () {
 	    // from efibootmgr output
 	    string command = sformat (
 		"set -o pipefail; /usr/sbin/efibootmgr -v | " +
-		"grep '%1' |sed 's/%1.*\\(HD([0-9]\\+,[a-fA-F0-9]\\+,[a-fA-F0-9]\\+,\\).*$/\\1/'",
+		"grep '%1' |sed 's/%1.*\\(HD(.*)File(.*)\\).*/\\1/'",
 		String::Quote (new_entry)
 	    );
 
