@@ -376,13 +376,16 @@ include "bootloader/routines/lib_iface.ycp";
  * @return boolean true of XEN installed/selected
  */
 global boolean XenPresent () {
-    return (! contains (removed_sections, "xen"))
+    boolean ret = (! contains (removed_sections, "xen"))
 	&& (Mode::test ()
 	    || (Mode::normal () && Pkg::IsProvided ("xen")
 		&& Pkg::IsProvided ("kernel-xen"))
 	    || (! Mode::normal () && Pkg::IsSelected ("xen")
 		&& Pkg::IsSelected ("kernel-xen"))
 	    || UsingXenPae());
+
+    y2milestone("ret: %1", ret);
+    return ret;
 }
 
 global boolean UsingXenPae() {

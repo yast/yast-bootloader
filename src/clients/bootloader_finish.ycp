@@ -142,7 +142,15 @@ After reboot, reconnect and run the following:
     // FIXME: this is the plan B solution, try to solve plan A in
     //        BootCommon.ycp:CreateLinuxSection() (line 435)
     // resolve symlinks in kernel and initrd paths
-    Bootloader::ResolveSymlinksInSections();
+
+    // In Mode::update(), the configuration is not yet read (for some
+    // unresearched reason). Therefore, for Mode::update(), there is another
+    // call of ResolveSymlinksInSections() after a Read() in
+    // Bootloader::ReadOrProposeIfNeeded() (which is called the first time
+    // Write() is reached from the call-chain that starts below:
+    // Bootloader::Update() -> Write()).
+    if (!Mode::update ())
+	Bootloader::ResolveSymlinksInSections();
 
     if (!Mode::update ())
     {

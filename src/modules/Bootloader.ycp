@@ -940,6 +940,7 @@ global define void ResolveSymlinksInSections() {
 		if (Mode::update ())
 		{
 		    UpdateConfiguration ();
+		    ResolveSymlinksInSections();
 		    BootCommon::changed = true;
 		    BootCommon::location_changed = true;
 		}
