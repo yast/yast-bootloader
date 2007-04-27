@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Apr 27 16:00:10 CEST 2007 - od@suse.de
+
+- fix for update-mode: fix updating of kernel-image and initrd
+  filenames to the resolved symlinks (image-version and
+  initrd-version) (#268731, helps not to trigger #267582 and
+  #244033)
+- 2.13.96
+
+-------------------------------------------------------------------
 Fri Apr 27 15:50:46 CEST 2007 - aosthof@suse.de
 
 - Fix for removal of wrong efiboot entries (#269130)
