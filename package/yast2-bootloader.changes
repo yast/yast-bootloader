@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Thu May  3 14:19:09 CEST 2007 - od@suse.de
+
+- #270202:
+  - grub: fix erroneously added section "Hard Disk" on systems
+    without a floppy drive: use new style variables for detecting
+    that we install stage1 to a floppy disk
+  - for bootloaders that still use the old style variables, check
+    for undefined loader_device before comparing to floppy device
+- 2.13.97
+
+-------------------------------------------------------------------
 Fri Apr 27 16:00:10 CEST 2007 - od@suse.de
 
 - fix for update-mode: fix updating of kernel-image and initrd
