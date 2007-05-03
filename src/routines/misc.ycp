@@ -131,7 +131,7 @@
       * Get the list of installed floppy drives
       * @return a list of floppy devices
       */
-    define list<string> getFloppyDevices () ``{
+    global list<string> getFloppyDevices () ``{
         if (floppy_devices == nil)
         {
             list<map> floppies = (list<map>) SCR::Read (.probe.floppy);
@@ -695,7 +695,9 @@
  */
 global boolean InstallingToFloppy () {
     boolean ret = false;
-    if (loader_device == StorageDevices::FloppyDevice)
+    if (loader_device == nil)
+	ret = false;
+    else if (loader_device == StorageDevices::FloppyDevice)
 	ret = true;
     else if (contains (getFloppyDevices (), loader_device))
 	ret = true;

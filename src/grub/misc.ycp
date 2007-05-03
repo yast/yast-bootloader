@@ -27,7 +27,31 @@
 
 // --------------------------------------------------------------
 // --------------------------------------------------------------
-// updateMBR and related stuff (taken from routines/misc.ycp)
+// updateMBR and related stuff, plus InstallingToFloppy() (taken from
+// routines/misc.ycp)
+
+/**
+ * Check if installation to floppy is performed
+ * @return true if installing bootloader to floppy
+ */
+global boolean grub_InstallingToFloppy () {
+    boolean ret = false;
+    // there is no boot_floppy flag, the installation to floppy devices needs
+    // to be specified in the boot_custom flag
+    // (FIXME: which is freely editable, as soon as the generic 'selectdevice'
+    // widget allows this; also need perl-Bootloader to put the floppy device
+    // in the list of the boot_custom widget)
+    if (BootCommon::globals["boot_custom"]:nil == nil)
+	ret = false;
+    else if (BootCommon::globals["boot_custom"]:nil ==
+	     StorageDevices::FloppyDevice)
+	ret = true;
+    else if (contains (BootCommon::getFloppyDevices (),
+		       BootCommon::globals["boot_custom"]:nil))
+	ret = true;
+    y2milestone ("Installing to floppy: %1", ret);
+    return ret;
+}
 
     /**
       * Given a device name to which we install the bootloader (loader_device),

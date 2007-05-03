@@ -313,7 +313,7 @@ global define void CreateSections () {
 	    }
 	});
     }
-    if (BootCommon::InstallingToFloppy ())
+    if (grub_InstallingToFloppy ())
     {
         out = add (out, $[
 		"name" : BootCommon::translateSectionTitle("hard disk"),
