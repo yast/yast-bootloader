@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri May 25 13:30:04 CEST 2007 - jsrain@suse.cz
+
+- removed outdated translations from .desktop-files (#271209)
+
+-------------------------------------------------------------------
 Wed Apr 11 19:14:30 CEST 2007 - aosthof@suse.de
 
 - Fixed erroneous EFI Bootloader Label (#242985) in BootELILO.ycp
