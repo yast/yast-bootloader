@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sat Jul  7 00:25:57 CEST 2007 - od@suse.de
+
+- Remove limal-devel from BuildRequires again
+- 2.15.9
+
+-------------------------------------------------------------------
 Wed Jul  4 09:25:00 CEST 2007 - aj@suse.de
 
 - Add limal-perl to Requires as well.
