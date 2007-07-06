@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Jul  4 09:25:00 CEST 2007 - aj@suse.de
+
+- Add limal-perl to Requires as well.
+
+-------------------------------------------------------------------
+Wed Jul  4 08:33:40 CEST 2007 - aj@suse.de
+
+- Fix BuildRequires so that package builds again.
+
+-------------------------------------------------------------------
 Tue Jul  3 17:27:50 CEST 2007 - od@suse.de
 
 - re-added limal-devel to BuildRequires
