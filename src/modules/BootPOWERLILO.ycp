@@ -592,6 +592,7 @@ global void LocationProposal () {
     // not) be helpful to be able to specify boot_* variables in the autoyast
     // file. This may apply better to the boot_* variables in BootGRUB.ycp
     // though.
+    // FIXME: what about loader_location (aka selected_location internally)?
     BootCommon::loader_device = BootCommon::BootPartitionDevice;
     BootCommon::activate = true;
     y2milestone("Boot partition is %1", BootCommon::loader_device);

@@ -68,8 +68,12 @@ global map<string,string> device_mapping = $[];
 
 /**
  * device to save loader stage 1 to
+ * NOTE: this variable is being phased out. The boot_* keys in the globals map
+ * are now used to remember the selected boot location. Thus, we now have a
+ * list of selected loader devices. It can be generated from the information in
+ * the boot_* keys and the global variables (Boot|Root|Extended)PartitionDevice
+ * and mbrDisk by calling GetBootloaderDevices().
  */
-// FIXME: what is this variable needed for
 global string loader_device = nil;
 
 /**
@@ -80,6 +84,8 @@ global string loader_device = nil;
  * information, see the grub documentation, esp.
  *	"info '(grub.info.gz)Bootstrap tricks'"
  *	"info '(grub.info.gz)Images'"
+ * FIXME: phase this variable out. It is not used any more. GRUB stages are now
+ * installed with the "setup" command that handles embed_stage15 internally.
  */
 // This needs to be defined here so that various files can include it.
 // BootCommon.ycp is currently the only central include file, separate include
@@ -92,8 +98,10 @@ global boolean embed_stage15 = true;
 
 /**
  * The kind of bootloader location that the user selected last time he went to
- * the dialog. Used to as a hint next time a proposal is requested, so the
+ * the dialog. Used as a hint next time a proposal is requested, so the
  * proposal can try to satisfy the user's previous preference.
+ * NOTE: this variable is being phased out. The boot_* keys in the globals map
+ * will be used to remember the last selected location.
  * Currently, valid values are: mbr, boot, root, floppy, mbr_md, none
  */
 global string selected_location = nil;
@@ -112,6 +120,14 @@ global string BootPartitionDevice = "";
   * string representing device name of / partition
   */
 global string RootPartitionDevice = "";
+
+/**
+  * string representing device name of extended partition
+  */
+// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
+// decisions are automatic anyway and perl-Bootloader should be able to make
+// these decisions without help from the user or the proposal.
+//global string ExtendedPartitionDevice = "";
 
 /**
   * Parameters of currently used bootloader
@@ -554,10 +570,13 @@ global define map Export () {
     map exp = $[
 	"global": globals,
 	"sections" : sections,
-	"repl_mbr" : repl_mbr,
-	"activate" : activate,
 	"device_map" : device_mapping,
     ];
+    if ( ! ( loader_type == "grub" ) ) {
+	exp["repl_mbr"] = repl_mbr;
+	exp["activate"] = activate;
+    }
+
     return exp;
 }
 
@@ -569,8 +588,13 @@ global define map Export () {
 global define boolean Import (map settings) {
     globals = settings["global"]:$[];
     sections = settings["sections"]:[];
-    repl_mbr = settings["repl_mbr"]:false;
-    activate = settings["activate"]:false;
+    // FIXME: for grub, repl_mbr is replaced by globals["generic_mbr"]; same
+    // for activate; remove the following when no bootloader uses these
+    // variables any more
+    if ( ! ( loader_type == "grub" ) ) {
+	repl_mbr = settings["repl_mbr"]:false;
+	activate = settings["activate"]:false;
+    }
     device_mapping = settings["device_map"]:$[];
     return true;
 }
@@ -599,6 +623,14 @@ global boolean Read (boolean reread) {
 	{
 	    read_default_section_name = s["name"]:"";
 	}
+    });
+
+    // convert custom boot device names in globals to the kernel device names
+    globals = mapmap (string k , string v, globals, {
+	if ( regexpmatch(k, "^boot_.*custom$" ) )
+	    return $[k : BootCommon::MountByDev2Dev(v)];
+	else
+	    return $[k : v];
     });
 
     // convert root device names in sections to kernel device names, if

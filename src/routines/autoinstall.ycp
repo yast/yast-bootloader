@@ -105,6 +105,9 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	// LILO and GRUB stuff
 	if (ai["loader_type"]:"" == "lilo" || ai["loader_type"]:"" == "grub")
 	{
+	    // NOTE: repl_mbr and activate have an effect for lilo, for grub
+	    // they are ignored (we use globals["generic_mbr"] and
+	    // globals["activate"] there)
 	    foreach (string k, ["repl_mbr", "activate", ],
             {
 		if (haskey (ai, k))
@@ -113,6 +116,9 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 		}
             });
 	    // loader_location needs other default and key
+	    // NOTE: loader_device and loader_location (aka selected_location
+	    // internally) have an effect for lilo, for grub they are ignored
+	    // (we use globals["boot_*"] for these functions there)
 	    exp["loader_location"] = ai["location"]:"custom";
 	    foreach (string k, [/*"loader_location",*/ "loader_device"], {
 		if (haskey (ai, k))
@@ -328,6 +334,9 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	// LILO and GRUB stuff
 	if (ai["loader_type"]:"" == "lilo" || ai["loader_type"]:"" == "grub")
 	{
+	    // FIXME: repl_mbr and activate are obsolete for GRUB, no need to
+	    // look for them in the export map any more (but does not really do
+	    // any harm)
 	    foreach (string k, ["repl_mbr", "activate", ],
             {
                 if (haskey (exp["specific"]:$[], k))
@@ -335,6 +344,9 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
                     ai[k] = exp["specific", k]:nil;
                 }
             });
+	    // FIXME: loader_device and loader_location (aka selected_location
+	    // internally) are obsolete for GRUB, no need to look for them in
+	    // the export map any more (but does not really do any harm)
 	    if (haskey (exp, "loader_location"))
 		ai["location"] = exp["loader_location"]:"";
 	    foreach (string k, ["loader_device"], {
