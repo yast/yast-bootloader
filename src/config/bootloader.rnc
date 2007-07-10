@@ -41,6 +41,7 @@ loader_type = element loader_type { text }
 bl_location = element location { text }
 bl_global =
   element global {
+    element boot_custom { text }? &
     lines_cache_id? &
     bl_timeout? &
     gfxmenu? &
