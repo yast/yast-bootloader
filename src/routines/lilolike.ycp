@@ -36,11 +36,19 @@ include "bootloader/routines/i386.ycp";
  * Is embedding 1.5 stage of bootloader to dedicated partition area possible?
  * @return true if it is possible
  */
+// FIXME: remove this function, it is obsolete (now handled within grub by
+// using "setup" instead of "install")
+// The code probably does not work with multiple bootloader locations anyway.
+// Keeping this temporarily until no other code references it anymore (so that
+// for now, the code compiles). This is only used from widget code, and that
+// code is probably obsolete as well.
+// This code previously existed in lilolike.ycp and in grub/misc.ycp...
 global boolean allowEmbed15 () {
-    // allow only for /boot or /root device selected
-    if (! (BootCommon::loader_device == BootCommon::BootPartitionDevice
-	|| BootCommon::loader_device == BootCommon::RootPartitionDevice
-	|| BootCommon::loader_device == BootCommon::mbrDisk
+    // allow only if /boot, /root or MBR device selected
+    // (corrected anyway to use boot_* keys; only grub knows about embed_1.5)
+    if (! (BootCommon::globals["boot_boot"]:"false" == "true"
+	 || BootCommon::globals["boot_root"]:"false" == "true"
+	 || BootCommon::globals["boot_mbr"]:"false" == "true"
     ))
     {
 	return false;
@@ -99,7 +107,7 @@ global boolean DisksChanged () {
  * try to find the system's mbr device
  * @return string   mbr device
  */
-string FindMBRDisk() {
+global string FindMBRDisk() {
     // check the disks order, first has MBR
     list<string> order = DisksOrder ();
     if (size (order) > 0)
@@ -145,6 +153,8 @@ string FindMBRDisk() {
      *
      * @return string type of location proposed to bootloader
      */
+     // FIXME: replace with grub_ConfigureLocation() when lilo et al. have
+     // changed to stop using selected_location and loader_device.
     string ConfigureLocation() {
         selected_location = "mbr";             // default to mbr
         loader_device   = BootCommon::mbrDisk;
@@ -313,7 +323,7 @@ string FindMBRDisk() {
 	foreach (string disk, any descr_a, tm, ``{
 	    map<string,any> descr = (map<string,any>)descr_a;
 	    string bios_id_str = descr["bios_id"]:"";
-	    integer bios_id = 128; // maximum + 1
+	    integer bios_id = 256; // maximum + 1 (means: no bios_id found)
 	    if (bios_id_str != "")
 		bios_id = tointeger (bios_id);
 	    list<map<string,any> > partitions = (list<map<string,any> >)
@@ -946,7 +956,8 @@ global void UpdateGfxMenu () {
 /**
  * Generate device map proposal, store it in internal variables
  */
-// FIXME: move that funbction out here, as it is grub only
+// FIXME: remove that function from here, as it is grub only
+// NOTE: there is a local copy in routines/grub/misc.ycp now
 global void ProposeDeviceMap () {
     device_mapping = $[];
 

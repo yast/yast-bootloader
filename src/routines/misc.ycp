@@ -591,9 +591,11 @@
 	return [dev, pth];
     }
 
-
     /**
       * Get bootloader device for specified location
+      * FIXME: this function is being phased out. Keeping it around until
+      * selected_location and loader_device can be dropped for all bootloader
+      * types.
       * @return string device name
       */
     global define string GetBootloaderDevice () ``{
@@ -612,6 +614,79 @@
         return BootCommon::loader_device;
     }
 
+    /**
+      * Get bootloader devices for specified locations
+      * @return list device names
+      */
+    global define list<string> GetBootloaderDevices () ``{
+	list<string> ret = [];
+	if (BootCommon::globals["boot_boot"]:"false" == "true") {
+	    ret = add(ret, BootCommon::BootPartitionDevice);
+	}
+	if (BootCommon::globals["boot_root"]:"false" == "true") {
+	    ret = add(ret, BootCommon::RootPartitionDevice);
+	}
+	if (BootCommon::globals["boot_mbr"]:"false" == "true") {
+	    ret = add(ret, BootCommon::mbrDisk);
+	}
+// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
+// decisions are automatic anyway and perl-Bootloader should be able to make
+// these decisions without help from the user or the proposal.
+//	if (BootCommon::globals["boot_mbr_md"]:"false" == "true") {
+	    // FIXME: make this work; this code was copied from
+	    // BootGRUB::Save(), where it was commented out (changes in
+	    // perl-Bootloader are pending)
+	    // get the list of device names to install the boot loader stage 1 into:
+	    //   - for non-md devices, use just the device name
+	    //   - for installation to md arrays: get the list of device names from
+	    //     name of md array, either
+	    //	     - just the container-partitions (according to yast2-storage) or
+	    //         ("/dev/md0" -> ["/dev/hda1", ...])
+	    //       - the (cut off) name of the corresponding disk devices
+	    //         ("/dev/md0" -> ["/dev/hda1", ...] -> ["/dev/hda", ...])
+	//     list<list<string> > dev_lists = maplist (string d, loader_devices, {
+	// 	if (substring (d, 0, 7) == "/dev/md")
+	// 	{
+	// 	    map<string,integer> md = BootCommon::Md2Partitions (d);
+	// 	    if (Mode::test ())
+	// 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+	// 	    return maplist (string d, integer b, md, {
+	// 		return d;
+	// 	    });
+	// 	}
+	// 	if (d == "mbr_md")
+	// 	{
+	// 	    map<string,integer> md = BootCommon::Md2Partitions
+	// 		(BootCommon::BootPartitionDevice);
+	// 	    if (Mode::test ())
+	// 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
+	// 	    return maplist (string d, integer b, md, {
+	// 		// get disk device name for this partition or disk device name
+	// 		map p_dev = Storage::GetDiskPartition (d);
+	// 		return p_dev["disk"]:"";
+	// 	    });
+	// 	}
+	// 	return [d];
+	//     });
+	    // ret = add(ret, BootCommon::mbrDisk);
+//	}
+//	if ( haskey(BootCommon::globals, "boot_extended") &&
+//	    BootCommon::globals["boot_extended"]:"false" == "true" ) {
+//	    ret = add(ret, BootCommon::ExtendedPartitionDevice);
+//	}
+	// FIXME: floppy support is probably obsolete
+	if ( haskey(BootCommon::globals, "boot_floppy") &&
+	    BootCommon::globals["boot_floppy"]:"false" == "true" ) {
+	    ret = add(ret, StorageDevices::FloppyDevice);
+	}
+	if ( haskey(BootCommon::globals, "boot_custom") ) {
+	    ret = add(ret, BootCommon::globals["boot_custom"]:"");
+	}
+	if ( size(ret) > 0 )
+	    return ret;
+	// FIXME: find out what the best value is here: nil, [] or ["/dev/null"]
+	return ["/dev/null"];
+    }
 
 /**
  * Check if installation to floppy is performed
@@ -758,17 +833,17 @@ list<string> ListKernelParamsInLine (string line) {
 
     /*
      *  convert any value to an integer and return 0 for nonsense
-     */	
-    define integer myToInteger(any num_any) {
+     */
+    global integer myToInteger(any num_any) {
 	if (num_any == nil)
-    	    return 0;
+	    return 0;
 	if (is (num_any, integer))
 	    return (integer)num_any;
 	if (is (num_any, string))
 	    return (num_any == "") ? 0 :
 		(tointeger((string)num_any) == nil ? 0 : tointeger((string)num_any));
 	return 0;
-    } 
+    }
 
     /**
       * Get partition which should be activated if doing it during bl inst.
@@ -790,7 +865,7 @@ list<string> ListKernelParamsInLine (string line) {
 	if (substring (loader_device, 0, 7) == "/dev/md")
 	{
 	    map<string,integer> md = Md2Partitions (BootCommon::loader_device);
-	    integer min = 128; // max. is 127
+	    integer min = 256; // max. is 255; 256 means "no bios_id found"
 	    string device = "";
 	    foreach (string d, integer id, md, {
 		if (id < min)
@@ -801,7 +876,7 @@ list<string> ListKernelParamsInLine (string line) {
 	    });
 	    if (device != "")
 	    {
-		map p_dev = Storage::GetDiskPartition (loader_device);
+		map p_dev = Storage::GetDiskPartition (device);
 		num = myToInteger( p_dev["nr"]:nil );
 		mbr_dev = p_dev["disk"]:"";
 	    }

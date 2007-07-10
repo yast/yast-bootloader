@@ -119,13 +119,19 @@
     global define map Export () {
 	ReadOrProposeIfNeeded ();
 	map out = $[
-	    "loader_device" : BootCommon::loader_device,
-	    "loader_location" : BootCommon::selected_location,
 	    "loader_type" : getLoaderType (),
 	    "initrd" : Initrd::Export (),
 	    "specific" : blExport (),
 	    "write_settings" : BootCommon::write_settings,
 	];
+	string loader_type = (string) (out["loader_type"]:nil);
+
+	if ( ! ( loader_type == "grub" ) ) {
+	    // export loader_device and selected_location only for bootloaders
+	    // that have not phased them out yet
+	    out["loader_device"] = BootCommon::loader_device;
+	    out["loader_location"] = BootCommon::selected_location;
+	}
 	y2milestone ("Exporting settings: %1", out);
 	return out;
     }
@@ -149,12 +155,20 @@
 	BootCommon::setLoaderType (loader_type);
 	BootCommon::getLoaderType (false);
 
-	BootCommon::loader_device = settings["loader_device"]:"";
-	BootCommon::selected_location = settings["loader_location"]:"custom";
-	if (loader_type == "lilo" || loader_type == "grub"
-	    || Arch::i386 () || Arch::x86_64 ())
-	{
-	    BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+	if ( ! ( loader_type == "grub" ) ) {
+	    // import loader_device and selected_location only for bootloaders
+	    // that have not phased them out yet
+	    BootCommon::loader_device = settings["loader_device"]:"";
+	    BootCommon::selected_location = settings["loader_location"]:"custom";
+	    // FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
+	    // for lilo and grub, always correct the bootloader device according to
+	    // selected_location (or fall back to value of loader_device)
+	    // Why only for lilo and grub?
+	    if (loader_type == "lilo" || loader_type == "grub"
+		|| Arch::i386 () || Arch::x86_64 ())
+	    {
+		BootCommon::loader_device = BootCommon::GetBootloaderDevice ();
+	    }
 	}
 
 	if (settings["initrd"]:$[] != nil)

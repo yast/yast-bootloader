@@ -21,91 +21,929 @@
     import "StorageDevices";
     import "Mode";
     import "BootCommon";
+    import "PackageSystem";
+
+
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// updateMBR and related stuff (taken from routines/misc.ycp)
 
     /**
-     * Propose whether allow or not embedding of 1.5 stage
-     * @return boolean true to allow
-     */
-    define boolean allowEmbed15 () {
-      // allow only for /boot or /root device selected
-      if (! (BootCommon::loader_device == BootCommon::BootPartitionDevice
-	     || BootCommon::loader_device == BootCommon::RootPartitionDevice
-	     || BootCommon::loader_device == BootCommon::mbrDisk
-	     ))
-	{
-	  return false;
-	}
-      // check filesystem on /boot for Reiserfs and JFS
-      map mp = Storage::GetMountPoints ();
-      list bp_info
-	  = mp["/boot"]:mp["/"]:[];
-      list<map> partitions
-	= Storage::GetTargetMap ()[bp_info[2]:"", "partitions"]:[];
-      boolean ret = false;
-      foreach (map p, partitions, {
-	if (p["device"]:"" == BootCommon::BootPartitionDevice)
-	  {
-	    symbol fs = (symbol)p["used_fs"]:nil;
-	    if (fs == `reiser || fs == `jfs)
-	      ret = true;
-	  }
-      });
-      return ret;
-    }
-    
-    /**
-     * Encrypt the password before storing it in variables
-     * @param passwd string unencrypted password
-     * @return string password in the form to write to GRUB's menu.lst
-     */
-    global define string updatePasswdBeforeSave (string passwd) ``{
-        passwd = sformat ("--md5 %1", cryptmd5 (passwd));
-	return passwd;
-    }
-
-    /**
-     * translate filename path (eg. (hd0,0)/kernel) to list of device
-     *  and relative path
-     * @param devpth string fileststem path (eg. (hd0,0)/vmlinuz)
-     * @return a list containing device and relative path,
-     *  eg. ["(hd0,0)", "/vmlinuz"]
-     */
-    // FIXME: this should never happen but handled through perl-Bootloader completely
-    global define list<string> splitDevPath (string devpth) ``{
-        y2milestone("FIXME: called splitDevPath(%1) which points to a bug in perl-Bootloader",
-		    devpth);
-        integer brake = nil;
-	if (devpth != nil && issubstring (devpth, ")"))
-	    brake = findfirstof (devpth, ")") + 1;
-	list<string> ret = [];
-	if (brake != nil)
-	{
-	    ret[0] = substring (devpth, 0, brake);
-	    ret[1] = substring (devpth, brake);
-	}
-	else
-	{
-	    ret[0] = nil;
-	    ret[1] = devpth;
-	}
-        return ret;
-    }
-
-    /**
-      * translate list of device and relative path
-      *  to filename path (eg. (hd0,0)/kernel)
-      * @param devpth list of two strings, first for device name, second for
-      *  relative path (eg. ["(hd0,0)", "/vmlinuz"])
-      * @return string fileststem path (eg. (hd0,0)/vmlinuz)
+      * Given a device name to which we install the bootloader (loader_device),
+      * get the name of the partition which should be activated.
+      * Also return the device file name of the disk device that corresponds to
+      * loader_device (i.e. where the corresponding MBR can be found).
+      * @param loader_device string the device to install bootloader to
+      * @return a map $[ "dev" : string, "mbr": string, "num": any]
+      *  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
+      *  partition number (eg. 4)
       */
-    global define string mergeDevPath (list devpth) ``{
-        if (substring (devpth[1]:"", 0, 1) != "/")
-            devpth[1] = "/" + devpth[1]:"";
-	if (devpth[0]:"" == nil || devpth[1]:"" == nil)
-	    return nil;
-	string ret = devpth[0]:"" + devpth[1]:"";
-        return ret;
+//      * @param boot_partition string the partition holding /boot subtree
+//    map<string,any> getPartitionToActivate (string boot_partition,
+//	string loader_device)
+    map<string,any> grub_getPartitionToActivate (string loader_device)
+    {
+	map p_dev = Storage::GetDiskPartition (loader_device);
+	integer num = BootCommon::myToInteger( p_dev["nr"]:nil );
+	string mbr_dev = p_dev["disk"]:"";
+
+	// If loader_device is /dev/md* (which means bootloader is installed to
+	// /dev/md*), return the info map for the first device in BIOS ID order
+	// that underlies the soft-RAID and that has a BIOS ID (devices without
+	// BIOS ID are excluded).
+	// If no device is found in this way, return the info map for the
+	// soft-RAID device ("/dev/md", "/dev/md[0-9]*").
+	// FIXME: use ::storage to detect md devices, not by name!
+	// FIXME: return info for ALL underlying soft-RAID devices here, so
+	// that all MBRs can be backed-up and all partitions that need to be
+	// activated can be activated. This requires a map<map<...>> return
+	// value, and code on the caller side that evaluates this.
+	if (substring (loader_device, 0, 7) == "/dev/md")
+	{
+	    map<string,integer> md = BootCommon::Md2Partitions (loader_device);
+	    integer min = 256; // max. is 255; 256 means "no bios_id found"
+	    string device = "";
+	    foreach (string d, integer id, md, {
+		if (id < min)
+		{
+		    min = id;
+		    device = d;
+		}
+	    });
+	    if (device != "")
+	    {
+		map p_dev = Storage::GetDiskPartition (device);
+		num = BootCommon::myToInteger( p_dev["nr"]:nil );
+		mbr_dev = p_dev["disk"]:"";
+	    }
+	}
+	// If loader_device is a disk device ("/dev/sda"), that means that we
+	// install the bootloader to the MBR. In this case, activate /boot
+	// partition.
+	// (partial fix of #20637)
+	// FIXME: necessity and purpose are unclear: if we install the
+	// bootloader to the MBR, then why do we need to activate the /boot
+	// partition? Stage1 of a GRUB has the first block of the stage2
+	// hard-coded inside.
+	// This code was added because a /boot partition on a /dev/cciss device
+	// was not activated in bug #20637. Anyway, it probably never worked,
+	// since the bootloader was not installed to the MBR in that bug (and
+	// thus this code is not triggered).
+	// The real problem may have been that Storage::GetDiskPartition() did
+	// not know how to parse /dev/cciss/c0d0p1, so that the default case at
+	// the beginning of this function did not set up correct values. These
+	// days, Storage::GetDiskPartition() looks OK with /dev/cciss.
+	// Deactivated this code, so that "/boot" does not get activated
+	// unecessarily when GRUB stage1 is installed to the MBR anyway (this
+	// would unecessarily have broken drive C: detection on older MS
+	// operating systems).
+//	else if (num == 0)
+//	{
+//	    p_dev = Storage::GetDiskPartition (boot_partition);
+//	    num = BootCommon::myToInteger( p_dev["nr"]:nil );
+//	    mbr_dev = p_dev["disk"]:"";
+//
+//	    if (size (BootCommon::Md2Partitions (boot_partition)) > 1)
+//	    {
+//		foreach (string k, integer v, BootCommon::Md2Partitions (boot_partition),{
+//		    if (search (k, loader_device) == 0)
+//		    {
+//			p_dev = Storage::GetDiskPartition (k);
+//			num = BootCommon::myToInteger( p_dev["nr"]:nil );
+//			mbr_dev = p_dev["disk"]:"";
+//		    }
+//		});
+//	    }
+//	}
+	if (num != 0)
+	{
+	    if (num > 4)
+	    {
+		y2milestone ("Bootloader partition type is logical");
+		map tm = Storage::GetTargetMap ();
+		list<map> partitions = tm[mbr_dev, "partitions"]:[];
+		foreach (map p, partitions, ``{
+		    if (p["type"]:nil == `extended)
+		    {
+			num = p["nr"]:num;
+			y2milestone ("Using extended partition %1 instead",
+			num);
+		    }
+		});
+	    }
+	}
+	map<string,any> ret = $[
+	    "num" : num,
+	    "mbr" : mbr_dev,
+	    "dev" : Storage::GetDeviceName (mbr_dev, num),
+	];
+	return ret;
     }
+
+    /**
+     * Get a list of partitions to activate if user wants to activate
+     * boot partition
+     * @return a list of partitions to activate
+     */
+    list<map<string, any> > grub_getPartitionsToActivate () {
+	map<string,integer> md = $[];
+	list<list<string> > underlying_devs = [];
+	list<string> devs = [];
+
+	// get a list of all bootloader devices or their underlying soft-RAID
+	// devices, if necessary
+	underlying_devs = maplist (string dev, BootCommon::GetBootloaderDevices(), {
+	    md = BootCommon::Md2Partitions(dev);
+	    if ( size(md) > 0 ) {
+		devs = maplist (string k, integer v, md, ``(k));
+		return devs;
+	    }
+	    return [dev];
+	});
+	list<string> bootloader_base_devices = flatten(underlying_devs);
+
+	if (size (bootloader_base_devices) == 0)
+	{
+	    bootloader_base_devices = BootCommon::GetBootloaderDevices();
+	}
+	list<map<string,any> > ret = maplist (string partition, bootloader_base_devices, {
+	    return grub_getPartitionToActivate (partition);
+	});
+	return toset (ret);
+    }
+
+    /**
+     * Get the list of MBR disks that should be rewritten by generic code
+     * if user wants to do so
+     * @return a list of device names to be rewritten
+     */
+    list<string> grub_getMbrsToRewrite () {
+	list<string> ret = [BootCommon::mbrDisk];
+	map<string,integer> md = $[];
+	list<list<string> > underlying_devs = [];
+	list<string> devs = [];
+
+	// get a list of all bootloader devices or their underlying soft-RAID
+	// devices, if necessary
+	underlying_devs = maplist (string dev, BootCommon::GetBootloaderDevices(), {
+	    md = BootCommon::Md2Partitions(dev);
+	    if ( size(md) > 0 ) {
+		devs = maplist (string k, integer v, md, ``(k));
+		return devs;
+	    }
+	    return [dev];
+	});
+	list<string> bootloader_base_devices = flatten(underlying_devs);
+
+	// find the MBRs on the same disks as the devices underlying the boot
+	// devices; if for any of the "underlying" or "base" devices no device
+	// for acessing the MBR can be determined, include mbrDisk in the list
+	list<string> mbrs = maplist (string dev, bootloader_base_devices, {
+	    dev = (grub_getPartitionToActivate (dev))["mbr"]:BootCommon::mbrDisk;
+	    return dev;
+	});
+	// FIXME: the exact semantics of this check is unclear; but it seems OK
+	// to keep this as a sanity check and a check for an empty list;
+	// mbrDisk _should_ be included in mbrs; the exact cases for this need
+	// to be found and documented though
+	if (contains (mbrs, BootCommon::mbrDisk))
+	{
+	    ret = (list<string>)merge (ret, mbrs);
+	}
+	return toset (ret);
+    }
+
+    /**
+      * Get last change time of file
+      * @param filename string name of file
+      * @return string last change date as YYYY-MM-DD-HH-MM-SS
+      */
+     string grub_getFileChangeDate (string filename) {
+	map stat = (map) SCR::Read (.target.stat, filename);
+	integer ctime = stat["ctime"]:0;
+	string command = sformat (
+	  "date --date='1970-01-01 00:00:00 %1 seconds' +\"%%Y-%%m-%%d-%%H-%%M-%%S\"",
+	  ctime);
+	map out = (map) SCR::Execute (.target.bash_output, command);
+	string c_time = out["stdout"]:"";
+	y2debug ("File %1: last change %2", filename, c_time);
+	return c_time;
+    }
+
+    /**
+      * Save current MBR to /boot/backup_mbr
+      * Also save to /var/lib/YaST2/backup_boot_sectors/%device, if some
+      * existing, rename it
+      * @param device string name of device
+      */
+    void grub_saveMBR (string device) {
+	string device_file = mergestring (splitstring (device, "/"), "_");
+	string device_file_path = "/var/lib/YaST2/backup_boot_sectors/"
+	    + device_file;
+	SCR::Execute (.target.bash,
+	    "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors");
+	if (SCR::Read (.target.size, device_file_path) > 0)
+	{
+	    list<string> contents = (list<string>) SCR::Read (.target.dir, "/var/lib/YaST2/backup_boot_sectors");
+	    contents = filter (string c, contents, ``(regexpmatch (c, sformat (
+		"%1-.*-.*-.*-.*-.*-.*", device_file))));
+	    contents = sort (contents);
+	    integer index = 0;
+	    integer siz = size (contents);
+	    while (index + 10 < siz)
+	    {
+		SCR::Execute (.target.remove,
+		    sformat ("/var/lib/YaST2/backup_boot_sectors/%1", contents[index]:""));
+		index = index + 1;
+	    }
+	    string change_date = grub_getFileChangeDate (device_file_path);
+	    SCR::Execute (.target.bash, sformat (
+		"/bin/mv %1 %1-%2",
+		device_file_path, change_date));
+	}
+	SCR::Execute (.target.bash, sformat (
+	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+	    device, device_file_path));
+	if (device == BootCommon::mbrDisk)
+	{
+	    SCR::Execute (.target.bash, sformat (
+		"/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+		device, "/boot/backup_mbr"));
+
+	}
+    }
+
+    /**
+      * Update contents of MBR (active partition and booting code)
+      * FIXME move tis function to lilolike.ycp
+      * @return boolean true on success
+      */
+    global define boolean grub_updateMBR () ``{
+	// FIXME: do the real thing in perl_Bootloader
+	boolean activate = ( BootCommon::globals["activate"]:"false" == "true" );
+	boolean generic_mbr = ( BootCommon::globals["generic_mbr"]:"false" == "true" );
+
+	y2milestone ("Updating disk system area, activate partition: %1, " +
+		     "install generic boot code in MBR: %2", activate, generic_mbr);
+
+	// After a proposal is done, Bootloader::Propose() always sets
+	// backup_mbr to true. The default is false. No other parts of the code
+	// currently change this flag.
+	if (BootCommon::backup_mbr)
+	{
+	    y2milestone ("Doing MBR backup: MBR Disk: %1, loader devices: %2",
+		BootCommon::mbrDisk, BootCommon::GetBootloaderDevices());
+	    list<string> disks_to_rewrite = (list<string>)toset (merge (
+		grub_getMbrsToRewrite (),
+		merge([BootCommon::mbrDisk], BootCommon::GetBootloaderDevices())));
+	    y2milestone ("Creating backup of boot sectors of %1",
+		disks_to_rewrite);
+	    foreach (string d, disks_to_rewrite, {
+		grub_saveMBR (d);
+	    });
+	}
+	boolean ret = true;
+	// if the bootloader stage 1 is not installed in the MBR, but
+	// ConfigureLocation() asked us to replace some problematic existing
+	// MBR, then overwrite the boot code (only, not the partition list!) in
+	// the MBR with generic (currently DOS?) bootloader stage1 code
+	if (generic_mbr && ! contains(BootCommon::GetBootloaderDevices(), BootCommon::mbrDisk))
+	{
+	    if (! Stage::initial ())
+	    {
+		PackageSystem::Install ("master-boot-code");
+	    }
+	    y2milestone("Updating code in MBR: MBR Disk: %1, loader devices: %2",
+		BootCommon::mbrDisk, BootCommon::GetBootloaderDevices());
+	    list<string> disks_to_rewrite = grub_getMbrsToRewrite ();
+	    foreach (string d, disks_to_rewrite, {
+		y2milestone ("Copying generic MBR code to %1", d);
+		string command = sformat (
+		    "/bin/dd bs=446 count=1 if=%1 of=%2",
+		    "/usr/lib/boot/master-boot-code",
+		    d);
+		y2milestone ("Running command %1", command);
+		map out = (map)SCR::Execute (.target.bash_output, command);
+		integer exit = out["exit"]:0;
+		y2milestone ("Command output: %1", out);
+		ret = ret && (0 == exit);
+	    });
+	}
+
+	if (activate)
+	{
+	  foreach (map m_activate, grub_getPartitionsToActivate (), {
+	    any num = m_activate["num"]:0;
+	    string mbr_dev = m_activate["mbr"]:"";
+	    if (num != 0 && mbr_dev != "")
+	    {
+		// if primary partition
+		if ((! is (num, integer)) || num <= 4)
+		{
+		    y2milestone ("Activating partition %1 on %2", num, mbr_dev);
+		    // FIXME: this is the most rotten code since molded sliced bread
+		    // move to bootloader/Core/GRUB.pm or similar
+		    // TESTME: make sure that parted does not destroy BSD
+		    // slices (#suse24740): cf. section 5.1 of "info parted":
+		    //   Parted only supports the BSD disk label system.
+		    //   Parted is unlikely to support the partition slice
+		    //   system in the future because the semantics are rather
+		    //   strange, and don't work like "normal" partition tables
+		    //   do.
+		    // FIXED: investigate proper handling of the activate flag
+		    // (kernel ioctls in parted etc.) and fix parted
+		    string command = sformat
+			("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
+		    y2milestone ("Running command %1", command);
+		    map out = (map)SCR::Execute (.target.bash_output, command);
+		    integer exit = out["exit"]:0;
+		    y2milestone ("Command output: %1", out);
+		    ret = ret && (0 == exit);
+		    command = sformat ("/usr/sbin/fix_chs %1 %2",
+			mbr_dev,
+			num);
+		    y2milestone ("Running command %1", command);
+		    out = (map)SCR::Execute (.target.bash_output, command);
+		    exit = out["exit"]:0;
+		    y2milestone ("Command output: %1", out);
+		    ret = ret && (0 == exit);
+		}
+	    }
+	    else
+	    {
+		y2error ("Cannot activate %1", m_activate);
+	    }
+	  });
+	}
+	return ret;
+    }
+
+
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// LocationProposal() and related stuff (taken from routines/lilolike.ycp)
+
+
+/**
+ * Generate device map proposal, store it in internal variables
+ */
+// copied from src/routines/lilolike.ycp; should be removed there when it is
+// not needed there any more (by DisksOrder()), as it is grub only
+global void grub_ProposeDeviceMap () {
+    BootCommon::device_mapping = $[];
+
+    map<string,map> targetMap = $[];
+    if (Mode::config ())
+	y2milestone ("Skipping device map proposing in Config mode");
+    else
+	targetMap = (map<string,map>)Storage::GetTargetMap();
+
+//FIXME: This is not the final solution, we must be able to handle both,
+//FakeRAIDs _and_ single disks.
+
+    // Search in complete target map for "CT_DMRAID" types
+    map <string, map> DMTargetMap = filter (string k, map v, targetMap, {
+	return v["type"]:`CT_UNKNOWN==`CT_DMRAID;
+    });
+
+    // If no dmraids are present, search in complete target map for "CT_DISK"
+    // types. This should be the "normal" case.
+    if ( size(DMTargetMap) == 0 ) {
+	targetMap = filter (string k, map v, targetMap, {
+	    return v["type"]:`CT_UNKNOWN==`CT_DISK;
+        });
+    } else {
+	// If dmraid(s) are found, only use them
+
+	// Get all available dmraids in the proper BIOS order
+	map out = (map) SCR::Execute (.target.bash_output, "dmraid -s -c");
+
+	if ( out["exit"]:0 == 0 && out["stdout"]:"" != "" ) {
+	    list<string> DMRaid_devices_in_BIOS_order =
+		splitstring (out["stdout"]:"", "\n");
+
+	    // Remove last list entry (because it is empty)
+	    integer index_empty = size(DMRaid_devices_in_BIOS_order) - 1;
+	    DMRaid_devices_in_BIOS_order =
+		remove(DMRaid_devices_in_BIOS_order, index_empty);
+
+	    integer DMRaidBiosID = 128;
+
+	    // FIXME: This code only work when YaST2-Storage either assigns
+	    // BIOS-IDs to all available DMRaid devices or to none of them.
+	    // Probably it's best to throw this code away once YaST2-Storage
+	    // assigns BIOS-IDs to all available DMRaid devices.
+
+	    // Assign BIOS-IDs to DMRaid devices in the Target Map in BIOS
+	    // order
+	    DMTargetMap = listmap (string DMRaidDevice, DMRaid_devices_in_BIOS_order, {
+		DMRaidDevice = "/dev/mapper/" + DMRaidDevice;
+		if (haskey(DMTargetMap, DMRaidDevice)) {
+		    if ( !haskey(DMTargetMap[DMRaidDevice]:$[], "bios_id") ) {
+			DMTargetMap[DMRaidDevice, "bios_id"] = tohexstring(DMRaidBiosID);
+			DMRaidBiosID = DMRaidBiosID + 1;
+		    }
+		    return $[ DMRaidDevice : DMTargetMap[DMRaidDevice]:$[] ];
+		}
+	    });
+	    y2milestone("sorted (according to BIOS) DMTargetMap: %1", DMTargetMap);
+	} else {
+	    y2error ("Command: \"dmraid -s -c\" failed, no sorting of DMTargetMap.");
+	}
+
+	targetMap = DMTargetMap;
+    }
+
+    y2milestone ("Target map: %1", targetMap);
+
+    // add devices with known bios_id
+    // collect BIOS IDs which are used
+    map ids = $[];
+    foreach (string target_dev, map target, targetMap, {
+        string bios_id = target["bios_id"]:"";
+        if (bios_id != "")
+        {
+            integer index = tointeger (bios_id) - tointeger ("0x80");
+            string grub_dev = sformat ("hd%1", index);
+	    BootCommon::device_mapping[target_dev] = grub_dev;
+            ids[index] = true;
+        }
+    });
+    // and guess other devices
+    // don't use already used BIOS IDs
+    foreach (string target_dev, map target, targetMap, {
+        string bios_id = target["bios_id"]:"";
+        if (bios_id == "")
+        {
+            integer index = 0;
+            while (ids[index]:false)
+                index = index + 1;
+            string grub_dev = sformat ("hd%1", index);
+	    BootCommon::device_mapping[target_dev] = grub_dev;
+            ids[index] = true;
+        }
+    });
+    if (StorageDevices::FloppyPresent)
+	BootCommon::device_mapping[StorageDevices::FloppyDevice] = "fd0";
+    y2milestone ("Detected device mapping: %1", BootCommon::device_mapping);
+}
+
+/**
+ * SetBootloaderDevice()
+ * Set "boot_*" flags in the globals map according to the boot device selected
+ * with parameter selected_location. Only a single boot device can be selected
+ * with this function. The function cannot be used to set a custom boot device.
+ * It will always be deleted.
+ *
+ * FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
+ * decisions are automatic anyway and perl-Bootloader should be able to make
+ * these decisions without help from the user or the proposal.
+ *
+ * @param selected_location symbol one of `boot `root `mbr `extended `mbr_md `none
+ */
+define void SetBootloaderDevice(symbol selected_location) {
+    // first, default to all off:
+    foreach (string flag, ["boot_boot", "boot_root", "boot_mbr"], {
+	BootCommon::globals[flag] = sformat("%1", false);
+    });
+    // need to remove the boot_custom key to switch this value off
+    if (haskey (BootCommon::globals, "boot_custom")) {
+	BootCommon::globals = remove (BootCommon::globals, "boot_custom");
+    }
+    BootCommon::change_widget_default_value("boot_custom", "");	// FIXME: kludge, may be obsolete
+
+    if ( selected_location == `root ) {
+	BootCommon::globals["boot_root"] = sformat("%1", true);
+    } else if ( selected_location == `boot ) {
+	BootCommon::globals["boot_boot"] = sformat("%1", true);
+    } else if ( selected_location == `mbr ) {
+	BootCommon::globals["boot_mbr"] = sformat("%1", true);
+// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
+// decisions are automatic anyway and perl-Bootloader should be able to make
+// these decisions without help from the user or the proposal.
+//    } else if ( selected_location == `extended ) {
+//	BootCommon::globals["boot_extended"] = sformat("%1", true);
+//    } else if ( selected_location == `mbr_md ) {
+//	BootCommon::globals["boot_mbr_md"] = sformat("%1", true);
+    }
+}
+
+/**
+ * grub_ConfigureLocation()
+ * Where to install the bootloader.
+ * Returns the type of device where to install: one of `boot `root `mbr `extended `mbr_md
+ * Also sets the boot_* keys in the internal global variable globals accordingly.
+ *
+ * Sets internal global variables:
+ *	    - boot_* keys in globals map	set flags according to the selected bootloader device (currently one of: "boot", "root", "mbr", "mbr_md", "extended")
+ *	    - activate key in globals map	to true if the partitions for stage 1 need to be "activated" (aka "set bootable") in the MBR
+ *	    - activate_changed			leave untouched, except when
+ *				    - booting from a primary /boot partition on the first disk (the one with the MBR seen by the BIOS), then set to true
+ *				      (FIXME: why only then?)
+ *	    - generic_mbr key in globals map	leave untouched, except when
+ *				    - booting from a primary /boot partition on the first disk, then set to true when
+ *					- the examination of the code in the MBR
+ *					    - by examine_mbr.pl shows that it
+ *						- DOES NOT look like a valid "stage 1" at all (not enough entropy to contain valid code)	    OR
+ *						- DOES NOT look like a "generic MBR" (= DOS MBR) (OK as stage 1 to boot primary part. on 1st disk)  OR
+ *						- DOES     look like a LILO or GRUB MBR (replace them with generic code
+ *							   (if stage 1 is not in MBR, see code in updateMBR()),
+ *							   they probably contain an obsolete block list for stage 2)				    OR
+ *						- DOES     look like some "stage 1" code (has enough entropy, but no known signature)		    OR
+ *					    - by KeepMBR() -> ThinkPadMBR() shows that it
+ *						- DOES NOT look like a Thinkpad MBR (begins with specific code sequence from that one)
+ *				      otherwise set to false
+ *
+ * @return string type of location proposed to bootloader
+ */
+define symbol grub_ConfigureLocation() {
+    // NOTE: selected_location is a temporary local variable now; the global
+    // variable is not used for grub anymore
+    symbol selected_location = `mbr;             // default to mbr
+
+    // check whether the /boot partition
+    //  - is primary:				is_logical  -> false
+    //  - is on the first disk (with the MBR):  boot_partition_is_on_mbr_disk -> true
+
+    map<string,any> tm = Storage::GetTargetMap ();
+    map dp = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+    string boot_partition_disk = dp["disk"]:"";
+    boolean boot_partition_is_on_mbr_disk =
+	(boot_partition_disk == BootCommon::mbrDisk);
+
+    map dm = tm[boot_partition_disk]:$[];
+    list<map> partitions_on_boot_partition_disk = dm["partitions"]:[];
+    boolean is_logical = false;
+//    string extended = nil;
+
+    // determine the underlying devices for the "/boot" partition (either the
+    // BootPartitionDevice, or the devices from which the soft-RAID device for
+    // "/boot" is built)
+    list<string> underlying_boot_partition_devices = [ BootCommon::BootPartitionDevice ];
+    map<string,integer> md_info = BootCommon::Md2Partitions (BootCommon::BootPartitionDevice);
+    if (md_info != nil && size (md_info) > 0)
+    {
+	boot_partition_is_on_mbr_disk = false;
+	underlying_boot_partition_devices = maplist (string dev, integer bios_id, md_info, {
+	    map pdp = Storage::GetDiskPartition (dev);
+	    string p_disk = pdp["disk"]:"";
+	    if (p_disk == BootCommon::mbrDisk)
+		boot_partition_is_on_mbr_disk = true;
+	    return dev;
+	});
+    }
+    y2milestone ("Boot partition devices: %1", underlying_boot_partition_devices);
+
+    foreach (map p, partitions_on_boot_partition_disk, {
+// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
+// decisions are automatic anyway and perl-Bootloader should be able to make
+// these decisions without help from the user or the proposal.
+//	if (p["type"]:nil == `extended)
+//	{
+//	    extended = (string)p["device"]:nil;
+//	}
+//	else if (contains (underlying_boot_partition_devices, p["device"]:"")
+	if (contains (underlying_boot_partition_devices, p["device"]:"")
+	    && p["type"]:nil == `logical)
+	{
+	    // If any of the underlying_boot_partition_devices can be found on
+	    // the boot_partition_disk AND is a logical partition, set
+	    // is_logical to true.
+	    // For soft-RAID this will not match anyway ("/dev/[hs]da*" does not
+	    // match "/dev/md*").
+	    is_logical = true;
+	}
+    });
+    y2milestone ("/boot is on 1st disk: %1", boot_partition_is_on_mbr_disk);
+    y2milestone ("/boot is in logical partition: %1", is_logical);
+// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
+// decisions are automatic anyway and perl-Bootloader should be able to make
+// these decisions without help from the user or the proposal.
+//    y2milestone ("The extended partition: %1", extended);
+
+    // keep_mbr, if the MBR contains special code that needs to be kept,
+    //           like Thinkpad boot code (and ATM only Thinkpad boot code
+    //           is recognized)
+    boolean keep_mbr = BootCommon::KeepMBR (BootCommon::mbrDisk);
+
+    // if is primary, store bootloader there
+    if (boot_partition_is_on_mbr_disk && ! is_logical)
+    {
+	selected_location = `boot;
+	BootCommon::globals["activate"] = "true";
+	BootCommon::activate_changed = true;
+	// examine_mbr.pl returns
+	//	    - != 0 for a read error: "cannot read 512 bytes from <dev>"
+	//	    - 1 for an "invalid MBR", i.e. without enough entropy to
+	//		contain boot code
+	//	    - 0 for a "Generic MBR" (DOS MBR)
+	//	    - 1 for a GRUB or lilo "stage 1"
+	//	    - 0 for an unknown MBR
+	map out = (map)SCR::Execute (.target.bash_output, sformat (
+	    "/usr/lib/YaST2/bin/examine_mbr.pl %1", boot_partition_disk));
+	y2milestone ("MBR examining script returned %1", out);
+	integer exit = out["exit"]:0;
+	BootCommon::globals["generic_mbr"] = ((exit != 0) && (! keep_mbr)) ? "true" : "false";
+    }
+    else if (size (underlying_boot_partition_devices) > 1)
+    {
+// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
+// decisions are automatic anyway and perl-Bootloader should be able to make
+// these decisions without help from the user or the proposal.
+// In one or two places yast2-bootloader needs to find out all underlying MBR
+// devices, if we install stage 1 to a soft-RAID. These places need to find out
+// themselves if we have MBRs on a soft-RAID or not.
+	// selected_location = `mbr_md;
+	selected_location = `mbr;
+    }
+
+    if (keep_mbr)
+    {
+// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
+// decisions are automatic anyway and perl-Bootloader should be able to make
+// these decisions without help from the user or the proposal.
+//	if (is_logical && extended != nil)
+//	    selected_location = `extended;
+//	else
+	    selected_location = `boot;
+    }
+
+    SetBootloaderDevice(selected_location);
+    if (! contains (BootCommon::getPartitionList (`boot), (BootCommon::GetBootloaderDevices())[0]:nil))
+    {
+	selected_location = `mbr;             // default to mbr
+	SetBootloaderDevice(selected_location);
+    }
+
+    y2milestone ("grub_ConfigureLocation (%1 on %2)",
+	selected_location, BootCommon::GetBootloaderDevices());
+
+    // set active flag, if needed
+    if (selected_location == `mbr && size (underlying_boot_partition_devices) <= 1)
+    {
+	// We are installing into MBR:
+	// If there is an active partition, then we do not need to activate
+	// one (otherwise we do).
+	// Reason: if we use our own MBR code, we do not rely on the activate
+	// flag in the partition table to boot Linux. Thus, the activated
+	// partition can remain activated, which causes less problems with
+	// other installed OSes like Windows (older versions assign the C:
+	// drive letter to the activated partition).
+	BootCommon::globals["activate"] =
+	    (size (Storage::GetBootPartition (BootCommon::mbrDisk)) == 0) ? "true" : "false";
+    }
+    else
+    {
+	// if not installing to MBR, always activate (so the generic MBR will
+	// boot Linux)
+	BootCommon::globals["activate"] = "true";
+    }
+
+    return selected_location;
+}
+
+/**
+  * Detect "/boot", "/" (root) and extended partition devices and MBR disk
+  * device
+  * If no bootloader device has been set up yet (globals["boot_*"]), or the
+  * first (FIXME(!)) device is not available as a boot partition, also call
+  * grub_ConfigureLocation to configure globals["boot_*"] and set the
+  * globals["activate"] and globals["generic_mbr"] flags if needed
+  * all these settings are stored in internal variables
+  */
+define void grub_DetectDisks () {
+    // #151501: AutoYaST also needs to know the activate flag and the
+    // "boot_*" settings (formerly the loader_device); jsrain also said
+    // that skipping setting these variables is probably a bug:
+    // commenting out the skip code, but this may need to be changed and made dependent
+    // on a "clone" flag (i.e. make the choice to provide minimal (i.e. let
+    // YaST do partial proposals on the target system) or maximal (i.e.
+    // stay as closely as possible to this system) info in the AutoYaST XML
+    // file)
+    // if (Mode::config ())
+    //    return;
+    map mp = Storage::GetMountPoints();
+
+    list mountdata_boot = mp["/boot"]:(mp["/"]:[]);
+    list mountdata_root = mp["/"]:[];
+
+    y2milestone( "mountPoints %1", mp );
+    y2milestone( "mountdata_boot %1", mountdata_boot );
+
+    BootCommon::RootPartitionDevice = mp["/", 0]:"";
+
+    if (BootCommon::RootPartitionDevice == "")
+    {
+	y2error ("No mountpoint for / !!");
+    }
+
+    // if /boot changed, re-configure location
+    BootCommon::BootPartitionDevice
+	= mountdata_boot[0]:BootCommon::RootPartitionDevice;
+
+// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
+// decisions are automatic anyway and perl-Bootloader should be able to make
+// these decisions without help from the user or the proposal.
+//    map<string,any> tm = Storage::GetTargetMap ();
+//    map dp = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+//    string disk = dp["disk"]:"";
+//    map dm = tm[disk]:$[];
+//    list<map> partitions = dm["partitions"]:[];
+//    foreach (map p, partitions, {
+//	if (p["type"]:nil == `extended)
+//	{
+//	    BootCommon::ExtendedPartitionDevice =
+//		(string)p["device"]:nil;
+//	}
+//    });
+
+    if (BootCommon::mbrDisk == "" || BootCommon::mbrDisk == nil)
+    {
+	// mbr detection.
+	BootCommon::mbrDisk = BootCommon::FindMBRDisk();
+    }
+
+    list<string> bldevs = BootCommon::GetBootloaderDevices();
+    if (bldevs == nil || bldevs == ["/dev/null"]
+	// FIXME: check for all bldevs that they are still available
+	|| ! contains (BootCommon::getPartitionList (`boot), bldevs[0]:nil))
+	grub_ConfigureLocation ();
+}
+
+/**
+ * Check whether disk settings were changed since last checking
+ * @return boolean true if needs to recheck
+ */
+define boolean grub_DisksChanged () {
+    if (Mode::config ())
+	return false;
+    map mp = Storage::GetMountPoints();
+    string actual_root = mp["/", 0]:"";
+    string actual_boot = mp["/boot", 0]:actual_root;
+
+    // FIXME: improve comment
+    // don't change configuration if '/' and '/boot' were not changed
+    // and location is "floppy", "mbr" or "boot"
+    if (actual_boot == BootCommon::BootPartitionDevice
+	&& actual_root == BootCommon::RootPartitionDevice
+	    && ! haskey( BootCommon::globals, "boot_custom")
+	    &&  (
+		    BootCommon::globals["boot_root"]:"false" == "true" ||
+		    BootCommon::globals["boot_boot"]:"false" == "true" ||
+		    BootCommon::globals["boot_mbr"]:"false" == "true"
+// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
+// decisions are automatic anyway and perl-Bootloader should be able to make
+// these decisions without help from the user or the proposal.
+//		    BootCommon::globals["boot_extended"]:"false" == "true" ||
+//		    BootCommon::globals["boot_mbr_md"]:"false" == "true"
+		)
+	)
+    {
+	return false;
+    }
+
+    list all_partitions = BootCommon::getPartitionList(`boot);
+
+    if (!contains(all_partitions, (BootCommon::GetBootloaderDevices())[0]:nil))
+    {
+	y2milestone ("Location should be set again");
+	return true;
+    }
+    return false;
+}
+
+/**
+ * Propose the boot loader location for grub
+ */
+define void grub_LocationProposal () {
+    if (! BootCommon::was_proposed)
+    {
+	grub_DetectDisks ();
+	BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
+	// check whether edd is loaded; if not: load it
+	string lsmod_command = "lsmod | grep edd";
+	y2milestone ("Running command %1", lsmod_command);
+	map lsmod_out = (map)SCR::Execute (.target.bash_output, lsmod_command);
+	y2milestone ("Command output: %1", lsmod_out);
+	boolean edd_loaded = lsmod_out["exit"]:0 == 0;
+	if (! edd_loaded)
+	{
+	    string command = "/sbin/modprobe edd";
+	    y2milestone ("Loading EDD module, running %1", command);
+	    map out = (map)SCR::Execute (.target.bash_output, command);
+	    y2milestone ("Command output: %1", out);
+	}
+    }
+
+    // refresh device map
+    if (BootCommon::device_mapping == nil
+	|| size (BootCommon::device_mapping) == 0)
+    {
+	grub_ProposeDeviceMap ();
+    }
+
+    if (grub_DisksChanged () && ! Mode::autoinst ()) {
+        if (BootCommon::askLocationResetPopup ((BootCommon::GetBootloaderDevices())[0]:nil)) {
+	    SetBootloaderDevice(`none);
+	    y2milestone ("Reconfiguring locations");
+	    grub_DetectDisks ();
+	}
+    }
+}
+
+// --------------------------------------------------------------
+// --------------------------------------------------------------
+// other stuff
+
+/**
+ * Propose whether allow or not embedding of 1.5 stage
+ * @return boolean true to allow
+ */
+// FIXME: remove this function, it is obsolete (now handled within grub by
+// using "setup" instead of "install")
+// The code probably does not work with multiple bootloader locations anyway.
+// This code previously existed in lilolike.ycp and in grub/misc.ycp... See
+// more in lilolike.ycp.
+define boolean allowEmbed15 () {
+  // allow only if /boot, /root or MBR device selected
+  if (! (BootCommon::globals["boot_boot"]:"false" == "true"
+	 || BootCommon::globals["boot_root"]:"false" == "true"
+	 || BootCommon::globals["boot_mbr"]:"false" == "true"
+	 ))
+    {
+      return false;
+    }
+  // check filesystem on /boot for Reiserfs and JFS
+  map mp = Storage::GetMountPoints ();
+  list bp_info
+      = mp["/boot"]:mp["/"]:[];
+  list<map> partitions
+    = Storage::GetTargetMap ()[bp_info[2]:"", "partitions"]:[];
+  boolean ret = false;
+  foreach (map p, partitions, {
+    if (p["device"]:"" == BootCommon::BootPartitionDevice)
+      {
+	symbol fs = (symbol)p["used_fs"]:nil;
+	if (fs == `reiser || fs == `jfs)
+	  ret = true;
+      }
+  });
+  return ret;
+}
+
+/**
+ * Encrypt the password before storing it in variables
+ * @param passwd string unencrypted password
+ * @return string password in the form to write to GRUB's menu.lst
+ */
+global define string updatePasswdBeforeSave (string passwd) ``{
+    passwd = sformat ("--md5 %1", cryptmd5 (passwd));
+    return passwd;
+}
+
+/**
+ * translate filename path (eg. (hd0,0)/kernel) to list of device
+ *  and relative path
+ * @param devpth string fileststem path (eg. (hd0,0)/vmlinuz)
+ * @return a list containing device and relative path,
+ *  eg. ["(hd0,0)", "/vmlinuz"]
+ */
+// FIXME: this should never happen but handled through perl-Bootloader completely
+global define list<string> splitDevPath (string devpth) ``{
+    y2milestone("FIXME: called splitDevPath(%1) which points to a bug in perl-Bootloader",
+		devpth);
+    integer brake = nil;
+    if (devpth != nil && issubstring (devpth, ")"))
+	brake = findfirstof (devpth, ")") + 1;
+    list<string> ret = [];
+    if (brake != nil)
+    {
+	ret[0] = substring (devpth, 0, brake);
+	ret[1] = substring (devpth, brake);
+    }
+    else
+    {
+	ret[0] = nil;
+	ret[1] = devpth;
+    }
+    return ret;
+}
+
+/**
+  * translate list of device and relative path
+  *  to filename path (eg. (hd0,0)/kernel)
+  * @param devpth list of two strings, first for device name, second for
+  *  relative path (eg. ["(hd0,0)", "/vmlinuz"])
+  * @return string fileststem path (eg. (hd0,0)/vmlinuz)
+  */
+global define string mergeDevPath (list devpth) ``{
+    if (substring (devpth[1]:"", 0, 1) != "/")
+	devpth[1] = "/" + devpth[1]:"";
+    if (devpth[0]:"" == nil || devpth[1]:"" == nil)
+	return nil;
+    string ret = devpth[0]:"" + devpth[1]:"";
+    return ret;
+}
 }
 
 /*
