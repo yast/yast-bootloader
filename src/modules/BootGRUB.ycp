@@ -318,7 +318,7 @@ global define void CreateSections () {
 	    }
 	});
     }
-    if (BootCommon::InstallingToFloppy ())
+    if (grub_InstallingToFloppy ())
     {
         out = add (out, $[
 		"name" : BootCommon::translateSectionTitle("hard disk"),
@@ -563,15 +563,21 @@ global define void Propose () {
             if (Mode::autoinst ())
             {
                 // TODO whatever will be needed
-		y2debug ("nothing to to in AI mode if globals are defined");
+//		y2debug ("nothing to do in AI mode if globals are defined");
             }
-            else {
-		// Merge default globals where not yet set
-	        BootCommon::globals = (map<string, string>) union(
-		    StandardGlobals(),
-		    BootCommon::globals
-		);
-	    }
+	    // decided to merge in default values for missing keys, EVEN in AI mode (!)
+	    // this is primarily done to allow for the LocationProposal() to
+	    // run and set keys in globals before we check them for existing
+	    // keys here; but rather than checking for an empty globals map
+	    // before LocationProposal() and using the result here, we figured
+	    // that augmenting the globals is not such a bad idea even for the
+	    // AI case...
+	    y2milestone ("merging defaults to missing keys in globals");
+	    // Merge default globals where not yet set
+	    BootCommon::globals = (map<string, string>) union(
+		StandardGlobals(),
+		BootCommon::globals
+	    );
 	    // this currently does nothing more than fixing the "default" key,
 	    // if that points to a section that does not exist anymore
 	    BootCommon::FixGlobals ();
@@ -669,11 +675,13 @@ global define list<string> Summary () {
     list<string> locations = [];
 
     if (BootCommon::globals["boot_boot"]:"" == "true")
-        locations = add(locations, BootCommon::BootPartitionDevice);
+        locations = add(locations, BootCommon::BootPartitionDevice + " (\"/boot\")");
+    if (BootCommon::globals["boot_extended"]:"" == "true")
+        locations = add(locations, BootCommon::ExtendedPartitionDevice + " (extended)");
     if (BootCommon::globals["boot_root"]:"" == "true")
-        locations = add(locations, BootCommon::RootPartitionDevice);
+        locations = add(locations, BootCommon::RootPartitionDevice + " (\"/\")");
     if (BootCommon::globals["boot_mbr"]:"" == "true")
-        locations = add(locations, BootCommon::mbrDisk);
+        locations = add(locations, BootCommon::mbrDisk + " (MBR)");
     if (haskey (BootCommon::globals, "boot_custom"))
         locations = add(locations, BootCommon::globals["boot_custom"]:"");
 
