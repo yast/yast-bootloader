@@ -1,4 +1,166 @@
 -------------------------------------------------------------------
+Wed Jul 11 00:25:18 CEST 2007 - od@suse.de
+
+- Merge from SLES10-SP1 branch:
+- let "SLES 9 style" autoyast xml files configure bootloader
+  timeout (#214468, #183051)
+- added help texts and widget descriptions to grub and elilo
+  (#221737)
+- Fixed type of passed arguments in function Import() (in
+  modules/Bootloader.ycp & modules/BootELILO.ycp) (#236163)
+- bootloader.rnc fixed for autoyast schema check
+- set __auto key to false when user clones sections (#241158)
+- added log message when FixSections() silently discards a section
+  (#241158)
+- fixed some whitespace
+- fixed myToInteger(): return 0 if string cannot be converted to
+  integer
+- bootloader.rnc fixed for autoyast schema check (#211014)
+- always log the target map when Propose() is called (not only when
+  we debug)
+- convert custom boot device names to the names indicated by the
+  mountby setting; this is one part of a change to use persistent
+  device names for the bootloader boot device, the rest requires
+  simultaneously changing perl-Bootloader because of an
+  incompatible interface change
+  (#248162)
+- #214468:
+  - fixed autoyast schema
+  - fixed import of autoyast data: do not remove the "default" option
+- GRUB only: integrated the new boot_*, generic_mbr and activate
+  keys (found in the "globals" map) from the new
+  widget/perl-Bootloader interface into the internal workings of
+  the grub code
+  - for grub, this obsoletes the global variables loader_device,
+    selected_location (aka loader_location), repl_mbr and activate
+  - fixes loosing the information of multiple selected bootloader
+    installation devices (#245680)
+  - fixes faulty detection of user-changes to the "/boot" and "/"
+    devices from yast2-storage (#247852)
+  - decided that boot_mbr_md key is unneeded, because the decision
+    to write to the MBRs of all underlying devices of a soft-RAID
+    is automatic (kept commented-out sample code for boot_mbr_md)
+  - decided that boot_extended is unneeded, because the decision to
+    write the bootloader to the extended partition instead of to an
+    un-activatable "/boot" or "/" partition is automatic (kept
+    commented-out sample code for boot_extended)
+  - removed wrapper code for variable translation from
+    BootGRUB::Propose()
+  - made private copies of functions in grub/misc.ycp and changed
+    the code to use the new interface variables only (this is also
+    wanted for better code separation between bootloaders, to
+    reduce amount of special-case handling (to be worked on)):
+
+      * from routines/misc.ycp:
+          grub_getPartitionToActivate ()
+          grub_getPartitionsToActivate ()
+          grub_getMbrsToRewrite ()
+          grub_getFileChangeDate ()
+          grub_saveMBR ()
+          grub_updateMBR ()
+          grub_DetectDisks ()
+
+      * from routines/lilolike.ycp:
+          grub_ProposeDeviceMap ()
+            ( ^^ really needed? no changes here, it just "belongs"
+            to grub...)
+          grub_ConfigureLocation()
+          grub_DetectDisks ()
+          grub_DisksChanged ()
+          grub_LocationProposal ()
+
+  - added helper functions:
+      grub/misc.ycp:          SetBootloaderDevice()
+      routines/misc.ycp:      GetBootloaderDevices()
+
+  - added note to to-be-phased-out functions:
+      routines/misc.ycp:      GetBootloaderDevice()
+
+  - made some functions globally accessible:
+      routines/popup.ycp:     askLocationResetPopup ()
+      routines/misc.ycp:      myToInteger ()
+      routines/lilolike.ycp:  FindMBRDisk ()
+
+  - fixed bug with the detection of MD-RAID devices (both in
+    grub_getPartitionToActivate and getPartitionToActivate): BIOS
+    ID was assumed to be less than 128, but it starts at 128
+
+  - commented out some obsolete and broken code that would activate
+    the "/boot" device on installation of the bootloader to MBR;
+    the code was cancelled out by program logic ("activate" flag)
+    though;
+    this also simplified the interface to getPartitionToActivate ()
+
+  - added conditionals to Bootloader.ycp and BootCommon.ycp: do not
+    handle obsolete variables for grub
+
+  - commented out probably obsolete code in BootGRUB::Read() to
+    determine old_style loader_device from read devices (including
+    old-style "mbr_md")
+
+  - added several FIXME:s
+  - changed a fixed FIXME to FIXED
+
+- when reading settings from the system: convert custom boot device
+  names in globals to the kernel device names (#248162)
+- corrected whitespace in grub/helps.ycp and ppc/helps.ycp
+- fix faulty detection of user-changes to the "/boot" and "/"
+  devices from yast2-storage: rewrote grub_DisksChanged() to work
+  properly with boot_* variables (previous fix did not work
+  correctly) (#247852)
+- grub_DisksChanged() now returns a message summarizing all changes
+  for selected bootloader devices; this message is now used in the
+  popup that ask the user if he wants to repropose after a
+  partitioning change (in askLocationResetPopup()) (#247852)
+- rewrote check for disk changes to work with multiple selected
+  bootloader locations in grub_DetectDisks() and
+  grub_LocationProposal() (#247852)
+- the summary message for GRUB now includes a short string ("/",
+  "/boot", MBR) that gives the reason why each device has been
+  selected for bootloader stage 1 installation
+- changed comment for GetBootloaderDevices()
+- GRUB only: accept old-style autoyast keys "repl_mbr" "activate" and
+  "location" when importing an autoyast profile; "loader_device" is
+  ignored (which may be fixable if we can make sure a target map is
+  available) (#245680)
+- grub:
+  - if autoyast profile does not specify a bootloader location,
+    propose one (#263305)
+  - if autoyast profile does not specify a key for the default keys
+    set by a yast-bootloader proposal, add these missing
+    keys/values
+- enabled translation of the kernel image name from the symlink to
+  the real kernel file for the "failsafe" section; perl-Bootloader
+  can handle this now
+- convert device names in the grub device map to and from the
+  "mount_by" device names as well (#248162)
+- Changed location of EFI Bootloader Label widget in YaST2 gui (#242985)
+- make installation of bootloader to the extended partition work
+  with new design (#246161, #259050)
+- enabled extended device handling in GetBootloaderDevices as well
+- make persistent device names work with boot= directive for i386
+  lilo (#248162)
+- log conversion of old-style global keys from autoyast profile to
+  new-style keys
+- during update, update value of "default" directive for lilo and grub
+  (#266534)
+- do not show popup for changed MBR position when it did not
+  change: use correct function for MBR detection (#267276)
+- fixed autoyast logging change
+- Fix for removal of wrong efiboot entries (#269130)
+- fix for update-mode: fix updating of kernel-image and initrd
+  filenames to the resolved symlinks (image-version and
+  initrd-version) (#268731, helps not to trigger #267582 and
+  #244033)
+- #270202:
+  - grub: fix erroneously added section "Hard Disk" on systems
+    without a floppy drive: use new style variables for detecting
+    that we install stage1 to a floppy disk
+  - for bootloaders that still use the old style variables, check
+    for undefined loader_device before comparing to floppy device
+- 2.15.10
+
+-------------------------------------------------------------------
 Sat Jul  7 00:25:57 CEST 2007 - od@suse.de
 
 - Remove limal-devel from BuildRequires again
