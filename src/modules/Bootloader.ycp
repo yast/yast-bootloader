@@ -39,7 +39,7 @@
     import "BootPOWERLILO"; // The ppc-LILO File
 
     global define map Export ();
-    global define boolean Import (map<string,any> settings);
+    global define boolean Import (map settings);
     global define void Propose ();
     global define boolean Read ();
     global define void Reset ();
@@ -134,7 +134,7 @@
       * @param settings map of bootloader settings
       * @return boolean true on success
       */
-    global define boolean Import (map<string, any> settings) {
+    global define boolean Import (map settings) {
 	y2milestone ("Importing settings: %1", settings);
 	Reset ();
 

@@ -450,7 +450,9 @@ global void FixSections (void() create_sections) {
 	else
 	{
 	    // section was created by us, then changed by the user:
-	    //	- keep it
+	    //	- keep it, except if no newly created section of same type can
+	    //	  be found (which probably means we have a bug, because
+	    //	  "__auto" says we created the old section as well)
 	    //  - maybe notify user to check it (and then mark it as a "user
 	    //    defined section")
 	    y2milestone ("Warning on section %1", label);
@@ -467,11 +469,18 @@ global void FixSections (void() create_sections) {
 		    }
 		});
 	    }
+	    // find section of same type in newly created sections;
+	    // if not found (which should not happen, since according to the
+	    // "__auto" key we created it) delete this section
+	    map<string,any> new_this_section = new_sect[type]:$[];
+	    if (new_this_section == $[]) {
+		y2warning("Warning, could not find freshly proposed section" +
+		    "corresponding to section %1, deleting it",
+		    s["name"]:"");
+		return $[];
+	    }
 	    // if the devices for this section and the freshly created one of
 	    // the same type are different, notify user
-	    map<string,any> new_this_section = new_sect[type]:$[];
-	    if (new_this_section == $[])
-		return $[];
 	    list new_devs = toset(new_this_section["__devs"]:[]);
 	    list old_devs = toset(s["__devs"]:[]);
 	    if (size (new_devs) != size (old_devs))
@@ -483,7 +492,7 @@ global void FixSections (void() create_sections) {
 			cont = false;
                 });
 	    }
-	    // display popup for this section;
+	    // display info popup for this section;
 	    // also, next time we come through this function, consider this
 	    // section as a section created by the user (and leave it as it is)
 	    if (! cont)
