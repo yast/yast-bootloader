@@ -223,7 +223,8 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	    string separator = loader == "grub" ? " " : " = ";
 	    list<string> lines = maplist (map f, flat, {
 		return sformat ("%1%2%3",
-		    f["key"]:"", separator, f["value"]:"");
+		    f["key"]:"", separator,
+		    f["value"]:nil == nil ? "" : f["value"]:nil);
 	    });
 	    string file = mergestring (lines, "\n");
 	    BootCommon::InitializeLibrary (true, loader);
