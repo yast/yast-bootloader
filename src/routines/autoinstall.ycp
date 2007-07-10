@@ -196,6 +196,9 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 		    ai["sections"]:[];
 		sect = UpdateImportedSections (sect);
 		exp["specific", "sections"] = sect;
+		section_names = maplist (map<string,any> s, sect, {
+		    return s["name"]:"";
+		});
 	    }
 	}
 
