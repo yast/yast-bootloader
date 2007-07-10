@@ -131,7 +131,7 @@
       * Get the list of installed floppy drives
       * @return a list of floppy devices
       */
-    define list<string> getFloppyDevices () ``{
+    global list<string> getFloppyDevices () ``{
         if (floppy_devices == nil)
         {
             list<map> floppies = (list<map>) SCR::Read (.probe.floppy);
@@ -615,7 +615,8 @@
     }
 
     /**
-      * Get bootloader devices for specified locations
+      * Get list of bootloader device names for all selected or specified
+      * locations
       * @return list device names
       */
     global define list<string> GetBootloaderDevices () ``{
@@ -629,9 +630,9 @@
 	if (BootCommon::globals["boot_mbr"]:"false" == "true") {
 	    ret = add(ret, BootCommon::mbrDisk);
 	}
-// FIXME: `extended and `mbr_md are probably unneeded; AFA we can see, these
-// decisions are automatic anyway and perl-Bootloader should be able to make
-// these decisions without help from the user or the proposal.
+// FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
+// automatic anyway and perl-Bootloader should be able to make it without help
+// from the user or the proposal.
 //	if (BootCommon::globals["boot_mbr_md"]:"false" == "true") {
 	    // FIXME: make this work; this code was copied from
 	    // BootGRUB::Save(), where it was commented out (changes in
@@ -670,10 +671,10 @@
 	//     });
 	    // ret = add(ret, BootCommon::mbrDisk);
 //	}
-//	if ( haskey(BootCommon::globals, "boot_extended") &&
-//	    BootCommon::globals["boot_extended"]:"false" == "true" ) {
-//	    ret = add(ret, BootCommon::ExtendedPartitionDevice);
-//	}
+	if ( haskey(BootCommon::globals, "boot_extended") &&
+	    BootCommon::globals["boot_extended"]:"false" == "true" ) {
+	    ret = add(ret, BootCommon::ExtendedPartitionDevice);
+	}
 	// FIXME: floppy support is probably obsolete
 	if ( haskey(BootCommon::globals, "boot_floppy") &&
 	    BootCommon::globals["boot_floppy"]:"false" == "true" ) {
@@ -694,7 +695,9 @@
  */
 global boolean InstallingToFloppy () {
     boolean ret = false;
-    if (loader_device == StorageDevices::FloppyDevice)
+    if (loader_device == nil)
+	ret = false;
+    else if (loader_device == StorageDevices::FloppyDevice)
 	ret = true;
     else if (contains (getFloppyDevices (), loader_device))
 	ret = true;
