@@ -46,6 +46,7 @@ bl_global =
     lines_cache_id? &
     bl_timeout? &
     gfxmenu? &
+    element default { text }? &
     bl_activate? &
     boot_root? &
     boot_boot? &

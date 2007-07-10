@@ -247,8 +247,8 @@
       */
     global define void Propose () {
 	y2milestone ("Proposing configuration");
-	// have a current target map available in the log when we debug
-	y2debug ("Unfiltered target map: %1", (map<string,map>)Storage::GetTargetMap());
+	// always have a current target map available in the log
+	y2milestone ("unfiltered target map: %1", (map<string,map>)Storage::GetTargetMap());
 	BootCommon::UpdateInstallationKernelParameters ();
 	blPropose ();
 	BootCommon::was_proposed = true;
