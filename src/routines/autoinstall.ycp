@@ -16,6 +16,91 @@
  */
 {
 
+// Example autoyast configuration file snippets:
+//
+// -------------------------------------------------
+// SLES9:
+//
+// <bootloader>
+//   <activate config:type="boolean">true</activate>
+//   <board_type>chrp</board_type>
+//   <default>linux</default>
+//   <global config:type="list">
+//     <global_entry>
+//       <key>default</key>
+//       <value>linux</value>
+//     </global_entry>
+//     <global_entry>
+//       <key>timeout</key>
+//       <value config:type="integer">100</value>
+//     </global_entry>
+//     <global_entry>
+//     [...]
+// </global>
+// <initrd_modules config:type="list">
+//   <initrd_module>
+//     <module>sym53c8xx</module>
+//   </initrd_module>
+//   <initrd_module>
+//     <module>loop</module>
+//   </initrd_module>
+// </initrd_modules>
+// <loader_device>/dev/sda1</loader_device>
+// <loader_type>ppc</loader_type>
+// <location>boot</location>
+// <of_defaultdevice config:type="boolean">true</of_defaultdevice>
+// <prep_boot_partition>/dev/sda1</prep_boot_partition>
+// <sections config:type="list">
+//   <section config:type="list">
+//     <section_entry>
+//       <key>image</key>
+//       <value>/boot/vmlinux</value>
+//     </section_entry>
+//     <section_entry>
+//       <key>label</key>
+//       <value>linux</value>
+//     </section_entry>
+//     [...]
+// -------------------------------------------------
+// openSUSE 10.3 Alpha5:
+//
+// <bootloader>
+//   <global>
+//     <activate>true</activate>
+//     <boot_chrp_custom>/dev/sda1</boot_chrp_custom>
+//     <default>linux</default>
+//     <lines_cache_id>1</lines_cache_id>
+//     <timeout config:type="integer">80</timeout>
+//   </global>
+//   <initrd_modules config:type="list">
+//     <initrd_module>
+//       <module>ipr</module>
+//     </initrd_module>
+//     <initrd_module>
+//       <module>pata_pdc2027x</module>
+//     </initrd_module>
+//     <initrd_module>
+//       <module>dm_mod</module>
+//     </initrd_module>
+//   </initrd_modules>
+//   <loader_type>ppc</loader_type>
+//   <sections config:type="list">
+//     <section>
+//       <append> xmon=on sysrq=1</append>
+//       <image>/boot/vmlinux-2.6.22-rc4-git3-2-ppc64</image>
+//       <initial>1</initial>
+//       <initrd>/boot/initrd-2.6.22-rc4-git3-2-ppc64</initrd>
+//       <kernel>/boot/vmlinux</kernel>
+//       <lines_cache_id>0</lines_cache_id>
+//       <name>linux</name>
+//       <original_name>linux</original_name>
+//       <root>/dev/system/root2</root>
+//       <type>image</type>
+//     </section>
+//   </sections>
+// </bootloader>
+// -------------------------------------------------
+
     import "Bootloader";
     import "BootCommon";
     import "Initrd";
@@ -37,6 +122,15 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	s = (map<string,any>)union (
 	    BootCommon::CreateLinuxSection (orig_name),
 	    s);
+
+	// convert "kernel" to "image", if not already defined in the section
+	if ( haskey(s, "kernel") ) {
+	    if ( ! haskey(s, "image") ) {
+		s["image"] = s["kernel"]:"";
+	    }
+	    s = remove (s, "kernel");
+	}
+
 	return s;
     });
     return sect;
@@ -149,7 +243,7 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	    if ( ai["loader_type"]:"" == "grub" && haskey(ai, "location") ) {
 		if ( ai["location"]:nil == "extended" )
 		    exp["specific", "global", "boot_extended"] = "true";
-		if ( ai["location"]:nil == "boot" )
+		else if ( ai["location"]:nil == "boot" )
 		    exp["specific", "global", "boot_boot"] = "true";
 		else if ( ai["location"]:nil == "root" )
 		    exp["specific", "global", "boot_root"] = "true";
@@ -265,6 +359,14 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	y2milestone ("SLES9 format detected: %1", old_format);
 	if (old_format)
 	{
+	    // In SLES9, there were no specific tags defined for the bootloader
+	    // configuration items in the <global> and <sections> scopes. All
+	    // configuration lines there were put into <key> and <value> pairs,
+	    // and each of these pairs were put into <(global|section)_entry>
+	    // tags (see example config snippets above).
+	    // Converting key/value pairs to file contents first, then setting
+	    // as file contents and re-exporting the parsed file contents.
+
 	    list<list<map> > sections = ai["sections"]:[];
 	    list<map> globals = ai["global"]:[];
 	    sections = prepend (sections, globals);
