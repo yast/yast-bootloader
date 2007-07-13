@@ -523,7 +523,7 @@ global map<string,any> CreateLinuxSection (string title) {
     y2milestone ("kernel_fn: %1 initrd_fn: %2", kernel_fn, initrd_fn);
 
     ret = (map <string, any>)union (ret, $[
-	"kernel" : kernel_fn,
+	"image" : kernel_fn,
 	"initrd" : initrd_fn,
 	"root" : RootPartitionDevice,
 	"append" : (title == "failsafe")
@@ -544,11 +544,11 @@ global map<string,any> CreateLinuxSection (string title) {
 	ret["xen_append"] = "";
         if (UsingXenPae()) {
 	    ret["xen"] = "/boot/xen-pae.gz";
-	    ret["kernel"] = "/boot/" + Kernel::GetBinary () + "-xenpae";
+	    ret["image"] = "/boot/" + Kernel::GetBinary () + "-xenpae";
 	    ret["initrd"] = "/boot/initrd-xenpae";
 	} else {
 	    ret["xen"] = "/boot/xen.gz";
-	    ret["kernel"] = "/boot/" + Kernel::GetBinary () + "-xen";
+	    ret["image"] = "/boot/" + Kernel::GetBinary () + "-xen";
 	    ret["initrd"] = "/boot/initrd-xen";
 	}
     }

@@ -545,6 +545,7 @@ global define boolean Write () {
 			entry2remove
 		    );
 
+		    y2milestone ("Running command %1", command);
 		    map ret_map = (map)SCR::Execute (.target.bash_output, command);
 		    y2milestone ("BootELILO: ret_map = %1", ret_map);
 		    ret = (ret_map["exit"]:1 == 0);
