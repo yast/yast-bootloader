@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Fri Jul 13 18:25:18 CEST 2007 - od@suse.de
+
+- converting old key "kernel" to new key "image" when converting
+  autoyast configuration to export map (#285790)
+- re-added lost y2milestone() to BootELILO.ycp
+- creating "image" section instead of "kernel" section now in
+  CreateLinuxSection()
+- 2.15.11
+
+-------------------------------------------------------------------
 Wed Jul 11 00:25:18 CEST 2007 - od@suse.de
 
 - Merge from SLES10-SP1 branch:
