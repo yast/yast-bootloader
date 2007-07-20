@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jul 20 17:34:49 CEST 2007 - od@suse.de
+
+- remove yast2-installation from BuildRequires, it seems to be
+  unneeded and causes a dependency loop (involving
+  autoyast-installation)
+- 2.15.12
+
+-------------------------------------------------------------------
 Fri Jul 13 18:25:18 CEST 2007 - od@suse.de
 
 - converting old key "kernel" to new key "image" when converting
