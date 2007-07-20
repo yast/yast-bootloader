@@ -1,0 +1,82 @@
+# y2_checkin statefile format 1.0
+# records the merge state and history for merging changes from other branches
+# to the branch of the current working directory
+# URLs of other branches and the highest revisions we have looked at
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader 0
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader 0
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader 0
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-Branch/bootloader 0
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_2-Branch/bootloader 0
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP1-Branch/bootloader 37794
+
+# revisions seen:
+# 
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_2-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP1-Branch/bootloader  31627 31731 33390 34876 35236 35340 35342 35344 35347 35356 35413 35417 35650 35829 35850 35916 35917 35999 36005 36006 36027 36059 36143 36175 36768 36888 36889 36890 36900 36960 36961 36964 37091 37172 37196 37377 37430 37448 37451 37616 37672 37673 37674 37675 37676 37677 37678 37761 37762 37794
+
+# revisions postponed:
+# 
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_2-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP1-Branch/bootloader 
+
+# source:
+# merge states of the revisions
+MERGE_STATE[31627]=already_merged
+MERGE_STATE[31731]=already_merged
+MERGE_STATE[33390]=already_merged
+MERGE_STATE[34876]=already_merged
+MERGE_STATE[35236]=already_merged
+MERGE_STATE[35340]=already_merged
+MERGE_STATE[35342]=already_merged
+MERGE_STATE[35344]=already_merged
+MERGE_STATE[35347]=already_merged
+MERGE_STATE[35356]=already_merged
+MERGE_STATE[35413]=already_merged
+MERGE_STATE[35417]=already_merged
+MERGE_STATE[35650]=merged
+MERGE_STATE[35829]=already_merged
+MERGE_STATE[35850]=already_merged
+MERGE_STATE[35916]=merged
+MERGE_STATE[35917]=already_merged
+MERGE_STATE[35999]=merged
+MERGE_STATE[36005]=already_merged
+MERGE_STATE[36006]=already_merged
+MERGE_STATE[36027]=merged
+MERGE_STATE[36059]=merged
+MERGE_STATE[36143]=already_merged
+MERGE_STATE[36175]=already_merged
+MERGE_STATE[36768]=already_merged
+MERGE_STATE[36888]=merged
+MERGE_STATE[36889]=merged
+MERGE_STATE[36890]=merged
+MERGE_STATE[36900]=merged
+MERGE_STATE[36960]=merged
+MERGE_STATE[36961]=merged
+MERGE_STATE[36964]=merged
+MERGE_STATE[37091]=merged
+MERGE_STATE[37172]=merged
+MERGE_STATE[37196]=merged
+MERGE_STATE[37377]=already_merged
+MERGE_STATE[37430]=merged
+MERGE_STATE[37448]=merged
+MERGE_STATE[37451]=merged
+MERGE_STATE[37616]=merged
+MERGE_STATE[37672]=merged
+MERGE_STATE[37673]=merged
+MERGE_STATE[37674]=merged
+MERGE_STATE[37675]=merged
+MERGE_STATE[37676]=merged
+MERGE_STATE[37677]=merged
+MERGE_STATE[37678]=merged
+MERGE_STATE[37761]=merged
+MERGE_STATE[37762]=merged
+MERGE_STATE[37794]=merged
+
