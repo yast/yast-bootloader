@@ -1,10 +1,9 @@
 -------------------------------------------------------------------
-Fri Jul 20 17:34:49 CEST 2007 - od@suse.de
+Fri Jul 20 18:21:03 CEST 2007 - od@suse.de
 
-- remove yast2-installation from BuildRequires, it seems to be
-  unneeded and causes a dependency loop (involving
-  autoyast-installation)
-- 2.15.12
+- preventing cyclic dependency in autobuild with a BuildIgnore on
+  autoyast2-installation
+- 2.15.13
 
 -------------------------------------------------------------------
 Fri Jul 13 18:25:18 CEST 2007 - od@suse.de
