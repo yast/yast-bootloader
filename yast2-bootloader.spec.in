@@ -1,7 +1,7 @@
 @HEADER-COMMENT@
 
 @HEADER@
-BuildRequires:	gcc-c++ limal-perl yast2-devel yast2-devtools yast2-testsuite yast2-installation yast2-storage update-desktop-files swig docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel yast2-perl-bindings perl-gettext perl-Bootloader update-alternatives
+BuildRequires:	gcc-c++ limal-perl yast2-devtools yast2-testsuite yast2-installation yast2-storage update-desktop-files swig docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel yast2-perl-bindings perl-gettext perl-Bootloader update-alternatives
 # to eliminate a cyclic dependency in autobuild:
 #!BuildIgnore:  autoyast2-installation
 PreReq:         /bin/sed %fillup_prereq
