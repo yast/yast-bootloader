@@ -2,6 +2,7 @@
 Thu Jul 26 07:26:05 CEST 2007 - jsrain@suse.cz
 
 - removed unneeded yast2-devel from BuildRequires
+- 2.15.14
 
 -------------------------------------------------------------------
 Fri Jul 20 18:21:03 CEST 2007 - od@suse.de
