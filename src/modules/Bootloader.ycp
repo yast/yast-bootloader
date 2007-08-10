@@ -917,7 +917,7 @@ global define void ResolveSymlinksInSections() {
       * @return boolean true on success
       */
     global define boolean FlagOnetimeBoot (string section) {
-	return blFlagOnetimeBoot (string section);
+	return blFlagOnetimeBoot (section);
     }
 
     /**
