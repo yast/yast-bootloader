@@ -197,7 +197,7 @@ global map<string,symbol()> blDialogs () {
  */
 global boolean blFlagOnetimeBoot (string section) {
     map functions = getFunctions (BootCommon::getLoaderType (false));
-    boolean() toEval = (boolean()) functions["flagonetimeboot"]:nil;
+    boolean(string) toEval = (boolean(string)) functions["flagonetimeboot"]:nil;
     if (toEval != nil)
 	return toEval (section);
     else
