@@ -84,6 +84,9 @@
 	if (Bootloader::getLoaderType () == "grub")
 	{
 	    import "BootGRUB";
+            // merge_level == `main means: merge only the "default" key(s?) of
+            // a "foreign" grub configuration from a different configuration
+            // into our configuration
 	    BootGRUB::merge_level = `main;
 	    Bootloader::Propose ();
 	    BootGRUB::merge_level = `none;

@@ -139,16 +139,36 @@ global define void CreateSections () {
     out = add (out, CreateLinuxSection ("linux"));
     if (BootCommon::XenPresent ())
         out = add (out, CreateLinuxSection ("xen"));
+
     list<string> others_ignore = [];
+
+    string linux_fallback_text = "Linux other";
+    integer fallback_num = 1;
+
+    // get a list of bootable (= "aa55" at the end of block 0) primary
+    // partitions classified by partition type:
+    //
+    // "/dev/sda3 Linux other 1"
+    // "/dev/sda4 Linux other 2"
+    // "/dev/sda2 dos 1"
+    // "/dev/sda3 windows 1"
+    // "/dev/sda3 OS/2 Boot Manager 1"
+    // "/dev/sda1 Vendor diagnostic"
+    // ...
     list<string> others = (list<string>)Storage::GetForeignPrimary();
-    y2debug ("Other primaries: %1", others);
+    y2milestone ("Other primaries: %1", others);
+
+    // get list of all Linux Partitions on all real disks
     list<map> other_l = (list<map>)Storage::GetOtherLinuxPartitions();
-    y2debug ("Other linux parts: %1", other_l);
+    y2milestone ("Other linux parts: %1", other_l);
+
     list<string> destroyed_partitions
         = BootCommon::getPartitionList (`destroyed);
 
     string tmpdir = (string)SCR::Read (.target.tmpdir) + "/bldetect/";
 
+    // load additional modules for filesystems used by other linux partitions,
+    // if needed
     if (merge_level != `none && other_l != nil && size (other_l) > 0
 	&& 0 == SCR::Execute (.target.bash,
 	   sformat ("test -d %1 || /bin/mkdir %1", tmpdir))
@@ -177,6 +197,207 @@ global define void CreateSections () {
 		y2debug ("result of loading %1 is %2", modname, r);
 	    }
 	});
+
+	foreach (map o, other_l, {
+
+	    // Here is the general logic:
+	    //
+	    // not mountable                                                        =>  no entry
+	    //     mountable        bootable        has_menu_lst        name_found  =>  chainloader ("openSUSE 10.2 (/dev/sda2)")
+	    //     mountable        bootable                        not name_found  =>  chainloader ("Linux other 1 (/dev/sda2)")
+	    //     mountable    not bootable        has_menu_lst        name_found  =>  configfile  ("openSUSE 10.2 (/dev/sda2)")
+	    //     mountable    not bootable        has_menu_lst    not name_found  =>  configfile  ("Linux other 1 (/dev/sda2)")
+	    //     mountable    not bootable    not has_menu_lst                    =>  no entry
+
+	    boolean bootable = false;
+	    boolean has_menu_lst = false;
+	    string menu_lst = "";
+	    boolean name_found = false;
+	    string new_sect_name_prefix = "";
+
+	    BootCommon::InitializeLibrary (false, "grub");
+	    string dev = o["device"]:"";
+	    if (dev != "" && 0 == SCR::Execute (.target.bash,
+		    sformat ("/bin/mount %1 %2", dev, tmpdir))
+		)
+	    {
+		// mountable: true
+
+	        y2milestone ("Mounted %1", dev);
+		list<string> filenames = [];
+		foreach (string fn, [
+// not needed since there is a symlink in /boot directory
+// named boot pointing to the /boot directory
+// this caused bug #23346 - the file was found twice
+//			tmpdir + "grub/menu.lst",
+			tmpdir + "boot/grub/menu.lst"
+		    ], {
+			if (-1 != (integer)SCR::Read (.target.size, fn))
+			    filenames = add (filenames, fn);
+		});
+		y2milestone ("Found files %1", filenames);
+
+		// bootable: ?
+		//
+		// use examine_mbr.pl to analyze PBR (partition boot record):
+		// examine_mbr.pl prints "* stage1" when it finds the signature
+		// of some stage1 bootloader
+		// (The exit code would tell us only whether we should
+		// (re-)install a bootloader stage1 there in order to make the
+		// partition bootable, not whether a stage1 already exists.)
+		map result = (map)SCR::Execute (.target.bash_output, sformat (
+		    "/usr/lib/YaST2/bin/examine_mbr.pl %1", dev));
+		y2milestone ("PBR examining script returned %1", result);
+		bootable = search(result["stdout"]:"", "stage1") != nil ? true : false;
+
+		// has_menu_lst: ?
+		// name_found: ?
+		//
+		// look for a readable menu.lst and try to extract a section
+		// name from a qualifying section
+		foreach (string f, filenames, {
+		    if (name_found)
+			return;
+
+		    y2debug ("Checking file %1", f);
+		    string fc = (string)SCR::Read (.target.string, f);
+		    if (fc == nil)
+			return;
+
+		    has_menu_lst = true;
+		    menu_lst = substring(f, size(tmpdir));
+		    if ( substring(menu_lst, 0, 1) != "/" )
+			menu_lst = "/" + menu_lst;
+
+		    string dm = (string)SCR::Read (.target.string,
+			regexpsub (f, "(.*)menu.lst$",
+				   "\\1device.map"));
+		    y2debug ("Device map file name: %1",
+			     regexpsub (f, "(.*)menu.lst$",
+					"\\1device.map"));
+		    y2debug ("Device map contents: %1", dm);
+
+		    // pass the menu.lst and device.map to the parser
+		    map<string,string> files = $[
+						 "/boot/grub/menu.lst" : fc,
+						 ];
+		    if (dm == nil)
+		        return;
+
+		    files["/boot/grub/device.map"] = dm;
+
+		    BootCommon::InitializeLibrary (false, "grub");
+		    BootCommon::SetFilesContents (files);
+		    list<map<string,string> > sects
+		        = BootCommon::GetSections ();
+		    y2debug ("Found sections %1", sects);
+
+		    // look only for "default" == "initial" entries, not all entries
+		    sects = filter (map<string,string> s, sects, {
+			return s["initial"]:nil != nil;
+		    });
+
+		    // now find the name of the first non-broken "initial" section and get its name
+		    foreach (map<string,any> s, sects, ``{
+			if (name_found)
+			    return;
+
+			boolean _use = true;
+			// this is a heuristic: if the mounted partition or the
+			// root partition referenced in the section is "new,
+			// deleted or formatted", then do not use the section
+			list<string> devs = [dev];
+			string _d = s["root"]:"";
+			if (_d != nil && _d != "")
+			    devs = add (devs, _d);
+			devs = (list<string>)filter (string d, devs,
+				``(d != ""
+				   && d != nil
+				   && d != "/dev/null" && d != "false"));
+			devs = toset (devs);
+			devs = maplist (string d, devs, {
+			    return BootCommon::UpdateDevice (d);
+			});
+			foreach (string _d, devs, {
+			    if (contains (destroyed_partitions, _d))
+			        _use = false;
+			});
+
+			if (_use)
+			{
+			    // no need to translate here...
+			    new_sect_name_prefix = s["name"]:"";
+			    name_found = true;
+			}
+		    });
+		});
+
+		// now evaluate the collected information:
+		//
+		//     mountable        bootable        has_menu_lst        name_found  =>  chainloader ("openSUSE 10.2 (/dev/sda2)")
+		//     mountable        bootable                        not name_found  =>  chainloader ("Linux other 1 (/dev/sda2)")
+		//     mountable    not bootable        has_menu_lst        name_found  =>  configfile  ("openSUSE 10.2 (/dev/sda2)")
+		//     mountable    not bootable        has_menu_lst    not name_found  =>  configfile  ("Linux other 1 (/dev/sda2)")
+		//     mountable    not bootable    not has_menu_lst                    =>  no entry
+
+		if (bootable || has_menu_lst)
+		{
+		    // set up the new section entry
+		    map<string,any> new_sect = $[
+			    "__changed" : false,
+			    "__auto" : true,
+			    "__devs" : [dev]
+		    ];
+
+		    if (bootable)
+		    {
+			//     mountable        bootable                                        =>  chainloader (label: to be decided)
+			new_sect["chainloader"] = dev;
+			new_sect["type"] = "other";
+		    }
+		    else
+		    {
+			//     mountable    not bootable                                        =>  configfile  (label: to be decided)
+			//new_sect["configfile"] = sformat("(%1)%2", dev, menu_lst);
+			new_sect["root"] = dev;
+			new_sect["configfile"] = menu_lst;
+			new_sect["type"] = "menu";
+		    }
+
+		    if (name_found)
+		    {
+			//     mountable                                            name_found  =>              ("openSUSE 10.2 (/dev/sda2)")
+			new_sect["name"] = sformat(" %1 (%2)", new_sect_name_prefix, dev);
+		    }
+		    else
+		    {
+			//     mountable                                        not name_found  =>              ("Linux other 1 (/dev/sda2)")
+			new_sect["name"] = sformat("%1 %2 (%3)", linux_fallback_text, fallback_num, dev);
+			fallback_num = fallback_num+1;
+		    }
+
+		    new_sect["original_name"] = new_sect["name"]:"";
+
+		    out = add (out, new_sect);
+		    // ignore this partition when going through the list of
+		    // "other", non-linux partitions in the next loop below
+		    others_ignore = add (others_ignore, dev);
+		}
+
+
+		SCR::Execute (.target.bash, sformat (
+			"/bin/umount %1", dev));
+	    }
+	});
+	SCR::Execute (.target.bash, sformat ("/bin/rmdir %1", tmpdir));
+    }
+
+// FIXME: remove old code: this used to parse menu.lst and device.map files
+// from other linux partitions for "initial" (~ default, see
+// MarkInitialSection() in perl-Bootloader) sections, and adds them to the
+// current menu.lst, if none of the referenced root partition and the other
+// linux partition was `destroyed (= "new, deleted or formatted").
+/*
 	BootCommon::InitializeLibrary (true, "grub");
 	foreach (map o, other_l, {
 	    string dev = o["device"]:"";
@@ -208,6 +429,8 @@ global define void CreateSections () {
 			     regexpsub (f, "(.*)menu.lst$",
 					"\\1device.map"));
 		    y2debug ("Device map contents: %1", dm);
+
+// here the old code tries to parse and import sections from the grub config file from an "other" linux partition
 		    map<string,string> files = $[
 						 "/boot/grub/menu.lst" : fc,
 						 ];
@@ -220,12 +443,16 @@ global define void CreateSections () {
 		    list<map<string,string> > sects
 		        = BootCommon::GetSections ();
 		    y2debug ("Found sections %1", sects);
+
+		    // merge only "default" == "initial" entries, not all entries
 		    if (merge_level == `main)
 		    {
 		        sects = filter (map<string,string> s, sects, {
 			    return s["initial"]:nil != nil;
 			});
 		    }
+
+		    // now add the sections to our configuration, if they qualify
 		    count = count + size (sects);
 		    foreach (map<string,any> s, sects, ``{
 		        s = (map<string,any>)union (s, $[
@@ -234,12 +461,15 @@ global define void CreateSections () {
 				"__converted" : true,
 			]);
 			// no need to translate here...
-			s["name"] = sformat ("%2 (%1)",
-				dev, s["name"]:"");
+			s["name"] = sformat ("%1 (%2)",
+				s["name"]:"", dev);
 			s["original_name"] = s["name"]:"";
-			list<string> devs = [dev];
-			list<string> _dp = [];
 
+			// this is a heuristic: if the mounted partition or the
+			// root partition referenced in the section is "new,
+			// deleted or formatted", then do not add/import the
+			// section
+			list<string> devs = [dev];
 			string _d = s["root"]:"";
 			if (_d != nil && _d != "")
 			    devs = add (devs, _d);
@@ -272,6 +502,10 @@ global define void CreateSections () {
 			}
 		    });
 		});
+
+		// if any sections from this device were added, it was a
+		// genuine linux partition: ignore it when going through the
+		// list of "other", non-linux partitions in the next loop below
 		if (count > 0)
 		    others_ignore = add (others_ignore, dev);
 
@@ -281,7 +515,12 @@ global define void CreateSections () {
 	});
 	SCR::Execute (.target.bash, sformat ("/bin/rmdir %1", tmpdir));
     }
+*/
 
+    // Go through a list of "bootable" (aa55) primary partitions that may be
+    // "foreign", check that it is not one of our current boot partitions and
+    // if this is not a special Thinkpad or "Vendor diagnostics" partition, add
+    // a chainloader entry for it.
     if (others != nil && (size (others) > 0)) {
 	foreach (string o, others, {
 	    list parts = splitstring (o, " ");
@@ -294,12 +533,14 @@ global define void CreateSections () {
 		string label = mergestring ((list<string>)parts, " ");
 
 		// don't add rewritten location (#19990)
+		// do not check for a bootable partition boot record: partition
+		// may become bootable later
 		if (dev != "" && label != ""
-		    && dev != BootCommon::loader_device
+		    && !contains(BootCommon::GetBootloaderDevices(), dev)
 		    && (
 			BootCommon::AddFirmwareToBootloader (
 							     BootCommon::mbrDisk)
-			|| (label != "Vendor diagnostics"
+			|| (label != "Vendor diagnostics"			    // <- should probably be '&&' => not Thinkpad MBR AND not "Vendor diagnostics" partition type
 			    && label != "Vendor diagnostic")
 			)
 		    )
@@ -318,6 +559,8 @@ global define void CreateSections () {
 	    }
 	});
     }
+
+
     if (grub_InstallingToFloppy ())
     {
         out = add (out, $[
@@ -563,7 +806,7 @@ global define void Propose () {
             if (Mode::autoinst ())
             {
                 // TODO whatever will be needed
-//		y2debug ("nothing to do in AI mode if globals are defined");
+		y2debug ("nothing to do in AI mode if globals are defined");
             }
 	    // decided to merge in default values for missing keys, EVEN in AI mode (!)
 	    // this is primarily done to allow for the LocationProposal() to

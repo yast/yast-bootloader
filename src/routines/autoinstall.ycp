@@ -162,6 +162,11 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	    "loader_type" : ai["loader_type"]:"",
 	    "specific" : $[],
 	];
+
+	// define "global" sub-map to make sure we can add to the globals at
+	// any time
+	exp["specific", "global"] = (map<string,any>) $[];
+
 /* FIXME
 	// global PPC stuff
 	if (ai["loader_type"]:"" == "ppc")
