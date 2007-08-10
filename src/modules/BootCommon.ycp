@@ -455,7 +455,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	: "";
 
     // FIXME:
-    // This only works in the installed system (problem with GetFinalKernel))),
+    // This only works in the installed system (problem with GetFinalKernel()),
     // in all other cases we use the symlinks.
 
     string kernel_fn = "";

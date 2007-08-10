@@ -211,17 +211,18 @@ global string FindMBRDisk() {
 	    activate = true;
 	    activate_changed = true;
 	    // examine_mbr.pl returns
-	    //	    - != 0 for a read error: "cannot read 512 bytes from <dev>"
-	    //	    - 1 for an "invalid MBR", i.e. without enough entropy to
-	    //		contain boot code
-	    //	    - 0 for a "Generic MBR" (DOS MBR)
-	    //	    - 1 for a GRUB or lilo "stage 1"
-	    //	    - 0 for an unknown MBR
+	    //	    - != 0 (errno, e.g. 2) for a read error: "cannot read 512
+	    //	           bytes from <dev>"
+	    //	    - 254  for an "invalid MBR", i.e. without enough entropy to
+	    //	           contain boot code
+	    //	    - 0    for a "Generic MBR" (DOS MBR)
+	    //	    - 254  for a GRUB or lilo "stage 1"
+	    //	    - 0    for an unknown MBR
 	    map out = (map)SCR::Execute (.target.bash_output, sformat (
 		"/usr/lib/YaST2/bin/examine_mbr.pl %1", disk));
 	    y2milestone ("MBR examining script returned %1", out);
 	    integer exit = out["exit"]:0;
-	    repl_mbr = (exit != 0) && (! keep_mbr);
+	    repl_mbr = (exit == 254) && (! keep_mbr);
 	}
 	else if (size (needed_devices) > 1)
 	{
