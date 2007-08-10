@@ -38,6 +38,7 @@
     import "BootGRUB";
     import "BootPOWERLILO"; // The ppc-LILO File
 
+    // interface for clients
     global define map Export ();
     global define boolean Import (map settings);
     global define void Propose ();
@@ -45,6 +46,9 @@
     global define void Reset ();
     global define boolean Write ();
 
+    global define boolean FlagOnetimeBoot (string section);
+
+    // additional interfaces, mostly for other modules
     global define void ReadOrProposeIfNeeded ();
     global define string getDefaultSection ();
     global define string getKernelParam (string section, string key);
@@ -905,6 +909,15 @@ global define void ResolveSymlinksInSections() {
     global define void setBootDevice (string device) {
 	ReadOrProposeIfNeeded ();
 	BootCommon::BootPartitionDevice = device;
+    }
+
+    /**
+      * Set section to boot on next reboot
+      * @param section string section to boot
+      * @return boolean true on success
+      */
+    global define boolean FlagOnetimeBoot (string section) {
+	return blFlagOnetimeBoot (string section);
     }
 
     /**
