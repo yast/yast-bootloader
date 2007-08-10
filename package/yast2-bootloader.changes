@@ -1,4 +1,31 @@
 -------------------------------------------------------------------
+Fri Aug 10 20:11:24 CEST 2007 - od@suse.de
+
+- part of feature #301313:
+  - added front-end function and infrastructure in switcher.ycp for
+    FlagOnetimeBoot()
+  - added FlagOnetimeBoot() implementation for POWERLILO
+- fixed return codes of examine_mbr.pl: do not overlap error codes
+  with "bootloader stage1 needs to be (re)-installed here" return
+  code
+- evaluate new return code in yast2-bootloader
+- added documentation comment to examine_mbr.pl
+- changed documentation comments where yast2-bootloader calls
+  examine_mbr.pl
+- fixed error in autoinstall client that prevented importing legacy
+  global keys
+- added/fixed some comments
+- added documentation comments to BootGRUB::CreateSections()
+- changed two y2debug() into y2milestone()
+- fixed: a chainloader entry may have been produced that pointed to
+  the boot partition of our current installation
+- grub: implemented booting other Linux installations on the system
+  via chainloader/configfile entries (feature #302302)
+- fixed: if-block contained no statement, uncommented y2debug() in
+  there
+- 2.15.15
+
+-------------------------------------------------------------------
 Thu Jul 26 07:26:05 CEST 2007 - jsrain@suse.cz
 
 - removed unneeded yast2-devel from BuildRequires
