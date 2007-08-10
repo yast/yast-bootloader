@@ -192,13 +192,14 @@ global map<string,symbol()> blDialogs () {
 
 /**
  * Set section to boot on next reboot for this type of bootloader
+ * @param section string section to boot
  * @return boolean true on success
  */
-global boolean blFlagOnetimeBoot () {
+global boolean blFlagOnetimeBoot (string section) {
     map functions = getFunctions (BootCommon::getLoaderType (false));
     boolean() toEval = (boolean()) functions["flagonetimeboot"]:nil;
     if (toEval != nil)
-	return toEval ();
+	return toEval (section);
     else
 	return false;
 }
