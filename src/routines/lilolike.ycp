@@ -674,6 +674,61 @@ global void UpdateSections (boolean replace,
 	}
     });
 
+    // for grub and replace-mode only:
+    // convert sections that boot "other" installations (another Linux, Windows
+    // etc.) to chainloader and configfile sections
+    //
+    // ! contains (sections_to_recreate, original_name)         AND
+    // original_name == name (e.g. "openSUSE 10.3 (/dev/sdb1)") AND
+    // haskey("image")						AND
+    // haskey("initrd")
+    //
+    //  => if bootable, convert to "chainloader"
+    //       otherwise, convert to "configfile" and hope for the best
+    //
+    if (getLoaderType (false) == "grub" && replace)
+    {
+	out = maplist (map<string,any> s, out, {
+	    string label = s["name"]:"";
+	    string sect_type = s["original_name"]:"";
+	    if (!contains(sections_to_recreate, sect_type) &&
+		 sect_type == label &&
+		 haskey(s, "image") &&
+		 haskey(s, "initrd"))
+	     {
+		string dev = (string) s["root"]:nil;
+
+		// create new entry
+		s = $[
+		    "name":		label,
+		    "original_name":	sect_type,
+		    "root":		dev
+		];
+
+		if (dev != nil && IsPartitionBootable(dev))
+		{
+		    //     bootable =>  chainloader
+		    s["noverifyroot"] = "true";
+		    s["chainloader"] = dev;
+		    s["blockoffset"] = 1;
+		    s["type"] = "other";
+		}
+		else
+		{
+		    // not bootable =>  configfile
+		    // let's hope the config file can be found (should work at
+		    // least for all SUSE installations using grub)
+		    s["configfile"] = "/boot/grub/menu.lst";
+		    s["type"] = "menu";
+		}
+	    }
+	    else
+		return s;
+
+	});
+    }
+
+
     // now adjust these keys in sections that need it:
     //  - kernel
     //  - initrd

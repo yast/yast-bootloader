@@ -238,17 +238,7 @@ global define void CreateSections () {
 		y2milestone ("Found files %1", filenames);
 
 		// bootable: ?
-		//
-		// use examine_mbr.pl to analyze PBR (partition boot record):
-		// examine_mbr.pl prints "* stage1" when it finds the signature
-		// of some stage1 bootloader
-		// (The exit code would tell us only whether we should
-		// (re-)install a bootloader stage1 there in order to make the
-		// partition bootable, not whether a stage1 already exists.)
-		map result = (map)SCR::Execute (.target.bash_output, sformat (
-		    "/usr/lib/YaST2/bin/examine_mbr.pl %1", dev));
-		y2milestone ("PBR examining script returned %1", result);
-		bootable = search(result["stdout"]:"", "stage1") != nil ? true : false;
+		bootable = BootCommon::IsPartitionBootable(dev);
 
 		// has_menu_lst: ?
 		// name_found: ?
@@ -338,12 +328,13 @@ global define void CreateSections () {
 		//     mountable        bootable                        not name_found  =>  chainloader ("Linux other 1 (/dev/sda2)")
 		//     mountable    not bootable        has_menu_lst        name_found  =>  configfile  ("openSUSE 10.2 (/dev/sda2)")
 		//     mountable    not bootable        has_menu_lst    not name_found  =>  configfile  ("Linux other 1 (/dev/sda2)")
-		//     mountable    not bootable    not has_menu_lst                    =>  no entry
+		//     mountable    not bootable    not has_menu_lst                    =>  no entry	FIXME: should this be  handled with a chainloader entry anyway, in case it becomes bootable later?
 
 		if (bootable || has_menu_lst)
 		{
 		    // set up the new section entry
 		    map<string,any> new_sect = $[
+			    "root" : dev,
 			    "__changed" : false,
 			    "__auto" : true,
 			    "__devs" : [dev]
@@ -352,14 +343,15 @@ global define void CreateSections () {
 		    if (bootable)
 		    {
 			//     mountable        bootable                                        =>  chainloader (label: to be decided)
+			new_sect["noverifyroot"] = "true";
 			new_sect["chainloader"] = dev;
+			new_sect["blockoffset"] = 1;
 			new_sect["type"] = "other";
 		    }
 		    else
 		    {
 			//     mountable    not bootable                                        =>  configfile  (label: to be decided)
 			//new_sect["configfile"] = sformat("(%1)%2", dev, menu_lst);
-			new_sect["root"] = dev;
 			new_sect["configfile"] = menu_lst;
 			new_sect["type"] = "menu";
 		    }
