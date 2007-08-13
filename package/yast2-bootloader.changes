@@ -1,4 +1,20 @@
 -------------------------------------------------------------------
+Mon Aug 13 22:32:26 CEST 2007 - od@suse.de
+
+- grub: feature #302302:
+  - added code to UpdateSections() to update old sections for
+    "other" installations to chainloader/configfile sections
+  - moved PBR-examination code to function IsPartitionBootable(),
+    used by BootGRUB::CreateSections() and
+    BootCommon::UpdateSections() now
+  - always use a "root" command for "other" installations: added
+    a "root" command to chainloader entries
+  - also use "noverifyroot" and "blockoffset" in chainloader
+    entries
+  - added a FIXME comment
+- 2.15.16
+
+-------------------------------------------------------------------
 Fri Aug 10 20:11:24 CEST 2007 - od@suse.de
 
 - part of feature #301313:
