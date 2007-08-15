@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug 15 20:34:07 CEST 2007 - od@suse.de
+
+- forgot to use changed sections (feature #302302)
+- added logging with y2milestone()s for last change
+- 2.15.17
+
+-------------------------------------------------------------------
 Mon Aug 13 22:32:26 CEST 2007 - od@suse.de
 
 - grub: feature #302302:
