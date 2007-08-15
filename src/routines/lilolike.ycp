@@ -688,9 +688,11 @@ global void UpdateSections (boolean replace,
     //
     if (getLoaderType (false) == "grub" && replace)
     {
+	y2milestone ("Converting sections for other installation to use chainloader/configfile entries...");
 	out = maplist (map<string,any> s, out, {
 	    string label = s["name"]:"";
 	    string sect_type = s["original_name"]:"";
+	    y2milestone ("label: %1, sect_type: %2", label, sect_type);
 	    if (!contains(sections_to_recreate, sect_type) &&
 		 sect_type == label &&
 		 haskey(s, "image") &&
@@ -712,6 +714,7 @@ global void UpdateSections (boolean replace,
 		    s["chainloader"] = dev;
 		    s["blockoffset"] = 1;
 		    s["type"] = "other";
+		    y2milestone ("Updating section \"%1\" booting other installation to use chainloader entry", s["name"]:"");
 		}
 		else
 		{
@@ -720,7 +723,9 @@ global void UpdateSections (boolean replace,
 		    // least for all SUSE installations using grub)
 		    s["configfile"] = "/boot/grub/menu.lst";
 		    s["type"] = "menu";
+		    y2milestone ("Updating section \"%1\" booting other installation to use configfile entry", s["name"]:"");
 		}
+		return s;
 	    }
 	    else
 		return s;
