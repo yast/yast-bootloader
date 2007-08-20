@@ -162,6 +162,10 @@ After reboot, reconnect and run the following:
 	    Update::installedVersion,
 	    Update::updateVersion);
     }
+
+    string default_name = BootCommon::globals["default"]:"";
+
+    return Bootloader::FlagOnetimeBoot (default_name)
 }
 else
 {

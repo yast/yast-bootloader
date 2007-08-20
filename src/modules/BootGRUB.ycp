@@ -1001,6 +1001,33 @@ global map<string,symbol()> Dialogs () {
     ];
 }
 
+/**
+  * Set section to boot on next reboot.
+  * @param section string section to boot
+  * @return boolean true on success
+  */
+global define boolean FlagOnetimeBoot (string section) {
+	integer index = -1;
+	integer sectnum = -1;
+
+	/**
+	  * Determine section number to avoid having to quote
+	  * the section name for grubonce.
+	  */
+        foreach (map<string,any> s, BootCommon::sections,
+	{
+            index = index + 1;
+            if (s["name"]:"" == section)
+                sectnum = index;
+        });
+
+	map result = (map)SCR::Execute (.target.bash_output, sformat (
+					"/usr/sbin/grubonce \"%1\"", sectnum));
+	y2milestone ("lilo returned %1", result);
+	return (result["exit"]:-1 == 0);
+}
+
+
 
 /**
   * Return map of provided functions
@@ -1021,6 +1048,7 @@ global map<string, any> GetFunctions () {
         "wizard_sequencer" : WizardSequenzer,
         "dialogs"	   : Dialogs,
         "section_types"	   : section_types,
+	"flagonetimeboot"  : FlagOnetimeBoot,
     ];
 }
 
