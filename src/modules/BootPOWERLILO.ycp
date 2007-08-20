@@ -1206,6 +1206,11 @@ global map<string, any> GetFunctions () {
     ];
 }
 
+global define boolean Bootonce (string name)
+{
+    return true
+}
+
 /**
   * Initializer of PowerLILO bootloader
   */

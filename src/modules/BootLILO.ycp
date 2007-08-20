@@ -300,6 +300,15 @@ global map<string, any> GetFunctions () {
 }
 
 /**
+  * Boot once to passed title
+  */
+global define boolean Bootonce (string name)
+{
+    y2milestone (sformat ("Calling lilo -R for %1",l name))
+    /* return SCR::Execute (.target.bash, sformat ("/sbin/lilo -R %1", name)) */
+}
+
+/**
   * Initializer of LILO bootloader
   */
 global void Initializer () {
