@@ -23,6 +23,7 @@ import "Linuxrc";
 import "Misc";
 import "Mode";
 import "Update";
+import "BootCommon";
 
 any ret = nil;
 string func = "";
@@ -165,7 +166,7 @@ After reboot, reconnect and run the following:
 
     string default_name = BootCommon::globals["default"]:"";
 
-    return Bootloader::FlagOnetimeBoot (default_name)
+    return Bootloader::FlagOnetimeBoot (default_name);
 }
 else
 {

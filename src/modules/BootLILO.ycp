@@ -282,6 +282,18 @@ global map<string,symbol()> Dialogs () {
     ];
 }
 
+/**
+  * Set section to boot on next reboot
+  * @param section string section to boot
+  * @return boolean true on success
+  */
+global define boolean FlagOnetimeBoot (string section)
+{
+    map result = (map)SCR::Execute (.target.bash_output,
+				    sformat ("/sbin/lilo -R \"%1\"", section));
+    y2milestone ("lilo returned %1", result);
+    return (result["exit"]:-1 == 0);
+}
 
 /**
  * Return map of provided functions
@@ -297,15 +309,6 @@ global map<string, any> GetFunctions () {
 	"update"	: Update,
 	"write"		: Write,
     ];
-}
-
-/**
-  * Boot once to passed title
-  */
-global define boolean Bootonce (string name)
-{
-    y2milestone (sformat ("Calling lilo -R for %1",l name))
-    /* return SCR::Execute (.target.bash, sformat ("/sbin/lilo -R %1", name)) */
 }
 
 /**
