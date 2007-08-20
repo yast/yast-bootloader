@@ -317,11 +317,6 @@ global map<string, any> GetFunctions () {
     ];
 }
 
-global define boolean Bootonce (string name)
-{
-    return true
-}
-
 /**
   * Initializer of S390 bootloader
   */
