@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Aug 28 18:35:52 CEST 2007 - pth@suse.de
+
+- Redo the logic and structure of the one-time booting code.
+  * Global Write uses Bootloader::getDefaultSection() to determine the
+    section name.
+  * New function BootCommon::Section2Index that determines the
+    index # for a given section, currently only used by 
+    BootGRUB::FlagOnetimeBoot.
+
+-------------------------------------------------------------------
 Wed Aug 15 20:34:07 CEST 2007 - od@suse.de
 
 - forgot to use changed sections (feature #302302)

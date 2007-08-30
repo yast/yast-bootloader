@@ -11,6 +11,7 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Philipp Thomas <pth@suse.de>
  *
  * $Id$
  *
@@ -301,13 +302,14 @@ global define boolean FlagOnetimeBoot (string section)
  */
 global map<string, any> GetFunctions () {
     return $[
-	"dialogs"	: Dialogs,
-	"read"		: Read,
-	"propose"	: Propose,
-	"save"		: Save,
-	"summary"	: BootCommon::i386Summary,
-	"update"	: Update,
-	"write"		: Write,
+	"dialogs"		: Dialogs,
+	"read"			: Read,
+	"propose"		: Propose,
+	"save"			: Save,
+	"summary"		: BootCommon::i386Summary,
+	"update"		: Update,
+	"write"			: Write,
+	"flagonetimeboot"	: FlagOnetimeBoot,
     ];
 }
 

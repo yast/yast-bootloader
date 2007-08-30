@@ -276,31 +276,35 @@
 	BootCommon::backup_mbr = true;
 	y2milestone ("Proposed settings: %1", Export ());
     }
+
+	
     /**
       * Display bootloader summary
       * @return a list of summary lines
       */
     global define list<string> Summary () {
 	list<string> ret = blSummary ();
+
 	// check if default section was changed or not
         string main_section = getProposedDefaultSection ();
+
         if (main_section == nil)
             return ret;
-	integer index = -1;
-	integer sectnum = -1;
+
 	if (getLoaderType () == "none")
 	    return ret;
-        foreach (map<string,any> s, BootCommon::sections, {
-            index = index + 1;
-            if (s["name"]:"" == main_section)
-                sectnum = index;
-        });
+
+	integer sectnum = BootCommon::Section2Index(main_section);
+
         if (sectnum == -1)
             return ret;
+
 	if (BootCommon::sections[sectnum, "__changed"]:false)
 	    return ret;
+
 	string filtered_cmdline = filterchars (Kernel::GetCmdLine (),
 	    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890");
+
 	if (size (filtered_cmdline) > 0)
 	{
 	    ret = add (ret, sformat (
@@ -916,7 +920,8 @@ global define void ResolveSymlinksInSections() {
       * @param section string section to boot
       * @return boolean true on success
       */
-    global define boolean FlagOnetimeBoot (string section) {
+    global define boolean FlagOnetimeBoot(string section)
+    {
 	return blFlagOnetimeBoot (section);
     }
 

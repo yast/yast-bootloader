@@ -14,6 +14,7 @@
  *      Joachim Plack <jplack@suse.de>
  *      Jiri Srain <jsrain@suse.cz>
  *      Andreas Schwab <schwab@suse.de>
+ *      Philipp Thomas <pth@suse.de>
  *
  * $Id$
  *
@@ -578,7 +579,7 @@ global map<string,symbol()> Dialogs () {
   * @param section string section to boot
   * @return boolean true on success
   */
-global define boolean FlagOnetimeBoot (string section) {
+global define boolean FlagBootDefaultOnce (string section) {
 	/* For now a dummy */
 	return true;
 }
@@ -589,19 +590,20 @@ global define boolean FlagOnetimeBoot (string section) {
   */
 global map<string, any> GetFunctions () {
     return $[
-        "export"	   : Export,
-        "import"	   : Import,
-        "read"		   : Read,
-	"reset"		   : Reset,
-        "propose"	   : Propose,
-        "save"		   : Save,
-        "summary"	   : Summary,
-        "update"	   : Update,
-        "write"		   : Write,
-        "widgets"	   : genericWidgets,
-        "wizard_sequencer" : WizardSequenzer,
-        "dialogs"	   : Dialogs,
-        "section_types"	   : section_types,
+        "export"		: Export,
+        "import"		: Import,
+        "read"			: Read,
+	"reset"			: Reset,
+        "propose"		: Propose,
+        "save"			: Save,
+        "summary"		: Summary,
+        "update"		: Update,
+        "write"			: Write,
+        "widgets"		: genericWidgets,
+        "wizard_sequencer"	: WizardSequenzer,
+        "dialogs"		: Dialogs,
+        "section_types"		: section_types,
+	"flagbootdefaultonce"	: FlagBootDefaultOnce,
     ];
 }
 

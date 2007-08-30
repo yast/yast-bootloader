@@ -1,0 +1,6 @@
+2008-08-28  Philipp Thomas <pth@suse.de>
+
+	* clients/bootloader_finish(func == write): Remember status and
+	call FlagOnetimeBoot if all went well. Use
+	Bootloader::getDefaultSection to get the name of the default
+	section.
