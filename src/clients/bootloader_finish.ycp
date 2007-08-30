@@ -150,23 +150,27 @@ After reboot, reconnect and run the following:
     // Bootloader::ReadOrProposeIfNeeded() (which is called the first time
     // Write() is reached from the call-chain that starts below:
     // Bootloader::Update() -> Write()).
+
     if (!Mode::update ())
 	Bootloader::ResolveSymlinksInSections();
 
+    boolean retcode = false;
+
     if (!Mode::update ())
     {
-	return Bootloader::Write ();
+	retcode = Bootloader::Write ();
     }
     else
     {
-	return Bootloader::Update (
+	retcode = Bootloader::Update (
 	    Update::installedVersion,
 	    Update::updateVersion);
     }
 
-    string default_name = BootCommon::globals["default"]:"";
-
-    return Bootloader::FlagOnetimeBoot (default_name);
+    if (retcode)
+    	return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
+    else
+	return retcode;
 }
 else
 {

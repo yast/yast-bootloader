@@ -1013,6 +1013,25 @@ global define list<string> getBootloaders () {
     return ret;
 }
 
+/**
+  * Search for section passed
+  * @return integer index number
+  */
+
+global define integer Section2Index (string section_name)
+{
+    integer index = -1;
+    integer sectnum = -1;
+
+    foreach (map<string,any> s, BootCommon::sections, {
+            index = index + 1;
+	if (s["name"]:"" == section_name)
+	sectnum = index;
+    });
+
+    return sectnum;
+}
+
 }
 
 /*

@@ -14,6 +14,7 @@
  *      Jiri Srain <jsrain@suse.cz>
  *      Joachim Plack <jplack@suse.de>
  *      Olaf Dabrunz <od@suse.de>
+ *      Philipp Thomas <pth@suse.de>
  *
  * $Id$
  *
@@ -1175,9 +1176,10 @@ global map<string,symbol()> Dialogs () {
   * @param section string section to boot
   * @return boolean true on success
   */
-global define boolean FlagOnetimeBoot (string section) {
-    map result = (map)SCR::Execute (.target.bash_output, sformat (
-	"/sbin/lilo -R \"%1\"", section));
+global define boolean FlagOnetimeBoot (string section)
+{
+    map result = (map)SCR::Execute (.target.bash_output,
+				    sformat ("/sbin/lilo -R \"%1\"", section));
     y2milestone ("lilo returned %1", result);
     return (result["exit"]:-1 == 0);
 }
@@ -1189,20 +1191,20 @@ global define boolean FlagOnetimeBoot (string section) {
  */
 global map<string, any> GetFunctions () {
     return $[
-	"export"	   : Export,
-	"import"	   : Import,
-	"read"		   : Read,
-	"reset"		   : Reset,
-	"propose"	   : Propose,
-	"save"		   : Save,
-	"summary"	   : Summary,
-	"update"	   : Update,
-	"write"		   : Write,
-	"widgets"	   : genericWidgets,
-	"wizard_sequencer" : WizardSequenzer,
-	"dialogs"	   : Dialogs,
-	"section_types"	   : section_types,
-	"flagonetimeboot"  : FlagOnetimeBoot,
+	"export"		: Export,
+	"import"		: Import,
+	"read"			: Read,
+	"reset"			: Reset,
+	"propose"		: Propose,
+	"save"			: Save,
+	"summary"		: Summary,
+	"update"		: Update,
+	"write"			: Write,
+	"widgets"		: genericWidgets,
+	"wizard_sequencer"	: WizardSequenzer,
+	"dialogs"		: Dialogs,
+	"section_types"		: section_types,
+	"flagonetimeboot"	: FlagOnetimeBoot,
     ];
 }
 

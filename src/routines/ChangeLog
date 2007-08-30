@@ -1,0 +1,9 @@
+2007-08-28 Philipp Thomas <pth@suse.de>
+
+	* switcher.ycp(blFlagBootDefaultOnce): Renamed back to old name.
+
+
+2007-08-23 Philipp Thomas <pth@suse.de>
+
+	* switcher.ycp(blFlagOneTimeBoot): Rename to blFlagBootDefaultOnce,
+	  and map to flagbootdefaultonce.
