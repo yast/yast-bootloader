@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Sep 13 05:41:00 CEST 2007 - od@suse.de
+
+- specify blockoffset as string, rather than number
+- added a FIXME comment
+- fixed conversion of obsolete filenames in kernel and initrd keys
+- fixed conversion of device names in root and chainloader keys
+  (#309837)
+- 2.15.20
+
+-------------------------------------------------------------------
 Tue Aug 28 18:35:52 CEST 2007 - pth@suse.de
 
 - Fix the code in bootloader_finish so that the one-time-boot code
