@@ -712,7 +712,7 @@ global void UpdateSections (boolean replace,
 		    //     bootable =>  chainloader
 		    s["noverifyroot"] = "true";
 		    s["chainloader"] = dev;
-		    s["blockoffset"] = 1;
+		    s["blockoffset"] = "1";
 		    s["type"] = "other";
 		    y2milestone ("Updating section \"%1\" booting other installation to use chainloader entry", s["name"]:"");
 		}
@@ -743,6 +743,11 @@ global void UpdateSections (boolean replace,
     out = maplist (map<string,any> s, out, {
 	string label = s["name"]:"";
 	string type = s["original_name"]:label;
+	// FIXME: do we still need to remove strings from kernel or initrd names?
+	//        if yes: add "image"
+	//        if no: remove loop
+	//        probably need to do this depending on the version of the old
+	//        installation
 	foreach (string key, ["kernel", "initrd"], {
 	    string value = s[key]:"";
 	    if (regexpmatch (value, "^.*\.shipped.*$"))
@@ -755,7 +760,8 @@ global void UpdateSections (boolean replace,
 		value = regexpsub (value,
 		    "^(.*)\.suse(.*)$", "\\1\\2");
 	    }
-	    s["key"] = value;
+	    // This was broken (was: s["key"] = value;)
+	    s[key] = value;
 	});
 	// If we did not replace the sections anyway, adjust the section titles:
 	// Does this section
@@ -788,13 +794,13 @@ global void UpdateSections (boolean replace,
 		    && ! contains (recreated, label))
 		|| key == "chainloader")
 	    {
-		string device = s["key"]:"";
+		string device = s[key]:"";
 		if (device != nil)
 		{
 		    y2milestone ("Updating root/other device of section %1",
 			label);
 		    device = BootCommon::UpdateDevice (device);
-		    s["key"] = device;
+		    s[key] = device;
 		}
 	    }
 	});

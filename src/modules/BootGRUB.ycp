@@ -346,7 +346,7 @@ global define void CreateSections () {
 			//     mountable        bootable                                        =>  chainloader (label: to be decided)
 			new_sect["noverifyroot"] = "true";
 			new_sect["chainloader"] = dev;
-			new_sect["blockoffset"] = 1;
+			new_sect["blockoffset"] = "1";
 			new_sect["type"] = "other";
 		    }
 		    else
