@@ -1,6 +1,8 @@
 -------------------------------------------------------------------
 Tue Aug 28 18:35:52 CEST 2007 - pth@suse.de
 
+- Fix the code in bootloader_finish so that the one-time-boot code
+  is actually called.
 - Redo the logic and structure of the one-time booting code.
   * Global Write uses Bootloader::getDefaultSection() to determine the
     section name.
