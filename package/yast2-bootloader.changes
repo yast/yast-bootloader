@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Mon Sep 17 19:31:03 CEST 2007 - od@suse.de
+
+- #309837:
+  - fix setting the default section at the end of an update,
+    according to saved previous default kernel image flavor
+  - use fallback flavors if previous flavor is unavailable
+- 2.15.21
+
+-------------------------------------------------------------------
 Thu Sep 13 05:41:00 CEST 2007 - od@suse.de
 
 - specify blockoffset as string, rather than number
