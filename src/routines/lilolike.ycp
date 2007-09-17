@@ -364,27 +364,101 @@ global string FindMBRDisk() {
 
 
 /**
+ * fallback list for kernel flavors (adapted from Kernel.ycp), used if we have
+ * no better information
+ * order is from special to general, but prefer "default" in favor of "xen"
+ */
+// FIXME: handle "rt" and "vanilla"?
+list<string> generic_fallback_flavors = [
+	"s390", "iseries64", "ppc64", "bigsmp", "default", "xenpae", "xen",
+];
+
+/**
  * Fix global section of lilo-like bootloader
- * This currently only changes the "default" key to point to the first section,
- * in case the referenced section does not exist anymore. An empty "default"
- * value is not changed.
+ *
+ * This currently only tries to fix the "default" key in case the referenced
+ * section does not exist anymore. An empty "default" value is not changed,
+ * because this means that no default is wanted.
+ *
+ * If we need to fix the "default" key we take the following steps:
+ *
+ *  - If we are fixing the configuration at the end of an update and the
+ *    special key "former_default_image_flavor" exists, try to set the default
+ *    to the first "linux.*" section with an image of this flavor (preferring
+ *    "linux" entries over possibly older "linux-.*" entries).
+ *
+ *  - Otherwise go through a list of fallback kernel flavours and use the first
+ *    "linux.*" section that contains a matching image (preferring "linux"
+ *    entries over possibly older "linux-.*" entries).
+ *
+ *  - Otherwise, simply use the first section as the default section.
  */
 global void FixGlobals () {
     string defaultv = globals["default"]:"";
     string first = "";
-    if (defaultv != "")
-    {
-	boolean exists = false;
+
+    y2milestone ("fixing default section");
+
+    // nothing to do if default is empty
+    if (defaultv == "")
+	return;
+
+    // does default section exist?
+    boolean exists = false;
+    foreach (map<string,any> s, sections, {
+	string label = s["name"]:"";
+	if (label == defaultv)
+	    exists = true;
+	if (first == "")
+	    first = label;
+    });
+
+    if (exists)
+	return;
+
+    // need to fix "default"
+    boolean old_entry_found = false;
+    string found_name = "";
+    list<string> fallback_flavors = generic_fallback_flavors;
+
+    if (Mode::update() && globals["former_default_image_flavor"]:nil != nil) {
+	fallback_flavors = prepend(fallback_flavors, globals["former_default_image_flavor"]:"");
+
+	// former_default_image_flavor is removed at the end of the update
+	globals = remove (globals, "former_default_image_flavor");
+    }
+
+    y2milestone ("looking for image flavors %1", fallback_flavors);
+    foreach (string flavor, fallback_flavors, {
+	if (found_name != "")
+	    return;
+
 	foreach (map<string,any> s, sections, {
 	    string label = s["name"]:"";
-	    if (label == defaultv)
-		exists = true;
-	    if (first == "")
-		first = label;
+	    if (regexpmatch (s["original_name"]:"", "^linux(-.*)?$") ||
+		regexpmatch (s["image"]:"", "^.*-" + flavor + "$") ||
+		regexpmatch (s["kernel"]:"", "^.*-" + flavor + "$")) {
+		// found, if we have not yet found a match, or the previously
+		// found one was for an "old" entry and we now found a "new"
+		// one
+		if (found_name == "" ||
+		    (old_entry_found && regexpmatch (s["original_name"]:"", "^linux$"))) {
+		    found_name = label;
+		    if (regexpmatch (s["original_name"]:"", "^linux-.*$"))
+			old_entry_found = true;
+		    else
+			old_entry_found = false;
+		}
+	    }
 	});
-	if (! exists)
-	    globals["default"] = first;
-    }
+    });
+
+    if (found_name != "")
+	globals["default"] = found_name;
+    else
+	globals["default"] = first;
+
+    y2milestone ("setting new default section to: %1", globals["default"]:nil);
 }
 
 
