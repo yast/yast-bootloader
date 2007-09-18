@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Sep 18 10:03:53 CEST 2007 - od@suse.de
+
+- update the default entry during update when the comment with the
+  former default exists, even if the current default is valid
+  (#309837)
+- 2.15.22
+
+-------------------------------------------------------------------
 Mon Sep 17 19:31:03 CEST 2007 - od@suse.de
 
 - #309837:
