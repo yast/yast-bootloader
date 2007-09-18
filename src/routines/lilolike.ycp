@@ -376,9 +376,11 @@ list<string> generic_fallback_flavors = [
 /**
  * Fix global section of lilo-like bootloader
  *
- * This currently only tries to fix the "default" key in case the referenced
- * section does not exist anymore. An empty "default" value is not changed,
- * because this means that no default is wanted.
+ * This currently only tries to fix the "default" key if necessary. It is when
+ * the referenced section does not exist anymore or during a system update when
+ * a special comment in the bootloader configuration tells us that we have to
+ * update the "default" key. An empty "default" value is not changed, because
+ * this means that no default is wanted.
  *
  * If we need to fix the "default" key we take the following steps:
  *
@@ -413,7 +415,8 @@ global void FixGlobals () {
 	    first = label;
     });
 
-    if (exists)
+    if (exists &&
+	(! Mode::update() || globals["former_default_image_flavor"]:nil == nil))
 	return;
 
     // need to fix "default"
