@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Sep 20 18:44:06 CEST 2007 - od@suse.de
+
+- ckornacker@suse.de: added PREFIX to Makefile.cvs
+- when bootloader_entry saved (during kernel postuninstall) a
+  command in /boot/perl-BL_delayed_exec for delayed execution in
+  the target system, run that script to remove old sections
+  (#309837)
+- 2.15.23
+
+-------------------------------------------------------------------
 Tue Sep 18 10:03:53 CEST 2007 - od@suse.de
 
 - update the default entry during update when the comment with the
