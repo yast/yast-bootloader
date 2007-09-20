@@ -957,6 +957,8 @@ global define list<string> Summary () {
   */
 global define void Update () {
     BootCommon::UpdateDeviceMap ();
+    // perl-BL delayed section removal
+    BootCommon::RunDelayedUpdates ();
     BootCommon::UpdateSections (true, CreateLinuxSection);
     BootCommon::UpdateGlobals ();
 }
