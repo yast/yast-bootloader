@@ -375,7 +375,7 @@ global string FindMBRDisk() {
  */
 global void RunDelayedUpdates () {
     string scriptname = "/boot/perl-BL_delayed_exec";
-    string cmd = sformat("test -x %1 && %1", scriptname);
+    string cmd = sformat("test -x %1 && { cat %1 ; %1 ; }", scriptname);
 
     y2milestone ("running delayed update command: %1", cmd);
     map out = (map)SCR::Execute (.target.bash_output, cmd);
