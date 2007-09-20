@@ -198,6 +198,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
  */
 global void Update () {
     BootCommon::UpdateDeviceMap ();
+    // perl-BL delayed section removal
+    BootCommon::RunDelayedUpdates ();
     BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
     BootCommon::UpdateGlobals ();
     BootCommon::loader_device

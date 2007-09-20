@@ -391,6 +391,8 @@ global define void Update () {
     BootCommon::globals["timeout"] = "8";
     BootCommon::globals["append"] = BootArch::DefaultKernelParams ("");
 
+    // perl-BL delayed section removal
+    BootCommon::RunDelayedUpdates ();
     BootCommon::UpdateSections (true, CreateLinuxSection);
     // FIXME EFI entry name
 }
