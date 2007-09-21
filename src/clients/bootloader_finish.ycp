@@ -167,8 +167,11 @@ After reboot, reconnect and run the following:
 	    Update::updateVersion);
     }
 
-    if (retcode)
-    	return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
+    if (retcode) {
+	// perl-BL delayed section removal
+	Bootloader::RunDelayedUpdates();
+	return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
+    }
     else
 	return retcode;
 }

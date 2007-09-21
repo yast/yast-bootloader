@@ -466,6 +466,12 @@ global map<string,any> CreateLinuxSection (string title) {
 	// version etc. pp. whatever (currently version-flavor) attached.
 	// FIXME: also do this for xen and xenpae kernels as found below
 	//
+	// Note: originally, we wanted to find out the kernel file names during
+	// installation proposal when the files are not yet installed. But not
+	// all the necessary interfaces work at that time. Now, this variant is
+	// only run in the "running system", and could as well look at the
+	// installed files.
+	//
 
 	// First of all, we have to initialize the RPM database
 	Pkg::TargetInit ( "/",	// installed system
@@ -515,6 +521,8 @@ global map<string,any> CreateLinuxSection (string title) {
 		files_filtered[0]:""
 	);
     } else {
+	// the links are shown in the proposal; at the end of an installation,
+	// in bootloader_finish, they will be resolved to the real filenames
 	kernel_fn = "/boot/" + Kernel::GetBinary ()
 	    + (title == "wildcard" ? "-*" : "");
 	initrd_fn = "/boot/initrd" + (title == "wildcard" ? "-*" : "");

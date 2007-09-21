@@ -969,9 +969,6 @@ global define list<string> Summary () {
  */
 global void Update () {
 
-    // perl-BL delayed section removal
-    BootCommon::RunDelayedUpdates ();
-
    /**
     * Firstly update sections of bootloader configuration and modify internal
     * structures as needed. This means right now:

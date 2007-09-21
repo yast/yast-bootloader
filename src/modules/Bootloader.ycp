@@ -920,6 +920,18 @@ global define void ResolveSymlinksInSections() {
       * @param section string section to boot
       * @return boolean true on success
       */
+    global define void RunDelayedUpdates()
+    {
+	// perl-BL delayed section removal
+	BootCommon::RunDelayedUpdates ();
+	return;
+    }
+
+    /**
+      * Set section to boot on next reboot
+      * @param section string section to boot
+      * @return boolean true on success
+      */
     global define boolean FlagOnetimeBoot(string section)
     {
 	return blFlagOnetimeBoot (section);
