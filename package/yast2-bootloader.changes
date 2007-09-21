@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Sep 21 16:19:02 CEST 2007 - od@suse.de
+
+- run delayed bootloader_entry at the very end of the update, when
+  the migrated bootloader configuration (including device mapping)
+  has already been written (#309837)
+- added some comments
+- 2.15.25
+
+-------------------------------------------------------------------
 Thu Sep 20 21:00:14 CEST 2007 - od@suse.de
 
 - log the contents of the perl-BL_delayed_exec script (#309837)
