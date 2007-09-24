@@ -736,6 +736,7 @@ global void UpdateSections (boolean replace,
 		f_changed = true;
 		if (replace && m != $[])
 		{
+		    y2milestone ("Recreated section %1: %2", label, m);
 		    recreated = add (recreated, label);
 		    return m;
 		}
@@ -766,6 +767,7 @@ global void UpdateSections (boolean replace,
 	// prepend or append the section created by create_linux_section()
         if (! f_changed && m != $[])
 	{
+	    y2milestone ("Recreated section: %1", m);
 	    recreated = add (recreated, m["name"]:"");
             if (t == "linux")
 		out = prepend (out, m);
@@ -773,6 +775,7 @@ global void UpdateSections (boolean replace,
 		out = add (out, m);
 	}
     });
+    y2milestone ("All recreated sections: %1", recreated);
 
     // for grub and replace-mode only:
     // convert sections that boot "other" installations (another Linux, Windows
@@ -889,7 +892,16 @@ global void UpdateSections (boolean replace,
 	    y2milestone ("... to %1", s["name"]:"");
 	}
 
+	// Update device names in sections for certain section types, if the
+	// section has not been recreated anyway
+	// FIXME: never update device names twice!
 	foreach (string key, ["root", "chainloader"], {
+	    // FIXME: for some reason, this used to update "linux" and
+	    // "failsafe" even if they have been recreated; but "other"
+	    // sections were never updated -- since there are no calls to
+	    // UpdateSections() with replace == false, ATM we disable updating
+	    // "linux" and "failsafe", and add "other", seed
+	    // BootCommon::update_section_types
 	    if ((contains (update_section_types, type)
 		    && ! contains (recreated, label))
 		|| key == "chainloader")
