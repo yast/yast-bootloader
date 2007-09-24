@@ -1,4 +1,24 @@
 -------------------------------------------------------------------
+Mon Sep 24 21:25:37 CEST 2007 - od@suse.de
+
+- Storage::GetTranslatedDevices() called often and uneccesarily
+  (related to #304269):
+  - added more logging to UpdateSections()
+  - added comments and FIXMEs
+  - disabled calling device name update again for "linux",
+    "failsafe" and "initrd" sections: this is not needed and would
+    reverse device name updates when forwards and backwards device
+    name update mappings exist
+  - enabled device name updates for "other" sections (booting other
+    installations)
+- (related to #326372, see comment #12)
+  - fix "Interpreter" error: also activates persistent device
+    translation for device.map in yast2-bootloader (but no disk
+    device mappings are defined in yast2-storage, so devices remain
+    untranslated as of now)
+- 2.15.26
+
+-------------------------------------------------------------------
 Fri Sep 21 16:19:02 CEST 2007 - od@suse.de
 
 - run delayed bootloader_entry at the very end of the update, when
