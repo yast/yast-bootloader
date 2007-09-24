@@ -313,8 +313,9 @@ global string read_default_section_name = "";
 /**
  * Types of sections that should be updated (changed device names)
  */
-global list<string> update_section_types
-    = [ "linux", "failsafe", "initrd", "floppy" ];
+ // FIXME: see FIXME in lilolike.ycp:899
+global list<string> update_section_types = [ "floppy", "other" ];
+//    = [ "linux", "failsafe", "initrd", "floppy" ];
 
 /**
  * List of all supported bootloaders
@@ -634,7 +635,7 @@ global boolean Read (boolean reread) {
     });
 
     // convert device names in device map to the kernel device names
-    map<string,string> device_mapping =
+    device_mapping =
 	mapmap (string k , string v, device_mapping, {
 	    return $[BootCommon::MountByDev2Dev(k) : v];
     });
