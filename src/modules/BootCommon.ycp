@@ -1035,9 +1035,10 @@ global define integer Section2Index (string section_name)
     foreach (map<string,any> s, BootCommon::sections, {
             index = index + 1;
 	if (s["name"]:"" == section_name)
-	sectnum = index;
+	    sectnum = index;
     });
 
+    y2milestone ("ret: %1", sectnum);
     return sectnum;
 }
 
