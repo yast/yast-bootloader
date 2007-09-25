@@ -2,30 +2,33 @@
 # records the merge state and history for merging changes from other branches
 # to the branch of the current working directory
 # URLs of other branches and the highest revisions we have looked at
+http://svn.opensuse.org/svn/yast/trunk/bootloader 41082
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader 22587
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader 26031
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader 30669
-http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-Branch/bootloader 31732
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_2-Branch/bootloader 34622
 http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP1-Branch/bootloader 37794
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP2-Branch/bootloader 41076
 
 # revisions seen:
 # 
+http://svn.opensuse.org/svn/yast/trunk/bootloader  41082
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader  21937 21967 22006 22037 22040 22055 22100 22113 22239 22285 22312 22318 22488 22587
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader  25537 25727 26031
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader  30669
-http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-Branch/bootloader  31508 31536 31598 31728 31732
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_2-Branch/bootloader  34622
 http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP1-Branch/bootloader  31627 31731 33390 34876 35236 35340 35342 35344 35347 35356 35413 35417 35650 35829 35850 35916 35917 35999 36005 36006 36027 36059 36143 36175 36768 36888 36889 36890 36900 36960 36961 36964 37091 37172 37196 37377 37430 37448 37451 37616 37672 37673 37674 37675 37676 37677 37678 37761 37762 37794
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP2-Branch/bootloader 
 
 # revisions postponed:
 # 
+http://svn.opensuse.org/svn/yast/trunk/bootloader 
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader 
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader 
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader 
-http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-Branch/bootloader 
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_2-Branch/bootloader 
 http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP1-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP2-Branch/bootloader 
 
 # source:
 # merge states of the revisions
@@ -103,4 +106,7 @@ MERGE_STATE[37678]=merged
 MERGE_STATE[37761]=merged
 MERGE_STATE[37762]=merged
 MERGE_STATE[37794]=merged
+MERGE_STATE[41082]=already_merged
+
+# comments for postponed / not merged revisions
 
