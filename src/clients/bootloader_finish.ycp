@@ -170,6 +170,9 @@ After reboot, reconnect and run the following:
     if (retcode) {
 	// perl-BL delayed section removal
 	Bootloader::RunDelayedUpdates();
+	// re-read external changes, then boot through to second stage of
+	// installation or update
+	Bootloader::Read ();
 	return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
     }
     else
