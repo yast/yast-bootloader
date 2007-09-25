@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep 25 11:09:55 CEST 2007 - od@suse.de
+
+- added logging to find problem in #328078
+- minor addition of whitespace
+- 2.15.27
+
+-------------------------------------------------------------------
 Mon Sep 24 21:25:37 CEST 2007 - od@suse.de
 
 - Storage::GetTranslatedDevices() called often and uneccesarily
