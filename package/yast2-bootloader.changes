@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Sep 25 19:49:51 CEST 2007 - od@suse.de
+
+- re-read bootloader config from system after the delayed run of
+  perl-Bootloader updates, then call FlagOnetimeBoot() based on
+  current setup (#328078)
+- 2.15.28
+
+-------------------------------------------------------------------
 Tue Sep 25 11:09:55 CEST 2007 - od@suse.de
 
 - added logging to find problem in #328078
