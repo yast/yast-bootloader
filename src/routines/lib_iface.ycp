@@ -284,11 +284,13 @@ global void bootloaderError (string error) {
 
 /**
  * Read the files from the system to internal cache of the library
+ * @param avoid_reading_device_map do not read the device map, but use internal
+ * data
  * @return boolean true on success
  */
-global boolean ReadFiles () {
+global boolean ReadFiles (boolean avoid_reading_device_map) {
     y2milestone ("Reading Files");
-    boolean ret = System::Bootloader_API::readSettings ();
+    boolean ret = System::Bootloader_API::readSettings (avoid_reading_device_map);
     if (! ret)
 	y2error ("Reading files failed");
     return ret;

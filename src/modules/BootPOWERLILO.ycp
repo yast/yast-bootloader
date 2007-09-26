@@ -821,15 +821,18 @@ global define boolean Import (map settings) {
 
 /**
  * Read settings from disk
+ * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
  * @return boolean true on success
  */
-global boolean Read (boolean reread) {
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     BootCommon::InitializeLibrary (reread, "ppc");
     if (reread) {
-	BootCommon::ReadFiles ();
+	BootCommon::ReadFiles (avoid_reading_device_map);
     }
 
-    boolean ret = BootCommon::Read (false);
+    boolean ret = BootCommon::Read (false, avoid_reading_device_map);
     y2milestone (":: Read globals: %1", BootCommon::globals);
 
     importMetaData();

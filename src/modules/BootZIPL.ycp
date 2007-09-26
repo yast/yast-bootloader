@@ -163,15 +163,17 @@ global define boolean updateHardwareConfig () {
 /**
  * Read settings from disk
  * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
  * @return boolean true on success
  */
-global boolean Read (boolean reread) {
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     BootCommon::InitializeLibrary (reread, "zipl");
     if (reread) {
-	BootCommon::ReadFiles ();
+	BootCommon::ReadFiles (avoid_reading_device_map);
     }
     BootCommon::DetectDisks ();
-    boolean ret = BootCommon::Read (false);
+    boolean ret = BootCommon::Read (false, avoid_reading_device_map);
     return ret;
 }
 
