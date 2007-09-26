@@ -5,27 +5,30 @@
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader 22587
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader 26031
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader 30669
-http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-Branch/bootloader 31732
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_2-Branch/bootloader 34622
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_3-Branch/bootloader 41092
 http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP1-Branch/bootloader 37794
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP2-Branch/bootloader 41083
 
 # revisions seen:
 # 
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader  21937 21967 22006 22037 22040 22055 22100 22113 22239 22285 22312 22318 22488 22587
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader  25537 25727 26031
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader  30669
-http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-Branch/bootloader  31508 31536 31598 31728 31732
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_2-Branch/bootloader  34622
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_3-Branch/bootloader  41091 41092
 http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP1-Branch/bootloader  31627 31731 33390 34876 35236 35340 35342 35344 35347 35356 35413 35417 35650 35829 35850 35916 35917 35999 36005 36006 36027 36059 36143 36175 36768 36888 36889 36890 36900 36960 36961 36964 37091 37172 37196 37377 37430 37448 37451 37616 37672 37673 37674 37675 37676 37677 37678 37761 37762 37794
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP2-Branch/bootloader 
 
 # revisions postponed:
 # 
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader 
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader 
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader 
-http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-Branch/bootloader 
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_2-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_3-Branch/bootloader 
 http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP1-Branch/bootloader 
+http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP2-Branch/bootloader 
 
 # source:
 # merge states of the revisions
@@ -103,4 +106,68 @@ MERGE_STATE[37678]=merged
 MERGE_STATE[37761]=merged
 MERGE_STATE[37762]=merged
 MERGE_STATE[37794]=merged
+MERGE_STATE[41091]=not_merged
+MERGE_STATE[41092]=not_merged
+
+# comments for postponed / not merged revisions
+REV_COMMENT[41091]=This
+is[change]=#41092
+on[branch]=http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_3-Branch/bootloader.
+------------------------------------------------------------------------[r41091]=|
+odabrunz[|]=2007-09-25
+19:35:47[+0200]=(Tue,
+25[Sep]=2007)
+|[4]=lines
+Changed[paths:]=M
+/branches/SuSE-Linux-10_3-Branch/bootloader/src/clients/bootloader_finish.ycp[-]=re-read
+bootloader[config]=from
+system[after]=the
+delayed[run]=of
+perl-Bootloader[updates,]=then
+call[FlagOnetimeBoot()]=based
+on[current]=setup
+(#328078)[------------------------------------------------------------------------]=r41092
+|[odabrunz]=|
+2007-09-25[19:49:07]=+0200
+(Tue,[25]=Sep
+2007)[|]=2
+lines[Changed]=paths:
+M[/branches/SuSE-Linux-10_3-Branch/bootloader/y2_checkin.state]=-
+updated[merge]=state
+These[changes]=are
+not[merged]=to
+branch[http://svn.opensuse.org/svn/yast/trunk/bootloader,]=because
+-[they]=were
+previously[merged]=from
+the[current]=branch
+REV_COMMENT[41092]=This
+is[change]=#41092
+on[branch]=http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_3-Branch/bootloader.
+------------------------------------------------------------------------[r41091]=|
+odabrunz[|]=2007-09-25
+19:35:47[+0200]=(Tue,
+25[Sep]=2007)
+|[4]=lines
+Changed[paths:]=M
+/branches/SuSE-Linux-10_3-Branch/bootloader/src/clients/bootloader_finish.ycp[-]=re-read
+bootloader[config]=from
+system[after]=the
+delayed[run]=of
+perl-Bootloader[updates,]=then
+call[FlagOnetimeBoot()]=based
+on[current]=setup
+(#328078)[------------------------------------------------------------------------]=r41092
+|[odabrunz]=|
+2007-09-25[19:49:07]=+0200
+(Tue,[25]=Sep
+2007)[|]=2
+lines[Changed]=paths:
+M[/branches/SuSE-Linux-10_3-Branch/bootloader/y2_checkin.state]=-
+updated[merge]=state
+These[changes]=are
+not[merged]=to
+branch[http://svn.opensuse.org/svn/yast/trunk/bootloader,]=because
+-[they]=were
+previously[merged]=from
+the[current]=branch
 
