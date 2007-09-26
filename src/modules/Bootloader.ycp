@@ -223,7 +223,7 @@
         if (testAbort ())
             return false;
 
-	boolean ret = blRead (true);
+	boolean ret = blRead (true, false);
 	BootCommon::was_read = true;
 	old_vga = getKernelParam (getDefaultSection (), "vga");
 

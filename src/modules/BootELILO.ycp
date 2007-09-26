@@ -202,9 +202,12 @@ global define boolean Import (map settings) {
 
 /**
   * Read settings from disk
+  * @param reread boolean true to force reread settings from system
+  * @param avoid_reading_device_map do not read new device map from file, use
+  * internal data
   * @return boolean true on success
   */
-global define boolean Read (boolean reread) {
+global define boolean Read (boolean reread, boolean avoid_reading_device_map) {
 	import "Product";
 	boolean efi_entry_found = false;
 	elilo_conf_filename = getEliloConfFilename ();
@@ -218,7 +221,7 @@ global define boolean Read (boolean reread) {
 	}
 	SCR::Execute (.target.bash, "/bin/touch /etc/elilo.conf");
 	BootCommon::DetectDisks ();
-	boolean ret = BootCommon::Read (reread);
+	boolean ret = BootCommon::Read (reread, avoid_reading_device_map);
 
 	// check for meaningless EFI entry name in sysconfig
 	if ( !haskey(BootCommon::globals,"boot_efilabel")

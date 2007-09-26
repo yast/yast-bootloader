@@ -79,10 +79,10 @@ import "BootCommon";
  * @param reread boolean true to force rereading the settings from the disk
  * @return boolean true on success
  */
-global define boolean blRead (boolean reread) ``{
+global define boolean blRead (boolean reread, boolean avoid_reading_device_map) ``{
     map functions = getFunctions (BootCommon::getLoaderType (false));
-    boolean(boolean) toEval = functions["read"]:BootCommon::Read;
-    return toEval (reread);
+    boolean(boolean, boolean) toEval = functions["read"]:BootCommon::Read;
+    return toEval (reread, avoid_reading_device_map);
 }
 
     /**

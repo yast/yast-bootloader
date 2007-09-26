@@ -163,16 +163,18 @@ global void CreateGlobals () {
 /**
  * Read settings from disk
  * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
  * @return boolean true on success
  */
-global boolean Read (boolean reread) {
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     BootCommon::InitializeLibrary (reread, "lilo");
     if (reread)
     {
-	BootCommon::ReadFiles ();
+	BootCommon::ReadFiles (avoid_reading_device_map);
     }
     BootCommon::DetectDisks ();
-    boolean ret = BootCommon::Read (false);
+    boolean ret = BootCommon::Read (false, avoid_reading_device_map);
     BootCommon::loader_device = BootCommon::globals["stage1_dev"]:"";
     return ret;
 }
@@ -198,6 +200,18 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
  */
 global void Update () {
     BootCommon::UpdateDeviceMap ();
+
+    // During update, for libata device name migration ("/dev/hda1" ->
+    // "/dev/sda1") and somesuch, we need to re-read and parse the rest of the
+    // configuration file contents after internally updating the device map in
+    // perl-Bootloader. This way, the device names are consistent with the
+    // partitioning information we have set up in perl-Bootloader with
+    // SetDiskInfo(), and device names in other config files can be translated
+    // to Unix device names (#328448, this hits sections that are not
+    // (re-)created by yast-Bootloader or later by perl-Bootloader anyway).
+    BootCommon::SetDeviceMap (BootCommon::device_mapping);
+    Read (true, true);
+
     BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
     BootCommon::UpdateGlobals ();
     BootCommon::loader_device

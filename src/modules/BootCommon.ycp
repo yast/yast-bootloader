@@ -611,16 +611,18 @@ global define boolean Import (map settings) {
 /**
  * Read settings from disk
  * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
  * @return boolean true on success
  */
-global boolean Read (boolean reread) {
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     string bl = getLoaderType (false);
     if (bl == "none")
 	return true;
     InitializeLibrary (reread, bl);
     if (reread)
     {
-	BootCommon::ReadFiles ();
+	BootCommon::ReadFiles (avoid_reading_device_map);
     }
     sections = GetSections ();
     globals = GetGlobal ();
@@ -925,9 +927,10 @@ global define string getLoaderType (boolean recheck) {
     if (loader_type == "s390")
       loader_type = "zipl";
     y2milestone ("Bootloader detection returned %1", loader_type);
-    if (Arch::is_uml ())
+    // lslezak@: Arch::is_xenU() returns true only in PV guest
+    if (Arch::is_uml () || Arch::is_xenU())
     {
-	y2milestone ("Not installing any bootloader for UML");
+	y2milestone ("Not installing any bootloader for UML/Xen PV");
 	loader_type = "none";
     }
     if (loader_type == "grub" && Storage::UseLilo())

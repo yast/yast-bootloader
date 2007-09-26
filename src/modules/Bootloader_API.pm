@@ -80,10 +80,11 @@ sub initializeBootloader() {
     return $ret;
 }
 
-BEGIN { $TYPEINFO{readSettings} = ["function", "boolean"]; }
+BEGIN { $TYPEINFO{readSettings} = ["function", "boolean", "boolean"]; }
 # read configuration
 sub readSettings() {
-    my $ret = $lib_ref->ReadSettings();
+    my ($avoid_reading_device_map) = @_;
+    my $ret = $lib_ref->ReadSettings($avoid_reading_device_map);
 
     DumpLog();
     return $ret ? "true" : "false";
