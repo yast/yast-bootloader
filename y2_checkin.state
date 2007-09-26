@@ -110,64 +110,45 @@ MERGE_STATE[41091]=not_merged
 MERGE_STATE[41092]=not_merged
 
 # comments for postponed / not merged revisions
-REV_COMMENT[41091]=This
-is[change]=#41092
-on[branch]=http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_3-Branch/bootloader.
-------------------------------------------------------------------------[r41091]=|
-odabrunz[|]=2007-09-25
-19:35:47[+0200]=(Tue,
-25[Sep]=2007)
-|[4]=lines
-Changed[paths:]=M
-/branches/SuSE-Linux-10_3-Branch/bootloader/src/clients/bootloader_finish.ycp[-]=re-read
-bootloader[config]=from
-system[after]=the
-delayed[run]=of
-perl-Bootloader[updates,]=then
-call[FlagOnetimeBoot()]=based
-on[current]=setup
-(#328078)[------------------------------------------------------------------------]=r41092
-|[odabrunz]=|
-2007-09-25[19:49:07]=+0200
-(Tue,[25]=Sep
-2007)[|]=2
-lines[Changed]=paths:
-M[/branches/SuSE-Linux-10_3-Branch/bootloader/y2_checkin.state]=-
-updated[merge]=state
-These[changes]=are
-not[merged]=to
-branch[http://svn.opensuse.org/svn/yast/trunk/bootloader,]=because
--[they]=were
-previously[merged]=from
-the[current]=branch
-REV_COMMENT[41092]=This
-is[change]=#41092
-on[branch]=http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_3-Branch/bootloader.
-------------------------------------------------------------------------[r41091]=|
-odabrunz[|]=2007-09-25
-19:35:47[+0200]=(Tue,
-25[Sep]=2007)
-|[4]=lines
-Changed[paths:]=M
-/branches/SuSE-Linux-10_3-Branch/bootloader/src/clients/bootloader_finish.ycp[-]=re-read
-bootloader[config]=from
-system[after]=the
-delayed[run]=of
-perl-Bootloader[updates,]=then
-call[FlagOnetimeBoot()]=based
-on[current]=setup
-(#328078)[------------------------------------------------------------------------]=r41092
-|[odabrunz]=|
-2007-09-25[19:49:07]=+0200
-(Tue,[25]=Sep
-2007)[|]=2
-lines[Changed]=paths:
-M[/branches/SuSE-Linux-10_3-Branch/bootloader/y2_checkin.state]=-
-updated[merge]=state
-These[changes]=are
-not[merged]=to
-branch[http://svn.opensuse.org/svn/yast/trunk/bootloader,]=because
--[they]=were
-previously[merged]=from
-the[current]=branch
+REV_COMMENT[41091]='This is change #41092 on branch http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_3-Branch/bootloader.
+------------------------------------------------------------------------
+r41091 | odabrunz | 2007-09-25 19:35:47 +0200 (Tue, 25 Sep 2007) | 4 lines
+Changed paths:
+   M /branches/SuSE-Linux-10_3-Branch/bootloader/src/clients/bootloader_finish.ycp
 
+- re-read bootloader config from system after the delayed run of
+  perl-Bootloader updates, then call FlagOnetimeBoot() based on
+  current setup (#328078)
+
+------------------------------------------------------------------------
+r41092 | odabrunz | 2007-09-25 19:49:07 +0200 (Tue, 25 Sep 2007) | 2 lines
+Changed paths:
+   M /branches/SuSE-Linux-10_3-Branch/bootloader/y2_checkin.state
+
+- updated merge state
+
+------------------------------------------------------------------------
+These changes are not merged to branch http://svn.opensuse.org/svn/yast/trunk/bootloader,
+because
+    - they were previously merged from the current branch'
+REV_COMMENT[41092]='This is change #41092 on branch http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_3-Branch/bootloader.
+------------------------------------------------------------------------
+r41091 | odabrunz | 2007-09-25 19:35:47 +0200 (Tue, 25 Sep 2007) | 4 lines
+Changed paths:
+   M /branches/SuSE-Linux-10_3-Branch/bootloader/src/clients/bootloader_finish.ycp
+
+- re-read bootloader config from system after the delayed run of
+  perl-Bootloader updates, then call FlagOnetimeBoot() based on
+  current setup (#328078)
+
+------------------------------------------------------------------------
+r41092 | odabrunz | 2007-09-25 19:49:07 +0200 (Tue, 25 Sep 2007) | 2 lines
+Changed paths:
+   M /branches/SuSE-Linux-10_3-Branch/bootloader/y2_checkin.state
+
+- updated merge state
+
+------------------------------------------------------------------------
+These changes are not merged to branch http://svn.opensuse.org/svn/yast/trunk/bootloader,
+because
+    - they were previously merged from the current branch'
