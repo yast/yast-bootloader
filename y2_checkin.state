@@ -2,7 +2,7 @@
 # records the merge state and history for merging changes from other branches
 # to the branch of the current working directory
 # URLs of other branches and the highest revisions we have looked at
-http://svn.opensuse.org/svn/yast/trunk/bootloader 41082
+http://svn.opensuse.org/svn/yast/trunk/bootloader 41120
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader 22587
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader 26031
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader 30669
@@ -12,7 +12,7 @@ http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP2-Branch/bootloader 4107
 
 # revisions seen:
 # 
-http://svn.opensuse.org/svn/yast/trunk/bootloader  41082
+http://svn.opensuse.org/svn/yast/trunk/bootloader  41082 41120
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-9_3-Branch/bootloader  21937 21967 22006 22037 22040 22055 22100 22113 22239 22285 22312 22318 22488 22587
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_0-Branch/bootloader  25537 25727 26031
 http://svn.opensuse.org/svn/yast/branches/SuSE-Linux-10_1-Branch/bootloader  30669
@@ -32,81 +32,82 @@ http://svn.opensuse.org/svn/yast/branches/SuSE-SLE-10-SP2-Branch/bootloader
 
 # source:
 # merge states of the revisions
-MERGE_STATE[21937]=not_merged
-MERGE_STATE[21967]=not_merged
-MERGE_STATE[22006]=not_merged
-MERGE_STATE[22037]=not_merged
-MERGE_STATE[22040]=not_merged
-MERGE_STATE[22055]=not_merged
-MERGE_STATE[22100]=not_merged
-MERGE_STATE[22113]=not_merged
-MERGE_STATE[22239]=not_merged
-MERGE_STATE[22285]=not_merged
-MERGE_STATE[22312]=not_merged
-MERGE_STATE[22318]=not_merged
-MERGE_STATE[22488]=not_merged
-MERGE_STATE[22587]=not_merged
-MERGE_STATE[25537]=not_merged
-MERGE_STATE[25727]=not_merged
-MERGE_STATE[26031]=not_merged
-MERGE_STATE[30669]=not_merged
-MERGE_STATE[31508]=not_merged
-MERGE_STATE[31536]=not_merged
-MERGE_STATE[31598]=not_merged
-MERGE_STATE[31627]=already_merged
-MERGE_STATE[31728]=not_merged
-MERGE_STATE[31731]=already_merged
-MERGE_STATE[31732]=not_merged
-MERGE_STATE[33390]=already_merged
-MERGE_STATE[34622]=not_merged
-MERGE_STATE[34876]=already_merged
-MERGE_STATE[35236]=already_merged
-MERGE_STATE[35340]=already_merged
-MERGE_STATE[35342]=already_merged
-MERGE_STATE[35344]=already_merged
-MERGE_STATE[35347]=already_merged
-MERGE_STATE[35356]=already_merged
-MERGE_STATE[35413]=already_merged
-MERGE_STATE[35417]=already_merged
-MERGE_STATE[35650]=merged
-MERGE_STATE[35829]=already_merged
-MERGE_STATE[35850]=already_merged
-MERGE_STATE[35916]=merged
-MERGE_STATE[35917]=already_merged
-MERGE_STATE[35999]=merged
-MERGE_STATE[36005]=already_merged
-MERGE_STATE[36006]=already_merged
-MERGE_STATE[36027]=merged
-MERGE_STATE[36059]=merged
-MERGE_STATE[36143]=already_merged
-MERGE_STATE[36175]=already_merged
-MERGE_STATE[36768]=already_merged
-MERGE_STATE[36888]=merged
-MERGE_STATE[36889]=merged
-MERGE_STATE[36890]=merged
-MERGE_STATE[36900]=merged
-MERGE_STATE[36960]=merged
-MERGE_STATE[36961]=merged
-MERGE_STATE[36964]=merged
-MERGE_STATE[37091]=merged
-MERGE_STATE[37172]=merged
-MERGE_STATE[37196]=merged
-MERGE_STATE[37377]=already_merged
-MERGE_STATE[37430]=merged
-MERGE_STATE[37448]=merged
-MERGE_STATE[37451]=merged
-MERGE_STATE[37616]=merged
-MERGE_STATE[37672]=merged
-MERGE_STATE[37673]=merged
-MERGE_STATE[37674]=merged
-MERGE_STATE[37675]=merged
-MERGE_STATE[37676]=merged
-MERGE_STATE[37677]=merged
-MERGE_STATE[37678]=merged
-MERGE_STATE[37761]=merged
-MERGE_STATE[37762]=merged
-MERGE_STATE[37794]=merged
-MERGE_STATE[41082]=already_merged
+MERGE_STATE[21937]='not_merged'
+MERGE_STATE[21967]='not_merged'
+MERGE_STATE[22006]='not_merged'
+MERGE_STATE[22037]='not_merged'
+MERGE_STATE[22040]='not_merged'
+MERGE_STATE[22055]='not_merged'
+MERGE_STATE[22100]='not_merged'
+MERGE_STATE[22113]='not_merged'
+MERGE_STATE[22239]='not_merged'
+MERGE_STATE[22285]='not_merged'
+MERGE_STATE[22312]='not_merged'
+MERGE_STATE[22318]='not_merged'
+MERGE_STATE[22488]='not_merged'
+MERGE_STATE[22587]='not_merged'
+MERGE_STATE[25537]='not_merged'
+MERGE_STATE[25727]='not_merged'
+MERGE_STATE[26031]='not_merged'
+MERGE_STATE[30669]='not_merged'
+MERGE_STATE[31508]='not_merged'
+MERGE_STATE[31536]='not_merged'
+MERGE_STATE[31598]='not_merged'
+MERGE_STATE[31627]='already_merged'
+MERGE_STATE[31728]='not_merged'
+MERGE_STATE[31731]='already_merged'
+MERGE_STATE[31732]='not_merged'
+MERGE_STATE[33390]='already_merged'
+MERGE_STATE[34622]='not_merged'
+MERGE_STATE[34876]='already_merged'
+MERGE_STATE[35236]='already_merged'
+MERGE_STATE[35340]='already_merged'
+MERGE_STATE[35342]='already_merged'
+MERGE_STATE[35344]='already_merged'
+MERGE_STATE[35347]='already_merged'
+MERGE_STATE[35356]='already_merged'
+MERGE_STATE[35413]='already_merged'
+MERGE_STATE[35417]='already_merged'
+MERGE_STATE[35650]='merged'
+MERGE_STATE[35829]='already_merged'
+MERGE_STATE[35850]='already_merged'
+MERGE_STATE[35916]='merged'
+MERGE_STATE[35917]='already_merged'
+MERGE_STATE[35999]='merged'
+MERGE_STATE[36005]='already_merged'
+MERGE_STATE[36006]='already_merged'
+MERGE_STATE[36027]='merged'
+MERGE_STATE[36059]='merged'
+MERGE_STATE[36143]='already_merged'
+MERGE_STATE[36175]='already_merged'
+MERGE_STATE[36768]='already_merged'
+MERGE_STATE[36888]='merged'
+MERGE_STATE[36889]='merged'
+MERGE_STATE[36890]='merged'
+MERGE_STATE[36900]='merged'
+MERGE_STATE[36960]='merged'
+MERGE_STATE[36961]='merged'
+MERGE_STATE[36964]='merged'
+MERGE_STATE[37091]='merged'
+MERGE_STATE[37172]='merged'
+MERGE_STATE[37196]='merged'
+MERGE_STATE[37377]='already_merged'
+MERGE_STATE[37430]='merged'
+MERGE_STATE[37448]='merged'
+MERGE_STATE[37451]='merged'
+MERGE_STATE[37616]='merged'
+MERGE_STATE[37672]='merged'
+MERGE_STATE[37673]='merged'
+MERGE_STATE[37674]='merged'
+MERGE_STATE[37675]='merged'
+MERGE_STATE[37676]='merged'
+MERGE_STATE[37677]='merged'
+MERGE_STATE[37678]='merged'
+MERGE_STATE[37761]='merged'
+MERGE_STATE[37762]='merged'
+MERGE_STATE[37794]='merged'
+MERGE_STATE[41082]='already_merged'
+MERGE_STATE[41120]='merged'
 
 # comments for postponed / not merged revisions
 
