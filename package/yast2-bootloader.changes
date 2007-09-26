@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Wed Sep 26 22:52:20 CEST 2007 - od@suse.de
+
+- added flag avoid_reading_device_map to blRead(), all internal
+  Read()s and ReadSettings() interface to perl-Bootloader: used by
+  BootLILO and BootGRUB during update to migrate device names in
+  the device_map and then re-read the config files with correct
+  device name translation (#328448)
+- do not install bootloader in XEN paravirtualized DomU (#308451)
+- 2.15.29
+
+-------------------------------------------------------------------
 Tue Sep 25 19:49:51 CEST 2007 - od@suse.de
 
 - re-read bootloader config from system after the delayed run of
