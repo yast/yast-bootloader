@@ -916,9 +916,9 @@ global define string getLoaderType (boolean recheck) {
     if (loader_type == "s390")
       loader_type = "zipl";
     y2milestone ("Bootloader detection returned %1", loader_type);
-    if (Arch::is_uml ())
+    if (Arch::is_uml () || Arch::is_xenU())
     {
-	y2milestone ("Not installing any bootloader for UML");
+	y2milestone ("Not installing any bootloader for UML/Xen PV");
 	loader_type = "none";
     }
     if (loader_type == "grub" && Storage::UseLilo())
