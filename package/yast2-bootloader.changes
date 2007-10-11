@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct 11 15:18:58 CEST 2007 - od@suse.de
+
+- migrate SLES9 persistent device ("...p1") names to SLES10
+  persistent device names ("...-part1") (#162216)
+- 2.15.30
+
+-------------------------------------------------------------------
 Wed Sep 26 21:22:58 CEST 2007 - od@suse.de
 
 - added flag avoid_reading_device_map to blRead(), all internal
