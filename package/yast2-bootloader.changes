@@ -1,9 +1,9 @@
 -------------------------------------------------------------------
-Thu Oct 11 15:18:58 CEST 2007 - od@suse.de
+Thu Oct 11 15:22:27 CEST 2007 - od@suse.de
 
 - migrate SLES9 persistent device ("...p1") names to SLES10
   persistent device names ("...-part1") (#162216)
-- 2.15.30
+- 2.16.1
 
 -------------------------------------------------------------------
 Wed Sep 26 21:22:58 CEST 2007 - od@suse.de
