@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 31 14:08:59 CET 2007 - locilka@suse.cz
+
+- installedVersion and updateVersion moved from 'Update' to
+  'Installation' YCP module to remove dependencies.
+
+-------------------------------------------------------------------
 Thu Oct 11 15:22:27 CEST 2007 - od@suse.de
 
 - migrate SLES9 persistent device ("...p1") names to SLES10
