@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 31 14:32:59 CET 2007 - dfiser@suse.cz
+
+- Adapted to change of StorageDevices API.
+- v2.16.2
+
+-------------------------------------------------------------------
 Wed Oct 31 14:08:59 CET 2007 - locilka@suse.cz
 
 - installedVersion and updateVersion moved from 'Update' to
