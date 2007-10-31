@@ -23,7 +23,6 @@ import "Installation";
 import "Linuxrc";
 import "Misc";
 import "Mode";
-import "Update";
 import "BootCommon";
 
 any ret = nil;
@@ -164,8 +163,8 @@ After reboot, reconnect and run the following:
     else
     {
 	retcode = Bootloader::Update (
-	    Update::installedVersion,
-	    Update::updateVersion);
+	    Installation::installedVersion,
+	    Installation::updateVersion);
     }
 
     if (retcode) {
