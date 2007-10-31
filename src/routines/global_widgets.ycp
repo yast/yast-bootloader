@@ -519,13 +519,13 @@ term TargetWidget () {
             )));
     };
 
-    if (StorageDevices::FloppyPresent)
+    if (StorageDevices::FloppyPresent())
     {
             targetlist = add (targetlist, `VSpacing (1));
             targetlist = add (targetlist, `Left (`RadioButton (`id ("floppy"),
 		 `opt (`notify),
 		// radiobutton, %1 is device name, typically /dev/fd0
-                sformat (_("&Floppy Disk %1"), StorageDevices::FloppyDevice),
+                sformat (_("&Floppy Disk %1"), StorageDevices::FloppyDevice()),
                 (BootCommon::selected_location == "floppy")
             )));
     }

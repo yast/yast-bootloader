@@ -567,7 +567,7 @@ global define void CreateSections () {
 		"__devs" : [],
         ]);
     }
-    else if (StorageDevices::FloppyPresent)
+    else if (StorageDevices::FloppyPresent())
     {
         out = add (out, $[
 		"name" : BootCommon::translateSectionTitle("floppy"),

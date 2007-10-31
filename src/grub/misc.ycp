@@ -44,7 +44,7 @@ global boolean grub_InstallingToFloppy () {
     if (BootCommon::globals["boot_custom"]:nil == nil)
 	ret = false;
     else if (BootCommon::globals["boot_custom"]:nil ==
-	     StorageDevices::FloppyDevice)
+	     StorageDevices::FloppyDevice())
 	ret = true;
     else if (contains (BootCommon::getFloppyDevices (),
 		       BootCommon::globals["boot_custom"]:nil))
@@ -508,8 +508,8 @@ global void grub_ProposeDeviceMap () {
             ids[index] = true;
         }
     });
-    if (StorageDevices::FloppyPresent)
-	BootCommon::device_mapping[StorageDevices::FloppyDevice] = "fd0";
+    if (StorageDevices::FloppyPresent())
+	BootCommon::device_mapping[StorageDevices::FloppyDevice()] = "fd0";
     y2milestone ("Detected device mapping: %1", BootCommon::device_mapping);
 }
 

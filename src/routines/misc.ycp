@@ -606,7 +606,7 @@
         if (BootCommon::selected_location == "root")
 	    return  BootCommon::RootPartitionDevice;
         if (BootCommon::selected_location == "floppy")
-            return StorageDevices::FloppyDevice;
+            return StorageDevices::FloppyDevice();
         if (BootCommon::selected_location == "mbr_md")
 	    return "mbr_md";
 	if (BootCommon::selected_location == "none")
@@ -678,7 +678,7 @@
 	// FIXME: floppy support is probably obsolete
 	if ( haskey(BootCommon::globals, "boot_floppy") &&
 	    BootCommon::globals["boot_floppy"]:"false" == "true" ) {
-	    ret = add(ret, StorageDevices::FloppyDevice);
+	    ret = add(ret, StorageDevices::FloppyDevice());
 	}
 	if ( haskey(BootCommon::globals, "boot_custom") ) {
 	    ret = add(ret, BootCommon::globals["boot_custom"]:"");
@@ -716,7 +716,7 @@ global boolean InstallingToFloppy () {
     boolean ret = false;
     if (loader_device == nil)
 	ret = false;
-    else if (loader_device == StorageDevices::FloppyDevice)
+    else if (loader_device == StorageDevices::FloppyDevice())
 	ret = true;
     else if (contains (getFloppyDevices (), loader_device))
 	ret = true;

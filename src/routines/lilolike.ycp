@@ -1242,8 +1242,8 @@ global void ProposeDeviceMap () {
             ids[index] = true;
         }
     });
-    if (StorageDevices::FloppyPresent)
-	device_mapping[StorageDevices::FloppyDevice] = "fd0";
+    if (StorageDevices::FloppyPresent())
+	device_mapping[StorageDevices::FloppyDevice()] = "fd0";
     y2milestone ("Detected device mapping: %1", device_mapping);
 }
 
