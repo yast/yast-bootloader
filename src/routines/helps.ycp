@@ -126,7 +126,7 @@ to update the master boot record
 if it is needed or configure your other boot manager
 to start &product;.</p>");
 
-	if (StorageDevices::FloppyPresent)
+	if (StorageDevices::FloppyPresent())
         {
             // custom bootloader help text, 4 of 7
             // this part will only be shown if a floppy drive is attached.
