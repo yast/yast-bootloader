@@ -85,6 +85,8 @@ section =
     element sectors {text}? &
     element blockoffset {text}? &
     element vgamode     {text}? &
+    element xen {text}? &
+    element xen_append {text}? &
     element noverifyroot { "true" | "false" }? &
     element image   {text}?
   }
