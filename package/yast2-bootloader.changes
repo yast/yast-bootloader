@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Dec  5 12:36:32 CET 2007 - jsrain@suse.cz
+
+- fixed the device map proposal if USB stick is present (F#302075)
+
+-------------------------------------------------------------------
 Wed Oct 31 14:32:59 CET 2007 - dfiser@suse.cz
 
 - Adapted to change of StorageDevices API.
