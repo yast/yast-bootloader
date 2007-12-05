@@ -962,12 +962,139 @@ global void UpdateGfxMenu () {
 
 }
 
+
+/*** helper functions for ProposeDeviceMap: ***/
 /**
- * Generate device map proposal, store it in internal variables
+ * Returns true if any device from list devices is in device_mapping
+ * marked as hd0.
+ */
+boolean isHd0(list<string> devices)
+{
+    boolean ret = false;
+
+    foreach (string value, devices,
+        {
+            if (device_mapping[value]:"" == "hd0"){
+                ret = true;
+            }
+        });
+
+    return ret;
+}
+
+/**
+ * Returns first key from mapping associated with value.
+ * Example:
+ *      map = $[ "a" : "1",
+ *               "b" : "2",
+ *               "c" : "3",
+ *               "d" : "2"];
+ *      getDeviceFromMapping("1", map) -> "a"
+ *      getDeviceFromMapping("2", map) -> "b"
+ */
+string getKey(string value, map<string, string> mapping)
+{
+    string ret = "";
+
+    foreach (string key, string val, mapping,
+        {
+            if (value == val){
+                ret = key;
+                return;
+            }
+        });
+
+    return ret;
+}
+
+/**
+ * This function changes order of devices in device_mapping.
+ * All devices listed in bad_devices are maped to "hdN" are moved to the end
+ * (with changed number N). And second step is putting device with boot partition
+ * on top (i.e. device_mapping[dev_with_boot] = "hd0").
+ *
+ * Example:
+ *      device_mapping = $[ "/dev/sda" : "hd0",
+ *                          "/dev/sdb" : "hd1",
+ *                          "/dev/sdc" : "hd2",
+ *                          "/dev/sdd" : "hd3",
+ *                          "/dev/sde" : "hd4" ];
+ *      bad_devices = [ "/dev/sda", "/dev/sdc" ];
+ *
+ *      changeOrderInDeviceMapping(bad_devices);
+ *      // after call, device_mapping is:
+ *      device_mapping -> $[ "/dev/sda" : "hd3",
+ *                           "/dev/sdb" : "hd0",
+ *                           "/dev/sdc" : "hd4",
+ *                           "/dev/sdd" : "hd1",
+ *                           "/dev/sde" : "hd2" ];
+ */
+void changeOrderInDeviceMapping(list<string> bad_devices)
+{
+    integer cur_id = 0;
+    list keys = [];
+    string value = "";
+    string tmp = "";
+    string tmp2 = "";
+
+    // get keys from device_mapping, it's not possible to use foreach over keys and values
+    // of device_mapping directly, because during the loop device_mapping is changing.
+    foreach (string key, string value, device_mapping, { keys = add(keys, key); });
+
+    // put bad_devices at bottom
+    foreach (string key, (list<string>)keys,
+        {
+                value = device_mapping[key]:"";
+
+                // if device is mapped on hdX and this device is _not_ in bad_devices
+                if (substring(value, 0, 2) == "hd"
+                    && !contains(bad_devices, key)){
+                        // get device name of mapped on "hd"+cur_id
+                        tmp = getKey("hd" + tostring(cur_id), device_mapping);
+
+                        // swap tmp and key devices (swap their mapping)
+                        device_mapping[tmp] = value;
+                        device_mapping[key] = "hd" + tostring(cur_id);
+
+                        cur_id = cur_id + 1;
+                }
+        });
+
+    // put device with boot partition on the top:
+    tmp = (regexptokenize(BootCommon::BootPartitionDevice, "([a-z/]+)[0-9]*"))[0]:"";
+    if (haskey(device_mapping, tmp) && device_mapping[tmp]:"" != "hd0"){
+        y2debug("Putting device with boot partition (%1) on the top.", tmp);
+
+        tmp2 = getKey("hd0", device_mapping);
+        device_mapping[tmp2] = device_mapping[tmp]:"";
+        device_mapping[tmp] = "hd0";
+    }
+}
+/*** helper functions END ***/
+
+/**
+ * Generate device map proposal, store it in internal variables.
+ *
+ * FATE #302075:
+ *   When user is installing from USB media or any non IDE disk or bios simply
+ *   set any non IDE disk as first and user is not installing on this removable
+ *   (non IDE) disk, the order of disks proposed by bios must be changed because
+ *   of future remove of USB disk.
+ *   This function must find right place for bootloader (which is most probably
+ *   boot sector of boot partition (where /boot dir is located)) and change the
+ *   order of disks in device map.
+ *   This method is only heuristic because order of disks after remove of usb
+ *   disk can't be determined by any method.
+ *
+ *   Algorithm for solving problem with usb disk propsed by bios as hd0:
+ *      if usbDiskDevice == hd0 && BootDevice != usbDiskDevice:
+ *          change order of disks in device_mappings to have BootDevice as hd0
  */
 // FIXME: remove that function from here, as it is grub only
 // NOTE: there is a local copy in routines/grub/misc.ycp now
 global void ProposeDeviceMap () {
+    list<string> usb_disks = []; // contains those usb removable disks
+
     device_mapping = $[];
 
     map<string,map> targetMap = $[];
@@ -1061,8 +1188,35 @@ global void ProposeDeviceMap () {
             ids[index] = true;
         }
     });
+
+
+    // Fill usb_disks list with usb removable devices.
+    //
+    // It's not easy to determine how to identify removable usb devices. Now
+    // it tests if driver of device is usb-storage. If you find better
+    // algorithm how to find removable usb devices, put it here into foreach
+    // to apply this algorithm on all devices.
+    foreach (string target_dev, map target, targetMap,
+        {
+            string driver = target["driver"]:"";
+            if (driver == "usb-storage"){
+                usb_disks = add(usb_disks, target_dev);
+            }
+        });
+    y2milestone("Found usb discs: %1", usb_disks);
+
+    // change order in device_mapping if usb disk is hd0
+    // (FATE #302075)
+    if (isHd0(usb_disks)
+        && BootCommon::BootPartitionDevice != getKey("hd0", device_mapping)){
+	y2milestone ("Detected device mapping: %1", device_mapping);
+        y2milestone("Changing order in device mapping needed...");
+        changeOrderInDeviceMapping(usb_disks);
+    }
+
     if (StorageDevices::FloppyPresent)
 	device_mapping[StorageDevices::FloppyDevice] = "fd0";
+
     y2milestone ("Detected device mapping: %1", device_mapping);
 }
 

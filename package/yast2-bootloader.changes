@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec  5 11:15:12 CET 2007 - jsrain@suse.cz
+
+- fixed the device map proposal if USB stick is present (F#302075)
+- 2.13.148
+
+-------------------------------------------------------------------
 Thu Sep 27 18:55:34 CEST 2007 - od@suse.de
 
 - do not install bootloader in XEN paravirtualized DomU (#308451)
