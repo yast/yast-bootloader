@@ -345,6 +345,7 @@ global define boolean UpdateGfxMenuContents (string loader) {
 
     string tmpdir = (string)SCR::Read (.target.tmpdir);
     string lang_params = "";
+    boolean lang_supported = true;
 
     list<string> selected = [];
     foreach (string lang, languages, {
@@ -358,6 +359,10 @@ global define boolean UpdateGfxMenuContents (string loader) {
 	if (! (contains (helps, lang_short) || contains (texts, lang_short)))
 	{
 	    y2milestone ("Language %1 is not supported by gfxmenu", lang_short);
+	    // rather avoid all translations; non-supported characters don't show
+	    // in the future, the menu should be translated into selected language,
+	    // not only into the system language
+	    lang_supported = false;
 	}
 	else if (! (contains (selected, lang)
 		    || contains (selected, lang_short)))
@@ -378,6 +383,11 @@ global define boolean UpdateGfxMenuContents (string loader) {
     });
     string trans_str = mergestring (trans_list, "\n");
     trans_str = trans_str + "\n";
+    if (! lang_supported)
+    {
+	y2milestone ("Avoiding providing bootloader menu translations");
+	trans_str = "";
+    }
     SCR::Write (.target.string, trans_file, trans_str);
     if (lang_params == "")
 	lang_params = "en_EN en";

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec 11 16:26:18 CET 2007 - jsrain@suse.cz
+
+- do not translate boot menu to unsupported language (#310459)
+- 2.13.149
+-------------------------------------------------------------------
 Wed Dec  5 11:15:12 CET 2007 - jsrain@suse.cz
 
 - fixed the device map proposal if USB stick is present (F#302075)
