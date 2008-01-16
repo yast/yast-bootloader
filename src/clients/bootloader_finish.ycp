@@ -113,7 +113,7 @@ Your system will shut down now.
 After shutdown, reload the system
 with the load address of your root DASD or
 the load address of your zFCP device.
-For details, read the relevant chapter
+For details, read the related chapter
 in the documentation.
 ");
     }

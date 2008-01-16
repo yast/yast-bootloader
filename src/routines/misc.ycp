@@ -1439,6 +1439,7 @@ global boolean MemtestPresent () {
  * Check if the bootloader can be installed at all with current configuration
  * @return boolean true if it can
  */
+//FIXME kokso: added check if root partition is not nfs
 global boolean BootloaderInstallable () {
     if (Mode::config ())
 	return true;

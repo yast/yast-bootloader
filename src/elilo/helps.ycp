@@ -24,20 +24,23 @@ global map<string,string>   elilo_help_messages = $[
     "boot"		 :  _("<p><b>Boot Image Location</b></p>"),
     "default"		 :  _("<p><b>Default Boot Section</b></p>"),
     "timeout"		 :
-    _("<p><b>Timeout in tenth of seconds</b><br> Specifies the the time the
+    _("<p><b>Timeout in tenth of seconds</b><br> Specifies the time the
 bootloader will wait in interactive mode until the default entry is
-booted.</p>"),
+booted.</p>
+"),
     "verbose"		 :
     _("<p><b>Set level of verbosity [0-5]</b><br> Increase verbosity of ELILO
 in case of boot problems.</p>"),
     "append"		 :
-    _("<p><b>Global Append string of options to kernel command line</b><br>
+    _("<p><b>Global append string of options to kernel command line</b><br>
 Lets you define global, additional parameters to pass to the kernel. These are
-used if no 'append' appears in a given section.</p>"),
+used if no 'append' appears in a given section.</p>
+"),
     "initrd"		 :
-    _("<p><b>Name of default initrd file</b>, if non-empty, defines the initial
+    _("<p><b>Name of default initrd file</b>, if not empty, defines the initial
 ramdisk to use. Either enter the path and file name directly or choose by using
-<b>Browse</b></p>"),
+<b>Browse</b></p>
+"),
     "image"		 :
     _("<p><b>Name of default image file</b></p>"),
     "chooser"		 :
@@ -45,10 +48,11 @@ ramdisk to use. Either enter the path and file name directly or choose by using
 Beware: 'textmenu' has occasionally caused problems on some machines.</p>"),
     "noedd30"		 :
     _("<p><b>Prevent EDD30 mode</b><br>
-By default, if EDD30 is off, elilo will try and set the variable to TRUE.
+By default, if EDD30 is off, ELILO will try and set the variable to TRUE.
 However, some controllers do not support EDD30 and forcing the variable
-may cause problems. Therefore as of elilo-3.2, there is an option to 
-avoid forcing the variable.</p>"),
+may cause problems. Therefore, as of elilo-3.2, there is an option to 
+avoid forcing the variable.</p>
+"),
     "relocatable"	 :
     _("<p><b>Allow attempt to relocate</b><br>
 In case of memory allocation error at initial load point of

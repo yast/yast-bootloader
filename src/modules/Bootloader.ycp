@@ -503,6 +503,15 @@
 	    return ret;
 	}
 
+//FIXME kokso: added check for root device if root device == NFS -> stop installing bootloader
+        if (BootCommon::RootPartitionDevice == "/dev/nfs")
+        {
+	   y2milestone("Root partition is nfs type, bootloader will not be installed.");
+           return ret;
+
+        }
+
+
 	// update graphics menu where possible
 	UpdateGfxMenu ();
 

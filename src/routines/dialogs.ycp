@@ -85,7 +85,12 @@ symbol MainDialog () {
 	"tab",
 	`Right ("adv_button")
     );
-
+//FIXME kokso: additional warning that root partition is nfs type -> bootloader will not be installed
+    if ((BootCommon::RootPartitionDevice == "/dev/nfs") && (Mode::installation()))
+    {
+	Popup::Message(_("The root partition is of type NFS. Bootloader cannot be installed."));
+	return `next;
+    }    
     list<string> widget_names = ["tab", "adv_button"];
     map<string,map<string,any> > widget_descr = (map<string,map<string,any> >)
 	union (CommonGlobalWidgets (), Bootloader::blWidgetMaps ());
