@@ -97,6 +97,15 @@
 
 	ret = $[ "raw_proposal" : Bootloader::Summary ()];
 
+//FIXME kokso: added check for root device if root device == NFS -> stop installing bootloader
+        if (BootCommon::BootPartitionDevice == "/dev/nfs")
+        {
+	   
+           y2milestone("bootlader_proposal - MakeProposal: Boot partition is nfs type, bootloader will not be installed.");
+           return ret;
+
+        }
+
 	if (Bootloader::getLoaderType () == "")
         {
             y2error ("No bootloader selected");

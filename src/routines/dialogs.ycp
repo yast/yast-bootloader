@@ -86,9 +86,9 @@ symbol MainDialog () {
 	`Right ("adv_button")
     );
 //FIXME kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-    if ((BootCommon::RootPartitionDevice == "/dev/nfs") && (Mode::installation()))
+    if ((BootCommon::BootPartitionDevice == "/dev/nfs") && (Mode::installation()))
     {
-	Popup::Message(_("The root partition is of type NFS. Bootloader cannot be installed."));
+	Popup::Message(_("The boot partition is of type NFS. Bootloader cannot be installed."));
 	return `next;
     }    
     list<string> widget_names = ["tab", "adv_button"];

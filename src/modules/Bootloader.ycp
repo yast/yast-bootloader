@@ -277,7 +277,18 @@
       * @return a list of summary lines
       */
     global define list<string> Summary () {
-	list<string> ret = blSummary ();
+        list<string> ret =[];
+//FIXME kokso: added check for root device if root device == NFS -> stop installing bootloader
+        if (BootCommon::BootPartitionDevice == "/dev/nfs")
+        {
+	   
+           ret = add (ret, _("The boot partition is of type NFS. Bootloader cannot be installed."));
+           y2milestone("Bootloader::Summary Boot partition is nfs type, bootloader will not be installed.");
+           return ret;
+
+        }
+
+	ret = blSummary ();
 	// check if default section was changed or not
         string main_section = getProposedDefaultSection ();
         if (main_section == nil)
@@ -504,9 +515,9 @@
 	}
 
 //FIXME kokso: added check for root device if root device == NFS -> stop installing bootloader
-        if (BootCommon::RootPartitionDevice == "/dev/nfs")
+        if (BootCommon::BootPartitionDevice == "/dev/nfs")
         {
-	   y2milestone("Root partition is nfs type, bootloader will not be installed.");
+	   y2milestone("Boot partition is nfs type, bootloader will not be installed.");
            return ret;
 
         }
