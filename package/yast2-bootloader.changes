@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 21 17:05:19 CET 2008 - juhliarik@suse.cz
+
+- added support for (F#300779) Install diskless client (NFS-root)
+- added proofread text
+- 2.13.150 
+
+-------------------------------------------------------------------
 Tue Dec 11 16:26:18 CET 2007 - jsrain@suse.cz
 
 - do not translate boot menu to unsupported language (#310459)
