@@ -97,15 +97,24 @@
 
 	ret = $[ "raw_proposal" : Bootloader::Summary ()];
 
-//FIXME kokso: added check for root device if root device == NFS -> stop installing bootloader
-        if (BootCommon::BootPartitionDevice == "/dev/nfs")
+//F#300779 - Install diskless client (NFS-root) 
+//kokso: additional warning that root partition is nfs type -> bootloader will not be installed
+
+//B#355332 - Bootloader doesn't work if root partitions is like nfs
+
+        map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
+        
+        if (dev["disk"]:"" == "/dev/nfs")
         {
 	   
-           y2milestone("bootlader_proposal - MakeProposal: Boot partition is nfs type, bootloader will not be installed.");
+           y2milestone("bootlader_proposal::MakeProposal -> Boot partition is nfs type, bootloader will not be installed.");
+           y2milestone("Type of BootPartitionDevice: %1", dev["disk"]:"");
            return ret;
 
         }
+        y2milestone("Type of BootPartitionDevice: %1", dev["disk"]:"");
 
+//F#300779 - end
 	if (Bootloader::getLoaderType () == "")
         {
             y2error ("No bootloader selected");

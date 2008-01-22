@@ -27,6 +27,7 @@ import "Popup";
 import "Wizard";
 import "Bootloader";
 import "Stage";
+import "Storage";
 
 include "bootloader/routines/popups.ycp";
 include "bootloader/routines/section_widgets.ycp";
@@ -85,12 +86,22 @@ symbol MainDialog () {
 	"tab",
 	`Right ("adv_button")
     );
-//FIXME kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-    if ((BootCommon::BootPartitionDevice == "/dev/nfs") && (Mode::installation()))
+//F#300779 - Install diskless client (NFS-root) 
+//kokso: additional warning that root partition is nfs type -> bootloader will not be installed
+
+//B#355332 - Bootloader doesn't work if root partitions is like nfs
+
+
+    map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
+        
+    if ((dev["disk"]:"" == "/dev/nfs") && (Mode::installation()))
     {
 	Popup::Message(_("The boot partition is of type NFS. Bootloader cannot be installed."));
+        y2milestone("dialogs::MainDialog() -> Boot partition is nfs type, bootloader will not be installed.");
 	return `next;
-    }    
+    }
+//F#300779: end
+   
     list<string> widget_names = ["tab", "adv_button"];
     map<string,map<string,any> > widget_descr = (map<string,map<string,any> >)
 	union (CommonGlobalWidgets (), Bootloader::blWidgetMaps ());

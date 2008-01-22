@@ -278,16 +278,22 @@
       */
     global define list<string> Summary () {
         list<string> ret =[];
-//FIXME kokso: added check for root device if root device == NFS -> stop installing bootloader
-        if (BootCommon::BootPartitionDevice == "/dev/nfs")
+
+//F#300779 - Install diskless client (NFS-root) 
+//kokso: additional warning that root partition is nfs type -> bootloader will not be installed
+
+//B#355332 - Bootloader doesn't work if root partitions is like nfs
+        map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
+        
+        if (dev["disk"]:"" == "/dev/nfs")
         {
 	   
            ret = add (ret, _("The boot partition is of type NFS. Bootloader cannot be installed."));
-           y2milestone("Bootloader::Summary Boot partition is nfs type, bootloader will not be installed.");
+           y2milestone("Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed.");
            return ret;
 
         }
-
+//F#300779 - end
 	ret = blSummary ();
 	// check if default section was changed or not
         string main_section = getProposedDefaultSection ();
@@ -514,15 +520,22 @@
 	    return ret;
 	}
 
-//FIXME kokso: added check for root device if root device == NFS -> stop installing bootloader
-        if (BootCommon::BootPartitionDevice == "/dev/nfs")
+
+//F#300779 - Install diskless client (NFS-root) 
+//kokso: additional warning that root partition is nfs type -> bootloader will not be installed
+
+//B#355332 - Bootloader doesn't work if root partitions is like nfs
+
+        map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
+        
+        if (dev["disk"]:"" == "/dev/nfs")       
         {
-	   y2milestone("Boot partition is nfs type, bootloader will not be installed.");
+	   y2milestone("Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed.");
            return ret;
 
         }
 
-
+//F#300779 -end
 	// update graphics menu where possible
 	UpdateGfxMenu ();
 
