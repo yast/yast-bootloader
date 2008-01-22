@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan 22 17:48:11 CET 2008 - juhliarik@suse.cz
+
+- fixed Bug# 355332 - Bootloader doesn't work if root 
+  partitions is like nfs
+- 2.13.151 
+
+-------------------------------------------------------------------
 Mon Jan 21 17:05:19 CET 2008 - juhliarik@suse.cz
 
 - added support for (F#300779) Install diskless client (NFS-root)
