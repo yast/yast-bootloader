@@ -284,8 +284,24 @@
       * @return a list of summary lines
       */
     global define list<string> Summary () {
-	list<string> ret = blSummary ();
+        list<string> ret =[];
 
+//F#300779 - Install diskless client (NFS-root) 
+//kokso: additional warning that root partition is nfs type -> bootloader will not be installed
+
+        map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
+        
+        if (dev["disk"]:"" == "/dev/nfs")
+        {
+	   
+           ret = add (ret, _("The boot partition is of type NFS. Bootloader cannot be installed."));
+           y2milestone("Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed.");
+           return ret;
+
+        }
+//F#300779 - end
+
+	ret = blSummary ();
 	// check if default section was changed or not
         string main_section = getProposedDefaultSection ();
 
@@ -511,6 +527,20 @@
 	{
 	    return ret;
 	}
+
+//F#300779 - Install diskless client (NFS-root) 
+//kokso: bootloader will not be installed
+
+        map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
+        
+        if (dev["disk"]:"" == "/dev/nfs")       
+        {
+	   y2milestone("Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed.");
+           return ret;
+
+        }
+
+//F#300779 -end
 
 	// update graphics menu where possible
 	UpdateGfxMenu ();
