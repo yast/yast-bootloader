@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan 24 09:01:01 CET 2008 - juhliarik@suse.cz
+
+- added patch for Bug#352020 - Graphical failsafe mode
+- added support for Fate#300779: Install diskless client (NFS-root) 
+- 2.16.4
+
+-------------------------------------------------------------------
 Tue Dec 11 16:12:09 CET 2007 - jsrain@suse.cz
 
 - do not translate boot menu to unsupported language (#310459)
