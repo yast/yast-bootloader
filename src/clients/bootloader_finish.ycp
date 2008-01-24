@@ -24,6 +24,8 @@ import "Linuxrc";
 import "Misc";
 import "Mode";
 import "BootCommon";
+import "Update";
+
 
 any ret = nil;
 string func = "";
@@ -163,8 +165,8 @@ After reboot, reconnect and run the following:
     else
     {
 	retcode = Bootloader::Update (
-	    Installation::installedVersion,
-	    Installation::updateVersion);
+	    Update::installedVersion,
+	    Update::updateVersion);
     }
 
     if (retcode) {
