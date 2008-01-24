@@ -137,7 +137,12 @@ global string FailsafeKernelParams () {
 	    .target.ycp, "/var/lib/YaST2/bootloader.ycp");
 	ret = ret + " " + saved_params["additional_failsafe_params"]:"";
     }
-    ret = ret + " 3";
+    
+
+//B#352020 kokso: - Graphical failsafe mode
+    //ret = ret + " 3";
+    ret = ret + " x11failsafe";
+//B#352020 end
     return ret;
 }
 
