@@ -141,6 +141,7 @@ global map<string,string> grub_descriptions = $[
     "boot_mbr"			 : _("Boot from Master Boot Record"),
     "boot_root"			 : _("Boot from Root Partition"),
     "boot_boot"			 : _("Boot from Boot Partition"),
+    "boot_extended"		 : _("Boot from Extended Partition"),
     "serial"			 : _("Serial Connection Parameters"),
     "terminal"			 : _("Terminal Definition"),
     "fallback"			 : _("Fallback Sections if Default Fails"),
