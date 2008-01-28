@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 28 17:06:16 CET 2008 - juhliarik@suse.cz
+
+- fixed bug#305968 - OES2 upgrade installs the XEN menu item in 
+  menu.lst by default
+- 2.13.152 
+
+-------------------------------------------------------------------
 Tue Jan 22 17:48:11 CET 2008 - juhliarik@suse.cz
 
 - fixed Bug# 355332 - Bootloader doesn't work if root 
