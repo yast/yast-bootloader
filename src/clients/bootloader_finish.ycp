@@ -165,8 +165,8 @@ After reboot, reconnect and run the following:
     else
     {
 	retcode = Bootloader::Update (
-	    Update::installedVersion,
-	    Update::updateVersion);
+	    Installation::installedVersion,
+	    Installation::updateVersion);
     }
 
     if (retcode) {
