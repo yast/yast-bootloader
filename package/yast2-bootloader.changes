@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Jan 31 13:03:52 CET 2008 - locilka@suse.cz
+
+- Update::*version were moved to Installation::*version.
+
+-------------------------------------------------------------------
 Thu Jan 24 09:01:01 CET 2008 - juhliarik@suse.cz
 
 - added patch for Bug#352020 - Graphical failsafe mode
