@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 26 18:33:24 CET 2008 - juhliarik@suse.cz
+
+- fixed bug#364824 -Untranslated Text in Browse dialog
+- 2.13.153 
+
+-------------------------------------------------------------------
 Mon Jan 28 17:06:16 CET 2008 - juhliarik@suse.cz
 
 - fixed bug#305968 - OES2 upgrade installs the XEN menu item in 
