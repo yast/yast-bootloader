@@ -430,7 +430,7 @@ symbol generic_Handle (string key, map event) {
 	string base_id = substring(id, 0, size(id)-size("_browse"));
 	string file_name = UI::AskForExistingFile(
 	    (string)UI::QueryWidget(`id(base_id), `Value), "*",
-	    "Select a file name");
+	    _("Select a file name"));
 	if (file_name != "" && file_name != nil) {
 	    UI::ChangeWidget(`id(base_id), `Value, file_name);
 	    reason = "ValueChanged";
