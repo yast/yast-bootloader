@@ -160,7 +160,8 @@ After reboot, reconnect and run the following:
 
     if (!Mode::update ())
     {
-	retcode = Bootloader::Write ();
+	//retcode = Bootloader::Write ();
+	retcode = Bootloader::WriteInstallation();
     }
     else
     {

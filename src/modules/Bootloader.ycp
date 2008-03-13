@@ -286,8 +286,8 @@
     global define list<string> Summary () {
         list<string> ret =[];
 
-//F#300779 - Install diskless client (NFS-root) 
-//kokso: additional warning that root partition is nfs type -> bootloader will not be installed
+	// F#300779 - Install diskless client (NFS-root) 
+	// kokso: additional warning that root partition is nfs type -> bootloader will not be installed
 
         map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
         
@@ -299,7 +299,7 @@
            return ret;
 
         }
-//F#300779 - end
+	// F#300779 - end
 
 	ret = blSummary ();
 	// check if default section was changed or not
@@ -528,8 +528,8 @@
 	    return ret;
 	}
 
-//F#300779 - Install diskless client (NFS-root) 
-//kokso: bootloader will not be installed
+	//F#300779 - Install diskless client (NFS-root) 
+	//kokso: bootloader will not be installed
 
         map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
         
@@ -540,7 +540,7 @@
 
         }
 
-//F#300779 -end
+	//F#300779 -end
 
 	// update graphics menu where possible
 	UpdateGfxMenu ();
@@ -592,6 +592,123 @@
     }
     return ret;
 }
+
+
+/**
+  * Write bootloader settings during installation
+  * @return boolean true on success
+  */
+global define boolean WriteInstallation () 
+{
+	y2milestone ("Writing bootloader configuration during installation");
+	boolean ret = true;
+
+	// read current settings...
+	ret = blRead (true, false);
+
+	if (BootCommon::write_settings["save_all"]:false)
+		BootCommon::save_all = true;
+	if (BootCommon::save_all)
+	{ // force saving everything
+		BootCommon::changed = true;
+	 	BootCommon::location_changed = true;
+		Initrd::changed = true;
+	}
+
+	map<string,any> params_to_save = $[];
+
+	string new_vga = getKernelParam (getDefaultSection (), "vga");
+	if (new_vga != old_vga && new_vga != "false" && new_vga != "")
+	{
+		Initrd::setSplash (new_vga);
+		if (Stage::initial ())
+			params_to_save["vga"] = new_vga;
+	}
+
+
+	// save initrd
+	if ((Initrd::changed || ! Mode::normal ())
+	    && ! (BootCommon::write_settings["forbid_save_initrd"]:false))
+	{
+		string vga = getKernelParam (getDefaultSection (), "vga");
+		if (vga != "false" && vga != "")
+		{
+			Initrd::setSplash (vga);
+			if (Stage::initial ())
+				params_to_save["vga"] = new_vga;
+		}
+		ret = Initrd::Write ();
+		BootCommon::changed = true;
+	}
+
+	if (! ret)
+	    y2error ("Error occurred while creating initrd");
+
+	params_to_save["additional_failsafe_params"] = BootCommon::GetAdditionalFailsafeParams ();
+	params_to_save["installation_kernel_params"] = Kernel::GetCmdLine ();
+
+	if (Stage::initial ())
+	{
+		SCR::Write (.target.ycp, "/var/lib/YaST2/bootloader.ycp",params_to_save);
+	}
+
+	if (getLoaderType () == "none")
+	{
+		return ret;
+	}
+
+	// F#300779 - Install diskless client (NFS-root) 
+	// kokso: bootloader will not be installed
+
+        map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
+        
+        if (dev["disk"]:"" == "/dev/nfs")       
+        {
+		y2milestone("Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed.");
+        	return ret;
+        }
+
+	// F#300779 -end
+
+	// update graphics menu where possible
+	UpdateGfxMenu ();
+
+	// save bootloader settings
+	boolean reinit = ! (Mode::update () || Mode::normal ());
+	y2milestone ("Reinitialize bootloader library before saving: %1",reinit);
+
+
+	ret = blSave (true, reinit, true) && ret;
+
+	if (! ret)
+		y2error ("Error before configuration files saving finished");
+
+
+	// call bootloader executable
+	y2milestone ("Calling bootloader executable");
+	ret = ret && blWrite ();
+
+	if (! ret)
+	{
+		y2error ("Installing bootloader failed");
+		if (writeErrorPopup ())
+		{
+			repeating_write = true;
+			map res = (map)WFM::call( "bootloader_proposal", ["AskUser",$[ "has_next": false]]);
+			if (res["workflow_sequence"]:nil == `next)
+				return Write ();
+		}
+	}
+	else
+	{
+		if (BootCommon::InstallingToFloppy ())
+			BootCommon::updateTimeoutPopupForFloppy(BootCommon::getLoaderName (getLoaderType (), `summary));		
+	}
+	return ret;
+}
+
+
+
 
 // write mode settings function
 
