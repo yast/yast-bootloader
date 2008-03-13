@@ -1,0 +1,63 @@
+/**
+ * File:
+ *      bootloader/routines/inst_bootloader.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions to write "dummy" config files for kernel
+ *
+ * Authors:
+ *      Jozef Uhliarik <juhliarik@suse.cz>
+ *
+ *
+ */
+
+{
+
+textdomain "bootloader";
+
+import "Bootloader";
+import "BootCommon";
+import "Installation";
+import "GetInstArgs";
+
+
+y2milestone ("starting inst_bootloader");
+
+
+if ( GetInstArgs::going_back())     // going backwards?
+{
+    return `auto;                   // don't execute this once more
+}
+
+Bootloader::blSave (false, false, false);
+map<string,string> files = BootCommon::GetFilesContents ();
+
+y2milestone("contents FILES: %1", files);
+
+
+foreach (string file, string content, files, 
+{
+
+	integer last=findlastof(file,"/");
+	string path_file = substring (file, 0, last);
+	WFM::Execute(.local.mkdir, Installation::destdir + path_file);
+	y2milestone ("writing file: %1", file); 
+	WFM::Write(.local.string, Installation::destdir + file, content);
+});
+
+
+string lt = Bootloader::getLoaderType ();
+
+y2milestone ("Saving /etc/sysconfig/bootloader for %1", lt);
+
+WFM::Execute(.local.mkdir, Installation::destdir + "/etc/sysconfig");
+WFM::Write(.local.string, Installation::destdir + "/etc/sysconfig/bootloader", "LOADER_TYPE=\""+lt+"\"");
+
+y2milestone ("finish inst_bootloader");
+
+return `auto;
+
+}
