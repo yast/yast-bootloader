@@ -153,10 +153,14 @@ After reboot, reconnect and run the following:
     // Write() is reached from the call-chain that starts below:
     // Bootloader::Update() -> Write()).
 
+    // perl-BL delayed section removal
+    Bootloader::RunDelayedUpdates();
+
     if (!Mode::update ())
 	Bootloader::ResolveSymlinksInSections();
 
     boolean retcode = false;
+
 
     if (!Mode::update ())
     {
@@ -170,9 +174,7 @@ After reboot, reconnect and run the following:
 	    Installation::updateVersion);
     }
 
-    if (retcode) {
-	// perl-BL delayed section removal
-	Bootloader::RunDelayedUpdates();
+    if (retcode) {		
 	// re-read external changes, then boot through to second stage of
 	// installation or update
 	Bootloader::Read ();
