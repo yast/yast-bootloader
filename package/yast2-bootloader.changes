@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 14 14:57:17 CET 2008 - juhliarik@suse.cz
+
+- added inst_bootloader for saving config file before installing 
+  kernel (F #302660) 
+- 2.16.6
+
+-------------------------------------------------------------------
 Thu Jan 31 13:03:52 CET 2008 - locilka@suse.cz
 
 - Update::*version were moved to Installation::*version.
