@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Mar 17 12:43:32 CET 2008 - jsrain@suse.cz
+
+- added 'StartupNotify=true' to the desktop file (bnc #304964)
+
+-------------------------------------------------------------------
 Fri Mar 14 14:57:17 CET 2008 - juhliarik@suse.cz
 
 - added inst_bootloader for saving config file before installing 

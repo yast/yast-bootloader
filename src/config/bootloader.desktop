@@ -24,3 +24,4 @@ Exec=/sbin/yast2 bootloader
 Name=Boot Loader
 GenericName=Configure the boot loader
 X-KDE-SubstituteUID=true
+StartupNotify=true
