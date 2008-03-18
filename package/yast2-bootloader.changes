@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Mar 18 17:40:42 CET 2008 - juhliarik@suse.cz
+
+- deleting ordering of disk if the first disk is USB
+- (bnc#370221) - [Test Case 467158] [302075] Test Feature: Correct 
+  Bootloader Proposal when installing from USB media 
+- 2.13.154
+
+-------------------------------------------------------------------
 Tue Mar 18 10:07:57 CET 2008 - jsrain@suse.cz
 
 - keep the 'linux' section name if product name is empty 
