@@ -1066,6 +1066,8 @@ void changeOrderInDeviceMapping(list<string> bad_devices)
         });
 
     // put device with boot partition on the top:
+    // bug #370221 - [Test Case 467158] [302075] Test Feature: Correct Bootloader Proposal when installing from USB media
+    /*
     tmp = (regexptokenize(BootCommon::BootPartitionDevice, "([a-z/]+)[0-9]*"))[0]:"";
     if (haskey(device_mapping, tmp) && device_mapping[tmp]:"" != "hd0"){
         y2debug("Putting device with boot partition (%1) on the top.", tmp);
@@ -1074,6 +1076,7 @@ void changeOrderInDeviceMapping(list<string> bad_devices)
         device_mapping[tmp2] = device_mapping[tmp]:"";
         device_mapping[tmp] = "hd0";
     }
+    */
 }
 /*** helper functions END ***/
 
