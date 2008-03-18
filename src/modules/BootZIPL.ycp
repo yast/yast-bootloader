@@ -211,7 +211,7 @@ global define void Propose () {
 	  "prompt":"true",
 	  "target":"/boot/zipl",
 	  "timeout":"10",
-	  "list": BootCommon::translateSectionTitle ("ipl") + ","
+	  "list": BootCommon::translateSectionTitle ("ipl") + ", "
 	          + BootCommon::translateSectionTitle ("failsafe"),
 	  "type":"menu",
 	],

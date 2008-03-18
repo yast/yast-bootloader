@@ -5,6 +5,12 @@ Tue Mar 18 10:07:57 CET 2008 - jsrain@suse.cz
   (bnc#371741)
 
 -------------------------------------------------------------------
+Fri Mar 14 18:55:57 CET 2008 - jplack@suse.de
+
+- add a space to zipl menu list to avoid list member duplication
+  (#352495)
+
+-------------------------------------------------------------------
 Tue Feb 26 18:33:24 CET 2008 - juhliarik@suse.cz
 
 - fixed bug#364824 -Untranslated Text in Browse dialog
