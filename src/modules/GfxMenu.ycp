@@ -267,7 +267,7 @@
 	    {
 		import "Product";
 		string product = Product::name;
-		if (product != " ")
+		if (product != " " && product != "" && product != nil)
 		{
 		    if (k == "linux")
 		    {
