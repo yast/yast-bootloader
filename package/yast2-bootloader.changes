@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 18 10:07:57 CET 2008 - jsrain@suse.cz
+
+- keep the 'linux' section name if product name is empty 
+  (bnc#371741)
+
+-------------------------------------------------------------------
 Mon Mar 17 12:43:32 CET 2008 - jsrain@suse.cz
 
 - added 'StartupNotify=true' to the desktop file (bnc #304964)
