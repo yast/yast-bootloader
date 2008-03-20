@@ -825,11 +825,11 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    string title = s["name"]:"";
 		// section name "suffix" for default section
 	    string def = title == globals["default"]:"" ? _(" (default)") : "";
-	    sects = add (sects, sformat ("%1%2", title, def));
+	    sects = add (sects, String::EscapeTags (sformat ("+ %1%2", title, def)));
 	});
 	// summary text. %1 is list of bootloader sections
-	result = add (result, sformat (_("Sections: %1"),
-	    String::EscapeTags (mergestring (sects, ", "))));
+	result = add (result, sformat (_("Sections:<br>%1"),
+	    mergestring (sects, "<br>")));
 	if (loader_device == "/dev/null")
 	    // summary text
 	    result = add (result, _("Do not install boot loader; just create

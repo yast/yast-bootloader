@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar 20 12:45:20 CET 2008 - jsrain@suse.cz
+
+- updated the way section list is displayed in the installation
+  proposal (fate#120376)
+
+-------------------------------------------------------------------
 Tue Mar 18 10:07:57 CET 2008 - jsrain@suse.cz
 
 - keep the 'linux' section name if product name is empty 
