@@ -58,7 +58,7 @@
     global define string getLoaderType ();
     global define string getProposedDefaultSection ();
     global define boolean UpdateGfxMenu ();
-
+    global define void DelDuplicatedSections();
 
     /**
       * Write is repeating again
@@ -606,6 +606,9 @@ global define boolean WriteInstallation ()
 	// read current settings...
 	ret = blRead (true, false);
 
+	// delete duplicated sections
+	DelDuplicatedSections();
+
 	if (BootCommon::write_settings["save_all"]:false)
 		BootCommon::save_all = true;
 	if (BootCommon::save_all)
@@ -708,7 +711,37 @@ global define boolean WriteInstallation ()
 }
 
 
+global define void DelDuplicatedSections()
+{	
+	y2milestone("Deleting duplicated boot sections");
+	map<string,any> linux_default = BootCommon::CreateLinuxSection ("linux");
+	map<string,any> linux_failsafe = BootCommon::CreateLinuxSection ("failsafe");
 
+	y2milestone("linux_default: %1", linux_default);
+	y2milestone("linux_failsafe: %1", linux_failsafe);
+	y2milestone("Boot sections BEFORE deleting: %1", BootCommon::sections);
+	BootCommon::sections=filter(map<string,any> section, BootCommon::sections,
+	{
+		if ((section["name"]:nil == linux_default["name"]:nil) 
+		   ||(section["name"]:nil == linux_failsafe["name"]:nil))
+		{
+			if ((section["root"]:nil == linux_default["root"]:nil)
+			   ||(section["root"]:nil == linux_failsafe["root"]:nil))
+			{
+				y2milestone("deleted boot section: %1", section);
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+
+			return true;
+		};		
+		return true;
+	});
+	y2milestone("Boot sections AFTER deleting: %1", BootCommon::sections);
+	y2milestone("End deleting duplicated boot sections");
+}
 
 // write mode settings function
 
