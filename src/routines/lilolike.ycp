@@ -1242,6 +1242,7 @@ void changeOrderInDeviceMapping(list<string> bad_devices)
         });
 
     // put device with boot partition on the top:
+    /*
     tmp = (regexptokenize(BootCommon::BootPartitionDevice, "([a-z/]+)[0-9]*"))[0]:"";
     if (haskey(device_mapping, tmp) && device_mapping[tmp]:"" != "hd0"){
         y2debug("Putting device with boot partition (%1) on the top.", tmp);
@@ -1249,7 +1250,7 @@ void changeOrderInDeviceMapping(list<string> bad_devices)
         tmp2 = getKey("hd0", device_mapping);
         device_mapping[tmp2] = device_mapping[tmp]:"";
         device_mapping[tmp] = "hd0";
-    }
+    }*/
 }
 /*** helper functions END ***/
 
@@ -1384,7 +1385,7 @@ global void ProposeDeviceMap () {
             }
         });
     y2milestone("Found usb discs: %1", usb_disks);
-
+    
     // change order in device_mapping if usb disk is hd0
     // (FATE #302075)
     if (isHd0(usb_disks)
