@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar 27 09:32:41 CET 2008 - juhliarik@suse.cz
+
+- added deleting of duplicated sections after installation
+- 2.16.8 
+
+-------------------------------------------------------------------
 Thu Mar 20 12:45:20 CET 2008 - jsrain@suse.cz
 
 - updated the way section list is displayed in the installation
