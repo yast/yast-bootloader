@@ -48,7 +48,7 @@ if (func == "Info")
 	"steps" : 3,
 	// progress step title
 	"title" : _("Saving bootloader configuration..."),
-	"when" : [ `installation, `update, `autoinst ],
+	"when" : [ `installation, `live_installation, `update, `autoinst ],
     ];
 }
 else if (func == "Write")
