@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Apr 11 15:53:19 CEST 2008 - juhliarik@suse.cz
+
+- added handling of option for calling kexec instead of reboot
+  (fate#303395)
+- 2.16.9 
+
+-------------------------------------------------------------------
 Tue Apr  1 12:24:12 CEST 2008 - jsrain@suse.cz
 
 - adapted to changed handling of inst_finish steps during live
