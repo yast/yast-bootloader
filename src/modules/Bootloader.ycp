@@ -30,6 +30,7 @@
     import "Progress";
     import "Stage";
     import "Storage";
+    import "Directory";
 
 //    import "BootABOOT";
     import "BootELILO";
@@ -38,6 +39,8 @@
 //    import "BootS390";
     import "BootGRUB";
     import "BootPOWERLILO"; // The ppc-LILO File
+    //fate 303395
+    import "ProductFeatures";
 
     // interface for clients
     global define map Export ();
@@ -606,9 +609,11 @@ global define boolean WriteInstallation ()
 	// read current settings...
 	ret = blRead (true, false);
 
-	// delete duplicated sections
-	DelDuplicatedSections();
-
+	if (! Mode::live_installation()) 
+	{
+		// delete duplicated sections
+		DelDuplicatedSections();
+	}
 	if (BootCommon::write_settings["save_all"]:false)
 		BootCommon::save_all = true;
 	if (BootCommon::save_all)
@@ -719,6 +724,7 @@ global define void DelDuplicatedSections()
 
 	y2milestone("linux_default: %1", linux_default);
 	y2milestone("linux_failsafe: %1", linux_failsafe);
+
 	y2milestone("Boot sections BEFORE deleting: %1", BootCommon::sections);
 	BootCommon::sections=filter(map<string,any> section, BootCommon::sections,
 	{
@@ -740,7 +746,6 @@ global define void DelDuplicatedSections()
 		return true;
 	});
 	y2milestone("Boot sections AFTER deleting: %1", BootCommon::sections);
-	y2milestone("End deleting duplicated boot sections");
 }
 
 // write mode settings function
@@ -1185,5 +1190,95 @@ global define void ResolveSymlinksInSections() {
 	}
 	return ret;
     }
+
+
+/**
+ * Copy initrd and kernel on the end of instalation
+ * (1st stage)
+ * @return boolean on success
+ */
+// fate #303395 Use kexec to avoid booting between first and second stage
+// copy kernel and initrd to /var/lib/YaST
+// run kernel via kexec instead of reboot
+// if not success then reboot...
+global define boolean CopyKernelInird()
+{
+	y2milestone("CopyKernelInird: start copy kernel and inird");
+	
+	if (Mode::live_installation())
+	{
+		y2milestone("Running live_installation without using kexec");
+		return true;
+	}
+
+	if (ProductFeatures::GetBooleanFeature ("globals", "kexec_reboot") != true)
+	{
+		y2milestone("Option kexec_reboot is false. kexec will not be used.");
+		return true;
+	}
+	// create defualt sections
+	map<string,any> linux_default = BootCommon::CreateLinuxSection ("linux");
+
+	y2milestone("linux_default: %1", linux_default);
+
+	map<string,any> default_section = $[];
+
+	string name = getDefaultSection ();
+	// find default section in BootCommon::sections
+	foreach(map<string,any> section, BootCommon::sections,
+	{
+		if ((find(tostring(section["name"]:""),name) != -1)
+		   &&  (section["root"]:nil == linux_default["root"]:nil)
+		   &&  (section["original_name"]:"" != "failsafe"))
+		{
+			y2milestone("default section: %1", section);
+			default_section = section;
+		};
+	});
+
+	// create directory /var/lib/YaST2
+	WFM::Execute(.local.mkdir, "/var/lib/YaST2");
+	
+	// build command for copy kernel and initrd to /var/lib/YaST during instalation
+	string cmd = nil;
+
+	cmd = sformat("/bin/cp %1%2 %1%3 %4",  Installation::destdir, tostring(default_section["image"]:""),
+		tostring(default_section["initrd"]:""), Directory::vardir);
+
+	y2milestone("Command for copy: %1", cmd);
+	map out = (map) WFM::Execute (.local.bash_output, cmd);
+	if (out["exit"]:nil != 0)
+	{
+		y2error ("Copy kernel and initrd failed, output: %1", out);
+		return false;
+	}
+
+	if (default_section["root"]:"" == "")
+	{
+		y2milestone("root is not defined in default section.");
+		return false;
+	}
+
+	if (default_section["vgamode"]:"" == "")
+	{
+		y2milestone("vgamode is not defined in default section.");
+		return false;
+	}
+	
+	// flush kernel options into /var/lib/YaST/kernel_params
+	cmd = sformat("echo \"root=%1 %2 vga=%3\" > %4/kernel_params", 
+		tostring(default_section["root"]:""), tostring(default_section["append"]:""), 
+		tostring(default_section["vgamode"]:""), Directory::vardir);
+	
+	y2milestone("Command for flushing kernel args: %1", cmd);
+	out = (map) WFM::Execute (.local.bash_output, cmd);
+	if (out["exit"]:nil != 0)
+	{
+		y2error ("Flushing kernel params failed, output: %1", out);
+		return false;
+	}
+
+	return true;
+}
 
 }

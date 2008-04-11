@@ -33,6 +33,8 @@ import "Storage";
 import "String";
 import "Pkg";
 
+import "Linuxrc";
+
 
 // General bootloader settings
 
@@ -987,8 +989,19 @@ global define void setLoaderType (string bootloader) {
         && contains(bootloaders, bootloader)
         && ! Mode::test ())
     {
-        list<string> bootloader_packages =
-	    bootloader_attribs[bootloader, "required_packages"]:[];
+	// added kexec-tools fate# 303395
+	// if kexec option is equal 0 or running live installation 
+	// doesn't install kexec-tools
+
+	list<string> bootloader_packages =[];
+	if ((! Mode::live_installation()) 
+	   && (Linuxrc::InstallInf ("kexec_reboot") != "0"))
+	{
+        	bootloader_packages = bootloader_attribs[bootloader, "kexec-tools", "required_packages"]:[];
+	} else {
+        	bootloader_packages = bootloader_attribs[bootloader, "required_packages"]:[];
+	}
+
         // don't configure package manager during autoinstallation preparing
         if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
         {

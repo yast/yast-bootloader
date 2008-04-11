@@ -26,6 +26,9 @@ import "Mode";
 import "BootCommon";
 import "Update";
 
+// added for fate# 303395
+import "Linuxrc";
+
 
 any ret = nil;
 string func = "";
@@ -164,11 +167,10 @@ After reboot, reconnect and run the following:
 
     if (!Mode::update ())
     {
-	//retcode = Bootloader::Write ();
 	retcode = Bootloader::WriteInstallation();
     }
     else
-    {
+    {	
 	retcode = Bootloader::Update (
 	    Installation::installedVersion,
 	    Installation::updateVersion);
@@ -178,10 +180,19 @@ After reboot, reconnect and run the following:
 	// re-read external changes, then boot through to second stage of
 	// installation or update
 	Bootloader::Read ();
-	return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
+	// fate #303395: Use kexec to avoid booting between first and second stage
+	// copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
+	if (Linuxrc::InstallInf ("kexec_reboot") != "0")
+        	Bootloader::CopyKernelInird();
+	else
+		y2milestone("Installation started with kexec_reboot set 0 or without kexec_reboot option");
+
+
+        return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
     }
     else
 	return retcode;
+
 }
 else
 {
