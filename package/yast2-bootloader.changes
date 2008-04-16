@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 16 15:20:15 CEST 2008 - juhliarik@suse.cz
+
+- added fix for activating DM-RAID boot partition (bnc #337742)
+- added fix for lilo and raid version (bnc #357897)
+- 2.16.10 
+
+-------------------------------------------------------------------
 Fri Apr 11 15:53:19 CEST 2008 - juhliarik@suse.cz
 
 - added handling of option for calling kexec instead of reboot
