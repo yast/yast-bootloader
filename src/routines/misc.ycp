@@ -1486,6 +1486,17 @@ global boolean BootloaderInstallable () {
 		y2milestone ("Cannot install bootloader on RAID (not mirror)");
 		return false;
 	    }
+
+	    // (bnc 357897) - lilo reports inconsistent raid version when trying to install on raid1
+	    if (getLoaderType (false) == "lilo")
+	    {
+		string raid_ver = info["sb_ver"]:"";    //"00.90.03"
+		if (substring(raid_ver,0,2) == "01")
+		{
+		    y2milestone ("Cannot install bootloader on RAID (lilo doesn't support raid version %1)", info["sb_ver"]:"");
+		    return false;
+		}
+	    }
 	}
 	// EVMS
 	// FIXME: type detection by name deprecated
