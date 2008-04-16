@@ -140,28 +140,37 @@ global boolean grub_InstallingToFloppy () {
 //		});
 //	    }
 //	}
-	if (num != 0)
+
+	// (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
+	// if loader_device is disk device activate BootCommon::BootPartitionDevice
+	if (num == 0)
 	{
-	    if (num > 4)
-	    {
-		y2milestone ("Bootloader partition type is logical");
-		map tm = Storage::GetTargetMap ();
-		list<map> partitions = tm[mbr_dev, "partitions"]:[];
-		foreach (map p, partitions, ``{
-		    if (p["type"]:nil == `extended)
-		    {
-			num = p["nr"]:num;
-			y2milestone ("Using extended partition %1 instead",
-			num);
-		    }
-		});
-	    }
+	    y2milestone ("loader_device is disk device");
+	    p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+	    num = BootCommon::myToInteger( p_dev["nr"]:nil );
+        }
+
+	if (num > 4)
+	{
+	    y2milestone ("Bootloader partition type is logical");
+	    map tm = Storage::GetTargetMap ();
+	    list<map> partitions = tm[mbr_dev, "partitions"]:[];
+	    foreach (map p, partitions, ``{
+		if (p["type"]:nil == `extended)
+		{
+		    num = p["nr"]:num;
+		    y2milestone ("Using extended partition %1 instead",num);
+		}
+	    });
 	}
+
 	map<string,any> ret = $[
 	    "num" : num,
 	    "mbr" : mbr_dev,
 	    "dev" : Storage::GetDeviceName (mbr_dev, num),
 	];
+	
+	y2milestone("Partition for activating: %1", ret);
 	return ret;
     }
 
