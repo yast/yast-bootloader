@@ -350,7 +350,7 @@ map<string,map<string,any> > CommonSectionWidgets () {
 	    "kernel" : $[
 		"widget" : `custom,
 		"custom_widget" : Stage::initial ()
-		    ? `TextEntry (`id ("kernel"), `opt (`hstretch),
+		    ? `InputField (`id ("kernel"), `opt (`hstretch),
 			// text entry
 			_("&Kernel"))
 		    : `HBox (
@@ -372,7 +372,7 @@ map<string,map<string,any> > CommonSectionWidgets () {
 	    "initrd" : $[
 		"widget" : `custom,
 		"custom_widget" : Stage::initial ()
-		    ? `TextEntry (`id ("initrd"), `opt (`hstretch),
+		    ? `InputField (`id ("initrd"), `opt (`hstretch),
 			// text entry
 			_("&Initial RAM Disk"))
 		    : `HBox (

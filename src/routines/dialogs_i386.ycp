@@ -121,7 +121,7 @@ symbol i386InstallDetailsDialog () {
 	{
 	    term popup = `VBox (`VSpacing (1),
 		// textentry header
-		`TextEntry (`id (`devname), _("&Device")),
+		`InputField (`id (`devname), `opt (`hstretch), _("&Device")),
 		`VSpacing (1),
 		`HBox (`HStretch (),
 		    `PushButton (`id (`ok), `opt (`key_F10, `default),

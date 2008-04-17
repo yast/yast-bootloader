@@ -3,6 +3,7 @@ Thu Apr 17 20:02:19 CEST 2008 - locilka@suse.cz, juhliarik@suse.cz
 
 - fixed initializing of combo-box widgets in dialogs, ComboBox
   in Qt does not accept `Value, using `Items instead (bnc #380781).
+- using `InputField as a replacement for obsolete `TextEntry.
 
 -------------------------------------------------------------------
 Wed Apr 16 15:20:15 CEST 2008 - juhliarik@suse.cz

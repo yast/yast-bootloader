@@ -111,11 +111,11 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	    if ( type == "radio" || type == "check") {
 		new = `Left(`HBox (
 		    enable_widget,
-		    `TextEntry(`id( key ), "")
+		    `InputField(`id( key ), `opt (`hstretch), "")
 		));
 	    }
 	    else  {
-	    	new = `TextEntry(`id( key ), desc);
+	    	new = `InputField(`id( key ), `opt (`hstretch), desc);
 	    }
 	}
 	else if (value == "password") {

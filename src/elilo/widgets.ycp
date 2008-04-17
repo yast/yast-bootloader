@@ -43,7 +43,7 @@
 		// check box
 		_("&Create EFI Entry"))),
 	    `VSpacing (0.6),
-	    `Left (`TextEntry (`id (`location),
+	    `Left (`InputField (`id (`location), `opt (`hstretch),
 		// text entry label
 		_("&EFI Entry Name"))),
 	    have_old ? `VSpacing (1) : `VSpacing (0),
