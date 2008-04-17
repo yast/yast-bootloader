@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 17 20:19:04 CEST 2008 - juhliarik@suse.cz
+
+- new version
+- 2.16.11 
+
+-------------------------------------------------------------------
 Thu Apr 17 20:02:19 CEST 2008 - locilka@suse.cz, juhliarik@suse.cz
 
 - fixed initializing of combo-box widgets in dialogs, ComboBox
