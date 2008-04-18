@@ -182,13 +182,17 @@ After reboot, reconnect and run the following:
 	Bootloader::Read ();
 	// fate #303395: Use kexec to avoid booting between first and second stage
 	// copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
-	if (Linuxrc::InstallInf ("kexec_reboot") != "0")
-        	Bootloader::CopyKernelInird();
-	else
-		y2milestone("Installation started with kexec_reboot set 0 or without kexec_reboot option");
+	retcode = false;
+	if (Linuxrc::InstallInf ("kexec_reboot") == "1")
+	{
+            retcode = Bootloader::CopyKernelInird();		
+	} else {
+	    y2milestone("Installation started with kexec_reboot set 0");		
+	}
 
-
-        return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
+	// (bnc #381192) don't use it if kexec is used
+	if (!retcode)
+	    return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
     }
     else
 	return retcode;
