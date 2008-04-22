@@ -439,7 +439,15 @@ symbol generic_Handle (string key, map event) {
 	    (string)UI::QueryWidget(`id(base_id), `Value), "*",
 	    _("Select a file name"));
 	if (file_name != "" && file_name != nil) {
-	    UI::ChangeWidget(`id(base_id), `Value, file_name);
+
+// ComboBox doesn't accept `Value, use `Items instead
+	    // See bnc #380781
+	    if (UI::QueryWidget (`id (base_id), `WidgetClass) == "YComboBox") {
+		UI::ChangeWidget(`id(base_id), `Items, [file_name]);
+	    } else {
+		UI::ChangeWidget(`id(base_id), `Value, file_name);
+	    }
+	    
 	    reason = "ValueChanged";
 	    id = base_id;
 	}
