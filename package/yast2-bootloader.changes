@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 22 13:09:57 CEST 2008 - juhliarik@suse.cz
+
+- added fix for bnc# 363254
+- added fix for UI problem with ComboBoxes and "Browse..." button
+- 2.16.13 
+
+-------------------------------------------------------------------
 Fri Apr 18 15:52:47 CEST 2008 - juhliarik@suse.cz
 
 - added fix for (bnc# 381192) bootloader uses grubonce _and_ kexec
