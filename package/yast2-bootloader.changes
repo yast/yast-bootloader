@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 30 16:34:19 CEST 2008 - juhliarik@suse.cz
+
+- added fix for deleting old boot sections (bnc# 367356)
+- 2.13.155 
+
+-------------------------------------------------------------------
 Tue Mar 18 17:40:42 CET 2008 - juhliarik@suse.cz
 
 - deleting ordering of disk if the first disk is USB

@@ -823,6 +823,9 @@ global void RemoveUnexistentSections (string path_prefix,
 {
     string defaultv = globals["default"]:"";
     string first = nil;
+
+    y2milestone("Starting RemoveUnexistentSections() with sections: %1", BootCommon::sections);
+
     BootCommon::sections = filter (map<string,any> s, BootCommon::sections, {
 	string label = s["name"]:"";
 
@@ -831,6 +834,7 @@ global void RemoveUnexistentSections (string path_prefix,
 	{
 	    if (first == nil)
 		first = label;
+	    y2milestone("Section is not deleted, section: %1", s);
 	    return true;
 	}
 
@@ -840,13 +844,27 @@ global void RemoveUnexistentSections (string path_prefix,
 	    y2warning ("Removing section with empty title");
 	    if (label == defaultv)
 		defaultv = nil;
+	    y2milestone("Deleted (empty label) section: %1", s);
 	    return false;
+	}
+	// bug #367356 After an upgrade install grub default menu selection is still the SP1 kernel
+	// problem is that section map doesn't include "original_name"
+
+	if ((type =="") && (s["type"]:"" == "image"))
+	{
+	    y2milestone("Missing key \"original_name\" in section map for section: %1", s);
+
+	    // checking root value
+	    if (s["root"]:"" == RootPartitionDevice)
+	    	type="linux";
+
 	}
 	// FIXME the following check makes sense for all sections`
 	if (! contains (["linux", "failsafe", "memtest86", "xen"], type))
 	{
 	    if (first == nil)
 		first = label;
+	    y2milestone("Section is not deleted (type of section), section: %1", s);
 	    return true;
 	}
         string kernel ="";
@@ -859,6 +877,7 @@ global void RemoveUnexistentSections (string path_prefix,
 	{
 	    if (first == nil)
 		first = label;
+	    y2milestone("Section is not deleted (empty kernel/image), section: %1", s);
 	    return true;
 	}
 	if (substring (kernel, 0, 1) == "/")
@@ -868,7 +887,10 @@ global void RemoveUnexistentSections (string path_prefix,
 	else
 	{
 	    if (relative_path_prefix == "")
+	    {
+		y2milestone("Section is not deleted (relative_path_prefix == \"\"), section: %1", s);
 		return true;
+	    }
 	    kernel = relative_path_prefix + kernel;
 	}
 	if (SCR::Read (.target.size, kernel) == -1)
@@ -877,10 +899,13 @@ global void RemoveUnexistentSections (string path_prefix,
 		label, kernel);
 	    if (label == defaultv)
 		defaultv = nil;
+
+	    y2milestone("Deleted (kernel does't exist) section: %1", s);
 	    return false;
 	}
 	if (first == nil)
 	    first = label;
+	y2milestone("Section is not deleted (it seems be OK), section: %1", s);
 	return true;
     });
     if (defaultv == nil)
