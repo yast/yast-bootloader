@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May  7 14:54:16 CEST 2008 - juhliarik@suse.cz
+
+- added fix for bnc# 335526 - problem with adding "resume" into 
+  boot section for memtest
+- 2.16.15
+
+-------------------------------------------------------------------
 Mon Apr 28 14:16:26 CEST 2008 - juhliarik@suse.cz
 
 - added fix for bnc# 232424 - problem with propose new config.

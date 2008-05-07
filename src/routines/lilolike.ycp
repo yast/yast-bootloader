@@ -626,9 +626,12 @@ global void FixSections (void() create_sections) {
 	    && ! haskey (getSwapPartitions (), resume))
 	// points to unexistent swap partition
 	{
-	    append = setKernelParamToLine (append,
-		"resume", getLargestSwapPartition ());
-	    s["append"] = append;
+	    // bnc# 335526 - Installing memtest with lilo screws up installation
+	    if (search(s["original_name"]:"", "memtest") == nil)
+	    {
+	    	append = setKernelParamToLine (append, "resume", getLargestSwapPartition ());
+	    	s["append"] = append;
+	    }
 	}
 	return s;
     });
