@@ -1,27 +1,27 @@
 -------------------------------------------------------------------
 Wed May  7 14:54:16 CEST 2008 - juhliarik@suse.cz
 
-- added fix for bnc# 335526 - problem with adding "resume" into 
+- added fix for bnc#335526 - problem with adding "resume" into 
   boot section for memtest
 - 2.16.15
 
 -------------------------------------------------------------------
 Mon Apr 28 14:16:26 CEST 2008 - juhliarik@suse.cz
 
-- added fix for bnc# 232424 - problem with propose new config.
+- added fix for bnc#232424 - problem with propose new config.
 - 2.16.14 
 
 -------------------------------------------------------------------
 Tue Apr 22 13:09:57 CEST 2008 - juhliarik@suse.cz
 
-- added fix for bnc# 363254
+- added fix for bnc#363254
 - added fix for UI problem with ComboBoxes and "Browse..." button
 - 2.16.13 
 
 -------------------------------------------------------------------
 Fri Apr 18 15:52:47 CEST 2008 - juhliarik@suse.cz
 
-- added fix for (bnc# 381192) bootloader uses grubonce _and_ kexec
+- added fix for (bnc#381192) bootloader uses grubonce _and_ kexec
 - added detecting VirtualBox - cancel using kexec
 - 2.16.12 
 
