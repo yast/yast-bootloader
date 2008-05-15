@@ -76,6 +76,7 @@ symbol WriteDialog() {
 
 string return_tab = "sections";
 
+
 /**
  * Run dialog for kernel section editation
  * @return symbol for wizard sequencer
@@ -88,8 +89,8 @@ symbol MainDialog () {
 	`Right ("adv_button")
     );
 
-//F#300779 - Install diskless client (NFS-root) 
-//kokso: additional warning that root partition is nfs type -> bootloader will not be installed
+    //F#300779 - Install diskless client (NFS-root) 
+    //kokso: additional warning that root partition is nfs type -> bootloader will not be installed
 
     map dev = $[];
     if ((BootCommon::BootPartitionDevice != "") && (BootCommon::BootPartitionDevice != nil))
@@ -103,7 +104,7 @@ symbol MainDialog () {
 	return `next;
     }
 
-//F#300779: end
+    //F#300779: end
 
     list<string> widget_names = ["tab", "adv_button"];
     map<string,map<string,any> > widget_descr = (map<string,map<string,any> >)
@@ -124,8 +125,8 @@ symbol MainDialog () {
 	"contents" : contents,
 	"caption" : caption,
 	"back_button" : Label::BackButton (),
-	"abort_button" : Label::AbortButton (),
-	"next_button" : Label::FinishButton (),
+	"abort_button" : (!Mode::installation()) ? Label::AbortButton () : Label::CancelButton (),
+	"next_button" : (!Mode::installation()) ? Label::FinishButton () : Label::OKButton (),
 	"fallback_functions" : global_handlers,
     ]);
     if (ret != `back && ret != `abort && ret != `cancel)
@@ -197,7 +198,7 @@ symbol KernelSectionDialog () {
 	"contents" : contents,
 	"caption" : caption,
 	"back_button" : Label::BackButton (),
-	"abort_button" : Label::AbortButton (),
+	"abort_button" : (!Mode::installation()) ? Label::AbortButton () : Label::CancelButton (),
 	"next_button" : Label::OKButton (),
 	"fallback_functions" : section_handlers,
     ]);
@@ -242,7 +243,7 @@ symbol ChainloaderSectionDialog () {
 	"contents" : contents,
 	"caption" : caption,
 	"back_button" : Label::BackButton (),
-	"abort_button" : Label::AbortButton (),
+	"abort_button" : (!Mode::installation()) ? Label::AbortButton () : Label::CancelButton (),
 	"next_button" : Label::OKButton (),
 	"fallback_functions" : section_handlers,
     ]);
@@ -272,8 +273,8 @@ symbol AddNewSectionDialog () {
 	"contents" : contents,
 	"caption" : caption,
 	"back_button" : Label::BackButton (),
-	"abort_button" : Label::AbortButton (),
-	"next_button" : Label::NextButton (),
+	"abort_button" : (!Mode::installation()) ? Label::AbortButton () : Label::CancelButton (),
+	"next_button" : (!Mode::installation()) ? Label::NextButton () : Label::OKButton (),
     ]);
 }
 
