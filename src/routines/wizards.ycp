@@ -22,6 +22,7 @@ textdomain "bootloader";
 import "Sequencer";
 import "Wizard";
 import "Report";
+import "Popup";
 include "bootloader/routines/dialogs.ycp";
 include "bootloader/generic/wizards.ycp";
 
@@ -132,6 +133,7 @@ symbol BootloaderAutoSequence () {
 	Wizard::SetTitleIcon("bootloader");	// no .desktop file in inst-sys
     else
 	Wizard::SetDesktopIcon("bootloader");
+
     symbol ret = MainSequence ();
     UI::CloseDialog();
     return ret;
