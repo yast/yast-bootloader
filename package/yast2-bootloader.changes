@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon May 26 18:34:43 CEST 2008 - juhliarik@suse.cz
+
+- added fix for problem with editing boot section for LILO 
+  (bnc# 340732)
+- added fix for cloning boot section (bnc# 390719)
+- 2.16.17 
+
+-------------------------------------------------------------------
 Fri May 16 16:40:22 CEST 2008 - jsrain@suse.cz
 
 - added categories Settings and System into desktop file
