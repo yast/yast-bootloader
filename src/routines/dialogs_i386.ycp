@@ -19,6 +19,7 @@
 {
 textdomain "bootloader";
 
+
 import "Label";
 import "Wizard";
 import "CWM";
@@ -27,6 +28,7 @@ import "Stage";
 
 include "bootloader/routines/helps_i386.ycp";
 include "bootloader/routines/widgets_i386.ycp";
+
 
 /**
  * Run dialog to adjust installation on i386 and AMD64
