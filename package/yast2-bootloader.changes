@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun  4 13:39:59 CEST 2008 - juhliarik@suse.cz
+
+- added fix for problem with deleting boot sections bnc #396810
+- 2.16.19 
+
+-------------------------------------------------------------------
 Wed Jun  4 10:06:01 CEST 2008 - juhliarik@suse.cz
 
 - added fix for problem with liveCD and simlinks for initrd and 
