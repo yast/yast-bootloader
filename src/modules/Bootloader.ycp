@@ -730,24 +730,68 @@ global define boolean WriteInstallation ()
 }
 
 
+ /**
+  * Find "same" boot sections and return numbers of sections
+  * from BootCommon::sections
+  * @param map<string,any> section
+  * @return integer number of "same" sactions
+  */
+
+define integer CountSection(map<string,any> find_section)
+{
+	y2milestone("Finding same boot sections");
+	integer num_sections = 0;
+	foreach(map<string,any> section, BootCommon::sections,
+	{
+		if ((section["root"]:nil == find_section["root"]:nil)
+		   &&
+		   (section["original_name"]:nil == find_section["original_name"]:nil))
+		{
+			num_sections = num_sections +1;
+		}
+	});
+	y2milestone("Number of similar section is %2 with %1",find_section, num_sections);
+	return num_sections;
+
+} 
+
+
+ /**
+  * Delete duplicated boot sections from 
+  * BootCommon::sections
+  */
+
 global define void DelDuplicatedSections()
 {	
 	y2milestone("Deleting duplicated boot sections");
 	map<string,any> linux_default = BootCommon::CreateLinuxSection ("linux");
 	map<string,any> linux_failsafe = BootCommon::CreateLinuxSection ("failsafe");
+	map<string,any> linux_xen = BootCommon::CreateLinuxSection ("xen");
 
 	y2milestone("linux_default: %1", linux_default);
 	y2milestone("linux_failsafe: %1", linux_failsafe);
+	y2milestone("linux_xen: %1", linux_xen);
 
 	y2milestone("Boot sections BEFORE deleting: %1", BootCommon::sections);
+
+	// obtain number of relative same boot sections for linux_default
+	integer num_linux_default = CountSection(linux_default);
+	// obtain number of relative same boot sections for linux_failsafe
+	integer num_linux_failsafe = CountSection(linux_failsafe);
+
+	// obtain number of relative same boot sections for linux_failsafe
+	integer num_linux_xen = CountSection(linux_xen);
+
 	BootCommon::sections=filter(map<string,any> section, BootCommon::sections,
 	{
-		if ((section["name"]:nil == linux_default["name"]:nil) 
-		   ||(section["name"]:nil == linux_failsafe["name"]:nil))
+		if (((section["name"]:nil == linux_default["name"]:nil) && (num_linux_default > 1)) 
+		   ||((section["name"]:nil == linux_failsafe["name"]:nil) && (num_linux_failsafe > 1))
+		   ||((section["name"]:nil == linux_xen["name"]:nil) && (num_linux_xen > 1)))
 		{
 			if ((section["root"]:nil == linux_default["root"]:nil)
-			   ||(section["root"]:nil == linux_failsafe["root"]:nil))
-			{
+			   ||(section["root"]:nil == linux_failsafe["root"]:nil)
+			   ||(section["root"]:nil == linux_xen["root"]:nil))
+			{				
 				y2milestone("deleted boot section: %1", section);
 				return false;
 			} else {
