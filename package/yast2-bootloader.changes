@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jun  4 10:06:01 CEST 2008 - juhliarik@suse.cz
+
+- added fix for problem with liveCD and simlinks for initrd and 
+  kernel (bnc# 393030)
+- 2.16.18
+
+-------------------------------------------------------------------
 Mon May 26 18:34:43 CEST 2008 - juhliarik@suse.cz
 
 - added fix for problem with editing boot section for LILO 
