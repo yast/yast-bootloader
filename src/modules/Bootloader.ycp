@@ -62,6 +62,7 @@
     global define string getProposedDefaultSection ();
     global define boolean UpdateGfxMenu ();
     global define void DelDuplicatedSections();
+    global define void ResolveSymlinksInSections();
 
     /**
       * Write is repeating again
@@ -619,6 +620,10 @@ global define boolean WriteInstallation ()
 	{
 		// delete duplicated sections
 		DelDuplicatedSections();
+	} else {
+		// resolve sim links for image and initrd
+		// bnc #393030 - live-CD kernel install/remove leaves broken system
+		ResolveSymlinksInSections();
 	}
 	if (BootCommon::write_settings["save_all"]:false)
 		BootCommon::save_all = true;
