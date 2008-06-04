@@ -768,9 +768,9 @@ global define void DelDuplicatedSections()
 	map<string,any> linux_failsafe = BootCommon::CreateLinuxSection ("failsafe");
 	map<string,any> linux_xen = BootCommon::CreateLinuxSection ("xen");
 
-	y2milestone("linux_default: %1", linux_default);
-	y2milestone("linux_failsafe: %1", linux_failsafe);
-	y2milestone("linux_xen: %1", linux_xen);
+	y2milestone("Proposed section for linux_default: %1", linux_default);
+	y2milestone("Proposed section for linux_failsafe: %1", linux_failsafe);
+	y2milestone("Proposed section for linux_xen: %1", linux_xen);
 
 	y2milestone("Boot sections BEFORE deleting: %1", BootCommon::sections);
 
