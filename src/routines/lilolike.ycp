@@ -204,6 +204,7 @@ global string FindMBRDisk() {
 	//           is recognized)
 	boolean keep_mbr = KeepMBR (loader_device);
 
+	integer exit = 0;
 	// if is primary, store bootloader there
 	if (disk_is_mbr && ! is_logical)
 	{
@@ -222,8 +223,14 @@ global string FindMBRDisk() {
 	    map out = (map)SCR::Execute (.target.bash_output, sformat (
 		"/usr/lib/YaST2/bin/examine_mbr.pl %1", disk));
 	    y2milestone ("MBR examining script returned %1", out);
-	    integer exit = out["exit"]:0;
+	    exit = out["exit"]:0;
 	    repl_mbr = (exit == 254) && (! keep_mbr);
+	    // hack for vista install GRUB to MBR
+	    if (exit == 200) 
+	    {
+	        repl_mbr = false;
+		selected_location = "mbr";
+	    }
 	}
 	else if (size (needed_devices) > 1)
 	{
@@ -254,7 +261,9 @@ global string FindMBRDisk() {
 	    // we are installing into MBR:
 	    // if there is an active partition, then we do not need to activate
 	    // one (otherwise we do)
-	    activate = size (Storage::GetBootPartition (mbrDisk)) == 0;
+            // hack for vista
+	    if (exit != 200)
+	        activate = size (Storage::GetBootPartition (mbrDisk)) == 0;
 	}
 	else
 	{

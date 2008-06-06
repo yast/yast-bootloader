@@ -63,6 +63,13 @@ if (substr($MBR, 12, 500) =~ m,NTLDR is missing,) {
   exit 0;
 }
 
+if (substr($MBR, 320, 126) =~ 
+    m,invalid partition table.*Error loading operating system,i) {
+  print "Vista MBR\n";
+  exit 200;
+}
+
+
 print "unknown\n";
 exit 0;
 
