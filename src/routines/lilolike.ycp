@@ -220,17 +220,13 @@ global string FindMBRDisk() {
 	    //	    - 0    for a "Generic MBR" (DOS MBR)
 	    //	    - 254  for a GRUB or lilo "stage 1"
 	    //	    - 0    for an unknown MBR
+            //	    - 0    for a Vista MBR
 	    map out = (map)SCR::Execute (.target.bash_output, sformat (
 		"/usr/lib/YaST2/bin/examine_mbr.pl %1", disk));
 	    y2milestone ("MBR examining script returned %1", out);
 	    exit = out["exit"]:0;
 	    repl_mbr = (exit == 254) && (! keep_mbr);
-	    // hack for vista install GRUB to MBR
-	    if (exit == 200) 
-	    {
-	        repl_mbr = false;
-		selected_location = "mbr";
-	    }
+
 	}
 	else if (size (needed_devices) > 1)
 	{
@@ -261,9 +257,7 @@ global string FindMBRDisk() {
 	    // we are installing into MBR:
 	    // if there is an active partition, then we do not need to activate
 	    // one (otherwise we do)
-            // hack for vista
-	    if (exit != 200)
-	        activate = size (Storage::GetBootPartition (mbrDisk)) == 0;
+            activate = size (Storage::GetBootPartition (mbrDisk)) == 0;
 	}
 	else
 	{

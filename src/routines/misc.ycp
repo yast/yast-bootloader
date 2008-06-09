@@ -1032,6 +1032,8 @@ list<string> ListKernelParamsInLine (string line) {
 	string device_file = mergestring (splitstring (device, "/"), "_");
 	string device_file_path = "/var/lib/YaST2/backup_boot_sectors/"
 	    + device_file;
+	string device_file_path_to_logs = "/var/log/YaST2/"
+	    + device_file;
 	SCR::Execute (.target.bash,
 	    "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors");
 	if (SCR::Read (.target.size, device_file_path) > 0)
@@ -1056,6 +1058,10 @@ list<string> ListKernelParamsInLine (string line) {
 	SCR::Execute (.target.bash, sformat (
 	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
 	    device, device_file_path));
+        // save MBR to yast2 log directory
+	SCR::Execute (.target.bash, sformat (
+	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+	    device, device_file_path_to_logs));
 	if (device == mbrDisk)
 	{
 	    SCR::Execute (.target.bash, sformat (
@@ -1107,8 +1113,9 @@ list<string> ListKernelParamsInLine (string line) {
 	    list<string> disks_to_rewrite = getMbrsToRewrite ();
 	    foreach (string d, disks_to_rewrite, {
 		y2milestone ("Copying generic MBR code to %1", d);
+		// added fix 446 -> 440 Vista booting problem bnc # 396444
 		string command = sformat (
-		    "/bin/dd bs=446 count=1 if=%1 of=%2",
+		    "/bin/dd bs=440 count=1 if=%1 of=%2",
 		    "/usr/lib/boot/master-boot-code",
 		    d);
 		y2milestone ("Running command %1", command);
@@ -1175,7 +1182,7 @@ list<string> ListKernelParamsInLine (string line) {
 
     /**
       * Rewrite current MBR with /var/lib/YaST2/backup_boot_sectors/%device
-      * Warning!!! don't use for bootsectors, 446 bytes of sector are written
+      * Warning!!! don't use for bootsectors, 440 bytes of sector are written
       * @param device string device to rewrite MBR to
       * @return boolean true on success
       */
@@ -1187,8 +1194,9 @@ list<string> ListKernelParamsInLine (string line) {
 	    Report::Error ("Can't restore MBR. No saved MBR found");
 	    return false;
 	}
+        // added fix 446 -> 440 for Vista booting problem bnc #396444
 	integer ret = (integer) SCR::Execute (.target.bash, sformat (
-	    "/bin/dd of=%1 if=/var/lib/YaST2/backup_boot_sectors/%2 bs=446 count=1",
+	    "/bin/dd of=%1 if=/var/lib/YaST2/backup_boot_sectors/%2 bs=440 count=1",
 	    device, device_file));
 	return (ret == 0);
     }
