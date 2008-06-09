@@ -633,8 +633,7 @@ define symbol grub_ConfigureLocation() {
 	// drive letter to the activated partition).
 	BootCommon::globals["activate"] =
 	       (size (Storage::GetBootPartition (BootCommon::mbrDisk)) == 0) ? "true" : "false";
-	else
-	   y2milestone("Detected Vista MBR don't activate");
+
     }
     else
     {
