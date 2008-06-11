@@ -389,7 +389,8 @@ define map<string, string> getXenPartitionForActivating()
 
     // prepare return value
     ret["disk"] = mountdata_boot[2]:"";
-    ret["number_partition"] = deletechars(mountdata_boot[0]:"", mountdata_boot[2]:"");
+    map p_dev = Storage::GetDiskPartition (mountdata_boot[0]:"");
+    ret["number_partition"] = p_dev["nr"]:"";
 
     y2milestone( "mountPoints %1", mp );
     y2milestone( "mountdata_boot %1", mountdata_boot );
