@@ -372,6 +372,41 @@
 	y2milestone ("Running bootloader pre-update stuff");
     }
 
+/**
+ * Function find partition for activating
+ * it is special for activating partition for XEN
+ * @return map disk and number of partition for activating
+ */
+
+define map<string, string> getXenPartitionForActivating()
+{    
+    map mp = Storage::GetMountPoints();
+
+    map<string, string> ret = $[];
+
+    list mountdata_boot = mp["/boot"]:(mp["/"]:[]);
+    list mountdata_root = mp["/"]:[];
+
+    // prepare return value
+    ret["disk"] = mountdata_boot[2]:"";
+    ret["number_partition"] = deletechars(mountdata_boot[0]:"", mountdata_boot[2]:"");
+
+    y2milestone( "mountPoints %1", mp );
+    y2milestone( "mountdata_boot %1", mountdata_boot );
+
+    string root_device = mp["/", 0]:"";
+
+    if (root_device == "")
+    {
+	y2error ("No mountpoint for / !");
+	ret["disk"] = "";
+    }
+    y2milestone("XEN disk and number of partition for activating %1", ret);
+    return ret;
+
+}
+
+
     /**
       * Write bootloader settings to disk
       * @return boolean true on success
@@ -517,14 +552,36 @@
 
 	if (getLoaderType () == "none")
 	{
+	    // bnc #380982 - pygrub cannot boot kernel
+	    // added activation for boot partition in XEN or root if boot partition doesn't exist
+	    // it handles only the 1.- 4. partition other should be ignored
+	    if (Arch::is_uml () || Arch::is_xenU())
+    	    {
+		y2milestone("Activating partition for XEN");
+		map<string, string> active_disk = getXenPartitionForActivating();
+		if ((active_disk["disk"]:"" != "") && (active_disk["number_partition"]:"" != "")
+		   && (tointeger(active_disk["number_partition"]:"") < 5))
+		{
+		    string command = sformat
+			("/usr/sbin/parted -s %1 set %2 boot on",active_disk["disk"]:"" , active_disk["number_partition"]:"");
+		    y2milestone ("Running command %1", command);
+		    map out = (map)SCR::Execute (.target.bash_output, command);
+		    y2milestone ("Command output: %1", out);
+
+		} else {
+
+		    y2error("Finding partition for activating fault: %1", active_disk);
+		}
+		
+ 	    }
 	    return ret;
 	}
 
 
-//F#300779 - Install diskless client (NFS-root) 
-//kokso: additional warning that root partition is nfs type -> bootloader will not be installed
+       // F#300779 - Install diskless client (NFS-root) 
+       // kokso: additional warning that root partition is nfs type -> bootloader will not be installed
 
-//B#355332 - Bootloader doesn't work if root partitions is like nfs
+       // B#355332 - Bootloader doesn't work if root partitions is like nfs
 
         map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
         
@@ -535,7 +592,7 @@
 
         }
 
-//F#300779 -end
+        // F#300779 -end
 	// update graphics menu where possible
 	UpdateGfxMenu ();
 
