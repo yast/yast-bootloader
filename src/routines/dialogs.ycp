@@ -301,7 +301,8 @@ symbol StoreSection () {
     {
        BootCommon::current_section = (map<string,any>)union (
            $[
-               "xen" : BootCommon::UsingXenPae() ? "/boot/xen-pae.gz" : "/boot/xen.gz",
+	       // bug #400526 there is not xenpae anymore...
+               "xen" : "/boot/xen.gz",
                "xen_append" : "",
            ],
            BootCommon::current_section);

@@ -598,15 +598,12 @@ global map<string,any> CreateLinuxSection (string title) {
     {
         ret["type"] = "xen";
 	ret["xen_append"] = "";
-        if (UsingXenPae()) {
-	    ret["xen"] = "/boot/xen-pae.gz";
-	    ret["image"] = "/boot/" + Kernel::GetBinary () + "-xenpae";
-	    ret["initrd"] = "/boot/initrd-xenpae";
-	} else {
-	    ret["xen"] = "/boot/xen.gz";
-	    ret["image"] = "/boot/" + Kernel::GetBinary () + "-xen";
-	    ret["initrd"] = "/boot/initrd-xen";
-	}
+
+	// bug #400526 there is not xenpae anymore...
+	ret["xen"] = "/boot/xen.gz";
+	ret["image"] = "/boot/" + Kernel::GetBinary () + "-xen";
+	ret["initrd"] = "/boot/initrd-xen";
+
     }
     else if (title == "wildcard")
     {
