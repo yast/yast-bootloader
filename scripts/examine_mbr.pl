@@ -55,7 +55,7 @@ if (substr($MBR, 346, 100) =~ m,GRUB .Geom.Hard Disk.Read. Error,) {
 
 if (substr($MBR, 4, 20) =~ m,LILO,) {
   print "LILO stage1\n";
-  exit 1;
+  exit 254;
 }
 
 if (substr($MBR, 12, 500) =~ m,NTLDR is missing,) {
@@ -63,7 +63,7 @@ if (substr($MBR, 12, 500) =~ m,NTLDR is missing,) {
   exit 0;
 }
 
-if (substr($MBR, 320, 126) =~ 
+if (substr($MBR, 0, 440) =~ 
     m,invalid partition table.*Error loading operating system,i) {
   print "Vista MBR\n";
   exit 0;
@@ -71,5 +71,5 @@ if (substr($MBR, 320, 126) =~
 
 
 print "unknown\n";
-exit 0;
+exit 254;
 

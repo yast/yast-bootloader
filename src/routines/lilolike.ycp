@@ -125,6 +125,42 @@ global string FindMBRDisk() {
     return boot_disk;
 }
 
+
+
+/**
+ * function check all partitions and it tries to find /boot partition
+ * if it is MD Raid and soft-riad return correct device for analyse MBR
+ * @param list<map> list of partitions
+ * @return string device for analyse MBR
+ */
+define string soft_MDraid_boot_disk(list<map> partitions)
+{
+   string result = "";
+   string boot_device = "";
+   if ((BootCommon::BootPartitionDevice != nil) && (BootCommon::BootPartitionDevice != ""))
+       boot_device = BootCommon::BootPartitionDevice;
+   else
+       boot_device = BootCommon::RootPartitionDevice;
+
+   foreach(map p, partitions, {
+	if (p["device"]:"" == boot_device)
+	{
+	   if ((p["type"]:nil == `sw_raid) && (p["fstype"]:"" == "MD Raid"))
+	   {
+	      string device_1 = p["devices",0]:"";
+	      y2debug("device_1: %1", device_1);
+	      map dp = Storage::GetDiskPartition (device_1);
+	      y2debug("dp: %1", dp);
+	      result = dp["disk"]:"";
+	   }
+	}
+   });
+   y2milestone("Device for analyse MBR from soft-raid (MD-Raid only): %1", result);
+   return result;
+}
+
+
+
     /**
      * ConfigureLocation()
      * Where to install the bootloader.
@@ -219,8 +255,17 @@ global string FindMBRDisk() {
 	    //	           contain boot code
 	    //	    - 0    for a "Generic MBR" (DOS MBR)
 	    //	    - 254  for a GRUB or lilo "stage 1"
-	    //	    - 0    for an unknown MBR
+	    //	    - 254  for an unknown MBR
             //	    - 0    for a Vista MBR
+	  
+            
+            // check if there is raid and if it soft-raid select correct device for analyse MBR
+            // bnc #398356
+	    if (size (needed_devices) > 1)
+	       disk = soft_MDraid_boot_disk(partitions);
+	    if (disk == "")
+	       disk = dp["disk"]:"";
+
 	    map out = (map)SCR::Execute (.target.bash_output, sformat (
 		"/usr/lib/YaST2/bin/examine_mbr.pl %1", disk));
 	    y2milestone ("MBR examining script returned %1", out);
