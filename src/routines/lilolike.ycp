@@ -441,8 +441,9 @@ global void RunDelayedUpdates () {
  * order is from special to general, but prefer "default" in favor of "xen"
  */
 // FIXME: handle "rt" and "vanilla"?
+// bnc #400526 there is not xenpae anymore...
 list<string> generic_fallback_flavors = [
-	"s390", "iseries64", "ppc64", "bigsmp", "default", "xenpae", "xen",
+	"s390", "iseries64", "ppc64", "bigsmp", "default", "xen",
 ];
 
 /**
@@ -1138,10 +1139,8 @@ global void UpdateInitrdLine () {
         }
 	else if (type == "xen" && write_settings["insert_initrd"]:false)
 	{
-	    if (BootCommon::UsingXenPae())
-	        s["initrd"] = "/boot/initrd-xenpae";
-	    else
-	        s["initrd"] = "/boot/initrd-xen";
+	   // bnc #400526 there is not xenpae any more...
+	   s["initrd"] = "/boot/initrd-xen";
 	}
         if (initrd != "")
         {
