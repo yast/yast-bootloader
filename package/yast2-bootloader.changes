@@ -1,10 +1,12 @@
 -------------------------------------------------------------------
 Thu Jun 26 17:24:00 CEST 2008 - juhliarik@suse.cz
+
 - deleted support xenpae (bnc #400526)
 - 2.17.2
 
 -------------------------------------------------------------------
 Thu Jun 26 16:51:00 CEST 2008 - juhliarik@suse.cz
+
 - added support for better detection Vista in MBR
 - added fix for installing generic code if MBR is uknown (bnc #400062)
 - added fix for detection MBR if sw-raid is used (bnc #398356)
@@ -12,6 +14,7 @@ Thu Jun 26 16:51:00 CEST 2008 - juhliarik@suse.cz
 
 -------------------------------------------------------------------
 Mon Jun  9 13:35:26 CEST 2008 - juhliarik@suse.cz
+
 - added fix for problem with booting Vista bnc #396444
 - 2.16.20
 
