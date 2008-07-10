@@ -918,8 +918,12 @@ global define string getLoaderType (boolean recheck) {
     y2milestone ("Bootloader detection returned %1", loader_type);
     if (Arch::is_uml () || Arch::is_xenU())
     {
-	y2milestone ("Not installing any bootloader for UML/Xen PV");
-	loader_type = "none";
+	//y2milestone ("Not installing any bootloader for UML/Xen PV");
+	//loader_type = "none";
+	// bnc #380982 - pygrub cannot boot kernel
+	// added installation of bootloader
+	y2milestone ("It is XEN domU and the bootloader should be installed");
+
     }
     if (loader_type == "grub" && Storage::UseLilo())
     {
