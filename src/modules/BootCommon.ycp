@@ -872,7 +872,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    mergestring (sects, "<br>")));
 	if (loader_device == "/dev/null")
 	    // summary text
-	    result = add (result, _("Do not install boot loader; just create
+	    result = add (result, _("Do not install boot loader; just create 
 configuration files"));
 	return result;
     }
@@ -993,8 +993,12 @@ global define string getLoaderType (boolean recheck) {
     // lslezak@: Arch::is_xenU() returns true only in PV guest
     if (Arch::is_uml () || Arch::is_xenU())
     {
-	y2milestone ("Not installing any bootloader for UML/Xen PV");
-	loader_type = "none";
+	// y2milestone ("Not installing any bootloader for UML/Xen PV");
+	// loader_type = "none";
+	// bnc #380982 - pygrub cannot boot kernel
+	// added installation of bootloader
+	y2milestone ("It is XEN domU and the bootloader should be installed");
+
     }
     if (loader_type == "grub" && Storage::UseLilo())
     {
