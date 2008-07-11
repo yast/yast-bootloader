@@ -43,6 +43,8 @@ bl_global =
   element global {
     element boot_custom { text }? &
     element generic_mbr { text }? &
+    element serial      { text }? &
+    element terminal    { text }? &
     lines_cache_id? &
     bl_timeout? &
     gfxmenu? &
