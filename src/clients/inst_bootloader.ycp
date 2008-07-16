@@ -22,6 +22,7 @@ import "Bootloader";
 import "BootCommon";
 import "Installation";
 import "GetInstArgs";
+import "Mode";
 
 
 y2milestone ("starting inst_bootloader");
@@ -32,29 +33,95 @@ if ( GetInstArgs::going_back())     // going backwards?
     return `auto;                   // don't execute this once more
 }
 
-Bootloader::blSave (false, false, false);
-map<string,string> files = BootCommon::GetFilesContents ();
-
-y2milestone("contents FILES: %1", files);
-
-
-foreach (string file, string content, files, 
+if (Mode::installation())
 {
+    Bootloader::blSave (false, false, false);
+    map<string,string> files = BootCommon::GetFilesContents ();
+
+    y2milestone("contents FILES: %1", files);
+
+
+    foreach (string file, string content, files, 
+    {
 
 	integer last=findlastof(file,"/");
 	string path_file = substring (file, 0, last);
 	WFM::Execute(.local.mkdir, Installation::destdir + path_file);
 	y2milestone ("writing file: %1", file); 
 	WFM::Write(.local.string, Installation::destdir + file, content);
-});
-
+    });
+}
 
 string lt = Bootloader::getLoaderType ();
 
 y2milestone ("Saving /etc/sysconfig/bootloader for %1", lt);
 
+// save some sysconfig variables
+// register new agent pointing into the mounted filesystem
 WFM::Execute(.local.mkdir, Installation::destdir + "/etc/sysconfig");
-WFM::Write(.local.string, Installation::destdir + "/etc/sysconfig/bootloader", "LOADER_TYPE=\""+lt+"\"");
+WFM::Write(.local.bash, sformat ("touch %1/etc/sysconfig/bootloader", Installation::destdir));
+string target_sysconfig_path = Installation::destdir + "/etc/sysconfig/bootloader";
+SCR::RegisterAgent (.target.sysconfig.bootloader, `ag_ini(
+  `SysConfigFile(target_sysconfig_path)));
+
+if (Mode::installation())
+    SCR::Write (.target.sysconfig.bootloader.LOADER_TYPE, lt);
+
+// get the default and failsafe append + vga parameters; if section with
+// appropriate original name not found, just use any Linux section
+// doing so during update may be questionable, however, the variables need to
+// be initialized in any case
+string default_vga = "";
+string default_append = "";
+boolean default_set = false;
+string failsafe_vga = "";
+string failsafe_append = "";
+boolean failsafe_set = false;
+string xen_vga = "";
+string xen_append = "";
+boolean xen_set = false;
+foreach (map<string,any>s, BootCommon::sections, {
+    if (s["original_name"]:"" == "linux")
+    {
+	default_set = true;
+	default_vga = s["vgamode"]:"";
+	default_append = s["append"]:"";
+    }
+    if (s["original_name"]:"" == "xen")
+    {
+	xen_set = true;
+	xen_vga = s["vgamode"]:"";
+	xen_append = s["append"]:"";
+    }
+    else if (s["original_name"]:"" == "failsafe")
+    {
+	failsafe_set = true;
+	failsafe_vga = s["vgamode"]:"";
+	failsafe_append = s["append"]:"";
+    }
+    if (s["type"]:"" == "image" && ! default_set)
+    {
+	default_vga = s["vgamode"]:"";
+	default_append = s["append"]:"";
+    }
+    if (s["type"]:"" == "image" && ! failsafe_set)
+    {
+	failsafe_vga = s["vgamode"]:"";
+	failsafe_append = s["append"]:"";
+    }
+});
+if (! xen_set)
+{
+    xen_append = default_append;
+    xen_vga = default_vga;
+}
+SCR::Write (.target.sysconfig.bootloader.DEFAULT_APPEND, default_append);
+SCR::Write (.target.sysconfig.bootloader.DEFAULT_VGA, default_vga);
+SCR::Write (.target.sysconfig.bootloader.FAILSAFE_APPEND, failsafe_append);
+SCR::Write (.target.sysconfig.bootloader.FAILSAFE_VGA, failsafe_vga);
+SCR::Write (.target.sysconfig.bootloader.XEN_APPEND, xen_append);
+SCR::Write (.target.sysconfig.bootloader.XEN_VGA, xen_vga);
+SCR::Write (.target.sysconfig.bootloader, nil);
 
 y2milestone ("finish inst_bootloader");
 
