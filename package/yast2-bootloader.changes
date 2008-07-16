@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 16 14:27:23 CEST 2008 - jsrain@suse.cz
+
+- store kernel parameters to sysconfig during installation
+  (fate #302245)
+
+-------------------------------------------------------------------
 Fri Jul 11 13:18:05 CEST 2008 - ug@suse.de
 
 - rnc file fixed (bnc#407615)
