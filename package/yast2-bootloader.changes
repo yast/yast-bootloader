@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Jul 21 09:20:13 CEST 2008 - juhliarik@suse.cz
+
+- 2.17.4
+
+-------------------------------------------------------------------
 Wed Jul 16 14:27:23 CEST 2008 - jsrain@suse.cz
 
 - store kernel parameters to sysconfig during installation
