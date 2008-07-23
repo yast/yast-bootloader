@@ -235,7 +235,7 @@
 	y2debug ("Dev2MountByDev: partitions %1", partitions);
 
 	string ret = dev;
-
+	
 	symbol mountby = `device;
 	mountby = (symbol) partitions[dev, "mountby"]:nil;
 	if ( mountby == `uuid && partitions[dev, "uuid"]:nil != nil )
@@ -256,6 +256,55 @@
 	return ret;
     }
 
+    /**
+     * Converts a device name to the label (if it used) than try to udev id (if it used)
+     * if both (label, id) missing return same name of device (doesn't convert it)
+     * FATE #302219 Use and choose persistent device names for disk devices (as opposed to partition devices)
+     * @param dev string device name
+     * @return string device name by label or by udev id
+     */
+
+    global define string DevToLabelUdevID(string dev)
+    {
+	y2milestone ("Try to convert device: %1", dev);
+	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
+
+	// make a map: "/dev/hda1" -> info_map_for_this_partition
+	map<string,map> partitions = $[];
+	foreach (string k, map v, devices, ``{
+	    foreach (map p, (list<map>)(v["partitions"]:[]), ``{
+		partitions[p["device"]:""] = p;
+	    });
+	});
+	y2debug ("DevToLabelUdevID: partitions %1", partitions);
+
+	string ret = dev;
+	// try to find in partitions
+	if ((partitions[dev, "label"]:nil != nil) && (partitions[dev, "label"]:nil != ""))
+	{
+	   ret = sformat ("/dev/disk/by-label/%1", partitions[dev, "label"]:"");
+	   y2milestone ("Device name: %1 is converted to label name: %2", dev, ret);
+	   return ret;
+	}
+
+        if ((partitions[dev, "udev_id"]:nil != nil) && (partitions[dev, "udev_id", 0]:nil != ""))
+	{
+	   ret = sformat ("/dev/disk/by-id/%1", partitions[dev, "udev_id", 0]:"");
+	   y2milestone ("Device name: %1 is converted to udev id: %2", dev, ret);
+	   return ret;
+	}
+	
+	// try to find udev_id for disks - it is special for device map (user cannot set label for disk)
+
+	if ((devices[dev, "udev_id"]:nil != nil) && (devices[dev, "udev_id", 0]:nil != ""))
+	{
+	   ret = sformat ("/dev/disk/by-id/%1", devices[dev, "udev_id", 0]:"");
+	   y2milestone ("Device name: %1 is converted to udev id: %2", dev, ret);
+	   return ret;
+	}
+	y2milestone ("Sorry label or udev id was not found device is not converted: device %1", ret);
+	return ret;
+    }
     /**
      * Returns list of partitions with "mount by" hints. Goes through the list
      * of partitions passed as a parameter and creates a list of partitions with

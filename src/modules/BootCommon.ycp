@@ -456,6 +456,10 @@ global map<string,any> CreateLinuxSection (string title) {
     string resume = BootArch::ResumeAvailable ()
 	? getLargestSwapPartition ()
 	: "";
+    // try to use label or udev id for device name... FATE #302219
+    if ((resume != "") && (resume != nil))
+	resume = DevToLabelUdevID(resume);
+
 
     // FIXME:
     // This only works in the installed system (problem with GetFinalKernel()),
@@ -576,7 +580,8 @@ global map<string,any> CreateLinuxSection (string title) {
     ret = (map <string, any>)union (ret, $[
 	"image" : kernel_fn,
 	"initrd" : initrd_fn,
-	"root" : RootPartitionDevice,
+	// try to use label or udev id for device name... FATE #302219
+	"root" : DevToLabelUdevID(RootPartitionDevice),
 	"append" : (title == "failsafe")
 	    ? BootArch::FailsafeKernelParams ()
 	    : BootArch::DefaultKernelParams (resume),
@@ -690,7 +695,8 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 		k = Storage::SLES9PersistentDevNames(k);
 		y2milestone( "devmap: dev name after SLES9 persistent dev name translation: %1", k);
 	    }
-	    return $[BootCommon::MountByDev2Dev(k) : v];
+	    //return $[BootCommon::MountByDev2Dev(k) : v];
+	    return $[DevToLabelUdevID(k) : v];
     });
 
     // convert custom boot device names in globals to the kernel device names
@@ -703,11 +709,13 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 		v = Storage::SLES9PersistentDevNames(v);
 		y2milestone( "globals: dev name after SLES9 persistent dev name translation: %1", v);
 	    }
-	    return $[k : BootCommon::MountByDev2Dev(v)];
+	    //return $[k : BootCommon::MountByDev2Dev(v)];
+	    return $[k : DevToLabelUdevID(v)];
 	} else {
 	    return $[k : v];
 	}
     });
+
 
     // convert root device names in sections to kernel device names, if
     // possible
@@ -718,10 +726,10 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 	    rdev = Storage::SLES9PersistentDevNames(rdev);
 	    y2milestone( "sections: dev name after SLES9 persistent dev name translation: %1", rdev);
 	}
-	s["root"] = BootCommon::MountByDev2Dev(rdev);
+	//s["root"] = BootCommon::MountByDev2Dev(rdev);
+	s["root"] = DevToLabelUdevID(rdev);
 	return s;
     });
-
     return true;
 }
 
@@ -780,13 +788,15 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    filter (string k, any v, s, { return is (v, string); });
     });
 
+    /* it is done
     // convert root device names in sections to the device names indicated by
     // "mountby"
+    
     sects = maplist (map<string,string> s, sects, {
 	s["root"] = BootCommon::Dev2MountByDev(s["root"]:"");
 	return s;
     });
-
+    */
     // FIXME: give mountby information to perl-Bootloader (or define some
     // better interface), so that perl-Bootloader can use mountby device names
     // for these devices instead. Tracked in bug #248162.
@@ -797,7 +807,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // convert the stage1_dev
     map<string,string> my_globals = mapmap (string k , string v, globals, {
 	if ( k == "stage1_dev" || regexpmatch(k, "^boot_.*custom$" ) )
-	    return $[k : BootCommon::Dev2MountByDev(v)];
+	    //return $[k : BootCommon::Dev2MountByDev(v)];
+	    return $[k : BootCommon::DevToLabelUdevID(v)];
 	else
 	    return $[k : v];
     });
@@ -806,7 +817,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // "mountby"
     map<string,string> my_device_mapping =
 	mapmap (string k , string v, device_mapping, {
-	    return $[BootCommon::Dev2MountByDev(k) : v];
+	    //return $[BootCommon::Dev2MountByDev(k) : v];
+	    return $[BootCommon::DevToLabelUdevID(k) : v];
     });
 
     ret = ret && SetDeviceMap (my_device_mapping);
