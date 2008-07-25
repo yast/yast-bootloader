@@ -1576,8 +1576,31 @@ global boolean BootloaderInstallable () {
 	return true;
     }
 }
+/**
+ * Function return boot disk device with udev id name
+ * @return string name of boot disk like udev id
+ */
+define string BootDeviceToUdevID()
+{
+    string device = "";
+    if ((BootPartitionDevice != "") || (BootPartitionDevice != nil))
+	device = BootPartitionDevice;
 
+    if (device == "")
+	device = RootPartitionDevice;
 
+    if (device == "")
+	return device;
+
+    y2milestone("Boot device is: %1", device);
+    map p_dev = Storage::GetDiskPartition (device);
+
+    string boot_disk = p_dev["disk"]:"";
+
+    device = DevToLabelUdevID(boot_disk);
+    y2milestone("Boot disk is %1 and his udev id is: %2", boot_disk, device);
+    return device;
+}
 
 
 } //end of include

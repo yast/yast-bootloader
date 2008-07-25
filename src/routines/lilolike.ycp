@@ -24,6 +24,7 @@ import "Mode";
 import "Storage";
 import "StorageDevices";
 import "BootArch";
+import "Map";
 
 global string DiskOrderSummary ();
 global list<string> DisksOrder ();
@@ -1402,8 +1403,12 @@ global void ProposeDeviceMap () {
         {
             integer index = tointeger (bios_id) - tointeger ("0x80");
             string grub_dev = sformat ("hd%1", index);
-	    device_mapping[target_dev] = grub_dev;
-            ids[index] = true;
+	    // FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
+	    if (! ids[index]:false)
+            {
+	    	device_mapping[target_dev] = grub_dev;
+            	ids[index] = true;
+	    }
         }
     });
     // and guess other devices
@@ -1491,6 +1496,72 @@ global string DiskOrderSummary () {
     return ret;
 }
 
+/**
+ * FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
+ * The function reduce record (devices) in device.map
+ * Grub doesn't support more than 8 devices in device.map
+ * There is selected the first 7 devices + boot or root device
+ * @param string boot device with udev id name
+ * @return boolean true if there was deleted any disks from device.map
+ */
+global boolean ReduceDeviceMapTo8(string boot_dev) 
+{
+    boolean result = false;
+
+    if (size(device_mapping)>8)
+    {
+	result = true;
+	list <string> bios_order = (list <string> ) Map::Values(device_mapping);
+	//delete all grub devices with order more than 9
+	bios_order = filter(string key, bios_order, {return (size(key) < 4);});
+	bios_order = lsort(bios_order);
+	y2debug("ordered values (grub devices): %1", bios_order);
+	map<string,string> inverse_device_map = $[];
+	map<string,string> new_device_map = $[];
+	y2milestone("Device map before reducing: %1", device_mapping);
+	foreach(string key, string value, device_mapping,
+	{
+	    inverse_device_map[value]=key;
+	});
+
+	y2debug("inverse_device_map: %1", inverse_device_map);
+	integer index = 0;
+	boolean boot_device_added = false;
+	foreach(string key, bios_order,
+	{
+	    string device_name = inverse_device_map[key]:"";
+	    if (index < 7)
+	    {
+		y2debug("adding device: %1 with key: %2 and index is: %3", device_name, key, index);
+		new_device_map[device_name]=key;
+		if (device_name == boot_dev)
+		    boot_device_added = true;
+		index = index + 1;
+	    } else {
+		if (boot_device_added)
+		{
+		    new_device_map[device_name]=key;
+		    break;
+		} else {
+		    if (haskey(device_mapping, boot_dev))
+		    {
+			new_device_map[boot_dev]=device_mapping[boot_dev]:"";
+			break;
+		    } else {
+
+			y2error("Boot disk device: %1 was not found in device_mapping: %2", boot_dev, device_mapping);
+			break;
+		    }
+		}
+	    }
+	});	
+	device_mapping = new_device_map;
+	y2milestone("Device map with the first 7 device + boot device: %1", device_mapping);
+    } else {
+	y2milestone("Device map includes less than 9 devices. It is not reduced. device_map: %1", device_mapping);
+    }
+    return result;
+}
 
 } // EOF
 

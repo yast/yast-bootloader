@@ -1038,7 +1038,82 @@ global define string mergeDevPath (list devpth) ``{
     string ret = devpth[0]:"" + devpth[1]:"";
     return ret;
 }
+
+
+/** FATE #301994 - Correct device mapping in case windows is installed on the second HD
+ * Check if chainloader section with windows is on the first disk
+ * 
+ * @param map<string,any> section from  BootCommon::sections
+ * @return boolean true if it is necessary remap section
+ */
+define boolean isWidnowsOnBootDisk(map<string,any> section)
+{
+	// check if it is windows chainloader
+	if ((search(tolower(section["name"]:""), "windows") != nil)
+	   || (search(tolower(section["original_name"]:""), "windows") != nil))
+	{
+		map p_dev = Storage::GetDiskPartition (section["chainloader"]:"");
+
+		string disk_dev = p_dev["disk"]:"";
+		if (disk_dev == "")
+		{
+			y2error("trying find disk for windows chainloader failed");
+			return false;
+		}
+		// find grub id in device map for chainloader device
+		string grub_id = BootCommon::device_mapping[disk_dev]:"";
+		y2milestone("Disk from windows chainloader: %1 grub id from device map: %2", disk_dev, grub_id);
+
+		// check if disk is the first in order...
+		if (grub_id != "hd0")
+			return true;
+
+	}
+	return false;
 }
+
+/** FATE #301994 - Correct device mapping in case windows is installed on the second HD
+ * Remap and make active windows chainloader section
+ * if it is not on the boot (the first) disk
+ * @param list of sections
+ * @return list of sections
+ */
+
+define list<map<string,any> > checkWidnowsSection(list<map<string,any> > sections)
+{
+
+	// list of idexes from sections where is chainloader
+	// and where is necessary add remapping and makeactive
+	list < integer > list_index =[];
+	// counter
+	integer index = -1;
+	// check all sections...
+	foreach(map<string,any> section, sections,
+	{
+		index = index +1;
+		if (haskey(section, "chainloader"))
+		{
+			y2debug("chainloader section: %1", section);
+			// add only indexes for update
+			if (isWidnowsOnBootDisk(section))
+				list_index = add(list_index, index);
+		};
+	});
+
+	if (size(list_index) > 0)
+	{
+		foreach (integer idx, list_index,
+		{
+			sections[idx, "remap"] = "true";
+			sections[idx, "makactive"] = "true";
+		}
+	}
+
+	return sections;
+}
+
+
+} //last "}"
 
 /*
  * Local variables:
