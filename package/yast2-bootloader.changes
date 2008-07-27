@@ -1,3 +1,8 @@
+------------------------------------------------------------------
+Sun Jul 27 17:52:58 CEST 2008 - juhliarik@suse.cz
+
+- added powersaved=off to boot section for failsave (bnc #153345)
+
 -------------------------------------------------------------------
 Wed Jul 23 15:16:58 CEST 2008 - juhliarik@suse.cz
 
