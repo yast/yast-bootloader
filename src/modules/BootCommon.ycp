@@ -828,6 +828,10 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     {
 	ret = ret && CommitSettings ();
     }
+
+    // write settings to /etc/sysconfig/bootloader
+    WriteToSysconf(false);	
+
     return ret;
 }
     /**
@@ -886,6 +890,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    // summary text
 	    result = add (result, _("Do not install boot loader; just create 
 configuration files"));
+
 	return result;
     }
 

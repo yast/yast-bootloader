@@ -1106,7 +1106,7 @@ define list<map<string,any> > checkWidnowsSection(list<map<string,any> > section
 		{
 			sections[idx, "remap"] = "true";
 			sections[idx, "makactive"] = "true";
-		}
+		});
 	}
 
 	return sections;
