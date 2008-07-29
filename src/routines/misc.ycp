@@ -37,8 +37,6 @@
     import "Directory";
     import "Installation";
 
-    import "Popup";
-
 // bootloader attributes handling functions
 
     global map<string, integer> Md2Partitions (string md_device);
@@ -1669,7 +1667,6 @@ global define void WriteToSysconf(boolean inst_bootloader)
 
     if (! xen_set)
     {
-       Popup::Message("kurva");
        xen_kernel_append = default_append;
        xen_append = "";
        xen_vga = default_vga;
