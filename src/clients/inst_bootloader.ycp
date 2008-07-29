@@ -52,6 +52,10 @@ if (Mode::installation())
     });
 }
 
+
+BootCommon::WriteToSysconf(true);
+
+/*
 string lt = Bootloader::getLoaderType ();
 
 y2milestone ("Saving /etc/sysconfig/bootloader for %1", lt);
@@ -79,6 +83,7 @@ string failsafe_append = "";
 boolean failsafe_set = false;
 string xen_vga = "";
 string xen_append = "";
+string xen_kernel_append = "";
 boolean xen_set = false;
 foreach (map<string,any>s, BootCommon::sections, {
     if (s["original_name"]:"" == "linux")
@@ -91,7 +96,8 @@ foreach (map<string,any>s, BootCommon::sections, {
     {
 	xen_set = true;
 	xen_vga = s["vgamode"]:"";
-	xen_append = s["append"]:"";
+	xen_append = s["xen_append"]:"";
+	xen_ker_append = s["append"]:"";
     }
     else if (s["original_name"]:"" == "failsafe")
     {
@@ -112,17 +118,24 @@ foreach (map<string,any>s, BootCommon::sections, {
 });
 if (! xen_set)
 {
-    xen_append = default_append;
+    xen_kernel_append = default_append;
+    xen_append = "";
     xen_vga = default_vga;
 }
+
+
+string default_boot_section_name = Bootloader::getDefaultSection();
+
+SCR::Write (.target.sysconfig.bootloader.DEFAULT_NAME, default_boot_section_name);
 SCR::Write (.target.sysconfig.bootloader.DEFAULT_APPEND, default_append);
 SCR::Write (.target.sysconfig.bootloader.DEFAULT_VGA, default_vga);
 SCR::Write (.target.sysconfig.bootloader.FAILSAFE_APPEND, failsafe_append);
 SCR::Write (.target.sysconfig.bootloader.FAILSAFE_VGA, failsafe_vga);
+SCR::Write (.target.sysconfig.bootloader.XEN_KERNEL_APPEND, xen_append);
 SCR::Write (.target.sysconfig.bootloader.XEN_APPEND, xen_append);
 SCR::Write (.target.sysconfig.bootloader.XEN_VGA, xen_vga);
 SCR::Write (.target.sysconfig.bootloader, nil);
-
+*/
 y2milestone ("finish inst_bootloader");
 
 return `auto;

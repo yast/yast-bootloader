@@ -35,6 +35,9 @@
     import "Misc";
     import "ProductFeatures";
     import "Directory";
+    import "Installation";
+
+    import "Popup";
 
 // bootloader attributes handling functions
 
@@ -1600,6 +1603,105 @@ define string BootDeviceToUdevID()
     device = DevToLabelUdevID(boot_disk);
     y2milestone("Boot disk is %1 and his udev id is: %2", boot_disk, device);
     return device;
+}
+
+
+/**
+ * Function write/update info in /etc/sysconfig/bootloader
+ * @param booloean true if it called from inst_bootloader.ycp 
+ */
+
+global define void WriteToSysconf(boolean inst_bootloader)
+{
+
+    string lt = BootCommon::getLoaderType (false);
+    y2milestone ("Saving /etc/sysconfig/bootloader for %1", lt);
+    string default_boot_section_name = BootCommon::globals["default"]:"";
+
+    // get the default and failsafe append + vga parameters; if section with
+    // appropriate original name not found, just use any Linux section
+    // doing so during update may be questionable, however, the variables need to
+    // be initialized in any case
+    string default_vga = "";
+    string default_append = "";
+    boolean default_set = false;
+    string failsafe_vga = "";
+    string failsafe_append = "";
+    boolean failsafe_set = false;
+    string xen_vga = "";
+    string xen_append = "";
+    string xen_kernel_append = "";
+    boolean xen_set = false;
+
+    foreach (map<string,any>s, BootCommon::sections, 
+    {
+	if ((search(s["original_name"]:"","linux") != nil) && 
+	   (s["name"]:"" == default_boot_section_name))
+	{
+	   default_set = true;
+	   default_vga = s["vgamode"]:"";
+	   default_append = s["append"]:"";
+    	}
+    	if (search(s["original_name"]:"","xen") != nil)
+    	{
+	   xen_set = true;
+	   xen_vga = s["vgamode"]:"";
+	   xen_append = s["xen_append"]:"";
+	   xen_kernel_append = s["append"]:"";
+    	}
+    	else if (search(s["original_name"]:"","failsafe") != nil)
+    	{
+	   failsafe_set = true;
+	   failsafe_vga = s["vgamode"]:"";
+	   failsafe_append = s["append"]:"";
+    	}
+    	if (s["type"]:"" == "image" && ! default_set)
+    	{
+	   default_vga = s["vgamode"]:"";
+	   default_append = s["append"]:"";
+    	}
+    	if (s["type"]:"" == "image" && ! failsafe_set)
+        {
+	   failsafe_vga = s["vgamode"]:"";
+	   failsafe_append = s["append"]:"";
+	}
+    });
+
+    if (! xen_set)
+    {
+       Popup::Message("kurva");
+       xen_kernel_append = default_append;
+       xen_append = "";
+       xen_vga = default_vga;
+    }
+
+    // save some sysconfig variables
+    // register new agent pointing into the mounted filesystem
+    path sys_agent = .sysconfig.bootloader;
+
+    if (inst_bootloader)
+    {
+	WFM::Execute(.local.mkdir, Installation::destdir + "/etc/sysconfig");
+	WFM::Write(.local.bash, sformat ("touch %1/etc/sysconfig/bootloader", Installation::destdir));
+	string target_sysconfig_path = Installation::destdir + "/etc/sysconfig/bootloader";
+	SCR::RegisterAgent (.target.sysconfig.bootloader, `ag_ini(
+  	     `SysConfigFile(target_sysconfig_path)));
+
+	sys_agent = add(.target, sys_agent);
+
+    } 
+
+    SCR::Write (add(sys_agent,.DEFAULT_NAME), default_boot_section_name);
+    SCR::Write (add(sys_agent,.DEFAULT_APPEND), default_append);
+    SCR::Write (add(sys_agent,.DEFAULT_VGA), default_vga);
+    SCR::Write (add(sys_agent,.FAILSAFE_APPEND), failsafe_append);
+    SCR::Write (add(sys_agent,.FAILSAFE_VGA), failsafe_vga);
+    SCR::Write (add(sys_agent,.XEN_KERNEL_APPEND), xen_kernel_append);
+    SCR::Write (add(sys_agent,.XEN_APPEND), xen_append);
+    SCR::Write (add(sys_agent,.XEN_VGA), xen_vga);
+    SCR::Write (sys_agent, nil);
+
+
 }
 
 
