@@ -1,3 +1,10 @@
+-------------------------------------------------------------------
+Tue Jul 29 18:18:38 CEST 2008 - juhliarik@suse.cz
+
+- update solution for saving kernel args to 
+  /etc/sysconfig/bootloader (fate #302245)
+- 2.17.6
+
 ------------------------------------------------------------------
 Sun Jul 27 17:52:58 CEST 2008 - juhliarik@suse.cz
 
