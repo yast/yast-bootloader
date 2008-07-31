@@ -1105,10 +1105,12 @@ define list<map<string,any> > checkWidnowsSection(list<map<string,any> > section
 		foreach (integer idx, list_index,
 		{
 			sections[idx, "remap"] = "true";
-			sections[idx, "makactive"] = "true";
+			sections[idx, "makeactive"] = "true"; 
+			y2milestone("Added remap and makeactive for section: %1", sections[idx]:$[]);
 		});
 	}
 
+	y2debug("Checking sections for windows chainloader: %1", sections);
 	return sections;
 }
 

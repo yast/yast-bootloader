@@ -1604,7 +1604,7 @@ define string BootDeviceToUdevID()
 }
 
 
-/**
+/** FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
  * Function write/update info in /etc/sysconfig/bootloader
  * @param booloean true if it called from inst_bootloader.ycp 
  */
