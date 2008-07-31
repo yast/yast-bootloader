@@ -52,7 +52,7 @@ if (Mode::installation())
     });
 }
 
-
+// FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
 BootCommon::WriteToSysconf(true);
 
 y2milestone ("finish inst_bootloader");
