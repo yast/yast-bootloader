@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jul 31 10:27:42 CEST 2008 - juhliarik@suse.cz
+
+- added support for remaping windows chainloader boot section
+  (fate #301994)
+- 2.17.7 
+
+-------------------------------------------------------------------
 Tue Jul 29 18:18:38 CEST 2008 - juhliarik@suse.cz
 
 - update solution for saving kernel args to 
