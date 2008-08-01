@@ -184,6 +184,14 @@ global boolean backup_mbr = false;
   */
 global boolean activate = false;
 
+
+/** FATE #303548 - Grub: limit device.map to devices detected by BIOS
+  * Ask user if he wants to edit again bootloader settings
+  * It is used if device.map is limited and "boot" disk is out of range 
+  * The range is the first 8 devices
+  */
+global boolean ask_user = false;
+
 /**
   * Replace MBR with generic code after bootloader installation?
   */

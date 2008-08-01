@@ -257,6 +257,7 @@ installation. Retry boot loader configuration?
 "));
     }
 
+
     /**
       * Display popup
       */

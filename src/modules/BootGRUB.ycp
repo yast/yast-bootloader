@@ -622,9 +622,8 @@ global define void Propose () {
  * @param flush boolean true to flush settings to the disk
  * @return boolean true if success
  */
-global boolean Save (boolean clean, boolean init, boolean flush) {
-
-
+global boolean Save (boolean clean, boolean init, boolean flush) 
+{
     // check if windows is on second disk and add remap if it is necessary
     // FATE #301994: Correct device mapping in case windows is installed on the second HD
     BootCommon::sections = checkWidnowsSection(BootCommon::sections);
@@ -844,6 +843,17 @@ global define void BootGRUB () {
 	"loader_name" : "GRUB",
 	"initializer" : BootGRUB::Initializer,
     ];
+}
+
+
+global boolean CheckDeviceMap()
+{
+    // FATE #303548 - Grub: limit device.map to devices detected by BIOS
+    string boot_disk = BootCommon::getBootDisk();
+    boolean ret = ReduceDeviceMapTo8(boot_disk, BootCommon::DevToLabelUdevID(boot_disk));
+
+    return ret;
+
 }
 
 } // EOF

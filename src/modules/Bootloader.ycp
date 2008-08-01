@@ -560,6 +560,7 @@
 	y2milestone ("Reinitialize bootloader library before saving: %1",
 	    reinit);
 	ret = blSave (true, reinit, true) && ret;
+
 	if (! ret)
 	    y2error ("Error before configuration files saving finished");
 
@@ -684,7 +685,7 @@ global define boolean WriteInstallation ()
 	    dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
 	else
             dev = Storage::GetDiskPartition(BootCommon::RootPartitionDevice);
-        if (dev["disk"]:"" == "/dev/nfs")       
+        if (dev["disk"]:"" == "/dev/nfs")
         {
 		y2milestone("Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed.");
         	return ret;
