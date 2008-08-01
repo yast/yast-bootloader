@@ -23,6 +23,7 @@
     import "Mode";
     import "BootCommon";
     import "PackageSystem";
+    import "Map";
 
 
 // --------------------------------------------------------------
@@ -1112,6 +1113,72 @@ define list<map<string,any> > checkWidnowsSection(list<map<string,any> > section
 
 	y2debug("Checking sections for windows chainloader: %1", sections);
 	return sections;
+}
+
+
+/**
+ * FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
+ * The function reduce record (devices) in device.map
+ * Grub doesn't support more than 8 devices in device.map
+ * There is selected the first 7 devices + boot or root device
+ * @param string boot device with udev id name
+ * @return boolean true if there was added boot device (disk) and it the 9th or following disk in order
+ */
+global boolean ReduceDeviceMapTo8(string boot_dev, string boot_dev_mountby) 
+{
+    boolean result = false;
+
+    if (size(BootCommon::device_mapping)>8)
+    {
+	result = true;
+	list <string> bios_order = (list <string> ) Map::Values(BootCommon::device_mapping);
+	//delete all grub devices with order more than 9
+	bios_order = filter(string key, bios_order, {return (size(key) < 4);});
+	bios_order = lsort(bios_order);
+	y2debug("ordered values (grub devices): %1", bios_order);
+	map<string,string> inverse_device_map = $[];
+	map<string,string> new_device_map = $[];
+	y2milestone("Device map before reducing: %1", BootCommon::device_mapping);
+	foreach(string key, string value, BootCommon::device_mapping,
+	{
+	    inverse_device_map[value]=key;
+	});
+
+	y2debug("inverse_device_map: %1", inverse_device_map);
+	integer index = 0;
+	boolean boot_device_added = false;
+	foreach(string key, bios_order,
+	{
+	    string device_name = inverse_device_map[key]:"";
+	    if (index < 8)
+	    {
+		y2debug("adding device: %1 with key: %2 and index is: %3", device_name, key, index);
+		new_device_map[device_name]=key;
+		if ((device_name == boot_dev) || (device_name == boot_dev_mountby))
+		    boot_device_added = true;
+		index = index + 1;
+	    } else {
+		if (boot_device_added)
+		{
+		    //new_device_map[device_name]=key;
+
+		    y2milestone("Device map includes boot disk");
+		    break;
+		} else {
+
+		    y2error("Device map doesn't include boot disk");
+		    result = true;
+		    break;
+
+		}
+	    }
+	});	
+	BootCommon::device_mapping = new_device_map;
+	y2milestone("Device map with the first 7 device + boot device: %1", BootCommon::device_mapping);
+    } else {
+	y2milestone("Device map includes less than 9 devices. It is not reduced. device_map: %1", BootCommon::device_mapping);
+    }
+    return result;
 }
 
 
