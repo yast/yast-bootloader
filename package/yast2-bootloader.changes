@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug  4 13:29:01 CEST 2008 - juhliarik@suse.cz
+
+- added support for reducing devices from device.map to 8 devices
+  (fate #303548)
+- 2.17.8  
+
+-------------------------------------------------------------------
 Thu Jul 31 10:27:42 CEST 2008 - juhliarik@suse.cz
 
 - added support for remaping windows chainloader boot section

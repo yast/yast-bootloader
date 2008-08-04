@@ -626,7 +626,11 @@ global boolean Save (boolean clean, boolean init, boolean flush)
 {
     // check if windows is on second disk and add remap if it is necessary
     // FATE #301994: Correct device mapping in case windows is installed on the second HD
-    BootCommon::sections = checkWidnowsSection(BootCommon::sections);
+    BootCommon::sections = checkWindowsSection(BootCommon::sections);
+
+    // reduce device map to 8 devices
+    // FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
+    ReduceDeviceMapTo8();
 
     // now really save the settings
     boolean ret = BootCommon::Save (clean, init, flush);
@@ -849,8 +853,10 @@ global define void BootGRUB () {
 global boolean CheckDeviceMap()
 {
     // FATE #303548 - Grub: limit device.map to devices detected by BIOS
+    boolean ret = false;
     string boot_disk = BootCommon::getBootDisk();
-    boolean ret = ReduceDeviceMapTo8(boot_disk, BootCommon::DevToLabelUdevID(boot_disk));
+    if (boot_disk != "")
+       ret = checkBootDeviceInDeviceMap(boot_disk, BootCommon::DevToLabelUdevID(boot_disk));
 
     return ret;
 
