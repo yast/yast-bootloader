@@ -1025,15 +1025,11 @@ global define string getLoaderType (boolean recheck) {
 	y2milestone ("It is XEN domU and the bootloader should be installed");
 
     }
-    if (loader_type == "grub" && Storage::UseLilo())
+    if (loader_type == "grub")
     {
-	loader_type = "lilo";
 	prefer_lilo = true;
     }
-    else
-    {
-        prefer_lilo = false;
-    }
+
 
     loader_type = SupportedLoader (loader_type);
     y2milestone ("Detected bootloader %1", loader_type);
