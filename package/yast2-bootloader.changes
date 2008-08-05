@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug  5 12:05:04 CEST 2008 - juhliarik@suse.cz
+
+- added/enabled support for ordering disks in device.map for GRUB
+  (fate ##303964)
+- 2.17.9 
+
+-------------------------------------------------------------------
 Mon Aug  4 13:29:01 CEST 2008 - juhliarik@suse.cz
 
 - added support for reducing devices from device.map to 8 devices
