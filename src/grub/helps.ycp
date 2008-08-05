@@ -126,7 +126,7 @@ directly or choose by using <b>Browse</b></p>"),
 
 
 global map<string,string> grub_descriptions = $[
-    "boot"				 : _("Boot Loader Locations"),
+    "boot"			 : _("Boot Loader Locations"),
     "activate"			 : _("Set active Flag in Partition Table for Boot Partition"),
     "timeout"			 : _("Timeout in Seconds"),
     "default"			 : _("Default Boot Section"),

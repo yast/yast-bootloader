@@ -61,6 +61,7 @@ global boolean backup_to_bootsector = true;
 include "bootloader/grub/misc.ycp";
 include "bootloader/routines/popups.ycp";
 include "bootloader/grub/helps.ycp";
+include "bootloader/generic/device_map_edit_widget.ycp";
 include "bootloader/generic/dialogs.ycp";
 
 
@@ -759,6 +760,7 @@ global symbol WizardSequenzer() {
 
 global map<string,symbol()> Dialogs () {
     return $[
+	"installation"	: i386InstallDetailsDialog,
 	"loader"	: genericBootLoaderOptionsDialog,
     ];
 }
