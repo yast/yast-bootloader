@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Aug  6 15:42:28 CEST 2008 - juhliarik@suse.cz
+
+- added better detection of NFS boot device (bnc #408912) 
+- added better detection of EVMS - do not install bootloader 
+  (fate #305007)
+- 2.17.11
+
+-------------------------------------------------------------------
 Wed Aug  6 12:55:17 CEST 2008 - juhliarik@suse.cz
 
 - added support for acoustic signals (fate #303481)
