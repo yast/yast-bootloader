@@ -41,6 +41,7 @@
 
     global map<string, integer> Md2Partitions (string md_device);
     global void DetectDisks ();
+    global string getBootPartition();
 
     /**
       * return printable name of bootloader
@@ -1558,7 +1559,7 @@ global boolean BootloaderInstallable () {
 	}
 	// EVMS
 	// FIXME: type detection by name deprecated
-	else if (search (BootPartitionDevice, "/dev/evms/") == 0)
+	else if (search (getBootPartition(), "/dev/evms/") == 0)
 	{
 	    y2milestone ("Cannot install bootloader on EVMS");
 	    return false;
@@ -1701,6 +1702,24 @@ global define void WriteToSysconf(boolean inst_bootloader)
 
 }
 
+/**
+ * Function return boot device it means
+ * return boot partition or root partition if boot partition deosn't exist
+ * function return "" if boot partition or root partition is not defined (autoyast)
+ * @return string name of boot device (partition)
+ */
+
+global string getBootPartition()
+{
+	string boot_device = "";
+	if (BootCommon::BootPartitionDevice != "")
+		boot_device = BootCommon::BootPartitionDevice;
+	else if (BootCommon::RootPartitionDevice != "")
+		boot_device = BootCommon::RootPartitionDevice;
+
+	return boot_device;
+}
+
 /** FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
  * Function select boot device - disk
  *
@@ -1709,11 +1728,7 @@ global define void WriteToSysconf(boolean inst_bootloader)
 
 global string getBootDisk()
 {
-	string boot_device = "";
-	if (BootCommon::BootPartitionDevice != "")
-		boot_device = BootCommon::BootPartitionDevice;
-	else if (BootCommon::RootPartitionDevice != "")
-		boot_device = BootCommon::RootPartitionDevice;
+	string boot_device = getBootPartition();
 
 	if (boot_device == "")
 	{
