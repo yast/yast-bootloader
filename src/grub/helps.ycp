@@ -122,6 +122,8 @@ directly or choose by using <b>Browse</b></p>"),
     _("<p><b>Partition of Menu File</b></p>"),
     "menu_configfile"		:
     _("<p><b>Menu Description File<b></p>"),
+    "other_remap"	        :
+    _("<p><b>Map Section to the First Disk from Device Map</b> Windows usually need to be on the first disk.</p>"),
 ];
 
 
@@ -157,6 +159,7 @@ global map<string,string> grub_descriptions = $[
     "other_noverifyroot"	 : _("Do not verify Filesystem before Booting"),
     "other_makeactive"		 : _("Activate this Partition when selected for Boot"),
     "other_blockoffset"		 : _("Block Offset for Chainloading"),
+    "other_remap"		 : _("Map Section to the First Disk in Device Map"),
     "type_xen"			 : _("Xen Section"),
     "xen_xen"			 : _("Hypervisor"),
     "xen_xen_append"		 : _("Additional Xen Hypervisor Parameters"),

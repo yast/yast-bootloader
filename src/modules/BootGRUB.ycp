@@ -609,6 +609,10 @@ global define void Propose () {
 	    // if that points to a section that does not exist anymore
 	    BootCommon::FixGlobals ();
 	}
+	
+	// check if windows is on second disk and add remap if it is necessary
+        // FATE #301994: Correct device mapping in case windows is installed on the second HD
+        BootCommon::sections = checkWindowsSection(BootCommon::sections);
 
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
 	y2milestone ("Proposed globals: %1", BootCommon::globals);
@@ -625,10 +629,6 @@ global define void Propose () {
  */
 global boolean Save (boolean clean, boolean init, boolean flush) 
 {
-    // check if windows is on second disk and add remap if it is necessary
-    // FATE #301994: Correct device mapping in case windows is installed on the second HD
-    BootCommon::sections = checkWindowsSection(BootCommon::sections);
-
     // reduce device map to 8 devices
     // FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
     ReduceDeviceMapTo8();
