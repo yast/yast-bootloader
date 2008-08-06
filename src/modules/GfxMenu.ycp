@@ -284,6 +284,21 @@
 	return ret;
     }
 
+
+
+/** FATE #303481: Acoustic signal for bootloader when booting from installation medium
+ * Function enables acoustic signals for bootloader
+ *
+ */
+
+define void enableAcousticSignal()
+{
+	y2milestone("Enable acoustic signals for boot menu");
+	string command = "gfxboot --change-config boot::beep=1";
+	map ret = (map)SCR::Execute (.target.bash_output, command);
+	y2milestone ("Result of command: %1 result: %2",command, ret);
+}
+
 /**
  * Update graphical bootloader to contain translations for section labels in
  * the currently selected installation language (set in
@@ -294,6 +309,10 @@
  */
 global define boolean UpdateGfxMenuContents (string loader) {
     y2milestone ("Updating GFX boot menu");
+    
+    // FATE #303481 enable acoustic signals for bootloader
+    enableAcousticSignal();
+
     // if the boot menu does not exist, return without updating it
     if (SCR::Read (.target.size, "/boot/message") == -1)
 	return true;

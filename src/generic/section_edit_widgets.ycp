@@ -45,7 +45,8 @@ global list<string> section_types () {
 // extract edit dialog discription for a specific type of section
 map<string,any> SE_Options (string type) {
     map<string,any> se_options = nil;
-
+    // HACK: add checkbox for mapping chainloader section to the first disk in order
+    BootCommon::section_options["other_remap"]="bool:Remap section to the first disk in device map:false";
     se_options = mapmap(
 	string key, any value,
 	filter( string key, any value, BootCommon::section_options,

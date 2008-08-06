@@ -89,7 +89,7 @@ symbol SectionEditDialog () {
 	"contents" : contents,
 	"caption" :  _("Boot Loader Settings: Section Management"),
 	"back_button" : Label::BackButton (),
-	"abort_button" : Label::AbortButton (),
+	"abort_button" : Label::CancelButton (),
 	"next_button" : Label::OKButton (),
 	"fallback_functions" : section_handlers,
     ]);
