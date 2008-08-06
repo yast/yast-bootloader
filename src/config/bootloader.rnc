@@ -90,6 +90,9 @@ section =
     element xen {text}? &
     element xen_append {text}? &
     element noverifyroot { "true" | "false" }? &
+    element makeactive { "true" | "false" }? &
+    element remap { "true" | "false" }? &
+    element configfile {text}? &
     element image   {text}?
   }
 kernel_parameters = element kernel_parameters { text }
