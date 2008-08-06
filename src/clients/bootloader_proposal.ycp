@@ -129,7 +129,7 @@ The range is the first 8 devices by BIOS."),
         {
 
            y2milestone("bootlader_proposal::MakeProposal -> Boot partition is nfs type, bootloader will not be installed.");
-           y2milestone("Type of BootPartitionDevice: %1", dev["disk"]:"");
+           y2milestone("Type of BootPartitionDevice: %1", device);
            return ret;
 
         }
