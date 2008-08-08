@@ -466,7 +466,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	: "";
     // try to use label or udev id for device name... FATE #302219
     if ((resume != "") && (resume != nil))
-	resume = DevToLabelUdevID(resume);
+	resume = Dev2MountByDev(resume);
 
 
     // FIXME:
@@ -589,7 +589,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	"image" : kernel_fn,
 	"initrd" : initrd_fn,
 	// try to use label or udev id for device name... FATE #302219
-	"root" : DevToLabelUdevID(RootPartitionDevice),
+	"root" : Dev2MountByDev(RootPartitionDevice),
 	"append" : (title == "failsafe")
 	    ? BootArch::FailsafeKernelParams ()
 	    : BootArch::DefaultKernelParams (resume),
@@ -633,10 +633,11 @@ global map<string,any> CreateLinuxSection (string title) {
   * @return bootloader settings
   */
 global define map Export () {
+    MapDevices();
     map exp = $[
-	"global": globals,
-	"sections" : sections,
-	"device_map" : device_mapping,
+	"global": remapGlobals(globals),
+	"sections" : remapSections(sections),
+	"device_map" : remapDeviceMap(device_mapping),
     ];
     if ( ! ( loader_type == "grub" ) ) {
 	exp["repl_mbr"] = repl_mbr;
@@ -703,8 +704,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 		k = Storage::SLES9PersistentDevNames(k);
 		y2milestone( "devmap: dev name after SLES9 persistent dev name translation: %1", k);
 	    }
-	    //return $[BootCommon::MountByDev2Dev(k) : v];
-	    return $[DevToLabelUdevID(k) : v];
+	    return $[Dev2MountByDev(k) : v];
     });
 
     // convert custom boot device names in globals to the kernel device names
@@ -717,8 +717,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 		v = Storage::SLES9PersistentDevNames(v);
 		y2milestone( "globals: dev name after SLES9 persistent dev name translation: %1", v);
 	    }
-	    //return $[k : BootCommon::MountByDev2Dev(v)];
-	    return $[k : DevToLabelUdevID(v)];
+	    return $[k : Dev2MountByDev(v)];
 	} else {
 	    return $[k : v];
 	}
@@ -734,8 +733,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 	    rdev = Storage::SLES9PersistentDevNames(rdev);
 	    y2milestone( "sections: dev name after SLES9 persistent dev name translation: %1", rdev);
 	}
-	//s["root"] = BootCommon::MountByDev2Dev(rdev);
-	s["root"] = DevToLabelUdevID(rdev);
+	s["root"] = Dev2MountByDev(rdev);
 	return s;
     });
     return true;
@@ -816,7 +814,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     map<string,string> my_globals = mapmap (string k , string v, globals, {
 	if ( k == "stage1_dev" || regexpmatch(k, "^boot_.*custom$" ) )
 	    //return $[k : BootCommon::Dev2MountByDev(v)];
-	    return $[k : BootCommon::DevToLabelUdevID(v)];
+	    return $[k : BootCommon::Dev2MountByDev(v)];
 	else
 	    return $[k : v];
     });
@@ -826,7 +824,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     map<string,string> my_device_mapping =
 	mapmap (string k , string v, device_mapping, {
 	    //return $[BootCommon::Dev2MountByDev(k) : v];
-	    return $[BootCommon::DevToLabelUdevID(k) : v];
+	    return $[BootCommon::Dev2MountByDev(k) : v];
     });
 
     ret = ret && SetDeviceMap (my_device_mapping);
