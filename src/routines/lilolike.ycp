@@ -679,7 +679,7 @@ global void FixSections (void() create_sections) {
 	    // bnc# 335526 - Installing memtest with lilo screws up installation
 	    if (search(s["original_name"]:"", "memtest") == nil)
 	    {
-	    	append = setKernelParamToLine (append, "resume", getLargestSwapPartition ());
+	    	append = setKernelParamToLine (append, "resume", BootCommon::Dev2MountByDev(getLargestSwapPartition ()));
 	    	s["append"] = append;
 	    }
 	}
@@ -802,7 +802,7 @@ global void UpdateSections (boolean replace,
 		    if (! haskey (BootCommon::getSwapPartitions (), resume))
 		    {
 			append = setKernelParamToLine (append,
-			    "resume", getLargestSwapPartition ());
+			    "resume", BootCommon::Dev2MountByDev(getLargestSwapPartition ()));
 			s["append"] = append;
 			linux_resume_added = true;
 		    }
@@ -861,14 +861,14 @@ global void UpdateSections (boolean replace,
 		s = $[
 		    "name":		label,
 		    "original_name":	sect_type,
-		    "root":		dev
+		    "root":		BootCommon::Dev2MountByDev(dev)
 		];
 
 		if (dev != nil && IsPartitionBootable(dev))
 		{
 		    //     bootable =>  chainloader
 		    s["noverifyroot"] = "true";
-		    s["chainloader"] = dev;
+		    s["chainloader"] = BootCommon::Dev2MountByDev(dev);
 		    s["blockoffset"] = "1";
 		    s["type"] = "other";
 		    y2milestone ("Updating section \"%1\" booting other installation to use chainloader entry", s["name"]:"");
@@ -998,7 +998,7 @@ global void UpdateSections (boolean replace,
 		    y2milestone ("Updating resume device of section %1", label);
 		    resume = BootCommon::UpdateDevice (resume);
 		    option = BootCommon::setKernelParamToLine (
-			option, "resume", resume);
+			option, "resume", BootCommon::Dev2MountByDev(resume));
 		}
 	    }
 	    s["append"] = option;

@@ -159,50 +159,6 @@
         return pth;
     }
 
-/*
-    global define string MountByDev2Dev(string dev) ``{
-	y2milestone ("MountByDev2Dev: %1", dev);
-
-	if (!regexpmatch(dev, "^/dev/disk/by-"))
-	    return dev;
-
-	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
-
-	// make a map: "type/identifier" -> kernel_device_name
-	// e.g.: "id/scsi-SATA_ST3120813AS_3LS09W21-part5" -> "/dev/sda2"
-	map<string,string> partitions = $[];
-	foreach (string k, map v, devices, ``{
-	    foreach (map p, (list<map>)(v["partitions"]:[]), ``{
-		if ( haskey(p, "uuid") )
-		{
-		    partitions["uuid/" + p["uuid"]:""] = p["device"]:dev;
-		}
-		if ( haskey(p, "label") )
-		{
-		    partitions["label/" + p["label"]:""] = p["device"]:dev;
-		}
-		if ( haskey(p, "udev_id") )
-		{
-		    partitions["id/" + p["udev_id", 0]:""] = p["device"]:dev;
-		}
-		if ( haskey(p, "udev_path") )
-		{
-		    partitions["path/" + p["udev_path"]:""] = p["device"]:dev;
-		}
-	    });
-	});
-	y2milestone ("MountByDev2Dev: partitions %1", partitions);
-
-	// ident is "id/<id>", "path/<path>", "uuid/<uuid>" or "label/<label>"
-	string ident = regexpsub(dev, "^/dev/disk/by-(.*)", "\\1");
-	y2milestone ("MountByDev2Dev: ident %1", ident);
-	// if exists, get the kernel name, otherwise leave unchanged
-	string ret = partitions[ident]:dev;
-
-	y2milestone ("MountByDev2Dev: ret %1", ret);
-	return ret;
-    }
-*/
 global map<string,string> uuid_partitions = $[];
 global map<string,string> id_partitions = $[];
 global map<string,string> label_partitions = $[];
@@ -366,7 +322,7 @@ global define string MountByDev2Dev(string dev)
 
 global map<string,string> remapDeviceMap(map<string,string> device_map)
 {	
-	symbol by_mount = `id; //Storage::GetDefaultMountBy();
+	symbol by_mount = Storage::GetDefaultMountBy();
 
 	if (by_mount == `label)
 		return device_map;
@@ -390,7 +346,7 @@ global map<string,string> remapDeviceMap(map<string,string> device_map)
 
 global map<string,string> remapGlobals(map<string,string> globals_set)
 {	
-	symbol by_mount = `id; //Storage::GetDefaultMountBy();
+	symbol by_mount = Storage::GetDefaultMountBy();
 
 	if (by_mount == `label)
 		return globals_set;
@@ -414,26 +370,41 @@ define string remapResume(string append)
 {
 	if ((search(append, "resume")!=nil) && (search(append, "noresume") == nil))
 	{
+		y2milestone("append before remapping resume: %1", append);
 		list <string> list_append = splitstring (append, " ");
-		list_append = add(list_append, foreach(string key, list_append,
+		y2debug("split append to list list_append: %1", list_append);
+		list <string> new_append = [];
+
+		foreach(string key, list_append,
 		{
 			if (search(key,"resume") != nil)
 			{
+				y2debug("arg resume from append: %1",key);
 				list <string> resume_arg = splitstring(key, "=");
 				string dev = resume_arg[1]:"";
+				y2debug("value of resume: %1",resume_arg[1]:"");
 				if (dev != "")
-					return "resume="+BootCommon::MountByDev2Dev(dev);
-				else
-					return key;
+				{
+					string resume = "resume="+BootCommon::MountByDev2Dev(dev);
+					y2debug("remap resume: %1",resume);
+					new_append = add(new_append, resume);
+				} else {
+					y2debug("adding key to new append_list: %1", key);
+					new_append = add(new_append, key);
+				}
 			} else {
-				return key;
+				y2debug("adding key to new append_list: %1", key);
+				new_append = add(new_append, key);
 			}
-		}));
+		});
 
-		string ret = mergestring(list_append, " ");
+		y2debug("NEW append list: %1", new_append);
+		string ret = mergestring(new_append, " ");
+		y2milestone("Append after remaping: %1", ret);
 		return ret;
 
 	} else {
+		y2milestone("Section hasn't resume...");
 		return append;
 	}
 }
@@ -447,7 +418,7 @@ define string remapResume(string append)
 
 global list<map<string,any> > remapSections(list<map<string,any> >sec)
 {	
-	symbol by_mount = `id; //Storage::GetDefaultMountBy();
+	symbol by_mount = Storage::GetDefaultMountBy();
 
 	if (by_mount == `label)
 		return sec;
@@ -465,6 +436,8 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
 
 			if (s["append"]:"" != "")
 				s["append"] = remapResume(s["append"]:"");
+		
+			y2debug("remapping root: %1 from section to: %2 ",rdev ,s["root"]:"");
 		}
 
 		if (s["chainloader"]:"" != "")
@@ -477,42 +450,6 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
 }
 
 
-/*
-    global define string Dev2MountByDev(string dev) ``{
-	y2milestone ("Dev2MountByDev: %1", dev);
-	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
-
-	// make a map: "/dev/hda1" -> info_map_for_this_partition
-	map<string,map> partitions = $[];
-	foreach (string k, map v, devices, ``{
-	    foreach (map p, (list<map>)(v["partitions"]:[]), ``{
-		partitions[p["device"]:""] = p;
-	    });
-	});
-	y2debug ("Dev2MountByDev: partitions %1", partitions);
-
-	string ret = dev;
-	
-	symbol mountby = `device;
-	mountby = (symbol) partitions[dev, "mountby"]:nil;
-	if ( mountby == `uuid && partitions[dev, "uuid"]:nil != nil )
-	{
-	    ret = sformat ("/dev/disk/by-uuid/%1", partitions[dev, "uuid"]:"");
-	} else if ( mountby == `label && partitions[dev, "label"]:nil != nil )
-	{
-	    ret = sformat ("/dev/disk/by-label/%1", partitions[dev, "label"]:"");
-	} else if ( mountby == `id && partitions[dev, "udev_id"]:nil != nil )
-	{
-	    ret = sformat ("/dev/disk/by-id/%1", partitions[dev, "udev_id", 0]:"");
-	} else if ( mountby == `path && partitions[dev, "udev_path"]:nil != nil )
-	{
-	    ret = sformat ("/dev/disk/by-path/%1", partitions[dev, "udev_path"]:"");
-	}
-
-	y2milestone ("Dev2MountByDev: ret %1", ret);
-	return ret;
-    }
-*/
 /** FATE #302219 - Use and choose persistent device names for disk devices
  * Converts a device name to the corresponding device name it should be
  * mounted by, according to the "mountby" setting for the device from
@@ -528,7 +465,7 @@ global define string Dev2MountByDev(string dev)
 	y2milestone ("Dev2MountByDev: %1", dev);
 
 	// (`id,`uuid,`path,`device,`label)
-	symbol by_mount = `id; //Storage::GetDefaultMountBy();
+	symbol by_mount = Storage::GetDefaultMountBy();
 
 	y2milestone("Default mount by is %1", by_mount);
 
@@ -625,56 +562,6 @@ global define string Dev2MountByDev(string dev)
 	return ret;
 }
 
-
-    /**
-     * Converts a device name to the label (if it used) than try to udev id (if it used)
-     * if both (label, id) missing return same name of device (doesn't convert it)
-     * FATE #302219 Use and choose persistent device names for disk devices (as opposed to partition devices)
-     * @param dev string device name
-     * @return string device name by label or by udev id
-     */
-
-    global define string DevToLabelUdevID(string dev)
-    {
-	y2milestone ("Try to convert device: %1", dev);
-	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
-
-	// make a map: "/dev/hda1" -> info_map_for_this_partition
-	map<string,map> partitions = $[];
-	foreach (string k, map v, devices, ``{
-	    foreach (map p, (list<map>)(v["partitions"]:[]), ``{
-		partitions[p["device"]:""] = p;
-	    });
-	});
-	y2debug ("DevToLabelUdevID: partitions %1", partitions);
-
-	string ret = dev;
-	// try to find in partitions
-	if ((partitions[dev, "label"]:nil != nil) && (partitions[dev, "label"]:nil != ""))
-	{
-	   ret = sformat ("/dev/disk/by-label/%1", partitions[dev, "label"]:"");
-	   y2milestone ("Device name: %1 is converted to label name: %2", dev, ret);
-	   return ret;
-	}
-
-        if ((partitions[dev, "udev_id"]:nil != nil) && (partitions[dev, "udev_id", 0]:nil != ""))
-	{
-	   ret = sformat ("/dev/disk/by-id/%1", partitions[dev, "udev_id", 0]:"");
-	   y2milestone ("Device name: %1 is converted to udev id: %2", dev, ret);
-	   return ret;
-	}
-	
-	// try to find udev_id for disks - it is special for device map (user cannot set label for disk)
-
-	if ((devices[dev, "udev_id"]:nil != nil) && (devices[dev, "udev_id", 0]:nil != ""))
-	{
-	   ret = sformat ("/dev/disk/by-id/%1", devices[dev, "udev_id", 0]:"");
-	   y2milestone ("Device name: %1 is converted to udev id: %2", dev, ret);
-	   return ret;
-	}
-	y2milestone ("Sorry label or udev id was not found device is not converted: device %1", ret);
-	return ret;
-    }
     /**
      * Returns list of partitions with "mount by" hints. Goes through the list
      * of partitions passed as a parameter and creates a list of partitions with
