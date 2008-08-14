@@ -2004,5 +2004,160 @@ global string getBootDisk()
 	return "";
 }
 
+/** FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
+ * Function select boot device - disk
+ *
+ * @return string name of boot device - disk
+ */
+
+
+/** FATE #110038: Serial console
+ * Function build value for console from:
+ * @param string unit no of console 
+ * @param string speed
+ * @param string parity (n,o,e)
+ * @param string word (8)
+ * @return string value of console for kernel append
+ */
+define string buildConsoleValue (string unit, string speed, string parity, string word)
+{
+	string ret = "";
+	if ((unit != "") && (speed != ""))
+	{
+		// add number of serial console
+		ret = "ttyS" + unit;
+		// add speed
+		ret = ret + "," + speed;
+		if (parity != "")
+		{
+			// add parity
+			switch (parity)
+			{
+				case ("no"):
+					ret = ret + "n";
+					break;
+				case ("odd"):
+					ret = ret +"o";
+					break;
+				case ("even"):
+					ret = ret + "e";
+					break;
+				default:
+					ret = ret + "n";
+					break;
+			}
+
+			// add word
+			if (word != "")
+				ret = ret + word;
+		}
+		y2milestone("console value for kernel: %1", ret);
+	} else {
+		y2error("Wrong values unit: %1 , speed: %2 , parity: %3 , word: %4",
+			unit, speed, parity, word);
+	}
+	return ret;
+}
+
+
+/** FATE #110038: Serial console
+ * Function parse string key (e.g. --speed=9600)
+ * and return value of key
+ * @param string key e.g. --unit=0
+ * @return string value of key
+ */
+
+
+define string getKeyValue(string key)
+{
+	string ret = "";
+		list <string> value = [];
+		if (key != "")
+		{
+			value = splitstring (key, "=");
+			if (value[1]:"" != "")
+				ret = value[1]:"";
+		}
+	
+	y2debug("parse: %1 and return value: %2", key, ret);
+	return ret;
+}
+
+
+/** FATE #110038: Serial console
+ * Function check value from globals (serial and terminal)
+ * after that build value of console append for kernel if it is possible
+ * @return string value of console for kernel append
+ */
+
+define string getConsoleValue()
+{
+	string ret = "";
+	if ((globals["serial"]:"" != "") && (globals["terminal"]:"" != ""))
+	{
+		list <string>  list_serial = splitstring (globals["serial"]:"", " ");
+		y2milestone("list of serial args: %1", list_serial);
+		string unit = "";
+		string speed = "";
+		string parity = "";
+		string word = "";
+		foreach(string key, list_serial,
+		{
+			if (search(key, "--unit") != nil)
+				unit = getKeyValue(key);
+			
+			if (search(key, "--speed") != nil)
+				speed = getKeyValue(key);
+
+			if (search(key, "--parity") != nil)
+				parity = getKeyValue(key);
+
+			if (search(key, "--word") != nil)
+				word = getKeyValue(key);	
+
+		});
+		// build value
+		ret = buildConsoleValue (unit, speed, parity, word);
+	}
+
+	return ret;
+}
+
+
+/** FATE #110038: Serial console
+ * Add console arg for kernel if there is defined serial console
+ * - add key console with value to section type image and xen
+ */
+
+define void addConsole()
+{
+	string console_value = getConsoleValue();
+	if ((console_value != "") && (console_value != nil))
+	{
+		
+		// list of idexes from sections where is image or xen
+		list < integer > list_index =[];
+		// counter 
+		integer index = -1;
+		foreach(map<string,any> section, sections,
+		{
+			index = index +1;
+			if ((section["type"]:"" == "image") || (search(section["type"]:"", "xen") != nil))
+				list_index = add(list_index, index);
+		});
+
+		// add key console with value
+		if (size(list_index) > 0)
+		{
+			foreach (integer idx, list_index,
+			{
+				sections[idx, "console"] = console_value;
+				y2debug("Added console for section: %1", sections[idx]:$[]);
+			});
+		}
+
+	}
+}
+
 
 } //end of include

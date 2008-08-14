@@ -75,6 +75,7 @@ section =
   element section {
     element append  {text}? &
     element initial {text}? &
+    element console {text}? &
     element initrd  {text}? &
     element kernel  {text}? &
     element name    {text}? &

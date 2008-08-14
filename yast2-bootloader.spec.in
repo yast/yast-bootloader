@@ -6,7 +6,7 @@ BuildRequires:	gcc-c++ limal-perl yast2-devtools yast2-testsuite yast2-installat
 #!BuildIgnore:  autoyast2-installation
 PreReq:         /bin/sed %fillup_prereq
 # Installation::*version variables
-Requires:	yast2 >= 2.16.7
+Requires:	yast2 >= 2.17.0
 Requires:	yast2-core yast2-storage perl-Bootloader parted perl-Compress-Zlib limal-perl
 %ifarch %ix86 x86_64
 Requires:	master-boot-code
