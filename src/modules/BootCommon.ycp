@@ -782,13 +782,16 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	BootCommon::UpdateAppend ();
 	BootCommon::UpdateGfxMenu ();
     }
+    
     boolean ret = true;
     string bl = getLoaderType (false);
     if (bl == "none")
 	return true;
 
     InitializeLibrary (init, bl);
-
+    // FATE: #110038: Serial console
+    // check and add console key with value for sections 
+    addConsole();
     list<map<string,string> > sects = maplist (map<string,any> s, sections, {
 	return (map<string,string>)
 	    filter (string k, any v, s, { return is (v, string); });
