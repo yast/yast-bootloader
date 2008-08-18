@@ -1944,6 +1944,7 @@ global define void WriteToSysconf(boolean inst_bootloader)
 
     } 
 
+    SCR::Write (add(sys_agent,.LOADER_TYPE), lt);
     SCR::Write (add(sys_agent,.DEFAULT_NAME), default_boot_section_name);
     SCR::Write (add(sys_agent,.DEFAULT_APPEND), default_append);
     SCR::Write (add(sys_agent,.DEFAULT_VGA), default_vga);

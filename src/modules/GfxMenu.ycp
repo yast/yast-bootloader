@@ -184,7 +184,7 @@
 	    import "Product";
 	    string product = Product::name;
 	    string prod_filtered = filterchars (product, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.");
-	    if (product == prod_filtered && product != " " && product != "")
+	    if (product != nil && product == prod_filtered && product != " " && product != "")
 	    {
 		if (orig == "linux")
 		{
