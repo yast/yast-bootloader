@@ -14,7 +14,8 @@ module_DATA =			\
 	BootLILO.ycp		\
 	BootPOWERLILO.ycp	\
 	BootZIPL.ycp		\
-	Bootloader_API.pm
+	Bootloader_API.pm	\
+	BootSupportCheck.ycp
 
 #	BootS390.ycp		\
 #	BootMILO.ycp		\
