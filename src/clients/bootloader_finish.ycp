@@ -24,7 +24,6 @@ import "Linuxrc";
 import "Misc";
 import "Mode";
 import "BootCommon";
-import "Update";
 
 // added for fate# 303395
 import "Linuxrc";
