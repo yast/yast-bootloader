@@ -334,6 +334,25 @@ Proceed?
 	    return `redraw;
 	}
 
+	if (Arch::x86_64 ()) {
+	    if (new_bl == "elilo") {
+// continue/cancel pop-up
+		if (! Popup::ContinueCancel (_("
+ELILO supports only the EFI boot architecture. If yor
+firmware does not support it, your computer will not
+boot.")))
+		    return nil;
+	    }
+	    else if (old_bl == "elilo") {
+// continue/cancel pop-up
+		if (! Popup::ContinueCancel (_("
+Bootloader you selected does not support the EFI boot
+architecture. If your firmware does not support legacy
+booting, your computer will not boot.")))
+		    return nil;
+	    }
+	}
+
 	// warning - popup, followed by radio buttons
 	string label = _("
 You chose to change your boot loader. When converting 

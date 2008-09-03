@@ -63,6 +63,11 @@ global boolean create_efi_entry = true;
 
 string efi_vendor = "SuSE";
 
+/**
+ * Is the /sys/firmware/efi directory available?
+ */
+boolean efi_available = true;
+
 // misc. functions
 
 /**
@@ -299,6 +304,9 @@ global define void Propose () {
         create_efi_entry = true;
     if (Mode::update ())
         create_efi_entry = false;
+    efi_available = 0 == (integer)SCR::Execute (.target.bash, "test -d /sys/firmware/efi");
+    if (! efi_available)
+	create_efi_entry = false;
     elilo_conf_filename = getEliloConfFilename ();
     BootCommon::DetectDisks ();
     BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
@@ -441,6 +449,13 @@ define boolean installBootLoader (string command, string logfile) {
 global define boolean Write () {
     //	SCR::Execute (.target.bash, "/sbin/elilo");
     boolean ret = BootCommon::UpdateBootloader ();
+
+// FIXME find a better way to report status
+    if (ret && ! efi_available) {
+	Popup::TimedMessage(
+_("System was not booted via EFI firmware. To boot your
+computer, you need to load ELILO via the EFI shell."), 10);
+    }
 
     if (BootCommon::location_changed || create_efi_entry)
     {
@@ -648,7 +663,7 @@ global void Initializer () {
  */
 global define void BootELILO () {
     BootCommon::bootloader_attribs["elilo"] = $[
-	"required_packages" : ["elilo"],
+	"required_packages" : ["elilo", "efibootmgr"],
 	"loader_name" : "ELILO",
 	"initializer" : BootELILO::Initializer,
     ];
