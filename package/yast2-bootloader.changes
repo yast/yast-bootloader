@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep  3 12:00:58 CEST 2008 - jsrain@suse.cz
+
+- added detection of EFI, proposing ELILO in that case 
+ (fate #301882)
+
+-------------------------------------------------------------------
 Wed Aug 20 15:34:22 CEST 2008 - jsrain@suse.cz
 
 - added skeleton for checking whether scenario is supported, not
