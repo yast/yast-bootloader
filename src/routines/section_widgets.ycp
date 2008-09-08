@@ -28,6 +28,7 @@ import "Mode";
 import "Storage";
 import "StorageDevices";
 import "TablePopup";
+import "Popup";
 
 include "bootloader/routines/helps.ycp";
 
@@ -325,6 +326,46 @@ symbol SectionTypeHandle (string widget, map event) {
     return nil;
 }
 
+
+/**
+ * Init function of widget
+ * @param widget any id of the widget
+ */
+void  InitTrustedDetails (string widget) {
+
+    if (BootCommon::globals["trusted_grub"]:"" != "true")
+	UI::ChangeWidget (`id ("trusted"), `Enabled, false);
+
+}
+
+
+
+/**
+ * Handle function of a widget
+ * @param widget string widget key
+ * @param event map event description of event that occured
+ * @return symbol to return to wizard sequencer, or nil
+ */
+symbol TrustedDetailsButtonHandle (string widget, map event) {
+
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none" || lt == "default")
+    {
+	NoLoaderAvailable ();
+	return nil;
+    }
+    
+    return `trusted_details;
+}
+/**
+ * Store function of the root device widget
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ */
+void StoreTrustedDetails (string widget, map event) {
+    y2debug("Fake store function for trusted GRUB");
+
+}
 /**
  * Cache for CommonSectionWidgets
  */
@@ -335,6 +376,7 @@ map<string,map<string,any> > _common_section_widgets = nil;
  * @return a map describing common loader section related widgets
  */
 map<string,map<string,any> > CommonSectionWidgets () {
+
     if (_common_section_widgets == nil)
     {
 	  _common_section_widgets = $[
@@ -442,8 +484,21 @@ map<string,map<string,any> > CommonSectionWidgets () {
 		"handle" : SectionTypeHandle,
 		"help" : SectionTypeHelp (),
 	    ],
+
 	];
     }
+
+    _common_section_widgets["trusted"] = $[
+		"widget" : `push_button,
+		// push button
+		"label" : _("&Trusted GRUB Details"),
+		"init" : InitTrustedDetails,
+		"handle" : TrustedDetailsButtonHandle,
+		"handle_events" : [ "trusted" ],
+		"store" : StoreTrustedDetails,
+		"help" : TrustedGrubHelp (),
+    ];
+
     return _common_section_widgets;
 }
 

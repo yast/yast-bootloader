@@ -197,7 +197,7 @@ sub setGlobalSettings($) {
     return $ret;
 }
 
-BEGIN { $TYPEINFO{getSections} = ["function", ["list", ["map", "string", "string"]]]; }
+BEGIN { $TYPEINFO{getSections} = ["function", ["list", ["map", "string", "any"]]]; }
 sub getSections() {
     my @sections = @{$lib_ref->GetSections () || []};
 
@@ -214,7 +214,7 @@ sub getSections() {
     return \@sections;
 }
 
-BEGIN { $TYPEINFO{setSections} = ["function", "boolean", ["list", ["map", "string", "string"]]]; }
+BEGIN { $TYPEINFO{setSections} = ["function", "boolean", ["list", ["map", "string", "any"]]]; }
 sub setSections($) {
     my ($sections) = @_;
 

@@ -43,6 +43,7 @@ bl_global =
   element global {
     element boot_custom { text }? &
     element generic_mbr { text }? &
+    element trusted_grub{ text }? &
     element serial      { text }? &
     element terminal    { text }? &
     lines_cache_id? &
@@ -55,6 +56,7 @@ bl_global =
     boot_mbr? &
     stage1_dev?
   }
+
 lines_cache_id = element lines_cache_id { text }
 stage1_dev = element stage1_dev { text }
 bl_timeout = element timeout { INTEGER }
@@ -88,6 +90,7 @@ section =
     element sectors {text}? &
     element blockoffset {text}? &
     element vgamode     {text}? &
+    element measures ? &
     element xen {text}? &
     element xen_append {text}? &
     element noverifyroot { "true" | "false" }? &
@@ -97,3 +100,15 @@ section =
     element image   {text}?
   }
 kernel_parameters = element kernel_parameters { text }
+
+measure =
+  element measure {
+    element file { text } &
+    element pcr  { text }
+  }
+
+measures =
+  element measures {
+    LIST,
+    measure+
+}

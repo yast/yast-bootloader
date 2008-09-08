@@ -323,7 +323,8 @@ global define string MountByDev2Dev(string dev)
 global map<string,string> remapDeviceMap(map<string,string> device_map)
 {	
 	symbol by_mount = Storage::GetDefaultMountBy();
-
+	
+	//symbol by_mount = `id;
 	if (by_mount == `label)
 		return device_map;
 
@@ -347,7 +348,7 @@ global map<string,string> remapDeviceMap(map<string,string> device_map)
 global map<string,string> remapGlobals(map<string,string> globals_set)
 {	
 	symbol by_mount = Storage::GetDefaultMountBy();
-
+	//symbol by_mount = `id;
 	if (by_mount == `label)
 		return globals_set;
 
@@ -410,8 +411,89 @@ define string remapResume(string append)
 }
 
 /**
+ * Function remap measure in section to autoyast format
+ * 
+ * @param map<string,string> map of measures $["file": "pcr"]
+ * @return list<map<string,string> > list of measures for autoyast format
+ */
+
+list <map <string, string> > remapMeasure(map <string, string> measure)
+{
+	list <map <string, string> > ret = [];
+	if (size(measure) >0)
+	{
+		foreach(string k, string v, measure, 
+		{
+			map <string, string> tmp_map = $[];
+			tmp_map["file"] = k;
+			tmp_map["pcr"] = v;
+			ret = add(ret,tmp_map);
+		});
+	}
+
+	return ret;
+}
+
+
+/**
+ * Function remap measure in section from autoyast format
+ * 
+ * @param list<map<string,string> > list of measures [$["file": "/tmp/file1", "pcr" : "8"]]
+ * @return map<string,string> map of measures
+ */
+
+map <string, string> importMeasure(list<map<string, string> > measure)
+{
+	map <string, string> ret = $[];
+	if (size(measure) >0)
+	{
+		maplist(map <string, string> m, measure, 
+		{
+			string file = m["file"]:"";
+			string pcr = m["pcr"]:"";
+			ret[file]=pcr;
+		});
+	}
+
+	return ret;
+}
+
+
+/**
  * Function remap section "root" and "resume" to device name (/dev/sda) 
  * or to label (ufo_partition)
+ * @param list<map<string,any> > list of sections
+ * @return list<map<string,any> > list of sections
+ */
+global list<map<string,any> > importSections(list<map<string,any> >sec)
+{
+	y2debug("import section before remapping %1", sec);
+	list<map<string,any> >temp_sec = [];
+	temp_sec = maplist (map<string,any> s, sec, 
+	{
+		
+		if (haskey(s,"measures"))
+		{
+			map <string, string> tmp = $[];
+			tmp = importMeasure(s["measures"]:[]);
+			s = remove(s,"measures");
+			if (size(tmp) > 0)
+				s["measure"]=tmp;
+		}
+
+		return s;
+	});
+	y2debug("import section after remapping %1", temp_sec);
+	return temp_sec;
+}
+
+
+
+
+/**
+ * Function remap section "root" and "resume" to device name (/dev/sda) 
+ * or to label (ufo_partition)
+ * it also prepared measured files for export
  * @param list<map<string,any> > list of sections
  * @return list<map<string,any> > list of sections
  */
@@ -419,7 +501,7 @@ define string remapResume(string append)
 global list<map<string,any> > remapSections(list<map<string,any> >sec)
 {	
 	symbol by_mount = Storage::GetDefaultMountBy();
-
+	//symbol by_mount = `id;
 	if (by_mount == `label)
 		return sec;
 
@@ -442,6 +524,15 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
 
 		if (s["chainloader"]:"" != "")
 			s["chainloader"] = BootCommon::MountByDev2Dev(s["chainloader"]:"");
+
+		if (haskey(s,"measure"))
+		{
+			list <map <string, string> > tmp =[];
+			tmp = remapMeasure(s["measure"]:$[]);
+			s = remove(s,"measure");
+			if (size(tmp) > 0)
+				s["measures"]=tmp;
+		}
 
 		return s;
 	});
@@ -466,7 +557,7 @@ global define string Dev2MountByDev(string dev)
 
 	// (`id,`uuid,`path,`device,`label)
 	symbol by_mount = Storage::GetDefaultMountBy();
-
+	//symbol by_mount = `id;
 	y2milestone("Default mount by is %1", by_mount);
 
 	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();

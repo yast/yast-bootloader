@@ -304,4 +304,17 @@ loads and starts a boot sector of a partition of the disk. This is used for
 booting other operating systems.</p>");
 }
 
+
+/**
+ * Get help text
+ * @return string help text
+ */
+string TrustedGrubHelp () {
+    // help text 1/1
+    return _("<p><b>Trusted GRUB Details</b><br>
+allows to add aditional measured files and also to define own PCR for kernel, initrd or chainloader</p>");
+}
+
+
+
 } // EOF

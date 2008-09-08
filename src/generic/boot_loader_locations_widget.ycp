@@ -32,6 +32,12 @@ include "bootloader/generic/widget_funcs.ycp";
 map<string,any> _bll_options = nil;
 
 /**
+ * option once propose
+ */
+
+boolean once_to_mbr = true;
+
+/**
  * return map of boot loader options from global_options, cache them if
  * necessary
  */
@@ -53,6 +59,13 @@ map<string,any> BLL_options () {
  * @param widget string widget key
  */
 void BLL_Init (string widget) {
+    // propose install grub to MBR if trusted GRUB is selected (only once)
+
+    if ((BootCommon::globals["trusted_grub"]:"" == "true") && (once_to_mbr))
+    {
+	BootCommon::globals["boot_mbr"] = "true";
+	once_to_mbr = false;
+    }
     generic_Init(widget, BLL_options(), BootCommon::globals);
 }
 
