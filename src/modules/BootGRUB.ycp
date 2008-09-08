@@ -63,7 +63,7 @@ include "bootloader/routines/popups.ycp";
 include "bootloader/grub/helps.ycp";
 include "bootloader/generic/device_map_edit_widget.ycp";
 include "bootloader/generic/dialogs.ycp";
-
+include "bootloader/grub/trusted_grub_edit.ycp";
 
 // end of mandatory functions
 //----------------------------------------------------------------------------
@@ -281,12 +281,12 @@ global define void CreateSections () {
 
 		    BootCommon::InitializeLibrary (false, "grub");
 		    BootCommon::SetFilesContents (files);
-		    list<map<string,string> > sects
+		    list<map<string,any> > sects
 		        = BootCommon::GetSections ();
 		    y2debug ("Found sections %1", sects);
 
 		    // look only for "default" == "initial" entries, not all entries
-		    sects = filter (map<string,string> s, sects, {
+		    sects = filter (map<string,any> s, sects, {
 			return s["initial"]:nil != nil;
 		    });
 
@@ -762,6 +762,7 @@ global map<string,symbol()> Dialogs () {
     return $[
 	"installation"	: i386InstallDetailsDialog,
 	"loader"	: genericBootLoaderOptionsDialog,
+	"trusted_grub"	: TrustedGrubDetails,
     ];
 }
 

@@ -118,6 +118,13 @@ global string selected_location = nil;
   */
 global string BootPartitionDevice = "";
 
+
+/**
+ * The variable indicate using of trusted GRUB
+ */
+
+global boolean isTrustedGrub = true;
+
 /**
   * string representing device name of / partition
   */
@@ -654,7 +661,8 @@ global define map Export () {
   */
 global define boolean Import (map settings) {
     globals = settings["global"]:$[];
-    sections = settings["sections"]:[];
+    sections = importSections(settings["sections"]:[]);
+
     // FIXME: for grub, repl_mbr is replaced by globals["generic_mbr"]; same
     // for activate; remove the following when no bootloader uses these
     // variables any more
@@ -792,11 +800,12 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // FATE: #110038: Serial console
     // check and add console key with value for sections 
     addConsole();
+    /*
     list<map<string,string> > sects = maplist (map<string,any> s, sections, {
 	return (map<string,string>)
 	    filter (string k, any v, s, { return is (v, string); });
     });
-
+    */
     /* it is done
     // convert root device names in sections to the device names indicated by
     // "mountby"
@@ -831,7 +840,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     });
 
     ret = ret && SetDeviceMap (my_device_mapping);
-    ret = ret && SetSections (sects);
+    ret = ret && SetSections (sections);
     ret = ret && SetGlobal (my_globals);
     if (flush)
     {
@@ -1068,6 +1077,16 @@ global define void setLoaderType (string bootloader) {
         	bootloader_packages = bootloader_attribs[bootloader, "kexec-tools", "required_packages"]:[];
 	} else {
         	bootloader_packages = bootloader_attribs[bootloader, "required_packages"]:[];
+	}
+
+	//FIXME kokso: it is important deselect grub from installation proposal not only delete from bootloader_packages
+	if (globals["trusted_grub"]:"" == "true")
+	{
+		bootloader_packages = bootloader_attribs[bootloader, "trustedgrub", "required_packages"]:[];
+		if (contains(bootloader_packages, "grub"))
+			bootloader_packages = filter(string key, bootloader_packages, {return (key !="grub"); });
+
+		bootloader_packages = add(bootloader_packages, "trustedgrub");
 	}
 
         // don't configure package manager during autoinstallation preparing

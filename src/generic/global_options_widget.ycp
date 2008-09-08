@@ -30,6 +30,21 @@ include "bootloader/generic/widget_funcs.ycp";
 map<string,any> _gow_options = nil;
 
 map<string,any> GOW_options () {
+    // HACK add checkbox for enabling trusted GRUB
+    if (BootCommon::getLoaderType (false) == "grub")
+    {
+    	BootCommon::global_options["trusted_grub"] = "bool:Use Trusted Grub:true";
+    } else {
+	if (haskey(BootCommon::global_options, "trusted_grub"))
+	   BootCommon::global_options = remove(BootCommon::global_options, "trusted_grub");
+    }
+    // HACK delete fallback and former_default_image_flavor
+    if (haskey(BootCommon::global_options, "former_default_image_flavor"))
+	BootCommon::global_options = remove(BootCommon::global_options, "former_default_image_flavor");
+
+    if (haskey(BootCommon::global_options, "fallback"))
+	BootCommon::global_options = remove(BootCommon::global_options, "fallback");
+
     if ( _gow_options == nil)
     {
 	_gow_options = filter( string key, any value, BootCommon::global_options, {
