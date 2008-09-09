@@ -161,6 +161,11 @@ global boolean SetSections (list<map<string,any> > sections) {
 
 	return s;
     });*/
+
+    sections = maplist (map<string,any> s, sections, {
+	s["__modified"] = "1";
+	return s; 
+    });
     boolean ret = System::Bootloader_API::setSections (sections);
     if (! ret)
 	y2error ("Storing bootloader sections failed");
