@@ -26,7 +26,8 @@ create a system dump either on a DASD disk partition or tape device or to a
 file on a SCSI disk partition.</p>"),
     "type_menu"      :
     _("<p>Select <b>Menu Section</b> to add a new menu to the configuration.
-Menu sections represent a list of tasks which are grouped together</p>"),
+Menu sections represent a list of tasks which are grouped together.</p>
+"),
     ];
 
 
