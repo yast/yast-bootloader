@@ -113,9 +113,9 @@
 	    		    "warning_level" : `blocker,
 	    		    "warning" :
 	    		    ret["warning"]:"" +
-	    		       _("Configure a valid boot loader location before continuing.<br>
-The device map includes more than 8 devices and the boot device is out of range. 
-The range is the first 8 devices by BIOS."),
+	    		       _("Configure a valid boot loader location before continuing.<br/>
+The device map includes more than 8 devices and the boot device is out of range.
+The range is limited by BIOS to the first 8 devices."),
 	        	]
 	         );
 		return ret;

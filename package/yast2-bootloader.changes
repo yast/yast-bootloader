@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 11 08:22:53 CEST 2008 - jsrain@suse.cz
+
+- merged texts from proofread
+
+-------------------------------------------------------------------
 Wed Sep  3 12:00:58 CEST 2008 - jsrain@suse.cz
 
 - added detection of EFI, proposing ELILO in that case 
