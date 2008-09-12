@@ -1951,6 +1951,43 @@ define string BootDeviceToUdevID()
 }
 
 
+/**
+ * Function handle console from sections 
+ * write it to sysconfig if it used
+ * @param string console value
+ * @return string console value
+ */
+string writeConsoleToSysconf(string console)
+{
+	string ret = "";
+	if (console != "")
+	{
+		ret = console;
+	}
+
+	return ret;
+}
+
+
+/**
+ * Function handle measure from sections 
+ * write it to sysconfig if it used
+ * @param map <string, string> of measure value
+ * @return string measure split with ":"
+ */
+string writeMeasureToSysconf(map <string, string> measure)
+{
+	string ret = "";
+	foreach(string file, string pcr, measure, {
+		ret = ret + file +":";
+		ret = ret + pcr + ":";
+	});
+	if (ret != "")
+	    ret = substring(ret, 0, (size(ret) -1));
+	return ret;
+}
+
+
 /** FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
  * Function write/update info in /etc/sysconfig/bootloader
  * @param booloean true if it called from inst_bootloader.ycp 
@@ -1969,13 +2006,23 @@ global define void WriteToSysconf(boolean inst_bootloader)
     // be initialized in any case
     string default_vga = "";
     string default_append = "";
+    string default_measure = "";
+    string imagepcr = "";
+    string initrdpcr = "";
+    string console = "";
     boolean default_set = false;
     string failsafe_vga = "";
     string failsafe_append = "";
+    string failsafe_measure = "";
     boolean failsafe_set = false;
     string xen_vga = "";
     string xen_append = "";
+    string xen_imagepcr = "";
+    string xen_initrdpcr = "";
+    string xen_measure = "";
+    string xenpcr = "";
     string xen_kernel_append = "";
+
     boolean xen_set = false;
 
     foreach (map<string,any>s, BootCommon::sections, 
@@ -1985,6 +2032,17 @@ global define void WriteToSysconf(boolean inst_bootloader)
 	{
 	   default_set = true;
 	   default_vga = s["vgamode"]:"";
+	   console = writeConsoleToSysconf(s["console"]:"");
+	   if (haskey(s,"imagepcr"))
+		imagepcr = s["imagepcr"]:"";
+
+	   if (haskey(s,"initrdpcr"))
+		initrdpcr = s["initrdpcr"]:"";
+
+	   if (haskey(s,"measure"))
+		default_measure = writeMeasureToSysconf(s["measure"]:$[]);
+
+
 	   default_append = s["append"]:"";
     	}
     	if (search(s["original_name"]:"","xen") != nil)
@@ -1993,22 +2051,47 @@ global define void WriteToSysconf(boolean inst_bootloader)
 	   xen_vga = s["vgamode"]:"";
 	   xen_append = s["xen_append"]:"";
 	   xen_kernel_append = s["append"]:"";
-    	}
+	   console = writeConsoleToSysconf(s["console"]:"");
+	   if (haskey(s,"measure"))
+		xen_measure = writeMeasureToSysconf(s["measure"]:$[]);
+	   if (haskey(s,"imagepcr"))
+		xen_imagepcr = s["imagepcr"]:"";
+
+	   if (haskey(s,"initrdpcr"))
+		xen_initrdpcr = s["initrdpcr"]:"";
+
+    	   if (haskey(s,"xenpcr"))
+		xenpcr = s["xenpcr"]:"";
+	}
     	else if (search(s["original_name"]:"","failsafe") != nil)
     	{
 	   failsafe_set = true;
 	   failsafe_vga = s["vgamode"]:"";
 	   failsafe_append = s["append"]:"";
+	   console = writeConsoleToSysconf(s["console"]:"");
+	   if (haskey(s,"measure"))
+		failsafe_measure = writeMeasureToSysconf(s["measure"]:$[]);
     	}
     	if (s["type"]:"" == "image" && ! default_set)
     	{
 	   default_vga = s["vgamode"]:"";
 	   default_append = s["append"]:"";
+	   console = writeConsoleToSysconf(s["console"]:"");
+	   if (haskey(s,"imagepcr"))
+		imagepcr = s["imagepcr"]:"";
+
+	   if (haskey(s,"initrdpcr"))
+		initrdpcr = s["initrdpcr"]:"";
+
+	   if (haskey(s,"measure"))
+		default_measure = writeMeasureToSysconf(s["measure"]:$[]);
+
     	}
     	if (s["type"]:"" == "image" && ! failsafe_set)
         {
 	   failsafe_vga = s["vgamode"]:"";
 	   failsafe_append = s["append"]:"";
+	   console = writeConsoleToSysconf(s["console"]:"");
 	}
     });
 
@@ -2044,6 +2127,23 @@ global define void WriteToSysconf(boolean inst_bootloader)
     SCR::Write (add(sys_agent,.XEN_KERNEL_APPEND), xen_kernel_append);
     SCR::Write (add(sys_agent,.XEN_APPEND), xen_append);
     SCR::Write (add(sys_agent,.XEN_VGA), xen_vga);
+    if (console != "")
+	SCR::Write (add(sys_agent,.CONSOLE), console);
+    if (imagepcr != "")
+	SCR::Write (add(sys_agent,.IMAGE_PCR), imagepcr);
+    if (initrdpcr != "")
+	SCR::Write (add(sys_agent,.INITRD_PCR), initrdpcr);
+    if (xenpcr != "")
+	SCR::Write (add(sys_agent,.XEN_PCR), xenpcr);
+
+    if (default_measure != "")
+	SCR::Write (add(sys_agent,.DEFAULT_MEASURE), default_measure);
+
+    if (failsafe_measure != "")
+	SCR::Write (add(sys_agent,.FAILSAFE_MEASURE), failsafe_measure);
+    if (xen_measure != "")
+	SCR::Write (add(sys_agent,.XEN_MEASURE), xen_measure);
+
     SCR::Write (sys_agent, nil);
 
 

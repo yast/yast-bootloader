@@ -614,6 +614,7 @@ global define void Propose () {
         // FATE #301994: Correct device mapping in case windows is installed on the second HD
         BootCommon::sections = checkWindowsSection(BootCommon::sections);
 
+	BootCommon::isTrustedGrub ();
 	y2milestone ("Proposed sections: %1", BootCommon::sections);
 	y2milestone ("Proposed globals: %1", BootCommon::globals);
     }

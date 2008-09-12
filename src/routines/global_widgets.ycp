@@ -28,6 +28,10 @@ import "Storage";
 import "StorageDevices";
 import "Bootloader";
 import "Progress";
+import "PackageSystem";
+import "Package";
+import "Message";
+
 
 include "bootloader/routines/helps.ycp";
 
@@ -314,8 +318,15 @@ symbol LoaderTypeComboHandle (string key, map event) {
     {
 	string old_bl = Bootloader::getLoaderType ();
 	string new_bl = (string)UI::QueryWidget (`id (key), `Value);
+
 	if (old_bl == new_bl)
 	    return nil;
+
+
+	if (new_bl == "lilo")
+	{
+		Popup::Warning(_("The LILO is not supported now."));
+	}
 
 	if (new_bl == "none")
 	{
@@ -463,6 +474,29 @@ boolean LoaderTypeValidate (string widget, map event){
 	return false;
     }
     return true;
+}
+
+
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
+void LoaderTypeStore (string widget, map event) {
+	boolean ret = false;
+	if (BootCommon::globals["trusted_grub"]:"" == "true")
+	{
+		if ((!Package::Installed("trustedgrub")) && (Mode::normal())) 
+		{
+			if (! PackageSystem::CheckAndInstallPackages(["trustedgrub"])) 
+			{
+				if (!Mode::commandline())
+					Popup::Error(Message::CannotContinueWithoutPackagesInstalled());
+        			y2error("Installation of package trustedgrub failed or aborted");
+
+			}
+		}
+	}
 }
 
 // loader target widget
@@ -973,6 +1007,7 @@ map<string,map<string,any> > CommonGlobalWidgets () {
 	"init" : LoaderTypeComboInit,
 	"handle" : LoaderTypeComboHandle,
 	"help" : LoaderTypeHelp (),
+	"store": LoaderTypeStore,
 	"validate_type" : `function,
 	"validate_function" : LoaderTypeValidate,
     ],
