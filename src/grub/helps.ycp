@@ -137,11 +137,14 @@ directly or choose by using <b>Browse</b>.</p>
     _("<p><b>Measures</b> includes measured files with PCR. Change table is possible via buttons: <b>Add</b> , 
 <b>Edit</b> and <b>Delete</b></p>"),
     "PCRKernelHelp"		:
-    _("<p><b>PCR Index of Kernel<b> is Platform Configuration Register for kernel</p>"),
+    _("<p><b>PCR Index of Kernel</b> is Platform Configuration Register for kernel</p>"),
     "PCRInitrdHelp"		:
-    _("<p><b>PCR Index of Kernel<b> is Platform Configuration Register for initrd</p>"),
+    _("<p><b>PCR Index of Inird</b> is Platform Configuration Register for initrd</p>"),
     "PCRChainloaderHelp"		:
-    _("<p><b>PCR Index of Kernel<b> is Platform Configuration Register for chainloader</p>"),
+    _("<p><b>PCR Index of Chainloader</b> is Platform Configuration Register for chainloader</p>"),
+    "PCRXenHelp"		:
+    _("<p><b>PCR Index of XEN</b> is Platform Configuration Register for XEN</p>"),
+
 
 ];
 

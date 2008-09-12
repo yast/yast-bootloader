@@ -32,6 +32,7 @@ import "PackageSystem";
 import "Storage";
 import "String";
 import "Pkg";
+import "Popup";
 
 import "Linuxrc";
 
@@ -118,12 +119,6 @@ global string selected_location = nil;
   */
 global string BootPartitionDevice = "";
 
-
-/**
- * The variable indicate using of trusted GRUB
- */
-
-global boolean isTrustedGrub = true;
 
 /**
   * string representing device name of / partition
@@ -415,6 +410,35 @@ global boolean UsingXenPae() {
 }
 
 /**
+ * Function check if trusted grub is selected
+ * or installed return true if is selected/installed
+ * and add trusted_grub to globals
+ * @return boolean true if trusted grub is selected/installed
+ */
+
+global boolean isTrustedGrub ()
+{
+    boolean ret = false;
+    if (Mode::normal ())
+    {
+	if (Pkg::IsProvided ("trustedgrub"))
+	{
+	    ret = true;
+	    globals["trusted_grub"] = "true";
+	}
+
+    } else {
+	if (Pkg::IsSelected ("trustedgrub"))
+	{
+	    ret = true;
+	    globals["trusted_grub"] = "true";
+	}
+    }
+    return ret;
+}
+
+
+/**
  * Get the size of memory for XEN's domain 0
  * @return the memory size in kB
  */
@@ -692,6 +716,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     }
     sections = GetSections ();
     globals = GetGlobal ();
+    isTrustedGrub ();
     device_mapping = GetDeviceMap ();
     read_default_section_name = "";
     foreach (map<string,any> s, sections, {
@@ -838,6 +863,9 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    //return $[BootCommon::Dev2MountByDev(k) : v];
 	    return $[BootCommon::Dev2MountByDev(k) : v];
     });
+
+    if ((globals["trusted_grub"]:"" == "true") && (haskey(globals, "gfxmenu")))
+	globals = remove(globals, "gfxmenu");
 
     ret = ret && SetDeviceMap (my_device_mapping);
     ret = ret && SetSections (sections);
@@ -1052,6 +1080,31 @@ global define string getLoaderType (boolean recheck) {
 }
 
 /**
+ * The function handle selecting and deselecting packages (bootloaders)
+ * @return boolean true on success
+ */
+boolean solvePackage()
+{
+	boolean ret = false;
+	if (globals["trusted_grub"]:"" == "true")
+	{
+		list <string> packages = ["grub"];
+		foreach (string btl, packages, {
+			if (Pkg::IsSelected(btl))
+			{
+				Pkg::PkgNeutral (btl);
+				y2milestone("deselect %1 for installation", btl);
+				ret = true;
+			}
+		});
+	}
+	if (ret)
+		Pkg::PkgSolve (false);
+	return ret;
+}
+
+
+/**
   * set type of bootloader
   * @param bootloader string type of bootloader
   */
@@ -1079,7 +1132,6 @@ global define void setLoaderType (string bootloader) {
         	bootloader_packages = bootloader_attribs[bootloader, "required_packages"]:[];
 	}
 
-	//FIXME kokso: it is important deselect grub from installation proposal not only delete from bootloader_packages
 	if (globals["trusted_grub"]:"" == "true")
 	{
 		bootloader_packages = bootloader_attribs[bootloader, "trustedgrub", "required_packages"]:[];
@@ -1092,6 +1144,7 @@ global define void setLoaderType (string bootloader) {
         // don't configure package manager during autoinstallation preparing
         if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
         {
+	    y2milestone("Install packages :%1", bootloader_packages);
 	    PackageSystem::InstallAll (bootloader_packages);
         }
         else if (Stage::initial () && (! (Mode::repair ())))
@@ -1106,9 +1159,11 @@ global define void setLoaderType (string bootloader) {
 	    });
 	    if (pkg_added)
 	    {
+		boolean ret = solvePackage();
 		// if package was added in inst. proposal, I can't be sure
 		// that dependencies will be solved
-		Pkg::PkgSolve (false);
+		if (ret)
+		   Pkg::PkgSolve (false);
 	    }
         }
     }

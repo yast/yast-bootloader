@@ -17,14 +17,22 @@ include "bootloader/grub/helps.ycp";
 
 void InitMeasuresTable(string widget) 
 {
-    map <string, string> meas = BootCommon::current_section["measure"]:$[];
-    list measures = [];
+    if (BootCommon::current_section["type"]:"" != "other")
+    {
+        map <string, string> meas = BootCommon::current_section["measure"]:$[];
+        list measures = [];
 
-    foreach(string file, string pcr, meas, {	
-	measures = add(measures, `item(`id(file), file, pcr));
-    });
+        foreach(string file, string pcr, meas, {	
+	    measures = add(measures, `item(`id(file), file, pcr));
+        });
 
-    UI::ChangeWidget (`id (`measures), `Items, measures);
+        UI::ChangeWidget (`id (`measures), `Items, measures);
+    } else {
+	UI::ChangeWidget (`id (`measures), `Enabled, false);
+	UI::ChangeWidget (`id (`add), `Enabled, false);
+	UI::ChangeWidget (`id (`edit), `Enabled, false);
+	UI::ChangeWidget (`id (`delete), `Enabled, false);
+    }
 }
 
 
@@ -214,6 +222,28 @@ void StorePCRChainloader (string widget, map event) {
     	BootCommon::current_section["chainloaderpcr"] = tostring(UI::QueryWidget (`id ("PCRChainloader"), `Value));
 }
 
+/**
+ * Init function of widget
+ * @param widget string id of the widget
+ */
+
+void InitPCRXen (string widget) {
+    if (BootCommon::current_section["type"]:"" != "xen")
+	UI::ChangeWidget (`id ("PCRXen"), `Enabled, false);
+    else
+    	UI::ChangeWidget (`id ("PCRXen"), `Value, tointeger(BootCommon::current_section["xenpcr"]:"8"));
+}
+
+
+/**
+ * Store function of a widget
+ * @param widget string widget key
+ * @param event map event that caused the operation
+ */
+void StorePCRXen (string widget, map event) {
+    if (BootCommon::current_section["type"]:"" == "xen") 
+    	BootCommon::current_section["xenpcr"] = tostring(UI::QueryWidget (`id ("PCRXen"), `Value));
+}
 
 
 map<string,map<string,any> > wid_handling = $[
@@ -281,6 +311,17 @@ map<string,map<string,any> > wid_handling = $[
      "help"		: grub_help_messages["PCRInitrdHelp"]:"",
   ],
 
+  "PCRXen"		: $[
+     //TRANSLATORS: IntField Label
+     "label" 		: _("PCR Index of &XEN"),
+     "widget" 		: `intfield,
+     "minimum" 		: 0,
+     "maximum" 		: 100,
+     "init"		: InitPCRXen,
+     //"handle"		: 
+     "store"		: StorePCRXen,
+     "help"		: grub_help_messages["PCRXenHelp"]:"",
+  ],
 
   "PCRChainloader"		: $[
      //TRANSLATORS: IntField Label
@@ -309,11 +350,13 @@ symbol TrustedGrubDetails () {
 	`VSpacing (1),
 	"PCRInitrd",
 	`VSpacing (1),
+	"PCRXen",
+	`VSpacing (1),
 	"PCRChainloader",
 	`VStretch ()
     ), `HSpacing (2));
 
-    list<string> widget_names = ["MeasuresTable", "PCRKernel", "PCRInitrd", "PCRChainloader",];
+    list<string> widget_names = ["MeasuresTable", "PCRKernel", "PCRInitrd", "PCRXen", "PCRChainloader",];
     map<string,map<string,any> > widget_descr = wid_handling;
    // dialog caption
     string caption = _("Trusted GRUB Options");
