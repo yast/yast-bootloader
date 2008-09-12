@@ -2130,11 +2130,16 @@ global define void WriteToSysconf(boolean inst_bootloader)
     if (console != "")
 	SCR::Write (add(sys_agent,.CONSOLE), console);
     if (imagepcr != "")
-	SCR::Write (add(sys_agent,.IMAGE_PCR), imagepcr);
+	SCR::Write (add(sys_agent,.IMAGEPCR), imagepcr);
     if (initrdpcr != "")
-	SCR::Write (add(sys_agent,.INITRD_PCR), initrdpcr);
+	SCR::Write (add(sys_agent,.INITRDPCR), initrdpcr);
     if (xenpcr != "")
 	SCR::Write (add(sys_agent,.XEN_PCR), xenpcr);
+    if (xen_initrdpcr != "")
+	SCR::Write (add(sys_agent,.XEN_INITRDPCR), xen_initrdpcr);
+
+    if (xen_imagepcr != "")
+	SCR::Write (add(sys_agent,.XEN_IMAGEPCR), xen_imagepcr);
 
     if (default_measure != "")
 	SCR::Write (add(sys_agent,.DEFAULT_MEASURE), default_measure);
