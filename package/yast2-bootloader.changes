@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Sep 12 14:24:43 CEST 2008 - juhliarik@suse.cz
+
+- added support of trusted grub (FATE #303784, #303672, #303891, 
+  #303983)
+- added warning that lilo is not supported (FATE #305006)
+- 2.17.17
+
+-------------------------------------------------------------------
 Thu Sep 11 15:27:43 CEST 2008 - locilka@suse.cz
 
 - Calling new reipl_bootloader_finish client from yast2-reipl
