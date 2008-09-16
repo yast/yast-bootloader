@@ -90,7 +90,7 @@ section =
     element sectors {text}? &
     element blockoffset {text}? &
     element vgamode     {text}? &
-    element measures ? &
+    measures? &
     element xen {text}? &
     element xen_append {text}? &
     element noverifyroot { "true" | "false" }? &
@@ -111,4 +111,4 @@ measures =
   element measures {
     LIST,
     measure+
-}
+  }
