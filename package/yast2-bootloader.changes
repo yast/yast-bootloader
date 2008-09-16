@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 16 16:30:19 CEST 2008 - juhliarik@suse.cz
+
+- added fix for obtaining name of default section (bnc #364904)
+
+-------------------------------------------------------------------
 Wed Apr 30 16:34:19 CEST 2008 - juhliarik@suse.cz
 
 - added fix for deleting old boot sections (bnc# 367356)
