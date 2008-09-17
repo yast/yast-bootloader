@@ -1,6 +1,13 @@
 -------------------------------------------------------------------
 Thu Sep 16 16:35:43 CEST 2008 - juhliarik@suse.cz
 
+- added fix for deleting fake xen boot section (bnc #408346)
+- added fix for failsafe options for kernel (bnc #419464)
+- 2.17.20
+
+-------------------------------------------------------------------
+Thu Sep 16 16:35:43 CEST 2008 - juhliarik@suse.cz
+
 - added fix for getDefaultSection() for zipl (bnc #364904)
 - added fix for deleting gfxmenu from menu.lst (bnc #398806)
 - 2.17.19
