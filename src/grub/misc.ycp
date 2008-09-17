@@ -699,7 +699,14 @@ string grub_GetExtendedPartitionDev () {
     string ret = nil;
 
     map<string,any> tm = Storage::GetTargetMap ();
-    map dp = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+
+    string device = "";
+    if (BootCommon::BootPartitionDevice != "")
+	device = BootCommon::BootPartitionDevice;
+    else 
+        device = BootCommon::RootPartitionDevice;
+
+    map dp = Storage::GetDiskPartition (device);
     string disk = dp["disk"]:"";
     map dm = tm[disk]:$[];
     list<map> partitions = dm["partitions"]:[];
