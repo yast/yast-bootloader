@@ -1113,6 +1113,9 @@ global boolean InstallingToFloppy () {
     boolean ret = false;
     if (loader_device == nil)
 	ret = false;
+    // bnc #180784 don't install to bootloader to floppy if ppc
+    if (getLoaderType (false) == "ppc")
+	ret = false;
     else if (loader_device == StorageDevices::FloppyDevice())
 	ret = true;
     else if (contains (getFloppyDevices (), loader_device))

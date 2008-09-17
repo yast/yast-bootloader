@@ -1061,7 +1061,7 @@ global void RemoveUnexistentSections (string path_prefix,
 	string label = s["name"]:"";
 
 	// do not touch the wildcard section
-	if (regexpmatch (s["kernel"]:"", ".+\\-\\*"))
+	if (regexpmatch (s["image"]:"", ".+\\-\\*"))
 	{
 	    if (first == nil)
 		first = label;
@@ -1083,7 +1083,7 @@ global void RemoveUnexistentSections (string path_prefix,
 		first = label;
 	    return true;
 	}
-	string kernel = s["kernel"]:"";
+	string kernel = s["image"]:"";
 	if (kernel == "")
 	{
 	    if (first == nil)
