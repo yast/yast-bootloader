@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Sep 18 17:39:43 CEST 2008 - juhliarik@suse.cz
+
+- added fix for initialise yast2-stroage (bnc #419197)
+- help update (bnc #220283)
+- 2.17.21
+
+-------------------------------------------------------------------
 Thu Sep 16 16:35:43 CEST 2008 - juhliarik@suse.cz
 
 - added fix for deleting fake xen boot section (bnc #408346)
