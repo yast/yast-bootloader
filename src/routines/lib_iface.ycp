@@ -26,6 +26,7 @@ textdomain "bootloader";
 
 import "System::Bootloader_API";
 import "Storage";
+import "Mode";
 
 /**
  * Loader the library has been initialized to use
@@ -152,20 +153,18 @@ global boolean InitializeLibrary (boolean force, string loader) {
  * @return boolean true on success
  */
 global boolean SetSections (list<map<string,any> > sections) {
-    y2milestone ("Storing bootloader sections %1", sections);
-    /*sections = maplist (map<string,string> s, sections, {
-	s["__modified"] = "1";
-	s = filter (string key, string value, s, {
-	    return (! is (value, string)) || (value != "");
-	});
-
-	return s;
-    });*/
 
     sections = maplist (map<string,any> s, sections, {
-	s["__modified"] = "1";
+	if (Mode::normal())
+	{
+	    if (s["__changed"]:false)
+		s["__modified"] = "1";
+	} else {
+	    s["__modified"] = "1";
+	}	
 	return s; 
     });
+    y2milestone ("Storing bootloader sections %1", sections);
     boolean ret = System::Bootloader_API::setSections (sections);
     if (! ret)
 	y2error ("Storing bootloader sections failed");
