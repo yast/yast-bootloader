@@ -769,7 +769,7 @@ string checkZiplDefault(string def)
       */
     global define string getDefaultSection () {
         ReadOrProposeIfNeeded ();
-        string default_name = BootCommon::globals["default"]:"";
+        string default_name = checkZiplDefault(BootCommon::globals["default"]:"");
         return default_name;
     }
 
