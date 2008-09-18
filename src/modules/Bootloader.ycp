@@ -114,6 +114,21 @@
         return test_abort ();
     }
 
+    /** bnc #419197 yast2-bootloader does not correctly initialise libstorage
+     * Function try initialize yast2-storage
+     * if other module used it then don't continue with initialize
+     * @return boolean true on success
+     */
+
+    boolean checkUsedStorage ()
+    {
+	if ((!Storage::InitLibstorage(true)) && (Mode::nornall()))
+	//if ((false) && (Mode::normal()))
+            return false;
+	else
+            return true;
+    }
+
     /**
       * Constructor
       */
@@ -220,7 +235,7 @@
 	Bootloader::getLoaderType ();
 
 	Progress::NextStage ();
-	if (testAbort ())
+	if (!checkUsedStorage ())
 	    return false;
 
 	BootCommon::DetectDisks ();
