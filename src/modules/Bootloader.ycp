@@ -122,7 +122,7 @@
 
     boolean checkUsedStorage ()
     {
-	if ((!Storage::InitLibstorage(true)) && (Mode::nornal()))
+	if ((!Storage::InitLibstorage(true)) && (Mode::normal()))
 	//if ((false) && (Mode::normal()))
             return false;
 	else
