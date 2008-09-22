@@ -1013,7 +1013,8 @@ global void UpdateSections (boolean replace,
  * modifies internal sreuctures
  */
 global void UpdateGlobals () {
-    BootCommon::globals["timeout"] = "8";
+    if (BootCommon::globals["timeout"]:"" == "")
+        BootCommon::globals["timeout"] = "8";
     list<string> s1_devs
 	= splitstring (BootCommon::globals["stage1_dev"]:"", ",");
     s1_devs = maplist (string d, s1_devs, {

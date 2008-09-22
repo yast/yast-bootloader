@@ -400,7 +400,8 @@ global define void Update () {
      * Update global options of bootloader
      * modifies internal structures
      */
-    BootCommon::globals["timeout"] = "8";
+    if (BootCommon::globals["timeout"]:"" == "")
+        BootCommon::globals["timeout"] = "8";
     BootCommon::globals["append"] = BootArch::DefaultKernelParams ("");
 
     BootCommon::UpdateSections (true, CreateLinuxSection);
