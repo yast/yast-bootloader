@@ -204,9 +204,15 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	    if ( type == "radio" || type == "check") {
 		new = `Left(`HBox (
 		    enable_widget,
-		    `ComboBox (`id (key), def_opt, "",
-		    	maplist(string v, val, ``( `item(`id(v), v) ) )
-	    	    )
+		    // BNC #395009 Bootloader: Unable to set "Custom boot partition" - 
+                    // no partitions offered, combobox too small to edit
+		    (size (val) > 0 ?
+			`ComboBox (`id (key), def_opt, "",
+		    		maplist(string v, val, ``( `item(`id(v), v) ) )
+	    	    	)
+			:
+			`MinWidth (15, `ComboBox (`id (key), def_opt, "", []))
+		    )
 	       	));
 	    }
 	    else  {

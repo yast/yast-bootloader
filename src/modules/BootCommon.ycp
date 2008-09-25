@@ -182,6 +182,12 @@ global boolean one_section_changed = false;
 global boolean backup_mbr = false;
 
 /**
+ * true if default section is edited
+ * it is important for remember default name...
+ */
+global boolean default_changed = false;
+
+/**
   * Activate bootloader partition during installation?
   */
 global boolean activate = false;
