@@ -1,7 +1,9 @@
 -------------------------------------------------------------------
-Mon Sep 29 14:55:55 CEST 2008 - jsrain@suse.cz
+Mon Sep 29 15:45:41 CEST 2008 - jsrain@suse.cz
 
 - fixed no scrren contents after changing loader type (bnc #427622)
+- avoid mixing options of different bootloader after loaded type
+  change
 
 -------------------------------------------------------------------
 Thu Sep 25 17:44:24 CEST 2008 - juhliarik@suse.cz
