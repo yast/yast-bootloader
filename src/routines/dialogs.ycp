@@ -125,8 +125,7 @@ symbol MainDialog () {
     ]);
     if (ret != `back && ret != `abort && ret != `cancel)
     {
-	return_tab = CWMTab::CurrentTab ();
-	// TODO store current tab here
+	return_tab = CWMTab::LastTab ();
     }
     return ret;
 }

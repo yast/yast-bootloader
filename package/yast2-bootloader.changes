@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Sep 29 14:55:55 CEST 2008 - jsrain@suse.cz
+
+- fixed no scrren contents after changing loader type (bnc #427622)
+
+-------------------------------------------------------------------
 Thu Sep 25 17:44:24 CEST 2008 - juhliarik@suse.cz
 
 - added fix for problem with changed default name (bnc #169062)
