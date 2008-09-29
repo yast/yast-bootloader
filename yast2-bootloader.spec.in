@@ -57,6 +57,7 @@ Summary:	Bootloader installation and configuration
 @clientdir@/bootloader*.ycp
 @clientdir@/print-product.ycp
 @clientdir@/inst_bootl*.ycp
+@clientdir@/inst_lilo_convert.ycp
 @ybindir@/*
 @agentdir@/ag_*
 @scrconfdir@/*.scr

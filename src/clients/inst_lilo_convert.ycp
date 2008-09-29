@@ -1,0 +1,151 @@
+/**
+ * File:
+ *      bootloader/routines/inst_bootloader.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Functions to write "dummy" config files for kernel
+ *
+ * Authors:
+ *      Jozef Uhliarik <juhliarik@suse.cz>
+ *
+ *
+ */
+
+{
+
+textdomain "bootloader";
+
+import "Bootloader";
+import "BootCommon";
+import "Installation";
+import "GetInstArgs";
+import "Mode";
+import "Label";
+import "Wizard";
+import "Popup";
+import "Pkg";
+
+y2milestone ("starting inst_lilo_convert");
+
+
+
+
+
+void selectPackage()
+{
+   if (! Pkg::IsSelected("grub"))
+   {
+	Pkg::PkgInstall ("grub");
+	Pkg::PkgSolve (false);
+   }
+}
+
+void convertSettings()
+{
+    
+    string lilo_conf = (string) WFM::Read(.local.string, Installation::destdir + "/etc/lilo.conf");
+    BootCommon::setLoaderType("lilo");
+    map<string,string> new_files = $[]; 
+    new_files["/etc/lilo.conf"] = lilo_conf;
+    y2milestone("/etc/lilo.conf : %1", new_files);
+    BootCommon::ProposeDeviceMap ();
+    BootCommon::SetDeviceMap(BootCommon::device_mapping);
+    map<string,string> old_files = BootCommon::GetFilesContents ();
+    new_files["/boot/grub/device.map"] = old_files["/boot/grub/device.map"]:"";
+    y2milestone("added device.map : %1", new_files);
+    BootCommon::SetFilesContents (new_files);
+    BootCommon::setLoaderType("grub");
+
+    map<string,string> tmp_files = BootCommon::GetFilesContents ();
+
+    foreach (string file, string content, tmp_files,
+    {
+
+	integer last=findlastof(file,"/");
+	string path_file = substring (file, 0, last);
+	WFM::Execute(.local.mkdir, Installation::destdir + path_file);
+	y2milestone ("writing file: %1", file); 
+	WFM::Write(.local.string, Installation::destdir + file, content);
+    });
+}
+
+
+
+
+if ( GetInstArgs::going_back())     // going backwards?
+{
+    return `auto;                   // don't execute this once more
+}
+
+if (Mode::update())
+{
+ 
+    // save some sysconfig variables
+    // register new agent pointing into the mounted filesystem
+    path sys_agent = .target.sysconfig.bootloader;
+
+    string target_sysconfig_path = Installation::destdir + "/etc/sysconfig/bootloader";
+    SCR::RegisterAgent (.target.sysconfig.bootloader, `ag_ini(`SysConfigFile(target_sysconfig_path)));
+
+    string bl = (string) SCR::Read(add(sys_agent,.LOADER_TYPE));
+
+    term convert_question = `VBox(
+	`HBox (
+	`HStretch(),
+	`RadioButtonGroup(`id(`convert),
+	     `HSquash (
+	     `VBox(`Left(`Label("LILO is not supported. The recommended option is select convert LILO to GRUB")),
+		   `Left(`Label("Do you want convert settings and install GRUB?")),
+		   `Left(`RadioButton(`id("lilo"), _("Stay LILO"))),
+		   `Left(`RadioButton(`id("grub"), _("Convert Settings and Install GRUB"), true ))
+	     )
+	     )
+	),
+	`HStretch()
+	)
+    );
+    any ret = nil;
+    if (bl == "lilo")
+    {
+    	Wizard::CreateDialog();
+	Wizard::SetDesktopIcon("bootloader");
+	Wizard::SetContentsButtons("Converting LILO to GRUB", convert_question, 
+	    _("LILO is not supported. The recommended option is select convert LILO to GRUB"),
+	    Label::BackButton(), Label::NextButton());
+	UI::ChangeWidget(`id(`abort),`Label, Label::CancelButton());
+	UI::ChangeWidget(`id(`abort), `Enabled, false);
+	
+	while (true) 
+	{
+	   ret = UI::UserInput();
+	   string current = (string) UI::QueryWidget(`id(`convert), `CurrentButton);
+	   // One of those dialog buttons have been pressed
+	   if (ret == `next)
+	   {
+		selectPackage();
+		convertSettings();
+		SCR::Write (add(sys_agent,.LOADER_TYPE), "grub");
+		SCR::Write (sys_agent, nil);
+	   }
+	   break;
+
+        }
+	UI::CloseDialog();
+    }
+
+    if (ret == `back)
+	return `back;
+
+    if (ret == `next)
+	return `next;
+
+}
+
+y2milestone ("finish inst_lilo_convert");
+
+return `auto;
+
+}
