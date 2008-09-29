@@ -8,7 +8,8 @@ client_DATA =			\
 	bootloader_proposal.ycp	\
 	bootloader_finish.ycp	\
 	print-product.ycp	\
-	inst_bootloader.ycp
+	inst_bootloader.ycp	\
+	inst_lilo_convert.ycp
 
 EXTRA_DIST = 			\
 	$(client_DATA)
