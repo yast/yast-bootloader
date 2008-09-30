@@ -18,7 +18,7 @@
 
 textdomain "bootloader";
 
-import "Bootloader";
+
 import "BootCommon";
 import "Installation";
 import "GetInstArgs";
@@ -27,6 +27,8 @@ import "Label";
 import "Wizard";
 import "Popup";
 import "Pkg";
+import "Arch";
+import "BootGRUB";
 
 y2milestone ("starting inst_lilo_convert");
 
@@ -45,25 +47,60 @@ void selectPackage()
 
 void convertSettings()
 {
-    
+
     string lilo_conf = (string) WFM::Read(.local.string, Installation::destdir + "/etc/lilo.conf");
+    BootCommon::InitializeLibrary(true, "lilo");
     BootCommon::setLoaderType("lilo");
     map<string,string> new_files = $[]; 
     new_files["/etc/lilo.conf"] = lilo_conf;
     y2milestone("/etc/lilo.conf : %1", new_files);
-    BootCommon::ProposeDeviceMap ();
-    BootCommon::SetDeviceMap(BootCommon::device_mapping);
-    map<string,string> old_files = BootCommon::GetFilesContents ();
-    new_files["/boot/grub/device.map"] = old_files["/boot/grub/device.map"]:"";
-    y2milestone("added device.map : %1", new_files);
     BootCommon::SetFilesContents (new_files);
+
+    list<map <string, any > > sec = BootCommon::GetSections();
+
+    list<map <string, any > > tmp_sec = [];
+    //FIXME: change "kernel" to "image" in sections
+    foreach(map <string, any> section, sec, {
+
+	// replace "kernel" by "image"
+        if (haskey(section, "kernel")) 
+        {
+           section["image"] = section["kernel"]:"";
+           section = remove(section, "kernel");
+        }
+
+        // replace "vga" by "vgamode"
+        if (haskey(section, "vga")) 
+        {
+           section["vgamode"] = section["vga"]:"";
+           section = remove(section, "vga");
+        }
+
+        tmp_sec= add(tmp_sec, section);
+
+    });
+    sec = tmp_sec;
+    BootCommon::sections = tmp_sec;
+    BootCommon::globals = BootCommon::GetGlobal ();
+    
+    BootCommon::InitializeLibrary(true, "grub");
     BootCommon::setLoaderType("grub");
+
+    BootCommon::ProposeDeviceMap ();
+    BootGRUB::Propose();
+
+
+    BootCommon::SetDeviceMap(BootCommon::device_mapping);
+    BootCommon::SetSections(sec);
+    BootCommon::SetGlobal(BootCommon::globals);
+
+
 
     map<string,string> tmp_files = BootCommon::GetFilesContents ();
 
+    y2milestone("new content file: %1", tmp_files);
     foreach (string file, string content, tmp_files,
     {
-
 	integer last=findlastof(file,"/");
 	string path_file = substring (file, 0, last);
 	WFM::Execute(.local.mkdir, Installation::destdir + path_file);
@@ -80,7 +117,22 @@ if ( GetInstArgs::going_back())     // going backwards?
     return `auto;                   // don't execute this once more
 }
 
-if (Mode::update())
+
+boolean checkArch()
+{
+   boolean ret = false;
+   if (Arch::x86_64() || Arch::i386() || Arch::ia64())
+      ret = true;
+
+   if (ret)
+      y2milestone("inst_lilo_convert - supported architecture for converting LILO -> GRUB");
+   else
+      y2milestone("inst_lilo_convert - UNsupported architecture for converting LILO -> GRUB");
+   return ret;
+
+}
+
+if (Mode::update() && checkArch())
 {
  
     // save some sysconfig variables
@@ -99,8 +151,8 @@ if (Mode::update())
 	     `HSquash (
 	     `VBox(`Left(`Label("LILO is not supported. The recommended option is select convert LILO to GRUB")),
 		   `Left(`Label("Do you want convert settings and install GRUB?")),
-		   `Left(`RadioButton(`id("lilo"), _("Stay LILO"))),
-		   `Left(`RadioButton(`id("grub"), _("Convert Settings and Install GRUB"), true ))
+		   `Left(`RadioButton(`id("lilo"), _("Stay &LILO"))),
+		   `Left(`RadioButton(`id("grub"), _("Convert Settings and Install &GRUB"), true ))
 	     )
 	     )
 	),
