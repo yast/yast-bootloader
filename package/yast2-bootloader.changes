@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep 30 13:37:44 CEST 2008 - juhliarik@suse.cz
+
+- updated fix for converting LILO to GRUB (bnc #430579)
+- 2.17.24
+
+-------------------------------------------------------------------
 Mon Sep 29 17:10:36 CEST 2008 - juhliarik@suse.cz
 
 - added new dialog for updating from lilo to grub (bnc #430579)
