@@ -66,8 +66,9 @@ symbol ST_Handle (string widget, map event) {
     else
     {
 	BootCommon::current_section["name"] = "";
-	BootCommon::current_section["original_name"] = "";
+	// BootCommon::current_section["original_name"] = "";
 	BootCommon::current_section["__auto"] = false;
+	BootCommon::current_section["lines_cache_id"] = "";
     }
     return nil;
 }
