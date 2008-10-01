@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct  1 10:05:20 CEST 2008 - juhliarik@suse.cz
+
+- added fix for cloning sections (bnc #429525)
+
+-------------------------------------------------------------------
 Thu Sep 16 16:30:19 CEST 2008 - juhliarik@suse.cz
 
 - added fix for obtaining name of default section (bnc #364904)
