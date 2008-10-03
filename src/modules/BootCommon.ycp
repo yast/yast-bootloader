@@ -33,6 +33,7 @@ import "Storage";
 import "String";
 import "Pkg";
 import "Popup";
+import "PackagesProposal";
 
 import "Linuxrc";
 
@@ -1085,6 +1086,8 @@ global define string getLoaderType (boolean recheck) {
     return loader_type;
 }
 
+
+
 /**
  * The function handle selecting and deselecting packages (bootloaders)
  * @return boolean true on success
@@ -1094,18 +1097,12 @@ boolean solvePackage()
 	boolean ret = false;
 	if (globals["trusted_grub"]:"" == "true")
 	{
-		list <string> packages = ["grub"];
-		foreach (string btl, packages, {
-			if (Pkg::IsSelected(btl))
-			{
-				Pkg::PkgNeutral (btl);
-				y2milestone("deselect %1 for installation", btl);
-				ret = true;
-			}
-		});
+
+		PackagesProposal::RemoveResolvables("yast2-bootloader", `package, ["grub"]);
+		y2milestone("deselect %1 for installation", btl);
+		ret = true;
+
 	}
-	if (ret)
-		Pkg::PkgSolve (false);
 	return ret;
 }
 
@@ -1134,10 +1131,12 @@ global define void setLoaderType (string bootloader) {
 	   && (Linuxrc::InstallInf ("kexec_reboot") != "0"))
 	{
         	bootloader_packages = bootloader_attribs[bootloader, "kexec-tools", "required_packages"]:[];
+		bootloader_packages = add(bootloader_packages, "kexec-tools");
 	} else {
         	bootloader_packages = bootloader_attribs[bootloader, "required_packages"]:[];
 	}
 
+	
 	if (globals["trusted_grub"]:"" == "true")
 	{
 		bootloader_packages = bootloader_attribs[bootloader, "trustedgrub", "required_packages"]:[];
@@ -1146,6 +1145,8 @@ global define void setLoaderType (string bootloader) {
 
 		bootloader_packages = add(bootloader_packages, "trustedgrub");
 	}
+	//FIXME: solve problem with installing bootloader...
+	bootloader_packages = add(bootloader_packages, bootloader);
 
         // don't configure package manager during autoinstallation preparing
         if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
@@ -1157,19 +1158,14 @@ global define void setLoaderType (string bootloader) {
         {
 	    boolean pkg_added = false;
 	    foreach (string p, bootloader_packages, {
-	        if (! Pkg::IsSelected (p))
-		{
-		    Pkg::PkgInstall (bootloader);
-		    pkg_added = true;
-		}
+	       y2milestone("Select bootloader package: %1", p);
+	       PackagesProposal::AddResolvables ("yast2-bootloader", `package, [p]);
+	       pkg_added = true;
+		
 	    });
 	    if (pkg_added)
 	    {
 		boolean ret = solvePackage();
-		// if package was added in inst. proposal, I can't be sure
-		// that dependencies will be solved
-		if (ret)
-		   Pkg::PkgSolve (false);
 	    }
         }
     }

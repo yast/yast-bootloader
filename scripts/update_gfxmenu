@@ -30,18 +30,27 @@ test -f $SRC_DIR/$LOCALE.tr && cp $SRC_DIR/$LOCALE.tr . \
  || test -f $SRC_DIR/$LOCALE_SHORT.tr && cp $SRC_DIR/$LOCALE_SHORT.tr .
 test -f $SRC_DIR/$LOCALE.hlp && cp I4/$LOCALE.hlp . \
  || test -f $SRC_DIR/$LOCALE_SHORT.hlp && cp $SRC_DIR/$LOCALE_SHORT.hlp .
+
 # set languages to choose
-if [ "$LOCALE_SHORT" = "en" ] ; then
-    echo -n "en
-" >languages || exit 6
+if [ -f $SRC_DIR/$LOCALE.tr ]; then
+   echo -n $LOCALE > languages || exit 6
+
+   # set translations of bootloaer menu entries
+   cp $MENU_ENTRIES ./translations.$LOCALE || exit 7;
 else
-    echo -n "$LOCALE_SHORT
-en
-" >languages || exit 6
+   if [ "$LOCALE_SHORT" = "en" ]; then
+      echo -n "en
+      " >languages || exit 6
+   else
+      echo -n "$LOCALE_SHORT
+      en
+      " >languages || exit 6
+   fi
+
+   # set translations of bootloaer menu entries
+   cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7;
 fi
 
-# set translations of bootloaer menu entries
-cp $MENU_ENTRIES ./translations.$LOCALE_SHORT || exit 7;
 
 test -f $SRC_DIR/background.jpg && cp $SRC_DIR/background.jpg back.jpg
 
