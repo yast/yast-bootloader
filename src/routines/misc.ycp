@@ -322,9 +322,13 @@ global define string MountByDev2Dev(string dev)
 
 global map<string,string> remapDeviceMap(map<string,string> device_map)
 {	
-	symbol by_mount = Storage::GetDefaultMountBy();
-	
-	//symbol by_mount = `id;
+	symbol by_mount = nil;
+	if (Arch::ppc())
+	    by_mount = `id;
+        else
+	    by_mount = Storage::GetDefaultMountBy();
+
+	//by_mount = `id;
 	if (by_mount == `label)
 		return device_map;
 
@@ -347,8 +351,13 @@ global map<string,string> remapDeviceMap(map<string,string> device_map)
 
 global map<string,string> remapGlobals(map<string,string> globals_set)
 {	
-	symbol by_mount = Storage::GetDefaultMountBy();
-	//symbol by_mount = `id;
+	symbol by_mount = nil;
+	if (Arch::ppc())
+	    by_mount = `id;
+        else
+	    by_mount = Storage::GetDefaultMountBy();
+
+	//by_mount = `id;
 	if (by_mount == `label)
 		return globals_set;
 
@@ -500,8 +509,13 @@ global list<map<string,any> > importSections(list<map<string,any> >sec)
 
 global list<map<string,any> > remapSections(list<map<string,any> >sec)
 {	
-	symbol by_mount = Storage::GetDefaultMountBy();
-	//symbol by_mount = `id;
+	symbol by_mount = nil;
+	if (Arch::ppc())
+	    by_mount = `id;
+        else
+	    by_mount = Storage::GetDefaultMountBy();
+
+	//by_mount = `id;
 	if (by_mount == `label)
 		return sec;
 
@@ -556,8 +570,13 @@ global define string Dev2MountByDev(string dev)
 	y2milestone ("Dev2MountByDev: %1", dev);
 
 	// (`id,`uuid,`path,`device,`label)
-	symbol by_mount = Storage::GetDefaultMountBy();
-	//symbol by_mount = `id;
+	symbol by_mount = nil;
+	if (Arch::ppc())
+	    by_mount = `id;
+        else
+	    by_mount = Storage::GetDefaultMountBy();
+
+	//by_mount = `id;
 	y2milestone("Default mount by is %1", by_mount);
 
 	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
@@ -2112,7 +2131,7 @@ global define void WriteToSysconf(boolean inst_bootloader)
     if (inst_bootloader)
     {
 	WFM::Execute(.local.mkdir, Installation::destdir + "/etc/sysconfig");
-	WFM::Write(.local.bash, sformat ("touch %1/etc/sysconfig/bootloader", Installation::destdir));
+	WFM::Execute(.local.bash, sformat ("touch %1/etc/sysconfig/bootloader", Installation::destdir));
 	string target_sysconfig_path = Installation::destdir + "/etc/sysconfig/bootloader";
 	SCR::RegisterAgent (.target.sysconfig.bootloader, `ag_ini(
   	     `SysConfigFile(target_sysconfig_path)));

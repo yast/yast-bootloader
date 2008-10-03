@@ -121,7 +121,7 @@ if ( GetInstArgs::going_back())     // going backwards?
 boolean checkArch()
 {
    boolean ret = false;
-   if (Arch::x86_64() || Arch::i386() || Arch::ia64())
+   if (Arch::x86_64() || Arch::i386())
       ret = true;
 
    if (ret)

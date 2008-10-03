@@ -34,6 +34,7 @@ import "Mode";
 import "Pkg";
 import "Stage";
 import "Storage";
+import "GfxMenu";
 
 /*
  * include ppc specific help messages
@@ -458,10 +459,11 @@ map<string,any> CreateImageSection (string title) {
 
     map<string,any> ret = $[
 	"type" : "image",
-	"name" : title,
+	"name" : GfxMenu::translateSectionTitle(title, "ppc"),
 	"original_name" : title,
 	"image" : image_fn,
 	"initrd" : initrd_fn,
+        "optional" : "true",  // bnc #217443
 	"root" : BootCommon::RootPartitionDevice,
 	// "": do not include resume parameter on ppc
 	"append" : BootArch::DefaultKernelParams (""),
