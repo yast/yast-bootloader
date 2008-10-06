@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Oct  3 17:28:27 CEST 2008 - juhliarik@suse.cz
+
+- added fix for installing packages (bnc #431580)
+- added fix for 2 identical section in powerLILO (bnc #427730)
+- added fix for mapping disk by label for powerLILO (bnc #41497)
+- 2.17.25
+
+-------------------------------------------------------------------
 Tue Sep 30 13:37:44 CEST 2008 - juhliarik@suse.cz
 
 - updated fix for converting LILO to GRUB (bnc #430579)
