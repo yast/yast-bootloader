@@ -2371,6 +2371,7 @@ define void addConsole()
 			foreach (integer idx, list_index,
 			{
 				sections[idx, "console"] = console_value;
+				sections[idx, "__changed"] = true;
 				y2debug("Added console for section: %1", sections[idx]:$[]);
 			});
 		}
