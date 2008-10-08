@@ -270,6 +270,8 @@ global define void Update () {
 global define boolean Write () {
     boolean ret = BootCommon::UpdateBootloader ();
     ret = ret && BootCommon::InitializeBootloader ();
+    if (ret == nil)
+	ret = false;
     return ret;
 }
 

@@ -741,6 +741,9 @@ global define boolean Write () ``{
         }
 	
         boolean grub_ret = BootCommon::InitializeBootloader ();
+	if (grub_ret == nil)
+	    grub_ret = false;
+
         y2milestone ("GRUB return value: %1", grub_ret);
         if (BootCommon::InstallingToFloppy ()) {
 	    BootCommon::updateTimeoutPopupForFloppy

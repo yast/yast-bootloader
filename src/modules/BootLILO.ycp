@@ -289,6 +289,8 @@ string getDeviceOfRaid (string device) {
 	}
 
 	ret = ret && BootCommon::InitializeBootloader ();
+	if (ret == nil)
+	    ret = false;
 	ret = ret && BootCommon::PostUpdateMBR ();
 	return ret;
     }
