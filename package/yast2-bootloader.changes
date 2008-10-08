@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Oct  8 10:39:12 CEST 2008 - juhliarik@suse.cz
+
+- added fix for adding crashkernel from y2-kdump (bnc #432651)
+- added fix for writing proposal (bnc #433344)
+- added fix for checking if boot device is on raid0 (bnc #156800)
+- 2.17.26 
+
+-------------------------------------------------------------------
 Fri Oct  3 17:28:27 CEST 2008 - juhliarik@suse.cz
 
 - added fix for installing packages (bnc #431580)
