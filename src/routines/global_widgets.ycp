@@ -33,6 +33,7 @@ import "Package";
 import "Message";
 
 
+
 include "bootloader/routines/helps.ycp";
 
 /**
@@ -862,7 +863,13 @@ Continue?")))
 	else if (op == `init)
 	{
 	    // Bootloader::blSave (false, false, false);
-	    BootCommon::InitializeBootloader ();
+	    boolean ret = BootCommon::InitializeBootloader ();
+	    if (ret == nil)
+		ret = false;
+
+	    if (!ret)
+		Popup::Warning(_("Writing bootloader settings failed."));
+
 	}
 	else if (op == `propose_deep)
 	{
