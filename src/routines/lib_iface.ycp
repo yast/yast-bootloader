@@ -157,7 +157,7 @@ global boolean SetSections (list<map<string,any> > sections) {
     sections = maplist (map<string,any> s, sections, {
 	if (Mode::normal())
 	{
-	    if (s["__changed"]:false)
+	    if ((s["__changed"]:false) || (s["__auto"]:false))
 		s["__modified"] = "1";
 	} else {
 	    s["__modified"] = "1";

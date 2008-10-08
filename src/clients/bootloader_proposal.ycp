@@ -17,6 +17,7 @@
     import "Bootloader";
     import "Storage";
     import "Mode";
+    import "BootSupportCheck";
 
     include "bootloader/routines/wizards.ycp";
 
@@ -90,7 +91,7 @@
 	    BootGRUB::merge_level = `main;
 	    Bootloader::Propose ();
 
-
+	    
 	    BootGRUB::merge_level = `none;
 	}
 	else
@@ -120,6 +121,8 @@ The range is limited by BIOS to the first 8 devices."),
 	         );
 		return ret;
 	    }
+
+
 	}
 
 	//F#300779 - Install diskless client (NFS-root) 
@@ -198,6 +201,18 @@ In case that no selection can be made it may be necessary to create a PReP Boot 
 	            );
 	        }
 	    }
+	}
+
+	if (!BootSupportCheck::SystemSupported())
+	{
+		ret = (map<string,any>)
+		      union(ret,
+			    $[
+			      "warning_level" : `error,
+			      "warning" :  BootSupportCheck::StringProblems(),
+			      "raw_proposal" : Bootloader::Summary (),
+		    ]);
+
 	}
 
 	// cache the values
