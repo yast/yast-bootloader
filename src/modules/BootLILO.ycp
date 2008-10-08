@@ -92,7 +92,7 @@ global void CreateSections () {
 		    "type" : "chainloader",
 		    "chainloader" : dev,
 		    "__auto" : true,
-		    "__changed" : false,
+		    "__changed" : true,
 		    "__devs" : [dev],
 		];
 		out = add (out, m);

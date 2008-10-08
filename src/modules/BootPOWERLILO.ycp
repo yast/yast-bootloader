@@ -468,7 +468,7 @@ map<string,any> CreateImageSection (string title) {
 	// "": do not include resume parameter on ppc
 	"append" : BootArch::DefaultKernelParams (""),
 	"__auto" : true,
-	"__changed" : false,
+	"__changed" : true,
 	"__devs" : [BootCommon::BootPartitionDevice, BootCommon::RootPartitionDevice],
     ];
     return ret;

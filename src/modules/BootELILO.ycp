@@ -38,6 +38,7 @@ import "Report";
 import "Stage";
 import "Storage";
 import "String";
+import "Arch";
 
 include "bootloader/elilo/helps.ycp";
 include "bootloader/routines/popups.ycp";
@@ -173,6 +174,10 @@ global void CreateGlobals () {
 	"read-only" : "true",
 	"relocatable" : "true"
     ];
+    // added fix because option relocatable is only for ia32/64
+    if ((Arch::ia64()) && (haskey(BootCommon::globals, "relocatable")))
+	BootCommon::globals = remove(BootCommon::globals, "relocatable");
+
 }
 
 

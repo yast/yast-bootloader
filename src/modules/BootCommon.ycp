@@ -485,7 +485,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	"original_name" : title,
 	"type" : "image",
 	"__auto" : true,
-	"__changed" : false,
+	"__changed" : true,
     ];
 
     if (title == "memtest86") {

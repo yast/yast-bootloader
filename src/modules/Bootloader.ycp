@@ -1156,6 +1156,8 @@ string checkZiplDefault(string def)
 	    if (value != "false")
 	    {
 		BootCommon::sections[sectnum, key] = value;
+		// added flag that section was modified bnc #432651
+		BootCommon::sections[sectnum, "__changed"] = true; 
 	    }
 	    else
 	    {
@@ -1168,6 +1170,8 @@ string checkZiplDefault(string def)
 	    string line = BootCommon::sections [sectnum, "append"]:"";
 	    line = BootCommon::setKernelParamToLine (line, key, value);
 	    BootCommon::sections [sectnum, "append"] = line;
+	     // added flag that section was modified bnc #432651
+	    BootCommon::sections[sectnum, "__changed"] = true;
 	}
 	BootCommon::changed = true;
 	boolean ret = true;
