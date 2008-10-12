@@ -1337,61 +1337,14 @@ global void ProposeDeviceMap () {
     else
 	targetMap = (map<string,map>)Storage::GetTargetMap();
 
-//FIXME: This is not the final solution, we must be able to handle both,
-//FakeRAIDs _and_ single disks.
-
-    // Search in complete target map for "CT_DMRAID" types
-    map <string, map> DMTargetMap = filter (string k, map v, targetMap, {
-	return v["type"]:`CT_UNKNOWN==`CT_DMRAID;
+    // filter out members of BIOS RAIDs
+    targetMap = filter (string k, map v, targetMap, {
+	return v["used_by_type"]:nil != `UB_DMRAID;
     });
-
-    // If no dmraids are present, search in complete target map for "CT_DISK"
-    // types. This should be the "normal" case.
-    if ( size(DMTargetMap) == 0 ) {
-	targetMap = filter (string k, map v, targetMap, {
-	    return v["type"]:`CT_UNKNOWN==`CT_DISK;
-        });
-    } else {
-	// If dmraid(s) are found, only use them
-
-	// Get all available dmraids in the proper BIOS order
-	map out = (map) SCR::Execute (.target.bash_output, "dmraid -s -c");
-
-	if ( out["exit"]:0 == 0 && out["stdout"]:"" != "" ) {
-	    list<string> DMRaid_devices_in_BIOS_order =
-		splitstring (out["stdout"]:"", "\n");
-
-	    // Remove last list entry (because it is empty)
-	    integer index_empty = size(DMRaid_devices_in_BIOS_order) - 1;
-	    DMRaid_devices_in_BIOS_order =
-		remove(DMRaid_devices_in_BIOS_order, index_empty);
-
-	    integer DMRaidBiosID = 128;
-
-	    // FIXME: This code only work when YaST2-Storage either assigns
-	    // BIOS-IDs to all available DMRaid devices or to none of them.
-	    // Probably it's best to throw this code away once YaST2-Storage
-	    // assigns BIOS-IDs to all available DMRaid devices.
-
-	    // Assign BIOS-IDs to DMRaid devices in the Target Map in BIOS
-	    // order
-	    DMTargetMap = listmap (string DMRaidDevice, DMRaid_devices_in_BIOS_order, {
-		DMRaidDevice = "/dev/mapper/" + DMRaidDevice;
-		if (haskey(DMTargetMap, DMRaidDevice)) {
-		    if ( !haskey(DMTargetMap[DMRaidDevice]:$[], "bios_id") ) {
-			DMTargetMap[DMRaidDevice, "bios_id"] = tohexstring(DMRaidBiosID);
-			DMRaidBiosID = DMRaidBiosID + 1;
-		    }
-		    return $[ DMRaidDevice : DMTargetMap[DMRaidDevice]:$[] ];
-		}
-	    });
-	    y2milestone("sorted (according to BIOS) DMTargetMap: %1", DMTargetMap);
-	} else {
-	    y2error ("Command: \"dmraid -s -c\" failed, no sorting of DMTargetMap.");
-	}
-
-	targetMap = DMTargetMap;
-    }
+    // filter out non-disk devices
+    targetMap = filter (string k, map v, targetMap, {
+	return v["type"]:`CT_UNKNOWN==`CT_DMRAID || v["type"]:`CT_UNKNOWN==`CT_DISK;
+    });
 
     y2milestone ("Target map: %1", targetMap);
 
