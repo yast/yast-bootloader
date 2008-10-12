@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Oct 10 14:50:31 CEST 2008 - jsrain@suse.cz
+
+- fixed bootloader proposal in mixed standalone disk and BIOS-RAID
+  environments (bnc #433092)
+- issue a warning if /boot directory is on XFS on x86 boot
+  architecture (bnc #429042)
+
+-------------------------------------------------------------------
 Wed Oct  8 10:39:12 CEST 2008 - juhliarik@suse.cz
 
 - added fix for adding crashkernel from y2-kdump (bnc #432651)
