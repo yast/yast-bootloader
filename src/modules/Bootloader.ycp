@@ -788,9 +788,15 @@ global define void DelDuplicatedSections()
 
 	BootCommon::sections=filter(map<string,any> section, BootCommon::sections,
 	{
-		if (((section["name"]:nil == linux_default["name"]:nil) && (num_linux_default > 1)) 
-		   ||((section["name"]:nil == linux_failsafe["name"]:nil) && (num_linux_failsafe > 1))
-		   ||((section["name"]:nil == linux_xen["name"]:nil) && (num_linux_xen > 1)))
+		if ((((section["name"]:nil == linux_default["name"]:nil) 
+			||(section["description"]:"" == linux_default["name"]:nil)) 
+                      && (num_linux_default > 1)) 
+		   ||(((section["name"]:nil == linux_failsafe["name"]:nil) 
+                        ||(section["description"]:"" ==linux_failsafe["name"]:nil)) 
+                      && (num_linux_failsafe > 1))
+		   ||(((section["name"]:nil == linux_xen["name"]:nil)
+                        ||(section["description"]:"" == linux_xen["name"]:nil))
+                      && (num_linux_xen > 1)))
 		{
 			if ((section["root"]:nil == linux_default["root"]:nil)
 			   ||(section["root"]:nil == linux_failsafe["root"]:nil)

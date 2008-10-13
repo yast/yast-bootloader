@@ -1,10 +1,24 @@
 -------------------------------------------------------------------
+Mon Oct 13 16:40:11 CEST 2008 - juhliarik@suse.cz
+
+- added fix for translation labes for ELILO (bnc #151486)
+- added fix for typo in help text (bnc #433424)
+- added fix for problem with device names in live CD installation
+  (bnc #432699) 
+- 2.17.27
+
+-------------------------------------------------------------------
 Fri Oct 10 14:50:31 CEST 2008 - jsrain@suse.cz
 
 - fixed bootloader proposal in mixed standalone disk and BIOS-RAID
   environments (bnc #433092)
 - issue a warning if /boot directory is on XFS on x86 boot
   architecture (bnc #429042)
+
+-------------------------------------------------------------------
+Wed Oct  8 15:32:09 CEST 2008 - juhliarik@suse.cz
+
+- added fix for handling nil from function InitializeBootloader()
 
 -------------------------------------------------------------------
 Wed Oct  8 10:39:12 CEST 2008 - juhliarik@suse.cz
