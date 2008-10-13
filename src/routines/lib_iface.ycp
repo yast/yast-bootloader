@@ -119,6 +119,23 @@ global void SetDiskInfo () {
     });
     list<list> partinfo = flatten (pi);
     partinfo = filter (list p, partinfo, {return p != nil && p != [];});
+    list<list> partinfo_mountby = [];
+    // adding moundby (by-id) via user preference
+    foreach(list partition, partinfo, {
+	list tmp =[];
+	string mount_by = BootCommon::Dev2MountByDev(tostring(partition[0]:""));
+	if (mount_by != tostring(partition[0]:""))
+	{
+	    tmp = add(partition, mount_by);
+	} else {
+	    tmp = partition;
+	}
+	partinfo_mountby = add(partinfo_mountby, tmp);
+    });
+    // y2milestone("added mountby: %1", partinfo_mountby);
+
+    partinfo = partinfo_mountby;
+
     y2milestone ("Information about partitioning: %1", partinfo);
     y2milestone ("Information about MD arrays: %1", md_info);
 

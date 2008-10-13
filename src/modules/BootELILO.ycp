@@ -132,6 +132,10 @@ map<string,any> CreateLinuxSection (string title) {
     map<string,any> section =
       BootCommon::CreateLinuxSection (title);
 
+    // don't translate label bnc #151486
+    section["description"] = section["name"]:"";
+    section["name"] = title;
+
     // replace "kernel" by "image"
     if (haskey(section, "kernel")) {
       section["image"] = section["kernel"]:"";
@@ -150,13 +154,14 @@ map<string,any> CreateLinuxSection (string title) {
 global void CreateSections () {
     map<string,any> linux = CreateLinuxSection ("linux");
     map<string,any> failsafe = CreateLinuxSection ("failsafe");
+     map<string,any> xen = CreateLinuxSection ("xen");
 
     // append for default section is in global
     // FIXME do it later
     //    if (haskey (linux, "append"))
     //  	linux = remove (linux, "append");
 
-    BootCommon::sections = [ linux, failsafe ];
+    BootCommon::sections = [ linux, failsafe, xen ];
 }
 
 
@@ -168,7 +173,8 @@ global void CreateGlobals () {
     BootCommon::globals = $[
     // FIXME do it later
     //	"append" : BootArch::DefaultKernelParams (""),
-	"default" : BootCommon::translateSectionTitle ("linux"),
+    //	"default" : BootCommon::translateSectionTitle ("linux"),
+	"default" : "linux",
 	"timeout" : "80",
 	"prompt" : "true",
 	"read-only" : "true",

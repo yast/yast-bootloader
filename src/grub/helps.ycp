@@ -47,7 +47,7 @@ boots the active partition), select <b>Write generic Boot Code to MBR</b>.</p>")
     _("<p><b>Boot from Boot Partition</b> is one of the recommended options, the other is
 <b>Boot from Root Partition</b>.</p>"),
     "trusted_grub"		:
-_("<p><b>Use Trusted Grub</b> means install trusted grub and use it. Option <i>Grafical Menu File</i> will be ignored.
+_("<p><b>Use Trusted Grub</b> means install trusted grub and use it. Option <i>Graphical Menu File</i> will be ignored.
 It is recommended to install grub to MBR</p>"),
     "boot_mbr"			:
     _("<p><b>Boot from Master Boot Record</b> is not recommended if you have another operating system
