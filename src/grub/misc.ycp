@@ -681,6 +681,11 @@ define symbol grub_ConfigureLocation() {
     {
 	// if not installing to MBR, always activate (so the generic MBR will
 	// boot Linux)
+
+	// kokso: fix the problem with proposing installation generic boot code to "/" or "/boot"
+	// kokso: if boot device is on logical partition
+        if (is_logical && extended != nil && BootCommon::globals["generic_mbr"]:"" == "true")
+	    selected_location = `extended;
 	BootCommon::globals["activate"] = "true";
     }
 
