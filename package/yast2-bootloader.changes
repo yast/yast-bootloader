@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Oct 15 12:51:29 CEST 2008 - juhliarik@suse.cz
+
+- added fix to proposal with "/" on logical partition (bnc #259050)
+
+-------------------------------------------------------------------
 Mon Oct 13 16:40:11 CEST 2008 - juhliarik@suse.cz
 
 - added fix for translation labes for ELILO (bnc #151486)
