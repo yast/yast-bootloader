@@ -1337,13 +1337,14 @@ global void ProposeDeviceMap () {
     else
 	targetMap = (map<string,map>)Storage::GetTargetMap();
 
-    // filter out members of BIOS RAIDs
+    // filter out members of BIOS RAIDs and multipath devices
     targetMap = filter (string k, map v, targetMap, {
-	return v["used_by_type"]:nil != `UB_DMRAID;
+	return v["used_by_type"]:nil != `UB_DMRAID && v["used_by_type"]:nil != `UB_DMMULTIPATH;
     });
     // filter out non-disk devices
     targetMap = filter (string k, map v, targetMap, {
-	return v["type"]:`CT_UNKNOWN==`CT_DMRAID || v["type"]:`CT_UNKNOWN==`CT_DISK;
+	return v["type"]:`CT_UNKNOWN==`CT_DMRAID || v["type"]:`CT_UNKNOWN==`CT_DISK
+	    || v["type"]:`CT_UNKNOWN==`CT_DMMULTIPATH;
     });
 
     y2milestone ("Target map: %1", targetMap);
