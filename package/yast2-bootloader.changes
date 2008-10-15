@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Oct 15 12:21:51 CEST 2008 - jsrain@suse.cz
+
+- handle multipath devices properly when creating device map
+  (bnc #433092)
+- 2.17.28
+
+-------------------------------------------------------------------
 Wed Oct 15 12:51:29 CEST 2008 - juhliarik@suse.cz
 
 - added fix to proposal with "/" on logical partition (bnc #259050)
