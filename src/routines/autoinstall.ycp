@@ -278,7 +278,9 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 		map<string,string> device_map = listmap (
 		    map<string,string> entry, dm,
 		{
-		    return $[ entry["linux"]:"" : entry["firmware"]:"" ];
+		    string firmware = deletechars(entry["firmware"]:"", "()");
+
+		    return $[ entry["linux"]:"" : firmware ];
 		});
 		exp["specific", "device_map"] = device_map;
 	    }
