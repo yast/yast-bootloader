@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 16 15:24:21 CEST 2008 - juhliarik@suse.cz
+
+- added fix for using autoyast profil from SLES9 (bnc #344659)
+
+-------------------------------------------------------------------
 Thu Oct 16 10:05:03 CEST 2008 - juhliarik@suse.cz
 
 - added fix for handling mounpoints (bnc #431977)

@@ -687,6 +687,7 @@ define symbol grub_ConfigureLocation() {
         if (is_logical && extended != nil && BootCommon::globals["generic_mbr"]:"" == "true")
 	    selected_location = `extended;
 	BootCommon::globals["activate"] = "true";
+	SetBootloaderDevice(selected_location);
     }
 
     return selected_location;
