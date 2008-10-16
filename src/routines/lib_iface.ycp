@@ -57,22 +57,7 @@ global void SetDiskInfo () {
 	integer tmp_sz = size (tmpdir);
 	return is (v, string) && substring (k, 0, tmp_sz) != tmpdir;
     });
-    if (! Stage::initial ())
-    {
-        // get what's really mounted
-        list<map<string,any> > mounted_list = (list<map<string,any> >)
-	    SCR::Read (.proc.mounts);
-	map<string,string> mounted = listmap (map<string,any> m, mounted_list, {
-	    // make partition canonical ("/dev/disk/by-id/..." -> "/dev/sda5")
-	    map p = Storage::GetPartition( tm, m["spec"]:"" );
-	    y2debug ("Translated device %1 to canonical device %2", m["spec"]:"", p["device"]:"");
-	    return $[ m["file"]:"" : p["device"]:"" ];
-	});
-	y2milestone ("Really mounted: %1", mounted);
-	mountpoints = filter (string k, any v, mountpoints, {
-	    return mounted[k]:nil == v;
-	});
-    }
+
     y2milestone ("Detected mountpoints: %1", mountpoints);
 
     list<list<list> > pi = maplist (string disk, map info, tm,

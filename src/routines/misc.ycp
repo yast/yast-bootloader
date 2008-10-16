@@ -599,7 +599,7 @@ global define string Dev2MountByDev(string dev)
 			// partitions
 			if ((partitions[dev, "udev_id"]:nil != nil) && (partitions[dev, "udev_id", 0]:nil != ""))
 			{
-	   			ret = sformat ("/dev/disk/by-id/%1", partitions[dev, "udev_id", 0]:"");
+				ret = sformat ("/dev/disk/by-id/%1", partitions[dev, "udev_id", 0]:"");
 	   			y2milestone ("Device name: %1 is converted to udev id: %2", dev, ret);
 	   			return ret;
 			}
