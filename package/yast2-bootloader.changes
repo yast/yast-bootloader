@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Oct 17 14:58:02 CEST 2008 - juhliarik@suse.cz
+
+- added fix for adding language to GRUB (bnc #429287)
+- 2.17.29
+
+-------------------------------------------------------------------
 Thu Oct 16 15:24:21 CEST 2008 - juhliarik@suse.cz
 
 - added fix for using autoyast profil from SLES9 (bnc #344659)

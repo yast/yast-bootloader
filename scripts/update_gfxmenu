@@ -38,13 +38,17 @@ if [ -f $SRC_DIR/$LOCALE.tr ]; then
    # set translations of bootloaer menu entries
    cp $MENU_ENTRIES ./translations.$LOCALE || exit 7;
 else
-   if [ "$LOCALE_SHORT" = "en" ]; then
-      echo -n "en
-      " >languages || exit 6
+   if [ -f $SRC_DIR/$LOCALE_SHORT.tr ]; then
+      echo -n $LOCALE > languages || exit 6
    else
-      echo -n "$LOCALE_SHORT
-      en
-      " >languages || exit 6
+
+      if [ "$LOCALE_SHORT" = "en" ]; then
+         echo -n "en_US
+         " >languages || exit 6
+      else
+         echo -n "$LOCALE_SHORT
+         " >languages || exit 6
+      fi
    fi
 
    # set translations of bootloaer menu entries
