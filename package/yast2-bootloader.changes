@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Oct 21 12:01:31 CEST 2008 - juhliarik@suse.cz
+
+- added fix for problem with deleting all boot section for elilo
+  (bnc #436899)
+- added fox for problem with XEN boot section in domU (bnc #436899)
+- 2.17.30
+
+-------------------------------------------------------------------
 Fri Oct 17 14:58:02 CEST 2008 - juhliarik@suse.cz
 
 - added fix for adding language to GRUB (bnc #429287)

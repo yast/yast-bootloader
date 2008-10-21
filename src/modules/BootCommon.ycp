@@ -874,6 +874,10 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if ((globals["trusted_grub"]:"" == "true") && (haskey(globals, "gfxmenu")))
 	globals = remove(globals, "gfxmenu");
 
+    // convert XEN section to linux section id running in domU
+    // bnc #436899
+    ConvertXENinDomU ();
+
     ret = ret && SetDeviceMap (my_device_mapping);
     ret = ret && SetSections (sections);
     ret = ret && SetGlobal (my_globals);
