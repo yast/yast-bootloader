@@ -1451,6 +1451,55 @@ global string DiskOrderSummary () {
     return ret;
 }
 
+/**
+ * Convert XEN boot section to normal linux section
+ * if intalling in domU (bnc #436899)
+ *
+ * @return boolean true if XEN section is converted to linux section
+ */
+
+boolean ConvertXENinDomU ()
+{
+
+	boolean ret = false;
+	if (!Arch::is_xenU())
+	{
+		y2milestone("Don't convert XEN section - it is not running in domU");
+		return ret;
+	}
+
+	// tmp sections
+	list<map<string,any> > tmp_sections = [];
+
+	foreach(map<string,any> sec, BootCommon::sections,
+	{
+		if (sec["type"]:"" != "xen")
+		{
+			tmp_sections = add(tmp_sections, sec);
+
+		} else {
+			// convert XEN section to linux section
+			y2milestone("Converting XEN section in domU: %1", sec);
+			sec["type"] = "image";
+			sec["original_name"] = "linux";
+			if (haskey(sec,"xen"))
+				sec = remove(sec, "xen");
+			if (haskey(sec,"xen_append"))
+				sec = remove(sec, "xen_append");
+
+			y2milestone("Converted XEN section in domU: %1", sec);
+
+			tmp_sections = add(tmp_sections, sec);
+
+			ret = true;
+		}
+	});
+	
+	BootCommon::sections = tmp_sections;
+	return ret;
+}
+
+
 
 } // EOF
 

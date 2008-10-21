@@ -801,7 +801,16 @@ global define void DelDuplicatedSections()
 			if ((section["root"]:nil == linux_default["root"]:nil)
 			   ||(section["root"]:nil == linux_failsafe["root"]:nil)
 			   ||(section["root"]:nil == linux_xen["root"]:nil))
-			{				
+			{	
+				if (section["original_name"]:"" == "failsafe")
+					num_linux_failsafe = num_linux_failsafe -1;
+
+			        if (section["original_name"]:"" == "linux")
+					num_linux_default = num_linux_default -1;
+
+				if (section["original_name"]:"" == "xen")
+					num_linux_xen = num_linux_xen -1;
+
 				y2milestone("deleted boot section: %1", section);
 				return false;
 			} else {
@@ -813,6 +822,7 @@ global define void DelDuplicatedSections()
 		};		
 		return true;
 	});
+	ResolveSymlinksInSections();
 	y2milestone("Boot sections AFTER deleting: %1", BootCommon::sections);
 }
 
