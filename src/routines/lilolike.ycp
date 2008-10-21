@@ -1486,6 +1486,8 @@ boolean ConvertXENinDomU ()
 				sec = remove(sec, "xen");
 			if (haskey(sec,"xen_append"))
 				sec = remove(sec, "xen_append");
+			if (haskey(sec,"lines_cache_id"))
+				sec = remove(sec, "lines_cache_id");
 
 			y2milestone("Converted XEN section in domU: %1", sec);
 

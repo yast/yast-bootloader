@@ -1,8 +1,14 @@
 -------------------------------------------------------------------
+Tue Oct 21 18:35:31 CEST 2008 - juhliarik@suse.cz
+
+- update for bug with deleting boot section (bnc #436890)
+- 2.17.31
+
+-------------------------------------------------------------------
 Tue Oct 21 12:01:31 CEST 2008 - juhliarik@suse.cz
 
 - added fix for problem with deleting all boot section for elilo
-  (bnc #436899)
+  (bnc #436890)
 - added fox for problem with XEN boot section in domU (bnc #436899)
 - 2.17.30
 

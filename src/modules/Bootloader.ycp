@@ -733,6 +733,49 @@ global define boolean WriteInstallation ()
 	return ret;
 }
 
+boolean FindAndSelectDefault(map<string,any> default_sec)
+{
+	boolean ret = false;
+	boolean set_candidate = false;
+	string default_name = BootCommon::globals["default"]:"";
+	string default_candidate = "";
+
+	foreach(map<string,any> section, BootCommon::sections,
+	{
+		if (section["name"]:nil == default_name)
+		{
+			y2milestone("Default section was found.");
+			ret = true;
+			break;
+		} else {
+			if ((section["root"]:"" == default_sec["root"]:"")
+			    && (section["type"]:"" == "image")
+			    && (section["original_name"]:"" == "linux"))
+			{
+				default_candidate = section["name"]:"";
+				y2milestone("Candidate for default section is: %1", section);
+				set_candidate = true;
+				break;
+			}
+
+		}
+	});
+	if (!ret)
+	{
+		if ((set_candidate) && (default_candidate!=""))
+		{
+			y2milestone("Default section will be update to: %1", default_candidate);
+			BootCommon::globals["default"] = default_candidate;
+			ret = true;
+		} else {
+			y2error("Default section was not found");
+		}
+
+	}
+	return ret;
+
+}
+
 
  /**
   * Find "same" boot sections and return numbers of sections
@@ -823,6 +866,7 @@ global define void DelDuplicatedSections()
 		return true;
 	});
 	ResolveSymlinksInSections();
+	FindAndSelectDefault(linux_default);
 	y2milestone("Boot sections AFTER deleting: %1", BootCommon::sections);
 }
 
