@@ -34,7 +34,6 @@ import "Mode";
 import "Pkg";
 import "Stage";
 import "Storage";
-import "GfxMenu";
 
 /*
  * include ppc specific help messages
@@ -459,7 +458,7 @@ map<string,any> CreateImageSection (string title) {
 
     map<string,any> ret = $[
 	"type" : "image",
-	"name" : GfxMenu::translateSectionTitle(title, "ppc"),
+	"name" : title,
 	"original_name" : title,
 	"image" : image_fn,
 	"initrd" : initrd_fn,

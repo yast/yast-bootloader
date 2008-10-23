@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 23 14:25:18 CEST 2008 - juhliarik@suse.cz
+
+- added fix for broken titles in lilo (bnc #437693)  
+
+-------------------------------------------------------------------
 Tue Oct 21 18:35:31 CEST 2008 - juhliarik@suse.cz
 
 - update for bug with deleting boot section (bnc #436890)
