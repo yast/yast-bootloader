@@ -461,6 +461,8 @@ define boolean installBootLoader (string command, string logfile) {
 global define boolean Write () {
     //	SCR::Execute (.target.bash, "/sbin/elilo");
     boolean ret = BootCommon::UpdateBootloader ();
+    if (ret == nil)
+	ret = false;
 
 // FIXME find a better way to report status
     if (ret && ! efi_available) {
