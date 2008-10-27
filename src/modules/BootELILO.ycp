@@ -177,12 +177,10 @@ global void CreateGlobals () {
 	"default" : "linux",
 	"timeout" : "80",
 	"prompt" : "true",
-	"read-only" : "true",
+    // bnc #438276 - remove deprecated 'read-only'
+    //	"read-only" : "true",
 	"relocatable" : "true"
     ];
-    // added fix because option relocatable is only for ia32/64
-    if ((Arch::ia64()) && (haskey(BootCommon::globals, "relocatable")))
-	BootCommon::globals = remove(BootCommon::globals, "relocatable");
 
 }
 
