@@ -29,6 +29,7 @@ import "Popup";
 import "Pkg";
 import "Arch";
 import "BootGRUB";
+import "PackagesProposal";
 
 y2milestone ("starting inst_lilo_convert");
 
@@ -38,11 +39,7 @@ y2milestone ("starting inst_lilo_convert");
 
 void selectPackage()
 {
-   if (! Pkg::IsSelected("grub"))
-   {
-	Pkg::PkgInstall ("grub");
-	Pkg::PkgSolve (false);
-   }
+   PackagesProposal::AddResolvables ("yast2-bootloader", `package, ["grub"]);
 }
 
 void convertSettings()

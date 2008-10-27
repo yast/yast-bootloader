@@ -856,7 +856,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // also, for legacy bootloaders like LILO that still pass device names,
     // convert the stage1_dev
     map<string,string> my_globals = mapmap (string k , string v, globals, {
-	if ( k == "stage1_dev" || regexpmatch(k, "^boot_.*custom$" ) )
+	if ((k == "stage1_dev") || (regexpmatch(k, "^boot_.*custom$" )) || (k == "boot_chrp_custom"))
 	    //return $[k : BootCommon::Dev2MountByDev(v)];
 	    return $[k : BootCommon::Dev2MountByDev(v)];
 	else

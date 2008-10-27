@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Mon Oct 27 10:21:57 CET 2008 - juhliarik@suse.cz
+
+- added fix for using persistent device name in lilo (bnc #437764)
+- 2.17.32
+
+-------------------------------------------------------------------
+Fri Oct 24 14:25:23 CEST 2008 - juhliarik@suse.cz
+
+- added fix for problem with converting lilo to grub during update
+  system
+- added fix - deleting read-only option for elilo (bnc #438276) 
+
+-------------------------------------------------------------------
 Thu Oct 23 14:25:18 CEST 2008 - juhliarik@suse.cz
 
 - added fix for broken titles in lilo (bnc #437693)  
