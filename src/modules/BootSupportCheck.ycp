@@ -177,39 +177,26 @@ global boolean check_BootDevice()
 					} else {
 						found_boot = true;
 						y2milestone("The boot device: %1 is not on raid0", boot_device);
-						break;
+						//break;
 					}
+					// check if /boot directory is on supported filesystem
+					if (p["used_fs"]:nil == `xfs) {
+						AddNewProblem (_("The /boot directory is on an XFS filesystem"));
+						y2error ("The /boot directory is on an XFS filesystem");
+						result = false;
+						break;
+		    			} else {
+						found_boot = true;
+						y2milestone ("/boot filesystem is OK");
+						break;
+		    			}
+
 				}
 			});
 			if ((!result) || (found_boot))
 				break;
 		});
-	}
-	// check if /boot directory is on supported filesystem
-	boolean boot_dir_result = true;
-	found_boot = false;
-	foreach (string k, map v, devices, {
-	    foreach (map p, (list<map>)(v["partitions"]:[]), {
-		if (p["device"]:"" == BootCommon::BootPartitionDevice)
-		{
-		    if (p["used_fs"]:nil == `xfs) {
-			AddNewProblem (_("The /boot directory is on an XFS filesystem"));
-			y2error ("The /boot directory is on an XFS filesystem");
-			boot_dir_result = false;
-			break;
-		    }
-		    else
-		    {
-			found_boot = true;
-			y2milestone ("/boot filesystem is OK");
-			break;
-		    }
-		}
-	    });
-	    if ((!boot_dir_result) || (found_boot))
-		break;
-	});
-	result = result && boot_dir_result;
+	}	
    	return result;
 }
 

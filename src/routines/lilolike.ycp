@@ -254,7 +254,7 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 	    //	           bytes from <dev>"
 	    //	    - 254  for an "invalid MBR", i.e. without enough entropy to
 	    //	           contain boot code
-	    //	    - 0    for a "Generic MBR" (DOS MBR)
+	    //	    - 254    for a "Generic MBR" (DOS MBR) - bnc #438752
 	    //	    - 254  for a GRUB or lilo "stage 1"
 	    //	    - 254  for an unknown MBR
             //	    - 0    for a Vista MBR
