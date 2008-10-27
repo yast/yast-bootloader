@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 27 12:45:44 CET 2008 - juhliarik@suse.cz
+
+- updated checking of boot device s not on XFS (bnc #438757)
+- added fix for problem with generic boot code (bnc #438752) 
+- 2.17.34
+
+-------------------------------------------------------------------
 Mon Oct 27 10:39:37 CET 2008 - jsrain@suse.cz
 
 - updated method of ThinkPad MBR detection

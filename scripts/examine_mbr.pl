@@ -45,7 +45,7 @@ if (length($out) < 70) {
 if (substr($MBR, 320, 126) =~ 
     m,invalid partition table.*no operating system,i) {
   print "Generic MBR\n";
-  exit 0;
+  exit 254;
 }
 
 if (substr($MBR, 346, 100) =~ m,GRUB .Geom.Hard Disk.Read. Error,) {
