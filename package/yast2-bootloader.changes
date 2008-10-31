@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Oct 31 12:49:14 CET 2008 - juhliarik@suse.cz
+
+- added better proposal checking elilo ,lilo
+- added fix for typo (bnc #439030)
+- added fix for selectinf "none" bootloader (bnc #438976)
+- 2.17.35 
+
+-------------------------------------------------------------------
 Mon Oct 27 12:45:44 CET 2008 - juhliarik@suse.cz
 
 - updated checking of boot device s not on XFS (bnc #438757)
