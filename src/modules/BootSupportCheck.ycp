@@ -73,12 +73,34 @@ global string StringProblems () {
 boolean KnownLoader () {
     if (! contains (["grub", "elilo", "ppc", "zipl", "none"], Bootloader::getLoaderType ()))
     {
-	y2error ("Unknown bootloader: %1", Bootloader::getLoaderType ());
-	AddNewProblem (sformat (_("Unknown bootloader: %1"), Bootloader::getLoaderType ()));
+
+	if (Bootloader::getLoaderType () != "lilo")
+        {
+	   y2error ("Unknown bootloader: %1", Bootloader::getLoaderType ());
+	   AddNewProblem (sformat (_("Unknown bootloader: %1"), Bootloader::getLoaderType ()));
+	} else {
+	   y2error ("LILO bootloader: %1", Bootloader::getLoaderType ());
+	   AddNewProblem (_("LILO bootloader is not supported"));
+	}
 	return false;
     }
     return true;
 }
+
+/**
+ * Check if elilo is supported
+ */
+boolean checkElilo()
+{
+    string cmd = "modprobe efivars";
+    map ret = (map)SCR::Execute (.target.bash_output, cmd);
+    if (ret["exit"]:1 == 0)
+	return true;
+    else
+	return false;
+}
+
+
 
 /**
  * Check that bootloader matches current hardware
@@ -95,11 +117,11 @@ boolean CorrectLoaderType () {
     if (Arch::ia64() && lt == "elilo")
 	return true;
     if (Arch::i386() || Arch::x86_64()) {
-	if (false) {// FIXME: check for EFI
+	if (checkElilo()) {
 	    if (lt == "elilo")
 		return true;
 	} else {
-	    if (lt == "grub")
+	    if ((lt == "grub") || (lt == "lilo"))
 		return true;
 	}
     }
@@ -127,8 +149,8 @@ boolean GptPartitionTable () {
 	{
 	    if (num > 3)
 	    {
-		y2error ("Partitin number > 3 is being used for booting with GPT partition table");
-		AddNewProblem (_("Partitin number > 3 is being used for booting with GPT partition table"));
+		y2error ("Partition number > 3 is being used for booting with GPT partition table");
+		AddNewProblem (_("Partition number > 3 is being used for booting with GPT partition table"));
 		return false;
 	    }
 	}
@@ -168,17 +190,18 @@ global boolean check_BootDevice()
 			{
 				if (p["device"]:"" == boot_device)
 				{
-					if (p["raid_type"]:"" == "raid0")
+					if ((p["raid_type"]:"" != "raid1") && (p["type"]:nil ==`sw_raid))
 					{
-						AddNewProblem (_("The boot device is on raid0."));
-						y2error("The boot device: %1 is on raid0", boot_device);
+						AddNewProblem (sformat(_("The boot device is on raid type: %1."), p["raid_type"]:""));
+						y2error("The boot device: %1 is on raid type: %2", boot_device,  p["raid_type"]:"");
 						result = false;
 						break;
 					} else {
 						found_boot = true;
-						y2milestone("The boot device: %1 is not on raid0", boot_device);
+						y2milestone("The boot device: %1 is on raid: %2", boot_device, p["raid_type"]:"");
 						//break;
 					}
+
 					// check if /boot directory is on supported filesystem
 					if (p["used_fs"]:nil == `xfs) {
 						AddNewProblem (_("The /boot directory is on an XFS filesystem"));

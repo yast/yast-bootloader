@@ -1033,7 +1033,7 @@ string checkZiplDefault(string def)
 
     }
 
-    y2milestone("name of default section for zipl: %1", def_section_name);
+    y2milestone("name of default section: %1", def_section_name);
     return def_section_name;
 }
 
