@@ -143,7 +143,7 @@ directly or choose by using <b>Browse</b>.</p>
     "PCRKernelHelp"		:
     _("<p><b>PCR Index of Kernel</b> is Platform Configuration Register for kernel</p>"),
     "PCRInitrdHelp"		:
-    _("<p><b>PCR Index of Inird</b> is Platform Configuration Register for initrd</p>"),
+    _("<p><b>PCR Index of Initrd</b> is Platform Configuration Register for initrd</p>"),
     "PCRChainloaderHelp"		:
     _("<p><b>PCR Index of Chainloader</b> is Platform Configuration Register for chainloader</p>"),
     "PCRXenHelp"		:
