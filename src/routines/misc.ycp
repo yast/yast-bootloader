@@ -1580,14 +1580,6 @@ list<string> ListKernelParamsInLine (string line) {
 		    integer exit = out["exit"]:0;
 		    y2milestone ("Command output: %1", out);
 		    ret = ret && (0 == exit);
-		    command = sformat ("/usr/sbin/fix_chs %1 %2",
-			mbr_dev,
-			num);
-		    y2milestone ("Running command %1", command);
-		    out = (map)SCR::Execute (.target.bash_output, command);
-		    exit = out["exit"]:0;
-		    y2milestone ("Command output: %1", out);
-		    ret = ret && (0 == exit);
 		}
 	    }
 	    else

@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Fri Nov  7 10:29:26 CET 2008 - juhliarik@suse.cz
+
+- added fix for writing crashkernel to bootloader from kdump on ppc
+  (bnc #441547)
+- added fix for double boot entry twice by efibootmgr (bnc #438215)
+- added fix for using fix_chs (bnc #367304)
+- 2.17.36 
+
+-------------------------------------------------------------------
 Fri Oct 31 12:49:14 CET 2008 - juhliarik@suse.cz
 
 - added better proposal checking elilo ,lilo

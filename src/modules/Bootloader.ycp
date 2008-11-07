@@ -41,6 +41,7 @@
     import "BootPOWERLILO"; // The ppc-LILO File
     //fate 303395
     import "ProductFeatures";
+    import "Arch";
 
     // interface for clients
     global define map Export ();
@@ -1406,6 +1407,14 @@ global define boolean CopyKernelInird()
 		y2milestone("Option kexec_reboot is false. kexec will not be used.");
 		return true;
 	}
+
+	// check architecture for using kexec instead of reboot
+	if (Arch::ppc() || Arch::ia64() || Arch::s390())
+	{
+		y2milestone("Skip using of kexec on this architecture");
+		return true;
+	}
+
 
 	// checking if installation run on VirtualBox
         string cmd = sformat("hwinfo --bios |grep Product");

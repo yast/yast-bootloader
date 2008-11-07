@@ -875,22 +875,25 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	BootCommon::UpdateAppend ();
     }
 
+    // check if there is selected "none" bootloader
+    string bl = BootCommon::getLoaderType (false);
+
+    if (bl == "none")
+    {
+	BootCommon::InitializeLibrary (init, bl);
+	return true;
+    }
+
     if (! BootCommon::InitializeLibrary (init, "ppc"))
         // send current disk/partition information to perl-Bootloader
 	BootCommon::SetDiskInfo ();
 
-    // Sanity check the sections list: we can only pass strings
-    // through the perl interface
-    list<map<string,string> > sects = maplist (map<string,any> s, BootCommon::sections, {
-	return (map<string,string>)
-	    filter (string k, any v, s, { return is (v, string); });
-    });
-
-    // convert root device names in sections to the device names indicated by
-    // "mountby"
-    sects = maplist (map<string,string> s, sects, {
-	s["root"] = BootCommon::Dev2MountByDev(s["root"]:"");
-	return s;
+    // convert
+    map<string,string> my_globals = mapmap (string k , string v, BootCommon::globals, {
+	if ((k == "stage1_dev") || (regexpmatch(k, "^boot_.*custom$" )) || (k == "boot_chrp_custom"))
+	    return $[k : BootCommon::Dev2MountByDev(v)];
+	else
+	    return $[k : v];
     });
 
     // FIXME: remove all mountpoints of type 'boot/boot' through some Storage::<func>
@@ -899,12 +902,14 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // partitions in 'boot_<arch>_custom' and 'clone' (chrp)
 
     // ret = ret && BootCommon::SetDeviceMap (device_mapping);
-    ret = ret && BootCommon::SetSections (sects);
-    ret = ret && BootCommon::SetGlobal (BootCommon::globals);
+    ret = ret && BootCommon::SetSections (BootCommon::sections);
+    ret = ret && BootCommon::SetGlobal (my_globals);
     if (flush)
 	ret = ret && BootCommon::CommitSettings ();
 
     importMetaData();
+
+    BootCommon::WriteToSysconf(false);
     return ret;
 }
 
