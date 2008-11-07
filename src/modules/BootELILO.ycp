@@ -490,7 +490,22 @@ computer, you need to load ELILO via the EFI shell."), 10);
 		"--loader '\\efi\\SuSE\\elilo.efi' --write-signature >> %4 2>&1",
 		BootCommon::globals["boot_efilabel"]:"", boot_disk, boot_part, bl_logfile
 	    );
-	    ret = ret && installBootLoader (bl_command, bl_logfile);
+
+	    // command for checking same boot entry in efi bnc #438215 (YaST creates efibootloader entry twice)
+	    string cmd = sformat("/usr/sbin/efibootmgr -v | grep -c \"%1.*HD(%2.*File(.\\efi.\\SuSE.\\elilo.efi)\"",
+		BootCommon::globals["boot_efilabel"]:"", boot_part);
+	    y2milestone("Command for checking same boot entry: %1", cmd);
+
+	    // check how many entries with same label and partition is actually in efi
+	    map out = (map)SCR::Execute (.target.bash_output, cmd);
+
+	    // check number of same boot entries in efi
+	    // if boot entry is added -> don't add it again
+	    if (deletechars(out["stdout"]:"","\n") == "0")
+	    	ret = ret && installBootLoader (bl_command, bl_logfile);
+	    else
+		y2milestone("Skip adding boot entry: %1 to EFI. There already exist: %2 with same label and partition.",
+			BootCommon::globals["boot_efilabel"]:"", deletechars(out["stdout"]:"","\n"));
 	}
 
 
