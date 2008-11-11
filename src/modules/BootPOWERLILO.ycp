@@ -293,8 +293,8 @@ global define boolean iSeriesWrite () {
         string command = "";
 	string my_log = "/var/log/YaST2/y2log_bootloader_iseries_slot_a";
 
-	string src_filename
-	    = Pkg::SourceProvideFile(base_source, 1, "/ISERIES64");
+	// bnc #409927 VUL-0: yast2: slideshow not checked cryptographically
+	string src_filename = Pkg::SourceProvideDigestedFile(base_source, 1, "/ISERIES64", false);
 
 	if (base_source == -1 || src_filename == nil) {
 	    y2milestone ("Cannot write rescue kernel to slot A, base source not found");

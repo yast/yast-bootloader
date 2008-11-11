@@ -33,6 +33,7 @@ import "Storage";
 import "String";
 import "Pkg";
 import "Popup";
+import "Package";
 import "PackagesProposal";
 
 import "Linuxrc";
@@ -428,7 +429,7 @@ global boolean isTrustedGrub ()
     boolean ret = false;
     if (Mode::normal ())
     {
-	if (Pkg::IsProvided ("trustedgrub"))
+	if (Pkg::IsProvided ("trustedgrub") || Package::Installed("trustedgrub"))
 	{
 	    ret = true;
 	    globals["trusted_grub"] = "true";
