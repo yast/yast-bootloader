@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Nov 10 14:46:36 CET 2008 - juhliarik@suse.cz
+
+- added fix for problem with disabled button for detail settings of
+  trusted GRUB (bnc #442706)
+- added calling function Pkg::SourceProvideFile() (bnc #409927)
+- 2.17.37  
+
+-------------------------------------------------------------------
 Fri Nov  7 10:29:26 CET 2008 - juhliarik@suse.cz
 
 - added fix for writing crashkernel to bootloader from kdump on ppc
