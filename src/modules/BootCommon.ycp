@@ -1139,8 +1139,14 @@ global define void setLoaderType (string bootloader) {
 
 		bootloader_packages = add(bootloader_packages, "trustedgrub");
 	}
-	//FIXME: solve problem with installing bootloader...
-	bootloader_packages = add(bootloader_packages, bootloader);
+	//FIXME: solve problem with installing bootloader
+	// it should be split and designed for each module (bootloader)
+	if ((bootloader == "grub") || (bootloader == "lilo") || (bootloader == "elilo"))
+	   bootloader_packages = add(bootloader_packages, bootloader);
+	else if (bootloader == "ppc")
+	   bootloader_packages = add(bootloader_packages, "lilo");
+	else if (bootloader == "zipl")
+	   bootloader_packages = add(bootloader_packages, "s390-tools");
 
         // don't configure package manager during autoinstallation preparing
         if (Mode::normal () && (! (Mode::config () || Mode::repair ())))

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov 12 10:55:10 CET 2008 - juhliarik@suse.cz
+
+- added fix for problem with missing boot_* in globals (bnc #439674)
+
+-------------------------------------------------------------------
 Mon Nov 10 14:46:36 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with disabled button for detail settings of
@@ -85,16 +90,16 @@ Thu Oct 16 10:05:03 CEST 2008 - juhliarik@suse.cz
 - added fix for handling mounpoints (bnc #431977)
 
 -------------------------------------------------------------------
+Wed Oct 15 12:51:29 CEST 2008 - juhliarik@suse.cz
+
+- added fix to proposal with "/" on logical partition (bnc #259050)
+
+-------------------------------------------------------------------
 Wed Oct 15 12:21:51 CEST 2008 - jsrain@suse.cz
 
 - handle multipath devices properly when creating device map
   (bnc #433092)
 - 2.17.28
-
--------------------------------------------------------------------
-Wed Oct 15 12:51:29 CEST 2008 - juhliarik@suse.cz
-
-- added fix to proposal with "/" on logical partition (bnc #259050)
 
 -------------------------------------------------------------------
 Mon Oct 13 16:40:11 CEST 2008 - juhliarik@suse.cz
