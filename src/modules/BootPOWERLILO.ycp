@@ -888,6 +888,14 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
         // send current disk/partition information to perl-Bootloader
 	BootCommon::SetDiskInfo ();
 
+    // save boot device from global_options to globals
+    // bnc #439674 - Autoyast install of Cell blades fails to install bootloader
+    foreach(string key, any value, BootCommon::global_options,
+    {
+	if ((substring(key,0,5) == "boot_") && (value != ""))
+		BootCommon::globals[key]=tostring(value);
+    });
+
     // convert
     map<string,string> my_globals = mapmap (string k , string v, BootCommon::globals, {
 	if ((k == "stage1_dev") || (regexpmatch(k, "^boot_.*custom$" )) || (k == "boot_chrp_custom"))

@@ -192,7 +192,7 @@ global boolean check_BootDevice()
 				{
 					if ((p["raid_type"]:"" != "raid1") && (p["type"]:nil ==`sw_raid))
 					{
-						AddNewProblem (sformat(_("The boot device is on raid type: %1."), p["raid_type"]:""));
+						AddNewProblem (sformat(_("The boot device is on raid type: %1. System will not boot."), p["raid_type"]:""));
 						y2error("The boot device: %1 is on raid type: %2", boot_device,  p["raid_type"]:"");
 						result = false;
 						break;
@@ -204,7 +204,7 @@ global boolean check_BootDevice()
 
 					// check if /boot directory is on supported filesystem
 					if (p["used_fs"]:nil == `xfs) {
-						AddNewProblem (_("The /boot directory is on an XFS filesystem"));
+						AddNewProblem (_("The /boot directory is on an XFS filesystem. System will not boot."));
 						y2error ("The /boot directory is on an XFS filesystem");
 						result = false;
 						break;
