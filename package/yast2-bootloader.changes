@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov 12 12:26:47 CET 2008 - juhliarik@suse.cz
+
+- deleted adding beep for booting (bnc #439328) 
+
+-------------------------------------------------------------------
 Wed Nov 12 10:55:10 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with missing boot_* in globals (bnc #439674)
