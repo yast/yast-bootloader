@@ -349,7 +349,7 @@ global define string getLoaderType (boolean recheck);
 global define list<string> getBootloaders ();
 global define list<string> Summary ();
 global define boolean UsingXenPae();
-
+global map<string,any> CreateLinuxSection (string title);
 
 //
 // FIXME: the select and selectdevice seem to be broken: the default value of

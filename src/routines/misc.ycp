@@ -2001,6 +2001,141 @@ string writeMeasureToSysconf(map <string, string> measure)
 	return ret;
 }
 
+/**
+ * Function return absolute value of arg
+ *
+ * @param integer value
+ * @return integer absolute value
+ */
+
+integer abs(integer value)
+{
+	if (value < 0)
+		return (value * (-1));
+	else
+		return value;
+}
+
+
+/** bnc #440125 - default boot section with failsafe args
+ * Compare append from default linux section with append from 
+ * BootCommon::sections
+ *
+ * @return boolean true if appends are similar
+ */
+boolean compareAppends(string default_append, string section_append)
+{
+	integer deuce = 0;
+
+	// check valid append for section
+	if (size(section_append) < 3)
+		return false;
+
+	// check size of default append with section append
+	// if the size is same return true (same appends)
+	y2milestone("Size of default append: \"%1\" and compared section append: \"%2\"", 
+			size(default_append), size(section_append));
+	if (size(default_append) == size(section_append))
+		return true;
+
+	list <string> default_list = splitstring(default_append, " ");
+	list <string> section_list = splitstring(section_append, " ");
+
+	integer size_default_list = size(default_list);
+	integer size_section_list = size(section_list);
+
+	integer relative_deuce = abs(size_section_list - size_default_list);
+
+	// check number of append args
+	// if different between number of args is more than 3 args return false
+
+	y2milestone("No. default args: %1 no. compared section args: %2", size_default_list, size_section_list);
+	if (relative_deuce >= 3)
+		return false;
+
+	// check args by keywords from section append to default append
+
+	y2milestone("default_append: %1", default_append);
+	y2milestone("section_list: %1", section_list);
+	foreach(string key, section_list,
+	{		
+		if (search(key, "resume=") != nil)
+		{
+			list <string> tmp = splitstring(key,"=");
+			key = Dev2MountByDev(tmp[1]:"");
+		}
+		if (search(default_append, key) != nil)
+			deuce = deuce +1;
+		else
+			deuce = deuce -1;
+	});
+
+	// if there exist more than 3 different args return false
+	// else append seem to be similar -> true
+	y2milestone("No. deuces of default append with compared append: %1", deuce);
+	if (abs(size_default_list - deuce) >= 3)
+		return false;
+	else
+		return true;
+}
+
+
+
+/** bnc #440125 - default boot section with failsafe args
+ * Try to find potencional default linux section
+ * It can solve problem in function WriteToSysconf() with saving
+ * wrong (failsafe) args for default
+ *
+ * @return string name of default boot section
+ */
+
+string findRelativeDefaultLinux ()
+{
+	string default_linux = "";
+	
+	// create defualt sections
+	map<string,any> linux_default = BootCommon::CreateLinuxSection("linux");
+
+	foreach(map<string,any>s, BootCommon::sections,
+	{
+		if ((s["root"]:"" == linux_default["root"]:nil) &&
+		    (s["original_name"]:"" == "linux"))
+		{
+			if (compareAppends(linux_default["append"]:"", s["append"]:""))
+				default_linux = s["name"]:"";
+		}
+	});
+
+	y2milestone("Relative default boot section is: \"%1\"", default_linux);
+	return default_linux;
+} 
+
+
+
+/** bnc #440125 - default boot section with failsafe args
+ * Check if default boot name is linux
+ * 
+ * @param string default boot name
+ * @return boolean true if boot name is linux
+ */
+boolean isDefaultBootSectioLinux(string default_boot)
+{
+	boolean ret = false;
+	foreach(map<string,any>s, BootCommon::sections,
+	{
+		if (s["name"]:"" == default_boot)
+		{
+			if (s["original_name"]:"" == "linux")
+				ret = true;
+			break;
+		}
+	});
+	if (ret)
+		y2milestone("Boot section: \"%1\" is linux", default_boot);
+	else
+		y2warning("Boot section: \"%1\" is NOT linux", default_boot);
+	return ret;
+}
 
 /** FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
  * Function write/update info in /etc/sysconfig/bootloader
@@ -2009,10 +2144,17 @@ string writeMeasureToSysconf(map <string, string> measure)
 
 global define void WriteToSysconf(boolean inst_bootloader)
 {
-
     string lt = BootCommon::getLoaderType (false);
     y2milestone ("Saving /etc/sysconfig/bootloader for %1", lt);
-    string default_boot_section_name = BootCommon::globals["default"]:"";
+
+    string default_boot_section_name = "";
+    // fix for bnc #440125 - default boot section with failsafe args
+    // it is not possible create exact algoritmus but I hope it helps in
+    // mostly cases.
+    if (isDefaultBootSectioLinux(BootCommon::globals["default"]:""))
+    	default_boot_section_name = BootCommon::globals["default"]:"";
+    else
+	default_boot_section_name = findRelativeDefaultLinux ();
 
     // get the default and failsafe append + vga parameters; if section with
     // appropriate original name not found, just use any Linux section
@@ -2038,6 +2180,16 @@ global define void WriteToSysconf(boolean inst_bootloader)
     string xen_kernel_append = "";
 
     boolean xen_set = false;
+
+    // default boot section is not found
+    if (default_boot_section_name == "")
+    {
+	// create defualt sections
+	map<string,any> linux_default = BootCommon::CreateLinuxSection("linux");
+	default_set = true;
+	default_vga = linux_default["vgamode"]:"";
+	default_append = linux_default["append"]:"";
+    }
 
     foreach (map<string,any>s, BootCommon::sections, 
     {
