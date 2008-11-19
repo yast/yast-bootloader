@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov 19 13:50:35 CET 2008 - juhliarik@suse.cz
+
+- added fix for problem with writing default kernel args to 
+  /etc/sysconfig/bootloader (bnc #440125) 
+-2.17.39 
+
+-------------------------------------------------------------------
 Wed Nov 12 12:26:47 CET 2008 - juhliarik@suse.cz
 
 - deleted adding beep for booting (bnc #439328) 
