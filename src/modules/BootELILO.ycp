@@ -451,6 +451,30 @@ define boolean installBootLoader (string command, string logfile) {
     return ret;
 }
 
+/** bnc #438215 - YaST creates efibootloader entry twice
+ * Function convert number of partition to hexa
+ * 
+ * @param any number of boot partition (10 or "10")
+ * @return string number boot partition in hexa ("a") - without "0x"
+ */
+string tomyhexa(any boot_part)
+{
+        string ret = "1000";
+
+        integer int_boot_part = tointeger(boot_part);
+        if (int_boot_part != nil)
+        {
+                string hexa = tohexstring(int_boot_part);
+                if (search(hexa, "x")!= nil)
+                {
+                        list <string> hexa_without_0x = splitstring(hexa, "x");
+                        if (size(hexa_without_0x)>1)
+                                ret = hexa_without_0x[1]:"1000";
+                }
+        }
+        return ret;
+}
+
 
 /**
   * Write bootloader settings to disk
@@ -493,7 +517,7 @@ computer, you need to load ELILO via the EFI shell."), 10);
 
 	    // command for checking same boot entry in efi bnc #438215 (YaST creates efibootloader entry twice)
 	    string cmd = sformat("/usr/sbin/efibootmgr -v | grep -c \"%1.*HD(%2.*File(.\\efi.\\SuSE.\\elilo.efi)\"",
-		BootCommon::globals["boot_efilabel"]:"", boot_part);
+		BootCommon::globals["boot_efilabel"]:"", tomyhexa(boot_part));
 	    y2milestone("Command for checking same boot entry: %1", cmd);
 
 	    // check how many entries with same label and partition is actually in efi
