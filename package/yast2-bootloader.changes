@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 21 12:11:27 CET 2008 - juhliarik@suse.cz
+
+- updated fix for checking if boot entry exist in EFI (bnc #438215)
+- 2.17.40 
+
+-------------------------------------------------------------------
 Wed Nov 19 13:50:35 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with writing default kernel args to 
