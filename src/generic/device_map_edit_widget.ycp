@@ -44,7 +44,7 @@ symbol i386InstallDetailsDialog () {
 			`opt (`notify, `immediate),
 			// selectionn box label
 			_("D&isks"), []),
-		    Mode::config ()
+		    (Mode::config () || Mode::installation())
 			? `HBox (
 			    `HStretch (),
 			    `PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),

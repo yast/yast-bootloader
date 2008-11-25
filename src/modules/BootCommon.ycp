@@ -67,6 +67,12 @@ global map<string,string> globals = $[];
 global list<map<string,any> > sections = [];
 
 /**
+ * Saved change time from target map - proposal
+ */
+
+global integer cached_settings_base_data_change_time = nil;
+
+/**
  * device mapping between Linux and firmware
  */
 global map<string,string> device_mapping = $[];

@@ -83,7 +83,6 @@
      */
     global map cached_proposal = nil;
     global map cached_settings = $[];
-    global integer cached_settings_base_data_change_time = nil;
 
 // old vga value handling function
 
