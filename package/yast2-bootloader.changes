@@ -1,4 +1,19 @@
 -------------------------------------------------------------------
+Tue Nov 25 10:05:30 CET 2008 - juhliarik@suse.cz
+
+- added fix for recreating device map (bnc #438243)
+- updated proposal if boot device is on logical partition 
+  (bnc #279837 - commnet #53) 
+
+-------------------------------------------------------------------
+Mon Nov 24 15:54:41 CET 2008 - juhliarik@suse.cz
+
+- updated proposal of bootloader (bnc #279837 - comment #53)
+- added fix for recreating device map if storage change settings
+  (bnc #438243)
+- 2.17.41
+
+-------------------------------------------------------------------
 Fri Nov 21 12:11:27 CET 2008 - juhliarik@suse.cz
 
 - updated fix for checking if boot entry exist in EFI (bnc #438215)
