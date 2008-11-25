@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Nov 25 10:51:12 CET 2008 - jsrain@suse.cz
+
+- write correct language list in /boot/message (bnc #447053)
+
+-------------------------------------------------------------------
 Tue Nov 25 10:05:30 CET 2008 - juhliarik@suse.cz
 
 - added fix for recreating device map (bnc #438243)
