@@ -733,6 +733,15 @@ global define boolean WriteInstallation ()
 	return ret;
 }
 
+/**
+ * Function find and select any boot section like defaul
+ * if default boot section doesn't exist
+ *
+ * @param map<string,any> defualt linux section
+ * @return boolean true if section was found or was selected
+ */
+
+
 boolean FindAndSelectDefault(map<string,any> default_sec)
 {
 	boolean ret = false;
@@ -755,9 +764,7 @@ boolean FindAndSelectDefault(map<string,any> default_sec)
 				default_candidate = section["name"]:"";
 				y2milestone("Candidate for default section is: %1", section);
 				set_candidate = true;
-				break;
 			}
-
 		}
 	});
 	if (!ret)
