@@ -595,7 +595,10 @@ define symbol grub_ConfigureLocation() {
     // if is primary, store bootloader there
 
     integer exit = 0;
-    if (boot_partition_is_on_mbr_disk && ! is_logical)
+    // there was check if boot device is on logical partition
+    // IMO it is good idea check MBR also in this case
+    // see bug #279837 comment #53
+    if (boot_partition_is_on_mbr_disk)
     {
 	selected_location = `boot;
 	BootCommon::globals["activate"] = "true";
@@ -933,8 +936,9 @@ define void grub_LocationProposal () {
     y2milestone("(2) globals: %1", BootCommon::globals);
 
     // refresh device map
-    if (BootCommon::device_mapping == nil
-	|| size (BootCommon::device_mapping) == 0)
+    if ((BootCommon::device_mapping == nil)
+	|| (size (BootCommon::device_mapping) == 0)
+	|| (BootCommon::cached_settings_base_data_change_time != Storage::GetTargetChangeTime()))
     {
 	grub_ProposeDeviceMap ();
     }
