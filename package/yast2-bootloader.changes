@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Nov 26 13:26:21 CET 2008 - juhliarik@suse.cz
+
+- added fix for problem with "boot" in lilo.conf (bnc #449062) 
+
+-------------------------------------------------------------------
 Tue Nov 25 15:37:01 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with changed default section (bnc #446555) 
