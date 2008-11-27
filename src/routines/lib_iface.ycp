@@ -327,6 +327,25 @@ global boolean UpdateBootloader () {
     return ret;
 }
 
+
+/**
+ * Update append in from boot section, it means take value from "console"
+ * and add it to "append" 
+ *
+ * @param string append from section
+ * @param string console from section
+ * @return string updated append with console
+ */
+global string UpdateSerialConsole (string append, string console) {
+    y2milestone ("Updating append: %1 with console: %2", append, console);
+    string ret = System::Bootloader_API::updateSerialConsole(append, console);
+    y2milestone ("return updated value of append: %1", ret);
+    if (ret == nil)
+	bootloaderError ("Error occurred while updating append");
+    return ret;
+}
+
+
 /**
  * Initialize the boot loader (eg. modify firmware, depending on architecture)
  * @return boolean true on success
