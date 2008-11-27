@@ -71,6 +71,15 @@ sub updateBootloader() {
     return $ret;
 }
 
+BEGIN { $TYPEINFO{updateSerialConsole} = ["function", "string", "string", "string"]; }
+sub updateSerialConsole() {
+    my ($my_append, $my_console) = @_;
+    my $ret = $lib_ref->UpdateSerialConsole($my_append, $my_console);
+
+    DumpLog();
+    return $ret;
+}
+
 BEGIN { $TYPEINFO{initializeBootloader} = ["function", "boolean"]; }
 # first time initialization of firmware/bios specific code
 sub initializeBootloader() {
