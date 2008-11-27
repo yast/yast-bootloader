@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov 27 16:46:21 CET 2008 - juhliarik@suse.cz
+
+- deleted fix for bug #439674 - it fix problem with proposal of 
+  globals on PPC (bnc #449747)
+- 2.17.42
+
+-------------------------------------------------------------------
 Wed Nov 26 16:58:21 CET 2008 - juhliarik@suse.cz
 
 - 2.17.41 
