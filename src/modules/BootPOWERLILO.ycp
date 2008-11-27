@@ -566,26 +566,18 @@ global void LocationProposal () {
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	// also set as default value in widget
 	BootCommon::change_widget_default_value("boot_chrp_custom", prep_boot_partition);
-	// bnc #439674 - Autoyast install of Cell blades fails to install bootloader
-	BootCommon::globals["boot_chrp_custom"]=prep_boot_partition;
     }
     else if ( arch == "prep" ) {
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	BootCommon::change_widget_default_value("boot_prep_custom", prep_boot_partition);
-	// bnc #439674 - Autoyast install of Cell blades fails to install bootloader
-	BootCommon::globals["boot_prep_custom"]=prep_boot_partition;
     }
     else if ( arch == "iseries" ) {
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	BootCommon::change_widget_default_value("boot_iseries_custom", prep_boot_partition);
-	// bnc #439674 - Autoyast install of Cell blades fails to install bootloader
-	BootCommon::globals["boot_iseries_custom"]=prep_boot_partition;
     }
     else if ( arch == "pmac" ) {
 	BootCommon::BootPartitionDevice = GoodPmacBootPartition();
 	BootCommon::change_widget_default_value("boot_pmac_custom", BootCommon::BootPartitionDevice);
-	// bnc #439674 - Autoyast install of Cell blades fails to install bootloader
-	BootCommon::globals["boot_pmac_custom"]=BootCommon::BootPartitionDevice;
     }
 
     // These need to be set, for POWERLILO probably only to interface with
