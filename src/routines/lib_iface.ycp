@@ -34,6 +34,11 @@ import "Mode";
 string library_initialized = nil;
 
 /**
+ * Declarations...
+ */
+global boolean  DefineMultipath(map<string,string> multipath_map);
+
+/**
  *  Retrieve the data for perl-Bootloader library from Storage module
  *  and pass it along
  *  @return nothing
@@ -41,8 +46,11 @@ string library_initialized = nil;
 // FIXME: this should be done directly in perl-Bootloader through LibStorage.pm
 global void SetDiskInfo () {
     map<string,list<string> > md_info = $[];
+
     map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
 
+    multipath_mapping = $[];
+    multipath_mapping = BootCommon::mapRealDevicesToMultipath();
     map<string,any> mountpoints = mapmap (string k, list v,
 	(map<string,list>)Storage::GetMountPoints (),
     {
@@ -123,10 +131,12 @@ global void SetDiskInfo () {
 
     y2milestone ("Information about partitioning: %1", partinfo);
     y2milestone ("Information about MD arrays: %1", md_info);
+    y2milestone ("Mapping real disk to multipath: %1", multipath_mapping);
 
     System::Bootloader_API::setMountPoints ((map<string,string>) mountpoints);
     System::Bootloader_API::setPartitions ((list<list<string> >) partinfo);
     System::Bootloader_API::setMDArrays ((map<string,list<string> >) md_info);
+    DefineMultipath(multipath_mapping);
 }
 
 /**
@@ -253,6 +263,25 @@ global boolean SetDeviceMap (map<string,string> device_map) {
 	y2error ("Storing device map failed");
     return ret;
 }
+
+/**
+ * Set the mapping (real device <-> multipath)
+ * @param  map<string,string> map from real device to multipath device
+ * @return boolean true on success
+ */
+global boolean  DefineMultipath(map<string,string> multipath_map) {
+    y2milestone ("Storing multipath map: %1", multipath_map);
+    if (size(multipath_map) == 0)
+    {
+	y2milestone("Multipath was not detected");
+	return true;
+    }
+    boolean ret = System::Bootloader_API::defineMultipath (multipath_map);
+    if (! ret)
+	y2error ("Storing multipath map failed");
+    return ret;
+}
+
 
 /**
  * Get the device mapping (Linux <-> Firmware)

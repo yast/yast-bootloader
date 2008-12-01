@@ -2486,7 +2486,6 @@ define string getConsoleValue()
 	return ret;
 }
 
-
 /** FATE #110038: Serial console
  * Add console arg for kernel if there is defined serial console
  * - add key console with value to section type image and xen
@@ -2516,11 +2515,58 @@ define void addConsole()
 			{
 				sections[idx, "console"] = console_value;
 				sections[idx, "__changed"] = true;
+				if (sections[idx, "append"]:"" != "")
+				{
+					string updated_append = 
+						BootCommon::UpdateSerialConsole(sections[idx,"append"]:"",
+								 sections[idx,"console"]:"");
+					if (updated_append != nil)
+					{
+						sections[idx,"append"]=updated_append;
+					}
+				}
 				y2debug("Added console for section: %1", sections[idx]:$[]);
 			});
 		}
 
 	}
+}
+
+/** bnc #447591, 438243, 448110 multipath wrong device map
+ * Function maps real devices to multipath e.g.
+ * "/dev/sda/" : "/dev/mapper/SATA_ST3120813AS_3LS0CD7M"
+ *
+ * @return map <string, string> mapping real disk to multipath
+ */
+
+map <string, string> mapRealDevicesToMultipath()
+{
+	map <string, string> ret = $[];
+	map<string, map> tm = (map<string,map>)Storage::GetTargetMap ();
+	integer num_of_real_disk = 0;
+	foreach (string disk, map disk_info, tm,
+	{
+		if (disk_info["type"]:nil == `CT_DMMULTIPATH)
+		{
+			list <string> devices = (list <string>) disk_info["devices"]:[];
+			if (size(devices) > 0)
+			{
+				foreach(string d, devices,
+				{
+					ret[d]=disk;
+				});
+
+			}
+		}
+
+		if (disk_info["type"]:nil == `CT_DISK)
+			num_of_real_disk = num_of_real_disk +1;
+		if (disk_info["bios_id"]:nil != nil)
+			bois_id_missing = false;
+	});
+	if (num_of_real_disk == 1)
+		bois_id_missing = false;
+	return ret;
 }
 
 

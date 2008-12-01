@@ -1330,7 +1330,7 @@ global void ProposeDeviceMap () {
     list<string> usb_disks = []; // contains those usb removable disks
 
     device_mapping = $[];
-
+    multipath_mapping = $[];
     map<string,map> targetMap = $[];
     if (Mode::config ())
 	y2milestone ("Skipping device map proposing in Config mode");
@@ -1405,10 +1405,16 @@ global void ProposeDeviceMap () {
         changeOrderInDeviceMapping(usb_disks);
     }
 
+    if (size(device_mapping) == 1)
+	bois_id_missing = false;
     if (StorageDevices::FloppyPresent())
 	device_mapping[StorageDevices::FloppyDevice()] = "fd0";
 
     y2milestone ("Detected device mapping: %1", device_mapping);
+
+    multipath_mapping = BootCommon::mapRealDevicesToMultipath();
+
+    y2milestone ("Detected multipath mapping: %1", multipath_mapping);
 }
 
 /**

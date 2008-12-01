@@ -471,6 +471,7 @@ global define void CreateSections () {
 	    s["image"] = additional["image"]:"";
 	    if (haskey (additional, "initrd"))
 	        s["initrd"] = additional["initrd"]:"";
+	    s["original_name"] = "linux";
 	    out = add (out, s);
 	});
     }

@@ -78,6 +78,18 @@ global integer cached_settings_base_data_change_time = nil;
 global map<string,string> device_mapping = $[];
 
 /**
+ * device mapping between real devices and multipath
+ */
+global map<string,string> multipath_mapping = $[];
+
+/**
+ * Flag indicates that bios_id_missing in disk 
+ * true if missing false if at least one disk has bios_id
+ */
+
+global boolean bois_id_missing = true;
+
+/**
  * device to save loader stage 1 to
  * NOTE: this variable is being phased out. The boot_* keys in the globals map
  * are now used to remember the selected boot location. Thus, we now have a
@@ -356,7 +368,7 @@ global define list<string> getBootloaders ();
 global define list<string> Summary ();
 global define boolean UsingXenPae();
 global map<string,any> CreateLinuxSection (string title);
-
+global string UpdateSerialConsole (string append, string console);
 //
 // FIXME: the select and selectdevice seem to be broken: the default value of
 // the widget description string needs to be patched with the current value of
@@ -861,12 +873,14 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 
     // convert device names in device map to the device names indicated by
     // "mountby"
+
+    y2milestone ("device map before mapping %1", device_mapping);
     map<string,string> my_device_mapping =
 	mapmap (string k , string v, device_mapping, {
 	    //return $[BootCommon::Dev2MountByDev(k) : v];
 	    return $[BootCommon::Dev2MountByDev(k) : v];
     });
-
+    y2milestone ("device map after mapping %1", my_device_mapping);
     if ((globals["trusted_grub"]:"" == "true") && (haskey(globals, "gfxmenu")))
 	globals = remove(globals, "gfxmenu");
 
@@ -874,6 +888,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // bnc #436899
     ConvertXENinDomU ();
 
+    ret = ret && DefineMultipath(multipath_mapping);
     ret = ret && SetDeviceMap (my_device_mapping);
     ret = ret && SetSections (sections);
     ret = ret && SetGlobal (my_globals);
