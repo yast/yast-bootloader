@@ -322,7 +322,9 @@ symbol SectionTypeHandle (string widget, map event) {
 	// it seems be correct if original_name stay same...
 	// BootCommon::current_section["original_name"] = "";
 	BootCommon::current_section["__auto"] = false;
-	BootCommon::current_section["lines_cache_id"] = "";
+	// fix for problem with cloning section
+	if (haskey(BootCommon::current_section,"lines_cache_id"))
+		BootCommon::current_section = remove(BootCommon::current_section, "lines_cache_id");
     }
     y2milestone ("Added section template: %1", BootCommon::current_section);
     return nil;

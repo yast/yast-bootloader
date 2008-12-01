@@ -156,6 +156,15 @@ sub setDeviceMapping($) {
     return $ret;
 }
 
+BEGIN { $TYPEINFO{defineMultipath} = ["function", "boolean", ["map", "string", "string"]]; }
+sub defineMultipath($) {
+    my ($dm) = @_;
+
+    my $ret = $lib_ref->DefineMultipath ($dm);
+    DumpLog();
+    return $ret;
+}
+
 BEGIN { $TYPEINFO{getGlobalSettings} = ["function", ["map", "string", "string"]]; }
 sub getGlobalSettings() {
     my %globalsettings = %{$lib_ref->GetGlobalSettings () || {}};
