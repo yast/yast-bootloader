@@ -2089,7 +2089,7 @@ boolean compareAppends(string default_append, string section_append)
  * @return string name of default boot section
  */
 
-string findRelativeDefaultLinux ()
+global string findRelativeDefaultLinux ()
 {
 	string default_linux = "";
 	
@@ -2118,7 +2118,7 @@ string findRelativeDefaultLinux ()
  * @param string default boot name
  * @return boolean true if boot name is linux
  */
-boolean isDefaultBootSectioLinux(string default_boot)
+global boolean isDefaultBootSectioLinux(string default_boot)
 {
 	boolean ret = false;
 	foreach(map<string,any>s, BootCommon::sections,
@@ -2515,7 +2515,7 @@ define void addConsole()
 			{
 				sections[idx, "console"] = console_value;
 				sections[idx, "__changed"] = true;
-				if (sections[idx, "append"]:"" != "")
+				if (sections[idx, "append"]:nil != nil)
 				{
 					string updated_append = 
 						BootCommon::UpdateSerialConsole(sections[idx,"append"]:"",

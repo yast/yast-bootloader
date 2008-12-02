@@ -369,6 +369,8 @@ global define list<string> Summary ();
 global define boolean UsingXenPae();
 global map<string,any> CreateLinuxSection (string title);
 global string UpdateSerialConsole (string append, string console);
+
+
 //
 // FIXME: the select and selectdevice seem to be broken: the default value of
 // the widget description string needs to be patched with the current value of

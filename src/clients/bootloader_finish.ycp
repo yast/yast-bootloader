@@ -202,8 +202,25 @@ After reboot, reconnect and run the following:
 	}
 
 	// (bnc #381192) don't use it if kexec is used
+	// update calling onetime boot bnc #339024
 	if (!retcode)
-	    return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
+	{
+	    string bl = Bootloader::getLoaderType();
+	    if (bl == "grub")
+	    {
+		if (BootCommon::isDefaultBootSectioLinux(Bootloader::getDefaultSection ()))
+		{
+			return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
+		} else {
+			return Bootloader::FlagOnetimeBoot(BootCommon::findRelativeDefaultLinux ());
+		}
+
+	    } else {
+
+		return Bootloader::FlagOnetimeBoot(Bootloader::getDefaultSection ());
+
+	   }
+	}
     }
     else
 	return retcode;
