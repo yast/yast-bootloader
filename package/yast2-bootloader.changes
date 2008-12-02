@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec  2 15:35:30 CET 2008 - juhliarik@suse.cz
+
+- updated heuristic for adding other OS to menu.lst for GRUB 
+  (bnc #448010) 
+
+-------------------------------------------------------------------
 Mon Dec  1 16:07:54 CET 2008 - juhliarik@suse.cz
 
 - added fix for proposal if MBR include Vista code and "/" is on
