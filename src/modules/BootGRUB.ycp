@@ -285,9 +285,13 @@ global define void CreateSections () {
 		        = BootCommon::GetSections ();
 		    y2debug ("Found sections %1", sects);
 
+		    // bnc #448010 grub doesn't add another installed Linux in installation
+		    map<string,string> globs = BootCommon::GetGlobal ();
+		    string default_sec_name = globs["default"]:"";
+
 		    // look only for "default" == "initial" entries, not all entries
 		    sects = filter (map<string,any> s, sects, {
-			return s["initial"]:nil != nil;
+			return ((s["initial"]:nil != nil) || (s["name"]:nil == default_sec_name));
 		    });
 
 		    // now find the name of the first non-broken "initial" section and get its name
