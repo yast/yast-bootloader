@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec  2 16:28:27 CET 2008 - juhliarik@suse.cz
+
+- added fix for onetime boot if default is windows (bnc #339024) 
+
+-------------------------------------------------------------------
 Tue Dec  2 15:35:30 CET 2008 - juhliarik@suse.cz
 
 - updated heuristic for adding other OS to menu.lst for GRUB 
