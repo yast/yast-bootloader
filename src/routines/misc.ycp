@@ -2016,6 +2016,23 @@ integer abs(integer value)
 		return value;
 }
 
+/**
+ * Fuction delete " " on the beginning of string
+ *
+ */
+
+string delete_white_space(string temp)
+{
+	string ret = temp;
+	while (findfirstof(temp," ") == 0)
+	{
+		temp = substring(temp, 1);
+
+	}
+	ret = temp;
+	return temp;
+}
+
 
 /** bnc #440125 - default boot section with failsafe args
  * Compare append from default linux section with append from 
@@ -2026,7 +2043,9 @@ integer abs(integer value)
 boolean compareAppends(string default_append, string section_append)
 {
 	integer deuce = 0;
-
+	// delete white space on the beginning of string
+	default_append = delete_white_space(default_append);
+	section_append = delete_white_space(section_append);
 	// check valid append for section
 	if (size(section_append) < 3)
 		return false;
