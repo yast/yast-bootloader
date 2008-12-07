@@ -77,7 +77,6 @@ symbol SectionEditDialog () {
 	    	    `HSpacing (2)
 	        )
 	    ),
-	    "trusted",
 
         `VStretch ()
 	),
@@ -86,7 +85,7 @@ symbol SectionEditDialog () {
 
     return CWM::ShowAndRun ($[
 	"widget_descr" : widget_descr,
-	"widget_names" : ["name", "trusted", se_type],
+	"widget_names" : ["name", se_type],
 	"contents" : contents,
 	"caption" :  _("Boot Loader Settings: Section Management"),
 	"back_button" : Label::BackButton (),
@@ -142,7 +141,6 @@ symbol GenericMainSequence () {
 	"main"			: ``(MainDialog ()),
 	"installation_details"	: ``(DetailsDialog ("installation")),
 	"loader_details"	: ``(DetailsDialog ("loader")),
-	"t_grub"		: ``(DetailsDialog ("trusted_grub")),
 	"add_new_section"	: ``(AddNewSectionDialog ()),
 	"store_section"		: [``(GenericStoreSection ()), true],
 	"manual_edit"		: ``(runEditFilesDialog ()),
@@ -186,12 +184,6 @@ symbol GenericMainSequence () {
 	],
 	"section_edit" : $[
 	    `next : "store_section",
-	    `trusted_details : "t_grub",
-	    `abort : `abort,
-	],
-	"t_grub" : $[
-	    `next : "section_edit",
-	     //FIXME kokso: it is good idea handle abort via "section_edit" not `abort
 	    `abort : `abort,
 	],
 
