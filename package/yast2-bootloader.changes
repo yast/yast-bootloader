@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sun Dec  7 14:45:22 CET 2008 - juhliarik@suse.cz
+
+- deleted support of detail settings for trustedgrub because it is
+  not supporeted by trustedgrub package 
+
+-------------------------------------------------------------------
 Thu Dec  4 09:34:22 CET 2008 - juhliarik@suse.cz
 
 - 2.17.45 

@@ -63,7 +63,6 @@ include "bootloader/routines/popups.ycp";
 include "bootloader/grub/helps.ycp";
 include "bootloader/generic/device_map_edit_widget.ycp";
 include "bootloader/generic/dialogs.ycp";
-include "bootloader/grub/trusted_grub_edit.ycp";
 
 // end of mandatory functions
 //----------------------------------------------------------------------------
@@ -771,7 +770,6 @@ global map<string,symbol()> Dialogs () {
     return $[
 	"installation"	: i386InstallDetailsDialog,
 	"loader"	: genericBootLoaderOptionsDialog,
-	"trusted_grub"	: TrustedGrubDetails,
     ];
 }
 
