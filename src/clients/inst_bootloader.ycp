@@ -40,16 +40,26 @@ if (Mode::installation())
 
     y2milestone("contents FILES: %1", files);
 
+    //F#300779 - Install diskless client (NFS-root) 
+    //kokso: bootloader will not be installed
+    string device = BootCommon::getBootDisk();
 
-    foreach (string file, string content, files, 
+    if (device == "/dev/nfs")
     {
+	   y2milestone("inst_bootloader -> Boot partition is nfs type, bootloader will not be installed.");
+           BootCommon::InitializeLibrary(true, "none");
+	   BootCommon::setLoaderType("none");
 
-	integer last=findlastof(file,"/");
-	string path_file = substring (file, 0, last);
-	WFM::Execute(.local.mkdir, Installation::destdir + path_file);
-	y2milestone ("writing file: %1", file); 
-	WFM::Write(.local.string, Installation::destdir + file, content);
-    });
+    } else {
+    	   foreach (string file, string content, files, 
+           {
+		integer last=findlastof(file,"/");
+		string path_file = substring (file, 0, last);
+		WFM::Execute(.local.mkdir, Installation::destdir + path_file);
+		y2milestone ("writing file: %1", file); 
+		WFM::Write(.local.string, Installation::destdir + file, content);
+           });
+    }
 }
 
 // FATE #302245 save kernel args etc to /etc/sysconfig/bootloader

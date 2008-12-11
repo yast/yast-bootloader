@@ -36,6 +36,7 @@
     import "ProductFeatures";
     import "Directory";
     import "Installation";
+    import "FileUtils";
 
 // bootloader attributes handling functions
 
@@ -216,11 +217,11 @@ global void MapDevices()
 				path_partitions[dev_by_something]= p["device"]:"";	
 			}
 
-			// map partition by path
+			// map partition by label
 			if ((p["label"]:nil != "")  && (p["label"]:nil != nil))
 			{
 				dev_by_something = "/dev/disk/by-label/"+p["label"]:"";
-				label_partitions[dev_by_something]= p["device"]:"";	
+				label_partitions[dev_by_something]= p["device"]:"";
 			}
 
 			// map disk by id
@@ -366,6 +367,25 @@ global map<string,string> remapGlobals(map<string,string> globals_set)
 		globals_set["boot_custom"] = BootCommon::MountByDev2Dev(globals_set["boot_custom"]:"");
 	}
 
+	if (haskey(globals_set, "boot_chrp_custom"))
+	{
+		globals_set["boot_chrp_custom"] = BootCommon::MountByDev2Dev(globals_set["boot_chrp_custom"]:"");
+	}
+
+	if (haskey(globals_set, "boot_pmac_custom"))
+	{
+		globals_set["boot_pmac_custom"] = BootCommon::MountByDev2Dev(globals_set["boot_pmac_custom"]:"");
+	}
+	
+	if (haskey(globals_set, "boot_iseries_custom"))
+	{
+		globals_set["boot_iseries_custom"] = BootCommon::MountByDev2Dev(globals_set["boot_iseries_custom"]:"");
+	}
+
+	if (haskey(globals_set, "boot_prep_custom"))
+	{
+		globals_set["boot_prep_custom"] = BootCommon::MountByDev2Dev(globals_set["boot_prep_custom"]:"");
+	}
 	return globals_set;
 }
 
@@ -2197,7 +2217,9 @@ global define void WriteToSysconf(boolean inst_bootloader)
     string xen_measure = "";
     string xenpcr = "";
     string xen_kernel_append = "";
-
+    string addon_name = "";
+    string addon_append = "";
+    string addon_vga = "";
     boolean xen_set = false;
 
     // default boot section is not found
@@ -2278,6 +2300,14 @@ global define void WriteToSysconf(boolean inst_bootloader)
 	   failsafe_append = s["append"]:"";
 	   console = writeConsoleToSysconf(s["console"]:"");
 	}
+
+	if (s["__rt_kernel"]:"" == "true")
+	{
+	   addon_name = s["name"]:"";
+	   addon_append = s["append"]:"";
+	   addon_vga = s["vgamode"]:"";
+	}
+
     });
 
     if (! xen_set)
@@ -2333,6 +2363,15 @@ global define void WriteToSysconf(boolean inst_bootloader)
 	SCR::Write (add(sys_agent,.FAILSAFE_MEASURE), failsafe_measure);
     if (xen_measure != "")
 	SCR::Write (add(sys_agent,.XEN_MEASURE), xen_measure);
+
+    if (addon_name != "")
+	SCR::Write (add(sys_agent,.RT_NAME), addon_name);
+
+    if (addon_vga != "")
+	SCR::Write (add(sys_agent,.RT_VGA), addon_vga);
+
+    if (addon_append != "")
+	SCR::Write (add(sys_agent,.RT_APPEND), addon_append);
 
     SCR::Write (sys_agent, nil);
 
@@ -2587,6 +2626,38 @@ map <string, string> mapRealDevicesToMultipath()
 		bois_id_missing = false;
 	return ret;
 }
+
+/** bnc #450153 - support for installation kernel from add-on
+ * fucntion call client from add-on and update proposal for 
+ * yast2-bootloader. -> availabe edit kernel args for kernel
+ * from add-on
+ *
+ * @return boolean - true on success
+ */
+global boolean UpdateProposalFromClient ()
+{
+	boolean ret = true;
+	string client_file = "kernel_bl_proposal";
+	if ((!Arch::i386()) && (!Arch::x86_64()))
+	{
+		y2milestone("Unsuported architecture... for adding SLERT addon");
+		return ret;
+	}
+
+	if (WFM::ClientExists(client_file))
+	{
+		y2milestone("Client: %1 was found", client_file);
+		WFM::CallFunction (client_file, []);
+	
+	} else {
+		y2milestone("File %1 doesn't exist - proposal will not be updated", client_file);
+	}
+
+	return ret;
+}
+
+
+
 
 
 } //end of include
