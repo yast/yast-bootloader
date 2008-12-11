@@ -785,6 +785,43 @@ boolean FindAndSelectDefault(map<string,any> default_sec)
 }
 
 
+/** bnc #450153 YaST bootloader doesn't handle kernel from add-on products in installation
+ * Remove all section with empty keys "image" and "initrd"
+ *
+ */
+void removeDummySections ()
+{
+	BootCommon::sections=filter(map<string,any> section, BootCommon::sections,
+	{
+		if ((section["original_name"]:"" == "linux")
+		   || (section["original_name"]:"" == "failsafe"))
+		{
+			if ((search(section["image"]:"", "dummy_image") != nil) &&
+			   (search(section["initrd"]:"", "dummy_initrd") != nil))
+			{
+				y2milestone("Removed dummy boot section: %1", section);
+				return false;
+			} else
+				return true;
+		}
+		return true;
+	});
+}
+
+/** bnc #450153 YaST bootloader doesn't handle kernel from add-on products in installation
+ * Function check if client kernel_bl_proposal exist
+ *
+ * @return boolean true on success
+ */
+
+boolean CheckClientForSLERT()
+{
+	if (WFM::ClientExists("kernel_bl_proposal"))
+		return true;
+	else
+		return false;
+}
+
  /**
   * Find "same" boot sections and return numbers of sections
   * from BootCommon::sections
@@ -808,8 +845,7 @@ define integer CountSection(map<string,any> find_section)
 	y2milestone("Number of similar section is %2 with %1",find_section, num_sections);
 	return num_sections;
 
-} 
-
+}
 
  /**
   * Delete duplicated boot sections from 
@@ -818,6 +854,12 @@ define integer CountSection(map<string,any> find_section)
 
 global define void DelDuplicatedSections()
 {	
+
+	if (CheckClientForSLERT())
+	{
+		removeDummySections ();
+		return;
+	}
 	y2milestone("Deleting duplicated boot sections");
 	map<string,any> linux_default = BootCommon::CreateLinuxSection ("linux");
 	map<string,any> linux_failsafe = BootCommon::CreateLinuxSection ("failsafe");
@@ -849,9 +891,9 @@ global define void DelDuplicatedSections()
                         ||(section["description"]:"" == linux_xen["name"]:nil))
                       && (num_linux_xen > 1)))
 		{
-			if ((section["root"]:nil == linux_default["root"]:nil)
+			if (((section["root"]:nil == linux_default["root"]:nil)
 			   ||(section["root"]:nil == linux_failsafe["root"]:nil)
-			   ||(section["root"]:nil == linux_xen["root"]:nil))
+			   ||(section["root"]:nil == linux_xen["root"]:nil)))
 			{	
 				if (section["original_name"]:"" == "failsafe")
 					num_linux_failsafe = num_linux_failsafe -1;
@@ -870,9 +912,10 @@ global define void DelDuplicatedSections()
 		} else {
 
 			return true;
-		};		
+		};
 		return true;
 	});
+
 	ResolveSymlinksInSections();
 	FindAndSelectDefault(linux_default);
 	y2milestone("Boot sections AFTER deleting: %1", BootCommon::sections);

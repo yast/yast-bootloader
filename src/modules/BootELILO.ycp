@@ -346,6 +346,9 @@ global define void Propose () {
 	BootCommon::globals["boot_efilabel"] = Product::name;
     }
 
+    if (Mode::installation())
+	BootCommon::UpdateProposalFromClient();
+
     y2milestone ("EFI entry name: %1", BootCommon::globals["boot_efilabel"]:"");
     y2milestone ("Proposed sections: %1", BootCommon::sections);
     y2milestone ("Proposed globals: %1", BootCommon::globals);

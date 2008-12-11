@@ -1,4 +1,20 @@
 -------------------------------------------------------------------
+Thu Dec 11 17:43:40 CET 2008 - juhliarik@suse.cz
+
+- added fix for problem with autoinstallation and powerlilo 
+  (bnc #439674)
+- added fix for bnc #450506  root=kernelname
+- added fix for problem with adding kernel to proposal (SLERT)
+  (bnc #450153) 
+- 2.17.46
+
+-------------------------------------------------------------------
+Mon Dec  8 15:41:43 CET 2008 - juhliarik@suse.cz
+
+- added fix for problem with installation if boot device is NFS
+  (bnc #440183) 
+
+-------------------------------------------------------------------
 Sun Dec  7 14:45:22 CET 2008 - juhliarik@suse.cz
 
 - deleted support of detail settings for trustedgrub because it is
