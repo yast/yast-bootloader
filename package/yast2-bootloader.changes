@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec 17 14:24:57 CET 2008 - juhliarik@suse.cz
+
+- added fix for problem with primary language in GRUB (bnc #447053)
+- 2.17.47  
+
+-------------------------------------------------------------------
 Thu Dec 11 17:43:40 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with autoinstallation and powerlilo 
