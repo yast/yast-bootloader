@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Dec 19 11:00:09 CET 2008 - juhliarik@suse.cz
+
+- added fix for changinf EFI label in running system (bnc #269198)
+- 2.17.48 
+
+-------------------------------------------------------------------
 Wed Dec 17 14:24:57 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with primary language in GRUB (bnc #447053)
