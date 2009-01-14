@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 14 13:59:14 CET 2009 - juhliarik@suse.cz
+
+- added fix for changing EFI label in running system (bnc #269198)
+- added fix for problem with primary language in GRUB (bnc #447053) 
+
+-------------------------------------------------------------------
 Thu Dec 11 17:43:40 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with autoinstallation and powerlilo 

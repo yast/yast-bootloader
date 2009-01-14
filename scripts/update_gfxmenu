@@ -34,11 +34,19 @@ test -f $SRC_DIR/$LOCALE.hlp && cp I4/$LOCALE.hlp . \
 # set languages to choose
 if [ -f $SRC_DIR/$LOCALE.tr ]; then
    echo "$LOCALE" > languages || exit 6
+   # always add also en_US
+   if [ "$LOCALE" != "en_US" ]; then
+	echo "en_US" >>languages || exit 6
+   fi
    # set translations of bootloaer menu entries
    cp $MENU_ENTRIES ./translations.$LOCALE || exit 7;
 else
    if [ -f $SRC_DIR/$LOCALE_SHORT.tr ]; then
       echo "$LOCALE" > languages || exit 6
+      # always add also en_US
+      if [ "$LOCALE" != "en_US" ]; then
+	echo "en_US" >>languages || exit 6
+      fi
    else
 
       if [ "$LOCALE_SHORT" = "en" ]; then
