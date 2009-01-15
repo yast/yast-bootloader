@@ -206,7 +206,7 @@ sub setGlobalSettings($) {
 
     my $index = exists($globalsettings{"lines_cache_id"}) ?
 	$globalsettings{"lines_cache_id"} : undef;
-    if (defined($index)) {
+    if ((defined($index)) && ($index ne "")) {
 	$globalsettings{"__lines"} = $lines_cache[$index];
     }
 
