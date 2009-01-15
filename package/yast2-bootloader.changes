@@ -8,7 +8,7 @@ Thu Jan 15 15:11:38 CET 2009 - juhliarik@suse.cz
 -------------------------------------------------------------------
 Fri Dec 19 11:00:09 CET 2008 - juhliarik@suse.cz
 
-- added fix for changinf EFI label in running system (bnc #269198)
+- added fix for changing EFI label in running system (bnc #269198)
 - 2.17.48 
 
 -------------------------------------------------------------------
