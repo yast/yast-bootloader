@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan 15 15:11:38 CET 2009 - juhliarik@suse.cz
+
+- added fix for problem with lines_cache_id == "" -it is casue of 
+  error output from perl-Bootloader (bnc #464098)  
+- 2.17.49
+
+-------------------------------------------------------------------
 Fri Dec 19 11:00:09 CET 2008 - juhliarik@suse.cz
 
 - added fix for changinf EFI label in running system (bnc #269198)
