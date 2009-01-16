@@ -57,16 +57,6 @@ die "$disk: no mbr\n" unless @mbr == 0x200 && $mbr[0x1fe] == 0x55 && $mbr[0x1ff]
 
 $old_mbr_sec = $mbr[7];
 
-=cut
-# just a quick check
-die "$disk: np tp mbr\n" unless
-  $mbr[0x17b] == 0x50 &&
-  $mbr[0x17c] == 0xe4 &&
-  $mbr[0x17d] == 0x61 &&
-  $mbr[0x17e] == 0x24 &&
-  $old_mbr_sec > 1;
-=cut
-
 # read original mbr
 
 seek F, ($old_mbr_sec - 1) << 9, 0 or die "$disk: $!\n";
