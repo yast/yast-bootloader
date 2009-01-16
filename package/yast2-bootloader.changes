@@ -1,8 +1,13 @@
 -------------------------------------------------------------------
+Fri Jan 16 17:55:44 CET 2009 - juhliarik@suse.cz
+
+- added fix for checking of content MBR for thinkpad (bnc #464485) 
+
+-------------------------------------------------------------------
 Thu Jan 15 15:11:38 CET 2009 - juhliarik@suse.cz
 
 - added fix for problem with lines_cache_id == "" -it is casue of 
-  error output from perl-Bootloader (bnc #464098)  
+  error output of Bootloader_API.pm (bnc #464098)  
 - 2.17.49
 
 -------------------------------------------------------------------
