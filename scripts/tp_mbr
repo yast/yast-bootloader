@@ -80,7 +80,6 @@ die "$disk: no orig mbr\n" unless @old_mbr == 0x200 && $old_mbr[0x1fe] == 0x55 &
 
 close F;
 
-
 # verify crc
 
 if($mbr[6] == 0) {
