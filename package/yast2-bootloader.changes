@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jan 20 14:13:48 CET 2009 - juhliarik@suse.cz
+
+- added fix for problem with calling parted each time of running
+  yast2-bootloader. parted rewrite content of extended partition
+  (bnc #461613)
+- 2.17.50
+
+-------------------------------------------------------------------
 Fri Jan 16 17:55:44 CET 2009 - juhliarik@suse.cz
 
 - added fix for checking of content MBR for thinkpad (bnc #464485) 
