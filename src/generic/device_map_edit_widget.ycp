@@ -174,7 +174,7 @@ symbol i386InstallDetailsDialog () {
 		return $[ d : sformat ("hd%1", hex_index) ];
 	    })
 	);
-
+	BootCommon::location_changed = true;
     }
     return (symbol)ret;
 }
