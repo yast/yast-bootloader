@@ -56,6 +56,14 @@ global map<string,any> section_options = $[];
  */
 global map<string,any> exports = $[];
 
+
+/**
+ * boolean value indicate if "/" is on logical
+ * and primary /boot doesn't exist
+ */
+
+global boolean boot_device_on_logical = false;
+
 /**
  * map of global options and values
  */

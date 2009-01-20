@@ -737,9 +737,12 @@ global define void Update () {
   * @return boolean true on success
   */
 global define boolean Write () ``{
-    grub_updateMBR ();
+
     boolean ret = BootCommon::UpdateBootloader ();
     if (BootCommon::location_changed || BootCommon::InstallingToFloppy ()) {
+        // bnc #461613 - Unable to boot after making changes to boot loader
+        // bnc #357290 - module rewrites grub generic code when leaving with no changes, which may corrupt grub
+	grub_updateMBR ();
         if (BootCommon::InstallingToFloppy ()) {
 	    if (! saveToFLoppyPopup ()) {
 	        y2error ("Preparing floppy disk failed.");
