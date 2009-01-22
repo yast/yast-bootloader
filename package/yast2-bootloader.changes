@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan 22 14:01:07 CET 2009 - juhliarik@suse.cz
+
+- added fix for problems with autoinstallation and "/" on NFS
+  (bnc # 448950)
+
+-------------------------------------------------------------------
 Wed Oct  1 10:05:20 CEST 2008 - juhliarik@suse.cz
 
 - added fix for cloning sections (bnc #429525)

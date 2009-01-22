@@ -86,18 +86,11 @@ symbol MainDialog () {
 	"tab",
 	`Right ("adv_button")
     );
+    // bnc #448950 -  autoyast: the boot partition is of type NFS, bootloader cannot be installed
     // F#300779 - Install diskless client (NFS-root) 
     // kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-
-    // B#355332 - Bootloader doesn't work if root partitions is like nfs
-
-    map dev = $[];
-    if ((BootCommon::BootPartitionDevice != "") && (BootCommon::BootPartitionDevice != nil))
-	dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
-    else
-        dev = Storage::GetDiskPartition(BootCommon::RootPartitionDevice);
-        
-    if ((dev["disk"]:"" == "/dev/nfs") && (Mode::installation()))
+    string device = BootCommon::getBootDisk();
+    if ((device == "/dev/nfs") && (Mode::installation()))
     {
 	Popup::Message(_("The boot partition is of type NFS. Bootloader cannot be installed."));
         y2milestone("dialogs::MainDialog() -> Boot partition is nfs type, bootloader will not be installed.");

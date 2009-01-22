@@ -279,17 +279,11 @@
     global define list<string> Summary () {
         list<string> ret =[];
 
-        // F#300779 - Install diskless client (NFS-root) 
-        // kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-
-        // B#355332 - Bootloader doesn't work if root partitions is like nfs
-
-        map dev = $[];
-	if ((BootCommon::BootPartitionDevice != "") && (BootCommon::BootPartitionDevice != nil))
-	    dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
-	else
-            dev = Storage::GetDiskPartition(BootCommon::RootPartitionDevice);
-        if (dev["disk"]:"" == "/dev/nfs")
+	// bnc #448950 -  autoyast: the boot partition is of type NFS, bootloader cannot be installed
+	// F#300779 - Install diskless client (NFS-root) 
+	// kokso: bootloader will not be installed
+	string device = BootCommon::getBootDisk();
+        if (device == "/dev/nfs")
         {
 	   
            ret = add (ret, _("The boot partition is of type NFS. Bootloader cannot be installed."));
@@ -524,19 +518,11 @@
 	    return ret;
 	}
 
-
+	// bnc #448950 -  autoyast: the boot partition is of type NFS, bootloader cannot be installed
 	// F#300779 - Install diskless client (NFS-root) 
-	// kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-
-	// B#355332 - Bootloader doesn't work if root partitions is like nfs
-
-        map dev = $[];
-	if ((BootCommon::BootPartitionDevice != "") && (BootCommon::BootPartitionDevice != nil))
-	    dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
-	else
-            dev = Storage::GetDiskPartition(BootCommon::RootPartitionDevice);
-        
-        if (dev["disk"]:"" == "/dev/nfs")       
+	// kokso: bootloader will not be installed
+	string device = BootCommon::getBootDisk();
+        if (device == "/dev/nfs")
         {
 	   y2milestone("Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed.");
            return ret;
