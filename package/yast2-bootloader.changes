@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 26 16:04:48 CET 2009 - juhliarik@suse.cz
+
+- updated function Dev2MountByDev() which can run long time if 
+  machine included huge number of disks (bnc #468922)
+- 2.17.51
+
+-------------------------------------------------------------------
 Tue Jan 20 14:13:48 CET 2009 - juhliarik@suse.cz
 
 - added fix for problem with calling parted each time of running

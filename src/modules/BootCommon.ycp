@@ -81,6 +81,14 @@ global list<map<string,any> > sections = [];
 global integer cached_settings_base_data_change_time = nil;
 
 /**
+ * Saved change time from target map - only for MapAllPartitions()
+ */
+
+global integer saved_last_change_time_from_storage = nil;
+
+
+
+/**
  * device mapping between Linux and firmware
  */
 global map<string,string> device_mapping = $[];
@@ -370,6 +378,20 @@ global list<string> bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
 				   "aboot", "zipl", "ppc", "mips"];
 
 
+
+/**
+ * bnc #468922 - problem with longtime running the parsing a huge number of disks
+ * map<string,map> the map of all partitions with info about it -> 
+ * necessary for Dev2MountByDev() in routines/misc.ycp 
+ */
+global map<string,map> all_partitions = $[];
+
+/**
+ * bnc #468922 - problem with longtime running the parsing a huge number of disks
+ * map<string,map> target map try to minimalize calling Storage::GetTargetMap()
+ *
+ */ 
+map<string,map> target_map = $[];
 
 global define string getLoaderType (boolean recheck);
 global define list<string> getBootloaders ();
