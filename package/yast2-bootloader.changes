@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jan 27 17:14:25 CET 2009 - juhliarik@suse.cz
+
+- added fix for problem with adding boot entry to EFI if 
+  installation run on different disk but with same boot partition
+  (bnc #450682)
+- 2.17.52
+
+-------------------------------------------------------------------
 Mon Jan 26 16:04:48 CET 2009 - juhliarik@suse.cz
 
 - updated function Dev2MountByDev() which can run long time if 
