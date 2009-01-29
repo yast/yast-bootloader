@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan 29 10:08:57 CET 2009 - fero@suse.cz
+
+- added fix for using translated text in bootloader e.g. Image, 
+  Other (bug #445999)
+- 2.17.53
+
+-------------------------------------------------------------------
 Tue Jan 27 17:14:25 CET 2009 - juhliarik@suse.cz
 
 - added fix for problem with adding boot entry to EFI if 
