@@ -1178,7 +1178,8 @@ global boolean IsPartitionBootable (string device) {
 global boolean InstallingToFloppy () {
     boolean ret = false;
     if (loader_device == nil)
-	ret = false;
+	return ret; // bug #333459 - boot loader editor: propose new configuration 
+		    // -- BLE tries to write something on the floppy disk
     // bnc #180784 don't install to bootloader to floppy if ppc
     if (getLoaderType (false) == "ppc")
 	ret = false;
