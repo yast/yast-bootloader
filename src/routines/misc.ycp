@@ -574,6 +574,38 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
 	return temp_sec;
 }
 
+/**
+ * bnc #468922 - problem with longtime running the parsing a huge number of disks
+ * Function initialize BootCommon::all_partitions only if storage change 
+ * partitioning of disk
+ * true if init all_partitions
+ */
+
+boolean MapAllPartitions()
+{
+    boolean ret = false;
+    if (saved_last_change_time_from_storage != Storage::GetTargetChangeTime())
+    {
+	// save last change time from storage for MapAllPartitions()
+	saved_last_change_time_from_storage = Storage::GetTargetChangeTime();
+
+	BootCommon::all_partitions = $[];
+	BootCommon::target_map = $[];
+	// get target map
+	BootCommon::target_map = (map<string,map>)Storage::GetTargetMap();
+	// map all partitions
+	foreach (string k, map v, BootCommon::target_map,
+	{
+		foreach (map p, (list<map>)(v["partitions"]:[]), 
+		{
+			all_partitions[p["device"]:""] = p;
+		});
+	});
+	ret = true;
+    }
+
+    return ret;
+}
 
 /** FATE #302219 - Use and choose persistent device names for disk devices
  * Converts a device name to the corresponding device name it should be
@@ -599,18 +631,13 @@ global define string Dev2MountByDev(string dev)
 	//by_mount = `id;
 	y2milestone("Default mount by is %1", by_mount);
 
-	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
+	// add all_partitions to partitions
+	if (MapAllPartitions())
+	    y2milestone("Init BootCommon::all_partitions was done");
 
-	// make a map: "/dev/hda1" -> info_map_for_this_partition
-	map<string,map> partitions = $[];
-	foreach (string k, map v, devices, 
-	{
-		foreach (map p, (list<map>)(v["partitions"]:[]), 
-		{
-			partitions[p["device"]:""] = p;
-		});
-	});
-
+	map<string,map> partitions = BootCommon::all_partitions;
+	map<string,map> devices = BootCommon::target_map;
+	
 	string ret = dev;
 	switch(by_mount) 
 	{
