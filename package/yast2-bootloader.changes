@@ -1,4 +1,18 @@
 -------------------------------------------------------------------
+Wed Feb  4 12:15:21 CET 2008 - juhliarik@suse.cz
+
+- added fix for finding the smallest partition on pmac machine
+  (bnc #459860)
+- updated function Dev2MountByDev() which can run long time if
+  machine included huge number of disks (bnc #468922)
+- added fix for problem with adding boot entry to EFI if
+  installation run on different disk but with same boot partition
+  (bnc #450682)
+- added fix for using translated text in bootloader e.g. Image,
+  Other (bug #445999)
+- 2.18.0
+
+-------------------------------------------------------------------
 Tue Jan 20 14:11:38 CET 2009 - juhliarik@suse.cz
 
 - added fix for problem with calling parted each time when

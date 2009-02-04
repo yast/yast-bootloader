@@ -65,6 +65,13 @@ global boolean create_efi_entry = true;
 string efi_vendor = "SuSE";
 
 /**
+ * bnc #450682 - adding boot entry to EFI
+ * true is label was added
+ */
+
+global boolean added_label_to_efi = false;
+
+/**
  * Is the /sys/firmware/efi directory available?
  */
 boolean efi_available = true;
@@ -450,6 +457,9 @@ define boolean installBootLoader (string command, string logfile) {
             // error popup - label, %1 is bootloader name
             _("Error Occurred while Installing %1"),
             BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)), log);
+    } else {
+	added_label_to_efi = true;
+	y2milestone("Adding label to EFI finish successful");
     }
     return ret;
 }
@@ -566,13 +576,51 @@ boolean updateEFILabel()
 	return ret;
 }
 
+/** FIXME: efibootmgr doesn't provide info about disk!
+ * bnc #450682 - adding boot entry to EFI
+ * function delete all existing boot entry with same name and partition number
+ * @param string name of label
+ * @param string number of partition
+ */
 
+void deleteSameEFIBootEntry(string name, any part_no)
+{
+
+    boolean still_exist = true;
+
+    string cmd = sformat("efibootmgr -v |grep \"%1.*HD(%2.*File(.\\efi.\\SuSE.\\elilo.efi)\" | cut -d \" \" -f 1",
+		name, tomyhexa(part_no));
+    y2milestone("run command %1", cmd);
+    map out = (map)SCR::Execute (.target.bash_output, cmd);
+    y2milestone("output of command %1", out);
+
+    string boot_entries = out["stdout"]:"";
+    y2milestone("EFI boot entries with \"same\" boot partition %1",boot_entries);
+
+    list<string> list_boot_entries = splitstring(boot_entries, "\n");
+
+    y2milestone("list_boot_entries=%1",list_boot_entries);
+
+    foreach(string entry, list_boot_entries,
+    {
+	if ((deletechars(entry, "\n*") != "") && (deletechars(entry, "\n*") != nil))
+	{
+	cmd = sformat("/usr/sbin/efibootmgr --delete-bootnum --bootnum %1 -q;", 
+		substring (deletechars(entry, "\n*"),4, 4));
+		y2milestone("run command %1", cmd);
+      		out = (map)SCR::Execute (.target.bash_output, cmd);
+		y2milestone("output of command %1", out);
+	}
+    });
+}
 
 /**
   * Write bootloader settings to disk
   * @return boolean true on success
   */
 global define boolean Write () {
+
+    y2milestone("run Write function from BootELILO");
     //	SCR::Execute (.target.bash, "/sbin/elilo");
     boolean ret = BootCommon::UpdateBootloader ();
     if (ret == nil)
@@ -621,10 +669,23 @@ computer, you need to load ELILO via the EFI shell."), 10);
 	    // check number of same boot entries in efi
 	    // if boot entry is added -> don't add it again
 	    if (deletechars(out["stdout"]:"","\n") == "0")
+	    {
 	    	ret = ret && installBootLoader (bl_command, bl_logfile);
-	    else
-		y2milestone("Skip adding boot entry: %1 to EFI. There already exist: %2 with same label and partition.",
-			BootCommon::globals["boot_efilabel"]:"", deletechars(out["stdout"]:"","\n"));
+	    } else {
+
+		if (added_label_to_efi)
+		{
+		    y2milestone("Skip adding boot entry: %1 to EFI. There already exist and was added: %2 with 
+				same label and partition.", BootCommon::globals["boot_efilabel"]:"",
+				deletechars(out["stdout"]:"","\n"));
+		} else {
+		    // delete efi entry with same label name and partition
+		    deleteSameEFIBootEntry(BootCommon::globals["boot_efilabel"]:"", boot_part);
+		    // add new efi boot entry
+		    ret = ret && installBootLoader (bl_command, bl_logfile);
+		}
+		
+	    }
 	}
 
 
