@@ -341,7 +341,7 @@ no options to set here."));
 	}
 	Misc::boot_msg = "";
         // empty that  Misc::boot_msg indicate the message has been displayed
-	Report::Message(msg);
+	Popup::TimedOKCancel(msg, 10);
     }
 
     /**

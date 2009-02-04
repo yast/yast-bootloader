@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Wed Feb  4 14:50:21 CET 2008 - juhliarik@suse.cz
+
+- added fix for problem with unnecessary popup mesage for writting
+  bootloader to floppy (bnc #333459)
+- added fix meesage about writting bootloader to floppy includes 
+  "Cancel" button (bnc #433348)
+- changed text about using XFS there is used "may not" insted of 
+  "will not" (bug #449823)  
+- updated help text
+- 2.18.1
+
+-------------------------------------------------------------------
 Wed Feb  4 12:15:21 CET 2008 - juhliarik@suse.cz
 
 - added fix for finding the smallest partition on pmac machine

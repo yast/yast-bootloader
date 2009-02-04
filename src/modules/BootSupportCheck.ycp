@@ -204,7 +204,7 @@ global boolean check_BootDevice()
 
 					// check if /boot directory is on supported filesystem
 					if (p["used_fs"]:nil == `xfs) {
-						AddNewProblem (_("The /boot directory is on an XFS filesystem. System will not boot."));
+						AddNewProblem (_("The /boot directory is on an XFS filesystem. System may not boot."));
 						y2error ("The /boot directory is on an XFS filesystem");
 						result = false;
 						break;
