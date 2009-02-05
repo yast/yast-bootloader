@@ -1,8 +1,13 @@
 -------------------------------------------------------------------
-Thu Jan 29 10:08:57 CET 2009 - fero@suse.cz
+Thu Jan 29 10:08:57 CET 2009 - juhliarik@suse.cz
+- disable checking thinkpad sequence in MBR (bnc#464485)
+- 2.17.54
+
+-------------------------------------------------------------------
+Thu Jan 29 10:08:57 CET 2009 - juhliarik@suse.cz
 
 - added fix for using translated text in bootloader e.g. Image, 
-  Other (bug #445999)
+  Other (bug#445999)
 - 2.17.53
 
 -------------------------------------------------------------------
@@ -10,14 +15,14 @@ Tue Jan 27 17:14:25 CET 2009 - juhliarik@suse.cz
 
 - added fix for problem with adding boot entry to EFI if 
   installation run on different disk but with same boot partition
-  (bnc #450682)
+  (bnc#450682)
 - 2.17.52
 
 -------------------------------------------------------------------
 Mon Jan 26 16:04:48 CET 2009 - juhliarik@suse.cz
 
 - updated function Dev2MountByDev() which can run long time if 
-  machine included huge number of disks (bnc #468922)
+  machine included huge number of disks (bnc#468922)
 - 2.17.51
 
 -------------------------------------------------------------------
@@ -25,48 +30,48 @@ Tue Jan 20 14:13:48 CET 2009 - juhliarik@suse.cz
 
 - added fix for problem with calling parted each time of running
   yast2-bootloader. parted rewrite content of extended partition
-  (bnc #461613)
+  (bnc#461613)
 - 2.17.50
 
 -------------------------------------------------------------------
 Fri Jan 16 17:55:44 CET 2009 - juhliarik@suse.cz
 
-- added fix for checking of content MBR for thinkpad (bnc #464485) 
+- added fix for checking of content MBR for thinkpad (bnc#464485) 
 
 -------------------------------------------------------------------
 Thu Jan 15 15:11:38 CET 2009 - juhliarik@suse.cz
 
 - added fix for problem with lines_cache_id == "" -it is casue of 
-  error output of Bootloader_API.pm (bnc #464098)  
+  error output of Bootloader_API.pm (bnc#464098)  
 - 2.17.49
 
 -------------------------------------------------------------------
 Fri Dec 19 11:00:09 CET 2008 - juhliarik@suse.cz
 
-- added fix for changing EFI label in running system (bnc #269198)
+- added fix for changing EFI label in running system (bnc#269198)
 - 2.17.48 
 
 -------------------------------------------------------------------
 Wed Dec 17 14:24:57 CET 2008 - juhliarik@suse.cz
 
-- added fix for problem with primary language in GRUB (bnc #447053)
+- added fix for problem with primary language in GRUB (bnc#447053)
 - 2.17.47  
 
 -------------------------------------------------------------------
 Thu Dec 11 17:43:40 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with autoinstallation and powerlilo 
-  (bnc #439674)
-- added fix for bnc #450506  root=kernelname
+  (bnc#439674)
+- added fix for bnc#450506  root=kernelname
 - added fix for problem with adding kernel to proposal (SLERT)
-  (bnc #450153) 
+  (bnc#450153) 
 - 2.17.46
 
 -------------------------------------------------------------------
 Mon Dec  8 15:41:43 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with installation if boot device is NFS
-  (bnc #440183) 
+  (bnc#440183) 
 
 -------------------------------------------------------------------
 Sun Dec  7 14:45:22 CET 2008 - juhliarik@suse.cz
@@ -82,39 +87,39 @@ Thu Dec  4 09:34:22 CET 2008 - juhliarik@suse.cz
 -------------------------------------------------------------------
 Tue Dec  2 16:28:27 CET 2008 - juhliarik@suse.cz
 
-- added fix for onetime boot if default is windows (bnc #339024) 
+- added fix for onetime boot if default is windows (bnc#339024) 
 
 -------------------------------------------------------------------
 Tue Dec  2 15:35:30 CET 2008 - juhliarik@suse.cz
 
 - updated heuristic for adding other OS to menu.lst for GRUB 
-  (bnc #448010) 
+  (bnc#448010) 
 
 -------------------------------------------------------------------
 Mon Dec  1 16:07:54 CET 2008 - juhliarik@suse.cz
 
 - added fix for proposal if MBR include Vista code and "/" is on
-  logical partition (bnc #450137)
-- added update of handling serial console (bnc #449726)
+  logical partition (bnc#450137)
+- added update of handling serial console (bnc#449726)
 - 2.17.44
 
 -------------------------------------------------------------------
 Mon Dec  1 14:32:09 CET 2008 - juhliarik@suse.cz
 
-- added fix for problem with multipath (bnc #448110)
-- added fix for problem with cloning boot sections (bnc #450190) 
+- added fix for problem with multipath (bnc#448110)
+- added fix for problem with cloning boot sections (bnc#450190) 
 
 -------------------------------------------------------------------
 Thu Nov 27 18:55:11 CET 2008 - juhliarik@suse.cz
 
-- added fix for problem with missing "console" (bnc #449726) 
+- added fix for problem with missing "console" (bnc#449726) 
 - 2.17.43
 
 -------------------------------------------------------------------
 Thu Nov 27 16:46:21 CET 2008 - juhliarik@suse.cz
 
-- deleted fix for bug #439674 - it fix problem with proposal of 
-  globals on PPC (bnc #449747)
+- deleted fix for (bug#439674) - it fix problem with proposal of 
+  globals on PPC (bnc#449747)
 - 2.17.42
 
 -------------------------------------------------------------------
@@ -125,86 +130,86 @@ Wed Nov 26 16:58:21 CET 2008 - juhliarik@suse.cz
 -------------------------------------------------------------------
 Wed Nov 26 13:26:21 CET 2008 - juhliarik@suse.cz
 
-- added fix for problem with "boot" in lilo.conf (bnc #449062) 
+- added fix for problem with "boot" in lilo.conf (bnc#449062) 
 
 -------------------------------------------------------------------
 Tue Nov 25 15:37:01 CET 2008 - juhliarik@suse.cz
 
-- added fix for problem with changed default section (bnc #446555) 
+- added fix for problem with changed default section (bnc#446555) 
 
 -------------------------------------------------------------------
 Tue Nov 25 10:51:12 CET 2008 - jsrain@suse.cz
 
-- write correct language list in /boot/message (bnc #447053)
+- write correct language list in /boot/message (bnc#447053)
 
 -------------------------------------------------------------------
 Tue Nov 25 10:05:30 CET 2008 - juhliarik@suse.cz
 
-- added fix for recreating device map (bnc #438243)
+- added fix for recreating device map (bnc#438243)
 - updated proposal if boot device is on logical partition 
-  (bnc #279837 - commnet #53) 
+  (bnc#279837#c53) 
 
 -------------------------------------------------------------------
 Mon Nov 24 15:54:41 CET 2008 - juhliarik@suse.cz
 
-- updated proposal of bootloader (bnc #279837 - comment #53)
+- updated proposal of bootloader (bnc#279837#c#53)
 - added fix for recreating device map if storage change settings
-  (bnc #438243)
+  (bnc#438243)
 
 -------------------------------------------------------------------
 Fri Nov 21 12:11:27 CET 2008 - juhliarik@suse.cz
 
-- updated fix for checking if boot entry exist in EFI (bnc #438215)
+- updated fix for checking if boot entry exist in EFI (bnc#438215)
 - 2.17.40 
 
 -------------------------------------------------------------------
 Wed Nov 19 13:50:35 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with writing default kernel args to 
-  /etc/sysconfig/bootloader (bnc #440125) 
+  /etc/sysconfig/bootloader (bnc#440125) 
 -2.17.39 
 
 -------------------------------------------------------------------
 Wed Nov 12 12:26:47 CET 2008 - juhliarik@suse.cz
 
-- deleted adding beep for booting (bnc #439328) 
+- deleted adding beep for booting (bnc#439328) 
 - 2.17.38
 
 -------------------------------------------------------------------
 Wed Nov 12 10:55:10 CET 2008 - juhliarik@suse.cz
 
-- added fix for problem with missing boot_* in globals (bnc #439674)
+- added fix for problem with missing boot_* in globals (bnc#439674)
 
 -------------------------------------------------------------------
 Mon Nov 10 14:46:36 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with disabled button for detail settings of
-  trusted GRUB (bnc #442706)
-- added calling function Pkg::SourceProvideFile() (bnc #409927)
+  trusted GRUB (bnc#442706)
+- added calling function Pkg::SourceProvideFile() (bnc#409927)
 - 2.17.37  
 
 -------------------------------------------------------------------
 Fri Nov  7 10:29:26 CET 2008 - juhliarik@suse.cz
 
 - added fix for writing crashkernel to bootloader from kdump on ppc
-  (bnc #441547)
-- added fix for double boot entry twice by efibootmgr (bnc #438215)
-- added fix for using fix_chs (bnc #367304)
+  (bnc#441547)
+- added fix for double boot entry twice by efibootmgr (bnc#438215)
+- added fix for using fix_chs (bnc#367304)
 - 2.17.36 
 
 -------------------------------------------------------------------
 Fri Oct 31 12:49:14 CET 2008 - juhliarik@suse.cz
 
 - added better proposal checking elilo ,lilo
-- added fix for typo (bnc #439030)
-- added fix for selectinf "none" bootloader (bnc #438976)
+- added fix for typo (bnc#439030)
+- added fix for selectinf "none" bootloader (bnc#438976)
 - 2.17.35 
 
 -------------------------------------------------------------------
 Mon Oct 27 12:45:44 CET 2008 - juhliarik@suse.cz
 
-- updated checking of boot device s not on XFS (bnc #438757)
-- added fix for problem with generic boot code (bnc #438752) 
+- updated checking of boot device s not on XFS (bnc#438757)
+- added fix for problem with generic boot code (bnc#438752) 
 - 2.17.34
 
 -------------------------------------------------------------------
@@ -216,7 +221,7 @@ Mon Oct 27 10:39:37 CET 2008 - jsrain@suse.cz
 -------------------------------------------------------------------
 Mon Oct 27 10:21:57 CET 2008 - juhliarik@suse.cz
 
-- added fix for using persistent device name in lilo (bnc #437764)
+- added fix for using persistent device name in lilo (bnc#437764)
 - 2.17.32
 
 -------------------------------------------------------------------
@@ -224,71 +229,71 @@ Fri Oct 24 14:25:23 CEST 2008 - juhliarik@suse.cz
 
 - added fix for problem with converting lilo to grub during update
   system
-- added fix - deleting read-only option for elilo (bnc #438276) 
+- added fix - deleting read-only option for elilo (bnc#438276) 
 
 -------------------------------------------------------------------
 Thu Oct 23 14:25:18 CEST 2008 - juhliarik@suse.cz
 
-- added fix for broken titles in lilo (bnc #437693)  
+- added fix for broken titles in lilo (bnc#437693)  
 
 -------------------------------------------------------------------
 Tue Oct 21 18:35:31 CEST 2008 - juhliarik@suse.cz
 
-- update for bug with deleting boot section (bnc #436890)
+- update for bug with deleting boot section (bnc#436890)
 - 2.17.31
 
 -------------------------------------------------------------------
 Tue Oct 21 12:01:31 CEST 2008 - juhliarik@suse.cz
 
 - added fix for problem with deleting all boot section for elilo
-  (bnc #436890)
-- added fox for problem with XEN boot section in domU (bnc #436899)
+  (bnc#436890)
+- added fox for problem with XEN boot section in domU (bnc#436899)
 - 2.17.30
 
 -------------------------------------------------------------------
 Fri Oct 17 14:58:02 CEST 2008 - juhliarik@suse.cz
 
-- added fix for adding language to GRUB (bnc #429287)
+- added fix for adding language to GRUB (bnc#429287)
 - 2.17.29
 
 -------------------------------------------------------------------
 Thu Oct 16 15:24:21 CEST 2008 - juhliarik@suse.cz
 
-- added fix for using autoyast profil from SLES9 (bnc #344659)
+- added fix for using autoyast profil from SLES9 (bnc#344659)
 
 -------------------------------------------------------------------
 Thu Oct 16 10:05:03 CEST 2008 - juhliarik@suse.cz
 
-- added fix for handling mounpoints (bnc #431977)
+- added fix for handling mounpoints (bnc#431977)
 
 -------------------------------------------------------------------
 Wed Oct 15 12:51:29 CEST 2008 - juhliarik@suse.cz
 
-- added fix to proposal with "/" on logical partition (bnc #259050)
+- added fix to proposal with "/" on logical partition (bnc#259050)
 
 -------------------------------------------------------------------
 Wed Oct 15 12:21:51 CEST 2008 - jsrain@suse.cz
 
 - handle multipath devices properly when creating device map
-  (bnc #433092)
+  (bnc#433092)
 - 2.17.28
 
 -------------------------------------------------------------------
 Mon Oct 13 16:40:11 CEST 2008 - juhliarik@suse.cz
 
-- added fix for translation labes for ELILO (bnc #151486)
-- added fix for typo in help text (bnc #433424)
+- added fix for translation labes for ELILO (bnc#151486)
+- added fix for typo in help text (bnc#433424)
 - added fix for problem with device names in live CD installation
-  (bnc #432699) 
+  (bnc#432699) 
 - 2.17.27
 
 -------------------------------------------------------------------
 Fri Oct 10 14:50:31 CEST 2008 - jsrain@suse.cz
 
 - fixed bootloader proposal in mixed standalone disk and BIOS-RAID
-  environments (bnc #433092)
+  environments (bnc#433092)
 - issue a warning if /boot directory is on XFS on x86 boot
-  architecture (bnc #429042)
+  architecture (bnc#429042)
 
 -------------------------------------------------------------------
 Wed Oct  8 15:32:09 CEST 2008 - juhliarik@suse.cz
@@ -298,86 +303,86 @@ Wed Oct  8 15:32:09 CEST 2008 - juhliarik@suse.cz
 -------------------------------------------------------------------
 Wed Oct  8 10:39:12 CEST 2008 - juhliarik@suse.cz
 
-- added fix for adding crashkernel from y2-kdump (bnc #432651)
-- added fix for writing proposal (bnc #433344)
-- added fix for checking if boot device is on raid0 (bnc #156800)
+- added fix for adding crashkernel from y2-kdump (bnc#432651)
+- added fix for writing proposal (bnc#433344)
+- added fix for checking if boot device is on raid0 (bnc#156800)
 - 2.17.26 
 
 -------------------------------------------------------------------
 Fri Oct  3 17:28:27 CEST 2008 - juhliarik@suse.cz
 
-- added fix for installing packages (bnc #431580)
-- added fix for 2 identical section in powerLILO (bnc #427730)
-- added fix for mapping disk by label for powerLILO (bnc #41497)
+- added fix for installing packages (bnc#431580)
+- added fix for 2 identical section in powerLILO (bnc#427730)
+- added fix for mapping disk by label for powerLILO (bnc#41497)
 - 2.17.25
 
 -------------------------------------------------------------------
 Tue Sep 30 13:37:44 CEST 2008 - juhliarik@suse.cz
 
-- updated fix for converting LILO to GRUB (bnc #430579)
+- updated fix for converting LILO to GRUB (bnc#430579)
 - 2.17.24
 
 -------------------------------------------------------------------
 Mon Sep 29 17:10:36 CEST 2008 - juhliarik@suse.cz
 
-- added new dialog for updating from lilo to grub (bnc #430579)
+- added new dialog for updating from lilo to grub (bnc#430579)
 - 2.17.23
 
 -------------------------------------------------------------------
 Mon Sep 29 15:45:41 CEST 2008 - jsrain@suse.cz
 
-- fixed no scrren contents after changing loader type (bnc #427622)
+- fixed no scrren contents after changing loader type (bnc#427622)
 - avoid mixing options of different bootloader after loaded type
   change
 
 -------------------------------------------------------------------
 Thu Sep 25 17:44:24 CEST 2008 - juhliarik@suse.cz
 
-- added fix for problem with changed default name (bnc #169062)
-- added fix for problem with editing custom boot  (bnc #395009)
-- added fix for problem with timeout update (bnc #395851)
+- added fix for problem with changed default name (bnc#169062)
+- added fix for problem with editing custom boot  (bnc#395009)
+- added fix for problem with timeout update (bnc#395851)
 - 2.17.22
 
 -------------------------------------------------------------------
 Thu Sep 18 17:39:43 CEST 2008 - juhliarik@suse.cz
 
-- added fix for initialise yast2-stroage (bnc #419197)
-- help update (bnc #220283)
+- added fix for initialise yast2-stroage (bnc#419197)
+- help update (bnc#220283)
 - 2.17.21
 
 -------------------------------------------------------------------
 Thu Sep 16 16:35:43 CEST 2008 - juhliarik@suse.cz
 
-- added fix for deleting fake xen boot section (bnc #408346)
-- added fix for failsafe options for kernel (bnc #419464)
+- added fix for deleting fake xen boot section (bnc#408346)
+- added fix for failsafe options for kernel (bnc#419464)
 - 2.17.20
 
 -------------------------------------------------------------------
 Thu Sep 16 16:35:43 CEST 2008 - juhliarik@suse.cz
 
-- added fix for getDefaultSection() for zipl (bnc #364904)
-- added fix for deleting gfxmenu from menu.lst (bnc #398806)
+- added fix for getDefaultSection() for zipl (bnc#364904)
+- added fix for deleting gfxmenu from menu.lst (bnc#398806)
 - 2.17.19
 
 -------------------------------------------------------------------
 Thu Sep 16 10:54:43 CEST 2008 - juhliarik@suse.cz
 
-- added fix for problem with rnc file - syntax error (bnc #426522)
+- added fix for problem with rnc file - syntax error (bnc#426522)
 - 2.17.18
 
 -------------------------------------------------------------------
 Thu Sep 12 14:24:43 CEST 2008 - juhliarik@suse.cz
 
-- added support of trusted grub (FATE #303784, #303672, #303891, 
-  #303983)
-- added warning that lilo is not supported (FATE #305006)
+- added support of trusted grub (fate#303784), (fate#303672), 
+  (fate#303891), (fate#303983)
+- added warning that lilo is not supported (fate#305006)
 - 2.17.17
 
 -------------------------------------------------------------------
 Thu Sep 11 15:27:43 CEST 2008 - locilka@suse.cz
 
 - Calling new reipl_bootloader_finish client from yast2-reipl
-  in bootloader_finish (FATE #304960).
+  in bootloader_finish (fate#304960).
 - 2.17.16
 
 -------------------------------------------------------------------
@@ -389,46 +394,46 @@ Thu Sep 11 08:22:53 CEST 2008 - jsrain@suse.cz
 Wed Sep  3 12:00:58 CEST 2008 - jsrain@suse.cz
 
 - added detection of EFI, proposing ELILO in that case 
- (fate #301882)
+ (fate#301882)
 - 2.17.15
 
 -------------------------------------------------------------------
 Wed Aug 20 15:34:22 CEST 2008 - jsrain@suse.cz
 
 - added skeleton for checking whether scenario is supported, not
-  yet actually used (fate #304499)
+  yet actually used (fate#304499)
 
 -------------------------------------------------------------------
 Mon Aug 18 12:34:35 CEST 2008 - jsrain@suse.cz
 
 - store bootloader type before installing packages, fixed check
-  for undefined product name (bnc #417383)
+  for undefined product name (bnc#417383)
 - 2.17.14 
 
 -------------------------------------------------------------------
 Thu Aug 14 15:16:04 CEST 2008 - juhliarik@suse.cz
 
-- added support for creating console for kernel args (fate #110038)
+- added support for creating console for kernel args (fate#110038)
 - 2.17.13 
 
 -------------------------------------------------------------------
 Wed Aug 13 14:36:59 CEST 2008 - juhliarik@suse.cz
 
-- added changes for pesistent device names (fate #302219)
+- added changes for pesistent device names (fate#302219)
 - 2.17.12
 
 -------------------------------------------------------------------
 Wed Aug  6 15:42:28 CEST 2008 - juhliarik@suse.cz
 
-- added better detection of NFS boot device (bnc #408912) 
+- added better detection of NFS boot device (bnc#408912) 
 - added better detection of EVMS - do not install bootloader 
-  (fate #305007)
+  (fate#305007)
 - 2.17.11
 
 -------------------------------------------------------------------
 Wed Aug  6 12:55:17 CEST 2008 - juhliarik@suse.cz
 
-- added support for acoustic signals (fate #303481)
+- added support for acoustic signals (fate#303481)
 - added checkbox for enabling remapping in chainloader section
 - 2.17.10
 
@@ -436,39 +441,39 @@ Wed Aug  6 12:55:17 CEST 2008 - juhliarik@suse.cz
 Tue Aug  5 12:05:04 CEST 2008 - juhliarik@suse.cz
 
 - added/enabled support for ordering disks in device.map for GRUB
-  (fate ##303964)
+  (fate#303964)
 - 2.17.9 
 
 -------------------------------------------------------------------
 Mon Aug  4 13:29:01 CEST 2008 - juhliarik@suse.cz
 
 - added support for reducing devices from device.map to 8 devices
-  (fate #303548)
+  (fate#303548)
 - 2.17.8  
 
 -------------------------------------------------------------------
 Thu Jul 31 10:27:42 CEST 2008 - juhliarik@suse.cz
 
 - added support for remaping windows chainloader boot section
-  (fate #301994)
+  (fate#301994)
 - 2.17.7 
 
 -------------------------------------------------------------------
 Tue Jul 29 18:18:38 CEST 2008 - juhliarik@suse.cz
 
 - update solution for saving kernel args to 
-  /etc/sysconfig/bootloader (fate #302245)
+  /etc/sysconfig/bootloader (fate#302245)
 - 2.17.6
 
 ------------------------------------------------------------------
 Sun Jul 27 17:52:58 CEST 2008 - juhliarik@suse.cz
 
-- added powersaved=off to boot section for failsave (bnc #153345)
+- added powersaved=off to boot section for failsave (bnc#153345)
 
 -------------------------------------------------------------------
 Wed Jul 23 15:16:58 CEST 2008 - juhliarik@suse.cz
 
-- added support for persistent device names (fate #302219)  
+- added support for persistent device names (fate#302219)  
 - 2.17.5
 
 -------------------------------------------------------------------
@@ -480,7 +485,7 @@ Wed Jul 21 09:20:13 CEST 2008 - juhliarik@suse.cz
 Wed Jul 16 14:27:23 CEST 2008 - jsrain@suse.cz
 
 - store kernel parameters to sysconfig during installation
-  (fate #302245)
+  (fate#302245)
 
 -------------------------------------------------------------------
 Fri Jul 11 13:18:05 CEST 2008 - ug@suse.de
@@ -490,26 +495,26 @@ Fri Jul 11 13:18:05 CEST 2008 - ug@suse.de
 -------------------------------------------------------------------
 Thu Jul 10 17:29:00 CEST 2008 - juhliarik@suse.cz
 
-- enable installing GRUB to XEN  (bnc #380982)
+- enable installing GRUB to XEN  (bnc#380982)
 - 2.17.3
 
 -------------------------------------------------------------------
 Thu Jun 27 17:24:00 CEST 2008 - juhliarik@suse.cz
 
-- correct labels for buttons  (bnc #398492)
+- correct labels for buttons  (bnc#398492)
 
 -------------------------------------------------------------------
 Thu Jun 26 17:24:00 CEST 2008 - juhliarik@suse.cz
 
-- deleted support xenpae (bnc #400526)
+- deleted support xenpae (bnc#400526)
 - 2.17.2
 
 -------------------------------------------------------------------
 Thu Jun 26 16:51:00 CEST 2008 - juhliarik@suse.cz
 
 - added support for better detection Vista in MBR
-- added fix for installing generic code if MBR is uknown (bnc #400062)
-- added fix for detection MBR if sw-raid is used (bnc #398356)
+- added fix for installing generic code if MBR is uknown (bnc#400062)
+- added fix for detection MBR if sw-raid is used (bnc#398356)
 - 2.17.1
 
 -------------------------------------------------------------------
