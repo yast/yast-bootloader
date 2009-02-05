@@ -43,6 +43,14 @@
     global map<string, integer> Md2Partitions (string md_device);
     global void DetectDisks ();
     global string getBootPartition();
+    global string DiskOrderSummary ();
+    global list<string> DisksOrder ();
+    global void ProposeDeviceMap ();
+    global boolean DisksChanged ();
+    global define list<string> getPartitionList(symbol type);
+
+    include "bootloader/routines/i386.ycp";
+
 
     /**
       * return printable name of bootloader
@@ -1528,12 +1536,21 @@ list<string> ListKernelParamsInLine (string line) {
 	SCR::Execute (.target.bash, sformat (
 	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
 	    device, device_file_path_to_logs));
+
 	if (device == mbrDisk)
 	{
 	    SCR::Execute (.target.bash, sformat (
 		"/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
 		device, "/boot/backup_mbr"));
 
+    	    // save thinkpad MBR 
+	    if (ThinkPadMBR(device))
+	    {
+	       string device_file_path_thinkpad = device_file_path + "thinkpadMBR";
+	       y2milestone("Backup thinkpad MBR");
+	       SCR::Execute(.target.bash, sformat (
+	       "cp %1 %2 2>&1", device_file_path, device_file_path_thinkpad));
+	    }
 	}
     }
 

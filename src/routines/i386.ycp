@@ -91,14 +91,6 @@ string GetMBRContents (string disk) {
  */
 global boolean ThinkPadMBR (string disk) {
 
-    // FIXME: see bug #464485 there is problem with detection of
-    // MBR the 3rd byte is 0 after recovery thinkpad notebook with
-    // recovery CD, next missing cooperate with Lenovo there also
-    // missing any specification about Lenovo's changes in MBR
-
-    y2milestone("Skip checking of MBR for thinkpad sequence");
-    return false;
-
     if (_thinkpad_mbr == nil || disk != _old_thinkpad_disk)
     {
 	_old_thinkpad_disk = disk;
@@ -124,8 +116,15 @@ global boolean ThinkPadMBR (string disk) {
  * @return boolean true to keep the contents
  */
 global boolean KeepMBR (string disk) {
-    if (ThinkPadMBR (disk))
-	return true;
+    //if (ThinkPadMBR (disk))
+    //	return true;
+    // FIXME: see bug #464485 there is problem with detection of
+    // MBR the 3rd byte is 0 after recovery thinkpad notebook with
+    // recovery CD, next missing cooperate with Lenovo there also
+    // missing any specification about Lenovo's changes in MBR
+
+    y2milestone("Skip checking of MBR for thinkpad sequence");
+
     return false;
 }
 

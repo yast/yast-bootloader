@@ -434,12 +434,7 @@ include "bootloader/routines/misc.ycp";
 include "bootloader/routines/lilolike.ycp";
 include "bootloader/routines/lib_iface.ycp";
 
-
-
 // interface to bootloader library
-
-
-
 
 // FIXME 2x functions should not be finally here...
 /**

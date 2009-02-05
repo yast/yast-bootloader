@@ -311,6 +311,14 @@ global boolean grub_InstallingToFloppy () {
 		"/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
 		device, "/boot/backup_mbr"));
 
+    	    // save thinkpad MBR 
+	    if (BootCommon::ThinkPadMBR(device))
+	    {
+	       string device_file_path_thinkpad = device_file_path + "thinkpadMBR";
+	       y2milestone("Backup thinkpad MBR");
+	       SCR::Execute(.target.bash, sformat (
+	       "cp %1 %2 2>&1", device_file_path, device_file_path_thinkpad));
+	    }
 	}
     }
 
