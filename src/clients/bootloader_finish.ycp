@@ -93,9 +93,9 @@ fi
     // where we do a hard reboot. However, the cdrom is still mounted here
     // and cant be removed.
 
+    map finish_ret = nil;
     if (Arch::s390 ())
     {
-	map finish_ret = nil;
 	string reipl_client = "reipl_bootloader_finish";
 
 	// Calling a special reIPL client
@@ -106,12 +106,14 @@ fi
 	} else {
 	    y2error ("No such client: %1", reipl_client);
 	}
+    }
+
+    if (Arch::s390 () && finish_ret["different"]:true == true)
+    {
 
 	// reIPL message
 	string ipl_msg = "";
-	if (finish_ret["different"]:false == true) {
-	    ipl_msg = finish_ret["ipl_msg"]:"";
-	}
+        ipl_msg = finish_ret["ipl_msg"]:"";
 
 	// SSH modification
 	string usessh_msg = "";

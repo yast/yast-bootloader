@@ -645,23 +645,26 @@ global define string Dev2MountByDev(string dev)
 
 	map<string,map> partitions = BootCommon::all_partitions;
 	map<string,map> devices = BootCommon::target_map;
-	
+	map partition = $[];
+	map device = $[];
 	string ret = dev;
 	switch(by_mount) 
 	{
 		// convert to udev_id
 		case (`id):
 			// partitions
-			if ((partitions[dev, "udev_id"]:nil != nil) && (partitions[dev, "udev_id", 0]:nil != ""))
+			partition = partitions[dev]:$[];
+			if ((partition["udev_id"]:nil != nil) && (partition["udev_id", 0]:nil != ""))
 			{
-				ret = sformat ("/dev/disk/by-id/%1", partitions[dev, "udev_id", 0]:"");
+				ret = sformat ("/dev/disk/by-id/%1", partition["udev_id", 0]:"");
 	   			y2milestone ("Device name: %1 is converted to udev id: %2", dev, ret);
 	   			return ret;
 			}
 			// disks
-			if ((devices[dev, "udev_id"]:nil != nil) && (devices[dev, "udev_id", 0]:nil != ""))
+			device = devices[dev]:$[];
+			if ((device["udev_id"]:nil != nil) && (device["udev_id", 0]:nil != ""))
 			{
-	   			ret = sformat ("/dev/disk/by-id/%1", devices[dev, "udev_id", 0]:"");
+	   			ret = sformat ("/dev/disk/by-id/%1", device["udev_id", 0]:"");
 	   			y2milestone ("Device name: %1 is converted to udev id: %2", dev, ret);
 	   			return ret;
 			}
@@ -670,16 +673,18 @@ global define string Dev2MountByDev(string dev)
 		// convert to uuid
 		case (`uuid):
 			// partitions
-			if ((partitions[dev, "uuid"]:nil != nil) && (partitions[dev, "uuid"]:nil != ""))
+			partition = partitions[dev]:$[];
+			if ((partition["uuid"]:nil != nil) && (partition["uuid"]:nil != ""))
 			{
-	   			ret = sformat ("/dev/disk/by-uuid/%1", partitions[dev, "uuid"]:"");
+	   			ret = sformat ("/dev/disk/by-uuid/%1", partition["uuid"]:"");
 	   			y2milestone ("Device name: %1 is converted to uuid: %2", dev, ret);
 	   			return ret;
 			}
 			// disks
-			if ((devices[dev, "uuid"]:nil != nil) && (devices[dev, "uuid"]:nil != ""))
+			device = devices[dev]:$[];
+			if ((device["uuid"]:nil != nil) && (device["uuid"]:nil != ""))
 			{
-	   			ret = sformat ("/dev/disk/by-uuid/%1", devices[dev, "uuid"]:"");
+	   			ret = sformat ("/dev/disk/by-uuid/%1", device["uuid"]:"");
 	   			y2milestone ("Device name: %1 is converted to uuid: %2", dev, ret);
 	   			return ret;
 			}
@@ -688,16 +693,18 @@ global define string Dev2MountByDev(string dev)
 		// convert to udev_path
 		case (`path):
 			// partitions
-			if ((partitions[dev, "udev_path"]:nil != nil) && (partitions[dev, "udev_path"]:nil != ""))
+			partition = partitions[dev]:$[];
+			if ((partition["udev_path"]:nil != nil) && (partition["udev_path"]:nil != ""))
 			{
-	   			ret = sformat ("/dev/disk/by-path/%1", partitions[dev, "udev_path"]:"");
+	   			ret = sformat ("/dev/disk/by-path/%1", partition["udev_path"]:"");
 	   			y2milestone ("Device name: %1 is converted to udev path: %2", dev, ret);
 	   			return ret;
 			}
 			// disks
-			if ((devices[dev, "udev_path"]:nil != nil) && (devices[dev, "udev_path"]:nil != ""))
+			device = devices[dev]:$[];
+			if ((device["udev_path"]:nil != nil) && (device["udev_path"]:nil != ""))
 			{
-	   			ret = sformat ("/dev/disk/by-path/%1", devices[dev, "udev_path"]:"");
+	   			ret = sformat ("/dev/disk/by-path/%1", device["udev_path"]:"");
 	   			y2milestone ("Device name: %1 is converted to udev path: %2", dev, ret);
 	   			return ret;
 			}
@@ -706,9 +713,10 @@ global define string Dev2MountByDev(string dev)
 		// convert to label
 		case (`label):
 			// partitions
-			if ((partitions[dev, "label"]:nil != nil) && (partitions[dev, "label"]:nil != ""))
+			partition = partitions[dev]:$[];
+			if ((partition["label"]:nil != nil) && (partition["label"]:nil != ""))
 			{
-	   			ret = sformat ("/dev/disk/by-label/%1", partitions[dev, "label"]:"");
+	   			ret = sformat ("/dev/disk/by-label/%1", partition["label"]:"");
 	   			y2milestone ("Device name: %1 is converted to label: %2", dev, ret);
 	   			return ret;
 			}

@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Fri Feb  6 15:09:36 CET 2009 - juhliarik@suse.de
+
+- added pacth from IBM for s390 and reipl (bnc#471522)
+- 2.17.56
+
+-------------------------------------------------------------------
+Fri Feb  6 10:56:43 CET 2009 - juhliarik@suse.de
+
+- updated function Dev2MountByDev() for increase performance 
+  (bnc#468922)
+
+-------------------------------------------------------------------
 Thu Feb  5 15:28:09 CET 2009 - juhliarik@suse.cz
 
 - added fix which also backup thinkpad MBR (bnc#464485)
