@@ -118,7 +118,7 @@ symbol MainDialog () {
 	"widget_names" : widget_names,
 	"contents" : contents,
 	"caption" : caption,
-	"back_button" : Label::BackButton (),
+	"back_button" : "",
 	"abort_button" :Label::CancelButton (),
 	"next_button" : Label::OKButton (),
 	"fallback_functions" : global_handlers,
