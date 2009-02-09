@@ -182,6 +182,22 @@ The range is limited by BIOS to the first 8 devices."),
 		    ]);
 		}
 	    }
+
+            if (Arch::board_mac_new()) {
+
+	    	if ( BootCommon::loader_device == "" ) {
+	    		ret = (map<string,any>)union (ret, $[
+	    			"warning_level" : `blocker,
+	    			"warning" :
+	    			    ret["warning"]:"" +
+	    			    _("Configure a valid boot loader location before continuing.<br>
+In case that no selection can be made it may be necessary to create a small primary Apple HFS partition."),
+	        		]
+	            );
+	        }
+	    }
+
+
 	    if (Arch::board_iseries()) {
 	      // FIXME: handle consistency test for iseries configuration
 	      // currently: none

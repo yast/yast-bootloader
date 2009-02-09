@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb  9 15:42:12 CET 2009 - juhliarik@suse.de
+
+- added fix for using buttons (bnc #440553)
+- added fix for checking boot device on mac machines (bnc #343670)
+- 2.18.2 
+
+-------------------------------------------------------------------
 Wed Feb  4 14:50:21 CET 2008 - juhliarik@suse.cz
 
 - added fix for problem with unnecessary popup mesage for writting
