@@ -1,7 +1,13 @@
 -------------------------------------------------------------------
+Mon Feb  9 09:36:23 CET 2009 - juhliarik@suse.de
+
+- added updated patch from IBM and reipl (bnc#471522)
+- 2.17.57
+
+-------------------------------------------------------------------
 Fri Feb  6 15:09:36 CET 2009 - juhliarik@suse.de
 
-- added pacth from IBM for s390 and reipl (bnc#471522)
+- added patch from IBM for s390 and reipl (bnc#471522)
 - 2.17.56
 
 -------------------------------------------------------------------

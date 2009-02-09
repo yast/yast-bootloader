@@ -103,6 +103,13 @@ fi
 
 	if (WFM::ClientExists (reipl_client)) {
 	    finish_ret = (map) WFM::call (reipl_client);
+           y2milestone ("result of reipl_bootloader_finish [%1, %2]", finish_ret["different"]:"N/A", finish_ret["ipl_msg"]:"N/A2");
+           y2milestone ("finish_ret[\"different\"]:true == true : %1", finish_ret["different"]:true == true);
+           if (finish_ret["different"]:false == true) {
+             y2milestone ("finish_ret[\"different\"] is true");
+           } else {
+             y2milestone ("finish_ret[\"different\"] is not true (either undefined or false)");
+           }
 	} else {
 	    y2error ("No such client: %1", reipl_client);
 	}
