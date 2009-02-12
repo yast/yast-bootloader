@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb 12 14:57:16 CET 2009 - juhliarik@suse.de
+
+- added fix for problem with missing error message about using boot
+  on the 4th partition and also using of GPT (bnc#474854)
+- 2.17.58
+
+-------------------------------------------------------------------
 Mon Feb  9 09:36:23 CET 2009 - juhliarik@suse.de
 
 - added updated patch from IBM and reipl (bnc#471522)

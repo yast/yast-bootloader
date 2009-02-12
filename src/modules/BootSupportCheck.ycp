@@ -135,6 +135,7 @@ boolean CorrectLoaderType () {
  // FIXME adapt for ELILO if needed
  */
 boolean GptPartitionTable () {
+    boolean ret = true;
     map tm = Storage::GetTargetMap ();
     list<string> devices = [ BootCommon::BootPartitionDevice ];
     // TODO add more devices
@@ -151,11 +152,11 @@ boolean GptPartitionTable () {
 	    {
 		y2error ("Partition number > 3 is being used for booting with GPT partition table");
 		AddNewProblem (_("Partition number > 3 is being used for booting with GPT partition table"));
-		return false;
+		ret = false;
 	    }
 	}
     });
-    return true;
+    return ret;
 }
 
 
