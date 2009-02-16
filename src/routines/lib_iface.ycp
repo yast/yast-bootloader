@@ -34,9 +34,45 @@ import "Mode";
 string library_initialized = nil;
 
 /**
+ * Storage locked
+ */
+
+boolean storage_initialized = false;
+
+/**
  * Declarations...
  */
 global boolean  DefineMultipath(map<string,string> multipath_map);
+
+
+boolean checkCallingDiskInfo ()
+{
+    boolean ret = false;
+
+    // fix for problem with unintialized storage library in AutoYaST mode
+    // bnc #464090
+    if (Mode::config() && (!storage_initialized))
+    {
+	storage_initialized = true;
+	y2milestone("Init storage library in yast2-bootloader");
+	Storage::InitLibstorage(true);
+    }
+    if ((disk_change_time_checkCallingDiskInfo != Storage::GetTargetChangeTime())
+	|| (size(partinfo) < 1))
+    {
+	// save last change time from storage
+	disk_change_time_checkCallingDiskInfo = Storage::GetTargetChangeTime();
+	y2milestone("disk was changes by storage or partinfo is empty: %1", size(partinfo));
+	y2milestone("generate partinfo, md_info, mountpoints and multipath_mapping");
+	ret = true;
+    } else {
+	ret = false;
+	y2milestone("Skip genarating partinfo, md_info, mountpoints and multipath_mapping");
+    }
+
+    return ret;
+}
+
 
 /**
  *  Retrieve the data for perl-Bootloader library from Storage module
@@ -45,89 +81,97 @@ global boolean  DefineMultipath(map<string,string> multipath_map);
  */
 // FIXME: this should be done directly in perl-Bootloader through LibStorage.pm
 global void SetDiskInfo () {
-    map<string,list<string> > md_info = $[];
 
-    map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
+    if (checkCallingDiskInfo())
+    {
+	// delete variables for perl-Bootloader
+        md_info = $[];
+	multipath_mapping = $[];
+	partinfo = [];
+	mountpoints = $[];
 
-    multipath_mapping = $[];
-    multipath_mapping = BootCommon::mapRealDevicesToMultipath();
-    map<string,any> mountpoints = mapmap (string k, list v,
+    	map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
+
+    
+    	multipath_mapping = BootCommon::mapRealDevicesToMultipath();
+    	mountpoints = mapmap (string k, list v,
 	(map<string,list>)Storage::GetMountPoints (),
-    {
-        // detect all raid1 md devices and mark them in md_info
-        any device = v[0]:nil;
-	if (v[3]:"" == "raid1")
-	   md_info[(string)device]=[];
-	return $[ k : device ];
-    });
-    mountpoints = filter (string k, any v, mountpoints, {
-	string tmpdir = (string)SCR::Read (.target.tmpdir);
-	integer tmp_sz = size (tmpdir);
-	return is (v, string) && substring (k, 0, tmp_sz) != tmpdir;
-    });
+    	{
+             // detect all raid1 md devices and mark them in md_info
+             any device = v[0]:nil;
+	     if (v[3]:"" == "raid1")
+	         md_info[(string)device]=[];
+	     return $[ k : device ];
+    	});
+    	mountpoints = filter (string k, any v, mountpoints, {
+	     string tmpdir = (string)SCR::Read (.target.tmpdir);
+	     integer tmp_sz = size (tmpdir);
+	     return is (v, string) && substring (k, 0, tmp_sz) != tmpdir;
+    	});
 
-    y2milestone ("Detected mountpoints: %1", mountpoints);
+    	y2milestone ("Detected mountpoints: %1", mountpoints);
 
-    list<list<list> > pi = maplist (string disk, map info, tm,
-    {
-	if (info["type"]:`CT_UNKNOWN==`CT_LVM)
-	    return [];
-	if (info["type"]:`CT_UNKNOWN==`CT_EVMS)
-	    return [];
-	list partitions = info["partitions"]:[];
-	list<list> parts = maplist (map p, (list<map>)partitions, {
-	    string raid = "";
-	    if( p["used_by_type"]:`UB_NONE==`UB_MD )
-		raid = p["used_by"]:"";
-	    string device = p["device"]:"";
-	    // We only pass along RAID1 devices as all other causes
-	    // severe breakage in the bootloader stack
-	    if (raid != "") {
-	        raid = "/dev/" + raid;
-		if (haskey (md_info, raid)) {
-		    list<string> members = md_info[raid]:[];
-		    members = add (members, device);
-		    md_info[raid] = members;
-		}
-	    }
-	    any nr = p["nr"]:nil;
-	    if (nr == nil)
-		nr = 0;
-	    string nr_str = sformat ("%1", nr);
-     /* FIXME: And the other information about the disk ?:
-            p["fsid"] = LibStorage::PartitionInfo::swig_id_get(info);
-            p["fstype"] = Partitions::FsIdToString( p["fsid"]:0 );
-            p["region"] = [ LibStorage::PartitionInfo::swig_cylStart_get(info),
+    	list<list<list> > pi = maplist (string disk, map info, tm,
+    	{
+	    if (info["type"]:`CT_UNKNOWN==`CT_LVM)
+	        return [];
+	    if (info["type"]:`CT_UNKNOWN==`CT_EVMS)
+	        return [];
+	    list partitions = info["partitions"]:[];
+	    list<list> parts = maplist (map p, (list<map>)partitions, {
+	        string raid = "";
+	        if( p["used_by_type"]:`UB_NONE==`UB_MD )
+		   raid = p["used_by"]:"";
+	        string device = p["device"]:"";
+	        // We only pass along RAID1 devices as all other causes
+	        // severe breakage in the bootloader stack
+	        if (raid != "") {
+	            raid = "/dev/" + raid;
+		    if (haskey (md_info, raid)) {
+		        list<string> members = md_info[raid]:[];
+		        members = add (members, device);
+		        md_info[raid] = members;
+		    }
+	        }
+	        any nr = p["nr"]:nil;
+	        if (nr == nil)
+		    nr = 0;
+	        string nr_str = sformat ("%1", nr);
+               /* FIXME: And the other information about the disk ?:
+                p["fsid"] = LibStorage::PartitionInfo::swig_id_get(info);
+                p["fstype"] = Partitions::FsIdToString( p["fsid"]:0 );
+                p["region"] = [ LibStorage::PartitionInfo::swig_cylStart_get(info),
                             LibStorage::PartitionInfo::swig_cylSize_get(info) ];
-            p["type"] = toSymbol( conv_ptype, t );
-            p["boot"] = true;
-      */
+                p["type"] = toSymbol( conv_ptype, t );
+                p["boot"] = true;
+               */
 
-	    return [ device, disk, nr_str, tostring(p["fsid"]:0),
-		p["fstype"]:"unknown", tostring(p["type"]:nil),
-		tostring(p["region", 0]:0), tostring(p["region", 1]:0)
-	    ];
-	});
-	return parts;
-    });
-    list<list> partinfo = flatten (pi);
-    partinfo = filter (list p, partinfo, {return p != nil && p != [];});
-    list<list> partinfo_mountby = [];
-    // adding moundby (by-id) via user preference
-    foreach(list partition, partinfo, {
-	list tmp =[];
-	string mount_by = BootCommon::Dev2MountByDev(tostring(partition[0]:""));
-	if (mount_by != tostring(partition[0]:""))
-	{
-	    tmp = add(partition, mount_by);
-	} else {
-	    tmp = partition;
-	}
-	partinfo_mountby = add(partinfo_mountby, tmp);
-    });
-    // y2milestone("added mountby: %1", partinfo_mountby);
+	        return [ device, disk, nr_str, tostring(p["fsid"]:0),
+		    p["fstype"]:"unknown", tostring(p["type"]:nil),
+		    tostring(p["region", 0]:0), tostring(p["region", 1]:0)
+	        ];
+	    });
+	    return parts;
+    	});
+    	partinfo = flatten (pi);
+    	partinfo = filter (list p, partinfo, {return p != nil && p != [];});
+    	list<list> partinfo_mountby = [];
+    	// adding moundby (by-id) via user preference
+    	foreach(list partition, partinfo, {
+	    list tmp =[];
+	    string mount_by = BootCommon::Dev2MountByDev(tostring(partition[0]:""));
+	    if (mount_by != tostring(partition[0]:""))
+	    {
+	        tmp = add(partition, mount_by);
+	    } else {
+	        tmp = partition;
+	    }
+	    partinfo_mountby = add(partinfo_mountby, tmp);
+    	});
+    	// y2milestone("added mountby: %1", partinfo_mountby);
 
-    partinfo = partinfo_mountby;
+    	partinfo = partinfo_mountby;
+    }
 
     y2milestone ("Information about partitioning: %1", partinfo);
     y2milestone ("Information about MD arrays: %1", md_info);

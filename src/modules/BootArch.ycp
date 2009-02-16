@@ -60,7 +60,7 @@ global string DefaultKernelParams (string resume) {
 	    ret = ret + features + " "; 
 	if (regexpmatch (ret, "^(.* )?splash=[[:lower:]]+( .*)?$"))
 	    ret = regexpsub (ret, "^((.* ))?splash=[[:lower:]]+(( .*)?)$", "\\1 \\3");
-	ret = ret + "splash=silent showopts";
+	ret = ret + "splash=silent quiet";
 	return ret;
     }
     else if (Arch::ia64 ())
@@ -68,7 +68,7 @@ global string DefaultKernelParams (string resume) {
 	string ret = (kernel_cmdline != "") ? kernel_cmdline + " " : "";
 	if (features != "")
 	    ret = ret + features + " "; 
-	ret = ret + "splash=silent";
+	ret = ret + "splash=silent quiet";
 
 	// FIXME: this does not belong here, it cannot be tracked or maintained
 	// and is undocumented

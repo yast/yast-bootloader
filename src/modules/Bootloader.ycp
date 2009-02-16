@@ -232,11 +232,11 @@
 	if (testAbort ())
 	    return false;
 
-	Bootloader::getLoaderType ();
-
 	Progress::NextStage ();
 	if (!checkUsedStorage ())
 	    return false;
+
+	Bootloader::getLoaderType ();
 
 	BootCommon::DetectDisks ();
         Progress::NextStage ();

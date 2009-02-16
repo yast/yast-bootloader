@@ -584,10 +584,11 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
 boolean MapAllPartitions()
 {
     boolean ret = false;
-    if (saved_last_change_time_from_storage != Storage::GetTargetChangeTime())
+    if ((disk_change_time_MapAllPartitions != Storage::GetTargetChangeTime())
+	|| (size(BootCommon::all_partitions) < 1) || (size(BootCommon::target_map) < 1))
     {
 	// save last change time from storage for MapAllPartitions()
-	saved_last_change_time_from_storage = Storage::GetTargetChangeTime();
+	disk_change_time_MapAllPartitions = Storage::GetTargetChangeTime();
 
 	BootCommon::all_partitions = $[];
 	BootCommon::target_map = $[];

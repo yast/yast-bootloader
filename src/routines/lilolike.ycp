@@ -1331,90 +1331,97 @@ global void ProposeDeviceMap () {
 
     device_mapping = $[];
     multipath_mapping = $[];
-    map<string,map> targetMap = $[];
-    if (Mode::config ())
-	y2milestone ("Skipping device map proposing in Config mode");
-    else
-	targetMap = (map<string,map>)Storage::GetTargetMap();
 
-    // filter out members of BIOS RAIDs and multipath devices
-    targetMap = filter (string k, map v, targetMap, {
-	return v["used_by_type"]:nil != `UB_DMRAID && v["used_by_type"]:nil != `UB_DMMULTIPATH;
-    });
-    // filter out non-disk devices
-    targetMap = filter (string k, map v, targetMap, {
-	return v["type"]:`CT_UNKNOWN==`CT_DMRAID || v["type"]:`CT_UNKNOWN==`CT_DISK
-	    || v["type"]:`CT_UNKNOWN==`CT_DMMULTIPATH;
-    });
+    if (getLoaderType (false) == "grub")
+    {
+       map<string,map> targetMap = $[];
+       if (Mode::config ())
+	   y2milestone ("Skipping device map proposing in Config mode");
+       else
+	   targetMap = (map<string,map>)Storage::GetTargetMap();
 
-    y2milestone ("Target map: %1", targetMap);
+       // filter out members of BIOS RAIDs and multipath devices
+       targetMap = filter (string k, map v, targetMap, {
+	   return v["used_by_type"]:nil != `UB_DMRAID && v["used_by_type"]:nil != `UB_DMMULTIPATH;
+       });
+       // filter out non-disk devices
+       targetMap = filter (string k, map v, targetMap, {
+	   return v["type"]:`CT_UNKNOWN==`CT_DMRAID || v["type"]:`CT_UNKNOWN==`CT_DISK
+	       || v["type"]:`CT_UNKNOWN==`CT_DMMULTIPATH;
+       });
 
-    // add devices with known bios_id
-    // collect BIOS IDs which are used
-    map ids = $[];
-    foreach (string target_dev, map target, targetMap, {
-        string bios_id = target["bios_id"]:"";
-        if (bios_id != "")
-        {
-            integer index = tointeger (bios_id) - tointeger ("0x80");
-            string grub_dev = sformat ("hd%1", index);
-	    // FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
-	    if (! ids[index]:false)
-            {
-	    	device_mapping[target_dev] = grub_dev;
-            	ids[index] = true;
-	    }
-        }
-    });
-    // and guess other devices
-    // don't use already used BIOS IDs
-    foreach (string target_dev, map target, targetMap, {
-        string bios_id = target["bios_id"]:"";
-        if (bios_id == "")
-        {
-            integer index = 0;
-            while (ids[index]:false)
-                index = index + 1;
-            string grub_dev = sformat ("hd%1", index);
-	    device_mapping[target_dev] = grub_dev;
-            ids[index] = true;
-        }
-    });
+       y2milestone ("Target map: %1", targetMap);
 
-    // Fill usb_disks list with usb removable devices.
-    //
-    // It's not easy to determine how to identify removable usb devices. Now
-    // it tests if driver of device is usb-storage. If you find better
-    // algorithm how to find removable usb devices, put it here into foreach
-    // to apply this algorithm on all devices.
-    foreach (string target_dev, map target, targetMap,
-        {
+       // add devices with known bios_id
+       // collect BIOS IDs which are used
+       map ids = $[];
+       foreach (string target_dev, map target, targetMap, {
+          string bios_id = target["bios_id"]:"";
+          if (bios_id != "")
+          {
+              integer index = tointeger (bios_id) - tointeger ("0x80");
+              string grub_dev = sformat ("hd%1", index);
+	      // FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
+	      if (! ids[index]:false)
+              {
+	    	  device_mapping[target_dev] = grub_dev;
+            	  ids[index] = true;
+	      }
+          }
+       });
+       // and guess other devices
+       // don't use already used BIOS IDs
+       foreach (string target_dev, map target, targetMap, {
+           string bios_id = target["bios_id"]:"";
+           if (bios_id == "")
+           {
+               integer index = 0;
+               while (ids[index]:false)
+                  index = index + 1;
+               string grub_dev = sformat ("hd%1", index);
+	       device_mapping[target_dev] = grub_dev;
+               ids[index] = true;
+           }
+       });
+
+       // Fill usb_disks list with usb removable devices.
+       //
+       // It's not easy to determine how to identify removable usb devices. Now
+       // it tests if driver of device is usb-storage. If you find better
+       // algorithm how to find removable usb devices, put it here into foreach
+       // to apply this algorithm on all devices.
+       foreach (string target_dev, map target, targetMap,
+       {
             string driver = target["driver"]:"";
             if (driver == "usb-storage"){
                 usb_disks = add(usb_disks, target_dev);
             }
-        });
-    y2milestone("Found usb discs: %1", usb_disks);
+       });
+       y2milestone("Found usb discs: %1", usb_disks);
     
-    // change order in device_mapping if usb disk is hd0
-    // (FATE #302075)
-    if (isHd0(usb_disks)
+       // change order in device_mapping if usb disk is hd0
+       // (FATE #302075)
+       if (isHd0(usb_disks)
         && BootCommon::BootPartitionDevice != getKey("hd0", device_mapping)){
-	y2milestone ("Detected device mapping: %1", device_mapping);
-        y2milestone("Changing order in device mapping needed...");
-        changeOrderInDeviceMapping(usb_disks);
+	   y2milestone ("Detected device mapping: %1", device_mapping);
+           y2milestone("Changing order in device mapping needed...");
+           changeOrderInDeviceMapping(usb_disks);
+       }
+
+       if (size(device_mapping) == 1)
+	   bois_id_missing = false;
+       if (StorageDevices::FloppyPresent())
+	   device_mapping[StorageDevices::FloppyDevice()] = "fd0";
+
+       y2milestone ("Detected device mapping: %1", device_mapping);
+
+       multipath_mapping = BootCommon::mapRealDevicesToMultipath();
+
+       y2milestone ("Detected multipath mapping: %1", multipath_mapping);
+
+    } else {
+	y2milestone("Skip creating device map for bootloader: %1", getLoaderType (false));
     }
-
-    if (size(device_mapping) == 1)
-	bois_id_missing = false;
-    if (StorageDevices::FloppyPresent())
-	device_mapping[StorageDevices::FloppyDevice()] = "fd0";
-
-    y2milestone ("Detected device mapping: %1", device_mapping);
-
-    multipath_mapping = BootCommon::mapRealDevicesToMultipath();
-
-    y2milestone ("Detected multipath mapping: %1", multipath_mapping);
 }
 
 /**
