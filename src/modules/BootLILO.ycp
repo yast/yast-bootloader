@@ -242,7 +242,7 @@ string getDeviceOfRaid (string device) {
     });
 
     // filter partitions to relevant list according to raid name
-    list<map> md_list = filter (map e, partitions, ``(e["used_by"]:"" == substring(device,5)));
+    list<map> md_list = filter (map e, partitions, ``(e["used_by_device"]:"" == device));
     // get the devices
     list<string> dev_list = maplist (map e, md_list, ``(e["device"]:""));
     dev_list = filter (string d, dev_list, ``(d != ""));

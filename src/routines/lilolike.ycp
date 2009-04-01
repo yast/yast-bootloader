@@ -380,7 +380,7 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 	    list<map<string,any> > partitions = (list<map<string,any> >)
 		descr["partitions"]:[];
 	    foreach (map<string,any> partition, partitions, ``{
-		if (partition["used_by"]:"" == substring(md_device,5))
+		if (partition["used_by_device"]:"" == md_device)
 		{
 		    string d = (string)(partition["device"]:"");
 		    ret[d] = bios_id;
