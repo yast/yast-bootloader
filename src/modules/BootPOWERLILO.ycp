@@ -177,7 +177,7 @@ void choosePrepBootPartition () {
 	foreach (string dev, map info, tm, {
 	    list<map> partitions = info["partitions"]:[];
 	    foreach (map p, partitions, {
-	        if (p["used_by"]:"" == vg) {
+	        if (p["used_by_device"]:"" == "/dev/" + vg) {
 		    root_disks = add (root_disks, dev);
 		}
 	    });
