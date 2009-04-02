@@ -22,6 +22,7 @@ textdomain "bootloader";
 
 import "CWM";
 import "CWMTab";
+import "CWMTable";
 import "Label";
 import "Mode";
 import "Storage";
@@ -157,7 +158,7 @@ void RedrawSectionsTable (list<map<string,any> > sects) {
 	    info
         );
     });
-    UI::ChangeWidget (`id (`sects), `Items, sec);
+    UI::ChangeWidget (`id (`_tw_table), `Items, sec);
 }
 
 /**
@@ -170,139 +171,84 @@ void SectionsInit (string widget) {
 }
 
 
-/**
- * Handle function of a widget
- * @param widget string widget key
- * @param event map event description of event that occured
- * @return symbol to return to wizard sequencer, or nil
- */
-symbol SectionsHandle (string widget, map event) {
-    any op = event["ID"]:nil;
-    if (event["ID"]:nil == `sects
-	&& event["EventReason"]:"" == "Activated"
-	&& event["EventType"]:"" == "WidgetEvent")
-    {
-	op = `edit;
-    }
-    y2milestone ("Handling sections widget, event %1", op);
-    string current = (string)UI::QueryWidget (`id (`sects), `CurrentItem);
-    integer counter = 0;
-    integer index = 0;
-    foreach (map<string,any> s, BootCommon::sections, {
-	if (s["name"]:"" == current)
-	    index = counter;
-	counter = counter + 1;
-    });
-    list<map<string,any> > sects = BootCommon::sections;
-    if (op == `up)
-    {
-	if (index > 0)
-	{
-	    sects = (list<map<string,any > >)
-		BootCommon::swapItems(sects, index, index - 1);
-	    index = index - 1;
-	    BootCommon::sections = sects;
-	    RedrawSectionsTable (sects);
-	    UI::ChangeWidget (`id (`sects), `CurrentItem,
-		sects[index, "name"]:"");
-	    BootCommon::changed = true;
-	}
-    }
-    else if (op == `down)
-    {
-	if (index < (size(sects) - 1))
-	{
-	    sects = (list<map<string,any> >)
-		BootCommon::swapItems(sects, index, index + 1);
-	    index = index + 1;
-	    BootCommon::sections = sects;
-	    RedrawSectionsTable (sects);
-	    UI::ChangeWidget (`id (`sects), `CurrentItem,
-		sects[index, "name"]:"");
-	    BootCommon::changed = true;
-	}
-    }
-    else if (op == `default)
-    {
-	BootCommon::globals["default"] = current;
-	RedrawSectionsTable (sects);
-	UI::ChangeWidget (`id (`sects), `CurrentItem, current);
-	BootCommon::changed = true;
-    }
-    else if (op == `add || op == `edit)
-    {
-	map<string,any> selected = sects[index]:$[];
-	string name = selected["name"]:"";
-	BootCommon::current_section = selected;
-	BootCommon::current_section_index = op == `add ? -1 : index;
-	BootCommon::current_section_name = name;
-	y2internal ("Selected section: %1", BootCommon::current_section);
-	return (symbol)op;
-    }
-    else if (op == `delete && confirmSectionDeletePopup (current))
-    {
-	BootCommon::removed_sections = add (BootCommon::removed_sections,
-	    sects[index, "original_name"]:"");
-	sects = remove (sects, index);
-	if (current == BootCommon::globals["default"]:"")
-	{
-	    BootCommon::globals["default"] = BootCommon::sections[0, "name"]:"";
-	}
-	BootCommon::sections = sects;
-	RedrawSectionsTable (sects);
-	BootCommon::changed = true;
-    }
-    UI::SetFocus (`id (`sects));
+symbol defaultHandle(string key, map event, integer index){
+    string current = (string)UI::QueryWidget (`id (`_tw_table), `CurrentItem);
+    BootCommon::globals["default"] = current;
+    RedrawSectionsTable (BootCommon::sections);
+    UI::ChangeWidget (`id (`_tw_table), `CurrentItem, current);
     return nil;
 }
 
+symbol updownHandle(string key, map event, boolean up, integer index){
+    integer second = up ? (index-1):(index+1);
+    BootCommon::sections = (list<map<string,any> >)
+                     BootCommon::swapItems(BootCommon::sections, index, second);
+    RedrawSectionsTable (BootCommon::sections);
+    return nil;
+}
+
+void markSelected(integer index){
+    map<string,any> selected = BootCommon::sections[index]:$[];
+    string name = selected["name"]:"";
+    BootCommon::current_section = selected;
+    BootCommon::current_section_index = index;
+    BootCommon::current_section_name = name;
+}
+
+symbol addHandle(string key, map event, integer index){
+    markSelected(index);
+    BootCommon::current_section_index = -1;
+    return `add;
+}
+
+symbol editHandle(string key, map event, integer index){
+    markSelected(index);
+    return `edit;
+}
+
+symbol deleteHandle(string key, map event, integer index){
+  string current = (string)UI::QueryWidget (`id (`_tw_table), `CurrentItem);
+  if (confirmSectionDeletePopup (current)){
+    BootCommon::removed_sections = add (BootCommon::removed_sections,
+          BootCommon::sections[index, "original_name"]:"");
+    BootCommon::sections = remove(BootCommon::sections, index);
+    RedrawSectionsTable (BootCommon::sections);
+    BootCommon::changed = true;
+  }
+}
 /**
  * Get map of widget
  * @return a map of widget
  */
 map<string,any> getSectionsWidget () {
-    return $[
-	"widget" : `custom,
-	"custom_widget" : `VBox (
-	    `HBox (
-		`Table (`id (`sects),
-		    `opt (`keepSorting, `notify),
-		    `header (
-			// table header, Def stands for default
-			_("Def."),
-			// table header
-			_("Label"),
-			// table header
-			_("Type"),
-			// table header; header for section details, either
-			// the specification of the kernel image to load,
-			// or the specification of device to boot from
-			_("Image / Device")
-			), []),
-		`HSpacing (1),
-		`VBox (
-		    `VStretch (),
-		    // pushbutton
-		    `PushButton (`id (`up), _("&Up")),
-		    // pushbutton
-		    `PushButton (`id (`down), _("&Down")),
-		    `VStretch ()
-		)
-	    ),
-	    `HBox (
-		`PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),
-		`PushButton (`id (`edit), `opt (`key_F4), Label::EditButton ()),
-		`PushButton (`id (`delete), `opt (`key_F5),
-		    Label::DeleteButton ()),
-		`HStretch (),
-		// pushbutton
-		`PushButton (`id (`default), _("Set as De&fault"))
-	    )
-	),
-	"init" : SectionsInit,
-	"handle" : SectionsHandle,
-	"help" : SectionsHelp (),
-    ];
+  term head = `header(
+                    // table header, Def stands for default
+                    _("Def."),
+                    // table header
+                    _("Label"),
+                    // table header
+                    _("Type"),
+                    // table header; header for section details, either
+                    // the specification of the kernel image to load,
+                    // or the specification of device to boot from
+                    _("Image / Device")
+                    );
+  return CWMTable::CreateTableDescr( $[
+    "add_delete_buttons" : true,
+    "edit_button" : true,
+    "up_down_buttons" : true,
+    "custom_button" : true,
+    "custom_button_name" :  _("Set as De&fault"),
+    "custom_handle" : defaultHandle,
+    "header" : head,
+    "edit":editHandle,
+    "delete":deleteHandle,
+    "add" : addHandle,
+    "updown" : updownHandle,
+   ],$[
+     "init" : SectionsInit,
+     "help" : SectionsHelp ()
+   ]);
 }
 
 
