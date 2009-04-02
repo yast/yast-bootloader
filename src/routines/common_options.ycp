@@ -19,7 +19,7 @@
 
 textdomain "bootloader";
 
-include "bootloader/grub/helps.ycp"; //TODO merge helps
+include "bootloader/routines/common_helps.ycp";
 
 /**
  * Init function for widget value (InputField)
@@ -187,81 +187,14 @@ map<string,any> CommonIntFieldWidget(string label, string help, integer min, int
 map<string,any> TimeoutWidget () {
     return $[
 	"widget" : `intfield,
-        "label" : grub_descriptions["timeout"]:"timeout",
+        "label" : common_descriptions["timeout"]:"timeout",
         "minimum" : 0,
         "maximum" : 300,
 	"init" : InitGlobalInt,
 	"store" : StoreGlobalInt,
-	"help" : grub_help_messages["timeout"]:""
+	"help" : common_help_messages["timeout"]:""
     ];
 }
-/**
- * Init function for console
- * @param string widget
- */
-void InitConsole( string widget){
-  boolean enable = BootCommon::globals["terminal"]:"" == "serial";
-  UI::ChangeWidget(`id(`console_frame),`Value, enable);
-  string args = BootCommon::globals["serial"]:"";
-  UI::ChangeWidget(`id(`console_args),`Value, args);
-}
-
-/**
- * Store function of a console
- * @param widget any widget key
- * @param event map event description of event that occured
- */
-void StoreConsole(string widget, map event){
-  boolean use_serial = (boolean) UI::QueryWidget(`id(`console_frame),`Value);
-  if (use_serial)
-  {
-     BootCommon::globals["terminal"] = "serial";
-     string console_value = (string) UI::QueryWidget(`id(`console_args),`Value);
-     if (console_value != "")
-	BootCommon::globals["serial"] = console_value;
-  } else {
-     if (haskey(BootCommon::globals, "terminal"))
-	BootCommon::globals = remove(BootCommon::globals, "terminal");
-     if (haskey(BootCommon::globals, "serial"))
-	BootCommon::globals = remove(BootCommon::globals, "serial");
-  }
-  // FATE: #110038: Serial console
-  // add or remove console key with value for sections 
-  BootCommon::HandleConsole();
-}
-
-/**
- * Handle function of  a console
- * @param widget any widget key
- * @param event map event description of event that occured
- * @return symbol nil
- */
-symbol HandleConsole(string widget, map event){
-  boolean enable = (boolean) UI::QueryWidget(`id(`enable_console),`Value);
-  UI::ChangeWidget(`id(`console_args),`Enabled, enable);
-  return nil;
-}
-
-/**
- * Common widget of a console
- * @return map<string,any> CWS widget
- */
-map<string,any> ConsoleWidget() {
-  return $[
-    "widget" : `custom,
-    "custom_widget" : `HBox(
-        `CheckBoxFrame(`id(`console_frame),_("Use &serial console"),true,
-          `HBox(
-          `HSpacing(2),
-          `InputField(`id(`console_args),`opt(`hstretch), _("&Console arguments")),
-          `HStretch()))
-        ),
-    "init" : InitConsole,
-    "store" : StoreConsole,
-    "help" : grub_help_messages["serial"]:""
-  ];
-}
-
 /**
  * Common widgets of global settings
  * @return map<string, map<string,any> > CWS widgets
@@ -269,7 +202,6 @@ map<string,any> ConsoleWidget() {
 map<string,map<string,any> > CommonOptions(){
   return $[
     "timeout" : TimeoutWidget(),
-    "console" : ConsoleWidget()
   ];
 }
 

@@ -209,6 +209,73 @@ map<string,any> PasswordWidget () {
     ];
 }
 
+/**
+ * Init function for console
+ * @param string widget
+ */
+void InitConsole( string widget){
+  boolean enable = BootCommon::globals["terminal"]:"" == "serial";
+  UI::ChangeWidget(`id(`console_frame),`Value, enable);
+  string args = BootCommon::globals["serial"]:"";
+  UI::ChangeWidget(`id(`console_args),`Value, args);
+}
+
+/**
+ * Store function of a console
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ */
+void StoreConsole(string widget, map event){
+  boolean use_serial = (boolean) UI::QueryWidget(`id(`console_frame),`Value);
+  if (use_serial)
+  {
+     BootCommon::globals["terminal"] = "serial";
+     string console_value = (string) UI::QueryWidget(`id(`console_args),`Value);
+     if (console_value != "")
+	BootCommon::globals["serial"] = console_value;
+  } else {
+     if (haskey(BootCommon::globals, "terminal"))
+	BootCommon::globals = remove(BootCommon::globals, "terminal");
+     if (haskey(BootCommon::globals, "serial"))
+	BootCommon::globals = remove(BootCommon::globals, "serial");
+  }
+  // FATE: #110038: Serial console
+  // add or remove console key with value for sections 
+  BootCommon::HandleConsole();
+}
+
+/**
+ * Handle function of  a console
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return symbol nil
+ */
+symbol HandleConsole(string widget, map event){
+  boolean enable = (boolean) UI::QueryWidget(`id(`enable_console),`Value);
+  UI::ChangeWidget(`id(`console_args),`Enabled, enable);
+  return nil;
+}
+
+/**
+ * Common widget of a console
+ * @return map<string,any> CWS widget
+ */
+map<string,any> ConsoleWidget() {
+  return $[
+    "widget" : `custom,
+    "custom_widget" : `HBox(
+        `CheckBoxFrame(`id(`console_frame),_("Use &serial console"),true,
+          `HBox(
+          `HSpacing(2),
+          `InputField(`id(`console_args),`opt(`hstretch), _("&Console arguments")),
+          `HStretch()))
+        ),
+    "init" : InitConsole,
+    "store" : StoreConsole,
+    "help" : grub_help_messages["serial"]:""
+  ];
+}
+
 map<string,map<string,any> > GrubOptions(){
   map<string,map<string,any> >  grub_specific = $[
     "activate" : CommonCheckboxWidget(grub_descriptions["activate"]:"activate",
@@ -222,6 +289,7 @@ map<string,map<string,any> > GrubOptions(){
                                           grub_help_messages["hiddenmenu"]:""),
     "gfxmenu" : GfxWidget(),
     "password" : PasswordWidget(),
+    "console" : ConsoleWidget(),
   ];
   return (map<string,map<string,any> >)union(grub_specific,CommonOptions());
 }
