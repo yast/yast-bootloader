@@ -59,35 +59,15 @@ void InitBootPMAC(string widget) {
     {
 	UI::ChangeWidget (`id ("boot_pmac_custom"), `Items, devices);
     }
+    UI::ChangeWidget (`id ("boot_pmac_custom"), `Value, BootCommon::globals["boot_pmac_custom"]:"");
 
-    if (BootCommon::globals["boot_pmac_custom"]:"" == "")
-    {
-	UI::ChangeWidget (`id ("enable_pmac"), `Value, false);
-	UI::ChangeWidget (`id ("boot_pmac_custom"), `Enabled, false);
-    } else {
-	UI::ChangeWidget (`id ("enable_pmac"), `Value, true);
-	UI::ChangeWidget (`id ("boot_pmac_custom"), `Enabled, true);
-    	UI::ChangeWidget (`id ("boot_pmac_custom"), `Value, BootCommon::globals["boot_pmac_custom"]:"");
-    }
 }
 
 void StoreBootPMAC (string widget, map event) {
-   if ((boolean) UI::QueryWidget(`id("enable_pmac"), `Value))
-   {
-        BootCommon::globals["boot_pmac_custom"]
-	   = (splitstring( (string)UI::QueryWidget (`id ("boot_pmac_custom"), `Value), " "))[0]:"";
-   } else {
-	BootCommon::globals["boot_pmac_custom"] = "";
-   }
-}
 
+   BootCommon::globals["boot_pmac_custom"]
+      = (splitstring( (string)UI::QueryWidget (`id ("boot_pmac_custom"), `Value), " "))[0]:"";
 
-symbol HandleBootPMAC (string key, map event) {
-  any ret = event["ID"]:nil;
-  if (ret == "enable_pmac") {
-	UI::ChangeWidget (`id ("boot_pmac_custom"), `Enabled, 
-		(boolean) UI::QueryWidget(`id("enable_pmac"), `Value));
-  }
 }
 
 map<string,any> BootPMAC(){
@@ -96,13 +76,11 @@ map<string,any> BootPMAC(){
     "custom_widget" : `VBox(
            `Frame ( _("Boot Loader Location"), `VBox(
            `Left(`HBox(`HSpacing(1),`VBox(
-	      `Left(`CheckBox(`id("enable_pmac"), `opt(`notify), _("HFS Boot &Partition"))),
-	      `Left(`ComboBox(`id("boot_pmac_custom"), `opt(`editable, `hstretch), "", [""]))
+	      `Left(`ComboBox(`id("boot_pmac_custom"), `opt(`editable, `hstretch), _("HFS Boot &Partition"), [""]))
            )))
      ))),
      "help" : ppc_help_messages["boot_pmac_custom"]:"",
      "init" : InitBootPMAC,
-     "handle" : HandleBootPMAC,
      "store" : StoreBootPMAC,
   ];
 }
@@ -115,35 +93,17 @@ void InitBootCHRP(string widget) {
 	UI::ChangeWidget (`id ("boot_chrp_custom"), `Items, devices);
     }
 
-    if (BootCommon::globals["boot_chrp_custom"]:"" == "")
-    {
-	UI::ChangeWidget (`id ("enable_chrp"), `Value, false);
-	UI::ChangeWidget (`id ("boot_chrp_custom"), `Enabled, false);
-    } else {
-	UI::ChangeWidget (`id ("enable_chrp"), `Value, true);
-	UI::ChangeWidget (`id ("boot_chrp_custom"), `Enabled, true);
-    	UI::ChangeWidget (`id ("boot_chrp_custom"), `Value, BootCommon::globals["boot_chrp_custom"]:"");
-    }
+    UI::ChangeWidget (`id ("boot_chrp_custom"), `Value, BootCommon::globals["boot_chrp_custom"]:"");
+
 }
 
 void StoreBootCHRP (string widget, map event) {
-   if ((boolean) UI::QueryWidget(`id("enable_chrp"), `Value))
-   {
-        BootCommon::globals["boot_chrp_custom"]
-	   = (splitstring( (string)UI::QueryWidget (`id ("boot_chrp_custom"), `Value), " "))[0]:"";
-   } else {
-	BootCommon::globals["boot_chrp_custom"] = "";
-   }
+
+   BootCommon::globals["boot_chrp_custom"]
+	= (splitstring( (string)UI::QueryWidget (`id ("boot_chrp_custom"), `Value), " "))[0]:"";
+
 }
 
-
-symbol HandleBootCHRP (string key, map event) {
-  any ret = event["ID"]:nil;
-  if (ret == "enable_chrp") {
-	UI::ChangeWidget (`id ("boot_chrp_custom"), `Enabled, 
-		(boolean) UI::QueryWidget(`id("enable_chrp"), `Value));
-  }
-}
 
 map<string,any> BootCHRP(){
   return  $[
@@ -151,13 +111,11 @@ map<string,any> BootCHRP(){
     "custom_widget" : `VBox(
            `Frame ( _("Boot Loader Location"), `VBox(
            `Left(`HBox(`HSpacing(1),`VBox(
-	      `Left(`CheckBox(`id("enable_chrp"), `opt(`notify), _("&PReP or FAT Partition"))),
-	      `Left(`ComboBox(`id("boot_chrp_custom"), `opt(`editable, `hstretch), "", [""]))
+	      `Left(`ComboBox(`id("boot_chrp_custom"), `opt(`editable, `hstretch), _("&PReP or FAT Partition"), [""]))
            )))
      ))),
      "help" : ppc_help_messages["boot_chrp_custom"]:"",
      "init" : InitBootCHRP,
-     "handle" : HandleBootCHRP,
      "store" : StoreBootCHRP,
   ];
 }
@@ -170,35 +128,16 @@ void InitBootPReP(string widget) {
 	UI::ChangeWidget (`id ("boot_prep_custom"), `Items, devices);
     }
 
-    if (BootCommon::globals["boot_prep_custom"]:"" == "")
-    {
-	UI::ChangeWidget (`id ("enable_prep"), `Value, false);
-	UI::ChangeWidget (`id ("boot_prep_custom"), `Enabled, false);
-    } else {
-	UI::ChangeWidget (`id ("enable_prep"), `Value, true);
-	UI::ChangeWidget (`id ("boot_prep_custom"), `Enabled, true);
-    	UI::ChangeWidget (`id ("boot_prep_custom"), `Value, BootCommon::globals["boot_prep_custom"]:"");
-    }
+    UI::ChangeWidget (`id ("boot_prep_custom"), `Value, BootCommon::globals["boot_prep_custom"]:"");
 }
 
 void StoreBootPReP (string widget, map event) {
-   if ((boolean) UI::QueryWidget(`id("enable_prep"), `Value))
-   {
-        BootCommon::globals["boot_prep_custom"]
-	   = (splitstring( (string)UI::QueryWidget (`id ("boot_prep_custom"), `Value), " "))[0]:"";
-   } else {
-	BootCommon::globals["boot_prep_custom"] = "";
-   }
+
+   BootCommon::globals["boot_prep_custom"]
+	= (splitstring( (string)UI::QueryWidget (`id ("boot_prep_custom"), `Value), " "))[0]:"";
+
 }
 
-
-symbol HandleBootPReP (string key, map event) {
-  any ret = event["ID"]:nil;
-  if (ret == "enable_prep") {
-	UI::ChangeWidget (`id ("boot_prep_custom"), `Enabled, 
-		(boolean) UI::QueryWidget(`id("enable_prep"), `Value));
-  }
-}
 
 map<string,any> BootPReP(){
   return  $[
@@ -206,13 +145,11 @@ map<string,any> BootPReP(){
     "custom_widget" : `VBox(
            `Frame ( _("Boot Loader Location"), `VBox(
            `Left(`HBox(`HSpacing(1),`VBox(
-	      `Left(`CheckBox(`id("enable_prep"), `opt(`notify), _("&PReP partitions"))),
-	      `Left(`ComboBox(`id("boot_prep_custom"), `opt(`editable, `hstretch), "", [""]))
+	      `Left(`ComboBox(`id("boot_prep_custom"), `opt(`editable, `hstretch), _("&PReP partitions"), [""]))
            )))
      ))),
      "help" : ppc_help_messages["boot_prep_custom"]:"",
      "init" : InitBootPReP,
-     "handle" : HandleBootPReP,
      "store" : StoreBootPReP,
   ];
 }
@@ -338,8 +275,8 @@ map<string,map<string,any> > PPCOptions(){
 	// end PREP
 
 	// PMAC
-	"no_os_chooser"	 : CommonCheckboxWidget(_("Do not Use OS-chooser"), ppc_help_messages["no_os_chooser"]:""),
-	"macos_timeout" : CommonIntFieldWidget (_("Timeout in Seconds for MacOS/Linux"),
+	"no_os_chooser"	 : CommonCheckboxWidget(_("&Do not Use OS-chooser"), ppc_help_messages["no_os_chooser"]:""),
+	"macos_timeout" : CommonIntFieldWidget (_("&Timeout in Seconds for MacOS/Linux"),
 				ppc_help_messages["macos_timeout"]:"",0,60),
 
 	// end PMAC
