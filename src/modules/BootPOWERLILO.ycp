@@ -43,7 +43,8 @@ include "bootloader/ppc/helps.ycp";
  * read my dialogs
  */
 include "bootloader/routines/popups.ycp"; // define confirmSectionDeletePopup
-include "bootloader/generic/dialogs.ycp";
+//include "bootloader/generic/dialogs.ycp";
+
 
 
 
@@ -61,6 +62,9 @@ global string prep_boot_partition = "";
 
 // map available of 41 PReP partitions, used on iSeries and CHRP
 global list<string> prep_boot_partitions = [];
+
+// map available HFS partitions, used on PMac
+global list<string> pmac_boot_partitions = [];
 
 // PReP boot partitions that were proposed by partitioner to install BL
 global list<string> install_prep_boot_partitions = [];
@@ -84,6 +88,10 @@ string board_type = nil;
 global define string getBoardType ();
 global define void setBoardType (string board);
 global define void currentBoardInit ();
+
+
+include "bootloader/ppc/ppc_dialogs.ycp";
+
 
 /**
  * Update list of 41 PReP boot partitions
@@ -555,7 +563,7 @@ string GoodPmacBootPartition() {
 	);
     });
     y2milestone ("Detected pmac boot partitions: %1", boot_partitions);
-
+    pmac_boot_partitions = boot_partitions;
     if (selected_boot_partition == "")
     {
         selected_boot_partition = boot_partitions[0]:"";
@@ -913,7 +921,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     boolean ret = BootCommon::Read (false, avoid_reading_device_map);
     y2milestone (":: Read globals: %1", BootCommon::globals);
 
-    importMetaData();
+    //importMetaData();
 
     return ret;
 }
@@ -988,7 +996,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if (flush)
 	ret = ret && BootCommon::CommitSettings ();
 
-    importMetaData();
+    //importMetaData();
 
     BootCommon::WriteToSysconf(false);
     return ret;
@@ -1258,8 +1266,7 @@ blMainSequence () {
 global map<string,symbol()> Dialogs () {
     // PPC definitly needs other text modules
     return $[
-	"loader"	: genericBootLoaderOptionsDialog,
-//	"installation"	: ppcInstallDetailsDialog,
+	"loader"	: PPCDetailsDialog,
     ];
 }
 
@@ -1276,6 +1283,13 @@ global define boolean FlagOnetimeBoot (string section)
     return (result["exit"]:-1 == 0);
 }
 
+list<string> ppc_section_types(){
+  if (Arch::board_iseries()){
+    return ["image","other"];
+  }
+
+  return ["image"];
+}
 
 /**
  * Return map of provided functions
@@ -1292,10 +1306,10 @@ global map<string, any> GetFunctions () {
 	"summary"		: Summary,
 	"update"		: Update,
 	"write"			: Write,
-	"widgets"		: genericWidgets,
+	"widgets"		: ppcWidgets,
 	"wizard_sequencer"	: WizardSequenzer,
 	"dialogs"		: Dialogs,
-	"section_types"		: section_types,
+	"section_types"		: ppc_section_types,
 	"flagonetimeboot"	: FlagOnetimeBoot,
     ];
 }
@@ -1311,23 +1325,8 @@ global void Initializer () {
 	"scratch" : true,
 	"bootloader_on_disk" : true,
     ];
-    BootCommon::help_messages = (map<string,string>)
-        union(BootCommon::help_messages,
-	      mapmap(string key, string val, ppc_help_messages,
-		     { return $[ "ppc_" + key : val ]; }
-		     )
-	      );
-    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-    BootCommon::descriptions = (map<string,string>)
-        union(BootCommon::descriptions,
-	      mapmap(string key, string val, ppc_descriptions,
-		     { return $[ "ppc_" + key : val ]; }
-		     )
-	      );
-    y2debug("Initialized descriptions to %1", BootCommon::descriptions);
 
     BootCommon::InitializeLibrary (false, "ppc");
-    importMetaData();
 }
 
 /**

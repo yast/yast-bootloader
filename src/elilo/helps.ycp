@@ -43,7 +43,9 @@ ramdisk to use. Either enter the path and file name directly or choose by using
 <b>Browse</b></p>
 "),
     "image"		 :
-    _("<p><b>Name of default image file</b></p>"),
+    _("<p><b>Name of default image file</b>, if not empty, defines the image
+file to use. Either enter the path and file name directly or choose by using
+<b>Browse</b></p>"),
     "chooser"		 :
     _("<p><b>Specify user interface for ELILO ('simple' or 'textmenu')</b><br>
 Beware: 'textmenu' has occasionally caused problems on some machines.</p>"),
@@ -65,9 +67,43 @@ May be empty, if already specified in global section.</p>"),
     "image_readonly"	 :
      _("<p><b>Force root filesystem to be mounted read-only</b><br>
 Usually specified in global section</p>"),
-    "image_relocatable"  :
-    _("<p><b>Allow attempt to relocate</b></p>
+    "section_relocatable"  :
+    _("<p><b>Allow attempt to relocate</b>
 Usually specified in global section</p>"),
+    "prompt"		 :
+    _("<p><b>Force Interactive Mode</b>
+Force interactive mode during booting</p>"),
+    "root"		 :
+    _("<p><b>Set Default Root Filesystem</b>
+Set global root filesystem for Linux/ia64</p>"),
+
+    "chooser"		 :
+    _("<p><b>Set the User Interface for ELILO</b>
+Specify kernel chooser to use: \"simple\" or \"textmenu\"</p>"),
+
+    "fX"		 :
+    _("<p><b>Display the Content of a File by Function Keys</b>
+Some choosers may take advantage of this option to
+display the content of a file when a certain function
+key X is pressed. X can vary from 1-12 to cover
+function keys F1 to F12</p>"),
+
+    "fpswa"		 :
+    _("<p><b>Specify the Filename for a Specific FPSWA to Load</b>
+Specify the filename for a specific FPSWA to load.
+If this option is used then no other file will be tried.</p>"),
+
+    "message"		 :
+    _("<p><b>Message Printed on Main Screen (If Supported)</b>
+A message that is printed on the main screen if supported by
+the chooser.</p>"),
+
+    "delay"		 :
+_("<p><b>Delay to Wait before Auto Booting in Seconds</b>
+The number of 10th of seconds to wait before
+auto booting when not in interactive mode.
+Default is 0</p>"),
+
     ];
 
 

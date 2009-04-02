@@ -1,0 +1,276 @@
+/**
+ * File:
+ *      include/bootloader/routines/common_options.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Shared widgets for bootloader options.
+ *
+ * Authors:
+ *      Josef Reidinger<jreidinger@suse.cz>
+ *      Jozef Uhliarik <juhliarik@suse.cz>
+ * $Id: $
+ *
+ */
+
+{
+
+textdomain "bootloader";
+
+include "bootloader/grub/helps.ycp"; //TODO merge helps
+
+/**
+ * Init function for widget value (InputField)
+ * @param widget any id of the widget
+ */
+void InitGlobalStr (string widget) { 
+    UI::ChangeWidget (`id (widget), `Value,
+	BootCommon::globals[widget]:"");
+}
+
+/**
+ * Store function of a widget (InputField)
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ */
+void StoreGlobalStr (string widget, map event) {
+    BootCommon::globals[widget]
+	= (string)UI::QueryWidget (`id (widget), `Value); 
+}
+
+/**
+ * Init function for widget value (CheckBox)
+ * @param widget any id of the widget
+ */
+void InitGlobalBool(string widget){
+  boolean value = BootCommon::globals[widget]:"false" == "true";
+  UI::ChangeWidget (`id (widget), `Value, value);
+}
+
+/**
+ * Init function for widget value (CheckBox)
+ * @param widget any id of the widget
+ */
+void StoreGlobalBool(string widget, map event){
+  boolean value = (boolean)UI::QueryWidget (`id (widget), `Value);
+  BootCommon::globals[widget] = value ? "true" : "false";
+}
+
+/**
+ * Init function for widget value (IntField)
+ * @param widget any id of the widget
+ */
+void InitGlobalInt(string widget){
+  integer value = tointeger(BootCommon::globals[widget]:"0");
+    UI::ChangeWidget (`id (widget), `Value, value);
+}
+
+/**
+ * Store function of a widget (IntField)
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ */
+void StoreGlobalInt(string widget, map event){
+  integer value = (integer)UI::QueryWidget (`id (widget), `Value);
+  BootCommon::globals[widget] = tostring(value);
+}
+
+/**
+ * Handle function of a widget (IntField + browse button)
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return symbol nil
+ */
+symbol HandleGlobalBrowse (string widget, map event) {
+    string current = (string)UI::QueryWidget (`id (widget), `Value);
+    // file open popup caption
+    current = UI::AskForExistingFile (current, "*", _("Select File"));
+    if (current != nil)
+	UI::ChangeWidget (`id (widget), `Value, current);
+    return nil;
+}
+
+
+
+/**
+ * Generic widget of a checkbox
+ * There is not defined valid function
+ * if it is necessary create own definition of widget
+ * @param string lable of widget
+ * @param string help text for widget
+ * @return map<string,any> CWS widget
+ */
+map<string,any> CommonCheckboxWidget(string label, string help){
+  return $[
+    "widget" : `checkbox,
+    "label" : label,
+    "init" : InitGlobalBool,
+    "store" : StoreGlobalBool,
+    "help" : help,
+  ];
+}
+
+/**
+ * Generic widget of a inputfield/textentry (widget)
+ * There is not defined valid function
+ * if it is necessary create own definition of widget
+ * @param string lable of widget
+ * @param string help text for widget
+ * @return map<string,any> CWS widget
+ */
+map<string,any> CommonInputFieldWidget(string label, string help){
+  return $[
+    "widget" : `textentry,
+    "label" : label,
+    "init" : InitGlobalStr,
+    "store" : StoreGlobalStr,
+    "help" : help,
+  ];
+}
+
+/**
+ * Generic widget of a inputfield + browse button
+ * There is not defined valid function
+ * if it is necessary create own definition of widget
+ * @param string lable of widget
+ * @param string help text for widget
+ * @param string id of widget
+ * @return map<string,any> CWS widget
+ */
+map<string,any> CommonInputFieldBrowseWidget(string label, string help, string id){
+  string browse = "browse" + id;
+  return $[
+    "widget" : `custom,
+    "custom_widget" : `HBox(
+	     `Left(`InputField(`id(id),`opt(`hstretch), label)),
+              `VBox(
+                 `Label(""),
+                 `PushButton(`id(browse),`opt(`notify), Label::BrowseButton())
+              )
+            ),
+    "init" : InitGlobalStr,
+    "store" : StoreGlobalStr,
+    "handle" : HandleGlobalBrowse,
+    "handle_events" : [browse],
+    "help" : help,
+  ];
+}
+
+/**
+ * Generic widget of a intfield (widget)
+ * There is not defined valid function
+ * if it is necessary create own definition of widget
+ * @param string lable of widget
+ * @param string help text for widget
+ * @param integer minimal value
+ * @param integer maximal value
+ * @return map<string,any> CWS widget
+ */
+map<string,any> CommonIntFieldWidget(string label, string help, integer min, integer max){
+  return $[
+    "widget" : `intfield,
+    "label" : label,
+    "minimum" : min,
+    "maximum" : max,
+    "init" : InitGlobalStr,
+    "store" : StoreGlobalStr,
+    "help" : help,
+  ];
+}
+
+/**
+ * Common widget of a Timeout
+ * @return map<string,any> CWS widget
+ */
+map<string,any> TimeoutWidget () {
+    return $[
+	"widget" : `intfield,
+        "label" : grub_descriptions["timeout"]:"timeout",
+        "minimum" : 0,
+        "maximum" : 300,
+	"init" : InitGlobalInt,
+	"store" : StoreGlobalInt,
+	"help" : grub_help_messages["timeout"]:""
+    ];
+}
+/**
+ * Init function for console
+ * @param string widget
+ */
+void InitConsole( string widget){
+  boolean enable = BootCommon::globals["terminal"]:"" == "serial";
+  UI::ChangeWidget(`id(`console_frame),`Value, enable);
+  string args = BootCommon::globals["serial"]:"";
+  UI::ChangeWidget(`id(`console_args),`Value, args);
+}
+
+/**
+ * Store function of a console
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ */
+void StoreConsole(string widget, map event){
+  boolean use_serial = (boolean) UI::QueryWidget(`id(`console_frame),`Value);
+  if (use_serial)
+  {
+     BootCommon::globals["terminal"] = "serial";
+     string console_value = (string) UI::QueryWidget(`id(`console_args),`Value);
+     if (console_value != "")
+	BootCommon::globals["serial"] = console_value;
+  } else {
+     if (haskey(BootCommon::globals, "terminal"))
+	BootCommon::globals = remove(BootCommon::globals, "terminal");
+     if (haskey(BootCommon::globals, "serial"))
+	BootCommon::globals = remove(BootCommon::globals, "serial");
+  }
+  // FATE: #110038: Serial console
+  // add or remove console key with value for sections 
+  BootCommon::HandleConsole();
+}
+
+/**
+ * Handle function of  a console
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return symbol nil
+ */
+symbol HandleConsole(string widget, map event){
+  boolean enable = (boolean) UI::QueryWidget(`id(`enable_console),`Value);
+  UI::ChangeWidget(`id(`console_args),`Enabled, enable);
+  return nil;
+}
+
+/**
+ * Common widget of a console
+ * @return map<string,any> CWS widget
+ */
+map<string,any> ConsoleWidget() {
+  return $[
+    "widget" : `custom,
+    "custom_widget" : `HBox(
+        `CheckBoxFrame(`id(`console_frame),_("Use &serial console"),true,
+          `HBox(
+          `HSpacing(2),
+          `InputField(`id(`console_args),`opt(`hstretch), _("&Console arguments")),
+          `HStretch()))
+        ),
+    "init" : InitConsole,
+    "store" : StoreConsole,
+    "help" : grub_help_messages["serial"]:""
+  ];
+}
+
+/**
+ * Common widgets of global settings
+ * @return map<string, map<string,any> > CWS widgets
+ */
+map<string,map<string,any> > CommonOptions(){
+  return $[
+    "timeout" : TimeoutWidget(),
+    "console" : ConsoleWidget()
+  ];
+}
+
+}

@@ -280,6 +280,15 @@ sub setMountPoints($) {
     return $ret; 
 }
 
+BEGIN { $TYPEINFO{setUdevMapping} = ["function", "boolean", ["map", "string", "string"]]; }
+sub setUdevMapping($) {
+    my ($dm) = @_;
+    my $ret = $lib_ref->DefineUdevMapping ($dm);
+
+    DumpLog();
+    return $ret; 
+}
+
 BEGIN { $TYPEINFO{setPartitions} = ["function", "boolean", ["list", ["list", "string"]]]; }
 sub setPartitions($) {
     my ($dm) = @_;
@@ -293,6 +302,15 @@ BEGIN { $TYPEINFO{setMDArrays} = ["function", "boolean", ["map", "string", ["lis
 sub setMDArrays($) {
     my ($dm) = @_;
     my $ret = $lib_ref->DefineMDArrays($dm);
+
+    DumpLog();
+    return $ret; 
+}
+
+BEGIN { $TYPEINFO{countGRUBPassword} = ["function", "string","string"]; }
+sub countGRUBPassword($) {
+    my ($pass) = @_;
+    my $ret = $lib_ref->CountGRUBPassword($pass);
 
     DumpLog();
     return $ret; 

@@ -33,7 +33,6 @@ import "Storage";
 
 include "bootloader/routines/popups.ycp";
 include "bootloader/routines/dialogs_i386.ycp";
-include "bootloader/generic/dialogs.ycp";
 
 
 /**
@@ -315,6 +314,12 @@ global define boolean FlagOnetimeBoot (string section)
     return (result["exit"]:-1 == 0);
 }
 
+
+list <string> lilo_section_types()
+{
+	return ["image", "other"];
+}
+
 /**
  * Return map of provided functions
  * @return a map of functions (eg. $["write":BootLILO::Write])
@@ -329,8 +334,8 @@ global map<string, any> GetFunctions () {
 	"update"		: Update,
 	"write"			: Write,
 	"flagonetimeboot"	: FlagOnetimeBoot,
-	"widgets"		: genericWidgets,
-	"section_types"		: section_types,
+	"widgets"		: $[], // is not supported now
+	"section_types"		: lilo_section_types,
     ];
 }
 

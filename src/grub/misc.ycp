@@ -449,7 +449,6 @@ define void SetBootloaderDevice(symbol selected_location) {
     if (haskey (BootCommon::globals, "boot_custom")) {
 	BootCommon::globals = remove (BootCommon::globals, "boot_custom");
     }
-    BootCommon::change_widget_default_value("boot_custom", "");	// FIXME: kludge, may be obsolete
 
     if ( selected_location == `root ) {
 	BootCommon::globals["boot_root"] = sformat("%1", true);
@@ -459,11 +458,6 @@ define void SetBootloaderDevice(symbol selected_location) {
 	BootCommon::globals["boot_mbr"] = sformat("%1", true);
     } else if ( selected_location == `extended ) {
 	BootCommon::globals["boot_extended"] = sformat("%1", true);
-// FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
-// automatic anyway and perl-Bootloader should be able to make it without help
-// from the user or the proposal.
-//    } else if ( selected_location == `mbr_md ) {
-//	BootCommon::globals["boot_mbr_md"] = sformat("%1", true);
     }
 }
 
@@ -858,17 +852,6 @@ define map<string, any> grub_DisksChanged () {
 			" any more.\n"
 	];
 
-// FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
-// automatic anyway and perl-Bootloader should be able to make it without help
-// from the user or the proposal.
-//    if ( BootCommon::globals["boot_mbr_md"]:"false" == "true" ) {
-//	// FIXME: handle Md2Partitions() etc. here
-//	map p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
-//	string actual_mbr = p_dev["disk"]:"";
-//
-//	if ( actual_mbr != BootCommon::mbrDisk )
-//	    ret = true;	// FIXME: use new return structure
-//    }
 
     if ( BootCommon::globals["boot_custom"]:nil != nil ) {
 	list all_boot_partitions = BootCommon::getPartitionList(`boot);
@@ -966,41 +949,6 @@ define void grub_LocationProposal () {
 // --------------------------------------------------------------
 // other stuff
 
-/**
- * Propose whether allow or not embedding of 1.5 stage
- * @return boolean true to allow
- */
-// FIXME: remove this function, it is obsolete (now handled within grub by
-// using "setup" instead of "install")
-// The code probably does not work with multiple bootloader locations anyway.
-// This code previously existed in lilolike.ycp and in grub/misc.ycp... See
-// more in lilolike.ycp.
-define boolean allowEmbed15 () {
-  // allow only if /boot, /root or MBR device selected
-  if (! (BootCommon::globals["boot_boot"]:"false" == "true"
-	 || BootCommon::globals["boot_root"]:"false" == "true"
-	 || BootCommon::globals["boot_mbr"]:"false" == "true"
-	 ))
-    {
-      return false;
-    }
-  // check filesystem on /boot for Reiserfs and JFS
-  map mp = Storage::GetMountPoints ();
-  list bp_info
-      = mp["/boot"]:mp["/"]:[];
-  list<map> partitions
-    = Storage::GetTargetMap ()[bp_info[2]:"", "partitions"]:[];
-  boolean ret = false;
-  foreach (map p, partitions, {
-    if (p["device"]:"" == BootCommon::BootPartitionDevice)
-      {
-	symbol fs = (symbol)p["used_fs"]:nil;
-	if (fs == `reiser || fs == `jfs)
-	  ret = true;
-      }
-  });
-  return ret;
-}
 
 /**
  * Encrypt the password before storing it in variables

@@ -788,10 +788,18 @@ global define string Dev2MountByDev(string dev)
      */
     global define list<string> getPartitionList(symbol type) ``{
 	y2milestone ("getPartitionList: %1", type);
+	string bl = getLoaderType(false);
 	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
 	list<map> partitions = [];
 	foreach (string k, map v, devices, ``{
-	    partitions = (list<map>)merge (partitions, (list<map>)(v["partitions"]:[]));
+	    if ((type == `boot) && (bl == "grub"))
+	    {
+		// check if device is in device map
+		if (haskey(device_mapping, k) || (haskey(device_mapping, Dev2MountByDev(k))))
+		    partitions = (list<map>)merge (partitions, (list<map>)(v["partitions"]:[]));
+	    } else {
+	        partitions = (list<map>)merge (partitions, (list<map>)(v["partitions"]:[]));
+	    }
 	});
 	list<string> floppies = getFloppyDevices ();
 
@@ -800,10 +808,20 @@ global define string Dev2MountByDev(string dev)
 
 	if (type == `boot || type == `boot_other)
 	{
-	    devices = filter (string k, map v, devices,
-	                      ``(v["type"]:`CT_UNKNOWN == `CT_DISK));
+	    devices = filter (string k, map v, devices, {
+			if ((v["type"]:`CT_UNKNOWN == `CT_DISK) ||
+			    (v["type"]:`CT_UNKNOWN == `CT_DMRAID))
+				return true;
+			else
+				return false;
+		      });
 	}
-	list<string> all_disks = (list<string>) maplist (string k, map v, devices, ``(k));
+	list<string> all_disks = (list<string>) maplist (string k, map v, devices, 
+	{
+	    return k;
+	});
+
+	
 
 	if (type == `deleted)
 	    return maplist (map x, filter (map p, partitions, ``(p["delete"]:false)),
@@ -820,6 +838,14 @@ global define string Dev2MountByDev(string dev)
 	    });
 	}
         partitions = filter (map p, partitions, ``(! p["delete"]:false));
+	// filter out disk which are not in device map
+	if ((bl == "grub") && (type == `boot))
+	    all_disks = (list<string>) filter(string k, all_disks, {
+		if (haskey(device_mapping, k) || (haskey(device_mapping, Dev2MountByDev(k))))
+		    return true;
+		else
+		    return false;
+	    });
 	list<string> ret = all_disks;
 	if (type == `boot_other || type == `root || type == `parts_old
 	    || type == `kept)
@@ -831,7 +857,8 @@ global define string Dev2MountByDev(string dev)
                 ``(p["type"]:`primary == `primary
 		    || p["type"]:`primary == `extended
 		    || p["type"]:`primary == `logical
-		    || p["type"]:`primary == `sw_raid));
+		    || p["type"]:`primary == `sw_raid)
+	    );
 	    // FIXME this checking is performed on 3 places, one function should
 	    // be developed for it
 	    partitions = filter (map p, partitions, {
@@ -867,7 +894,8 @@ global define string Dev2MountByDev(string dev)
                 ``(p["fstype"]:"" == "Linux native"
                     || p["fstype"]:"" == "Extended"
 		    || p["fstype"]:"" == "Linux RAID"
-		    || p["fstype"]:"" == "MD Raid"));
+		    || p["fstype"]:"" == "MD Raid"
+		    || p["fstype"]:"" == "DM RAID"));
 	}
         list<string>partition_names
 	    = maplist (map p, partitions, ``((string)(p["device"]:"")));
@@ -2578,44 +2606,42 @@ define string getConsoleValue()
  * - add key console with value to section type image and xen
  */
 
-define void addConsole()
+global define void HandleConsole()
 {
 	string console_value = getConsoleValue();
-	if ((console_value != "") && (console_value != nil))
-	{
 		
-		// list of idexes from sections where is image or xen
-		list < integer > list_index =[];
-		// counter 
-		integer index = -1;
-		foreach(map<string,any> section, sections,
-		{
-			index = index +1;
-			if ((section["type"]:"" == "image") || (search(section["type"]:"", "xen") != nil))
-				list_index = add(list_index, index);
-		});
+	// list of idexes from sections where is image or xen
+	list < integer > list_index =[];
+	// counter 
+	integer index = -1;
+	foreach(map<string,any> section, sections,
+	{
+		index = index +1;
+		if ((section["type"]:"" == "image") || (search(section["type"]:"", "xen") != nil))
+			list_index = add(list_index, index);
+	});
 
-		// add key console with value
-		if (size(list_index) > 0)
+	// add key console with value
+	if (size(list_index) > 0)
+	{
+		foreach (integer idx, list_index,
 		{
-			foreach (integer idx, list_index,
+			sections[idx, "__changed"] = true;
+			if (sections[idx, "append"]:nil != nil)
 			{
-				sections[idx, "console"] = console_value;
-				sections[idx, "__changed"] = true;
-				if (sections[idx, "append"]:nil != nil)
+				string updated_append = "";
+				if ((console_value != "") || (console_value != nil))
+					updated_append = BootCommon::UpdateSerialConsole(sections[idx,"append"]:"",
+						 console_value);
+				else
+					updated_append = BootCommon::UpdateSerialConsole(sections[idx,"append"]:"", "");
+				if (updated_append != nil)
 				{
-					string updated_append = 
-						BootCommon::UpdateSerialConsole(sections[idx,"append"]:"",
-								 sections[idx,"console"]:"");
-					if (updated_append != nil)
-					{
-						sections[idx,"append"]=updated_append;
-					}
+					sections[idx,"append"]=updated_append;
 				}
-				y2debug("Added console for section: %1", sections[idx]:$[]);
-			});
-		}
-
+			}
+			y2debug("Added/Removed console for section: %1", sections[idx]:$[]);
+		});
 	}
 }
 

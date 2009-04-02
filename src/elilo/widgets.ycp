@@ -23,7 +23,6 @@
     import "Label";
     import "Mode";
     import "BootCommon";
-    import "TablePopup";
     include "bootloader/routines/popups.ycp";
 
 
@@ -37,23 +36,16 @@
     global define term getTargetWidget () ``{
 	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
 
-	term widget = `VBox (
+	term widget = `VBox (`Frame ( _("EFI Label"), `HBox(`HSpacing(1),`VBox(
 	    `VSpacing (1),
 	    `Left (`CheckBox (`id (`create_entry), `opt (`notify),
 		// check box
 		_("&Create EFI Entry"))),
-	    `VSpacing (0.6),
 	    `Left (`InputField (`id (`location), `opt (`hstretch),
 		// text entry label
 		_("&EFI Entry Name"))),
-	    have_old ? `VSpacing (1) : `VSpacing (0),
-	    have_old
-		? `Left (`CheckBox (`id (`remove_old),
-		    // check box
-		    sformat (_("&Remove Old EFI Entry (%1)"), old_efi_entry)))
-		: `VSpacing (0),
-	    `VSpacing (1)
-	);
+	     `VStretch ()
+	))));
 	return widget;
     }
 
@@ -63,16 +55,9 @@
       * @param opt_key any option key
       */
     global define void targetInit (string widget) ``{
-	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
 	UI::ChangeWidget (`id (`create_entry), `Value, create_efi_entry);
-	UI::ChangeWidget (`id (`location), `Value, efi_entry_name);
+	UI::ChangeWidget (`id (`location), `Value, BootCommon::globals["boot_efilabel"]:"");
 	UI::ChangeWidget (`id (`location), `Enabled, create_efi_entry);
-	if (have_old)
-	{
-	    UI::ChangeWidget (`id (`remove_old), `Value, remove_old_efi);
-	    UI::ChangeWidget (`id (`remove_old), `Enabled, create_efi_entry);
-	}
-	UI::SetFocus (`id (`create_entry));
     }
 
     /**
@@ -82,14 +67,9 @@
       * @param event map event that occured
       */
     global symbol targetHandle (string widget, map event) ``{
-	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
 	UI::ChangeWidget (`id (`location), `Enabled,
 	    UI::QueryWidget (`id (`create_entry), `Value));
-	if (have_old)
-	{
-	    UI::ChangeWidget (`id (`remove_old), `Enabled,
-		UI::QueryWidget (`id (`create_entry), `Value));
-	}
+	return nil;
     }
 
     /**
@@ -98,18 +78,11 @@
       * @param opt_key any option key
       */
     global define void targetStore (string widget, map event) ``{
-	boolean have_old = (old_efi_entry != nil && old_efi_entry != "");
-	efi_entry_name = (string)
+	BootCommon::globals["boot_efilabel"] = (string)
 	    UI::QueryWidget (`id (`location), `Value);
-	if (have_old)
-	{
-	    remove_old_efi = (boolean)
-		UI::QueryWidget (`id (`remove_old), `Value);
-	}
 	BootCommon::location_changed = true;
 	create_efi_entry = (boolean)
 	    UI::QueryWidget (`id (`create_entry), `Value);
-	BootCommon::location_changed = true;
     }
 
     /**

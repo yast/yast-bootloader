@@ -1,0 +1,229 @@
+/**
+ * File:
+ *      include/bootloader/routines/grub_options.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Grub widgets for bootloader options.
+ *
+ * Authors:
+ *      Josef Reidinger<jreidinger@suse.cz>
+ *
+ * $Id: $
+ *
+ */
+
+{
+textdomain "bootloader";
+
+import "Label";
+import "System::Bootloader_API";
+
+include "bootloader/routines/common_options.ycp";
+
+
+void InitGfx(string widget){
+  boolean value = BootCommon::globals["trusted_grub"]:"false" != "true";
+  UI::ChangeWidget(`id(`gfxinput),`Enabled, value);
+  UI::ChangeWidget(`id(`gfxinput),`Value,BootCommon::globals[widget]:"");
+}
+
+void StoreGfx(string widget, map event){
+  string result = (string)UI::QueryWidget(`id(`gfxinput),`Value);
+  if (result == ""){
+    BootCommon::global_options = remove(BootCommon::global_options, widget);
+  } else {
+    BootCommon::global_options[widget] = result;
+  }
+}
+
+symbol HandleGfx(string widget, map event){
+  string file = UI::AskForExistingFile("/boot", "",
+                  _("Choose new graphical menu file"));
+
+  if (file != nil){
+     UI::ChangeWidget(`id(`gfxinput),`Value,file);
+  }
+
+  return nil;
+}
+
+map<string,any> GfxWidget(){
+  return $[
+    "widget" : `custom,
+    "custom_widget" : `HBox(`Left(`InputField(`id(`gfxinput),`opt(`hstretch),
+                                   grub_descriptions["gfxmenu"]:"gfxmenu")),
+              `VBox(
+                 `Left(`Label("")),
+                 `Left(`PushButton(`id(`browsegfx),`opt(`notify), Label::BrowseButton()))
+              )
+            ),
+    "init" : InitGfx,
+    "store" : StoreGfx,
+    "handle" : HandleGfx,
+    "handle_events" : [`browsegfx],
+    "help" : grub_help_messages["gfxmenu"]:""
+  ];
+}
+
+symbol HandleTrusted (string widget, map event){
+  boolean value =  (boolean)UI::QueryWidget(`id(widget),`Value);
+  UI::ChangeWidget(`id(`gfxinput),`Enabled,!value);
+  return nil;
+}
+
+map<string,any> TrustedWidget(){
+  map<string,any> widget = CommonCheckboxWidget(
+        grub_descriptions["trusted_grub"]:"trusted grub",
+        grub_help_messages["trusted_grub"]:"");
+  widget["opt"] = [`notify];
+  widget["handle"] = HandleTrusted;
+  return widget;
+}
+
+/**
+ * Init function of widget
+ * @param widget string id of the widget
+ */
+void InitPasswdWidget (string widget) {
+    string passwd = BootCommon::globals["password"]:"";
+    if (passwd == nil || passwd == "")
+    {
+	UI::ChangeWidget (`id (`use_pas), `Value, false);
+	UI::ChangeWidget (`id (`pw1), `Enabled, false);
+	UI::ChangeWidget (`id (`pw1), `Value, "");
+	UI::ChangeWidget (`id (`pw2), `Enabled, false);
+	UI::ChangeWidget (`id (`pw2), `Value, "");
+    }
+    else
+    {
+	UI::ChangeWidget (`id (`use_pas), `Value, true);
+	UI::ChangeWidget (`id (`pw1), `Enabled, true);
+	UI::ChangeWidget (`id (`pw1), `Value, "**********");
+	UI::ChangeWidget (`id (`pw2), `Enabled, true);
+	UI::ChangeWidget (`id (`pw2), `Value, "**********");
+    }
+    if (Mode::installation()){
+	UI::ChangeWidget (`id (`use_pas), `Enable, false);
+    }
+}
+
+/**
+ * Handle function of a widget
+ * @param widget string id of the widget
+ * @param event map event description of event that occured
+ * @return symbol always nil
+ */
+symbol HandlePasswdWidget (string widget, map event) {
+    if (event["ID"]:nil == `use_pas)
+    {
+	boolean enabled = (boolean)UI::QueryWidget (`id (`use_pas), `Value);
+	UI::ChangeWidget (`id (`pw1), `Enabled, enabled);
+	UI::ChangeWidget (`id (`pw2), `Enabled, enabled);
+    }
+    return nil;
+}
+
+/**
+ * Store function of a popup
+ * @param key any widget key
+ * @param event map event that caused the operation
+ */
+void StorePasswdWidget (string key, map event) {
+    string password = nil;
+    boolean usepass = (boolean)UI::QueryWidget (`id (`use_pas), `Value);
+    y2milestone ("Usepass: %1", usepass);
+    if (usepass)
+    {
+	if (UI::QueryWidget (`id (`pw1), `Value) != "**********")
+	{
+	    password = (string)UI::QueryWidget (`id (`pw1), `Value);
+            password = System::Bootloader_API::countGRUBPassword(password);
+	    if (password != nil){
+              BootCommon::globals["password"] = password; //TODO popup for error
+            }
+	}
+    }
+    else if (haskey (BootCommon::globals, "password"))
+    {
+	BootCommon::globals = remove (BootCommon::globals, "password");
+    }
+    return nil;
+}
+
+
+/**
+ * Validate function of a popup
+ * @param key any widget key
+ * @param event map event that caused validation
+ * @return boolean true if widget settings ok
+ */
+boolean ValidatePasswdWidget (string key, map event) {
+    if (! (boolean)UI::QueryWidget (`id (`use_pas), `Value))
+	return true;
+    if (UI::QueryWidget (`id (`pw1), `Value) == "")
+    {
+	emptyPasswdErrorPopup ();
+	UI::SetFocus (`id (`pw1));
+	return false;
+    }
+    if (UI::QueryWidget (`id (`pw1), `Value)
+	== UI::QueryWidget (`id (`pw2), `Value)
+    )
+	return true;
+    passwdMissmatchPopup ();
+    UI::SetFocus (`id (`pw1));
+    return false;
+}
+
+
+
+/**
+ * Build a map describing a widget
+ * @return a map describing a widget
+ */
+map<string,any> PasswordWidget () {
+    return $[
+	"widget" : `custom,
+	// frame
+	"custom_widget" : `HBox(
+	    `CheckBoxFrame (`id (`use_pas), 
+			_("Prot&ect Boot Loader with Password"),true,
+		    `HBox (
+			// text entry
+			`Password (`id (`pw1), _("&Password")),
+			// text entry
+			`Password (`id (`pw2), _("Re&type Password")),
+			`HStretch()
+		    )
+	    )
+	    ),
+	"init" : InitPasswdWidget,
+	"handle" : HandlePasswdWidget,
+	"store" : StorePasswdWidget,
+	"validate_type" : `function,
+	"validate_function" : ValidatePasswdWidget,
+	"help" : grub_help_messages["password"]:"",
+    ];
+}
+
+map<string,map<string,any> > GrubOptions(){
+  map<string,map<string,any> >  grub_specific = $[
+    "activate" : CommonCheckboxWidget(grub_descriptions["activate"]:"activate",
+                                      grub_help_messages["activate"]:""),
+    "debug" : CommonCheckboxWidget(grub_descriptions["debug"]:"debug",
+                                    grub_help_messages["debug"]:""),
+    "generic_mbr" : CommonCheckboxWidget(grub_descriptions["generic_mbr"]:"generic mbr",
+                                          grub_help_messages["generic_mbr"]:""),
+    "trusted_grub" : TrustedWidget(),
+    "hiddenmenu" : CommonCheckboxWidget(grub_descriptions["hiddenmenu"]:"hidden menu",
+                                          grub_help_messages["hiddenmenu"]:""),
+    "gfxmenu" : GfxWidget(),
+    "password" : PasswordWidget(),
+  ];
+  return (map<string,map<string,any> >)union(grub_specific,CommonOptions());
+}
+
+}

@@ -32,7 +32,6 @@ import "Stage";
 
 include "bootloader/zipl/helps.ycp";
 include "bootloader/routines/popups.ycp";
-include "bootloader/generic/dialogs.ycp";
 
 
 // local data
@@ -235,7 +234,6 @@ global define void Propose () {
  */
 global boolean Save (boolean clean, boolean init, boolean flush) {
     boolean ret = BootCommon::Save (clean, init, flush);
-    importMetaData();
 
     if (Mode::normal ())
 	return ret;
@@ -283,11 +281,7 @@ global symbol WizardSequenzer() {
 
 
 global map<string,symbol()> Dialogs () {
-    if (size(GOW_options()) == 0)
         return $[];
-    return $[
-	"loader"	: genericBootLoaderOptionsDialog,
-    ];
 }
 
 /**
@@ -299,6 +293,15 @@ global define boolean FlagOnetimeBoot (string section)
 {
         /* For now a dummy */
         return true;
+}
+
+list <string> zipl_section_types()
+{
+	return ["image", "menu", "dump"];
+}
+
+map<string,map<string,any> > ziplWidgets(){
+  return $[];
 }
 
 /**
@@ -316,10 +319,10 @@ global map<string, any> GetFunctions () {
         "summary"		: Summary,
         "update"		: Update,
         "write"			: Write,
-        "widgets"		: genericWidgets,
+        "widgets"		: ziplWidgets,
         "wizard_sequencer"	: WizardSequenzer,
         "dialogs"		: Dialogs,
-        "section_types"		: section_types,
+        "section_types"		: zipl_section_types,
 	"flagonetimeboot"	: FlagOnetimeBoot,
     ];
 }
@@ -337,23 +340,7 @@ global define void Initializer () {
         "scratch" : true,
     ];
 
-    BootCommon::help_messages = (map<string,string>)
-      union(BootCommon::help_messages,
-    	mapmap(string key, string val, zipl_help_messages,
-    	    { return $[ "zipl_" + key : val ]; }
-    	       )
-    	);
-    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-    BootCommon::descriptions = (map<string,string>)
-      union(BootCommon::descriptions,
-    	mapmap(string key, string val, zipl_descriptions,
-    	    { return $[ "zipl_" + key : val ]; }
-    	       )
-    	);
-    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-
     BootCommon::InitializeLibrary (false, "zipl");
-    importMetaData();
 }
 
 /**

@@ -105,6 +105,16 @@ global define boolean blRead (boolean reread, boolean avoid_reading_device_map) 
         void() toEval = functions["propose"]:BootCommon::Propose;
         toEval ();
     }
+/**
+ * Get sections types
+ * @return list <string> section types
+ */
+global list <string> blsection_types ()
+{
+	map functions = getFunctions (BootCommon::getLoaderType (false));
+	list<string>() toEval = functions["section_types"]:BootCommon::Common_sections_types;
+	return toEval ();
+}
 
 /**
  * Save bootloader cfg. files to the cache of the pluglib
