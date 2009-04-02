@@ -33,10 +33,7 @@ import "Popup";
 import "FileUtils";
 
 include "bootloader/routines/helps.ycp";
-include "bootloader/grub/helps.ycp";
-include "bootloader/elilo/helps.ycp";
-include "bootloader/zipl/helps.ycp";
-include "bootloader/ppc/helps.ycp";
+include "bootloader/routines/section_helps.ycp";
 
 boolean validate_image(string widget, map event){
   string value = (string) UI::QueryWidget(`id(widget),`Value);
@@ -113,16 +110,30 @@ void StoreSectionBool(string widget, map event){
   BootCommon::current_section[widget] = value ? "true" : "false";
 }
 
-map<string,any> SectionCheckBoxWidget( string label, string help){
+map<string,any> SectionCheckBoxWidget( string name){
   return $[
-    "label" : label,
+    "label" : section_descriptions[name]:name,
     "widget" : `checkbox,
-    "help" : help,
+    "help" : section_help_messages[name]:"",
     "init" : InitSectionBool,
     "store" : StoreSectionBool
   ];
 }
 
+map<string,any> SectionTextFieldWidget( string name){
+  map<string,any> ret = $[
+    "label" : section_descriptions[name]:name,
+    "widget" : `textentry,
+    "help" : section_help_messages[name]:"",
+  ];
+
+  if (haskey(validation_map,name)){
+    ret["validate_type"] = `function;
+    ret["validate_function"] = validation_map[name]:nil;//nil cannot happen
+  }
+
+  return ret;
+}
 
 /**
  * Handle function of a widget (InputField + browse button)
@@ -166,12 +177,13 @@ symbol HandleSectionBrowseDirectory (string widget, map event) {
  * @param string id of widget
  * @return map<string,any> CWS widget
  */
-map<string,any> SectionInputFieldBrowseWidget(string label, string help, string id){
+map<string,any> SectionInputFieldBrowseWidget(string id){
   string browse = "browse" + id;
   map<string,any> ret = $[
     "widget" : `custom,
     "custom_widget" : `HBox(
-	     `Left(`InputField(`id(id),`opt(`hstretch), label)),
+	     `Left(`InputField(`id(id),`opt(`hstretch),
+                    section_descriptions[id]:id)),
               `VBox(
                  `Label(""),
                  `PushButton(`id(browse),`opt(`notify), Label::BrowseButton())
@@ -181,7 +193,7 @@ map<string,any> SectionInputFieldBrowseWidget(string label, string help, string 
     "store" : SectionOptionStore,
     "handle" : HandleSectionBrowse,
     "handle_events" : [browse],
-    "help" : help,
+    "help" : section_help_messages[id]:id,
   ];
   if (haskey(validation_map,id)){
     ret["validate_type"] = `function;
@@ -191,8 +203,8 @@ map<string,any> SectionInputFieldBrowseWidget(string label, string help, string 
   return ret;
 }
 
-map<string,any> SectionInputFieldBrowseDirectoryWidget(string label, string help, string id){
-  map<string,any> ret = SectionInputFieldBrowseWidget(label,help,id);
+map<string,any> SectionInputFieldBrowseDirectoryWidget(string id){
+  map<string,any> ret = SectionInputFieldBrowseWidget(id);
   ret["handle"] = HandleSectionBrowseDirectory;
   return ret;
 }
@@ -208,12 +220,12 @@ void StoreSectionInt(string widget, map event){
   BootCommon::current_section[widget] = tostring(value);
 }
 
-map<string,any> SectionIntFieldWidget( string label, string help,
+map<string,any> SectionIntFieldWidget( string name,
                                       integer min, integer max){
   map<string,any> ret = $[
-    "label" : label,
+    "label" : section_descriptions[name]:name,
     "widget" : `intfield,
-    "help" : help,
+    "help" : section_help_messages[name]:name,
     "init" : InitSectionInt,
     "store" : StoreSectionInt
   ];
@@ -457,78 +469,48 @@ map<string,map<string,any> > CommonSectionWidgets () {
 		"store" : SectionNameStore,
 		"help" : SectionNameHelp (),
 	    ],
-	    "image" : SectionInputFieldBrowseWidget(
-			grub_descriptions["image"]:"image",
-                        grub_help_messages["image"]:"",
-                        "image"),
-	    "initrd" : SectionInputFieldBrowseWidget(
-			grub_descriptions["initrd"]:"initrd",
-                        grub_help_messages["initrd"]:"",
-                        "initrd"),
-	    "xen" : SectionInputFieldBrowseWidget(
-			grub_descriptions["xen"]:"xen",
-                        grub_help_messages["xen"]:"",
-                        "xen"),
-	    "target" : SectionInputFieldBrowseDirectoryWidget(
-			zipl_descriptions["target"]:"target",
-                        zipl_help_messages["target"]:"",
-                        "target"),
-	    "parmfile" : SectionInputFieldBrowseWidget(
-			zipl_descriptions["parmfile"]:"parmfile",
-                        zipl_help_messages["parmfile"]:"",
-                        "parmfile"),
+	    "image" : SectionInputFieldBrowseWidget("image"),
+	    "initrd" : SectionInputFieldBrowseWidget("initrd"),
+	    "xen" : SectionInputFieldBrowseWidget("xen"),
+	    "target" : SectionInputFieldBrowseDirectoryWidget("target"),
+	    "parmfile" : SectionInputFieldBrowseWidget("parmfile"),
 	    "dumpto" : $[ //FIXME when exist browse device use it
-		"label" : zipl_descriptions["dumpto"]:"dumpto",
+		"label" : section_descriptions["dumpto"]:"dumpto",
 		"widget" : `textentry,
-		"help" : zipl_help_messages["dumpto"]:""
+		"help" : section_help_messages["dumpto"]:""
 	    ],
 	    "dumptofs" : $[ //FIXME when exist browse device use it
-		"label" : zipl_descriptions["dumptofs"]:"dumptofs",
+		"label" : section_descriptions["dumptofs"]:"dumptofs",
 		"widget" : `textentry,
-		"help" : zipl_help_messages["dumptofs"]:""
+		"help" : section_help_messages["dumptofs"]:""
 	    ],
 	    "root" : $[
 		"widget" : `combobox,
 		// combo box
-		"label" : grub_descriptions["root"]:"root",
+		"label" : section_descriptions["root"]:"root",
 		"opt" : [ `editable, `hstretch, `notify ],
 		"init" : RootDeviceInit,
 		"handle" : RootDeviceHandle,
 		"store" : RootDeviceStore,
-		"help" : grub_help_messages["root"]:"",
+		"help" : section_help_messages["root"]:"",
 	    ],
 	    "vgamode" : $[
 		"widget" : `combobox,
 		// combo box
-		"label" : grub_descriptions["vgamode"]:"vgamode",
+		"label" : section_descriptions["vgamode"]:"vgamode",
 		"opt" : [ `editable, `hstretch ],
 		"init" : VgaModeInit,
-		"help" : grub_help_messages["vgamode"]:"",
+		"help" : section_help_messages["vgamode"]:"",
 	    ],
-	    "append" : $[
-		"label" : grub_descriptions["append"]:"append",
-		"widget" : `textentry,
-		"help" : grub_help_messages["append"]:""
-	    ],
-	    "xen_append" : $[
-		"label" : grub_descriptions["xen_append"]:"xen_append",
-		"widget" : `textentry,
-		"help" : grub_help_messages["xen_append"]:"",
-	    ],
-	    "configfile" : $[
-		"label" : grub_descriptions["configfile"]:"configfile",
-		"widget" : `textentry,
-		"help" : grub_help_messages["configfile"]:"",
-            ],
-	    "list" : $[
-		"label" : zipl_descriptions["list"]:"list",
-		"widget" : `textentry,
-		"help" : zipl_help_messages["list"]:"",
-            ],
+	    "append" : SectionTextFieldWidget("append"),
+	    "xen_append" : SectionTextFieldWidget("xen_append"),
+	    "configfile" : SectionTextFieldWidget("configfile"),
+	    "list" : SectionTextFieldWidget("list"),
 	    "chainloader" : $[
 		"widget" : `combobox,
 		"init" : ChainloaderInit,
-		"help" : grub_help_messages["chainloader"]:"",
+		"help" : section_help_messages["chainloader"]:"",
+                "label" : section_descriptions["chainloader"]:"chainloader",
 		"opt" : [ `editable, `hstretch ],
 	    ],
 	    "section_type" : $[
@@ -537,41 +519,21 @@ map<string,map<string,any> > CommonSectionWidgets () {
 		"handle" : SectionTypeHandle,
 		"help" : SectionTypeHelp (),
 	    ],
-            "makeactive" : SectionCheckBoxWidget(
-                grub_descriptions["makeactive"]:"makeactive",
-                grub_help_messages["makeactive"]:""),
-            "noverifyroot" : SectionCheckBoxWidget(
-                grub_descriptions["noverifyroot"]:"noverifyroot",
-                grub_help_messages["noverifyroot"]:""),
-            "remap" : SectionCheckBoxWidget(
-                grub_descriptions["remap"]:"remap",
-                grub_help_messages["remap"]:""),
-            "relocatable" : SectionCheckBoxWidget(
-                elilo_descriptions["relocatable"]:"relocatable",
-                elilo_help_messages["section_relocatable"]:""),
-            "prompt" : SectionCheckBoxWidget(
-                zipl_descriptions["prompt"]:"prompt",
-                zipl_help_messages["prompt"]:""),
+            "makeactive" : SectionCheckBoxWidget("makeactive"),
+            "noverifyroot" : SectionCheckBoxWidget("noverifyroot"),
+            "remap" : SectionCheckBoxWidget("remap"),
+            "relocatable" : SectionCheckBoxWidget("relocatable"),
+            "prompt" : SectionCheckBoxWidget("prompt"),
             "blockoffset" : SectionIntFieldWidget(
-                grub_descriptions["blockoffset"]:"blockoffset",
-                grub_help_messages["blockoffset"]:"",0,nil),
+                "blockoffset",0,nil),
             "default" : SectionIntFieldWidget(
-                zipl_descriptions["default"]:"default",
-                zipl_help_messages["default"]:"",1,10),
+                "default",1,10),
             "timeout" : SectionIntFieldWidget(
-                zipl_descriptions["timeout"]:"timeout",
-                zipl_help_messages["timeout"]:"",0,60),
-            "optional" : SectionCheckBoxWidget(
-                ppc_descriptions["optional"]:"optional",
-                ppc_help_messages["optional"]:""),
-            "copy" : SectionCheckBoxWidget(
-                ppc_descriptions["copy"]:"copy",
-                ppc_help_messages["copy"]:""),
-	    "other" : $[ //FIXME change to combobox and add proper init function
-		"label" : ppc_descriptions["other"]:"other",
-		"widget" : `textentry,
-		"help" : ppc_help_messages["other"]:""
-	    ],
+                "timeout",0,60),
+            "optional" : SectionCheckBoxWidget("optional"),
+            "copy" : SectionCheckBoxWidget("copy"),
+	    "other" :  //FIXME change to combobox and add proper init function
+	              SectionTextFieldWidget("other"),
 	];
     }
 

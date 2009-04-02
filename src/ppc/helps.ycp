@@ -107,15 +107,6 @@ global map<string,string> ppc_descriptions = $[
     "boot_file"		 : _("Create Boot Image in File"),
     "boot_iseries_custom": _("PReP Partition"),
     "boot_pmac_custom"   : _("HFS Boot Partition"),
-    "type_image"         : _("Kernel Section"),
-    "image_image"        : _("Kernel Image"),
-    "image_root"	 : _("Root Device"),
-    "image_append"	 : _("Optional Kernel Command Line Parameter"),
-    "image_initrd"	 : _("Initial RAM Disk"),
-    "copy"	         : _("Copy Image to Boot Partition"),
-    "optional"	         : _("&Skip Section gracefully on Errors"),
-    "type_other"         : _("Boot Other System"),
-    "other"	         : _("Boot Partition of Other System"),
 ];
 
 

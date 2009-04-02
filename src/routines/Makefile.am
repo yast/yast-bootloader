@@ -10,6 +10,7 @@ ynclude_DATA =			\
 	global_widgets.ycp	\
 	switcher.ycp		\
 	helps.ycp		\
+	section_helps.ycp       \
 	lilolike.ycp		\
 	popups.ycp		\
 	i386.ycp		\

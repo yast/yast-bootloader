@@ -61,15 +61,6 @@ avoid forcing the variable.</p>
 In case of memory allocation error at initial load point of
 kernel, allow attempt to relocate (assume this kernel is relocatable).
 </p>"),
-    "image_append"       :
-    _("<p><b>Optional kernel command line parameter</b></p>
-May be empty, if already specified in global section.</p>"),
-    "image_readonly"	 :
-     _("<p><b>Force root filesystem to be mounted read-only</b><br>
-Usually specified in global section</p>"),
-    "section_relocatable"  :
-    _("<p><b>Allow attempt to relocate</b>
-Usually specified in global section</p>"),
     "prompt"		 :
     _("<p><b>Force Interactive Mode</b>
 Force interactive mode during booting</p>"),
@@ -126,15 +117,6 @@ global map<string,string> elilo_descriptions = $[
     "fpswa"		 : _("Specify the filename for a specific FPSWA to load"),
     "relocatable"	 : _("Allow attempt to relocate"),
     "boot_custom"	 : _("Custom Boot Partition"),
-    "type_image"         : _("Image Section"),
-    "image_append"       : _("Optional kernel command line parameter"),
-    "image_description"  : _("One line text description of the image"),
-    "image_image"        : _("Kernel image"),
-    "image_initrd"       : _("Initial RAM disk"),
-    "image_noverifyroot" : _("Do not verify filesystem before booting"),
-    "image_readonly"	 : _("Force root filesystem to be mounted read-only"),
-    "image_relocatable"  : _("Allow attempt to relocate"),
-    "image_root"	 : _("Root device"),
 ];
 
 

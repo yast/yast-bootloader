@@ -20,35 +20,12 @@
 textdomain "bootloader";
 
 global map<string,string>   zipl_help_messages = $[
-    "type_dump"      :
-    _("<p>Select <b>Dump Section</b> to add a section that specifies how to
-create a system dump either on a DASD disk partition or tape device or to a
-file on a SCSI disk partition.</p>"),
-    "type_menu"      :
-    _("<p>Select <b>Menu Section</b> to add a new menu to the configuration.
-Menu sections represent a list of tasks which are grouped together.</p>
-"),
     ];
 
 
 global map<string,string> zipl_descriptions = $[
     "boot" 	     : _("Boot Image Location"),
     "default"        : _("Default Boot Section/Menu"),
-    "type_image"     : _("Image Section"),
-    "target"   : _("Tar&get Directory for Section"),
-    "image_image"    : _("Kernel Image"),
-    "image_initrd"   : _("Initial RAM Disk"),
-    "image_append"   : _("Optional Kernel Parameters"),
-    "image_root"     : _("Root device"),
-    "parmfile" : _("Op&tional Parameter File"),
-    "type_dump"      : _("Dump Section (obsolete)"),
-    "dumpto"    : _("&Dump Device"),
-    "dumptofs"  : _("&SCSI Dump Device"),
-    "type_menu"      : _("Menu Section"),
-    "list"      : _("&List of Menu Entries"),
-    "default"   : _("&Number of Default Entry"),
-    "timeout"   : _("&Timeout in seconds"),
-    "prompt"    : _("&Show boot menu"),
 ];
 
 
