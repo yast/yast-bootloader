@@ -17,10 +17,6 @@ module_DATA =			\
 	Bootloader_API.pm	\
 	BootSupportCheck.ycp
 
-#	BootS390.ycp		\
-#	BootMILO.ycp		\
-#	BootABOOT.ycp
-
 Bootloader_API.pm:
 	test -f Bootloader_API.pm || exit 1
 

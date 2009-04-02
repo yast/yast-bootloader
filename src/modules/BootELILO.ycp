@@ -42,7 +42,8 @@ import "Arch";
 
 include "bootloader/elilo/helps.ycp";
 include "bootloader/routines/popups.ycp";
-include "bootloader/generic/dialogs.ycp";
+include "bootloader/elilo/elilo_dialogs.ycp";
+
 
 
 // private variables
@@ -75,6 +76,9 @@ global boolean added_label_to_efi = false;
  * Is the /sys/firmware/efi directory available?
  */
 boolean efi_available = true;
+
+
+include "bootloader/elilo/widgets.ycp";
 
 // misc. functions
 
@@ -368,7 +372,7 @@ global define void Propose () {
  */
 global boolean Save (boolean clean, boolean init, boolean flush) {
     boolean ret = BootCommon::Save (clean, init, flush);
-    importMetaData();
+    //importMetaData();
     return ret;
 }
 
@@ -796,7 +800,7 @@ global symbol WizardSequenzer() {
 
 global map<string,symbol()> Dialogs () {
     return $[
-	"loader"	: genericBootLoaderOptionsDialog,
+	"loader"	: EliloLoaderDetailsDialog,
     ];
 }
 
@@ -808,6 +812,11 @@ global map<string,symbol()> Dialogs () {
 global define boolean FlagBootDefaultOnce (string section) {
 	/* For now a dummy */
 	return true;
+}
+
+list <string> elilo_section_types()
+{
+	return ["image", "xen"];
 }
 
 /**
@@ -825,10 +834,10 @@ global map<string, any> GetFunctions () {
         "summary"		: Summary,
         "update"		: Update,
         "write"			: Write,
-        "widgets"		: genericWidgets,
+        "widgets"		: Widgets,
         "wizard_sequencer"	: WizardSequenzer,
         "dialogs"		: Dialogs,
-        "section_types"		: section_types,
+        "section_types"		: elilo_section_types,
 	"flagbootdefaultonce"	: FlagBootDefaultOnce,
     ];
 }
@@ -846,23 +855,7 @@ global void Initializer () {
         "bootloader_on_disk" : true,
     ];
 
-    BootCommon::help_messages = (map<string,string>)
-      union(BootCommon::help_messages,
-    	mapmap(string key, string val, elilo_help_messages,
-    	    { return $[ "elilo_" + key : val ]; }
-    	       )
-    	);
-    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-    BootCommon::descriptions = (map<string,string>)
-      union(BootCommon::descriptions,
-    	mapmap(string key, string val, elilo_descriptions,
-    	    { return $[ "elilo_" + key : val ]; }
-    	       )
-    	);
-    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-
     BootCommon::InitializeLibrary (false, "elilo");
-    importMetaData();
 }
 
 /**

@@ -1,0 +1,133 @@
+/**
+ * File:
+ *      include/bootloader/elilo/elilo_dialogs.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Dialogs for elilo configuration functions
+ *
+ * Authors:
+ *      Jozef Uhliarik <juhliarik@suse.cz>
+ *
+ */
+{
+
+textdomain "bootloader";
+
+import "Label";
+import "Wizard";
+import "CWM";
+import "CWMTab";
+import "BootCommon";
+import "Stage";
+import "Arch";
+
+include "bootloader/routines/common_options.ycp";
+include "bootloader/elilo/elilo_options.ycp";
+
+
+
+/**
+ * Get the globals dialog tabs description
+ * @return a map the description of the tabs
+ */
+map EliloTabsDescr () {
+  return $[
+    "globals": $[
+	// tab header
+	"header" : _("&ELILO Global Options"),
+        "contents": `VBox (
+		`Frame ( _("Booting Mode"),`HBox(`HSpacing(1),`VBox(
+			`Left("noedd30"),
+			`Left("prompt"),
+			`Left("timeout")
+		))),
+		`Frame ( _("Global Section Options"),`HBox(`HSpacing(1),`VBox(
+			`Left("append"),
+			"image",
+			"initrd"
+		))),
+		`Frame ( _("Root Filesystem"),`HBox(`HSpacing(1),`VBox(
+			`Left("root"),
+			`Left("read-only")
+		))),
+		`VStretch ()
+	),
+        "widget_names": ["append", "image", "initrd", "noedd30",
+			"prompt", "root", "read-only", "timeout"]
+
+    ],
+    "detailed_globals": $[
+	// tab header
+	"header" : _("&Detailed Global Options"),
+	"contents" : `VBox (
+		`Frame ( _("Other Options"),`HBox(`HSpacing(1),`VBox(
+			`Left("message"),
+			`Left("chooser"),
+			"fX", 
+			(Arch::ia64()) ? "fpswa" : `Empty(),
+			`Left("delay"),
+			`Left("verbose")
+		))),
+		`VStretch ()
+	),
+        "widget_names": (Arch::ia64()) ? [ "chooser", "delay", "fX", "fpswa", "verbose", "message"]
+			: [ "chooser", "delay", "fX", "verbose", "message"]
+    ],
+  ];
+};
+
+string return_tab = "globals";
+
+/**
+ * Run dialog for loader installation details for elilo
+ * @return symbol for wizard sequencer
+ */
+symbol EliloLoaderDetailsDialog () 
+{
+    y2milestone ("Running elilo loader details dialog");
+    term contents = `VBox (
+	"tab"
+    );
+
+    list<string> widget_names = ["tab"];
+    map<string,map<string,any> > widget_descr = $[];
+
+    widget_descr =  (map<string,map<string,any> >) union (CommonOptions() ,EliloOptions());
+
+    widget_descr["tab"] = CWMTab::CreateWidget($[
+	"tab_order": ["globals", "detailed_globals"],
+	"tabs": EliloTabsDescr (),
+	"widget_descr": widget_descr,
+	"initial_tab" : return_tab,
+    ]);
+    widget_descr["tab", "no_help"] = "";
+
+    // dialog caption
+    string caption = _("Boot Loader Global Options");
+    symbol ret = CWM::ShowAndRun ($[
+	"widget_descr" : widget_descr,
+	"widget_names" : widget_names,
+	"contents" : contents,
+	"caption" : caption,
+	"back_button" : Label::BackButton (),
+	"abort_button" :Label::CancelButton (),
+	"next_button" : Label::OKButton (),
+	//"fallback_functions" : global_handlers,
+    ]);
+    if (ret != `back && ret != `abort && ret != `cancel)
+    {
+	return_tab = CWMTab::LastTab ();
+    }
+    return ret;
+}
+
+
+
+
+
+
+
+}

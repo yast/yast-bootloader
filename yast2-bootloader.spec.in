@@ -14,7 +14,7 @@ Requires:	yast2-core yast2-storage perl-Bootloader parted perl-Compress-Zlib lim
 BuildRequires:  yast2 >= 2.17.36
 BuildRequires:  yast2-packager >= 2.17.24
 BuildRequires:  yast2-pkg-bindings >= 2.17.25
-BuildRequires:  perl-Bootloader >= 0.4.80
+BuildRequires:  perl-Bootloader >= 0.4.91
 
 %ifarch %ix86 x86_64
 Requires:	master-boot-code

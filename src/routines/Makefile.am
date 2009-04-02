@@ -19,7 +19,9 @@ ynclude_DATA =			\
 	dialogs_i386.ycp	\
 	widgets_i386.ycp	\
 	helps_i386.ycp		\
-	autoinstall.ycp
+	autoinstall.ycp		\
+	grub_options.ycp	\
+	common_options.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)

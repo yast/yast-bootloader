@@ -35,44 +35,6 @@ global boolean DisksChanged ();
 include "bootloader/routines/i386.ycp";
 
 /**
- * Is embedding 1.5 stage of bootloader to dedicated partition area possible?
- * @return true if it is possible
- */
-// FIXME: remove this function, it is obsolete (now handled within grub by
-// using "setup" instead of "install")
-// The code probably does not work with multiple bootloader locations anyway.
-// Keeping this temporarily until no other code references it anymore (so that
-// for now, the code compiles). This is only used from widget code, and that
-// code is probably obsolete as well.
-// This code previously existed in lilolike.ycp and in grub/misc.ycp...
-global boolean allowEmbed15 () {
-    // allow only if /boot, /root or MBR device selected
-    // (corrected anyway to use boot_* keys; only grub knows about embed_1.5)
-    if (! (BootCommon::globals["boot_boot"]:"false" == "true"
-	 || BootCommon::globals["boot_root"]:"false" == "true"
-	 || BootCommon::globals["boot_mbr"]:"false" == "true"
-    ))
-    {
-	return false;
-    }
-    // check filesystem on /boot for Reiserfs and JFS
-    map mp = Storage::GetMountPoints ();
-    list bp_info
-	= mp["/boot"]:mp["/"]:[];
-    list<map> partitions
-	= Storage::GetTargetMap ()[bp_info[2]:"", "partitions"]:[];
-    boolean ret = false;
-    foreach (map p, partitions, {
-	if (p["device"]:"" == BootCommon::BootPartitionDevice)
-	{
-	    symbol fs = (symbol)p["used_fs"]:nil;
-	    if (fs == `reiser || fs == `jfs)
-		ret = true;
-	}
-    });
-    return ret;
-}
-/**
  * Check whether disk settings were changed since last checking
  * @return boolean true if needs to recheck
  */

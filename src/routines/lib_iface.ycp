@@ -44,7 +44,6 @@ boolean storage_initialized = false;
  */
 global boolean  DefineMultipath(map<string,string> multipath_map);
 
-
 boolean checkCallingDiskInfo ()
 {
     boolean ret = false;
@@ -416,7 +415,6 @@ global string UpdateSerialConsole (string append, string console) {
 	bootloaderError ("Error occurred while updating append");
     return ret;
 }
-
 
 /**
  * Initialize the boot loader (eg. modify firmware, depending on architecture)

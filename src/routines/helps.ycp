@@ -163,7 +163,7 @@ Enter the device name of the partition (for example, <tt>/dev/hda3</tt> or
  */
 string InstDetailsHelp () {
     // help text 1/1
-    return _("<p><big><b>Boot Loader Installation Details</b></big><br>
+    return _("<p><b>Boot Loader Installation Details</b><br>
 To adjust advanced boot loader installation options (such as the device
 mapping), click <b>Boot Loader Installation Details</b>.</p>");
 }
@@ -174,7 +174,7 @@ mapping), click <b>Boot Loader Installation Details</b>.</p>");
  */
 string LoaderTypeHelp () {
     // help text 1/1
-    return _("<p><big><b>Boot Loader Type</b></big><br>
+    return _("<p><b>Boot Loader Type</b><br>
 To select whether to install a boot loader and which bootloader to install,
 use <b>Boot Loader</b>.</p>");
 }
@@ -186,7 +186,7 @@ use <b>Boot Loader</b>.</p>");
  */
 string LoaderOptionsHelp () {
     // help text 1/1
-    return _("<p><big><b>Boot Loader Options</b></big><br>
+    return _("<p><b>Boot Loader Options</b><br>
 To adjust options of the boot loader, such as the time-out, click
 <b>Boot Loader Options</b>.</p>");
 }
@@ -208,76 +208,9 @@ Here, manually edit the boot loader configuration.</P>
  */
 string SectionNameHelp () {
     // help text 1/1
-    return _("<p><b><big>Section Name</big></b><br>
+    return _("<p><b>Section Name</b><br>
 Use <b>Section Name</b> to specify the boot loader section name. The section
 name must be unique.</p>");
-}
-
-/**
- * Get help text
- * @return string help text
- */
-string KernelHelp () {
-    // help text 1/1
-    return _("<p><big><b>Kernel</b></big><br>
-Use <b>Kernel</b> to specify the kernel image to load.</p>");
-}
-
-/**
- * Get help text
- * @return string help text
- */
-string InitrdHelp () {
-    // help text 1/1
-    return _("<p><big><b>Initial RAM Disk</b></big><br>
-Use <b>Initial RAM Disk</b> to specify the initial RAM disk (initrd) to load. If it is
-left empty, no initial RAM disk is loaded during boot.</p>");
-}
-
-/**
- * Get help text
- * @return string help text
- */
-string RootDeviceHelp () {
-    // help text 1/1
-    return _("<p><big><b>Root Device<b></big><br>
-Use <b>Root Device</b> to specify the root file system to mount after the kernel is
-loaded.</p>
-");
-}
-
-/**
- * Get help text
- * @return string help text
- */
-string VgaModeHelp () {
-    // help text 1/1
-    return _("<p><big><b>VGA Mode</b></big><br>
-Use <b>VGA Mode</b> to specify the resolution and color depth to set after
-the kernel has booted.</p>");
-}
-
-/**
- * Get help text
- * @return string help text
- */
-string AppendHelp () {
-    // help text 1/1
-    return _("<p><big><b>Other Kernel Parameters</b></big><br>
-Use <b>Other Kernel Parameters</b> to set other parameters to append
-to the kernel command line.</p>");
-}
-
-/**
- * Get help text
- * @return string help text
- */
-string ChainloaderHelp () {
-    // help text 1/1
-    return _("<p><big><b>Device</b></big><br>
-Use <b>Device</b> to set the device from which to load the operating system.
-In most cases, it is the disk partition in which 
-the other system is installed.</p>");
 }
 
 /**
@@ -303,18 +236,5 @@ but to start it in a XEN environment.</p>") +
 loads and starts a boot sector of a partition of the disk. This is used for
 booting other operating systems.</p>");
 }
-
-
-/**
- * Get help text
- * @return string help text
- */
-string TrustedGrubHelp () {
-    // help text 1/1
-    return _("<p><b>Trusted GRUB Details</b><br>
-allows to add aditional measured files and also to define own PCR for kernel, initrd or chainloader</p>");
-}
-
-
 
 } // EOF

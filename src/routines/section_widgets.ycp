@@ -11,6 +11,7 @@
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
  *      Olaf Dabrunz <od@suse.de>
+ *      Josef Reidinger <jreidinger@suse.cz>
  *
  * $Id$
  *
@@ -27,10 +28,52 @@ import "Label";
 import "Mode";
 import "Storage";
 import "StorageDevices";
-import "TablePopup";
+import "Bootloader";
 import "Popup";
+import "FileUtils";
 
 include "bootloader/routines/helps.ycp";
+include "bootloader/grub/helps.ycp";
+include "bootloader/elilo/helps.ycp";
+include "bootloader/zipl/helps.ycp";
+include "bootloader/ppc/helps.ycp";
+
+boolean validate_image(string widget, map event){
+  string value = (string) UI::QueryWidget(`id(widget),`Value);
+  if (value == ""){
+      Popup::Error(_("Image section must have specified kernel image"));
+      UI::SetFocus(`id(widget));
+      return false;
+  }
+  if (!Mode::installation() && !Mode::repair()){
+    if (!FileUtils::Exists(value)){
+      if (!Popup::YesNo(_("Image file doesn't exist now. Do you really want use it?"))){
+        UI::SetFocus(`id(widget));
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+boolean validate_initrd(string widget, map event){
+  string value = (string) UI::QueryWidget(`id(widget),`Value);
+  if (!Mode::installation() && !Mode::repair()){
+    if (!FileUtils::Exists(value)){
+      if (!Popup::YesNo(_("Initrd file doesn't exist now. Do you really want use it?"))){
+        UI::SetFocus(`id(widget));
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+map<string,boolean (string, map)> validation_map = $[
+  "image" : validate_image,
+  "initrd" : validate_initrd,
+];
 
 /**
  * Init function for widget value
@@ -48,7 +91,7 @@ void SectionOptionInit (string widget) {
  */
 void SectionOptionStore (string widget, map event) {
     BootCommon::current_section[widget]
-	= UI::QueryWidget (`id (widget), `Value);
+	= UI::QueryWidget (`id (widget), `Value); 
 }
 
 /**
@@ -60,6 +103,128 @@ map<string,any> section_handlers = $[
 ];
 
 
+void InitSectionBool(string widget){
+  boolean value = BootCommon::current_section[widget]:"false" == "true";
+  UI::ChangeWidget (`id (widget), `Value, value);
+}
+
+void StoreSectionBool(string widget, map event){
+  boolean value = (boolean)UI::QueryWidget (`id (widget), `Value);
+  BootCommon::current_section[widget] = value ? "true" : "false";
+}
+
+map<string,any> SectionCheckBoxWidget( string label, string help){
+  return $[
+    "label" : label,
+    "widget" : `checkbox,
+    "help" : help,
+    "init" : InitSectionBool,
+    "store" : StoreSectionBool
+  ];
+}
+
+
+/**
+ * Handle function of a widget (InputField + browse button)
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return symbol nil
+ */
+symbol HandleSectionBrowse (string widget, map event) {
+    string current = (string)UI::QueryWidget (`id (widget), `Value);
+    if (current == "" || current == nil)
+      current = "/boot";
+    // file open popup caption
+    current = UI::AskForExistingFile (current, "*", _("Select File"));
+    if (current != nil)
+	UI::ChangeWidget (`id (widget), `Value, current);
+    return nil;
+}
+
+/**
+ * Handle function of a widget (InputField + browse button)
+ * Asks for directory instead file
+ * @param widget any widget key
+ * @param event map event description of event that occured
+ * @return symbol nil
+ */
+symbol HandleSectionBrowseDirectory (string widget, map event) {
+    string current = (string)UI::QueryWidget (`id (widget), `Value);
+    // file open popup caption
+    current = UI::AskForExistingFile (current, "*", _("Select File"));
+    if (current != nil)
+	UI::ChangeWidget (`id (widget), `Value, current);
+    return nil;
+}
+
+/**
+ * Generic widget of a inputfield + browse button
+ * Use validation function from  validation_map
+ * if it is necessary create own definition of widget
+ * @param string lable of widget
+ * @param string help text for widget
+ * @param string id of widget
+ * @return map<string,any> CWS widget
+ */
+map<string,any> SectionInputFieldBrowseWidget(string label, string help, string id){
+  string browse = "browse" + id;
+  map<string,any> ret = $[
+    "widget" : `custom,
+    "custom_widget" : `HBox(
+	     `Left(`InputField(`id(id),`opt(`hstretch), label)),
+              `VBox(
+                 `Label(""),
+                 `PushButton(`id(browse),`opt(`notify), Label::BrowseButton())
+              )
+            ),
+    "init" : SectionOptionInit,
+    "store" : SectionOptionStore,
+    "handle" : HandleSectionBrowse,
+    "handle_events" : [browse],
+    "help" : help,
+  ];
+  if (haskey(validation_map,id)){
+    ret["validate_type"] = `function;
+    ret["validate_function"] = validation_map[id]:nil;//nil cannot happen
+  }
+
+  return ret;
+}
+
+map<string,any> SectionInputFieldBrowseDirectoryWidget(string label, string help, string id){
+  map<string,any> ret = SectionInputFieldBrowseWidget(label,help,id);
+  ret["handle"] = HandleSectionBrowseDirectory;
+  return ret;
+}
+
+
+void InitSectionInt(string widget){
+  integer value = tointeger(BootCommon::current_section[widget]:"0");
+    UI::ChangeWidget (`id (widget), `Value, value);
+}
+
+void StoreSectionInt(string widget, map event){
+  integer value = (integer)UI::QueryWidget (`id (widget), `Value);
+  BootCommon::current_section[widget] = tostring(value);
+}
+
+map<string,any> SectionIntFieldWidget( string label, string help,
+                                      integer min, integer max){
+  map<string,any> ret = $[
+    "label" : label,
+    "widget" : `intfield,
+    "help" : help,
+    "init" : InitSectionInt,
+    "store" : StoreSectionInt
+  ];
+  if ( min != nil )
+    ret["minimum"] = min;
+  if ( max != nil )
+    ret["maximum"] = max;
+
+  return ret;
+
+}
 /**
  * Validate function of the name widget
  * @param widget any widget key
@@ -67,6 +232,7 @@ map<string,any> section_handlers = $[
  * @return boolean true if widget settings ok
  */
 boolean SectionNameValidate (string widget, map event) {
+  //TODO check for valid section name
     list<string> existing = [];
     foreach (map<string,any> s, BootCommon::sections, {
 	existing = add (existing, s["name"]:"");
@@ -92,73 +258,14 @@ boolean SectionNameValidate (string widget, map event) {
  */
 void SectionNameStore (string widget, map event) {
     string value = (string)UI::QueryWidget (`id (widget), `Value);
-    if (Bootloader::getLoaderType () != "grub")
-    {
-	value = BootCommon::replaceAll (value, " ", "_");
-	if (size (value) > 15)
-	    value = substring (value, 0, 15);
+
+    //check if we need change default value in globals
+    if ( BootCommon::globals["default"]:nil
+        == BootCommon::current_section[widget]:""){
+      BootCommon::globals["default"] = value;
     }
+
     BootCommon::current_section[widget] = value;
-}
-
-/**
- * Init function of widget
- * @param widget any id of the widget
- */
-void KernelImageInit (string widget) {
-    list<string> available = (list<string>)SCR::Read (.target.dir, "/boot");
-    available = filter (string f, available, {
-	return substring (f, 0, 13) == "/boot/vmlinuz";
-    });
-    if (size (available) == 0)
-	available = ["/boot/vmlinuz"];
-    UI::ChangeWidget (`id (widget), `Items, available);
-    SectionOptionInit (widget);
-}
-
-/**
- * Handle function of a widget
- * @param widget any widget key
- * @param event map event description of event that occured
- * @return symbol to return to wizard sequencer, or nil
- */
-symbol KernelImageHandle (string widget, map event) {
-    string current = (string)UI::QueryWidget (`id (widget), `Value);
-    // file open popup caption
-    current = UI::AskForExistingFile (current, "*", _("Kernel Image"));
-    if (current != nil)
-	UI::ChangeWidget (`id (widget), `Value, current);
-    return nil;
-}
-
-/**
- * Init function of widget
- * @param widget any id of the widget
- */
-void InitrdInit (string widget) {
-    list<string> available = (list<string>)SCR::Read (.target.dir, "/boot");
-    available = filter (string f, available, {
-	return substring (f, 0, 12) == "/boot/initrd";
-    });
-    if (size (available) == 0)
-	available = ["/boot/initrd"];
-    UI::ChangeWidget (`id (widget), `Items, available);
-    SectionOptionInit (widget);
-}
-
-/**
- * Handle function of the initrd widget
- * @param widget any widget key
- * @param event map event description of event that occured
- * @return symbol to return to wizard sequencer, or nil
- */
-symbol InitrdHandle (string widget, map event) {
-    string current = (string)UI::QueryWidget (`id (widget), `Value);
-    // file open popup caption
-    current = UI::AskForExistingFile (current, "*", _("Initial RAM Disk"));
-    if (current != nil)
-	UI::ChangeWidget (`id (widget), `Value, current);
-    return nil;
 }
 
 
@@ -215,15 +322,17 @@ symbol RootDeviceHandle (string widget, map event) {
 void VgaModeInit (string widget) {
     list<map> vga_modes = Initrd::VgaModes ();
     list items = maplist (map m, vga_modes, {
-	return `item (`id (sformat ("%1", m["mode"]:0)),
+	return `item (`id (sformat ("%1",  tohexstring(m["mode"]:0))),
 	    // combo box item
 	    // %1 is X resolution (width) in pixels
-	    // %2 is Y serolution (height) in pixels
+	    // %2 is Y resolution (height) in pixels
 	    // %3 is color depth (usually one of 8, 16, 24, 32)
 	    // %4 is the VGA mode ID (hexadecimal number)
 	    sformat (_("%1x%2, %3 bits (mode %4)"),
-		m["width"]:0, m["height"]:0, m["color"]:0, m["mode"]:0));
+		m["width"]:0, m["height"]:0, m["color"]:0,  tohexstring(m["mode"]:0)));
     });
+    items = prepend(items,`item(`id("ask"), _("Ask for resolution during boot.")));
+    items = prepend(items,`item(`id("extended"), _("Standard 8-pixel font mode.")));
     // item of a combo box
     items = prepend (items, `item (`id ("normal"), _("Text Mode")));
     UI::ChangeWidget (`id (widget), `Items, items);
@@ -241,21 +350,6 @@ void ChainloaderInit (string widget) {
 }
 
 /**
- * Handle function of the chainloader widget
- * @param widget any widget key
- * @param event map event description of event that occured
- * @return symbol to return to wizard sequencer, or nil
- */
-symbol ChainloaderHandle (string widget, map event) {
-    string current = (string)UI::QueryWidget (`id (widget), `Value);
-    // file open popup caption
-    current = UI::AskForExistingFile (current, "*", _("Device to Boot"));
-    if (current != nil)
-	UI::ChangeWidget (`id (widget), `Value, current);
-    return nil;
-}
-
-/**
  * Widget for selecting section type
  * @return term widget
  */
@@ -269,14 +363,18 @@ term SectionTypesWidget () {
 	    _("Clone Selected Section"), true)));
 	count = count + 1;
     }
-    list<string> section_types = ["image", "xen", "chainloader"];
+    list<string> section_types = Bootloader::blsection_types();
     map<string,string> section_types_descr = $[
 	// radio button
-	"image" : _("Kernel (Linux)"),
+	"image" : _("Image Section"),
 	// radio button
-	"xen" : _("Kernel via XEN"),
+	"xen" : _("Xen Section"),
 	// radio button (don't translate 'chainloader')
-	"chainloader" : _("Other System (Chainloader)"),
+	"other" : _("Other System (Chainloader)"),
+	// radio button
+	"menu"  : _("Menu Section"),
+	// radio button
+	"dump"  : _("Dump Section"),
     ];
     foreach (string t, section_types, {
 	if (count > 0)
@@ -309,18 +407,22 @@ symbol SectionTypeHandle (string widget, map event) {
 	return nil;
     string selected = (string)
 	UI::QueryWidget (`id (`sect_type), `CurrentButton);
+    string original_name = selected;
+    if (original_name == "image")
+	original_name = "linux";
     if (selected != "clone")
-    {
+    {	
 	BootCommon::current_section = $[
 	    "type" : selected,
+	    "original_name" : original_name,
 	];
     }
     else
     {
 	BootCommon::current_section["name"] = "";
-	// FIXME: the problem with missing YaST commnet in menu.lst
+	// fix the problem with missing YaST commnet in menu.lst
 	// it seems be correct if original_name stay same...
-	// BootCommon::current_section["original_name"] = "";
+	BootCommon::current_section["original_name"] = "";
 	BootCommon::current_section["__auto"] = false;
 	// fix for problem with cloning section
 	if (haskey(BootCommon::current_section,"lines_cache_id"))
@@ -355,94 +457,79 @@ map<string,map<string,any> > CommonSectionWidgets () {
 		"store" : SectionNameStore,
 		"help" : SectionNameHelp (),
 	    ],
-	    "kernel" : $[
-		"widget" : `custom,
-		"custom_widget" : Stage::initial ()
-		    ? `InputField (`id ("kernel"), `opt (`hstretch),
-			// text entry
-			_("&Kernel"))
-		    : `HBox (
-			`ComboBox (`id ("kernel"), `opt (`editable, `hstretch),
-			    // combo box
-			    _("&Kernel"),
-			    []),
-			`VBox (
-			    `Label (""),
-			    `PushButton (`id (`kernel_browse),
-				Label::BrowseButton ())
-			)
-		    ),
-		"init" : KernelImageInit,
-		"help" : KernelHelp (),
-		"handle" : KernelImageHandle,
-		"handle_events" : [ `kernel_browse ],
+	    "image" : SectionInputFieldBrowseWidget(
+			grub_descriptions["image"]:"image",
+                        grub_help_messages["image"]:"",
+                        "image"),
+	    "initrd" : SectionInputFieldBrowseWidget(
+			grub_descriptions["initrd"]:"initrd",
+                        grub_help_messages["initrd"]:"",
+                        "initrd"),
+	    "xen" : SectionInputFieldBrowseWidget(
+			grub_descriptions["xen"]:"xen",
+                        grub_help_messages["xen"]:"",
+                        "xen"),
+	    "target" : SectionInputFieldBrowseDirectoryWidget(
+			zipl_descriptions["target"]:"target",
+                        zipl_help_messages["target"]:"",
+                        "target"),
+	    "parmfile" : SectionInputFieldBrowseWidget(
+			zipl_descriptions["parmfile"]:"parmfile",
+                        zipl_help_messages["parmfile"]:"",
+                        "parmfile"),
+	    "dumpto" : $[ //FIXME when exist browse device use it
+		"label" : zipl_descriptions["dumpto"]:"dumpto",
+		"widget" : `textentry,
+		"help" : zipl_help_messages["dumpto"]:""
 	    ],
-	    "initrd" : $[
-		"widget" : `custom,
-		"custom_widget" : Stage::initial ()
-		    ? `InputField (`id ("initrd"), `opt (`hstretch),
-			// text entry
-			_("&Initial RAM Disk"))
-		    : `HBox (
-			`ComboBox (`id ("initrd"), `opt (`editable, `hstretch),
-			    // combo box
-			    _("&Initial RAM Disk"),
-			    []),
-			`VBox (
-			    `Label (""),
-			    `PushButton (`id (`initrd_browse),
-				Label::BrowseButton ())
-			)
-		    ),
-		"init" : InitrdInit,
-		"handle" : InitrdHandle,
-		"handle_events" : [ `initrd_browse ],
-		"help" : InitrdHelp (),
+	    "dumptofs" : $[ //FIXME when exist browse device use it
+		"label" : zipl_descriptions["dumptofs"]:"dumptofs",
+		"widget" : `textentry,
+		"help" : zipl_help_messages["dumptofs"]:""
 	    ],
 	    "root" : $[
 		"widget" : `combobox,
 		// combo box
-		"label" : _("Root &Device"),
+		"label" : grub_descriptions["root"]:"root",
 		"opt" : [ `editable, `hstretch, `notify ],
 		"init" : RootDeviceInit,
 		"handle" : RootDeviceHandle,
 		"store" : RootDeviceStore,
-		"help" : RootDeviceHelp (),
+		"help" : grub_help_messages["root"]:"",
 	    ],
-	    "vga" : $[
+	    "vgamode" : $[
 		"widget" : `combobox,
 		// combo box
-		"label" : _("&VGA Mode"),
+		"label" : grub_descriptions["vgamode"]:"vgamode",
 		"opt" : [ `editable, `hstretch ],
 		"init" : VgaModeInit,
-		"help" : VgaModeHelp (),
+		"help" : grub_help_messages["vgamode"]:"",
 	    ],
 	    "append" : $[
-		// text entry
-		"label" : _("Other Kernel &Parameters"),
+		"label" : grub_descriptions["append"]:"append",
 		"widget" : `textentry,
-		"help" : AppendHelp (),
+		"help" : grub_help_messages["append"]:""
 	    ],
+	    "xen_append" : $[
+		"label" : grub_descriptions["xen_append"]:"xen_append",
+		"widget" : `textentry,
+		"help" : grub_help_messages["xen_append"]:"",
+	    ],
+	    "configfile" : $[
+		"label" : grub_descriptions["configfile"]:"configfile",
+		"widget" : `textentry,
+		"help" : grub_help_messages["configfile"]:"",
+            ],
+	    "list" : $[
+		"label" : zipl_descriptions["list"]:"list",
+		"widget" : `textentry,
+		"help" : zipl_help_messages["list"]:"",
+            ],
 	    "chainloader" : $[
-		"widget" : `custom,
-		"custom_widget" : `HBox (
-			`ComboBox (`id ("chainloader"),
-			    `opt (`editable, `hstretch),
-			    // combo box
-			    _("&Device"),
-			    []),
-			Stage::initial ()
-			    ? `VBox ()
-			    : `VBox (
-				`Label (""),
-				`PushButton (`id (`chainloader_browse),
-				    Label::BrowseButton ())
-			    )
-		    ),
+		"widget" : `combobox,
 		"init" : ChainloaderInit,
-		"handle" : ChainloaderHandle,
-		"handle_events" : [ `chainloader_browse ],
-		"help" : ChainloaderHelp (),
+		"help" : grub_help_messages["chainloader"]:"",
+		"opt" : [ `editable, `hstretch ],
 	    ],
 	    "section_type" : $[
 		"widget" : `func,
@@ -450,7 +537,41 @@ map<string,map<string,any> > CommonSectionWidgets () {
 		"handle" : SectionTypeHandle,
 		"help" : SectionTypeHelp (),
 	    ],
-
+            "makeactive" : SectionCheckBoxWidget(
+                grub_descriptions["makeactive"]:"makeactive",
+                grub_help_messages["makeactive"]:""),
+            "noverifyroot" : SectionCheckBoxWidget(
+                grub_descriptions["noverifyroot"]:"noverifyroot",
+                grub_help_messages["noverifyroot"]:""),
+            "remap" : SectionCheckBoxWidget(
+                grub_descriptions["remap"]:"remap",
+                grub_help_messages["remap"]:""),
+            "relocatable" : SectionCheckBoxWidget(
+                elilo_descriptions["relocatable"]:"relocatable",
+                elilo_help_messages["section_relocatable"]:""),
+            "prompt" : SectionCheckBoxWidget(
+                zipl_descriptions["prompt"]:"prompt",
+                zipl_help_messages["prompt"]:""),
+            "blockoffset" : SectionIntFieldWidget(
+                grub_descriptions["blockoffset"]:"blockoffset",
+                grub_help_messages["blockoffset"]:"",0,nil),
+            "default" : SectionIntFieldWidget(
+                zipl_descriptions["default"]:"default",
+                zipl_help_messages["default"]:"",1,10),
+            "timeout" : SectionIntFieldWidget(
+                zipl_descriptions["timeout"]:"timeout",
+                zipl_help_messages["timeout"]:"",0,60),
+            "optional" : SectionCheckBoxWidget(
+                ppc_descriptions["optional"]:"optional",
+                ppc_help_messages["optional"]:""),
+            "copy" : SectionCheckBoxWidget(
+                ppc_descriptions["copy"]:"copy",
+                ppc_help_messages["copy"]:""),
+	    "other" : $[ //FIXME change to combobox and add proper init function
+		"label" : ppc_descriptions["other"]:"other",
+		"widget" : `textentry,
+		"help" : ppc_help_messages["other"]:""
+	    ],
 	];
     }
 

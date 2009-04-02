@@ -40,9 +40,8 @@ boot. The order of the sections in the boot loader menu can be changed
 using the <b>Up</b> and <b>Down</b> buttons.</p>
 "),
     "generic_mbr"		:
-    _("<p><big><b>Write generic Boot Code to MBR</b></big><br>
-To replace the master boot record of your disk with generic code (OS independent code which
-boots the active partition), select <b>Write generic Boot Code to MBR</b>.</p>"),
+    _("<p><b>Write generic Boot Code to MBR</b> replace the master boot record of your disk with generic code (OS independent code which
+boots the active partition).</p>"),
     "boot_boot"			:
     _("<p><b>Boot from Boot Partition</b> is one of the recommended options, the other is
 <b>Boot from Root Partition</b>.</p>"),
@@ -80,34 +79,32 @@ that will be used for booting in case the default section is unbootable.</p>"),
     "gfxmenu"			:
     _("<p><b>Graphical Menu File</b> defines the file to use for the graphical boot menu.</p>"),
     "password"			:
-    _("<p><b>Password for the Menu Interface</b><br>
+    _("<p><b>Protect Boot Loader with Password</b><br>
 Define the password that will be required to access the boot menu. YaST will only accept the password if you repeat
 it in <b>Retype Password</b>.</p>"),
     "type_image"		:
     _("<p><b>Image Section</b></p>"),
-    "image_image"		:
+    "image"		        :
     _("<p><b>Kernel Image</b> defines the kernel to boot. Either enter the name directly or choose via <b>Browse</b>.</p>"),
-    "image_root"		:
+    "root"		        :
     _("<p><b>Root Device</b> sets the device to pass to the kernel as root device.</p>"),
-    "image_vgamode"		:
+    "vgamode"		        :
     _("<p><b>Vga Mode</b> defines the VGA mode the kernel should set the <i>console</i> to when booting.</p>"),
-    "image_append"		:
+    "append"		        :
     _("<p><b>Optional Kernel Command Line Parameter</b> lets you define additional parameters to pass to the kernel.</p>"),
-    "image_initrd"		:
+    "initrd"		        :
     _("<p><b>Initial RAM Disk</b>, if not empty, defines the initial ramdisk to use. Either enter the path and file name
 directly or choose by using <b>Browse</b>.</p>
 "),
-    "image_noverifyroot"	:
-    _("<p>Selecting <b>Do not verify Filesystem before Booting</b> will skip all file system checks.</p>"),
     "type_other"		:
     _("<p>Select <b>Chainloader Section</b> if you want to define a section for booting an OS other than Linux.</p>"),
     "other_lock"		:
     _("<p>Setting <b>Use Password Protection</p> will require a password to select this section.</p>"),
-    "other_chainloader"		:
+    "chainloader"		:
     _("<p><b>Other System</b> lets you choose among the non-Linux operating systems found on your computer.</p>"),
-    "other_makeactive"		:
+    "makeactive"		:
     _("<p>Select <b>Activate this Partition when selected for Boot</b> if your BIOS needs this flag set in order to boot it</p>"),
-    "other_blockoffset"		:
+    "blockoffset"		:
     _("<p><b>Block Offset for Chainloading</b> lets you specify the list of blocks to boot. In most cases you want
 to specify <code>+1</code> here. For specifics on blocklist notation see the grub documentation.</p>
 "),
@@ -117,14 +114,10 @@ and start it in a XEN environment.</p>
 "),
     "xen_image"			:
     _("<p><b>Kernel Image</b> defines the kernel to boot. Either enter the name directly or choose via <b>Browse</b>.</p>"),
-    "xen_append"		:
-    _("<p><b>Optional Kernel Command Line Parameter</b> lets you define additional parameters to pass to the kernel.</p>"),
-    "xen_xen"			:
+    "xen"			:
     _("<p><b>Hypervisor</b> specifies the Hypervisor to use.</p>"),
-    "xen_root"			:
-    _("<p><b>Root Device</b> sets the device to pass to the kernel as root device.</p>"),
-    "xen_vgamode"		:
-    _("<p><b>Vga Mode</b> defines the VGA mode the kernel should set the <i>console</i> to when booting.</p>"),
+    "xen_append"		        :
+    _("<p><b>Additional Xen Hypervisor Parameters</b> lets you define additional parameters to pass to the xen hypervisor.</p>"),
     "xen_initrd"		:
     _("<p><b>Initial RAM Disk</b>,if not empty, defines the initial ramdisk to use. Either enter the path and file name
 directly or choose by using <b>Browse</b>.</p>
@@ -133,9 +126,9 @@ directly or choose by using <b>Browse</b>.</p>
     _("<p><b>Menu Section</b></p>"),
     "menu_root"			:
     _("<p><b>Partition of Menu File</b></p>"),
-    "menu_configfile"		:
+    "configfile"		:
     _("<p><b>Menu Description File<b></p>"),
-    "other_remap"	        :
+    "remap"	        :
     _("<p><b>Map Section to the First Disk from Device Map</b> Windows usually need to be on the first disk.</p>"),
     "MeasuresTableHelp"		:
     _("<p><b>Measures</b> includes measured files with PCR. Change table is possible via buttons: <b>Add</b> , 
@@ -155,49 +148,43 @@ directly or choose by using <b>Browse</b>.</p>
 
 global map<string,string> grub_descriptions = $[
     "boot"			 : _("Boot Loader Locations"),
-    "activate"			 : _("Set active Flag in Partition Table for Boot Partition"),
-    "timeout"			 : _("Timeout in Seconds"),
-    "default"			 : _("Default Boot Section"),
-    "generic_mbr"		 : _("Write generic Boot Code to MBR"),
-    "trusted_grub"		 : _("Use Trusted Grub"),
+    "activate"			 : _("Set &active Flag in Partition Table for Boot Partition"),
+    "timeout"			 : _("&Timeout in Seconds"),
+    "default"			 : _("&Default Boot Section"),
+    "generic_mbr"		 : _("Write &generic Boot Code to MBR"),
+    "trusted_grub"		 : _("Use &Trusted Grub"),
     "boot_custom"		 : _("Custom Boot Partition"),
     "boot_mbr"			 : _("Boot from Master Boot Record"),
     "boot_root"			 : _("Boot from Root Partition"),
     "boot_boot"			 : _("Boot from Boot Partition"),
     "boot_extended"		 : _("Boot from Extended Partition"),
-    "former_default_image_flavor": _("Former default Image Flavor"),
-    "serial"			 : _("Serial Connection Parameters"),
-    "terminal"			 : _("Terminal Definition"),
+    "serial"			 : _("Serial Connection &Parameters"),
     "fallback"			 : _("Fallback Sections if Default fails"),
-    "hiddenmenu"		 : _("Hide Menu on Boot"),
-    "gfxmenu"			 : _("Graphical Menu File"),
-    "password"			 : _("Password for the Menu Interface"),
-    "debug"			 : _("Debugging Flag"),
+    "hiddenmenu"		 : _("&Hide Menu on Boot"),
+    "gfxmenu"			 : _("Graphical &Menu File"),
+    "password"			 : _("Pa&ssword for the Menu Interface"),
+    "debug"			 : _("Debugg&ing Flag"),
     "type_image"		 : _("Image Section"),
-    "image_image"		 : _("Kernel Image"),
-    "image_root"		 : _("Root Device"),
-    "image_vgamode"		 : _("Vga Mode"),
-    "image_append"		 : _("Optional Kernel Command Line Parameter"),
-    "image_initrd"		 : _("Initial RAM Disk"),
-    "image_noverifyroot"	 : _("Do not verify Filesystem before Booting"),
+    "image"		         : _("&Kernel Image"),
+    "root"	                 : _("&Root Device"),
+    "vgamode"		         : _("&Vga Mode"),
+    "append"		         : _("O&ptional Kernel Command Line Parameter"),
+    "initrd"		         : _("&Initial RAM Disk"),
     "type_other"		 : _("Chainloader Section"),
     "other_lock"		 : _("Use Password Protection"),
-    "other_chainloader"		 : _("Other System"),
-    "other_noverifyroot"	 : _("Do not verify Filesystem before Booting"),
-    "other_makeactive"		 : _("Activate this Partition when selected for Boot"),
-    "other_blockoffset"		 : _("Block Offset for Chainloading"),
-    "other_remap"		 : _("Map Section to the First Disk in Device Map"),
+    "chainloader"		 : _("&Other System"),
+    "noverifyroot"	         : _("Do not &verify Filesystem before Booting"),
+    "makeactive"		 : _("&Activate this Partition when selected for Boot"),
+    "blockoffset"		 : _("B&lock Offset for Chainloading"),
+    "remap"		         : _("&Map Section to the First Disk in Device Map"),
     "type_xen"			 : _("Xen Section"),
-    "xen_xen"			 : _("Hypervisor"),
-    "xen_xen_append"		 : _("Additional Xen Hypervisor Parameters"),
+    "xen"			 : _("&Hypervisor"),
+    "xen_append"		 : _("&Additional Xen Hypervisor Parameters"),
     "xen_image"			 : _("Kernel Image"),
-    "xen_root"			 : _("Root Device"),
-    "xen_vgamode"		 : _("Vga Mode"),
-    "xen_append"		 : _("Optional Kernel Command Line Parameter"),
     "xen_initrd"		 : _("Initial RAM Disk"),
     "type_menu"			 : _("Menu Section"),
-    "menu_root"			 : _("Partition of Menu File"),
-    "menu_configfile"		 : _("Menu Description File"),
+    "menu_root"			 : _("&Partition of Menu File"),
+    "configfile"		 : _("&Menu Description File"),
 ];
 
 

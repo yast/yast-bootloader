@@ -61,8 +61,8 @@ global boolean backup_to_bootsector = true;
 include "bootloader/grub/misc.ycp";
 include "bootloader/routines/popups.ycp";
 include "bootloader/grub/helps.ycp";
-include "bootloader/generic/device_map_edit_widget.ycp";
-include "bootloader/generic/dialogs.ycp";
+include "bootloader/routines/dialogs_i386.ycp";
+
 
 // end of mandatory functions
 //----------------------------------------------------------------------------
@@ -518,7 +518,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 	BootCommon::ProposeDeviceMap ();
     }
 
-    importMetaData();
+    //importMetaData();
 
     return ret;
 }
@@ -643,7 +643,7 @@ global boolean Save (boolean clean, boolean init, boolean flush)
 
     // now really save the settings
     boolean ret = BootCommon::Save (clean, init, flush);
-    importMetaData();
+    //importMetaData();
 
     return ret;
 }
@@ -775,7 +775,7 @@ global symbol WizardSequenzer() {
 global map<string,symbol()> Dialogs () {
     return $[
 	"installation"	: i386InstallDetailsDialog,
-	"loader"	: genericBootLoaderOptionsDialog,
+	"loader"	: i386LoaderDetailsDialog,
     ];
 }
 
@@ -792,6 +792,11 @@ global define boolean FlagOnetimeBoot (string section)
     return (result["exit"]:-1 == 0);
 }
 
+list <string> grub_section_types()
+{
+	return ["image", "xen", "menu", "other"];
+}
+
 
 /**
   * Return map of provided functions
@@ -799,8 +804,6 @@ global define boolean FlagOnetimeBoot (string section)
   */
 global map<string, any> GetFunctions () {
     return $[
-         //"export"		: Export,
-         //"import"		: Import,
         "read"			: Read,
         "reset"			: Reset,
         "propose"		: Propose,
@@ -808,10 +811,10 @@ global map<string, any> GetFunctions () {
         "summary"		: Summary,
         "update"		: Update,
         "write"			: Write,
-        "widgets"		: genericWidgets,
+	"widgets"		: grubWidgets,
         "wizard_sequencer" 	: WizardSequenzer,
         "dialogs"		: Dialogs,
-        "section_types"		: section_types,
+        "section_types"		: grub_section_types,
 	"flagonetimeboot"	: FlagOnetimeBoot,
     ];
 }
@@ -835,23 +838,7 @@ global define void Initializer () {
         "bootloader_on_disk" : true,
     ];
 
-    BootCommon::help_messages = (map<string,string>)
-      union(BootCommon::help_messages,
-    	mapmap(string key, string val, grub_help_messages,
-    	    { return $[ "grub_" + key : val ]; }
-    	       )
-    	);
-    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-    BootCommon::descriptions = (map<string,string>)
-      union(BootCommon::descriptions,
-    	mapmap(string key, string val, grub_descriptions,
-    	    { return $[ "grub_" + key : val ]; }
-    	       )
-    	);
-    y2debug("Initialized help_messages to %1", BootCommon::help_messages);
-
     BootCommon::InitializeLibrary (false, "grub");
-    importMetaData();
 }
 
 /**

@@ -399,11 +399,15 @@ global list<string> update_section_types = [ "floppy", "other" ];
 //    = [ "linux", "failsafe", "initrd", "floppy" ];
 
 /**
+ * Common section types
+ */
+global list<string> common_sections_types = ["image", "other"];
+
+/**
  * List of all supported bootloaders
  */
 global list<string> bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
 				   "aboot", "zipl", "ppc", "mips"];
-
 
 
 /**
@@ -453,8 +457,6 @@ global void change_widget_default_value (string itemname, string defaultvalue) {
 /*
  * help message and dscription definitions
  */
-include "bootloader/generic/helps.ycp";
-
 include "bootloader/routines/popups.ycp";
 include "bootloader/routines/misc.ycp";
 // FIXME: there are other archs than i386, this is not 'commmon'
@@ -762,6 +764,16 @@ global define map Export () {
 
     return exp;
 }
+/**
+ * Function return common section types
+ * @return list string section types
+ */
+
+global list<string> Common_sections_types()
+{
+	return common_sections_types;
+}
+
 
 /**
   * Import settings from a map
@@ -909,10 +921,6 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 
     if (bl == "none")
 	return true;
-
-    // FATE: #110038: Serial console
-    // check and add console key with value for sections 
-    addConsole();
 
     // FIXME: give mountby information to perl-Bootloader (or define some
     // better interface), so that perl-Bootloader can use mountby device names
