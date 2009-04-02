@@ -23,12 +23,6 @@ textdomain "bootloader";
 global map<string,string>   elilo_help_messages = $[
     "boot-loader-location"	: _("<p><big><b>Boot Loader Location</b></big><br>"),
     "boot"		 :  _("<p><b>Boot Image Location</b></p>"),
-    "default"		 :  _("<p><b>Default Boot Section</b></p>"),
-    "timeout"		 :
-    _("<p><b>Timeout in tenths of a second</b><br> Specifies the time the
-bootloader will wait in interactive mode until booting the default
-entry.</p>
-"),
     "verbose"		 :
     _("<p><b>Set level of verbosity [0-5]</b><br> Increase verbosity of ELILO
 in case of boot problems.</p>"),
@@ -100,8 +94,6 @@ Default is 0</p>"),
 
 global map<string,string> elilo_descriptions = $[
     "boot" 	 	 : _("Boot Image Location"),
-    "default"		 : _("Default Boot Section"),
-    "timeout"		 : _("Timeout in tenth of seconds (in interactive mode)"),
     "delay"		 : _("Delay to wait before auto booting in seconds (used if not in interactive mode)"),
     "prompt"		 : _("Force interactive mode"),
     "verbose"		 : _("Set level of verbosity [0-5]"),

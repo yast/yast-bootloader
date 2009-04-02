@@ -22,7 +22,8 @@ ynclude_DATA =			\
 	helps_i386.ycp		\
 	autoinstall.ycp		\
 	grub_options.ycp	\
-	common_options.ycp
+	common_options.ycp      \
+	common_helps.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)
