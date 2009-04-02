@@ -65,6 +65,23 @@ variable with the full OpenFirmware path pointing to the device specified in
 The OpenFirmware driver in the nVidia graphics card as shipped with Apple G5 systems 
 will crash if there is no monitor attached.</p>"),
 
+    "macos_timeout"	 :
+    _("<p><b>Timeout in Seconds for MacOS/Linux</b>
+It contains the timeout between MacOS/Linux in seconds until Linux boots automatically 
+if no key is pressed to boot MacOS</p>"),
+
+    "force_fat"		 :
+    _("<p><b>Always Boot from FAT Partition</b>
+Normally the lilo script would automagically select the boot partition format
+to either be a PReP boot partition or a FAT formatted file system for more
+complex setups. This option forces the lilo script to use
+the FAT formatted file system</p>"),
+
+    "force"		 :
+    _("<p><b>Install Boot Loader Even on Errors</b>
+Install the bootloader even if it is unsure whether your firmware is
+buggy so that next boot will fail. This results in an unsupported setup.</p>"),
+
 
     ];
 
