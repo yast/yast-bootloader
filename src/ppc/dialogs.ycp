@@ -24,7 +24,7 @@ import "Stage";
 import "Arch";
 
 include "bootloader/routines/common_options.ycp";
-include "bootloader/ppc/ppc_options.ycp";
+include "bootloader/ppc/options.ycp";
 
 
 list<string> arch_widget_names = ["append", "initrd", "root", "timeout", "activate"];
