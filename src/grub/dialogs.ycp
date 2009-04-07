@@ -1,6 +1,6 @@
 /**
  * File:
- *      include/bootloader/routines/dialogs.ycp
+ *      include/bootloader/grub/dialogs.ycp
  *
  * Module:
  *      Bootloader installation and configuration
@@ -11,7 +11,7 @@
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
  *
- * $Id$
+ * $Id: dialogs_i386.ycp 56563 2009-04-02 08:41:25Z jreidinger $
  *
  */
 
@@ -26,9 +26,7 @@ import "CWM";
 import "BootCommon";
 import "Stage";
 
-include "bootloader/routines/helps_i386.ycp";
-include "bootloader/routines/widgets_i386.ycp";
-include "bootloader/routines/grub_options.ycp";
+include "bootloader/grub/options.ycp";
 
 
 
@@ -100,5 +98,27 @@ symbol i386LoaderDetailsDialog () {
 	"next_button" : Label::OKButton (),
     ]);
 }
+
+/**
+ * Cache for genericWidgets function
+ */
+map<string,map<string,any> > _grub_widgets = nil;
+
+/**
+ * Get generic widgets
+ * @return a map describing all generic widgets
+ */
+global map<string,map<string,any> > grubWidgets () {
+    if (_grub_widgets == nil)
+    {
+	_grub_widgets = $[
+	    "loader_location"	  : grubBootLoaderLocationWidget (),
+	    "inst_details"	  : grubInstalationDetials (),
+	];
+    }
+    return _grub_widgets;
+}
+
+
 
 } // EOF

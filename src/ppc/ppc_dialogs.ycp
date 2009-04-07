@@ -34,7 +34,7 @@ term arch_term = `Empty();
 void PPCArchDep()
 {
    string board_type = getBoardType ();
-
+   board_type = "prep";
    switch(board_type) {
 	case ("prep"):
 		arch_term = `Frame ( _("PReP Specific Settings"),`HBox(`HSpacing(1),`VBox(
@@ -110,7 +110,7 @@ map<string,any> ppcBootLoaderLocationWidget ()
 {
 
    string board_type = getBoardType ();
-
+board_type = "prep";
    switch(board_type) {
 	case ("prep"):
 		return BootPReP();

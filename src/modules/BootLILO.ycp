@@ -29,11 +29,10 @@ import "Kernel";
 import "Mode";
 import "Pkg";
 import "Storage";
+import "Stage";
 
 
 include "bootloader/routines/popups.ycp";
-include "bootloader/routines/dialogs_i386.ycp";
-
 
 /**
  * remove blanks from section name and replace them with _
@@ -295,10 +294,7 @@ string getDeviceOfRaid (string device) {
     }
 
 global map<string,symbol()> Dialogs () {
-    return $[
-	"installation"	: i386InstallDetailsDialog,
-	"loader"	: i386LoaderDetailsDialog,
-    ];
+    return $[];
 }
 
 /**

@@ -17,11 +17,7 @@ ynclude_DATA =			\
 	lib_iface.ycp		\
 	wizards.ycp		\
 	dialogs.ycp		\
-	dialogs_i386.ycp	\
-	widgets_i386.ycp	\
-	helps_i386.ycp		\
 	autoinstall.ycp		\
-	grub_options.ycp	\
 	common_options.ycp      \
 	common_helps.ycp
 
