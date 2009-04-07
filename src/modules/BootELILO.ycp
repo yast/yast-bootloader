@@ -42,7 +42,7 @@ import "Arch";
 
 include "bootloader/elilo/helps.ycp";
 include "bootloader/routines/popups.ycp";
-include "bootloader/elilo/elilo_dialogs.ycp";
+include "bootloader/elilo/dialogs.ycp";
 
 
 

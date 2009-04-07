@@ -90,7 +90,7 @@ global define void setBoardType (string board);
 global define void currentBoardInit ();
 
 
-include "bootloader/ppc/ppc_dialogs.ycp";
+include "bootloader/ppc/dialogs.ycp";
 
 
 /**

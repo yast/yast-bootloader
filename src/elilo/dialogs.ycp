@@ -25,7 +25,7 @@ import "Stage";
 import "Arch";
 
 include "bootloader/routines/common_options.ycp";
-include "bootloader/elilo/elilo_options.ycp";
+include "bootloader/elilo/options.ycp";
 
 
 
