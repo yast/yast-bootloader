@@ -1,0 +1,45 @@
+/**
+ * File:
+ *      include/bootloader/grup/helps.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Help and label strings for bootloader installation and configuration
+ *
+ * Authors:
+ *      Joachim Plack <jplack@suse.de>
+ *
+ * $Id$
+ *
+ */
+
+
+{
+textdomain "bootloader";
+
+global map<string,string>   common_help_messages = $[
+   "timeout"					:
+	_("<p><b>Timeout in Seconds</b><br>
+Specifies the time the bootloader will wait until the default kernel is loaded.</p>
+"),
+];
+
+
+global map<string,string> common_descriptions = $[
+    "timeout"			 : _("&Timeout in Seconds"),
+];
+
+
+} //EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */
