@@ -6,7 +6,9 @@ yncludedir = @yncludedir@/bootloader/grub
 
 ynclude_DATA =			\
 	helps.ycp		\
-	misc.ycp
+	misc.ycp		\
+	dialogs.ycp		\
+	options.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)

@@ -60,8 +60,7 @@ global boolean backup_to_bootsector = true;
 
 include "bootloader/grub/misc.ycp";
 include "bootloader/routines/popups.ycp";
-include "bootloader/grub/helps.ycp";
-include "bootloader/routines/dialogs_i386.ycp";
+include "bootloader/grub/dialogs.ycp";
 
 
 // end of mandatory functions
