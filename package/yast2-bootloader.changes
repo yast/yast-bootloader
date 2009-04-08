@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Tue Apr  7 15:50:12 CEST 2009 - juhliarik@suse.cz
+
+- refactoring UI is done (fate#305268)
+- fixed problem with providing vga modes list in grub(bnc#362517)
+- fixed troubles with short input field for devices (bnc#396387)
+- fixed problem with setup of password for grub 
+  (bnc#407887,#433854,#450470)
+- fixed problem with keyboard shortcuts (bnc#414989)
+- setup for console in grub was rewritten (bnc#431515)
+- 2.18.4 
+
+-------------------------------------------------------------------
 Mon Feb 16 14:42:56 CET 2009 - juhliarik@suse.de
 
 - added fix for problem with wrong init for storage library 
