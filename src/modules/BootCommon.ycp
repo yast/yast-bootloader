@@ -576,11 +576,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	files_filtered = sort ( string kbig, string ksmall, files_filtered, ``(
 		size(kbig) > size(ksmall) ) );
 
-	kernel_fn = (
-	    title == "wildcard" ?
-		"/boot/" + Kernel::GetBinary () + "-*" :
-		files_filtered[0]:""
-	);
+	kernel_fn = (files_filtered[0]:"");
 
 	files_filtered = filter (string file, files, {
 	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix ;
@@ -593,11 +589,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	files_filtered = sort ( string ibig, string ismall, files_filtered, ``(
 		size(ibig) > size(ismall) ) );
 
-	initrd_fn = (
-	    title == "wildcard" ?
-		"/boot/initrd-*" :
-		files_filtered[0]:""
-	);
+	initrd_fn = (files_filtered[0]:"");
 
 	if ((kernel_fn == "") || (kernel_fn == nil))
 	    kernel_fn = "/boot/vmlinuz";
@@ -640,9 +632,8 @@ global map<string,any> CreateLinuxSection (string title) {
     } else {
 	// the links are shown in the proposal; at the end of an installation,
 	// in bootloader_finish, they will be resolved to the real filenames
-	kernel_fn = "/boot/" + Kernel::GetBinary ()
-	    + (title == "wildcard" ? "-*" : "");
-	initrd_fn = "/boot/initrd" + (title == "wildcard" ? "-*" : "");
+	kernel_fn = "/boot/" + Kernel::GetBinary ();
+	initrd_fn = "/boot/initrd";
     }
     // done: kernel_fn and initrd_fn are the results
     y2milestone ("kernel_fn: %1 initrd_fn: %2", kernel_fn, initrd_fn);
@@ -679,11 +670,6 @@ global map<string,any> CreateLinuxSection (string title) {
 	ret["image"] = "/boot/" + Kernel::GetBinary () + "-xen";
 	ret["initrd"] = "/boot/initrd-xen";
 
-    }
-    else if (title == "wildcard")
-    {
-	ret["wildcard"] = kernel_fn;
-	ret["name"] = "*";
     }
     return ret;
 }
