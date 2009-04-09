@@ -941,61 +941,6 @@ define void grub_LocationProposal () {
 // other stuff
 
 
-/**
- * Encrypt the password before storing it in variables
- * @param passwd string unencrypted password
- * @return string password in the form to write to GRUB's menu.lst
- */
-global define string updatePasswdBeforeSave (string passwd) ``{
-    passwd = sformat ("--md5 %1", cryptmd5 (passwd));
-    return passwd;
-}
-
-/**
- * translate filename path (eg. (hd0,0)/kernel) to list of device
- *  and relative path
- * @param devpth string fileststem path (eg. (hd0,0)/vmlinuz)
- * @return a list containing device and relative path,
- *  eg. ["(hd0,0)", "/vmlinuz"]
- */
-// FIXME: this should never happen but handled through perl-Bootloader completely
-global define list<string> splitDevPath (string devpth) ``{
-    y2milestone("FIXME: called splitDevPath(%1) which points to a bug in perl-Bootloader",
-		devpth);
-    integer brake = nil;
-    if (devpth != nil && issubstring (devpth, ")"))
-	brake = findfirstof (devpth, ")") + 1;
-    list<string> ret = [];
-    if (brake != nil)
-    {
-	ret[0] = substring (devpth, 0, brake);
-	ret[1] = substring (devpth, brake);
-    }
-    else
-    {
-	ret[0] = nil;
-	ret[1] = devpth;
-    }
-    return ret;
-}
-
-/**
-  * translate list of device and relative path
-  *  to filename path (eg. (hd0,0)/kernel)
-  * @param devpth list of two strings, first for device name, second for
-  *  relative path (eg. ["(hd0,0)", "/vmlinuz"])
-  * @return string fileststem path (eg. (hd0,0)/vmlinuz)
-  */
-global define string mergeDevPath (list devpth) ``{
-    if (substring (devpth[1]:"", 0, 1) != "/")
-	devpth[1] = "/" + devpth[1]:"";
-    if (devpth[0]:"" == nil || devpth[1]:"" == nil)
-	return nil;
-    string ret = devpth[0]:"" + devpth[1]:"";
-    return ret;
-}
-
-
 /** FATE #301994 - Correct device mapping in case windows is installed on the second HD
  * Check if chainloader section with windows is on the first disk
  * 
