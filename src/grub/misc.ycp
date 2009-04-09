@@ -419,15 +419,6 @@ global boolean grub_InstallingToFloppy () {
 
 
 /**
- * Generate device map proposal, store it in internal variables
- */
-// copied from src/routines/lilolike.ycp; should be removed there when it is
-// not needed there any more (by DisksOrder()), as it is grub only
-global void grub_ProposeDeviceMap () {
-    BootCommon::ProposeDeviceMap();
-}
-
-/**
  * SetBootloaderDevice()
  * Set "boot_*" flags in the globals map according to the boot device selected
  * with parameter selected_location. Only a single boot device can be selected
@@ -443,7 +434,7 @@ global void grub_ProposeDeviceMap () {
 define void SetBootloaderDevice(symbol selected_location) {
     // first, default to all off:
     foreach (string flag, ["boot_boot", "boot_root", "boot_mbr", "boot_extended"], {
-	BootCommon::globals[flag] = sformat("%1", false);
+	BootCommon::globals[flag] = "false";
     });
     // need to remove the boot_custom key to switch this value off
     if (haskey (BootCommon::globals, "boot_custom")) {
@@ -451,13 +442,13 @@ define void SetBootloaderDevice(symbol selected_location) {
     }
 
     if ( selected_location == `root ) {
-	BootCommon::globals["boot_root"] = sformat("%1", true);
+	BootCommon::globals["boot_root"] = "true";
     } else if ( selected_location == `boot ) {
-	BootCommon::globals["boot_boot"] = sformat("%1", true);
+	BootCommon::globals["boot_boot"] = "true";
     } else if ( selected_location == `mbr ) {
-	BootCommon::globals["boot_mbr"] = sformat("%1", true);
+	BootCommon::globals["boot_mbr"] = "true";
     } else if ( selected_location == `extended ) {
-	BootCommon::globals["boot_extended"] = sformat("%1", true);
+	BootCommon::globals["boot_extended"] = "true";
     }
 }
 
@@ -930,7 +921,7 @@ define void grub_LocationProposal () {
 	|| (size (BootCommon::device_mapping) == 0)
 	|| (BootCommon::cached_settings_base_data_change_time != Storage::GetTargetChangeTime()))
     {
-	grub_ProposeDeviceMap ();
+	BootCommon::ProposeDeviceMap();
     }
 
     if ( ! Mode::autoinst () ) {
