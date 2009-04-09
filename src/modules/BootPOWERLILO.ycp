@@ -43,7 +43,6 @@ include "bootloader/ppc/helps.ycp";
  * read my dialogs
  */
 include "bootloader/routines/popups.ycp"; // define confirmSectionDeletePopup
-//include "bootloader/generic/dialogs.ycp";
 
 
 
@@ -86,7 +85,6 @@ string board_type = nil;
 
 
 global define string getBoardType ();
-global define void setBoardType (string board);
 global define void currentBoardInit ();
 
 
@@ -371,12 +369,10 @@ global define void initBoardType () {
     }
     else if (Arch::board_mac_new ())
     {
-	//board_type = "mac_new";
         board_type="pmac";
     }
     else if (Arch::board_mac_old ())
     {
-	//board_type = "mac_old";
         board_type="pmac";
     }
     else
@@ -390,11 +386,6 @@ global define string getBoardType () {
 	if (board_type == nil)
 	    initBoardType ();
 	return board_type;
-}
-
-global define void setBoardType (string board) {
-	board_type = board;
-	currentBoardInit ();
 }
 
 /**
@@ -423,61 +414,13 @@ global define void setBoardType (string board) {
  * @return	    map		describes the section
  */
 map<string,any> CreateImageSection (string title) {
-
-    // FIXME: This really should be a function and not be duplicated in
-    //        BootCommon.ycp (although that code there also handles wildcard
-    //        entries for lilo)
-    // FIXME:
-    // This only works in the installed system (problem with GetFinalKernel))),
-    // in all other cases we use the symlinks.
-
-    string image_fn = "";
-    string initrd_fn = "";
-
-    if (Mode::normal ()) {
-	// Find out the file names of the "real" kernel and initrd files, with
-	// version etc. pp. whatever (currently version-flavor) attached.
-	//
-	// First, get the file names in the "selected" kernel package,
-	string kernel_package = Kernel::GetFinalKernel();
-	list<string> files = Pkg::PkgGetFilelist( kernel_package, `any );
-	y2milestone ("kernel package %1 has these files: %2", kernel_package, files);
-
-	// then find the first file that matches the arch-dependent kernel file
-	// name prefix and the initrd filename prefix.
-	string kernel_prefix = "/boot/" + Kernel::GetBinary ();
-	string initrd_prefix = "/boot/initrd";
-
-	list<string> files_filtered = filter (string file, files, {
-	    return ( substring(file, 0, size(kernel_prefix)) == kernel_prefix );
-	});
-	image_fn = files_filtered[0]:"";
-
-	files_filtered = filter (string file, files, {
-	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix ;
-	});
-	initrd_fn = files_filtered[0]:"";
-    } else {
-	image_fn = "/boot/" + Kernel::GetBinary ();
-	initrd_fn = "/boot/initrd";
-    }
-    // done: image_fn and initrd_fn are the results
-    y2milestone ("image_fn: %1 initrd_fn: %2", image_fn, initrd_fn);
-
-    map<string,any> ret = $[
-	"type" : "image",
-	"name" : title,
-	"original_name" : title,
-	"image" : image_fn,
-	"initrd" : initrd_fn,
-        "optional" : "true",  // bnc #217443
-	"root" : BootCommon::RootPartitionDevice,
-	// "": do not include resume parameter on ppc
-	"append" : BootArch::DefaultKernelParams (""),
-	"__auto" : true,
-	"__changed" : true,
-	"__devs" : [BootCommon::BootPartitionDevice, BootCommon::RootPartitionDevice],
-    ];
+    map<string,any> ret = BootCommon::CreateLinuxSection(title);
+    //Do not use translated names, as we are happy if it work with kernel device
+    ret["root"] = BootCommon::RootPartitionDevice;
+    // bnc #217443
+    ret["optional"] = "true";
+    //do not use translated name FIXME this should be filtered out
+    ret["name"] = title;
     return ret;
 }
 
@@ -655,10 +598,6 @@ global void CreateSections () {
  * modifies internal structures
  */
 global void CreateGlobals () {
-    // FIXME: for iseries there are typically more than one boot option;
-    //	  boot = B
-    //	  boot = /dev/iseries/vda1
-    //	  boot = /boot/suse_linux_bootfile
 
     BootCommon::globals = $[
 	"activate": "true",
@@ -690,7 +629,6 @@ global void CreateGlobals () {
 	    "boot_slot"		 : "B",
 	    // FIXME: what file should be used here?
             "boot_file"		 : "/tmp/suse_linux_image",
-				   // GoodPRePPartitionOnVDisk(BootCommon::RootPartitionDevice)
 	 ];
 
 	// If we have an empty BootPartitionDevice on iseries, this means:
