@@ -87,9 +87,7 @@ buggy so that next boot will fail. This results in an unsupported setup.</p>"),
 
 
 global map<string,string> ppc_descriptions = $[
-    "boot"		 : ( BootCommon::exports["$arch"]:"" == "iseries" )
-                           ? _("iSeries Boot Image Location")
-                           : _("PPC Boot Loader Location"),
+    "boot"		 : _("PPC Boot Loader Location"),
     "activate"		 : _("Change Boot Device in NV-RAM"),
     "timeout"		 : _("Time-Out in Tenths of Seconds"),
     "default"		 : _("Default Boot Section"),

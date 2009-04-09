@@ -32,14 +32,6 @@ import "Stage";
 import "StorageControllers";
 
 /**
- * Get the file holding the initd imahe
- * @return string the initrd image
- */
-global string InitrdImage () {
-    return "/boot/initrd";
-}
-
-/**
  * Get parameters for the default kernel
  * @param resume string device to resume from (or empty not to set it)
  * @return string parameters for default kernel

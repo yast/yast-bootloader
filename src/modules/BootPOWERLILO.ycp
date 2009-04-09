@@ -371,11 +371,13 @@ global define void initBoardType () {
     }
     else if (Arch::board_mac_new ())
     {
-	board_type = "mac_new";
+	//board_type = "mac_new";
+        board_type="pmac";
     }
     else if (Arch::board_mac_old ())
     {
-	board_type = "mac_old";
+	//board_type = "mac_old";
+        board_type="pmac";
     }
     else
     {
@@ -594,23 +596,26 @@ global void LocationProposal () {
 	choosePrepBootPartition ();
     }
 
-    string arch = BootCommon::exports["arch"]:"chrp";
-    if ( arch == "chrp" ) {
+    switch (getBoardType()) {
+    case ("chrp"):
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	// also set as default value in widget
 	BootCommon::change_widget_default_value("boot_chrp_custom", prep_boot_partition);
-    }
-    else if ( arch == "prep" ) {
+        break;
+    case ("prep"): 
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	BootCommon::change_widget_default_value("boot_prep_custom", prep_boot_partition);
-    }
-    else if ( arch == "iseries" ) {
+        break;
+    case ("iseries"):
 	BootCommon::BootPartitionDevice = prep_boot_partition;
 	BootCommon::change_widget_default_value("boot_iseries_custom", prep_boot_partition);
-    }
-    else if ( arch == "pmac" ) {
+        break;
+    case ("pmac") :
 	BootCommon::BootPartitionDevice = GoodPmacBootPartition();
 	BootCommon::change_widget_default_value("boot_pmac_custom", BootCommon::BootPartitionDevice);
+        break;
+    default:
+        y2error("Unknown ppc architecture");
     }
 
     // These need to be set, for POWERLILO probably only to interface with
@@ -667,27 +672,26 @@ global void CreateGlobals () {
 	"timeout" : "80",
     ];
 
-    string arch = BootCommon::exports["arch"]:"chrp";
     map<string, string> boot_map = $[];
 
     y2milestone("RootPartDevice is %1",BootCommon::RootPartitionDevice);
-
-    if ( arch == "chrp" ) {
+    switch(getBoardType()){
+    case ("chrp") :
         boot_map = $[
 	    "boot_chrp_custom" : BootCommon::BootPartitionDevice,
         ];
-    }
-    else if ( arch == "prep" ) {
+        break;
+    case ("prep") :
         boot_map = $[
 	    "boot_prep_custom" : BootCommon::BootPartitionDevice,
 	];
-    }
-    else if ( arch == "pmac" ) {
+        break;
+    case ("pmac") :
         boot_map = $[
 	    "boot_pmac_custom" : BootCommon::BootPartitionDevice,
         ];
-    }
-    else if ( arch == "iseries" ) {
+        break;
+    case ("iseries") :
         boot_map = $[
 	    "boot_slot"		 : "B",
 	    // FIXME: what file should be used here?
@@ -702,7 +706,11 @@ global void CreateGlobals () {
 	    BootCommon::BootPartitionDevice != "") {
 	    boot_map["boot_iseries_custom"] = BootCommon::BootPartitionDevice;
 	}
+        break;
+    default:
+        y2error("Unknown ppc architecture");
     }
+
     // Finally merge results into "globals": new values replace old ones
     BootCommon::globals = (map<string, string>) union(BootCommon::globals, boot_map);
 
@@ -769,7 +777,7 @@ void UpdateGlobalsInAutoInst()
 			case ("prep"):
 				BootCommon::globals["boot_prep_custom"] = BootCommon::BootPartitionDevice;
 			break;
-			
+
 			case ("pmac"):
 				BootCommon::globals["boot_pmac_custom"] = BootCommon::BootPartitionDevice;
 			break;
@@ -779,7 +787,7 @@ void UpdateGlobalsInAutoInst()
 				BootCommon::globals["boot_file"] = "/tmp/suse_linux_image";
 
 				if (BootCommon::BootPartitionDevice != nil &&
-	    			   BootCommon::BootPartitionDevice != "") 
+				   BootCommon::BootPartitionDevice != "") 
 				{
 					BootCommon::globals["boot_iseries_custom"] = BootCommon::BootPartitionDevice;
 				}
@@ -787,7 +795,7 @@ void UpdateGlobalsInAutoInst()
 			default:
 				BootCommon::globals["boot_chrp_custom"] = BootCommon::BootPartitionDevice;
 			break;
-		}		
+		}
 
 	}
 
@@ -955,8 +963,6 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if (clean)
     {
 	BootCommon::RemoveUnexistentSections ("", "");
-	// FIXME: this is not needed, unclear code
-	// BootCommon::UpdateInitrdLine ();
 	BootCommon::UpdateAppend ();
     }
 

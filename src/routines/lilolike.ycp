@@ -1081,48 +1081,6 @@ global void RemoveUnexistentSections (string path_prefix,
 }
 
 /**
- * Remove or add initrd option if needed, update append option if some
- *  parameters were changed
- */
-global void UpdateInitrdLine () {
-    sections = maplist (map<string,any> s, sections, {
-        string initrd = s["initrd"]:"";
-	string title = s["name"]:"";
-	string type = s["original_name"]:"";
-
-	// do not touch the wildcard section
-	if (regexpmatch (s["initrd"]:"", ".+\\-\\*"))
-	{
-	    return s;
-	}
-
-        if ((type == "linux" || type == "failsafe")
-	    && write_settings["insert_initrd"]:false)
-        {
-	    s["initrd"] = BootArch::InitrdImage ();
-        }
-	else if (type == "xen" && write_settings["insert_initrd"]:false)
-	{
-	   // bnc #400526 there is not xenpae any more...
-	   s["initrd"] = "/boot/initrd-xen";
-	}
-        if (initrd != "")
-        {
-	    // check for initrd in GRUB format, keep them
-	    // FIXME change the check for leading slash
-	    if (getLoaderType (false) == "grub"
-		&& substring (initrd, 0, 1) == "(")
-	    {
-		return s;
-	    }
-	    if (-1 == SCR::Read (.target.size, initrd) && haskey (s, "initrd"))
-		s = remove (s, "initrd");
-        }
-	return s;
-    });
-}
-
-/**
   * Update append option if some parameters were changed
   */
 global void UpdateAppend () {
