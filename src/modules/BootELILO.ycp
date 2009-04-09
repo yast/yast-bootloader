@@ -789,12 +789,6 @@ computer, you need to load ELILO via the EFI shell."), 10);
 }
 
 
-global symbol WizardSequenzer() {
-    y2milestone("Call generic WizardSequenzer");
-    return `generic_new;
-}
-
-
 global map<string,symbol()> Dialogs () {
     return $[
 	"loader"	: EliloLoaderDetailsDialog,
@@ -832,7 +826,6 @@ global map<string, any> GetFunctions () {
         "update"		: Update,
         "write"			: Write,
         "widgets"		: Widgets,
-        "wizard_sequencer"	: WizardSequenzer,
         "dialogs"		: Dialogs,
         "section_types"		: elilo_section_types,
 	"flagbootdefaultonce"	: FlagBootDefaultOnce,

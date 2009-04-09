@@ -1248,21 +1248,6 @@ global define boolean Write () {
 }
 
 
-global symbol WizardSequenzer() {
-/*
-blMainSequence () {
-    map functions = getFunctions (BootCommon::getLoaderType (false));
-    symbol () toEval = (symbol ())functions["wizard_sequencer"]:nil;
-    if (toEval != nil)
-	return toEval ();
-    else
-	return `generic;
-*/
-    y2milestone("Call generic WizardSequenzer");
-    return `generic_new;
-}
-
-
 global map<string,symbol()> Dialogs () {
     // PPC definitly needs other text modules
     return $[
@@ -1307,7 +1292,6 @@ global map<string, any> GetFunctions () {
 	"update"		: Update,
 	"write"			: Write,
 	"widgets"		: ppcWidgets,
-	"wizard_sequencer"	: WizardSequenzer,
 	"dialogs"		: Dialogs,
 	"section_types"		: ppc_section_types,
 	"flagonetimeboot"	: FlagOnetimeBoot,
