@@ -598,20 +598,15 @@ global void LocationProposal () {
     switch (getBoardType()) {
     case ("chrp"):
 	BootCommon::BootPartitionDevice = prep_boot_partition;
-	// also set as default value in widget
-	BootCommon::change_widget_default_value("boot_chrp_custom", prep_boot_partition);
         break;
     case ("prep"): 
 	BootCommon::BootPartitionDevice = prep_boot_partition;
-	BootCommon::change_widget_default_value("boot_prep_custom", prep_boot_partition);
         break;
     case ("iseries"):
 	BootCommon::BootPartitionDevice = prep_boot_partition;
-	BootCommon::change_widget_default_value("boot_iseries_custom", prep_boot_partition);
         break;
     case ("pmac") :
 	BootCommon::BootPartitionDevice = GoodPmacBootPartition();
-	BootCommon::change_widget_default_value("boot_pmac_custom", BootCommon::BootPartitionDevice);
         break;
     default:
         y2error("Unknown ppc architecture");

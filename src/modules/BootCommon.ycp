@@ -385,28 +385,6 @@ global map<string,any> CreateLinuxSection (string title);
 global string UpdateSerialConsole (string append, string console);
 
 
-//
-// FIXME: the select and selectdevice seem to be broken: the default value of
-// the widget description string needs to be patched with the current value of
-// the widget
-//
-global void change_widget_default_value (string itemname, string defaultvalue) {
-    // Put defaultvalue as default value into widget description item like
-    // "boot_{chrp,prep,iseries,...}_custom" or "boot_custom".
-    // Examples:
-    // "select:PReP or FAT partition::/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1" ->
-    // "select:PReP or FAT partition:/dev/sda3:/dev/sda1:/dev/sda3:/dev/sdb1:/dev/sdd1"
-    //
-    // "selectdevice:Custom Boot Partition::/dev/sda3" ->
-    // "selectdevice:Custom Boot Partition:/dev/sda3:/dev/sda3"
-    string old_description = global_options[itemname]:"";
-    global_options[itemname] =
-	regexpsub( old_description, "^([^:]*:[^:]*:).*$", "\\1") +
-	defaultvalue +
-	regexpsub( old_description, "^[^:]*:[^:]*:[^:]*(:.*)$", "\\1");
-}
-
-
 /*
  * help message and dscription definitions
  */
@@ -600,21 +578,21 @@ global map<string,any> CreateLinuxSection (string title) {
 	// read commandline options for kernel
 	list<string> cmd = (list<string>) SCR::Read(.proc.cmdline);
 
-  	any vga = nil; 
+	any vga = nil; 
 
 	// trying to find "vga" option
-  	foreach ( string key, cmd, 
+	foreach ( string key, cmd, 
 	{
-    	    if (find(key, "vga=") != -1)
-      		vga = key;
-    	    y2milestone("key: %1", key);
-  	});
+	    if (find(key, "vga=") != -1)
+		vga = key;
+	    y2milestone("key: %1", key);
+	});
 	y2milestone("vga from command line: %1", vga);
-  	list <string> mode =[];
+	list <string> mode =[];
 
 	// split vga=value
-  	if ((vga != nil) && (vga != ""))
-      	    mode = splitstring(tostring(vga), "=");
+	if ((vga != nil) && (vga != ""))
+	    mode = splitstring(tostring(vga), "=");
 
 	string vgamode =nil;
 
@@ -665,7 +643,6 @@ global map<string,any> CreateLinuxSection (string title) {
         ret["type"] = "xen";
 	ret["xen_append"] = "";
 
-	// bug #400526 there is not xenpae anymore...
 	ret["xen"] = "/boot/xen.gz";
 	ret["image"] = "/boot/" + Kernel::GetBinary () + "-xen";
 	ret["initrd"] = "/boot/initrd-xen";
@@ -850,8 +827,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // also, for legacy bootloaders like LILO that still pass device names,
     // convert the stage1_dev
     map<string,string> my_globals = mapmap (string k , string v, globals, {
-	if ((k == "stage1_dev") || (regexpmatch(k, "^boot_.*custom$" )) || (k == "boot_chrp_custom"))
-	    //return $[k : BootCommon::Dev2MountByDev(v)];
+	if ((k == "stage1_dev") || (regexpmatch(k, "^boot_.*custom$" )))
 	    return $[k : BootCommon::Dev2MountByDev(v)];
 	else
 	    return $[k : v];
@@ -1014,7 +990,7 @@ global define void setCurrentLoaderAttribs (string loader_type) {
  * @return string the loader name if supported, "none" otherwise
  */
 string SupportedLoader (string loader) {
-    if (contains (["grub", "lilo", "zipl", "ppc", "elilo"], loader))
+    if (contains (bootloaders, loader))
 	return loader;
     return "none";
 }
@@ -1047,7 +1023,7 @@ global define string getLoaderType (boolean recheck) {
 	{
 	  // FIXME: this is extremely broken, no arch specifica here !!
 	    if (Arch::i386 ())
-	    { 
+	    {
 		// no sysconfig variable -> old version installed -> use LILO
 		loader_type = "lilo";
 		loader_type = SupportedLoader (loader_type);
@@ -1083,26 +1059,6 @@ global define string getLoaderType (boolean recheck) {
 }
 
 
-
-/**
- * The function handle selecting and deselecting packages (bootloaders)
- * @return boolean true on success
- */
-boolean solvePackage()
-{
-	boolean ret = false;
-	if (globals["trusted_grub"]:"" == "true")
-	{
-
-		PackagesProposal::RemoveResolvables("yast2-bootloader", `package, ["grub"]);
-		y2milestone("deselect grub for installation");
-		ret = true;
-
-	}
-	return ret;
-}
-
-
 /**
   * set type of bootloader
   * @param bootloader string type of bootloader
@@ -1133,14 +1089,6 @@ global define void setLoaderType (string bootloader) {
 	}
 
 	
-	if (globals["trusted_grub"]:"" == "true")
-	{
-		bootloader_packages = bootloader_attribs[bootloader, "trustedgrub", "required_packages"]:[];
-		if (contains(bootloader_packages, "grub"))
-			bootloader_packages = filter(string key, bootloader_packages, {return (key !="grub"); });
-
-		bootloader_packages = add(bootloader_packages, "trustedgrub");
-	}
 	//FIXME: solve problem with installing bootloader
 	// it should be split and designed for each module (bootloader)
 	if ((bootloader == "grub") || (bootloader == "lilo") || (bootloader == "elilo"))
@@ -1150,13 +1098,22 @@ global define void setLoaderType (string bootloader) {
 	else if (bootloader == "zipl")
 	   bootloader_packages = add(bootloader_packages, "s390-tools");
 
+	if (globals["trusted_grub"]:"" == "true")
+	{
+		bootloader_packages = bootloader_attribs[bootloader, "trustedgrub", "required_packages"]:[];
+		if (contains(bootloader_packages, "grub"))
+			bootloader_packages = filter(string key, bootloader_packages, {return (key !="grub"); });
+
+		bootloader_packages = add(bootloader_packages, "trustedgrub");
+	}
+
         // don't configure package manager during autoinstallation preparing
         if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
         {
 	    y2milestone("Install packages :%1", bootloader_packages);
 	    PackageSystem::InstallAll (bootloader_packages);
         }
-        else if (Stage::initial () && (! (Mode::repair ())))
+        else if (Stage::initial () )
         {
 	    boolean pkg_added = false;
 	    foreach (string p, bootloader_packages, {
@@ -1165,10 +1122,6 @@ global define void setLoaderType (string bootloader) {
 	       pkg_added = true;
 		
 	    });
-	    if (pkg_added)
-	    {
-		boolean ret = solvePackage();
-	    }
         }
     }
     else if (! Mode::test ())
