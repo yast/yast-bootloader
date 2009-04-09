@@ -381,7 +381,6 @@ map<string,map> target_map = $[];
 global define string getLoaderType (boolean recheck);
 global define list<string> getBootloaders ();
 global define list<string> Summary ();
-global define boolean UsingXenPae();
 global map<string,any> CreateLinuxSection (string title);
 global string UpdateSerialConsole (string append, string console);
 
@@ -435,19 +434,10 @@ global boolean XenPresent () {
 	    || (Mode::normal () && Pkg::IsProvided ("xen")
 		&& Pkg::IsProvided ("kernel-xen"))
 	    || (! Mode::normal () && Pkg::IsSelected ("xen")
-		&& Pkg::IsSelected ("kernel-xen"))
-	    || UsingXenPae());
+		&& Pkg::IsSelected ("kernel-xen")));
 
     y2milestone("ret: %1", ret);
     return ret;
-}
-
-global boolean UsingXenPae() {
-    if (Mode::test())
-	return true;
-    if (Mode::normal())
-        return Pkg::IsProvided ("kernel-xenpae");
-    return Pkg::IsSelected ("kernel-xenpae");
 }
 
 /**
