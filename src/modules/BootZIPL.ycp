@@ -239,12 +239,6 @@ global define boolean Write () {
 }
 
 
-global symbol WizardSequenzer() {
-    y2milestone("Call generic WizardSequenzer");
-    return `generic_new;
-}
-
-
 global map<string,symbol()> Dialogs () {
         return $[];
 }
@@ -285,7 +279,6 @@ global map<string, any> GetFunctions () {
         "update"		: Update,
         "write"			: Write,
         "widgets"		: ziplWidgets,
-        "wizard_sequencer"	: WizardSequenzer,
         "dialogs"		: Dialogs,
         "section_types"		: zipl_section_types,
 	"flagonetimeboot"	: FlagOnetimeBoot,

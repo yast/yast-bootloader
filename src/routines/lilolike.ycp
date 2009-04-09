@@ -584,7 +584,7 @@ global void FixSections (void() create_sections) {
 	    // if "non-standard" section name and a used device is not
 	    // available anymore, notify user
 	    if (type != "linux" && type != "failsafe"
-		&& type != "memtest86" && type != "wildcard")
+		&& type != "memtest86")
 	    {
 		foreach (string n, s["__devs"]:[], {
 		    if (! contains (parts, n))
@@ -1023,14 +1023,6 @@ global void RemoveUnexistentSections (string path_prefix,
     BootCommon::sections = filter (map<string,any> s, BootCommon::sections, {
 	string label = s["name"]:"";
 
-	// do not touch the wildcard section
-	if (regexpmatch (s["image"]:"", ".+\\-\\*"))
-	{
-	    if (first == nil)
-		first = label;
-	    return true;
-	}
-
 	string type = s["original_name"]:"";
         if (label == "")
 	{
@@ -1086,7 +1078,7 @@ global void RemoveUnexistentSections (string path_prefix,
 global void UpdateAppend () {
     sections = maplist (map<string,any> s, sections, {
 	string type = s["original_name"]:"";
-        if ((type == "linux" || type == "wildcard" || type == "global")
+        if ((type == "linux" || type == "global")
 	    && s["append"]:nil != nil
 	    && Stage::initial ())
 	{

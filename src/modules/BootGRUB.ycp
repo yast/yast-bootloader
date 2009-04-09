@@ -40,10 +40,6 @@ import "HTML";
   * Shall proposal merge menus?
   */
 global symbol merge_level = `main;
-/**
-  * Insert saved MBR to bootloader menu?
-  */
-global boolean insert_saved_mbr = false;
 
 // variables for temporary data
 
@@ -51,10 +47,6 @@ global boolean insert_saved_mbr = false;
   * Disks order for ordering widget purproses
   */
 global list<string> disks_order = nil;
-
-// function prototypes
-
-global boolean backup_to_bootsector = true;
 
 // includes
 
@@ -133,6 +125,7 @@ global list<map<string,string> > CheckAdditionalKernels () {
   * Propose sections to bootloader menu
   * modifies internal structures
   */
+  //FIXME really needs refactor, it is really huge function
 global define void CreateSections () {
     y2debug ("Creating GRUB sections from scratch");
     list<map<string,any> > out = [];
@@ -765,12 +758,6 @@ global define boolean Write () ``{
 }
 
 
-global symbol WizardSequenzer() {
-    y2milestone("Call generic WizardSequenzer");
-    return `generic_new;
-}
-
-
 global map<string,symbol()> Dialogs () {
     return $[
 	"installation"	: i386InstallDetailsDialog,
@@ -811,7 +798,6 @@ global map<string, any> GetFunctions () {
         "update"		: Update,
         "write"			: Write,
 	"widgets"		: grubWidgets,
-        "wizard_sequencer" 	: WizardSequenzer,
         "dialogs"		: Dialogs,
         "section_types"		: grub_section_types,
 	"flagonetimeboot"	: FlagOnetimeBoot,

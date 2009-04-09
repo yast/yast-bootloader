@@ -178,20 +178,6 @@ global map<string,map<string,any> > blWidgetMaps () {
 }
 
 /**
- * Get the main sequence for the specified bootloader
- * @return symbol the result of the sequence, or `generic to run generic
- *  sequence instead
- */
-global symbol blMainSequence () {
-    map functions = getFunctions (BootCommon::getLoaderType (false));
-    symbol () toEval = (symbol ())functions["wizard_sequencer"]:nil;
-    if (toEval != nil)
-	return toEval ();
-    else
-	return `generic;
-}
-
-/**
  * Get the loader-specific dialogs
  * @return a map of loader-specific dialogs
  */
