@@ -458,7 +458,6 @@ map<string,any> CreateImageSection (string title) {
 	});
 	initrd_fn = files_filtered[0]:"";
     } else {
-	// code removed: no wildcard entries possible on ppc (yaboot)
 	image_fn = "/boot/" + Kernel::GetBinary ();
 	initrd_fn = "/boot/initrd";
     }

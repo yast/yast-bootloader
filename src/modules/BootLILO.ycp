@@ -99,7 +99,6 @@ global void CreateSections () {
     }
     out = add (out, BootCommon::CreateLinuxSection ("failsafe"));
     out = add (out, BootCommon::CreateLinuxSection ("memtest86"));
-//    out = add (out, BootCommon::CreateLinuxSection ("wildcard"));
     out = filter (map<string,any> s, out, { return s != $[] && s != nil;});
     BootCommon::sections = out;
 }
