@@ -167,7 +167,6 @@ void RedrawSectionsTable (list<map<string,any> > sects) {
  */
 void SectionsInit (string widget) {
     RedrawSectionsTable (BootCommon::sections);
-    UI::SetFocus (`id (`sects));
 }
 
 
