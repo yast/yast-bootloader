@@ -259,7 +259,6 @@
 	if (.noio == WFM::Args (i) || ".noio" == WFM::Args (i))
 	{
 	    skip_io = true;
-	    BootCommon::save_on_finish = false;
 	}
 	i = i + 1;
     }

@@ -105,6 +105,7 @@ global define boolean blRead (boolean reread, boolean avoid_reading_device_map) 
         void() toEval = functions["propose"]:BootCommon::Propose;
         toEval ();
     }
+
 /**
  * Get sections types
  * @return list <string> section types
@@ -112,8 +113,11 @@ global define boolean blRead (boolean reread, boolean avoid_reading_device_map) 
 global list <string> blsection_types ()
 {
 	map functions = getFunctions (BootCommon::getLoaderType (false));
-	list<string>() toEval = functions["section_types"]:BootCommon::Common_sections_types;
-	return toEval ();
+        list<string> fallback(){
+          return ["image"];
+        }
+	list<string>() toEval = functions["section_types"]:fallback;
+	return toEval();
 }
 
 /**

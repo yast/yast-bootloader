@@ -32,11 +32,8 @@
     import "Storage";
     import "Directory";
 
-//    import "BootABOOT";
     import "BootELILO";
     import "BootLILO";
-//    import "BootMILO";
-//    import "BootS390";
     import "BootGRUB";
     import "BootPOWERLILO"; // The ppc-LILO File
     //fate 303395
@@ -57,8 +54,6 @@
     global define void ReadOrProposeIfNeeded ();
     global define string getDefaultSection ();
     global define string getKernelParam (string section, string key);
-    global define boolean setKernelParam (string section, string key, string value);
-    global define list<string> listKernelParams (string section);
     global define string getLoaderType ();
     global define string getProposedDefaultSection ();
     global define boolean UpdateGfxMenu ();
@@ -93,9 +88,6 @@
 
 // UI helping variables
 
-    global map aliases = $[];
-    global map ws_data = $[];
-
     include "bootloader/routines/switcher.ycp";
     include "bootloader/routines/popups.ycp";
 
@@ -123,7 +115,6 @@
     boolean checkUsedStorage ()
     {
 	if ((!Storage::InitLibstorage(true)) && (Mode::normal()))
-	//if ((false) && (Mode::normal()))
             return false;
 	else
             return true;
@@ -357,16 +348,6 @@
 	// first run bootloader-specific update function
 	blUpdate ();
 
-	// remove ide-scsi emulation
-	list<string> parameters = listKernelParams ("LINUX_DEFAULT");
-	foreach (string p, parameters, {
-	    if (regexpmatch (p, "^hd.=ide-scsi$")
-		|| regexpmatch (p, "^hd.lun=.*$"))
-	    {
-		string param = regexpsub (p, "^(.*)=.*$", "\\1");
-		setKernelParam ("LINUX_DEFAULT", param, nil);
-	    }
-	});
 	// remove no more needed modules from MODULES_LOADED_ON_BOOT
 	string mlob = (string)
 	    SCR::Read (.sysconfig.kernel.MODULES_LOADED_ON_BOOT);
@@ -527,9 +508,6 @@
 	string lt = getLoaderType ();
 
         SCR::Write (.sysconfig.bootloader.LOADER_TYPE, lt);
-//        SCR::Write (.sysconfig.bootloader.LOADER_LOCATION,
-//            BootCommon::location);
-// FIXME
 	SCR::Write (.sysconfig.bootloader, nil);
 
 	params_to_save["additional_failsafe_params"]
@@ -1165,128 +1143,6 @@ string checkZiplDefault(string def)
 	    line = BootCommon::sections[sectnum, "append"]:"";
 	    return BootCommon::getKernelParamFromLine (line, key);
 	}
-    }
-
-    /**
-      * List kernel parameters
-      * @param section string section title, use DEFAULT for default section
-      * @return a list of kernel parameters (in the form 'hdd=ide-scsi')
-      */
-    global define list<string> listKernelParams (string section) {
-	ReadOrProposeIfNeeded ();
-	if (section == "DEFAULT")
-	    section = getDefaultSection ();
-	else if (section == "LINUX_DEFAULT")
-	    section = getProposedDefaultSection ();
-	if (section == nil)
-	    return [];
-	integer sectnum = -1;
-	integer index = -1;
-	foreach (map<string,any> s, BootCommon::sections, {
-	    index = index + 1;
-	    if (s["name"]:"" == section)
-		sectnum = index;
-	});
-	if (sectnum == -1)
-	    return [];
-	string line = BootCommon::sections[sectnum, "append"]:"";
-        list<string> par = splitstring (line, " ");
-        par = filter (string p, par, ``(p != ""));
-	return par;
-    }
-
-    /**
-      * Get list of bootloader sections
-      * @param type symbol what sections to be returned
-      *  `linux -> linux sections
-      *  `other -> other sections
-      *  `all   -> all sections
-      * @return list of strings representing sections names
-      */
-    global define list getSectionsList (symbol type) {
-	list<map<string,any> > sects = BootCommon::sections;
-	if (type == `other)
-	{
-	    sects = filter (map<string,any> s, sects, ``(
-		! haskey (s, "chainloader")
-	    ));
-	}
-	else if (type == `linux)
-	{
-	    sects = filter (map<string,any> s, sects, ``(
-		! haskey (s, "kernel")));
-	}
-	list<string> sects_titles = maplist (map<string,any> s, sects, ``(
-	    s["name"]:""));
-	sects_titles = filter (string s, sects_titles, ``(s != ""));
-	return sects_titles;
-    }
-
-
-    /**
-      * set kernel parameter to menu.lst
-      * @param section string section title, use DEFAULT for default section
-      * @param key string parameter key
-      * @param value string value, "false" to remove key,
-      *   "true" to add key without value
-      * @return boolean true on success
-      */
-    global define boolean setKernelParam
-	(string section, string key, string value)
-    {
-	if ((! Mode::config ()) && key == "vga" && (
-	    Arch::s390 () || Arch::ppc ()
-	))
-	{
-	    y2warning ("Kernel of this architecture does not support the vga parameter");
-	    return true;
-	}
-
-	ReadOrProposeIfNeeded ();
-
-	if (section == "DEFAULT")
-	    section = getDefaultSection ();
-	else if (section == "LINUX_DEFAULT")
-	    section = getProposedDefaultSection ();
-	if (section == nil)
-	    return false;
-        integer sectnum = -1;
-        integer index = -1;
-        foreach (map<string,any> s, BootCommon::sections, {
-            index = index + 1;
-            if (s["name"]:"" == section)
-                sectnum = index;
-        });
-        if (sectnum == -1)
-            return false;
-	string slabel = "";
-	if ((key == "vga" || key == "root") && (value == "true"))
-	    return false;
-	if (contains (["root", "vga"], key))
-	{
-	    if (value != "false")
-	    {
-		BootCommon::sections[sectnum, key] = value;
-		// added flag that section was modified bnc #432651
-		BootCommon::sections[sectnum, "__changed"] = true; 
-	    }
-	    else
-	    {
-		BootCommon::sections[sectnum] = remove (
-		    BootCommon::sections[sectnum]:$[], key);
-	    }
-	}
-	else
-	{
-	    string line = BootCommon::sections [sectnum, "append"]:"";
-	    line = BootCommon::setKernelParamToLine (line, key, value);
-	    BootCommon::sections [sectnum, "append"] = line;
-	     // added flag that section was modified bnc #432651
-	    BootCommon::sections[sectnum, "__changed"] = true;
-	}
-	BootCommon::changed = true;
-	boolean ret = true;
-	return ret;
     }
 
     /**
