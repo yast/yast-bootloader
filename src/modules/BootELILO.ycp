@@ -184,12 +184,10 @@ global void CreateGlobals () {
     BootCommon::globals = $[
     // FIXME do it later
     //	"append" : BootArch::DefaultKernelParams (""),
-    //	"default" : BootCommon::translateSectionTitle ("linux"),
 	"default" : "linux",
 	"timeout" : "80",
 	"prompt" : "true",
-    // bnc #438276 - remove deprecated 'read-only'
-    //	"read-only" : "true",
+    // bnc #438276 - no 'read-only'
 	"relocatable" : "true"
     ];
 
@@ -372,7 +370,6 @@ global define void Propose () {
  */
 global boolean Save (boolean clean, boolean init, boolean flush) {
     boolean ret = BootCommon::Save (clean, init, flush);
-    //importMetaData();
     return ret;
 }
 
@@ -868,7 +865,7 @@ global define void BootELILO () {
 	"initializer" : BootELILO::Initializer,
     ];
 }
- 
+
 } // EOF
 
 /*
