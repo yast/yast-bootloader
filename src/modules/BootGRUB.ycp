@@ -811,7 +811,7 @@ global define void Initializer () {
     y2milestone ("Called GRUB initializer");
     BootCommon::current_bootloader_attribs = $[
         "alias_keys" : [],
-        "update_passwd" : BootGRUB::updatePasswdBeforeSave,
+        "update_passwd" : System::Bootloader_API::countGRUBPassword,
         "propose" : true,
         "read" : true,
         "scratch" : true,
