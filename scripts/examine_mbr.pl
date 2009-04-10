@@ -37,4 +37,4 @@ if (substr($MBR, 4, 20) =~ m,LILO,) {
 }
 
 print "unknown\n";
-exit 0;
+exit 1;

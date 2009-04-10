@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Apr 10 10:54:59 CEST 2009 - juhliarik@suse.cz
+
+- added fix for problem with worng handling content of MBR 
+  (bnc#407096)
+- 2.13.156
+
+-------------------------------------------------------------------
 Thu Jan 22 14:01:07 CET 2009 - juhliarik@suse.cz
 
 - added fix for problems with autoinstallation and "/" on NFS
