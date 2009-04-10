@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 10 14:15:02 CEST 2009 - juhliarik@suse.cz
+
+- added fix for troubles with help in boot menu (bnc#384768) 
+
+-------------------------------------------------------------------
 Tue Apr  7 15:50:12 CEST 2009 - juhliarik@suse.cz
 
 - refactoring UI is done (fate#305268)
