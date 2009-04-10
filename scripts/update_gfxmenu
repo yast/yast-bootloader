@@ -28,7 +28,7 @@ rm -f `ls *tr | grep -v en.tr`
 rm -f `ls *hlp | grep -v en.hlp`
 test -f $SRC_DIR/$LOCALE.tr && cp $SRC_DIR/$LOCALE.tr . \
  || test -f $SRC_DIR/$LOCALE_SHORT.tr && cp $SRC_DIR/$LOCALE_SHORT.tr .
-test -f $SRC_DIR/$LOCALE.hlp && cp I4/$LOCALE.hlp . \
+test -f $SRC_DIR/$LOCALE.hlp && cp $SRC_DIR/$LOCALE.hlp . \
  || test -f $SRC_DIR/$LOCALE_SHORT.hlp && cp $SRC_DIR/$LOCALE_SHORT.hlp .
 
 # set languages to choose
