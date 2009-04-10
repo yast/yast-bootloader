@@ -32,6 +32,7 @@ import "Bootloader";
 import "Popup";
 import "FileUtils";
 
+
 include "bootloader/routines/helps.ycp";
 include "bootloader/routines/section_helps.ycp";
 
@@ -244,7 +245,8 @@ map<string,any> SectionIntFieldWidget( string name,
  * @return boolean true if widget settings ok
  */
 boolean SectionNameValidate (string widget, map event) {
-  //TODO check for valid section name
+    string bl = Bootloader::getLoaderType();
+
     list<string> existing = [];
     foreach (map<string,any> s, BootCommon::sections, {
 	existing = add (existing, s["name"]:"");
@@ -259,6 +261,20 @@ boolean SectionNameValidate (string widget, map event) {
     {
 	usedNameErrorPopup ();
 	return false;
+    }
+
+    // bnc#456362 filter out special chars like diacritics china chars etc.
+    if ((Mode::normal()) && (bl == "grub"))
+    {
+	string filtered_new = 
+	     filterchars (new, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.-");
+
+	if (filtered_new != new)
+	{
+	    Report::Error (_("The name includes unallowable char(s)"));
+	    return false;
+	}
+
     }
     return true;
 }

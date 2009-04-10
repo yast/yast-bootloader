@@ -52,7 +52,7 @@ global string DefaultKernelParams (string resume) {
 	    ret = ret + features + " "; 
 	if (regexpmatch (ret, "^(.* )?splash=[[:lower:]]+( .*)?$"))
 	    ret = regexpsub (ret, "^((.* ))?splash=[[:lower:]]+(( .*)?)$", "\\1 \\3");
-	ret = ret + "splash=silent quiet";
+	ret = ret + "splash=silent quiet showopts";
 	return ret;
     }
     else if (Arch::ia64 ())

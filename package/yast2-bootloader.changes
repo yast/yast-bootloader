@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Apr 10 15:18:33 CEST 2009 - juhliarik@suse.cz
+
+- added fix for problem with special chars in menu.lst (bnc#456362) 
+
+-------------------------------------------------------------------
 Fri Apr 10 14:15:02 CEST 2009 - juhliarik@suse.cz
 
 - added fix for troubles with help in boot menu (bnc#384768) 
