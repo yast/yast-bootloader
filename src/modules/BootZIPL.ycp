@@ -148,12 +148,6 @@ map<string,any> CreateLinuxSection(string title) {
     map<string,any>section = BootCommon::CreateLinuxSection(title);
     section["target"] = "/boot/zipl";
 
-    // replace "kernel" by "image"
-    if (haskey(section, "kernel")) {
-        section["image"] = section["kernel"]:"";
-        section = remove(section, "kernel");
-    }
-
     return section;
 }
 
@@ -292,7 +286,6 @@ global define void Initializer () {
     y2milestone ("Called ZIPL initializer");
     BootCommon::current_bootloader_attribs = $[
         "section_title" : "label",
-        "kernel_key" : "image",
         "propose" : true,
         "read" : true,
         "scratch" : true,

@@ -582,12 +582,6 @@ global void LocationProposal () {
 global void CreateSections () {
     map<string,any> linux = CreateImageSection ("linux");
 
-    // FIXME: I hate that i386 crap!!
-    if (haskey(linux, "kernel")) {
-        linux["image"] = linux["kernel"]:"/boot/vmlinux";
-        linux = remove(linux, "kernel");
-    };
-
     // FIXME: create an 'other' section for MACs to boot MacOS
 
     BootCommon::sections = [ linux, ];

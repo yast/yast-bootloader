@@ -492,7 +492,7 @@ global map<string,any> CreateLinuxSection (string title) {
 
     if (title == "memtest86") {
 	if (MemtestPresent ()) {
-	    ret["kernel"] = "/boot/memtest.bin";
+	    ret["image"] = "/boot/memtest.bin";
 	    ret["__devs"] = [BootCommon::BootPartitionDevice];
 	    return ret;
 	}
@@ -603,7 +603,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	// add value of vga into proposal (if exist)
 	if ((vgamode != nil) && (vgamode != ""))
 	{
-	    ret["vga"] = vgamode;
+	    ret["vgamode"] = vgamode;
 	    y2milestone("vga mode: %1", vgamode);
 	}
 
@@ -633,7 +633,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	//if (title == "failsafe")
 	//    ret["vga"] = "normal";
 	//else
-	ret["vga"] = Kernel::GetVgaType ();
+	ret["vgamode"] = Kernel::GetVgaType ();
 
 	// B#352020 end
 

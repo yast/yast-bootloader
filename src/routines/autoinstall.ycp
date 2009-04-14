@@ -131,6 +131,13 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	    }
 	    s = remove (s, "kernel");
 	}
+	// convert "vga" to "vgamode", if not already defined in the section
+	if ( haskey(s, "vga") ) {
+	    if ( ! haskey(s, "vgamode") ) {
+		s["vgamode"] = s["vga"]:"";
+	    }
+	    s = remove (s, "vga");
+	}
 
 	return s;
     });

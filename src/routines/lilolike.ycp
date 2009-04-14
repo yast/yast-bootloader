@@ -475,8 +475,7 @@ global void FixGlobals () {
 	foreach (map<string,any> s, sections, {
 	    string label = s["name"]:"";
 	    if (regexpmatch (s["original_name"]:"", "^linux(-.*)?$") ||
-		regexpmatch (s["image"]:"", "^.*-" + flavor + "$") ||
-		regexpmatch (s["kernel"]:"", "^.*-" + flavor + "$")) {
+		regexpmatch (s["image"]:"", "^.*-" + flavor + "$")) {
 		// found, if we have not yet found a match, or the previously
 		// found one was for an "old" entry and we now found a "new"
 		// one
@@ -723,7 +722,7 @@ global void UpdateSections (boolean replace,
     boolean linux_resume_added = false;
 
     map<string,any> default_sect = create_linux_section ("linux");
-    string default_kernel = default_sect["kernel"]:"";
+    string default_kernel = default_sect["image"]:"";
     string default_initrd = default_sect["initrd"]:"";
     string default_name = default_sect["name"]:"";
 
@@ -867,7 +866,7 @@ global void UpdateSections (boolean replace,
 	//        if no: remove loop
 	//        probably need to do this depending on the version of the old
 	//        installation
-	foreach (string key, ["kernel", "initrd"], {
+	foreach (string key, ["image", "initrd"], {
 	    string value = s[key]:"";
 	    if (regexpmatch (value, "^.*\.shipped.*$"))
 	    {
@@ -890,7 +889,7 @@ global void UpdateSections (boolean replace,
 	//    its name
 	// then, update the section name
 	if (!replace
-	    && s["kernel"]:"" == default_kernel
+	    && s["image"]:"" == default_kernel
 	    && s["initrd"]:"" == default_initrd
 	    && issubstring (s["name"]:"", read_default_section_name)
 	    && read_default_section_name != ""
