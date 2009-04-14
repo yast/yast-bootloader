@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 14 11:44:43 CEST 2009 - juhliarik@suse.cz
+
+- added fix for troubles with analyse of MBR on soft riad 
+  (bnc#483797) 
+
+-------------------------------------------------------------------
 Fri Apr 10 15:18:33 CEST 2009 - juhliarik@suse.cz
 
 - added fix for problem with special chars in menu.lst (bnc#456362) 

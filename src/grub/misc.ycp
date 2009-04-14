@@ -470,7 +470,7 @@ define string soft_MDraid_boot_disk(list<map> partitions)
    foreach(map p, partitions, {
 	if (p["device"]:"" == boot_device)
 	{
-	   if ((p["type"]:nil == `sw_raid) && (p["fstype"]:"" == "MD Raid"))
+	   if ((p["type"]:nil == `sw_raid) && (tolower(p["fstype"]:"") == "md raid"))
 	   {
 	      string device_1 = p["devices",0]:"";
 	      y2debug("device_1: %1", device_1);
@@ -605,10 +605,17 @@ define symbol grub_ConfigureLocation() {
 	    boot_partition_disk = soft_MDraid_boot_disk(partitions_on_boot_partition_disk);
 	if (boot_partition_disk == "")
 	    boot_partition_disk = dp["disk"]:"";
-	map out = (map)SCR::Execute (.target.bash_output, sformat (
-	    "/usr/lib/YaST2/bin/examine_mbr.pl %1", boot_partition_disk));
-	y2milestone ("MBR examining script returned %1", out);
-	exit = out["exit"]:0;	
+	// bnc #483797 cannot read 512 bytes from at /usr/lib/YaST2/bin/examine_mbr.pl
+	if (boot_partition_disk != "")
+	{
+	    map out = (map)SCR::Execute (.target.bash_output, sformat (
+	        "/usr/lib/YaST2/bin/examine_mbr.pl %1", boot_partition_disk));
+	    y2milestone ("MBR examining script returned %1", out);
+	    exit = out["exit"]:0;
+	} else {
+	    exit = 254;
+	    y2error("Boot partition disk not found");
+	}	
 	BootCommon::globals["generic_mbr"] = ((exit == 254) && (! keep_mbr)) ? "true" : "false";
 	if (exit == 0)
 	{
