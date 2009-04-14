@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 14 13:25:52 CEST 2009 - juhliarik@suse.cz
+
+- updated timeout for ppc and elilo both to seconds
+- 2.18.5 
+
+-------------------------------------------------------------------
 Tue Apr 14 11:44:43 CEST 2009 - juhliarik@suse.cz
 
 - added fix for troubles with analyse of MBR on soft riad 

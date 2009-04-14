@@ -185,7 +185,7 @@ global void CreateGlobals () {
     // FIXME do it later
     //	"append" : BootArch::DefaultKernelParams (""),
 	"default" : "linux",
-	"timeout" : "80",
+	"timeout" : "8",
 	"prompt" : "true",
     // bnc #438276 - no 'read-only'
 	"relocatable" : "true"

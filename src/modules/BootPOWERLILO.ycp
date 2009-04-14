@@ -602,7 +602,7 @@ global void CreateGlobals () {
     BootCommon::globals = $[
 	"activate": "true",
 	"default" : BootCommon::sections[0, "name"]:"",
-	"timeout" : "80",
+	"timeout" : "8",
     ];
 
     map<string, string> boot_map = $[];
@@ -693,7 +693,7 @@ global void SaveInstSourceId () {
 void UpdateGlobalsInAutoInst()
 {
 	if (!haskey(BootCommon::globals, "timeout"))
-		BootCommon::globals["timeout"] = "80";
+		BootCommon::globals["timeout"] = "8";
 
 	if (!haskey(BootCommon::globals, "activate"))
 		BootCommon::globals["activate"] = "true";
