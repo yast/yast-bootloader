@@ -1831,7 +1831,7 @@ list<string> ListKernelParamsInLine (string line) {
 	}
 	if (Kernel::GetVgaType () == "")
 	{
-	    string vgaType = (string)(saved_params["vga"]:"");
+	    string vgaType = (string)(saved_params["vgamode"]:"");
 	    if (vgaType != nil && vgaType != "")
 		Kernel::SetVgaType (vgaType);
 	}

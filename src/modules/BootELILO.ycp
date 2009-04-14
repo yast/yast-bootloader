@@ -147,12 +147,6 @@ map<string,any> CreateLinuxSection (string title) {
     section["description"] = section["name"]:"";
     section["name"] = title;
 
-    // replace "kernel" by "image"
-    if (haskey(section, "kernel")) {
-      section["image"] = section["kernel"]:"";
-      section = remove(section, "kernel");
-    }
- 
     return section;
 }
 

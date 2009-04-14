@@ -55,29 +55,7 @@ void convertSettings()
 
     list<map <string, any > > sec = BootCommon::GetSections();
 
-    list<map <string, any > > tmp_sec = [];
-    //FIXME: change "kernel" to "image" in sections
-    foreach(map <string, any> section, sec, {
-
-	// replace "kernel" by "image"
-        if (haskey(section, "kernel")) 
-        {
-           section["image"] = section["kernel"]:"";
-           section = remove(section, "kernel");
-        }
-
-        // replace "vga" by "vgamode"
-        if (haskey(section, "vga")) 
-        {
-           section["vgamode"] = section["vga"]:"";
-           section = remove(section, "vga");
-        }
-
-        tmp_sec= add(tmp_sec, section);
-
-    });
-    sec = tmp_sec;
-    BootCommon::sections = tmp_sec;
+    BootCommon::sections = sec;
     BootCommon::globals = BootCommon::GetGlobal ();
     
     BootCommon::InitializeLibrary(true, "grub");

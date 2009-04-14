@@ -61,21 +61,7 @@ include "bootloader/grub/dialogs.ycp";
 
 // wrapper function to adjust to new grub name sceme
 map<string,any> CreateLinuxSection (string title) {
-    map<string,any> section =
-      BootCommon::CreateLinuxSection (title);
-
-    // replace "kernel" by "image"
-    if (haskey(section, "kernel")) {
-      section["image"] = section["kernel"]:"";
-      section = remove(section, "kernel");
-    }
-    // replace "vga" by "vgamode"
-    if (haskey(section, "vga")) {
-      section["vgamode"] = section["vga"]:"";
-      section = remove(section, "vga");
-    }
-
-    return section;
+    return  BootCommon::CreateLinuxSection (title);
 }
 
 
@@ -811,7 +797,6 @@ global define void Initializer () {
     y2milestone ("Called GRUB initializer");
     BootCommon::current_bootloader_attribs = $[
         "alias_keys" : [],
-        "update_passwd" : System::Bootloader_API::countGRUBPassword,
         "propose" : true,
         "read" : true,
         "scratch" : true,

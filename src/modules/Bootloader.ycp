@@ -236,7 +236,7 @@
 
 	boolean ret = blRead (true, false);
 	BootCommon::was_read = true;
-	old_vga = getKernelParam (getDefaultSection (), "vga");
+	old_vga = getKernelParam (getDefaultSection (), "vgamode");
 
 	Progress::Finish ();
 	if (testAbort ())
@@ -444,12 +444,12 @@
 
 	map<string,any> params_to_save = $[];
 
-	string new_vga = getKernelParam (getDefaultSection (), "vga");
+	string new_vga = getKernelParam (getDefaultSection (), "vgamode");
 	if (new_vga != old_vga && new_vga != "false" && new_vga != "")
 	{
 	    Initrd::setSplash (new_vga);
 	    if (Stage::initial ())
-		params_to_save["vga"] = new_vga;
+		params_to_save["vgamode"] = new_vga;
 	}
 
 	// Initialize device mapper and LVM in target system
@@ -471,12 +471,12 @@
 	if ((Initrd::changed || ! Mode::normal ())
 	    && ! (BootCommon::write_settings["forbid_save_initrd"]:false))
 	{
-	    string vga = getKernelParam (getDefaultSection (), "vga");
+	    string vga = getKernelParam (getDefaultSection (), "vgamode");
 	    if (vga != "false" && vga != "")
 	    {
 		Initrd::setSplash (vga);
 		if (Stage::initial ())
-		    params_to_save["vga"] = new_vga;
+		    params_to_save["vgamode"] = new_vga;
 	    }
 	    ret = Initrd::Write ();
 	    BootCommon::changed = true;
@@ -623,12 +623,12 @@ global define boolean WriteInstallation ()
 
 	map<string,any> params_to_save = $[];
 
-	string new_vga = getKernelParam (getDefaultSection (), "vga");
+	string new_vga = getKernelParam (getDefaultSection (), "vgamode");
 	if (new_vga != old_vga && new_vga != "false" && new_vga != "")
 	{
 		Initrd::setSplash (new_vga);
 		if (Stage::initial ())
-			params_to_save["vga"] = new_vga;
+			params_to_save["vgamode"] = new_vga;
 	}
 
 
@@ -636,12 +636,12 @@ global define boolean WriteInstallation ()
 	if ((Initrd::changed || ! Mode::normal ())
 	    && ! (BootCommon::write_settings["forbid_save_initrd"]:false))
 	{
-		string vga = getKernelParam (getDefaultSection (), "vga");
+		string vga = getKernelParam (getDefaultSection (), "vgamode");
 		if (vga != "false" && vga != "")
 		{
 			Initrd::setSplash (vga);
 			if (Stage::initial ())
-				params_to_save["vga"] = new_vga;
+				params_to_save["vgamode"] = new_vga;
 		}
 		ret = Initrd::Write ();
 		BootCommon::changed = true;
@@ -941,9 +941,6 @@ global define map<string,any> ResolveSymlink(map<string,any> section, string key
     }
 
     return section;
-//  y2milestone("old kernel parameter in section %1: %2", s["name"], s["kernel"]);
-//  s["kernel"] = SCR::Execute (.target.bash, "/usr/bin/readlink " + s["kernel"]);
-//  y2milestone("converted kernel parameter to: %2", s["kernel"]);
 }
 
 /**
@@ -953,10 +950,6 @@ global define map<string,any> ResolveSymlink(map<string,any> section, string key
 // FIXME: this is the plan B solution, try to solve plan A in
 //        BootCommon.ycp:CreateLinuxSection() (line 435)
 global define void ResolveSymlinksInSections() {
-    list image_key_names = ["kernel", "image"];
-    string image_key_name = "";
-    integer i = 0;
-
     y2milestone("sections before remapping: %1", BootCommon::sections);
 
     // change only linux, failsafe and xen sections
@@ -971,21 +964,16 @@ global define void ResolveSymlinksInSections() {
 	}
 
 	// first, resolve kernel link name
-	i = 0;
-	while ( i < size(image_key_names) ) {
-	    image_key_name = image_key_names[i]:"";
+	if ( haskey (s, "image") ) {
 	    // also skip sections that start with a grub device name
-	    // "(hd0,7)/boot/vmlinuz", and are not on the default (currently
+            // "(hd0,7)/boot/vmlinuz", and are not on the default (currently
 	    // mounted) boot partition
-	    if ( haskey (s, image_key_name) ) {
-		if ( !regexpmatch(s[image_key_name]:"", "^\(hd.*\)") ) {
-		    s = ResolveSymlink(s, image_key_name);
-		} else {
-		    y2milestone("section %1: skipping remapping kernel symlink on other partition: %2",
-			s["name"]:"", s[image_key_name]:"");
-		}
+	    if ( !regexpmatch(s["image"]:"", "^\(hd.*\)") ) {
+	        s = ResolveSymlink(s, "image");
+	    } else {
+	        y2milestone("section %1: skipping remapping kernel symlink on other partition: %2",
+		s["name"]:"", s["image"]:"");
 	    }
-	    i = i + 1;
 	}
 	// resolve initrd link name, but skip if it is on a non-default boot
 	// partition (see above)
@@ -1090,7 +1078,7 @@ string checkZiplDefault(string def)
 	string default_image = "";
 	foreach (map<string,any> s, BootCommon::sections, {
 	    string title = s["name"]:"";
-	    if (s["kernel"]:nil != nil)
+	    if (s["image"]:nil != nil)
 	    {
 		if (first_image == "")
 		    first_image = title;
@@ -1136,7 +1124,7 @@ string checkZiplDefault(string def)
 	if (sectnum == -1)
 	    return "";
 	string line = "";
-	if (contains (["root", "vga"], key))
+	if (contains (["root", "vgamode"], key))
 	    return BootCommon::sections[sectnum, key]:"false";
 	else
 	{
