@@ -54,6 +54,7 @@
     global define void ReadOrProposeIfNeeded ();
     global define string getDefaultSection ();
     global define string getKernelParam (string section, string key);
+    global define boolean setKernelParam (string section, string key, string value);
     global define string getLoaderType ();
     global define string getProposedDefaultSection ();
     global define boolean UpdateGfxMenu ();
@@ -1132,6 +1133,80 @@ string checkZiplDefault(string def)
 	    return BootCommon::getKernelParamFromLine (line, key);
 	}
     }
+
+
+
+/**
+      * set kernel parameter to menu.lst
+      * @param section string section title, use DEFAULT for default section
+      * @param key string parameter key
+      * @param value string value, "false" to remove key,
+      *   "true" to add key without value
+      * @return boolean true on success
+      */
+    global define boolean setKernelParam
+	(string section, string key, string value)
+    {
+	if ((! Mode::config ()) && key == "vga" && (
+	    Arch::s390 () || Arch::ppc ()
+	))
+	{
+	    y2warning ("Kernel of this architecture does not support the vga parameter");
+	    return true;
+	}
+
+	ReadOrProposeIfNeeded ();
+
+	if (section == "DEFAULT")
+	    section = getDefaultSection ();
+	else if (section == "LINUX_DEFAULT")
+	    section = getProposedDefaultSection ();
+	if (section == nil)
+	    return false;
+        integer sectnum = -1;
+        integer index = -1;
+        foreach (map<string,any> s, BootCommon::sections, {
+            index = index + 1;
+            if (s["name"]:"" == section)
+                sectnum = index;
+        });
+        if (sectnum == -1)
+            return false;
+	string slabel = "";
+	if ((key == "vga" || key == "root") && (value == "true"))
+	    return false;
+	if (contains (["root", "vga"], key))
+	{
+	    if (value != "false")
+	    {
+		if (key == "vga")
+		    BootCommon::sections[sectnum, "vgamode"] = value;
+		else
+		    BootCommon::sections[sectnum, key] = value;
+		// added flag that section was modified bnc #432651
+		BootCommon::sections[sectnum, "__changed"] = true; 
+	    }
+	    else
+	    {
+		if (key == "vga")
+		    BootCommon::sections[sectnum] = remove (BootCommon::sections[sectnum]:$[], "vgamode");
+		else
+		    BootCommon::sections[sectnum] = remove (BootCommon::sections[sectnum]:$[], key);
+	    }
+	}
+	else
+	{
+	    string line = BootCommon::sections [sectnum, "append"]:"";
+	    line = BootCommon::setKernelParamToLine (line, key, value);
+	    BootCommon::sections [sectnum, "append"] = line;
+	     // added flag that section was modified bnc #432651
+	    BootCommon::sections[sectnum, "__changed"] = true;
+	}
+	BootCommon::changed = true;
+	boolean ret = true;
+	return ret;
+    }
+
 
     /**
       * Get currently used bootloader, detect if not set yet
