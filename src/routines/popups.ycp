@@ -143,7 +143,7 @@ configuration files manually. Check the boot loader settings.
       * @param string reason text stating why the location should be re-proposed
       * @return boolean yes if shall be reset
       */
-     global boolean askLocationResetPopup (string reason) ``{
+     boolean askLocationResetPopup (string reason) ``{
 	// yes-no popup
 	return Popup::YesNo(sformat(_("%1Set default boot loader location?
 "), reason));
