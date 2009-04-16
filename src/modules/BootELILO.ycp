@@ -247,7 +247,7 @@ global define boolean Read (boolean reread, boolean avoid_reading_device_map) {
 	    || BootCommon::globals["boot_efilabel"]:"" == ""
 	    || BootCommon::globals["boot_efilabel"]:"" == nil )
 	{
-	    string efi_path = BootCommon::replaceAll (
+	    string efi_path = String::Replace(
 		getEliloConfSubpath (), "/", "\\");
 	    // Read Firmware setting from NVRam
 	    map efi_status = (map)SCR::Execute (.target.bash_output, sformat (

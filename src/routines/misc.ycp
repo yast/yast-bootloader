@@ -848,32 +848,6 @@ global define string Dev2MountByDev(string dev)
     }
 
     /**
-      * replaces all occurences of 'from' to 'to' in src
-      * @param src input string
-      * @param from string to be replaced
-      * @param to string to be replaced by
-      * @return string modified string
-      */
-    global define string replaceAll(string src, string from, string to) ``{
-	if (from == "")
-	{
-	    return src;
-	}
-
-	list tokens = [];
-
-	integer p = search(src, from);
-	while(p != nil)
-	{
-	    tokens = add(tokens, substring(src, 0, p));
-	    src = substring(src, p + size(from), size(src) - (p+size(from)));
-	    p = search(src, from);
-	}
-	tokens = add(tokens, src);
-	return mergestring((list<string>)tokens, to);
-    }
-
-    /**
       * returns list difference A \ B (items that are in A and are not in B)
       * @param a list A
       * @param b list B

@@ -28,6 +28,7 @@ import "BootCommon";
 import "Kernel";
 import "Mode";
 import "Pkg";
+import "String";
 import "Storage";
 import "Stage";
 
@@ -51,7 +52,7 @@ string removeBlanks (string original) {
     }
     if (size (original) > 15)
         original = substring (original, 0, 15);
-    return BootCommon::replaceAll (original, " ", "_");
+    return String::Replace (original, " ", "_");
 }
 
 
