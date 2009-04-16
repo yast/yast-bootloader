@@ -19,7 +19,7 @@
 {
 textdomain "bootloader";
 
-global map<string,string>   section_help_messages = $[
+map<string,string>   section_help_messages = $[
     "type_image"		:
     _("<p><b>Image Section</b></p>"),
     "image"		        :
@@ -83,7 +83,7 @@ Menu sections represent a list of tasks which are grouped together.</p>
 ];
 
 
-global map<string,string> section_descriptions = $[
+map<string,string> section_descriptions = $[
     "type_image"		 : _("Image Section"),
     "image"		         : _("&Kernel Image"),
     "root"	                 : _("&Root Device"),
