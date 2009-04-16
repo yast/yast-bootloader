@@ -181,7 +181,7 @@ symbol defaultHandle(string key, map event, integer index){
 symbol updownHandle(string key, map event, boolean up, integer index){
     integer second = up ? (index-1):(index+1);
     BootCommon::sections = (list<map<string,any> >)
-                     BootCommon::swapItems(BootCommon::sections, index, second);
+                     list::swap(BootCommon::sections, index, second);
     RedrawSectionsTable (BootCommon::sections);
     return nil;
 }

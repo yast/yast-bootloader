@@ -828,38 +828,6 @@ global define string Dev2MountByDev(string dev)
 	return filter(any e, a, ``(!contains(b, e)));
     }
 
-
-    /**
-      * returns modified list where items index1 and index2 are swapped.
-      * if indices are out of bounds, unmodified list is returned.
-      * @param input list
-      * @param index1 index of the first element
-      * @param index2 index og the second element
-      * @return list modified list
-      */
-    global define list swapItems(list input, integer index1, integer index2) ``{
-	if (index1 >= size(input) || index2 >= size(input)
-	    || index1 < 0 || index2 < 0)
-	{
-	    return input;
-	}
-	list output = [];
-	integer pos = -1;
-	output = maplist(any e, input, {
-	    pos = pos + 1;
-	    if (pos == index1)
-	    {
-	        return (any)(input[index2]:(any)$[]);
-	    }
-	    else if (pos == index2)
-	    {
-	        return (any)(input[index1]:(any)$[]);
-	    }
-	    return e;
-	});
-	return output;
-    }
-
     /**
       * translate filename path (eg. /boot/kernel) to list of device
       *  and relative path
