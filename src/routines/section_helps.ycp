@@ -104,7 +104,7 @@ global map<string,string> section_descriptions = $[
     "menu_root"			 : _("&Partition of Menu File"),
     "configfile"		 : _("&Menu Description File"),
     "readonly"	 : _("&Force root filesystem to be mounted read-only"),
-    "relocatable"	 : _("Allow attempt to relocate"),
+    "relocatable"	 : _("Allow attempt to &relocate"),
     "target"   : _("Tar&get Directory for Section"),
     "parmfile" : _("Op&tional Parameter File"),
     "type_dump"      : _("Dump Section (obsolete)"),
@@ -115,7 +115,7 @@ global map<string,string> section_descriptions = $[
     "default"   : _("&Number of Default Entry"),
     "timeout"   : _("&Timeout in seconds"),
     "prompt"    : _("&Show boot menu"),
-    "copy"	         : _("Copy Image to Boot Partition"),
+    "copy"	         : _("C&opy Image to Boot Partition"),
     "optional"	         : _("&Skip Section gracefully on Errors"),
     "other"	         : _("Boot &Partition of Other System"),
 ];
