@@ -818,36 +818,6 @@ global define string Dev2MountByDev(string dev)
     }
 
     /**
-      * removes trailing and leading blank chars from string.
-      *   eg: "  as df  " -> "as df"
-      * @param str string source string
-      * @return string stripped string
-      */
-    define string strip(string str)``{
-	//emtpy  string
-	if (size(str) == 0) return "";
-
-	integer bound = size(str);
-	integer first = 0;
-	integer last = size(str) - 1;
-	// find first non-blank char
-	while(first < bound && isBlank(substring(str, first, 1)))
-	{
-	    first = first + 1;
-	}
-
-	while(last >= 0 && isBlank(substring(str, last, 1)))
-	{
-	    last = last - 1;
-	}
-	if (last >= first)
-	{
-	    return substring(str, first, last - first + 1);
-	}
-	return "";
-    }
-
-    /**
       * returns list difference A \ B (items that are in A and are not in B)
       * @param a list A
       * @param b list B
