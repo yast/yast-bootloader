@@ -679,7 +679,7 @@ global define map Export () {
   */
 global define boolean Import (map settings) {
     globals = settings["global"]:$[];
-    sections = importSections(settings["sections"]:[]);
+    sections = settings["sections"]:[];
 
     // FIXME: for grub, repl_mbr is replaced by globals["generic_mbr"]; same
     // for activate; remove the following when no bootloader uses these

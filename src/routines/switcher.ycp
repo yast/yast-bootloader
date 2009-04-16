@@ -25,9 +25,6 @@ import "BootPOWERLILO";
 import "BootZIPL";
 import "BootCommon";
 
-//    import "BootMILO";
-//    import "BootABOOT";
-
     /**
       * Get map of main functions for bootloader
       * @param bootloader string bootloader name
@@ -39,8 +36,6 @@ import "BootCommon";
 	map bl_functions = $[
 	    "lilo"  : BootLILO::GetFunctions,
 	    "grub"  : BootGRUB::GetFunctions,
-//	    "milo"  : BootMILO::GetFunctions,
-//	    "aboot" : BootABOOT::GetFunctions,
 	    "elilo" : BootELILO::GetFunctions,
 	    "zipl"  : BootZIPL::GetFunctions,
 	    "ppc"   : BootPOWERLILO::GetFunctions

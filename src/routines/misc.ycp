@@ -147,19 +147,6 @@
 	return floppy_devices;
     }
 
-    /**
-     * converts array of string to path
-     * @param strs list of string
-     * @return path whose components are taken from strs
-     */
-    global define path list2path(list<string> strs) ``{
-        path pth = .;
-        foreach(string e, strs, ``{
-            pth = add(pth, e);
-        });
-        return pth;
-    }
-
 global map<string,string> uuid_partitions = $[];
 global map<string,string> id_partitions = $[];
 global map<string,string> label_partitions = $[];
@@ -440,86 +427,6 @@ define string remapResume(string append)
 }
 
 /**
- * Function remap measure in section to autoyast format
- * 
- * @param map<string,string> map of measures $["file": "pcr"]
- * @return list<map<string,string> > list of measures for autoyast format
- */
-
-list <map <string, string> > remapMeasure(map <string, string> measure)
-{
-	list <map <string, string> > ret = [];
-	if (size(measure) >0)
-	{
-		foreach(string k, string v, measure, 
-		{
-			map <string, string> tmp_map = $[];
-			tmp_map["file"] = k;
-			tmp_map["pcr"] = v;
-			ret = add(ret,tmp_map);
-		});
-	}
-
-	return ret;
-}
-
-
-/**
- * Function remap measure in section from autoyast format
- * 
- * @param list<map<string,string> > list of measures [$["file": "/tmp/file1", "pcr" : "8"]]
- * @return map<string,string> map of measures
- */
-
-map <string, string> importMeasure(list<map<string, string> > measure)
-{
-	map <string, string> ret = $[];
-	if (size(measure) >0)
-	{
-		maplist(map <string, string> m, measure, 
-		{
-			string file = m["file"]:"";
-			string pcr = m["pcr"]:"";
-			ret[file]=pcr;
-		});
-	}
-
-	return ret;
-}
-
-
-/**
- * Function remap section "root" and "resume" to device name (/dev/sda) 
- * or to label (ufo_partition)
- * @param list<map<string,any> > list of sections
- * @return list<map<string,any> > list of sections
- */
-global list<map<string,any> > importSections(list<map<string,any> >sec)
-{
-	y2debug("import section before remapping %1", sec);
-	list<map<string,any> >temp_sec = [];
-	temp_sec = maplist (map<string,any> s, sec, 
-	{
-		
-		if (haskey(s,"measures"))
-		{
-			map <string, string> tmp = $[];
-			tmp = importMeasure(s["measures"]:[]);
-			s = remove(s,"measures");
-			if (size(tmp) > 0)
-				s["measure"]=tmp;
-		}
-
-		return s;
-	});
-	y2debug("import section after remapping %1", temp_sec);
-	return temp_sec;
-}
-
-
-
-
-/**
  * Function remap section "root" and "resume" to device name (/dev/sda) 
  * or to label (ufo_partition)
  * it also prepared measured files for export
@@ -558,15 +465,6 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
 
 		if (s["chainloader"]:"" != "")
 			s["chainloader"] = BootCommon::MountByDev2Dev(s["chainloader"]:"");
-
-		if (haskey(s,"measure"))
-		{
-			list <map <string, string> > tmp =[];
-			tmp = remapMeasure(s["measure"]:$[]);
-			s = remove(s,"measure");
-			if (size(tmp) > 0)
-				s["measures"]=tmp;
-		}
 
 		return s;
 	});
@@ -712,7 +610,7 @@ global define string Dev2MountByDev(string dev)
 
 		// convert to device or uknown type
 		default:
-			y2milestone ("Convert %1 to `device or unknwn type, result: %2", dev, ret);
+			y2warning ("Convert %1 to `device or unknwn type, result: %2", dev, ret);
 			return ret;
 		break;
 	}
@@ -976,35 +874,6 @@ global define string Dev2MountByDev(string dev)
     }
 
     /**
-      * convert string values from agent representation to module representation
-      * 1) if string is quoted, quotes are removed
-      * 2) if string contains escaped quotes, they're unescaped
-      * @param val value to transform
-      * @return any transformed value
-      */
-    global define any mod2ui(any val) ``{
-	if (is(val, string))
-	{
-	    string v = sformat("%1", val);
-	    v = strip(v);
-	    // remove leading and trailing quotes
-	    if (substring(v, 0, 1) == "\""
-		&& substring(v, size(v)-1, 1) == "\"")
-	    {
-		v = substring(v, 1, size(v)-2);
-	    }
-
-	    // unescape backslashes
-	    v = replaceAll(v, "\\\\", "\\");
-
-	    // unescape quotes
-	    v = replaceAll(v, "\\\"", "\"");
-	    return v;
-	}
-	return val;
-    }
-
-    /**
       * returns list difference A \ B (items that are in A and are not in B)
       * @param a list A
       * @param b list B
@@ -1122,47 +991,6 @@ global define string Dev2MountByDev(string dev)
 	if (BootCommon::globals["boot_mbr"]:"false" == "true") {
 	    ret = add(ret, BootCommon::mbrDisk);
 	}
-// FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
-// automatic anyway and perl-Bootloader should be able to make it without help
-// from the user or the proposal.
-//	if (BootCommon::globals["boot_mbr_md"]:"false" == "true") {
-	    // FIXME: make this work; this code was copied from
-	    // BootGRUB::Save(), where it was commented out (changes in
-	    // perl-Bootloader are pending)
-	    // get the list of device names to install the boot loader stage 1 into:
-	    //   - for non-md devices, use just the device name
-	    //   - for installation to md arrays: get the list of device names from
-	    //     name of md array, either
-	    //	     - just the container-partitions (according to yast2-storage) or
-	    //         ("/dev/md0" -> ["/dev/hda1", ...])
-	    //       - the (cut off) name of the corresponding disk devices
-	    //         ("/dev/md0" -> ["/dev/hda1", ...] -> ["/dev/hda", ...])
-	//     list<list<string> > dev_lists = maplist (string d, loader_devices, {
-	// 	if (substring (d, 0, 7) == "/dev/md")
-	// 	{
-	// 	    map<string,integer> md = BootCommon::Md2Partitions (d);
-	// 	    if (Mode::test ())
-	// 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
-	// 	    return maplist (string d, integer b, md, {
-	// 		return d;
-	// 	    });
-	// 	}
-	// 	if (d == "mbr_md")
-	// 	{
-	// 	    map<string,integer> md = BootCommon::Md2Partitions
-	// 		(BootCommon::BootPartitionDevice);
-	// 	    if (Mode::test ())
-	// 		md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
-	// 	    return maplist (string d, integer b, md, {
-	// 		// get disk device name for this partition or disk device name
-	// 		map p_dev = Storage::GetDiskPartition (d);
-	// 		return p_dev["disk"]:"";
-	// 	    });
-	// 	}
-	// 	return [d];
-	//     });
-	    // ret = add(ret, BootCommon::mbrDisk);
-//	}
 	if ( haskey(BootCommon::globals, "boot_extended") &&
 	    BootCommon::globals["boot_extended"]:"false" == "true" ) {
 	    ret = add(ret, BootCommon::ExtendedPartitionDevice);
@@ -1187,6 +1015,7 @@ global define string Dev2MountByDev(string dev)
  * @return true if the PBR seems to contain a known boot block
  */
 global boolean IsPartitionBootable (string device) {
+  //FIXME this is only for grub and should go to BootGRUB
     // use examine_mbr.pl to analyze PBR (partition boot record):
     // examine_mbr.pl prints "* stage1" when it finds the signature
     // of some stage1 bootloader
@@ -1690,46 +1519,6 @@ list<string> ListKernelParamsInLine (string line) {
     }
 
     /**
-      * Translate device name to major/minor number
-      * @param device string
-      * @return string major*256+minor hexadecimal without leading 0x, in case
-      *  of any fail return unchanged device node
-      */
-    string dev2majmin (string device) {
-	map exec_ret = (map) SCR::Execute (.target.bash_output, sformat (
-	    "ls -ln %1", device));
-	if (exec_ret["exit"]:1 != 0 && Stage::initial ())
-	{
-	    exec_ret = (map) WFM::Execute (.local.bash_output, sformat (
-		"ls -ln %1", device));
-	}
-	if (exec_ret["exit"]:1 != 0)
-	    return device;
-        string ls = exec_ret["stdout"]:"";
-        list<string> parts = splitstring (ls, " ");
-        parts = filter (string p, parts, ``(p != ""));
-        string majs = parts[4]:"";
-        majs = substring (majs, 0, size (majs) -1);
-        string mins = parts[5]:"";
-	if (majs == "" || majs == nil || mins == "" || mins == nil)
-	    return device;
-        integer maj = tointeger (majs);
-        integer min = tointeger (mins);
-	majs = tohexstring (maj);
-	majs = substring (majs, 2);
-	while (size (majs) < 2)
-	    majs = "0" + majs;
-	mins = tohexstring (min);
-	mins = substring (mins, 2);
-	while (size (mins) < 2)
-	    mins = "0" +  mins;
-	y2debug ("Translated %1 to %2:%3", device, majs, mins);
-	string ret = sformat ("%1%2", majs, mins);
-        return ret;
-    }
-
-
-    /**
       * Update kernel parameters if some were added in Kernel module
       * @param orig original kernel parameters or kernel command line
       * @return kernel command line or parameters with added new parameters
@@ -1764,6 +1553,7 @@ list<string> ListKernelParamsInLine (string line) {
       * @return a map where key is partition name and value its size
       */
     global define map<string, integer> getSwapPartitions () ``{
+        //FIXME use cache of storage map
 	map<string, map> tm = (map<string,map>)Storage::GetTargetMap ();
 	boolean installation = Mode::installation ();
 	map<string, integer> ret = $[];
@@ -2015,68 +1805,6 @@ global boolean BootloaderInstallable () {
 	return true;
     }
 }
-/**
- * Function return boot disk device with udev id name
- * @return string name of boot disk like udev id
- */
-define string BootDeviceToUdevID()
-{
-    string device = "";
-    if ((BootPartitionDevice != "") || (BootPartitionDevice != nil))
-	device = BootPartitionDevice;
-
-    if (device == "")
-	device = RootPartitionDevice;
-
-    if (device == "")
-	return device;
-
-    y2milestone("Boot device is: %1", device);
-    map p_dev = Storage::GetDiskPartition (device);
-
-    string boot_disk = p_dev["disk"]:"";
-
-    device = Dev2MountByDev(boot_disk);
-    y2milestone("Boot disk is %1 and his udev id is: %2", boot_disk, device);
-    return device;
-}
-
-
-/**
- * Function handle console from sections 
- * write it to sysconfig if it used
- * @param string console value
- * @return string console value
- */
-string writeConsoleToSysconf(string console)
-{
-	string ret = "";
-	if (console != "")
-	{
-		ret = console;
-	}
-
-	return ret;
-}
-
-
-/**
- * Function handle measure from sections 
- * write it to sysconfig if it used
- * @param map <string, string> of measure value
- * @return string measure split with ":"
- */
-string writeMeasureToSysconf(map <string, string> measure)
-{
-	string ret = "";
-	foreach(string file, string pcr, measure, {
-		ret = ret + file +":";
-		ret = ret + pcr + ":";
-	});
-	if (ret != "")
-	    ret = substring(ret, 0, (size(ret) -1));
-	return ret;
-}
 
 /**
  * Function return absolute value of arg
@@ -2124,6 +1852,7 @@ boolean compareAppends(string default_append, string section_append)
 	default_append = delete_white_space(default_append);
 	section_append = delete_white_space(section_append);
 	// check valid append for section
+        //FIXME JR I think this is not true, append is valid even if it contain only one letter '3' which mean go to runlevel 3
 	if (size(section_append) < 3)
 		return false;
 
@@ -2197,6 +1926,7 @@ global string findRelativeDefaultLinux ()
 		if ((s["root"]:"" == linux_default["root"]:nil) &&
 		    (s["original_name"]:"" == "linux"))
 		{
+                        //FIXME Check for root and original name should be enought, as failsafe allways has failsafe orig name
 			if (compareAppends(linux_default["append"]:"", s["append"]:""))
 				default_linux = s["name"]:"";
 		}
@@ -2258,21 +1988,12 @@ global define void WriteToSysconf(boolean inst_bootloader)
     // be initialized in any case
     string default_vga = "";
     string default_append = "";
-    string default_measure = "";
-    string imagepcr = "";
-    string initrdpcr = "";
-    string console = "";
     boolean default_set = false;
     string failsafe_vga = "";
     string failsafe_append = "";
-    string failsafe_measure = "";
     boolean failsafe_set = false;
     string xen_vga = "";
     string xen_append = "";
-    string xen_imagepcr = "";
-    string xen_initrdpcr = "";
-    string xen_measure = "";
-    string xenpcr = "";
     string xen_kernel_append = "";
     string addon_name = "";
     string addon_append = "";
@@ -2296,66 +2017,30 @@ global define void WriteToSysconf(boolean inst_bootloader)
 	{
 	   default_set = true;
 	   default_vga = s["vgamode"]:"";
-	   console = writeConsoleToSysconf(s["console"]:"");
-	   if (haskey(s,"imagepcr"))
-		imagepcr = s["imagepcr"]:"";
-
-	   if (haskey(s,"initrdpcr"))
-		initrdpcr = s["initrdpcr"]:"";
-
-	   if (haskey(s,"measure"))
-		default_measure = writeMeasureToSysconf(s["measure"]:$[]);
-
-
 	   default_append = s["append"]:"";
-    	}
-    	if (search(s["original_name"]:"","xen") != nil)
-    	{
+	}
+	if (search(s["original_name"]:"","xen") != nil)
+	{
 	   xen_set = true;
 	   xen_vga = s["vgamode"]:"";
 	   xen_append = s["xen_append"]:"";
 	   xen_kernel_append = s["append"]:"";
-	   console = writeConsoleToSysconf(s["console"]:"");
-	   if (haskey(s,"measure"))
-		xen_measure = writeMeasureToSysconf(s["measure"]:$[]);
-	   if (haskey(s,"imagepcr"))
-		xen_imagepcr = s["imagepcr"]:"";
-
-	   if (haskey(s,"initrdpcr"))
-		xen_initrdpcr = s["initrdpcr"]:"";
-
-    	   if (haskey(s,"xenpcr"))
-		xenpcr = s["xenpcr"]:"";
 	}
-    	else if (search(s["original_name"]:"","failsafe") != nil)
-    	{
+	else if (search(s["original_name"]:"","failsafe") != nil)
+	{
 	   failsafe_set = true;
 	   failsafe_vga = s["vgamode"]:"";
 	   failsafe_append = s["append"]:"";
-	   console = writeConsoleToSysconf(s["console"]:"");
-	   if (haskey(s,"measure"))
-		failsafe_measure = writeMeasureToSysconf(s["measure"]:$[]);
-    	}
-    	if (s["type"]:"" == "image" && ! default_set)
-    	{
+	}
+	if (s["type"]:"" == "image" && ! default_set)
+	{
 	   default_vga = s["vgamode"]:"";
 	   default_append = s["append"]:"";
-	   console = writeConsoleToSysconf(s["console"]:"");
-	   if (haskey(s,"imagepcr"))
-		imagepcr = s["imagepcr"]:"";
-
-	   if (haskey(s,"initrdpcr"))
-		initrdpcr = s["initrdpcr"]:"";
-
-	   if (haskey(s,"measure"))
-		default_measure = writeMeasureToSysconf(s["measure"]:$[]);
-
-    	}
-    	if (s["type"]:"" == "image" && ! failsafe_set)
+	}
+	if (s["type"]:"" == "image" && ! failsafe_set)
         {
 	   failsafe_vga = s["vgamode"]:"";
 	   failsafe_append = s["append"]:"";
-	   console = writeConsoleToSysconf(s["console"]:"");
 	}
 
 	if (s["__rt_kernel"]:"" == "true")
@@ -2391,7 +2076,6 @@ global define void WriteToSysconf(boolean inst_bootloader)
     } 
 
     SCR::Write (add(sys_agent,.LOADER_TYPE), lt);
-    SCR::Write (add(sys_agent,.DEFAULT_NAME), default_boot_section_name);
     SCR::Write (add(sys_agent,.DEFAULT_APPEND), default_append);
     SCR::Write (add(sys_agent,.DEFAULT_VGA), default_vga);
     SCR::Write (add(sys_agent,.FAILSAFE_APPEND), failsafe_append);
@@ -2399,28 +2083,6 @@ global define void WriteToSysconf(boolean inst_bootloader)
     SCR::Write (add(sys_agent,.XEN_KERNEL_APPEND), xen_kernel_append);
     SCR::Write (add(sys_agent,.XEN_APPEND), xen_append);
     SCR::Write (add(sys_agent,.XEN_VGA), xen_vga);
-    if (console != "")
-	SCR::Write (add(sys_agent,.CONSOLE), console);
-    if (imagepcr != "")
-	SCR::Write (add(sys_agent,.IMAGEPCR), imagepcr);
-    if (initrdpcr != "")
-	SCR::Write (add(sys_agent,.INITRDPCR), initrdpcr);
-    if (xenpcr != "")
-	SCR::Write (add(sys_agent,.XEN_PCR), xenpcr);
-    if (xen_initrdpcr != "")
-	SCR::Write (add(sys_agent,.XEN_INITRDPCR), xen_initrdpcr);
-
-    if (xen_imagepcr != "")
-	SCR::Write (add(sys_agent,.XEN_IMAGEPCR), xen_imagepcr);
-
-    if (default_measure != "")
-	SCR::Write (add(sys_agent,.DEFAULT_MEASURE), default_measure);
-
-    if (failsafe_measure != "")
-	SCR::Write (add(sys_agent,.FAILSAFE_MEASURE), failsafe_measure);
-    if (xen_measure != "")
-	SCR::Write (add(sys_agent,.XEN_MEASURE), xen_measure);
-
     if (addon_name != "")
 	SCR::Write (add(sys_agent,.RT_NAME), addon_name);
 
@@ -2609,7 +2271,7 @@ define string getConsoleValue()
 global define void HandleConsole()
 {
 	string console_value = getConsoleValue();
-		
+
 	// list of idexes from sections where is image or xen
 	list < integer > list_index =[];
 	// counter 
@@ -2651,6 +2313,8 @@ global define void HandleConsole()
  *
  * @return map <string, string> mapping real disk to multipath
  */
+
+// FIXME grub only
 
 map <string, string> mapRealDevicesToMultipath()
 {
@@ -2703,7 +2367,7 @@ global boolean UpdateProposalFromClient ()
 	{
 		y2milestone("Client: %1 was found", client_file);
 		WFM::CallFunction (client_file, []);
-	
+
 	} else {
 		y2milestone("File %1 doesn't exist - proposal will not be updated", client_file);
 	}
