@@ -321,7 +321,10 @@ Proceed?
 ELILO supports only the EFI boot architecture. If yor
 firmware does not support it, your computer will not
 boot.")))
+		{
+		    UI::ChangeWidget (`id ("loader_type"), `Value, Bootloader::getLoaderType ());
 		    return nil;
+		}
 	    }
 	    else if (old_bl == "elilo") {
 // continue/cancel pop-up
@@ -329,7 +332,10 @@ boot.")))
 Bootloader you selected does not support the EFI boot
 architecture. If your firmware does not support legacy
 booting, your computer will not boot.")))
+		{
+		    UI::ChangeWidget (`id ("loader_type"), `Value, Bootloader::getLoaderType ());
 		    return nil;
+		}
 	    }
 	}
 
@@ -385,7 +391,10 @@ Select a course of action:
 	symbol action = (symbol)UI::QueryWidget (`id (`action), `CurrentButton);
 	UI::CloseDialog ();
 	if (ret != `ok)
+	{
+	    UI::ChangeWidget (`id ("loader_type"), `Value, Bootloader::getLoaderType ());
 	    return nil;
+	}
 
 	if (nil != action)
 	{
