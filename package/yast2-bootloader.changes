@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr 16 14:52:23 CEST 2009 - juhliarik@suse.cz
+
+- added fix for commandline interface (bnc#479069) 
+
+-------------------------------------------------------------------
 Wed Apr 15 11:31:40 CEST 2009 - juhliarik@suse.cz
 
 - added back function setKernelParam (bnc#495048)
