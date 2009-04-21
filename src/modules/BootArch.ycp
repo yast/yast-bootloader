@@ -29,7 +29,6 @@ import "Kernel";
 import "Linuxrc";
 import "ProductFeatures";
 import "Stage";
-import "StorageControllers";
 
 /**
  * Get parameters for the default kernel
@@ -79,8 +78,7 @@ global string DefaultKernelParams (string resume) {
 	if ( env_term == "linux\n" ) {
 	    termparm = "TERM=linux console=ttyS0 console=ttyS1";
 	}
-	string parameters = sformat ("%1 %2 %3",
-	    StorageControllers::dasdParam,
+	string parameters = sformat ("%1 %2",
 	    features,
 	    termparm);
 	return parameters;
