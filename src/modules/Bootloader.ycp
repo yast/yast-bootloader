@@ -622,11 +622,12 @@ global define boolean WriteInstallation ()
 	y2milestone ("Writing bootloader configuration during installation");
 	boolean ret = true;
 
-	// read current settings...
-	ret = blRead (true, false);
-
 	if (! Mode::live_installation()) 
 	{
+		// bnc#449785 - Installing of GRUB fails when using live installer from a USB stick
+		// read current settings...
+		ret = blRead (true, false);
+
 		// delete duplicated sections
 		DelDuplicatedSections();
 	} else {

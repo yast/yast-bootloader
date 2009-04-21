@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 21 14:52:59 CEST 2009 - juhliarik@suse.cz
+
+- added fix for problem with creating USB Live installation in
+  SUSEStudio
+- 2.17.59 
+
+-------------------------------------------------------------------
 Thu Feb 12 14:57:16 CET 2009 - juhliarik@suse.de
 
 - added fix for problem with missing error message about using boot
