@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 22 15:47:26 CEST 2009 - jreidinger@suse.cz
+
+- code clean
+- add interface for new perl-Bootloader MBR tools 
+- add missing short-cuts for widgets
+
+-------------------------------------------------------------------
 Thu Apr 16 14:52:23 CEST 2009 - juhliarik@suse.cz
 
 - added fix for commandline interface (bnc#479069) 
