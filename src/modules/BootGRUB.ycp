@@ -26,6 +26,7 @@ textdomain "bootloader";
 
 import "Arch";
 import "BootCommon";
+import "BootStorage";
 import "Kernel";
 import "Mode";
 import "Stage";
@@ -318,7 +319,7 @@ global define void CreateSections () {
 		{
 		    // set up the new section entry
 		    map<string,any> new_sect = $[
-			    "root" : BootCommon::Dev2MountByDev(dev),
+			    "root" : BootStorage::Dev2MountByDev(dev),
 			    "__changed" : true,
 			    "__auto" : true,
 			    "__devs" : [dev]
@@ -328,7 +329,7 @@ global define void CreateSections () {
 		    {
 			//     mountable        bootable                                        =>  chainloader (label: to be decided)
 			new_sect["noverifyroot"] = "true";
-			new_sect["chainloader"] = BootCommon::Dev2MountByDev(dev);
+			new_sect["chainloader"] = BootStorage::Dev2MountByDev(dev);
 			new_sect["blockoffset"] = "1";
 			new_sect["type"] = "other";
 		    }
@@ -402,7 +403,7 @@ global define void CreateSections () {
 			"name" : BootCommon::translateSectionTitle (label),
 			"type" : "other",
 			"original_name" : label,
-			"chainloader" : BootCommon::Dev2MountByDev(dev),
+			"chainloader" : BootStorage::Dev2MountByDev(dev),
 			"__changed" : true,
 			"__auto" : true,
 			"__devs" : [dev],
@@ -420,7 +421,7 @@ global define void CreateSections () {
 		"name" : BootCommon::translateSectionTitle("hard disk"),
 		"original_name" : "hard_disk",
 		"type" : "other",
-		"chainloader" : BootCommon::Dev2MountByDev(BootCommon::mbrDisk),
+		"chainloader" : BootStorage::Dev2MountByDev(BootCommon::mbrDisk),
 		"__changed" : true,
 		"__auto" : true,
 		"__devs" : [],
@@ -829,7 +830,7 @@ global boolean CheckDeviceMap()
     boolean ret = false;
     string boot_disk = BootCommon::getBootDisk();
     if (boot_disk != "")
-       ret = checkBootDeviceInDeviceMap(boot_disk, BootCommon::Dev2MountByDev(boot_disk));
+       ret = checkBootDeviceInDeviceMap(boot_disk, BootStorage::Dev2MountByDev(boot_disk));
 
     return ret;
 

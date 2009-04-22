@@ -61,7 +61,7 @@ boolean checkCallingDiskInfo ()
     {
 	// save last change time from storage
 	disk_change_time_checkCallingDiskInfo = Storage::GetTargetChangeTime();
-	y2milestone("disk was changes by storage or partinfo is empty: %1", size(partinfo));
+	y2milestone("disk was changed by storage or partinfo is empty: %1", size(partinfo));
 	y2milestone("generate partinfo, md_info, mountpoints and multipath_mapping");
 	ret = true;
     } else {
@@ -157,7 +157,7 @@ global void SetDiskInfo () {
     	// adding moundby (by-id) via user preference
     	foreach(list partition, partinfo, {
 	    list tmp =[];
-	    string mount_by = BootCommon::Dev2MountByDev(tostring(partition[0]:""));
+	    string mount_by = BootStorage::Dev2MountByDev(tostring(partition[0]:""));
 	    if (mount_by != tostring(partition[0]:""))
 	    {
 	        tmp = add(partition, mount_by);
@@ -191,8 +191,13 @@ global boolean InitializeLibrary (boolean force, string loader) {
     if (!force && loader == library_initialized)
         return false;
 
+    BootStorage::InitMapDevices ();
     y2milestone ("Initializing lib for %1", loader);
-    System::Bootloader_API::setLoaderType (loader);
+    string architecture = BootArch::StrArch();
+    System::Bootloader_API::setLoaderType (loader, architecture);
+    integer out = System::Bootloader_API::defineUdevMapping(BootStorage::all_devices);
+    if (out == nil)
+	y2error("perl-Bootloader library was not initialized");
     y2milestone ("Putting partitioning into library");
     // pass all needed disk/partition information to library
     SetDiskInfo();

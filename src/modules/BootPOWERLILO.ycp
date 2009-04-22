@@ -27,6 +27,7 @@ textdomain "bootloader";
 import "Arch";
 import "BootArch";
 import "BootCommon";
+import "BootStorage";
 import "Installation";
 import "Kernel";
 import "Mode";
@@ -908,7 +909,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // convert
     map<string,string> my_globals = mapmap (string k , string v, BootCommon::globals, {
 	if ((k == "stage1_dev") || (regexpmatch(k, "^boot_.*custom$" )))
-	    return $[k : BootCommon::Dev2MountByDev(v)];
+	    return $[k : BootStorage::Dev2MountByDev(v)];
 	else
 	    return $[k : v];
     });

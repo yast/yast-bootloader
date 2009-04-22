@@ -152,7 +152,48 @@ global boolean ResumeAvailable () {
     return (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ());
 }
 
-} // EOF
+
+/**
+ * Return architecture as string
+ * @return string type of architecture e.g. "i386"
+ */
+global string StrArch () 
+{
+	string ret = Arch::architecture();
+	if ((ret == "ppc") || (ret == "ppc64"))
+	{
+		if (Arch::board_iseries ())
+    		{
+			ret = "iseries";
+    		}
+    		else if (Arch::board_prep ())
+    		{
+			ret = "prep";
+    		}
+    		else if (Arch::board_chrp ())
+    		{
+			ret = "chrp";
+    		}
+    		else if (Arch::board_mac_new ())
+    		{
+        		ret = "pmac";
+    		}
+    		else if (Arch::board_mac_old ())
+    		{
+        		ret = "pmac";
+    		}
+    		else
+    		{
+			ret = "unknown";
+    		}
+
+	}	
+
+	y2milestone("Type of architecture: %1", ret);
+	return ret;
+}
+
+}
 
 /*
  * Local variables:

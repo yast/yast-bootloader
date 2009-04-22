@@ -15,7 +15,8 @@ module_DATA =			\
 	BootPOWERLILO.ycp	\
 	BootZIPL.ycp		\
 	Bootloader_API.pm	\
-	BootSupportCheck.ycp
+	BootSupportCheck.ycp	\
+	BootStorage.ycp
 
 Bootloader_API.pm:
 	test -f Bootloader_API.pm || exit 1

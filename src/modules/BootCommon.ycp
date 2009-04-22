@@ -35,6 +35,7 @@ import "Pkg";
 import "Popup";
 import "Package";
 import "PackagesProposal";
+import "BootStorage";
 
 import "Linuxrc";
 
@@ -74,11 +75,7 @@ global list<map<string,any> > sections = [];
 
 global integer cached_settings_base_data_change_time = nil;
 
-/**
- * Saved change time from target map - only for MapAllPartitions()
- */
 
-global integer disk_change_time_MapAllPartitions = nil;
 
 
 /**
@@ -364,20 +361,6 @@ global list<string> bootloaders = ["lilo", "grub", "elilo",
 				   "zipl", "ppc"];
 
 
-/**
- * bnc #468922 - problem with longtime running the parsing a huge number of disks
- * map<string,map> the map of all partitions with info about it -> 
- * necessary for Dev2MountByDev() in routines/misc.ycp 
- */
-global map<string,map> all_partitions = $[];
-
-/**
- * bnc #468922 - problem with longtime running the parsing a huge number of disks
- * map<string,map> target map try to minimalize calling Storage::GetTargetMap()
- *
- */ 
-map<string,map> target_map = $[];
-
 global define string getLoaderType (boolean recheck);
 global define list<string> getBootloaders ();
 global define list<string> Summary ();
@@ -506,7 +489,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	: "";
     // try to use label or udev id for device name... FATE #302219
     if ((resume != "") && (resume != nil))
-	resume = Dev2MountByDev(resume);
+	resume = BootStorage::Dev2MountByDev(resume);
 
 
     // FIXME:
@@ -620,7 +603,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	"image" : kernel_fn,
 	"initrd" : initrd_fn,
 	// try to use label or udev id for device name... FATE #302219
-	"root" : Dev2MountByDev(RootPartitionDevice),
+	"root" : BootStorage::Dev2MountByDev(RootPartitionDevice),
 	"append" : (title == "failsafe")
 	    ? BootArch::FailsafeKernelParams ()
 	    : BootArch::DefaultKernelParams (resume),
@@ -658,7 +641,7 @@ global map<string,any> CreateLinuxSection (string title) {
   * @return bootloader settings
   */
 global define map Export () {
-    MapDevices();
+    
     map exp = $[
 	"global": remapGlobals(globals),
 	"sections" : remapSections(sections),
@@ -731,7 +714,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 		k = Storage::SLES9PersistentDevNames(k);
 		y2milestone( "devmap: dev name after SLES9 persistent dev name translation: %1", k);
 	    }
-	    return $[Dev2MountByDev(k) : v];
+	    return $[BootStorage::Dev2MountByDev(k) : v];
     });
 
     // convert custom boot device names in globals to the kernel device names
@@ -744,7 +727,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 		v = Storage::SLES9PersistentDevNames(v);
 		y2milestone( "globals: dev name after SLES9 persistent dev name translation: %1", v);
 	    }
-	    return $[k : Dev2MountByDev(v)];
+	    return $[k : BootStorage::Dev2MountByDev(v)];
 	} else {
 	    return $[k : v];
 	}
@@ -760,7 +743,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 	    rdev = Storage::SLES9PersistentDevNames(rdev);
 	    y2milestone( "sections: dev name after SLES9 persistent dev name translation: %1", rdev);
 	}
-	s["root"] = Dev2MountByDev(rdev);
+	s["root"] = BootStorage::Dev2MountByDev(rdev);
 	return s;
     });
     return true;
@@ -828,7 +811,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // convert the stage1_dev
     map<string,string> my_globals = mapmap (string k , string v, globals, {
 	if ((k == "stage1_dev") || (regexpmatch(k, "^boot_.*custom$" )))
-	    return $[k : BootCommon::Dev2MountByDev(v)];
+	    return $[k : BootStorage::Dev2MountByDev(v)];
 	else
 	    return $[k : v];
     });
@@ -839,8 +822,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     y2milestone ("device map before mapping %1", device_mapping);
     map<string,string> my_device_mapping =
 	mapmap (string k , string v, device_mapping, {
-	    //return $[BootCommon::Dev2MountByDev(k) : v];
-	    return $[BootCommon::Dev2MountByDev(k) : v];
+	    return $[BootStorage::Dev2MountByDev(k) : v];
     });
     y2milestone ("device map after mapping %1", my_device_mapping);
     if ((globals["trusted_grub"]:"" == "true") && (haskey(globals, "gfxmenu")))
