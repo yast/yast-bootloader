@@ -566,7 +566,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	// trying to find "vga" option
 	foreach ( string key, cmd, 
 	{
-	    if (find(key, "vga=") != -1)
+	    if (issubstring(key, "vga="))
 		vga = key;
 	    y2milestone("key: %1", key);
 	});
