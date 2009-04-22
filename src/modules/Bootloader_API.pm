@@ -326,6 +326,32 @@ sub countGRUBPassword($) {
     return $ret; 
 }
 
+#MBR utilities
+BEGIN { $TYPEINFO{detectThinkpadMBR} = ["function", "boolean","string"]; }
+sub detectThinkpadMBR($) {
+    my ($pass) = @_;
+    my $ret = $lib_ref->DetectThinkpadMBR($pass);
 
+    DumpLog();
+    return $ret; 
+}
+
+BEGIN { $TYPEINFO{writeThinkpadMBR} = ["function", "boolean","string"]; }
+sub writeThinkpadMBR($) {
+    my ($pass) = @_;
+    my $ret = $lib_ref->WriteThinkpadMBR($pass);
+
+    DumpLog();
+    return $ret; 
+}
+
+BEGIN { $TYPEINFO{examineMBR} = ["function", "string","string"]; }
+sub examineMBR($) {
+    my ($pass) = @_;
+    my $ret = $lib_ref->ExamineMBR($pass);
+
+    DumpLog();
+    return $ret; 
+}
 # import fails if we cannot create the object
 $lib_ref;
