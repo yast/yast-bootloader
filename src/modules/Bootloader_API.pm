@@ -50,14 +50,24 @@ sub DumpLog {
 }
 
 
-BEGIN { $TYPEINFO{setLoaderType} = ["function", "void", "string"]; }
+BEGIN { $TYPEINFO{setLoaderType} = ["function", "void", "string", "string"]; }
 # do library initialization for a specific bootloader type
 sub setLoaderType($) {
-    my ($lt) = @_;
-    my $ret = $lib_ref->SetLoaderType($lt);
+    my ($lt, $arch) = @_;
+    my $ret = $lib_ref->SetLoaderType($lt, $arch);
 
     @lines_cache = ();
     $lines_cache_index = 0;
+    DumpLog();
+    return $ret;
+}
+
+BEGIN { $TYPEINFO{defineUdevMapping} = ["function", "integer", ["map", "string", "string"]]; }
+# do library initialization for a specific bootloader type
+sub defineUdevMapping($) {
+    my ($udev_mapping) = @_;
+    my $ret = $lib_ref->DefineUdevMapping($udev_mapping);
+
     DumpLog();
     return $ret;
 }
