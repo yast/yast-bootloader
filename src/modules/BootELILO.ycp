@@ -31,6 +31,7 @@ textdomain "bootloader";
 
 import "BootArch";
 import "BootCommon";
+import "BootStorage";
 import "Installation";
 import "Kernel";
 import "Mode";
@@ -321,7 +322,7 @@ global define void Propose () {
 	create_efi_entry = false;
     elilo_conf_filename = getEliloConfFilename ();
     BootCommon::DetectDisks ();
-    BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
+    BootCommon::del_parts = BootStorage::getPartitionList (`deleted, "elilo");
 
     if (BootCommon::sections == nil || size (BootCommon::sections) == 0)
     {

@@ -131,53 +131,6 @@
         Misc::boot_msg = msg;
     }
 
-    /**
-      * Get the list of installed floppy drives
-      * @return a list of floppy devices
-      */
-    global list<string> getFloppyDevices () ``{
-        if (floppy_devices == nil)
-        {
-            list<map> floppies = (list<map>) SCR::Read (.probe.floppy);
-            floppies = filter (map f, floppies,
-                ``(f["model"]:"Floppy Disk" == "Floppy Disk"));
-            floppy_devices = maplist (map f, floppies,
-		``(f["dev_name"]:""));
-            floppy_devices = filter (string f, floppy_devices, ``(f != ""));
-        }
-	return floppy_devices;
-    }
-
-
-
-/**
- * Function remap device map to device name (/dev/sda) 
- * or to label (ufo_disk)
- * @param map<string,string> device map
- * @return map<string,string> new device map
- */
-
-global map<string,string> remapDeviceMap(map<string,string> device_map)
-{	
-	symbol by_mount = nil;
-	if (Arch::ppc())
-	    by_mount = `id;
-        else
-	    by_mount = Storage::GetDefaultMountBy();
-
-	//by_mount = `id;
-	if (by_mount == `label)
-		return device_map;
-
-	map<string,string> ret = $[];
-	// convert device names in device map to the device names by device or label
-	ret = mapmap (string k , string v, device_mapping, 
-	{
-		return $[BootStorage::MountByDev2Dev(k) : v];
-	});
-
-	return ret;
-}
 
 /**
  * Function remap globals settings "boot_custom" device name (/dev/sda) 
@@ -324,192 +277,6 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
 
 
     /**
-     * Returns list of partitions with "mount by" hints. Goes through the list
-     * of partitions passed as a parameter and creates a list of partitions with
-     * hints according to the current partitioning requested from
-     * yast2-storage. To be used in a combobox or menu.
-     *
-     * @param parts_to_get list<string> partitions to list
-     * @return a list of strings containing a partition name and a hint (if applicable)
-     */
-    global define list<string> getHintedPartitionList(list<string> parts_to_get) ``{
-	y2milestone ("getHintedPartitionList: %1", parts_to_get);
-	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
-
-	// make a map: "/dev/hda1" -> info_map_for_this_partition
-	map<string,map> partitions = $[];
-	foreach (string k, map v, devices, ``{
-	    foreach (map p, (list<map>)(v["partitions"]:[]), ``{
-		partitions[p["device"]:""] = p;
-	    });
-	});
-	y2milestone ("getHintedPartitionList: partitions %1", partitions);
-
-	symbol mountby = `device;
-	list<string> ret = maplist (string dev, parts_to_get, ``{
-	    mountby = (symbol) partitions[dev, "mountby"]:nil;
-	    if ( mountby == `uuid )
-	    {
-		return sformat ("%1 (mount by UUID: %2)", dev,
-				partitions[dev, "uuid"]:nil != nil ?
-				partitions[dev, "uuid"]:"" :
-				"<UUID to be created later during format>");
-	    } else if ( mountby == `label )
-	    {
-		return sformat ("%1 (mount by LABEL: %2)", dev, partitions[dev, "label"]:"");
-	    } else if ( mountby == `id )
-	    {
-		return sformat ("%1 (mount by ID: %2)", dev, partitions[dev, "udev_id", 0]:"");
-	    } else if ( mountby == `path )
-	    {
-		return sformat ("%1 (mount by PATH: %2)", dev, partitions[dev, "udev_path"]:"");
-	    } else if ( mountby == nil || mountby == `device )
-	    {
-		return dev;
-	    }
-	});
-
-	y2milestone ("getHintedPartitionList: ret %1", ret);
-	return ret;
-    }
-
-    /**
-     * Returns list of partitions. Requests current partitioning from
-     * yast2-storage and creates list of partition for combobox, menu or other
-     * purpose.
-     * @param type symbol
-     *   `boot - for bootloader installation
-     *   `root - for kernel root
-     *   `boot_other - for bootable partitions of other systems
-     *   `all - all partitions
-     *   `parts_old - all partitions, except those what will be created
-     *      during isntallation
-     *   `deleted - all partitions deleted in current proposal
-     *   `kept - all partitions that won't be deleted, new created or formatted
-     *   `destroyed - all partition which are new, deleted or formatted
-     * @return a list of strings
-     */
-    global define list<string> getPartitionList(symbol type) ``{
-	y2milestone ("getPartitionList: %1", type);
-	string bl = getLoaderType(false);
-	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
-	list<map> partitions = [];
-	foreach (string k, map v, devices, ``{
-	    if ((type == `boot) && (bl == "grub"))
-	    {
-		// check if device is in device map
-		if (haskey(device_mapping, k) || (haskey(device_mapping, BootStorage::Dev2MountByDev(k))))
-		    partitions = (list<map>)merge (partitions, (list<map>)(v["partitions"]:[]));
-	    } else {
-	        partitions = (list<map>)merge (partitions, (list<map>)(v["partitions"]:[]));
-	    }
-	});
-	list<string> floppies = getFloppyDevices ();
-
-	devices = filter (string k, map v, devices,
-	                  ``(v["type"]:`CT_UNKNOWN != `CT_LVM));
-
-	if (type == `boot || type == `boot_other)
-	{
-	    devices = filter (string k, map v, devices, {
-			if ((v["type"]:`CT_UNKNOWN == `CT_DISK) ||
-			    (v["type"]:`CT_UNKNOWN == `CT_DMRAID))
-				return true;
-			else
-				return false;
-		      });
-	}
-	list<string> all_disks = (list<string>) maplist (string k, map v, devices, 
-	{
-	    return k;
-	});
-
-	
-
-	if (type == `deleted)
-	    return maplist (map x, filter (map p, partitions, ``(p["delete"]:false)),
-		``{return x["device"]:"";
-	    });
-	else if (type == `destroyed)
-	{
-	    return maplist (map x, filter (map p, partitions, {
-		    return p["delete"]:false || p["format"]:false
-			|| p["create"]:false;
-		}),
-	    {
-		return x["device"]:"";
-	    });
-	}
-        partitions = filter (map p, partitions, ``(! p["delete"]:false));
-	// filter out disk which are not in device map
-	if ((bl == "grub") && (type == `boot))
-	    all_disks = (list<string>) filter(string k, all_disks, {
-		if (haskey(device_mapping, k) || (haskey(device_mapping, BootStorage::Dev2MountByDev(k))))
-		    return true;
-		else
-		    return false;
-	    });
-	list<string> ret = all_disks;
-	if (type == `boot_other || type == `root || type == `parts_old
-	    || type == `kept)
-            ret = [];
-
-	if (type == `boot)
-        {
-	    partitions = filter (map p, partitions,
-                ``(p["type"]:`primary == `primary
-		    || p["type"]:`primary == `extended
-		    || p["type"]:`primary == `logical
-		    || p["type"]:`primary == `sw_raid)
-	    );
-	    // FIXME this checking is performed on 3 places, one function should
-	    // be developed for it
-	    partitions = filter (map p, partitions, {
-		symbol fs = (symbol)(p["used_fs"]:p["detected_fs"]:nil);
-		if (fs == `xfs)
-		    return false;
-		return true;
-	    });
-        }
-        else if (type == `root)
-        {
-            partitions = filter (map p, partitions,
-                    ``(p["type"]:`primary != `extended));
-        }
-	else if (type == `parts_old)
-	{
-	    partitions = filter (map p, partitions, ``(! p["create"]:false));
-	}
-	else if (type == `kept)
-	{
-	    partitions = filter (map p, partitions, {
-		return ! (p["create"]:false || p["format"]:false);
-	    });
-	}
-        if (type != `all && type != `parts_old && type != `kept)
-        {
-            partitions = filter (map p, partitions,
-                ``(p["fstype"]:"" != "Linux swap"));
-        }
-	if (type == `boot)
-	{
-	    partitions = filter (map p, partitions,
-                ``(p["fstype"]:"" == "Linux native"
-                    || p["fstype"]:"" == "Extended"
-		    || p["fstype"]:"" == "Linux RAID"
-		    || p["fstype"]:"" == "MD Raid"
-		    || p["fstype"]:"" == "DM RAID"));
-	}
-        list<string>partition_names
-	    = maplist (map p, partitions, ``((string)(p["device"]:"")));
-	partition_names = filter (string p, partition_names, ``(p != ""));
-        partition_names = (list<string>)merge (partition_names, floppies);
-        ret = (list<string>)union (ret, partition_names);
-	ret = (list<string>)toset (ret);
-	return (list<string>)ret;
-    }
-
-    /**
       * returns true if char is blank (newline, tab or space)
       * @param s single char string
       * @return boolean blank/non blank
@@ -580,9 +347,9 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
         if (BootCommon::selected_location == "mbr")
             return BootCommon::mbrDisk;
         if (BootCommon::selected_location == "boot")
-	    return BootCommon::BootPartitionDevice;
+	    return BootStorage::BootPartitionDevice;
         if (BootCommon::selected_location == "root")
-	    return  BootCommon::RootPartitionDevice;
+	    return  BootStorage::RootPartitionDevice;
         if (BootCommon::selected_location == "floppy")
             return StorageDevices::FloppyDevice();
         if (BootCommon::selected_location == "mbr_md")
@@ -600,17 +367,17 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
     global define list<string> GetBootloaderDevices () ``{
 	list<string> ret = [];
 	if (BootCommon::globals["boot_boot"]:"false" == "true") {
-	    ret = add(ret, BootCommon::BootPartitionDevice);
+	    ret = add(ret, BootStorage::BootPartitionDevice);
 	}
 	if (BootCommon::globals["boot_root"]:"false" == "true") {
-	    ret = add(ret, BootCommon::RootPartitionDevice);
+	    ret = add(ret, BootStorage::RootPartitionDevice);
 	}
 	if (BootCommon::globals["boot_mbr"]:"false" == "true") {
 	    ret = add(ret, BootCommon::mbrDisk);
 	}
 	if ( haskey(BootCommon::globals, "boot_extended") &&
 	    BootCommon::globals["boot_extended"]:"false" == "true" ) {
-	    ret = add(ret, BootCommon::ExtendedPartitionDevice);
+	    ret = add(ret, BootStorage::ExtendedPartitionDevice);
 	}
 	// FIXME: floppy support is probably obsolete
 	if ( haskey(BootCommon::globals, "boot_floppy") &&
@@ -660,7 +427,7 @@ global boolean InstallingToFloppy () {
 	ret = false;
     else if (loader_device == StorageDevices::FloppyDevice())
 	ret = true;
-    else if (contains (getFloppyDevices (), loader_device))
+    else if (contains (BootStorage::getFloppyDevices (), loader_device))
 	ret = true;
     y2milestone ("Installing to floppy: %1", ret);
     return ret;
@@ -899,7 +666,7 @@ list<string> ListKernelParamsInLine (string line) {
 	map<string,integer> md = $[];
 	if (BootCommon::loader_device == "mbr_md")
 	{
-	    md =  Md2Partitions (BootCommon::BootPartitionDevice);
+	    md =  Md2Partitions (BootStorage::BootPartitionDevice);
 	}
 	else
 	{
@@ -912,7 +679,7 @@ list<string> ListKernelParamsInLine (string line) {
 	}
 	list<map<string,any> > ret = maplist (string partition, partitions, {
 	    return getPartitionToActivate (
-		BootCommon::BootPartitionDevice,
+		BootStorage::BootPartitionDevice,
 		partition);
 	});
 	return toset (ret);
@@ -928,7 +695,7 @@ list<string> ListKernelParamsInLine (string line) {
 	map<string,integer> md = $[];
 	if (BootCommon::loader_device == "mbr_md")
 	{
-	    md =  Md2Partitions (BootCommon::BootPartitionDevice);
+	    md =  Md2Partitions (BootStorage::BootPartitionDevice);
 	}
 	else
 	{
@@ -936,7 +703,7 @@ list<string> ListKernelParamsInLine (string line) {
 	}
 	list<string> mbrs = maplist (string d, integer b, md, {
 	    d = getPartitionToActivate (
-		BootCommon::BootPartitionDevice, d
+		BootStorage::BootPartitionDevice, d
 	    )["mbr"]:mbrDisk;
 	    return d;
 	});
@@ -1369,8 +1136,8 @@ global boolean BootloaderInstallable () {
     {
 	DetectDisks ();
 	y2milestone ("Boot partition device: %1",
-	    BootCommon::BootPartitionDevice);
-	map dev = Storage::GetDiskPartition( BootCommon::BootPartitionDevice);
+	    BootStorage::BootPartitionDevice);
+	map dev = Storage::GetDiskPartition( BootStorage::BootPartitionDevice);
 	y2milestone ("Disk info: %1", dev);
 	// MD, but not mirroring is OK
 	// FIXME: type detection by name deprecated
@@ -1381,7 +1148,7 @@ global boolean BootloaderInstallable () {
 	    list<map> parts = md["partitions"]:[];
 	    map info = $[];
 	    foreach (map p, parts, {
-		if (p["device"]:"" == BootPartitionDevice)
+		if (p["device"]:"" == BootStorage::BootPartitionDevice)
 		    info = p;
 	    });
 	    if (tolower (info["raid_type"]:"") != "raid1")
@@ -1706,10 +1473,10 @@ global define void WriteToSysconf(boolean inst_bootloader)
 global string getBootPartition()
 {
 	string boot_device = "";
-	if (BootCommon::BootPartitionDevice != "")
-		boot_device = BootCommon::BootPartitionDevice;
-	else if (BootCommon::RootPartitionDevice != "")
-		boot_device = BootCommon::RootPartitionDevice;
+	if (BootStorage::BootPartitionDevice != "")
+		boot_device = BootStorage::BootPartitionDevice;
+	else if (BootStorage::RootPartitionDevice != "")
+		boot_device = BootStorage::RootPartitionDevice;
 
 	return boot_device;
 }
@@ -1906,44 +1673,7 @@ global define void HandleConsole()
 	}
 }
 
-/** bnc #447591, 438243, 448110 multipath wrong device map
- * Function maps real devices to multipath e.g.
- * "/dev/sda/" : "/dev/mapper/SATA_ST3120813AS_3LS0CD7M"
- *
- * @return map <string, string> mapping real disk to multipath
- */
 
-// FIXME grub only
-
-map <string, string> mapRealDevicesToMultipath()
-{
-	map <string, string> ret = $[];
-	map<string, map> tm = (map<string,map>)Storage::GetTargetMap ();
-	integer num_of_real_disk = 0;
-	foreach (string disk, map disk_info, tm,
-	{
-		if (disk_info["type"]:nil == `CT_DMMULTIPATH)
-		{
-			list <string> devices = (list <string>) disk_info["devices"]:[];
-			if (size(devices) > 0)
-			{
-				foreach(string d, devices,
-				{
-					ret[d]=disk;
-				});
-
-			}
-		}
-
-		if (disk_info["type"]:nil == `CT_DISK)
-			num_of_real_disk = num_of_real_disk +1;
-		if (disk_info["bios_id"]:nil != nil)
-			bois_id_missing = false;
-	});
-	if (num_of_real_disk == 1)
-		bois_id_missing = false;
-	return ret;
-}
 
 /** bnc #450153 - support for installation kernel from add-on
  * fucntion call client from add-on and update proposal for 

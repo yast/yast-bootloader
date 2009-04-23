@@ -115,7 +115,7 @@ void RedrawSectionsTable (list<map<string,any> > sects) {
         {
 	    type = _("Image");
             string image = s["image"]:"";
-            string root = (BootCommon::getHintedPartitionList ([s["root"]:""]))[0]:"";
+            string root = (BootStorage::getHintedPartitionList ([s["root"]:""]))[0]:"";
             boolean elilo = Bootloader::getLoaderType () == "elilo";
             info = (image != "" && image != nil) ?  sformat ("%1   (%2%3)",
                 image, elilo ? "" : BootCommon::splitPath (image)[0]:"",
@@ -124,7 +124,7 @@ void RedrawSectionsTable (list<map<string,any> > sects) {
 	else if (s["type"]:"" == "xen"){
 	    type = _("Xen");
             string image = s["image"]:"";
-            string root = (BootCommon::getHintedPartitionList ([s["root"]:""]))[0]:"";
+            string root = (BootStorage::getHintedPartitionList ([s["root"]:""]))[0]:"";
             boolean elilo = Bootloader::getLoaderType () == "elilo";
             info = (image != "" && image != nil) ?  sformat ("%1   (%2%3)",
                 image, elilo ? "" : BootCommon::splitPath (image)[0]:"",

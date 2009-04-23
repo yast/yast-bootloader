@@ -148,7 +148,7 @@ global void i386LocationProposal () {
     if (! was_proposed)
     {
 	DetectDisks ();
-	del_parts = getPartitionList (`deleted);
+	del_parts = BootStorage::getPartitionList (`deleted, getLoaderType(false));
 	// check whether edd is loaded; if not: load it
 	string lsmod_command = "lsmod | grep edd";
 	y2milestone ("Running command %1", lsmod_command);
@@ -165,8 +165,9 @@ global void i386LocationProposal () {
     }
 
     // refresh device map
-    if (device_mapping == nil
-	|| size (device_mapping) == 0)
+    if ((BootStorage::device_mapping == nil
+	|| size (BootStorage::device_mapping) == 0)
+	&& (getLoaderType(false) == "grub"))
     {
 	ProposeDeviceMap ();
     }

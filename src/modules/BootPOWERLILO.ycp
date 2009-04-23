@@ -193,7 +193,7 @@ void choosePrepBootPartition () {
     }
     else {
         root_disks = [
-	    Storage::GetDiskPartition(BootCommon::RootPartitionDevice)["disk"]:""
+	    Storage::GetDiskPartition(BootStorage::RootPartitionDevice)["disk"]:""
 	];
     }
 
@@ -417,7 +417,7 @@ global define string getBoardType () {
 map<string,any> CreateImageSection (string title) {
     map<string,any> ret = BootCommon::CreateLinuxSection(title);
     //Do not use translated names, as we are happy if it work with kernel device
-    ret["root"] = BootCommon::RootPartitionDevice;
+    ret["root"] = BootStorage::RootPartitionDevice;
     // bnc #217443
     ret["optional"] = "true";
     //do not use translated name FIXME this should be filtered out
@@ -445,7 +445,7 @@ string GoodPmacBootPartition() {
 	// does this device contain the root partition?
 	boolean hasrootdev = ( find (map p, partitions, ``(
 	    (! p["delete"]:false)
-	    && p["device"]:"" == BootCommon::RootPartitionDevice
+	    && p["device"]:"" == BootStorage::RootPartitionDevice
 	    && !contains( [`lvm, `evms, `sw_raid], p["type"]:`primary )
 	)) != nil );
 
@@ -496,7 +496,7 @@ string GoodPmacBootPartition() {
 	    && selected_boot_partition == "")
 	{
 	    y2milestone ("Selected pmac boot partition %1 on device with root partition %2",
-			 partitions[0, "device"]:"", BootCommon::RootPartitionDevice);
+			 partitions[0, "device"]:"", BootStorage::RootPartitionDevice);
 	    selected_boot_partition = partitions[0, "device"]:"";
 	}
 
@@ -526,7 +526,7 @@ string GoodPmacBootPartition() {
 global void LocationProposal () {
     BootCommon::DetectDisks ();
     // del_parts is used by FixSections() in lilolike.ycp (imported by BootCommon.ycp)
-    BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
+    BootCommon::del_parts = BootStorage::getPartitionList (`deleted, "ppc");
 
     if (BootCommon::DisksChanged ()) {
         y2milestone ("Reconfiguring locations");
@@ -541,16 +541,16 @@ global void LocationProposal () {
 
     switch (getBoardType()) {
     case ("chrp"):
-	BootCommon::BootPartitionDevice = prep_boot_partition;
+	BootStorage::BootPartitionDevice = prep_boot_partition;
         break;
     case ("prep"): 
-	BootCommon::BootPartitionDevice = prep_boot_partition;
+	BootStorage::BootPartitionDevice = prep_boot_partition;
         break;
     case ("iseries"):
-	BootCommon::BootPartitionDevice = prep_boot_partition;
+	BootStorage::BootPartitionDevice = prep_boot_partition;
         break;
     case ("pmac") :
-	BootCommon::BootPartitionDevice = GoodPmacBootPartition();
+	BootStorage::BootPartitionDevice = GoodPmacBootPartition();
         break;
     default:
         y2error("Unknown ppc architecture");
@@ -571,7 +571,7 @@ global void LocationProposal () {
     // file. This may apply better to the boot_* variables in BootGRUB.ycp
     // though.
     // FIXME: what about loader_location (aka selected_location internally)?
-    BootCommon::loader_device = BootCommon::BootPartitionDevice;
+    BootCommon::loader_device = BootStorage::BootPartitionDevice;
     BootCommon::activate = true;
     y2milestone("Boot partition is %1", BootCommon::loader_device);
 }
@@ -602,21 +602,21 @@ global void CreateGlobals () {
 
     map<string, string> boot_map = $[];
 
-    y2milestone("RootPartDevice is %1",BootCommon::RootPartitionDevice);
+    y2milestone("RootPartDevice is %1",BootStorage::RootPartitionDevice);
     switch(getBoardType()){
     case ("chrp") :
         boot_map = $[
-	    "boot_chrp_custom" : BootCommon::BootPartitionDevice,
+	    "boot_chrp_custom" : BootStorage::BootPartitionDevice,
         ];
         break;
     case ("prep") :
         boot_map = $[
-	    "boot_prep_custom" : BootCommon::BootPartitionDevice,
+	    "boot_prep_custom" : BootStorage::BootPartitionDevice,
 	];
         break;
     case ("pmac") :
         boot_map = $[
-	    "boot_pmac_custom" : BootCommon::BootPartitionDevice,
+	    "boot_pmac_custom" : BootStorage::BootPartitionDevice,
         ];
         break;
     case ("iseries") :
@@ -629,9 +629,9 @@ global void CreateGlobals () {
 	// If we have an empty BootPartitionDevice on iseries, this means:
 	// do not boot from BootPartitionDevice but from some other place.
 	// Do not pass down to perl-Bootloader, lilo fails on an empty "boot =" line.
-	if (BootCommon::BootPartitionDevice != nil &&
-	    BootCommon::BootPartitionDevice != "") {
-	    boot_map["boot_iseries_custom"] = BootCommon::BootPartitionDevice;
+	if (BootStorage::BootPartitionDevice != nil &&
+	    BootStorage::BootPartitionDevice != "") {
+	    boot_map["boot_iseries_custom"] = BootStorage::BootPartitionDevice;
 	}
         break;
     default:
@@ -702,25 +702,25 @@ void UpdateGlobalsInAutoInst()
 		string arch = getBoardType ();
 		switch(arch) {
 			case ("prep"):
-				BootCommon::globals["boot_prep_custom"] = BootCommon::BootPartitionDevice;
+				BootCommon::globals["boot_prep_custom"] = BootStorage::BootPartitionDevice;
 			break;
 
 			case ("pmac"):
-				BootCommon::globals["boot_pmac_custom"] = BootCommon::BootPartitionDevice;
+				BootCommon::globals["boot_pmac_custom"] = BootStorage::BootPartitionDevice;
 			break;
 
 			case ("iseries"):
 				BootCommon::globals["boot_slot"] = "B";
 				BootCommon::globals["boot_file"] = "/tmp/suse_linux_image";
 
-				if (BootCommon::BootPartitionDevice != nil &&
-				   BootCommon::BootPartitionDevice != "") 
+				if (BootStorage::BootPartitionDevice != nil &&
+				   BootStorage::BootPartitionDevice != "") 
 				{
-					BootCommon::globals["boot_iseries_custom"] = BootCommon::BootPartitionDevice;
+					BootCommon::globals["boot_iseries_custom"] = BootStorage::BootPartitionDevice;
 				}
 			break;
 			default:
-				BootCommon::globals["boot_chrp_custom"] = BootCommon::BootPartitionDevice;
+				BootCommon::globals["boot_chrp_custom"] = BootStorage::BootPartitionDevice;
 			break;
 		}
 

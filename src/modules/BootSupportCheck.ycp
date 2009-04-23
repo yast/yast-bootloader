@@ -24,6 +24,7 @@ import "Bootloader";
 import "Arch";
 import "Storage";
 import "BootCommon";
+import "BootStorage";
 
 /**
  * List of problems found during last check
@@ -137,7 +138,7 @@ boolean CorrectLoaderType () {
 boolean GptPartitionTable () {
     boolean ret = true;
     map tm = Storage::GetTargetMap ();
-    list<string> devices = [ BootCommon::BootPartitionDevice ];
+    list<string> devices = [ BootStorage::BootPartitionDevice ];
     // TODO add more devices
     foreach (string dev, devices, {
 	map p_dev = Storage::GetDiskPartition (dev);
@@ -178,7 +179,7 @@ global boolean check_BootDevice()
 
 	boot_device = BootCommon::getBootPartition();
 
-   	// if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice)
+   	// if (BootStorage::BootPartitionDevice == BootStorage::RootPartitionDevice)
 	//	AddNewProblem (_("Doesn't exist separete /boot partition"));
 
 	boolean found_boot = false;
@@ -234,7 +235,7 @@ global boolean check_BootDevice()
 boolean CheckBios_ID()
 {
 	boolean ret = true;
-	if (BootCommon::bois_id_missing)
+	if (BootStorage::bois_id_missing)
 	{
 		AddNewProblem (_("It was not possible to determine the exact order of disks for device map. The order of disks can be changed in \"Boot Loader Installation Details\""));
 		ret = false;

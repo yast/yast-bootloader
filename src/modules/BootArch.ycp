@@ -186,7 +186,6 @@ global string StrArch ()
     		{
 			ret = "unknown";
     		}
-
 	}	
 
 	y2milestone("Type of architecture: %1", ret);

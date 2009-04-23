@@ -23,6 +23,7 @@
 
     import "Arch";
     import "BootCommon";
+    import "BootStorage";
     import "Installation";
     import "Initrd";
     import "Kernel";
@@ -1231,7 +1232,7 @@ string checkZiplDefault(string def)
       */
     global define string getRootDevice () {
 	ReadOrProposeIfNeeded ();
-	return BootCommon::RootPartitionDevice;
+	return BootStorage::RootPartitionDevice;
     }
 
     /**
@@ -1240,7 +1241,7 @@ string checkZiplDefault(string def)
       */
     global define void setRootDevice (string device) {
 	ReadOrProposeIfNeeded ();
-	BootCommon::RootPartitionDevice = device;
+	BootStorage::RootPartitionDevice = device;
     }
 
     /**
@@ -1249,7 +1250,7 @@ string checkZiplDefault(string def)
       */
     global define string getBootDevice () {
 	ReadOrProposeIfNeeded ();
-	return BootCommon::BootPartitionDevice;
+	return BootStorage::BootPartitionDevice;
     }
 
     /**
@@ -1258,7 +1259,7 @@ string checkZiplDefault(string def)
       */
     global define void setBootDevice (string device) {
 	ReadOrProposeIfNeeded ();
-	BootCommon::BootPartitionDevice = device;
+	BootStorage::BootPartitionDevice = device;
     }
 
     /**

@@ -144,7 +144,7 @@ global define void CreateSections () {
     y2milestone ("Other linux parts: %1", other_l);
 
     list<string> destroyed_partitions
-        = BootCommon::getPartitionList (`destroyed);
+        = BootStorage::getPartitionList (`destroyed, "grub");
 
     string tmpdir = (string)SCR::Read (.target.tmpdir) + "/bldetect/";
 
@@ -491,8 +491,8 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     grub_DetectDisks ();
     boolean ret = BootCommon::Read (false, avoid_reading_device_map);
     // refresh device map if not read
-    if (BootCommon::device_mapping == nil
-	|| size (BootCommon::device_mapping) == 0)
+    if (BootStorage::device_mapping == nil
+	|| size (BootStorage::device_mapping) == 0)
     {
 	BootCommon::ProposeDeviceMap ();
     }
@@ -648,11 +648,11 @@ global define list<string> Summary () {
     list<string> locations = [];
 
     if (BootCommon::globals["boot_boot"]:"" == "true")
-        locations = add(locations, BootCommon::BootPartitionDevice + " (\"/boot\")");
+        locations = add(locations, BootStorage::BootPartitionDevice + " (\"/boot\")");
     if (BootCommon::globals["boot_extended"]:"" == "true")
-        locations = add(locations, BootCommon::ExtendedPartitionDevice + " (extended)");
+        locations = add(locations, BootStorage::ExtendedPartitionDevice + " (extended)");
     if (BootCommon::globals["boot_root"]:"" == "true")
-        locations = add(locations, BootCommon::RootPartitionDevice + " (\"/\")");
+        locations = add(locations, BootStorage::RootPartitionDevice + " (\"/\")");
     if (BootCommon::globals["boot_mbr"]:"" == "true")
         locations = add(locations, BootCommon::mbrDisk + " (MBR)");
     if (haskey (BootCommon::globals, "boot_custom"))
@@ -703,7 +703,7 @@ global define void Update () {
     // SetDiskInfo(), and device names in other config files can be translated
     // to Unix device names (#328448, this hits sections that are not
     // (re-)created by yast-Bootloader or later by perl-Bootloader anyway).
-    BootCommon::SetDeviceMap (BootCommon::device_mapping);
+    BootCommon::SetDeviceMap (BootStorage::device_mapping);
     Read (true, true);
 
     BootCommon::UpdateSections (true, CreateLinuxSection);
