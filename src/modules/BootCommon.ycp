@@ -77,52 +77,6 @@ global integer cached_settings_base_data_change_time = nil;
 
 
 
-
-/**
- * Saved change time from target map - only for checkCallingDiskInfo()
- */
-
-global integer disk_change_time_checkCallingDiskInfo = nil;
-
-
-
-/**
- * device mapping between Linux and firmware
- */
-global map<string,string> device_mapping = $[];
-
-/**
- * device mapping between real devices and multipath
- */
-global map<string,string> multipath_mapping = $[];
-
-
-/**
- * mountpoints for perl-Bootloader
- */
-
-global map<string,any> mountpoints = $[];
-
-
-/**
- * list of all partitions for perl-Bootloader
- */
-
-global list<list> partinfo = [];
-
-/**
- * information about MD arrays for perl-Bootloader
- */
-global map<string,list<string> > md_info = $[];
-
-
-/**
- * Flag indicates that bios_id_missing in disk 
- * true if missing false if at least one disk has bios_id
- */
-
-global boolean bois_id_missing = true;
-
 /**
  * device to save loader stage 1 to
  * NOTE: this variable is being phased out. The boot_* keys in the globals map
@@ -152,23 +106,6 @@ global string selected_location = nil;
 /* These global variables and functions are needed in included files */
 
 /**
-  * string sepresenting device name of /boot partition
-  * same as RootPartitionDevice if no separate /boot partition
-  */
-global string BootPartitionDevice = "";
-
-
-/**
-  * string representing device name of / partition
-  */
-global string RootPartitionDevice = "";
-
-/**
-  * string representing device name of extended partition
-  */
-global string ExtendedPartitionDevice = "";
-
-/**
   * Parameters of currently used bootloader
   */
 global map<string, any> current_bootloader_attribs = $[];
@@ -193,11 +130,6 @@ global integer current_section_index = -1;
   */
 global map<string,any> current_section = $[];
 
-
-/**
-  * list of installed floppy devices
-  */
-global list<string> floppy_devices = nil;
 
 /**
   * Option types for different bootloaders
@@ -476,7 +408,7 @@ global map<string,any> CreateLinuxSection (string title) {
     if (title == "memtest86") {
 	if (MemtestPresent ()) {
 	    ret["image"] = "/boot/memtest.bin";
-	    ret["__devs"] = [BootCommon::BootPartitionDevice];
+	    ret["__devs"] = [BootStorage::BootPartitionDevice];
 	    return ret;
 	}
 	else {
@@ -603,11 +535,11 @@ global map<string,any> CreateLinuxSection (string title) {
 	"image" : kernel_fn,
 	"initrd" : initrd_fn,
 	// try to use label or udev id for device name... FATE #302219
-	"root" : BootStorage::Dev2MountByDev(RootPartitionDevice),
+	"root" : BootStorage::Dev2MountByDev(BootStorage::RootPartitionDevice),
 	"append" : (title == "failsafe")
 	    ? BootArch::FailsafeKernelParams ()
 	    : BootArch::DefaultKernelParams (resume),
-	"__devs" : [BootPartitionDevice, RootPartitionDevice],
+	"__devs" : [BootStorage::BootPartitionDevice, BootStorage::RootPartitionDevice],
     ]);
     if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
     {
@@ -645,7 +577,7 @@ global define map Export () {
     map exp = $[
 	"global": remapGlobals(globals),
 	"sections" : remapSections(sections),
-	"device_map" : remapDeviceMap(device_mapping),
+	"device_map" : BootStorage::remapDeviceMap(BootStorage::device_mapping),
     ];
     if ( ! ( loader_type == "grub" ) ) {
 	exp["repl_mbr"] = repl_mbr;
@@ -671,7 +603,7 @@ global define boolean Import (map settings) {
 	repl_mbr = settings["repl_mbr"]:false;
 	activate = settings["activate"]:false;
     }
-    device_mapping = settings["device_map"]:$[];
+    BootStorage::device_mapping = settings["device_map"]:$[];
     return true;
 }
 
@@ -694,7 +626,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     sections = GetSections ();
     globals = GetGlobal ();
     isTrustedGrub ();
-    device_mapping = GetDeviceMap ();
+    BootStorage::device_mapping = GetDeviceMap ();
     read_default_section_name = "";
     foreach (map<string,any> s, sections, {
 	if (s["original_name"]:"" == "linux"
@@ -705,7 +637,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     });
 
     // convert device names in device map to the kernel device names
-    device_mapping = mapmap (string k , string v, device_mapping, {
+    BootStorage::device_mapping = mapmap (string k , string v, BootStorage::device_mapping, {
 	    // if we update from version 9 (SLES9), first convert old-style persistent
 	    // device names to new-style persistent device names ("p1" -> "-part1")
 	    // NOTE: this is idempotent; but other device name translation
@@ -764,7 +696,8 @@ global define void Reset (boolean init) {
     was_proposed = false;
     if (init)
     {
-	ProposeDeviceMap ();
+	if (getLoaderType (false) == "grub")
+	   BootStorage::ProposeDeviceMap ();
     }
 }
 
@@ -819,9 +752,9 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // convert device names in device map to the device names indicated by
     // "mountby"
 
-    y2milestone ("device map before mapping %1", device_mapping);
+    y2milestone ("device map before mapping %1", BootStorage::device_mapping);
     map<string,string> my_device_mapping =
-	mapmap (string k , string v, device_mapping, {
+	mapmap (string k , string v, BootStorage::device_mapping, {
 	    return $[BootStorage::Dev2MountByDev(k) : v];
     });
     y2milestone ("device map after mapping %1", my_device_mapping);
@@ -832,7 +765,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // bnc #436899
     ConvertXENinDomU ();
 
-    ret = ret && DefineMultipath(multipath_mapping);
+    ret = ret && DefineMultipath(BootStorage::multipath_mapping);
     ret = ret && SetDeviceMap (my_device_mapping);
     ret = ret && SetSections (sections);
     ret = ret && SetGlobal (my_globals);
@@ -866,7 +799,7 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    if (target_name == "mbr_md")
 	    {
 		list<string> mbrs = maplist (string d, integer id,
-		    Md2Partitions (BootPartitionDevice),
+		    Md2Partitions (BootStorage::BootPartitionDevice),
 		{
 		    map p_dev = Storage::GetDiskPartition (d);
 		    return p_dev["disk"]:"";

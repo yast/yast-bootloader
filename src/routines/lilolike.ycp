@@ -47,8 +47,8 @@ global boolean DisksChanged () {
 
     // don't change configuration if '/' and '/boot' were not changed
     // and location is "floppy", "mbr" or "boot"
-    if (actual_boot == BootCommon::BootPartitionDevice
-	&& actual_root == BootCommon::RootPartitionDevice
+    if (actual_boot == BootStorage::BootPartitionDevice
+	&& actual_root == BootStorage::RootPartitionDevice
             && selected_location != "custom"
             && selected_location != ""
 	    && selected_location != nil)
@@ -56,7 +56,7 @@ global boolean DisksChanged () {
 	return false;
     }
 
-    list all_partitions = BootCommon::getPartitionList(`boot);
+    list all_partitions = BootStorage::getPartitionList(`boot, getLoaderType(false));
 
     if (!contains(all_partitions, BootCommon::loader_device))
     {
@@ -100,10 +100,10 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 {
    string result = "";
    string boot_device = "";
-   if ((BootCommon::BootPartitionDevice != nil) && (BootCommon::BootPartitionDevice != ""))
-       boot_device = BootCommon::BootPartitionDevice;
+   if ((BootStorage::BootPartitionDevice != nil) && (BootStorage::BootPartitionDevice != ""))
+       boot_device = BootStorage::BootPartitionDevice;
    else
-       boot_device = BootCommon::RootPartitionDevice;
+       boot_device = BootStorage::RootPartitionDevice;
 
    foreach(map p, partitions, {
 	if (p["device"]:"" == boot_device)
@@ -162,15 +162,15 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 	//  - is primary:			    is_logical	-> false
 	//  - is on the first disk (with the MBR):  disk_is_mbr -> true
 	map<string,any> tm = Storage::GetTargetMap ();
-	map dp = Storage::GetDiskPartition (BootPartitionDevice);
+	map dp = Storage::GetDiskPartition (BootStorage::BootPartitionDevice);
 	string disk = dp["disk"]:"";
 	boolean disk_is_mbr = disk == mbrDisk;
 	map dm = tm[disk]:$[];
 	list<map> partitions = dm["partitions"]:[];
 	boolean is_logical = false;
 	string extended = nil;
-	list<string> needed_devices = [ BootPartitionDevice ];
-	map<string,integer> md_info = Md2Partitions (BootPartitionDevice);
+	list<string> needed_devices = [ BootStorage::BootPartitionDevice ];
+	map<string,integer> md_info = Md2Partitions (BootStorage::BootPartitionDevice);
 	if (md_info != nil && size (md_info) > 0)
 	{
 	    disk_is_mbr = false;
@@ -208,7 +208,7 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 	if (disk_is_mbr && ! is_logical)
 	{
 	    selected_location = "boot";
-	    loader_device = BootPartitionDevice;
+	    loader_device = BootStorage::BootPartitionDevice;
 	    activate = true;
 	    activate_changed = true;
 	    // examine_mbr.pl returns
@@ -247,10 +247,10 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 	    if (is_logical && extended != nil)
 		loader_device = extended;
 	    else
-		loader_device = BootPartitionDevice;
+		loader_device = BootStorage::BootPartitionDevice;
 	    selected_location = "boot";
 	}
-	if (! contains (getPartitionList (`boot), loader_device))
+	if (! contains (BootStorage::getPartitionList (`boot, getLoaderType(false)), loader_device))
 	{
 	    selected_location = "mbr";             // default to mbr
 	    loader_device   = BootCommon::mbrDisk;
@@ -301,16 +301,16 @@ define string soft_MDraid_boot_disk(list<map> partitions)
         y2milestone( "mountPoints %1", mp );
         y2milestone( "mountdata_boot %1", mountdata_boot );
 
-        BootCommon::RootPartitionDevice = mp["/", 0]:"";
+        BootStorage::RootPartitionDevice = mp["/", 0]:"";
 
-        if (BootCommon::RootPartitionDevice == "")
+        if (BootStorage::RootPartitionDevice == "")
         {
             y2error ("No mountpoint for / !!");
         }
 
         // if /boot changed, re-configure location
-        BootCommon::BootPartitionDevice
-            = mountdata_boot[0]:BootCommon::RootPartitionDevice;
+        BootStorage::BootPartitionDevice
+            = mountdata_boot[0]:BootStorage::RootPartitionDevice;
 
 	if (BootCommon::mbrDisk == "" || BootCommon::mbrDisk == nil)
 	{
@@ -319,7 +319,7 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 	}
 
 	if (loader_device == nil || loader_device == ""
-	    || ! contains (getPartitionList (`boot), loader_device))
+	    || ! contains (BootStorage::getPartitionList (`boot, getLoaderType(false)), loader_device))
             ConfigureLocation ();
 
     }
@@ -515,7 +515,7 @@ string getLargestSwapPartition () {
  * Fix section of lilo-like bootloader
  */
 global void FixSections (void() create_sections) {
-    list<string> parts = getPartitionList(`parts_old);
+    list<string> parts = BootStorage::getPartitionList(`parts_old, getLoaderType(false));
     if (partitioning_last_change
 	    != Storage::GetTargetChangeTime()
 	&& BootCommon::files_edited)
@@ -999,13 +999,13 @@ global void UpdateGlobals () {
  * Read device map and store it in internal structures
  */
 global void UpdateDeviceMap () {
-    device_mapping = mapmap (string unix, string fw, device_mapping, {
+    BootStorage::device_mapping = mapmap (string unix, string fw, BootStorage::device_mapping, {
 	y2milestone ("Updating device in devmap entry %1 -> %2",
 	    unix, fw);
 	unix = BootCommon::UpdateDevice (unix);
 	return $[ unix : fw ];
     });
-    y2milestone ("Updated device map: %1", device_mapping);
+    y2milestone ("Updated device map: %1", BootStorage::device_mapping);
 }
 
 /**
@@ -1107,256 +1107,6 @@ global void UpdateGfxMenu () {
 }
 
 
-/*** helper functions for ProposeDeviceMap: ***/
-/**
- * Returns true if any device from list devices is in device_mapping
- * marked as hd0.
- */
-boolean isHd0(list<string> devices)
-{
-    boolean ret = false;
-
-    foreach (string value, devices,
-        {
-            if (device_mapping[value]:"" == "hd0"){
-                ret = true;
-            }
-        });
-
-    return ret;
-}
-
-/**
- * Returns first key from mapping associated with value.
- * Example:
- *      map = $[ "a" : "1",
- *               "b" : "2",
- *               "c" : "3",
- *               "d" : "2"];
- *      getDeviceFromMapping("1", map) -> "a"
- *      getDeviceFromMapping("2", map) -> "b"
- */
-string getKey(string value, map<string, string> mapping)
-{
-    string ret = "";
-
-    foreach (string key, string val, mapping,
-        {
-            if (value == val){
-                ret = key;
-                return;
-            }
-        });
-
-    return ret;
-}
-
-/**
- * This function changes order of devices in device_mapping.
- * All devices listed in bad_devices are maped to "hdN" are moved to the end
- * (with changed number N). And second step is putting device with boot partition
- * on top (i.e. device_mapping[dev_with_boot] = "hd0").
- *
- * Example:
- *      device_mapping = $[ "/dev/sda" : "hd0",
- *                          "/dev/sdb" : "hd1",
- *                          "/dev/sdc" : "hd2",
- *                          "/dev/sdd" : "hd3",
- *                          "/dev/sde" : "hd4" ];
- *      bad_devices = [ "/dev/sda", "/dev/sdc" ];
- *
- *      changeOrderInDeviceMapping(bad_devices);
- *      // after call, device_mapping is:
- *      device_mapping -> $[ "/dev/sda" : "hd3",
- *                           "/dev/sdb" : "hd0",
- *                           "/dev/sdc" : "hd4",
- *                           "/dev/sdd" : "hd1",
- *                           "/dev/sde" : "hd2" ];
- */
-void changeOrderInDeviceMapping(list<string> bad_devices)
-{
-    integer cur_id = 0;
-    list keys = [];
-    string value = "";
-    string tmp = "";
-    string tmp2 = "";
-
-    // get keys from device_mapping, it's not possible to use foreach over keys and values
-    // of device_mapping directly, because during the loop device_mapping is changing.
-    foreach (string key, string value, device_mapping, { keys = add(keys, key); });
-
-    // put bad_devices at bottom
-    foreach (string key, (list<string>)keys,
-        {
-                value = device_mapping[key]:"";
-
-                // if device is mapped on hdX and this device is _not_ in bad_devices
-                if (substring(value, 0, 2) == "hd"
-                    && !contains(bad_devices, key)){
-                        // get device name of mapped on "hd"+cur_id
-                        tmp = getKey("hd" + tostring(cur_id), device_mapping);
-
-                        // swap tmp and key devices (swap their mapping)
-                        device_mapping[tmp] = value;
-                        device_mapping[key] = "hd" + tostring(cur_id);
-
-                        cur_id = cur_id + 1;
-                }
-        });
-
-    // put device with boot partition on the top:
-    /*
-    tmp = (regexptokenize(BootCommon::BootPartitionDevice, "([a-z/]+)[0-9]*"))[0]:"";
-    if (haskey(device_mapping, tmp) && device_mapping[tmp]:"" != "hd0"){
-        y2debug("Putting device with boot partition (%1) on the top.", tmp);
-
-        tmp2 = getKey("hd0", device_mapping);
-        device_mapping[tmp2] = device_mapping[tmp]:"";
-        device_mapping[tmp] = "hd0";
-    }*/
-}
-/*** helper functions END ***/
-
-/**
- * Generate device map proposal, store it in internal variables.
- *
- * FATE #302075:
- *   When user is installing from USB media or any non IDE disk or bios simply
- *   set any non IDE disk as first and user is not installing on this removable
- *   (non IDE) disk, the order of disks proposed by bios must be changed because
- *   of future remove of USB disk.
- *   This function must find right place for bootloader (which is most probably
- *   boot sector of boot partition (where /boot dir is located)) and change the
- *   order of disks in device map.
- *   This method is only heuristic because order of disks after remove of usb
- *   disk can't be determined by any method.
- *
- *   Algorithm for solving problem with usb disk propsed by bios as hd0:
- *      if usbDiskDevice == hd0 && BootDevice != usbDiskDevice:
- *          change order of disks in device_mappings to have BootDevice as hd0
- */
-// FIXME: remove that function from here, as it is grub only
-// NOTE: there is a local copy in routines/grub/misc.ycp now
-global void ProposeDeviceMap () {
-    list<string> usb_disks = []; // contains those usb removable disks
-
-    device_mapping = $[];
-    multipath_mapping = $[];
-
-    if (getLoaderType (false) == "grub")
-    {
-       map<string,map> targetMap = $[];
-       if (Mode::config ())
-	   y2milestone ("Skipping device map proposing in Config mode");
-       else
-	   targetMap = (map<string,map>)Storage::GetTargetMap();
-
-       // filter out members of BIOS RAIDs and multipath devices
-       targetMap = filter (string k, map v, targetMap, {
-	   return v["used_by_type"]:nil != `UB_DMRAID && v["used_by_type"]:nil != `UB_DMMULTIPATH;
-       });
-       // filter out non-disk devices
-       targetMap = filter (string k, map v, targetMap, {
-	   return v["type"]:`CT_UNKNOWN==`CT_DMRAID || v["type"]:`CT_UNKNOWN==`CT_DISK
-	       || v["type"]:`CT_UNKNOWN==`CT_DMMULTIPATH;
-       });
-
-       y2milestone ("Target map: %1", targetMap);
-
-       // add devices with known bios_id
-       // collect BIOS IDs which are used
-       map ids = $[];
-       foreach (string target_dev, map target, targetMap, {
-          string bios_id = target["bios_id"]:"";
-          if (bios_id != "")
-          {
-              integer index = tointeger (bios_id) - tointeger ("0x80");
-              string grub_dev = sformat ("hd%1", index);
-	      // FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
-	      if (! ids[index]:false)
-              {
-	    	  device_mapping[target_dev] = grub_dev;
-            	  ids[index] = true;
-	      }
-          }
-       });
-       // and guess other devices
-       // don't use already used BIOS IDs
-       foreach (string target_dev, map target, targetMap, {
-           string bios_id = target["bios_id"]:"";
-           if (bios_id == "")
-           {
-               integer index = 0;
-               while (ids[index]:false)
-                  index = index + 1;
-               string grub_dev = sformat ("hd%1", index);
-	       device_mapping[target_dev] = grub_dev;
-               ids[index] = true;
-           }
-       });
-
-       // Fill usb_disks list with usb removable devices.
-       //
-       // It's not easy to determine how to identify removable usb devices. Now
-       // it tests if driver of device is usb-storage. If you find better
-       // algorithm how to find removable usb devices, put it here into foreach
-       // to apply this algorithm on all devices.
-       foreach (string target_dev, map target, targetMap,
-       {
-            string driver = target["driver"]:"";
-            if (driver == "usb-storage"){
-                usb_disks = add(usb_disks, target_dev);
-            }
-       });
-       y2milestone("Found usb discs: %1", usb_disks);
-    
-       // change order in device_mapping if usb disk is hd0
-       // (FATE #302075)
-       if (isHd0(usb_disks)
-        && BootCommon::BootPartitionDevice != getKey("hd0", device_mapping)){
-	   y2milestone ("Detected device mapping: %1", device_mapping);
-           y2milestone("Changing order in device mapping needed...");
-           changeOrderInDeviceMapping(usb_disks);
-       }
-
-       if (size(device_mapping) == 1)
-	   bois_id_missing = false;
-       if (StorageDevices::FloppyPresent())
-	   device_mapping[StorageDevices::FloppyDevice()] = "fd0";
-
-       y2milestone ("Detected device mapping: %1", device_mapping);
-
-       multipath_mapping = BootCommon::mapRealDevicesToMultipath();
-
-       y2milestone ("Detected multipath mapping: %1", multipath_mapping);
-
-    } else {
-	y2milestone("Skip creating device map for bootloader: %1", getLoaderType (false));
-    }
-}
-
-/**
- * Get the order of disks according to BIOS mapping
- * @return a list of all disks in the order BIOS sees them
- */
-global list<string> DisksOrder () {
-    if (device_mapping == nil || size (device_mapping) == 0)
-    {
-	ProposeDeviceMap ();
-    }
-    map<string,string> devmap_rev = mapmap (string k, string v,
-	BootCommon::device_mapping,
-    {
-	return $[ v : k ];
-    });
-    devmap_rev = filter (string k, string v, devmap_rev, {
-	return substring (k, 0, 2) == "hd";
-    });
-    list<string> order = maplist (string k, string v, devmap_rev, {
-	return v;
-    });
-    return order;
-}
 
 /**
  * Get the summary of disks order for the proposal

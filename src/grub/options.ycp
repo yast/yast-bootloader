@@ -316,7 +316,7 @@ void StoreDiskOrder(string widget, map event) {
   });
   BootCommon::mbrDisk = result[0]:"";
   integer index = 0;
-  BootCommon::device_mapping = listmap (string d, result, {
+  BootStorage::device_mapping = listmap (string d, result, {
     string indexs = tostring(index);
     index = index + 1;
     return $[ d : sformat ("hd%1", indexs)];
@@ -444,7 +444,7 @@ map<string,any> DisksOrderWidget(){
  * @param widget string widget key
  */
 void  InitBootLoaderLocationWidget(string widget) {
-    list<string> boot_devices = BootCommon::getPartitionList(`boot);
+    list<string> boot_devices = BootStorage::getPartitionList(`boot, "grub");
     list <string> list_global_target_keys = ["boot_mbr", "boot_boot", "boot_root", "boot_extended"];
     foreach(string key, list_global_target_keys, 
     {

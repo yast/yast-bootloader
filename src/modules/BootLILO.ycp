@@ -25,6 +25,7 @@ textdomain "bootloader";
 
 import "Arch";
 import "BootCommon";
+import "BootStorage";
 import "Kernel";
 import "Mode";
 import "Pkg";
@@ -210,7 +211,7 @@ global void Update () {
     // SetDiskInfo(), and device names in other config files can be translated
     // to Unix device names (#328448, this hits sections that are not
     // (re-)created by yast-Bootloader or later by perl-Bootloader anyway).
-    BootCommon::SetDeviceMap (BootCommon::device_mapping);
+    BootCommon::SetDeviceMap (BootStorage::device_mapping);
     Read (true, true);
 
     BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
@@ -274,15 +275,15 @@ string getDeviceOfRaid (string device) {
 	    list data = mp["/boot"]:(mp["/"]:[]);
 	    string bpd = data[0]:"";
 	    // ???? FIXME ???? how about LVM/MD ????
-	    if (bpd == BootCommon::BootPartitionDevice
-		&& getDeviceOfRaid (BootCommon::BootPartitionDevice)
-		!= BootCommon::BootPartitionDevice
-		&& contains (BootCommon::getPartitionList(`boot),
-			     BootCommon::BootPartitionDevice))
+	    if (bpd == BootStorage::BootPartitionDevice
+		&& getDeviceOfRaid (BootStorage::BootPartitionDevice)
+		!= BootStorage::BootPartitionDevice
+		&& contains (BootStorage::getPartitionList(`boot, "lilo"),
+			     BootStorage::BootPartitionDevice))
 	      {
 		y2milestone ("Creating backup copy to bootsector");
 		SCR::Execute (.target.bash, sformat ("/sbin/lilo -b %1",
-			      BootCommon::BootPartitionDevice));
+			      BootStorage::BootPartitionDevice));
 	      }
 	}
 

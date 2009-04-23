@@ -29,6 +29,7 @@ import "Mode";
 import "Storage";
 import "StorageDevices";
 import "Bootloader";
+import "BootStorage";
 import "Popup";
 import "FileUtils";
 
@@ -303,14 +304,14 @@ void SectionNameStore (string widget, map event) {
  */
 void RootDeviceInit (string widget) {
     y2milestone ("RootDeviceInit: %1", widget);
-    list<string> available = BootCommon::getPartitionList (`root);
+    list<string> available = BootStorage::getPartitionList (`root, Bootloader::getLoaderType());
     // if we mount any of these devices by id, label etc., we add a hint to
     // that effect to the item
     y2milestone ("RootDeviceInit: getHintedPartitionList for %1", available);
-    available = BootCommon::getHintedPartitionList (available);
+    available = BootStorage::getHintedPartitionList (available);
     UI::ChangeWidget (`id (widget), `Items, available);
     UI::ChangeWidget (`id (widget), `Value,
-	(BootCommon::getHintedPartitionList ([BootCommon::current_section[widget]:""]))[0]:"");
+	(BootStorage::getHintedPartitionList ([BootCommon::current_section[widget]:""]))[0]:"");
 }
 
 /**
@@ -336,10 +337,10 @@ symbol RootDeviceHandle (string widget, map event) {
     string current
 	= (splitstring( (string)UI::QueryWidget (`id (widget), `Value), " "))[0]:"";
     // check against the list of existing partitions
-    list<string> available = BootCommon::getPartitionList (`root);
+    list<string> available = BootStorage::getPartitionList (`root, Bootloader::getLoaderType());
     if (contains(available, current))
 	UI::ChangeWidget (`id (widget), `Value,
-	    (BootCommon::getHintedPartitionList ([current]))[0]:"");
+	    (BootStorage::getHintedPartitionList ([current]))[0]:"");
     return nil;
 }
 
@@ -372,7 +373,7 @@ void VgaModeInit (string widget) {
  * @param widget any id of the widget
  */
 void ChainloaderInit (string widget) {
-    list<string> available = BootCommon::getPartitionList (`boot_other);
+    list<string> available = BootStorage::getPartitionList (`boot_other, Bootloader::getLoaderType());
     UI::ChangeWidget (`id (widget), `Items, available);
     SectionOptionInit (widget);
 }

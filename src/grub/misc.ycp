@@ -47,7 +47,7 @@ global boolean grub_InstallingToFloppy () {
     else if (BootCommon::globals["boot_custom"]:nil ==
 	     StorageDevices::FloppyDevice())
 	ret = true;
-    else if (contains (BootCommon::getFloppyDevices (),
+    else if (contains (BootStorage::getFloppyDevices (),
 		       BootCommon::globals["boot_custom"]:nil))
 	ret = true;
     y2milestone ("Installing to floppy: %1", ret);
@@ -143,11 +143,11 @@ global boolean grub_InstallingToFloppy () {
 //	}
 
 	// (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
-	// if loader_device is disk device activate BootCommon::BootPartitionDevice
+	// if loader_device is disk device activate BootStorage::BootPartitionDevice
 	if (num == 0)
 	{
 	    y2milestone ("loader_device is disk device");
-	    p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+	    p_dev = Storage::GetDiskPartition (BootStorage::BootPartitionDevice);
 	    num = BootCommon::myToInteger( p_dev["nr"]:nil );
         }
 
@@ -462,10 +462,10 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 {
    string result = "";
    string boot_device = "";
-   if ((BootCommon::BootPartitionDevice != nil) && (BootCommon::BootPartitionDevice != ""))
-       boot_device = BootCommon::BootPartitionDevice;
+   if ((BootStorage::BootPartitionDevice != nil) && (BootStorage::BootPartitionDevice != ""))
+       boot_device = BootStorage::BootPartitionDevice;
    else
-       boot_device = BootCommon::RootPartitionDevice;
+       boot_device = BootStorage::RootPartitionDevice;
 
    foreach(map p, partitions, {
 	if (p["device"]:"" == boot_device)
@@ -525,7 +525,7 @@ define symbol grub_ConfigureLocation() {
     //  - is on the first disk (with the MBR):  boot_partition_is_on_mbr_disk -> true
 
     map<string,any> tm = Storage::GetTargetMap ();
-    map dp = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+    map dp = Storage::GetDiskPartition (BootStorage::BootPartitionDevice);
     string boot_partition_disk = dp["disk"]:"";
     boolean boot_partition_is_on_mbr_disk =
 	(boot_partition_disk == BootCommon::mbrDisk);
@@ -538,8 +538,8 @@ define symbol grub_ConfigureLocation() {
     // determine the underlying devices for the "/boot" partition (either the
     // BootPartitionDevice, or the devices from which the soft-RAID device for
     // "/boot" is built)
-    list<string> underlying_boot_partition_devices = [ BootCommon::BootPartitionDevice ];
-    map<string,integer> md_info = BootCommon::Md2Partitions (BootCommon::BootPartitionDevice);
+    list<string> underlying_boot_partition_devices = [ BootStorage::BootPartitionDevice ];
+    map<string,integer> md_info = BootCommon::Md2Partitions (BootStorage::BootPartitionDevice);
     if (md_info != nil && size (md_info) > 0)
     {
 	boot_partition_is_on_mbr_disk = false;
@@ -646,7 +646,7 @@ define symbol grub_ConfigureLocation() {
     }
 
     SetBootloaderDevice(selected_location);
-    if (! contains (BootCommon::getPartitionList (`boot), (BootCommon::GetBootloaderDevices())[0]:nil))
+    if (! contains (BootStorage::getPartitionList (`boot, "grub"), (BootCommon::GetBootloaderDevices())[0]:nil))
     {
 	selected_location = `mbr;             // default to mbr
 	SetBootloaderDevice(selected_location);
@@ -701,10 +701,10 @@ string grub_GetExtendedPartitionDev () {
     map<string,any> tm = Storage::GetTargetMap ();
 
     string device = "";
-    if (BootCommon::BootPartitionDevice != "")
-	device = BootCommon::BootPartitionDevice;
+    if (BootStorage::BootPartitionDevice != "")
+	device = BootStorage::BootPartitionDevice;
     else 
-        device = BootCommon::RootPartitionDevice;
+        device = BootStorage::RootPartitionDevice;
 
     map dp = Storage::GetDiskPartition (device);
     string disk = dp["disk"]:"";
@@ -748,19 +748,19 @@ define void grub_DetectDisks () {
     y2milestone( "mountPoints %1", mp );
     y2milestone( "mountdata_boot %1", mountdata_boot );
 
-    BootCommon::RootPartitionDevice = mp["/", 0]:"";
+    BootStorage::RootPartitionDevice = mp["/", 0]:"";
 
-    if (BootCommon::RootPartitionDevice == "")
+    if (BootStorage::RootPartitionDevice == "")
     {
 	y2error ("No mountpoint for / !!");
     }
 
     // if /boot changed, re-configure location
-    BootCommon::BootPartitionDevice
-	= mountdata_boot[0]:BootCommon::RootPartitionDevice;
+    BootStorage::BootPartitionDevice
+	= mountdata_boot[0]:BootStorage::RootPartitionDevice;
 
     // get extended partition device (if exists)
-    BootCommon::ExtendedPartitionDevice = grub_GetExtendedPartitionDev();
+    BootStorage::ExtendedPartitionDevice = grub_GetExtendedPartitionDev();
 
     if (BootCommon::mbrDisk == "" || BootCommon::mbrDisk == nil)
     {
@@ -771,7 +771,7 @@ define void grub_DetectDisks () {
     // if no bootloader devices have been set up, or any of the set up
     // bootloader devices have become unavailable, then re-propose the
     // bootloader location.
-    list<string> all_boot_partitions = BootCommon::getPartitionList(`boot);
+    list<string> all_boot_partitions = BootStorage::getPartitionList(`boot, "grub");
     list<string> bldevs = BootCommon::GetBootloaderDevices();
     boolean need_location_reconfigure = false;
 
@@ -808,22 +808,22 @@ define map<string, any> grub_DisksChanged () {
     string actual_extended = grub_GetExtendedPartitionDev();
 
     if ( BootCommon::globals["boot_boot"]:"false" == "true" &&
-	 actual_boot != BootCommon::BootPartitionDevice )
+	 actual_boot != BootStorage::BootPartitionDevice )
 	ret = $[
 	    "changed" :	true,
 	    "reason"  :	(string) ret["reason"]:"" +
 			"Selected bootloader location \"/boot\" is not on " +
-			BootCommon::BootPartitionDevice +
+			BootStorage::BootPartitionDevice +
 			" any more.\n"
 	];
 
     if ( BootCommon::globals["boot_root"]:"false" == "true" &&
-	 actual_root != BootCommon::RootPartitionDevice )
+	 actual_root != BootStorage::RootPartitionDevice )
 	ret = $[
 	    "changed" :	true,
 	    "reason"  :	(string) ret["reason"]:"" +
 			"Selected bootloader location \"/\" is not on " +
-			BootCommon::RootPartitionDevice +
+			BootStorage::RootPartitionDevice +
 			" any more.\n"
 	];
 
@@ -841,18 +841,18 @@ define map<string, any> grub_DisksChanged () {
     }
 
     if ( BootCommon::globals["boot_extended"]:"false" == "true" &&
-	 actual_extended != BootCommon::ExtendedPartitionDevice )
+	 actual_extended != BootStorage::ExtendedPartitionDevice )
 	ret = $[
 	    "changed" : true,
 	    "reason"  : (string) ret["reason"]:"" +
 			"Selected bootloader location \"extended partition\" is not on " +
-			BootCommon::ExtendedPartitionDevice +
+			BootStorage::ExtendedPartitionDevice +
 			" any more.\n"
 	];
 
 
     if ( BootCommon::globals["boot_custom"]:nil != nil ) {
-	list all_boot_partitions = BootCommon::getPartitionList(`boot);
+	list all_boot_partitions = BootStorage::getPartitionList(`boot, "grub");
 
 	if ( ! contains(all_boot_partitions, BootCommon::globals["boot_custom"]:nil) )
 	    ret = $[
@@ -906,7 +906,7 @@ define void grub_LocationProposal () {
 	  ))
     {
 	grub_DetectDisks ();
-	BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
+	BootCommon::del_parts = BootStorage::getPartitionList (`deleted, "grub");
 	// check whether edd is loaded; if not: load it
 	string lsmod_command = "lsmod | grep edd";
 	y2milestone ("Running command %1", lsmod_command);
@@ -924,8 +924,8 @@ define void grub_LocationProposal () {
     y2milestone("(2) globals: %1", BootCommon::globals);
 
     // refresh device map
-    if ((BootCommon::device_mapping == nil)
-	|| (size (BootCommon::device_mapping) == 0)
+    if ((BootStorage::device_mapping == nil)
+	|| (size (BootStorage::device_mapping) == 0)
 	|| (BootCommon::cached_settings_base_data_change_time != Storage::GetTargetChangeTime()))
     {
 	BootCommon::ProposeDeviceMap();
@@ -969,7 +969,7 @@ define boolean isWidnowsOnBootDisk(map<string,any> section)
 			return false;
 		}
 		// find grub id in device map for chainloader device
-		string grub_id = BootCommon::device_mapping[disk_dev]:"";
+		string grub_id = BootStorage::device_mapping[disk_dev]:"";
 		y2milestone("Disk from windows chainloader: %1 grub id from device map: %2", disk_dev, grub_id);
 
 		// check if disk is the first in order...
@@ -1033,18 +1033,18 @@ global boolean ReduceDeviceMapTo8()
 {
     boolean result = false;
 
-    if (size(BootCommon::device_mapping)>8)
+    if (size(BootStorage::device_mapping)>8)
     {
 	result = true;
-	list <string> bios_order = (list <string> ) Map::Values(BootCommon::device_mapping);
+	list <string> bios_order = (list <string> ) Map::Values(BootStorage::device_mapping);
 	//delete all grub devices with order more than 9
 	bios_order = filter(string key, bios_order, {return (size(key) < 4);});
 	bios_order = lsort(bios_order);
 	y2debug("ordered values (grub devices): %1", bios_order);
 	map<string,string> inverse_device_map = $[];
 	map<string,string> new_device_map = $[];
-	y2milestone("Device map before reducing: %1", BootCommon::device_mapping);
-	foreach(string key, string value, BootCommon::device_mapping,
+	y2milestone("Device map before reducing: %1", BootStorage::device_mapping);
+	foreach(string key, string value, BootStorage::device_mapping,
 	{
 	    inverse_device_map[value]=key;
 	});
@@ -1065,10 +1065,10 @@ global boolean ReduceDeviceMapTo8()
 		break;
 	    }
 	});	
-	BootCommon::device_mapping = new_device_map;
-	y2milestone("Device map after reducing: %1", BootCommon::device_mapping);
+	BootStorage::device_mapping = new_device_map;
+	y2milestone("Device map after reducing: %1", BootStorage::device_mapping);
     } else {
-	y2milestone("Device map includes less than 9 devices. It is not reduced. device_map: %1", BootCommon::device_mapping);
+	y2milestone("Device map includes less than 9 devices. It is not reduced. device_map: %1", BootStorage::device_mapping);
     }
     return result;
 }
@@ -1086,16 +1086,16 @@ define boolean checkBootDeviceInDeviceMap(string boot_dev, string boot_dev_mount
 {
     boolean result = false;
 
-    if (size(BootCommon::device_mapping)>8)
+    if (size(BootStorage::device_mapping)>8)
     {
 	result = false;
-	list <string> bios_order = (list <string> ) Map::Values(BootCommon::device_mapping);
+	list <string> bios_order = (list <string> ) Map::Values(BootStorage::device_mapping);
 	//delete all grub devices with order more than 9
 	bios_order = filter(string key, bios_order, {return (size(key) < 4);});
 	bios_order = lsort(bios_order);
 	y2debug("ordered values (grub devices): %1", bios_order);
 	map<string,string> inverse_device_map = $[];
-	foreach(string key, string value, BootCommon::device_mapping,
+	foreach(string key, string value, BootStorage::device_mapping,
 	{
 	    inverse_device_map[value]=key;
 	});
