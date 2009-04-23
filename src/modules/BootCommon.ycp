@@ -298,7 +298,7 @@ global define list<string> getBootloaders ();
 global define list<string> Summary ();
 global map<string,any> CreateLinuxSection (string title);
 global string UpdateSerialConsole (string append, string console);
-
+global string examineMBR (string device);
 
 /*
  * help message and dscription definitions

@@ -342,6 +342,21 @@ global boolean SetFilesContents (map<string,string> files) {
     return ret;
 }
 
+/**
+ * Analyse content of MBR
+ *
+ * @param string device name ("/dev/sda")
+ * @return string result of analyse ("GRUB stage1", "uknown",...)
+ */
+
+global string examineMBR (string device)
+{
+    string ret = System::Bootloader_API::examineMBR (device);
+    y2milestone("Device: %1 includes in MBR: %2", device, ret);
+    return ret;
+
+}
+
 } //end of include
 
 /*

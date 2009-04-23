@@ -492,26 +492,6 @@ define string soft_MDraid_boot_disk(list<map> partitions)
  * Returns the type of device where to install: one of `boot `root `mbr `extended `mbr_md
  * Also sets the boot_* keys in the internal global variable globals accordingly.
  *
- * Sets internal global variables:
- *	    - boot_* keys in globals map	set flags according to the selected bootloader device (currently one of: "boot", "root", "mbr", "mbr_md", "extended")
- *	    - activate key in globals map	to true if the partitions for stage 1 need to be "activated" (aka "set bootable") in the MBR
- *	    - activate_changed			leave untouched, except when
- *				    - booting from a primary /boot partition on the first disk (the one with the MBR seen by the BIOS), then set to true
- *				      (FIXME: why only then?)
- *	    - generic_mbr key in globals map	leave untouched, except when
- *				    - booting from a primary /boot partition on the first disk, then set to true when
- *					- the examination of the code in the MBR
- *					    - by examine_mbr.pl shows that it
- *						- DOES NOT look like a valid "stage 1" at all (not enough entropy to contain valid code)	    OR
- *						- DOES NOT look like a "generic MBR" (= DOS MBR) (OK as stage 1 to boot primary part. on 1st disk)  OR
- *						- DOES     look like a LILO or GRUB MBR (replace them with generic code
- *							   (if stage 1 is not in MBR, see code in updateMBR()),
- *							   they probably contain an obsolete block list for stage 2)				    OR
- *						- DOES     look like some "stage 1" code (has enough entropy, but no known signature)		    OR
- *					    - by KeepMBR() -> ThinkPadMBR() shows that it
- *						- DOES NOT look like a Thinkpad MBR (begins with specific code sequence from that one)
- *				      otherwise set to false
- *
  * @return string type of location proposed to bootloader
  */
 define symbol grub_ConfigureLocation() {
@@ -589,15 +569,6 @@ define symbol grub_ConfigureLocation() {
 	selected_location = `boot;
 	BootCommon::globals["activate"] = "true";
 	BootCommon::activate_changed = true;
-        // examine_mbr.pl returns
-        //	    - != 0 (errno, e.g. 2) for a read error: "cannot read 512
-        //	           bytes from <dev>"
-        //	    - 254  for an "invalid MBR", i.e. without enough entropy to
-        //	           contain boot code
-        //	    - 254  for a "Generic MBR" (DOS MBR) - bnc #438752
-        //	    - 254  for a GRUB or lilo "stage 1"
-        //	    - 254  for an unknown MBR
-	//	    - 0    for Vista MBR
 
         // check if there is raid and if it soft-raid select correct device for analyse MBR
         // bnc #398356
@@ -605,19 +576,16 @@ define symbol grub_ConfigureLocation() {
 	    boot_partition_disk = soft_MDraid_boot_disk(partitions_on_boot_partition_disk);
 	if (boot_partition_disk == "")
 	    boot_partition_disk = dp["disk"]:"";
-	// bnc #483797 cannot read 512 bytes from at /usr/lib/YaST2/bin/examine_mbr.pl
+	// bnc #483797 cannot read 512 bytes from...
+	string out = "";
 	if (boot_partition_disk != "")
 	{
-	    map out = (map)SCR::Execute (.target.bash_output, sformat (
-	        "/usr/lib/YaST2/bin/examine_mbr.pl %1", boot_partition_disk));
-	    y2milestone ("MBR examining script returned %1", out);
-	    exit = out["exit"]:0;
+	    out = BootCommon::examineMBR(boot_partition_disk);
 	} else {
-	    exit = 254;
 	    y2error("Boot partition disk not found");
 	}	
-	BootCommon::globals["generic_mbr"] = ((exit == 254) && (! keep_mbr)) ? "true" : "false";
-	if (exit == 0)
+	BootCommon::globals["generic_mbr"] = ((out != "vista") && (! keep_mbr)) ? "true" : "false";
+	if (out == "vista")
 	{
 		y2milestone("Vista MBR...");
 		vista_mbr = true;
