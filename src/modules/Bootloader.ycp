@@ -1411,7 +1411,7 @@ global define boolean CopyKernelInird()
 
     	map out = (map)WFM::Execute(.local.bash_output, cmd);
 
-	if (find(out["stdout"]:"", "VirtualBox") != -1)
+	if (search(out["stdout"]:"", "VirtualBox") != nil)
 	{
 		y2milestone ("Installation run on VirtualBox, skip kexec loading: %1", out);
 		return false;
@@ -1428,7 +1428,7 @@ global define boolean CopyKernelInird()
 	// find default section in BootCommon::sections
 	foreach(map<string,any> section, BootCommon::sections,
 	{
-		if ((find(tostring(section["name"]:""),name) != -1)
+		if ((search(tostring(section["name"]:""),name) != nil)
 		   &&  (section["root"]:nil == linux_default["root"]:nil)
 		   &&  (section["original_name"]:"" != "failsafe"))
 		{

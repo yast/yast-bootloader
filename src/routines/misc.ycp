@@ -404,7 +404,7 @@ global boolean IsPartitionBootable (string device) {
     // examineMBR returns "* stage1" when it finds the signature
     // of some stage1 bootloader
     string result = examineMBR(device);
-    if ((search(result, "grub") != nil) || ((search(result, "lilo") != nil))
+    if ((search(result, "grub") != nil) || (search(result, "lilo") != nil))
     	return true;
     else
 	return false;
