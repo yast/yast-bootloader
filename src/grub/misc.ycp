@@ -896,7 +896,7 @@ define void grub_LocationProposal () {
 	|| (size (BootStorage::device_mapping) == 0)
 	|| (BootCommon::cached_settings_base_data_change_time != Storage::GetTargetChangeTime()))
     {
-	BootCommon::ProposeDeviceMap();
+	BootStorage::ProposeDeviceMap();
     }
 
     if ( ! Mode::autoinst () ) {

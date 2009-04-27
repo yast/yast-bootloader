@@ -19,6 +19,7 @@
 textdomain "bootloader";
 
 import "Label";
+import "BootStorage";
 import "System::Bootloader_API";
 
 include "bootloader/routines/common_options.ycp";
@@ -299,7 +300,7 @@ map<string,map<string,any> > GrubOptions(){
 
 
 void InitDiskOrder(string widget) {
-  list<string> disksOrder = BootCommon::DisksOrder ();
+  list<string> disksOrder = BootStorage::DisksOrder ();
 
   UI::ChangeWidget ( `id(`disks), `Items, disksOrder);
   UI::ChangeWidget (`id (`disks), `CurrentItem, disksOrder[0]:"");

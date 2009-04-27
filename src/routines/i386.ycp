@@ -169,7 +169,7 @@ global void i386LocationProposal () {
 	|| size (BootStorage::device_mapping) == 0)
 	&& (getLoaderType(false) == "grub"))
     {
-	ProposeDeviceMap ();
+	BootStorage::ProposeDeviceMap ();
     }
 
     if (DisksChanged () && ! Mode::autoinst ()) {
