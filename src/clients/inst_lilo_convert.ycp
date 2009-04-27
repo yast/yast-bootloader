@@ -20,6 +20,7 @@ textdomain "bootloader";
 
 
 import "BootCommon";
+import "BootStorage";
 import "Installation";
 import "GetInstArgs";
 import "Mode";
@@ -61,11 +62,11 @@ void convertSettings()
     BootCommon::InitializeLibrary(true, "grub");
     BootCommon::setLoaderType("grub");
 
-    BootCommon::ProposeDeviceMap ();
+    BootStorage::ProposeDeviceMap ();
     BootGRUB::Propose();
 
 
-    BootCommon::SetDeviceMap(BootCommon::device_mapping);
+    BootCommon::SetDeviceMap(BootStorage::device_mapping);
     BootCommon::SetSections(sec);
     BootCommon::SetGlobal(BootCommon::globals);
 

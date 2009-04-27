@@ -27,9 +27,7 @@ import "BootArch";
 import "Map";
 
 global string DiskOrderSummary ();
-global list<string> DisksOrder ();
 global void DetectDisks ();
-global void ProposeDeviceMap ();
 global boolean DisksChanged ();
 
 include "bootloader/routines/i386.ycp";
@@ -73,7 +71,7 @@ global boolean DisksChanged () {
  */
 global string FindMBRDisk() {
     // check the disks order, first has MBR
-    list<string> order = DisksOrder ();
+    list<string> order = BootStorage::DisksOrder ();
     if (size (order) > 0)
     {
 	string ret = order[0]:"";
@@ -1080,7 +1078,7 @@ global void UpdateGfxMenu () {
  * @return string a line for the summary (or nil if not intended to be shown)
  */
 global string DiskOrderSummary () {
-    list<string> order = DisksOrder ();
+    list<string> order = BootStorage::DisksOrder ();
     string ret = nil;
     if (size (order) > 1)
     {

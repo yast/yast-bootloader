@@ -103,6 +103,7 @@
 // -------------------------------------------------
 
     import "Bootloader";
+    import "BootStorage";
     import "BootCommon";
     import "Initrd";
     import "Kernel";
@@ -395,7 +396,7 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	    });
 	    string file = mergestring (lines, "\n");
 	    BootCommon::InitializeLibrary (true, loader);
-	    BootCommon::SetDeviceMap (BootCommon::device_mapping);
+	    BootCommon::SetDeviceMap (BootStorage::device_mapping);
 	    BootCommon::SetSections ([]);
 	    BootCommon::SetGlobal ($[]);
 	    map<string,string> files = BootCommon::GetFilesContents ();

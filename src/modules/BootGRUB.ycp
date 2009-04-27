@@ -494,7 +494,7 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     if (BootStorage::device_mapping == nil
 	|| size (BootStorage::device_mapping) == 0)
     {
-	BootCommon::ProposeDeviceMap ();
+	BootStorage::ProposeDeviceMap ();
     }
 
     //importMetaData();
