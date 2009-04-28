@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Apr 28 16:48:12 CEST 2009 - juhliarik@suse.cz
+
+- added updated patch from IBM and reipl (bnc#471522) 
+
+-------------------------------------------------------------------
 Tue Apr 28 16:37:43 CEST 2009 - juhliarik@suse.cz
 
 - disable checking thinkpad sequence in MBR also save content of 
