@@ -204,9 +204,15 @@ map<string,any> generic_Term (map<string,any> options, string type) {
 	    if ( type == "radio" || type == "check") {
 		new = `Left(`HBox (
 		    enable_widget,
-		    `ComboBox (`id (key), def_opt, "",
-		    	maplist(string v, val, ``( `item(`id(v), v) ) )
-	    	    )
+		    // BNC #395009 Bootloader: Unable to set "Custom boot partition" - 
+                    // no partitions offered, combobox too small to edit
+		    (size (val) > 0 ?
+			`ComboBox (`id (key), def_opt, "",
+		    		maplist(string v, val, ``( `item(`id(v), v) ) )
+	    	    	)
+			:
+			`MinWidth (15, `ComboBox (`id (key), def_opt, "", []))
+		    )
 	       	));
 	    }
 	    else  {
@@ -299,7 +305,14 @@ void generic_Init (
 	}
 	else if (contains(["string", "path", "select", "selectdevice"],
 			  (string)value)) {
-	    UI::ChangeWidget (`id (key), `Value, data[key]:"");
+
+	    // ComboBox doesn't accept `Value, use `Items instead
+	    // See bnc #380781
+	    if (UI::QueryWidget (`id (key), `WidgetClass) == "YComboBox") {
+		UI::ChangeWidget (`id (key), `Items, [data[key]:""]);
+	    } else {
+		UI::ChangeWidget (`id (key), `Value, data[key]:"");
+	    }
 	}
 	else if (value == "password") {
 	    UI::ChangeWidget (`id (key + "_pw1"), `Value, "**********");
@@ -432,7 +445,15 @@ symbol generic_Handle (string key, map event) {
 	    (string)UI::QueryWidget(`id(base_id), `Value), "*",
 	    _("Select a file name"));
 	if (file_name != "" && file_name != nil) {
-	    UI::ChangeWidget(`id(base_id), `Value, file_name);
+
+// ComboBox doesn't accept `Value, use `Items instead
+	    // See bnc #380781
+	    if (UI::QueryWidget (`id (base_id), `WidgetClass) == "YComboBox") {
+		UI::ChangeWidget(`id(base_id), `Items, [file_name]);
+	    } else {
+		UI::ChangeWidget(`id(base_id), `Value, file_name);
+	    }
+	    
 	    reason = "ValueChanged";
 	    id = base_id;
 	}

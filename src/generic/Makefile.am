@@ -14,7 +14,8 @@ ynclude_DATA =			\
 	section_widgets.ycp	\
 	sections_widget.ycp	\
 	widget_funcs.ycp	\
-	wizards.ycp
+	wizards.ycp		\
+	device_map_edit_widget.ycp
 
 EXTRA_DIST = 			\
 	$(ynclude_DATA)

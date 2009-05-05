@@ -149,7 +149,7 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	    if ( ai["loader_type"]:"" == "grub" && haskey(ai, "location") ) {
 		if ( ai["location"]:nil == "extended" )
 		    exp["specific", "global", "boot_extended"] = "true";
-		if ( ai["location"]:nil == "boot" )
+		else if ( ai["location"]:nil == "boot" )
 		    exp["specific", "global", "boot_boot"] = "true";
 		else if ( ai["location"]:nil == "root" )
 		    exp["specific", "global", "boot_root"] = "true";
@@ -178,7 +178,9 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 		map<string,string> device_map = listmap (
 		    map<string,string> entry, dm,
 		{
-		    return $[ entry["linux"]:"" : entry["firmware"]:"" ];
+		    string firmware = deletechars(entry["firmware"]:"", "()");
+
+		    return $[ entry["linux"]:"" : firmware ];
 		});
 		exp["specific", "device_map"] = device_map;
 	    }
@@ -265,6 +267,14 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 	y2milestone ("SLES9 format detected: %1", old_format);
 	if (old_format)
 	{
+	    // In SLES9, there were no specific tags defined for the bootloader
+	    // configuration items in the <global> and <sections> scopes. All
+	    // configuration lines there were put into <key> and <value> pairs,
+	    // and each of these pairs were put into <(global|section)_entry>
+	    // tags (see example config snippets above).
+	    // Converting key/value pairs to file contents first, then setting
+	    // as file contents and re-exporting the parsed file contents.
+
 	    list<list<map> > sections = ai["sections"]:[];
 	    list<map> globals = ai["global"]:[];
 	    sections = prepend (sections, globals);

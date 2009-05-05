@@ -17,6 +17,7 @@
     import "Bootloader";
     import "Storage";
     import "Mode";
+    import "BootSupportCheck";
 
     include "bootloader/routines/wizards.ycp";
 
@@ -51,7 +52,7 @@
 	    // changes relevant to the yast2-bootloader settings are made
 	    // through Storage, so the change time of Storage data should be
 	    // sufficient.
-	    && Bootloader::cached_settings_base_data_change_time == Storage::GetTargetChangeTime())
+	    && BootCommon::cached_settings_base_data_change_time == Storage::GetTargetChangeTime())
 
 
 	  // FIXME: has the software selection changed?: esp. has the
@@ -84,8 +85,13 @@
 	if (Bootloader::getLoaderType () == "grub")
 	{
 	    import "BootGRUB";
+            // merge_level == `main means: merge only the "default" key(s?) of
+            // a "foreign" grub configuration from a different configuration
+            // into our configuration
 	    BootGRUB::merge_level = `main;
 	    Bootloader::Propose ();
+
+	    
 	    BootGRUB::merge_level = `none;
 	}
 	else
@@ -164,9 +170,21 @@ In case that no selection can be made it may be necessary to create a PReP Boot 
 	    }
 	}
 
+	if (!BootSupportCheck::SystemSupported())
+	{
+		ret = (map<string,any>)
+		      union(ret,
+			    $[
+			      "warning_level" : `error,
+			      "warning" :  BootSupportCheck::StringProblems(),
+			      "raw_proposal" : Bootloader::Summary (),
+		    ]);
+
+	}
+
 	// cache the values
 	Bootloader::cached_settings = Bootloader::Export();
-	Bootloader::cached_settings_base_data_change_time = Storage::GetTargetChangeTime();
+	BootCommon::cached_settings_base_data_change_time = Storage::GetTargetChangeTime();
 	Bootloader::cached_proposal = ret;
     }
     // This is a request to start some dialog and interact with the user to set

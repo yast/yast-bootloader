@@ -10,6 +10,7 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Olaf Dabrunz <od@suse.de>
  *
  * $Id$
  *
@@ -29,6 +30,7 @@
     import "Progress";
     import "Stage";
     import "Storage";
+    import "Directory";
 
 //    import "BootABOOT";
     import "BootELILO";
@@ -37,7 +39,11 @@
 //    import "BootS390";
     import "BootGRUB";
     import "BootPOWERLILO"; // The ppc-LILO File
+    //fate 303395
+    import "ProductFeatures";
+    import "Arch";
 
+    // interface for clients
     global define map Export ();
     global define boolean Import (map settings);
     global define void Propose ();
@@ -45,6 +51,9 @@
     global define void Reset ();
     global define boolean Write ();
 
+    global define boolean FlagOnetimeBoot (string section);
+
+    // additional interfaces, mostly for other modules
     global define void ReadOrProposeIfNeeded ();
     global define string getDefaultSection ();
     global define string getKernelParam (string section, string key);
@@ -53,7 +62,8 @@
     global define string getLoaderType ();
     global define string getProposedDefaultSection ();
     global define boolean UpdateGfxMenu ();
-
+    global define void DelDuplicatedSections();
+    global define void ResolveSymlinksInSections();
 
     /**
       * Write is repeating again
@@ -73,7 +83,6 @@
      */
     global map cached_proposal = nil;
     global map cached_settings = $[];
-    global integer cached_settings_base_data_change_time = nil;
 
 // old vga value handling function
 
@@ -219,7 +228,7 @@
         if (testAbort ())
             return false;
 
-	boolean ret = blRead (true);
+	boolean ret = blRead (true, false);
 	BootCommon::was_read = true;
 	old_vga = getKernelParam (getDefaultSection (), "vga");
 
@@ -272,6 +281,8 @@
 	BootCommon::backup_mbr = true;
 	y2milestone ("Proposed settings: %1", Export ());
     }
+
+	
     /**
       * Display bootloader summary
       * @return a list of summary lines
@@ -929,6 +940,8 @@ string checkZiplDefault(string def)
 	    if (value != "false")
 	    {
 		BootCommon::sections[sectnum, key] = value;
+		// added flag that section was modified bnc #432651
+		BootCommon::sections[sectnum, "__changed"] = true; 
 	    }
 	    else
 	    {
@@ -941,6 +954,8 @@ string checkZiplDefault(string def)
 	    string line = BootCommon::sections [sectnum, "append"]:"";
 	    line = BootCommon::setKernelParamToLine (line, key, value);
 	    BootCommon::sections [sectnum, "append"] = line;
+	     // added flag that section was modified bnc #432651
+	    BootCommon::sections[sectnum, "__changed"] = true;
 	}
 	BootCommon::changed = true;
 	boolean ret = true;
@@ -998,6 +1013,16 @@ string checkZiplDefault(string def)
     global define void setBootDevice (string device) {
 	ReadOrProposeIfNeeded ();
 	BootCommon::BootPartitionDevice = device;
+    }
+
+    /**
+      * Set section to boot on next reboot
+      * @param section string section to boot
+      * @return boolean true on success
+      */
+    global define boolean FlagOnetimeBoot(string section)
+    {
+	return blFlagOnetimeBoot (section);
     }
 
     /**

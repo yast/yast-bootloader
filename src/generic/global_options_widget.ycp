@@ -68,6 +68,10 @@ void GOW_Store (string widget, map event) {
 symbol GOW_Handle (string key, map event) {
     y2milestone("Called for key %1 through event %2", key, event);
     // FIXME: is that the right way? "path" widget managed right?
+    // bnc #461613 - Unable to boot after making changes to boot loader
+    // bnc #357290 - module rewrites grub generic code when leaving with no changes, which may corrupt grub
+    if (event["EventReason"]:"" == "ValueChanged")
+        BootCommon::location_changed = true;
     return generic_Handle (key, event);
 }
 

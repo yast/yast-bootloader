@@ -13,14 +13,16 @@ module_DATA =			\
 	BootGRUB.ycp		\
 	BootLILO.ycp		\
 	BootPOWERLILO.ycp	\
-	BootZIPL.ycp
+	BootZIPL.ycp		\
+	Bootloader_API.pm	\
+	BootSupportCheck.ycp
 
 #	BootS390.ycp		\
 #	BootMILO.ycp		\
 #	BootABOOT.ycp
 
 Bootloader_API.pm:
-	test -f Bootloader_API.pm || ln -sf `find /usr/lib/perl5 -name Bootloader_API.pm | tail -1`
+	test -f Bootloader_API.pm || exit 1
 
 
 EXTRA_DIST = 			\
@@ -35,10 +37,6 @@ dep: Bootloader_API.pm
 
 BootCommon.ybc: Bootloader_API.pm
 
-install: install_Bootloader_API install-am
-
-install_Bootloader_API:
-	test -d ${RPM_BUILD_ROOT}/@moduledir@ || mkdir -p ${RPM_BUILD_ROOT}/@moduledir@
-	 /bin/cp -f -d Bootloader_API.pm ${RPM_BUILD_ROOT}/@moduledir@
+install: install-am
 
 include $(top_srcdir)/Makefile.am.common

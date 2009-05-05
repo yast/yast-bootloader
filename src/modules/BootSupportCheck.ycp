@@ -1,0 +1,316 @@
+/**
+ * File:
+ *      modules/BootSupportCheck.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Check whether the current system setup is a supported configuration
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: BootCommon.ycp 49686 2008-08-05 10:04:46Z juhliarik $
+ *
+ */
+
+{
+module "BootSupportCheck";
+
+textdomain "bootloader";
+
+import "Bootloader";
+import "Arch";
+import "Storage";
+import "BootCommon";
+
+/**
+ * List of problems found during last check
+ */
+list<string> detected_problems = [];
+
+/**
+ * Add a new problem description to the list of found problems
+ */
+void AddNewProblem (string description) {
+    detected_problems = add (detected_problems, description);
+}
+
+/**
+ * List detected problems
+ * Always run SystemSupported before calling this function
+ * @return boolean a list of problems, empty if no was found
+ */
+global list<string> DetectedProblems () {
+    return detected_problems;
+}
+
+
+/**
+ * Formated string of detected problems
+ * Always run SystemSupported before calling this function
+ * @return boolean a list of problems, empty if no was found
+ */
+global string StringProblems () {
+
+	string ret = "";
+	if (size(detected_problems) > 0)
+	{
+		foreach(string s, detected_problems,
+		{
+			ret = ret + s + "\n";	
+		});
+	}
+
+	return ret;
+}
+
+
+/**
+ * Check that bootloader is known and supported
+ */
+boolean KnownLoader () {
+    if (! contains (["grub", "elilo", "ppc", "zipl", "lilo", "none"], Bootloader::getLoaderType ()))
+    {
+
+       y2error ("Unknown bootloader: %1", Bootloader::getLoaderType ());
+       AddNewProblem (sformat (_("Unknown bootloader: %1"), Bootloader::getLoaderType ()));
+	return false;
+    }
+    return true;
+}
+
+/**
+ * Check if elilo is supported
+ */
+boolean checkElilo()
+{
+    string cmd = "modprobe efivars 2>/dev/null";
+    map ret = (map)SCR::Execute (.target.bash_output, cmd);
+    if (ret["exit"]:1 == 0)
+	return true;
+    else
+	return false;
+}
+
+
+
+/**
+ * Check that bootloader matches current hardware
+ */
+boolean CorrectLoaderType () {
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none")
+	return true;
+
+    if (Arch::s390() && lt == "zipl")
+	return true;
+    if (Arch::ppc() && lt == "ppc")
+	return true;
+    if (Arch::ia64() && lt == "elilo")
+	return true;
+    if (Arch::i386() || Arch::x86_64()) {
+	if (checkElilo()) {
+	    if (lt == "elilo")
+		return true;
+	} else {
+	    if ((lt == "grub") || (lt == "lilo"))
+		return true;
+	}
+    }
+    y2error ("Unsupported combination of hardware platform %1 and bootloader %2", Arch::architecture(), lt);
+    AddNewProblem (sformat (_("Unsupported combination of hardware platform %1 and bootloader %2"), Arch::architecture(), lt));
+    return false;
+}
+
+/**
+ * Checks for GPT partition table
+ // FIXME adapt for ELILO if needed
+ */
+boolean GptPartitionTable () {
+    boolean ret = true;
+    map tm = Storage::GetTargetMap ();
+    list<string> devices = [ BootCommon::BootPartitionDevice ];
+    // TODO add more devices
+    foreach (string dev, devices, {
+	map p_dev = Storage::GetDiskPartition (dev);
+        integer num = BootCommon::myToInteger( p_dev["nr"]:nil );
+        string mbr_dev = p_dev["disk"]:"";
+	string label = tm[mbr_dev,"label"]:"";
+	y2milestone ("Label: %1", label);
+	y2internal ("Num: %1", num);
+	if (label == "gpt")
+	{
+	    if (num > 3)
+	    {
+		y2error ("Partition number > 3 is being used for booting with GPT partition table");
+		AddNewProblem (_("Partition number > 3 is being used for booting with GPT partition table"));
+		ret = false;
+	    }
+	}
+    });
+    return ret;
+}
+
+
+/**
+ * Check if boot partition exist
+ * check if not on raid0
+ *
+ * @return boolean true on success
+ */
+
+
+global boolean check_BootDevice()
+{
+   	boolean result = true;
+   	string boot_device = "";
+
+	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
+
+
+	boot_device = BootCommon::getBootPartition();
+
+   	// if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice)
+	//	AddNewProblem (_("Doesn't exist separete /boot partition"));
+
+	boolean found_boot = false;
+	// check if boot device is on raid0
+	if (boot_device != "")
+	{
+		foreach (string k, map v, devices, 
+		{
+			foreach (map p, (list<map>)(v["partitions"]:[]), 
+			{
+				if (p["device"]:"" == boot_device)
+				{
+					if ((p["raid_type"]:"" != "raid1") && (p["type"]:nil ==`sw_raid))
+					{
+						AddNewProblem (sformat(_("The boot device is on raid type: %1. System will not boot."), p["raid_type"]:""));
+						y2error("The boot device: %1 is on raid type: %2", boot_device,  p["raid_type"]:"");
+						result = false;
+						break;
+					} else {
+						found_boot = true;
+						y2milestone("The boot device: %1 is on raid: %2", boot_device, p["raid_type"]:"");
+						//break;
+					}
+
+					// check if /boot directory is on supported filesystem
+					if (p["used_fs"]:nil == `xfs) {
+						AddNewProblem (_("The /boot directory is on an XFS filesystem. System will not boot."));
+						y2error ("The /boot directory is on an XFS filesystem");
+						result = false;
+						break;
+		    			} else {
+						found_boot = true;
+						y2milestone ("/boot filesystem is OK");
+						break;
+		    			}
+
+				}
+			});
+			if ((!result) || (found_boot))
+				break;
+		});
+	}	
+   	return result;
+}
+
+/**
+ * Check if there is bios_id
+ * if not show warning
+ *
+ * @return boolean true on success
+ */
+
+boolean CheckBios_ID()
+{
+	boolean ret = true;
+	if (BootCommon::bois_id_missing)
+	{
+		AddNewProblem (_("It was not possible to determine the exact order of disks for device map. The order of disks can be changed in \"Boot Loader Installation Details\""));
+		ret = false;
+	}
+	return ret;
+}
+
+
+/**
+ * Check that the root partition is reachable
+ */
+boolean RootPartition () {
+    return true;
+}
+
+/**
+ * GRUB-related check
+ */
+global boolean GRUB () {
+    boolean ret = GptPartitionTable ();
+    if (ret)
+	ret = check_BootDevice();
+    if (ret)
+	ret = CheckBios_ID();
+    return  ret;
+}
+
+/**
+ * ELILO related check
+ */
+boolean ELILO () {
+    return true;
+}
+
+/**
+ * ZIPL related check
+ */
+boolean ZIPL () {
+    return true;
+}
+
+/**
+ * PPC related check
+ */
+boolean PPC () {
+    return true;
+}
+
+/**
+ * Check if the system configuraiton is supported
+ * Also sets the founds problems into internal variable
+ * Always run this function before calling DetectedProblems()
+ * @return boolean true if supported
+ */
+global boolean SystemSupported () {
+    detected_problems = [];
+
+    // check if the bootloader is known and supported
+    boolean supported = KnownLoader ();
+
+    string lt = Bootloader::getLoaderType ();
+    if (lt == "none")
+	return true;
+
+    // detect correct bootloader type
+    supported = CorrectLoaderType () && supported;
+
+    // check whether root partition can be reached
+    supported = RootPartition () && supported;
+
+    // check specifics for individual loaders
+    if (lt == "grub")
+	supported = GRUB () && supported;
+    else if (lt == "elilo")
+	supported = ELILO () && supported;
+    else if (lt == "ppc")
+	supported = PPC () && supported;
+    else if (lt == "zipl")
+	supported = ZIPL () && supported;
+
+    y2milestone ("Configuration supported: %1", supported);
+    return supported;
+}
+
+} // EOF

@@ -32,6 +32,10 @@ import "PackageSystem";
 import "Storage";
 import "String";
 import "Pkg";
+import "Popup";
+import "Package";
+
+import "Linuxrc";
 
 
 // General bootloader settings
@@ -51,6 +55,14 @@ global map<string,any> section_options = $[];
  */
 global map<string,any> exports = $[];
 
+
+/**
+ * boolean value indicate if "/" is on logical
+ * and primary /boot doesn't exist
+ */
+
+global boolean boot_device_on_logical = false;
+
 /**
  * map of global options and values
  */
@@ -62,9 +74,31 @@ global map<string,string> globals = $[];
 global list<map<string,any> > sections = [];
 
 /**
+ * Saved change time from target map - proposal
+ */
+
+global integer cached_settings_base_data_change_time = nil;
+
+/**
+ * Saved change time from target map - only for MapAllPartitions()
+ */
+
+global integer saved_last_change_time_from_storage = nil;
+
+
+
+/**
  * device mapping between Linux and firmware
  */
 global map<string,string> device_mapping = $[];
+
+/**
+/**
+ * Flag indicates that bios_id_missing in disk 
+ * true if missing false if at least one disk has bios_id
+ */
+
+global boolean bois_id_missing = true;
 
 /**
  * device to save loader stage 1 to
@@ -176,6 +210,12 @@ global boolean one_section_changed = false;
   * Backup original MBR before installing bootloader
   */
 global boolean backup_mbr = false;
+
+/**
+ * true if default section is edited
+ * it is important for remember default name...
+ */
+global boolean default_changed = false;
 
 /**
   * Activate bootloader partition during installation?
@@ -328,6 +368,7 @@ global define string getLoaderType (boolean recheck);
 global define list<string> getBootloaders ();
 global define list<string> Summary ();
 global define boolean UsingXenPae();
+global map<string,any> CreateLinuxSection (string title);
 
 
 //
@@ -436,7 +477,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	"original_name" : title,
 	"type" : "image",
 	"__auto" : true,
-	"__changed" : false,
+	"__changed" : true,
     ];
 
     if (title == "memtest86") {
@@ -473,7 +514,7 @@ global map<string,any> CreateLinuxSection (string title) {
 
 	// Then, get the file names in the "selected" kernel package,
 	string kernel_package = Kernel::ComputePackage();
-	list<string> files = Pkg::PkgGetFilelist( kernel_package, `any );
+	list<string> files = Pkg::PkgGetFilelist( kernel_package, `installed );
 	y2milestone ("kernel package %1 has these files: %2", kernel_package, files);
 
 	// then find the first file that matches the arch-dependent kernel file
@@ -514,7 +555,48 @@ global map<string,any> CreateLinuxSection (string title) {
 		"/boot/initrd-*" :
 		files_filtered[0]:""
 	);
+
+	if ((kernel_fn == "") || (kernel_fn == nil))
+	    kernel_fn = "/boot/vmlinuz";
+
+	if ((initrd_fn == "") || (initrd_fn == nil))
+	    initrd_fn = "/boot/initrd";
+
+	// read commandline options for kernel
+	list<string> cmd = (list<string>) SCR::Read(.proc.cmdline);
+
+  	any vga = nil; 
+
+	// trying to find "vga" option
+  	foreach ( string key, cmd, 
+	{
+    	    if (find(key, "vga=") != -1)
+      		vga = key;
+    	    y2milestone("key: %1", key);
+  	});
+	y2milestone("vga from command line: %1", vga);
+  	list <string> mode =[];
+
+	// split vga=value
+  	if ((vga != nil) && (vga != ""))
+      	    mode = splitstring(tostring(vga), "=");
+
+	string vgamode =nil;
+
+	// take value if exist
+	if ((size(mode)>1) && (mode[0]:"" == "vga"))
+     	    vgamode = mode[1]:nil;
+
+	// add value of vga into proposal (if exist)
+	if ((vgamode != nil) && (vgamode != ""))
+	{
+	    ret["vga"] = vgamode;
+	    y2milestone("vga mode: %1", vgamode);
+	}
+
     } else {
+	// the links are shown in the proposal; at the end of an installation,
+	// in bootloader_finish, they will be resolved to the real filenames
 	kernel_fn = "/boot/" + Kernel::GetBinary ()
 	    + (title == "wildcard" ? "-*" : "");
 	initrd_fn = "/boot/initrd" + (title == "wildcard" ? "-*" : "");
@@ -533,10 +615,15 @@ global map<string,any> CreateLinuxSection (string title) {
     ]);
     if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
     {
-	if (title == "failsafe")
-	    ret["vga"] = "normal";
-	else
-	    ret["vga"] = Kernel::GetVgaType ();
+
+	// B#352020 kokso: - Graphical failsafe mode
+	//if (title == "failsafe")
+	//    ret["vga"] = "normal";
+	//else
+	ret["vga"] = Kernel::GetVgaType ();
+
+	// B#352020 end
+
     }
     if (title == "xen")
     {
@@ -602,16 +689,18 @@ global define boolean Import (map settings) {
 /**
  * Read settings from disk
  * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
  * @return boolean true on success
  */
-global boolean Read (boolean reread) {
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     string bl = getLoaderType (false);
     if (bl == "none")
 	return true;
     InitializeLibrary (reread, bl);
     if (reread)
     {
-	BootCommon::ReadFiles ();
+	BootCommon::ReadFiles (avoid_reading_device_map);
     }
     sections = GetSections ();
     globals = GetGlobal ();
@@ -626,7 +715,7 @@ global boolean Read (boolean reread) {
     });
 
     // convert device names in device map to the kernel device names
-    map<string,string> device_mapping =
+    device_mapping =
 	mapmap (string k , string v, device_mapping, {
 	    return $[BootCommon::MountByDev2Dev(k) : v];
     });
@@ -730,10 +819,17 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 
     // convert device names in device map to the device names indicated by
     // "mountby"
+
+    y2milestone ("device map before mapping %1", device_mapping);
     map<string,string> my_device_mapping =
 	mapmap (string k , string v, device_mapping, {
 	    return $[BootCommon::Dev2MountByDev(k) : v];
     });
+    y2milestone ("device map after mapping %1", my_device_mapping);
+
+    // convert XEN section to linux section id running in domU
+    // bnc #436899
+    ConvertXENinDomU ();
 
     ret = ret && SetDeviceMap (my_device_mapping);
     ret = ret && SetSections (sects);
@@ -791,11 +887,11 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    string title = s["name"]:"";
 		// section name "suffix" for default section
 	    string def = title == globals["default"]:"" ? _(" (default)") : "";
-	    sects = add (sects, sformat ("%1%2", title, def));
+	    sects = add (sects, String::EscapeTags (sformat ("+ %1%2", title, def)));
 	});
 	// summary text. %1 is list of bootloader sections
-	result = add (result, sformat (_("Sections: %1"),
-	    String::EscapeTags (mergestring (sects, ", "))));
+	result = add (result, sformat (_("Sections:<br>%1"),
+	    mergestring (sects, "<br>")));
 	if (loader_device == "/dev/null")
 	    // summary text
 	    result = add (result, _("Do not install boot loader; just create
@@ -916,21 +1012,22 @@ global define string getLoaderType (boolean recheck) {
     if (loader_type == "s390")
       loader_type = "zipl";
     y2milestone ("Bootloader detection returned %1", loader_type);
+    // lslezak@: Arch::is_xenU() returns true only in PV guest
     if (Arch::is_uml () || Arch::is_xenU())
     {
-	//y2milestone ("Not installing any bootloader for UML/Xen PV");
-	//loader_type = "none";
+	// y2milestone ("Not installing any bootloader for UML/Xen PV");
+	// loader_type = "none";
 	// bnc #380982 - pygrub cannot boot kernel
 	// added installation of bootloader
 	y2milestone ("It is XEN domU and the bootloader should be installed");
 
     }
-    if (loader_type == "grub" && Storage::UseLilo())
+    if ((Arch::i386() || Arch::x86_64()) && Linuxrc::InstallInf("EFI") == "1")
     {
-	loader_type = "lilo";
-	prefer_lilo = true;
+	loader_type = "elilo";
     }
-    else
+
+    if (loader_type == "grub")
     {
         prefer_lilo = false;
     }
@@ -1007,6 +1104,8 @@ global define list<string> getBootloaders () {
     if (Arch::i386 () || Arch::x86_64 ())
     {
         ret = (list<string>)merge (ret, ["lilo", "grub"]);
+	if (Arch::x86_64 ())
+	    ret = (list<string>)merge (ret, ["elilo"]);
     }
     // in order not to display it twice when "none" is selected
     ret = filter (string l, ret, {

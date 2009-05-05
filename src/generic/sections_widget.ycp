@@ -81,13 +81,13 @@ void _RedrawSectionsTable (list<map<string,any> > sects) {
 	    ),
 	    ", "
 	);
-	// Upcase word 'type'
-	type = toupper(substring(type,0,1)) + substring(type,1);
 
         return `item (`id (name),
 	    BootCommon::globals["default"]:"" == name ? UI::Glyph (`CheckMark) : "",
 	    name,
-	    type,
+	    (type == "image")
+	    ? _("Image")
+	    : _("Other"),
 	    summary
         );
     });
@@ -173,6 +173,11 @@ symbol _SectionsHandle (string widget, map event) {
 	BootCommon::current_section_index = op == `add ? -1 : index;
 	BootCommon::current_section_name = name;
 	y2internal ("Selected section: %1", BootCommon::current_section);
+
+	if (BootCommon::current_section["name"]:"" == BootCommon::globals["default"]:"")
+		BootCommon::default_changed = true;
+	else
+		BootCommon::default_changed = false;
 	return (symbol)op;
     }
     else if (op == `delete && confirmSectionDeletePopup (current))

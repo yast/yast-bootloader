@@ -12,6 +12,7 @@
  * Authors:
  *      Joachim Plack <jplack@suse.de>
  *      Jiri Srain <jsrain@suse.cz>
+ *      Philipp Thomas <pth@suse.de>
  *
  * $Id$
  *
@@ -162,15 +163,17 @@ global define boolean updateHardwareConfig () {
 /**
  * Read settings from disk
  * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
  * @return boolean true on success
  */
-global boolean Read (boolean reread) {
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     BootCommon::InitializeLibrary (reread, "zipl");
     if (reread) {
-	BootCommon::ReadFiles ();
+	BootCommon::ReadFiles (avoid_reading_device_map);
     }
     BootCommon::DetectDisks ();
-    boolean ret = BootCommon::Read (false);
+    boolean ret = BootCommon::Read (false, avoid_reading_device_map);
     return ret;
 }
 
@@ -267,6 +270,8 @@ global define void Update () {
 global define boolean Write () {
     boolean ret = BootCommon::UpdateBootloader ();
     ret = ret && BootCommon::InitializeBootloader ();
+    if (ret == nil)
+	ret = false;
     return ret;
 }
 
@@ -285,6 +290,16 @@ global map<string,symbol()> Dialogs () {
     ];
 }
 
+/**
+  * Set section to boot on next reboot.
+  * @param section string section to boot
+  * @return boolean true on success
+  */
+global define boolean FlagOnetimeBoot (string section)
+{
+        /* For now a dummy */
+        return true;
+}
 
 /**
   * Return map of provided functions
@@ -292,19 +307,20 @@ global map<string,symbol()> Dialogs () {
   */
 global map<string, any> GetFunctions () {
     return $[
-        //"export"	   : Export,
-        //"import"	   : Import,
-        "read"		   : Read,
-	//"reset"	   : Reset,
-        "propose"	   : Propose,
-        "save"		   : Save,
-        "summary"	   : Summary,
-        "update"	   : Update,
-        "write"		   : Write,
-        "widgets"	   : genericWidgets,
-        "wizard_sequencer" : WizardSequenzer,
-        "dialogs"	   : Dialogs,
-        "section_types"	   : section_types,
+        //"export"		: Export,
+        //"import"		: Import,
+        "read"			: Read,
+	//"reset"		: Reset,
+        "propose"		: Propose,
+        "save"			: Save,
+        "summary"		: Summary,
+        "update"		: Update,
+        "write"			: Write,
+        "widgets"		: genericWidgets,
+        "wizard_sequencer"	: WizardSequenzer,
+        "dialogs"		: Dialogs,
+        "section_types"		: section_types,
+	"flagonetimeboot"	: FlagOnetimeBoot,
     ];
 }
 

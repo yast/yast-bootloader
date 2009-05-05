@@ -151,11 +151,11 @@ global boolean InitializeLibrary (boolean force, string loader) {
  * @param sections a list of all loader sections (as maps)
  * @return boolean true on success
  */
-global boolean SetSections (list<map<string,string> > sections) {
+global boolean SetSections (list<map<string,any> > sections) {
     y2milestone ("Storing bootloader sections %1", sections);
-    sections = maplist (map<string,string> s, sections, {
+    sections = maplist (map<string,any> s, sections, {
 	s["__modified"] = "1";
-	s = filter (string key, string value, s, {
+	s = filter (string key, any value, s, {
 	    return (! is (value, string)) || (value != "");
 	});
 
@@ -171,9 +171,9 @@ global boolean SetSections (list<map<string,string> > sections) {
  * Get boot loader sections
  * @return a list of all loader sections (as maps)
  */
-global list<map<string,string> > GetSections () {
+global list<map<string,any> > GetSections () {
     y2milestone ("Reading bootloader sections");
-    list<map<string,string> > sects = System::Bootloader_API::getSections ();
+    list<map<string,any> > sects = System::Bootloader_API::getSections ();
     if (sects == nil)
     {
 	y2error ("Reading sections failed");
@@ -284,11 +284,13 @@ global void bootloaderError (string error) {
 
 /**
  * Read the files from the system to internal cache of the library
+ * @param avoid_reading_device_map do not read the device map, but use internal
+ * data
  * @return boolean true on success
  */
-global boolean ReadFiles () {
+global boolean ReadFiles (boolean avoid_reading_device_map) {
     y2milestone ("Reading Files");
-    boolean ret = System::Bootloader_API::readSettings ();
+    boolean ret = System::Bootloader_API::readSettings (avoid_reading_device_map);
     if (! ret)
 	y2error ("Reading files failed");
     return ret;

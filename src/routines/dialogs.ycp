@@ -379,7 +379,7 @@ symbol StoreSection () {
 	    {
 		files[filename] = (string)UI::QueryWidget (`id (`file), `Value);
 		BootCommon::SetFilesContents (files);
-		Bootloader::blRead (false);
+		Bootloader::blRead (false, false);
 		BootCommon::changed = true;
 		BootCommon::location_changed = true;
 	    }

@@ -54,6 +54,10 @@ installed on your computer</p>"),
 partition. Either select <b>Set active Flag in Partition Table for Boot Partition</b> and <b>Write generic Boot Code to MBR</b>
 in <b>Boot Loader Options</b> to update the master boot record if that is needed or configure your other boot manager
 to start this section.</p>"),
+    "boot_extended"		:
+("<p><b>Boot from Extended Partition</b> should be selected if your root partition is on 
+local partition and the /boot partition is missing</p>"),
+
     "boot_custom"		:
     _("<p><b>Custom Boot Partition</b> lets you choose a partition to boot from.</p>"),
     "serial"			:

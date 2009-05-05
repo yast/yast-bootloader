@@ -10,6 +10,7 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Olaf Dabrunz <od@suse.de>
  *
  * $Id$
  *
@@ -23,6 +24,7 @@ import "Mode";
 import "Storage";
 import "StorageDevices";
 import "BootArch";
+import "Map";
 
 global string DiskOrderSummary ();
 global list<string> DisksOrder ();
@@ -123,6 +125,42 @@ global string FindMBRDisk() {
     y2milestone ("Disk with boot partition: %1, using for MBR", boot_disk);
     return boot_disk;
 }
+
+
+
+/**
+ * function check all partitions and it tries to find /boot partition
+ * if it is MD Raid and soft-riad return correct device for analyse MBR
+ * @param list<map> list of partitions
+ * @return string device for analyse MBR
+ */
+define string soft_MDraid_boot_disk(list<map> partitions)
+{
+   string result = "";
+   string boot_device = "";
+   if ((BootCommon::BootPartitionDevice != nil) && (BootCommon::BootPartitionDevice != ""))
+       boot_device = BootCommon::BootPartitionDevice;
+   else
+       boot_device = BootCommon::RootPartitionDevice;
+
+   foreach(map p, partitions, {
+	if (p["device"]:"" == boot_device)
+	{
+	   if ((p["type"]:nil == `sw_raid) && (p["fstype"]:"" == "MD Raid"))
+	   {
+	      string device_1 = p["devices",0]:"";
+	      y2debug("device_1: %1", device_1);
+	      map dp = Storage::GetDiskPartition (device_1);
+	      y2debug("dp: %1", dp);
+	      result = dp["disk"]:"";
+	   }
+	}
+   });
+   y2milestone("Device for analyse MBR from soft-raid (MD-Raid only): %1", result);
+   return result;
+}
+
+
 
     /**
      * ConfigureLocation()
@@ -524,9 +562,12 @@ global void FixSections (void() create_sections) {
 	    && ! haskey (getSwapPartitions (), resume))
 	// points to unexistent swap partition
 	{
-	    append = setKernelParamToLine (append,
-		"resume", getLargestSwapPartition ());
-	    s["append"] = append;
+	    // bnc# 335526 - Installing memtest with lilo screws up installation
+	    if (search(s["original_name"]:"", "memtest") == nil)
+	    {
+	    	append = setKernelParamToLine (append, "resume", getLargestSwapPartition ());
+	    	s["append"] = append;
+	    }
 	}
 	return s;
     });
@@ -694,7 +735,8 @@ global void UpdateSections (boolean replace,
 		value = regexpsub (value,
 		    "^(.*)\.suse(.*)$", "\\1\\2");
 	    }
-	    s["key"] = value;
+	    // This was broken (was: s["key"] = value;)
+	    s[key] = value;
 	});
 	// If we did not replace the sections anyway, adjust the section titles:
 	// Does this section
@@ -722,18 +764,28 @@ global void UpdateSections (boolean replace,
 	    y2milestone ("... to %1", s["name"]:"");
 	}
 
+	// Update device names in sections for certain section types, if the
+	// section has not been recreated anyway
+	// FIXME: never update device names twice!
 	foreach (string key, ["root", "chainloader"], {
+	    // FIXME: for some reason, this used to update "linux" and
+	    // "failsafe" even if they have been recreated; but "other"
+	    // sections were never updated -- since there are no calls to
+	    // UpdateSections() with replace == false, ATM we disable updating
+	    // "linux" and "failsafe", and add "other", seed
+	    // BootCommon::update_section_types
 	    if ((contains (update_section_types, type)
 		    && ! contains (recreated, label))
 		|| key == "chainloader")
 	    {
-		string device = s["key"]:"";
+		string device = (string) s[key]:nil;
+		y2milestone ("Checking for update: device %1 of key %2, section %3", device, key, label);
 		if (device != nil)
 		{
 		    y2milestone ("Updating root/other device of section %1",
 			label);
 		    device = BootCommon::UpdateDevice (device);
-		    s["key"] = device;
+		    s[key] = device;
 		}
 	    }
 	});
@@ -779,7 +831,8 @@ global void UpdateSections (boolean replace,
  * modifies internal sreuctures
  */
 global void UpdateGlobals () {
-    BootCommon::globals["timeout"] = "8";
+    if (BootCommon::globals["timeout"]:"" == "")
+        BootCommon::globals["timeout"] = "8";
     list<string> s1_devs
 	= splitstring (BootCommon::globals["stage1_dev"]:"", ",");
     s1_devs = maplist (string d, s1_devs, {
@@ -982,7 +1035,7 @@ global void UpdateAppend () {
  */
 global void UpdateGfxMenu () {
     string message = globals["gfxmenu"]:"";
-    if (message != "")
+    if ((message != "") && (search(message, "(") == nil))
     {
 	if (-1 == SCR::Read (.target.size, message))
 	{
@@ -1292,6 +1345,57 @@ global string DiskOrderSummary () {
     }
     return ret;
 }
+
+/**
+ * Convert XEN boot section to normal linux section
+ * if intalling in domU (bnc #436899)
+ *
+ * @return boolean true if XEN section is converted to linux section
+ */
+
+boolean ConvertXENinDomU ()
+{
+
+	boolean ret = false;
+	if (!Arch::is_xenU())
+	{
+		y2milestone("Don't convert XEN section - it is not running in domU");
+		return ret;
+	}
+
+	// tmp sections
+	list<map<string,any> > tmp_sections = [];
+
+	foreach(map<string,any> sec, BootCommon::sections,
+	{
+		if (sec["type"]:"" != "xen")
+		{
+			tmp_sections = add(tmp_sections, sec);
+
+		} else {
+			// convert XEN section to linux section
+			y2milestone("Converting XEN section in domU: %1", sec);
+			sec["type"] = "image";
+			sec["original_name"] = "linux";
+			if (haskey(sec,"xen"))
+				sec = remove(sec, "xen");
+			if (haskey(sec,"xen_append"))
+				sec = remove(sec, "xen_append");
+			if (haskey(sec,"lines_cache_id"))
+				sec = remove(sec, "lines_cache_id");
+
+			y2milestone("Converted XEN section in domU: %1", sec);
+
+			tmp_sections = add(tmp_sections, sec);
+
+			ret = true;
+		}
+	});
+	
+	BootCommon::sections = tmp_sections;
+	return ret;
+}
+
 
 
 } // EOF

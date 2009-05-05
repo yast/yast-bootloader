@@ -35,11 +35,22 @@
     import "Misc";
     import "ProductFeatures";
     import "Directory";
+    import "Installation";
+    import "FileUtils";
 
 // bootloader attributes handling functions
 
     global map<string, integer> Md2Partitions (string md_device);
     global void DetectDisks ();
+    global string getBootPartition();
+    global string DiskOrderSummary ();
+    global list<string> DisksOrder ();
+    global void ProposeDeviceMap ();
+    global boolean DisksChanged ();
+    global define list<string> getPartitionList(symbol type);
+
+    include "bootloader/routines/i386.ycp";
+
 
     /**
       * return printable name of bootloader
@@ -697,6 +708,9 @@ global boolean InstallingToFloppy () {
     boolean ret = false;
     if (loader_device == nil)
 	ret = false;
+    // bnc #180784 don't install to bootloader to floppy if ppc
+    if (getLoaderType (false) == "ppc")
+	ret = false;
     else if (loader_device == StorageDevices::FloppyDevice)
 	ret = true;
     else if (contains (getFloppyDevices (), loader_device))
@@ -1013,6 +1027,8 @@ list<string> ListKernelParamsInLine (string line) {
 	string device_file = mergestring (splitstring (device, "/"), "_");
 	string device_file_path = "/var/lib/YaST2/backup_boot_sectors/"
 	    + device_file;
+	string device_file_path_to_logs = "/var/log/YaST2/"
+	    + device_file;
 	SCR::Execute (.target.bash,
 	    "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors");
 	if (SCR::Read (.target.size, device_file_path) > 0)
@@ -1037,12 +1053,25 @@ list<string> ListKernelParamsInLine (string line) {
 	SCR::Execute (.target.bash, sformat (
 	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
 	    device, device_file_path));
+        // save MBR to yast2 log directory
+	SCR::Execute (.target.bash, sformat (
+	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+	    device, device_file_path_to_logs));
+
 	if (device == mbrDisk)
 	{
 	    SCR::Execute (.target.bash, sformat (
 		"/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
 		device, "/boot/backup_mbr"));
 
+    	    // save thinkpad MBR 
+	    if (ThinkPadMBR(device))
+	    {
+	       string device_file_path_thinkpad = device_file_path + "thinkpadMBR";
+	       y2milestone("Backup thinkpad MBR");
+	       SCR::Execute(.target.bash, sformat (
+	       "cp %1 %2 2>&1", device_file_path, device_file_path_thinkpad));
+	    }
 	}
     }
 
@@ -1467,6 +1496,17 @@ global boolean BootloaderInstallable () {
 	    {
 		y2milestone ("Cannot install bootloader on RAID (not mirror)");
 		return false;
+	    }
+
+	    // (bnc 357897) - lilo reports inconsistent raid version when trying to install on raid1
+	    if (getLoaderType (false) == "lilo")
+	    {
+		string raid_ver = info["sb_ver"]:"";    //"00.90.03"
+		if (substring(raid_ver,0,2) == "01")
+		{
+		    y2milestone ("Cannot install bootloader on RAID (lilo doesn't support raid version %1)", info["sb_ver"]:"");
+		    return false;
+		}
 	    }
 	}
 	// EVMS

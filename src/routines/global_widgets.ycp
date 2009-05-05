@@ -28,6 +28,11 @@ import "Storage";
 import "StorageDevices";
 import "Bootloader";
 import "Progress";
+import "PackageSystem";
+import "Package";
+import "Message";
+
+
 
 include "bootloader/routines/helps.ycp";
 
@@ -330,6 +335,25 @@ Proceed?
 		BootCommon::location_changed = true;
 	    }
 	    return `redraw;
+	}
+
+	if (Arch::x86_64 ()) {
+	    if (new_bl == "elilo") {
+// continue/cancel pop-up
+		if (! Popup::ContinueCancel (_("
+ELILO supports only the EFI boot architecture. If yor
+firmware does not support it, your computer will not
+boot.")))
+		    return nil;
+	    }
+	    else if (old_bl == "elilo") {
+// continue/cancel pop-up
+		if (! Popup::ContinueCancel (_("
+Bootloader you selected does not support the EFI boot
+architecture. If your firmware does not support legacy
+booting, your computer will not boot.")))
+		    return nil;
+	    }
 	}
 
 	// warning - popup, followed by radio buttons
@@ -807,7 +831,13 @@ Continue?")))
 	else if (op == `init)
 	{
 	    // Bootloader::blSave (false, false, false);
-	    BootCommon::InitializeBootloader ();
+	    boolean ret = BootCommon::InitializeBootloader ();
+	    if (ret == nil)
+		ret = false;
+
+	    if (!ret)
+		Popup::Warning(_("Writing bootloader settings failed."));
+
 	}
 	else if (op == `propose_deep)
 	{
@@ -843,6 +873,38 @@ map<string,any> getAdvancedButtonWidget () {
 }
 
 
+
+/**
+ * Function for disable back button
+ * @param string key
+ */
+
+void BackButton (string key) {
+  if (Mode::installation())
+     UI::ChangeWidget(`id(`back), `Enabled, false);
+}
+
+
+/**
+ * Init function where are added UI hadle functions 
+ * special hack widget where is handlig disable back button
+ *
+ * @return map<string,any> map for start-stop widget
+ */
+
+map<string,any> DisBackButton () {
+  map<string,any> result = $[];
+
+  result["widget"] = `custom;
+  result["custom_widget"] =`Empty();
+  result["init"] = BackButton;
+  result["help"] = " ";
+
+  return result;
+}
+
+
+
 /**
  * Get the main dialog tabs description
  * @return a map the description of the tabs
@@ -859,7 +921,8 @@ map TabsDescr () {
 		"sections",
 		`VSpacing (1)
 	    ), `HSpacing (3)),
-        "widget_names": ["sections"]
+        "widget_names": ["DisBackButton", "sections"]
+
     ],
     "installation": $[
 	// tab header
@@ -891,9 +954,9 @@ map TabsDescr () {
 	    `VStretch ()
 	), `HStretch ()),
         "widget_names": (lt == "none" || lt == "default")
-	    ? [ "loader_type", "loader_options" ]
+	    ? [ "loader_type", "loader_options",  "DisBackButton"]
 	    : [ "loader_type", "loader_options", "loader_location",
-	    "inst_details" ]
+	    "inst_details", "DisBackButton" ]
     ],
   ];
 };
@@ -949,7 +1012,12 @@ map<string,map<string,any> > CommonGlobalWidgets () {
 	"handle" : InstDetailsButtonHandle,
 	"help" : InstDetailsHelp (),
     ],
+
+    "DisBackButton" : DisBackButton(),
   ];
+
+
+
   return _common_global_widgets;
 }
 

@@ -1,0 +1,184 @@
+/**
+ * File:
+ *      include/bootloader/routines/dialogs.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Dialogs for configuraion i386-specific functions
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: dialogs_i386.ycp 47885 2008-05-26 16:34:24Z juhliarik $
+ *
+ */
+
+
+{
+textdomain "bootloader";
+
+
+import "Label";
+import "Wizard";
+import "CWM";
+import "BootCommon";
+import "Stage";
+
+include "bootloader/routines/helps_i386.ycp";
+
+
+/**
+ * Run dialog to adjust installation on i386 and AMD64
+ * @return symbol for wizard sequencer
+ */
+symbol i386InstallDetailsDialog () {
+    term contents = `HBox (`HStretch (), `VBox (
+	`VStretch (),
+	// frame
+	`Frame (_("Disk Order"),
+	    `HBox (`HSpacing (2), `VBox (
+		    `VSpacing (1),
+		    `SelectionBox (`id (`disks),
+			`opt (`notify, `immediate),
+			// selectionn box label
+			_("D&isks"), []),
+		    (Mode::config () || Mode::installation())
+			? `HBox (
+			    `HStretch (),
+			    `PushButton (`id (`add), `opt (`key_F3), Label::AddButton ()),
+			    `PushButton (`id (`delete), `opt(`key_F5), Label::DeleteButton ()),
+			    `HStretch ()
+			)
+			: `HBox (),
+		    `VSpacing (1)
+		),
+		`HSquash (
+		    `VBox (
+			`VStretch (),
+			`PushButton (`id (`up), `opt (`hstretch), _("&Up")),
+			`PushButton (`id (`down), `opt (`hstretch), _("&Down")),
+			`VStretch ()
+		    )
+		),
+	        `HSpacing (2)
+	    )
+	),
+	`VStretch ()
+
+    ), `HStretch ());
+
+    Wizard::SetContentsButtons (
+	// dialog caption
+	_("Boot Loader Device Map"),
+	contents,
+	i386DeviceMapEditHelp(),
+	Label::BackButton (),
+	Label::OKButton ());
+
+    list<string> disks_order = BootCommon::DisksOrder ();
+
+    UI::ChangeWidget (`id (`disks), `Items, disks_order);
+    UI::ChangeWidget (`id (`disks), `CurrentItem, disks_order[0]:"");
+
+    any ret = nil;
+    while (ret == nil)
+    {
+	string current = (string)UI::QueryWidget (`id (`disks), `CurrentItem);
+	integer pos = 0;
+	while (pos < size (disks_order) && disks_order[pos]:"" != current)
+	    pos = pos + 1;
+	UI::ChangeWidget (`id (`up), `Enabled,
+	    pos > 0 && pos < size (disks_order));
+	UI::ChangeWidget (`id (`down), `Enabled, pos < size (disks_order) - 1);
+
+	ret = UI::UserInput ();
+	boolean order_changed = false;
+
+	if (ret == `add)
+	{
+	    term popup = `VBox (`VSpacing (1),
+		// textentry header
+		`InputField (`id (`devname), `opt (`hstretch), _("&Device")),
+		`VSpacing (1),
+		`HBox (`HStretch (),
+		    `PushButton (`id (`ok), `opt (`key_F10, `default),
+			Label::OKButton ()),
+		    `HStretch (),
+		    `PushButton (`id (`cancel), `opt (`key_F8),
+			Label::CancelButton ()),
+		    `HStretch ()
+		),
+		`VSpacing (1)
+	    );
+	    UI::OpenDialog (popup);
+	    symbol pushed = (symbol)UI::UserInput ();
+	    string new_dev = (string)
+		UI::QueryWidget (`id (`devname), `Value);
+	    UI::CloseDialog ();
+	    if (pushed == `ok)
+	    {
+		disks_order = add (disks_order, new_dev);
+		order_changed = true;
+		current = new_dev;
+	    }
+	}
+	else if (ret == `delete)
+	{
+	    disks_order = filter (string d, disks_order, {
+		return d != current;
+	    });
+	    order_changed = true;
+	    current = disks_order[0]:nil;
+	}
+	else if (ret == `up)
+	{
+	    disks_order = (list<string>)
+		BootCommon::swapItems (disks_order, pos, pos - 1);
+	    order_changed = true;
+	}
+	else if (ret == `down)
+	{
+	    disks_order = (list<string>)
+		BootCommon::swapItems (disks_order, pos, pos + 1);
+	    order_changed = true;
+	}
+
+	if (ret == `cancel)
+	    ret = `abort;
+	if (ret != `next && ret != `abort && ret != `back)
+	{
+	    if (order_changed)
+	    {
+		UI::ChangeWidget (`id (`disks), `Items, disks_order);
+		UI::ChangeWidget (`id (`disks), `CurrentItem, current);
+	    }
+	    ret = nil;
+	}
+    }
+    if (ret == `next)
+    {
+	integer index = 0;
+	BootCommon::device_mapping = filter (string k, string v,
+	    BootCommon::device_mapping,
+	{
+	    return substring (v, 0, 2) != "hd";
+	});
+	BootCommon::mbrDisk = disks_order[0]:"";
+	BootCommon::device_mapping = (map<string,string>)union (
+	    BootCommon::device_mapping,
+	    listmap (string d, disks_order, {
+		string hex_index = substring (tohexstring (index), 2);
+		index = index + 1;
+		return $[ d : sformat ("hd%1", hex_index) ];
+	    })
+	);
+	BootCommon::location_changed = true;
+    }
+    return (symbol)ret;
+}
+
+
+
+} // EOF

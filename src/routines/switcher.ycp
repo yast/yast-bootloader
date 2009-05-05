@@ -10,6 +10,7 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Olaf Dabrunz <od@suse.de>
  *
  * $Id$
  *
@@ -79,10 +80,10 @@ import "BootCommon";
  * @param reread boolean true to force rereading the settings from the disk
  * @return boolean true on success
  */
-global define boolean blRead (boolean reread) ``{
+global define boolean blRead (boolean reread, boolean avoid_reading_device_map) ``{
     map functions = getFunctions (BootCommon::getLoaderType (false));
-    boolean(boolean) toEval = functions["read"]:BootCommon::Read;
-    return toEval (reread);
+    boolean(boolean, boolean) toEval = functions["read"]:BootCommon::Read;
+    return toEval (reread, avoid_reading_device_map);
 }
 
     /**
@@ -188,6 +189,20 @@ global map<string,symbol()> blDialogs () {
 	return toEval ();
     else
 	return $[];
+}
+
+/**
+ * Set section to boot on next reboot for this type of bootloader
+ * @param section string section to boot
+ * @return boolean true on success
+ */
+global boolean blFlagOnetimeBoot (string section) {
+    map functions = getFunctions (BootCommon::getLoaderType (false));
+    boolean(string) toEval = (boolean(string)) functions["flagonetimeboot"]:nil;
+    if (toEval != nil)
+	return toEval (section);
+    else
+	return false;
 }
 
 

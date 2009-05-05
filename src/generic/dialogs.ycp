@@ -10,6 +10,7 @@
  *
  * Authors:
  *      Joachim Plack <jplack@suse.de>
+ *      Olaf Dabrunz <od@suse.de>
  *
  * $Id$
  *
@@ -49,6 +50,10 @@ include "bootloader/generic/sections_widget.ycp";
 
 global void importMetaData() {
     BootCommon::exports = BootCommon::GetMetaData ();
+    // clean option list, otherwise options of different bootloaders
+    // get mixed after bootloader switch
+    BootCommon::global_options = $[];
+    BootCommon::section_options = $[];
 
     // Extract type descriptions from exports
     foreach(string key, any value, BootCommon::exports, {

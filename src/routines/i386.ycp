@@ -90,11 +90,18 @@ string GetMBRContents (string disk) {
  * @return boolean true if it is MBR
  */
 global boolean ThinkPadMBR (string disk) {
+
     if (_thinkpad_mbr == nil || disk != _old_thinkpad_disk)
     {
 	_old_thinkpad_disk = disk;
 	string mbr = GetMBRContents (disk);
-	_thinkpad_mbr = issubstring (mbr, thinkpad_seq);
+	integer x02 = tointeger ("0x" + substring (mbr, 4, 2));
+	integer x03 = tointeger ("0x" + substring (mbr, 6, 2));
+	string x0e = substring (mbr, 28, 2);
+	string x0f = substring (mbr, 30, 2);
+	y2internal ("Data: %1 %2 %3 %4", x02, x03, x0e, x0f);
+	_thinkpad_mbr = (2 <= x02 && x02 <= tointeger ("0x63") && 2 <= x03 && x03 <= tointeger ("0x63") &&
+	    tolower (x0e) == "4e" && tolower (x0f) == "50");
     }
     y2milestone ("MBR of %1 contains ThinkPad sequence: %2",
 	disk, _thinkpad_mbr);
@@ -109,8 +116,15 @@ global boolean ThinkPadMBR (string disk) {
  * @return boolean true to keep the contents
  */
 global boolean KeepMBR (string disk) {
-    if (ThinkPadMBR (disk))
-	return true;
+    //if (ThinkPadMBR (disk))
+    //	return true;
+    // FIXME: see bug #464485 there is problem with detection of
+    // MBR the 3rd byte is 0 after recovery thinkpad notebook with
+    // recovery CD, next missing cooperate with Lenovo there also
+    // missing any specification about Lenovo's changes in MBR
+
+    y2milestone("Skip checking of MBR for thinkpad sequence");
+
     return false;
 }
 

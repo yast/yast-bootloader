@@ -12,6 +12,8 @@
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
  *      Joachim Plack <jplack@suse.de>
+ *      Olaf Dabrunz <od@suse.de>
+ *      Philipp Thomas <pth@suse.de>
  *
  * $Id$
  *
@@ -59,8 +61,8 @@ global boolean backup_to_bootsector = true;
 include "bootloader/grub/misc.ycp";
 include "bootloader/routines/popups.ycp";
 include "bootloader/grub/helps.ycp";
+include "bootloader/generic/device_map_edit_widget.ycp";
 include "bootloader/generic/dialogs.ycp";
-
 
 // end of mandatory functions
 //----------------------------------------------------------------------------
@@ -217,12 +219,12 @@ global define void CreateSections () {
 		    files["/boot/grub/device.map"] = dm;
 		    BootCommon::InitializeLibrary (false, "grub");
 		    BootCommon::SetFilesContents (files);
-		    list<map<string,string> > sects
+		    list<map<string,any> > sects
 		        = BootCommon::GetSections ();
 		    y2debug ("Found sections %1", sects);
 		    if (merge_level == `main)
 		    {
-		        sects = filter (map<string,string> s, sects, {
+		        sects = filter (map<string,any> s, sects, {
 			    return s["initial"]:nil != nil;
 			});
 		    }
@@ -304,7 +306,7 @@ global define void CreateSections () {
 			"type" : "other",
 			"original_name" : label,
 			"chainloader" : dev,
-			"__changed" : false,
+			"__changed" : true,
 			"__auto" : true,
 			"__devs" : [dev],
 		    ];
@@ -313,6 +315,8 @@ global define void CreateSections () {
 	    }
 	});
     }
+
+
     if (grub_InstallingToFloppy ())
     {
         out = add (out, $[
@@ -320,7 +324,7 @@ global define void CreateSections () {
 		"original_name" : "hard_disk",
 		"type" : "other",
 		"chainloader" : BootCommon::mbrDisk,
-		"__changed" : false,
+		"__changed" : true,
 		"__auto" : true,
 		"__devs" : [],
         ]);
@@ -332,7 +336,7 @@ global define void CreateSections () {
 		"original_name" : "floppy",
 		"type" : "other",
 		"chainloader" : "/dev/fd0",
-		"__changed" : false,
+		"__changed" : true,
 		"__auto" : true,
 		"__devs" : [],
 	    ]);
@@ -351,6 +355,7 @@ global define void CreateSections () {
 	    s["image"] = additional["image"]:"";
 	    if (haskey (additional, "initrd"))
 	        s["initrd"] = additional["initrd"]:"";
+	    s["original_name"] = "linux";
 	    out = add (out, s);
 	});
     }
@@ -376,111 +381,23 @@ global map<string,string> StandardGlobals () {
 /**
  * Read settings from disk
  * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
  * @return boolean true on success
  */
-global boolean Read (boolean reread) {
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     BootCommon::InitializeLibrary (reread, "grub");
     if (reread) {
-	BootCommon::ReadFiles ();
+	BootCommon::ReadFiles (avoid_reading_device_map);
     }
     grub_DetectDisks ();
-    boolean ret = BootCommon::Read (false);
+    boolean ret = BootCommon::Read (false, avoid_reading_device_map);
     // refresh device map if not read
     if (BootCommon::device_mapping == nil
 	|| size (BootCommon::device_mapping) == 0)
     {
 	BootCommon::ProposeDeviceMap ();
     }
-
-    // FIXME: This code can probably be removed. perl-Bootloader sets boot_*
-    // flags in the globals map. That is all the UI and the proposal code deal
-    // with. The decision to install the bootloader stage 1 on multiple devices
-    // (for softraid, dmraid etc.) can be based on the information in the
-    // boot_{root,boot,mbr} flags and the disk, partitioning and md information
-    // alone. Thus, perl-Bootloader is able to do this.
-/*
-    list<string> loader_devices = splitstring (
-	BootCommon::globals["stage1_dev"]:"",
-	",");
-
-    if (size (loader_devices) > 1) {
-	// check if members of a MD are present
-	map<string,map> tm = Storage::GetTargetMap ();
-	list<string> md = maplist (map m, tm["/dev/md", "partitions"]:[], {
-	    return m["device"]:"";
-	});
-	if (Mode::test ())
-	    md = ["/dev/md0"];
-	boolean md_found = false;
-	// try collapse all MD disks
-	foreach (string md_disk, md, {
-	    list<string> md_members = sort (maplist (
-		string s,
-		integer id,
-		BootCommon::Md2Partitions (md_disk),
-	    {
-		return s;
-	    }));
-	    if (Mode::test ())
-		md_members = ["/dev/hda1", "/dev/hdb1"];
-
-	    boolean reduce = true;
-	    foreach (string member, md_members, {
-		if (! contains (loader_devices, member))
-		    reduce = false;
-	    });
-	    if (reduce) {
-		loader_devices = filter (string d, loader_devices, {
-		    return ! contains (md_members, d);
-		});
-		loader_devices = add (loader_devices, md_disk);
-	    }
-	});
-	// check MBRs of all disks holding /boot partition
-	map<string,integer> boot_md
-	    = BootCommon::Md2Partitions (
-		BootCommon::BootPartitionDevice);
-	if (Mode::test ())
-	    boot_md = $["/dev/hda1" : 128, "/dev/hdb1" : 129];
-	list<string> md_disks = maplist (string d, integer b, boot_md,
-	{
-	    map p_dev = Storage::GetDiskPartition (d);
-	    return p_dev["disk"]:"";
-	});
-	boolean reduce = true;
-	foreach (string d, md_disks, {
-	    if (! contains (loader_devices, d))
-		reduce = false;
-	});
-	if (reduce)
-	{
-	    loader_devices = filter (string d, loader_devices, {
-		return ! contains (md_disks, d);
-	    });
-	    loader_devices = add (loader_devices, "mbr_md");
-	}
-	if (contains (loader_devices, BootCommon::BootPartitionDevice))
-	{
-	    loader_devices = filter (string d, loader_devices, {
-		return d != BootCommon::BootPartitionDevice;
-	    });
-	    backup_to_bootsector = true;
-	    if (size (loader_devices) > 0)
-	    {
-		loader_devices = sort (loader_devices);
-		BootCommon::loader_device = loader_devices[0]:"";
-	    }
-	    else
-	    {
-		BootCommon::loader_device = BootCommon::BootPartitionDevice;
-	    }
-	}
-    }
-    else if (size (loader_devices) == 1)
-    {
-	BootCommon::loader_device = loader_devices[0]:"";
-    }
-*/
 
     importMetaData();
 
@@ -693,11 +610,11 @@ global define list<string> Summary () {
         string title = s["name"]:"";
 	// section name "suffix" for default section
 	string def = title == BootCommon::globals["default"]:"" ? _(" (default)") : "";
-	sects = add (sects, sformat ("%1%2", title, def));
+	sects = add (sects, String::EscapeTags (sformat ("+ %1%2", title, def)));
     });
 
-    ret = add (ret, sformat (_("Sections: %1"),
-	       String::EscapeTags (mergestring (sects, ", "))));
+    ret = add (ret, sformat (_("Sections:<br>%1"),
+	       mergestring (sects, "<br>")));
 
     if (size(locations) == 0) {
         // summary text
@@ -716,6 +633,18 @@ global define list<string> Summary () {
   */
 global define void Update () {
     BootCommon::UpdateDeviceMap ();
+
+    // During update, for libata device name migration ("/dev/hda1" ->
+    // "/dev/sda1") and somesuch, we need to re-read and parse the rest of the
+    // configuration file contents after internally updating the device map in
+    // perl-Bootloader. This way, the device names are consistent with the
+    // partitioning information we have set up in perl-Bootloader with
+    // SetDiskInfo(), and device names in other config files can be translated
+    // to Unix device names (#328448, this hits sections that are not
+    // (re-)created by yast-Bootloader or later by perl-Bootloader anyway).
+    BootCommon::SetDeviceMap (BootCommon::device_mapping);
+    Read (true, true);
+
     BootCommon::UpdateSections (true, CreateLinuxSection);
     BootCommon::UpdateGlobals ();
 }
@@ -726,9 +655,12 @@ global define void Update () {
   * @return boolean true on success
   */
 global define boolean Write () ``{
-    grub_updateMBR ();
+
     boolean ret = BootCommon::UpdateBootloader ();
     if (BootCommon::location_changed || BootCommon::InstallingToFloppy ()) {
+        // bnc #461613 - Unable to boot after making changes to boot loader
+        // bnc #357290 - module rewrites grub generic code when leaving with no changes, which may corrupt grub
+	grub_updateMBR ();
         if (BootCommon::InstallingToFloppy ()) {
 	    if (! saveToFLoppyPopup ()) {
 	        y2error ("Preparing floppy disk failed.");
@@ -737,6 +669,9 @@ global define boolean Write () ``{
         }
 	
         boolean grub_ret = BootCommon::InitializeBootloader ();
+	if (grub_ret == nil)
+	    grub_ret = false;
+
         y2milestone ("GRUB return value: %1", grub_ret);
         if (BootCommon::InstallingToFloppy ()) {
 	    BootCommon::updateTimeoutPopupForFloppy
@@ -757,8 +692,38 @@ global symbol WizardSequenzer() {
 
 global map<string,symbol()> Dialogs () {
     return $[
+	"installation"	: i386InstallDetailsDialog,
 	"loader"	: genericBootLoaderOptionsDialog,
     ];
+}
+
+
+/**
+  * Boot passed section once on next reboot.
+  * @param section string section to boot
+  * @return boolean true on success
+  */
+global define boolean FlagOnetimeBoot (string section)
+{
+  integer Section2Index (string section_name)
+  {
+     integer index = -1;
+     integer sectnum = -1;
+
+     foreach (map<string,any> s, BootCommon::sections, {
+         index = index + 1;
+         if (s["name"]:"" == section_name)
+             sectnum = index;
+     });
+
+     y2milestone ("ret: %1", sectnum);
+     return sectnum;
+  }
+
+    map result = (map)SCR::Execute (.target.bash_output, sformat (
+				    "/usr/sbin/grubonce \"%1\"", Section2Index(section)));
+    y2milestone ("grubonce returned %1", result);
+    return (result["exit"]:-1 == 0);
 }
 
 
@@ -768,19 +733,20 @@ global map<string,symbol()> Dialogs () {
   */
 global map<string, any> GetFunctions () {
     return $[
-         //"export"	   : Export,
-         //"import"	   : Import,
-        "read"		   : Read,
-        "reset"		   : Reset,
-        "propose"	   : Propose,
-        "save"		   : Save,
-        "summary"	   : Summary,
-        "update"	   : Update,
-        "write"		   : Write,
-        "widgets"	   : genericWidgets,
-        "wizard_sequencer" : WizardSequenzer,
-        "dialogs"	   : Dialogs,
-        "section_types"	   : section_types,
+         //"export"		: Export,
+         //"import"		: Import,
+        "read"			: Read,
+        "reset"			: Reset,
+        "propose"		: Propose,
+        "save"			: Save,
+        "summary"		: Summary,
+        "update"		: Update,
+        "write"			: Write,
+        "widgets"		: genericWidgets,
+        "wizard_sequencer" 	: WizardSequenzer,
+        "dialogs"		: Dialogs,
+        "section_types"		: section_types,
+	"flagonetimeboot"	: FlagOnetimeBoot,
     ];
 }
 

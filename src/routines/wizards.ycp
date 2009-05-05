@@ -22,6 +22,7 @@ textdomain "bootloader";
 import "Sequencer";
 import "Wizard";
 import "Report";
+import "Popup";
 include "bootloader/routines/dialogs.ycp";
 include "bootloader/generic/wizards.ycp";
 

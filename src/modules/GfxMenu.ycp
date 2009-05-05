@@ -184,7 +184,7 @@
 	    import "Product";
 	    string product = Product::name;
 	    string prod_filtered = filterchars (product, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.");
-	    if (product == prod_filtered && product != " ")
+	    if (product != nil && product == prod_filtered && product != " " && product != "")
 	    {
 		if (orig == "linux")
 		{
@@ -284,6 +284,7 @@
 	return ret;
     }
 
+
 /**
  * Update graphical bootloader to contain translations for section labels in
  * the currently selected installation language (set in
@@ -294,6 +295,7 @@
  */
 global define boolean UpdateGfxMenuContents (string loader) {
     y2milestone ("Updating GFX boot menu");
+
     // if the boot menu does not exist, return without updating it
     if (SCR::Read (.target.size, "/boot/message") == -1)
 	return true;

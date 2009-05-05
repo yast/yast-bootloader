@@ -23,6 +23,7 @@
     import "Mode";
     import "BootCommon";
     import "PackageSystem";
+    import "Map";
 
 
 // --------------------------------------------------------------
@@ -140,28 +141,37 @@ global boolean grub_InstallingToFloppy () {
 //		});
 //	    }
 //	}
-	if (num != 0)
+
+	// (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
+	// if loader_device is disk device activate BootCommon::BootPartitionDevice
+	if (num == 0)
 	{
-	    if (num > 4)
-	    {
-		y2milestone ("Bootloader partition type is logical");
-		map tm = Storage::GetTargetMap ();
-		list<map> partitions = tm[mbr_dev, "partitions"]:[];
-		foreach (map p, partitions, ``{
-		    if (p["type"]:nil == `extended)
-		    {
-			num = p["nr"]:num;
-			y2milestone ("Using extended partition %1 instead",
-			num);
-		    }
-		});
-	    }
+	    y2milestone ("loader_device is disk device");
+	    p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
+	    num = BootCommon::myToInteger( p_dev["nr"]:nil );
+        }
+
+	if (num > 4)
+	{
+	    y2milestone ("Bootloader partition type is logical");
+	    map tm = Storage::GetTargetMap ();
+	    list<map> partitions = tm[mbr_dev, "partitions"]:[];
+	    foreach (map p, partitions, ``{
+		if (p["type"]:nil == `extended)
+		{
+		    num = p["nr"]:num;
+		    y2milestone ("Using extended partition %1 instead",num);
+		}
+	    });
 	}
+
 	map<string,any> ret = $[
 	    "num" : num,
 	    "mbr" : mbr_dev,
 	    "dev" : Storage::GetDeviceName (mbr_dev, num),
 	];
+	
+	y2milestone("Partition for activating: %1", ret);
 	return ret;
     }
 
@@ -265,6 +275,8 @@ global boolean grub_InstallingToFloppy () {
 	string device_file = mergestring (splitstring (device, "/"), "_");
 	string device_file_path = "/var/lib/YaST2/backup_boot_sectors/"
 	    + device_file;
+	string device_file_path_to_logs = "/var/log/YaST2/"
+	    + device_file;
 	SCR::Execute (.target.bash,
 	    "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors");
 	if (SCR::Read (.target.size, device_file_path) > 0)
@@ -289,12 +301,24 @@ global boolean grub_InstallingToFloppy () {
 	SCR::Execute (.target.bash, sformat (
 	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
 	    device, device_file_path));
+	// save MBR to yast2 log directory
+	SCR::Execute (.target.bash, sformat (
+	    "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
+	    device, device_file_path_to_logs));
 	if (device == BootCommon::mbrDisk)
 	{
 	    SCR::Execute (.target.bash, sformat (
 		"/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
 		device, "/boot/backup_mbr"));
 
+    	    // save thinkpad MBR 
+	    if (BootCommon::ThinkPadMBR(device))
+	    {
+	       string device_file_path_thinkpad = device_file_path + "thinkpadMBR";
+	       y2milestone("Backup thinkpad MBR");
+	       SCR::Execute(.target.bash, sformat (
+	       "cp %1 %2 2>&1", device_file_path, device_file_path_thinkpad));
+	    }
 	}
     }
 
@@ -459,6 +483,40 @@ define void SetBootloaderDevice(symbol selected_location) {
 }
 
 /**
+ * function check all partitions and it tries to find /boot partition
+ * if it is MD Raid and soft-riad return correct device for analyse MBR
+ * @param list<map> list of partitions
+ * @return string device for analyse MBR
+ */
+define string soft_MDraid_boot_disk(list<map> partitions)
+{
+   string result = "";
+   string boot_device = "";
+   if ((BootCommon::BootPartitionDevice != nil) && (BootCommon::BootPartitionDevice != ""))
+       boot_device = BootCommon::BootPartitionDevice;
+   else
+       boot_device = BootCommon::RootPartitionDevice;
+
+   foreach(map p, partitions, {
+	if (p["device"]:"" == boot_device)
+	{
+	   if ((p["type"]:nil == `sw_raid) && (p["fstype"]:"" == "MD Raid"))
+	   {
+	      string device_1 = p["devices",0]:"";
+	      y2debug("device_1: %1", device_1);
+	      map dp = Storage::GetDiskPartition (device_1);
+	      y2debug("dp: %1", dp);
+	      result = dp["disk"]:"";
+	   }
+	}
+   });
+   y2milestone("Device for analyse MBR from soft-raid (MD-Raid only): %1", result);
+   return result;
+}
+
+
+
+/**
  * grub_ConfigureLocation()
  * Where to install the bootloader.
  * Returns the type of device where to install: one of `boot `root `mbr `extended `mbr_md
@@ -550,7 +608,10 @@ define symbol grub_ConfigureLocation() {
     boolean keep_mbr = BootCommon::KeepMBR (BootCommon::mbrDisk);
 
     // if is primary, store bootloader there
-    if (boot_partition_is_on_mbr_disk && ! is_logical)
+    // there was check if boot device is on logical partition
+    // IMO it is good idea check MBR also in this case
+    // see bug #279837 comment #53
+    if (boot_partition_is_on_mbr_disk)
     {
 	selected_location = `boot;
 	BootCommon::globals["activate"] = "true";
@@ -562,6 +623,13 @@ define symbol grub_ConfigureLocation() {
 	//	    - 0 for a "Generic MBR" (DOS MBR)
 	//	    - 1 for a GRUB or lilo "stage 1"
 	//	    - 0 for an unknown MBR
+
+        // check if there is raid and if it soft-raid select correct device for analyse MBR
+        // bnc #398356
+	if (size (underlying_boot_partition_devices) > 1)
+	    boot_partition_disk = soft_MDraid_boot_disk(partitions_on_boot_partition_disk);
+	if (boot_partition_disk == "")
+	    boot_partition_disk = dp["disk"]:"";
 	map out = (map)SCR::Execute (.target.bash_output, sformat (
 	    "/usr/lib/YaST2/bin/examine_mbr.pl %1", boot_partition_disk));
 	y2milestone ("MBR examining script returned %1", out);

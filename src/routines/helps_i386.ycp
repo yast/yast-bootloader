@@ -56,6 +56,20 @@ Area</b>.</p>")
 	: "");
 }
 
+string i386DeviceMapEditHelp () 
+{
+    // help text 1/5
+    return _("<p><big><b>Disks Order</b></big><br>
+To specify the order of the disks according to the order in BIOS, use
+the <b>Up</b> and <b>Down</b> buttons to reorder the disks.</p>")
+    + (Mode::config ()
+	// help text 2/5, optional (only for autoinstallation)
+	?  _("<p>To add a disk, push <b>Add</b>.
+ To remove a disk, push <b>Remove</b>.</p>")
+	: "");
+}
+
+
 /**
  * Get help
  * @return string help text

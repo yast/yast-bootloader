@@ -11,6 +11,8 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Olaf Dabrunz <od@suse.de>
+ *      Philipp Thomas <pth@suse.de>
  *
  * $Id$
  *
@@ -28,8 +30,10 @@ import "Mode";
 import "Pkg";
 import "Storage";
 
+
 include "bootloader/routines/popups.ycp";
 include "bootloader/routines/dialogs_i386.ycp";
+include "bootloader/generic/dialogs.ycp";
 
 
 /**
@@ -88,7 +92,7 @@ global void CreateSections () {
 		    "type" : "chainloader",
 		    "chainloader" : dev,
 		    "__auto" : true,
-		    "__changed" : false,
+		    "__changed" : true,
 		    "__devs" : [dev],
 		];
 		out = add (out, m);
@@ -162,16 +166,18 @@ global void CreateGlobals () {
 /**
  * Read settings from disk
  * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
  * @return boolean true on success
  */
-global boolean Read (boolean reread) {
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     BootCommon::InitializeLibrary (reread, "lilo");
     if (reread)
     {
-	BootCommon::ReadFiles ();
+	BootCommon::ReadFiles (avoid_reading_device_map);
     }
     BootCommon::DetectDisks ();
-    boolean ret = BootCommon::Read (false);
+    boolean ret = BootCommon::Read (false, avoid_reading_device_map);
     BootCommon::loader_device = BootCommon::globals["stage1_dev"]:"";
     return ret;
 }
@@ -271,6 +277,8 @@ string getDeviceOfRaid (string device) {
 	}
 
 	ret = ret && BootCommon::InitializeBootloader ();
+	if (ret == nil)
+	    ret = false;
 	ret = ret && BootCommon::PostUpdateMBR ();
 	return ret;
     }
@@ -282,6 +290,18 @@ global map<string,symbol()> Dialogs () {
     ];
 }
 
+/**
+  * Set section to boot on next reboot
+  * @param section string section to boot
+  * @return boolean true on success
+  */
+global define boolean FlagOnetimeBoot (string section)
+{
+    map result = (map)SCR::Execute (.target.bash_output,
+				    sformat ("/sbin/lilo -R \"%1\"", section));
+    y2milestone ("lilo returned %1", result);
+    return (result["exit"]:-1 == 0);
+}
 
 /**
  * Return map of provided functions
@@ -289,13 +309,16 @@ global map<string,symbol()> Dialogs () {
  */
 global map<string, any> GetFunctions () {
     return $[
-	"dialogs"	: Dialogs,
-	"read"		: Read,
-	"propose"	: Propose,
-	"save"		: Save,
-	"summary"	: BootCommon::i386Summary,
-	"update"	: Update,
-	"write"		: Write,
+	"dialogs"		: Dialogs,
+	"read"			: Read,
+	"propose"		: Propose,
+	"save"			: Save,
+	"summary"		: BootCommon::i386Summary,
+	"update"		: Update,
+	"write"			: Write,
+	"flagonetimeboot"	: FlagOnetimeBoot,
+	"widgets"		: genericWidgets,
+	"section_types"		: section_types,
     ];
 }
 

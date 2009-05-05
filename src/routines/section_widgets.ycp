@@ -10,6 +10,7 @@
  *
  * Authors:
  *      Jiri Srain <jsrain@suse.cz>
+ *      Olaf Dabrunz <od@suse.de>
  *
  * $Id$
  *
@@ -27,6 +28,7 @@ import "Mode";
 import "Storage";
 import "StorageDevices";
 import "TablePopup";
+import "Popup";
 
 include "bootloader/routines/helps.ycp";
 
@@ -316,13 +318,19 @@ symbol SectionTypeHandle (string widget, map event) {
     else
     {
 	BootCommon::current_section["name"] = "";
-	BootCommon::current_section["original_name"] = "";
+	// FIXME: the problem with missing YaST commnet in menu.lst
+	// it seems be correct if original_name stay same...
+	// BootCommon::current_section["original_name"] = "";
 	BootCommon::current_section["__auto"] = false;
-	BootCommon::current_section["lines_cache_id"] = "";
+	// fix for problem with cloning section
+	if (haskey(BootCommon::current_section,"lines_cache_id"))
+		BootCommon::current_section = remove(BootCommon::current_section, "lines_cache_id");
     }
     y2milestone ("Added section template: %1", BootCommon::current_section);
     return nil;
 }
+
+
 
 /**
  * Cache for CommonSectionWidgets

@@ -1,4 +1,23 @@
 -------------------------------------------------------------------
+Tue May  5 14:38:32 CEST 2009 - jreidinger@suse.cz
+
+- backport UEFI support and backport xen support for ELILO
+  (FATE#306032) 
+- Cloning section fix backported (bnc#450190)
+- Backport selecting correct translation (bnc#384768)
+- Backport fix for non-selected boot location in autoyast profile
+  (bnc#439674)
+- Backport fix for correct marking section as modified (bnc#432651)
+- Backport fix for proposal with more kernels (bnc#380781)
+- Backport fix reducinf device map to 8 device (bnc#494630)
+- Backport editing efi label (bnc#450682,bnc##269198,bnc##438215)
+- Backport not translating label for ELILO (bnc##151486)
+- Backport some software raid fixes (bnc#341309,bnc#350992)
+- Backport fix for fail on thinkpad, now only store thinkpad MBR
+  and propose overwrite, as for new types it doesn't work properly
+  (bnc#464485)
+
+-------------------------------------------------------------------
 Fri Apr 10 10:54:59 CEST 2009 - juhliarik@suse.cz
 
 - added fix for problem with worng handling content of MBR 

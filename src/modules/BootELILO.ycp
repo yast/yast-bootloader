@@ -14,6 +14,8 @@
  *      Joachim Plack <jplack@suse.de>
  *      Jiri Srain <jsrain@suse.cz>
  *      Andreas Schwab <schwab@suse.de>
+ *      Olaf Dabrunz <od@suse.de>
+ *      Philipp Thomas <pth@suse.de>
  *
  * $Id$
  *
@@ -36,6 +38,7 @@ import "Report";
 import "Stage";
 import "Storage";
 import "String";
+import "Arch";
 
 include "bootloader/elilo/helps.ycp";
 include "bootloader/routines/popups.ycp";
@@ -60,6 +63,18 @@ global string elilo_conf_filename = "/boot/efi/SuSE/elilo.conf";
 global boolean create_efi_entry = true;
 
 string efi_vendor = "SuSE";
+
+/**
+ * bnc #450682 - adding boot entry to EFI
+ * true is label was added
+ */
+
+global boolean added_label_to_efi = false;
+
+/**
+ * Is the /sys/firmware/efi directory available?
+ */
+boolean efi_available = true;
 
 // misc. functions
 
@@ -124,6 +139,10 @@ map<string,any> CreateLinuxSection (string title) {
     map<string,any> section =
       BootCommon::CreateLinuxSection (title);
 
+    // don't translate label bnc #151486
+    section["description"] = section["name"]:"";
+    section["name"] = title;
+
     // replace "kernel" by "image"
     if (haskey(section, "kernel")) {
       section["image"] = section["kernel"]:"";
@@ -142,13 +161,14 @@ map<string,any> CreateLinuxSection (string title) {
 global void CreateSections () {
     map<string,any> linux = CreateLinuxSection ("linux");
     map<string,any> failsafe = CreateLinuxSection ("failsafe");
+     map<string,any> xen = CreateLinuxSection ("xen");
 
     // append for default section is in global
     // FIXME do it later
     //    if (haskey (linux, "append"))
     //  	linux = remove (linux, "append");
 
-    BootCommon::sections = [ linux, failsafe ];
+    BootCommon::sections = [ linux, failsafe, xen ];
 }
 
 
@@ -160,7 +180,8 @@ global void CreateGlobals () {
     BootCommon::globals = $[
     // FIXME do it later
     //	"append" : BootArch::DefaultKernelParams (""),
-	"default" : BootCommon::translateSectionTitle ("linux"),
+    //	"default" : BootCommon::translateSectionTitle ("linux"),
+	"default" : "linux",
 	"timeout" : "80",
 	"prompt" : "true",
 	"read-only" : "true",
@@ -201,9 +222,12 @@ global define boolean Import (map settings) {
 
 /**
   * Read settings from disk
+  * @param reread boolean true to force reread settings from system
+  * @param avoid_reading_device_map do not read new device map from file, use
+  * internal data
   * @return boolean true on success
   */
-global define boolean Read (boolean reread) {
+global define boolean Read (boolean reread, boolean avoid_reading_device_map) {
 	import "Product";
 	boolean efi_entry_found = false;
 	elilo_conf_filename = getEliloConfFilename ();
@@ -217,7 +241,7 @@ global define boolean Read (boolean reread) {
 	}
 	SCR::Execute (.target.bash, "/bin/touch /etc/elilo.conf");
 	BootCommon::DetectDisks ();
-	boolean ret = BootCommon::Read (reread);
+	boolean ret = BootCommon::Read (reread, avoid_reading_device_map);
 
 	// check for meaningless EFI entry name in sysconfig
 	if ( !haskey(BootCommon::globals,"boot_efilabel")
@@ -294,6 +318,9 @@ global define void Propose () {
         create_efi_entry = true;
     if (Mode::update ())
         create_efi_entry = false;
+    efi_available = 0 == (integer)SCR::Execute (.target.bash, "test -d /sys/firmware/efi");
+    if (! efi_available)
+	create_efi_entry = false;
     elilo_conf_filename = getEliloConfFilename ();
     BootCommon::DetectDisks ();
     BootCommon::del_parts = BootCommon::getPartitionList (`deleted);
@@ -370,11 +397,11 @@ global define list<string> Summary () {
         string def = title == BootCommon::globals["default"]:"" ?
 	      _(" (default)") :
 	      "";
-        sects = add (sects, sformat ("%1%2", title, def));
+        sects = add (sects, String::EscapeTags (sformat ("+ %1%2", title, def)));
     });
     // summary text. %1 is list of bootloader sections
-    result = add (result, sformat (_("Sections: %1"),
-        mergestring (sects, ", ")));
+    result = add (result, sformat (_("Sections:<br>%1"),
+        mergestring (sects, "<br>")));
     return result;
 }
 
@@ -387,7 +414,8 @@ global define void Update () {
      * Update global options of bootloader
      * modifies internal structures
      */
-    BootCommon::globals["timeout"] = "8";
+    if (BootCommon::globals["timeout"]:"" == "")
+        BootCommon::globals["timeout"] = "8";
     BootCommon::globals["append"] = BootArch::DefaultKernelParams ("");
 
     BootCommon::UpdateSections (true, CreateLinuxSection);
@@ -424,18 +452,184 @@ define boolean installBootLoader (string command, string logfile) {
             // error popup - label, %1 is bootloader name
             _("Error Occurred while Installing %1"),
             BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)), log);
+    } else {
+	added_label_to_efi = true;
+	y2milestone("Adding label to EFI finish successful");
     }
     return ret;
 }
 
+/** bnc #438215 - YaST creates efibootloader entry twice
+ * Function convert number of partition to hexa
+ * 
+ * @param any number of boot partition (10 or "10")
+ * @return string number boot partition in hexa ("a") - without "0x"
+ */
+string tomyhexa(any boot_part)
+{
+        string ret = "1000";
+
+        integer int_boot_part = tointeger(boot_part);
+        if (int_boot_part != nil)
+        {
+                string hexa = tohexstring(int_boot_part);
+                if (search(hexa, "x")!= nil)
+                {
+                        list <string> hexa_without_0x = splitstring(hexa, "x");
+                        if (size(hexa_without_0x)>1)
+                                ret = hexa_without_0x[1]:"1000";
+                }
+        }
+        return ret;
+}
+
+
+/** bnc #269198 change efi-label
+ * Function check if there exist same efi-label or different for
+ * same partition if efi-label is different delete it and create new one
+ * if it is same nothing to do it.
+ */
+
+boolean updateEFILabel()
+{
+	boolean ret = true;
+	string cmd = "";
+	map mp = Storage::GetMountPoints();
+	string boot_dev = mp[getEfiMountPoint (), 0]:"/boot/efi";
+	map splited = Storage::GetDiskPartition (boot_dev);
+	any boot_part = splited["nr"]:0;
+	any boot_disk = splited["disk"]:"";
+	
+	
+	// command for checking same boot entry in efi bnc #438215 (YaST creates efibootloader entry twice)
+	cmd = sformat("/usr/sbin/efibootmgr -v | grep -c \"%1.*HD(%2.*File(.\\efi.\\SuSE.\\elilo.efi)\"",
+		BootCommon::globals["boot_efilabel"]:"", tomyhexa(boot_part));
+
+	// check how many entries with same label and partition is actually in efi
+	y2milestone("run command %1", cmd);
+	map out = (map)SCR::Execute (.target.bash_output, cmd);
+	y2milestone("output of command %1", out);
+
+	// check number of same boot entries in efi
+	// if boot entry is added -> don't add it again
+	if (deletechars(out["stdout"]:"","\n") != "0")
+	{
+		if (out["exit"]:0 == 0)
+			y2milestone("Skip adding new boot entry - EFI Label exist");
+		else
+			y2error("Calling command %1 faild", cmd);
+		return ret;
+
+	} else {
+
+		cmd = sformat("/usr/sbin/efibootmgr -v | grep -c \"HD(%1.*File(.\\efi.\\SuSE.\\elilo.efi)\"", tomyhexa(boot_part));
+		// check how many entries with same label and partition is actually in efi
+		y2milestone("run command %1", cmd);
+		map out = (map)SCR::Execute (.target.bash_output, cmd);
+		y2milestone("output of command %1", out);
+
+		// check how many boot entries have same number of partitions
+		if (deletechars(out["stdout"]:"","\n") != "0")
+		{
+			// delete old boot entry
+
+			cmd = sformat("efibootmgr -v |grep \"HD(%1.*File(.\\efi.\\SuSE.\\elilo.efi)\" | cut -d \" \" -f 1",
+				tomyhexa(boot_part));
+			y2milestone("run command %1", cmd);
+           		out = (map)SCR::Execute (.target.bash_output, cmd);
+			y2milestone("output of command %1", out);
+
+           		string boot_entries = out["stdout"]:"";
+           		y2milestone("EFI boot entries with \"same\" boot partition %1",boot_entries);
+
+           		list<string> list_boot_entries = splitstring(boot_entries, "\n");
+
+           		y2milestone("list_boot_entries=%1",list_boot_entries);
+
+			foreach(string entry, list_boot_entries,
+			{
+				if ((deletechars(entry, "\n*") != "") && (deletechars(entry, "\n*") != nil))
+				{
+					cmd = sformat("/usr/sbin/efibootmgr --delete-bootnum --bootnum %1 -q;", 
+						substring (deletechars(entry, "\n*"),4, 4));
+					y2milestone("run command %1", cmd);
+           				out = (map)SCR::Execute (.target.bash_output, cmd);
+					y2milestone("output of command %1", out);
+				}
+			});
+			
+		}
+		// add new boot entry
+		string bl_logfile = "/var/log/YaST2/y2log_bootloader";
+	    	string bl_command = sformat ( "/usr/sbin/efibootmgr -v --create --label \"%1\" " +
+			"--disk %2 --part %3 " +
+			"--loader '\\efi\\SuSE\\elilo.efi' --write-signature >> %4 2>&1",
+			BootCommon::globals["boot_efilabel"]:"", boot_disk, boot_part, bl_logfile
+		);
+		ret = ret && installBootLoader (bl_command, bl_logfile);
+	}
+	return ret;
+}
+
+/** FIXME: efibootmgr doesn't provide info about disk!
+ * bnc #450682 - adding boot entry to EFI
+ * function delete all existing boot entry with same name and partition number
+ * @param string name of label
+ * @param string number of partition
+ */
+
+void deleteSameEFIBootEntry(string name, any part_no)
+{
+
+    boolean still_exist = true;
+
+    string cmd = sformat("efibootmgr -v |grep \"%1.*HD(%2.*File(.\\efi.\\SuSE.\\elilo.efi)\" | cut -d \" \" -f 1",
+		name, tomyhexa(part_no));
+    y2milestone("run command %1", cmd);
+    map out = (map)SCR::Execute (.target.bash_output, cmd);
+    y2milestone("output of command %1", out);
+
+    string boot_entries = out["stdout"]:"";
+    y2milestone("EFI boot entries with \"same\" boot partition %1",boot_entries);
+
+    list<string> list_boot_entries = splitstring(boot_entries, "\n");
+
+    y2milestone("list_boot_entries=%1",list_boot_entries);
+
+    foreach(string entry, list_boot_entries,
+    {
+	if ((deletechars(entry, "\n*") != "") && (deletechars(entry, "\n*") != nil))
+	{
+	cmd = sformat("/usr/sbin/efibootmgr --delete-bootnum --bootnum %1 -q;", 
+		substring (deletechars(entry, "\n*"),4, 4));
+		y2milestone("run command %1", cmd);
+      		out = (map)SCR::Execute (.target.bash_output, cmd);
+		y2milestone("output of command %1", out);
+	}
+    });
+}
 
 /**
   * Write bootloader settings to disk
   * @return boolean true on success
   */
 global define boolean Write () {
+
+    y2milestone("run Write function from BootELILO");
     //	SCR::Execute (.target.bash, "/sbin/elilo");
     boolean ret = BootCommon::UpdateBootloader ();
+    if (ret == nil)
+	ret = false;
+
+// FIXME find a better way to report status
+    if (ret && ! efi_available) {
+	Popup::TimedMessage(
+_("System was not booted via EFI firmware. To boot your
+computer, you need to load ELILO via the EFI shell."), 10);
+    }
+
+    if (Mode::normal())
+	updateEFILabel();
 
     if (BootCommon::location_changed || create_efi_entry)
     {
@@ -458,7 +652,35 @@ global define boolean Write () {
 		"--loader '\\efi\\SuSE\\elilo.efi' --write-signature >> %4 2>&1",
 		BootCommon::globals["boot_efilabel"]:"", boot_disk, boot_part, bl_logfile
 	    );
-	    ret = ret && installBootLoader (bl_command, bl_logfile);
+
+	    // command for checking same boot entry in efi bnc #438215 (YaST creates efibootloader entry twice)
+	    string cmd = sformat("/usr/sbin/efibootmgr -v | grep -c \"%1.*HD(%2.*File(.\\efi.\\SuSE.\\elilo.efi)\"",
+		BootCommon::globals["boot_efilabel"]:"", tomyhexa(boot_part));
+	    y2milestone("Command for checking same boot entry: %1", cmd);
+
+	    // check how many entries with same label and partition is actually in efi
+	    map out = (map)SCR::Execute (.target.bash_output, cmd);
+
+	    // check number of same boot entries in efi
+	    // if boot entry is added -> don't add it again
+	    if (deletechars(out["stdout"]:"","\n") == "0")
+	    {
+	    	ret = ret && installBootLoader (bl_command, bl_logfile);
+	    } else {
+
+		if (added_label_to_efi)
+		{
+		    y2milestone("Skip adding boot entry: %1 to EFI. There already exist and was added: %2 with 
+				same label and partition.", BootCommon::globals["boot_efilabel"]:"",
+				deletechars(out["stdout"]:"","\n"));
+		} else {
+		    // delete efi entry with same label name and partition
+		    deleteSameEFIBootEntry(BootCommon::globals["boot_efilabel"]:"", boot_part);
+		    // add new efi boot entry
+		    ret = ret && installBootLoader (bl_command, bl_logfile);
+		}
+		
+	    }
 	}
 
 
@@ -545,6 +767,7 @@ global define boolean Write () {
 			entry2remove
 		    );
 
+		    y2milestone ("Running command %1", command);
 		    map ret_map = (map)SCR::Execute (.target.bash_output, command);
 		    y2milestone ("BootELILO: ret_map = %1", ret_map);
 		    ret = (ret_map["exit"]:1 == 0);
@@ -572,6 +795,15 @@ global map<string,symbol()> Dialogs () {
     ];
 }
 
+/**
+  * Set section to boot on next reboot.
+  * @param section string section to boot
+  * @return boolean true on success
+  */
+global define boolean FlagBootDefaultOnce (string section) {
+	/* For now a dummy */
+	return true;
+}
 
 /**
   * Return map of provided functions
@@ -579,22 +811,22 @@ global map<string,symbol()> Dialogs () {
   */
 global map<string, any> GetFunctions () {
     return $[
-        "export"	   : Export,
-        "import"	   : Import,
-        "read"		   : Read,
-	"reset"		   : Reset,
-        "propose"	   : Propose,
-        "save"		   : Save,
-        "summary"	   : Summary,
-        "update"	   : Update,
-        "write"		   : Write,
-        "widgets"	   : genericWidgets,
-        "wizard_sequencer" : WizardSequenzer,
-        "dialogs"	   : Dialogs,
-        "section_types"	   : section_types,
+        "export"		: Export,
+        "import"		: Import,
+        "read"			: Read,
+	"reset"			: Reset,
+        "propose"		: Propose,
+        "save"			: Save,
+        "summary"		: Summary,
+        "update"		: Update,
+        "write"			: Write,
+        "widgets"		: genericWidgets,
+        "wizard_sequencer"	: WizardSequenzer,
+        "dialogs"		: Dialogs,
+        "section_types"		: section_types,
+	"flagbootdefaultonce"	: FlagBootDefaultOnce,
     ];
 }
-
 
 /**
  * Initializer of ELILO bootloader
@@ -633,7 +865,7 @@ global void Initializer () {
  */
 global define void BootELILO () {
     BootCommon::bootloader_attribs["elilo"] = $[
-	"required_packages" : ["elilo"],
+	"required_packages" : ["elilo", "efibootmgr"],
 	"loader_name" : "ELILO",
 	"initializer" : BootELILO::Initializer,
     ];
@@ -650,4 +882,3 @@ global define void BootELILO () {
  *     fill-column: 78
  * End:
  */
-

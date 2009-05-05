@@ -1,4 +1,3 @@
-
 /**
  * File:
  *      modules/BootPOWERLILO.ycp
@@ -14,6 +13,7 @@
  *      Jiri Srain <jsrain@suse.cz>
  *      Joachim Plack <jplack@suse.de>
  *      Olaf Dabrunz <od@suse.de>
+ *      Philipp Thomas <pth@suse.de>
  *
  * $Id$
  *
@@ -461,11 +461,12 @@ map<string,any> CreateImageSection (string title) {
 	"original_name" : title,
 	"image" : image_fn,
 	"initrd" : initrd_fn,
+        "optional" : "true",  // bnc #217443
 	"root" : BootCommon::RootPartitionDevice,
 	// "": do not include resume parameter on ppc
 	"append" : BootArch::DefaultKernelParams (""),
 	"__auto" : true,
-	"__changed" : false,
+	"__changed" : true,
 	"__devs" : [BootCommon::BootPartitionDevice, BootCommon::RootPartitionDevice],
     ];
     return ret;
@@ -708,6 +709,56 @@ global void SaveInstSourceId () {
     y2milestone ("Base source: %1", base_source);
 }
 
+/** bnc #439674 Autoyast install of Cell blades fails to install bootloader
+ * The function update global settings for bootloader
+ * if there is used autoyast The basic problem is that there is missing
+ * boot_* , timeout etc.
+ * If there missing necessary information they will be added
+ *
+ */
+void UpdateGlobalsInAutoInst()
+{
+	if (!haskey(BootCommon::globals, "timeout"))
+		BootCommon::globals["timeout"] = "80";
+
+	if (!haskey(BootCommon::globals, "activate"))
+		BootCommon::globals["activate"] = "true";
+
+	// if there missing boot_* -> then propose it
+	if ((!haskey(BootCommon::globals, "boot_chrp_custom")) &&
+	    (!haskey(BootCommon::globals, "boot_prep_custom")) &&
+	    (!haskey(BootCommon::globals, "boot_pmac_custom")) &&
+	    (!haskey(BootCommon::globals, "boot_iseries_custom")))
+	{
+		string arch = getBoardType ();
+		switch(arch) {
+			case ("prep"):
+				BootCommon::globals["boot_prep_custom"] = BootCommon::BootPartitionDevice;
+			break;
+			
+			case ("pmac"):
+				BootCommon::globals["boot_pmac_custom"] = BootCommon::BootPartitionDevice;
+			break;
+
+			case ("iseries"):
+				BootCommon::globals["boot_slot"] = "B";
+				BootCommon::globals["boot_file"] = "/tmp/suse_linux_image";
+
+				if (BootCommon::BootPartitionDevice != nil &&
+	    			   BootCommon::BootPartitionDevice != "") 
+				{
+					BootCommon::globals["boot_iseries_custom"] = BootCommon::BootPartitionDevice;
+				}
+			break;
+			default:
+				BootCommon::globals["boot_chrp_custom"] = BootCommon::BootPartitionDevice;
+			break;
+		}		
+
+	}
+
+}
+
 // general functions
 
 /**
@@ -762,6 +813,8 @@ global define void Propose () {
 	if (Mode::autoinst ())
 	{
 	    y2debug ("Nothing to do in AI mode if sections exist");
+	    // bnc #439674 Autoyast install of Cell blades fails to install bootloader
+	    UpdateGlobalsInAutoInst();
 	}
 	else
 	    BootCommon::FixSections (BootPOWERLILO::CreateSections);
@@ -820,15 +873,18 @@ global define boolean Import (map settings) {
 
 /**
  * Read settings from disk
+ * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
  * @return boolean true on success
  */
-global boolean Read (boolean reread) {
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     BootCommon::InitializeLibrary (reread, "ppc");
     if (reread) {
-	BootCommon::ReadFiles ();
+	BootCommon::ReadFiles (avoid_reading_device_map);
     }
 
-    boolean ret = BootCommon::Read (false);
+    boolean ret = BootCommon::Read (false, avoid_reading_device_map);
     y2milestone (":: Read globals: %1", BootCommon::globals);
 
     importMetaData();
@@ -870,22 +926,25 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	BootCommon::UpdateAppend ();
     }
 
+    // check if there is selected "none" bootloader
+    string bl = BootCommon::getLoaderType (false);
+
+    if (bl == "none")
+    {
+	BootCommon::InitializeLibrary (init, bl);
+	return true;
+    }
+
     if (! BootCommon::InitializeLibrary (init, "ppc"))
         // send current disk/partition information to perl-Bootloader
 	BootCommon::SetDiskInfo ();
 
-    // Sanity check the sections list: we can only pass strings
-    // through the perl interface
-    list<map<string,string> > sects = maplist (map<string,any> s, BootCommon::sections, {
-	return (map<string,string>)
-	    filter (string k, any v, s, { return is (v, string); });
-    });
-
-    // convert root device names in sections to the device names indicated by
-    // "mountby"
-    sects = maplist (map<string,string> s, sects, {
-	s["root"] = BootCommon::Dev2MountByDev(s["root"]:"");
-	return s;
+    // convert
+    map<string,string> my_globals = mapmap (string k , string v, BootCommon::globals, {
+	if ((k == "stage1_dev") || (regexpmatch(k, "^boot_.*custom$" )))
+	    return $[k : BootCommon::Dev2MountByDev(v)];
+	else
+	    return $[k : v];
     });
 
     // FIXME: remove all mountpoints of type 'boot/boot' through some Storage::<func>
@@ -894,8 +953,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // partitions in 'boot_<arch>_custom' and 'clone' (chrp)
 
     // ret = ret && BootCommon::SetDeviceMap (device_mapping);
-    ret = ret && BootCommon::SetSections (sects);
-    ret = ret && BootCommon::SetGlobal (BootCommon::globals);
+    ret = ret && BootCommon::SetSections (BootCommon::sections);
+    ret = ret && BootCommon::SetGlobal (my_globals);
     if (flush)
 	ret = ret && BootCommon::CommitSettings ();
 

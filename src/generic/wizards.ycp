@@ -116,6 +116,12 @@ symbol GenericStoreSection () {
 	BootCommon::sections[BootCommon::current_section_index]
 	    = BootCommon::current_section;
     }
+    // update default name if default section is edited
+    if (BootCommon::default_changed)
+    {
+	BootCommon::globals["default"] = BootCommon::current_section["name"]:"";
+	BootCommon::default_changed = false;
+    }
 
     // write stuff down to perl-bootloader and reimport meta data,
     // list of possible values might have changed
