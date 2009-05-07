@@ -119,7 +119,6 @@ The device map includes more than 8 devices and the boot device is out of range.
 The range is limited by BIOS to the first 8 devices."),
 	        	]
 	         );
-		return ret;
 	    }
 
 
