@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu May  7 10:05:02 CEST 2009 - juhliarik@suse.cz
+
+- added fix for checking soft-raid devices in device.map
+  (bnc#494630)
+- added fix for changing device map in y2-bootloader (bnc#497944)
+- 2.18.7
+
+-------------------------------------------------------------------
 Tue Apr 28 16:48:12 CEST 2009 - juhliarik@suse.cz
 
 - added updated patch from IBM and reipl (bnc#471522) 
