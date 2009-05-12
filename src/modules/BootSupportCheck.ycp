@@ -218,24 +218,6 @@ global boolean check_BootDevice()
    	return result;
 }
 
-/**
- * Check if there is bios_id
- * if not show warning
- *
- * @return boolean true on success
- */
-
-boolean CheckBios_ID()
-{
-	boolean ret = true;
-	if (BootCommon::bois_id_missing)
-	{
-		AddNewProblem (_("It was not possible to determine the exact order of disks for device map. The order of disks can be changed in \"Boot Loader Installation Details\""));
-		ret = false;
-	}
-	return ret;
-}
-
 
 /**
  * Check that the root partition is reachable
@@ -251,8 +233,6 @@ global boolean GRUB () {
     boolean ret = GptPartitionTable ();
     if (ret)
 	ret = check_BootDevice();
-    if (ret)
-	ret = CheckBios_ID();
     return  ret;
 }
 

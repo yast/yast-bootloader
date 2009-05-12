@@ -873,38 +873,6 @@ map<string,any> getAdvancedButtonWidget () {
 }
 
 
-
-/**
- * Function for disable back button
- * @param string key
- */
-
-void BackButton (string key) {
-  if (Mode::installation())
-     UI::ChangeWidget(`id(`back), `Enabled, false);
-}
-
-
-/**
- * Init function where are added UI hadle functions 
- * special hack widget where is handlig disable back button
- *
- * @return map<string,any> map for start-stop widget
- */
-
-map<string,any> DisBackButton () {
-  map<string,any> result = $[];
-
-  result["widget"] = `custom;
-  result["custom_widget"] =`Empty();
-  result["init"] = BackButton;
-  result["help"] = " ";
-
-  return result;
-}
-
-
-
 /**
  * Get the main dialog tabs description
  * @return a map the description of the tabs
@@ -921,7 +889,7 @@ map TabsDescr () {
 		"sections",
 		`VSpacing (1)
 	    ), `HSpacing (3)),
-        "widget_names": ["DisBackButton", "sections"]
+        "widget_names": ["sections"]
 
     ],
     "installation": $[
@@ -954,9 +922,9 @@ map TabsDescr () {
 	    `VStretch ()
 	), `HStretch ()),
         "widget_names": (lt == "none" || lt == "default")
-	    ? [ "loader_type", "loader_options",  "DisBackButton"]
+	    ? [ "loader_type", "loader_options"]
 	    : [ "loader_type", "loader_options", "loader_location",
-	    "inst_details", "DisBackButton" ]
+	    "inst_details"]
     ],
   ];
 };
@@ -1013,7 +981,6 @@ map<string,map<string,any> > CommonGlobalWidgets () {
 	"help" : InstDetailsHelp (),
     ],
 
-    "DisBackButton" : DisBackButton(),
   ];
 
 

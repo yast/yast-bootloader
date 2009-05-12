@@ -1,8 +1,15 @@
 -------------------------------------------------------------------
+Tue May 12 10:10:16 CEST 2009 - juhliarik@suse.cz
+
+- updating last backports
+- 2.13.157
+
+-------------------------------------------------------------------
 Tue May  5 14:38:32 CEST 2009 - jreidinger@suse.cz
 
 - backport UEFI support and backport xen support for ELILO
-  (FATE#306032) 
+  (FATE#306032)
+- backport GPT related checks (FATE#303026) 
 - Cloning section fix backported (bnc#450190)
 - Backport selecting correct translation (bnc#384768)
 - Backport fix for non-selected boot location in autoyast profile

@@ -92,13 +92,6 @@ global integer saved_last_change_time_from_storage = nil;
  */
 global map<string,string> device_mapping = $[];
 
-/**
-/**
- * Flag indicates that bios_id_missing in disk 
- * true if missing false if at least one disk has bios_id
- */
-
-global boolean bois_id_missing = true;
 
 /**
  * device to save loader stage 1 to
