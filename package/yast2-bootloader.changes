@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri May 15 12:35:35 CEST 2009 - juhliarik@suse.cz
+
+- added support for reipl (FATE#305938)
+- 2.13.158 
+
+-------------------------------------------------------------------
 Tue May 12 10:10:16 CEST 2009 - juhliarik@suse.cz
 
 - updating last backports

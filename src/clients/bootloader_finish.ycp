@@ -88,34 +88,55 @@ fi
     // where we do a hard reboot. However, the cdrom is still mounted here
     // and cant be removed.
 
+    map finish_ret = nil;
     if (Arch::s390 ())
     {
-	if (Linuxrc::usessh ())
-	    // for s390:
-	    // Message that will be displayed along with information
-	    // how the boot loader was installed
-	    Misc::boot_msg = _("
-Your system will now shut down.
-After shutdown, reload the system
-with the load address of your root DASD or
-the load adress of your zFCP device.
-Then reconnect and run the following:
+	string reipl_client = "reipl_bootloader_finish";
+
+	// Calling a special reIPL client
+	// it returns a result map (keys: (boolean) different, (string) ipl_msg)
+
+	if (WFM::ClientExists (reipl_client)) {
+	    finish_ret = (map) WFM::call (reipl_client);
+           y2milestone ("result of reipl_bootloader_finish [%1, %2]", finish_ret["different"]:"N/A", finish_ret["ipl_msg"]:"N/A2");
+           y2milestone ("finish_ret[\"different\"]:true == true : %1", finish_ret["different"]:true == true);
+           if (finish_ret["different"]:false == true) {
+             y2milestone ("finish_ret[\"different\"] is true");
+           } else {
+             y2milestone ("finish_ret[\"different\"] is not true (either undefined or false)");
+           }
+	} else {
+	    y2error ("No such client: %1", reipl_client);
+	}
+    }
+
+    if (Arch::s390 () && finish_ret["different"]:true == true)
+    {
+
+	// reIPL message
+	string ipl_msg = "";
+        ipl_msg = finish_ret["ipl_msg"]:"";
+
+	// SSH modification
+	string usessh_msg = "";
+	if (Linuxrc::usessh ()) {
+	    // TRANSLATORS: part of the reboot message
+	    // (message ID#SSH)
+	    usessh_msg = _("Then reconnect and run the following:
 /usr/lib/YaST2/startup/YaST2.ssh
-For details, read the related chapter
-in the documentation.
 ");
-	else
-	    // for s390:
-	    // Message that will be displayed along with information
-	    // how the boot loader was installed
-	    Misc::boot_msg = _("
-Your system will shut down now.
-After shutdown, reload the system
-with the load address of your root DASD or
-the load address of your zFCP device.
-For details, read the related chapter
-in the documentation.
-");
+	}
+
+	// TRANSLATORS: reboot message
+	// %1 is replaced with additional message from reIPL
+	// %2 is replaced with additional message when using SSH
+	// See message ID#SSH
+	Misc::boot_msg = sformat(_("
+Your system will now shut down.%1%2
+For details, read the related chapter 
+in the documentation. 
+"), ipl_msg, usessh_msg);
+
     }
     else
     {
