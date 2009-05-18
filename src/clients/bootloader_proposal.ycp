@@ -120,8 +120,6 @@ The range is limited by BIOS to the first 8 devices."),
 	        	]
 	         );
 	    }
-
-
 	}
 
 	//F#300779 - Install diskless client (NFS-root) 
