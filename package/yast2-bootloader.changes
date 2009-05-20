@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Wed May 20 14:20:57 CEST 2009 - juhliarik@suse.cz
+
+- fixed additional options for memory test section (bnc#396150)
+- fixed problems with empty settings in autoyast profile for 
+  memory test section (bnc#390659)
+- fixed problem with custom (disable) gfxmenu option in autoyast
+  profile (bnc#380509) 
+- fixed deleting gfxmenu option if there is defined serial console
+  (bnc#346576)
+- added support check for ext4 (fate#305691)
+- 2.18.8
+
+-------------------------------------------------------------------
 Mon May 18 17:45:52 CEST 2009 - juhliarik@suse.cz
 
 - added fix for changing device map in y2-bootloader (bnc#497944)
