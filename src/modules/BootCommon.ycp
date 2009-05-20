@@ -709,6 +709,63 @@ global void Propose () {
     y2error ("No generic propose function available");
 }
 
+/** bnc# 346576 - Bootloader configuration doesn't work for serial output
+ * Function check if settings need to remove gfxmenu
+ *
+ * @return boolean - true if gfxmenu needs to be removed
+ */
+
+boolean removeGFXMenu ()
+{
+    if ((globals["trusted_grub"]:"" == "true") && (haskey(globals, "gfxmenu")))
+    {
+	y2milestone("Remove gfxmenu -> selected trusted grub");
+	return true;
+    }
+
+    if ((globals["serial"]:nil != "") && (globals["serial"]:nil != nil))
+    {
+	y2milestone("Remove gfxmenu -> defined serial console");
+	return true;
+    }
+
+    if (globals["gfxmenu"]:"" == "none")
+    {
+	y2milestone("Remove gfxmenu -> disabled gfxmenu");
+	return true;
+    }
+    return false;
+}
+
+/** bnc #390659 - autoyast bootloader config: empty settings are ignored (memtest)
+ *
+ * Check if sections inlcude section for memtest
+ * if yes delete all unnecessary keys like initrd, vgamode, append...
+ */
+void checkMemtest ()
+{
+    list<map<string,any> > out = [];
+
+    foreach(map<string,any> s, sections, 
+    {
+	if (search(s["image"]:"","memtest") != nil)
+	{
+	    map<string,any> tmp_s = $[];
+	    tmp_s["image"] = s["image"]:"";
+	    tmp_s["original_name"] = s["original_name"]:"";
+	    tmp_s["name"] = s["name"]:"";
+	    tmp_s["__changed"] = s["__changed"]:false;
+	    tmp_s["__auto"] = s["__auto"]:false;
+	    tmp_s["type"] = s["type"]:"";
+	    y2milestone("Updating memtest section from: %1 to: %2", s, tmp_s);
+	    out = add(out, tmp_s);
+	} else {
+	    out = add(out, s);
+	}
+    });
+
+    sections = out;
+}
 /**
  * Save all bootloader configuration files to the cache of the PlugLib
  * PlugLib must be initialized properly !!!
@@ -735,6 +792,9 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if (bl == "none")
 	return true;
 
+    if (removeGFXMenu())
+	globals = remove(globals, "gfxmenu");
+
     // FIXME: give mountby information to perl-Bootloader (or define some
     // better interface), so that perl-Bootloader can use mountby device names
     // for these devices instead. Tracked in bug #248162.
@@ -759,13 +819,15 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    return $[BootStorage::Dev2MountByDev(k) : v];
     });
     y2milestone ("device map after mapping %1", my_device_mapping);
-    if ((globals["trusted_grub"]:"" == "true") && (haskey(globals, "gfxmenu")))
-	globals = remove(globals, "gfxmenu");
+
 
     // convert XEN section to linux section id running in domU
     // bnc #436899
     ConvertXENinDomU ();
 
+    // add check if there is memtest and delete from memtest section
+    // keys like append, initrd etc...
+    checkMemtest ();
     ret = ret && DefineMultipath(BootStorage::multipath_mapping);
     ret = ret && SetDeviceMap (my_device_mapping);
     ret = ret && SetSections (sections);

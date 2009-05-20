@@ -205,10 +205,11 @@ global boolean check_BootDevice()
 			    if ((tolower(p["fstype"]:"") == "md raid") && 
 			       (BootCommon::globals["boot_mbr"]:"false" != "true"))
 			    {
-				result = false;
 				AddNewProblem (_("The boot device is on software RAID1. Select other bootloader location, e.g. Master Boot Record"));
 				y2error("Booting from soft-raid: %1 and bootloader setting are not valid: %2",
 					p, BootCommon::globals);
+				result = false;
+				break;
 			    } else {
 				found_boot = true;
 				y2milestone("Valid configuration for soft-raid");
@@ -219,7 +220,16 @@ global boolean check_BootDevice()
 			    y2milestone("The boot device: %1 is on raid: %2", boot_device, p["raid_type"]:"");
 			}
 		    }
+
 		    // check if /boot directory is on supported filesystem
+		    // FATE#305691 -> Support ext4 as installation option
+		    if (p["used_fs"]:nil == `ext4) 
+		    {
+			AddNewProblem (_("The /boot directory is on an ext4 filesystem. Create separate /boot partition with ext2 filesytem"));
+			y2error ("The /boot directory is on an ext4 filesystem");
+			result = false;
+			break;
+		    }
 		    if (p["used_fs"]:nil == `xfs) 
 		    {
 			AddNewProblem (_("The /boot directory is on an XFS filesystem. System may not boot."));

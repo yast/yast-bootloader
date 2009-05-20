@@ -947,7 +947,11 @@ global void UpdateGlobals () {
 	return UpdateDevice (d);
     });
     BootCommon::globals["stage1_dev"] = mergestring (s1_devs, ",");
-    BootCommon::globals["gfxmenu"] = "/boot/message";
+
+    // bnc #380509 if autoyast profile includes gfxmenu == none
+    // it will be deleted
+    if (BootCommon::globals["gfxmenu"]:"" != "none")
+        BootCommon::globals["gfxmenu"] = "/boot/message";
 
     // now that the label for the "linux" section is not "linux" anymore, but
     // some product dependent string that can change with an update ("SLES_10"
