@@ -673,13 +673,51 @@ global void FixSections (void() create_sections) {
 }
 
 /**
- * Update sections of bootloader menu
- * modifies internal structures
- * @param replace boolean true if old sectinos shall be replaced
- * @param create_linux_section a reference to a function to create linux
- *   section anew
+ * Update in section old devices to new kernel format
+ * @param section section to modify
  */
-global void UpdateSections (boolean replace,
+void UpdateDeviceForSection(map<string,any> section){
+  if (section["type"]:"" == "image" || section["type"]:"" == "xen")
+  {
+     //check if we update correct image and if update is needed
+     if (BootCommon::UpdateDevice(section["root"]:"nonexisted")
+        == BootStorage::RootPartitionDevice
+        && section["root"]:""!=(BootCommon::UpdateDevice(section["root"]:"")))
+     {
+	y2milestone ("Updating device of section %1", section["name"]:"name");
+        section["root"]= BootCommon::UpdateDevice(section["root"]:"");
+        string resume
+	    = BootCommon::getKernelParamFromLine (
+                section["append"]:"", "resume");
+	if (resume != "false")
+	{
+	  y2milestone ("Updating resume device of section %1", section["name"]:"name");
+	  resume = BootCommon::UpdateDevice (resume);
+	  section["append"] = BootCommon::setKernelParamToLine (
+	    section["append"]:"", "resume", BootStorage::Dev2MountByDev(resume));
+	}
+        section["__modified"] = "1";
+     }
+  }
+}
+
+/**
+ * Update sections of bootloader menu (removes obsolete thinks and
+ * place for ugly hacks (but doesn't efect zypper dup))
+ * modifies internal structures
+ * label update is done in perl-Bootloader during updating kernel
+ * Purpose is don't break anything, but expect that previous state is
+ * working
+ */
+global void UpdateSections ()
+{
+  foreach (map<string,any> section, BootCommon::sections,{
+    //remap device names from hd* to sd*
+    UpdateDeviceForSection(section);
+  });
+}
+
+/*global void UpdateSections (boolean replace,
     map<string,any>(string) create_linux_section)
 {
     list<map<string,any> > out = BootCommon::sections;
@@ -812,7 +850,6 @@ global void UpdateSections (boolean replace,
 	    }
 	    else
 		return s;
-
 	});
     }
 
@@ -932,7 +969,7 @@ global void UpdateSections (boolean replace,
 	return s;
     });
     sections = out;
-}
+}*/
 
 /**
  * Update global options of bootloader
