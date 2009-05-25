@@ -326,6 +326,15 @@ sub countGRUBPassword($) {
     return $ret; 
 }
 
+BEGIN { $TYPEINFO{splitPath} = ["function", ["list","string"],"string"]; }
+sub splitPath($) {
+    my ($pass) = @_;
+    my @ret = $lib_ref->SplitPath($pass);
+
+    DumpLog();
+    return @ret; 
+}
+
 #MBR utilities
 BEGIN { $TYPEINFO{detectThinkpadMBR} = ["function", "boolean","string"]; }
 sub detectThinkpadMBR($) {

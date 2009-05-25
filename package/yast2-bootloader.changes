@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon May 25 16:23:55 CEST 2009 - jreidinger@suse.cz
+
+- refactor Update code (update between products)
+
+-------------------------------------------------------------------
 Wed May 20 14:20:57 CEST 2009 - juhliarik@suse.cz
 
 - fixed additional options for memory test section (bnc#396150)
