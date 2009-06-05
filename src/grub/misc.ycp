@@ -185,9 +185,24 @@ global boolean grub_InstallingToFloppy () {
 	list<list<string> > underlying_devs = [];
 	list<string> devs = [];
 
+	list<string> boot_devices = [];
+	
+	// bnc#494630 - add also boot partitions from soft-raids 
+	string boot_device = BootCommon::getBootPartition();
+	if (substring (boot_device, 0, 7) == "/dev/md")
+	{
+		boot_devices = add(boot_devices, boot_device);
+		foreach (string dev, BootCommon::GetBootloaderDevices(), {
+			boot_devices = add(boot_devices, dev);
+		});
+	} else {
+
+		boot_devices = BootCommon::GetBootloaderDevices();
+	}
+	
 	// get a list of all bootloader devices or their underlying soft-RAID
 	// devices, if necessary
-	underlying_devs = maplist (string dev, BootCommon::GetBootloaderDevices(), {
+	underlying_devs = maplist (string dev, boot_devices, {
 	    md = BootCommon::Md2Partitions(dev);
 	    if ( size(md) > 0 ) {
 		devs = maplist (string k, integer v, md, ``(k));
@@ -1203,6 +1218,7 @@ define boolean checkBootDeviceInDeviceMap(string boot_dev, string boot_dev_mount
 {
     boolean result = false;
 
+
     if (size(BootCommon::device_mapping)>8)
     {
 	result = false;
@@ -1242,7 +1258,7 @@ define boolean checkBootDeviceInDeviceMap(string boot_dev, string boot_dev_mount
 	    }
 	});	
     } else {
-	y2milestone("Device map includes less than 9 devices.");
+    	y2milestone("Device map includes less than 9 devices.");
     }
     return result;
 }

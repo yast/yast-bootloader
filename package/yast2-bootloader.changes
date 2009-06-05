@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Mon May  4 15:31:16 CEST 2009 - juhliarik@suse.cz
+
+- added fix for checking soft-raid devices in device.map 
+  (bnc#494630)
+- added fix for changing device map in y2-bootloader (bnc#497944)
+- added warning message if there is not valid configuration for
+  soft-raid (bnc#501043)
+- 2.17.60 
+
+-------------------------------------------------------------------
 Tue Apr 21 14:52:59 CEST 2009 - juhliarik@suse.cz
 
 - added fix for problem with creating USB Live installation in

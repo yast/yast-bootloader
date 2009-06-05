@@ -170,58 +170,76 @@ boolean GptPartitionTable () {
 
 global boolean check_BootDevice()
 {
-   	boolean result = true;
-   	string boot_device = "";
+   boolean result = true;
+   string boot_device = "";
 
-	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
+   map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
 
 
-	boot_device = BootCommon::getBootPartition();
+   boot_device = BootCommon::getBootPartition();
 
-   	// if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice)
-	//	AddNewProblem (_("Doesn't exist separete /boot partition"));
+   // if (BootCommon::BootPartitionDevice == BootCommon::RootPartitionDevice)
+   //	AddNewProblem (_("Doesn't exist separete /boot partition"));
 
-	boolean found_boot = false;
-	// check if boot device is on raid0
-	if (boot_device != "")
+   boolean found_boot = false;
+   // check if boot device is on raid0
+   if (boot_device != "")
+   {
+	foreach (string k, map v, devices, 
 	{
-		foreach (string k, map v, devices, 
+	    foreach (map p, (list<map>)(v["partitions"]:[]), 
+	    {
+		if (p["device"]:"" == boot_device)
 		{
-			foreach (map p, (list<map>)(v["partitions"]:[]), 
+		    if ((p["raid_type"]:"" != "raid1") && (p["type"]:nil ==`sw_raid))
+		    {
+			AddNewProblem (sformat(_("The boot device is on raid type: %1. System will not boot."),
+					p["raid_type"]:""));
+			y2error("The boot device: %1 is on raid type: %2", boot_device,  p["raid_type"]:"");
+			result = false;
+			break;
+		    } else {
+			// bnc#501043 added check for valid configuration 
+			if ((p["raid_type"]:"" == "raid1") && (p["type"]:nil ==`sw_raid))
 			{
-				if (p["device"]:"" == boot_device)
-				{
-					if ((p["raid_type"]:"" != "raid1") && (p["type"]:nil ==`sw_raid))
-					{
-						AddNewProblem (sformat(_("The boot device is on raid type: %1. System will not boot."), p["raid_type"]:""));
-						y2error("The boot device: %1 is on raid type: %2", boot_device,  p["raid_type"]:"");
-						result = false;
-						break;
-					} else {
-						found_boot = true;
-						y2milestone("The boot device: %1 is on raid: %2", boot_device, p["raid_type"]:"");
-						//break;
-					}
+			    if ((tolower(p["fstype"]:"") == "md raid") && 
+			       (BootCommon::globals["boot_mbr"]:"false" != "true"))
+			    {
+				result = false;
+				AddNewProblem (_("The boot device is on software RAID1. Select other bootloader location, e.g. Master Boot Record"));
+				y2error("Booting from soft-raid: %1 and bootloader setting are not valid: %2",
+					p, BootCommon::globals);
+			    } else {
+				found_boot = true;
+				y2milestone("Valid configuration for soft-raid");
+			    }
 
-					// check if /boot directory is on supported filesystem
-					if (p["used_fs"]:nil == `xfs) {
-						AddNewProblem (_("The /boot directory is on an XFS filesystem. System will not boot."));
-						y2error ("The /boot directory is on an XFS filesystem");
-						result = false;
-						break;
-		    			} else {
-						found_boot = true;
-						y2milestone ("/boot filesystem is OK");
-						break;
-		    			}
+			} else {
+			    found_boot = true;
+			    y2milestone("The boot device: %1 is on raid: %2", boot_device, p["raid_type"]:"");
+			}
+		    }
 
-				}
-			});
-			if ((!result) || (found_boot))
-				break;
-		});
-	}	
-   	return result;
+		    // check if /boot directory is on supported filesystem
+		    if (p["used_fs"]:nil == `xfs) 
+		    {
+			AddNewProblem (_("The /boot directory is on an XFS filesystem. System will not boot."));
+			y2error ("The /boot directory is on an XFS filesystem");
+			result = false;
+			break;
+		    } else {
+			found_boot = true;
+			y2milestone ("/boot filesystem is OK");
+			break;
+		    }
+
+		}
+	    });
+	    if ((!result) || (found_boot))
+		break;
+	});
+    }	
+    return result;
 }
 
 /**

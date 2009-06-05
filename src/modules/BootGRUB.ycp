@@ -865,14 +865,75 @@ global define void BootGRUB () {
     ];
 }
 
+/** bnc#494630 GRUB configuration in installation workflow fail with more than 8 disks on software raid
+ * Return all disks for checking in device map
+ *
+ * @param string boot disk
+ * @return list<string> disk devices
+ */
 
+list <string> ReturnAllDisks(string boot_disk)
+{
+    list <string> ret = [];
+    map tm = Storage::GetTargetMap ();
+    map b_disk = tm[boot_disk]:$[];
+    if (b_disk["type"]:nil == `CT_MD)
+    {
+	string boot_partition = BootCommon::getBootPartition();
+	list b_disk_partitions = b_disk["partitions"]:[];
+	foreach (map p, (list<map>)b_disk_partitions,
+	{
+	    if (p["device"]:"" == boot_partition)
+	    {
+		if ((size(p["devices"]:[]) > 0) && (p["type"]:nil == `sw_raid))
+		{
+		    foreach(string dev, p["devices"]:[],
+		    {
+			map p_dev = Storage::GetDiskPartition (dev);
+			string disk_dev = p_dev["disk"]:"";
+			if (disk_dev != "")
+			    ret = add(ret, disk_dev);
+			else
+			    y2error("Real disk was not found for device: %1", dev);
+		    });
+		} else {
+		    if (p["type"]:nil == `sw_raid)
+		        y2error("soft raid partition: %1 doesn't include any devices: %2",
+				boot_partition, p["devices"]:[]);
+		    else
+			y2error("Disk is not soft-raid %1", b_disk);
+		    ret = add(ret, boot_disk);
+		    
+		}
+	    }
+	});
+    } else {
+	y2milestone("Boot disk is not on MD-RAID");
+	ret = add(ret, boot_disk);
+    }
+    y2milestone("Devices for checking if they are in device map: %1", ret);
+    return ret;
+}
+
+/** bnc#494630 GRUB configuration in installation workflow fail with more than 8 disks on software raid
+ * Function check if boot disk is in device map
+ *
+ * @return boolean true if boot device is not in device map
+ */
 global boolean CheckDeviceMap()
 {
     // FATE #303548 - Grub: limit device.map to devices detected by BIOS
     boolean ret = false;
     string boot_disk = BootCommon::getBootDisk();
-    if (boot_disk != "")
-       ret = checkBootDeviceInDeviceMap(boot_disk, BootCommon::Dev2MountByDev(boot_disk));
+    list <string> disks = ReturnAllDisks(boot_disk);
+    if (size(disks) > 0)
+    {
+	foreach(string disk, disks,
+	{
+	    ret = ret || checkBootDeviceInDeviceMap(disk, BootCommon::Dev2MountByDev(disk));
+	});
+
+    }
 
     return ret;
 
