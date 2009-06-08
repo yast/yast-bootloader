@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Jun  8 16:12:37 CEST 2009 - juhliarik@suse.cz
+
+- added fix for HVM guest installation and update (bnc#501987)
+- added fix for troubles with installing on logical partition
+  (bnc#509828)
+- 2.13.159
+
+-------------------------------------------------------------------
 Fri May 15 12:35:35 CEST 2009 - juhliarik@suse.cz
 
 - added support for reipl (FATE#305938)

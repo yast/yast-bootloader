@@ -48,6 +48,7 @@
     global void ProposeDeviceMap ();
     global boolean DisksChanged ();
     global define list<string> getPartitionList(symbol type);
+    global boolean isHVMGuest();
 
     include "bootloader/routines/i386.ycp";
 
@@ -234,6 +235,13 @@
      */
     global define string Dev2MountByDev(string dev) ``{
 	y2milestone ("Dev2MountByDev: %1", dev);
+
+	// ugly hack for bnc#501987 kernel panic 
+	if (isHVMGuest())
+	{
+	    y2milestone("skip converting device: %1 to persistent device name", dev);
+	    return dev;
+	}
 	map<string,map> devices = (map<string,map>)Storage::GetTargetMap();
 
 	// make a map: "/dev/hda1" -> info_map_for_this_partition
@@ -1118,7 +1126,7 @@ list<string> ListKernelParamsInLine (string line) {
 	    foreach (string d, disks_to_rewrite, {
 		y2milestone ("Copying generic MBR code to %1", d);
 		string command = sformat (
-		    "/bin/dd bs=446 count=1 if=%1 of=%2",
+		    "/bin/dd bs=440 count=1 if=%1 of=%2",
 		    "/usr/lib/boot/master-boot-code",
 		    d);
 		y2milestone ("Running command %1", command);
@@ -1185,7 +1193,7 @@ list<string> ListKernelParamsInLine (string line) {
 
     /**
       * Rewrite current MBR with /var/lib/YaST2/backup_boot_sectors/%device
-      * Warning!!! don't use for bootsectors, 446 bytes of sector are written
+      * Warning!!! don't use for bootsectors, 440 bytes of sector are written
       * @param device string device to rewrite MBR to
       * @return boolean true on success
       */
@@ -1198,7 +1206,7 @@ list<string> ListKernelParamsInLine (string line) {
 	    return false;
 	}
 	integer ret = (integer) SCR::Execute (.target.bash, sformat (
-	    "/bin/dd of=%1 if=/var/lib/YaST2/backup_boot_sectors/%2 bs=446 count=1",
+	    "/bin/dd of=%1 if=/var/lib/YaST2/backup_boot_sectors/%2 bs=440 count=1",
 	    device, device_file));
 	return (ret == 0);
     }
@@ -1576,6 +1584,22 @@ global string getBootDisk()
 
 	y2milestone("Finding boot disk failed!");
 	return "";
+}
+
+/** bnc#501987  kernel panic HVM guest -> noprobe problem
+ * Function check if system run on HVM guest
+ *
+ * @return boolean true if it is HVM guest 
+ */
+
+global boolean isHVMGuest()
+{
+    boolean ret = false;
+    boolean xen = (boolean)SCR::Read(.probe.is_xen);
+    // check if it is HVM guest only
+    if ((!Arch::is_xen()) && (xen == true))
+	ret = true;
+    return ret;
 }
 
 

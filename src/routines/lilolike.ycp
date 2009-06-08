@@ -31,6 +31,7 @@ global list<string> DisksOrder ();
 global void DetectDisks ();
 global void ProposeDeviceMap ();
 global boolean DisksChanged ();
+global string HVMGuestUpdateAppend(string append);
 
 include "bootloader/routines/i386.ycp";
 
@@ -821,6 +822,13 @@ global void UpdateSections (boolean replace,
 	    }
 	    s["append"] = option;
 	}
+	//bnc #501987 kernel panic HVM guest -> noprobe problem
+	if (getLoaderType (false) == "grub")
+	{
+	    if ((s["type"]:"" == "image")
+		&& (haskey(s, "append")))
+		s["append"] = HVMGuestUpdateAppend(s["append"]:"");
+	}
 	return s;
     });
     sections = out;
@@ -1395,6 +1403,72 @@ boolean ConvertXENinDomU ()
 	BootCommon::sections = tmp_sections;
 	return ret;
 }
+
+/** bnc#501987 kernel panic HVM guest -> noprobe problem
+ * Function prepare additional args for append
+ * for all disk from device map should added to kernel 
+ * append noprobe e.g. hda=noprobe 
+ *
+ * return string additional arg for append
+ */
+string HVMGuestAppend()
+{
+    string ret = "";
+    list <string> disks = [];
+    if ((BootCommon::device_mapping != nil)
+       &&(size (BootCommon::device_mapping) != 0))
+    {
+	list <string> devices = (list <string>) Map::Keys(BootCommon::device_mapping);
+	foreach( string device, devices, 
+	{
+	    if (search(device, "/dev/fd0") == nil)
+	    {
+		string kernel_device = BootCommon::MountByDev2Dev(device);
+		integer last=findlastof(kernel_device,"/");
+		disks = add(disks, substring (kernel_device, last+1));
+	    }
+	});
+
+	foreach(string disk, disks,
+	{
+	    string tmp_arg = " " + disk + "=noprobe";
+	    ret = ret + tmp_arg;
+	});	
+    }
+    y2milestone("additional append args for kernel on HVM guest: %1", ret);
+    return ret;
+}
+
+/** bnc#501987 kernel panic HVM guest -> noprobe problem
+ * It checks if system run on HVM guest and update append
+ * If yes add additioanl args to kernel append HVMGuestAppend()
+ *
+ * @param string original append from section
+ * @return string updated append from section
+ */
+global string HVMGuestUpdateAppend(string append)
+{
+    string ret = append;
+    // check if it is HVM guest only
+    if (BootCommon::isHVMGuest())
+    {
+	string hvm_guest_append = HVMGuestAppend();
+	list <string> list_hvm_guest_append = splitstring(hvm_guest_append, " ");
+	list_hvm_guest_append = filter (string arg, list_hvm_guest_append, 
+	{
+	    return (arg != "");
+	});
+
+	foreach(string hd_noprobe, list_hvm_guest_append, 
+	{
+	    if (search(append, hd_noprobe) == nil)
+		ret = ret + " " + hd_noprobe;
+	});
+    }
+    y2milestone("updated append: %1", ret);
+    return ret;
+}
+
 
 
 

@@ -368,7 +368,7 @@ global boolean grub_InstallingToFloppy () {
 	    foreach (string d, disks_to_rewrite, {
 		y2milestone ("Copying generic MBR code to %1", d);
 		string command = sformat (
-		    "/bin/dd bs=446 count=1 if=%1 of=%2",
+		    "/bin/dd bs=440 count=1 if=%1 of=%2",
 		    "/usr/lib/boot/master-boot-code",
 		    d);
 		y2milestone ("Running command %1", command);
@@ -622,7 +622,7 @@ define symbol grub_ConfigureLocation() {
 	//		contain boot code
 	//	    - 0 for a "Generic MBR" (DOS MBR)
 	//	    - 1 for a GRUB or lilo "stage 1"
-	//	    - 0 for an unknown MBR
+	//	    - 1 for an unknown MBR
 
         // check if there is raid and if it soft-raid select correct device for analyse MBR
         // bnc #398356
@@ -684,7 +684,12 @@ define symbol grub_ConfigureLocation() {
     {
 	// if not installing to MBR, always activate (so the generic MBR will
 	// boot Linux)
+	// kokso: fix the problem with proposing installation generic boot code to "/" or "/boot"
+	// kokso: if boot device is on logical partition
+        if (is_logical && (extended != nil) && (BootCommon::globals["generic_mbr"]:"" == "true"))
+	    selected_location = `extended;
 	BootCommon::globals["activate"] = "true";
+	SetBootloaderDevice(selected_location);
     }
 
     return selected_location;

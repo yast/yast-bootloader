@@ -84,6 +84,11 @@ map<string,any> CreateLinuxSection (string title) {
       section = remove(section, "vga");
     }
 
+    //bnc #501987 kernel panic HVM guest -> noprobe problem
+    if ((title == "linux") || (title == "failsafe"))
+    {
+	section["append"] = BootCommon::HVMGuestUpdateAppend(section["append"]:"");
+    }
     return section;
 }
 
