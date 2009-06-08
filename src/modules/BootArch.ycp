@@ -98,15 +98,15 @@ global string FailsafeKernelParams () {
     string ret = "";
     if (Arch::i386 ())
     {
-	ret = "showopts ide=nodma apm=off noresume nosmp maxcpus=0 edd=off powersaved=off nohz=off highres=off processor.max_cstate=1";
+	ret = "showopts apm=off noresume nosmp maxcpus=0 edd=off powersaved=off nohz=off highres=off processor.max_cstate=1";
     }
     else if (Arch::x86_64 ())
     {
-	ret = "showopts ide=nodma apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1";
+	ret = "showopts apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1";
     }
     else if (Arch::ia64 ())
     {
-	ret = "ide=nodma nohalt noresume powersaved=off";
+	ret = "nohalt noresume powersaved=off";
     }
     else if (Arch::s390 ())
     {
