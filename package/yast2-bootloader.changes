@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jun  8 10:37:27 CEST 2009 - jsrain@suse.cz
+
+- do not add 'ide=nodma' to failsafe kernel parameter (bnc#510784)
+
+-------------------------------------------------------------------
 Mon May 25 16:23:55 CEST 2009 - jreidinger@suse.cz
 
 - refactor Update code (update between products)
