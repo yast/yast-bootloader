@@ -929,7 +929,7 @@ global void RemoveUnexistentSections (string path_prefix,
 	    return true;
 	}
         string kernel ="";
-        if (haskey(s, "kernel"))
+        if ((haskey(s, "kernel")) && (s["kernel"]:"" != ""))
 	   kernel = s["kernel"]:"";
         else
            kernel = s["image"]:"";

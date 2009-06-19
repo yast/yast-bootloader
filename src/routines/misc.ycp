@@ -1602,5 +1602,22 @@ global boolean isHVMGuest()
     return ret;
 }
 
+/**
+ * Check if the PBR of the given partition seems to contain a known boot block
+ * @param device string partition device to check
+ * @return true if the PBR seems to contain a known boot block
+ */
+global boolean IsPartitionBootable (string device) {
+    // use examine_mbr.pl to analyze PBR (partition boot record):
+    // examine_mbr.pl prints "* stage1" when it finds the signature
+    // of some stage1 bootloader
+    // (The exit code would tell us only whether we should
+    // (re-)install a bootloader stage1 there in order to make the
+    // partition bootable, not whether a stage1 already exists.)
+    map result = (map)SCR::Execute (.target.bash_output, sformat (
+	"/usr/lib/YaST2/bin/examine_mbr.pl %1", device));
+    y2milestone ("PBR examining script returned %1", result);
+    return search(result["stdout"]:"", "stage1") != nil ? true : false;
+}
 
 } //end of include

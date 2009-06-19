@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jun 19 13:56:53 CEST 2009 - juhliarik@suse.cz
+
+- added fix for adding other installed OS (bnc#489142)
+- added fix for deleting obsolete xen boot section during update
+  (bnc#512043) 
+- 2.13.160
+
+-------------------------------------------------------------------
 Mon Jun  8 16:12:37 CEST 2009 - juhliarik@suse.cz
 
 - added fix for HVM guest installation and update (bnc#501987)

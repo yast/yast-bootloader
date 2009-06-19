@@ -139,6 +139,7 @@ global list<map<string,string> > CheckAdditionalKernels () {
   * Propose sections to bootloader menu
   * modifies internal structures
   */
+
 global define void CreateSections () {
     y2debug ("Creating GRUB sections from scratch");
     list<map<string,any> > out = [];
@@ -146,7 +147,12 @@ global define void CreateSections () {
     out = add (out, CreateLinuxSection ("linux"));
     if (BootCommon::XenPresent ())
         out = add (out, CreateLinuxSection ("xen"));
+
     list<string> others_ignore = [];
+
+    string linux_fallback_text = "Linux other";
+    integer fallback_num = 1;
+
     list<string> others = (list<string>)Storage::GetForeignPrimary();
     y2debug ("Other primaries: %1", others);
     list<map> other_l = (list<map>)Storage::GetOtherLinuxPartitions();
@@ -184,8 +190,16 @@ global define void CreateSections () {
 		y2debug ("result of loading %1 is %2", modname, r);
 	    }
 	});
-	BootCommon::InitializeLibrary (true, "grub");
+	//BootCommon::InitializeLibrary (true, "grub");
 	foreach (map o, other_l, {
+
+	    boolean bootable = false;
+	    boolean has_menu_lst = false;
+	    string menu_lst = "";
+	    boolean name_found = false;
+	    string new_sect_name_prefix = "";
+
+	    BootCommon::InitializeLibrary (false, "grub");
 	    string dev = o["device"]:"";
 	    if (dev != "" && 0 == SCR::Execute (.target.bash,
 		    sformat ("/bin/mount %1 %2", dev, tmpdir))
@@ -204,10 +218,25 @@ global define void CreateSections () {
 			    filenames = add (filenames, fn);
 		});
 		y2milestone ("Found files %1", filenames);
-		integer count = 0;
+
+		// bootable: ?
+		bootable = BootCommon::IsPartitionBootable(dev);
+
 		foreach (string f, filenames, {
+		    if (name_found)
+			return;
+
 		    y2debug ("Checking file %1", f);
 		    string fc = (string)SCR::Read (.target.string, f);
+
+		    if (fc ==nil)
+			return;
+
+		    has_menu_lst = true;
+		    menu_lst = substring(f, size(tmpdir));
+		    if ( substring(menu_lst, 0, 1) != "/" )
+			menu_lst = "/" + menu_lst;
+
 		    string dm = (string)SCR::Read (.target.string,
 			regexpsub (f, "(.*)menu.lst$",
 				   "\\1device.map"));
@@ -215,6 +244,8 @@ global define void CreateSections () {
 			     regexpsub (f, "(.*)menu.lst$",
 					"\\1device.map"));
 		    y2debug ("Device map contents: %1", dm);
+
+		    // pass the menu.lst and device.map to the parser
 		    map<string,string> files = $[
 						 "/boot/grub/menu.lst" : fc,
 						 ];
@@ -222,30 +253,32 @@ global define void CreateSections () {
 		        return;
 
 		    files["/boot/grub/device.map"] = dm;
+
 		    BootCommon::InitializeLibrary (false, "grub");
 		    BootCommon::SetFilesContents (files);
 		    list<map<string,any> > sects
 		        = BootCommon::GetSections ();
 		    y2debug ("Found sections %1", sects);
-		    if (merge_level == `main)
-		    {
-		        sects = filter (map<string,any> s, sects, {
-			    return s["initial"]:nil != nil;
-			});
-		    }
-		    count = count + size (sects);
+
+	// bnc #448010 grub doesn't add another installed Linux in installation
+
+		    map<string,string> globs = BootCommon::GetGlobal ();
+		    string default_sec_name = globs["default"]:"";
+
+	// look only for "default" == "initial" entries, not all entries
+		    sects = filter (map<string,any> s, sects, {
+			return ((s["initial"]:nil != nil) || (s["name"]:nil == default_sec_name));
+		    }); 
+
+	// now find the name of the first non-broken "initial" section and get its name
 		    foreach (map<string,any> s, sects, ``{
-		        s = (map<string,any>)union (s, $[
-				"__changed" : false,
-				"__auto" : true,
-				"__converted" : true,
-			]);
-			// no need to translate here...
-			s["name"] = sformat ("%2 (%1)",
-				dev, s["name"]:"");
-			s["original_name"] = s["name"]:"";
+			if (name_found)
+			    return;
+			boolean _use = true;
+			// this is a heuristic: if the mounted partition or the
+			// root partition referenced in the section is "new,
+			// deleted or formatted", then do not use the section
 			list<string> devs = [dev];
-			list<string> _dp = [];
 
 			string _d = s["root"]:"";
 			if (_d != nil && _d != "")
@@ -258,24 +291,65 @@ global define void CreateSections () {
 			devs = maplist (string d, devs, {
 			    return BootCommon::UpdateDevice (d);
 			});
-			boolean _add = true;
 			foreach (string _d, devs, {
 			    if (contains (destroyed_partitions, _d))
-			        _add = false;
+			        _use = false;
 			});
-			if (_add)
+			if (_use)
 			{
-			  // FIXME: fallback to vmlinux and initrd symlink if
-			  // present in the chroot environment of the other
-			  // Linux System ... #224481
-
-			    s["__devs"] = devs;
-			    out = add (out, s);
+			    // no need to translate here... 
+			    new_sect_name_prefix = s["name"]:"";
+			    name_found = true;
 			}
 		    });
 		});
-		if (count > 0)
+
+		if (bootable || has_menu_lst)
+		{
+		    // set up the new section entry
+		    map<string,any> new_sect = $[
+			    "root" : BootCommon::Dev2MountByDev(dev),
+			    "__changed" : true,
+			    "__auto" : true,
+			    "__devs" : [dev]
+		    ];
+
+		    if (bootable)
+		    {
+			//     mountable        bootable                                        =>  chainloader (label: to be decided)
+			new_sect["noverifyroot"] = "true";
+			new_sect["chainloader"] = BootCommon::Dev2MountByDev(dev);
+			new_sect["blockoffset"] = "1";
+			new_sect["type"] = "other";
+		    }
+		    else
+		    {
+			//     mountable    not bootable                                        =>  configfile  (label: to be decided)
+			//new_sect["configfile"] = sformat("(%1)%2", dev, menu_lst);
+			new_sect["configfile"] = menu_lst;
+			new_sect["type"] = "menu";
+		    }
+
+		    if (name_found)
+		    {
+			//     mountable                                            name_found  =>              ("openSUSE 10.2 (/dev/sda2)")
+			new_sect["name"] = sformat(" %1 (%2)", new_sect_name_prefix, dev);
+		    }
+		    else
+		    {
+			//     mountable                                        not name_found  =>              ("Linux other 1 (/dev/sda2)")
+			new_sect["name"] = sformat("%1 %2 (%3)", linux_fallback_text, fallback_num, dev);
+			fallback_num = fallback_num+1;
+		    }
+
+		    new_sect["original_name"] = new_sect["name"]:"";
+
+		    out = add (out, new_sect);
+		    // ignore this partition when going through the list of
+		    // "other", non-linux partitions in the next loop below
 		    others_ignore = add (others_ignore, dev);
+		}
+
 
 		SCR::Execute (.target.bash, sformat (
 			"/bin/umount %1", dev));
