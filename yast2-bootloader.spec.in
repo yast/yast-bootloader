@@ -36,8 +36,7 @@ Obsoletes:	y2t_inst-bootloader yast2-agent-liloconf-devel yast2-agent-prom-devel
 Summary:	YaST2 - Bootloader Configuration
 
 %description
--
-
+This package contains the YaST2 component for bootloader configuration.
 
 @PREP@
 
