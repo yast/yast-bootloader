@@ -3504,13 +3504,6 @@ Tue Nov 19 15:19:59 CET 2002 - schwab@suse.de
 - Report error when boot loader installation fails.
 
 -------------------------------------------------------------------
-Wed Oct 30 21:44:47 CET 2002 - kukuk@suse.de
-
-- fix log path in dosilo script
-- update_silo_conf: modify version number in /boot/message
-- BootSILO.ycp: Don't show popup on success when installing silo
-
--------------------------------------------------------------------
 Wed Nov 13 09:08:12 CET 2002 - jsrain@suse.cz
 
 - again fixed installing a kernel to *NWSSTG when root is on RAID
@@ -3836,7 +3829,7 @@ Wed Aug 28 11:57:22 CEST 2002 - jsrain@suse.cz
 - 2.6.32
 
 -------------------------------------------------------------------
-Wed Aug 28 12:13:05 CEST 2002 - kkaempf@suse.de
+Wed Aug 28 10:13:05 CEST 2002 - kkaempf@suse.de
 
 - fix checking for splashscreen
 - 2.6.31
