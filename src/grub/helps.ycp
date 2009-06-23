@@ -63,7 +63,7 @@ logical partition and the /boot partition is missing</p>"),
     "boot_custom"		:
     _("<p><b>Custom Boot Partition</b> lets you choose a partition to boot from.</p>"),
     "serial"			:
-    _("<p><b>Use Serial Console</b> lets you define the paramters to use
+    _("<p><b>Use Serial Console</b> lets you define the parameters to use
 for a serial console. Please see the grub documentation (<code>info grub</code>) for details.</p>"),
     "terminal"			:
     _("<p><b>Terminal Definition</b></p><br>
