@@ -1015,10 +1015,6 @@ global define string getLoaderType (boolean recheck) {
 	y2milestone ("It is XEN domU and the bootloader should be installed");
 
     }
-    if ((Arch::i386() || Arch::x86_64()) && Linuxrc::InstallInf("EFI") == "1")
-    {
-	loader_type = "elilo";
-    }
 
     if (loader_type == "grub")
     {
@@ -1097,8 +1093,6 @@ global define list<string> getBootloaders () {
     if (Arch::i386 () || Arch::x86_64 ())
     {
         ret = (list<string>)merge (ret, ["lilo", "grub"]);
-	if (Arch::x86_64 ())
-	    ret = (list<string>)merge (ret, ["elilo"]);
     }
     // in order not to display it twice when "none" is selected
     ret = filter (string l, ret, {

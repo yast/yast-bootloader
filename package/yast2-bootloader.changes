@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun 29 16:45:48 CEST 2009 - juhliarik@suse.cz
+
+- update support of UEFI on x86-64 (fate#306032)
+- 2.13.161 
+
+-------------------------------------------------------------------
 Fri Jun 19 13:56:53 CEST 2009 - juhliarik@suse.cz
 
 - added fix for adding other installed OS (bnc#489142)
