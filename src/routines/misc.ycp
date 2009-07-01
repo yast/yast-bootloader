@@ -1491,7 +1491,52 @@ global boolean BootloaderInstallable () {
     }
 }
 
+/**
+ * Function return boot device it means
+ * return boot partition or root partition if boot partition deosn't exist
+ * function return "" if boot partition or root partition is not defined (autoyast)
+ * @return string name of boot device (partition)
+ */
 
+global string getBootPartition()
+{
+	string boot_device = "";
+	if (BootCommon::BootPartitionDevice != "")
+		boot_device = BootCommon::BootPartitionDevice;
+	else if (BootCommon::RootPartitionDevice != "")
+		boot_device = BootCommon::RootPartitionDevice;
+
+	return boot_device;
+}
+
+/** FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
+ * Function select boot device - disk
+ *
+ * @return string name of boot device - disk
+ */
+
+global string getBootDisk()
+{
+	string boot_device = getBootPartition();
+
+	if (boot_device == "")
+	{
+		y2milestone("BootPartitionDevice and RootPartitionDevice are empty");
+		return boot_device;
+	}
+	map p_dev = Storage::GetDiskPartition (boot_device);
+
+	string boot_disk_device = p_dev["disk"]:"";
+
+	if ((boot_disk_device != "") && (boot_disk_device != nil))
+	{
+		y2milestone("Boot device - disk: %1", boot_disk_device);
+		return boot_disk_device;
+	}
+
+	y2milestone("Finding boot disk failed!");
+	return "";
+}
 
 
 } //end of include

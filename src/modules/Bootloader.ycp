@@ -278,22 +278,18 @@
       */
     global define list<string> Summary () {
         list<string> ret =[];
+	// bnc #448950 -  autoyast: the boot partition is of type NFS, bootloader cannot be installed
+	// F#300779 - Install diskless client (NFS-root) 
+	// kokso: bootloader will not be installed
+	string device = BootCommon::getBootDisk();
 
-//F#300779 - Install diskless client (NFS-root) 
-//kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-
-//B#355332 - Bootloader doesn't work if root partitions is like nfs
-        map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
-        
-        if (dev["disk"]:"" == "/dev/nfs")
+        if (device == "/dev/nfs")
         {
-	   
-           ret = add (ret, _("The boot partition is of type NFS. Bootloader cannot be installed."));
-           y2milestone("Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed.");
-           return ret;
-
+		y2milestone("Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed.");
+        	return ret;
         }
-//F#300779 - end
+	// F#300779 -end
+
 	ret = blSummary ();
 	// check if default section was changed or not
         string main_section = getProposedDefaultSection ();
@@ -584,22 +580,19 @@ define map<string, string> getXenPartitionForActivating()
 	    return ret;
 	}
 
+	// bnc #448950 -  autoyast: the boot partition is of type NFS, bootloader cannot be installed
+	// F#300779 - Install diskless client (NFS-root) 
+	// kokso: bootloader will not be installed
+	string device = BootCommon::getBootDisk();
 
-       // F#300779 - Install diskless client (NFS-root) 
-       // kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-
-       // B#355332 - Bootloader doesn't work if root partitions is like nfs
-
-        map dev = Storage::GetDiskPartition(BootCommon::BootPartitionDevice);
-        
-        if (dev["disk"]:"" == "/dev/nfs")       
+        if (device == "/dev/nfs")       
         {
 	   y2milestone("Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed.");
            return ret;
 
         }
+	// F#300779 -end
 
-        // F#300779 -end
 	// update graphics menu where possible
 	UpdateGfxMenu ();
 

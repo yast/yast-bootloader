@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul  1 16:29:13 CEST 2009 - juhliarik@suse.cz
+
+- added fix for problem with "/" on NFS (bnc#448950)
+- 2.13.155.2 
+
+-------------------------------------------------------------------
 Wed Jun 11 16:23:19 CEST 2008 - juhliarik@suse.cz
 - added fix for activating partition for XEN (bnc #380982)
 - 2.13.155.1
