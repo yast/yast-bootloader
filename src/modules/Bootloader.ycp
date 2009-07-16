@@ -1082,7 +1082,8 @@ string checkZiplDefault(string def)
 	  /*
 	   * This is extreme boolshit, Bootloader::Library has to be called
 	   */
-	    string bl_command = "/sbin/lilo >> /var/log/YaST2/y2log_bootloader 2>&1";
+	    // add fix for calling lilo (bnc#466427)
+	    string bl_command = "/sbin/lilo -P ignore >> /var/log/YaST2/y2log_bootloader 2>&1";
 	    boolean command_ret = 0 == SCR::Execute (.target.bash, bl_command);
 	    if (! command_ret)
 	    {

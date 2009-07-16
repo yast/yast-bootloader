@@ -23,7 +23,7 @@ if (length($out) < 70) {
 if (substr($MBR, 320, 126) =~ 
     m,invalid partition table.*no operating system,i) {
   print "Generic MBR\n";
-  exit 0;
+  exit 1;
 }
 
 if (substr($MBR, 346, 100) =~ m,GRUB .Geom.Hard Disk.Read. Error,) {
@@ -35,6 +35,18 @@ if (substr($MBR, 4, 20) =~ m,LILO,) {
   print "LILO stage1\n";
   exit 1;
 }
+
+if (substr($MBR, 12, 500) =~ m,NTLDR is missing,) {
+  print "Windows bootloader stage1\n";
+  exit 0;
+}
+
+if (substr($MBR, 0, 440) =~ 
+    m,invalid partition table.*Error loading operating system,i) {
+  print "Vista MBR\n";
+  exit 0;
+}
+
 
 print "unknown\n";
 exit 1;

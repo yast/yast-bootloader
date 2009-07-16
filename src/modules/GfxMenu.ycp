@@ -427,7 +427,8 @@ global boolean Update() {
 
     if (loader == "lilo")
     {
-	map out = (map)SCR::Execute (.target.bash_output, "/sbin/lilo");
+	// add fix for calling lilo (bnc#466427)
+	map out = (map)SCR::Execute (.target.bash_output, "/sbin/lilo -P ignore");
 	if (out["exit"]:0 != 0)
 	{
 	    y2error ("Output of /sbin/lilo: %1", out);

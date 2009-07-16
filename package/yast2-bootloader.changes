@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jul 16 12:52:56 CEST 2009 - juhliarik@suse.cz
+
+- update checking of MBR and bootloader proposal (bnc#517293)
+- added fix for calling /sbin/lilo (bnc#466427)
+- added fix for update if xen is installed (bnc#278739)
+- 2.13.162 
+
+-------------------------------------------------------------------
 Mon Jun 29 16:45:48 CEST 2009 - juhliarik@suse.cz
 
 - update support of UEFI on x86-64 (fate#306032)

@@ -271,7 +271,8 @@ string getDeviceOfRaid (string device) {
 			     BootCommon::BootPartitionDevice))
 	      {
 		y2milestone ("Creating backup copy to bootsector");
-		SCR::Execute (.target.bash, sformat ("/sbin/lilo -b %1",
+		// add fix for calling lilo (bnc#466427)
+		SCR::Execute (.target.bash, sformat ("/sbin/lilo -P ignore -b %1",
 			      BootCommon::BootPartitionDevice));
 	      }
 	}
@@ -297,8 +298,9 @@ global map<string,symbol()> Dialogs () {
   */
 global define boolean FlagOnetimeBoot (string section)
 {
+    // add fix for calling lilo (bnc#466427)
     map result = (map)SCR::Execute (.target.bash_output,
-				    sformat ("/sbin/lilo -R \"%1\"", section));
+				    sformat ("/sbin/lilo -P ignore -R \"%1\"", section));
     y2milestone ("lilo returned %1", result);
     return (result["exit"]:-1 == 0);
 }

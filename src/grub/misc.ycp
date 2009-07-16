@@ -548,7 +548,7 @@ define symbol grub_ConfigureLocation() {
     // NOTE: selected_location is a temporary local variable now; the global
     // variable is not used for grub anymore
     symbol selected_location = `mbr;             // default to mbr
-
+    boolean windows_mbr = false;
     // check whether the /boot partition
     //  - is primary:				is_logical  -> false
     //  - is on the first disk (with the MBR):  boot_partition_is_on_mbr_disk -> true
@@ -635,6 +635,11 @@ define symbol grub_ConfigureLocation() {
 	y2milestone ("MBR examining script returned %1", out);
 	integer exit = out["exit"]:0;
 	BootCommon::globals["generic_mbr"] = ((exit != 0) && (! keep_mbr)) ? "true" : "false";
+	if (exit == 0)
+	{
+		y2milestone("It should be Windows MBR...");
+		windows_mbr = true;
+	}
     }
     else if (size (underlying_boot_partition_devices) > 1)
     {
@@ -686,7 +691,8 @@ define symbol grub_ConfigureLocation() {
 	// boot Linux)
 	// kokso: fix the problem with proposing installation generic boot code to "/" or "/boot"
 	// kokso: if boot device is on logical partition
-        if (is_logical && (extended != nil) && (BootCommon::globals["generic_mbr"]:"" == "true"))
+        if (is_logical && (extended != nil) && (BootCommon::globals["generic_mbr"]:"" == "true" ||
+	windows_mbr))
 	    selected_location = `extended;
 	BootCommon::globals["activate"] = "true";
 	SetBootloaderDevice(selected_location);

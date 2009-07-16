@@ -425,7 +425,7 @@ global boolean XenPresent () {
 global boolean UsingXenPae() {
     if (Mode::test())
 	return true;
-    if (Mode::normal())
+    if (Mode::normal() || Mode::update())
         return Pkg::IsProvided ("kernel-xenpae");
     return Pkg::IsSelected ("kernel-xenpae");
 }
