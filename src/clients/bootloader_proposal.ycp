@@ -93,6 +93,12 @@
 
 	    
 	    BootGRUB::merge_level = `none;
+
+	    ret["links"] = [
+		"enable_boot_mbr", "disable_boot_mbr",
+		"enable_boot_root", "disable_boot_root",
+		"enable_boot_boot", "disable_boot_boot",
+	    ];
 	}
 	else
 	{
@@ -101,7 +107,7 @@
 	// to make sure packages will get installed
 	BootCommon::setLoaderType (BootCommon::getLoaderType (false));
 
-	ret = $[ "raw_proposal" : Bootloader::Summary ()];
+	ret["raw_proposal"] = Bootloader::Summary ();
 
 
 	if (Bootloader::getLoaderType () == "grub")
@@ -238,21 +244,74 @@ In case that no selection can be made it may be necessary to create a PReP Boot 
     // up the Bootloader.
     else if ( func == "AskUser" )
     {
-	boolean has_next = param["has_next"]:false;
 
-	map settings = Bootloader::Export ();
-	// don't ask for abort confirm if nothing was changed (#29496)
-	BootCommon::changed = false;
-	symbol result = BootloaderAutoSequence ();
-	// set to true, simply because must be saved during installation
-	BootCommon::changed = true;
-	if (result != `next)
-	    Bootloader::Import ((map<string,any>)settings);
-	else
+	any chosen_id = param["chosen_id"]:nil;
+	symbol result = `next;
+	y2milestone("Bootloader wanted to change with id %1", chosen_id);
+
+	// enable boot from MBR
+	if (chosen_id == "enable_boot_mbr") 
+	{
+	    y2milestone("Boot from MBR enabled by a single-click");
+	    BootCommon::globals["boot_mbr"] = "true";
 	    Bootloader::proposed_cfg_changed = true;
+	}
 
+	// disable boot from MBR
+	else if (chosen_id == "disable_boot_mbr") 
+	{
+	    y2milestone("Boot from MBR disabled by a single-click");
+	    BootCommon::globals["boot_mbr"] = "false";
+	    Bootloader::proposed_cfg_changed = true;
+	}
+	// enable boot from /boot
+	else if (chosen_id == "enable_boot_boot") 
+	{
+	    y2milestone("Boot from /boot enabled by a single-click");
+	    BootCommon::globals["boot_boot"] = "true";
+	    Bootloader::proposed_cfg_changed = true;
+	}
+
+	// disable boot from /boot
+	else if (chosen_id == "disable_boot_boot") 
+	{
+	    y2milestone("Boot from /boot disabled by a single-click");
+	    BootCommon::globals["boot_boot"] = "false";
+	    Bootloader::proposed_cfg_changed = true;
+	}
+
+	// enable boot from /
+	else if (chosen_id == "enable_boot_root") 
+	{
+	    y2milestone("Boot from / enabled by a single-click");
+	    BootCommon::globals["boot_root"] = "true";
+	    Bootloader::proposed_cfg_changed = true;
+	}
+
+	// disable boot from /
+	else if (chosen_id == "disable_boot_root") 
+	{
+	    y2milestone("Boot from / disabled by a single-click");
+	    BootCommon::globals["boot_root"] = "false";
+	    Bootloader::proposed_cfg_changed = true;
+	}	
+	else
+	{
+	    boolean has_next = param["has_next"]:false;
+
+	    map settings = Bootloader::Export ();
+	    // don't ask for abort confirm if nothing was changed (#29496)
+	    BootCommon::changed = false;
+	    result = BootloaderAutoSequence ();
+	    // set to true, simply because must be saved during installation
+	    BootCommon::changed = true;
+	    if (result != `next)
+		Bootloader::Import ((map<string,any>)settings);
+	    else
+		Bootloader::proposed_cfg_changed = true;
+	}
 	// Fill return map
-	ret = $[ "workflow_sequence" : result ];
+	ret["workflow_sequence"] = result;
     }
     // This describes the "active" parts of the Bootloader proposal section.
     else if ( func == "Description" )

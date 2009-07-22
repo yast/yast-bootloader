@@ -604,7 +604,7 @@ define symbol grub_ConfigureLocation() {
     // see bug #279837 comment #53
     if (boot_partition_is_on_mbr_disk)
     {
-	selected_location = `boot;
+	selected_location = (BootStorage::BootPartitionDevice != BootStorage::RootPartitionDevice) ? `boot : `root;
 	BootCommon::globals["activate"] = "true";
 	BootCommon::activate_changed = true;
 
@@ -648,7 +648,7 @@ define symbol grub_ConfigureLocation() {
 	if (is_logical && extended != nil)
 	    selected_location = `extended;
 	else
-	    selected_location = `boot;
+	    selected_location = (BootStorage::BootPartitionDevice != BootStorage::RootPartitionDevice) ? `boot : `root;
     }
 
     SetBootloaderDevice(selected_location);
@@ -935,6 +935,7 @@ define void grub_LocationProposal () {
 	|| (BootCommon::cached_settings_base_data_change_time != Storage::GetTargetChangeTime()))
     {
 	BootStorage::ProposeDeviceMap();
+	BootCommon::InitializeLibrary (true, "grub");
     }
 
     if ( ! Mode::autoinst () ) {

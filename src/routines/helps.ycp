@@ -226,15 +226,21 @@ Select the type of the new section to create.</p>") +
 section. Then modify the options that should differ from the
 selected section.</p>") +
     // help text 3/5
-    _("<p>Select <b>Kernel (Linux)</b> to add a new Linux kernel or other image
+    _("<p>Select <b>Image Section</b> to add a new Linux kernel or other image
 to load and start.</p>") +
     // help text 4/5
-    _("<p>Select <b>Kernel via XEN<b> to add a new Linux kernel or other image,
+    _("<p>Select <b>XEN Section</b> to add a new Linux kernel or other image,
 but to start it in a XEN environment.</p>") +
     // help text 5/5
     _("<p>Select <b>Other System (Chainloader)</b> to add a section that 
 loads and starts a boot sector of a partition of the disk. This is used for
+booting other operating systems.</p>") +
+
+    _("<p>Select <b>Menu Section</b> to add a section that 
+loads configuration file (the list of boot sections) from a partition of the disk. This is used for
 booting other operating systems.</p>");
+
+
 }
 
 } // EOF

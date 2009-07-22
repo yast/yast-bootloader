@@ -67,8 +67,7 @@ This package contains the YaST2 component for bootloader configuration.
 @moduledir@/*
 @clientdir@/bootloader*.ycp
 @clientdir@/print-product.ycp
-@clientdir@/inst_bootl*.ycp
-@clientdir@/inst_lilo_convert.ycp
+@clientdir@/inst_*.ycp
 @ybindir@/*
 @agentdir@/ag_*
 @scrconfdir@/*.scr

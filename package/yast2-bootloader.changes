@@ -1,4 +1,18 @@
 -------------------------------------------------------------------
+Mon Jul 20 16:51:05 CEST 2009 - juhliarik@suse.cz
+
+- added client bootloader_preupdate it takes care about calling 
+  Storage::Update() (bnc#414490)
+- added fix for using iscsi disk (bnc#393928)
+- updated help text (bnc#511007)
+- enabled change bootloader settings via one-click in installation
+  summary (fate#303643)
+- deleted warning message about using ext4
+- updated proposal and using checkboxes Boot from Boot Partition
+  and Boot from Extended Partition
+- 2.18.9
+
+-------------------------------------------------------------------
 Mon Jun  8 10:37:27 CEST 2009 - jsrain@suse.cz
 
 - do not add 'ide=nodma' to failsafe kernel parameter (bnc#510784)

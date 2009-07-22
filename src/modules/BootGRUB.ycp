@@ -42,6 +42,14 @@ import "HTML";
   */
 global symbol merge_level = `main;
 
+/**
+ * The variable indicate if client bootloader_preupdate
+ * successful update device map
+ * If success true else false 
+ */
+
+global boolean update_device_map_done = false;
+
 // variables for temporary data
 
 /**
@@ -627,6 +635,62 @@ global boolean Save (boolean clean, boolean init, boolean flush)
     return ret;
 }
 
+/** FATE#303643 Enable one-click changes in bootloader proposal
+ *
+ *
+ */
+string urlLocationSummary()
+{
+    y2milestone("Prepare url summary for GRUB");
+    string ret = "";
+    string line = "";
+    list<string> locations = [];
+    line = "<ul>\n<li>";
+    if (BootCommon::globals["boot_mbr"]:"" == "true")
+	line = line +
+	    _("Boot from MBR is enabled (<a href=\"disable_boot_mbr\">disable</a>") + ")</li>\n";
+    else
+	line = line +
+	    _("Boot from MBR is disabled (<a href=\"enable_boot_mbr\">enable</a>") + ")</li>\n";
+    locations = add(locations, line);
+    line ="<li>";
+
+    boolean set_boot_boot = false;
+    if ((BootCommon::globals["boot_boot"]:"" == "true") && 
+	(BootStorage::BootPartitionDevice != BootStorage::RootPartitionDevice))
+    {
+	set_boot_boot = true;
+	line = line +
+	    _("Boot from /boot partition is enabled (<a href=\"disable_boot_boot\">disable</a>") + ")</li></ul>";
+    }
+    else if ((BootCommon::globals["boot_boot"]:"" == "false") && 
+	(BootStorage::BootPartitionDevice != BootStorage::RootPartitionDevice))
+    {
+	set_boot_boot = true;
+	line = line +
+	    _("Boot from /boot partition is disabled (<a href=\"enable_boot_boot\">enable</a>") + ")</li></ul>";
+    }
+    if (line != "<li>")
+    {	
+	locations = add(locations, line);
+	line ="<li>";
+    }
+    if ((BootCommon::globals["boot_root"]:"" == "true") && (!set_boot_boot))
+	line = line +
+	    _("Boot from \"/\" partition is enabled (<a href=\"disable_boot_root\">disable</a>") + ")</li></ul>";
+    else if ((BootCommon::globals["boot_root"]:"" == "false") && (!set_boot_boot))
+	line = line +
+	    _("Boot from \"/\" partition is disabled (<a href=\"enable_boot_root\">enable</a>") + ")</li></ul>";
+    if (!set_boot_boot)
+	locations = add(locations, line);
+
+    if (size(locations) > 0) {
+           // FIXME: should we translate all devices to names and add MBR suffixes?
+           ret = sformat (_("Change Location: %1"), mergestring (locations, " "));
+    }
+
+    return ret;
+}
 
 /**
  * Display bootloader summary
@@ -646,23 +710,29 @@ global define list<string> Summary () {
 
     // summary text, location is location description (eg. /dev/hda)
     list<string> locations = [];
+    string line = "";
+    
 
-    if (BootCommon::globals["boot_boot"]:"" == "true")
-        locations = add(locations, BootStorage::BootPartitionDevice + " (\"/boot\")");
-    if (BootCommon::globals["boot_extended"]:"" == "true")
-        locations = add(locations, BootStorage::ExtendedPartitionDevice + " (extended)");
-    if (BootCommon::globals["boot_root"]:"" == "true")
-        locations = add(locations, BootStorage::RootPartitionDevice + " (\"/\")");
-    if (BootCommon::globals["boot_mbr"]:"" == "true")
-        locations = add(locations, BootCommon::mbrDisk + " (MBR)");
-    if (haskey (BootCommon::globals, "boot_custom"))
-        locations = add(locations, BootCommon::globals["boot_custom"]:"");
-
-    if (size(locations) > 0) {
-        // FIXME: should we translate all devices to names and add MBR suffixes?
-        ret = add (ret, sformat (_("Location: %1"),
-				 mergestring (locations, ", "))
-		   );
+	if (BootCommon::globals["boot_boot"]:"" == "true")
+            locations = add(locations, BootStorage::BootPartitionDevice + _(" (\"/boot\")"));
+	if (BootCommon::globals["boot_extended"]:"" == "true")
+            locations = add(locations, BootStorage::ExtendedPartitionDevice + _(" (extended)"));
+    	if (BootCommon::globals["boot_root"]:"" == "true")
+            locations = add(locations, BootStorage::RootPartitionDevice + _(" (\"/\")"));
+    	if (BootCommon::globals["boot_mbr"]:"" == "true")
+            locations = add(locations, BootCommon::mbrDisk + _(" (MBR)"));
+    	if (haskey (BootCommon::globals, "boot_custom"))
+            locations = add(locations, BootCommon::globals["boot_custom"]:"");
+	if (size(locations) > 0) {
+           // FIXME: should we translate all devices to names and add MBR suffixes?
+           ret = add (ret, sformat (_("Status Location: %1"), mergestring (locations, ", ")));
+        }
+    // it is necessary different summary for autoyast and installation
+    // other mode than autoyast on running system
+    if (!Mode::config())
+    {
+	//ret = add(ret, _("Change Location:"));
+	ret = add(ret, urlLocationSummary());
     }
 
     // summary text. %1 is list of bootloader sections
@@ -693,7 +763,11 @@ global define list<string> Summary () {
   * Update read settings to new version of configuration files
   */
 global define void Update () {
-    BootCommon::UpdateDeviceMap ();
+    // update device map would be done in bootloader_preupdate
+    // run update device only if it was not called or if update device
+    // failed in bootloader_preupdate
+    if (!update_device_map_done)
+        BootCommon::UpdateDeviceMap ();
 
     // During update, for libata device name migration ("/dev/hda1" ->
     // "/dev/sda1") and somesuch, we need to re-read and parse the rest of the

@@ -463,6 +463,17 @@ void  InitBootLoaderLocationWidget(string widget) {
 	UI::ChangeWidget (`id ("boot_custom_list"),`Enabled, true);
 	UI::ChangeWidget (`id ("boot_custom_list"),`Value, BootCommon::globals["boot_custom"]:"");
     }
+
+    if (BootStorage::BootPartitionDevice == BootStorage::RootPartitionDevice)
+	UI::ChangeWidget (`id ("boot_boot"), `Enabled, false);
+    else
+	UI::ChangeWidget (`id ("boot_boot"), `Enabled, true);
+
+    if (BootStorage::ExtendedPartitionDevice != nil)
+	UI::ChangeWidget (`id ("boot_extended"), `Enabled, true);
+    else
+	UI::ChangeWidget (`id ("boot_extended"), `Enabled, false);
+
 }
 /**
  * handle function of a widget
@@ -519,6 +530,12 @@ string  HelpBootLoaderLocationWidget()
     ret = ret + grub_help_messages["boot_custom"]:"";
     return ret;
 }
+
+/**
+ * Create Frame "Boot Loader Location"
+ *
+ * @return term with widgets
+ */
 
 map<string,any> grubBootLoaderLocationWidget ()
 {

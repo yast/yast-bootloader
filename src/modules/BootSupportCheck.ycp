@@ -178,6 +178,7 @@ global boolean check_BootDevice()
 
     boot_device = BootCommon::getBootPartition();
 
+    string boot_disk = BootCommon::getBootDisk();
     // if (BootStorage::BootPartitionDevice == BootStorage::RootPartitionDevice)
     // AddNewProblem (_("Doesn't exist separete /boot partition"));
 
@@ -187,6 +188,19 @@ global boolean check_BootDevice()
     {
 	foreach (string k, map v, devices, 
 	{
+	    // check if boot disk is iscsi disk
+	    // bnc#393928: Installing root system on iscsi disk makes the system useless
+	    if (k == boot_disk)
+	    {
+		// if "iscsi" is true
+		if (v["iscsi"]:false)
+		{
+		    AddNewProblem (sformat(_("The boot device is on iSCSI disk: %1. System may not boot."),
+				 k));
+		    y2error("The boot partition: %1 is on iscsi disk: %2", boot_device,  k);
+		    result = false;
+		}
+	    }
 	    foreach (map p, (list<map>)(v["partitions"]:[]), 
 	    {
 		if (p["device"]:"" == boot_device)
@@ -219,16 +233,6 @@ global boolean check_BootDevice()
 			    found_boot = true;
 			    y2milestone("The boot device: %1 is on raid: %2", boot_device, p["raid_type"]:"");
 			}
-		    }
-
-		    // check if /boot directory is on supported filesystem
-		    // FATE#305691 -> Support ext4 as installation option
-		    if (p["used_fs"]:nil == `ext4) 
-		    {
-			AddNewProblem (_("The /boot directory is on an ext4 filesystem. Create separate /boot partition with ext2 filesytem"));
-			y2error ("The /boot directory is on an ext4 filesystem");
-			result = false;
-			break;
 		    }
 		    if (p["used_fs"]:nil == `xfs) 
 		    {
