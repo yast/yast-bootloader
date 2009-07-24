@@ -76,6 +76,11 @@ global list<map<string,any> > sections = [];
 global integer cached_settings_base_data_change_time = nil;
 
 
+/** FATE#305633: Support installation with encrypted root file system
+ * Add root_luks to /etc/sysconfig/initrd
+ */
+
+global boolean add_luks_to_initrd = false;
 
 /**
  * device to save loader stage 1 to

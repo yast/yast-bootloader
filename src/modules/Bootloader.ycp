@@ -50,6 +50,7 @@
     global define boolean Write ();
 
     global define boolean FlagOnetimeBoot (string section);
+    boolean Write_root_luks_to_initrd();
 
     // additional interfaces, mostly for other modules
     global define void ReadOrProposeIfNeeded ();
@@ -282,6 +283,10 @@
 	y2milestone ("unfiltered target map: %1", (map<string,map>)Storage::GetTargetMap());
 	BootCommon::UpdateInstallationKernelParameters ();
 	blPropose ();
+
+        // FATE#305633: Support installation with encrypted root file system
+        // adding luks_root for all image sections
+        BootCommon::sections = BootCommon::CheckAdding_luks_root(BootCommon::sections);
 	BootCommon::was_proposed = true;
         BootCommon::changed = true;
         BootCommon::location_changed = true;
@@ -443,6 +448,10 @@
         {
             Progress::Title (titles[0]:"");
         }
+
+	// update initrd conf file if it is necessary
+	// adding root_luks to /etc/sysconfig/initrd
+	Write_root_luks_to_initrd();
 
 	map<string,any> params_to_save = $[];
 
@@ -622,6 +631,10 @@ global define boolean WriteInstallation ()
 	 	BootCommon::location_changed = true;
 		Initrd::changed = true;
 	}
+
+	// update initrd conf file if it is necessary
+	// adding root_luks to /etc/sysconfig/initrd
+	Write_root_luks_to_initrd();
 
 	map<string,any> params_to_save = $[];
 
@@ -1482,6 +1495,54 @@ global define boolean CopyKernelInird()
 	}
 
 	return true;
+}
+
+/** FATE#305633: Support installation with encrypted root file system
+ * Update conf file for initrd
+ *
+ *
+ */
+
+
+boolean Write_root_luks_to_initrd()
+{
+    if (!BootCommon::add_luks_to_initrd)
+    {
+	y2milestone("Skip adding root_luks to initrd conf file");
+	return false;
+    }
+    string conf_initrd = "/etc/sysconfig/initrd";
+    string tmp_content = "";
+    string content_luks_initrd = "root_luks=1\nluks=root\n";
+    string cmd = sformat("ls '%1' 2>/dev/null |tr -d '\n'", conf_initrd);
+    y2milestone("Checking existing initrd conf file via command %1", cmd);
+    map out = (map)SCR::Execute(.target.bash_output, cmd);
+    if (out["stdout"]:"" == conf_initrd)
+    {
+	tmp_content = (string) SCR::Read(.target.string, conf_initrd);
+	y2milestone("content of initrd conf file: %1", tmp_content);
+	if ((search(tmp_content, "root_luks=1") != nil) && (search(tmp_content, "luks=root") != nil))
+	{
+	    y2milestone("skip adding: %1 to %2", content_luks_initrd, conf_initrd);
+	} else {
+	    cmd = sformat("echo '%1' >> %2", content_luks_initrd, conf_initrd);
+	    y2milestone("Adding root_luks via command %1", cmd);
+	    out = (map)SCR::Execute(.target.bash_output, cmd);
+	    y2error("%1",out);
+	    if (out["exit"]:-1 == 0)
+		y2milestone("Adding root_luks to initrd conf file done successful");
+	    else {
+		y2error("Adding root_luks to initrd failed");
+		return false;
+	   }
+	}
+    } else {
+	integer last=findlastof(conf_initrd,"/");
+	string path_file = substring (conf_initrd, 0, last);
+	SCR::Execute(.target.mkdir, path_file);
+	SCR::Write(.target.string, conf_initrd, content_luks_initrd);
+    }
+    return true;
 }
 
 }

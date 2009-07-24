@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 24 14:54:16 CEST 2009 - juhliarik@suse.cz
+
+- added support for encrypted disk (fate#305633)
+- 2.18.10 
+
+-------------------------------------------------------------------
 Mon Jul 20 16:51:05 CEST 2009 - juhliarik@suse.cz
 
 - added client bootloader_preupdate it takes care about calling 
