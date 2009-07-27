@@ -23,6 +23,11 @@
 
     import "Mode";
 
+    /** FATE#305403: Bootloader beep configuration
+     * enable/disable sounds signal during boot
+     */
+     global boolean enable_sound_signals = false;
+
     /**
      * Replace every match of given regular expression in a string with a
      * replacement string
@@ -284,6 +289,60 @@
 	return ret;
     }
 
+/** FATE#305403: Bootloader beep configuration
+ * Read status of acoustic signals
+ * set global variable enable_sound_signals
+ *
+ */
+
+global void ReadStatusAcousticSignal ()
+{
+    integer ret = -1; // off
+
+    string command = "gfxboot --show-config | grep beep=";
+    map out = (map)SCR::Execute (.target.bash_output, command);
+
+    y2milestone("Comand: %1 return: %2",command, out);
+    if (out["exit"]:-1 == 0)
+    {
+	string result = out["stdout"]:"";
+	list <string> l_result = splitstring(result, "\n");
+	if (l_result[1]:"" == "beep=1")
+	    ret = 1;
+	else
+	    ret = 0;
+
+    } else {
+	y2error("Calling command: %1 failed", command);
+    }
+    if (ret == 1)
+	enable_sound_signals = true;
+    else
+	enable_sound_signals = false;
+
+    y2milestone("Status of acoustic signals is (on==true/off==false): %1", enable_sound_signals);
+}
+
+
+/** FATE#305403: Bootloader beep configuration
+ * Write settings for acoustic signals
+ *
+ * @param boolean true -> enable acoustic signals or disable
+ */
+void WriteAcousticSignal(boolean enable)
+{
+    string command = "gfxboot --change-config boot::beep=0";
+    if (enable)
+    {
+	y2milestone("Enable acoustic signals for boot menu");
+	command = "gfxboot --change-config boot::beep=1";
+    } else {
+	y2milestone("Disable acoustic signals for boot menu");
+    }
+    map ret = (map)SCR::Execute (.target.bash_output, command);
+    y2milestone ("Result of command: %1 result: %2",command, ret);
+}
+
 
 /**
  * Update graphical bootloader to contain translations for section labels in
@@ -296,6 +355,8 @@
 global define boolean UpdateGfxMenuContents (string loader) {
     y2milestone ("Updating GFX boot menu");
 
+    // FATE#305403: Bootloader beep configuration
+    WriteAcousticSignal(enable_sound_signals);
     // if the boot menu does not exist, return without updating it
     if (SCR::Read (.target.size, "/boot/message") == -1)
 	return true;
