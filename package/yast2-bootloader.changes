@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 27 15:48:32 CEST 2009 - juhliarik@suse.cz
+
+- added support for enable/disable acoustinc signals (fate#305403)
+- 2.18.11 
+
+-------------------------------------------------------------------
 Fri Jul 24 14:54:16 CEST 2009 - juhliarik@suse.cz
 
 - added support for encrypted disk (fate#305633)

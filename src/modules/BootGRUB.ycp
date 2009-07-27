@@ -504,8 +504,10 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     {
 	BootStorage::ProposeDeviceMap ();
     }
-
-    //importMetaData();
+    // FATE#305403: Bootloader beep configuration
+    // read status of acoustic signals
+    if (Mode::normal())
+       GfxMenu::ReadStatusAcousticSignal();
 
     return ret;
 }

@@ -20,6 +20,7 @@ textdomain "bootloader";
 
 import "Label";
 import "BootStorage";
+import "GfxMenu";
 import "System::Bootloader_API";
 
 include "bootloader/routines/common_options.ycp";
@@ -31,6 +32,10 @@ void InitGfx(string widget){
   boolean value = BootCommon::globals["trusted_grub"]:"false" != "true";
   UI::ChangeWidget(`id(`gfxinput),`Enabled, value);
   UI::ChangeWidget(`id(`gfxinput),`Value,BootCommon::globals[widget]:"");
+  if (GfxMenu::enable_sound_signals)
+     UI::ChangeWidget(`id(`enable_acoustic_signals),`Value, true);
+  else
+     UI::ChangeWidget(`id(`enable_acoustic_signals),`Value, false);
 }
 
 void StoreGfx(string widget, map event){
@@ -40,6 +45,8 @@ void StoreGfx(string widget, map event){
   } else {
     BootCommon::global_options[widget] = result;
   }
+
+  GfxMenu::enable_sound_signals = (boolean) UI::QueryWidget(`id(`enable_acoustic_signals),`Value);
 }
 
 symbol HandleGfx(string widget, map event){
@@ -56,18 +63,21 @@ symbol HandleGfx(string widget, map event){
 map<string,any> GfxWidget(){
   return $[
     "widget" : `custom,
-    "custom_widget" : `HBox(`Left(`InputField(`id(`gfxinput),`opt(`hstretch),
-                                   grub_descriptions["gfxmenu"]:"gfxmenu")),
-              `VBox(
-                 `Left(`Label("")),
-                 `Left(`PushButton(`id(`browsegfx),`opt(`notify), Label::BrowseButton()))
-              )
-            ),
+    "custom_widget" : 
+	`VBox(
+	    `Left(`CheckBox(`id(`enable_acoustic_signals), _("Enable Acoustic &Signals"))),
+	    `HBox(`Left(`InputField(`id(`gfxinput),`opt(`hstretch), grub_descriptions["gfxmenu"]:"gfxmenu")),
+		`VBox(
+		    `Left(`Label("")),
+		    `Left(`PushButton(`id(`browsegfx),`opt(`notify), Label::BrowseButton()))
+		)
+            )
+	),
     "init" : InitGfx,
     "store" : StoreGfx,
     "handle" : HandleGfx,
     "handle_events" : [`browsegfx],
-    "help" : grub_help_messages["gfxmenu"]:""
+    "help" : grub_help_messages["gfxmenu"]:"" + grub_help_messages["enable_acoustic_signals"]:""
   ];
 }
 
