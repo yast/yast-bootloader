@@ -32,10 +32,6 @@ void InitGfx(string widget){
   boolean value = BootCommon::globals["trusted_grub"]:"false" != "true";
   UI::ChangeWidget(`id(`gfxinput),`Enabled, value);
   UI::ChangeWidget(`id(`gfxinput),`Value,BootCommon::globals[widget]:"");
-  if (GfxMenu::enable_sound_signals)
-     UI::ChangeWidget(`id(`enable_acoustic_signals),`Value, true);
-  else
-     UI::ChangeWidget(`id(`enable_acoustic_signals),`Value, false);
 }
 
 void StoreGfx(string widget, map event){
@@ -45,8 +41,6 @@ void StoreGfx(string widget, map event){
   } else {
     BootCommon::global_options[widget] = result;
   }
-
-  GfxMenu::enable_sound_signals = (boolean) UI::QueryWidget(`id(`enable_acoustic_signals),`Value);
 }
 
 symbol HandleGfx(string widget, map event){
@@ -65,7 +59,7 @@ map<string,any> GfxWidget(){
     "widget" : `custom,
     "custom_widget" : 
 	`VBox(
-	    `Left(`CheckBox(`id(`enable_acoustic_signals), _("Enable Acoustic &Signals"))),
+	    //`Left(`CheckBox(`id(`enable_acoustic_signals), _("Enable Acoustic &Signals"))),
 	    `HBox(`Left(`InputField(`id(`gfxinput),`opt(`hstretch), grub_descriptions["gfxmenu"]:"gfxmenu")),
 		`VBox(
 		    `Left(`Label("")),
@@ -78,6 +72,28 @@ map<string,any> GfxWidget(){
     "handle" : HandleGfx,
     "handle_events" : [`browsegfx],
     "help" : grub_help_messages["gfxmenu"]:"" + grub_help_messages["enable_acoustic_signals"]:""
+  ];
+}
+
+
+void InitAcousticSignals(string widget){
+  if (GfxMenu::enable_sound_signals)
+     UI::ChangeWidget(`id(widget),`Value, true);
+  else
+     UI::ChangeWidget(`id(widget),`Value, false);
+}
+
+void StoreAcousticSignals(string widget, map event){
+  GfxMenu::enable_sound_signals = (boolean) UI::QueryWidget(`id(widget),`Value);
+}
+
+map<string,any> AcousticSignals(){
+  return $[
+    "widget" : `checkbox,
+    "label"  : _("Enable Acoustic &Signals"),
+    "init" : InitAcousticSignals,
+    "store" : StoreAcousticSignals,
+    "help" : grub_help_messages["enable_acoustic_signals"]:""
   ];
 }
 
@@ -205,10 +221,12 @@ map<string,any> PasswordWidget () {
 	    `CheckBoxFrame (`id (`use_pas), 
 			_("Prot&ect Boot Loader with Password"),true,
 		    `HBox (
+			`HSpacing(2),
 			// text entry
-			`Password (`id (`pw1), _("&Password")),
+			`Password (`id (`pw1), `opt(`hstretch), _("&Password")),
 			// text entry
-			`Password (`id (`pw2), _("Re&type Password")),
+			`HSpacing(2),
+			`Password (`id (`pw2),`opt(`hstretch), _("Re&type Password")),
 			`HStretch()
 		    )
 	    )
@@ -303,6 +321,7 @@ map<string,map<string,any> > GrubOptions(){
     "gfxmenu" : GfxWidget(),
     "password" : PasswordWidget(),
     "console" : ConsoleWidget(),
+    "acoustic_signals" : AcousticSignals(),
   ];
   return (map<string,map<string,any> >)union(grub_specific,CommonOptions());
 }
