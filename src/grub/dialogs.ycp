@@ -67,25 +67,31 @@ symbol i386LoaderDetailsDialog () {
             `HSpacing(2),
             `VBox(
 	      `Left("activate"),
-              `Left("debug"),
 	      `Left("generic_mbr"),
-	      `Left("trusted_grub"),
-              `Left("hiddenmenu"),
+	      `HBox(
+		  `VBox(`Left("debug"),
+			`Left("hiddenmenu")
+		  ),
+		  `HSpacing(2),
+		  `VBox(`Left("trusted_grub"),
+			`Left("acoustic_signals")
+		  )
+	      ),
 	      `Left("gfxmenu"),
 	      `Left(`HSquash("timeout"))
             ),
             `HStretch()
           )
         ),
-	`VSpacing(1),
+	//`VSpacing(1),
 	`Left("password"),
-	`VSpacing(1),
+	//`VSpacing(1),
         `Left("console"),
 	`VStretch ()
         ),
      `HSpacing (2));
 
-    list<string> widget_names = ["activate","debug","generic_mbr",
+    list<string> widget_names = ["activate","debug","generic_mbr", "acoustic_signals",
        "trusted_grub","hiddenmenu","gfxmenu","timeout", "console","password"];
     string caption = _("Boot Loader Options");
     return CWM::ShowAndRun ($[

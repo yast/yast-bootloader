@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 28 10:29:13 CEST 2009 - juhliarik@suse.cz
+
+- reorganize UI widgets in GRUB global options 
+
+-------------------------------------------------------------------
 Mon Jul 27 15:48:32 CEST 2009 - juhliarik@suse.cz
 
 - added support for enable/disable acoustinc signals (fate#305403)
