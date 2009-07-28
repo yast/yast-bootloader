@@ -1862,7 +1862,7 @@ global list<map<string,any> > CheckAdding_luks_root (list<map<string,any> > bl_s
     map <string, any> updated_section = $[];
     foreach ( map <string, any> s, bl_sections,
     {
-	if (s["type"]:nil == "image")
+	if ((s["type"]:nil == "image") || (s["type"]:nil == "xen"))
 	{
 	    updated_section = s;
 	    updated_section["append"] = add_delete_luks_root(s,tm);

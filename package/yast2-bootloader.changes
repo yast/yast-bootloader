@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Jul 28 13:21:34 CEST 2009 - juhliarik@suse.cz
+
+- added support for luks_root also to xen sections with kernel-xen 
+
+-------------------------------------------------------------------
 Tue Jul 28 10:29:13 CEST 2009 - juhliarik@suse.cz
 
 - reorganize UI widgets in GRUB global options 
