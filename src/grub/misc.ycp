@@ -549,6 +549,8 @@ define symbol grub_ConfigureLocation() {
     // variable is not used for grub anymore
     symbol selected_location = `mbr;             // default to mbr
     boolean windows_mbr = false;
+    // bnc#525968 - Booting from GPT Failed
+    boolean gpt_used = false;
     // check whether the /boot partition
     //  - is primary:				is_logical  -> false
     //  - is on the first disk (with the MBR):  boot_partition_is_on_mbr_disk -> true
@@ -558,6 +560,16 @@ define symbol grub_ConfigureLocation() {
     string boot_partition_disk = dp["disk"]:"";
     boolean boot_partition_is_on_mbr_disk =
 	(boot_partition_disk == BootCommon::mbrDisk);
+
+    // bnc#525968 - Booting from GPT Failed
+    string dp_dev = dp["disk"]:"";
+    if (tm[dp_dev,"label"]:"" == "gpt")
+    {
+	y2milestone("gpt used on disk: %1", dp_dev);
+	gpt_used = true;
+    } else {
+	y2milestone("gpt not used on disk: %1", dp_dev);
+    }
 
     map dm = tm[boot_partition_disk]:$[];
     list<map> partitions_on_boot_partition_disk = dm["partitions"]:[];
@@ -697,7 +709,13 @@ define symbol grub_ConfigureLocation() {
 	BootCommon::globals["activate"] = "true";
 	SetBootloaderDevice(selected_location);
     }
-
+    // bnc#525968 - Booting from GPT Failed
+    if (gpt_used)
+    {
+	y2milestone("Install GRUB to MBR because GPT is used");
+	selected_location = `mbr;
+	SetBootloaderDevice(selected_location);
+    }
     return selected_location;
 }
 

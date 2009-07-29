@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 29 13:53:16 CEST 2009 - juhliarik@suse.cz
+
+- added fix for proposal if GPT is used (bnc#525968)
+- 2.13.163 
+
+-------------------------------------------------------------------
 Tue Jul 16 12:52:56 CEST 2009 - juhliarik@suse.cz
 
 - update checking of MBR and bootloader proposal (bnc#517293)
