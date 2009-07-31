@@ -26,7 +26,7 @@ import "GetInstArgs";
 import "Mode";
 import "Arch";
 import "BootGRUB";
-import "Storage";
+import "StorageUpdate";
 
 y2milestone ("starting bootloader_preupdate");
 
@@ -114,7 +114,7 @@ if (Mode::update() && (Arch::x86_64() || Arch::i386()))
 	}
 
 	y2milestone("Calling storage update");
-	Storage::Update (Installation::installedVersion, Installation::updateVersion);
+	StorageUpdate::Update (Installation::installedVersion, Installation::updateVersion);
     }
 
     if (ret == `back)
