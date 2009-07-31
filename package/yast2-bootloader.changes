@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 31 11:55:40 CEST 2009 - aschnell@suse.de
+
+- adapted to changes in yast2-storage
+- 2.18.12
+
+-------------------------------------------------------------------
 Tue Jul 28 13:21:34 CEST 2009 - juhliarik@suse.cz
 
 - added support for luks_root also to xen sections with kernel-xen 
