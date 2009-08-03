@@ -648,9 +648,9 @@ global map<string,any> CreateLinuxSection (string title) {
   */
 global define map Export () {
     map exp = $[
-	"global": globals,
-	"sections" : sections,
-	"device_map" : device_mapping,
+	"global": remapGlobals(globals),
+	"sections" : remapSections(sections, false),
+	"device_map" : remapDeviceMap(device_mapping),
     ];
     if ( ! ( loader_type == "grub" ) ) {
 	exp["repl_mbr"] = repl_mbr;
@@ -783,17 +783,15 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 
     InitializeLibrary (init, bl);
 
+    // convert root device names in sections to the device names indicated by
+    // "mountby"
+    sections = remapSections(sections, true);
+
     list<map<string,string> > sects = maplist (map<string,any> s, sections, {
 	return (map<string,string>)
 	    filter (string k, any v, s, { return is (v, string); });
     });
 
-    // convert root device names in sections to the device names indicated by
-    // "mountby"
-    sects = maplist (map<string,string> s, sects, {
-	s["root"] = BootCommon::Dev2MountByDev(s["root"]:"");
-	return s;
-    });
 
     // FIXME: give mountby information to perl-Bootloader (or define some
     // better interface), so that perl-Bootloader can use mountby device names

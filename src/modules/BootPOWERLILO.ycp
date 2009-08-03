@@ -462,7 +462,7 @@ map<string,any> CreateImageSection (string title) {
 	"image" : image_fn,
 	"initrd" : initrd_fn,
         "optional" : "true",  // bnc #217443
-	"root" : BootCommon::RootPartitionDevice,
+	"root" : BootCommon::RootPartitionDevice, // bnc#524547
 	// "": do not include resume parameter on ppc
 	"append" : BootArch::DefaultKernelParams (""),
 	"__auto" : true,
@@ -850,8 +850,8 @@ global define void Propose () {
   */
 global define map Export () {
     map exp = $[
-		"global": BootCommon::globals,
-		"sections" : BootCommon::sections,
+		"global": BootCommon::remapGlobals(BootCommon::globals),
+		"sections" : BootCommon::remapSections(BootCommon::sections, false),
 		"activate" : BootCommon::activate,
 	    ];
     return exp;
@@ -951,6 +951,13 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 
     // FIXME: set one mountpoint 'boot/boot' for every boot target means all
     // partitions in 'boot_<arch>_custom' and 'clone' (chrp)
+
+    // convert root device names in sections to the device names indicated by
+    // "mountby"
+     BootCommon::sections= maplist (map<string,any> s, BootCommon::sections, {
+	s["root"] = BootCommon::Dev2MountByDev(s["root"]:"");
+	return s;
+    });
 
     // ret = ret && BootCommon::SetDeviceMap (device_mapping);
     ret = ret && BootCommon::SetSections (BootCommon::sections);

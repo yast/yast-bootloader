@@ -136,6 +136,7 @@ global boolean InitializeLibrary (boolean force, string loader) {
     if (!force && loader == library_initialized)
         return false;
 
+    BootCommon::InitMapDevices ();
     y2milestone ("Initializing lib for %1", loader);
     System::Bootloader_API::setLoaderType (loader);
     y2milestone ("Putting partitioning into library");
