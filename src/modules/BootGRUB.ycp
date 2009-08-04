@@ -507,7 +507,31 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
     // FATE#305403: Bootloader beep configuration
     // read status of acoustic signals
     if (Mode::normal())
-       GfxMenu::ReadStatusAcousticSignal();
+    {
+	GfxMenu::ReadStatusAcousticSignal();
+	string md_value = BootStorage::addMDSettingsToGlobals();
+	string pB_md_value = BootCommon::globals["boot_md_mbr"]:"";
+	if (md_value != pB_md_value)
+	{
+	    if (pB_md_value != "")
+	    {
+		list <string> disks = splitstring(pB_md_value,",");
+		disks = filter(string v, disks, {return (v != "");});
+		if (size(disks) == 2)
+		{
+		    BootCommon::enable_md_array_redundancy = true;
+		    md_value = "";
+		}
+		y2milestone("disks from md array (perl Bootloader): %1", disks);
+	    }
+	    if (md_value != "")
+	    {
+		BootCommon::enable_md_array_redundancy = false;
+		BootCommon::globals["boot_md_mbr"] = md_value;
+		y2milestone("Add md array to globals: %1", BootCommon::globals);
+	    }
+	}
+    }
 
     return ret;
 }
