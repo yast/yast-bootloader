@@ -62,6 +62,11 @@ logical partition and the /boot partition is missing</p>"),
 
     "boot_custom"		:
     _("<p><b>Custom Boot Partition</b> lets you choose a partition to boot from.</p>"),
+
+    "enable_redundancy"		:
+    _("<p>MD array is build from 2 disks. <b>Enable Redundancy for MD Array</b>
+enable to write GRUB to MBR of both disks.</p>"),
+
     "serial"			:
     _("<p><b>Use Serial Console</b> lets you define the parameters to use
 for a serial console. Please see the grub documentation (<code>info grub</code>) for details.</p>"),

@@ -468,21 +468,43 @@ map<string,any> DisksOrderWidget(){
   ];
 }
 
-
 /**
  * Init function of a widget
  * @param widget string widget key
  */
 void  InitBootLoaderLocationWidget(string widget) {
     list<string> boot_devices = BootStorage::getPartitionList(`boot, "grub");
-    list <string> list_global_target_keys = ["boot_mbr", "boot_boot", "boot_root", "boot_extended"];
-    foreach(string key, list_global_target_keys, 
+    string value = "";
+    if (BootCommon::VerifyMDArray ())
     {
-	string value = BootCommon::globals[key]:nil;
-	if (value != nil)
-	    UI::ChangeWidget (`id (key), `Value, (value == "true")? true: false);
-    });
-    UI::ChangeWidget (`id ("boot_custom_list"),`Items, boot_devices);
+	if ((BootCommon::enable_md_array_redundancy == nil) || (BootCommon::enable_md_array_redundancy))
+	    UI::ChangeWidget (`id ("enable_redundancy"), `Value, true);
+	else
+	    UI::ChangeWidget (`id ("enable_redundancy"), `Value, false);
+
+	value = BootCommon::globals["boot_mbr"]:nil;
+	UI::ChangeWidget (`id ("boot_mbr"), `Value, (value == "true")? true: false);
+    } else {
+	list <string> list_global_target_keys = ["boot_mbr", "boot_boot", "boot_root", "boot_extended"];
+	foreach(string key, list_global_target_keys, 
+	{
+	    value = BootCommon::globals[key]:nil;
+	    if (value != nil)
+		UI::ChangeWidget (`id (key), `Value, (value == "true")? true: false);
+	});
+	UI::ChangeWidget (`id ("boot_custom_list"),`Items, boot_devices);
+
+	if (BootStorage::BootPartitionDevice == BootStorage::RootPartitionDevice)
+	    UI::ChangeWidget (`id ("boot_boot"), `Enabled, false);
+	else
+	    UI::ChangeWidget (`id ("boot_boot"), `Enabled, true);
+
+	if (BootStorage::ExtendedPartitionDevice != nil)
+	    UI::ChangeWidget (`id ("boot_extended"), `Enabled, true);
+	else
+	    UI::ChangeWidget (`id ("boot_extended"), `Enabled, false);
+    }
+
     if ((!haskey(BootCommon::globals,"boot_custom")) && 
         (BootCommon::globals["boot_custom"]:"" == ""))
     {
@@ -492,17 +514,6 @@ void  InitBootLoaderLocationWidget(string widget) {
 	UI::ChangeWidget (`id ("boot_custom_list"),`Enabled, true);
 	UI::ChangeWidget (`id ("boot_custom_list"),`Value, BootCommon::globals["boot_custom"]:"");
     }
-
-    if (BootStorage::BootPartitionDevice == BootStorage::RootPartitionDevice)
-	UI::ChangeWidget (`id ("boot_boot"), `Enabled, false);
-    else
-	UI::ChangeWidget (`id ("boot_boot"), `Enabled, true);
-
-    if (BootStorage::ExtendedPartitionDevice != nil)
-	UI::ChangeWidget (`id ("boot_extended"), `Enabled, true);
-    else
-	UI::ChangeWidget (`id ("boot_extended"), `Enabled, false);
-
 }
 /**
  * handle function of a widget
@@ -530,12 +541,18 @@ symbol HandleBootLoaderLocationWidget (string widget, map event) {
  */
 void StoreBootLoaderLocationWidget (string widget, map event) {
 
-    list <string> list_global_target_keys = ["boot_mbr", "boot_boot", "boot_root", "boot_extended"];
-    foreach(string key, list_global_target_keys, 
+    if (BootCommon::VerifyMDArray ())
     {
-	string value = ((boolean)UI::QueryWidget(`id(key), `Value))?"true":"false";
-	BootCommon::globals[key]= value;
-    });
+        BootCommon::enable_md_array_redundancy = (boolean)UI::QueryWidget(`id("enable_redundancy"), `Value);
+	BootCommon::globals["boot_mbr"]=  ((boolean)UI::QueryWidget(`id("boot_mbr"), `Value))?"true":"false";
+    } else {
+	list <string> list_global_target_keys = ["boot_mbr", "boot_boot", "boot_root", "boot_extended"];
+	foreach(string key, list_global_target_keys, 
+	{
+	    string value = ((boolean)UI::QueryWidget(`id(key), `Value))?"true":"false";
+	    BootCommon::globals[key]= value;
+	});
+    }
     if ((boolean)UI::QueryWidget(`id("boot_custom"), `Value))
 	BootCommon::globals["boot_custom"]= (string)UI::QueryWidget(`id("boot_custom_list"), `Value);
 }
@@ -550,13 +567,18 @@ string  HelpBootLoaderLocationWidget()
     string ret = "";
     ret = grub_help_messages["boot_mbr"]:"";
     ret = ret + "\n";
-    ret = ret + grub_help_messages["boot_root"]:"";
-    ret = ret + "\n";
-    ret = ret + grub_help_messages["boot_boot"]:"";
-    ret = ret + "\n";
-    ret = ret + grub_help_messages["boot_extended"]:"";
-    ret = ret + "\n";
     ret = ret + grub_help_messages["boot_custom"]:"";
+    ret = ret + "\n";
+    if (BootCommon::VerifyMDArray ())
+    {
+	ret = ret + grub_help_messages["enable_redundancy"]:"";
+    } else {
+	ret = ret + grub_help_messages["boot_root"]:"";
+	ret = ret + "\n";
+	ret = ret + grub_help_messages["boot_boot"]:"";
+	ret = ret + "\n";
+	ret = ret + grub_help_messages["boot_extended"]:"";
+    }
     return ret;
 }
 
@@ -583,6 +605,21 @@ map<string,any> grubBootLoaderLocationWidget ()
 	`VStretch()	
     );
  
+    if (BootCommon::VerifyMDArray ())
+    {
+	contents = `VBox (
+	`Frame (_("Boot Loader Location"),
+	   `VBox (`HBox(`HSpacing(1),`VBox(
+	       `Left(`CheckBox( `id("boot_mbr"), _("Boot from &Master Boot Record"))),
+	       `Left(`CheckBox( `id("enable_redundancy"), _("Enable Red&undancy for MD Array"))),
+	       `Left(`CheckBox( `id("boot_custom"), `opt(`notify), _("C&ustom Boot Partition"))),
+	       `Left(`ComboBox( `id("boot_custom_list"), `opt (`editable, `hstretch),"", [])),
+	       `VStretch()
+            )))
+         ),
+	`VStretch()	
+        );
+    }
     return $[
       "widget" : `custom,
       "custom_widget" : contents,

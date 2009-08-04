@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug  4 16:52:57 CEST 2009 - juhliarik@suse.cz
+
+- added support for redundancy md array (fate#305008)
+- 2.18.13
+
+-------------------------------------------------------------------
 Fri Jul 31 11:55:40 CEST 2009 - aschnell@suse.de
 
 - adapted to changes in yast2-storage
