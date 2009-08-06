@@ -79,6 +79,9 @@ file on a SCSI disk partition.</p>"),
     _("<p>Select <b>Menu Section</b> to add a new menu to the configuration.
 Menu sections represent a list of tasks which are grouped together.</p>
 "),
+    "enable_selinux":
+    _("<p>Select <b>Enable SELinux</b> to add the needed kernel boot parameters to enable the SELinux security framework. 
+Please note that this will also disable AppArmor.</p>")
 
 ];
 

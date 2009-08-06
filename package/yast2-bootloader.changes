@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Aug  6 10:31:03 CEST 2009 - juhliarik@suse.cz
+
+- added support for enable SELinux (fate#305557)
+- 2.18.14 
+
+-------------------------------------------------------------------
 Tue Aug  4 16:52:57 CEST 2009 - juhliarik@suse.cz
 
 - added support for redundancy md array (fate#305008)

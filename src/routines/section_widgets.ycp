@@ -122,6 +122,92 @@ map<string,any> SectionCheckBoxWidget( string name){
   ];
 }
 
+
+void InitEnableSelinux (string widget)
+{
+    string append = BootCommon::current_section["append"]:"";
+    if ((append != "") && (BootCommon::current_section["type"]:"" == "image"))
+    {
+	if ((search(append, "security=selinux") !=nil) && (search(append, "selinux=1") != nil) 
+	    && (search(append, "enforcing=0") != nil))
+	    UI::ChangeWidget (`id (widget), `Value, true);
+	else
+	    UI::ChangeWidget (`id (widget), `Value, false);
+    } else {
+	UI::ChangeWidget (`id (widget), `Value, false);
+    }
+
+    if ((BootCommon::current_section["type"]:"" != "image") || 
+	(BootCommon::current_section["original_name"]:"" == "failsafe"))
+	UI::ChangeWidget (`id (widget), `Enabled, false);
+}
+
+string add_selinux_append (string append)
+{
+    string ret = append;
+    if ((search(append, "security=selinux") ==nil))
+	ret = ret + " security=selinux";
+    if ((search(append, "selinux=1") ==nil))
+	ret = ret + " selinux=1";
+    if ((search(append, "enforcing=0") ==nil))
+	ret = ret + " enforcing=0";
+    return ret;
+}
+
+string delete_selinux_append (string append)
+{
+    string ret = append;
+    list <string> l_append = splitstring(append, " ");
+    l_append = filter(string v, l_append,
+    {
+	if ((v != "") && (tolower(v)!="security=selinux")
+	    &&(tolower(v)!="selinux=1") && (tolower(v)!="enforcing=0"))
+	     return true;
+    });
+    ret = mergestring(l_append, " ");
+    return ret;
+}
+
+void StoreEnableSelinux(string widget, map event)
+{
+    string append = BootCommon::current_section["append"]:"";
+    boolean value = (boolean)UI::QueryWidget (`id (widget), `Value);
+    if (value)
+    {
+	append = add_selinux_append(append);
+	BootCommon::enable_selinux = true;
+    } else {
+	append = delete_selinux_append(append);
+	BootCommon::enable_selinux = false;
+    }
+    BootCommon::current_section["append"] = append;
+}
+
+symbol HandleEnableSelinux (string widget, map event) 
+{
+    boolean value = (boolean)UI::QueryWidget (`id (widget), `Value);
+    string append = BootCommon::current_section["append"]:"";
+    if (value)
+    {
+	UI::ChangeWidget (`id ("append"), `Value, add_selinux_append(append));
+    } else {
+	UI::ChangeWidget (`id ("append"), `Value, delete_selinux_append(append));
+    }
+    return nil;
+}
+map <string,any> EnableSelinux(){
+  return $[
+    "label" : _("Enable &SELinux"),
+    "widget" : `checkbox,
+    "help" : section_help_messages["enable_selinux"]:"",
+    "init" : InitEnableSelinux,
+    "handle": HandleEnableSelinux,
+    "opt"   : [`notify],
+    "store" : StoreEnableSelinux,
+  ];
+}
+
+
 map<string,any> SectionTextFieldWidget( string name){
   map<string,any> ret = $[
     "label" : section_descriptions[name]:name,
@@ -268,7 +354,7 @@ boolean SectionNameValidate (string widget, map event) {
     if ((Mode::normal()) && (bl == "grub"))
     {
 	string filtered_new = 
-	     filterchars (new, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.-");
+	     filterchars (new, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.-()");
 
 	if (filtered_new != new)
 	{
@@ -540,6 +626,7 @@ map<string,map<string,any> > CommonSectionWidgets () {
             "noverifyroot" : SectionCheckBoxWidget("noverifyroot"),
             "remap" : SectionCheckBoxWidget("remap"),
             "relocatable" : SectionCheckBoxWidget("relocatable"),
+	    "enable_selinux" : EnableSelinux(),
             "prompt" : SectionCheckBoxWidget("prompt"),
             "blockoffset" : SectionIntFieldWidget(
                 "blockoffset",0,nil),

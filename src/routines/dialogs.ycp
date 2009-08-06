@@ -164,7 +164,12 @@ symbol CommonKernelSectionDialog () {
 	// frame
         `Frame (_("Section Settings"), `HBox (`HSpacing (2), `VBox (
             `VSpacing (1),
-            `Left("noverifyroot"),
+	    `HBox 
+	    (
+            	`Left("noverifyroot"),
+		`HSpacing(2),
+	    	`Left("enable_selinux")
+	    ),
 	    "image",
 	    "initrd",
             `HBox (
@@ -178,7 +183,7 @@ symbol CommonKernelSectionDialog () {
     ), `HSpacing (2));
 
     list<string> widget_names = ["name", "image", "initrd", "root", "vgamode", "append"
-                                ,"noverifyroot"];
+                                ,"noverifyroot", "enable_selinux"];
 
     map<string,map<string,any> > widget_descr = $[];
     if (lt != "grub")
@@ -217,7 +222,12 @@ symbol PpcIseriesKernelSectionDialog () {
 	// frame
         `Frame (_("Section Settings"), `HBox (`HSpacing (2), `VBox (
             `VSpacing (1),
-            `Left("optional"),
+	    `HBox 
+	    (
+            	`Left("optional"),
+		`HSpacing(2),
+	    	`Left("enable_selinux")
+	    ),
 	    "image",
 	    "initrd",
             "root",
@@ -229,7 +239,7 @@ symbol PpcIseriesKernelSectionDialog () {
     ), `HSpacing (2));
 
     list<string> widget_names = ["name", "image", "initrd", "root", "optional",
-      "append", "copy"];
+      "append", "copy", "enable_selinux"];
 
     map<string,map<string,any> > widget_descr = $[];
     widget_descr = (map<string,map<string,any> >) union (CommonGlobalWidgets (), CommonSectionWidgets ());
@@ -264,7 +274,12 @@ symbol PpcKernelSectionDialog () {
 	// frame
         `Frame (_("Section Settings"), `HBox (`HSpacing (2), `VBox (
             `VSpacing (1),
-            `Left("optional"),
+            `HBox 
+	    (
+            	`Left("optional"),
+		`HSpacing(2),
+	    	`Left("enable_selinux")
+	    ),
 	    "image",
 	    "initrd",
             "root",
@@ -275,7 +290,7 @@ symbol PpcKernelSectionDialog () {
     ), `HSpacing (2));
 
     list<string> widget_names = ["name", "image", "initrd", "root", "optional",
-      "append"];
+      "append", "enable_selinux"];
 
     map<string,map<string,any> > widget_descr = $[];
     widget_descr = (map<string,map<string,any> >) union (CommonGlobalWidgets (), CommonSectionWidgets ());
@@ -308,6 +323,7 @@ symbol ZiplKernelSectionDialog () {
 	// frame
         `Frame (_("Section Settings"), `HBox (`HSpacing (2), `VBox (
             `VSpacing (1),
+	    `Left("enable_selinux"),
             "target",
 	    "image",
 	    "initrd",
@@ -320,7 +336,7 @@ symbol ZiplKernelSectionDialog () {
     ), `HSpacing (2));
 
     list<string> widget_names = ["name", "image", "initrd", "root",  "append"
-                                ,"parmfile","target"];
+                                ,"parmfile","target", "enable_selinux"];
 
     map<string,map<string,any> > widget_descr = $[];
     widget_descr = (map<string,map<string,any> >) union (CommonGlobalWidgets (), CommonSectionWidgets ());
