@@ -302,6 +302,11 @@ global list<string> bootloaders = ["lilo", "grub", "elilo",
  */
 global boolean enable_md_array_redundancy = nil;
 
+/** FATE#305557: Enable SELinux for 11.2
+ *  if true create /selinux directory
+ */
+global boolean enable_selinux = false;
+
 
 global define string getLoaderType (boolean recheck);
 global define list<string> getBootloaders ();

@@ -62,7 +62,7 @@
     global define boolean UpdateGfxMenu ();
     global define void DelDuplicatedSections();
     global define void ResolveSymlinksInSections();
-
+    void createSELinuxDir ();
     /**
       * Write is repeating again
       * Because of progress bar during inst_finish
@@ -572,9 +572,10 @@
 	// call bootloader executable
 	y2milestone ("Calling bootloader executable");
 	ret = ret && blWrite ();
-
-    if (! ret)
-    {
+	// FATE#305557: Enable SELinux for 11.2
+	createSELinuxDir ();
+	if (! ret)
+	{
 	    y2error ("Installing bootloader failed");
 	    if (writeErrorPopup ())
 	    {
@@ -586,19 +587,17 @@
 		    return Write ();
 		}
 	    }
-    }
-    else
-    {
-	if (BootCommon::InstallingToFloppy ())
-	{
-	    BootCommon::updateTimeoutPopupForFloppy
-		(BootCommon::getLoaderName (getLoaderType (), `summary));
 	}
+	else
+	{
+	    if (BootCommon::InstallingToFloppy ())
+	    {
+	        BootCommon::updateTimeoutPopupForFloppy
+		     (BootCommon::getLoaderName (getLoaderType (), `summary));
+	    }
+    	}
 
-
-    }
-
-    return ret;
+	return ret;
 }
 
 
@@ -707,7 +706,8 @@ global define boolean WriteInstallation ()
 	// call bootloader executable
 	y2milestone ("Calling bootloader executable");
 	ret = ret && blWrite ();
-
+	// FATE#305557: Enable SELinux for 11.2
+	createSELinuxDir ();
 	if (! ret)
 	{
 		y2error ("Installing bootloader failed");
@@ -1543,6 +1543,34 @@ boolean Write_root_luks_to_initrd()
 	SCR::Write(.target.string, conf_initrd, content_luks_initrd);
     }
     return true;
+}
+
+
+/** Fate #305557: Enable SELinux for 11.2
+ * Function cerate /selinux directory
+ * if SELinux is enabled
+ */
+
+void createSELinuxDir ()
+{
+    string path_file = "/selinux";
+    string cmd = "ls -d /selinux  2>/dev/null";
+    if (BootCommon::enable_selinux)
+    {
+	if (Mode::normal() || Mode::installation())
+	{
+	    map out = (map)SCR::Execute(.target.bash_output, cmd);
+	    y2milestone("runnning command: \"%1\" and return: %2", cmd, out);
+	    if (out["stdout"]:"" != "/selinux\n")
+	        SCR::Execute(.target.mkdir, path_file);
+	    else
+		y2milestone("Directory /selinux already exist");
+	} else {
+	    y2milestone("Skip creating /selinux directory -> wrong mode");
+	}
+    } else {
+	y2milestone("Skip creating /selinux directory");
+    }
 }
 
 }
