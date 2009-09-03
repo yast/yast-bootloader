@@ -170,7 +170,8 @@ string delete_selinux_append (string append)
 
 void StoreEnableSelinux(string widget, map event)
 {
-    string append = BootCommon::current_section["append"]:"";
+//    string append = BootCommon::current_section["append"]:"";
+    string append = (string)UI::QueryWidget (`id ("append"), `Value);
     boolean value = (boolean)UI::QueryWidget (`id (widget), `Value);
     if (value)
     {
@@ -186,7 +187,8 @@ void StoreEnableSelinux(string widget, map event)
 symbol HandleEnableSelinux (string widget, map event) 
 {
     boolean value = (boolean)UI::QueryWidget (`id (widget), `Value);
-    string append = BootCommon::current_section["append"]:"";
+    //string append = BootCommon::current_section["append"]:"";
+    string append = (string)UI::QueryWidget (`id ("append"), `Value);
     if (value)
     {
 	UI::ChangeWidget (`id ("append"), `Value, add_selinux_append(append));
