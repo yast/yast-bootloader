@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  3 13:10:07 CEST 2009 - juhliarik@suse.cz
+
+- added fix for editing boot section (bnc#535739) 
+- 2.18.15
+
+-------------------------------------------------------------------
 Thu Aug  6 10:31:03 CEST 2009 - juhliarik@suse.cz
 
 - added support for enable SELinux (fate#305557)
