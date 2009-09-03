@@ -48,7 +48,7 @@ to specify <code>+1</code> here. For specifics on blocklist notation see the gru
 "),
     "type_xen"			:
     _("<p>Select <b>Xen Section</b> if you want to add a new Linux kernel or other image 
-and start it in a XEN environment.</p>
+and start it in a Xen environment.</p>
 "),
     "xen"			:
     _("<p><b>Hypervisor</b> specifies the Hypervisor to use.</p>"),

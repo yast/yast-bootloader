@@ -229,8 +229,8 @@ selected section.</p>") +
     _("<p>Select <b>Image Section</b> to add a new Linux kernel or other image
 to load and start.</p>") +
     // help text 4/5
-    _("<p>Select <b>XEN Section</b> to add a new Linux kernel or other image,
-but to start it in a XEN environment.</p>") +
+    _("<p>Select <b>Xen Section</b> to add a new Linux kernel or other image,
+but to start it in a Xen environment.</p>") +
     // help text 5/5
     _("<p>Select <b>Other System (Chainloader)</b> to add a section that 
 loads and starts a boot sector of a partition of the disk. This is used for
