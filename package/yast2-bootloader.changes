@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep  3 13:27:09 CEST 2009 - juhliarik@suse.cz
+
+- added fixed in help text convert "XEN" to "Xen" (bnc#532512)
+
+-------------------------------------------------------------------
 Thu Sep  3 13:10:07 CEST 2009 - juhliarik@suse.cz
 
 - added fix for editing boot section (bnc#535739) 
