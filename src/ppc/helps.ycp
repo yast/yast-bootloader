@@ -21,7 +21,7 @@ textdomain "bootloader";
 
 global map<string,string>   ppc_help_messages = $[
     "boot-loader-location"	: _("<p><big><b>Boot Loader Location</b></big><br>"),
-    "boot"			: _("<p><b>Boot Loacation</b>
+    "boot"			: _("<p><b>Boot Location</b>
 This is the partition number of your boot partition. On a
 PowerMac it must be in HFS format because we use the hfsutils to
 copy the files to that partition. On CHRP you need a 41 PReP
