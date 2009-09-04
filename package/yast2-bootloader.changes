@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep  4 17:50:39 CEST 2009 - juhliarik@suse.cz
+
+- fixed type (bnc#535442) 
+
+-------------------------------------------------------------------
 Thu Sep  3 13:27:09 CEST 2009 - juhliarik@suse.cz
 
 - added fixed in help text convert "XEN" to "Xen" (bnc#532512)
