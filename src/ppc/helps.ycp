@@ -72,7 +72,7 @@ if no key is pressed to boot MacOS</p>"),
 
     "force_fat"		 :
     _("<p><b>Always Boot from FAT Partition</b>
-Normally the lilo script would automagically select the boot partition format
+Normally the lilo script would automatically select the boot partition format
 to either be a PReP boot partition or a FAT formatted file system for more
 complex setups. This option forces the lilo script to use
 the FAT formatted file system</p>"),
