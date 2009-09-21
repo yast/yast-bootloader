@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep 21 10:40:13 CEST 2009 - juhliarik@suse.cz
+
+- added fix for missing persistent device names in mapping for
+  perl-Bootloader (bnc#534905A)
+- 2.18.16 
+
+-------------------------------------------------------------------
 Thu Sep 17 12:43:53 CEST 2009 - juhliarik@suse.cz
 
 - added fix for typy in help (bnc#532904) 
