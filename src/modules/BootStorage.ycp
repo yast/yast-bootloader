@@ -171,6 +171,12 @@ void MapDevices()
 		{
 			dev_by_something = "/dev/disk/by-id/"+v["udev_id", 0]:"";
 			all_devices[dev_by_something]= k;
+			// bnc #534905 - yast2 bootloader 2.18.15-1.1 damages /etc/grub.conf
+			if (size(v["udev_id"]:[]) == 2 )
+			{
+				dev_by_something = "/dev/disk/by-id/"+v["udev_id", 1]:"";
+				all_devices[dev_by_something]= k;
+			}
 		}
 		// map partitions from disk...
 
@@ -202,6 +208,12 @@ void MapDevices()
 			{
 				dev_by_something = "/dev/disk/by-id/"+p["udev_id", 0]:"";
 				all_devices[dev_by_something]= p["device"]:"";
+				// bnc #534905 - yast2 bootloader 2.18.15-1.1 damages /etc/grub.conf
+				if (size(p["udev_id"]:[]) == 2 )
+				{
+					dev_by_something = "/dev/disk/by-id/"+p["udev_id", 1]:"";
+					all_devices[dev_by_something]= p["device"]:"";
+				}
 			}
 
 		}); // end of foreach (map p, (list<map>)(v["partitions"]:[]),
