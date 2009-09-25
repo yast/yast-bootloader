@@ -73,6 +73,7 @@
 	    while (i < size(BootCommon::sections)) {
 	        if (BootCommon::sections[i, "name"]:"" == section) {
 		    BootCommon::sections[i, key] = value;
+		    BootCommon::sections[i, "__changed"] = true;
 		    return true;
 		}
 	        i = i + 1;
@@ -138,6 +139,8 @@
      * @return boolean true on success
      */
     define boolean BootloaderAddHandler (map options) ``{
+	if (! CommandLine::Interactive())
+	    CommandLine::Error(_("Add option is available only in commandline interactive mode"));
 	string section = (string)(options["section"]:nil);
 	if (section == nil)
 	{
@@ -217,7 +220,7 @@
 	    "add"	: $[
 		"handler"	: BootloaderAddHandler,
 		// command line help text for add action
-		"help"		: _("Add a new section"),
+		"help"		: _("Add a new section - please use interactive mode"),
 	    ],
 	    "print"	: $[
 		"handler"	: BootloaderPrintHandler,
@@ -259,7 +262,6 @@
 	if (.noio == WFM::Args (i) || ".noio" == WFM::Args (i))
 	{
 	    skip_io = true;
-	    BootCommon::save_on_finish = false;
 	}
 	i = i + 1;
     }
