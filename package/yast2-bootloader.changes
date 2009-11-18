@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 18 16:18:57 CET 2009 - juhliarik@suse.cz
+
+- added fix for updating device.map (bnc#477778)
+- 2.17.61 
+
+-------------------------------------------------------------------
 Mon May 18 17:26:50 CEST 2009 - juhliarik@suse.cz
 
 - added fix for checking soft-raid devices in device.map

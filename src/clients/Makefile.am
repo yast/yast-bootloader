@@ -9,7 +9,8 @@ client_DATA =			\
 	bootloader_finish.ycp	\
 	print-product.ycp	\
 	inst_bootloader.ycp	\
-	inst_lilo_convert.ycp
+	inst_lilo_convert.ycp	\
+	bootloader_preupdate.ycp
 
 EXTRA_DIST = 			\
 	$(client_DATA)

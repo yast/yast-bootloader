@@ -45,6 +45,16 @@ global symbol merge_level = `main;
   */
 global boolean insert_saved_mbr = false;
 
+
+/**
+ * The variable indicate if client bootloader_preupdate
+ * successful update device map
+ * If success true else false
+ */
+
+global boolean update_device_map_done = false;
+
+
 // variables for temporary data
 
 /**
@@ -714,7 +724,14 @@ global define list<string> Summary () {
   * Update read settings to new version of configuration files
   */
 global define void Update () {
-    BootCommon::UpdateDeviceMap ();
+    // update device map would be done in bootloader_preupdate
+    // run update device only if it was not called or if update device
+    // failed in bootloader_preupdate
+    if (!update_device_map_done)
+    {
+        BootCommon::UpdateDeviceMap ();
+	update_device_map_done = true;
+    }
 
     // During update, for libata device name migration ("/dev/hda1" ->
     // "/dev/sda1") and somesuch, we need to re-read and parse the rest of the

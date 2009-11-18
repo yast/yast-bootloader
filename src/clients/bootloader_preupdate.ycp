@@ -1,0 +1,131 @@
+/**
+ * File:
+ *      bootloader/routines/bootloader_preupdate.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Client for handling pre-update bootloader configuration
+ *
+ * Authors:
+ *      Jozef Uhliarik <juhliarik@suse.cz>
+ *
+ *
+ */
+
+{
+
+textdomain "bootloader";
+
+
+import "BootCommon";
+import "Installation";
+import "GetInstArgs";
+import "Mode";
+import "Arch";
+import "BootGRUB";
+import "Storage";
+
+y2milestone ("starting bootloader_preupdate");
+
+boolean preUpdateDeviceMap()
+{
+    boolean ret = false;
+    string device_map = (string) WFM::Read(.local.string, Installation::destdir +"/boot/grub/device.map");
+    if (device_map == nil)
+    {
+	y2error("Reading device map failed.");
+	return false;
+    }
+    y2milestone("Device map: %1", device_map);
+
+    BootCommon::InitializeLibrary(true, "grub");
+    BootCommon::setLoaderType("grub");
+    map<string,string> new_files = $[]; 
+    new_files["/boot/grub/device.map"] = device_map;
+    ret = BootCommon::SetFilesContents (new_files);
+    if (!ret)
+    {
+	y2error("SetFilesContents failed.");
+	return false;
+    }
+    BootCommon::device_mapping = BootCommon::GetDeviceMap ();
+
+    if ((BootCommon::device_mapping == nil) || (size(BootCommon::device_mapping) == 0))
+    {
+	y2error("Parsing device map failed or it is empty.");
+	return false;
+    }
+    BootCommon::UpdateDeviceMap();
+
+    ret = BootCommon::SetDeviceMap(BootCommon::device_mapping);
+    if (!ret)
+    {
+	y2error("Set device map failed.");
+	return false;
+    }
+ 
+    new_files = BootCommon::GetFilesContents();
+    y2milestone("new content file: %1", new_files);
+
+    string content_dev_map = new_files["/boot/grub/device.map"]:nil;
+
+    if ((content_dev_map != nil ) && (content_dev_map != ""))
+    {
+	y2milestone("writing device map: %1", content_dev_map); 
+	WFM::Write(.local.string, Installation::destdir +"/boot/grub/device.map",
+ 		   content_dev_map);
+    }
+
+    return ret;
+}
+
+
+if ( GetInstArgs::going_back())     // going backwards?
+{
+    return `auto;                   // don't execute this once more
+}
+
+if (Mode::update() && (Arch::x86_64() || Arch::i386()))
+{
+ 
+    // save some sysconfig variables
+    // register new agent pointing into the mounted filesystem
+    path sys_agent = .target.sysconfig.bootloader;
+
+    string target_sysconfig_path = Installation::destdir + "/etc/sysconfig/bootloader";
+    SCR::RegisterAgent (.target.sysconfig.bootloader, `ag_ini(`SysConfigFile(target_sysconfig_path)));
+
+    string bl = (string) SCR::Read(add(sys_agent,.LOADER_TYPE));
+
+    any ret = nil;
+    if (bl == "grub") {
+
+	y2milestone("updating device map...");
+	if (preUpdateDeviceMap())
+	{
+	    y2milestone("Update device map is done successful");
+	    BootGRUB::update_device_map_done = true;
+	} else {
+	    y2error("Update device map failed");
+	    BootGRUB::update_device_map_done = false;
+	}
+
+	y2milestone("Calling storage update");
+	Storage::Update (Installation::installedVersion, Installation::updateVersion);
+    }
+
+    if (ret == `back)
+	return `back;
+
+    if (ret == `next)
+	return `next;
+
+}
+
+y2milestone ("finish bootloader_preupdate");
+
+return `auto;
+
+}
