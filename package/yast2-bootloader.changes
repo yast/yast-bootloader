@@ -3,6 +3,7 @@ Mon Nov 23 16:50:57 CET 2009 - juhliarik@suse.cz
 
 - added fix for converting device name to persistent device name
   for ppc (bnc#510086)
+- 2.17.62
 
 -------------------------------------------------------------------
 Mon Nov 23 16:38:57 CET 2009 - juhliarik@suse.cz
