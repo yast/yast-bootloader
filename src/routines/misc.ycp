@@ -882,7 +882,7 @@ global define string Dev2MountByDev(string dev)
                 ``(p["fstype"]:"" == "Linux native"
                     || p["fstype"]:"" == "Extended"
 		    || p["fstype"]:"" == "Linux RAID"
-		    || p["fstype"]:"" == "MD Raid"));
+		    || tolower(p["fstype"]:"") == "md raid"));
 	}
         list<string>partition_names
 	    = maplist (map p, partitions, ``((string)(p["device"]:"")));

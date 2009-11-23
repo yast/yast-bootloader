@@ -1304,6 +1304,29 @@ void changeOrderInDeviceMapping(list<string> bad_devices)
         device_mapping[tmp] = "hd0";
     }*/
 }
+/**
+ * Check if MD raid is build on disks not on paritions
+ * @param devices - list of devices from MD raid
+ * @param tm - unfiltered target map
+ * @return - true if MD RAID is build on disks (not on partitions) 
+ */
+
+boolean checkMDRaidDevices(list<string> devices, map<string,map> tm)
+{
+    boolean ret = true;
+    foreach (string key, devices, {
+	if (key != "" && ret)
+	{
+	    if (tm[key]:nil != nil)
+		ret = true;
+	    else
+		ret = false;
+	}
+    });
+    return ret;
+}
+
+
 /*** helper functions END ***/
 
 /**
@@ -1344,7 +1367,8 @@ global void ProposeDeviceMap () {
     // filter out non-disk devices
     targetMap = filter (string k, map v, targetMap, {
 	return v["type"]:`CT_UNKNOWN==`CT_DMRAID || v["type"]:`CT_UNKNOWN==`CT_DISK
-	    || v["type"]:`CT_UNKNOWN==`CT_DMMULTIPATH;
+	    || v["type"]:`CT_UNKNOWN==`CT_DMMULTIPATH || 
+	      (v["type"]:`CT_UNKNOWN==`CT_MDPART && checkMDRaidDevices(v["devices"]:[], targetMap));
     });
 
     y2milestone ("Target map: %1", targetMap);
