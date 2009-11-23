@@ -628,16 +628,7 @@ boolean MapAllPartitions()
 global define string Dev2MountByDev(string dev) 
 {
 	y2milestone ("Dev2MountByDev: %1", dev);
-
-	// (`id,`uuid,`path,`device,`label)
 	symbol by_mount = nil;
-	if (Arch::ppc())
-	    by_mount = `id;
-        else
-	    by_mount = Storage::GetDefaultMountBy();
-
-	//by_mount = `id;
-	y2milestone("Default mount by is %1", by_mount);
 
 	// add all_partitions to partitions
 	if (MapAllPartitions())
@@ -648,6 +639,37 @@ global define string Dev2MountByDev(string dev)
 	map partition = $[];
 	map device = $[];
 	string ret = dev;
+
+	// bnc#510086 mountby-Option "device" from the AutoYast partitioning profile 
+        // isnt correctly populating lilo.conf
+	// (`id,`uuid,`path,`device,`label)
+	// bnc#458018 accept different mount-by for partition
+	// created by user
+	by_mount = Storage::GetDefaultMountBy();
+	//by_mount = `id;
+	y2milestone("Default mount by is %1", by_mount);
+
+	if (haskey(partitions, dev))
+	{
+		symbol partition_mount_by = (symbol) partitions[dev, "mountby"]:nil;
+		if ((partition_mount_by != nil))
+			by_mount = partition_mount_by;
+	}
+
+	if (by_mount == `device)
+	{
+	    y2milestone("Skip converting device: %1 to persistent device names because mountby is set to: %2",
+			dev, by_mount);
+	    return dev;
+	}
+
+	if (Arch::ppc())
+	{
+	    by_mount = `id;
+	    y2milestone("Adding default mount-by for ppc (`id)");
+	}
+
+
 	switch(by_mount) 
 	{
 		// convert to udev_id

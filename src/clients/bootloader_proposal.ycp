@@ -18,6 +18,7 @@
     import "Storage";
     import "Mode";
     import "BootSupportCheck";
+    import "Popup";
 
     include "bootloader/routines/wizards.ycp";
 
