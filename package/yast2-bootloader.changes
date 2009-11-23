@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Nov 23 16:38:57 CET 2009 - juhliarik@suse.cz
+
+- added support for installing an booting MD RAID from Intel
+  (fate#305883) and (fate#307447)
+- added fix for updating configuration of bootloader in autoyast
+  installation (bnc#556052)
+
+-------------------------------------------------------------------
 Wed Nov 18 16:18:57 CET 2009 - juhliarik@suse.cz
 
 - added fix for updating device.map (bnc#477778)

@@ -214,6 +214,28 @@ In case that no selection can be made it may be necessary to create a PReP Boot 
 
 	}
 
+
+	//bnc #556052 problem with changes in storage during installation via autoyast
+        if ((BootCommon::cached_settings_base_data_change_time != Storage::GetTargetChangeTime()) &&
+            (BootCommon::cached_settings_base_data_change_time != nil) &&
+            (Bootloader::getLoaderType () == "grub") &&
+	    (Mode::autoinst ()))
+        {
+
+	    if (Popup::TimedOKCancel(_("Changes in disk partitioning were detected since the time the bootloader was configured.
+Do you want to propose bootloader configuration again?
+If yes, all previous bootloader configuration will be lost.
+If not, you probably need to change the configuration manually."), 10))
+            {
+                y2milestone ("Partitionig of disk was changed => reset proposal");
+                BootCommon::Reset (true);
+                Bootloader::Propose();
+            } else {
+		y2warning ("User cancel automatic changes in bootloader during autoyast installation");
+            }
+        }
+
+
 	// cache the values
 	Bootloader::cached_settings = Bootloader::Export();
 	BootCommon::cached_settings_base_data_change_time = Storage::GetTargetChangeTime();
