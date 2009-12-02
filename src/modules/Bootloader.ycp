@@ -41,7 +41,6 @@
     import "BootPOWERLILO"; // The ppc-LILO File
     //fate 303395
     import "ProductFeatures";
-    import "Arch";
 
     // interface for clients
     global define map Export ();
@@ -862,9 +861,17 @@ global define void DelDuplicatedSections()
 		return;
 	}
 	y2milestone("Deleting duplicated boot sections");
-	map<string,any> linux_default = BootCommon::CreateLinuxSection ("linux");
-	map<string,any> linux_failsafe = BootCommon::CreateLinuxSection ("failsafe");
-	map<string,any> linux_xen = BootCommon::CreateLinuxSection ("xen");
+	map<string,any> linux_default = $[];
+	map<string,any> linux_failsafe = $[];
+	map<string,any> linux_xen = $[];
+	if (Arch::ppc())
+	{
+		linux_default = BootPOWERLILO::CreateImageSection("linux");
+	} else {
+		linux_default = BootCommon::CreateLinuxSection ("linux");
+		linux_failsafe = BootCommon::CreateLinuxSection ("failsafe");
+		linux_xen = BootCommon::CreateLinuxSection ("xen");
+	}
 
 	y2milestone("Proposed section for linux_default: %1", linux_default);
 	y2milestone("Proposed section for linux_failsafe: %1", linux_failsafe);

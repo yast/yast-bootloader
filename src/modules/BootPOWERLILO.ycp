@@ -412,7 +412,7 @@ global define void setBoardType (string board) {
  * @param   title   string	the section name to create (untranslated)
  * @return	    map		describes the section
  */
-map<string,any> CreateImageSection (string title) {
+global map<string,any> CreateImageSection (string title) {
 
     // FIXME: This really should be a function and not be duplicated in
     //        BootCommon.ycp (although that code there also handles wildcard
