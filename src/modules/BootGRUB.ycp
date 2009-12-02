@@ -744,7 +744,7 @@ global define void Update () {
     BootCommon::SetDeviceMap (BootCommon::device_mapping);
     Read (true, true);
 
-    BootCommon::UpdateSections (true, CreateLinuxSection);
+    BootCommon::UpdateSections ();
     BootCommon::UpdateGlobals ();
 }
 

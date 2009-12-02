@@ -423,7 +423,7 @@ global define void Update () {
         BootCommon::globals["timeout"] = "8";
     BootCommon::globals["append"] = BootArch::DefaultKernelParams ("");
 
-    BootCommon::UpdateSections (true, CreateLinuxSection);
+    BootCommon::UpdateSections ();
     // FIXME EFI entry name
 }
 

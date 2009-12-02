@@ -215,7 +215,7 @@ global void Update () {
     BootCommon::SetDeviceMap (BootCommon::device_mapping);
     Read (true, true);
 
-    BootCommon::UpdateSections (true, BootCommon::CreateLinuxSection);
+    BootCommon::UpdateSections ();
     BootCommon::UpdateGlobals ();
     BootCommon::loader_device
 	= BootCommon::UpdateDevice (BootCommon::loader_device);

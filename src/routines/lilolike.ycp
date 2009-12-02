@@ -746,267 +746,51 @@ global void FixSections (void() create_sections) {
     sections = old_sect_list;
 }
 
-/**
- * Update sections of bootloader menu
- * modifies internal structures
- * @param replace boolean true if old sectinos shall be replaced
- * @param create_linux_section a reference to a function to create linux
- *   section anew
+/** bnc#474039 upgrade from sles10sp2 to sles11 xen has incorrect default boot option
+ * Update in section old devices to new kernel format
+ * @param section section to modify
  */
-global void UpdateSections (boolean replace,
-    map<string,any>(string) create_linux_section)
-{
-    list<map<string,any> > out = BootCommon::sections;
-    list<string> recreated = [];
-    boolean linux_resume_added = false;
-
-    map<string,any> default_sect = create_linux_section ("linux");
-    string default_kernel = default_sect["kernel"]:"";
-    string default_initrd = default_sect["initrd"]:"";
-    string default_name = default_sect["name"]:"";
-
-    list<string> sections_to_recreate = ["linux", "failsafe", "memtest86"];
-    if (getLoaderType (false) == "grub")
-    {
-	sections_to_recreate = add (sections_to_recreate, "xen");
-    }
-
-    // if replace == true,  replace all sections that have a type in
-    //                      sections_to_recreate with a newly created version
-    // if replace == false, only adjust "append" line of "linux" section
-    //
-    // at the end of the loop, if one of the sections_to_recreate does not
-    // exist, create it
-    foreach (string t, sections_to_recreate, {
-	map<string,any> m = create_linux_section (t);
-	boolean f_changed = false;
-	out = maplist (map<string,any> s, out, {
-	    string label = s["name"]:"";
-	    string sect_type = s["original_name"]:"";
-	    if (sect_type == "")
-		sect_type = label;
-	    if (sect_type == t)
-	    {
-		f_changed = true;
-		if (replace && m != $[])
-		{
-		    y2milestone ("Recreated section %1: %2", label, m);
-		    recreated = add (recreated, label);
-		    return m;
-		}
-		else if (t == "linux")
-		{
-		    string append = s["append"]:"";
-		    string resume = BootCommon::getKernelParamFromLine (
-			append, "resume");
-		    if (! haskey (BootCommon::getSwapPartitions (), resume))
-		    {
-			append = setKernelParamToLine (append,
-			    "resume", BootCommon::Dev2MountByDev(getLargestSwapPartition ()));
-			s["append"] = append;
-			linux_resume_added = true;
-		    }
-		    return s;
-                }
-		else
-		    return s;
-	    }
-	    else
-	    {
-		return s;
-	    }
-	});
-	// if we did NOT change or replace the old section (meaning: there was
-	// none), but create_linux_section() gave us a new section, then
-	// prepend or append the section created by create_linux_section()
-        if (! f_changed && m != $[])
+void UpdateDeviceForSection(map<string,any> section){
+  if (section["type"]:"" == "image" || section["type"]:"" == "xen")
+  {
+     //check if we update correct image and if update is needed
+     if (BootCommon::UpdateDevice(section["root"]:"nonexisted")
+        == BootCommon::RootPartitionDevice
+        && section["root"]:""!=(BootCommon::UpdateDevice(section["root"]:"")))
+     {
+	y2milestone ("Updating device of section %1", section["name"]:"name");
+        section["root"]= BootCommon::UpdateDevice(section["root"]:"");
+        string resume
+	    = BootCommon::getKernelParamFromLine (
+                section["append"]:"", "resume");
+	if (resume != "false")
 	{
-	    y2milestone ("Recreated section: %1", m);
-	    recreated = add (recreated, m["name"]:"");
-            if (t == "linux")
-		out = prepend (out, m);
-            else
-		out = add (out, m);
+	  y2milestone ("Updating resume device of section %1", section["name"]:"name");
+	  resume = BootCommon::UpdateDevice (resume);
+	  section["append"] = BootCommon::setKernelParamToLine (
+	    section["append"]:"", "resume", BootCommon::Dev2MountByDev(resume));
 	}
-    });
-    y2milestone ("All recreated sections: %1", recreated);
-
-    // for grub and replace-mode only:
-    // convert sections that boot "other" installations (another Linux, Windows
-    // etc.) to chainloader and configfile sections
-    //
-    // ! contains (sections_to_recreate, original_name)         AND
-    // original_name == name (e.g. "openSUSE 10.3 (/dev/sdb1)") AND
-    // haskey("image")						AND
-    // haskey("initrd")
-    //
-    //  => if bootable, convert to "chainloader"
-    //       otherwise, convert to "configfile" and hope for the best
-    //
-    if (getLoaderType (false) == "grub" && replace)
-    {
-	y2milestone ("Converting sections for other installation to use chainloader/configfile entries...");
-	out = maplist (map<string,any> s, out, {
-	    string label = s["name"]:"";
-	    string sect_type = s["original_name"]:"";
-	    y2milestone ("label: %1, sect_type: %2", label, sect_type);
-	    if (!contains(sections_to_recreate, sect_type) &&
-		 sect_type == label &&
-		 haskey(s, "image") &&
-		 haskey(s, "initrd"))
-	     {
-		string dev = (string) s["root"]:nil;
-
-		// create new entry
-		s = $[
-		    "name":		label,
-		    "original_name":	sect_type,
-		    "root":		BootCommon::Dev2MountByDev(dev)
-		];
-
-		if (dev != nil && IsPartitionBootable(dev))
-		{
-		    //     bootable =>  chainloader
-		    s["noverifyroot"] = "true";
-		    s["chainloader"] = BootCommon::Dev2MountByDev(dev);
-		    s["blockoffset"] = "1";
-		    s["type"] = "other";
-		    y2milestone ("Updating section \"%1\" booting other installation to use chainloader entry", s["name"]:"");
-		}
-		else
-		{
-		    // not bootable =>  configfile
-		    // let's hope the config file can be found (should work at
-		    // least for all SUSE installations using grub)
-		    s["configfile"] = "/boot/grub/menu.lst";
-		    s["type"] = "menu";
-		    y2milestone ("Updating section \"%1\" booting other installation to use configfile entry", s["name"]:"");
-		}
-		return s;
-	    }
-	    else
-		return s;
-
-	});
-    }
-
-
-    // now adjust these keys in sections that need it:
-    //  - kernel
-    //  - initrd
-    //  - name
-    //  - device (e.g. for SATA: /dev/hda -> /dev/sda)
-    //  - append
-    out = maplist (map<string,any> s, out, {
-	string label = s["name"]:"";
-	string type = s["original_name"]:label;
-	// FIXME: do we still need to remove strings from kernel or initrd names?
-	//        if yes: add "image"
-	//        if no: remove loop
-	//        probably need to do this depending on the version of the old
-	//        installation
-	foreach (string key, ["kernel", "initrd"], {
-	    string value = s[key]:"";
-	    if (regexpmatch (value, "^.*\.shipped.*$"))
-	    {
-		value = regexpsub (value,
-		    "^(.*)\.shipped(.*)$", "\\1\\2");
-	    }
-	    else if (regexpmatch (value, "^.*\.suse.*$"))
-	    {
-		value = regexpsub (value,
-		    "^(.*)\.suse(.*)$", "\\1\\2");
-	    }
-	    // This was broken (was: s["key"] = value;)
-	    s[key] = value;
-	});
-	// If we did not replace the sections anyway, adjust the section titles:
-	// Does this section
-	//  - use the default kernel of a linux section \ i.e. it uses the updated kernel
-	//  - use the default initrd of a linux section /
-	//  - contain the name of the first "linux" section read from disk in
-	//    its name
-	// then, update the section name
-	if (!replace
-	    && s["kernel"]:"" == default_kernel
-	    && s["initrd"]:"" == default_initrd
-	    && issubstring (s["name"]:"", read_default_section_name)
-	    && read_default_section_name != ""
-	    && read_default_section_name != default_name)
-	{
-	    // idea of this:
-	    // orig_name == "linux":    "Linux"		    -> "<new name>"
-	    // orig_name == "failsafe": "Failsafe -- Linux" -> "Failsafe -- <new name>"
-	    y2milestone ("Updating label of section %1...", s["name"]:"");
-	    string old_name = s["name"]:"";
-	    integer i1 = search (old_name, read_default_section_name);
-	    integer i2 = i1 + size (read_default_section_name);
-	    s["name"] = substring (old_name, 0, i1) + default_name
-		+ substring (old_name, i2);
-	    y2milestone ("... to %1", s["name"]:"");
-	}
-
-	// Update device names in sections for certain section types, if the
-	// section has not been recreated anyway
-	// FIXME: never update device names twice!
-	foreach (string key, ["root", "chainloader"], {
-	    // FIXME: for some reason, this used to update "linux" and
-	    // "failsafe" even if they have been recreated; but "other"
-	    // sections were never updated -- since there are no calls to
-	    // UpdateSections() with replace == false, ATM we disable updating
-	    // "linux" and "failsafe", and add "other", seed
-	    // BootCommon::update_section_types
-	    if ((contains (update_section_types, type)
-		    && ! contains (recreated, label))
-		|| key == "chainloader")
-	    {
-		string device = (string) s[key]:nil;
-		y2milestone ("Checking for update: device %1 of key %2, section %3", device, key, label);
-		if (device != nil)
-		{
-		    y2milestone ("Updating root/other device of section %1",
-			label);
-		    device = BootCommon::UpdateDevice (device);
-		    s[key] = device;
-		}
-	    }
-	});
-	if (type == "linux" && haskey (s, "append"))
-	{
-	    string option = s["append"]:"";
-	    foreach (string o, ListAdditionalKernelParams (), {
-		option = setKernelParamToLine (option, o, "false");
-	    });
-	    option = option + " " + GetAdditionalKernelParams ();
-	    if (getKernelParamFromLine (option, "splash") == "false")
-		option = setKernelParamToLine
-		    (option, "splash", "silent");
-	    s["append"] = option;
-	}
-	else if (haskey (s, "append")
-	    && contains (BootCommon::update_section_types, type)
-	   && ! contains (recreated, label))
-	{
-	    string option = s["append"]:"";
-	    if (type != "linux" || ! linux_resume_added)
-	    {
-		string resume
-		    = BootCommon::getKernelParamFromLine (
-			option, "resume");
-		if (resume != "false")
-		{
-		    y2milestone ("Updating resume device of section %1", label);
-		    resume = BootCommon::UpdateDevice (resume);
-		    option = BootCommon::setKernelParamToLine (
-			option, "resume", BootCommon::Dev2MountByDev(resume));
-		}
-	    }
-	    s["append"] = option;
-	}
-	return s;
-    });
-    sections = out;
+        section["__modified"] = "1";
+     }
+  }
 }
+
+/** bnc#474039 upgrade from sles10sp2 to sles11 xen has incorrect default boot option
+ * Update sections of bootloader menu (removes obsolete thinks and
+ * place for ugly hacks (but doesn't efect zypper dup))
+ * modifies internal structures
+ * label update is done in perl-Bootloader during updating kernel
+ * Purpose is don't break anything, but expect that previous state is
+ * working
+ */
+global void UpdateSections ()
+{
+  foreach (map<string,any> section, BootCommon::sections,{
+    //remap device names from hd* to sd*
+    UpdateDeviceForSection(section);
+  });
+}
+
 
 /**
  * Update global options of bootloader
@@ -1021,7 +805,11 @@ global void UpdateGlobals () {
 	return UpdateDevice (d);
     });
     BootCommon::globals["stage1_dev"] = mergestring (s1_devs, ",");
-    BootCommon::globals["gfxmenu"] = "/boot/message";
+
+    // bnc #380509 if autoyast profile includes gfxmenu == none
+    // it will be deleted
+    if (BootCommon::globals["gfxmenu"]:"" != "none")
+        BootCommon::globals["gfxmenu"] = "/boot/message";
 
     // now that the label for the "linux" section is not "linux" anymore, but
     // some product dependent string that can change with an update ("SLES_10"

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Dec  2 14:56:42 CET 2009 - juhliarik@suse.cz
+
+- added fix for update of bootloader seetings (bnc#474039)
+- 2.17.63 
+
+-------------------------------------------------------------------
 Mon Nov 23 16:50:57 CET 2009 - juhliarik@suse.cz
 
 - added fix for converting device name to persistent device name
