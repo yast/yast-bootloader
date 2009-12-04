@@ -414,7 +414,7 @@ global define string getBoardType () {
  * @param   title   string	the section name to create (untranslated)
  * @return	    map		describes the section
  */
-map<string,any> CreateImageSection (string title) {
+global map<string,any> CreateImageSection (string title) {
     map<string,any> ret = BootCommon::CreateLinuxSection(title);
     //Do not use translated names, as we are happy if it work with kernel device
     ret["root"] = BootStorage::RootPartitionDevice;
