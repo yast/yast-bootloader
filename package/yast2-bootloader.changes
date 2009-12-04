@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Dec  4 12:05:28 CET 2009 - juhliarik@suse.cz
+
+- added patch for KMS (bnc#560423) -> disable KMS for failsafe
+- 2.17.65
+
+-------------------------------------------------------------------
 Wed Dec  2 17:02:29 CET 2009 - juhliarik@suse.cz
 
 - added better checking of duplicated boot section for PPC 

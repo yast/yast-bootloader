@@ -108,11 +108,13 @@ global string FailsafeKernelParams () {
     string ret = "";
     if (Arch::i386 ())
     {
-	ret = "showopts ide=nodma apm=off noresume nosmp maxcpus=0 edd=off powersaved=off nohz=off highres=off processor.max_cstate=1";
+	//bnc#560423 -> disable KMS for failsafe
+	ret = "showopts ide=nodma apm=off noresume nosmp maxcpus=0 edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset";
     }
     else if (Arch::x86_64 ())
     {
-	ret = "showopts ide=nodma apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1";
+	//bnc#560423 -> disable KMS for failsafe
+	ret = "showopts ide=nodma apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset";
     }
     else if (Arch::ia64 ())
     {
