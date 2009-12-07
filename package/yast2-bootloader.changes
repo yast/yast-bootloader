@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Dec  7 14:26:19 CET 2009 - juhliarik@suse.cz
+
+- added fix for problem with characters in name (bnc#558542) 
+
+-------------------------------------------------------------------
 Fri Dec  4 16:14:07 CET 2009 - juhliarik@suse.cz
 
 - added fix for section name mismatch in lilo.conf for PPC
