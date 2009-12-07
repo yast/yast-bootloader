@@ -356,7 +356,7 @@ boolean SectionNameValidate (string widget, map event) {
     if ((Mode::normal()) && (bl == "grub"))
     {
 	string filtered_new = 
-	     filterchars (new, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _.-()");
+	     filterchars (new, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 /\\_.-()");
 
 	if (filtered_new != new)
 	{
