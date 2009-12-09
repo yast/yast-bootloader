@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Dec  9 11:39:18 CET 2009 - juhliarik@suse.cz
+
+- added patch for KMS (bnc#561566) 
+
+-------------------------------------------------------------------
 Mon Dec  7 14:26:19 CET 2009 - juhliarik@suse.cz
 
 - added fix for problem with characters in name (bnc#558542) 
