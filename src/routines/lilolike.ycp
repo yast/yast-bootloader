@@ -1114,6 +1114,45 @@ boolean checkMDRaidDevices(list<string> devices, map<string,map> tm)
     return ret;
 }
 
+/** bnc#568837 wrong data in device map
+ * Function check if disk is in list of devices
+ * @param string disk
+ * @param list<string> list of devices
+ * @return true if success
+ */
+
+boolean isDiskInList (string disk, list<string> devices)
+{
+    boolean ret = false;
+    foreach(string dev, devices,
+    {
+	if (dev == disk)
+	{
+	   ret = true;
+	   break;
+	}
+    });
+    return ret;
+}
+
+/** bnc#568837 wrong data in device map
+ * Check if disk is in MDRaid it means completed disk is used in RAID
+ * @param disk (/dev/sda)
+ * @param tm - target map
+ * @return - true if disk (not only part of disk) is in MDRAID  
+ */
+boolean isDiskInMDRaid (string disk, map<string,map> tm) 
+{
+    boolean ret = false;
+    foreach( string dev, map d_info, tm,
+    {
+	if (d_info["type"]:nil == `CT_MDPART)
+	    ret = isDiskInList(disk, d_info["devices"]:[]);
+	if (ret)
+	    break;
+    });
+    return ret;
+}
 
 /*** helper functions END ***/
 
@@ -1148,15 +1187,18 @@ global void ProposeDeviceMap () {
     else
 	targetMap = (map<string,map>)Storage::GetTargetMap();
 
-    // filter out members of BIOS RAIDs and multipath devices
-    targetMap = filter (string k, map v, targetMap, {
-	return v["used_by_type"]:nil != `UB_DMRAID && v["used_by_type"]:nil != `UB_DMMULTIPATH;
-    });
     // filter out non-disk devices
     targetMap = filter (string k, map v, targetMap, {
 	return v["type"]:`CT_UNKNOWN==`CT_DMRAID || v["type"]:`CT_UNKNOWN==`CT_DISK
 	    || v["type"]:`CT_UNKNOWN==`CT_DMMULTIPATH || 
 	      (v["type"]:`CT_UNKNOWN==`CT_MDPART && checkMDRaidDevices(v["devices"]:[], targetMap));
+    });
+
+    // bnc#568837 wrong data in device map
+    // filter out members of BIOS RAIDs and multipath devices
+    targetMap = filter (string k, map v, targetMap, {
+	 return v["used_by_type"]:nil != `UB_DMRAID && v["used_by_type"]:nil != `UB_DMMULTIPATH&& 
+		((v["used_by_type"]:nil == `UB_MDPART) ? (!isDiskInMDRaid(k,targetMap)):true);
     });
 
     y2milestone ("Target map: %1", targetMap);
