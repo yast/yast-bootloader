@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 11 13:18:28 CET 2010 - juhliarik@suse.cz
+
+- added fix for deleting gfxmenu if serial console is used 
+  (bnc#568295)
+- 2.17.67 
+
+-------------------------------------------------------------------
 Thu Jan  7 14:57:34 CET 2010 - juhliarik@suse.cz
 
 - added fix for data in device.map if MD RAID from Intel is used

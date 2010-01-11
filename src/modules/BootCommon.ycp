@@ -851,6 +851,34 @@ global void Propose () {
     y2error ("No generic propose function available");
 }
 
+/** bnc# 346576,568295 - Bootloader configuration doesn't work for serial output
+ * Function check if settings need to remove gfxmenu
+ *
+ * @return boolean - true if gfxmenu needs to be removed
+ */
+
+boolean removeGFXMenu ()
+{
+    if ((globals["trusted_grub"]:"" == "true") && (haskey(globals, "gfxmenu")))
+    {
+	y2milestone("Remove gfxmenu -> selected trusted grub");
+	return true;
+    }
+
+    if ((globals["serial"]:nil != "") && (globals["serial"]:nil != nil) && (haskey(globals, "gfxmenu")))
+    {
+	y2milestone("Remove gfxmenu -> defined serial console");
+	return true;
+    }
+
+    if ((globals["gfxmenu"]:"" == "none") && (haskey(globals, "gfxmenu")))
+    {
+	y2milestone("Remove gfxmenu -> disabled gfxmenu");
+	return true;
+    }
+    return false;
+}
+
 /**
  * Save all bootloader configuration files to the cache of the PlugLib
  * PlugLib must be initialized properly !!!
@@ -908,7 +936,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    return $[BootCommon::Dev2MountByDev(k) : v];
     });
     y2milestone ("device map after mapping %1", my_device_mapping);
-    if ((globals["trusted_grub"]:"" == "true") && (haskey(globals, "gfxmenu")))
+
+    if (removeGFXMenu())
 	globals = remove(globals, "gfxmenu");
 
     // convert XEN section to linux section id running in domU
