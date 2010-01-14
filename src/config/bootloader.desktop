@@ -19,9 +19,8 @@ X-SuSE-YaST-AutoInstPath=install
 X-SuSE-YaST-AutoInstSchema=bootloader.rnc
 
 Icon=yast-bootloader
-Exec=/sbin/yast2 bootloader 
+Exec=xdg-su -c "/sbin/yast2 bootloader"
 
 Name=Boot Loader
 GenericName=Configure the boot loader
-X-KDE-SubstituteUID=true
 StartupNotify=true
