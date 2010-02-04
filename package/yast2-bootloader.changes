@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan 28 16:08:30 CET 2010 - juhliarik@suse.cz
+
+- added commnets for using options in /etc/sysconfig/bootloader
+  (bnc#511319)
+- 2.19.1
+
+-------------------------------------------------------------------
 Wed Jan 13 18:56:03 CET 2010 - kmachalkova@suse.cz
 
 - Adjusted .desktop file(s) to wrap /sbin/yast2/ calls in xdg-su

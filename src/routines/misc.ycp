@@ -38,6 +38,7 @@
     import "Installation";
     import "FileUtils";
     import "String";
+    import "FileUtils";
 
 // bootloader attributes handling functions
 
@@ -1337,6 +1338,65 @@ global boolean isDefaultBootSectioLinux(string default_boot)
 	return ret;
 }
 
+/** bnc#511319 Add information about /etc/sysconfig/bootloader to configuration file.
+ * Write option with value and comment to
+ * sysconfig file
+ *
+ * @param boolean true if called from client inst_bootloader
+ * @param path to config file (.sysconfig.bootloader)
+ * @param path option (.DEFAULT_APPEND)
+ * @param string value of otion
+ * @param string comment of option
+ * @return true on success
+ */
+
+define boolean WriteOptionToSysconfig(boolean inst, path file_path, path option, string value, string comment)
+{
+    boolean ret = false;
+
+    if ((!inst) &&(!FileUtils::Exists("/etc/sysconfig/bootloader")))
+    {
+	y2milestone("Skip writting configuration to /etc/sysconfig/bootloader -> file missing");
+	return ret;
+    }
+    path file_path_option = add (file_path, option);
+    boolean comment_exist = SCR::Read(add(file_path_option, .comment)) == nil;
+
+    // write value of option
+    ret = SCR::Write(file_path_option, value);
+
+    // write comment of option if it is necessary
+    if (!comment_exist )
+    {
+	ret = ret && SCR::Write(add(file_path_option, .comment), comment);
+    }
+    SCR::Write(file_path, nil);
+    return ret;
+}
+
+/** bnc#511319 Add information about /etc/sysconfig/bootloader to configuration file.
+ * Create /etc/sysconfig/bootloader it is configuration
+ * file for bootloader
+ *
+ * @param boolean true if it is called from client inst_bootlaoder
+ * @return boolean true on success
+ */
+
+define boolean CreateBLSysconfigFile(boolean inst)
+{
+    if (inst)
+    {
+	if (!FileUtils::CheckAndCreatePath(Installation::destdir +"/etc/sysconfig"))
+	{
+	    WFM::Execute(.local.mkdir, Installation::destdir + "/etc/sysconfig");
+	    WFM::Execute(.local.bash, sformat ("touch %1/etc/sysconfig/bootloader", Installation::destdir));
+	}
+	//string target_sysconfig_path = Installation::destdir + "/etc/sysconfig/bootloader";
+	return true;
+    }
+    return true;
+}
+
 /** FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
  * Function write/update info in /etc/sysconfig/bootloader
  * @param booloean true if it called from inst_bootloader.ycp 
@@ -1439,35 +1499,229 @@ global define void WriteToSysconf(boolean inst_bootloader)
 
     if (inst_bootloader)
     {
-	WFM::Execute(.local.mkdir, Installation::destdir + "/etc/sysconfig");
-	WFM::Execute(.local.bash, sformat ("touch %1/etc/sysconfig/bootloader", Installation::destdir));
+	sys_agent = add(.target, sys_agent);
 	string target_sysconfig_path = Installation::destdir + "/etc/sysconfig/bootloader";
-	SCR::RegisterAgent (.target.sysconfig.bootloader, `ag_ini(
+	SCR::RegisterAgent (sys_agent, `ag_ini(
   	     `SysConfigFile(target_sysconfig_path)));
 
-	sys_agent = add(.target, sys_agent);
-
     } 
+    CreateBLSysconfigFile(inst_bootloader);
 
-    SCR::Write (add(sys_agent,.LOADER_TYPE), lt);
-    SCR::Write (add(sys_agent,.DEFAULT_APPEND), default_append);
-    SCR::Write (add(sys_agent,.DEFAULT_VGA), default_vga);
-    SCR::Write (add(sys_agent,.FAILSAFE_APPEND), failsafe_append);
-    SCR::Write (add(sys_agent,.FAILSAFE_VGA), failsafe_vga);
-    SCR::Write (add(sys_agent,.XEN_KERNEL_APPEND), xen_kernel_append);
-    SCR::Write (add(sys_agent,.XEN_APPEND), xen_append);
-    SCR::Write (add(sys_agent,.XEN_VGA), xen_vga);
+    string comment = "";
+    comment= "\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tlist(grub,lilo,none)
+## Default:\tgrub
+#
+# Type of bootloader in use.
+# For making the change effect run bootloader configuration tool
+# and configure newly selected bootloader
+#
+#\n";
+    if (!Arch::i386() && !Arch::x86_64())
+    {
+	comment= "\n ## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\tnone
+#
+# Type of bootloader in use.
+# For making the change effect run bootloader configuration tool
+# and configure newly selected bootloader
+#
+#\n";
+    }
+
+    WriteOptionToSysconfig(inst_bootloader, sys_agent, .LOADER_TYPE, lt, comment);
+
+    comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\t\"splash=silent quiet showotps\"
+#
+# Arguments for kernel which is used like default boot section.
+# If the options is commented perl-Bootloader uses his default arguments
+# for kernel.
+#\n";
+
+    if (!Arch::i386() && !Arch::x86_64())
+    {
+	comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\tnone
+#
+# Arguments for kernel which is used like default boot section.
+# If the options is commented perl-Bootloader uses his default arguments
+# for kernel.
+#\n";
+
+    }
+    WriteOptionToSysconfig(inst_bootloader, sys_agent, .DEFAULT_APPEND, default_append, comment);
+
+    comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\tnone
+#
+# VGA option for kernel which is used like default boot section.
+# If the options is commented or empty perl-Bootloader doesn't use it.
+# Empty option could be cause of broken size of fonts etc.
+#\n";
+
+    if (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ())
+	WriteOptionToSysconfig(inst_bootloader, sys_agent, .DEFAULT_VGA, default_vga, comment);
+
+    comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\t\"showopts apm=off noresume nosmp maxcpus=0 edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe\"
+#
+# Arguments for kernel which is used like failsafe boot section
+# If the options is commented perl-Bootloader uses his default arguments
+# for kernel.
+#\n";
+
+    if (Arch::x86_64())
+    {
+    comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\t\"showopts apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe\"
+#
+# Arguments for kernel which is used like failsafe boot section
+# If the options is commented perl-Bootloader uses his default arguments
+# for kernel.
+#\n";
+
+    }
+    if (Arch::ia64())
+    {
+    comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\t\"nohalt noresume powersaved=off x11failsafe\"
+#
+# Arguments for kernel which is used like failsafe boot section
+# If the options is commented perl-Bootloader uses his default arguments
+# for kernel.
+#\n";
+
+    }
+
+    if (Arch::s390())
+    {
+    comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\tnone
+#
+# Arguments for kernel which is used like failsafe boot section
+# If the options is commented perl-Bootloader uses his default arguments
+# for kernel.
+#\n";
+
+    }
+  
+    WriteOptionToSysconfig(inst_bootloader, sys_agent, .FAILSAFE_APPEND, failsafe_append, comment);
+
+    comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\tnone
+#
+# VGA option for kernel which is used like failsafe boot section.
+# If the options is commented or empty perl-Bootloader doesn't use it.
+# Empty option could be cause of broken size of fonts etc.
+#\n";
+
+    if (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ())
+	WriteOptionToSysconfig(inst_bootloader, sys_agent, .FAILSAFE_VGA, failsafe_vga, comment);
+
+   comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\t\"splash=silent quiet showotps\"
+#
+# Arguments for XEN kernel in Dom0.
+# If the options is commented perl-Bootloader uses his default arguments
+# for XEN kernel.
+#\n";
+
+    if (Arch::ia64 ())
+    {
+	comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\t\"splash=silent quiet\"
+#
+# Arguments for XEN kernel in Dom0.
+# If the options is commented perl-Bootloader uses his default arguments
+# for XEN kernel.
+#\n";
+
+    }
+
+    if (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ())
+	WriteOptionToSysconfig(inst_bootloader, sys_agent, .XEN_KERNEL_APPEND, xen_kernel_append, comment);
+
+   comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\tnone
+#
+# Arguments for XEN hypervisor
+# Usually it is empty or includes arguments like crashkernel for kdump etc.
+#\n";
+
+    if (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ())
+	WriteOptionToSysconfig(inst_bootloader, sys_agent, .XEN_APPEND, xen_append, comment);
+
+   comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\tnone
+#
+# VGA option for XEN kernel.
+# If the options is commented or empty perl-Bootloader doesn't use it.
+# Empty option could be cause of broken size of fonts etc.
+#\n";
+    if (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ())
+	WriteOptionToSysconfig(inst_bootloader, sys_agent, .XEN_VGA, xen_vga, comment);
+ 
+   comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\tnone
+#
+# Title of RealTime kernel in bootloader configuration file.
+#\n";
     if (addon_name != "")
-	SCR::Write (add(sys_agent,.RT_NAME), addon_name);
+	WriteOptionToSysconfig(inst_bootloader, sys_agent, .RT_NAME, addon_name, comment);
 
-    if (addon_vga != "")
-	SCR::Write (add(sys_agent,.RT_VGA), addon_vga);
+   comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\tnone
+#
+# VGA option for RealTime kernel.
+# If the options is commented or empty perl-Bootloader doesn't use it.
+# Empty option could be cause of broken size of fonts etc.
+#\n";
+   if (addon_vga != "")
+	WriteOptionToSysconfig(inst_bootloader, sys_agent, .RT_VGA, addon_vga, comment);
 
+    comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
+## Type:\tstring
+## Default:\tnone
+#
+# Arguments for RealTime kernel.
+# If the options is commented perl-Bootloader uses his default arguments
+# for kernel.
+#\n";
     if (addon_append != "")
-	SCR::Write (add(sys_agent,.RT_APPEND), addon_append);
-
-    SCR::Write (sys_agent, nil);
-
+	WriteOptionToSysconfig(inst_bootloader, sys_agent, .RT_APPEND, addon_append, comment);
 
 }
 
