@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb  9 16:03:31 CET 2010 - juhliarik@suse.cz
+
+- added fix for deleting Custom Boot Partition (bnc#544809)
+- 2.19.2 
+
+-------------------------------------------------------------------
 Thu Jan 28 16:08:30 CET 2010 - juhliarik@suse.cz
 
 - added commnets for using options in /etc/sysconfig/bootloader
