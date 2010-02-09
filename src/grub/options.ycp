@@ -505,7 +505,7 @@ void  InitBootLoaderLocationWidget(string widget) {
 	    UI::ChangeWidget (`id ("boot_extended"), `Enabled, false);
     }
 
-    if ((!haskey(BootCommon::globals,"boot_custom")) && 
+    if ((!haskey(BootCommon::globals,"boot_custom")) || 
         (BootCommon::globals["boot_custom"]:"" == ""))
     {
 	UI::ChangeWidget (`id ("boot_custom_list"),`Enabled, false);
@@ -555,6 +555,9 @@ void StoreBootLoaderLocationWidget (string widget, map event) {
     }
     if ((boolean)UI::QueryWidget(`id("boot_custom"), `Value))
 	BootCommon::globals["boot_custom"]= (string)UI::QueryWidget(`id("boot_custom_list"), `Value);
+    //bnc#544809 Custom Boot Partition cannot be deleted
+    else
+	BootCommon::globals["boot_custom"]="";
 }
 
 /** FIXME: merge help text to one for BootLoaderLocationWidget
