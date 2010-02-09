@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Feb  9 16:30:04 CET 2010 - juhliarik@suse.cz
+
+- solved problem with wrtting to floppy (bnc#539774) 
+
+-------------------------------------------------------------------
 Tue Feb  9 16:03:31 CET 2010 - juhliarik@suse.cz
 
 - added fix for deleting Custom Boot Partition (bnc#544809)
