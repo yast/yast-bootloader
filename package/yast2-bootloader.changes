@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 10 13:49:32 CET 2010 - juhliarik@suse.cz
+
+- added fix for adding crashkernel option to XEN kernel 
+  (bnc#578545)
+
+-------------------------------------------------------------------
 Tue Feb  9 16:30:04 CET 2010 - juhliarik@suse.cz
 
 - solved problem with wrtting to floppy (bnc#539774) 
