@@ -2250,6 +2250,34 @@ global boolean isDefaultBootSectioLinux(string default_boot)
 	return ret;
 }
 
+/** bnc #578545 - kdump misconfigures crashkernel parameter for Xen
+ * Check if default_append includes crashkernel arg
+ * 
+ * @param string defaul_append
+ * @return string defaul_append without crashkernel
+ */
+
+define string deleteCrashkernelFromAppend (string append)
+{
+	y2milestone("Original append: %1",append);
+	list<string> list_append = splitstring(append, " ");
+
+	if (size(list_append)>0)
+	{
+	   list_append = filter(string key, list_append,
+	   {
+		if (search(key, "crashkernel") == nil)
+		    return true;
+		else
+		    return false;
+           });
+	}
+	string ret = mergestring(list_append, " ");
+	y2milestone("Filtered append: %1",ret);
+	return ret;
+}
+
+
 /** FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
  * Function write/update info in /etc/sysconfig/bootloader
  * @param booloean true if it called from inst_bootloader.ycp 
@@ -2386,7 +2414,7 @@ global define void WriteToSysconf(boolean inst_bootloader)
 
     if (! xen_set)
     {
-       xen_kernel_append = default_append;
+       xen_kernel_append = deleteCrashkernelFromAppend(default_append);
        xen_append = "";
        xen_vga = default_vga;
     }

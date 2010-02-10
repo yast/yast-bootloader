@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb 10 13:51:41 CET 2010 - juhliarik@suse.cz
+
+- added for for adding crashkernel option to XEN kernel 
+  (bnc#578545)
+- 2.17.68 
+
+-------------------------------------------------------------------
 Mon Jan 11 13:18:28 CET 2010 - juhliarik@suse.cz
 
 - added fix for deleting gfxmenu if serial console is used 
