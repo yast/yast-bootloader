@@ -96,9 +96,24 @@ boolean checkElilo()
     string cmd = "modprobe efivars 2>/dev/null";
     map ret = (map)SCR::Execute (.target.bash_output, cmd);
     if (ret["exit"]:1 == 0)
-	return true;
-    else
+    {
+	// bnc#571850 - "Unsupported combination of hardware platform x86_64 and bootloader grub" 
+        // checking if installation run on QEMU
+        cmd = sformat("hwinfo --bios |grep Vendor");
+        y2milestone("Checking if installation run on QEMU command: %1", cmd);
+
+    	map out = (map)SCR::Execute(.local.bash_output, cmd);
+
+	if (search(tolower(out["stdout"]:""), "qemu") != nil)
+	{
+	    y2milestone ("Installation run on QEMU, skip cheking support efivars: %1", out);
+	    return false;
+	} else {
+	    return true;
+        }
+    } else {
 	return false;
+    }
 }
 
 
