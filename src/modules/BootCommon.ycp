@@ -685,6 +685,9 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 	    rdev = Storage::SLES9PersistentDevNames(rdev);
 	    y2milestone( "sections: dev name after SLES9 persistent dev name translation: %1", rdev);
 	}
+	// bnc#533782 - after changing filesystem label system doesn't boot
+	if (s["append"]:"" != "")
+	    s["append"] = remapResume(s["append"]:"",true);
 	s["root"] = BootStorage::Dev2MountByDev(rdev);
 	return s;
     });
