@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Feb 11 13:36:28 CET 2010 - juhliarik@suse.cz
+
+- added fix for using persistent device names (bnc#533782) 
+
+-------------------------------------------------------------------
 Thu Feb 11 12:13:19 CET 2010 - juhliarik@suse.cz
 
 - added fix for using encrypted swap partition (bnc#577127)
