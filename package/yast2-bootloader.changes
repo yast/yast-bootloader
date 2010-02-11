@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 11 10:55:21 CET 2010 - juhliarik@suse.cz
+
+- added fix for detection of QEMU (bnc#571850)
+- 2.19.3 
+
+-------------------------------------------------------------------
 Wed Feb 10 13:49:32 CET 2010 - juhliarik@suse.cz
 
 - added fix for adding crashkernel option to XEN kernel 
