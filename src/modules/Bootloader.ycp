@@ -447,7 +447,7 @@
 	map<string,any> params_to_save = $[];
 
 	string new_vga = getKernelParam (getDefaultSection (), "vgamode");
-	if (new_vga != old_vga && new_vga != "false" && new_vga != "")
+	if (new_vga != old_vga && new_vga != "false" && new_vga != "" && new_vga !="ask")
 	{
 	    Initrd::setSplash (new_vga);
 	    if (Stage::initial ())
@@ -474,7 +474,7 @@
 	    && ! (BootCommon::write_settings["forbid_save_initrd"]:false))
 	{
 	    string vga = getKernelParam (getDefaultSection (), "vgamode");
-	    if (vga != "false" && vga != "")
+	    if (vga != "false" && vga != "" && vga !="ask")
 	    {
 		Initrd::setSplash (vga);
 		if (Stage::initial ())
