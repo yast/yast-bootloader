@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Feb 11 12:13:19 CET 2010 - juhliarik@suse.cz
+
+- added fix for using encrypted swap partition (bnc#577127)
+- 2.19.4
+
+-------------------------------------------------------------------
 Thu Feb 11 10:55:21 CET 2010 - juhliarik@suse.cz
 
 - added fix for detection of QEMU (bnc#571850)

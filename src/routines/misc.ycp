@@ -958,7 +958,12 @@ list<string> ListKernelParamsInLine (string line) {
 		return p["mount"]:"" == "swap" && ! p["delete"]:false;
 	    });
 	    foreach (map<string, any> s, partitions, ``{
-		string dev = (string)(s["device"]:"");
+		// bnc#577127 - Encrypted swap is not properly set up as resume device
+		string dev = "";
+		if ((s["crypt_device"]:"" != nil) && (s["crypt_device"]:"" != ""))
+		    dev = (string)(s["crypt_device"]:"");
+		else
+		    dev = (string)(s["device"]:"");
 		ret[dev] = (integer)(s["region", 1]:0) * cyl_size;
 	    });
 	});
