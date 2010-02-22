@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 22 12:10:48 CET 2010 - juhliarik@suse.cz
+
+- added fix for detection of UEFI (bnc#581213)
+- 2.19.6 
+
+-------------------------------------------------------------------
 Thu Feb 11 16:16:12 CET 2010 - juhliarik@suse.cz
 
 - added fix for calling mkinitrd if vga is "normal" (bnc#292013)
