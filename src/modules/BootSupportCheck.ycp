@@ -24,6 +24,7 @@ import "Bootloader";
 import "Arch";
 import "Storage";
 import "BootCommon";
+import "FileUtils";
 
 /**
  * List of problems found during last check
@@ -94,7 +95,8 @@ boolean checkElilo()
 {
     string cmd = "modprobe efivars 2>/dev/null";
     map ret = (map)SCR::Execute (.target.bash_output, cmd);
-    if (ret["exit"]:1 == 0)
+    // bnc#581213 - x86-64/UEFI: "Unsupported combination of hardware platform x86_64 and bootloader elilo"
+    if (FileUtils::Exists("/sys/firmware/efi/systab"))
 	return true;
     else
 	return false;
