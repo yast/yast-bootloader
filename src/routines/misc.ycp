@@ -1399,7 +1399,7 @@ define boolean CreateBLSysconfigFile(boolean inst)
 {
     if (inst)
     {
-	if (!FileUtils::CheckAndCreatePath(Installation::destdir +"/etc/sysconfig"))
+	if (!FileUtils::Exists(Installation::destdir +"/etc/sysconfig"))
 	{
 	    WFM::Execute(.local.mkdir, Installation::destdir + "/etc/sysconfig");
 	    WFM::Execute(.local.bash, sformat ("touch %1/etc/sysconfig/bootloader", Installation::destdir));
