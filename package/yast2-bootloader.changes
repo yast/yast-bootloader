@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 26 10:20:10 CET 2010 - juhliarik@suse.cz
+
+- added fix for creating sysconfig directory file (bnc#583088)
+- 2.19.7
+
+-------------------------------------------------------------------
 Mon Feb 22 12:10:48 CET 2010 - juhliarik@suse.cz
 
 - added fix for detection of UEFI (bnc#581213)
