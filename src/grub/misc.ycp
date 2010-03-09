@@ -968,7 +968,9 @@ define void grub_LocationProposal () {
     // refresh device map
     if ((BootCommon::device_mapping == nil)
 	|| (size (BootCommon::device_mapping) == 0)
-	|| (BootCommon::cached_settings_base_data_change_time != Storage::GetTargetChangeTime()))
+	|| ((BootCommon::cached_settings_base_data_change_time != Storage::GetTargetChangeTime()) &&
+	   // bnc#585824 - Bootloader doesn't use defined device map from autoyast
+	   (!(Mode::autoinst() && (BootCommon::cached_settings_base_data_change_time == nil)))))
     {
 	grub_ProposeDeviceMap ();
     }
