@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 16 17:19:22 CET 2010 - juhliarik@suse.cz
+
+- added fix for adding XEN section on IA64 (bnc#588609)
+- 2.17.71 
+
+-------------------------------------------------------------------
 Tue Mar  9 14:38:07 CET 2010 - juhliarik@suse.cz
 
 - added fix for using device map in autoyast profile (bnc#585824)

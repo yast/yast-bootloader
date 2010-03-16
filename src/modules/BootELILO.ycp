@@ -161,14 +161,20 @@ map<string,any> CreateLinuxSection (string title) {
 global void CreateSections () {
     map<string,any> linux = CreateLinuxSection ("linux");
     map<string,any> failsafe = CreateLinuxSection ("failsafe");
-     map<string,any> xen = CreateLinuxSection ("xen");
+
+    // bnc#588609 - Problems writing elilo
+    map<string,any> xen = $[];
+    if (BootCommon::XenPresent ())
+       xen = CreateLinuxSection ("xen");
 
     // append for default section is in global
     // FIXME do it later
     //    if (haskey (linux, "append"))
     //  	linux = remove (linux, "append");
-
-    BootCommon::sections = [ linux, failsafe, xen ];
+    if ((xen != nil) && (size(xen) >0))
+       BootCommon::sections = [ linux, failsafe, xen ];
+    else
+       BootCommon::sections = [ linux, failsafe ];
 }
 
 
