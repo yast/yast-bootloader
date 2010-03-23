@@ -857,7 +857,7 @@ define map<string, any> grub_DisksChanged () {
 	];
 
 
-    if ( BootCommon::globals["boot_custom"]:nil != nil ) {
+    if ( BootCommon::globals["boot_custom"]:nil != nil  && BootCommon::globals["boot_custom"]:nil != "") {
 	list all_boot_partitions = BootStorage::getPartitionList(`boot, "grub");
 
 	if ( ! contains(all_boot_partitions, BootCommon::globals["boot_custom"]:nil) )
