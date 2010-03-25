@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Mar 25 16:37:08 CET 2010 - juhliarik@suse.cz
+
+- added fix for deleting gfxmenu (bnc#583334)
+- 2.17.72 
+
+-------------------------------------------------------------------
 Tue Mar 16 17:19:22 CET 2010 - juhliarik@suse.cz
 
 - added fix for adding XEN section on IA64 (bnc#588609)

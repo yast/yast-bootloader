@@ -910,6 +910,11 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // check and add console key with value for sections 
     addConsole();
 
+    // bnc#583334 deleting boot message in yast2 while installing has no effect
+    // add 'none' string instead of boot message take care about deleting
+    if (removeGFXMenu())
+	globals = remove(globals, "gfxmenu");
+
     // FIXME: give mountby information to perl-Bootloader (or define some
     // better interface), so that perl-Bootloader can use mountby device names
     // for these devices instead. Tracked in bug #248162.
@@ -936,9 +941,6 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 	    return $[BootCommon::Dev2MountByDev(k) : v];
     });
     y2milestone ("device map after mapping %1", my_device_mapping);
-
-    if (removeGFXMenu())
-	globals = remove(globals, "gfxmenu");
 
     // convert XEN section to linux section id running in domU
     // bnc #436899
