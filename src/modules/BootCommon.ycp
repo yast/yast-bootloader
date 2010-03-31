@@ -807,6 +807,10 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     if (removeGFXMenu())
 	globals = remove(globals, "gfxmenu");
 
+    // bnc#589433 -  Install grub into root (/) partition gives error
+    if ((globals["boot_custom"]:nil == "") && (haskey(globals, "boot_custom")))
+	globals = remove(globals, "boot_custom");
+
     // FIXME: give mountby information to perl-Bootloader (or define some
     // better interface), so that perl-Bootloader can use mountby device names
     // for these devices instead. Tracked in bug #248162.
