@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr  8 15:55:40 CEST 2010 - juhliarik@suse.cz
+
+- added patch for enable/disable SELinux (fate#309275)
+- 2.19.11
+
+-------------------------------------------------------------------
 Wed Mar 31 12:09:27 CEST 2010 - juhliarik@suse.cz
 
 - added fix for sending empty "boot_custom" (bnc#589433)
