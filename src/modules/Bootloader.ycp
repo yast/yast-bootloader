@@ -61,6 +61,9 @@
     global define void DelDuplicatedSections();
     global define void ResolveSymlinksInSections();
     void createSELinuxDir ();
+    void handleSELinuxPAM ();
+    void enableSELinuxPAM ();
+    void disableSELinuxPAM ();
     /**
       * Write is repeating again
       * Because of progress bar during inst_finish
@@ -565,6 +568,7 @@
 	ret = ret && blWrite ();
 	// FATE#305557: Enable SELinux for 11.2
 	createSELinuxDir ();
+        handleSELinuxPAM ();
 	if (! ret)
 	{
 	    y2error ("Installing bootloader failed");
@@ -695,6 +699,7 @@ global define boolean WriteInstallation ()
 	ret = ret && blWrite ();
 	// FATE#305557: Enable SELinux for 11.2
 	createSELinuxDir ();
+        handleSELinuxPAM ();
 	if (! ret)
 	{
 		y2error ("Installing bootloader failed");
@@ -1519,6 +1524,62 @@ void createSELinuxDir ()
     } else {
 	y2milestone("Skip creating /selinux directory");
     }
+}
+
+/** Fate #309275 SELinux: enable pam_selinux when switching on SELinux in yast2_bootloader
+ * Function take care about enable/disable SELinuc
+ *
+ */
+void handleSELinuxPAM ()
+{
+    y2milestone("handleSELinuxPAM called");
+    if (Mode::normal() || Mode::installation())
+    {
+        if (BootCommon::enable_selinux)
+	{
+	    y2milestone("call enableSELinuxPAM");
+	    enableSELinuxPAM ();
+	} else {
+	    y2milestone("call disableSELinuxPAM");
+	    disableSELinuxPAM ();
+	}
+    } else {
+        y2milestone("Skip changing SELinux/AppArmor PAM config -> wrong mode");
+    }
+
+}
+
+
+/** Fate #309275 SELinux: enable pam_selinux when switching on SELinux in yast2_bootloader
+ * Function enable SELinux
+ *
+ */
+void enableSELinuxPAM ()
+{
+    string cmd_enable_se  = "pam-config -a --selinux  2>/dev/null";
+    string cmd_disable_aa = "pam-config -d --apparmor 2>/dev/null";
+
+    map out = (map) SCR::Execute (.target.bash, cmd_disable_aa);
+    y2debug("result of disabling the AppArmor PAM module is %1", out);
+
+    out = (map) SCR::Execute (.target.bash, cmd_enable_se);
+    y2debug("result of enabling the SELinux PAM module is %1", out);
+}
+
+/** Fate #309275 SELinux: enable pam_selinux when switching on SELinux in yast2_bootloader
+ * Function disable SELinux
+ *
+ */
+void disableSELinuxPAM ()
+{
+    string cmd_disable_se = "pam-config -d --selinux  2>/dev/null";
+    string cmd_enable_aa  = "pam-config -a --apparmor 2>/dev/null";
+
+    map out = (map) SCR::Execute (.target.bash, cmd_disable_se);
+    y2debug("result of disabling the SELinux PAM module is %1", out);
+
+    out = (map) SCR::Execute (.target.bash, cmd_enable_aa);
+    y2debug("result of enabling the AppArmor PAM module is %1", out);
 }
 
 }
