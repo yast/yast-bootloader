@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 13 14:15:33 CEST 2010 - juhliarik@suse.cz
+
+- added fix for troubles with using uuid names (bnc#594482)
+- 2.19.12
+
+-------------------------------------------------------------------
 Thu Apr  8 15:55:40 CEST 2010 - juhliarik@suse.cz
 
 - added patch for enable/disable SELinux (fate#309275)

@@ -81,6 +81,32 @@ boolean storage_initialized = false;
 global map<string,string> multipath_mapping = $[];
 
 
+// FIXME: it is ugly hack because y2-storage doesn't known
+// to indicate that it finish (create partitions) proposed partitioning of disk in installation
+/** bnc#594482 - grub config not using uuid
+ * Indicate if storage already finish partitioning of disk 
+ * if some partition includes any keyword "create"
+ * the value is the first found partition with flag "create" e.g. /dev/sda2
+ * empty string means all partitions are created
+ */
+string proposed_partition = "";
+
+/** bnc#594482 - grub config not using uuid
+ * 0 - if all devices in variable all_devices are created.
+ * 1 - if partition with flag "create" was found in MapDevices()
+ * 2 - if proposed_partition was created or flag "create" was deleted
+ * by y2-storage. the value is set in CheckProposedPartition ()
+ */
+integer all_devices_created = 0;
+
+/** bnc#594482 - grub config not using uuid
+ * 0 - if all devices in variable all_partitions and all_disks are created
+ * 1 - if partition with flag "create" was found in MapDevices()
+ * 2 - if proposed_partition was created or flag "create" was deleted
+ * by y2-storage. the value is set in CheckProposedPartition ()
+ */
+integer all_partitions_created = 0;
+
 /**
  * mountpoints for perl-Bootloader
  */
@@ -182,6 +208,14 @@ void MapDevices()
 
 		foreach (map p, (list<map>)(v["partitions"]:[]), 
 		{
+			// bnc#594482 - grub config not using uuid
+			// if there is "not created" partition and flag for "it" is not set
+			if ((p["create"]:nil == true) && (Mode::installation()))
+			{
+			    if (proposed_partition == "")
+				proposed_partition = p["device"]:"";
+			    all_devices_created = 1;
+			}
 			// map partition by uuid
 			if ((p["uuid"]:nil != "")  && (p["uuid"]:nil != nil))
 			{
@@ -218,7 +252,11 @@ void MapDevices()
 
 		}); // end of foreach (map p, (list<map>)(v["partitions"]:[]),
 	}); // end of foreach (string k, map v, devices,
-
+	if (Mode::installation() && all_devices_created == 2)
+	{
+	    all_devices_created = 0;
+	    y2milestone("set status for all_devices to \"created\"");
+	}
 	y2debug("device name mapping to kernel names: %1", all_devices);
 
 }
@@ -253,9 +291,69 @@ global define string MountByDev2Dev(string dev)
 	return ret;
 }
 
+/** bnc#594482 - grub config not using uuid
+ * Function check if proposed_partition still includes
+ * flag "create"
+ *
+ * @param map<string,map> tm
+ * @return true if partition is still not created
+ */
 
+boolean CheckProposedPartition (map<string,map> tm)
+{
 
+    boolean ret = true;
+    if (!Mode::installation())
+    {
+	y2debug("Skip CheckProposedPartition() -> it is not running installation");
+	return false;
+    }
+    if (size(tm) == 0 || proposed_partition == "")
+    {
+	y2debug("proposed_partition is empty: %1", proposed_partition);
+	return false;
+    }
+    map dp = Storage::GetDiskPartition (proposed_partition);
+    string disk = dp["disk"]:"";
+    list <map> partitions = (list<map>)tm[disk,"partitions"]:[];
+    foreach (map p, partitions, 
+    {
+        if (p["device"]:"" == proposed_partition)
+	{
+	   if (p["create"]:nil != true)
+	   {
+	      proposed_partition = "";
+	      y2milestone("proposed_partition is already created: %1", p);
+	      if (all_devices_created == 1)
+		  all_devices_created = 2;
+	      if (all_partitions_created == 1)
+		  all_partitions_created = 2;
+	      ret = false;
+	   } else {
+	      y2milestone("proposed_partition: %1 is NOT created", proposed_partition);
+	   }
+	   break;
+	}
+    });
+    return ret;
+}
 
+/** bnc#594482 - grub config not using uuid
+ * Check if it is necessary rebuild all_devices
+ *
+ * @return true -> rebuild all_devices
+ */
+
+boolean RebuildMapDevices()
+{
+    boolean ret = false;
+    boolean ret_CheckProposedPartition = CheckProposedPartition((map<string,map>)Storage::GetTargetMap());
+
+    if (!ret_CheckProposedPartition && all_devices_created == 2)
+	return true;
+
+    return ret;
+}
 
 /**
  * Init and fullfil internal data for perl-Bootloader
@@ -266,7 +364,7 @@ global define string MountByDev2Dev(string dev)
 global boolean InitMapDevices ()
 {
 	boolean ret = false;
-	if (disk_change_time_InitBootloader != Storage::GetTargetChangeTime())
+	if (disk_change_time_InitBootloader != Storage::GetTargetChangeTime() || RebuildMapDevices())
 	{
 		y2milestone("Init internal data from storage");
 		MapDevices();
@@ -277,7 +375,22 @@ global boolean InitMapDevices ()
 	return ret;
 }
 
+/** bnc#594482 - grub config not using uuid
+ * Check if it is necessary rebuild all_partitions and all_disks
+ *
+ * @return true -> rebuild all_partitions and all_disks
+ */
 
+boolean RebuilMapAllPartitions()
+{
+    boolean ret = false;
+    boolean ret_CheckProposedPartition = CheckProposedPartition((map<string,map>)Storage::GetTargetMap());
+
+    if (!ret_CheckProposedPartition && all_partitions_created == 2)
+	return true;
+
+    return ret;
+}
 
 /**
  * bnc #468922 - problem with longtime running the parsing a huge number of disks
@@ -290,7 +403,8 @@ boolean MapAllPartitions()
 {
     boolean ret = false;
     if ((disk_change_time_MapAllPartitions != Storage::GetTargetChangeTime())
-	|| (size(all_partitions) < 1) || (size(target_map) < 1))
+	|| (size(all_partitions) < 1) || (size(target_map) < 1)
+	|| RebuilMapAllPartitions())
     {
 	// save last change time from storage for MapAllPartitions()
 	disk_change_time_MapAllPartitions = Storage::GetTargetChangeTime();
@@ -304,10 +418,23 @@ boolean MapAllPartitions()
 	{
 		foreach (map p, (list<map>)(v["partitions"]:[]), 
 		{
+			// bnc#594482 - grub config not using uuid
+			// if there is "not created" partition and flag for "it" is not set
+			if ((p["create"]:nil == true) && (Mode::installation()))
+			{
+			    if (proposed_partition == "")
+				proposed_partition = p["device"]:"";
+			    all_partitions_created = 1;
+			}
 			all_partitions[p["device"]:""] = p;
 		});
 	});
 	ret = true;
+    }
+    if (Mode::installation() && all_partitions_created == 2)
+    {
+	all_partitions_created = 0;
+	y2milestone("set status for all_partitions to \"created\"");
     }
 
     return ret;
