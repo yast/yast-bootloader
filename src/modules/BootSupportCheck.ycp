@@ -23,6 +23,7 @@ textdomain "bootloader";
 import "Bootloader";
 import "Arch";
 import "Storage";
+import "Region";
 import "BootCommon";
 import "BootStorage";
 import "FileUtils";
@@ -351,5 +352,31 @@ global boolean SystemSupported () {
     y2milestone ("Configuration supported: %1", supported);
     return supported;
 }
+
+
+global integer EndOfBootOrRootPartition()
+{
+    map part = Storage::GetEntryForMountpoint("/boot");
+    if (isempty(part))
+	part = Storage::GetEntryForMountpoint("/");
+
+    string device = part["device"]:"";
+    y2milestone("device:%1", device);
+
+    integer end_cyl = Region::End(part["region"]:[]);
+
+    integer cyl_size = 82252800;
+    map<string, map> target_map = Storage::GetTargetMap();
+    foreach (string dev, map disk, target_map, {
+	if (find (map p, disk["partitions"]:[], { return p["device"]:"" == device; }) != nil)
+	    cyl_size = disk["cyl_size"]:82252800;
+    });
+
+    integer ret = end_cyl * cyl_size;
+
+    y2milestone("end_cyl:%1 cyl_size:%2 end:%3", end_cyl, cyl_size, ret);
+    return ret;
+}
+
 
 } // EOF
