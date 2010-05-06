@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May  6 12:33:08 CEST 2010 - juhliarik@suse.cz
+
+- added fix for deleting gfxmenu in console is defined (bnc#602743)
+- 2.17.73 
+
+-------------------------------------------------------------------
 Thu Mar 25 16:37:08 CET 2010 - juhliarik@suse.cz
 
 - added fix for deleting gfxmenu (bnc#583334)

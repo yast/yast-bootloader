@@ -36,6 +36,8 @@ import "Popup";
 import "Package";
 import "PackagesProposal";
 
+import "Kernel";
+
 import "Linuxrc";
 
 
@@ -851,6 +853,27 @@ global void Propose () {
     y2error ("No generic propose function available");
 }
 
+/** bnc#602743c#10 - YaST2 always writes 42 as baudrate in /etc/inittab
+ * Check if console is defined in installation args
+ *
+ * @return boolean true if console is defined in Kernel::GetCmdLine ()
+ */
+boolean checkKernelCmdForConsole()
+{
+    boolean ret = false;
+    if (Mode::installation())
+    {
+	string kernel_cmd = Kernel::GetCmdLine ();
+	if (search(tolower(kernel_cmd), "console=") != nil)
+	{
+	    ret = true;
+	    y2milestone("Remove gfxmenu -> it is added like installation arg: %1", kernel_cmd);
+	}
+
+    }
+    return ret;
+}
+
 /** bnc# 346576,568295 - Bootloader configuration doesn't work for serial output
  * Function check if settings need to remove gfxmenu
  *
@@ -870,12 +893,16 @@ boolean removeGFXMenu ()
 	y2milestone("Remove gfxmenu -> defined serial console");
 	return true;
     }
+    // bnc#602743c#10 - YaST2 always writes 42 as baudrate in /etc/inittab
+    if (checkKernelCmdForConsole() && haskey(globals, "gfxmenu"))
+	return true;
 
     if ((globals["gfxmenu"]:"" == "none") && (haskey(globals, "gfxmenu")))
     {
 	y2milestone("Remove gfxmenu -> disabled gfxmenu");
 	return true;
     }
+
     return false;
 }
 
