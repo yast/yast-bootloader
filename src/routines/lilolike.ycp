@@ -1153,6 +1153,16 @@ boolean ConvertXENinDomU ()
 
 	foreach(map<string,any> sec, BootCommon::sections,
 	{
+		// bnc#604401 Xen para-virtualized guest boots native kernel
+		// set XEN boot section to default
+		if (sec["type"]:"" == "xen" || sec["type"]:"" == "image")
+		{
+			if (search(tolower(sec["image"]:""), "xen") != nil)
+			{
+				y2milestone("Set \"xen\" image: %1 to default", sec["name"]:"");
+				BootCommon::globals["default"] = sec["name"]:"";
+			}
+		}
 		if (sec["type"]:"" != "xen")
 		{
 			tmp_sections = add(tmp_sections, sec);
@@ -1175,6 +1185,7 @@ boolean ConvertXENinDomU ()
 
 			ret = true;
 		}
+		
 	});
 	
 	BootCommon::sections = tmp_sections;

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 19 09:57:34 CEST 2010 - juhliarik@suse.cz
+
+- added xen boot section as default during installation on 
+  PV guest (bnc#604401)
+- 2.19.14
+
+-------------------------------------------------------------------
 Thu May  6 13:15:18 CEST 2010 - juhliarik@suse.cz
 
 - added patch for (bug#448883)
