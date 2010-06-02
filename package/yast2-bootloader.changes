@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun  2 17:06:53 CEST 2010 - juhliarik@suse.cz
+
+- added update of fix for (bnc#604401)
+- 2.19.15 
+
+-------------------------------------------------------------------
 Wed May 19 09:57:34 CEST 2010 - juhliarik@suse.cz
 
 - added xen boot section as default during installation on 

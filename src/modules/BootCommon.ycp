@@ -815,6 +815,13 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // better interface), so that perl-Bootloader can use mountby device names
     // for these devices instead. Tracked in bug #248162.
 
+    // convert XEN section to linux section id running in domU
+    // bnc #436899
+    // bnc #604401 Xen para-virtualized guest boots native kernel
+    // I have to call it before updating of BootCommon::globals to my_globals
+    // bnc #604401c14
+    ConvertXENinDomU ();
+
     // convert custom boot device names in globals to the device names
     // indicated by "mountby"
     // also, for legacy bootloaders like LILO that still pass device names,
@@ -836,10 +843,6 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     });
     y2milestone ("device map after mapping %1", my_device_mapping);
 
-
-    // convert XEN section to linux section id running in domU
-    // bnc #436899
-    ConvertXENinDomU ();
     if (VerifyMDArray())
     {
 	if ((enable_md_array_redundancy == false) && (haskey(my_globals, "boot_md_mbr")))
