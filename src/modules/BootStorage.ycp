@@ -555,7 +555,7 @@ global define string Dev2MountByDev(string dev)
 
 		// convert to device or uknown type
 		default:
-			y2warning ("Convert %1 to `device or unknwn type, result: %2", tmp_dev, ret);
+			y2warning ("Convert %1 to `device or unknown type, result: %2", tmp_dev, ret);
 			return ret;
 		break;
 	}
