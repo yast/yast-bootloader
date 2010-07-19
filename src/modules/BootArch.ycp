@@ -38,6 +38,32 @@ global string InitrdImage () {
     return "/boot/initrd";
 }
 
+/** bnc#604808 cio_ignore parameter does not get transfered to installed system after installation
+ * Add kernel args from installatio to zipl.conf
+ *
+ * @param string of arguments from installation
+ * @return string of arguments
+ */
+
+string InstKernelParamsFromCmdline(string CmdLine)
+{
+    string ret = "";
+    if (CmdLine == "")
+    {
+	y2milestone("Command line kernel args was not defined");
+	return ret;
+    }
+
+    list <string> CmdLineArgs = splitstring (CmdLine, " ");
+    foreach(string arg, CmdLineArgs,
+    {
+	  if (search(tolower(arg),"cio_ignore") != nil)
+	     ret = ret + " " + arg;
+    });
+    y2milestone("zipl should be appended by: %1", ret);
+    return ret;
+}
+
 /**
  * Get parameters for the default kernel
  * @param resume string device to resume from (or empty not to set it)
@@ -90,6 +116,8 @@ global string DefaultKernelParams (string resume) {
 	    StorageControllers::dasdParam,
 	    features,
 	    termparm);
+	// bnc#604808 cio_ignore parameter does not get transfered to installed system after installation
+	parameters = parameters + InstKernelParamsFromCmdline(kernel_cmdline);
 	return parameters;
     }
     else

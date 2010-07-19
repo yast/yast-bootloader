@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 20 15:09:23 CEST 2010 - juhliarik@suse.cz
+
+- L3: added fix for adding cio_ignore to zipl.conf (bnc#604808)
+- 2.13.164.1
+
+-------------------------------------------------------------------
 Fri Jul 31 12:28:34 CEST 2009 - juhliarik@suse.cz
 
 - added fix for using persistent device names (bnc#524547)
