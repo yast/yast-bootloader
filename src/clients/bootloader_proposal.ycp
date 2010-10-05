@@ -119,7 +119,7 @@
 		ret = add (ret, "warning_level", `warning);
 		// warning text in the summary richtext
 		ret = add (ret, "warning",
-			   sformat(_("The bootloader is installed on a partition that does not lie entirely below %1 GB. The system might not boot."), max_end));
+			   sformat(_("The bootloader is installed on a partition that does not lie entirely below %1 GB. The system might not boot if BIOS support only lba24 (result is error 18 during install grub MBR)."), max_end));
 	    }
 	}
 
@@ -135,7 +135,7 @@
 	    		    ret["warning"]:"" +
 	    		       _("Configure a valid boot loader location before continuing.<br/>
 The device map includes more than 8 devices and the boot device is out of range.
-The range is limited by BIOS to the first 8 devices."),
+The range is limited by BIOS to the first 8 devices. Adjust BIOS boot order ( or if it already set, then correct order in bootloader configuration)"),
 	        	]
 	         );
 	    }
