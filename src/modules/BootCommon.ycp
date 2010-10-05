@@ -845,9 +845,9 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
 
     if (VerifyMDArray())
     {
-	if ((enable_md_array_redundancy == false) && (haskey(my_globals, "boot_md_mbr")))
+	if ((enable_md_array_redundancy != true) && (haskey(my_globals, "boot_md_mbr")))
 	    my_globals = remove(my_globals, "boot_md_mbr");
-	if ((enable_md_array_redundancy) && (!haskey(my_globals, "boot_md_mbr")))
+	 if ((enable_md_array_redundancy == true ) && (!haskey(my_globals, "boot_md_mbr")))
 	    my_globals["boot_md_mbr"] = BootStorage::addMDSettingsToGlobals();
 
     } else {
