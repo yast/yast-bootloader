@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct  6 13:24:54 UTC 2010 - jreidinger@novell.com
+
+- fix timer issue for Xen HVM domU on i386 (bnc#605842)
+- 2.13.165
+
+-------------------------------------------------------------------
 Thu May 20 15:09:23 CEST 2010 - juhliarik@suse.cz
 
 - L3: added fix for adding cio_ignore to zipl.conf (bnc#604808)
