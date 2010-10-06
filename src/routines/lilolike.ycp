@@ -1438,7 +1438,7 @@ string HVMGuestAppend()
     // 32-bit guest has bad default timer which cause problem during typing text, so switch to better one (bnc#605842)
     if (Arch::i386())
     {
-      ret = ret + " clock=pit"
+      ret = ret + " clock=pit";
     }
     y2milestone("additional append args for kernel on HVM guest: %1", ret);
     return ret;
