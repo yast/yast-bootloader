@@ -452,6 +452,7 @@ void VgaModeInit (string widget) {
     items = prepend(items,`item(`id("extended"), _("Standard 8-pixel font mode.")));
     // item of a combo box
     items = prepend (items, `item (`id ("normal"), _("Text Mode")));
+    items = prepend (items, `item (`id (""), _("Unspecified")));
     UI::ChangeWidget (`id (widget), `Items, items);
     SectionOptionInit (widget);
 }
