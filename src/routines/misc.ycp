@@ -2010,6 +2010,10 @@ global boolean isHVMGuest()
     // check if it is HVM guest only
     if ((!Arch::is_xen()) && (xen == true))
 	ret = true;
+    string hyperV = ((map<string, any>)SCR::Execute(.target.bash_output, 
+          "lscpu | grep -c '^Hypervisor vendor:[[:blank:]]*Microsoft$'"))["stdout"]:"0";
+    if (hyperV == "1") //TODO convert to int
+      ret = true;
     return ret;
 }
 
