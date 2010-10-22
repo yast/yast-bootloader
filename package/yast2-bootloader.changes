@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Oct 22 10:12:58 UTC 2010 - jreidinger@novell.com
+
+- add detection of HyperV and boot parameter for it (FATE#309005)
+- 2.13.166
+
+-------------------------------------------------------------------
 Wed Oct  6 13:24:54 UTC 2010 - jreidinger@novell.com
 
 - fix timer issue for Xen HVM domU on i386 (bnc#605842)
