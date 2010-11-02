@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov  2 18:04:50 UTC 2010 - jreidinger@novell.com
+
+- Fix detection of HyperV as during install there is not lscpu
+  utility (bnc#650780)
+- 2.13.167
+
+-------------------------------------------------------------------
 Fri Oct 22 10:12:58 UTC 2010 - jreidinger@novell.com
 
 - add detection of HyperV and boot parameter for it (FATE#309005)
