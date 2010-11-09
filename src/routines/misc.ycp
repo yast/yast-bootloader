@@ -2010,8 +2010,8 @@ global boolean isHVMGuest()
     // check if it is HVM guest only
     if ((!Arch::is_xen()) && (xen == true))
       ret = true;
-    integer hyperV = (integer)SCR::Execute(.target.bash, "/sbin/modprobe vmbus");
-    if (hyperV == 0) //module can be loaded, so we are in HyperV (bnc#650780)
+    integer hyperV = (integer)SCR::Execute(.target.bash, "LANG=C lscpu | grep 'Hypervisor vendor:[[:space:]]*Microsoft' >/dev/null");
+    if (hyperV == 0) //there is microsoft as hypervisor vendor (bnc#650780)
       ret = true;
     return ret;
 }

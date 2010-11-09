@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov  9 12:42:14 UTC 2010 - jreidinger@novell.com
+
+- switch back to lscpu as modprobing cause crash on KVM. lscpu are
+  going to be inside inst-sys.
+- 2.13.168
+
+-------------------------------------------------------------------
 Tue Nov  2 18:04:50 UTC 2010 - jreidinger@novell.com
 
 - Fix detection of HyperV as during install there is not lscpu
