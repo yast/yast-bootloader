@@ -171,15 +171,9 @@ global void CreateSections () {
     BootCommon::sections = [ linux, failsafe, xen ];
 }
 
-
 /**
- * Propose global options of bootloader
- * modifies internal structures
+ * Map of strandard globals headers for ELILO. It is different on ia64 and x86_64.
  */
-global void CreateGlobals () {
-    BootCommon::globals = StandardGlobals();
-}
-
 global map StandardGlobals() {
   map ret = $[
     "default" : "linux",
@@ -192,6 +186,15 @@ global map StandardGlobals() {
     }
     return ret;
 }
+
+/**
+ * Propose global options of bootloader
+ * modifies internal structures
+ */
+global void CreateGlobals () {
+    BootCommon::globals = StandardGlobals();
+}
+
 
 
 // general functions
