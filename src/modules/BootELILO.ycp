@@ -174,8 +174,8 @@ global void CreateSections () {
 /**
  * Map of strandard globals headers for ELILO. It is different on ia64 and x86_64.
  */
-global map StandardGlobals() {
-  map ret = $[
+global map<string,string> StandardGlobals() {
+  map<string,string> ret = $[
     "default" : "linux",
 	  "timeout" : "80",
     "prompt" : "true",
