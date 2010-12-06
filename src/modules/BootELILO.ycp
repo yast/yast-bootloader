@@ -177,16 +177,20 @@ global void CreateSections () {
  * modifies internal structures
  */
 global void CreateGlobals () {
-    BootCommon::globals = $[
-    // FIXME do it later
-    //	"append" : BootArch::DefaultKernelParams (""),
-    //	"default" : BootCommon::translateSectionTitle ("linux"),
-	"default" : "linux",
-	"timeout" : "80",
-	"prompt" : "true",
-	"read-only" : "true",
-	"relocatable" : "true"
+    BootCommon::globals = StandardGlobals();
+}
+
+global map StandardGlobals() {
+  map ret = $[
+    "default" : "linux",
+	  "timeout" : "80",
+    "prompt" : "true",
+	  "read-only" : "true",
     ];
+    if (Arch::ia64()){
+      ret["relocatable"] = "true";
+    }
+    return ret;
 }
 
 
@@ -332,12 +336,18 @@ global define void Propose () {
     }
     else
     {
-        if (Mode::autoinst ())
-        {
-	    y2debug ("Nothing to do for propose in AI mode");
+      if (Mode::autoinst ())
+      {
+        y2milestone ("merging defaults to missing keys in globals");
+	    // Merge default globals where not yet set
+        BootCommon::globals = (map<string, string>) union(
+	        StandardGlobals(),
+          BootCommon::globals
+        );
         }
-        else
-	BootCommon::FixSections (BootELILO::CreateSections);
+      else {
+	      BootCommon::FixSections (BootELILO::CreateSections);
+      }
     }
 
     if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
