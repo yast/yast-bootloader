@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Thu Dec 30 08:52:36 UTC 2010 - jreidinger@novell.com
+
+- allow to not specify vga mode for boot (bnc#643984)
+- improve help text for menu section (bnc#621290)
+- explicitelly  mention variables to compare to avoid problems with nil
+  value (consider nil as false)
+- number of partition can be integer so always convert it to string
+- more explanation for warning messages with hint how to solve it
+- 2.19.16
+
+-------------------------------------------------------------------
 Wed Jun  2 17:06:53 CEST 2010 - juhliarik@suse.cz
 
 - added update of fix for (bnc#604401)
