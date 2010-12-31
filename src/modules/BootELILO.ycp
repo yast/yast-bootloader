@@ -341,14 +341,10 @@ global define void Propose () {
     {
       if (Mode::autoinst ())
       {
-        y2milestone ("merging defaults to missing keys in globals");
-	    // Merge default globals where not yet set
-        BootCommon::globals = (map<string, string>) union(
-	        StandardGlobals(),
-          BootCommon::globals
-        );
-        }
-      else {
+        y2milestone ("merging defaults to missing keys in sections");
+      }
+      else
+      {
 	      BootCommon::FixSections (BootELILO::CreateSections);
       }
     }
@@ -356,6 +352,18 @@ global define void Propose () {
     if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
     {
         CreateGlobals ();
+    }
+    else
+    {
+      if (Mode::autoinst ())
+      {
+        y2milestone ("merging defaults to missing keys in globals");
+	    // Merge default globals where not yet set
+        BootCommon::globals = (map<string, string>) union(
+	        StandardGlobals(),
+          BootCommon::globals
+        );
+        }
     }
 
     if (BootCommon::globals["boot_efilabel"]:nil == nil ||
