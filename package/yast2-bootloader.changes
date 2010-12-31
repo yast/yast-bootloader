@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Dec 31 12:24:34 UTC 2010 - jreidinger@novell.com
+
+- place properly last fix, so even if sections is empty works
+  (bnc#656240)
+- 2.13.170
+
+-------------------------------------------------------------------
 Mon Dec  6 09:38:07 UTC 2010 - jreidinger@novell.com
 
 - fix missing globals when using autoyast for elilo (bnc#656240)
