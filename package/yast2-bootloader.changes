@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Feb 22 11:30:20 UTC 2011 - jreidinger@novell.com
+
+- during probe of partitions don't try to mount encrypted one
+  (bnc#673906)
+- 2.20.1
+
+-------------------------------------------------------------------
 Mon Jan 10 12:56:07 UTC 2011 - jreidinger@novell.com
 
 - add missing file to tarball
