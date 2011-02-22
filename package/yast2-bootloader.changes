@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jan 10 12:56:07 UTC 2011 - jreidinger@novell.com
+
+- add missing file to tarball
+
+-------------------------------------------------------------------
 Thu Dec 30 08:52:36 UTC 2010 - jreidinger@novell.com
 
 - allow to not specify vga mode for boot (bnc#643984)
