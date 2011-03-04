@@ -148,8 +148,8 @@ global define void CreateSections () {
     y2milestone ("Other primaries: %1", others);
 
     // get list of all Linux Partitions on all real disks except encrypted ones ( as we don't know password and bootloader cannot boot from it directly)
-    list<map> other_l = (list<map>)filter( map p, Storage::GetOtherLinuxPartitions(),
-        ``(p["enc_type"]:`none!=`none));
+    list<map> other_l = (list<map>)filter( map p, (list<map>)Storage::GetOtherLinuxPartitions(),
+        ``(p["enc_type"]:`none==`none));
     y2milestone ("Other linux parts: %1", other_l);
 
     list<string> destroyed_partitions
