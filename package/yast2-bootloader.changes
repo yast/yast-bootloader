@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 31 12:12:40 CEST 2011 - snwint@suse.de
+
+- fix detection of other linux partitions (bnc #675224)
+
+-------------------------------------------------------------------
 Tue Feb 22 11:30:20 UTC 2011 - jreidinger@novell.com
 
 - during probe of partitions don't try to mount encrypted one
