@@ -100,6 +100,33 @@ global map<string,string> device_mapping = $[];
  */
 global map<string,string> multipath_mapping = $[];
 
+// it is ugly hack because y2-storage doesn't known to indicate
+// that it finish (create partitions) proposed partitioning
+// of disk in installation
+/** bnc#687878 - mountby uuid not respected in menu.lst
+ * Indicate if storage already finish partitioning of disk 
+ * if some partition includes any keyword "create"
+ * the value is the first found partition with flag "create" e.g. /dev/sda2
+ * empty string means all partitions are created
+ */
+string proposed_partition = "";
+
+/** bnc#687878 - mountby uuid not respected in menu.lst
+ * 0 - if all devices in variable all_devices are created.
+ * 1 - if partition with flag "create" was found in MapDevices()
+ * 2 - if proposed_partition was created or flag "create" was deleted
+ * by y2-storage. the value is set in CheckProposedPartition ()
+ */
+integer all_devices_created = 0;
+
+/** bnc#687878 - mountby uuid not respected in menu.lst
+ * 0 - if all devices in variable all_partitions and all_disks are created
+ * 1 - if partition with flag "create" was found in MapDevices()
+ * 2 - if proposed_partition was created or flag "create" was deleted
+ * by y2-storage. the value is set in CheckProposedPartition ()
+ */
+integer all_partitions_created = 0;
+
 /**
  * Flag indicates that bios_id_missing in disk 
  * true if missing false if at least one disk has bios_id

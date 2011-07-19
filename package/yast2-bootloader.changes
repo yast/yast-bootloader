@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jul 19 14:13:52 CEST 2011 - snwint@suse.de
+
+- fix using uuid names (bnc #594482, bnc #687878, bnc #704101)
+- 2.17.74
+
+-------------------------------------------------------------------
 Thu May  6 12:33:08 CEST 2010 - juhliarik@suse.cz
 
 - added fix for deleting gfxmenu in console is defined (bnc#602743)

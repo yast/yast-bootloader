@@ -211,6 +211,14 @@ global void MapDevices()
 
 		foreach (map p, (list<map>)(v["partitions"]:[]), 
 		{
+			// bnc#687878 - mountby uuid not respected in menu.lst
+			// if there is "not created" partition and flag for "it" is not set
+			if ((p["create"]:nil == true) && (Mode::installation()))
+			{
+			    if (BootCommon::proposed_partition == "")
+				BootCommon::proposed_partition = p["device"]:"";
+			    BootCommon::all_devices_created = 1;
+			}
 			// map partition by uuid
 			if ((p["uuid"]:nil != "")  && (p["uuid"]:nil != nil))
 			{
@@ -241,6 +249,12 @@ global void MapDevices()
 
 		}); // end of foreach (map p, (list<map>)(v["partitions"]:[]),
 	}); // end of foreach (string k, map v, devices,
+
+	if (Mode::installation() && BootCommon::all_devices_created == 2)
+	{
+	    BootCommon::all_devices_created = 0;
+	    y2milestone("set status for all_devices to \"created\"");
+	}
 
 	y2milestone("disks mapping by-id: %1", id_disks);
 	y2milestone("disks mapping by-uuid: %1", uuid_disks);
@@ -582,6 +596,107 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
 	return temp_sec;
 }
 
+/** bnc#687878 - mountby uuid not respected in menu.lst
+ * Function check if proposed_partition still includes
+ * flag "create"
+ *
+ * @param map<string,map> tm
+ * @return true if partition is still not created
+ */
+
+boolean CheckProposedPartition (map<string,map> tm)
+{
+
+    boolean ret = true;
+    if (!Mode::installation())
+    {
+	y2debug("Skip CheckProposedPartition() -> it is not running installation");
+	return false;
+    }
+    if (size(tm) == 0 || BootCommon::proposed_partition == "")
+    {
+	y2debug("proposed_partition is empty: %1", BootCommon::proposed_partition);
+	return false;
+    }
+    map dp = Storage::GetDiskPartition (proposed_partition);
+    string disk = dp["disk"]:"";
+    list <map> partitions = (list<map>)tm[disk,"partitions"]:[];
+    foreach (map p, partitions, 
+    {
+        if (p["device"]:"" == BootCommon::proposed_partition)
+	{
+	   if (p["create"]:nil != true)
+	   {
+	      BootCommon::proposed_partition = "";
+	      y2milestone("proposed_partition is already created: %1", p);
+	      if (BootCommon::all_devices_created == 1)
+		  BootCommon::all_devices_created = 2;
+	      if (BootCommon::all_partitions_created == 1)
+		  BootCommon::all_partitions_created = 2;
+	      ret = false;
+	   } else {
+	      y2milestone("proposed_partition: %1 is NOT created", BootCommon::proposed_partition);
+	   }
+	   break;
+	}
+    });
+    return ret;
+}
+
+/** bnc#687878 - mountby uuid not respected in menu.lst
+ * Check if it is necessary rebuild all_devices
+ *
+ * @return true -> rebuild all_devices
+ */
+ 
+boolean RebuildMapDevices()
+{
+    boolean ret = false;
+    boolean ret_CheckProposedPartition = CheckProposedPartition((map<string,map>)Storage::GetTargetMap());
+
+    if (!ret_CheckProposedPartition && BootCommon::all_devices_created == 2)
+	return true;
+
+    return ret;
+}
+ 
+/** bnc#687878 - mountby uuid not respected in menu.lst
+ * Init and fullfil internal data for perl-Bootloader
+ *
+ * @return true if init reset/fullfil data or false and used cached data
+ */
+
+global boolean InitMapDevices ()
+{
+	boolean ret = false;
+	if (saved_last_change_time_from_storage != Storage::GetTargetChangeTime() || RebuildMapDevices())
+	{
+		y2milestone("Init internal data from storage");
+		MapDevices();
+		saved_last_change_time_from_storage = Storage::GetTargetChangeTime();
+		ret = true;
+	}
+	
+	return ret;
+}
+ 
+/** bnc#687878 - mountby uuid not respected in menu.lst
+ * Check if it is necessary rebuild all_partitions and all_disks
+ *
+ * @return true -> rebuild all_partitions and all_disks
+ */
+
+boolean RebuildMapAllPartitions()
+{
+    boolean ret = false;
+    boolean ret_CheckProposedPartition = CheckProposedPartition((map<string,map>)Storage::GetTargetMap());
+
+    if (!ret_CheckProposedPartition && BootCommon::all_partitions_created == 2)
+	return true;
+
+    return ret;
+}
+
 /**
  * bnc #468922 - problem with longtime running the parsing a huge number of disks
  * Function initialize BootCommon::all_partitions only if storage change 
@@ -592,7 +707,10 @@ global list<map<string,any> > remapSections(list<map<string,any> >sec)
 boolean MapAllPartitions()
 {
     boolean ret = false;
-    if (saved_last_change_time_from_storage != Storage::GetTargetChangeTime())
+    if ((saved_last_change_time_from_storage != Storage::GetTargetChangeTime())
+	|| (size(BootCommon::all_partitions) < 1)
+	|| (size(BootCommon::target_map) < 1)
+	|| RebuildMapAllPartitions())
     {
 	// save last change time from storage for MapAllPartitions()
 	saved_last_change_time_from_storage = Storage::GetTargetChangeTime();
@@ -606,10 +724,23 @@ boolean MapAllPartitions()
 	{
 		foreach (map p, (list<map>)(v["partitions"]:[]), 
 		{
+			// bnc#687878 - mountby uuid not respected in menu.lst
+			// if there is "not created" partition and flag for "it" is not set
+			if ((p["create"]:nil == true) && (Mode::installation()))
+			{
+			    if (BootCommon::proposed_partition == "")
+				BootCommon::proposed_partition = p["device"]:"";
+			    BootCommon::all_partitions_created = 1;
+			}
 			all_partitions[p["device"]:""] = p;
 		});
 	});
 	ret = true;
+    }
+    if (Mode::installation() && BootCommon::all_partitions_created == 2)
+    {
+	BootCommon::all_partitions_created = 0;
+	y2milestone("set status for all_partitions to \"created\"");
     }
 
     return ret;
