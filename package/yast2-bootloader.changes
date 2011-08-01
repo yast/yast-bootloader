@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug  1 18:16:07 CEST 2011 - snwint@suse.de
+
+- yast2-storage uses fake uuids for btrfs handling; adjust our code
+- 2.17.75
+
+-------------------------------------------------------------------
 Tue Jul 19 14:13:52 CEST 2011 - snwint@suse.de
 
 - fix using uuid names (bnc #594482, bnc #687878, bnc #704101)

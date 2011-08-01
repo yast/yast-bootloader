@@ -220,7 +220,8 @@ global void MapDevices()
 			    BootCommon::all_devices_created = 1;
 			}
 			// map partition by uuid
-			if ((p["uuid"]:nil != "")  && (p["uuid"]:nil != nil))
+			// watch out for fake uuids (shorter than 8 chars)
+			if (size(p["uuid"]:"") > 8)
 			{
 				dev_by_something = "/dev/disk/by-uuid/"+p["uuid"]:"";
 				uuid_partitions[dev_by_something]= p["device"]:"";
@@ -827,7 +828,8 @@ global define string Dev2MountByDev(string dev)
 		case (`uuid):
 			// partitions
 			partition = partitions[dev]:$[];
-			if ((partition["uuid"]:nil != nil) && (partition["uuid"]:nil != ""))
+			// watch out for fake uuids (shorter than 8 chars)
+			if (size(partition["uuid"]:"") > 8)
 			{
 	   			ret = sformat ("/dev/disk/by-uuid/%1", partition["uuid"]:"");
 	   			y2milestone ("Device name: %1 is converted to uuid: %2", dev, ret);
@@ -915,8 +917,9 @@ global define string Dev2MountByDev(string dev)
 	    mountby = (symbol) partitions[dev, "mountby"]:nil;
 	    if ( mountby == `uuid )
 	    {
+		// watch out for fake uuids (shorter than 8 chars)
 		return sformat ("%1 (mount by UUID: %2)", dev,
-				partitions[dev, "uuid"]:nil != nil ?
+				size(partitions[dev, "uuid"]:"") > 8 ?
 				partitions[dev, "uuid"]:"" :
 				"<UUID to be created later during format>");
 	    } else if ( mountby == `label )
