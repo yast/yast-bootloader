@@ -78,12 +78,11 @@ global void SetDiskInfo () {
 	list<list> parts = maplist (map p, (list<map>)partitions, {
 	    string raid = "";
 	    if( p["used_by_type"]:`UB_NONE==`UB_MD )
-		raid = p["used_by"]:"";
+		raid = p["used_by_device"]:"";
 	    string device = p["device"]:"";
 	    // We only pass along RAID1 devices as all other causes
 	    // severe breakage in the bootloader stack
 	    if (raid != "") {
-	        raid = "/dev/" + raid;
 		if (haskey (md_info, raid)) {
 		    list<string> members = md_info[raid]:[];
 		    members = add (members, device);

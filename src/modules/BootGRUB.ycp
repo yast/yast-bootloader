@@ -528,6 +528,32 @@ global boolean Read (boolean reread, boolean avoid_reading_device_map) {
 	BootCommon::ProposeDeviceMap ();
     }
 
+    if (Mode::normal())
+    {
+	string md_value = BootCommon::addMDSettingsToGlobals();
+	string pB_md_value = BootCommon::globals["boot_md_mbr"]:"";
+	if (md_value != pB_md_value)
+	{
+	    if (pB_md_value != "")
+	    {
+		list <string> disks = splitstring(pB_md_value,",");
+		disks = filter(string v, disks, {return (v != "");});
+		if (size(disks) == 2)
+		{
+		    BootCommon::enable_md_array_redundancy = true;
+		    md_value = "";
+		}
+		y2milestone("disks from md array (perl Bootloader): %1", disks);
+	    }
+	    if (md_value != "")
+	    {
+		BootCommon::enable_md_array_redundancy = false;
+		BootCommon::globals["boot_md_mbr"] = md_value;
+		y2milestone("Add md array to globals: %1", BootCommon::globals);
+	    }
+	}
+    }
+
     importMetaData();
 
     return ret;

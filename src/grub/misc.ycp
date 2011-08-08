@@ -927,6 +927,7 @@ define void grub_LocationProposal () {
     y2milestone("globals: %1", BootCommon::globals);
     y2milestone("Mode::autoinst: %1", Mode::autoinst());
     y2milestone("haskey( BootCommon::globals, boot_boot ): %1", haskey( BootCommon::globals, "boot_boot" ));
+    string md_mbr = "";
     if (! BootCommon::was_proposed ||
 	  // During autoinstall, the autoyast profile must contain a bootloader
 	  // device specification (we currently really only support system
@@ -962,6 +963,9 @@ define void grub_LocationProposal () {
 	    map out = (map)SCR::Execute (.target.bash_output, command);
 	    y2milestone ("Command output: %1", out);
 	}
+	md_mbr = BootCommon::addMDSettingsToGlobals();
+	if (md_mbr != "")
+	    BootCommon::globals["boot_md_mbr"] = md_mbr;
     }
     y2milestone("(2) globals: %1", BootCommon::globals);
 
@@ -973,6 +977,9 @@ define void grub_LocationProposal () {
 	   (!(Mode::autoinst() && (BootCommon::cached_settings_base_data_change_time == nil)))))
     {
 	grub_ProposeDeviceMap ();
+        md_mbr = BootCommon::addMDSettingsToGlobals();
+        if (md_mbr != "")
+            BootCommon::globals["boot_md_mbr"] = md_mbr;
     }
 
     if ( ! Mode::autoinst () ) {

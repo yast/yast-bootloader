@@ -226,6 +226,12 @@ global map<string,any> current_section = $[];
   */
 global list<string> floppy_devices = nil;
 
+/** FATE#305008: Failover boot configurations for md arrays with redundancy
+ * list <string> includes physical disks used for md raid
+ */
+
+global list <string> md_physical_disks = [];
+
 /**
   * Option types for different bootloaders
   */
@@ -406,7 +412,10 @@ global list<string> update_section_types = [ "floppy", "other" ];
 global list<string> bootloaders = ["lilo", "grub", "elilo", "milo", "silo",
 				   "aboot", "zipl", "ppc", "mips"];
 
-
+/** FATE#305008: Failover boot configurations for md arrays with redundancy
+ * if true enable redundancy for md array
+ */
+global boolean enable_md_array_redundancy = true;
 
 /**
  * bnc #468922 - problem with longtime running the parsing a huge number of disks
@@ -428,6 +437,8 @@ global define list<string> Summary ();
 global define boolean UsingXenPae();
 global map<string,any> CreateLinuxSection (string title);
 global string UpdateSerialConsole (string append, string console);
+global string addMDSettingsToGlobals ();
+global boolean VerifyMDArray ();
 
 
 //
@@ -1000,6 +1011,18 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // bnc #436899
     ConvertXENinDomU ();
 
+    if (VerifyMDArray())
+    {
+	if ((enable_md_array_redundancy != true) && (haskey(my_globals, "boot_md_mbr")))
+	    my_globals = remove(my_globals, "boot_md_mbr");
+	 if ((enable_md_array_redundancy == true ) && (!haskey(my_globals, "boot_md_mbr")))
+	    my_globals["boot_md_mbr"] = BootCommon::addMDSettingsToGlobals();
+
+    } else {
+	if (haskey(globals, "boot_md_mbr"))
+	    my_globals = remove(my_globals, "boot_md_mbr");
+    }
+
     ret = ret && DefineMultipath(multipath_mapping);
     ret = ret && SetDeviceMap (my_device_mapping);
     ret = ret && SetSections (sections);
@@ -1358,6 +1381,177 @@ global define integer Section2Index (string section_name)
 
     y2milestone ("ret: %1", sectnum);
     return sectnum;
+}
+
+/** FATE#305008: Failover boot configurations for md arrays with redundancy
+ * Check if devices has same partition number and if they are from different disks
+ *
+ * @param list <string> list of devices 
+ * @return boolean true on success
+ */
+boolean checkDifferentDisks (list <string> devices)
+{
+    boolean ret = false;
+    list <string> disks = [];
+    string no_partition = "";
+    foreach(string dev, devices,
+    {
+	map p_dev = Storage::GetDiskPartition (dev);
+	if (!contains(disks, p_dev["disk"]:""))
+	    disks=add(disks,p_dev["disk"]:"");
+	else
+	{
+	    y2milestone("Same disk for md array -> disable synchronize md arrays");
+	    break;
+	}
+	// add disk from partition to md_physical_disks
+	if (!contains(md_physical_disks, p_dev["disk"]:""))
+	    md_physical_disks = add(md_physical_disks,p_dev["disk"]:"");
+
+	string no_p = tostring(p_dev["nr"]:"");
+	if (no_p == "")
+	{
+	    y2error("Wrong number of partition: %1 from Storage::GetDiskPartition: %2", dev, p_dev);
+	    break;
+	}
+	if (no_partition == "")
+	    no_partition = no_p;
+	else
+	    if (no_partition == no_p)
+		ret = true;
+	    else
+		y2milestone("Different number of partitions -> disable synchronize md arrays");
+
+    });
+
+    y2milestone("checkDifferentDisks for devices: %1 return: %2",devices, ret);
+
+    return ret;
+}
+
+/** FATE#305008: Failover boot configurations for md arrays with redundancy
+ * Check if device are build from 2 partitions with same number but from different disks
+ *
+ * @param map<string,map> tm taregte map from storage
+ * @param string device (md device)
+ * @return true if device is from 2 partisions with same number and different disks
+ */
+boolean checkMDDevices(map<string,map> tm, string device)
+{
+    boolean ret = false;
+    map <string, any> tm_dm =  (map<string, any>) tm["/dev/md"]:$[];
+
+    md_physical_disks = [];
+    // find partitions in target map
+    foreach(map p, tm_dm["partitions"]:[], 
+    {
+	if (p["device"]:"" == device)
+	{
+	    if (p["raid_type"]:"" == "raid1")
+	    {
+		list <string> p_devices = p["devices"]:[];
+		if (size(p_devices) == 2)
+		    ret = checkDifferentDisks(p_devices);
+		else
+		    y2milestone("Device: %1 doesn't contain 2 partitions: %2", device, p_devices);
+
+	    } else {
+		y2milestone ("Device: %1 is not on raid1: %2",device, p["raid_type"]:"");
+	    }
+	}
+    });
+
+    if ((size(md_physical_disks) != 2) || (contains(md_physical_disks, "")))
+	y2milestone("device: %1 is based on md_physical_disks: %2 is not valid for enable redundancy",
+ 		    device, md_physical_disks);
+
+    if (ret)
+	y2milestone("device: %1 is based on md_physical_disks: %2 is valid for enable redundancy",
+		    device, md_physical_disks);
+
+    return ret;
+}
+
+
+/** FATE#305008: Failover boot configurations for md arrays with redundancy
+ * Function check partitions and set redundancy available if 
+ * partitioning of disk allows it.
+ * It means if md array is based on 2 partitions with same number but 2 different disks
+ * E.g. /dev/md0 is from /dev/sda1 and /dev/sb1 and /dev/md0 is "/"
+ * There is possible only boot from MBR (GRUB not generic boot code)
+ *
+ * @return boolean true on success
+ */
+
+global boolean checkMDSettings ()
+{
+    boolean ret = false;
+    map<string,map> tm = (map<string,map>)Storage::GetTargetMap();
+
+    if (!haskey(tm, "/dev/md"))
+    {
+	y2milestone("Doesn't include md raid");
+	return ret;
+    }
+    list<string> boot_devices = [];
+    if ((BootPartitionDevice != "") && (BootPartitionDevice != nil))
+	boot_devices = add(boot_devices, BootPartitionDevice);
+    if ((BootPartitionDevice != RootPartitionDevice) && (RootPartitionDevice != "")
+	&& (BootPartitionDevice != nil))
+	boot_devices = add(boot_devices, RootPartitionDevice);
+    if ((ExtendedPartitionDevice != "")&& (ExtendedPartitionDevice != nil))
+	boot_devices = add(boot_devices, ExtendedPartitionDevice);
+
+    y2milestone("Devices for analyse of redundacy md array: %1", boot_devices);
+    foreach(string dev, boot_devices,
+    {
+	ret = checkMDDevices(tm, dev);
+	if (!ret)
+	{
+	    y2milestone("Skip enable redundancy of md arrays");
+	    break;
+	}
+    });
+
+    return ret;
+}
+
+/** FATE#305008: Failover boot configurations for md arrays with redundancy
+ * Function prapare disks for synchronizing of md array
+ * 
+ * @return string includes disks separatet by ","
+ */
+
+global string addMDSettingsToGlobals()
+{
+    string ret = "";
+
+    if (checkMDSettings())
+	ret = mergestring(md_physical_disks,",");
+    return ret;
+}
+
+/** FATE#305008: Failover boot configurations for md arrays with redundancy
+ * Verify if proposal includes md array with 2 diferent disks
+ *
+ * @return boolean true if there is md array based on 2 disks
+ */
+global boolean VerifyMDArray ()
+{
+    boolean ret = false;
+    if (haskey(globals, "boot_md_mbr"))
+    {
+	string md_array =  globals["boot_md_mbr"]:"";
+	list<string> disks = splitstring(md_array,",");
+	disks = filter(string v, disks, {return (v !="");});
+	if (size(disks) == 2)
+	{
+	    y2milestone("boot_md_mbr includes 2 disks: %1", disks);
+	    ret = true;
+	}
+
+    }
+    return ret;
 }
 
 }
