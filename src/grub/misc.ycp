@@ -508,7 +508,7 @@ define string soft_MDraid_boot_disk(list<map> partitions)
    foreach(map p, partitions, {
 	if (p["device"]:"" == boot_device)
 	{
-	   if ((p["type"]:nil == `sw_raid) && (p["fstype"]:"" == "MD Raid"))
+	   if ((p["type"]:nil == `sw_raid) && (tolower(p["fstype"]:"") == "md raid"))
 	   {
 	      string device_1 = p["devices",0]:"";
 	      y2debug("device_1: %1", device_1);

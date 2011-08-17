@@ -146,7 +146,7 @@ define string soft_MDraid_boot_disk(list<map> partitions)
    foreach(map p, partitions, {
 	if (p["device"]:"" == boot_device)
 	{
-	   if ((p["type"]:nil == `sw_raid) && (p["fstype"]:"" == "MD Raid"))
+	   if ((p["type"]:nil == `sw_raid) && (tolower(p["fstype"]:"") == "md raid"))
 	   {
 	      string device_1 = p["devices",0]:"";
 	      y2debug("device_1: %1", device_1);
@@ -379,10 +379,13 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 		bios_id = tointeger (bios_id);
 	    list<map<string,any> > partitions = (list<map<string,any> >)
 		descr["partitions"]:[];
+            y2milestone ("XXXXX md_device = %1, bios_id = %2, partitions = %3", md_device, bios_id, partitions);
 	    foreach (map<string,any> partition, partitions, ``{
-		if (partition["used_by"]:"" == substring(md_device,5))
-		{
-		    string d = (string)(partition["device"]:"");
+                if (
+                    partition["used_by_type"]:`UB_NONE == `UB_MD &&
+                    partition["used_by_device"]:"" == md_device
+                ) {
+		    string d = partition["device"]:"";
 		    ret[d] = bios_id;
 		}
 	    });
