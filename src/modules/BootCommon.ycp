@@ -1408,7 +1408,7 @@ boolean checkDifferentDisks (list <string> devices)
 	if (!contains(md_physical_disks, p_dev["disk"]:""))
 	    md_physical_disks = add(md_physical_disks,p_dev["disk"]:"");
 
-	string no_p = tostring(p_dev["nr"]:"");
+	string no_p = tostring(p_dev["nr"]:nil);
 	if (no_p == "")
 	{
 	    y2error("Wrong number of partition: %1 from Storage::GetDiskPartition: %2", dev, p_dev);

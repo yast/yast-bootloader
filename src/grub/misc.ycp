@@ -964,8 +964,12 @@ define void grub_LocationProposal () {
 	    y2milestone ("Command output: %1", out);
 	}
 	md_mbr = BootCommon::addMDSettingsToGlobals();
-	if (md_mbr != "")
+	if (md_mbr != "") {
 	    BootCommon::globals["boot_md_mbr"] = md_mbr;
+	    // don't install into boot partition
+	    BootCommon::globals["boot_boot"] = "false";
+	    BootCommon::globals["boot_mbr"] = "true";
+	}
     }
     y2milestone("(2) globals: %1", BootCommon::globals);
 

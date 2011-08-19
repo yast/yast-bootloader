@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Fri Aug 19 17:48:21 CEST 2011 - snwint@suse.de
+
+- change raid1 proposal to install only into mbr, not boot
+- 2.17.77
+
+-------------------------------------------------------------------
+Wed Aug 17 15:01:11 CEST 2011 - snwint@suse.de
+
+- fixing raid1 support
+
+-------------------------------------------------------------------
 Mon Aug  8 15:25:31 CEST 2011 - snwint@suse.de
 
 - support md raid1 setups (fate #305008)
