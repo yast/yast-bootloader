@@ -1008,7 +1008,7 @@ global define void ResolveSymlinksInSections() {
 	    // "(hd0,7)/boot/vmlinuz", and are not on the default (currently
 	    // mounted) boot partition
 	    if ( haskey (s, image_key_name) ) {
-                y2milestone ("KKKKK 1 s[%1] = %2", image_key_name, s[image_key_name]:"");
+                y2milestone ("ResolveSymlinksInSections: s[%1] = %2", image_key_name, s[image_key_name]:"");
 		if ( !regexpmatch(s[image_key_name]:"", "^\(hd.*\)") ) {
 		    s = ResolveSymlink(s, image_key_name);
 		} else {
@@ -1021,7 +1021,7 @@ global define void ResolveSymlinksInSections() {
 	// resolve initrd link name, but skip if it is on a non-default boot
 	// partition (see above)
 	if ( haskey (s, "initrd") ) {
-            y2milestone ("KKKKK 2 s[initrd] = %1", s["initrd"]:"");
+            y2milestone ("ResolveSymlinksInSections: s[initrd] = %1", s["initrd"]:"");
 	    if ( !regexpmatch(s["initrd"]:"", "^\(hd.*\)") ) {
 		s = ResolveSymlink(s, "initrd");
 	    } else {

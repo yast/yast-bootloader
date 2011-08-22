@@ -379,7 +379,7 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 		bios_id = tointeger (bios_id);
 	    list<map<string,any> > partitions = (list<map<string,any> >)
 		descr["partitions"]:[];
-            y2milestone ("XXXXX md_device = %1, bios_id = %2, partitions = %3", md_device, bios_id, partitions);
+            y2milestone ("Md2Partitions: md_device = %1, bios_id = %2, partitions = %3", md_device, bios_id, partitions);
 	    foreach (map<string,any> partition, partitions, ``{
                 if (
                     partition["used_by_type"]:`UB_NONE == `UB_MD &&
