@@ -144,11 +144,18 @@ global boolean grub_InstallingToFloppy () {
 
 	// (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
 	// if loader_device is disk device activate BootCommon::BootPartitionDevice
+        // - only if boot partition is on mbr device
 	if (num == 0)
 	{
-	    y2milestone ("loader_device is disk device");
 	    p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
-	    num = BootCommon::myToInteger( p_dev["nr"]:nil );
+	    string p_disk = p_dev["disk"]:"";
+	    integer p_num = BootCommon::myToInteger( p_dev["nr"]:nil );
+	    y2milestone ("loader_device is disk device: mbr = %1, dev = %2, num = %3, activate = %4",
+	      mbr_dev, p_disk, p_num, p_disk == mbr_dev
+	    );
+            // as it's not really possible to say 'no', we return num = 0 which will
+            // eventually result in not activating the partition - dead ugly, I know
+	    if (p_disk == mbr_dev) { num = p_num; }
         }
 
 	if (num > 4)
