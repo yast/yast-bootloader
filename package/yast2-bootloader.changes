@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Aug 22 16:33:09 CEST 2011 - snwint@suse.de
+
+- stop proposing to write to floppy
+
+-------------------------------------------------------------------
 Fri Aug 19 17:48:21 CEST 2011 - snwint@suse.de
 
 - change raid1 proposal to install only into mbr, not boot

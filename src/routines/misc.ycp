@@ -1349,16 +1349,21 @@ global boolean IsPartitionBootable (string device) {
  */
 global boolean InstallingToFloppy () {
     boolean ret = false;
-    if (loader_device == nil)
+
+    y2milestone("InstallingToFloppy: loader_device = %1", loader_device);
+
+    if (loader_device == nil || loader_device == "")
 	ret = false;
     // bnc #180784 don't install to bootloader to floppy if ppc
-    if (getLoaderType (false) == "ppc")
+    else if (getLoaderType (false) == "ppc")
 	ret = false;
     else if (loader_device == StorageDevices::FloppyDevice())
 	ret = true;
     else if (contains (getFloppyDevices (), loader_device))
 	ret = true;
+
     y2milestone ("Installing to floppy: %1", ret);
+
     return ret;
 }
 
