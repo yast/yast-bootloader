@@ -83,7 +83,7 @@ global string DefaultKernelParams (string resume) {
         map <string, any> file_desc = ( map<string, any> )
 	  SCR::Execute( .target.bash_output, "echo $TERM" );
 	string env_term = file_desc[ "stdout" ]: "";
-	string termparm = "TERM=dumb";
+	string termparm = "hvc_iucv=8 TERM=dumb";
 	if ( env_term == "linux\n" ) {
 	    termparm = "TERM=linux console=ttyS0 console=ttyS1";
 	}
