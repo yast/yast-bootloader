@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 21 11:35:04 CEST 2011 - snwint@suse.de
+
+- enable resume for s390x (bnc #692606)
+- kernel images are in kernel-*-base package
+- 2.17.80
+
+-------------------------------------------------------------------
 Mon Sep 19 17:08:49 CEST 2011 - snwint@suse.de
 
 - s390x: add hvc_iucv=8 to boot options (bnc #718089)

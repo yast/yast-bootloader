@@ -617,7 +617,8 @@ global map<string,any> CreateLinuxSection (string title) {
 		false );	// don't create a new RPM database
 
 	// Then, get the file names in the "selected" kernel package,
-	string kernel_package = Kernel::ComputePackage();
+	// the kernel file is actually in kernel-*-base meanwhile
+	string kernel_package = Kernel::ComputePackage() + "-base";
 	list<string> files = Pkg::PkgGetFilelist( kernel_package, `installed );
 	y2milestone ("kernel package %1 has these files: %2", kernel_package, files);
 

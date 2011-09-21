@@ -91,6 +91,8 @@ global string DefaultKernelParams (string resume) {
 	    StorageControllers::dasdParam,
 	    features,
 	    termparm);
+	if (resume != "")
+	    parameters = parameters + sformat (" resume=%1 ", resume);
 	return parameters;
     }
     else
@@ -122,7 +124,7 @@ global string FailsafeKernelParams () {
     }
     else if (Arch::s390 ())
     {
-	ret = DefaultKernelParams("");
+	ret = DefaultKernelParams("") + " noresume";
     }
     else
     {
@@ -161,7 +163,7 @@ global boolean VgaAvailable () {
  * @return true if STD is available
  */
 global boolean ResumeAvailable () {
-    return (Arch::i386 () || Arch::x86_64 () || Arch::ia64 ());
+    return (Arch::i386 () || Arch::x86_64 () || Arch::ia64 () || Arch::s390 ());
 }
 
 } // EOF
