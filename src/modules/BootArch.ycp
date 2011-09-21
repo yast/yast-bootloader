@@ -92,7 +92,7 @@ global string DefaultKernelParams (string resume) {
 	    features,
 	    termparm);
 	if (resume != "")
-	    parameters = parameters + sformat (" resume=%1 ", resume);
+	    parameters = parameters + sformat (" resume=%1", resume);
 	return parameters;
     }
     else
