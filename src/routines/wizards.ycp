@@ -142,7 +142,7 @@ symbol BootloaderAutoSequence () {
     if ( Stage::initial () )
 	Wizard::SetTitleIcon("bootloader");	// no .desktop file in inst-sys
     else
-	Wizard::SetDesktopIcon("bootloader");
+	Wizard::SetDesktopTitleAndIcon("bootloader");
 
     symbol ret = MainSequence ();
     UI::CloseDialog();
@@ -177,7 +177,7 @@ symbol BootloaderSequence () {
     ];
 
     Wizard::CreateDialog();
-    Wizard::SetDesktopIcon("bootloader");
+    Wizard::SetDesktopTitleAndIcon("bootloader");
     Wizard::SetContentsButtons("", `VBox (), "",
 	Label::BackButton(), Label::NextButton());
     symbol ret = Sequencer::Run (my_aliases, sequence);
