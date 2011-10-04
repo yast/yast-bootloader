@@ -2,7 +2,7 @@
 
 @HEADER@
 Group:	System/YaST
-License: GPL v2 or later
+License: GPL-2.0+
 BuildRequires:	gcc-c++ limal-perl yast2-devtools yast2-testsuite yast2-installation yast2-storage >= 2.18.18 update-desktop-files swig docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel yast2-perl-bindings perl-gettext perl-Bootloader update-alternatives
 # to eliminate a cyclic dependency in autobuild:
 #!BuildIgnore:  autoyast2-installation
