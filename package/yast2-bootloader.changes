@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Oct 18 13:44:46 CEST 2011 - snwint@suse.de
+
+- fix bootloader package handling (bnc #716404)
+
+-------------------------------------------------------------------
 Tue Oct  4 10:06:56 UTC 2011 - cfarrell@suse.com
 
 - license update: GPL-2.0+

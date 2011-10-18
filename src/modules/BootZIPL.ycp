@@ -300,7 +300,7 @@ global define void Initializer () {
 global void BootZIPL () {
     BootCommon::bootloader_attribs["zipl"] = $[
         "loader_name" : "zipl",
-	"required_packages" : [], // FIXME
+	"required_packages" : ["s390-tools"],
 	"initializer" : BootZIPL::Initializer,
     ];
 }
