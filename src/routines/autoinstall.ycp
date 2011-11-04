@@ -283,6 +283,8 @@ list<map<string,any> > UpdateImportedSections (list<map<string,any> > sect) {
 		    return $[ entry["linux"]:"" : firmware ];
 		});
 		exp["specific", "device_map"] = device_map;
+		// accept everything
+		BootCommon::bois_id_missing = false;
 	    }
 	}
 

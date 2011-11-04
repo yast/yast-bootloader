@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov  4 17:13:29 CET 2011 - snwint@suse.de
+
+- don't question device mapping passed to us explicitly by
+  autoyast (bnc #717978)
+- 2.17.82
+
+-------------------------------------------------------------------
 Mon Oct 17 14:57:39 CEST 2011 - snwint@suse.de
 
 - fix activating partition on raid setups (bnc #715436)
