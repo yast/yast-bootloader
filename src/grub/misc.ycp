@@ -73,6 +73,9 @@ global boolean grub_InstallingToFloppy () {
 	integer num = BootCommon::myToInteger( p_dev["nr"]:nil );
 	string mbr_dev = p_dev["disk"]:"";
 
+	y2milestone("getPartitionToActivate(%1): mbr_dev = %2, num = %3", loader_device, mbr_dev, num);
+	y2milestone("getPartitionToActivate: p_dev = %1", p_dev);
+
 	// If loader_device is /dev/md* (which means bootloader is installed to
 	// /dev/md*), return the info map for the first device in BIOS ID order
 	// that underlies the soft-RAID and that has a BIOS ID (devices without
@@ -101,6 +104,7 @@ global boolean grub_InstallingToFloppy () {
 		map p_dev = Storage::GetDiskPartition (device);
 		num = BootCommon::myToInteger( p_dev["nr"]:nil );
 		mbr_dev = p_dev["disk"]:"";
+         	y2milestone("getPartitionToActivate: raid setup: mbr_dev = %1, num = %2", mbr_dev, num);
 	    }
 	}
 	// If loader_device is a disk device ("/dev/sda"), that means that we
@@ -145,29 +149,33 @@ global boolean grub_InstallingToFloppy () {
 	// (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
 	// if loader_device is disk device activate BootCommon::BootPartitionDevice
         // - only if boot partition is on mbr device
+        // - watch out for raid setups: mbr_dev != loader_device
 	if (num == 0)
 	{
 	    p_dev = Storage::GetDiskPartition (BootCommon::BootPartitionDevice);
 	    string p_disk = p_dev["disk"]:"";
 	    integer p_num = BootCommon::myToInteger( p_dev["nr"]:nil );
-	    y2milestone ("loader_device is disk device: mbr = %1, dev = %2, num = %3, activate = %4",
-	      mbr_dev, p_disk, p_num, p_disk == mbr_dev
-	    );
+            boolean activate = p_disk == mbr_dev || p_disk == loader_device;
+
             // as it's not really possible to say 'no', we return num = 0 which will
             // eventually result in not activating the partition - dead ugly, I know
-	    if (p_disk == mbr_dev) { num = p_num; }
+	    if (activate) { num = p_num; }
+
+	    y2milestone ("getPartitionToActivate: mbr_dev = %1, disk = %2, num = %3, p_num = %4, activate = %5",
+	      mbr_dev, p_disk, num, p_num, activate
+	    );
         }
 
 	if (num > 4)
 	{
-	    y2milestone ("Bootloader partition type is logical");
+	    y2milestone ("getPartitionToActivate: logical partition");
 	    map tm = Storage::GetTargetMap ();
 	    list<map> partitions = tm[mbr_dev, "partitions"]:[];
 	    foreach (map p, partitions, ``{
 		if (p["type"]:nil == `extended)
 		{
 		    num = p["nr"]:num;
-		    y2milestone ("Using extended partition %1 instead",num);
+		    y2milestone ("getPartitionToActivate: using extended partition %1", num);
 		}
 	    });
 	}
@@ -178,7 +186,8 @@ global boolean grub_InstallingToFloppy () {
 	    "dev" : Storage::GetDeviceName (mbr_dev, num),
 	];
 	
-	y2milestone("Partition for activating: %1", ret);
+	y2milestone("getPartitionToActivate: activating partition: %1", ret);
+
 	return ret;
     }
 

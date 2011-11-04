@@ -110,19 +110,21 @@ global boolean DisksChanged () {
  * @return string   mbr device
  */
 global string FindMBRDisk() {
+    y2milestone("FindMBRDisk: current MBR = %1", BootCommon::mbrDisk);
+
     // check the disks order, first has MBR
     list<string> order = DisksOrder ();
     if (size (order) > 0)
     {
 	string ret = order[0]:"";
-	y2milestone ("First disk in the order: %1, using for MBR", ret);
+	y2milestone ("FindMBRDisk: using first disk, new MBR = %1", ret);
 	return ret;
     }
 
     // OK, order empty, use the disk with boot partition
     map mp = Storage::GetMountPoints();
     string boot_disk = mp["/boot",2]:(mp["/",2]:"");
-    y2milestone ("Disk with boot partition: %1, using for MBR", boot_disk);
+    y2milestone ("FindMBRDisk: using disk with /boot, new MBR = %1", boot_disk);
     return boot_disk;
 }
 

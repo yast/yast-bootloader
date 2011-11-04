@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct 17 14:57:39 CEST 2011 - snwint@suse.de
+
+- fix activating partition on raid setups (bnc #715436)
+- 2.17.81
+
+-------------------------------------------------------------------
 Wed Sep 21 11:35:04 CEST 2011 - snwint@suse.de
 
 - enable resume for s390x (bnc #692606)
