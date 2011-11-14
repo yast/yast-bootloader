@@ -418,8 +418,10 @@ global map<string,any> CreateImageSection (string title) {
     //        BootCommon.ycp (although that code there also handles wildcard
     //        entries for lilo)
     // FIXME:
-    // This only works in the installed system (problem with GetFinalKernel))),
-    // in all other cases we use the symlinks.
+    //   bnc #726607
+    //   This is meanwile broken in so many ways that it's not worth fixing.
+    //   Instead, the code in BootCommon::CreateLinuxSection() should be used.
+    //   Currently, this will always return /boot/vmlinux & /boot/initrd no matter what.
 
     string image_fn = "";
     string initrd_fn = "";
@@ -441,19 +443,21 @@ global map<string,any> CreateImageSection (string title) {
 	list<string> files_filtered = filter (string file, files, {
 	    return ( substring(file, 0, size(kernel_prefix)) == kernel_prefix );
 	});
-	image_fn = files_filtered[0]:"";
+	image_fn = files_filtered[0]:kernel_prefix;
 
 	files_filtered = filter (string file, files, {
 	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix ;
 	});
-	initrd_fn = files_filtered[0]:"";
+	initrd_fn = files_filtered[0]:initrd_prefix;
     } else {
 	// code removed: no wildcard entries possible on ppc (yaboot)
 	image_fn = "/boot/" + Kernel::GetBinary ();
 	initrd_fn = "/boot/initrd";
     }
-    // done: image_fn and initrd_fn are the results
-    y2milestone ("image_fn: %1 initrd_fn: %2", image_fn, initrd_fn);
+
+    string root_dev = BootCommon::Dev2MountByDev(BootCommon::RootPartitionDevice);
+
+    y2milestone ("image_fn = %1, initrd_fn = %2, root = %3", image_fn, initrd_fn, root_dev);
 
     map<string,any> ret = $[
 	"type" : "image",
@@ -462,7 +466,7 @@ global map<string,any> CreateImageSection (string title) {
 	"image" : image_fn,
 	"initrd" : initrd_fn,
         "optional" : "true",  // bnc #217443
-	"root" : BootCommon::RootPartitionDevice,
+	"root" : root_dev,
 	// "": do not include resume parameter on ppc
 	"append" : BootArch::DefaultKernelParams (""),
 	"__auto" : true,
@@ -955,7 +959,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // ret = ret && BootCommon::SetDeviceMap (device_mapping);
 
     // bnc #450506 root=kernelname in lilo.conf after upgrade
-    BootCommon::sections = BootCommon::remapSections(BootCommon::sections);
+    // bnc #726607: do NOT call remapSections(); it maps to kernel dev names!
+    // BootCommon::sections = BootCommon::remapSections(BootCommon::sections);
 
     ret = ret && BootCommon::SetSections (BootCommon::sections);
     ret = ret && BootCommon::SetGlobal (my_globals);

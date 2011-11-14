@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Nov 14 17:11:14 CET 2011 - snwint@suse.de
+
+- ppc: use proper root device link (bnc #726607)
+- ppc: fixed bootloader module to run in installed system
+- 2.17.83
+
+-------------------------------------------------------------------
 Fri Nov  4 17:13:29 CET 2011 - snwint@suse.de
 
 - don't question device mapping passed to us explicitly by
