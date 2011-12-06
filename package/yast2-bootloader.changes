@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue Dec  6 15:49:53 CET 2011 - snwint@suse.de
+
+- use elilo to handle efi boot menu entries (bnc #717828)
+
+-------------------------------------------------------------------
 Mon Nov 14 17:11:14 CET 2011 - snwint@suse.de
 
 - ppc: use proper root device link (bnc #726607)
