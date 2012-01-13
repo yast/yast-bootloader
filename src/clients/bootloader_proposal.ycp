@@ -15,6 +15,7 @@
     import "Arch";
     import "BootCommon";
     import "Bootloader";
+    import "GfxMenu";
     import "Storage";
     import "Mode";
     import "BootSupportCheck";
@@ -352,6 +353,12 @@ In case that no selection can be made it may be necessary to create a PReP Boot 
 	    $[
 		"success"	:	succ
 	    ];
+    }
+    /**
+     * update GfxMenu texts after language was changed
+     */
+    else if (func == "UpdateGfxMenu") {
+        GfxMenu::Update ();
     }
 
     return ret;
