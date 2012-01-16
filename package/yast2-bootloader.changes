@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan 13 15:48:55 CET 2012 - snwint@suse.de
+
+- really update bootloader sections after device renaming (bnc #727310)
+- 2.17.85
+
+-------------------------------------------------------------------
 Tue Dec  6 15:49:53 CET 2011 - snwint@suse.de
 
 - use elilo to handle efi boot menu entries (bnc #717828)

@@ -755,7 +755,7 @@ global void FixSections (void() create_sections) {
  * Update in section old devices to new kernel format
  * @param section section to modify
  */
-void UpdateDeviceForSection(map<string,any> section){
+map<string,any> UpdateDeviceForSection(map<string,any> section) {
   if (section["type"]:"" == "image" || section["type"]:"" == "xen")
   {
      //check if we update correct image and if update is needed
@@ -778,6 +778,8 @@ void UpdateDeviceForSection(map<string,any> section){
         section["__modified"] = "1";
      }
   }
+
+  return section;
 }
 
 /** bnc#474039 upgrade from sles10sp2 to sles11 xen has incorrect default boot option
@@ -790,9 +792,9 @@ void UpdateDeviceForSection(map<string,any> section){
  */
 global void UpdateSections ()
 {
-  foreach (map<string,any> section, BootCommon::sections,{
+  BootCommon::sections = maplist(map<string,any> section, BootCommon::sections, {
     //remap device names from hd* to sd*
-    UpdateDeviceForSection(section);
+    return UpdateDeviceForSection(section);
   });
 }
 
