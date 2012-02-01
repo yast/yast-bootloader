@@ -2431,10 +2431,11 @@ global define void WriteToSysconf(boolean inst_bootloader)
     // fix for bnc #440125 - default boot section with failsafe args
     // it is not possible create exact algoritmus but I hope it helps in
     // mostly cases.
-    if (isDefaultBootSectioLinux(BootCommon::globals["default"]:""))
-    	default_boot_section_name = BootCommon::globals["default"]:"";
-    else
+    default_boot_section_name = BootCommon::checkZiplDefault(BootCommon::globals["default"]:"");
+    if (!isDefaultBootSectioLinux(default_boot_section_name))
+    {
 	default_boot_section_name = findRelativeDefaultLinux ();
+    }
 
     // get the default and failsafe append + vga parameters; if section with
     // appropriate original name not found, just use any Linux section

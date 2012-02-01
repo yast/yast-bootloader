@@ -1035,76 +1035,13 @@ global define void ResolveSymlinksInSections() {
     y2milestone("sections after remapping: %1", BootCommon::sections);
 }
 
-/** bnc #364904
- * Function parse zipl list names if default section is menu
- * 
- * @param string (string) list of names
- * @param string position of default name in list
- * @return string name of default section from list
- */
-string parseListDefault(string names, string position)
-{
-	string ret = "";
-
-	y2milestone("section names (string) list: %1 and default name position in list: %2", names, position);
-	if ((names == "") || (position == ""))
-		return ret;
-
-	if (search(names, ",") != nil)
-	{
-		string tmp_names = deletechars(names, " ");
-		list <string> list_names = splitstring(tmp_names, ",");
-		ret = list_names[(tointeger(position)-1)]:"";
-	} else {
-		ret = names;
-	}
-
-	return ret;
-}
-
-/** bnc #364904
- * Function check if default section is menu
- * if yes it tries to find default section in 
- *  list of names from menu section
- *
- * @param string name of default BootCommon::globals["default"]:""
- * @return string name of default section
- */
-
-string checkZiplDefault(string def)
-{
-    string def_section_name = def;
-
-    if (getLoaderType () == "zipl")
-    {
-	foreach(map<string,any> section, BootCommon::sections,
-	{
-	    if (section["name"]:"" == def_section_name)
-	    {
-		if (section["type"]:"" == "menu")
-		{
-		    string def_position = section["default"]:"";
-		    def_section_name = parseListDefault(section["list"]:"", def_position);
-
-		} else {
-		    break;
-		}
-	    }
-        });
-
-    }
-
-    y2milestone("name of default section: %1", def_section_name);
-    return def_section_name;
-}
-
     /**
       * return default section label
       * @return string default section label
       */
     global define string getDefaultSection () {
 	ReadOrProposeIfNeeded ();
-	string default_name = checkZiplDefault(BootCommon::globals["default"]:"");
+	string default_name = BootCommon::checkZiplDefault(BootCommon::globals["default"]:"");
 	return default_name;
     }
 
