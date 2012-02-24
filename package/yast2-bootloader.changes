@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 24 16:34:16 CET 2012 - snwint@suse.de
+
+- track section renaming properly in zipl menu (bnc #740324)
+- 2.17.87
+
+-------------------------------------------------------------------
 Fri Jan 27 14:58:43 CET 2012 - snwint@suse.de
 
 - fix default menu entry detection (bnc #740324)

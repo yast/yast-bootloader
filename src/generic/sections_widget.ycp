@@ -172,6 +172,9 @@ symbol _SectionsHandle (string widget, map event) {
 	BootCommon::current_section = selected;
 	BootCommon::current_section_index = op == `add ? -1 : index;
 	BootCommon::current_section_name = name;
+	// we need the old name to keep the zipl menu in sync (bnc #740324)
+        // see fixZiplMenu()
+	BootCommon::current_section["old_name"] = name;
 	y2internal ("Selected section: %1", BootCommon::current_section);
 
 	if (BootCommon::current_section["name"]:"" == BootCommon::globals["default"]:"")

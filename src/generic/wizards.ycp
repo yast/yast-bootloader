@@ -25,6 +25,32 @@ import "Bootloader";
 import "CWMTab";
 
 
+// bnc #740324
+// When a section is renamed, update the section name list in the zipl menu, too.
+//
+void fixZiplMenu(string old_name, string new_name)
+{
+    if (old_name != "" && new_name != "" && old_name != new_name && BootCommon::getLoaderType (false) == "zipl")
+    { 
+        y2milestone("fixZiplMenu: rename section: %1 -> %2", old_name, new_name);
+
+        BootCommon::sections = maplist (map<string,any> section, BootCommon::sections,
+        {
+            if (section["type"]:"" == "menu" && haskey(section, "list"))
+            { 
+                string l = regexpsub(section["list"]:"", "^(|.*, )" + old_name + "(|,.*)$", "\\1" + new_name + "\\2");
+
+                if(l != nil) { section["list"] = l; }
+
+                y2milestone("fixZiplMenu: updated menu list = %1", section["list"]:"");
+            }
+
+            return section;
+        });
+    }
+}
+
+
 // calculate the list of available section types
 list<string> section_types () {
     list<string> st_list = [];
@@ -103,9 +129,12 @@ symbol SectionEditDialog () {
 symbol GenericStoreSection () {
     BootCommon::current_section["__changed"] = true;
 
-    y2debug ("Storing section: index:  %1, contents: %2",
+    y2milestone ("Storing section: index:  %1, contents: %2",
 	BootCommon::current_section_index,
 	BootCommon::current_section);
+
+    fixZiplMenu(BootCommon::current_section["old_name"]:"", BootCommon::current_section["name"]:"");
+
     if (BootCommon::current_section_index == -1)
     {
 	BootCommon::sections
