@@ -1,0 +1,51 @@
+/**
+ * File:
+ *      include/bootloader/grub2/dialogs.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Dialogs for configuraion i386-specific functions
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *
+ * $Id: dialogs.ycp 56563 2009-04-02 08:41:25Z jreidinger $
+ *
+ */
+
+{
+
+textdomain "bootloader";
+
+
+import "Label";
+import "Wizard";
+import "CWM";
+import "BootCommon";
+import "Stage";
+
+include "bootloader/grub/options.ycp";
+
+/**
+ * Cache for genericWidgets function
+ */
+map<string,map<string,any> > _grub2_widgets = nil;
+
+/**
+ * Get generic widgets
+ * @return a map describing all generic widgets
+ */
+global map<string,map<string,any> > grub2Widgets () {
+    if (_grub2_widgets == nil)
+    {
+	_grub2_widgets = $[
+	    "loader_location"	  : grubBootLoaderLocationWidget (),
+	];
+    }
+    return _grub2_widgets;
+}
+
+} //EOF
+
