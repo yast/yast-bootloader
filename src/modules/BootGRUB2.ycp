@@ -1,0 +1,207 @@
+/**
+ * File:
+ *      modules/BootGRUB2.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Module containing specific functions for GRUB2 configuration
+ *      and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *      Joachim Plack <jplack@suse.de>
+ *      Olaf Dabrunz <od@suse.de>
+ *      Philipp Thomas <pth@suse.de>
+ *
+ * $Id: BootGRUB.ycp 63508 2011-03-04 12:53:27Z jreidinger $
+ *
+ */
+
+{
+module "BootGRUB2";
+
+textdomain "bootloader";
+
+import "Arch";
+import "BootCommon";
+import "BootStorage";
+import "Kernel";
+import "Mode";
+import "Stage";
+import "Storage";
+import "StorageDevices";
+import "Pkg";
+import "HTML";
+
+// includes
+// for shared some routines with grub
+include "bootloader/grub/misc.ycp";
+// for simplified widgets than other
+include "bootloader/grub2/dialogs.ycp";
+// general functions
+
+/**
+ * Read settings from disk
+ * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
+ * @return boolean true on success
+ */
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
+    BootCommon::InitializeLibrary (reread, "grub2");
+    if (reread) {
+	BootCommon::ReadFiles (avoid_reading_device_map);
+    }
+    // TODO: check if necessary for grub2
+    grub_DetectDisks ();
+    boolean ret = BootCommon::Read (false, avoid_reading_device_map);
+
+    // TODO: check if necessary for grub2
+    // refresh device map if not read
+    if (BootStorage::device_mapping == nil
+        || size (BootStorage::device_mapping) == 0)
+    {
+        BootStorage::ProposeDeviceMap ();
+    }
+
+    return ret;
+}
+
+/**
+  * Update read settings to new version of configuration files
+  */
+global define void Update () {
+    Read (true, true);
+
+    //we don't handle sections, grub2 section create them for us
+    //BootCommon::UpdateSections ();
+    BootCommon::UpdateGlobals ();
+}
+/**
+  * Write bootloader settings to disk
+  * @return boolean true on success
+  */
+global define boolean Write () {
+
+    boolean ret = BootCommon::UpdateBootloader ();
+
+    //TODO: InstallingToFloppy ..
+    if (BootCommon::location_changed) {
+        // bnc #461613 - Unable to boot after making changes to boot loader
+        // bnc #357290 - module rewrites grub generic code when leaving with no changes, which may corrupt grub
+        grub_updateMBR ();
+
+        boolean grub_ret = BootCommon::InitializeBootloader ();
+        if (grub_ret == nil)
+            grub_ret = false;
+
+        y2milestone ("GRUB return value: %1", grub_ret);
+        ret = ret && grub_ret;
+        ret = ret && BootCommon::PostUpdateMBR ();
+    }
+
+    return ret;
+}
+
+/**
+  * Reset bootloader settings
+  * @param init boolean true to repropose also device map
+  */
+global define void Reset (boolean init) {
+    if (Mode::autoinst ())
+        return;
+    BootCommon::Reset (init);
+}
+
+/**
+  * Propose bootloader settings
+  */
+
+global define void Propose () {
+    y2milestone ("Proposed globals: %1", BootCommon::globals);
+    grub_LocationProposal ();
+}
+
+
+/**
+  * Display bootloader summary
+  * @return a list of summary lines
+  */
+
+global define list<string> Summary () {
+    list<string> result = [ sformat (_("Boot Loader Type: %1"),
+        BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)) ];
+    list<string> locations = [];
+
+    if (BootCommon::globals["boot_boot"]:"" == "true")
+        locations = add(locations, BootStorage::BootPartitionDevice + _(" (\"/boot\")"));
+    if (BootCommon::globals["boot_extended"]:"" == "true")
+        locations = add(locations, BootStorage::ExtendedPartitionDevice + _(" (extended)"));
+    if (BootCommon::globals["boot_root"]:"" == "true")
+        locations = add(locations, BootStorage::RootPartitionDevice + _(" (\"/\")"));
+    if (BootCommon::globals["boot_mbr"]:"" == "true")
+        locations = add(locations, BootCommon::mbrDisk + _(" (MBR)"));
+    if (haskey (BootCommon::globals, "boot_custom"))
+        locations = add(locations, BootCommon::globals["boot_custom"]:"");
+    if (size(locations) > 0) {
+        // FIXME: should we translate all devices to names and add MBR suffixes?
+       result = add (result, sformat (_("Status Location: %1"), mergestring (locations, ", ")));
+    }
+
+    return result;
+}
+
+/**
+ * Return map of provided functions
+ * @return a map of functions (eg. $["write":BootGRUB2::Write])
+ */
+global map<string, any> GetFunctions () {
+    return $[
+        "read"                  : Read,
+        "reset"                 : Reset,
+        "propose"               : Propose,
+        "summary"               : Summary,
+        "update"                : Update,
+        "widgets"               : grub2Widgets,
+        "write"                 : Write,
+    ];
+}
+
+/**
+  * Initializer of GRUB bootloader
+  */
+global define void Initializer () {
+    y2milestone ("Called GRUB2 initializer");
+    BootCommon::current_bootloader_attribs = $[
+	"propose" : false,
+	"read" : false,
+	"scratch" : false,
+	"restore_mbr" : false,
+	"bootloader_on_disk" : false,
+    ];
+}
+
+/**
+  * Constructor
+  */
+global define void BootGRUB2 () {
+    BootCommon::bootloader_attribs["grub2"] = $[
+	"required_packages" : ["grub2"],
+	"loader_name" : "GRUB2",
+	"initializer" : BootGRUB2::Initializer,
+    ];
+}
+
+} // EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */
