@@ -81,9 +81,12 @@ string return_tab = "sections";
  */
 symbol MainDialog () {
     y2milestone ("Running Main Dialog");
+    string lt = Bootloader::getLoaderType ();
     term contents = `VBox (
-	"tab",
-	`Right ("adv_button")
+        "tab",
+        (lt == "grub2")
+        ? nil
+        : `Right ("adv_button")
     );
 
     // F#300779 - Install diskless client (NFS-root) 
@@ -98,15 +101,22 @@ symbol MainDialog () {
     }
     // F#300779: end
 
-    list<string> widget_names = ["tab", "adv_button"];
+    list<string> widget_names = (lt == "grub2")
+        ? ["tab"]
+        : ["tab", "adv_button"];
     map<string,map<string,any> > widget_descr = $[];
+
     widget_descr = (map<string,map<string,any> >) union (CommonGlobalWidgets (), Bootloader::blWidgetMaps ());
 
     widget_descr["tab"] = CWMTab::CreateWidget($[
-	"tab_order": ["sections", "installation"],
-	"tabs": TabsDescr (),
-	"widget_descr": widget_descr,
-	"initial_tab" : return_tab,
+	    "tab_order": (lt == "grub2")
+                ? ["installation"]
+                : ["sections", "installation"],
+	    "tabs": TabsDescr (),
+	    "widget_descr": widget_descr,
+	    "initial_tab" : (lt == "grub2")
+                ? "installation"
+                : return_tab
     ]);
     widget_descr["tab", "no_help"] = "";
 
