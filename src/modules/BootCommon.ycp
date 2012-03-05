@@ -187,7 +187,7 @@ global map<string,string> edited_files = $[];
 
 /**
   * type of bootloader to configure/being configured
-  * shall be one of "lilo", "grub", "elilo", "ppc", "zipl"
+  * shall be one of "lilo", "grub", "elilo", "ppc", "zipl", "grub2"
   */
 string loader_type = nil;
 
@@ -289,7 +289,7 @@ global list<string> update_section_types = [ "floppy", "other" ];
  * List of all supported bootloaders
  */
 global list<string> bootloaders = ["lilo", "grub", "elilo", 
-				   "zipl", "ppc"];
+				   "zipl", "ppc", "grub2"];
 
 /** FATE#305008: Failover boot configurations for md arrays with redundancy
  * if true enable redundancy for md array
@@ -589,7 +589,7 @@ global define map Export () {
 	"sections" : remapSections(sections),
 	"device_map" : BootStorage::remapDeviceMap(BootStorage::device_mapping),
     ];
-    if ( ! ( loader_type == "grub" ) ) {
+    if ( ! ( loader_type == "grub" || loader_type == "grub2" ) ) {
 	exp["repl_mbr"] = repl_mbr;
 	exp["activate"] = activate;
     }
@@ -609,7 +609,7 @@ global define boolean Import (map settings) {
     // FIXME: for grub, repl_mbr is replaced by globals["generic_mbr"]; same
     // for activate; remove the following when no bootloader uses these
     // variables any more
-    if ( ! ( loader_type == "grub" ) ) {
+    if ( ! ( loader_type == "grub" || loader_type == "grub2" ) ) {
 	repl_mbr = settings["repl_mbr"]:false;
 	activate = settings["activate"]:false;
     }
@@ -1043,6 +1043,9 @@ global define string getLoaderType (boolean recheck) {
     loader_type = (string)SCR::Read (.probe.boot_arch);
     if (loader_type == "s390")
       loader_type = "zipl";
+    // suppose grub2 should superscede grub ..
+    if (loader_type == "grub")
+      loader_type = "grub2";
     y2milestone ("Bootloader detection returned %1", loader_type);
     // lslezak@: Arch::is_xenU() returns true only in PV guest
     if (Arch::is_uml () || Arch::is_xenU())
@@ -1136,7 +1139,7 @@ global define void setLoaderType (string bootloader) {
 global define list<string> getBootloaders () {
     if (Mode::config ())
     {
-        return ["grub", "lilo", "elilo", "zipl", "ppc", "default", "none"];
+        return ["grub", "lilo", "elilo", "zipl", "ppc", "grub2", "default", "none"];
     }
     list<string> ret = [
 	getLoaderType (false),
@@ -1144,7 +1147,7 @@ global define list<string> getBootloaders () {
     ];
     if (Arch::i386 () || Arch::x86_64 ())
     {
-        ret = (list<string>)merge (ret, ["lilo", "grub"]);
+        ret = (list<string>)merge (ret, ["lilo", "grub", "grub2"]);
 	if (Arch::x86_64 ())
 	    ret = (list<string>)merge (ret, ["elilo"]);
     }

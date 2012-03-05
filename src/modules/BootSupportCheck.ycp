@@ -74,7 +74,7 @@ global string StringProblems () {
  * Check that bootloader is known and supported
  */
 boolean KnownLoader () {
-    if (! contains (["grub", "elilo", "ppc", "zipl", "none"], Bootloader::getLoaderType ()))
+    if (! contains (["grub", "grub2", "elilo", "ppc", "zipl", "none"], Bootloader::getLoaderType ()))
     {
 
 	if (Bootloader::getLoaderType () != "lilo")
@@ -125,7 +125,7 @@ boolean CorrectLoaderType () {
 	    if (lt == "elilo")
 		return true;
 	} else {
-	    if ((lt == "grub") || (lt == "lilo"))
+	    if ((lt == "grub") || (lt == "lilo") || (lt == "grub2"))
 		return true;
 	}
     }
@@ -297,6 +297,13 @@ global boolean GRUB () {
 }
 
 /**
+ * GRUB2-related check
+ */
+global boolean GRUB2 () {
+    return GRUB();
+}
+
+/**
  * ELILO related check
  */
 boolean ELILO () {
@@ -348,6 +355,8 @@ global boolean SystemSupported () {
 	supported = PPC () && supported;
     else if (lt == "zipl")
 	supported = ZIPL () && supported;
+    else if (lt == "grub2")
+        supported = GRUB2 () && supported;
 
     y2milestone ("Configuration supported: %1", supported);
     return supported;

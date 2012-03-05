@@ -23,6 +23,7 @@ import "BootGRUB";
 import "BootLILO";
 import "BootPOWERLILO";
 import "BootZIPL";
+import "BootGRUB2";
 import "BootCommon";
 
     /**
@@ -38,7 +39,8 @@ import "BootCommon";
 	    "grub"  : BootGRUB::GetFunctions,
 	    "elilo" : BootELILO::GetFunctions,
 	    "zipl"  : BootZIPL::GetFunctions,
-	    "ppc"   : BootPOWERLILO::GetFunctions
+	    "ppc"   : BootPOWERLILO::GetFunctions,
+	    "grub2" : BootGRUB2::GetFunctions
 	];
 	map<string,any> () gf = (map<string,any>())(bl_functions[bootloader]:nil);
 	if (gf == nil)
