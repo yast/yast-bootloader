@@ -126,10 +126,11 @@ fi
 	string usessh_msg = "";
 	if (Linuxrc::usessh ()) {
 	    // TRANSLATORS: part of the reboot message
+	    /// %1 is replaced with a command name
 	    // (message ID#SSH)
-	    usessh_msg = _("Then reconnect and run the following:
-/usr/lib/YaST2/startup/YaST2.ssh
-");
+	    usessh_msg = sformat(_("Then reconnect and run the following:
+%1
+"), "yast2.ssh");
 	}
 
 	// TRANSLATORS: reboot message
