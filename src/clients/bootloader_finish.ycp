@@ -130,7 +130,7 @@ fi
 	    // (message ID#SSH)
 	    usessh_msg = sformat(_("Then reconnect and run the following:
 %1
-"), "yast2.ssh");
+"), "yast.ssh");
 	}
 
 	// TRANSLATORS: reboot message
