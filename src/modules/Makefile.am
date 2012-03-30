@@ -12,6 +12,7 @@ module_DATA =			\
 	BootELILO.ycp		\
 	BootGRUB.ycp		\
 	BootGRUB2.ycp		\
+	BootGRUB2EFI.ycp	\
 	BootLILO.ycp		\
 	BootPOWERLILO.ycp	\
 	BootZIPL.ycp		\

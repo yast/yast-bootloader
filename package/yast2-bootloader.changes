@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Mar 22 10:56:28 UTC 2012 - mchang@suse.com
+
+- add new grub2-efi module to support booting on UEFI firmware.
+
+-------------------------------------------------------------------
 Wed Mar 14 15:43:44 CET 2012 - aschnell@suse.de
 
 - adapted ssh command for 2nd stage ssh installation (bnc#745340)

@@ -84,7 +84,7 @@ symbol MainDialog () {
     string lt = Bootloader::getLoaderType ();
     term contents = `VBox (
         "tab",
-        (lt == "grub2")
+        (lt == "grub2" || lt == "grub2-efi")
         ? nil
         : `Right ("adv_button")
     );
@@ -101,7 +101,7 @@ symbol MainDialog () {
     }
     // F#300779: end
 
-    list<string> widget_names = (lt == "grub2")
+    list<string> widget_names = (lt == "grub2" || lt == "grub2-efi")
         ? ["tab"]
         : ["tab", "adv_button"];
     map<string,map<string,any> > widget_descr = $[];
@@ -109,12 +109,12 @@ symbol MainDialog () {
     widget_descr = (map<string,map<string,any> >) union (CommonGlobalWidgets (), Bootloader::blWidgetMaps ());
 
     widget_descr["tab"] = CWMTab::CreateWidget($[
-	    "tab_order": (lt == "grub2")
+	    "tab_order": (lt == "grub2" || lt == "grub2-efi")
                 ? ["installation"]
                 : ["sections", "installation"],
 	    "tabs": TabsDescr (),
 	    "widget_descr": widget_descr,
-	    "initial_tab" : (lt == "grub2")
+	    "initial_tab" : (lt == "grub2" || lt == "grub2-efi")
                 ? "installation"
                 : return_tab
     ]);
