@@ -330,6 +330,22 @@ Proceed?
 	    return `redraw;
         }
 
+        if (new_bl == "grub2-efi") {
+            if (Popup::ContinueCancel (_("
+The grub2-efi is still under develope and test.
+
+Proceed?
+")))
+            {
+                BootCommon::other_bl[old_bl] = Bootloader::Export ();
+                BootCommon::setLoaderType ("grub2-efi");
+                Bootloader::Propose ();
+                BootCommon::location_changed = true;
+                BootCommon::changed = true;
+            }
+            return `redraw;
+        }
+
 	if (Arch::x86_64 ()) {
 	    if (new_bl == "elilo") {
 // continue/cancel pop-up
@@ -720,7 +736,7 @@ map TabsDescr () {
 		    `HStretch (),
 		    `VBox (
 			`Label (""),
-			 (lt == "none" || lt == "default" || lt == "zipl" || lt == "lilo" || lt == "grub2")
+			 (lt == "none" || lt == "default" || lt == "zipl" || lt == "lilo" || lt == "grub2" || lt == "grub2-efi")
                          ? `Empty()  : "loader_options"
 		    ),
 		    `HSpacing (2)
@@ -728,7 +744,7 @@ map TabsDescr () {
 		`VSpacing (0.4)
 	    )),
 	    `VStretch (),
-	    (lt == "none" || lt == "default" || lt == "zipl" || lt == "lilo")
+	    (lt == "none" || lt == "default" || lt == "zipl" || lt == "lilo" || lt == "grub2-efi")
 		? `Empty ()
 		: "loader_location",
 	    `VStretch (),
@@ -737,8 +753,8 @@ map TabsDescr () {
 		: "inst_details",
 	    `VStretch ()
 	), `HStretch ()),
-        "widget_names": (lt == "none" || lt == "default" || lt=="zipl" || lt == "grub2")
-	    ? [ "loader_type", "loader_options", "loader_location"]
+        "widget_names": (lt == "none" || lt == "default" || lt=="zipl" || lt == "grub2-efi")
+	    ? [ "loader_type", "loader_options" ]
 	    : [ "loader_type", "loader_options", "loader_location",
 	    "inst_details"]
     ],

@@ -187,7 +187,7 @@ global map<string,string> edited_files = $[];
 
 /**
   * type of bootloader to configure/being configured
-  * shall be one of "lilo", "grub", "elilo", "ppc", "zipl", "grub2"
+  * shall be one of "lilo", "grub", "elilo", "ppc", "zipl", "grub2", "grub2-efi"
   */
 string loader_type = nil;
 
@@ -289,7 +289,7 @@ global list<string> update_section_types = [ "floppy", "other" ];
  * List of all supported bootloaders
  */
 global list<string> bootloaders = ["lilo", "grub", "elilo", 
-				   "zipl", "ppc", "grub2"];
+				   "zipl", "ppc", "grub2", "grub2-efi"];
 
 /** FATE#305008: Failover boot configurations for md arrays with redundancy
  * if true enable redundancy for md array
@@ -1059,7 +1059,9 @@ global define string getLoaderType (boolean recheck) {
     }
     if ((Arch::i386() || Arch::x86_64()) && Linuxrc::InstallInf("EFI") == "1")
     {
-	loader_type = "elilo";
+	// use grub2-efi as default bootloader for x86_64/i386 EFI
+	// previously we use elilo
+	loader_type = "grub2-efi";
     }
 
     loader_type = SupportedLoader (loader_type);
@@ -1139,7 +1141,7 @@ global define void setLoaderType (string bootloader) {
 global define list<string> getBootloaders () {
     if (Mode::config ())
     {
-        return ["grub", "lilo", "elilo", "zipl", "ppc", "grub2", "default", "none"];
+        return ["grub", "lilo", "elilo", "zipl", "ppc", "grub2", "grub2-efi", "default", "none"];
     }
     list<string> ret = [
 	getLoaderType (false),
@@ -1149,7 +1151,7 @@ global define list<string> getBootloaders () {
     {
         ret = (list<string>)merge (ret, ["lilo", "grub", "grub2"]);
 	if (Arch::x86_64 ())
-	    ret = (list<string>)merge (ret, ["elilo"]);
+	    ret = (list<string>)merge (ret, ["elilo", "grub2-efi"]);
     }
     // in order not to display it twice when "none" is selected
     ret = filter (string l, ret, {
