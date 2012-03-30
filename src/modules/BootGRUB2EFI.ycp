@@ -24,7 +24,7 @@ module "BootGRUB2EFI";
 
 textdomain "bootloader";
 
-import "Arch";
+import "BootArch";
 import "BootCommon";
 import "BootStorage";
 import "Kernel";
@@ -116,6 +116,30 @@ global define void Reset (boolean init) {
 
 global define void Propose () {
     y2milestone ("Proposed globals: %1", BootCommon::globals);
+
+    map<string, integer> swap_sizes = BootCommon::getSwapPartitions ();
+    list<string> swap_parts = (list<string>)
+        maplist (string name, integer size, swap_sizes, ``(name));
+    swap_parts = sort (string a, string b, swap_parts,
+                       ``(swap_sizes[a]:0 > swap_sizes[b]:0)
+                       );
+
+    string largest_swap_part = swap_parts[0]:"";
+
+    string resume = BootArch::ResumeAvailable ()
+        ? largest_swap_part
+        : "";
+    // try to use label or udev id for device name... FATE #302219
+    if ((resume != "") && (resume != nil))
+        resume = BootStorage::Dev2MountByDev(resume);
+    BootCommon::globals["append"] = BootArch::DefaultKernelParams (resume);
+
+    // Let grub2 scripts detects correct root= for us. :)
+    // BootCommon::globals["root"] = BootStorage::Dev2MountByDev(BootStorage::RootPartitionDevice);
+    if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
+    {
+        BootCommon::globals["vgamode"] = Kernel::GetVgaType ();
+    }
 }
 
 /**
