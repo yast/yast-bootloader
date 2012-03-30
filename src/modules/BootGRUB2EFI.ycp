@@ -1,0 +1,189 @@
+/**
+ * File:
+ *      modules/BootGRUB2EFI.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Module containing specific functions for GRUB2EFI configuration
+ *      and installation
+ *
+ * Authors:
+ *      Jiri Srain <jsrain@suse.cz>
+ *      Joachim Plack <jplack@suse.de>
+ *      Olaf Dabrunz <od@suse.de>
+ *      Philipp Thomas <pth@suse.de>
+ *
+ * $Id: BootGRUB2EFI.ycp 63508 2011-03-04 12:53:27Z jreidinger $
+ *
+ */
+
+{
+module "BootGRUB2EFI";
+
+textdomain "bootloader";
+
+import "Arch";
+import "BootCommon";
+import "BootStorage";
+import "Kernel";
+import "Mode";
+import "Stage";
+import "Storage";
+import "StorageDevices";
+import "Pkg";
+import "HTML";
+
+// includes
+// for shared some routines with grub
+// include "bootloader/grub/misc.ycp";
+// for simplified widgets than other
+// include "bootloader/grub2efi/dialogs.ycp";
+// general functions
+
+/**
+ * Read settings from disk
+ * @param reread boolean true to force reread settings from system
+ * @param avoid_reading_device_map do not read new device map from file, use
+ * internal data
+ * @return boolean true on success
+ */
+global boolean Read (boolean reread, boolean avoid_reading_device_map) {
+    BootCommon::InitializeLibrary (reread, "grub2-efi");
+    if (reread) {
+        BootCommon::ReadFiles (avoid_reading_device_map);
+    }
+    // TODO: check if necessary for grub2efi
+    // grub_DetectDisks ();
+    boolean ret = BootCommon::Read (false, avoid_reading_device_map);
+
+    // TODO: check if necessary for grub2
+    // refresh device map if not read
+    // if (BootStorage::device_mapping == nil
+    //    || size (BootStorage::device_mapping) == 0)
+    // {
+    //    BootStorage::ProposeDeviceMap ();
+    // }
+
+    return ret;
+}
+
+/**
+  * Update read settings to new version of configuration files
+  */
+global define void Update () {
+    Read (true, true);
+
+    //we don't handle sections, grub2 section create them for us
+    //BootCommon::UpdateSections ();
+    BootCommon::UpdateGlobals ();
+}
+
+/**
+  * Write bootloader settings to disk
+  * @return boolean true on success
+  */
+global define boolean Write () {
+
+    boolean ret = BootCommon::UpdateBootloader ();
+
+    if (BootCommon::location_changed) {
+        boolean grub_ret = BootCommon::InitializeBootloader ();
+        if (grub_ret == nil)
+            grub_ret = false;
+
+        y2milestone ("GRUB2EFI return value: %1", grub_ret);
+        ret = ret && grub_ret;
+    }
+
+    return ret;
+}
+
+/**
+  * Reset bootloader settings
+  * @param init boolean true to repropose also device map
+  */
+global define void Reset (boolean init) {
+    if (Mode::autoinst ())
+        return;
+    BootCommon::Reset (init);
+}
+
+/**
+  * Propose bootloader settings
+  */
+
+global define void Propose () {
+    y2milestone ("Proposed globals: %1", BootCommon::globals);
+}
+
+/**
+  * Display bootloader summary
+  * @return a list of summary lines
+  */
+
+global define list<string> Summary () {
+    list<string> result = [ sformat (_("Boot Loader Type: %1"),
+        BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)) ];
+    list<string> locations = [];
+
+    return result;
+}
+
+/**
+ * Return map of provided functions
+ * @return a map of functions (eg. $["write":BootGRUB2EFI::Write])
+ */
+global map<string, any> GetFunctions () {
+    return $[
+        "read"                  : Read,
+        "reset"                 : Reset,
+        "propose"               : Propose,
+        "summary"               : Summary,
+        "update"                : Update,
+        #TODO grub2widgets
+        #"widgets"               : grub2Widgets,
+        "widgets"               : $[],
+        "write"                 : Write,
+    ];
+}
+
+
+/**
+  * Initializer of GRUB2EFI bootloader
+  */
+global define void Initializer () {
+    y2milestone ("Called GRUB2EFI initializer");
+    BootCommon::current_bootloader_attribs = $[
+        "propose" : false,
+        "read" : false,
+        "scratch" : false,
+        "restore_mbr" : false,
+        "bootloader_on_disk" : false,
+    ];
+}
+
+/**
+  * Constructor
+  */
+global define void BootGRUB2EFI () {
+    BootCommon::bootloader_attribs["grub2-efi"] = $[
+        "required_packages" : ["grub2-efi"],
+        "loader_name" : "GRUB2-EFI",
+        "initializer" : BootGRUB2EFI::Initializer,
+    ];
+}
+
+} // EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */
+
