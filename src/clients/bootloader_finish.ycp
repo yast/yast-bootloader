@@ -151,9 +151,9 @@ in the documentation.
 	    // and we're ready to start (boot into) the installed system
 	    // Message that will be displayed along with information
 	    // how the boot loader was installed
-	    Misc::boot_msg = _("The system will reboot now.
+	    Misc::boot_msg = sformat(_("The system will reboot now.
 After reboot, reconnect and run the following:
-/usr/lib/YaST2/startup/YaST2.ssh");
+%1"), "yast.ssh");
 	else
 	    // Final message after all packages from CD1 are installed
 	    // and we're ready to start (boot into) the installed system
