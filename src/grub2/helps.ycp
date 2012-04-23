@@ -1,0 +1,43 @@
+/**
+ * File:
+ *      include/bootloader/grup2/helps.ycp
+ *
+ * Module:
+ *      Bootloader installation and configuration
+ *
+ * Summary:
+ *      Help and label strings for bootloader installation and configuration
+ *
+ * Authors:
+ *      Joachim Plack <jplack@suse.de>
+ *
+ * $Id: helps.ycp 58279 2009-08-04 16:01:51Z juhliarik $
+ *
+ */
+
+{
+textdomain "bootloader";
+
+global map<string,string> grub2_help_messages = $[
+    "append"    :
+    _("<p><b>Optional Kernel Command Line Parameter</b> lets you define additional parameters to pass to the kernel.</p>"),
+    "vgamode"   :
+    _("<p><b>Vga Mode</b> defines the VGA mode the kernel should set the <i>console</i> to when booting.</p>"),
+];
+
+global map<string,string> grub2_descriptions = $[
+    "append"     : _("O&ptional Kernel Command Line Parameter"),
+    "vgamode"    : _("&Vga Mode"),
+];
+
+} //EOF
+
+/*
+ * Local variables:
+ *     mode: ycp
+ *     mode: font-lock
+ *     mode: auto-fill
+ *     indent-level: 4
+ *     fill-column: 78
+ * End:
+ */
