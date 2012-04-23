@@ -736,7 +736,7 @@ map TabsDescr () {
 		    `HStretch (),
 		    `VBox (
 			`Label (""),
-			 (lt == "none" || lt == "default" || lt == "zipl" || lt == "lilo" || lt == "grub2-efi")
+			 (lt == "none" || lt == "default" || lt == "zipl" || lt == "lilo")
                          ? `Empty()  : "loader_options"
 		    ),
 		    `HSpacing (2)

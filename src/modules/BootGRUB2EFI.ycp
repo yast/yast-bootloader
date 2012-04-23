@@ -39,8 +39,18 @@ import "HTML";
 // for shared some routines with grub
 // include "bootloader/grub/misc.ycp";
 // for simplified widgets than other
-// include "bootloader/grub2efi/dialogs.ycp";
+include "bootloader/grub2/dialogs.ycp";
 // general functions
+
+/**
+ * Propose global options of bootloader
+ */
+global map<string,string> StandardGlobals () {
+    return $[
+		"timeout" : "8",
+		"default" : "0",
+    ];
+}
 
 /**
  * Read settings from disk
@@ -117,6 +127,11 @@ global define void Reset (boolean init) {
 global define void Propose () {
     y2milestone ("Proposed globals: %1", BootCommon::globals);
 
+    if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
+    {
+        BootCommon::globals = StandardGlobals();
+    }
+
     map<string, integer> swap_sizes = BootCommon::getSwapPartitions ();
     list<string> swap_parts = (list<string>)
         maplist (string name, integer size, swap_sizes, ``(name));
@@ -155,6 +170,13 @@ global define list<string> Summary () {
     return result;
 }
 
+global map<string,symbol()> Dialogs () {
+    y2milestone ("Called GRUB2 Dialogs");
+    return $[
+        "loader"	: Grub2LoaderDetailsDialog,
+    ];
+}
+
 /**
  * Return map of provided functions
  * @return a map of functions (eg. $["write":BootGRUB2EFI::Write])
@@ -168,6 +190,7 @@ global map<string, any> GetFunctions () {
         "update"                : Update,
         #TODO grub2widgets
         #"widgets"               : grub2Widgets,
+        "dialogs"               : Dialogs,
         "widgets"               : $[],
         "write"                 : Write,
     ];
