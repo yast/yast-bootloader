@@ -9,6 +9,7 @@ Mon Apr 23 12:40:24 CEST 2012 - mchang@suse.com
 - add "Boot Loader Options" dialog for grub2 that provides widgets for
   manipulating global options. These options include activate, generic_mbr,
   timeout, vgamode, append and default.
+- 2.23.2
 
 -------------------------------------------------------------------
 Mon Apr 23 11:35:06 CEST 2012 - snwint@suse.de
