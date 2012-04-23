@@ -48,12 +48,13 @@ symbol Grub2LoaderDetailsDialog ()
             ),
             `Left("append"),
             `Left("default"),
+            `Left("console"),
             `VStretch ()
 		),
      	`HSpacing (2)
 	);
 
-    list<string> widget_names = ["activate","generic_mbr", "hiddenmenu", "timeout", "append", "vgamode", "default"];
+    list<string> widget_names = ["activate","generic_mbr", "hiddenmenu", "timeout", "append", "console", "default", "vgamode"];
     string caption = _("Boot Loader Options");
     return CWM::ShowAndRun ($[
         "widget_descr" : Grub2Options(),

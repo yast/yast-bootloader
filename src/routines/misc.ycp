@@ -1976,6 +1976,28 @@ global define void HandleConsole()
 }
 
 
+/** FATE #110038: Serial console
+ * Add console arg for kernel if there is defined serial console
+ * - add key console with value to section type image and xen
+ */
+
+global define void HandleConsole2()
+{
+    string console_value = getConsoleValue();
+
+    if (globals["append"]:nil != nil)
+    {
+        string updated_append = "";
+        if ((console_value != "") || (console_value != nil))
+            updated_append = BootCommon::UpdateSerialConsole(globals["append"]:"", console_value);
+        else
+            updated_append = BootCommon::UpdateSerialConsole(globals["append"]:"", "");
+        if (updated_append != nil)
+        {
+            globals["append"]=updated_append;
+        }
+    }
+}
 
 /** bnc #450153 - support for installation kernel from add-on
  * fucntion call client from add-on and update proposal for 
