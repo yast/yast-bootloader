@@ -26,6 +26,46 @@ import "CWM";
 import "BootCommon";
 import "Stage";
 
+include "bootloader/grub2/options.ycp";
+
+/**
+ * Run dialog for loader installation details for Grub2
+ * @return symbol for wizard sequencer
+ */
+symbol Grub2LoaderDetailsDialog ()
+{
+    y2milestone ("Running Grub2 loader details dialog");
+    term contents = `HBox (
+        `HSpacing (2),
+        `VBox (
+            `VStretch (),
+            `Left("activate"),
+            `Left("generic_mbr"),
+            `Left("hiddenmenu"),
+            `HBox (
+            `Left(`HSquash("timeout")),
+            `Left(`HWeight(1, "vgamode"))
+            ),
+            `Left("append"),
+            `Left("default"),
+            `VStretch ()
+		),
+     	`HSpacing (2)
+	);
+
+    list<string> widget_names = ["activate","generic_mbr", "hiddenmenu", "timeout", "append", "vgamode", "default"];
+    string caption = _("Boot Loader Options");
+    return CWM::ShowAndRun ($[
+        "widget_descr" : Grub2Options(),
+        "widget_names" : widget_names,
+        "contents" : contents,
+        "caption" : caption,
+        "back_button" : Label::BackButton (),
+        "abort_button" : Label::CancelButton (),
+        "next_button" : Label::OKButton (),
+    ]);
+}
+
 include "bootloader/grub/options.ycp";
 
 /**

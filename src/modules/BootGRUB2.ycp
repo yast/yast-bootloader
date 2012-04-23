@@ -43,6 +43,16 @@ include "bootloader/grub2/dialogs.ycp";
 // general functions
 
 /**
+ * Propose global options of bootloader
+ */
+global map<string,string> StandardGlobals () {
+    return $[
+		"timeout" : "8",
+		"default" : "0",
+    ];
+}
+
+/**
  * Read settings from disk
  * @param reread boolean true to force reread settings from system
  * @param avoid_reading_device_map do not read new device map from file, use
@@ -121,6 +131,12 @@ global define void Reset (boolean init) {
 
 global define void Propose () {
     y2milestone ("Proposed globals: %1", BootCommon::globals);
+
+    if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
+    {
+        BootCommon::globals = StandardGlobals();
+    }
+
     grub_LocationProposal ();
 
     map<string, integer> swap_sizes = BootCommon::getSwapPartitions ();
@@ -177,6 +193,13 @@ global define list<string> Summary () {
     return result;
 }
 
+global map<string,symbol()> Dialogs () {
+    y2milestone ("Called GRUB2 Dialogs");
+    return $[
+	"loader"	: Grub2LoaderDetailsDialog,
+    ];
+}
+
 /**
  * Return map of provided functions
  * @return a map of functions (eg. $["write":BootGRUB2::Write])
@@ -189,6 +212,7 @@ global map<string, any> GetFunctions () {
         "summary"               : Summary,
         "update"                : Update,
         "widgets"               : grub2Widgets,
+        "dialogs"               : Dialogs,
         "write"                 : Write,
     ];
 }
