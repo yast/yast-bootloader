@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Mon Apr 23 12:40:24 CEST 2012 - mchang@suse.com
+
+- add "Boot Loader Options" dialog for grub2-efi that provides widgets for
+  manipulating global options. These options include timeout, vgamode,
+  append and default.
+- add widgets for enabling serial console and specify it's arguments on
+  "Boot Loader Options" dialog.
+- add "Boot Loader Options" dialog for grub2 that provides widgets for
+  manipulating global options. These options include activate, generic_mbr,
+  timeout, vgamode, append and default.
+
+-------------------------------------------------------------------
 Mon Apr 23 11:35:06 CEST 2012 - snwint@suse.de
 
 - adapted ssh command for 2nd stage ssh installation (bnc#745340)
