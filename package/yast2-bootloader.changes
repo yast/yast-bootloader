@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 24 15:06:19 CEST 2012 - snwint@suse.de
+
+- don't do kexec on hyper-v (bnc#732693)
+- 2.23.3
+
+-------------------------------------------------------------------
 Mon Apr 23 12:40:24 CEST 2012 - mchang@suse.com
 
 - add "Boot Loader Options" dialog for grub2-efi that provides widgets for
