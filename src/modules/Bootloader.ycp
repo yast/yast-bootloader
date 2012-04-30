@@ -1372,7 +1372,6 @@ string checkZiplDefault(string def)
  * @param map<string,any> boot section
  * @return map<string,any> updated boot section
  */
-
 map<string,any> updateAppend(map<string,any> section)
 {
 	map<string,any> ret = section;
@@ -1386,6 +1385,64 @@ map<string,any> updateAppend(map<string,any> section)
 	}
 	return ret;
 }
+
+
+/**
+ * Get entry from DMI data returned by .probe.bios.
+ *
+ * @param list<map> bios_data: result of SCR::Read(.probe.bios)
+ * @param string section: section name
+ * @param string key: key in section
+ * @return string: entry
+ */
+string DMIRead (list<map> bios_data, string section, string key) {
+	string result = "";
+
+	foreach (map x, bios_data[0, "smbios"]:[], {
+		if (x["type"]:"" == section) {
+			result = x[key]:"";
+			break;
+		}
+	});
+
+	y2milestone ("Bootloader::DMIRead(%1, %2) = %3", section, key, result);
+
+	return result;
+}
+
+
+/**
+ * Check if we run in a vbox vm.
+ *
+ * @param list<map> bios_data: result of SCR::Read(.probe.bios)
+ * @return boolean: true if yast runs in a vbox vm
+ */
+boolean IsVirtualBox (list<map> bios_data) {
+	boolean r = DMIRead(bios_data, "sysinfo", "product") == "VirtualBox";
+
+	y2milestone("Bootloader::IsVirtualBox = %1", r);
+
+	return r;
+}
+
+
+/**
+ * Check if we run in a hyperv vm.
+ *
+ * @param list<map> bios_data: result of SCR::Read(.probe.bios)
+ * @return boolean: true if yast runs in a hyperv vm
+ */
+boolean IsHyperV (list<map> bios_data) {
+	boolean r =
+		DMIRead(bios_data, "sysinfo", "manufacturer") == "Microsoft Corporation" &&
+		DMIRead(bios_data, "sysinfo", "product") == "Virtual Machine";
+
+	y2milestone("Bootloader::IsHyperV = %1", r);
+
+	return r;
+}
+
+
 /**
  * Copy initrd and kernel on the end of instalation
  * (1st stage)
@@ -1418,20 +1475,21 @@ global define boolean CopyKernelInird()
 		return true;
 	}
 
+	list<map> bios_data = (list<map>) SCR::Read(.probe.bios);
 
-	// checking if installation run on VirtualBox
-        string cmd = sformat("hwinfo --bios |grep Product");
-        y2milestone("Checking if installation run on VirtualBox command: %1", cmd);
+	y2milestone("CopyKernelInird::bios_data = %1", bios_data);
 
-    	map out = (map)WFM::Execute(.local.bash_output, cmd);
-
-	if (search(out["stdout"]:"", "VirtualBox") != nil)
-	{
-		y2milestone ("Installation run on VirtualBox, skip kexec loading: %1", out);
+	if (IsVirtualBox(bios_data)) {
+		y2milestone ("Installation run on VirtualBox, skip kexec loading");
 		return false;
 	}
 
-	// create defualt sections
+	if (IsHyperV(bios_data)) {
+		y2milestone ("Installation run on HyperV, skip kexec loading");
+		return false;
+	}
+
+	// create default sections
 	map<string,any> linux_default = BootCommon::CreateLinuxSection ("linux");
 
 	y2milestone("linux_default: %1", linux_default);
@@ -1455,7 +1513,7 @@ global define boolean CopyKernelInird()
 	WFM::Execute(.local.mkdir, "/var/lib/YaST2");
 	
 	// build command for copy kernel and initrd to /var/lib/YaST during instalation
-	cmd = nil;
+	string cmd = nil;
 
 	default_section = updateAppend(default_section);
 
@@ -1463,7 +1521,7 @@ global define boolean CopyKernelInird()
 		tostring(default_section["initrd"]:""), Directory::vardir);
 
 	y2milestone("Command for copy: %1", cmd);
-	out = (map) WFM::Execute (.local.bash_output, cmd);
+	map out = (map) WFM::Execute (.local.bash_output, cmd);
 	if (out["exit"]:nil != 0)
 	{
 		y2error ("Copy kernel and initrd failed, output: %1", out);
