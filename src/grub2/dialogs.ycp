@@ -44,11 +44,13 @@ symbol Grub2LoaderDetailsDialog ()
             `Left("hiddenmenu"),
             `HBox (
             `Left(`HSquash("timeout")),
-            `Left(`HWeight(1, "vgamode"))
+            `Left(`HSquash("vgamode")),
+            `HStretch ()
             ),
             `Left("append"),
             `Left("default"),
             `Left("console"),
+            `Left("gfxterm"),
             `VStretch ()
 		),
      	`HSpacing (2)
