@@ -49,6 +49,9 @@ global map<string,string> StandardGlobals () {
     return $[
 		"timeout" : "8",
 		"default" : "0",
+		"vgamode" : "",
+		"gfxmode" : "",
+		"terminal" : "gfxterm",
     ];
 }
 
@@ -158,10 +161,13 @@ global define void Propose () {
 
     // Let grub2 scripts detects correct root= for us. :)
     // BootCommon::globals["root"] = BootStorage::Dev2MountByDev(BootStorage::RootPartitionDevice);
-    if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
-    {
-        BootCommon::globals["vgamode"] = Kernel::GetVgaType ();
-    }
+
+    // We don't set vga= if Grub2 gfxterm enabled, because the modesettings
+    // will be delivered to kernel by Grub2's gfxpayload set to "keep"
+    //if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
+    //{
+    //    BootCommon::globals["vgamode"] = Kernel::GetVgaType ();
+    //}
 }
 
 
