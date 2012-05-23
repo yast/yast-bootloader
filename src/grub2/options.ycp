@@ -26,12 +26,18 @@ include "bootloader/routines/common_options.ycp";
 include "bootloader/grub/helps.ycp";
 include "bootloader/grub2/helps.ycp";
 
+list<map> vga_modes = [];
+
 /**
  * Init function of widget
  * @param widget any id of the widget
  */
 void VgaModeInit (string widget) {
-    list<map> vga_modes = Initrd::VgaModes ();
+
+    if ( size(vga_modes) == 0) {
+        vga_modes = Initrd::VgaModes ();
+    }
+
     list items = maplist (map m, vga_modes, {
 	return `item (`id (sformat ("%1",  tohexstring(m["mode"]:0))),
 	    // combo box item
@@ -72,6 +78,46 @@ void ConsoleInit(string widget){
     UI::ChangeWidget(`id(`console_frame),`Value, enable);
     string args = BootCommon::globals["serial"]:"";
     UI::ChangeWidget(`id(`console_args),`Value, args);
+
+    enable = BootCommon::globals["terminal"]:"" == "gfxterm";
+    UI::ChangeWidget(`id(`gfxterm_frame),`Value, enable);
+
+    if ( size(vga_modes) == 0) {
+        vga_modes = Initrd::VgaModes ();
+    }
+
+    list<map> vga_modes_sort = sort (map a, map b, vga_modes, {
+        if (a["width"]:0 == b["width"]:0)
+            return (a["height"]:0 > b["height"]:0);
+        return (a["width"]:0 > b["width"]:0);
+    });
+
+    integer width = 0;
+    integer height = 0;
+    vga_modes_sort = filter ( map m , vga_modes_sort, ``{
+        boolean ret = false;
+        if (width != m["width"]:0 || height != m["height"]:0) {
+            ret = true;
+        }
+        width = m["width"]:0;
+        height = m["height"]:0;
+        return ret;
+    });
+
+    list items = maplist (map m, vga_modes_sort, ``{
+        string mode = sformat ("%1x%2", m["width"]:0, m["height"]:0);
+	return `item (`id (mode), mode);
+    });
+
+
+    UI::ChangeWidget(`id(`gfxmode), `Items, items);
+    string mode = BootCommon::globals["gfxmode"]:"";
+
+    /* No mode pecified, use it */
+    if (mode != "")
+        UI::ChangeWidget(`id(`gfxmode), `Value, mode);
+
+    UI::ChangeWidget(`id(`gfxbackground), `Value, BootCommon::globals["gfxbackground"]:"");
 }
 
 /**
@@ -81,6 +127,14 @@ void ConsoleInit(string widget){
  */
 void ConsoleStore(string widget, map event){
     boolean use_serial = (boolean) UI::QueryWidget(`id(`console_frame),`Value);
+    boolean use_gfxterm = (boolean) UI::QueryWidget(`id(`gfxterm_frame),`Value);
+
+    if (use_gfxterm && use_serial) {
+        use_gfxterm = false;
+    } else if (!use_gfxterm && !use_serial) {
+        BootCommon::globals["terminal"] = "console";
+    }
+
     if (use_serial)
     {
         BootCommon::globals["terminal"] = "serial";
@@ -88,15 +142,43 @@ void ConsoleStore(string widget, map event){
         if (console_value != "")
 	    BootCommon::globals["serial"] = console_value;
     } else {
-        if (haskey(BootCommon::globals, "terminal"))
-	    BootCommon::globals = remove(BootCommon::globals, "terminal");
         if (haskey(BootCommon::globals, "serial"))
 	    BootCommon::globals = remove(BootCommon::globals, "serial");
     }
 
+    if (use_gfxterm)
+    {
+        BootCommon::globals["terminal"] = "gfxterm";
+    }
+
+    string mode = (string)UI::QueryWidget(`id(`gfxmode),`Value);
+    if (mode != "")
+        BootCommon::globals["gfxmode"] = mode;
+
+    string background = (string)UI::QueryWidget(`id(`gfxbackground), `Value);
+    BootCommon::globals["gfxbackground"] = background;
+
     // FATE: #110038: Serial console
     // add or remove console key with value for sections
     BootCommon::HandleConsole2();
+}
+
+symbol ConsoleHandle(string widget, map event){
+
+  string backgrounds_dir = "/boot/grub2/backgrounds";
+
+  if (SCR::Read (.target.size, backgrounds_dir) == -1) {
+      backgrounds_dir = "/boot/grub2";
+  }
+
+  string file = UI::AskForExistingFile(backgrounds_dir, "*.png *.jpg",
+                  _("Choose new graphical menu file"));
+
+  if (file != nil){
+      UI::ChangeWidget(`id(`gfxbackground),`Value, file);
+  }
+
+  return nil;
 }
 
 map<string,map<string,any> > Grub2Options(){
@@ -129,7 +211,16 @@ map<string,map<string,any> > Grub2Options(){
 
     "console" : $[
         "widget" : `custom,
-        "custom_widget" : `HBox(
+        "custom_widget" : `VBox(
+            `CheckBoxFrame(`id(`gfxterm_frame),_("Use &graphical console"),true,
+            `HBox(
+            `HSpacing(2),
+            `ComboBox(`id(`gfxmode),`opt(`editable, `hstretch), _("&Console resolution"), [""]),
+            `HBox(`Left(`InputField(`id(`gfxbackground),`opt(`hstretch), _("&Console background"))),
+            `VBox(
+            `Left(`Label("")),
+            `Left(`PushButton(`id(`browsegfx),`opt(`notify), Label::BrowseButton())))),
+            `HStretch())),
             `CheckBoxFrame(`id(`console_frame),_("Use &serial console"),true,
             `HBox(
             `HSpacing(2),
@@ -138,6 +229,8 @@ map<string,map<string,any> > Grub2Options(){
         ),
         "init" : ConsoleInit,
         "store" : ConsoleStore,
+        "handle" : ConsoleHandle,
+        "handle_events" : [`browsegfx],
         "help" : grub_help_messages["serial"]:""
     ],
 
