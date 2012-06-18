@@ -152,6 +152,7 @@ global define void Propose () {
     if ((resume != "") && (resume != nil))
         resume = BootStorage::Dev2MountByDev(resume);
     BootCommon::globals["append"] = BootArch::DefaultKernelParams (resume);
+    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
 
     // Let grub2 scripts detects correct root= for us. :)
     // BootCommon::globals["root"] = BootStorage::Dev2MountByDev(BootStorage::RootPartitionDevice);
