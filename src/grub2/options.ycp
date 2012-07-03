@@ -110,6 +110,7 @@ void ConsoleInit(string widget){
     });
 
 
+    items = prepend(items, `item(`id("auto"), _("Autodetect by grub2")));
     UI::ChangeWidget(`id(`gfxmode), `Items, items);
     string mode = BootCommon::globals["gfxmode"]:"";
 
