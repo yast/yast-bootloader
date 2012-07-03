@@ -184,6 +184,8 @@ symbol ConsoleHandle(string widget, map event){
 
 map<string,map<string,any> > Grub2Options(){
   map<string,map<string,any> >  grub2_specific = $[
+    "distributor" : CommonInputFieldWidget(grub2_descriptions["distributor"]:"Distributor",
+                                        grub2_help_messages["distributor"]:""),
     "activate" : CommonCheckboxWidget(grub_descriptions["activate"]:"activate",
                                       grub_help_messages["activate"]:""),
     "generic_mbr" : CommonCheckboxWidget(grub_descriptions["generic_mbr"]:"generic mbr",
