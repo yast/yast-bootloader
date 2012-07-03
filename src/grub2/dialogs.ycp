@@ -45,7 +45,7 @@ symbol Grub2LoaderDetailsDialog ()
             `Left("hiddenmenu"),
             `HBox (
             `Left(`HSquash("timeout")),
-            `Left(`HSquash("vgamode")),
+            `Left("vgamode"),
             `HStretch ()
             ),
             `Left("append"),
