@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Wed Jul  4 09:44:00 CEST 2012 - mchang@suse.de
+
+- set leagcy grub as default for xen pv guest
+- use 'auto' for default gfxmode
+- replace background with theme
+- support editing GRUB_DISTRIBUTOR
+- make vgamode widget wider
+- 2.23.5
+
+-------------------------------------------------------------------
 Mon Jun  4 15:51:19 CEST 2012 - mchang@suse.com
 
 - support console related global options gfxterm, serial, gfxbackground
