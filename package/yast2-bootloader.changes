@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jun  4 15:51:19 CEST 2012 - mchang@suse.com
+
+- support console related global options gfxterm, serial, gfxbackground
+  and gfxmode
+- 2.23.4
+
+-------------------------------------------------------------------
 Tue Apr 24 15:06:19 CEST 2012 - snwint@suse.de
 
 - don't do kexec on hyper-v (bnc#732693)
