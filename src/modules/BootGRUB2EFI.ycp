@@ -51,7 +51,7 @@ global map<string,string> StandardGlobals () {
 		"timeout" : "8",
 		"default" : "0",
 		"vgamode" : "",
-		"gfxmode" : "",
+		"gfxmode" : "auto",
 		"terminal" : "gfxterm",
     ];
 }
@@ -162,31 +162,6 @@ global define void Propose () {
     //{
     //    BootCommon::globals["vgamode"] = Kernel::GetVgaType ();
     //}
-
-    list<map> vga_modes = Initrd::VgaModes ();
-
-    integer max_width = 0;
-    integer max_height = 0;
-
-    foreach (map m, vga_modes, {
-
-        integer width = m["width"]:0;
-        integer height = m["height"]:0;
-
-        if (width > max_width) {
-            max_width = width;
-            max_height = height;
-        } else if (width == max_width && height > max_height) {
-            max_height = height;
-        }
-    });
-
-    if (max_width != 0) {
-        string mode = sformat ("%1x%2", max_width, max_height);
-
-        BootCommon::globals["gfxmode"] = mode;
-        BootCommon::globals["gfxbackground"] = sformat ("/boot/grub2/backgrounds/default-%1.png", mode);
-    }
 }
 
 /**

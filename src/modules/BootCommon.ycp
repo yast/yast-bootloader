@@ -1055,6 +1055,11 @@ global define string getLoaderType (boolean recheck) {
 	// bnc #380982 - pygrub cannot boot kernel
 	// added installation of bootloader
 	y2milestone ("It is XEN domU and the bootloader should be installed");
+	// bnc #766283 - opensuse 12.2 pv guests can not start after installation
+	// due to lack of grub2 support in the host
+	// fallback to use grub until grub2 really works on it
+	if (loader_type == "grub2")
+		loader_type = "grub";
 
     }
     if ((Arch::i386() || Arch::x86_64()) && Linuxrc::InstallInf("EFI") == "1")

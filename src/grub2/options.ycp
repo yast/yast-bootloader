@@ -110,14 +110,15 @@ void ConsoleInit(string widget){
     });
 
 
+    items = prepend(items, `item(`id("auto"), _("Autodetect by grub2")));
     UI::ChangeWidget(`id(`gfxmode), `Items, items);
     string mode = BootCommon::globals["gfxmode"]:"";
 
-    /* No mode pecified, use it */
+    /* there's mode specified, use it */
     if (mode != "")
         UI::ChangeWidget(`id(`gfxmode), `Value, mode);
 
-    UI::ChangeWidget(`id(`gfxbackground), `Value, BootCommon::globals["gfxbackground"]:"");
+    UI::ChangeWidget(`id(`gfxtheme), `Value, BootCommon::globals["gfxtheme"]:"");
 }
 
 /**
@@ -155,8 +156,8 @@ void ConsoleStore(string widget, map event){
     if (mode != "")
         BootCommon::globals["gfxmode"] = mode;
 
-    string background = (string)UI::QueryWidget(`id(`gfxbackground), `Value);
-    BootCommon::globals["gfxbackground"] = background;
+    string theme = (string)UI::QueryWidget(`id(`gfxtheme), `Value);
+    BootCommon::globals["gfxtheme"] = theme;
 
     // FATE: #110038: Serial console
     // add or remove console key with value for sections
@@ -165,17 +166,17 @@ void ConsoleStore(string widget, map event){
 
 symbol ConsoleHandle(string widget, map event){
 
-  string backgrounds_dir = "/boot/grub2/backgrounds";
+  string theme_dir = "/boot/grub2/themes/openSUSE";
 
-  if (SCR::Read (.target.size, backgrounds_dir) == -1) {
-      backgrounds_dir = "/boot/grub2";
+  if (SCR::Read (.target.size, theme_dir) == -1) {
+      theme_dir = "/boot/grub2";
   }
 
-  string file = UI::AskForExistingFile(backgrounds_dir, "*.png *.jpg",
-                  _("Choose new graphical menu file"));
+  string file = UI::AskForExistingFile(theme_dir, "*.txt",
+                  _("Choose new graphical theme file"));
 
   if (file != nil){
-      UI::ChangeWidget(`id(`gfxbackground),`Value, file);
+      UI::ChangeWidget(`id(`gfxtheme),`Value, file);
   }
 
   return nil;
@@ -183,6 +184,8 @@ symbol ConsoleHandle(string widget, map event){
 
 map<string,map<string,any> > Grub2Options(){
   map<string,map<string,any> >  grub2_specific = $[
+    "distributor" : CommonInputFieldWidget(grub2_descriptions["distributor"]:"Distributor",
+                                        grub2_help_messages["distributor"]:""),
     "activate" : CommonCheckboxWidget(grub_descriptions["activate"]:"activate",
                                       grub_help_messages["activate"]:""),
     "generic_mbr" : CommonCheckboxWidget(grub_descriptions["generic_mbr"]:"generic mbr",
@@ -216,7 +219,7 @@ map<string,map<string,any> > Grub2Options(){
             `HBox(
             `HSpacing(2),
             `ComboBox(`id(`gfxmode),`opt(`editable, `hstretch), _("&Console resolution"), [""]),
-            `HBox(`Left(`InputField(`id(`gfxbackground),`opt(`hstretch), _("&Console background"))),
+            `HBox(`Left(`InputField(`id(`gfxtheme),`opt(`hstretch), _("&Console theme"))),
             `VBox(
             `Left(`Label("")),
             `Left(`PushButton(`id(`browsegfx),`opt(`notify), Label::BrowseButton())))),

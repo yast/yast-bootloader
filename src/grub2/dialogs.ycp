@@ -39,12 +39,13 @@ symbol Grub2LoaderDetailsDialog ()
         `HSpacing (2),
         `VBox (
             `VStretch (),
+            `Left(`HSquash("distributor")),
             `Left("activate"),
             `Left("generic_mbr"),
             `Left("hiddenmenu"),
             `HBox (
             `Left(`HSquash("timeout")),
-            `Left(`HSquash("vgamode")),
+            `Left("vgamode"),
             `HStretch ()
             ),
             `Left("append"),
@@ -58,8 +59,8 @@ symbol Grub2LoaderDetailsDialog ()
 
     string lt = BootCommon::getLoaderType (false);
     list<string> widget_names = (lt == "grub2-efi")
-                                ? ["hiddenmenu", "timeout", "append", "console", "default", "vgamode"]
-                                : ["activate","generic_mbr", "hiddenmenu", "timeout", "append", "console", "default", "vgamode"];
+                                ? ["distributor", "hiddenmenu", "timeout", "append", "console", "default", "vgamode"]
+                                : ["distributor", "activate","generic_mbr", "hiddenmenu", "timeout", "append", "console", "default", "vgamode"];
 
     string caption = _("Boot Loader Options");
     return CWM::ShowAndRun ($[
