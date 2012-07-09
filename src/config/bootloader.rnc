@@ -53,6 +53,7 @@ bl_global =
     bl_activate? &
     boot_root? &
     boot_boot? &
+    boot_extended? &
     boot_mbr? &
     stage1_dev?
   }
@@ -66,6 +67,7 @@ gfxmenu = element gfxmenu { text }
 bl_activate = element activate { "true" | "false" }
 boot_root = element boot_root { "true" | "false" }
 boot_boot = element boot_boot { "true" | "false" }
+boot_extended = element boot_extended { "true" | "false" }
 boot_mbr = element boot_mbr { "true" | "false" }
 
 sections =
