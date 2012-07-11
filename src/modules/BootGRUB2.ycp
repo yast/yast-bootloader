@@ -162,6 +162,7 @@ global define void Propose () {
     BootCommon::globals["append"] = BootArch::DefaultKernelParams (resume);
     BootCommon::globals["append_failsafe"] = BootArch::FailsafeKernelParams ();
     BootCommon::globals["distributor"] = Product::name;
+    BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
 
     // Let grub2 scripts detects correct root= for us. :)
     // BootCommon::globals["root"] = BootStorage::Dev2MountByDev(BootStorage::RootPartitionDevice);
