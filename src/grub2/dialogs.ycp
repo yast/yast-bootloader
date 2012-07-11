@@ -39,13 +39,19 @@ symbol Grub2LoaderDetailsDialog ()
         `HSpacing (2),
         `VBox (
             `VStretch (),
-            `Left(`HSquash("distributor")),
-            `Left("activate"),
-            `Left("generic_mbr"),
-            `Left("hiddenmenu"),
             `HBox (
-            `Left(`HSquash("timeout")),
-            `Left("vgamode"),
+            `HSquash("distributor"),
+            "hiddenmenu",
+            `HStretch ()
+            ),
+            `HBox (
+            "activate",
+            "generic_mbr",
+            `HStretch ()
+            ),
+            `HBox (
+            `HSquash("timeout"),
+            "vgamode",
             `HStretch ()
             ),
             `Left("append"),
