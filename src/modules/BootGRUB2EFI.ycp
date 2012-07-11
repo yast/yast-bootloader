@@ -35,6 +35,7 @@ import "StorageDevices";
 import "Pkg";
 import "HTML";
 import "Initrd";
+import "Product";
 
 // includes
 // for shared some routines with grub
@@ -153,6 +154,7 @@ global define void Propose () {
         resume = BootStorage::Dev2MountByDev(resume);
     BootCommon::globals["append"] = BootArch::DefaultKernelParams (resume);
     BootCommon::globals["append_failsafe"] = BootArch::FailsafeKernelParams ();
+    BootCommon::globals["distributor"] = Product::name;
 
     // Let grub2 scripts detects correct root= for us. :)
     // BootCommon::globals["root"] = BootStorage::Dev2MountByDev(BootStorage::RootPartitionDevice);
