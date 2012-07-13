@@ -808,20 +808,6 @@ void removeDummySections ()
 	});
 }
 
-/** bnc #450153 YaST bootloader doesn't handle kernel from add-on products in installation
- * Function check if client kernel_bl_proposal exist
- *
- * @return boolean true on success
- */
-
-boolean CheckClientForSLERT()
-{
-	if (WFM::ClientExists("kernel_bl_proposal"))
-		return true;
-	else
-		return false;
-}
-
  /**
   * Find "same" boot sections and return numbers of sections
   * from BootCommon::sections
@@ -854,12 +840,9 @@ define integer CountSection(map<string,any> find_section)
 
 global define void DelDuplicatedSections()
 {	
+	y2milestone("Deleting dummy boot sections");
+	removeDummySections ();
 
-	if (CheckClientForSLERT())
-	{
-		removeDummySections ();
-		return;
-	}
 	y2milestone("Deleting duplicated boot sections");
 	map<string,any> linux_default = $[];
 	map<string,any> linux_failsafe = $[];
