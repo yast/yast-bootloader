@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 13 12:14:26 CET 2012 - snwint@suse.de
+
+- fix regular expression quoting (bnc #743805)
+- 2.17.88
+
+-------------------------------------------------------------------
 Fri Feb 24 16:34:16 CET 2012 - snwint@suse.de
 
 - track section renaming properly in zipl menu (bnc #740324)
