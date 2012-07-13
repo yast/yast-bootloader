@@ -23,11 +23,14 @@ global map<string,string> grub2_help_messages = $[
     _("<p><b>Optional Kernel Command Line Parameter</b> lets you define additional parameters to pass to the kernel.</p>"),
     "vgamode"   :
     _("<p><b>Vga Mode</b> defines the VGA mode the kernel should set the <i>console</i> to when booting.</p>"),
+    "append_failsafe"    :
+    _("<p><b>Failsafe Kernel Command Line Parameter</b> lets you define failsafe parameters to pass to the kernel.</p>"),
 ];
 
 global map<string,string> grub2_descriptions = $[
     "append"     : _("O&ptional Kernel Command Line Parameter"),
     "vgamode"    : _("&Vga Mode"),
+    "append_failsafe" : _("&Failsafe Kernel Command Line Parameter"),
 ];
 
 } //EOF

@@ -194,6 +194,8 @@ map<string,map<string,any> > Grub2Options(){
                                         grub_help_messages["hiddenmenu"]:""),
     "append" : CommonInputFieldWidget(grub2_descriptions["append"]:"append",
                                         grub2_help_messages["append"]:""),
+    "append_failsafe" : CommonInputFieldWidget(grub2_descriptions["append_failsafe"]:"append_failsafe",
+                                        grub2_help_messages["append_failsafe"]:""),
     "vgamode" : $[
         "widget" : `combobox,
         "label" : grub2_descriptions["vgamode"]:"vgamode",
