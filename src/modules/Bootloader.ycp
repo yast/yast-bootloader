@@ -1009,7 +1009,7 @@ global define void ResolveSymlinksInSections() {
 	    // mounted) boot partition
 	    if ( haskey (s, image_key_name) ) {
                 y2milestone ("ResolveSymlinksInSections: s[%1] = %2", image_key_name, s[image_key_name]:"");
-		if ( !regexpmatch(s[image_key_name]:"", "^\(hd.*\)") ) {
+		if ( !regexpmatch(s[image_key_name]:"", "^\\(hd.*\\)") ) {
 		    s = ResolveSymlink(s, image_key_name);
 		} else {
 		    y2milestone("section %1: skipping remapping kernel symlink on other partition: %2",
@@ -1022,7 +1022,7 @@ global define void ResolveSymlinksInSections() {
 	// partition (see above)
 	if ( haskey (s, "initrd") ) {
             y2milestone ("ResolveSymlinksInSections: s[initrd] = %1", s["initrd"]:"");
-	    if ( !regexpmatch(s["initrd"]:"", "^\(hd.*\)") ) {
+	    if ( !regexpmatch(s["initrd"]:"", "^\\(hd.*\\)") ) {
 		s = ResolveSymlink(s, "initrd");
 	    } else {
 		y2milestone("section %1: skipping remapping initrd symlink on other partition: %2",

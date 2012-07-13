@@ -113,7 +113,7 @@ boolean updatePrepBootPartitions () {
 	// prep_only_iseries_vd means: use only partitions on /dev/iseries/vd*
 	if (prep_only_iseries_vd) {
 	    partitions = filter (map p, partitions, ``(
-		regexpmatch (p["device"]:"", "\/dev\/iseries\/vd.*")
+		regexpmatch (p["device"]:"", "/dev/iseries/vd.*")
 	    ));
 	}
 	if (prep_only_primary) {
@@ -1090,12 +1090,12 @@ global void Update () {
 	    string value = s[key]:"";
 	    // FIXME: check whether this is code for update from SLES8?
 	    //        then we would delete it.
-	    if (regexpmatch (value, "^.*\.shipped.*$"))
+	    if (regexpmatch (value, "^.*\\.shipped.*$"))
 	    {
 		value = regexpsub (value,
 		    "^(.*)\.shipped(.*)$", "\\1\\2");
 	    }
-	    else if (regexpmatch (value, "^.*\.suse.*$"))
+	    else if (regexpmatch (value, "^.*\\.suse.*$"))
 	    {
 		value = regexpsub (value,
 		    "^(.*)\.suse(.*)$", "\\1\\2");

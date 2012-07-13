@@ -271,10 +271,10 @@ global define boolean Read (boolean reread, boolean avoid_reading_device_map) {
 		string output = efi_status["stdout"]:"";
 		list lines = splitstring (output, "\n");
 		output = lines[0]:"";
-		if (regexpmatch (output, "Boot.*\* (.*)  HD"))
+		if (regexpmatch (output, "Boot.*\\* (.*)  HD"))
 		{
 		    BootCommon::globals["boot_efilabel"]
-			= regexpsub (output, "Boot.*\* (.*)  HD", "\\1");
+			= regexpsub (output, "Boot.*\\* (.*)  HD", "\\1");
 		    efi_entry_found = true;
 		}
 		else
