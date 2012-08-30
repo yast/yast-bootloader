@@ -191,6 +191,8 @@ map<string,map<string,any> > Grub2Options(){
                                          grub_help_messages["generic_mbr"]:""),
     "hiddenmenu" : CommonCheckboxWidget(grub_descriptions["hiddenmenu"]:"hidden menu",
                                         grub_help_messages["hiddenmenu"]:""),
+    "os_prober" : CommonCheckboxWidget(grub2_descriptions["os_prober"]:"os_prober",
+                                        grub2_help_messages["os_prober"]:""),
     "append" : CommonInputFieldWidget(grub2_descriptions["append"]:"append",
                                         grub2_help_messages["append"]:""),
     "append_failsafe" : CommonInputFieldWidget(grub2_descriptions["append_failsafe"]:"append_failsafe",

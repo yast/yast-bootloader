@@ -42,6 +42,7 @@ symbol Grub2LoaderDetailsDialog ()
             `HBox (
             `HSquash("distributor"),
             "hiddenmenu",
+            "os_prober",
             `HStretch ()
             ),
             `HBox (
@@ -66,8 +67,8 @@ symbol Grub2LoaderDetailsDialog ()
 
     string lt = BootCommon::getLoaderType (false);
     list<string> widget_names = (lt == "grub2-efi")
-                                ? ["distributor", "hiddenmenu", "timeout", "append", "append_failsafe", "console", "default", "vgamode"]
-                                : ["distributor", "activate","generic_mbr", "hiddenmenu", "timeout", "append", "append_failsafe", "console", "default", "vgamode"];
+                                ? ["distributor", "hiddenmenu", "os_prober", "timeout", "append", "append_failsafe", "console", "default", "vgamode"]
+                                : ["distributor", "activate","generic_mbr", "hiddenmenu", "os_prober", "timeout", "append", "append_failsafe", "console", "default", "vgamode"];
 
     string caption = _("Boot Loader Options");
     return CWM::ShowAndRun ($[
