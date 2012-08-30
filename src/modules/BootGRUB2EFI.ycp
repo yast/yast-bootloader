@@ -54,6 +54,7 @@ global map<string,string> StandardGlobals () {
 		"vgamode" : "",
 		"gfxmode" : "auto",
 		"terminal" : "gfxterm",
+		"os_prober" : "true",
     ];
 }
 

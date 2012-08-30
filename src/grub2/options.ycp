@@ -48,7 +48,6 @@ void VgaModeInit (string widget) {
 	    sformat (_("%1x%2, %3 bits (mode %4)"),
 		m["width"]:0, m["height"]:0, m["color"]:0,  tohexstring(m["mode"]:0)));
     });
-    items = prepend(items,`item(`id("ask"), _("Ask for resolution during boot.")));
     items = prepend(items,`item(`id("extended"), _("Standard 8-pixel font mode.")));
     // item of a combo box
     items = prepend (items, `item (`id ("normal"), _("Text Mode")));
@@ -192,6 +191,8 @@ map<string,map<string,any> > Grub2Options(){
                                          grub_help_messages["generic_mbr"]:""),
     "hiddenmenu" : CommonCheckboxWidget(grub_descriptions["hiddenmenu"]:"hidden menu",
                                         grub_help_messages["hiddenmenu"]:""),
+    "os_prober" : CommonCheckboxWidget(grub2_descriptions["os_prober"]:"os_prober",
+                                        grub2_help_messages["os_prober"]:""),
     "append" : CommonInputFieldWidget(grub2_descriptions["append"]:"append",
                                         grub2_help_messages["append"]:""),
     "append_failsafe" : CommonInputFieldWidget(grub2_descriptions["append_failsafe"]:"append_failsafe",
