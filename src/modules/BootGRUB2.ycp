@@ -39,7 +39,7 @@ import "Product";
 
 // includes
 // for shared some routines with grub
-include "bootloader/grub/misc.ycp";
+include "bootloader/grub2/misc.ycp";
 // for simplified widgets than other
 include "bootloader/grub2/dialogs.ycp";
 // general functions

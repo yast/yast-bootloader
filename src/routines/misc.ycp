@@ -1204,6 +1204,28 @@ global boolean BootloaderInstallable () {
 	    return false;
 	}
 
+	else
+	{
+	    map<string,any> tm = Storage::GetTargetMap ();
+	    map dm = tm[dev["disk"]:""]:$[];
+	    list<map> parts = dm["partitions"]:[];
+	    map info = $[];
+	    foreach (map p, parts, {
+		if (p["device"]:"" == BootStorage::BootPartitionDevice)
+		    info = p;
+	    });
+
+	    if (info["used_fs"]:nil == `btrfs)
+	    {
+		string lt = BootCommon::getLoaderType (false);
+		if (lt != "grub2" && lt != "grub2-efi" )
+		{
+		    y2milestone ("Cannot install bootloader %1 on btrfs", lt);
+		    return false;
+		}
+	    }
+	}
+
 	return true;
     }
     else
