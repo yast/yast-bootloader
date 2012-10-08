@@ -551,6 +551,7 @@ define symbol grub_ConfigureLocation() {
     map dm = tm[boot_partition_disk]:$[];
     list<map> partitions_on_boot_partition_disk = dm["partitions"]:[];
     boolean is_logical = false;
+    boolean is_logical_and_btrfs = false;
     string extended = nil;
 
     // determine the underlying devices for the "/boot" partition (either the
@@ -585,10 +586,15 @@ define symbol grub_ConfigureLocation() {
 	    // For soft-RAID this will not match anyway ("/dev/[hs]da*" does not
 	    // match "/dev/md*").
 	    is_logical = true;
+	    if (p["used_fs"]:nil == `btrfs)
+	    {
+		is_logical_and_btrfs = true;
+	    }
 	}
     });
     y2milestone ("/boot is on 1st disk: %1", boot_partition_is_on_mbr_disk);
     y2milestone ("/boot is in logical partition: %1", is_logical);
+    y2milestone ("/boot is in logical partition and use btrfs: %1", is_logical_and_btrfs);
     y2milestone ("The extended partition: %1", extended);
 
     // keep_mbr, if the MBR contains special code that needs to be kept,
@@ -649,6 +655,14 @@ define symbol grub_ConfigureLocation() {
 	    selected_location = `extended;
 	else
 	    selected_location = (BootStorage::BootPartitionDevice != BootStorage::RootPartitionDevice) ? `boot : `root;
+    }
+
+    if (is_logical_and_btrfs)
+    {
+	if (keep_mbr)
+	    y2milestone("force to use mbr even if keep_mbr is suggested");
+	y2milestone("/boot is on logical parititon and uses btrfs, mbr is favored in this situration");
+	selected_location = `mbr;
     }
 
     SetBootloaderDevice(selected_location);
