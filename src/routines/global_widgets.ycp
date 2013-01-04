@@ -748,7 +748,7 @@ map TabsDescr () {
 		? `Empty ()
 		: "loader_location",
 	    `VStretch (),
-	    (lt != "grub")
+	    (lt != "grub" && lt != "grub2")
 		? `Empty ()
 		: "inst_details",
 	    `VStretch ()

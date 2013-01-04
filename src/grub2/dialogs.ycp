@@ -85,6 +85,28 @@ symbol Grub2LoaderDetailsDialog ()
 include "bootloader/grub/options.ycp";
 
 /**
+ * Run dialog to adjust installation on i386 and AMD64
+ * @return symbol for wizard sequencer
+ */
+symbol Grub2InstallDetailsDialog () {
+    term contents =  `HBox (`HStretch (), `VBox (
+        `VStretch(),
+        `Frame (_("Disk Order"),"disks_order"),
+        `VStretch()),
+        `HStretch());
+
+    return CWM::ShowAndRun ($[
+        "widget_descr": $[ "disks_order": DisksOrderWidget()],
+        "widget_names": ["disks_order"],
+        "contents": contents,
+        "caption" : _("Disk order settings"),
+        "back_button" : Label::BackButton (),
+        "abort_button" : Label::CancelButton (),
+        "next_button" : Label::OKButton ()
+    ]);
+}
+
+/**
  * Cache for genericWidgets function
  */
 map<string,map<string,any> > _grub2_widgets = nil;
