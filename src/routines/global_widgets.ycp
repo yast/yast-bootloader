@@ -315,34 +315,20 @@ Proceed?
 	}
 
         if (new_bl == "grub2") {
-	    if (Popup::ContinueCancel (_("
-The GRUB2 is still under develope and test.
-
-Proceed?
-")))
-	    {
 		BootCommon::other_bl[old_bl] = Bootloader::Export ();
 		BootCommon::setLoaderType ("grub2");
 		Bootloader::Propose ();
 		BootCommon::location_changed = true;
 	        BootCommon::changed = true;
-	    }
 	    return `redraw;
         }
 
         if (new_bl == "grub2-efi") {
-            if (Popup::ContinueCancel (_("
-The grub2-efi is still under develope and test.
-
-Proceed?
-")))
-            {
                 BootCommon::other_bl[old_bl] = Bootloader::Export ();
                 BootCommon::setLoaderType ("grub2-efi");
                 Bootloader::Propose ();
                 BootCommon::location_changed = true;
                 BootCommon::changed = true;
-            }
             return `redraw;
         }
 
@@ -748,7 +734,7 @@ map TabsDescr () {
 		? `Empty ()
 		: "loader_location",
 	    `VStretch (),
-	    (lt != "grub")
+	    (lt != "grub" && lt != "grub2")
 		? `Empty ()
 		: "inst_details",
 	    `VStretch ()
