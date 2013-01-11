@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 11 17:17:18 CET 2013 - snwint@suse.de
+
+- jsuchome: /sbin/SuSEconfig call removed
+- mchang: some bug fixing and improve grub2's summary
+- 2.23.8
+
+-------------------------------------------------------------------
 Thu Aug 30 12:13:29 CEST 2012 - mchang@suse.com
 
 - remove vga=ask
