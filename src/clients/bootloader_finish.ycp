@@ -80,7 +80,6 @@ fi
 	}
 	y2milestone ("mount --bind /dev /mnt/dev output: %1", out);
     }
-    SCR::Execute (.target.bash, "/sbin/SuSEconfig --module bootsplash");
     // --------------------------------------------------------------
     // message after first round of packet installation
     // now the installed system is run and more packages installed
