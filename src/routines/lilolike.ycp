@@ -335,13 +335,15 @@ define string soft_MDraid_boot_disk(list<map> partitions)
 	//    return;
         map mp = Storage::GetMountPoints();
 
-        list mountdata_boot = mp["/boot"]:(mp["/"]:[]);
 	list mountdata_root = mp["/"]:[];
+        list mountdata_boot = mp["/boot"]:mountdata_root;
+	list mountdata_boot_efi = mp["/boot/efi"]:mountdata_boot;
 
         y2milestone( "mountPoints %1", mp );
         y2milestone( "mountdata_boot %1", mountdata_boot );
+        y2milestone( "mountdata_boot_efi %1", mountdata_boot_efi );
 
-        BootCommon::RootPartitionDevice = mp["/", 0]:"";
+        BootCommon::RootPartitionDevice = mountdata_root[0]:"";
 
         if (BootCommon::RootPartitionDevice == "")
         {
@@ -349,8 +351,9 @@ define string soft_MDraid_boot_disk(list<map> partitions)
         }
 
         // if /boot changed, re-configure location
-        BootCommon::BootPartitionDevice
-            = mountdata_boot[0]:BootCommon::RootPartitionDevice;
+        BootCommon::BootPartitionDevice = mountdata_boot[0]:BootCommon::RootPartitionDevice;
+
+        BootCommon::BootEFIPartitionDevice = mountdata_boot_efi[0]:BootCommon::BootPartitionDevice;
 
 	if (BootCommon::mbrDisk == "" || BootCommon::mbrDisk == nil)
 	{

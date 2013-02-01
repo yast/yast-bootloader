@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Oct 29 14:48:39 CET 2012 - snwint@suse.de
+
+- fix boot partition filesystem check for efi systems (bnc #784907)
+- 2.17.90
+
+-------------------------------------------------------------------
 Fri Jul 13 10:13:35 CEST 2012 - snwint@suse.de
 
 - always remove dummy boot entries (bnc #769827)

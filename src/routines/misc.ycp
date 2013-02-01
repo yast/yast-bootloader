@@ -2117,9 +2117,14 @@ global boolean BootloaderInstallable () {
     // the only relevant is the partition holding the /boot filesystem
     {
 	DetectDisks ();
-	y2milestone ("Boot partition device: %1",
-	    BootCommon::BootPartitionDevice);
-	map dev = Storage::GetDiskPartition( BootCommon::BootPartitionDevice);
+	string loader = BootCommon::getLoaderType (false);
+	boolean is_efi = loader == "elilo" || loader == "grub2-efi";
+
+        // FIXME: what about using getBootPartition() ???
+	string boot_partition = is_efi ? BootCommon::BootEFIPartitionDevice : BootCommon::BootPartitionDevice;
+
+	y2milestone ("Boot partition device: %1", boot_partition);
+	map dev = Storage::GetDiskPartition( boot_partition );
 	y2milestone ("Disk info: %1", dev);
 	// MD, but not mirroring is OK
 	// FIXME: type detection by name deprecated
@@ -2130,7 +2135,7 @@ global boolean BootloaderInstallable () {
 	    list<map> parts = md["partitions"]:[];
 	    map info = $[];
 	    foreach (map p, parts, {
-		if (p["device"]:"" == BootPartitionDevice)
+		if (p["device"]:"" == boot_partition)
 		    info = p;
 	    });
 	    if (tolower (info["raid_type"]:"") != "raid1")
@@ -2152,7 +2157,7 @@ global boolean BootloaderInstallable () {
 	}
 	// EVMS
 	// FIXME: type detection by name deprecated
-	else if (search (getBootPartition(), "/dev/evms/") == 0)
+	else if (search (boot_partition, "/dev/evms/") == 0)
 	{
 	    y2milestone ("Cannot install bootloader on EVMS");
 	    return false;
@@ -2621,6 +2626,9 @@ global define void WriteToSysconf(boolean inst_bootloader)
 }
 
 /**
+ *
+ * FIXME: what is the difference to using BootCommon::BootPartitionDevice directly ???
+ *
  * Function return boot device it means
  * return boot partition or root partition if boot partition deosn't exist
  * function return "" if boot partition or root partition is not defined (autoyast)
