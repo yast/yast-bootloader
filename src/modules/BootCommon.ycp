@@ -179,10 +179,16 @@ global string selected_location = nil;
 /* These global variables and functions are needed in included files */
 
 /**
-  * string sepresenting device name of /boot partition
+  * string representing device name of /boot partition
   * same as RootPartitionDevice if no separate /boot partition
   */
 global string BootPartitionDevice = "";
+
+
+/**
+  * string representing device name of /boot/efi partition, if any
+  */
+global string BootEFIPartitionDevice = "";
 
 
 /**
@@ -648,7 +654,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	);
 
 	files_filtered = filter (string file, files, {
-	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix ;
+	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix && !regexpmatch(file, "-kdump$");
 	});
 
 	// Sort the filtered files, thus the initrd strings by length, the big ones
