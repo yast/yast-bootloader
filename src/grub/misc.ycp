@@ -392,16 +392,21 @@ global boolean grub_InstallingToFloppy () {
 	    if (! Stage::initial ())
 	    {
 		PackageSystem::Install ("master-boot-code");
+		PackageSystem::Install ("syslinux");
 	    }
 	    y2milestone("Updating code in MBR: MBR Disk: %1, loader devices: %2",
 		BootCommon::mbrDisk, BootCommon::GetBootloaderDevices());
+	    string mbr_type = (Storage::GetTargetMap()[BootCommon::mbrDisk]:$[])["label"]:"";
+	    y2milestone ("mbr type = %1", mbr_type);
+	    string mbr_file = mbr_type == "gpt" ? "/usr/share/syslinux/gptmbr.bin" : "/usr/lib/boot/master-boot-code";
+
 	    list<string> disks_to_rewrite = grub_getMbrsToRewrite ();
 	    foreach (string d, disks_to_rewrite, {
 		y2milestone ("Copying generic MBR code to %1", d);
                 // added fix 446 -> 440 for Vista booting problem bnc #396444
 		string command = sformat (
 		    "/bin/dd bs=440 count=1 if=%1 of=%2",
-		    "/usr/lib/boot/master-boot-code",
+		    mbr_file,
 		    d);
 		y2milestone ("Running command %1", command);
 		map out = (map)SCR::Execute (.target.bash_output, command);
@@ -433,8 +438,15 @@ global boolean grub_InstallingToFloppy () {
 		    //   do.
 		    // FIXED: investigate proper handling of the activate flag
 		    // (kernel ioctls in parted etc.) and fix parted
-		    string command = sformat
-			("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
+
+		    // this is needed only on gpt disks but we run it always
+		    // anyway; parted just fails, then
+		    string command = sformat ("/usr/sbin/parted -s %1 set %2 legacy_boot on", mbr_dev, num);
+		    y2milestone ("Running command %1", command);
+		    map out = (map)SCR::Execute (.target.bash_output, command);
+		    y2milestone ("Command output: %1", out);
+
+		    string command = sformat ("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
 		    y2milestone ("Running command %1", command);
 		    map out = (map)SCR::Execute (.target.bash_output, command);
 		    integer exit = out["exit"]:0;
