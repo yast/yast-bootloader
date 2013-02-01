@@ -17,7 +17,7 @@ BuildRequires:  yast2-pkg-bindings >= 2.17.25
 BuildRequires:  perl-Bootloader >= 0.4.80
 
 %ifarch %ix86 x86_64
-Requires:	master-boot-code
+Requires:	master-boot-code syslinux
 %endif
 
 Provides:	yast2-config-lilo yast2-config-bootloader
