@@ -446,9 +446,9 @@ global boolean grub_InstallingToFloppy () {
 		    map out = (map)SCR::Execute (.target.bash_output, command);
 		    y2milestone ("Command output: %1", out);
 
-		    string command = sformat ("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
+		    command = sformat ("/usr/sbin/parted -s %1 set %2 boot on", mbr_dev, num);
 		    y2milestone ("Running command %1", command);
-		    map out = (map)SCR::Execute (.target.bash_output, command);
+		    out = (map)SCR::Execute (.target.bash_output, command);
 		    integer exit = out["exit"]:0;
 		    y2milestone ("Command output: %1", out);
 		    ret = ret && (0 == exit);
