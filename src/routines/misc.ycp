@@ -832,7 +832,7 @@ list<string> ListKernelParamsInLine (string line) {
 	{
 	    if (! Stage::initial ())
 	    {
-		PackageSystem::Install ("master-boot-code");
+		PackageSystem::Install ("syslinux");
 	    }
 	    y2milestone("Updating code in MBR: MBR Disk: %1, loader device: %2",
 		BootCommon::mbrDisk, BootCommon::loader_device);
@@ -842,7 +842,7 @@ list<string> ListKernelParamsInLine (string line) {
 		// added fix 446 -> 440 Vista booting problem bnc # 396444
 		string command = sformat (
 		    "/bin/dd bs=440 count=1 if=%1 of=%2",
-		    "/usr/lib/boot/master-boot-code",
+		    "/usr/share/syslinux/mbr.bin",
 		    d);
 		y2milestone ("Running command %1", command);
 		map out = (map)SCR::Execute (.target.bash_output, command);

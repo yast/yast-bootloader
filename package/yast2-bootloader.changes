@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Feb  4 15:05:47 CET 2013 - snwint@suse.de
+
+- write gpt bootcode on gpt disks (fate #313880)
+- fix initrd selection due to initrd-*-kdump in our new kernel packages
+- take boot code from syslinux instead of master-boot-code package
+- 2.23.10
+
+-------------------------------------------------------------------
 Mon Feb  4 13:42:36 CET 2013 - snwint@suse.de
 
 - fix automake file

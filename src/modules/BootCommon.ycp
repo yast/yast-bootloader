@@ -482,7 +482,7 @@ global map<string,any> CreateLinuxSection (string title) {
 	kernel_fn = (files_filtered[0]:"");
 
 	files_filtered = filter (string file, files, {
-	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix ;
+	    return substring(file, 0, size(initrd_prefix)) == initrd_prefix && !regexpmatch(file, "-kdump$");
 	});
 
 	// Sort the filtered files, thus the initrd strings by length, the big ones
