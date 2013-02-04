@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb  4 13:42:36 CET 2013 - snwint@suse.de
+
+- fix automake file
+- 2.23.9
+
+-------------------------------------------------------------------
 Fri Jan 11 17:17:18 CET 2013 - snwint@suse.de
 
 - jsuchome: /sbin/SuSEconfig call removed
