@@ -54,6 +54,12 @@ However, some controllers do not support EDD30 and forcing the variable
 may cause problems. Therefore, as of elilo-3.2, there is an option to 
 avoid forcing the variable.</p>
 "),
+    "secure-boot"		 :
+    _("<p><b>Support Secure Boot</b><br>
+Create a boot loader config that works also on systems where secure boot is enabled.
+The config uses shim and grub2 instead of elilo. Note: it will work even if secure boot
+is disabled.</p>
+"),
     "relocatable"	 :
     _("<p><b>Allow attempt to relocate</b><br>
 In case of memory allocation error at initial load point of
@@ -88,6 +94,7 @@ global map<string,string> elilo_descriptions = $[
     "fX"		 : _("Display the content of a file by function keys"),
     "noedd30"		 : _("Prevent EDD30 mode"),
     "fpswa"		 : _("Specify the filename for a specific FPSWA to load"),
+    "secure-boot"	 : _("Support Secure Boot"),
     "relocatable"	 : _("Allow attempt to relocate"),
     "boot_custom"	 : _("Custom Boot Partition"),
     "type_image"         : _("Image Section"),
