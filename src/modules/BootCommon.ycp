@@ -190,6 +190,7 @@ global map<string,string> edited_files = $[];
   * shall be one of "lilo", "grub", "elilo", "ppc", "zipl", "grub2", "grub2-efi"
   */
 string loader_type = nil;
+boolean secure_boot = nil;
 
 // sysconfig variables
 
@@ -303,6 +304,7 @@ global boolean enable_selinux = false;
 
 
 global define string getLoaderType (boolean recheck);
+global define boolean getSystemSecureBootStatus (boolean recheck);
 global define list<string> getBootloaders ();
 global define list<string> Summary ();
 global map<string,any> CreateLinuxSection (string title);
@@ -857,6 +859,8 @@ global boolean Save (boolean clean, boolean init, boolean flush) {
     // add check if there is memtest and delete from memtest section
     // keys like append, initrd etc...
     checkMemtest ();
+    y2milestone ("SetSecureBoot %1", secure_boot);
+    ret = ret && SetSecureBoot (secure_boot);
     ret = ret && DefineMultipath(BootStorage::multipath_mapping);
     ret = ret && SetDeviceMap (my_device_mapping);
     ret = ret && SetSections (sections);
@@ -1137,6 +1141,49 @@ global define void setLoaderType (string bootloader) {
     if (loader_type != nil)
         setCurrentLoaderAttribs (loader_type);
     y2milestone ("Loader type set");
+}
+
+global define boolean getSystemSecureBootStatus (boolean recheck) {
+
+    if ((! recheck) && (secure_boot != nil))
+        return secure_boot;
+
+    if (Mode::update () || Mode::normal () || Mode::repair ())
+    {
+        string sb = (string) SCR::Read (.sysconfig.bootloader.SECURE_BOOT);
+
+        if (sb != nil && sb != "")
+        {
+            secure_boot = (sb == "yes") ? true : false;
+            return secure_boot;
+        }
+    }
+
+    // TODO : Detect Secure Boot
+    secure_boot = false;
+    return secure_boot;
+}
+
+global define void setSystemSecureBootStatus (boolean enable) {
+
+/*
+    if (enable && enable != secure_boot)
+    {
+        // don't configure package manager during autoinstallation preparing
+        if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
+        {
+            y2milestone ("Install shim");
+            PackageSystem::InstallAll (["shim"]);
+        }
+        else if (Stage::initial () )
+        {
+            y2milestone ("AddResolvables shim");
+            PackagesProposal::AddResolvables ("yast2-bootloader", `package, ["shim"]);
+        }
+    }
+*/
+    y2milestone ("Set secure boot: %2 => %1", enable, secure_boot);
+    secure_boot = enable;
 }
 
 /**

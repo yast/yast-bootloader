@@ -84,6 +84,44 @@ symbol Grub2LoaderDetailsDialog ()
 
 include "bootloader/grub/options.ycp";
 
+void  InitSecureBootWidget(string widget) {
+    boolean sb = BootCommon::getSystemSecureBootStatus(false);
+    UI::ChangeWidget (`id ("secure_boot"), `Value, sb);
+}
+symbol HandleSecureBootWidget (string widget, map event) {
+    return nil;
+}
+void StoreSecureBootWidget (string widget, map event) {
+    boolean sb = (boolean)UI::QueryWidget(`id("secure_boot"), `Value);
+    BootCommon::setSystemSecureBootStatus (sb);
+}
+string HelpSecureBootWidget() {
+    string ret = "Tick to enable UEFI Secure Boot\n";
+    return ret;
+}
+
+map<string,any> grub2SecureBootWidget ()
+{
+    term contents = `VBox (
+	`Frame (_("Secure Boot"),
+	   `VBox (`HBox(`HSpacing(1),`VBox(
+	       `Left(`CheckBox( `id("secure_boot"), _("Enable &Secure Boot Support"))),
+	       `VStretch()
+            )))
+         ),
+	`VStretch()
+    );
+
+    return $[
+      "widget" : `custom,
+      "custom_widget" : contents,
+      "init" : InitSecureBootWidget,
+      "handle" : HandleSecureBootWidget,
+      "store" : StoreSecureBootWidget,
+      "help" : HelpSecureBootWidget(),
+  ];
+}
+
 /**
  * Run dialog to adjust installation on i386 and AMD64
  * @return symbol for wizard sequencer
@@ -110,6 +148,7 @@ symbol Grub2InstallDetailsDialog () {
  * Cache for genericWidgets function
  */
 map<string,map<string,any> > _grub2_widgets = nil;
+map<string,map<string,any> > _grub2_efi_widgets = nil;
 
 /**
  * Get generic widgets
@@ -123,6 +162,21 @@ global map<string,map<string,any> > grub2Widgets () {
 	];
     }
     return _grub2_widgets;
+}
+
+global map<string,map<string,any> > grub2efiWidgets () {
+
+    if (Arch::x86_64 ())
+    {
+        if (_grub2_efi_widgets == nil)
+        {
+            _grub2_efi_widgets = $[
+                "loader_location" : grub2SecureBootWidget ()
+            ];
+        }
+    }
+
+    return _grub2_efi_widgets;
 }
 
 } //EOF

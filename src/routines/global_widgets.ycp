@@ -730,7 +730,7 @@ map TabsDescr () {
 		`VSpacing (0.4)
 	    )),
 	    `VStretch (),
-	    (lt == "none" || lt == "default" || lt == "zipl" || lt == "lilo" || lt == "grub2-efi")
+	    (lt == "none" || lt == "default" || lt == "zipl" || lt == "lilo")
 		? `Empty ()
 		: "loader_location",
 	    `VStretch (),
@@ -739,7 +739,7 @@ map TabsDescr () {
 		: "inst_details",
 	    `VStretch ()
 	), `HStretch ()),
-        "widget_names": (lt == "none" || lt == "default" || lt=="zipl" || lt == "grub2-efi")
+        "widget_names": (lt == "none" || lt == "default" || lt=="zipl")
 	    ? [ "loader_type", "loader_options" ]
 	    : [ "loader_type", "loader_options", "loader_location",
 	    "inst_details"]
