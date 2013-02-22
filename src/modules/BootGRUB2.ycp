@@ -164,6 +164,7 @@ global define void Propose () {
     BootCommon::globals["append_failsafe"] = BootArch::FailsafeKernelParams ();
     BootCommon::globals["distributor"] = Product::short_name + " " + Product::version;
     BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
+    BootCommon::globals["gfxtheme"] = "/boot/grub2/themes/" + Product::short_name + "/theme.txt";
 
     // Let grub2 scripts detects correct root= for us. :)
     // BootCommon::globals["root"] = BootStorage::Dev2MountByDev(BootStorage::RootPartitionDevice);
