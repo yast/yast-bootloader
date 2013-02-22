@@ -157,6 +157,7 @@ global define void Propose () {
     BootCommon::globals["append_failsafe"] = BootArch::FailsafeKernelParams ();
     BootCommon::globals["distributor"] = Product::short_name + " " + Product::version;
     BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
+    BootCommon::globals["gfxtheme"] = "/boot/grub2/themes/" + Product::short_name + "/theme.txt";
 
     // Let grub2 scripts detects correct root= for us. :)
     // BootCommon::globals["root"] = BootStorage::Dev2MountByDev(BootStorage::RootPartitionDevice);
@@ -177,8 +178,8 @@ global define void Propose () {
 global define list<string> Summary () {
     list<string> result = [ sformat (_("Boot Loader Type: %1"),
         BootCommon::getLoaderName (BootCommon::getLoaderType (false), `summary)) ];
-    list<string> locations = [];
 
+    result = add (result, sformat (_("Enable Secure Boot: %1"), BootCommon::getSystemSecureBootStatus (false)));
     return result;
 }
 
@@ -200,10 +201,8 @@ global map<string, any> GetFunctions () {
         "propose"               : Propose,
         "summary"               : Summary,
         "update"                : Update,
-        #TODO grub2widgets
-        #"widgets"               : grub2Widgets,
+        "widgets"               : grub2efiWidgets,
         "dialogs"               : Dialogs,
-        "widgets"               : $[],
         "write"                 : Write,
     ];
 }
@@ -228,7 +227,7 @@ global define void Initializer () {
   */
 global define void BootGRUB2EFI () {
     BootCommon::bootloader_attribs["grub2-efi"] = $[
-        "required_packages" : ["grub2-efi"],
+        "required_packages" : ["grub2-efi", "shim"],
         "loader_name" : "GRUB2-EFI",
         "initializer" : BootGRUB2EFI::Initializer,
     ];
