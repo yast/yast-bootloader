@@ -62,6 +62,16 @@ sub setLoaderType($) {
     return $ret;
 }
 
+BEGIN { $TYPEINFO{setSecureBoot} = ["function", "boolean", "boolean"]; }
+# do library initialization for a specific bootloader type
+sub setSecureBoot($) {
+    my ($sb) = @_;
+    my $ret = $lib_ref->SetSecureBoot($sb);
+
+    DumpLog();
+    return $ret;
+}
+
 BEGIN { $TYPEINFO{defineUdevMapping} = ["function", "integer", ["map", "string", "string"]]; }
 # do library initialization for a specific bootloader type
 sub defineUdevMapping($) {

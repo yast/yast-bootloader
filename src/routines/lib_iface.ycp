@@ -284,6 +284,15 @@ global boolean UpdateBootloader () {
     return ret;
 }
 
+global boolean SetSecureBoot (boolean enable) {
+    y2milestone ("Set SecureBoot");
+    boolean ret = System::Bootloader_API::setSecureBoot (enable);
+    y2milestone ("return value from setSecureBoot: %1", ret);
+    if (! ret)
+	bootloaderError ("Error occurred while setting secureboot");
+    return ret;
+}
+
 
 /**
  * Update append in from boot section, it means take value from "console"

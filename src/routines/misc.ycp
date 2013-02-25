@@ -1598,6 +1598,20 @@ global define void WriteToSysconf(boolean inst_bootloader)
 
     comment="\n## Path:\tSystem/Bootloader
 ## Description:\tBootloader configuration
+## Type:\tyesno
+## Default:\t\"no\"
+#
+# Enable UEFI Secure Boot support
+# This setting is only relevant to UEFI which supports UEFI. It won't
+# take effect on any other firmware type.
+#
+#\n";
+
+    string sb = BootCommon::getSystemSecureBootStatus(false) ? "yes" : "no" ;
+    WriteOptionToSysconfig(inst_bootloader, sys_agent, .SECURE_BOOT, sb, comment);
+
+    comment="\n## Path:\tSystem/Bootloader
+## Description:\tBootloader configuration
 ## Type:\tstring
 ## Default:\t\"splash=silent quiet showotps\"
 #
