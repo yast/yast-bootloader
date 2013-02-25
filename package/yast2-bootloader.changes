@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 25 16:33:16 CET 2013 - snwint@suse.de
+
+- support uefi secureboot
+- Propose grub2 theme path
+- 2.23.11
+
+-------------------------------------------------------------------
 Mon Feb  4 15:05:47 CET 2013 - snwint@suse.de
 
 - write gpt bootcode on gpt disks (fate #313880)
