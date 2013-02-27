@@ -1285,38 +1285,27 @@ global define void setLoaderType (string bootloader) {
 	// if kexec option is equal 0 or running live installation 
 	// doesn't install kexec-tools
 
-	list<string> bootloader_packages =[];
+	list<string> bootloader_packages = bootloader_attribs[bootloader, "required_packages"]:[];
 	if ((! Mode::live_installation()) 
 	   && (Linuxrc::InstallInf ("kexec_reboot") != "0"))
 	{
-        	bootloader_packages = bootloader_attribs[bootloader, "kexec-tools", "required_packages"]:[];
 		bootloader_packages = add(bootloader_packages, "kexec-tools");
-	} else {
-        	bootloader_packages = bootloader_attribs[bootloader, "required_packages"]:[];
 	}
-
 	
 	if (globals["trusted_grub"]:"" == "true")
 	{
-		bootloader_packages = bootloader_attribs[bootloader, "trustedgrub", "required_packages"]:[];
 		if (contains(bootloader_packages, "grub"))
 			bootloader_packages = filter(string key, bootloader_packages, {return (key !="grub"); });
 
 		bootloader_packages = add(bootloader_packages, "trustedgrub");
 	}
-	//FIXME: solve problem with installing bootloader
-	// it should be split and designed for each module (bootloader)
-	if ((bootloader == "grub") || (bootloader == "lilo") || (bootloader == "elilo"))
-	   bootloader_packages = add(bootloader_packages, bootloader);
-	else if (bootloader == "ppc")
-	   bootloader_packages = add(bootloader_packages, "lilo");
-	else if (bootloader == "zipl")
-	   bootloader_packages = add(bootloader_packages, "s390-tools");
+
+	y2milestone("Bootloader packages: %1", bootloader_packages);
 
         // don't configure package manager during autoinstallation preparing
         if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
         {
-	    y2milestone("Install packages :%1", bootloader_packages);
+	    y2milestone("Install bootloader packages");
 	    PackageSystem::InstallAll (bootloader_packages);
         }
         else if (Stage::initial () && (! (Mode::repair ())))

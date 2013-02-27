@@ -55,7 +55,7 @@ may cause problems. Therefore, as of elilo-3.2, there is an option to
 avoid forcing the variable.</p>
 "),
     "secure-boot"		 :
-    _("<p><b>Support Secure Boot</b><br>
+    _("<p><b>Secure Boot (either 'auto', 'on', or 'off')</b><br>
 Create a boot loader config that works also on systems where secure boot is enabled.
 The config uses shim and grub2 instead of elilo. Note: it will work even if secure boot
 is disabled.</p>
