@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar  6 17:21:06 CET 2013 - snwint@suse.de
+
+- set secureboot default to firmware status
+- 2.23.12
+
+-------------------------------------------------------------------
 Mon Feb 25 16:33:16 CET 2013 - snwint@suse.de
 
 - support uefi secureboot
