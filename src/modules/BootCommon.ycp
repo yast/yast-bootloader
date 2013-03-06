@@ -1143,6 +1143,20 @@ global define void setLoaderType (string bootloader) {
     y2milestone ("Loader type set");
 }
 
+boolean checkSecureBoot()
+{
+    boolean ret = false;
+    string sbvar = "/sys/firmware/efi/vars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c/data";
+    boolean sbvar_avail = 0 == (integer) SCR::Execute (.target.bash, "test -e " + sbvar);
+
+    if (sbvar_avail) {
+        string cmd = sformat ("test `od -An -N1 -t u1 %1` -eq 1", sbvar);
+        ret = 0 == (integer) SCR::Execute (.target.bash, cmd);
+    }
+
+    return ret;
+}
+
 global define boolean getSystemSecureBootStatus (boolean recheck) {
 
     if ((! recheck) && (secure_boot != nil))
@@ -1159,8 +1173,7 @@ global define boolean getSystemSecureBootStatus (boolean recheck) {
         }
     }
 
-    // TODO : Detect Secure Boot
-    secure_boot = false;
+    secure_boot = checkSecureBoot();
     return secure_boot;
 }
 
