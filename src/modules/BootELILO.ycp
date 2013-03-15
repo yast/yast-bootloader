@@ -599,7 +599,7 @@ global define void BootELILO () {
     list packages = ["elilo", "efibootmgr"];
 
     if (Arch::x86_64 ()) {
-	packages = union(packages, ["shim", "grub2-x86_64-efi"]);
+	packages = union(packages, ["shim", "mokutil", "grub2-x86_64-efi"]);
     }
 
     BootCommon::bootloader_attribs["elilo"] = $[
