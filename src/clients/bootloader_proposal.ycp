@@ -101,6 +101,26 @@
 		"enable_boot_boot", "disable_boot_boot",
 	    ];
 	}
+	else if (Bootloader::getLoaderType () == "grub2")
+	{
+	    if (! Bootloader::proposed_cfg_changed && ! Mode::autoinst ())
+	    {
+		Bootloader::blRead (true, true);
+		BootCommon::was_read = true;
+	    }
+
+	    Bootloader::Propose ();
+	}
+	else if (Bootloader::getLoaderType () == "grub2-efi")
+	{
+	    if (! Bootloader::proposed_cfg_changed && ! Mode::autoinst ())
+	    {
+		Bootloader::blRead (true, true);
+		BootCommon::was_read = true;
+	    }
+
+	    Bootloader::Propose ();
+	}
 	else
 	{
 	    Bootloader::Propose ();
