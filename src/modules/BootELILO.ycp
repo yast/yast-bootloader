@@ -189,7 +189,6 @@ global void CreateGlobals () {
     //	"default" : BootCommon::translateSectionTitle ("linux"),
 	"default" : "linux",
 	"timeout" : "80",
-	"secure-boot" : "auto",
 	"prompt" : "true",
     // bnc #438276 - remove deprecated 'read-only'
     //	"read-only" : "true",
@@ -251,10 +250,6 @@ global define boolean Read (boolean reread, boolean avoid_reading_device_map) {
 	SCR::Execute (.target.bash, "/bin/touch /etc/elilo.conf");
 	BootCommon::DetectDisks ();
 	boolean ret = BootCommon::Read (reread, avoid_reading_device_map);
-
-	if (BootCommon::globals["secure-boot"]:"" == "") {
-	  BootCommon::globals["secure-boot"] = "auto";
-	}
 
 	// check for meaningless EFI entry name in sysconfig
 	if ( !haskey(BootCommon::globals,"boot_efilabel")

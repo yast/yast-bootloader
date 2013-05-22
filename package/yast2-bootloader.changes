@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 22 15:30:25 CEST 2013 - snwint@suse.de
+
+- use either on or off but not auto for secure boot setting (bnc #812008)
+- 2.17.96
+
+-------------------------------------------------------------------
 Fri Mar 15 11:15:54 CET 2013 - snwint@suse.de
 
 - add mokutil package for secure boot (bnc #808852)
