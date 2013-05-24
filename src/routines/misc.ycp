@@ -1200,8 +1200,12 @@ global boolean BootloaderInstallable () {
 	// LVM
 	else if (! is( dev["nr"]:(any)0, integer ))
 	{
-	    y2milestone ("Cannot install bootloader on LVM");
-	    return false;
+	    string lt = BootCommon::getLoaderType (false);
+	    if (lt != "grub2" && lt != "grub2-efi" )
+	    {
+		y2milestone ("Cannot install bootloader %1 on LVM", lt);
+		return false;
+	    }
 	}
 
 	else
@@ -1233,6 +1237,38 @@ global boolean BootloaderInstallable () {
 	return true;
     }
 }
+
+/**
+ * Check if the bootloader can be installed on partition boot record
+ * @return boolean true if it can
+ */
+global boolean PartitionInstallable () {
+
+    string lt = BootCommon::getLoaderType (false);
+
+    if ((lt != "grub2") && (lt != "grub2-efi"))
+    {
+	return true;
+    }
+
+    if (Arch::i386 () || Arch::x86_64 ())
+    {
+	DetectDisks ();
+	map dev = Storage::GetDiskPartition(BootStorage::BootPartitionDevice);
+	y2milestone ("Disk info: %1", dev);
+	if (dev["disk"]:"" == "/dev/md")
+	{
+	    return false;
+	}
+	else if (! is( dev["nr"]:(any)0, integer ))
+	{
+	    return false;
+	}
+    }
+
+    return true;
+}
+
 
 /**
  * Function return absolute value of arg
