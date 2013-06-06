@@ -137,6 +137,12 @@ global define void Reset (boolean init) {
 
 global define void Propose () {
 
+    if (BootCommon::was_proposed)
+    {
+        y2milestone ("calling Propose with was_proposed set is really bogus, clear it to force a re-propose");
+        return;
+    }
+
     if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
         BootCommon::globals = StandardGlobals();
     else
