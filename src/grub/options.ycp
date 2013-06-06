@@ -607,7 +607,22 @@ map<string,any> grubBootLoaderLocationWidget ()
          ),
 	`VStretch()	
     );
- 
+
+    if (!BootCommon::PartitionInstallable ())
+    {
+	contents = `VBox (
+	`Frame (_("Boot Loader Location"),
+	   `VBox (`HBox(`HSpacing(1),`VBox(
+	       `Left(`CheckBox( `id("boot_mbr"), _("Boot from &Master Boot Record"))),
+	       `Left(`CheckBox( `id("boot_custom"), `opt(`notify), _("C&ustom Boot Partition"))),
+	       `Left(`ComboBox( `id("boot_custom_list"), `opt (`editable, `hstretch),"", [])),
+	       `VStretch()
+            )))
+         ),
+	`VStretch()	
+        );
+    }
+
     if (BootCommon::VerifyMDArray ())
     {
 	contents = `VBox (

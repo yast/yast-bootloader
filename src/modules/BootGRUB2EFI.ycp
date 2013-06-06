@@ -131,12 +131,17 @@ global define void Reset (boolean init) {
   */
 
 global define void Propose () {
-    y2milestone ("Proposed globals: %1", BootCommon::globals);
+
+    if (BootCommon::was_proposed)
+    {
+        y2milestone ("calling Propose with was_proposed set is really bogus, clear it to force a re-propose");
+        return;
+    }
 
     if (BootCommon::globals == nil || size (BootCommon::globals) == 0)
-    {
         BootCommon::globals = StandardGlobals();
-    }
+    else
+        BootCommon::globals = (map<string, string>) union (BootCommon::globals, StandardGlobals());
 
     map<string, integer> swap_sizes = BootCommon::getSwapPartitions ();
     list<string> swap_parts = (list<string>)
@@ -157,7 +162,8 @@ global define void Propose () {
     BootCommon::globals["append_failsafe"] = BootArch::FailsafeKernelParams ();
     BootCommon::globals["distributor"] = Product::short_name + " " + Product::version;
     BootCommon::kernelCmdLine = Kernel::GetCmdLine ();
-    BootCommon::globals["gfxtheme"] = "/boot/grub2/themes/" + Product::short_name + "/theme.txt";
+
+    y2milestone ("Proposed globals: %1", BootCommon::globals);
 
     // Let grub2 scripts detects correct root= for us. :)
     // BootCommon::globals["root"] = BootStorage::Dev2MountByDev(BootStorage::RootPartitionDevice);
