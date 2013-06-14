@@ -9,7 +9,6 @@ package Bootloader_API;
 use strict;
 
 use Bootloader::Library;
-use LIMAL::LogHelper;
 
 our %TYPEINFO;
 
@@ -23,30 +22,7 @@ my $lines_cache_index = 0;
 
 # Log collected log messages
 sub DumpLog {
-    foreach my $rec (@{$lib_ref->GetLogRecords() || []})
-    {
-	if ($rec->{"level"} eq "debug")
-	{
-	    LIMAL::LogHelper::logDebug ($rec->{"message"});
-	}
-	elsif ($rec->{"level"} eq "milestone")
-	{
-	    LIMAL::LogHelper::logInfo ($rec->{"message"});
-	}
-	elsif ($rec->{"level"} eq "warning")
-	{
-	    LIMAL::LogHelper::logError ("WARNING: " . $rec->{"message"});
-	}
-	elsif ($rec->{"level"} eq "error")
-	{
-	    LIMAL::LogHelper::logError ($rec->{"message"});
-	}
-	else
-	{
-	    LIMAL::LogHelper::logError ("Incomplete log record");
-	    LIMAL::LogHelper::logError ($rec->{"message"});
-	}
-    }
+  # not used anymore
 }
 
 

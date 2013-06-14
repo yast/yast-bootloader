@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun 14 11:55:44 CEST 2013 - snwint@suse.de
+
+- remove limal reference
+- 2.24.1
+
+-------------------------------------------------------------------
 Wed Mar  6 17:21:06 CET 2013 - snwint@suse.de
 
 - set secureboot default to firmware status

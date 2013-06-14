@@ -3,7 +3,7 @@
 @HEADER@
 Group:	System/YaST
 License: GPL-2.0+
-BuildRequires:	gcc-c++ limal-perl yast2-devtools yast2-testsuite yast2-installation yast2-storage >= 2.18.18 update-desktop-files swig docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel yast2-perl-bindings perl-gettext perl-Bootloader update-alternatives libtool
+BuildRequires:	gcc-c++ yast2-devtools yast2-testsuite yast2-installation yast2-storage >= 2.18.18 update-desktop-files swig docbook-xsl-stylesheets doxygen libxslt perl-XML-Writer sgml-skel yast2-perl-bindings perl-gettext perl-Bootloader update-alternatives libtool
 # to eliminate a cyclic dependency in autobuild:
 #!BuildIgnore:  autoyast2-installation
 PreReq:         /bin/sed %fillup_prereq
@@ -14,7 +14,7 @@ Requires:	yast2-packager >= 2.17.24
 Requires:	yast2-pkg-bindings >= 2.17.25
 Requires:	perl-Bootloader >= 0.5.4
 Requires:	yast2-core >= 2.18.7
-Requires:       yast2-storage >= 2.18.18 parted perl-Compress-Zlib limal-perl
+Requires:       yast2-storage >= 2.18.18 parted perl-Compress-Zlib
 BuildRequires:  yast2 >= 2.18.14
 BuildRequires:  yast2-packager >= 2.17.24
 BuildRequires:  yast2-pkg-bindings >= 2.17.25
