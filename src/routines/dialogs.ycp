@@ -82,11 +82,10 @@ string return_tab = "sections";
 symbol MainDialog () {
     y2milestone ("Running Main Dialog");
     string lt = Bootloader::getLoaderType ();
-    term contents = `VBox (
-        "tab"
-    );
+    term contents = `VBox("tab");
+
     if (lt != "grub2" && lt != "grub2-efi")
-       add(contents, `Right ("adv_button"));
+       contents = add(contents, `Right ("adv_button"));
 
     // F#300779 - Install diskless client (NFS-root) 
     // kokso: additional warning that root partition is nfs type -> bootloader will not be installed
