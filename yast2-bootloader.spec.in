@@ -36,6 +36,8 @@ Obsoletes:	y2c_boot y2t_boot
 Provides:	y2t_inst-bootloader yast2-agent-liloconf-devel yast2-agent-prom-devel
 Obsoletes:	y2t_inst-bootloader yast2-agent-liloconf-devel yast2-agent-prom-devel
 
+Requires:       yast2-ruby-bindings >= 1.0.0
+
 Summary:	YaST2 - Bootloader Configuration
 
 %description
@@ -66,9 +68,9 @@ This package contains the YaST2 component for bootloader configuration.
 %dir @yncludedir@/bootloader
 @yncludedir@/bootloader/*
 @moduledir@/*
-@clientdir@/bootloader*.ycp
-@clientdir@/print-product.ycp
-@clientdir@/inst_*.ycp
+@clientdir@/bootloader*.rb
+@clientdir@/print-product.rb
+@clientdir@/inst_*.rb
 @ybindir@/*
 @agentdir@/ag_*
 @scrconfdir@/*.scr
