@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul 31 08:27:20 UTC 2013 - yast-devel@opensuse.org
+
+- converted from YCP to Ruby by YCP Killer
+  (https://github.com/yast/ycp-killer)
+- version 3.0.0
+
+-------------------------------------------------------------------
 Fri Jun 14 11:55:44 CEST 2013 - snwint@suse.de
 
 - remove limal reference
