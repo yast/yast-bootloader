@@ -1,1 +1,1 @@
-SUBDIRS = src scripts agents doc 
+SUBDIRS = src scripts doc
