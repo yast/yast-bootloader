@@ -1,4 +1,15 @@
 -------------------------------------------------------------------
+Thu Aug  1 14:52:09 UTC 2013 - lslezak@suse.cz
+
+- move the development documentation to devel-doc subpackage
+- removed obsolete BuildRequires, not needed anymore:
+  docbook-xsl-stylesheets doxygen gcc-c++ libxslt perl-Bootloader
+  perl-gettext perl-XML-Writer sgml-skel swig update-alternatives
+  libtool yast2-installation yast2-packager yast2-perl-bindings
+  yast2-pkg-bindings yast2-storage yast2-testsuite
+- 3.0.1
+
+-------------------------------------------------------------------
 Wed Jul 31 08:27:20 UTC 2013 - yast-devel@opensuse.org
 
 - converted from YCP to Ruby by YCP Killer
