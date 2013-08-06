@@ -13,8 +13,6 @@ Requires:	yast2-pkg-bindings >= 2.17.25
 Requires:	perl-Bootloader >= 0.5.4
 Requires:	yast2-core >= 2.18.7
 Requires:       yast2-storage >= 2.18.18 parted perl-Compress-Zlib
-BuildRequires:  yast2 >= 2.18.14
-BuildRequires:	yast2-core >= 2.18.6
 
 %ifarch %ix86 x86_64
 Requires:	syslinux
@@ -64,19 +62,30 @@ provided by yast2-bootloader package.
 # menu items
 
 %ifnarch s390 s390x
+%dir @desktopdir@
 @desktopdir@/bootloader.desktop
 %endif
 
+%dir @yncludedir@
 %dir @yncludedir@/bootloader
 @yncludedir@/bootloader/*
+%dir @moduledir@
 @moduledir@/*
+%dir @clientdir@
 @clientdir@/bootloader*.rb
 @clientdir@/print-product.rb
 @clientdir@/inst_*.rb
+%dir @ybindir@
 @ybindir@/*
+%dir @agentdir@
 @agentdir@/ag_*
+%dir @scrconfdir@
 @scrconfdir@/*.scr
+%dir @fillupdir@
 @fillupdir@/*
+%dir @schemadir@
+%dir @schemadir@/autoyast
+%dir @schemadir@/autoyast/rnc
 @schemadir@/autoyast/rnc/bootloader.rnc
 
 %dir @docdir@
