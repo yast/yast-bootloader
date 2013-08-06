@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug  6 19:50:43 UTC 2013 - lslezak@suse.cz
+
+- removed obsolete BuildRequires: yast2 and yast2-core
+- 3.0.2
+
+-------------------------------------------------------------------
 Thu Aug  1 14:52:09 UTC 2013 - lslezak@suse.cz
 
 - move the development documentation to devel-doc subpackage
