@@ -61,10 +61,8 @@ provided by yast2-bootloader package.
 
 # menu items
 
-%ifnarch s390 s390x
 %dir @desktopdir@
 @desktopdir@/bootloader.desktop
-%endif
 
 %dir @yncludedir@
 %dir @yncludedir@/bootloader
