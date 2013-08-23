@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 23 13:37:42 CEST 2013 - snwint@suse.de
+
+- desktop files now also for s390
+- 3.0.3
+
+-------------------------------------------------------------------
 Tue Aug  6 19:50:43 UTC 2013 - lslezak@suse.cz
 
 - removed obsolete BuildRequires: yast2 and yast2-core
