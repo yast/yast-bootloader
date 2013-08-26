@@ -156,10 +156,17 @@ module Yast
 
     def Propose
       if BootCommon.was_proposed
-        Builtins.y2milestone(
-          "calling Propose with was_proposed set is really bogus, clear it to force a re-propose"
-        )
-        return
+        # workaround autoyast config is Imported thus was_proposed always set 
+        if Mode.autoinst
+          Builtins.y2milestone(
+            "autoinst mode we ignore meaningless was_proposed as it always set"
+          )
+        else
+          Builtins.y2milestone(
+            "calling Propose with was_proposed set is really bogus, clear it to force a re-propose"
+          )
+          return
+        end
       end
 
       if BootCommon.globals == nil || Builtins.size(BootCommon.globals) == 0
