@@ -62,6 +62,15 @@ sub setLoaderType($) {
     return $ret;
 }
 
+BEGIN { $TYPEINFO{defineUdevMapping} = ["function", "integer", ["map", "string", "string"]]; }
+sub defineUdevMapping($) {
+    my ($udev_mapping) = @_;
+    my $ret = $lib_ref->DefineUdevMapping($udev_mapping);
+
+    DumpLog();
+    return $ret;
+}
+
 BEGIN { $TYPEINFO{updateBootloader} = ["function", "boolean", "boolean"]; }
 sub updateBootloader() {
     my ($avoid_init) = @_;

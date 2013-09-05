@@ -265,6 +265,18 @@ global void MapDevices()
 	y2milestone("partitions mapping by-uuid: %1", uuid_partitions);
 	y2milestone("partitions mapping by-path: %1", path_partitions);
 	y2milestone("partitions mapping by-label: %1", label_partitions);
+
+	BootCommon::all_devices =
+	    union(id_disks,
+	    union(uuid_disks,
+	    union(path_disks,
+	    union(id_partitions,
+	    union(uuid_partitions,
+	    union(path_partitions,
+		  label_partitions
+	))))));
+
+	y2milestone("device name mapping to kernel names: %1", all_devices);
 }
 
 

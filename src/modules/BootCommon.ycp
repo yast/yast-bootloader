@@ -88,7 +88,11 @@ global integer cached_settings_base_data_change_time = nil;
 
 global integer saved_last_change_time_from_storage = nil;
 
-
+/**
+ * mapping all devices udev-name to kernel name
+ * importnat for init fucntion of perl-Bootloader
+ */
+global map<string, string> all_devices = $[];
 
 /**
  * device mapping between Linux and firmware

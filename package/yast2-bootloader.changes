@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  5 15:40:04 CEST 2013 - snwint@suse.de
+
+- add and use defineUdevMapping() API call
+- 2.17.97
+
+-------------------------------------------------------------------
 Wed May 22 15:30:25 CEST 2013 - snwint@suse.de
 
 - use either on or off but not auto for secure boot setting (bnc #812008)

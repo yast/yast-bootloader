@@ -151,6 +151,9 @@ global boolean InitializeLibrary (boolean force, string loader) {
     InitMapDevices ();
     y2milestone ("Initializing lib for %1", loader);
     System::Bootloader_API::setLoaderType (loader);
+    integer out = System::Bootloader_API::defineUdevMapping(BootCommon::all_devices);
+    if (out == nil)
+        y2error("perl-Bootloader library was not initialized");
     y2milestone ("Putting partitioning into library");
     // pass all needed disk/partition information to library
     SetDiskInfo();
