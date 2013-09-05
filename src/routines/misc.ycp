@@ -266,7 +266,7 @@ global void MapDevices()
 	y2milestone("partitions mapping by-path: %1", path_partitions);
 	y2milestone("partitions mapping by-label: %1", label_partitions);
 
-	BootCommon::all_devices =
+	BootCommon::all_devices = (map<string,string>)
 	    union(id_disks,
 	    union(uuid_disks,
 	    union(path_disks,
