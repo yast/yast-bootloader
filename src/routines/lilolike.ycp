@@ -1164,6 +1164,28 @@ boolean isDiskInMDRaid (string disk, map<string,map> tm)
     return ret;
 }
 
+/*
+ * Return a sorted list of target map (as resturned by Storage::GetTargetMap()) keys.
+ *
+ * Sort by (kernel) device names, if possible. The point is that we'd like
+ * the list (a) in a reproducible state (hence sorted) and (b) devices with
+ * potentially lower bios ids should appear first (so we guess the boot
+ * drive order correctly more often) - so we sort by kernel names.
+ */
+list <string> sort_devices(map <string, map> m)   
+{
+    return sort (string x, string y, maplist(string k, any a, m, { return k; }), {
+        string x1 = m[x, "device"]:"";
+        string y1 = m[y, "device"]:"";
+
+        if(x1 == "") x1 = x;
+        if(y1 == "") y1 = y;
+
+        return x1 < y1;
+    });
+}
+
+
 /*** helper functions END ***/
 
 /**
@@ -1230,9 +1252,14 @@ global void ProposeDeviceMap () {
 	    }
         }
     });
+
     // and guess other devices
     // don't use already used BIOS IDs
-    foreach (string target_dev, map target, targetMap, {
+    list <string> dev_list = sort_devices(targetMap);
+    y2milestone("sorted target map: %1", dev_list);
+
+    foreach (string target_dev, dev_list, {
+        map target = targetMap[target_dev]:$[];
         string bios_id = target["bios_id"]:"";
         if (bios_id == "")
         {
