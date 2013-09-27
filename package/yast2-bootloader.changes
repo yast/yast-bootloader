@@ -2,6 +2,7 @@
 Thu Sep  5 15:40:04 CEST 2013 - snwint@suse.de
 
 - add and use defineUdevMapping() API call
+- sort target map by kernel device names in ProposeDeviceMap() (bnc #826632)
 - 2.17.97
 
 -------------------------------------------------------------------

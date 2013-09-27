@@ -1175,8 +1175,8 @@ boolean isDiskInMDRaid (string disk, map<string,map> tm)
 list <string> sort_devices(map <string, map> m)   
 {
     return sort (string x, string y, maplist(string k, any a, m, { return k; }), {
-        string x1 = m[x, "device"]:"";
-        string y1 = m[y, "device"]:"";
+        string x1 = (m[x, "devices"]:[])[0]:"";
+        string y1 = (m[y, "devices"]:[])[0]:"";
 
         if(x1 == "") x1 = x;
         if(y1 == "") y1 = y;
