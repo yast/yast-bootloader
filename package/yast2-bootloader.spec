@@ -112,7 +112,6 @@ provided by yast2-bootloader package.
 %{yast_schemadir}/autoyast/rnc/bootloader.rnc
 
 %dir %{yast_docdir}
-%doc %{yast_docdir}/README
 %doc %{yast_docdir}/COPYING
 
 %files devel-doc
