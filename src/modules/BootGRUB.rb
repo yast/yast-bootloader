@@ -525,27 +525,25 @@ module Yast
         GfxMenu.ReadStatusAcousticSignal
         md_value = BootStorage.addMDSettingsToGlobals
         pB_md_value = Ops.get(BootCommon.globals, "boot_md_mbr", "")
-        if md_value != pB_md_value
-          if pB_md_value != ""
-            disks = Builtins.splitstring(pB_md_value, ",")
-            disks = Builtins.filter(disks) { |v| v != "" }
-            if Builtins.size(disks) == 2
-              BootCommon.enable_md_array_redundancy = true
-              md_value = ""
-            end
-            Builtins.y2milestone(
-              "disks from md array (perl Bootloader): %1",
-              disks
-            )
+        if pB_md_value != ""
+          disks = Builtins.splitstring(pB_md_value, ",")
+          disks = Builtins.filter(disks) { |v| v != "" }
+          if Builtins.size(disks) == 2
+            BootCommon.enable_md_array_redundancy = true
+            md_value = ""
           end
-          if md_value != ""
-            BootCommon.enable_md_array_redundancy = false
-            Ops.set(BootCommon.globals, "boot_md_mbr", md_value)
-            Builtins.y2milestone(
-              "Add md array to globals: %1",
-              BootCommon.globals
-            )
-          end
+          Builtins.y2milestone(
+            "disks from md array (perl Bootloader): %1",
+            disks
+          )
+        end
+        if md_value != ""
+          BootCommon.enable_md_array_redundancy = false
+          Ops.set(BootCommon.globals, "boot_md_mbr", md_value)
+          Builtins.y2milestone(
+            "Add md array to globals: %1",
+            BootCommon.globals
+          )
         end
       end
 
