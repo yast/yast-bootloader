@@ -681,7 +681,7 @@ module Yast
       # Find the source ID of the base product:
       # list all products
       products = Pkg.ResolvableProperties("", :product, "")
-      Builtins.y2internal("products: %1", products)
+      Builtins.y2milestone("products: %1", products)
       # filter products to be installed
       products = Builtins.filter(products) do |p|
         Ops.get_integer(p, "source", -1) != -1
@@ -694,7 +694,7 @@ module Yast
       sources = Builtins.maplist(base_products) do |p|
         Ops.get_integer(p, "source", -1)
       end
-      Builtins.y2internal(
+      Builtins.y2milestone(
         "remaining products: %1, sources: %2",
         products,
         sources

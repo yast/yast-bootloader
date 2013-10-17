@@ -89,7 +89,7 @@ module Yast
         x03 = Builtins.tointeger(Ops.add("0x", Builtins.substring(mbr, 6, 2)))
         x0e = Builtins.substring(mbr, 28, 2)
         x0f = Builtins.substring(mbr, 30, 2)
-        Builtins.y2internal("Data: %1 %2 %3 %4", x02, x03, x0e, x0f)
+        Builtins.y2debug("Data: %1 %2 %3 %4", x02, x03, x0e, x0f)
         @_thinkpad_mbr = Ops.less_or_equal(2, x02) &&
           Ops.less_or_equal(x02, Builtins.tointeger("0x63")) &&
           Ops.less_or_equal(2, x03) &&
