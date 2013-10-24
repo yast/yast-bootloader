@@ -152,25 +152,7 @@ module Yast
       end
       Builtins.y2milestone("Read global settings: %1", glob)
       deep_copy(glob)
-    end
 
-    # Get bootloader configuration meta data such as field type descriptions
-    # @return a map of meta data for global and section entries
-    def GetMetaData
-      Builtins.y2milestone("Reading meta data for global and section settings")
-      # FIXME: DiskInfo should be read directly by perl-Bootloader
-      # send current disk/partition information to perl-Bootloader
-      SetDiskInfo()
-
-      Builtins.y2milestone("Calling getMetaData")
-      meta = System::Bootloader_API.getMetaData
-      Builtins.y2milestone("Returned from getMetaData")
-      if meta == nil
-        Builtins.y2error("Reading meta data failed")
-        return {}
-      end
-      Builtins.y2milestone("Read meta data settings: %1", meta)
-      deep_copy(meta)
     end
 
     # Set the device mapping (Linux <-> Firmware)

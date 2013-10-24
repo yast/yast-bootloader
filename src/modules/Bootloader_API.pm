@@ -105,37 +105,6 @@ sub writeSettings() {
 }
 
 
-BEGIN { $TYPEINFO{getMetaData} = ["function", ["map", "string", "string"]]; }
-# get data format and type description as far as available for
-# specific bootloader
-sub getMetaData() {
-    my $mdat_ref = $lib_ref->GetMetaData() || {};
-
-    # copy the hash and encode meta tags
-    my %metadata=();
-    while ((my $key, my $value) = each ( %{$mdat_ref} )) {
-	if (ref($value)) {
-	    if  (ref($value) eq "HASH") {
-		foreach my $k (keys %$value) {
-		    $metadata{"%" . $key . "%" . $k} = $value->{$k};
-		}
-	    }
-	    elsif  (ref($value) eq "ARRAY") {
-                   foreach my $i (0 .. $#$value) {
-		       $metadata{"#" . $key . "#" . $i} = $value->[$i];
-                   }
-	       }
-	}
-	else {
-	    $metadata{$key} = $value;
-	}
-    }
- 
-    DumpLog();
-    return \%metadata;
-}
-
-
 BEGIN { $TYPEINFO{getDeviceMapping} = ["function", ["map", "string", "string"]]; }
 sub getDeviceMapping() {
     my $devmap = $lib_ref->GetDeviceMapping () || {};
