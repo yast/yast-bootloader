@@ -27,3 +27,5 @@ Makefile.am.common
 .dep
 tmp.*
 *.log
+/doc/autodocs
+!/doc/autodocs/Makefile.am
