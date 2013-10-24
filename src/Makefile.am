@@ -13,8 +13,7 @@ module_DATA = \
   modules/GfxMenu.rb \
   modules/BootSupportCheck.rb \
   modules/BootGRUB2.rb \
-  modules/BootGRUB.rb \
-  modules/Bootloader_API.pm
+  modules/BootGRUB.rb
 
 client_DATA = \
   clients/bootloader_preupdate.rb \

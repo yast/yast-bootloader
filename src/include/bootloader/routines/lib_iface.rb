@@ -27,7 +27,6 @@ module Yast
     def initialize_bootloader_routines_lib_iface(include_target)
       textdomain "bootloader"
 
-      Yast.import "System::Bootloader_API"
       Yast.import "Storage"
       Yast.import "Mode"
 
@@ -307,7 +306,6 @@ module Yast
 
       Builtins.y2milestone("Set SecureBoot")
       run_pbl_yaml "SetSecureBoot(#{arg_data.path})"
-      System::Bootloader_API.setSecureBoot(enable)
 
       true
     ensure

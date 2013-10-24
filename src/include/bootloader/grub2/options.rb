@@ -25,7 +25,6 @@ module Yast
 
       Yast.import "Label"
       Yast.import "Initrd"
-      Yast.import "System::Bootloader_API"
 
       Yast.include include_target, "bootloader/routines/common_options.rb"
       Yast.include include_target, "bootloader/grub/helps.rb"
