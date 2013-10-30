@@ -97,11 +97,10 @@ module Yast
       BootStorage.InitMapDevices
       Builtins.y2milestone("Initializing lib for %1", loader)
       architecture = BootArch.StrArch
-      loader_data = tmp_yaml_file(loader)
-      arch_data = tmp_yaml_file( architecture)
+      loader_data = tmp_yaml_file([loader, architecture])
       udev_data = tmp_yaml_file(BootStorage.all_devices)
 
-      run_pbl_yaml "SetLoaderType(#{loader_data.path},#{arch_data.path})",
+      run_pbl_yaml "SetLoaderType(@#{loader_data.path})",
         "DefineUdevMapping(#{udev_data.path})"
 
       Builtins.y2milestone("Putting partitioning into library")
@@ -112,7 +111,6 @@ module Yast
       true
     ensure
       loader_data.unlink if loader_data
-      arch_data.unlink if arch_data
       udev_data.unlink if udev_data
     end
 
@@ -320,20 +318,18 @@ module Yast
     # @param [String] console from section
     # @return [String] updated append with console
     def UpdateSerialConsole(append, console)
-      append_data = tmp_yaml_file(append)
-      console_data = tmp_yaml_file(console)
       Builtins.y2milestone(
         "Updating append: %1 with console: %2",
         append,
         console
       )
 
-      run_pbl_yaml "UpdateSerialConsole(#{append_data.path},#{console_data.path})"
+      args_data = tmp_yaml_file([append, console])
+      run_pbl_yaml "UpdateSerialConsole(@#{args_data.path})"
 
       true
     ensure
-      append_data.unlink
-      console_data.unlink
+      args_data.unlink
     end
 
     # Initialize the boot loader (eg. modify firmware, depending on architecture)
