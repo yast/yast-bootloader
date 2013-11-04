@@ -94,6 +94,8 @@ module Yast
     def InitializeLibrary(force, loader)
       return false if !force && loader == @library_initialized
 
+      File.unlink STATE_FILE #remove old state file to do clear initialization
+
       BootStorage.InitMapDevices
       Builtins.y2milestone("Initializing lib for %1", loader)
       architecture = BootArch.StrArch
