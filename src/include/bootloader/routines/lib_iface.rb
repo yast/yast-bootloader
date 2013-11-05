@@ -257,7 +257,7 @@ module Yast
 
       res_data = TmpYAMLFile.new
 
-      run_pbl_yaml "#{res_data.path}=GetDeviceMap()"
+      run_pbl_yaml "#{res_data.path}=GetDeviceMapping()"
 
       devmap = res_data.data
 
