@@ -321,17 +321,11 @@ module Yast
       # first run bootloader-specific update function
       blUpdate
 
-      # remove no more needed modules from MODULES_LOADED_ON_BOOT
-      mlob = Convert.to_string(
-        SCR.Read(path(".sysconfig.kernel.MODULES_LOADED_ON_BOOT"))
-      )
-      mod_list = Builtins.splitstring(mlob, " ")
-      mod_list = Builtins.filter(mod_list) do |s|
-        s != "" && s != "cdrom" && s != "ide-cd" && s != "ide-scsi"
+      # remove no more needed Kernel modules from /etc/modules-load.d/
+      ["cdrom", "ide-cd", "ide-scsi"].each do |kernel_module|
+        Kernel.RemoveModuleToLoad(kernel_module) if Kernel.module_to_be_loaded?(kernel_module)
       end
-      mlob = Builtins.mergestring(mod_list, " ")
-      SCR.Write(path(".sysconfig.kernel.MODULES_LOADED_ON_BOOT"), mlob)
-      SCR.Write(path(".sysconfig.kernel"), nil)
+      Kernel.SaveModulesToLoad
 
       nil
     end
