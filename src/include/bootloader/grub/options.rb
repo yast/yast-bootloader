@@ -26,7 +26,6 @@ module Yast
       Yast.import "Label"
       Yast.import "BootStorage"
       Yast.import "GfxMenu"
-      Yast.import "System::Bootloader_API"
 
       Yast.include include_target, "bootloader/routines/common_options.rb"
       Yast.include include_target, "bootloader/routines/popups.rb"
@@ -202,7 +201,7 @@ module Yast
       if usepass
         if UI.QueryWidget(Id(:pw1), :Value) != "**********"
           password = Convert.to_string(UI.QueryWidget(Id(:pw1), :Value))
-          password = System::Bootloader_API.countGRUBPassword(password)
+          password = MakeGRUBHash(password)
           if password != nil
             Ops.set(BootCommon.globals, "password", password) #TODO popup for error
           end
@@ -211,6 +210,20 @@ module Yast
         BootCommon.globals = Builtins.remove(BootCommon.globals, "password")
       end
       nil
+    end
+
+    def MakeGRUBHash(password)
+      return password if password.include? "--md5"
+
+      cmd = "echo \"md5crypt
+        #{password}\" | grub --batch | grep Encrypted"
+
+      result = SCR.execute(path(".target.bash_output"), cmd)
+
+      # proper password contain special string $1$
+      return nil unless result.include? "$1$"
+
+      result.sub(/\AEncrypted:\s*(.*)\s*\z/, "--md5 \\1")
     end
 
 

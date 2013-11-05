@@ -18,17 +18,37 @@
 #
 # $Id$
 #
+
+require "tempfile"
+require "yaml"
+
 module Yast
   module BootloaderRoutinesLibIfaceInclude
     def initialize_bootloader_routines_lib_iface(include_target)
       textdomain "bootloader"
 
-      Yast.import "System::Bootloader_API"
       Yast.import "Storage"
       Yast.import "Mode"
 
       # Loader the library has been initialized to use
       @library_initialized = nil
+    end
+
+    STATE_FILE = "/var/lib/YaST2/pbl-state"
+
+    def tmp_yaml_file(data=nil)
+      file = Tempfile.new("y2-yamldata")
+      file.write YAML.dump(data) if data
+      file.close
+
+      return file
+    end
+
+    def run_pbl_yaml(*args)
+      cmd = "pbl-yaml --state=#{STATE_FILE} "
+      cmd << args.map{|e| "'#{e}'"}.join(" ")
+
+      SCR.Execute(path(".target.bash"), cmd)
     end
 
     #  Retrieve the data for perl-Bootloader library from Storage module
@@ -51,24 +71,20 @@ module Yast
         BootStorage.multipath_mapping
       )
 
-      System::Bootloader_API.setMountPoints(
-        Convert.convert(
-          BootStorage.mountpoints,
-          :from => "map <string, any>",
-          :to   => "map <string, string>"
-        )
-      )
-      System::Bootloader_API.setPartitions(
-        Convert.convert(
-          BootStorage.partinfo,
-          :from => "list <list>",
-          :to   => "list <list <string>>"
-        )
-      )
-      System::Bootloader_API.setMDArrays(BootStorage.md_info)
+      mp_data = tmp_yaml_file(BootStorage.mountpoints)
+      part_data = tmp_yaml_file(BootStorage.partinfo)
+      md_data = tmp_yaml_file(BootStorage.md_info)
+
+      run_pbl_yaml "DefineMountPoints(#{mp_data.path})",
+        "DefinePartitions(#{part_data.path})",
+        "DefineMDArrays(#{md_data.path})"
       DefineMultipath(BootStorage.multipath_mapping)
 
       nil
+    ensure
+      mp_data.unlink
+      part_data.unlink
+      md_data.unlink
     end
 
     # Initialize the bootloader library
@@ -78,20 +94,26 @@ module Yast
     def InitializeLibrary(force, loader)
       return false if !force && loader == @library_initialized
 
+      File.unlink STATE_FILE #remove old state file to do clear initialization
+
       BootStorage.InitMapDevices
       Builtins.y2milestone("Initializing lib for %1", loader)
       architecture = BootArch.StrArch
-      System::Bootloader_API.setLoaderType(loader, architecture)
-      out = System::Bootloader_API.defineUdevMapping(BootStorage.all_devices)
-      if out == nil
-        Builtins.y2error("perl-Bootloader library was not initialized")
-      end
+      loader_data = tmp_yaml_file([loader, architecture])
+      udev_data = tmp_yaml_file(BootStorage.all_devices)
+
+      run_pbl_yaml "SetLoaderType(@#{loader_data.path})",
+        "DefineUdevMapping(#{udev_data.path})"
+
       Builtins.y2milestone("Putting partitioning into library")
       # pass all needed disk/partition information to library
       SetDiskInfo()
       Builtins.y2milestone("Library initialization finished")
       @library_initialized = loader
       true
+    ensure
+      loader_data.unlink if loader_data
+      udev_data.unlink if udev_data
     end
 
     # Set boot loader sections
@@ -111,22 +133,30 @@ module Yast
         deep_copy(s)
       end
       Builtins.y2milestone("Storing bootloader sections %1", sections)
-      ret = System::Bootloader_API.setSections(sections)
-      Builtins.y2error("Storing bootloader sections failed") if !ret
-      ret
+      sections_data = tmp_yaml_file(sections)
+      run_pbl_yaml "SetSections(#{sections_data.path})"
+
+      true
+    ensure
+      sections_data.unlink
     end
 
     # Get boot loader sections
     # @return a list of all loader sections (as maps)
     def GetSections
+      sections_data = tmp_yaml_file
       Builtins.y2milestone("Reading bootloader sections")
-      sects = System::Bootloader_API.getSections
+      run_pbl_yaml "#{sections_data.path}=GetSections()"
+      sects = YAML.load File.read(sections_data.path)
       if sects == nil
         Builtins.y2error("Reading sections failed")
         return []
       end
       Builtins.y2milestone("Read sections: %1", sects)
-      deep_copy(sects)
+
+      sects
+    ensure
+      sections_data.unlink
     end
 
     # Set global bootloader options
@@ -136,67 +166,64 @@ module Yast
       globals = deep_copy(globals)
       Builtins.y2milestone("Storing global settings %1", globals)
       Ops.set(globals, "__modified", "1")
-      ret = System::Bootloader_API.setGlobalSettings(globals)
-      Builtins.y2error("Storing global settings failed") if !ret
-      ret
+      globals_data = tmp_yaml_file(globals)
+
+      run_pbl_yaml "SetGlobalSettings(#{globals_data.path})"
+
+      true
+    ensure
+      globals_data.unlink
     end
 
     # Get global bootloader options
     # @return a map of global bootloader options
     def GetGlobal
       Builtins.y2milestone("Reading bootloader global settings")
-      glob = System::Bootloader_API.getGlobalSettings
+      globals_data = tmp_yaml_file
+      run_pbl_yaml "#{globals_data.path}=GetGlobalSettings()"
+      glob = YAML.load File.read(globals_data.path)
+
       if glob == nil
         Builtins.y2error("Reading global settings failed")
         return {}
       end
+
       Builtins.y2milestone("Read global settings: %1", glob)
-      deep_copy(glob)
-    end
-
-    # Get bootloader configuration meta data such as field type descriptions
-    # @return a map of meta data for global and section entries
-    def GetMetaData
-      Builtins.y2milestone("Reading meta data for global and section settings")
-      # FIXME: DiskInfo should be read directly by perl-Bootloader
-      # send current disk/partition information to perl-Bootloader
-      SetDiskInfo()
-
-      Builtins.y2milestone("Calling getMetaData")
-      meta = System::Bootloader_API.getMetaData
-      Builtins.y2milestone("Returned from getMetaData")
-      if meta == nil
-        Builtins.y2error("Reading meta data failed")
-        return {}
-      end
-      Builtins.y2milestone("Read meta data settings: %1", meta)
-      deep_copy(meta)
+      glob
+    ensure
+      globals_data.unlink
     end
 
     # Set the device mapping (Linux <-> Firmware)
     # @param [Hash{String => String}] device_map a map from Linux device to Firmware device identification
     # @return [Boolean] true on success
     def SetDeviceMap(device_map)
-      device_map = deep_copy(device_map)
+      arg_data = tmp_yaml_file(device_map)
+
       Builtins.y2milestone("Storing device map")
-      ret = System::Bootloader_API.setDeviceMapping(device_map)
-      Builtins.y2error("Storing device map failed") if !ret
-      ret
+      run_pbl_yaml "SetDeviceMapping(#{arg_data.path})"
+
+      true
+    ensure
+      arg_data.unlink
     end
 
     # Set the mapping (real device <-> multipath)
     # @param  map<string,string> map from real device to multipath device
     # @return [Boolean] true on success
     def DefineMultipath(multipath_map)
-      multipath_map = deep_copy(multipath_map)
       Builtins.y2milestone("Storing multipath map: %1", multipath_map)
       if Builtins.size(multipath_map) == 0
         Builtins.y2milestone("Multipath was not detected")
         return true
       end
-      ret = System::Bootloader_API.defineMultipath(multipath_map)
-      Builtins.y2error("Storing multipath map failed") if !ret
-      ret
+
+      arg_data = tmp_yaml_file(multipath_map)
+      run_pbl_yaml "DefineMultipath(#{arg_data.path})"
+
+      true
+    ensure
+      arg_data.unlink if arg_data
     end
 
 
@@ -204,13 +231,20 @@ module Yast
     # @return a map from Linux device to Firmware device identification
     def GetDeviceMap
       Builtins.y2milestone("Reading device mapping")
-      devmap = System::Bootloader_API.getDeviceMapping
+
+      res_data = tmp_yaml_file
+
+      run_pbl_yaml "#{res_data.path}=GetDeviceMap()"
+
+      devmap = YAML.load(File.read(res_data.path))
+
       if devmap == nil
         Builtins.y2error("Reading device mapping failed")
         return {}
       end
+
       Builtins.y2milestone("Read device mapping: %1", devmap)
-      deep_copy(devmap)
+      devmap
     end
 
     # Display the log file written by the underlying bootloader libraries
@@ -236,39 +270,46 @@ module Yast
     # data
     # @return [Boolean] true on success
     def ReadFiles(avoid_reading_device_map)
+      param_data = tmp_yaml_file(avoid_reading_device_map)
       Builtins.y2milestone("Reading Files")
-      ret = System::Bootloader_API.readSettings(avoid_reading_device_map)
-      Builtins.y2error("Reading files failed") if !ret
-      ret
+
+      run_pbl_yaml "ReadSettings(#{param_data.path})"
+
+      true
+    ensure
+      param_data.unlink
     end
 
     # Flush the internal cache of the library to the disk
     # @return [Boolean] true on success
     def CommitSettings
       Builtins.y2milestone("Writing files to system")
-      ret = System::Bootloader_API.writeSettings
-      bootloaderError("Writing files to system failed") if !ret
-      ret
+      run_pbl_yaml "WriteSettings()"
+
+      true
     end
 
     # Update the bootloader settings, make updated saved settings active
     # @return [Boolean] true on success
     def UpdateBootloader
+      # true mean avoid init of bootloader
+      arg_data = tmp_yaml_file(true)
+
       Builtins.y2milestone("Updating bootloader configuration")
-      ret = System::Bootloader_API.updateBootloader(true)
-      Builtins.y2milestone("return value from updateBootloader: %1", ret)
-      if !ret
-        bootloaderError("Error occurred while updating configuration files")
-      end
-      ret
+      run_pbl_yaml "UpdateBootloader(#{arg_data.path})"
+    ensure
+      arg_data.unlink
     end
 
     def SetSecureBoot(enable)
+      arg_data = tmp_yaml_file(enable)
+
       Builtins.y2milestone("Set SecureBoot")
-      ret = System::Bootloader_API.setSecureBoot(enable)
-      Builtins.y2milestone("return value from setSecureBoot: %1", ret)
-      bootloaderError("Error occurred while setting secureboot") if !ret
-      ret
+      run_pbl_yaml "SetSecureBoot(#{arg_data.path})"
+
+      true
+    ensure
+      arg_data.unlink
     end
 
 
@@ -284,42 +325,54 @@ module Yast
         append,
         console
       )
-      ret = System::Bootloader_API.updateSerialConsole(append, console)
-      Builtins.y2milestone("return updated value of append: %1", ret)
-      bootloaderError("Error occurred while updating append") if ret == nil
-      ret
+
+      args_data = tmp_yaml_file([append, console])
+      run_pbl_yaml "UpdateSerialConsole(@#{args_data.path})"
+
+      true
+    ensure
+      args_data.unlink
     end
 
     # Initialize the boot loader (eg. modify firmware, depending on architecture)
     # @return [Boolean] true on success
     def InitializeBootloader
       Builtins.y2milestone("Initializing bootloader")
-      ret = System::Bootloader_API.initializeBootloader
-      bootloaderError("Error occurred while initializing bootloader") if !ret
-      ret
+
+      run_pbl_yaml "InitializeBootloader()"
     end
 
     # Get contents of files from the library cache
     # @return a map filename -> contents, empty map in case of fail
     def GetFilesContents
       Builtins.y2milestone("Getting contents of files")
-      ret = System::Bootloader_API.getFilesContents
+      ret_data = tmp_yaml_file
+
+      run_pbl_yaml "#{res_data.path}=GetFilesContents()"
+
+      ret = YAML.load(File.read(ret_data.path))
       if ret == nil
         Builtins.y2error("Getting contents of files failed")
         return {}
       end
-      deep_copy(ret)
+
+      ret
+    ensure
+      ret_data.unlink
     end
 
     # Set the contents of all files to library cache
     # @param [Hash{String => String}] files a map filename -> contents
     # @return [Boolean] true on success
     def SetFilesContents(files)
-      files = deep_copy(files)
+      files_data = tmp_yaml_file(files)
+
       Builtins.y2milestone("Storing contents of files")
-      ret = System::Bootloader_API.setFilesContents(files)
-      Builtins.y2error("Setting file contents failed") if !ret
-      ret
+      run_pbl_yaml "SetFilesContents(#{files_data.path})"
+
+      true
+    ensure
+      files_data.unlink
     end
 
     # Analyse content of MBR
@@ -328,9 +381,17 @@ module Yast
     # @return [String] result of analyse ("GRUB stage1", "uknown",...)
 
     def examineMBR(device)
-      ret = System::Bootloader_API.examineMBR(device)
+      device_data = tmp_yaml_file(device)
+      ret_data = tmp_yaml_file
+
+      run_pbl_yaml "#{ret_data.path}=ExamineMBR(#{device_data})"
+      ret = YAML.load(File.read(ret_data.path))
+
       Builtins.y2milestone("Device: %1 includes in MBR: %2", device, ret)
       ret
+    ensure
+      device_data.unlink
+      ret_data.unlink
     end
   end
 end

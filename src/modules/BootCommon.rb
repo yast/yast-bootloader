@@ -1316,7 +1316,6 @@ module Yast
     publish :function => :GetSections, :type => "list <map <string, any>> ()"
     publish :function => :SetGlobal, :type => "boolean (map <string, string>)"
     publish :function => :GetGlobal, :type => "map <string, string> ()"
-    publish :function => :GetMetaData, :type => "map <string, string> ()"
     publish :function => :SetDeviceMap, :type => "boolean (map <string, string>)"
     publish :function => :GetDeviceMap, :type => "map <string, string> ()"
     publish :function => :bootloaderError, :type => "void (string)"
