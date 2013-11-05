@@ -41,7 +41,7 @@ module Yast
 
       def initialize(data=nil)
         @path = mktemp
-        write_data(data) if data
+        write_data(data) unless data.nil?
       end
 
       def unlink
