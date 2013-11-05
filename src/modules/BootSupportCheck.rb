@@ -144,7 +144,7 @@ module Yast
         mbr_dev = Ops.get_string(p_dev, "disk", "")
         label = Ops.get_string(tm, [mbr_dev, "label"], "")
         Builtins.y2milestone("Label: %1", label)
-        Builtins.y2internal("Num: %1", num)
+        Builtins.y2milestone("Partition number: %1", num)
         if label == "gpt"
           if Ops.greater_than(num, 3)
             Builtins.y2error(
