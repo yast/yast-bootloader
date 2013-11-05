@@ -375,7 +375,7 @@ module Yast
 
       run_pbl_yaml "#{ret_data.path}=GetFilesContents()"
 
-      ret = ret_data.yaml
+      ret = ret_data.data
       if ret == nil
         Builtins.y2error("Getting contents of files failed")
         return {}
