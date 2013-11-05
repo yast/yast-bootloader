@@ -373,7 +373,7 @@ module Yast
       Builtins.y2milestone("Getting contents of files")
       ret_data = TmpYAMLFile.new
 
-      run_pbl_yaml "#{res_data.path}=GetFilesContents()"
+      run_pbl_yaml "#{ret_data.path}=GetFilesContents()"
 
       ret = ret_data.yaml
       if ret == nil
