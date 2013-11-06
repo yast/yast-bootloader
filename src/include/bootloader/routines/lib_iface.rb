@@ -41,7 +41,7 @@ module Yast
 
       def initialize(data=nil)
         @path = mktemp
-        write_data(data) if data
+        write_data(data) unless data.nil?
       end
 
       def unlink
@@ -257,7 +257,7 @@ module Yast
 
       res_data = TmpYAMLFile.new
 
-      run_pbl_yaml "#{res_data.path}=GetDeviceMap()"
+      run_pbl_yaml "#{res_data.path}=GetDeviceMapping()"
 
       devmap = res_data.data
 
@@ -375,7 +375,7 @@ module Yast
 
       run_pbl_yaml "#{ret_data.path}=GetFilesContents()"
 
-      ret = ret_data.yaml
+      ret = ret_data.data
       if ret == nil
         Builtins.y2error("Getting contents of files failed")
         return {}
