@@ -877,7 +877,7 @@ module Yast
             )
             Builtins.y2milestone("Running command %1", command)
             out = Convert.to_map(
-              SCR.Execute(path(".target.bash_output"), command)
+              WFM.Execute(path(".local.bash_output"), command)
             )
             exit = Ops.get_integer(out, "exit", 0)
             Builtins.y2milestone("Command output: %1", out)
