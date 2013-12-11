@@ -25,7 +25,7 @@ Source0:        %{name}-%{version}.tar.bz2
 
 Group:	        System/YaST
 License:        GPL-2.0+
-BuildRequires:	yast2-devtools >= 3.0.6
+BuildRequires:	yast2-devtools >= 3.1.10
 BuildRequires:  update-desktop-files
 PreReq:         /bin/sed %fillup_prereq
 # Installation::*version variables
