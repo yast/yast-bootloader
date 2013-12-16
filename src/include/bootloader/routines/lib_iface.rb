@@ -352,9 +352,10 @@ module Yast
       )
 
       args_data = TmpYAMLFile.new([append, console])
-      run_pbl_yaml "UpdateSerialConsole(@#{args_data.path})"
+      append_data = TmpYAMLFile.new
+      run_pbl_yaml "#{append_data.path}=UpdateSerialConsole(@#{args_data.path})"
 
-      true
+      append_data.data
     ensure
       args_data.unlink
     end
