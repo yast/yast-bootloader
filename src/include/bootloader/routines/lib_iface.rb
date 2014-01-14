@@ -261,7 +261,7 @@ module Yast
 
       devmap = res_data.data
 
-      if devmap == nil
+      if !devmap
         Builtins.y2error("Reading device mapping failed")
         return {}
       end
