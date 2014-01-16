@@ -590,8 +590,7 @@ module Yast
       boot_devices = BootStorage.getPartitionList(:boot, "grub")
       value = ""
       if BootCommon.VerifyMDArray
-        if BootCommon.enable_md_array_redundancy == nil ||
-            BootCommon.enable_md_array_redundancy
+        if BootCommon.enable_md_array_redundancy
           UI.ChangeWidget(Id("enable_redundancy"), :Value, true)
         else
           UI.ChangeWidget(Id("enable_redundancy"), :Value, false)
