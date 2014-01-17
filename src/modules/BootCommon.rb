@@ -982,6 +982,8 @@ module Yast
       # detect bootloader
       @loader_type = Convert.to_string(SCR.Read(path(".probe.boot_arch")))
       @loader_type = "zipl" if @loader_type == "s390"
+      # ppc uses grub2 (fate #315753)
+      @loader_type = "grub2" if @loader_type == "ppc"
       # suppose grub2 should superscede grub ..
       @loader_type = "grub2" if @loader_type == "grub"
       Builtins.y2milestone("Bootloader detection returned %1", @loader_type)
