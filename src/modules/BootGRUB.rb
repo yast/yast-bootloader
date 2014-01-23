@@ -456,19 +456,6 @@ module Yast
             "__devs"        => []
           }
         )
-      elsif StorageDevices.FloppyPresent
-        out = Builtins.add(
-          out,
-          {
-            "name"          => BootCommon.translateSectionTitle("floppy"),
-            "original_name" => "floppy",
-            "type"          => "other",
-            "chainloader"   => "/dev/fd0",
-            "__changed"     => true,
-            "__auto"        => true,
-            "__devs"        => []
-          }
-        )
       end
       out = Builtins.add(out, CreateLinuxSection("failsafe"))
       out = Builtins.add(out, CreateLinuxSection("memtest86"))
