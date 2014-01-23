@@ -1148,7 +1148,8 @@ module Yast
       ]
       if Arch.i386 || Arch.x86_64
         ret = Convert.convert(
-          Builtins.merge(ret, ["lilo", "grub", "grub2"]),
+          # don't add lilo (fate #314886)
+          Builtins.merge(ret, ["grub", "grub2"]),
           :from => "list",
           :to   => "list <string>"
         )
