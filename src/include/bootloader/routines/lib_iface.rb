@@ -411,7 +411,7 @@ module Yast
       device_data = TmpYAMLFile.new(device)
       ret_data = TmpYAMLFile.new
 
-      run_pbl_yaml "#{ret_data.path}=ExamineMBR(#{device_data})"
+      run_pbl_yaml "#{ret_data.path}=ExamineMBR(#{device_data.path})"
       ret = ret_data.data
 
       Builtins.y2milestone("Device: %1 includes in MBR: %2", device, ret)
