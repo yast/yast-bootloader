@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 28 09:56:33 UTC 2014 - jreidinger@suse.com
+
+- Fix examining MBR
+- 3.1.4
+
+-------------------------------------------------------------------
 Tue Jan 14 10:37:06 UTC 2014 - jreidinger@suse.com
 
 - handle problematic conversion of perl undef in perl-json
