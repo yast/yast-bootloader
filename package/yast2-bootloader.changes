@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb 10 10:56:36 CET 2014 - snwint@suse.de
+
+- don't ask to run yast.ssh in second stage as there's no second stage
+  anymore (bnc 861537)
+
+-------------------------------------------------------------------
 Tue Jan 28 09:56:33 UTC 2014 - jreidinger@suse.com
 
 - Fix examining MBR

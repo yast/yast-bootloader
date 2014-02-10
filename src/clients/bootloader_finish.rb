@@ -127,53 +127,23 @@ module Yast
           @ipl_msg = ""
           @ipl_msg = Ops.get_string(@finish_ret, "ipl_msg", "")
 
-          # SSH modification
-          @usessh_msg = ""
-          if Linuxrc.usessh
-            # TRANSLATORS: part of the reboot message
-            #/ %1 is replaced with a command name
-            # (message ID#SSH)
-            @usessh_msg = Builtins.sformat(
-              _("Then reconnect and run the following:\n%1\n"),
-              "yast.ssh"
-            )
-          end
-
           # TRANSLATORS: reboot message
           # %1 is replaced with additional message from reIPL
-          # %2 is replaced with additional message when using SSH
-          # See message ID#SSH
           Misc.boot_msg = Builtins.sformat(
             _(
               "\n" +
-                "Your system will now shut down.%1%2\n" +
+                "Your system will now shut down.%1\n" +
                 "For details, read the related chapter \n" +
                 "in the documentation. \n"
             ),
-            @ipl_msg,
-            @usessh_msg
+            @ipl_msg
           )
         else
-          if Linuxrc.usessh && !Linuxrc.vnc
-            # Final message after all packages from CD1 are installed
-            # and we're ready to start (boot into) the installed system
-            # Message that will be displayed along with information
-            # how the boot loader was installed
-            Misc.boot_msg = Builtins.sformat(
-              _(
-                "The system will reboot now.\n" +
-                  "After reboot, reconnect and run the following:\n" +
-                  "%1"
-              ),
-              "yast.ssh"
-            )
-          else
-            # Final message after all packages from CD1 are installed
-            # and we're ready to start (boot into) the installed system
-            # Message that will be displayed along with information
-            # how the boot loader was installed
-            Misc.boot_msg = _("The system will reboot now...")
-          end
+          # Final message after all packages from CD1 are installed
+          # and we're ready to start (boot into) the installed system
+          # Message that will be displayed along with information
+          # how the boot loader was installed
+          Misc.boot_msg = _("The system will reboot now...")
         end
 
         #--------------------------------------------------------------
