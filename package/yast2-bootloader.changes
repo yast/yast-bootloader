@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 12 10:18:39 UTC 2014 - jreidinger@suse.com
+
+- rephrase bootloader proposal on summary screen (BNC#853058)
+- 3.1.5
+
+-------------------------------------------------------------------
 Mon Feb 10 10:56:36 CET 2014 - snwint@suse.de
 
 - don't ask to run yast.ssh in second stage as there's no second stage
