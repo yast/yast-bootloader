@@ -151,8 +151,10 @@ module Yast
     # @param [String] reason text stating why the location should be re-proposed
     # @return [Boolean] yes if shall be reset
     def askLocationResetPopup(reason)
-      # yes-no popup
       Popup.YesNo(
+        # Confirmation box with yes-no popup. %1 is reason why we need to set
+        # default location. It is translated on caller side and it is complete
+        # sentence.
         Builtins.sformat(_("%1Set default boot loader location?\n"), reason)
       )
     end
