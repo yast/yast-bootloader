@@ -63,7 +63,7 @@ module Yast
         "type_menu"         => _("<p><b>Menu Section</b></p>"),
         "menu_root"         => _("<p><b>Partition of Menu File</b></p>"),
         "configfile"        => _(
-          "<p><b>Menu Description File<b> specifies path on root device from which is loaded menu file.</p>"
+          "<p><b>Menu Description File</b> specifies path on root device from which is loaded menu file.</p>"
         ),
         "remap"             => _(
           "<p><b>Map Section to the First Disk from Device Map</b> Windows usually need to be on the first disk.</p>"
