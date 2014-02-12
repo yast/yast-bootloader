@@ -658,98 +658,48 @@ module Yast
     #
     def urlLocationSummary
       Builtins.y2milestone("Prepare url summary for GRUB")
-      ret = ""
-      line = ""
       locations = []
       line = "<ul>\n<li>"
-      if Ops.get(BootCommon.globals, "boot_mbr", "") == "true"
-        line = Ops.add(
-          Ops.add(
-            line,
-            _(
-              "Boot from MBR is enabled (<a href=\"disable_boot_mbr\">disable</a>"
-            )
-          ),
-          ")</li>\n"
+      if BootCommon.globals["boot_mbr"] == "true"
+        line << _(
+          "Install bootcode into MBR (<a href=\"disable_boot_mbr\">do not install</a>)"
         )
       else
-        line = Ops.add(
-          Ops.add(
-            line,
-            _(
-              "Boot from MBR is disabled (<a href=\"enable_boot_mbr\">enable</a>"
-            )
-          ),
-          ")</li>\n"
+        line << _(
+          "Do not install bootcode into MBR (<a href=\"enable_boot_mbr\">install</a>)"
         )
       end
-      locations = Builtins.add(locations, line)
+      line << "</li>\n"
+      locations << line
+
       line = "<li>"
 
-      set_boot_boot = false
-      if Ops.get(BootCommon.globals, "boot_boot", "") == "true" &&
-          BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
-        set_boot_boot = true
-        line = Ops.add(
-          Ops.add(
-            line,
-            _(
-              "Boot from /boot partition is enabled (<a href=\"disable_boot_boot\">disable</a>"
-            )
-          ),
-          ")</li></ul>"
-        )
-      elsif Ops.get(BootCommon.globals, "boot_boot", "") == "false" &&
-          BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
-        set_boot_boot = true
-        line = Ops.add(
-          Ops.add(
-            line,
-            _(
-              "Boot from /boot partition is disabled (<a href=\"enable_boot_boot\">enable</a>"
-            )
-          ),
-          ")</li></ul>"
-        )
+      # check for separated boot partition, use root otherwise
+      if BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
+        if BootCommon.globals["boot_boot"] == "true"
+          line << _(
+            "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>)"
+          )
+        else
+          line << _(
+            "Do not install bootcode into /boot partition (<a href=\"enable_boot_boot\">install</a>)"
+          )
+        end
+      else
+        if BootCommon.globals["boot_root"] == "true"
+          line << _(
+            "Install bootcode into \"/\" partition (<a href=\"disable_boot_root\">do not install</a>)"
+          )
+        else
+          line << _(
+            "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">do not install</a>"
+          )
+        end
       end
-      if line != "<li>"
-        locations = Builtins.add(locations, line)
-        line = "<li>"
-      end
-      if Ops.get(BootCommon.globals, "boot_root", "") == "true" &&
-          !set_boot_boot
-        line = Ops.add(
-          Ops.add(
-            line,
-            _(
-              "Boot from \"/\" partition is enabled (<a href=\"disable_boot_root\">disable</a>"
-            )
-          ),
-          ")</li></ul>"
-        )
-      elsif Ops.get(BootCommon.globals, "boot_root", "") == "false" &&
-          !set_boot_boot
-        line = Ops.add(
-          Ops.add(
-            line,
-            _(
-              "Boot from \"/\" partition is disabled (<a href=\"enable_boot_root\">enable</a>"
-            )
-          ),
-          ")</li></ul>"
-        )
-      end
-      locations = Builtins.add(locations, line) if !set_boot_boot
+      line << "</li></ul>"
+      locations << line
 
-      if Ops.greater_than(Builtins.size(locations), 0)
-        # FIXME: should we translate all devices to names and add MBR suffixes?
-        ret = Builtins.sformat(
-          _("Change Location: %1"),
-          Builtins.mergestring(locations, " ")
-        )
-      end
-
-      ret
+      return _("Change Location: %s") % locations.join(" ")
     end
 
     # Display bootloader summary
