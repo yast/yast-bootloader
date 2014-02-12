@@ -667,7 +667,7 @@ module Yast
           Ops.add(
             line,
             _(
-              "Boot from MBR is enabled (<a href=\"disable_boot_mbr\">disable</a>"
+              "Install bootcode into MBR (<a href=\"disable_boot_mbr\">do not install</a>"
             )
           ),
           ")</li>\n"
@@ -677,7 +677,7 @@ module Yast
           Ops.add(
             line,
             _(
-              "Boot from MBR is disabled (<a href=\"enable_boot_mbr\">enable</a>"
+              "Do not install bootcode into MBR (<a href=\"enable_boot_mbr\">install</a>"
             )
           ),
           ")</li>\n"
@@ -694,7 +694,7 @@ module Yast
           Ops.add(
             line,
             _(
-              "Boot from /boot partition is enabled (<a href=\"disable_boot_boot\">disable</a>"
+              "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>"
             )
           ),
           ")</li></ul>"
@@ -706,7 +706,7 @@ module Yast
           Ops.add(
             line,
             _(
-              "Boot from /boot partition is disabled (<a href=\"enable_boot_boot\">enable</a>"
+              "Do not install bootcode into /boot partition (<a href=\"enable_boot_boot\">install</a>"
             )
           ),
           ")</li></ul>"
@@ -722,7 +722,7 @@ module Yast
           Ops.add(
             line,
             _(
-              "Boot from \"/\" partition is enabled (<a href=\"disable_boot_root\">disable</a>"
+              "Install bootcode into \"/\" partition (<a href=\"disable_boot_root\">do not install</a>"
             )
           ),
           ")</li></ul>"
@@ -733,7 +733,7 @@ module Yast
           Ops.add(
             line,
             _(
-              "Boot from \"/\" partition is disabled (<a href=\"enable_boot_root\">enable</a>"
+              "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">do not install</a>"
             )
           ),
           ")</li></ul>"
