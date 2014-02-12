@@ -234,11 +234,11 @@ module Yast
       line = "<ul>\n<li>"
       if BootCommon.globals["boot_mbr"] == "true"
         line << _(
-              "Install bootcode into MBR (<a href=\"disable_boot_mbr\">do not install</a>)"
+          "Install bootcode into MBR (<a href=\"disable_boot_mbr\">do not install</a>)"
         )
       else
         line << _(
-              "Do not install bootcode into MBR (<a href=\"enable_boot_mbr\">install</a>)"
+          "Do not install bootcode into MBR (<a href=\"enable_boot_mbr\">install</a>)"
         )
       end
       line << "</li>\n"
@@ -250,31 +250,28 @@ module Yast
       if BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
         if BootCommon.globals["boot_boot"] == "true"
           line << _(
-              "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>)"
+            "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>)"
           )
         else
           line << _(
-              "Do not install bootcode into /boot partition (<a href=\"enable_boot_boot\">install</a>)"
+            "Do not install bootcode into /boot partition (<a href=\"enable_boot_boot\">install</a>)"
           )
         end
       else
         if BootCommon.globals["boot_root"] == "true"
           line << _(
-              "Install bootcode into \"/\" partition (<a href=\"disable_boot_root\">do not install</a>)"
+            "Install bootcode into \"/\" partition (<a href=\"disable_boot_root\">do not install</a>)"
           )
         else
           line << _(
-              "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">do not install</a>"
+            "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">do not install</a>"
           )
         end
       end
       line << "</li></ul>"
       locations << line
 
-      return Builtins.sformat(
-        _("Change Location: %1"),
-        locations.join(" ")
-      )
+      return _("Change Location: %s") % locations.join(" ")
     end
 
 
