@@ -996,10 +996,6 @@ module Yast
         Builtins.y2milestone(
           "It is XEN domU and the bootloader should be installed"
         )
-        # bnc #766283 - opensuse 12.2 pv guests can not start after installation
-        # due to lack of grub2 support in the host
-        # fallback to use grub until grub2 really works on it
-        @loader_type = "grub" if @loader_type == "grub2"
       end
       if (Arch.i386 || Arch.x86_64) && Linuxrc.InstallInf("EFI") == "1"
         # use grub2-efi as default bootloader for x86_64/i386 EFI
