@@ -19,48 +19,17 @@
 # $Id: BootGRUB2EFI.ycp 63508 2011-03-04 12:53:27Z jreidinger $
 #
 require "yast"
+require "installation/grub2base"
 
 module Yast
-  class BootGRUB2EFIClass < Module
+  class BootGRUB2EFIClass < GRUB2Base
     def main
-      Yast.import "UI"
+      super
 
-      textdomain "bootloader"
-
-      Yast.import "BootArch"
-      Yast.import "BootCommon"
-      Yast.import "BootStorage"
-      Yast.import "Kernel"
-      Yast.import "Mode"
-      Yast.import "Stage"
-      Yast.import "Storage"
-      Yast.import "StorageDevices"
-      Yast.import "Pkg"
-      Yast.import "HTML"
-      Yast.import "Initrd"
-      Yast.import "Product"
-
-      # includes
-      # for shared some routines with grub
-      # include "bootloader/grub/misc.ycp";
-      # for simplified widgets than other
-      Yast.include self, "bootloader/grub2/dialogs.rb"
       BootGRUB2EFI()
     end
 
     # general functions
-
-    # Propose global options of bootloader
-    def StandardGlobals
-      {
-        "timeout"   => "8",
-        "default"   => "0",
-        "vgamode"   => "",
-        "gfxmode"   => "auto",
-        "terminal"  => "gfxterm",
-        "os_prober" => "true"
-      }
-    end
 
     # Read settings from disk
     # @param [Boolean] reread boolean true to force reread settings from system
@@ -70,30 +39,7 @@ module Yast
     def Read(reread, avoid_reading_device_map)
       BootCommon.InitializeLibrary(reread, "grub2-efi")
       BootCommon.ReadFiles(avoid_reading_device_map) if reread
-      # TODO: check if necessary for grub2efi
-      # grub_DetectDisks ();
-      ret = BootCommon.Read(false, avoid_reading_device_map)
-
-      # TODO: check if necessary for grub2
-      # refresh device map if not read
-      # if (BootStorage::device_mapping == nil
-      #    || size (BootStorage::device_mapping) == 0)
-      # {
-      #    BootStorage::ProposeDeviceMap ();
-      # }
-
-      ret
-    end
-
-    # Update read settings to new version of configuration files
-    def Update
-      Read(true, true)
-
-      #we don't handle sections, grub2 section create them for us
-      #BootCommon::UpdateSections ();
-      BootCommon.UpdateGlobals
-
-      nil
+      BootCommon.Read(false, avoid_reading_device_map)
     end
 
     # Write bootloader settings to disk
@@ -110,15 +56,6 @@ module Yast
       end
 
       ret
-    end
-
-    # Reset bootloader settings
-    # @param [Boolean] init boolean true to repropose also device map
-    def Reset(init)
-      return if Mode.autoinst
-      BootCommon.Reset(init)
-
-      nil
     end
 
     # Propose bootloader settings
@@ -214,11 +151,6 @@ module Yast
       deep_copy(result)
     end
 
-    def Dialogs
-      Builtins.y2milestone("Called GRUB2 Dialogs")
-      { "loader" => fun_ref(method(:Grub2LoaderDetailsDialog), "symbol ()") }
-    end
-
     # Return map of provided functions
     # @return a map of functions (eg. $["write":BootGRUB2EFI::Write])
     def GetFunctions
@@ -237,20 +169,6 @@ module Yast
       }
     end
 
-
-    # Initializer of GRUB2EFI bootloader
-    def Initializer
-      Builtins.y2milestone("Called GRUB2EFI initializer")
-      BootCommon.current_bootloader_attribs = {
-        "propose"            => false,
-        "read"               => false,
-        "scratch"            => false,
-        "restore_mbr"        => false,
-        "bootloader_on_disk" => false
-      }
-
-      nil
-    end
 
     # Constructor
     def BootGRUB2EFI

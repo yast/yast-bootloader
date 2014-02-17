@@ -74,6 +74,10 @@ ynclude5_DATA = \
   include/bootloader/ppc/dialogs.rb \
   include/bootloader/ppc/helps.rb
 
+ylibdir = "${yast2dir}/lib/bootloader"
+ylib_DATA = \
+  lib/bootloader/grub2base.rb
+
 scrconf_DATA = \
   scrconf/cfg_bootloader.scr \
   scrconf/cfg_bootsplash.scr \
