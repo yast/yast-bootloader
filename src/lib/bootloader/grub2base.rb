@@ -96,13 +96,8 @@ module Yast
         BootCommon.globals |= StandardGlobals()
       end
 
-      swap_sizes = BootCommon.getSwapPartitions
-      swap_parts = swap_sizes.keys
-      swap_parts.sort! do |a, b|
-        swap_sizes[a] <=> swap_sizes[b]
-      end
-
-      largest_swap_part = swap_parts.first || ""
+      swap_parts = BootCommon.getSwapPartitions
+      largest_swap_part = swap_parts.max_by{|part, size| size}.first || ""
 
       resume = BootArch.ResumeAvailable ? largest_swap_part : ""
       # try to use label or udev id for device name... FATE #302219
