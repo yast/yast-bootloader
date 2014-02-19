@@ -126,7 +126,7 @@ module Yast
       Ops.set(
         BootCommon.globals,
         "distributor",
-        Ops.add(Ops.add(Product.short_name, " "), Product.version)
+        Product.name)
       )
       BootCommon.kernelCmdLine = Kernel.GetCmdLine
 
