@@ -76,7 +76,7 @@ module Yast
 
     def Propose
       if BootCommon.was_proposed
-        # workaround autoyast config is Imported thus was_proposed always set 
+        # workaround autoyast config is Imported thus was_proposed always set
         if Mode.autoinst
           Builtins.y2milestone(
             "autoinst mode we ignore meaningless was_proposed as it always set"
@@ -90,57 +90,32 @@ module Yast
       end
 
 
-      if BootCommon.globals == nil || Builtins.size(BootCommon.globals) == 0
+      if BootCommon.globals == nil || BootCommon.globals.empty?
         BootCommon.globals = StandardGlobals()
       else
-        BootCommon.globals = Convert.convert(
-          Builtins.union(BootCommon.globals, StandardGlobals()),
-          :from => "map",
-          :to   => "map <string, string>"
-        )
+        BootCommon.globals |= StandardGlobals()
       end
 
       swap_sizes = BootCommon.getSwapPartitions
-      swap_parts = Builtins.maplist(swap_sizes) { |name, size| name }
-      swap_parts = Builtins.sort(swap_parts) do |a, b|
-        Ops.greater_than(Ops.get(swap_sizes, a, 0), Ops.get(swap_sizes, b, 0))
+      swap_parts = swap_sizes.keys
+      swap_parts.sort! do |a, b|
+        swap_sizes[a] <=> swap_sizes[b]
       end
 
-      largest_swap_part = Ops.get(swap_parts, 0, "")
+      largest_swap_part = swap_parts.first || ""
 
       resume = BootArch.ResumeAvailable ? largest_swap_part : ""
       # try to use label or udev id for device name... FATE #302219
       if resume != "" && resume != nil
         resume = BootStorage.Dev2MountByDev(resume)
       end
-      Ops.set(
-        BootCommon.globals,
-        "append",
-        BootArch.DefaultKernelParams(resume)
-      )
-      Ops.set(
-        BootCommon.globals,
-        "append_failsafe",
-        BootArch.FailsafeKernelParams
-      )
-      Ops.set(
-        BootCommon.globals,
-        "distributor",
-        Product.name)
-      )
-      BootCommon.kernelCmdLine = Kernel.GetCmdLine
 
-      Builtins.y2milestone("Proposed globals: %1", BootCommon.globals) 
+      BootCommon.globals["append"]          = BootArch.DefaultKernelParams(resume)
+      BootCommon.globals["append_failsafe"] = BootArch.FailsafeKernelParams
+      BootCommon.globals["distributor"]     = Product.name
+      BootCommon.kernelCmdLine              = Kernel.GetCmdLine
 
-      # Let grub2 scripts detects correct root= for us. :)
-      # BootCommon::globals["root"] = BootStorage::Dev2MountByDev(BootStorage::RootPartitionDevice);
-
-      # We don't set vga= if Grub2 gfxterm enabled, because the modesettings
-      # will be delivered to kernel by Grub2's gfxpayload set to "keep"
-      #if (BootArch::VgaAvailable () && Kernel::GetVgaType () != "")
-      #{
-      #    BootCommon::globals["vgamode"] = Kernel::GetVgaType ();
-      #}
+      Builtins.y2milestone("Proposed globals: %1", BootCommon.globals)
 
       nil
     end
