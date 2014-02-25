@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "yast"
+require "bootloader/grub2pwd"
 
 module Yast
   class GRUB2Base < Module
@@ -24,6 +25,12 @@ module Yast
       # includes
       # for simplified widgets than other
       Yast.include self, "bootloader/grub2/dialogs.rb"
+
+      # password can have three states
+      # 1. nil -> remove password
+      # 2. "" -> do not change it
+      # 3. "something" -> set password to this value
+      @password = ""
     end
 
     # general functions
@@ -113,6 +120,20 @@ module Yast
       Builtins.y2milestone("Proposed globals: %1", BootCommon.globals)
 
       nil
+    end
+
+    # overwrite Save to allow generation of modification scripts
+    def Save(clean, init, flush)
+      case @password
+      when nil
+        GRUB2Pwd.new.disable
+      when ""
+        #do nothing
+      else
+        GRUB2Pwd.new.enable @password
+      end
+
+      BootCommon.Save(clean, init, flush)
     end
 
     # Initializer of GRUB bootloader
