@@ -115,8 +115,6 @@ module Yast
       nil
     end
 
-
-
     # Initializer of GRUB bootloader
     def Initializer
       Builtins.y2milestone("Called GRUB2 initializer")

@@ -76,7 +76,8 @@ ynclude5_DATA = \
 
 ylibdir = "${yast2dir}/lib/bootloader"
 ylib_DATA = \
-  lib/bootloader/grub2base.rb
+  lib/bootloader/grub2base.rb \
+  lib/bootloader/grub2pwd.rb
 
 scrconf_DATA = \
   scrconf/cfg_bootloader.scr \
