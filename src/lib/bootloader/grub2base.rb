@@ -97,11 +97,8 @@ module Yast
       end
 
 
-      if BootCommon.globals == nil || BootCommon.globals.empty?
-        BootCommon.globals = StandardGlobals()
-      else
-        BootCommon.globals |= StandardGlobals()
-      end
+      BootCommon.globals ||= Hash.new
+      BootCommon.globals.merge! StandardGlobals()
 
       swap_parts = BootCommon.getSwapPartitions
       largest_swap_part = swap_parts.max_by{|part, size| size}.first || ""
