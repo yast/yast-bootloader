@@ -225,6 +225,59 @@ module Yast
       nil
     end
 
+    def ConsoleContent
+      VBox(
+        CheckBoxFrame(
+          Id(:gfxterm_frame),
+          _("Use &graphical console"),
+          true,
+          HBox(
+            HSpacing(2),
+            ComboBox(
+              Id(:gfxmode),
+              Opt(:editable, :hstretch),
+              _("&Console resolution"),
+              [""]
+            ),
+            HBox(
+              Left(
+                InputField(
+                  Id(:gfxtheme),
+                  Opt(:hstretch),
+                  _("&Console theme")
+                )
+              ),
+              VBox(
+                Left(Label("")),
+                Left(
+                  PushButton(
+                    Id(:browsegfx),
+                    Opt(:notify),
+                    Label.BrowseButton
+                  )
+                )
+              )
+            ),
+            HStretch()
+          )
+        ),
+        CheckBoxFrame(
+          Id(:console_frame),
+          _("Use &serial console"),
+          true,
+          HBox(
+            HSpacing(2),
+            InputField(
+              Id(:console_args),
+              Opt(:hstretch),
+              _("&Console arguments")
+            ),
+            HStretch()
+          )
+        )
+      )
+    end
+
     def Grub2Options
       grub2_specific = {
         "distributor"     => CommonInputFieldWidget(
@@ -273,56 +326,7 @@ module Yast
         },
         "console"         => {
           "widget"        => :custom,
-          "custom_widget" => VBox(
-            CheckBoxFrame(
-              Id(:gfxterm_frame),
-              _("Use &graphical console"),
-              true,
-              HBox(
-                HSpacing(2),
-                ComboBox(
-                  Id(:gfxmode),
-                  Opt(:editable, :hstretch),
-                  _("&Console resolution"),
-                  [""]
-                ),
-                HBox(
-                  Left(
-                    InputField(
-                      Id(:gfxtheme),
-                      Opt(:hstretch),
-                      _("&Console theme")
-                    )
-                  ),
-                  VBox(
-                    Left(Label("")),
-                    Left(
-                      PushButton(
-                        Id(:browsegfx),
-                        Opt(:notify),
-                        Label.BrowseButton
-                      )
-                    )
-                  )
-                ),
-                HStretch()
-              )
-            ),
-            CheckBoxFrame(
-              Id(:console_frame),
-              _("Use &serial console"),
-              true,
-              HBox(
-                HSpacing(2),
-                InputField(
-                  Id(:console_args),
-                  Opt(:hstretch),
-                  _("&Console arguments")
-                ),
-                HStretch()
-              )
-            )
-          ),
+          "custom_widget" => ConsoleContent(),
           "init"          => fun_ref(method(:ConsoleInit), "void (string)"),
           "store"         => fun_ref(
             method(:ConsoleStore),
