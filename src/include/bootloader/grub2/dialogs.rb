@@ -88,6 +88,7 @@ module Yast
             HSpacing(1)
           ),
           MarginBox(1, 1, "default"),
+          MarginBox(1, 1, "password"),
           VStretch()
         )
       }

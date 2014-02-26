@@ -247,6 +247,24 @@ module Yast
       false
     end
 
+    def passwd_content
+      HBox(
+        CheckBoxFrame(
+          Id(:use_pas),
+          _("Prot&ect Boot Loader with Password"),
+          true,
+          HBox(
+            HSpacing(2),
+            # text entry
+            Password(Id(:pw1), Opt(:hstretch), _("&Password")),
+            # text entry
+            HSpacing(2),
+            Password(Id(:pw2), Opt(:hstretch), _("Re&type Password")),
+            HStretch()
+          )
+        )
+      )
+    end
 
 
     # Build a map describing a widget
@@ -255,22 +273,7 @@ module Yast
       {
         "widget"            => :custom,
         # frame
-        "custom_widget"     => HBox(
-          CheckBoxFrame(
-            Id(:use_pas),
-            _("Prot&ect Boot Loader with Password"),
-            true,
-            HBox(
-              HSpacing(2),
-              # text entry
-              Password(Id(:pw1), Opt(:hstretch), _("&Password")),
-              # text entry
-              HSpacing(2),
-              Password(Id(:pw2), Opt(:hstretch), _("Re&type Password")),
-              HStretch()
-            )
-          )
-        ),
+        "custom_widget"     => passwd_content,
         "init"              => fun_ref(
           method(:InitPasswdWidget),
           "void (string)"
