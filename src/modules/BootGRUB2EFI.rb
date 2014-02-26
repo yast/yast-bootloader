@@ -19,7 +19,7 @@
 # $Id: BootGRUB2EFI.ycp 63508 2011-03-04 12:53:27Z jreidinger $
 #
 require "yast"
-require "installation/grub2base"
+require "bootloader/grub2base"
 
 module Yast
   class BootGRUB2EFIClass < GRUB2Base
