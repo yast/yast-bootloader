@@ -300,7 +300,7 @@ module Yast
 
     def grub2_pwd_init(widget)
       passwd = GRUB2Pwd.new.used?
-      if passwd == nil || passwd == ""
+      if passwd
         UI.ChangeWidget(Id(:use_pas), :Value, true)
         UI.ChangeWidget(Id(:pw1), :Enabled, true)
         UI.ChangeWidget(Id(:pw1), :Value, "**********")
