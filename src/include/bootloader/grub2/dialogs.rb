@@ -25,6 +25,7 @@ module Yast
       Yast.import "Label"
       Yast.import "Wizard"
       Yast.import "CWM"
+      Yast.import "CWMTab"
       Yast.import "BootCommon"
       Yast.import "Stage"
 
@@ -37,60 +38,84 @@ module Yast
       @_grub2_efi_widgets = nil
     end
 
+    def boot_code_tab
+      lt = BootCommon.getLoaderType(false)
+
+      {
+        "id"           => "boot_code_tab",
+        "header"       => _("Boot Code Options"),
+        # if name is not included, that it is not displayed
+        "widget_names" => lt == "grub2-efi" ? ["distributor"] :
+          ["distributor", "activate", "generic_mbr"],
+        "contents"     => VBox(
+          VSpacing(1),
+          MarginBox(1, 0.5, "distributor"),
+          MarginBox(1, 0.5, Left("activate")),
+          MarginBox(1, 0.5, Left("generic_mbr")),
+          VStretch()
+        )
+      }
+    end
+
+    def kernel_tab
+       {
+        "id"           => "kernel_tab",
+        "header"       => _("Kernel Parameters"),
+        "widget_names" => ["vgamode", "append", "append_failsafe", "console"],
+        "contents"      => VBox(
+          VSpacing(1),
+          MarginBox(1, 0.5, "vgamode"),
+          MarginBox(1, 0.5, "append"),
+          MarginBox(1, 0.5, "append_failsafe"),
+          MarginBox(1, 0.5, "console"),
+          VStretch()
+        )
+      }
+    end
+
+    def bootloader_tab
+       {
+        "id" => "bootloader_tab",
+        "header" => _("Bootloader Options"),
+        "widget_names" => ["default", "timeout", "password", "os_prober", "hiddenmenu"],
+        "contents" => VBox(
+          VSpacing(2),
+          HBox(
+            HSpacing(1),
+            "timeout",
+            HSpacing(1),
+            Left(VBox( "os_prober", "hiddenmenu")),
+            HSpacing(1)
+          ),
+          MarginBox(1, 1, "default"),
+          MarginBox(1, 1, "password"),
+          VStretch()
+        )
+      }
+    end
+
     # Run dialog for loader installation details for Grub2
     # @return [Symbol] for wizard sequencer
     def Grub2LoaderDetailsDialog
       Builtins.y2milestone("Running Grub2 loader details dialog")
-      contents = HBox(
-        HSpacing(2),
-        VBox(
-          VStretch(),
-          HBox(HSquash("distributor"), "hiddenmenu", "os_prober", HStretch()),
-          HBox("activate", "generic_mbr", HStretch()),
-          HBox(HSquash("timeout"), "vgamode", HStretch()),
-          Left("append"),
-          Left("append_failsafe"),
-          Left("default"),
-          Left("console"),
-          Left("gfxterm"),
-          VStretch()
-        ),
-        HSpacing(2)
-      )
+      widgets = Grub2Options()
 
-      lt = BootCommon.getLoaderType(false)
-      widget_names = lt == "grub2-efi" ?
-        [
-          "distributor",
-          "hiddenmenu",
-          "os_prober",
-          "timeout",
-          "append",
-          "append_failsafe",
-          "console",
-          "default",
-          "vgamode"
-        ] :
-        [
-          "distributor",
-          "activate",
-          "generic_mbr",
-          "hiddenmenu",
-          "os_prober",
-          "timeout",
-          "append",
-          "append_failsafe",
-          "console",
-          "default",
-          "vgamode"
-        ]
+      tabs = [ bootloader_tab, kernel_tab, boot_code_tab]
 
+      tab_widget = CWMTab.CreateWidget({
+        "tab_order"    => tabs.map{ |t| t["id"] },
+        "tabs"         => Hash[tabs.map{|tab| [tab["id"], tab]}],
+        "initial_tab"  => tabs.first["id"],
+        "widget_descr" => widgets
+      })
+
+      widgets["tab"] = tab_widget
       caption = _("Boot Loader Options")
       CWM.ShowAndRun(
         {
-          "widget_descr" => Grub2Options(),
-          "widget_names" => widget_names,
-          "contents"     => contents,
+          "widget_descr" => widgets,
+          "widget_names" => ["tab"],
+          "contents"     => VBox("tab"),
           "caption"      => caption,
           "back_button"  => Label.BackButton,
           "abort_button" => Label.CancelButton,

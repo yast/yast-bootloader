@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        3.1.5
+Version:        3.1.6
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -28,6 +28,7 @@ License:        GPL-2.0+
 BuildRequires:	yast2-devtools >= 3.1.10
 BuildRequires:	yast2 >= 3.1.0
 BuildRequires:  update-desktop-files
+BuildRequires:  rubygem-rspec
 PreReq:         /bin/sed %fillup_prereq
 # Installation::*version variables
 # Wizard::SetDialogTitleAndIcon
@@ -74,6 +75,9 @@ provided by yast2-bootloader package.
 
 %build
 %yast_build
+
+%check
+make check VERBOSE=1
 
 %install
 %yast_install

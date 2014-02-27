@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Feb 27 08:32:24 UTC 2014 - jreidinger@suse.com
+
+- Add support for password in GRUB2 (FATE#315404)
+- restructure details dialog in GRUB2 to have better UX
+- fix crash of GRUB2 module
+- 3.1.6
+
+-------------------------------------------------------------------
 Wed Feb 12 10:18:39 UTC 2014 - jreidinger@suse.com
 
 - rephrase bootloader proposal on summary screen (BNC#853058)

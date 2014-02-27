@@ -242,6 +242,7 @@ module Yast
         "read"    => fun_ref(method(:Read), "boolean (boolean, boolean)"),
         "reset"   => fun_ref(method(:Reset), "void (boolean)"),
         "propose" => fun_ref(method(:Propose), "void ()"),
+        "save"    => fun_ref(method(:Save), "boolean (boolean, boolean, boolean)"),
         "summary" => fun_ref(method(:Summary), "list <string> ()"),
         "update"  => fun_ref(method(:Update), "void ()"),
         "widgets" => fun_ref(
@@ -277,6 +278,7 @@ module Yast
     publish :variable => :grub_descriptions, :type => "map <string, string>"
     publish :variable => :grub2_help_messages, :type => "map <string, string>"
     publish :variable => :grub2_descriptions, :type => "map <string, string>"
+    publish :variable => :password, :type => "string"
     publish :function => :askLocationResetPopup, :type => "boolean (string)"
     publish :function => :grub2Widgets, :type => "map <string, map <string, any>> ()"
     publish :function => :grub2efiWidgets, :type => "map <string, map <string, any>> ()"

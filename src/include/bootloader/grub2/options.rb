@@ -18,6 +18,9 @@
 #
 # $Id: BootGRUB.ycp 63508 2011-03-04 12:53:27Z jreidinger $
 #
+
+require "bootloader/grub2pwd"
+
 module Yast
   module BootloaderGrub2OptionsInclude
     def initialize_bootloader_grub2_options(include_target)
@@ -225,6 +228,95 @@ module Yast
       nil
     end
 
+    def ConsoleContent
+      VBox(
+        CheckBoxFrame(
+          Id(:gfxterm_frame),
+          _("Use &graphical console"),
+          true,
+          HBox(
+            HSpacing(2),
+            ComboBox(
+              Id(:gfxmode),
+              Opt(:editable, :hstretch),
+              _("&Console resolution"),
+              [""]
+            ),
+            HBox(
+              Left(
+                InputField(
+                  Id(:gfxtheme),
+                  Opt(:hstretch),
+                  _("&Console theme")
+                )
+              ),
+              VBox(
+                Left(Label("")),
+                Left(
+                  PushButton(
+                    Id(:browsegfx),
+                    Opt(:notify),
+                    Label.BrowseButton
+                  )
+                )
+              )
+            ),
+            HStretch()
+          )
+        ),
+        CheckBoxFrame(
+          Id(:console_frame),
+          _("Use &serial console"),
+          true,
+          HBox(
+            HSpacing(2),
+            InputField(
+              Id(:console_args),
+              Opt(:hstretch),
+              _("&Console arguments")
+            ),
+            HStretch()
+          )
+        )
+      )
+    end
+
+    MASKED_PASSWORD = "**********"
+
+    def grub2_pwd_store(key, event)
+      usepass = UI.QueryWidget(Id(:use_pas), :Value)
+      if !usepass
+        # we are in proper module that can store password
+        self.password = nil
+        return
+      end
+
+      value = UI.QueryWidget(Id(:pw1), :Value)
+      # special value as we do not know password, so it mean user do not change it
+      if value == MASKED_PASSWORD
+        self.password = ""
+      else
+        self.password = value
+      end
+    end
+
+    def grub2_pwd_init(widget)
+      passwd = GRUB2Pwd.new.used?
+      if passwd
+        UI.ChangeWidget(Id(:use_pas), :Value, true)
+        UI.ChangeWidget(Id(:pw1), :Enabled, true)
+        UI.ChangeWidget(Id(:pw1), :Value, MASKED_PASSWORD)
+        UI.ChangeWidget(Id(:pw2), :Enabled, true)
+        UI.ChangeWidget(Id(:pw2), :Value, MASKED_PASSWORD)
+      else
+        UI.ChangeWidget(Id(:use_pas), :Value, false)
+        UI.ChangeWidget(Id(:pw1), :Enabled, false)
+        UI.ChangeWidget(Id(:pw1), :Value, "")
+        UI.ChangeWidget(Id(:pw2), :Enabled, false)
+        UI.ChangeWidget(Id(:pw2), :Value, "")
+      end
+    end
+
     def Grub2Options
       grub2_specific = {
         "distributor"     => CommonInputFieldWidget(
@@ -273,56 +365,7 @@ module Yast
         },
         "console"         => {
           "widget"        => :custom,
-          "custom_widget" => VBox(
-            CheckBoxFrame(
-              Id(:gfxterm_frame),
-              _("Use &graphical console"),
-              true,
-              HBox(
-                HSpacing(2),
-                ComboBox(
-                  Id(:gfxmode),
-                  Opt(:editable, :hstretch),
-                  _("&Console resolution"),
-                  [""]
-                ),
-                HBox(
-                  Left(
-                    InputField(
-                      Id(:gfxtheme),
-                      Opt(:hstretch),
-                      _("&Console theme")
-                    )
-                  ),
-                  VBox(
-                    Left(Label("")),
-                    Left(
-                      PushButton(
-                        Id(:browsegfx),
-                        Opt(:notify),
-                        Label.BrowseButton
-                      )
-                    )
-                  )
-                ),
-                HStretch()
-              )
-            ),
-            CheckBoxFrame(
-              Id(:console_frame),
-              _("Use &serial console"),
-              true,
-              HBox(
-                HSpacing(2),
-                InputField(
-                  Id(:console_args),
-                  Opt(:hstretch),
-                  _("&Console arguments")
-                ),
-                HStretch()
-              )
-            )
-          ),
+          "custom_widget" => ConsoleContent(),
           "init"          => fun_ref(method(:ConsoleInit), "void (string)"),
           "store"         => fun_ref(
             method(:ConsoleStore),
@@ -334,6 +377,28 @@ module Yast
           ),
           "handle_events" => [:browsegfx],
           "help"          => Ops.get(@grub_help_messages, "serial", "")
+        },
+        "password"        => {
+          "widget"            => :custom,
+          "custom_widget"     => passwd_content,
+          "init"              => fun_ref(
+            method(:grub2_pwd_init),
+            "void (string)"
+          ),
+          "handle"            => fun_ref(
+            method(:HandlePasswdWidget),
+            "symbol (string, map)"
+          ),
+          "store"             => fun_ref(
+            method(:grub2_pwd_store),
+            "void (string, map)"
+          ),
+          "validate_type"     => :function,
+          "validate_function" => fun_ref(
+            method(:ValidatePasswdWidget),
+            "boolean (string, map)"
+          ),
+          "help"              => @grub_help_messages["password"] || ""
         }
       }
 
