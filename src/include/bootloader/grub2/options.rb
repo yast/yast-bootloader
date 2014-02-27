@@ -281,6 +281,8 @@ module Yast
       )
     end
 
+    MASKED_PASSWORD = "**********"
+
     def grub2_pwd_store(key, event)
       usepass = UI.QueryWidget(Id(:use_pas), :Value)
       if !usepass
@@ -291,7 +293,7 @@ module Yast
 
       value = UI.QueryWidget(Id(:pw1), :Value)
       # special value as we do not know password, so it mean user do not change it
-      if value == "**********"
+      if value == MASKED_PASSWORD
         self.password = ""
       else
         self.password = value
@@ -303,9 +305,9 @@ module Yast
       if passwd
         UI.ChangeWidget(Id(:use_pas), :Value, true)
         UI.ChangeWidget(Id(:pw1), :Enabled, true)
-        UI.ChangeWidget(Id(:pw1), :Value, "**********")
+        UI.ChangeWidget(Id(:pw1), :Value, MASKED_PASSWORD)
         UI.ChangeWidget(Id(:pw2), :Enabled, true)
-        UI.ChangeWidget(Id(:pw2), :Value, "**********")
+        UI.ChangeWidget(Id(:pw2), :Value, MASKED_PASSWORD)
       else
         UI.ChangeWidget(Id(:use_pas), :Value, false)
         UI.ChangeWidget(Id(:pw1), :Enabled, false)
