@@ -13,14 +13,18 @@ class GRUB2Pwd
   def enable(password)
     enc_passwd = encrypt(password)
 
-    file_content = "/bin/sh\n" +
+    file_content = "#! /bin/sh\n" +
       "exec tail -n +3 $0\n" +
       "# File created by YaST and next password change in YaST will overwrite it\n" +
       "set superusers=\"root\"\n" +
       "password_pbkdf2 root #{enc_passwd}\n" +
       "export superusers"
 
-    Yast::SCR.Write(Yast::Path.new(".target.string"), file_content)
+    Yast::SCR.Write(
+      Yast::Path.new(".target.string"),
+      [PWD_ENCRYPTION_FILE, 0755],
+      file_content
+    )
   end
 
   def disable
@@ -33,7 +37,7 @@ private
 
   def encrypt(password)
     result = Yast::SCR.Execute(YAST_BASH_PATH,
-      "echo -e \"#{password}\\n#{password}\" | grub2-mkpasswd-pbkdf"
+      "echo -e \"#{password}\\n#{password}\" | grub2-mkpasswd-pbkdf2"
     )
 
     if result["exit"] != 0

@@ -39,7 +39,7 @@ describe GRUB2Pwd do
   end
 
   describe "#enabled" do
-    it "write encrypted password to #{GRUB2Pwd::PWD_ENCRYPTION_FILE}" do
+    it "write encrypted password to #{GRUB2Pwd::PWD_ENCRYPTION_FILE} with executable permissions" do
       passwd = "grub.pbkdf2.sha512.10000.774E325959D6D7BCFB7384A0245674D83D0D540A89C02FEA81E35489F8DE7ADFD93988190AD9857A0FFF363825DDF97C8F4E658D8CC49FC4A22C053B08AB3EFE.6FB19FF26FD03D85C40A33D8BA7C04E72EDE3DD5D7080C177553A4FED370F71C579AF0B15B3B93ECECEA355469A4B6D0560BFB53ED35DDA0B80F5363BFBD54E4"
       success_stdout = <<EOF
       Enter password: 
@@ -49,13 +49,17 @@ describe GRUB2Pwd do
 EOF
 
       expect(Yast::SCR).to receive(:Execute).
-        with(kind_of(Yast::Path),/grub2-mkpasswd/).
+        with(kind_of(Yast::Path), /grub2-mkpasswd/).
         and_return(
           "exit"   => 0,
           "stderr" => "",
           "stdout" => success_stdout
         )
-      expect(Yast::SCR).to receive(:Write).with(kind_of(Yast::Path),/#{passwd}/)
+      expect(Yast::SCR).to receive(:Write).with(
+        kind_of(Yast::Path),
+        [GRUB2Pwd::PWD_ENCRYPTION_FILE, 0755],
+        /#{passwd}/
+      )
 
       subject.enable("really strong password")
     end
