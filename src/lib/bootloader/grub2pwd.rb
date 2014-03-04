@@ -22,7 +22,7 @@ class GRUB2Pwd
 
     Yast::SCR.Write(
       Yast::Path.new(".target.string"),
-      [PWD_ENCRYPTION_FILE, 0755],
+      [PWD_ENCRYPTION_FILE, 0700],
       file_content
     )
   end
