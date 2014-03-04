@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar  4 12:03:05 UTC 2014 - jreidinger@suse.com
+
+- fix typo in proposal screen(bnc#866607)
+- 3.1.7
+
+-------------------------------------------------------------------
 Thu Feb 27 08:32:24 UTC 2014 - jreidinger@suse.com
 
 - Add support for password in GRUB2 (FATE#315404)
