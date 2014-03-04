@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Mar  4 16:27:11 CET 2014 - snwint@suse.de
+
+- switch to grub2 on s390x
+- support both grub2 & zipl
+- drop grub & elilo support from x86
+- 3.1.7
+
+-------------------------------------------------------------------
 Thu Feb 27 08:32:24 UTC 2014 - jreidinger@suse.com
 
 - Add support for password in GRUB2 (FATE#315404)

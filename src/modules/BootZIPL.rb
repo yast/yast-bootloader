@@ -306,7 +306,7 @@ module Yast
         BootCommon.bootloader_attribs,
         "zipl",
         {
-          "loader_name"       => "zipl",
+          "loader_name"       => "ZIPL",
           "required_packages" => ["s390-tools"],
           "initializer"       => fun_ref(method(:Initializer), "void ()")
         }
