@@ -57,7 +57,7 @@ EOF
         )
       expect(Yast::SCR).to receive(:Write).with(
         kind_of(Yast::Path),
-        [GRUB2Pwd::PWD_ENCRYPTION_FILE, 0755],
+        [GRUB2Pwd::PWD_ENCRYPTION_FILE, 0700],
         /#{passwd}/
       )
 

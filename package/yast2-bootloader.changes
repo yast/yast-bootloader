@@ -2,6 +2,13 @@
 Tue Mar  4 12:03:05 UTC 2014 - jreidinger@suse.com
 
 - fix typo in proposal screen(bnc#866607)
+- 3.1.8
+
+-------------------------------------------------------------------
+Mon Mar  3 10:06:19 UTC 2014 - jreidinger@suse.com
+
+- fix permissions on file which contain encrypted password to be
+  readable only by root(BNC#864544)(CVE#2013-4577)
 - 3.1.7
 
 -------------------------------------------------------------------
