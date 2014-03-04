@@ -954,7 +954,7 @@ module Yast
           SCR.Read(path(".sysconfig.bootloader.LOADER_TYPE"))
         )
         if @loader_type != nil && @loader_type != ""
-          @loader_type = "zipl" if @loader_type == "s390"
+          @loader_type = "grub2" if @loader_type == "s390"
           @loader_type = "ppc" if @loader_type == "lilo" && Arch.ppc
           Builtins.y2milestone(
             "Sysconfig bootloader is %1, using",
@@ -981,7 +981,7 @@ module Yast
       end
       # detect bootloader
       @loader_type = Convert.to_string(SCR.Read(path(".probe.boot_arch")))
-      @loader_type = "zipl" if @loader_type == "s390"
+      @loader_type = "grub2" if @loader_type == "s390"
       # ppc uses grub2 (fate #315753)
       @loader_type = "grub2" if @loader_type == "ppc"
       # suppose grub2 should superscede grub ..
@@ -1145,17 +1145,20 @@ module Yast
       if Arch.i386 || Arch.x86_64
         ret = Convert.convert(
           # don't add lilo (fate #314886)
-          Builtins.merge(ret, ["grub", "grub2"]),
+          Builtins.merge(ret, ["grub2"]),
           :from => "list",
           :to   => "list <string>"
         )
         if Arch.x86_64
           ret = Convert.convert(
-            Builtins.merge(ret, ["elilo", "grub2-efi"]),
+            Builtins.merge(ret, ["grub2-efi"]),
             :from => "list",
             :to   => "list <string>"
           )
         end
+      end
+      if Arch.s390
+        ret = ["grub2", "zipl"]
       end
       # in order not to display it twice when "none" is selected
       ret = Builtins.filter(ret) { |l| l != "none" }
