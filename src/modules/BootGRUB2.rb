@@ -148,7 +148,7 @@ module Yast
           )
         else
           line << _(
-            "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">do not install</a>"
+            "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">install</a>"
           )
         end
       end
