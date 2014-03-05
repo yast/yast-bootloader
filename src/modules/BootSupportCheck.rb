@@ -106,6 +106,9 @@ module Yast
       lt = Bootloader.getLoaderType
       return true if lt == "none"
 
+      # grub2 is sooo cool...
+      return true if lt == "grub2"
+
       return true if Arch.s390 && lt == "zipl"
       return true if Arch.ppc && lt == "ppc"
       return true if Arch.ia64 && lt == "elilo"
