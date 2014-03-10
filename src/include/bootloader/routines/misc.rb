@@ -2065,7 +2065,7 @@ module Yast
          when ""
            # no parity, do nothing
          else
-           raise "unknown parity flag #{parity}
+           raise "unknown parity flag #{parity}"
        end
 
        word = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*[noe]*([[:digit:]]*)", "\\1")
