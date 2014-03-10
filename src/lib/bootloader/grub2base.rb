@@ -114,6 +114,14 @@ module Yast
       BootCommon.globals["distributor"]     = Product.name
       BootCommon.kernelCmdLine              = Kernel.GetCmdLine
 
+      # Propose bootloader serial settings from kernel cmdline during install (bnc#862388)
+      serial = BootCommon.GetSerialFromAppend
+
+      if !serial.empty?
+        BootCommon.globals["terminal"] = "serial"
+        BootCommon.globals["serial"] = serial
+      end
+
       Builtins.y2milestone("Proposed globals: %1", BootCommon.globals)
 
       nil

@@ -2036,6 +2036,46 @@ module Yast
       ret
     end
 
+    # This function gets bootloader's serial settings from append (bnc#862388)
+    def GetSerialFromAppend ()
+      append = @globals["append"] || ""
+      type = Builtins.regexpsub(append, "^.*console=([[:alpha:]]+)[[:digit:]]+,*[[:digit:]]*[noe]*[[:digit:]]*.*[[:space:]]*.*$", "\\1")
+      args = Builtins.regexpsub(append, "^.*console=[[:alpha:]]+([[:digit:]]+,*[[:digit:]]*[noe]*[[:digit:]]*).*[[:space:]]*.*$", "\\1")
+
+      Builtins.y2milestone("BuildSerialFromAppend: %1, %2", type, args)
+      return "" if type != "ttyS" || args.empty?
+
+      unit = Builtins.regexpsub(args, "([[:digit:]]+),*[[:digit:]]*[noe]*[[:digit:]]*", "\\1")
+      return ""  if unit == ""
+
+      ret = "serial --unit=#{unit}"
+
+      speed = Builtins.regexpsub(args, "[[:digit:]]+,*([[:digit:]]*)[noe]*[[:digit:]]*", "\\1")
+      speed = "9600" if speed.empty?
+      ret << " --speed=#{speed}"
+
+      parity = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*([noe]*)[[:digit:]]*", "\\1")
+      case parity
+         when "n"
+           ret << " --parity=no"
+         when "o"
+           ret << " --parity=odd"
+         when "e"
+           ret << " --parity=even"
+         when ""
+           # no parity, do nothing
+         else
+           raise "unknown parity flag #{parity}
+       end
+
+       word = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*[noe]*([[:digit:]]*)", "\\1")
+       if !word.empty?
+         ret << " --word=#{word}"
+       end
+
+     ret
+   end
+
     # FATE #110038: Serial console
     # Add console arg for kernel if there is defined serial console
     # - add key console with value to section type image and xen
@@ -2092,6 +2132,23 @@ module Yast
     # - add key console with value to section type image and xen
 
     def HandleConsole2
+
+      if @globals["terminal"] != "serial"
+        # if bootloader is not set to serial console, we should leave the
+        # kernel append as is to allow it's serial console be enabled
+        # for debugging output and so on (bnc#866710)
+        return
+      end
+
+      if !@globals["serial"] || @globals["serial"].empty?
+        # http://www.gnu.org/software/grub/manual/grub.html#serial
+        # https://www.kernel.org/doc/Documentation/serial-console.txt
+        # default settings is the same, we should at least tell kernel the
+        # port (aka unit) to use and grub2 defaults to 0.
+        # speed is also required by builkConsoleValue
+        @globals["serial"] = "serial --unit=0 --speed=9600"
+      end
+
       console_value = getConsoleValue
 
       if Ops.get(@globals, "append") != nil

@@ -1292,6 +1292,7 @@ module Yast
     publish :function => :getBootDisk, :type => "string ()"
     publish :function => :HandleConsole, :type => "void ()"
     publish :function => :HandleConsole2, :type => "void ()"
+    publish :function => :GetSerialFromAppend, :type => "void ()"
     publish :function => :UpdateProposalFromClient, :type => "boolean ()"
     publish :function => :DiskOrderSummary, :type => "string ()"
     publish :function => :DisksChanged, :type => "boolean ()"
