@@ -101,11 +101,20 @@ module Yast
 
     # Constructor
     def BootGRUB2EFI
+
+      if Arch.i386 
+        packages = ["grub2-i386-efi"]
+      elsif Arch.x86_64
+        packages = ["grub2-x86_64-efi", "shim"]
+      else
+        raise "no grub packages for EFI available for this architecture"
+      end
+      
       Ops.set(
         BootCommon.bootloader_attribs,
         "grub2-efi",
         {
-          "required_packages" => ["grub2-efi", "shim"],
+          "required_packages" => packages,
           "loader_name"       => "GRUB2-EFI",
           "initializer"       => fun_ref(method(:Initializer), "void ()")
         }
