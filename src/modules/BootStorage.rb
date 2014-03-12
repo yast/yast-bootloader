@@ -122,6 +122,9 @@ module Yast
       # string representing device name of extended partition
       @ExtendedPartitionDevice = ""
 
+      # string representing device name of PReP partition
+      @PRePPartitionDevice = ""
+
       # list of installed floppy devices
       @floppy_devices = nil
 
@@ -959,10 +962,13 @@ module Yast
       Builtins.foreach(targetMap) do |target_dev, target|
         bios_id = Ops.get_string(target, "bios_id", "")
         if bios_id != ""
-          index = Ops.subtract(
-            Builtins.tointeger(bios_id),
-            Builtins.tointeger("0x80")
-          )
+          index = case
+            when (Arch.i386 || Arch.x86_64) then
+              bios_id.to_i - 0x80
+            when Arch.board_chrp then
+              bios_id.[-1]
+            else raise "bios_id is nil"
+          end
           grub_dev = Builtins.sformat("hd%1", index)
           # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
           if !Ops.get_boolean(ids, index, false)
@@ -1251,6 +1257,10 @@ module Yast
         partitions = Builtins.filter(partitions) do |p|
           Ops.get_symbol(p, "type", :primary) != :extended
         end
+      elsif type == :prep
+	partitions = Builtins.filter(partitions) do |p|
+	  Ops.get_integer(p, "fsid", 65) == 65
+	end
       elsif type == :parts_old
         partitions = Builtins.filter(partitions) do |p|
           !Ops.get_boolean(p, "create", false)
@@ -1441,6 +1451,9 @@ module Yast
       if @ExtendedPartitionDevice != "" && @ExtendedPartitionDevice != nil
         boot_devices = Builtins.add(boot_devices, @ExtendedPartitionDevice)
       end
+      if @PRePPartitionDevice != "" && @PRePPartitionDevice != nil
+        boot_devices = Builtins.add(boot_devices, @PRePPartitionDevice)
+      end
 
       Builtins.y2milestone(
         "Devices for analyse of redundacy md array: %1",
@@ -1483,6 +1496,7 @@ module Yast
     publish :variable => :BootPartitionDevice, :type => "string"
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
+    publish :variable => :PRePPartitionDevice, :type => "string"
     publish :variable => :floppy_devices, :type => "list <string>"
     publish :variable => :md_physical_disks, :type => "list <string>"
     publish :function => :MountByDev2Dev, :type => "string (string)"

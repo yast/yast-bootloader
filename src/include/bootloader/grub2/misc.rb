@@ -28,6 +28,7 @@ module Yast
       Yast.import "BootCommon"
       Yast.import "PackageSystem"
       Yast.import "Map"
+      Yast.import "Arch"
     end
 
     # --------------------------------------------------------------
@@ -537,7 +538,7 @@ module Yast
     # @param [Symbol] selected_location symbol one of `boot `root `mbr `extended `mbr_md `none
     def SetBootloaderDevice(selected_location)
       # first, default to all off:
-      Builtins.foreach(["boot_boot", "boot_root", "boot_mbr", "boot_extended"]) do |flag|
+      Builtins.foreach(["boot_boot", "boot_root", "boot_mbr", "boot_prep", "boot_extended"]) do |flag|
         Ops.set(BootCommon.globals, flag, "false")
       end
       # need to remove the boot_custom key to switch this value off
@@ -551,6 +552,8 @@ module Yast
         Ops.set(BootCommon.globals, "boot_boot", "true")
       elsif selected_location == :mbr
         Ops.set(BootCommon.globals, "boot_mbr", "true")
+       elsif selected_location == :prep
+        Ops.set(BootCommon.globals, "boot_prep", "true")
       elsif selected_location == :extended
         Ops.set(BootCommon.globals, "boot_extended", "true")
       end
@@ -603,7 +606,13 @@ module Yast
     def grub_ConfigureLocation
       # NOTE: selected_location is a temporary local variable now; the global
       # variable is not used for grub anymore
-      selected_location = :mbr # default to mbr
+      if Arch.board_chrp
+          dp = Storage.GetDiskPartition(BootStorage.PRePPartitionDevice)
+          selected_location = :prep # default to prep
+        else
+          selected_location = :mbr # default to mbr
+          dp = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
+      end
 
       vista_mbr = false
       # check whether the /boot partition
@@ -611,7 +620,6 @@ module Yast
       #  - is on the first disk (with the MBR):  boot_partition_is_on_mbr_disk -> true
 
       tm = Storage.GetTargetMap
-      dp = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
       boot_partition_disk = Ops.get_string(dp, "disk", "")
       boot_partition_is_on_mbr_disk = boot_partition_disk == BootCommon.mbrDisk
 
@@ -620,6 +628,7 @@ module Yast
       is_logical = false
       is_logical_and_btrfs = false
       extended = nil
+      prep = nil
 
       # determine the underlying devices for the "/boot" partition (either the
       # BootPartitionDevice, or the devices from which the soft-RAID device for
@@ -745,14 +754,23 @@ module Yast
       end
 
       SetBootloaderDevice(selected_location)
-      if !Builtins.contains(
-          BootStorage.getPartitionList(:boot, "grub"),
-          Ops.get(BootCommon.GetBootloaderDevices, 0)
-        )
-        selected_location = :mbr # default to mbr
-        SetBootloaderDevice(selected_location)
+      if Arch.board_chrp
+        if !Builtins.contains(
+            BootStorage.getPartitionList(:prep, "grub"),
+            Ops.get(BootCommon.GetBootloaderDevices, 0)
+          )
+          selected_location = :prep # default to prep
+          SetBootloaderDevice(selected_location)
+        end
+      else
+        if !Builtins.contains(
+            BootStorage.getPartitionList(:boot, "grub"),
+            Ops.get(BootCommon.GetBootloaderDevices, 0)
+          )
+          selected_location = :mbr # default to mbr
+          SetBootloaderDevice(selected_location)
+        end
       end
-
       Builtins.y2milestone(
         "grub_ConfigureLocation (%1 on %2)",
         selected_location,
@@ -789,6 +807,12 @@ module Yast
         SetBootloaderDevice(selected_location)
       end
 
+      # PReP partition must be always activated
+      if selected_location == :prep
+	Ops.set(BootCommon.globals, "activate", "true")
+	SetBootloaderDevice(selected_location)
+      end
+
       selected_location
     end
 
@@ -816,6 +840,35 @@ module Yast
       partitions = Ops.get_list(dm, "partitions", [])
       Builtins.foreach(partitions) do |p|
         ret = Ops.get_string(p, "device") if Ops.get(p, "type") == :extended
+      end
+
+      ret
+    end
+
+    # Find PReP partition device (if it exists) on the same device where the
+    # BootPartitionDevice is located
+    #
+    # BootPartitionDevice must be set
+    #
+    # @return [String] device name of extended partition, or nil if none found
+    def grub_GetPRePPartitionDev
+      ret = nil
+
+      tm = Storage.GetTargetMap
+
+      device = ""
+      if BootStorage.BootPartitionDevice != ""
+        device = BootStorage.BootPartitionDevice
+      else
+        device = BootStorage.RootPartitionDevice
+      end
+
+      dp = Storage.GetDiskPartition(device)
+      disk = Ops.get_string(dp, "disk", "")
+      dm = Ops.get_map(tm, disk, {})
+      partitions = Ops.get_list(dm, "partitions", [])
+      Builtins.foreach(partitions) do |p|
+        ret = Ops.get_string(p, "device") if Ops.get(p, "fsid") == 65
       end
 
       ret
@@ -863,15 +916,22 @@ module Yast
       # get extended partition device (if exists)
       BootStorage.ExtendedPartitionDevice = grub_GetExtendedPartitionDev
 
+      # get PReP partition device (if exists)
+      BootStorage.PRePPartitionDevice = grub_GetPRePPartitionDev
+
       if BootCommon.mbrDisk == "" || BootCommon.mbrDisk == nil
         # mbr detection.
-        BootCommon.mbrDisk = BootCommon.FindMBRDisk
+        BootCommon.mbrDisk = BootCommon.FindMBRDisk unless Arch.board_chrp
       end
 
       # if no bootloader devices have been set up, or any of the set up
       # bootloader devices have become unavailable, then re-propose the
       # bootloader location.
-      all_boot_partitions = BootStorage.getPartitionList(:boot, "grub")
+      if Arch.board_chrp
+        all_boot_partitions = BootStorage.getPartitionList(:prep, "grub")
+      else
+        all_boot_partitions = BootStorage.getPartitionList(:boot, "grub")
+      end
       bldevs = BootCommon.GetBootloaderDevices
       need_location_reconfigure = false
 
@@ -902,6 +962,7 @@ module Yast
       actual_root = Ops.get_string(mp, ["/", 0], "")
       actual_boot = Ops.get_string(mp, ["/boot", 0], actual_root)
       actual_extended = grub_GetExtendedPartitionDev
+      actual_prep = grub_GetPRePPartitionDev
 
       if Ops.get(BootCommon.globals, "boot_boot", "false") == "true" &&
           actual_boot != BootStorage.BootPartitionDevice
@@ -974,6 +1035,23 @@ module Yast
         }
       end
 
+      if Ops.get(BootCommon.globals, "boot_prep", "false") == "true" &&
+          actual_prep != BootStorage.PRePPartitionDevice
+        ret = {
+          "changed" => true,
+          "reason"  => Ops.add(
+            Ops.add(
+              Ops.add(
+                Ops.get_string(ret, "reason", ""),
+                "Selected bootloader location \"PReP partition\" is not on "
+              ),
+              BootStorage.PRePPartitionDevice
+            ),
+            " any more.\n"
+          )
+        }
+      end
+
 
       if Ops.get(BootCommon.globals, "boot_custom") != nil &&
           Ops.get(BootCommon.globals, "boot_custom") != ""
@@ -1036,8 +1114,9 @@ module Yast
           # (check again)
           Mode.autoinst && !Builtins.haskey(BootCommon.globals, "boot_boot") &&
             !Builtins.haskey(BootCommon.globals, "boot_root") &&
-            !Builtins.haskey(BootCommon.globals, "boot_mbr") &&
             !Builtins.haskey(BootCommon.globals, "boot_extended") &&
+            !Builtins.haskey(BootCommon.globals, "boot_mbr") &&
+            !Builtins.haskey(BootCommon.globals, "boot_prep") &&
             !#	    ! haskey( BootCommon::globals, "boot_mbr_md" ) &&
             Builtins.haskey(BootCommon.globals, "boot_custom")
         grub_DetectDisks
