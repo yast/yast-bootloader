@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 12 09:15:33 UTC 2014 - mchang@suse.com
+
+- fix grub2-*-efi package not installed (bnc#867380) 
+- 3.1.13
+
+-------------------------------------------------------------------
 Mon Mar 10 12:07:17 UTC 2014 - jreidinger@suse.com
 
 - do not crash if there is no swap partition (bnc#867435)
