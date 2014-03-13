@@ -29,3 +29,4 @@ tmp.*
 *.log
 /doc/autodocs
 !/doc/autodocs/Makefile.am
+/.yardoc
