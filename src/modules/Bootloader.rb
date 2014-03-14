@@ -1590,7 +1590,7 @@ module Yast
       out = SCR.Execute(path(".target.bash_output"), cmd_disable_aa)
       Builtins.y2debug("result of disabling the AppArmor PAM module is %1", out)
 
-      out = SCR.Execute(path(".target.bash_output"), cmd_enable
+      out = SCR.Execute(path(".target.bash_output"), cmd_enable)
       Builtins.y2debug("result of enabling the SELinux PAM module is %1", out)
 
       nil
