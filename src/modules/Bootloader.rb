@@ -1587,10 +1587,10 @@ module Yast
       cmd_enable_se = "pam-config -a --selinux  2>/dev/null"
       cmd_disable_aa = "pam-config -d --apparmor 2>/dev/null"
 
-      out = Convert.to_map(SCR.Execute(path(".target.bash"), cmd_disable_aa))
+      out = SCR.Execute(path(".target.bash_output"), cmd_disable_aa)
       Builtins.y2debug("result of disabling the AppArmor PAM module is %1", out)
 
-      out = Convert.to_map(SCR.Execute(path(".target.bash"), cmd_enable_se))
+      out = SCR.Execute(path(".target.bash_output"), cmd_enable
       Builtins.y2debug("result of enabling the SELinux PAM module is %1", out)
 
       nil
@@ -1599,10 +1599,10 @@ module Yast
       cmd_disable_se = "pam-config -d --selinux  2>/dev/null"
       cmd_enable_aa = "pam-config -a --apparmor 2>/dev/null"
 
-      out = Convert.to_map(SCR.Execute(path(".target.bash"), cmd_disable_se))
+      out = SCR.Execute(path(".target.bash_output"), cmd_disable_se)
       Builtins.y2debug("result of disabling the SELinux PAM module is %1", out)
 
-      out = Convert.to_map(SCR.Execute(path(".target.bash"), cmd_enable_aa))
+      out = SCR.Execute(path(".target.bash_output"), cmd_enable_aa)
       Builtins.y2debug("result of enabling the AppArmor PAM module is %1", out)
 
       nil
