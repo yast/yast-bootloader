@@ -26,6 +26,8 @@ module Yast
     def main
       super
 
+      textdomain "bootloader"
+
       # includes
       # for shared some routines with grub
       Yast.include self, "bootloader/grub2/misc.rb"
