@@ -26,6 +26,7 @@ module Yast
     def main
       super
 
+      textdomain "bootloader"
       BootGRUB2EFI()
     end
 
