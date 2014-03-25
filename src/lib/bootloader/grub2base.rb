@@ -43,7 +43,7 @@ module Yast
         "default"   => "0",
         "vgamode"   => "",
         "gfxmode"   => "auto",
-        "terminal"  => "gfxterm",
+        "terminal"  => Arch.s390 ? "console" : "gfxterm",
         "os_prober" => Arch.s390 ? "false" : "true"
       }
     end
