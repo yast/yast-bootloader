@@ -22,6 +22,7 @@ module Yast
       textdomain "bootloader"
 
 
+      Yast.import "Arch"
       Yast.import "Label"
       Yast.import "Wizard"
       Yast.import "CWM"
@@ -74,10 +75,13 @@ module Yast
     end
 
     def bootloader_tab
+        widgets = ["default", "timeout", "password", "os_prober", "hiddenmenu"]
+        widgets.delete("os_prober") if Arch.s390 # there is no os prober on s390
+
        {
         "id" => "bootloader_tab",
         "header" => _("Bootloader Options"),
-        "widget_names" => ["default", "timeout", "password", "os_prober", "hiddenmenu"],
+        "widget_names" => widgets,
         "contents" => VBox(
           VSpacing(2),
           HBox(
