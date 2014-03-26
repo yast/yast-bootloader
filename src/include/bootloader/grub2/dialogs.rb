@@ -42,12 +42,14 @@ module Yast
     def boot_code_tab
       lt = BootCommon.getLoaderType(false)
 
+      legacy_intel = (Arch.x86_64 || Arch.i386) && lt != "grub2-efi"
+
       {
         "id"           => "boot_code_tab",
         "header"       => _("Boot Code Options"),
         # if name is not included, that it is not displayed
-        "widget_names" => lt == "grub2-efi" ? ["distributor"] :
-          ["distributor", "activate", "generic_mbr"],
+        "widget_names" => legacy_intel ? ["distributor", "activate", "generic_mbr"] :
+          ["distributor"],
         "contents"     => VBox(
           VSpacing(1),
           MarginBox(1, 0.5, "distributor"),
