@@ -61,10 +61,13 @@ module Yast
     end
 
     def kernel_tab
+      widgets = ["vgamode", "append", "append_failsafe", "console"]
+      widgets.delete("console") if Arch.s390 # there is no console on s390 (bnc#868909)
+
        {
         "id"           => "kernel_tab",
         "header"       => _("Kernel Parameters"),
-        "widget_names" => ["vgamode", "append", "append_failsafe", "console"],
+        "widget_names" => widgets,
         "contents"      => VBox(
           VSpacing(1),
           MarginBox(1, 0.5, "vgamode"),
@@ -78,7 +81,7 @@ module Yast
 
     def bootloader_tab
         widgets = ["default", "timeout", "password", "os_prober", "hiddenmenu"]
-        widgets.delete("os_prober") if Arch.s390 # there is no os prober on s390
+        widgets.delete("os_prober") if Arch.s390 # there is no os prober on s390(bnc#868909)
 
        {
         "id" => "bootloader_tab",
