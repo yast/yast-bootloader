@@ -32,6 +32,7 @@ module Yast
       Yast.include include_target, "bootloader/routines/popups.rb"
       Yast.include include_target, "bootloader/routines/section_widgets.rb"
       Yast.include include_target, "bootloader/routines/global_widgets.rb"
+      Yast.include include_target, "bootloader/grub2/dialogs.rb"
 
 
       @return_tab = "sections"
@@ -114,11 +115,13 @@ module Yast
         CWMTab.CreateWidget(
           {
             "tab_order"    => lt == "grub2" || lt == "grub2-efi" ?
-              ["installation"] :
+              ["boot_code_tab", "kernel_tab", "bootloader_tab"] :
               ["sections", "installation"],
-            "tabs"         => TabsDescr(),
+            "tabs"         => lt == "grub2" || lt == "grub2-efi" ?
+              Grub2TabDescr() :
+              TabsDescr(),
             "widget_descr" => widget_descr,
-            "initial_tab"  => lt == "grub2" || lt == "grub2-efi" ? "installation" : @return_tab
+            "initial_tab"  => lt == "grub2" || lt == "grub2-efi" ? "boot_code_tab" : @return_tab
           }
         )
       )
@@ -140,6 +143,7 @@ module Yast
       )
       if ret != :back && ret != :abort && ret != :cancel
         @return_tab = CWMTab.LastTab
+        @return_tab = "installation" if @return_tab.include? "tab" #workaround different tab set for grub2
       end
       ret
     end

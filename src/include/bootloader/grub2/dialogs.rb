@@ -43,15 +43,17 @@ module Yast
       lt = BootCommon.getLoaderType(false)
 
       legacy_intel = (Arch.x86_64 || Arch.i386) && lt != "grub2-efi"
+      widget_names = ["distributor", "loader_type", "loader_location" ]
+      widget_names << "activate" << "generic_mbr" if legacy_intel
 
       {
         "id"           => "boot_code_tab",
         "header"       => _("Boot Code Options"),
         # if name is not included, that it is not displayed
-        "widget_names" => legacy_intel ? ["distributor", "activate", "generic_mbr"] :
-          ["distributor"],
+        "widget_names" => widget_names,
         "contents"     => VBox(
           VSpacing(1),
+          HBox( "loader_type", "loader_location"),
           MarginBox(1, 0.5, "distributor"),
           MarginBox(1, 0.5, Left("activate")),
           MarginBox(1, 0.5, Left("generic_mbr")),
@@ -101,6 +103,12 @@ module Yast
           VStretch()
         )
       }
+    end
+
+    def Grub2TabDescr
+      tabs = [ bootloader_tab, kernel_tab, boot_code_tab]
+
+      Hash[tabs.map{|tab| [tab["id"], tab]}]
     end
 
     # Run dialog for loader installation details for Grub2
@@ -220,6 +228,7 @@ module Yast
     def grub2Widgets
       if @_grub2_widgets == nil
         @_grub2_widgets = { "loader_location" => grubBootLoaderLocationWidget }
+        @_grub2_widgets.merge! Grub2Options()
       end
       deep_copy(@_grub2_widgets)
     end
