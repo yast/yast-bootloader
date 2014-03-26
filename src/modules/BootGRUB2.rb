@@ -195,6 +195,12 @@ module Yast
         locations = Builtins.add(
           locations,
           Ops.add(BootCommon.mbrDisk, _(" (MBR)"))
+	)
+      end
+      if Ops.get(BootCommon.globals, "boot_prep", "") == "true"
+        locations = Builtins.add(
+          locations,
+          Ops.add(BootStorage.PRePPartitionDevice, _(" (prep)"))
         )
       end
       if Builtins.haskey(BootCommon.globals, "boot_custom")

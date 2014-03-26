@@ -358,6 +358,7 @@ module Yast
     # @return [String] device name
     def GetBootloaderDevice
       return @mbrDisk if @selected_location == "mbr"
+      return BootStorage.PRePPartitionDevice if @selected_location == "prep"
       return BootStorage.BootPartitionDevice if @selected_location == "boot"
       return BootStorage.RootPartitionDevice if @selected_location == "root"
       return StorageDevices.FloppyDevice if @selected_location == "floppy"
@@ -383,6 +384,10 @@ module Yast
       if Builtins.haskey(@globals, "boot_extended") &&
           Ops.get(@globals, "boot_extended", "false") == "true"
         ret = Builtins.add(ret, BootStorage.ExtendedPartitionDevice)
+      end
+      if Builtins.haskey(@globals, "boot_prep") &&
+          Ops.get(@globals, "boot_prep", "false") == "true"
+        ret = Builtins.add(ret, BootStorage.PRePPartitionDevice)
       end
       # FIXME: floppy support is probably obsolete
       if Builtins.haskey(@globals, "boot_floppy") &&

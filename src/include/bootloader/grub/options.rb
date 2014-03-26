@@ -606,6 +606,7 @@ module Yast
           "boot_mbr",
           "boot_boot",
           "boot_root",
+          "boot_prep",
           "boot_extended"
         ]
         Builtins.foreach(list_global_target_keys) do |key|
