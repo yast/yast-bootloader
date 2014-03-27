@@ -733,6 +733,7 @@ module Yast
 
     def grubBootLoaderLocationWidget
       contents = VBox(
+        VSpacing(1),
         Frame(
           _("Boot Loader Location"),
           VBox(
@@ -742,35 +743,22 @@ module Yast
                 Left(
                   CheckBox(Id("boot_mbr"), _("Boot from &Master Boot Record"))
                 ),
-                Left(CheckBox(Id("boot_root"), _("Boot from &Root Partition"))),
-                Left(CheckBox(Id("boot_boot"), _("Boo&t from Boot Partition"))),
-                Left(
-                  CheckBox(
-                    Id("boot_extended"),
-                    _("Boot from &Extended Partition")
-                  )
-                ),
-                Left(
-                  CheckBox(
-                    Id("boot_custom"),
-                    Opt(:notify),
-                    _("C&ustom Boot Partition")
-                  )
-                ),
-                Left(
-                  ComboBox(
-                    Id("boot_custom_list"),
-                    Opt(:editable, :hstretch),
-                    "",
-                    []
-                  )
-                ),
-                VStretch()
+                BootStorage.BootPartitionDevice == BootStorage.RootPartitionDevice ?
+                  Left(CheckBox(Id("boot_root"), _("Boot from &Root Partition"))) :
+                  Left(CheckBox(Id("boot_boot"), _("Boo&t from Boot Partition"))),
+                BootStorage.ExtendedPartitionDevice ?
+                  Left(
+                    CheckBox(
+                      Id("boot_extended"),
+                      _("Boot from &Extended Partition")
+                    )
+                  ) :
+                  Empty()
               )
             )
           )
         ),
-        VStretch()
+        VSpacing(1)
       )
 
       if !BootCommon.PartitionInstallable

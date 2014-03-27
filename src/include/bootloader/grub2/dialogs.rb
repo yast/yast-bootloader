@@ -52,8 +52,9 @@ module Yast
         # if name is not included, that it is not displayed
         "widget_names" => widget_names,
         "contents"     => VBox(
-          VSpacing(1),
-          HBox( "loader_type", "loader_location"),
+          VSquash(HBox(
+            Top(VBox( VSpacing(1), "loader_type")),
+            "loader_location")),
           MarginBox(1, 0.5, "distributor"),
           MarginBox(1, 0.5, Left("activate")),
           MarginBox(1, 0.5, Left("generic_mbr")),
