@@ -166,6 +166,7 @@ module Yast
 
     def grub2SecureBootWidget
       contents = VBox(
+        VSpacing(1),
         Frame(
           _("Secure Boot"),
           VBox(
@@ -175,12 +176,10 @@ module Yast
                 Left(
                   CheckBox(Id("secure_boot"), _("Enable &Secure Boot Support"))
                 ),
-                VStretch()
               )
             )
           )
-        ),
-        VStretch()
+        )
       )
 
       {
@@ -238,6 +237,7 @@ module Yast
       if Arch.x86_64
         if @_grub2_efi_widgets == nil
           @_grub2_efi_widgets = { "loader_location" => grub2SecureBootWidget }
+          @_grub2_efi_widgets.merge! Grub2Options()
         end
       end
 
