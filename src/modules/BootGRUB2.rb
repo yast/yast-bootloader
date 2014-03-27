@@ -22,6 +22,9 @@ require "yast"
 require "bootloader/grub2base"
 
 module Yast
+  import "Arch"
+  import "Storage"
+
   class BootGRUB2Class < GRUB2Base
     def main
       super
@@ -107,7 +110,40 @@ module Yast
 
     def Propose
       super
-      grub_LocationProposal if !BootCommon.was_proposed || !Mode.autoinst
+
+      if !BootCommon.was_proposed || !Mode.autoinst
+        case Arch.architecture
+        when "i386", "x86_64"
+          grub_LocationProposal
+        when /ppc/
+          partition = prep_partitions.first
+          raise "there is no prep partition" unless partition
+
+          BootCommon.globals["boot_custom"] = partition
+        when /s390/
+          zipl_partition = Storage.GetEntryForMountPoint("/boot/zipl")
+          raise "missing separate /boot/zipl partition" if zipl_partition.empty?
+
+          BootCommon.globals["boot_custom"] = zipl_partition["device"]
+        else
+          raise "unsuported architecture #{Arch.architecture}"
+        end
+      end
+    end
+
+    def prep_partitions
+      target_map = Storage.GetTargetMap
+
+      partitions = target_map.reduce([]) do |parts, pair|
+        parts.concat(pair[1]["partitions"] || [])
+      end
+
+      prep_partitions = partitions.select do |partition|
+        partition["fsid"] == 0x41
+      end
+
+      y2milestone "detected prep partitions #{prep_partitions.inspect}"
+      prep_partitions.map { |p| p["device"] }
     end
 
     # FATE#303643 Enable one-click changes in bootloader proposal
