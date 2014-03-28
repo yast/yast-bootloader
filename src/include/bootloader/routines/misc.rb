@@ -2039,8 +2039,8 @@ module Yast
     # This function gets bootloader's serial settings from append (bnc#862388)
     def GetSerialFromAppend ()
       append = @globals["append"] || ""
-      type = Builtins.regexpsub(append, "^.*console=([[:alpha:]]+)[[:digit:]]+,*[[:digit:]]*[noe]*[[:digit:]]*.*[[:space:]]*.*$", "\\1")
-      args = Builtins.regexpsub(append, "^.*console=[[:alpha:]]+([[:digit:]]+,*[[:digit:]]*[noe]*[[:digit:]]*).*[[:space:]]*.*$", "\\1")
+      type = Builtins.regexpsub(append, "^.*console=([[:alpha:]]+)[[:digit:]]*,*[[:digit:]]*[noe]*[[:digit:]]*.*[[:space:]]*.*$", "\\1")
+      args = Builtins.regexpsub(append, "^.*console=[[:alpha:]]+([[:digit:]]*,*[[:digit:]]*[noe]*[[:digit:]]*).*[[:space:]]*.*$", "\\1")
 
       Builtins.y2milestone("BuildSerialFromAppend: %1, %2", type, args)
       return "" if type != "ttyS" || args.empty?
