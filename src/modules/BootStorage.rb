@@ -959,10 +959,15 @@ module Yast
       Builtins.foreach(targetMap) do |target_dev, target|
         bios_id = Ops.get_string(target, "bios_id", "")
         if bios_id != ""
-          index = Ops.subtract(
-            Builtins.tointeger(bios_id),
-            Builtins.tointeger("0x80")
-          )
+          index = case Arch.architecture
+          when /ppc/
+            # on ppc it looks like "vdevice/v-scsi@71000002/@0"
+            bios_id[/\d+\z/].to_i
+          when "i386", "x86_64"
+            Builtins.tointeger(bios_id) - 0x80
+          else
+            raise "no support for bios id '#{bios_id}' on #{Arch.architecture}"
+          end
           grub_dev = Builtins.sformat("hd%1", index)
           # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
           if !Ops.get_boolean(ids, index, false)

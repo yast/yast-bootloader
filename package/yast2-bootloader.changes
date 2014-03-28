@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 28 10:17:07 UTC 2014 - jreidinger@suse.com
+
+- improve support grub2 on non-pc architectures 
+  (bnc#866912,bnc#868909)
+- 3.1.15
+
+-------------------------------------------------------------------
 Fri Mar 28 04:03:54 UTC 2014 - mchang@suse.com
 
 - fix wrong console regexp match (bnc#870514)

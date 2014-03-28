@@ -9,6 +9,7 @@ module Yast
 
       textdomain "bootloader"
 
+      Yast.import "Arch"
       Yast.import "BootArch"
       Yast.import "BootCommon"
       Yast.import "BootStorage"
@@ -42,8 +43,9 @@ module Yast
         "default"   => "0",
         "vgamode"   => "",
         "gfxmode"   => "auto",
-        "terminal"  => "gfxterm",
-        "os_prober" => "true"
+        "terminal"  => Arch.s390 ? "console" : "gfxterm",
+        "os_prober" => Arch.s390 ? "false" : "true",
+        "activate"  => Arch.ppc ? "true" : "false"
       }
     end
 

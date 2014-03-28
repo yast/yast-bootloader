@@ -22,6 +22,7 @@ module Yast
       textdomain "bootloader"
 
 
+      Yast.import "Arch"
       Yast.import "Label"
       Yast.import "Wizard"
       Yast.import "CWM"
@@ -41,14 +42,19 @@ module Yast
     def boot_code_tab
       lt = BootCommon.getLoaderType(false)
 
+      legacy_intel = (Arch.x86_64 || Arch.i386) && lt != "grub2-efi"
+      widget_names = ["distributor", "loader_type", "loader_location" ]
+      widget_names << "activate" << "generic_mbr" if legacy_intel
+
       {
         "id"           => "boot_code_tab",
         "header"       => _("Boot Code Options"),
         # if name is not included, that it is not displayed
-        "widget_names" => lt == "grub2-efi" ? ["distributor"] :
-          ["distributor", "activate", "generic_mbr"],
+        "widget_names" => widget_names,
         "contents"     => VBox(
-          VSpacing(1),
+          VSquash(HBox(
+            Top(VBox( VSpacing(1), "loader_type")),
+            Arch.s390 ? Empty() : "loader_location")),
           MarginBox(1, 0.5, "distributor"),
           MarginBox(1, 0.5, Left("activate")),
           MarginBox(1, 0.5, Left("generic_mbr")),
@@ -58,10 +64,13 @@ module Yast
     end
 
     def kernel_tab
+      widgets = ["vgamode", "append", "append_failsafe", "console"]
+      widgets.delete("console") if Arch.s390 # there is no console on s390 (bnc#868909)
+
        {
         "id"           => "kernel_tab",
         "header"       => _("Kernel Parameters"),
-        "widget_names" => ["vgamode", "append", "append_failsafe", "console"],
+        "widget_names" => widgets,
         "contents"      => VBox(
           VSpacing(1),
           MarginBox(1, 0.5, "vgamode"),
@@ -74,10 +83,13 @@ module Yast
     end
 
     def bootloader_tab
+        widgets = ["default", "timeout", "password", "os_prober", "hiddenmenu"]
+        widgets.delete("os_prober") if Arch.s390 # there is no os prober on s390(bnc#868909)
+
        {
         "id" => "bootloader_tab",
         "header" => _("Bootloader Options"),
-        "widget_names" => ["default", "timeout", "password", "os_prober", "hiddenmenu"],
+        "widget_names" => widgets,
         "contents" => VBox(
           VSpacing(2),
           HBox(
@@ -92,6 +104,12 @@ module Yast
           VStretch()
         )
       }
+    end
+
+    def Grub2TabDescr
+      tabs = [ bootloader_tab, kernel_tab, boot_code_tab]
+
+      Hash[tabs.map{|tab| [tab["id"], tab]}]
     end
 
     # Run dialog for loader installation details for Grub2
@@ -148,6 +166,7 @@ module Yast
 
     def grub2SecureBootWidget
       contents = VBox(
+        VSpacing(1),
         Frame(
           _("Secure Boot"),
           VBox(
@@ -157,12 +176,10 @@ module Yast
                 Left(
                   CheckBox(Id("secure_boot"), _("Enable &Secure Boot Support"))
                 ),
-                VStretch()
               )
             )
           )
-        ),
-        VStretch()
+        )
       )
 
       {
@@ -206,11 +223,67 @@ module Yast
       )
     end
 
+    def ppc_location_init(widget)
+      UI::ChangeWidget(
+        Id("boot_custom_list"),
+        :Value,
+        BootCommon.globals["boot_custom"]
+      )
+    end
+
+    def ppc_location_store(widget, value)
+      value = UI::QueryWidget(
+        Id("boot_custom_list"),
+        :Value,
+      )
+      y2milestone("store boot custom #{value}")
+
+      BootCommon.globals["boot_custom"] = value
+    end
+
+    def grub_on_ppc_location
+      contents = VBox(
+        VSpacing(1),
+        ComboBox(
+          Id("boot_custom_list"),
+          # TRANSLATORS: place where boot code is installed
+          _("Boot &Loader Location"),
+          prep_partitions
+        )
+      )
+
+      {
+         # need custom to not break ui as intel one is quite complex so some
+         # spacing is needed
+        "widget"        => :custom,
+        "custom_widget" => contents,
+        "init"          => fun_ref(
+          method(:ppc_location_init),
+          "void (string)"
+        ),
+        "store"         => fun_ref(
+          method(:ppc_location_store),
+          "void (string, map)"
+        ),
+        # help text
+        "help"          => _("Choose partition where is boot sequence installed.")
+      }
+
+    end
+
     # Get generic widgets
     # @return a map describing all generic widgets
     def grub2Widgets
       if @_grub2_widgets == nil
-        @_grub2_widgets = { "loader_location" => grubBootLoaderLocationWidget }
+        case Arch.architecture
+        when "i386", "x86_64"
+          @_grub2_widgets = { "loader_location" => grubBootLoaderLocationWidget }
+        when /ppc/
+          @_grub2_widgets = { "loader_location" => grub_on_ppc_location }
+        else
+          raise "unsuppoted architecture #{Arch.architecture}"
+        end
+        @_grub2_widgets.merge! Grub2Options()
       end
       deep_copy(@_grub2_widgets)
     end
@@ -219,6 +292,7 @@ module Yast
       if Arch.x86_64
         if @_grub2_efi_widgets == nil
           @_grub2_efi_widgets = { "loader_location" => grub2SecureBootWidget }
+          @_grub2_efi_widgets.merge! Grub2Options()
         end
       end
 
