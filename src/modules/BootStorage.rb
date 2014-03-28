@@ -966,7 +966,7 @@ module Yast
           when "i386", "x86_64"
             Builtins.tointeger(bios_id) - 0x80
           else
-            raise "no support for bios id '#{bios_id}' on Arch.architecture"
+            raise "no support for bios id '#{bios_id}' on #{Arch.architecture}#"
           end
           grub_dev = Builtins.sformat("hd%1", index)
           # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)

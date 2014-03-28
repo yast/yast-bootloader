@@ -246,7 +246,8 @@ module Yast
         VSpacing(1),
         ComboBox(
           Id("boot_custom_list"),
-          _("Boot Loader Location"),
+          # TRANSLATORS: place where boot code is installed
+          _("Boot &Loader Location"),
           prep_partitions
         )
       )
@@ -264,6 +265,7 @@ module Yast
           method(:ppc_location_store),
           "void (string, map)"
         ),
+        # help text
         "help"          => _("Choose partition where is boot sequence installed.")
       }
 
