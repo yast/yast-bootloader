@@ -293,6 +293,8 @@ module Yast
             { Ops.get(entry, "linux", "") => firmware }
           end
           Ops.set(exp, ["specific", "device_map"], device_map)
+          # accept everything
+          BootStorage.bois_id_missing = false
         end
       end
 
