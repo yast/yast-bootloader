@@ -122,7 +122,7 @@ module Yast
 
           BootCommon.globals["boot_custom"] = partition
         when /s390/
-          zipl_partition = Storage.GetEntryForMountPoint("/boot/zipl")
+          zipl_partition = Storage.GetEntryForMountpoint("/boot/zipl")
           raise "missing separate /boot/zipl partition" if zipl_partition.empty?
 
           BootCommon.globals["boot_custom"] = zipl_partition["device"]
