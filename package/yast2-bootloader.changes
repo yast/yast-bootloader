@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr  2 08:36:41 CEST 2014 - snwint@suse.de
+
+- don't question device mapping passed to us explicitly by autoyast
+  (bnc #717978, bnc #870494)
+
+-------------------------------------------------------------------
 Fri Mar 28 10:17:07 UTC 2014 - jreidinger@suse.com
 
 - improve support grub2 on non-pc architectures 
