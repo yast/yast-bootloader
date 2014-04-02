@@ -111,7 +111,8 @@ module Yast
     def Propose
       super
 
-      if !BootCommon.was_proposed || !Mode.autoinst
+      # do not repropose, only in autoinst mode to allow propose missing parts
+      if !BootCommon.was_proposed || Mode.autoinst
         case Arch.architecture
         when "i386", "x86_64"
           grub_LocationProposal

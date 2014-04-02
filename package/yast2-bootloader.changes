@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr  2 06:57:01 UTC 2014 - jreidinger@suse.com
+
+- fix autoyast location proposal (bnc#869083)
+- 3.1.16
+
+-------------------------------------------------------------------
 Wed Apr  2 08:36:41 CEST 2014 - snwint@suse.de
 
 - don't question device mapping passed to us explicitly by autoyast
