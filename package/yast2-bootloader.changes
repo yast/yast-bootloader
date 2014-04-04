@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Apr  4 13:05:55 CEST 2014 - snwint@suse.de
+
+- install mokutil along with shim (bnc #808852)
+- fix regular expessions (ported from bnc #743805)
+- 3.1.18
+
+-------------------------------------------------------------------
 Wed Apr  2 11:26:23 UTC 2014 - jreidinger@suse.com
 
 - fix crash on s390 (bnc#871597)
