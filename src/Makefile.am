@@ -82,10 +82,6 @@ ylib_DATA = \
 scrconf_DATA = \
   scrconf/cfg_bootloader.scr \
   scrconf/cfg_bootsplash.scr \
-  scrconf/bootloader.scr
-
-agent_SCRIPTS = \
-  servers_non_y2/ag_bootloader
 
 schemafilesdir = $(schemadir)/autoyast/rnc
 schemafiles_DATA = \
