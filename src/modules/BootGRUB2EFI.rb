@@ -106,7 +106,7 @@ module Yast
       if Arch.i386 
         packages = ["grub2-i386-efi"]
       elsif Arch.x86_64
-        packages = ["grub2-x86_64-efi", "shim"]
+        packages = ["grub2-x86_64-efi", "shim", "mokutil"]
       else
         raise "no grub packages for EFI available for this architecture"
       end
