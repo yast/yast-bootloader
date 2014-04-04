@@ -1067,10 +1067,10 @@ module Yast
           value = Ops.get_string(s, key, "")
           # FIXME: check whether this is code for update from SLES8?
           #        then we would delete it.
-          if Builtins.regexpmatch(value, "^.*.shipped.*$")
-            value = Builtins.regexpsub(value, "^(.*).shipped(.*)$", "\\1\\2")
-          elsif Builtins.regexpmatch(value, "^.*.suse.*$")
-            value = Builtins.regexpsub(value, "^(.*).suse(.*)$", "\\1\\2")
+          if Builtins.regexpmatch(value, '^.*\.shipped.*$')
+            value = Builtins.regexpsub(value, '^(.*)\.shipped(.*)$', "\\1\\2")
+          elsif Builtins.regexpmatch(value, '^.*\.suse.*$')
+            value = Builtins.regexpsub(value, '^(.*)\.suse(.*)$', "\\1\\2")
           end
           Ops.set(s, key, value)
         end

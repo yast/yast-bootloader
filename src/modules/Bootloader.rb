@@ -991,7 +991,7 @@ module Yast
           # also skip sections that start with a grub device name
           # "(hd0,7)/boot/vmlinuz", and are not on the default (currently
           # mounted) boot partition
-          if !Builtins.regexpmatch(Ops.get_string(s, "image", ""), "^(hd.*)")
+          if s["image"].to_s !~ /^\(hd.*\)/
             s = ResolveSymlink(s, "image")
           else
             Builtins.y2milestone(
@@ -1004,7 +1004,7 @@ module Yast
         # resolve initrd link name, but skip if it is on a non-default boot
         # partition (see above)
         if Builtins.haskey(s, "initrd")
-          if !Builtins.regexpmatch(Ops.get_string(s, "initrd", ""), "^(hd.*)")
+          if s["image"].to_s !~ /^\(hd.*\)/
             s = ResolveSymlink(s, "initrd")
           else
             Builtins.y2milestone(

@@ -251,11 +251,11 @@ module Yast
           output = Ops.get_string(efi_status, "stdout", "")
           lines = Builtins.splitstring(output, "\n")
           output = Ops.get_string(lines, 0, "")
-          if Builtins.regexpmatch(output, "Boot.** (.*)  HD")
+          if Builtins.regexpmatch(output, 'Boot.*\* (.*)  HD')
             Ops.set(
               BootCommon.globals,
               "boot_efilabel",
-              Builtins.regexpsub(output, "Boot.** (.*)  HD", "\\1")
+              Builtins.regexpsub(output, 'Boot.*\* (.*)  HD', "\\1")
             )
             efi_entry_found = true
           else

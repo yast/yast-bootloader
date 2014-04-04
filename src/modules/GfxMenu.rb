@@ -434,8 +434,8 @@ module Yast
         :from => "any",
         :to   => "list <string>"
       )
-      helps = Builtins.filter(files) { |f| Builtins.regexpmatch(f, "\\.hlp$") }
-      texts = Builtins.filter(files) { |f| Builtins.regexpmatch(f, "\\.tr$") }
+      helps = Builtins.filter(files) { |f| Builtins.regexpmatch(f, '\.hlp$') }
+      texts = Builtins.filter(files) { |f| Builtins.regexpmatch(f, '\.tr$') }
       helps = Builtins.maplist(helps) { |h| Builtins.substring(h, 0, 2) }
       texts = Builtins.maplist(texts) { |t| Builtins.substring(t, 0, 2) }
       Builtins.y2milestone("Texts available for %1", Builtins.sort(texts))
