@@ -20,8 +20,7 @@ client_DATA = \
   clients/inst_bootloader.rb \
   clients/bootloader_proposal.rb \
   clients/bootloader_auto.rb \
-  clients/bootloader_finish.rb \
-  clients/print-product.rb
+  clients/bootloader_finish.rb
 
 yncludedir = @yncludedir@/bootloader/routines
 ynclude_DATA = \
