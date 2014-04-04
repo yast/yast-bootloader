@@ -16,9 +16,7 @@ module_DATA = \
   modules/BootGRUB.rb
 
 client_DATA = \
-  clients/bootloader_preupdate.rb \
   clients/bootloader.rb \
-  clients/inst_lilo_convert.rb \
   clients/inst_bootloader.rb \
   clients/bootloader_proposal.rb \
   clients/bootloader_auto.rb \
