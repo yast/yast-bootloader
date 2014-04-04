@@ -1098,36 +1098,6 @@ module Yast
       GfxMenu.UpdateGfxMenuContents(getLoaderType(false))
     end
 
-
-    # Update device name according to changes in kernel (eg. SATA)
-    # @param [String] device string the original device name
-    # @return [String] updated device
-    def UpdateDevice(device)
-      if Mode.test
-        mapping = { "/dev/hda" => "/dev/sda", "/dev/hdb" => "/dev/sdb" }
-
-        d = Storage.GetDiskPartition(device)
-        if Builtins.haskey(mapping, Ops.get_string(d, "disk", ""))
-          if Ops.get(d, "nr") == nil || Ops.get(d, "nr") == 0
-            device = Ops.get_string(mapping, Ops.get_string(d, "disk", ""), "")
-          else
-            device = Storage.GetDeviceName(
-              Ops.get_string(mapping, Ops.get_string(d, "disk", ""), ""),
-              Ops.get(d, "nr")
-            )
-          end
-        end
-      else
-        devices = Storage.GetTranslatedDevices(
-          @installed_version,
-          @update_version,
-          [device]
-        )
-        device = Ops.get(devices, 0, device)
-      end
-      device
-    end
-
     # Check if memtest86 is present
     # @return [Boolean] true if memtest86 section is to be proposed
     def MemtestPresent

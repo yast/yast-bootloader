@@ -43,12 +43,6 @@ module Yast
       # Shall proposal merge menus?
       @merge_level = :main
 
-      # The variable indicate if client bootloader_preupdate
-      # successful update device map
-      # If success true else false
-
-      @update_device_map_done = false
-
       # variables for temporary data
 
       # Disks order for ordering widget purproses
@@ -305,7 +299,6 @@ module Yast
                   d != "" && d != nil && d != "/dev/null" && d != "false"
                 end
                 devs = Builtins.toset(devs)
-                devs = Builtins.maplist(devs) { |d| BootCommon.UpdateDevice(d) }
                 Builtins.foreach(devs) do |__d2|
                   __use = false if Builtins.contains(destroyed_partitions, __d2)
                 end
@@ -804,20 +797,6 @@ module Yast
 
     # Update read settings to new version of configuration files
     def Update
-      # update device map would be done in bootloader_preupdate
-      # run update device only if it was not called or if update device
-      # failed in bootloader_preupdate
-      BootCommon.UpdateDeviceMap if !@update_device_map_done
-
-      # During update, for libata device name migration ("/dev/hda1" ->
-      # "/dev/sda1") and somesuch, we need to re-read and parse the rest of the
-      # configuration file contents after internally updating the device map in
-      # perl-Bootloader. This way, the device names are consistent with the
-      # partitioning information we have set up in perl-Bootloader with
-      # SetDiskInfo(), and device names in other config files can be translated
-      # to Unix device names (#328448, this hits sections that are not
-      # (re-)created by yast-Bootloader or later by perl-Bootloader anyway).
-      BootCommon.SetDeviceMap(BootStorage.device_mapping)
       Read(true, true)
 
       BootCommon.UpdateSections

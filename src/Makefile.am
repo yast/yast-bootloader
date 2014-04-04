@@ -79,7 +79,7 @@ ylib_DATA = \
 
 scrconf_DATA = \
   scrconf/cfg_bootloader.scr \
-  scrconf/cfg_bootsplash.scr \
+  scrconf/cfg_bootsplash.scr
 
 schemafilesdir = $(schemadir)/autoyast/rnc
 schemafiles_DATA = \
