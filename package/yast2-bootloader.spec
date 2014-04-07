@@ -101,7 +101,6 @@ make check VERBOSE=1
 %{yast_moduledir}/*
 %dir %{yast_clientdir}
 %{yast_clientdir}/bootloader*.rb
-%{yast_clientdir}/print-product.rb
 %{yast_clientdir}/inst_*.rb
 %dir %{yast_ybindir}
 %{yast_ybindir}/*
