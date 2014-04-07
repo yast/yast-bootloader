@@ -41,14 +41,6 @@ module Yast
       nil
     end
 
-    # List detected problems
-    # Always run SystemSupported before calling this function
-    # @return [Boolean] a list of problems, empty if no was found
-    def DetectedProblems
-      deep_copy(@detected_problems)
-    end
-
-
     # Formated string of detected problems
     # Always run SystemSupported before calling this function
     # @return [Boolean] a list of problems, empty if no was found
@@ -403,12 +395,7 @@ module Yast
       ret
     end
 
-    publish :function => :DetectedProblems, :type => "list <string> ()"
     publish :function => :StringProblems, :type => "string ()"
-    publish :function => :check_BootDevice, :type => "boolean ()"
-    publish :function => :GRUB, :type => "boolean ()"
-    publish :function => :GRUB2, :type => "boolean ()"
-    publish :function => :GRUB2EFI, :type => "boolean ()"
     publish :function => :SystemSupported, :type => "boolean ()"
     publish :function => :EndOfBootOrRootPartition, :type => "integer ()"
   end
