@@ -122,10 +122,6 @@ module Yast
       # string representing device name of extended partition
       @ExtendedPartitionDevice = ""
 
-      # list of installed floppy devices
-      @floppy_devices = nil
-
-
       # FATE#305008: Failover boot configurations for md arrays with redundancy
       # list <string> includes physical disks used for md raid
 
@@ -1474,10 +1470,6 @@ module Yast
       ret
     end
 
-    publish :variable => :disk_change_time_InitBootloader, :type => "integer"
-    publish :variable => :disk_change_time_MapAllPartitions, :type => "integer"
-    publish :variable => :disk_change_time_checkCallingDiskInfo, :type => "integer"
-    publish :variable => :all_partitions, :type => "map <string, map>"
     publish :variable => :all_devices, :type => "map <string, string>"
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
@@ -1488,8 +1480,6 @@ module Yast
     publish :variable => :BootPartitionDevice, :type => "string"
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
-    publish :variable => :floppy_devices, :type => "list <string>"
-    publish :variable => :md_physical_disks, :type => "list <string>"
     publish :function => :MountByDev2Dev, :type => "string (string)"
     publish :function => :InitMapDevices, :type => "boolean ()"
     publish :function => :Dev2MountByDev, :type => "string (string)"
@@ -1500,7 +1490,6 @@ module Yast
     publish :function => :getFloppyDevices, :type => "list <string> ()"
     publish :function => :getHintedPartitionList, :type => "list <string> (list <string>)"
     publish :function => :getPartitionList, :type => "list <string> (symbol, string)"
-    publish :function => :checkMDSettings, :type => "boolean ()"
     publish :function => :addMDSettingsToGlobals, :type => "string ()"
   end
 
