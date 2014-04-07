@@ -105,8 +105,6 @@ make check VERBOSE=1
 %{yast_clientdir}/inst_*.rb
 %dir %{yast_ybindir}
 %{yast_ybindir}/*
-%dir %{yast_agentdir}
-%{yast_agentdir}/ag_*
 %dir %{yast_scrconfdir}
 %{yast_scrconfdir}/*.scr
 %dir %{yast_fillupdir}

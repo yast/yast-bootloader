@@ -903,20 +903,6 @@ module Yast
       nil
     end
 
-    # write mode settings function
-
-    # Set settings how to write bootloader
-    # @param [Hash{String => Object}] settings map of settings
-    def SetWriteMode(settings)
-      settings = deep_copy(settings)
-      Builtins.y2milestone("Setting mode for writing: %1", settings)
-      Builtins.foreach(settings) do |k, v|
-        Ops.set(BootCommon.write_settings, k, v)
-      end
-
-      nil
-    end
-
     # sections handling functions
 
     # Resolve a single symlink in key image_key in section map s
@@ -1235,38 +1221,6 @@ module Yast
     # @param [String] bootloader string type of bootloader
     def setLoaderType(bootloader)
       BootCommon.setLoaderType(bootloader)
-
-      nil
-    end
-
-    # Get root fs device
-    # @return [String] root device
-    def getRootDevice
-      ReadOrProposeIfNeeded()
-      BootStorage.RootPartitionDevice
-    end
-
-    # Set root fs device
-    # @param [String] device string root device
-    def setRootDevice(device)
-      ReadOrProposeIfNeeded()
-      BootStorage.RootPartitionDevice = device
-
-      nil
-    end
-
-    # Get device containing /boot directory
-    # @return [String] boot device
-    def getBootDevice
-      ReadOrProposeIfNeeded()
-      BootStorage.BootPartitionDevice
-    end
-
-    # Set device containing /boot directory
-    # @param [String] device string boot device
-    def setBootDevice(device)
-      ReadOrProposeIfNeeded()
-      BootStorage.BootPartitionDevice = device
 
       nil
     end
@@ -1620,15 +1574,10 @@ module Yast
     publish :function => :getKernelParam, :type => "string (string, string)"
     publish :function => :setKernelParam, :type => "boolean (string, string, string)"
     publish :function => :getLoaderType, :type => "string ()"
-    publish :function => :getProposedDefaultSection, :type => "string ()"
-    publish :function => :UpdateGfxMenu, :type => "boolean ()"
-    publish :function => :DelDuplicatedSections, :type => "void ()"
     publish :function => :ResolveSymlinksInSections, :type => "void ()"
-    publish :variable => :repeating_write, :type => "boolean"
     publish :variable => :proposed_cfg_changed, :type => "boolean"
     publish :variable => :cached_proposal, :type => "map"
     publish :variable => :cached_settings, :type => "map"
-    publish :function => :getFunctions, :type => "map (string)"
     publish :function => :blExport, :type => "map ()"
     publish :function => :blImport, :type => "boolean (map)"
     publish :function => :blRead, :type => "boolean (boolean, boolean)"
@@ -1642,22 +1591,15 @@ module Yast
     publish :function => :blWidgetMaps, :type => "map <string, map <string, any>> ()"
     publish :function => :blDialogs, :type => "map <string, symbol ()> ()"
     publish :function => :blFlagOnetimeBoot, :type => "boolean (string)"
-    publish :function => :askLocationResetPopup, :type => "boolean (string)"
     publish :variable => :test_abort, :type => "boolean ()"
-    publish :function => :Bootloader, :type => "void ()"
     publish :function => :ResetEx, :type => "void (boolean)"
     publish :function => :Summary, :type => "list <string> ()"
     publish :function => :UpdateConfiguration, :type => "void ()"
     publish :function => :Update, :type => "boolean (map <string, any>, map <string, any>)"
     publish :function => :PreUpdate, :type => "void ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
-    publish :function => :SetWriteMode, :type => "void (map <string, any>)"
     publish :function => :ResolveSymlink, :type => "map <string, any> (map <string, any>, string)"
     publish :function => :setLoaderType, :type => "void (string)"
-    publish :function => :getRootDevice, :type => "string ()"
-    publish :function => :setRootDevice, :type => "void (string)"
-    publish :function => :getBootDevice, :type => "string ()"
-    publish :function => :setBootDevice, :type => "void (string)"
     publish :function => :RunDelayedUpdates, :type => "void ()"
     publish :function => :CopyKernelInird, :type => "boolean ()"
   end

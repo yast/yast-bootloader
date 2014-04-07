@@ -293,16 +293,6 @@ module Yast
       deep_copy(temp_sec)
     end
 
-
-
-    # returns true if char is blank (newline, tab or space)
-    # @param [String] s single char string
-    # @return [Boolean] blank/non blank
-    def isBlank(s)
-      return true if s == "\n" || s == "\t" || s == " "
-      false
-    end
-
     # returns list difference A \ B (items that are in A and are not in B)
     # @param [Array] a list A
     # @param [Array] b list B
@@ -319,17 +309,7 @@ module Yast
     # @return a list containing device and relative path,
     #  eg. ["/dev/hda1", "/vmlinuz"]
     def splitPath(fullpth)
-      # UGHLY HACK because of testsuites
-      mountpoints = {}
-      if Mode.test
-        mountpoints = { "/" => ["/dev/hda2"], "/boot" => ["/dev/hda1"] }
-      else
-        mountpoints = Convert.convert(
-          Storage.GetMountPoints,
-          :from => "map",
-          :to   => "map <string, list>"
-        )
-      end
+      mountpoints = Storage.GetMountPoints,
       dev = ""
       mp = ""
       max = 0
@@ -1096,36 +1076,6 @@ module Yast
     # @return [Boolean] true on success
     def UpdateGfxMenuContents
       GfxMenu.UpdateGfxMenuContents(getLoaderType(false))
-    end
-
-
-    # Update device name according to changes in kernel (eg. SATA)
-    # @param [String] device string the original device name
-    # @return [String] updated device
-    def UpdateDevice(device)
-      if Mode.test
-        mapping = { "/dev/hda" => "/dev/sda", "/dev/hdb" => "/dev/sdb" }
-
-        d = Storage.GetDiskPartition(device)
-        if Builtins.haskey(mapping, Ops.get_string(d, "disk", ""))
-          if Ops.get(d, "nr") == nil || Ops.get(d, "nr") == 0
-            device = Ops.get_string(mapping, Ops.get_string(d, "disk", ""), "")
-          else
-            device = Storage.GetDeviceName(
-              Ops.get_string(mapping, Ops.get_string(d, "disk", ""), ""),
-              Ops.get(d, "nr")
-            )
-          end
-        end
-      else
-        devices = Storage.GetTranslatedDevices(
-          @installed_version,
-          @update_version,
-          [device]
-        )
-        device = Ops.get(devices, 0, device)
-      end
-      device
     end
 
     # Check if memtest86 is present

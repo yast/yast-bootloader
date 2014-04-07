@@ -192,24 +192,10 @@ module Yast
 
     # Update read settings to new version of configuration files
     def Update
-      BootCommon.UpdateDeviceMap
-
-      # During update, for libata device name migration ("/dev/hda1" ->
-      # "/dev/sda1") and somesuch, we need to re-read and parse the rest of the
-      # configuration file contents after internally updating the device map in
-      # perl-Bootloader. This way, the device names are consistent with the
-      # partitioning information we have set up in perl-Bootloader with
-      # SetDiskInfo(), and device names in other config files can be translated
-      # to Unix device names (#328448, this hits sections that are not
-      # (re-)created by yast-Bootloader or later by perl-Bootloader anyway).
-      BootCommon.SetDeviceMap(BootStorage.device_mapping)
       Read(true, true)
 
       BootCommon.UpdateSections
       BootCommon.UpdateGlobals
-      BootCommon.loader_device = BootCommon.UpdateDevice(
-        BootCommon.loader_device
-      )
 
       nil
     end

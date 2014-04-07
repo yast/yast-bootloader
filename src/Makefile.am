@@ -16,14 +16,11 @@ module_DATA = \
   modules/BootGRUB.rb
 
 client_DATA = \
-  clients/bootloader_preupdate.rb \
   clients/bootloader.rb \
-  clients/inst_lilo_convert.rb \
   clients/inst_bootloader.rb \
   clients/bootloader_proposal.rb \
   clients/bootloader_auto.rb \
-  clients/bootloader_finish.rb \
-  clients/print-product.rb
+  clients/bootloader_finish.rb
 
 yncludedir = @yncludedir@/bootloader/routines
 ynclude_DATA = \
@@ -81,11 +78,7 @@ ylib_DATA = \
 
 scrconf_DATA = \
   scrconf/cfg_bootloader.scr \
-  scrconf/cfg_bootsplash.scr \
-  scrconf/bootloader.scr
-
-agent_SCRIPTS = \
-  servers_non_y2/ag_bootloader
+  scrconf/cfg_bootsplash.scr
 
 schemafilesdir = $(schemadir)/autoyast/rnc
 schemafiles_DATA = \

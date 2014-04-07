@@ -1074,17 +1074,7 @@ module Yast
           end
           Ops.set(s, key, value)
         end
-        # update root= entry in selected sections as the device naming
-        # changes in the linux kernel from time to time ...
-        if Builtins.contains(BootCommon.update_section_types, oname) &&
-            Builtins.haskey(s, "root")
-          Builtins.y2milestone("Updating root device of section %1", name)
-          Ops.set(
-            s,
-            "root",
-            BootCommon.UpdateDevice(Ops.get_string(s, "root", ""))
-          )
-        end
+
         # handle the append line
         append = Ops.get_string(s, "append", "")
         # FIXME: how should we handle root= entries in append= lines?
@@ -1143,40 +1133,7 @@ module Yast
 
       # Secondly update global settings of bootloader configuration:
       #
-      # - no change of 'activate'
-      # - no change of 'timeout'
-      # - no change of default section
-      # - no change of default initrd
-      # - update device names that might have changed in as needed
       # - delete console= parameters as console autodetection now works
-      BootCommon.loader_device = BootCommon.UpdateDevice(
-        BootCommon.loader_device
-      )
-
-      # update device naming of default root and boot_* entries
-      Builtins.foreach(
-        [
-          "root",
-          "boot_prep_custom",
-          "boot_chrp_custom",
-          "boot_iseries_custom",
-          "boot_pmac_custom",
-          "clone"
-        ]
-      ) do |key|
-        if Builtins.haskey(BootCommon.globals, key)
-          Builtins.y2milestone(
-            "Updating global %1= setting, currently %2",
-            key,
-            Ops.get(BootCommon.globals, key, "")
-          )
-          Ops.set(
-            BootCommon.globals,
-            key,
-            BootCommon.UpdateDevice(Ops.get(BootCommon.globals, key, ""))
-          )
-        end
-      end
 
       # remove console= entries from globals, console auto detection now works
       if Builtins.haskey(BootCommon.globals, "append")
