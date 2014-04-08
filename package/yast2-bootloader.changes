@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr  7 14:57:38 UTC 2014 - jreidinger@suse.com
+
+- return back installation details for tweaking device map
+  (bnc#872300)
+- 3.1.19
+
+-------------------------------------------------------------------
 Fri Apr  4 13:05:55 CEST 2014 - snwint@suse.de
 
 - install mokutil along with shim (bnc #808852)
