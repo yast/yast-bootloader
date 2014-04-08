@@ -348,15 +348,6 @@ module Yast
     def Write
       ret = true
 
-      # proposing anything is irrelevant during update, this forces reading
-      # if settings weren't read before
-      if Mode.update
-        BootCommon.was_proposed = false
-        BootCommon.changed = true
-        BootCommon.location_changed = true
-        BootCommon.getLoaderType(!@repeating_write)
-      end
-
       if @repeating_write
         BootCommon.was_read = true
       else
