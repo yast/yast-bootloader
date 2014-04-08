@@ -407,25 +407,6 @@ module Yast
         Ops.set(params_to_save, "vgamode", new_vga) if Stage.initial
       end
 
-      # Initialize device mapper and LVM in target system
-      if Stage.initial || Mode.update
-        # FIXME: should be handled by partitioner
-        out = Convert.to_map(
-          SCR.Execute(
-            path(".target.bash_output"),
-            "test -f /sbin/devmap_mknod.sh && /sbin/devmap_mknod.sh;" +
-              "test -f /sbin/vgscan && /sbin/vgscan --mknodes"
-          )
-        )
-        if Ops.get_integer(out, "exit", 0) != 0
-          Builtins.y2error("Failed to initialize device mapper")
-        end
-        Builtins.y2milestone(
-          "Device mapper and LVM initialization output: %1",
-          out
-        )
-      end
-
       # save initrd
       if (Initrd.changed || !Mode.normal) &&
           !Ops.get_boolean(
