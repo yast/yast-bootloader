@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr  8 11:27:42 UTC 2014 - jreidinger@suse.com
+
+- modify proposal to work also during upgrade and propose upgrade
+  to grub2 (bnc#872081)
+- 3.1.20
+
+-------------------------------------------------------------------
 Mon Apr  7 14:57:38 UTC 2014 - jreidinger@suse.com
 
 - return back installation details for tweaking device map
