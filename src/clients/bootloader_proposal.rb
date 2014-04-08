@@ -80,9 +80,9 @@ module Yast
             Builtins.y2milestone("Cfg not changed before, recreating")
             Bootloader.ResetEx(false)
             BootCommon.setLoaderType(nil)
-
-            Bootloader.Propose
           end
+
+          Bootloader.Propose
         end
         # to make sure packages will get installed
         BootCommon.setLoaderType(BootCommon.getLoaderType(false))
