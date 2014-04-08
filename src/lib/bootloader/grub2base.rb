@@ -99,8 +99,7 @@ module Yast
       end
 
 
-      BootCommon.globals ||= Hash.new
-      BootCommon.globals = StandardGlobals().merge BootCommon.globals
+      BootCommon.globals = StandardGlobals().merge(BootCommon.globals || {})
 
       swap_parts = BootCommon.getSwapPartitions
       largest_swap_part = (swap_parts.max_by{|part, size| size} || [""]).first

@@ -1051,7 +1051,7 @@ module Yast
           SCR.Read(path(".sysconfig.bootloader.SECURE_BOOT"))
         )
 
-        if sb != nil && sb != ""
+        if sb != nil && !sb.empty?
           @secure_boot = sb == "yes"
           return @secure_boot
         end
