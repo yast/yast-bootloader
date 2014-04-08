@@ -100,7 +100,7 @@ module Yast
 
 
       BootCommon.globals ||= Hash.new
-      BootCommon.globals.merge! StandardGlobals()
+      BootCommon.globals = StandardGlobals().merge BootCommon.globals
 
       swap_parts = BootCommon.getSwapPartitions
       largest_swap_part = (swap_parts.max_by{|part, size| size} || [""]).first
@@ -111,17 +111,17 @@ module Yast
         resume = BootStorage.Dev2MountByDev(resume)
       end
 
-      BootCommon.globals["append"]          = BootArch.DefaultKernelParams(resume)
-      BootCommon.globals["append_failsafe"] = BootArch.FailsafeKernelParams
-      BootCommon.globals["distributor"]     = Product.name
-      BootCommon.kernelCmdLine              = Kernel.GetCmdLine
+      BootCommon.globals["append"]          ||= BootArch.DefaultKernelParams(resume)
+      BootCommon.globals["append_failsafe"] ||= BootArch.FailsafeKernelParams
+      BootCommon.globals["distributor"]     ||= Product.name
+      BootCommon.kernelCmdLine              ||= Kernel.GetCmdLine
 
       # Propose bootloader serial settings from kernel cmdline during install (bnc#862388)
       serial = BootCommon.GetSerialFromAppend
 
       if !serial.empty?
-        BootCommon.globals["terminal"] = "serial"
-        BootCommon.globals["serial"] = serial
+        BootCommon.globals["terminal"] ||= "serial"
+        BootCommon.globals["serial"] ||= serial
       end
 
       Builtins.y2milestone("Proposed globals: %1", BootCommon.globals)
