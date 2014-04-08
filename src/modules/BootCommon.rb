@@ -938,16 +938,6 @@ module Yast
           setCurrentLoaderAttribs(@loader_type)
           return @loader_type
         end
-        if Mode.update
-          # FIXME: this is extremely broken, no arch specifica here !!
-          if Arch.i386
-            # no sysconfig variable -> old version installed -> use LILO
-            @loader_type = "lilo"
-            @loader_type = SupportedLoader(@loader_type)
-            setCurrentLoaderAttribs(@loader_type)
-            return @loader_type
-          end
-        end
       end
       # detect bootloader
       @loader_type = Convert.to_string(SCR.Read(path(".probe.boot_arch")))
@@ -1062,7 +1052,7 @@ module Yast
         )
 
         if sb != nil && sb != ""
-          @secure_boot = sb == "yes" ? true : false
+          @secure_boot = sb == "yes"
           return @secure_boot
         end
       end
