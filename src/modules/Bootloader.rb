@@ -331,14 +331,8 @@ module Yast
     end
 
     # Update the whole configuration
-    # @param [Hash{String => Object}] iv a map representing the installed (original) version
-    # @param [Hash{String => Object}] uv a map representing the version the system is upgraded to
     # @return [Boolean] true on success
-    def Update(iv, uv)
-      iv = deep_copy(iv)
-      uv = deep_copy(uv)
-      BootCommon.installed_version = deep_copy(iv)
-      BootCommon.update_version = deep_copy(uv)
+    def Update
       Write() # write also reads the configuration and updates it
     end
 
@@ -1595,7 +1589,7 @@ module Yast
     publish :function => :ResetEx, :type => "void (boolean)"
     publish :function => :Summary, :type => "list <string> ()"
     publish :function => :UpdateConfiguration, :type => "void ()"
-    publish :function => :Update, :type => "boolean (map <string, any>, map <string, any>)"
+    publish :function => :Update, :type => "boolean ()"
     publish :function => :PreUpdate, :type => "void ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
     publish :function => :ResolveSymlink, :type => "map <string, any> (map <string, any>, string)"
