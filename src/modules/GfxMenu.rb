@@ -512,24 +512,13 @@ module Yast
     end
 
     # Updates GFX menu without requiring any information, reads loader type
-    # from sysconfig, calls /sbin/lilo if LILO is being used directly
+    # from sysconfig
     # @return [Boolean] true on success
     def Update
       loader = Convert.to_string(
         SCR.Read(path(".sysconfig.bootloader.LOADER_TYPE"))
       )
-      return false if !UpdateGfxMenuContents(loader)
-
-      if loader == "lilo"
-        out = Convert.to_map(
-          SCR.Execute(path(".target.bash_output"), "/sbin/lilo")
-        )
-        if Ops.get_integer(out, "exit", 0) != 0
-          Builtins.y2error("Output of /sbin/lilo: %1", out)
-          return false
-        end
-      end
-      true
+      return UpdateGfxMenuContents(loader)
     end
 
     publish :variable => :enable_sound_signals, :type => "boolean"

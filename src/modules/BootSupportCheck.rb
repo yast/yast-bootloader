@@ -62,18 +62,13 @@ module Yast
           ["grub", "grub2", "grub2-efi", "zipl", "none"],
           Bootloader.getLoaderType
         )
-        if Bootloader.getLoaderType != "lilo"
-          Builtins.y2error("Unknown bootloader: %1", Bootloader.getLoaderType)
-          AddNewProblem(
-            Builtins.sformat(
-              _("Unknown bootloader: %1"),
-              Bootloader.getLoaderType
-            )
+        Builtins.y2error("Unknown bootloader: %1", Bootloader.getLoaderType)
+        AddNewProblem(
+          Builtins.sformat(
+            _("Unknown bootloader: %1"),
+            Bootloader.getLoaderType
           )
-        else
-          Builtins.y2error("LILO bootloader: %1", Bootloader.getLoaderType)
-          AddNewProblem(_("LILO bootloader is not supported"))
-        end
+        )
         return false
       end
       true
@@ -92,7 +87,7 @@ module Yast
         if efi?
           return true if lt == "grub2-efi"
         else
-          return true if lt == "grub" || lt == "lilo" || lt == "grub2"
+          return true if lt == "grub" || lt == "grub2"
         end
       end
       Builtins.y2error(
@@ -111,7 +106,6 @@ module Yast
     end
 
     #  * Checks for GPT partition table
-    #  // FIXME adapt for ELILO if needed
     def GptPartitionTable
       ret = true
       tm = Storage.GetTargetMap
@@ -306,18 +300,8 @@ module Yast
       true
     end
 
-    # ELILO related check
-    def ELILO
-      true
-    end
-
     # ZIPL related check
     def ZIPL
-      true
-    end
-
-    # PPC related check
-    def PPC
       true
     end
 

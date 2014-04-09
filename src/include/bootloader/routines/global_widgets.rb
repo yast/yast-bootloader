@@ -339,8 +339,6 @@ module Yast
         return nil if old_bl == new_bl
 
 
-        Popup.Warning(_("The LILO is not supported now.")) if new_bl == "lilo"
-
         if new_bl == "none"
           # popup - Continue/Cancel
           if Popup.ContinueCancel(
@@ -485,7 +483,7 @@ module Yast
           elsif action == :prev
             Bootloader.Import(Ops.get_map(BootCommon.other_bl, new_bl, {}))
           elsif action == :convert
-            #filter out uknown type of section e.g. chainloader for elilo etc.
+            #filter out uknown type of section
             BootCommon.sections = Builtins.filter(BootCommon.sections) do |sec|
               section_types = Bootloader.blsection_types
               if Builtins.contains(
@@ -756,8 +754,7 @@ module Yast
                     HStretch(),
                     VBox(
                       Label(""),
-                      lt == "none" || lt == "default" || lt == "zipl" ||
-                        lt == "lilo" ?
+                      lt == "none" || lt == "default" || lt == "zipl" ?
                         Empty() :
                         "loader_options"
                     ),
@@ -767,7 +764,7 @@ module Yast
                 )
               ),
               VStretch(),
-              lt == "none" || lt == "default" || lt == "zipl" || lt == "lilo" ?
+              lt == "none" || lt == "default" || lt == "zipl" ?
                 Empty() :
                 "loader_location",
               VStretch(),

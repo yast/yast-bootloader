@@ -181,8 +181,7 @@ module Yast
         "activate" => "activate"
       }
 
-      if Ops.get_string(ai, "loader_type", "") == "lilo" ||
-          Ops.get_string(ai, "loader_type", "") == "grub"
+      if Ops.get_string(ai, "loader_type", "") == "grub"
         Builtins.foreach(["repl_mbr", "activate"]) do |k|
           if Builtins.haskey(ai, k)
             if Ops.get_string(ai, "loader_type", "") == "grub"
@@ -375,7 +374,7 @@ module Yast
         files = BootCommon.GetFilesContents
         bl2file =
           # TODO the other bootloaders
-          { "grub" => "/boot/grub/menu.lst", "lilo" => "/etc/lilo.conf" }
+          { "grub" => "/boot/grub/menu.lst"}
         Ops.set(files, Ops.get(bl2file, loader, ""), file)
         BootCommon.SetFilesContents(files)
         Ops.set(exp, ["specific", "global"], BootCommon.GetGlobal)
@@ -440,8 +439,7 @@ module Yast
       )
 
       # LILO and GRUB stuff
-      if Ops.get_string(ai, "loader_type", "") == "lilo" ||
-          Ops.get_string(ai, "loader_type", "") == "grub"
+      if Ops.get_string(ai, "loader_type", "") == "grub"
         # FIXME: repl_mbr and activate are obsolete for GRUB, no need to
         # look for them in the export map any more (but does not really do
         # any harm)

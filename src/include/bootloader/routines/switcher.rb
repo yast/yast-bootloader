@@ -19,7 +19,6 @@ module Yast
   module BootloaderRoutinesSwitcherInclude
     def initialize_bootloader_routines_switcher(include_target)
       Yast.import "BootGRUB"
-      Yast.import "BootLILO"
       Yast.import "BootZIPL"
       Yast.import "BootGRUB2"
       Yast.import "BootGRUB2EFI"
@@ -32,10 +31,6 @@ module Yast
     def getFunctions(bootloader)
       return {} if bootloader == nil || bootloader == ""
       bl_functions = {
-        "lilo"      => fun_ref(
-          BootLILO.method(:GetFunctions),
-          "map <string, any> ()"
-        ),
         "grub"      => fun_ref(
           BootGRUB.method(:GetFunctions),
           "map <string, any> ()"

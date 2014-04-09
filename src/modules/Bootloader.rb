@@ -36,7 +36,6 @@ module Yast
       Yast.import "Storage"
       Yast.import "Directory"
 
-      Yast.import "BootLILO"
       Yast.import "BootGRUB"
       #fate 303395
       Yast.import "ProductFeatures"
@@ -146,11 +145,10 @@ module Yast
           "custom"
         )
         # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
-        # for lilo and grub, always correct the bootloader device according to
+        # for grub, always correct the bootloader device according to
         # selected_location (or fall back to value of loader_device)
-        # Why only for lilo and grub?
-        if loader_type == "lilo" || loader_type == "grub" || Arch.i386 ||
-            Arch.x86_64
+        # Why only for grub?
+        if loader_type == "grub" || Arch.i386 || Arch.x86_64
           BootCommon.loader_device = BootCommon.GetBootloaderDevice
         end
       end
@@ -1233,19 +1231,10 @@ module Yast
     # Update the language of GFX menu according to currently selected language
     # @return [Boolean] true on success
     def UpdateGfxMenu
-      return true if getLoaderType != "lilo" && getLoaderType != "grub"
+      return true if getLoaderType != "grub"
 
       ret = BootCommon.UpdateGfxMenuContents
       return true if !Mode.normal
-      if getLoaderType == "lilo"
-        # This is extreme boolshit, Bootloader::Library has to be called
-        bl_command = "/sbin/lilo >> /var/log/YaST2/y2log_bootloader 2>&1"
-        command_ret = 0 == SCR.Execute(path(".target.bash"), bl_command)
-        if !command_ret
-          Builtins.y2error("Execution of installation command failed")
-          return false
-        end
-      end
       ret
     end
 

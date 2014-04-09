@@ -143,7 +143,7 @@ module Yast
       # common variables
 
       # type of bootloader to configure/being configured
-      # shall be one of "lilo", "grub", "zipl", "grub2", "grub2-efi"
+      # shall be one of "grub", "zipl", "grub2", "grub2-efi"
       @loader_type = nil
       @secure_boot = nil
 
@@ -213,7 +213,6 @@ module Yast
 
       # List of all supported bootloaders
       @bootloaders = [
-        "lilo",
         "grub",
         "zipl",
         "grub2",
@@ -1084,7 +1083,6 @@ module Yast
       if Mode.config
         return [
           "grub",
-          "lilo",
           "zipl",
           "grub2",
           "grub2-efi",
@@ -1098,7 +1096,6 @@ module Yast
       ]
       if Arch.i386 || Arch.x86_64
         ret = Convert.convert(
-          # don't add lilo (fate #314886)
           Builtins.merge(ret, ["grub2"]),
           :from => "list",
           :to   => "list <string>"
