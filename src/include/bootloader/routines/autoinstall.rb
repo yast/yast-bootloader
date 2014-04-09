@@ -174,39 +174,6 @@ module Yast
       # any time
       Ops.set(exp, ["specific", "global"], {})
 
-      # FIXME
-      # 	// global PPC stuff
-      # 	if (ai["loader_type"]:"" == "ppc")
-      # 	{
-      # 	    exp["specific", "activate"] = true;
-      # 	    foreach (string k, ["iseries_streamfile", "iseries_write_slot_a",
-      # 		"iseries_write_slot_b", "iseries_write_streamfile",
-      # 		"iseries_write_prepboot", "prep_boot_partition",
-      # 		"of_defaultdevice", "board_type", "activate"],
-      # 	    {
-      # 		if (haskey (ai, k))
-      # 		{
-      # 		    exp["specific", k] = ai[k]:nil;
-      # 		}
-      # 	    });
-      # 	}
-      # 	// global ELILO stuff
-      # 	if (ai["loader_type"]:"" == "elilo")
-      # 	{
-      # 	    string def_label = "";
-      # 	    if (! Mode::test ())
-      # 	    {
-      # 	    import "Product";
-      # 		if (Mode::autoinst ())
-      # 		{
-      # 		    def_label = Product::name;
-      # 		}
-      # 	    }
-      # 	    // if EFI label not specified, use default label
-      # 	    exp["location"] = ai["efi_entry_label"]:ai["location"]:def_label;
-      # 	    exp["specific", "create_efi_entry"]
-      # 		= ai["create_efi_entry"]:(exp["location"]:"" != "");
-      # 	}
       # LILO and GRUB stuff
 
       old_key_to_new_global_key = {
@@ -471,31 +438,7 @@ module Yast
           deep_copy(s)
         end
       )
-      # 	// global PPC stuff
-      # 	if (ai["loader_type"]:"" == "ppc")
-      # 	{
-      # 	    foreach (string k, ["iseries_streamfile", "iseries_write_slot_a",
-      # 		"iseries_write_slot_b", "iseries_write_streamfile",
-      # 		"iseries_write_prepboot", "prep_boot_partition",
-      # 		"of_defaultdevice", "board_type", "activate", ],
-      # 	    {
-      # 		if (haskey (exp["specific"]:$[], k))
-      # 		{
-      # 		    ai[k] = exp["specific", k]:nil;
-      # 		}
-      # 	    });
-      # 	}
-      #
-      # 	// global ELILO stuff
-      # 	if (ai["loader_type"]:"" == "elilo")
-      # 	{
-      # 	    // discards location and loader device, it is correct.
-      # 	    ai = $[
-      # 		"loader_type" : exp["loader_type"]:"",
-      # 		"efi_entry_label" : exp["location"]:"",
-      # 		"create_efi_entry" : exp["specific", "create_efi_entry"]:false,
-      # 	    ];
-      # 	}
+
       # LILO and GRUB stuff
       if Ops.get_string(ai, "loader_type", "") == "lilo" ||
           Ops.get_string(ai, "loader_type", "") == "grub"

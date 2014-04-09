@@ -400,11 +400,7 @@ module Yast
       ret = false
       # Bug 539774 - bootloader module wants to write to floppy disk although there is none
       return ret if @loader_device == nil || @loader_device == "" # bug #333459 - boot loader editor: propose new configuration
-      # -- BLE tries to write something on the floppy disk
-      # bnc #180784 don't install to bootloader to floppy if ppc
-      if getLoaderType(false) == "ppc"
-        ret = false
-      elsif @loader_device == StorageDevices.FloppyDevice
+      if @loader_device == StorageDevices.FloppyDevice
         ret = true
       elsif Builtins.contains(BootStorage.getFloppyDevices, @loader_device)
         ret = true

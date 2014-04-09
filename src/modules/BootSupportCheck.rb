@@ -59,7 +59,7 @@ module Yast
     # Check that bootloader is known and supported
     def KnownLoader
       if !Builtins.contains(
-          ["grub", "grub2", "grub2-efi", "elilo", "ppc", "zipl", "none"],
+          ["grub", "grub2", "grub2-efi", "elilo", "zipl", "none"],
           Bootloader.getLoaderType
         )
         if Bootloader.getLoaderType != "lilo"
@@ -102,7 +102,6 @@ module Yast
       return true if lt == "grub2"
 
       return true if Arch.s390 && lt == "zipl"
-      return true if Arch.ppc && lt == "ppc"
       return true if Arch.ia64 && lt == "elilo"
       if Arch.i386 || Arch.x86_64
         if checkElilo
@@ -350,8 +349,6 @@ module Yast
         supported = GRUB() && supported
       elsif lt == "elilo"
         supported = ELILO() && supported
-      elsif lt == "ppc"
-        supported = PPC() && supported
       elsif lt == "zipl"
         supported = ZIPL() && supported
       elsif lt == "grub2"

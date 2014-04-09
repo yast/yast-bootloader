@@ -21,7 +21,6 @@ module Yast
       Yast.import "BootELILO"
       Yast.import "BootGRUB"
       Yast.import "BootLILO"
-      Yast.import "BootPOWERLILO"
       Yast.import "BootZIPL"
       Yast.import "BootGRUB2"
       Yast.import "BootGRUB2EFI"
@@ -48,10 +47,6 @@ module Yast
         ),
         "zipl"      => fun_ref(
           BootZIPL.method(:GetFunctions),
-          "map <string, any> ()"
-        ),
-        "ppc"       => fun_ref(
-          BootPOWERLILO.method(:GetFunctions),
           "map <string, any> ()"
         ),
         "grub2"     => fun_ref(

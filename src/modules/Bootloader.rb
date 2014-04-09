@@ -39,7 +39,6 @@ module Yast
       Yast.import "BootELILO"
       Yast.import "BootLILO"
       Yast.import "BootGRUB"
-      Yast.import "BootPOWERLILO" # The ppc-LILO File
       #fate 303395
       Yast.import "ProductFeatures"
       # Write is repeating again
@@ -786,16 +785,9 @@ module Yast
       end
       Builtins.y2milestone("Deleting duplicated boot sections")
 
-      linux_default = {}
-      linux_failsafe = {}
-      linux_xen = {}
-      if Arch.ppc
-        linux_default = BootPOWERLILO.CreateImageSection("linux")
-      else
-        linux_default = BootCommon.CreateLinuxSection("linux")
-        linux_failsafe = BootCommon.CreateLinuxSection("failsafe")
-        linux_xen = BootCommon.CreateLinuxSection("xen")
-      end
+      linux_default = BootCommon.CreateLinuxSection("linux")
+      linux_failsafe = BootCommon.CreateLinuxSection("failsafe")
+      linux_xen = BootCommon.CreateLinuxSection("xen")
 
       Builtins.y2milestone(
         "Proposed section for linux_default: %1",

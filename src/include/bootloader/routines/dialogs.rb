@@ -457,12 +457,6 @@ module Yast
       bootloader = Bootloader.getLoaderType
       if bootloader == "zipl"
         return ZiplKernelSectionDialog()
-      elsif bootloader == "ppc"
-        if Arch.board_iseries
-          return PpcIseriesKernelSectionDialog()
-        else
-          return PpcKernelSectionDialog()
-        end
       else
         return CommonKernelSectionDialog()
       end
@@ -840,11 +834,7 @@ module Yast
     end
 
     def ChainloaderSectionDialog
-      if Bootloader.getLoaderType == "ppc"
-        return PPCChainloaderSectionDialog()
-      else
-        return CommonChainloaderSectionDialog()
-      end
+      return CommonChainloaderSectionDialog()
     end
 
     # Run dialog for kernel section editation
@@ -859,20 +849,11 @@ module Yast
       )
 
       widget_names = ["section_type"]
-      widget_descr = {}
-      if lt == "ppc"
-        widget_descr = Convert.convert(
-          Builtins.union(CommonGlobalWidgets(), Bootloader.blWidgetMaps),
-          :from => "map",
-          :to   => "map <string, map <string, any>>"
-        )
-      else
-        widget_descr = Convert.convert(
-          Builtins.union(CommonGlobalWidgets(), CommonSectionWidgets()),
-          :from => "map",
-          :to   => "map <string, map <string, any>>"
-        )
-      end
+      widget_descr = Convert.convert(
+        Builtins.union(CommonGlobalWidgets(), CommonSectionWidgets()),
+        :from => "map",
+        :to   => "map <string, map <string, any>>"
+      )
 
       # dialog caption
       caption = _("Boot Loader Settings: Section Management")

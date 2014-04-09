@@ -143,7 +143,7 @@ module Yast
       # common variables
 
       # type of bootloader to configure/being configured
-      # shall be one of "lilo", "grub", "elilo", "ppc", "zipl", "grub2", "grub2-efi"
+      # shall be one of "lilo", "grub", "elilo", "zipl", "grub2", "grub2-efi"
       @loader_type = nil
       @secure_boot = nil
 
@@ -217,7 +217,6 @@ module Yast
         "grub",
         "elilo",
         "zipl",
-        "ppc",
         "grub2",
         "grub2-efi"
       ]
@@ -925,7 +924,6 @@ module Yast
         )
         if @loader_type != nil && @loader_type != ""
           @loader_type = "grub2" if @loader_type == "s390"
-          @loader_type = "ppc" if @loader_type == "lilo" && Arch.ppc
           Builtins.y2milestone(
             "Sysconfig bootloader is %1, using",
             @loader_type
@@ -1091,7 +1089,6 @@ module Yast
           "lilo",
           "elilo",
           "zipl",
-          "ppc",
           "grub2",
           "grub2-efi",
           "default",

@@ -8,7 +8,6 @@ module_DATA = \
   modules/BootELILO.rb \
   modules/BootZIPL.rb \
   modules/BootArch.rb \
-  modules/BootPOWERLILO.rb \
   modules/BootLILO.rb \
   modules/GfxMenu.rb \
   modules/BootSupportCheck.rb \
@@ -64,12 +63,6 @@ ynclude3_DATA = \
 ynclude4dir = @yncludedir@/bootloader/zipl
 ynclude4_DATA = \
   include/bootloader/zipl/helps.rb
-
-ynclude5dir = @yncludedir@/bootloader/ppc
-ynclude5_DATA = \
-  include/bootloader/ppc/options.rb \
-  include/bootloader/ppc/dialogs.rb \
-  include/bootloader/ppc/helps.rb
 
 ylibdir = "${yast2dir}/lib/bootloader"
 ylib_DATA = \
