@@ -5,7 +5,6 @@ module_DATA = \
   modules/Bootloader.rb \
   modules/BootGRUB2EFI.rb \
   modules/BootStorage.rb \
-  modules/BootELILO.rb \
   modules/BootZIPL.rb \
   modules/BootArch.rb \
   modules/BootLILO.rb \
@@ -38,13 +37,6 @@ ynclude_DATA = \
   include/bootloader/routines/lib_iface.rb \
   include/bootloader/routines/helps.rb \
   include/bootloader/routines/common_helps.rb
-
-ynclude1dir = @yncludedir@/bootloader/elilo
-ynclude1_DATA = \
-  include/bootloader/elilo/widgets.rb \
-  include/bootloader/elilo/options.rb \
-  include/bootloader/elilo/dialogs.rb \
-  include/bootloader/elilo/helps.rb
 
 ynclude2dir = @yncludedir@/bootloader/grub2
 ynclude2_DATA = \

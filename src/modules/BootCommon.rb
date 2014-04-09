@@ -143,7 +143,7 @@ module Yast
       # common variables
 
       # type of bootloader to configure/being configured
-      # shall be one of "lilo", "grub", "elilo", "zipl", "grub2", "grub2-efi"
+      # shall be one of "lilo", "grub", "zipl", "grub2", "grub2-efi"
       @loader_type = nil
       @secure_boot = nil
 
@@ -215,7 +215,6 @@ module Yast
       @bootloaders = [
         "lilo",
         "grub",
-        "elilo",
         "zipl",
         "grub2",
         "grub2-efi"
@@ -957,7 +956,6 @@ module Yast
       end
       if (Arch.i386 || Arch.x86_64) && Linuxrc.InstallInf("EFI") == "1"
         # use grub2-efi as default bootloader for x86_64/i386 EFI
-        # previously we use elilo
         @loader_type = "grub2-efi"
       end
 
@@ -1087,7 +1085,6 @@ module Yast
         return [
           "grub",
           "lilo",
-          "elilo",
           "zipl",
           "grub2",
           "grub2-efi",

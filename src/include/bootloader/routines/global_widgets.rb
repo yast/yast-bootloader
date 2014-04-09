@@ -120,15 +120,14 @@ module Yast
             0,
             ""
           )
-          elilo = Bootloader.getLoaderType == "elilo"
           info = image != "" && image != nil ?
             Builtins.sformat(
               "%1   (%2%3)",
               image,
-              elilo ? "" : Ops.get(BootCommon.splitPath(image), 0, ""),
+              Ops.get(BootCommon.splitPath(image), 0, ""),
               root == "" ?
                 "" :
-                Ops.add(elilo ? "" : ", ", Builtins.sformat("root=%1", root))
+                Builtins.sformat(", root=%1", root)
             ) :
             ""
         elsif Ops.get_string(s, "type", "") == "xen"
@@ -139,15 +138,14 @@ module Yast
             0,
             ""
           )
-          elilo = Bootloader.getLoaderType == "elilo"
           info = image != "" && image != nil ?
             Builtins.sformat(
               "%1   (%2%3)",
               image,
-              elilo ? "" : Ops.get(BootCommon.splitPath(image), 0, ""),
+              Ops.get(BootCommon.splitPath(image), 0, ""),
               root == "" ?
                 "" :
-                Ops.add(elilo ? "" : ", ", Builtins.sformat("root=%1", root))
+                Builtins.sformat(", root=%1", root)
             ) :
             ""
         elsif Ops.get_string(s, "type", "") == "floppy"
@@ -377,44 +375,6 @@ module Yast
           BootCommon.location_changed = true
           BootCommon.changed = true
           return :redraw
-        end
-
-        if Arch.x86_64
-          if new_bl == "elilo"
-            # continue/cancel pop-up
-            if !Popup.ContinueCancel(
-                _(
-                  "\n" +
-                    "ELILO supports only the EFI boot architecture. If yor\n" +
-                    "firmware does not support it, your computer will not\n" +
-                    "boot."
-                )
-              )
-              UI.ChangeWidget(
-                Id("loader_type"),
-                :Value,
-                Bootloader.getLoaderType
-              )
-              return nil
-            end
-          elsif old_bl == "elilo"
-            # continue/cancel pop-up
-            if !Popup.ContinueCancel(
-                _(
-                  "\n" +
-                    "Bootloader you selected does not support the EFI boot\n" +
-                    "architecture. If your firmware does not support legacy\n" +
-                    "booting, your computer will not boot."
-                )
-              )
-              UI.ChangeWidget(
-                Id("loader_type"),
-                :Value,
-                Bootloader.getLoaderType
-              )
-              return nil
-            end
-          end
         end
 
         # warning - popup, followed by radio buttons

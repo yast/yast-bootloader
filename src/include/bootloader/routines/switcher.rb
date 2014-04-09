@@ -18,7 +18,6 @@
 module Yast
   module BootloaderRoutinesSwitcherInclude
     def initialize_bootloader_routines_switcher(include_target)
-      Yast.import "BootELILO"
       Yast.import "BootGRUB"
       Yast.import "BootLILO"
       Yast.import "BootZIPL"
@@ -39,10 +38,6 @@ module Yast
         ),
         "grub"      => fun_ref(
           BootGRUB.method(:GetFunctions),
-          "map <string, any> ()"
-        ),
-        "elilo"     => fun_ref(
-          BootELILO.method(:GetFunctions),
           "map <string, any> ()"
         ),
         "zipl"      => fun_ref(

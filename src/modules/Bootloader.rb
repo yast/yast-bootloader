@@ -36,7 +36,6 @@ module Yast
       Yast.import "Storage"
       Yast.import "Directory"
 
-      Yast.import "BootELILO"
       Yast.import "BootLILO"
       Yast.import "BootGRUB"
       #fate 303395
@@ -1213,11 +1212,6 @@ module Yast
           Builtins.y2milestone("Not reading settings in Mode::config ()")
           BootCommon.was_read = true
           BootCommon.was_proposed = true
-        elsif Arch.ia64 && Mode.update # FIXME		&& BootELILO::efi_layout_changed)
-          Builtins.y2milestone(
-            "Reproposing new configuration - IPF, EFI layout has changed"
-          )
-          Propose()
         elsif Stage.initial && !Mode.update
           Propose()
         else
