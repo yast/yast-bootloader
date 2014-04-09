@@ -139,9 +139,6 @@ module Yast
       @changed = false
 
 
-      @installed_version = {}
-      @update_version = {}
-
       @edited_files = {}
       # common variables
 
@@ -563,17 +560,6 @@ module Yast
 
       # convert device names in device map to the kernel device names
       BootStorage.device_mapping = Builtins.mapmap(BootStorage.device_mapping) do |k, v|
-        # if we update from version 9 (SLES9), first convert old-style persistent
-        # device names to new-style persistent device names ("p1" -> "-part1")
-        # NOTE: this is idempotent; but other device name translation
-        # (e.g. libata migration) is not, so it will be done later
-        if Mode.update && Ops.get_integer(@installed_version, "major", 0) == 9
-          k = Storage.SLES9PersistentDevNames(k)
-          Builtins.y2milestone(
-            "devmap: dev name after SLES9 persistent dev name translation: %1",
-            k
-          )
-        end
         { BootStorage.Dev2MountByDev(k) => v }
       end
 
@@ -582,14 +568,6 @@ module Yast
       # convert the stage1_dev
       @globals = Builtins.mapmap(@globals) do |k, v|
         if k == "stage1_dev" || Builtins.regexpmatch(k, "^boot_.*custom$")
-          # see comments above
-          if Mode.update && Ops.get_integer(@installed_version, "major", 0) == 9
-            v = Storage.SLES9PersistentDevNames(v)
-            Builtins.y2milestone(
-              "globals: dev name after SLES9 persistent dev name translation: %1",
-              v
-            )
-          end
           next { k => BootStorage.Dev2MountByDev(v) }
         else
           next { k => v }
@@ -601,14 +579,6 @@ module Yast
       # possible
       @sections = Builtins.maplist(@sections) do |s|
         rdev = Ops.get_string(s, "root", "")
-        # see comments above
-        if Mode.update && Ops.get_integer(@installed_version, "major", 0) == 9
-          rdev = Storage.SLES9PersistentDevNames(rdev)
-          Builtins.y2milestone(
-            "sections: dev name after SLES9 persistent dev name translation: %1",
-            rdev
-          )
-        end
         # bnc#533782 - after changing filesystem label system doesn't boot
         if Ops.get_string(s, "append", "") != ""
           Ops.set(
@@ -968,16 +938,6 @@ module Yast
           setCurrentLoaderAttribs(@loader_type)
           return @loader_type
         end
-        if Mode.update
-          # FIXME: this is extremely broken, no arch specifica here !!
-          if Arch.i386
-            # no sysconfig variable -> old version installed -> use LILO
-            @loader_type = "lilo"
-            @loader_type = SupportedLoader(@loader_type)
-            setCurrentLoaderAttribs(@loader_type)
-            return @loader_type
-          end
-        end
       end
       # detect bootloader
       @loader_type = Convert.to_string(SCR.Read(path(".probe.boot_arch")))
@@ -1091,8 +1051,8 @@ module Yast
           SCR.Read(path(".sysconfig.bootloader.SECURE_BOOT"))
         )
 
-        if sb != nil && sb != ""
-          @secure_boot = sb == "yes" ? true : false
+        if sb != nil && !sb.empty?
+          @secure_boot = sb == "yes"
           return @secure_boot
         end
       end
@@ -1223,8 +1183,6 @@ module Yast
     publish :variable => :repl_mbr, :type => "boolean"
     publish :variable => :kernelCmdLine, :type => "string"
     publish :variable => :changed, :type => "boolean"
-    publish :variable => :installed_version, :type => "map <string, any>"
-    publish :variable => :update_version, :type => "map <string, any>"
     publish :variable => :edited_files, :type => "map <string, string>"
     publish :variable => :del_parts, :type => "list <string>"
     publish :variable => :write_settings, :type => "map"

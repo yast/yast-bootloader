@@ -37,29 +37,6 @@ module Yast
         @force_reset = Ops.get_boolean(@param, "force_reset", false)
         @language_changed = Ops.get_boolean(@param, "language_changed", false)
 
-        # use the cache if possible
-        # if not asked to recreate and we have a cached proposal and
-        if false && !@force_reset && Bootloader.cached_proposal != nil &&
-            # has the configuration been changed?
-            Bootloader.cached_settings == Bootloader.Export &&
-            # has the partitioning been changed?
-            # This is correct as long as the proposal is only dependent on the
-            # settings in Storage. AFAICT all information relevant to a
-            # proposal in yast2-bootloader comes from yast2-storage. Even the
-            # information from perl-Bootloader only depends on the settings in
-            # Storage or libstorage. So this should be OK. At this point all
-            # changes relevant to the yast2-bootloader settings are made
-            # through Storage, so the change time of Storage data should be
-            # sufficient.
-            BootCommon.cached_settings_base_data_change_time ==
-              Storage.GetTargetChangeTime
-          # FIXME: has the software selection changed?: esp. has the
-          # Xen pattern been activated ? then we'd have to make the
-          # proposal again.
-          Builtins.y2milestone("Using cached proposal")
-          return deep_copy(Bootloader.cached_proposal)
-        end
-
         if @force_reset && !Mode.autoinst
           # force re-calculation of bootloader proposal
           # this deletes any internally cached values, a new proposal will
@@ -70,47 +47,17 @@ module Yast
           Bootloader.Reset
         end
 
-        if !Bootloader.proposed_cfg_changed && !Mode.autoinst
-          Builtins.y2milestone("Cfg not changed before, recreating")
-          Bootloader.ResetEx(false)
-          BootCommon.setLoaderType(nil)
-        end
+        if Bootloader.getLoaderType == "grub2"
+          if !Mode.update
+            if !Bootloader.proposed_cfg_changed && !Mode.autoinst
+              Bootloader.blRead(true, true)
+              BootCommon.was_read = true
+            end
 
-        if Bootloader.getLoaderType == "grub"
-          Yast.import "BootGRUB"
-          # merge_level == `main means: merge only the "default" key(s?) of
-          # a "foreign" grub configuration from a different configuration
-          # into our configuration
-          BootGRUB.merge_level = :main
-          Bootloader.Propose
-
-
-          BootGRUB.merge_level = :none
-
-          Ops.set(
-            @ret,
-            "links",
-            [
-              "enable_boot_mbr",
-              "disable_boot_mbr",
-              "enable_boot_root",
-              "disable_boot_root",
-              "enable_boot_boot",
-              "disable_boot_boot"
-            ]
-          )
-        elsif Bootloader.getLoaderType == "grub2"
-          if !Bootloader.proposed_cfg_changed && !Mode.autoinst
-            Bootloader.blRead(true, true)
-            BootCommon.was_read = true
+            Bootloader.Propose
           end
 
-          Bootloader.Propose
-
-          Ops.set(
-            @ret,
-            "links",
-            [
+          @ret["links"] = [
               "enable_boot_mbr",
               "disable_boot_mbr",
               "enable_boot_root",
@@ -118,68 +65,29 @@ module Yast
               "enable_boot_boot",
               "disable_boot_boot"
             ]
-          )
         elsif Bootloader.getLoaderType == "grub2-efi"
-          if !Bootloader.proposed_cfg_changed && !Mode.autoinst
-            Bootloader.blRead(true, true)
-            BootCommon.was_read = true
+          if !Mode.update
+            if !Bootloader.proposed_cfg_changed && !Mode.autoinst
+              Bootloader.blRead(true, true)
+              BootCommon.was_read = true
+            end
+
+            Bootloader.Propose
+          end
+        else
+          # repropose if grub2 is not used during upgrade
+          if Mode.update
+            Builtins.y2milestone("Cfg not changed before, recreating")
+            Bootloader.ResetEx(false)
+            BootCommon.setLoaderType(nil)
           end
 
-          Bootloader.Propose
-        else
           Bootloader.Propose
         end
         # to make sure packages will get installed
         BootCommon.setLoaderType(BootCommon.getLoaderType(false))
 
-        Ops.set(@ret, "raw_proposal", Bootloader.Summary)
-
-
-        if Bootloader.getLoaderType == "grub"
-          @max_end = 128
-
-          if Ops.greater_than(
-              BootSupportCheck.EndOfBootOrRootPartition,
-              Ops.multiply(@max_end, 1073741824)
-            )
-            @ret = Builtins.add(@ret, "warning_level", :warning)
-            # warning text in the summary richtext
-            @ret = Builtins.add(
-              @ret,
-              "warning",
-              Builtins.sformat(
-                _(
-                  "The bootloader is installed on a partition that does not lie entirely below %1 GB. The system might not boot if BIOS support only lba24 (result is error 18 during install grub MBR)."
-                ),
-                @max_end
-              )
-            )
-          end
-        end
-
-        if Bootloader.getLoaderType == "grub"
-          Yast.import "BootGRUB"
-          if BootGRUB.CheckDeviceMap
-            @ret = Convert.convert(
-              Builtins.union(
-                @ret,
-                {
-                  "warning_level" => :blocker,
-                  "warning"       => Ops.add(
-                    Ops.get_string(@ret, "warning", ""),
-                    _(
-                      "Configure a valid boot loader location before continuing.<br/>\n" +
-                        "The device map includes more than 8 devices and the boot device is out of range.\n" +
-                        "The range is limited by BIOS to the first 8 devices. Adjust BIOS boot order ( or if it already set, then correct order in bootloader configuration)"
-                    )
-                  )
-                }
-              ),
-              :from => "map",
-              :to   => "map <string, any>"
-            )
-          end
-        end
+        @ret["raw_proposal"] = Bootloader.Summary
 
         #F#300779 - Install diskless client (NFS-root)
         #kokso:  bootloader will not be installed
@@ -208,18 +116,6 @@ module Yast
           )
         end
 
-        if Bootloader.getLoaderType == "lilo"
-          Builtins.y2error("LILO bootloader selected")
-          @ret = Builtins.add(@ret, "warning_level", :error)
-          # warning text in the summary richtext
-          @ret = Builtins.add(
-            @ret,
-            "warning",
-            _("The LILO is not supported now.")
-          )
-        end
-
-
         if !BootCommon.BootloaderInstallable
           @ret = {
             "warning_level" => :error,
@@ -228,76 +124,8 @@ module Yast
               "Because of the partitioning, the bootloader cannot be installed properly"
             )
           }
-        elsif Bootloader.getLoaderType == "ppc"
-          if Arch.board_chrp
-            if Ops.get(BootCommon.globals, "activate", "false") == "false"
-              @ret = Convert.convert(
-                Builtins.union(
-                  @ret,
-                  {
-                    "warning_level" => :error,
-                    "warning"       => _(
-                      "The selected boot path will not be activated for your installation. Your system may not be bootable."
-                    )
-                  }
-                ),
-                :from => "map",
-                :to   => "map <string, any>"
-              )
-            end
-          end
-
-          if Arch.board_mac_new
-            if BootCommon.loader_device == ""
-              @ret = Convert.convert(
-                Builtins.union(
-                  @ret,
-                  {
-                    "warning_level" => :blocker,
-                    "warning"       => Ops.add(
-                      Ops.get_string(@ret, "warning", ""),
-                      _(
-                        "Configure a valid boot loader location before continuing.<br>\nIn case that no selection can be made it may be necessary to create a small primary Apple HFS partition."
-                      )
-                    )
-                  }
-                ),
-                :from => "map",
-                :to   => "map <string, any>"
-              )
-            end
-          end
-
-
-          if Arch.board_iseries
-            # FIXME: handle consistency test for iseries configuration
-            # currently: none
-            Builtins.y2debug(
-              "No consistency check implemented for iSeries boot configuration"
-            )
-          else
-            # FIXME: better eliminate use of loader_device in the
-            # future, no one knows what it is for
-            if BootCommon.loader_device == ""
-              @ret = Convert.convert(
-                Builtins.union(
-                  @ret,
-                  {
-                    "warning_level" => :blocker,
-                    "warning"       => Ops.add(
-                      Ops.get_string(@ret, "warning", ""),
-                      _(
-                        "Configure a valid boot loader location before continuing.<br>\nIn case that no selection can be made it may be necessary to create a PReP Boot partition."
-                      )
-                    )
-                  }
-                ),
-                :from => "map",
-                :to   => "map <string, any>"
-              )
-            end
-          end
         end
+
 
         if !BootSupportCheck.SystemSupported
           @ret = Convert.convert(

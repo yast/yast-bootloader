@@ -172,10 +172,7 @@ module Yast
         if !Mode.update
           @retcode = Bootloader.WriteInstallation
         else
-          @retcode = Bootloader.Update(
-            Installation.installedVersion,
-            Installation.updateVersion
-          )
+          @retcode = Bootloader.Update
         end
 
         if @retcode
