@@ -836,21 +836,6 @@ module Yast
       @additional_failsafe_params
     end
 
-    # Get additional kernel parameters from control file
-    # @return [String] additional kernel parameters
-    def GetAdditionalKernelParams
-      ProductFeatures.GetStringFeature(
-        "globals",
-        "additional_kernel_parameters"
-      )
-    end
-
-    # Get additional kernel parameters splitted to a list
-    # @return a list of additional kernel parameters
-    def ListAdditionalKernelParams
-      ListKernelParamsInLine(GetAdditionalKernelParams())
-    end
-
     # Update graphical bootloader to contain help text of current language
     # And make the selected installation language default
     # @return [Boolean] true on success

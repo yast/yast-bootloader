@@ -1224,8 +1224,6 @@ module Yast
     publish :function => :translateSectionTitle, :type => "string (string)"
     publish :function => :UpdateInstallationKernelParameters, :type => "void ()"
     publish :function => :GetAdditionalFailsafeParams, :type => "string ()"
-    publish :function => :GetAdditionalKernelParams, :type => "string ()"
-    publish :function => :ListAdditionalKernelParams, :type => "list <string> ()"
     publish :function => :UpdateGfxMenuContents, :type => "boolean ()"
     publish :function => :MemtestPresent, :type => "boolean ()"
     publish :function => :BootloaderInstallable, :type => "boolean ()"
