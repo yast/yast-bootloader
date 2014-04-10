@@ -370,6 +370,7 @@ module Yast
           )
         ),
         "init"          => fun_ref(method(:InitConsole), "void (string)"),
+        "handle"        => fun_ref(method(:HandleConsole), "void (string, map)"),
         "store"         => fun_ref(method(:StoreConsole), "void (string, map)"),
         "help"          => Ops.get(@grub_help_messages, "serial", "")
       }
