@@ -1242,7 +1242,6 @@ module Yast
     publish :function => :DiskOrderSummary, :type => "string ()"
     publish :function => :DisksChanged, :type => "boolean ()"
     publish :function => :AddFirmwareToBootloader, :type => "boolean (string)"
-    publish :function => :i386LocationProposal, :type => "void ()"
     publish :function => :PostUpdateMBR, :type => "boolean ()"
     publish :function => :FindMBRDisk, :type => "string ()"
     publish :function => :Md2Partition, :type => "string (string)"
