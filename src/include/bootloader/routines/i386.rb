@@ -112,15 +112,6 @@ module Yast
       !ThinkPadMBR(disk)
     end
 
-    # Display bootloader summary
-    # @return a list of summary lines
-    def i386Summary
-      ret = Summary()
-      order_sum = DiskOrderSummary()
-      ret = Builtins.add(ret, order_sum) if order_sum != nil
-      deep_copy(ret)
-    end
-
     # Propose the boot loader location for i386 (and similar) platform
     def i386LocationProposal
       if !@was_proposed
