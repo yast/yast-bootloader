@@ -186,11 +186,6 @@ module Yast
       Builtins.y2milestone("/boot is in logical partition: %1", is_logical)
       Builtins.y2milestone("The extended partition: %1", extended)
 
-      # keep_mbr, if the MBR contains special code that needs to be kept,
-      #           like Thinkpad boot code (and ATM only Thinkpad boot code
-      #           is recognized)
-      keep_mbr = KeepMBR(@loader_device)
-
       exit = 0
       # if is primary, store bootloader there
       if disk_is_mbr && !is_logical
@@ -207,20 +202,12 @@ module Yast
         disk = Ops.get_string(dp, "disk", "") if disk == ""
         out = examineMBR(disk)
 
-        @repl_mbr = out != "vista" && !keep_mbr
+        @repl_mbr = out != "vista"
       elsif Ops.greater_than(Builtins.size(needed_devices), 1)
         @loader_device = "mbr_md"
         @selected_location = "mbr_md"
       end
 
-      if keep_mbr
-        if is_logical && extended != nil
-          @loader_device = extended
-        else
-          @loader_device = BootStorage.BootPartitionDevice
-        end
-        @selected_location = "boot"
-      end
       if !Builtins.contains(
           BootStorage.getPartitionList(:boot, getLoaderType(false)),
           @loader_device

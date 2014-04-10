@@ -1241,7 +1241,6 @@ module Yast
     publish :function => :UpdateProposalFromClient, :type => "boolean ()"
     publish :function => :DiskOrderSummary, :type => "string ()"
     publish :function => :DisksChanged, :type => "boolean ()"
-    publish :function => :KeepMBR, :type => "boolean (string)"
     publish :function => :AddFirmwareToBootloader, :type => "boolean (string)"
     publish :function => :i386Summary, :type => "list <string> ()"
     publish :function => :i386LocationProposal, :type => "void ()"

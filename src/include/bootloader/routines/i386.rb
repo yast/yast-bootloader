@@ -105,21 +105,6 @@ module Yast
       @_thinkpad_mbr
     end
 
-    # Keep the MBR contents on the specified disk? Check whether the contents
-    # should be kept because ot contains vendor-specific data
-    # @param [String] disk string the disk to be checked
-    # @return [Boolean] true to keep the contents
-    def KeepMBR(disk)
-      # FIXME: see bug #464485 there is problem with detection of
-      # MBR the 3rd byte is 0 after recovery thinkpad notebook with
-      # recovery CD, next missing cooperate with Lenovo there also
-      # missing any specification about Lenovo's changes in MBR
-
-      Builtins.y2milestone("Skip checking of MBR for thinkpad sequence")
-
-      false
-    end
-
     # Add the partition holding firmware to bootloader?
     # @param [String] disk string the disk to be checked
     # @return [Boolean] true if firmware partition is to be added
