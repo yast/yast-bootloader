@@ -799,7 +799,6 @@ module Yast
     def Update
       Read(true, true)
 
-      BootCommon.UpdateSections
       BootCommon.UpdateGlobals
 
       nil

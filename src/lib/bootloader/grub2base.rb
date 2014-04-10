@@ -53,8 +53,6 @@ module Yast
     def Update
       Read(true, true)
 
-      #we don't handle sections, grub2 section create them for us
-      #BootCommon::UpdateSections ();
       BootCommon.UpdateGlobals
 
       nil

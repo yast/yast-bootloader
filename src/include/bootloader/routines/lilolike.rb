@@ -631,19 +631,6 @@ module Yast
       nil
     end
 
-    # Update sections of bootloader menu (removes obsolete thinks and
-    # place for ugly hacks (but doesn't efect zypper dup))
-    # modifies internal structures
-    # label update is done in perl-Bootloader during updating kernel
-    # Purpose is don't break anything, but expect that previous state is
-    # working
-    def UpdateSections
-      Builtins.foreach(@sections) do |section|
-      end
-
-      nil
-    end
-
     # Update global options of bootloader
     # modifies internal sreuctures
     def UpdateGlobals
