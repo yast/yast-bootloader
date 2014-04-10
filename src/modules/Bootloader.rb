@@ -147,8 +147,7 @@ module Yast
         # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
         # for grub, always correct the bootloader device according to
         # selected_location (or fall back to value of loader_device)
-        # Why only for grub?
-        if loader_type == "grub" || Arch.i386 || Arch.x86_64
+        if Arch.i386 || Arch.x86_64
           BootCommon.loader_device = BootCommon.GetBootloaderDevice
         end
       end
