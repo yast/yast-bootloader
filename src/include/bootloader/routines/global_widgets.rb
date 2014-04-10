@@ -156,8 +156,6 @@ module Yast
             paths = Ops.get_string(s, "configfile", "")
             root = Ops.get_string(s, "root", "")
             info = Builtins.sformat("dev=%1 path=%2", root, paths)
-          elsif Bootloader.getLoaderType == "zipl"
-            info = Ops.get_string(s, "list", "")
           end
         elsif Ops.get_string(s, "type", "") == "dump"
           type = _("Dump")
@@ -754,7 +752,7 @@ module Yast
                     HStretch(),
                     VBox(
                       Label(""),
-                      lt == "none" || lt == "default" || lt == "zipl" ?
+                      lt == "none" || lt == "default" ?
                         Empty() :
                         "loader_options"
                     ),
@@ -764,7 +762,7 @@ module Yast
                 )
               ),
               VStretch(),
-              lt == "none" || lt == "default" || lt == "zipl" ?
+              lt == "none" || lt == "default" ?
                 Empty() :
                 "loader_location",
               VStretch(),
@@ -773,7 +771,7 @@ module Yast
             ),
             HStretch()
           ),
-          "widget_names" => lt == "none" || lt == "default" || lt == "zipl" ?
+          "widget_names" => lt == "none" || lt == "default" ?
             ["loader_type", "loader_options"] :
             ["loader_type", "loader_options", "loader_location", "inst_details"]
         }

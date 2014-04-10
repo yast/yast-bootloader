@@ -166,7 +166,7 @@ module Yast
 
     # Run dialog for kernel section editation
     # @return [Symbol] for wizard sequencer
-    def CommonKernelSectionDialog
+    def KernelSectionDialog
       Builtins.y2milestone("Running kernel section dialog")
       lt = Bootloader.getLoaderType
       contents = HBox(
@@ -382,86 +382,6 @@ module Yast
       )
     end
 
-    def ZiplKernelSectionDialog
-      Builtins.y2milestone("Running kernel section dialog")
-      lt = Bootloader.getLoaderType
-      contents = HBox(
-        HSpacing(2),
-        VBox(
-          VStretch(),
-          # heading
-          Left(Heading(_("Kernel Section"))),
-          VSpacing(1),
-          "name",
-          VStretch(),
-          # frame
-          Frame(
-            _("Section Settings"),
-            HBox(
-              HSpacing(2),
-              VBox(
-                VSpacing(1),
-                Left("enable_selinux"),
-                "target",
-                "image",
-                "initrd",
-                "root",
-                "append",
-                "parmfile",
-                VSpacing(1)
-              ),
-              HSpacing(2)
-            )
-          ),
-          VStretch()
-        ),
-        HSpacing(2)
-      )
-
-      widget_names = [
-        "name",
-        "image",
-        "initrd",
-        "root",
-        "append",
-        "parmfile",
-        "target",
-        "enable_selinux"
-      ]
-
-      widget_descr = {}
-      widget_descr = Convert.convert(
-        Builtins.union(CommonGlobalWidgets(), CommonSectionWidgets()),
-        :from => "map",
-        :to   => "map <string, map <string, any>>"
-      )
-
-
-      # dialog caption
-      caption = _("Boot Loader Settings: Section Management")
-      CWM.ShowAndRun(
-        {
-          "widget_descr"       => widget_descr,
-          "widget_names"       => widget_names,
-          "contents"           => contents,
-          "caption"            => caption,
-          "back_button"        => Label.BackButton,
-          "abort_button"       => Label.CancelButton,
-          "next_button"        => Label.OKButton,
-          "fallback_functions" => @section_handlers
-        }
-      )
-    end
-
-    def KernelSectionDialog
-      bootloader = Bootloader.getLoaderType
-      if bootloader == "zipl"
-        return ZiplKernelSectionDialog()
-      else
-        return CommonKernelSectionDialog()
-      end
-    end
-
     def XenSectionDialog
       Builtins.y2milestone("Running kernel section dialog")
       lt = Bootloader.getLoaderType
@@ -586,62 +506,6 @@ module Yast
       )
     end
 
-    def ZiplMenuSectionDialog
-      Builtins.y2milestone("Running kernel section dialog")
-      contents = HBox(
-        HSpacing(2),
-        VBox(
-          VStretch(),
-          # heading
-          Left(Heading(_("Menu Section"))),
-          VSpacing(1),
-          "name",
-          VStretch(),
-          # frame
-          Frame(
-            _("Section Settings"),
-            HBox(
-              HSpacing(2),
-              VBox(
-                VSpacing(1),
-                "target",
-                "list",
-                "default",
-                "timeout",
-                Left("prompt"),
-                VSpacing(1)
-              ),
-              HSpacing(2)
-            )
-          ),
-          VStretch()
-        ),
-        HSpacing(2)
-      )
-
-      widget_names = ["name", "target", "default", "list", "timeout", "prompt"]
-      widget_descr = {}
-      widget_descr = Convert.convert(
-        Builtins.union(CommonGlobalWidgets(), CommonSectionWidgets()),
-        :from => "map",
-        :to   => "map <string, map <string, any>>"
-      )
-      # dialog caption
-      caption = _("Boot Loader Settings: Section Management")
-      CWM.ShowAndRun(
-        {
-          "widget_descr"       => widget_descr,
-          "widget_names"       => widget_names,
-          "contents"           => contents,
-          "caption"            => caption,
-          "back_button"        => Label.BackButton,
-          "abort_button"       => Label.CancelButton,
-          "next_button"        => Label.OKButton,
-          "fallback_functions" => @section_handlers
-        }
-      )
-    end
-
     def DumpSectionDialog
       Builtins.y2milestone("Running kernel section dialog")
       contents = HBox(
@@ -694,8 +558,6 @@ module Yast
       bootloader = Bootloader.getLoaderType
       if bootloader == "grub"
         return GrubMenuSectionDialog()
-      elsif bootloader == "zipl"
-        return ZiplMenuSectionDialog()
       end
 
       nil

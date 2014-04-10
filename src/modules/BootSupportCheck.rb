@@ -59,7 +59,7 @@ module Yast
     # Check that bootloader is known and supported
     def KnownLoader
       if !Builtins.contains(
-          ["grub", "grub2", "grub2-efi", "zipl", "none"],
+          ["grub", "grub2", "grub2-efi", "none"],
           Bootloader.getLoaderType
         )
         Builtins.y2error("Unknown bootloader: %1", Bootloader.getLoaderType)
@@ -82,7 +82,6 @@ module Yast
       # grub2 is sooo cool...
       return true if lt == "grub2"
 
-      return true if Arch.s390 && lt == "zipl"
       if Arch.i386 || Arch.x86_64
         if efi?
           return true if lt == "grub2-efi"
@@ -300,11 +299,6 @@ module Yast
       true
     end
 
-    # ZIPL related check
-    def ZIPL
-      true
-    end
-
     # Check if the system configuraiton is supported
     # Also sets the founds problems into internal variable
     # Always run this function before calling DetectedProblems()
@@ -327,8 +321,6 @@ module Yast
       # check specifics for individual loaders
       if lt == "grub"
         supported = GRUB() && supported
-      elsif lt == "zipl"
-        supported = ZIPL() && supported
       elsif lt == "grub2"
         supported = GRUB2() && supported
       elsif lt == "grub2-efi"

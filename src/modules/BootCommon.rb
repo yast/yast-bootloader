@@ -143,7 +143,7 @@ module Yast
       # common variables
 
       # type of bootloader to configure/being configured
-      # shall be one of "grub", "zipl", "grub2", "grub2-efi"
+      # shall be one of "grub", "grub2", "grub2-efi"
       @loader_type = nil
       @secure_boot = nil
 
@@ -214,7 +214,6 @@ module Yast
       # List of all supported bootloaders
       @bootloaders = [
         "grub",
-        "zipl",
         "grub2",
         "grub2-efi"
       ]
@@ -1083,7 +1082,6 @@ module Yast
       if Mode.config
         return [
           "grub",
-          "zipl",
           "grub2",
           "grub2-efi",
           "default",
@@ -1109,7 +1107,7 @@ module Yast
         end
       end
       if Arch.s390
-        ret = ["grub2", "zipl"]
+        ret = ["grub2"]
       end
       # in order not to display it twice when "none" is selected
       ret = Builtins.filter(ret) { |l| l != "none" }

@@ -5,7 +5,6 @@ module_DATA = \
   modules/Bootloader.rb \
   modules/BootGRUB2EFI.rb \
   modules/BootStorage.rb \
-  modules/BootZIPL.rb \
   modules/BootArch.rb \
   modules/BootLILO.rb \
   modules/GfxMenu.rb \
@@ -51,10 +50,6 @@ ynclude3_DATA = \
   include/bootloader/grub/misc.rb \
   include/bootloader/grub/dialogs.rb \
   include/bootloader/grub/helps.rb
-
-ynclude4dir = @yncludedir@/bootloader/zipl
-ynclude4_DATA = \
-  include/bootloader/zipl/helps.rb
 
 ylibdir = "${yast2dir}/lib/bootloader"
 ylib_DATA = \

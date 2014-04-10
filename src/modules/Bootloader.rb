@@ -963,75 +963,11 @@ module Yast
       nil
     end
 
-    # bnc #364904
-    # Function parse zipl list names if default section is menu
-    #
-    # @param string (string) list of names
-    # @param [String] position of default name in list
-    # @return [String] name of default section from list
-    def parseListDefault(names, position)
-      ret = ""
-
-      Builtins.y2milestone(
-        "section names (string) list: %1 and default name position in list: %2",
-        names,
-        position
-      )
-      return ret if names == "" || position == ""
-
-      if Builtins.search(names, ",") != nil
-        tmp_names = Builtins.deletechars(names, " ")
-        list_names = Builtins.splitstring(tmp_names, ",")
-        ret = Ops.get(
-          list_names,
-          Ops.subtract(Builtins.tointeger(position), 1),
-          ""
-        )
-      else
-        ret = names
-      end
-
-      ret
-    end
-
-    # bnc #364904
-    # Function check if default section is menu
-    # if yes it tries to find default section in
-    #  list of names from menu section
-    #
-    # @param string name of default BootCommon::globals["default"]:""
-    # @return [String] name of default section
-
-    def checkZiplDefault(_def)
-      def_section_name = _def
-
-      Builtins.foreach(BootCommon.sections) do |section|
-        if Ops.get_string(section, "name", "") == def_section_name
-          if Ops.get_string(section, "type", "") == "menu"
-            def_position = Ops.get_string(section, "default", "")
-            def_section_name = parseListDefault(
-              Ops.get_string(section, "list", ""),
-              def_position
-            )
-          else
-            raise Break
-          end
-        end
-      end if getLoaderType(
-      ) == "zipl"
-
-      Builtins.y2milestone("name of default section: %1", def_section_name)
-      def_section_name
-    end
-
     # return default section label
     # @return [String] default section label
     def getDefaultSection
       ReadOrProposeIfNeeded()
-      default_name = checkZiplDefault(
-        Ops.get(BootCommon.globals, "default", "")
-      )
-      default_name
+      BootCommon.globals["default"] || ""
     end
 
     # Get default section as proposed during installation
