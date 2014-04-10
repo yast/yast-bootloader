@@ -52,39 +52,11 @@ module Yast
     end
 
     # Display question
-    # @return [Boolean] true if answered yes
-    def resetSectsPopup
-      # yes-no popup question
-      Popup.YesNo(
-        _(
-          "Really reset your settings for sections?\nAll your changes made in section management will be lost.\n"
-        )
-      )
-    end
-
-    # Display question
     # @param [String] title string section title
     # @return [Boolean] true if answered yes
     def confirmSectionDeletePopup(title)
       # yes-no popup question
       Popup.YesNo(Builtins.sformat(_("Really delete section %1?"), title))
-    end
-
-    # Display question
-    # @return [Boolean] true if answered yes
-    def resetAllPopup
-      # yes-no popup question
-      Popup.YesNo(
-        _("Really reset all\nyour settings? All your changes will be lost.\n")
-      )
-    end
-
-    # Display error
-    def setLocationErrorPopup
-      # error popup
-      Report.Error(_("Set the boot loader location."))
-
-      nil
     end
 
     # Display error
@@ -260,24 +232,6 @@ module Yast
       )
     end
 
-
-    # Display popup
-    def displayGfxMenuChangePopup
-      # message popup, gfxmenu is option name, leave as is
-      Popup.Message(
-        _("The disk settings have changed.\nCheck the gfxmenu settings.\n")
-      )
-
-      nil
-    end
-
-    # Display yes-no popup
-    # @return true if confirmed
-    def confirmOptionDeletePopup
-      # yes-no popup
-      Popup.YesNo(_("Really delete the selected option?"))
-    end
-
     # Display error popup with log
     # @param [String] header string error header
     # @param [String] log string logfile contents
@@ -304,50 +258,6 @@ module Yast
       UI.SetFocus(Id(:ok_help))
       r = UI.UserInput
       UI.CloseDialog
-
-      nil
-    end
-
-    # Display popup
-    def displayNoSupportPopup
-      # message popup
-      Popup.Message(_("Sorry, there are currently\nno options to set here."))
-
-      nil
-    end
-
-    # Display popup
-    def noBootloaderPopup
-      # error report
-      Report.Error(_("Unable to install the boot loader."))
-
-      nil
-    end
-
-    # Display popup
-    # @param [String] bootloader string printable name of used bootloader
-    def floppyWrittenPopup(bootloader)
-      confirm_boot_msg = Misc.boot_msg
-      # data saved to floppy disk
-      # popup, %1 is bootloader name
-      msg = Builtins.sformat(
-        _("The %1 boot sector has been written to the floppy disk."),
-        bootloader
-      )
-      msg = Ops.add(
-        Ops.add(msg, "\n"),
-        # popup - continuing - alternative 1 ...
-        _(
-          "Leave the floppy disk in the drive. The system will now be rebooted."
-        )
-      )
-
-      if Ops.greater_than(Builtins.size(confirm_boot_msg), 0)
-        msg = Ops.add(Ops.add(msg, "\n\n"), confirm_boot_msg)
-      end
-      Misc.boot_msg = ""
-      # empty that  Misc::boot_msg indicate the message has been displayed
-      Popup.TimedOKCancel(msg, 10)
 
       nil
     end
