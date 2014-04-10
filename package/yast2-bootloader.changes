@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 10 11:18:51 UTC 2014 - jreidinger@suse.com
+
+- drop not-supported bootloaders except grub1
+- 3.1.21
+
+-------------------------------------------------------------------
 Tue Apr  8 11:27:42 UTC 2014 - jreidinger@suse.com
 
 - modify proposal to work also during upgrade and propose upgrade
