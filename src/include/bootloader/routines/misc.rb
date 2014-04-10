@@ -386,7 +386,7 @@ module Yast
       # examineMBR returns "* stage1" when it finds the signature
       # of some stage1 bootloader
       result = examineMBR(device)
-      if result == "grub" || result == "lilo"
+      if result == "grub"
         return true
       else
         return false
@@ -400,11 +400,7 @@ module Yast
       ret = false
       # Bug 539774 - bootloader module wants to write to floppy disk although there is none
       return ret if @loader_device == nil || @loader_device == "" # bug #333459 - boot loader editor: propose new configuration
-      # -- BLE tries to write something on the floppy disk
-      # bnc #180784 don't install to bootloader to floppy if ppc
-      if getLoaderType(false) == "ppc"
-        ret = false
-      elsif @loader_device == StorageDevices.FloppyDevice
+      if @loader_device == StorageDevices.FloppyDevice
         ret = true
       elsif Builtins.contains(BootStorage.getFloppyDevices, @loader_device)
         ret = true
@@ -1120,17 +1116,6 @@ module Yast
             return false
           end
 
-          # (bnc 357897) - lilo reports inconsistent raid version when trying to install on raid1
-          if getLoaderType(false) == "lilo"
-            raid_ver = Ops.get_string(info, "sb_ver", "") #"00.90.03"
-            if Builtins.substring(raid_ver, 0, 2) == "01"
-              Builtins.y2milestone(
-                "Cannot install bootloader on RAID (lilo doesn't support raid version %1)",
-                Ops.get_string(info, "sb_ver", "")
-              )
-              return false
-            end
-          end
         # EVMS
         # FIXME: type detection by name deprecated
         elsif Builtins.search(getBootPartition, "/dev/evms/") == 0
@@ -1529,8 +1514,8 @@ module Yast
       comment = "\n" +
         "## Path:\tSystem/Bootloader\n" +
         "## Description:\tBootloader configuration\n" +
-        "## Type:\tlist(grub,lilo,none)\n" +
-        "## Default:\tgrub\n" +
+        "## Type:\tlist(grub,grub2,grub2-efi,none)\n" +
+        "## Default:\tgrub2\n" +
         "#\n" +
         "# Type of bootloader in use.\n" +
         "# For making the change effect run bootloader configuration tool\n" +

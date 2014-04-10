@@ -120,15 +120,14 @@ module Yast
             0,
             ""
           )
-          elilo = Bootloader.getLoaderType == "elilo"
           info = image != "" && image != nil ?
             Builtins.sformat(
               "%1   (%2%3)",
               image,
-              elilo ? "" : Ops.get(BootCommon.splitPath(image), 0, ""),
+              Ops.get(BootCommon.splitPath(image), 0, ""),
               root == "" ?
                 "" :
-                Ops.add(elilo ? "" : ", ", Builtins.sformat("root=%1", root))
+                Builtins.sformat(", root=%1", root)
             ) :
             ""
         elsif Ops.get_string(s, "type", "") == "xen"
@@ -139,15 +138,14 @@ module Yast
             0,
             ""
           )
-          elilo = Bootloader.getLoaderType == "elilo"
           info = image != "" && image != nil ?
             Builtins.sformat(
               "%1   (%2%3)",
               image,
-              elilo ? "" : Ops.get(BootCommon.splitPath(image), 0, ""),
+              Ops.get(BootCommon.splitPath(image), 0, ""),
               root == "" ?
                 "" :
-                Ops.add(elilo ? "" : ", ", Builtins.sformat("root=%1", root))
+                Builtins.sformat(", root=%1", root)
             ) :
             ""
         elsif Ops.get_string(s, "type", "") == "floppy"
@@ -158,8 +156,6 @@ module Yast
             paths = Ops.get_string(s, "configfile", "")
             root = Ops.get_string(s, "root", "")
             info = Builtins.sformat("dev=%1 path=%2", root, paths)
-          elsif Bootloader.getLoaderType == "zipl"
-            info = Ops.get_string(s, "list", "")
           end
         elsif Ops.get_string(s, "type", "") == "dump"
           type = _("Dump")
@@ -341,8 +337,6 @@ module Yast
         return nil if old_bl == new_bl
 
 
-        Popup.Warning(_("The LILO is not supported now.")) if new_bl == "lilo"
-
         if new_bl == "none"
           # popup - Continue/Cancel
           if Popup.ContinueCancel(
@@ -377,44 +371,6 @@ module Yast
           BootCommon.location_changed = true
           BootCommon.changed = true
           return :redraw
-        end
-
-        if Arch.x86_64
-          if new_bl == "elilo"
-            # continue/cancel pop-up
-            if !Popup.ContinueCancel(
-                _(
-                  "\n" +
-                    "ELILO supports only the EFI boot architecture. If yor\n" +
-                    "firmware does not support it, your computer will not\n" +
-                    "boot."
-                )
-              )
-              UI.ChangeWidget(
-                Id("loader_type"),
-                :Value,
-                Bootloader.getLoaderType
-              )
-              return nil
-            end
-          elsif old_bl == "elilo"
-            # continue/cancel pop-up
-            if !Popup.ContinueCancel(
-                _(
-                  "\n" +
-                    "Bootloader you selected does not support the EFI boot\n" +
-                    "architecture. If your firmware does not support legacy\n" +
-                    "booting, your computer will not boot."
-                )
-              )
-              UI.ChangeWidget(
-                Id("loader_type"),
-                :Value,
-                Bootloader.getLoaderType
-              )
-              return nil
-            end
-          end
         end
 
         # warning - popup, followed by radio buttons
@@ -525,7 +481,7 @@ module Yast
           elsif action == :prev
             Bootloader.Import(Ops.get_map(BootCommon.other_bl, new_bl, {}))
           elsif action == :convert
-            #filter out uknown type of section e.g. chainloader for elilo etc.
+            #filter out uknown type of section
             BootCommon.sections = Builtins.filter(BootCommon.sections) do |sec|
               section_types = Bootloader.blsection_types
               if Builtins.contains(
@@ -796,8 +752,7 @@ module Yast
                     HStretch(),
                     VBox(
                       Label(""),
-                      lt == "none" || lt == "default" || lt == "zipl" ||
-                        lt == "lilo" ?
+                      lt == "none" || lt == "default" ?
                         Empty() :
                         "loader_options"
                     ),
@@ -807,7 +762,7 @@ module Yast
                 )
               ),
               VStretch(),
-              lt == "none" || lt == "default" || lt == "zipl" || lt == "lilo" ?
+              lt == "none" || lt == "default" ?
                 Empty() :
                 "loader_location",
               VStretch(),
@@ -816,7 +771,7 @@ module Yast
             ),
             HStretch()
           ),
-          "widget_names" => lt == "none" || lt == "default" || lt == "zipl" ?
+          "widget_names" => lt == "none" || lt == "default" ?
             ["loader_type", "loader_options"] :
             ["loader_type", "loader_options", "loader_location", "inst_details"]
         }

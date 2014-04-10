@@ -5,11 +5,7 @@ module_DATA = \
   modules/Bootloader.rb \
   modules/BootGRUB2EFI.rb \
   modules/BootStorage.rb \
-  modules/BootELILO.rb \
-  modules/BootZIPL.rb \
   modules/BootArch.rb \
-  modules/BootPOWERLILO.rb \
-  modules/BootLILO.rb \
   modules/GfxMenu.rb \
   modules/BootSupportCheck.rb \
   modules/BootGRUB2.rb \
@@ -40,13 +36,6 @@ ynclude_DATA = \
   include/bootloader/routines/helps.rb \
   include/bootloader/routines/common_helps.rb
 
-ynclude1dir = @yncludedir@/bootloader/elilo
-ynclude1_DATA = \
-  include/bootloader/elilo/widgets.rb \
-  include/bootloader/elilo/options.rb \
-  include/bootloader/elilo/dialogs.rb \
-  include/bootloader/elilo/helps.rb
-
 ynclude2dir = @yncludedir@/bootloader/grub2
 ynclude2_DATA = \
   include/bootloader/grub2/options.rb \
@@ -60,16 +49,6 @@ ynclude3_DATA = \
   include/bootloader/grub/misc.rb \
   include/bootloader/grub/dialogs.rb \
   include/bootloader/grub/helps.rb
-
-ynclude4dir = @yncludedir@/bootloader/zipl
-ynclude4_DATA = \
-  include/bootloader/zipl/helps.rb
-
-ynclude5dir = @yncludedir@/bootloader/ppc
-ynclude5_DATA = \
-  include/bootloader/ppc/options.rb \
-  include/bootloader/ppc/dialogs.rb \
-  include/bootloader/ppc/helps.rb
 
 ylibdir = "${yast2dir}/lib/bootloader"
 ylib_DATA = \

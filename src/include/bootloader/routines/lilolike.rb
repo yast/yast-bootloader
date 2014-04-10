@@ -703,7 +703,7 @@ module Yast
       # LILO and GRUB (although the latter only needs it to correctly transform
       # back to the section number)
       # FIXME: is this needed/wanted for ELILO as well?
-      FixGlobals() if Builtins.contains(["lilo", "grub"], getLoaderType(false))
+      FixGlobals() if getLoaderType(false) == "grub"
 
       nil
     end

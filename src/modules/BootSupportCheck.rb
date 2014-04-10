@@ -59,39 +59,20 @@ module Yast
     # Check that bootloader is known and supported
     def KnownLoader
       if !Builtins.contains(
-          ["grub", "grub2", "grub2-efi", "elilo", "ppc", "zipl", "none"],
+          ["grub", "grub2", "grub2-efi", "none"],
           Bootloader.getLoaderType
         )
-        if Bootloader.getLoaderType != "lilo"
-          Builtins.y2error("Unknown bootloader: %1", Bootloader.getLoaderType)
-          AddNewProblem(
-            Builtins.sformat(
-              _("Unknown bootloader: %1"),
-              Bootloader.getLoaderType
-            )
+        Builtins.y2error("Unknown bootloader: %1", Bootloader.getLoaderType)
+        AddNewProblem(
+          Builtins.sformat(
+            _("Unknown bootloader: %1"),
+            Bootloader.getLoaderType
           )
-        else
-          Builtins.y2error("LILO bootloader: %1", Bootloader.getLoaderType)
-          AddNewProblem(_("LILO bootloader is not supported"))
-        end
+        )
         return false
       end
       true
     end
-
-    # Check if elilo is supported
-    def checkElilo
-      cmd = "modprobe efivars 2>/dev/null"
-      ret = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
-      # bnc#581213 - x86-64/UEFI: "Unsupported combination of hardware platform x86_64 and bootloader elilo"
-      if FileUtils.Exists("/sys/firmware/efi/systab")
-        return true
-      else
-        return false
-      end
-    end
-
-
 
     # Check that bootloader matches current hardware
     def CorrectLoaderType
@@ -101,14 +82,11 @@ module Yast
       # grub2 is sooo cool...
       return true if lt == "grub2"
 
-      return true if Arch.s390 && lt == "zipl"
-      return true if Arch.ppc && lt == "ppc"
-      return true if Arch.ia64 && lt == "elilo"
       if Arch.i386 || Arch.x86_64
-        if checkElilo
-          return true if lt == "elilo" || lt == "grub2-efi"
+        if efi?
+          return true if lt == "grub2-efi"
         else
-          return true if lt == "grub" || lt == "lilo" || lt == "grub2"
+          return true if lt == "grub" || lt == "grub2"
         end
       end
       Builtins.y2error(
@@ -127,7 +105,6 @@ module Yast
     end
 
     #  * Checks for GPT partition table
-    #  // FIXME adapt for ELILO if needed
     def GptPartitionTable
       ret = true
       tm = Storage.GetTargetMap
@@ -269,6 +246,17 @@ module Yast
       result
     end
 
+    # Check if EFI is needed
+    def efi?
+      cmd = "modprobe efivars 2>/dev/null"
+      ret = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
+      if FileUtils.Exists("/sys/firmware/efi/systab")
+        return true
+      else
+        return false
+      end
+    end
+
     # Check if there is bios_id
     # if not show warning
     #
@@ -311,21 +299,6 @@ module Yast
       true
     end
 
-    # ELILO related check
-    def ELILO
-      true
-    end
-
-    # ZIPL related check
-    def ZIPL
-      true
-    end
-
-    # PPC related check
-    def PPC
-      true
-    end
-
     # Check if the system configuraiton is supported
     # Also sets the founds problems into internal variable
     # Always run this function before calling DetectedProblems()
@@ -348,12 +321,6 @@ module Yast
       # check specifics for individual loaders
       if lt == "grub"
         supported = GRUB() && supported
-      elsif lt == "elilo"
-        supported = ELILO() && supported
-      elsif lt == "ppc"
-        supported = PPC() && supported
-      elsif lt == "zipl"
-        supported = ZIPL() && supported
       elsif lt == "grub2"
         supported = GRUB2() && supported
       elsif lt == "grub2-efi"

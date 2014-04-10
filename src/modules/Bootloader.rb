@@ -36,10 +36,7 @@ module Yast
       Yast.import "Storage"
       Yast.import "Directory"
 
-      Yast.import "BootELILO"
-      Yast.import "BootLILO"
       Yast.import "BootGRUB"
-      Yast.import "BootPOWERLILO" # The ppc-LILO File
       #fate 303395
       Yast.import "ProductFeatures"
       # Write is repeating again
@@ -148,11 +145,9 @@ module Yast
           "custom"
         )
         # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
-        # for lilo and grub, always correct the bootloader device according to
+        # for grub, always correct the bootloader device according to
         # selected_location (or fall back to value of loader_device)
-        # Why only for lilo and grub?
-        if loader_type == "lilo" || loader_type == "grub" || Arch.i386 ||
-            Arch.x86_64
+        if Arch.i386 || Arch.x86_64
           BootCommon.loader_device = BootCommon.GetBootloaderDevice
         end
       end
@@ -786,16 +781,9 @@ module Yast
       end
       Builtins.y2milestone("Deleting duplicated boot sections")
 
-      linux_default = {}
-      linux_failsafe = {}
-      linux_xen = {}
-      if Arch.ppc
-        linux_default = BootPOWERLILO.CreateImageSection("linux")
-      else
-        linux_default = BootCommon.CreateLinuxSection("linux")
-        linux_failsafe = BootCommon.CreateLinuxSection("failsafe")
-        linux_xen = BootCommon.CreateLinuxSection("xen")
-      end
+      linux_default = BootCommon.CreateLinuxSection("linux")
+      linux_failsafe = BootCommon.CreateLinuxSection("failsafe")
+      linux_xen = BootCommon.CreateLinuxSection("xen")
 
       Builtins.y2milestone(
         "Proposed section for linux_default: %1",
@@ -974,75 +962,11 @@ module Yast
       nil
     end
 
-    # bnc #364904
-    # Function parse zipl list names if default section is menu
-    #
-    # @param string (string) list of names
-    # @param [String] position of default name in list
-    # @return [String] name of default section from list
-    def parseListDefault(names, position)
-      ret = ""
-
-      Builtins.y2milestone(
-        "section names (string) list: %1 and default name position in list: %2",
-        names,
-        position
-      )
-      return ret if names == "" || position == ""
-
-      if Builtins.search(names, ",") != nil
-        tmp_names = Builtins.deletechars(names, " ")
-        list_names = Builtins.splitstring(tmp_names, ",")
-        ret = Ops.get(
-          list_names,
-          Ops.subtract(Builtins.tointeger(position), 1),
-          ""
-        )
-      else
-        ret = names
-      end
-
-      ret
-    end
-
-    # bnc #364904
-    # Function check if default section is menu
-    # if yes it tries to find default section in
-    #  list of names from menu section
-    #
-    # @param string name of default BootCommon::globals["default"]:""
-    # @return [String] name of default section
-
-    def checkZiplDefault(_def)
-      def_section_name = _def
-
-      Builtins.foreach(BootCommon.sections) do |section|
-        if Ops.get_string(section, "name", "") == def_section_name
-          if Ops.get_string(section, "type", "") == "menu"
-            def_position = Ops.get_string(section, "default", "")
-            def_section_name = parseListDefault(
-              Ops.get_string(section, "list", ""),
-              def_position
-            )
-          else
-            raise Break
-          end
-        end
-      end if getLoaderType(
-      ) == "zipl"
-
-      Builtins.y2milestone("name of default section: %1", def_section_name)
-      def_section_name
-    end
-
     # return default section label
     # @return [String] default section label
     def getDefaultSection
       ReadOrProposeIfNeeded()
-      default_name = checkZiplDefault(
-        Ops.get(BootCommon.globals, "default", "")
-      )
-      default_name
+      BootCommon.globals["default"] || ""
     end
 
     # Get default section as proposed during installation
@@ -1221,11 +1145,6 @@ module Yast
           Builtins.y2milestone("Not reading settings in Mode::config ()")
           BootCommon.was_read = true
           BootCommon.was_proposed = true
-        elsif Arch.ia64 && Mode.update # FIXME		&& BootELILO::efi_layout_changed)
-          Builtins.y2milestone(
-            "Reproposing new configuration - IPF, EFI layout has changed"
-          )
-          Propose()
         elsif Stage.initial && !Mode.update
           Propose()
         else
@@ -1247,19 +1166,10 @@ module Yast
     # Update the language of GFX menu according to currently selected language
     # @return [Boolean] true on success
     def UpdateGfxMenu
-      return true if getLoaderType != "lilo" && getLoaderType != "grub"
+      return true if getLoaderType != "grub"
 
       ret = BootCommon.UpdateGfxMenuContents
       return true if !Mode.normal
-      if getLoaderType == "lilo"
-        # This is extreme boolshit, Bootloader::Library has to be called
-        bl_command = "/sbin/lilo >> /var/log/YaST2/y2log_bootloader 2>&1"
-        command_ret = 0 == SCR.Execute(path(".target.bash"), bl_command)
-        if !command_ret
-          Builtins.y2error("Execution of installation command failed")
-          return false
-        end
-      end
       ret
     end
 

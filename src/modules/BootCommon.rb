@@ -143,7 +143,7 @@ module Yast
       # common variables
 
       # type of bootloader to configure/being configured
-      # shall be one of "lilo", "grub", "elilo", "ppc", "zipl", "grub2", "grub2-efi"
+      # shall be one of "grub", "grub2", "grub2-efi"
       @loader_type = nil
       @secure_boot = nil
 
@@ -213,11 +213,7 @@ module Yast
 
       # List of all supported bootloaders
       @bootloaders = [
-        "lilo",
         "grub",
-        "elilo",
-        "zipl",
-        "ppc",
         "grub2",
         "grub2-efi"
       ]
@@ -925,7 +921,6 @@ module Yast
         )
         if @loader_type != nil && @loader_type != ""
           @loader_type = "grub2" if @loader_type == "s390"
-          @loader_type = "ppc" if @loader_type == "lilo" && Arch.ppc
           Builtins.y2milestone(
             "Sysconfig bootloader is %1, using",
             @loader_type
@@ -959,7 +954,6 @@ module Yast
       end
       if (Arch.i386 || Arch.x86_64) && Linuxrc.InstallInf("EFI") == "1"
         # use grub2-efi as default bootloader for x86_64/i386 EFI
-        # previously we use elilo
         @loader_type = "grub2-efi"
       end
 
@@ -1088,10 +1082,6 @@ module Yast
       if Mode.config
         return [
           "grub",
-          "lilo",
-          "elilo",
-          "zipl",
-          "ppc",
           "grub2",
           "grub2-efi",
           "default",
@@ -1104,7 +1094,6 @@ module Yast
       ]
       if Arch.i386 || Arch.x86_64
         ret = Convert.convert(
-          # don't add lilo (fate #314886)
           Builtins.merge(ret, ["grub2"]),
           :from => "list",
           :to   => "list <string>"
@@ -1118,7 +1107,7 @@ module Yast
         end
       end
       if Arch.s390
-        ret = ["grub2", "zipl"]
+        ret = ["grub2"]
       end
       # in order not to display it twice when "none" is selected
       ret = Builtins.filter(ret) { |l| l != "none" }

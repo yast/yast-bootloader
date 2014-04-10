@@ -143,21 +143,13 @@ module Yast
         return Ops.get_string(not_trans, orig, orig)
       end
       if loader != "grub"
-        # FIXME / FEATURE: At least for IA64, there is a two level boot
-        # hierarchy (efibootmgr, elilo): the first level boot menu can be
-        # used to select a partition (i.e. an installation), the second
-        # level can be used to select a kernel/commandline set.
         # This may become an alternative setup for grub in the future
         # (requiring a separate menu.lst on an extra partition for the
         # first level, along with the changes in several parts of the
         # BootGRUB code for this).
         # AI: rw/od should discuss this with the grub maintainer and
         # create a feature for this.
-        #
-        # ATM, this is only available for IA64.
-        # Thus, for "elilo", the second level string should remain
-        # "linux", the product name already appears in the efi menu.
-        if loader != "elilo" && orig == "linux"
+        if orig == "linux"
           Yast.import "Product"
           product = Product.short_name
           prod_filtered = Builtins.filterchars(
@@ -520,24 +512,13 @@ module Yast
     end
 
     # Updates GFX menu without requiring any information, reads loader type
-    # from sysconfig, calls /sbin/lilo if LILO is being used directly
+    # from sysconfig
     # @return [Boolean] true on success
     def Update
       loader = Convert.to_string(
         SCR.Read(path(".sysconfig.bootloader.LOADER_TYPE"))
       )
-      return false if !UpdateGfxMenuContents(loader)
-
-      if loader == "lilo"
-        out = Convert.to_map(
-          SCR.Execute(path(".target.bash_output"), "/sbin/lilo")
-        )
-        if Ops.get_integer(out, "exit", 0) != 0
-          Builtins.y2error("Output of /sbin/lilo: %1", out)
-          return false
-        end
-      end
-      true
+      return UpdateGfxMenuContents(loader)
     end
 
     publish :variable => :enable_sound_signals, :type => "boolean"
