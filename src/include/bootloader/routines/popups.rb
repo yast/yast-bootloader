@@ -41,20 +41,6 @@ module Yast
     end
 
     # Display question
-    # @param [String] name string name of currently selected section (to clone)
-    # @return [Boolean] true if answered yes
-    def askClone(name)
-      # yes-no popup
-      Popup.YesNo(
-        Builtins.sformat(
-          _(
-            "Clone the selected section '%1' instead\nof creating a new empty section?\n"
-          ),
-          name
-        )
-      )
-    end
-    # Display question
     # @return [Boolean] true if answered yes
     def confirmAbortPopup
       # yes-no popup question
