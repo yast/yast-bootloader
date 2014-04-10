@@ -48,33 +48,6 @@ module Yast
       ]
     end
 
-    # Check whether disk settings were changed since last checking
-    # @return [Boolean] true if needs to recheck
-    def DisksChanged
-      return false if Mode.config
-      mp = Storage.GetMountPoints
-      actual_root = Ops.get_string(mp, ["/", 0], "")
-      actual_boot = Ops.get_string(mp, ["/boot", 0], actual_root)
-
-      # don't change configuration if '/' and '/boot' were not changed
-      # and location is "floppy", "mbr" or "boot"
-      if actual_boot == BootStorage.BootPartitionDevice &&
-          actual_root == BootStorage.RootPartitionDevice &&
-          @selected_location != "custom" &&
-          @selected_location != "" &&
-          @selected_location != nil
-        return false
-      end
-
-      all_partitions = BootStorage.getPartitionList(:boot, getLoaderType(false))
-
-      if !Builtins.contains(all_partitions, @loader_device)
-        Builtins.y2milestone("Location should be set again")
-        return true
-      end
-      false
-    end
-
     # FindMbrDisk()
     # try to find the system's mbr device
     # @return [String]   mbr device

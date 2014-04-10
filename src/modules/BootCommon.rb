@@ -1240,7 +1240,6 @@ module Yast
     publish :function => :GetSerialFromAppend, :type => "void ()"
     publish :function => :UpdateProposalFromClient, :type => "boolean ()"
     publish :function => :DiskOrderSummary, :type => "string ()"
-    publish :function => :DisksChanged, :type => "boolean ()"
     publish :function => :AddFirmwareToBootloader, :type => "boolean (string)"
     publish :function => :PostUpdateMBR, :type => "boolean ()"
     publish :function => :FindMBRDisk, :type => "string ()"
