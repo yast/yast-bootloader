@@ -272,24 +272,6 @@ module Yast
       res_data.unlink
     end
 
-    # Display the log file written by the underlying bootloader libraries
-    def bootloaderError(error)
-      bl_logfile = "/var/log/YaST2/y2log_bootloader"
-      bl_log = Convert.to_string(SCR.Read(path(".target.string"), bl_logfile))
-
-      errorWithLogPopup(
-        Builtins.sformat(
-          # error popup - label, %1 is bootloader name
-          _("Error occurred while installing %1."),
-          getLoaderName(getLoaderType(false), :summary)
-        ),
-        bl_log
-      )
-      Builtins.y2error("%1", error)
-
-      nil
-    end
-
     # Read the files from the system to internal cache of the library
     # @param [Boolean] avoid_reading_device_map do not read the device map, but use internal
     # data

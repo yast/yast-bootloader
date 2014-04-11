@@ -166,16 +166,6 @@ module Yast
         @loader_device = BootStorage.BootPartitionDevice
         @activate = true
         @activate_changed = true
-
-        # check if there is raid and if it soft-raid select correct device for analyse MBR
-        # bnc #398356
-        if Ops.greater_than(Builtins.size(needed_devices), 1)
-          disk = soft_MDraid_boot_disk(partitions)
-        end
-        disk = Ops.get_string(dp, "disk", "") if disk == ""
-        out = examineMBR(disk)
-
-        @repl_mbr = out != "vista"
       elsif Ops.greater_than(Builtins.size(needed_devices), 1)
         @loader_device = "mbr_md"
         @selected_location = "mbr_md"
@@ -454,7 +444,6 @@ module Yast
       parts = BootStorage.getPartitionList(:parts_old, getLoaderType(false))
       if @partitioning_last_change != Storage.GetTargetChangeTime && @files_edited
         displayFilesEditedPopup
-        @files_edited_warned = true
         return
       end
 
