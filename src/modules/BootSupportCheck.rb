@@ -225,20 +225,9 @@ module Yast
                 )
               end
             end
-            if Ops.get(p, "used_fs") == :xfs
-              AddNewProblem(
-                _(
-                  "The /boot directory is on an XFS filesystem. System may not boot."
-                )
-              )
-              Builtins.y2error("The /boot directory is on an XFS filesystem")
-              result = false
-              raise Break
-            else
-              found_boot = true
-              Builtins.y2milestone("/boot filesystem is OK")
-              raise Break
-            end
+            found_boot = true
+            Builtins.y2milestone("/boot filesystem is OK")
+            raise Break
           end
         end
         raise Break if !result || found_boot
