@@ -662,11 +662,6 @@ module Yast
       Builtins.y2milestone("/boot is in logical partition: %1", is_logical)
       Builtins.y2milestone("The extended partition: %1", extended)
 
-      # keep_mbr, if the MBR contains special code that needs to be kept,
-      #           like Thinkpad boot code (and ATM only Thinkpad boot code
-      #           is recognized)
-      keep_mbr = BootCommon.KeepMBR(BootCommon.mbrDisk)
-
       # if is primary, store bootloader there
 
       exit = 0
@@ -699,7 +694,7 @@ module Yast
         Ops.set(
           BootCommon.globals,
           "generic_mbr",
-          out != "vista" && !keep_mbr ? "true" : "false"
+          out != "vista" ? "true" : "false"
         )
         if out == "vista"
           Builtins.y2milestone("Vista MBR...")
@@ -717,15 +712,6 @@ module Yast
         # themselves if we have MBRs on a soft-RAID or not.
         # selected_location = `mbr_md;
         selected_location = :mbr
-      end
-
-      if keep_mbr
-        if is_logical && extended != nil
-          selected_location = :extended
-        else
-          selected_location = BootStorage.BootPartitionDevice !=
-            BootStorage.RootPartitionDevice ? :boot : :root
-        end
       end
 
       SetBootloaderDevice(selected_location)

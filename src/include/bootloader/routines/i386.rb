@@ -105,82 +105,12 @@ module Yast
       @_thinkpad_mbr
     end
 
-    # Keep the MBR contents on the specified disk? Check whether the contents
-    # should be kept because ot contains vendor-specific data
-    # @param [String] disk string the disk to be checked
-    # @return [Boolean] true to keep the contents
-    def KeepMBR(disk)
-      # FIXME: see bug #464485 there is problem with detection of
-      # MBR the 3rd byte is 0 after recovery thinkpad notebook with
-      # recovery CD, next missing cooperate with Lenovo there also
-      # missing any specification about Lenovo's changes in MBR
-
-      Builtins.y2milestone("Skip checking of MBR for thinkpad sequence")
-
-      false
-    end
-
     # Add the partition holding firmware to bootloader?
     # @param [String] disk string the disk to be checked
     # @return [Boolean] true if firmware partition is to be added
     def AddFirmwareToBootloader(disk)
       !ThinkPadMBR(disk)
     end
-
-    # Display bootloader summary
-    # @return a list of summary lines
-    def i386Summary
-      ret = Summary()
-      order_sum = DiskOrderSummary()
-      ret = Builtins.add(ret, order_sum) if order_sum != nil
-      deep_copy(ret)
-    end
-
-    # Propose the boot loader location for i386 (and similar) platform
-    def i386LocationProposal
-      if !@was_proposed
-        DetectDisks()
-        @del_parts = BootStorage.getPartitionList(
-          :deleted,
-          getLoaderType(false)
-        )
-        # check whether edd is loaded; if not: load it
-        lsmod_command = "lsmod | grep edd"
-        Builtins.y2milestone("Running command %1", lsmod_command)
-        lsmod_out = Convert.to_map(
-          SCR.Execute(path(".target.bash_output"), lsmod_command)
-        )
-        Builtins.y2milestone("Command output: %1", lsmod_out)
-        edd_loaded = Ops.get_integer(lsmod_out, "exit", 0) == 0
-        if !edd_loaded
-          command = "/sbin/modprobe edd"
-          Builtins.y2milestone("Loading EDD module, running %1", command)
-          out = Convert.to_map(
-            SCR.Execute(path(".target.bash_output"), command)
-          )
-          Builtins.y2milestone("Command output: %1", out)
-        end
-      end
-
-      # refresh device map
-      if (BootStorage.device_mapping == nil ||
-          Builtins.size(BootStorage.device_mapping) == 0) &&
-          getLoaderType(false) == "grub"
-        BootStorage.ProposeDeviceMap
-      end
-
-      if DisksChanged() && !Mode.autoinst
-        if askLocationResetPopup(@loader_device)
-          @selected_location = nil
-          @loader_device = nil
-          Builtins.y2milestone("Reconfiguring locations")
-          DetectDisks()
-        end
-      end
-
-      nil
-    end
-
 
     # Do updates of MBR after the bootloader is installed
     # @return [Boolean] true on success

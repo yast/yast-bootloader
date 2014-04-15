@@ -48,33 +48,6 @@ module Yast
       ]
     end
 
-    # Check whether disk settings were changed since last checking
-    # @return [Boolean] true if needs to recheck
-    def DisksChanged
-      return false if Mode.config
-      mp = Storage.GetMountPoints
-      actual_root = Ops.get_string(mp, ["/", 0], "")
-      actual_boot = Ops.get_string(mp, ["/boot", 0], actual_root)
-
-      # don't change configuration if '/' and '/boot' were not changed
-      # and location is "floppy", "mbr" or "boot"
-      if actual_boot == BootStorage.BootPartitionDevice &&
-          actual_root == BootStorage.RootPartitionDevice &&
-          @selected_location != "custom" &&
-          @selected_location != "" &&
-          @selected_location != nil
-        return false
-      end
-
-      all_partitions = BootStorage.getPartitionList(:boot, getLoaderType(false))
-
-      if !Builtins.contains(all_partitions, @loader_device)
-        Builtins.y2milestone("Location should be set again")
-        return true
-      end
-      false
-    end
-
     # FindMbrDisk()
     # try to find the system's mbr device
     # @return [String]   mbr device
@@ -186,11 +159,6 @@ module Yast
       Builtins.y2milestone("/boot is in logical partition: %1", is_logical)
       Builtins.y2milestone("The extended partition: %1", extended)
 
-      # keep_mbr, if the MBR contains special code that needs to be kept,
-      #           like Thinkpad boot code (and ATM only Thinkpad boot code
-      #           is recognized)
-      keep_mbr = KeepMBR(@loader_device)
-
       exit = 0
       # if is primary, store bootloader there
       if disk_is_mbr && !is_logical
@@ -198,29 +166,11 @@ module Yast
         @loader_device = BootStorage.BootPartitionDevice
         @activate = true
         @activate_changed = true
-
-        # check if there is raid and if it soft-raid select correct device for analyse MBR
-        # bnc #398356
-        if Ops.greater_than(Builtins.size(needed_devices), 1)
-          disk = soft_MDraid_boot_disk(partitions)
-        end
-        disk = Ops.get_string(dp, "disk", "") if disk == ""
-        out = examineMBR(disk)
-
-        @repl_mbr = out != "vista" && !keep_mbr
       elsif Ops.greater_than(Builtins.size(needed_devices), 1)
         @loader_device = "mbr_md"
         @selected_location = "mbr_md"
       end
 
-      if keep_mbr
-        if is_logical && extended != nil
-          @loader_device = extended
-        else
-          @loader_device = BootStorage.BootPartitionDevice
-        end
-        @selected_location = "boot"
-      end
       if !Builtins.contains(
           BootStorage.getPartitionList(:boot, getLoaderType(false)),
           @loader_device
@@ -494,7 +444,6 @@ module Yast
       parts = BootStorage.getPartitionList(:parts_old, getLoaderType(false))
       if @partitioning_last_change != Storage.GetTargetChangeTime && @files_edited
         displayFilesEditedPopup
-        @files_edited_warned = true
         return
       end
 
@@ -667,19 +616,6 @@ module Yast
 
       # save old, updated section list as proposed section list
       @sections = deep_copy(old_sect_list)
-
-      nil
-    end
-
-    # Update sections of bootloader menu (removes obsolete thinks and
-    # place for ugly hacks (but doesn't efect zypper dup))
-    # modifies internal structures
-    # label update is done in perl-Bootloader during updating kernel
-    # Purpose is don't break anything, but expect that previous state is
-    # working
-    def UpdateSections
-      Builtins.foreach(@sections) do |section|
-      end
 
       nil
     end

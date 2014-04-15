@@ -668,11 +668,6 @@ module Yast
       )
       Builtins.y2milestone("The extended partition: %1", extended)
 
-      # keep_mbr, if the MBR contains special code that needs to be kept,
-      #           like Thinkpad boot code (and ATM only Thinkpad boot code
-      #           is recognized)
-      keep_mbr = BootCommon.KeepMBR(BootCommon.mbrDisk)
-
       # if is primary, store bootloader there
 
       exit = 0
@@ -705,7 +700,7 @@ module Yast
         Ops.set(
           BootCommon.globals,
           "generic_mbr",
-          out != "vista" && !keep_mbr ? "true" : "false"
+          out != "vista" ? "true" : "false"
         )
         if out == "vista"
           Builtins.y2milestone("Vista MBR...")
@@ -725,19 +720,7 @@ module Yast
         selected_location = :mbr
       end
 
-      if keep_mbr
-        if is_logical && extended != nil
-          selected_location = :extended
-        else
-          selected_location = BootStorage.BootPartitionDevice !=
-            BootStorage.RootPartitionDevice ? :boot : :root
-        end
-      end
-
       if is_logical_and_btrfs
-        if keep_mbr
-          Builtins.y2milestone("force to use mbr even if keep_mbr is suggested")
-        end
         Builtins.y2milestone(
           "/boot is on logical parititon and uses btrfs, mbr is favored in this situration"
         )

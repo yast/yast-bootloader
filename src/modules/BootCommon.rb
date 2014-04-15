@@ -48,14 +48,6 @@ module Yast
       # map of global options and types for new perl-Bootloader interface
       @global_options = {}
 
-      # map of section options and types for new perl-Bootloader interface
-      @section_options = {}
-
-      # boolean value indicate if "/" is on logical
-      # and primary /boot doesn't exist
-
-      @boot_device_on_logical = false
-
       # map of global options and values
       @globals = {}
 
@@ -107,14 +99,8 @@ module Yast
       @current_section = {}
 
 
-      # Option types for different bootloaders
-      @opt_types = {}
-
       # device holding MBR for bootloader
       @mbrDisk = ""
-
-      # was currently edited section changed (== true)
-      @one_section_changed = false
 
       # Backup original MBR before installing bootloader
       @backup_mbr = false
@@ -122,24 +108,12 @@ module Yast
       # Activate bootloader partition during installation?
       @activate = false
 
-
-      # FATE #303548 - Grub: limit device.map to devices detected by BIOS
-      # Ask user if he wants to edit again bootloader settings
-      # It is used if device.map is limited and "boot" disk is out of range
-      # The range is the first 8 devices
-      @ask_user = false
-
-      # Replace MBR with generic code after bootloader installation?
-      @repl_mbr = false
-
       # Kernel parameters at previous detection
       @kernelCmdLine = ""
 
       # were settings changed (== true)
       @changed = false
 
-
-      @edited_files = {}
       # common variables
 
       # type of bootloader to configure/being configured
@@ -162,9 +136,6 @@ module Yast
       @write_settings = {}
 
       # summary dialog state
-
-      # Show verbose summary output
-      @verbose = false
 
       # ui help variables
 
@@ -194,8 +165,6 @@ module Yast
       @location_changed = false
       # Were configuration files manually edited and chamged?
       @files_edited = false
-      # Has been files edited warning already shown?
-      @files_edited_warned = false
       # time of last change of partitioning
       @partitioning_last_change = 0
       # true if memtest was removed by user (manually) during the installation
@@ -271,37 +240,6 @@ module Yast
       end
       ret
     end
-
-
-    # Get the size of memory for XEN's domain 0
-    # @return the memory size in kB
-    def Dom0MemorySize
-      memory = Convert.convert(
-        SCR.Read(path(".probe.memory")),
-        :from => "any",
-        :to   => "list <map>"
-      )
-
-      Builtins.y2milestone("memory: %1", memory)
-      memory_size = 0
-
-      Builtins.foreach(memory) do |info|
-        # internal class, main memory
-        if Ops.get_integer(info, "class_id", 0) == 257 &&
-            Ops.get_integer(info, "sub_class_id", 0) == 2
-          minf = Ops.get_list(info, ["resource", "phys_mem"], [])
-          Builtins.foreach(minf) do |i|
-            memory_size = Ops.add(memory_size, Ops.get_integer(i, "range", 0))
-          end
-        end
-      end 
-
-      # size in kB lowered 64 MB for XEN itself
-      memory_size = Ops.subtract(Ops.divide(memory_size, 1024), 64 * 1024)
-      Builtins.y2milestone("Memory size for XEN domain 0: %1", memory_size)
-      memory_size
-    end
-
 
     # Create section for linux kernel
     # @param [String] title string the section name to create (untranslated)
@@ -506,7 +444,6 @@ module Yast
         "device_map" => BootStorage.remapDeviceMap(BootStorage.device_mapping)
       }
       if !(@loader_type == "grub" || @loader_type == "grub2")
-        Ops.set(exp, "repl_mbr", @repl_mbr)
         Ops.set(exp, "activate", @activate)
       end
 
@@ -521,11 +458,7 @@ module Yast
       @globals = Ops.get_map(settings, "global", {})
       @sections = Ops.get_list(settings, "sections", [])
 
-      # FIXME: for grub, repl_mbr is replaced by globals["generic_mbr"]; same
-      # for activate; remove the following when no bootloader uses these
-      # variables any more
       if !(@loader_type == "grub" || @loader_type == "grub2")
-        @repl_mbr = Ops.get_boolean(settings, "repl_mbr", false)
         @activate = Ops.get_boolean(settings, "activate", false)
       end
       BootStorage.device_mapping = Ops.get_map(settings, "device_map", {})
@@ -595,7 +528,6 @@ module Yast
       @sections = []
       @globals = {}
       # DetectDisks ();
-      @repl_mbr = false
       @activate = false
       @activate_changed = false
       @removed_sections = []
@@ -769,75 +701,15 @@ module Yast
     # Display bootloader summary
     # @return a list of summary lines
     def Summary
-      if getLoaderType(false) == "none"
+      bl = getLoaderType(false)
+      if bl == "none"
         return [
           HTML.Colorize(getLoaderName(getLoaderType(false), :summary), "red")
         ]
       end
-      targetMap = Storage.GetTargetMap
-      boot_target = Ops.get_map(targetMap, @loader_device, {})
-      target_name = ""
-      if boot_target == {}
-        target_name = @loader_device
-        if target_name == "mbr_md"
-          mbrs = Builtins.maplist(
-            Md2Partitions(BootStorage.BootPartitionDevice)
-          ) do |d, id|
-            p_dev = Storage.GetDiskPartition(d)
-            Ops.get_string(p_dev, "disk", "")
-          end
-          # summary part, %1 is a list of device names
-          target_name = Builtins.sformat(
-            _("Master boot records of disks %1"),
-            Builtins.mergestring(mbrs, ", ")
-          )
-        end
-      else
-        target_name = Ops.get_string(boot_target, "name", "disk")
-      end
-      target_name = AddMbrToDescription(target_name, @loader_device)
 
-      result = []
-      # summary text, %1 is bootloader name (eg. LILO)
-      result = Builtins.add(
-        result,
-        Builtins.sformat(
-          _("Boot Loader Type: %1"),
-          getLoaderName(getLoaderType(false), :summary)
-        )
-      )
-      # summary text, location is location description (eg. /dev/hda)
-      result = Builtins.add(
-        result,
-        Builtins.sformat(_("Location: %1"), target_name)
-      )
-      sects = []
-      Builtins.foreach(@sections) do |s|
-        title = Ops.get_string(s, "name", "")
-        # section name "suffix" for default section
-        _def = title == Ops.get(@globals, "default", "") ? _(" (default)") : ""
-        sects = Builtins.add(
-          sects,
-          String.EscapeTags(Builtins.sformat("+ %1%2", title, _def))
-        )
-      end
-      # summary text. %1 is list of bootloader sections
-      result = Builtins.add(
-        result,
-        Builtins.sformat(
-          _("Sections:<br>%1"),
-          Builtins.mergestring(sects, "<br>")
-        )
-      )
-      if @loader_device == "/dev/null"
-        # summary text
-        result = Builtins.add(
-          result,
-          _("Do not install boot loader; just create \nconfiguration files")
-        )
-      end
-
-      deep_copy(result)
+      # each Boot* should have own summary, that can differ
+      raise "Not implemented for bootloader \"#{bl}\""
     end
 
     # Update read settings to new version of configuration files
@@ -1151,8 +1023,6 @@ module Yast
     end
 
     publish :variable => :global_options, :type => "map <string, any>"
-    publish :variable => :section_options, :type => "map <string, any>"
-    publish :variable => :boot_device_on_logical, :type => "boolean"
     publish :variable => :globals, :type => "map <string, string>"
     publish :variable => :sections, :type => "list <map <string, any>>"
     publish :variable => :cached_settings_base_data_change_time, :type => "integer"
@@ -1163,19 +1033,13 @@ module Yast
     publish :variable => :current_section_name, :type => "string"
     publish :variable => :current_section_index, :type => "integer"
     publish :variable => :current_section, :type => "map <string, any>"
-    publish :variable => :opt_types, :type => "map <string, map <string, string>>"
     publish :variable => :mbrDisk, :type => "string"
-    publish :variable => :one_section_changed, :type => "boolean"
     publish :variable => :backup_mbr, :type => "boolean"
     publish :variable => :activate, :type => "boolean"
-    publish :variable => :ask_user, :type => "boolean"
-    publish :variable => :repl_mbr, :type => "boolean"
     publish :variable => :kernelCmdLine, :type => "string"
     publish :variable => :changed, :type => "boolean"
-    publish :variable => :edited_files, :type => "map <string, string>"
     publish :variable => :del_parts, :type => "list <string>"
     publish :variable => :write_settings, :type => "map"
-    publish :variable => :verbose, :type => "boolean"
     publish :variable => :other_bl, :type => "map"
     publish :variable => :activate_changed, :type => "boolean"
     publish :variable => :save_all, :type => "boolean"
@@ -1183,12 +1047,9 @@ module Yast
     publish :variable => :was_read, :type => "boolean"
     publish :variable => :location_changed, :type => "boolean"
     publish :variable => :files_edited, :type => "boolean"
-    publish :variable => :files_edited_warned, :type => "boolean"
     publish :variable => :partitioning_last_change, :type => "integer"
     publish :variable => :removed_sections, :type => "list <string>"
-    publish :variable => :read_default_section_name, :type => "string"
     publish :variable => :update_section_types, :type => "list <string>"
-    publish :variable => :bootloaders, :type => "list <string>"
     publish :variable => :enable_md_array_redundancy, :type => "boolean"
     publish :variable => :enable_selinux, :type => "boolean"
     publish :function => :getLoaderType, :type => "string (boolean)"
@@ -1218,17 +1079,13 @@ module Yast
     publish :function => :getKernelParamFromLine, :type => "string (string, string)"
     publish :function => :setKernelParamToLine, :type => "string (string, string, string)"
     publish :function => :myToInteger, :type => "integer (any)"
-    publish :function => :updateMBR, :type => "boolean ()"
     publish :function => :restoreMBR, :type => "boolean (string)"
     publish :function => :UpdateKernelParams, :type => "string (string)"
     publish :function => :getSwapPartitions, :type => "map <string, integer> ()"
     publish :function => :translateSectionTitle, :type => "string (string)"
     publish :function => :UpdateInstallationKernelParameters, :type => "void ()"
     publish :function => :GetAdditionalFailsafeParams, :type => "string ()"
-    publish :function => :GetAdditionalKernelParams, :type => "string ()"
-    publish :function => :ListAdditionalKernelParams, :type => "list <string> ()"
     publish :function => :UpdateGfxMenuContents, :type => "boolean ()"
-    publish :function => :MemtestPresent, :type => "boolean ()"
     publish :function => :BootloaderInstallable, :type => "boolean ()"
     publish :function => :PartitionInstallable, :type => "boolean ()"
     publish :function => :findRelativeDefaultLinux, :type => "string ()"
@@ -1240,23 +1097,17 @@ module Yast
     publish :function => :GetSerialFromAppend, :type => "void ()"
     publish :function => :UpdateProposalFromClient, :type => "boolean ()"
     publish :function => :DiskOrderSummary, :type => "string ()"
-    publish :function => :DisksChanged, :type => "boolean ()"
-    publish :function => :KeepMBR, :type => "boolean (string)"
     publish :function => :AddFirmwareToBootloader, :type => "boolean (string)"
-    publish :function => :i386Summary, :type => "list <string> ()"
-    publish :function => :i386LocationProposal, :type => "void ()"
     publish :function => :PostUpdateMBR, :type => "boolean ()"
     publish :function => :FindMBRDisk, :type => "string ()"
     publish :function => :Md2Partition, :type => "string (string)"
     publish :function => :RunDelayedUpdates, :type => "void ()"
     publish :function => :FixGlobals, :type => "void ()"
     publish :function => :FixSections, :type => "void (void ())"
-    publish :function => :UpdateSections, :type => "void ()"
     publish :function => :UpdateGlobals, :type => "void ()"
     publish :function => :RemoveUnexistentSections, :type => "void (string, string)"
     publish :function => :UpdateAppend, :type => "void ()"
     publish :function => :UpdateGfxMenu, :type => "void ()"
-    publish :function => :DefineMultipath, :type => "boolean (map <string, string>)"
     publish :function => :SetDiskInfo, :type => "void ()"
     publish :function => :InitializeLibrary, :type => "boolean (boolean, string)"
     publish :function => :SetSections, :type => "boolean (list <map <string, any>>)"
@@ -1264,18 +1115,14 @@ module Yast
     publish :function => :SetGlobal, :type => "boolean (map <string, string>)"
     publish :function => :GetGlobal, :type => "map <string, string> ()"
     publish :function => :SetDeviceMap, :type => "boolean (map <string, string>)"
-    publish :function => :GetDeviceMap, :type => "map <string, string> ()"
-    publish :function => :bootloaderError, :type => "void (string)"
     publish :function => :ReadFiles, :type => "boolean (boolean)"
     publish :function => :CommitSettings, :type => "boolean ()"
     publish :function => :UpdateBootloader, :type => "boolean ()"
-    publish :function => :SetSecureBoot, :type => "boolean (boolean)"
     publish :function => :InitializeBootloader, :type => "boolean ()"
     publish :function => :GetFilesContents, :type => "map <string, string> ()"
     publish :function => :SetFilesContents, :type => "boolean (map <string, string>)"
     publish :function => :XenPresent, :type => "boolean ()"
     publish :function => :isTrustedGrub, :type => "boolean ()"
-    publish :function => :Dom0MemorySize, :type => "integer ()"
     publish :function => :Export, :type => "map ()"
     publish :function => :Import, :type => "boolean (map)"
     publish :function => :Read, :type => "boolean (boolean, boolean)"
@@ -1284,7 +1131,6 @@ module Yast
     publish :function => :Save, :type => "boolean (boolean, boolean, boolean)"
     publish :function => :Update, :type => "void ()"
     publish :function => :Write, :type => "boolean ()"
-    publish :function => :setCurrentLoaderAttribs, :type => "void (string)"
     publish :function => :setLoaderType, :type => "void (string)"
     publish :function => :setSystemSecureBootStatus, :type => "void (boolean)"
     publish :function => :Section2Index, :type => "integer (string)"

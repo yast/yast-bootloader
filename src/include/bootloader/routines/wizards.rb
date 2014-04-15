@@ -38,7 +38,6 @@ module Yast
           )
         )
       end
-      bl = Bootloader.getLoaderType
 
       # run generic sequence
       aliases = {

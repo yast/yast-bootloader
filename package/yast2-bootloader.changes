@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 15 10:38:17 UTC 2014 - jreidinger@suse.com
+
+- cleaning up deprecated code to improve stability and maintenance
+  of code
+- 3.1.23
+
+-------------------------------------------------------------------
 Tue Apr 15 08:33:29 UTC 2014 - mchang@suse.com
 
 - remove error if boot directory on xfs file system (bnc#864370)
