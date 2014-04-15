@@ -56,6 +56,7 @@ module Yast
         if Mode.update
           if ["grub2", "grub2-efi"].include? Bootloader.getLoaderType
             Builtins.y2milestone "update of grub2, do not repropose"
+            Bootloader.blRead(true, true)
           else
             BootCommon.setLoaderType(nil)
             Bootloader.Reset
