@@ -47,16 +47,27 @@ module Yast
           Bootloader.Reset
         end
 
-        if Bootloader.getLoaderType == "grub2"
-          if !Mode.update
-            if !Bootloader.proposed_cfg_changed && !Mode.autoinst
-              Bootloader.blRead(true, true)
-              BootCommon.was_read = true
-            end
+        # proposal not changed by user so repropose it from scratch
+        if !Bootloader.proposed_cfg_changed && !Mode.autoinst
+          Builtins.y2milestone "Proposal not modified, so repropose from scratch"
+          Bootloader.ResetEx(false)
+        end
 
+        if Mode.update
+          if ["grub2", "grub2-efi"].include? Bootloader.getLoaderType
+            Builtins.y2milestone "update of grub2, do not repropose"
+            Bootloader.blRead(true, true)
+          else
+            BootCommon.setLoaderType(nil)
+            Bootloader.Reset
             Bootloader.Propose
           end
+        else
+          # in installation always propose missing stuff
+          Bootloader.Propose
+        end
 
+        if Bootloader.getLoaderType == "grub2"
           @ret["links"] = [
               "enable_boot_mbr",
               "disable_boot_mbr",
@@ -65,25 +76,8 @@ module Yast
               "enable_boot_boot",
               "disable_boot_boot"
             ]
-        elsif Bootloader.getLoaderType == "grub2-efi"
-          if !Mode.update
-            if !Bootloader.proposed_cfg_changed && !Mode.autoinst
-              Bootloader.blRead(true, true)
-              BootCommon.was_read = true
-            end
-
-            Bootloader.Propose
-          end
-        else
-          # repropose if grub2 is not used during upgrade
-          if Mode.update
-            Builtins.y2milestone("Cfg not changed before, recreating")
-            Bootloader.ResetEx(false)
-            BootCommon.setLoaderType(nil)
-          end
-
-          Bootloader.Propose
         end
+
         # to make sure packages will get installed
         BootCommon.setLoaderType(BootCommon.getLoaderType(false))
 

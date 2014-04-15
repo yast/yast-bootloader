@@ -1057,7 +1057,7 @@ module Yast
         BootStorage.ProposeDeviceMap
         md_mbr = BootStorage.addMDSettingsToGlobals
         Ops.set(BootCommon.globals, "boot_md_mbr", md_mbr) if md_mbr != ""
-        BootCommon.InitializeLibrary(true, "grub")
+        BootCommon.InitializeLibrary(true, "grub2")
       end
 
       if !Mode.autoinst
