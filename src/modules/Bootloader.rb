@@ -1050,16 +1050,27 @@ module Yast
       elsif section == "LINUX_DEFAULT"
         section = getProposedDefaultSection
       end
-      return false if section == nil
+      if section.nil?
+        Builtins.y2error("section is nil, so kernel parameter cannot be set")
+        return false
+      end
+
       sectnum = -1
       index = -1
       Builtins.foreach(BootCommon.sections) do |s|
-        index = Ops.add(index, 1)
+        index += 1
         sectnum = index if Ops.get_string(s, "name", "") == section
       end
-      return false if sectnum == -1
-      slabel = ""
-      return false if (key == "vga" || key == "root") && value == "true"
+      if sectnum == -1
+        Builtins.y2error "Cannot find given section #{section} in sections #{BootCommon.sections.inspect}"
+        return false
+      end
+
+      if (key == "vga" || key == "root") && value == "true"
+        Builtins.y2error "invalid values passed as kernel param #{key.inspect} => #{value.inspect}"
+        return false
+      end
+
       if Builtins.contains(["root", "vga"], key)
         if value != "false"
           if key == "vga"
@@ -1095,8 +1106,8 @@ module Yast
         Ops.set(BootCommon.sections, [sectnum, "__changed"], true)
       end
       BootCommon.changed = true
-      ret = true
-      ret
+
+      return true
     end
 
 
