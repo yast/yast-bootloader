@@ -68,6 +68,7 @@ module Yast
     def kernel_tab
       widgets = ["vgamode", "append", "append_failsafe", "console"]
       widgets.delete("console") if Arch.s390 # there is no console on s390 (bnc#868909)
+      widgets.delete("vgamode") if Arch.s390 # there is no graphic adapter on s390 (bnc#874010)
 
        {
         "id"           => "kernel_tab",
