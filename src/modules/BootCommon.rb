@@ -978,7 +978,7 @@ module Yast
           )
         end
       end
-      if Arch.s390
+      if Arch.s390 || Arch.ppc
         ret = ["grub2"]
       end
       # in order not to display it twice when "none" is selected

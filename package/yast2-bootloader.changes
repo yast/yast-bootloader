@@ -1,7 +1,15 @@
 -------------------------------------------------------------------
+Wed Apr 16 19:49:56 UTC 2014 - jreidinger@suse.com
+
+- allow switching to grub2 also on ppc
+- Do not raise exception for grub2efi on non-pc architectures
+  (bnc#873861)
+- 3.1.26
+
+-------------------------------------------------------------------
 Wed Apr 16 12:11:53 UTC 2014 - jreidinger@suse.com
 
-- fix crash on s390 due to missing loader widget(bnc#873911) 
+- fix crash on s390 due to missing loader widget(bnc#873911)
 - 3.1.25
 
 -------------------------------------------------------------------

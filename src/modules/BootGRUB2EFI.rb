@@ -103,14 +103,15 @@ module Yast
     # Constructor
     def BootGRUB2EFI
 
-      if Arch.i386 
+      if Arch.i386
         packages = ["grub2-i386-efi"]
       elsif Arch.x86_64
         packages = ["grub2-x86_64-efi", "shim", "mokutil"]
       else
-        raise "no grub packages for EFI available for this architecture"
+        # do not raise exception as we call contstructor everywhere even if it doesn't make sense
+        packages = []
       end
-      
+
       Ops.set(
         BootCommon.bootloader_attribs,
         "grub2-efi",
