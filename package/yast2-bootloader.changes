@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Apr 17 11:18:31 UTC 2014 - jreidinger@suse.com
+
+- improve logging if setting kernel paramater failed to help with
+  bnc#873996
+- remove graphic adapter configuration on s390 (bnc#874010)
+- 3.1.27
+
+-------------------------------------------------------------------
 Wed Apr 16 19:49:56 UTC 2014 - jreidinger@suse.com
 
 - allow switching to grub2 also on ppc
@@ -29,7 +37,7 @@ Tue Apr 15 10:38:17 UTC 2014 - jreidinger@suse.com
 Tue Apr 15 08:33:29 UTC 2014 - mchang@suse.com
 
 - remove error if boot directory on xfs file system (bnc#864370)
-- 3.1.22 
+- 3.1.22
 
 -------------------------------------------------------------------
 Thu Apr 10 11:18:51 UTC 2014 - jreidinger@suse.com
