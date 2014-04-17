@@ -140,7 +140,7 @@ module Yast
       end
 
       prep_partitions = partitions.select do |partition|
-        partition["fsid"] == 0x41
+        [0x41, 0x108].include? partition["fsid"]
       end
 
       y2milestone "detected prep partitions #{prep_partitions.inspect}"
