@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 17 14:46:17 UTC 2014 - jreidinger@suse.com
+
+- do not complain for missing bios order on s390(bnc#874106)
+- 3.1.28
+
+-------------------------------------------------------------------
 Thu Apr 17 11:18:31 UTC 2014 - jreidinger@suse.com
 
 - improve logging if setting kernel paramater failed to help with

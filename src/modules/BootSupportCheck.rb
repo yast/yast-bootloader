@@ -252,16 +252,18 @@ module Yast
     # @return [Boolean] true on success
 
     def CheckBios_ID
-      ret = true
+      return true if Arch.s390 # s390 do not have bios boot order (bnc#874106)
+
       if BootStorage.bois_id_missing
         AddNewProblem(
           _(
             "It was not possible to determine the exact order of disks for device map. The order of disks can be changed in \"Boot Loader Installation Details\""
           )
         )
-        ret = false
+        return false
       end
-      ret
+
+      return true
     end
 
 
