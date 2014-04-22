@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 22 08:44:57 UTC 2014 - jreidinger@suse.com
+
+- Use correct check for partition setup for grub2 on s390
+  (bnc#873951)
+- 3.1.29
+
+-------------------------------------------------------------------
 Thu Apr 17 14:46:17 UTC 2014 - jreidinger@suse.com
 
 - do not complain for missing bios order on s390(bnc#874106)
