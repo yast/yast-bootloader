@@ -267,11 +267,6 @@ module Yast
     end
 
 
-    # Check that the root partition is reachable
-    def RootPartition
-      true
-    end
-
     def check_zipl_part
       boot_part = Storage.GetEntryForMountpoint("/boot/zipl")
       boot_part = Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
@@ -320,9 +315,6 @@ module Yast
 
       # detect correct bootloader type
       supported = CorrectLoaderType() && supported
-
-      # check whether root partition can be reached
-      supported = RootPartition() && supported
 
       # check specifics for individual loaders
       if lt == "grub"
