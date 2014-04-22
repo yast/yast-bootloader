@@ -32,6 +32,7 @@ module Yast
       # 2. "" -> do not change it
       # 3. "something" -> set password to this value
       @password = ""
+      @proposed_distributor = "$(. /etc/os-release; echo \"$NAME $VERSION_ID\")"
     end
 
     # general functions
@@ -110,7 +111,7 @@ module Yast
 
       BootCommon.globals["append"]          ||= BootArch.DefaultKernelParams(resume)
       BootCommon.globals["append_failsafe"] ||= BootArch.FailsafeKernelParams
-      BootCommon.globals["distributor"]     ||= Product.name
+      BootCommon.globals["distributor"]     ||= @proposed_distributor
       BootCommon.kernelCmdLine              ||= Kernel.GetCmdLine
 
       # Propose bootloader serial settings from kernel cmdline during install (bnc#862388)

@@ -281,6 +281,48 @@ module Yast
       )
     end
 
+    def distributor_init(widget)
+      distributor = BootCommon.globals["distributor"] || self.proposed_distributor
+      if distributor == self.proposed_distributor
+        UI.ChangeWidget(Id(:custom_distributor), :Value, false)
+        UI.ChangeWidget(Id(:distributor), :Enabled, false)
+        UI.ChangeWidget(Id(:distributor), :Value, Product.name)
+      else
+        UI.ChangeWidget(Id(:custom_distributor), :Value, true)
+        UI.ChangeWidget(Id(:distributor), :Enabled, true)
+        UI.ChangeWidget(Id(:distributor), :Value, distributor)
+      end
+    end
+
+    def distributor_store(widget, event)
+      use_custom = UI.QueryWidget(Id(:custom_distributor), :Value)
+      if (!use_custom)
+        BootCommon.globals["distributor"] = self.proposed_distributor
+        return
+      end
+      value = UI.QueryWidget(Id(:distributor), :Value)
+      BootCommon.globals["distributor"] = value
+    end
+
+    def distributor_content
+      VBox(
+        CheckBoxFrame(
+          Id(:custom_distributor),
+          _("Use &custom distributor"),
+          true,
+          HBox(
+            HSpacing(2),
+            InputField(
+              Id(:distributor),
+              Opt(:hstretch),
+              _("&Distributor")
+            ),
+            HStretch()
+          )
+        )
+      )
+    end
+
     MASKED_PASSWORD = "**********"
 
     def grub2_pwd_store(key, event)
@@ -319,10 +361,6 @@ module Yast
 
     def Grub2Options
       grub2_specific = {
-        "distributor"     => CommonInputFieldWidget(
-          Ops.get(@grub2_descriptions, "distributor", "Distributor"),
-          Ops.get(@grub2_help_messages, "distributor", "")
-        ),
         "activate"        => CommonCheckboxWidget(
           Ops.get(@grub_descriptions, "activate", "activate"),
           Ops.get(@grub_help_messages, "activate", "")
@@ -347,6 +385,18 @@ module Yast
           Ops.get(@grub2_descriptions, "append_failsafe", "append_failsafe"),
           Ops.get(@grub2_help_messages, "append_failsafe", "")
         ),
+        "distributor"         => {
+          "widget"            => :custom,
+          "custom_widget"     => distributor_content,
+          "init"              => fun_ref(
+            method(:distributor_init),
+            "void (string)"
+          ),
+          "store"             => fun_ref(
+            method(:distributor_store),
+            "void (string, map)"
+          ),
+        },
         "vgamode"         => {
           "widget" => :combobox,
           "label"  => Ops.get(@grub2_descriptions, "vgamode", "vgamode"),

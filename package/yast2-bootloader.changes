@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 22 04:29:40 UTC 2014 - mchang@suse.com
+
+- use /etc/os-release in GRUB_DISTRIBUTOR (bnc#810055)
+- allow using custom distributor
+- 3.1.29
+
+-------------------------------------------------------------------
 Thu Apr 17 14:46:17 UTC 2014 - jreidinger@suse.com
 
 - do not complain for missing bios order on s390(bnc#874106)
