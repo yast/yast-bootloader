@@ -267,9 +267,17 @@ module Yast
     end
 
 
-    # Check that the root partition is reachable
-    def RootPartition
-      true
+    def check_zipl_part
+      boot_part = Storage.GetEntryForMountpoint("/boot/zipl")
+      boot_part = Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
+      boot_part = Storage.GetEntryForMountpoint("/") if boot_part.empty?
+
+      if [:ext2, :ext3, :ext4].include? boot_part["used_fs"]
+        return true
+      else
+        AddNewProblem(_( "Missing ext partition for booting. Cannot install boot code."))
+        return false
+      end
     end
 
     # GRUB-related check
@@ -282,7 +290,9 @@ module Yast
 
     # GRUB2-related check
     def GRUB2
-      GRUB()
+      ret = GRUB()
+      # ensure that s390 have ext* partition for booting (bnc#873951)
+      ret &&= check_zipl_part if Arch.s390
     end
 
     # GRUB2EFI-related check
@@ -305,9 +315,6 @@ module Yast
 
       # detect correct bootloader type
       supported = CorrectLoaderType() && supported
-
-      # check whether root partition can be reached
-      supported = RootPartition() && supported
 
       # check specifics for individual loaders
       if lt == "grub"
