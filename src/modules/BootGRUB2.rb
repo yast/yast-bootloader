@@ -122,10 +122,7 @@ module Yast
 
           BootCommon.globals["boot_custom"] = partition
         when /s390/
-          zipl_partition = Storage.GetEntryForMountpoint("/boot/zipl")
-          raise "missing separate /boot/zipl partition" if zipl_partition.empty?
-
-          BootCommon.globals["boot_custom"] = zipl_partition["device"]
+          Builtins.y2milestone "no partition needed for grub2 on s390"
         else
           raise "unsuported architecture #{Arch.architecture}"
         end
