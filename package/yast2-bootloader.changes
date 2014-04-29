@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 29 19:47:03 UTC 2014 - jreidinger@suse.com
+
+- fix reading of previous bootloader (bnc#874646)
+- 3.1.30
+
+-------------------------------------------------------------------
 Tue Apr 22 08:44:57 UTC 2014 - jreidinger@suse.com
 
 - Use correct check for partition setup for grub2 on s390
