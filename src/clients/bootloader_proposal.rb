@@ -54,7 +54,7 @@ module Yast
         end
 
         if Mode.update
-          if ["grub2", "grub2-efi"].include? Bootloader.getLoaderType
+          if ["grub2", "grub2-efi"].include? old_bootloader
             Builtins.y2milestone "update of grub2, do not repropose"
             Bootloader.blRead(true, true)
           else
@@ -231,7 +231,24 @@ module Yast
 
       deep_copy(@ret)
     end
-  end
+
+  private
+    BOOT_SYSCONFIG_MNT_PATH = "/mnt/etc/sysconfig/bootloader"
+    # read bootloader from /mnt as SCR is not yet switched in proposal
+    # phase of update (bnc#874646)
+    def old_bootloader
+      return nil unless ::File.exists? BOOT_SYSCONFIG_MNT_PATH
+
+      boot_sysconfig = ::File.read BOOT_SYSCONFIG_MNT_PATH
+      old_bootloader = boot_sysconfig.lines.grep /^\s*LOADER_TYPE/
+      Builtins.y2milestone "bootloader entry #{old_bootloader.inspect}"
+      retur nil if old_bootloader.empty?
+
+      # get value from entry
+      old_bootloader.last.sub(/^.*=\s*(\S*).*/,"\\1").delete('"')
+    end
+
+  end unless defined? Yast::BootloaderProposalClient
 end
 
 Yast::BootloaderProposalClient.new.main
