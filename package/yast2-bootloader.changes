@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 30 06:42:23 UTC 2014 - mchang@suse.com
+
+- explicitly require grub2-%{grubarch} and grub2 package
+  (bnc#872124)
+- 3.1.30
+
+-------------------------------------------------------------------
 Tue Apr 22 08:44:57 UTC 2014 - jreidinger@suse.com
 
 - Use correct check for partition setup for grub2 on s390
