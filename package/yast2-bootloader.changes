@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 30 16:23:57 UTC 2014 - jreidinger@suse.com
+
+- handle diskless nfs setup for ppc (bnc#874466)
+- 3.1.31
+
+-------------------------------------------------------------------
 Tue Apr 29 19:47:03 UTC 2014 - jreidinger@suse.com
 
 - fix reading of previous bootloader (bnc#874646)

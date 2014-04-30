@@ -24,6 +24,7 @@ require "bootloader/grub2base"
 module Yast
   import "Arch"
   import "Storage"
+  import "BootCommon"
 
   class BootGRUB2Class < GRUB2Base
     def main
@@ -118,9 +119,19 @@ module Yast
           grub_LocationProposal
         when /ppc/
           partition = prep_partitions.first
-          raise "there is no prep partition" unless partition
-
-          BootCommon.globals["boot_custom"] = partition
+          if partition
+            BootCommon.globals["boot_custom"] = partition
+          else
+            # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
+            # we need to detect what is mount on /boot and if it is nfs, then just
+            # skip this proposal. In other case if it is not nfs, then it is error and raise exception
+            BootCommon.DetectDisks
+            if BootCommon.getBootDisk == "/dev/nfs"
+              return
+            else
+              raise "there is no prep partition"
+            end
+          end
         when /s390/
           Builtins.y2milestone "no partition needed for grub2 on s390"
         else
