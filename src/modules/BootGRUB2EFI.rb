@@ -104,9 +104,9 @@ module Yast
     def BootGRUB2EFI
 
       if Arch.i386
-        packages = ["grub2-i386-efi"]
+        packages = ["grub2-i386-efi", "grub2"]
       elsif Arch.x86_64
-        packages = ["grub2-x86_64-efi", "shim", "mokutil"]
+        packages = ["grub2-x86_64-efi", "grub2", "shim", "mokutil"]
       else
         # do not raise exception as we call constructor everywhere even if it doesn't make sense
         packages = []

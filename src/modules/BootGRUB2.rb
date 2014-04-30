@@ -292,11 +292,21 @@ module Yast
 
     # Constructor
     def BootGRUB2
+      if Arch.i386 || Arch.x86_64
+        packages = ["grub2-i386-pc", "grub2"]
+      elsif Arch.ppc
+        packages = ["grub2-powerpc-ieee1275", "grub2"]
+      elsif Arch.s390
+        packages = ["grub2-s390x-emu", "grub2"]
+      else
+        # do not raise exception as we call constructor everywhere even if it doesn't make sense
+        packages = []
+      end
       Ops.set(
         BootCommon.bootloader_attribs,
         "grub2",
         {
-          "required_packages" => ["grub2"],
+          "required_packages" => packages,
           "loader_name"       => "GRUB2",
           "initializer"       => fun_ref(method(:Initializer), "void ()")
         }
