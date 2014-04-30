@@ -19,6 +19,7 @@ module Yast
       Yast.import "BootCommon"
       Yast.import "Bootloader"
       Yast.import "GfxMenu"
+      Yast.import "Installation"
       Yast.import "Storage"
       Yast.import "Mode"
       Yast.import "BootSupportCheck"
@@ -233,13 +234,14 @@ module Yast
     end
 
   private
-    BOOT_SYSCONFIG_MNT_PATH = "/mnt/etc/sysconfig/bootloader"
+    BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader"
     # read bootloader from /mnt as SCR is not yet switched in proposal
     # phase of update (bnc#874646)
     def old_bootloader
-      return nil unless ::File.exists? BOOT_SYSCONFIG_MNT_PATH
+      target_boot_sysconfig_path = ::File.join(Installation.destdir, BOOT_SYSCONFIG_PATH)
+      return nil unless ::File.exists? target_boot_sysconfig_path
 
-      boot_sysconfig = ::File.read BOOT_SYSCONFIG_MNT_PATH
+      boot_sysconfig = ::File.read target_boot_sysconfig_path
       old_bootloader = boot_sysconfig.lines.grep /^\s*LOADER_TYPE/
       Builtins.y2milestone "bootloader entry #{old_bootloader.inspect}"
       retur nil if old_bootloader.empty?
