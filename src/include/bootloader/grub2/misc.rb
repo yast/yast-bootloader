@@ -102,44 +102,6 @@ module Yast
           mbr_dev = Ops.get_string(p_dev2, "disk", "")
         end
       end
-      # If loader_device is a disk device ("/dev/sda"), that means that we
-      # install the bootloader to the MBR. In this case, activate /boot
-      # partition.
-      # (partial fix of #20637)
-      # FIXME: necessity and purpose are unclear: if we install the
-      # bootloader to the MBR, then why do we need to activate the /boot
-      # partition? Stage1 of a GRUB has the first block of the stage2
-      # hard-coded inside.
-      # This code was added because a /boot partition on a /dev/cciss device
-      # was not activated in bug #20637. Anyway, it probably never worked,
-      # since the bootloader was not installed to the MBR in that bug (and
-      # thus this code is not triggered).
-      # The real problem may have been that Storage::GetDiskPartition() did
-      # not know how to parse /dev/cciss/c0d0p1, so that the default case at
-      # the beginning of this function did not set up correct values. These
-      # days, Storage::GetDiskPartition() looks OK with /dev/cciss.
-      # Deactivated this code, so that "/boot" does not get activated
-      # unecessarily when GRUB stage1 is installed to the MBR anyway (this
-      # would unecessarily have broken drive C: detection on older MS
-      # operating systems).
-      #	else if (num == 0)
-      #	{
-      #	    p_dev = Storage::GetDiskPartition (boot_partition);
-      #	    num = BootCommon::myToInteger( p_dev["nr"]:nil );
-      #	    mbr_dev = p_dev["disk"]:"";
-      #
-      #	    if (size (BootCommon::Md2Partitions (boot_partition)) > 1)
-      #	    {
-      #		foreach (string k, integer v, BootCommon::Md2Partitions (boot_partition),{
-      #		    if (search (k, loader_device) == 0)
-      #		    {
-      #			p_dev = Storage::GetDiskPartition (k);
-      #			num = BootCommon::myToInteger( p_dev["nr"]:nil );
-      #			mbr_dev = p_dev["disk"]:"";
-      #		    }
-      #		});
-      #	    }
-      #	}
 
       # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
       # if loader_device is disk device activate BootStorage::BootPartitionDevice
