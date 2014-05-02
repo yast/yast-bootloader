@@ -112,7 +112,7 @@ module Yast
       end
 
       if Ops.greater_than(num, 4)
-        Builtins.y2milestone("Bootloader partition type is logical")
+        Builtins.y2milestone("Bootloader partition type can be logical")
         tm = Storage.GetTargetMap
         partitions = Ops.get_list(tm, [mbr_dev, "partitions"], [])
         Builtins.foreach(partitions) do |p|
@@ -431,50 +431,49 @@ module Yast
       Builtins.foreach(grub_getPartitionsToActivate) do |m_activate|
         num = Ops.get_integer(m_activate, "num", 0)
         mbr_dev = Ops.get_string(m_activate, "mbr", "")
-        if num != 0 && mbr_dev != ""
-          # if primary partition
-          if !Ops.is_integer?(num) || Ops.less_or_equal(num, 4)
-            Builtins.y2milestone("Activating partition %1 on %2", num, mbr_dev)
-            # FIXME: this is the most rotten code since molded sliced bread
-            # move to bootloader/Core/GRUB.pm or similar
-            # TESTME: make sure that parted does not destroy BSD
-            # slices (#suse24740): cf. section 5.1 of "info parted":
-            #   Parted only supports the BSD disk label system.
-            #   Parted is unlikely to support the partition slice
-            #   system in the future because the semantics are rather
-            #   strange, and don't work like "normal" partition tables
-            #   do.
-            # FIXED: investigate proper handling of the activate flag
-            # (kernel ioctls in parted etc.) and fix parted
+        raise "INTERNAL ERROR: Data for partition to activate is invalid." if num == 0 || mbr_dev.empty?
 
-            # this is needed only on gpt disks but we run it always
-            # anyway; parted just fails, then
-            command = Builtins.sformat(
-              "/usr/sbin/parted -s %1 set %2 legacy_boot on",
-              mbr_dev,
-              num
-            )
-            Builtins.y2milestone("Running command %1", command)
-            out = Convert.to_map(
-              WFM.Execute(path(".local.bash_output"), command)
-            )
-            Builtins.y2milestone("Command output: %1", out)
+        gpt_disk = Storage.GetTargetMap[BootCommon.mbrDisk]["label"] == "gpt"
+        # if primary partition on old DOS MBR table, GPT do not have such limit
+        if gpt_disk || num <= 4
+          Builtins.y2milestone("Activating partition %1 on %2", num, mbr_dev)
+          # FIXME: this is the most rotten code since molded sliced bread
+          # move to bootloader/Core/GRUB.pm or similar
+          # TESTME: make sure that parted does not destroy BSD
+          # slices (#suse24740): cf. section 5.1 of "info parted":
+          #   Parted only supports the BSD disk label system.
+          #   Parted is unlikely to support the partition slice
+          #   system in the future because the semantics are rather
+          #   strange, and don't work like "normal" partition tables
+          #   do.
+          # FIXED: investigate proper handling of the activate flag
+          # (kernel ioctls in parted etc.) and fix parted
 
-            command = Builtins.sformat(
-              "/usr/sbin/parted -s %1 set %2 boot on",
-              mbr_dev,
-              num
-            )
-            Builtins.y2milestone("Running command %1", command)
-            out = Convert.to_map(
-              WFM.Execute(path(".local.bash_output"), command)
-            )
-            exit = Ops.get_integer(out, "exit", 0)
-            Builtins.y2milestone("Command output: %1", out)
-            ret = ret && 0 == exit
-          end
-        else
-          Builtins.y2error("Cannot activate %1", m_activate)
+          # this is needed only on gpt disks but we run it always
+          # anyway; parted just fails, then
+          command = Builtins.sformat(
+            "/usr/sbin/parted -s %1 set %2 legacy_boot on",
+            mbr_dev,
+            num
+          )
+          Builtins.y2milestone("Running command %1", command)
+          out = Convert.to_map(
+            WFM.Execute(path(".local.bash_output"), command)
+          )
+          Builtins.y2milestone("Command output: %1", out)
+
+          command = Builtins.sformat(
+            "/usr/sbin/parted -s %1 set %2 boot on",
+            mbr_dev,
+            num
+          )
+          Builtins.y2milestone("Running command %1", command)
+          out = Convert.to_map(
+            WFM.Execute(path(".local.bash_output"), command)
+          )
+          exit = Ops.get_integer(out, "exit", 0)
+          Builtins.y2milestone("Command output: %1", out)
+          ret = ret && 0 == exit
         end
       end if activate
       ret
