@@ -479,7 +479,7 @@ module Yast
       UpdateGfxMenu()
 
       # save bootloader settings
-      reinit = !(Mode.update || Mode.normal)
+      reinit = !Mode.normal
       Builtins.y2milestone(
         "Reinitialize bootloader library before saving: %1",
         reinit
