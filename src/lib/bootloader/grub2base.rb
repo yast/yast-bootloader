@@ -44,7 +44,7 @@ module Yast
         "vgamode"   => "",
         "gfxmode"   => "auto",
         "terminal"  => Arch.s390 ? "console" : "gfxterm",
-        "os_prober" => Arch.s390 ? "false" : "true",
+        "os_prober" => Arch.s390 || !BootStorage.multipath_mapping.empty?  ? "false" : "true",
         "activate"  => Arch.ppc ? "true" : "false"
       }
     end
