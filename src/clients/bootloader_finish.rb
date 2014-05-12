@@ -103,7 +103,7 @@ module Yast
             @finish_ret = Convert.to_map(WFM.call(@reipl_client))
             Builtins.y2milestone(
               "result of reipl_bootloader_finish [%1, %2]",
-              Ops.get_string(@finish_ret, "different", "N/A"),
+              Ops.get_boolean(@finish_ret, "different", true),
               Ops.get_string(@finish_ret, "ipl_msg", "N/A2")
             )
             Builtins.y2milestone(

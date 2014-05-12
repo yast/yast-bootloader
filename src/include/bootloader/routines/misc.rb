@@ -1183,7 +1183,74 @@ module Yast
     def WriteToSysconf(inst_bootloader)
       lt = getLoaderType(false)
       Builtins.y2milestone("Saving /etc/sysconfig/bootloader for %1", lt)
+      # save some sysconfig variables
+      # register new agent pointing into the mounted filesystem
+      sys_agent = path(".sysconfig.bootloader")
 
+      if inst_bootloader
+        sys_agent = Builtins.add(path(".target"), sys_agent)
+        target_sysconfig_path = Ops.add(
+          Installation.destdir,
+          "/etc/sysconfig/bootloader"
+        )
+        SCR.RegisterAgent(
+          sys_agent,
+          term(:ag_ini, term(:SysConfigFile, target_sysconfig_path))
+        )
+      end
+      CreateBLSysconfigFile(inst_bootloader)
+
+      comment = ""
+      comment = "\n" +
+        "## Path:\tSystem/Bootloader\n" +
+        "## Description:\tBootloader configuration\n" +
+        "## Type:\tlist(grub,grub2,grub2-efi,none)\n" +
+        "## Default:\tgrub2\n" +
+        "#\n" +
+        "# Type of bootloader in use.\n" +
+        "# For making the change effect run bootloader configuration tool\n" +
+        "# and configure newly selected bootloader\n" +
+        "#\n" +
+        "#\n"
+
+      WriteOptionToSysconfig(
+        inst_bootloader,
+        sys_agent,
+        path(".LOADER_TYPE"),
+        lt,
+        comment
+      )
+
+      comment = "\n" +
+        "## Path:\tSystem/Bootloader\n" +
+        "## Description:\tBootloader configuration\n" +
+        "## Type:\tyesno\n" +
+        "## Default:\t\"no\"\n" +
+        "#\n" +
+        "# Enable UEFI Secure Boot support\n" +
+        "# This setting is only relevant to UEFI which supports UEFI. It won't\n" +
+        "# take effect on any other firmware type.\n" +
+        "#\n" +
+        "#\n"
+
+      sb = getSystemSecureBootStatus(false) ? "yes" : "no"
+      WriteOptionToSysconfig(
+        inst_bootloader,
+        sys_agent,
+        path(".SECURE_BOOT"),
+        sb,
+        comment
+      )
+
+      grub1_extended_sysconfig(sysagent) if lt == "grub"
+
+      nil
+    end
+
+    # extended sysconfig options to be used only for grub1 as grub2 store it
+    # in its config (bnc#870890)
+    # @note remove when grub1 support will be removed
+    def grub1_extended_sysconfig(sysagent)
       default_boot_section_name = ""
       # fix for bnc #440125 - default boot section with failsafe args
       # it is not possible create exact algoritmus but I hope it helps in
@@ -1262,77 +1329,6 @@ module Yast
         xen_vga = default_vga
       end
 
-      # save some sysconfig variables
-      # register new agent pointing into the mounted filesystem
-      sys_agent = path(".sysconfig.bootloader")
-
-      if inst_bootloader
-        sys_agent = Builtins.add(path(".target"), sys_agent)
-        target_sysconfig_path = Ops.add(
-          Installation.destdir,
-          "/etc/sysconfig/bootloader"
-        )
-        SCR.RegisterAgent(
-          sys_agent,
-          term(:ag_ini, term(:SysConfigFile, target_sysconfig_path))
-        )
-      end
-      CreateBLSysconfigFile(inst_bootloader)
-
-      comment = ""
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tlist(grub,grub2,grub2-efi,none)\n" +
-        "## Default:\tgrub2\n" +
-        "#\n" +
-        "# Type of bootloader in use.\n" +
-        "# For making the change effect run bootloader configuration tool\n" +
-        "# and configure newly selected bootloader\n" +
-        "#\n" +
-        "#\n"
-      if !Arch.i386 && !Arch.x86_64
-        comment = "\n" +
-          " ## Path:\tSystem/Bootloader\n" +
-          "## Description:\tBootloader configuration\n" +
-          "## Type:\tstring\n" +
-          "## Default:\tnone\n" +
-          "#\n" +
-          "# Type of bootloader in use.\n" +
-          "# For making the change effect run bootloader configuration tool\n" +
-          "# and configure newly selected bootloader\n" +
-          "#\n" +
-          "#\n"
-      end
-
-      WriteOptionToSysconfig(
-        inst_bootloader,
-        sys_agent,
-        path(".LOADER_TYPE"),
-        lt,
-        comment
-      )
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tyesno\n" +
-        "## Default:\t\"no\"\n" +
-        "#\n" +
-        "# Enable UEFI Secure Boot support\n" +
-        "# This setting is only relevant to UEFI which supports UEFI. It won't\n" +
-        "# take effect on any other firmware type.\n" +
-        "#\n" +
-        "#\n"
-
-      sb = getSystemSecureBootStatus(false) ? "yes" : "no"
-      WriteOptionToSysconfig(
-        inst_bootloader,
-        sys_agent,
-        path(".SECURE_BOOT"),
-        sb,
-        comment
-      )
 
       comment = "\n" +
         "## Path:\tSystem/Bootloader\n" +
@@ -1345,18 +1341,6 @@ module Yast
         "# for kernel.\n" +
         "#\n"
 
-      if !Arch.i386 && !Arch.x86_64
-        comment = "\n" +
-          "## Path:\tSystem/Bootloader\n" +
-          "## Description:\tBootloader configuration\n" +
-          "## Type:\tstring\n" +
-          "## Default:\tnone\n" +
-          "#\n" +
-          "# Arguments for kernel which is used like default boot section.\n" +
-          "# If the options is commented perl-Bootloader uses his default arguments\n" +
-          "# for kernel.\n" +
-          "#\n"
-      end
       WriteOptionToSysconfig(
         inst_bootloader,
         sys_agent,
@@ -1409,31 +1393,6 @@ module Yast
           "# for kernel.\n" +
           "#\n"
       end
-      if Arch.ia64
-        comment = "\n" +
-          "## Path:\tSystem/Bootloader\n" +
-          "## Description:\tBootloader configuration\n" +
-          "## Type:\tstring\n" +
-          "## Default:\t\"nohalt noresume powersaved=off x11failsafe\"\n" +
-          "#\n" +
-          "# Arguments for kernel which is used like failsafe boot section\n" +
-          "# If the options is commented perl-Bootloader uses his default arguments\n" +
-          "# for kernel.\n" +
-          "#\n"
-      end
-
-      if Arch.s390
-        comment = "\n" +
-          "## Path:\tSystem/Bootloader\n" +
-          "## Description:\tBootloader configuration\n" +
-          "## Type:\tstring\n" +
-          "## Default:\tnone\n" +
-          "#\n" +
-          "# Arguments for kernel which is used like failsafe boot section\n" +
-          "# If the options is commented perl-Bootloader uses his default arguments\n" +
-          "# for kernel.\n" +
-          "#\n"
-      end
 
       WriteOptionToSysconfig(
         inst_bootloader,
@@ -1454,15 +1413,13 @@ module Yast
         "# Empty option could be cause of broken size of fonts etc.\n" +
         "#\n"
 
-      if Arch.i386 || Arch.x86_64 || Arch.ia64
-        WriteOptionToSysconfig(
-          inst_bootloader,
-          sys_agent,
-          path(".FAILSAFE_VGA"),
-          failsafe_vga,
-          comment
-        )
-      end
+      WriteOptionToSysconfig(
+        inst_bootloader,
+        sys_agent,
+        path(".FAILSAFE_VGA"),
+        failsafe_vga,
+        comment
+      )
 
       comment = "\n" +
         "## Path:\tSystem/Bootloader\n" +
@@ -1475,28 +1432,13 @@ module Yast
         "# for XEN kernel.\n" +
         "#\n"
 
-      if Arch.ia64
-        comment = "\n" +
-          "## Path:\tSystem/Bootloader\n" +
-          "## Description:\tBootloader configuration\n" +
-          "## Type:\tstring\n" +
-          "## Default:\t\"splash=silent quiet\"\n" +
-          "#\n" +
-          "# Arguments for XEN kernel in Dom0.\n" +
-          "# If the options is commented perl-Bootloader uses his default arguments\n" +
-          "# for XEN kernel.\n" +
-          "#\n"
-      end
-
-      if Arch.i386 || Arch.x86_64 || Arch.ia64
-        WriteOptionToSysconfig(
-          inst_bootloader,
-          sys_agent,
-          path(".XEN_KERNEL_APPEND"),
-          xen_kernel_append,
-          comment
-        )
-      end
+      WriteOptionToSysconfig(
+        inst_bootloader,
+        sys_agent,
+        path(".XEN_KERNEL_APPEND"),
+        xen_kernel_append,
+        comment
+      )
 
       comment = "\n" +
         "## Path:\tSystem/Bootloader\n" +
@@ -1508,15 +1450,13 @@ module Yast
         "# Usually it is empty or includes arguments like crashkernel for kdump etc.\n" +
         "#\n"
 
-      if Arch.i386 || Arch.x86_64 || Arch.ia64
-        WriteOptionToSysconfig(
-          inst_bootloader,
-          sys_agent,
-          path(".XEN_APPEND"),
-          xen_append,
-          comment
-        )
-      end
+      WriteOptionToSysconfig(
+        inst_bootloader,
+        sys_agent,
+        path(".XEN_APPEND"),
+        xen_append,
+        comment
+      )
 
       comment = "\n" +
         "## Path:\tSystem/Bootloader\n" +
@@ -1528,15 +1468,13 @@ module Yast
         "# If the options is commented or empty perl-Bootloader doesn't use it.\n" +
         "# Empty option could be cause of broken size of fonts etc.\n" +
         "#\n"
-      if Arch.i386 || Arch.x86_64 || Arch.ia64
-        WriteOptionToSysconfig(
-          inst_bootloader,
-          sys_agent,
-          path(".XEN_VGA"),
-          xen_vga,
-          comment
-        )
-      end
+      WriteOptionToSysconfig(
+        inst_bootloader,
+        sys_agent,
+        path(".XEN_VGA"),
+        xen_vga,
+        comment
+      )
 
       comment = "\n" +
         "## Path:\tSystem/Bootloader\n" +

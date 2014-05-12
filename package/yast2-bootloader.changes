@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon May 12 12:35:51 UTC 2014 - jreidinger@suse.com
+
+- extended sysconfig options only for grub1 to prevent confusion
+  (bnc#870890)
+- 3.1.34
+
+-------------------------------------------------------------------
 Tue May  6 11:20:06 UTC 2014 - jreidinger@suse.com
 
 - reinit perl-bootloader library in update mode to force write
