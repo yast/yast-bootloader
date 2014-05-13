@@ -1026,8 +1026,63 @@ module Yast
       end
     end
 
+    # Modify kernel parameters for installed kernels according to values
+    # For grub1 for backward compatibility modify default section
+    # @param [Hash]  values is map of keys and its values, keys are strings
+    #   and values are `:add`, `:remove` or string value
+    # @param [Array] flags to modify behavior
+    # @option flags [:guest,:host,nil] :xen specify which parameters modify for xen.
+    #   `:guess` add parameter for guest kernel, `:host` modify kernel for host
+    #   kernel and `nil` to not modify xen kernels.  Ignored for grub1
+    # @option flags [true,false] :recovery if modify also recovery kernel parameters.
+    #   Ignored for grub1.
+    # @option flags [true,false] :common if modify common kernel parameters.
+    #   Always true for grub1.
+    #
+    # @example add crashkernel parameter to common kernel, xen guest and also recovery
+    #   Bootloader.modify_kernel_params("crashkernel" => "256M@64M", :common => true, :xen => :guest, :recovery => true)
+    #
+    # @example remove cio_ignore parameter from common kernel only
+    #   Bootloader.modify_kernel_params("cio_ignore" => :remove)
+    #
+    # @example add feature_a parameter and remove feature_b from xen host kernel
+    #   Bootloader.modify_kernel_params("cio_ignore" => :remove, :xen => :host)
+    #
+    def modify_kernel_params(values, flags = { :common => true })
+      if ![:guest, :host, nil].include? flags[:xen]
+        raise ArgumentError, ":xen flag have invalid value #{flags[:xen].inspect}"
+      end
 
+      bl = getLoaderType
+      if bl =="grub" #for backward compatibility for grub
+        ret = true
+        values.each do |key, value|
+          value = "true" if value == :add
+          value = "false" if value == :remove
+          ret &&= setKernelParam("DEFAULT", key, value)
+        end
+        return ret
+      end
 
+      values.each do |key, value|
+        next if key == "root" # grub2 do not support modify root
+        if key == "vga"
+          BootCommon.globals["vgamode"] = value == :remove ? "" : value
+          next
+        else
+          kernel_lines = []
+          kernel_lines << "append" if flags[:common]
+          kernel_lines << "append_failsafe" if flags[:recovery]
+          kernel_lines << "xen_append" if flags[:xen] == :guest
+          kernel_lines << "xen_kernel_append" if flags[:xen] == :host
+          kernel_lines.each do |line_key|
+            BootCommon.globals[line_key] = BootCommon.setKernelParamToLine(BootCommon.globals[line_key], key, value)
+          end
+        end
+        BootCommon.globals["__modified"] = "1"
+        BootCommon.changed = true
+      end
+    end
 
     # set kernel parameter to menu.lst
     # @param [String] section string section title, use DEFAULT for default section
@@ -1035,6 +1090,7 @@ module Yast
     # @param [String] value string value, "false" to remove key,
     #   "true" to add key without value
     # @return [Boolean] true on success
+    # @deprecated use modify_kernel_param instead
     def setKernelParam(section, key, value)
       if !Mode.config && key == "vga" && (Arch.s390 || Arch.ppc)
         Builtins.y2warning(
