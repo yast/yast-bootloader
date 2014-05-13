@@ -1042,7 +1042,7 @@ module Yast
     # @example add crashkernel parameter to common kernel, xen guest and also recovery
     #   Bootloader.modify_kernel_params("crashkernel" => "256M@64M", :common => true, :xen => :guest, :recovery => true)
     #
-    # @example remove cio_ignore parameter from common kernel only
+    # @example remove cio_ignore parameter for common kernel only
     #   Bootloader.modify_kernel_params("cio_ignore" => :remove)
     #
     # @example add feature_a parameter and remove feature_b from xen host kernel
