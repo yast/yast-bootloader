@@ -1001,6 +1001,7 @@ module Yast
     # @param [String] key string
     # @return [String] value, "false" if not present,
     # "true" if present key without value
+    # @deprecated Use kernel_param instead
     def getKernelParam(section, key)
       ReadOrProposeIfNeeded()
       if section == "DEFAULT"
@@ -1026,39 +1027,90 @@ module Yast
       end
     end
 
+    FLAVOR_KERNEL_LINE_MAP = {
+      :common    => "append",
+      :recovery  => "append_failsafe",
+      :xen_guest => "xen_append",
+      :xen_host  => "xen_kernel_append"
+    }
+
+    # Gets value for given parameter in kernel parameters for given flavor.
+    # @note For grub1 it returns value for default section and its kernel parameter
+    # @param [Symbol] flavor flavor of kernel, for possible values see #modify_kernel_param
+    # @param [String] key of parameter on kernel command line
+    # @returns [String,:missing,:present] Returns string for parameters with value,
+    #   `:missing` if key is not there and `:present` for parameters without value.
+    #
+    # @example get crashkernel parameter to common kernel
+    #   Bootloader.kernel_param("crashkernel")
+    #   => "256M@64B"
+    #
+    # @example get cio_ignore parameter for recovery kernel when missing
+    #   Bootloader.kernel_param("cio_ignore", :recovery)
+    #   => :missing
+    #
+    # @example get verbose parameter for xen_guest which is there
+    #   Bootloader.kernel_param("verbose", :xen_guest)
+    #   => :present
+    #
+
+    def kernel_param(key, flavor = :common)
+      bl = getLoaderType
+      if bl == "grub"
+        ret = getKernelParam("DEFAULT", key)
+      else
+        ReadOrProposeIfNeeded() # ensure we have some data
+
+        kernel_line_key = FLAVOR_KERNEL_LINE_MAP[flavor]
+        raise ArgumentError, "Unknown flavor #{flavor}" unless kernel_line_key
+
+        line = BootCommon.globals[kernel_line_key]
+        ret = BootCommon.getKernelParamFromLine(line, key)
+      end
+
+      # map old api response to new one
+      api_mapping = { "true" => :present, "false" => :missing }
+      return api_mapping[ret] || ret
+    end
+
     # Modify kernel parameters for installed kernels according to values
     # For grub1 for backward compatibility modify default section
-    # @param [Hash]  values is map of keys and its values, keys are strings
-    #   and values are `:add`, `:remove` or string value
-    # @param [Array] flags to modify behavior
-    # @option flags [:guest,:host,nil] :xen specify which parameters modify for xen.
-    #   `:guess` add parameter for guest kernel, `:host` modify kernel for host
-    #   kernel and `nil` to not modify xen kernels.  Ignored for grub1
-    # @option flags [true,false] :recovery if modify also recovery kernel parameters.
-    #   Ignored for grub1.
-    # @option flags [true,false] :common if modify common kernel parameters.
-    #   Always true for grub1.
+    # @param [Array]  args parameters to modify. Last parameter is hash with keys
+    #   and its values, keys are strings and values are `:present`, `:missing` or
+    #   string value. Other parameters specify which kernel flavors are affected.
+    #   Known values are:
+    #     - `:common` for non-specific flavor
+    #     - `:recovery` for fallback boot entries
+    #     - `:xen_guest` for xen guest kernels
+    #     - `:xen_host` for xen host kernels
     #
     # @example add crashkernel parameter to common kernel, xen guest and also recovery
-    #   Bootloader.modify_kernel_params("crashkernel" => "256M@64M", :common => true, :xen => :guest, :recovery => true)
+    #   Bootloader.modify_kernel_params(:common, :recovery, :xen_guest, "crashkernel" => "256M@64M")
+    #
+    # @example same as before just with array passing
+    #   targets = [:common, :recovery, :xen_guest]
+    #   Bootloader.modify_kernel_params(targets, "crashkernel" => "256M@64M")
     #
     # @example remove cio_ignore parameter for common kernel only
-    #   Bootloader.modify_kernel_params("cio_ignore" => :remove)
+    #   Bootloader.modify_kernel_params("cio_ignore" => :missing)
     #
     # @example add feature_a parameter and remove feature_b from xen host kernel
-    #   Bootloader.modify_kernel_params("cio_ignore" => :remove, :xen => :host)
+    #   Bootloader.modify_kernel_params(:xen_host, "cio_ignore" => :present)
     #
-    def modify_kernel_params(values, flags = { :common => true })
-      if ![:guest, :host, nil].include? flags[:xen]
-        raise ArgumentError, ":xen flag have invalid value #{flags[:xen].inspect}"
+    def modify_kernel_params(*args)
+      values = args.pop
+      if !values.is_a? Hash
+        raise ArgumentError, "Missing parameters to modify #{args.inspect}"
       end
+      args = [:common] if args.empty? # by default change common kernels only
+      args = args.first if args.first.is_a? Array # support array like syntax
 
       bl = getLoaderType
       if bl =="grub" #for backward compatibility for grub
         ret = true
         values.each do |key, value|
-          value = "true" if value == :add
-          value = "false" if value == :remove
+          value = "true" if value == :present
+          value = "false" if value == :missing
           ret &&= setKernelParam("DEFAULT", key, value)
         end
         return ret
@@ -1070,11 +1122,10 @@ module Yast
           BootCommon.globals["vgamode"] = value == :remove ? "" : value
           next
         else
-          kernel_lines = []
-          kernel_lines << "append" if flags[:common]
-          kernel_lines << "append_failsafe" if flags[:recovery]
-          kernel_lines << "xen_append" if flags[:xen] == :guest
-          kernel_lines << "xen_kernel_append" if flags[:xen] == :host
+          kernel_lines = args.map do |a|
+            FLAVOR_KERNEL_LINE_MAP[a] ||
+              raise(ArgumentError, "Invalid argument #{a.inspect}")
+          end
           kernel_lines.each do |line_key|
             BootCommon.globals[line_key] = BootCommon.setKernelParamToLine(BootCommon.globals[line_key], key, value)
           end
