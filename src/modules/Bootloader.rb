@@ -1042,19 +1042,19 @@ module Yast
     #   `:missing` if key is not there and `:present` for parameters without value.
     #
     # @example get crashkernel parameter to common kernel
-    #   Bootloader.kernel_param("crashkernel")
+    #   Bootloader.kernel_param(:common, "crashkernel")
     #   => "256M@64B"
     #
     # @example get cio_ignore parameter for recovery kernel when missing
-    #   Bootloader.kernel_param("cio_ignore", :recovery)
+    #   Bootloader.kernel_param(:recovery, "cio_ignore")
     #   => :missing
     #
     # @example get verbose parameter for xen_guest which is there
-    #   Bootloader.kernel_param("verbose", :xen_guest)
+    #   Bootloader.kernel_param(:xen_guest, "verbose")
     #   => :present
     #
 
-    def kernel_param(key, flavor = :common)
+    def kernel_param(flavor, key)
       bl = getLoaderType
       if bl == "grub"
         ret = getKernelParam("DEFAULT", key)

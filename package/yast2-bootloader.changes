@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 14 09:22:15 UTC 2014 - jreidinger@suse.com
+
+- add new API call to work nice with grub2 kernel parameter
+  configuration (bnc#869608)
+- 3.1.35
+
+-------------------------------------------------------------------
 Mon May 12 12:35:51 UTC 2014 - jreidinger@suse.com
 
 - extended sysconfig options only for grub1 to prevent confusion
