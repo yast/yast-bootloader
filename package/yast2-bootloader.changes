@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri May 16 17:10:26 CEST 2014 - snwint@suse.de
+
+- get rid of grub in loader type selection
+- 3.1.37
+
+-------------------------------------------------------------------
 Fri May 16 13:44:48 UTC 2014 - jreidinger@suse.com
 
 - fix progress report to not show 100% and waiting to write
