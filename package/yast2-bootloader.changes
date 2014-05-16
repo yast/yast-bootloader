@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May 16 13:44:48 UTC 2014 - jreidinger@suse.com
+
+- fix progress report to not show 100% and waiting to write
+  bootloader (bnc#878007)
+- 3.1.36
+
+-------------------------------------------------------------------
 Wed May 14 09:22:15 UTC 2014 - jreidinger@suse.com
 
 - add new API call to work nice with grub2 kernel parameter

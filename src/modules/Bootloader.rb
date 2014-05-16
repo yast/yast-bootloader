@@ -383,7 +383,7 @@ module Yast
         Progress.New(
           _("Saving Boot Loader Configuration"),
           " ",
-          2,
+          stages.size,
           stages,
           titles,
           ""
