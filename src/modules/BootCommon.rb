@@ -961,8 +961,7 @@ module Yast
         ]
       end
       ret = [
-        getLoaderType(false),
-        Convert.to_string(SCR.Read(path(".probe.boot_arch")))
+        getLoaderType(false)
       ]
       if Arch.i386 || Arch.x86_64
         ret = Convert.convert(
