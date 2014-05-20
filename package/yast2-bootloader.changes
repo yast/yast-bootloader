@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 27 11:06:47 UTC 2014 - mchang@suse.com
+
+- reinstall bootloader if the settings requires it
+- 3.1.42
+
+-------------------------------------------------------------------
 Tue May 27 07:48:09 UTC 2014 - jreidinger@suse.com
 
 - Fix detection if bootloader installation failed (bnc#879883)

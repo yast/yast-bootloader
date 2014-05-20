@@ -41,6 +41,7 @@ module Yast
       BootCommon.InitializeLibrary(reread, "grub2-efi")
       BootCommon.ReadFiles(avoid_reading_device_map) if reread
       BootCommon.Read(false, avoid_reading_device_map)
+      @orig_globals ||= deep_copy(BootCommon.globals)
     end
 
     # Write bootloader settings to disk
@@ -48,6 +49,7 @@ module Yast
     def Write
       ret = BootCommon.UpdateBootloader
 
+      BootCommon.location_changed = true if @orig_globals["distributor"] != BootCommon.globals["distributor"]
       if BootCommon.location_changed
         grub_ret = BootCommon.InitializeBootloader
         grub_ret = false if grub_ret == nil
