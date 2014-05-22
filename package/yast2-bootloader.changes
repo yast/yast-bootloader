@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu May 22 13:06:25 UTC 2014 - jreidinger@suse.com
+
+- Report if grub2-install failed so user see quickly, that he
+  cannot boot(bnc#878664)
+- 3.1.38
+
+-------------------------------------------------------------------
 Fri May 16 17:10:26 CEST 2014 - snwint@suse.de
 
 - get rid of grub in loader type selection
