@@ -348,7 +348,10 @@ module Yast
     def InitializeBootloader
       Builtins.y2milestone("Initializing bootloader")
 
-      run_pbl_yaml "InitializeBootloader()"
+      ret = run_pbl_yaml "InitializeBootloader()"
+      # perl have slightly different evaluation of boolean, so lets convert it
+      ret = false if [nil,0,""].include? ret
+      return ret
     end
 
     # Get contents of files from the library cache
