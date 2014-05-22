@@ -350,7 +350,7 @@ module Yast
 
       ret = run_pbl_yaml "InitializeBootloader()"
       # perl have slightly different evaluation of boolean, so lets convert it
-      ret = false if [nil,0,""].include? ret
+      ret = ![false, nil, 0, ""].include? ret
       return ret
     end
 
