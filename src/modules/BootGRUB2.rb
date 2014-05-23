@@ -261,7 +261,11 @@ module Yast
 
       # it is necessary different summary for autoyast and installation
       # other mode than autoyast on running system
-      result = Builtins.add(result, urlLocationSummary) if !Mode.config
+      # both ppc and s390 have special devices for stage1 so it do not make sense
+      # allow change of location to MBR or boot partition (bnc#879107)
+      if !Arch.ppc && Arch.s390 && !Mode.config
+        result = Builtins.add(result, urlLocationSummary) if !Mode.config
+      end
 
       order_sum = BootCommon.DiskOrderSummary
       result = Builtins.add(result, order_sum) if order_sum != nil
