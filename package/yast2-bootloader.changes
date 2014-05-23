@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May 23 14:32:07 UTC 2014 - jreidinger@suse.com
+
+- Installation Summary: do not allow change location for grub2
+  on ppc and s390 (bnc#879107)
+- 3.1.39
+
+-------------------------------------------------------------------
 Thu May 22 13:06:25 UTC 2014 - jreidinger@suse.com
 
 - Report if grub2-install failed so user see quickly, that he
