@@ -218,45 +218,26 @@ module Yast
       ]
       locations = []
 
-      if Ops.get(BootCommon.globals, "boot_boot", "") == "true"
-        locations = Builtins.add(
-          locations,
-          Ops.add(BootStorage.BootPartitionDevice, _(" (\"/boot\")"))
-        )
+      if BootCommon.globals["boot_boot"] == "true"
+        locations << BootStorage.BootPartitionDevice + _(" (\"/boot\")")
       end
-      if Ops.get(BootCommon.globals, "boot_extended", "") == "true"
-        locations = Builtins.add(
-          locations,
-          Ops.add(BootStorage.ExtendedPartitionDevice, _(" (extended)"))
-        )
+      if BootCommon.globals["boot_extended"] == "true"
+        locations << BootStorage.ExtendedPartitionDevice + _(" (extended)")
       end
-      if Ops.get(BootCommon.globals, "boot_root", "") == "true"
-        locations = Builtins.add(
-          locations,
-          Ops.add(BootStorage.RootPartitionDevice, _(" (\"/\")"))
-        )
+      if BootCommon.globals["boot_root"] == "true"
+        locations = BootStorage.RootPartitionDevice + _(" (\"/\")")
       end
-      if Ops.get(BootCommon.globals, "boot_mbr", "") == "true"
-        locations = Builtins.add(
-          locations,
-          Ops.add(BootCommon.mbrDisk, _(" (MBR)"))
-        )
+      if BootCommon.globals["boot_mbr"] == "true"
+        locations << BootCommon.mbrDisk + _(" (MBR)")
       end
-      if Builtins.haskey(BootCommon.globals, "boot_custom")
-        locations = Builtins.add(
-          locations,
-          Ops.get(BootCommon.globals, "boot_custom", "")
-        )
+      if BootCommon.globals["boot_custom"] && !BootCommon.globals["boot_custom"].empty?
+        locations << BootCommon.globals["boot_custom"]
       end
-      if Ops.greater_than(Builtins.size(locations), 0)
-        # FIXME: should we translate all devices to names and add MBR suffixes?
-        result = Builtins.add(
-          result,
-          Builtins.sformat(
+      if !locations.empty?
+        result += Builtins.sformat(
             _("Status Location: %1"),
-            Builtins.mergestring(locations, ", ")
+            locations.join(", ")
           )
-        )
       end
 
       # it is necessary different summary for autoyast and installation
@@ -264,12 +245,13 @@ module Yast
       # both ppc and s390 have special devices for stage1 so it do not make sense
       # allow change of location to MBR or boot partition (bnc#879107)
       if !Arch.ppc && Arch.s390 && !Mode.config
-        result = Builtins.add(result, urlLocationSummary) if !Mode.config
+        result += urlLocationSummary
       end
 
       order_sum = BootCommon.DiskOrderSummary
-      result = Builtins.add(result, order_sum) if order_sum != nil
-      deep_copy(result)
+      result += order_sum if order_sum
+
+      return result
     end
 
     def Dialogs
