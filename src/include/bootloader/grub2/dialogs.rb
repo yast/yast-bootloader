@@ -31,6 +31,8 @@ module Yast
       Yast.import "Stage"
 
       Yast.include include_target, "bootloader/grub2/options.rb"
+      # some utils from misc are needed here
+      Yast.include include_target, "bootloader/grub2/misc.rb"
 
       Yast.include include_target, "bootloader/grub/options.rb"
 
