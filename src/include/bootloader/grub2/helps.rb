@@ -42,7 +42,7 @@ module Yast
         "vgamode"         => _("&Vga Mode"),
         "append_failsafe" => _("&Failsafe Kernel Command Line Parameter"),
         "os_prober"       => _("Probe Foreign OS"),
-        "label"           => _("Protective MBR flag")
+        "pmbr"           => _("Protective MBR flag")
       }
     end
   end
