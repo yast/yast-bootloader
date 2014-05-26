@@ -108,6 +108,10 @@ module Yast
       # Activate bootloader partition during installation?
       @activate = false
 
+      # action to do with pbmr flag on boot disk
+      # values are :add, :remove or nil, means do nothing
+      @pmbr_action = nil
+
       # Kernel parameters at previous detection
       @kernelCmdLine = ""
 
