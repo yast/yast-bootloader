@@ -219,15 +219,18 @@ module Yast
       locations = []
 
       if BootCommon.globals["boot_boot"] == "true"
-        locations << BootStorage.BootPartitionDevice + _(" (\"/boot\")")
+        locations << BootStorage.BootPartitionDevice + " (\"/boot\")"
       end
       if BootCommon.globals["boot_extended"] == "true"
+        # TRANSLATORS: extended is here for extended partition. Keep translation short.
         locations << BootStorage.ExtendedPartitionDevice + _(" (extended)")
       end
       if BootCommon.globals["boot_root"] == "true"
-        locations = BootStorage.RootPartitionDevice + _(" (\"/\")")
+        locations = BootStorage.RootPartitionDevice + " (\"/\")"
       end
       if BootCommon.globals["boot_mbr"] == "true"
+        # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
+        # is used in your language, then keep it as it is.
         locations << BootCommon.mbrDisk + _(" (MBR)")
       end
       if BootCommon.globals["boot_custom"] && !BootCommon.globals["boot_custom"].empty?
