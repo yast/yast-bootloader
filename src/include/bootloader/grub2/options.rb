@@ -384,7 +384,7 @@ module Yast
         "pmbr"         => {
           "widget" => :combobox,
           "label"  => @grub2_descriptions["pmbr"],
-          "opt"    => [:hstretch],
+          "opt"    => [],
           "init"   => fun_ref(method(:PMBRInit), "void (string)"),
           "store"  => fun_ref(method(:StorePMBR), "void (string, map)"),
           "help"   => @grub2_help_messages["pmbr"]
