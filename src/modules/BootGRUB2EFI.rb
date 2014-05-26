@@ -56,6 +56,15 @@ module Yast
         ret = ret && grub_ret
       end
 
+      # something with PMBR needed
+      if BootCommon.pmbr_action
+        efi_disk = Storage.GetEntryForMountPoint("/boot/efi")["device"]
+        efi_disk ||= Storage.GetEntryForMountPoint("/boot")["device"]
+        efi_disk ||= Storage.GetEntryForMountPoint("/")["device"]
+
+        pmbr_setup(BootCommon.pmbr_action, efi_disk)
+      end
+
       ret
     end
 
