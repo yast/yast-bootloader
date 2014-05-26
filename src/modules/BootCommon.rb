@@ -1039,6 +1039,7 @@ module Yast
     publish :variable => :mbrDisk, :type => "string"
     publish :variable => :backup_mbr, :type => "boolean"
     publish :variable => :activate, :type => "boolean"
+    publish :variable => :pmbr_action, :type => "symbol"
     publish :variable => :kernelCmdLine, :type => "string"
     publish :variable => :changed, :type => "boolean"
     publish :variable => :del_parts, :type => "list <string>"

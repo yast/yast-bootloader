@@ -733,7 +733,18 @@ module Yast
         SetBootloaderDevice(selected_location)
       end
 
+      # for GPT remove protective MBR flag otherwise some systems won't boot
+      if gpt_boot_disk?
+        BootCommon.pmbr_action = :remove
+      end
+
       selected_location
+    end
+
+    def gpt_boot_disk?
+      targets = BootCommon.GetBootloaderDevices
+      boot_discs = targets.map {|d| Storage.GetDisk(Storage.GetTargetMap, d)}
+      boot_discs.any? {|d| d["label"] == "gpt" }
     end
 
     # Find extended partition device (if it exists) on the same device where the

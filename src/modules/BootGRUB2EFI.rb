@@ -59,6 +59,13 @@ module Yast
       ret
     end
 
+    def Propose
+      super
+
+      # for UEFI always set PMBR flag on disk (bnc#872054)
+      BootCommon.pmbr_action = :add if !BootCommon.was_proposed || Mode.autoinst
+    end
+
     # Display bootloader summary
     # @return a list of summary lines
 
