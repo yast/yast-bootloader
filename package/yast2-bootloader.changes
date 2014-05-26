@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon May 26 15:31:16 UTC 2014 - jreidinger@suse.com
+
+- add support to set Protective MBR and use reasonable proposal
+  (bnc#872054)
+- 3.1.39
+
+-------------------------------------------------------------------
 Thu May 22 13:06:25 UTC 2014 - jreidinger@suse.com
 
 - Report if grub2-install failed so user see quickly, that he
