@@ -244,7 +244,7 @@ module Yast
       # other mode than autoyast on running system
       # both ppc and s390 have special devices for stage1 so it do not make sense
       # allow change of location to MBR or boot partition (bnc#879107)
-      if !Arch.ppc && Arch.s390 && !Mode.config
+      if !Arch.ppc && !Arch.s390 && !Mode.config
         result += urlLocationSummary
       end
 
