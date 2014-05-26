@@ -3,6 +3,13 @@ Mon May 26 15:31:16 UTC 2014 - jreidinger@suse.com
 
 - add support to set Protective MBR and use reasonable proposal
   (bnc#872054)
+- 3.1.40
+
+-------------------------------------------------------------------
+Fri May 23 14:32:07 UTC 2014 - jreidinger@suse.com
+
+- Installation Summary: do not allow change location for grub2
+  on ppc and s390 (bnc#879107)
 - 3.1.39
 
 -------------------------------------------------------------------
