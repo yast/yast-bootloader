@@ -84,6 +84,7 @@ module Yast
         end
       end
 
+      @orig_globals ||= deep_copy(BootCommon.globals)
       ret
     end
 
@@ -91,6 +92,11 @@ module Yast
     # @return [Boolean] true on success
     def Write
       ret = BootCommon.UpdateBootloader
+
+      location = ["boot_mbr", "boot_boot", "boot_root", "boot_extended", "boot_custom", "boot_custom", "activate", "generic_mbr"]
+      location.each do |i|
+         BootCommon.location_changed = true if @orig_globals[i] != BootCommon.globals[i]
+      end
 
       #TODO: InstallingToFloppy ..
       if BootCommon.location_changed
