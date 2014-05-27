@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 27 07:48:09 UTC 2014 - jreidinger@suse.com
+
+- Fix detection if bootloader installation failed (bnc#879883)
+- 3.1.41
+
+-------------------------------------------------------------------
 Mon May 26 15:31:16 UTC 2014 - jreidinger@suse.com
 
 - add support to set Protective MBR and use reasonable proposal
