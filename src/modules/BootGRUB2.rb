@@ -243,7 +243,7 @@ module Yast
         locations << BootStorage.ExtendedPartitionDevice + _(" (extended)")
       end
       if BootCommon.globals["boot_root"] == "true"
-        locations = BootStorage.RootPartitionDevice + " (\"/\")"
+        locations << BootStorage.RootPartitionDevice + " (\"/\")"
       end
       if BootCommon.globals["boot_mbr"] == "true"
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
