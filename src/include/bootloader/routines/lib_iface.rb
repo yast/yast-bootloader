@@ -346,9 +346,11 @@ module Yast
     # Initialize the boot loader (eg. modify firmware, depending on architecture)
     # @return [Boolean] true on success
     def InitializeBootloader
-      Builtins.y2milestone("Initializing bootloader")
+      ret_data = TmpYAMLFile.new
+      run_pbl_yaml "#{ret_data.path}=InitializeBootloader()"
+      ret = ret_data.data
+      Builtins.y2milestone("Initializing bootloader ret: #{ret.inspect}")
 
-      ret = run_pbl_yaml "InitializeBootloader()"
       # perl have slightly different evaluation of boolean, so lets convert it
       ret = ![false, nil, 0, ""].include?(ret)
       return ret
