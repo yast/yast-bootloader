@@ -31,6 +31,9 @@ module Yast
         ),
         "os_prober"       => _(
           "<p><b>Probe Foreign OS</b> by means of os-prober for multiboot with other foreign distribution </p>"
+        ),
+        "pmbr"            => _(
+          "<p><b>Protective MBR flag</b> is expert only settings, that is needed only on exotic hardware. For details see Protective MBR in GPT disks. Do not touch if you are not sure.</p>"
         )
       }
 
@@ -38,7 +41,8 @@ module Yast
         "append"          => _("O&ptional Kernel Command Line Parameter"),
         "vgamode"         => _("&Vga Mode"),
         "append_failsafe" => _("&Failsafe Kernel Command Line Parameter"),
-        "os_prober"       => _("Probe Foreign OS")
+        "os_prober"       => _("Probe Foreign OS"),
+        "pmbr"           => _("Protective MBR flag")
       }
     end
   end

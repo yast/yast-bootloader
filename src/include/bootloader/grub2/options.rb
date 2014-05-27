@@ -94,6 +94,32 @@ module Yast
       nil
     end
 
+    # Init function of widget
+    # @param [String] widget any id of the widget
+    def PMBRInit(widget)
+      items = [
+        # TRANSLATORS: set flag on disk
+        Item(Id(:add), _("set")),
+        # TRANSLATORS: remove flag from disk
+        Item(Id(:remove), _("remove")),
+        # TRANSLATORS: do not change flag on disk
+        Item(Id(:nothing), _("do not change"))
+      ]
+      UI.ChangeWidget(Id(widget), :Items, items)
+      value = BootCommon.pmbr_action || :nothing
+      UI.ChangeWidget(Id(widget), :Value, value)
+    end
+
+    # Store function of a pmbr
+    # @param [String] widget any widget key
+    # @param [Hash] event map event description of event that occured
+    def StorePMBR(widget, event)
+      value = UI.QueryWidget(Id(widget), :Value)
+      value = nil if value == :nothing
+
+      BootCommon.pmbr_action = value
+    end
+
     # Init function for console
     # @param [String] widget
     def ConsoleInit(widget)
@@ -354,6 +380,14 @@ module Yast
           "init"   => fun_ref(method(:VgaModeInit), "void (string)"),
           "store"  => fun_ref(method(:StoreGlobalStr), "void (string, map)"),
           "help"   => Ops.get(@grub2_help_messages, "vgamode", "")
+        },
+        "pmbr"         => {
+          "widget" => :combobox,
+          "label"  => @grub2_descriptions["pmbr"],
+          "opt"    => [],
+          "init"   => fun_ref(method(:PMBRInit), "void (string)"),
+          "store"  => fun_ref(method(:StorePMBR), "void (string, map)"),
+          "help"   => @grub2_help_messages["pmbr"]
         },
         "default"         => {
           "widget" => :combobox,

@@ -31,6 +31,8 @@ module Yast
       Yast.import "Stage"
 
       Yast.include include_target, "bootloader/grub2/options.rb"
+      # some utils from misc are needed here
+      Yast.include include_target, "bootloader/grub2/misc.rb"
 
       Yast.include include_target, "bootloader/grub/options.rb"
 
@@ -43,9 +45,11 @@ module Yast
       lt = BootCommon.getLoaderType(false)
 
       legacy_intel = (Arch.x86_64 || Arch.i386) && lt != "grub2-efi"
+      pmbr_available = lt == "grub2-efi" || (legacy_intel && gpt_boot_disk?)
       widget_names = ["distributor", "loader_type", "loader_location"]
       widget_names << "activate" << "generic_mbr" if legacy_intel
       widget_names << "inst_details" if legacy_intel || Arch.ppc
+      widget_names << "pmbr" if pmbr_available
 
       {
         "id"           => "boot_code_tab",
@@ -59,6 +63,7 @@ module Yast
           MarginBox(1, 0.5, "distributor"),
           MarginBox(1, 0.5, Left("activate")),
           MarginBox(1, 0.5, Left("generic_mbr")),
+          MarginBox(1, 0.5, Left("pmbr")),
           MarginBox(1, 0.5, Left("inst_details")),
           VStretch()
         )
