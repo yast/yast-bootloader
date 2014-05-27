@@ -60,9 +60,9 @@ module Yast
 
       # something with PMBR needed
       if BootCommon.pmbr_action
-        efi_disk = Storage.GetEntryForMountPoint("/boot/efi")["device"]
-        efi_disk ||= Storage.GetEntryForMountPoint("/boot")["device"]
-        efi_disk ||= Storage.GetEntryForMountPoint("/")["device"]
+        efi_disk = Storage.GetEntryForMountpoint("/boot/efi")["device"]
+        efi_disk ||= Storage.GetEntryForMountpoint("/boot")["device"]
+        efi_disk ||= Storage.GetEntryForMountpoint("/")["device"]
 
         pmbr_setup(BootCommon.pmbr_action, efi_disk)
       end
