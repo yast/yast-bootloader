@@ -254,7 +254,7 @@ module Yast
         locations << BootCommon.globals["boot_custom"]
       end
       if !locations.empty?
-        result += Builtins.sformat(
+        result << Builtins.sformat(
             _("Status Location: %1"),
             locations.join(", ")
           )
@@ -265,11 +265,11 @@ module Yast
       # both ppc and s390 have special devices for stage1 so it do not make sense
       # allow change of location to MBR or boot partition (bnc#879107)
       if !Arch.ppc && !Arch.s390 && !Mode.config
-        result += urlLocationSummary
+        result << urlLocationSummary
       end
 
       order_sum = BootCommon.DiskOrderSummary
-      result += order_sum if order_sum
+      result << order_sum if order_sum
 
       return result
     end
