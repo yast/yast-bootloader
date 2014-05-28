@@ -143,38 +143,13 @@ module Yast
 
     def check_BootDevice
       result = true
-      boot_device = ""
-
       devices = Storage.GetTargetMap
 
       boot_device = BootCommon.getBootPartition
 
-      boot_disk = BootCommon.getBootDisk
-      # if (BootStorage::BootPartitionDevice == BootStorage::RootPartitionDevice)
-      # AddNewProblem (_("Doesn't exist separete /boot partition"));
-
       found_boot = false
       # check if boot device is on raid0
       Builtins.foreach(devices) do |k, v|
-        # check if boot disk is iscsi disk
-        # bnc#393928: Installing root system on iscsi disk makes the system useless
-        if k == boot_disk
-          # if "iscsi" is true
-          if Ops.get_boolean(v, "iscsi", false)
-            AddNewProblem(
-              Builtins.sformat(
-                _("The boot device is on iSCSI disk: %1. System may not boot."),
-                k
-              )
-            )
-            Builtins.y2error(
-              "The boot partition: %1 is on iscsi disk: %2",
-              boot_device,
-              k
-            )
-            result = false
-          end
-        end
         Builtins.foreach(Ops.get_list(v, "partitions", [])) do |p|
           if Ops.get_string(p, "device", "") == boot_device
             if Ops.get_string(p, "raid_type", "") != "raid1" &&

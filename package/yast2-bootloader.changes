@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 28 14:19:36 UTC 2014 - jreidinger@suse.com
+
+- Remove check for iscsi boot partition (bnc#880328)
+- 3.1.45
+
+-------------------------------------------------------------------
 Wed May 28 13:23:19 UTC 2014 - jreidinger@suse.com
 
 - fix crash in summary page of installation for grub2 (bnc#880324)
