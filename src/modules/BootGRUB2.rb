@@ -93,9 +93,14 @@ module Yast
     def Write
       ret = BootCommon.UpdateBootloader
 
-      location = ["boot_mbr", "boot_boot", "boot_root", "boot_extended", "boot_custom", "boot_custom", "activate", "generic_mbr"]
-      location.each do |i|
-         BootCommon.location_changed = true if @orig_globals[i] != BootCommon.globals[i]
+      if @orig_globals
+        location = ["boot_mbr", "boot_boot", "boot_root", "boot_extended", "boot_custom", "boot_custom", "activate", "generic_mbr"]
+        location.each do |i|
+           BootCommon.location_changed = true if @orig_globals[i] != BootCommon.globals[i]
+        end
+      else
+        # there is no original, so we do not read config, but propose it
+        BootCommon.location_changed = true
       end
 
       #TODO: InstallingToFloppy ..
