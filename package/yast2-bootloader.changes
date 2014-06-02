@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun  2 09:07:14 UTC 2014 - jreidinger@suse.com
+
+-  fix typo causing crash when writing pmbr flag (bnc#880893)
+- 3.1.47
+
+-------------------------------------------------------------------
 Thu May 29 13:47:40 UTC 2014 - jreidinger@suse.com
 
 - Fix crash in upgrade from SLE11
