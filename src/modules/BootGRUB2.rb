@@ -120,7 +120,7 @@ module Yast
       # something with PMBR needed
       if BootCommon.pmbr_action
         boot_devices = BootCommon.GetBootloaderDevices
-        boot_discs = targets.map {|d| Storage.GetDisk(Storage.GetTargetMap, d)}
+        boot_discs = boot_devices.map {|d| Storage.GetDisk(Storage.GetTargetMap, d)}
         boot_discs.uniq!
         gpt_disks = boot_discs.select {|d| d["label"] == "gpt" }
         gpt_disks_devices = gpt_disks.map {|d| d["device"] }
