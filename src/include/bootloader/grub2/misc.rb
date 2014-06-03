@@ -28,6 +28,7 @@ module Yast
       Yast.import "BootCommon"
       Yast.import "PackageSystem"
       Yast.import "Map"
+      Yast.import "Arch"
     end
 
     # --------------------------------------------------------------
@@ -435,7 +436,8 @@ module Yast
 
         gpt_disk = Storage.GetTargetMap[BootCommon.mbrDisk]["label"] == "gpt"
         # if primary partition on old DOS MBR table, GPT do not have such limit
-        if gpt_disk || num <= 4
+
+        if !(Arch.ppc && gpt_disk) && (gpt_disk || num <= 4)
           Builtins.y2milestone("Activating partition %1 on %2", num, mbr_dev)
           # FIXME: this is the most rotten code since molded sliced bread
           # move to bootloader/Core/GRUB.pm or similar
