@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jun  3 18:13:05 UTC 2014 - dvaleev@suse.com
+
+- Setting boot flag on GPT PReP resets prep flag which leads to
+   grub2-install unable to install a bootloader (bnc#880094)
+- 3.1.48
+
+-------------------------------------------------------------------
 Mon Jun  2 09:07:14 UTC 2014 - jreidinger@suse.com
 
 -  fix typo causing crash when writing pmbr flag (bnc#880893)
