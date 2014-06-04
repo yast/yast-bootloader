@@ -421,7 +421,7 @@ module Yast
                   label != "Vendor diagnostics" && # <- should probably be '&&' => not Thinkpad MBR AND not "Vendor diagnostics" partition type
                     label != "Vendor diagnostic")
               m = {
-                "name"          => BootCommon.translateSectionTitle(label),
+                "name"          => label,
                 "type"          => "other",
                 "original_name" => label,
                 "chainloader"   => BootStorage.Dev2MountByDev(dev),
@@ -440,7 +440,7 @@ module Yast
         out = Builtins.add(
           out,
           {
-            "name"          => BootCommon.translateSectionTitle("hard disk"),
+            "name"          => "hard disk",
             "original_name" => "hard_disk",
             "type"          => "other",
             "chainloader"   => BootStorage.Dev2MountByDev(BootCommon.mbrDisk),

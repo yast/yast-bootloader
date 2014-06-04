@@ -63,161 +63,6 @@ module Yast
       Ops.add(output, rest)
     end
 
-    # Create translated name of a section
-    # @param [String] orig string original section name
-    # @param [String] loader string bootloader type
-    # @return translated section name
-    def translateSectionTitle(orig, loader)
-      #
-      # FIXME: handling of bootloader-specific restrictions should be done
-      # in perl-Bootloader
-      #
-      trans = {
-        # entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
-        # are allowed, otherwise translartion won't be used
-        # try to keep short, may be shortened due to bootloader limitations
-        "linux"              => _(
-          "Linux"
-        ),
-        # entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
-        # are allowed, otherwise translartion won't be used
-        # try to keep short, may be shortened due to bootloader limitations
-        "failsafe"           => _(
-          "Failsafe"
-        ),
-        # entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
-        # are allowed, otherwise translartion won't be used
-        # try to keep short, may be shortened due to bootloader limitations
-        "floppy"             => _(
-          "Floppy"
-        ),
-        # entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
-        # are allowed, otherwise translartion won't be used
-        # try to keep short, may be shortened due to bootloader limitations
-        "hard disk"          => _(
-          "Hard Disk"
-        ),
-        # entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
-        # are allowed, otherwise translartion won't be used
-        # try to keep short, may be shortened due to bootloader limitations
-        "memtest86"          => _(
-          "Memory Test"
-        ),
-        # entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
-        # are allowed, otherwise translartion won't be used
-        # try to keep short, may be shortened due to bootloader limitations
-        "original MBR"       => _(
-          "MBR before Installation"
-        ),
-        # entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
-        # are allowed, otherwise translartion won't be used
-        # try to keep short, may be shortened due to bootloader limitations
-        "previous"           => _(
-          "Previous Kernel"
-        ),
-        # entry of bootloader menu - only a-z, A-Z, 0-9, _ and blank space
-        # are allowed, otherwise translartion won't be used
-        # try to keep short, may be shortened due to bootloader limitations
-        "Vendor diagnostics" => _(
-          "Vendor Diagnostics"
-        )
-      }
-      not_trans = {
-        "linux"        => "Linux",
-        "failsafe"     => "Failsafe",
-        "floppy"       => "Floppy",
-        "hard disk"    => "Hard Disk",
-        "memtest86"    => "Memory Test",
-        "original MBR" => "MBR before Installation",
-        "windows"      => "Windows",
-        "xen"          => "XEN"
-      }
-      translated = Ops.get_string(trans, orig, "\n") # not allowed character
-      # not_translated version will be used
-      filtered = Builtins.filterchars(
-        translated,
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _"
-      )
-      if Builtins.size(filtered) != Builtins.size(translated)
-        Builtins.y2warning("Incorrect translation %1 -> %2", orig, translated)
-        return Ops.get_string(not_trans, orig, orig)
-      end
-      if loader != "grub"
-        # This may become an alternative setup for grub in the future
-        # (requiring a separate menu.lst on an extra partition for the
-        # first level, along with the changes in several parts of the
-        # BootGRUB code for this).
-        # AI: rw/od should discuss this with the grub maintainer and
-        # create a feature for this.
-        if orig == "linux"
-          Yast.import "Product"
-          product = Product.short_name
-          prod_filtered = Builtins.filterchars(
-            product,
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _."
-          )
-          filtered = prod_filtered if product == prod_filtered && product != " "
-        end
-        Builtins.y2milestone("adapting section title: %1", filtered)
-        # label tag for lilo.conf has a restricted valid character set and
-        # limited allowed string length
-        cutoff = ""
-
-        # Limit length to 11 characters, but keep it "nice"
-        # 1. cut off linux- prefix if found
-        if Ops.greater_than(Builtins.size(filtered), 11)
-          cutoff = Builtins.regexpsub(filtered, "^[Ll][Ii][Nn][Uu][Xx]-", "")
-          filtered = cutoff if cutoff != nil
-        end
-
-        while Ops.greater_than(Builtins.size(filtered), 11)
-          # 2. cut off last word, break if no more found
-          cutoff = Builtins.regexpsub(filtered, "^(.*) [^ ]*$", "\\1")
-          Builtins.y2milestone("cutoff is: %1", cutoff)
-          if cutoff == nil || Builtins.size(cutoff) == Builtins.size(filtered)
-            break
-          end
-          filtered = cutoff
-        end
-        Builtins.y2milestone("section title without excess words: %1", filtered)
-
-        # 3. last resort: cutoff excess characters
-        filtered = Builtins.substring(filtered, 0, 11)
-        Builtins.y2milestone("section title limited to 11 chars: %1", filtered)
-
-        # 4. convert not allowed chars to "_"
-        # (NOTE: this converts according to lilo requirements, ATM we do
-        # not allow ".-" above already; so ATM this converts only " ")
-        filtered = ReplaceRegexMatch(
-          filtered,
-          "[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890.-]",
-          "_"
-        )
-        Builtins.y2milestone(
-          "section title: filtered unallowed characters: %1",
-          filtered
-        )
-      elsif Builtins.contains(["linux", "failsafe", "previous", "xen"], orig) &&
-          !Mode.test
-        # for bootloaders that support long section names, like grub:
-        Yast.import "Product"
-        product = Product.name
-        prod_filtered = Builtins.filterchars(
-          product,
-          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 _."
-        )
-        if product != nil && product == prod_filtered && product != " " &&
-            product != ""
-          if orig == "linux"
-            filtered = prod_filtered
-          else
-            filtered = Builtins.sformat("%1 -- %2", filtered, prod_filtered)
-          end
-        end
-      end
-      filtered
-    end
-
     # Get translated section names, including diacritics
     # @param [String] loader string bootloader type
     # @return a map section names translations
@@ -294,7 +139,7 @@ module Yast
         { k => v }
       end
       ret = Builtins.mapmap(trans) do |k, v|
-        il1 = translateSectionTitle(k, loader)
+        il1 = k
         if Builtins.contains(["linux", "failsafe", "previous", "xen"], k) &&
             !Mode.test
           Yast.import "Product"
@@ -523,7 +368,6 @@ module Yast
 
     publish :variable => :enable_sound_signals, :type => "boolean"
     publish :function => :ReplaceRegexMatch, :type => "string (string, string, string)"
-    publish :function => :translateSectionTitle, :type => "string (string, string)"
     publish :function => :getTranslationsToDiacritics, :type => "map <string, string> (string)"
     publish :function => :ReadStatusAcousticSignal, :type => "void ()"
     publish :function => :UpdateGfxMenuContents, :type => "boolean (string)"
