@@ -30,138 +30,10 @@ module Yast
       @enable_sound_signals = false
     end
 
-    # Replace every match of given regular expression in a string with a
-    # replacement string
-    #
-    # e.g. ReplaceRegexMatch( "abcdef12ef34gh000", "[0-9]+", "_A_" ) -> "abcdef_A_ef_A_gh_A_"
-    #
-    # @param [String] input string that may contain substrings matching regex
-    # @param [String] regex regular expression to search for, must not contain brackets
-    # @param [String] repl  string that replaces every substring matching the regex
-    # @return [String] that has matches replaced
-    def ReplaceRegexMatch(input, regex, repl)
-      return "" if input == nil || Ops.less_than(Builtins.size(input), 1)
-      rest = input
-      output = ""
-      if Builtins.regexpmatch(rest, regex)
-        p = Builtins.regexppos(rest, regex)
-        begin
-          output = Ops.add(
-            Ops.add(
-              output,
-              Builtins.substring(rest, 0, Ops.get_integer(p, 0, 0))
-            ),
-            repl
-          )
-          rest = Builtins.substring(
-            rest,
-            Ops.add(Ops.get_integer(p, 0, 0), Ops.get_integer(p, 1, 0))
-          )
-          p = Builtins.regexppos(rest, regex)
-        end while Ops.greater_than(Builtins.size(p), 0)
-      end
-      Ops.add(output, rest)
-    end
-
-    # Get translated section names, including diacritics
-    # @param [String] loader string bootloader type
-    # @return a map section names translations
-    def getTranslationsToDiacritics(loader)
-      trans = {
-        # entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
-        # are allowed. Always remove the leading '_', its just to
-        # be able to have translations with and without diacritics
-        # please use diacritics here
-        "linux"              => _(
-          "_Linux"
-        ),
-        # entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
-        # are allowed. Always remove the leading '_', its just to
-        # be able to have translations with and without diacritics
-        # please use diacritics here
-        "failsafe"           => _(
-          "_Failsafe"
-        ),
-        # entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
-        # are allowed. Always remove the leading '_', its just to
-        # be able to have translations with and without diacritics
-        # please use diacritics here
-        "floppy"             => _(
-          "_Floppy"
-        ),
-        # entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
-        # are allowed. Always remove the leading '_', its just to
-        # be able to have translations with and without diacritics
-        # please use diacritics here
-        "hard disk"          => _(
-          "_Hard Disk"
-        ),
-        # entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
-        # are allowed. Always remove the leading '_', its just to
-        # be able to have translations with and without diacritics
-        # please use diacritics here
-        "memtest86"          => _(
-          "_Memory Test"
-        ),
-        # entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
-        # are allowed. Always remove the leading '_', its just to
-        # be able to have translations with and without diacritics
-        # please use diacritics here
-        "original MBR"       => _(
-          "_MBR before Installation"
-        ),
-        # entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
-        # are allowed. Always remove the leading '_', its just to
-        # be able to have translations with and without diacritics
-        # please use diacritics here
-        "previous"           => _(
-          "_Previous Kernel"
-        ),
-        # entry of bootloader menu - only ISO 8859-1, -2 and -15 characters
-        # are allowed. Always remove the leading '_', its just to
-        # be able to have translations with and without diacritics
-        # please use diacritics here
-        "Vendor diagnostics" => _(
-          "_Vendor Diagnostics"
-        ),
-        "xen"                => "XEN"
-      }
-      # trans = filter (string k, string v, trans, {
-      # 	    if (substring (v, 0, 1) == "_")
-      # 	    {
-      # 		y2warning ("Translation %1 contains leading underscore", v);
-      # 		return false;
-      # 	    }
-      # 	    return true;
-      # 	});
-      trans = Builtins.mapmap(trans) do |k, v|
-        v = Builtins.substring(v, 1) if Builtins.substring(v, 0, 1) == "_"
-        { k => v }
-      end
-      ret = Builtins.mapmap(trans) do |k, v|
-        il1 = k
-        if Builtins.contains(["linux", "failsafe", "previous", "xen"], k) &&
-            !Mode.test
-          Yast.import "Product"
-          product = Product.name
-          if product != " " && product != "" && product != nil
-            if k == "linux"
-              v = product
-            else
-              v = Builtins.sformat("%1 (%2)", product, v)
-            end
-          end
-        end
-        { il1 => v }
-      end
-      deep_copy(ret)
-    end
-
     # FATE#305403: Bootloader beep configuration
     # Read status of acoustic signals
     # set global variable enable_sound_signals
     #
-
     def ReadStatusAcousticSignal
       ret = -1 # off
 
@@ -314,20 +186,8 @@ module Yast
         end
       end
 
-      # create translation map (in temp file) for the currently active language
-      # for gettext (AFAICT), i.e. whatever is found in LANG or LC_MESSAGES --
-      # this should be RC_LANG
-      trans_file = Builtins.sformat("%1/boot_translations", tmpdir)
-      trans_map = getTranslationsToDiacritics(loader)
-      trans_list = Builtins.maplist(trans_map) do |k, v|
-        Builtins.sformat("%1\n%2", k, v)
-      end
-      trans_str = Builtins.mergestring(trans_list, "\n")
-      trans_str = Ops.add(trans_str, "\n")
-      if !lang_supported
-        Builtins.y2milestone("Avoiding providing bootloader menu translations")
-        trans_str = ""
-      end
+      # do not create translation of section (bnc#875819)
+      trans_str = ""
       SCR.Write(path(".target.string"), trans_file, trans_str)
       lang_params = "en_EN en" if lang_params == ""
 
@@ -367,8 +227,6 @@ module Yast
     end
 
     publish :variable => :enable_sound_signals, :type => "boolean"
-    publish :function => :ReplaceRegexMatch, :type => "string (string, string, string)"
-    publish :function => :getTranslationsToDiacritics, :type => "map <string, string> (string)"
     publish :function => :ReadStatusAcousticSignal, :type => "void ()"
     publish :function => :UpdateGfxMenuContents, :type => "boolean (string)"
     publish :function => :Update, :type => "boolean ()"
