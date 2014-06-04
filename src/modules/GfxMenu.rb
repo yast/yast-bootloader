@@ -186,6 +186,7 @@ module Yast
         end
       end
 
+      trans_file = tmpdir + "/boot_translations"
       # do not create translation of section (bnc#875819)
       trans_str = ""
       SCR.Write(path(".target.string"), trans_file, trans_str)
