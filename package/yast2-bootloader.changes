@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jun  4 09:10:42 UTC 2014 - jreidinger@suse.com
+
+- remove translation of section as it is generated in GRUB2 and
+  never work reliably fro GRUB1 (bnc#875819)
+- 3.1.49
+
+-------------------------------------------------------------------
 Mon Jun  3 18:13:05 UTC 2014 - dvaleev@suse.com
 
 - Setting boot flag on GPT PReP resets prep flag which leads to

@@ -753,13 +753,6 @@ module Yast
 
 
 
-    # Create translated name of a section
-    # @param [String] orig string original section name
-    # @return translated section name
-    def translateSectionTitle(orig)
-      GfxMenu.translateSectionTitle(orig, getLoaderType(false))
-    end
-
     # Check if device is MBR of a disk
     # @param [String] device string device to check
     # @return [Boolean] true if is MBR

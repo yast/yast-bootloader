@@ -250,7 +250,7 @@ module Yast
     # @return a map describing the section
     def CreateLinuxSection(title)
       ret = {
-        "name"          => translateSectionTitle(title),
+        "name"          => title,
         "original_name" => title,
         "type"          => "image",
         "__auto"        => true,
@@ -1086,7 +1086,6 @@ module Yast
     publish :function => :restoreMBR, :type => "boolean (string)"
     publish :function => :UpdateKernelParams, :type => "string (string)"
     publish :function => :getSwapPartitions, :type => "map <string, integer> ()"
-    publish :function => :translateSectionTitle, :type => "string (string)"
     publish :function => :UpdateInstallationKernelParameters, :type => "void ()"
     publish :function => :GetAdditionalFailsafeParams, :type => "string ()"
     publish :function => :UpdateGfxMenuContents, :type => "boolean ()"
