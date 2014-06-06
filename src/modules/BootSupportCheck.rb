@@ -231,9 +231,7 @@ module Yast
 
       if BootStorage.bois_id_missing
         AddNewProblem(
-          _(
-            "It was not possible to determine the exact order of disks for device map. The order of disks can be changed in \"Boot Loader Installation Details\""
-          )
+          _("YaST could not determine the exact boot order of disks needed for the device map. Review and possibly adjust the boot order of disks in \"Boot Loader Installation Details\"")
         )
         return false
       end
