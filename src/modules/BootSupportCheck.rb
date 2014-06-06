@@ -227,7 +227,6 @@ module Yast
     # @return [Boolean] true on success
 
     def CheckBios_ID
-      return true if efi?
       return true if Arch.s390 # s390 do not have bios boot order (bnc#874106)
 
       if BootStorage.bois_id_missing
