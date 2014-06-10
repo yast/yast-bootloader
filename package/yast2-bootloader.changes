@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Mon Jun  9 08:32:44 UTC 2014 - jreidinger@suse.com
 
-- Fix reinstall of secure boot stage 1 (bnc#875235)
+- Fix reinstallation of secure boot stage 1 (bnc#875235)
 - 3.1.51
 
 -------------------------------------------------------------------
