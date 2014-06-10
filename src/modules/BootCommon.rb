@@ -932,21 +932,8 @@ module Yast
     end
 
     def setSystemSecureBootStatus(enable)
-      #     if (enable && enable != secure_boot)
-      #     {
-      #         // don't configure package manager during autoinstallation preparing
-      #         if (Mode::normal () && (! (Mode::config () || Mode::repair ())))
-      #         {
-      #             y2milestone ("Install shim");
-      #             PackageSystem::InstallAll (["shim"]);
-      #         }
-      #         else if (Stage::initial () )
-      #         {
-      #             y2milestone ("AddResolvables shim");
-      #             PackagesProposal::AddResolvables ("yast2-bootloader", `package, ["shim"]);
-      #         }
-      #     }
       Builtins.y2milestone("Set secure boot: %2 => %1", enable, @secure_boot)
+      location_changed = true if @secure_boot != enable # secure boot require reinstall of stage 1
       @secure_boot = enable
 
       nil

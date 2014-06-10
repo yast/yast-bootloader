@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun  9 08:32:44 UTC 2014 - jreidinger@suse.com
+
+- Fix reinstallation of secure boot stage 1 (bnc#875235)
+- 3.1.51
+
+-------------------------------------------------------------------
 Thu Jun  5 11:00:35 UTC 2014 - jsrain@suse.cz
 
 - adjusted wording if disk order could not be detected (bnc#880439)
