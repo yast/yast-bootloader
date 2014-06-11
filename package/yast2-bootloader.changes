@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun 11 14:24:22 UTC 2014 - jreidinger@suse.com
+
+- do not crash in autoyast (bnc#882210)
+- 3.1.52
+
+-------------------------------------------------------------------
 Mon Jun  9 08:32:44 UTC 2014 - jreidinger@suse.com
 
 - Fix reinstallation of secure boot stage 1 (bnc#875235)
