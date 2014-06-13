@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun 13 11:46:09 UTC 2014 - jsrain@suse.cz
+
+- don't prevent installation because of BIOS IDs not detected if
+  disks order reviewed by user (bnc#880439)
+- 3.1.51
+
+-------------------------------------------------------------------
 Thu Jun  5 11:00:35 UTC 2014 - jsrain@suse.cz
 
 - adjusted wording if disk order could not be detected (bnc#880439)

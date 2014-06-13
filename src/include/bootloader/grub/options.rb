@@ -442,6 +442,8 @@ module Yast
         index = Ops.add(index, 1)
         { d => Builtins.sformat("hd%1", indexs) }
       end
+      # once order is reviewed by user, BIOS IDs don't matter (bnc#880439)
+      BootStorage.bois_id_missing = false
 
       nil
     end
