@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun 13 12:03:40 UTC 2014 - jreidinger@suse.com
+
+- fix crash with invalid partition to activate (bnc#882592)
+- 3.1.54
+
+-------------------------------------------------------------------
 Fri Jun 13 11:46:09 UTC 2014 - jsrain@suse.cz
 
 - don't prevent installation because of BIOS IDs not detected if
