@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun 13 11:46:09 UTC 2014 - jsrain@suse.cz
+
+- don't prevent installation because of BIOS IDs not detected if
+  disks order reviewed by user (bnc#880439)
+- 3.1.53
+
+-------------------------------------------------------------------
 Wed Jun 11 14:24:22 UTC 2014 - jreidinger@suse.com
 
 - do not crash in autoyast (bnc#882210)
