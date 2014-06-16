@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun 16 09:22:43 UTC 2014 - jreidinger@suse.com
+
+- Allow in autoyast only supported bootloaders (bnc#882210)
+- 3.1.55
+
+-------------------------------------------------------------------
 Fri Jun 13 12:03:40 UTC 2014 - jreidinger@suse.com
 
 - fix crash with invalid partition to activate (bnc#882592)
