@@ -155,6 +155,15 @@ module Yast
     # @return a map the export map
     def AI2Export(ai)
       ai = deep_copy(ai)
+      unsupported_bootloaders = ["grub", "zipl", "plilo", "lilo", "elilo"]
+      if ai["loader_type"] && unsupported_bootloaders.include?(exp["loader_type"].downcase)
+        # FIXME this should be better handled by exception and show it properly, but it require too big change now
+        Popup.Error(_("Unsupported bootloader '%s'. Please adapt your autoyast profile according."),
+          exp["loader_type"])
+        return nil
+      end
+
+
       BootCommon.DetectDisks if Mode.autoinst
       # prepare settings for default bootloader if not specified in the
       # profile
@@ -414,14 +423,6 @@ module Yast
     def Export2AI(exp)
       exp = deep_copy(exp)
       # bootloader type and location stuff
-      unsupported_bootloaders = ["grub", "zipl", "plilo", "lilo", "elilo"]
-      if exp["loader_location"] && unsupported_bootloaders.include?(exp["loader_location"].downcase)
-        # FIXME this should be better handled by exception and show it properly, but it require too big change now
-        Popup.Error(_("Unsupported bootloader '%s'. Please adapt your autoyast profile according."),
-          exp["loader_location"])
-        return nil
-      end
-
       ai = { "loader_type" => Ops.get_string(exp, "loader_type", "default") }
       glob = Builtins.filter(Ops.get_map(exp, ["specific", "global"], {})) do |k, v|
         Builtins.substring(k, 0, 2) != "__"
