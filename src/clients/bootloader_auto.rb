@@ -52,11 +52,12 @@ module Yast
       Builtins.y2debug("param=%1", @param)
 
       if @func == "Import"
-        @ret = Bootloader.Import(
-          AI2Export(
-            Convert.convert(@param, :from => "map", :to => "map <string, any>")
-          )
-        )
+        data = AI2Export(@param)
+        if data
+          @ret = Bootloader.Import(data)
+        else
+          @ret = false
+        end
       # Create a summary
       # return string
       elsif @func == "Summary"

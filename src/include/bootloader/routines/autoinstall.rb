@@ -109,6 +109,7 @@ module Yast
       Yast.import "Initrd"
       Yast.import "Kernel"
       Yast.import "Mode"
+      Yast.import "Popup"
     end
 
     # Add missing data (eg. root filesystem) to sections imported from profile
@@ -154,6 +155,15 @@ module Yast
     # @return a map the export map
     def AI2Export(ai)
       ai = deep_copy(ai)
+      unsupported_bootloaders = ["grub", "zipl", "plilo", "lilo", "elilo"]
+      if ai["loader_type"] && unsupported_bootloaders.include?(exp["loader_type"].downcase)
+        # FIXME this should be better handled by exception and show it properly, but it require too big change now
+        Popup.Error(_("Unsupported bootloader '%s'. Adapt your AutoYaST profile accordingly."),
+          exp["loader_type"])
+        return nil
+      end
+
+
       BootCommon.DetectDisks if Mode.autoinst
       # prepare settings for default bootloader if not specified in the
       # profile
