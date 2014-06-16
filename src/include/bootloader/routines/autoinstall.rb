@@ -415,7 +415,7 @@ module Yast
       exp = deep_copy(exp)
       # bootloader type and location stuff
       unsupported_bootloaders = ["grub", "zipl", "plilo", "lilo", "elilo"]
-      if unsupported_bootloaders.include?(exp["loader_location"])
+      if exp["loader_location"] && unsupported_bootloaders.include?(exp["loader_location"].downcase)
         # FIXME this should be better handled by exception and show it properly, but it require too big change now
         Popup.Error(_("Unsupported bootloader '%s'. Please adapt your autoyast profile according."),
           exp["loader_location"])
