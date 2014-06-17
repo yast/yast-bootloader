@@ -98,7 +98,7 @@ module Yast
 
           Builtins.y2milestone("Copying #{zipl_file} to target system.")
 
-          cmd = "cp #{zipl_file} #{Installation.destdir}/#{zipl_file}";
+          cmd = "cp #{zipl_file} #{Installation.destdir}#{zipl_file}"
           ret = SCR.Execute(path(".target.bash_output"), cmd)
 
           Builtins.y2warning("cmd: '#{cmd}' failed: #{ret}") if ret["exit"] != 0
