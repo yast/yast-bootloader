@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 17 15:20:33 CEST 2014 - snwint@suse.de
+
+- s390x: copy /boot/zipl/active_devices.txt to target system
+- 3.1.56
+
+-------------------------------------------------------------------
 Mon Jun 16 09:22:43 UTC 2014 - jreidinger@suse.com
 
 - Allow in autoyast only supported bootloaders (bnc#882210)
