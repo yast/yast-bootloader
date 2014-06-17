@@ -94,6 +94,15 @@ module Yast
 
         @finish_ret = nil
         if Arch.s390
+          zipl_file = "/boot/zipl/active_devices.txt";
+
+          Builtins.y2milestone("Copying #{zipl_file} to target system.")
+
+          cmd = "cp #{zipl_file} #{Installation.destdir}/#{zipl_file}";
+          ret = SCR.Execute(path(".target.bash_output"), cmd)
+
+          Builtins.y2warning("cmd: '#{cmd}' failed: #{ret}") if ret["exit"] != 0
+
           @reipl_client = "reipl_bootloader_finish"
 
           # Calling a special reIPL client
