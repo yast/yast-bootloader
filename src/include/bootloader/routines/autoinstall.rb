@@ -155,6 +155,13 @@ module Yast
     # @return a map the export map
     def AI2Export(ai)
       ai = deep_copy(ai)
+
+      # bootloader type and location stuff
+      exp = {
+        "loader_type" => Ops.get_string(ai, "loader_type", ""),
+        "specific"    => {}
+      }
+
       unsupported_bootloaders = ["grub", "zipl", "plilo", "lilo", "elilo"]
       if ai["loader_type"] && unsupported_bootloaders.include?(exp["loader_type"].downcase)
         # FIXME this should be better handled by exception and show it properly, but it require too big change now
@@ -162,7 +169,6 @@ module Yast
           exp["loader_type"])
         return nil
       end
-
 
       BootCommon.DetectDisks if Mode.autoinst
       # prepare settings for default bootloader if not specified in the
@@ -173,12 +179,6 @@ module Yast
         Ops.set(ai, "loader_type", Bootloader.getLoaderType)
       end
       Builtins.y2milestone("Bootloader settings from profile: %1", ai)
-
-      # bootloader type and location stuff
-      exp = {
-        "loader_type" => Ops.get_string(ai, "loader_type", ""),
-        "specific"    => {}
-      }
 
       # define "global" sub-map to make sure we can add to the globals at
       # any time
