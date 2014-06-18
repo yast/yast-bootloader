@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jun 18 14:25:19 CEST 2014 - schubi@suse.de
+
+- Initialize variable correctly for supported bootloaders
+  (bnc#883040)
+- 3.1.56
+
+-------------------------------------------------------------------
 Mon Jun 16 09:22:43 UTC 2014 - jreidinger@suse.com
 
 - Allow in autoyast only supported bootloaders (bnc#882210)
