@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Tue Jun 24 15:10:21 UTC 2014 - jreidinger@suse.com
 
-- respect in os_prober proposal product default (bnc#884007)
+- respect product default configuration for os-prober enablement
+  (bnc#884007)
 - 3.1.57
 
 -------------------------------------------------------------------
