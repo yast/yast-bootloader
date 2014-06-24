@@ -13,15 +13,16 @@ module Yast
       Yast.import "BootArch"
       Yast.import "BootCommon"
       Yast.import "BootStorage"
+      Yast.import "HTML"
+      Yast.import "Initrd"
       Yast.import "Kernel"
       Yast.import "Mode"
+      Yast.import "Pkg"
+      Yast.import "Product"
+      Yast.import "ProductFeatures"
       Yast.import "Stage"
       Yast.import "Storage"
       Yast.import "StorageDevices"
-      Yast.import "Pkg"
-      Yast.import "HTML"
-      Yast.import "Initrd"
-      Yast.import "Product"
 
       # includes
       # for simplified widgets than other
@@ -53,13 +54,14 @@ module Yast
 
     # Propose global options of bootloader
     def StandardGlobals
+      disable_os_prober = Arch.s390 || ProductFeatures.GetBooleanFeature("general", "disable_os_prober")
       {
         "timeout"   => "8",
         "default"   => "0",
         "vgamode"   => "",
         "gfxmode"   => "auto",
         "terminal"  => Arch.s390 ? "console" : "gfxterm",
-        "os_prober" => Arch.s390 ? "false" : "true",
+        "os_prober" =>  disable_os_prober ? "false" : "true",
         "activate"  => Arch.ppc ? "true" : "false"
       }
     end
