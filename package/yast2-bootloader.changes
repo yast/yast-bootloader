@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jun 24 15:10:21 UTC 2014 - jreidinger@suse.com
+
+- respect in os_prober proposal product default (bnc#884007)
+- 3.1.57
+
+-------------------------------------------------------------------
 Wed Jun 18 14:25:19 CEST 2014 - schubi@suse.de
 
 - Initialize variable correctly for supported bootloaders
