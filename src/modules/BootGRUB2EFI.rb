@@ -49,7 +49,12 @@ module Yast
     def Write
       ret = BootCommon.UpdateBootloader
 
-      BootCommon.location_changed = true if @orig_globals["distributor"] != BootCommon.globals["distributor"]
+      # we do not have originals or it changed
+      if !@orig_globals ||
+          @orig_globals["distributor"] != BootCommon.globals["distributor"]
+        BootCommon.location_changed = true
+      end
+
       if BootCommon.location_changed
         grub_ret = BootCommon.InitializeBootloader
         grub_ret = false if grub_ret == nil
