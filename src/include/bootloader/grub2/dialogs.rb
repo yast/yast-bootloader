@@ -53,7 +53,7 @@ module Yast
 
       {
         "id"           => "boot_code_tab",
-        # Tittle in tab
+        # Title in tab
         "header"       => _("Boot Code Options"),
         # if name is not included, that it is not displayed
         "widget_names" => widget_names,
@@ -78,7 +78,7 @@ module Yast
 
        {
         "id"           => "kernel_tab",
-        # Tittle in tab
+        # Title in tab
         "header"       => _("Kernel Parameters"),
         "widget_names" => widgets,
         "contents"      => VBox(
@@ -98,7 +98,7 @@ module Yast
 
        {
         "id" => "bootloader_tab",
-        # Tittle in tab
+        # Title in tab
         "header" => _("Bootloader Options"),
         "widget_names" => widgets,
         "contents" => VBox(
@@ -139,7 +139,7 @@ module Yast
       })
 
       widgets["tab"] = tab_widget
-      # Window tittle
+      # Window title
       caption = _("Boot Loader Options")
       CWM.ShowAndRun(
         {
