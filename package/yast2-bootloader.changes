@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Jun 26 10:50:28 UTC 2014 - jreidinger@suse.com
+
+- add help and translation for grub2 distributor description and
+  other small localization improvements (bnc#884344)
+- fix crash during propose of EFI during upgrade (bnc#884397)
+- 3.1.58
+
+-------------------------------------------------------------------
 Tue Jun 24 15:10:21 UTC 2014 - jreidinger@suse.com
 
 - respect product default configuration for os-prober enablement
