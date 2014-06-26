@@ -102,6 +102,7 @@ module Yast
       #   </sections>
       # </bootloader>
       # -------------------------------------------------
+      textdomain "bootloader"
 
       Yast.import "Bootloader"
       Yast.import "BootStorage"
