@@ -183,7 +183,6 @@ module Yast
     def urlLocationSummary
       Builtins.y2milestone("Prepare url summary for GRUB2")
       # FIXME identical code in BootGRUB module
-      locations = []
       line = "<ul>\n<li>"
       if BootCommon.globals["boot_mbr"] == "true"
         line << _(
@@ -195,36 +194,40 @@ module Yast
         )
       end
       line << "</li>\n"
-      locations << line
 
-      line = "<li>"
+      # do not allow to switch on boot from partition that do not support it
+      if BootStorage.can_boot_from_partition
+        line << "<li>"
 
-      # check for separated boot partition, use root otherwise
-      if BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
-        if BootCommon.globals["boot_boot"] == "true"
-          line << _(
-            "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>)"
-          )
+        # check for separated boot partition, use root otherwise
+        if BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
+          if BootCommon.globals["boot_boot"] == "true"
+            line << _(
+              "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>)"
+            )
+          else
+            line << _(
+              "Do not install bootcode into /boot partition (<a href=\"enable_boot_boot\">install</a>)"
+            )
+          end
         else
-          line << _(
-            "Do not install bootcode into /boot partition (<a href=\"enable_boot_boot\">install</a>)"
-          )
+          if BootCommon.globals["boot_root"] == "true"
+            line << _(
+              "Install bootcode into \"/\" partition (<a href=\"disable_boot_root\">do not install</a>)"
+            )
+          else
+            line << _(
+              "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">install</a>)"
+            )
+          end
         end
-      else
-        if BootCommon.globals["boot_root"] == "true"
-          line << _(
-            "Install bootcode into \"/\" partition (<a href=\"disable_boot_root\">do not install</a>)"
-          )
-        else
-          line << _(
-            "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">install</a>)"
-          )
-        end
+        line << "</li>"
       end
-      line << "</li></ul>"
-      locations << line
 
-      return _("Change Location: %s") % locations.join(" ")
+      line << "</ul>"
+
+      # TRANSLATORS: title for list of location proposals
+      return _("Change Location: %s") % line
     end
 
 
