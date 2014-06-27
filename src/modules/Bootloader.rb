@@ -128,12 +128,13 @@ module Yast
       BootCommon.changed = true
       BootCommon.location_changed = true
 
-      if Ops.get(settings, "loader_type") == ""
-        Ops.set(settings, "loader_type", nil)
+      if settings["loader_type"] == ""
+        settings["loader_type"] = nil
       end
-      loader_type = Ops.get_string(settings, "loader_type")
+      # if bootloader is not set, then propose it
+      loader_type = settings["loader_type"] || BootCommon.getLoaderType(true)
+      # Explitelly set it to ensure it is installed
       BootCommon.setLoaderType(loader_type)
-      BootCommon.getLoaderType(false)
 
       if !(loader_type == "grub")
         # import loader_device and selected_location only for bootloaders
