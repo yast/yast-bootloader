@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun 27 12:27:05 UTC 2014 - jreidinger@suse.com
+
+- properly install needed packages in autoinstallation
+- 3.1.59
+
+-------------------------------------------------------------------
 Thu Jun 26 10:50:28 UTC 2014 - jreidinger@suse.com
 
 - add help and translation for grub2 distributor description and
