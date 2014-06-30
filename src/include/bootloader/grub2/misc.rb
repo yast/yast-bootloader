@@ -26,6 +26,7 @@ module Yast
       Yast.import "StorageDevices"
       Yast.import "Mode"
       Yast.import "BootCommon"
+      Yast.import "BootStorage"
       Yast.import "PackageSystem"
       Yast.import "Map"
       Yast.import "Arch"
@@ -692,6 +693,11 @@ module Yast
         Builtins.y2milestone(
           "/boot is on logical parititon and uses btrfs, mbr is favored in this situration"
         )
+        selected_location = :mbr
+      end
+
+      if !BootStorage.can_boot_from_partition
+        Builtins.y2milestone("/boot cannot be used to install stage1")
         selected_location = :mbr
       end
 

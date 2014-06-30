@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun 27 13:31:01 UTC 2014 - jreidinger@suse.com
+
+- do not allow to install to partition with xfs otherwise fs can be
+  broken due to missing reserved space in xfs(bnc#884255) 
+- 3.1.60
+
+-------------------------------------------------------------------
 Fri Jun 27 12:27:05 UTC 2014 - jreidinger@suse.com
 
 - properly install needed packages in autoinstallation
