@@ -865,14 +865,12 @@ module Yast
 
         # replace grub with trustedgrub
         if Ops.get(@globals, "trusted_grub", "") == "true"
-          if Builtins.contains(bootloader_packages, "grub")
-            bootloader_packages = Builtins.filter(bootloader_packages) do |key|
-              key != "grub"
-            end
-          end
-
-          bootloader_packages = Builtins.add(bootloader_packages, "trustedgrub")
+          bootloader_packages.delete("grub")
+          bootloader_packages << "trustedgrub"
         end
+
+        # we need perl-Bootloader-YAML API to communicate with pbl
+        bootloader_packages << "perl-Bootloader-YAML"
 
         Builtins.y2milestone("Bootloader packages: %1", bootloader_packages)
 
@@ -880,11 +878,9 @@ module Yast
         if Mode.normal && !(Mode.config || Mode.repair)
           PackageSystem.InstallAll(bootloader_packages)
         elsif Stage.initial
-          pkg_added = false
-          Builtins.foreach(bootloader_packages) do |p|
+          bootloader_packages.each do |p|
             Builtins.y2milestone("Select bootloader package: %1", p)
             PackagesProposal.AddResolvables("yast2-bootloader", :package, [p])
-            pkg_added = true
           end
         end
       elsif !Mode.test
