@@ -936,7 +936,6 @@ module Yast
     #      if usbDiskDevice == hd0 && BootDevice != usbDiskDevice:
     #          change order of disks in device_mappings to have BootDevice as hd0
     # FIXME: remove that function from here, as it is grub only
-    # NOTE: there is a local copy in routines/grub/misc.ycp now
     def ProposeDeviceMap
       @device_mapping = {}
       @multipath_mapping = {}
