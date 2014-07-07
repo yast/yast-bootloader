@@ -894,6 +894,27 @@ module Yast
       ret
     end
 
+    def propose_s390_device_map
+      # s390 have some special requirements for device map. Keep it short and simple (bnc#884798)
+      # TODO device map is not needed at all for s390, so if we get rid of perl-Bootloader translations
+      # we can keep it empty
+        # TODO yes, I know it is typo, but it is everywhere, so fix it when we have time to fix all problems
+        @bois_id_missing = false
+
+        boot_part = Storage.GetEntryForMountpoint("/boot/zipl")
+        boot_part = Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
+        boot_part = Storage.GetEntryForMountpoint("/") if boot_part.empty?
+
+        raise "Cannot find boot partition" if boot_part.empty?
+
+        disk = Storage.GetDiskPartition(boot_part["device"])["disk"]
+
+        @device_mapping = { "hd0" => disk }
+
+        Builtins.y2milestone("Detected device mapping: %1", @device_mapping)
+
+        nil
+    end
 
 
     #** helper functions END **
@@ -920,29 +941,11 @@ module Yast
       @device_mapping = {}
       @multipath_mapping = {}
 
-      # s390 have some special requirements for device map. Keep it short and simple (bnc#884798)
-      # TODO device map is not needed at all for s390, so if we get rid of perl-Bootloader translations
-      # we can keep it empty
       if Arch.s390
-        # TODO yes, I know it is typo, but it is everywhere, so fix it when we have time to fix all problems
-        @bois_id_missing = false
-
-        boot_part = Storage.GetEntryForMountpoint("/boot/zipl")
-        boot_part = Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
-        boot_part = Storage.GetEntryForMountpoint("/") if boot_part.empty?
-
-        raise "Cannot find boot partition" if boot_part.empty?
-
-        disk = Storage.GetDiskPartition(boot_part["device"])["disk"]
-
-        @device_mapping = { "hd0" => disk }
-
-        Builtins.y2milestone("Detected device mapping: %1", @device_mapping)
-
-        return nil
+        return propose_s390_device_map
       end
 
-      usb_disks = [] # contains those usb removable disks
+      usb_disks = [] # contains usb removable disks as it can affect BIOS order of disks
 
       targetMap = {}
       if Mode.config
