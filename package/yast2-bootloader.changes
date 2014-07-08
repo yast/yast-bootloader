@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jul  8 11:08:06 UTC 2014 - jreidinger@suse.com
+
+- warn user if no location chosen for stage 1 (bnc#885208)
+- 3.1.63
+
+-------------------------------------------------------------------
 Mon Jul  7 13:33:19 UTC 2014 - jreidinger@suse.com
 
 - use only simple device map on s390 (bnc#884798, bnc#885984)

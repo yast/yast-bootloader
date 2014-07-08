@@ -25,6 +25,7 @@ module Yast
   import "Arch"
   import "Storage"
   import "BootCommon"
+  import "HTML"
 
   class BootGRUB2Class < GRUB2Base
     def main
@@ -222,6 +223,13 @@ module Yast
           end
         end
         line << "</li>"
+      end
+
+      if ["boot_root", "boot_boot", "boot_mbr"].none? { |loc| BootCommon.globals[loc] == "true" }
+          # no location chosen, so warn user that it is problem unless he is sure
+          msg = _("Warning: No location for bootloader stage1 selected." \
+            "Unless you know what you are doing please select above location.")
+          line << "<li>" << HTML.Colorize(msg, "red") << "</li>"
       end
 
       line << "</ul>"
