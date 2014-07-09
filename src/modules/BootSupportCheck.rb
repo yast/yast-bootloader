@@ -151,7 +151,7 @@ module Yast
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
       AddNewProblem(_(
           "Boot from MBR does not work together with btrfs filesystem and GPT disk label without bios_grub partition." \
-          "To Fix issue create bios_grub partition or use ext filesystem for boot partition or do not install stage 1 to MBR."
+          "To fix this issue, create bios_grub partition or use ext filesystem for boot partition or do not install stage 1 to MBR."
       ))
       return false
     end
