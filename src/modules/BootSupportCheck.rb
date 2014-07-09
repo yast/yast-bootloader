@@ -25,6 +25,7 @@ module Yast
       Yast.import "Bootloader"
       Yast.import "Arch"
       Yast.import "Storage"
+      Yast.import "Partitions"
       Yast.import "Region"
       Yast.import "BootCommon"
       Yast.import "BootStorage"
@@ -134,6 +135,26 @@ module Yast
       ret
     end
 
+    # when grub2 is used and install stage1 to MBR, target /boot is btrfs, label is gpt-like
+    # then there must be special partition to install core.img, otherwise grub2-install failed
+    def check_gpt_reserved_partition
+      return true if BootCommon.globals["boot_mbr"] != "true"
+
+      devices = Storage.GetTargetMap
+      mbr_disk = Storage.GetDisk(devices, BootCommon.FindMBRDisk)
+      boot_device = Storage.GetPartition(devices, BootCommon.getBootPartition)
+      return true if mbr_disk["label"] != "gpt"
+      return true if boot_device["used_fs"] != :btrfs
+      return true if mbr_disk["partitions"].any? {|p| p["fsid"] == Partitions.fsid_bios_grub }
+
+      Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
+      # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
+      AddNewProblem(_(
+          "Boot from MBR does not work together with btrfs filesystem and GPT disk label without bios_grub partition." \
+          "To fix this issue, create bios_grub partition or use any ext filesystem for boot partition or do not install stage 1 to MBR."
+      ))
+      return false
+    end
 
     # Check if boot partition exist
     # check if not on raid0
@@ -266,6 +287,7 @@ module Yast
       ret = GRUB()
       # ensure that s390 have ext* partition for booting (bnc#873951)
       ret &&= check_zipl_part if Arch.s390
+      ret &&= check_gpt_reserved_partition if Arch.x86_64
     end
 
     # GRUB2EFI-related check

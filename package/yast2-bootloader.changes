@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul  9 09:49:21 UTC 2014 - jreidinger@suse.com
+
+- add check for combination of MBR, GPT, btrfs and missing
+  bios_grub partitition (bnc#886143)
+- 3.1.64
+
+-------------------------------------------------------------------
 Tue Jul  8 11:08:06 UTC 2014 - jreidinger@suse.com
 
 - warn user if no location chosen for stage 1 (bnc#885208)
