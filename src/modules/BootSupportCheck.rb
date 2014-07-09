@@ -147,7 +147,7 @@ module Yast
       return true if boot_device["used_fs"] != :btrfs
       return true if mbr_disk["partitions"].any? {|p| p["fsid"] == Partitions.fsid_bios_grub }
 
-      Builtins.y2error("Used togther boot from MBR, gpt, btrfs and without bios_grub partition.")
+      Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
       AddNewProblem(_(
           "Boot from MBR does not work together with btrfs filesystem and GPT disk label without bios_grub partition." \
