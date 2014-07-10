@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul 10 18:17:54 UTC 2014 - jreidinger@suse.com
+
+- fix writing sysconfig for grub1 (bnc#885634)
+- 3.1.65
+
+-------------------------------------------------------------------
 Wed Jul  9 09:49:21 UTC 2014 - jreidinger@suse.com
 
 - add check for combination of MBR, GPT, btrfs and missing
