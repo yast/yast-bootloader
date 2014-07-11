@@ -929,7 +929,7 @@ module Yast
 
     def setSystemSecureBootStatus(enable)
       Builtins.y2milestone("Set secure boot: %2 => %1", enable, @secure_boot)
-      location_changed = true if @secure_boot != enable # secure boot require reinstall of stage 1
+      @location_changed = true if @secure_boot != enable # secure boot require reinstall of stage 1
       @secure_boot = enable
 
       nil
