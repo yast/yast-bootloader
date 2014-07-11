@@ -1,9 +1,15 @@
 -------------------------------------------------------------------
+Fri Jul 11 08:17:54 UTC 2014 - jreidinger@suse.com
+
+- fix writing sysconfig for grub1 (bnc#885634)
+- 3.1.66
+
+-------------------------------------------------------------------
 Fri Jul 11 07:11:41 UTC 2014 - mchang@suse.com
 
 - fix secure boot widget did not function from installed system
   because bootloader not get re-installed (bnc#882124)
-- 3.1.65 
+- 3.1.65
 
 -------------------------------------------------------------------
 Wed Jul  9 09:49:21 UTC 2014 - jreidinger@suse.com
