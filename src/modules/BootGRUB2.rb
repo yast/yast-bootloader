@@ -25,6 +25,7 @@ module Yast
   import "Arch"
   import "Storage"
   import "BootCommon"
+  import "HTML"
 
   class BootGRUB2Class < GRUB2Base
     def main
@@ -183,7 +184,6 @@ module Yast
     def urlLocationSummary
       Builtins.y2milestone("Prepare url summary for GRUB2")
       # FIXME identical code in BootGRUB module
-      locations = []
       line = "<ul>\n<li>"
       if BootCommon.globals["boot_mbr"] == "true"
         line << _(
@@ -195,36 +195,47 @@ module Yast
         )
       end
       line << "</li>\n"
-      locations << line
 
-      line = "<li>"
+      # do not allow to switch on boot from partition that do not support it
+      if BootStorage.can_boot_from_partition
+        line << "<li>"
 
-      # check for separated boot partition, use root otherwise
-      if BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
-        if BootCommon.globals["boot_boot"] == "true"
-          line << _(
-            "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>)"
-          )
+        # check for separated boot partition, use root otherwise
+        if BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
+          if BootCommon.globals["boot_boot"] == "true"
+            line << _(
+              "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>)"
+            )
+          else
+            line << _(
+              "Do not install bootcode into /boot partition (<a href=\"enable_boot_boot\">install</a>)"
+            )
+          end
         else
-          line << _(
-            "Do not install bootcode into /boot partition (<a href=\"enable_boot_boot\">install</a>)"
-          )
+          if BootCommon.globals["boot_root"] == "true"
+            line << _(
+              "Install bootcode into \"/\" partition (<a href=\"disable_boot_root\">do not install</a>)"
+            )
+          else
+            line << _(
+              "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">install</a>)"
+            )
+          end
         end
-      else
-        if BootCommon.globals["boot_root"] == "true"
-          line << _(
-            "Install bootcode into \"/\" partition (<a href=\"disable_boot_root\">do not install</a>)"
-          )
-        else
-          line << _(
-            "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">install</a>)"
-          )
-        end
+        line << "</li>"
       end
-      line << "</li></ul>"
-      locations << line
 
-      return _("Change Location: %s") % locations.join(" ")
+      if ["boot_root", "boot_boot", "boot_mbr"].none? { |loc| BootCommon.globals[loc] == "true" }
+          # no location chosen, so warn user that it is problem unless he is sure
+          msg = _("Warning: No location for bootloader stage1 selected." \
+            "Unless you know what you are doing please select above location.")
+          line << "<li>" << HTML.Colorize(msg, "red") << "</li>"
+      end
+
+      line << "</ul>"
+
+      # TRANSLATORS: title for list of location proposals
+      return _("Change Location: %s") % line
     end
 
 
@@ -318,7 +329,8 @@ module Yast
         BootCommon.bootloader_attribs,
         "grub2",
         {
-          "required_packages" => ["grub2"],
+          # we need syslinux to have generic mbr bnc#885496
+          "required_packages" => ["grub2", "syslinux"],
           "loader_name"       => "GRUB2",
           "initializer"       => fun_ref(method(:Initializer), "void ()")
         }

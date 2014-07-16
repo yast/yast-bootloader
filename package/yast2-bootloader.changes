@@ -1,4 +1,89 @@
 -------------------------------------------------------------------
+Fri Jul 11 08:17:54 UTC 2014 - jreidinger@suse.com
+
+- fix writing sysconfig for grub1 (bnc#885634)
+- 3.1.66
+
+-------------------------------------------------------------------
+Fri Jul 11 07:11:41 UTC 2014 - mchang@suse.com
+
+- fix secure boot widget did not function from installed system
+  because bootloader not get re-installed (bnc#882124)
+- 3.1.65
+
+-------------------------------------------------------------------
+Wed Jul  9 09:49:21 UTC 2014 - jreidinger@suse.com
+
+- add check for combination of MBR, GPT, btrfs and missing
+  bios_grub partitition (bnc#886143)
+- 3.1.64
+
+-------------------------------------------------------------------
+Tue Jul  8 11:08:06 UTC 2014 - jreidinger@suse.com
+
+- warn user if no location chosen for stage 1 (bnc#885208)
+- 3.1.63
+
+-------------------------------------------------------------------
+Mon Jul  7 13:33:19 UTC 2014 - jreidinger@suse.com
+
+- use only simple device map on s390 (bnc#884798, bnc#885984)
+- 3.1.62
+
+-------------------------------------------------------------------
+Thu Jul  3 07:33:51 UTC 2014 - jreidinger@suse.com
+
+- add perl-Bootloader-YAML to needed packages (BNC#885496)
+- 3.1.61
+
+-------------------------------------------------------------------
+Fri Jun 27 13:31:01 UTC 2014 - jreidinger@suse.com
+
+- do not allow to install to partition with xfs otherwise fs can be
+  broken due to missing reserved space in xfs(bnc#884255)
+- 3.1.60
+
+-------------------------------------------------------------------
+Fri Jun 27 12:27:05 UTC 2014 - jreidinger@suse.com
+
+- properly install needed packages in autoinstallation
+- 3.1.59
+
+-------------------------------------------------------------------
+Thu Jun 26 10:50:28 UTC 2014 - jreidinger@suse.com
+
+- add help and translation for grub2 distributor description and
+  other small localization improvements (bnc#884344)
+- fix crash during propose of EFI during upgrade (bnc#884397)
+- 3.1.58
+
+-------------------------------------------------------------------
+Tue Jun 24 15:10:21 UTC 2014 - jreidinger@suse.com
+
+- respect product default configuration for os-prober enablement
+  (bnc#884007)
+- 3.1.57
+
+-------------------------------------------------------------------
+Wed Jun 18 14:25:19 CEST 2014 - schubi@suse.de
+
+- Initialize variable correctly for supported bootloaders
+  (bnc#883040)
+- 3.1.56
+
+-------------------------------------------------------------------
+Mon Jun 16 09:22:43 UTC 2014 - jreidinger@suse.com
+
+- Allow in autoyast only supported bootloaders (bnc#882210)
+- 3.1.55
+
+-------------------------------------------------------------------
+Fri Jun 13 12:03:40 UTC 2014 - jreidinger@suse.com
+
+- fix crash with invalid partition to activate (bnc#882592)
+- 3.1.54
+
+-------------------------------------------------------------------
 Fri Jun 13 11:46:09 UTC 2014 - jsrain@suse.cz
 
 - don't prevent installation because of BIOS IDs not detected if

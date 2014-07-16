@@ -1235,7 +1235,7 @@ module Yast
         comment
       )
 
-      grub1_extended_sysconfig(sys_agent) if lt == "grub"
+      grub1_extended_sysconfig(inst_bootloader, sys_agent) if lt == "grub"
 
       nil
     end
@@ -1243,7 +1243,7 @@ module Yast
     # extended sysconfig options to be used only for grub1 as grub2 store it
     # in its config (bnc#870890)
     # @note remove when grub1 support will be removed
-    def grub1_extended_sysconfig(sys_agent)
+    def grub1_extended_sysconfig(inst_bootloader, sys_agent)
       default_boot_section_name = ""
       # fix for bnc #440125 - default boot section with failsafe args
       # it is not possible create exact algoritmus but I hope it helps in

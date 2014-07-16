@@ -26,6 +26,7 @@ module Yast
       Yast.import "StorageDevices"
       Yast.import "Mode"
       Yast.import "BootCommon"
+      Yast.import "BootStorage"
       Yast.import "PackageSystem"
       Yast.import "Map"
       Yast.import "Arch"
@@ -110,6 +111,9 @@ module Yast
         Builtins.y2milestone("loader_device is disk device")
         p_dev = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
         num = BootCommon.myToInteger(Ops.get(p_dev, "nr"))
+        # handle situation when we have md raid and boot from md0 and sda and md0 is boot device (bnc#882592)
+        # This also prevents mess when we can potentially have mix of different number and device
+        return {} if p_dev["disk"] != mbr_dev
       end
 
       if Ops.greater_than(num, 4)
@@ -173,6 +177,8 @@ module Yast
       ret = Builtins.maplist(bootloader_base_devices) do |partition|
         grub_getPartitionToActivate(partition)
       end
+      ret.delete({})
+
       Builtins.toset(ret)
     end
 
@@ -687,6 +693,11 @@ module Yast
         Builtins.y2milestone(
           "/boot is on logical parititon and uses btrfs, mbr is favored in this situration"
         )
+        selected_location = :mbr
+      end
+
+      if !BootStorage.can_boot_from_partition
+        Builtins.y2milestone("/boot cannot be used to install stage1")
         selected_location = :mbr
       end
 
