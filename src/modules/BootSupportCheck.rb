@@ -30,6 +30,7 @@ module Yast
       Yast.import "BootCommon"
       Yast.import "BootStorage"
       Yast.import "FileUtils"
+      Yast.import "Mode"
 
       # List of problems found during last check
       @detected_problems = []
@@ -262,6 +263,9 @@ module Yast
 
 
     def check_zipl_part
+      # if partitioning worked before upgrade, it will keep working (bnc#886604)
+      return true if Mode.update
+
       boot_part = Storage.GetEntryForMountpoint("/boot/zipl")
       boot_part = Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
       boot_part = Storage.GetEntryForMountpoint("/") if boot_part.empty?

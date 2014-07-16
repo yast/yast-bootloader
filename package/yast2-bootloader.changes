@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul 16 11:46:38 UTC 2014 - jsrain@suse.cz
+
+- don't check dedicated /boot/zipl partition on upgrade
+  (bnc#886604)
+- 3.1.67
+
+-------------------------------------------------------------------
 Fri Jul 11 08:17:54 UTC 2014 - jreidinger@suse.com
 
 - fix writing sysconfig for grub1 (bnc#885634)
