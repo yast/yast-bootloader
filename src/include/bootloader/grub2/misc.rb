@@ -986,6 +986,7 @@ module Yast
     def grub_LocationProposal
       Builtins.y2milestone("globals: %1", BootCommon.globals)
       Builtins.y2milestone("Mode::autoinst: %1", Mode.autoinst)
+      Builtins.y2milestone("Mode::autoupg: %1", Mode.autoupgrade)
       Builtins.y2milestone(
         "haskey( BootCommon::globals, boot_boot ): %1",
         Builtins.haskey(BootCommon.globals, "boot_boot")
@@ -1002,7 +1003,7 @@ module Yast
           # "false".
           # FIXME: add to LILO, ELILO; POWERLILO already should have this
           # (check again)
-          Mode.autoinst && !Builtins.haskey(BootCommon.globals, "boot_boot") &&
+          (Mode.autoinst || Mode.autoupgrade) && !Builtins.haskey(BootCommon.globals, "boot_boot") &&
             !Builtins.haskey(BootCommon.globals, "boot_root") &&
             !Builtins.haskey(BootCommon.globals, "boot_mbr") &&
             !Builtins.haskey(BootCommon.globals, "boot_extended") &&
