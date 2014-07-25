@@ -55,6 +55,13 @@ module Yast
         data = AI2Export(@param)
         if data
           @ret = Bootloader.Import(data)
+          # moved here from inst_autosetup*
+          if Stage.initial
+            BootCommon.DetectDisks
+            Builtins.y2debug("autoyast: Proposing - fix")
+            Bootloader.Propose
+            Builtins.y2debug("autoyast: Proposing done")
+          end
         else
           @ret = false
         end
