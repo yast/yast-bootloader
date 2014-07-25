@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 25 11:48:35 UTC 2014 - jsrain@suse.cz
+
+- code de-duplication of recent AUtoYaST fixes (bnc#885634)
+- 3.1.69
+
+-------------------------------------------------------------------
 Tue Jul 22 09:00:56 UTC 2014 - jsrain@suse.cz
 
 - initialize bootloader location configuration on AutoYaST ugprade
