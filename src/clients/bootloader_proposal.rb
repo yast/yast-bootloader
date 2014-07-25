@@ -58,11 +58,14 @@ module Yast
           if ["grub2", "grub2-efi"].include? old_bootloader
             Builtins.y2milestone "update of grub2, do not repropose"
             if !BootCommon.was_read || @force_reset
+              # blRead(reread, avoid_reading_device_map)
               Bootloader.blRead(true, true)
               BootCommon.was_read = true
             end
           else
             if !BootCommon.was_proposed || @force_reset
+              # Repropose the type. A regular Reset/Propose is not enough.
+              # For more details see bnc#872081
               BootCommon.setLoaderType(nil)
               Bootloader.Reset
               Bootloader.Propose
