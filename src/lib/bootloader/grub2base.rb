@@ -55,7 +55,7 @@ module Yast
     # Propose global options of bootloader
     def StandardGlobals
       # s390 do not have os_prober, see bnc#868909#c2
-      disable_os_prober = Arch.s390 || ProductFeatures.GetBooleanFeature("general", "disable_os_prober")
+      disable_os_prober = Arch.s390 || ProductFeatures.GetBooleanFeature("globals", "disable_os_prober")
       {
         "timeout"   => "8",
         "default"   => "0",

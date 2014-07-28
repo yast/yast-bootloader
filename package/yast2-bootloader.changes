@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+
+Mon Jul 28 07:18:47 UTC 2014 - jreidinger@suse.com
+
+- fix proposing disabledos prober on certain products (SLES is
+  affected) (bnc#884007)
+- 3.1.72
+
+-------------------------------------------------------------------
 Mon Jul 28 09:14:18 CEST 2014 - snwint@suse.de
 
 - enable secure boot by default (bnc #879486)
