@@ -804,7 +804,7 @@ module Yast
       if priority_device
         result[priority_device] = "hd0"
         first_available_id = 1
-        old_first_device = device_mapping.rassoc("hd0").first
+        old_first_device = device_mapping.key("hd0")
         old_device_id = device_mapping[priority_device]
         device_mapping[old_first_device] = old_device_id
       end
@@ -817,7 +817,7 @@ module Yast
             !bad_devices.include?(key) &&
             key != priority_device
           # get device name of mapped on "hd"+cur_id
-          tmp = device_mapping.rassoc("hd#{first_available_id}").first
+          tmp = device_mapping.key("hd#{first_available_id}")
 
           # swap tmp and key devices (swap their mapping)
           result[tmp] = value
