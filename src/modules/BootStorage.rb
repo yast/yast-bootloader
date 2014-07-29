@@ -799,11 +799,8 @@ module Yast
       device_mapping = device_mapping.dup
       first_available_id = 0
       keys = device_mapping.keys
-      value = ""
-      tmp = ""
-      tmp2 = ""
-
       result = {}
+
       if priority_device
         result[priority_device] = "hd0"
         first_available_id = 1
