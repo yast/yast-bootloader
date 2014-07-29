@@ -779,9 +779,7 @@ module Yast
 
     # This function changes order of devices in device_mapping.
     # All devices listed in bad_devices are maped to "hdN" are moved to the end
-    # (with changed number N). And second step is putting device with boot partition
-    # on top (i.e. device_mapping[dev_with_boot] = "hd0").
-    #
+    # (with changed number N). Priority device are always placed at first place    #
     # Example:
     #      device_mapping = $[ "/dev/sda" : "hd0",
     #                          "/dev/sdb" : "hd1",
@@ -790,54 +788,46 @@ module Yast
     #                          "/dev/sde" : "hd4" ];
     #      bad_devices = [ "/dev/sda", "/dev/sdc" ];
     #
-    #      changeOrderInDeviceMapping(bad_devices);
-    #      // after call, device_mapping is:
+    #      changeOrderInDeviceMapping(device_mapping, bad_devices: bad_devices);
+    #      // returns:
     #      device_mapping -> $[ "/dev/sda" : "hd3",
     #                           "/dev/sdb" : "hd0",
     #                           "/dev/sdc" : "hd4",
     #                           "/dev/sdd" : "hd1",
     #                           "/dev/sde" : "hd2" ];
-    def changeOrderInDeviceMapping(bad_devices)
-      bad_devices = deep_copy(bad_devices)
-      cur_id = 0
-      keys = []
-      value = ""
-      tmp = ""
-      tmp2 = ""
+    def changeOrderInDeviceMapping(device_mapping, bad_devices: [], priority_device: nil)
+      device_mapping = device_mapping.dup
+      first_available_id = 0
+      keys = device_mapping.keys
+      result = {}
 
-      # get keys from device_mapping, it's not possible to use foreach over keys and values
-      # of device_mapping directly, because during the loop device_mapping is changing.
-      Builtins.foreach(@device_mapping) do |key, value2|
-        keys = Builtins.add(keys, key)
+      if priority_device
+        result[priority_device] = "hd0"
+        first_available_id = 1
+        old_first_device = device_mapping.key("hd0")
+        old_device_id = device_mapping[priority_device]
+        device_mapping[old_first_device] = old_device_id
       end
 
       # put bad_devices at bottom
-      Builtins.foreach(
-        Convert.convert(keys, :from => "list", :to => "list <string>")
-      ) do |key|
-        value = Ops.get(@device_mapping, key, "")
+      keys.each do |key|
+        value = device_mapping[key]
         # if device is mapped on hdX and this device is _not_ in bad_devices
-        if Builtins.substring(value, 0, 2) == "hd" &&
-            !Builtins.contains(bad_devices, key)
+        if value.start_with?("hd") &&
+            !bad_devices.include?(key) &&
+            key != priority_device
           # get device name of mapped on "hd"+cur_id
-          tmp = getKey(
-            Ops.add("hd", Builtins.tostring(cur_id)),
-            @device_mapping
-          )
+          tmp = device_mapping.key("hd#{first_available_id}")
 
           # swap tmp and key devices (swap their mapping)
-          Ops.set(@device_mapping, tmp, value)
-          Ops.set(
-            @device_mapping,
-            key,
-            Ops.add("hd", Builtins.tostring(cur_id))
-          )
+          result[tmp] = value
+          result[key] = "hd#{first_available_id}"
 
-          cur_id = Ops.add(cur_id, 1)
+          first_available_id += 1
         end
       end
 
-      nil
+      result
     end
 
     # Check if MD raid is build on disks not on paritions
@@ -1031,10 +1021,12 @@ module Yast
           @BootPartitionDevice != getKey("hd0", @device_mapping)
         Builtins.y2milestone("Detected device mapping: %1", @device_mapping)
         Builtins.y2milestone("Changing order in device mapping needed...")
-        changeOrderInDeviceMapping(usb_disks)
+        @device_mapping = changeOrderInDeviceMapping(@device_mapping, bad_devices: usb_disks)
       end
 
-      @bois_id_missing = false if Builtins.size(@device_mapping) == 1
+      @device_mapping = changeOrderInDeviceMapping(@device_mapping,
+          priority_device: @BootPartitionDevice)
+      @bois_id_missing = false #FIXME never complain about missing bios id as we always have first device boot one
       if StorageDevices.FloppyPresent
         Ops.set(@device_mapping, StorageDevices.FloppyDevice, "fd0")
       end

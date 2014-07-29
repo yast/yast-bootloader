@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul 29 09:23:34 UTC 2014 - jreidinger@suse.com
+
+- Always use device with /boot as first device in device map to
+  avoid problems with other MBRs (bnc#887808, bnc#880439)
+- 3.1.73
+
+-------------------------------------------------------------------
 
 Mon Jul 28 07:18:47 UTC 2014 - jreidinger@suse.com
 
