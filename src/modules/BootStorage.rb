@@ -21,6 +21,7 @@ require "yast"
 
 module Yast
   class BootStorageClass < Module
+    include Yast::Logger
     def main
 
       textdomain "bootloader"
@@ -796,6 +797,8 @@ module Yast
     #                           "/dev/sdd" : "hd1",
     #                           "/dev/sde" : "hd2" ];
     def changeOrderInDeviceMapping(device_mapping, bad_devices: [], priority_device: nil)
+      log.info("Calling change of device map with #{device_mapping}, " +
+        "bad_devices: #{bad_devices}, priority_device: #{priority_device}")
       device_mapping = device_mapping.dup
       first_available_id = 0
       keys = device_mapping.keys
@@ -812,6 +815,10 @@ module Yast
       # put bad_devices at bottom
       keys.each do |key|
         value = device_mapping[key]
+        if !value # FIXME this should not happen, but openQA catch it, so be on safe side
+          log.error("empty value in device map")
+          next
+        end
         # if device is mapped on hdX and this device is _not_ in bad_devices
         if value.start_with?("hd") &&
             !bad_devices.include?(key) &&
