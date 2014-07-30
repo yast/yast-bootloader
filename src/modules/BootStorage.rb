@@ -814,7 +814,10 @@ module Yast
       # put bad_devices at bottom
       keys.each do |key|
         value = device_mapping[key]
-        next unless value # FIXME this should not happen, but openQA catch it, so be on safe side
+        if !value # FIXME this should not happen, but openQA catch it, so be on safe side
+          Builtins.y2error("empty value in device map")
+          next
+        end
         # if device is mapped on hdX and this device is _not_ in bad_devices
         if value.start_with?("hd") &&
             !bad_devices.include?(key) &&
