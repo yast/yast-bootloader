@@ -56,7 +56,9 @@ module Yast
             "in <b>Boot Loader Options</b> to update the master boot record if that is needed or configure your other boot manager\n" +
             "to start this section.</p>"
         ),
-        "boot_extended"           => "<p><b>Boot from Extended Partition</b> should be selected if your root partition is on \nlogical partition and the /boot partition is missing</p>",
+        "boot_extended"           => _(
+          "<p><b>Boot from Extended Partition</b> should be selected if your root partition is on \nlogical partition and the /boot partition is missing</p>"
+        ),
         "boot_custom"             => _(
           "<p><b>Custom Boot Partition</b> lets you choose a partition to boot from.</p>"
         ),
