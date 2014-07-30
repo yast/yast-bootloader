@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 30 08:20:59 UTC 2014 - ancor@suse.com
+
+- Added a missing call to i18n for a string (bnc#887553)
+- 3.1.75
+
+-------------------------------------------------------------------
 Wed Jul 30 06:30:40 UTC 2014 - jreidinger@suse.com
 
 - Fix crash if during proposal some device map value is nil
