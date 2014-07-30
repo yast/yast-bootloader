@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul 30 06:30:40 UTC 2014 - jreidinger@suse.com
+
+- Fix crash if during proposal some device map value is nil
+  ( found by openQA )
+- 3.1.74
+
+-------------------------------------------------------------------
 Tue Jul 29 09:23:34 UTC 2014 - jreidinger@suse.com
 
 - Always use device with /boot as first device in device map to
