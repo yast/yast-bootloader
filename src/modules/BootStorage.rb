@@ -1031,6 +1031,9 @@ module Yast
         @device_mapping = changeOrderInDeviceMapping(@device_mapping, bad_devices: usb_disks)
       end
 
+      # For us priority disk is device where /boot or / lives as we control this disk and
+      # want to modify its MBR. So we get disk of such partition and change order to add it
+      # to top of device map. For details see bnc#887808,bnc#880439
       priority_disk = Storage.GetDiskPartition(@BootPartitionDevice || @RootPartitionDevice)["disk"]
       @device_mapping = changeOrderInDeviceMapping(@device_mapping,
           priority_device: priority_disk)
