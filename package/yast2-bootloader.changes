@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Jul 31 14:01:43 UTC 2014 - jreidinger@suse.com
+
+- Disk order dialog:
+  - fix non-working up button (bnc#885867)
+  - fix enabling/disabling up/down buttons in various situations
+  - when adding new device set focus to input field to better UX
+- 3.1.79
+
+-------------------------------------------------------------------
 Thu Jul 31 12:40:37 UTC 2014 - jreidinger@suse.com
 
 - reinit branding in upgrade of SLE-12 as it is overwritten
