@@ -464,69 +464,59 @@ module Yast
         VSpacing(1)
       )
       UI.OpenDialog(popup)
-      pushed = Convert.to_symbol(UI.UserInput)
-      new_dev = Convert.to_string(UI.QueryWidget(Id(:devname), :Value))
+      UI.SetFocus(:devname)
+      pushed = UI.UserInput
+      new_dev = UI.QueryWidget(Id(:devname), :Value)
       UI.CloseDialog
-      ret = ""
-      ret = new_dev if pushed == :ok
-      ret
+
+      pushed == :ok ? new_dev : ""
     end
 
 
     def HandleDiskOrder(widget, event)
-      event = deep_copy(event)
-      action = Ops.get(event, "ID")
+      action = event["ID"]
       changed = false
-      disksOrder = Convert.convert(
-        UI.QueryWidget(Id(:disks), :Items),
-        :from => "any",
-        :to   => "list <term>"
-      )
-      current = Convert.to_string(UI.QueryWidget(Id(:disks), :CurrentItem))
+      disksOrder = UI.QueryWidget(Id(:disks), :Items)
+      current = UI.QueryWidget(Id(:disks), :CurrentItem)
       pos = 0
-      while Ops.less_than(pos, Builtins.size(disksOrder)) &&
-          GetItemID(Ops.get(disksOrder, pos) { term(:Item, Id("")) }) != current
-        pos = Ops.add(pos, 1)
+      while pos < disksOrder.size &&
+          GetItemID(disksOrder[pos] || term(:Item, Id(""))) != current
+        pos += 1
       end
+      Builtins.y2debug("Calling handle disk order with action #{action} and selected on pos #{pos}")
 
-      #disabling & enabling up/down
-      UI.ChangeWidget(
-        Id(:up),
-        :Enabled,
-        Ops.greater_than(pos, 0) &&
-          Ops.less_than(pos, Builtins.size(disksOrder))
-      )
-      UI.ChangeWidget(
-        Id(:down),
-        :Enabled,
-        Ops.less_than(pos, Ops.subtract(Builtins.size(disksOrder), 1))
-      )
 
-      if action == :up
+      case action
+      when :up
         changed = true
-        disksOrder = Builtins::List.swap(disksOrder, pos, Ops.subtract(pos, 1))
-      elsif action == :down
+	# swap elements
+        disksOrder.insert(pos - 1, disksOrder.delete_at(pos))
+        pos -= 1
+      when :down
         changed = true
-        disksOrder = Builtins::List.swap(disksOrder, pos, Ops.add(pos, 1))
-      elsif action == :delete
+	# swap elements
+        disksOrder.insert(pos + 1, disksOrder.delete_at(pos))
+        pos += 1
+      when :delete
         changed = true
         disksOrder = Builtins.remove(disksOrder, pos)
+        pos = pos > 0 ? pos -1 : 0
         UI.ChangeWidget(
           Id(:disks),
           :CurrentItem,
-          Ops.greater_than(pos, 0) ?
-            GetItemID(Ops.get(disksOrder, Ops.subtract(pos, 1)) do
-              term(:Item, Id(""))
-            end) :
-            GetItemID(Ops.get(disksOrder, 0) { term(:Item, Id("")) })
+          GetItemID(disksOrder[pos] || term(:Item, Id("")))
         )
-      elsif action == :add
+      when :add
         new_dev = NewDevicePopup()
         if new_dev != ""
           changed = true
-          disksOrder = Builtins.add(disksOrder, Item(Id(new_dev), new_dev))
+          disksOrder << Item(Id(new_dev), new_dev)
         end
       end
+
+      #disabling & enabling up/down, do it after change
+      UI.ChangeWidget(Id(:up), :Enabled, pos > 0 && pos < disksOrder.size)
+      UI.ChangeWidget(Id(:down), :Enabled, pos < disksOrder.size - 1)
 
       UI.ChangeWidget(Id(:disks), :Items, disksOrder) if changed
 
@@ -550,7 +540,7 @@ module Yast
         HSpacing(2),
         VBox(
           VSpacing(1),
-          SelectionBox(Id(:disks), Opt(:notify, :immediate), _("D&isks"), []),
+          SelectionBox(Id(:disks), Opt(:notify), _("D&isks"), []),
           HBox(
             HStretch(),
             PushButton(Id(:add), Opt(:key_F3), Label.AddButton),
