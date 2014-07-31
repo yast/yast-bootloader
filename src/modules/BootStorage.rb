@@ -1031,8 +1031,9 @@ module Yast
         @device_mapping = changeOrderInDeviceMapping(@device_mapping, bad_devices: usb_disks)
       end
 
+      priority_disk = Storage.GetDiskPartition(@BootPartitionDevice || @RootPartitionDevice)["disk"]
       @device_mapping = changeOrderInDeviceMapping(@device_mapping,
-          priority_device: @BootPartitionDevice)
+          priority_device: priority_disk)
       @bois_id_missing = false #FIXME never complain about missing bios id as we always have first device boot one
       if StorageDevices.FloppyPresent
         Ops.set(@device_mapping, StorageDevices.FloppyDevice, "fd0")
