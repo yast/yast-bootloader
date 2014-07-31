@@ -214,6 +214,18 @@ module Yast
         @ret = nil
       end
 
+      # FIXME workaround grub2 in upgrade need manual rerun of branding
+      # package. see bnc#879686
+      if Mode.update && Bootloader.getLoaderType =~ /grub2/
+        prefix = Installation.destdir
+        branding_activator = Dir["#{prefix}/usr/share/grub2/themes/*/activate-theme"].first
+        if branding_activator
+          branding_activator = branding_activator[prefix.size..-1]
+          res = SCR.Execute(path(".target.bash_output"), branding_activator)
+          Builtins.y2milestone("Reactivate branding with #{branding_activator} and result #{res}")
+        end
+      end
+
       Builtins.y2debug("ret=%1", @ret)
       Builtins.y2milestone("bootloader_finish finished")
       deep_copy(@ret)
