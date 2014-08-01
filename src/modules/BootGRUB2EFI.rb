@@ -80,6 +80,9 @@ module Yast
 
       # for UEFI always set PMBR flag on disk (bnc#872054)
       BootCommon.pmbr_action = :add if !BootCommon.was_proposed || Mode.autoinst
+
+      # set secure boot always on (bnc #879486)
+      BootCommon.setSystemSecureBootStatus(true) if !BootCommon.was_proposed && Arch.x86_64;
     end
 
     # Display bootloader summary
