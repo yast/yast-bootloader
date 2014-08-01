@@ -440,7 +440,7 @@ module Yast
         mbr_dev = Ops.get_string(m_activate, "mbr", "")
         raise "INTERNAL ERROR: Data for partition to activate is invalid." if num == 0 || mbr_dev.empty?
 
-        gpt_disk = Storage.GetTargetMap[BootCommon.mbrDisk]["label"] == "gpt"
+        gpt_disk = Storage.GetDisk(Storage.GetTargetMap, BootCommon.mbrDisk)["label"] == "gpt"
         # if primary partition on old DOS MBR table, GPT do not have such limit
 
         if !(Arch.ppc && gpt_disk) && (gpt_disk || num <= 4)

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug  1 07:37:50 UTC 2014 - jsrain@suse.cz
+
+- fixed bootloader installation (bnc#889770)
+- 3.1.80
+
+-------------------------------------------------------------------
 Thu Jul 31 14:01:43 UTC 2014 - jreidinger@suse.com
 
 - Disk order dialog:
