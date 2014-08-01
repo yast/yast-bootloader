@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug  1 07:37:50 UTC 2014 - jsrain@suse.cz
+
+- fixed bootloader installation (bnc#889770)
+- 3.1.70
+
+-------------------------------------------------------------------
 Fri Jul 25 11:48:35 UTC 2014 - jsrain@suse.cz
 
 - code de-duplication of recent AUtoYaST fixes (bnc#885634)
