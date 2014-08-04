@@ -802,14 +802,13 @@ module Yast
       device_mapping = device_mapping.dup
       first_available_id = 0
       keys = device_mapping.keys
-      result = {}
 
       if priority_device
-        result[priority_device] = "hd0"
         first_available_id = 1
         old_first_device = device_mapping.key("hd0")
         old_device_id = device_mapping[priority_device]
         device_mapping[old_first_device] = old_device_id
+        device_mapping[priority_device] = "hd0"
       end
 
       # put bad_devices at bottom
@@ -827,14 +826,14 @@ module Yast
           tmp = device_mapping.key("hd#{first_available_id}")
 
           # swap tmp and key devices (swap their mapping)
-          result[tmp] = value
-          result[key] = "hd#{first_available_id}"
+          device_mapping[tmp] = value
+          device_mapping[key] = "hd#{first_available_id}"
 
           first_available_id += 1
         end
       end
 
-      result
+      device_mapping
     end
 
     # Check if MD raid is build on disks not on paritions

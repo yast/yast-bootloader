@@ -5,12 +5,12 @@ Yast.import "BootStorage"
 describe Yast::BootStorage do
   describe ".changeOrderInDeviceMapping" do
     it "place priority device on top of device mapping" do
-      device_map = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1" }
-      result = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
+      device_map = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
+      result = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1" }
       expect(
         Yast::BootStorage.changeOrderInDeviceMapping(
           device_map,
-          priority_device: "/dev/sdb"
+          priority_device: "/dev/sda"
         )
       ).to eq(result)
     end
