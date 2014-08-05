@@ -1033,9 +1033,12 @@ module Yast
       # For us priority disk is device where /boot or / lives as we control this disk and
       # want to modify its MBR. So we get disk of such partition and change order to add it
       # to top of device map. For details see bnc#887808,bnc#880439
-      priority_disk = Storage.GetDiskPartition(@BootPartitionDevice || @RootPartitionDevice)["disk"]
-      @device_mapping = changeOrderInDeviceMapping(@device_mapping,
-          priority_device: priority_disk)
+      priority_disks = real_disks_for_partition(@BootPartitionDevice)
+      # if none of priority disk is hd0, then choose one and assign it
+      if !isHd0(priority_disks)
+        @device_mapping = changeOrderInDeviceMapping(@device_mapping,
+            priority_device: priority_disks.first)
+      end
       @bois_id_missing = false #FIXME never complain about missing bios id as we always have first device boot one
       if StorageDevices.FloppyPresent
         Ops.set(@device_mapping, StorageDevices.FloppyDevice, "fd0")
