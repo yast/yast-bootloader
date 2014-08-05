@@ -26,6 +26,26 @@ describe Yast::BootStorage do
     end
   end
 
+  describe ".real_disks_for_partition" do
+    it "returns unique list of disk on which partitions lives" do
+      target_map_stub("storage_mdraid.rb")
+      # simple mock getting disks from partition as it need initialized libstorage
+      allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
+        number = partition[/(\d+)$/,1]
+        disk = partition[0..-(number.size+1)]
+        { "disk" => disk, "nr" => number }
+      end
+      result = Yast::BootStorage.real_disks_for_partition("/dev/md1")
+      expect(result).to include("/dev/vda")
+      expect(result).to include("/dev/vdb")
+      expect(result).to include("/dev/vdc")
+      expect(result).to include("/dev/vdd")
+
+      result = Yast::BootStorage.real_disks_for_partition("/dev/vda1")
+      expect(result).to include("/dev/vda")
+    end
+  end
+
   describe ".changeOrderInDeviceMapping" do
     it "place priority device on top of device mapping" do
       device_map = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }

@@ -1534,6 +1534,17 @@ module Yast
       ret
     end
 
+    # returns disk names where partition lives
+    def real_disks_for_partition(partition)
+      # FIXME handle somehow if disk are in logical raid
+      partitions = Md2Partitions(partition).keys
+      partitions = [partition] if partitions.empty?
+      res = partitions.map do |partition|
+        Storage.GetDiskPartition(partition)["disk"]
+      end
+      res.uniq
+    end
+
     publish :variable => :all_devices, :type => "map <string, string>"
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
