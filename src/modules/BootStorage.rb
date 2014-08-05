@@ -1520,25 +1520,18 @@ module Yast
     def Md2Partitions(md_device)
       ret = {}
       tm = Storage.GetTargetMap
-      Builtins.foreach(tm) do |disk, descr_a|
-        descr = Convert.convert(
-          descr_a,
-          :from => "any",
-          :to   => "map <string, any>"
-        )
-        bios_id_str = Ops.get_string(descr, "bios_id", "")
-        bios_id = 256 # maximum + 1 (means: no bios_id found)
-        bios_id = Builtins.tointeger(bios_id) if bios_id_str != ""
-        partitions = Ops.get_list(descr, "partitions", [])
-        Builtins.foreach(partitions) do |partition|
-          if Ops.get_string(partition, "used_by_device", "") == md_device
-            d = Ops.get_string(partition, "device", "")
-            Ops.set(ret, d, bios_id)
+      tm.each_pair do |disk, descr|
+        bios_id = (descr["bios_id"] || 256).to_i # maximum + 1 (means: no bios_id found)
+        partitions = descr["partitions"] || []
+        partitions.each do |partition|
+          if partition["used_by_device"] == md_device
+            ret[partition["device"]] = bios_id
           end
         end
       end
       Builtins.y2milestone("Partitions building %1: %2", md_device, ret)
-      deep_copy(ret)
+
+      ret
     end
 
     publish :variable => :all_devices, :type => "map <string, string>"
