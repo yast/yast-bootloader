@@ -25,6 +25,7 @@ Source0:        %{name}-%{version}.tar.bz2
 
 Group:	        System/YaST
 License:        GPL-2.0+
+Url:            http://github.com/yast/yast-bootloader
 BuildRequires:	yast2-devtools >= 3.1.10
 BuildRequires:	yast2 >= 3.1.0
 BuildRequires:  update-desktop-files
@@ -106,7 +107,6 @@ make check VERBOSE=1
 %{yast_ybindir}/*
 %dir %{yast_scrconfdir}
 %{yast_scrconfdir}/*.scr
-%dir %{yast_fillupdir}
 %{yast_fillupdir}/*
 %dir %{yast_schemadir}
 %dir %{yast_schemadir}/autoyast
@@ -118,5 +118,6 @@ make check VERBOSE=1
 %doc %{yast_docdir}/COPYING
 
 %files devel-doc
+%defattr(-,root,root)
 %doc %{yast_docdir}/autodocs
 
