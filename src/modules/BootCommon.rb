@@ -1008,6 +1008,11 @@ module Yast
       ret
     end
 
+    # FIXME just backward compatible interface, call directly BootStorage
+    def Md2Partitions(md_device)
+      BootStorage.Md2Partitions(md_device)
+    end
+
     publish :variable => :global_options, :type => "map <string, any>"
     publish :variable => :globals, :type => "map <string, string>"
     publish :variable => :sections, :type => "list <map <string, any>>"
@@ -1086,7 +1091,6 @@ module Yast
     publish :function => :AddFirmwareToBootloader, :type => "boolean (string)"
     publish :function => :PostUpdateMBR, :type => "boolean ()"
     publish :function => :FindMBRDisk, :type => "string ()"
-    publish :function => :Md2Partition, :type => "string (string)"
     publish :function => :RunDelayedUpdates, :type => "void ()"
     publish :function => :FixGlobals, :type => "void ()"
     publish :function => :FixSections, :type => "void (void ())"

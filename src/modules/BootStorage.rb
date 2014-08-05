@@ -1513,6 +1513,34 @@ module Yast
       ret
     end
 
+    # Converts the md device to the list of devices building it
+    # @param [String] md_device string md device
+    # @return a map of devices (from device name to BIOS ID or nil if
+    #   not detected) building the md device
+    def Md2Partitions(md_device)
+      ret = {}
+      tm = Storage.GetTargetMap
+      Builtins.foreach(tm) do |disk, descr_a|
+        descr = Convert.convert(
+          descr_a,
+          :from => "any",
+          :to   => "map <string, any>"
+        )
+        bios_id_str = Ops.get_string(descr, "bios_id", "")
+        bios_id = 256 # maximum + 1 (means: no bios_id found)
+        bios_id = Builtins.tointeger(bios_id) if bios_id_str != ""
+        partitions = Ops.get_list(descr, "partitions", [])
+        Builtins.foreach(partitions) do |partition|
+          if Ops.get_string(partition, "used_by_device", "") == md_device
+            d = Ops.get_string(partition, "device", "")
+            Ops.set(ret, d, bios_id)
+          end
+        end
+      end
+      Builtins.y2milestone("Partitions building %1: %2", md_device, ret)
+      deep_copy(ret)
+    end
+
     publish :variable => :all_devices, :type => "map <string, string>"
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
@@ -1534,6 +1562,7 @@ module Yast
     publish :function => :getHintedPartitionList, :type => "list <string> (list <string>)"
     publish :function => :getPartitionList, :type => "list <string> (symbol, string)"
     publish :function => :addMDSettingsToGlobals, :type => "string ()"
+    publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
   end
 
   BootStorage = BootStorageClass.new
