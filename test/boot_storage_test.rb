@@ -3,14 +3,57 @@ require_relative "test_helper"
 Yast.import "BootStorage"
 
 describe Yast::BootStorage do
+  def target_map_stub(name)
+    path = File.join(File.dirname(__FILE__), "data", name)
+    tm = eval(File.read(path))
+    allow(Yast::Storage).to receive(:GetTargetMap).and_return(tm)
+  end
+
+  describe ".Md2Partitions" do
+    it "returns map with devices creating virtual device as key and bios id as value" do
+      target_map_stub("storage_mdraid.rb")
+      result = Yast::BootStorage.Md2Partitions("/dev/md1")
+      expect(result).to include("/dev/vda1")
+      expect(result).to include("/dev/vdb1")
+      expect(result).to include("/dev/vdc1")
+      expect(result).to include("/dev/vdd1")
+    end
+
+    it "returns empty map if device is not created from other devices" do
+      target_map_stub("storage_mdraid.rb")
+      result = Yast::BootStorage.Md2Partitions("/dev/vda1")
+      expect(result).to be_empty
+    end
+  end
+
+  describe ".real_disks_for_partition" do
+    it "returns unique list of disk on which partitions lives" do
+      target_map_stub("storage_mdraid.rb")
+      # simple mock getting disks from partition as it need initialized libstorage
+      allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
+        number = partition[/(\d+)$/,1]
+        disk = partition[0..-(number.size+1)]
+        { "disk" => disk, "nr" => number }
+      end
+      result = Yast::BootStorage.real_disks_for_partition("/dev/md1")
+      expect(result).to include("/dev/vda")
+      expect(result).to include("/dev/vdb")
+      expect(result).to include("/dev/vdc")
+      expect(result).to include("/dev/vdd")
+
+      result = Yast::BootStorage.real_disks_for_partition("/dev/vda1")
+      expect(result).to include("/dev/vda")
+    end
+  end
+
   describe ".changeOrderInDeviceMapping" do
     it "place priority device on top of device mapping" do
-      device_map = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1" }
-      result = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
+      device_map = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
+      result = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1" }
       expect(
         Yast::BootStorage.changeOrderInDeviceMapping(
           device_map,
-          priority_device: "/dev/sdb"
+          priority_device: "/dev/sda"
         )
       ).to eq(result)
     end

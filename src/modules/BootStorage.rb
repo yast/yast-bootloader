@@ -802,14 +802,13 @@ module Yast
       device_mapping = device_mapping.dup
       first_available_id = 0
       keys = device_mapping.keys
-      result = {}
 
       if priority_device
-        result[priority_device] = "hd0"
         first_available_id = 1
         old_first_device = device_mapping.key("hd0")
         old_device_id = device_mapping[priority_device]
         device_mapping[old_first_device] = old_device_id
+        device_mapping[priority_device] = "hd0"
       end
 
       # put bad_devices at bottom
@@ -827,14 +826,14 @@ module Yast
           tmp = device_mapping.key("hd#{first_available_id}")
 
           # swap tmp and key devices (swap their mapping)
-          result[tmp] = value
-          result[key] = "hd#{first_available_id}"
+          device_mapping[tmp] = value
+          device_mapping[key] = "hd#{first_available_id}"
 
           first_available_id += 1
         end
       end
 
-      result
+      device_mapping
     end
 
     # Check if MD raid is build on disks not on paritions
@@ -1034,9 +1033,12 @@ module Yast
       # For us priority disk is device where /boot or / lives as we control this disk and
       # want to modify its MBR. So we get disk of such partition and change order to add it
       # to top of device map. For details see bnc#887808,bnc#880439
-      priority_disk = Storage.GetDiskPartition(@BootPartitionDevice || @RootPartitionDevice)["disk"]
-      @device_mapping = changeOrderInDeviceMapping(@device_mapping,
-          priority_device: priority_disk)
+      priority_disks = real_disks_for_partition(@BootPartitionDevice)
+      # if none of priority disk is hd0, then choose one and assign it
+      if !isHd0(priority_disks)
+        @device_mapping = changeOrderInDeviceMapping(@device_mapping,
+            priority_device: priority_disks.first)
+      end
       @bois_id_missing = false #FIXME never complain about missing bios id as we always have first device boot one
       if StorageDevices.FloppyPresent
         Ops.set(@device_mapping, StorageDevices.FloppyDevice, "fd0")
@@ -1514,6 +1516,38 @@ module Yast
       ret
     end
 
+    # Converts the md device to the list of devices building it
+    # @param [String] md_device string md device
+    # @return a map of devices (from device name to BIOS ID or nil if
+    #   not detected) building the md device
+    def Md2Partitions(md_device)
+      ret = {}
+      tm = Storage.GetTargetMap
+      tm.each_pair do |disk, descr|
+        bios_id = (descr["bios_id"] || 256).to_i # maximum + 1 (means: no bios_id found)
+        partitions = descr["partitions"] || []
+        partitions.each do |partition|
+          if partition["used_by_device"] == md_device
+            ret[partition["device"]] = bios_id
+          end
+        end
+      end
+      Builtins.y2milestone("Partitions building %1: %2", md_device, ret)
+
+      ret
+    end
+
+    # returns disk names where partition lives
+    def real_disks_for_partition(partition)
+      # FIXME handle somehow if disk are in logical raid
+      partitions = Md2Partitions(partition).keys
+      partitions = [partition] if partitions.empty?
+      res = partitions.map do |partition|
+        Storage.GetDiskPartition(partition)["disk"]
+      end
+      res.uniq
+    end
+
     publish :variable => :all_devices, :type => "map <string, string>"
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
@@ -1535,6 +1569,7 @@ module Yast
     publish :function => :getHintedPartitionList, :type => "list <string> (list <string>)"
     publish :function => :getPartitionList, :type => "list <string> (symbol, string)"
     publish :function => :addMDSettingsToGlobals, :type => "string ()"
+    publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
   end
 
   BootStorage = BootStorageClass.new
