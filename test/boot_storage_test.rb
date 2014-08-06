@@ -58,6 +58,17 @@ describe Yast::BootStorage do
       ).to eq(result)
     end
 
+    it "ignores priority device which is not in device map already" do
+      device_map = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
+      result = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
+      expect(
+        Yast::BootStorage.changeOrderInDeviceMapping(
+          device_map,
+          priority_device: "/dev/system"
+        )
+      ).to eq(result)
+    end
+
     it "place bad devices at the end of list" do
       device_map = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1" }
       result = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }

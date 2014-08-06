@@ -802,13 +802,20 @@ module Yast
       device_mapping = device_mapping.dup
       first_available_id = 0
       keys = device_mapping.keys
+      # sort keys by its order in device mapping
+      keys.sort_by! {|k| device_mapping[k][/\d+$/] }
 
       if priority_device
-        first_available_id = 1
-        old_first_device = device_mapping.key("hd0")
-        old_device_id = device_mapping[priority_device]
-        device_mapping[old_first_device] = old_device_id
-        device_mapping[priority_device] = "hd0"
+        # change order of priority device if it is already in device map, otherwise ignore them
+        if device_mapping[priority_device]
+          first_available_id = 1
+          old_first_device = device_mapping.key("hd0")
+          old_device_id = device_mapping[priority_device]
+          device_mapping[old_first_device] = old_device_id
+          device_mapping[priority_device] = "hd0"
+        else
+          log.warn("Unknown priority device '#{priority_device}'. Skipping")
+        end
       end
 
       # put bad_devices at bottom
