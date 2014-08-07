@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug  7 08:32:39 UTC 2014 - jreidinger@suse.com
+
+- workaround initrd recreation if some packages forgot during
+  upgrade (bnc#889616)
+- 3.1.83
+
+-------------------------------------------------------------------
 Wed Aug  6 08:59:52 UTC 2014 - jreidinger@suse.com
 
 - ignore unknown priority device to avoid problems in corner case
