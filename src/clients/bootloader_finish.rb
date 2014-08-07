@@ -225,6 +225,13 @@ module Yast
           Builtins.y2milestone("Reactivate branding with #{branding_activator} and result #{res}")
         end
       end
+      # workaround for packages that forgot to update initrd(bnc#889616)
+      # do not use Initrd module as it can also change configuration, which we do not want
+      if Mode.update
+        res = SCR.Execute(path(".target.bash_output"), "/sbin/mkinitrd")
+        Builtins.y2milestone("Regerate initrd with result #{res}")
+      end
+
 
       Builtins.y2debug("ret=%1", @ret)
       Builtins.y2milestone("bootloader_finish finished")
