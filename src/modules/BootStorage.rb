@@ -1552,6 +1552,23 @@ module Yast
       res = partitions.map do |partition|
         Storage.GetDiskPartition(partition)["disk"]
       end
+      res.uniq!
+      # handle LVM disks
+      tm = Storage.GetTargetMap
+      res = res.reduce([]) do |ret, disk|
+        disk_meta = tm[disk]
+        next unless disk_meta
+
+        if disk_meta["lvm2"]
+          devices = disk_meta["devices"] + disk_meta["devices_add"]
+          disks = devices.map { |d| real_disks_for_partition(d) }
+          ret.concat(disks.flatten)
+        else
+          ret << disk
+        end
+        ret
+      end
+
       res.uniq
     end
 
