@@ -1552,10 +1552,10 @@ module Yast
       res = partitions.map do |partition|
         Storage.GetDiskPartition(partition)["disk"]
       end
-      res.uniq
+      res.uniq!
       # handle LVM disks
       tm = Storage.GetTargetMap
-      res.reduce([]) do |ret, disk|
+      res = res.reduce([]) do |ret, disk|
         disk_meta = tm[disk]
         next unless disk_meta
 
@@ -1568,6 +1568,8 @@ module Yast
         end
         ret
       end
+
+      res.uniq
     end
 
     publish :variable => :all_devices, :type => "map <string, string>"
