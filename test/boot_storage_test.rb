@@ -27,21 +27,42 @@ describe Yast::BootStorage do
   end
 
   describe ".real_disks_for_partition" do
-    it "returns unique list of disk on which partitions lives" do
-      target_map_stub("storage_mdraid.rb")
+
+    before do
       # simple mock getting disks from partition as it need initialized libstorage
       allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
-        number = partition[/(\d+)$/,1]
-        disk = partition[0..-(number.size+1)]
+        if partition == "/dev/system/root"
+          disk = "/dev/system"
+          number = "system"
+        else
+          number = partition[/(\d+)$/,1]
+          disk = partition[0..-(number.size+1)]
+        end
         { "disk" => disk, "nr" => number }
       end
+    end
+
+    it "returns unique list of disk on which partitions lives" do
+      target_map_stub("storage_mdraid.rb")
+
+      result = Yast::BootStorage.real_disks_for_partition("/dev/vda1")
+      expect(result).to include("/dev/vda")
+    end
+
+    it "can handle md raid" do
+      target_map_stub("storage_mdraid.rb")
+
       result = Yast::BootStorage.real_disks_for_partition("/dev/md1")
       expect(result).to include("/dev/vda")
       expect(result).to include("/dev/vdb")
       expect(result).to include("/dev/vdc")
       expect(result).to include("/dev/vdd")
+    end
 
-      result = Yast::BootStorage.real_disks_for_partition("/dev/vda1")
+    it "can handle LVM" do
+      target_map_stub("storage_lvm.rb")
+
+      result = Yast::BootStorage.real_disks_for_partition("/dev/system/root")
       expect(result).to include("/dev/vda")
     end
   end
