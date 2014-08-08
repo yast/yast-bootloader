@@ -1560,7 +1560,7 @@ module Yast
         next unless disk_meta
 
         if disk_meta["lvm2"]
-          devices = disk_meta["devices"] + disk_meta["devices_add"]
+          devices = (disk_meta["devices"] || []) + (disk_meta["devices_add"] || [])
           disks = devices.map { |d| real_disks_for_partition(d) }
           ret.concat(disks.flatten)
         else
