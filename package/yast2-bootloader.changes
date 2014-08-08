@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug  8 13:55:23 UTC 2014 - jreidinger@suse.com
+
+- do not crash in some condition in combination of LVM and GPT
+  (bnc#891070)
+- 3.1.85
+
+-------------------------------------------------------------------
 Thu Aug  7 13:39:09 UTC 2014 - jreidinger@suse.com
 
 - fix assigning priority disks to device map for LVM (bnc#890364)
