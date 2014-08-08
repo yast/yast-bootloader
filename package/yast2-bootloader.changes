@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug  8 14:20:26 UTC 2014 - jreidinger@suse.com
+
+- properly use vgamode from installation kernel cmdline
+  (bnc#891060)
+- 3.1.86
+
+-------------------------------------------------------------------
 Fri Aug  8 13:55:23 UTC 2014 - jreidinger@suse.com
 
 - do not crash in some condition in combination of LVM and GPT
