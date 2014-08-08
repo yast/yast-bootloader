@@ -130,6 +130,9 @@ module Yast
       BootCommon.globals["append_failsafe"] ||= BootArch.FailsafeKernelParams
       BootCommon.globals["distributor"]     ||= Product.name
       BootCommon.kernelCmdLine              ||= Kernel.GetCmdLine
+      if BootArch.VgaAvailable && Kernel.GetVgaType != ""
+        BootCommon.globals["vgamode"]       ||= Kernel.GetVgaType
+      end
 
       # Propose bootloader serial settings from kernel cmdline during install (bnc#862388)
       serial = BootCommon.GetSerialFromAppend
