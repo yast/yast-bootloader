@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Aug  8 10:01:04 CEST 2014 - schubi@suse.de
+
+- Autoyast: If "activate"  has not been set, it should be the
+  same default value as it will be suggested in the proposal
+  workflow (bnc#889687)
+- 3.1.85
+
+-------------------------------------------------------------------
 Thu Aug  7 13:39:09 UTC 2014 - jreidinger@suse.com
 
 - fix assigning priority disks to device map for LVM (bnc#890364)

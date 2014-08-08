@@ -52,6 +52,15 @@ module Yast
       Builtins.y2debug("param=%1", @param)
 
       if @func == "Import"
+
+        # If the parameter has not been set, it should be the
+        # same default value as it will be suggested
+        # in the proposal workflow (bnc#889687)
+        if @param.has_key?("global") &&
+          !@param["global"].has_key?("activate")
+          @param["global"]["activate"] = true
+        end
+
         data = AI2Export(@param)
         if data
           @ret = Bootloader.Import(data)
