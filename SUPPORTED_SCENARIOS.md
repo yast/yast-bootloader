@@ -33,7 +33,7 @@ The goal of this document is to have a single source of information  which scena
 * Device mapper
 * local hard disk (including USB/ieee1394)
 * local (hardware) RAID array of any type
-* BIOS-RAID (handled via DM-RAID)
+* BIOS-RAID (handled via DM-RAID or MD RAID)
 * iSCSI server with persistent IP address / disk identification
 * NFSv3,v4 share on server with fixed IP address
 
