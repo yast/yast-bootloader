@@ -16,14 +16,14 @@ The goal of this document is to have a single source of information  which scena
 
 * DOS partition table
 * GPT partition table
-  * need bios_grub partition if stage1 is on MBR and /boot lives on BTRFS
+  * requires [bios_boot partition](http://en.wikipedia.org/wiki/BIOS_Boot_partition)if stage1 is on MBR and /boot lives on partition with BTRFS
   * /boot must be on partition 1..4
 
 # storage configuration
 
-* software raid
-  * /boot cannot be on raid unless it is raid1
-  * cannot have stage1 on md raid1 ( so no /boot on raid1 )
+* software RAID
+  * /boot cannot be on RAID unless it is RAID1
+  * cannot have stage1 on MD RAID1 ( so no /boot on RAID1 )
 * LVM
   * fully supported
 * multipath
@@ -45,7 +45,7 @@ The goal of this document is to have a single source of information  which scena
 # Stage1 locations
 
 * MBR of disk where is /boot
-* MBR of identical disks in md raid if it contain /boot [fate](https://fate.novell.com/316983)
+* MBR of identical disks in MD RAID if it contain /boot [fate](https://fate.novell.com/316983)
 * /boot
 * extended partition
   * only if /boot is on logical partition
