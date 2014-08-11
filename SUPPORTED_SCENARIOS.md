@@ -14,10 +14,12 @@ The goal of this document is to have a single source of information  which scena
 
 # Partition table
 
-* DOS partition table
-* GPT partition table
+* [DOS partition table](http://en.wikipedia.org/wiki/Master_boot_record)
+* [GPT](http://en.wikipedia.org/wiki/GUID_Partition_Table)
   * requires [bios_boot partition](http://en.wikipedia.org/wiki/BIOS_Boot_partition)if stage1 is on MBR and /boot lives on partition with BTRFS
   * /boot must be on partition 1..4
+* [DASD](http://en.wikipedia.org/wiki/Direct-access_storage_device)
+  * only s390x
 
 # storage configuration
 
@@ -37,7 +39,7 @@ The goal of this document is to have a single source of information  which scena
 * x86_64
 * ppc64(le and be)
   * only GRUB2
-  * there must be at least one prep partition
+  * there must be at least one [PReP partition](http://en.wikipedia.org/wiki/Partition_type#List_of_partition_IDs) which size must not exceed 8MB (see [fate](https://fate.suse.com/317302))
 * s390x
   * /boot/zipl must be on ext fs ( unless upgraded from working zipl configuration )
   * only GRUB2
@@ -45,7 +47,7 @@ The goal of this document is to have a single source of information  which scena
 # Stage1 locations
 
 * MBR of disk where is /boot
-* MBR of identical disks in MD RAID if it contain /boot [fate](https://fate.novell.com/316983)
+* MBR of identical disks in MD RAID if it contains /boot [fate](https://fate.novell.com/316983)
 * /boot
 * extended partition
   * /boot has to be on a logical partition
