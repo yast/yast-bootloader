@@ -7,7 +7,7 @@ The goal of this document is to have a single source of information  which scena
 * grub2
 * grub2-efi
   * only for UEFI boot
-  * only with GPT (see [bug)[https://bugzilla.novell.com/show_bug.cgi?id=889733#c8])
+  * only with GPT (see [bug](https://bugzilla.novell.com/show_bug.cgi?id=889733#c8))
 * none
 * grub
   * for openSUSE only, not proposed by default, likely to be removed
