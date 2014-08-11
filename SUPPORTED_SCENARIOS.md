@@ -28,11 +28,15 @@ The goal of this document is to have a single source of information  which scena
   * /boot cannot be on RAID unless it is RAID1
   * cannot have stage1 on MD RAID1 ( so no /boot on RAID1 )
 * LVM
-  * /boot cannot be encrypted (not bootloader limitation see (bug)[https://bugzilla.novell.com/show_bug.cgi?id=890364#c40]
+  * /boot cannot be encrypted (not bootloader limitation see (bug)[https://bugzilla.novell.com/show_bug.cgi?id=890364#c40])
 * multipath
-  * fully supported
 * Device mapper
-  * fully supported
+* local hard disk (including USB/ieee1394)
+* local (hardware) RAID array of any type
+* BIOS-RAID (handled via DM-RAID)
+* iSCSI server with persistent IP address / disk identification
+* NFSv3,v4 share on server with fixed IP address
+
 
 # Architectures
 
