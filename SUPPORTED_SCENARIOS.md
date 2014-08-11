@@ -48,4 +48,4 @@ The goal of this document is to have a single source of information  which scena
 * MBR of identical disks in MD RAID if it contain /boot [fate](https://fate.novell.com/316983)
 * /boot
 * extended partition
-  * only if /boot is on logical partition
+  * /boot has to be on a logical partition
