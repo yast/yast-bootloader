@@ -35,7 +35,7 @@ Goal of this document is to have single source of information  which scenarios i
 
 * x86
 * x86_64
-* ppc64le
+* ppc64(le and be)
   * only GRUB2
   * there must be at least one prep partition
 * s390x
