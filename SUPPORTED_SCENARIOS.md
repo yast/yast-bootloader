@@ -9,7 +9,7 @@ The goal of this document is to have a single source of information  which scena
   * only for UEFI boot
 * none
 * grub
-  * limited, only for opensuse and is not proposed now
+  * for openSUSE only, not proposed by default, likely to be removed
   * only for x86 hardware
 
 # Partition table
