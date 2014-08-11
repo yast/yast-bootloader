@@ -1,6 +1,6 @@
 # Supported Scenarios
 
-Goal of this document is to have single source of information  which scenarios is supported by yast2-bootloader.
+Goal of this document is to have a single source of information  which scenarios are supported by yast2-bootloader.
 
 ## bootloaders
 
