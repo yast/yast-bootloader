@@ -45,5 +45,26 @@ describe Yast::BootCommon do
       expect(Yast::BootCommon.setKernelParamToLine(
         line, "verbose", "false")).to eq result_line
     end
+
+    it "return line with key=value if line is nil" do
+      line = nil
+      result_line = "silent=1"
+      expect(Yast::BootCommon.setKernelParamToLine(
+        line, "silent", "1")).to eq result_line
+    end
+
+    it "return line with key when value is \"true\" and line is nil" do
+      line = nil
+      result_line = "verbose"
+      expect(Yast::BootCommon.setKernelParamToLine(
+        line, "verbose", "true")).to eq result_line
+    end
+
+    it "return empty string when value is \"false\" and line is nil" do
+      line = nil
+      result_line = ""
+      expect(Yast::BootCommon.setKernelParamToLine(
+        line, "verbose", "false")).to eq result_line
+    end
   end
 end

@@ -473,6 +473,7 @@ module Yast
     #   "true" to add key without value
     # @return [String] new kernel command line
     def setKernelParamToLine(line, key, value)
+      line ||= ""
       # FIXME this doesn't work with quotes and spaces
       params = Builtins.splitstring(line, " ")
       params = Builtins.filter(params) { |p| p != "" }
