@@ -487,22 +487,24 @@ module Yast
         occurences[k] += 1
       end
       done = false
-      params = params.map do |param|
+      params = params.reduce([]) do |res, param|
         k = kernel_param_key(param)
-        next param if k != key
-        if value == "false"
-          next ""
+        if k != key # not our param
+          res << param
+        elsif value == "false"
+          # do nothing as we want to remove this param
         elsif occurences[k] == 1 # last parameter with given key
           done = true
           if value == "true"
-            next key
+            res << key
           elsif value != "false"
-            next Builtins.sformat("%1=%2", key, value)
+            res << Builtins.sformat("%1=%2", key, value)
           end
         else
           occurences[k] -= 1
-          next ""
+          res << param
         end
+        res
       end
       if !done
         if value == "true"
@@ -511,7 +513,6 @@ module Yast
           params << Builtins.sformat("%1=%2", key, value)
         end
       end
-      params.delete("") # remove deleted keys
       params.join(" ")
     end
 
