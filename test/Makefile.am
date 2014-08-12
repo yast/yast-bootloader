@@ -1,4 +1,6 @@
 TESTS = \
+  boot_common_test.rb \
+  boot_storage_test.rb \
   grub2pwd_test.rb
 
 TEST_EXTENSIONS = .rb
