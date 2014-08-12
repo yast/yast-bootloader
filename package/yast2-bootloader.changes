@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 12 13:46:17 UTC 2014 - jreidinger@suse.com
+
+- handle nil line to allow modify of xen_append even if it is not
+  proposed to get correct crashkernel parameter (bnc#886843)
+- 3.1.86
+
+-------------------------------------------------------------------
 Fri Aug  8 13:55:23 UTC 2014 - jreidinger@suse.com
 
 - do not crash in some condition in combination of LVM and GPT
