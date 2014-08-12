@@ -30,6 +30,7 @@ BuildRequires:	yast2-devtools >= 3.1.10
 BuildRequires:	yast2 >= 3.1.0
 BuildRequires:  update-desktop-files
 BuildRequires:  rubygem-rspec
+BuildRequires:  yast2-storage
 PreReq:         /bin/sed %fillup_prereq
 # Installation::*version variables
 # Wizard::SetDialogTitleAndIcon
