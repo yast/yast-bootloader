@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 12 13:46:17 UTC 2014 - jreidinger@suse.com
+
+- Fixed adding a crashkernel parameter to xen_append if the latter
+  is missing. kdump.service would fail then (bnc#886843)
+- 3.1.86
+
+-------------------------------------------------------------------
 Fri Aug  8 13:55:23 UTC 2014 - jreidinger@suse.com
 
 - do not crash in some condition in combination of LVM and GPT

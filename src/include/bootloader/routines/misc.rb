@@ -466,6 +466,10 @@ module Yast
     end
 
 
+    def kernel_param_key(value)
+      value.split("=").first
+    end
+
     # set kernel parameter to GRUB command line
     # @param [String] line string original line
     # @param [String] key string parameter key
@@ -473,51 +477,43 @@ module Yast
     #   "true" to add key without value
     # @return [String] new kernel command line
     def setKernelParamToLine(line, key, value)
+      line ||= ""
       # FIXME this doesn't work with quotes and spaces
-      params = Builtins.splitstring(line, " ")
-      params = Builtins.filter(params) { |p| p != "" }
-      done = false
-      # count occurences of every parameter
-      occurences = {}
-      Builtins.foreach(params) do |p|
-        l = Builtins.filter(Builtins.splitstring(p, "=")) do |e|
-          e != " " && e != ""
-        end
-        k = Ops.get(l, 0, "")
-        Ops.set(occurences, k, Ops.add(Ops.get(occurences, k, 0), 1))
+      params = line.split(" ").reject(&:empty?)
+      # count occurences of every parameter, initial value is 0
+      occurences = Hash.new { |k| 0 }
+      params.each do |param|
+        k = kernel_param_key(param)
+        occurences[k] += 1
       end
-      params = Builtins.maplist(params) do |p|
-        l = Builtins.filter(Builtins.splitstring(p, "=")) do |e|
-          e != " " && e != ""
-        end
-        k = Ops.get(l, 0, "")
-        if k == key
-          if value == "false"
-            next ""
-          elsif Ops.less_or_equal(Ops.get(occurences, k, 0), 1)
-            done = true
-            if value == "true"
-              next key
-            elsif value != "false"
-              next Builtins.sformat("%1=%2", key, value)
-            end
-          else
-            Ops.set(occurences, k, Ops.subtract(Ops.get(occurences, k, 0), 1))
-            next ""
+      done = false
+      params = params.reduce([]) do |res, param|
+        k = kernel_param_key(param)
+        if k != key # not our param
+          res << param
+        elsif value == "false"
+          # do nothing as we want to remove this param
+        elsif occurences[k] == 1 # last parameter with given key
+          done = true
+          if value == "true"
+            res << key
+          elsif value != "false"
+            res << Builtins.sformat("%1=%2", key, value)
           end
+        else
+          occurences[k] -= 1
+          res << param
         end
-        p
+        res
       end
       if !done
         if value == "true"
-          params = Builtins.add(params, key)
+          params << key
         elsif value != "false"
-          params = Builtins.add(params, Builtins.sformat("%1=%2", key, value))
+          params << Builtins.sformat("%1=%2", key, value)
         end
       end
-      params = Builtins.filter(params) { |p| p != "" }
-      line = Builtins.mergestring(params, " ")
-      line
+      params.join(" ")
     end
 
 
