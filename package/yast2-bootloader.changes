@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 15 10:15:49 UTC 2014 - jreidinger@suse.com
+
+- read properly secure boot status when used from other modules
+  like yast2-vm, so it adds new entry as secure boot (bnc#892032)
+- 3.1.88
+
+-------------------------------------------------------------------
 Thu Aug 14 13:11:29 CEST 2014 - schubi@suse.de
 
 - AutoYaST clone_system: Not using "next" in a ruby "reduce" call.
