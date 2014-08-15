@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 15 12:27:58 CEST 2014 - snwint@suse.de
+
+- remove nonsense check (bnc #768538)
+- 3.1.88
+
+-------------------------------------------------------------------
 Thu Aug 14 13:11:29 CEST 2014 - schubi@suse.de
 
 - AutoYaST clone_system: Not using "next" in a ruby "reduce" call.
