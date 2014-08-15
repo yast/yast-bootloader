@@ -119,19 +119,6 @@ module Yast
         label = Ops.get_string(tm, [mbr_dev, "label"], "")
         Builtins.y2milestone("Label: %1", label)
         Builtins.y2milestone("Partition number: %1", num)
-        if label == "gpt"
-          if Ops.greater_than(num, 3)
-            Builtins.y2error(
-              "Partition number > 3 is being used for booting with GPT partition table"
-            )
-            AddNewProblem(
-              _(
-                "Partition number > 3 is being used for booting with GPT partition table"
-              )
-            )
-            ret = false
-          end
-        end
       end
       ret
     end

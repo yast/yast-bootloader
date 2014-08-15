@@ -18,7 +18,6 @@ The goal of this document is to have a single source of information  which scena
 * [DOS partition table](http://en.wikipedia.org/wiki/Master_boot_record)
 * [GPT](http://en.wikipedia.org/wiki/GUID_Partition_Table)
   * requires [bios_boot partition](http://en.wikipedia.org/wiki/BIOS_Boot_partition) if stage1 will be on disk
-  * /boot must be on partition 1..4
 * [DASD](http://en.wikipedia.org/wiki/Direct-access_storage_device)
   * only s390x
 
