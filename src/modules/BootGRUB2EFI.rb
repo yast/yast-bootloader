@@ -41,6 +41,8 @@ module Yast
       BootCommon.InitializeLibrary(reread, "grub2-efi")
       BootCommon.ReadFiles(avoid_reading_device_map) if reread
       BootCommon.Read(false, avoid_reading_device_map)
+      # read status of secure boot to boot common cache (bnc#892032)
+      BootCommon.getSystemSecureBootStatus(reread)
       @orig_globals ||= deep_copy(BootCommon.globals)
     end
 
