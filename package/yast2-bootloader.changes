@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Aug 26 11:37:17 UTC 2014 - jreidinger@suse.com
+
+- fix partition activation on LVM (bnc#893449)
+- fix activation device when md raid devices do not have
+  recognizable bios id
+- 3.1.90
+
+-------------------------------------------------------------------
 Fri Aug 15 12:27:58 CEST 2014 - snwint@suse.de
 
 - remove nonsense check (bnc #768538)
