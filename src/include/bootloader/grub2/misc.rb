@@ -90,7 +90,9 @@ module Yast
       # value, and code on the caller side that evaluates this.
       if Builtins.substring(loader_device, 0, 7) == "/dev/md"
         md = BootCommon.Md2Partitions(loader_device)
-        min = 256 # max. is 255; 256 means "no bios_id found"
+        # max. is 255; 256 means "no bios_id found", so to have at least one
+        # underlaying device use higher
+        min = 257
         device = ""
         Builtins.foreach(md) do |d, id|
           if Ops.less_than(id, min)
@@ -105,21 +107,24 @@ module Yast
         end
       end
 
+      tm = Storage.GetTargetMap
+      partitions = Ops.get_list(tm, [mbr_dev, "partitions"], [])
+      partitions.select! { |p| p["used_fs"] != :swap }
       # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
-      # if loader_device is disk device activate BootStorage::BootPartitionDevice
+      # if loader_device is disk Choose any partition which is not swap to
+      # satisfy such bios (bnc#893449)
       if num == 0
-        Builtins.y2milestone("loader_device is disk device")
-        p_dev = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
-        num = BootCommon.myToInteger(Ops.get(p_dev, "nr"))
-        # handle situation when we have md raid and boot from md0 and sda and md0 is boot device (bnc#882592)
-        # This also prevents mess when we can potentially have mix of different number and device
-        return {} if p_dev["disk"] != mbr_dev
+        # strange, no partitions on our mbr device, we probably won't boot
+        if partitions.empty?
+          Builtins.y2warning("no non-swap partitions for mbr device #{mbr_dev}")
+          return {}
+        end
+        num = partitions.first["nr"]
+        Builtins.y2milestone("loader_device is disk device, so use its #{num} partition")
       end
 
       if Ops.greater_than(num, 4)
         Builtins.y2milestone("Bootloader partition type can be logical")
-        tm = Storage.GetTargetMap
-        partitions = Ops.get_list(tm, [mbr_dev, "partitions"], [])
         Builtins.foreach(partitions) do |p|
           if Ops.get(p, "type") == :extended
             num = Ops.get_integer(p, "nr", num)
