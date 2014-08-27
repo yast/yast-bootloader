@@ -893,22 +893,6 @@ module Yast
       nil
     end
 
-    def checkSecureBoot
-      ret = false
-      sbvar = "/sys/firmware/efi/vars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c/data"
-      sbvar_avail = 0 ==
-        Convert.to_integer(
-          SCR.Execute(path(".target.bash"), Ops.add("test -e ", sbvar))
-        )
-
-      if sbvar_avail
-        cmd = Builtins.sformat("test `od -An -N1 -t u1 %1` -eq 1", sbvar)
-        ret = 0 == Convert.to_integer(SCR.Execute(path(".target.bash"), cmd))
-      end
-
-      ret
-    end
-
     def getSystemSecureBootStatus(recheck)
       return @secure_boot if !recheck && @secure_boot != nil
 
@@ -923,7 +907,8 @@ module Yast
         end
       end
 
-      @secure_boot = checkSecureBoot
+      # propose secure boot always to true (bnc#872054), otherwise respect user choice
+      @secure_boot = true if @secure_boot.nil?
       @secure_boot
     end
 
