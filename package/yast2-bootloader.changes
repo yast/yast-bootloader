@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug 27 07:53:45 UTC 2014 - jreidinger@suse.com
+
+- do not reset secure boot to false at the end of installation in
+  case of incapable device (bnc#892032)
+- 3.1.91
+
+-------------------------------------------------------------------
 Tue Aug 26 11:37:17 UTC 2014 - jreidinger@suse.com
 
 - fix partition activation on LVM (bnc#893449)
