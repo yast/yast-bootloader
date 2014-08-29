@@ -8,8 +8,7 @@ module_DATA = \
   modules/BootArch.rb \
   modules/GfxMenu.rb \
   modules/BootSupportCheck.rb \
-  modules/BootGRUB2.rb \
-  modules/BootGRUB.rb
+  modules/BootGRUB2.rb
 
 client_DATA = \
   clients/bootloader.rb \
@@ -46,8 +45,6 @@ ynclude2_DATA = \
 ynclude3dir = @yncludedir@/bootloader/grub
 ynclude3_DATA = \
   include/bootloader/grub/options.rb \
-  include/bootloader/grub/misc.rb \
-  include/bootloader/grub/dialogs.rb \
   include/bootloader/grub/helps.rb
 
 ylibdir = "${yast2dir}/lib/bootloader"
