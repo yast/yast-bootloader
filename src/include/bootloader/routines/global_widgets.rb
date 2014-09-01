@@ -152,11 +152,6 @@ module Yast
           type = _("Floppy")
         elsif Ops.get_string(s, "type", "") == "menu"
           type = _("Menu")
-          if Bootloader.getLoaderType == "grub"
-            paths = Ops.get_string(s, "configfile", "")
-            root = Ops.get_string(s, "root", "")
-            info = Builtins.sformat("dev=%1 path=%2", root, paths)
-          end
         elsif Ops.get_string(s, "type", "") == "dump"
           type = _("Dump")
           info = Ops.get_string(s, "dumpto", Ops.get_string(s, "dumptofs", ""))
@@ -470,14 +465,7 @@ module Yast
             Progress.set(progress_status)
           elsif action == :propose
             Bootloader.Reset
-            if Bootloader.getLoaderType == "grub"
-              Yast.import "BootGRUB"
-              BootGRUB.merge_level = :all
-              Bootloader.Propose
-              BootGRUB.merge_level = :main
-            else
-              Bootloader.Propose
-            end
+            Bootloader.Propose
           elsif action == :prev
             Bootloader.Import(Ops.get_map(BootCommon.other_bl, new_bl, {}))
           elsif action == :convert
@@ -766,7 +754,7 @@ module Yast
                 Empty() :
                 "loader_location",
               VStretch(),
-              lt != "grub" && lt != "grub2" ? Empty() : "inst_details",
+              lt != "grub2" ? Empty() : "inst_details",
               VStretch()
             ),
             HStretch()

@@ -47,12 +47,6 @@ module Yast
     # @return [String] help text
     def getAdvancedButtonHelp
       ins = ""
-      if BootCommon.getLoaderType(false) == "grub"
-        # help text, optional part of following
-        ins = _(
-          "If you have multiple Linux systems installed,\nYaST can try to find them and merge their menus."
-        )
-      end
       # help text 1/2 (%1 may be following sentence, optionally empty)
       help = Builtins.sformat(
         _(

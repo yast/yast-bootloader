@@ -390,18 +390,6 @@ module Yast
         return false
       end
 
-      # bnc#456362 filter out special chars like diacritics china chars etc.
-      if Mode.normal && bl == "grub"
-        filtered_new = Builtins.filterchars(
-          new,
-          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890 /\\_.-()"
-        )
-
-        if filtered_new != new
-          Report.Error(_("The name includes unallowable char(s)"))
-          return false
-        end
-      end
       true
     end
 

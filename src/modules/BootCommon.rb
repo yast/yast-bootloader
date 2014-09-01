@@ -121,7 +121,7 @@ module Yast
       # common variables
 
       # type of bootloader to configure/being configured
-      # shall be one of "grub", "grub2", "grub2-efi"
+      # shall be one of "grub2", "grub2-efi"
       @loader_type = nil
       @secure_boot = nil
 
@@ -186,7 +186,6 @@ module Yast
 
       # List of all supported bootloaders
       @bootloaders = [
-        "grub",
         "grub2",
         "grub2-efi"
       ]
@@ -447,7 +446,7 @@ module Yast
         "sections"   => remapSections(@sections),
         "device_map" => BootStorage.remapDeviceMap(BootStorage.device_mapping)
       }
-      if !(@loader_type == "grub" || @loader_type == "grub2")
+      if @loader_type != "grub2"
         Ops.set(exp, "activate", @activate)
       end
 
@@ -462,7 +461,7 @@ module Yast
       @globals = Ops.get_map(settings, "global", {})
       @sections = Ops.get_list(settings, "sections", [])
 
-      if !(@loader_type == "grub" || @loader_type == "grub2")
+      if @loader_type != "grub2"
         @activate = Ops.get_boolean(settings, "activate", false)
       end
       BootStorage.device_mapping = Ops.get_map(settings, "device_map", {})
@@ -536,7 +535,6 @@ module Yast
       @activate_changed = false
       @removed_sections = []
       @was_proposed = false
-      BootStorage.ProposeDeviceMap if getLoaderType(false) == "grub" if init
 
       nil
     end
@@ -863,12 +861,6 @@ module Yast
           bootloader_packages = Builtins.add(bootloader_packages, "kexec-tools")
         end
 
-        # replace grub with trustedgrub
-        if Ops.get(@globals, "trusted_grub", "") == "true"
-          bootloader_packages.delete("grub")
-          bootloader_packages << "trustedgrub"
-        end
-
         # we need perl-Bootloader-YAML API to communicate with pbl
         bootloader_packages << "perl-Bootloader-YAML"
 
@@ -925,7 +917,6 @@ module Yast
     def getBootloaders
       if Mode.config
         return [
-          "grub",
           "grub2",
           "grub2-efi",
           "default",

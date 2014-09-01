@@ -211,21 +211,7 @@ module Yast
         "enable_selinux"
       ]
 
-      widget_descr = {}
-      if lt != "grub"
-        widget_descr = Convert.convert(
-          Builtins.union(CommonSectionWidgets(), Bootloader.blWidgetMaps),
-          :from => "map",
-          :to   => "map <string, map <string, any>>"
-        )
-      else
-        widget_descr = Convert.convert(
-          Builtins.union(CommonGlobalWidgets(), CommonSectionWidgets()),
-          :from => "map",
-          :to   => "map <string, map <string, any>>"
-        )
-      end
-
+      widget_descr = Builtins.union(CommonSectionWidgets(), Bootloader.blWidgetMaps)
 
       # dialog caption
       caption = _("Boot Loader Settings: Section Management")
@@ -427,20 +413,7 @@ module Yast
         "xen_append",
         "xen"
       ]
-      widget_descr = {}
-      if lt != "grub"
-        widget_descr = Convert.convert(
-          Builtins.union(CommonSectionWidgets(), Bootloader.blWidgetMaps),
-          :from => "map",
-          :to   => "map <string, map <string, any>>"
-        )
-      else
-        widget_descr = Convert.convert(
-          Builtins.union(CommonGlobalWidgets(), CommonSectionWidgets()),
-          :from => "map",
-          :to   => "map <string, map <string, any>>"
-        )
-      end
+      widget_descr = Builtins.union(CommonSectionWidgets(), Bootloader.blWidgetMaps)
       # dialog caption
       caption = _("Boot Loader Settings: Section Management")
       CWM.ShowAndRun(
@@ -554,12 +527,8 @@ module Yast
       )
     end
 
+    # TODO DROP it
     def MenuSectionDialog
-      bootloader = Bootloader.getLoaderType
-      if bootloader == "grub"
-        return GrubMenuSectionDialog()
-      end
-
       nil
     end
 
@@ -662,22 +631,8 @@ module Yast
         "remap",
         "blockoffset"
       ]
-      widget_descr = {}
 
-      if lt != "grub"
-        widget_descr = Convert.convert(
-          Builtins.union(CommonGlobalWidgets(), Bootloader.blWidgetMaps),
-          :from => "map",
-          :to   => "map <string, map <string, any>>"
-        )
-      else
-        widget_descr = Convert.convert(
-          Builtins.union(CommonGlobalWidgets(), CommonSectionWidgets()),
-          :from => "map",
-          :to   => "map <string, map <string, any>>"
-        )
-      end
-
+      widget_descr = Builtins.union(CommonGlobalWidgets(), Bootloader.blWidgetMaps)
 
       # dialog caption
       caption = _("Boot Loader Settings: Section Management")

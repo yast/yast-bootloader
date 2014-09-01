@@ -106,12 +106,10 @@ module Yast
       }
       loader_type = Ops.get_string(out, "loader_type")
 
-      if !(loader_type == "grub")
-        # export loader_device and selected_location only for bootloaders
-        # that have not phased them out yet
-        Ops.set(out, "loader_device", BootCommon.loader_device)
-        Ops.set(out, "loader_location", BootCommon.selected_location)
-      end
+      # export loader_device and selected_location only for bootloaders
+      # that have not phased them out yet
+      Ops.set(out, "loader_device", BootCommon.loader_device)
+      Ops.set(out, "loader_location", BootCommon.selected_location)
       Builtins.y2milestone("Exporting settings: %1", out)
       deep_copy(out)
     end
@@ -136,21 +134,19 @@ module Yast
       # Explitelly set it to ensure it is installed
       BootCommon.setLoaderType(loader_type)
 
-      if !(loader_type == "grub")
-        # import loader_device and selected_location only for bootloaders
-        # that have not phased them out yet
-        BootCommon.loader_device = Ops.get_string(settings, "loader_device", "")
-        BootCommon.selected_location = Ops.get_string(
-          settings,
-          "loader_location",
-          "custom"
-        )
-        # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
-        # for grub, always correct the bootloader device according to
-        # selected_location (or fall back to value of loader_device)
-        if Arch.i386 || Arch.x86_64
-          BootCommon.loader_device = BootCommon.GetBootloaderDevice
-        end
+      # import loader_device and selected_location only for bootloaders
+      # that have not phased them out yet
+      BootCommon.loader_device = Ops.get_string(settings, "loader_device", "")
+      BootCommon.selected_location = Ops.get_string(
+        settings,
+        "loader_location",
+        "custom"
+      )
+      # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
+      # for grub, always correct the bootloader device according to
+      # selected_location (or fall back to value of loader_device)
+      if Arch.i386 || Arch.x86_64
+        BootCommon.loader_device = BootCommon.GetBootloaderDevice
       end
 
       if Ops.get_map(settings, "initrd", {}) != nil
@@ -1056,18 +1052,13 @@ module Yast
     #
 
     def kernel_param(flavor, key)
-      bl = getLoaderType
-      if bl == "grub"
-        ret = getKernelParam("DEFAULT", key)
-      else
-        ReadOrProposeIfNeeded() # ensure we have some data
+      ReadOrProposeIfNeeded() # ensure we have some data
 
-        kernel_line_key = FLAVOR_KERNEL_LINE_MAP[flavor]
-        raise ArgumentError, "Unknown flavor #{flavor}" unless kernel_line_key
+      kernel_line_key = FLAVOR_KERNEL_LINE_MAP[flavor]
+      raise ArgumentError, "Unknown flavor #{flavor}" unless kernel_line_key
 
-        line = BootCommon.globals[kernel_line_key]
-        ret = BootCommon.getKernelParamFromLine(line, key)
-      end
+      line = BootCommon.globals[kernel_line_key]
+      ret = BootCommon.getKernelParamFromLine(line, key)
 
       # map old api response to new one
       api_mapping = { "true" => :present, "false" => :missing }
@@ -1105,17 +1096,6 @@ module Yast
       end
       args = [:common] if args.empty? # by default change common kernels only
       args = args.first if args.first.is_a? Array # support array like syntax
-
-      bl = getLoaderType
-      if bl =="grub" #for backward compatibility for grub
-        ret = true
-        values.each do |key, value|
-          value = "true" if value == :present
-          value = "false" if value == :missing
-          ret &&= setKernelParam("DEFAULT", key, value)
-        end
-        return ret
-      end
 
       values.each do |key, value|
         next if key == "root" # grub2 do not support modify root
@@ -1285,11 +1265,8 @@ module Yast
     # Update the language of GFX menu according to currently selected language
     # @return [Boolean] true on success
     def UpdateGfxMenu
-      return true if getLoaderType != "grub"
-
-      ret = BootCommon.UpdateGfxMenuContents
-      return true if !Mode.normal
-      ret
+      return true
+      # TODO DROP
     end
 
     # Function update append -> add console to append

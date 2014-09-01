@@ -587,14 +587,6 @@ module Yast
         Ops.set(@globals, "gfxmenu", "/boot/message")
       end
 
-      # now that the label for the "linux" section is not "linux" anymore, but
-      # some product dependent string that can change with an update ("SLES_10"
-      # -> "SLES_10_SP1"), we need to update the label in the "default" line for
-      # LILO and GRUB (although the latter only needs it to correctly transform
-      # back to the section number)
-      # FIXME: is this needed/wanted for ELILO as well?
-      FixGlobals() if getLoaderType(false) == "grub"
-
       nil
     end
 

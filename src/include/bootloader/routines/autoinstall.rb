@@ -316,11 +316,6 @@ module Yast
         BootCommon.SetDeviceMap(BootStorage.device_mapping)
         BootCommon.SetSections([])
         BootCommon.SetGlobal({})
-        files = BootCommon.GetFilesContents
-        bl2file =
-          # TODO the other bootloaders
-          { "grub" => "/boot/grub/menu.lst"}
-        Ops.set(files, Ops.get(bl2file, loader, ""), file)
         BootCommon.SetFilesContents(files)
         Ops.set(exp, ["specific", "global"], BootCommon.GetGlobal)
         sect = BootCommon.GetSections
@@ -382,27 +377,6 @@ module Yast
           deep_copy(s)
         end
       )
-
-      # LILO and GRUB stuff
-      if Ops.get_string(ai, "loader_type", "") == "grub"
-        # FIXME: repl_mbr and activate are obsolete for GRUB, no need to
-        # look for them in the export map any more (but does not really do
-        # any harm)
-        Builtins.foreach(["repl_mbr", "activate"]) do |k|
-          if Builtins.haskey(Ops.get_map(exp, "specific", {}), k)
-            Ops.set(ai, k, Ops.get(exp, ["specific", k]))
-          end
-        end
-        # FIXME: loader_device and loader_location (aka selected_location
-        # internally) are obsolete for GRUB, no need to look for them in
-        # the export map any more (but does not really do any harm)
-        if Builtins.haskey(exp, "loader_location")
-          Ops.set(ai, "location", Ops.get_string(exp, "loader_location", ""))
-        end
-        Builtins.foreach(["loader_device"]) do |k|
-          Ops.set(ai, k, Ops.get(exp, k)) if Builtins.haskey(exp, k)
-        end
-      end
 
       # device map stuff
       if Ops.greater_than(
