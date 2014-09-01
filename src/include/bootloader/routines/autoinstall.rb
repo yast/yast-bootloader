@@ -192,72 +192,6 @@ module Yast
         "activate" => "activate"
       }
 
-      if Ops.get_string(ai, "loader_type", "") == "grub"
-        Builtins.foreach(["repl_mbr", "activate"]) do |k|
-          if Builtins.haskey(ai, k)
-            if Ops.get_string(ai, "loader_type", "") == "grub"
-              # NOTE: repl_mbr and activate have an effect for lilo,
-              # for grub they are only accepted for backwards
-              # compatibility (we use globals["generic_mbr"] and
-              # globals["activate"] there); anyhow, an existing
-              # new-style key in the global map from autoyast has
-              # precedence over the old-style key (and will
-              # overwrite this later when we import it from the ai
-              # map)
-              Ops.set(
-                exp,
-                ["specific", "global", Ops.get(old_key_to_new_global_key, k)],
-                Ops.get_boolean(ai, k, false) ? "true" : "false"
-              )
-              Builtins.y2milestone(
-                "converted old key %1 to key %2 in globals: %3",
-                k,
-                Ops.get(old_key_to_new_global_key, k),
-                Ops.get(exp, ["specific", "global"])
-              )
-            else
-              Ops.set(exp, ["specific", k], Ops.get(ai, k))
-            end
-          end
-        end
-        # loader_location needs other default and key
-        #
-        # NOTE: loader_device and loader_location (aka selected_location
-        # internally) have an effect for lilo, for grub loader_location is
-        # only accepted for backwards compatibility, but loader_device is
-        # ignored (FIXME: can we map this to the boot_* variables, or is
-        # the target map not yet available?)
-        # (we use globals["boot_*"] for these functions now)
-        # anyhow, an existing new-style boot_* key in the global map from
-        # autoyast has precedence over the settings from the old-style key
-        # (and it will be overwritten later when we import the boot_* keys
-        # from the ai map)
-        if Ops.get_string(ai, "loader_type", "") == "grub" &&
-            Builtins.haskey(ai, "location")
-          if Ops.get(ai, "location") == "extended"
-            Ops.set(exp, ["specific", "global", "boot_extended"], "true")
-          elsif Ops.get(ai, "location") == "boot"
-            Ops.set(exp, ["specific", "global", "boot_boot"], "true")
-          elsif Ops.get(ai, "location") == "root"
-            Ops.set(exp, ["specific", "global", "boot_root"], "true")
-          elsif Ops.get(ai, "location") == "mbr"
-            Ops.set(exp, ["specific", "global", "boot_mbr"], "true")
-          elsif Ops.get(ai, "location") == "mbr_md"
-            Ops.set(exp, ["specific", "global", "boot_mbr"], "true")
-          end
-        else
-          Ops.set(
-            exp,
-            "loader_location",
-            Ops.get_string(ai, "location", "custom")
-          )
-        end
-
-        Builtins.foreach(
-          ["loader_device"] #"loader_location",
-        ) { |k| Ops.set(exp, k, Ops.get(ai, k)) if Builtins.haskey(ai, k) }
-      end # LILO and GRUB stuff
-
       # device map stuff
       if Ops.greater_than(Builtins.size(Ops.get_list(ai, "device_map", [])), 0)
         dm = Ops.get_list(ai, "device_map", [])
@@ -368,7 +302,7 @@ module Yast
         sections = Builtins.prepend(sections, globals)
         flat = Builtins.flatten(sections)
         loader = Ops.get_string(ai, "loader_type", "")
-        separator = loader == "grub" ? " " : " = "
+        separator = " = "
         lines = Builtins.maplist(flat) do |f|
           Builtins.sformat(
             "%1%2%3",
