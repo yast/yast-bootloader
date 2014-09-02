@@ -164,8 +164,6 @@ module Yast
         # perl-BL delayed section removal
         Bootloader.RunDelayedUpdates
 
-        Bootloader.ResolveSymlinksInSections if !Mode.update
-
         @retcode = false
 
 

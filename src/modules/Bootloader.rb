@@ -525,17 +525,6 @@ module Yast
       )
       ret = true
 
-      if !Mode.live_installation
-        # bnc#449785 - Installing of GRUB fails when using live installer from a USB stick
-        # read current settings...
-        ret = blRead(true, false)
-        # delete duplicated sections
-        DelDuplicatedSections()
-      else
-        # resolve sim links for image and initrd
-        # bnc #393030 - live-CD kernel install/remove leaves broken system
-        ResolveSymlinksInSections()
-      end
       if Ops.get_boolean(BootCommon.write_settings, "save_all", false)
         BootCommon.save_all = true
       end
@@ -753,197 +742,6 @@ module Yast
         num_sections
       )
       num_sections
-    end
-
-    # Delete duplicated boot sections from
-    # BootCommon::sections
-
-    def DelDuplicatedSections
-      if CheckClientForSLERT()
-        removeDummySections
-        return
-      end
-      Builtins.y2milestone("Deleting duplicated boot sections")
-
-      linux_default = BootCommon.CreateLinuxSection("linux")
-      linux_failsafe = BootCommon.CreateLinuxSection("failsafe")
-      linux_xen = BootCommon.CreateLinuxSection("xen")
-
-      Builtins.y2milestone(
-        "Proposed section for linux_default: %1",
-        linux_default
-      )
-      Builtins.y2milestone(
-        "Proposed section for linux_failsafe: %1",
-        linux_failsafe
-      )
-      Builtins.y2milestone("Proposed section for linux_xen: %1", linux_xen)
-
-      Builtins.y2milestone(
-        "Boot sections BEFORE deleting: %1",
-        BootCommon.sections
-      )
-
-      # obtain number of relative same boot sections for linux_default
-      num_linux_default = CountSection(linux_default)
-      # obtain number of relative same boot sections for linux_failsafe
-      num_linux_failsafe = CountSection(linux_failsafe)
-
-      # obtain number of relative same boot sections for linux_failsafe
-      num_linux_xen = CountSection(linux_xen)
-
-      BootCommon.sections = Builtins.filter(BootCommon.sections) do |section|
-        if (Ops.get(section, "name") == Ops.get(linux_default, "name") ||
-            Ops.get_string(section, "description", "") ==
-              Ops.get(linux_default, "name")) &&
-            Ops.greater_than(num_linux_default, 1) ||
-            (Ops.get(section, "name") == Ops.get(linux_failsafe, "name") ||
-              Ops.get_string(section, "description", "") ==
-                Ops.get(linux_failsafe, "name")) &&
-              Ops.greater_than(num_linux_failsafe, 1) ||
-            (Ops.get(section, "name") == Ops.get(linux_xen, "name") ||
-              Ops.get_string(section, "description", "") ==
-                Ops.get(linux_xen, "name")) &&
-              Ops.greater_than(num_linux_xen, 1)
-          if Ops.get(section, "root") == Ops.get(linux_default, "root") ||
-              Ops.get(section, "root") == Ops.get(linux_failsafe, "root") ||
-              Ops.get(section, "root") == Ops.get(linux_xen, "root")
-            if Ops.get_string(section, "original_name", "") == "failsafe"
-              num_linux_failsafe = Ops.subtract(num_linux_failsafe, 1)
-            end
-
-            if Ops.get_string(section, "original_name", "") == "linux"
-              num_linux_default = Ops.subtract(num_linux_default, 1)
-            end
-
-            if Ops.get_string(section, "original_name", "") == "xen"
-              num_linux_xen = Ops.subtract(num_linux_xen, 1)
-            end
-
-            Builtins.y2milestone("deleted boot section: %1", section)
-            next false
-          else
-            next true
-          end
-        else
-          next true
-        end
-        true
-      end
-
-      ResolveSymlinksInSections()
-      FindAndSelectDefault(linux_default)
-      Builtins.y2milestone(
-        "Boot sections AFTER deleting: %1",
-        BootCommon.sections
-      )
-
-      nil
-    end
-
-    # sections handling functions
-
-    # Resolve a single symlink in key image_key in section map s
-    # @param [Hash{String => Object}] section map map of section to change
-    # @param image_key string key in section that contains the link
-    # @return section map of the changed section
-    def ResolveSymlink(section, key)
-      section = deep_copy(section)
-      # The "-m" is needed in case the link is an absolute link, so that it does
-      # not fail to resolve when the root partition is mounted in
-      # Installation::destdir.
-      readlink_cmd = Ops.add("/usr/bin/readlink -n -m ", Installation.destdir)
-      out = {}
-      newval = ""
-
-      # FIXME: find out why we need WFM::Execute() here (as olh used it above)
-      out = Convert.to_map(
-        WFM.Execute(
-          path(".local.bash_output"),
-          Ops.add(readlink_cmd, Ops.get_string(section, key, ""))
-        )
-      )
-      if Ops.get_integer(out, "exit", 0) == 0 &&
-          Ops.get_string(out, "stdout", "") != ""
-        newval = Builtins.substring(
-          Ops.get_string(out, "stdout", ""),
-          Builtins.size(Installation.destdir)
-        )
-        Builtins.y2milestone(
-          "section %1: converting old %2 parameter from %3 to %4",
-          Ops.get_string(section, "name", ""),
-          key,
-          Ops.get_string(section, key, ""),
-          newval
-        )
-        Ops.set(section, key, newval)
-      else
-        Builtins.y2error(
-          "section %1: failed to remap %2 parameter",
-          Ops.get_string(section, "name", ""),
-          key
-        )
-      end
-
-      deep_copy(section)
-    end
-
-    # Resolve symlinks in kernel and initrd paths, for existing linux, xen and
-    # failsafe sections
-    # FIXME: this is the plan B solution, try to solve plan A in
-    #        BootCommon.ycp:CreateLinuxSection() (line 435)
-    def ResolveSymlinksInSections
-      Builtins.y2milestone("sections before remapping: %1", BootCommon.sections)
-
-      # change only linux, failsafe and xen sections
-      BootCommon.sections = Builtins.maplist(BootCommon.sections) do |s|
-        # skip sections that are not linux, xen or failsafe,
-        # or that are not of type "image" (or "xen" <- needed?)
-        if !Builtins.contains(
-            ["linux", "xen", "failsafe"],
-            Ops.get_string(s, "original_name", "")
-          ) ||
-            !Builtins.contains(["image", "xen"], Ops.get_string(s, "type", ""))
-          Builtins.y2milestone(
-            "section %1: not linux, xen or failsafe, skipping kernel and initrd remapping",
-            Ops.get_string(s, "name", "")
-          )
-          next deep_copy(s)
-        end
-        # first, resolve kernel link name
-        if Builtins.haskey(s, "image")
-          # also skip sections that start with a grub device name
-          # "(hd0,7)/boot/vmlinuz", and are not on the default (currently
-          # mounted) boot partition
-          if s["image"].to_s !~ /^\(hd.*\)/
-            s = ResolveSymlink(s, "image")
-          else
-            Builtins.y2milestone(
-              "section %1: skipping remapping kernel symlink on other partition: %2",
-              Ops.get_string(s, "name", ""),
-              Ops.get_string(s, "image", "")
-            )
-          end
-        end
-        # resolve initrd link name, but skip if it is on a non-default boot
-        # partition (see above)
-        if Builtins.haskey(s, "initrd")
-          if s["image"].to_s !~ /^\(hd.*\)/
-            s = ResolveSymlink(s, "initrd")
-          else
-            Builtins.y2milestone(
-              "section %1: skipping remapping initrd symlink on other partition: %2",
-              Ops.get_string(s, "name", ""),
-              Ops.get_string(s, "initrd", "")
-            )
-          end
-        end
-        deep_copy(s)
-      end
-
-      Builtins.y2milestone("sections after remapping: %1", BootCommon.sections)
-
-      nil
     end
 
     # return default section label
@@ -1239,7 +1037,6 @@ module Yast
           Progress.set(progress_orig)
           if Mode.update
             UpdateConfiguration()
-            ResolveSymlinksInSections()
             BootCommon.changed = true
             BootCommon.location_changed = true
           end
@@ -1533,7 +1330,6 @@ module Yast
     publish :function => :getKernelParam, :type => "string (string, string)"
     publish :function => :setKernelParam, :type => "boolean (string, string, string)"
     publish :function => :getLoaderType, :type => "string ()"
-    publish :function => :ResolveSymlinksInSections, :type => "void ()"
     publish :variable => :proposed_cfg_changed, :type => "boolean"
     publish :variable => :cached_proposal, :type => "map"
     publish :variable => :cached_settings, :type => "map"
@@ -1557,7 +1353,6 @@ module Yast
     publish :function => :Update, :type => "boolean ()"
     publish :function => :PreUpdate, :type => "void ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
-    publish :function => :ResolveSymlink, :type => "map <string, any> (map <string, any>, string)"
     publish :function => :setLoaderType, :type => "void (string)"
     publish :function => :RunDelayedUpdates, :type => "void ()"
     publish :function => :CopyKernelInird, :type => "boolean ()"
