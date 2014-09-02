@@ -542,40 +542,6 @@ module Yast
       ret == 0
     end
 
-    # Update kernel parameters if some were added in Kernel module
-    # @param [String] orig original kernel parameters or kernel command line
-    # @return kernel command line or parameters with added new parameters
-    def UpdateKernelParams(orig)
-      new = Builtins.splitstring(Kernel.GetCmdLine, " ")
-      old = Builtins.splitstring(orig, " ")
-      added = Convert.convert(
-        difflist(new, Builtins.splitstring(@kernelCmdLine, " ")),
-        :from => "list",
-        :to   => "list <string>"
-      )
-      added = Convert.convert(
-        difflist(added, old),
-        :from => "list",
-        :to   => "list <string>"
-      )
-      old = Convert.convert(
-        Builtins.merge(old, added),
-        :from => "list",
-        :to   => "list <string>"
-      )
-      if Stage.initial
-        showopts = false
-        apic = false
-        showopts = true if Builtins.contains(old, "showopts")
-        apic = true if Builtins.contains(old, "apic")
-        old = Builtins.filter(old) { |o| o != "apic" && o != "showopts" }
-        old = Builtins.add(old, "showopts") if showopts
-        old = Builtins.add(old, "apic") if apic
-      end
-      Builtins.mergestring(old, " ")
-    end
-
-
     # Get map of swap partitions
     # @return a map where key is partition name and value its size
     def getSwapPartitions

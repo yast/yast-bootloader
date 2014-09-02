@@ -1034,7 +1034,6 @@ module Yast
     publish :function => :setKernelParamToLine, :type => "string (string, string, string)"
     publish :function => :myToInteger, :type => "integer (any)"
     publish :function => :restoreMBR, :type => "boolean (string)"
-    publish :function => :UpdateKernelParams, :type => "string (string)"
     publish :function => :getSwapPartitions, :type => "map <string, integer> ()"
     publish :function => :UpdateInstallationKernelParameters, :type => "void ()"
     publish :function => :GetAdditionalFailsafeParams, :type => "string ()"
