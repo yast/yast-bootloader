@@ -443,7 +443,6 @@ module Yast
     def Export
       exp = {
         "global"     => remapGlobals(@globals),
-        "sections"   => remapSections(@sections),
         "device_map" => BootStorage.remapDeviceMap(BootStorage.device_mapping)
       }
       if @loader_type != "grub2"
@@ -459,7 +458,6 @@ module Yast
     def Import(settings)
       settings = deep_copy(settings)
       @globals = Ops.get_map(settings, "global", {})
-      @sections = Ops.get_list(settings, "sections", [])
 
       if @loader_type != "grub2"
         @activate = Ops.get_boolean(settings, "activate", false)
