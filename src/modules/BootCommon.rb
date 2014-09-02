@@ -614,7 +614,6 @@ module Yast
     # @return [Boolean] true if success
     def Save(clean, init, flush)
       if clean
-        UpdateAppend()
         UpdateGfxMenu()
       end
 
@@ -1068,7 +1067,6 @@ module Yast
     publish :function => :FindMBRDisk, :type => "string ()"
     publish :function => :RunDelayedUpdates, :type => "void ()"
     publish :function => :UpdateGlobals, :type => "void ()"
-    publish :function => :UpdateAppend, :type => "void ()"
     publish :function => :UpdateGfxMenu, :type => "void ()"
     publish :function => :SetDiskInfo, :type => "void ()"
     publish :function => :InitializeLibrary, :type => "boolean (boolean, string)"

@@ -261,31 +261,6 @@ module Yast
       nil
     end
 
-    # Update append option if some parameters were changed
-    def UpdateAppend
-      @sections = Builtins.maplist(@sections) do |s|
-        type = Ops.get_string(s, "original_name", "")
-        if (type == "linux" || type == "global") && Ops.get(s, "append") != nil &&
-            Stage.initial
-          Ops.set(
-            s,
-            "append",
-            UpdateKernelParams(Ops.get_string(s, "append", ""))
-          )
-        end
-        deep_copy(s)
-      end
-      if Builtins.haskey(@globals, "append")
-        Ops.set(
-          @globals,
-          "append",
-          UpdateKernelParams(Ops.get(@globals, "append", ""))
-        )
-      end
-
-      nil
-    end
-
     # Update the gfxboot/message/... line if exists
     def UpdateGfxMenu
       message = Ops.get(@globals, "gfxmenu", "")
@@ -297,8 +272,6 @@ module Yast
 
       nil
     end
-
-
 
     # Get the summary of disks order for the proposal
     # @return [String] a line for the summary (or nil if not intended to be shown)
