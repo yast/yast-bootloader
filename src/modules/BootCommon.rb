@@ -1068,7 +1068,6 @@ module Yast
     publish :function => :PostUpdateMBR, :type => "boolean ()"
     publish :function => :FindMBRDisk, :type => "string ()"
     publish :function => :RunDelayedUpdates, :type => "void ()"
-    publish :function => :FixSections, :type => "void (void ())"
     publish :function => :UpdateGlobals, :type => "void ()"
     publish :function => :RemoveUnexistentSections, :type => "void (string, string)"
     publish :function => :UpdateAppend, :type => "void ()"
