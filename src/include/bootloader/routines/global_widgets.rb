@@ -335,37 +335,6 @@ module Yast
       nil
     end
 
-    # manual edit button
-
-    # Handle function of a widget
-    # @param [String] key any widget key
-    # @param [Hash] event map event description of event that occured
-    # @return [Symbol] to return to wizard sequencer, or nil
-    def manualEditHandle(key, event)
-      event = deep_copy(event)
-      :manual
-    end
-
-    # Get map of widget
-    # @return a map of widget
-    def getManualEditWidget
-      #	    "help" : getManualEditHelp (),
-      {
-        "widget"        => :custom,
-        "custom_widget" => HBox(
-          HStretch(),
-          # pushbutton
-          PushButton(Id(:manual), _("E&dit Configuration Files")),
-          HStretch()
-        ),
-        "handle_events" => [:manual],
-        "handle"        => fun_ref(
-          method(:manualEditHandle),
-          "symbol (string, map)"
-        )
-      }
-    end
-
     # reset menu button
 
 
