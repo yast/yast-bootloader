@@ -339,7 +339,6 @@ module Yast
       nil
     end
 
-    publish :function => :grub_InstallingToFloppy, :type => "boolean ()"
     publish :function => :grub_updateMBR, :type => "boolean ()"
     publish :function => :ReduceDeviceMapTo8, :type => "boolean ()"
     publish :variable => :common_help_messages, :type => "map <string, string>"

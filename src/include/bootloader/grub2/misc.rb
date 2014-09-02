@@ -34,32 +34,7 @@ module Yast
 
     # --------------------------------------------------------------
     # --------------------------------------------------------------
-    # updateMBR and related stuff, plus InstallingToFloppy() (taken from
-    # routines/misc.ycp)
-
-    # Check if installation to floppy is performed
-    # @return true if installing bootloader to floppy
-    def grub_InstallingToFloppy
-      ret = false
-      # there is no boot_floppy flag, the installation to floppy devices needs
-      # to be specified in the boot_custom flag
-      # (FIXME: which is freely editable, as soon as the generic 'selectdevice'
-      # widget allows this; also need perl-Bootloader to put the floppy device
-      # in the list of the boot_custom widget)
-      if Ops.get(BootCommon.globals, "boot_custom") == nil
-        ret = false
-      elsif Ops.get(BootCommon.globals, "boot_custom") ==
-          StorageDevices.FloppyDevice
-        ret = true
-      elsif Builtins.contains(
-          BootStorage.getFloppyDevices,
-          Ops.get(BootCommon.globals, "boot_custom")
-        )
-        ret = true
-      end
-      Builtins.y2milestone("Installing to floppy: %1", ret)
-      ret
-    end
+    # updateMBR and related stuff
 
     # Given a device name to which we install the bootloader (loader_device),
     # get the name of the partition which should be activated.
