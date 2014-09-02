@@ -637,13 +637,6 @@ module Yast
       # better interface), so that perl-Bootloader can use mountby device names
       # for these devices instead. Tracked in bug #248162.
 
-      # convert XEN section to linux section id running in domU
-      # bnc #436899
-      # bnc #604401 Xen para-virtualized guest boots native kernel
-      # I have to call it before updating of BootCommon::globals to my_globals
-      # bnc #604401c14
-      ConvertXENinDomU()
-
       # convert custom boot device names in globals to the device names
       # indicated by "mountby"
       # also, for legacy bootloaders like LILO that still pass device names,
