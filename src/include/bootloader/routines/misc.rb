@@ -823,41 +823,6 @@ module Yast
       true
     end
 
-
-    # Function return absolute value of arg
-    #
-    # @param [Fixnum] value
-    # @return [Fixnum] absolute value
-
-    def abs(value)
-      if Ops.less_than(value, 0)
-        return Ops.multiply(value, -1)
-      else
-        return value
-      end
-    end
-
-    # bnc #440125 - default boot section with failsafe args
-    # Check if default boot name is linux
-    #
-    # @param string default boot name
-    # @return [Boolean] true if boot name is linux
-    def isDefaultBootSectioLinux(default_boot)
-      ret = false
-      Builtins.foreach(@sections) do |s|
-        if Ops.get_string(s, "name", "") == default_boot
-          ret = true if Ops.get_string(s, "original_name", "") == "linux"
-          raise Break
-        end
-      end
-      if ret
-        Builtins.y2milestone("Boot section: \"%1\" is linux", default_boot)
-      else
-        Builtins.y2warning("Boot section: \"%1\" is NOT linux", default_boot)
-      end
-      ret
-    end
-
     # bnc#511319 Add information about /etc/sysconfig/bootloader to configuration file.
     # Write option with value and comment to
     # sysconfig file
