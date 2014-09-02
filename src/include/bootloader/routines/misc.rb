@@ -201,59 +201,6 @@ module Yast
       end
     end
 
-    # Function remap section "root" and "resume" to device name (/dev/sda)
-    # or to label (ufo_partition)
-    # it also prepared measured files for export
-    # @param list<map<string,any> > list of sections
-    # @return [Array<Hash{String => Object>}] list of sections
-
-    def remapSections(sec)
-      sec = deep_copy(sec)
-      by_mount = nil
-      if Arch.ppc
-        by_mount = :id
-      else
-        by_mount = Storage.GetDefaultMountBy
-      end
-
-      #by_mount = `id;
-      return deep_copy(sec) if by_mount == :label
-
-      temp_sec = []
-
-      # convert root and resume device names in sections to kernel device names
-      temp_sec = Builtins.maplist(@sections) do |s|
-        if Ops.get_string(s, "root", "") != ""
-          rdev = Ops.get_string(s, "root", "")
-          Ops.set(s, "root", BootStorage.MountByDev2Dev(rdev))
-
-          if Ops.get_string(s, "append", "") != ""
-            Ops.set(
-              s,
-              "append",
-              remapResume(Ops.get_string(s, "append", ""), false)
-            )
-          end
-
-          Builtins.y2debug(
-            "remapping root: %1 from section to: %2 ",
-            rdev,
-            Ops.get_string(s, "root", "")
-          )
-        end
-        if Ops.get_string(s, "chainloader", "") != ""
-          Ops.set(
-            s,
-            "chainloader",
-            BootStorage.MountByDev2Dev(Ops.get_string(s, "chainloader", ""))
-          )
-        end
-        deep_copy(s)
-      end
-
-      deep_copy(temp_sec)
-    end
-
     # returns list difference A \ B (items that are in A and are not in B)
     # @param [Array] a list A
     # @param [Array] b list B
