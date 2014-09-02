@@ -261,55 +261,6 @@ module Yast
       nil
     end
 
-    # Filter sections, remove those pointing to unexistent image
-    # @param [String] path_prefix string prefix to be added to kernel path
-    # @param [String] relative_path_prefix prefix to be added to relative kernel
-    #  paths (without leading slash)
-    def RemoveUnexistentSections(path_prefix, relative_path_prefix)
-      defaultv = Ops.get(@globals, "default", "")
-      first = nil
-      @sections = Builtins.filter(@sections) do |s|
-        label = Ops.get_string(s, "name", "")
-        type = Ops.get_string(s, "original_name", "")
-        if label == ""
-          Builtins.y2warning("Removing section with empty title")
-          defaultv = nil if label == defaultv
-          next false
-        end
-        # FIXME the following check makes sense for all sections`
-        if !Builtins.contains(["linux", "failsafe", "memtest86", "xen"], type)
-          first = label if first == nil
-          next true
-        end
-        kernel = Ops.get_string(s, "image", "")
-        if kernel == ""
-          first = label if first == nil
-          next true
-        end
-        if Builtins.substring(kernel, 0, 1) == "/"
-          kernel = Ops.add(path_prefix, kernel)
-        else
-          next true if relative_path_prefix == ""
-          kernel = Ops.add(relative_path_prefix, kernel)
-        end
-        if SCR.Read(path(".target.size"), kernel) == -1
-          Builtins.y2warning(
-            "Removing section %1 with unexistent kernel %2",
-            label,
-            kernel
-          )
-          defaultv = nil if label == defaultv
-          next false
-        end
-        first = label if first == nil
-        true
-      end
-      defaultv = first if defaultv == nil
-      Ops.set(@globals, "default", defaultv)
-
-      nil
-    end
-
     # Update append option if some parameters were changed
     def UpdateAppend
       @sections = Builtins.maplist(@sections) do |s|
