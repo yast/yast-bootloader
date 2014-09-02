@@ -1030,7 +1030,6 @@ module Yast
     publish :function => :updateTimeoutPopupForFloppy, :type => "void (string)"
     publish :function => :remapGlobals, :type => "map <string, string> (map <string, string>)"
     publish :function => :remapSections, :type => "list <map <string, any>> (list <map <string, any>>)"
-    publish :function => :splitPath, :type => "list <string> (string)"
     publish :function => :GetBootloaderDevice, :type => "string ()"
     publish :function => :GetBootloaderDevices, :type => "list <string> ()"
     publish :function => :IsPartitionBootable, :type => "boolean (string)"

@@ -303,34 +303,6 @@ module Yast
       Builtins.filter(a) { |e| !Builtins.contains(b, e) }
     end
 
-    # translate filename path (eg. /boot/kernel) to list of device
-    #  and relative path
-    # @param [String] fullpth string fileststem path (eg. /boot/vmlinuz)
-    # @return a list containing device and relative path,
-    #  eg. ["/dev/hda1", "/vmlinuz"]
-    def splitPath(fullpth)
-      mountpoints = Storage.GetMountPoints,
-      dev = ""
-      mp = ""
-      max = 0
-      #
-      # FIXME: this is broken code, implement a proper prefix match!! see below
-      Builtins.foreach(mountpoints) do |k, v|
-        if k != "swap" && Builtins.issubstring(fullpth, k) &&
-            Ops.greater_than(Builtins.size(k), max)
-          max = Builtins.size(k)
-          dev = Ops.get_string(v, 0, "")
-          mp = k
-        end
-      end
-      return [] if mp == ""
-
-      # FIXME: pth will be wrong for fullpth=='(hd0,1)/boot/vmlinux' !!
-      pth = Builtins.substring(fullpth, Builtins.size(mp))
-      pth = Ops.add("/", pth) if Builtins.substring(pth, 0, 1) != "/"
-      [dev, pth]
-    end
-
     # Get bootloader device for specified location
     # FIXME: this function is being phased out. Keeping it around until
     # selected_location and loader_device can be dropped for all bootloader
