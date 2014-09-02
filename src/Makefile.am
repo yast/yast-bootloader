@@ -23,10 +23,8 @@ ynclude_DATA = \
   include/bootloader/routines/wizards.rb \
   include/bootloader/routines/popups.rb \
   include/bootloader/routines/i386.rb \
-  include/bootloader/routines/section_helps.rb \
   include/bootloader/routines/misc.rb \
   include/bootloader/routines/autoinstall.rb \
-  include/bootloader/routines/section_widgets.rb \
   include/bootloader/routines/dialogs.rb \
   include/bootloader/routines/lilolike.rb \
   include/bootloader/routines/switcher.rb \

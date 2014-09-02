@@ -30,7 +30,6 @@ module Yast
       Yast.import "Stage"
 
       Yast.include include_target, "bootloader/routines/popups.rb"
-      Yast.include include_target, "bootloader/routines/section_widgets.rb"
       Yast.include include_target, "bootloader/routines/global_widgets.rb"
       Yast.include include_target, "bootloader/grub2/dialogs.rb"
 
