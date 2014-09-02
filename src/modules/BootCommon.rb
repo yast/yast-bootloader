@@ -1046,7 +1046,6 @@ module Yast
     publish :function => :UpdateGfxMenuContents, :type => "boolean ()"
     publish :function => :BootloaderInstallable, :type => "boolean ()"
     publish :function => :PartitionInstallable, :type => "boolean ()"
-    publish :function => :findRelativeDefaultLinux, :type => "string ()"
     publish :function => :isDefaultBootSectioLinux, :type => "boolean (string)"
     publish :function => :WriteToSysconf, :type => "void (boolean)"
     publish :function => :getBootDisk, :type => "string ()"

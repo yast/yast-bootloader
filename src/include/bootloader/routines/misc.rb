@@ -1023,41 +1023,6 @@ module Yast
 
 
     # bnc #440125 - default boot section with failsafe args
-    # Try to find potencional default linux section
-    # It can solve problem in function WriteToSysconf() with saving
-    # wrong (failsafe) args for default
-    #
-    # @return [String] name of default boot section
-
-    def findRelativeDefaultLinux
-      default_linux = ""
-
-      # create defualt sections
-      linux_default = CreateLinuxSection("linux")
-
-      Builtins.foreach(@sections) do |s|
-        if Ops.get_string(s, "root", "") == Ops.get(linux_default, "root") &&
-            Ops.get_string(s, "original_name", "") == "linux"
-          #FIXME Check for root and original name should be enought, as failsafe allways has failsafe orig name
-          if compareAppends(
-              Ops.get_string(linux_default, "append", ""),
-              Ops.get_string(s, "append", "")
-            )
-            default_linux = Ops.get_string(s, "name", "")
-          end
-        end
-      end
-
-      Builtins.y2milestone(
-        "Relative default boot section is: \"%1\"",
-        default_linux
-      )
-      default_linux
-    end
-
-
-
-    # bnc #440125 - default boot section with failsafe args
     # Check if default boot name is linux
     #
     # @param string default boot name
