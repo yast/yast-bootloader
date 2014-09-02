@@ -74,44 +74,6 @@ module Yast
       boot_disk
     end
 
-
-
-    # function check all partitions and it tries to find /boot partition
-    # if it is MD Raid and soft-riad return correct device for analyse MBR
-    # @param list<map> list of partitions
-    # @return [String] device for analyse MBR
-    def soft_MDraid_boot_disk(partitions)
-      partitions = deep_copy(partitions)
-      result = ""
-      boot_device = ""
-      if BootStorage.BootPartitionDevice != nil &&
-          BootStorage.BootPartitionDevice != ""
-        boot_device = BootStorage.BootPartitionDevice
-      else
-        boot_device = BootStorage.RootPartitionDevice
-      end
-
-      Builtins.foreach(partitions) do |p|
-        if Ops.get_string(p, "device", "") == boot_device
-          if Ops.get(p, "type") == :sw_raid &&
-              Ops.get_string(p, "fstype", "") == "MD Raid"
-            device_1 = Ops.get_string(p, ["devices", 0], "")
-            Builtins.y2debug("device_1: %1", device_1)
-            dp = Storage.GetDiskPartition(device_1)
-            Builtins.y2debug("dp: %1", dp)
-            result = Ops.get_string(dp, "disk", "")
-          end
-        end
-      end
-      Builtins.y2milestone(
-        "Device for analyse MBR from soft-raid (MD-Raid only): %1",
-        result
-      )
-      result
-    end
-
-
-
     # ConfigureLocation()
     # Where to install the bootloader.
     # Returns the type of device where to install: one of "boot", "root", "mbr", "mbr_md"
