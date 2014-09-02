@@ -677,11 +677,6 @@ module Yast
         ret = false if ret == nil
 
         Popup.Warning(_("Writing bootloader settings failed.")) if !ret
-      elsif op == :propose_deep
-        Yast.import "BootGRUB"
-        BootGRUB.merge_level = :all
-        Bootloader.Propose
-        BootGRUB.merge_level = :main
       elsif op == :propose
         Bootloader.Propose
       end

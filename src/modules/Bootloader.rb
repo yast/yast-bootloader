@@ -36,7 +36,6 @@ module Yast
       Yast.import "Storage"
       Yast.import "Directory"
 
-      Yast.import "BootGRUB"
       #fate 303395
       Yast.import "ProductFeatures"
       # Write is repeating again
