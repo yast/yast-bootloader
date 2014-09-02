@@ -113,43 +113,6 @@ module Yast
       Yast.import "Popup"
     end
 
-    # Add missing data (eg. root filesystem) to sections imported from profile
-    # @param [Array<Hash{String => Object>}] sect a list of all sections
-    # @return a lit of all updated sections
-    def UpdateImportedSections(sect)
-      sect = deep_copy(sect)
-      sect = Builtins.maplist(sect) do |s|
-        Builtins.y2milestone("Updating imported section %1", s)
-        orig_name = Ops.get_string(
-          s,
-          "original_name",
-          Ops.get_string(s, "name", "linux")
-        )
-        type = Ops.get_string(s, "type", "image")
-        next deep_copy(s) if type != "image"
-        s = Convert.convert(
-          Builtins.union(BootCommon.CreateLinuxSection(orig_name), s),
-          :from => "map",
-          :to   => "map <string, any>"
-        )
-        # convert "kernel" to "image", if not already defined in the section
-        if Builtins.haskey(s, "kernel")
-          if !Builtins.haskey(s, "image")
-            Ops.set(s, "image", Ops.get_string(s, "kernel", ""))
-          end
-          s = Builtins.remove(s, "kernel")
-        end
-        # convert "vga" to "vgamode", if not already defined in the section
-        if Builtins.haskey(s, "vga")
-          if !Builtins.haskey(s, "vgamode")
-            Ops.set(s, "vgamode", Ops.get_string(s, "vga", ""))
-          end
-          s = Builtins.remove(s, "vga")
-        end
-        deep_copy(s)
-      end
-      deep_copy(sect)
-    end
 
     # Translate the autoinstallation map to the Export map
     # @param [Hash{String => Object}] ai a map the autoinstallation map
@@ -259,22 +222,6 @@ module Yast
 
       old_format = false
 
-      # section stuff
-      section_names = []
-      if Ops.greater_than(Builtins.size(Ops.get_list(ai, "sections", [])), 0)
-        Builtins.foreach(Ops.get_list(ai, "sections", [])) do |s|
-          old_format = true if !Ops.is(s, "map <string, any>")
-        end
-        if !old_format
-          sect = Ops.get_list(ai, "sections", [])
-          sect = UpdateImportedSections(sect)
-          Ops.set(exp, ["specific", "sections"], sect)
-          section_names = Builtins.maplist(sect) do |s|
-            Ops.get_string(s, "name", "")
-          end
-        end
-      end
-
       # global stuff
       if !Builtins.haskey(ai, "global") || Ops.is_map?(Ops.get(ai, "global"))
         Ops.set(
@@ -297,13 +244,10 @@ module Yast
         # Converting key/value pairs to file contents first, then setting
         # as file contents and re-exporting the parsed file contents.
 
-        sections = Ops.get_list(ai, "sections", [])
         globals = Ops.get_list(ai, "global", [])
-        sections = Builtins.prepend(sections, globals)
-        flat = Builtins.flatten(sections)
         loader = Ops.get_string(ai, "loader_type", "")
         separator = " = "
-        lines = Builtins.maplist(flat) do |f|
+        lines = Builtins.maplist(globals) do |f|
           Builtins.sformat(
             "%1%2%3",
             Ops.get_string(f, "key", ""),
@@ -314,34 +258,9 @@ module Yast
         file = Builtins.mergestring(lines, "\n")
         BootCommon.InitializeLibrary(true, loader)
         BootCommon.SetDeviceMap(BootStorage.device_mapping)
-        BootCommon.SetSections([])
         BootCommon.SetGlobal({})
         BootCommon.SetFilesContents(files)
         Ops.set(exp, ["specific", "global"], BootCommon.GetGlobal)
-        sect = BootCommon.GetSections
-        sect = UpdateImportedSections(sect)
-        Ops.set(exp, ["specific", "sections"], sect)
-        section_names = Builtins.maplist(sect) do |s|
-          Ops.get_string(s, "name", "")
-        end
-      end
-
-      if Builtins.haskey(
-          Ops.get_map(exp, ["specific", "global"], {}),
-          "default"
-        ) &&
-          !Builtins.contains(
-            section_names,
-            Ops.get_string(exp, ["specific", "global", "default"], "")
-          )
-        Ops.set(
-          exp,
-          ["specific", "global"],
-          Builtins.remove(
-            Ops.get_map(exp, ["specific", "global"], {}),
-            "default"
-          )
-        )
       end
 
       deep_copy(exp)
@@ -368,16 +287,6 @@ module Yast
           { k => v }
         end)
       end
-      # sections stuff
-      Ops.set(
-        ai,
-        "sections",
-        Builtins.maplist(Ops.get_list(exp, ["specific", "sections"], [])) do |s|
-          s = Builtins.filter(s) { |k, v| Builtins.substring(k, 0, 2) != "__" }
-          deep_copy(s)
-        end
-      )
-
       # device map stuff
       if Ops.greater_than(
           Builtins.size(Ops.get_map(exp, ["specific", "device_map"], {})),
