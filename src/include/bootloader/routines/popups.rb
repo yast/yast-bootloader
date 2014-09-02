@@ -51,14 +51,6 @@ module Yast
       )
     end
 
-    # Display question
-    # @param [String] title string section title
-    # @return [Boolean] true if answered yes
-    def confirmSectionDeletePopup(title)
-      # yes-no popup question
-      Popup.YesNo(Builtins.sformat(_("Really delete section %1?"), title))
-    end
-
     # Display error
     def emptyPasswdErrorPopup
       # error popup
