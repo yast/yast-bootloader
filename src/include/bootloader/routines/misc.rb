@@ -1038,30 +1038,6 @@ module Yast
       end
       true
     end
-    # bnc #578545 - kdump misconfigures crashkernel parameter for Xen
-    # Check if default_append includes crashkernel arg
-    #
-    # @param string defaul_append
-    # @return [String] defaul_append without crashkernel
-
-    def deleteCrashkernelFromAppend(append)
-      Builtins.y2milestone("Original append: %1", append)
-      list_append = Builtins.splitstring(append, " ")
-
-      if Ops.greater_than(Builtins.size(list_append), 0)
-        list_append = Builtins.filter(list_append) do |key|
-          if Builtins.search(key, "crashkernel") == nil
-            next true
-          else
-            next false
-          end
-        end
-      end
-      ret = Builtins.mergestring(list_append, " ")
-      Builtins.y2milestone("Filtered append: %1", ret)
-      ret
-    end
-
 
     # FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
     # Function write/update info in /etc/sysconfig/bootloader
