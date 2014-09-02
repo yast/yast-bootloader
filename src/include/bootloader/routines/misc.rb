@@ -682,33 +682,6 @@ module Yast
 
 
 
-    # Check if device is MBR of a disk
-    # @param [String] device string device to check
-    # @return [Boolean] true if is MBR
-    def IsMbr(device)
-      if Builtins.regexpmatch(
-          device,
-          "^/dev/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]+$"
-        )
-        return true
-      end
-      if Builtins.regexpmatch(
-          device,
-          "^/dev/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]+/.*d[0-9]+$"
-        )
-        return true
-      end
-      false
-    end
-
-    # Add '(MBR)' to the disk description if it is a MBR of some partition
-    # @param [String] descr string disk description
-    # @param [String] device string disk device
-    # @return [String] updated description
-    def AddMbrToDescription(descr, device)
-      IsMbr(device) ? Builtins.sformat("%1 (MBR)", descr) : descr
-    end
-
     # Update the Kernel::vgaType value to the saved one if not defined
     def UpdateInstallationKernelParameters
       saved_params = {}
