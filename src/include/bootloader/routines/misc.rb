@@ -1473,34 +1473,5 @@ module Yast
 
       nil
     end
-
-    # bnc #450153 - support for installation kernel from add-on
-    # fucntion call client from add-on and update proposal for
-    # yast2-bootloader. -> availabe edit kernel args for kernel
-    # from add-on
-    #
-    # @return [Boolean] - true on success
-    def UpdateProposalFromClient
-      ret = true
-      client_file = "kernel_bl_proposal"
-      if !Arch.i386 && !Arch.x86_64
-        Builtins.y2milestone(
-          "Unsuported architecture... for adding SLERT addon"
-        )
-        return ret
-      end
-
-      if WFM.ClientExists(client_file)
-        Builtins.y2milestone("Client: %1 was found", client_file)
-        WFM.CallFunction(client_file, [])
-      else
-        Builtins.y2milestone(
-          "File %1 doesn't exist - proposal will not be updated",
-          client_file
-        )
-      end
-
-      ret
-    end
   end
 end
