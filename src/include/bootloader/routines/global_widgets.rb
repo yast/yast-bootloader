@@ -510,64 +510,6 @@ module Yast
       }
     end
 
-    # Get the main dialog tabs description
-    # @return a map the description of the tabs
-    def TabsDescr
-      lt = Bootloader.getLoaderType
-      {
-        "sections"     => {
-          # tab header
-          "header"       => _("&Section Management"),
-          "contents"     => HBox(
-            HSpacing(3),
-            VBox(VSpacing(1), "sections", VSpacing(1)),
-            HSpacing(3)
-          ),
-          "widget_names" => ["DisBackButton", "sections"]
-        },
-        "installation" => {
-          # tab header
-          "header"       => _("Boot Loader &Installation"),
-          "contents"     => HBox(
-            HStretch(),
-            VBox(
-              VStretch(),
-              Frame(
-                _("Type"),
-                VBox(
-                  VSpacing(0.4),
-                  HBox(
-                    HSpacing(2),
-                    "loader_type",
-                    HStretch(),
-                    VBox(
-                      Label(""),
-                      lt == "none" || lt == "default" ?
-                        Empty() :
-                        "loader_options"
-                    ),
-                    HSpacing(2)
-                  ),
-                  VSpacing(0.4)
-                )
-              ),
-              VStretch(),
-              lt == "none" || lt == "default" ?
-                Empty() :
-                "loader_location",
-              VStretch(),
-              lt != "grub2" ? Empty() : "inst_details",
-              VStretch()
-            ),
-            HStretch()
-          ),
-          "widget_names" => lt == "none" || lt == "default" ?
-            ["loader_type", "loader_options"] :
-            ["loader_type", "loader_options", "loader_location", "inst_details"]
-        }
-      }
-    end
-
     # Get general widgets for global bootloader options
     # @return a map describing all general widgets for global options
     def CommonGlobalWidgets
