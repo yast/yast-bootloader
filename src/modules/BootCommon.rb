@@ -1025,7 +1025,6 @@ module Yast
     publish :function => :getLoaderName, :type => "string (string, symbol)"
     publish :function => :getBooleanAttrib, :type => "boolean (string)"
     publish :function => :getAnyTypeAttrib, :type => "any (string, any)"
-    publish :function => :updateTimeoutPopupForFloppy, :type => "void (string)"
     publish :function => :remapGlobals, :type => "map <string, string> (map <string, string>)"
     publish :function => :GetBootloaderDevice, :type => "string ()"
     publish :function => :GetBootloaderDevices, :type => "list <string> ()"

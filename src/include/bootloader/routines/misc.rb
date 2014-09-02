@@ -87,41 +87,6 @@ module Yast
 
     # other misc functions
 
-
-
-    # Update the text of countdown widget
-    # @param [String] bootloader string printable name of used bootloader
-    def updateTimeoutPopupForFloppy(bootloader)
-      return if Mode.normal
-
-      confirm_boot_msg = Misc.boot_msg
-      # data saved to floppy disk
-      msg = Builtins.sformat(
-        # popup, %1 is bootloader name
-        _("The %1 boot sector has been written to the floppy disk."),
-        bootloader
-      )
-      msg = Ops.add(msg, "\n")
-      # always hard boot
-      # If LILO was written on floppy disk and we need
-      # to do a hard reboot (because a different kernel
-      # was installed), tell the user to leave the floppy
-      # inserted.
-      msg = Ops.add(
-        msg,
-        # popup - continuing
-        _("Leave the floppy disk in the drive.")
-      )
-
-      if Ops.greater_than(Builtins.size(confirm_boot_msg), 0)
-        msg = Ops.add(Ops.add(msg, "\n"), confirm_boot_msg)
-      end
-      Misc.boot_msg = msg
-
-      nil
-    end
-
-
     # Function remap globals settings "boot_custom" device name (/dev/sda)
     # or to label (ufo_partition)
     # @param map<string,string> globals
