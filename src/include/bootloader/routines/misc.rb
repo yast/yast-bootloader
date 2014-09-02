@@ -147,45 +147,6 @@ module Yast
         )
       end
 
-      if Builtins.haskey(globals_set, "boot_chrp_custom")
-        Ops.set(
-          globals_set,
-          "boot_chrp_custom",
-          BootStorage.MountByDev2Dev(
-            Ops.get(globals_set, "boot_chrp_custom", "")
-          )
-        )
-      end
-
-      if Builtins.haskey(globals_set, "boot_pmac_custom")
-        Ops.set(
-          globals_set,
-          "boot_pmac_custom",
-          BootStorage.MountByDev2Dev(
-            Ops.get(globals_set, "boot_pmac_custom", "")
-          )
-        )
-      end
-
-      if Builtins.haskey(globals_set, "boot_iseries_custom")
-        Ops.set(
-          globals_set,
-          "boot_iseries_custom",
-          BootStorage.MountByDev2Dev(
-            Ops.get(globals_set, "boot_iseries_custom", "")
-          )
-        )
-      end
-
-      if Builtins.haskey(globals_set, "boot_prep_custom")
-        Ops.set(
-          globals_set,
-          "boot_prep_custom",
-          BootStorage.MountByDev2Dev(
-            Ops.get(globals_set, "boot_prep_custom", "")
-          )
-        )
-      end
       deep_copy(globals_set)
     end
 
