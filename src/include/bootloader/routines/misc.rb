@@ -326,23 +326,6 @@ module Yast
       end
     end
 
-
-    # Check if installation to floppy is performed
-    # @return true if installing bootloader to floppy
-    def InstallingToFloppy
-      ret = false
-      # Bug 539774 - bootloader module wants to write to floppy disk although there is none
-      return ret if @loader_device == nil || @loader_device == "" # bug #333459 - boot loader editor: propose new configuration
-      if @loader_device == StorageDevices.FloppyDevice
-        ret = true
-      elsif Builtins.contains(BootStorage.getFloppyDevices, @loader_device)
-        ret = true
-      end
-      Builtins.y2milestone("Installing to floppy: %1", ret)
-      ret
-    end
-
-
     # Get the list of particular kernel parameters
     # @param [String] line string the whole kernel command line
     # @return a list of the kernel parameters split each separaterlly

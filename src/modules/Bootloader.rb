@@ -511,12 +511,6 @@ module Yast
           )
           return Write() if Ops.get(res, "workflow_sequence") == :next
         end
-      else
-        if BootCommon.InstallingToFloppy
-          BootCommon.updateTimeoutPopupForFloppy(
-            BootCommon.getLoaderName(getLoaderType, :summary)
-          )
-        end
       end
 
       ret
@@ -643,12 +637,6 @@ module Yast
             )
           )
           return Write() if Ops.get(res, "workflow_sequence") == :next
-        end
-      else
-        if BootCommon.InstallingToFloppy
-          BootCommon.updateTimeoutPopupForFloppy(
-            BootCommon.getLoaderName(getLoaderType, :summary)
-          )
         end
       end
       ret

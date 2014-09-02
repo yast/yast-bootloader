@@ -1033,7 +1033,6 @@ module Yast
     publish :function => :GetBootloaderDevice, :type => "string ()"
     publish :function => :GetBootloaderDevices, :type => "list <string> ()"
     publish :function => :IsPartitionBootable, :type => "boolean (string)"
-    publish :function => :InstallingToFloppy, :type => "boolean ()"
     publish :function => :getKernelParamFromLine, :type => "string (string, string)"
     publish :function => :setKernelParamToLine, :type => "string (string, string, string)"
     publish :function => :myToInteger, :type => "integer (any)"
