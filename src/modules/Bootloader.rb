@@ -471,9 +471,6 @@ module Yast
 
       #F#300779 -end
 
-      # update graphics menu where possible
-      UpdateGfxMenu()
-
       # save bootloader settings
       reinit = !Mode.normal
       Builtins.y2milestone(
@@ -590,9 +587,6 @@ module Yast
       end
 
       # F#300779 -end
-
-      # update graphics menu where possible
-      UpdateGfxMenu()
 
       # save bootloader settings
       reinit = !(Mode.update || Mode.normal)
@@ -1044,13 +1038,6 @@ module Yast
       end
 
       nil
-    end
-
-    # Update the language of GFX menu according to currently selected language
-    # @return [Boolean] true on success
-    def UpdateGfxMenu
-      return true
-      # TODO DROP
     end
 
     # Function update append -> add console to append
