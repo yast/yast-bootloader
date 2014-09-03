@@ -317,21 +317,6 @@ module Yast
     # @param [String] widget string widget key
     # @param [Hash] event map event that caused the operation
     def LoaderTypeStore(widget, event)
-      event = deep_copy(event)
-      ret = false
-      if Ops.get(BootCommon.globals, "trusted_grub", "") == "true"
-        if !Package.Installed("trustedgrub") && Mode.normal
-          if !PackageSystem.CheckAndInstallPackages(["trustedgrub"])
-            if !Mode.commandline
-              Popup.Error(Message.CannotContinueWithoutPackagesInstalled)
-            end
-            Builtins.y2error(
-              "Installation of package trustedgrub failed or aborted"
-            )
-          end
-        end
-      end
-
       nil
     end
 

@@ -44,9 +44,6 @@ module Yast
         "boot_boot"               => _(
           "<p><b>Boot from Boot Partition</b> is one of the recommended options, the other is\n<b>Boot from Root Partition</b>.</p>"
         ),
-        "trusted_grub"            => _(
-          "<p><b>Use Trusted Grub</b> means install trusted grub and use it. Option <i>Graphical Menu File</i> will be ignored.\nIt is recommended to install grub to MBR</p>"
-        ),
         "boot_mbr"                => _(
           "<p><b>Boot from Master Boot Record</b> is not recommended if you have another operating system\ninstalled on your computer</p>"
         ),
@@ -106,7 +103,6 @@ module Yast
         "timeout"       => _("&Timeout in Seconds"),
         "default"       => _("&Default Boot Section"),
         "generic_mbr"   => _("Write &generic Boot Code to MBR"),
-        "trusted_grub"  => _("Use &Trusted Grub"),
         "boot_custom"   => _("Custom Boot Partition"),
         "boot_mbr"      => _("Boot from Master Boot Record"),
         "boot_root"     => _("Boot from Root Partition"),

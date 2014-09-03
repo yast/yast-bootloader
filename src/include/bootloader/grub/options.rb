@@ -32,26 +32,6 @@ module Yast
       Yast.include include_target, "bootloader/grub/helps.rb"
     end
 
-    def HandleTrusted(widget, event)
-      event = deep_copy(event)
-      value = Convert.to_boolean(UI.QueryWidget(Id(widget), :Value))
-      nil
-    end
-
-    def TrustedWidget
-      widget = CommonCheckboxWidget(
-        Ops.get(@grub_descriptions, "trusted_grub", "trusted grub"),
-        Ops.get(@grub_help_messages, "trusted_grub", "")
-      )
-      Ops.set(widget, "opt", [:notify])
-      Ops.set(
-        widget,
-        "handle",
-        fun_ref(method(:HandleTrusted), "symbol (string, map)")
-      )
-      deep_copy(widget)
-    end
-
     # Init function of widget
     # @param [String] widget string id of the widget
     def InitPasswdWidget(widget)
@@ -288,7 +268,6 @@ module Yast
           Ops.get(@grub_descriptions, "generic_mbr", "generic mbr"),
           Ops.get(@grub_help_messages, "generic_mbr", "")
         ),
-        "trusted_grub"     => TrustedWidget(),
         "hiddenmenu"       => CommonCheckboxWidget(
           Ops.get(@grub_descriptions, "hiddenmenu", "hidden menu"),
           Ops.get(@grub_help_messages, "hiddenmenu", "")
