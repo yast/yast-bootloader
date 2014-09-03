@@ -65,7 +65,6 @@ module Yast
       # general functions
 
       @test_abort = nil
-      Bootloader()
     end
 
     # Check whether abort was pressed
@@ -86,11 +85,6 @@ module Yast
       else
         return true
       end
-    end
-
-    # Constructor
-    def Bootloader
-      nil
     end
 
     # Export bootloader settings to a map
