@@ -203,22 +203,6 @@ module Yast
 
     # interface to bootloader library
 
-
-
-
-    # FIXME 2x functions should not be finally here...
-    # Check whether XEN is selected for installation resp. selected
-    # @return [Boolean] true of XEN installed/selected
-    def XenPresent
-      ret = !Builtins.contains(@removed_sections, "xen") &&
-        (Mode.test ||
-          Mode.normal && Pkg.IsProvided("xen") && Pkg.IsProvided("kernel-xen") ||
-          !Mode.normal && Pkg.IsSelected("xen") && Pkg.IsSelected("kernel-xen"))
-
-      Builtins.y2milestone("ret: %1", ret)
-      ret
-    end
-
     # Function check if trusted grub is selected
     # or installed return true if is selected/installed
     # and add trusted_grub to globals
@@ -1058,7 +1042,6 @@ module Yast
     publish :function => :InitializeBootloader, :type => "boolean ()"
     publish :function => :GetFilesContents, :type => "map <string, string> ()"
     publish :function => :SetFilesContents, :type => "boolean (map <string, string>)"
-    publish :function => :XenPresent, :type => "boolean ()"
     publish :function => :isTrustedGrub, :type => "boolean ()"
     publish :function => :Export, :type => "map ()"
     publish :function => :Import, :type => "boolean (map)"
