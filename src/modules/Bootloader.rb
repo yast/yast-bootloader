@@ -655,7 +655,6 @@ module Yast
     }
 
     # Gets value for given parameter in kernel parameters for given flavor.
-    # @note For grub1 it returns value for default section and its kernel parameter
     # @param [Symbol] flavor flavor of kernel, for possible values see #modify_kernel_param
     # @param [String] key of parameter on kernel command line
     # @returns [String,:missing,:present] Returns string for parameters with value,
@@ -689,7 +688,6 @@ module Yast
     end
 
     # Modify kernel parameters for installed kernels according to values
-    # For grub1 for backward compatibility modify default section
     # @param [Array]  args parameters to modify. Last parameter is hash with keys
     #   and its values, keys are strings and values are `:present`, `:missing` or
     #   string value. Other parameters specify which kernel flavors are affected.
