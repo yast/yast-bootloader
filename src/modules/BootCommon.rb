@@ -203,27 +203,6 @@ module Yast
 
     # interface to bootloader library
 
-    # Function check if trusted grub is selected
-    # or installed return true if is selected/installed
-    # and add trusted_grub to globals
-    # @return [Boolean] true if trusted grub is selected/installed
-
-    def isTrustedGrub
-      ret = false
-      if Mode.normal
-        if Pkg.IsProvided("trustedgrub") || Package.Installed("trustedgrub")
-          ret = true
-          Ops.set(@globals, "trusted_grub", "true")
-        end
-      else
-        if Pkg.IsSelected("trustedgrub")
-          ret = true
-          Ops.set(@globals, "trusted_grub", "true")
-        end
-      end
-      ret
-    end
-
     # Create section for linux kernel
     # @param [String] title string the section name to create (untranslated)
     # @return a map describing the section
@@ -458,7 +437,6 @@ module Yast
       ReadFiles(avoid_reading_device_map) if reread
       @sections = GetSections()
       @globals = GetGlobal()
-      isTrustedGrub
       BootStorage.device_mapping = GetDeviceMap()
       @read_default_section_name = ""
       Builtins.foreach(@sections) do |s|
@@ -1042,7 +1020,6 @@ module Yast
     publish :function => :InitializeBootloader, :type => "boolean ()"
     publish :function => :GetFilesContents, :type => "map <string, string> ()"
     publish :function => :SetFilesContents, :type => "boolean (map <string, string>)"
-    publish :function => :isTrustedGrub, :type => "boolean ()"
     publish :function => :Export, :type => "map ()"
     publish :function => :Import, :type => "boolean (map)"
     publish :function => :Read, :type => "boolean (boolean, boolean)"
