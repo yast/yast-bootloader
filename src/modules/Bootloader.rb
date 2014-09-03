@@ -487,9 +487,6 @@ module Yast
       # call bootloader executable
       Builtins.y2milestone("Calling bootloader executable")
       ret = ret && blWrite
-      # FATE#305557: Enable SELinux for 11.2
-      createSELinuxDir
-      handleSELinuxPAM
       if !ret
         Builtins.y2error("Installing bootloader failed")
         if writeErrorPopup
@@ -600,9 +597,6 @@ module Yast
       # call bootloader executable
       Builtins.y2milestone("Calling bootloader executable")
       ret = ret && blWrite
-      # FATE#305557: Enable SELinux for 11.2
-      createSELinuxDir
-      handleSELinuxPAM
       if !ret
         Builtins.y2error("Installing bootloader failed")
         if writeErrorPopup
@@ -1034,73 +1028,6 @@ module Yast
       end
 
       true
-    end
-    def createSELinuxDir
-      path_file = "/selinux"
-      cmd = "ls -d /selinux  2>/dev/null"
-      if BootCommon.enable_selinux
-        if Mode.normal || Mode.installation
-          out = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
-          Builtins.y2milestone(
-            "runnning command: \"%1\" and return: %2",
-            cmd,
-            out
-          )
-          if Ops.get_string(out, "stdout", "") != "/selinux\n"
-            SCR.Execute(path(".target.mkdir"), path_file)
-          else
-            Builtins.y2milestone("Directory /selinux already exist")
-          end
-        else
-          Builtins.y2milestone("Skip creating /selinux directory -> wrong mode")
-        end
-      else
-        Builtins.y2milestone("Skip creating /selinux directory")
-      end
-
-      nil
-    end
-    def handleSELinuxPAM
-      Builtins.y2milestone("handleSELinuxPAM called")
-      if Mode.normal || Mode.installation
-        if BootCommon.enable_selinux
-          Builtins.y2milestone("call enableSELinuxPAM")
-          enableSELinuxPAM
-        else
-          Builtins.y2milestone("call disableSELinuxPAM")
-          disableSELinuxPAM
-        end
-      else
-        Builtins.y2milestone(
-          "Skip changing SELinux/AppArmor PAM config -> wrong mode"
-        )
-      end
-
-      nil
-    end
-    def enableSELinuxPAM
-      cmd_enable_se = "pam-config -a --selinux  2>/dev/null"
-      cmd_disable_aa = "pam-config -d --apparmor 2>/dev/null"
-
-      out = SCR.Execute(path(".target.bash_output"), cmd_disable_aa)
-      Builtins.y2debug("result of disabling the AppArmor PAM module is %1", out)
-
-      out = SCR.Execute(path(".target.bash_output"), cmd_enable)
-      Builtins.y2debug("result of enabling the SELinux PAM module is %1", out)
-
-      nil
-    end
-    def disableSELinuxPAM
-      cmd_disable_se = "pam-config -d --selinux  2>/dev/null"
-      cmd_enable_aa = "pam-config -a --apparmor 2>/dev/null"
-
-      out = SCR.Execute(path(".target.bash_output"), cmd_disable_se)
-      Builtins.y2debug("result of disabling the SELinux PAM module is %1", out)
-
-      out = SCR.Execute(path(".target.bash_output"), cmd_enable_aa)
-      Builtins.y2debug("result of enabling the AppArmor PAM module is %1", out)
-
-      nil
     end
 
     publish :function => :Export, :type => "map ()"

@@ -194,9 +194,6 @@ module Yast
       # if true enable redundancy for md array
       @enable_md_array_redundancy = nil
 
-      # FATE#305557: Enable SELinux for 11.2
-      #  if true create /selinux directory
-      @enable_selinux = false
       # help message and dscription definitions
       Yast.include self, "bootloader/routines/popups.rb"
       Yast.include self, "bootloader/routines/misc.rb"
@@ -1008,7 +1005,6 @@ module Yast
     publish :variable => :removed_sections, :type => "list <string>"
     publish :variable => :update_section_types, :type => "list <string>"
     publish :variable => :enable_md_array_redundancy, :type => "boolean"
-    publish :variable => :enable_selinux, :type => "boolean"
     publish :function => :getLoaderType, :type => "string (boolean)"
     publish :function => :getSystemSecureBootStatus, :type => "boolean (boolean)"
     publish :function => :getBootloaders, :type => "list <string> ()"
