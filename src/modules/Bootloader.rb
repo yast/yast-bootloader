@@ -619,19 +619,6 @@ module Yast
       ret
     end
 
-    # bnc #450153 YaST bootloader doesn't handle kernel from add-on products in installation
-    # Function check if client kernel_bl_proposal exist
-    #
-    # @return [Boolean] true on success
-
-    def CheckClientForSLERT
-      if WFM.ClientExists("kernel_bl_proposal")
-        return true
-      else
-        return false
-      end
-    end
-
     # Find "same" boot sections and return numbers of sections
     # from BootCommon::sections
     # @param map<string,any> section
