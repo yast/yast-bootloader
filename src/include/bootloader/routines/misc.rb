@@ -586,13 +586,6 @@ module Yast
       @additional_failsafe_params
     end
 
-    # Update graphical bootloader to contain help text of current language
-    # And make the selected installation language default
-    # @return [Boolean] true on success
-    def UpdateGfxMenuContents
-      GfxMenu.UpdateGfxMenuContents(getLoaderType(false))
-    end
-
     # Check if memtest86 is present
     # @return [Boolean] true if memtest86 section is to be proposed
     def MemtestPresent

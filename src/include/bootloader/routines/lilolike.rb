@@ -261,18 +261,6 @@ module Yast
       nil
     end
 
-    # Update the gfxboot/message/... line if exists
-    def UpdateGfxMenu
-      message = Ops.get(@globals, "gfxmenu", "")
-      if message != "" && Builtins.search(message, "(") == nil
-        if -1 == SCR.Read(path(".target.size"), message)
-          @globals = Builtins.remove(@globals, "gfxmenu")
-        end
-      end
-
-      nil
-    end
-
     # Get the summary of disks order for the proposal
     # @return [String] a line for the summary (or nil if not intended to be shown)
     def DiskOrderSummary

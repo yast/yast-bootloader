@@ -29,7 +29,6 @@ module Yast
       textdomain "bootloader"
 
       Yast.import "Arch"
-      Yast.import "GfxMenu"
       Yast.import "HTML"
       Yast.import "Mode"
       Yast.import "PackageSystem"
@@ -502,30 +501,6 @@ module Yast
       nil
     end
 
-    # bnc# 346576 - Bootloader configuration doesn't work for serial output
-    # Function check if settings need to remove gfxmenu
-    #
-    # @return [Boolean] - true if gfxmenu needs to be removed
-
-    def removeGFXMenu
-      if Ops.get(@globals, "trusted_grub", "") == "true" &&
-          Builtins.haskey(@globals, "gfxmenu")
-        Builtins.y2milestone("Remove gfxmenu -> selected trusted grub")
-        return true
-      end
-
-      if Ops.get(@globals, "serial") != "" && Ops.get(@globals, "serial") != nil
-        Builtins.y2milestone("Remove gfxmenu -> defined serial console")
-        return true
-      end
-
-      if Ops.get(@globals, "gfxmenu", "") == "none"
-        Builtins.y2milestone("Remove gfxmenu -> disabled gfxmenu")
-        return true
-      end
-      false
-    end
-
     # bnc #390659 - autoyast bootloader config: empty settings are ignored (memtest)
     #
     # Check if sections inlcude section for memtest
@@ -569,10 +544,6 @@ module Yast
     # @param [Boolean] flush boolean true to flush settings to the disk
     # @return [Boolean] true if success
     def Save(clean, init, flush)
-      if clean
-        UpdateGfxMenu()
-      end
-
       ret = true
 
       bl = getLoaderType(false)
@@ -580,8 +551,6 @@ module Yast
       InitializeLibrary(init, bl)
 
       return true if bl == "none"
-
-      @globals = Builtins.remove(@globals, "gfxmenu") if removeGFXMenu
 
       # bnc#589433 -  Install grub into root (/) partition gives error
       if Ops.get(@globals, "boot_custom") == "" &&
@@ -977,7 +946,6 @@ module Yast
     publish :function => :getSwapPartitions, :type => "map <string, integer> ()"
     publish :function => :UpdateInstallationKernelParameters, :type => "void ()"
     publish :function => :GetAdditionalFailsafeParams, :type => "string ()"
-    publish :function => :UpdateGfxMenuContents, :type => "boolean ()"
     publish :function => :BootloaderInstallable, :type => "boolean ()"
     publish :function => :PartitionInstallable, :type => "boolean ()"
     publish :function => :WriteToSysconf, :type => "void (boolean)"
@@ -990,7 +958,6 @@ module Yast
     publish :function => :FindMBRDisk, :type => "string ()"
     publish :function => :RunDelayedUpdates, :type => "void ()"
     publish :function => :UpdateGlobals, :type => "void ()"
-    publish :function => :UpdateGfxMenu, :type => "void ()"
     publish :function => :SetDiskInfo, :type => "void ()"
     publish :function => :InitializeLibrary, :type => "boolean (boolean, string)"
     publish :function => :SetSections, :type => "boolean (list <map <string, any>>)"

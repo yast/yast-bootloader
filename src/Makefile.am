@@ -6,7 +6,6 @@ module_DATA = \
   modules/BootGRUB2EFI.rb \
   modules/BootStorage.rb \
   modules/BootArch.rb \
-  modules/GfxMenu.rb \
   modules/BootSupportCheck.rb \
   modules/BootGRUB2.rb
 

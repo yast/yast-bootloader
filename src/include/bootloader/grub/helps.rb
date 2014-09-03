@@ -84,9 +84,6 @@ module Yast
         "gfxmenu"                 => _(
           "<p><b>Graphical Menu File</b> defines the file to use for the graphical boot menu.</p>"
         ),
-        "enable_acoustic_signals" => _(
-          "<p><b>Enable Acoustic Signals</b> turn on/off acoustic signals.</p>"
-        ),
         "password"                => _(
           "<p><b>Protect Boot Loader with Password</b><br>\n" +
             "Define the password that will be required to access the boot menu. YaST will only accept the password if you repeat\n" +

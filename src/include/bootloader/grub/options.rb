@@ -25,7 +25,6 @@ module Yast
 
       Yast.import "Label"
       Yast.import "BootStorage"
-      Yast.import "GfxMenu"
 
       Yast.include include_target, "bootloader/routines/common_options.rb"
       Yast.include include_target, "bootloader/routines/popups.rb"
@@ -77,7 +76,6 @@ module Yast
       {
         "widget"        => :custom,
         "custom_widget" => VBox(
-          #`Left(`CheckBox(`id(`enable_acoustic_signals), _("Enable Acoustic &Signals"))),
           HBox(
             Left(
               InputField(
@@ -98,38 +96,7 @@ module Yast
         "handle_events" => [:browsegfx],
         "help"          => Ops.add(
           Ops.get(@grub_help_messages, "gfxmenu", ""),
-          Ops.get(@grub_help_messages, "enable_acoustic_signals", "")
         )
-      }
-    end
-
-
-    def InitAcousticSignals(widget)
-      if GfxMenu.enable_sound_signals
-        UI.ChangeWidget(Id(widget), :Value, true)
-      else
-        UI.ChangeWidget(Id(widget), :Value, false)
-      end
-
-      nil
-    end
-
-    def StoreAcousticSignals(widget, event)
-      event = deep_copy(event)
-      GfxMenu.enable_sound_signals = Convert.to_boolean(
-        UI.QueryWidget(Id(widget), :Value)
-      )
-
-      nil
-    end
-
-    def AcousticSignals
-      {
-        "widget" => :checkbox,
-        "label"  => _("Enable Acoustic &Signals"),
-        "init"   => fun_ref(method(:InitAcousticSignals), "void (string)"),
-        "store"  => fun_ref(method(:StoreAcousticSignals), "void (string, map)"),
-        "help"   => Ops.get(@grub_help_messages, "enable_acoustic_signals", "")
       }
     end
 
@@ -398,7 +365,6 @@ module Yast
         "gfxmenu"          => GfxWidget(),
         "password"         => PasswordWidget(),
         "console"          => ConsoleWidget(),
-        "acoustic_signals" => AcousticSignals()
       }
       Convert.convert(
         Builtins.union(grub_specific, CommonOptions()),
