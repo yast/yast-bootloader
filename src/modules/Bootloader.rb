@@ -776,89 +776,6 @@ module Yast
       end
     end
 
-    # set kernel parameter to menu.lst
-    # @param [String] section string section title, use DEFAULT for default section
-    # @param [String] key string parameter key
-    # @param [String] value string value, "false" to remove key,
-    #   "true" to add key without value
-    # @return [Boolean] true on success
-    # @deprecated use modify_kernel_param instead
-    def setKernelParam(section, key, value)
-      if !Mode.config && key == "vga" && (Arch.s390 || Arch.ppc)
-        Builtins.y2warning(
-          "Kernel of this architecture does not support the vga parameter"
-        )
-        return true
-      end
-
-      ReadOrProposeIfNeeded()
-
-      if section == "DEFAULT"
-        section = getDefaultSection
-      elsif section == "LINUX_DEFAULT"
-        section = getProposedDefaultSection
-      end
-      if section.nil?
-        Builtins.y2error("section is nil, so kernel parameter cannot be set")
-        return false
-      end
-
-      sectnum = -1
-      index = -1
-      Builtins.foreach(BootCommon.sections) do |s|
-        index += 1
-        sectnum = index if Ops.get_string(s, "name", "") == section
-      end
-      if sectnum == -1
-        Builtins.y2error "Cannot find given section #{section} in sections #{BootCommon.sections.inspect}"
-        return false
-      end
-
-      if (key == "vga" || key == "root") && value == "true"
-        Builtins.y2error "invalid values passed as kernel param #{key.inspect} => #{value.inspect}"
-        return false
-      end
-
-      if Builtins.contains(["root", "vga"], key)
-        if value != "false"
-          if key == "vga"
-            Ops.set(BootCommon.sections, [sectnum, "vgamode"], value)
-          else
-            Ops.set(BootCommon.sections, [sectnum, key], value)
-          end
-          # added flag that section was modified bnc #432651
-          Ops.set(BootCommon.sections, [sectnum, "__changed"], true)
-        else
-          if key == "vga"
-            Ops.set(
-              BootCommon.sections,
-              sectnum,
-              Builtins.remove(
-                Ops.get(BootCommon.sections, sectnum, {}),
-                "vgamode"
-              )
-            )
-          else
-            Ops.set(
-              BootCommon.sections,
-              sectnum,
-              Builtins.remove(Ops.get(BootCommon.sections, sectnum, {}), key)
-            )
-          end
-        end
-      else
-        line = Ops.get_string(BootCommon.sections, [sectnum, "append"], "")
-        line = BootCommon.setKernelParamToLine(line, key, value)
-        Ops.set(BootCommon.sections, [sectnum, "append"], line)
-        # added flag that section was modified bnc #432651
-        Ops.set(BootCommon.sections, [sectnum, "__changed"], true)
-      end
-      BootCommon.changed = true
-
-      return true
-    end
-
-
     # Get currently used bootloader, detect if not set yet
     # @return [String] botloader type
     def getLoaderType
@@ -1196,7 +1113,6 @@ module Yast
     publish :function => :ReadOrProposeIfNeeded, :type => "void ()"
     publish :function => :getDefaultSection, :type => "string ()"
     publish :function => :getKernelParam, :type => "string (string, string)"
-    publish :function => :setKernelParam, :type => "boolean (string, string, string)"
     publish :function => :getLoaderType, :type => "string ()"
     publish :variable => :proposed_cfg_changed, :type => "boolean"
     publish :variable => :cached_proposal, :type => "map"
