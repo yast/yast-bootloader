@@ -619,55 +619,6 @@ module Yast
       ret
     end
 
-    # Function find and select any boot section like defaul
-    # if default boot section doesn't exist
-    #
-    # @param map<string,any> defualt linux section
-    # @return [Boolean] true if section was found or was selected
-
-
-    def FindAndSelectDefault(default_sec)
-      default_sec = deep_copy(default_sec)
-      ret = false
-      set_candidate = false
-      default_name = Ops.get(BootCommon.globals, "default", "")
-      default_candidate = ""
-
-      Builtins.foreach(BootCommon.sections) do |section|
-        if Ops.get(section, "name") == default_name
-          Builtins.y2milestone("Default section was found.")
-          ret = true
-          raise Break
-        else
-          if Ops.get_string(section, "root", "") ==
-              Ops.get_string(default_sec, "root", "") &&
-              Ops.get_string(section, "type", "") == "image" &&
-              Ops.get_string(section, "original_name", "") == "linux"
-            default_candidate = Ops.get_string(section, "name", "")
-            Builtins.y2milestone(
-              "Candidate for default section is: %1",
-              section
-            )
-            set_candidate = true
-          end
-        end
-      end
-      if !ret
-        if set_candidate && default_candidate != ""
-          Builtins.y2milestone(
-            "Default section will be update to: %1",
-            default_candidate
-          )
-          Ops.set(BootCommon.globals, "default", default_candidate)
-          ret = true
-        else
-          Builtins.y2error("Default section was not found")
-        end
-      end
-      ret
-    end
-
-
     # bnc #450153 YaST bootloader doesn't handle kernel from add-on products in installation
     # Remove all section with empty keys "image" and "initrd"
     #
