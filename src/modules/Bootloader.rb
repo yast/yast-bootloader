@@ -620,33 +620,6 @@ module Yast
     end
 
     # bnc #450153 YaST bootloader doesn't handle kernel from add-on products in installation
-    # Remove all section with empty keys "image" and "initrd"
-    #
-    def removeDummySections
-      BootCommon.sections = Builtins.filter(BootCommon.sections) do |section|
-        if Ops.get_string(section, "original_name", "") == "linux" ||
-            Ops.get_string(section, "original_name", "") == "failsafe"
-          if Builtins.search(
-              Ops.get_string(section, "image", ""),
-              "dummy_image"
-            ) != nil &&
-              Builtins.search(
-                Ops.get_string(section, "initrd", ""),
-                "dummy_initrd"
-              ) != nil
-            Builtins.y2milestone("Removed dummy boot section: %1", section)
-            next false
-          else
-            next true
-          end
-        end
-        true
-      end
-
-      nil
-    end
-
-    # bnc #450153 YaST bootloader doesn't handle kernel from add-on products in installation
     # Function check if client kernel_bl_proposal exist
     #
     # @return [Boolean] true on success
