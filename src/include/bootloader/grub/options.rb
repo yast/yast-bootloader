@@ -611,29 +611,5 @@ module Yast
         "help"          => HelpBootLoaderLocationWidget()
       }
     end
-
-    # Handle function of a widget
-    # @param [String] widget string widget key
-    # @param [Hash] event map event description of event that occured
-    # @return [Symbol] to return to wizard sequencer, or nil
-    def InstDetailsButtonHandle(widget, event)
-      event = deep_copy(event)
-      :inst_details
-    end
-
-
-    def grubInstalationDetials
-      {
-        "widget"        => :push_button,
-        # push button
-        "label"         => _("Boot Loader Installation &Details"),
-        "handle_events" => ["inst_details"],
-        "handle"        => fun_ref(
-          method(:InstDetailsButtonHandle),
-          "symbol (string, map)"
-        ),
-        "help"          => InstDetailsHelp()
-      }
-    end
   end
 end
