@@ -267,38 +267,7 @@ module Yast
       end
       # F#300779 - end
 
-      ret = blSummary
-      # check if default section was changed or not
-      main_section = getProposedDefaultSection
-
-      return deep_copy(ret) if main_section == nil
-
-      return deep_copy(ret) if getLoaderType == "none"
-
-      sectnum = BootCommon.Section2Index(main_section)
-
-      return deep_copy(ret) if sectnum == -1
-
-      if Ops.get_boolean(BootCommon.sections, [sectnum, "__changed"], false)
-        return deep_copy(ret)
-      end
-
-      filtered_cmdline = Builtins.filterchars(
-        Kernel.GetCmdLine,
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-      )
-
-      if Ops.greater_than(Builtins.size(filtered_cmdline), 0)
-        ret = Builtins.add(
-          ret,
-          Builtins.sformat(
-            # part of summary, %1 is a part of kernel command line
-            _("Added Kernel Parameters: %1"),
-            Kernel.GetCmdLine
-          )
-        )
-      end
-      deep_copy(ret)
+      blSummary
     end
 
     # Update read settings to new version of configuration files
