@@ -32,28 +32,6 @@ module Yast
       Yast.include include_target, "bootloader/grub/helps.rb"
     end
 
-    # Init function of widget
-    # @param [String] widget string id of the widget
-    def InitPasswdWidget(widget)
-      passwd = Ops.get(BootCommon.globals, "password", "")
-      if passwd == nil || passwd == ""
-        UI.ChangeWidget(Id(:use_pas), :Value, false)
-        UI.ChangeWidget(Id(:pw1), :Enabled, false)
-        UI.ChangeWidget(Id(:pw1), :Value, "")
-        UI.ChangeWidget(Id(:pw2), :Enabled, false)
-        UI.ChangeWidget(Id(:pw2), :Value, "")
-      else
-        UI.ChangeWidget(Id(:use_pas), :Value, true)
-        UI.ChangeWidget(Id(:pw1), :Enabled, true)
-        UI.ChangeWidget(Id(:pw1), :Value, "**********")
-        UI.ChangeWidget(Id(:pw2), :Enabled, true)
-        UI.ChangeWidget(Id(:pw2), :Value, "**********")
-      end
-      UI.ChangeWidget(Id(:use_pas), :Enable, false) if Mode.installation
-
-      nil
-    end
-
     # Handle function of a widget
     # @param [String] widget string id of the widget
     # @param [Hash] event map event description of event that occured
@@ -67,43 +45,6 @@ module Yast
       end
       nil
     end
-
-    # Store function of a popup
-    # @param [String] key any widget key
-    # @param [Hash] event map event that caused the operation
-    def StorePasswdWidget(key, event)
-      event = deep_copy(event)
-      password = nil
-      usepass = Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
-      Builtins.y2milestone("Usepass: %1", usepass)
-      if usepass
-        if UI.QueryWidget(Id(:pw1), :Value) != "**********"
-          password = Convert.to_string(UI.QueryWidget(Id(:pw1), :Value))
-          password = MakeGRUBHash(password)
-          if password != nil
-            Ops.set(BootCommon.globals, "password", password) #TODO popup for error
-          end
-        end
-      elsif Builtins.haskey(BootCommon.globals, "password")
-        BootCommon.globals = Builtins.remove(BootCommon.globals, "password")
-      end
-      nil
-    end
-
-    def MakeGRUBHash(password)
-      return password if password.include? "--md5"
-
-      cmd = "echo \"md5crypt
-        #{password}\" | grub --batch | grep Encrypted"
-
-      result = SCR.execute(path(".target.bash_output"), cmd)
-
-      # proper password contain special string $1$
-      return nil unless result.include? "$1$"
-
-      result.sub(/\AEncrypted:\s*(.*)\s*\z/, "--md5 \\1")
-    end
-
 
     # Validate function of a popup
     # @param [String] key any widget key
@@ -144,34 +85,6 @@ module Yast
       )
     end
 
-
-    # Build a map describing a widget
-    # @return a map describing a widget
-    def PasswordWidget
-      {
-        "widget"            => :custom,
-        # frame
-        "custom_widget"     => passwd_content,
-        "init"              => fun_ref(
-          method(:InitPasswdWidget),
-          "void (string)"
-        ),
-        "handle"            => fun_ref(
-          method(:HandlePasswdWidget),
-          "symbol (string, map)"
-        ),
-        "store"             => fun_ref(
-          method(:StorePasswdWidget),
-          "void (string, map)"
-        ),
-        "validate_type"     => :function,
-        "validate_function" => fun_ref(
-          method(:ValidatePasswdWidget),
-          "boolean (string, map)"
-        ),
-        "help"              => Ops.get(@grub_help_messages, "password", "")
-      }
-    end
 
     # Init function for console
     # @param [String] widget
@@ -272,7 +185,6 @@ module Yast
           Ops.get(@grub_descriptions, "hiddenmenu", "hidden menu"),
           Ops.get(@grub_help_messages, "hiddenmenu", "")
         ),
-        "password"         => PasswordWidget(),
         "console"          => ConsoleWidget(),
       }
       Convert.convert(
