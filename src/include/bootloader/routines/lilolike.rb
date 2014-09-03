@@ -252,12 +252,6 @@ module Yast
         Ops.set(@globals, "timeout", "8")
       end
 
-      # bnc #380509 if autoyast profile includes gfxmenu == none
-      # it will be deleted
-      if Ops.get(@globals, "gfxmenu", "") != "none"
-        Ops.set(@globals, "gfxmenu", "/boot/message")
-      end
-
       nil
     end
 

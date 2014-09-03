@@ -81,9 +81,6 @@ module Yast
         "hiddenmenu"              => _(
           "<p>Selecting <b>Hide Menu on Boot</b> will hide the boot menu.</p>"
         ),
-        "gfxmenu"                 => _(
-          "<p><b>Graphical Menu File</b> defines the file to use for the graphical boot menu.</p>"
-        ),
         "password"                => _(
           "<p><b>Protect Boot Loader with Password</b><br>\n" +
             "Define the password that will be required to access the boot menu. YaST will only accept the password if you repeat\n" +
@@ -118,7 +115,6 @@ module Yast
         "serial"        => _("Serial Connection &Parameters"),
         "fallback"      => _("Fallback Sections if Default fails"),
         "hiddenmenu"    => _("&Hide Menu on Boot"),
-        "gfxmenu"       => _("Graphical &Menu File"),
         "password"      => _("Pa&ssword for the Menu Interface"),
         "debug"         => _("Debugg&ing Flag")
       }

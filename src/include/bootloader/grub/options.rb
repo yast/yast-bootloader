@@ -32,78 +32,9 @@ module Yast
       Yast.include include_target, "bootloader/grub/helps.rb"
     end
 
-    def InitGfx(widget)
-      value = Ops.get(BootCommon.globals, "trusted_grub", "false") != "true"
-      UI.ChangeWidget(Id(:gfxinput), :Enabled, value)
-      UI.ChangeWidget(
-        Id(:gfxinput),
-        :Value,
-        Ops.get(BootCommon.globals, widget, "")
-      )
-
-      nil
-    end
-
-    def StoreGfx(widget, event)
-      event = deep_copy(event)
-      result = Convert.to_string(UI.QueryWidget(Id(:gfxinput), :Value))
-      if result == ""
-        BootCommon.global_options = Builtins.remove(
-          BootCommon.global_options,
-          widget
-        )
-      else
-        Ops.set(BootCommon.global_options, widget, result)
-      end
-
-      nil
-    end
-
-    def HandleGfx(widget, event)
-      event = deep_copy(event)
-      file = UI.AskForExistingFile(
-        "/boot",
-        "",
-        _("Choose new graphical menu file")
-      )
-
-      UI.ChangeWidget(Id(:gfxinput), :Value, file) if file != nil
-
-      nil
-    end
-
-    def GfxWidget
-      {
-        "widget"        => :custom,
-        "custom_widget" => VBox(
-          HBox(
-            Left(
-              InputField(
-                Id(:gfxinput),
-                Opt(:hstretch),
-                Ops.get(@grub_descriptions, "gfxmenu", "gfxmenu")
-              )
-            ),
-            VBox(
-              Left(Label("")),
-              Left(PushButton(Id(:browsegfx), Opt(:notify), Label.BrowseButton))
-            )
-          )
-        ),
-        "init"          => fun_ref(method(:InitGfx), "void (string)"),
-        "store"         => fun_ref(method(:StoreGfx), "void (string, map)"),
-        "handle"        => fun_ref(method(:HandleGfx), "symbol (string, map)"),
-        "handle_events" => [:browsegfx],
-        "help"          => Ops.add(
-          Ops.get(@grub_help_messages, "gfxmenu", ""),
-        )
-      }
-    end
-
     def HandleTrusted(widget, event)
       event = deep_copy(event)
       value = Convert.to_boolean(UI.QueryWidget(Id(widget), :Value))
-      UI.ChangeWidget(Id(:gfxinput), :Enabled, !value)
       nil
     end
 
@@ -362,7 +293,6 @@ module Yast
           Ops.get(@grub_descriptions, "hiddenmenu", "hidden menu"),
           Ops.get(@grub_help_messages, "hiddenmenu", "")
         ),
-        "gfxmenu"          => GfxWidget(),
         "password"         => PasswordWidget(),
         "console"          => ConsoleWidget(),
       }
