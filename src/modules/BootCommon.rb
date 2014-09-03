@@ -75,7 +75,7 @@ module Yast
       # proposal can try to satisfy the user's previous preference.
       # NOTE: this variable is being phased out. The boot_* keys in the globals map
       # will be used to remember the last selected location.
-      # Currently, valid values are: mbr, boot, root, floppy, mbr_md, none
+      # Currently, valid values are: mbr, boot, root, mbr_md, none
       #FIXME: need remove to read only loader location from perl-Bootloader
       @selected_location = nil
 
@@ -181,8 +181,7 @@ module Yast
 
       # Types of sections that should be updated (changed device names)
       # FIXME: see FIXME in lilolike.ycp:899
-      @update_section_types = ["floppy", "other"]
-      #    = [ "linux", "failsafe", "initrd", "floppy" ];
+      @update_section_types = [ "other"]
 
       # List of all supported bootloaders
       @bootloaders = [

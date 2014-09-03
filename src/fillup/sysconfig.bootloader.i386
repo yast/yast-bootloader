@@ -13,7 +13,7 @@ LOADER_TYPE=""
 
 ## Path:        System/Bootloader
 ## Description: Bootloader configuration
-## Type:        list(floppy,mbr,root,boot,custom,none)
+## Type:        list(mbr,root,boot,custom,none)
 ## Default:     mbr
 #
 # Location of boot loader.

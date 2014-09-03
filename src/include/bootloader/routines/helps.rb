@@ -137,21 +137,6 @@ module Yast
         )
       )
 
-      if StorageDevices.FloppyPresent
-        # custom bootloader help text, 4 of 7
-        # this part will only be shown if a floppy drive is attached.
-        helptext = Ops.add(
-          helptext,
-          _(
-            "<p>\n" +
-              "- On a <b>Floppy Disk</b>.\n" +
-              "Use this to avoid the risk of interfering with an already existing\n" +
-              "boot mechanism. Enable booting from floppy disk in\n" +
-              "the BIOS of your machine to use this option.</p>"
-          )
-        )
-      end
-
       # custom bootloader help text, 5 of 7
       helptext = Ops.add(
         helptext,

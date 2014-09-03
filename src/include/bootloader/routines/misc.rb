@@ -185,7 +185,6 @@ module Yast
       return @mbrDisk if @selected_location == "mbr"
       return BootStorage.BootPartitionDevice if @selected_location == "boot"
       return BootStorage.RootPartitionDevice if @selected_location == "root"
-      return StorageDevices.FloppyDevice if @selected_location == "floppy"
       return "mbr_md" if @selected_location == "mbr_md"
       return "/dev/null" if @selected_location == "none"
       @loader_device
@@ -208,11 +207,6 @@ module Yast
       if Builtins.haskey(@globals, "boot_extended") &&
           Ops.get(@globals, "boot_extended", "false") == "true"
         ret = Builtins.add(ret, BootStorage.ExtendedPartitionDevice)
-      end
-      # FIXME: floppy support is probably obsolete
-      if Builtins.haskey(@globals, "boot_floppy") &&
-          Ops.get(@globals, "boot_floppy", "false") == "true"
-        ret = Builtins.add(ret, StorageDevices.FloppyDevice)
       end
       if Builtins.haskey(@globals, "boot_custom")
         ret = Builtins.add(ret, Ops.get(@globals, "boot_custom", ""))
