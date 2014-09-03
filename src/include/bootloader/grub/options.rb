@@ -167,35 +167,6 @@ module Yast
       }
     end
 
-    def GrubOptions
-      grub_specific = {
-        "activate"         => CommonCheckboxWidget(
-          Ops.get(@grub_descriptions, "activate", "activate"),
-          Ops.get(@grub_help_messages, "activate", "")
-        ),
-        "debug"            => CommonCheckboxWidget(
-          Ops.get(@grub_descriptions, "debug", "debug"),
-          Ops.get(@grub_help_messages, "debug", "")
-        ),
-        "generic_mbr"      => CommonCheckboxWidget(
-          Ops.get(@grub_descriptions, "generic_mbr", "generic mbr"),
-          Ops.get(@grub_help_messages, "generic_mbr", "")
-        ),
-        "hiddenmenu"       => CommonCheckboxWidget(
-          Ops.get(@grub_descriptions, "hiddenmenu", "hidden menu"),
-          Ops.get(@grub_help_messages, "hiddenmenu", "")
-        ),
-        "console"          => ConsoleWidget(),
-      }
-      Convert.convert(
-        Builtins.union(grub_specific, CommonOptions()),
-        :from => "map",
-        :to   => "map <string, map <string, any>>"
-      )
-    end
-
-
-
     def InitDiskOrder(widget)
       disksOrder = BootStorage.DisksOrder
 
