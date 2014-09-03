@@ -619,30 +619,6 @@ module Yast
       ret
     end
 
-    # Find "same" boot sections and return numbers of sections
-    # from BootCommon::sections
-    # @param map<string,any> section
-    # @return [Fixnum] number of "same" sactions
-
-    def CountSection(find_section)
-      find_section = deep_copy(find_section)
-      Builtins.y2milestone("Finding same boot sections")
-      num_sections = 0
-      Builtins.foreach(BootCommon.sections) do |section|
-        if Ops.get(section, "root") == Ops.get(find_section, "root") &&
-            Ops.get(section, "original_name") ==
-              Ops.get(find_section, "original_name")
-          num_sections = Ops.add(num_sections, 1)
-        end
-      end
-      Builtins.y2milestone(
-        "Number of similar section is %2 with %1",
-        find_section,
-        num_sections
-      )
-      num_sections
-    end
-
     # return default section label
     # @return [String] default section label
     def getDefaultSection
