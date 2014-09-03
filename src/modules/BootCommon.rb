@@ -897,22 +897,6 @@ module Yast
       deep_copy(ret)
     end
 
-    # Search for section passed
-    # @return [Fixnum] index number
-
-    def Section2Index(section_name)
-      index = -1
-      sectnum = -1
-
-      Builtins.foreach(@sections) do |s|
-        index = Ops.add(index, 1)
-        sectnum = index if Ops.get_string(s, "name", "") == section_name
-      end
-
-      Builtins.y2milestone("ret: %1", sectnum)
-      sectnum
-    end
-
     # FATE#305008: Failover boot configurations for md arrays with redundancy
     # Verify if proposal includes md array with 2 diferent disks
     #
@@ -1030,7 +1014,6 @@ module Yast
     publish :function => :Write, :type => "boolean ()"
     publish :function => :setLoaderType, :type => "void (string)"
     publish :function => :setSystemSecureBootStatus, :type => "void (boolean)"
-    publish :function => :Section2Index, :type => "integer (string)"
   end
 
   BootCommon = BootCommonClass.new
