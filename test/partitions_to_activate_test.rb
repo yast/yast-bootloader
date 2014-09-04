@@ -53,7 +53,7 @@ describe Yast::BootloaderGrub2MiscInclude do
 
     end
 
-    it "choose any partition on disk if disk is passed" do
+    it "choose any partition except BIOS GRUB and swap partitions on disk if disk is passed" do
       target_map_stub("storage_lvm.rb")
       result = Yast::BootGRUB2.grub_getPartitionToActivate("/dev/vda")
       expected_result = {
