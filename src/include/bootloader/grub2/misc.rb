@@ -30,6 +30,7 @@ module Yast
       Yast.import "PackageSystem"
       Yast.import "Map"
       Yast.import "Arch"
+      Yast.import "Partitions"
     end
 
     # --------------------------------------------------------------
@@ -109,9 +110,9 @@ module Yast
 
       tm = Storage.GetTargetMap
       partitions = Ops.get_list(tm, [mbr_dev, "partitions"], [])
-      # do not select swap and do not select BIOS grub partition (fsid 263)
+      # do not select swap and do not select BIOS grub partition
       # as it clear its special flags (bnc#894040)
-      partitions.select! { |p| p["used_fs"] != :swap && p["fsid"] != 263 }
+      partitions.select! { |p| p["used_fs"] != :swap && p["fsid"] != Partitions.fsid_bios_grub }
       # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
       # if loader_device is disk Choose any partition which is not swap to
       # satisfy such bios (bnc#893449)
