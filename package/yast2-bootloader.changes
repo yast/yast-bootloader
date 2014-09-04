@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Sep  4 12:04:09 UTC 2014 - mvidner@suse.com
+
+- Use a more flexible rubygem requirement syntax (bnc#895069)
+- 3.1.93
+
+-------------------------------------------------------------------
 Thu Sep  4 07:49:57 UTC 2014 - jreidinger@suse.com
 
 - Do not overwrite bios_boot partition flag by boot flag leading
