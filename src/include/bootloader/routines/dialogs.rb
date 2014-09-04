@@ -102,7 +102,7 @@ module Yast
         "tab",
         CWMTab.CreateWidget(
           {
-            "tab_order"    => ["boot_code_tab", "kernel_tab", "bootloader_tab"] :
+            "tab_order"    => ["boot_code_tab", "kernel_tab", "bootloader_tab"],
             "tabs"         => Grub2TabDescr(),
             "widget_descr" => widget_descr,
             "initial_tab"  => "boot_code_tab"

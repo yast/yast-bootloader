@@ -50,7 +50,7 @@ ylib_DATA = \
   lib/bootloader/grub2pwd.rb
 
 scrconf_DATA = \
-  scrconf/cfg_bootloader.scr \
+  scrconf/cfg_bootloader.scr
 
 schemafilesdir = $(schemadir)/autoyast/rnc
 schemafiles_DATA = \
