@@ -22,15 +22,15 @@ module Yast
   module BootloaderGrub2MiscInclude
     def initialize_bootloader_grub2_misc(include_target)
       textdomain "bootloader"
-      Yast.import "Storage"
-      Yast.import "StorageDevices"
-      Yast.import "Mode"
+      Yast.import "Arch"
       Yast.import "BootCommon"
       Yast.import "BootStorage"
-      Yast.import "PackageSystem"
       Yast.import "Map"
-      Yast.import "Arch"
+      Yast.import "Mode"
+      Yast.import "PackageSystem"
       Yast.import "Partitions"
+      Yast.import "Storage"
+      Yast.import "StorageDevices"
     end
 
     # --------------------------------------------------------------
