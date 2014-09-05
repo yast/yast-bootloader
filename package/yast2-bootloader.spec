@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        3.1.91
+Version:        3.1.93
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -29,7 +29,7 @@ Url:            http://github.com/yast/yast-bootloader
 BuildRequires:	yast2-devtools >= 3.1.10
 BuildRequires:	yast2 >= 3.1.0
 BuildRequires:  update-desktop-files
-BuildRequires:  rubygem-rspec
+BuildRequires:  rubygem(rspec)
 BuildRequires:  yast2-storage
 PreReq:         /bin/sed %fillup_prereq
 # Installation::*version variables

@@ -22,14 +22,15 @@ module Yast
   module BootloaderGrub2MiscInclude
     def initialize_bootloader_grub2_misc(include_target)
       textdomain "bootloader"
-      Yast.import "Storage"
-      Yast.import "StorageDevices"
-      Yast.import "Mode"
+      Yast.import "Arch"
       Yast.import "BootCommon"
       Yast.import "BootStorage"
-      Yast.import "PackageSystem"
       Yast.import "Map"
-      Yast.import "Arch"
+      Yast.import "Mode"
+      Yast.import "PackageSystem"
+      Yast.import "Partitions"
+      Yast.import "Storage"
+      Yast.import "StorageDevices"
     end
 
     # --------------------------------------------------------------
@@ -109,7 +110,9 @@ module Yast
 
       tm = Storage.GetTargetMap
       partitions = Ops.get_list(tm, [mbr_dev, "partitions"], [])
-      partitions.select! { |p| p["used_fs"] != :swap }
+      # do not select swap and do not select BIOS grub partition
+      # as it clear its special flags (bnc#894040)
+      partitions.select! { |p| p["used_fs"] != :swap && p["fsid"] != Partitions.fsid_bios_grub }
       # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
       # if loader_device is disk Choose any partition which is not swap to
       # satisfy such bios (bnc#893449)
