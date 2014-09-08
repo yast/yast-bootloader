@@ -528,6 +528,8 @@ module Yast
         Ops.set(BootCommon.globals, "boot_boot", "true")
       elsif selected_location == :mbr
         Ops.set(BootCommon.globals, "boot_mbr", "true")
+        # Disable generic MBR as we want grub2 there
+        Ops.set(BootCommon.globals, "generic_mbr", "false")
       elsif selected_location == :extended
         Ops.set(BootCommon.globals, "boot_extended", "true")
       end
@@ -758,6 +760,8 @@ module Yast
       if gpt_boot_disk?
         BootCommon.pmbr_action = :remove
       end
+
+      Builtins.y2milestone("location configured. Resulting globals #{BootCommon.globals}")
 
       selected_location
     end
