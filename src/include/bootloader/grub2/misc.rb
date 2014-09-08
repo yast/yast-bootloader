@@ -22,14 +22,15 @@ module Yast
   module BootloaderGrub2MiscInclude
     def initialize_bootloader_grub2_misc(include_target)
       textdomain "bootloader"
-      Yast.import "Storage"
-      Yast.import "StorageDevices"
-      Yast.import "Mode"
+      Yast.import "Arch"
       Yast.import "BootCommon"
       Yast.import "BootStorage"
-      Yast.import "PackageSystem"
       Yast.import "Map"
-      Yast.import "Arch"
+      Yast.import "Mode"
+      Yast.import "PackageSystem"
+      Yast.import "Partitions"
+      Yast.import "Storage"
+      Yast.import "StorageDevices"
     end
 
     # --------------------------------------------------------------
@@ -84,7 +85,9 @@ module Yast
 
       tm = Storage.GetTargetMap
       partitions = Ops.get_list(tm, [mbr_dev, "partitions"], [])
-      partitions.select! { |p| p["used_fs"] != :swap }
+      # do not select swap and do not select BIOS grub partition
+      # as it clear its special flags (bnc#894040)
+      partitions.select! { |p| p["used_fs"] != :swap && p["fsid"] != Partitions.fsid_bios_grub }
       # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
       # if loader_device is disk Choose any partition which is not swap to
       # satisfy such bios (bnc#893449)
@@ -500,6 +503,8 @@ module Yast
         Ops.set(BootCommon.globals, "boot_boot", "true")
       elsif selected_location == :mbr
         Ops.set(BootCommon.globals, "boot_mbr", "true")
+        # Disable generic MBR as we want grub2 there
+        Ops.set(BootCommon.globals, "generic_mbr", "false")
       elsif selected_location == :extended
         Ops.set(BootCommon.globals, "boot_extended", "true")
       end
@@ -730,6 +735,8 @@ module Yast
       if gpt_boot_disk?
         BootCommon.pmbr_action = :remove
       end
+
+      Builtins.y2milestone("location configured. Resulting globals #{BootCommon.globals}")
 
       selected_location
     end
