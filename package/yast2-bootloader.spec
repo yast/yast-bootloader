@@ -30,6 +30,7 @@ BuildRequires:	yast2-devtools >= 3.1.10
 BuildRequires:	yast2 >= 3.1.0
 BuildRequires:  update-desktop-files
 BuildRequires:  rubygem(rspec)
+BuildRequires:  rubygem(yast-rake)
 BuildRequires:  yast2-storage
 PreReq:         /bin/sed %fillup_prereq
 # Installation::*version variables
@@ -75,15 +76,14 @@ provided by yast2-bootloader package.
 %prep
 %setup -n %{name}-%{version}
 
-%build
-%yast_build
-
 %check
-make check VERBOSE=1
+rake test:unit
+
+%build
+yardoc
 
 %install
-%yast_install
-
+rake install DESTDIR="%{buildroot}"
 
 %post
 %{fillup_only -n bootloader}
@@ -117,6 +117,8 @@ make check VERBOSE=1
 
 %dir %{yast_docdir}
 %doc %{yast_docdir}/COPYING
+%doc %{yast_docdir}/README
+%doc %{yast_docdir}/CONTRIBUTING.md
 
 %files devel-doc
 %defattr(-,root,root)
