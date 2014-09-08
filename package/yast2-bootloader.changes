@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Sep  8 07:56:29 UTC 2014 - jreidinger@suse.com
+
+- Avoid configuration where to MBR we want grub2 and also
+  generic_mbr which can lead to unbootable configuration
+  (bnc#893626)
+- 3.1.94
+
+-------------------------------------------------------------------
 Thu Sep  4 12:04:09 UTC 2014 - mvidner@suse.com
 
 - Use a more flexible rubygem requirement syntax (bnc#895069)
