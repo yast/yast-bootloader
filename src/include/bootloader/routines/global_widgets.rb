@@ -313,13 +313,6 @@ module Yast
     end
 
 
-    # Store function of a widget
-    # @param [String] widget string widget key
-    # @param [Hash] event map event that caused the operation
-    def LoaderTypeStore(widget, event)
-      nil
-    end
-
     # reset menu button
 
 
@@ -487,10 +480,6 @@ module Yast
             "symbol (string, map)"
           ),
           "help"              => LoaderTypeHelp(),
-          "store"             => fun_ref(
-            method(:LoaderTypeStore),
-            "void (string, map)"
-          ),
           "validate_type"     => :function,
           "validate_function" => fun_ref(
             method(:LoaderTypeValidate),
