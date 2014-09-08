@@ -105,13 +105,6 @@ module Yast
       @_thinkpad_mbr
     end
 
-    # Add the partition holding firmware to bootloader?
-    # @param [String] disk string the disk to be checked
-    # @return [Boolean] true if firmware partition is to be added
-    def AddFirmwareToBootloader(disk)
-      !ThinkPadMBR(disk)
-    end
-
     # Do updates of MBR after the bootloader is installed
     # @return [Boolean] true on success
     def PostUpdateMBR

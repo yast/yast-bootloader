@@ -1047,9 +1047,6 @@ module Yast
             priority_device: priority_disks.first)
       end
       @bois_id_missing = false #FIXME never complain about missing bios id as we always have first device boot one
-      if StorageDevices.FloppyPresent
-        Ops.set(@device_mapping, StorageDevices.FloppyDevice, "fd0")
-      end
 
       Builtins.y2milestone("Detected device mapping: %1", @device_mapping)
 
@@ -1101,89 +1098,6 @@ module Yast
       deep_copy(ret)
     end
 
-    # Get the list of installed floppy drives
-    # @return a list of floppy devices
-    def getFloppyDevices
-      if @floppy_devices == nil
-        floppies = Convert.convert(
-          SCR.Read(path(".probe.floppy")),
-          :from => "any",
-          :to   => "list <map>"
-        )
-        floppies = Builtins.filter(floppies) do |f|
-          Ops.get_string(f, "model", "Floppy Disk") == "Floppy Disk"
-        end
-        @floppy_devices = Builtins.maplist(floppies) do |f|
-          Ops.get_string(f, "dev_name", "")
-        end
-        @floppy_devices = Builtins.filter(@floppy_devices) { |f| f != "" }
-      end
-      deep_copy(@floppy_devices)
-    end
-
-    # Returns list of partitions with "mount by" hints. Goes through the list
-    # of partitions passed as a parameter and creates a list of partitions with
-    # hints according to the current partitioning requested from
-    # yast2-storage. To be used in a combobox or menu.
-    #
-    # @param [Array<String>] parts_to_get list<string> partitions to list
-    # @return a list of strings containing a partition name and a hint (if applicable)
-    def getHintedPartitionList(parts_to_get)
-      parts_to_get = deep_copy(parts_to_get)
-      Builtins.y2milestone("getHintedPartitionList: %1", parts_to_get)
-      devices = Storage.GetTargetMap
-
-      # make a map: "/dev/hda1" -> info_map_for_this_partition
-      partitions = {}
-      Builtins.foreach(devices) do |k, v|
-        Builtins.foreach(Ops.get_list(v, "partitions", [])) do |p|
-          Ops.set(partitions, Ops.get_string(p, "device", ""), p)
-        end
-      end
-      Builtins.y2milestone("getHintedPartitionList: partitions %1", partitions)
-
-      mountby = :device
-      ret = Builtins.maplist(parts_to_get) do |dev|
-        mountby = Ops.get_symbol(partitions, [dev, "mountby"])
-        if mountby == :uuid
-          # watch out for fake uuids (shorter than 9 chars)
-          next Builtins.sformat(
-            "%1 (mount by UUID: %2)",
-            dev,
-            Ops.greater_than(
-              Builtins.size(Ops.get_string(partitions, [dev, "uuid"], "")),
-              8
-            ) ?
-              Ops.get_string(partitions, [dev, "uuid"], "") :
-              "<UUID to be created later during format>"
-          )
-        elsif mountby == :label
-          next Builtins.sformat(
-            "%1 (mount by LABEL: %2)",
-            dev,
-            Ops.get_string(partitions, [dev, "label"], "")
-          )
-        elsif mountby == :id
-          next Builtins.sformat(
-            "%1 (mount by ID: %2)",
-            dev,
-            Ops.get_string(partitions, [dev, "udev_id", 0], "")
-          )
-        elsif mountby == :path
-          next Builtins.sformat(
-            "%1 (mount by PATH: %2)",
-            dev,
-            Ops.get_string(partitions, [dev, "udev_path"], "")
-          )
-        elsif mountby == nil || mountby == :device
-          next dev
-        end
-      end
-
-      Builtins.y2milestone("getHintedPartitionList: ret %1", ret)
-      deep_copy(ret)
-    end
-
     # Returns list of partitions. Requests current partitioning from
     # yast2-storage and creates list of partition for combobox, menu or other
     # purpose.
@@ -1221,7 +1135,6 @@ module Yast
           )
         end
       end
-      floppies = getFloppyDevices
 
       devices = Builtins.filter(devices) do |k, v|
         Ops.get_symbol(v, "type", :CT_UNKNOWN) != :CT_LVM
@@ -1315,11 +1228,6 @@ module Yast
         Ops.get_string(p, "device", "")
       end
       partition_names = Builtins.filter(partition_names) { |p| p != "" }
-      partition_names = Convert.convert(
-        Builtins.merge(partition_names, floppies),
-        :from => "list",
-        :to   => "list <string>"
-      )
       ret = Convert.convert(
         Builtins.union(ret, partition_names),
         :from => "list",
@@ -1589,8 +1497,6 @@ module Yast
     publish :function => :ProposeDeviceMap, :type => "void ()"
     publish :function => :DisksOrder, :type => "list <string> ()"
     publish :function => :remapDeviceMap, :type => "map <string, string> (map <string, string>)"
-    publish :function => :getFloppyDevices, :type => "list <string> ()"
-    publish :function => :getHintedPartitionList, :type => "list <string> (list <string>)"
     publish :function => :getPartitionList, :type => "list <string> (symbol, string)"
     publish :function => :addMDSettingsToGlobals, :type => "string ()"
     publish :function => :Md2Partitions, :type => "map <string, integer> (string)"

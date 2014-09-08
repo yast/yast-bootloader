@@ -36,7 +36,6 @@ module Yast
       Yast.import "Storage"
       Yast.import "Directory"
 
-      Yast.import "BootGRUB"
       #fate 303395
       Yast.import "ProductFeatures"
       # Write is repeating again
@@ -66,7 +65,6 @@ module Yast
       # general functions
 
       @test_abort = nil
-      Bootloader()
     end
 
     # Check whether abort was pressed
@@ -89,11 +87,6 @@ module Yast
       end
     end
 
-    # Constructor
-    def Bootloader
-      nil
-    end
-
     # Export bootloader settings to a map
     # @return bootloader settings
     def Export
@@ -106,12 +99,10 @@ module Yast
       }
       loader_type = Ops.get_string(out, "loader_type")
 
-      if !(loader_type == "grub")
-        # export loader_device and selected_location only for bootloaders
-        # that have not phased them out yet
-        Ops.set(out, "loader_device", BootCommon.loader_device)
-        Ops.set(out, "loader_location", BootCommon.selected_location)
-      end
+      # export loader_device and selected_location only for bootloaders
+      # that have not phased them out yet
+      Ops.set(out, "loader_device", BootCommon.loader_device)
+      Ops.set(out, "loader_location", BootCommon.selected_location)
       Builtins.y2milestone("Exporting settings: %1", out)
       deep_copy(out)
     end
@@ -136,21 +127,19 @@ module Yast
       # Explitelly set it to ensure it is installed
       BootCommon.setLoaderType(loader_type)
 
-      if !(loader_type == "grub")
-        # import loader_device and selected_location only for bootloaders
-        # that have not phased them out yet
-        BootCommon.loader_device = Ops.get_string(settings, "loader_device", "")
-        BootCommon.selected_location = Ops.get_string(
-          settings,
-          "loader_location",
-          "custom"
-        )
-        # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
-        # for grub, always correct the bootloader device according to
-        # selected_location (or fall back to value of loader_device)
-        if Arch.i386 || Arch.x86_64
-          BootCommon.loader_device = BootCommon.GetBootloaderDevice
-        end
+      # import loader_device and selected_location only for bootloaders
+      # that have not phased them out yet
+      BootCommon.loader_device = Ops.get_string(settings, "loader_device", "")
+      BootCommon.selected_location = Ops.get_string(
+        settings,
+        "loader_location",
+        "custom"
+      )
+      # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
+      # for grub, always correct the bootloader device according to
+      # selected_location (or fall back to value of loader_device)
+      if Arch.i386 || Arch.x86_64
+        BootCommon.loader_device = BootCommon.GetBootloaderDevice
       end
 
       if Ops.get_map(settings, "initrd", {}) != nil
@@ -278,38 +267,7 @@ module Yast
       end
       # F#300779 - end
 
-      ret = blSummary
-      # check if default section was changed or not
-      main_section = getProposedDefaultSection
-
-      return deep_copy(ret) if main_section == nil
-
-      return deep_copy(ret) if getLoaderType == "none"
-
-      sectnum = BootCommon.Section2Index(main_section)
-
-      return deep_copy(ret) if sectnum == -1
-
-      if Ops.get_boolean(BootCommon.sections, [sectnum, "__changed"], false)
-        return deep_copy(ret)
-      end
-
-      filtered_cmdline = Builtins.filterchars(
-        Kernel.GetCmdLine,
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-      )
-
-      if Ops.greater_than(Builtins.size(filtered_cmdline), 0)
-        ret = Builtins.add(
-          ret,
-          Builtins.sformat(
-            # part of summary, %1 is a part of kernel command line
-            _("Added Kernel Parameters: %1"),
-            Kernel.GetCmdLine
-          )
-        )
-      end
-      deep_copy(ret)
+      blSummary
     end
 
     # Update read settings to new version of configuration files
@@ -476,9 +434,6 @@ module Yast
 
       #F#300779 -end
 
-      # update graphics menu where possible
-      UpdateGfxMenu()
-
       # save bootloader settings
       reinit = !Mode.normal
       Builtins.y2milestone(
@@ -501,9 +456,6 @@ module Yast
       # call bootloader executable
       Builtins.y2milestone("Calling bootloader executable")
       ret = ret && blWrite
-      # FATE#305557: Enable SELinux for 11.2
-      createSELinuxDir
-      handleSELinuxPAM
       if !ret
         Builtins.y2error("Installing bootloader failed")
         if writeErrorPopup
@@ -515,12 +467,6 @@ module Yast
             )
           )
           return Write() if Ops.get(res, "workflow_sequence") == :next
-        end
-      else
-        if BootCommon.InstallingToFloppy
-          BootCommon.updateTimeoutPopupForFloppy(
-            BootCommon.getLoaderName(getLoaderType, :summary)
-          )
         end
       end
 
@@ -536,17 +482,6 @@ module Yast
       )
       ret = true
 
-      if !Mode.live_installation
-        # bnc#449785 - Installing of GRUB fails when using live installer from a USB stick
-        # read current settings...
-        ret = blRead(true, false)
-        # delete duplicated sections
-        DelDuplicatedSections()
-      else
-        # resolve sim links for image and initrd
-        # bnc #393030 - live-CD kernel install/remove leaves broken system
-        ResolveSymlinksInSections()
-      end
       if Ops.get_boolean(BootCommon.write_settings, "save_all", false)
         BootCommon.save_all = true
       end
@@ -613,9 +548,6 @@ module Yast
 
       # F#300779 -end
 
-      # update graphics menu where possible
-      UpdateGfxMenu()
-
       # save bootloader settings
       reinit = !(Mode.update || Mode.normal)
       Builtins.y2milestone(
@@ -634,9 +566,6 @@ module Yast
       # call bootloader executable
       Builtins.y2milestone("Calling bootloader executable")
       ret = ret && blWrite
-      # FATE#305557: Enable SELinux for 11.2
-      createSELinuxDir
-      handleSELinuxPAM
       if !ret
         Builtins.y2error("Installing bootloader failed")
         if writeErrorPopup
@@ -649,318 +578,8 @@ module Yast
           )
           return Write() if Ops.get(res, "workflow_sequence") == :next
         end
-      else
-        if BootCommon.InstallingToFloppy
-          BootCommon.updateTimeoutPopupForFloppy(
-            BootCommon.getLoaderName(getLoaderType, :summary)
-          )
-        end
       end
       ret
-    end
-
-    # Function find and select any boot section like defaul
-    # if default boot section doesn't exist
-    #
-    # @param map<string,any> defualt linux section
-    # @return [Boolean] true if section was found or was selected
-
-
-    def FindAndSelectDefault(default_sec)
-      default_sec = deep_copy(default_sec)
-      ret = false
-      set_candidate = false
-      default_name = Ops.get(BootCommon.globals, "default", "")
-      default_candidate = ""
-
-      Builtins.foreach(BootCommon.sections) do |section|
-        if Ops.get(section, "name") == default_name
-          Builtins.y2milestone("Default section was found.")
-          ret = true
-          raise Break
-        else
-          if Ops.get_string(section, "root", "") ==
-              Ops.get_string(default_sec, "root", "") &&
-              Ops.get_string(section, "type", "") == "image" &&
-              Ops.get_string(section, "original_name", "") == "linux"
-            default_candidate = Ops.get_string(section, "name", "")
-            Builtins.y2milestone(
-              "Candidate for default section is: %1",
-              section
-            )
-            set_candidate = true
-          end
-        end
-      end
-      if !ret
-        if set_candidate && default_candidate != ""
-          Builtins.y2milestone(
-            "Default section will be update to: %1",
-            default_candidate
-          )
-          Ops.set(BootCommon.globals, "default", default_candidate)
-          ret = true
-        else
-          Builtins.y2error("Default section was not found")
-        end
-      end
-      ret
-    end
-
-
-    # bnc #450153 YaST bootloader doesn't handle kernel from add-on products in installation
-    # Remove all section with empty keys "image" and "initrd"
-    #
-    def removeDummySections
-      BootCommon.sections = Builtins.filter(BootCommon.sections) do |section|
-        if Ops.get_string(section, "original_name", "") == "linux" ||
-            Ops.get_string(section, "original_name", "") == "failsafe"
-          if Builtins.search(
-              Ops.get_string(section, "image", ""),
-              "dummy_image"
-            ) != nil &&
-              Builtins.search(
-                Ops.get_string(section, "initrd", ""),
-                "dummy_initrd"
-              ) != nil
-            Builtins.y2milestone("Removed dummy boot section: %1", section)
-            next false
-          else
-            next true
-          end
-        end
-        true
-      end
-
-      nil
-    end
-
-    # bnc #450153 YaST bootloader doesn't handle kernel from add-on products in installation
-    # Function check if client kernel_bl_proposal exist
-    #
-    # @return [Boolean] true on success
-
-    def CheckClientForSLERT
-      if WFM.ClientExists("kernel_bl_proposal")
-        return true
-      else
-        return false
-      end
-    end
-
-    # Find "same" boot sections and return numbers of sections
-    # from BootCommon::sections
-    # @param map<string,any> section
-    # @return [Fixnum] number of "same" sactions
-
-    def CountSection(find_section)
-      find_section = deep_copy(find_section)
-      Builtins.y2milestone("Finding same boot sections")
-      num_sections = 0
-      Builtins.foreach(BootCommon.sections) do |section|
-        if Ops.get(section, "root") == Ops.get(find_section, "root") &&
-            Ops.get(section, "original_name") ==
-              Ops.get(find_section, "original_name")
-          num_sections = Ops.add(num_sections, 1)
-        end
-      end
-      Builtins.y2milestone(
-        "Number of similar section is %2 with %1",
-        find_section,
-        num_sections
-      )
-      num_sections
-    end
-
-    # Delete duplicated boot sections from
-    # BootCommon::sections
-
-    def DelDuplicatedSections
-      if CheckClientForSLERT()
-        removeDummySections
-        return
-      end
-      Builtins.y2milestone("Deleting duplicated boot sections")
-
-      linux_default = BootCommon.CreateLinuxSection("linux")
-      linux_failsafe = BootCommon.CreateLinuxSection("failsafe")
-      linux_xen = BootCommon.CreateLinuxSection("xen")
-
-      Builtins.y2milestone(
-        "Proposed section for linux_default: %1",
-        linux_default
-      )
-      Builtins.y2milestone(
-        "Proposed section for linux_failsafe: %1",
-        linux_failsafe
-      )
-      Builtins.y2milestone("Proposed section for linux_xen: %1", linux_xen)
-
-      Builtins.y2milestone(
-        "Boot sections BEFORE deleting: %1",
-        BootCommon.sections
-      )
-
-      # obtain number of relative same boot sections for linux_default
-      num_linux_default = CountSection(linux_default)
-      # obtain number of relative same boot sections for linux_failsafe
-      num_linux_failsafe = CountSection(linux_failsafe)
-
-      # obtain number of relative same boot sections for linux_failsafe
-      num_linux_xen = CountSection(linux_xen)
-
-      BootCommon.sections = Builtins.filter(BootCommon.sections) do |section|
-        if (Ops.get(section, "name") == Ops.get(linux_default, "name") ||
-            Ops.get_string(section, "description", "") ==
-              Ops.get(linux_default, "name")) &&
-            Ops.greater_than(num_linux_default, 1) ||
-            (Ops.get(section, "name") == Ops.get(linux_failsafe, "name") ||
-              Ops.get_string(section, "description", "") ==
-                Ops.get(linux_failsafe, "name")) &&
-              Ops.greater_than(num_linux_failsafe, 1) ||
-            (Ops.get(section, "name") == Ops.get(linux_xen, "name") ||
-              Ops.get_string(section, "description", "") ==
-                Ops.get(linux_xen, "name")) &&
-              Ops.greater_than(num_linux_xen, 1)
-          if Ops.get(section, "root") == Ops.get(linux_default, "root") ||
-              Ops.get(section, "root") == Ops.get(linux_failsafe, "root") ||
-              Ops.get(section, "root") == Ops.get(linux_xen, "root")
-            if Ops.get_string(section, "original_name", "") == "failsafe"
-              num_linux_failsafe = Ops.subtract(num_linux_failsafe, 1)
-            end
-
-            if Ops.get_string(section, "original_name", "") == "linux"
-              num_linux_default = Ops.subtract(num_linux_default, 1)
-            end
-
-            if Ops.get_string(section, "original_name", "") == "xen"
-              num_linux_xen = Ops.subtract(num_linux_xen, 1)
-            end
-
-            Builtins.y2milestone("deleted boot section: %1", section)
-            next false
-          else
-            next true
-          end
-        else
-          next true
-        end
-        true
-      end
-
-      ResolveSymlinksInSections()
-      FindAndSelectDefault(linux_default)
-      Builtins.y2milestone(
-        "Boot sections AFTER deleting: %1",
-        BootCommon.sections
-      )
-
-      nil
-    end
-
-    # sections handling functions
-
-    # Resolve a single symlink in key image_key in section map s
-    # @param [Hash{String => Object}] section map map of section to change
-    # @param image_key string key in section that contains the link
-    # @return section map of the changed section
-    def ResolveSymlink(section, key)
-      section = deep_copy(section)
-      # The "-m" is needed in case the link is an absolute link, so that it does
-      # not fail to resolve when the root partition is mounted in
-      # Installation::destdir.
-      readlink_cmd = Ops.add("/usr/bin/readlink -n -m ", Installation.destdir)
-      out = {}
-      newval = ""
-
-      # FIXME: find out why we need WFM::Execute() here (as olh used it above)
-      out = Convert.to_map(
-        WFM.Execute(
-          path(".local.bash_output"),
-          Ops.add(readlink_cmd, Ops.get_string(section, key, ""))
-        )
-      )
-      if Ops.get_integer(out, "exit", 0) == 0 &&
-          Ops.get_string(out, "stdout", "") != ""
-        newval = Builtins.substring(
-          Ops.get_string(out, "stdout", ""),
-          Builtins.size(Installation.destdir)
-        )
-        Builtins.y2milestone(
-          "section %1: converting old %2 parameter from %3 to %4",
-          Ops.get_string(section, "name", ""),
-          key,
-          Ops.get_string(section, key, ""),
-          newval
-        )
-        Ops.set(section, key, newval)
-      else
-        Builtins.y2error(
-          "section %1: failed to remap %2 parameter",
-          Ops.get_string(section, "name", ""),
-          key
-        )
-      end
-
-      deep_copy(section)
-    end
-
-    # Resolve symlinks in kernel and initrd paths, for existing linux, xen and
-    # failsafe sections
-    # FIXME: this is the plan B solution, try to solve plan A in
-    #        BootCommon.ycp:CreateLinuxSection() (line 435)
-    def ResolveSymlinksInSections
-      Builtins.y2milestone("sections before remapping: %1", BootCommon.sections)
-
-      # change only linux, failsafe and xen sections
-      BootCommon.sections = Builtins.maplist(BootCommon.sections) do |s|
-        # skip sections that are not linux, xen or failsafe,
-        # or that are not of type "image" (or "xen" <- needed?)
-        if !Builtins.contains(
-            ["linux", "xen", "failsafe"],
-            Ops.get_string(s, "original_name", "")
-          ) ||
-            !Builtins.contains(["image", "xen"], Ops.get_string(s, "type", ""))
-          Builtins.y2milestone(
-            "section %1: not linux, xen or failsafe, skipping kernel and initrd remapping",
-            Ops.get_string(s, "name", "")
-          )
-          next deep_copy(s)
-        end
-        # first, resolve kernel link name
-        if Builtins.haskey(s, "image")
-          # also skip sections that start with a grub device name
-          # "(hd0,7)/boot/vmlinuz", and are not on the default (currently
-          # mounted) boot partition
-          if s["image"].to_s !~ /^\(hd.*\)/
-            s = ResolveSymlink(s, "image")
-          else
-            Builtins.y2milestone(
-              "section %1: skipping remapping kernel symlink on other partition: %2",
-              Ops.get_string(s, "name", ""),
-              Ops.get_string(s, "image", "")
-            )
-          end
-        end
-        # resolve initrd link name, but skip if it is on a non-default boot
-        # partition (see above)
-        if Builtins.haskey(s, "initrd")
-          if s["image"].to_s !~ /^\(hd.*\)/
-            s = ResolveSymlink(s, "initrd")
-          else
-            Builtins.y2milestone(
-              "section %1: skipping remapping initrd symlink on other partition: %2",
-              Ops.get_string(s, "name", ""),
-              Ops.get_string(s, "initrd", "")
-            )
-          end
-        end
-        deep_copy(s)
-      end
-
-      Builtins.y2milestone("sections after remapping: %1", BootCommon.sections)
-
-      nil
     end
 
     # return default section label
@@ -1036,7 +655,6 @@ module Yast
     }
 
     # Gets value for given parameter in kernel parameters for given flavor.
-    # @note For grub1 it returns value for default section and its kernel parameter
     # @param [Symbol] flavor flavor of kernel, for possible values see #modify_kernel_param
     # @param [String] key of parameter on kernel command line
     # @returns [String,:missing,:present] Returns string for parameters with value,
@@ -1056,18 +674,13 @@ module Yast
     #
 
     def kernel_param(flavor, key)
-      bl = getLoaderType
-      if bl == "grub"
-        ret = getKernelParam("DEFAULT", key)
-      else
-        ReadOrProposeIfNeeded() # ensure we have some data
+      ReadOrProposeIfNeeded() # ensure we have some data
 
-        kernel_line_key = FLAVOR_KERNEL_LINE_MAP[flavor]
-        raise ArgumentError, "Unknown flavor #{flavor}" unless kernel_line_key
+      kernel_line_key = FLAVOR_KERNEL_LINE_MAP[flavor]
+      raise ArgumentError, "Unknown flavor #{flavor}" unless kernel_line_key
 
-        line = BootCommon.globals[kernel_line_key]
-        ret = BootCommon.getKernelParamFromLine(line, key)
-      end
+      line = BootCommon.globals[kernel_line_key]
+      ret = BootCommon.getKernelParamFromLine(line, key)
 
       # map old api response to new one
       api_mapping = { "true" => :present, "false" => :missing }
@@ -1075,7 +688,6 @@ module Yast
     end
 
     # Modify kernel parameters for installed kernels according to values
-    # For grub1 for backward compatibility modify default section
     # @param [Array]  args parameters to modify. Last parameter is hash with keys
     #   and its values, keys are strings and values are `:present`, `:missing` or
     #   string value. Other parameters specify which kernel flavors are affected.
@@ -1106,17 +718,6 @@ module Yast
       args = [:common] if args.empty? # by default change common kernels only
       args = args.first if args.first.is_a? Array # support array like syntax
 
-      bl = getLoaderType
-      if bl =="grub" #for backward compatibility for grub
-        ret = true
-        values.each do |key, value|
-          value = "true" if value == :present
-          value = "false" if value == :missing
-          ret &&= setKernelParam("DEFAULT", key, value)
-        end
-        return ret
-      end
-
       values.each do |key, value|
         next if key == "root" # grub2 do not support modify root
         if key == "vga"
@@ -1135,89 +736,6 @@ module Yast
         BootCommon.changed = true
       end
     end
-
-    # set kernel parameter to menu.lst
-    # @param [String] section string section title, use DEFAULT for default section
-    # @param [String] key string parameter key
-    # @param [String] value string value, "false" to remove key,
-    #   "true" to add key without value
-    # @return [Boolean] true on success
-    # @deprecated use modify_kernel_param instead
-    def setKernelParam(section, key, value)
-      if !Mode.config && key == "vga" && (Arch.s390 || Arch.ppc)
-        Builtins.y2warning(
-          "Kernel of this architecture does not support the vga parameter"
-        )
-        return true
-      end
-
-      ReadOrProposeIfNeeded()
-
-      if section == "DEFAULT"
-        section = getDefaultSection
-      elsif section == "LINUX_DEFAULT"
-        section = getProposedDefaultSection
-      end
-      if section.nil?
-        Builtins.y2error("section is nil, so kernel parameter cannot be set")
-        return false
-      end
-
-      sectnum = -1
-      index = -1
-      Builtins.foreach(BootCommon.sections) do |s|
-        index += 1
-        sectnum = index if Ops.get_string(s, "name", "") == section
-      end
-      if sectnum == -1
-        Builtins.y2error "Cannot find given section #{section} in sections #{BootCommon.sections.inspect}"
-        return false
-      end
-
-      if (key == "vga" || key == "root") && value == "true"
-        Builtins.y2error "invalid values passed as kernel param #{key.inspect} => #{value.inspect}"
-        return false
-      end
-
-      if Builtins.contains(["root", "vga"], key)
-        if value != "false"
-          if key == "vga"
-            Ops.set(BootCommon.sections, [sectnum, "vgamode"], value)
-          else
-            Ops.set(BootCommon.sections, [sectnum, key], value)
-          end
-          # added flag that section was modified bnc #432651
-          Ops.set(BootCommon.sections, [sectnum, "__changed"], true)
-        else
-          if key == "vga"
-            Ops.set(
-              BootCommon.sections,
-              sectnum,
-              Builtins.remove(
-                Ops.get(BootCommon.sections, sectnum, {}),
-                "vgamode"
-              )
-            )
-          else
-            Ops.set(
-              BootCommon.sections,
-              sectnum,
-              Builtins.remove(Ops.get(BootCommon.sections, sectnum, {}), key)
-            )
-          end
-        end
-      else
-        line = Ops.get_string(BootCommon.sections, [sectnum, "append"], "")
-        line = BootCommon.setKernelParamToLine(line, key, value)
-        Ops.set(BootCommon.sections, [sectnum, "append"], line)
-        # added flag that section was modified bnc #432651
-        Ops.set(BootCommon.sections, [sectnum, "__changed"], true)
-      end
-      BootCommon.changed = true
-
-      return true
-    end
-
 
     # Get currently used bootloader, detect if not set yet
     # @return [String] botloader type
@@ -1272,7 +790,6 @@ module Yast
           Progress.set(progress_orig)
           if Mode.update
             UpdateConfiguration()
-            ResolveSymlinksInSections()
             BootCommon.changed = true
             BootCommon.location_changed = true
           end
@@ -1280,16 +797,6 @@ module Yast
       end
 
       nil
-    end
-
-    # Update the language of GFX menu according to currently selected language
-    # @return [Boolean] true on success
-    def UpdateGfxMenu
-      return true if getLoaderType != "grub"
-
-      ret = BootCommon.UpdateGfxMenuContents
-      return true if !Mode.normal
-      ret
     end
 
     # Function update append -> add console to append
@@ -1489,73 +996,6 @@ module Yast
 
       true
     end
-    def createSELinuxDir
-      path_file = "/selinux"
-      cmd = "ls -d /selinux  2>/dev/null"
-      if BootCommon.enable_selinux
-        if Mode.normal || Mode.installation
-          out = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
-          Builtins.y2milestone(
-            "runnning command: \"%1\" and return: %2",
-            cmd,
-            out
-          )
-          if Ops.get_string(out, "stdout", "") != "/selinux\n"
-            SCR.Execute(path(".target.mkdir"), path_file)
-          else
-            Builtins.y2milestone("Directory /selinux already exist")
-          end
-        else
-          Builtins.y2milestone("Skip creating /selinux directory -> wrong mode")
-        end
-      else
-        Builtins.y2milestone("Skip creating /selinux directory")
-      end
-
-      nil
-    end
-    def handleSELinuxPAM
-      Builtins.y2milestone("handleSELinuxPAM called")
-      if Mode.normal || Mode.installation
-        if BootCommon.enable_selinux
-          Builtins.y2milestone("call enableSELinuxPAM")
-          enableSELinuxPAM
-        else
-          Builtins.y2milestone("call disableSELinuxPAM")
-          disableSELinuxPAM
-        end
-      else
-        Builtins.y2milestone(
-          "Skip changing SELinux/AppArmor PAM config -> wrong mode"
-        )
-      end
-
-      nil
-    end
-    def enableSELinuxPAM
-      cmd_enable_se = "pam-config -a --selinux  2>/dev/null"
-      cmd_disable_aa = "pam-config -d --apparmor 2>/dev/null"
-
-      out = SCR.Execute(path(".target.bash_output"), cmd_disable_aa)
-      Builtins.y2debug("result of disabling the AppArmor PAM module is %1", out)
-
-      out = SCR.Execute(path(".target.bash_output"), cmd_enable)
-      Builtins.y2debug("result of enabling the SELinux PAM module is %1", out)
-
-      nil
-    end
-    def disableSELinuxPAM
-      cmd_disable_se = "pam-config -d --selinux  2>/dev/null"
-      cmd_enable_aa = "pam-config -a --apparmor 2>/dev/null"
-
-      out = SCR.Execute(path(".target.bash_output"), cmd_disable_se)
-      Builtins.y2debug("result of disabling the SELinux PAM module is %1", out)
-
-      out = SCR.Execute(path(".target.bash_output"), cmd_enable_aa)
-      Builtins.y2debug("result of enabling the AppArmor PAM module is %1", out)
-
-      nil
-    end
 
     publish :function => :Export, :type => "map ()"
     publish :function => :Import, :type => "boolean (map)"
@@ -1567,9 +1007,7 @@ module Yast
     publish :function => :ReadOrProposeIfNeeded, :type => "void ()"
     publish :function => :getDefaultSection, :type => "string ()"
     publish :function => :getKernelParam, :type => "string (string, string)"
-    publish :function => :setKernelParam, :type => "boolean (string, string, string)"
     publish :function => :getLoaderType, :type => "string ()"
-    publish :function => :ResolveSymlinksInSections, :type => "void ()"
     publish :variable => :proposed_cfg_changed, :type => "boolean"
     publish :variable => :cached_proposal, :type => "map"
     publish :variable => :cached_settings, :type => "map"
@@ -1593,7 +1031,6 @@ module Yast
     publish :function => :Update, :type => "boolean ()"
     publish :function => :PreUpdate, :type => "void ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
-    publish :function => :ResolveSymlink, :type => "map <string, any> (map <string, any>, string)"
     publish :function => :setLoaderType, :type => "void (string)"
     publish :function => :RunDelayedUpdates, :type => "void ()"
     publish :function => :CopyKernelInird, :type => "boolean ()"

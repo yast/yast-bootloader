@@ -29,7 +29,6 @@ module Yast
       textdomain "bootloader"
 
       Yast.import "Arch"
-      Yast.import "GfxMenu"
       Yast.import "HTML"
       Yast.import "Mode"
       Yast.import "PackageSystem"
@@ -75,7 +74,7 @@ module Yast
       # proposal can try to satisfy the user's previous preference.
       # NOTE: this variable is being phased out. The boot_* keys in the globals map
       # will be used to remember the last selected location.
-      # Currently, valid values are: mbr, boot, root, floppy, mbr_md, none
+      # Currently, valid values are: mbr, boot, root, mbr_md, none
       #FIXME: need remove to read only loader location from perl-Bootloader
       @selected_location = nil
 
@@ -121,7 +120,7 @@ module Yast
       # common variables
 
       # type of bootloader to configure/being configured
-      # shall be one of "grub", "grub2", "grub2-efi"
+      # shall be one of "grub2", "grub2-efi"
       @loader_type = nil
       @secure_boot = nil
 
@@ -181,12 +180,10 @@ module Yast
 
       # Types of sections that should be updated (changed device names)
       # FIXME: see FIXME in lilolike.ycp:899
-      @update_section_types = ["floppy", "other"]
-      #    = [ "linux", "failsafe", "initrd", "floppy" ];
+      @update_section_types = [ "other"]
 
       # List of all supported bootloaders
       @bootloaders = [
-        "grub",
         "grub2",
         "grub2-efi"
       ]
@@ -195,9 +192,6 @@ module Yast
       # if true enable redundancy for md array
       @enable_md_array_redundancy = nil
 
-      # FATE#305557: Enable SELinux for 11.2
-      #  if true create /selinux directory
-      @enable_selinux = false
       # help message and dscription definitions
       Yast.include self, "bootloader/routines/popups.rb"
       Yast.include self, "bootloader/routines/misc.rb"
@@ -207,43 +201,6 @@ module Yast
     end
 
     # interface to bootloader library
-
-
-
-
-    # FIXME 2x functions should not be finally here...
-    # Check whether XEN is selected for installation resp. selected
-    # @return [Boolean] true of XEN installed/selected
-    def XenPresent
-      ret = !Builtins.contains(@removed_sections, "xen") &&
-        (Mode.test ||
-          Mode.normal && Pkg.IsProvided("xen") && Pkg.IsProvided("kernel-xen") ||
-          !Mode.normal && Pkg.IsSelected("xen") && Pkg.IsSelected("kernel-xen"))
-
-      Builtins.y2milestone("ret: %1", ret)
-      ret
-    end
-
-    # Function check if trusted grub is selected
-    # or installed return true if is selected/installed
-    # and add trusted_grub to globals
-    # @return [Boolean] true if trusted grub is selected/installed
-
-    def isTrustedGrub
-      ret = false
-      if Mode.normal
-        if Pkg.IsProvided("trustedgrub") || Package.Installed("trustedgrub")
-          ret = true
-          Ops.set(@globals, "trusted_grub", "true")
-        end
-      else
-        if Pkg.IsSelected("trustedgrub")
-          ret = true
-          Ops.set(@globals, "trusted_grub", "true")
-        end
-      end
-      ret
-    end
 
     # Create section for linux kernel
     # @param [String] title string the section name to create (untranslated)
@@ -444,10 +401,9 @@ module Yast
     def Export
       exp = {
         "global"     => remapGlobals(@globals),
-        "sections"   => remapSections(@sections),
         "device_map" => BootStorage.remapDeviceMap(BootStorage.device_mapping)
       }
-      if !(@loader_type == "grub" || @loader_type == "grub2")
+      if @loader_type != "grub2"
         Ops.set(exp, "activate", @activate)
       end
 
@@ -460,9 +416,8 @@ module Yast
     def Import(settings)
       settings = deep_copy(settings)
       @globals = Ops.get_map(settings, "global", {})
-      @sections = Ops.get_list(settings, "sections", [])
 
-      if !(@loader_type == "grub" || @loader_type == "grub2")
+      if @loader_type != "grub2"
         @activate = Ops.get_boolean(settings, "activate", false)
       end
       BootStorage.device_mapping = Ops.get_map(settings, "device_map", {})
@@ -481,7 +436,6 @@ module Yast
       ReadFiles(avoid_reading_device_map) if reread
       @sections = GetSections()
       @globals = GetGlobal()
-      isTrustedGrub
       BootStorage.device_mapping = GetDeviceMap()
       @read_default_section_name = ""
       Builtins.foreach(@sections) do |s|
@@ -536,7 +490,6 @@ module Yast
       @activate_changed = false
       @removed_sections = []
       @was_proposed = false
-      BootStorage.ProposeDeviceMap if getLoaderType(false) == "grub" if init
 
       nil
     end
@@ -546,30 +499,6 @@ module Yast
       Builtins.y2error("No generic propose function available")
 
       nil
-    end
-
-    # bnc# 346576 - Bootloader configuration doesn't work for serial output
-    # Function check if settings need to remove gfxmenu
-    #
-    # @return [Boolean] - true if gfxmenu needs to be removed
-
-    def removeGFXMenu
-      if Ops.get(@globals, "trusted_grub", "") == "true" &&
-          Builtins.haskey(@globals, "gfxmenu")
-        Builtins.y2milestone("Remove gfxmenu -> selected trusted grub")
-        return true
-      end
-
-      if Ops.get(@globals, "serial") != "" && Ops.get(@globals, "serial") != nil
-        Builtins.y2milestone("Remove gfxmenu -> defined serial console")
-        return true
-      end
-
-      if Ops.get(@globals, "gfxmenu", "") == "none"
-        Builtins.y2milestone("Remove gfxmenu -> disabled gfxmenu")
-        return true
-      end
-      false
     end
 
     # bnc #390659 - autoyast bootloader config: empty settings are ignored (memtest)
@@ -615,12 +544,6 @@ module Yast
     # @param [Boolean] flush boolean true to flush settings to the disk
     # @return [Boolean] true if success
     def Save(clean, init, flush)
-      if clean
-        RemoveUnexistentSections("", "")
-        UpdateAppend()
-        UpdateGfxMenu()
-      end
-
       ret = true
 
       bl = getLoaderType(false)
@@ -628,8 +551,6 @@ module Yast
       InitializeLibrary(init, bl)
 
       return true if bl == "none"
-
-      @globals = Builtins.remove(@globals, "gfxmenu") if removeGFXMenu
 
       # bnc#589433 -  Install grub into root (/) partition gives error
       if Ops.get(@globals, "boot_custom") == "" &&
@@ -640,13 +561,6 @@ module Yast
       # FIXME: give mountby information to perl-Bootloader (or define some
       # better interface), so that perl-Bootloader can use mountby device names
       # for these devices instead. Tracked in bug #248162.
-
-      # convert XEN section to linux section id running in domU
-      # bnc #436899
-      # bnc #604401 Xen para-virtualized guest boots native kernel
-      # I have to call it before updating of BootCommon::globals to my_globals
-      # bnc #604401c14
-      ConvertXENinDomU()
 
       # convert custom boot device names in globals to the device names
       # indicated by "mountby"
@@ -863,12 +777,6 @@ module Yast
           bootloader_packages = Builtins.add(bootloader_packages, "kexec-tools")
         end
 
-        # replace grub with trustedgrub
-        if Ops.get(@globals, "trusted_grub", "") == "true"
-          bootloader_packages.delete("grub")
-          bootloader_packages << "trustedgrub"
-        end
-
         # we need perl-Bootloader-YAML API to communicate with pbl
         bootloader_packages << "perl-Bootloader-YAML"
 
@@ -925,7 +833,6 @@ module Yast
     def getBootloaders
       if Mode.config
         return [
-          "grub",
           "grub2",
           "grub2-efi",
           "default",
@@ -957,22 +864,6 @@ module Yast
       ret = Builtins.toset(ret)
       ret = Builtins.add(ret, "none")
       deep_copy(ret)
-    end
-
-    # Search for section passed
-    # @return [Fixnum] index number
-
-    def Section2Index(section_name)
-      index = -1
-      sectnum = -1
-
-      Builtins.foreach(@sections) do |s|
-        index = Ops.add(index, 1)
-        sectnum = index if Ops.get_string(s, "name", "") == section_name
-      end
-
-      Builtins.y2milestone("ret: %1", sectnum)
-      sectnum
     end
 
     # FATE#305008: Failover boot configurations for md arrays with redundancy
@@ -1028,7 +919,6 @@ module Yast
     publish :variable => :removed_sections, :type => "list <string>"
     publish :variable => :update_section_types, :type => "list <string>"
     publish :variable => :enable_md_array_redundancy, :type => "boolean"
-    publish :variable => :enable_selinux, :type => "boolean"
     publish :function => :getLoaderType, :type => "string (boolean)"
     publish :function => :getSystemSecureBootStatus, :type => "boolean (boolean)"
     publish :function => :getBootloaders, :type => "list <string> ()"
@@ -1045,44 +935,29 @@ module Yast
     publish :function => :getLoaderName, :type => "string (string, symbol)"
     publish :function => :getBooleanAttrib, :type => "boolean (string)"
     publish :function => :getAnyTypeAttrib, :type => "any (string, any)"
-    publish :function => :updateTimeoutPopupForFloppy, :type => "void (string)"
     publish :function => :remapGlobals, :type => "map <string, string> (map <string, string>)"
-    publish :function => :remapSections, :type => "list <map <string, any>> (list <map <string, any>>)"
-    publish :function => :splitPath, :type => "list <string> (string)"
     publish :function => :GetBootloaderDevice, :type => "string ()"
     publish :function => :GetBootloaderDevices, :type => "list <string> ()"
     publish :function => :IsPartitionBootable, :type => "boolean (string)"
-    publish :function => :InstallingToFloppy, :type => "boolean ()"
     publish :function => :getKernelParamFromLine, :type => "string (string, string)"
     publish :function => :setKernelParamToLine, :type => "string (string, string, string)"
     publish :function => :myToInteger, :type => "integer (any)"
     publish :function => :restoreMBR, :type => "boolean (string)"
-    publish :function => :UpdateKernelParams, :type => "string (string)"
     publish :function => :getSwapPartitions, :type => "map <string, integer> ()"
     publish :function => :UpdateInstallationKernelParameters, :type => "void ()"
     publish :function => :GetAdditionalFailsafeParams, :type => "string ()"
-    publish :function => :UpdateGfxMenuContents, :type => "boolean ()"
     publish :function => :BootloaderInstallable, :type => "boolean ()"
     publish :function => :PartitionInstallable, :type => "boolean ()"
-    publish :function => :findRelativeDefaultLinux, :type => "string ()"
-    publish :function => :isDefaultBootSectioLinux, :type => "boolean (string)"
     publish :function => :WriteToSysconf, :type => "void (boolean)"
     publish :function => :getBootDisk, :type => "string ()"
     publish :function => :HandleConsole, :type => "void ()"
     publish :function => :HandleConsole2, :type => "void ()"
     publish :function => :GetSerialFromAppend, :type => "void ()"
-    publish :function => :UpdateProposalFromClient, :type => "boolean ()"
     publish :function => :DiskOrderSummary, :type => "string ()"
-    publish :function => :AddFirmwareToBootloader, :type => "boolean (string)"
     publish :function => :PostUpdateMBR, :type => "boolean ()"
     publish :function => :FindMBRDisk, :type => "string ()"
     publish :function => :RunDelayedUpdates, :type => "void ()"
-    publish :function => :FixGlobals, :type => "void ()"
-    publish :function => :FixSections, :type => "void (void ())"
     publish :function => :UpdateGlobals, :type => "void ()"
-    publish :function => :RemoveUnexistentSections, :type => "void (string, string)"
-    publish :function => :UpdateAppend, :type => "void ()"
-    publish :function => :UpdateGfxMenu, :type => "void ()"
     publish :function => :SetDiskInfo, :type => "void ()"
     publish :function => :InitializeLibrary, :type => "boolean (boolean, string)"
     publish :function => :SetSections, :type => "boolean (list <map <string, any>>)"
@@ -1096,8 +971,6 @@ module Yast
     publish :function => :InitializeBootloader, :type => "boolean ()"
     publish :function => :GetFilesContents, :type => "map <string, string> ()"
     publish :function => :SetFilesContents, :type => "boolean (map <string, string>)"
-    publish :function => :XenPresent, :type => "boolean ()"
-    publish :function => :isTrustedGrub, :type => "boolean ()"
     publish :function => :Export, :type => "map ()"
     publish :function => :Import, :type => "boolean (map)"
     publish :function => :Read, :type => "boolean (boolean, boolean)"
@@ -1108,7 +981,6 @@ module Yast
     publish :function => :Write, :type => "boolean ()"
     publish :function => :setLoaderType, :type => "void (string)"
     publish :function => :setSystemSecureBootStatus, :type => "void (boolean)"
-    publish :function => :Section2Index, :type => "integer (string)"
   end
 
   BootCommon = BootCommonClass.new

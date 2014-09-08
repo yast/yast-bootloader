@@ -44,9 +44,6 @@ module Yast
         "boot_boot"               => _(
           "<p><b>Boot from Boot Partition</b> is one of the recommended options, the other is\n<b>Boot from Root Partition</b>.</p>"
         ),
-        "trusted_grub"            => _(
-          "<p><b>Use Trusted Grub</b> means install trusted grub and use it. Option <i>Graphical Menu File</i> will be ignored.\nIt is recommended to install grub to MBR</p>"
-        ),
         "boot_mbr"                => _(
           "<p><b>Boot from Master Boot Record</b> is not recommended if you have another operating system\ninstalled on your computer</p>"
         ),
@@ -81,12 +78,6 @@ module Yast
         "hiddenmenu"              => _(
           "<p>Selecting <b>Hide Menu on Boot</b> will hide the boot menu.</p>"
         ),
-        "gfxmenu"                 => _(
-          "<p><b>Graphical Menu File</b> defines the file to use for the graphical boot menu.</p>"
-        ),
-        "enable_acoustic_signals" => _(
-          "<p><b>Enable Acoustic Signals</b> turn on/off acoustic signals.</p>"
-        ),
         "password"                => _(
           "<p><b>Protect Boot Loader with Password</b><br>\n" +
             "Define the password that will be required to access the boot menu. YaST will only accept the password if you repeat\n" +
@@ -112,7 +103,6 @@ module Yast
         "timeout"       => _("&Timeout in Seconds"),
         "default"       => _("&Default Boot Section"),
         "generic_mbr"   => _("Write &generic Boot Code to MBR"),
-        "trusted_grub"  => _("Use &Trusted Grub"),
         "boot_custom"   => _("Custom Boot Partition"),
         "boot_mbr"      => _("Boot from Master Boot Record"),
         "boot_root"     => _("Boot from Root Partition"),
@@ -121,7 +111,6 @@ module Yast
         "serial"        => _("Serial Connection &Parameters"),
         "fallback"      => _("Fallback Sections if Default fails"),
         "hiddenmenu"    => _("&Hide Menu on Boot"),
-        "gfxmenu"       => _("Graphical &Menu File"),
         "password"      => _("Pa&ssword for the Menu Interface"),
         "debug"         => _("Debugg&ing Flag")
       }

@@ -102,204 +102,6 @@ module Yast
       :loader_details
     end
 
-    # sections list widget
-
-
-    # Refresh and redraw widget wits sections
-    # @param [Array<Hash{String => Object>}] sects list of current sections
-    def RedrawSectionsTable(sects)
-      sects = deep_copy(sects)
-      sec = Builtins.maplist(sects) do |s|
-        info = ""
-        type = _("Other")
-        if Ops.get_string(s, "type", "") == "image"
-          type = _("Image")
-          image = Ops.get_string(s, "image", "")
-          root = Ops.get(
-            BootStorage.getHintedPartitionList([Ops.get_string(s, "root", "")]),
-            0,
-            ""
-          )
-          info = image != "" && image != nil ?
-            Builtins.sformat(
-              "%1   (%2%3)",
-              image,
-              Ops.get(BootCommon.splitPath(image), 0, ""),
-              root == "" ?
-                "" :
-                Builtins.sformat(", root=%1", root)
-            ) :
-            ""
-        elsif Ops.get_string(s, "type", "") == "xen"
-          type = _("Xen")
-          image = Ops.get_string(s, "image", "")
-          root = Ops.get(
-            BootStorage.getHintedPartitionList([Ops.get_string(s, "root", "")]),
-            0,
-            ""
-          )
-          info = image != "" && image != nil ?
-            Builtins.sformat(
-              "%1   (%2%3)",
-              image,
-              Ops.get(BootCommon.splitPath(image), 0, ""),
-              root == "" ?
-                "" :
-                Builtins.sformat(", root=%1", root)
-            ) :
-            ""
-        elsif Ops.get_string(s, "type", "") == "floppy"
-          type = _("Floppy")
-        elsif Ops.get_string(s, "type", "") == "menu"
-          type = _("Menu")
-          if Bootloader.getLoaderType == "grub"
-            paths = Ops.get_string(s, "configfile", "")
-            root = Ops.get_string(s, "root", "")
-            info = Builtins.sformat("dev=%1 path=%2", root, paths)
-          end
-        elsif Ops.get_string(s, "type", "") == "dump"
-          type = _("Dump")
-          info = Ops.get_string(s, "dumpto", Ops.get_string(s, "dumptofs", ""))
-        elsif Ops.get_string(s, "type", "") == "other"
-          info = Ops.get_string(s, "chainloader", "")
-        end
-        Item(
-          Id(Ops.get_string(s, "name", "")),
-          Builtins.tolower(Ops.get(BootCommon.globals, "default", "")) ==
-            Builtins.tolower(Ops.get_string(s, "name", "")) ?
-            UI.Glyph(:CheckMark) :
-            "",
-          Ops.get_string(s, "name", ""),
-          type,
-          info
-        )
-      end
-      UI.ChangeWidget(Id(:_tw_table), :Items, sec)
-
-      nil
-    end
-
-    # Init function of widget
-    # @param [String] widget string id of the widget
-    def SectionsInit(widget)
-      RedrawSectionsTable(BootCommon.sections)
-
-      nil
-    end
-
-
-    def defaultHandle(key, event, index)
-      event = deep_copy(event)
-      current = Convert.to_string(UI.QueryWidget(Id(:_tw_table), :CurrentItem))
-      Ops.set(BootCommon.globals, "default", current)
-      RedrawSectionsTable(BootCommon.sections)
-      UI.ChangeWidget(Id(:_tw_table), :CurrentItem, current)
-      nil
-    end
-
-    def updownHandle(key, event, up, index)
-      event = deep_copy(event)
-      second = up ? Ops.subtract(index, 1) : Ops.add(index, 1)
-      BootCommon.sections = Builtins::List.swap(
-        BootCommon.sections,
-        index,
-        second
-      )
-      RedrawSectionsTable(BootCommon.sections)
-      nil
-    end
-
-    def markSelected(index)
-      selected = Ops.get(BootCommon.sections, index, {})
-      name = Ops.get_string(selected, "name", "")
-      BootCommon.current_section = deep_copy(selected)
-      BootCommon.current_section_index = index
-      BootCommon.current_section_name = name
-
-      nil
-    end
-
-    def addHandle(key, event, index)
-      event = deep_copy(event)
-      markSelected(index)
-      BootCommon.current_section_index = -1
-      :add
-    end
-
-    def editHandle(key, event, index)
-      event = deep_copy(event)
-      markSelected(index)
-      :edit
-    end
-
-    def deleteHandle(key, event, index)
-      event = deep_copy(event)
-      current = Convert.to_string(UI.QueryWidget(Id(:_tw_table), :CurrentItem))
-      if confirmSectionDeletePopup(current)
-        BootCommon.removed_sections = Builtins.add(
-          BootCommon.removed_sections,
-          Ops.get_string(BootCommon.sections, [index, "original_name"], "")
-        )
-        BootCommon.sections = Builtins.remove(BootCommon.sections, index)
-        RedrawSectionsTable(BootCommon.sections)
-        BootCommon.changed = true
-      end
-
-      nil
-    end
-    # Get map of widget
-    # @return a map of widget
-    def getSectionsWidget
-      head = Header(
-        # table header, Def stands for default
-        _("Def."),
-        # table header
-        _("Label"),
-        # table header
-        _("Type"),
-        # table header; header for section details, either
-        # the specification of the kernel image to load,
-        # or the specification of device to boot from
-        _("Image / Device")
-      )
-      CWMTable.CreateTableDescr(
-        {
-          "add_delete_buttons" => true,
-          "edit_button"        => true,
-          "up_down_buttons"    => true,
-          "custom_button"      => true,
-          "custom_button_name" => _("Set as De&fault"),
-          "custom_handle"      => fun_ref(
-            method(:defaultHandle),
-            "symbol (string, map, integer)"
-          ),
-          "header"             => head,
-          "edit"               => fun_ref(
-            method(:editHandle),
-            "symbol (string, map, integer)"
-          ),
-          "delete"             => fun_ref(
-            method(:deleteHandle),
-            "symbol (string, map, integer)"
-          ),
-          "add"                => fun_ref(
-            method(:addHandle),
-            "symbol (string, map, integer)"
-          ),
-          "updown"             => fun_ref(
-            method(:updownHandle),
-            "symbol (string, map, boolean, integer)"
-          )
-        },
-        {
-          "init" => fun_ref(method(:SectionsInit), "void (string)"),
-          "help" => SectionsHelp()
-        }
-      )
-    end
-
-
-
     # loader type widget
 
     # Get the widget for boot laoder selection combo
@@ -470,14 +272,7 @@ module Yast
             Progress.set(progress_status)
           elsif action == :propose
             Bootloader.Reset
-            if Bootloader.getLoaderType == "grub"
-              Yast.import "BootGRUB"
-              BootGRUB.merge_level = :all
-              Bootloader.Propose
-              BootGRUB.merge_level = :main
-            else
-              Bootloader.Propose
-            end
+            Bootloader.Propose
           elsif action == :prev
             Bootloader.Import(Ops.get_map(BootCommon.other_bl, new_bl, {}))
           elsif action == :convert
@@ -517,59 +312,6 @@ module Yast
       true
     end
 
-
-    # Store function of a widget
-    # @param [String] widget string widget key
-    # @param [Hash] event map event that caused the operation
-    def LoaderTypeStore(widget, event)
-      event = deep_copy(event)
-      ret = false
-      if Ops.get(BootCommon.globals, "trusted_grub", "") == "true"
-        if !Package.Installed("trustedgrub") && Mode.normal
-          if !PackageSystem.CheckAndInstallPackages(["trustedgrub"])
-            if !Mode.commandline
-              Popup.Error(Message.CannotContinueWithoutPackagesInstalled)
-            end
-            Builtins.y2error(
-              "Installation of package trustedgrub failed or aborted"
-            )
-          end
-        end
-      end
-
-      nil
-    end
-
-    # manual edit button
-
-    # Handle function of a widget
-    # @param [String] key any widget key
-    # @param [Hash] event map event description of event that occured
-    # @return [Symbol] to return to wizard sequencer, or nil
-    def manualEditHandle(key, event)
-      event = deep_copy(event)
-      :manual
-    end
-
-    # Get map of widget
-    # @return a map of widget
-    def getManualEditWidget
-      #	    "help" : getManualEditHelp (),
-      {
-        "widget"        => :custom,
-        "custom_widget" => HBox(
-          HStretch(),
-          # pushbutton
-          PushButton(Id(:manual), _("E&dit Configuration Files")),
-          HStretch()
-        ),
-        "handle_events" => [:manual],
-        "handle"        => fun_ref(
-          method(:manualEditHandle),
-          "symbol (string, map)"
-        )
-      }
-    end
 
     # reset menu button
 
@@ -689,11 +431,6 @@ module Yast
         ret = false if ret == nil
 
         Popup.Warning(_("Writing bootloader settings failed.")) if !ret
-      elsif op == :propose_deep
-        Yast.import "BootGRUB"
-        BootGRUB.merge_level = :all
-        Bootloader.Propose
-        BootGRUB.merge_level = :main
       elsif op == :propose
         Bootloader.Propose
       end
@@ -720,64 +457,6 @@ module Yast
       }
     end
 
-    # Get the main dialog tabs description
-    # @return a map the description of the tabs
-    def TabsDescr
-      lt = Bootloader.getLoaderType
-      {
-        "sections"     => {
-          # tab header
-          "header"       => _("&Section Management"),
-          "contents"     => HBox(
-            HSpacing(3),
-            VBox(VSpacing(1), "sections", VSpacing(1)),
-            HSpacing(3)
-          ),
-          "widget_names" => ["DisBackButton", "sections"]
-        },
-        "installation" => {
-          # tab header
-          "header"       => _("Boot Loader &Installation"),
-          "contents"     => HBox(
-            HStretch(),
-            VBox(
-              VStretch(),
-              Frame(
-                _("Type"),
-                VBox(
-                  VSpacing(0.4),
-                  HBox(
-                    HSpacing(2),
-                    "loader_type",
-                    HStretch(),
-                    VBox(
-                      Label(""),
-                      lt == "none" || lt == "default" ?
-                        Empty() :
-                        "loader_options"
-                    ),
-                    HSpacing(2)
-                  ),
-                  VSpacing(0.4)
-                )
-              ),
-              VStretch(),
-              lt == "none" || lt == "default" ?
-                Empty() :
-                "loader_location",
-              VStretch(),
-              lt != "grub" && lt != "grub2" ? Empty() : "inst_details",
-              VStretch()
-            ),
-            HStretch()
-          ),
-          "widget_names" => lt == "none" || lt == "default" ?
-            ["loader_type", "loader_options"] :
-            ["loader_type", "loader_options", "loader_location", "inst_details"]
-        }
-      }
-    end
-
     # Get general widgets for global bootloader options
     # @return a map describing all general widgets for global options
     def CommonGlobalWidgets
@@ -786,7 +465,6 @@ module Yast
       end
       @_common_global_widgets = {
         "adv_button"     => getAdvancedButtonWidget,
-        "sections"       => getSectionsWidget,
         "loader_type"    => {
           "widget"            => :func,
           "widget_func"       => fun_ref(
@@ -802,10 +480,6 @@ module Yast
             "symbol (string, map)"
           ),
           "help"              => LoaderTypeHelp(),
-          "store"             => fun_ref(
-            method(:LoaderTypeStore),
-            "void (string, map)"
-          ),
           "validate_type"     => :function,
           "validate_function" => fun_ref(
             method(:LoaderTypeValidate),

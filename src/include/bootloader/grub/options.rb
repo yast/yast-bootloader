@@ -25,155 +25,11 @@ module Yast
 
       Yast.import "Label"
       Yast.import "BootStorage"
-      Yast.import "GfxMenu"
 
       Yast.include include_target, "bootloader/routines/common_options.rb"
       Yast.include include_target, "bootloader/routines/popups.rb"
       Yast.include include_target, "bootloader/routines/helps.rb"
       Yast.include include_target, "bootloader/grub/helps.rb"
-    end
-
-    def InitGfx(widget)
-      value = Ops.get(BootCommon.globals, "trusted_grub", "false") != "true"
-      UI.ChangeWidget(Id(:gfxinput), :Enabled, value)
-      UI.ChangeWidget(
-        Id(:gfxinput),
-        :Value,
-        Ops.get(BootCommon.globals, widget, "")
-      )
-
-      nil
-    end
-
-    def StoreGfx(widget, event)
-      event = deep_copy(event)
-      result = Convert.to_string(UI.QueryWidget(Id(:gfxinput), :Value))
-      if result == ""
-        BootCommon.global_options = Builtins.remove(
-          BootCommon.global_options,
-          widget
-        )
-      else
-        Ops.set(BootCommon.global_options, widget, result)
-      end
-
-      nil
-    end
-
-    def HandleGfx(widget, event)
-      event = deep_copy(event)
-      file = UI.AskForExistingFile(
-        "/boot",
-        "",
-        _("Choose new graphical menu file")
-      )
-
-      UI.ChangeWidget(Id(:gfxinput), :Value, file) if file != nil
-
-      nil
-    end
-
-    def GfxWidget
-      {
-        "widget"        => :custom,
-        "custom_widget" => VBox(
-          #`Left(`CheckBox(`id(`enable_acoustic_signals), _("Enable Acoustic &Signals"))),
-          HBox(
-            Left(
-              InputField(
-                Id(:gfxinput),
-                Opt(:hstretch),
-                Ops.get(@grub_descriptions, "gfxmenu", "gfxmenu")
-              )
-            ),
-            VBox(
-              Left(Label("")),
-              Left(PushButton(Id(:browsegfx), Opt(:notify), Label.BrowseButton))
-            )
-          )
-        ),
-        "init"          => fun_ref(method(:InitGfx), "void (string)"),
-        "store"         => fun_ref(method(:StoreGfx), "void (string, map)"),
-        "handle"        => fun_ref(method(:HandleGfx), "symbol (string, map)"),
-        "handle_events" => [:browsegfx],
-        "help"          => Ops.add(
-          Ops.get(@grub_help_messages, "gfxmenu", ""),
-          Ops.get(@grub_help_messages, "enable_acoustic_signals", "")
-        )
-      }
-    end
-
-
-    def InitAcousticSignals(widget)
-      if GfxMenu.enable_sound_signals
-        UI.ChangeWidget(Id(widget), :Value, true)
-      else
-        UI.ChangeWidget(Id(widget), :Value, false)
-      end
-
-      nil
-    end
-
-    def StoreAcousticSignals(widget, event)
-      event = deep_copy(event)
-      GfxMenu.enable_sound_signals = Convert.to_boolean(
-        UI.QueryWidget(Id(widget), :Value)
-      )
-
-      nil
-    end
-
-    def AcousticSignals
-      {
-        "widget" => :checkbox,
-        "label"  => _("Enable Acoustic &Signals"),
-        "init"   => fun_ref(method(:InitAcousticSignals), "void (string)"),
-        "store"  => fun_ref(method(:StoreAcousticSignals), "void (string, map)"),
-        "help"   => Ops.get(@grub_help_messages, "enable_acoustic_signals", "")
-      }
-    end
-
-    def HandleTrusted(widget, event)
-      event = deep_copy(event)
-      value = Convert.to_boolean(UI.QueryWidget(Id(widget), :Value))
-      UI.ChangeWidget(Id(:gfxinput), :Enabled, !value)
-      nil
-    end
-
-    def TrustedWidget
-      widget = CommonCheckboxWidget(
-        Ops.get(@grub_descriptions, "trusted_grub", "trusted grub"),
-        Ops.get(@grub_help_messages, "trusted_grub", "")
-      )
-      Ops.set(widget, "opt", [:notify])
-      Ops.set(
-        widget,
-        "handle",
-        fun_ref(method(:HandleTrusted), "symbol (string, map)")
-      )
-      deep_copy(widget)
-    end
-
-    # Init function of widget
-    # @param [String] widget string id of the widget
-    def InitPasswdWidget(widget)
-      passwd = Ops.get(BootCommon.globals, "password", "")
-      if passwd == nil || passwd == ""
-        UI.ChangeWidget(Id(:use_pas), :Value, false)
-        UI.ChangeWidget(Id(:pw1), :Enabled, false)
-        UI.ChangeWidget(Id(:pw1), :Value, "")
-        UI.ChangeWidget(Id(:pw2), :Enabled, false)
-        UI.ChangeWidget(Id(:pw2), :Value, "")
-      else
-        UI.ChangeWidget(Id(:use_pas), :Value, true)
-        UI.ChangeWidget(Id(:pw1), :Enabled, true)
-        UI.ChangeWidget(Id(:pw1), :Value, "**********")
-        UI.ChangeWidget(Id(:pw2), :Enabled, true)
-        UI.ChangeWidget(Id(:pw2), :Value, "**********")
-      end
-      UI.ChangeWidget(Id(:use_pas), :Enable, false) if Mode.installation
-
-      nil
     end
 
     # Handle function of a widget
@@ -189,43 +45,6 @@ module Yast
       end
       nil
     end
-
-    # Store function of a popup
-    # @param [String] key any widget key
-    # @param [Hash] event map event that caused the operation
-    def StorePasswdWidget(key, event)
-      event = deep_copy(event)
-      password = nil
-      usepass = Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
-      Builtins.y2milestone("Usepass: %1", usepass)
-      if usepass
-        if UI.QueryWidget(Id(:pw1), :Value) != "**********"
-          password = Convert.to_string(UI.QueryWidget(Id(:pw1), :Value))
-          password = MakeGRUBHash(password)
-          if password != nil
-            Ops.set(BootCommon.globals, "password", password) #TODO popup for error
-          end
-        end
-      elsif Builtins.haskey(BootCommon.globals, "password")
-        BootCommon.globals = Builtins.remove(BootCommon.globals, "password")
-      end
-      nil
-    end
-
-    def MakeGRUBHash(password)
-      return password if password.include? "--md5"
-
-      cmd = "echo \"md5crypt
-        #{password}\" | grub --batch | grep Encrypted"
-
-      result = SCR.execute(path(".target.bash_output"), cmd)
-
-      # proper password contain special string $1$
-      return nil unless result.include? "$1$"
-
-      result.sub(/\AEncrypted:\s*(.*)\s*\z/, "--md5 \\1")
-    end
-
 
     # Validate function of a popup
     # @param [String] key any widget key
@@ -266,34 +85,6 @@ module Yast
       )
     end
 
-
-    # Build a map describing a widget
-    # @return a map describing a widget
-    def PasswordWidget
-      {
-        "widget"            => :custom,
-        # frame
-        "custom_widget"     => passwd_content,
-        "init"              => fun_ref(
-          method(:InitPasswdWidget),
-          "void (string)"
-        ),
-        "handle"            => fun_ref(
-          method(:HandlePasswdWidget),
-          "symbol (string, map)"
-        ),
-        "store"             => fun_ref(
-          method(:StorePasswdWidget),
-          "void (string, map)"
-        ),
-        "validate_type"     => :function,
-        "validate_function" => fun_ref(
-          method(:ValidatePasswdWidget),
-          "boolean (string, map)"
-        ),
-        "help"              => Ops.get(@grub_help_messages, "password", "")
-      }
-    end
 
     # Init function for console
     # @param [String] widget
@@ -375,39 +166,6 @@ module Yast
         "help"          => Ops.get(@grub_help_messages, "serial", "")
       }
     end
-
-    def GrubOptions
-      grub_specific = {
-        "activate"         => CommonCheckboxWidget(
-          Ops.get(@grub_descriptions, "activate", "activate"),
-          Ops.get(@grub_help_messages, "activate", "")
-        ),
-        "debug"            => CommonCheckboxWidget(
-          Ops.get(@grub_descriptions, "debug", "debug"),
-          Ops.get(@grub_help_messages, "debug", "")
-        ),
-        "generic_mbr"      => CommonCheckboxWidget(
-          Ops.get(@grub_descriptions, "generic_mbr", "generic mbr"),
-          Ops.get(@grub_help_messages, "generic_mbr", "")
-        ),
-        "trusted_grub"     => TrustedWidget(),
-        "hiddenmenu"       => CommonCheckboxWidget(
-          Ops.get(@grub_descriptions, "hiddenmenu", "hidden menu"),
-          Ops.get(@grub_help_messages, "hiddenmenu", "")
-        ),
-        "gfxmenu"          => GfxWidget(),
-        "password"         => PasswordWidget(),
-        "console"          => ConsoleWidget(),
-        "acoustic_signals" => AcousticSignals()
-      }
-      Convert.convert(
-        Builtins.union(grub_specific, CommonOptions()),
-        :from => "map",
-        :to   => "map <string, map <string, any>>"
-      )
-    end
-
-
 
     def InitDiskOrder(widget)
       disksOrder = BootStorage.DisksOrder
@@ -851,30 +609,6 @@ module Yast
           "void (string, map)"
         ),
         "help"          => HelpBootLoaderLocationWidget()
-      }
-    end
-
-    # Handle function of a widget
-    # @param [String] widget string widget key
-    # @param [Hash] event map event description of event that occured
-    # @return [Symbol] to return to wizard sequencer, or nil
-    def InstDetailsButtonHandle(widget, event)
-      event = deep_copy(event)
-      :inst_details
-    end
-
-
-    def grubInstalationDetials
-      {
-        "widget"        => :push_button,
-        # push button
-        "label"         => _("Boot Loader Installation &Details"),
-        "handle_events" => ["inst_details"],
-        "handle"        => fun_ref(
-          method(:InstDetailsButtonHandle),
-          "symbol (string, map)"
-        ),
-        "help"          => InstDetailsHelp()
       }
     end
   end

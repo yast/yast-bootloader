@@ -87,41 +87,6 @@ module Yast
 
     # other misc functions
 
-
-
-    # Update the text of countdown widget
-    # @param [String] bootloader string printable name of used bootloader
-    def updateTimeoutPopupForFloppy(bootloader)
-      return if Mode.normal
-
-      confirm_boot_msg = Misc.boot_msg
-      # data saved to floppy disk
-      msg = Builtins.sformat(
-        # popup, %1 is bootloader name
-        _("The %1 boot sector has been written to the floppy disk."),
-        bootloader
-      )
-      msg = Ops.add(msg, "\n")
-      # always hard boot
-      # If LILO was written on floppy disk and we need
-      # to do a hard reboot (because a different kernel
-      # was installed), tell the user to leave the floppy
-      # inserted.
-      msg = Ops.add(
-        msg,
-        # popup - continuing
-        _("Leave the floppy disk in the drive.")
-      )
-
-      if Ops.greater_than(Builtins.size(confirm_boot_msg), 0)
-        msg = Ops.add(Ops.add(msg, "\n"), confirm_boot_msg)
-      end
-      Misc.boot_msg = msg
-
-      nil
-    end
-
-
     # Function remap globals settings "boot_custom" device name (/dev/sda)
     # or to label (ufo_partition)
     # @param map<string,string> globals
@@ -147,45 +112,6 @@ module Yast
         )
       end
 
-      if Builtins.haskey(globals_set, "boot_chrp_custom")
-        Ops.set(
-          globals_set,
-          "boot_chrp_custom",
-          BootStorage.MountByDev2Dev(
-            Ops.get(globals_set, "boot_chrp_custom", "")
-          )
-        )
-      end
-
-      if Builtins.haskey(globals_set, "boot_pmac_custom")
-        Ops.set(
-          globals_set,
-          "boot_pmac_custom",
-          BootStorage.MountByDev2Dev(
-            Ops.get(globals_set, "boot_pmac_custom", "")
-          )
-        )
-      end
-
-      if Builtins.haskey(globals_set, "boot_iseries_custom")
-        Ops.set(
-          globals_set,
-          "boot_iseries_custom",
-          BootStorage.MountByDev2Dev(
-            Ops.get(globals_set, "boot_iseries_custom", "")
-          )
-        )
-      end
-
-      if Builtins.haskey(globals_set, "boot_prep_custom")
-        Ops.set(
-          globals_set,
-          "boot_prep_custom",
-          BootStorage.MountByDev2Dev(
-            Ops.get(globals_set, "boot_prep_custom", "")
-          )
-        )
-      end
       deep_copy(globals_set)
     end
 
@@ -240,59 +166,6 @@ module Yast
       end
     end
 
-    # Function remap section "root" and "resume" to device name (/dev/sda)
-    # or to label (ufo_partition)
-    # it also prepared measured files for export
-    # @param list<map<string,any> > list of sections
-    # @return [Array<Hash{String => Object>}] list of sections
-
-    def remapSections(sec)
-      sec = deep_copy(sec)
-      by_mount = nil
-      if Arch.ppc
-        by_mount = :id
-      else
-        by_mount = Storage.GetDefaultMountBy
-      end
-
-      #by_mount = `id;
-      return deep_copy(sec) if by_mount == :label
-
-      temp_sec = []
-
-      # convert root and resume device names in sections to kernel device names
-      temp_sec = Builtins.maplist(@sections) do |s|
-        if Ops.get_string(s, "root", "") != ""
-          rdev = Ops.get_string(s, "root", "")
-          Ops.set(s, "root", BootStorage.MountByDev2Dev(rdev))
-
-          if Ops.get_string(s, "append", "") != ""
-            Ops.set(
-              s,
-              "append",
-              remapResume(Ops.get_string(s, "append", ""), false)
-            )
-          end
-
-          Builtins.y2debug(
-            "remapping root: %1 from section to: %2 ",
-            rdev,
-            Ops.get_string(s, "root", "")
-          )
-        end
-        if Ops.get_string(s, "chainloader", "") != ""
-          Ops.set(
-            s,
-            "chainloader",
-            BootStorage.MountByDev2Dev(Ops.get_string(s, "chainloader", ""))
-          )
-        end
-        deep_copy(s)
-      end
-
-      deep_copy(temp_sec)
-    end
-
     # returns list difference A \ B (items that are in A and are not in B)
     # @param [Array] a list A
     # @param [Array] b list B
@@ -301,34 +174,6 @@ module Yast
       a = deep_copy(a)
       b = deep_copy(b)
       Builtins.filter(a) { |e| !Builtins.contains(b, e) }
-    end
-
-    # translate filename path (eg. /boot/kernel) to list of device
-    #  and relative path
-    # @param [String] fullpth string fileststem path (eg. /boot/vmlinuz)
-    # @return a list containing device and relative path,
-    #  eg. ["/dev/hda1", "/vmlinuz"]
-    def splitPath(fullpth)
-      mountpoints = Storage.GetMountPoints,
-      dev = ""
-      mp = ""
-      max = 0
-      #
-      # FIXME: this is broken code, implement a proper prefix match!! see below
-      Builtins.foreach(mountpoints) do |k, v|
-        if k != "swap" && Builtins.issubstring(fullpth, k) &&
-            Ops.greater_than(Builtins.size(k), max)
-          max = Builtins.size(k)
-          dev = Ops.get_string(v, 0, "")
-          mp = k
-        end
-      end
-      return [] if mp == ""
-
-      # FIXME: pth will be wrong for fullpth=='(hd0,1)/boot/vmlinux' !!
-      pth = Builtins.substring(fullpth, Builtins.size(mp))
-      pth = Ops.add("/", pth) if Builtins.substring(pth, 0, 1) != "/"
-      [dev, pth]
     end
 
     # Get bootloader device for specified location
@@ -340,7 +185,6 @@ module Yast
       return @mbrDisk if @selected_location == "mbr"
       return BootStorage.BootPartitionDevice if @selected_location == "boot"
       return BootStorage.RootPartitionDevice if @selected_location == "root"
-      return StorageDevices.FloppyDevice if @selected_location == "floppy"
       return "mbr_md" if @selected_location == "mbr_md"
       return "/dev/null" if @selected_location == "none"
       @loader_device
@@ -363,11 +207,6 @@ module Yast
       if Builtins.haskey(@globals, "boot_extended") &&
           Ops.get(@globals, "boot_extended", "false") == "true"
         ret = Builtins.add(ret, BootStorage.ExtendedPartitionDevice)
-      end
-      # FIXME: floppy support is probably obsolete
-      if Builtins.haskey(@globals, "boot_floppy") &&
-          Ops.get(@globals, "boot_floppy", "false") == "true"
-        ret = Builtins.add(ret, StorageDevices.FloppyDevice)
       end
       if Builtins.haskey(@globals, "boot_custom")
         ret = Builtins.add(ret, Ops.get(@globals, "boot_custom", ""))
@@ -392,23 +231,6 @@ module Yast
         return false
       end
     end
-
-
-    # Check if installation to floppy is performed
-    # @return true if installing bootloader to floppy
-    def InstallingToFloppy
-      ret = false
-      # Bug 539774 - bootloader module wants to write to floppy disk although there is none
-      return ret if @loader_device == nil || @loader_device == "" # bug #333459 - boot loader editor: propose new configuration
-      if @loader_device == StorageDevices.FloppyDevice
-        ret = true
-      elsif Builtins.contains(BootStorage.getFloppyDevices, @loader_device)
-        ret = true
-      end
-      Builtins.y2milestone("Installing to floppy: %1", ret)
-      ret
-    end
-
 
     # Get the list of particular kernel parameters
     # @param [String] line string the whole kernel command line
@@ -679,40 +501,6 @@ module Yast
       ret == 0
     end
 
-    # Update kernel parameters if some were added in Kernel module
-    # @param [String] orig original kernel parameters or kernel command line
-    # @return kernel command line or parameters with added new parameters
-    def UpdateKernelParams(orig)
-      new = Builtins.splitstring(Kernel.GetCmdLine, " ")
-      old = Builtins.splitstring(orig, " ")
-      added = Convert.convert(
-        difflist(new, Builtins.splitstring(@kernelCmdLine, " ")),
-        :from => "list",
-        :to   => "list <string>"
-      )
-      added = Convert.convert(
-        difflist(added, old),
-        :from => "list",
-        :to   => "list <string>"
-      )
-      old = Convert.convert(
-        Builtins.merge(old, added),
-        :from => "list",
-        :to   => "list <string>"
-      )
-      if Stage.initial
-        showopts = false
-        apic = false
-        showopts = true if Builtins.contains(old, "showopts")
-        apic = true if Builtins.contains(old, "apic")
-        old = Builtins.filter(old) { |o| o != "apic" && o != "showopts" }
-        old = Builtins.add(old, "showopts") if showopts
-        old = Builtins.add(old, "apic") if apic
-      end
-      Builtins.mergestring(old, " ")
-    end
-
-
     # Get map of swap partitions
     # @return a map where key is partition name and value its size
     def getSwapPartitions
@@ -748,33 +536,6 @@ module Yast
     end
 
 
-
-    # Check if device is MBR of a disk
-    # @param [String] device string device to check
-    # @return [Boolean] true if is MBR
-    def IsMbr(device)
-      if Builtins.regexpmatch(
-          device,
-          "^/dev/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]+$"
-        )
-        return true
-      end
-      if Builtins.regexpmatch(
-          device,
-          "^/dev/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]+/.*d[0-9]+$"
-        )
-        return true
-      end
-      false
-    end
-
-    # Add '(MBR)' to the disk description if it is a MBR of some partition
-    # @param [String] descr string disk description
-    # @param [String] device string disk device
-    # @return [String] updated description
-    def AddMbrToDescription(descr, device)
-      IsMbr(device) ? Builtins.sformat("%1 (MBR)", descr) : descr
-    end
 
     # Update the Kernel::vgaType value to the saved one if not defined
     def UpdateInstallationKernelParameters
@@ -823,13 +584,6 @@ module Yast
         )
       end
       @additional_failsafe_params
-    end
-
-    # Update graphical bootloader to contain help text of current language
-    # And make the selected installation language default
-    # @return [Boolean] true on success
-    def UpdateGfxMenuContents
-      GfxMenu.UpdateGfxMenuContents(getLoaderType(false))
     end
 
     # Check if memtest86 is present
@@ -934,150 +688,6 @@ module Yast
       true
     end
 
-
-    # Function return absolute value of arg
-    #
-    # @param [Fixnum] value
-    # @return [Fixnum] absolute value
-
-    def abs(value)
-      if Ops.less_than(value, 0)
-        return Ops.multiply(value, -1)
-      else
-        return value
-      end
-    end
-
-    # bnc #440125 - default boot section with failsafe args
-    # Compare append from default linux section with append from
-    # BootCommon::sections
-    #
-    # @return [Boolean] true if appends are similar
-    def compareAppends(default_append, section_append)
-      deuce = 0
-      # delete white space on the beginning of string
-      default_append = String.CutBlanks(default_append)
-      section_append = String.CutBlanks(section_append)
-      # check valid append for section
-      #FIXME JR I think this is not true, append is valid even if it contain only one letter '3' which mean go to runlevel 3
-      return false if Ops.less_than(Builtins.size(section_append), 3)
-
-      # check size of default append with section append
-      # if the size is same return true (same appends)
-      Builtins.y2milestone(
-        "Size of default append: \"%1\" and compared section append: \"%2\"",
-        Builtins.size(default_append),
-        Builtins.size(section_append)
-      )
-      if Builtins.size(default_append) == Builtins.size(section_append)
-        return true
-      end
-
-      default_list = Builtins.splitstring(default_append, " ")
-      section_list = Builtins.splitstring(section_append, " ")
-
-      size_default_list = Builtins.size(default_list)
-      size_section_list = Builtins.size(section_list)
-
-      relative_deuce = abs(Ops.subtract(size_section_list, size_default_list))
-
-      # check number of append args
-      # if different between number of args is more than 3 args return false
-
-      Builtins.y2milestone(
-        "No. default args: %1 no. compared section args: %2",
-        size_default_list,
-        size_section_list
-      )
-      return false if Ops.greater_or_equal(relative_deuce, 3)
-
-      # check args by keywords from section append to default append
-
-      Builtins.y2milestone("default_append: %1", default_append)
-      Builtins.y2milestone("section_list: %1", section_list)
-      Builtins.foreach(section_list) do |key|
-        if Builtins.search(key, "resume=") != nil
-          tmp = Builtins.splitstring(key, "=")
-          key = BootStorage.Dev2MountByDev(Ops.get(tmp, 1, ""))
-        end
-        if Builtins.search(default_append, key) != nil
-          deuce = Ops.add(deuce, 1)
-        else
-          deuce = Ops.subtract(deuce, 1)
-        end
-      end
-
-      # if there exist more than 3 different args return false
-      # else append seem to be similar -> true
-      Builtins.y2milestone(
-        "No. deuces of default append with compared append: %1",
-        deuce
-      )
-      if Ops.greater_or_equal(abs(Ops.subtract(size_default_list, deuce)), 3)
-        return false
-      else
-        return true
-      end
-    end
-
-
-
-    # bnc #440125 - default boot section with failsafe args
-    # Try to find potencional default linux section
-    # It can solve problem in function WriteToSysconf() with saving
-    # wrong (failsafe) args for default
-    #
-    # @return [String] name of default boot section
-
-    def findRelativeDefaultLinux
-      default_linux = ""
-
-      # create defualt sections
-      linux_default = CreateLinuxSection("linux")
-
-      Builtins.foreach(@sections) do |s|
-        if Ops.get_string(s, "root", "") == Ops.get(linux_default, "root") &&
-            Ops.get_string(s, "original_name", "") == "linux"
-          #FIXME Check for root and original name should be enought, as failsafe allways has failsafe orig name
-          if compareAppends(
-              Ops.get_string(linux_default, "append", ""),
-              Ops.get_string(s, "append", "")
-            )
-            default_linux = Ops.get_string(s, "name", "")
-          end
-        end
-      end
-
-      Builtins.y2milestone(
-        "Relative default boot section is: \"%1\"",
-        default_linux
-      )
-      default_linux
-    end
-
-
-
-    # bnc #440125 - default boot section with failsafe args
-    # Check if default boot name is linux
-    #
-    # @param string default boot name
-    # @return [Boolean] true if boot name is linux
-    def isDefaultBootSectioLinux(default_boot)
-      ret = false
-      Builtins.foreach(@sections) do |s|
-        if Ops.get_string(s, "name", "") == default_boot
-          ret = true if Ops.get_string(s, "original_name", "") == "linux"
-          raise Break
-        end
-      end
-      if ret
-        Builtins.y2milestone("Boot section: \"%1\" is linux", default_boot)
-      else
-        Builtins.y2warning("Boot section: \"%1\" is NOT linux", default_boot)
-      end
-      ret
-    end
-
     # bnc#511319 Add information about /etc/sysconfig/bootloader to configuration file.
     # Write option with value and comment to
     # sysconfig file
@@ -1140,30 +750,6 @@ module Yast
       end
       true
     end
-    # bnc #578545 - kdump misconfigures crashkernel parameter for Xen
-    # Check if default_append includes crashkernel arg
-    #
-    # @param string defaul_append
-    # @return [String] defaul_append without crashkernel
-
-    def deleteCrashkernelFromAppend(append)
-      Builtins.y2milestone("Original append: %1", append)
-      list_append = Builtins.splitstring(append, " ")
-
-      if Ops.greater_than(Builtins.size(list_append), 0)
-        list_append = Builtins.filter(list_append) do |key|
-          if Builtins.search(key, "crashkernel") == nil
-            next true
-          else
-            next false
-          end
-        end
-      end
-      ret = Builtins.mergestring(list_append, " ")
-      Builtins.y2milestone("Filtered append: %1", ret)
-      ret
-    end
-
 
     # FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
     # Function write/update info in /etc/sysconfig/bootloader
@@ -1230,298 +816,6 @@ module Yast
         sb,
         comment
       )
-
-      grub1_extended_sysconfig(inst_bootloader, sys_agent) if lt == "grub"
-
-      nil
-    end
-
-    # extended sysconfig options to be used only for grub1 as grub2 store it
-    # in its config (bnc#870890)
-    # @note remove when grub1 support will be removed
-    def grub1_extended_sysconfig(inst_bootloader, sys_agent)
-      default_boot_section_name = ""
-      # fix for bnc #440125 - default boot section with failsafe args
-      # it is not possible create exact algoritmus but I hope it helps in
-      # mostly cases.
-      if isDefaultBootSectioLinux(Ops.get(@globals, "default", ""))
-        default_boot_section_name = Ops.get(@globals, "default", "")
-      else
-        default_boot_section_name = findRelativeDefaultLinux
-      end
-
-      # get the default and failsafe append + vga parameters; if section with
-      # appropriate original name not found, just use any Linux section
-      # doing so during update may be questionable, however, the variables need to
-      # be initialized in any case
-      default_vga = ""
-      default_append = ""
-      default_set = false
-      failsafe_vga = ""
-      failsafe_append = ""
-      failsafe_set = false
-      xen_vga = ""
-      xen_append = ""
-      xen_kernel_append = ""
-      addon_name = ""
-      addon_append = ""
-      addon_vga = ""
-      xen_set = false
-
-      # default boot section is not found
-      if default_boot_section_name == ""
-        # create defualt sections
-        linux_default = CreateLinuxSection("linux")
-        default_set = true
-        default_vga = Ops.get_string(linux_default, "vgamode", "")
-        default_append = Ops.get_string(linux_default, "append", "")
-      end
-
-      Builtins.foreach(@sections) do |s|
-        if Builtins.search(Ops.get_string(s, "original_name", ""), "linux") != nil &&
-            Ops.get_string(s, "name", "") == default_boot_section_name
-          default_set = true
-          default_vga = Ops.get_string(s, "vgamode", "")
-          default_append = Ops.get_string(s, "append", "")
-        end
-        if Builtins.search(Ops.get_string(s, "original_name", ""), "xen") != nil
-          xen_set = true
-          xen_vga = Ops.get_string(s, "vgamode", "")
-          xen_append = Ops.get_string(s, "xen_append", "")
-          xen_kernel_append = Ops.get_string(s, "append", "")
-        elsif Builtins.search(
-            Ops.get_string(s, "original_name", ""),
-            "failsafe"
-          ) != nil
-          failsafe_set = true
-          failsafe_vga = Ops.get_string(s, "vgamode", "")
-          failsafe_append = Ops.get_string(s, "append", "")
-        end
-        if Ops.get_string(s, "type", "") == "image" && !default_set
-          default_vga = Ops.get_string(s, "vgamode", "")
-          default_append = Ops.get_string(s, "append", "")
-        end
-        if Ops.get_string(s, "type", "") == "image" && !failsafe_set
-          failsafe_vga = Ops.get_string(s, "vgamode", "")
-          failsafe_append = Ops.get_string(s, "append", "")
-        end
-        if Ops.get_string(s, "__rt_kernel", "") == "true"
-          addon_name = Ops.get_string(s, "name", "")
-          addon_append = Ops.get_string(s, "append", "")
-          addon_vga = Ops.get_string(s, "vgamode", "")
-        end
-      end
-
-      if !xen_set
-        xen_kernel_append = deleteCrashkernelFromAppend(default_append)
-        xen_append = ""
-        xen_vga = default_vga
-      end
-
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tstring\n" +
-        "## Default:\t\"splash=silent quiet showotps\"\n" +
-        "#\n" +
-        "# Arguments for kernel which is used like default boot section.\n" +
-        "# If the options is commented perl-Bootloader uses his default arguments\n" +
-        "# for kernel.\n" +
-        "#\n"
-
-      WriteOptionToSysconfig(
-        inst_bootloader,
-        sys_agent,
-        path(".DEFAULT_APPEND"),
-        default_append,
-        comment
-      )
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tstring\n" +
-        "## Default:\tnone\n" +
-        "#\n" +
-        "# VGA option for kernel which is used like default boot section.\n" +
-        "# If the options is commented or empty perl-Bootloader doesn't use it.\n" +
-        "# Empty option could be cause of broken size of fonts etc.\n" +
-        "#\n"
-
-      if Arch.i386 || Arch.x86_64 || Arch.ia64
-        WriteOptionToSysconfig(
-          inst_bootloader,
-          sys_agent,
-          path(".DEFAULT_VGA"),
-          default_vga,
-          comment
-        )
-      end
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tstring\n" +
-        "## Default:\t\"showopts apm=off noresume nosmp maxcpus=0 edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe\"\n" +
-        "#\n" +
-        "# Arguments for kernel which is used like failsafe boot section\n" +
-        "# If the options is commented perl-Bootloader uses his default arguments\n" +
-        "# for kernel.\n" +
-        "#\n"
-
-      if Arch.x86_64
-        comment = "\n" +
-          "## Path:\tSystem/Bootloader\n" +
-          "## Description:\tBootloader configuration\n" +
-          "## Type:\tstring\n" +
-          "## Default:\t\"showopts apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset x11failsafe\"\n" +
-          "#\n" +
-          "# Arguments for kernel which is used like failsafe boot section\n" +
-          "# If the options is commented perl-Bootloader uses his default arguments\n" +
-          "# for kernel.\n" +
-          "#\n"
-      end
-
-      WriteOptionToSysconfig(
-        inst_bootloader,
-        sys_agent,
-        path(".FAILSAFE_APPEND"),
-        failsafe_append,
-        comment
-      )
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tstring\n" +
-        "## Default:\tnone\n" +
-        "#\n" +
-        "# VGA option for kernel which is used like failsafe boot section.\n" +
-        "# If the options is commented or empty perl-Bootloader doesn't use it.\n" +
-        "# Empty option could be cause of broken size of fonts etc.\n" +
-        "#\n"
-
-      WriteOptionToSysconfig(
-        inst_bootloader,
-        sys_agent,
-        path(".FAILSAFE_VGA"),
-        failsafe_vga,
-        comment
-      )
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tstring\n" +
-        "## Default:\t\"splash=silent quiet showotps\"\n" +
-        "#\n" +
-        "# Arguments for XEN kernel in Dom0.\n" +
-        "# If the options is commented perl-Bootloader uses his default arguments\n" +
-        "# for XEN kernel.\n" +
-        "#\n"
-
-      WriteOptionToSysconfig(
-        inst_bootloader,
-        sys_agent,
-        path(".XEN_KERNEL_APPEND"),
-        xen_kernel_append,
-        comment
-      )
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tstring\n" +
-        "## Default:\tnone\n" +
-        "#\n" +
-        "# Arguments for XEN hypervisor\n" +
-        "# Usually it is empty or includes arguments like crashkernel for kdump etc.\n" +
-        "#\n"
-
-      WriteOptionToSysconfig(
-        inst_bootloader,
-        sys_agent,
-        path(".XEN_APPEND"),
-        xen_append,
-        comment
-      )
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tstring\n" +
-        "## Default:\tnone\n" +
-        "#\n" +
-        "# VGA option for XEN kernel.\n" +
-        "# If the options is commented or empty perl-Bootloader doesn't use it.\n" +
-        "# Empty option could be cause of broken size of fonts etc.\n" +
-        "#\n"
-      WriteOptionToSysconfig(
-        inst_bootloader,
-        sys_agent,
-        path(".XEN_VGA"),
-        xen_vga,
-        comment
-      )
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tstring\n" +
-        "## Default:\tnone\n" +
-        "#\n" +
-        "# Title of RealTime kernel in bootloader configuration file.\n" +
-        "#\n"
-      if addon_name != ""
-        WriteOptionToSysconfig(
-          inst_bootloader,
-          sys_agent,
-          path(".RT_NAME"),
-          addon_name,
-          comment
-        )
-      end
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tstring\n" +
-        "## Default:\tnone\n" +
-        "#\n" +
-        "# VGA option for RealTime kernel.\n" +
-        "# If the options is commented or empty perl-Bootloader doesn't use it.\n" +
-        "# Empty option could be cause of broken size of fonts etc.\n" +
-        "#\n"
-      if addon_vga != ""
-        WriteOptionToSysconfig(
-          inst_bootloader,
-          sys_agent,
-          path(".RT_VGA"),
-          addon_vga,
-          comment
-        )
-      end
-
-      comment = "\n" +
-        "## Path:\tSystem/Bootloader\n" +
-        "## Description:\tBootloader configuration\n" +
-        "## Type:\tstring\n" +
-        "## Default:\tnone\n" +
-        "#\n" +
-        "# Arguments for RealTime kernel.\n" +
-        "# If the options is commented perl-Bootloader uses his default arguments\n" +
-        "# for kernel.\n" +
-        "#\n"
-      if addon_append != ""
-        WriteOptionToSysconfig(
-          inst_bootloader,
-          sys_agent,
-          path(".RT_APPEND"),
-          addon_append,
-          comment
-        )
-      end
 
       nil
     end
@@ -1799,35 +1093,6 @@ module Yast
       end
 
       nil
-    end
-
-    # bnc #450153 - support for installation kernel from add-on
-    # fucntion call client from add-on and update proposal for
-    # yast2-bootloader. -> availabe edit kernel args for kernel
-    # from add-on
-    #
-    # @return [Boolean] - true on success
-    def UpdateProposalFromClient
-      ret = true
-      client_file = "kernel_bl_proposal"
-      if !Arch.i386 && !Arch.x86_64
-        Builtins.y2milestone(
-          "Unsuported architecture... for adding SLERT addon"
-        )
-        return ret
-      end
-
-      if WFM.ClientExists(client_file)
-        Builtins.y2milestone("Client: %1 was found", client_file)
-        WFM.CallFunction(client_file, [])
-      else
-        Builtins.y2milestone(
-          "File %1 doesn't exist - proposal will not be updated",
-          client_file
-        )
-      end
-
-      ret
     end
   end
 end

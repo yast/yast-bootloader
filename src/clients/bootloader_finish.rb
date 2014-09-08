@@ -164,8 +164,6 @@ module Yast
         # perl-BL delayed section removal
         Bootloader.RunDelayedUpdates
 
-        Bootloader.ResolveSymlinksInSections if !Mode.update
-
         @retcode = false
 
 
@@ -192,19 +190,7 @@ module Yast
           # update calling onetime boot bnc #339024
           if !@retcode
             @bl = Bootloader.getLoaderType
-            if @bl == "grub"
-              if BootCommon.isDefaultBootSectioLinux(
-                  Bootloader.getDefaultSection
-                )
-                return Bootloader.FlagOnetimeBoot(Bootloader.getDefaultSection)
-              else
-                return Bootloader.FlagOnetimeBoot(
-                  BootCommon.findRelativeDefaultLinux
-                )
-              end
-            else
-              return Bootloader.FlagOnetimeBoot(Bootloader.getDefaultSection)
-            end
+            return Bootloader.FlagOnetimeBoot(Bootloader.getDefaultSection)
           end
         else
           return @retcode

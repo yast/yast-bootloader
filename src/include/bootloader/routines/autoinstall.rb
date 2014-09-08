@@ -113,43 +113,6 @@ module Yast
       Yast.import "Popup"
     end
 
-    # Add missing data (eg. root filesystem) to sections imported from profile
-    # @param [Array<Hash{String => Object>}] sect a list of all sections
-    # @return a lit of all updated sections
-    def UpdateImportedSections(sect)
-      sect = deep_copy(sect)
-      sect = Builtins.maplist(sect) do |s|
-        Builtins.y2milestone("Updating imported section %1", s)
-        orig_name = Ops.get_string(
-          s,
-          "original_name",
-          Ops.get_string(s, "name", "linux")
-        )
-        type = Ops.get_string(s, "type", "image")
-        next deep_copy(s) if type != "image"
-        s = Convert.convert(
-          Builtins.union(BootCommon.CreateLinuxSection(orig_name), s),
-          :from => "map",
-          :to   => "map <string, any>"
-        )
-        # convert "kernel" to "image", if not already defined in the section
-        if Builtins.haskey(s, "kernel")
-          if !Builtins.haskey(s, "image")
-            Ops.set(s, "image", Ops.get_string(s, "kernel", ""))
-          end
-          s = Builtins.remove(s, "kernel")
-        end
-        # convert "vga" to "vgamode", if not already defined in the section
-        if Builtins.haskey(s, "vga")
-          if !Builtins.haskey(s, "vgamode")
-            Ops.set(s, "vgamode", Ops.get_string(s, "vga", ""))
-          end
-          s = Builtins.remove(s, "vga")
-        end
-        deep_copy(s)
-      end
-      deep_copy(sect)
-    end
 
     # Translate the autoinstallation map to the Export map
     # @param [Hash{String => Object}] ai a map the autoinstallation map
@@ -191,72 +154,6 @@ module Yast
         "repl_mbr" => "generic_mbr",
         "activate" => "activate"
       }
-
-      if Ops.get_string(ai, "loader_type", "") == "grub"
-        Builtins.foreach(["repl_mbr", "activate"]) do |k|
-          if Builtins.haskey(ai, k)
-            if Ops.get_string(ai, "loader_type", "") == "grub"
-              # NOTE: repl_mbr and activate have an effect for lilo,
-              # for grub they are only accepted for backwards
-              # compatibility (we use globals["generic_mbr"] and
-              # globals["activate"] there); anyhow, an existing
-              # new-style key in the global map from autoyast has
-              # precedence over the old-style key (and will
-              # overwrite this later when we import it from the ai
-              # map)
-              Ops.set(
-                exp,
-                ["specific", "global", Ops.get(old_key_to_new_global_key, k)],
-                Ops.get_boolean(ai, k, false) ? "true" : "false"
-              )
-              Builtins.y2milestone(
-                "converted old key %1 to key %2 in globals: %3",
-                k,
-                Ops.get(old_key_to_new_global_key, k),
-                Ops.get(exp, ["specific", "global"])
-              )
-            else
-              Ops.set(exp, ["specific", k], Ops.get(ai, k))
-            end
-          end
-        end
-        # loader_location needs other default and key
-        #
-        # NOTE: loader_device and loader_location (aka selected_location
-        # internally) have an effect for lilo, for grub loader_location is
-        # only accepted for backwards compatibility, but loader_device is
-        # ignored (FIXME: can we map this to the boot_* variables, or is
-        # the target map not yet available?)
-        # (we use globals["boot_*"] for these functions now)
-        # anyhow, an existing new-style boot_* key in the global map from
-        # autoyast has precedence over the settings from the old-style key
-        # (and it will be overwritten later when we import the boot_* keys
-        # from the ai map)
-        if Ops.get_string(ai, "loader_type", "") == "grub" &&
-            Builtins.haskey(ai, "location")
-          if Ops.get(ai, "location") == "extended"
-            Ops.set(exp, ["specific", "global", "boot_extended"], "true")
-          elsif Ops.get(ai, "location") == "boot"
-            Ops.set(exp, ["specific", "global", "boot_boot"], "true")
-          elsif Ops.get(ai, "location") == "root"
-            Ops.set(exp, ["specific", "global", "boot_root"], "true")
-          elsif Ops.get(ai, "location") == "mbr"
-            Ops.set(exp, ["specific", "global", "boot_mbr"], "true")
-          elsif Ops.get(ai, "location") == "mbr_md"
-            Ops.set(exp, ["specific", "global", "boot_mbr"], "true")
-          end
-        else
-          Ops.set(
-            exp,
-            "loader_location",
-            Ops.get_string(ai, "location", "custom")
-          )
-        end
-
-        Builtins.foreach(
-          ["loader_device"] #"loader_location",
-        ) { |k| Ops.set(exp, k, Ops.get(ai, k)) if Builtins.haskey(ai, k) }
-      end # LILO and GRUB stuff
 
       # device map stuff
       if Ops.greater_than(Builtins.size(Ops.get_list(ai, "device_map", [])), 0)
@@ -325,22 +222,6 @@ module Yast
 
       old_format = false
 
-      # section stuff
-      section_names = []
-      if Ops.greater_than(Builtins.size(Ops.get_list(ai, "sections", [])), 0)
-        Builtins.foreach(Ops.get_list(ai, "sections", [])) do |s|
-          old_format = true if !Ops.is(s, "map <string, any>")
-        end
-        if !old_format
-          sect = Ops.get_list(ai, "sections", [])
-          sect = UpdateImportedSections(sect)
-          Ops.set(exp, ["specific", "sections"], sect)
-          section_names = Builtins.maplist(sect) do |s|
-            Ops.get_string(s, "name", "")
-          end
-        end
-      end
-
       # global stuff
       if !Builtins.haskey(ai, "global") || Ops.is_map?(Ops.get(ai, "global"))
         Ops.set(
@@ -363,13 +244,10 @@ module Yast
         # Converting key/value pairs to file contents first, then setting
         # as file contents and re-exporting the parsed file contents.
 
-        sections = Ops.get_list(ai, "sections", [])
         globals = Ops.get_list(ai, "global", [])
-        sections = Builtins.prepend(sections, globals)
-        flat = Builtins.flatten(sections)
         loader = Ops.get_string(ai, "loader_type", "")
-        separator = loader == "grub" ? " " : " = "
-        lines = Builtins.maplist(flat) do |f|
+        separator = " = "
+        lines = Builtins.maplist(globals) do |f|
           Builtins.sformat(
             "%1%2%3",
             Ops.get_string(f, "key", ""),
@@ -380,39 +258,9 @@ module Yast
         file = Builtins.mergestring(lines, "\n")
         BootCommon.InitializeLibrary(true, loader)
         BootCommon.SetDeviceMap(BootStorage.device_mapping)
-        BootCommon.SetSections([])
         BootCommon.SetGlobal({})
-        files = BootCommon.GetFilesContents
-        bl2file =
-          # TODO the other bootloaders
-          { "grub" => "/boot/grub/menu.lst"}
-        Ops.set(files, Ops.get(bl2file, loader, ""), file)
         BootCommon.SetFilesContents(files)
         Ops.set(exp, ["specific", "global"], BootCommon.GetGlobal)
-        sect = BootCommon.GetSections
-        sect = UpdateImportedSections(sect)
-        Ops.set(exp, ["specific", "sections"], sect)
-        section_names = Builtins.maplist(sect) do |s|
-          Ops.get_string(s, "name", "")
-        end
-      end
-
-      if Builtins.haskey(
-          Ops.get_map(exp, ["specific", "global"], {}),
-          "default"
-        ) &&
-          !Builtins.contains(
-            section_names,
-            Ops.get_string(exp, ["specific", "global", "default"], "")
-          )
-        Ops.set(
-          exp,
-          ["specific", "global"],
-          Builtins.remove(
-            Ops.get_map(exp, ["specific", "global"], {}),
-            "default"
-          )
-        )
       end
 
       deep_copy(exp)
@@ -439,37 +287,6 @@ module Yast
           { k => v }
         end)
       end
-      # sections stuff
-      Ops.set(
-        ai,
-        "sections",
-        Builtins.maplist(Ops.get_list(exp, ["specific", "sections"], [])) do |s|
-          s = Builtins.filter(s) { |k, v| Builtins.substring(k, 0, 2) != "__" }
-          deep_copy(s)
-        end
-      )
-
-      # LILO and GRUB stuff
-      if Ops.get_string(ai, "loader_type", "") == "grub"
-        # FIXME: repl_mbr and activate are obsolete for GRUB, no need to
-        # look for them in the export map any more (but does not really do
-        # any harm)
-        Builtins.foreach(["repl_mbr", "activate"]) do |k|
-          if Builtins.haskey(Ops.get_map(exp, "specific", {}), k)
-            Ops.set(ai, k, Ops.get(exp, ["specific", k]))
-          end
-        end
-        # FIXME: loader_device and loader_location (aka selected_location
-        # internally) are obsolete for GRUB, no need to look for them in
-        # the export map any more (but does not really do any harm)
-        if Builtins.haskey(exp, "loader_location")
-          Ops.set(ai, "location", Ops.get_string(exp, "loader_location", ""))
-        end
-        Builtins.foreach(["loader_device"]) do |k|
-          Ops.set(ai, k, Ops.get(exp, k)) if Builtins.haskey(exp, k)
-        end
-      end
-
       # device map stuff
       if Ops.greater_than(
           Builtins.size(Ops.get_map(exp, ["specific", "device_map"], {})),

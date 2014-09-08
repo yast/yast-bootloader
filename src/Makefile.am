@@ -6,10 +6,8 @@ module_DATA = \
   modules/BootGRUB2EFI.rb \
   modules/BootStorage.rb \
   modules/BootArch.rb \
-  modules/GfxMenu.rb \
   modules/BootSupportCheck.rb \
-  modules/BootGRUB2.rb \
-  modules/BootGRUB.rb
+  modules/BootGRUB2.rb
 
 client_DATA = \
   clients/bootloader.rb \
@@ -24,10 +22,8 @@ ynclude_DATA = \
   include/bootloader/routines/wizards.rb \
   include/bootloader/routines/popups.rb \
   include/bootloader/routines/i386.rb \
-  include/bootloader/routines/section_helps.rb \
   include/bootloader/routines/misc.rb \
   include/bootloader/routines/autoinstall.rb \
-  include/bootloader/routines/section_widgets.rb \
   include/bootloader/routines/dialogs.rb \
   include/bootloader/routines/lilolike.rb \
   include/bootloader/routines/switcher.rb \
@@ -46,8 +42,6 @@ ynclude2_DATA = \
 ynclude3dir = @yncludedir@/bootloader/grub
 ynclude3_DATA = \
   include/bootloader/grub/options.rb \
-  include/bootloader/grub/misc.rb \
-  include/bootloader/grub/dialogs.rb \
   include/bootloader/grub/helps.rb
 
 ylibdir = "${yast2dir}/lib/bootloader"
@@ -56,8 +50,7 @@ ylib_DATA = \
   lib/bootloader/grub2pwd.rb
 
 scrconf_DATA = \
-  scrconf/cfg_bootloader.scr \
-  scrconf/cfg_bootsplash.scr
+  scrconf/cfg_bootloader.scr
 
 schemafilesdir = $(schemadir)/autoyast/rnc
 schemafiles_DATA = \

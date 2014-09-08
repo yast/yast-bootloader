@@ -51,14 +51,6 @@ module Yast
       )
     end
 
-    # Display question
-    # @param [String] title string section title
-    # @return [Boolean] true if answered yes
-    def confirmSectionDeletePopup(title)
-      # yes-no popup question
-      Popup.YesNo(Builtins.sformat(_("Really delete section %1?"), title))
-    end
-
     # Display error
     def emptyPasswdErrorPopup
       # error popup
@@ -79,32 +71,6 @@ module Yast
       nil
     end
 
-    # Display popup about change of section
-    # @param [String] sect_name string section name
-    def displayDiskChangePopup(sect_name)
-      # message popup, %1 is sectino label
-      Popup.Message(
-        Builtins.sformat(
-          _("The disk settings have changed.\nCheck section %1 settings.\n"),
-          sect_name
-        )
-      )
-
-      nil
-    end
-
-    # Display popup
-    def displayFilesEditedPopup
-      # message popup
-      Popup.Message(
-        _(
-          "The disk settings have changed and you edited boot loader\nconfiguration files manually. Check the boot loader settings.\n"
-        )
-      )
-
-      nil
-    end
-
     # Ask for change of bootloader location because of device unavailability
     # @param [String] reason text stating why the location should be re-proposed
     # @return [Boolean] yes if shall be reset
@@ -115,100 +81,6 @@ module Yast
         # sentence.
         Builtins.sformat(_("%1Set default boot loader location?\n"), reason)
       )
-    end
-
-    # Show the popup before saving to floppy, handle actions
-    # @return true on success
-    def saveToFLoppyPopup
-      retval = true
-      format = false
-      fs = :no
-      items = [
-        # combobox item
-        Item(Id(:no), _("Do Not Create a File System")),
-        # combobox item
-        Item(Id(:ext2), _("Create an ext2 File System"))
-      ]
-      if SCR.Read(path(".target.size"), "/sbin/mkfs.msdos") != -1
-        # combobox item
-        items = Builtins.add(
-          items,
-          Item(Id(:fat), _("Create a FAT File System"))
-        )
-      end
-      contents = VBox(
-        # label
-        Label(
-          _(
-            "The boot loader boot sector will be written\n" +
-              "to a floppy disk. Insert a floppy disk\n" +
-              "and confirm with OK.\n"
-          )
-        ),
-        VSpacing(1),
-        # checkbox
-        Left(CheckBox(Id(:format), _("&Low Level Format"), false)),
-        VSpacing(1),
-        # combobox
-        Left(ComboBox(Id(:fs), _("&Create File System"), items)),
-        VSpacing(1),
-        PushButton(Id(:ok), Label.OKButton)
-      )
-      UI.OpenDialog(contents)
-      ret = nil
-      while ret != :ok
-        ret = UI.UserInput
-      end
-      if ret == :ok
-        format = Convert.to_boolean(UI.QueryWidget(Id(:format), :Value))
-        fs = Convert.to_symbol(UI.QueryWidget(Id(:fs), :Value))
-      end
-      UI.CloseDialog
-      # FIXME: loader_device cannot be used for grub anymore; but this
-      # function should not be used anymore anyway, because BootFloppy has
-      # been disabled.
-      dev = BootCommon.loader_device
-      if format
-        tmpretval = true
-        Builtins.y2milestone("Low level formating floppy")
-        while true
-          tmpretval = 0 ==
-            SCR.Execute(
-              path(".target.bash"),
-              Builtins.sformat("/usr/bin/fdformat %1", dev)
-            )
-          break if tmpretval
-          # yes-no popup
-          break if !Popup.YesNo(_("Low level format failed. Try again?"))
-        end
-        retval = retval && tmpretval
-      end
-      if fs == :ext2
-        Builtins.y2milestone("Creating ext2 on floppy")
-        tmpretval = 0 ==
-          SCR.Execute(
-            path(".target.bash"),
-            Builtins.sformat("/sbin/mkfs.ext2 %1", dev)
-          )
-        if !tmpretval
-          # error report
-          Report.Error(_("Creating file system failed."))
-        end
-        retval = retval && tmpretval
-      elsif fs == :fat
-        Builtins.y2milestone("Creating msdosfs on floppy")
-        tmpretval = 0 ==
-          SCR.Execute(
-            path(".target.bash"),
-            Builtins.sformat("/sbin/mkfs.msdos %1", dev)
-          )
-        if !tmpretval
-          # error report
-          Report.Error(_("Creating file system failed."))
-        end
-        retval = retval && tmpretval
-      end
-      retval
     end
 
     # Display error
@@ -230,36 +102,6 @@ module Yast
           "An error occurred during boot loader\ninstallation. Retry boot loader configuration?\n"
         )
       )
-    end
-
-    # Display error popup with log
-    # @param [String] header string error header
-    # @param [String] log string logfile contents
-    def errorWithLogPopup(header, log)
-      if log == nil
-        # FIXME too generic, but was already translated
-        log = _("Unable to install the boot loader.")
-      end
-      text = RichText(Opt(:plainText), log)
-      UI.OpenDialog(
-        Opt(:decorated),
-        VBox(
-          HSpacing(75),
-          Heading(header),
-          # heading
-          HBox(
-            VSpacing(14), # e.g. `Richtext()
-            text
-          ),
-          PushButton(Id(:ok_help), Opt(:default), Label.OKButton)
-        )
-      )
-
-      UI.SetFocus(Id(:ok_help))
-      r = UI.UserInput
-      UI.CloseDialog
-
-      nil
     end
 
     # Display popup - confirmation befopre restoring MBR

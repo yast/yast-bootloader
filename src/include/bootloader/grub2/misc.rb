@@ -35,32 +35,7 @@ module Yast
 
     # --------------------------------------------------------------
     # --------------------------------------------------------------
-    # updateMBR and related stuff, plus InstallingToFloppy() (taken from
-    # routines/misc.ycp)
-
-    # Check if installation to floppy is performed
-    # @return true if installing bootloader to floppy
-    def grub_InstallingToFloppy
-      ret = false
-      # there is no boot_floppy flag, the installation to floppy devices needs
-      # to be specified in the boot_custom flag
-      # (FIXME: which is freely editable, as soon as the generic 'selectdevice'
-      # widget allows this; also need perl-Bootloader to put the floppy device
-      # in the list of the boot_custom widget)
-      if Ops.get(BootCommon.globals, "boot_custom") == nil
-        ret = false
-      elsif Ops.get(BootCommon.globals, "boot_custom") ==
-          StorageDevices.FloppyDevice
-        ret = true
-      elsif Builtins.contains(
-          BootStorage.getFloppyDevices,
-          Ops.get(BootCommon.globals, "boot_custom")
-        )
-        ret = true
-      end
-      Builtins.y2milestone("Installing to floppy: %1", ret)
-      ret
-    end
+    # updateMBR and related stuff
 
     # Given a device name to which we install the bootloader (loader_device),
     # get the name of the partition which should be activated.
@@ -1078,90 +1053,6 @@ module Yast
     # --------------------------------------------------------------
     # other stuff
 
-
-    # FATE #301994 - Correct device mapping in case windows is installed on the second HD
-    # Check if chainloader section with windows is on the first disk
-    #
-    # @param [Hash{String => Object}] section from  BootCommon::sections
-    # @return [Boolean] true if it is necessary remap section
-    def isWidnowsOnBootDisk(section)
-      section = deep_copy(section)
-      # check if it is windows chainloader
-      if Builtins.search(
-          Builtins.tolower(Ops.get_string(section, "name", "")),
-          "windows"
-        ) != nil ||
-          Builtins.search(
-            Builtins.tolower(Ops.get_string(section, "original_name", "")),
-            "windows"
-          ) != nil
-        p_dev = Storage.GetDiskPartition(
-          Ops.get_string(section, "chainloader", "")
-        )
-
-        disk_dev = Ops.get_string(p_dev, "disk", "")
-        if disk_dev == ""
-          Builtins.y2error("trying find disk for windows chainloader failed")
-          return false
-        end
-        # find grub id in device map for chainloader device
-        grub_id = Ops.get(BootStorage.device_mapping, disk_dev, "")
-        Builtins.y2milestone(
-          "Disk from windows chainloader: %1 grub id from device map: %2",
-          disk_dev,
-          grub_id
-        )
-
-        # check if disk is the first in order...
-        return true if grub_id != "hd0"
-      end
-      false
-    end
-
-    # FATE #301994 - Correct device mapping in case windows is installed on the second HD
-    # Remap and make active windows chainloader section
-    # if it is not on the boot (the first) disk
-    # @param list of sections
-    # @return [Array] of sections
-
-    def checkWindowsSection(sections)
-      sections = deep_copy(sections)
-      # list of idexes from sections where is chainloader
-      # and where is necessary add remapping and makeactive
-      list_index = []
-      # counter
-      index = -1
-      # check all sections...
-      Builtins.foreach(sections) do |section|
-        index = Ops.add(index, 1)
-        if Builtins.haskey(section, "chainloader")
-          Builtins.y2debug("chainloader section: %1", section)
-          # add only indexes for update
-          if isWidnowsOnBootDisk(section)
-            list_index = Builtins.add(list_index, index)
-          end
-        end
-      end
-
-      if Ops.greater_than(Builtins.size(list_index), 0)
-        Builtins.foreach(list_index) do |idx|
-          Ops.set(sections, [idx, "remap"], "true")
-          Ops.set(sections, [idx, "makeactive"], "true")
-          Builtins.y2milestone(
-            "Added remap and makeactive for section: %1",
-            Ops.get(sections, idx, {})
-          )
-        end
-      end
-
-      Builtins.y2debug(
-        "Checking sections for windows chainloader: %1",
-        sections
-      )
-      deep_copy(sections)
-    end
-
-
     # FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
     # The function reduces records (devices) in device.map
     # Grub doesn't support more than 8 devices in device.map
@@ -1220,61 +1111,6 @@ module Yast
           "Device map includes less than 9 devices. It is not reduced. device_map: %1",
           BootStorage.device_mapping
         )
-      end
-      result
-    end
-
-
-    # FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
-    # The function check if boot device is in device.map
-    # Grub doesn't support more than 8 devices in device.map
-    # @param string boot device
-    # @param string boot device with name by mountby
-    # @return [Boolean] true if there is missing boot device
-    def checkBootDeviceInDeviceMap(boot_dev, boot_dev_mountby)
-      result = false
-
-      if Ops.greater_than(Builtins.size(BootStorage.device_mapping), 8)
-        result = false
-        bios_order = Convert.convert(
-          Map.Values(BootStorage.device_mapping),
-          :from => "list",
-          :to   => "list <string>"
-        )
-        #delete all grub devices with order more than 9
-        bios_order = Builtins.filter(bios_order) do |key|
-          Ops.less_than(Builtins.size(key), 4)
-        end
-        bios_order = Builtins.lsort(bios_order)
-        Builtins.y2debug("ordered values (grub devices): %1", bios_order)
-        inverse_device_map = {}
-        Builtins.foreach(BootStorage.device_mapping) do |key, value|
-          Ops.set(inverse_device_map, value, key)
-        end
-
-        Builtins.y2debug("inverse_device_map: %1", inverse_device_map)
-        index = 0
-        boot_device_added = false
-        Builtins.foreach(bios_order) do |key|
-          device_name = Ops.get(inverse_device_map, key, "")
-          if Ops.less_than(index, 8)
-            if device_name == boot_dev || device_name == boot_dev_mountby
-              boot_device_added = true
-            end
-            index = Ops.add(index, 1)
-          else
-            if boot_device_added
-              Builtins.y2milestone("Device map includes boot disk")
-              raise Break
-            else
-              Builtins.y2error("Device map doesn't include boot disk")
-              result = true
-              raise Break
-            end
-          end
-        end
-      else
-        Builtins.y2milestone("Device map includes less than 9 devices.")
       end
       result
     end

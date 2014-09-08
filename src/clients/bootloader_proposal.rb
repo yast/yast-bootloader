@@ -18,7 +18,6 @@ module Yast
       Yast.import "Arch"
       Yast.import "BootCommon"
       Yast.import "Bootloader"
-      Yast.import "GfxMenu"
       Yast.import "Installation"
       Yast.import "Storage"
       Yast.import "Mode"
@@ -233,9 +232,6 @@ module Yast
       elsif @func == "Write"
         @succ = Bootloader.Write
         @ret = { "success" => @succ }
-      # update GfxMenu texts after language was changed
-      elsif @func == "UpdateGfxMenu"
-        GfxMenu.Update
       end
 
       deep_copy(@ret)

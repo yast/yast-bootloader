@@ -47,12 +47,6 @@ module Yast
     # @return [String] help text
     def getAdvancedButtonHelp
       ins = ""
-      if BootCommon.getLoaderType(false) == "grub"
-        # help text, optional part of following
-        ins = _(
-          "If you have multiple Linux systems installed,\nYaST can try to find them and merge their menus."
-        )
-      end
       # help text 1/2 (%1 may be following sentence, optionally empty)
       help = Builtins.sformat(
         _(
@@ -142,21 +136,6 @@ module Yast
             "to start &product;.</p>"
         )
       )
-
-      if StorageDevices.FloppyPresent
-        # custom bootloader help text, 4 of 7
-        # this part will only be shown if a floppy drive is attached.
-        helptext = Ops.add(
-          helptext,
-          _(
-            "<p>\n" +
-              "- On a <b>Floppy Disk</b>.\n" +
-              "Use this to avoid the risk of interfering with an already existing\n" +
-              "boot mechanism. Enable booting from floppy disk in\n" +
-              "the BIOS of your machine to use this option.</p>"
-          )
-        )
-      end
 
       # custom bootloader help text, 5 of 7
       helptext = Ops.add(

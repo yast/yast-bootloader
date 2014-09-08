@@ -104,7 +104,6 @@ module Yast
         BootCommon.location_changed = true
       end
 
-      #TODO: InstallingToFloppy ..
       if BootCommon.location_changed
         # bnc #461613 - Unable to boot after making changes to boot loader
         # bnc #357290 - module rewrites grub generic code when leaving with no changes, which may corrupt grub
@@ -339,7 +338,6 @@ module Yast
       nil
     end
 
-    publish :function => :grub_InstallingToFloppy, :type => "boolean ()"
     publish :function => :grub_updateMBR, :type => "boolean ()"
     publish :function => :ReduceDeviceMapTo8, :type => "boolean ()"
     publish :variable => :common_help_messages, :type => "map <string, string>"

@@ -41,20 +41,9 @@ module Yast
 
       # run generic sequence
       aliases = {
-        "edit_section_switch"  => [lambda { EditSectionSwitch() }, true],
-        "kernel_section"       => lambda { KernelSectionDialog() },
-        "kernel_details"       => lambda { DetailsDialog("kernel_section") },
-        "xen_section"          => lambda { XenSectionDialog() },
-        "menu_section"         => lambda { MenuSectionDialog() },
-        "dump_section"         => lambda { DumpSectionDialog() },
-        "chainloader_section"  => lambda { ChainloaderSectionDialog() },
-        "chainloader_details"  => lambda { DetailsDialog("chainloader_section") },
         "main"                 => lambda { MainDialog() },
         "installation_details" => lambda { DetailsDialog("installation") },
         "loader_details"       => lambda { DetailsDialog("loader") },
-        "add_new_section"      => lambda { AddNewSectionDialog() },
-        "store_section"        => [lambda { StoreSection() }, true],
-        "manual_edit"          => lambda { runEditFilesDialog }
       }
 
       @return_tab = Bootloader.getLoaderType != "none" ? "sections" : "installation"
@@ -64,41 +53,12 @@ module Yast
         "main"                 => {
           :next           => :next,
           :abort          => :abort,
-          :add            => "add_new_section",
-          :edit           => "edit_section_switch",
           :inst_details   => "installation_details",
           :loader_details => "loader_details",
-          :manual         => "manual_edit",
           :redraw         => "main"
         },
-        "manual_edit"          => { :abort => :abort, :next => "main" },
         "installation_details" => { :next => "main", :abort => :abort },
         "loader_details"       => { :next => "main", :abort => :abort },
-        "kernel_section"       => { :next => "store_section", :abort => :abort },
-        "kernel_details"       => {
-          :next  => "kernel_section",
-          :abort => :abort
-        },
-        "xen_section"          => { :next => "store_section", :abort => :abort },
-        "menu_section"         => { :next => "store_section", :abort => :abort },
-        "dump_section"         => { :next => "store_section", :abort => :abort },
-        "chainloader_section"  => { :next => "store_section", :abort => :abort },
-        "chainloader_details"  => {
-          :next  => "chainloader_section",
-          :abort => :abort
-        },
-        "add_new_section"      => {
-          :next  => "edit_section_switch",
-          :abort => :abort
-        },
-        "store_section"        => { :next => "main" },
-        "edit_section_switch"  => {
-          :kernel      => "kernel_section",
-          :chainloader => "chainloader_section",
-          :xen         => "xen_section",
-          :menus       => "menu_section",
-          :dump        => "dump_section"
-        }
       }
 
       Sequencer.Run(aliases, sequence)
