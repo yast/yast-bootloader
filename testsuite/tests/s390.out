@@ -1,9 +1,0 @@
-Log	[[$["key":"label", "value":"defaultboot"], $["key":"default", "value":"ipl"]], [$["key":"label", "value":"ipl"], $["key":"target", "value":"/boot/zipl"], $["key":"image", "value":"/boot/kernel/image"], $["key":"ramdisk", "value":"/boot/initrd"], $["key":"parameters", "value":"parameters"]], [$["key":"label", "value":"dumpdasd"], $["key":"target", "value":"/boot/zipl"], $["key":"dumpto", "value":"/dev/dasd??"]], [$["key":"label", "value":"dumptape"], $["key":"target", "value":"/boot/zipl"], $["key":"dumpto", "value":"/dev/rtibm0"]]]
-Dump	======================================
-Return	[$["dumpto":"/dev/dasd??", "label":"dumpdasd", "target":"/boot/zipl"], $["dumpto":"/dev/rtibm0", "label":"dumptape", "target":"/boot/zipl"]]
-Dump	======================================
-Return	nil
-Dump	======================================
-Log	[[$["key":"label", "value":"defaultboot"], $["key":"default", "value":"ipl"]], [$["key":"label", "value":"ipl"], $["key":"target", "value":"/boot/zipl"], $["key":"image", "value":"/boot/kernel/image"], $["key":"ramdisk", "value":"/boot/initrd"], $["key":"parameters", "value":"parameters"]], [$["key":"dumpto", "value":"/dev/dasd??"], $["key":"label", "value":"dumpdasd"], $["key":"target", "value":"/boot/zipl"]], [$["key":"dumpto", "value":"/dev/rtibm0"], $["key":"label", "value":"dumptape"], $["key":"target", "value":"/boot/zipl"]]]
-Dump	======================================
-Return	[$["dumpto":"/dev/dasd??", "label":"dumpdasd", "target":"/boot/zipl"], $["dumpto":"/dev/rtibm0", "label":"dumptape", "target":"/boot/zipl"]]

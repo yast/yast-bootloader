@@ -1,6 +1,0 @@
-Return	string
-Return	"string with spaces"
-Return	string_with_\"quote
-Return	"string with \\ backslash"
-Return	5
-Return	""

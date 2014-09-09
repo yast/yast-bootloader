@@ -1,8 +1,0 @@
-Return	
-Return	simple_string
-Return	unquoted string
-Return	quoted string
-Return	  unstripped quoted string 
-Return	string with backslash \ and spaces
-Return	string with escaped " quote
-Return	5

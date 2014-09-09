@@ -1,7 +1,0 @@
-Return	/dev/hda
-Return	/dev/hda1
-Return	/dev/hda12
-Return	/dev/ida/c0d0
-Return	/dev/ida/c0d0p1
-Return	/dev/ida/c0d0p12
-Return	/dev/fd0
