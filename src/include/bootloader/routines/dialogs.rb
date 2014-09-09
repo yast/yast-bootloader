@@ -34,7 +34,7 @@ module Yast
       Yast.include include_target, "bootloader/grub2/dialogs.rb"
 
 
-      @return_tab = "sections"
+      @return_tab = "installation"
     end
 
     # Test for abort.
