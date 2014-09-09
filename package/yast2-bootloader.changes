@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep  8 14:03:36 UTC 2014 - jreidinger@suse.com
+
+- switch build tool from autotools to rake
+- 3.1.96
+
+-------------------------------------------------------------------
 Mon Sep  8 13:26:45 UTC 2014 - jreidinger@suse.com
 
 - Drop remaining support for GRUB1 (fate#317700)
