@@ -168,22 +168,6 @@ module Yast
       raise "Unexpect value in loader type #{new_bl}"
     end
 
-    # Validate function of a widget
-    # @param [String] widget string widget key
-    # @param [Hash] event map event that caused validation
-    # @return [Boolean] true if validation succeeded
-    def LoaderTypeValidate(widget, event)
-      event = deep_copy(event)
-      if Ops.get(event, "ID") == "sections" &&
-          BootCommon.getLoaderType(false) == "none"
-        # popup message
-        Popup.Message(_("Select the boot loader before editing sections."))
-        return false
-      end
-      true
-    end
-
-
     # reset menu button
 
 
@@ -350,12 +334,7 @@ module Yast
             method(:LoaderTypeComboHandle),
             "symbol (string, map)"
           ),
-          "help"              => LoaderTypeHelp(),
-          "validate_type"     => :function,
-          "validate_function" => fun_ref(
-            method(:LoaderTypeValidate),
-            "boolean (string, map)"
-          )
+          "help"              => LoaderTypeHelp()
         },
         "loader_options" => {
           "widget"        => :push_button,
