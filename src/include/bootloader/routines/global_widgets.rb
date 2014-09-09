@@ -157,18 +157,9 @@ module Yast
           return :redraw
         end
 
-        if new_bl == "grub2"
+        if ["grub2", "grub2-efi"].include? (new_bl)
           Ops.set(BootCommon.other_bl, old_bl, Bootloader.Export)
-          BootCommon.setLoaderType("grub2")
-          Bootloader.Propose
-          BootCommon.location_changed = true
-          BootCommon.changed = true
-          return :redraw
-        end
-
-        if new_bl == "grub2-efi"
-          Ops.set(BootCommon.other_bl, old_bl, Bootloader.Export)
-          BootCommon.setLoaderType("grub2-efi")
+          BootCommon.setLoaderType(new_bl)
           Bootloader.Propose
           BootCommon.location_changed = true
           BootCommon.changed = true
