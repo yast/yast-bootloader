@@ -161,9 +161,6 @@ module Yast
       # time of last change of partitioning
       @partitioning_last_change = 0
 
-      # The name of the default section as it was read
-      @read_default_section_name = ""
-
       # Types of sections that should be updated (changed device names)
       # FIXME: see FIXME in lilolike.ycp:899
       @update_section_types = [ "other"]
@@ -413,13 +410,6 @@ module Yast
       @sections = GetSections()
       @globals = GetGlobal()
       BootStorage.device_mapping = GetDeviceMap()
-      @read_default_section_name = ""
-      Builtins.foreach(@sections) do |s|
-        if Ops.get_string(s, "original_name", "") == "linux" &&
-            @read_default_section_name == ""
-          @read_default_section_name = Ops.get_string(s, "name", "")
-        end
-      end
 
       # convert device names in device map to the kernel device names
       BootStorage.device_mapping = Builtins.mapmap(BootStorage.device_mapping) do |k, v|
