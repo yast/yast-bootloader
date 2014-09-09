@@ -1,2 +1,0 @@
-Dump	======================================
-Dump	Merged modules: $["initrd":$["list":["scsi_mod", "gdth", "reiserfs"], "settings":$["gdth":$[], "reiserfs":$[], "scsi_mod":$[]]], "loader_device":"", "loader_type":"unknown", "location":"", "specific":$["global":[], "sections":[]]]
