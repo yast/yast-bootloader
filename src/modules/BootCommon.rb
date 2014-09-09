@@ -423,22 +423,6 @@ module Yast
         end
       end
 
-
-      # convert root device names in sections to kernel device names, if
-      # possible
-      @sections = Builtins.maplist(@sections) do |s|
-        rdev = Ops.get_string(s, "root", "")
-        # bnc#533782 - after changing filesystem label system doesn't boot
-        if Ops.get_string(s, "append", "") != ""
-          Ops.set(
-            s,
-            "append",
-            remapResume(Ops.get_string(s, "append", ""), true)
-          )
-        end
-        Ops.set(s, "root", BootStorage.Dev2MountByDev(rdev))
-        deep_copy(s)
-      end
       true
     end
 
