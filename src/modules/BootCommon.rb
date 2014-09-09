@@ -940,7 +940,6 @@ module Yast
     publish :function => :PartitionInstallable, :type => "boolean ()"
     publish :function => :WriteToSysconf, :type => "void (boolean)"
     publish :function => :getBootDisk, :type => "string ()"
-    publish :function => :HandleConsole, :type => "void ()"
     publish :function => :HandleConsole2, :type => "void ()"
     publish :function => :GetSerialFromAppend, :type => "void ()"
     publish :function => :DiskOrderSummary, :type => "string ()"

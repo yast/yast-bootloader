@@ -996,57 +996,6 @@ module Yast
     # Add console arg for kernel if there is defined serial console
     # - add key console with value to section type image and xen
 
-    def HandleConsole
-      console_value = getConsoleValue
-
-      # list of idexes from sections where is image or xen
-      list_index = []
-      # counter
-      index = -1
-      Builtins.foreach(@sections) do |section|
-        index = Ops.add(index, 1)
-        if Ops.get_string(section, "type", "") == "image" ||
-            Builtins.search(Ops.get_string(section, "type", ""), "xen") != nil
-          list_index = Builtins.add(list_index, index)
-        end
-      end
-
-      # add key console with value
-      if Ops.greater_than(Builtins.size(list_index), 0)
-        Builtins.foreach(list_index) do |idx|
-          Ops.set(@sections, [idx, "__changed"], true)
-          if Ops.get(@sections, [idx, "append"]) != nil
-            updated_append = ""
-            if console_value != "" || console_value != nil
-              updated_append = UpdateSerialConsole(
-                Ops.get_string(@sections, [idx, "append"], ""),
-                console_value
-              )
-            else
-              updated_append = UpdateSerialConsole(
-                Ops.get_string(@sections, [idx, "append"], ""),
-                ""
-              )
-            end
-            if updated_append != nil
-              Ops.set(@sections, [idx, "append"], updated_append)
-            end
-          end
-          Builtins.y2debug(
-            "Added/Removed console for section: %1",
-            Ops.get(@sections, idx, {})
-          )
-        end
-      end
-
-      nil
-    end
-
-
-    # FATE #110038: Serial console
-    # Add console arg for kernel if there is defined serial console
-    # - add key console with value to section type image and xen
-
     def HandleConsole2
 
       if @globals["terminal"] != "serial"
