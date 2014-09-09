@@ -134,7 +134,7 @@ module Yast
     end
 
 
-    # Modify the boot loader section
+    # Modify the boot loader global option
     # @param [String] key string the key to modify
     # @param [String] value string the value to set
     # @return [Boolean] true on success
@@ -143,7 +143,7 @@ module Yast
       return true
     end
 
-    # Set specified option in specified section
+    # Set specified option in global options
     # @param [Hash] options a list of parameters passed as args
     # @return [Boolean] true on success
     def BootloaderSetHandler(options)
@@ -157,15 +157,15 @@ module Yast
       BootloaderModify(option, value.to_s)
     end
 
-    # Delete specified option in specified section
+    # Delete specified option
     # @param [Hash] options a list of parameters passed as args
     # @return [Boolean] true on success
     def BootloaderDeleteHandler(options)
       option = options["option"]
-      BootloaderModifySection(section, option, nil)
+      BootloaderModifySection(option, nil)
     end
 
-    # Print the value of specified option of specified section
+    # Print the value of specified option
     # @param [Hash] options a list of parameters passed as args
     # @return [Boolean] true on success
     def BootloaderPrintHandler(options)
