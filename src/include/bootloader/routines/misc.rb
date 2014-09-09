@@ -586,15 +586,6 @@ module Yast
       @additional_failsafe_params
     end
 
-    # Check if memtest86 is present
-    # @return [Boolean] true if memtest86 section is to be proposed
-    def MemtestPresent
-      !Builtins.contains(@removed_sections, "memtest") &&
-        (Mode.test || Mode.normal && Pkg.IsProvided("memtest86+") ||
-          !Mode.normal && Pkg.IsSelected("memtest86+"))
-    end
-
-
     # Check if the bootloader can be installed at all with current configuration
     # @return [Boolean] true if it can
     def BootloaderInstallable

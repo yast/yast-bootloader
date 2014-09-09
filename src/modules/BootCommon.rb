@@ -214,16 +214,6 @@ module Yast
         "__changed"     => true
       }
 
-      if title == "memtest86"
-        if MemtestPresent()
-          Ops.set(ret, "image", "/boot/memtest.bin")
-          Ops.set(ret, "__devs", [BootStorage.BootPartitionDevice])
-          return deep_copy(ret)
-        else
-          return {}
-        end
-      end
-
       resume = BootArch.ResumeAvailable ? getLargestSwapPartition : ""
       # try to use label or udev id for device name... FATE #302219
       if resume != "" && resume != nil
