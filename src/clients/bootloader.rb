@@ -179,7 +179,7 @@ module Yast
       value = BootCommon.globals[option]
       if value
         # command line, %1 is the value of bootloader option
-        CommandLine.Print(_("Value: %s") % value))
+        CommandLine.Print(_("Value: %s") % value)
       else
         # command line error report
         CommandLine.Print(_("Specified option does not exist."))
