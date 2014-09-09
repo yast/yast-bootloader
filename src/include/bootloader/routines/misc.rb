@@ -115,12 +115,12 @@ module Yast
       deep_copy(globals_set)
     end
 
-    # Function remap "resume" from section (append) to device name (/dev/sda)
+    # Function remap "resume" from kernel command line to device name (/dev/sda)
     # or to label (ufo_partition)
     #
-    # @param map<string,any> sections
+    # @param append[String] kernel append line
     # @param boolean true if convert resume to persistent device name
-    # @return [Hash{String => Object}] sections
+    # @return [String] new kernel append line
 
     def remapResume(append, to_persistent)
       if Builtins.search(append, "resume") != nil &&
