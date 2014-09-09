@@ -160,10 +160,6 @@ module Yast
       @files_edited = false
       # time of last change of partitioning
       @partitioning_last_change = 0
-      # true if memtest was removed by user (manually) during the installation
-      # proposal
-      #FIXME correct comment
-      @removed_sections = []
 
       # The name of the default section as it was read
       @read_default_section_name = ""
@@ -468,7 +464,6 @@ module Yast
       # DetectDisks ();
       @activate = false
       @activate_changed = false
-      @removed_sections = []
       @was_proposed = false
 
       nil
@@ -893,7 +888,6 @@ module Yast
     publish :variable => :location_changed, :type => "boolean"
     publish :variable => :files_edited, :type => "boolean"
     publish :variable => :partitioning_last_change, :type => "integer"
-    publish :variable => :removed_sections, :type => "list <string>"
     publish :variable => :update_section_types, :type => "list <string>"
     publish :variable => :enable_md_array_redundancy, :type => "boolean"
     publish :function => :getLoaderType, :type => "string (boolean)"
