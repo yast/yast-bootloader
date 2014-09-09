@@ -115,16 +115,6 @@ module Yast
       deep_copy(globals_set)
     end
 
-    # returns list difference A \ B (items that are in A and are not in B)
-    # @param [Array] a list A
-    # @param [Array] b list B
-    # @return [Array] see above
-    def difflist(a, b)
-      a = deep_copy(a)
-      b = deep_copy(b)
-      Builtins.filter(a) { |e| !Builtins.contains(b, e) }
-    end
-
     # Get bootloader device for specified location
     # FIXME: this function is being phased out. Keeping it around until
     # selected_location and loader_device can be dropped for all bootloader
