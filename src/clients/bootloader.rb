@@ -29,7 +29,7 @@ module Yast
       Yast.include self, "bootloader/routines/wizards.rb"
 
       # the command line description map
-      @cmdline = {
+      cmdline = {
         "id"         => "bootloader",
         # command line help text for Bootloader module
         "help"       => _(
@@ -102,19 +102,10 @@ module Yast
       }
 
       Builtins.y2milestone("Starting bootloader configuration module")
-      @skip_io = false
-      @i = 0
-      while Ops.less_than(@i, Builtins.size(WFM.Args))
-        if path(".noio") == WFM.Args(@i) || ".noio" == WFM.Args(@i)
-          @skip_io = true
-        end
-        @i = Ops.add(@i, 1)
-      end
-
-      @ret = CommandLine.Run(@cmdline)
+      ret = CommandLine.Run(cmdline)
 
       Builtins.y2milestone("Finishing bootloader configuration module")
-      deep_copy(@ret)
+      ret
     end
 
     # --------------------------------------------------------------------------
@@ -123,7 +114,6 @@ module Yast
     # CommandLine handler for running GUI
     # @return [Boolean] true if settings were saved
     def GuiHandler
-      ret = nil
       ret = BootloaderSequence()
 
       return false if ret == :abort || ret == :back || ret == :nil
@@ -181,18 +171,18 @@ module Yast
     def BootloaderPrintHandler(options)
       options = deep_copy(options)
       option = options["option"]
-      if option == nil
+      if option.nil?
         # command line error report
         CommandLine.Print(_("Option was not specified."))
         return false
       end
       value = BootCommon.globals[option]
-      if value == nil
-        # command line error report
-        CommandLine.Print(_("Specified option does not exist."))
-      else
+      if value
         # command line, %1 is the value of bootloader option
         CommandLine.Print(_("Value: %s") % value))
+      else
+        # command line error report
+        CommandLine.Print(_("Specified option does not exist."))
       end
       false
     end
