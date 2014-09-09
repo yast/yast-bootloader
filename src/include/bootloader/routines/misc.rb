@@ -115,57 +115,6 @@ module Yast
       deep_copy(globals_set)
     end
 
-    # Function remap "resume" from kernel command line to device name (/dev/sda)
-    # or to label (ufo_partition)
-    #
-    # @param append[String] kernel append line
-    # @param boolean true if convert resume to persistent device name
-    # @return [String] new kernel append line
-
-    def remapResume(append, to_persistent)
-      if Builtins.search(append, "resume") != nil &&
-          Builtins.search(append, "noresume") == nil
-        Builtins.y2milestone("append before remapping resume: %1", append)
-        list_append = Builtins.splitstring(append, " ")
-        Builtins.y2debug("split append to list list_append: %1", list_append)
-        new_append = []
-
-        Builtins.foreach(list_append) do |key|
-          if Builtins.search(key, "resume") != nil
-            Builtins.y2debug("arg resume from append: %1", key)
-            resume_arg = Builtins.splitstring(key, "=")
-            dev = Ops.get(resume_arg, 1, "")
-            Builtins.y2debug("value of resume: %1", Ops.get(resume_arg, 1, ""))
-            if dev != ""
-              resume = ""
-              # bnc#533782 - after changing filesystem label system doesn't boot
-              if to_persistent
-                resume = Ops.add("resume=", BootStorage.Dev2MountByDev(dev))
-              else
-                resume = Ops.add("resume=", BootStorage.MountByDev2Dev(dev))
-              end
-              Builtins.y2debug("remap resume: %1", resume)
-              new_append = Builtins.add(new_append, resume)
-            else
-              Builtins.y2debug("adding key to new append_list: %1", key)
-              new_append = Builtins.add(new_append, key)
-            end
-          else
-            Builtins.y2debug("adding key to new append_list: %1", key)
-            new_append = Builtins.add(new_append, key)
-          end
-        end
-
-        Builtins.y2debug("NEW append list: %1", new_append)
-        ret = Builtins.mergestring(new_append, " ")
-        Builtins.y2milestone("Append after remaping: %1", ret)
-        return ret
-      else
-        Builtins.y2milestone("Section hasn't resume...")
-        return append
-      end
-    end
-
     # returns list difference A \ B (items that are in A and are not in B)
     # @param [Array] a list A
     # @param [Array] b list B
