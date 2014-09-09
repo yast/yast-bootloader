@@ -161,10 +161,6 @@ module Yast
       # time of last change of partitioning
       @partitioning_last_change = 0
 
-      # Types of sections that should be updated (changed device names)
-      # FIXME: see FIXME in lilolike.ycp:899
-      @update_section_types = [ "other"]
-
       # List of all supported bootloaders
       @bootloaders = [
         "grub2",
@@ -878,7 +874,6 @@ module Yast
     publish :variable => :location_changed, :type => "boolean"
     publish :variable => :files_edited, :type => "boolean"
     publish :variable => :partitioning_last_change, :type => "integer"
-    publish :variable => :update_section_types, :type => "list <string>"
     publish :variable => :enable_md_array_redundancy, :type => "boolean"
     publish :function => :getLoaderType, :type => "string (boolean)"
     publish :function => :getSystemSecureBootStatus, :type => "boolean (boolean)"
