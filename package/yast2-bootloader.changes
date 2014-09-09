@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Sep  9 15:38:15 UTC 2014 - jreidinger@suse.com
+
+- cleaning of section related code because we no longer support
+  any bootloader which allows direct write of sections
+
+-------------------------------------------------------------------
 Mon Sep  8 14:03:36 UTC 2014 - jreidinger@suse.com
 
 - switch build tool from autotools to rake
