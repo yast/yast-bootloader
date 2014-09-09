@@ -88,16 +88,6 @@ module Yast
       # Parameters of all bootloaders
       @bootloader_attribs = {}
 
-      # Name of currently edited section
-      @current_section_name = nil
-
-      # Index of current section, -1 for new created section
-      @current_section_index = -1
-
-      # Curtrently edited section -- tmp store
-      @current_section = {}
-
-
       # device holding MBR for bootloader
       @mbrDisk = ""
 
@@ -887,9 +877,6 @@ module Yast
     publish :variable => :selected_location, :type => "string"
     publish :variable => :current_bootloader_attribs, :type => "map <string, any>"
     publish :variable => :bootloader_attribs, :type => "map <string, map <string, any>>"
-    publish :variable => :current_section_name, :type => "string"
-    publish :variable => :current_section_index, :type => "integer"
-    publish :variable => :current_section, :type => "map <string, any>"
     publish :variable => :mbrDisk, :type => "string"
     publish :variable => :backup_mbr, :type => "boolean"
     publish :variable => :activate, :type => "boolean"
