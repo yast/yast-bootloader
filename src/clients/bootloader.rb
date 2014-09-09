@@ -139,7 +139,7 @@ module Yast
     # @param [String] value string the value to set
     # @return [Boolean] true on success
     def BootloaderModify(key, value)
-      BootCommon.globals[key, value]
+      BootCommon.globals[key] = value
       return true
     end
 

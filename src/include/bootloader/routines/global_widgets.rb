@@ -165,7 +165,7 @@ module Yast
         return :redraw
       end
 
-      raise "Unexpect value in loader type #{new_bl}"
+      raise "Unexpect value of loader type '#{new_bl}'"
     end
 
     # reset menu button
