@@ -994,7 +994,6 @@ module Yast
 
     # FATE #110038: Serial console
     # Add console arg for kernel if there is defined serial console
-    # - add key console with value to section type image and xen
 
     def HandleConsole2
 

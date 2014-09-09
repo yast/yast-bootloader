@@ -1016,7 +1016,6 @@ module Yast
     publish :function => :blRead, :type => "boolean (boolean, boolean)"
     publish :function => :blReset, :type => "void (boolean)"
     publish :function => :blPropose, :type => "void ()"
-    publish :function => :blsection_types, :type => "list <string> ()"
     publish :function => :blSave, :type => "boolean (boolean, boolean, boolean)"
     publish :function => :blSummary, :type => "list <string> ()"
     publish :function => :blUpdate, :type => "void ()"
