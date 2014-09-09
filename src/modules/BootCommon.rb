@@ -446,41 +446,6 @@ module Yast
       nil
     end
 
-    # bnc #390659 - autoyast bootloader config: empty settings are ignored (memtest)
-    #
-    # Check if sections inlcude section for memtest
-    # if yes delete all unnecessary keys like initrd, vgamode, append...
-    def checkMemtest
-      out = []
-
-      Builtins.foreach(@sections) do |s|
-        if Builtins.search(Ops.get_string(s, "image", ""), "memtest") != nil
-          tmp_s = {}
-          Ops.set(tmp_s, "image", Ops.get_string(s, "image", ""))
-          Ops.set(
-            tmp_s,
-            "original_name",
-            Ops.get_string(s, "original_name", "")
-          )
-          Ops.set(tmp_s, "name", Ops.get_string(s, "name", ""))
-          Ops.set(tmp_s, "__changed", Ops.get_boolean(s, "__changed", false))
-          Ops.set(tmp_s, "__auto", Ops.get_boolean(s, "__auto", false))
-          Ops.set(tmp_s, "type", Ops.get_string(s, "type", ""))
-          Builtins.y2milestone(
-            "Updating memtest section from: %1 to: %2",
-            s,
-            tmp_s
-          )
-          out = Builtins.add(out, tmp_s)
-        else
-          out = Builtins.add(out, s)
-        end
-      end
-
-      @sections = deep_copy(out)
-
-      nil
-    end
     # Save all bootloader configuration files to the cache of the PlugLib
     # PlugLib must be initialized properly !!!
     # @param [Boolean] clean boolean true if settings should be cleaned up (checking their
@@ -545,9 +510,6 @@ module Yast
           my_globals = Builtins.remove(my_globals, "boot_md_mbr")
         end
       end
-      # add check if there is memtest and delete from memtest section
-      # keys like append, initrd etc...
-      checkMemtest
       Builtins.y2milestone("SetSecureBoot %1", @secure_boot)
       ret = ret && SetSecureBoot(@secure_boot)
       ret = ret && DefineMultipath(BootStorage.multipath_mapping)
