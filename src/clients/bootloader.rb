@@ -56,21 +56,14 @@ module Yast
             ),
             # command line help text for delete action
             "help"    => _(
-              "Delete a global option or option of a section"
+              "Delete a global option"
             )
           },
           "set"     => {
             "handler" => fun_ref(method(:BootloaderSetHandler), "boolean (map)"),
             # command line help text for set action
             "help"    => _(
-              "Set a global option or option of a section"
-            )
-          },
-          "add"     => {
-            "handler" => fun_ref(method(:BootloaderAddHandler), "boolean (map)"),
-            # command line help text for add action
-            "help"    => _(
-              "Add a new section - please use interactive mode"
+              "Set a global option"
             )
           },
           "print"   => {
@@ -85,13 +78,6 @@ module Yast
           }
         },
         "options"    => {
-          "section" => {
-            # command line help text for an option
-            "help" => _(
-              "The name of the section"
-            ),
-            "type" => "string"
-          },
           "option"  => {
             # command line help text for an option
             "help" => _(
@@ -109,10 +95,9 @@ module Yast
         },
         "mappings"   => {
           "summary" => [],
-          "delete"  => ["section", "option"],
-          "set"     => ["section", "option", "value"],
-          "add"     => ["section"],
-          "print"   => ["section", "option"]
+          "delete"  => ["option"],
+          "set"     => ["option", "value"],
+          "print"   => ["option"]
         }
       }
 
@@ -127,7 +112,6 @@ module Yast
       end
 
       @ret = CommandLine.Run(@cmdline)
-      #    boolean ret = GuiHandler ();
 
       Builtins.y2milestone("Finishing bootloader configuration module")
       deep_copy(@ret)
@@ -161,96 +145,34 @@ module Yast
 
 
     # Modify the boot loader section
-    # @param [String] section string the section name
     # @param [String] key string the key to modify
     # @param [String] value string the value to set
     # @return [Boolean] true on success
-    def BootloaderModifySection(section, key, value)
-      if section == nil
-        Ops.set(BootCommon.globals, key, value)
-        return true
-      else
-        # change value in section specified by name in 'section'
-        i = 0
-        while Ops.less_than(i, Builtins.size(BootCommon.sections))
-          if Ops.get_string(BootCommon.sections, [i, "name"], "") == section
-            Ops.set(BootCommon.sections, [i, key], value)
-            Ops.set(BootCommon.sections, [i, "__changed"], true)
-            return true
-          end
-          i = Ops.add(i, 1)
-        end
-
-        # command line error report, %1 is section name
-        CommandLine.Print(Builtins.sformat(_("Section %1 not found."), section))
-        return false
-      end
-      false
+    def BootloaderModify(key, value)
+      BootCommon.globals[key, value]
+      return true
     end
 
     # Set specified option in specified section
     # @param [Hash] options a list of parameters passed as args
     # @return [Boolean] true on success
     def BootloaderSetHandler(options)
-      options = deep_copy(options)
-      section = Ops.get_string(options, "section")
-      option = Ops.get_string(options, "option")
-      value = Ops.get(options, "value")
-      if value == nil
+      option = options["option"]
+      value = options["value"]
+      if value.nil?
         # command line error report
         CommandLine.Print(_("Value was not specified."))
         return false
       end
-      BootloaderModifySection(section, option, Convert.to_string(value))
+      BootloaderModify(option, value.to_s)
     end
 
     # Delete specified option in specified section
     # @param [Hash] options a list of parameters passed as args
     # @return [Boolean] true on success
     def BootloaderDeleteHandler(options)
-      options = deep_copy(options)
-      section = Ops.get_string(options, "section")
-      if !Builtins.haskey(options, "option")
-        # remove section specified by name in 'section'
-        i = 0
-        while Ops.less_than(i, Builtins.size(BootCommon.sections))
-          if Ops.get_string(BootCommon.sections, [i, "name"], "") == section
-            BootCommon.sections = Builtins.remove(BootCommon.sections, i)
-            return true
-          end
-          i = Ops.add(i, 1)
-        end
-
-        # command line error report, %1 is section name
-        CommandLine.Print(Builtins.sformat(_("Section %1 not found."), section))
-        return false
-      end
-      option = Ops.get_string(options, "option")
+      option = options["option"]
       BootloaderModifySection(section, option, nil)
-    end
-
-    # Add a new bootloader section with specified name
-    # @param [Hash] options a list of parameters passed as args
-    # @return [Boolean] true on success
-    def BootloaderAddHandler(options)
-      options = deep_copy(options)
-      if !CommandLine.Interactive
-        CommandLine.Error(
-          _("Add option is available only in commandline interactive mode")
-        )
-      end
-      section = Ops.get_string(options, "section")
-      if section == nil
-        # command line error report
-        CommandLine.Print(_("Section name must be specified."))
-        return false
-      end
-      BootCommon.sections = Builtins.add(
-        BootCommon.sections,
-        { "name" => section }
-      )
-
-      nil
     end
 
     # Print the value of specified option of specified section
@@ -258,33 +180,19 @@ module Yast
     # @return [Boolean] true on success
     def BootloaderPrintHandler(options)
       options = deep_copy(options)
-      section = Ops.get_string(options, "section")
-      option = Ops.get_string(options, "option")
+      option = options["option"]
       if option == nil
         # command line error report
         CommandLine.Print(_("Option was not specified."))
         return false
       end
-      value = nil
-      if section == nil
-        value = Ops.get(BootCommon.globals, option)
-      else
-        # change value in section specified by name in 'section'
-        i = 0
-        while Ops.less_than(i, Builtins.size(BootCommon.sections)) &&
-            value == nil
-          if Ops.get_string(BootCommon.sections, [i, "name"], "") == section
-            value = Ops.get(BootCommon.sections, [i, option])
-          end
-          i = Ops.add(i, 1)
-        end
-      end
+      value = BootCommon.globals[option]
       if value == nil
         # command line error report
         CommandLine.Print(_("Specified option does not exist."))
       else
         # command line, %1 is the value of bootloader option
-        CommandLine.Print(Builtins.sformat(_("Value: %1"), value))
+        CommandLine.Print(_("Value: %s") % value))
       end
       false
     end
