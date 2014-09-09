@@ -115,67 +115,6 @@ module Yast
       deep_copy(globals_set)
     end
 
-    # Function remap "resume" from section (append) to device name (/dev/sda)
-    # or to label (ufo_partition)
-    #
-    # @param map<string,any> sections
-    # @param boolean true if convert resume to persistent device name
-    # @return [Hash{String => Object}] sections
-
-    def remapResume(append, to_persistent)
-      if Builtins.search(append, "resume") != nil &&
-          Builtins.search(append, "noresume") == nil
-        Builtins.y2milestone("append before remapping resume: %1", append)
-        list_append = Builtins.splitstring(append, " ")
-        Builtins.y2debug("split append to list list_append: %1", list_append)
-        new_append = []
-
-        Builtins.foreach(list_append) do |key|
-          if Builtins.search(key, "resume") != nil
-            Builtins.y2debug("arg resume from append: %1", key)
-            resume_arg = Builtins.splitstring(key, "=")
-            dev = Ops.get(resume_arg, 1, "")
-            Builtins.y2debug("value of resume: %1", Ops.get(resume_arg, 1, ""))
-            if dev != ""
-              resume = ""
-              # bnc#533782 - after changing filesystem label system doesn't boot
-              if to_persistent
-                resume = Ops.add("resume=", BootStorage.Dev2MountByDev(dev))
-              else
-                resume = Ops.add("resume=", BootStorage.MountByDev2Dev(dev))
-              end
-              Builtins.y2debug("remap resume: %1", resume)
-              new_append = Builtins.add(new_append, resume)
-            else
-              Builtins.y2debug("adding key to new append_list: %1", key)
-              new_append = Builtins.add(new_append, key)
-            end
-          else
-            Builtins.y2debug("adding key to new append_list: %1", key)
-            new_append = Builtins.add(new_append, key)
-          end
-        end
-
-        Builtins.y2debug("NEW append list: %1", new_append)
-        ret = Builtins.mergestring(new_append, " ")
-        Builtins.y2milestone("Append after remaping: %1", ret)
-        return ret
-      else
-        Builtins.y2milestone("Section hasn't resume...")
-        return append
-      end
-    end
-
-    # returns list difference A \ B (items that are in A and are not in B)
-    # @param [Array] a list A
-    # @param [Array] b list B
-    # @return [Array] see above
-    def difflist(a, b)
-      a = deep_copy(a)
-      b = deep_copy(b)
-      Builtins.filter(a) { |e| !Builtins.contains(b, e) }
-    end
-
     # Get bootloader device for specified location
     # FIXME: this function is being phased out. Keeping it around until
     # selected_location and loader_device can be dropped for all bootloader
@@ -586,15 +525,6 @@ module Yast
       @additional_failsafe_params
     end
 
-    # Check if memtest86 is present
-    # @return [Boolean] true if memtest86 section is to be proposed
-    def MemtestPresent
-      !Builtins.contains(@removed_sections, "memtest") &&
-        (Mode.test || Mode.normal && Pkg.IsProvided("memtest86+") ||
-          !Mode.normal && Pkg.IsSelected("memtest86+"))
-    end
-
-
     # Check if the bootloader can be installed at all with current configuration
     # @return [Boolean] true if it can
     def BootloaderInstallable
@@ -1003,58 +933,6 @@ module Yast
 
     # FATE #110038: Serial console
     # Add console arg for kernel if there is defined serial console
-    # - add key console with value to section type image and xen
-
-    def HandleConsole
-      console_value = getConsoleValue
-
-      # list of idexes from sections where is image or xen
-      list_index = []
-      # counter
-      index = -1
-      Builtins.foreach(@sections) do |section|
-        index = Ops.add(index, 1)
-        if Ops.get_string(section, "type", "") == "image" ||
-            Builtins.search(Ops.get_string(section, "type", ""), "xen") != nil
-          list_index = Builtins.add(list_index, index)
-        end
-      end
-
-      # add key console with value
-      if Ops.greater_than(Builtins.size(list_index), 0)
-        Builtins.foreach(list_index) do |idx|
-          Ops.set(@sections, [idx, "__changed"], true)
-          if Ops.get(@sections, [idx, "append"]) != nil
-            updated_append = ""
-            if console_value != "" || console_value != nil
-              updated_append = UpdateSerialConsole(
-                Ops.get_string(@sections, [idx, "append"], ""),
-                console_value
-              )
-            else
-              updated_append = UpdateSerialConsole(
-                Ops.get_string(@sections, [idx, "append"], ""),
-                ""
-              )
-            end
-            if updated_append != nil
-              Ops.set(@sections, [idx, "append"], updated_append)
-            end
-          end
-          Builtins.y2debug(
-            "Added/Removed console for section: %1",
-            Ops.get(@sections, idx, {})
-          )
-        end
-      end
-
-      nil
-    end
-
-
-    # FATE #110038: Serial console
-    # Add console arg for kernel if there is defined serial console
-    # - add key console with value to section type image and xen
 
     def HandleConsole2
 

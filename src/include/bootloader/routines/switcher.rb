@@ -137,23 +137,6 @@ module Yast
       nil
     end
 
-    # Get sections types
-    # @return [Array<String>] section types
-    def blsection_types
-      functions = getFunctions(BootCommon.getLoaderType(false))
-      fallback = lambda { ["image"] }
-      toEval = Convert.convert(
-        Ops.get(
-          functions,
-          "section_types",
-          fun_ref(fallback, "list <string> ()")
-        ),
-        :from => "any",
-        :to   => "list <string> ()"
-      )
-      toEval.call
-    end
-
     # Save bootloader cfg. files to the cache of the pluglib
     # @param [Boolean] clean boolean true to perform checks on the settings
     # @param [Boolean] init boolean true to reinitialize the library

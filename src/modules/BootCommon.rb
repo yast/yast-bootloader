@@ -88,16 +88,6 @@ module Yast
       # Parameters of all bootloaders
       @bootloader_attribs = {}
 
-      # Name of currently edited section
-      @current_section_name = nil
-
-      # Index of current section, -1 for new created section
-      @current_section_index = -1
-
-      # Curtrently edited section -- tmp store
-      @current_section = {}
-
-
       # device holding MBR for bootloader
       @mbrDisk = ""
 
@@ -170,17 +160,6 @@ module Yast
       @files_edited = false
       # time of last change of partitioning
       @partitioning_last_change = 0
-      # true if memtest was removed by user (manually) during the installation
-      # proposal
-      #FIXME correct comment
-      @removed_sections = []
-
-      # The name of the default section as it was read
-      @read_default_section_name = ""
-
-      # Types of sections that should be updated (changed device names)
-      # FIXME: see FIXME in lilolike.ycp:899
-      @update_section_types = [ "other"]
 
       # List of all supported bootloaders
       @bootloaders = [
@@ -213,16 +192,6 @@ module Yast
         "__auto"        => true,
         "__changed"     => true
       }
-
-      if title == "memtest86"
-        if MemtestPresent()
-          Ops.set(ret, "image", "/boot/memtest.bin")
-          Ops.set(ret, "__devs", [BootStorage.BootPartitionDevice])
-          return deep_copy(ret)
-        else
-          return {}
-        end
-      end
 
       resume = BootArch.ResumeAvailable ? getLargestSwapPartition : ""
       # try to use label or udev id for device name... FATE #302219
@@ -437,13 +406,6 @@ module Yast
       @sections = GetSections()
       @globals = GetGlobal()
       BootStorage.device_mapping = GetDeviceMap()
-      @read_default_section_name = ""
-      Builtins.foreach(@sections) do |s|
-        if Ops.get_string(s, "original_name", "") == "linux" &&
-            @read_default_section_name == ""
-          @read_default_section_name = Ops.get_string(s, "name", "")
-        end
-      end
 
       # convert device names in device map to the kernel device names
       BootStorage.device_mapping = Builtins.mapmap(BootStorage.device_mapping) do |k, v|
@@ -461,22 +423,6 @@ module Yast
         end
       end
 
-
-      # convert root device names in sections to kernel device names, if
-      # possible
-      @sections = Builtins.maplist(@sections) do |s|
-        rdev = Ops.get_string(s, "root", "")
-        # bnc#533782 - after changing filesystem label system doesn't boot
-        if Ops.get_string(s, "append", "") != ""
-          Ops.set(
-            s,
-            "append",
-            remapResume(Ops.get_string(s, "append", ""), true)
-          )
-        end
-        Ops.set(s, "root", BootStorage.Dev2MountByDev(rdev))
-        deep_copy(s)
-      end
       true
     end
 
@@ -488,7 +434,6 @@ module Yast
       # DetectDisks ();
       @activate = false
       @activate_changed = false
-      @removed_sections = []
       @was_proposed = false
 
       nil
@@ -501,41 +446,6 @@ module Yast
       nil
     end
 
-    # bnc #390659 - autoyast bootloader config: empty settings are ignored (memtest)
-    #
-    # Check if sections inlcude section for memtest
-    # if yes delete all unnecessary keys like initrd, vgamode, append...
-    def checkMemtest
-      out = []
-
-      Builtins.foreach(@sections) do |s|
-        if Builtins.search(Ops.get_string(s, "image", ""), "memtest") != nil
-          tmp_s = {}
-          Ops.set(tmp_s, "image", Ops.get_string(s, "image", ""))
-          Ops.set(
-            tmp_s,
-            "original_name",
-            Ops.get_string(s, "original_name", "")
-          )
-          Ops.set(tmp_s, "name", Ops.get_string(s, "name", ""))
-          Ops.set(tmp_s, "__changed", Ops.get_boolean(s, "__changed", false))
-          Ops.set(tmp_s, "__auto", Ops.get_boolean(s, "__auto", false))
-          Ops.set(tmp_s, "type", Ops.get_string(s, "type", ""))
-          Builtins.y2milestone(
-            "Updating memtest section from: %1 to: %2",
-            s,
-            tmp_s
-          )
-          out = Builtins.add(out, tmp_s)
-        else
-          out = Builtins.add(out, s)
-        end
-      end
-
-      @sections = deep_copy(out)
-
-      nil
-    end
     # Save all bootloader configuration files to the cache of the PlugLib
     # PlugLib must be initialized properly !!!
     # @param [Boolean] clean boolean true if settings should be cleaned up (checking their
@@ -600,9 +510,6 @@ module Yast
           my_globals = Builtins.remove(my_globals, "boot_md_mbr")
         end
       end
-      # add check if there is memtest and delete from memtest section
-      # keys like append, initrd etc...
-      checkMemtest
       Builtins.y2milestone("SetSecureBoot %1", @secure_boot)
       ret = ret && SetSecureBoot(@secure_boot)
       ret = ret && DefineMultipath(BootStorage.multipath_mapping)
@@ -897,9 +804,6 @@ module Yast
     publish :variable => :selected_location, :type => "string"
     publish :variable => :current_bootloader_attribs, :type => "map <string, any>"
     publish :variable => :bootloader_attribs, :type => "map <string, map <string, any>>"
-    publish :variable => :current_section_name, :type => "string"
-    publish :variable => :current_section_index, :type => "integer"
-    publish :variable => :current_section, :type => "map <string, any>"
     publish :variable => :mbrDisk, :type => "string"
     publish :variable => :backup_mbr, :type => "boolean"
     publish :variable => :activate, :type => "boolean"
@@ -916,8 +820,6 @@ module Yast
     publish :variable => :location_changed, :type => "boolean"
     publish :variable => :files_edited, :type => "boolean"
     publish :variable => :partitioning_last_change, :type => "integer"
-    publish :variable => :removed_sections, :type => "list <string>"
-    publish :variable => :update_section_types, :type => "list <string>"
     publish :variable => :enable_md_array_redundancy, :type => "boolean"
     publish :function => :getLoaderType, :type => "string (boolean)"
     publish :function => :getSystemSecureBootStatus, :type => "boolean (boolean)"
@@ -950,7 +852,6 @@ module Yast
     publish :function => :PartitionInstallable, :type => "boolean ()"
     publish :function => :WriteToSysconf, :type => "void (boolean)"
     publish :function => :getBootDisk, :type => "string ()"
-    publish :function => :HandleConsole, :type => "void ()"
     publish :function => :HandleConsole2, :type => "void ()"
     publish :function => :GetSerialFromAppend, :type => "void ()"
     publish :function => :DiskOrderSummary, :type => "string ()"

@@ -132,186 +132,41 @@ module Yast
     # @return [Symbol] to return to wizard sequencer, or nil
     def LoaderTypeComboHandle(key, event)
       event = deep_copy(event)
-      if Ops.get(event, "ID") == key
-        old_bl = Bootloader.getLoaderType
-        new_bl = Convert.to_string(UI.QueryWidget(Id(key), :Value))
+      return if event["ID"] != key # FIXME can it happen at all?
+      old_bl = Bootloader.getLoaderType
+      new_bl = UI.QueryWidget(Id(key), :Value).to_s
 
-        return nil if old_bl == new_bl
+      return nil if old_bl == new_bl
 
-
-        if new_bl == "none"
-          # popup - Continue/Cancel
-          if Popup.ContinueCancel(
-              _(
+      if new_bl == "none"
+        # popup - Continue/Cancel
+        if Popup.ContinueCancel(
+            _(
+              "\n" +
+                "If you do not install any boot loader, the system\n" +
+                "might not start.\n" +
                 "\n" +
-                  "If you do not install any boot loader, the system\n" +
-                  "might not start.\n" +
-                  "\n" +
-                  "Proceed?\n"
-              )
+                "Proceed?\n"
             )
-            Ops.set(BootCommon.other_bl, old_bl, Bootloader.Export)
-            BootCommon.setLoaderType("none")
-            BootCommon.location_changed = true
-          end
-          return :redraw
-        end
-
-        if new_bl == "grub2"
-          Ops.set(BootCommon.other_bl, old_bl, Bootloader.Export)
-          BootCommon.setLoaderType("grub2")
-          Bootloader.Propose
-          BootCommon.location_changed = true
-          BootCommon.changed = true
-          return :redraw
-        end
-
-        if new_bl == "grub2-efi"
-          Ops.set(BootCommon.other_bl, old_bl, Bootloader.Export)
-          BootCommon.setLoaderType("grub2-efi")
-          Bootloader.Propose
-          BootCommon.location_changed = true
-          BootCommon.changed = true
-          return :redraw
-        end
-
-        # warning - popup, followed by radio buttons
-        label = _(
-          "\n" +
-            "You chose to change your boot loader. When converting \n" +
-            "the configuration, some settings might be lost.\n" +
-            "\n" +
-            "The current configuration will be saved and you can\n" +
-            "restore it if you return to the current boot loader.\n" +
-            "\n" +
-            "Select a course of action:\n"
-        )
-
-        contents = VBox(
-          # warning label
-          Label(label),
-          VSpacing(1),
-          RadioButtonGroup(
-            Id(:action),
-            VBox(
-              Left(
-                RadioButton(
-                  Id(:propose),
-                  # radiobutton
-                  _("&Propose New Configuration")
-                )
-              ),
-              Left(
-                RadioButton(
-                  Id(:convert),
-                  # radiobutton
-                  _("Co&nvert Current Configuration")
-                )
-              ),
-              Stage.initial ?
-                VSpacing(0) :
-                Left(
-                  RadioButton(
-                    Id(:scratch),
-                    # radiobutton
-                    _("&Start New Configuration from Scratch")
-                  )
-                ),
-              Mode.normal ?
-                Left(
-                  RadioButton(
-                    Id(:read),
-                    # radiobutton
-                    _("&Read Configuration Saved on Disk")
-                  )
-                ) :
-                VSpacing(0),
-              Ops.get(BootCommon.other_bl, new_bl) == nil || Stage.initial ?
-                VSpacing(0) :
-                Left(
-                  RadioButton(
-                    Id(:prev),
-                    # radiobutton
-                    _("Res&tore Configuration Saved before Conversion")
-                  )
-                )
-            )
-          ),
-          VSpacing(1),
-          HBox(
-            HStretch(),
-            PushButton(Id(:ok), Opt(:key_F10), Label.OKButton),
-            HSpacing(1),
-            PushButton(Id(:cancel), Opt(:key_F9), Label.CancelButton),
-            HStretch()
           )
-        )
-        UI.OpenDialog(contents)
-        _def = :propose
-        UI.ChangeWidget(Id(_def), :Value, true)
-        ret = Convert.to_symbol(UI.UserInput)
-        action = Convert.to_symbol(UI.QueryWidget(Id(:action), :CurrentButton))
-        UI.CloseDialog
-        if ret != :ok
-          UI.ChangeWidget(Id("loader_type"), :Value, Bootloader.getLoaderType)
-          return nil
+          Ops.set(BootCommon.other_bl, old_bl, Bootloader.Export)
+          BootCommon.setLoaderType("none")
+          BootCommon.location_changed = true
         end
+        return :redraw
+      end
 
-        if nil != action
-          Builtins.y2milestone("Switching bootloader")
-          if old_bl != "none"
-            Ops.set(BootCommon.other_bl, old_bl, Bootloader.Export)
-          end
-          BootCommon.setLoaderType(new_bl)
-
-          if action == :scratch
-            Bootloader.Reset
-          elsif action == :read
-            progress_status = Progress.set(false)
-            Bootloader.Read
-            Progress.set(progress_status)
-          elsif action == :propose
-            Bootloader.Reset
-            Bootloader.Propose
-          elsif action == :prev
-            Bootloader.Import(Ops.get_map(BootCommon.other_bl, new_bl, {}))
-          elsif action == :convert
-            #filter out uknown type of section
-            BootCommon.sections = Builtins.filter(BootCommon.sections) do |sec|
-              section_types = Bootloader.blsection_types
-              if Builtins.contains(
-                  section_types,
-                  Ops.get_string(sec, "type", "")
-                )
-                next true
-              else
-                next false
-              end
-            end
-          end
-        end
+      if ["grub2", "grub2-efi"].include? (new_bl)
+        Ops.set(BootCommon.other_bl, old_bl, Bootloader.Export)
+        BootCommon.setLoaderType(new_bl)
+        Bootloader.Propose
         BootCommon.location_changed = true
         BootCommon.changed = true
         return :redraw
       end
-      nil
-    end
 
-    # Validate function of a widget
-    # @param [String] widget string widget key
-    # @param [Hash] event map event that caused validation
-    # @return [Boolean] true if validation succeeded
-    def LoaderTypeValidate(widget, event)
-      event = deep_copy(event)
-      if Ops.get(event, "ID") == "sections" &&
-          BootCommon.getLoaderType(false) == "none"
-        # popup message
-        Popup.Message(_("Select the boot loader before editing sections."))
-        return false
-      end
-      true
+      raise "Unexpected value of loader type '#{new_bl}'"
     end
-
 
     # reset menu button
 
@@ -479,12 +334,7 @@ module Yast
             method(:LoaderTypeComboHandle),
             "symbol (string, map)"
           ),
-          "help"              => LoaderTypeHelp(),
-          "validate_type"     => :function,
-          "validate_function" => fun_ref(
-            method(:LoaderTypeValidate),
-            "boolean (string, map)"
-          )
+          "help"              => LoaderTypeHelp()
         },
         "loader_options" => {
           "widget"        => :push_button,
