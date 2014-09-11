@@ -125,119 +125,50 @@ module Yast
       @md_physical_disks = []
     end
 
+    DISK_UDEV_MAPPING = {
+      "uuid"      => "/dev/disk/by-uuid/",
+      "udev_id"   => "/dev/disk/by-id/",
+      "udev_path" => "/dev/disk/by-path/",
+    }
+
+    PART_UDEV_MAPPING = DISK_UDEV_MAPPING.merge({
+      "label"     => "/dev/disk/by-label/"
+    })
+
+    def map_devices_for_mapping(mapping, data, device)
+      mapping.each_pair do |key, prefix|
+        names = data[key]
+        next if [nil, "", []].include?(names)
+        names = [names] if names.is_a?(::String)
+        names.each do |name|
+          # watch out for fake uuids (shorter than 9 chars)
+          next if name.size < 9 && key == "uuid"
+          @all_devices[prefix + name] = device
+        end
+      end
+    end
+
     # FATE #302219 - Use and choose persistent device names for disk devices
     # Function prepare maps with mapping disks and partitions by uuid, id, path
     # and label.
     #
     def MapDevices
-      dev_by_something = ""
-      devices = Storage.GetTargetMap
-      Builtins.foreach(devices) do |k, v|
-        # map disk by uuid
-        if Ops.get(v, "uuid") != "" && Ops.get(v, "uuid") != nil
-          dev_by_something = Ops.add(
-            "/dev/disk/by-uuid/",
-            Ops.get_string(v, "uuid", "")
-          )
-          Ops.set(@all_devices, dev_by_something, k)
-        end
-        # map disk by path
-        if Ops.get(v, "path") != "" && Ops.get(v, "path") != nil
-          dev_by_something = Ops.add(
-            "/dev/disk/by-path/",
-            Ops.get_string(v, "path", "")
-          )
-          Ops.set(@all_devices, dev_by_something, k)
-        end
-        # map disk by id
-        if Ops.get(v, "udev_id") != nil && Ops.get(v, ["udev_id", 0]) != ""
-          dev_by_something = Ops.add(
-            "/dev/disk/by-id/",
-            Ops.get_string(v, ["udev_id", 0], "")
-          )
-          Ops.set(@all_devices, dev_by_something, k)
-          # bnc #534905 - yast2 bootloader 2.18.15-1.1 damages /etc/grub.conf
-          if Builtins.size(Ops.get_list(v, "udev_id", [])) == 2
-            dev_by_something = Ops.add(
-              "/dev/disk/by-id/",
-              Ops.get_string(v, ["udev_id", 1], "")
-            )
-            Ops.set(@all_devices, dev_by_something, k)
-          end
-        end
-        # map partitions from disk...
-        Builtins.foreach(Ops.get_list(v, "partitions", [])) do |p|
+      Storage.GetTargetMap.each_pair do |device, value|
+        map_devices_for_mapping(DISK_UDEV_MAPPING, value, device)
+
+        next unless value["partitions"]
+
+        value["partitions"].each do |partition|
           # bnc#594482 - grub config not using uuid
           # if there is "not created" partition and flag for "it" is not set
-          if Ops.get(p, "create") == true && Mode.installation
-            if @proposed_partition == ""
-              @proposed_partition = Ops.get_string(p, "device", "")
-            end
+          if partition["create"] && Mode.installation
+            @proposed_partition = p["device"] || "" if @proposed_partition == ""
             @all_devices_created = 1
           end
-          # map partition by uuid
-          # watch out for fake uuids (shorter than 9 chars)
-          if Ops.greater_than(Builtins.size(Ops.get_string(p, "uuid", "")), 8)
-            dev_by_something = Ops.add(
-              "/dev/disk/by-uuid/",
-              Ops.get_string(p, "uuid", "")
-            )
-            Ops.set(
-              @all_devices,
-              dev_by_something,
-              Ops.get_string(p, "device", "")
-            )
-          end
-          # map partition by path
-          if Ops.get(p, "path") != "" && Ops.get(p, "path") != nil
-            dev_by_something = Ops.add(
-              "/dev/disk/by-path/",
-              Ops.get_string(p, "path", "")
-            )
-            Ops.set(
-              @all_devices,
-              dev_by_something,
-              Ops.get_string(p, "device", "")
-            )
-          end
-          # map partition by label
-          if Ops.get(p, "label") != "" && Ops.get(p, "label") != nil
-            dev_by_something = Ops.add(
-              "/dev/disk/by-label/",
-              Ops.get_string(p, "label", "")
-            )
-            Ops.set(
-              @all_devices,
-              dev_by_something,
-              Ops.get_string(p, "device", "")
-            )
-          end
-          # map disk by id
-          if Ops.get(p, "udev_id") != nil && Ops.get(p, ["udev_id", 0]) != ""
-            dev_by_something = Ops.add(
-              "/dev/disk/by-id/",
-              Ops.get_string(p, ["udev_id", 0], "")
-            )
-            Ops.set(
-              @all_devices,
-              dev_by_something,
-              Ops.get_string(p, "device", "")
-            )
-            # bnc #534905 - yast2 bootloader 2.18.15-1.1 damages /etc/grub.conf
-            if Builtins.size(Ops.get_list(p, "udev_id", [])) == 2
-              dev_by_something = Ops.add(
-                "/dev/disk/by-id/",
-                Ops.get_string(p, ["udev_id", 1], "")
-              )
-              Ops.set(
-                @all_devices,
-                dev_by_something,
-                Ops.get_string(p, "device", "")
-              )
-            end
-          end
-        end # end of foreach (map p, (list<map>)(v["partitions"]:[]),
-      end # end of foreach (string k, map v, devices,
+
+          map_devices_for_mapping(PART_UDEV_MAPPING, partition, partition["device"])
+        end
+      end
       if Mode.installation && @all_devices_created == 2
         @all_devices_created = 0
         Builtins.y2milestone("set status for all_devices to \"created\"")
