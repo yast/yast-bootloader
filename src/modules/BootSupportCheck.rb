@@ -230,25 +230,6 @@ module Yast
       end
     end
 
-    # Check if there is bios_id
-    # if not show warning
-    #
-    # @return [Boolean] true on success
-
-    def CheckBios_ID
-      return true if Arch.s390 # s390 do not have bios boot order (bnc#874106)
-
-      if BootStorage.bois_id_missing
-        AddNewProblem(
-          _("YaST could not determine the exact boot order of disks needed for the device map. Review and possibly adjust the boot order of disks in \"Boot Loader Installation Details\"")
-        )
-        return false
-      end
-
-      return true
-    end
-
-
     def check_zipl_part
       # if partitioning worked before upgrade, it will keep working (bnc#886604)
       return true if Mode.update
@@ -269,7 +250,6 @@ module Yast
     def GRUB
       ret = GptPartitionTable()
       ret = check_BootDevice if ret
-      ret = CheckBios_ID() if ret
       ret
     end
 

@@ -103,10 +103,6 @@ module Yast
       @md_info = {}
 
 
-      # Flag indicates that bios_id_missing in disk
-      # true if missing false if at least one disk has bios_id
-      @bois_id_missing = true
-
       # device mapping between Linux and firmware
       @device_mapping = {}
 
@@ -584,7 +580,6 @@ module Yast
     def mapRealDevicesToMultipath
       ret = {}
       tm = Storage.GetTargetMap
-      num_of_real_disk = 0
       Builtins.foreach(tm) do |disk, disk_info|
         if Ops.get(disk_info, "type") == :CT_DMMULTIPATH
           devices = Ops.get_list(disk_info, "devices", [])
@@ -592,12 +587,7 @@ module Yast
             Builtins.foreach(devices) { |d| Ops.set(ret, d, disk) }
           end
         end
-        if Ops.get(disk_info, "type") == :CT_DISK
-          num_of_real_disk = Ops.add(num_of_real_disk, 1)
-        end
-        @bois_id_missing = false if Ops.get(disk_info, "bios_id") != nil
       end
-      @bois_id_missing = false if num_of_real_disk == 1
       deep_copy(ret)
     end
 
@@ -901,9 +891,6 @@ module Yast
       # s390 have some special requirements for device map. Keep it short and simple (bnc#884798)
       # TODO device map is not needed at all for s390, so if we get rid of perl-Bootloader translations
       # we can keep it empty
-        # TODO yes, I know it is typo, but it is everywhere, so fix it when we have time to fix all problems
-        @bois_id_missing = false
-
         boot_part = Storage.GetEntryForMountpoint("/boot/zipl")
         boot_part = Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
         boot_part = Storage.GetEntryForMountpoint("/") if boot_part.empty?
@@ -1046,7 +1033,6 @@ module Yast
         @device_mapping = changeOrderInDeviceMapping(@device_mapping,
             priority_device: priority_disks.first)
       end
-      @bois_id_missing = false #FIXME never complain about missing bios id as we always have first device boot one
 
       Builtins.y2milestone("Detected device mapping: %1", @device_mapping)
 
@@ -1485,7 +1471,6 @@ module Yast
     publish :variable => :mountpoints, :type => "map <string, any>"
     publish :variable => :partinfo, :type => "list <list>"
     publish :variable => :md_info, :type => "map <string, list <string>>"
-    publish :variable => :bois_id_missing, :type => "boolean"
     publish :variable => :device_mapping, :type => "map <string, string>"
     publish :variable => :BootPartitionDevice, :type => "string"
     publish :variable => :RootPartitionDevice, :type => "string"
