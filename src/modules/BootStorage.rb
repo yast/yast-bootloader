@@ -135,6 +135,9 @@ module Yast
       "label"     => "/dev/disk/by-label/"
     })
 
+    # Maps udev names to kernel names with given mapping from data to device
+    # @private internall use only
+    # @note only temporary method
     def map_devices_for_mapping(mapping, data, device)
       mapping.each_pair do |key, prefix|
         names = data[key]
@@ -162,7 +165,7 @@ module Yast
           # bnc#594482 - grub config not using uuid
           # if there is "not created" partition and flag for "it" is not set
           if partition["create"] && Mode.installation
-            @proposed_partition = p["device"] || "" if @proposed_partition == ""
+            @proposed_partition = partition["device"] || "" if @proposed_partition == ""
             @all_devices_created = 1
           end
 
