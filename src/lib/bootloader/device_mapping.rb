@@ -3,6 +3,7 @@ require "singleton"
 
 Yast.import "Storage"
 Yast.import "Mode"
+Yast.import "Arch"
 
 module Bootloader
   class DeviceMapping
@@ -12,7 +13,11 @@ module Bootloader
     # make more comfortable to work with singleton
     class << self
       extend Forwardable
-      def_delegators :instance, :to_hash, :recreate_mapping, :to_kernel_device
+      def_delegators :instance,
+        :to_hash,
+        :recreate_mapping,
+        :to_kernel_device,
+        :to_mountby_device
     end
 
     # TODO remove when remove pbl support
@@ -29,6 +34,36 @@ module Bootloader
       @all_devices[dev] or raise "Unknown udev device #{dev}"
     end
 
+    def to_mountby_device(dev)
+      kernel_dev = to_kernel_device(dev)
+
+      log.info "#{dev} looked as kernel device name: #{kernel_dev}"
+      # we do not know if it is partition or disk, but target map help us
+      target_map = Yast::Storage.GetTargetMap
+      data = target_map[kernel_dev]
+      if !data #so partition
+        disk = target_map[Yast::Storage.GetDiskPartition(kernel_dev)["disk"]]
+        data = disk["partitions"].find { |p| p["device"] == kernel_dev }
+      end
+
+      raise "Unknown device #{kernel_dev}" unless data
+
+      mount_by = data["mountby"]
+      mount_by ||= Yast::Arch.ppc ? :id : Yast::Storage.GetDefaultMountBy
+
+      log.info "mount by: #{mount_by}"
+
+      key = MOUNT_BY_MAPPING_TO_UDEV[mount_by]
+      raise "Internal error unknown mountby #{mount_by}" unless key
+      ret = map_device_to_udev_devices(data[key], key, kernel_dev)
+      if ret.empty?
+        log.warn "Cannot find udev link to satisfy mount by for #{kernel_dev}"
+        return kernel_dev
+      end
+
+      return ret.first.first
+    end
+
     # FIXME Temporary method, will be removed as class itself recognize cache invalidation
     def recreate_mapping
       map_devices
@@ -39,31 +74,49 @@ module Bootloader
       map_devices if !@all_devices
     end
 
+    MOUNT_BY_MAPPING_TO_UDEV = {
+      :uuid  => "uuid",
+      :id    => "udev_id",
+      :path  => "udev_path",
+      :label => "label"
+    }
 
-
-    DISK_UDEV_MAPPING = {
+    UDEV_MAPPING = {
       "uuid"      => "/dev/disk/by-uuid/",
       "udev_id"   => "/dev/disk/by-id/",
       "udev_path" => "/dev/disk/by-path/",
-    }
-
-    PART_UDEV_MAPPING = DISK_UDEV_MAPPING.merge({
       "label"     => "/dev/disk/by-label/"
-    })
+    }
 
     # Maps udev names to kernel names with given mapping from data to device
     # @private internall use only
     # @note only temporary method
-    def map_devices_for_mapping(mapping, data, device)
-      mapping.each_pair do |key, prefix|
+    def map_disks(data, device)
+      keys = UDEV_MAPPING.keys - ["label"] #disks do not have labels
+      fill_all_devices(keys, data, device)
+    end
+
+    def map_partitions(data, device)
+      keys = UDEV_MAPPING.keys
+      fill_all_devices(keys, data, device)
+    end
+
+    def fill_all_devices(keys, data, device)
+      keys.each do |key|
         names = data[key]
-        next if [nil, "", []].include?(names)
-        names = [names] if names.is_a?(::String)
-        names.each do |name|
-          # watch out for fake uuids (shorter than 9 chars)
-          next if name.size < 9 && key == "uuid"
-          @all_devices[prefix + name] = device
-        end
+        @all_devices.merge! Hash[map_device_to_udev_devices(names, key, device)]
+      end
+    end
+
+
+    def map_device_to_udev_devices(names, key, device)
+      return [] if [nil, "", []].include?(names)
+      prefix = UDEV_MAPPING[key]
+      names = [names] if names.is_a?(::String)
+      ret = names.reduce([]) do |res, name|
+        # watch out for fake uuids (shorter than 9 chars)
+        next res if name.size < 9 && key == "uuid"
+        res << [prefix + name, device]
       end
     end
 
@@ -74,7 +127,7 @@ module Bootloader
     def map_devices
       @all_devices = {}
       Yast::Storage.GetTargetMap.each_pair do |device, value|
-        map_devices_for_mapping(DISK_UDEV_MAPPING, value, device)
+        map_disks(value, device)
 
         next unless value["partitions"]
 
@@ -86,7 +139,7 @@ module Bootloader
             @all_devices_created = 1
           end
 
-          map_devices_for_mapping(PART_UDEV_MAPPING, partition, partition["device"])
+          map_partitions(partition, partition["device"])
         end
       end
       if Yast::Mode.installation && @all_devices_created == 2
