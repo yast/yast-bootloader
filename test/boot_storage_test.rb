@@ -121,15 +121,11 @@ describe Yast::BootStorage do
     end
   end
 
-  describe ".MapDevices" do
-    after do
-      Yast::BootStorage.all_devices = {}
-    end
-
-    it "fills BootStorage.all_devices with mapping of udev devices to kernel devices" do
+  describe ".all_devices" do
+    it "Returns mapping of udev devices to kernel devices" do
       target_map_stub("storage_ppc.rb")
 
-      Yast::BootStorage.MapDevices()
+      Bootloader::DeviceMapping.recreate_mapping
       all_devices = Yast::BootStorage.all_devices
       expect(all_devices["/dev/disk/by-id/ata-HITACHI_HTS723232A7A364_E3834563C86LDM-part1"]).to eq "/dev/sda1"
       expect(all_devices["/dev/disk/by-path/pci-0000:00:1f.2-scsi-0:0:0:0-part2"]).to eq "/dev/sda2"

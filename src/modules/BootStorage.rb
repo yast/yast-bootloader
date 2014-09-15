@@ -18,6 +18,7 @@
 #
 #
 require "yast"
+require "bootloader/device_mapping"
 
 module Yast
   class BootStorageClass < Module
@@ -52,11 +53,6 @@ module Yast
       # map<string,map> target map try to minimalize calling Storage::GetTargetMap()
       #
       @target_map = {}
-
-
-      # mapping all devices udev-name to kernel name
-      # importnat for init fucntion of perl-Bootloader
-      @all_devices = {}
 
 
       # Storage locked
@@ -125,60 +121,8 @@ module Yast
       @md_physical_disks = []
     end
 
-    DISK_UDEV_MAPPING = {
-      "uuid"      => "/dev/disk/by-uuid/",
-      "udev_id"   => "/dev/disk/by-id/",
-      "udev_path" => "/dev/disk/by-path/",
-    }
-
-    PART_UDEV_MAPPING = DISK_UDEV_MAPPING.merge({
-      "label"     => "/dev/disk/by-label/"
-    })
-
-    # Maps udev names to kernel names with given mapping from data to device
-    # @private internall use only
-    # @note only temporary method
-    def map_devices_for_mapping(mapping, data, device)
-      mapping.each_pair do |key, prefix|
-        names = data[key]
-        next if [nil, "", []].include?(names)
-        names = [names] if names.is_a?(::String)
-        names.each do |name|
-          # watch out for fake uuids (shorter than 9 chars)
-          next if name.size < 9 && key == "uuid"
-          @all_devices[prefix + name] = device
-        end
-      end
-    end
-
-    # FATE #302219 - Use and choose persistent device names for disk devices
-    # Function prepare maps with mapping disks and partitions by uuid, id, path
-    # and label.
-    #
-    def MapDevices
-      Storage.GetTargetMap.each_pair do |device, value|
-        map_devices_for_mapping(DISK_UDEV_MAPPING, value, device)
-
-        next unless value["partitions"]
-
-        value["partitions"].each do |partition|
-          # bnc#594482 - grub config not using uuid
-          # if there is "not created" partition and flag for "it" is not set
-          if partition["create"] && Mode.installation
-            @proposed_partition = partition["device"] || "" if @proposed_partition == ""
-            @all_devices_created = 1
-          end
-
-          map_devices_for_mapping(PART_UDEV_MAPPING, partition, partition["device"])
-        end
-      end
-      if Mode.installation && @all_devices_created == 2
-        @all_devices_created = 0
-        Builtins.y2milestone("set status for all_devices to \"created\"")
-      end
-      Builtins.y2debug("device name mapping to kernel names: %1", @all_devices)
-
-      nil
+    def all_devices
+      ::Bootloader::DeviceMapping.to_hash
     end
 
 
@@ -201,7 +145,7 @@ module Yast
       ret = dev
 
       # check if it is device name by id
-      ret = Ops.get(@all_devices, dev, "") if Builtins.haskey(@all_devices, dev)
+      ret = Ops.get(all_devices, dev, "") if Builtins.haskey(all_devices, dev)
 
       Builtins.y2milestone("Device %1 was converted to: %2", dev, ret)
       ret
@@ -273,7 +217,7 @@ module Yast
       if @disk_change_time_InitBootloader != Storage.GetTargetChangeTime ||
           RebuildMapDevices()
         Builtins.y2milestone("Init internal data from storage")
-        MapDevices()
+        ::Bootloader::DeviceMapping.recreate_mapping
         @disk_change_time_InitBootloader = Storage.GetTargetChangeTime
         ret = true
       end
@@ -1400,7 +1344,7 @@ module Yast
       res.uniq
     end
 
-    publish :variable => :all_devices, :type => "map <string, string>"
+    publish :function => :all_devices, :type => "map <string, string>()"
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
     publish :variable => :partinfo, :type => "list <list>"
