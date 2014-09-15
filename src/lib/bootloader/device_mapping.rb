@@ -12,13 +12,21 @@ module Bootloader
     # make more comfortable to work with singleton
     class << self
       extend Forwardable
-      def_delegators :instance, :to_hash, :recreate_mapping
+      def_delegators :instance, :to_hash, :recreate_mapping, :to_kernel_device
     end
 
     # TODO remove when remove pbl support
     def to_hash
-      map_devices if !@all_devices
+      ensure_mapping_exists
       @all_devices
+    end
+
+    def to_kernel_device(dev)
+      return dev if dev !~ /^\/dev\/disk\/by-/
+
+      ensure_mapping_exists
+
+      @all_devices[dev] or raise "Unknown udev device #{dev}"
     end
 
     # FIXME Temporary method, will be removed as class itself recognize cache invalidation
@@ -26,6 +34,10 @@ module Bootloader
       map_devices
     end
   private
+
+    def ensure_mapping_exists
+      map_devices if !@all_devices
+    end
 
 
 

@@ -139,16 +139,7 @@ module Yast
     # @return [String] kernel device name
 
     def MountByDev2Dev(dev)
-      Builtins.y2milestone("MountByDev2Dev: %1", dev)
-
-      return dev if !Builtins.regexpmatch(dev, "^/dev/disk/by-")
-      ret = dev
-
-      # check if it is device name by id
-      ret = Ops.get(all_devices, dev, "") if Builtins.haskey(all_devices, dev)
-
-      Builtins.y2milestone("Device %1 was converted to: %2", dev, ret)
-      ret
+      ::Bootloader::DeviceMapping.to_kernel_device(dev)
     end
 
     # bnc#594482 - grub config not using uuid
