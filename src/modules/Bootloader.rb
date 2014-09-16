@@ -1106,7 +1106,7 @@ module Yast
       args = [:common] if args.empty? # by default change common kernels only
       args = args.first if args.first.is_a? Array # support array like syntax
 
-      #remap symbols to something that setKernelParamToLine understand
+      # remap symbols to something that setKernelParamToLine understand
       remap_values = {
         :missing => "false",
         :present => "true"
@@ -1116,7 +1116,7 @@ module Yast
       end
 
       bl = getLoaderType
-      if bl =="grub" #for backward compatibility for grub
+      if bl =="grub" # for backward compatibility for grub
         ret = true
         values.each do |key, value|
           ret &&= setKernelParam("DEFAULT", key, value)
@@ -1125,7 +1125,7 @@ module Yast
       end
 
       values.each do |key, value|
-        next if key == "root" # grub2 do not support modify root
+        next if key == "root" # grub2 does not support modifying root
         if key == "vga"
           BootCommon.globals["vgamode"] = value == "false" ? "" : value
           next
