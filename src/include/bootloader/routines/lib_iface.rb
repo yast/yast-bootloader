@@ -119,11 +119,10 @@ module Yast
 
       SCR.Execute(Path.new(".target.remove"), STATE_FILE) #remove old state file to do clear initialization
 
-      BootStorage.InitMapDevices
       Builtins.y2milestone("Initializing lib for %1", loader)
       architecture = BootArch.StrArch
       loader_data = TmpYAMLFile.new([loader, architecture])
-      udev_data = TmpYAMLFile.new(BootStorage.all_devices)
+      udev_data = TmpYAMLFile.new(::Bootloader::DeviceMaping.to_hash)
 
       run_pbl_yaml "SetLoaderType(@#{loader_data.path})",
         "DefineUdevMapping(#{udev_data.path})"

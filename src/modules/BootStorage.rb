@@ -33,76 +33,27 @@ module Yast
       Yast.import "Mode"
 
 
-      # Saved change time from target map - only for MapAllPartitions()
-      @disk_change_time_InitBootloader = nil
-
-      # Saved change time from target map - only for MapAllPartitions()
-
-      @disk_change_time_MapAllPartitions = nil
-
       # Saved change time from target map - only for checkCallingDiskInfo()
-
       @disk_change_time_checkCallingDiskInfo = nil
-
-      # bnc #468922 - problem with longtime running the parsing a huge number of disks
-      # map<string,map> the map of all partitions with info about it ->
-      # necessary for Dev2MountByDev() in routines/misc.ycp
-      @all_partitions = {}
-
-      # bnc #468922 - problem with longtime running the parsing a huge number of disks
-      # map<string,map> target map try to minimalize calling Storage::GetTargetMap()
-      #
-      @target_map = {}
-
 
       # Storage locked
       @storage_initialized = false
 
-
       # device mapping between real devices and multipath
       @multipath_mapping = {}
 
-
-      # FIXME: it is ugly hack because y2-storage doesn't known
-      # to indicate that it finish (create partitions) proposed partitioning of disk in installation
-      # bnc#594482 - grub config not using uuid
-      # Indicate if storage already finish partitioning of disk
-      # if some partition includes any keyword "create"
-      # the value is the first found partition with flag "create" e.g. /dev/sda2
-      # empty string means all partitions are created
-      @proposed_partition = ""
-
-      # bnc#594482 - grub config not using uuid
-      # 0 - if all devices in variable all_devices are created.
-      # 1 - if partition with flag "create" was found in MapDevices()
-      # 2 - if proposed_partition was created or flag "create" was deleted
-      # by y2-storage. the value is set in CheckProposedPartition ()
-      @all_devices_created = 0
-
-      # bnc#594482 - grub config not using uuid
-      # 0 - if all devices in variable all_partitions and all_disks are created
-      # 1 - if partition with flag "create" was found in MapDevices()
-      # 2 - if proposed_partition was created or flag "create" was deleted
-      # by y2-storage. the value is set in CheckProposedPartition ()
-      @all_partitions_created = 0
-
       # mountpoints for perl-Bootloader
-
       @mountpoints = {}
 
 
       # list of all partitions for perl-Bootloader
-
       @partinfo = []
 
       # information about MD arrays for perl-Bootloader
       @md_info = {}
 
-
       # device mapping between Linux and firmware
       @device_mapping = {}
-
-
 
       # string sepresenting device name of /boot partition
       # same as RootPartitionDevice if no separate /boot partition
@@ -121,12 +72,6 @@ module Yast
       @md_physical_disks = []
     end
 
-    def all_devices
-      ::Bootloader::DeviceMapping.to_hash
-    end
-
-
-
     # FATE #302219 - Use and choose persistent device names for disk devices
     # Converts a "/dev/disk/by-" device name to the corresponding kernel
     # device name, if a mapping for this name can be found in the map from
@@ -140,136 +85,6 @@ module Yast
 
     def MountByDev2Dev(dev)
       ::Bootloader::DeviceMapping.to_kernel_device(dev)
-    end
-
-    # bnc#594482 - grub config not using uuid
-    # Function check if proposed_partition still includes
-    # flag "create"
-    #
-    # @param [Hash{String => map}] tm
-    # @return true if partition is still not created
-
-    def CheckProposedPartition(tm)
-      tm = deep_copy(tm)
-      ret = true
-      if !Mode.installation
-        Builtins.y2debug(
-          "Skip CheckProposedPartition() -> it is not running installation"
-        )
-        return false
-      end
-      if Builtins.size(tm) == 0 || @proposed_partition == ""
-        Builtins.y2debug("proposed_partition is empty: %1", @proposed_partition)
-        return false
-      end
-      dp = Storage.GetDiskPartition(@proposed_partition)
-      disk = Ops.get_string(dp, "disk", "")
-      partitions = Ops.get_list(tm, [disk, "partitions"], [])
-      Builtins.foreach(partitions) do |p|
-        if Ops.get_string(p, "device", "") == @proposed_partition
-          if Ops.get(p, "create") != true
-            @proposed_partition = ""
-            Builtins.y2milestone("proposed_partition is already created: %1", p)
-            @all_devices_created = 2 if @all_devices_created == 1
-            @all_partitions_created = 2 if @all_partitions_created == 1
-            ret = false
-          else
-            Builtins.y2milestone(
-              "proposed_partition: %1 is NOT created",
-              @proposed_partition
-            )
-          end
-          raise Break
-        end
-      end
-      ret
-    end
-
-    # bnc#594482 - grub config not using uuid
-    # Check if it is necessary rebuild all_devices
-    #
-    # @return true -> rebuild all_devices
-
-    def RebuildMapDevices
-      ret = false
-      ret_CheckProposedPartition = CheckProposedPartition(Storage.GetTargetMap)
-
-      return true if !ret_CheckProposedPartition && @all_devices_created == 2
-
-      ret
-    end
-
-    # Init and fullfil internal data for perl-Bootloader
-    #
-    # @return true if init reset/fullfil data or false and used cached data
-
-    def InitMapDevices
-      ret = false
-      if @disk_change_time_InitBootloader != Storage.GetTargetChangeTime ||
-          RebuildMapDevices()
-        Builtins.y2milestone("Init internal data from storage")
-        ::Bootloader::DeviceMapping.recreate_mapping
-        @disk_change_time_InitBootloader = Storage.GetTargetChangeTime
-        ret = true
-      end
-
-      ret
-    end
-
-    # bnc#594482 - grub config not using uuid
-    # Check if it is necessary rebuild all_partitions and all_disks
-    #
-    # @return true -> rebuild all_partitions and all_disks
-
-    def RebuilMapAllPartitions
-      ret = false
-      ret_CheckProposedPartition = CheckProposedPartition(Storage.GetTargetMap)
-
-      return true if !ret_CheckProposedPartition && @all_partitions_created == 2
-
-      ret
-    end
-
-    # bnc #468922 - problem with longtime running the parsing a huge number of disks
-    # Function initialize all_partitions only if storage change
-    # partitioning of disk
-    # true if init all_partitions
-
-    def MapAllPartitions
-      ret = false
-      if @disk_change_time_MapAllPartitions != Storage.GetTargetChangeTime ||
-          Ops.less_than(Builtins.size(@all_partitions), 1) ||
-          Ops.less_than(Builtins.size(@target_map), 1) ||
-          RebuilMapAllPartitions()
-        # save last change time from storage for MapAllPartitions()
-        @disk_change_time_MapAllPartitions = Storage.GetTargetChangeTime
-
-        @all_partitions = {}
-        @target_map = {}
-        # get target map
-        @target_map = Storage.GetTargetMap
-        # map all partitions
-        Builtins.foreach(@target_map) do |k, v|
-          Builtins.foreach(Ops.get_list(v, "partitions", [])) do |p|
-            # bnc#594482 - grub config not using uuid
-            # if there is "not created" partition and flag for "it" is not set
-            if Ops.get(p, "create") == true && Mode.installation
-              if @proposed_partition == ""
-                @proposed_partition = Ops.get_string(p, "device", "")
-              end
-              @all_partitions_created = 1
-            end
-            Ops.set(@all_partitions, Ops.get_string(p, "device", ""), p)
-          end
-        end
-        ret = true
-      end
-      if Mode.installation && @all_partitions_created == 2
-        @all_partitions_created = 0
-        Builtins.y2milestone("set status for all_partitions to \"created\"")
-      end
-
-      ret
     end
 
     # FATE #302219 - Use and choose persistent device names for disk devices
@@ -1183,7 +998,6 @@ module Yast
       res.uniq
     end
 
-    publish :function => :all_devices, :type => "map <string, string>()"
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
     publish :variable => :partinfo, :type => "list <list>"
@@ -1193,7 +1007,6 @@ module Yast
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
     publish :function => :MountByDev2Dev, :type => "string (string)"
-    publish :function => :InitMapDevices, :type => "boolean ()"
     publish :function => :Dev2MountByDev, :type => "string (string)"
     publish :function => :InitDiskInfo, :type => "void ()"
     publish :function => :ProposeDeviceMap, :type => "void ()"
