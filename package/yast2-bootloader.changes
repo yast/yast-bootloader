@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep 15 14:18:20 UTC 2014 - jreidinger@suse.com
+
+- backport: Fix API to remove or add kernel parameter for bootloader
+  (bnc#894603)
+
+-------------------------------------------------------------------
 Tue Sep  9 15:38:15 UTC 2014 - jreidinger@suse.com
 
 - cleaning of section related code because we no longer support

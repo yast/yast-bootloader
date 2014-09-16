@@ -718,10 +718,19 @@ module Yast
       args = [:common] if args.empty? # by default change common kernels only
       args = args.first if args.first.is_a? Array # support array like syntax
 
+      # remap symbols to something that setKernelParamToLine understand
+      remap_values = {
+        :missing => "false",
+        :present => "true"
+      }
+      values.each_key do |key|
+        values[key] = remap_values[values[key]] || values[key]
+      end
+
       values.each do |key, value|
-        next if key == "root" # grub2 do not support modify root
+        next if key == "root" # grub2 does not support modifying root
         if key == "vga"
-          BootCommon.globals["vgamode"] = value == :remove ? "" : value
+          BootCommon.globals["vgamode"] = value == "false" ? "" : value
           next
         else
           kernel_lines = args.map do |a|
