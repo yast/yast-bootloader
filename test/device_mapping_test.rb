@@ -6,13 +6,14 @@ require "bootloader/device_mapping"
 
 describe Bootloader::DeviceMapping do
   subject { Bootloader::DeviceMapping }
+  before do
+    # always invalidate cache to use new mocks
+    allow(subject.instance).to receive(:cache_valid?).and_return false
+  end
 
   describe ".to_kernel_device" do
     before do
       target_map_stub("storage_ppc.rb")
-
-      # force to recreate mapping as we use different target maps for testing
-      ::Bootloader::DeviceMapping.recreate_mapping
     end
 
     it "return argument for non-udev mapped device names" do
@@ -42,9 +43,6 @@ describe Bootloader::DeviceMapping do
         end
         { "disk" => disk, "nr" => number }
       end
-
-      # force to recreate mapping as we use different target maps for testing
-      ::Bootloader::DeviceMapping.recreate_mapping
     end
 
     it "returns udev link in same format as used to its mounting" do

@@ -79,7 +79,7 @@ module Bootloader
   private
 
     def ensure_mapping_exists
-      map_devices if !@all_devices
+      map_devices unless cache_valid?
     end
 
     MOUNT_BY_MAPPING_TO_UDEV = {
@@ -156,7 +156,31 @@ module Bootloader
       end
       log.debug("device name mapping to kernel names: #{@all_devices}")
 
+      @target_map_timestamp = Yast::Storage.GetTargetChangeTime
+      if Yast::Mode.installation
+        @partitions_created ||= !partition_not_yet_created?
+      end
+
       nil
+    end
+
+    def cache_valid?
+      return false unless @all_devices
+
+      # bnc#594482 - grub config not using uuid
+      # if there is "not created" partition and flag for "it" is not set
+      if Yast::Mode.installation
+        already_created = !partition_not_yet_created?
+        return false if already_created != @partitions_created
+      end
+
+      return @target_map_timestamp == Yast::Storage.GetTargetChangeTime
+    end
+
+    def partition_not_yet_created?
+      Yast::Storage.GetTargetMap.values.any? do |disk|
+        (disk["partitions"] || []).any? { |p| p["create"] }
+      end
     end
   end
 end
