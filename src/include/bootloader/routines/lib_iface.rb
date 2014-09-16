@@ -21,6 +21,7 @@
 
 require "tempfile"
 require "yaml"
+require "bootloader/device_mapping"
 
 module Yast
   module BootloaderRoutinesLibIfaceInclude

@@ -16,12 +16,19 @@ module Bootloader
       extend Forwardable
       def_delegators :instance,
         :to_hash,
-        :recreate_mapping,
         :to_kernel_device,
         :to_mountby_device
     end
 
+    # Returns hash where keys are udev links for disks and partitions and value their kernel devices.
     # TODO remove when remove pbl support
+    # @example of output
+    #   {
+    #     "/dev/disk/by-id/abcd" => "/dev/sda",
+    #     "/dev/disk/by-id/abcde" => "/dev/sda",
+    #     "/dev/disk/by-label/label1" => "/dev/sda1",
+    #     "/dev/disk/by-uuid/aaaa-bbbb-cccc-dddd" => "/dev/sda",
+    #   }
     def to_hash
       ensure_mapping_exists
       @all_devices
@@ -48,34 +55,31 @@ module Bootloader
       log.info "#{dev} looked as kernel device name: #{kernel_dev}"
       # we do not know if it is partition or disk, but target map help us
       target_map = Yast::Storage.GetTargetMap
-      data = target_map[kernel_dev]
-      if !data #so partition
+      storage_data = target_map[kernel_dev]
+      if !storage_data #so partition
         disk = target_map[Yast::Storage.GetDiskPartition(kernel_dev)["disk"]]
-        data = disk["partitions"].find { |p| p["device"] == kernel_dev }
+        storage_data = disk["partitions"].find { |p| p["device"] == kernel_dev }
       end
 
-      raise "Unknown device #{kernel_dev}" unless data
+      raise "Unknown device #{kernel_dev}" unless storage_data
 
-      mount_by = data["mountby"]
+      mount_by = storage_data["mountby"]
       mount_by ||= Yast::Arch.ppc ? :id : Yast::Storage.GetDefaultMountBy
 
       log.info "mount by: #{mount_by}"
 
-      key = MOUNT_BY_MAPPING_TO_UDEV[mount_by]
-      raise "Internal error unknown mountby #{mount_by}" unless key
-      ret = map_device_to_udev_devices(data[key], key, kernel_dev)
-      if ret.empty?
+      udev_data_key = MOUNT_BY_MAPPING_TO_UDEV[mount_by]
+      raise "Internal error unknown mountby #{mount_by}" unless udev_data_key
+      udev_pair = map_device_to_udev_devices(storage_data[udev_data_key], udev_data_key, kernel_dev).first
+      if !udev_pair
         log.warn "Cannot find udev link to satisfy mount by for #{kernel_dev}"
         return kernel_dev
       end
 
-      return ret.first.first
+      # udev pair contain as first udev device and as second coresponding kernel device
+      return udev_pair.first
     end
 
-    # FIXME Temporary method, will be removed as class itself recognize cache invalidation
-    def recreate_mapping
-      map_devices
-    end
   private
 
     def ensure_mapping_exists
