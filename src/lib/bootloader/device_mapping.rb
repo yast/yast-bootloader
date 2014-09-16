@@ -6,6 +6,7 @@ Yast.import "Mode"
 Yast.import "Arch"
 
 module Bootloader
+  # Class manages mapping between udev names of disks and partitions.
   class DeviceMapping
     include Singleton
     include Yast::Logger
@@ -26,6 +27,9 @@ module Bootloader
       @all_devices
     end
 
+    # Converts full udev name to kernel device ( disk or partition )
+    # @param dev [String] device udev or kernel one like /dev/disks/by-id/blabla
+    # @raise when device have udev format but do not exists
     def to_kernel_device(dev)
       return dev if dev !~ /^\/dev\/disk\/by-/
 
@@ -34,6 +38,10 @@ module Bootloader
       @all_devices[dev] or raise "Unknown udev device #{dev}"
     end
 
+    # Converts udev or kernel device (disk or partition) to udev name according to mountby
+    # option or kernel device if such udev device do not exists
+    # @param dev [String] device udev or kernel one like /dev/disks/by-id/blabla
+    # @raise when device have udev format but do not exists
     def to_mountby_device(dev)
       kernel_dev = to_kernel_device(dev)
 
