@@ -66,9 +66,10 @@ describe Bootloader::DeviceMapping do
     end
 
     it "raises exception if unknown device passed" do
-      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:id)
+      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
 
       expect{subject.to_mountby_device("/dev/non-exists")}.to raise_error
+      expect{subject.to_mountby_device("/dev/disk-by-uuid/ffff-ffff-ffff-ffff")}.to raise_error
     end
   end
 end
