@@ -86,6 +86,7 @@ module Bootloader
       map_devices unless cache_valid?
     end
 
+    # Maps mountby symbol to udev key in Storage target map
     MOUNT_BY_MAPPING_TO_UDEV = {
       :uuid  => "uuid",
       :id    => "udev_id",
@@ -93,6 +94,7 @@ module Bootloader
       :label => "label"
     }
 
+    # Maps udev key in Storage target map to device prefix
     UDEV_MAPPING = {
       "uuid"      => "/dev/disk/by-uuid/",
       "udev_id"   => "/dev/disk/by-id/",
