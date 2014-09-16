@@ -121,6 +121,13 @@ module Bootloader
     end
 
 
+    # Returns array of pairs where each pair contain full udev name as first and kernel device as second
+    # @param names [Array<String>] udev names for device e.g. "aaaa-bbbb-cccc-dddd" for uuid device name
+    # @param key [String] storage key for given udev mapping see UDEV_MAPPING
+    # @param device [String] kernel name e.g. "/dev/sda"
+    # @example
+    #   map_device_to_udev_devices(["aaaa-bbbb-cccc-dddd"], "uuid", "/dev/sda")
+    #   => [["/dev/disk/by-uuid/aaaa-bbbb-cccc-dddd", "/dev/sda"]]
     def map_device_to_udev_devices(names, key, device)
       return [] if [nil, "", []].include?(names)
       prefix = UDEV_MAPPING[key]
@@ -173,7 +180,7 @@ module Bootloader
 
       # bnc#594482 - grub config not using uuid
       # if there is "not created" partition and flag for "it" is not set
-      if Yast::Mode.installation
+      if Yast::Mode.installation && !@partitions_created
         already_created = !partition_not_yet_created?
         return false if already_created != @partitions_created
       end
