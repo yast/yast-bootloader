@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 17 07:42:12 UTC 2014 - jreidinger@suse.com
+
+- pass vga mode if specified during installation 
+  (bnc#896300,bnc#891060)
+- 3.1.94.2
+
+-------------------------------------------------------------------
 Mon Sep 15 14:18:20 UTC 2014 - jreidinger@suse.com
 
 - Fix API to remove or add kernel parameter for bootloader
