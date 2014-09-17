@@ -153,19 +153,8 @@ module Bootloader
         next unless value["partitions"]
 
         value["partitions"].each do |partition|
-          # bnc#594482 - grub config not using uuid
-          # if there is "not created" partition and flag for "it" is not set
-          if partition["create"] && Yast::Mode.installation
-            @proposed_partition = partition["device"] || "" if @proposed_partition == ""
-            @all_devices_created = 1
-          end
-
           map_partitions(partition, partition["device"])
         end
-      end
-      if Yast::Mode.installation && @all_devices_created == 2
-        @all_devices_created = 0
-        log.info("set status for all_devices to \"created\"")
       end
       log.debug("device name mapping to kernel names: #{@all_devices}")
 
@@ -181,7 +170,15 @@ module Bootloader
       return false unless @all_devices
 
       # bnc#594482 - grub config not using uuid
-      # if there is "not created" partition and flag for "it" is not set
+      # Explanation why we need not check when partitions already created:
+      # If partitions already created it can mean two things. The first one is
+      # more common when we are in finish phase and it cannot be changed to
+      # create again and we already before recreate cache. The second one is
+      # when user keep old partition schema. If user then go back and change
+      # target map to create any partition, then target change time will be
+      # changed and cache is also forced to recreate. So this ensure, that cache
+      # is invalidated only in finish phase after partitions are created and
+      # have uuid assigned.
       if Yast::Mode.installation && !@partitions_created
         already_created = !partition_not_yet_created?
         return false if already_created != @partitions_created
