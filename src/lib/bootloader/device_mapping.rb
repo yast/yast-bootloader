@@ -30,8 +30,7 @@ module Bootloader
     #     "/dev/disk/by-uuid/aaaa-bbbb-cccc-dddd" => "/dev/sda",
     #   }
     def to_hash
-      ensure_mapping_exists
-      @all_devices
+      all_devices
     end
 
     # Converts full udev name to kernel device ( disk or partition )
@@ -40,9 +39,7 @@ module Bootloader
     def to_kernel_device(dev)
       return dev if dev !~ /^\/dev\/disk\/by-/
 
-      ensure_mapping_exists
-
-      @all_devices[dev] or raise "Unknown udev device #{dev}"
+      all_devices[dev] or raise "Unknown udev device #{dev}"
     end
 
     # Converts udev or kernel device (disk or partition) to udev name according to mountby
@@ -82,8 +79,10 @@ module Bootloader
 
   private
 
-    def ensure_mapping_exists
+    # reader of all devices that ensure that it contain valid data
+    def all_devices
       map_devices unless cache_valid?
+      @all_devices
     end
 
     # Maps mountby symbol to udev key in Storage target map
