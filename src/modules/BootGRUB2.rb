@@ -139,6 +139,10 @@ module Yast
         case Arch.architecture
         when "i386", "x86_64"
           grub_LocationProposal
+          # pass vga if available (bnc#896300)
+          if !Kernel.GetVgaType.empty?
+            BootCommon.globals["vgamode"]= Kernel.GetVgaType
+          end
         when /ppc/
           partition = prep_partitions.first
           if partition
