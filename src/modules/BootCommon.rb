@@ -19,6 +19,7 @@
 # $Id$
 #
 require "yast"
+require "bootloader/device_mapping"
 
 module Yast
   class BootCommonClass < Module
@@ -196,7 +197,7 @@ module Yast
       resume = BootArch.ResumeAvailable ? getLargestSwapPartition : ""
       # try to use label or udev id for device name... FATE #302219
       if resume != "" && resume != nil
-        resume = BootStorage.Dev2MountByDev(resume)
+        resume = ::Bootloader::DeviceMapping.to_mountby_device(resume)
       end
 
 
@@ -324,7 +325,7 @@ module Yast
             "image"  => kernel_fn,
             "initrd" => initrd_fn,
             # try to use label or udev id for device name... FATE #302219
-            "root"   => BootStorage.Dev2MountByDev(
+            "root"   => ::Bootloader::DeviceMapping.to_mountby_device(
               BootStorage.RootPartitionDevice
             ),
             "append" => title == "failsafe" ?
@@ -409,7 +410,7 @@ module Yast
 
       # convert device names in device map to the kernel device names
       BootStorage.device_mapping = Builtins.mapmap(BootStorage.device_mapping) do |k, v|
-        { BootStorage.Dev2MountByDev(k) => v }
+        { ::Bootloader::DeviceMapping.to_mountby_device(k) => v }
       end
 
       # convert custom boot device names in globals to the kernel device names
@@ -417,7 +418,7 @@ module Yast
       # convert the stage1_dev
       @globals = Builtins.mapmap(@globals) do |k, v|
         if k == "stage1_dev" || Builtins.regexpmatch(k, "^boot_.*custom$")
-          next { k => BootStorage.Dev2MountByDev(v) }
+          next { k => ::Bootloader::DeviceMapping.to_kernel_device(v) }
         else
           next { k => v }
         end
@@ -478,7 +479,7 @@ module Yast
       # convert the stage1_dev
       my_globals = Builtins.mapmap(@globals) do |k, v|
         if k == "stage1_dev" || Builtins.regexpmatch(k, "^boot_.*custom$")
-          next { k => BootStorage.Dev2MountByDev(v) }
+          next { k => ::Bootloader::DeviceMapping.to_mountby_device(v) }
         else
           next { k => v }
         end
@@ -492,7 +493,7 @@ module Yast
         BootStorage.device_mapping
       )
       my_device_mapping = Builtins.mapmap(BootStorage.device_mapping) do |k, v|
-        { BootStorage.Dev2MountByDev(k) => v }
+        { ::Bootloader::DeviceMapping.to_mountby_device(k) => v }
       end
       Builtins.y2milestone("device map after mapping %1", my_device_mapping)
 

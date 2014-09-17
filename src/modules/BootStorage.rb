@@ -72,35 +72,6 @@ module Yast
       @md_physical_disks = []
     end
 
-    # FATE #302219 - Use and choose persistent device names for disk devices
-    # Converts a "/dev/disk/by-" device name to the corresponding kernel
-    # device name, if a mapping for this name can be found in the map from
-    # yast2-storage. If the given device name is not a "/dev/disk/by-" device
-    # name, it is left unchanged. Also, if the information about the device
-    # name cannot be found in the target map from yast2-storage, the device
-    # name is left unchanged.
-    #
-    # @param [String] dev string device name
-    # @return [String] kernel device name
-
-    def MountByDev2Dev(dev)
-      ::Bootloader::DeviceMapping.to_kernel_device(dev)
-    end
-
-    # FATE #302219 - Use and choose persistent device names for disk devices
-    # Converts a device name to the corresponding device name it should be
-    # mounted by, according to the "mountby" setting for the device from
-    # yast2-storage. As a safeguard against problems, if the "mountby" device
-    # name does not exist in the information from yast2-storage, it will
-    # fallback to the "kernel name" ("/dev/sdXY").
-    #
-    # @param [String] dev string device name
-    # @return [String] device name according to "mountby"
-    def Dev2MountByDev(dev)
-      ::Bootloader::DeviceMapping.to_mountby_device(dev)
-    end
-
-
     # bnc #447591, 438243, 448110 multipath wrong device map
     # Function maps real devices to multipath e.g.
     # "/dev/sda/" : "/dev/mapper/SATA_ST3120813AS_3LS0CD7M"
@@ -245,7 +216,7 @@ module Yast
         # adding moundby (by-id) via user preference
         Builtins.foreach(@partinfo) do |partition|
           tmp = []
-          mount_by = Dev2MountByDev(
+          mount_by = ::Bootloader::DeviceMapping.to_mountby_device(
             Builtins.tostring(Ops.get_string(partition, 0, ""))
           )
           if mount_by != Builtins.tostring(Ops.get_string(partition, 0, ""))
@@ -610,7 +581,7 @@ module Yast
       ret = {}
       # convert device names in device map to the device names by device or label
       ret = Builtins.mapmap(@device_mapping) do |k, v|
-        { MountByDev2Dev(k) => v }
+        { ::Bootloader::DeviceMapping.to_kernel_device(k) => v }
       end
 
       deep_copy(ret)
@@ -638,7 +609,7 @@ module Yast
         if type == :boot && bl == "grub"
           # check if device is in device map
           if Builtins.haskey(@device_mapping, k) ||
-              Builtins.haskey(@device_mapping, Dev2MountByDev(k))
+              Builtins.haskey(@device_mapping, ::Bootloader::DeviceMapping.to_mountby_device(k))
             partitions = Convert.convert(
               Builtins.merge(partitions, Ops.get_list(v, "partitions", [])),
               :from => "list",
@@ -688,7 +659,7 @@ module Yast
       # filter out disk which are not in device map
       all_disks = Builtins.filter(all_disks) do |k|
         if Builtins.haskey(@device_mapping, k) ||
-            Builtins.haskey(@device_mapping, Dev2MountByDev(k))
+            Builtins.haskey(@device_mapping, ::Bootloader::DeviceMapping.to_mountby_device(k))
           next true
         else
           next false
@@ -1006,8 +977,6 @@ module Yast
     publish :variable => :BootPartitionDevice, :type => "string"
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
-    publish :function => :MountByDev2Dev, :type => "string (string)"
-    publish :function => :Dev2MountByDev, :type => "string (string)"
     publish :function => :InitDiskInfo, :type => "void ()"
     publish :function => :ProposeDeviceMap, :type => "void ()"
     publish :function => :DisksOrder, :type => "list <string> ()"
