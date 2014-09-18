@@ -16,21 +16,25 @@ module Bootloader
       def backup_device(device)
         device_file = device.tr("/", "_")
         device_file_path = MAIN_BACKUP_DIR + device_file
-        device_file_path_to_logs = "/var/log/YaST2/" + device_file
         Yast::SCR.Execute(BASH_PATH, "mkdir -p #{MAIN_BACKUP_DIR}")
 
         # check if file exists
         if Yast::SCR.Read(Yast::Path.new(".target.size"), device_file_path) > 0
-          cleanup_backups(device_file)
+          # move it so we do not overwrite it
           change_date = formated_file_ctime(device_file_path)
           Yast::SCR.Execute(
             BASH_PATH,
             Yast::Builtins.sformat("/bin/mv %1 %1-%2", device_file_path, change_date)
           )
+
+          cleanup_backups(device_file)
         end
+
         copy_br(device, device_file_path)
+
         # save MBR to yast2 log directory
-        copy_br(device, device_file_path_to_logs)
+        logs_path = "/var/log/YaST2/" + device_file
+        copy_br(device, logs_path)
 
         if device == Yast::BootCommon.mbrDisk
           copy_br(device, "/boot/backup_mbr")
