@@ -45,7 +45,7 @@ describe Bootloader::BackupMBR do
 
     it "keep only ten backups in backup_boot_sectors" do
       # special backup format, leaked implementation to test
-      file_names = Array.new(11) { |i| "_dev_sda-1970-01-01-00-03-#{i}" }
+      file_names = Array.new(11) { |i| "_dev_sda-1970-01-01-00-03-%02d" % i }
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
       allow(Yast::SCR).to receive(:Read).with(DIR_PATH, anything).and_return(file_names)
       allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return({"ctime" => 200})

@@ -9,6 +9,7 @@ module Bootloader
       BASH_PATH = Yast::Path.new(".target.bash")
       BASH_OUTPUT_PATH = Yast::Path.new(".target.bash_output")
       MAIN_BACKUP_DIR = "/var/lib/YaST2/backup_boot_sectors/"
+      KEPT_BACKUPS = 10
       # Creates backup of MBR or PBR of given device.
       # Backup is stored in /var/lib/YaST2/backup_boot_sectors, in logs
       # directory and if it is MBR of primary disk, then also in /boot/backup_mbr
@@ -18,27 +19,20 @@ module Bootloader
         device_file_path_to_logs = "/var/log/YaST2/" + device_file
         Yast::SCR.Execute(BASH_PATH, "mkdir -p #{MAIN_BACKUP_DIR}")
 
-        if Yast::Ops.greater_than(Yast::SCR.Read(Yast::Path.new(".target.size"), device_file_path), 0)
-          contents = Yast::Convert.convert(
-            Yast::SCR.Read(Yast::Path.new(".target.dir"), MAIN_BACKUP_DIR),
-            :from => "any",
-            :to   => "list <string>"
-          )
-          contents = Yast::Builtins.filter(contents) do |c|
-            Yast::Builtins.regexpmatch(
-              c,
-              Yast::Builtins.sformat("%1-.*-.*-.*-.*-.*-.*", device_file)
-            )
+        # check if file exists
+        if Yast::SCR.Read(Yast::Path.new(".target.size"), device_file_path) > 0
+          contents = Yast::SCR.Read(Yast::Path.new(".target.dir"), MAIN_BACKUP_DIR)
+          # clean only backups for this device
+          contents.select! do |c|
+            c =~ /#{Regexp.escape(device_file)}-\d{4}(?:-\d{2}){5}/
           end
-          contents = Yast::Builtins.sort(contents)
-          index = 0
-          siz = Yast::Builtins.size(contents)
-          while Yast::Ops.less_than(Yast::Ops.add(index, 10), siz)
+          # and sort so we can benefit from its ascending order
+          contents.sort!
+          contents.drop(KEPT_BACKUPS).each do |file_name|
             Yast::SCR.Execute(
               Yast::Path.new(".target.remove"),
-              MAIN_BACKUP_DIR + contents[index]
+              MAIN_BACKUP_DIR + file_name
             )
-            index = Yast::Ops.add(index, 1)
           end
           change_date = grub_getFileChangeDate(device_file_path)
           Yast::SCR.Execute(
