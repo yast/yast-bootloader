@@ -46,32 +46,12 @@ module Bootloader
             Yast::Builtins.sformat("/bin/mv %1 %1-%2", device_file_path, change_date)
           )
         end
-        Yast::SCR.Execute(
-          BASH_PATH,
-          Yast::Builtins.sformat(
-            "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
-            device,
-            device_file_path
-          )
-        )
+        copy_br(device, device_file_path)
         # save MBR to yast2 log directory
-        Yast::SCR.Execute(
-          BASH_PATH,
-          Yast::Builtins.sformat(
-            "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
-            device,
-            device_file_path_to_logs
-          )
-        )
+        copy_br(device, device_file_path_to_logs)
+
         if device == Yast::BootCommon.mbrDisk
-          Yast::SCR.Execute(
-            BASH_PATH,
-            Yast::Builtins.sformat(
-              "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
-              device,
-              "/boot/backup_mbr"
-            )
-          )
+          copy_br(device, "/boot/backup_mbr")
 
           # save thinkpad MBR
           if Yast::BootCommon.ThinkPadMBR(device)
@@ -99,6 +79,13 @@ module Bootloader
         time = DateTime.strptime(ctime.to_s, "%s")
 
         time.strftime("%Y-%m-%d-%H-%M-%S")
+      end
+
+      def copy_br(device, target_path)
+        Yast::SCR.Execute(
+          BASH_PATH,
+          "/bin/dd if=#{device} of=#{target_path} bs=512 count=1 2>&1"
+        )
       end
     end
   end
