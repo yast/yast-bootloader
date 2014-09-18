@@ -22,7 +22,7 @@ module Bootloader
         # check if file exists
         if Yast::SCR.Read(Yast::Path.new(".target.size"), device_file_path) > 0
           cleanup_backups(device_file)
-          change_date = grub_getFileChangeDate(device_file_path)
+          change_date = formated_file_ctime(device_file_path)
           Yast::SCR.Execute(
             BASH_PATH,
             Yast::Builtins.sformat("/bin/mv %1 %1-%2", device_file_path, change_date)
@@ -55,7 +55,7 @@ module Bootloader
       # Get last change time of file
       # @param [String] filename string name of file
       # @return [String] last change date as YYYY-MM-DD-HH-MM-SS
-      def grub_getFileChangeDate(filename)
+      def formated_file_ctime(filename)
         stat = Yast::SCR.Read(Yast::Path.new(".target.stat"), filename)
         ctime = stat["ctime"] or raise "Cannot get modification time of file #{filename}"
         time = DateTime.strptime(ctime.to_s, "%s")
