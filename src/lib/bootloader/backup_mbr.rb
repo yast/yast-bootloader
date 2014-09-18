@@ -12,7 +12,7 @@ module Bootloader
       # Backup is stored in /var/lib/YaST2/backup_boot_sectors, in logs
       # directory and if it is MBR of primary disk, then also in /boot/backup_mbr
       def backup_device(device)
-        device_file = Yast::Builtins.mergestring(Yast::Builtins.splitstring(device, "/"), "_")
+        device_file = device.tr("/", "_")
         device_file_path = Yast::Ops.add(
           "/var/lib/YaST2/backup_boot_sectors/",
           device_file
