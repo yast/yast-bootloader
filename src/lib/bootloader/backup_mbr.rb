@@ -16,6 +16,7 @@ module Bootloader
       def backup_device(device)
         device_file = device.tr("/", "_")
         device_file_path = MAIN_BACKUP_DIR + device_file
+
         Yast::SCR.Execute(BASH_PATH, "mkdir -p #{MAIN_BACKUP_DIR}")
 
         # check if file exists
@@ -41,15 +42,11 @@ module Bootloader
 
           # save thinkpad MBR
           if Yast::BootCommon.ThinkPadMBR(device)
-            device_file_path_thinkpad = Yast::Ops.add(device_file_path, "thinkpadMBR")
+            device_file_path_thinkpad = device_file_path + "thinkpadMBR"
             log.info("Backup thinkpad MBR")
             Yast::SCR.Execute(
               BASH_PATH,
-              Yast::Builtins.sformat(
-                "cp %1 %2 2>&1",
-                device_file_path,
-                device_file_path_thinkpad
-              )
+              "cp #{device_file_path} #{device_file_path_thinkpad}",
             )
           end
         end
