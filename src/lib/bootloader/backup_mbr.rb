@@ -101,16 +101,11 @@ module Bootloader
       # @param [String] filename string name of file
       # @return [String] last change date as YYYY-MM-DD-HH-MM-SS
       def grub_getFileChangeDate(filename)
-        stat = Yast::Convert.to_map(Yast::SCR.Read(Yast::Path.new(".target.stat"), filename))
-        ctime = Yast::Ops.get_integer(stat, "ctime", 0)
-        command = Yast::Builtins.sformat(
-          "date --date='1970-01-01 00:00:00 %1 seconds' +\"%%Y-%%m-%%d-%%H-%%M-%%S\"",
-          ctime
-        )
-        out = Yast::Convert.to_map(Yast::SCR.Execute(BASH_OUTPUT_PATH, command))
-        c_time = Yast::Ops.get_string(out, "stdout", "")
-        log.debug("File #{filename}: last change #{c_time}")
-        c_time
+        stat = Yast::SCR.Read(Yast::Path.new(".target.stat"), filename)
+        ctime = stat["ctime"] or raise "Cannot get modification time of file #{filename}"
+        time = DateTime.strptime(ctime.to_s, "%s")
+
+        time.strftime("%Y-%m-%d-%H-%M-%S")
       end
     end
   end

@@ -8,7 +8,6 @@ describe Bootloader::BackupMBR do
   subject { Bootloader::BackupMBR }
   describe ".backup_device" do
     BASH_PATH = Yast::Path.new(".target.bash")
-    BASH_OUTPUT_PATH = Yast::Path.new(".target.bash_output")
     SIZE_PATH = Yast::Path.new(".target.size")
     DIR_PATH = Yast::Path.new(".target.dir")
     STAT_PATH = Yast::Path.new(".target.stat")
@@ -39,7 +38,6 @@ describe Bootloader::BackupMBR do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
       allow(Yast::SCR).to receive(:Read).with(DIR_PATH, anything).and_return([])
       allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return({"ctime" => 200})
-      allow(Yast::SCR).to receive(:Execute).with(BASH_OUTPUT_PATH, /date/).and_return({"stdout" => "1970-01-01-00-03-20"})
       expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/mv .*backup_boot_sectors.*\s+.*backup_boot_sectors/)
 
       subject.backup_device("/dev/sda")
@@ -51,7 +49,6 @@ describe Bootloader::BackupMBR do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
       allow(Yast::SCR).to receive(:Read).with(DIR_PATH, anything).and_return(file_names)
       allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return({"ctime" => 200})
-      allow(Yast::SCR).to receive(:Execute).with(BASH_OUTPUT_PATH, /date/).and_return({"stdout" => "1970-01-01-00-03-20"})
       allow(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/mv .*backup_boot_sectors.*\s+.*backup_boot_sectors/)
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.remove"), /.*backup_boot_sectors.*/)
 
