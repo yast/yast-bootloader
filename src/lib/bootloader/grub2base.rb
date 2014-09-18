@@ -102,7 +102,7 @@ module Yast
     def Propose
       if BootCommon.was_proposed
         # workaround autoyast config is Imported thus was_proposed always set
-        if Mode.autoinst
+        if Mode.autoinst || Mode.autoupgrade
           Builtins.y2milestone(
             "autoinst mode we ignore meaningless was_proposed as it always set"
           )
