@@ -21,19 +21,7 @@ module Bootloader
 
         # check if file exists
         if Yast::SCR.Read(Yast::Path.new(".target.size"), device_file_path) > 0
-          contents = Yast::SCR.Read(Yast::Path.new(".target.dir"), MAIN_BACKUP_DIR)
-          # clean only backups for this device
-          contents.select! do |c|
-            c =~ /#{Regexp.escape(device_file)}-\d{4}(?:-\d{2}){5}/
-          end
-          # and sort so we can benefit from its ascending order
-          contents.sort!
-          contents.drop(KEPT_BACKUPS).each do |file_name|
-            Yast::SCR.Execute(
-              Yast::Path.new(".target.remove"),
-              MAIN_BACKUP_DIR + file_name
-            )
-          end
+          cleanup_backups(device_file)
           change_date = grub_getFileChangeDate(device_file_path)
           Yast::SCR.Execute(
             BASH_PATH,
@@ -80,6 +68,22 @@ module Bootloader
           BASH_PATH,
           "/bin/dd if=#{device} of=#{target_path} bs=512 count=1 2>&1"
         )
+      end
+
+      def cleanup_backups(device_file)
+        files = Yast::SCR.Read(Yast::Path.new(".target.dir"), MAIN_BACKUP_DIR)
+        # clean only backups for this device
+        files.select! do |c|
+          c =~ /#{Regexp.escape(device_file)}-\d{4}(?:-\d{2}){5}/
+        end
+        # and sort so we can benefit from its ascending order
+        files.sort!
+        files.drop(KEPT_BACKUPS).each do |file_name|
+          Yast::SCR.Execute(
+            Yast::Path.new(".target.remove"),
+            MAIN_BACKUP_DIR + file_name
+          )
+        end
       end
     end
   end
