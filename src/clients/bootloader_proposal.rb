@@ -38,7 +38,7 @@ module Yast
         @force_reset = Ops.get_boolean(@param, "force_reset", false)
         @language_changed = Ops.get_boolean(@param, "language_changed", false)
 
-        if @force_reset && !Mode.autoinst
+        if @force_reset && !Mode.autoinst && !Mode.autoupgrade
           # force re-calculation of bootloader proposal
           # this deletes any internally cached values, a new proposal will
           # not be partially based on old data now any more
@@ -49,7 +49,7 @@ module Yast
         end
 
         # proposal not changed by user so repropose it from scratch
-        if !Bootloader.proposed_cfg_changed && !Mode.autoinst
+        if !Bootloader.proposed_cfg_changed && !Mode.autoinst && !Mode.autoupgrade
           Builtins.y2milestone "Proposal not modified, so repropose from scratch"
           Bootloader.ResetEx(false)
         end
