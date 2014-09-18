@@ -223,109 +223,12 @@ module Yast
       Builtins.toset(ret)
     end
 
-    # Get last change time of file
-    # @param [String] filename string name of file
-    # @return [String] last change date as YYYY-MM-DD-HH-MM-SS
-    def grub_getFileChangeDate(filename)
-      stat = Convert.to_map(SCR.Read(path(".target.stat"), filename))
-      ctime = Ops.get_integer(stat, "ctime", 0)
-      command = Builtins.sformat(
-        "date --date='1970-01-01 00:00:00 %1 seconds' +\"%%Y-%%m-%%d-%%H-%%M-%%S\"",
-        ctime
-      )
-      out = Convert.to_map(SCR.Execute(path(".target.bash_output"), command))
-      c_time = Ops.get_string(out, "stdout", "")
-      Builtins.y2debug("File %1: last change %2", filename, c_time)
-      c_time
-    end
-
     # Save current MBR to /boot/backup_mbr
     # Also save to /var/lib/YaST2/backup_boot_sectors/%device, if some
     # existing, rename it
     # @param [String] device string name of device
     def grub_saveMBR(device)
-      device_file = Builtins.mergestring(Builtins.splitstring(device, "/"), "_")
-      device_file_path = Ops.add(
-        "/var/lib/YaST2/backup_boot_sectors/",
-        device_file
-      )
-      device_file_path_to_logs = Ops.add("/var/log/YaST2/", device_file)
-      SCR.Execute(
-        path(".target.bash"),
-        "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors"
-      )
-      if Ops.greater_than(SCR.Read(path(".target.size"), device_file_path), 0)
-        contents = Convert.convert(
-          SCR.Read(path(".target.dir"), "/var/lib/YaST2/backup_boot_sectors"),
-          :from => "any",
-          :to   => "list <string>"
-        )
-        contents = Builtins.filter(contents) do |c|
-          Builtins.regexpmatch(
-            c,
-            Builtins.sformat("%1-.*-.*-.*-.*-.*-.*", device_file)
-          )
-        end
-        contents = Builtins.sort(contents)
-        index = 0
-        siz = Builtins.size(contents)
-        while Ops.less_than(Ops.add(index, 10), siz)
-          SCR.Execute(
-            path(".target.remove"),
-            Builtins.sformat(
-              "/var/lib/YaST2/backup_boot_sectors/%1",
-              Ops.get(contents, index, "")
-            )
-          )
-          index = Ops.add(index, 1)
-        end
-        change_date = grub_getFileChangeDate(device_file_path)
-        SCR.Execute(
-          path(".target.bash"),
-          Builtins.sformat("/bin/mv %1 %1-%2", device_file_path, change_date)
-        )
-      end
-      SCR.Execute(
-        path(".target.bash"),
-        Builtins.sformat(
-          "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
-          device,
-          device_file_path
-        )
-      )
-      # save MBR to yast2 log directory
-      SCR.Execute(
-        path(".target.bash"),
-        Builtins.sformat(
-          "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
-          device,
-          device_file_path_to_logs
-        )
-      )
-      if device == BootCommon.mbrDisk
-        SCR.Execute(
-          path(".target.bash"),
-          Builtins.sformat(
-            "/bin/dd if=%1 of=%2 bs=512 count=1 2>&1",
-            device,
-            "/boot/backup_mbr"
-          )
-        )
-
-        # save thinkpad MBR
-        if BootCommon.ThinkPadMBR(device)
-          device_file_path_thinkpad = Ops.add(device_file_path, "thinkpadMBR")
-          Builtins.y2milestone("Backup thinkpad MBR")
-          SCR.Execute(
-            path(".target.bash"),
-            Builtins.sformat(
-              "cp %1 %2 2>&1",
-              device_file_path,
-              device_file_path_thinkpad
-            )
-          )
-        end
-      end
+      ::Bootloader::BackupMBR.backup_device(device)
 
       nil
     end
