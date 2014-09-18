@@ -18,6 +18,9 @@
 #
 # $Id: BootGRUB.ycp 63508 2011-03-04 12:53:27Z jreidinger $
 #
+
+require "bootloader/backup_mbr"
+
 module Yast
   module BootloaderGrub2MiscInclude
     def initialize_bootloader_grub2_misc(include_target)
@@ -223,16 +226,6 @@ module Yast
       Builtins.toset(ret)
     end
 
-    # Save current MBR to /boot/backup_mbr
-    # Also save to /var/lib/YaST2/backup_boot_sectors/%device, if some
-    # existing, rename it
-    # @param [String] device string name of device
-    def grub_saveMBR(device)
-      ::Bootloader::BackupMBR.backup_device(device)
-
-      nil
-    end
-
     # Update contents of MBR (active partition and booting code)
     # FIXME move tis function to lilolike.ycp
     # @return [Boolean] true on success
@@ -274,7 +267,7 @@ module Yast
           "Creating backup of boot sectors of %1",
           disks_to_rewrite
         )
-        Builtins.foreach(disks_to_rewrite) { |d| grub_saveMBR(d) }
+        Builtins.foreach(disks_to_rewrite) { |d| ::Bootloader::BackupMBR.backup_device(d) }
       end
       ret = true
       # if the bootloader stage 1 is not installed in the MBR, but
