@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Sep 18 07:28:13 UTC 2014 - jreidinger@suse.com
+
+- move udev mapping functionality to own class to make code easier
+  to understand and better tested
+- 3.1.97
+
+-------------------------------------------------------------------
 Wed Sep 17 07:42:12 UTC 2014 - jreidinger@suse.com
 
 - pass vga mode if specified during installation 
