@@ -18,6 +18,9 @@
 #
 # $Id$
 #
+
+require "bootloader/device_mapping"
+
 module Yast
   module BootloaderRoutinesMiscInclude
     def initialize_bootloader_routines_misc(include_target)
@@ -94,25 +97,18 @@ module Yast
 
     def remapGlobals(globals_set)
       globals_set = deep_copy(globals_set)
-      by_mount = nil
       if Arch.ppc
         by_mount = :id
       else
         by_mount = Storage.GetDefaultMountBy
       end
 
-      #by_mount = `id;
-      return deep_copy(globals_set) if by_mount == :label
+      return globals_set if by_mount == :label
 
-      if Builtins.haskey(globals_set, "boot_custom")
-        Ops.set(
-          globals_set,
-          "boot_custom",
-          BootStorage.MountByDev2Dev(Ops.get(globals_set, "boot_custom", ""))
-        )
-      end
+      globals_set["boot_custom"] &&=
+        ::Bootloader::DeviceMapping.to_kernel_device(globals_set["boot_custom"])
 
-      deep_copy(globals_set)
+      globals_set
     end
 
     # Get bootloader device for specified location

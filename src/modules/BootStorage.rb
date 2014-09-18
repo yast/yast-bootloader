@@ -18,6 +18,7 @@
 #
 #
 require "yast"
+require "bootloader/device_mapping"
 
 module Yast
   class BootStorageClass < Module
@@ -32,85 +33,27 @@ module Yast
       Yast.import "Mode"
 
 
-      # Saved change time from target map - only for MapAllPartitions()
-      @disk_change_time_InitBootloader = nil
-
-      # Saved change time from target map - only for MapAllPartitions()
-
-      @disk_change_time_MapAllPartitions = nil
-
       # Saved change time from target map - only for checkCallingDiskInfo()
-
       @disk_change_time_checkCallingDiskInfo = nil
-
-      # bnc #468922 - problem with longtime running the parsing a huge number of disks
-      # map<string,map> the map of all partitions with info about it ->
-      # necessary for Dev2MountByDev() in routines/misc.ycp
-      @all_partitions = {}
-
-      # bnc #468922 - problem with longtime running the parsing a huge number of disks
-      # map<string,map> target map try to minimalize calling Storage::GetTargetMap()
-      #
-      @target_map = {}
-
-
-      # mapping all devices udev-name to kernel name
-      # importnat for init fucntion of perl-Bootloader
-      @all_devices = {}
-
 
       # Storage locked
       @storage_initialized = false
 
-
       # device mapping between real devices and multipath
       @multipath_mapping = {}
 
-
-      # FIXME: it is ugly hack because y2-storage doesn't known
-      # to indicate that it finish (create partitions) proposed partitioning of disk in installation
-      # bnc#594482 - grub config not using uuid
-      # Indicate if storage already finish partitioning of disk
-      # if some partition includes any keyword "create"
-      # the value is the first found partition with flag "create" e.g. /dev/sda2
-      # empty string means all partitions are created
-      @proposed_partition = ""
-
-      # bnc#594482 - grub config not using uuid
-      # 0 - if all devices in variable all_devices are created.
-      # 1 - if partition with flag "create" was found in MapDevices()
-      # 2 - if proposed_partition was created or flag "create" was deleted
-      # by y2-storage. the value is set in CheckProposedPartition ()
-      @all_devices_created = 0
-
-      # bnc#594482 - grub config not using uuid
-      # 0 - if all devices in variable all_partitions and all_disks are created
-      # 1 - if partition with flag "create" was found in MapDevices()
-      # 2 - if proposed_partition was created or flag "create" was deleted
-      # by y2-storage. the value is set in CheckProposedPartition ()
-      @all_partitions_created = 0
-
       # mountpoints for perl-Bootloader
-
       @mountpoints = {}
 
 
       # list of all partitions for perl-Bootloader
-
       @partinfo = []
 
       # information about MD arrays for perl-Bootloader
       @md_info = {}
 
-
-      # Flag indicates that bios_id_missing in disk
-      # true if missing false if at least one disk has bios_id
-      @bois_id_missing = true
-
       # device mapping between Linux and firmware
       @device_mapping = {}
-
-
 
       # string sepresenting device name of /boot partition
       # same as RootPartitionDevice if no separate /boot partition
@@ -129,450 +72,6 @@ module Yast
       @md_physical_disks = []
     end
 
-    # FATE #302219 - Use and choose persistent device names for disk devices
-    # Function prepare maps with mapping disks and partitions by uuid, id, path
-    # and label.
-    #
-    def MapDevices
-      dev_by_something = ""
-      devices = Storage.GetTargetMap
-      Builtins.foreach(devices) do |k, v|
-        # map disk by uuid
-        if Ops.get(v, "uuid") != "" && Ops.get(v, "uuid") != nil
-          dev_by_something = Ops.add(
-            "/dev/disk/by-uuid/",
-            Ops.get_string(v, "uuid", "")
-          )
-          Ops.set(@all_devices, dev_by_something, k)
-        end
-        # map disk by path
-        if Ops.get(v, "path") != "" && Ops.get(v, "path") != nil
-          dev_by_something = Ops.add(
-            "/dev/disk/by-path/",
-            Ops.get_string(v, "path", "")
-          )
-          Ops.set(@all_devices, dev_by_something, k)
-        end
-        # map disk by id
-        if Ops.get(v, "udev_id") != nil && Ops.get(v, ["udev_id", 0]) != ""
-          dev_by_something = Ops.add(
-            "/dev/disk/by-id/",
-            Ops.get_string(v, ["udev_id", 0], "")
-          )
-          Ops.set(@all_devices, dev_by_something, k)
-          # bnc #534905 - yast2 bootloader 2.18.15-1.1 damages /etc/grub.conf
-          if Builtins.size(Ops.get_list(v, "udev_id", [])) == 2
-            dev_by_something = Ops.add(
-              "/dev/disk/by-id/",
-              Ops.get_string(v, ["udev_id", 1], "")
-            )
-            Ops.set(@all_devices, dev_by_something, k)
-          end
-        end
-        # map partitions from disk...
-        Builtins.foreach(Ops.get_list(v, "partitions", [])) do |p|
-          # bnc#594482 - grub config not using uuid
-          # if there is "not created" partition and flag for "it" is not set
-          if Ops.get(p, "create") == true && Mode.installation
-            if @proposed_partition == ""
-              @proposed_partition = Ops.get_string(p, "device", "")
-            end
-            @all_devices_created = 1
-          end
-          # map partition by uuid
-          # watch out for fake uuids (shorter than 9 chars)
-          if Ops.greater_than(Builtins.size(Ops.get_string(p, "uuid", "")), 8)
-            dev_by_something = Ops.add(
-              "/dev/disk/by-uuid/",
-              Ops.get_string(p, "uuid", "")
-            )
-            Ops.set(
-              @all_devices,
-              dev_by_something,
-              Ops.get_string(p, "device", "")
-            )
-          end
-          # map partition by path
-          if Ops.get(p, "path") != "" && Ops.get(p, "path") != nil
-            dev_by_something = Ops.add(
-              "/dev/disk/by-path/",
-              Ops.get_string(p, "path", "")
-            )
-            Ops.set(
-              @all_devices,
-              dev_by_something,
-              Ops.get_string(p, "device", "")
-            )
-          end
-          # map partition by label
-          if Ops.get(p, "label") != "" && Ops.get(p, "label") != nil
-            dev_by_something = Ops.add(
-              "/dev/disk/by-label/",
-              Ops.get_string(p, "label", "")
-            )
-            Ops.set(
-              @all_devices,
-              dev_by_something,
-              Ops.get_string(p, "device", "")
-            )
-          end
-          # map disk by id
-          if Ops.get(p, "udev_id") != nil && Ops.get(p, ["udev_id", 0]) != ""
-            dev_by_something = Ops.add(
-              "/dev/disk/by-id/",
-              Ops.get_string(p, ["udev_id", 0], "")
-            )
-            Ops.set(
-              @all_devices,
-              dev_by_something,
-              Ops.get_string(p, "device", "")
-            )
-            # bnc #534905 - yast2 bootloader 2.18.15-1.1 damages /etc/grub.conf
-            if Builtins.size(Ops.get_list(p, "udev_id", [])) == 2
-              dev_by_something = Ops.add(
-                "/dev/disk/by-id/",
-                Ops.get_string(p, ["udev_id", 1], "")
-              )
-              Ops.set(
-                @all_devices,
-                dev_by_something,
-                Ops.get_string(p, "device", "")
-              )
-            end
-          end
-        end # end of foreach (map p, (list<map>)(v["partitions"]:[]),
-      end # end of foreach (string k, map v, devices,
-      if Mode.installation && @all_devices_created == 2
-        @all_devices_created = 0
-        Builtins.y2milestone("set status for all_devices to \"created\"")
-      end
-      Builtins.y2debug("device name mapping to kernel names: %1", @all_devices)
-
-      nil
-    end
-
-
-
-    # FATE #302219 - Use and choose persistent device names for disk devices
-    # Converts a "/dev/disk/by-" device name to the corresponding kernel
-    # device name, if a mapping for this name can be found in the map from
-    # yast2-storage. If the given device name is not a "/dev/disk/by-" device
-    # name, it is left unchanged. Also, if the information about the device
-    # name cannot be found in the target map from yast2-storage, the device
-    # name is left unchanged.
-    #
-    # @param [String] dev string device name
-    # @return [String] kernel device name
-
-    def MountByDev2Dev(dev)
-      Builtins.y2milestone("MountByDev2Dev: %1", dev)
-
-      return dev if !Builtins.regexpmatch(dev, "^/dev/disk/by-")
-      ret = dev
-
-      # check if it is device name by id
-      ret = Ops.get(@all_devices, dev, "") if Builtins.haskey(@all_devices, dev)
-
-      Builtins.y2milestone("Device %1 was converted to: %2", dev, ret)
-      ret
-    end
-
-    # bnc#594482 - grub config not using uuid
-    # Function check if proposed_partition still includes
-    # flag "create"
-    #
-    # @param [Hash{String => map}] tm
-    # @return true if partition is still not created
-
-    def CheckProposedPartition(tm)
-      tm = deep_copy(tm)
-      ret = true
-      if !Mode.installation
-        Builtins.y2debug(
-          "Skip CheckProposedPartition() -> it is not running installation"
-        )
-        return false
-      end
-      if Builtins.size(tm) == 0 || @proposed_partition == ""
-        Builtins.y2debug("proposed_partition is empty: %1", @proposed_partition)
-        return false
-      end
-      dp = Storage.GetDiskPartition(@proposed_partition)
-      disk = Ops.get_string(dp, "disk", "")
-      partitions = Ops.get_list(tm, [disk, "partitions"], [])
-      Builtins.foreach(partitions) do |p|
-        if Ops.get_string(p, "device", "") == @proposed_partition
-          if Ops.get(p, "create") != true
-            @proposed_partition = ""
-            Builtins.y2milestone("proposed_partition is already created: %1", p)
-            @all_devices_created = 2 if @all_devices_created == 1
-            @all_partitions_created = 2 if @all_partitions_created == 1
-            ret = false
-          else
-            Builtins.y2milestone(
-              "proposed_partition: %1 is NOT created",
-              @proposed_partition
-            )
-          end
-          raise Break
-        end
-      end
-      ret
-    end
-
-    # bnc#594482 - grub config not using uuid
-    # Check if it is necessary rebuild all_devices
-    #
-    # @return true -> rebuild all_devices
-
-    def RebuildMapDevices
-      ret = false
-      ret_CheckProposedPartition = CheckProposedPartition(Storage.GetTargetMap)
-
-      return true if !ret_CheckProposedPartition && @all_devices_created == 2
-
-      ret
-    end
-
-    # Init and fullfil internal data for perl-Bootloader
-    #
-    # @return true if init reset/fullfil data or false and used cached data
-
-    def InitMapDevices
-      ret = false
-      if @disk_change_time_InitBootloader != Storage.GetTargetChangeTime ||
-          RebuildMapDevices()
-        Builtins.y2milestone("Init internal data from storage")
-        MapDevices()
-        @disk_change_time_InitBootloader = Storage.GetTargetChangeTime
-        ret = true
-      end
-
-      ret
-    end
-
-    # bnc#594482 - grub config not using uuid
-    # Check if it is necessary rebuild all_partitions and all_disks
-    #
-    # @return true -> rebuild all_partitions and all_disks
-
-    def RebuilMapAllPartitions
-      ret = false
-      ret_CheckProposedPartition = CheckProposedPartition(Storage.GetTargetMap)
-
-      return true if !ret_CheckProposedPartition && @all_partitions_created == 2
-
-      ret
-    end
-
-    # bnc #468922 - problem with longtime running the parsing a huge number of disks
-    # Function initialize all_partitions only if storage change
-    # partitioning of disk
-    # true if init all_partitions
-
-    def MapAllPartitions
-      ret = false
-      if @disk_change_time_MapAllPartitions != Storage.GetTargetChangeTime ||
-          Ops.less_than(Builtins.size(@all_partitions), 1) ||
-          Ops.less_than(Builtins.size(@target_map), 1) ||
-          RebuilMapAllPartitions()
-        # save last change time from storage for MapAllPartitions()
-        @disk_change_time_MapAllPartitions = Storage.GetTargetChangeTime
-
-        @all_partitions = {}
-        @target_map = {}
-        # get target map
-        @target_map = Storage.GetTargetMap
-        # map all partitions
-        Builtins.foreach(@target_map) do |k, v|
-          Builtins.foreach(Ops.get_list(v, "partitions", [])) do |p|
-            # bnc#594482 - grub config not using uuid
-            # if there is "not created" partition and flag for "it" is not set
-            if Ops.get(p, "create") == true && Mode.installation
-              if @proposed_partition == ""
-                @proposed_partition = Ops.get_string(p, "device", "")
-              end
-              @all_partitions_created = 1
-            end
-            Ops.set(@all_partitions, Ops.get_string(p, "device", ""), p)
-          end
-        end
-        ret = true
-      end
-      if Mode.installation && @all_partitions_created == 2
-        @all_partitions_created = 0
-        Builtins.y2milestone("set status for all_partitions to \"created\"")
-      end
-
-      ret
-    end
-
-    # FATE #302219 - Use and choose persistent device names for disk devices
-    # Converts a device name to the corresponding device name it should be
-    # mounted by, according to the "mountby" setting for the device from
-    # yast2-storage. As a safeguard against problems, if the "mountby" device
-    # name does not exist in the information from yast2-storage, it will
-    # fallback to the "kernel name" ("/dev/sdXY").
-    #
-    # @param [String] dev string device name
-    # @return [String] device name according to "mountby"
-    def Dev2MountByDev(dev)
-      tmp_dev = MountByDev2Dev(dev)
-
-      Builtins.y2milestone(
-        "Dev2MountByDev: %1 as kernel device name: %2",
-        dev,
-        tmp_dev
-      )
-      # add all_partitions to partitions
-      Builtins.y2milestone("Init all_partitions was done") if MapAllPartitions()
-
-      partitions = deep_copy(@all_partitions)
-      devices = deep_copy(@target_map)
-
-      # (`id,`uuid,`path,`device,`label)
-      by_mount = nil
-
-      # bnc#458018 accept different mount-by for partition
-      # created by user
-      if !Arch.ppc
-        by_mount = Storage.GetDefaultMountBy
-        if Builtins.haskey(partitions, tmp_dev)
-          partition_mount_by = Ops.get_symbol(partitions, [tmp_dev, "mountby"])
-          by_mount = partition_mount_by if partition_mount_by != nil
-        end
-      else
-        by_mount = :id
-      end
-
-      Builtins.y2milestone("Mount-by: %1", by_mount)
-      ret = tmp_dev
-      case by_mount
-        when :id
-          # partitions
-          if Ops.get(partitions, [tmp_dev, "udev_id"]) != nil &&
-              Ops.get(partitions, [tmp_dev, "udev_id", 0]) != ""
-            ret = Builtins.sformat(
-              "/dev/disk/by-id/%1",
-              Ops.get_string(partitions, [tmp_dev, "udev_id", 0], "")
-            )
-            Builtins.y2milestone(
-              "Device name: %1 is converted to udev id: %2",
-              tmp_dev,
-              ret
-            )
-            return ret
-          end
-          # disks
-          if Ops.get(devices, [tmp_dev, "udev_id"]) != nil &&
-              Ops.get(devices, [tmp_dev, "udev_id", 0]) != ""
-            ret = Builtins.sformat(
-              "/dev/disk/by-id/%1",
-              Ops.get_string(devices, [tmp_dev, "udev_id", 0], "")
-            )
-            Builtins.y2milestone(
-              "Device name: %1 is converted to udev id: %2",
-              tmp_dev,
-              ret
-            )
-            return ret
-          end
-        when :uuid
-          # partitions
-          # watch out for fake uuids (shorter than 9 chars)
-          if Ops.greater_than(
-              Builtins.size(Ops.get_string(partitions, [tmp_dev, "uuid"], "")),
-              8
-            )
-            ret = Builtins.sformat(
-              "/dev/disk/by-uuid/%1",
-              Ops.get_string(partitions, [tmp_dev, "uuid"], "")
-            )
-            Builtins.y2milestone(
-              "Device name: %1 is converted to uuid: %2",
-              tmp_dev,
-              ret
-            )
-            return ret
-          end
-          # disks
-          if Ops.get(devices, [tmp_dev, "uuid"]) != nil &&
-              Ops.get(devices, [tmp_dev, "uuid"]) != ""
-            ret = Builtins.sformat(
-              "/dev/disk/by-uuid/%1",
-              Ops.get_string(devices, [tmp_dev, "uuid"], "")
-            )
-            Builtins.y2milestone(
-              "Device name: %1 is converted to uuid: %2",
-              tmp_dev,
-              ret
-            )
-            return ret
-          end
-        when :path
-          # partitions
-          if Ops.get(partitions, [tmp_dev, "udev_path"]) != nil &&
-              Ops.get(partitions, [tmp_dev, "udev_path"]) != ""
-            ret = Builtins.sformat(
-              "/dev/disk/by-path/%1",
-              Ops.get_string(partitions, [tmp_dev, "udev_path"], "")
-            )
-            Builtins.y2milestone(
-              "Device name: %1 is converted to udev path: %2",
-              tmp_dev,
-              ret
-            )
-            return ret
-          end
-          # disks
-          if Ops.get(devices, [tmp_dev, "udev_path"]) != nil &&
-              Ops.get(devices, [tmp_dev, "udev_path"]) != ""
-            ret = Builtins.sformat(
-              "/dev/disk/by-path/%1",
-              Ops.get_string(devices, [tmp_dev, "udev_path"], "")
-            )
-            Builtins.y2milestone(
-              "Device name: %1 is converted to udev path: %2",
-              tmp_dev,
-              ret
-            )
-            return ret
-          end
-        when :label
-          # partitions
-          if Ops.get(partitions, [tmp_dev, "label"]) != nil &&
-              Ops.get(partitions, [tmp_dev, "label"]) != ""
-            ret = Builtins.sformat(
-              "/dev/disk/by-label/%1",
-              Ops.get_string(partitions, [tmp_dev, "label"], "")
-            )
-            Builtins.y2milestone(
-              "Device name: %1 is converted to label: %2",
-              tmp_dev,
-              ret
-            )
-            return ret
-          end
-          # disks
-          Builtins.y2milestone(
-            "Disk doesn't support labels - name: %1 is converted to label: %2",
-            tmp_dev,
-            ret
-          )
-          return ret
-        else
-          Builtins.y2warning(
-            "Convert %1 to `device or unknown type, result: %2",
-            tmp_dev,
-            ret
-          )
-          return ret
-      end
-
-      ret
-    end
-
-
     # bnc #447591, 438243, 448110 multipath wrong device map
     # Function maps real devices to multipath e.g.
     # "/dev/sda/" : "/dev/mapper/SATA_ST3120813AS_3LS0CD7M"
@@ -584,7 +83,6 @@ module Yast
     def mapRealDevicesToMultipath
       ret = {}
       tm = Storage.GetTargetMap
-      num_of_real_disk = 0
       Builtins.foreach(tm) do |disk, disk_info|
         if Ops.get(disk_info, "type") == :CT_DMMULTIPATH
           devices = Ops.get_list(disk_info, "devices", [])
@@ -592,12 +90,7 @@ module Yast
             Builtins.foreach(devices) { |d| Ops.set(ret, d, disk) }
           end
         end
-        if Ops.get(disk_info, "type") == :CT_DISK
-          num_of_real_disk = Ops.add(num_of_real_disk, 1)
-        end
-        @bois_id_missing = false if Ops.get(disk_info, "bios_id") != nil
       end
-      @bois_id_missing = false if num_of_real_disk == 1
       deep_copy(ret)
     end
 
@@ -723,7 +216,7 @@ module Yast
         # adding moundby (by-id) via user preference
         Builtins.foreach(@partinfo) do |partition|
           tmp = []
-          mount_by = Dev2MountByDev(
+          mount_by = ::Bootloader::DeviceMapping.to_mountby_device(
             Builtins.tostring(Ops.get_string(partition, 0, ""))
           )
           if mount_by != Builtins.tostring(Ops.get_string(partition, 0, ""))
@@ -901,9 +394,6 @@ module Yast
       # s390 have some special requirements for device map. Keep it short and simple (bnc#884798)
       # TODO device map is not needed at all for s390, so if we get rid of perl-Bootloader translations
       # we can keep it empty
-        # TODO yes, I know it is typo, but it is everywhere, so fix it when we have time to fix all problems
-        @bois_id_missing = false
-
         boot_part = Storage.GetEntryForMountpoint("/boot/zipl")
         boot_part = Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
         boot_part = Storage.GetEntryForMountpoint("/") if boot_part.empty?
@@ -1046,7 +536,6 @@ module Yast
         @device_mapping = changeOrderInDeviceMapping(@device_mapping,
             priority_device: priority_disks.first)
       end
-      @bois_id_missing = false #FIXME never complain about missing bios id as we always have first device boot one
 
       Builtins.y2milestone("Detected device mapping: %1", @device_mapping)
 
@@ -1092,7 +581,7 @@ module Yast
       ret = {}
       # convert device names in device map to the device names by device or label
       ret = Builtins.mapmap(@device_mapping) do |k, v|
-        { MountByDev2Dev(k) => v }
+        { ::Bootloader::DeviceMapping.to_kernel_device(k) => v }
       end
 
       deep_copy(ret)
@@ -1120,7 +609,7 @@ module Yast
         if type == :boot && bl == "grub"
           # check if device is in device map
           if Builtins.haskey(@device_mapping, k) ||
-              Builtins.haskey(@device_mapping, Dev2MountByDev(k))
+              Builtins.haskey(@device_mapping, ::Bootloader::DeviceMapping.to_mountby_device(k))
             partitions = Convert.convert(
               Builtins.merge(partitions, Ops.get_list(v, "partitions", [])),
               :from => "list",
@@ -1170,7 +659,7 @@ module Yast
       # filter out disk which are not in device map
       all_disks = Builtins.filter(all_disks) do |k|
         if Builtins.haskey(@device_mapping, k) ||
-            Builtins.haskey(@device_mapping, Dev2MountByDev(k))
+            Builtins.haskey(@device_mapping, ::Bootloader::DeviceMapping.to_mountby_device(k))
           next true
         else
           next false
@@ -1480,19 +969,14 @@ module Yast
       res.uniq
     end
 
-    publish :variable => :all_devices, :type => "map <string, string>"
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
     publish :variable => :partinfo, :type => "list <list>"
     publish :variable => :md_info, :type => "map <string, list <string>>"
-    publish :variable => :bois_id_missing, :type => "boolean"
     publish :variable => :device_mapping, :type => "map <string, string>"
     publish :variable => :BootPartitionDevice, :type => "string"
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
-    publish :function => :MountByDev2Dev, :type => "string (string)"
-    publish :function => :InitMapDevices, :type => "boolean ()"
-    publish :function => :Dev2MountByDev, :type => "string (string)"
     publish :function => :InitDiskInfo, :type => "void ()"
     publish :function => :ProposeDeviceMap, :type => "void ()"
     publish :function => :DisksOrder, :type => "list <string> ()"

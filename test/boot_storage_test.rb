@@ -3,12 +3,6 @@ require_relative "test_helper"
 Yast.import "BootStorage"
 
 describe Yast::BootStorage do
-  def target_map_stub(name)
-    path = File.join(File.dirname(__FILE__), "data", name)
-    tm = eval(File.read(path))
-    allow(Yast::Storage).to receive(:GetTargetMap).and_return(tm)
-  end
-
   describe ".Md2Partitions" do
     it "returns map with devices creating virtual device as key and bios id as value" do
       target_map_stub("storage_mdraid.rb")
