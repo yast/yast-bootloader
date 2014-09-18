@@ -5,6 +5,7 @@ Yast.import "BootCommon"
 module Bootloader
   class BackupMBR
     class << self
+      include Yast::Logger
       # Creates backup of MBR or PBR of given device.
       # Backup is stored in /var/lib/YaST2/backup_boot_sectors, in logs
       # directory and if it is MBR of primary disk, then also in /boot/backup_mbr
@@ -80,7 +81,7 @@ module Bootloader
           # save thinkpad MBR
           if Yast::BootCommon.ThinkPadMBR(device)
             device_file_path_thinkpad = Yast::Ops.add(device_file_path, "thinkpadMBR")
-            Yast::Builtins.y2milestone("Backup thinkpad MBR")
+            log.info("Backup thinkpad MBR")
             Yast::SCR.Execute(
               Yast::Path.new(".target.bash"),
               Yast::Builtins.sformat(
@@ -106,7 +107,7 @@ module Bootloader
         )
         out = Yast::Convert.to_map(Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), command))
         c_time = Yast::Ops.get_string(out, "stdout", "")
-        Yast::Builtins.y2debug("File %1: last change %2", filename, c_time)
+        log.debug("File #{filename}: last change #{c_time}")
         c_time
       end
     end
