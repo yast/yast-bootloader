@@ -8,23 +8,19 @@ module Bootloader
       include Yast::Logger
       BASH_PATH = Yast::Path.new(".target.bash")
       BASH_OUTPUT_PATH = Yast::Path.new(".target.bash_output")
+      MAIN_BACKUP_DIR = "/var/lib/YaST2/backup_boot_sectors/"
       # Creates backup of MBR or PBR of given device.
       # Backup is stored in /var/lib/YaST2/backup_boot_sectors, in logs
       # directory and if it is MBR of primary disk, then also in /boot/backup_mbr
       def backup_device(device)
         device_file = device.tr("/", "_")
-        device_file_path = Yast::Ops.add(
-          "/var/lib/YaST2/backup_boot_sectors/",
-          device_file
-        )
-        device_file_path_to_logs = Yast::Ops.add("/var/log/YaST2/", device_file)
-        Yast::SCR.Execute(
-          BASH_PATH,
-          "test -d /var/lib/YaST2/backup_boot_sectors || mkdir /var/lib/YaST2/backup_boot_sectors"
-        )
+        device_file_path = MAIN_BACKUP_DIR + device_file
+        device_file_path_to_logs = "/var/log/YaST2/" + device_file
+        Yast::SCR.Execute(BASH_PATH, "mkdir -p #{MAIN_BACKUP_DIR}")
+
         if Yast::Ops.greater_than(Yast::SCR.Read(Yast::Path.new(".target.size"), device_file_path), 0)
           contents = Yast::Convert.convert(
-            Yast::SCR.Read(Yast::Path.new(".target.dir"), "/var/lib/YaST2/backup_boot_sectors"),
+            Yast::SCR.Read(Yast::Path.new(".target.dir"), MAIN_BACKUP_DIR),
             :from => "any",
             :to   => "list <string>"
           )
@@ -40,10 +36,7 @@ module Bootloader
           while Yast::Ops.less_than(Yast::Ops.add(index, 10), siz)
             Yast::SCR.Execute(
               Yast::Path.new(".target.remove"),
-              Yast::Builtins.sformat(
-                "/var/lib/YaST2/backup_boot_sectors/%1",
-                Yast::Ops.get(contents, index, "")
-              )
+              MAIN_BACKUP_DIR + contents[index]
             )
             index = Yast::Ops.add(index, 1)
           end
