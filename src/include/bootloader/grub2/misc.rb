@@ -19,7 +19,7 @@
 # $Id: BootGRUB.ycp 63508 2011-03-04 12:53:27Z jreidinger $
 #
 
-require "bootloader/backup_mbr"
+require "bootloader/backup_br"
 
 module Yast
   module BootloaderGrub2MiscInclude
@@ -267,7 +267,7 @@ module Yast
           "Creating backup of boot sectors of %1",
           disks_to_rewrite
         )
-        Builtins.foreach(disks_to_rewrite) { |d| ::Bootloader::BackupMBR.backup_device(d) }
+        Builtins.foreach(disks_to_rewrite) { |d| ::Bootloader::BackupBR.for_device(d) }
       end
       ret = true
       # if the bootloader stage 1 is not installed in the MBR, but
