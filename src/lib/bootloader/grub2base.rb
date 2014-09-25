@@ -128,7 +128,14 @@ module Yast
 
       BootCommon.globals["append"]          ||= BootArch.DefaultKernelParams(resume)
       BootCommon.globals["append_failsafe"] ||= BootArch.FailsafeKernelParams
-      BootCommon.globals["distributor"]     ||= Product.name
+      # use short name if possible (bnc#873675)
+      BootCommon.globals["distributor"]     ||= Product.short_name
+      if !BootCommon.globals["distributor"] ||
+          BootCommon.globals["distributor"].empty?
+        BootCommon.globals["distributor"]     = Product.name
+      end
+
+
       BootCommon.kernelCmdLine              ||= Kernel.GetCmdLine
 
       # Propose bootloader serial settings from kernel cmdline during install (bnc#862388)
