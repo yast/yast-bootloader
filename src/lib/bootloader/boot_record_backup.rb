@@ -5,7 +5,7 @@ Yast.import "BootCommon"
 module Bootloader
   # Responsibility of class is to manage backups of MBR, respective PBR of disk,
   # respective partition.
-  class BackupBR
+  class BootRecordBackup
     class << self
       include Yast::Logger
       BASH_PATH = Yast::Path.new(".target.bash")
@@ -16,7 +16,7 @@ module Bootloader
       # Creates backup of MBR or PBR of given device.
       # Backup is stored in /var/lib/YaST2/backup_boot_sectors, in logs
       # directory and if it is MBR of primary disk, then also in /boot/backup_mbr
-      def for_device(device)
+      def create_for(device)
         device_file = device.tr("/", "_")
         device_file_path = MAIN_BACKUP_DIR + device_file
 
