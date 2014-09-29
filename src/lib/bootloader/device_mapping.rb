@@ -69,7 +69,7 @@ module Bootloader
 
       log.info "mount by: #{mount_by}"
 
-      # explicit request to moung by kernel device
+      # explicit request to mount by kernel device
       return kernel_dev if mount_by == :device
 
       udev_data_key = MOUNT_BY_MAPPING_TO_UDEV[mount_by]
