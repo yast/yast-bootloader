@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Mon Sep 29 07:42:06 UTC 2014 - jreidinger@suse.com
 
-- fix crash in lib_iface caused by typo (found by openQA)
+- fix crash in lib_iface caused by typo (found by openQA and
+  bnc#898878)
 - fix crash when using tmpfs
 - fix crash when device have explicit mount by device name
 - 3.1.98
