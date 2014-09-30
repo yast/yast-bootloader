@@ -116,9 +116,6 @@ module Yast
 
       # installation proposal help variables
 
-      # List of partitions deleted in primary proposal
-      @del_parts = []
-
       # variables for storing data
 
       # saving mode setting functions
@@ -807,7 +804,6 @@ module Yast
     publish :variable => :activate, :type => "boolean"
     publish :variable => :pmbr_action, :type => "symbol"
     publish :variable => :changed, :type => "boolean"
-    publish :variable => :del_parts, :type => "list <string>"
     publish :variable => :write_settings, :type => "map"
     publish :variable => :other_bl, :type => "map"
     publish :variable => :activate_changed, :type => "boolean"

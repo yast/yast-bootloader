@@ -895,7 +895,6 @@ module Yast
             !#	    ! haskey( BootCommon::globals, "boot_mbr_md" ) &&
             Builtins.haskey(BootCommon.globals, "boot_custom")
         grub_DetectDisks
-        BootCommon.del_parts = BootStorage.getPartitionList(:deleted, "grub")
         # check whether edd is loaded; if not: load it
         lsmod_command = "lsmod | grep edd"
         Builtins.y2milestone("Running command %1", lsmod_command)
