@@ -540,8 +540,6 @@ module Yast
     # @param [String] loader_type string loader type to initialize
     def setCurrentLoaderAttribs(loader_type)
       Builtins.y2milestone("Setting attributes for bootloader %1", loader_type)
-      # testsuite hack
-      return if Mode.test
       if loader_type == nil
         Builtins.y2error("Setting loader type to nil, this is wrong")
         return
@@ -646,8 +644,7 @@ module Yast
         @loader_type = nil
       end
       Builtins.y2milestone("Setting bootloader to >>%1<<", bootloader)
-      if bootloader != nil && SUPPORTED_BOOTLOADERS.include?(bootloader) &&
-          !Mode.test
+      if bootloader != nil && SUPPORTED_BOOTLOADERS.include?(bootloader)
         # added kexec-tools fate# 303395
         # if kexec option is equal 0 or running live installation
         # doesn't install kexec-tools
@@ -675,7 +672,7 @@ module Yast
             PackagesProposal.AddResolvables("yast2-bootloader", :package, [p])
           end
         end
-      elsif !Mode.test
+      else
         Builtins.y2error("Unknown bootloader")
       end
       @loader_type = bootloader
