@@ -19,7 +19,7 @@
 # $Id: BootGRUB.ycp 63508 2011-03-04 12:53:27Z jreidinger $
 #
 
-require "bootloader/backup_br"
+require "bootloader/boot_record_backup"
 
 module Yast
   module BootloaderGrub2MiscInclude
