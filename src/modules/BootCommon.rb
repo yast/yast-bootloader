@@ -137,8 +137,6 @@ module Yast
       @was_read = false
       # Was bootloader location changed? (== true)
       @location_changed = false
-      # Were configuration files manually edited and chamged?
-      @files_edited = false
 
       # List of all supported bootloaders
       @bootloaders = [
@@ -794,7 +792,6 @@ module Yast
     publish :variable => :was_proposed, :type => "boolean"
     publish :variable => :was_read, :type => "boolean"
     publish :variable => :location_changed, :type => "boolean"
-    publish :variable => :files_edited, :type => "boolean"
     publish :variable => :enable_md_array_redundancy, :type => "boolean"
     publish :function => :getLoaderType, :type => "string (boolean)"
     publish :function => :getSystemSecureBootStatus, :type => "boolean (boolean)"

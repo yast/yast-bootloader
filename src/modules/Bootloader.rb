@@ -213,7 +213,6 @@ module Yast
       #	BootCommon::setLoaderType (nil);
       BootCommon.changed = false
       BootCommon.location_changed = false
-      BootCommon.files_edited = false
       BootCommon.write_settings = {}
       blReset(init)
 
