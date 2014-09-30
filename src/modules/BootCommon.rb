@@ -295,12 +295,12 @@ module Yast
       end
 
       Builtins.y2milestone("SetSecureBoot %1", @secure_boot)
-      ret = ret && SetSecureBoot(@secure_boot)
-      ret = ret && DefineMultipath(BootStorage.multipath_mapping)
-      ret = ret && SetDeviceMap(my_device_mapping)
-      ret = ret && SetSections(@sections)
-      ret = ret && SetGlobal(my_globals)
-      ret = ret && CommitSettings() if flush
+      ret &&= SetSecureBoot(@secure_boot)
+      ret &&= DefineMultipath(BootStorage.multipath_mapping)
+      ret &&= SetDeviceMap(my_device_mapping)
+      ret &&= SetSections(@sections)
+      ret &&= SetGlobal(my_globals)
+      ret &&= CommitSettings() if flush
 
       # write settings to /etc/sysconfig/bootloader
       WriteToSysconf(false)
