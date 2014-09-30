@@ -347,34 +347,26 @@ module Yast
     # @param [String] loader_type string loader type to initialize
     def setCurrentLoaderAttribs(loader_type)
       Builtins.y2milestone("Setting attributes for bootloader %1", loader_type)
-      if loader_type == nil
+      if !loader_type
         Builtins.y2error("Setting loader type to nil, this is wrong")
         return
       end
 
       # FIXME: this should be blInitializer in switcher.ycp for code cleanness
       # and understandability
-      if Ops.get(@bootloader_attribs, [loader_type, "initializer"]) != nil
+      boot_initializer = Ops.get(@bootloader_attribs, [loader_type, "initializer"])
+      if boot_initializer
         Builtins.y2milestone("Running bootloader initializer")
-        toEval = Convert.convert(
-          Ops.get(@bootloader_attribs, [loader_type, "initializer"]),
-          :from => "any",
-          :to   => "void ()"
-        )
-        toEval.call
+        boot_initializer.call
         Builtins.y2milestone("Initializer finished")
       else
         Builtins.y2error("No initializer found for >>%1<<", loader_type)
         @current_bootloader_attribs = {}
       end
 
-      @current_bootloader_attribs = Convert.convert(
-        Builtins.union(
-          @current_bootloader_attribs,
-          Builtins.eval(Ops.get(@bootloader_attribs, loader_type, {}))
-        ),
-        :from => "map",
-        :to   => "map <string, any>"
+      @current_bootloader_attribs = Builtins.union(
+        @current_bootloader_attribs,
+        Builtins.eval(Ops.get(@bootloader_attribs, loader_type, {}))
       )
 
       nil
