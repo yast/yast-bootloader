@@ -699,12 +699,6 @@ module Yast
       ""
     end
 
-    # FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
-    # Function select boot device - disk
-    #
-    # @return [String] name of boot device - disk
-
-
     # FATE #110038: Serial console
     # Function build value for console from:
     # @param [String] unit no of console
