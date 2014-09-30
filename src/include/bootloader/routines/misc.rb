@@ -495,32 +495,6 @@ module Yast
         elsif Builtins.search(getBootPartition, "/dev/evms/") == 0
           Builtins.y2milestone("Cannot install bootloader on EVMS")
           return false
-        # LVM
-        elsif !Ops.is_integer?(Ops.get(dev, "nr", 0))
-          lt = getLoaderType(false)
-          if lt != "grub2" && lt != "grub2-efi"
-            Builtins.y2milestone("Cannot install bootloader %1 on LVM", lt)
-            return false
-          end
-        else
-          tm = Storage.GetTargetMap
-          dm = Ops.get_map(tm, Ops.get_string(dev, "disk", ""), {})
-          parts = Ops.get_list(dm, "partitions", [])
-          info = {}
-          Builtins.foreach(parts) do |p|
-            if Ops.get_string(p, "device", "") ==
-                BootStorage.BootPartitionDevice
-              info = deep_copy(p)
-            end
-          end
-
-          if Ops.get(info, "used_fs") == :btrfs
-            lt = getLoaderType(false)
-            if lt != "grub2" && lt != "grub2-efi"
-              Builtins.y2milestone("Cannot install bootloader %1 on btrfs", lt)
-              return false
-            end
-          end
         end
 
         return true
