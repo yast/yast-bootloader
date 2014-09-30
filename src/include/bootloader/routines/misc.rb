@@ -158,13 +158,10 @@ module Yast
     def getKernelParamFromLine(line, key)
       # FIXME this doesn't work with quotes and spaces
       res = "false"
-      params = Builtins.splitstring(line, " ")
-      params = Builtins.filter(params) { |p| p != "" }
-      Builtins.foreach(params) do |p|
-        l = Builtins.filter(Builtins.splitstring(p, "=")) do |e|
-          e != " " && e != ""
-        end
-        res = Ops.get(l, 1, "true") if Ops.get(l, 0, "") == key
+      params = line.split(" ").reject(&:empty?)
+      params.each do |p|
+        l = p.split("=")
+        res = l[1] || "true" if l[0] == key
       end
       res
     end
@@ -386,35 +383,27 @@ module Yast
     # Get map of swap partitions
     # @return a map where key is partition name and value its size
     def getSwapPartitions
-      #FIXME use cache of storage map
+      # FIXME move to boot storage
       tm = Storage.GetTargetMap
-      installation = Mode.installation
       ret = {}
-      Builtins.foreach(tm) do |k, v|
-        cyl_size = Ops.get_integer(v, "cyl_size", 0)
-        partitions = Ops.get_list(v, "partitions", [])
-        partitions = Builtins.filter(partitions) do |p|
-          Ops.get_string(p, "mount", "") == "swap" &&
-            !Ops.get_boolean(p, "delete", false)
+      tm.each do |k, v|
+        cyl_size = v["cyl_size"] || 0
+        partitions = v["partitions"] || []
+        partitions = partitions.select do |p|
+          p["mount"] == "swap" && !p["delete"]
         end
-        Builtins.foreach(partitions) do |s|
+        partitions.each do |s|
           # bnc#577127 - Encrypted swap is not properly set up as resume device
-          dev = ""
-          if Ops.get_string(s, "crypt_device", "") != nil &&
-              Ops.get_string(s, "crypt_device", "") != ""
-            dev = Ops.get_string(s, "crypt_device", "")
+          if s["crypt_device"] && !s["crypt_device"].empty?
+            dev = s["crypt_device"]
           else
-            dev = Ops.get_string(s, "device", "")
+            dev = s["device"]
           end
-          Ops.set(
-            ret,
-            dev,
-            Ops.multiply(Ops.get_integer(s, ["region", 1], 0), cyl_size)
-          )
+          ret[dev] = Ops.get_integer(s, ["region", 1], 0) * cyl_size
         end
       end
       Builtins.y2milestone("Available swap partitions: %1", ret)
-      deep_copy(ret)
+      ret
     end
 
 
