@@ -433,18 +433,18 @@ module Yast
       @device_mapping = {}
       @multipath_mapping = {}
 
+      if Mode.config
+        Builtins.y2milestone("Skipping device map proposing in Config mode")
+        return
+      end
+
       if Arch.s390
         return propose_s390_device_map
       end
 
       usb_disks = [] # contains usb removable disks as it can affect BIOS order of disks
 
-      targetMap = {}
-      if Mode.config
-        Builtins.y2milestone("Skipping device map proposing in Config mode")
-      else
-        targetMap = Storage.GetTargetMap
-      end
+      targetMap = Storage.GetTargetMap
 
       # filter out non-disk devices
       targetMap = Builtins.filter(targetMap) do |k, v|

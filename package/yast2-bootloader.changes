@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Tue Sep 30 09:30:52 UTC 2014 - jreidinger@suse.com
+
+- use short product name to avoid truncated text on small
+  resolution (bnc#873675)
+- Avoid crash in clone_system on s390 (bnc#897399)
+- propose missing attributes also during automatic upgrade which
+  propose grub2 configuratin (bnc#897058)
+- 3.1.100
+
+-------------------------------------------------------------------
 Tue Sep 30 09:15:52 UTC 2014 - jreidinger@suse.com
 
 - move boot record backup functionality to own class to make code

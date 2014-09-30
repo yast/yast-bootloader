@@ -923,7 +923,7 @@ module Yast
           BootCommon.cached_settings_base_data_change_time !=
             Storage.GetTargetChangeTime &&
             # bnc#585824 - Bootloader doesn't use defined device map from autoyast
-            !(Mode.autoinst &&
+            !((Mode.autoinst || Mode.autoupgrade) &&
               BootCommon.cached_settings_base_data_change_time == nil)
         BootStorage.ProposeDeviceMap
         md_mbr = BootStorage.addMDSettingsToGlobals
@@ -931,7 +931,7 @@ module Yast
         BootCommon.InitializeLibrary(true, "grub2")
       end
 
-      if !Mode.autoinst
+      if !Mode.autoinst && !Mode.autoupgrade
         changed = grub_DisksChanged
         if Ops.get_boolean(changed, "changed", false)
           if BootCommon.askLocationResetPopup(
