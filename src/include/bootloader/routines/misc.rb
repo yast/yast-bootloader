@@ -150,42 +150,6 @@ module Yast
       ["/dev/null"]
     end
 
-    # Get the list of particular kernel parameters
-    # @param [String] line string the whole kernel command line
-    # @return a list of the kernel parameters split each separaterlly
-    def ListKernelParamsInLine(line)
-      # FIXME this function is really similar to code in Kernel.ycp
-      cmdlist = []
-      parse_index = 0
-      in_quotes = false
-      after_backslash = false
-      current_param = ""
-      while Ops.less_than(parse_index, Builtins.size(line))
-        current_char = Builtins.substring(line, parse_index, 1)
-        in_quotes = !in_quotes if current_char == "\"" && !after_backslash
-        if current_char == " " && !in_quotes
-          cmdlist = Builtins.add(cmdlist, current_param)
-          current_param = ""
-        else
-          current_param = Ops.add(current_param, current_char)
-        end
-        if current_char == "\\"
-          after_backslash = true
-        else
-          after_backslash = false
-        end
-        parse_index = Ops.add(parse_index, 1)
-      end
-      cmdlist = Builtins.add(cmdlist, current_param)
-      cmdlist = Builtins.maplist(cmdlist) do |c|
-        if Builtins.regexpmatch(c, "^[^=]+=")
-          c = Builtins.regexpsub(c, "^([^=]+)=", "\\1")
-        end
-        c
-      end
-      deep_copy(cmdlist)
-    end
-
     # get kernel parameter from kernel command line
     # @param [String] line string original line
     # @param [String] key string parameter key
