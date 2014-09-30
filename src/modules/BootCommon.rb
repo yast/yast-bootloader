@@ -41,9 +41,6 @@ module Yast
       Yast.import "Mode"
       Yast.import "PackageSystem"
       Yast.import "Storage"
-      Yast.import "String"
-      Yast.import "Popup"
-      Yast.import "Package"
       Yast.import "PackagesProposal"
       Yast.import "BootStorage"
 
@@ -51,9 +48,6 @@ module Yast
 
 
       # General bootloader settings
-
-      # map of global options and types for new perl-Bootloader interface
-      @global_options = {}
 
       # map of global options and values
       @globals = {}
@@ -530,7 +524,6 @@ module Yast
       BootStorage.Md2Partitions(md_device)
     end
 
-    publish :variable => :global_options, :type => "map <string, any>"
     publish :variable => :globals, :type => "map <string, string>"
     publish :variable => :sections, :type => "list <map <string, any>>"
     publish :variable => :cached_settings_base_data_change_time, :type => "integer"
