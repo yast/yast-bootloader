@@ -254,10 +254,7 @@ module Yast
       return true if bl == "none"
 
       # bnc#589433 -  Install grub into root (/) partition gives error
-      if Ops.get(@globals, "boot_custom") == "" &&
-          Builtins.haskey(@globals, "boot_custom")
-        @globals = Builtins.remove(@globals, "boot_custom")
-      end
+      @globals.delete("boot_custom") if @globals["boot_custom"] == ""
 
       # FIXME: give mountby information to perl-Bootloader (or define some
       # better interface), so that perl-Bootloader can use mountby device names
@@ -288,19 +285,15 @@ module Yast
       Builtins.y2milestone("device map after mapping %1", my_device_mapping)
 
       if VerifyMDArray()
-        if @enable_md_array_redundancy != true &&
-            Builtins.haskey(my_globals, "boot_md_mbr")
-          my_globals = Builtins.remove(my_globals, "boot_md_mbr")
-        end
-        if @enable_md_array_redundancy == true &&
-            !Builtins.haskey(my_globals, "boot_md_mbr")
-          Ops.set(my_globals, "boot_md_mbr", BootStorage.addMDSettingsToGlobals)
+        if !@enable_md_array_redundancy
+          my_globals.delete("boot_md_mbr")
+        elsif !my_globals["boot_md_mbr"]
+          my_globals["boot_md_mbr"] = BootStorage.addMDSettingsToGlobals
         end
       else
-        if Builtins.haskey(@globals, "boot_md_mbr")
-          my_globals = Builtins.remove(my_globals, "boot_md_mbr")
-        end
+        my_globals.delete("boot_md_mbr")
       end
+
       Builtins.y2milestone("SetSecureBoot %1", @secure_boot)
       ret = ret && SetSecureBoot(@secure_boot)
       ret = ret && DefineMultipath(BootStorage.multipath_mapping)
