@@ -23,6 +23,12 @@ require "bootloader/device_mapping"
 
 module Yast
   class BootCommonClass < Module
+
+    SUPPORTED_BOOTLOADERS = [
+      "grub2",
+      "grub2-efi"
+    ]
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -137,12 +143,6 @@ module Yast
       @was_read = false
       # Was bootloader location changed? (== true)
       @location_changed = false
-
-      # List of all supported bootloaders
-      @bootloaders = [
-        "grub2",
-        "grub2-efi"
-      ]
 
       # FATE#305008: Failover boot configurations for md arrays with redundancy
       # if true enable redundancy for md array
@@ -579,7 +579,7 @@ module Yast
     # @param [String] loader string name of loader to check
     # @return [String] the loader name if supported, "none" otherwise
     def SupportedLoader(loader)
-      return loader if Builtins.contains(@bootloaders, loader)
+      return loader if SUPPORTED_BOOTLOADERS.include?(loader)
       "none"
     end
 
@@ -646,7 +646,7 @@ module Yast
         @loader_type = nil
       end
       Builtins.y2milestone("Setting bootloader to >>%1<<", bootloader)
-      if bootloader != nil && Builtins.contains(@bootloaders, bootloader) &&
+      if bootloader != nil && SUPPORTED_BOOTLOADERS.include?(bootloader) &&
           !Mode.test
         # added kexec-tools fate# 303395
         # if kexec option is equal 0 or running live installation
