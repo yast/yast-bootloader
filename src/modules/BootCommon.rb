@@ -376,8 +376,7 @@ module Yast
     # @param [String] loader string name of loader to check
     # @return [String] the loader name if supported, "none" otherwise
     def SupportedLoader(loader)
-      return loader if SUPPORTED_BOOTLOADERS.include?(loader)
-      "none"
+      SUPPORTED_BOOTLOADERS.include?(loader) ? loader : "none"
     end
 
     # Get currently used bootloader, detect if not set yet
