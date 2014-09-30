@@ -383,13 +383,11 @@ module Yast
     # @param [Boolean] recheck boolean force checking bootloader
     # @return [String] botloader type
     def getLoaderType(recheck)
-      return @loader_type if !recheck && @loader_type != nil
+      return @loader_type if !recheck && @loader_type
       # read bootloader to use from disk
       if Mode.update || Mode.normal || Mode.repair
-        @loader_type = Convert.to_string(
-          SCR.Read(path(".sysconfig.bootloader.LOADER_TYPE"))
-        )
-        if @loader_type != nil && @loader_type != ""
+        @loader_type = SCR.Read(path(".sysconfig.bootloader.LOADER_TYPE"))
+        if @loader_type && !@loader_type.empty?
           @loader_type = "grub2" if @loader_type == "s390"
           Builtins.y2milestone(
             "Sysconfig bootloader is %1, using",
@@ -405,23 +403,11 @@ module Yast
         end
       end
       # detect bootloader
-      @loader_type = Convert.to_string(SCR.Read(path(".probe.boot_arch")))
-      @loader_type = "grub2" if @loader_type == "s390"
-      # ppc uses grub2 (fate #315753)
-      @loader_type = "grub2" if @loader_type == "ppc"
-      # suppose grub2 should superscede grub ..
-      @loader_type = "grub2" if @loader_type == "grub"
+      @loader_type = SCR.Read(path(".probe.boot_arch"))
+      # s390,ppc and also old grub now uses grub2 (fate #315753)
+      @loader_type = "grub2" if ["s390", "ppc", "grub"].include? @loader_type
+
       Builtins.y2milestone("Bootloader detection returned %1", @loader_type)
-      # lslezak@: Arch::is_xenU() returns true only in PV guest
-      if Arch.is_uml || Arch.is_xenU
-        # y2milestone ("Not installing any bootloader for UML/Xen PV");
-        # loader_type = "none";
-        # bnc #380982 - pygrub cannot boot kernel
-        # added installation of bootloader
-        Builtins.y2milestone(
-          "It is XEN domU and the bootloader should be installed"
-        )
-      end
       if (Arch.i386 || Arch.x86_64) && Linuxrc.InstallInf("EFI") == "1"
         # use grub2-efi as default bootloader for x86_64/i386 EFI
         @loader_type = "grub2-efi"
