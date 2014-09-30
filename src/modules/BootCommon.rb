@@ -122,9 +122,6 @@ module Yast
 
       # other variables
 
-      # Settings of other bootloaders used when switching bootloader
-      @other_bl = {}
-
       # bootloader installation variables
 
       # Was the activate flag changed by user?
@@ -792,7 +789,6 @@ module Yast
     publish :variable => :pmbr_action, :type => "symbol"
     publish :variable => :changed, :type => "boolean"
     publish :variable => :write_settings, :type => "map"
-    publish :variable => :other_bl, :type => "map"
     publish :variable => :activate_changed, :type => "boolean"
     publish :variable => :save_all, :type => "boolean"
     publish :variable => :was_proposed, :type => "boolean"
