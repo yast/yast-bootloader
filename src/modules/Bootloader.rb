@@ -236,7 +236,6 @@ module Yast
       BootCommon.was_proposed = true
       BootCommon.changed = true
       BootCommon.location_changed = true
-      BootCommon.partitioning_last_change = Storage.GetTargetChangeTime
       BootCommon.backup_mbr = true
       Builtins.y2milestone("Proposed settings: %1", Export())
 

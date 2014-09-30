@@ -112,21 +112,10 @@ module Yast
       @loader_type = nil
       @secure_boot = nil
 
-      # sysconfig variables
-
-      # installation proposal help variables
-
-      # variables for storing data
-
       # saving mode setting functions
 
       # map of save mode settings
       @write_settings = {}
-
-      # summary dialog state
-
-      # ui help variables
-
 
       @additional_failsafe_params = ""
 
@@ -153,8 +142,6 @@ module Yast
       @location_changed = false
       # Were configuration files manually edited and chamged?
       @files_edited = false
-      # time of last change of partitioning
-      @partitioning_last_change = 0
 
       # List of all supported bootloaders
       @bootloaders = [
@@ -812,7 +799,6 @@ module Yast
     publish :variable => :was_read, :type => "boolean"
     publish :variable => :location_changed, :type => "boolean"
     publish :variable => :files_edited, :type => "boolean"
-    publish :variable => :partitioning_last_change, :type => "integer"
     publish :variable => :enable_md_array_redundancy, :type => "boolean"
     publish :function => :getLoaderType, :type => "string (boolean)"
     publish :function => :getSystemSecureBootStatus, :type => "boolean (boolean)"
