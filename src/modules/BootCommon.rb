@@ -102,9 +102,6 @@ module Yast
       # values are :add, :remove or nil, means do nothing
       @pmbr_action = nil
 
-      # Kernel parameters at previous detection
-      @kernelCmdLine = ""
-
       # were settings changed (== true)
       @changed = false
 
@@ -809,7 +806,6 @@ module Yast
     publish :variable => :backup_mbr, :type => "boolean"
     publish :variable => :activate, :type => "boolean"
     publish :variable => :pmbr_action, :type => "symbol"
-    publish :variable => :kernelCmdLine, :type => "string"
     publish :variable => :changed, :type => "boolean"
     publish :variable => :del_parts, :type => "list <string>"
     publish :variable => :write_settings, :type => "map"

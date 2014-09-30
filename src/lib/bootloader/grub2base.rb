@@ -137,9 +137,6 @@ module Yast
         BootCommon.globals["distributor"]     = Product.name
       end
 
-
-      BootCommon.kernelCmdLine              ||= Kernel.GetCmdLine
-
       # Propose bootloader serial settings from kernel cmdline during install (bnc#862388)
       serial = BootCommon.GetSerialFromAppend
 
