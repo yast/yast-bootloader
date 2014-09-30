@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep 30 09:15:52 UTC 2014 - jreidinger@suse.com
+
+- move boot record backup functionality to own class to make code
+  easier to understand and better tested
+- 3.1.99
+
+-------------------------------------------------------------------
 Mon Sep 29 07:42:06 UTC 2014 - jreidinger@suse.com
 
 - fix crash in lib_iface caused by typo (found by openQA and
@@ -17,7 +24,7 @@ Thu Sep 18 07:28:13 UTC 2014 - jreidinger@suse.com
 -------------------------------------------------------------------
 Wed Sep 17 07:42:12 UTC 2014 - jreidinger@suse.com
 
-- pass vga mode if specified during installation 
+- pass vga mode if specified during installation
   (bnc#896300,bnc#891060)
 
 -------------------------------------------------------------------
