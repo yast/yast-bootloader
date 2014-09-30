@@ -561,7 +561,6 @@ module Yast
     publish :function => :remapGlobals, :type => "map <string, string> (map <string, string>)"
     publish :function => :GetBootloaderDevice, :type => "string ()"
     publish :function => :GetBootloaderDevices, :type => "list <string> ()"
-    publish :function => :IsPartitionBootable, :type => "boolean (string)"
     publish :function => :getKernelParamFromLine, :type => "string (string, string)"
     publish :function => :setKernelParamToLine, :type => "string (string, string, string)"
     publish :function => :myToInteger, :type => "integer (any)"

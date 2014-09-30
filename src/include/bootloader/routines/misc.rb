@@ -130,41 +130,24 @@ module Yast
     # @return [Array] device names
     def GetBootloaderDevices
       ret = []
-      if Ops.get(@globals, "boot_boot", "false") == "true"
-        ret = Builtins.add(ret, BootStorage.BootPartitionDevice)
+      if @globals["boot_boot"] == "true"
+        ret << BootStorage.BootPartitionDevice
       end
-      if Ops.get(@globals, "boot_root", "false") == "true"
-        ret = Builtins.add(ret, BootStorage.RootPartitionDevice)
+      if @globals["boot_root"] == "true"
+        ret << BootStorage.RootPartitionDevice
       end
-      if Ops.get(@globals, "boot_mbr", "false") == "true"
-        ret = Builtins.add(ret, @mbrDisk)
+      if @globals["boot_mbr"] == "true"
+        ret << @mbrDisk
       end
-      if Builtins.haskey(@globals, "boot_extended") &&
-          Ops.get(@globals, "boot_extended", "false") == "true"
-        ret = Builtins.add(ret, BootStorage.ExtendedPartitionDevice)
+      if @globals["boot_extended"] == "true"
+        ret << BootStorage.ExtendedPartitionDevice
       end
-      if Builtins.haskey(@globals, "boot_custom")
-        ret = Builtins.add(ret, Ops.get(@globals, "boot_custom", ""))
+      if @globals["boot_custom"]
+        ret << @globals["boot_custom"]
       end
-      return deep_copy(ret) if Ops.greater_than(Builtins.size(ret), 0)
+      return ret unless ret.empty?
       # FIXME: find out what the best value is here: nil, [] or ["/dev/null"]
       ["/dev/null"]
-    end
-
-    # Check if the PBR of the given partition seems to contain a known boot block
-    # @param [String] device string partition device to check
-    # @return true if the PBR seems to contain a known boot block
-    def IsPartitionBootable(device)
-      #FIXME this is only for grub and should go to BootGRUB
-      # use examineMBR to analyze PBR (partition boot record):
-      # examineMBR returns "* stage1" when it finds the signature
-      # of some stage1 bootloader
-      result = examineMBR(device)
-      if result == "grub"
-        return true
-      else
-        return false
-      end
     end
 
     # Get the list of particular kernel parameters
