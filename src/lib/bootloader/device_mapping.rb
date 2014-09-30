@@ -55,6 +55,10 @@ module Bootloader
       storage_data = target_map[kernel_dev]
       if !storage_data #so partition
         disk = target_map[Yast::Storage.GetDiskPartition(kernel_dev)["disk"]]
+        # if device is not disk, then it can be virtual device like tmpfs or
+        # disk no longer exists
+        return kernel_dev unless disk
+
         storage_data = disk["partitions"].find { |p| p["device"] == kernel_dev }
       end
 
@@ -64,6 +68,9 @@ module Bootloader
       mount_by ||= Yast::Arch.ppc ? :id : Yast::Storage.GetDefaultMountBy
 
       log.info "mount by: #{mount_by}"
+
+      # explicit request to mount by kernel device
+      return kernel_dev if mount_by == :device
 
       udev_data_key = MOUNT_BY_MAPPING_TO_UDEV[mount_by]
       raise "Internal error unknown mountby #{mount_by}" unless udev_data_key
