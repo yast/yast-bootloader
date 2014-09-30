@@ -25,6 +25,7 @@ module Yast
   class BootCommonClass < Module
 
     SUPPORTED_BOOTLOADERS = [
+      "none", # allow user to manage bootloader itself
       "grub2",
       "grub2-efi"
     ]
@@ -423,58 +424,54 @@ module Yast
     # set type of bootloader
     # @param [String] bootloader string type of bootloader
     def setLoaderType(bootloader)
-      if bootloader == nil
+      if !bootloader
         Builtins.y2milestone("Resetting the loader type")
         @loader_type = nil
       end
       Builtins.y2milestone("Setting bootloader to >>%1<<", bootloader)
-      if bootloader != nil && SUPPORTED_BOOTLOADERS.include?(bootloader)
-        # added kexec-tools fate# 303395
-        # if kexec option is equal 0 or running live installation
-        # doesn't install kexec-tools
+      raise "Unsupported bootloader '#{bootloader}'" unless SUPPORTED_BOOTLOADERS.include?(bootloader)
 
-        bootloader_packages = Ops.get_list(
-          @bootloader_attribs,
-          [bootloader, "required_packages"],
-          []
-        )
-        if !Mode.live_installation && Linuxrc.InstallInf("kexec_reboot") != "0"
-          bootloader_packages = Builtins.add(bootloader_packages, "kexec-tools")
+      bootloader_packages = Ops.get_list(
+        @bootloader_attribs,
+        [bootloader, "required_packages"],
+        []
+      )
+
+      # added kexec-tools fate# 303395
+      # if kexec option is equal 0 or running live installation
+      # doesn't install kexec-tools
+      if !Mode.live_installation && Linuxrc.InstallInf("kexec_reboot") != "0"
+        bootloader_packages = Builtins.add(bootloader_packages, "kexec-tools")
+      end
+
+      # we need perl-Bootloader-YAML API to communicate with pbl
+      bootloader_packages << "perl-Bootloader-YAML"
+
+      Builtins.y2milestone("Bootloader packages: %1", bootloader_packages)
+
+      # don't configure package manager during autoinstallation preparing
+      if Mode.normal
+        PackageSystem.InstallAll(bootloader_packages)
+      elsif Stage.initial
+        bootloader_packages.each do |p|
+          Builtins.y2milestone("Select bootloader package: %1", p)
+          PackagesProposal.AddResolvables("yast2-bootloader", :package, [p])
         end
-
-        # we need perl-Bootloader-YAML API to communicate with pbl
-        bootloader_packages << "perl-Bootloader-YAML"
-
-        Builtins.y2milestone("Bootloader packages: %1", bootloader_packages)
-
-        # don't configure package manager during autoinstallation preparing
-        if Mode.normal && !(Mode.config || Mode.repair)
-          PackageSystem.InstallAll(bootloader_packages)
-        elsif Stage.initial
-          bootloader_packages.each do |p|
-            Builtins.y2milestone("Select bootloader package: %1", p)
-            PackagesProposal.AddResolvables("yast2-bootloader", :package, [p])
-          end
-        end
-      else
-        Builtins.y2error("Unknown bootloader")
       end
       @loader_type = bootloader
-      setCurrentLoaderAttribs(@loader_type) if @loader_type != nil
+      setCurrentLoaderAttribs(@loader_type)
       Builtins.y2milestone("Loader type set")
 
       nil
     end
 
     def getSystemSecureBootStatus(recheck)
-      return @secure_boot if !recheck && @secure_boot != nil
+      return @secure_boot if !recheck && !@secure_boot.nil?
 
       if Mode.update || Mode.normal || Mode.repair
-        sb = Convert.to_string(
-          SCR.Read(path(".sysconfig.bootloader.SECURE_BOOT"))
-        )
+        sb = SCR.Read(path(".sysconfig.bootloader.SECURE_BOOT"))
 
-        if sb != nil && !sb.empty?
+        if sb && !sb.empty?
           @secure_boot = sb == "yes"
           return @secure_boot
         end
@@ -497,56 +494,35 @@ module Yast
     # @return a list of bootloaders
     def getBootloaders
       if Mode.config
-        return [
-          "grub2",
-          "grub2-efi",
-          "default",
-          "none"
-        ]
+        # default means bootloader use what it think is the best
+        return SUPPORTED_BOOTLOADERS + ["default"]
       end
-      ret = [
-        getLoaderType(false)
-      ]
-      if Arch.i386 || Arch.x86_64
-        ret = Convert.convert(
-          Builtins.merge(ret, ["grub2"]),
-          :from => "list",
-          :to   => "list <string>"
-        )
-        if Arch.x86_64
-          ret = Convert.convert(
-            Builtins.merge(ret, ["grub2-efi"]),
-            :from => "list",
-            :to   => "list <string>"
-          )
-        end
+      ret = [getLoaderType(false)]
+      if Arch.i386 || Arch.x86_64 || Arch.s390 || Arch.ppc
+        ret << "grub2"
       end
-      if Arch.s390 || Arch.ppc
-        ret = ["grub2"]
+      if Arch.x86_64
+        ret << "grub2-efi"
       end
-      # in order not to display it twice when "none" is selected
-      ret = Builtins.filter(ret) { |l| l != "none" }
-      ret = Builtins.toset(ret)
       ret = Builtins.add(ret, "none")
-      deep_copy(ret)
+      # avoid double entry for selected one
+      ret.uniq
     end
 
     # FATE#305008: Failover boot configurations for md arrays with redundancy
-    # Verify if proposal includes md array with 2 diferent disks
+    # Verify if proposal includes md array with more diferent disks
     #
-    # @return [Boolean] true if there is md array based on 2 disks
+    # @return [Boolean] true if there is md array based on more disks
     def VerifyMDArray
-      ret = false
-      if Builtins.haskey(@globals, "boot_md_mbr")
-        md_array = Ops.get(@globals, "boot_md_mbr", "")
-        disks = Builtins.splitstring(md_array, ",")
-        disks = Builtins.filter(disks) { |v| v != "" }
-        if Builtins.size(disks) == 2
-          Builtins.y2milestone("boot_md_mbr includes 2 disks: %1", disks)
-          ret = true
+      if @globals["boot_md_mbr"]
+        md_array = @globals["boot_md_mbr"]
+        disks = md_array.split(",").reject(&:empty?)
+        if Builtins.size(disks) > 1
+          Builtins.y2milestone("boot_md_mbr includes disks: %1", disks)
+          return true
         end
       end
-      ret
+      return false
     end
 
     # FIXME just backward compatible interface, call directly BootStorage
