@@ -930,40 +930,14 @@ module Yast
         return false
       end
 
-      # create default sections
-      linux_default = BootCommon.CreateLinuxSection("linux")
-
-      Builtins.y2milestone("linux_default: %1", linux_default)
-
-      default_section = {}
-
-      name = getDefaultSection
-      # find default section in BootCommon::sections
-      Builtins.foreach(BootCommon.sections) do |section|
-        if Builtins.search(
-            Builtins.tostring(Ops.get_string(section, "name", "")),
-            name
-          ) != nil &&
-            Ops.get(section, "root") == Ops.get(linux_default, "root") &&
-            Ops.get_string(section, "original_name", "") != "failsafe"
-          Builtins.y2milestone("default section: %1", section)
-          default_section = deep_copy(section)
-        end
-      end
-
       # create directory /var/lib/YaST2
       WFM.Execute(path(".local.mkdir"), "/var/lib/YaST2")
 
-      # build command for copy kernel and initrd to /var/lib/YaST during instalation
-      cmd = nil
-
-      default_section = updateAppend(default_section)
-
       cmd = Builtins.sformat(
-        "/bin/cp %1%2 %1%3 %4",
+        "/bin/cp -L %1%2 %1%3 %4",
         Installation.destdir,
-        Builtins.tostring(Ops.get_string(default_section, "image", "")),
-        Builtins.tostring(Ops.get_string(default_section, "initrd", "")),
+        "vmlinuz",
+        "initrd",
         Directory.vardir
       )
 
@@ -971,32 +945,6 @@ module Yast
       out = Convert.to_map(WFM.Execute(path(".local.bash_output"), cmd))
       if Ops.get(out, "exit") != 0
         Builtins.y2error("Copy kernel and initrd failed, output: %1", out)
-        return false
-      end
-
-      if Ops.get_string(default_section, "root", "") == ""
-        Builtins.y2milestone("root is not defined in default section.")
-        return false
-      end
-
-      if Ops.get_string(default_section, "vgamode", "") == ""
-        Builtins.y2milestone("vgamode is not defined in default section.")
-        return false
-      end
-
-      # flush kernel options into /var/lib/YaST/kernel_params
-      cmd = Builtins.sformat(
-        "echo \"root=%1 %2 vga=%3\" > %4/kernel_params",
-        Builtins.tostring(Ops.get_string(default_section, "root", "")),
-        Builtins.tostring(Ops.get_string(default_section, "append", "")),
-        Builtins.tostring(Ops.get_string(default_section, "vgamode", "")),
-        Directory.vardir
-      )
-
-      Builtins.y2milestone("Command for flushing kernel args: %1", cmd)
-      out = Convert.to_map(WFM.Execute(path(".local.bash_output"), cmd))
-      if Ops.get(out, "exit") != 0
-        Builtins.y2error("Flushing kernel params failed, output: %1", out)
         return false
       end
 
