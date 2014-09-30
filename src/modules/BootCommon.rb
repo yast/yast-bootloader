@@ -220,11 +220,9 @@ module Yast
     end
 
     # Reset bootloader settings
-    # @param [Boolean] init boolean true to repropose also device map
-    def Reset(init)
+    def Reset
       @sections = []
       @globals = {}
-      # DetectDisks ();
       @activate = false
       @activate_changed = false
       @was_proposed = false
@@ -659,7 +657,7 @@ module Yast
     publish :function => :Export, :type => "map ()"
     publish :function => :Import, :type => "boolean (map)"
     publish :function => :Read, :type => "boolean (boolean, boolean)"
-    publish :function => :Reset, :type => "void (boolean)"
+    publish :function => :Reset, :type => "void ()"
     publish :function => :Propose, :type => "void ()"
     publish :function => :Save, :type => "boolean (boolean, boolean, boolean)"
     publish :function => :Update, :type => "void ()"

@@ -78,12 +78,10 @@ module Yast
     end
 
     # Reset bootloader settings
-    # @param [Boolean] init boolean true to repropose also device map
+    # @param [Boolean] unused
     def Reset(init)
       return if Mode.autoinst
-      BootCommon.Reset(init)
-
-      nil
+      BootCommon.Reset
     end
 
     def Dialogs
