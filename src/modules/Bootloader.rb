@@ -905,7 +905,7 @@ module Yast
       end
 
       # check architecture for using kexec instead of reboot
-      if Arch.ppc || Arch.ia64 || Arch.s390
+      if Arch.ppc || Arch.s390
         Builtins.y2milestone("Skip using of kexec on this architecture")
         return true
       end
