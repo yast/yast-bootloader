@@ -33,7 +33,8 @@ module Bootloader
         change_date = formated_file_ctime(device_file_path)
         Yast::SCR.Execute(
           BASH_PATH,
-          Yast::Builtins.sformat("/bin/mv %1 %1-%2", device_file_path, change_date)
+          "/bin/mv %{path} %{path}-%{date}" %
+            { path: device_file_path, date: change_date }
         )
 
         cleanup_backups(device_file)
