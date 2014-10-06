@@ -267,9 +267,10 @@ module Yast
           "Creating backup of boot sectors of %1",
           disks_to_rewrite
         )
-        Builtins.foreach(disks_to_rewrite) do |device|
-          ::Bootloader::BootRecordBackup.create_for(device)
+        backups = disks_to_rewrite.map do |d|
+          ::Bootloader::BootRecordBackup.new(d)
         end
+        backups.each(&:create)
       end
       ret = true
       # if the bootloader stage 1 is not installed in the MBR, but

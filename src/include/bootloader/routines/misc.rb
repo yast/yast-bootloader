@@ -352,32 +352,13 @@ module Yast
     # @param [String] device string device to rewrite MBR to
     # @return [Boolean] true on success
     def restoreMBR(device)
-      device_file = Builtins.mergestring(Builtins.splitstring(device, "/"), "_")
-      if Ops.less_or_equal(
-          SCR.Read(
-            path(".target.size"),
-            Builtins.sformat(
-              "/var/lib/YaST2/backup_boot_sectors/%1",
-              device_file
-            )
-          ),
-          0
-        )
+      backup = ::Bootloader::BootRecordBackup.new(device)
+      begin
+        backup.restore
+      rescue ::Bootloader::BootRecordBackup::Missing
         Report.Error("Can't restore MBR. No saved MBR found")
         return false
       end
-      # added fix 446 -> 440 for Vista booting problem bnc #396444
-      ret = Convert.to_integer(
-        SCR.Execute(
-          path(".target.bash"),
-          Builtins.sformat(
-            "/bin/dd of=%1 if=/var/lib/YaST2/backup_boot_sectors/%2 bs=440 count=1",
-            device,
-            device_file
-          )
-        )
-      )
-      ret == 0
     end
 
     # Get map of swap partitions
