@@ -270,7 +270,7 @@ module Yast
         backups = disks_to_rewrite.map do |d|
           ::Bootloader::BootRecordBackup.new(d)
         end
-        backups.each(&:create)
+        backups.each(&:write)
       end
       ret = true
       # if the bootloader stage 1 is not installed in the MBR, but

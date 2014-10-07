@@ -15,29 +15,34 @@ module Bootloader
 
     attr_reader :device
 
+    # Exception from this class
+    class Error < RuntimeError;end
+
+    # Exception used to indicate that backup missing, so any action with it is
+    # not possible
+    class Missing < Error
+      def initialize
+        super "Backup for boot record missing."
+      end
+    end
+
+
+
     # Create backup handling class for given device
     # @param device[String] expect kernel name of device like "/dev/sda"
     def initialize(device)
       @device = device
     end
 
-    # Creates backup of MBR or PBR of given device.
+    # Write fresh backup of MBR or PBR of given device.
     # Backup is stored in /var/lib/YaST2/backup_boot_sectors, in logs
     # directory and if it is MBR of primary disk, then also in /boot/backup_mbr
-    def create
+    def write
       Yast::SCR.Execute(BASH_PATH, "mkdir -p #{MAIN_BACKUP_DIR}")
 
-      # check if file exists
-      if device_backup_exist?
-        # move it so we do not overwrite it
-        change_date = formated_file_ctime(device_file_path)
-        Yast::SCR.Execute(
-          BASH_PATH,
-          "/bin/mv %{path} %{path}-%{date}" %
-            { path: device_file_path, date: change_date }
-        )
-
-        cleanup_backups(device_file)
+      if exists?
+        rotate
+        reduce_backup_count
       end
 
       copy_br(device, device_file_path)
@@ -61,19 +66,11 @@ module Bootloader
       end
     end
 
-    # Exception used to indicate that backup missing, so any action with it is
-    # not possible
-    class Missing < RuntimeError
-      def initialize
-        super "Backup for boot record missing."
-      end
-    end
-
     # Restore backup
     # @raise [::Bootloader::BootRecordBackup::Missing] if backup missing
     # @return true if copy is successful
     def restore
-      raise Missing.new unless device_backup_exist?
+      raise Missing.new unless exists?
 
       # Copy only 440 bytes for Vista booting problem bnc #396444
       # and also to not destroy partition table
@@ -90,7 +87,7 @@ module Bootloader
       @device_file_path ||= MAIN_BACKUP_DIR + device_file
     end
 
-    def device_backup_exist?
+    def exists?
       Yast::SCR.Read(TARGET_SIZE, device_file_path) > 0
     end
 
@@ -99,7 +96,7 @@ module Bootloader
     # @return [String] last change date as YYYY-MM-DD-HH-MM-SS
     def formated_file_ctime(filename)
       stat = Yast::SCR.Read(Yast::Path.new(".target.stat"), filename)
-      ctime = stat["ctime"] or raise "Cannot get modification time of file #{filename}"
+      ctime = stat["ctime"] or raise(Error, "Cannot get modification time of file #{filename}")
       time = DateTime.strptime(ctime.to_s, "%s")
 
       time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -112,7 +109,7 @@ module Bootloader
       )
     end
 
-    def cleanup_backups(device_file)
+    def reduce_backup_count
       files = Yast::SCR.Read(Yast::Path.new(".target.dir"), MAIN_BACKUP_DIR)
       # clean only backups for this device
       files.select! do |c|
@@ -126,6 +123,16 @@ module Bootloader
           MAIN_BACKUP_DIR + file_name
         )
       end
+    end
+
+    def rotate
+      # move it so we do not overwrite it
+      change_date = formated_file_ctime(device_file_path)
+      Yast::SCR.Execute(
+        BASH_PATH,
+        "/bin/mv %{path} %{path}-%{date}" %
+          { path: device_file_path, date: change_date }
+      )
     end
   end
 end
