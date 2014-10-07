@@ -328,8 +328,8 @@ module Yast
 
     def grub2_pwd_init(widget)
       # read state on disk only if not already set by user (bnc#900026)
-      passwd = password == "" ? GRUB2Pwd.new.used? : password
-      if passwd
+      password_used = password == "" ? GRUB2Pwd.new.used? : password
+      if password_used
         UI.ChangeWidget(Id(:use_pas), :Value, true)
         UI.ChangeWidget(Id(:pw1), :Enabled, true)
         UI.ChangeWidget(Id(:pw1), :Value, MASKED_PASSWORD)
