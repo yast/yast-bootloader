@@ -150,10 +150,6 @@ module Yast
         # Install bootloader (always, see #23018)
         # should also set Misc::boot_msg appropriate
 
-        # FIXME: this is the plan B solution, try to solve plan A in
-        #        BootCommon.ycp:CreateLinuxSection() (line 435)
-        # resolve symlinks in kernel and initrd paths
-
         # In Mode::update(), the configuration is not yet read (for some
         # unresearched reason). Therefore, for Mode::update(), there is another
         # call of ResolveSymlinksInSections() after a Read() in

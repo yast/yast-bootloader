@@ -3,92 +3,136 @@ require "yast"
 Yast.import "BootCommon"
 
 module Bootloader
-  # Responsibility of class is to manage backups of MBR, respective PBR of disk,
+  # Responsibility of class is to manage backup of MBR, respective PBR of disk,
   # respective partition.
   class BootRecordBackup
-    class << self
-      include Yast::Logger
-      BASH_PATH = Yast::Path.new(".target.bash")
-      BASH_OUTPUT_PATH = Yast::Path.new(".target.bash_output")
-      MAIN_BACKUP_DIR = "/var/lib/YaST2/backup_boot_sectors/"
-      KEPT_BACKUPS = 10
+    include Yast::Logger
+    BASH_PATH = Yast::Path.new(".target.bash")
+    BASH_OUTPUT_PATH = Yast::Path.new(".target.bash_output")
+    TARGET_SIZE = Yast::Path.new(".target.size")
+    MAIN_BACKUP_DIR = "/var/lib/YaST2/backup_boot_sectors/"
+    KEPT_BACKUPS = 10
 
-      # Creates backup of MBR or PBR of given device.
-      # Backup is stored in /var/lib/YaST2/backup_boot_sectors, in logs
-      # directory and if it is MBR of primary disk, then also in /boot/backup_mbr
-      def create_for(device)
-        device_file = device.tr("/", "_")
-        device_file_path = MAIN_BACKUP_DIR + device_file
+    attr_reader :device
 
-        Yast::SCR.Execute(BASH_PATH, "mkdir -p #{MAIN_BACKUP_DIR}")
+    # Exception from this class
+    class Error < RuntimeError;end
 
-        # check if file exists
-        if Yast::SCR.Read(Yast::Path.new(".target.size"), device_file_path) > 0
-          # move it so we do not overwrite it
-          change_date = formated_file_ctime(device_file_path)
+    # Exception used to indicate that backup missing, so any action with it is
+    # not possible
+    class Missing < Error
+      def initialize
+        super "Backup for boot record missing."
+      end
+    end
+
+
+
+    # Create backup handling class for given device
+    # @param device[String] expect kernel name of device like "/dev/sda"
+    def initialize(device)
+      @device = device
+    end
+
+    # Write fresh backup of MBR or PBR of given device.
+    # Backup is stored in /var/lib/YaST2/backup_boot_sectors, in logs
+    # directory and if it is MBR of primary disk, then also in /boot/backup_mbr
+    def write
+      Yast::SCR.Execute(BASH_PATH, "mkdir -p #{MAIN_BACKUP_DIR}")
+
+      if exists?
+        rotate
+        reduce_backup_count
+      end
+
+      copy_br(device, device_file_path)
+
+      # save MBR to yast2 log directory
+      logs_path = "/var/log/YaST2/" + device_file
+      copy_br(device, logs_path)
+
+      if device == Yast::BootCommon.mbrDisk
+        copy_br(device, "/boot/backup_mbr")
+
+        # save thinkpad MBR
+        if Yast::BootCommon.ThinkPadMBR(device)
+          device_file_path_thinkpad = device_file_path + "thinkpadMBR"
+          log.info("Backup thinkpad MBR")
           Yast::SCR.Execute(
             BASH_PATH,
-            Yast::Builtins.sformat("/bin/mv %1 %1-%2", device_file_path, change_date)
+            "cp #{device_file_path} #{device_file_path_thinkpad}",
           )
-
-          cleanup_backups(device_file)
-        end
-
-        copy_br(device, device_file_path)
-
-        # save MBR to yast2 log directory
-        logs_path = "/var/log/YaST2/" + device_file
-        copy_br(device, logs_path)
-
-        if device == Yast::BootCommon.mbrDisk
-          copy_br(device, "/boot/backup_mbr")
-
-          # save thinkpad MBR
-          if Yast::BootCommon.ThinkPadMBR(device)
-            device_file_path_thinkpad = device_file_path + "thinkpadMBR"
-            log.info("Backup thinkpad MBR")
-            Yast::SCR.Execute(
-              BASH_PATH,
-              "cp #{device_file_path} #{device_file_path_thinkpad}",
-            )
-          end
         end
       end
+    end
 
-    private
-      # Get last change time of file
-      # @param [String] filename string name of file
-      # @return [String] last change date as YYYY-MM-DD-HH-MM-SS
-      def formated_file_ctime(filename)
-        stat = Yast::SCR.Read(Yast::Path.new(".target.stat"), filename)
-        ctime = stat["ctime"] or raise "Cannot get modification time of file #{filename}"
-        time = DateTime.strptime(ctime.to_s, "%s")
+    # Restore backup
+    # @raise [::Bootloader::BootRecordBackup::Missing] if backup missing
+    # @return true if copy is successful
+    def restore
+      raise Missing.new unless exists?
 
-        time.strftime("%Y-%m-%d-%H-%M-%S")
+      # Copy only 440 bytes for Vista booting problem bnc #396444
+      # and also to not destroy partition table
+      copy_br(device_file_path, device, bs: 440) == 0
+    end
+
+  private
+
+    def device_file
+      @device_file ||= @device.tr("/", "_")
+    end
+
+    def device_file_path
+      @device_file_path ||= MAIN_BACKUP_DIR + device_file
+    end
+
+    def exists?
+      Yast::SCR.Read(TARGET_SIZE, device_file_path) > 0
+    end
+
+    # Get last change time of file
+    # @param [String] filename string name of file
+    # @return [String] last change date as YYYY-MM-DD-HH-MM-SS
+    def formated_file_ctime(filename)
+      stat = Yast::SCR.Read(Yast::Path.new(".target.stat"), filename)
+      ctime = stat["ctime"] or raise(Error, "Cannot get modification time of file #{filename}")
+      time = DateTime.strptime(ctime.to_s, "%s")
+
+      time.strftime("%Y-%m-%d-%H-%M-%S")
+    end
+
+    def copy_br(device, target_path, bs: 512)
+      Yast::SCR.Execute(
+        BASH_PATH,
+        "/bin/dd if=#{device} of=#{target_path} bs=#{bs} count=1 2>&1"
+      )
+    end
+
+    def reduce_backup_count
+      files = Yast::SCR.Read(Yast::Path.new(".target.dir"), MAIN_BACKUP_DIR)
+      # clean only backups for this device
+      files.select! do |c|
+        c =~ /#{Regexp.escape(device_file)}-\d{4}(?:-\d{2}){5}/
       end
-
-      def copy_br(device, target_path)
+      # and sort so we can benefit from its ascending order
+      files.sort!
+      files.drop(KEPT_BACKUPS).each do |file_name|
         Yast::SCR.Execute(
-          BASH_PATH,
-          "/bin/dd if=#{device} of=#{target_path} bs=512 count=1 2>&1"
+          Yast::Path.new(".target.remove"),
+          MAIN_BACKUP_DIR + file_name
         )
       end
+    end
 
-      def cleanup_backups(device_file)
-        files = Yast::SCR.Read(Yast::Path.new(".target.dir"), MAIN_BACKUP_DIR)
-        # clean only backups for this device
-        files.select! do |c|
-          c =~ /#{Regexp.escape(device_file)}-\d{4}(?:-\d{2}){5}/
-        end
-        # and sort so we can benefit from its ascending order
-        files.sort!
-        files.drop(KEPT_BACKUPS).each do |file_name|
-          Yast::SCR.Execute(
-            Yast::Path.new(".target.remove"),
-            MAIN_BACKUP_DIR + file_name
-          )
-        end
-      end
+    def rotate
+      # move it so we do not overwrite it
+      change_date = formated_file_ctime(device_file_path)
+      Yast::SCR.Execute(
+        BASH_PATH,
+        "/bin/mv %{path} %{path}-%{date}" %
+          { path: device_file_path, date: change_date }
+      )
     end
   end
 end

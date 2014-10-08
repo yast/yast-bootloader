@@ -267,9 +267,10 @@ module Yast
           "Creating backup of boot sectors of %1",
           disks_to_rewrite
         )
-        Builtins.foreach(disks_to_rewrite) do |device|
-          ::Bootloader::BootRecordBackup.create_for(device)
+        backups = disks_to_rewrite.map do |d|
+          ::Bootloader::BootRecordBackup.new(d)
         end
+        backups.each(&:write)
       end
       ret = true
       # if the bootloader stage 1 is not installed in the MBR, but
@@ -895,7 +896,6 @@ module Yast
             !#	    ! haskey( BootCommon::globals, "boot_mbr_md" ) &&
             Builtins.haskey(BootCommon.globals, "boot_custom")
         grub_DetectDisks
-        BootCommon.del_parts = BootStorage.getPartitionList(:deleted, "grub")
         # check whether edd is loaded; if not: load it
         lsmod_command = "lsmod | grep edd"
         Builtins.y2milestone("Running command %1", lsmod_command)

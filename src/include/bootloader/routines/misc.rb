@@ -130,77 +130,24 @@ module Yast
     # @return [Array] device names
     def GetBootloaderDevices
       ret = []
-      if Ops.get(@globals, "boot_boot", "false") == "true"
-        ret = Builtins.add(ret, BootStorage.BootPartitionDevice)
+      if @globals["boot_boot"] == "true"
+        ret << BootStorage.BootPartitionDevice
       end
-      if Ops.get(@globals, "boot_root", "false") == "true"
-        ret = Builtins.add(ret, BootStorage.RootPartitionDevice)
+      if @globals["boot_root"] == "true"
+        ret << BootStorage.RootPartitionDevice
       end
-      if Ops.get(@globals, "boot_mbr", "false") == "true"
-        ret = Builtins.add(ret, @mbrDisk)
+      if @globals["boot_mbr"] == "true"
+        ret << @mbrDisk
       end
-      if Builtins.haskey(@globals, "boot_extended") &&
-          Ops.get(@globals, "boot_extended", "false") == "true"
-        ret = Builtins.add(ret, BootStorage.ExtendedPartitionDevice)
+      if @globals["boot_extended"] == "true"
+        ret << BootStorage.ExtendedPartitionDevice
       end
-      if Builtins.haskey(@globals, "boot_custom")
-        ret = Builtins.add(ret, Ops.get(@globals, "boot_custom", ""))
+      if @globals["boot_custom"]
+        ret << @globals["boot_custom"]
       end
-      return deep_copy(ret) if Ops.greater_than(Builtins.size(ret), 0)
+      return ret unless ret.empty?
       # FIXME: find out what the best value is here: nil, [] or ["/dev/null"]
       ["/dev/null"]
-    end
-
-    # Check if the PBR of the given partition seems to contain a known boot block
-    # @param [String] device string partition device to check
-    # @return true if the PBR seems to contain a known boot block
-    def IsPartitionBootable(device)
-      #FIXME this is only for grub and should go to BootGRUB
-      # use examineMBR to analyze PBR (partition boot record):
-      # examineMBR returns "* stage1" when it finds the signature
-      # of some stage1 bootloader
-      result = examineMBR(device)
-      if result == "grub"
-        return true
-      else
-        return false
-      end
-    end
-
-    # Get the list of particular kernel parameters
-    # @param [String] line string the whole kernel command line
-    # @return a list of the kernel parameters split each separaterlly
-    def ListKernelParamsInLine(line)
-      # FIXME this function is really similar to code in Kernel.ycp
-      cmdlist = []
-      parse_index = 0
-      in_quotes = false
-      after_backslash = false
-      current_param = ""
-      while Ops.less_than(parse_index, Builtins.size(line))
-        current_char = Builtins.substring(line, parse_index, 1)
-        in_quotes = !in_quotes if current_char == "\"" && !after_backslash
-        if current_char == " " && !in_quotes
-          cmdlist = Builtins.add(cmdlist, current_param)
-          current_param = ""
-        else
-          current_param = Ops.add(current_param, current_char)
-        end
-        if current_char == "\\"
-          after_backslash = true
-        else
-          after_backslash = false
-        end
-        parse_index = Ops.add(parse_index, 1)
-      end
-      cmdlist = Builtins.add(cmdlist, current_param)
-      cmdlist = Builtins.maplist(cmdlist) do |c|
-        if Builtins.regexpmatch(c, "^[^=]+=")
-          c = Builtins.regexpsub(c, "^([^=]+)=", "\\1")
-        end
-        c
-      end
-      deep_copy(cmdlist)
     end
 
     # get kernel parameter from kernel command line
@@ -211,13 +158,10 @@ module Yast
     def getKernelParamFromLine(line, key)
       # FIXME this doesn't work with quotes and spaces
       res = "false"
-      params = Builtins.splitstring(line, " ")
-      params = Builtins.filter(params) { |p| p != "" }
-      Builtins.foreach(params) do |p|
-        l = Builtins.filter(Builtins.splitstring(p, "=")) do |e|
-          e != " " && e != ""
-        end
-        res = Ops.get(l, 1, "true") if Ops.get(l, 0, "") == key
+      params = line.split(" ").reject(&:empty?)
+      params.each do |p|
+        l = p.split("=")
+        res = l[1] || "true" if l[0] == key
       end
       res
     end
@@ -408,66 +352,39 @@ module Yast
     # @param [String] device string device to rewrite MBR to
     # @return [Boolean] true on success
     def restoreMBR(device)
-      device_file = Builtins.mergestring(Builtins.splitstring(device, "/"), "_")
-      if Ops.less_or_equal(
-          SCR.Read(
-            path(".target.size"),
-            Builtins.sformat(
-              "/var/lib/YaST2/backup_boot_sectors/%1",
-              device_file
-            )
-          ),
-          0
-        )
+      backup = ::Bootloader::BootRecordBackup.new(device)
+      begin
+        backup.restore
+      rescue ::Bootloader::BootRecordBackup::Missing
         Report.Error("Can't restore MBR. No saved MBR found")
         return false
       end
-      # added fix 446 -> 440 for Vista booting problem bnc #396444
-      ret = Convert.to_integer(
-        SCR.Execute(
-          path(".target.bash"),
-          Builtins.sformat(
-            "/bin/dd of=%1 if=/var/lib/YaST2/backup_boot_sectors/%2 bs=440 count=1",
-            device,
-            device_file
-          )
-        )
-      )
-      ret == 0
     end
 
     # Get map of swap partitions
     # @return a map where key is partition name and value its size
     def getSwapPartitions
-      #FIXME use cache of storage map
+      # FIXME move to boot storage
       tm = Storage.GetTargetMap
-      installation = Mode.installation
       ret = {}
-      Builtins.foreach(tm) do |k, v|
-        cyl_size = Ops.get_integer(v, "cyl_size", 0)
-        partitions = Ops.get_list(v, "partitions", [])
-        partitions = Builtins.filter(partitions) do |p|
-          Ops.get_string(p, "mount", "") == "swap" &&
-            !Ops.get_boolean(p, "delete", false)
+      tm.each do |k, v|
+        cyl_size = v["cyl_size"] || 0
+        partitions = v["partitions"] || []
+        partitions = partitions.select do |p|
+          p["mount"] == "swap" && !p["delete"]
         end
-        Builtins.foreach(partitions) do |s|
+        partitions.each do |s|
           # bnc#577127 - Encrypted swap is not properly set up as resume device
-          dev = ""
-          if Ops.get_string(s, "crypt_device", "") != nil &&
-              Ops.get_string(s, "crypt_device", "") != ""
-            dev = Ops.get_string(s, "crypt_device", "")
+          if s["crypt_device"] && !s["crypt_device"].empty?
+            dev = s["crypt_device"]
           else
-            dev = Ops.get_string(s, "device", "")
+            dev = s["device"]
           end
-          Ops.set(
-            ret,
-            dev,
-            Ops.multiply(Ops.get_integer(s, ["region", 1], 0), cyl_size)
-          )
+          ret[dev] = Ops.get_integer(s, ["region", 1], 0) * cyl_size
         end
       end
       Builtins.y2milestone("Available swap partitions: %1", ret)
-      deep_copy(ret)
+      ret
     end
 
 
@@ -559,32 +476,6 @@ module Yast
         elsif Builtins.search(getBootPartition, "/dev/evms/") == 0
           Builtins.y2milestone("Cannot install bootloader on EVMS")
           return false
-        # LVM
-        elsif !Ops.is_integer?(Ops.get(dev, "nr", 0))
-          lt = getLoaderType(false)
-          if lt != "grub2" && lt != "grub2-efi"
-            Builtins.y2milestone("Cannot install bootloader %1 on LVM", lt)
-            return false
-          end
-        else
-          tm = Storage.GetTargetMap
-          dm = Ops.get_map(tm, Ops.get_string(dev, "disk", ""), {})
-          parts = Ops.get_list(dm, "partitions", [])
-          info = {}
-          Builtins.foreach(parts) do |p|
-            if Ops.get_string(p, "device", "") ==
-                BootStorage.BootPartitionDevice
-              info = deep_copy(p)
-            end
-          end
-
-          if Ops.get(info, "used_fs") == :btrfs
-            lt = getLoaderType(false)
-            if lt != "grub2" && lt != "grub2-efi"
-              Builtins.y2milestone("Cannot install bootloader %1 on btrfs", lt)
-              return false
-            end
-          end
         end
 
         return true
@@ -788,12 +679,6 @@ module Yast
       Builtins.y2milestone("Finding boot disk failed!")
       ""
     end
-
-    # FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
-    # Function select boot device - disk
-    #
-    # @return [String] name of boot device - disk
-
 
     # FATE #110038: Serial console
     # Function build value for console from:

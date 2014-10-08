@@ -186,7 +186,6 @@ module Yast
     #
     def urlLocationSummary
       Builtins.y2milestone("Prepare url summary for GRUB2")
-      # FIXME identical code in BootGRUB module
       line = "<ul>\n<li>"
       if BootCommon.globals["boot_mbr"] == "true"
         line << _(

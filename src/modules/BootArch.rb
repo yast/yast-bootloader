@@ -57,18 +57,6 @@ module Yast
         end
         ret = Ops.add(ret, "splash=silent quiet showopts")
         return ret
-      elsif Arch.ia64
-        ret = kernel_cmdline != "" ? Ops.add(kernel_cmdline, " ") : ""
-        ret = Ops.add(Ops.add(ret, features), " ") if features != ""
-        ret = Ops.add(ret, "splash=silent quiet")
-
-        # FIXME: this does not belong here, it cannot be tracked or maintained
-        # and is undocumented
-        # on SGI Altix change kernel default hash tables sizes
-        if SCR.Read(path(".target.stat"), "/proc/sgi_sn") != {}
-          ret = Ops.add(ret, " thash_entries=2097152")
-        end
-        return ret
       elsif Arch.s390
         file_desc = Convert.convert(
           SCR.Execute(path(".target.bash_output"), "echo $TERM"),
@@ -102,8 +90,6 @@ module Yast
         ret = "showopts apm=off noresume nosmp maxcpus=0 edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset"
       elsif Arch.x86_64
         ret = "showopts apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset"
-      elsif Arch.ia64
-        ret = "nohalt noresume powersaved=off"
       elsif Arch.s390
         ret = Ops.add(DefaultKernelParams(""), " noresume")
       else
@@ -134,13 +120,13 @@ module Yast
     # Is VGA parameter setting available
     # @return true if vga= can be set
     def VgaAvailable
-      Arch.i386 || Arch.x86_64 || Arch.ia64
+      Arch.i386 || Arch.x86_64
     end
 
     # Is Suspend to Disk available?
     # @return true if STD is available
     def ResumeAvailable
-      Arch.i386 || Arch.x86_64 || Arch.ia64 || Arch.s390
+      Arch.i386 || Arch.x86_64 || Arch.s390
     end
 
 

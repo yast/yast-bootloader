@@ -23,6 +23,13 @@ require "bootloader/device_mapping"
 
 module Yast
   class BootCommonClass < Module
+
+    SUPPORTED_BOOTLOADERS = [
+      "none", # allow user to manage bootloader itself
+      "grub2",
+      "grub2-efi"
+    ]
+
     def main
       Yast.import "Pkg"
       Yast.import "UI"
@@ -34,9 +41,6 @@ module Yast
       Yast.import "Mode"
       Yast.import "PackageSystem"
       Yast.import "Storage"
-      Yast.import "String"
-      Yast.import "Popup"
-      Yast.import "Package"
       Yast.import "PackagesProposal"
       Yast.import "BootStorage"
 
@@ -44,9 +48,6 @@ module Yast
 
 
       # General bootloader settings
-
-      # map of global options and types for new perl-Bootloader interface
-      @global_options = {}
 
       # map of global options and values
       @globals = {}
@@ -102,9 +103,6 @@ module Yast
       # values are :add, :remove or nil, means do nothing
       @pmbr_action = nil
 
-      # Kernel parameters at previous detection
-      @kernelCmdLine = ""
-
       # were settings changed (== true)
       @changed = false
 
@@ -115,32 +113,15 @@ module Yast
       @loader_type = nil
       @secure_boot = nil
 
-      # sysconfig variables
-
-      # installation proposal help variables
-
-      # List of partitions deleted in primary proposal
-      @del_parts = []
-
-      # variables for storing data
-
       # saving mode setting functions
 
       # map of save mode settings
       @write_settings = {}
 
-      # summary dialog state
-
-      # ui help variables
-
-
       @additional_failsafe_params = ""
 
 
       # other variables
-
-      # Settings of other bootloaders used when switching bootloader
-      @other_bl = {}
 
       # bootloader installation variables
 
@@ -157,16 +138,6 @@ module Yast
       @was_read = false
       # Was bootloader location changed? (== true)
       @location_changed = false
-      # Were configuration files manually edited and chamged?
-      @files_edited = false
-      # time of last change of partitioning
-      @partitioning_last_change = 0
-
-      # List of all supported bootloaders
-      @bootloaders = [
-        "grub2",
-        "grub2-efi"
-      ]
 
       # FATE#305008: Failover boot configurations for md arrays with redundancy
       # if true enable redundancy for md array
@@ -178,190 +149,6 @@ module Yast
       # FIXME: there are other archs than i386, this is not 'commmon'
       Yast.include self, "bootloader/routines/lilolike.rb"
       Yast.include self, "bootloader/routines/lib_iface.rb"
-    end
-
-    # interface to bootloader library
-
-    # Create section for linux kernel
-    # @param [String] title string the section name to create (untranslated)
-    # @return a map describing the section
-    def CreateLinuxSection(title)
-      ret = {
-        "name"          => title,
-        "original_name" => title,
-        "type"          => "image",
-        "__auto"        => true,
-        "__changed"     => true
-      }
-
-      resume = BootArch.ResumeAvailable ? getLargestSwapPartition : ""
-      # try to use label or udev id for device name... FATE #302219
-      if resume != "" && resume != nil
-        resume = ::Bootloader::DeviceMapping.to_mountby_device(resume)
-      end
-
-
-      # FIXME:
-      # This only works in the installed system (problem with GetFinalKernel()),
-      # in all other cases we use the symlinks.
-
-      kernel_fn = ""
-      initrd_fn = ""
-
-      if Mode.normal
-        # Find out the file names of the "real" kernel and initrd files, with
-        # version etc. pp. whatever (currently version-flavor) attached.
-        # FIXME: also do this for xen and xenpae kernels as found below
-        #
-        # Note: originally, we wanted to find out the kernel file names during
-        # installation proposal when the files are not yet installed. But not
-        # all the necessary interfaces work at that time. Now, this variant is
-        # only run in the "running system", and could as well look at the
-        # installed files.
-        #
-
-        # First of all, we have to initialize the RPM database
-        Pkg.TargetInit(
-          "/", # installed system
-          false
-        ) # don't create a new RPM database
-
-        # Then, get the file names in the "selected" kernel package,
-        kernel_package = Kernel.ComputePackage
-        files = Pkg.PkgGetFilelist(kernel_package, :installed)
-        Builtins.y2milestone(
-          "kernel package %1 has these files: %2",
-          kernel_package,
-          files
-        )
-
-        # then find the first file that matches the arch-dependent kernel file
-        # name prefix and the initrd filename prefix.
-        kernel_prefix = Ops.add("/boot/", Kernel.GetBinary)
-        initrd_prefix = "/boot/initrd"
-
-        files_filtered = Builtins.filter(files) do |file|
-          Builtins.substring(file, 0, Builtins.size(kernel_prefix)) == kernel_prefix
-        end
-
-
-        # Sort the filtered files, thus the image strings by length, the big ones
-        # at the beginning, the small ones at the end of the list.
-        # So, the first element of the sorted list files_filtered is the image string
-        # containing the version and flavor.
-        files_filtered = Builtins.sort(files_filtered) do |kbig, ksmall|
-          Ops.greater_than(Builtins.size(kbig), Builtins.size(ksmall))
-        end
-
-        kernel_fn = Ops.get(files_filtered, 0, "")
-
-        files_filtered = Builtins.filter(files) do |file|
-          Builtins.substring(file, 0, Builtins.size(initrd_prefix)) == initrd_prefix &&
-            !Builtins.regexpmatch(file, "-kdump$")
-        end
-
-        # Sort the filtered files, thus the initrd strings by length, the big ones
-        # at the beginning, the small ones at the end of the list.
-        # So, the first element of the sorted list files_filtered is the initrd string
-        # containing the version and flavor.
-        files_filtered = Builtins.sort(files_filtered) do |ibig, ismall|
-          Ops.greater_than(Builtins.size(ibig), Builtins.size(ismall))
-        end
-
-        initrd_fn = Ops.get(files_filtered, 0, "")
-
-        kernel_fn = "/boot/vmlinuz" if kernel_fn == "" || kernel_fn == nil
-
-        initrd_fn = "/boot/initrd" if initrd_fn == "" || initrd_fn == nil
-
-        # read commandline options for kernel
-        cmd = Convert.convert(
-          SCR.Read(path(".proc.cmdline")),
-          :from => "any",
-          :to   => "list <string>"
-        )
-
-        vga = nil
-
-        # trying to find "vga" option
-        Builtins.foreach(cmd) do |key|
-          vga = key if Builtins.issubstring(key, "vga=")
-          Builtins.y2milestone("key: %1", key)
-        end
-        Builtins.y2milestone("vga from command line: %1", vga)
-        mode = []
-
-        # split vga=value
-        if vga != nil && vga != ""
-          mode = Builtins.splitstring(Builtins.tostring(vga), "=")
-        end
-
-        vgamode = nil
-
-        # take value if exist
-        if Ops.greater_than(Builtins.size(mode), 1) &&
-            Ops.get(mode, 0, "") == "vga"
-          vgamode = Ops.get(mode, 1)
-        end
-
-        # add value of vga into proposal (if exist)
-        if vgamode != nil && vgamode != ""
-          Ops.set(ret, "vgamode", vgamode)
-          Builtins.y2milestone("vga mode: %1", vgamode)
-        end
-      else
-        # the links are shown in the proposal; at the end of an installation,
-        # in bootloader_finish, they will be resolved to the real filenames
-        kernel_fn = Ops.add("/boot/", Kernel.GetBinary)
-        initrd_fn = "/boot/initrd"
-      end
-      # done: kernel_fn and initrd_fn are the results
-      Builtins.y2milestone("kernel_fn: %1 initrd_fn: %2", kernel_fn, initrd_fn)
-
-      ret = Convert.convert(
-        Builtins.union(
-          ret,
-          {
-            "image"  => kernel_fn,
-            "initrd" => initrd_fn,
-            # try to use label or udev id for device name... FATE #302219
-            "root"   => ::Bootloader::DeviceMapping.to_mountby_device(
-              BootStorage.RootPartitionDevice
-            ),
-            "append" => title == "failsafe" ?
-              BootArch.FailsafeKernelParams :
-              BootArch.DefaultKernelParams(resume),
-            "__devs" => [
-              BootStorage.BootPartitionDevice,
-              BootStorage.RootPartitionDevice
-            ]
-          }
-        ),
-        :from => "map",
-        :to   => "map <string, any>"
-      )
-      if BootArch.VgaAvailable && Kernel.GetVgaType != ""
-        # B#352020 kokso: - Graphical failsafe mode
-        #if (title == "failsafe")
-        #    ret["vga"] = "normal";
-        #else
-        Ops.set(ret, "vgamode", Kernel.GetVgaType) 
-
-        # B#352020 end
-      end
-      if title == "xen"
-        Ops.set(ret, "type", "xen")
-        Ops.set(ret, "xen_append", "")
-
-        Ops.set(ret, "xen", "/boot/xen.gz")
-        Ops.set(
-          ret,
-          "image",
-          Ops.add(Ops.add("/boot/", Kernel.GetBinary), "-xen")
-        )
-        Ops.set(ret, "initrd", "/boot/initrd-xen")
-      end
-      deep_copy(ret)
     end
 
     # generic versions of bootloader-specific functions
@@ -428,11 +215,9 @@ module Yast
     end
 
     # Reset bootloader settings
-    # @param [Boolean] init boolean true to repropose also device map
-    def Reset(init)
+    def Reset
       @sections = []
       @globals = {}
-      # DetectDisks ();
       @activate = false
       @activate_changed = false
       @was_proposed = false
@@ -464,10 +249,7 @@ module Yast
       return true if bl == "none"
 
       # bnc#589433 -  Install grub into root (/) partition gives error
-      if Ops.get(@globals, "boot_custom") == "" &&
-          Builtins.haskey(@globals, "boot_custom")
-        @globals = Builtins.remove(@globals, "boot_custom")
-      end
+      @globals.delete("boot_custom") if @globals["boot_custom"] == ""
 
       # FIXME: give mountby information to perl-Bootloader (or define some
       # better interface), so that perl-Bootloader can use mountby device names
@@ -498,26 +280,22 @@ module Yast
       Builtins.y2milestone("device map after mapping %1", my_device_mapping)
 
       if VerifyMDArray()
-        if @enable_md_array_redundancy != true &&
-            Builtins.haskey(my_globals, "boot_md_mbr")
-          my_globals = Builtins.remove(my_globals, "boot_md_mbr")
-        end
-        if @enable_md_array_redundancy == true &&
-            !Builtins.haskey(my_globals, "boot_md_mbr")
-          Ops.set(my_globals, "boot_md_mbr", BootStorage.addMDSettingsToGlobals)
+        if !@enable_md_array_redundancy
+          my_globals.delete("boot_md_mbr")
+        elsif !my_globals["boot_md_mbr"]
+          my_globals["boot_md_mbr"] = BootStorage.addMDSettingsToGlobals
         end
       else
-        if Builtins.haskey(@globals, "boot_md_mbr")
-          my_globals = Builtins.remove(my_globals, "boot_md_mbr")
-        end
+        my_globals.delete("boot_md_mbr")
       end
+
       Builtins.y2milestone("SetSecureBoot %1", @secure_boot)
-      ret = ret && SetSecureBoot(@secure_boot)
-      ret = ret && DefineMultipath(BootStorage.multipath_mapping)
-      ret = ret && SetDeviceMap(my_device_mapping)
-      ret = ret && SetSections(@sections)
-      ret = ret && SetGlobal(my_globals)
-      ret = ret && CommitSettings() if flush
+      ret &&= SetSecureBoot(@secure_boot)
+      ret &&= DefineMultipath(BootStorage.multipath_mapping)
+      ret &&= SetDeviceMap(my_device_mapping)
+      ret &&= SetSections(@sections)
+      ret &&= SetGlobal(my_globals)
+      ret &&= CommitSettings() if flush
 
       # write settings to /etc/sysconfig/bootloader
       WriteToSysconf(false)
@@ -564,36 +342,26 @@ module Yast
     # @param [String] loader_type string loader type to initialize
     def setCurrentLoaderAttribs(loader_type)
       Builtins.y2milestone("Setting attributes for bootloader %1", loader_type)
-      # testsuite hack
-      return if Mode.test
-      if loader_type == nil
+      if !loader_type
         Builtins.y2error("Setting loader type to nil, this is wrong")
         return
       end
 
       # FIXME: this should be blInitializer in switcher.ycp for code cleanness
       # and understandability
-      if Ops.get(@bootloader_attribs, [loader_type, "initializer"]) != nil
+      boot_initializer = Ops.get(@bootloader_attribs, [loader_type, "initializer"])
+      if boot_initializer
         Builtins.y2milestone("Running bootloader initializer")
-        toEval = Convert.convert(
-          Ops.get(@bootloader_attribs, [loader_type, "initializer"]),
-          :from => "any",
-          :to   => "void ()"
-        )
-        toEval.call
+        boot_initializer.call
         Builtins.y2milestone("Initializer finished")
       else
         Builtins.y2error("No initializer found for >>%1<<", loader_type)
         @current_bootloader_attribs = {}
       end
 
-      @current_bootloader_attribs = Convert.convert(
-        Builtins.union(
-          @current_bootloader_attribs,
-          Builtins.eval(Ops.get(@bootloader_attribs, loader_type, {}))
-        ),
-        :from => "map",
-        :to   => "map <string, any>"
+      @current_bootloader_attribs = Builtins.union(
+        @current_bootloader_attribs,
+        Builtins.eval(Ops.get(@bootloader_attribs, loader_type, {}))
       )
 
       nil
@@ -603,21 +371,18 @@ module Yast
     # @param [String] loader string name of loader to check
     # @return [String] the loader name if supported, "none" otherwise
     def SupportedLoader(loader)
-      return loader if Builtins.contains(@bootloaders, loader)
-      "none"
+      SUPPORTED_BOOTLOADERS.include?(loader) ? loader : "none"
     end
 
     # Get currently used bootloader, detect if not set yet
     # @param [Boolean] recheck boolean force checking bootloader
     # @return [String] botloader type
     def getLoaderType(recheck)
-      return @loader_type if !recheck && @loader_type != nil
+      return @loader_type if !recheck && @loader_type
       # read bootloader to use from disk
       if Mode.update || Mode.normal || Mode.repair
-        @loader_type = Convert.to_string(
-          SCR.Read(path(".sysconfig.bootloader.LOADER_TYPE"))
-        )
-        if @loader_type != nil && @loader_type != ""
+        @loader_type = SCR.Read(path(".sysconfig.bootloader.LOADER_TYPE"))
+        if @loader_type && !@loader_type.empty?
           @loader_type = "grub2" if @loader_type == "s390"
           Builtins.y2milestone(
             "Sysconfig bootloader is %1, using",
@@ -633,23 +398,11 @@ module Yast
         end
       end
       # detect bootloader
-      @loader_type = Convert.to_string(SCR.Read(path(".probe.boot_arch")))
-      @loader_type = "grub2" if @loader_type == "s390"
-      # ppc uses grub2 (fate #315753)
-      @loader_type = "grub2" if @loader_type == "ppc"
-      # suppose grub2 should superscede grub ..
-      @loader_type = "grub2" if @loader_type == "grub"
+      @loader_type = SCR.Read(path(".probe.boot_arch"))
+      # s390,ppc and also old grub now uses grub2 (fate #315753)
+      @loader_type = "grub2" if ["s390", "ppc", "grub"].include? @loader_type
+
       Builtins.y2milestone("Bootloader detection returned %1", @loader_type)
-      # lslezak@: Arch::is_xenU() returns true only in PV guest
-      if Arch.is_uml || Arch.is_xenU
-        # y2milestone ("Not installing any bootloader for UML/Xen PV");
-        # loader_type = "none";
-        # bnc #380982 - pygrub cannot boot kernel
-        # added installation of bootloader
-        Builtins.y2milestone(
-          "It is XEN domU and the bootloader should be installed"
-        )
-      end
       if (Arch.i386 || Arch.x86_64) && Linuxrc.InstallInf("EFI") == "1"
         # use grub2-efi as default bootloader for x86_64/i386 EFI
         @loader_type = "grub2-efi"
@@ -665,59 +418,54 @@ module Yast
     # set type of bootloader
     # @param [String] bootloader string type of bootloader
     def setLoaderType(bootloader)
-      if bootloader == nil
+      if !bootloader
         Builtins.y2milestone("Resetting the loader type")
         @loader_type = nil
       end
       Builtins.y2milestone("Setting bootloader to >>%1<<", bootloader)
-      if bootloader != nil && Builtins.contains(@bootloaders, bootloader) &&
-          !Mode.test
-        # added kexec-tools fate# 303395
-        # if kexec option is equal 0 or running live installation
-        # doesn't install kexec-tools
+      raise "Unsupported bootloader '#{bootloader}'" unless SUPPORTED_BOOTLOADERS.include?(bootloader)
 
-        bootloader_packages = Ops.get_list(
-          @bootloader_attribs,
-          [bootloader, "required_packages"],
-          []
-        )
-        if !Mode.live_installation && Linuxrc.InstallInf("kexec_reboot") != "0"
-          bootloader_packages = Builtins.add(bootloader_packages, "kexec-tools")
+      bootloader_packages = Ops.get_list(
+        @bootloader_attribs,
+        [bootloader, "required_packages"],
+        []
+      )
+
+      # added kexec-tools fate# 303395
+      # if kexec option is equal 0 or running live installation
+      # doesn't install kexec-tools
+      if !Mode.live_installation && Linuxrc.InstallInf("kexec_reboot") != "0"
+        bootloader_packages = Builtins.add(bootloader_packages, "kexec-tools")
+      end
+
+      # we need perl-Bootloader-YAML API to communicate with pbl
+      bootloader_packages << "perl-Bootloader-YAML"
+
+      Builtins.y2milestone("Bootloader packages: %1", bootloader_packages)
+
+      # don't configure package manager during autoinstallation preparing
+      if Mode.normal
+        PackageSystem.InstallAll(bootloader_packages)
+      elsif Stage.initial
+        bootloader_packages.each do |p|
+          Builtins.y2milestone("Select bootloader package: %1", p)
+          PackagesProposal.AddResolvables("yast2-bootloader", :package, [p])
         end
-
-        # we need perl-Bootloader-YAML API to communicate with pbl
-        bootloader_packages << "perl-Bootloader-YAML"
-
-        Builtins.y2milestone("Bootloader packages: %1", bootloader_packages)
-
-        # don't configure package manager during autoinstallation preparing
-        if Mode.normal && !(Mode.config || Mode.repair)
-          PackageSystem.InstallAll(bootloader_packages)
-        elsif Stage.initial
-          bootloader_packages.each do |p|
-            Builtins.y2milestone("Select bootloader package: %1", p)
-            PackagesProposal.AddResolvables("yast2-bootloader", :package, [p])
-          end
-        end
-      elsif !Mode.test
-        Builtins.y2error("Unknown bootloader")
       end
       @loader_type = bootloader
-      setCurrentLoaderAttribs(@loader_type) if @loader_type != nil
+      setCurrentLoaderAttribs(@loader_type)
       Builtins.y2milestone("Loader type set")
 
       nil
     end
 
     def getSystemSecureBootStatus(recheck)
-      return @secure_boot if !recheck && @secure_boot != nil
+      return @secure_boot if !recheck && !@secure_boot.nil?
 
       if Mode.update || Mode.normal || Mode.repair
-        sb = Convert.to_string(
-          SCR.Read(path(".sysconfig.bootloader.SECURE_BOOT"))
-        )
+        sb = SCR.Read(path(".sysconfig.bootloader.SECURE_BOOT"))
 
-        if sb != nil && !sb.empty?
+        if sb && !sb.empty?
           @secure_boot = sb == "yes"
           return @secure_boot
         end
@@ -740,56 +488,35 @@ module Yast
     # @return a list of bootloaders
     def getBootloaders
       if Mode.config
-        return [
-          "grub2",
-          "grub2-efi",
-          "default",
-          "none"
-        ]
+        # default means bootloader use what it think is the best
+        return SUPPORTED_BOOTLOADERS + ["default"]
       end
-      ret = [
-        getLoaderType(false)
-      ]
-      if Arch.i386 || Arch.x86_64
-        ret = Convert.convert(
-          Builtins.merge(ret, ["grub2"]),
-          :from => "list",
-          :to   => "list <string>"
-        )
-        if Arch.x86_64
-          ret = Convert.convert(
-            Builtins.merge(ret, ["grub2-efi"]),
-            :from => "list",
-            :to   => "list <string>"
-          )
-        end
+      ret = [getLoaderType(false)]
+      if Arch.i386 || Arch.x86_64 || Arch.s390 || Arch.ppc
+        ret << "grub2"
       end
-      if Arch.s390 || Arch.ppc
-        ret = ["grub2"]
+      if Arch.x86_64
+        ret << "grub2-efi"
       end
-      # in order not to display it twice when "none" is selected
-      ret = Builtins.filter(ret) { |l| l != "none" }
-      ret = Builtins.toset(ret)
       ret = Builtins.add(ret, "none")
-      deep_copy(ret)
+      # avoid double entry for selected one
+      ret.uniq
     end
 
     # FATE#305008: Failover boot configurations for md arrays with redundancy
-    # Verify if proposal includes md array with 2 diferent disks
+    # Verify if proposal includes md array with more diferent disks
     #
-    # @return [Boolean] true if there is md array based on 2 disks
+    # @return [Boolean] true if there is md array based on more disks
     def VerifyMDArray
-      ret = false
-      if Builtins.haskey(@globals, "boot_md_mbr")
-        md_array = Ops.get(@globals, "boot_md_mbr", "")
-        disks = Builtins.splitstring(md_array, ",")
-        disks = Builtins.filter(disks) { |v| v != "" }
-        if Builtins.size(disks) == 2
-          Builtins.y2milestone("boot_md_mbr includes 2 disks: %1", disks)
-          ret = true
+      if @globals["boot_md_mbr"]
+        md_array = @globals["boot_md_mbr"]
+        disks = md_array.split(",").reject(&:empty?)
+        if Builtins.size(disks) > 1
+          Builtins.y2milestone("boot_md_mbr includes disks: %1", disks)
+          return true
         end
       end
-      ret
+      return false
     end
 
     # FIXME just backward compatible interface, call directly BootStorage
@@ -797,7 +524,6 @@ module Yast
       BootStorage.Md2Partitions(md_device)
     end
 
-    publish :variable => :global_options, :type => "map <string, any>"
     publish :variable => :globals, :type => "map <string, string>"
     publish :variable => :sections, :type => "list <map <string, any>>"
     publish :variable => :cached_settings_base_data_change_time, :type => "integer"
@@ -809,24 +535,18 @@ module Yast
     publish :variable => :backup_mbr, :type => "boolean"
     publish :variable => :activate, :type => "boolean"
     publish :variable => :pmbr_action, :type => "symbol"
-    publish :variable => :kernelCmdLine, :type => "string"
     publish :variable => :changed, :type => "boolean"
-    publish :variable => :del_parts, :type => "list <string>"
     publish :variable => :write_settings, :type => "map"
-    publish :variable => :other_bl, :type => "map"
     publish :variable => :activate_changed, :type => "boolean"
     publish :variable => :save_all, :type => "boolean"
     publish :variable => :was_proposed, :type => "boolean"
     publish :variable => :was_read, :type => "boolean"
     publish :variable => :location_changed, :type => "boolean"
-    publish :variable => :files_edited, :type => "boolean"
-    publish :variable => :partitioning_last_change, :type => "integer"
     publish :variable => :enable_md_array_redundancy, :type => "boolean"
     publish :function => :getLoaderType, :type => "string (boolean)"
     publish :function => :getSystemSecureBootStatus, :type => "boolean (boolean)"
     publish :function => :getBootloaders, :type => "list <string> ()"
     publish :function => :Summary, :type => "list <string> ()"
-    publish :function => :CreateLinuxSection, :type => "map <string, any> (string)"
     publish :function => :UpdateSerialConsole, :type => "string (string, string)"
     publish :function => :examineMBR, :type => "string (string)"
     publish :function => :ThinkPadMBR, :type => "boolean (string)"
@@ -841,7 +561,6 @@ module Yast
     publish :function => :remapGlobals, :type => "map <string, string> (map <string, string>)"
     publish :function => :GetBootloaderDevice, :type => "string ()"
     publish :function => :GetBootloaderDevices, :type => "list <string> ()"
-    publish :function => :IsPartitionBootable, :type => "boolean (string)"
     publish :function => :getKernelParamFromLine, :type => "string (string, string)"
     publish :function => :setKernelParamToLine, :type => "string (string, string, string)"
     publish :function => :myToInteger, :type => "integer (any)"
@@ -876,7 +595,7 @@ module Yast
     publish :function => :Export, :type => "map ()"
     publish :function => :Import, :type => "boolean (map)"
     publish :function => :Read, :type => "boolean (boolean, boolean)"
-    publish :function => :Reset, :type => "void (boolean)"
+    publish :function => :Reset, :type => "void ()"
     publish :function => :Propose, :type => "void ()"
     publish :function => :Save, :type => "boolean (boolean, boolean, boolean)"
     publish :function => :Update, :type => "void ()"

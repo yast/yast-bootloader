@@ -149,7 +149,6 @@ module Yast
                 "Proceed?\n"
             )
           )
-          Ops.set(BootCommon.other_bl, old_bl, Bootloader.Export)
           BootCommon.setLoaderType("none")
           BootCommon.location_changed = true
         end
@@ -157,7 +156,6 @@ module Yast
       end
 
       if ["grub2", "grub2-efi"].include? (new_bl)
-        Ops.set(BootCommon.other_bl, old_bl, Bootloader.Export)
         BootCommon.setLoaderType(new_bl)
         Bootloader.Propose
         BootCommon.location_changed = true
