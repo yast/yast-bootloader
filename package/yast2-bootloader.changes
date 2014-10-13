@@ -1,8 +1,8 @@
 -------------------------------------------------------------------
 Mon Oct 13 11:10:15 UTC 2014 - jreidinger@suse.com
 
-- fix crash when using password for grub2 with non-english locale
-  (bnc#900358)
+- fixed an Internal Error when using password for grub2 with
+  non-english locale (bnc#900358)
 - 3.1.94.7
 
 -------------------------------------------------------------------
