@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 13 11:10:15 UTC 2014 - jreidinger@suse.com
+
+- fixed an Internal Error when using password for grub2 with
+  non-english locale (bnc#900358)
+- 3.1.94.7
+
+-------------------------------------------------------------------
 Tue Oct  7 09:08:07 UTC 2014 - jreidinger@suse.com
 
 - keep user selection for password (bnc#900026)
