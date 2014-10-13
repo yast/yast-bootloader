@@ -37,7 +37,7 @@ private
 
   def encrypt(password)
     result = Yast::SCR.Execute(YAST_BASH_PATH,
-      "echo -e \"#{password}\\n#{password}\" | grub2-mkpasswd-pbkdf2"
+      "echo -e \"#{password}\\n#{password}\" | LANG=C grub2-mkpasswd-pbkdf2"
     )
 
     if result["exit"] != 0
