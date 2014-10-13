@@ -20,6 +20,7 @@
 #
 require "yast"
 require "bootloader/grub2base"
+require "bootloader/mbr_update"
 
 module Yast
   import "Arch"
@@ -107,7 +108,7 @@ module Yast
       if BootCommon.location_changed
         # bnc #461613 - Unable to boot after making changes to boot loader
         # bnc #357290 - module rewrites grub generic code when leaving with no changes, which may corrupt grub
-        grub_updateMBR
+        ::Bootloader::MBRUpdate.run
 
         grub_ret = BootCommon.InitializeBootloader
         grub_ret = false if grub_ret == nil
