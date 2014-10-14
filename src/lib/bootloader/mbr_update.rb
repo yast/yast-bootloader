@@ -13,22 +13,9 @@ module Bootloader
   class MBRUpdate
     include Yast::Logger
 
-    def run
-      grub_updateMBR
-    end
-  private
-
-    def mbr_disk
-      @mbr_disk ||= Yast::BootCommon.mbrDisk
-    end
-
-    def bootloader_devices
-      @bootloader_devices ||= Yast::BootCommon.GetBootloaderDevices
-    end
-
     # Update contents of MBR (active partition and booting code)
     # @return [Boolean] true on success
-    def grub_updateMBR
+    def run
       activate = Yast::BootCommon.globals["activate"] == "true"
       generic_mbr = Yast::BootCommon.globals["generic_mbr"] == "true"
 
@@ -58,6 +45,15 @@ module Bootloader
       end
 
       ret
+    end
+  private
+
+    def mbr_disk
+      @mbr_disk ||= Yast::BootCommon.mbrDisk
+    end
+
+    def bootloader_devices
+      @bootloader_devices ||= Yast::BootCommon.GetBootloaderDevices
     end
 
     def create_backups
