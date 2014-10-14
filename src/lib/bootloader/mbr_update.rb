@@ -95,6 +95,13 @@ module Bootloader
       return ret
     end
 
+    def set_parted_flag(disk, part_num, flag)
+      command = "/usr/sbin/parted -s #{disk} set #{part_num} #{flag} on"
+      out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
+      log.info "Command `#{command}` output: #{out}"
+      out
+    end
+
     def activate_partitions
       ret = true
       grub_getPartitionsToActivate.each do |m_activate|
@@ -109,13 +116,9 @@ module Bootloader
           log.info "Activating partition #{num} on #{mbr_dev}"
           # this is needed only on gpt disks but we run it always
           # anyway; parted just fails, then
-          command = "/usr/sbin/parted -s #{mbr_dev} set #{num} legacy_boot on"
-          out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
-          log.info "Command `#{command}` output: #{out}"
+          set_parted_flag(mbr_dev, num, "legacy_boot")
 
-          command = "/usr/sbin/parted -s #{mbr_dev} set #{num} boot on"
-          out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
-          log.info "Command `#{command}` output: #{out}"
+          out = set_parted_flag(mbr_dev, num, "boot")
           ret &&= out["exit"] == 0
         end
       end
