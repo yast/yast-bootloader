@@ -193,7 +193,8 @@ module Bootloader
     def partition_to_activate(loader_device)
       p_dev = Yast::Storage.GetDiskPartition(loader_device)
       num = Yast::BootCommon.myToInteger(p_dev["nr"])
-      mbr_dev = p_dev["disk"] || ""
+      mbr_dev = p_dev["disk"]
+      raise "Invalid loader device #{loader_device}" unless mbr_dev
 
       # If loader_device is /dev/md* (which means bootloader is installed to
       # /dev/md*), return the info map for the first device in BIOS ID order
