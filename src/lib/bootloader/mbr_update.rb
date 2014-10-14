@@ -18,6 +18,10 @@ module Bootloader
     end
   private
 
+    def mbr_disk
+      @mbr_disk ||= Yast::BootCommon.mbrDisk
+    end
+
     # Update contents of MBR (active partition and booting code)
     # @return [Boolean] true on success
     def grub_updateMBR
@@ -41,15 +45,15 @@ module Bootloader
       # MBR, then overwrite the boot code (only, not the partition list!) in
       # the MBR with generic (currently DOS?) bootloader stage1 code
       if generic_mbr &&
-          !Yast::BootCommon.GetBootloaderDevices.include?(Yast::BootCommon.mbrDisk)
+          !Yast::BootCommon.GetBootloaderDevices.include?(mbr_disk)
         Yast::PackageSystem.Install("syslinux") if !Yast::Stage.initial
         Yast::Builtins.y2milestone(
           "Updating code in MBR: MBR Disk: %1, loader devices: %2",
-          Yast::BootCommon.mbrDisk,
+          mbr_disk,
           Yast::BootCommon.GetBootloaderDevices
         )
         mbr_type = Yast::Ops.get_string(
-          Yast::Ops.get(Yast::Storage.GetTargetMap, Yast::BootCommon.mbrDisk, {}),
+          Yast::Ops.get(Yast::Storage.GetTargetMap, mbr_disk, {}),
           "label",
           ""
         )
@@ -82,7 +86,7 @@ module Bootloader
         mbr_dev = Yast::Ops.get_string(m_activate, "mbr", "")
         raise "INTERNAL ERROR: Data for partition to activate is invalid." if num == 0 || mbr_dev.empty?
 
-        gpt_disk = Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, Yast::BootCommon.mbrDisk)["label"] == "gpt"
+        gpt_disk = Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, mbr_disk)["label"] == "gpt"
         # if primary partition on old DOS MBR table, GPT do not have such limit
 
         if !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || num <= 4)
@@ -130,7 +134,6 @@ module Bootloader
     end
 
     def create_backups
-      mbr_disk = Yast::BootCommon.mbrDisk
       boot_devices = Yast::BootCommon.GetBootloaderDevices
       log.info(
         "Doing MBR backup: MBR Disk: #{mbr_disk}, loader devices: #{boot_devices}"
@@ -148,7 +151,7 @@ module Bootloader
     # if user wants to do so
     # @return a list of device names to be rewritten
     def grub_getMbrsToRewrite
-      ret = [Yast::BootCommon.mbrDisk]
+      ret = [mbr_disk]
       md = {}
       underlying_devs = []
       devs = []
@@ -184,7 +187,7 @@ module Bootloader
         dev = Yast::Ops.get_string(
           grub_getPartitionToActivate(dev),
           "mbr",
-          Yast::BootCommon.mbrDisk
+          mbr_disk
         )
         dev
       end
@@ -193,7 +196,7 @@ module Bootloader
       # mbrDisk _should_ be included in mbrs; the exact cases for this need
       # to be found and documented though
       # jreidinger: it clears out if md is in boot devices, but none of mbr member is on mbr disk
-      if Yast::Builtins.contains(mbrs, Yast::BootCommon.mbrDisk)
+      if Yast::Builtins.contains(mbrs, mbr_disk)
         ret = Yast::Convert.convert(
           Yast::Builtins.merge(ret, mbrs),
           :from => "list",
