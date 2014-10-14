@@ -102,17 +102,22 @@ module Bootloader
       out
     end
 
+    def can_activate_partition?(num)
+      # if primary partition on old DOS MBR table, GPT do not have such limit
+      gpt_disk = mbr_is_gpt?
+
+      !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || num <= 4)
+    end
+
     def activate_partitions
       ret = true
-      grub_getPartitionsToActivate.each do |m_activate|
+      partitions_to_activate.each do |m_activate|
         num = m_activate["num"]
         mbr_dev = m_activate["mbr"]
         raise "INTERNAL ERROR: Data for partition to activate is invalid." if num.nil? || mbr_dev.nil?
 
-        gpt_disk = mbr_is_gpt?
-        # if primary partition on old DOS MBR table, GPT do not have such limit
 
-        if !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || num <= 4)
+        if can_activate_partition?(num)
           log.info "Activating partition #{num} on #{mbr_dev}"
           # this is needed only on gpt disks but we run it always
           # anyway; parted just fails, then
@@ -182,6 +187,24 @@ module Bootloader
       end
     end
 
+    # List of partition for disk that can be used for setting boot flag
+    def activatable_partitions(disk)
+      tm = Yast::Storage.GetTargetMap
+      partitions = Yast::Ops.get_list(tm, [disk, "partitions"], [])
+      # do not select swap and do not select BIOS grub partition
+      # as it clear its special flags (bnc#894040)
+      partitions.select { |p| p["used_fs"] != :swap && p["fsid"] != Yast::Partitions.fsid_bios_grub }
+    end
+
+    def extended_partition_num(disk)
+      part = activatable_partitions(disk).find {|p| p["type"] == :extended }
+      return nil unless part
+
+      num = part["nr"]
+      log.info "Using extended partition #{num} instead"
+      num
+    end
+
     # Given a device name to which we install the bootloader (loader_device),
     # get the name of the partition which should be activated.
     # Also return the device file name of the disk device that corresponds to
@@ -197,45 +220,31 @@ module Bootloader
       raise "Invalid loader device #{loader_device}" unless mbr_dev
 
       # If loader_device is /dev/md* (which means bootloader is installed to
-      # /dev/md*), return the info map for the first device in BIOS ID order
-      # that underlies the soft-RAID and that has a BIOS ID (devices without
-      # BIOS ID are excluded).
-      # If no device is found in this way, return the info map for the
-      # soft-RAID device ("/dev/md", "/dev/md[0-9]*").
+      # /dev/md*), then call recursive method with partition that lays on device
+      # with the lowest bios id number or first one if noone have bios id
       # FIXME: use ::storage to detect md devices, not by name!
       if loader_device.start_with?("/dev/md")
         base_device = first_base_device_to_boot(loader_device)
-        if base_device
-          return partition_to_activate(base_device)
-        end
+        return partition_to_activate(base_device) if base_device
       end
 
-      tm = Yast::Storage.GetTargetMap
-      partitions = Yast::Ops.get_list(tm, [mbr_dev, "partitions"], [])
-      # do not select swap and do not select BIOS grub partition
-      # as it clear its special flags (bnc#894040)
-      partitions.select! { |p| p["used_fs"] != :swap && p["fsid"] != Yast::Partitions.fsid_bios_grub }
       # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
       # if loader_device is disk Choose any partition which is not swap to
       # satisfy such bios (bnc#893449)
       if num == 0
+        partition = activatable_partitions(mbr_dev).first
         # strange, no partitions on our mbr device, we probably won't boot
-        if partitions.empty?
+        if !partition
           log.warn "no non-swap partitions for mbr device #{mbr_dev}"
           return {}
         end
-        num = partitions.first["nr"]
+        num = partition["nr"]
         log.info "loader_device is disk device, so use its #{num} partition"
       end
 
       if num > 4
-        Yast::Builtins.y2milestone("Bootloader partition type can be logical")
-        partitions.each do |p|
-          if p["type"] == :extended
-            num = p["nr"] || num
-            log.info "Using extended partition #{num} instead"
-          end
-        end
+        log.info("Bootloader partition type can be logical")
+        num = extended_partition_num(mbr_dev) || num
       end
 
       ret = {
@@ -250,7 +259,7 @@ module Bootloader
     # Get a list of partitions to activate if user wants to activate
     # boot partition
     # @return a list of partitions to activate
-    def grub_getPartitionsToActivate
+    def partitions_to_activate
       result = base_devices
       result = bootloader_devices if result.empty?
 
