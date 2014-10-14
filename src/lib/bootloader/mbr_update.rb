@@ -121,19 +121,22 @@ module Bootloader
       ret
     end
 
-    # Get the list of MBR disks that should be rewritten by generic code
-    # if user wants to do so
-    # @return a list of device names to be rewritten
-    def disks_to_rewrite
-      boot_devices = bootloader_devices
+    def boot_devices
+      if !@boot_devices
+        @boot_devices = bootloader_devices.dup
 
-      boot_device = Yast::BootCommon.getBootPartition
-      # bnc#494630 - add also boot partitions from soft-raids
-      boot_devices += [boot_device] if boot_device.start_with?("/dev/md")
+        boot_device = Yast::BootCommon.getBootPartition
+        # bnc#494630 - add also boot partitions from soft-raids
+        @boot_devices += [boot_device] if boot_device.start_with?("/dev/md")
+      end
 
-      # get a list of all bootloader devices or their underlying soft-RAID
-      # devices, if necessary
-      bootloader_base_devices = boot_devices.reduce([]) do |res, dev|
+      return @boot_devices
+    end
+
+    # get a list of all bootloader devices or their underlying soft-RAID
+    # devices, if necessary
+    def base_devices
+      @bootloader_base_devices ||= boot_devices.reduce([]) do |res, dev|
         md = Yast::BootCommon.Md2Partitions(dev)
         if md.empty?
           res << dev
@@ -141,11 +144,16 @@ module Bootloader
           res.concat(md.keys)
         end
       end
+    end
 
+    # Get the list of MBR disks that should be rewritten by generic code
+    # if user wants to do so
+    # @return a list of device names to be rewritten
+    def disks_to_rewrite
       # find the MBRs on the same disks as the devices underlying the boot
       # devices; if for any of the "underlying" or "base" devices no device
       # for acessing the MBR can be determined, include mbrDisk in the list
-      mbrs = bootloader_base_devices.map do |dev|
+      mbrs = base_devices.map do |dev|
         grub_getPartitionToActivate(dev)["mbr"] || mbr_disk
       end
       # FIXME: the exact semantics of this check is unclear; but it seems OK
@@ -168,9 +176,6 @@ module Bootloader
     # @return a map $[ "dev" : string, "mbr": string, "num": any]
     #  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
     #  partition number (eg. 4)
-    #      * @param boot_partition string the partition holding /boot subtree
-    #    map<string,any> getPartitionToActivate (string boot_partition,
-    #	string loader_device)
     def grub_getPartitionToActivate(loader_device)
       p_dev = Yast::Storage.GetDiskPartition(loader_device)
       num = Yast::BootCommon.myToInteger(Yast::Ops.get(p_dev, "nr"))
@@ -248,44 +253,13 @@ module Bootloader
     # boot partition
     # @return a list of partitions to activate
     def grub_getPartitionsToActivate
-      md = {}
-      underlying_devs = []
-      devs = []
+      result = base_devices
+      result = bootloader_devices if result.empty?
 
-      boot_devices = []
+      result.map! { |partition| grub_getPartitionToActivate(partition) }
+      result.delete({})
 
-      # bnc#494630 - add also boot partitions from soft-raids
-      boot_device = Yast::BootCommon.getBootPartition
-      if Yast::Builtins.substring(boot_device, 0, 7) == "/dev/md"
-        boot_devices = Yast::Builtins.add(boot_devices, boot_device)
-        Yast::Builtins.foreach(bootloader_devices) do |dev|
-          boot_devices = Yast::Builtins.add(boot_devices, dev)
-        end
-      else
-        boot_devices = bootloader_devices
-      end
-
-      # get a list of all bootloader devices or their underlying soft-RAID
-      # devices, if necessary
-      underlying_devs = Yast::Builtins.maplist(boot_devices) do |dev|
-        md = Yast::BootCommon.Md2Partitions(dev)
-        if Yast::Ops.greater_than(Yast::Builtins.size(md), 0)
-          devs = Yast::Builtins.maplist(md) { |k, v| k }
-          next deep_copy(devs)
-        end
-        [dev]
-      end
-      bootloader_base_devices = Yast::Builtins.flatten(underlying_devs)
-
-      if Yast::Builtins.size(bootloader_base_devices) == 0
-        bootloader_base_devices = bootloader_devices
-      end
-      ret = Yast::Builtins.maplist(bootloader_base_devices) do |partition|
-        grub_getPartitionToActivate(partition)
-      end
-      ret.delete({})
-
-      Yast::Builtins.toset(ret)
+      result.uniq
     end
   end
 end
