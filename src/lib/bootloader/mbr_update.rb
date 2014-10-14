@@ -165,12 +165,8 @@ module Bootloader
       mbrs = base_devices.map do |dev|
         partition_to_activate(dev)["mbr"] || mbr_disk
       end
-      # FIXME: the exact semantics of this check is unclear; but it seems OK
-      # to keep this as a sanity check and a check for an empty list;
-      # mbrDisk _should_ be included in mbrs; the exact cases for this need
-      # to be found and documented though
-      # jreidinger: it clears out if md is in boot devices, but none of md members is on mbr disk
       ret = [mbr_disk]
+      # Add to disks only if part of raid on base devices lives on mbr_disk
       if mbrs.include?(mbr_disk)
         ret.concat(mbrs)
       end
