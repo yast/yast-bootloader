@@ -30,6 +30,10 @@ describe Bootloader::MBRUpdate do
         dev + num.to_s
       end
 
+      # fake query for gpt label
+      allow(Yast::Storage).to receive(:GetTargetMap).and_return(
+        double(:[] =>  { "label" => "msdos" } )
+      )
     end
 
     context "BootCommon.backup_mbr config is not set" do
@@ -159,7 +163,7 @@ describe Bootloader::MBRUpdate do
           and_return("/dev/sda")
 
 
-        expect(Yast::SCR).to receive(:Execute).with(anything(), /dd /).and_return true
+        expect(Yast::SCR).to receive(:Execute).with(anything(), /dd /).and_return({ "exit" => 0 })
         subject.run
       end
 
@@ -179,7 +183,7 @@ describe Bootloader::MBRUpdate do
           and_return("/dev/sda")
 
 
-        expect(Yast::SCR).to receive(:Execute).with(anything(), /gptmbr.bin/).and_return true
+        expect(Yast::SCR).to receive(:Execute).with(anything(), /gptmbr.bin/).and_return({ "exit" => 0 })
         subject.run
       end
     end

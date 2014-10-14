@@ -50,51 +50,66 @@ module Bootloader
       # the MBR with generic (currently DOS?) bootloader stage1 code
       if generic_mbr &&
           !bootloader_devices.include?(mbr_disk)
-        Yast::PackageSystem.Install("syslinux") if !Yast::Stage.initial
-        Yast::Builtins.y2milestone(
-          "Updating code in MBR: MBR Disk: %1, loader devices: %2",
-          mbr_disk,
-          bootloader_devices
-        )
-        mbr_type = Yast::Ops.get_string(
-          Yast::Ops.get(Yast::Storage.GetTargetMap, mbr_disk, {}),
-          "label",
-          ""
-        )
-        Yast::Builtins.y2milestone("mbr type = %1", mbr_type)
-        mbr_file = mbr_type == "gpt" ?
-          "/usr/share/syslinux/gptmbr.bin" :
-          "/usr/share/syslinux/mbr.bin"
-
-        disks_to_rewrite = grub_getMbrsToRewrite
-        Yast::Builtins.foreach(disks_to_rewrite) do |d|
-          Yast::Builtins.y2milestone("Copying generic MBR code to %1", d)
-          # added fix 446 -> 440 for Vista booting problem bnc #396444
-          command = Yast::Builtins.sformat(
-            "/bin/dd bs=440 count=1 if=%1 of=%2",
-            mbr_file,
-            d
-          )
-          Yast::Builtins.y2milestone("Running command %1", command)
-          out = Yast::Convert.to_map(
-            Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), command)
-          )
-          exit = Yast::Ops.get_integer(out, "exit", 0)
-          Yast::Builtins.y2milestone("Command output: %1", out)
-          ret = ret && 0 == exit
-        end
+        ret &&= install_generic_mbr
       end
 
-      Yast::Builtins.foreach(grub_getPartitionsToActivate) do |m_activate|
-        num = Yast::Ops.get_integer(m_activate, "num", 0)
-        mbr_dev = Yast::Ops.get_string(m_activate, "mbr", "")
-        raise "INTERNAL ERROR: Data for partition to activate is invalid." if num == 0 || mbr_dev.empty?
+      if activate
+        ret &&= activate_partitions
+      end
 
-        gpt_disk = Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, mbr_disk)["label"] == "gpt"
+      ret
+    end
+
+    def create_backups
+      disks_to_rewrite = grub_getMbrsToRewrite + bootloader_devices + [mbr_disk]
+      disks_to_rewrite.uniq!
+      log.info "Creating backup of boot sectors of #{disks_to_rewrite}"
+      backups = disks_to_rewrite.map do |d|
+        ::Bootloader::BootRecordBackup.new(d)
+      end
+      backups.each(&:write)
+    end
+
+    def mbr_is_gpt?
+      mbr_storage_object = Yast::Storage.GetTargetMap[mbr_disk]
+      raise "Cannot find in storage mbr disk #{mbr_disk}" unless mbr_storage_object
+      mbr_type = mbr_storage_object["label"]
+      log.info("mbr type = #{mbr_type}")
+      mbr_type == "gpt"
+    end
+
+    def generic_mbr_file
+      @generic_mbr_file ||= mbr_is_gpt? ?
+        "/usr/share/syslinux/gptmbr.bin" :
+        "/usr/share/syslinux/mbr.bin"
+    end
+
+    def install_generic_mbr
+      Yast::PackageSystem.Install("syslinux") unless Yast::Stage.initial
+      ret = true
+      grub_getMbrsToRewrite.each do |disk|
+        log.info("Copying generic MBR code to #{disk}")
+        # added fix 446 -> 440 for Vista booting problem bnc #396444
+        command = "/bin/dd bs=440 count=1 if=#{generic_mbr_file} of=#{disk}"
+        out = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), command)
+        log.info "Command `#{command}` output: #{out}"
+        ret &&= out["exit"] == 0
+      end
+      return ret
+    end
+
+    def activate_partitions
+      ret = true
+      grub_getPartitionsToActivate.each do |m_activate|
+        num = m_activate["num"]
+        mbr_dev = m_activate["mbr"]
+        raise "INTERNAL ERROR: Data for partition to activate is invalid." if num.nil? || mbr_dev.nil?
+
+        gpt_disk = mbr_is_gpt?
         # if primary partition on old DOS MBR table, GPT do not have such limit
 
         if !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || num <= 4)
-          Yast::Builtins.y2milestone("Activating partition %1 on %2", num, mbr_dev)
+          log.info "Activating partition #{num} on #{mbr_dev}"
           # FIXME: this is the most rotten code since molded sliced bread
           # move to bootloader/Core/GRUB.pm or similar
           # TESTME: make sure that parted does not destroy BSD
@@ -109,42 +124,17 @@ module Bootloader
 
           # this is needed only on gpt disks but we run it always
           # anyway; parted just fails, then
-          command = Yast::Builtins.sformat(
-            "/usr/sbin/parted -s %1 set %2 legacy_boot on",
-            mbr_dev,
-            num
-          )
-          Yast::Builtins.y2milestone("Running command %1", command)
-          out = Yast::Convert.to_map(
-            Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
-          )
-          Yast::Builtins.y2milestone("Command output: %1", out)
+          command = "/usr/sbin/parted -s #{mbr_dev} set #{num} legacy_boot on"
+          out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
+          log.info "Command `#{command}` output: #{out}"
 
-          command = Yast::Builtins.sformat(
-            "/usr/sbin/parted -s %1 set %2 boot on",
-            mbr_dev,
-            num
-          )
-          Yast::Builtins.y2milestone("Running command %1", command)
-          out = Yast::Convert.to_map(
-            Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
-          )
-          exit = Yast::Ops.get_integer(out, "exit", 0)
-          Yast::Builtins.y2milestone("Command output: %1", out)
-          ret = ret && 0 == exit
+          command = "/usr/sbin/parted -s #{mbr_dev} set #{num} boot on"
+          out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
+          log.info "Command `#{command}` output: #{out}"
+          ret &&= out["exit"] == 0
         end
-      end if activate
-      ret
-    end
-
-    def create_backups
-      disks_to_rewrite = grub_getMbrsToRewrite + bootloader_devices + [mbr_disk]
-      disks_to_rewrite.uniq!
-      log.info "Creating backup of boot sectors of #{disks_to_rewrite}"
-      backups = disks_to_rewrite.map do |d|
-        ::Bootloader::BootRecordBackup.new(d)
       end
-      backups.each(&:write)
+      ret
     end
 
     # Get the list of MBR disks that should be rewritten by generic code
