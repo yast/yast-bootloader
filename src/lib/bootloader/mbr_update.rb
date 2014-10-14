@@ -22,6 +22,10 @@ module Bootloader
       @mbr_disk ||= Yast::BootCommon.mbrDisk
     end
 
+    def bootloader_devices
+      @bootloader_devices ||= Yast::BootCommon.GetBootloaderDevices
+    end
+
     # Update contents of MBR (active partition and booting code)
     # @return [Boolean] true on success
     def grub_updateMBR
@@ -45,12 +49,12 @@ module Bootloader
       # MBR, then overwrite the boot code (only, not the partition list!) in
       # the MBR with generic (currently DOS?) bootloader stage1 code
       if generic_mbr &&
-          !Yast::BootCommon.GetBootloaderDevices.include?(mbr_disk)
+          !bootloader_devices.include?(mbr_disk)
         Yast::PackageSystem.Install("syslinux") if !Yast::Stage.initial
         Yast::Builtins.y2milestone(
           "Updating code in MBR: MBR Disk: %1, loader devices: %2",
           mbr_disk,
-          Yast::BootCommon.GetBootloaderDevices
+          bootloader_devices
         )
         mbr_type = Yast::Ops.get_string(
           Yast::Ops.get(Yast::Storage.GetTargetMap, mbr_disk, {}),
@@ -134,11 +138,10 @@ module Bootloader
     end
 
     def create_backups
-      boot_devices = Yast::BootCommon.GetBootloaderDevices
       log.info(
-        "Doing MBR backup: MBR Disk: #{mbr_disk}, loader devices: #{boot_devices}"
+        "Doing MBR backup: MBR Disk: #{mbr_disk}, loader devices: #{bootloader_devices}"
       )
-      disks_to_rewrite = grub_getMbrsToRewrite + boot_devices + [mbr_disk]
+      disks_to_rewrite = grub_getMbrsToRewrite + bootloader_devices + [mbr_disk]
       disks_to_rewrite.uniq!
       log.info "Creating backup of boot sectors of #{disks_to_rewrite}"
       backups = disks_to_rewrite.map do |d|
@@ -161,11 +164,11 @@ module Bootloader
       boot_device = Yast::BootCommon.getBootPartition
       if Yast::Builtins.substring(boot_device, 0, 7) == "/dev/md"
         boot_devices = Yast::Builtins.add(boot_devices, boot_device)
-        Yast::Builtins.foreach(Yast::BootCommon.GetBootloaderDevices) do |dev|
+        Yast::Builtins.foreach(bootloader_devices) do |dev|
           boot_devices = Yast::Builtins.add(boot_devices, dev)
         end
       else
-        boot_devices = Yast::BootCommon.GetBootloaderDevices
+        boot_devices = bootloader_devices
       end
 
       # get a list of all bootloader devices or their underlying soft-RAID
@@ -304,11 +307,11 @@ module Bootloader
       boot_device = Yast::BootCommon.getBootPartition
       if Yast::Builtins.substring(boot_device, 0, 7) == "/dev/md"
         boot_devices = Yast::Builtins.add(boot_devices, boot_device)
-        Yast::Builtins.foreach(Yast::BootCommon.GetBootloaderDevices) do |dev|
+        Yast::Builtins.foreach(bootloader_devices) do |dev|
           boot_devices = Yast::Builtins.add(boot_devices, dev)
         end
       else
-        boot_devices = Yast::BootCommon.GetBootloaderDevices
+        boot_devices = bootloader_devices
       end
 
       # get a list of all bootloader devices or their underlying soft-RAID
@@ -324,7 +327,7 @@ module Bootloader
       bootloader_base_devices = Yast::Builtins.flatten(underlying_devs)
 
       if Yast::Builtins.size(bootloader_base_devices) == 0
-        bootloader_base_devices = Yast::BootCommon.GetBootloaderDevices
+        bootloader_base_devices = bootloader_devices
       end
       ret = Yast::Builtins.maplist(bootloader_base_devices) do |partition|
         grub_getPartitionToActivate(partition)
