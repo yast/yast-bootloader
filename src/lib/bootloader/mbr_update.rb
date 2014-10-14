@@ -57,10 +57,10 @@ module Bootloader
     end
 
     def create_backups
-      disks_to_rewrite = grub_getMbrsToRewrite + bootloader_devices + [mbr_disk]
-      disks_to_rewrite.uniq!
-      log.info "Creating backup of boot sectors of #{disks_to_rewrite}"
-      backups = disks_to_rewrite.map do |d|
+      devices_to_backup = disks_to_rewrite + bootloader_devices + [mbr_disk]
+      devices_to_backup.uniq!
+      log.info "Creating backup of boot sectors of #{devices_to_backup}"
+      backups = devices_to_backup.map do |d|
         ::Bootloader::BootRecordBackup.new(d)
       end
       backups.each(&:write)
@@ -83,7 +83,7 @@ module Bootloader
     def install_generic_mbr
       Yast::PackageSystem.Install("syslinux") unless Yast::Stage.initial
       ret = true
-      grub_getMbrsToRewrite.each do |disk|
+      disks_to_rewrite.each do |disk|
         log.info("Copying generic MBR code to #{disk}")
         # added fix 446 -> 440 for Vista booting problem bnc #396444
         command = "/bin/dd bs=440 count=1 if=#{generic_mbr_file} of=#{disk}"
@@ -136,7 +136,7 @@ module Bootloader
     # Get the list of MBR disks that should be rewritten by generic code
     # if user wants to do so
     # @return a list of device names to be rewritten
-    def grub_getMbrsToRewrite
+    def disks_to_rewrite
       ret = [mbr_disk]
       md = {}
       underlying_devs = []
