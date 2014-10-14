@@ -138,9 +138,6 @@ module Bootloader
     end
 
     def create_backups
-      log.info(
-        "Doing MBR backup: MBR Disk: #{mbr_disk}, loader devices: #{bootloader_devices}"
-      )
       disks_to_rewrite = grub_getMbrsToRewrite + bootloader_devices + [mbr_disk]
       disks_to_rewrite.uniq!
       log.info "Creating backup of boot sectors of #{disks_to_rewrite}"
