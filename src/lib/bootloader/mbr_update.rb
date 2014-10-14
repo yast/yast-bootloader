@@ -12,6 +12,8 @@ module Bootloader
   # FIXME make it single responsibility class
   class MBRUpdate
     class << self
+      include Yast::Logger
+
       def run
         grub_updateMBR
       end
@@ -20,46 +22,19 @@ module Bootloader
       # Update contents of MBR (active partition and booting code)
       # @return [Boolean] true on success
       def grub_updateMBR
-        activate = Yast::Ops.get(Yast::BootCommon.globals, "activate", "false") == "true"
-        generic_mbr = Yast::Ops.get(Yast::BootCommon.globals, "generic_mbr", "false") == "true"
+        activate = Yast::BootCommon.globals["activate"] == "true"
+        generic_mbr = Yast::BootCommon.globals["generic_mbr"] == "true"
 
-        Yast::Builtins.y2milestone(
-          "Updating disk system area, activate partition: %1, " +
-            "install generic boot code in MBR: %2",
-          activate,
-          generic_mbr
+        log.info(
+          "Updating disk system area, activate partition: #{activate}, " +
+            "install generic boot code in MBR: #{generic_mbr}",
         )
 
         # After a proposal is done, Bootloader::Propose() always sets
         # backup_mbr to true. The default is false. No other parts of the code
         # currently change this flag.
         if Yast::BootCommon.backup_mbr
-          Yast::Builtins.y2milestone(
-            "Doing MBR backup: MBR Disk: %1, loader devices: %2",
-            Yast::BootCommon.mbrDisk,
-            Yast::BootCommon.GetBootloaderDevices
-          )
-          disks_to_rewrite = Yast::Convert.convert(
-            Yast::Builtins.toset(
-              Yast::Builtins.merge(
-                grub_getMbrsToRewrite,
-                Yast::Builtins.merge(
-                  [Yast::BootCommon.mbrDisk],
-                  Yast::BootCommon.GetBootloaderDevices
-                )
-              )
-            ),
-            :from => "list",
-            :to   => "list <string>"
-          )
-          Yast::Builtins.y2milestone(
-            "Creating backup of boot sectors of %1",
-            disks_to_rewrite
-          )
-          backups = disks_to_rewrite.map do |d|
-            ::Bootloader::BootRecordBackup.new(d)
-          end
-          backups.each(&:write)
+          create_backups
         end
         ret = true
         # if the bootloader stage 1 is not installed in the MBR, but
@@ -67,10 +42,7 @@ module Bootloader
         # MBR, then overwrite the boot code (only, not the partition list!) in
         # the MBR with generic (currently DOS?) bootloader stage1 code
         if generic_mbr &&
-            !Yast::Builtins.contains(
-              Yast::BootCommon.GetBootloaderDevices,
-              Yast::BootCommon.mbrDisk
-            )
+            !Yast::BootCommon.GetBootloaderDevices.include?(Yast::BootCommon.mbrDisk)
           Yast::PackageSystem.Install("syslinux") if !Yast::Stage.initial
           Yast::Builtins.y2milestone(
             "Updating code in MBR: MBR Disk: %1, loader devices: %2",
@@ -156,6 +128,21 @@ module Bootloader
           end
         end if activate
         ret
+      end
+
+      def create_backups
+        mbr_disk = Yast::BootCommon.mbrDisk
+        boot_devices = Yast::BootCommon.GetBootloaderDevices
+        log.info(
+          "Doing MBR backup: MBR Disk: #{mbr_disk}, loader devices: #{boot_devices}"
+        )
+        disks_to_rewrite = grub_getMbrsToRewrite + boot_devices + [mbr_disk]
+        disks_to_rewrite.uniq!
+        log.info "Creating backup of boot sectors of #{disks_to_rewrite}"
+        backups = disks_to_rewrite.map do |d|
+          ::Bootloader::BootRecordBackup.new(d)
+        end
+        backups.each(&:write)
       end
 
       # Get the list of MBR disks that should be rewritten by generic code
@@ -297,7 +284,7 @@ module Bootloader
           "dev" => Yast::Storage.GetDeviceName(mbr_dev, num)
         }
 
-        Yast::Builtins.y2milestone("Partition for activating: %1", ret)
+        Yast::Builtins.y2milestone("Partition for activating: % 1", ret)
         Yast.deep_copy(ret)
       end
 
