@@ -5,7 +5,7 @@ require_relative "./test_helper"
 require "bootloader/mbr_update"
 
 describe Bootloader::MBRUpdate do
-  subject { Bootloader::MBRUpdate }
+  subject { Bootloader::MBRUpdate.new }
   describe "#run" do
     before do
       globals = Yast::BootCommon.globals
