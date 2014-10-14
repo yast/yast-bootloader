@@ -5,6 +5,7 @@ require "bootloader/boot_record_backup"
 Yast.import "Arch"
 Yast.import "BootCommon"
 Yast.import "PackageSystem"
+Yast.import "Partitions"
 
 module Bootloader
   # this class place generic MBR wherever it is needed
@@ -154,7 +155,7 @@ module Bootloader
       # devices; if for any of the "underlying" or "base" devices no device
       # for acessing the MBR can be determined, include mbrDisk in the list
       mbrs = base_devices.map do |dev|
-        grub_getPartitionToActivate(dev)["mbr"] || mbr_disk
+        partition_to_activate(dev)["mbr"] || mbr_disk
       end
       # FIXME: the exact semantics of this check is unclear; but it seems OK
       # to keep this as a sanity check and a check for an empty list;
@@ -168,18 +169,28 @@ module Bootloader
       ret.uniq
     end
 
+    def first_base_device_to_boot(md_device)
+      md = Yast::BootCommon.Md2Partitions(md_device)
+      md.reduce do |res, items|
+        device, bios_id = items
+        next device unless res
+
+        bios_id < md[res] ? device : res
+      end
+    end
+
     # Given a device name to which we install the bootloader (loader_device),
     # get the name of the partition which should be activated.
     # Also return the device file name of the disk device that corresponds to
     # loader_device (i.e. where the corresponding MBR can be found).
     # @param [String] loader_device string the device to install bootloader to
-    # @return a map $[ "dev" : string, "mbr": string, "num": any]
+    # @return a map $[ "mbr": string, "num": any]
     #  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
     #  partition number (eg. 4)
-    def grub_getPartitionToActivate(loader_device)
+    def partition_to_activate(loader_device)
       p_dev = Yast::Storage.GetDiskPartition(loader_device)
-      num = Yast::BootCommon.myToInteger(Yast::Ops.get(p_dev, "nr"))
-      mbr_dev = Yast::Ops.get_string(p_dev, "disk", "")
+      num = Yast::BootCommon.myToInteger(p_dev["nr"])
+      mbr_dev = p_dev["disk"] || ""
 
       # If loader_device is /dev/md* (which means bootloader is installed to
       # /dev/md*), return the info map for the first device in BIOS ID order
@@ -188,26 +199,10 @@ module Bootloader
       # If no device is found in this way, return the info map for the
       # soft-RAID device ("/dev/md", "/dev/md[0-9]*").
       # FIXME: use ::storage to detect md devices, not by name!
-      # FIXME: return info for ALL underlying soft-RAID devices here, so
-      # that all MBRs can be backed-up and all partitions that need to be
-      # activated can be activated. This requires a map<map<...>> return
-      # value, and code on the caller side that evaluates this.
-      if Yast::Builtins.substring(loader_device, 0, 7) == "/dev/md"
-        md = Yast::BootCommon.Md2Partitions(loader_device)
-        # max. is 255; 256 means "no bios_id found", so to have at least one
-        # underlaying device use higher
-        min = 257
-        device = ""
-        Yast::Builtins.foreach(md) do |d, id|
-          if Yast::Ops.less_than(id, min)
-            min = id
-            device = d
-          end
-        end
-        if device != ""
-          p_dev2 = Yast::Storage.GetDiskPartition(device)
-          num = Yast::BootCommon.myToInteger(Yast::Ops.get(p_dev2, "nr"))
-          mbr_dev = Yast::Ops.get_string(p_dev2, "disk", "")
+      if loader_device.start_with?("/dev/md")
+        base_device = first_base_device_to_boot(loader_device)
+        if base_device
+          return partition_to_activate(base_device)
         end
       end
 
@@ -215,26 +210,26 @@ module Bootloader
       partitions = Yast::Ops.get_list(tm, [mbr_dev, "partitions"], [])
       # do not select swap and do not select BIOS grub partition
       # as it clear its special flags (bnc#894040)
-      partitions.select! { |p| p["used_fs"] != :swap && p["fsid"] != Partitions.fsid_bios_grub }
+      partitions.select! { |p| p["used_fs"] != :swap && p["fsid"] != Yast::Partitions.fsid_bios_grub }
       # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
       # if loader_device is disk Choose any partition which is not swap to
       # satisfy such bios (bnc#893449)
       if num == 0
         # strange, no partitions on our mbr device, we probably won't boot
         if partitions.empty?
-          Yast::Builtins.y2warning("no non-swap partitions for mbr device #{mbr_dev}")
+          log.warn "no non-swap partitions for mbr device #{mbr_dev}"
           return {}
         end
         num = partitions.first["nr"]
-        Yast::Builtins.y2milestone("loader_device is disk device, so use its #{num} partition")
+        log.info "loader_device is disk device, so use its #{num} partition"
       end
 
-      if Yast::Ops.greater_than(num, 4)
+      if num > 4
         Yast::Builtins.y2milestone("Bootloader partition type can be logical")
-        Yast::Builtins.foreach(partitions) do |p|
-          if Yast::Ops.get(p, "type") == :extended
-            num = Yast::Ops.get_integer(p, "nr", num)
-            Yast::Builtins.y2milestone("Using extended partition %1 instead", num)
+        partitions.each do |p|
+          if p["type"] == :extended
+            num = p["nr"] || num
+            log.info "Using extended partition #{num} instead"
           end
         end
       end
@@ -242,11 +237,10 @@ module Bootloader
       ret = {
         "num" => num,
         "mbr" => mbr_dev,
-        "dev" => Yast::Storage.GetDeviceName(mbr_dev, num)
       }
 
-      Yast::Builtins.y2milestone("Partition for activating: % 1", ret)
-      Yast.deep_copy(ret)
+      log.info "Partition for activating: #{ret}"
+      ret
     end
 
     # Get a list of partitions to activate if user wants to activate
@@ -256,7 +250,7 @@ module Bootloader
       result = base_devices
       result = bootloader_devices if result.empty?
 
-      result.map! { |partition| grub_getPartitionToActivate(partition) }
+      result.map! { |partition| partition_to_activate(partition) }
       result.delete({})
 
       result.uniq
