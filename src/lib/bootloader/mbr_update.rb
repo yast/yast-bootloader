@@ -106,18 +106,6 @@ module Bootloader
 
         if !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || num <= 4)
           log.info "Activating partition #{num} on #{mbr_dev}"
-          # FIXME: this is the most rotten code since molded sliced bread
-          # move to bootloader/Core/GRUB.pm or similar
-          # TESTME: make sure that parted does not destroy BSD
-          # slices (#suse24740): cf. section 5.1 of "info parted":
-          #   Parted only supports the BSD disk label system.
-          #   Parted is unlikely to support the partition slice
-          #   system in the future because the semantics are rather
-          #   strange, and don't work like "normal" partition tables
-          #   do.
-          # FIXED: investigate proper handling of the activate flag
-          # (kernel ioctls in parted etc.) and fix parted
-
           # this is needed only on gpt disks but we run it always
           # anyway; parted just fails, then
           command = "/usr/sbin/parted -s #{mbr_dev} set #{num} legacy_boot on"
@@ -137,59 +125,39 @@ module Bootloader
     # if user wants to do so
     # @return a list of device names to be rewritten
     def disks_to_rewrite
-      ret = [mbr_disk]
-      md = {}
-      underlying_devs = []
-      devs = []
-      boot_devices = []
+      boot_devices = bootloader_devices
 
-      # bnc#494630 - add also boot partitions from soft-raids
       boot_device = Yast::BootCommon.getBootPartition
-      if Yast::Builtins.substring(boot_device, 0, 7) == "/dev/md"
-        boot_devices = Yast::Builtins.add(boot_devices, boot_device)
-        Yast::Builtins.foreach(bootloader_devices) do |dev|
-          boot_devices = Yast::Builtins.add(boot_devices, dev)
-        end
-      else
-        boot_devices = bootloader_devices
-      end
+      # bnc#494630 - add also boot partitions from soft-raids
+      boot_devices += [boot_device] if boot_device.start_with?("/dev/md")
 
       # get a list of all bootloader devices or their underlying soft-RAID
       # devices, if necessary
-      underlying_devs = Yast::Builtins.maplist(boot_devices) do |dev|
+      bootloader_base_devices = boot_devices.reduce([]) do |res, dev|
         md = Yast::BootCommon.Md2Partitions(dev)
-        if Yast::Ops.greater_than(Yast::Builtins.size(md), 0)
-          devs = Yast::Builtins.maplist(md) { |k, v| k }
-          next Yast.deep_copy(devs)
+        if md.empty?
+          res << dev
+        else
+          res.concat(md.keys)
         end
-        [dev]
       end
-      bootloader_base_devices = Yast::Builtins.flatten(underlying_devs)
 
       # find the MBRs on the same disks as the devices underlying the boot
       # devices; if for any of the "underlying" or "base" devices no device
       # for acessing the MBR can be determined, include mbrDisk in the list
-      mbrs = Yast::Builtins.maplist(bootloader_base_devices) do |dev|
-        dev = Yast::Ops.get_string(
-          grub_getPartitionToActivate(dev),
-          "mbr",
-          mbr_disk
-        )
-        dev
+      mbrs = bootloader_base_devices.map do |dev|
+        grub_getPartitionToActivate(dev)["mbr"] || mbr_disk
       end
       # FIXME: the exact semantics of this check is unclear; but it seems OK
       # to keep this as a sanity check and a check for an empty list;
       # mbrDisk _should_ be included in mbrs; the exact cases for this need
       # to be found and documented though
-      # jreidinger: it clears out if md is in boot devices, but none of mbr member is on mbr disk
-      if Yast::Builtins.contains(mbrs, mbr_disk)
-        ret = Yast::Convert.convert(
-          Yast::Builtins.merge(ret, mbrs),
-          :from => "list",
-          :to   => "list <string>"
-        )
+      # jreidinger: it clears out if md is in boot devices, but none of md members is on mbr disk
+      ret = [mbr_disk]
+      if mbrs.include?(mbr_disk)
+        ret.concat(mbrs)
       end
-      Yast::Builtins.toset(ret)
+      ret.uniq
     end
 
     # Given a device name to which we install the bootloader (loader_device),
