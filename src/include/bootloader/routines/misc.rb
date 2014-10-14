@@ -217,23 +217,6 @@ module Yast
       params.join(" ")
     end
 
-
-    #  convert any value to an integer and return 0 for nonsense
-    def myToInteger(num_any)
-      num_any = deep_copy(num_any)
-      return 0 if num_any == nil
-      return Convert.to_integer(num_any) if Ops.is_integer?(num_any)
-      if Ops.is_string?(num_any)
-        return num_any == "" ?
-          0 :
-          Builtins.tointeger(Convert.to_string(num_any)) == nil ?
-            0 :
-            Builtins.tointeger(Convert.to_string(num_any))
-      end
-      0
-    end
-
-
     # Get partition which should be activated if doing it during bl inst.
     # @param [String] boot_partition string the partition holding /boot subtree
     # @param [String] loader_device string the device to install bootloader to
@@ -242,7 +225,7 @@ module Yast
     #  partition number (eg. 4)
     def getPartitionToActivate(boot_partition, loader_device)
       p_dev = Storage.GetDiskPartition(loader_device)
-      num = myToInteger(Ops.get(p_dev, "nr"))
+      num = p_dev["nr"].to_i
       mbr_dev = Ops.get_string(p_dev, "disk", "")
 
       # if bootloader is installed to /dev/md*
@@ -259,21 +242,21 @@ module Yast
         end
         if device != ""
           p_dev2 = Storage.GetDiskPartition(device)
-          num = myToInteger(Ops.get(p_dev2, "nr"))
+          p_dev2["nr"].to_i
           mbr_dev = Ops.get_string(p_dev2, "disk", "")
         end
       # if bootloader in MBR, activate /boot partition
       # (partiall fix of #20637)
       elsif num == 0
         p_dev = Storage.GetDiskPartition(boot_partition)
-        num = myToInteger(Ops.get(p_dev, "nr"))
+        num = p_dev["nr"].to_i
         mbr_dev = Ops.get_string(p_dev, "disk", "")
 
         if Ops.greater_than(Builtins.size(Md2Partitions(boot_partition)), 1)
           Builtins.foreach(Md2Partitions(boot_partition)) do |k, v|
             if Builtins.search(k, loader_device) == 0
               p_dev = Storage.GetDiskPartition(k)
-              num = myToInteger(Ops.get(p_dev, "nr"))
+              num = p_dev["nr"].to_i
               mbr_dev = Ops.get_string(p_dev, "disk", "")
             end
           end

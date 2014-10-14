@@ -114,7 +114,7 @@ module Yast
       # TODO add more devices
       Builtins.foreach(devices) do |dev|
         p_dev = Storage.GetDiskPartition(dev)
-        num = BootCommon.myToInteger(Ops.get(p_dev, "nr"))
+        num = p_dev["nr"].to_i
         mbr_dev = Ops.get_string(p_dev, "disk", "")
         label = Ops.get_string(tm, [mbr_dev, "label"], "")
         Builtins.y2milestone("Label: %1", label)

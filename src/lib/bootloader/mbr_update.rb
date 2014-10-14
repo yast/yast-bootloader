@@ -211,7 +211,7 @@ module Bootloader
     #  partition number (eg. 4)
     def partition_to_activate(loader_device)
       p_dev = Yast::Storage.GetDiskPartition(loader_device)
-      num = Yast::BootCommon.myToInteger(p_dev["nr"])
+      num = p_dev["nr"].to_i
       mbr_dev = p_dev["disk"]
       raise "Invalid loader device #{loader_device}" unless mbr_dev
 
