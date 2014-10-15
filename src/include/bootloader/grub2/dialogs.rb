@@ -213,28 +213,6 @@ module Yast
       }
     end
 
-    # Run dialog to adjust installation on i386 and AMD64
-    # @return [Symbol] for wizard sequencer
-    def Grub2InstallDetailsDialog
-      contents = HBox(
-        HStretch(),
-        VBox(VStretch(), Frame(_("Disk Order"), "disks_order"), VStretch()),
-        HStretch()
-      )
-
-      CWM.ShowAndRun(
-        {
-          "widget_descr" => { "disks_order" => DisksOrderWidget() },
-          "widget_names" => ["disks_order"],
-          "contents"     => contents,
-          "caption"      => _("Disk order settings"),
-          "back_button"  => Label.BackButton,
-          "abort_button" => Label.CancelButton,
-          "next_button"  => Label.OKButton
-        }
-      )
-    end
-
     def ppc_location_init(widget)
       UI::ChangeWidget(
         Id("boot_custom_list"),

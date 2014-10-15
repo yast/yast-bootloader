@@ -87,10 +87,6 @@ module Yast
     def Dialogs
       Builtins.y2milestone("Called GRUB2 Dialogs")
       {
-        "installation" => fun_ref(
-          method(:Grub2InstallDetailsDialog),
-          "symbol ()"
-        ),
         "loader"       => fun_ref(
           method(:Grub2LoaderDetailsDialog),
           "symbol ()"

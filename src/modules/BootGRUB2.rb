@@ -21,6 +21,7 @@
 require "yast"
 require "bootloader/grub2base"
 require "bootloader/mbr_update"
+require "bootloader/device_map_dialog"
 
 module Yast
   import "Arch"
@@ -297,7 +298,7 @@ module Yast
       Builtins.y2milestone("Called GRUB2 Dialogs")
       {
         "installation" => fun_ref(
-          method(:Grub2InstallDetailsDialog),
+          ::Bootloader::DeviceMapDialog.method(:run),
           "symbol ()"
         ),
         "loader"       => fun_ref(
