@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 15 09:43:11 UTC 2014 - jreidinger@suse.com
+
+- ensure branding is used also during common install (bnc#901003)
+- 3.1.104
+
+-------------------------------------------------------------------
 Wed Oct 15 08:54:35 UTC 2014 - jreidinger@suse.com
 
 - fix missing widgets log entries(bnc#889169)
