@@ -337,7 +337,7 @@ module Yast
           "boot_extended"
         ]
         Builtins.foreach(list_global_target_keys) do |key|
-          value = UI.WidgetExists(Id(key) && UI.QueryWidget(Id(key), :Value))
+          value = UI.WidgetExists(Id(key)) && UI.QueryWidget(Id(key), :Value)
           BootCommon.globals[key] = value.to_s
         end
       end
