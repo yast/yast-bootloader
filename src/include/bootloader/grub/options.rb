@@ -259,7 +259,6 @@ module Yast
     # @param [String] widget string widget key
     def InitBootLoaderLocationWidget(widget)
       boot_devices = BootStorage.getPartitionList(:boot, "grub")
-      value = ""
       if BootCommon.VerifyMDArray
         UI.ChangeWidget(Id("enable_redundancy"), :Value,
           BootCommon.enable_md_array_redundancy
@@ -277,7 +276,7 @@ module Yast
         list_global_target_keys.each do |key|
           value = BootCommon.globals[key]
           if value && UI.WidgetExists(Id(key))
-            UI.ChangeWidget(Id(key), :Value, value == "true" ? true : false) && UI.WidgetExists(Id(key))
+            UI.ChangeWidget(Id(key), :Value, value == "true" ? true : false)
           end
         end
         UI.ChangeWidget(Id("boot_custom_list"), :Items, boot_devices)
