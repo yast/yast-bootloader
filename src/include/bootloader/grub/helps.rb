@@ -63,7 +63,7 @@ module Yast
           "<p>MD array is build from 2 disks. <b>Enable Redundancy for MD Array</b>\nenable to write GRUB to MBR of both disks.</p>"
         ),
         "serial"                  => _(
-          "<p><b>Use Serial Console</b> lets you define the parameters to use\nfor a serial console. Please see the grub documentation (<code>info grub</code>) for details.</p>"
+          "<p><b>Use Serial Console</b> lets you define the parameters to use\nfor a serial console. Please see the grub documentation (<code>info grub2</code>) for details.</p>"
         ),
         "terminal"                => _(
           "<p><b>Terminal Definition</b></p><br>\n" +
