@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 15 11:50:20 UTC 2014 - jreidinger@suse.com
+
+- improve usability of device map editor (bnc#900807)
+- 3.1.105
+
+-------------------------------------------------------------------
 Wed Oct 15 09:43:11 UTC 2014 - jreidinger@suse.com
 
 - ensure branding is used also during common install (bnc#901003)
