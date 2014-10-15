@@ -196,9 +196,9 @@ module Yast
         @ret = nil
       end
 
-      # FIXME workaround grub2 in upgrade need manual rerun of branding
-      # package. see bnc#879686
-      if Mode.update && Bootloader.getLoaderType =~ /grub2/
+      # FIXME workaround grub2 need manual rerun of branding due to overwrite by
+      # pbl. see bnc#879686 and bnc#901003
+      if Bootloader.getLoaderType =~ /grub2/
         prefix = Installation.destdir
         branding_activator = Dir["#{prefix}/usr/share/grub2/themes/*/activate-theme"].first
         if branding_activator
