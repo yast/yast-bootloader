@@ -259,16 +259,13 @@ module Yast
     # @param [String] widget string widget key
     def InitBootLoaderLocationWidget(widget)
       boot_devices = BootStorage.getPartitionList(:boot, "grub")
-      value = ""
       if BootCommon.VerifyMDArray
-        if BootCommon.enable_md_array_redundancy
-          UI.ChangeWidget(Id("enable_redundancy"), :Value, true)
-        else
-          UI.ChangeWidget(Id("enable_redundancy"), :Value, false)
-        end
+        UI.ChangeWidget(Id("enable_redundancy"), :Value,
+          BootCommon.enable_md_array_redundancy
+        )
 
-        value = Ops.get(BootCommon.globals, "boot_mbr")
-        UI.ChangeWidget(Id("boot_mbr"), :Value, value == "true" ? true : false)
+        value = BootCommon.globals["boot_mbr"] == "true"
+        UI.ChangeWidget(Id("boot_mbr"), :Value, value)
       else
         list_global_target_keys = [
           "boot_mbr",
@@ -276,25 +273,13 @@ module Yast
           "boot_root",
           "boot_extended"
         ]
-        Builtins.foreach(list_global_target_keys) do |key|
-          value = Ops.get(BootCommon.globals, key)
-          if value != nil
+        list_global_target_keys.each do |key|
+          value = BootCommon.globals[key]
+          if value && UI.WidgetExists(Id(key))
             UI.ChangeWidget(Id(key), :Value, value == "true" ? true : false)
           end
         end
         UI.ChangeWidget(Id("boot_custom_list"), :Items, boot_devices)
-
-        if BootStorage.BootPartitionDevice == BootStorage.RootPartitionDevice
-          UI.ChangeWidget(Id("boot_boot"), :Enabled, false)
-        else
-          UI.ChangeWidget(Id("boot_boot"), :Enabled, true)
-        end
-
-        if BootStorage.ExtendedPartitionDevice != nil
-          UI.ChangeWidget(Id("boot_extended"), :Enabled, true)
-        else
-          UI.ChangeWidget(Id("boot_extended"), :Enabled, false)
-        end
       end
 
       if !Builtins.haskey(BootCommon.globals, "boot_custom") ||
@@ -352,20 +337,17 @@ module Yast
           "boot_extended"
         ]
         Builtins.foreach(list_global_target_keys) do |key|
-          value = Convert.to_boolean(UI.QueryWidget(Id(key), :Value)) ? "true" : "false"
-          Ops.set(BootCommon.globals, key, value)
+          value = UI.WidgetExists(Id(key) && UI.QueryWidget(Id(key), :Value))
+          BootCommon.globals[key] = value.to_s
         end
       end
-      if Convert.to_boolean(UI.QueryWidget(Id("boot_custom"), :Value))
-        Ops.set(
-          BootCommon.globals,
-          "boot_custom",
-          Convert.to_string(UI.QueryWidget(Id("boot_custom_list"), :Value))
-        )
+      if UI.QueryWidget(Id("boot_custom"), :Value)
+        custom_value = UI.QueryWidget(Id("boot_custom_list"), :Value)
       else
         #bnc#544809 Custom Boot Partition cannot be deleted
-        Ops.set(BootCommon.globals, "boot_custom", "")
+        custom_value = ""
       end
+      BootCommon.globals["boot_custom"] = custom_value
 
       nil
     end
@@ -408,6 +390,23 @@ module Yast
         partition_boot = Empty()
       end
 
+      boot_custom = [
+      Left(
+        CheckBox(
+          Id("boot_custom"),
+          Opt(:notify),
+          _("C&ustom Boot Partition")
+        )
+      ),
+      Left(
+        ComboBox(
+          Id("boot_custom_list"),
+          Opt(:editable, :hstretch),
+          "",
+          []
+        )
+      )]
+
       contents = VBox(
         VSpacing(1),
         Frame(
@@ -427,7 +426,8 @@ module Yast
                       _("Boot from &Extended Partition")
                     )
                   ) :
-                  Empty()
+                  Empty(),
+                *boot_custom
               )
             )
           )
@@ -446,21 +446,7 @@ module Yast
                   Left(
                     CheckBox(Id("boot_mbr"), _("Boot from &Master Boot Record"))
                   ),
-                  Left(
-                    CheckBox(
-                      Id("boot_custom"),
-                      Opt(:notify),
-                      _("C&ustom Boot Partition")
-                    )
-                  ),
-                  Left(
-                    ComboBox(
-                      Id("boot_custom_list"),
-                      Opt(:editable, :hstretch),
-                      "",
-                      []
-                    )
-                  ),
+                  *boot_custom,
                   VStretch()
                 )
               )
@@ -487,21 +473,7 @@ module Yast
                       _("Enable Red&undancy for MD Array")
                     )
                   ),
-                  Left(
-                    CheckBox(
-                      Id("boot_custom"),
-                      Opt(:notify),
-                      _("C&ustom Boot Partition")
-                    )
-                  ),
-                  Left(
-                    ComboBox(
-                      Id("boot_custom_list"),
-                      Opt(:editable, :hstretch),
-                      "",
-                      []
-                    )
-                  ),
+                  *boot_custom,
                   VStretch()
                 )
               )
