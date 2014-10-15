@@ -261,14 +261,12 @@ module Yast
       boot_devices = BootStorage.getPartitionList(:boot, "grub")
       value = ""
       if BootCommon.VerifyMDArray
-        if BootCommon.enable_md_array_redundancy
-          UI.ChangeWidget(Id("enable_redundancy"), :Value, true)
-        else
-          UI.ChangeWidget(Id("enable_redundancy"), :Value, false)
-        end
+        UI.ChangeWidget(Id("enable_redundancy"), :Value,
+          BootCommon.enable_md_array_redundancy
+        )
 
-        value = Ops.get(BootCommon.globals, "boot_mbr")
-        UI.ChangeWidget(Id("boot_mbr"), :Value, value == "true" ? true : false)
+        value = BootCommon.globals["boot_mbr"] == "true"
+        UI.ChangeWidget(Id("boot_mbr"), :Value, value)
       else
         list_global_target_keys = [
           "boot_mbr",
@@ -276,25 +274,18 @@ module Yast
           "boot_root",
           "boot_extended"
         ]
-        Builtins.foreach(list_global_target_keys) do |key|
-          value = Ops.get(BootCommon.globals, key)
-          if value != nil
+        list_global_target_keys.each do |key|
+          value = BootCommon.globals[key]
+          if value
             UI.ChangeWidget(Id(key), :Value, value == "true" ? true : false)
           end
         end
         UI.ChangeWidget(Id("boot_custom_list"), :Items, boot_devices)
 
-        if BootStorage.BootPartitionDevice == BootStorage.RootPartitionDevice
-          UI.ChangeWidget(Id("boot_boot"), :Enabled, false)
-        else
-          UI.ChangeWidget(Id("boot_boot"), :Enabled, true)
-        end
+        value = BootStorage.BootPartitionDevice == BootStorage.RootPartitionDevice
+        UI.ChangeWidget(Id("boot_boot"), :Enabled, value)
 
-        if BootStorage.ExtendedPartitionDevice != nil
-          UI.ChangeWidget(Id("boot_extended"), :Enabled, true)
-        else
-          UI.ChangeWidget(Id("boot_extended"), :Enabled, false)
-        end
+        UI.ChangeWidget(Id("boot_extended"), :Enabled, !BootStorage.ExtendedPartitionDevice.nil?)
       end
 
       if !Builtins.haskey(BootCommon.globals, "boot_custom") ||
