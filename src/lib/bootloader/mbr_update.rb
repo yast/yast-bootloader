@@ -20,10 +20,7 @@ module Bootloader
       activate = Yast::BootCommon.globals["activate"] == "true"
       generic_mbr = Yast::BootCommon.globals["generic_mbr"] == "true"
 
-      log.info(
-        "Updating disk system area, activate partition: #{activate}, " +
-          "install generic boot code in MBR: #{generic_mbr}",
-      )
+      log.info "MBRUpdate: activate: #{activate} generic: #{generic_mbr}"
 
       # After a proposal is done, Bootloader::Propose() always sets
       # backup_mbr to true. The default is false. No other parts of the code
@@ -31,13 +28,11 @@ module Bootloader
       if Yast::BootCommon.backup_mbr
         create_backups
       end
+
       ret = true
-      # if the bootloader stage 1 is not installed in the MBR, but
-      # ConfigureLocation() asked us to replace some problematic existing
-      # MBR, then overwrite the boot code (only, not the partition list!) in
-      # the MBR with generic (currently DOS?) bootloader stage1 code
-      if generic_mbr &&
-          !bootloader_devices.include?(mbr_disk)
+      # Rewrite MBR with generic boot code only if we do not plan to install
+      # there bootloader stage1
+      if generic_mbr && !bootloader_devices.include?(mbr_disk)
         ret &&= install_generic_mbr
       end
 
@@ -71,7 +66,7 @@ module Bootloader
       mbr_storage_object = Yast::Storage.GetTargetMap[mbr_disk]
       raise "Cannot find in storage mbr disk #{mbr_disk}" unless mbr_storage_object
       mbr_type = mbr_storage_object["label"]
-      log.info("mbr type = #{mbr_type}")
+      log.info "mbr type = #{mbr_type}"
       mbr_type == "gpt"
     end
 
@@ -85,7 +80,7 @@ module Bootloader
       Yast::PackageSystem.Install("syslinux") unless Yast::Stage.initial
       ret = true
       disks_to_rewrite.each do |disk|
-        log.info("Copying generic MBR code to #{disk}")
+        log.info "Copying generic MBR code to #{disk}"
         # added fix 446 -> 440 for Vista booting problem bnc #396444
         command = "/bin/dd bs=440 count=1 if=#{generic_mbr_file} of=#{disk}"
         out = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), command)
@@ -136,7 +131,7 @@ module Bootloader
 
         boot_device = Yast::BootCommon.getBootPartition
         # bnc#494630 - add also boot partitions from soft-raids
-        @boot_devices += [boot_device] if boot_device.start_with?("/dev/md")
+        @boot_devices << boot_device if boot_device.start_with?("/dev/md")
       end
 
       return @boot_devices
@@ -186,7 +181,7 @@ module Bootloader
     # List of partition for disk that can be used for setting boot flag
     def activatable_partitions(disk)
       tm = Yast::Storage.GetTargetMap
-      partitions = Yast::Ops.get_list(tm, [disk, "partitions"], [])
+      partitions = tm.fetch(disk, {}).fetch("partitions", [])
       # do not select swap and do not select BIOS grub partition
       # as it clear its special flags (bnc#894040)
       partitions.select { |p| p["used_fs"] != :swap && p["fsid"] != Yast::Partitions.fsid_bios_grub }
@@ -239,7 +234,7 @@ module Bootloader
       end
 
       if num > 4
-        log.info("Bootloader partition type can be logical")
+        log.info "Bootloader partition type can be logical"
         num = extended_partition_num(mbr_dev) || num
       end
 
