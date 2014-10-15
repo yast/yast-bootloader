@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 15 08:54:35 UTC 2014 - jreidinger@suse.com
+
+- fix missing widgets log entries(bnc#889169)
+- 3.1.103
+
+-------------------------------------------------------------------
 Wed Oct 15 08:02:24 UTC 2014 - jreidinger@suse.com
 
 - do not refer to info page of grub1 (bnc#878796)
