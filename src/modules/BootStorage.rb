@@ -922,7 +922,7 @@ module Yast
 
     # Converts the md device to the list of devices building it
     # @param [String] md_device string md device
-    # @return a map of devices (from device name to BIOS ID or nil if
+    # @return a map of devices from device name to BIOS ID or empty hash if
     #   not detected) building the md device
     def Md2Partitions(md_device)
       ret = {}
