@@ -2,6 +2,8 @@
 Wed Oct 15 08:02:24 UTC 2014 - jreidinger@suse.com
 
 - do not refer to info page of grub1 (bnc#878796)
+- fixed an Internal Error when using password for grub2 with
+  non-english locale (bnc#900358)
 - 3.1.102
 
 -------------------------------------------------------------------
