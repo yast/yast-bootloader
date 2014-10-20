@@ -374,7 +374,7 @@ module Yast
       @multipath_mapping = {}
 
       if Mode.config
-        Builtins.y2milestone("Skipping device map proposing in Config mode")
+        log.info("Skipping device map proposing in Config mode")
         return
       end
 
@@ -382,66 +382,56 @@ module Yast
         return propose_s390_device_map
       end
 
-      usb_disks = [] # contains usb removable disks as it can affect BIOS order of disks
-
       targetMap = Storage.GetTargetMap
 
-      # filter out non-disk devices
-      targetMap = Builtins.filter(targetMap) do |k, v|
-        Ops.get_symbol(v, "type", :CT_UNKNOWN) == :CT_DMRAID ||
-          Ops.get_symbol(v, "type", :CT_UNKNOWN) == :CT_DISK ||
-          Ops.get_symbol(v, "type", :CT_UNKNOWN) == :CT_DMMULTIPATH ||
-          Ops.get_symbol(v, "type", :CT_UNKNOWN) == :CT_MDPART &&
-            checkMDRaidDevices(Ops.get_list(v, "devices", []), targetMap)
+      # select only disk devices
+      targetMap.select! do |k, v|
+        [:CT_DMRAID, :CT_DISK, :CT_DMMULTIPATH].include?(v["type"]) ||
+          ( v["type"] == :CT_MDPART &&
+            checkMDRaidDevices(v["devices"] || [], targetMap))
       end
 
       # filter out members of BIOS RAIDs and multipath devices
-      targetMap = Builtins.filter(targetMap) do |k, v|
-        Ops.get(v, "used_by_type") != :UB_DMRAID &&
-          Ops.get(v, "used_by_type") != :UB_DMMULTIPATH &&
-          (Ops.get(v, "used_by_type") == :UB_MDPART ?
-            !isDiskInMDRaid(k, targetMap) :
-            true)
+      targetMap.delete_if do |k, v|
+        [:UB_DMRAID, :UB_DMMULTIPATH].include?(v["used_by_type"]) ||
+          (v["used_by_type"] == :UB_MDPART && isDiskInMDRaid(k, targetMap))
       end
 
-      Builtins.y2milestone("Target map: %1", targetMap)
+      log.info("Filtered target map: #{targetMap}")
 
       # add devices with known bios_id
       # collect BIOS IDs which are used
       ids = {}
-      Builtins.foreach(targetMap) do |target_dev, target|
-        bios_id = Ops.get_string(target, "bios_id", "")
-        if bios_id != ""
-          index = case Arch.architecture
-          when /ppc/
-            # on ppc it looks like "vdevice/v-scsi@71000002/@0"
-            bios_id[/\d+\z/].to_i
-          when "i386", "x86_64"
-            Builtins.tointeger(bios_id) - 0x80
-          else
-            raise "no support for bios id '#{bios_id}' on #{Arch.architecture}"
-          end
-          grub_dev = Builtins.sformat("hd%1", index)
-          # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
-          if !Ops.get_boolean(ids, index, false)
-            Ops.set(@device_mapping, target_dev, grub_dev)
-            Ops.set(ids, index, true)
-          end
+      targetMap.each do |target_dev, target|
+        bios_id = target["bios_id"] || ""
+        next if bios_id.empty?
+
+        index = case Arch.architecture
+        when /ppc/
+          # on ppc it looks like "vdevice/v-scsi@71000002/@0"
+          bios_id[/\d+\z/].to_i
+        when "i386", "x86_64"
+          Builtins.tointeger(bios_id) - 0x80
+        else
+          raise "no support for bios id '#{bios_id}' on #{Arch.architecture}"
+        end
+        # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
+        if !ids[index]
+          @device_mapping[target_dev] = "hd#{index}"
+          ids[index] = true
         end
       end
       # and guess other devices
       # don't use already used BIOS IDs
-      Builtins.foreach(targetMap) do |target_dev, target|
-        bios_id = Ops.get_string(target, "bios_id", "")
-        if bios_id == ""
-          index = 0
-          while Ops.get_boolean(ids, index, false)
-            index = Ops.add(index, 1)
-          end
-          grub_dev = Builtins.sformat("hd%1", index)
-          Ops.set(@device_mapping, target_dev, grub_dev)
-          Ops.set(ids, index, true)
+      targetMap.each do |target_dev, target|
+        next unless target.fetch("bios_id", "").empty?
+
+        index = 0 # find free index
+        while ids[index]
+          index += 1
         end
+        @device_mapping[target_dev] = "hd#{index}"
+        ids[index] = true
       end
 
       # Fill usb_disks list with usb removable devices.
@@ -450,20 +440,19 @@ module Yast
       # it tests if driver of device is usb-storage. If you find better
       # algorithm how to find removable usb devices, put it here into foreach
       # to apply this algorithm on all devices.
-      Builtins.foreach(targetMap) do |target_dev, target|
-        driver = Ops.get_string(target, "driver", "")
-        if driver == "usb-storage"
-          usb_disks = Builtins.add(usb_disks, target_dev)
-        end
+      usb_disks = [] # contains usb removable disks as it can affect BIOS order of disks
+      targetMap.each do |target_dev, target|
+        next if target["driver"] != "usb-storage"
+        usb_disks << target_dev
       end
-      Builtins.y2milestone("Found usb discs: %1", usb_disks)
+      log.info("Found usb discs: #{usb_disks}")
 
       # change order in device_mapping if usb disk is hd0
       # (FATE #302075)
       if isHd0(usb_disks) &&
           @BootPartitionDevice != @device_mapping.key("hd0")
-        Builtins.y2milestone("Detected device mapping: %1", @device_mapping)
-        Builtins.y2milestone("Changing order in device mapping needed...")
+        log.info("Detected device mapping: #{@device_mapping}")
+        log.info("Changing order in device mapping needed...")
         @device_mapping = changeOrderInDeviceMapping(@device_mapping, bad_devices: usb_disks)
       end
 
@@ -477,13 +466,11 @@ module Yast
             priority_device: priority_disks.first)
       end
 
-      Builtins.y2milestone("Detected device mapping: %1", @device_mapping)
+      log.info("Detected device mapping: #{@device_mapping}")
 
       @multipath_mapping = mapRealDevicesToMultipath
 
-      Builtins.y2milestone("Detected multipath mapping: %1", @multipath_mapping)
-
-      nil
+      log.info("Detected multipath mapping: #{@multipath_mapping}")
     end
 
     # Get the order of disks according to BIOS mapping
