@@ -144,20 +144,11 @@ module Yast
       if checkCallingDiskInfo
         # delete variables for perl-Bootloader
         @md_info = {}
-        @multipath_mapping = {}
-        @partinfo = []
-        @mountpoints = {}
 
         tm = Storage.GetTargetMap
 
         @multipath_mapping = mapRealDevicesToMultipath
-        @mountpoints = Builtins.mapmap(
-          Convert.convert(
-            Storage.GetMountPoints,
-            :from => "map",
-            :to   => "map <string, list>"
-          )
-        ) do |k, v|
+        @mountpoints = Builtins.mapmap(Storage.GetMountPoints) do |k, v|
           # detect all raid1 md devices and mark them in md_info
           device = Ops.get(v, 0)
           if Ops.get_string(v, 3, "") == "raid1"
