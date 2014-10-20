@@ -230,36 +230,7 @@ module Yast
     # Returns true if any device from list devices is in device_mapping
     # marked as hd0.
     def isHd0(devices)
-      devices = deep_copy(devices)
-      ret = false
-
-      Builtins.foreach(devices) do |value|
-        ret = true if Ops.get(@device_mapping, value, "") == "hd0"
-      end
-
-      ret
-    end
-
-    # Returns first key from mapping associated with value.
-    # Example:
-    #      map = $[ "a" : "1",
-    #               "b" : "2",
-    #               "c" : "3",
-    #               "d" : "2"];
-    #      getDeviceFromMapping("1", map) -> "a"
-    #      getDeviceFromMapping("2", map) -> "b"
-    def getKey(value, mapping)
-      mapping = deep_copy(mapping)
-      ret = ""
-
-      Builtins.foreach(mapping) do |key, val|
-        if value == val
-          ret = key
-          next
-        end
-      end
-
-      ret
+      devices.any? { |dev| @device_mapping[dev] == "hd0" }
     end
 
     # This function changes order of devices in device_mapping.
@@ -512,7 +483,7 @@ module Yast
       # change order in device_mapping if usb disk is hd0
       # (FATE #302075)
       if isHd0(usb_disks) &&
-          @BootPartitionDevice != getKey("hd0", @device_mapping)
+          @BootPartitionDevice != @device_mapping.key("hd0")
         Builtins.y2milestone("Detected device mapping: %1", @device_mapping)
         Builtins.y2milestone("Changing order in device mapping needed...")
         @device_mapping = changeOrderInDeviceMapping(@device_mapping, bad_devices: usb_disks)
