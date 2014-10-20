@@ -253,7 +253,7 @@ module Yast
 
       SetBootloaderDevice(selected_location)
       if !Builtins.contains(
-          BootStorage.getPartitionList(:boot, "grub"),
+          BootStorage.possible_locations_for_stage1,
           Ops.get(BootCommon.GetBootloaderDevices, 0)
         )
         selected_location = :mbr # default to mbr
@@ -391,7 +391,7 @@ module Yast
       # if no bootloader devices have been set up, or any of the set up
       # bootloader devices have become unavailable, then re-propose the
       # bootloader location.
-      all_boot_partitions = BootStorage.getPartitionList(:boot, "grub")
+      all_boot_partitions = BootStorage.possible_locations_for_stage1
       bldevs = BootCommon.GetBootloaderDevices
       need_location_reconfigure = false
 
@@ -497,7 +497,7 @@ module Yast
 
       if Ops.get(BootCommon.globals, "boot_custom") != nil &&
           Ops.get(BootCommon.globals, "boot_custom") != ""
-        all_boot_partitions = BootStorage.getPartitionList(:boot, "grub")
+        all_boot_partitions = BootStorage.possible_locations_for_stage1
 
         if !Builtins.contains(
             all_boot_partitions,

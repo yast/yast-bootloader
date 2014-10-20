@@ -20,8 +20,46 @@ describe Yast::BootStorage do
     end
   end
 
-  describe ".real_disks_for_partition" do
+  describe ".possible_locations_for_stage1" do
+    before do
+      target_map_stub("storage_mdraid.rb")
+      # won't work without device map
+      Yast::BootStorage.ProposeDeviceMap
+      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:device)
+    end
 
+    it "returns list of kernel devices that can be used as stage1 for bootloader" do
+      res = Yast::BootStorage.possible_locations_for_stage1
+      expect(res).to be_a(Array)
+    end
+
+    it "returns also physical disks" do
+      res = Yast::BootStorage.possible_locations_for_stage1
+      expect(res).to include("/dev/vda")
+    end
+
+    it "returns all partitions suitable for stage1" do
+      res = Yast::BootStorage.possible_locations_for_stage1
+      expect(res).to include("/dev/vda1")
+    end
+
+    it "do not return partitions if disk is not in device map" do
+      Yast::BootStorage.device_mapping = { "/dev/vdb" => "hd0" }
+
+      res = Yast::BootStorage.possible_locations_for_stage1
+      expect(res).to_not include("/dev/vda1")
+    end
+
+    it "do not list partitions marked for delete" do
+      partition_to_delete = Yast::Storage.GetTargetMap["/dev/vda"]["partitions"].first
+      partition_to_delete["delete"] = true
+
+      res = Yast::BootStorage.possible_locations_for_stage1
+      expect(res).to_not include(partition_to_delete["device"])
+    end
+  end
+
+  describe ".real_disks_for_partition" do
     before do
       # simple mock getting disks from partition as it need initialized libstorage
       allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|

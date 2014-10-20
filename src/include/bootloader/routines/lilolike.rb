@@ -134,7 +134,7 @@ module Yast
       end
 
       if !Builtins.contains(
-          BootStorage.getPartitionList(:boot, getLoaderType(false)),
+          BootStorage.possible_locations_for_stage1
           @loader_device
         )
         @selected_location = "mbr" # default to mbr
@@ -202,11 +202,7 @@ module Yast
         @mbrDisk = FindMBRDisk()
       end
 
-      if @loader_device == nil || @loader_device == "" ||
-          !Builtins.contains(
-            BootStorage.getPartitionList(:boot, getLoaderType(false)),
-            @loader_device
-          )
+      if !BootStorage.possible_locations_for_stage1.include?(@loader_device)
         ConfigureLocation()
       end
 

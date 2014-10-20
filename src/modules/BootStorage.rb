@@ -367,7 +367,7 @@ module Yast
     #
     #   Algorithm for solving problem with usb disk propsed by bios as hd0:
     #      if usbDiskDevice == hd0 && BootDevice != usbDiskDevice:
-    #          change order of disks in device_mappings to have BootDevice as hd0
+    #          change order of disks in device_mapping to have BootDevice as hd0
     # FIXME: remove that function from here, as it is grub only
     def ProposeDeviceMap
       @device_mapping = {}
@@ -524,142 +524,44 @@ module Yast
     end
 
     # Returns list of partitions. Requests current partitioning from
-    # yast2-storage and creates list of partition for combobox, menu or other
-    # purpose.
-    # @param [Symbol] type symbol
-    #   `boot - for bootloader installation
-    #   `root - for kernel root
-    #   `boot_other - for bootable partitions of other systems
-    #   `all - all partitions
-    #   `parts_old - all partitions, except those what will be created
-    #      during isntallation
-    #   `deleted - all partitions deleted in current proposal
-    #   `kept - all partitions that won't be deleted, new created or formatted
-    #   `destroyed - all partition which are new, deleted or formatted
-    # @return a list of strings
-    def getPartitionList(type, bl)
-      Builtins.y2milestone("getPartitionList: %1", type)
+    # yast2-storage and creates list of partition usable for boot partition
+    def possible_locations_for_stage1
       devices = Storage.GetTargetMap
+
+      all_disks = devices.keys
+      # Devices which is not in device map cannot be used to boot
+      all_disks.select! do |k|
+        @device_mapping.include?(k) ||
+          @device_mapping.include?(::Bootloader::DeviceMapping.to_mountby_device(k))
+      end
+
+      disks_for_stage1 = all_disks.select do |d|
+        [:CT_DISK, :CR_DMRAID].include?(devices[d]["type"])
+      end
+
       partitions = []
-      Builtins.foreach(devices) do |k, v|
-        if type == :boot && bl == "grub"
-          # check if device is in device map
-          if Builtins.haskey(@device_mapping, k) ||
-              Builtins.haskey(@device_mapping, ::Bootloader::DeviceMapping.to_mountby_device(k))
-            partitions = Convert.convert(
-              Builtins.merge(partitions, Ops.get_list(v, "partitions", [])),
-              :from => "list",
-              :to   => "list <map>"
-            )
-          end
-        else
-          partitions = Convert.convert(
-            Builtins.merge(partitions, Ops.get_list(v, "partitions", [])),
-            :from => "list",
-            :to   => "list <map>"
-          )
+
+      devices.each do |k, v|
+        if all_disks.include?(k)
+          partitions.concat(v["partitions"] || [])
         end
       end
 
-      devices = Builtins.filter(devices) do |k, v|
-        Ops.get_symbol(v, "type", :CT_UNKNOWN) != :CT_LVM
+      partitions.delete_if do |p|
+        p["delete"]
       end
 
-      devices = Builtins.filter(devices) do |k, v|
-        if Ops.get_symbol(v, "type", :CT_UNKNOWN) == :CT_DISK ||
-            Ops.get_symbol(v, "type", :CT_UNKNOWN) == :CT_DMRAID
-          next true
-        else
-          next false
-        end
-      end if type == :boot ||
-        type == :boot_other
-      all_disks = Builtins.maplist(devices) { |k, v| k }
-
-
-
-      if type == :deleted
-        return Builtins.maplist(Builtins.filter(partitions) do |p|
-          Ops.get_boolean(p, "delete", false)
-        end) { |x| Ops.get_string(x, "device", "") }
-      elsif type == :destroyed
-        return Builtins.maplist(Builtins.filter(partitions) do |p|
-          Ops.get_boolean(p, "delete", false) ||
-            Ops.get_boolean(p, "format", false) ||
-            Ops.get_boolean(p, "create", false)
-        end) { |x| Ops.get_string(x, "device", "") }
-      end
-      partitions = Builtins.filter(partitions) do |p|
-        !Ops.get_boolean(p, "delete", false)
-      end
-      # filter out disk which are not in device map
-      all_disks = Builtins.filter(all_disks) do |k|
-        if Builtins.haskey(@device_mapping, k) ||
-            Builtins.haskey(@device_mapping, ::Bootloader::DeviceMapping.to_mountby_device(k))
-          next true
-        else
-          next false
-        end
-      end if bl == "grub" &&
-        type == :boot
-      ret = deep_copy(all_disks)
-      if type == :boot_other || type == :root || type == :parts_old ||
-          type == :kept
-        ret = []
+      partitions.select! do |p|
+        [:primary, :extended, :logical, :sw_raid].include?(p["type"]) &&
+          (p["used_fs"] || p["detected_fs"]) != :xfs &&
+        ["Linux native", "Extended", "Linux RAID", "MD RAID", "DM RAID"].include?(p["fstype"])
       end
 
-      if type == :boot
-        partitions = Builtins.filter(partitions) do |p|
-          Ops.get_symbol(p, "type", :primary) == :primary ||
-            Ops.get_symbol(p, "type", :primary) == :extended ||
-            Ops.get_symbol(p, "type", :primary) == :logical ||
-            Ops.get_symbol(p, "type", :primary) == :sw_raid
-        end
-        # FIXME this checking is performed on 3 places, one function should
-        # be developed for it
-        partitions = Builtins.filter(partitions) do |p|
-          fs = Ops.get_symbol(p, "used_fs", Ops.get(p, "detected_fs"))
-          next false if fs == :xfs
-          true
-        end
-      elsif type == :root
-        partitions = Builtins.filter(partitions) do |p|
-          Ops.get_symbol(p, "type", :primary) != :extended
-        end
-      elsif type == :parts_old
-        partitions = Builtins.filter(partitions) do |p|
-          !Ops.get_boolean(p, "create", false)
-        end
-      elsif type == :kept
-        partitions = Builtins.filter(partitions) do |p|
-          !(Ops.get_boolean(p, "create", false) ||
-            Ops.get_boolean(p, "format", false))
-        end
-      end
-      if type != :all && type != :parts_old && type != :kept
-        partitions = Builtins.filter(partitions) do |p|
-          Ops.get_string(p, "fstype", "") != "Linux swap"
-        end
-      end
-      partitions = Builtins.filter(partitions) do |p|
-        Ops.get_string(p, "fstype", "") == "Linux native" ||
-          Ops.get_string(p, "fstype", "") == "Extended" ||
-          Ops.get_string(p, "fstype", "") == "Linux RAID" ||
-          Builtins.tolower(Ops.get_string(p, "fstype", "")) == "md raid" ||
-          Ops.get_string(p, "fstype", "") == "DM RAID"
-      end if type == :boot
+      res = partitions.map { |p| p["device"] || "" }
+      res.concat(disks_for_stage1)
+      res.delete_if(&:empty?)
 
-      partition_names = Builtins.maplist(partitions) do |p|
-        Ops.get_string(p, "device", "")
-      end
-      partition_names = Builtins.filter(partition_names) { |p| p != "" }
-      ret = Convert.convert(
-        Builtins.union(ret, partition_names),
-        :from => "list",
-        :to   => "list <string>"
-      )
-      ret = Builtins.toset(ret)
-      deep_copy(ret)
+      res
     end
 
     # FATE#305008: Failover boot configurations for md arrays with redundancy
