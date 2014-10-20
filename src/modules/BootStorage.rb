@@ -508,7 +508,6 @@ module Yast
 
     def remapDeviceMap(device_map)
       device_map = deep_copy(device_map)
-      by_mount = nil
       if Arch.ppc
         by_mount = :id
       else
@@ -516,15 +515,12 @@ module Yast
       end
 
       #by_mount = `id;
-      return deep_copy(device_map) if by_mount == :label
+      return device_map if by_mount == :label
 
-      ret = {}
       # convert device names in device map to the device names by device or label
-      ret = Builtins.mapmap(@device_mapping) do |k, v|
+      Builtins.mapmap(@device_mapping) do |k, v|
         { ::Bootloader::DeviceMapping.to_kernel_device(k) => v }
       end
-
-      deep_copy(ret)
     end
 
     # Returns list of partitions. Requests current partitioning from
