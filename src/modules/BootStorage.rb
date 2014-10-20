@@ -434,28 +434,6 @@ module Yast
         ids[index] = true
       end
 
-      # Fill usb_disks list with usb removable devices.
-      #
-      # It's not easy to determine how to identify removable usb devices. Now
-      # it tests if driver of device is usb-storage. If you find better
-      # algorithm how to find removable usb devices, put it here into foreach
-      # to apply this algorithm on all devices.
-      usb_disks = [] # contains usb removable disks as it can affect BIOS order of disks
-      targetMap.each do |target_dev, target|
-        next if target["driver"] != "usb-storage"
-        usb_disks << target_dev
-      end
-      log.info("Found usb discs: #{usb_disks}")
-
-      # change order in device_mapping if usb disk is hd0
-      # (FATE #302075)
-      if isHd0(usb_disks) &&
-          @BootPartitionDevice != @device_mapping.key("hd0")
-        log.info("Detected device mapping: #{@device_mapping}")
-        log.info("Changing order in device mapping needed...")
-        @device_mapping = changeOrderInDeviceMapping(@device_mapping, bad_devices: usb_disks)
-      end
-
       # For us priority disk is device where /boot or / lives as we control this disk and
       # want to modify its MBR. So we get disk of such partition and change order to add it
       # to top of device map. For details see bnc#887808,bnc#880439
