@@ -319,37 +319,15 @@ module Yast
       ret
     end
 
-    # Function check if disk is in list of devices
-    # @param [String] disk
-    # @param list<string> list of devices
-    # @return true if success
-
-    def isDiskInList(disk, devices)
-      devices = deep_copy(devices)
-      ret = false
-      Builtins.foreach(devices) do |dev|
-        if dev == disk
-          ret = true
-          raise Break
-        end
-      end
-      ret
-    end
-
     # Check if disk is in MDRaid it means completed disk is used in RAID
     # @param [String] disk (/dev/sda)
     # @param [Hash{String => map}] tm - target map
     # @return - true if disk (not only part of disk) is in MDRAID
     def isDiskInMDRaid(disk, tm)
-      tm = deep_copy(tm)
-      ret = false
-      Builtins.foreach(tm) do |dev, d_info|
-        if Ops.get(d_info, "type") == :CT_MDPART
-          ret = isDiskInList(disk, Ops.get_list(d_info, "devices", []))
-        end
-        raise Break if ret
+      tm.values.any? do |disk_info|
+        disk_info["type"] == :CT_MDPART &&
+          (disk_info["devices"] || []).include?(disk)
       end
-      ret
     end
 
     def propose_s390_device_map
