@@ -20,6 +20,32 @@ describe Yast::BootStorage do
     end
   end
 
+  describe ".DisksOrder" do
+    it "returns disks in device sorted by id" do
+      Yast::BootStorage.device_mapping = {
+        "/dev/vdb" => "hd0",
+        "/dev/vda" => "hd2",
+        "/dev/vdc" => "hd1"
+      }
+
+      expect(Yast::BootStorage.DisksOrder).to eq(["/dev/vdb", "/dev/vdc", "/dev/vda"])
+    end
+
+    it "repropose device map if not defined" do
+      Yast::BootStorage.device_mapping = nil
+      expect(Yast::BootStorage).to receive(:ProposeDeviceMap)
+
+      Yast::BootStorage.DisksOrder
+    end
+
+    it "repropose device map if empty" do
+      Yast::BootStorage.device_mapping = {}
+      expect(Yast::BootStorage).to receive(:ProposeDeviceMap)
+
+      Yast::BootStorage.DisksOrder
+    end
+  end
+
   describe ".possible_locations_for_stage1" do
     before do
       target_map_stub("storage_mdraid.rb")

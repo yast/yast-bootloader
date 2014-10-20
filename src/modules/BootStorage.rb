@@ -492,12 +492,11 @@ module Yast
       if @device_mapping == nil || Builtins.size(@device_mapping) == 0
         ProposeDeviceMap()
       end
-      devmap_rev = Builtins.mapmap(@device_mapping) { |k, v| { v => k } }
-      devmap_rev = Builtins.filter(devmap_rev) do |k, v|
-        Builtins.substring(k, 0, 2) == "hd"
-      end
-      order = Builtins.maplist(devmap_rev) { |k, v| v }
-      deep_copy(order)
+      return [] unless @device_mapping
+
+      disks = @device_mapping.select { |k,v| v.start_with?("hd") }.keys
+
+      disks.sort_by { |d| @device_mapping[d][2..-1].to_i }
     end
 
 
