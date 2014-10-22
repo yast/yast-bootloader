@@ -290,6 +290,8 @@ module Yast
         else
           disks <<  disk
         end
+        # add disk from partition to md_physical_disks
+        @md_physical_disks << disk unless @md_physical_disks.include?(disk)
 
         no_p = p_dev["nr"].to_s
         if no_p == ""
