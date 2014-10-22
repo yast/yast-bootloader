@@ -372,32 +372,25 @@ module Yast
       ret = false
       tm = Storage.GetTargetMap
 
-      if !Builtins.haskey(tm, "/dev/md")
-        Builtins.y2milestone("Doesn't include md raid")
+      if !tm["/dev/md"]
+        log.info "Doesn't include md raid"
         return ret
       end
       boot_devices = []
-      if @BootPartitionDevice != "" && @BootPartitionDevice != nil
-        boot_devices = Builtins.add(boot_devices, @BootPartitionDevice)
+      boot_devices << @BootPartitionDevice
+      if @BootPartitionDevice != @RootPartitionDevice
+        boot_devices << @RootPartitionDevice
       end
-      if @BootPartitionDevice != @RootPartitionDevice &&
-          @RootPartitionDevice != "" &&
-          @BootPartitionDevice != nil
-        boot_devices = Builtins.add(boot_devices, @RootPartitionDevice)
-      end
-      if @ExtendedPartitionDevice != "" && @ExtendedPartitionDevice != nil
-        boot_devices = Builtins.add(boot_devices, @ExtendedPartitionDevice)
-      end
+      boot_devices << @ExtendedPartitionDevice
+      boot_devices.delete_if { |d| d.nil? || d.empty? }
 
-      Builtins.y2milestone(
-        "Devices for analyse of redundacy md array: %1",
-        boot_devices
-      )
+      log.info "Devices for analyse of redundacy md array: #{boot_devices}"
+
       Builtins.foreach(boot_devices) do |dev|
         ret = checkMDDevices(tm, dev)
         if !ret
-          Builtins.y2milestone("Skip enable redundancy of md arrays")
-          raise Break
+          log.info "Skip enable redundancy of md arrays"
+          break
         end
       end
 
