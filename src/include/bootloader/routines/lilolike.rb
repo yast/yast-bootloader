@@ -134,7 +134,7 @@ module Yast
       end
 
       if !Builtins.contains(
-          BootStorage.possible_locations_for_stage1
+          BootStorage.possible_locations_for_stage1,
           @loader_device
         )
         @selected_location = "mbr" # default to mbr
