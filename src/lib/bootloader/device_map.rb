@@ -177,7 +177,7 @@ module Bootloader
     # Returns true if any device from list devices is in device_mapping
     # marked as hd0.
     def any_first_device(devices)
-      devices.any? { |dev| @device_mapping[dev] == "hd0" }
+      devices.any? { |dev| @mapping[dev] == "hd0" }
     end
 
     # This function changes order of devices in device_mapping.

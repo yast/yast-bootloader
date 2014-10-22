@@ -270,10 +270,7 @@ module Yast
 
       all_disks = devices.keys
       # Devices which is not in device map cannot be used to boot
-      all_disks.select! do |k|
-        @device_mapping.include?(k) ||
-          @device_mapping.include?(::Bootloader::UdevMapping.to_mountby_device(k))
-      end
+      all_disks.select! { |d| device_map.contain_disk?(d) }
 
       disks_for_stage1 = all_disks.select do |d|
         [:CT_DISK, :CR_DMRAID].include?(devices[d]["type"])

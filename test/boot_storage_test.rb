@@ -44,7 +44,7 @@ describe Yast::BootStorage do
     end
 
     it "do not return partitions if disk is not in device map" do
-      Yast::BootStorage.device_mapping = { "/dev/vdb" => "hd0" }
+      Yast::BootStorage.device_map = ::Bootloader::DeviceMap.new("/dev/vdb" => "hd0")
 
       res = Yast::BootStorage.possible_locations_for_stage1
       expect(res).to_not include("/dev/vda1")
