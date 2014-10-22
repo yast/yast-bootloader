@@ -89,27 +89,35 @@ module Bootloader
         return propose_s390_device_map
       end
 
-      targetMap = Yast::Storage.GetTargetMap
+      fill_mapping
 
-      # select only disk devices
-      targetMap.select! do |k, v|
-        [:CT_DMRAID, :CT_DISK, :CT_DMMULTIPATH].include?(v["type"]) ||
-          ( v["type"] == :CT_MDPART &&
-            checkMDRaidDevices(v["devices"] || [], targetMap))
+      order_boot_device
+    end
+
+    private
+
+    def order_boot_device
+      # For us priority disk is device where /boot or / lives as we control this disk and
+      # want to modify its MBR. So we get disk of such partition and change order to add it
+      # to top of device map. For details see bnc#887808,bnc#880439
+      priority_disks = Yast::BootStorage.real_disks_for_partition(
+        Yast::BootStorage.BootPartitionDevice
+      )
+      # if none of priority disk is hd0, then choose one and assign it
+      if !any_first_device(priority_disks)
+        @mapping = change_order(@mapping,
+            priority_device: priority_disks.first)
       end
+    end
 
-      # filter out members of BIOS RAIDs and multipath devices
-      targetMap.delete_if do |k, v|
-        [:UB_DMRAID, :UB_DMMULTIPATH].include?(v["used_by_type"]) ||
-          (v["used_by_type"] == :UB_MDPART && isDiskInMDRaid(k, targetMap))
-      end
-
-      log.info("Filtered target map: #{targetMap}")
+    def fill_mapping
+      target_map = filtered_target_map
+      log.info("Filtered target map: #{target_map}")
 
       # add devices with known bios_id
       # collect BIOS IDs which are used
       ids = {}
-      targetMap.each do |target_dev, target|
+      target_map.each do |target_dev, target|
         bios_id = target["bios_id"] || ""
         next if bios_id.empty?
 
@@ -131,7 +139,7 @@ module Bootloader
       end
       # and guess other devices
       # don't use already used BIOS IDs
-      targetMap.each do |target_dev, target|
+      target_map.each do |target_dev, target|
         next unless target.fetch("bios_id", "").empty?
 
         index = 0 # find free index
@@ -141,21 +149,26 @@ module Bootloader
         @mapping[target_dev] = "hd#{index}"
         ids[index] = true
       end
-
-      # For us priority disk is device where /boot or / lives as we control this disk and
-      # want to modify its MBR. So we get disk of such partition and change order to add it
-      # to top of device map. For details see bnc#887808,bnc#880439
-      priority_disks = Yast::BootStorage.real_disks_for_partition(
-        Yast::BootStorage.BootPartitionDevice
-      )
-      # if none of priority disk is hd0, then choose one and assign it
-      if !any_first_device(priority_disks)
-        @mapping = change_order(@mapping,
-            priority_device: priority_disks.first)
-      end
     end
 
-    private
+    def filtered_target_map
+      target_map = Yast::Storage.GetTargetMap.dup
+
+      # select only disk devices
+      target_map.select! do |k, v|
+        [:CT_DMRAID, :CT_DISK, :CT_DMMULTIPATH].include?(v["type"]) ||
+          ( v["type"] == :CT_MDPART &&
+            checkMDRaidDevices(v["devices"] || [], targetMap))
+      end
+
+      # filter out members of BIOS RAIDs and multipath devices
+      target_map.delete_if do |k, v|
+        [:UB_DMRAID, :UB_DMMULTIPATH].include?(v["used_by_type"]) ||
+          (v["used_by_type"] == :UB_MDPART && isDiskInMDRaid(k, targetMap))
+      end
+
+      target_map
+    end
 
     def propose_s390_device_map
       # s390 have some special requirements for device map. Keep it short and simple (bnc#884798)
@@ -181,65 +194,21 @@ module Bootloader
     end
 
     # This function changes order of devices in device_mapping.
-    # All devices listed in bad_devices are maped to "hdN" are moved to the end
-    # (with changed number N). Priority device are always placed at first place    #
-    # Example:
-    #      device_mapping = $[ "/dev/sda" : "hd0",
-    #                          "/dev/sdb" : "hd1",
-    #                          "/dev/sdc" : "hd2",
-    #                          "/dev/sdd" : "hd3",
-    #                          "/dev/sde" : "hd4" ];
-    #      bad_devices = [ "/dev/sda", "/dev/sdc" ];
-    #
-    #      change_order(device_mapping, bad_devices: bad_devices);
-    #      // returns:
-    #      device_mapping -> $[ "/dev/sda" : "hd3",
-    #                           "/dev/sdb" : "hd0",
-    #                           "/dev/sdc" : "hd4",
-    #                           "/dev/sdd" : "hd1",
-    #                           "/dev/sde" : "hd2" ];
-    def change_order(device_mapping, bad_devices: [], priority_device: nil)
-      log.info("Calling change of device map with #{device_mapping}, " +
-        "bad_devices: #{bad_devices}, priority_device: #{priority_device}")
+    # Priority device are always placed at first place    #
+    def change_order(device_mapping, priority_device: nil)
+      log.info "Change order with #{device_mapping} and priority_device: #{priority_device}"
+      return device_mapping unless priority_device
+
       device_mapping = device_mapping.dup
-      first_available_id = 0
-      keys = device_mapping.keys
-      # sort keys by its order in device mapping
-      keys.sort_by! {|k| device_mapping[k][/\d+$/] }
 
-      if priority_device
-        # change order of priority device if it is already in device map, otherwise ignore them
-        if device_mapping[priority_device]
-          first_available_id = 1
-          old_first_device = device_mapping.key("hd0")
-          old_device_id = device_mapping[priority_device]
-          device_mapping[old_first_device] = old_device_id
-          device_mapping[priority_device] = "hd0"
-        else
-          log.warn("Unknown priority device '#{priority_device}'. Skipping")
-        end
-      end
-
-      # put bad_devices at bottom
-      keys.each do |key|
-        value = device_mapping[key]
-        if !value # FIXME this should not happen, but openQA catch it, so be on safe side
-          log.error("empty value in device map")
-          next
-        end
-        # if device is mapped on hdX and this device is _not_ in bad_devices
-        if value.start_with?("hd") &&
-            !bad_devices.include?(key) &&
-            key != priority_device
-          # get device name of mapped on "hd"+cur_id
-          tmp = device_mapping.key("hd#{first_available_id}")
-
-          # swap tmp and key devices (swap their mapping)
-          device_mapping[tmp] = value
-          device_mapping[key] = "hd#{first_available_id}"
-
-          first_available_id += 1
-        end
+      # change order of priority device if it is already in device map, otherwise ignore them
+      if device_mapping[priority_device]
+        old_first_device = device_mapping.key("hd0")
+        old_device_id = device_mapping[priority_device]
+        device_mapping[old_first_device] = old_device_id
+        device_mapping[priority_device] = "hd0"
+      else
+        log.warn("Unknown priority device '#{priority_device}'. Skipping")
       end
 
       device_mapping
