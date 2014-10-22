@@ -279,57 +279,36 @@ module Yast
     # @param list <string> list of devices
     # @return [Boolean] true on success
     def checkDifferentDisks(devices)
-      devices = deep_copy(devices)
-      ret = false
       disks = []
       no_partition = ""
-      Builtins.foreach(devices) do |dev|
+      devices.each do |dev|
         p_dev = Storage.GetDiskPartition(dev)
-        if !Builtins.contains(disks, Ops.get_string(p_dev, "disk", ""))
-          disks = Builtins.add(disks, Ops.get_string(p_dev, "disk", ""))
+        disk = p_dev["disk"]
+        if disks.include?(disk)
+          log.info "Same disk for md array -> disable synchronize md arrays"
+          return false
         else
-          Builtins.y2milestone(
-            "Same disk for md array -> disable synchronize md arrays"
-          )
-          raise Break
+          disks <<  disk
         end
         # add disk from partition to md_physical_disks
-        if !Builtins.contains(
-            @md_physical_disks,
-            Ops.get_string(p_dev, "disk", "")
-          )
-          @md_physical_disks = Builtins.add(
-            @md_physical_disks,
-            Ops.get_string(p_dev, "disk", "")
-          )
-        end
-        no_p = Builtins.tostring(Ops.get(p_dev, "nr"))
+        @md_physical_disks << disk unless @md_physical_disks.include?(disk)
+
+        no_p = p_dev["nr"].to_s
         if no_p == ""
-          Builtins.y2error(
-            "Wrong number of partition: %1 from Storage::GetDiskPartition: %2",
-            dev,
-            p_dev
-          )
-          raise Break
+          log.error "Wrong number of partition: #{dev} from Storage::GetDiskPartition: #{p_dev}"
+          return false
         end
         if no_partition == ""
           no_partition = no_p
         elsif no_partition == no_p
           ret = true
         else
-          Builtins.y2milestone(
-            "Different number of partitions -> disable synchronize md arrays"
-          )
+          log.info "Different number of partitions -> disable synchronize md arrays"
+          return false
         end
       end
 
-      Builtins.y2milestone(
-        "checkDifferentDisks for devices: %1 return: %2",
-        devices,
-        ret
-      )
-
-      ret
+      true
     end
 
     # FATE#305008: Failover boot configurations for md arrays with redundancy
