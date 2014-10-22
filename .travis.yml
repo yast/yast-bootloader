@@ -1,0 +1,15 @@
+language: cpp
+compiler:
+    - gcc
+before_install:
+    - curl http://download.opensuse.org/repositories/YaST:/Head:/Travis/xUbuntu_12.04/Release.key | sudo apt-key add -
+    - echo "deb http://download.opensuse.org/repositories/YaST:/Head:/Travis/xUbuntu_12.04/ ./" | sudo tee -a /etc/apt/sources.list
+    - sudo apt-get update -q
+    - sudo apt-get install --no-install-recommends -y ruby-yast-rake ruby-yard yast2 yast2-storage ruby-rspec
+    # disable rvm, use system Ruby
+    - rvm reset
+script:
+    - yardoc
+    - rake test:unit
+    - sudo rake install
+
