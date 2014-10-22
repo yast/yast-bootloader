@@ -1,6 +1,6 @@
 require "yast"
 
-require "bootloader/device_mapping"
+require "bootloader/udev_mapping"
 
 module Bootloader
   # Class representing grub device map structure
@@ -30,7 +30,7 @@ module Bootloader
 
     def contain_disk?(disk)
       @mapping.include?(disk) ||
-        @mapping.include?(::Bootloader::DeviceMapping.to_mountby_device(disk))
+        @mapping.include?(::Bootloader::UdevMapping.to_mountby_device(disk))
     end
 
     def disks_order
@@ -70,7 +70,7 @@ module Bootloader
 
       # convert device names in device map to the device names by device or label
       remapped = @mapping.map do |k, v|
-        [DeviceMapping.to_kernel_device(k), v]
+        [UdevMapping.to_kernel_device(k), v]
       end
 
       Hash[remapped]
@@ -150,7 +150,7 @@ module Bootloader
       )
       # if none of priority disk is hd0, then choose one and assign it
       if !any_first_device(priority_disks)
-        @mapping = changeOrderInDeviceMapping(@mapping,
+        @mapping = change_order(@mapping,
             priority_device: priority_disks.first)
       end
     end
@@ -191,14 +191,14 @@ module Bootloader
     #                          "/dev/sde" : "hd4" ];
     #      bad_devices = [ "/dev/sda", "/dev/sdc" ];
     #
-    #      changeOrderInDeviceMapping(device_mapping, bad_devices: bad_devices);
+    #      change_order(device_mapping, bad_devices: bad_devices);
     #      // returns:
     #      device_mapping -> $[ "/dev/sda" : "hd3",
     #                           "/dev/sdb" : "hd0",
     #                           "/dev/sdc" : "hd4",
     #                           "/dev/sdd" : "hd1",
     #                           "/dev/sde" : "hd2" ];
-    def changeOrderInDeviceMapping(device_mapping, bad_devices: [], priority_device: nil)
+    def change_order(device_mapping, bad_devices: [], priority_device: nil)
       log.info("Calling change of device map with #{device_mapping}, " +
         "bad_devices: #{bad_devices}, priority_device: #{priority_device}")
       device_mapping = device_mapping.dup

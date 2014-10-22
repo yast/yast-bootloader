@@ -83,7 +83,7 @@ describe Bootloader::DeviceMap do
         "/dev/vdc" => "hd1"
       })
 
-      expect(Bootloader::DeviceMapping).to receive(:to_kernel_device).
+      expect(Bootloader::UdevMapping).to receive(:to_kernel_device).
         and_return("/dev/bla", "/dev/ble", "/dev/blabla")
 
       expect(map.remapped_hash).to eq(
@@ -102,7 +102,7 @@ describe Bootloader::DeviceMap do
         "/dev/vdc" => "hd1"
       })
 
-      expect(Bootloader::DeviceMapping).to_not receive(:to_kernel_device)
+      expect(Bootloader::UdevMapping).to_not receive(:to_kernel_device)
 
       expect(map.remapped_hash).to eq(map.to_hash)
     end
@@ -110,7 +110,7 @@ describe Bootloader::DeviceMap do
 
   describe "#contain_disk?" do
     before do
-      allow(Bootloader::DeviceMapping).to receive(:to_mountby_device).
+      allow(Bootloader::UdevMapping).to receive(:to_mountby_device).
         and_return("/dev/bla")
 
     end

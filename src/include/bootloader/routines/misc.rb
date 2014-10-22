@@ -19,7 +19,7 @@
 # $Id$
 #
 
-require "bootloader/device_mapping"
+require "bootloader/udev_mapping"
 
 module Yast
   module BootloaderRoutinesMiscInclude
@@ -106,7 +106,7 @@ module Yast
       return globals_set if by_mount == :label
 
       globals_set["boot_custom"] &&=
-        ::Bootloader::DeviceMapping.to_kernel_device(globals_set["boot_custom"])
+        ::Bootloader::UdevMapping.to_kernel_device(globals_set["boot_custom"])
 
       globals_set
     end

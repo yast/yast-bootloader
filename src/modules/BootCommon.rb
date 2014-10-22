@@ -19,7 +19,7 @@
 # $Id$
 #
 require "yast"
-require "bootloader/device_mapping"
+require "bootloader/udev_mapping"
 
 module Yast
   class BootCommonClass < Module
@@ -197,7 +197,7 @@ module Yast
 
       # convert device names in device map to the kernel device names
       dev_map = Builtins.mapmap(dev_map) do |k, v|
-        { ::Bootloader::DeviceMapping.to_mountby_device(k) => v }
+        { ::Bootloader::UdevMapping.to_mountby_device(k) => v }
       end
 
       BootStorage.device_map = ::Bootloader::DeviceMap.new(dev_map)
@@ -207,7 +207,7 @@ module Yast
       # convert the stage1_dev
       @globals = Builtins.mapmap(@globals) do |k, v|
         if k == "stage1_dev" || Builtins.regexpmatch(k, "^boot_.*custom$")
-          next { k => ::Bootloader::DeviceMapping.to_kernel_device(v) }
+          next { k => ::Bootloader::UdevMapping.to_kernel_device(v) }
         else
           next { k => v }
         end
@@ -263,7 +263,7 @@ module Yast
       # convert the stage1_dev
       my_globals = Builtins.mapmap(@globals) do |k, v|
         if k == "stage1_dev" || Builtins.regexpmatch(k, "^boot_.*custom$")
-          next { k => ::Bootloader::DeviceMapping.to_mountby_device(v) }
+          next { k => ::Bootloader::UdevMapping.to_mountby_device(v) }
         else
           next { k => v }
         end
@@ -276,7 +276,7 @@ module Yast
         "device map before mapping #{BootStorage.device_map.to_s}"
       )
       my_device_mapping = Builtins.mapmap(BootStorage.device_map.to_hash) do |k, v|
-        { ::Bootloader::DeviceMapping.to_mountby_device(k) => v }
+        { ::Bootloader::UdevMapping.to_mountby_device(k) => v }
       end
       Builtins.y2milestone("device map after mapping %1", my_device_mapping)
 

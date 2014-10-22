@@ -20,32 +20,6 @@ describe Yast::BootStorage do
     end
   end
 
-  describe ".DisksOrder" do
-    it "returns disks in device sorted by id" do
-      Yast::BootStorage.device_mapping = {
-        "/dev/vdb" => "hd0",
-        "/dev/vda" => "hd2",
-        "/dev/vdc" => "hd1"
-      }
-
-      expect(Yast::BootStorage.DisksOrder).to eq(["/dev/vdb", "/dev/vdc", "/dev/vda"])
-    end
-
-    it "repropose device map if not defined" do
-      Yast::BootStorage.device_mapping = nil
-      expect(Yast::BootStorage).to receive(:ProposeDeviceMap)
-
-      Yast::BootStorage.DisksOrder
-    end
-
-    it "repropose device map if empty" do
-      Yast::BootStorage.device_mapping = {}
-      expect(Yast::BootStorage).to receive(:ProposeDeviceMap)
-
-      Yast::BootStorage.DisksOrder
-    end
-  end
-
   describe ".possible_locations_for_stage1" do
     before do
       target_map_stub("storage_mdraid.rb")
@@ -130,52 +104,5 @@ describe Yast::BootStorage do
       expect(result).to include("/dev/vda")
     end
 
-  end
-
-  describe ".changeOrderInDeviceMapping" do
-    it "place priority device on top of device mapping" do
-      device_map = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
-      result = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1" }
-      expect(
-        Yast::BootStorage.changeOrderInDeviceMapping(
-          device_map,
-          priority_device: "/dev/sda"
-        )
-      ).to eq(result)
-    end
-
-    it "ignores priority device which is not in device map already" do
-      device_map = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
-      result = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
-      expect(
-        Yast::BootStorage.changeOrderInDeviceMapping(
-          device_map,
-          priority_device: "/dev/system"
-        )
-      ).to eq(result)
-    end
-
-    it "place bad devices at the end of list" do
-      device_map = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1" }
-      result = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
-      expect(
-        Yast::BootStorage.changeOrderInDeviceMapping(
-          device_map,
-          bad_devices: "/dev/sda"
-        )
-      ).to eq(result)
-    end
-
-    it "can mix priority and bad devices" do
-      device_map = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1", "/dev/sdc" => "hd2" }
-      result = { "/dev/sda" => "hd2", "/dev/sdb" => "hd0", "/dev/sdc" => "hd1" }
-      expect(
-        Yast::BootStorage.changeOrderInDeviceMapping(
-          device_map,
-          bad_devices: "/dev/sda",
-          priority_device: "/dev/sdb"
-        )
-      ).to eq(result)
-    end
   end
 end

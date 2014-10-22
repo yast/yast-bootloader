@@ -19,7 +19,7 @@
 #
 require "yast"
 require "bootloader/device_map"
-require "bootloader/device_mapping"
+require "bootloader/udev_mapping"
 
 module Yast
   class BootStorageClass < Module
@@ -210,7 +210,7 @@ module Yast
         # adding moundby (by-id) via user preference
         Builtins.foreach(@partinfo) do |partition|
           tmp = []
-          mount_by = ::Bootloader::DeviceMapping.to_mountby_device(
+          mount_by = ::Bootloader::UdevMapping.to_mountby_device(
             Builtins.tostring(Ops.get_string(partition, 0, ""))
           )
           if mount_by != Builtins.tostring(Ops.get_string(partition, 0, ""))
@@ -272,7 +272,7 @@ module Yast
       # Devices which is not in device map cannot be used to boot
       all_disks.select! do |k|
         @device_mapping.include?(k) ||
-          @device_mapping.include?(::Bootloader::DeviceMapping.to_mountby_device(k))
+          @device_mapping.include?(::Bootloader::UdevMapping.to_mountby_device(k))
       end
 
       disks_for_stage1 = all_disks.select do |d|

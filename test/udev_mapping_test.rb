@@ -2,10 +2,10 @@
 
 require_relative "./test_helper"
 
-require "bootloader/device_mapping"
+require "bootloader/udev_mapping"
 
-describe Bootloader::DeviceMapping do
-  subject { Bootloader::DeviceMapping }
+describe Bootloader::UdevMapping do
+  subject { Bootloader::UdevMapping }
   before do
     # always invalidate cache to use new mocks
     allow(subject.instance).to receive(:cache_valid?).and_return false
