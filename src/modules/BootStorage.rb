@@ -144,88 +144,60 @@ module Yast
     # and mountpoints
 
     def InitDiskInfo
-      if checkCallingDiskInfo
-        # delete variables for perl-Bootloader
-        @md_info = {}
+      return unless checkCallingDiskInfo
 
-        tm = Storage.GetTargetMap
+      # delete variables for perl-Bootloader
+      @md_info = {}
 
-        @multipath_mapping = mapRealDevicesToMultipath
-        @mountpoints = Builtins.mapmap(Storage.GetMountPoints) do |k, v|
-          # detect all raid1 md devices and mark them in md_info
-          device = Ops.get(v, 0)
-          if Ops.get_string(v, 3, "") == "raid1"
-            Ops.set(@md_info, Convert.to_string(device), [])
-          end
-          { k => device }
-        end
-        @mountpoints = Builtins.filter(@mountpoints) do |k, v|
-          tmpdir = Convert.to_string(SCR.Read(path(".target.tmpdir")))
-          tmp_sz = Builtins.size(tmpdir)
-          Ops.is_string?(v) && Builtins.substring(k, 0, tmp_sz) != tmpdir
-        end
+      tm = Storage.GetTargetMap
 
-        Builtins.y2milestone("Detected mountpoints: %1", @mountpoints)
+      @multipath_mapping = mapRealDevicesToMultipath
+      @mountpoints = Builtins.mapmap(Storage.GetMountPoints) do |k, v|
+        # detect all raid1 md devices and mark them in md_info
+        device = v[0]
+        @md_info[device] = [] if v[3] == "raid1"
+        { k => device }
+      end
+      # filter out temporary mount points from installation
 
-        pi = Builtins.maplist(tm) do |disk, info|
-          next [] if Ops.get_symbol(info, "type", :CT_UNKNOWN) == :CT_LVM
-          next [] if Ops.get_symbol(info, "type", :CT_UNKNOWN) == :CT_EVMS
-          partitions = Ops.get_list(info, "partitions", [])
-          parts = Builtins.maplist(
-            Convert.convert(partitions, :from => "list", :to => "list <map>")
-          ) do |p|
-            raid = ""
-            if Ops.get_symbol(p, "used_by_type", :UB_NONE) == :UB_MD
-              raid = Ops.get_string(p, "used_by_device", "")
-            end
-            device = Ops.get_string(p, "device", "")
-            # We only pass along RAID1 devices as all other causes
-            # severe breakage in the bootloader stack
-            if raid != ""
-              if Builtins.haskey(@md_info, raid)
-                members = Ops.get(@md_info, raid, [])
-                members = Builtins.add(members, device)
-                Ops.set(@md_info, raid, members)
-              end
-            end
-            nr = Ops.get(p, "nr")
-            nr = 0 if nr == nil
-            nr_str = Builtins.sformat("%1", nr)
-            [
-              device,
-              disk,
-              nr_str,
-              Builtins.tostring(Ops.get_integer(p, "fsid", 0)),
-              Ops.get_string(p, "fstype", "unknown"),
-              Builtins.tostring(Ops.get(p, "type")),
-              Builtins.tostring(Ops.get_integer(p, ["region", 0], 0)),
-              Builtins.tostring(Ops.get_integer(p, ["region", 1], 0))
-            ]
-          end
-          deep_copy(parts)
-        end
-        @partinfo = Builtins.flatten(pi)
-        @partinfo = Builtins.filter(@partinfo) { |p| p != nil && p != [] }
-        partinfo_mountby = []
-        # adding moundby (by-id) via user preference
-        Builtins.foreach(@partinfo) do |partition|
-          tmp = []
-          mount_by = ::Bootloader::UdevMapping.to_mountby_device(
-            Builtins.tostring(Ops.get_string(partition, 0, ""))
-          )
-          if mount_by != Builtins.tostring(Ops.get_string(partition, 0, ""))
-            tmp = Builtins.add(partition, mount_by)
-          else
-            tmp = deep_copy(partition)
-          end
-          partinfo_mountby = Builtins.add(partinfo_mountby, tmp)
-        end
-        # y2milestone("added mountby: %1", partinfo_mountby);
-
-        @partinfo = deep_copy(partinfo_mountby)
+      tmpdir = SCR.Read(path(".target.tmpdir"))
+      @mountpoints = Builtins.filter(@mountpoints) do |k, v|
+        v.is_a?(::String) && !k.start_with?(tmpdir)
       end
 
-      nil
+      log.info "Detected mountpoints: #{@mountpoints}"
+
+      @partinfo = tm.reduce([]) do |res, i|
+        disk, info = i
+        next res if [:CT_LVM, :CT_EVMS].include?(info["type"])
+        partitions = info["partitions"]
+        parts = partitions.map do |p|
+          raid = nil
+          if p["used_by_type"] == :UB_MD
+            raid = p["used_by_device"]
+          end
+          device = p["device"] || ""
+          # We only pass along RAID1 devices as all other causes
+          # severe breakage in the bootloader stack
+          if raid && @md_info.include?(raid)
+            @md_info[raid] << device
+          end
+          nr = (p["nr"] || 0).to_s
+          region = p.fetch("region", [])
+          [
+            device,
+            disk,
+            nr,
+            p["fsid"].to_i.to_s,
+            p["fstype"] || "unknown",
+            p["type"] || "nil",
+            (region[0] || 0).to_s,
+            (region[1] || 0).to_s,
+            ::Bootloader::UdevMapping.to_mountby_device(device)
+          ]
+        end
+        res.concat(parts)
+      end
     end
 
 
