@@ -290,8 +290,6 @@ module Yast
         else
           disks <<  disk
         end
-        # add disk from partition to md_physical_disks
-        @md_physical_disks << disk unless @md_physical_disks.include?(disk)
 
         no_p = p_dev["nr"].to_s
         if no_p == ""
@@ -318,55 +316,27 @@ module Yast
     # @param [String] device (md device)
     # @return true if device is from 2 partisions with same number and different disks
     def checkMDDevices(tm, device)
-      tm = deep_copy(tm)
       ret = false
-      tm_dm = Convert.convert(
-        Ops.get(tm, "/dev/md", {}),
-        :from => "map",
-        :to   => "map <string, any>"
-      )
+      tm_dm = tm["/dev/md"] || {}
 
-      @md_physical_disks = []
       # find partitions in target map
-      Builtins.foreach(Ops.get_list(tm_dm, "partitions", [])) do |p|
-        if Ops.get_string(p, "device", "") == device
-          if Ops.get_string(p, "raid_type", "") == "raid1"
-            p_devices = Ops.get_list(p, "devices", [])
-            if Builtins.size(p_devices) == 2
-              ret = checkDifferentDisks(p_devices)
-            else
-              Builtins.y2milestone(
-                "Device: %1 doesn't contain 2 partitions: %2",
-                device,
-                p_devices
-              )
-            end
+      (tm_dm["partitions"] || []).each do |p|
+        next unless p["device"] == device
+
+        if p["raid_type"] == "raid1"
+          p_devices = p["devices"] || []
+          if p_devices.size == 2 # TODO why only 2? it do not make sense
+            ret = checkDifferentDisks(p_devices)
           else
-            Builtins.y2milestone(
-              "Device: %1 is not on raid1: %2",
-              device,
-              Ops.get_string(p, "raid_type", "")
-            )
+            log.info "Device: #{device} doesn't contain 2 partitions: #{p_devices}"
           end
+        else
+          log.info "Device: #{device} is not on raid1: #{p["raid_type"]}"
         end
       end
 
-      if Builtins.size(@md_physical_disks) != 2 ||
-          Builtins.contains(@md_physical_disks, "")
-        Builtins.y2milestone(
-          "device: %1 is based on md_physical_disks: %2 is not valid for enable redundancy",
-          device,
-          @md_physical_disks
-        )
-      end
-
-      if ret
-        Builtins.y2milestone(
-          "device: %1 is based on md_physical_disks: %2 is valid for enable redundancy",
-          device,
-          @md_physical_disks
-        )
-      end
+      log.info "device: #{device} is based on md_physical_disks: #{@md_physical_disks}"\
+        "is #{ ret ? "valid" : "invalid" } for enable redundancy"
 
       ret
     end
@@ -480,14 +450,14 @@ module Yast
       tm = Storage.GetTargetMap
       res = res.reduce([]) do |ret, disk|
         disk_meta = tm[disk]
-        if disk_meta
-          if disk_meta["lvm2"]
-            devices = (disk_meta["devices"] || []) + (disk_meta["devices_add"] || [])
-            disks = devices.map { |d| real_disks_for_partition(d) }
-            ret.concat(disks.flatten)
-          else
-            ret << disk
-          end
+        next ret unless disk_meta
+
+        if disk_meta["lvm2"]
+          devices = (disk_meta["devices"] || []) + (disk_meta["devices_add"] || [])
+          disks = devices.map { |d| real_disks_for_partition(d) }
+          ret.concat(disks.flatten)
+        else
+          ret << disk
         end
         ret
       end
