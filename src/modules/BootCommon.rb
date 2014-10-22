@@ -158,7 +158,7 @@ module Yast
     def Export
       exp = {
         "global"     => remapGlobals(@globals),
-        "device_map" => BootStorage.remapDeviceMap(BootStorage.device_mapping)
+        "device_map" => BootStorage.device_map.remapped_hash
       }
       if @loader_type != "grub2"
         Ops.set(exp, "activate", @activate)
@@ -177,7 +177,7 @@ module Yast
       if @loader_type != "grub2"
         @activate = Ops.get_boolean(settings, "activate", false)
       end
-      BootStorage.device_mapping = Ops.get_map(settings, "device_map", {})
+      BootStorage.device_map = ::Bootloader::DeviceMap.new(settings["device_map"] || {})
       true
     end
 
@@ -193,12 +193,14 @@ module Yast
       ReadFiles(avoid_reading_device_map) if reread
       @sections = GetSections()
       @globals = GetGlobal()
-      BootStorage.device_mapping = GetDeviceMap()
+      dev_map = GetDeviceMap()
 
       # convert device names in device map to the kernel device names
-      BootStorage.device_mapping = Builtins.mapmap(BootStorage.device_mapping) do |k, v|
+      dev_map = Builtins.mapmap(dev_map) do |k, v|
         { ::Bootloader::DeviceMapping.to_mountby_device(k) => v }
       end
+
+      BootStorage.device_map = ::Bootloader::DeviceMap.new(dev_map)
 
       # convert custom boot device names in globals to the kernel device names
       # also, for legacy bootloaders like LILO that still pass device names,
@@ -271,10 +273,9 @@ module Yast
       # "mountby"
 
       Builtins.y2milestone(
-        "device map before mapping %1",
-        BootStorage.device_mapping
+        "device map before mapping #{BootStorage.device_map.to_s}"
       )
-      my_device_mapping = Builtins.mapmap(BootStorage.device_mapping) do |k, v|
+      my_device_mapping = Builtins.mapmap(BootStorage.device_map.to_hash) do |k, v|
         { ::Bootloader::DeviceMapping.to_mountby_device(k) => v }
       end
       Builtins.y2milestone("device map after mapping %1", my_device_mapping)

@@ -57,9 +57,8 @@ module Yast
 
       # TODO: check if necessary for grub2
       # refresh device map if not read
-      if BootStorage.device_mapping == nil ||
-          Builtins.size(BootStorage.device_mapping) == 0
-        BootStorage.ProposeDeviceMap
+      if BootStorage.device_map.empty?
+        BootStorage.device_map.propose
       end
 
       if Mode.normal

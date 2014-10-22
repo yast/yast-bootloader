@@ -18,11 +18,15 @@
 #
 #
 require "yast"
+require "bootloader/device_map"
 require "bootloader/device_mapping"
 
 module Yast
   class BootStorageClass < Module
     include Yast::Logger
+
+    attr_accessor :device_map
+
     def main
 
       textdomain "bootloader"
@@ -53,7 +57,7 @@ module Yast
       @md_info = {}
 
       # device mapping between Linux and firmware
-      @device_mapping = {}
+      @device_map = ::Bootloader::DeviceMap.new
 
       # string sepresenting device name of /boot partition
       # same as RootPartitionDevice if no separate /boot partition
@@ -83,15 +87,14 @@ module Yast
     def mapRealDevicesToMultipath
       ret = {}
       tm = Storage.GetTargetMap
-      Builtins.foreach(tm) do |disk, disk_info|
-        if Ops.get(disk_info, "type") == :CT_DMMULTIPATH
-          devices = Ops.get_list(disk_info, "devices", [])
-          if Ops.greater_than(Builtins.size(devices), 0)
-            Builtins.foreach(devices) { |d| Ops.set(ret, d, disk) }
-          end
-        end
+      tm.each do |disk, disk_info|
+        next unless disk_info["type"] != :CT_DMMULTIPATH
+
+        devices = disk_info["devices"] || []
+        devices.each { |d| ret[d] = disk }
       end
-      deep_copy(ret)
+
+      ret
     end
 
 
@@ -226,151 +229,9 @@ module Yast
     end
 
 
-    #** helper functions for ProposeDeviceMap: **
-    # Returns true if any device from list devices is in device_mapping
-    # marked as hd0.
-    def isHd0(devices)
-      devices.any? { |dev| @device_mapping[dev] == "hd0" }
-    end
-
-    # This function changes order of devices in device_mapping.
-    # All devices listed in bad_devices are maped to "hdN" are moved to the end
-    # (with changed number N). Priority device are always placed at first place    #
-    # Example:
-    #      device_mapping = $[ "/dev/sda" : "hd0",
-    #                          "/dev/sdb" : "hd1",
-    #                          "/dev/sdc" : "hd2",
-    #                          "/dev/sdd" : "hd3",
-    #                          "/dev/sde" : "hd4" ];
-    #      bad_devices = [ "/dev/sda", "/dev/sdc" ];
-    #
-    #      changeOrderInDeviceMapping(device_mapping, bad_devices: bad_devices);
-    #      // returns:
-    #      device_mapping -> $[ "/dev/sda" : "hd3",
-    #                           "/dev/sdb" : "hd0",
-    #                           "/dev/sdc" : "hd4",
-    #                           "/dev/sdd" : "hd1",
-    #                           "/dev/sde" : "hd2" ];
-    def changeOrderInDeviceMapping(device_mapping, bad_devices: [], priority_device: nil)
-      log.info("Calling change of device map with #{device_mapping}, " +
-        "bad_devices: #{bad_devices}, priority_device: #{priority_device}")
-      device_mapping = device_mapping.dup
-      first_available_id = 0
-      keys = device_mapping.keys
-      # sort keys by its order in device mapping
-      keys.sort_by! {|k| device_mapping[k][/\d+$/] }
-
-      if priority_device
-        # change order of priority device if it is already in device map, otherwise ignore them
-        if device_mapping[priority_device]
-          first_available_id = 1
-          old_first_device = device_mapping.key("hd0")
-          old_device_id = device_mapping[priority_device]
-          device_mapping[old_first_device] = old_device_id
-          device_mapping[priority_device] = "hd0"
-        else
-          log.warn("Unknown priority device '#{priority_device}'. Skipping")
-        end
-      end
-
-      # put bad_devices at bottom
-      keys.each do |key|
-        value = device_mapping[key]
-        if !value # FIXME this should not happen, but openQA catch it, so be on safe side
-          log.error("empty value in device map")
-          next
-        end
-        # if device is mapped on hdX and this device is _not_ in bad_devices
-        if value.start_with?("hd") &&
-            !bad_devices.include?(key) &&
-            key != priority_device
-          # get device name of mapped on "hd"+cur_id
-          tmp = device_mapping.key("hd#{first_available_id}")
-
-          # swap tmp and key devices (swap their mapping)
-          device_mapping[tmp] = value
-          device_mapping[key] = "hd#{first_available_id}"
-
-          first_available_id += 1
-        end
-      end
-
-      device_mapping
-    end
-
-    # Check if MD raid is build on disks not on paritions
-    # @param [Array<String>] devices - list of devices from MD raid
-    # @param [Hash{String => map}] tm - unfiltered target map
-    # @return - true if MD RAID is build on disks (not on partitions)
-
-    def checkMDRaidDevices(devices, tm)
-      devices = deep_copy(devices)
-      tm = deep_copy(tm)
-      ret = true
-      Builtins.foreach(devices) do |key|
-        if key != "" && ret
-          if Ops.get(tm, key) != nil
-            ret = true
-          else
-            ret = false
-          end
-        end
-      end
-      ret
-    end
-
-    # Check if disk is in MDRaid it means completed disk is used in RAID
-    # @param [String] disk (/dev/sda)
-    # @param [Hash{String => map}] tm - target map
-    # @return - true if disk (not only part of disk) is in MDRAID
-    def isDiskInMDRaid(disk, tm)
-      tm.values.any? do |disk_info|
-        disk_info["type"] == :CT_MDPART &&
-          (disk_info["devices"] || []).include?(disk)
-      end
-    end
-
-    def propose_s390_device_map
-      # s390 have some special requirements for device map. Keep it short and simple (bnc#884798)
-      # TODO device map is not needed at all for s390, so if we get rid of perl-Bootloader translations
-      # we can keep it empty
-        boot_part = Storage.GetEntryForMountpoint("/boot/zipl")
-        boot_part = Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
-        boot_part = Storage.GetEntryForMountpoint("/") if boot_part.empty?
-
-        raise "Cannot find boot partition" if boot_part.empty?
-
-        disk = Storage.GetDiskPartition(boot_part["device"])["disk"]
-
-        @device_mapping = { "hd0" => disk }
-
-        Builtins.y2milestone("Detected device mapping: %1", @device_mapping)
-
-        nil
-    end
-
-
-    #** helper functions END **
-
     # Generate device map proposal, store it in internal variables.
-    #
-    # FATE #302075:
-    #   When user is installing from USB media or any non IDE disk or bios simply
-    #   set any non IDE disk as first and user is not installing on this removable
-    #   (non IDE) disk, the order of disks proposed by bios must be changed because
-    #   of future remove of USB disk.
-    #   This function must find right place for bootloader (which is most probably
-    #   boot sector of boot partition (where /boot dir is located)) and change the
-    #   order of disks in device map.
-    #   This method is only heuristic because order of disks after remove of usb
-    #   disk can't be determined by any method.
-    #
-    #   Algorithm for solving problem with usb disk propsed by bios as hd0:
-    #      if usbDiskDevice == hd0 && BootDevice != usbDiskDevice:
-    #          change order of disks in device_mapping to have BootDevice as hd0
-    # FIXME: remove that function from here, as it is grub only
     def ProposeDeviceMap
-      @device_mapping = {}
+      @device_map = ::Bootloader::DeviceMap.new
       @multipath_mapping = {}
 
       if Mode.config
@@ -378,113 +239,28 @@ module Yast
         return
       end
 
-      if Arch.s390
-        return propose_s390_device_map
-      end
-
-      targetMap = Storage.GetTargetMap
-
-      # select only disk devices
-      targetMap.select! do |k, v|
-        [:CT_DMRAID, :CT_DISK, :CT_DMMULTIPATH].include?(v["type"]) ||
-          ( v["type"] == :CT_MDPART &&
-            checkMDRaidDevices(v["devices"] || [], targetMap))
-      end
-
-      # filter out members of BIOS RAIDs and multipath devices
-      targetMap.delete_if do |k, v|
-        [:UB_DMRAID, :UB_DMMULTIPATH].include?(v["used_by_type"]) ||
-          (v["used_by_type"] == :UB_MDPART && isDiskInMDRaid(k, targetMap))
-      end
-
-      log.info("Filtered target map: #{targetMap}")
-
-      # add devices with known bios_id
-      # collect BIOS IDs which are used
-      ids = {}
-      targetMap.each do |target_dev, target|
-        bios_id = target["bios_id"] || ""
-        next if bios_id.empty?
-
-        index = case Arch.architecture
-        when /ppc/
-          # on ppc it looks like "vdevice/v-scsi@71000002/@0"
-          bios_id[/\d+\z/].to_i
-        when "i386", "x86_64"
-          Builtins.tointeger(bios_id) - 0x80
-        else
-          raise "no support for bios id '#{bios_id}' on #{Arch.architecture}"
-        end
-        # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
-        if !ids[index]
-          @device_mapping[target_dev] = "hd#{index}"
-          ids[index] = true
-        end
-      end
-      # and guess other devices
-      # don't use already used BIOS IDs
-      targetMap.each do |target_dev, target|
-        next unless target.fetch("bios_id", "").empty?
-
-        index = 0 # find free index
-        while ids[index]
-          index += 1
-        end
-        @device_mapping[target_dev] = "hd#{index}"
-        ids[index] = true
-      end
-
-      # For us priority disk is device where /boot or / lives as we control this disk and
-      # want to modify its MBR. So we get disk of such partition and change order to add it
-      # to top of device map. For details see bnc#887808,bnc#880439
-      priority_disks = real_disks_for_partition(@BootPartitionDevice)
-      # if none of priority disk is hd0, then choose one and assign it
-      if !isHd0(priority_disks)
-        @device_mapping = changeOrderInDeviceMapping(@device_mapping,
-            priority_device: priority_disks.first)
-      end
-
-      log.info("Detected device mapping: #{@device_mapping}")
+      @device_map.propose
+      log.info("Detected device mapping: #{@device_map}")
 
       @multipath_mapping = mapRealDevicesToMultipath
-
       log.info("Detected multipath mapping: #{@multipath_mapping}")
     end
 
     # Get the order of disks according to BIOS mapping
     # @return a list of all disks in the order BIOS sees them
     def DisksOrder
-      if @device_mapping == nil || Builtins.size(@device_mapping) == 0
-        ProposeDeviceMap()
-      end
-      return [] unless @device_mapping
+      @device_map.propose if @device_map.empty?
 
-      disks = @device_mapping.select { |k,v| v.start_with?("hd") }.keys
-
-      disks.sort_by { |d| @device_mapping[d][2..-1].to_i }
+      @device_map.disks_order
     end
-
 
     # Function remap device map to device name (/dev/sda)
     # or to label (ufo_disk)
     # @param map<string,string> device map
     # @return [Hash{String => String}] new device map
 
-    def remapDeviceMap(device_map)
-      device_map = deep_copy(device_map)
-      if Arch.ppc
-        by_mount = :id
-      else
-        by_mount = Storage.GetDefaultMountBy
-      end
-
-      #by_mount = `id;
-      return device_map if by_mount == :label
-
-      # convert device names in device map to the device names by device or label
-      Builtins.mapmap(@device_mapping) do |k, v|
-        { ::Bootloader::DeviceMapping.to_kernel_device(k) => v }
-      end
+    def remapDeviceMap
+      @device_map.remapped_hash
     end
 
     # Returns list of partitions. Requests current partitioning from
@@ -775,14 +551,13 @@ module Yast
     publish :variable => :mountpoints, :type => "map <string, any>"
     publish :variable => :partinfo, :type => "list <list>"
     publish :variable => :md_info, :type => "map <string, list <string>>"
-    publish :variable => :device_mapping, :type => "map <string, string>"
     publish :variable => :BootPartitionDevice, :type => "string"
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
     publish :function => :InitDiskInfo, :type => "void ()"
     publish :function => :ProposeDeviceMap, :type => "void ()"
     publish :function => :DisksOrder, :type => "list <string> ()"
-    publish :function => :remapDeviceMap, :type => "map <string, string> (map <string, string>)"
+    publish :function => :remapDeviceMap, :type => "map <string, string> ()"
     publish :function => :getPartitionList, :type => "list <string> (symbol, string)"
     publish :function => :addMDSettingsToGlobals, :type => "string ()"
     publish :function => :Md2Partitions, :type => "map <string, integer> (string)"

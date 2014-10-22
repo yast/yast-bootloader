@@ -85,52 +85,6 @@ describe Yast::BootStorage do
     end
   end
 
-  describe ".ProposeDeviceMap" do
-    before do
-      allow(Yast::Arch).to receive(:s390).and_return(false)
-      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
-      Yast::BootStorage.device_mapping = nil
-      target_map_stub("storage_mdraid.rb")
-    end
-
-    it "fills .device_mapping with device map proposal" do
-      result = Yast::BootStorage.ProposeDeviceMap
-      expect(Yast::BootStorage.device_mapping).to_not be_empty
-    end
-
-    it "proposes device map with single disk containing stage1 for s390" do
-      allow(Yast::Arch).to receive(:s390).and_return(true)
-
-      result = Yast::BootStorage.ProposeDeviceMap
-      expect(Yast::BootStorage.device_mapping).to have(1).items
-    end
-
-    it "propose always empty map in Mode config" do
-      allow(Yast::Mode).to receive(:config).and_return(true)
-
-      result = Yast::BootStorage.ProposeDeviceMap
-      expect(Yast::BootStorage.device_mapping).to be_empty
-    end
-
-    # TODO I do not have sufficient target map yet
-    it "do not add to device map members of raids and multipath"
-
-    it "do not add non-disk devices" do
-      target_map_stub("storage_tmpfs.rb")
-      result = Yast::BootStorage.ProposeDeviceMap
-      expect(Yast::BootStorage.device_mapping).to_not include("/dev/tmpfs")
-    end
-
-    # TODO I do not have sufficient target map yet with enough disks and mixture of bios ids
-    it "propose order according to bios id"
-
-    # TODO I do not have sufficient target map yet
-    it "do not propose USB as first device"
-
-    # TODO I do not have sufficient target map yet with enough disks and mixture of bios ids
-    it "propose as first device disk containing /boot"
-  end
-
   describe ".real_disks_for_partition" do
     before do
       # simple mock getting disks from partition as it need initialized libstorage
