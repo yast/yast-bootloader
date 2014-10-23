@@ -108,35 +108,24 @@ module Yast
     # @return false if it is posible use cached data
 
     def checkCallingDiskInfo
-      ret = false
-
       # fix for problem with unintialized storage library in AutoYaST mode
       # bnc #464090
       if Mode.config && !@storage_initialized
         @storage_initialized = true
-        Builtins.y2milestone("Init storage library in yast2-bootloader")
+        log.info "Init storage library in yast2-bootloader"
         Storage.InitLibstorage(true)
       end
       if @disk_change_time_checkCallingDiskInfo != Storage.GetTargetChangeTime ||
-          Ops.less_than(Builtins.size(@partinfo), 1)
+          @partinfo.empty?
         # save last change time from storage
         @disk_change_time_checkCallingDiskInfo = Storage.GetTargetChangeTime
-        Builtins.y2milestone(
-          "disk was changed by storage or partinfo is empty: %1",
-          Builtins.size(@partinfo)
-        )
-        Builtins.y2milestone(
-          "generate partinfo, md_info, mountpoints and multipath_mapping"
-        )
-        ret = true
+        log.info "disk was changed by storage or partinfo is empty"
+        log.info "generate partinfo, md_info, mountpoints and multipath_mapping"
+        return true
       else
-        ret = false
-        Builtins.y2milestone(
-          "Skip genarating partinfo, md_info, mountpoints and multipath_mapping"
-        )
+        log.info "Skip genarating partinfo, md_info, mountpoints and multipath_mapping"
+        return false
       end
-
-      ret
     end
 
     # Function init data for perl-Bootloader about disk
@@ -201,23 +190,6 @@ module Yast
     end
 
 
-    # Generate device map proposal, store it in internal variables.
-    def ProposeDeviceMap
-      @device_map = ::Bootloader::DeviceMap.new
-      @multipath_mapping = {}
-
-      if Mode.config
-        log.info("Skipping device map proposing in Config mode")
-        return
-      end
-
-      @device_map.propose
-      log.info("Detected device mapping: #{@device_map}")
-
-      @multipath_mapping = mapRealDevicesToMultipath
-      log.info("Detected multipath mapping: #{@multipath_mapping}")
-    end
-
     # Get the order of disks according to BIOS mapping
     # @return a list of all disks in the order BIOS sees them
     def DisksOrder
@@ -226,17 +198,9 @@ module Yast
       @device_map.disks_order
     end
 
-    # Function remap device map to device name (/dev/sda)
-    # or to label (ufo_disk)
-    # @param map<string,string> device map
-    # @return [Hash{String => String}] new device map
 
-    def remapDeviceMap
-      @device_map.remapped_hash
-    end
-
-    # Returns list of partitions. Requests current partitioning from
-    # yast2-storage and creates list of partition usable for boot partition
+    # Returns list of partitions and disks. Requests current partitioning from
+    # yast2-storage and creates list of partition and disks usable for grub stage1
     def possible_locations_for_stage1
       devices = Storage.GetTargetMap
 
@@ -300,9 +264,7 @@ module Yast
         end
         if no_partition == ""
           no_partition = no_p
-        elsif no_partition == no_p
-          ret = true
-        else
+        elsif no_partition != no_p
           log.info "Different number of partitions -> disable synchronize md arrays"
           return false
         end
@@ -350,12 +312,12 @@ module Yast
       part = Storage.GetPartition(tm, partition)
 
       if !part
-        Builtins.y2error("cannot find partition #{partition}")
+        log.error "cannot find partition #{partition}"
         return false
       end
 
       fs = part["used_fs"]
-      Builtins.y2milestone("FS for boot partition #{fs}")
+      log.info "FS for boot partition #{fs}"
 
       # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
       return fs != :xfs
@@ -388,7 +350,7 @@ module Yast
 
       log.info "Devices for analyse of redundacy md array: #{boot_devices}"
 
-      Builtins.foreach(boot_devices) do |dev|
+      boot_devices.each do |dev|
         ret = checkMDDevices(tm, dev)
         if !ret
           log.info "Skip enable redundancy of md arrays"
@@ -427,7 +389,7 @@ module Yast
           end
         end
       end
-      Builtins.y2milestone("Partitions building %1: %2", md_device, ret)
+      log.info "Partitions building #{md_device}: #{ret}"
 
       ret
     end
@@ -468,10 +430,7 @@ module Yast
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
     publish :function => :InitDiskInfo, :type => "void ()"
-    publish :function => :ProposeDeviceMap, :type => "void ()"
     publish :function => :DisksOrder, :type => "list <string> ()"
-    publish :function => :remapDeviceMap, :type => "map <string, string> ()"
-    publish :function => :getPartitionList, :type => "list <string> (symbol, string)"
     publish :function => :addMDSettingsToGlobals, :type => "string ()"
     publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
   end
