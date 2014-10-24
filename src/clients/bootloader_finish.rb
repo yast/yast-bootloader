@@ -180,6 +180,7 @@ module Yast
             @retcode = Bootloader.CopyKernelInird
           else
             Builtins.y2milestone("Installation started with kexec_reboot set 0")
+            @retcode = true
           end
 
           # (bnc #381192) don't use it if kexec is used
@@ -205,6 +206,8 @@ module Yast
           branding_activator = branding_activator[prefix.size..-1]
           res = SCR.Execute(path(".target.bash_output"), branding_activator)
           Builtins.y2milestone("Reactivate branding with #{branding_activator} and result #{res}")
+          res = SCR.Execute(path(".target.bash_output"), "/usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg")
+          Builtins.y2milestone("Re-created grub.cfg with result #{res}")
         end
       end
       # workaround for packages that forgot to update initrd(bnc#889616)
