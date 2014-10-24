@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 24 14:30:20 UTC 2014 - jreidinger@suse.com
+
+- fix crash during installation if kernel parameter is not
+  pre-proposed (bnc#902397)
+- 3.1.106
+
+-------------------------------------------------------------------
 Wed Oct 15 11:50:20 UTC 2014 - jreidinger@suse.com
 
 - improve usability of device map editor (bnc#900807)
