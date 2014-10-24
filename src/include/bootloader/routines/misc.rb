@@ -158,6 +158,8 @@ module Yast
     def getKernelParamFromLine(line, key)
       # FIXME this doesn't work with quotes and spaces
       res = "false"
+      # we can get nil if params is not yet proposed, so return not there (bnc#902397)
+      return res unless line
       params = line.split(" ").reject(&:empty?)
       params.each do |p|
         l = p.split("=")
