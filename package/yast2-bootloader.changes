@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Oct 29 07:16:22 UTC 2014 - jreidinger@suse.com
+
+- fix branding activation on live CD and also with kexec enabled
+  (bnc#897847)
+- 3.1.107
+
+-------------------------------------------------------------------
 Fri Oct 24 14:30:20 UTC 2014 - jreidinger@suse.com
 
 - fix crash during installation if kernel parameter is not
