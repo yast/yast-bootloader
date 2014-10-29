@@ -395,7 +395,7 @@ module Yast
       bldevs = BootCommon.GetBootloaderDevices
       need_location_reconfigure = false
 
-      if bldevs == nil || bldevs == ["/dev/null"]
+      if bldevs.empty?
         need_location_reconfigure = true
       else
         Builtins.foreach(bldevs) do |dev|

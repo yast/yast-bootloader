@@ -49,6 +49,9 @@ describe Bootloader::UdevMapping do
         when "/dev/system/root"
           disk = "/dev/system"
           number = "system"
+        when "/dev/mapper/cr_swap"
+          disk = "/dev/mapper/cr_swap"
+          number = ""
         when "tmpfs"
           disk = "tmpfs"
           number = ""
@@ -72,6 +75,13 @@ describe Bootloader::UdevMapping do
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:id)
 
       expect(subject.to_mountby_device("/dev/vda2")).to eq "/dev/disk/by-uuid/ec8e9948-ca5f-4b18-a863-ac999365e4a9"
+    end
+
+    it "returns encrypted device name if device have it" do
+      target_map_stub("storage_encrypted.rb")
+      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
+
+      expect(subject.to_mountby_device("/dev/mapper/cr_swap")).to eq "/dev/mapper/cr_swap"
     end
 
     it "returns kernel device name if requested udev mapping do not exists" do

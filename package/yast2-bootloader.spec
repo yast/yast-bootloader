@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        3.1.105
+Version:        3.1.108
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -117,7 +117,7 @@ rake install DESTDIR="%{buildroot}"
 
 %dir %{yast_docdir}
 %doc %{yast_docdir}/COPYING
-%doc %{yast_docdir}/README
+%doc %{yast_docdir}/README.md
 %doc %{yast_docdir}/CONTRIBUTING.md
 
 %files devel-doc

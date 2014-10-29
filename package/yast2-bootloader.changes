@@ -1,4 +1,30 @@
 -------------------------------------------------------------------
+Wed Oct 29 14:13:52 UTC 2014 - jreidinger@suse.com
+
+- do not return /dev/null if cannot detect bootloader devices as it
+  cause errors later
+
+-------------------------------------------------------------------
+Wed Oct 29 13:18:10 UTC 2014 - jreidinger@suse.com
+
+- do not show warning if boot from extended partition (bnc#898023)
+- 3.1.108
+
+-------------------------------------------------------------------
+Wed Oct 29 07:16:22 UTC 2014 - jreidinger@suse.com
+
+- fix branding activation on live CD and also with kexec enabled
+  (bnc#897847)
+- 3.1.107
+
+-------------------------------------------------------------------
+Fri Oct 24 14:30:20 UTC 2014 - jreidinger@suse.com
+
+- fix crash during installation if kernel parameter is not
+  pre-proposed (bnc#902397)
+- 3.1.106
+
+-------------------------------------------------------------------
 Wed Oct 15 11:50:20 UTC 2014 - jreidinger@suse.com
 
 - improve usability of device map editor (bnc#900807)

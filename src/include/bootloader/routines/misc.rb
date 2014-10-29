@@ -145,9 +145,9 @@ module Yast
       if @globals["boot_custom"]
         ret << @globals["boot_custom"]
       end
-      return ret unless ret.empty?
-      # FIXME: find out what the best value is here: nil, [] or ["/dev/null"]
-      ["/dev/null"]
+      Builtins.y2warning("Empty bootloader devices. Globals #{@globals.inspect}") if ret.empty?
+
+      ret
     end
 
     # get kernel parameter from kernel command line
@@ -158,6 +158,8 @@ module Yast
     def getKernelParamFromLine(line, key)
       # FIXME this doesn't work with quotes and spaces
       res = "false"
+      # we can get nil if params is not yet proposed, so return not there (bnc#902397)
+      return res unless line
       params = line.split(" ").reject(&:empty?)
       params.each do |p|
         l = p.split("=")

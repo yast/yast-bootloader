@@ -64,11 +64,6 @@ describe Bootloader::MBRUpdate do
           receive(:new).with("/dev/sda").and_return(backup_mock)
         )
         expect(backup_mock).to receive(:write)
-        #FIXME avoid stupid /dev/null behavior
-        expect(::Bootloader::BootRecordBackup).to(
-          receive(:new).with("/dev/null").
-          and_return(double(:write => true))
-        )
 
         subject.run
       end
