@@ -23,8 +23,7 @@ describe Yast::BootStorage do
   describe ".possible_locations_for_stage1" do
     before do
       target_map_stub("storage_mdraid.rb")
-      # won't work without device map
-      Yast::BootStorage.ProposeDeviceMap
+      Yast::BootStorage.device_map.propose
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:device)
     end
 
