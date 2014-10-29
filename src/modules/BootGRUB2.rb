@@ -229,7 +229,7 @@ module Yast
         line << "</li>"
       end
 
-      if ["boot_root", "boot_boot", "boot_mbr"].none? { |loc| BootCommon.globals[loc] == "true" }
+      if ["boot_root", "boot_boot", "boot_mbr", "boot_extended"].none? { |loc| BootCommon.globals[loc] == "true" }
           # no location chosen, so warn user that it is problem unless he is sure
           msg = _("Warning: No location for bootloader stage1 selected." \
             "Unless you know what you are doing please select above location.")

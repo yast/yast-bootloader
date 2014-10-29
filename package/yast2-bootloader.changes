@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct 29 13:18:10 UTC 2014 - jreidinger@suse.com
+
+- do not show warning if boot from extended partition (bnc#898023)
+- 3.1.108
+
+-------------------------------------------------------------------
 Wed Oct 29 07:16:22 UTC 2014 - jreidinger@suse.com
 
 - fix branding activation on live CD and also with kexec enabled
