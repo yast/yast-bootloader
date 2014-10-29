@@ -934,7 +934,7 @@ module Yast
       WFM.Execute(path(".local.mkdir"), "/var/lib/YaST2")
 
       cmd = Builtins.sformat(
-        "/bin/cp -L %1%2 %1%3 %4",
+        "/bin/cp -L %1/%2 %1/%3 %4",
         Installation.destdir,
         "vmlinuz",
         "initrd",
