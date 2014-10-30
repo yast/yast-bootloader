@@ -22,6 +22,7 @@ describe Yast::BootStorage do
   end
 
   describe ".possible_locations_for_stage1" do
+    let (:possible_locations) { subject.possible_locations_for_stage1 }
     before do
       target_map_stub("storage_mdraid.rb")
       subject.device_map.propose
@@ -29,18 +30,15 @@ describe Yast::BootStorage do
     end
 
     it "returns list of kernel devices that can be used as stage1 for bootloader" do
-      res = subject.possible_locations_for_stage1
-      expect(res).to be_a(Array)
+      expect(possible_locations).to be_a(Array)
     end
 
     it "returns also physical disks" do
-      res = subject.possible_locations_for_stage1
-      expect(res).to include("/dev/vda")
+      expect(possible_locations).to include("/dev/vda")
     end
 
     it "returns all partitions suitable for stage1" do
-      res = subject.possible_locations_for_stage1
-      expect(res).to include("/dev/vda1")
+      expect(possible_locations).to include("/dev/vda1")
     end
 
     it "do not return partitions if disk is not in device map" do
@@ -54,8 +52,7 @@ describe Yast::BootStorage do
       partition_to_delete = Yast::Storage.GetTargetMap["/dev/vda"]["partitions"].first
       partition_to_delete["delete"] = true
 
-      res = subject.possible_locations_for_stage1
-      expect(res).to_not include(partition_to_delete["device"])
+      expect(possible_locations).to_not include(partition_to_delete["device"])
     end
   end
 
@@ -103,6 +100,5 @@ describe Yast::BootStorage do
       result = subject.real_disks_for_partition("/dev/system/root")
       expect(result).to include("/dev/vda")
     end
-
   end
 end
