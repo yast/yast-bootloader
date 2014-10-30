@@ -104,7 +104,7 @@ module Bootloader
         Yast::BootStorage.BootPartitionDevice
       )
       # if none of priority disk is hd0, then choose one and assign it
-      if !any_first_device(priority_disks)
+      if !any_first_device?(priority_disks)
         @mapping = change_order(@mapping,
             priority_device: priority_disks.first)
       end
@@ -158,13 +158,13 @@ module Bootloader
       target_map.select! do |k, v|
         [:CT_DMRAID, :CT_DISK, :CT_DMMULTIPATH].include?(v["type"]) ||
           ( v["type"] == :CT_MDPART &&
-            checkMDRaidDevices(v["devices"] || [], targetMap))
+            checkMDRaidDevices(v["devices"] || [], target_map))
       end
 
       # filter out members of BIOS RAIDs and multipath devices
       target_map.delete_if do |k, v|
         [:UB_DMRAID, :UB_DMMULTIPATH].include?(v["used_by_type"]) ||
-          (v["used_by_type"] == :UB_MDPART && isDiskInMDRaid(k, targetMap))
+          (v["used_by_type"] == :UB_MDPART && isDiskInMDRaid(k, target_map))
       end
 
       target_map
@@ -189,7 +189,7 @@ module Bootloader
 
     # Returns true if any device from list devices is in device_mapping
     # marked as hd0.
-    def any_first_device(devices)
+    def any_first_device?(devices)
       devices.any? { |dev| @mapping[dev] == "hd0" }
     end
 
