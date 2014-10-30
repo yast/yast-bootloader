@@ -3,10 +3,11 @@ require_relative "test_helper"
 Yast.import "BootStorage"
 
 describe Yast::BootStorage do
+  subject { Yast::BootStorage }
   describe ".Md2Partitions" do
     it "returns map with devices creating virtual device as key and bios id as value" do
       target_map_stub("storage_mdraid.rb")
-      result = Yast::BootStorage.Md2Partitions("/dev/md1")
+      result = subject.Md2Partitions("/dev/md1")
       expect(result).to include("/dev/vda1")
       expect(result).to include("/dev/vdb1")
       expect(result).to include("/dev/vdc1")
@@ -15,7 +16,7 @@ describe Yast::BootStorage do
 
     it "returns empty map if device is not created from other devices" do
       target_map_stub("storage_mdraid.rb")
-      result = Yast::BootStorage.Md2Partitions("/dev/vda1")
+      result = subject.Md2Partitions("/dev/vda1")
       expect(result).to be_empty
     end
   end
@@ -23,29 +24,29 @@ describe Yast::BootStorage do
   describe ".possible_locations_for_stage1" do
     before do
       target_map_stub("storage_mdraid.rb")
-      Yast::BootStorage.device_map.propose
+      subject.device_map.propose
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:device)
     end
 
     it "returns list of kernel devices that can be used as stage1 for bootloader" do
-      res = Yast::BootStorage.possible_locations_for_stage1
+      res = subject.possible_locations_for_stage1
       expect(res).to be_a(Array)
     end
 
     it "returns also physical disks" do
-      res = Yast::BootStorage.possible_locations_for_stage1
+      res = subject.possible_locations_for_stage1
       expect(res).to include("/dev/vda")
     end
 
     it "returns all partitions suitable for stage1" do
-      res = Yast::BootStorage.possible_locations_for_stage1
+      res = subject.possible_locations_for_stage1
       expect(res).to include("/dev/vda1")
     end
 
     it "do not return partitions if disk is not in device map" do
-      Yast::BootStorage.device_map = ::Bootloader::DeviceMap.new("/dev/vdb" => "hd0")
+      subject.device_map = ::Bootloader::DeviceMap.new("/dev/vdb" => "hd0")
 
-      res = Yast::BootStorage.possible_locations_for_stage1
+      res = subject.possible_locations_for_stage1
       expect(res).to_not include("/dev/vda1")
     end
 
@@ -53,7 +54,7 @@ describe Yast::BootStorage do
       partition_to_delete = Yast::Storage.GetTargetMap["/dev/vda"]["partitions"].first
       partition_to_delete["delete"] = true
 
-      res = Yast::BootStorage.possible_locations_for_stage1
+      res = subject.possible_locations_for_stage1
       expect(res).to_not include(partition_to_delete["device"])
     end
   end
@@ -76,14 +77,14 @@ describe Yast::BootStorage do
     it "returns unique list of disk on which partitions lives" do
       target_map_stub("storage_mdraid.rb")
 
-      result = Yast::BootStorage.real_disks_for_partition("/dev/vda1")
+      result = subject.real_disks_for_partition("/dev/vda1")
       expect(result).to include("/dev/vda")
     end
 
     it "can handle md raid" do
       target_map_stub("storage_mdraid.rb")
 
-      result = Yast::BootStorage.real_disks_for_partition("/dev/md1")
+      result = subject.real_disks_for_partition("/dev/md1")
       expect(result).to include("/dev/vda")
       expect(result).to include("/dev/vdb")
       expect(result).to include("/dev/vdc")
@@ -93,13 +94,13 @@ describe Yast::BootStorage do
     it "can handle LVM" do
       target_map_stub("storage_lvm.rb")
 
-      result = Yast::BootStorage.real_disks_for_partition("/dev/system/root")
+      result = subject.real_disks_for_partition("/dev/system/root")
       expect(result).to include("/dev/vda")
 
       #do not crash if target map do not contain devices_add(bnc#891070)
       target_map_stub("storage_lvm_without_devices_add.rb")
 
-      result = Yast::BootStorage.real_disks_for_partition("/dev/system/root")
+      result = subject.real_disks_for_partition("/dev/system/root")
       expect(result).to include("/dev/vda")
     end
 
