@@ -44,7 +44,7 @@ module Bootloader
     # The function reduces records (devices) in device.map
     # Grub doesn't support more than 8 devices in device.map
     # @return [Boolean] true if device map was reduced
-    def reduce_bios_limit
+    def reduce_to_bios_limit
       if @mapping.size <= BIOS_LIMIT
         log.info "device map not need to be reduced"
         return false

@@ -621,7 +621,7 @@ module Yast
     # Grub doesn't support more than 8 devices in device.map
     # @return [Boolean] true if device map was reduced
     def ReduceDeviceMapTo8
-      BootStorage.device_map.reduce_bios_limit
+      BootStorage.device_map.reduce_to_bios_limit
     end
   end
 end
