@@ -88,7 +88,7 @@ module Yast
     # Init function of a widget
     # @param [String] widget string widget key
     def InitBootLoaderLocationWidget(widget)
-      boot_devices = BootStorage.getPartitionList(:boot, "grub")
+      boot_devices = BootStorage.possible_locations_for_stage1
       if BootCommon.VerifyMDArray
         UI.ChangeWidget(Id("enable_redundancy"), :Value,
           BootCommon.enable_md_array_redundancy

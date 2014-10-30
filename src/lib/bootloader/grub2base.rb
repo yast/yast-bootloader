@@ -1,7 +1,7 @@
 # encoding: utf-8
 require "yast"
 require "bootloader/grub2pwd"
-require "bootloader/device_mapping"
+require "bootloader/udev_mapping"
 
 module Yast
   class GRUB2Base < Module
@@ -118,7 +118,7 @@ module Yast
       resume = BootArch.ResumeAvailable ? largest_swap_part : ""
       # try to use label or udev id for device name... FATE #302219
       if resume != "" && resume != nil
-        resume = ::Bootloader::DeviceMapping.to_mountby_device(resume)
+        resume = ::Bootloader::UdevMapping.to_mountby_device(resume)
       end
 
       BootCommon.globals["append"]          ||= BootArch.DefaultKernelParams(resume)

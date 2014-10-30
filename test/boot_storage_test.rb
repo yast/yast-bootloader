@@ -3,10 +3,11 @@ require_relative "test_helper"
 Yast.import "BootStorage"
 
 describe Yast::BootStorage do
+  subject { Yast::BootStorage }
   describe ".Md2Partitions" do
     it "returns map with devices creating virtual device as key and bios id as value" do
       target_map_stub("storage_mdraid.rb")
-      result = Yast::BootStorage.Md2Partitions("/dev/md1")
+      result = subject.Md2Partitions("/dev/md1")
       expect(result).to include("/dev/vda1")
       expect(result).to include("/dev/vdb1")
       expect(result).to include("/dev/vdc1")
@@ -15,13 +16,47 @@ describe Yast::BootStorage do
 
     it "returns empty map if device is not created from other devices" do
       target_map_stub("storage_mdraid.rb")
-      result = Yast::BootStorage.Md2Partitions("/dev/vda1")
+      result = subject.Md2Partitions("/dev/vda1")
       expect(result).to be_empty
     end
   end
 
-  describe ".real_disks_for_partition" do
+  describe ".possible_locations_for_stage1" do
+    let (:possible_locations) { subject.possible_locations_for_stage1 }
+    before do
+      target_map_stub("storage_mdraid.rb")
+      subject.device_map.propose
+      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:device)
+    end
 
+    it "returns list of kernel devices that can be used as stage1 for bootloader" do
+      expect(possible_locations).to be_a(Array)
+    end
+
+    it "returns also physical disks" do
+      expect(possible_locations).to include("/dev/vda")
+    end
+
+    it "returns all partitions suitable for stage1" do
+      expect(possible_locations).to include("/dev/vda1")
+    end
+
+    it "do not return partitions if disk is not in device map" do
+      subject.device_map = ::Bootloader::DeviceMap.new("/dev/vdb" => "hd0")
+
+      res = subject.possible_locations_for_stage1
+      expect(res).to_not include("/dev/vda1")
+    end
+
+    it "do not list partitions marked for delete" do
+      partition_to_delete = Yast::Storage.GetTargetMap["/dev/vda"]["partitions"].first
+      partition_to_delete["delete"] = true
+
+      expect(possible_locations).to_not include(partition_to_delete["device"])
+    end
+  end
+
+  describe ".real_disks_for_partition" do
     before do
       # simple mock getting disks from partition as it need initialized libstorage
       allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
@@ -39,14 +74,14 @@ describe Yast::BootStorage do
     it "returns unique list of disk on which partitions lives" do
       target_map_stub("storage_mdraid.rb")
 
-      result = Yast::BootStorage.real_disks_for_partition("/dev/vda1")
+      result = subject.real_disks_for_partition("/dev/vda1")
       expect(result).to include("/dev/vda")
     end
 
     it "can handle md raid" do
       target_map_stub("storage_mdraid.rb")
 
-      result = Yast::BootStorage.real_disks_for_partition("/dev/md1")
+      result = subject.real_disks_for_partition("/dev/md1")
       expect(result).to include("/dev/vda")
       expect(result).to include("/dev/vdb")
       expect(result).to include("/dev/vdc")
@@ -56,62 +91,14 @@ describe Yast::BootStorage do
     it "can handle LVM" do
       target_map_stub("storage_lvm.rb")
 
-      result = Yast::BootStorage.real_disks_for_partition("/dev/system/root")
+      result = subject.real_disks_for_partition("/dev/system/root")
       expect(result).to include("/dev/vda")
 
       #do not crash if target map do not contain devices_add(bnc#891070)
       target_map_stub("storage_lvm_without_devices_add.rb")
 
-      result = Yast::BootStorage.real_disks_for_partition("/dev/system/root")
+      result = subject.real_disks_for_partition("/dev/system/root")
       expect(result).to include("/dev/vda")
-    end
-
-  end
-
-  describe ".changeOrderInDeviceMapping" do
-    it "place priority device on top of device mapping" do
-      device_map = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
-      result = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1" }
-      expect(
-        Yast::BootStorage.changeOrderInDeviceMapping(
-          device_map,
-          priority_device: "/dev/sda"
-        )
-      ).to eq(result)
-    end
-
-    it "ignores priority device which is not in device map already" do
-      device_map = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
-      result = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
-      expect(
-        Yast::BootStorage.changeOrderInDeviceMapping(
-          device_map,
-          priority_device: "/dev/system"
-        )
-      ).to eq(result)
-    end
-
-    it "place bad devices at the end of list" do
-      device_map = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1" }
-      result = { "/dev/sda" => "hd1", "/dev/sdb" => "hd0" }
-      expect(
-        Yast::BootStorage.changeOrderInDeviceMapping(
-          device_map,
-          bad_devices: "/dev/sda"
-        )
-      ).to eq(result)
-    end
-
-    it "can mix priority and bad devices" do
-      device_map = { "/dev/sda" => "hd0", "/dev/sdb" => "hd1", "/dev/sdc" => "hd2" }
-      result = { "/dev/sda" => "hd2", "/dev/sdb" => "hd0", "/dev/sdc" => "hd1" }
-      expect(
-        Yast::BootStorage.changeOrderInDeviceMapping(
-          device_map,
-          bad_devices: "/dev/sda",
-          priority_device: "/dev/sdb"
-        )
-      ).to eq(result)
     end
   end
 end

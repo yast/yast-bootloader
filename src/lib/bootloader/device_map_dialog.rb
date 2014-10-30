@@ -5,6 +5,8 @@ Yast.import "BootStorage"
 Yast.import "Label"
 Yast.import "Popup"
 
+require "bootloader/device_map"
+
 module Bootloader
   class DeviceMapDialog
     include Yast::UIShortcuts
@@ -130,7 +132,7 @@ module Bootloader
         res
       end
 
-      Yast::BootStorage.device_mapping = mapping
+      Yast::BootStorage.device_map = ::Bootloader::DeviceMap.new(mapping)
     end
 
     def add_device_popup

@@ -7,7 +7,7 @@ Yast.import "Arch"
 
 module Bootloader
   # Class manages mapping between udev names of disks and partitions.
-  class DeviceMapping
+  class UdevMapping
     include Singleton
     include Yast::Logger
 

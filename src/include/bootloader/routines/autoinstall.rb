@@ -255,7 +255,7 @@ module Yast
         end
         file = Builtins.mergestring(lines, "\n")
         BootCommon.InitializeLibrary(true, loader)
-        BootCommon.SetDeviceMap(BootStorage.device_mapping)
+        BootCommon.SetDeviceMap(BootStorage.device_map.to_hash)
         BootCommon.SetGlobal({})
         BootCommon.SetFilesContents(files)
         Ops.set(exp, ["specific", "global"], BootCommon.GetGlobal)

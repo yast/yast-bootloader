@@ -21,7 +21,7 @@
 
 require "tempfile"
 require "yaml"
-require "bootloader/device_mapping"
+require "bootloader/udev_mapping"
 
 module Yast
   module BootloaderRoutinesLibIfaceInclude
@@ -123,7 +123,7 @@ module Yast
       Builtins.y2milestone("Initializing lib for %1", loader)
       architecture = BootArch.StrArch
       loader_data = TmpYAMLFile.new([loader, architecture])
-      udev_data = TmpYAMLFile.new(::Bootloader::DeviceMapping.to_hash)
+      udev_data = TmpYAMLFile.new(::Bootloader::UdevMapping.to_hash)
 
       run_pbl_yaml "SetLoaderType(@#{loader_data.path})",
         "DefineUdevMapping(#{udev_data.path})"

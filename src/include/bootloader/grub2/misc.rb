@@ -253,7 +253,7 @@ module Yast
 
       SetBootloaderDevice(selected_location)
       if !Builtins.contains(
-          BootStorage.getPartitionList(:boot, "grub"),
+          BootStorage.possible_locations_for_stage1,
           Ops.get(BootCommon.GetBootloaderDevices, 0)
         )
         selected_location = :mbr # default to mbr
@@ -391,7 +391,7 @@ module Yast
       # if no bootloader devices have been set up, or any of the set up
       # bootloader devices have become unavailable, then re-propose the
       # bootloader location.
-      all_boot_partitions = BootStorage.getPartitionList(:boot, "grub")
+      all_boot_partitions = BootStorage.possible_locations_for_stage1
       bldevs = BootCommon.GetBootloaderDevices
       need_location_reconfigure = false
 
@@ -497,7 +497,7 @@ module Yast
 
       if Ops.get(BootCommon.globals, "boot_custom") != nil &&
           Ops.get(BootCommon.globals, "boot_custom") != ""
-        all_boot_partitions = BootStorage.getPartitionList(:boot, "grub")
+        all_boot_partitions = BootStorage.possible_locations_for_stage1
 
         if !Builtins.contains(
             all_boot_partitions,
@@ -584,14 +584,13 @@ module Yast
       Builtins.y2milestone("(2) globals: %1", BootCommon.globals)
 
       # refresh device map
-      if BootStorage.device_mapping == nil ||
-          Builtins.size(BootStorage.device_mapping) == 0 ||
-          BootCommon.cached_settings_base_data_change_time !=
+      if BootStorage.device_map.empty?  ||
+        BootCommon.cached_settings_base_data_change_time !=
             Storage.GetTargetChangeTime &&
             # bnc#585824 - Bootloader doesn't use defined device map from autoyast
             !((Mode.autoinst || Mode.autoupgrade) &&
               BootCommon.cached_settings_base_data_change_time == nil)
-        BootStorage.ProposeDeviceMap
+        BootStorage.device_map.propose
         md_mbr = BootStorage.addMDSettingsToGlobals
         Ops.set(BootCommon.globals, "boot_md_mbr", md_mbr) if md_mbr != ""
         BootCommon.InitializeLibrary(true, "grub2")
@@ -622,61 +621,7 @@ module Yast
     # Grub doesn't support more than 8 devices in device.map
     # @return [Boolean] true if device map was reduced
     def ReduceDeviceMapTo8
-      result = false
-
-      if Ops.greater_than(Builtins.size(BootStorage.device_mapping), 8)
-        result = true
-        bios_order = Convert.convert(
-          Map.Values(BootStorage.device_mapping),
-          :from => "list",
-          :to   => "list <string>"
-        )
-        #delete all grub devices with order more than 9
-        bios_order = Builtins.filter(bios_order) do |key|
-          Ops.less_than(Builtins.size(key), 4)
-        end
-        bios_order = Builtins.lsort(bios_order)
-        Builtins.y2debug("ordered values (grub devices): %1", bios_order)
-        inverse_device_map = {}
-        new_device_map = {}
-        Builtins.y2milestone(
-          "Device map before reducing: %1",
-          BootStorage.device_mapping
-        )
-        Builtins.foreach(BootStorage.device_mapping) do |key, value|
-          Ops.set(inverse_device_map, value, key)
-        end
-
-        Builtins.y2debug("inverse_device_map: %1", inverse_device_map)
-        index = 0
-
-        Builtins.foreach(bios_order) do |key|
-          device_name = Ops.get(inverse_device_map, key, "")
-          if Ops.less_than(index, 8)
-            Builtins.y2debug(
-              "adding device: %1 with key: %2 and index is: %3",
-              device_name,
-              key,
-              index
-            )
-            Ops.set(new_device_map, device_name, key)
-            index = Ops.add(index, 1)
-          else
-            raise Break
-          end
-        end
-        BootStorage.device_mapping = deep_copy(new_device_map)
-        Builtins.y2milestone(
-          "Device map after reducing: %1",
-          BootStorage.device_mapping
-        )
-      else
-        Builtins.y2milestone(
-          "Device map includes less than 9 devices. It is not reduced. device_map: %1",
-          BootStorage.device_mapping
-        )
-      end
-      result
+      BootStorage.device_map.reduce_to_bios_limit
     end
   end
 end
