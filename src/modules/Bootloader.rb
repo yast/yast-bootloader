@@ -467,33 +467,6 @@ module Yast
       BootCommon.globals["default"] || ""
     end
 
-    # Get default section as proposed during installation
-    # @return section that was proposed as default during installation,
-    # if not known, return current default section if it is of type "image",
-    # if not found return first linux section, if no present, return empty
-    # string
-    def getProposedDefaultSection
-      ReadOrProposeIfNeeded()
-      defaultv = ""
-      first_image = ""
-      default_image = ""
-      Builtins.foreach(BootCommon.sections) do |s|
-        title = s["name"] || ""
-        if s["image"]
-          first_image = title if first_image == ""
-          default_image = title if title == getDefaultSection
-        end
-        if defaultv == "" && s["original_name"] == "linux"
-          defaultv = title
-        end
-      end
-      return defaultv if defaultv != ""
-      return default_image if default_image != ""
-      return first_image if first_image != ""
-      ""
-    end
-
-
     # get kernel parameters from bootloader configuration file
     # @param [String] section string section title, use DEFAULT for default section
     # @param [String] key string
@@ -504,8 +477,6 @@ module Yast
       ReadOrProposeIfNeeded()
       if section == "DEFAULT"
         section = getDefaultSection
-      elsif section == "LINUX_DEFAULT"
-        section = getProposedDefaultSection
       end
       return "" if section == nil
       params = BootCommon.getAnyTypeAttrib("kernel_params", {})
