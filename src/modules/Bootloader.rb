@@ -195,6 +195,7 @@ module Yast
       log.debug "Read settings: #{Export()}"
       ret
     end
+
     # Reset bootloader settings
     # @param [Boolean] init boolean true if basic initialization of system-dependent
     # settings should be done
@@ -217,6 +218,7 @@ module Yast
     def Reset
       ResetEx(true)
     end
+
     # Propose bootloader settings
     def Propose
       log.info "Proposing configuration"
@@ -277,13 +279,6 @@ module Yast
     # @return [Boolean] true on success
     def Update
       Write() # write also reads the configuration and updates it
-    end
-
-    # Process update actions needed before packages update starts
-    def PreUpdate
-      log.info "Running bootloader pre-update stuff"
-
-      nil
     end
 
     # Write bootloader settings to disk
@@ -942,7 +937,6 @@ module Yast
     publish :function => :Summary, :type => "list <string> ()"
     publish :function => :UpdateConfiguration, :type => "void ()"
     publish :function => :Update, :type => "boolean ()"
-    publish :function => :PreUpdate, :type => "void ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
     publish :function => :setLoaderType, :type => "void (string)"
     publish :function => :RunDelayedUpdates, :type => "void ()"
