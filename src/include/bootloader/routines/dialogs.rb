@@ -74,7 +74,13 @@ module Yast
     def MainDialog
       Builtins.y2milestone("Running Main Dialog")
       lt = Bootloader.getLoaderType
-      contents = VBox("tab")
+      if lt == "none"
+        contents = VBox("loader_type")
+        widget_names = ["loader_type"]
+      else
+        contents = VBox("tab")
+        widget_names = ["tab"]
+      end
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso: additional warning that root partition is nfs type -> bootloader will not be installed
@@ -92,8 +98,6 @@ module Yast
         return :next
       end
       # F#300779: end
-
-      widget_names = ["tab"]
 
       widget_descr = Builtins.union(CommonGlobalWidgets(), Bootloader.blWidgetMaps)
 
