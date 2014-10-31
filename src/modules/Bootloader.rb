@@ -374,23 +374,7 @@ module Yast
         Progress.Title(titles[1])
       end
 
-      # Write settings to /etc/sysconfig/bootloader
-      log.info "Saving configuration files"
-      lt = getLoaderType
-
-      SCR.Write(path(".sysconfig.bootloader.LOADER_TYPE"), lt)
-      SCR.Write(path(".sysconfig.bootloader"), nil)
-
-
-      params_to_save["additional_failsafe_params"] = BootCommon.GetAdditionalFailsafeParams
-      params_to_save["installation_kernel_params"] = Kernel.GetCmdLine
-      if Stage.initial
-        SCR.Write(
-          path(".target.ycp"),
-          "/var/lib/YaST2/bootloader.ycp",
-          params_to_save
-        )
-      end
+      write_additional_files
 
       return ret if getLoaderType == "none"
 
@@ -479,20 +463,7 @@ module Yast
 
       log.error "Error occurred while creating initrd" unless ret
 
-      Ops.set(
-        params_to_save,
-        "additional_failsafe_params",
-        BootCommon.GetAdditionalFailsafeParams
-      )
-      Ops.set(params_to_save, "installation_kernel_params", Kernel.GetCmdLine)
-
-      if Stage.initial
-        SCR.Write(
-          path(".target.ycp"),
-          "/var/lib/YaST2/bootloader.ycp",
-          params_to_save
-        )
-      end
+      write_additional_files
 
       return ret if getLoaderType == "none"
 
@@ -891,6 +862,28 @@ module Yast
       end
 
       true
+    end
+
+    private
+
+    def write_additional_files
+      # Write settings to /etc/sysconfig/bootloader
+      log.info "Saving configuration files"
+      lt = getLoaderType
+
+      SCR.Write(path(".sysconfig.bootloader.LOADER_TYPE"), lt)
+      SCR.Write(path(".sysconfig.bootloader"), nil)
+
+
+      if Stage.initial
+        params_to_save["additional_failsafe_params"] = BootCommon.GetAdditionalFailsafeParams
+        params_to_save["installation_kernel_params"] = Kernel.GetCmdLine
+        SCR.Write(
+          path(".target.ycp"),
+          "/var/lib/YaST2/bootloader.ycp",
+          params_to_save
+        )
+      end
     end
 
     publish :function => :Export, :type => "map ()"
