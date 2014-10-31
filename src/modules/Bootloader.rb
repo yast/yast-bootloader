@@ -91,7 +91,7 @@ module Yast
         "specific"       => blExport,
         "write_settings" => BootCommon.write_settings
       }
-      loader_type = Ops.get_string(out, "loader_type")
+      loader_type = out["loader_type"]
 
       # export loader_device and selected_location only for bootloaders
       # that have not phased them out yet
@@ -124,12 +124,9 @@ module Yast
 
       # import loader_device and selected_location only for bootloaders
       # that have not phased them out yet
-      BootCommon.loader_device = Ops.get_string(settings, "loader_device", "")
-      BootCommon.selected_location = Ops.get_string(
-        settings,
-        "loader_location",
-        "custom"
-      )
+      BootCommon.loader_device = settings["loader_device"] || ""
+      BootCommon.selected_location = settings["loader_location"] || "custom"
+
       # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
       # for grub, always correct the bootloader device according to
       # selected_location (or fall back to value of loader_device)
@@ -137,11 +134,9 @@ module Yast
         BootCommon.loader_device = BootCommon.GetBootloaderDevice
       end
 
-      if Ops.get_map(settings, "initrd", {}) != nil
-        Initrd.Import(Ops.get_map(settings, "initrd", {}))
-      end
-      ret = blImport(Ops.get_map(settings, "specific", {}))
-      BootCommon.write_settings = Ops.get_map(settings, "write_settings", {})
+      Initrd.Import(settings["initrd"] || {})
+      ret = blImport(settings["specific"] || {})
+      BootCommon.write_settings = settings["write_settings"] || {}
       ret
     end
 
@@ -424,11 +419,7 @@ module Yast
 
       # save initrd
       if (Initrd.changed || !Mode.normal) &&
-          !Ops.get_boolean(
-            BootCommon.write_settings,
-            "forbid_save_initrd",
-            false
-          )
+          !BootCommon.write_settings["forbid_save_initrd"]
         vga = getKernelParam(getDefaultSection, "vgamode")
         if vga != "false" && vga != ""
           Initrd.setSplash(vga)
@@ -487,12 +478,12 @@ module Yast
       first_image = ""
       default_image = ""
       Builtins.foreach(BootCommon.sections) do |s|
-        title = Ops.get_string(s, "name", "")
-        if Ops.get(s, "image") != nil
+        title = s["name"] || ""
+        if s["image"]
           first_image = title if first_image == ""
           default_image = title if title == getDefaultSection
         end
-        if defaultv == "" && Ops.get_string(s, "original_name", "") == "linux"
+        if defaultv == "" && s["original_name"] == "linux"
           defaultv = title
         end
       end
@@ -522,14 +513,14 @@ module Yast
       index = -1
       Builtins.foreach(BootCommon.sections) do |s|
         index = Ops.add(index, 1)
-        sectnum = index if Ops.get_string(s, "name", "") == section
+        sectnum = index if s["name"] == section
       end
       return "" if sectnum == -1
       line = ""
-      if Builtins.contains(["root", "vgamode"], key)
-        return Ops.get_string(BootCommon.sections, [sectnum, key], "false")
+      if ["root", "vgamode"].include? (key)
+        return BootCommon.sections[sectnum][key] || "false"
       else
-        line = Ops.get_string(BootCommon.sections, [sectnum, "append"], "")
+        line = BootCommon.sections[sectnum]["append"] || ""
         return BootCommon.getKernelParamFromLine(line, key)
       end
     end
@@ -698,15 +689,14 @@ module Yast
     def updateAppend(section)
       section = deep_copy(section)
       ret = deep_copy(section)
-      if Ops.get_string(section, "append", "") != "" &&
-          Ops.get_string(section, "console", "") != ""
+      if !(section["append"] || "").empty? &&
+          !(section["console"] || "").empty?
         updated_append = BootCommon.UpdateSerialConsole(
-          Ops.get_string(section, "append", ""),
-          Ops.get_string(section, "console", "")
+          section["append"], section["console"]
         )
-        Ops.set(ret, "append", updated_append) if updated_append != nil
+        ret["append"] = updated_append if updated_append
       end
-      deep_copy(ret)
+      ret
     end
 
 
@@ -718,14 +708,11 @@ module Yast
     # @return [String]: entry
     def DMIRead(bios_data, section, key)
       bios_data = deep_copy(bios_data)
-      result = ""
+      smbios = bios_data.fetch(0, {}).fetch("smbios", [])
 
-      Builtins.foreach(Ops.get_list(bios_data, [0, "smbios"], [])) do |x|
-        if Ops.get_string(x, "type", "") == section
-          result = Ops.get_string(x, key, "")
-          raise Break
-        end
-      end
+      result = smbios.find { |x| x["type"] == section }
+      result = result[key] if result
+      result ||= ""
 
       log.info "Bootloader::DMIRead(#{section}, #{key}) = #{result}"
 
@@ -816,7 +803,7 @@ module Yast
 
       log.info "Command for copy: #{cmd}"
       out = WFM.Execute(path(".local.bash_output"), cmd)
-      if Ops.get(out, "exit") != 0
+      if out["exit"] != 0
         log.error "Copy kernel and initrd failed, output: #{out}"
         return false
       end
