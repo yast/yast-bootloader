@@ -882,7 +882,6 @@ module Yast
     publish :variable => :test_abort, :type => "boolean ()"
     publish :function => :ResetEx, :type => "void (boolean)"
     publish :function => :Summary, :type => "list <string> ()"
-    publish :function => :UpdateConfiguration, :type => "void ()"
     publish :function => :Update, :type => "boolean ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
     publish :function => :setLoaderType, :type => "void (string)"
