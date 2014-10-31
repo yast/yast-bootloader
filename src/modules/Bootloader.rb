@@ -367,15 +367,13 @@ module Yast
         Progress.Title(titles[1])
       end
 
-      write_additional_files
+      write_additional_files(params_to_save)
 
       return ret if getLoaderType == "none"
 
       #F#300779 - Install diskless client (NFS-root)
       #kokso: bootloader will not be installed
-      device = BootCommon.getBootDisk
-
-      if device == "/dev/nfs"
+      if BootCommon.getBootDisk == "/dev/nfs"
         log.info "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
         return ret
       end
@@ -401,14 +399,7 @@ module Yast
       # call bootloader executable
       log.info "Calling bootloader executable"
       ret = ret && blWrite
-      if !ret
-        log.error "Installing bootloader failed"
-        if writeErrorPopup
-          @repeating_write = true
-          res = WFM.call("bootloader_proposal", ["AskUser", { "has_next" => false }])
-          return Write() if res["workflow_sequence"] == :next
-        end
-      end
+      ret = handle_failed_write unless ret
 
       ret
     end
@@ -449,15 +440,13 @@ module Yast
 
       log.error "Error occurred while creating initrd" unless ret
 
-      write_additional_files
+      write_additional_files(params_to_save)
 
       return ret if getLoaderType == "none"
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso: bootloader will not be installed
-      device = BootCommon.getBootDisk
-
-      if device == "/dev/nfs"
+      if BootCommon.getBootDisk == "/dev/nfs"
         log.info "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
         return ret
       end
@@ -475,19 +464,8 @@ module Yast
       # call bootloader executable
       log.info "Calling bootloader executable"
       ret = ret && blWrite
-      if !ret
-        log.error "Installing bootloader failed"
-        if writeErrorPopup
-          @repeating_write = true
-          res = Convert.to_map(
-            WFM.call(
-              "bootloader_proposal",
-              ["AskUser", { "has_next" => false }]
-            )
-          )
-          return Write() if Ops.get(res, "workflow_sequence") == :next
-        end
-      end
+      ret = handle_failed_write unless ret
+
       ret
     end
 
@@ -852,7 +830,7 @@ module Yast
 
     private
 
-    def write_additional_files
+    def write_additional_files(params_to_save)
       # Write settings to /etc/sysconfig/bootloader
       log.info "Saving configuration files"
       lt = getLoaderType
@@ -881,6 +859,17 @@ module Yast
         BootCommon.location_changed = true
         Initrd.changed = true
       end
+    end
+
+    def handle_failed_write
+      log.error "Installing bootloader failed"
+      if writeErrorPopup
+        @repeating_write = true
+        res = WFM.call("bootloader_proposal", ["AskUser", { "has_next" => false }])
+        return Write() if res["workflow_sequence"] == :next
+      end
+
+      false
     end
 
     publish :function => :Export, :type => "map ()"
