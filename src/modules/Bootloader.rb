@@ -294,14 +294,7 @@ module Yast
         ReadOrProposeIfNeeded()
       end
 
-      if BootCommon.write_settings["save_all"]
-        BootCommon.save_all = true
-      end
-      if BootCommon.save_all
-        BootCommon.changed = true
-        BootCommon.location_changed = true
-        Initrd.changed = true
-      end
+      mark_as_changed
 
       log.info "Writing bootloader configuration"
 
@@ -427,14 +420,7 @@ module Yast
       log.info "Writing bootloader configuration during installation"
       ret = true
 
-      if Ops.get_boolean(BootCommon.write_settings, "save_all", false)
-        BootCommon.save_all = true
-      end
-      if BootCommon.save_all
-        BootCommon.changed = true
-        BootCommon.location_changed = true
-        Initrd.changed = true
-      end
+      mark_as_changed
 
       params_to_save = {}
 
@@ -883,6 +869,17 @@ module Yast
           "/var/lib/YaST2/bootloader.ycp",
           params_to_save
         )
+      end
+    end
+
+    def mark_as_changed
+      if BootCommon.write_settings["save_all"]
+        BootCommon.save_all = true
+      end
+      if BootCommon.save_all
+        BootCommon.changed = true
+        BootCommon.location_changed = true
+        Initrd.changed = true
       end
     end
 
