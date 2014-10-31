@@ -28,10 +28,10 @@ License:        GPL-2.0+
 Url:            http://github.com/yast/yast-bootloader
 BuildRequires:	yast2-devtools >= 3.1.10
 BuildRequires:	yast2 >= 3.1.0
-BuildRequires:  update-desktop-files
 BuildRequires:  rubygem(rspec)
 BuildRequires:  rubygem(yast-rake)
 BuildRequires:  yast2-storage
+BuildRequires:  yast2-ruby-bindings >= 1.0.0
 PreReq:         /bin/sed %fillup_prereq
 # Installation::*version variables
 # Wizard::SetDialogTitleAndIcon
@@ -40,22 +40,12 @@ Requires:	yast2-packager >= 2.17.24
 Requires:	yast2-pkg-bindings >= 2.17.25
 Requires:	perl-Bootloader-YAML
 Requires:	yast2-core >= 2.18.7
-Requires:       yast2-storage >= 2.18.18 parted perl-Compress-Zlib
+Requires:       yast2-storage >= 2.18.18
+Requires:       parted
 
 %ifarch %ix86 x86_64
 Requires:	syslinux
 %endif
-
-Provides:	yast2-config-lilo yast2-config-bootloader
-Obsoletes:	yast2-config-lilo yast2-config-bootloader
-Provides:	yast2-agent-liloconf yast2-agent-prom
-Obsoletes:	yast2-agent-liloconf yast2-agent-prom
-Provides:	yast2-trans-inst-bootloader yast2-trans-lilo yast2-trans-boot
-Obsoletes:	yast2-trans-inst-bootloader yast2-trans-lilo yast2-trans-boot
-Provides:	y2c_boot y2t_boot
-Obsoletes:	y2c_boot y2t_boot
-Provides:	y2t_inst-bootloader yast2-agent-liloconf-devel yast2-agent-prom-devel
-Obsoletes:	y2t_inst-bootloader yast2-agent-liloconf-devel yast2-agent-prom-devel
 
 Requires:       yast2-ruby-bindings >= 1.0.0
 
@@ -123,4 +113,3 @@ rake install DESTDIR="%{buildroot}"
 %files devel-doc
 %defattr(-,root,root)
 %doc %{yast_docdir}/autodocs
-
