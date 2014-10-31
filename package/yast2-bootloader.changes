@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 31 06:36:13 UTC 2014 - jreidinger@suse.com
+
+- do not show useless widgets when user decided to not install
+  bootloader (bnc#901060)
+- 3.1.109
+
+-------------------------------------------------------------------
 Wed Oct 29 14:13:52 UTC 2014 - jreidinger@suse.com
 
 - do not return /dev/null if cannot detect bootloader devices as it
