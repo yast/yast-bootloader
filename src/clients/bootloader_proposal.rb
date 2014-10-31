@@ -145,7 +145,6 @@ module Yast
         end
 
         # cache the values
-        Bootloader.cached_settings = Bootloader.Export
         BootCommon.cached_settings_base_data_change_time = Storage.GetTargetChangeTime(
         )
       # This is a request to start some dialog and interact with the user to set

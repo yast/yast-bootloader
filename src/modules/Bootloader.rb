@@ -47,9 +47,6 @@ module Yast
       # Configuration was changed during inst. proposal if true
       @proposed_cfg_changed = false
 
-      # Cache for the installation proposal
-      @cached_settings = {}
-
       # old vga value handling function
 
       # old value of vga parameter of default bootloader section
@@ -962,7 +959,6 @@ module Yast
     publish :function => :getKernelParam, :type => "string (string, string)"
     publish :function => :getLoaderType, :type => "string ()"
     publish :variable => :proposed_cfg_changed, :type => "boolean"
-    publish :variable => :cached_settings, :type => "map"
     publish :function => :blExport, :type => "map ()"
     publish :function => :blImport, :type => "boolean (map)"
     publish :function => :blRead, :type => "boolean (boolean, boolean)"
