@@ -48,7 +48,6 @@ module Yast
       @proposed_cfg_changed = false
 
       # Cache for the installation proposal
-      @cached_proposal = nil
       @cached_settings = {}
 
       # old vga value handling function
@@ -963,7 +962,6 @@ module Yast
     publish :function => :getKernelParam, :type => "string (string, string)"
     publish :function => :getLoaderType, :type => "string ()"
     publish :variable => :proposed_cfg_changed, :type => "boolean"
-    publish :variable => :cached_proposal, :type => "map"
     publish :variable => :cached_settings, :type => "map"
     publish :function => :blExport, :type => "map ()"
     publish :function => :blImport, :type => "boolean (map)"
