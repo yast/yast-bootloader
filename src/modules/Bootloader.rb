@@ -100,6 +100,7 @@ module Yast
       log.info "Exporting settings: #{out}"
       deep_copy(out)
     end
+
     # Import settings from a map
     # @param [Hash] settings map of bootloader settings
     # @return [Boolean] true on success
@@ -143,6 +144,7 @@ module Yast
       BootCommon.write_settings = Ops.get_map(settings, "write_settings", {})
       ret
     end
+
     # Read settings from disk
     # @return [Boolean] true on success
     def Read
@@ -292,7 +294,7 @@ module Yast
         ReadOrProposeIfNeeded()
       end
 
-      if Ops.get_boolean(BootCommon.write_settings, "save_all", false)
+      if BootCommon.write_settings["save_all"]
         BootCommon.save_all = true
       end
       if BootCommon.save_all
@@ -333,7 +335,7 @@ module Yast
         )
         Progress.NextStage
       else
-        Progress.Title(Ops.get(titles, 0, ""))
+        Progress.Title(titles[0])
       end
 
       params_to_save = {}
@@ -347,15 +349,11 @@ module Yast
 
       # save initrd
       if (Initrd.changed || !Mode.normal) &&
-          !Ops.get_boolean(
-            BootCommon.write_settings,
-            "forbid_save_initrd",
-            false
-          )
+          !BootCommon.write_settings["forbid_save_initrd"]
         vga = getKernelParam(getDefaultSection, "vgamode")
         if vga != "false" && vga != "" && vga != "ask"
           Initrd.setSplash(vga)
-          Ops.set(params_to_save, "vgamode", new_vga) if Stage.initial
+          params_to_save["vgamode"] = new_vga if Stage.initial
         end
         ret = Initrd.Write
         BootCommon.changed = true
@@ -365,11 +363,7 @@ module Yast
       BootCommon.changed = true if Mode.commandline
 
       if !(BootCommon.changed ||
-          Ops.get_boolean(
-            BootCommon.write_settings,
-            "initrd_changed_externally",
-            false
-          ))
+          BootCommon.write_settings["initrd_changed_externally"])
         log.info "No bootloader cfg. file saving needed, exiting"
       end
 
@@ -377,7 +371,7 @@ module Yast
         Progress.NextStage
       else
         Progress.NextStep if !@repeating_write
-        Progress.Title(Ops.get(titles, 1, ""))
+        Progress.Title(titles[1])
       end
 
       # Write settings to /etc/sysconfig/bootloader
@@ -388,12 +382,8 @@ module Yast
       SCR.Write(path(".sysconfig.bootloader"), nil)
 
 
-      Ops.set(
-        params_to_save,
-        "additional_failsafe_params",
-        BootCommon.GetAdditionalFailsafeParams
-      )
-      Ops.set(params_to_save, "installation_kernel_params", Kernel.GetCmdLine)
+      params_to_save["additional_failsafe_params"] = BootCommon.GetAdditionalFailsafeParams
+      params_to_save["installation_kernel_params"] = Kernel.GetCmdLine
       if Stage.initial
         SCR.Write(
           path(".target.ycp"),
@@ -428,7 +418,7 @@ module Yast
         Progress.NextStage
       else
         Progress.NextStep if !@repeating_write
-        Progress.Title(Ops.get(titles, 2, ""))
+        Progress.Title(titles[2])
       end
 
       # call bootloader executable
@@ -438,13 +428,8 @@ module Yast
         log.error "Installing bootloader failed"
         if writeErrorPopup
           @repeating_write = true
-          res = Convert.to_map(
-            WFM.call(
-              "bootloader_proposal",
-              ["AskUser", { "has_next" => false }]
-            )
-          )
-          return Write() if Ops.get(res, "workflow_sequence") == :next
+          res = WFM.call("bootloader_proposal", ["AskUser", { "has_next" => false }])
+          return Write() if res["workflow_sequence"] == :next
         end
       end
 
