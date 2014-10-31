@@ -517,7 +517,7 @@ module Yast
         section = getProposedDefaultSection
       end
       return "" if section == nil
-      params = Convert.to_map(BootCommon.getAnyTypeAttrib("kernel_params", {}))
+      params = BootCommon.getAnyTypeAttrib("kernel_params", {})
       sectnum = -1
       index = -1
       Builtins.foreach(BootCommon.sections) do |s|
@@ -789,11 +789,7 @@ module Yast
         return true
       end
 
-      bios_data = Convert.convert(
-        SCR.Read(path(".probe.bios")),
-        :from => "any",
-        :to   => "list <map>"
-      )
+      bios_data = SCR.Read(path(".probe.bios"))
 
       log.info "CopyKernelInird::bios_data = #{bios_data}"
 
@@ -819,7 +815,7 @@ module Yast
       )
 
       log.info "Command for copy: #{cmd}"
-      out = Convert.to_map(WFM.Execute(path(".local.bash_output"), cmd))
+      out = WFM.Execute(path(".local.bash_output"), cmd)
       if Ops.get(out, "exit") != 0
         log.error "Copy kernel and initrd failed, output: #{out}"
         return false
