@@ -209,28 +209,6 @@ module Yast
       nil
     end
 
-    # Run delayed updates
-    #
-    # This is used by perl-Bootloader when it cannot remove sections from the
-    # bootloader configuration from the postuninstall-script of the kernel. It
-    # writes a command to a delayed update script that is then called here to
-    # remove these sections.
-    #
-    # The script is deleted after execution.
-    def RunDelayedUpdates
-      scriptname = "/boot/perl-BL_delayed_exec"
-      cmd = Builtins.sformat("test -x %1 && { cat %1 ; %1 ; }", scriptname)
-
-      Builtins.y2milestone("running delayed update command: %1", cmd)
-      out = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
-      Builtins.y2milestone("command returned %1", out)
-
-      cmd = Builtins.sformat("rm -f %1", scriptname)
-      out = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
-
-      nil
-    end
-
     def getLargestSwapPartition
       swap_sizes = getSwapPartitions
       swap_parts = Builtins.maplist(swap_sizes) { |name, size| name }

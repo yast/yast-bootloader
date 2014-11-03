@@ -157,9 +157,6 @@ module Yast
         # Write() is reached from the call-chain that starts below:
         # Bootloader::Update() -> Write()).
 
-        # perl-BL delayed section removal
-        Bootloader.RunDelayedUpdates
-
         @retcode = false
 
 

@@ -611,15 +611,6 @@ module Yast
     end
 
     # Set section to boot on next reboot
-    # @param section string section to boot
-    # @return [Boolean] true on success
-    def RunDelayedUpdates
-      # perl-BL delayed section removal
-      BootCommon.RunDelayedUpdates
-      nil
-    end
-
-    # Set section to boot on next reboot
     # @param [String] section string section to boot
     # @return [Boolean] true on success
     def FlagOnetimeBoot(section)
@@ -847,7 +838,6 @@ module Yast
     publish :function => :Update, :type => "boolean ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
     publish :function => :setLoaderType, :type => "void (string)"
-    publish :function => :RunDelayedUpdates, :type => "void ()"
     publish :function => :CopyKernelInird, :type => "boolean ()"
   end
 
