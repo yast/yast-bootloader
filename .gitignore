@@ -30,3 +30,4 @@ tmp.*
 /doc/autodocs
 !/doc/autodocs/Makefile.am
 /.yardoc
+/coverage
