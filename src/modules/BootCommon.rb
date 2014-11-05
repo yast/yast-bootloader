@@ -577,7 +577,6 @@ module Yast
     publish :function => :DiskOrderSummary, :type => "string ()"
     publish :function => :PostUpdateMBR, :type => "boolean ()"
     publish :function => :FindMBRDisk, :type => "string ()"
-    publish :function => :RunDelayedUpdates, :type => "void ()"
     publish :function => :UpdateGlobals, :type => "void ()"
     publish :function => :SetDiskInfo, :type => "void ()"
     publish :function => :InitializeLibrary, :type => "boolean (boolean, string)"

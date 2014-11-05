@@ -19,6 +19,8 @@ require "yast"
 
 module Yast
   class BootloaderClass < Module
+    include Yast::Logger
+
     def main
       Yast.import "UI"
 
@@ -46,10 +48,6 @@ module Yast
 
       # Configuration was changed during inst. proposal if true
       @proposed_cfg_changed = false
-
-      # Cache for the installation proposal
-      @cached_proposal = nil
-      @cached_settings = {}
 
       # old vga value handling function
 
@@ -80,11 +78,7 @@ module Yast
     # @return [Boolean] true on success
 
     def checkUsedStorage
-      if !Storage.InitLibstorage(true) && Mode.normal
-        return false
-      else
-        return true
-      end
+      !Storage.InitLibstorage(true) && Mode.normal
     end
 
     # Export bootloader settings to a map
@@ -97,21 +91,22 @@ module Yast
         "specific"       => blExport,
         "write_settings" => BootCommon.write_settings
       }
-      loader_type = Ops.get_string(out, "loader_type")
+      loader_type = out["loader_type"]
 
       # export loader_device and selected_location only for bootloaders
       # that have not phased them out yet
       Ops.set(out, "loader_device", BootCommon.loader_device)
       Ops.set(out, "loader_location", BootCommon.selected_location)
-      Builtins.y2milestone("Exporting settings: %1", out)
+      log.info "Exporting settings: #{out}"
       deep_copy(out)
     end
+
     # Import settings from a map
     # @param [Hash] settings map of bootloader settings
     # @return [Boolean] true on success
     def Import(settings)
       settings = deep_copy(settings)
-      Builtins.y2milestone("Importing settings: %1", settings)
+      log.info "Importing settings: #{settings}"
       Reset()
 
       BootCommon.was_read = true
@@ -129,12 +124,9 @@ module Yast
 
       # import loader_device and selected_location only for bootloaders
       # that have not phased them out yet
-      BootCommon.loader_device = Ops.get_string(settings, "loader_device", "")
-      BootCommon.selected_location = Ops.get_string(
-        settings,
-        "loader_location",
-        "custom"
-      )
+      BootCommon.loader_device = settings["loader_device"] || ""
+      BootCommon.selected_location = settings["loader_location"] || "custom"
+
       # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
       # for grub, always correct the bootloader device according to
       # selected_location (or fall back to value of loader_device)
@@ -142,17 +134,16 @@ module Yast
         BootCommon.loader_device = BootCommon.GetBootloaderDevice
       end
 
-      if Ops.get_map(settings, "initrd", {}) != nil
-        Initrd.Import(Ops.get_map(settings, "initrd", {}))
-      end
-      ret = blImport(Ops.get_map(settings, "specific", {}))
-      BootCommon.write_settings = Ops.get_map(settings, "write_settings", {})
+      Initrd.Import(settings["initrd"] || {})
+      ret = blImport(settings["specific"] || {})
+      BootCommon.write_settings = settings["write_settings"] || {}
       ret
     end
+
     # Read settings from disk
     # @return [Boolean] true on success
     def Read
-      Builtins.y2milestone("Reading configuration")
+      log.info "Reading configuration"
       # run Progress bar
       stages = [
         # progress stage, text in dialog (short, infinitiv)
@@ -198,15 +189,16 @@ module Yast
 
       Progress.Finish
       return false if testAbort
-      Builtins.y2debug("Read settings: %1", Export())
+      log.debug "Read settings: #{Export()}"
       ret
     end
+
     # Reset bootloader settings
     # @param [Boolean] init boolean true if basic initialization of system-dependent
     # settings should be done
     def ResetEx(init)
       return if Mode.autoinst
-      Builtins.y2milestone("Reseting configuration")
+      log.info "Reseting configuration"
       BootCommon.was_proposed = false
       BootCommon.was_read = false
       BootCommon.loader_device = ""
@@ -223,11 +215,12 @@ module Yast
     def Reset
       ResetEx(true)
     end
+
     # Propose bootloader settings
     def Propose
-      Builtins.y2milestone("Proposing configuration")
+      log.info "Proposing configuration"
       # always have a current target map available in the log
-      Builtins.y2milestone("unfiltered target map: %1", Storage.GetTargetMap)
+      log.info "unfiltered target map: #{Storage.GetTargetMap.inspect}"
       BootCommon.UpdateInstallationKernelParameters
       blPropose
 
@@ -235,7 +228,7 @@ module Yast
       BootCommon.changed = true
       BootCommon.location_changed = true
       BootCommon.backup_mbr = true
-      Builtins.y2milestone("Proposed settings: %1", Export())
+      log.info "Proposed settings: #{Export()}"
 
       nil
     end
@@ -257,9 +250,7 @@ module Yast
             "The boot partition is of type NFS. Bootloader cannot be installed."
           )
         )
-        Builtins.y2milestone(
-          "Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed."
-        )
+        log.info "Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed."
         return deep_copy(ret)
       end
       # F#300779 - end
@@ -287,13 +278,6 @@ module Yast
       Write() # write also reads the configuration and updates it
     end
 
-    # Process update actions needed before packages update starts
-    def PreUpdate
-      Builtins.y2milestone("Running bootloader pre-update stuff")
-
-      nil
-    end
-
     # Write bootloader settings to disk
     # @return [Boolean] true on success
     def Write
@@ -305,16 +289,9 @@ module Yast
         ReadOrProposeIfNeeded()
       end
 
-      if Ops.get_boolean(BootCommon.write_settings, "save_all", false)
-        BootCommon.save_all = true
-      end
-      if BootCommon.save_all
-        BootCommon.changed = true
-        BootCommon.location_changed = true
-        Initrd.changed = true
-      end
+      mark_as_changed
 
-      Builtins.y2milestone("Writing bootloader configuration")
+      log.info "Writing bootloader configuration"
 
       # run Progress bar
       stages = [
@@ -346,7 +323,7 @@ module Yast
         )
         Progress.NextStage
       else
-        Progress.Title(Ops.get(titles, 0, ""))
+        Progress.Title(titles[0])
       end
 
       params_to_save = {}
@@ -360,72 +337,40 @@ module Yast
 
       # save initrd
       if (Initrd.changed || !Mode.normal) &&
-          !Ops.get_boolean(
-            BootCommon.write_settings,
-            "forbid_save_initrd",
-            false
-          )
+          !BootCommon.write_settings["forbid_save_initrd"]
         vga = getKernelParam(getDefaultSection, "vgamode")
         if vga != "false" && vga != "" && vga != "ask"
           Initrd.setSplash(vga)
-          Ops.set(params_to_save, "vgamode", new_vga) if Stage.initial
+          params_to_save["vgamode"] = new_vga if Stage.initial
         end
         ret = Initrd.Write
         BootCommon.changed = true
       end
-      Builtins.y2error("Error occurred while creating initrd") if !ret
+      log.error "Error occurred while creating initrd" unless ret
 
       BootCommon.changed = true if Mode.commandline
 
       if !(BootCommon.changed ||
-          Ops.get_boolean(
-            BootCommon.write_settings,
-            "initrd_changed_externally",
-            false
-          ))
-        Builtins.y2milestone("No bootloader cfg. file saving needed, exiting") 
-        #	    return true;
+          BootCommon.write_settings["initrd_changed_externally"])
+        log.info "No bootloader cfg. file saving needed, exiting"
       end
 
       if Mode.normal
         Progress.NextStage
       else
         Progress.NextStep if !@repeating_write
-        Progress.Title(Ops.get(titles, 1, ""))
+        Progress.Title(titles[1])
       end
 
-      # Write settings to /etc/sysconfig/bootloader
-      Builtins.y2milestone("Saving configuration files")
-      lt = getLoaderType
-
-      SCR.Write(path(".sysconfig.bootloader.LOADER_TYPE"), lt)
-      SCR.Write(path(".sysconfig.bootloader"), nil)
-
-
-      Ops.set(
-        params_to_save,
-        "additional_failsafe_params",
-        BootCommon.GetAdditionalFailsafeParams
-      )
-      Ops.set(params_to_save, "installation_kernel_params", Kernel.GetCmdLine)
-      if Stage.initial
-        SCR.Write(
-          path(".target.ycp"),
-          "/var/lib/YaST2/bootloader.ycp",
-          params_to_save
-        )
-      end
+      write_sysconfig
+      write_proposed_params(params_to_save)
 
       return ret if getLoaderType == "none"
 
       #F#300779 - Install diskless client (NFS-root)
       #kokso: bootloader will not be installed
-      device = BootCommon.getBootDisk
-
-      if device == "/dev/nfs"
-        Builtins.y2milestone(
-          "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
-        )
+      if BootCommon.getBootDisk == "/dev/nfs"
+        log.info "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
         return ret
       end
 
@@ -433,39 +378,24 @@ module Yast
 
       # save bootloader settings
       reinit = !Mode.normal
-      Builtins.y2milestone(
-        "Reinitialize bootloader library before saving: %1",
-        reinit
-      )
+      log.info "Reinitialize bootloader library before saving: #{reinit}"
       ret = blSave(true, reinit, true) && ret
 
       if !ret
-        Builtins.y2error("Error before configuration files saving finished")
+        log.error "Error before configuration files saving finished"
       end
 
       if Mode.normal
         Progress.NextStage
       else
         Progress.NextStep if !@repeating_write
-        Progress.Title(Ops.get(titles, 2, ""))
+        Progress.Title(titles[2])
       end
 
       # call bootloader executable
-      Builtins.y2milestone("Calling bootloader executable")
+      log.info "Calling bootloader executable"
       ret = ret && blWrite
-      if !ret
-        Builtins.y2error("Installing bootloader failed")
-        if writeErrorPopup
-          @repeating_write = true
-          res = Convert.to_map(
-            WFM.call(
-              "bootloader_proposal",
-              ["AskUser", { "has_next" => false }]
-            )
-          )
-          return Write() if Ops.get(res, "workflow_sequence") == :next
-        end
-      end
+      ret = handle_failed_write unless ret
 
       ret
     end
@@ -474,19 +404,10 @@ module Yast
     # Write bootloader settings during installation
     # @return [Boolean] true on success
     def WriteInstallation
-      Builtins.y2milestone(
-        "Writing bootloader configuration during installation"
-      )
+      log.info "Writing bootloader configuration during installation"
       ret = true
 
-      if Ops.get_boolean(BootCommon.write_settings, "save_all", false)
-        BootCommon.save_all = true
-      end
-      if BootCommon.save_all
-        BootCommon.changed = true
-        BootCommon.location_changed = true
-        Initrd.changed = true
-      end
+      mark_as_changed
 
       params_to_save = {}
 
@@ -499,11 +420,7 @@ module Yast
 
       # save initrd
       if (Initrd.changed || !Mode.normal) &&
-          !Ops.get_boolean(
-            BootCommon.write_settings,
-            "forbid_save_initrd",
-            false
-          )
+          !BootCommon.write_settings["forbid_save_initrd"]
         vga = getKernelParam(getDefaultSection, "vgamode")
         if vga != "false" && vga != ""
           Initrd.setSplash(vga)
@@ -513,33 +430,17 @@ module Yast
         BootCommon.changed = true
       end
 
-      Builtins.y2error("Error occurred while creating initrd") if !ret
+      log.error "Error occurred while creating initrd" unless ret
 
-      Ops.set(
-        params_to_save,
-        "additional_failsafe_params",
-        BootCommon.GetAdditionalFailsafeParams
-      )
-      Ops.set(params_to_save, "installation_kernel_params", Kernel.GetCmdLine)
-
-      if Stage.initial
-        SCR.Write(
-          path(".target.ycp"),
-          "/var/lib/YaST2/bootloader.ycp",
-          params_to_save
-        )
-      end
+      write_sysconfig
+      write_proposed_params(params_to_save)
 
       return ret if getLoaderType == "none"
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso: bootloader will not be installed
-      device = BootCommon.getBootDisk
-
-      if device == "/dev/nfs"
-        Builtins.y2milestone(
-          "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
-        )
+      if BootCommon.getBootDisk == "/dev/nfs"
+        log.info "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
         return ret
       end
 
@@ -547,35 +448,17 @@ module Yast
 
       # save bootloader settings
       reinit = !(Mode.update || Mode.normal)
-      Builtins.y2milestone(
-        "Reinitialize bootloader library before saving: %1",
-        reinit
-      )
-
+      log.info "Reinitialize bootloader library before saving: #{reinit}"
 
       ret = blSave(true, reinit, true) && ret
 
-      if !ret
-        Builtins.y2error("Error before configuration files saving finished")
-      end
-
+      log.eror "Error before configuration files saving finished" unless ret
 
       # call bootloader executable
-      Builtins.y2milestone("Calling bootloader executable")
+      log.info "Calling bootloader executable"
       ret = ret && blWrite
-      if !ret
-        Builtins.y2error("Installing bootloader failed")
-        if writeErrorPopup
-          @repeating_write = true
-          res = Convert.to_map(
-            WFM.call(
-              "bootloader_proposal",
-              ["AskUser", { "has_next" => false }]
-            )
-          )
-          return Write() if Ops.get(res, "workflow_sequence") == :next
-        end
-      end
+      ret = handle_failed_write unless ret
+
       ret
     end
 
@@ -585,33 +468,6 @@ module Yast
       ReadOrProposeIfNeeded()
       BootCommon.globals["default"] || ""
     end
-
-    # Get default section as proposed during installation
-    # @return section that was proposed as default during installation,
-    # if not known, return current default section if it is of type "image",
-    # if not found return first linux section, if no present, return empty
-    # string
-    def getProposedDefaultSection
-      ReadOrProposeIfNeeded()
-      defaultv = ""
-      first_image = ""
-      default_image = ""
-      Builtins.foreach(BootCommon.sections) do |s|
-        title = Ops.get_string(s, "name", "")
-        if Ops.get(s, "image") != nil
-          first_image = title if first_image == ""
-          default_image = title if title == getDefaultSection
-        end
-        if defaultv == "" && Ops.get_string(s, "original_name", "") == "linux"
-          defaultv = title
-        end
-      end
-      return defaultv if defaultv != ""
-      return default_image if default_image != ""
-      return first_image if first_image != ""
-      ""
-    end
-
 
     # get kernel parameters from bootloader configuration file
     # @param [String] section string section title, use DEFAULT for default section
@@ -623,23 +479,21 @@ module Yast
       ReadOrProposeIfNeeded()
       if section == "DEFAULT"
         section = getDefaultSection
-      elsif section == "LINUX_DEFAULT"
-        section = getProposedDefaultSection
       end
       return "" if section == nil
-      params = Convert.to_map(BootCommon.getAnyTypeAttrib("kernel_params", {}))
+      params = BootCommon.getAnyTypeAttrib("kernel_params", {})
       sectnum = -1
       index = -1
       Builtins.foreach(BootCommon.sections) do |s|
         index = Ops.add(index, 1)
-        sectnum = index if Ops.get_string(s, "name", "") == section
+        sectnum = index if s["name"] == section
       end
       return "" if sectnum == -1
       line = ""
-      if Builtins.contains(["root", "vgamode"], key)
-        return Ops.get_string(BootCommon.sections, [sectnum, key], "false")
+      if ["root", "vgamode"].include? (key)
+        return BootCommon.sections[sectnum][key] || "false"
       else
-        line = Ops.get_string(BootCommon.sections, [sectnum, "append"], "")
+        line = BootCommon.sections[sectnum]["append"] || ""
         return BootCommon.getKernelParamFromLine(line, key)
       end
     end
@@ -759,15 +613,6 @@ module Yast
     end
 
     # Set section to boot on next reboot
-    # @param section string section to boot
-    # @return [Boolean] true on success
-    def RunDelayedUpdates
-      # perl-BL delayed section removal
-      BootCommon.RunDelayedUpdates
-      nil
-    end
-
-    # Set section to boot on next reboot
     # @param [String] section string section to boot
     # @return [Boolean] true on success
     def FlagOnetimeBoot(section)
@@ -778,14 +623,10 @@ module Yast
     # what to do and read or propose settings
     def ReadOrProposeIfNeeded
       if !(BootCommon.was_read || BootCommon.was_proposed)
-        Builtins.y2milestone(
-          "Stage::initial (): %1, update: %2, config: %3",
-          Stage.initial,
-          Mode.update,
-          Mode.config
-        )
+        log.info "Stage::initial (): #{Stage.initial},"\
+          "update: #{Mode.update}, config: #{Mode.config}"
         if Mode.config
-          Builtins.y2milestone("Not reading settings in Mode::config ()")
+          log.info "Not reading settings in Mode::config ()"
           BootCommon.was_read = true
           BootCommon.was_proposed = true
         elsif Stage.initial && !Mode.update
@@ -812,15 +653,14 @@ module Yast
     def updateAppend(section)
       section = deep_copy(section)
       ret = deep_copy(section)
-      if Ops.get_string(section, "append", "") != "" &&
-          Ops.get_string(section, "console", "") != ""
+      if !(section["append"] || "").empty? &&
+          !(section["console"] || "").empty?
         updated_append = BootCommon.UpdateSerialConsole(
-          Ops.get_string(section, "append", ""),
-          Ops.get_string(section, "console", "")
+          section["append"], section["console"]
         )
-        Ops.set(ret, "append", updated_append) if updated_append != nil
+        ret["append"] = updated_append if updated_append
       end
-      deep_copy(ret)
+      ret
     end
 
 
@@ -832,21 +672,13 @@ module Yast
     # @return [String]: entry
     def DMIRead(bios_data, section, key)
       bios_data = deep_copy(bios_data)
-      result = ""
+      smbios = bios_data.fetch(0, {}).fetch("smbios", [])
 
-      Builtins.foreach(Ops.get_list(bios_data, [0, "smbios"], [])) do |x|
-        if Ops.get_string(x, "type", "") == section
-          result = Ops.get_string(x, key, "")
-          raise Break
-        end
-      end
+      result = smbios.find { |x| x["type"] == section }
+      result = result[key] if result
+      result ||= ""
 
-      Builtins.y2milestone(
-        "Bootloader::DMIRead(%1, %2) = %3",
-        section,
-        key,
-        result
-      )
+      log.info "Bootloader::DMIRead(#{section}, #{key}) = #{result}"
 
       result
     end
@@ -860,7 +692,7 @@ module Yast
       bios_data = deep_copy(bios_data)
       r = DMIRead(bios_data, "sysinfo", "product") == "VirtualBox"
 
-      Builtins.y2milestone("Bootloader::IsVirtualBox = %1", r)
+      log.info "Bootloader::IsVirtualBox = #{r}"
 
       r
     end
@@ -876,7 +708,7 @@ module Yast
         "Microsoft Corporation" &&
         DMIRead(bios_data, "sysinfo", "product") == "Virtual Machine"
 
-      Builtins.y2milestone("Bootloader::IsHyperV = %1", r)
+      log.info "Bootloader::IsHyperV = #{r}"
 
       r
     end
@@ -890,43 +722,35 @@ module Yast
     # run kernel via kexec instead of reboot
     # if not success then reboot...
     def CopyKernelInird
-      Builtins.y2milestone("CopyKernelInird: start copy kernel and inird")
+      log.info "CopyKernelInird: start copy kernel and inird"
 
       if Mode.live_installation
-        Builtins.y2milestone("Running live_installation without using kexec")
+        log.info "Running live_installation without using kexec"
         return true
       end
 
       if ProductFeatures.GetBooleanFeature("globals", "kexec_reboot") != true
-        Builtins.y2milestone(
-          "Option kexec_reboot is false. kexec will not be used."
-        )
+        log.info "Option kexec_reboot is false. kexec will not be used."
         return true
       end
 
       # check architecture for using kexec instead of reboot
       if Arch.ppc || Arch.s390
-        Builtins.y2milestone("Skip using of kexec on this architecture")
+        log.info "Skip using of kexec on this architecture"
         return true
       end
 
-      bios_data = Convert.convert(
-        SCR.Read(path(".probe.bios")),
-        :from => "any",
-        :to   => "list <map>"
-      )
+      bios_data = SCR.Read(path(".probe.bios"))
 
-      Builtins.y2milestone("CopyKernelInird::bios_data = %1", bios_data)
+      log.info "CopyKernelInird::bios_data = #{bios_data}"
 
       if IsVirtualBox(bios_data)
-        Builtins.y2milestone(
-          "Installation run on VirtualBox, skip kexec loading"
-        )
+        log.info "Installation run on VirtualBox, skip kexec loading"
         return false
       end
 
       if IsHyperV(bios_data)
-        Builtins.y2milestone("Installation run on HyperV, skip kexec loading")
+        log.info "Installation run on HyperV, skip kexec loading"
         return false
       end
 
@@ -941,14 +765,59 @@ module Yast
         Directory.vardir
       )
 
-      Builtins.y2milestone("Command for copy: %1", cmd)
-      out = Convert.to_map(WFM.Execute(path(".local.bash_output"), cmd))
-      if Ops.get(out, "exit") != 0
-        Builtins.y2error("Copy kernel and initrd failed, output: %1", out)
+      log.info "Command for copy: #{cmd}"
+      out = WFM.Execute(path(".local.bash_output"), cmd)
+      if out["exit"] != 0
+        log.error "Copy kernel and initrd failed, output: #{out}"
         return false
       end
 
       true
+    end
+
+    private
+
+    # Write settings to /etc/sysconfig/bootloader
+    def write_sysconfig
+      log.info "Saving configuration files"
+      lt = getLoaderType
+
+      SCR.Write(path(".sysconfig.bootloader.LOADER_TYPE"), lt)
+      SCR.Write(path(".sysconfig.bootloader"), nil)
+    end
+
+    def write_proposed_params(params_to_save)
+      return unless Stage.initial
+
+      params_to_save["additional_failsafe_params"] = BootCommon.GetAdditionalFailsafeParams
+      params_to_save["installation_kernel_params"] = Kernel.GetCmdLine
+      SCR.Write(
+        path(".target.ycp"),
+        "/var/lib/YaST2/bootloader.ycp",
+        params_to_save
+      )
+    end
+
+    def mark_as_changed
+      if BootCommon.write_settings["save_all"]
+        BootCommon.save_all = true
+      end
+      if BootCommon.save_all
+        BootCommon.changed = true
+        BootCommon.location_changed = true
+        Initrd.changed = true
+      end
+    end
+
+    def handle_failed_write
+      log.error "Installing bootloader failed"
+      if writeErrorPopup
+        @repeating_write = true
+        res = WFM.call("bootloader_proposal", ["AskUser", { "has_next" => false }])
+        return Write() if res["workflow_sequence"] == :next
+      end
+
+      false
     end
 
     publish :function => :Export, :type => "map ()"
@@ -958,34 +827,20 @@ module Yast
     publish :function => :Reset, :type => "void ()"
     publish :function => :Write, :type => "boolean ()"
     publish :function => :FlagOnetimeBoot, :type => "boolean (string)"
-    publish :function => :ReadOrProposeIfNeeded, :type => "void ()"
     publish :function => :getDefaultSection, :type => "string ()"
     publish :function => :getKernelParam, :type => "string (string, string)"
     publish :function => :getLoaderType, :type => "string ()"
     publish :variable => :proposed_cfg_changed, :type => "boolean"
-    publish :variable => :cached_proposal, :type => "map"
-    publish :variable => :cached_settings, :type => "map"
-    publish :function => :blExport, :type => "map ()"
-    publish :function => :blImport, :type => "boolean (map)"
     publish :function => :blRead, :type => "boolean (boolean, boolean)"
-    publish :function => :blReset, :type => "void (boolean)"
-    publish :function => :blPropose, :type => "void ()"
     publish :function => :blSave, :type => "boolean (boolean, boolean, boolean)"
-    publish :function => :blSummary, :type => "list <string> ()"
-    publish :function => :blUpdate, :type => "void ()"
-    publish :function => :blWrite, :type => "boolean ()"
     publish :function => :blWidgetMaps, :type => "map <string, map <string, any>> ()"
     publish :function => :blDialogs, :type => "map <string, symbol ()> ()"
-    publish :function => :blFlagOnetimeBoot, :type => "boolean (string)"
     publish :variable => :test_abort, :type => "boolean ()"
     publish :function => :ResetEx, :type => "void (boolean)"
     publish :function => :Summary, :type => "list <string> ()"
-    publish :function => :UpdateConfiguration, :type => "void ()"
     publish :function => :Update, :type => "boolean ()"
-    publish :function => :PreUpdate, :type => "void ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
     publish :function => :setLoaderType, :type => "void (string)"
-    publish :function => :RunDelayedUpdates, :type => "void ()"
     publish :function => :CopyKernelInird, :type => "boolean ()"
   end
 
