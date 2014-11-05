@@ -68,7 +68,12 @@ module Yast
       end
 
       # FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
-      BootCommon.WriteToSysconf(true)
+      sysconfig = ::Bootloader::Sysconfig.new(
+        bootloader: Bootloader.getLoaderType,
+        secure_boot: BootCommon.getSystemSecureBootStatus(false)
+
+      )
+      sysconfig.pre_write
 
       Builtins.y2milestone("finish inst_bootloader")
 

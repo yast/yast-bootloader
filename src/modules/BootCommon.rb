@@ -20,6 +20,7 @@
 #
 require "yast"
 require "bootloader/udev_mapping"
+require "bootloader/sysconfig"
 
 module Yast
   class BootCommonClass < Module
@@ -299,7 +300,8 @@ module Yast
       ret &&= CommitSettings() if flush
 
       # write settings to /etc/sysconfig/bootloader
-      WriteToSysconf(false)
+      sysconf = Bootloader::Sysconfig.new(bootloader: bl, secure_boot: @secure_boot)
+      sysconf.write
 
       ret
     end
@@ -570,7 +572,6 @@ module Yast
     publish :function => :GetAdditionalFailsafeParams, :type => "string ()"
     publish :function => :BootloaderInstallable, :type => "boolean ()"
     publish :function => :PartitionInstallable, :type => "boolean ()"
-    publish :function => :WriteToSysconf, :type => "void (boolean)"
     publish :function => :getBootDisk, :type => "string ()"
     publish :function => :HandleConsole2, :type => "void ()"
     publish :function => :GetSerialFromAppend, :type => "void ()"
