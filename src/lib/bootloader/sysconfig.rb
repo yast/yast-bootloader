@@ -106,6 +106,9 @@ module Bootloader
       @sys_agent = Yast::Path.new(".target.sysconfig.bootloader")
 
       target_sysconfig_path = "#{destdir}/etc/sysconfig/bootloader"
+      # Register new agent to temporary path. It register same agent as in
+      # scrconf but to different path and it also touch different file
+      # For more info see documentation of {SCR}
       Yast::SCR.RegisterAgent(
         @sys_agent,
         Yast::Term.new(:ag_ini,
