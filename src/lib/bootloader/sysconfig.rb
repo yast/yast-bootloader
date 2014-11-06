@@ -16,6 +16,14 @@ module Bootloader
       @secure_boot = secure_boot
     end
 
+    def read_from_system
+      @bootloader = Yast::SCR.Read(@sys_agent + "LOADER_TYPE")
+      # propose secure boot always to true (bnc#872054), otherwise respect user choice
+      @secure_boot = Yast::SCR.Read(@sys_agent + "SECURE_BOOT") != "no"
+
+      self
+    end
+
     # Specialized write before rpm install, that do not have switched SCR
     # and work on blank system
     def pre_write
