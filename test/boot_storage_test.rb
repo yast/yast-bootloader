@@ -25,6 +25,7 @@ describe Yast::BootStorage do
     let (:possible_locations) { subject.possible_locations_for_stage1 }
     before do
       target_map_stub("storage_mdraid.rb")
+      allow(Yast::Arch).to receive(:s390).and_return(false) # be arch agnostic
       subject.device_map.propose
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:device)
     end
