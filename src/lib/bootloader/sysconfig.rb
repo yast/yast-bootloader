@@ -32,7 +32,7 @@ module Bootloader
     # Specialized write before rpm install, that do not have switched SCR
     # and work on blank system
     def pre_write
-      ensure_file_exist
+      ensure_file_exists_in_target
       temporary_target_agent do
         write
       end
@@ -90,7 +90,7 @@ module Bootloader
       @destdir = Yast::Installation.destdir
     end
 
-    def ensure_file_exist
+    def ensure_file_exists_in_target
       return if File.exist?(File.join(destdir, "/etc/sysconfig"))
 
       Yast::WFM.Execute(Yast::Path.new(".local.mkdir"),
