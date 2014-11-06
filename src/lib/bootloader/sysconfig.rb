@@ -87,8 +87,6 @@ module Bootloader
     end
 
     def ensure_file_exist
-      Yast.import "Installation"
-
       return if File.exist?(File.join(destdir, "/etc/sysconfig"))
 
       Yast::WFM.Execute(Yast::Path.new(".local.mkdir"),
