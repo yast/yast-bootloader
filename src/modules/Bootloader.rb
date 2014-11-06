@@ -16,6 +16,7 @@
 # $Id$
 #
 require "yast"
+require "bootloader/sysconfig"
 
 module Yast
   class BootloaderClass < Module
@@ -779,11 +780,11 @@ module Yast
 
     # Write settings to /etc/sysconfig/bootloader
     def write_sysconfig
-      log.info "Saving configuration files"
-      lt = getLoaderType
-
-      SCR.Write(path(".sysconfig.bootloader.LOADER_TYPE"), lt)
-      SCR.Write(path(".sysconfig.bootloader"), nil)
+      sysconfig = ::Bootloader::Sysconfig.new(
+        bootloader: getLoaderType,
+        secure_boot: BootCommon.getSystemSecureBootStatus(false)
+      )
+      sysconfig.write
     end
 
     def write_proposed_params(params_to_save)

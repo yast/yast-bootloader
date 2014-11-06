@@ -20,6 +20,7 @@
 #
 require "yast"
 require "bootloader/udev_mapping"
+require "bootloader/sysconfig"
 
 module Yast
   class BootCommonClass < Module
@@ -299,7 +300,8 @@ module Yast
       ret &&= CommitSettings() if flush
 
       # write settings to /etc/sysconfig/bootloader
-      WriteToSysconf(false)
+      sysconf = Bootloader::Sysconfig.new(bootloader: bl, secure_boot: @secure_boot)
+      sysconf.write
 
       ret
     end
@@ -382,7 +384,8 @@ module Yast
       return @loader_type if !recheck && @loader_type
       # read bootloader to use from disk
       if Mode.update || Mode.normal || Mode.repair
-        @loader_type = SCR.Read(path(".sysconfig.bootloader.LOADER_TYPE"))
+        sysconfig = ::Bootloader::Sysconfig.from_system
+        @loader_type = sysconfig.bootloader
         if @loader_type && !@loader_type.empty?
           @loader_type = "grub2" if @loader_type == "s390"
           Builtins.y2milestone(
@@ -464,16 +467,12 @@ module Yast
       return @secure_boot if !recheck && !@secure_boot.nil?
 
       if Mode.update || Mode.normal || Mode.repair
-        sb = SCR.Read(path(".sysconfig.bootloader.SECURE_BOOT"))
-
-        if sb && !sb.empty?
-          @secure_boot = sb == "yes"
-          return @secure_boot
-        end
+        @secure_boot = ::Bootloader::Sysconfig.from_system.secure_boot
+      else
+        # propose secure boot always to true (bnc#872054), otherwise respect user choice
+        @secure_boot = true
       end
 
-      # propose secure boot always to true (bnc#872054), otherwise respect user choice
-      @secure_boot = true if @secure_boot.nil?
       @secure_boot
     end
 
@@ -570,7 +569,6 @@ module Yast
     publish :function => :GetAdditionalFailsafeParams, :type => "string ()"
     publish :function => :BootloaderInstallable, :type => "boolean ()"
     publish :function => :PartitionInstallable, :type => "boolean ()"
-    publish :function => :WriteToSysconf, :type => "void (boolean)"
     publish :function => :getBootDisk, :type => "string ()"
     publish :function => :HandleConsole2, :type => "void ()"
     publish :function => :GetSerialFromAppend, :type => "void ()"
