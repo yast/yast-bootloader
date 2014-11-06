@@ -4,6 +4,7 @@ module Bootloader
   # Represents sysconfig file for bootloader usually located in /etc/sysconfig/bootloader
   class Sysconfig
     include Yast::Logger
+    AGENT_PATH = Yast::Path.new(".sysconfig.bootloader")
 
     # specifies bootloader in sysconfig
     attr_accessor :bootloader
@@ -11,17 +12,17 @@ module Bootloader
     attr_accessor :secure_boot
 
     def initialize(bootloader: nil, secure_boot: false)
-      @sys_agent = Yast::Path.new(".sysconfig.bootloader")
+      @sys_agent = AGENT_PATH
       @bootloader = bootloader
       @secure_boot = secure_boot
     end
 
-    def read_from_system
-      @bootloader = Yast::SCR.Read(@sys_agent + "LOADER_TYPE")
+    def self.from_system
+      bootloader = Yast::SCR.Read(AGENT_PATH + "LOADER_TYPE")
       # propose secure boot always to true (bnc#872054), otherwise respect user choice
-      @secure_boot = Yast::SCR.Read(@sys_agent + "SECURE_BOOT") != "no"
+      secure_boot = Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
 
-      self
+      new(bootloader: bootloader, secure_boot: secure_boot)
     end
 
     # Specialized write before rpm install, that do not have switched SCR

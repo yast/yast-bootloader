@@ -384,7 +384,7 @@ module Yast
       return @loader_type if !recheck && @loader_type
       # read bootloader to use from disk
       if Mode.update || Mode.normal || Mode.repair
-        sysconfig = ::Bootloader::Sysconfig.new.read_from_system
+        sysconfig = ::Bootloader::Sysconfig.from_system
         @loader_type = sysconfig.bootloader
         if @loader_type && !@loader_type.empty?
           @loader_type = "grub2" if @loader_type == "s390"
@@ -467,7 +467,7 @@ module Yast
       return @secure_boot if !recheck && !@secure_boot.nil?
 
       if Mode.update || Mode.normal || Mode.repair
-        @secure_boot = ::Bootloader::Sysconfig.new.read_from_system.secure_boot
+        @secure_boot = ::Bootloader::Sysconfig.from_system.secure_boot
       else
         # propose secure boot always to true (bnc#872054), otherwise respect user choice
         @secure_boot = true

@@ -8,7 +8,7 @@ describe Bootloader::Sysconfig do
     allow(Yast::SCR).to receive(:Read)
   end
 
-  describe "#read_from_system" do
+  describe ".from_system" do
     it "reads value from file on system" do
       allow(Yast::SCR).to receive(:Read).with(
         Yast::Path.new(".sysconfig.bootloader.LOADER_TYPE")
@@ -17,7 +17,7 @@ describe Bootloader::Sysconfig do
         Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT")
       ).and_return("no")
 
-      sysconfig = Bootloader::Sysconfig.new.read_from_system
+      sysconfig = Bootloader::Sysconfig.from_system
       expect(sysconfig.bootloader).to eq "grub2"
       expect(sysconfig.secure_boot).to be false
     end
