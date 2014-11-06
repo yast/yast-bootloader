@@ -5,6 +5,10 @@ module Bootloader
   class Sysconfig
     include Yast::Logger
     AGENT_PATH = Yast::Path.new(".sysconfig.bootloader")
+    ATTR_VALUE_MAPPING = {
+      bootloader: "LOADER_TYPE",
+      secure_boot: "SECURE_BOOT"
+    }
 
     # specifies bootloader in sysconfig
     attr_accessor :bootloader
@@ -63,10 +67,10 @@ module Bootloader
     def write
       log.info "Saving /etc/sysconfig/bootloader for #{bootloader}"
 
-      write_option("LOADER_TYPE", bootloader, PROPOSED_COMMENTS[:bootloader])
+      write_option(:bootloader, bootloader)
 
       sb = secure_boot ? "yes" : "no"
-      write_option("SECURE_BOOT", sb, PROPOSED_COMMENTS[:secure_boot])
+      write_option(:secure_boot, sb)
 
       # flush write
       Yast::SCR.Write(sys_agent, nil)
@@ -114,8 +118,8 @@ module Bootloader
       @sys_agent = old_agent
     end
 
-    def write_option(option, value, comment)
-      file_path_option = sys_agent + option
+    def write_option(option, value)
+      file_path_option = sys_agent + ATTR_VALUE_MAPPING[option]
       comment_path = file_path_option + "comment"
       comment_exist = Yast::SCR.Read(comment_path)
 
@@ -124,7 +128,7 @@ module Bootloader
 
       # write comment of option if it is necessary
       if !comment_exist
-        Yast::SCR.Write(comment_path, comment)
+        Yast::SCR.Write(comment_path, PROPOSED_COMMENTS[option])
       end
     end
 
