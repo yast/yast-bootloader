@@ -257,26 +257,16 @@ module Yast
     #
     # @return [String] device name of extended partition, or nil if none found
     def grub_GetExtendedPartitionDev
-      ret = nil
 
       tm = Storage.GetTargetMap
-
-      device = ""
-      if BootStorage.BootPartitionDevice != ""
-        device = BootStorage.BootPartitionDevice
-      else
-        device = BootStorage.RootPartitionDevice
-      end
-
+      device = BootStorage.BootPartitionDevice
       dp = Storage.GetDiskPartition(device)
-      disk = Ops.get_string(dp, "disk", "")
-      dm = Ops.get_map(tm, disk, {})
-      partitions = Ops.get_list(dm, "partitions", [])
-      Builtins.foreach(partitions) do |p|
-        ret = Ops.get_string(p, "device") if Ops.get(p, "type") == :extended
-      end
+      dm = tm[dp["disk"]] || {}
+      partitions = dm["partitions"] || []
+      ext_part = partitions.find { |p| p["type"] == :extended }
+      return nil unless ext_part
 
-      ret
+      ext_part["device"]
     end
 
     # Detect "/boot", "/" (root), extended partition device and MBR disk device
