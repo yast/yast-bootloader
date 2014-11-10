@@ -426,10 +426,8 @@ module Yast
           (Mode.autoinst || Mode.autoupgrade) && no_boot_key
         grub_DetectDisks
         # check whether edd is loaded; if not: load it
-        lsmod_command = "lsmod | grep edd"
-        lsmod_out = SCR.Execute(path(".target.bash_output"), lsmod_command)
-        log.info "Command '#{lsmod_command}' output: #{lsmod_out}"
-        edd_loaded = Ops.get_integer(lsmod_out, "exit", 0) == 0
+        edd_loaded = SCR.Read(path(".proc.modules"))["edd"]
+        log.info "edd loaded? #{edd_loaded.inspect}"
         if !edd_loaded
           command = "/sbin/modprobe edd"
           out = SCR.Execute(path(".target.bash_output"), command)
