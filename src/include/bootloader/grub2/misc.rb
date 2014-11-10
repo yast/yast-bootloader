@@ -70,6 +70,10 @@ module Yast
         BootCommon.globals["boot_mbr"] = "true"
         # Disable generic MBR as we want grub2 there
         BootCommon.globals["generic_mbr"] = "false"
+      when :none
+        log.info "Resetting bootloader device"
+      else
+        raise "Unknown value to select bootloader device #{selected_location.inspect}"
       end
     end
 
