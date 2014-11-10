@@ -110,8 +110,8 @@ module Yast
       boot_partition_disk = Ops.get_string(dp, "disk", "")
       boot_partition_is_on_mbr_disk = boot_partition_disk == BootCommon.mbrDisk
 
-      dm = Ops.get_map(tm, boot_partition_disk, {})
-      partitions_on_boot_partition_disk = Ops.get_list(dm, "partitions", [])
+      dm = tm[boot_partition_disk] || {}
+      partitions_on_boot_partition_disk = dm["partitions"] || []
       is_logical = false
       is_logical_and_btrfs = false
       extended = nil
@@ -121,47 +121,35 @@ module Yast
       # "/boot" is built)
       underlying_boot_partition_devices = [BootStorage.BootPartitionDevice]
       md_info = BootCommon.Md2Partitions(BootStorage.BootPartitionDevice)
-      if md_info != nil && Ops.greater_than(Builtins.size(md_info), 0)
+      if !md_info.empty?
         boot_partition_is_on_mbr_disk = false
         underlying_boot_partition_devices = Builtins.maplist(md_info) do |dev, bios_id|
           pdp = Storage.GetDiskPartition(dev)
-          p_disk = Ops.get_string(pdp, "disk", "")
+          p_disk = pdp["disk"] || ""
           boot_partition_is_on_mbr_disk = true if p_disk == BootCommon.mbrDisk
           dev
         end
       end
-      Builtins.y2milestone(
-        "Boot partition devices: %1",
-        underlying_boot_partition_devices
-      )
+      log.info "Boot partition devices: #{underlying_boot_partition_devices}"
 
-      Builtins.foreach(partitions_on_boot_partition_disk) do |p|
-        if Ops.get(p, "type") == :extended
-          extended = Ops.get_string(p, "device")
-        elsif Builtins.contains(
-            underlying_boot_partition_devices,
-            Ops.get_string(p, "device", "")
-          ) &&
-            Ops.get(p, "type") == :logical
+      partitions_on_boot_partition_disk.each do |p|
+        if p["type"] == :extended
+          extended = p["device"]
+        elsif underlying_boot_partition_devices.include?(p["device"]) &&
+            p["type"] == :logical
           # If any of the underlying_boot_partition_devices can be found on
           # the boot_partition_disk AND is a logical partition, set
           # is_logical to true.
           # For soft-RAID this will not match anyway ("/dev/[hs]da*" does not
           # match "/dev/md*").
           is_logical = true
-          is_logical_and_btrfs = true if Ops.get(p, "used_fs") == :btrfs
+          is_logical_and_btrfs = true if p["used_fs"] == :btrfs
         end
       end
-      Builtins.y2milestone(
-        "/boot is on 1st disk: %1",
-        boot_partition_is_on_mbr_disk
-      )
-      Builtins.y2milestone("/boot is in logical partition: %1", is_logical)
-      Builtins.y2milestone(
-        "/boot is in logical partition and use btrfs: %1",
-        is_logical_and_btrfs
-      )
-      Builtins.y2milestone("The extended partition: %1", extended)
+      log.info "/boot is on 1st disk: #{boot_partition_is_on_mbr_disk}"
+      log.info "/boot is in logical partition: #{is_logical}"
+      log.info "/boot is in logical partition and use btrfs: #{is_logical_and_btrfs}"
+      log.info "The extended partition: #{extended}"
 
       # if is primary, store bootloader there
 
@@ -172,39 +160,26 @@ module Yast
       if boot_partition_is_on_mbr_disk
         selected_location = BootStorage.BootPartitionDevice !=
           BootStorage.RootPartitionDevice ? :boot : :root
-        Ops.set(BootCommon.globals, "activate", "true")
+        BootCommon.globals["activate"] = "true"
         BootCommon.activate_changed = true
 
         # check if there is raid and if it soft-raid select correct device for analyse MBR
         # bnc #398356
-        if Ops.greater_than(Builtins.size(underlying_boot_partition_devices), 1)
-          boot_partition_disk = mdraid_boot_disk(
-            partitions_on_boot_partition_disk
-          )
+        if underlying_boot_partition_devices.size > 1
+          boot_partition_disk = mdraid_boot_disk(partitions_on_boot_partition_disk)
         end
-        if boot_partition_disk == ""
-          boot_partition_disk = Ops.get_string(dp, "disk", "")
+        if boot_partition_disk.empty?
+          boot_partition_disk = dp["disk"] || ""
         end
         # bnc #483797 cannot read 512 bytes from...
-        out = ""
-        if boot_partition_disk != ""
-          out = BootCommon.examineMBR(boot_partition_disk)
-        else
-          Builtins.y2error("Boot partition disk not found")
-        end
-        Ops.set(
-          BootCommon.globals,
-          "generic_mbr",
-          out != "vista" ? "true" : "false"
-        )
+        raise "Boot partition disk not found" if boot_partition_disk.empty?
+        out = BootCommon.examineMBR(boot_partition_disk)
+        BootCommon.globals["generic_mbr"] = out != "vista" ? "true" : "false"
         if out == "vista"
           Builtins.y2milestone("Vista MBR...")
           vista_mbr = true
         end
-      elsif Ops.greater_than(
-          Builtins.size(underlying_boot_partition_devices),
-          1
-        )
+      elsif underlying_boot_partition_devices.size > 1
         # FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
         # automatic anyway and perl-Bootloader should be able to make it without help
         # from the user or the proposal.
@@ -216,35 +191,26 @@ module Yast
       end
 
       if is_logical_and_btrfs
-        Builtins.y2milestone(
-          "/boot is on logical parititon and uses btrfs, mbr is favored in this situration"
-        )
+        log.info "/boot is on logical parititon and uses btrfs, mbr is favored in this situration"
         selected_location = :mbr
       end
 
       if !BootStorage.can_boot_from_partition
-        Builtins.y2milestone("/boot cannot be used to install stage1")
+        log.info "/boot cannot be used to install stage1"
         selected_location = :mbr
       end
 
       assign_bootloader_device(selected_location)
-      if !Builtins.contains(
-          BootStorage.possible_locations_for_stage1,
-          Ops.get(BootCommon.GetBootloaderDevices, 0)
-        )
+      if !BootStorage.possible_locations_for_stage1.include?(BootCommon.GetBootloaderDevices.first)
         selected_location = :mbr # default to mbr
         assign_bootloader_device(selected_location)
       end
 
-      Builtins.y2milestone(
-        "grub_ConfigureLocation (%1 on %2)",
-        selected_location,
-        BootCommon.GetBootloaderDevices
-      )
+      log.info "grub_ConfigureLocation (#{selected_location} on #{BootCommon.GetBootloaderDevices})"
 
       # set active flag, if needed
       if selected_location == :mbr &&
-          Ops.less_or_equal(Builtins.size(underlying_boot_partition_devices), 1)
+          underlying_boot_partition_devices.size <= 1
         # We are installing into MBR:
         # If there is an active partition, then we do not need to activate
         # one (otherwise we do).
@@ -253,11 +219,7 @@ module Yast
         # partition can remain activated, which causes less problems with
         # other installed OSes like Windows (older versions assign the C:
         # drive letter to the activated partition).
-        Ops.set(
-          BootCommon.globals,
-          "activate",
-          Builtins.size(Storage.GetBootPartition(BootCommon.mbrDisk)) == 0 ? "true" : "false"
-        )
+        BootCommon.globals["activate"] = Storage.GetBootPartition(BootCommon.mbrDisk).empty? ? "true" : "false"
       else
         # if not installing to MBR, always activate (so the generic MBR will
         # boot Linux)
@@ -265,10 +227,10 @@ module Yast
         # kokso: fix the problem with proposing installation generic boot code to "/" or "/boot"
         # kokso: if boot device is on logical partition
         if is_logical && extended != nil &&
-            (Ops.get(BootCommon.globals, "generic_mbr", "") == "true" || vista_mbr)
+            (BootCommon.globals["generic_mbr"] == "true" || vista_mbr)
           selected_location = :extended
         end
-        Ops.set(BootCommon.globals, "activate", "true")
+        BootCommon.globals["activate"] = "true"
         assign_bootloader_device(selected_location)
       end
 
@@ -277,7 +239,7 @@ module Yast
         BootCommon.pmbr_action = :remove
       end
 
-      Builtins.y2milestone("location configured. Resulting globals #{BootCommon.globals}")
+      log.info "location configured. Resulting globals #{BootCommon.globals}"
 
       selected_location
     end
