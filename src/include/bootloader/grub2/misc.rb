@@ -326,115 +326,67 @@ module Yast
     # @return [Hash] map containing boolean "changed" and string "reason"
     def grub_DisksChanged
       ret = { "changed" => false, "reason" => "" }
-
-      return deep_copy(ret) if Mode.config
+      return ret if Mode.config
 
       mp = Storage.GetMountPoints
-      actual_root = Ops.get_string(mp, ["/", 0], "")
-      actual_boot = Ops.get_string(mp, ["/boot", 0], actual_root)
+      actual_root = mp["/"].first || ""
+      actual_boot = mp["/boot"].first || actual_root
       actual_extended = grub_GetExtendedPartitionDev
 
-      if Ops.get(BootCommon.globals, "boot_boot", "false") == "true" &&
+      if BootCommon.globals["boot_boot"] == "true" &&
           actual_boot != BootStorage.BootPartitionDevice
-        ret = {
-          "changed" => true,
-          "reason"  => Ops.add(
-            Ops.add(
-              Ops.add(
-                Ops.get_string(ret, "reason", ""),
-                "Selected bootloader location \"/boot\" is not on "
-              ),
-              BootStorage.BootPartitionDevice
-            ),
-            " any more.\n"
-          )
-        }
+        ret["changed"] = true
+        ret["reason"] +=
+          _("Selected bootloader location \"/boot\" is not on %s any more.\n") %
+            BootStorage.BootPartitionDevice
       end
 
-      if Ops.get(BootCommon.globals, "boot_root", "false") == "true" &&
+      if BootCommon.globals["boot_root"] == "true" &&
           actual_root != BootStorage.RootPartitionDevice
-        ret = {
-          "changed" => true,
-          "reason"  => Ops.add(
-            Ops.add(
-              Ops.add(
-                Ops.get_string(ret, "reason", ""),
-                "Selected bootloader location \"/\" is not on "
-              ),
-              BootStorage.RootPartitionDevice
-            ),
-            " any more.\n"
-          )
-        }
+        ret["changed"] = true
+        ret["reason"] +=
+          _("Selected bootloader location \"/\" is not on %s any more.\n") %
+            BootStorage.RootPartitionDevice
       end
 
-      if Ops.get(BootCommon.globals, "boot_mbr", "false") == "true"
+      if BootCommon.globals["boot_mbr"] == "true"
         actual_mbr = BootCommon.FindMBRDisk
 
         if actual_mbr != BootCommon.mbrDisk
-          ret = {
-            "changed" => true,
-            "reason"  => Ops.add(
-              Ops.add(
-                Ops.add(
-                  Ops.get_string(ret, "reason", ""),
-                  "Selected bootloader location MBR is not on "
-                ),
-                BootCommon.mbrDisk
-              ),
-              " any more.\n"
-            )
-          }
+          ret["changed"] = true
+          ret["reason"] +=
+            _("Selected bootloader location MBR is not on %s any more.\n") %
+              BootCommon.mbrDisk
         end
       end
 
-      if Ops.get(BootCommon.globals, "boot_extended", "false") == "true" &&
+      if BootCommon.globals["boot_extended"] == "true" &&
           actual_extended != BootStorage.ExtendedPartitionDevice
-        ret = {
-          "changed" => true,
-          "reason"  => Ops.add(
-            Ops.add(
-              Ops.add(
-                Ops.get_string(ret, "reason", ""),
-                "Selected bootloader location \"extended partition\" is not on "
-              ),
-              BootStorage.ExtendedPartitionDevice
-            ),
-            " any more.\n"
-          )
-        }
+
+        ret["changed"] = true
+        ret["reason"] +=
+          _("Selected bootloader location \"extended partition\" is not on %s any more.\n") %
+            BootStorage.ExtendedPartitionDevice
       end
 
 
-      if Ops.get(BootCommon.globals, "boot_custom") != nil &&
-          Ops.get(BootCommon.globals, "boot_custom") != ""
+      if BootCommon.globals["boot_custom"] &&
+          !BootCommon.globals["boot_custom"].empty?
         all_boot_partitions = BootStorage.possible_locations_for_stage1
 
-        if !Builtins.contains(
-            all_boot_partitions,
-            Ops.get(BootCommon.globals, "boot_custom")
-          )
-          ret = {
-            "changed" => true,
-            "reason"  => Ops.add(
-              Ops.add(
-                Ops.add(
-                  Ops.get_string(ret, "reason", ""),
-                  "Selected custom bootloader partition "
-                ),
-                Ops.get(BootCommon.globals, "boot_custom")
-              ),
-              " is not available any more.\n"
-            )
-          }
+        if !all_boot_partitions.include?(BootCommon.globals["boot_custom"])
+          ret["changed"] = true
+          ret["reason"] +=
+            _("Selected custom bootloader partition %s is not available any more.\n") %
+              BootStorage.ExtendedPartitionDevice
         end
       end
 
-      if Ops.get_boolean(ret, "changed", false)
-        Builtins.y2milestone("Location should be set again")
+      if ret["changed"]
+        log.info "Location should be set again"
       end
 
-      deep_copy(ret)
+      ret
     end
 
     # Propose the boot loader location for grub
