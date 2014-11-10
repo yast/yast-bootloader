@@ -277,36 +277,19 @@ module Yast
     # globals["activate"] and globals["generic_mbr"] flags if needed
     # all these settings are stored in internal variables
     def grub_DetectDisks
-      # #151501: AutoYaST also needs to know the activate flag and the
-      # "boot_*" settings (formerly the loader_device); jsrain also said
-      # that skipping setting these variables is probably a bug:
-      # commenting out the skip code, but this may need to be changed and made dependent
-      # on a "clone" flag (i.e. make the choice to provide minimal (i.e. let
-      # YaST do partial proposals on the target system) or maximal (i.e.
-      # stay as closely as possible to this system) info in the AutoYaST XML
-      # file)
-      # if (Mode::config ())
-      #    return;
       mp = Storage.GetMountPoints
 
-      mountdata_boot = Ops.get_list(mp, "/boot", Ops.get_list(mp, "/", []))
-      mountdata_root = Ops.get_list(mp, "/", [])
+      mountdata_boot = mp["/boot"] || mp["/"]
+      mountdata_root = mp["/"]
 
-      Builtins.y2milestone("mountPoints %1", mp)
-      Builtins.y2milestone("mountdata_boot %1", mountdata_boot)
+      log.info "mountPoints #{mp}"
+      log.info "mountdata_boot #{mountdata_boot}"
 
-      BootStorage.RootPartitionDevice = Ops.get_string(mp, ["/", 0], "")
-
-      if BootStorage.RootPartitionDevice == ""
-        Builtins.y2error("No mountpoint for / !!")
-      end
+      BootStorage.RootPartitionDevice = mountdata_root.first || ""
+      raise "No mountpoint for / !!" if BootStorage.RootPartitionDevice.empty?
 
       # if /boot changed, re-configure location
-      BootStorage.BootPartitionDevice = Ops.get_string(
-        mountdata_boot,
-        0,
-        BootStorage.RootPartitionDevice
-      )
+      BootStorage.BootPartitionDevice = mountdata_boot.first
 
       # get extended partition device (if exists)
       BootStorage.ExtendedPartitionDevice = grub_GetExtendedPartitionDev
@@ -327,7 +310,7 @@ module Yast
         need_location_reconfigure = true
       else
         Builtins.foreach(bldevs) do |dev|
-          if !Builtins.contains(all_boot_partitions, dev)
+          if !all_boot_partitions.include?(dev)
             need_location_reconfigure = true
           end
         end
