@@ -340,6 +340,7 @@ module Yast
       if BootCommon.globals["boot_boot"] == "true" &&
           actual_boot != BootStorage.BootPartitionDevice
         ret["changed"] = true
+        # TRANSLATORS: %s stands for partition where /boot is mounted
         ret["reason"] +=
           _("Selected bootloader location \"/boot\" is not on %s any more.\n") %
             BootStorage.BootPartitionDevice
@@ -348,6 +349,7 @@ module Yast
       if BootCommon.globals["boot_root"] == "true" &&
           actual_root != BootStorage.RootPartitionDevice
         ret["changed"] = true
+        # TRANSLATORS: %s stands for partition where / is mounted
         ret["reason"] +=
           _("Selected bootloader location \"/\" is not on %s any more.\n") %
             BootStorage.RootPartitionDevice
@@ -358,6 +360,7 @@ module Yast
 
         if actual_mbr != BootCommon.mbrDisk
           ret["changed"] = true
+          # TRANSLATORS: %s stands for disk
           ret["reason"] +=
             _("Selected bootloader location MBR is not on %s any more.\n") %
               BootCommon.mbrDisk
@@ -368,6 +371,7 @@ module Yast
           actual_extended != BootStorage.ExtendedPartitionDevice
 
         ret["changed"] = true
+        # TRANSLATORS: %s stands for partition with extended type
         ret["reason"] +=
           _("Selected bootloader location \"extended partition\" is not on %s any more.\n") %
             BootStorage.ExtendedPartitionDevice
@@ -380,6 +384,7 @@ module Yast
 
         if !all_boot_partitions.include?(BootCommon.globals["boot_custom"])
           ret["changed"] = true
+          # TRANSLATORS: %s stands for partition
           ret["reason"] +=
             _("Selected custom bootloader partition %s is not available any more.\n") %
               BootStorage.ExtendedPartitionDevice
