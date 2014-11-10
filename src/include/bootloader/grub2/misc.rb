@@ -41,7 +41,6 @@ module Yast
     # LocationProposal() and related stuff (taken from routines/lilolike.ycp)
 
 
-    # SetBootloaderDevice()
     # Set "boot_*" flags in the globals map according to the boot device selected
     # with parameter selected_location. Only a single boot device can be selected
     # with this function. The function cannot be used to set a custom boot device.
@@ -52,29 +51,23 @@ module Yast
     # from the user or the proposal.
     #
     # @param [Symbol] selected_location symbol one of `boot `root `mbr `extended `mbr_md `none
-    def SetBootloaderDevice(selected_location)
+    def assign_bootloader_device(selected_location)
       # first, default to all off:
-      Builtins.foreach(["boot_boot", "boot_root", "boot_mbr", "boot_extended"]) do |flag|
-        Ops.set(BootCommon.globals, flag, "false")
+      ["boot_boot", "boot_root", "boot_mbr", "boot_extended"].each do |flag|
+        BootCommon.globals[flag] = "false"
       end
       # need to remove the boot_custom key to switch this value off
-      if Builtins.haskey(BootCommon.globals, "boot_custom")
-        BootCommon.globals = Builtins.remove(BootCommon.globals, "boot_custom")
-      end
+      BootCommon.globals.delete("boot_custom")
 
-      if selected_location == :root
-        Ops.set(BootCommon.globals, "boot_root", "true")
-      elsif selected_location == :boot
-        Ops.set(BootCommon.globals, "boot_boot", "true")
-      elsif selected_location == :mbr
-        Ops.set(BootCommon.globals, "boot_mbr", "true")
+      case selected_location
+      when :root then BootCommon.globals["boot_root"] = "true"
+      when :boot then BootCommon.globals["boot_boot"] = "true"
+      when :extended then BootCommon.globals["boot_extended"] = "true"
+      when :mbr
+        BootCommon.globals["boot_mbr"] = "true"
         # Disable generic MBR as we want grub2 there
-        Ops.set(BootCommon.globals, "generic_mbr", "false")
-      elsif selected_location == :extended
-        Ops.set(BootCommon.globals, "boot_extended", "true")
+        BootCommon.globals["generic_mbr"] = "false"
       end
-
-      nil
     end
 
     # function check all partitions and it tries to find /boot partition
@@ -251,13 +244,13 @@ module Yast
         selected_location = :mbr
       end
 
-      SetBootloaderDevice(selected_location)
+      assign_bootloader_device(selected_location)
       if !Builtins.contains(
           BootStorage.possible_locations_for_stage1,
           Ops.get(BootCommon.GetBootloaderDevices, 0)
         )
         selected_location = :mbr # default to mbr
-        SetBootloaderDevice(selected_location)
+        assign_bootloader_device(selected_location)
       end
 
       Builtins.y2milestone(
@@ -293,7 +286,7 @@ module Yast
           selected_location = :extended
         end
         Ops.set(BootCommon.globals, "activate", "true")
-        SetBootloaderDevice(selected_location)
+        assign_bootloader_device(selected_location)
       end
 
       # for GPT remove protective MBR flag otherwise some systems won't boot
@@ -602,7 +595,7 @@ module Yast
           if BootCommon.askLocationResetPopup(
               Ops.get_string(changed, "reason", "Disk configuration changed.\n")
             )
-            SetBootloaderDevice(:none)
+            assign_bootloader_device(:none)
             Builtins.y2milestone("Reconfiguring locations")
             grub_DetectDisks
           end
