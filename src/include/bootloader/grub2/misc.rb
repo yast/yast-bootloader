@@ -19,10 +19,13 @@
 # $Id: BootGRUB.ycp 63508 2011-03-04 12:53:27Z jreidinger $
 #
 
+require "yast"
 require "bootloader/boot_record_backup"
 
 module Yast
   module BootloaderGrub2MiscInclude
+    include Yast::Logger
+
     def initialize_bootloader_grub2_misc(include_target)
       textdomain "bootloader"
       Yast.import "Arch"
@@ -74,37 +77,17 @@ module Yast
     # if it is MD Raid and soft-riad return correct device for analyse MBR
     # @param list<map> list of partitions
     # @return [String] device for analyse MBR
-    def soft_MDraid_boot_disk(partitions)
-      partitions = deep_copy(partitions)
-      result = ""
-      boot_device = ""
-      if BootStorage.BootPartitionDevice != nil &&
-          BootStorage.BootPartitionDevice != ""
-        boot_device = BootStorage.BootPartitionDevice
-      else
-        boot_device = BootStorage.RootPartitionDevice
-      end
+    def mdraid_boot_disk(partitions)
+      boot_device = BootStorage.BootPartitionDevice
+      boot_part = partitions.find { |p| p["device"] == boot_device }
+      return "" if boot_part["fstype"] != "md raid" # we are intersted only in raids
 
-      Builtins.foreach(partitions) do |p|
-        if Ops.get_string(p, "device", "") == boot_device
-          if Ops.get(p, "type") == :sw_raid &&
-              Builtins.tolower(Ops.get_string(p, "fstype", "")) == "md raid"
-            device_1 = Ops.get_string(p, ["devices", 0], "")
-            Builtins.y2debug("device_1: %1", device_1)
-            dp = Storage.GetDiskPartition(device_1)
-            Builtins.y2debug("dp: %1", dp)
-            result = Ops.get_string(dp, "disk", "")
-          end
-        end
-      end
-      Builtins.y2milestone(
-        "Device for analyse MBR from soft-raid (MD-Raid only): %1",
-        result
-      )
+      result = boot_part["devices"].first
+      result = Storage.GetDiskPartition(result)["disk"]
+
+      log.info "Device for analyse MBR from soft-raid (MD-Raid only): #{result}"
       result
     end
-
-
 
     # grub_ConfigureLocation()
     # Where to install the bootloader.
@@ -195,7 +178,7 @@ module Yast
         # check if there is raid and if it soft-raid select correct device for analyse MBR
         # bnc #398356
         if Ops.greater_than(Builtins.size(underlying_boot_partition_devices), 1)
-          boot_partition_disk = soft_MDraid_boot_disk(
+          boot_partition_disk = mdraid_boot_disk(
             partitions_on_boot_partition_disk
           )
         end
