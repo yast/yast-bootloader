@@ -300,7 +300,7 @@ module Yast
       ret &&= CommitSettings() if flush
 
       # write settings to /etc/sysconfig/bootloader
-      sysconf = Bootloader::Sysconfig.new(bootloader: bl, secure_boot: @secure_boot)
+      sysconf = ::Bootloader::Sysconfig.new(bootloader: bl, secure_boot: @secure_boot)
       sysconf.write
 
       ret
