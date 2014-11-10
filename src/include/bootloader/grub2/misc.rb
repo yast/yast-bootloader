@@ -399,14 +399,12 @@ module Yast
     #    "/" did not move there), "/" was selected but has moved, etc.), then also
     #    re-collect the devices for "/", "/boot", MBR and make a new proposal
     def grub_LocationProposal
-      Builtins.y2milestone("globals: %1", BootCommon.globals)
-      Builtins.y2milestone("Mode::autoinst: %1", Mode.autoinst)
-      Builtins.y2milestone("Mode::autoupg: %1", Mode.autoupgrade)
-      Builtins.y2milestone(
-        "haskey( BootCommon::globals, boot_boot ): %1",
-        Builtins.haskey(BootCommon.globals, "boot_boot")
-      )
+      log.info "globals: #{BootCommon.globals}"
+      log.info "Mode #{Mode.mode}"
       md_mbr = ""
+      no_boot_key = ["boot_boot", "boot_root", "boot_mbr", "boot_extended", "boot_custom"].none? do |k|
+        BootCommon.globals[k]
+      end
       if !BootCommon.was_proposed ||
           # During autoinstall, the autoyast profile must contain a bootloader
           # device specification (we currently really only support system
@@ -416,35 +414,22 @@ module Yast
           # Note that "no bootloader device" can be specified by explicitly
           # setting this up, e.g. by setting one or all boot_* flags to
           # "false".
-          # FIXME: add to LILO, ELILO; POWERLILO already should have this
-          # (check again)
-          (Mode.autoinst || Mode.autoupgrade) && !Builtins.haskey(BootCommon.globals, "boot_boot") &&
-            !Builtins.haskey(BootCommon.globals, "boot_root") &&
-            !Builtins.haskey(BootCommon.globals, "boot_mbr") &&
-            !Builtins.haskey(BootCommon.globals, "boot_extended") &&
-            !#	    ! haskey( BootCommon::globals, "boot_mbr_md" ) &&
-            Builtins.haskey(BootCommon.globals, "boot_custom")
+          (Mode.autoinst || Mode.autoupgrade) && no_boot_key
         grub_DetectDisks
         # check whether edd is loaded; if not: load it
         lsmod_command = "lsmod | grep edd"
-        Builtins.y2milestone("Running command %1", lsmod_command)
-        lsmod_out = Convert.to_map(
-          SCR.Execute(path(".target.bash_output"), lsmod_command)
-        )
-        Builtins.y2milestone("Command output: %1", lsmod_out)
+        lsmod_out = SCR.Execute(path(".target.bash_output"), lsmod_command)
+        log.info "Command '#{lsmod_command}' output: #{lsmod_out}"
         edd_loaded = Ops.get_integer(lsmod_out, "exit", 0) == 0
         if !edd_loaded
           command = "/sbin/modprobe edd"
-          Builtins.y2milestone("Loading EDD module, running %1", command)
-          out = Convert.to_map(
-            SCR.Execute(path(".target.bash_output"), command)
-          )
-          Builtins.y2milestone("Command output: %1", out)
+          out = SCR.Execute(path(".target.bash_output"), command)
+          log.info "Command '#{command}' output: #{out}"
         end
         md_mbr = BootStorage.addMDSettingsToGlobals
-        Ops.set(BootCommon.globals, "boot_md_mbr", md_mbr) if md_mbr != ""
+        BootCommon.globals["boot_md_mbr"] = md_mbr unless md_mbr.empty?
       end
-      Builtins.y2milestone("(2) globals: %1", BootCommon.globals)
+      log.info "(2) globals: #{BootCommon.globals}"
 
       # refresh device map
       if BootStorage.device_map.empty?  ||
@@ -454,17 +439,13 @@ module Yast
             !((Mode.autoinst || Mode.autoupgrade) &&
               BootCommon.cached_settings_base_data_change_time == nil)
         BootStorage.device_map.propose
-        md_mbr = BootStorage.addMDSettingsToGlobals
-        Ops.set(BootCommon.globals, "boot_md_mbr", md_mbr) if md_mbr != ""
         BootCommon.InitializeLibrary(true, "grub2")
       end
 
       if !Mode.autoinst && !Mode.autoupgrade
         changed = grub_DisksChanged
-        if Ops.get_boolean(changed, "changed", false)
-          if BootCommon.askLocationResetPopup(
-              Ops.get_string(changed, "reason", "Disk configuration changed.\n")
-            )
+        if changed["changed"]
+          if BootCommon.askLocationResetPopup(changed["reason"])
             assign_bootloader_device(:none)
             Builtins.y2milestone("Reconfiguring locations")
             grub_DetectDisks
