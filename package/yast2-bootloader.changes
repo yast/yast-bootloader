@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 11 08:43:27 UTC 2014 - jreidinger@suse.com
+
+- properly align checkboxes and improve spacing (bnc#900023)
+- 3.1.110
+
+-------------------------------------------------------------------
 Fri Oct 31 06:36:13 UTC 2014 - jreidinger@suse.com
 
 - do not show useless widgets when user decided to not install
