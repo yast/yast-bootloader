@@ -107,9 +107,14 @@ module Yast
             HSpacing(1),
             "timeout",
             HSpacing(1),
-            Left(VBox( "os_prober", "hiddenmenu")),
+            VBox(
+              Left("os_prober"),
+              VSpacing(1),
+              Left("hiddenmenu")
+            ),
             HSpacing(1)
           ),
+          VSpacing(1),
           MarginBox(1, 1, "default"),
           MarginBox(1, 1, "password"),
           VStretch()
