@@ -780,6 +780,10 @@ module Yast
     end
 
     NONSPLASH_VGA_VALUES = ["", "false", "ask"]
+
+    # store new vgamode if needed and regenerate initrd in such case
+    # @param params_to_save used to store predefined vgamode value
+    # @return boolean if succeed
     def write_initrd(params_to_save)
       ret = true
       new_vga = getKernelParam(getDefaultSection, "vgamode")
