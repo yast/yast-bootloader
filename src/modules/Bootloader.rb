@@ -87,19 +87,15 @@ module Yast
     def Export
       ReadOrProposeIfNeeded()
       out = {
-        "loader_type"    => getLoaderType,
-        "initrd"         => Initrd.Export,
-        "specific"       => blExport,
-        "write_settings" => BootCommon.write_settings
+        "loader_type"     => getLoaderType,
+        "initrd"          => Initrd.Export,
+        "specific"        => blExport,
+        "write_settings"  => BootCommon.write_settings,
+        "loader_device"   => BootCommon.loader_device,
+        "loader_location" => BootCommon.selected_location
       }
-      loader_type = out["loader_type"]
-
-      # export loader_device and selected_location only for bootloaders
-      # that have not phased them out yet
-      Ops.set(out, "loader_device", BootCommon.loader_device)
-      Ops.set(out, "loader_location", BootCommon.selected_location)
       log.info "Exporting settings: #{out}"
-      deep_copy(out)
+      out
     end
 
     # Import settings from a map
@@ -692,7 +688,7 @@ module Yast
         return true
       end
 
-      if ProductFeatures.GetBooleanFeature("globals", "kexec_reboot") != true
+      if !ProductFeatures.GetBooleanFeature("globals", "kexec_reboot")
         log.info "Option kexec_reboot is false. kexec will not be used."
         return true
       end
