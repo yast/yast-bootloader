@@ -787,19 +787,14 @@ module Yast
     def write_initrd(params_to_save)
       ret = true
       new_vga = getKernelParam(getDefaultSection, "vgamode")
-      if new_vga != @old_vga && !NONSPLASH_VGA_VALUES.include?(new_vga)
+      if (new_vga != @old_vga && !NONSPLASH_VGA_VALUES.include?(new_vga)) ||
+          !Mode.normal
         Initrd.setSplash(new_vga)
         params_to_save["vgamode"] = new_vga if Stage.initial
       end
 
       # save initrd
-      if (Initrd.changed || !Mode.normal) &&
-          !BootCommon.write_settings["forbid_save_initrd"]
-        vga = getKernelParam(getDefaultSection, "vgamode")
-        if !NONSPLASH_VGA_VALUES.include?(vga)
-          Initrd.setSplash(vga)
-          params_to_save["vgamode"] = new_vga if Stage.initial
-        end
+      if Initrd.changed && !BootCommon.write_settings["forbid_save_initrd"]
         ret = Initrd.Write
         BootCommon.changed = true
       end
