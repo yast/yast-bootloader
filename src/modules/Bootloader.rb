@@ -87,19 +87,15 @@ module Yast
     def Export
       ReadOrProposeIfNeeded()
       out = {
-        "loader_type"    => getLoaderType,
-        "initrd"         => Initrd.Export,
-        "specific"       => blExport,
-        "write_settings" => BootCommon.write_settings
+        "loader_type"     => getLoaderType,
+        "initrd"          => Initrd.Export,
+        "specific"        => blExport,
+        "write_settings"  => BootCommon.write_settings,
+        "loader_device"   => BootCommon.loader_device,
+        "loader_location" => BootCommon.selected_location
       }
-      loader_type = out["loader_type"]
-
-      # export loader_device and selected_location only for bootloaders
-      # that have not phased them out yet
-      Ops.set(out, "loader_device", BootCommon.loader_device)
-      Ops.set(out, "loader_location", BootCommon.selected_location)
       log.info "Exporting settings: #{out}"
-      deep_copy(out)
+      out
     end
 
     # Import settings from a map
@@ -282,8 +278,6 @@ module Yast
     # Write bootloader settings to disk
     # @return [Boolean] true on success
     def Write
-      ret = true
-
       if @repeating_write
         BootCommon.was_read = true
       else
@@ -328,25 +322,8 @@ module Yast
       end
 
       params_to_save = {}
+      ret = write_initrd(params_to_save)
 
-      new_vga = getKernelParam(getDefaultSection, "vgamode")
-      if new_vga != @old_vga && new_vga != "false" && new_vga != "" &&
-          new_vga != "ask"
-        Initrd.setSplash(new_vga)
-        Ops.set(params_to_save, "vgamode", new_vga) if Stage.initial
-      end
-
-      # save initrd
-      if (Initrd.changed || !Mode.normal) &&
-          !BootCommon.write_settings["forbid_save_initrd"]
-        vga = getKernelParam(getDefaultSection, "vgamode")
-        if vga != "false" && vga != "" && vga != "ask"
-          Initrd.setSplash(vga)
-          params_to_save["vgamode"] = new_vga if Stage.initial
-        end
-        ret = Initrd.Write
-        BootCommon.changed = true
-      end
       log.error "Error occurred while creating initrd" unless ret
 
       BootCommon.changed = true if Mode.commandline
@@ -406,30 +383,11 @@ module Yast
     # @return [Boolean] true on success
     def WriteInstallation
       log.info "Writing bootloader configuration during installation"
-      ret = true
 
       mark_as_changed
 
       params_to_save = {}
-
-      new_vga = getKernelParam(getDefaultSection, "vgamode")
-      if new_vga != @old_vga && new_vga != "false" && new_vga != ""
-        Initrd.setSplash(new_vga)
-        Ops.set(params_to_save, "vgamode", new_vga) if Stage.initial
-      end
-
-
-      # save initrd
-      if (Initrd.changed || !Mode.normal) &&
-          !BootCommon.write_settings["forbid_save_initrd"]
-        vga = getKernelParam(getDefaultSection, "vgamode")
-        if vga != "false" && vga != ""
-          Initrd.setSplash(vga)
-          Ops.set(params_to_save, "vgamode", new_vga) if Stage.initial
-        end
-        ret = Initrd.Write
-        BootCommon.changed = true
-      end
+      ret = write_initrd(params_to_save)
 
       log.error "Error occurred while creating initrd" unless ret
 
@@ -730,7 +688,7 @@ module Yast
         return true
       end
 
-      if ProductFeatures.GetBooleanFeature("globals", "kexec_reboot") != true
+      if !ProductFeatures.GetBooleanFeature("globals", "kexec_reboot")
         log.info "Option kexec_reboot is false. kexec will not be used."
         return true
       end
@@ -819,6 +777,29 @@ module Yast
       end
 
       false
+    end
+
+    NONSPLASH_VGA_VALUES = ["", "false", "ask"]
+
+    # store new vgamode if needed and regenerate initrd in such case
+    # @param params_to_save used to store predefined vgamode value
+    # @return boolean if succeed
+    def write_initrd(params_to_save)
+      ret = true
+      new_vga = getKernelParam(getDefaultSection, "vgamode")
+      if (new_vga != @old_vga && !NONSPLASH_VGA_VALUES.include?(new_vga)) ||
+          !Mode.normal
+        Initrd.setSplash(new_vga)
+        params_to_save["vgamode"] = new_vga if Stage.initial
+      end
+
+      # save initrd
+      if Initrd.changed && !BootCommon.write_settings["forbid_save_initrd"]
+        ret = Initrd.Write
+        BootCommon.changed = true
+      end
+
+      ret
     end
 
     publish :function => :Export, :type => "map ()"
