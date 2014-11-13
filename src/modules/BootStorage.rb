@@ -239,12 +239,12 @@ module Yast
 
     # Get extended partition for given partition or disk
     def extended_partition_for(device)
-      tm = Yast::Storage.GetTargetMap
-      dp = Yast::Storage.GetDiskPartition(device)
-      return nil unless dp["disk"]
+      disk_partition = Yast::Storage.GetDiskPartition(device)
+      return nil unless disk_partition["disk"]
 
-      dm = tm[dp["disk"]] || {}
-      partitions = dm["partitions"] || []
+      target_map = Yast::Storage.GetTargetMap
+      disk_map = target_map[disk_partition["disk"]] || {}
+      partitions = disk_map["partitions"] || []
       ext_part = partitions.find { |p| p["type"] == :extended }
       return nil unless ext_part
 
