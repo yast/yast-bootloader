@@ -42,7 +42,7 @@ module Bootloader
       end
 
 
-      if custom_exist?
+      if invalid_custom?
         # TRANSLATORS: %s stands for partition
         ret <<
           _("Selected custom bootloader partition %s is not available any more.") %
@@ -86,7 +86,7 @@ module Bootloader
       Yast::BootCommon.globals[key] == "true"
     end
 
-    def custom_exist?
+    def invalid_custom?
       boot_custom = Yast::BootCommon.globals["boot_custom"]
       return false if !boot_custom || boot_custom.empty?
 
