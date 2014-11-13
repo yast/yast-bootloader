@@ -255,25 +255,6 @@ module Yast
       boot_discs.any? {|d| d["label"] == "gpt" }
     end
 
-    # Find extended partition device (if it exists) on the same device where the
-    # BootPartitionDevice is located
-    #
-    # BootPartitionDevice must be set
-    #
-    # @return [String] device name of extended partition, or nil if none found
-    def grub_GetExtendedPartitionDev
-
-      tm = Storage.GetTargetMap
-      device = BootStorage.BootPartitionDevice
-      dp = Storage.GetDiskPartition(device)
-      dm = tm[dp["disk"]] || {}
-      partitions = dm["partitions"] || []
-      ext_part = partitions.find { |p| p["type"] == :extended }
-      return nil unless ext_part
-
-      ext_part["device"]
-    end
-
     # Detect "/boot", "/" (root), extended partition device and MBR disk device
     #
     # If no bootloader device has been set up yet (globals["boot_*"]), or the
@@ -297,7 +278,7 @@ module Yast
       BootStorage.BootPartitionDevice = mountdata_boot.first
 
       # get extended partition device (if exists)
-      BootStorage.ExtendedPartitionDevice = grub_GetExtendedPartitionDev
+      BootStorage.ExtendedPartitionDevice = BootStorage.extended_partition_for(BootStorage.BootPartitionDevice)
 
       if BootCommon.mbrDisk == "" || BootCommon.mbrDisk == nil
         # mbr detection.

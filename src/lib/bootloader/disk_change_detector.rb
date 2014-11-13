@@ -16,7 +16,7 @@ module Bootloader
       mp = Yast::Storage.GetMountPoints
       @actual_root = mp["/"].first || ""
       @actual_boot = mp["/boot"].first || actual_root
-      @actual_extended = grub_GetExtendedPartitionDev
+      @actual_extended = Yast::BootStorage.extended_partition_for(Yast::BootStorage.BootPartitionDevice)
     end
 
     # Check whether any disk settings for the disks we currently use were changed
@@ -59,26 +59,6 @@ module Bootloader
 
   private
     attr_reader :actual_boot, :actual_root, :actual_extended
-
-    # TODO move to bootStorage
-    # Find extended partition device (if it exists) on the same device where the
-    # BootPartitionDevice is located
-    #
-    # BootPartitionDevice must be set
-    #
-    # @return [String] device name of extended partition, or nil if none found
-    def grub_GetExtendedPartitionDev
-
-      tm = Yast::Storage.GetTargetMap
-      device = Yast::BootStorage.BootPartitionDevice
-      dp = Yast::Storage.GetDiskPartition(device)
-      dm = tm[dp["disk"]] || {}
-      partitions = dm["partitions"] || []
-      ext_part = partitions.find { |p| p["type"] == :extended }
-      return nil unless ext_part
-
-      ext_part["device"]
-    end
 
     def change_message(location, device)
       # TRANSLATORS the %{path} is path where bootloader stage1 is selected to install and

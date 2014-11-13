@@ -13,8 +13,7 @@ describe Bootloader::DiskChangeDetector do
     }
     allow(Yast::Storage).to receive(:GetMountPoints).and_return(mount_points)
 
-    allow_any_instance_of(Bootloader::DiskChangeDetector).to receive(:grub_GetExtendedPartitionDev).and_return(nil)
-    @subject = Bootloader::DiskChangeDetector.new
+    allow(Yast::BootStorage).to receive(:extended_partition_for).and_return(nil)
   end
 
   after do
@@ -28,26 +27,25 @@ describe Bootloader::DiskChangeDetector do
 
   describe ".changes" do
     it "returns empty array if disk proposal do not change" do
-      expect(@subject.changes).to be_empty
+      expect(subject.changes).to be_empty
     end
 
     it "returns list containing message with boot if device for /boot changed and stage1 selected for boot" do
       Yast::BootCommon.globals["boot_boot"] = "true"
       Yast::BootStorage.BootPartitionDevice = "/dev/sdb1"
-      expect(@subject.changes.first).to include('"/boot"')
+      expect(subject.changes.first).to include('"/boot"')
     end
 
     it "returns list containing message with root if device for / changed and stage1 selected for root" do
       Yast::BootCommon.globals["boot_root"] = "true"
       Yast::BootStorage.RootPartitionDevice = "/dev/sdb2"
-      expect(@subject.changes.first).to include('"/"')
+      expect(subject.changes.first).to include('"/"')
     end
 
     it "returns list containing message with extended if extended partition changed and stage1 selected for extended" do
       Yast::BootCommon.globals["boot_extended"] = "true"
-      allow_any_instance_of(Bootloader::DiskChangeDetector).to receive(:grub_GetExtendedPartitionDev).and_return("/dev/sda4")
+      allow(Yast::BootStorage).to receive(:extended_partition_for).and_return("/dev/sda4")
       Yast::BootStorage.ExtendedPartitionDevice = "/dev/sdb2"
-      subject = Bootloader::DiskChangeDetector.new
       expect(subject.changes.first).to include('"extended partition"')
     end
 
@@ -55,13 +53,13 @@ describe Bootloader::DiskChangeDetector do
       Yast::BootCommon.globals["boot_mbr"] = "true"
       allow(Yast::BootCommon).to receive(:FindMBRDisk).and_return("/dev/sda")
       Yast::BootCommon.mbrDisk = "/dev/sdb"
-      expect(@subject.changes.first).to include('MBR')
+      expect(subject.changes.first).to include('MBR')
     end
 
     it "returns list containing message with custom partition if custom boot disk changed and stage1 selected for custom" do
       Yast::BootCommon.globals["boot_custom"] = "/dev/sdc"
       allow(Yast::BootStorage).to receive(:possible_locations_for_stage1).and_return(["/dev/sda", "/dev/sda2"])
-      expect(@subject.changes.first).to include('custom bootloader partition')
+      expect(subject.changes.first).to include('custom bootloader partition')
     end
   end
 end
