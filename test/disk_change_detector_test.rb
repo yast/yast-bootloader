@@ -22,7 +22,8 @@ describe Bootloader::DiskChangeDetector do
     Yast::BootCommon.globals["boot_root"] = "false"
     Yast::BootCommon.globals["boot_extended"] = "false"
     Yast::BootCommon.globals["boot_mbr"] = "false"
-    Yast::BootCommon.globals["boot_mbr"] = nil
+    Yast::BootCommon.globals["boot_custom"] = nil
+    Yast::BootCommon.mbrDisk = nil
   end
 
   describe ".changes" do
