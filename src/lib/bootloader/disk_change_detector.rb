@@ -5,7 +5,6 @@ module Bootloader
   # during installation, so bootloader configuration can be invalid.
   class DiskChangeDetector
     include Yast::I18n
-    include Yast::Logger
 
     def initialize
       Yast.import "BootCommon"
@@ -48,10 +47,6 @@ module Bootloader
         ret <<
           _("Selected custom bootloader partition %s is not available any more.") %
             Yast::BootCommon.globals["boot_custom"]
-      end
-
-      if !ret.empty?
-        log.info "Location should be set again"
       end
 
       ret

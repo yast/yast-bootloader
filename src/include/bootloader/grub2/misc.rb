@@ -361,6 +361,7 @@ module Yast
       if !Mode.autoinst && !Mode.autoupgrade
         changes = ::Bootloader::DiskChangeDetector.new.changes
         if !changes.empty?
+          log.info "Location change detected"
           if BootCommon.askLocationResetPopup(changes.join("\n"))
             assign_bootloader_device(:none)
             Builtins.y2milestone("Reconfiguring locations")
