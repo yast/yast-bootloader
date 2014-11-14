@@ -12,6 +12,9 @@ describe Bootloader::Kexec do
       Yast.import "ProductFeatures"
       allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).
         with("globals", "kexec_reboot").and_return(true)
+      allow(Yast::Arch).to receive(:ppc).and_return(false)
+      allow(Yast::Mode).to receive(:live_installation).and_return(false)
+      allow(Yast::Arch).to receive(:s390).and_return(false)
     end
 
     it "returns false if running in live installation" do
