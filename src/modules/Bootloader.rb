@@ -521,15 +521,6 @@ module Yast
       BootCommon.getLoaderType(false)
     end
 
-    # Set type of bootloader
-    # Just a wrapper to BootCommon::setLoaderType
-    # @param [String] bootloader string type of bootloader
-    def setLoaderType(bootloader)
-      BootCommon.setLoaderType(bootloader)
-
-      nil
-    end
-
     # Set section to boot on next reboot
     # @param [String] section string section to boot
     # @return [Boolean] true on success
@@ -780,7 +771,6 @@ module Yast
     publish :function => :Summary, :type => "list <string> ()"
     publish :function => :Update, :type => "boolean ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
-    publish :function => :setLoaderType, :type => "void (string)"
     publish :function => :CopyKernelInird, :type => "boolean ()"
   end
 
