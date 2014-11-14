@@ -1,6 +1,8 @@
 require "yast"
 
 module Bootloader
+  # Task of class is to allow preparation for running kexec at the end of
+  # installation. It also decide if environment is not suitable for kexec.
   class Kexec
     include Yast::Logger
 
@@ -12,6 +14,8 @@ module Bootloader
       Yast.import "ProductFeatures"
     end
 
+    # Prepares environment for kexec
+    # @return false if environment is not suitable to be used for kexec
     def prepare_environment
       log.info "CopyKernelInird: start copy kernel and inird"
       return false unless proper_environment?
