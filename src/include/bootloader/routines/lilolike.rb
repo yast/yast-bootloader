@@ -23,29 +23,10 @@ module Yast
     def initialize_bootloader_routines_lilolike(include_target)
       textdomain "bootloader"
 
-      Yast.import "Arch"
-      Yast.import "Mode"
+      Yast.import "BootStorage"
       Yast.import "Storage"
-      Yast.import "StorageDevices"
-      Yast.import "BootArch"
-      Yast.import "Map"
 
       Yast.include include_target, "bootloader/routines/i386.rb"
-
-
-      # fallback list for kernel flavors (adapted from Kernel.ycp), used if we have
-      # no better information
-      # order is from special to general, but prefer "default" in favor of "xen"
-      # FIXME: handle "rt" and "vanilla"?
-      # bnc #400526 there is not xenpae anymore...
-      @generic_fallback_flavors = [
-        "s390",
-        "iseries64",
-        "ppc64",
-        "bigsmp",
-        "default",
-        "xen"
-      ]
     end
 
     # FindMbrDisk()
@@ -174,8 +155,6 @@ module Yast
       # YaST do partial proposals on the target system) or maximal (i.e.
       # stay as closely as possible to this system) info in the AutoYaST XML
       # file)
-      # if (Mode::config ())
-      #    return;
       mp = Storage.GetMountPoints
 
       mountdata_boot = Ops.get_list(mp, "/boot", Ops.get_list(mp, "/", []))
@@ -208,16 +187,6 @@ module Yast
 
       nil
     end
-
-    def getLargestSwapPartition
-      swap_sizes = getSwapPartitions
-      swap_parts = Builtins.maplist(swap_sizes) { |name, size| name }
-      swap_parts = Builtins.sort(swap_parts) do |a, b|
-        Ops.greater_than(Ops.get(swap_sizes, a, 0), Ops.get(swap_sizes, b, 0))
-      end
-      Ops.get(swap_parts, 0, "")
-    end
-
 
     # Update global options of bootloader
     # modifies internal sreuctures

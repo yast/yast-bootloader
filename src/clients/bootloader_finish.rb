@@ -12,6 +12,8 @@
 #
 # $Id$
 #
+require "bootloader/kexec"
+
 module Yast
   class BootloaderFinishClient < Client
     def main
@@ -191,16 +193,17 @@ module Yast
           Bootloader.Read
           # fate #303395: Use kexec to avoid booting between first and second stage
           # copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
-          @retcode = false
+          retcode = false
           if Linuxrc.InstallInf("kexec_reboot") == "1"
-            @retcode = Bootloader.CopyKernelInird
+            kexec = ::Bootloader::Kexec.new
+            retcode = kexec.prepare_environment
           else
             Builtins.y2milestone("Installation started with kexec_reboot set 0")
           end
 
           # (bnc #381192) don't use it if kexec is used
           # update calling onetime boot bnc #339024
-          if !@retcode
+          if !retcode
             @ret = Bootloader.FlagOnetimeBoot(Bootloader.getDefaultSection)
           end
         else

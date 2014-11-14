@@ -182,7 +182,7 @@ module Yast
 
       ret = blRead(true, false)
       BootCommon.was_read = true
-      @old_vga = getKernelParam(getDefaultSection, "vgamode")
+      @old_vga = BootCommon.globals["vgamode"]
 
       Progress.Finish
       return false if testAbort
@@ -234,23 +234,11 @@ module Yast
     # Display bootloader summary
     # @return a list of summary lines
     def Summary
-      ret = []
-
-      # F#300779 - Install diskless client (NFS-root)
       # kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-
-      device = BootCommon.getBootDisk
-      if device == "/dev/nfs"
-        ret = Builtins.add(
-          ret,
-          _(
-            "The boot partition is of type NFS. Bootloader cannot be installed."
-          )
-        )
+      if BootCommon.getBootDisk == "/dev/nfs"
         log.info "Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed."
-        return deep_copy(ret)
+        return _("The boot partition is of type NFS. Bootloader cannot be installed.")
       end
-      # F#300779 - end
 
       blSummary
     end
@@ -428,35 +416,6 @@ module Yast
       BootCommon.globals["default"] || ""
     end
 
-    # get kernel parameters from bootloader configuration file
-    # @param [String] section string section title, use DEFAULT for default section
-    # @param [String] key string
-    # @return [String] value, "false" if not present,
-    # "true" if present key without value
-    # @deprecated Use kernel_param instead
-    def getKernelParam(section, key)
-      ReadOrProposeIfNeeded()
-      if section == "DEFAULT"
-        section = getDefaultSection
-      end
-      return "" if section == nil
-      params = BootCommon.getAnyTypeAttrib("kernel_params", {})
-      sectnum = -1
-      index = -1
-      Builtins.foreach(BootCommon.sections) do |s|
-        index = Ops.add(index, 1)
-        sectnum = index if s["name"] == section
-      end
-      return "" if sectnum == -1
-      line = ""
-      if ["root", "vgamode"].include? (key)
-        return BootCommon.sections[sectnum][key] || "false"
-      else
-        line = BootCommon.sections[sectnum]["append"] || ""
-        return BootCommon.getKernelParamFromLine(line, key)
-      end
-    end
-
     FLAVOR_KERNEL_LINE_MAP = {
       :common    => "append",
       :recovery  => "append_failsafe",
@@ -562,15 +521,6 @@ module Yast
       BootCommon.getLoaderType(false)
     end
 
-    # Set type of bootloader
-    # Just a wrapper to BootCommon::setLoaderType
-    # @param [String] bootloader string type of bootloader
-    def setLoaderType(bootloader)
-      BootCommon.setLoaderType(bootloader)
-
-      nil
-    end
-
     # Set section to boot on next reboot
     # @param [String] section string section to boot
     # @return [Boolean] true on success
@@ -581,157 +531,24 @@ module Yast
     # Check whether settings were read or proposed, if not, decide
     # what to do and read or propose settings
     def ReadOrProposeIfNeeded
-      if !(BootCommon.was_read || BootCommon.was_proposed)
-        log.info "Stage::initial (): #{Stage.initial},"\
-          "update: #{Mode.update}, config: #{Mode.config}"
-        if Mode.config
-          log.info "Not reading settings in Mode::config ()"
-          BootCommon.was_read = true
-          BootCommon.was_proposed = true
-        elsif Stage.initial && !Mode.update
-          Propose()
-        else
-          progress_orig = Progress.set(false)
-          Read()
-          Progress.set(progress_orig)
-          if Mode.update
-            UpdateConfiguration()
-            BootCommon.changed = true
-            BootCommon.location_changed = true
-          end
+      return if BootCommon.was_read || BootCommon.was_proposed
+
+      if Mode.config
+        log.info "Not reading settings in Mode::config ()"
+        BootCommon.was_read = true
+        BootCommon.was_proposed = true
+      elsif Stage.initial && !Mode.update
+        Propose()
+      else
+        progress_orig = Progress.set(false)
+        Read()
+        Progress.set(progress_orig)
+        if Mode.update
+          UpdateConfiguration()
+          BootCommon.changed = true
+          BootCommon.location_changed = true
         end
       end
-
-      nil
-    end
-
-    # Function update append -> add console to append
-    #
-    # @param map<string,any> boot section
-    # @return [Hash{String => Object}] updated boot section
-    def updateAppend(section)
-      section = deep_copy(section)
-      ret = deep_copy(section)
-      if !(section["append"] || "").empty? &&
-          !(section["console"] || "").empty?
-        updated_append = BootCommon.UpdateSerialConsole(
-          section["append"], section["console"]
-        )
-        ret["append"] = updated_append if updated_append
-      end
-      ret
-    end
-
-
-    # Get entry from DMI data returned by .probe.bios.
-    #
-    # @param [Array<Hash>] bios_data: result of SCR::Read(.probe.bios)
-    # @param [String] section: section name
-    # @param [String] key: key in section
-    # @return [String]: entry
-    def DMIRead(bios_data, section, key)
-      bios_data = deep_copy(bios_data)
-      smbios = bios_data.fetch(0, {}).fetch("smbios", [])
-
-      result = smbios.find { |x| x["type"] == section }
-      result = result[key] if result
-      result ||= ""
-
-      log.info "Bootloader::DMIRead(#{section}, #{key}) = #{result}"
-
-      result
-    end
-
-
-    # Check if we run in a vbox vm.
-    #
-    # @param [Array<Hash>] bios_data: result of SCR::Read(.probe.bios)
-    # @return [Boolean]: true if yast runs in a vbox vm
-    def IsVirtualBox(bios_data)
-      bios_data = deep_copy(bios_data)
-      r = DMIRead(bios_data, "sysinfo", "product") == "VirtualBox"
-
-      log.info "Bootloader::IsVirtualBox = #{r}"
-
-      r
-    end
-
-
-    # Check if we run in a hyperv vm.
-    #
-    # @param [Array<Hash>] bios_data: result of SCR::Read(.probe.bios)
-    # @return [Boolean]: true if yast runs in a hyperv vm
-    def IsHyperV(bios_data)
-      bios_data = deep_copy(bios_data)
-      r = DMIRead(bios_data, "sysinfo", "manufacturer") ==
-        "Microsoft Corporation" &&
-        DMIRead(bios_data, "sysinfo", "product") == "Virtual Machine"
-
-      log.info "Bootloader::IsHyperV = #{r}"
-
-      r
-    end
-
-
-    # Copy initrd and kernel on the end of instalation
-    # (1st stage)
-    # @return [Boolean] on success
-    # fate #303395 Use kexec to avoid booting between first and second stage
-    # copy kernel and initrd to /var/lib/YaST
-    # run kernel via kexec instead of reboot
-    # if not success then reboot...
-    def CopyKernelInird
-      log.info "CopyKernelInird: start copy kernel and inird"
-
-      if Mode.live_installation
-        log.info "Running live_installation without using kexec"
-        return true
-      end
-
-      if !ProductFeatures.GetBooleanFeature("globals", "kexec_reboot")
-        log.info "Option kexec_reboot is false. kexec will not be used."
-        return true
-      end
-
-      # check architecture for using kexec instead of reboot
-      if Arch.ppc || Arch.s390
-        log.info "Skip using of kexec on this architecture"
-        return true
-      end
-
-      bios_data = SCR.Read(path(".probe.bios"))
-
-      log.info "CopyKernelInird::bios_data = #{bios_data}"
-
-      if IsVirtualBox(bios_data)
-        log.info "Installation run on VirtualBox, skip kexec loading"
-        return false
-      end
-
-      if IsHyperV(bios_data)
-        log.info "Installation run on HyperV, skip kexec loading"
-        return false
-      end
-
-      # create directory /var/lib/YaST2
-      WFM.Execute(path(".local.mkdir"), "/var/lib/YaST2")
-
-      cmd = Builtins.sformat(
-        "/bin/cp -L %1/%2 %1/%3 %4",
-        Installation.destdir,
-        "vmlinuz",
-        "initrd",
-        Directory.vardir
-      )
-
-      log.info "Command for copy: #{cmd}"
-      out = WFM.Execute(path(".local.bash_output"), cmd)
-      if out["exit"] != 0
-        log.error "Copy kernel and initrd failed, output: #{out}"
-        return false
-      end
-
-      true
     end
 
     private
@@ -786,7 +603,7 @@ module Yast
     # @return boolean if succeed
     def write_initrd(params_to_save)
       ret = true
-      new_vga = getKernelParam(getDefaultSection, "vgamode")
+      new_vga = BootCommon.globals["vgamode"]
       if (new_vga != @old_vga && !NONSPLASH_VGA_VALUES.include?(new_vga)) ||
           !Mode.normal
         Initrd.setSplash(new_vga)
@@ -810,7 +627,6 @@ module Yast
     publish :function => :Write, :type => "boolean ()"
     publish :function => :FlagOnetimeBoot, :type => "boolean (string)"
     publish :function => :getDefaultSection, :type => "string ()"
-    publish :function => :getKernelParam, :type => "string (string, string)"
     publish :function => :getLoaderType, :type => "string ()"
     publish :variable => :proposed_cfg_changed, :type => "boolean"
     publish :function => :blRead, :type => "boolean (boolean, boolean)"
@@ -822,8 +638,6 @@ module Yast
     publish :function => :Summary, :type => "list <string> ()"
     publish :function => :Update, :type => "boolean ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
-    publish :function => :setLoaderType, :type => "void (string)"
-    publish :function => :CopyKernelInird, :type => "boolean ()"
   end
 
   Bootloader = BootloaderClass.new
