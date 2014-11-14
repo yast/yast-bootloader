@@ -234,23 +234,11 @@ module Yast
     # Display bootloader summary
     # @return a list of summary lines
     def Summary
-      ret = []
-
-      # F#300779 - Install diskless client (NFS-root)
       # kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-
-      device = BootCommon.getBootDisk
-      if device == "/dev/nfs"
-        ret = Builtins.add(
-          ret,
-          _(
-            "The boot partition is of type NFS. Bootloader cannot be installed."
-          )
-        )
+      if BootCommon.getBootDisk == "/dev/nfs"
         log.info "Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed."
-        return deep_copy(ret)
+        return _("The boot partition is of type NFS. Bootloader cannot be installed.")
       end
-      # F#300779 - end
 
       blSummary
     end
