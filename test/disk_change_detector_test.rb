@@ -13,6 +13,7 @@ describe Bootloader::DiskChangeDetector do
     }
     allow(Yast::Storage).to receive(:GetMountPoints).and_return(mount_points)
 
+    Yast.import "BootStorage"
     allow(Yast::BootStorage).to receive(:extended_partition_for).and_return(nil)
   end
 
