@@ -182,7 +182,7 @@ module Yast
 
       ret = blRead(true, false)
       BootCommon.was_read = true
-      @old_vga = getKernelParam(getDefaultSection, "vgamode")
+      @old_vga = BootCommon.globals["vgamode"]
 
       Progress.Finish
       return false if testAbort
@@ -414,35 +414,6 @@ module Yast
     def getDefaultSection
       ReadOrProposeIfNeeded()
       BootCommon.globals["default"] || ""
-    end
-
-    # get kernel parameters from bootloader configuration file
-    # @param [String] section string section title, use DEFAULT for default section
-    # @param [String] key string
-    # @return [String] value, "false" if not present,
-    # "true" if present key without value
-    # @deprecated Use kernel_param instead
-    def getKernelParam(section, key)
-      ReadOrProposeIfNeeded()
-      if section == "DEFAULT"
-        section = getDefaultSection
-      end
-      return "" if section == nil
-      params = BootCommon.getAnyTypeAttrib("kernel_params", {})
-      sectnum = -1
-      index = -1
-      Builtins.foreach(BootCommon.sections) do |s|
-        index = Ops.add(index, 1)
-        sectnum = index if s["name"] == section
-      end
-      return "" if sectnum == -1
-      line = ""
-      if ["root", "vgamode"].include? (key)
-        return BootCommon.sections[sectnum][key] || "false"
-      else
-        line = BootCommon.sections[sectnum]["append"] || ""
-        return BootCommon.getKernelParamFromLine(line, key)
-      end
     end
 
     FLAVOR_KERNEL_LINE_MAP = {
@@ -774,7 +745,7 @@ module Yast
     # @return boolean if succeed
     def write_initrd(params_to_save)
       ret = true
-      new_vga = getKernelParam(getDefaultSection, "vgamode")
+      new_vga = BootCommon.globals["vgamode"]
       if (new_vga != @old_vga && !NONSPLASH_VGA_VALUES.include?(new_vga)) ||
           !Mode.normal
         Initrd.setSplash(new_vga)
@@ -798,7 +769,6 @@ module Yast
     publish :function => :Write, :type => "boolean ()"
     publish :function => :FlagOnetimeBoot, :type => "boolean (string)"
     publish :function => :getDefaultSection, :type => "string ()"
-    publish :function => :getKernelParam, :type => "string (string, string)"
     publish :function => :getLoaderType, :type => "string ()"
     publish :variable => :proposed_cfg_changed, :type => "boolean"
     publish :function => :blRead, :type => "boolean (boolean, boolean)"
