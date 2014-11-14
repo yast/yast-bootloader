@@ -237,6 +237,20 @@ module Yast
       res
     end
 
+    # Get extended partition for given partition or disk
+    def extended_partition_for(device)
+      disk_partition = Yast::Storage.GetDiskPartition(device)
+      return nil unless disk_partition["disk"]
+
+      target_map = Yast::Storage.GetTargetMap
+      disk_map = target_map[disk_partition["disk"]] || {}
+      partitions = disk_map["partitions"] || []
+      ext_part = partitions.find { |p| p["type"] == :extended }
+      return nil unless ext_part
+
+      ext_part["device"]
+    end
+
     # FATE#305008: Failover boot configurations for md arrays with redundancy
     # Check if devices has same partition number and if they are from different disks
     #

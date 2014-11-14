@@ -54,11 +54,10 @@ describe Bootloader::MBRUpdate do
     context "BootCommon.backup_mbr config is set" do
       before do
         Yast::BootCommon.backup_mbr = true
+        Yast::BootCommon.mbrDisk = "/dev/sda"
       end
 
       it "creates backup for BootCommon.mbrDisk" do
-        allow(Yast::BootCommon).to receive(:mbrDisk).
-          and_return("/dev/sda")
         backup_mock = double(::Bootloader::BootRecordBackup)
         expect(::Bootloader::BootRecordBackup).to(
           receive(:new).with("/dev/sda").and_return(backup_mock)
@@ -70,8 +69,6 @@ describe Bootloader::MBRUpdate do
 
       # FIXME get reason for it
       it "creates backup for all devices in BootCommon.GetBootloaderDevices if at least one device lies on mbrDisk" do
-        allow(Yast::BootCommon).to receive(:mbrDisk).
-          and_return("/dev/sda")
         expect(::Bootloader::BootRecordBackup).to(
           receive(:new).with("/dev/sda").and_return(double(:write => true))
         )
@@ -95,8 +92,6 @@ describe Bootloader::MBRUpdate do
       it "creates backup of any disk where Bootloader Devices laid in md raid" do
         allow(Yast::BootStorage).to receive(:Md2Partitions).and_return({"/dev/sdb1" => "/dev/md0", "/dev/sda1" => "/dev/md0"})
 
-        allow(Yast::BootCommon).to receive(:mbrDisk).
-          and_return("/dev/sda")
         allow(Yast::BootCommon).to receive(:GetBootloaderDevices).
           and_return(["/dev/md0"])
         backup_mock = double(::Bootloader::BootRecordBackup)

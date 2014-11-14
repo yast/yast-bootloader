@@ -21,6 +21,7 @@
 
 require "yast"
 require "bootloader/boot_record_backup"
+require "bootloader/disk_change_detector"
 
 module Yast
   module BootloaderGrub2MiscInclude
@@ -254,25 +255,6 @@ module Yast
       boot_discs.any? {|d| d["label"] == "gpt" }
     end
 
-    # Find extended partition device (if it exists) on the same device where the
-    # BootPartitionDevice is located
-    #
-    # BootPartitionDevice must be set
-    #
-    # @return [String] device name of extended partition, or nil if none found
-    def grub_GetExtendedPartitionDev
-
-      tm = Storage.GetTargetMap
-      device = BootStorage.BootPartitionDevice
-      dp = Storage.GetDiskPartition(device)
-      dm = tm[dp["disk"]] || {}
-      partitions = dm["partitions"] || []
-      ext_part = partitions.find { |p| p["type"] == :extended }
-      return nil unless ext_part
-
-      ext_part["device"]
-    end
-
     # Detect "/boot", "/" (root), extended partition device and MBR disk device
     #
     # If no bootloader device has been set up yet (globals["boot_*"]), or the
@@ -296,7 +278,7 @@ module Yast
       BootStorage.BootPartitionDevice = mountdata_boot.first
 
       # get extended partition device (if exists)
-      BootStorage.ExtendedPartitionDevice = grub_GetExtendedPartitionDev
+      BootStorage.ExtendedPartitionDevice = BootStorage.extended_partition_for(BootStorage.BootPartitionDevice)
 
       if BootCommon.mbrDisk == "" || BootCommon.mbrDisk == nil
         # mbr detection.
@@ -323,79 +305,6 @@ module Yast
       grub_ConfigureLocation if need_location_reconfigure
 
       nil
-    end
-
-    # Check whether any disk settings for the disks we currently use were changed
-    # since last checking
-    # @return [Hash] map containing boolean "changed" and string "reason"
-    def grub_DisksChanged
-      ret = { "changed" => false, "reason" => "" }
-      return ret if Mode.config
-
-      mp = Storage.GetMountPoints
-      actual_root = mp["/"].first || ""
-      actual_boot = mp["/boot"].first || actual_root
-      actual_extended = grub_GetExtendedPartitionDev
-
-      if BootCommon.globals["boot_boot"] == "true" &&
-          actual_boot != BootStorage.BootPartitionDevice
-        ret["changed"] = true
-        # TRANSLATORS: %s stands for partition where /boot is mounted
-        ret["reason"] +=
-          _("Selected bootloader location \"/boot\" is not on %s any more.\n") %
-            BootStorage.BootPartitionDevice
-      end
-
-      if BootCommon.globals["boot_root"] == "true" &&
-          actual_root != BootStorage.RootPartitionDevice
-        ret["changed"] = true
-        # TRANSLATORS: %s stands for partition where / is mounted
-        ret["reason"] +=
-          _("Selected bootloader location \"/\" is not on %s any more.\n") %
-            BootStorage.RootPartitionDevice
-      end
-
-      if BootCommon.globals["boot_mbr"] == "true"
-        actual_mbr = BootCommon.FindMBRDisk
-
-        if actual_mbr != BootCommon.mbrDisk
-          ret["changed"] = true
-          # TRANSLATORS: %s stands for disk
-          ret["reason"] +=
-            _("Selected bootloader location MBR is not on %s any more.\n") %
-              BootCommon.mbrDisk
-        end
-      end
-
-      if BootCommon.globals["boot_extended"] == "true" &&
-          actual_extended != BootStorage.ExtendedPartitionDevice
-
-        ret["changed"] = true
-        # TRANSLATORS: %s stands for partition with extended type
-        ret["reason"] +=
-          _("Selected bootloader location \"extended partition\" is not on %s any more.\n") %
-            BootStorage.ExtendedPartitionDevice
-      end
-
-
-      if BootCommon.globals["boot_custom"] &&
-          !BootCommon.globals["boot_custom"].empty?
-        all_boot_partitions = BootStorage.possible_locations_for_stage1
-
-        if !all_boot_partitions.include?(BootCommon.globals["boot_custom"])
-          ret["changed"] = true
-          # TRANSLATORS: %s stands for partition
-          ret["reason"] +=
-            _("Selected custom bootloader partition %s is not available any more.\n") %
-              BootStorage.ExtendedPartitionDevice
-        end
-      end
-
-      if ret["changed"]
-        log.info "Location should be set again"
-      end
-
-      ret
     end
 
     # Propose the boot loader location for grub
@@ -450,9 +359,10 @@ module Yast
       end
 
       if !Mode.autoinst && !Mode.autoupgrade
-        changed = grub_DisksChanged
-        if changed["changed"]
-          if BootCommon.askLocationResetPopup(changed["reason"])
+        changes = ::Bootloader::DiskChangeDetector.new.changes
+        if !changes.empty?
+          log.info "Location change detected"
+          if BootCommon.askLocationResetPopup(changes.join("\n"))
             assign_bootloader_device(:none)
             Builtins.y2milestone("Reconfiguring locations")
             grub_DetectDisks
