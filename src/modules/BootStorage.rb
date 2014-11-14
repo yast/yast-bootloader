@@ -447,14 +447,14 @@ module Yast
       log.info "mountPoints #{mp}"
       log.info "mountdata_boot #{mountdata_boot}"
 
-      self.RootPartitionDevice = mountdata_root.first || ""
-      raise "No mountpoint for / !!" if BootStorage.RootPartitionDevice.empty?
+      @RootPartitionDevice = mountdata_root.first || ""
+      raise "No mountpoint for / !!" if @RootPartitionDevice.empty?
 
       # if /boot changed, re-configure location
-      self.BootPartitionDevice = mountdata_boot.first
+      @BootPartitionDevice = mountdata_boot.first
 
       # get extended partition device (if exists)
-      self.ExtendedPartitionDevice = extended_partition_for(BootPartitionDevice())
+      @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
       if BootCommon.mbrDisk == "" || BootCommon.mbrDisk == nil
         # mbr detection.
@@ -468,7 +468,7 @@ module Yast
 
       return true if bldevs.empty?
 
-      all_boot_partitions = BootStorage.possible_locations_for_stage1
+      all_boot_partitions = possible_locations_for_stage1
       bldevs.any? do |dev|
         !all_boot_partitions.include?(dev)
       end
