@@ -27,9 +27,9 @@ module Bootloader
 
     # Get entry from DMI data returned by .probe.bios.
     #
-    # @param [String] section: section name
-    # @param [String] key: key in section
-    # @return [String]: entry
+    # @param section [String] section name
+    # @param key [String] requested key
+    # @return [String] entry for given key or nil
     def dmi_read(section, key)
       @smbios ||= bios_data.fetch(0, {}).fetch("smbios", [])
 
