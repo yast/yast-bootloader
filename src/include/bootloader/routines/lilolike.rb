@@ -148,44 +148,8 @@ module Yast
     # selected_location and set the activate flag if needed
     # all these settings are stored in internal variables
     def DetectDisks
-      # #151501: AutoYaST needs to know the activate flag and the
-      # loader_device; jsrain also said this code is probably a bug:
-      # commenting out, but this may need to be changed and made dependent
-      # on a "clone" flag (i.e. make the choice to provide minimal (i.e. let
-      # YaST do partial proposals on the target system) or maximal (i.e.
-      # stay as closely as possible to this system) info in the AutoYaST XML
-      # file)
-      mp = Storage.GetMountPoints
-
-      mountdata_boot = Ops.get_list(mp, "/boot", Ops.get_list(mp, "/", []))
-      mountdata_root = Ops.get_list(mp, "/", [])
-
-      Builtins.y2milestone("mountPoints %1", mp)
-      Builtins.y2milestone("mountdata_boot %1", mountdata_boot)
-
-      BootStorage.RootPartitionDevice = Ops.get_string(mp, ["/", 0], "")
-
-      if BootStorage.RootPartitionDevice == ""
-        Builtins.y2error("No mountpoint for / !!")
-      end
-
-      # if /boot changed, re-configure location
-      BootStorage.BootPartitionDevice = Ops.get_string(
-        mountdata_boot,
-        0,
-        BootStorage.RootPartitionDevice
-      )
-
-      if @mbrDisk == "" || @mbrDisk == nil
-        # mbr detection.
-        @mbrDisk = FindMBRDisk()
-      end
-
-      if !BootStorage.possible_locations_for_stage1.include?(@loader_device)
-        ConfigureLocation()
-      end
-
-      nil
+      need_location_reconfigure = BootStorage.detect_disks
+      ConfigureLocation() if need_location_reconfigure
     end
 
     # Update global options of bootloader

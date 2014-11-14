@@ -436,6 +436,44 @@ module Yast
       res.uniq
     end
 
+    # Sets properly boot, root and mbr disk.
+    # @return true if proposal need to be reconfigured
+    def detect_disks
+      mp = Storage.GetMountPoints
+
+      mountdata_boot = mp["/boot"] || mp["/"]
+      mountdata_root = mp["/"]
+
+      log.info "mountPoints #{mp}"
+      log.info "mountdata_boot #{mountdata_boot}"
+
+      self.RootPartitionDevice = mountdata_root.first || ""
+      raise "No mountpoint for / !!" if BootStorage.RootPartitionDevice.empty?
+
+      # if /boot changed, re-configure location
+      self.BootPartitionDevice = mountdata_boot.first
+
+      # get extended partition device (if exists)
+      self.ExtendedPartitionDevice = extended_partition_for(BootPartitionDevice())
+
+      if BootCommon.mbrDisk == "" || BootCommon.mbrDisk == nil
+        # mbr detection.
+        BootCommon.mbrDisk = BootCommon.FindMBRDisk
+      end
+
+      # if no bootloader devices have been set up, or any of the set up
+      # bootloader devices have become unavailable, then re-propose the
+      # bootloader location.
+      bldevs = BootCommon.GetBootloaderDevices
+
+      return true if bldevs.empty?
+
+      all_boot_partitions = BootStorage.possible_locations_for_stage1
+      bldevs.any? do |dev|
+        !all_boot_partitions.include?(dev)
+      end
+    end
+
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
     publish :variable => :partinfo, :type => "list <list>"

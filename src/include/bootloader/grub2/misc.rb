@@ -263,48 +263,9 @@ module Yast
     # globals["activate"] and globals["generic_mbr"] flags if needed
     # all these settings are stored in internal variables
     def grub_DetectDisks
-      mp = Storage.GetMountPoints
-
-      mountdata_boot = mp["/boot"] || mp["/"]
-      mountdata_root = mp["/"]
-
-      log.info "mountPoints #{mp}"
-      log.info "mountdata_boot #{mountdata_boot}"
-
-      BootStorage.RootPartitionDevice = mountdata_root.first || ""
-      raise "No mountpoint for / !!" if BootStorage.RootPartitionDevice.empty?
-
-      # if /boot changed, re-configure location
-      BootStorage.BootPartitionDevice = mountdata_boot.first
-
-      # get extended partition device (if exists)
-      BootStorage.ExtendedPartitionDevice = BootStorage.extended_partition_for(BootStorage.BootPartitionDevice)
-
-      if BootCommon.mbrDisk == "" || BootCommon.mbrDisk == nil
-        # mbr detection.
-        BootCommon.mbrDisk = BootCommon.FindMBRDisk
-      end
-
-      # if no bootloader devices have been set up, or any of the set up
-      # bootloader devices have become unavailable, then re-propose the
-      # bootloader location.
-      all_boot_partitions = BootStorage.possible_locations_for_stage1
-      bldevs = BootCommon.GetBootloaderDevices
-      need_location_reconfigure = false
-
-      if bldevs.empty?
-        need_location_reconfigure = true
-      else
-        Builtins.foreach(bldevs) do |dev|
-          if !all_boot_partitions.include?(dev)
-            need_location_reconfigure = true
-          end
-        end
-      end
+      need_location_reconfigure = BootStorage.detect_disks
 
       grub_ConfigureLocation if need_location_reconfigure
-
-      nil
     end
 
     # Propose the boot loader location for grub
