@@ -14,7 +14,51 @@ module Bootloader
 
     def prepare_environment
       log.info "CopyKernelInird: start copy kernel and inird"
+      return false unless proper_environment?
 
+      copy_kernel
+    end
+
+  private
+
+    # Get entry from DMI data returned by .probe.bios.
+    #
+    # @param [String] section: section name
+    # @param [String] key: key in section
+    # @return [String]: entry
+    def dmi_read(section, key)
+      @smbios ||= bios_data.fetch(0, {}).fetch("smbios", [])
+
+      result = @smbios.find { |x| x["type"] == section }
+      result = result[key] if result
+
+      log.info "Bootloader::DMIRead(#{section}, #{key}) = #{result}"
+
+      result
+    end
+
+
+    # Check if we run in a vbox vm.
+    #
+    # @return [Boolean]: true if yast runs in a vbox vm
+    def virtual_box?
+      dmi_read("sysinfo", "product") == "VirtualBox"
+    end
+
+
+    # Check if we run in a hyperv vm.
+    #
+    # @return [Boolean]: true if yast runs in a hyperv vm
+    def hyper_v?
+      dmi_read("sysinfo", "manufacturer") == "Microsoft Corporation" &&
+        dmi_read("sysinfo", "product") == "Virtual Machine"
+    end
+
+    def bios_data
+      @bios_data ||= Yast::SCR.Read(Yast::Path.new(".probe.bios"))
+    end
+
+    def proper_environment?
       if Yast::Mode.live_installation
         log.info "Running live_installation without using kexec"
         return false
@@ -31,18 +75,23 @@ module Bootloader
         return false
       end
 
-      log.info "CopyKernelInird::bios_data = #{bios_data}"
+      log.info "bios_data = #{bios_data}"
 
-      if IsVirtualBox(bios_data)
+      if virtual_box?
         log.info "Installation run on VirtualBox, skip kexec loading"
         return false
       end
 
-      if IsHyperV(bios_data)
+      if hyper_v?
         log.info "Installation run on HyperV, skip kexec loading"
         return false
       end
 
+      true
+    end
+
+
+    def copy_kernel
       # create directory /var/lib/YaST2
       Yast::WFM.Execute(Yast::Path.new(".local.mkdir"), "/var/lib/YaST2")
 
@@ -54,66 +103,14 @@ module Bootloader
         Yast::Directory.vardir
       )
 
-      log.info "Command for copy: #{cmd}"
       out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), cmd)
+      log.info "Command for copy: #{cmd} and result #{out}"
       if out["exit"] != 0
         log.error "Copy kernel and initrd failed, output: #{out}"
         return false
       end
 
       true
-    end
-
-  private
-
-    # Get entry from DMI data returned by .probe.bios.
-    #
-    # @param [Array<Hash>] bios_data: result of SCR::Read(.probe.bios)
-    # @param [String] section: section name
-    # @param [String] key: key in section
-    # @return [String]: entry
-    def DMIRead(bios_data, section, key)
-      smbios = bios_data.fetch(0, {}).fetch("smbios", [])
-
-      result = smbios.find { |x| x["type"] == section }
-      result = result[key] if result
-      result ||= ""
-
-      log.info "Bootloader::DMIRead(#{section}, #{key}) = #{result}"
-
-      result
-    end
-
-
-    # Check if we run in a vbox vm.
-    #
-    # @param [Array<Hash>] bios_data: result of SCR::Read(.probe.bios)
-    # @return [Boolean]: true if yast runs in a vbox vm
-    def IsVirtualBox(bios_data)
-      r = DMIRead(bios_data, "sysinfo", "product") == "VirtualBox"
-
-      log.info "Bootloader::IsVirtualBox = #{r}"
-
-      r
-    end
-
-
-    # Check if we run in a hyperv vm.
-    #
-    # @param [Array<Hash>] bios_data: result of SCR::Read(.probe.bios)
-    # @return [Boolean]: true if yast runs in a hyperv vm
-    def IsHyperV(bios_data)
-      r = DMIRead(bios_data, "sysinfo", "manufacturer") ==
-        "Microsoft Corporation" &&
-        DMIRead(bios_data, "sysinfo", "product") == "Virtual Machine"
-
-      log.info "Bootloader::IsHyperV = #{r}"
-
-      r
-    end
-
-    def bios_data
-      @bios_data ||= Yast::SCR.Read(Yast::Path.new(".probe.bios"))
     end
   end
 end
