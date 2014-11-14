@@ -531,24 +531,22 @@ module Yast
     # Check whether settings were read or proposed, if not, decide
     # what to do and read or propose settings
     def ReadOrProposeIfNeeded
-      if !(BootCommon.was_read || BootCommon.was_proposed)
-        log.info "Stage::initial (): #{Stage.initial},"\
-          "update: #{Mode.update}, config: #{Mode.config}"
-        if Mode.config
-          log.info "Not reading settings in Mode::config ()"
-          BootCommon.was_read = true
-          BootCommon.was_proposed = true
-        elsif Stage.initial && !Mode.update
-          Propose()
-        else
-          progress_orig = Progress.set(false)
-          Read()
-          Progress.set(progress_orig)
-          if Mode.update
-            UpdateConfiguration()
-            BootCommon.changed = true
-            BootCommon.location_changed = true
-          end
+      return if BootCommon.was_read || BootCommon.was_proposed
+
+      if Mode.config
+        log.info "Not reading settings in Mode::config ()"
+        BootCommon.was_read = true
+        BootCommon.was_proposed = true
+      elsif Stage.initial && !Mode.update
+        Propose()
+      else
+        progress_orig = Progress.set(false)
+        Read()
+        Progress.set(progress_orig)
+        if Mode.update
+          UpdateConfiguration()
+          BootCommon.changed = true
+          BootCommon.location_changed = true
         end
       end
 
