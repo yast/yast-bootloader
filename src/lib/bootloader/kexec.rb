@@ -73,7 +73,6 @@ module Bootloader
     # @param [String] key: key in section
     # @return [String]: entry
     def DMIRead(bios_data, section, key)
-      bios_data = deep_copy(bios_data)
       smbios = bios_data.fetch(0, {}).fetch("smbios", [])
 
       result = smbios.find { |x| x["type"] == section }
@@ -91,7 +90,6 @@ module Bootloader
     # @param [Array<Hash>] bios_data: result of SCR::Read(.probe.bios)
     # @return [Boolean]: true if yast runs in a vbox vm
     def IsVirtualBox(bios_data)
-      bios_data = deep_copy(bios_data)
       r = DMIRead(bios_data, "sysinfo", "product") == "VirtualBox"
 
       log.info "Bootloader::IsVirtualBox = #{r}"
@@ -105,7 +103,6 @@ module Bootloader
     # @param [Array<Hash>] bios_data: result of SCR::Read(.probe.bios)
     # @return [Boolean]: true if yast runs in a hyperv vm
     def IsHyperV(bios_data)
-      bios_data = deep_copy(bios_data)
       r = DMIRead(bios_data, "sysinfo", "manufacturer") ==
         "Microsoft Corporation" &&
         DMIRead(bios_data, "sysinfo", "product") == "Virtual Machine"
