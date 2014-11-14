@@ -549,27 +549,7 @@ module Yast
           BootCommon.location_changed = true
         end
       end
-
-      nil
     end
-
-    # Function update append -> add console to append
-    #
-    # @param map<string,any> boot section
-    # @return [Hash{String => Object}] updated boot section
-    def updateAppend(section)
-      section = deep_copy(section)
-      ret = deep_copy(section)
-      if !(section["append"] || "").empty? &&
-          !(section["console"] || "").empty?
-        updated_append = BootCommon.UpdateSerialConsole(
-          section["append"], section["console"]
-        )
-        ret["append"] = updated_append if updated_append
-      end
-      ret
-    end
-
 
     # Get entry from DMI data returned by .probe.bios.
     #
