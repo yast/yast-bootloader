@@ -15,6 +15,9 @@ describe Bootloader::Kexec do
       allow(Yast::Arch).to receive(:ppc).and_return(false)
       allow(Yast::Mode).to receive(:live_installation).and_return(false)
       allow(Yast::Arch).to receive(:s390).and_return(false)
+      allow(Yast::SCR).to receive(:Read).
+        with(Yast::Path.new(".probe.bios")).
+        and_return([])
     end
 
     it "returns false if running in live installation" do
