@@ -48,7 +48,7 @@ describe GRUB2Pwd do
       PBKDF2 hash of your password is #{passwd}
 EOF
 
-      expect(Yast::SCR).to receive(:Execute).
+      expect(Yast::WFM).to receive(:Execute).
         with(kind_of(Yast::Path), /grub2-mkpasswd/).
         and_return(
           "exit"   => 0,
@@ -65,7 +65,7 @@ EOF
     end
 
     it "raise exception if grub2-mkpasswd-pbkdf failed" do
-      expect(Yast::SCR).to receive(:Execute).
+      expect(Yast::WFM).to receive(:Execute).
         with(kind_of(Yast::Path),/grub2-mkpasswd/).
         and_return(
           "exit"   => 1,
@@ -78,7 +78,7 @@ EOF
     end
 
     it "raise exception if grub2-mkpasswd-pbkdf do not provide password" do
-      expect(Yast::SCR).to receive(:Execute).
+      expect(Yast::WFM).to receive(:Execute).
         with(kind_of(Yast::Path),/grub2-mkpasswd/).
         and_return(
           "exit"   => 0,
@@ -92,7 +92,7 @@ EOF
 
 
     it "raise exception if grub2-mkpasswd-pbkdf create password line but without password" do
-      expect(Yast::SCR).to receive(:Execute).
+      expect(Yast::WFM).to receive(:Execute).
         with(kind_of(Yast::Path),/grub2-mkpasswd/).
         and_return(
           "exit"   => 0,

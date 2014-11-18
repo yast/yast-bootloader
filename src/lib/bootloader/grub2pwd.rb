@@ -39,7 +39,7 @@ private
     Yast.import "String"
 
     quoted_password = Yast::String.Quote(password)
-    result = Yast::SCR.Execute(YAST_BASH_PATH,
+    result = Yast::WFM.Execute(YAST_BASH_PATH,
       "echo '#{quoted_password}\n#{quoted_password}\n' | LANG=C grub2-mkpasswd-pbkdf2"
     )
 

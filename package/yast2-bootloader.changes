@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov 18 12:12:59 UTC 2014 - jreidinger@suse.com
+
+- run password encryption always locally to ensure that
+  grub2-mkpasswd is there (bnc#900039)
+- 3.1.111
+
+-------------------------------------------------------------------
 Tue Nov 11 08:43:27 UTC 2014 - jreidinger@suse.com
 
 - properly align checkboxes and improve spacing (bnc#900023)
