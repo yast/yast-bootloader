@@ -14,7 +14,11 @@ module Bootloader
     end
 
     # Propose and set Stage1 location.
-    # @note contain many nasty side effects
+    # It sets properly all "boot_*" entries in globals. It also sets if partition
+    # should be activated by setting its boot flag (in globals key "activate").
+    # It proposes if generic_mbr will be written into MBR (globals key "generic_mbr").
+    # And last but not least it propose if protective MBR flag need to be removed
+    # Proposal is based only on storage information.
     def propose
       selected_location = propose_boot_location
       log.info "grub_ConfigureLocation (#{selected_location} on #{Yast::BootCommon.GetBootloaderDevices})"
@@ -35,6 +39,7 @@ module Bootloader
         # if not installing to MBR, always activate (so the generic MBR will
         # boot Linux)
         Yast::BootCommon.globals["activate"] = "true"
+        Yast::BootCommon.globals["generic_mbr"] = "true"
       end
       Yast::BootCommon.activate_changed = true
 
