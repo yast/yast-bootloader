@@ -10,6 +10,7 @@ Yast.import "Storage"
 describe Bootloader::Stage1 do
   before do
     # simple mock getting disks from partition as it need initialized libstorage
+    allow(Yast::BootStorage).to receive(:can_boot_from_partition).and_return(true)
     allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
       if partition == "/dev/system/root"
         disk = "/dev/system"

@@ -51,68 +51,25 @@ module Bootloader
   private
 
     def propose_boot_location
-      # NOTE: selected_location is a temporary local variable now; the global
-      # variable is not used for grub anymore
-      selected_location = :mbr # default to mbr
-
-      vista_mbr = false
-      # check whether the /boot partition
-      #  - is primary:				is_logical  -> false
-      #  - is on the first disk (with the MBR):  boot_partition_is_on_mbr_disk -> true
-
       raise "Boot partition disk not found" if boot_partition_disk.empty?
-      boot_partition_is_on_mbr_disk = boot_partition_disk == Yast::BootCommon.mbrDisk
+      selected_location = :mbr
 
-      boot_disk_map = target_map[boot_partition_disk] || {}
-      partitions_on_boot_partition_disk = boot_disk_map["partitions"] || []
-      is_logical = false
-      is_logical_and_btrfs = false
-      extended = nil
-
-      partitions_on_boot_partition_disk.each do |p|
-        if p["type"] == :extended
-          extended = p["device"]
-        elsif underlying_boot_partition_devices.include?(p["device"]) &&
-            p["type"] == :logical
-          # If any of the underlying_boot_partition_devices can be found on
-          # the boot_partition_disk AND is a logical partition, set
-          # is_logical to true.
-          # For soft-RAID this will not match anyway ("/dev/[hs]da*" does not
-          # match "/dev/md*").
-          is_logical = true
-          is_logical_and_btrfs = true if p["used_fs"] == :btrfs
-        end
-      end
-      log.info "/boot is on 1st disk: #{boot_partition_is_on_mbr_disk}"
-      log.info "/boot is in logical partition: #{is_logical}"
-      log.info "/boot is in logical partition and use btrfs: #{is_logical_and_btrfs}"
-      log.info "The extended partition: #{extended}"
-
-      # if is primary, store bootloader there
-
-      exit = 0
       # there was check if boot device is on logical partition
       # IMO it is good idea check MBR also in this case
       # see bug #279837 comment #53
-      if boot_partition_is_on_mbr_disk
+      if boot_partition_on_mbr_disk?
         selected_location = Yast::BootStorage.BootPartitionDevice !=
           Yast::BootStorage.RootPartitionDevice ? :boot : :root
       elsif underlying_boot_partition_devices.size > 1
-        # FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
-        # automatic anyway and perl-Bootloader should be able to make it without help
-        # from the user or the proposal.
-        # In one or two places yast2-bootloader needs to find out all underlying MBR
-        # devices, if we install stage 1 to a soft-RAID. These places need to find out
-        # themselves if we have MBRs on a soft-RAID or not.
-        # selected_location = `mbr_md;
         selected_location = :mbr
       end
 
-      if is_logical && extended && underlying_boot_partition_devices.size > 1
+      if logical_boot? && extended_partition &&
+          underlying_boot_partition_devices.size > 1
         selected_location = :extended
       end
 
-      if is_logical_and_btrfs
+      if logical_boot_with_btrfs?
         log.info "/boot is on logical parititon and uses btrfs, mbr is favored in this situration"
         selected_location = :mbr
       end
@@ -129,6 +86,50 @@ module Bootloader
       end
 
       selected_location
+    end
+
+    def extended_partition
+      init_boot_info unless @boot_initialized
+
+      @extended
+    end
+
+    def logical_boot?
+      init_boot_info unless @boot_initialized
+
+      @logical_boot
+    end
+
+    def logical_boot_with_btrfs?
+      init_boot_info unless @boot_initialized
+
+      @logical_boot_with_btrfs
+    end
+
+    def init_boot_info
+      boot_disk_map = target_map[boot_partition_disk] || {}
+      partitions_on_boot_partition_disk = boot_disk_map["partitions"] || []
+      @logical_boot = false
+      @logical_boot_with_btrfs = false
+
+      partitions_on_boot_partition_disk.each do |p|
+        if p["type"] == :extended
+          @extended = p["device"]
+        elsif underlying_boot_partition_devices.include?(p["device"]) &&
+            p["type"] == :logical
+          # If any of the underlying_boot_partition_devices can be found on
+          # the boot_partition_disk AND is a logical partition, set
+          # is_logical to true.
+          # For soft-RAID this will not match anyway ("/dev/[hs]da*" does not
+          # match "/dev/md*").
+          @logical_boot = true
+          @logical_boot_with_btrfs = true if p["used_fs"] == :btrfs
+        end
+      end
+
+      log.info "/boot is in logical partition: #{@logical_boot}"
+      log.info "/boot is in logical partition and use btrfs: #{@logical_boot_with_btrfs}"
+      log.info "The extended partition: #{@extended}"
     end
 
     # Set "boot_*" flags in the globals map according to the boot device selected
@@ -203,17 +204,26 @@ module Bootloader
       @underlying_boot_partition_devices = [Yast::BootStorage.BootPartitionDevice]
       md_info = Yast::BootStorage.Md2Partitions(Yast::BootStorage.BootPartitionDevice)
       if !md_info.empty?
-        boot_partition_is_on_mbr_disk = false
-        @underlying_boot_partition_devices = Yast::Builtins.maplist(md_info) do |dev, bios_id|
-          pdp = Yast::Storage.GetDiskPartition(dev)
-          p_disk = pdp["disk"] || ""
-          boot_partition_is_on_mbr_disk = true if p_disk == Yast::BootCommon.mbrDisk
-          dev
-        end
+        @underlying_boot_partition_devices = md_info.keys
       end
       log.info "Boot partition devices: #{@underlying_boot_partition_devices}"
 
       @underlying_boot_partition_devices
+    end
+
+    def boot_partition_on_mbr_disk?
+      return @boot_partition_on_mbr_disk unless @boot_partition_on_mbr_disk.nil?
+
+
+      @boot_partition_on_mbr_disk = underlying_boot_partition_devices.any? do |dev|
+        pdp = Yast::Storage.GetDiskPartition(dev)
+        p_disk = pdp["disk"] || ""
+        p_disk == Yast::BootCommon.mbrDisk
+      end
+
+      log.info "/boot is on 1st disk: #{@boot_partition_on_mbr_disk}"
+
+      @boot_partition_on_mbr_disk
     end
   end
 end
