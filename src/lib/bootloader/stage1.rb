@@ -16,6 +16,41 @@ module Bootloader
     # Propose and set Stage1 location.
     # @note contain many nasty side effects
     def propose
+      selected_location = propose_boot_location
+      log.info "grub_ConfigureLocation (#{selected_location} on #{Yast::BootCommon.GetBootloaderDevices})"
+
+      # set active flag, if needed
+      if selected_location == :mbr &&
+          underlying_boot_partition_devices.size <= 1
+        # We are installing into MBR:
+        # If there is an active partition, then we do not need to activate
+        # one (otherwise we do).
+        # Reason: if we use our own MBR code, we do not rely on the activate
+        # flag in the partition table to boot Linux. Thus, the activated
+        # partition can remain activated, which causes less problems with
+        # other installed OSes like Windows (older versions assign the C:
+        # drive letter to the activated partition).
+        Yast::BootCommon.globals["activate"] = Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk).empty? ? "true" : "false"
+      else
+        # if not installing to MBR, always activate (so the generic MBR will
+        # boot Linux)
+        Yast::BootCommon.globals["activate"] = "true"
+      end
+      Yast::BootCommon.activate_changed = true
+
+      # for GPT remove protective MBR flag otherwise some systems won't boot
+      if gpt_boot_disk?
+        Yast::BootCommon.pmbr_action = :remove
+      end
+
+      log.info "location configured. Resulting globals #{Yast::BootCommon.globals}"
+
+      selected_location
+    end
+
+  private
+
+    def propose_boot_location
       # NOTE: selected_location is a temporary local variable now; the global
       # variable is not used for grub anymore
       selected_location = :mbr # default to mbr
@@ -33,22 +68,6 @@ module Bootloader
       is_logical = false
       is_logical_and_btrfs = false
       extended = nil
-
-      # determine the underlying devices for the "/boot" partition (either the
-      # BootPartitionDevice, or the devices from which the soft-RAID device for
-      # "/boot" is built)
-      underlying_boot_partition_devices = [Yast::BootStorage.BootPartitionDevice]
-      md_info = Yast::BootStorage.Md2Partitions(Yast::BootStorage.BootPartitionDevice)
-      if !md_info.empty?
-        boot_partition_is_on_mbr_disk = false
-        underlying_boot_partition_devices = Yast::Builtins.maplist(md_info) do |dev, bios_id|
-          pdp = Yast::Storage.GetDiskPartition(dev)
-          p_disk = pdp["disk"] || ""
-          boot_partition_is_on_mbr_disk = true if p_disk == Yast::BootCommon.mbrDisk
-          dev
-        end
-      end
-      log.info "Boot partition devices: #{underlying_boot_partition_devices}"
 
       partitions_on_boot_partition_disk.each do |p|
         if p["type"] == :extended
@@ -78,9 +97,6 @@ module Bootloader
       if boot_partition_is_on_mbr_disk
         selected_location = Yast::BootStorage.BootPartitionDevice !=
           Yast::BootStorage.RootPartitionDevice ? :boot : :root
-        Yast::BootCommon.globals["activate"] = "true"
-        Yast::BootCommon.activate_changed = true
-
       elsif underlying_boot_partition_devices.size > 1
         # FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
         # automatic anyway and perl-Bootloader should be able to make it without help
@@ -112,37 +128,9 @@ module Bootloader
         assign_bootloader_device(selected_location)
       end
 
-      log.info "grub_ConfigureLocation (#{selected_location} on #{Yast::BootCommon.GetBootloaderDevices})"
-
-      # set active flag, if needed
-      if selected_location == :mbr &&
-          underlying_boot_partition_devices.size <= 1
-        # We are installing into MBR:
-        # If there is an active partition, then we do not need to activate
-        # one (otherwise we do).
-        # Reason: if we use our own MBR code, we do not rely on the activate
-        # flag in the partition table to boot Linux. Thus, the activated
-        # partition can remain activated, which causes less problems with
-        # other installed OSes like Windows (older versions assign the C:
-        # drive letter to the activated partition).
-        Yast::BootCommon.globals["activate"] = Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk).empty? ? "true" : "false"
-      else
-        # if not installing to MBR, always activate (so the generic MBR will
-        # boot Linux)
-        Yast::BootCommon.globals["activate"] = "true"
-      end
-
-      # for GPT remove protective MBR flag otherwise some systems won't boot
-      if gpt_boot_disk?
-        Yast::BootCommon.pmbr_action = :remove
-      end
-
-      log.info "location configured. Resulting globals #{Yast::BootCommon.globals}"
-
       selected_location
     end
 
-  private
     # Set "boot_*" flags in the globals map according to the boot device selected
     # with parameter selected_location. Only a single boot device can be selected
     # with this function. The function cannot be used to set a custom boot device.
@@ -204,6 +192,28 @@ module Bootloader
 
       log.info "Device for analyse MBR from soft-raid (MD-Raid only): #{result}"
       @boot_partition_disk = result
+    end
+
+    # determine the underlying devices for the "/boot" partition (either the
+    # BootPartitionDevice, or the devices from which the soft-RAID device for
+    # "/boot" is built)
+    def underlying_boot_partition_devices
+      return @underlying_boot_partition_devices if @underlying_boot_partition_devices
+
+      @underlying_boot_partition_devices = [Yast::BootStorage.BootPartitionDevice]
+      md_info = Yast::BootStorage.Md2Partitions(Yast::BootStorage.BootPartitionDevice)
+      if !md_info.empty?
+        boot_partition_is_on_mbr_disk = false
+        @underlying_boot_partition_devices = Yast::Builtins.maplist(md_info) do |dev, bios_id|
+          pdp = Yast::Storage.GetDiskPartition(dev)
+          p_disk = pdp["disk"] || ""
+          boot_partition_is_on_mbr_disk = true if p_disk == Yast::BootCommon.mbrDisk
+          dev
+        end
+      end
+      log.info "Boot partition devices: #{@underlying_boot_partition_devices}"
+
+      @underlying_boot_partition_devices
     end
   end
 end
