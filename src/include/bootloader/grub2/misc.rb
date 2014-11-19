@@ -303,7 +303,7 @@ module Yast
           out = SCR.Execute(path(".target.bash_output"), command)
           log.info "Command '#{command}' output: #{out}"
         end
-        md_mbr = BootStorage.addMDSettingsToGlobals
+        md_mbr = BootStorage.boot_md_mbr_value
         BootCommon.globals["boot_md_mbr"] = md_mbr unless md_mbr.empty?
       end
       log.info "(2) globals: #{BootCommon.globals}"

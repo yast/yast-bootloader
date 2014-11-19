@@ -344,18 +344,17 @@ module Yast
     # E.g. /dev/md0 is from /dev/sda1 and /dev/sb1 and /dev/md0 is "/"
     # There is possible only boot from MBR (GRUB not generic boot code)
     #
-    # @return [Boolean] true on success
+    # @return [Array] Array of devices that can be used to redundancy boot
 
-    def checkMDSettings
-      ret = false
+    def devices_for_redundant_boot
       tm = Storage.GetTargetMap
 
       if !tm["/dev/md"]
         log.info "Doesn't include md raid"
-        return ret
+        return []
       end
-      boot_devices = []
-      boot_devices << @BootPartitionDevice
+
+      boot_devices = [@BootPartitionDevice]
       if @BootPartitionDevice != @RootPartitionDevice
         boot_devices << @RootPartitionDevice
       end
@@ -368,23 +367,19 @@ module Yast
         ret = checkMDDevices(tm, dev)
         if !ret
           log.info "Skip enable redundancy of md arrays"
-          break
+          return []
         end
       end
 
-      ret
+      @md_physical_disks
     end
 
     # FATE#305008: Failover boot configurations for md arrays with redundancy
     # Function prapare disks for synchronizing of md array
     #
     # @return [String] includes disks separatet by ","
-
-    def addMDSettingsToGlobals
-      ret = ""
-
-      ret = Builtins.mergestring(@md_physical_disks, ",") if checkMDSettings
-      ret
+    def boot_md_mbr_value
+      devices_for_redundant_boot.join(",")
     end
 
     # Converts the md device to the list of devices building it
@@ -483,7 +478,7 @@ module Yast
     publish :variable => :ExtendedPartitionDevice, :type => "string"
     publish :function => :InitDiskInfo, :type => "void ()"
     publish :function => :DisksOrder, :type => "list <string> ()"
-    publish :function => :addMDSettingsToGlobals, :type => "string ()"
+    publish :function => :boot_md_mbr_value, :type => "string ()"
     publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
   end
 

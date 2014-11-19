@@ -62,7 +62,7 @@ module Yast
       end
 
       if Mode.normal
-        md_value = BootStorage.addMDSettingsToGlobals
+        md_value = BootStorage.boot_md_mbr_value
         pB_md_value = Ops.get(BootCommon.globals, "boot_md_mbr", "")
         if pB_md_value != ""
           disks = Builtins.splitstring(pB_md_value, ",")
