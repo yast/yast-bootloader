@@ -56,43 +56,13 @@ module Yast
     # from the user or the proposal.
     #
     # @param [Symbol] selected_location symbol one of `boot `root `mbr `extended `mbr_md `none
-    def assign_bootloader_device(selected_location)
+    def reset_bootloader_device
       # first, default to all off:
       ["boot_boot", "boot_root", "boot_mbr", "boot_extended"].each do |flag|
         BootCommon.globals[flag] = "false"
       end
       # need to remove the boot_custom key to switch this value off
       BootCommon.globals.delete("boot_custom")
-
-      case selected_location
-      when :root then BootCommon.globals["boot_root"] = "true"
-      when :boot then BootCommon.globals["boot_boot"] = "true"
-      when :extended then BootCommon.globals["boot_extended"] = "true"
-      when :mbr
-        BootCommon.globals["boot_mbr"] = "true"
-        # Disable generic MBR as we want grub2 there
-        BootCommon.globals["generic_mbr"] = "false"
-      when :none
-        log.info "Resetting bootloader device"
-      else
-        raise "Unknown value to select bootloader device #{selected_location.inspect}"
-      end
-    end
-
-    # function check all partitions and it tries to find /boot partition
-    # if it is MD Raid and soft-riad return correct device for analyse MBR
-    # @param list<map> list of partitions
-    # @return [String] device for analyse MBR
-    def mdraid_boot_disk(partitions)
-      boot_device = BootStorage.BootPartitionDevice
-      boot_part = partitions.find { |p| p["device"] == boot_device }
-      return "" if boot_part["fstype"] != "md raid" # we are intersted only in raids
-
-      result = boot_part["devices"].first
-      result = Storage.GetDiskPartition(result)["disk"]
-
-      log.info "Device for analyse MBR from soft-raid (MD-Raid only): #{result}"
-      result
     end
 
     # grub_ConfigureLocation()
@@ -180,7 +150,7 @@ module Yast
         if !changes.empty?
           log.info "Location change detected"
           if BootCommon.askLocationResetPopup(changes.join("\n"))
-            assign_bootloader_device(:none)
+            reset_bootloader_device
             Builtins.y2milestone("Reconfiguring locations")
             grub_DetectDisks
           end
