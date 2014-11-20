@@ -374,14 +374,6 @@ module Yast
       @md_physical_disks
     end
 
-    # FATE#305008: Failover boot configurations for md arrays with redundancy
-    # Function prapare disks for synchronizing of md array
-    #
-    # @return [String] includes disks separatet by ","
-    def boot_md_mbr_value
-      devices_for_redundant_boot.join(",")
-    end
-
     # Converts the md device to the list of devices building it
     # @param [String] md_device string md device
     # @return a map of devices from device name to BIOS ID or empty hash if
@@ -478,7 +470,6 @@ module Yast
     publish :variable => :ExtendedPartitionDevice, :type => "string"
     publish :function => :InitDiskInfo, :type => "void ()"
     publish :function => :DisksOrder, :type => "list <string> ()"
-    publish :function => :boot_md_mbr_value, :type => "string ()"
     publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
   end
 

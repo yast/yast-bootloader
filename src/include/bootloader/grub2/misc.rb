@@ -129,8 +129,8 @@ module Yast
           out = SCR.Execute(path(".target.bash_output"), command)
           log.info "Command '#{command}' output: #{out}"
         end
-        md_mbr = BootStorage.boot_md_mbr_value
-        BootCommon.globals["boot_md_mbr"] = md_mbr unless md_mbr.empty?
+        redundant_devices = BootStorage.devices_for_redundant_boot
+        BootCommon.globals["boot_md_mbr"] = redundant_devices.join(",") unless redundant_devices.empty?
       end
       log.info "(2) globals: #{BootCommon.globals}"
 

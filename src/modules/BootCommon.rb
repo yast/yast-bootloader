@@ -285,7 +285,7 @@ module Yast
         if !@enable_md_array_redundancy
           my_globals.delete("boot_md_mbr")
         elsif !my_globals["boot_md_mbr"]
-          my_globals["boot_md_mbr"] = BootStorage.boot_md_mbr_value
+          my_globals["boot_md_mbr"] = BootStorage.devices_for_redundant_boot.join(",")
         end
       else
         my_globals.delete("boot_md_mbr")

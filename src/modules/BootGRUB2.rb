@@ -62,23 +62,23 @@ module Yast
       end
 
       if Mode.normal
-        md_value = BootStorage.boot_md_mbr_value
+        redundant_disks = BootStorage.devices_for_redundant_boot
         pB_md_value = Ops.get(BootCommon.globals, "boot_md_mbr", "")
         if pB_md_value != ""
           disks = Builtins.splitstring(pB_md_value, ",")
           disks = Builtins.filter(disks) { |v| v != "" }
           if Builtins.size(disks) == 2
             BootCommon.enable_md_array_redundancy = true
-            md_value = ""
+            redundant_disks = []
           end
           Builtins.y2milestone(
             "disks from md array (perl Bootloader): %1",
             disks
           )
         end
-        if md_value != ""
+        if !redundant_disks.empty?
           BootCommon.enable_md_array_redundancy = false
-          Ops.set(BootCommon.globals, "boot_md_mbr", md_value)
+          BootCommon.globals["boot_md_mbr"] = redundant_disks.join(",")
           Builtins.y2milestone(
             "Add md array to globals: %1",
             BootCommon.globals

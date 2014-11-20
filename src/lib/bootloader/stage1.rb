@@ -3,7 +3,8 @@ require "yast"
 module Bootloader
   # Represents where is bootloader stage1 installed. Allows also proposing its
   # location.
-  # @note should replace in future location in BootCommon.globals
+  # @note it should replace all BootCommon.globals["boot_*"] and also "activate"
+  #   and "generic_mbr" which is related to stage1 code
   class Stage1
     include Yast::Logger
 
@@ -18,7 +19,9 @@ module Bootloader
     # should be activated by setting its boot flag (in globals key "activate").
     # It proposes if generic_mbr will be written into MBR (globals key "generic_mbr").
     # And last but not least it propose if protective MBR flag need to be removed
-    # Proposal is based only on storage information.
+    # The proposal is only based on storage information, disregarding any
+    # existing values of the output variables (which are respected at other times, in AutoYaST).
+    # @see for keys in globals to https://old-en.opensuse.org/YaST/Bootloader_API#global_options_in_map
     def propose
       selected_location = propose_boot_location
       log.info "grub_ConfigureLocation (#{selected_location} on #{Yast::BootCommon.GetBootloaderDevices})"
