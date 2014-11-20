@@ -22,6 +22,7 @@
 require "yast"
 require "bootloader/boot_record_backup"
 require "bootloader/disk_change_detector"
+require "bootloader/stage1"
 
 module Yast
   module BootloaderGrub2MiscInclude
@@ -55,43 +56,13 @@ module Yast
     # from the user or the proposal.
     #
     # @param [Symbol] selected_location symbol one of `boot `root `mbr `extended `mbr_md `none
-    def assign_bootloader_device(selected_location)
+    def reset_bootloader_device
       # first, default to all off:
       ["boot_boot", "boot_root", "boot_mbr", "boot_extended"].each do |flag|
         BootCommon.globals[flag] = "false"
       end
       # need to remove the boot_custom key to switch this value off
       BootCommon.globals.delete("boot_custom")
-
-      case selected_location
-      when :root then BootCommon.globals["boot_root"] = "true"
-      when :boot then BootCommon.globals["boot_boot"] = "true"
-      when :extended then BootCommon.globals["boot_extended"] = "true"
-      when :mbr
-        BootCommon.globals["boot_mbr"] = "true"
-        # Disable generic MBR as we want grub2 there
-        BootCommon.globals["generic_mbr"] = "false"
-      when :none
-        log.info "Resetting bootloader device"
-      else
-        raise "Unknown value to select bootloader device #{selected_location.inspect}"
-      end
-    end
-
-    # function check all partitions and it tries to find /boot partition
-    # if it is MD Raid and soft-riad return correct device for analyse MBR
-    # @param list<map> list of partitions
-    # @return [String] device for analyse MBR
-    def mdraid_boot_disk(partitions)
-      boot_device = BootStorage.BootPartitionDevice
-      boot_part = partitions.find { |p| p["device"] == boot_device }
-      return "" if boot_part["fstype"] != "md raid" # we are intersted only in raids
-
-      result = boot_part["devices"].first
-      result = Storage.GetDiskPartition(result)["disk"]
-
-      log.info "Device for analyse MBR from soft-raid (MD-Raid only): #{result}"
-      result
     end
 
     # grub_ConfigureLocation()
@@ -101,152 +72,7 @@ module Yast
     #
     # @return [String] type of location proposed to bootloader
     def grub_ConfigureLocation
-      # NOTE: selected_location is a temporary local variable now; the global
-      # variable is not used for grub anymore
-      selected_location = :mbr # default to mbr
-
-      vista_mbr = false
-      # check whether the /boot partition
-      #  - is primary:				is_logical  -> false
-      #  - is on the first disk (with the MBR):  boot_partition_is_on_mbr_disk -> true
-
-      tm = Storage.GetTargetMap
-      dp = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
-      boot_partition_disk = Ops.get_string(dp, "disk", "")
-      boot_partition_is_on_mbr_disk = boot_partition_disk == BootCommon.mbrDisk
-
-      dm = tm[boot_partition_disk] || {}
-      partitions_on_boot_partition_disk = dm["partitions"] || []
-      is_logical = false
-      is_logical_and_btrfs = false
-      extended = nil
-
-      # determine the underlying devices for the "/boot" partition (either the
-      # BootPartitionDevice, or the devices from which the soft-RAID device for
-      # "/boot" is built)
-      underlying_boot_partition_devices = [BootStorage.BootPartitionDevice]
-      md_info = BootCommon.Md2Partitions(BootStorage.BootPartitionDevice)
-      if !md_info.empty?
-        boot_partition_is_on_mbr_disk = false
-        underlying_boot_partition_devices = Builtins.maplist(md_info) do |dev, bios_id|
-          pdp = Storage.GetDiskPartition(dev)
-          p_disk = pdp["disk"] || ""
-          boot_partition_is_on_mbr_disk = true if p_disk == BootCommon.mbrDisk
-          dev
-        end
-      end
-      log.info "Boot partition devices: #{underlying_boot_partition_devices}"
-
-      partitions_on_boot_partition_disk.each do |p|
-        if p["type"] == :extended
-          extended = p["device"]
-        elsif underlying_boot_partition_devices.include?(p["device"]) &&
-            p["type"] == :logical
-          # If any of the underlying_boot_partition_devices can be found on
-          # the boot_partition_disk AND is a logical partition, set
-          # is_logical to true.
-          # For soft-RAID this will not match anyway ("/dev/[hs]da*" does not
-          # match "/dev/md*").
-          is_logical = true
-          is_logical_and_btrfs = true if p["used_fs"] == :btrfs
-        end
-      end
-      log.info "/boot is on 1st disk: #{boot_partition_is_on_mbr_disk}"
-      log.info "/boot is in logical partition: #{is_logical}"
-      log.info "/boot is in logical partition and use btrfs: #{is_logical_and_btrfs}"
-      log.info "The extended partition: #{extended}"
-
-      # if is primary, store bootloader there
-
-      exit = 0
-      # there was check if boot device is on logical partition
-      # IMO it is good idea check MBR also in this case
-      # see bug #279837 comment #53
-      if boot_partition_is_on_mbr_disk
-        selected_location = BootStorage.BootPartitionDevice !=
-          BootStorage.RootPartitionDevice ? :boot : :root
-        BootCommon.globals["activate"] = "true"
-        BootCommon.activate_changed = true
-
-        # check if there is raid and if it soft-raid select correct device for analyse MBR
-        # bnc #398356
-        if underlying_boot_partition_devices.size > 1
-          boot_partition_disk = mdraid_boot_disk(partitions_on_boot_partition_disk)
-        end
-        if boot_partition_disk.empty?
-          boot_partition_disk = dp["disk"] || ""
-        end
-        # bnc #483797 cannot read 512 bytes from...
-        raise "Boot partition disk not found" if boot_partition_disk.empty?
-        out = BootCommon.examineMBR(boot_partition_disk)
-        BootCommon.globals["generic_mbr"] = out != "vista" ? "true" : "false"
-        if out == "vista"
-          Builtins.y2milestone("Vista MBR...")
-          vista_mbr = true
-        end
-      elsif underlying_boot_partition_devices.size > 1
-        # FIXME: `mbr_md is probably unneeded; AFA we can see, this decision is
-        # automatic anyway and perl-Bootloader should be able to make it without help
-        # from the user or the proposal.
-        # In one or two places yast2-bootloader needs to find out all underlying MBR
-        # devices, if we install stage 1 to a soft-RAID. These places need to find out
-        # themselves if we have MBRs on a soft-RAID or not.
-        # selected_location = `mbr_md;
-        selected_location = :mbr
-      end
-
-      if is_logical_and_btrfs
-        log.info "/boot is on logical parititon and uses btrfs, mbr is favored in this situration"
-        selected_location = :mbr
-      end
-
-      if !BootStorage.can_boot_from_partition
-        log.info "/boot cannot be used to install stage1"
-        selected_location = :mbr
-      end
-
-      assign_bootloader_device(selected_location)
-      if !BootStorage.possible_locations_for_stage1.include?(BootCommon.GetBootloaderDevices.first)
-        selected_location = :mbr # default to mbr
-        assign_bootloader_device(selected_location)
-      end
-
-      log.info "grub_ConfigureLocation (#{selected_location} on #{BootCommon.GetBootloaderDevices})"
-
-      # set active flag, if needed
-      if selected_location == :mbr &&
-          underlying_boot_partition_devices.size <= 1
-        # We are installing into MBR:
-        # If there is an active partition, then we do not need to activate
-        # one (otherwise we do).
-        # Reason: if we use our own MBR code, we do not rely on the activate
-        # flag in the partition table to boot Linux. Thus, the activated
-        # partition can remain activated, which causes less problems with
-        # other installed OSes like Windows (older versions assign the C:
-        # drive letter to the activated partition).
-        BootCommon.globals["activate"] = Storage.GetBootPartition(BootCommon.mbrDisk).empty? ? "true" : "false"
-      else
-        # if not installing to MBR, always activate (so the generic MBR will
-        # boot Linux)
-
-        # kokso: fix the problem with proposing installation generic boot code to "/" or "/boot"
-        # kokso: if boot device is on logical partition
-        if is_logical && extended != nil &&
-            (BootCommon.globals["generic_mbr"] == "true" || vista_mbr)
-          selected_location = :extended
-        end
-        BootCommon.globals["activate"] = "true"
-        assign_bootloader_device(selected_location)
-      end
-
-      # for GPT remove protective MBR flag otherwise some systems won't boot
-      if gpt_boot_disk?
-        BootCommon.pmbr_action = :remove
-      end
-
-      log.info "location configured. Resulting globals #{BootCommon.globals}"
-
-      selected_location
+      ::Bootloader::Stage1.new.propose
     end
 
     def gpt_boot_disk?
@@ -263,48 +89,9 @@ module Yast
     # globals["activate"] and globals["generic_mbr"] flags if needed
     # all these settings are stored in internal variables
     def grub_DetectDisks
-      mp = Storage.GetMountPoints
-
-      mountdata_boot = mp["/boot"] || mp["/"]
-      mountdata_root = mp["/"]
-
-      log.info "mountPoints #{mp}"
-      log.info "mountdata_boot #{mountdata_boot}"
-
-      BootStorage.RootPartitionDevice = mountdata_root.first || ""
-      raise "No mountpoint for / !!" if BootStorage.RootPartitionDevice.empty?
-
-      # if /boot changed, re-configure location
-      BootStorage.BootPartitionDevice = mountdata_boot.first
-
-      # get extended partition device (if exists)
-      BootStorage.ExtendedPartitionDevice = BootStorage.extended_partition_for(BootStorage.BootPartitionDevice)
-
-      if BootCommon.mbrDisk == "" || BootCommon.mbrDisk == nil
-        # mbr detection.
-        BootCommon.mbrDisk = BootCommon.FindMBRDisk
-      end
-
-      # if no bootloader devices have been set up, or any of the set up
-      # bootloader devices have become unavailable, then re-propose the
-      # bootloader location.
-      all_boot_partitions = BootStorage.possible_locations_for_stage1
-      bldevs = BootCommon.GetBootloaderDevices
-      need_location_reconfigure = false
-
-      if bldevs.empty?
-        need_location_reconfigure = true
-      else
-        Builtins.foreach(bldevs) do |dev|
-          if !all_boot_partitions.include?(dev)
-            need_location_reconfigure = true
-          end
-        end
-      end
+      need_location_reconfigure = BootStorage.detect_disks
 
       grub_ConfigureLocation if need_location_reconfigure
-
-      nil
     end
 
     # Propose the boot loader location for grub
@@ -342,8 +129,8 @@ module Yast
           out = SCR.Execute(path(".target.bash_output"), command)
           log.info "Command '#{command}' output: #{out}"
         end
-        md_mbr = BootStorage.addMDSettingsToGlobals
-        BootCommon.globals["boot_md_mbr"] = md_mbr unless md_mbr.empty?
+        redundant_devices = BootStorage.devices_for_redundant_boot
+        BootCommon.globals["boot_md_mbr"] = redundant_devices.join(",") unless redundant_devices.empty?
       end
       log.info "(2) globals: #{BootCommon.globals}"
 
@@ -363,7 +150,7 @@ module Yast
         if !changes.empty?
           log.info "Location change detected"
           if BootCommon.askLocationResetPopup(changes.join("\n"))
-            assign_bootloader_device(:none)
+            reset_bootloader_device
             Builtins.y2milestone("Reconfiguring locations")
             grub_DetectDisks
           end

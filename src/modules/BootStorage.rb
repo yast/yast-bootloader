@@ -344,18 +344,17 @@ module Yast
     # E.g. /dev/md0 is from /dev/sda1 and /dev/sb1 and /dev/md0 is "/"
     # There is possible only boot from MBR (GRUB not generic boot code)
     #
-    # @return [Boolean] true on success
+    # @return [Array] Array of devices that can be used to redundancy boot
 
-    def checkMDSettings
-      ret = false
+    def devices_for_redundant_boot
       tm = Storage.GetTargetMap
 
       if !tm["/dev/md"]
         log.info "Doesn't include md raid"
-        return ret
+        return []
       end
-      boot_devices = []
-      boot_devices << @BootPartitionDevice
+
+      boot_devices = [@BootPartitionDevice]
       if @BootPartitionDevice != @RootPartitionDevice
         boot_devices << @RootPartitionDevice
       end
@@ -368,23 +367,11 @@ module Yast
         ret = checkMDDevices(tm, dev)
         if !ret
           log.info "Skip enable redundancy of md arrays"
-          break
+          return []
         end
       end
 
-      ret
-    end
-
-    # FATE#305008: Failover boot configurations for md arrays with redundancy
-    # Function prapare disks for synchronizing of md array
-    #
-    # @return [String] includes disks separatet by ","
-
-    def addMDSettingsToGlobals
-      ret = ""
-
-      ret = Builtins.mergestring(@md_physical_disks, ",") if checkMDSettings
-      ret
+      @md_physical_disks
     end
 
     # Converts the md device to the list of devices building it
@@ -436,6 +423,44 @@ module Yast
       res.uniq
     end
 
+    # Sets properly boot, root and mbr disk.
+    # @return true if proposal need to be reconfigured
+    def detect_disks
+      mp = Storage.GetMountPoints
+
+      mountdata_boot = mp["/boot"] || mp["/"]
+      mountdata_root = mp["/"]
+
+      log.info "mountPoints #{mp}"
+      log.info "mountdata_boot #{mountdata_boot}"
+
+      @RootPartitionDevice = mountdata_root.first || ""
+      raise "No mountpoint for / !!" if @RootPartitionDevice.empty?
+
+      # if /boot changed, re-configure location
+      @BootPartitionDevice = mountdata_boot.first
+
+      # get extended partition device (if exists)
+      @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
+
+      if BootCommon.mbrDisk == "" || BootCommon.mbrDisk == nil
+        # mbr detection.
+        BootCommon.mbrDisk = BootCommon.FindMBRDisk
+      end
+
+      # if no bootloader devices have been set up, or any of the set up
+      # bootloader devices have become unavailable, then re-propose the
+      # bootloader location.
+      bldevs = BootCommon.GetBootloaderDevices
+
+      return true if bldevs.empty?
+
+      all_boot_partitions = possible_locations_for_stage1
+      bldevs.any? do |dev|
+        !all_boot_partitions.include?(dev)
+      end
+    end
+
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
     publish :variable => :partinfo, :type => "list <list>"
@@ -445,7 +470,6 @@ module Yast
     publish :variable => :ExtendedPartitionDevice, :type => "string"
     publish :function => :InitDiskInfo, :type => "void ()"
     publish :function => :DisksOrder, :type => "list <string> ()"
-    publish :function => :addMDSettingsToGlobals, :type => "string ()"
     publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
   end
 
