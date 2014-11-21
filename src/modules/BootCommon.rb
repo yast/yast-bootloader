@@ -377,6 +377,15 @@ module Yast
       SUPPORTED_BOOTLOADERS.include?(loader) ? loader : "none"
     end
 
+    def boot_efi?
+      if Mode.live_installation
+        SCR.Execute(path(".target.bash_output"), "modprobe efivars >/dev/null 2>&1")
+        return FileUtils.Exists("/sys/firmware/efi/systab")
+      else
+        return Linuxrc.InstallInf("EFI") == "1"
+      end
+    end
+
     # Get currently used bootloader, detect if not set yet
     # @param [Boolean] recheck boolean force checking bootloader
     # @return [String] botloader type
@@ -407,7 +416,7 @@ module Yast
       @loader_type = "grub2" if ["s390", "ppc", "grub"].include? @loader_type
 
       Builtins.y2milestone("Bootloader detection returned %1", @loader_type)
-      if (Arch.i386 || Arch.x86_64) && Linuxrc.InstallInf("EFI") == "1"
+      if (Arch.i386 || Arch.x86_64) && boot_efi?
         # use grub2-efi as default bootloader for x86_64/i386 EFI
         @loader_type = "grub2-efi"
       end
