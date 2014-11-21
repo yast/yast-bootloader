@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 21 11:56:38 UTC 2014 - jsrain@suse.cz
+
+- detect EFI directly from sysfs during live installation
+  (bnc#829256)
+
+-------------------------------------------------------------------
 Tue Nov 18 12:12:59 UTC 2014 - jreidinger@suse.com
 
 - run password encryption always locally to ensure that
