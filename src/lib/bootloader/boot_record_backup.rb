@@ -128,8 +128,9 @@ module Bootloader
       change_date = formated_file_ctime(device_file_path)
       Yast::SCR.Execute(
         BASH_PATH,
-        "/bin/mv %{path} %{path}-%{date}" %
-          { path: device_file_path, date: change_date }
+        format("/bin/mv %{path} %{path}-%{date}",
+          path: device_file_path, date: change_date 
+        )
       )
     end
   end
