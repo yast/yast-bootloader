@@ -92,11 +92,11 @@ Metrics/PerceivedComplexity:
 Metrics/ParameterLists:
   Max: 4
 
-# Offense count: 10
-# Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.
+# JR: I personally think that having this variable on class level is much more readable
+# and easier to recognize that modified changed
 Style/AccessModifierIndentation:
-  Enabled: false
+  EnforcedStyle: outdent
 
 # Offense count: 4
 # Cop supports --auto-correct.

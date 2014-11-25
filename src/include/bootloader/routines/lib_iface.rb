@@ -53,7 +53,7 @@ module Yast
         YAML.load(SCR.Read(Path.new(".target.string"), path))
       end
 
-      private
+    private
 
       def mktemp
         res = SCR.Execute(Path.new(".target.bash_output"),

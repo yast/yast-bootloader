@@ -94,7 +94,7 @@ module Bootloader
       order_boot_device
     end
 
-    private
+  private
 
     def order_boot_device
       # For us priority disk is device where /boot or / lives as we control this disk and

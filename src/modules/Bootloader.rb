@@ -551,7 +551,7 @@ module Yast
       end
     end
 
-    private
+  private
 
     # Write settings to /etc/sysconfig/bootloader
     def write_sysconfig
