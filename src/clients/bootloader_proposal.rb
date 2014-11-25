@@ -244,7 +244,7 @@ module Yast
       return nil unless ::File.exists? target_boot_sysconfig_path
 
       boot_sysconfig = ::File.read target_boot_sysconfig_path
-      old_bootloader = boot_sysconfig.lines.grep /^\s*LOADER_TYPE/
+      old_bootloader = boot_sysconfig.lines.grep(/^\s*LOADER_TYPE/)
       Builtins.y2milestone "bootloader entry #{old_bootloader.inspect}"
       retur nil if old_bootloader.empty?
 
