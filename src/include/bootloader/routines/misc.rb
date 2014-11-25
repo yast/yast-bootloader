@@ -549,7 +549,6 @@ module Yast
     # Add console arg for kernel if there is defined serial console
 
     def HandleConsole2
-
       if @globals["terminal"] != "serial"
         # if bootloader is not set to serial console, we should leave the
         # kernel append as is to allow it's serial console be enabled

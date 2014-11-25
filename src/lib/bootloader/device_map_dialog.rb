@@ -25,7 +25,6 @@ module Bootloader
       ensure
         close_dialog
       end
-
     end
 
   private

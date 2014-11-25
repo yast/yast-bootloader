@@ -16,7 +16,6 @@
 module Yast
   class InstBootloaderClient < Client
     def main
-
       textdomain "bootloader"
 
       Yast.import "Bootloader"

@@ -119,11 +119,6 @@ Style/Documentation:
   Include:
     - 'src/lib/**/*.rb' # force well documented code only for new code
 
-# Offense count: 9
-# Cop supports --auto-correct.
-Style/EmptyLinesAroundMethodBody:
-  Enabled: false
-
 # Offense count: 7
 # Configuration parameters: Exclude.
 Style/FileName:

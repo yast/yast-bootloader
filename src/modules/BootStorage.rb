@@ -28,7 +28,6 @@ module Yast
     attr_accessor :device_map
 
     def main
-
       textdomain "bootloader"
 
       Yast.import "Storage"

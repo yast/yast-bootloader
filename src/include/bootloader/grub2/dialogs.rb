@@ -263,7 +263,6 @@ module Yast
         # help text
         "help"          => _("Choose partition where is boot sequence installed.")
       }
-
     end
 
     # Get generic widgets

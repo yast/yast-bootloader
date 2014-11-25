@@ -129,7 +129,6 @@ module Yast
 
     # Constructor
     def BootGRUB2EFI
-
       if Arch.i386
         packages = ["grub2-i386-efi"]
       elsif Arch.x86_64

@@ -19,7 +19,6 @@ require "yast"
 module Yast
   class BootSupportCheckClass < Module
     def main
-
       textdomain "bootloader"
 
       Yast.import "Bootloader"

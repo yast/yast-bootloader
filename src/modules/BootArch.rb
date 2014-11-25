@@ -22,7 +22,6 @@ require "yast"
 module Yast
   class BootArchClass < Module
     def main
-
       textdomain "bootloader"
 
       Yast.import "Arch"

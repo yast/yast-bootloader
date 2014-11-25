@@ -17,7 +17,6 @@ require "bootloader/kexec"
 module Yast
   class BootloaderFinishClient < Client
     def main
-
       textdomain "bootloader"
 
       Yast.import "Arch"
