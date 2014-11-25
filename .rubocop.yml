@@ -120,12 +120,6 @@ Style/Documentation:
   Include:
     - 'src/lib/**/*.rb' # force well documented code only for new code
 
-# Offense count: 52
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/DotPosition:
-  Enabled: false
-
 # Offense count: 3
 Style/EachWithObject:
   Enabled: false

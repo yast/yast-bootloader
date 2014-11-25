@@ -9,8 +9,8 @@ describe GRUB2Pwd do
 
   def mock_file_presence(exists)
     Yast.import "FileUtils"
-    expect(Yast::FileUtils).to receive(:Exists).with("/etc/grub.d/42_password").
-      and_return(exists)
+    expect(Yast::FileUtils).to receive(:Exists).with("/etc/grub.d/42_password")
+      .and_return(exists)
   end
 
   describe "#used?" do
@@ -48,9 +48,9 @@ describe GRUB2Pwd do
       PBKDF2 hash of your password is #{passwd}
 EOF
 
-      expect(Yast::WFM).to receive(:Execute).
-        with(kind_of(Yast::Path), /grub2-mkpasswd/).
-        and_return(
+      expect(Yast::WFM).to receive(:Execute)
+        .with(kind_of(Yast::Path), /grub2-mkpasswd/)
+        .and_return(
           "exit"   => 0,
           "stderr" => "",
           "stdout" => success_stdout
@@ -65,9 +65,9 @@ EOF
     end
 
     it "raise exception if grub2-mkpasswd-pbkdf failed" do
-      expect(Yast::WFM).to receive(:Execute).
-        with(kind_of(Yast::Path),/grub2-mkpasswd/).
-        and_return(
+      expect(Yast::WFM).to receive(:Execute)
+        .with(kind_of(Yast::Path),/grub2-mkpasswd/)
+        .and_return(
           "exit"   => 1,
           "stderr" => "bad error",
           "stdout" => ""
@@ -78,9 +78,9 @@ EOF
     end
 
     it "raise exception if grub2-mkpasswd-pbkdf do not provide password" do
-      expect(Yast::WFM).to receive(:Execute).
-        with(kind_of(Yast::Path),/grub2-mkpasswd/).
-        and_return(
+      expect(Yast::WFM).to receive(:Execute)
+        .with(kind_of(Yast::Path),/grub2-mkpasswd/)
+        .and_return(
           "exit"   => 0,
           "stderr" => "",
           "stdout" => "bad output"
@@ -92,9 +92,9 @@ EOF
 
 
     it "raise exception if grub2-mkpasswd-pbkdf create password line but without password" do
-      expect(Yast::WFM).to receive(:Execute).
-        with(kind_of(Yast::Path),/grub2-mkpasswd/).
-        and_return(
+      expect(Yast::WFM).to receive(:Execute)
+        .with(kind_of(Yast::Path),/grub2-mkpasswd/)
+        .and_return(
           "exit"   => 0,
           "stderr" => "",
           "stdout" => "password is"
