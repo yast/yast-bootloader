@@ -52,6 +52,7 @@ module Bootloader
     end
 
   private
+
     attr_reader :actual_boot, :actual_root, :actual_extended
 
     def change_message(location, device)

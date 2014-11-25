@@ -27,6 +27,7 @@ module Bootloader
       end
 
     end
+
   private
 
     def create_dialog

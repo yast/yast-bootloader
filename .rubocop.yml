@@ -121,11 +121,6 @@ Style/Documentation:
 
 # Offense count: 4
 # Cop supports --auto-correct.
-Style/EmptyLinesAroundAccessModifier:
-  Enabled: false
-
-# Offense count: 4
-# Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/EmptyLinesAroundClassBody:
   Enabled: false

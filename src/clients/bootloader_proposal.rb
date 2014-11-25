@@ -235,6 +235,7 @@ module Yast
     end
 
   private
+
     BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader"
     # read bootloader from /mnt as SCR is not yet switched in proposal
     # phase of update (bnc#874646)

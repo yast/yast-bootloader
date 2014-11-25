@@ -42,6 +42,7 @@ module Bootloader
 
       ret
     end
+
   private
 
     def mbr_disk
