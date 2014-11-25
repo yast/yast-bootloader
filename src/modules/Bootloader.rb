@@ -556,7 +556,7 @@ module Yast
     # Write settings to /etc/sysconfig/bootloader
     def write_sysconfig
       sysconfig = ::Bootloader::Sysconfig.new(
-        bootloader: getLoaderType,
+        bootloader:  getLoaderType,
         secure_boot: BootCommon.getSystemSecureBootStatus(false)
       )
       sysconfig.write

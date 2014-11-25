@@ -373,7 +373,7 @@ module Yast
           "store"  => fun_ref(method(:StoreGlobalStr), "void (string, map)"),
           "help"   => Ops.get(@grub2_help_messages, "vgamode", "")
         },
-        "pmbr"         => {
+        "pmbr"            => {
           "widget" => :combobox,
           "label"  => @grub2_descriptions["pmbr"],
           "opt"    => [],

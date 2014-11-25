@@ -6,7 +6,7 @@ module Bootloader
     include Yast::Logger
     AGENT_PATH = Yast::Path.new(".sysconfig.bootloader")
     ATTR_VALUE_MAPPING = {
-      bootloader: "LOADER_TYPE",
+      bootloader:  "LOADER_TYPE",
       secure_boot: "SECURE_BOOT"
     }
 
@@ -39,7 +39,7 @@ module Bootloader
     end
 
     PROPOSED_COMMENTS = {
-      bootloader: "\n" \
+      bootloader:  "\n" \
         "## Path:\tSystem/Bootloader\n" \
         "## Description:\tBootloader configuration\n" \
         "## Type:\tlist(grub,grub2,grub2-efi,none)\n" \

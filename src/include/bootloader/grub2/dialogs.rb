@@ -81,7 +81,7 @@ module Yast
         # Title in tab
         "header"       => _("Kernel Parameters"),
         "widget_names" => widgets,
-        "contents"      => VBox(
+        "contents"     => VBox(
           VSpacing(1),
           MarginBox(1, 0.5, "vgamode"),
           MarginBox(1, 0.5, "append"),
@@ -97,11 +97,11 @@ module Yast
         widgets.delete("os_prober") if Arch.s390 # there is no os prober on s390(bnc#868909)
 
        {
-        "id" => "bootloader_tab",
+        "id"           => "bootloader_tab",
         # Title in tab
-        "header" => _("Bootloader Options"),
+        "header"       => _("Bootloader Options"),
         "widget_names" => widgets,
-        "contents" => VBox(
+        "contents"     => VBox(
           VSpacing(2),
           HBox(
             HSpacing(1),

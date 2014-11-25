@@ -69,7 +69,7 @@ module Yast
 
       # FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
       sysconfig = ::Bootloader::Sysconfig.new(
-        bootloader: Bootloader.getLoaderType,
+        bootloader:  Bootloader.getLoaderType,
         secure_boot: BootCommon.getSystemSecureBootStatus(false)
 
       )

@@ -8,7 +8,7 @@ describe Bootloader::DiskChangeDetector do
   before do
     Yast.import "Storage"
     mount_points = { #TODO full mock
-      "/" => ["/dev/sda1"],
+      "/"     => ["/dev/sda1"],
       "/boot" => ["/dev/sda2"]
     }
     allow(Yast::Storage).to receive(:GetMountPoints).and_return(mount_points)

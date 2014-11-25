@@ -63,7 +63,7 @@ module Yast
         "vgamode"   => "",
         "gfxmode"   => "auto",
         "terminal"  => Arch.s390 ? "console" : "gfxterm",
-        "os_prober" =>  disable_os_prober ? "false" : "true",
+        "os_prober" => disable_os_prober ? "false" : "true",
         "activate"  => Arch.ppc ? "true" : "false"
       }
     end

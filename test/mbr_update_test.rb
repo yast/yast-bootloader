@@ -32,8 +32,8 @@ describe Bootloader::MBRUpdate do
 
       # fake query for gpt label
       allow(Yast::Storage).to receive(:GetTargetMap).and_return(
-        double(:fetch =>  { "label" => "msdos" },
-          :[] =>  { "label" => "msdos" }
+        double(:fetch => { "label" => "msdos" },
+               :[]    => { "label" => "msdos" }
         )
       )
     end

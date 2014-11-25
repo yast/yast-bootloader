@@ -316,20 +316,20 @@ module Yast
       @_common_global_widgets = {
         "adv_button"     => getAdvancedButtonWidget,
         "loader_type"    => {
-          "widget"            => :func,
-          "widget_func"       => fun_ref(
+          "widget"      => :func,
+          "widget_func" => fun_ref(
             method(:LoaderTypeComboWidget),
             "term ()"
           ),
-          "init"              => fun_ref(
+          "init"        => fun_ref(
             method(:LoaderTypeComboInit),
             "void (string)"
           ),
-          "handle"            => fun_ref(
+          "handle"      => fun_ref(
             method(:LoaderTypeComboHandle),
             "symbol (string, map)"
           ),
-          "help"              => LoaderTypeHelp()
+          "help"        => LoaderTypeHelp()
         },
         "loader_options" => {
           "widget"        => :push_button,

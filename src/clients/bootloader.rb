@@ -78,14 +78,14 @@ module Yast
           }
         },
         "options"    => {
-          "option"  => {
+          "option" => {
             # command line help text for an option
             "help" => _(
               "The key of the option"
             ),
             "type" => "string"
           },
-          "value"   => {
+          "value"  => {
             # command line help text for an option
             "help" => _(
               "The value of the option"
