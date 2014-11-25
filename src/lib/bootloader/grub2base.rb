@@ -39,7 +39,6 @@ module Yast
 
     # general functions
 
-
     # set pmbr flags on boot disks
     def pmbr_setup(action, *devices)
       action_parted = case action
@@ -109,7 +108,6 @@ module Yast
           return
         end
       end
-
 
       BootCommon.globals = StandardGlobals().merge(BootCommon.globals || {})
 

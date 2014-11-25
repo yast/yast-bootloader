@@ -93,7 +93,6 @@ module Yast
           )
       }
 
-
       @grub_descriptions = {
         "boot"          => _("Boot Loader Locations"),
         "activate"      => _(

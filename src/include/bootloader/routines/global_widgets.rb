@@ -32,8 +32,6 @@ module Yast
       Yast.import "Package"
       Yast.import "Message"
 
-
-
       Yast.include include_target, "bootloader/routines/helps.rb"
 
       # Map of default (fallback) handlers for widget events on global widgets
@@ -165,7 +163,6 @@ module Yast
 
     # reset menu button
 
-
     # Init function of widget
     # @param [String] widget any id of the widget
     def resetButtonInit(_widget)
@@ -288,10 +285,6 @@ module Yast
       :redraw
     end
 
-
-
-
-
     # Get map of widget
     # @return a map of widget
     def getAdvancedButtonWidget
@@ -358,8 +351,6 @@ module Yast
           "help"          => InstDetailsHelp()
         }
       }
-
-
 
       deep_copy(@_common_global_widgets)
     end

@@ -168,7 +168,6 @@ module Yast
         Item(Id(mode2), mode2)
       end
 
-
       items = Builtins.prepend(
         items,
         Item(Id("auto"), _("Autodetect by grub2"))

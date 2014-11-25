@@ -154,7 +154,6 @@ describe Bootloader::MBRUpdate do
         allow(Yast::BootCommon).to receive(:mbrDisk)
           .and_return("/dev/sda")
 
-
         expect(Yast::SCR).to receive(:Execute).with(anything(), /dd /).and_return( "exit" => 0 )
         subject.run
       end
@@ -173,7 +172,6 @@ describe Bootloader::MBRUpdate do
 
         allow(Yast::BootCommon).to receive(:mbrDisk)
           .and_return("/dev/sda")
-
 
         expect(Yast::SCR).to receive(:Execute).with(anything(), /gptmbr.bin/).and_return( "exit" => 0 )
         subject.run

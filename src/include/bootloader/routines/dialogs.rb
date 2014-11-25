@@ -33,7 +33,6 @@ module Yast
       Yast.include include_target, "bootloader/routines/global_widgets.rb"
       Yast.include include_target, "bootloader/grub2/dialogs.rb"
 
-
       @return_tab = "installation"
     end
 
@@ -67,7 +66,6 @@ module Yast
       ret = Bootloader.Write
       ret ? :next : :abort
     end
-
 
     # Run dialog for kernel section editation
     # @return [Symbol] for wizard sequencer

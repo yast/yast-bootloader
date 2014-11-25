@@ -28,7 +28,6 @@ module Yast
       Yast.import "Mode"
       Yast.import "BootCommon"
 
-
       @ret = nil
       @func = ""
       @param = {}
@@ -160,7 +159,6 @@ module Yast
         # Bootloader::Update() -> Write()).
 
         @retcode = false
-
 
         if !Mode.update
           @retcode = Bootloader.WriteInstallation

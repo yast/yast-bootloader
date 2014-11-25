@@ -34,7 +34,6 @@ module Yast
 
       @progress_orig = Progress.set(false)
 
-
       @ret = nil
       @func = ""
       @param = {}

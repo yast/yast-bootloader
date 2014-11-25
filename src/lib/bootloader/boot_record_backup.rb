@@ -26,8 +26,6 @@ module Bootloader
       end
     end
 
-
-
     # Create backup handling class for given device
     # @param device[String] expect kernel name of device like "/dev/sda"
     def initialize(device)

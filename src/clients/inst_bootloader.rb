@@ -25,9 +25,7 @@ module Yast
       Yast.import "GetInstArgs"
       Yast.import "Mode"
 
-
       Builtins.y2milestone("starting inst_bootloader")
-
 
       if GetInstArgs.going_back # going backwards?
         return :auto # don't execute this once more

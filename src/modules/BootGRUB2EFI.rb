@@ -127,7 +127,6 @@ module Yast
       }
     end
 
-
     # Constructor
     def BootGRUB2EFI
 

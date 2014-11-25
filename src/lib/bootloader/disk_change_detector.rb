@@ -41,7 +41,6 @@ module Bootloader
         ret << change_message('"extended partition"', Yast::BootStorage.ExtendedPartitionDevice)
       end
 
-
       if invalid_custom?
         # TRANSLATORS: %s stands for partition
         ret <<

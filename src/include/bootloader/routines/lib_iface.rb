@@ -249,7 +249,6 @@ module Yast
       arg_data.unlink if arg_data
     end
 
-
     # Get the device mapping (Linux <-> Firmware)
     # @return a map from Linux device to Firmware device identification
     def GetDeviceMap
@@ -318,7 +317,6 @@ module Yast
     ensure
       arg_data.unlink
     end
-
 
     # Update append in from boot section, it means take value from "console"
     # and add it to "append"

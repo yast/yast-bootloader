@@ -119,11 +119,6 @@ Style/Documentation:
   Include:
     - 'src/lib/**/*.rb' # force well documented code only for new code
 
-# Offense count: 80
-# Cop supports --auto-correct.
-Style/EmptyLines:
-  Enabled: false
-
 # Offense count: 4
 # Cop supports --auto-correct.
 Style/EmptyLinesAroundAccessModifier:

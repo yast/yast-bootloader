@@ -143,7 +143,6 @@ module Yast
       nil
     end
 
-
     # Store function of a widget
     # @param [String] widget string widget key
     # @param [Hash] event map event that caused the operation

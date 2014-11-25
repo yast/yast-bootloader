@@ -36,7 +36,6 @@ module Yast
       Yast.import "Arch"
       Yast.import "Mode"
 
-
       # Saved change time from target map - only for checkCallingDiskInfo()
       @disk_change_time_checkCallingDiskInfo = nil
 
@@ -48,7 +47,6 @@ module Yast
 
       # mountpoints for perl-Bootloader
       @mountpoints = {}
-
 
       # list of all partitions for perl-Bootloader
       @partinfo = []
@@ -62,7 +60,6 @@ module Yast
       # string sepresenting device name of /boot partition
       # same as RootPartitionDevice if no separate /boot partition
       @BootPartitionDevice = ""
-
 
       # string representing device name of / partition
       @RootPartitionDevice = ""
@@ -96,9 +93,6 @@ module Yast
 
       ret
     end
-
-
-
 
     # Check if function was called or storage change
     # partitionig of disk. It is usefull fo using cached data
@@ -189,7 +183,6 @@ module Yast
       end
     end
 
-
     # Get the order of disks according to BIOS mapping
     # @return a list of all disks in the order BIOS sees them
     def DisksOrder
@@ -197,7 +190,6 @@ module Yast
 
       @device_map.disks_order
     end
-
 
     # Returns list of partitions and disks. Requests current partitioning from
     # yast2-storage and creates list of partition and disks usable for grub stage1

@@ -90,7 +90,6 @@ EOF
       expect{subject.enable("really strong password")}.to raise_error(RuntimeError, /bad output/)
     end
 
-
     it "raise exception if grub2-mkpasswd-pbkdf create password line but without password" do
       expect(Yast::WFM).to receive(:Execute)
         .with(kind_of(Yast::Path),/grub2-mkpasswd/)

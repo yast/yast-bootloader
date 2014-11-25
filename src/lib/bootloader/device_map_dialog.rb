@@ -29,7 +29,6 @@ module Bootloader
     end
   private
 
-
     def create_dialog
       Yast::UI.OpenDialog dialog_content
       refresh_buttons

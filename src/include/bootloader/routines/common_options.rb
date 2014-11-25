@@ -100,8 +100,6 @@ module Yast
       nil
     end
 
-
-
     # Generic widget of a checkbox
     # There is not defined valid function
     # if it is necessary create own definition of widget

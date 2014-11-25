@@ -60,7 +60,6 @@ module Yast
       Yast.include self, "bootloader/routines/switcher.rb"
       Yast.include self, "bootloader/routines/popups.rb"
 
-
       # general functions
 
       @test_abort = nil
@@ -230,7 +229,6 @@ module Yast
       nil
     end
 
-
     # Display bootloader summary
     # @return a list of summary lines
     def Summary
@@ -365,7 +363,6 @@ module Yast
 
       ret
     end
-
 
     # Write bootloader settings during installation
     # @return [Boolean] true on success

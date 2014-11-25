@@ -128,7 +128,6 @@ module Yast
           }
         end
 
-
         if !BootSupportCheck.SystemSupported
           @ret = Convert.convert(
             Builtins.union(

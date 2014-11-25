@@ -113,7 +113,6 @@ module Yast
       Yast.import "Popup"
     end
 
-
     # Translate the autoinstallation map to the Export map
     # @param [Hash{String => Object}] ai a map the autoinstallation map
     # @return a map the export map

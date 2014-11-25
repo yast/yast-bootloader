@@ -21,7 +21,6 @@ module Yast
 
       textdomain "bootloader"
 
-
       Yast.import "Arch"
       Yast.import "Label"
       Yast.import "Wizard"

@@ -25,7 +25,6 @@ module Yast
         )
       }
 
-
       @common_descriptions = { "timeout" => _("&Timeout in Seconds") }
     end
   end

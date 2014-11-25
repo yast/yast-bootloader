@@ -45,7 +45,6 @@ module Yast
     # --------------------------------------------------------------
     # LocationProposal() and related stuff (taken from routines/lilolike.ycp)
 
-
     # Set "boot_*" flags in the globals map according to the boot device selected
     # with parameter selected_location. Only a single boot device can be selected
     # with this function. The function cannot be used to set a custom boot device.

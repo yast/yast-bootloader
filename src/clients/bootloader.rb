@@ -132,7 +132,6 @@ module Yast
       false # do not call Write...
     end
 
-
     # Modify the boot loader global option
     # @param [String] key string the key to modify
     # @param [String] value string the value to set

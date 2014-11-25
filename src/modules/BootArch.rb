@@ -109,7 +109,6 @@ module Yast
         )
       end
 
-
       #B#352020 kokso: - Graphical failsafe mode
       #ret = ret + " 3";
       ret = Ops.add(ret, " x11failsafe")
@@ -128,7 +127,6 @@ module Yast
     def ResumeAvailable
       Arch.i386 || Arch.x86_64 || Arch.s390
     end
-
 
     # Return architecture as string
     # @return [String] type of architecture e.g. "i386"

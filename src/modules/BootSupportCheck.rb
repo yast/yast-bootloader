@@ -57,7 +57,6 @@ module Yast
       ret
     end
 
-
     # Check that bootloader is known and supported
     def KnownLoader
       if !["grub2", "grub2-efi", "none"].include?(Bootloader.getLoaderType)
@@ -145,7 +144,6 @@ module Yast
     # check if not on raid0
     #
     # @return [Boolean] true on success
-
 
     def check_BootDevice
       result = true
@@ -291,7 +289,6 @@ module Yast
       Builtins.y2milestone("Configuration supported: %1", supported)
       supported
     end
-
 
     def EndOfBootOrRootPartition
       part = Storage.GetEntryForMountpoint("/boot")

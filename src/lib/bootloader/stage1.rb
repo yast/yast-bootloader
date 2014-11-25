@@ -224,7 +224,6 @@ module Bootloader
     def boot_partition_on_mbr_disk?
       return @boot_partition_on_mbr_disk unless @boot_partition_on_mbr_disk.nil?
 
-
       @boot_partition_on_mbr_disk = underlying_boot_partition_devices.any? do |dev|
         pdp = Yast::Storage.GetDiskPartition(dev)
         p_disk = pdp["disk"] || ""

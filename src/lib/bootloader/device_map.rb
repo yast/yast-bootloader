@@ -76,7 +76,6 @@ module Bootloader
       Hash[remapped]
     end
 
-
     def propose
       @mapping = {}
 
@@ -244,7 +243,6 @@ module Bootloader
           (disk_info["devices"] || []).include?(disk)
       end
     end
-
 
   end
 end

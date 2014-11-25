@@ -41,14 +41,12 @@ module Bootloader
       result
     end
 
-
     # Check if we run in a vbox vm.
     #
     # @return [Boolean]: true if yast runs in a vbox vm
     def virtual_box?
       dmi_read("sysinfo", "product") == "VirtualBox"
     end
-
 
     # Check if we run in a hyperv vm.
     #
@@ -93,7 +91,6 @@ module Bootloader
 
       true
     end
-
 
     def copy_kernel
       # create directory /var/lib/YaST2

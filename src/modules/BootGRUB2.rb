@@ -241,7 +241,6 @@ module Yast
       return _("Change Location: %s") % line
     end
 
-
     # Display bootloader summary
     # @return a list of summary lines
 

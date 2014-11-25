@@ -47,7 +47,6 @@ module Yast
 
       Yast.import "Linuxrc"
 
-
       # General bootloader settings
 
       # map of global options and values
@@ -59,7 +58,6 @@ module Yast
       # Saved change time from target map - proposal
 
       @cached_settings_base_data_change_time = nil
-
 
       # device to save loader stage 1 to
       # NOTE: this variable is being phased out. The boot_* keys in the globals map
@@ -80,8 +78,6 @@ module Yast
       # Currently, valid values are: mbr, boot, root, mbr_md, none
       #FIXME: need remove to read only loader location from perl-Bootloader
       @selected_location = nil
-
-
 
       # These global variables and functions are needed in included files
 
@@ -120,7 +116,6 @@ module Yast
       @write_settings = {}
 
       @additional_failsafe_params = ""
-
 
       # other variables
 
@@ -333,7 +328,6 @@ module Yast
       false
     end
 
-
     # end of generic versions of bootloader-specific functions
     #-----------------------------------------------------------------------------
     # common functions start
@@ -426,7 +420,6 @@ module Yast
       setCurrentLoaderAttribs(@loader_type)
       @loader_type
     end
-
 
     # set type of bootloader
     # @param [String] bootloader string type of bootloader

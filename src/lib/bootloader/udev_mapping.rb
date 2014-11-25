@@ -128,7 +128,6 @@ module Bootloader
       end
     end
 
-
     # Returns array of pairs where each pair contain full udev name as first and kernel device as second
     # @param names [Array<String>] udev names for device e.g. "aaaa-bbbb-cccc-dddd" for uuid device name
     # @param key [String] storage key for given udev mapping see UDEV_MAPPING

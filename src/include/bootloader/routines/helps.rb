@@ -69,7 +69,6 @@ module Yast
       )
     end
 
-
     # Get help
     # @return [String] help text
     def SectionsHelp
@@ -95,7 +94,6 @@ module Yast
           "<P>Press <B>Add</B> to create a new boot loader section\nor <B>Delete</B> to delete the selected section.</P>"
         )
     end
-
 
     # popup widgets helps
 
@@ -192,7 +190,6 @@ module Yast
           "use <b>Boot Loader</b>.</p>"
       )
     end
-
 
     # Get help text
     # @return [String] help text

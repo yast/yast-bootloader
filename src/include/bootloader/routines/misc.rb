@@ -168,7 +168,6 @@ module Yast
       res
     end
 
-
     def kernel_param_key(value)
       value.split("=").first
     end
@@ -257,8 +256,6 @@ module Yast
       Builtins.y2milestone("Available swap partitions: %1", ret)
       ret
     end
-
-
 
     # Update the Kernel::vgaType value to the saved one if not defined
     def UpdateInstallationKernelParameters
@@ -462,13 +459,11 @@ module Yast
       ret
     end
 
-
     # FATE #110038: Serial console
     # Function parse string key (e.g. --speed=9600)
     # and return value of key
     # @param [String] key e.g. --unit=0
     # @return [String] value of key
-
 
     def getKeyValue(key)
       ret = ""
@@ -481,7 +476,6 @@ module Yast
       Builtins.y2debug("parse: %1 and return value: %2", key, ret)
       ret
     end
-
 
     # FATE #110038: Serial console
     # Function check value from globals (serial and terminal)
