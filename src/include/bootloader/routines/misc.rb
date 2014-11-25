@@ -184,7 +184,7 @@ module Yast
       # FIXME this doesn't work with quotes and spaces
       params = line.split(" ").reject(&:empty?)
       # count occurences of every parameter, initial value is 0
-      occurences = Hash.new { |k| 0 }
+      occurences = Hash.new { |_k| 0 }
       params.each do |param|
         k = kernel_param_key(param)
         occurences[k] += 1
@@ -239,7 +239,7 @@ module Yast
       # FIXME move to boot storage
       tm = Storage.GetTargetMap
       ret = {}
-      tm.each do |k, v|
+      tm.each do |_k, v|
         cyl_size = v["cyl_size"] || 0
         partitions = v["partitions"] || []
         partitions = partitions.select do |p|

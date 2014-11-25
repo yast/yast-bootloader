@@ -271,7 +271,7 @@ module Yast
       exp = deep_copy(exp)
       # bootloader type and location stuff
       ai = { "loader_type" => Ops.get_string(exp, "loader_type", "default") }
-      glob = Builtins.filter(Ops.get_map(exp, ["specific", "global"], {})) do |k, v|
+      glob = Builtins.filter(Ops.get_map(exp, ["specific", "global"], {})) do |k, _v|
         Builtins.substring(k, 0, 2) != "__"
       end
       # global options stuff

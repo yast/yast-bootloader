@@ -158,7 +158,7 @@ module Yast
 
       found_boot = false
       # check if boot device is on raid0
-      Builtins.foreach(devices) do |k, v|
+      Builtins.foreach(devices) do |_k, v|
         Builtins.foreach(Ops.get_list(v, "partitions", [])) do |p|
           if Ops.get_string(p, "device", "") == boot_device
             if Ops.get_string(p, "raid_type", "") != "raid1" &&
@@ -305,7 +305,7 @@ module Yast
 
       cyl_size = 82252800
       target_map = Storage.GetTargetMap
-      Builtins.foreach(target_map) do |dev, disk|
+      Builtins.foreach(target_map) do |_dev, disk|
         partition = (disk["partitions"] || []).find do |p|
           p["device"] == device
         end

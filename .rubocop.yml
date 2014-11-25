@@ -10,11 +10,6 @@ Lint/Eval:
   # test helper data source is safe, so eval is not problem
   - test/test_helper.rb
 
-# Offense count: 10
-# Cop supports --auto-correct.
-Lint/UnusedBlockArgument:
-  Enabled: false
-
 # Offense count: 34
 # Cop supports --auto-correct.
 Lint/UnusedMethodArgument:

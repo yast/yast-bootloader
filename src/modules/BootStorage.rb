@@ -381,7 +381,7 @@ module Yast
     def Md2Partitions(md_device)
       ret = {}
       tm = Storage.GetTargetMap
-      tm.each_pair do |disk, descr|
+      tm.each_pair do |_disk, descr|
         bios_id = (descr["bios_id"] || 256).to_i # maximum + 1 (means: no bios_id found)
         partitions = descr["partitions"] || []
         partitions.each do |partition|

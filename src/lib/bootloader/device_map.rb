@@ -34,7 +34,7 @@ module Bootloader
     end
 
     def disks_order
-      disks = @mapping.select { |k,v| v.start_with?("hd") }.keys
+      disks = @mapping.select { |_k,v| v.start_with?("hd") }.keys
 
       disks.sort_by { |d| @mapping[d][2..-1].to_i }
     end
@@ -51,7 +51,7 @@ module Bootloader
       end
 
       log.info "device map before reduction #{@mapping}"
-      @mapping.select! do |k,v|
+      @mapping.select! do |_k,v|
         v[2..-1].to_i < BIOS_LIMIT
       end
 
@@ -155,7 +155,7 @@ module Bootloader
       target_map = Yast::Storage.GetTargetMap.dup
 
       # select only disk devices
-      target_map.select! do |k, v|
+      target_map.select! do |_k, v|
         [:CT_DMRAID, :CT_DISK, :CT_DMMULTIPATH].include?(v["type"]) ||
           ( v["type"] == :CT_MDPART &&
             checkMDRaidDevices(v["devices"] || [], target_map))
