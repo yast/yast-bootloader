@@ -115,11 +115,6 @@ Style/AndOr:
 Style/CaseIndentation:
   IndentWhenRelativeTo: end
 
-# Offense count: 1
-# Cop supports --auto-correct.
-Style/DefWithParentheses:
-  Enabled: false
-
 # Offense count: 42
 Style/Documentation:
   Enabled: false
