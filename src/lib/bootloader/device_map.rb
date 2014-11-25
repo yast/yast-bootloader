@@ -105,8 +105,10 @@ module Bootloader
       )
       # if none of priority disk is hd0, then choose one and assign it
       if !any_first_device?(priority_disks)
-        @mapping = change_order(@mapping,
-            priority_device: priority_disks.first)
+        @mapping = change_order(
+          @mapping,
+          priority_device: priority_disks.first
+        )
       end
     end
 

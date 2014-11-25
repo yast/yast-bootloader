@@ -274,9 +274,9 @@ module Yast
       end
       if !locations.empty?
         result << Builtins.sformat(
-            _("Status Location: %1"),
-            locations.join(", ")
-          )
+          _("Status Location: %1"),
+          locations.join(", ")
+        )
       end
 
       # it is necessary different summary for autoyast and installation

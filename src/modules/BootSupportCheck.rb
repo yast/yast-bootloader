@@ -60,10 +60,7 @@ module Yast
 
     # Check that bootloader is known and supported
     def KnownLoader
-      if !Builtins.contains(
-          ["grub2", "grub2-efi", "none"],
-          Bootloader.getLoaderType
-        )
+      if !["grub2", "grub2-efi", "none"].include?(Bootloader.getLoaderType)
         Builtins.y2error("Unknown bootloader: %1", Bootloader.getLoaderType)
         AddNewProblem(
           Builtins.sformat(
