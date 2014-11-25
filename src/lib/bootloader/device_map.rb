@@ -243,6 +243,5 @@ module Bootloader
           (disk_info["devices"] || []).include?(disk)
       end
     end
-
   end
 end

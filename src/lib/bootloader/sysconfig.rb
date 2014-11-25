@@ -134,6 +134,5 @@ module Bootloader
         Yast::SCR.Write(comment_path, PROPOSED_COMMENTS[option])
       end
     end
-
   end
 end

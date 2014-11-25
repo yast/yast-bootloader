@@ -24,7 +24,6 @@ require "bootloader/sysconfig"
 
 module Yast
   class BootCommonClass < Module
-
     SUPPORTED_BOOTLOADERS = [
       "none", # allow user to manage bootloader itself
       "grub2",
