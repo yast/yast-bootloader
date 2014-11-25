@@ -11,10 +11,6 @@ Lint/Eval:
   - test/test_helper.rb
 
 # Offense count: 1
-Lint/LiteralInCondition:
-  Enabled: false
-
-# Offense count: 1
 Lint/Loop:
   Enabled: false
 

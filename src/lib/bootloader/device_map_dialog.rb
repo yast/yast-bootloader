@@ -39,7 +39,7 @@ module Bootloader
     end
 
     def controller_loop
-      while true do
+      loop do
         input = Yast::UI.UserInput
         pos = selected_disk_index
         case input
