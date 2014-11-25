@@ -335,7 +335,7 @@ module Yast
           ),
           "help"          => LoaderOptionsHelp()
         },
-        #FIXME: after deleting all using of metadata delete widget from
+        # FIXME: after deleting all using of metadata delete widget from
         # from CommonGlobalWidgets the button is only for GRUB...
         "inst_details"   => {
           "widget"        => :push_button,

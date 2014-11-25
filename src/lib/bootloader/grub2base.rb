@@ -149,7 +149,7 @@ module Yast
       when nil
         GRUB2Pwd.new.disable
       when ""
-        #do nothing
+        # do nothing
       else
         GRUB2Pwd.new.enable @password
       end

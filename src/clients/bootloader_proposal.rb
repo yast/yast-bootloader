@@ -91,8 +91,8 @@ module Yast
 
         @ret["raw_proposal"] = Bootloader.Summary
 
-        #F#300779 - Install diskless client (NFS-root)
-        #kokso:  bootloader will not be installed
+        # F#300779 - Install diskless client (NFS-root)
+        # kokso:  bootloader will not be installed
         @device = BootCommon.getBootDisk
         if @device == "/dev/nfs"
           Builtins.y2milestone(
@@ -103,7 +103,7 @@ module Yast
         end
         Builtins.y2milestone("Type of BootPartitionDevice: %1", @device)
 
-        #F#300779 - end
+        # F#300779 - end
 
         if Bootloader.getLoaderType == ""
           Builtins.y2error("No bootloader selected")

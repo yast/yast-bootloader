@@ -53,7 +53,7 @@ module Bootloader
       # we do not know if it is partition or disk, but target map help us
       target_map = Yast::Storage.GetTargetMap
       storage_data = target_map[kernel_dev]
-      if !storage_data #so partition
+      if !storage_data # so partition
         disk = target_map[Yast::Storage.GetDiskPartition(kernel_dev)["disk"]]
         # if device is not disk, then it can be virtual device like tmpfs or
         # disk no longer exists
@@ -112,7 +112,7 @@ module Bootloader
     # @private internall use only
     # @note only temporary method
     def map_disks(data, device)
-      keys = UDEV_MAPPING.keys - ["label"] #disks do not have labels
+      keys = UDEV_MAPPING.keys - ["label"] # disks do not have labels
       fill_all_devices(keys, data, device)
     end
 

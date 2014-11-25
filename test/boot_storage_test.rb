@@ -95,7 +95,7 @@ describe Yast::BootStorage do
       result = subject.real_disks_for_partition("/dev/system/root")
       expect(result).to include("/dev/vda")
 
-      #do not crash if target map do not contain devices_add(bnc#891070)
+      # do not crash if target map do not contain devices_add(bnc#891070)
       target_map_stub("storage_lvm_without_devices_add.rb")
 
       result = subject.real_disks_for_partition("/dev/system/root")

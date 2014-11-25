@@ -138,11 +138,6 @@ Style/IfUnlessModifier:
 Style/Lambda:
   Enabled: false
 
-# Offense count: 26
-# Cop supports --auto-correct.
-Style/LeadingCommentSpace:
-  Enabled: false
-
 # Offense count: 92
 # Cop supports --auto-correct.
 Style/LineEndConcatenation:

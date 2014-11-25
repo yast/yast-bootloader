@@ -36,8 +36,8 @@ module Yast
 
         Builtins.y2milestone("contents FILES: %1", @files)
 
-        #F#300779 - Install diskless client (NFS-root)
-        #kokso: bootloader will not be installed
+        # F#300779 - Install diskless client (NFS-root)
+        # kokso: bootloader will not be installed
         @device = BootCommon.getBootDisk
 
         if @device == "/dev/nfs"

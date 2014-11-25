@@ -64,7 +64,7 @@ module Yast
       # list of selected loader devices. It can be generated from the information in
       # the boot_* keys and the global variables (Boot|Root|Extended)PartitionDevice
       # and mbrDisk by calling GetBootloaderDevices().
-      #FIXME: need remove to read only loader location from perl-Bootloader
+      # FIXME: need remove to read only loader location from perl-Bootloader
       @loader_device = nil
 
       # proposal helping variables
@@ -75,7 +75,7 @@ module Yast
       # NOTE: this variable is being phased out. The boot_* keys in the globals map
       # will be used to remember the last selected location.
       # Currently, valid values are: mbr, boot, root, mbr_md, none
-      #FIXME: need remove to read only loader location from perl-Bootloader
+      # FIXME: need remove to read only loader location from perl-Bootloader
       @selected_location = nil
 
       # These global variables and functions are needed in included files

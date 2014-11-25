@@ -275,7 +275,7 @@ module Yast
         when /ppc/
           @_grub2_widgets = { "loader_location" => grub_on_ppc_location }
         when /s390/
-          @_grub2_widgets = {} #no loader location for s390 as it is automatic
+          @_grub2_widgets = {} # no loader location for s390 as it is automatic
         else
           raise "unsuppoted architecture #{Arch.architecture}"
         end

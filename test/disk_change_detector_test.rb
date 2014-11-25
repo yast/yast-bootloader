@@ -7,7 +7,7 @@ require "bootloader/disk_change_detector"
 describe Bootloader::DiskChangeDetector do
   before do
     Yast.import "Storage"
-    mount_points = { #TODO: full mock
+    mount_points = { # TODO: full mock
       "/"     => ["/dev/sda1"],
       "/boot" => ["/dev/sda2"]
     }

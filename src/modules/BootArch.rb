@@ -108,10 +108,10 @@ module Yast
         )
       end
 
-      #B#352020 kokso: - Graphical failsafe mode
-      #ret = ret + " 3";
+      # B#352020 kokso: - Graphical failsafe mode
+      # ret = ret + " 3";
       ret = Ops.add(ret, " x11failsafe")
-      #B#352020 end
+      # B#352020 end
       ret
     end
 

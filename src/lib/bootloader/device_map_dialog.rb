@@ -161,7 +161,7 @@ module Bootloader
 
     def refresh_buttons
       pos = selected_disk_index
-      if !pos #nothing selected
+      if !pos # nothing selected
         disk_to_select = disks.first
         # there is no disks
         if !disk_to_select

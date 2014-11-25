@@ -129,7 +129,7 @@ module Yast
       )
       if ret != :back && ret != :abort && ret != :cancel
         @return_tab = CWMTab.LastTab
-        @return_tab = "installation" if @return_tab.include? "tab" #workaround different tab set for grub2
+        @return_tab = "installation" if @return_tab.include? "tab" # workaround different tab set for grub2
       end
       ret
     end

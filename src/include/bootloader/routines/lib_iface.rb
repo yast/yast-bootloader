@@ -118,7 +118,7 @@ module Yast
     def InitializeLibrary(force, loader)
       return false if !force && loader == @library_initialized
 
-      SCR.Execute(Path.new(".target.remove"), STATE_FILE) #remove old state file to do clear initialization
+      SCR.Execute(Path.new(".target.remove"), STATE_FILE) # remove old state file to do clear initialization
 
       Builtins.y2milestone("Initializing lib for %1", loader)
       architecture = BootArch.StrArch

@@ -39,7 +39,7 @@ module Yast
       Yast.import "Storage"
       Yast.import "Directory"
 
-      #fate 303395
+      # fate 303395
       Yast.import "ProductFeatures"
       # Write is repeating again
       # Because of progress bar during inst_finish
@@ -331,14 +331,14 @@ module Yast
 
       return ret if getLoaderType == "none"
 
-      #F#300779 - Install diskless client (NFS-root)
-      #kokso: bootloader will not be installed
+      # F#300779 - Install diskless client (NFS-root)
+      # kokso: bootloader will not be installed
       if BootCommon.getBootDisk == "/dev/nfs"
         log.info "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
         return ret
       end
 
-      #F#300779 -end
+      # F#300779 -end
 
       # save bootloader settings
       reinit = !Mode.normal

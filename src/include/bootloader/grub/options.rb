@@ -171,7 +171,7 @@ module Yast
       if UI.QueryWidget(Id("boot_custom"), :Value)
         custom_value = UI.QueryWidget(Id("boot_custom_list"), :Value)
       else
-        #bnc#544809 Custom Boot Partition cannot be deleted
+        # bnc#544809 Custom Boot Partition cannot be deleted
         custom_value = ""
       end
       BootCommon.globals["boot_custom"] = custom_value
