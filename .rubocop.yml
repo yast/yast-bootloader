@@ -10,10 +10,6 @@ Lint/Eval:
   # test helper data source is safe, so eval is not problem
   - test/test_helper.rb
 
-# Offense count: 2
-Lint/ParenthesesAsGroupedExpression:
-  Enabled: false
-
 # Offense count: 1
 Lint/ShadowingOuterLocalVariable:
   Enabled: false

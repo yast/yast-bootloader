@@ -22,7 +22,7 @@ describe Yast::BootStorage do
   end
 
   describe ".possible_locations_for_stage1" do
-    let (:possible_locations) { subject.possible_locations_for_stage1 }
+    let(:possible_locations) { subject.possible_locations_for_stage1 }
     before do
       target_map_stub("storage_mdraid.rb")
       allow(Yast::Arch).to receive(:s390).and_return(false) # be arch agnostic
