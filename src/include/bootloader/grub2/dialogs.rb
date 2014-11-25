@@ -75,50 +75,50 @@ module Yast
       widgets.delete("console") if Arch.s390 # there is no console on s390 (bnc#868909)
       widgets.delete("vgamode") if Arch.s390 # there is no graphic adapter on s390 (bnc#874010)
 
-       {
-         "id"           => "kernel_tab",
-         # Title in tab
-         "header"       => _("Kernel Parameters"),
-         "widget_names" => widgets,
-         "contents"     => VBox(
-           VSpacing(1),
-           MarginBox(1, 0.5, "vgamode"),
-           MarginBox(1, 0.5, "append"),
-           MarginBox(1, 0.5, "append_failsafe"),
-           MarginBox(1, 0.5, "console"),
-           VStretch()
-        )
-       }
+      {
+        "id"           => "kernel_tab",
+        # Title in tab
+        "header"       => _("Kernel Parameters"),
+        "widget_names" => widgets,
+        "contents"     => VBox(
+          VSpacing(1),
+          MarginBox(1, 0.5, "vgamode"),
+          MarginBox(1, 0.5, "append"),
+          MarginBox(1, 0.5, "append_failsafe"),
+          MarginBox(1, 0.5, "console"),
+          VStretch()
+       )
+      }
     end
 
     def bootloader_tab
         widgets = ["default", "timeout", "password", "os_prober", "hiddenmenu"]
         widgets.delete("os_prober") if Arch.s390 # there is no os prober on s390(bnc#868909)
 
-       {
-         "id"           => "bootloader_tab",
-         # Title in tab
-         "header"       => _("Bootloader Options"),
-         "widget_names" => widgets,
-         "contents"     => VBox(
-           VSpacing(2),
-           HBox(
-             HSpacing(1),
-             "timeout",
-             HSpacing(1),
-             VBox(
-               Left("os_prober"),
-               VSpacing(1),
-               Left("hiddenmenu")
-             ),
-             HSpacing(1)
-           ),
-           VSpacing(1),
-           MarginBox(1, 1, "default"),
-           MarginBox(1, 1, "password"),
-           VStretch()
-        )
-       }
+        {
+          "id"           => "bootloader_tab",
+          # Title in tab
+          "header"       => _("Bootloader Options"),
+          "widget_names" => widgets,
+          "contents"     => VBox(
+            VSpacing(2),
+            HBox(
+              HSpacing(1),
+              "timeout",
+              HSpacing(1),
+              VBox(
+                Left("os_prober"),
+                VSpacing(1),
+                Left("hiddenmenu")
+              ),
+              HSpacing(1)
+            ),
+            VSpacing(1),
+            MarginBox(1, 1, "default"),
+            MarginBox(1, 1, "password"),
+            VStretch()
+         )
+        }
     end
 
     def Grub2TabDescr

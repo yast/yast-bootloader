@@ -83,14 +83,14 @@ describe Bootloader::DeviceMap do
         "/dev/vdc" => "hd1"
       )
 
-      expect(Bootloader::UdevMapping).to receive(:to_kernel_device)
-        .and_return("/dev/bla", "/dev/ble", "/dev/blabla")
+       expect(Bootloader::UdevMapping).to receive(:to_kernel_device)
+         .and_return("/dev/bla", "/dev/ble", "/dev/blabla")
 
-      expect(map.remapped_hash).to eq(
-        "/dev/bla"    => "hd0",
-        "/dev/ble"    => "hd2",
-        "/dev/blabla" => "hd1"
-      )
+       expect(map.remapped_hash).to eq(
+         "/dev/bla"    => "hd0",
+         "/dev/ble"    => "hd2",
+         "/dev/blabla" => "hd1"
+       )
     end
 
     it "returns not mapped map if mount_by is label and arch is not ppc" do
