@@ -101,7 +101,7 @@ module Bootloader
       )
     end
 
-    def temporary_target_agent &block
+    def temporary_target_agent(&block)
       old_agent = sys_agent
       @sys_agent = Yast::Path.new(".target.sysconfig.bootloader")
 
