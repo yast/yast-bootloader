@@ -107,11 +107,9 @@ Style/AlignHash:
 Style/AlignParameters:
   EnforcedStyle: with_fixed_indentation
 
-# Offense count: 2
-# Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/AndOr:
-  Enabled: false
+  EnforcedStyle: conditionals
 
 # Offense count: 26
 # Cop supports --auto-correct.
