@@ -156,9 +156,10 @@ module Yast
       UI.OpenDialog(Opt(:decorated, :warncolor), dialog)
 
       button = nil
-      begin
+      loop do
         button = Convert.to_symbol(UI.UserInput)
-      end until button == :yes || button == :no
+        break if button == :yes || button == :no
+      end
 
       UI.CloseDialog
 
