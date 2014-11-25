@@ -69,7 +69,7 @@
         "fstype"         => "Linux native",
         "region"         => [2872, 36041],
         "type"           => :primary
-        }
+      }
     ],
     "size_k"         => 312571224,
     "cyl_size"       => 8225280,
