@@ -37,7 +37,8 @@ module Bootloader
         # partition can remain activated, which causes less problems with
         # other installed OSes like Windows (older versions assign the C:
         # drive letter to the activated partition).
-        Yast::BootCommon.globals["activate"] = Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk).empty? ? "true" : "false"
+        boot_flag_part = Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk)
+        Yast::BootCommon.globals["activate"] = boot_flag_part.empty? ? "true" : "false"
       else
         # if not installing to MBR, always activate (so the generic MBR will
         # boot Linux)
@@ -88,7 +89,8 @@ module Bootloader
       end
 
       assign_bootloader_device(selected_location)
-      if !Yast::BootStorage.possible_locations_for_stage1.include?(Yast::BootCommon.GetBootloaderDevices.first)
+      valid_locations = Yast::BootStorage.possible_locations_for_stage1
+      if !valid_locations.include?(Yast::BootCommon.GetBootloaderDevices.first)
         selected_location = :mbr # default to mbr
         assign_bootloader_device(selected_location)
       end

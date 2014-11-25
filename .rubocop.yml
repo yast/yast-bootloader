@@ -13,33 +13,84 @@ Lint/Eval:
 # Offense count: 105
 Metrics/AbcSize:
   Max: 129
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
 
-# Offense count: 5
+Metrics/AbcSize:
+  Max: 50 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
 Metrics/BlockNesting:
   Max: 5
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
 
-# Offense count: 16
+Metrics/BlockNesting:
+  Max: 2
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+
 # Configuration parameters: CountComments.
 Metrics/ClassLength:
   Max: 385
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
 
-# Offense count: 56
+# Configuration parameters: CountComments.
+Metrics/ClassLength:
+  Max: 170 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
 Metrics/CyclomaticComplexity:
   Max: 29
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
 
-# Offense count: 385
+Metrics/CyclomaticComplexity:
+  Max: 12 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
 # Configuration parameters: AllowURI, URISchemes.
 Metrics/LineLength:
   Max: 299
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
 
-# Offense count: 150
+# Configuration parameters: AllowURI, URISchemes.
+Metrics/LineLength:
+  Max: 110 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
 # Configuration parameters: CountComments.
 Metrics/MethodLength:
   Max: 160
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
 
-# Offense count: 45
+# Configuration parameters: CountComments.
+Metrics/MethodLength:
+  Max: 40 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
 Metrics/PerceivedComplexity:
   Max: 34
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+Metrics/PerceivedComplexity:
+  Max: 13 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+# be more strict then rubocop, 5 is too much
+Metrics/ParameterLists:
+  Max: 4
 
 # Offense count: 10
 # Cop supports --auto-correct.
