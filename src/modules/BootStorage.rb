@@ -400,8 +400,8 @@ module Yast
       # FIXME handle somehow if disk are in logical raid
       partitions = Md2Partitions(partition).keys
       partitions = [partition] if partitions.empty?
-      res = partitions.map do |partition|
-        Storage.GetDiskPartition(partition)["disk"]
+      res = partitions.map do |part|
+        Storage.GetDiskPartition(part)["disk"]
       end
       res.uniq!
       # handle LVM disks
