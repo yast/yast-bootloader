@@ -165,15 +165,18 @@ module Yast
 
       nil
     end
+
     def HandleSecureBootWidget(_widget, _event)
       nil
     end
+
     def StoreSecureBootWidget(_widget, _event)
       sb = Convert.to_boolean(UI.QueryWidget(Id("secure_boot"), :Value))
       BootCommon.setSystemSecureBootStatus(sb)
 
       nil
     end
+
     def HelpSecureBootWidget
       ret = "Tick to enable UEFI Secure Boot\n"
       ret

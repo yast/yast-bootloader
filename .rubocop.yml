@@ -115,16 +115,9 @@ Style/AndOr:
 Style/CaseIndentation:
   IndentWhenRelativeTo: end
 
-# Offense count: 42
 Style/Documentation:
   Include:
     - 'src/lib/**/*.rb' # force well documented code only for new code
-
-# Offense count: 3
-# Cop supports --auto-correct.
-# Configuration parameters: AllowAdjacentOneLineDefs.
-Style/EmptyLineBetweenDefs:
-  Enabled: false
 
 # Offense count: 80
 # Cop supports --auto-correct.
