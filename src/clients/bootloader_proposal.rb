@@ -241,7 +241,7 @@ module Yast
     # phase of update (bnc#874646)
     def old_bootloader
       target_boot_sysconfig_path = ::File.join(Installation.destdir, BOOT_SYSCONFIG_PATH)
-      return nil unless ::File.exists? target_boot_sysconfig_path
+      return nil unless ::File.exist? target_boot_sysconfig_path
 
       boot_sysconfig = ::File.read target_boot_sysconfig_path
       old_bootloader = boot_sysconfig.lines.grep(/^\s*LOADER_TYPE/)
