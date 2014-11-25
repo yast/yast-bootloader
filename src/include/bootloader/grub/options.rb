@@ -217,21 +217,21 @@ module Yast
       end
 
       boot_custom = [
-      Left(
-        CheckBox(
-          Id("boot_custom"),
-          Opt(:notify),
-          _("C&ustom Boot Partition")
-        )
-      ),
-      Left(
-        ComboBox(
-          Id("boot_custom_list"),
-          Opt(:editable, :hstretch),
-          "",
-          []
-        )
-      )]
+        Left(
+          CheckBox(
+            Id("boot_custom"),
+            Opt(:notify),
+            _("C&ustom Boot Partition")
+          )
+        ),
+        Left(
+          ComboBox(
+            Id("boot_custom_list"),
+            Opt(:editable, :hstretch),
+            "",
+            []
+          )
+        )]
 
       contents = VBox(
         VSpacing(1),
