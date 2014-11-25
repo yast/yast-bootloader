@@ -117,7 +117,8 @@ Style/CaseIndentation:
 
 # Offense count: 42
 Style/Documentation:
-  Enabled: false
+  Include:
+    - 'src/lib/**/*.rb' # force well documented code only for new code
 
 # Offense count: 52
 # Cop supports --auto-correct.

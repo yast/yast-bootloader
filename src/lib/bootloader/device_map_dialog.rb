@@ -8,6 +8,7 @@ Yast.import "Popup"
 require "bootloader/device_map"
 
 module Bootloader
+  # Represents dialog for modification of device map
   class DeviceMapDialog
     include Yast::UIShortcuts
     include Yast::I18n

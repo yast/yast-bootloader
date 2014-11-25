@@ -4,6 +4,7 @@ require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
 
 module Yast
+  # Common base for GRUB2 specialized classes
   class GRUB2Base < Module
     def main
       Yast.import "UI"

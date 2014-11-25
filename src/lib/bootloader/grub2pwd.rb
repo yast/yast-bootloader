@@ -1,5 +1,6 @@
 require "yast"
 
+# class is responsible for detection, encryption and writing of grub2 password protection
 class GRUB2Pwd
   YAST_BASH_PATH = Yast::Path.new(".target.bash_output")
   PWD_ENCRYPTION_FILE = "/etc/grub.d/42_password"
