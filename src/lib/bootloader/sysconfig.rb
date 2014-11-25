@@ -129,10 +129,10 @@ module Bootloader
       # write value of option
       Yast::SCR.Write(file_path_option, value)
 
-      # write comment of option if it is necessary
-      if !comment_exist
-        Yast::SCR.Write(comment_path, PROPOSED_COMMENTS[option])
-      end
+      # write comment of option only if it doesn't exist
+      return if comment_exist
+
+      Yast::SCR.Write(comment_path, PROPOSED_COMMENTS[option])
     end
   end
 end

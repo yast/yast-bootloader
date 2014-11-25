@@ -136,34 +136,34 @@ module Yast
       super
 
       # do not repropose, only in autoinst mode to allow propose missing parts
-      if !BootCommon.was_proposed || Mode.autoinst || Mode.autoupgrade
-        case Arch.architecture
-        when "i386", "x86_64"
-          grub_LocationProposal
-          # pass vga if available (bnc#896300)
-          if !Kernel.GetVgaType.empty?
-            BootCommon.globals["vgamode"]= Kernel.GetVgaType
-          end
-        when /ppc/
-          partition = prep_partitions.first
-          if partition
-            BootCommon.globals["boot_custom"] = partition
-          else
-            # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
-            # we need to detect what is mount on /boot and if it is nfs, then just
-            # skip this proposal. In other case if it is not nfs, then it is error and raise exception
-            BootCommon.DetectDisks
-            if BootCommon.getBootDisk == "/dev/nfs"
-              return
-            else
-              raise "there is no prep partition"
-            end
-          end
-        when /s390/
-          Builtins.y2milestone "no partition needed for grub2 on s390"
-        else
-          raise "unsuported architecture #{Arch.architecture}"
+      return if BootCommon.was_proposed && !Mode.autoinst && !Mode.autoupgrade
+
+      case Arch.architecture
+      when "i386", "x86_64"
+        grub_LocationProposal
+        # pass vga if available (bnc#896300)
+        if !Kernel.GetVgaType.empty?
+          BootCommon.globals["vgamode"]= Kernel.GetVgaType
         end
+      when /ppc/
+        partition = prep_partitions.first
+        if partition
+          BootCommon.globals["boot_custom"] = partition
+        else
+          # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
+          # we need to detect what is mount on /boot and if it is nfs, then just
+          # skip this proposal. In other case if it is not nfs, then it is error and raise exception
+          BootCommon.DetectDisks
+          if BootCommon.getBootDisk == "/dev/nfs"
+            return
+          else
+            raise "there is no prep partition"
+          end
+        end
+      when /s390/
+        Builtins.y2milestone "no partition needed for grub2 on s390"
+      else
+        raise "unsuported architecture #{Arch.architecture}"
       end
     end
 

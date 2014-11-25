@@ -575,11 +575,12 @@ module Yast
       if BootCommon.write_settings["save_all"]
         BootCommon.save_all = true
       end
-      if BootCommon.save_all
-        BootCommon.changed = true
-        BootCommon.location_changed = true
-        Initrd.changed = true
-      end
+
+      return unless BootCommon.save_all
+
+      BootCommon.changed = true
+      BootCommon.location_changed = true
+      Initrd.changed = true
     end
 
     def handle_failed_write
