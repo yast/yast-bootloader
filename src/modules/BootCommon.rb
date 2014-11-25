@@ -242,7 +242,7 @@ module Yast
     # @param [Boolean] init boolean true to init the library
     # @param [Boolean] flush boolean true to flush settings to the disk
     # @return [Boolean] true if success
-    def Save(clean, init, flush)
+    def Save(_clean, init, flush)
       ret = true
 
       bl = getLoaderType(false)

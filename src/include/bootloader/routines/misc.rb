@@ -23,7 +23,7 @@ require "bootloader/udev_mapping"
 
 module Yast
   module BootloaderRoutinesMiscInclude
-    def initialize_bootloader_routines_misc(include_target)
+    def initialize_bootloader_routines_misc(_include_target)
       textdomain "bootloader"
       Yast.import "Mode"
       Yast.import "Stage"

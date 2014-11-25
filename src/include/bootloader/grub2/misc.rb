@@ -28,7 +28,7 @@ module Yast
   module BootloaderGrub2MiscInclude
     include Yast::Logger
 
-    def initialize_bootloader_grub2_misc(include_target)
+    def initialize_bootloader_grub2_misc(_include_target)
       textdomain "bootloader"
       Yast.import "Arch"
       Yast.import "BootCommon"

@@ -16,7 +16,7 @@
 #
 module Yast
   module BootloaderRoutinesPopupsInclude
-    def initialize_bootloader_routines_popups(include_target)
+    def initialize_bootloader_routines_popups(_include_target)
       textdomain "bootloader"
 
       Yast.import "Encoding"

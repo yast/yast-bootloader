@@ -17,7 +17,7 @@
 #
 module Yast
   module BootloaderRoutinesAutoinstallInclude
-    def initialize_bootloader_routines_autoinstall(include_target)
+    def initialize_bootloader_routines_autoinstall(_include_target)
       # Example autoyast configuration file snippets:
       #
       # -------------------------------------------------

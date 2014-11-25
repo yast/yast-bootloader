@@ -78,7 +78,7 @@ module Yast
     # @param [String] widget string widget key
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] to return to wizard sequencer, or nil
-    def InstDetailsButtonHandle(widget, event)
+    def InstDetailsButtonHandle(_widget, event)
       event = deep_copy(event)
       lt = Bootloader.getLoaderType
       if lt == "none" || lt == "default"
@@ -92,7 +92,7 @@ module Yast
     # @param [String] widget string widget key
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] to return to wizard sequencer, or nil
-    def LoaderOptionsButtonHandle(widget, event)
+    def LoaderOptionsButtonHandle(_widget, event)
       event = deep_copy(event)
       lt = Bootloader.getLoaderType
       if lt == "none" || lt == "default"
@@ -171,7 +171,7 @@ module Yast
 
     # Init function of widget
     # @param [String] widget any id of the widget
-    def resetButtonInit(widget)
+    def resetButtonInit(_widget)
       items = []
       items = Builtins.add(
         items,
@@ -246,7 +246,7 @@ module Yast
     # @param [String] widget any widget key
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] to return to wizard sequencer, or nil
-    def resetButtonHandle(widget, event)
+    def resetButtonHandle(_widget, event)
       event = deep_copy(event)
       op = Ops.get(event, "ID")
       return :manual if op == :manual

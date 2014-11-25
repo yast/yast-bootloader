@@ -16,7 +16,7 @@
 #
 module Yast
   module BootloaderRoutinesCommonHelpsInclude
-    def initialize_bootloader_routines_common_helps(include_target)
+    def initialize_bootloader_routines_common_helps(_include_target)
       textdomain "bootloader"
 
       @common_help_messages = {

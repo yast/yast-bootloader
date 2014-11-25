@@ -36,7 +36,7 @@ module Yast
     # @param [String] widget string id of the widget
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] always nil
-    def HandlePasswdWidget(widget, event)
+    def HandlePasswdWidget(_widget, event)
       event = deep_copy(event)
       if Ops.get(event, "ID") == :use_pas
         enabled = Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
@@ -50,7 +50,7 @@ module Yast
     # @param [String] key any widget key
     # @param [Hash] event map event that caused validation
     # @return [Boolean] true if widget settings ok
-    def ValidatePasswdWidget(key, event)
+    def ValidatePasswdWidget(_key, event)
       event = deep_copy(event)
       return true if !Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
       if UI.QueryWidget(Id(:pw1), :Value) == ""
@@ -87,7 +87,7 @@ module Yast
 
     # Init function of a widget
     # @param [String] widget string widget key
-    def InitBootLoaderLocationWidget(widget)
+    def InitBootLoaderLocationWidget(_widget)
       boot_devices = BootStorage.possible_locations_for_stage1
       if BootCommon.VerifyMDArray
         UI.ChangeWidget(Id("enable_redundancy"), :Value,
@@ -131,7 +131,7 @@ module Yast
     # @param [String] widget string widget key
     # @param [Hash] event map event that caused the operation
     # @return [Symbol]
-    def HandleBootLoaderLocationWidget(widget, event)
+    def HandleBootLoaderLocationWidget(_widget, event)
       event = deep_copy(event)
       ret = Ops.get(event, "ID")
       if ret == "boot_custom"
@@ -148,7 +148,7 @@ module Yast
     # Store function of a widget
     # @param [String] widget string widget key
     # @param [Hash] event map event that caused the operation
-    def StoreBootLoaderLocationWidget(widget, event)
+    def StoreBootLoaderLocationWidget(_widget, event)
       event = deep_copy(event)
       if BootCommon.VerifyMDArray
         BootCommon.enable_md_array_redundancy = Convert.to_boolean(

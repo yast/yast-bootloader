@@ -113,7 +113,7 @@ module Yast
     # Store function of a pmbr
     # @param [String] widget any widget key
     # @param [Hash] event map event description of event that occured
-    def StorePMBR(widget, event)
+    def StorePMBR(widget, _event)
       value = UI.QueryWidget(Id(widget), :Value)
       value = nil if value == :nothing
 
@@ -122,7 +122,7 @@ module Yast
 
     # Init function for console
     # @param [String] widget
-    def ConsoleInit(widget)
+    def ConsoleInit(_widget)
       enable = Ops.get(BootCommon.globals, "terminal", "") == "serial"
       UI.ChangeWidget(Id(:console_frame), :Value, enable)
       args = Ops.get(BootCommon.globals, "serial", "")
@@ -191,7 +191,7 @@ module Yast
     # Store function of a console
     # @param [String] widget any widget key
     # @param [Hash] event map event description of event that occured
-    def ConsoleStore(widget, event)
+    def ConsoleStore(_widget, event)
       event = deep_copy(event)
       use_serial = Convert.to_boolean(
         UI.QueryWidget(Id(:console_frame), :Value)
@@ -235,7 +235,7 @@ module Yast
       nil
     end
 
-    def ConsoleHandle(widget, event)
+    def ConsoleHandle(_widget, event)
       event = deep_copy(event)
       theme_dir = "/boot/grub2/themes/openSUSE"
 
@@ -309,7 +309,7 @@ module Yast
 
     MASKED_PASSWORD = "**********"
 
-    def grub2_pwd_store(key, event)
+    def grub2_pwd_store(_key, _event)
       usepass = UI.QueryWidget(Id(:use_pas), :Value)
       if !usepass
         # we are in proper module that can store password
@@ -326,7 +326,7 @@ module Yast
       end
     end
 
-    def grub2_pwd_init(widget)
+    def grub2_pwd_init(_widget)
       # read state on disk only if not already set by user (bnc#900026)
       password_used = password == "" ? GRUB2Pwd.new.used? : password
       value = password_used ? MASKED_PASSWORD : ""

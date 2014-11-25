@@ -16,7 +16,7 @@
 #
 module Yast
   module BootloaderRoutinesHelpsInclude
-    def initialize_bootloader_routines_helps(include_target)
+    def initialize_bootloader_routines_helps(_include_target)
       textdomain "bootloader"
 
       Yast.import "StorageDevices"

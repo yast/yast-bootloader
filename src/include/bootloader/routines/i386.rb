@@ -20,7 +20,7 @@
 #
 module Yast
   module BootloaderRoutinesI386Include
-    def initialize_bootloader_routines_i386(include_target)
+    def initialize_bootloader_routines_i386(_include_target)
       textdomain "bootloader"
 
       # general MBR reading cache

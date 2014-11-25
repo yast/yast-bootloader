@@ -25,7 +25,7 @@ require "bootloader/udev_mapping"
 
 module Yast
   module BootloaderRoutinesLibIfaceInclude
-    def initialize_bootloader_routines_lib_iface(include_target)
+    def initialize_bootloader_routines_lib_iface(_include_target)
       textdomain "bootloader"
 
       Yast.import "Storage"

@@ -159,17 +159,17 @@ module Yast
       )
     end
 
-    def InitSecureBootWidget(widget)
+    def InitSecureBootWidget(_widget)
       sb = BootCommon.getSystemSecureBootStatus(false)
       UI.ChangeWidget(Id("secure_boot"), :Value, sb)
 
       nil
     end
-    def HandleSecureBootWidget(widget, event)
+    def HandleSecureBootWidget(_widget, event)
       event = deep_copy(event)
       nil
     end
-    def StoreSecureBootWidget(widget, event)
+    def StoreSecureBootWidget(_widget, event)
       event = deep_copy(event)
       sb = Convert.to_boolean(UI.QueryWidget(Id("secure_boot"), :Value))
       BootCommon.setSystemSecureBootStatus(sb)
@@ -218,7 +218,7 @@ module Yast
       }
     end
 
-    def ppc_location_init(widget)
+    def ppc_location_init(_widget)
       UI::ChangeWidget(
         Id("boot_custom_list"),
         :Value,
@@ -226,7 +226,7 @@ module Yast
       )
     end
 
-    def ppc_location_store(widget, value)
+    def ppc_location_store(_widget, value)
       value = UI::QueryWidget(
         Id("boot_custom_list"),
         :Value,
