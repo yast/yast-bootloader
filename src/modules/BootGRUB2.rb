@@ -98,7 +98,7 @@ module Yast
       if @orig_globals
         location = ["boot_mbr", "boot_boot", "boot_root", "boot_extended", "boot_custom", "boot_custom", "activate", "generic_mbr"]
         location.each do |i|
-           BootCommon.location_changed = true if @orig_globals[i] != BootCommon.globals[i]
+          BootCommon.location_changed = true if @orig_globals[i] != BootCommon.globals[i]
         end
       else
         # there is no original, so we do not read config, but propose it
@@ -229,10 +229,10 @@ module Yast
       end
 
       if ["boot_root", "boot_boot", "boot_mbr", "boot_extended"].none? { |loc| BootCommon.globals[loc] == "true" }
-          # no location chosen, so warn user that it is problem unless he is sure
-          msg = _("Warning: No location for bootloader stage1 selected." \
-            "Unless you know what you are doing please select above location.")
-          line << "<li>" << HTML.Colorize(msg, "red") << "</li>"
+        # no location chosen, so warn user that it is problem unless he is sure
+        msg = _("Warning: No location for bootloader stage1 selected." \
+          "Unless you know what you are doing please select above location.")
+        line << "<li>" << HTML.Colorize(msg, "red") << "</li>"
       end
 
       line << "</ul>"
