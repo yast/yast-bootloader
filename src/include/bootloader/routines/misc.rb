@@ -437,14 +437,14 @@ module Yast
         if parity != ""
           # add parity
           case parity
-            when "no"
-              ret = Ops.add(ret, "n")
-            when "odd"
-              ret = Ops.add(ret, "o")
-            when "even"
-              ret = Ops.add(ret, "e")
-            else
-              ret = Ops.add(ret, "n")
+          when "no"
+            ret = Ops.add(ret, "n")
+          when "odd"
+            ret = Ops.add(ret, "o")
+          when "even"
+            ret = Ops.add(ret, "e")
+          else
+            ret = Ops.add(ret, "n")
           end
 
           # add word
@@ -532,16 +532,16 @@ module Yast
 
       parity = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*([noe]*)[[:digit:]]*", "\\1")
       case parity
-        when "n"
-          ret << " --parity=no"
-        when "o"
-          ret << " --parity=odd"
-        when "e"
-          ret << " --parity=even"
-        when ""
-          # no parity, do nothing
-        else
-          raise "unknown parity flag #{parity}"
+      when "n"
+        ret << " --parity=no"
+      when "o"
+        ret << " --parity=odd"
+      when "e"
+        ret << " --parity=even"
+      when ""
+        # no parity, do nothing
+      else
+        raise "unknown parity flag #{parity}"
       end
 
       word = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*[noe]*([[:digit:]]*)", "\\1")

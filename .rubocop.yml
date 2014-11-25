@@ -111,10 +111,9 @@ Style/AlignParameters:
 Style/AndOr:
   EnforcedStyle: conditionals
 
-# Offense count: 11
 # Configuration parameters: IndentWhenRelativeTo, SupportedStyles, IndentOneStep.
 Style/CaseIndentation:
-  Enabled: false
+  IndentWhenRelativeTo: end
 
 # Offense count: 22
 # Configuration parameters: Keywords.
