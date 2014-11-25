@@ -82,7 +82,7 @@ module Yast
     #
     # @return [Hash{String => String}] mapping real disk to multipath
 
-    # FIXME grub only
+    # FIXME: grub only
 
     def mapRealDevicesToMultipath
       ret = {}
@@ -303,7 +303,7 @@ module Yast
 
         if p["raid_type"] == "raid1"
           p_devices = p["devices"] || []
-          if p_devices.size == 2 # TODO why only 2? it do not make sense
+          if p_devices.size == 2 # TODO: why only 2? it do not make sense
             ret = checkDifferentDisks(p_devices)
           else
             log.info "Device: #{device} doesn't contain 2 partitions: #{p_devices}"
@@ -397,7 +397,7 @@ module Yast
 
     # returns disk names where partition lives
     def real_disks_for_partition(partition)
-      # FIXME handle somehow if disk are in logical raid
+      # FIXME: handle somehow if disk are in logical raid
       partitions = Md2Partitions(partition).keys
       partitions = [partition] if partitions.empty?
       res = partitions.map do |part|

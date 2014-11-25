@@ -528,7 +528,7 @@ module Yast
       return false
     end
 
-    # FIXME just backward compatible interface, call directly BootStorage
+    # FIXME: just backward compatible interface, call directly BootStorage
     def Md2Partitions(md_device)
       BootStorage.Md2Partitions(md_device)
     end

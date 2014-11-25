@@ -21,7 +21,7 @@ module Bootloader
     end
 
     # Returns hash where keys are udev links for disks and partitions and value their kernel devices.
-    # TODO remove when remove pbl support
+    # TODO: remove when remove pbl support
     # @example of output
     #   {
     #     "/dev/disk/by-id/abcd" => "/dev/sda",

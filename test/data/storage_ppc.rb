@@ -1,4 +1,4 @@
-# TODO create factory like method for Storage
+# TODO: create factory like method for Storage
 {
   "/dev/sda" => {
     "unique"         => "3OOL.41o+EUK3QE2",

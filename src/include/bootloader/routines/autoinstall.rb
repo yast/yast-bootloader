@@ -128,7 +128,7 @@ module Yast
 
       unsupported_bootloaders = ["grub", "zipl", "plilo", "lilo", "elilo"]
       if ai["loader_type"] && unsupported_bootloaders.include?(exp["loader_type"].downcase)
-        # FIXME this should be better handled by exception and show it properly, but it require too big change now
+        # FIXME: this should be better handled by exception and show it properly, but it require too big change now
         Popup.Error(_("Unsupported bootloader '%s'. Adapt your AutoYaST profile accordingly.") %
  exp["loader_type"])
         return nil

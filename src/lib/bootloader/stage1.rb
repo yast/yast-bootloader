@@ -175,7 +175,7 @@ module Bootloader
       end
     end
 
-    # FIXME find better location
+    # FIXME: find better location
     def gpt_boot_disk?
       targets = Yast::BootCommon.GetBootloaderDevices
       boot_discs = targets.map {|d| Yast::Storage.GetDisk(target_map, d)}

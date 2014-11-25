@@ -108,7 +108,7 @@ module Yast
       ret = true
       tm = Storage.GetTargetMap
       devices = [BootStorage.BootPartitionDevice]
-      # TODO add more devices
+      # TODO: add more devices
       Builtins.foreach(devices) do |dev|
         p_dev = Storage.GetDiskPartition(dev)
         num = p_dev["nr"].to_i

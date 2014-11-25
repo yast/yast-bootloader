@@ -10,7 +10,7 @@ Yast.import "Partitions"
 module Bootloader
   # this class place generic MBR wherever it is needed
   # and also mark needed partitions with boot flag and legacy_boot
-  # FIXME make it single responsibility class
+  # FIXME: make it single responsibility class
   class MBRUpdate
     include Yast::Logger
 

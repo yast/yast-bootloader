@@ -129,7 +129,7 @@ module Yast
     # @return [Symbol] to return to wizard sequencer, or nil
     def LoaderTypeComboHandle(key, event)
       event = deep_copy(event)
-      return if event["ID"] != key # FIXME can it happen at all?
+      return if event["ID"] != key # FIXME: can it happen at all?
       old_bl = Bootloader.getLoaderType
       new_bl = UI.QueryWidget(Id(key), :Value).to_s
 

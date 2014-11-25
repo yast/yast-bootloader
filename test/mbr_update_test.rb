@@ -67,7 +67,7 @@ describe Bootloader::MBRUpdate do
         subject.run
       end
 
-      # FIXME get reason for it
+      # FIXME: get reason for it
       it "creates backup for all devices in BootCommon.GetBootloaderDevices if at least one device lies on mbrDisk" do
         expect(::Bootloader::BootRecordBackup).to(
           receive(:new).with("/dev/sda").and_return(double(:write => true))

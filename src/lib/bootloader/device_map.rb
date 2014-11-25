@@ -174,7 +174,7 @@ module Bootloader
 
     def propose_s390_device_map
       # s390 have some special requirements for device map. Keep it short and simple (bnc#884798)
-      # TODO device map is not needed at all for s390, so if we get rid of perl-Bootloader translations
+      # TODO: device map is not needed at all for s390, so if we get rid of perl-Bootloader translations
       # we can keep it empty
         boot_part = Yast::Storage.GetEntryForMountpoint("/boot/zipl")
         boot_part = Yast::Storage.GetEntryForMountpoint("/boot") if boot_part.empty?

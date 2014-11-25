@@ -173,7 +173,7 @@ module Yast
           Builtins.y2milestone("Regerate initrd with result #{res}")
         end
 
-        # FIXME workaround grub2 need manual rerun of branding due to overwrite by
+        # FIXME: workaround grub2 need manual rerun of branding due to overwrite by
         # pbl. see bnc#879686 and bnc#901003
         if Bootloader.getLoaderType =~ /grub2/
           prefix = Installation.destdir

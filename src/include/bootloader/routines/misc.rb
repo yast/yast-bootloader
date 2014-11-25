@@ -156,7 +156,7 @@ module Yast
     # @return [String] value, "false" if not present,
     #   "true" if present key without value
     def getKernelParamFromLine(line, key)
-      # FIXME this doesn't work with quotes and spaces
+      # FIXME: this doesn't work with quotes and spaces
       res = "false"
       # we can get nil if params is not yet proposed, so return not there (bnc#902397)
       return res unless line
@@ -181,7 +181,7 @@ module Yast
     # @return [String] new kernel command line
     def setKernelParamToLine(line, key, value)
       line ||= ""
-      # FIXME this doesn't work with quotes and spaces
+      # FIXME: this doesn't work with quotes and spaces
       params = line.split(" ").reject(&:empty?)
       # count occurences of every parameter, initial value is 0
       occurences = Hash.new { |_k| 0 }
@@ -236,7 +236,7 @@ module Yast
     # Get map of swap partitions
     # @return a map where key is partition name and value its size
     def getSwapPartitions
-      # FIXME move to boot storage
+      # FIXME: move to boot storage
       tm = Storage.GetTargetMap
       ret = {}
       tm.each do |_k, v|

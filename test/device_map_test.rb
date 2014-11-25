@@ -39,7 +39,7 @@ describe Bootloader::DeviceMap do
       expect(subject.to_hash).to be_empty
     end
 
-    # TODO I do not have sufficient target map yet
+    # TODO: I do not have sufficient target map yet
     it "do not add to device map members of raids and multipath"
 
     it "do not add non-disk devices" do
@@ -49,13 +49,13 @@ describe Bootloader::DeviceMap do
       expect(subject.to_hash).to_not include("/dev/tmpfs")
     end
 
-    # TODO I do not have sufficient target map yet with enough disks and mixture of bios ids
+    # TODO: I do not have sufficient target map yet with enough disks and mixture of bios ids
     it "propose order according to bios id"
 
-    # TODO I do not have sufficient target map yet
+    # TODO: I do not have sufficient target map yet
     it "do not propose USB as first device"
 
-    # TODO I do not have sufficient target map yet with enough disks and mixture of bios ids
+    # TODO: I do not have sufficient target map yet with enough disks and mixture of bios ids
     it "propose as first device disk containing /boot"
   end
 

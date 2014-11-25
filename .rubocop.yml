@@ -115,11 +115,6 @@ Style/AndOr:
 Style/CaseIndentation:
   IndentWhenRelativeTo: end
 
-# Offense count: 22
-# Configuration parameters: Keywords.
-Style/CommentAnnotation:
-  Enabled: false
-
 # Offense count: 2
 # Cop supports --auto-correct.
 Style/CommentIndentation:
