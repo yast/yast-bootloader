@@ -105,12 +105,12 @@ module Yast
         widget_descr,
         "tab",
         CWMTab.CreateWidget(
-          {
+          
             "tab_order"    => ["boot_code_tab", "kernel_tab", "bootloader_tab"],
             "tabs"         => Grub2TabDescr(),
             "widget_descr" => widget_descr,
             "initial_tab"  => "boot_code_tab"
-          }
+          
         )
       )
       Ops.set(widget_descr, ["tab", "no_help"], "")
@@ -118,7 +118,7 @@ module Yast
       # dialog caption
       caption = _("Boot Loader Settings")
       ret = CWM.ShowAndRun(
-        {
+        
           "widget_descr"       => widget_descr,
           "widget_names"       => widget_names,
           "contents"           => contents,
@@ -127,7 +127,7 @@ module Yast
           "abort_button"       => Label.CancelButton,
           "next_button"        => Label.OKButton,
           "fallback_functions" => @global_handlers
-        }
+        
       )
       if ret != :back && ret != :abort && ret != :cancel
         @return_tab = CWMTab.LastTab

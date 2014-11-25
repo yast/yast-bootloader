@@ -7,7 +7,7 @@ require "bootloader/kexec"
 describe Bootloader::Kexec do
   describe ".prepare_environment" do
     before do
-      allow(Yast::WFM).to receive(:Execute).and_return({"exit" => 0})
+      allow(Yast::WFM).to receive(:Execute).and_return("exit" => 0)
 
       Yast.import "ProductFeatures"
       allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).
@@ -81,14 +81,14 @@ describe Bootloader::Kexec do
 
     it "returns false if initrd and vmlinuz copy failed" do
       allow(Yast::WFM).to receive(:Execute).with(anything(),/\/bin\/cp/).
-        and_return({"exit" => 1})
+        and_return("exit" => 1)
 
       expect(subject.prepare_environment).to be false
     end
 
     it "returns true when copy initrd and vmlinuz to destination" do
       expect(Yast::WFM).to receive(:Execute).with(anything(),/\/bin\/cp/).
-        and_return({"exit" => 0})
+        and_return("exit" => 0)
 
       expect(subject.prepare_environment).to be true
     end

@@ -62,7 +62,7 @@ describe Bootloader::BootRecordBackup do
     it "move old backup in backup_boot_sectors to copy with timestamp" do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
       allow(Yast::SCR).to receive(:Read).with(DIR_PATH, anything).and_return([])
-      allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return({"ctime" => 200})
+      allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return("ctime" => 200)
       expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/mv .*backup_boot_sectors.*\s+.*backup_boot_sectors/)
 
       subject.write
@@ -73,7 +73,7 @@ describe Bootloader::BootRecordBackup do
       file_names = Array.new(11) { |i| "_dev_sda-1970-01-01-00-03-%02d" % i }
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
       allow(Yast::SCR).to receive(:Read).with(DIR_PATH, anything).and_return(file_names)
-      allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return({"ctime" => 200})
+      allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return("ctime" => 200)
       allow(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/mv .*backup_boot_sectors.*\s+.*backup_boot_sectors/)
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.remove"), /.*backup_boot_sectors.*/)
 

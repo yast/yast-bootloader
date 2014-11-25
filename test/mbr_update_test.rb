@@ -90,7 +90,7 @@ describe Bootloader::MBRUpdate do
       end
 
       it "creates backup of any disk where Bootloader Devices laid in md raid" do
-        allow(Yast::BootStorage).to receive(:Md2Partitions).and_return({"/dev/sdb1" => "/dev/md0", "/dev/sda1" => "/dev/md0"})
+        allow(Yast::BootStorage).to receive(:Md2Partitions).and_return("/dev/sdb1" => "/dev/md0", "/dev/sda1" => "/dev/md0")
 
         allow(Yast::BootCommon).to receive(:GetBootloaderDevices).
           and_return(["/dev/md0"])
@@ -155,7 +155,7 @@ describe Bootloader::MBRUpdate do
           and_return("/dev/sda")
 
 
-        expect(Yast::SCR).to receive(:Execute).with(anything(), /dd /).and_return({ "exit" => 0 })
+        expect(Yast::SCR).to receive(:Execute).with(anything(), /dd /).and_return( "exit" => 0 )
         subject.run
       end
 
@@ -167,15 +167,15 @@ describe Bootloader::MBRUpdate do
       end
 
       it "install gpt generic code if disk is gpt" do
-        allow(Yast::Storage).to receive(:GetTargetMap).and_return({
+        allow(Yast::Storage).to receive(:GetTargetMap).and_return(
           "/dev/sda" => { "label" => "gpt" }
-        })
+        )
 
         allow(Yast::BootCommon).to receive(:mbrDisk).
           and_return("/dev/sda")
 
 
-        expect(Yast::SCR).to receive(:Execute).with(anything(), /gptmbr.bin/).and_return({ "exit" => 0 })
+        expect(Yast::SCR).to receive(:Execute).with(anything(), /gptmbr.bin/).and_return( "exit" => 0 )
         subject.run
       end
     end
@@ -194,7 +194,7 @@ describe Bootloader::MBRUpdate do
 
         expect(Yast::WFM).to receive(:Execute).
           with(anything(), /parted -s \/dev\/sda set 1 boot on/).
-          and_return({ "exit" => 0})
+          and_return( "exit" => 0)
         subject.run
       end
 
@@ -204,7 +204,7 @@ describe Bootloader::MBRUpdate do
 
         allow(Yast::WFM).to receive(:Execute).
           with(anything(), /parted -s \/dev\/sda set 1 boot on/).
-          and_return({ "exit" => 1})
+          and_return( "exit" => 1)
 
         expect(subject.run).to be false
       end
@@ -215,7 +215,7 @@ describe Bootloader::MBRUpdate do
 
         expect(Yast::WFM).to receive(:Execute).
           with(anything(), /parted -s \/dev\/sda set 1 legacy_boot on/).
-          and_return({ "exit" => 0})
+          and_return( "exit" => 0)
         subject.run
       end
 
@@ -225,7 +225,7 @@ describe Bootloader::MBRUpdate do
 
         allow(Yast::WFM).to receive(:Execute).
           with(anything(), /parted -s \/dev\/sda set 1 legacy_boot on/).
-          and_return({ "exit" => 1})
+          and_return( "exit" => 1)
 
         expect(subject.run).to be true
       end

@@ -136,18 +136,18 @@ module Yast
 
       tabs = [ bootloader_tab, kernel_tab, boot_code_tab]
 
-      tab_widget = CWMTab.CreateWidget({
+      tab_widget = CWMTab.CreateWidget(
         "tab_order"    => tabs.map{ |t| t["id"] },
         "tabs"         => Hash[tabs.map{|tab| [tab["id"], tab]}],
         "initial_tab"  => tabs.first["id"],
         "widget_descr" => widgets
-      })
+      )
 
       widgets["tab"] = tab_widget
       # Window title
       caption = _("Boot Loader Options")
       CWM.ShowAndRun(
-        {
+        
           "widget_descr" => widgets,
           "widget_names" => ["tab"],
           "contents"     => VBox("tab"),
@@ -155,7 +155,7 @@ module Yast
           "back_button"  => Label.BackButton,
           "abort_button" => Label.CancelButton,
           "next_button"  => Label.OKButton
-        }
+        
       )
     end
 
