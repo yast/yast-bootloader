@@ -106,7 +106,6 @@ module Yast
     def grub_LocationProposal
       log.info "globals: #{BootCommon.globals}"
       log.info "Mode #{Mode.mode}"
-      md_mbr = ""
       no_boot_key = ["boot_boot", "boot_root", "boot_mbr", "boot_extended", "boot_custom"].none? do |k|
         BootCommon.globals[k]
       end

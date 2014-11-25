@@ -123,8 +123,7 @@ module Yast
     # Print summary of basic options
     # @param [Hash] options a list of parameters passed as args
     # @return [Boolean] false
-    def BootloaderSummaryHandler(options)
-      options = deep_copy(options)
+    def BootloaderSummaryHandler(_options)
       CommandLine.Print(
         RichText.Rich2Plain(
           Ops.add("<br>", Builtins.mergestring(Bootloader.Summary, "<br>"))

@@ -191,8 +191,7 @@ module Yast
     # Store function of a console
     # @param [String] widget any widget key
     # @param [Hash] event map event description of event that occured
-    def ConsoleStore(_widget, event)
-      event = deep_copy(event)
+    def ConsoleStore(_widget, _event)
       use_serial = Convert.to_boolean(
         UI.QueryWidget(Id(:console_frame), :Value)
       )
@@ -235,8 +234,7 @@ module Yast
       nil
     end
 
-    def ConsoleHandle(_widget, event)
-      event = deep_copy(event)
+    def ConsoleHandle(_widget, _event)
       theme_dir = "/boot/grub2/themes/openSUSE"
 
       if SCR.Read(path(".target.size"), theme_dir) == -1

@@ -140,7 +140,7 @@ module Bootloader
       return [] if [nil, "", []].include?(names)
       prefix = UDEV_MAPPING[key]
       names = [names] if names.is_a?(::String)
-      ret = names.reduce([]) do |res, name|
+      names.reduce([]) do |res, name|
         # watch out for fake uuids (shorter than 9 chars)
         next res if name.size < 9 && key == "uuid"
         res << [prefix + name, device]

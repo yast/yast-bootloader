@@ -50,8 +50,7 @@ module Yast
     # @param [String] key any widget key
     # @param [Hash] event map event that caused validation
     # @return [Boolean] true if widget settings ok
-    def ValidatePasswdWidget(_key, event)
-      event = deep_copy(event)
+    def ValidatePasswdWidget(_key, _event)
       return true if !Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
       if UI.QueryWidget(Id(:pw1), :Value) == ""
         emptyPasswdErrorPopup
@@ -148,8 +147,7 @@ module Yast
     # Store function of a widget
     # @param [String] widget string widget key
     # @param [Hash] event map event that caused the operation
-    def StoreBootLoaderLocationWidget(_widget, event)
-      event = deep_copy(event)
+    def StoreBootLoaderLocationWidget(_widget, _event)
       if BootCommon.VerifyMDArray
         BootCommon.enable_md_array_redundancy = Convert.to_boolean(
           UI.QueryWidget(Id("enable_redundancy"), :Value)
@@ -187,7 +185,6 @@ module Yast
     #
     # @return [String] help text for widget BootLoaderLocationWidget
     def HelpBootLoaderLocationWidget
-      ret = ""
       ret = Ops.get(@grub_help_messages, "boot_mbr", "")
       ret = Ops.add(ret, "\n")
       ret = Ops.add(ret, Ops.get(@grub_help_messages, "boot_custom", ""))

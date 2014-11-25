@@ -41,8 +41,7 @@ module Yast
     # Store function of a widget (InputField)
     # @param [String] widget any widget key
     # @param [Hash] event map event description of event that occured
-    def StoreGlobalStr(widget, event)
-      event = deep_copy(event)
+    def StoreGlobalStr(widget, _event)
       Ops.set(
         BootCommon.globals,
         widget,
@@ -63,8 +62,7 @@ module Yast
 
     # Init function for widget value (CheckBox)
     # @param [String] widget any id of the widget
-    def StoreGlobalBool(widget, event)
-      event = deep_copy(event)
+    def StoreGlobalBool(widget, _event)
       value = Convert.to_boolean(UI.QueryWidget(Id(widget), :Value))
       Ops.set(BootCommon.globals, widget, value ? "true" : "false")
 
@@ -83,8 +81,7 @@ module Yast
     # Store function of a widget (IntField)
     # @param [String] widget any widget key
     # @param [Hash] event map event description of event that occured
-    def StoreGlobalInt(widget, event)
-      event = deep_copy(event)
+    def StoreGlobalInt(widget, _event)
       value = Convert.to_integer(UI.QueryWidget(Id(widget), :Value))
       Ops.set(BootCommon.globals, widget, Builtins.tostring(value))
 
@@ -95,8 +92,7 @@ module Yast
     # @param [String] widget any widget key
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] nil
-    def HandleGlobalBrowse(widget, event)
-      event = deep_copy(event)
+    def HandleGlobalBrowse(widget, _event)
       current = Convert.to_string(UI.QueryWidget(Id(widget), :Value))
       # file open popup caption
       current = UI.AskForExistingFile(current, "*", _("Select File"))

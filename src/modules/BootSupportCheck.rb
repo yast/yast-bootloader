@@ -222,7 +222,7 @@ module Yast
     # Check if EFI is needed
     def efi?
       cmd = "modprobe efivars 2>/dev/null"
-      ret = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
+      SCR.Execute(path(".target.bash_output"), cmd)
       if FileUtils.Exists("/sys/firmware/efi/systab")
         return true
       else
@@ -259,6 +259,8 @@ module Yast
       # ensure that s390 have ext* partition for booting (bnc#873951)
       ret &&= check_zipl_part if Arch.s390
       ret &&= check_gpt_reserved_partition if Arch.x86_64
+
+      ret
     end
 
     # GRUB2EFI-related check

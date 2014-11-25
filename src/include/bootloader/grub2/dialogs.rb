@@ -165,12 +165,10 @@ module Yast
 
       nil
     end
-    def HandleSecureBootWidget(_widget, event)
-      event = deep_copy(event)
+    def HandleSecureBootWidget(_widget, _event)
       nil
     end
-    def StoreSecureBootWidget(_widget, event)
-      event = deep_copy(event)
+    def StoreSecureBootWidget(_widget, _event)
       sb = Convert.to_boolean(UI.QueryWidget(Id("secure_boot"), :Value))
       BootCommon.setSystemSecureBootStatus(sb)
 

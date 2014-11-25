@@ -10,10 +10,6 @@ Lint/Eval:
   # test helper data source is safe, so eval is not problem
   - test/test_helper.rb
 
-# Offense count: 22
-Lint/UselessAssignment:
-  Enabled: false
-
 # Offense count: 105
 Metrics/AbcSize:
   Max: 129

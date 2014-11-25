@@ -62,8 +62,7 @@ module Yast
     # Store function of a widget
     # @param [String] widget string widget key
     # @param [Hash] event map event that caused the operation
-    def GlobalOptionStore(widget, event)
-      event = deep_copy(event)
+    def GlobalOptionStore(widget, _event)
       return if widget == "adv_button"
       Ops.set(
         BootCommon.globals,
@@ -78,8 +77,7 @@ module Yast
     # @param [String] widget string widget key
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] to return to wizard sequencer, or nil
-    def InstDetailsButtonHandle(_widget, event)
-      event = deep_copy(event)
+    def InstDetailsButtonHandle(_widget, _event)
       lt = Bootloader.getLoaderType
       if lt == "none" || lt == "default"
         NoLoaderAvailable()
@@ -92,8 +90,7 @@ module Yast
     # @param [String] widget string widget key
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] to return to wizard sequencer, or nil
-    def LoaderOptionsButtonHandle(_widget, event)
-      event = deep_copy(event)
+    def LoaderOptionsButtonHandle(_widget, _event)
       lt = Bootloader.getLoaderType
       if lt == "none" || lt == "default"
         NoLoaderAvailable()

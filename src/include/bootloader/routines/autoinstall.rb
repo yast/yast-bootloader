@@ -148,13 +148,6 @@ module Yast
       # any time
       Ops.set(exp, ["specific", "global"], {})
 
-      # LILO and GRUB stuff
-
-      old_key_to_new_global_key = {
-        "repl_mbr" => "generic_mbr",
-        "activate" => "activate"
-      }
-
       # device map stuff
       if Ops.greater_than(Builtins.size(Ops.get_list(ai, "device_map", [])), 0)
         dm = Ops.get_list(ai, "device_map", [])
@@ -253,7 +246,7 @@ module Yast
             Ops.get(f, "value") == nil ? "" : Ops.get(f, "value")
           )
         end
-        file = Builtins.mergestring(lines, "\n")
+        files = Builtins.mergestring(lines, "\n")
         BootCommon.InitializeLibrary(true, loader)
         BootCommon.SetDeviceMap(BootStorage.device_map.to_hash)
         BootCommon.SetGlobal({})
