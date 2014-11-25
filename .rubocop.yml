@@ -121,10 +121,6 @@ Style/Documentation:
     - 'src/lib/**/*.rb' # force well documented code only for new code
 
 # Offense count: 3
-Style/EachWithObject:
-  Enabled: false
-
-# Offense count: 3
 # Cop supports --auto-correct.
 # Configuration parameters: AllowAdjacentOneLineDefs.
 Style/EmptyLineBetweenDefs:

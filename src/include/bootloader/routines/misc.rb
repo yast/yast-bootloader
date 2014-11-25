@@ -190,12 +190,12 @@ module Yast
         occurences[k] += 1
       end
       done = false
-      params = params.reduce([]) do |res, param|
+      params = params.each_with_object([]) do |param, res|
         k = kernel_param_key(param)
         if k != key # not our param
           res << param
         elsif value == "false"
-          # do nothing as we want to remove this param
+          next # do nothing as we want to remove this param
         elsif occurences[k] == 1 # last parameter with given key
           done = true
           if value == "true"
@@ -207,7 +207,6 @@ module Yast
           occurences[k] -= 1
           res << param
         end
-        res
       end
       if !done
         if value == "true"

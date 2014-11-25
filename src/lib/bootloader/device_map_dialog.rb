@@ -128,9 +128,8 @@ module Bootloader
     def store_order
       Yast::BootCommon.mbrDisk = disks.first
 
-      mapping = disks.reduce({}) do |res, disk|
+      mapping = disks.each_with_object({}) do |disk, res|
         res[disk] = "hd#{res.size}"
-        res
       end
 
       Yast::BootStorage.device_map = ::Bootloader::DeviceMap.new(mapping)

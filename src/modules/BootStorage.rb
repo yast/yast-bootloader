@@ -406,9 +406,9 @@ module Yast
       res.uniq!
       # handle LVM disks
       tm = Storage.GetTargetMap
-      res = res.reduce([]) do |ret, disk|
+      res = res.each_with_object([]) do |disk, ret|
         disk_meta = tm[disk]
-        next ret unless disk_meta
+        next unless disk_meta
 
         if disk_meta["lvm2"]
           devices = (disk_meta["devices"] || []) + (disk_meta["devices_add"] || [])
@@ -417,7 +417,6 @@ module Yast
         else
           ret << disk
         end
-        ret
       end
 
       res.uniq
