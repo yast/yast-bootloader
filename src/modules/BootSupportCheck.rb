@@ -306,11 +306,11 @@ module Yast
       cyl_size = 82252800
       target_map = Storage.GetTargetMap
       Builtins.foreach(target_map) do |dev, disk|
-        if Builtins.find(Ops.get_list(disk, "partitions", [])) do |p|
-            Ops.get_string(p, "device", "") == device
-          end != nil
-          cyl_size = Ops.get_integer(disk, "cyl_size", 82252800)
+        partition = (disk["partitions"] || []).find do |p|
+          p["device"] == device
         end
+
+        cyl_size = disk["cyl_size"] || 82252800 if partition
       end
 
       ret = Ops.multiply(end_cyl, cyl_size)
