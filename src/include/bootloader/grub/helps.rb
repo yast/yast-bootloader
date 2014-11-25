@@ -83,9 +83,8 @@ module Yast
             "Define the password that will be required to access the boot menu. YaST will only accept the password if you repeat\n" +
             "it in <b>Retype Password</b>.</p>"
         ),
-        "disk_order"        =>
-          # help text 1/5
-                               _(
+        # help text 1/5
+        "disk_order"        => _(
             "<p><big><b>Disks Order</b></big><br>\n" +
               "To specify the order of the disks according to the order in BIOS, use\n" +
               "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" +

@@ -246,8 +246,8 @@ module Yast
       )
 
       {
-         # need custom to not break ui as intel one is quite complex so some
-         # spacing is needed
+        # need custom to not break ui as intel one is quite complex so some
+        # spacing is needed
         "widget"        => :custom,
         "custom_widget" => contents,
         "init"          => fun_ref(

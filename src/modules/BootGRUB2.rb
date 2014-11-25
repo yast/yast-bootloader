@@ -332,7 +332,7 @@ module Yast
         BootCommon.bootloader_attribs,
         "grub2",
         
-          # we need syslinux to have generic mbr bnc#885496
+        # we need syslinux to have generic mbr bnc#885496
         "required_packages" => ["grub2", "syslinux"],
         "loader_name"       => "GRUB2",
         "initializer"       => fun_ref(method(:Initializer), "void ()")

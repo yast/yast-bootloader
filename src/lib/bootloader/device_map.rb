@@ -176,17 +176,17 @@ module Bootloader
       # s390 have some special requirements for device map. Keep it short and simple (bnc#884798)
       # TODO: device map is not needed at all for s390, so if we get rid of perl-Bootloader translations
       # we can keep it empty
-        boot_part = Yast::Storage.GetEntryForMountpoint("/boot/zipl")
-        boot_part = Yast::Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
-        boot_part = Yast::Storage.GetEntryForMountpoint("/") if boot_part.empty?
+      boot_part = Yast::Storage.GetEntryForMountpoint("/boot/zipl")
+      boot_part = Yast::Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
+      boot_part = Yast::Storage.GetEntryForMountpoint("/") if boot_part.empty?
 
-        raise "Cannot find boot partition" if boot_part.empty?
+      raise "Cannot find boot partition" if boot_part.empty?
 
-        disk = Yast::Storage.GetDiskPartition(boot_part["device"])["disk"]
+      disk = Yast::Storage.GetDiskPartition(boot_part["device"])["disk"]
 
-        @mapping = { disk => "hd0" }
+      @mapping = { disk => "hd0" }
 
-        log.info "Detected device mapping: #{@mapping}"
+      log.info "Detected device mapping: #{@mapping}"
     end
 
     # Returns true if any device from list devices is in device_mapping
