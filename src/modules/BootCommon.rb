@@ -274,7 +274,7 @@ module Yast
       # "mountby"
 
       Builtins.y2milestone(
-        "device map before mapping #{BootStorage.device_map.to_s}"
+        "device map before mapping #{BootStorage.device_map}"
       )
       my_device_mapping = Builtins.mapmap(BootStorage.device_map.to_hash) do |k, v|
         { ::Bootloader::UdevMapping.to_mountby_device(k) => v }
