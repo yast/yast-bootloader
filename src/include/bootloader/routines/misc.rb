@@ -532,25 +532,25 @@ module Yast
 
       parity = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*([noe]*)[[:digit:]]*", "\\1")
       case parity
-         when "n"
-           ret << " --parity=no"
-         when "o"
-           ret << " --parity=odd"
-         when "e"
-           ret << " --parity=even"
-         when ""
-           # no parity, do nothing
-         else
-           raise "unknown parity flag #{parity}"
-       end
+        when "n"
+          ret << " --parity=no"
+        when "o"
+          ret << " --parity=odd"
+        when "e"
+          ret << " --parity=even"
+        when ""
+          # no parity, do nothing
+        else
+          raise "unknown parity flag #{parity}"
+      end
 
-       word = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*[noe]*([[:digit:]]*)", "\\1")
-       if !word.empty?
-         ret << " --word=#{word}"
-       end
+      word = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*[noe]*([[:digit:]]*)", "\\1")
+      if !word.empty?
+        ret << " --word=#{word}"
+      end
 
-     ret
-   end
+      ret
+    end
 
     # FATE #110038: Serial console
     # Add console arg for kernel if there is defined serial console
