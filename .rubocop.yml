@@ -122,7 +122,9 @@ Style/Documentation:
 # Offense count: 7
 # Configuration parameters: Exclude.
 Style/FileName:
-  Enabled: false
+  Include:
+    - 'src/lib/**/*.rb' # force correct names on new code
+
 
 # Offense count: 2
 # Configuration parameters: EnforcedStyle, SupportedStyles.
