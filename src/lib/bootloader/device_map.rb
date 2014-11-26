@@ -144,9 +144,8 @@ module Bootloader
         next unless target.fetch("bios_id", "").empty?
 
         index = 0 # find free index
-        while ids[index]
-          index += 1
-        end
+        index += 1 until !ids[index]
+
         @mapping[target_dev] = "hd#{index}"
         ids[index] = true
       end
