@@ -113,12 +113,9 @@ module Yast
         if @loader_device != @mbrDisk
           command = Builtins.sformat("/usr/lib/YaST2/bin/tp_mbr %1", @mbrDisk)
           Builtins.y2milestone("Running command %1", command)
-          out = Convert.to_map(
-            SCR.Execute(path(".target.bash_output"), command)
-          )
-          exit = Ops.get_integer(out, "exit", 0)
+          out = SCR.Execute(path(".target.bash_output"), command)
           Builtins.y2milestone("Command output: %1", out)
-          ret = ret && 0 == exit
+          ret &&= 0 == out["exit"]
         end
       end
 

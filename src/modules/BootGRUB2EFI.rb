@@ -62,7 +62,7 @@ module Yast
         grub_ret = false if grub_ret.nil?
 
         Builtins.y2milestone("GRUB2EFI return value: %1", grub_ret)
-        ret = ret && grub_ret
+        ret &&= grub_ret
       end
 
       # something with PMBR needed

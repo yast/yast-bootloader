@@ -153,10 +153,6 @@ Style/NegatedIf:
 Style/NumericLiterals:
   MinDigits: 4
 
-# Offense count: 6
-Style/SelfAssignment:
-  Enabled: false
-
 # Offense count: 1
 # Cop supports --auto-correct.
 # Configuration parameters: AllowAsExpressionSeparator.

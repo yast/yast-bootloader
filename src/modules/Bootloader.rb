@@ -358,7 +358,7 @@ module Yast
 
       # call bootloader executable
       log.info "Calling bootloader executable"
-      ret = ret && blWrite
+      ret &&= blWrite
       ret = handle_failed_write unless ret
 
       ret
@@ -400,7 +400,7 @@ module Yast
 
       # call bootloader executable
       log.info "Calling bootloader executable"
-      ret = ret && blWrite
+      ret &&= blWrite
       ret = handle_failed_write unless ret
 
       ret
