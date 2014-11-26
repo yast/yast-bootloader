@@ -94,10 +94,10 @@ module Bootloader
 
     # Maps mountby symbol to udev key in Storage target map
     MOUNT_BY_MAPPING_TO_UDEV = {
-      :uuid  => "uuid",
-      :id    => "udev_id",
-      :path  => "udev_path",
-      :label => "label"
+      uuid:  "uuid",
+      id:    "udev_id",
+      path:  "udev_path",
+      label: "label"
     }
 
     # Maps udev key in Storage target map to device prefix

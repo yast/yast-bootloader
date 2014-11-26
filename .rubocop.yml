@@ -127,7 +127,8 @@ Style/FileName:
 # Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/HashSyntax:
-  Enabled: false
+  Include:
+    - 'src/lib/**/*.rb' # force new hash style only for new code
 
 # Offense count: 25
 # Configuration parameters: MaxLineLength.
