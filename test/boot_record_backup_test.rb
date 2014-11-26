@@ -31,7 +31,7 @@ describe Bootloader::BootRecordBackup do
 
     it "raise ::Bootloader::BootRecordBackup::Missing exception if there is not backup for device BR" do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(0)
-      expect{subject.restore}.to raise_error(::Bootloader::BootRecordBackup::Missing)
+      expect {subject.restore}.to raise_error(::Bootloader::BootRecordBackup::Missing)
     end
   end
 

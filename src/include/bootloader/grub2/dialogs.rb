@@ -124,7 +124,7 @@ module Yast
     def Grub2TabDescr
       tabs = [ bootloader_tab, kernel_tab, boot_code_tab]
 
-      Hash[tabs.map{|tab| [tab["id"], tab]}]
+      Hash[tabs.map {|tab| [tab["id"], tab]}]
     end
 
     # Run dialog for loader installation details for Grub2
@@ -136,8 +136,8 @@ module Yast
       tabs = [ bootloader_tab, kernel_tab, boot_code_tab]
 
       tab_widget = CWMTab.CreateWidget(
-        "tab_order"    => tabs.map{ |t| t["id"] },
-        "tabs"         => Hash[tabs.map{|tab| [tab["id"], tab]}],
+        "tab_order"    => tabs.map { |t| t["id"] },
+        "tabs"         => Hash[tabs.map {|tab| [tab["id"], tab]}],
         "initial_tab"  => tabs.first["id"],
         "widget_descr" => widgets
       )
