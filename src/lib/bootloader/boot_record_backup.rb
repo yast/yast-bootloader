@@ -61,7 +61,7 @@ module Bootloader
       log.info("Backup thinkpad MBR")
       Yast::SCR.Execute(
         BASH_PATH,
-        "cp #{device_file_path} #{device_file_path_thinkpad}",
+        "cp #{device_file_path} #{device_file_path_thinkpad}"
       )
     end
 

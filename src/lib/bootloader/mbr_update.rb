@@ -240,7 +240,7 @@ module Bootloader
 
       ret = {
         "num" => num,
-        "mbr" => mbr_dev,
+        "mbr" => mbr_dev
       }
 
       log.info "Partition for activating: #{ret}"

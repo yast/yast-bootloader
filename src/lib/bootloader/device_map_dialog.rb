@@ -142,7 +142,7 @@ module Bootloader
         VSpacing(1),
         ButtonBox(
           PushButton(Id(:ok), Opt(:key_F10, :default), Yast::Label.OKButton),
-          PushButton(Id(:cancel), Opt(:key_F8), Yast::Label.CancelButton),
+          PushButton(Id(:cancel), Opt(:key_F8), Yast::Label.CancelButton)
         ),
         VSpacing(1)
       )

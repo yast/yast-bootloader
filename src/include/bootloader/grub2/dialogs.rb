@@ -192,7 +192,7 @@ module Yast
               VBox(
                 Left(
                   CheckBox(Id("secure_boot"), _("Enable &Secure Boot Support"))
-                ),
+                )
               )
             )
           )
@@ -229,7 +229,7 @@ module Yast
     def ppc_location_store(_widget, value)
       value = UI::QueryWidget(
         Id("boot_custom_list"),
-        :Value,
+        :Value
       )
       y2milestone("store boot custom #{value}")
 

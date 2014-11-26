@@ -43,7 +43,7 @@ module Yast
       aliases = {
         "main"                 => lambda { MainDialog() },
         "installation_details" => lambda { DetailsDialog("installation") },
-        "loader_details"       => lambda { DetailsDialog("loader") },
+        "loader_details"       => lambda { DetailsDialog("loader") }
       }
 
       @return_tab = Bootloader.getLoaderType != "none" ? "sections" : "installation"
@@ -58,7 +58,7 @@ module Yast
           :redraw         => "main"
         },
         "installation_details" => { :next => "main", :abort => :abort },
-        "loader_details"       => { :next => "main", :abort => :abort },
+        "loader_details"       => { :next => "main", :abort => :abort }
       }
 
       Sequencer.Run(aliases, sequence)
