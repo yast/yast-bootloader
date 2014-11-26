@@ -162,13 +162,10 @@ Style/StringLiterals:
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
-# Offense count: 11
-# Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/VariableName:
-  Enabled: false
+  Include:
+    - 'src/lib/**/*.rb' # force known variables only for new code
 
-# Offense count: 25
-# Cop supports --auto-correct.
-# Configuration parameters: WordRegex.
+# do not prefer work arrays
 Style/WordArray:
-  MinSize: 8
+  Enabled: false
