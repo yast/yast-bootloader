@@ -298,14 +298,14 @@ module Yast
 
       end_cyl = Region.End(Ops.get_list(part, "region", []))
 
-      cyl_size = 82252800
+      cyl_size = 82_252_800
       target_map = Storage.GetTargetMap
       Builtins.foreach(target_map) do |_dev, disk|
         partition = (disk["partitions"] || []).find do |p|
           p["device"] == device
         end
 
-        cyl_size = disk["cyl_size"] || 82252800 if partition
+        cyl_size = disk["cyl_size"] || 82_252_800 if partition
       end
 
       ret = Ops.multiply(end_cyl, cyl_size)

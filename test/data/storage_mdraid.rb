@@ -31,7 +31,7 @@
         "nr"             => 0,
         "raid_type"      => "raid1",
         "sb_ver"         => "01.00.00",
-        "size_k"         => 5429970,
+        "size_k"         => 5_429_970,
         "subvol"         => [
           {
             "create" => true,
@@ -148,7 +148,7 @@
         "nr"             => 1,
         "raid_type"      => "raid1",
         "sb_ver"         => "01.00.00",
-        "size_k"         => 305235,
+        "size_k"         => 305_235,
         "tunefs_opt"     => "-c 0 -i 0",
         "type"           => :sw_raid,
         "used_by_device" => "",
@@ -175,7 +175,7 @@
         "nr"             => 2,
         "raid_type"      => "raid0",
         "sb_ver"         => "01.00.00",
-        "size_k"         => 417688,
+        "size_k"         => 417_688,
         "type"           => :sw_raid,
         "used_by_device" => "",
         "used_by_type"   => :UB_NONE,
@@ -188,8 +188,8 @@
   },
   "/dev/vda"   => {
     "bus"            => "None",
-    "cyl_count"      => 1305,
-    "cyl_size"       => 8225280,
+    "cyl_count"      => 1_305,
+    "cyl_size"       => 8_225_280,
     "device"         => "/dev/vda",
     "driver"         => "virtio-pci",
     "driver_module"  => "virtio_pci",
@@ -207,7 +207,7 @@
         "name"           => "vda1",
         "nr"             => 1,
         "region"         => [0, 38],
-        "size_k"         => 305235,
+        "size_k"         => 305_235,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -227,7 +227,7 @@
         "name"           => "vda2",
         "nr"             => 2,
         "region"         => [38, 676],
-        "size_k"         => 5429970,
+        "size_k"         => 5_429_970,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -247,7 +247,7 @@
         "name"           => "vda3",
         "nr"             => 3,
         "region"         => [714, 13],
-        "size_k"         => 104422,
+        "size_k"         => 104_422,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -261,7 +261,7 @@
     ],
     "proposal_name"  => "1. Disk, 10.00 GiB, /dev/vda,",
     "sector_size"    => 512,
-    "size_k"         => 10485760,
+    "size_k"         => 10_485_760,
     "transport"      => :unknown,
     "type"           => :CT_DISK,
     "unique"         => "KSbE.Fxp0d3BezAE",
@@ -270,8 +270,8 @@
   },
   "/dev/vdb"   => {
     "bus"            => "None",
-    "cyl_count"      => 1305,
-    "cyl_size"       => 8225280,
+    "cyl_count"      => 1_305,
+    "cyl_size"       => 8_225_280,
     "device"         => "/dev/vdb",
     "driver"         => "virtio-pci",
     "driver_module"  => "virtio_pci",
@@ -289,7 +289,7 @@
         "name"           => "vdb1",
         "nr"             => 1,
         "region"         => [0, 38],
-        "size_k"         => 305235,
+        "size_k"         => 305_235,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -309,7 +309,7 @@
         "name"           => "vdb2",
         "nr"             => 2,
         "region"         => [38, 676],
-        "size_k"         => 5429970,
+        "size_k"         => 5_429_970,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -329,7 +329,7 @@
         "name"           => "vdb3",
         "nr"             => 3,
         "region"         => [714, 13],
-        "size_k"         => 104422,
+        "size_k"         => 104_422,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -343,7 +343,7 @@
     ],
     "proposal_name"  => "2. Disk, 10.00 GiB, /dev/vdb, ",
     "sector_size"    => 512,
-    "size_k"         => 10485760,
+    "size_k"         => 10_485_760,
     "transport"      => :unknown,
     "type"           => :CT_DISK,
     "unique"         => "ndrI.Fxp0d3BezAE",
@@ -352,8 +352,8 @@
   },
   "/dev/vdc"   => {
     "bus"            => "None",
-    "cyl_count"      => 1305,
-    "cyl_size"       => 8225280,
+    "cyl_count"      => 1_305,
+    "cyl_size"       => 8_225_280,
     "device"         => "/dev/vdc",
     "driver"         => "virtio-pci",
     "driver_module"  => "virtio_pci",
@@ -371,7 +371,7 @@
         "name"           => "vdc1",
         "nr"             => 1,
         "region"         => [0, 38],
-        "size_k"         => 305235,
+        "size_k"         => 305_235,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -391,7 +391,7 @@
         "name"           => "vdc2",
         "nr"             => 2,
         "region"         => [38, 676],
-        "size_k"         => 5429970,
+        "size_k"         => 5_429_970,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -411,7 +411,7 @@
         "name"           => "vdc3",
         "nr"             => 3,
         "region"         => [714, 13],
-        "size_k"         => 104422,
+        "size_k"         => 104_422,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -425,7 +425,7 @@
     ],
     "proposal_name"  => "3. Disk, 10.00 GiB, /dev/vdc, ",
     "sector_size"    => 512,
-    "size_k"         => 10485760,
+    "size_k"         => 10_485_760,
     "transport"      => :unknown,
     "type"           => :CT_DISK,
     "unique"         => "Ep5N.Fxp0d3BezAE",
@@ -434,8 +434,8 @@
   },
   "/dev/vdd"   => {
     "bus"            => "None",
-    "cyl_count"      => 1305,
-    "cyl_size"       => 8225280,
+    "cyl_count"      => 1_305,
+    "cyl_size"       => 8_225_280,
     "device"         => "/dev/vdd",
     "driver"         => "virtio-pci",
     "driver_module"  => "virtio_pci",
@@ -453,7 +453,7 @@
         "name"           => "vdd1",
         "nr"             => 1,
         "region"         => [0, 38],
-        "size_k"         => 305235,
+        "size_k"         => 305_235,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -473,7 +473,7 @@
         "name"           => "vdd2",
         "nr"             => 2,
         "region"         => [38, 676],
-        "size_k"         => 5429970,
+        "size_k"         => 5_429_970,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -493,7 +493,7 @@
         "name"           => "vdd3",
         "nr"             => 3,
         "region"         => [714, 13],
-        "size_k"         => 104422,
+        "size_k"         => 104_422,
         "type"           => :primary,
         "used_by"        => [
           {
@@ -507,7 +507,7 @@
     ],
     "proposal_name"  => "4. Disk, 10.00 GiB, /dev/vdd, ",
     "sector_size"    => 512,
-    "size_k"         => 10485760,
+    "size_k"         => 10_485_760,
     "transport"      => :unknown,
     "type"           => :CT_DISK,
     "unique"         => "h_LR.Fxp0d3BezAE",
