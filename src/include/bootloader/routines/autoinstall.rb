@@ -207,7 +207,7 @@ module Yast
       end
 
       if Ops.greater_than(Builtins.size(modlist), 0)
-        Ops.set(exp, "initrd",  "list" => modlist, "settings" => modsett )
+        Ops.set(exp, "initrd",  "list" => modlist, "settings" => modsett)
       end
 
       old_format = false

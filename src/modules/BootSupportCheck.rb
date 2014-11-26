@@ -235,7 +235,7 @@ module Yast
       if [:ext2, :ext3, :ext4].include? boot_part["used_fs"]
         return true
       else
-        AddNewProblem(_( "Missing ext partition for booting. Cannot install boot code."))
+        AddNewProblem(_("Missing ext partition for booting. Cannot install boot code."))
         return false
       end
     end

@@ -158,7 +158,7 @@ module Bootloader
       # select only disk devices
       target_map.select! do |_k, v|
         [:CT_DMRAID, :CT_DISK, :CT_DMMULTIPATH].include?(v["type"]) ||
-          ( v["type"] == :CT_MDPART &&
+          (v["type"] == :CT_MDPART &&
             checkMDRaidDevices(v["devices"] || [], target_map))
       end
 

@@ -58,7 +58,7 @@ module Yast
         "widget_names" => widget_names,
         "contents"     => VBox(
           VSquash(HBox(
-            Top(VBox( VSpacing(1), "loader_type")),
+            Top(VBox(VSpacing(1), "loader_type")),
             Arch.s390 ? Empty() : "loader_location")),
           MarginBox(1, 0.5, "distributor"),
           MarginBox(1, 0.5, Left("activate")),
@@ -122,7 +122,7 @@ module Yast
     end
 
     def Grub2TabDescr
-      tabs = [ bootloader_tab, kernel_tab, boot_code_tab]
+      tabs = [bootloader_tab, kernel_tab, boot_code_tab]
 
       Hash[tabs.map { |tab| [tab["id"], tab] }]
     end
@@ -133,7 +133,7 @@ module Yast
       Builtins.y2milestone("Running Grub2 loader details dialog")
       widgets = Grub2Options()
 
-      tabs = [ bootloader_tab, kernel_tab, boot_code_tab]
+      tabs = [bootloader_tab, kernel_tab, boot_code_tab]
 
       tab_widget = CWMTab.CreateWidget(
         "tab_order"    => tabs.map { |t| t["id"] },
