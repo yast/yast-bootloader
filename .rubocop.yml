@@ -156,12 +156,6 @@ Style/NumericLiterals:
 Style/SignalException:
   EnforcedStyle: only_raise
 
-# Offense count: 1
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/SpaceAroundEqualsInParameterDefault:
-  Enabled: false
-
 # Offense count: 6
 # Cop supports --auto-correct.
 Style/SpaceAroundOperators:

@@ -40,7 +40,7 @@ module Yast
     class TmpYAMLFile
       attr_reader :path
 
-      def initialize(data=nil)
+      def initialize(data = nil)
         @path = mktemp
         write_data(data) unless data.nil?
       end
