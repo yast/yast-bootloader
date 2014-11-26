@@ -54,13 +54,13 @@ describe Bootloader::DiskChangeDetector do
       Yast::BootCommon.globals["boot_mbr"] = "true"
       allow(Yast::BootCommon).to receive(:FindMBRDisk).and_return("/dev/sda")
       Yast::BootCommon.mbrDisk = "/dev/sdb"
-      expect(subject.changes.first).to include('MBR')
+      expect(subject.changes.first).to include("MBR")
     end
 
     it "returns list containing message with custom partition if custom boot disk changed and stage1 selected for custom" do
       Yast::BootCommon.globals["boot_custom"] = "/dev/sdc"
       allow(Yast::BootStorage).to receive(:possible_locations_for_stage1).and_return(["/dev/sda", "/dev/sda2"])
-      expect(subject.changes.first).to include('custom bootloader partition')
+      expect(subject.changes.first).to include("custom bootloader partition")
     end
   end
 end

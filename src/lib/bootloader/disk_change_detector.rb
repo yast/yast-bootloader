@@ -34,7 +34,7 @@ module Bootloader
       end
 
       if mbr_changed?
-        ret << change_message('MBR', Yast::BootCommon.mbrDisk)
+        ret << change_message("MBR", Yast::BootCommon.mbrDisk)
       end
 
       if extended_changed?
