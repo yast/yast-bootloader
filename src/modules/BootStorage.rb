@@ -218,7 +218,7 @@ module Yast
       partitions.select! do |p|
         [:primary, :extended, :logical, :sw_raid].include?(p["type"]) &&
           (p["used_fs"] || p["detected_fs"]) != :xfs &&
-        ["Linux native", "Extended", "Linux RAID", "MD RAID", "DM RAID"].include?(p["fstype"])
+          ["Linux native", "Extended", "Linux RAID", "MD RAID", "DM RAID"].include?(p["fstype"])
       end
 
       res = partitions.map { |p| p["device"] || "" }

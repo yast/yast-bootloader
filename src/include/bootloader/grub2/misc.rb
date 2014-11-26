@@ -134,11 +134,11 @@ module Yast
 
       # refresh device map
       if BootStorage.device_map.empty?  ||
-        BootCommon.cached_settings_base_data_change_time !=
-            Storage.GetTargetChangeTime &&
-            # bnc#585824 - Bootloader doesn't use defined device map from autoyast
-            !((Mode.autoinst || Mode.autoupgrade) &&
-              BootCommon.cached_settings_base_data_change_time == nil)
+          BootCommon.cached_settings_base_data_change_time !=
+              Storage.GetTargetChangeTime &&
+              # bnc#585824 - Bootloader doesn't use defined device map from autoyast
+              !((Mode.autoinst || Mode.autoupgrade) &&
+                BootCommon.cached_settings_base_data_change_time == nil)
         BootStorage.device_map.propose
         BootCommon.InitializeLibrary(true, "grub2")
       end

@@ -143,11 +143,8 @@ Style/Lambda:
 Style/MethodName:
   Enabled: false
 
-# Offense count: 43
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/MultilineOperationIndentation:
-  Enabled: false
+  EnforcedStyle: indented
 
 # Offense count: 8
 Style/MultilineTernaryOperator:
