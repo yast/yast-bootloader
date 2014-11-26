@@ -50,7 +50,7 @@ describe Bootloader::BootRecordBackup do
     end
 
     it "store backup of device first 512 bytes to /var/lib/YaST2/backup_boot_sectors" do
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, %r{bin/dd.* if=/var/lib/YaST2/backup_boot_sectors})
+      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, %r{bin/dd.* of=/var/lib/YaST2/backup_boot_sectors})
       subject.write
     end
 
