@@ -517,7 +517,7 @@ module Yast
           return true
         end
       end
-      return false
+      false
     end
 
     # FIXME: just backward compatible interface, call directly BootStorage

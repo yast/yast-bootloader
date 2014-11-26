@@ -154,12 +154,6 @@ Style/NumericLiterals:
   MinDigits: 4
 
 # Offense count: 14
-# Cop supports --auto-correct.
-# Configuration parameters: AllowMultipleReturnValues.
-Style/RedundantReturn:
-  Enabled: false
-
-# Offense count: 14
 Style/RegexpLiteral:
   MaxSlashes: 5
 

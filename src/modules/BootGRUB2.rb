@@ -238,7 +238,7 @@ module Yast
       line << "</ul>"
 
       # TRANSLATORS: title for list of location proposals
-      return _("Change Location: %s") % line
+      _("Change Location: %s") % line
     end
 
     # Display bootloader summary
@@ -289,7 +289,7 @@ module Yast
       order_sum = BootCommon.DiskOrderSummary
       result << order_sum if order_sum
 
-      return result
+      result
     end
 
     def Dialogs

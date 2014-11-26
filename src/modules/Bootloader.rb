@@ -450,7 +450,7 @@ module Yast
 
       # map old api response to new one
       api_mapping = { "true" => :present, "false" => :missing }
-      return api_mapping[ret] || ret
+      api_mapping[ret] || ret
     end
 
     # Modify kernel parameters for installed kernels according to values

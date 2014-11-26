@@ -325,7 +325,7 @@ module Yast
       log.info "FS for boot partition #{fs}"
 
       # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
-      return fs != :xfs
+      fs != :xfs
     end
 
     # FATE#305008: Failover boot configurations for md arrays with redundancy

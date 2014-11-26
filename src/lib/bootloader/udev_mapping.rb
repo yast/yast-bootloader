@@ -81,7 +81,7 @@ module Bootloader
       end
 
       # udev pair contain as first udev device and as second coresponding kernel device
-      return udev_pair.first
+      udev_pair.first
     end
 
   private
@@ -180,7 +180,7 @@ module Bootloader
         return false unless uuid_may_appear?
       end
 
-      return @target_map_timestamp == Yast::Storage.GetTargetChangeTime
+      @target_map_timestamp == Yast::Storage.GetTargetChangeTime
     end
 
     def uuid_may_appear?

@@ -88,7 +88,7 @@ module Bootloader
         log.info "Command `#{command}` output: #{out}"
         ret &&= out["exit"] == 0
       end
-      return ret
+      ret
     end
 
     def set_parted_flag(disk, part_num, flag)
@@ -134,7 +134,7 @@ module Bootloader
         @boot_devices << boot_device if boot_device.start_with?("/dev/md")
       end
 
-      return @boot_devices
+      @boot_devices
     end
 
     # get a list of all bootloader devices or their underlying soft-RAID

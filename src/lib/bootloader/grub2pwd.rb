@@ -58,6 +58,6 @@ private
       raise "INTERNAL ERROR: output do not contain encrypted password. Output: #{result["stdout"]}"
     end
 
-    return ret
+    ret
   end
 end

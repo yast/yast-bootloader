@@ -136,7 +136,7 @@ module Yast
           "Boot from MBR does not work together with btrfs filesystem and GPT disk label without bios_grub partition." \
           "To fix this issue, create bios_grub partition or use any ext filesystem for boot partition or do not install stage 1 to MBR."
       ))
-      return false
+      false
     end
 
     # Check if boot partition exist

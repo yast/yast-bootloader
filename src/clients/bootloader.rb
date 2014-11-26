@@ -138,7 +138,7 @@ module Yast
     # @return [Boolean] true on success
     def BootloaderModify(key, value)
       BootCommon.globals[key] = value
-      return true
+      true
     end
 
     # Set specified option in global options

@@ -351,7 +351,7 @@ module Yast
 
       # perl have slightly different evaluation of boolean, so lets convert it
       ret = ![false, nil, 0, ""].include?(ret)
-      return ret
+      ret
     end
 
     # Get contents of files from the library cache

@@ -92,7 +92,7 @@ module Bootloader
 
       all_boot_partitions = Yast::BootStorage.possible_locations_for_stage1
 
-      return !all_boot_partitions.include?(boot_custom)
+      !all_boot_partitions.include?(boot_custom)
     end
   end
 end
