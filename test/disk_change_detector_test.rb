@@ -64,4 +64,3 @@ describe Bootloader::DiskChangeDetector do
     end
   end
 end
-

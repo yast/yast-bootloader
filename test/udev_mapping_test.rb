@@ -112,5 +112,3 @@ describe Bootloader::UdevMapping do
     end
   end
 end
-
-

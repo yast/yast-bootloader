@@ -515,4 +515,3 @@
     "used_by_type"   => :UB_NONE
   }
 }
-
