@@ -150,12 +150,6 @@ Style/MultilineOperationIndentation:
 Style/NegatedIf:
   Enabled: false
 
-# Offense count: 17
-# Cop supports --auto-correct.
-# Configuration parameters: IncludeSemanticChanges.
-Style/NonNilCheck:
-  Enabled: false
-
 # Offense count: 66
 # Cop supports --auto-correct.
 Style/NumericLiterals:

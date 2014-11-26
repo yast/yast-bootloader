@@ -116,7 +116,7 @@ module Yast
 
       resume = BootArch.ResumeAvailable ? largest_swap_part : ""
       # try to use label or udev id for device name... FATE #302219
-      if resume != "" && resume != nil
+      if resume != "" && !resume.nil?
         resume = ::Bootloader::UdevMapping.to_mountby_device(resume)
       end
 

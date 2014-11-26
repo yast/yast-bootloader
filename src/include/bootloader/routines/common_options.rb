@@ -96,7 +96,7 @@ module Yast
       current = Convert.to_string(UI.QueryWidget(Id(widget), :Value))
       # file open popup caption
       current = UI.AskForExistingFile(current, "*", _("Select File"))
-      UI.ChangeWidget(Id(widget), :Value, current) if current != nil
+      UI.ChangeWidget(Id(widget), :Value, current) if !current.nil?
       nil
     end
 

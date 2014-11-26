@@ -303,7 +303,7 @@ module Yast
     # Get general widgets for global bootloader options
     # @return a map describing all general widgets for global options
     def CommonGlobalWidgets
-      if @_common_global_widgets != nil
+      if !@_common_global_widgets.nil?
         return deep_copy(@_common_global_widgets)
       end
       @_common_global_widgets = {

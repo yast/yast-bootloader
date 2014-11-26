@@ -275,7 +275,7 @@ module Yast
       end
       if Kernel.GetVgaType == ""
         vgaType = Ops.get_string(saved_params, "vgamode", "")
-        Kernel.SetVgaType(vgaType) if vgaType != nil && vgaType != ""
+        Kernel.SetVgaType(vgaType) if !vgaType.nil? && vgaType != ""
       end
       if !Stage.initial
         Kernel.SetCmdLine(
@@ -412,7 +412,7 @@ module Yast
 
       boot_disk_device = Ops.get_string(p_dev, "disk", "")
 
-      if boot_disk_device != "" && boot_disk_device != nil
+      if boot_disk_device != "" && !boot_disk_device.nil?
         Builtins.y2milestone("Boot device - disk: %1", boot_disk_device)
         return boot_disk_device
       end
@@ -574,7 +574,7 @@ module Yast
 
       if Ops.get(@globals, "append") != nil
         updated_append = ""
-        if console_value != "" || console_value != nil
+        if console_value != "" || !console_value.nil?
           updated_append = UpdateSerialConsole(
             Ops.get(@globals, "append", ""),
             console_value
@@ -585,7 +585,7 @@ module Yast
             ""
           )
         end
-        Ops.set(@globals, "append", updated_append) if updated_append != nil
+        Ops.set(@globals, "append", updated_append) if !updated_append.nil?
       end
 
       nil

@@ -150,7 +150,7 @@ module Yast
       # device map stuff
       if Ops.greater_than(Builtins.size(Ops.get_list(ai, "device_map", [])), 0)
         dm = Ops.get_list(ai, "device_map", [])
-        if dm != nil && Ops.greater_than(Builtins.size(dm), 0)
+        if !dm.nil? && Ops.greater_than(Builtins.size(dm), 0)
           device_map = Builtins.listmap(dm) do |entry|
             firmware = Builtins.deletechars(
               Ops.get(entry, "firmware", ""),
@@ -281,7 +281,7 @@ module Yast
       if !exp.fetch("specific", {}).fetch("device_map", {}).empty?
         device_map = Ops.get_map(exp, ["specific", "device_map"], {})
         Builtins.y2milestone("DM: %1", device_map)
-        if device_map != nil && Ops.greater_than(Builtins.size(device_map), 0)
+        if !device_map.nil? && Ops.greater_than(Builtins.size(device_map), 0)
           dm = Builtins.maplist(device_map) do |linux, firmware|
             { "linux" => linux, "firmware" => firmware }
           end

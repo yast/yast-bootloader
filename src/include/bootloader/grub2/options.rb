@@ -246,7 +246,7 @@ module Yast
         _("Choose new graphical theme file")
       )
 
-      UI.ChangeWidget(Id(:gfxtheme), :Value, file) if file != nil
+      UI.ChangeWidget(Id(:gfxtheme), :Value, file) if !file.nil?
 
       nil
     end
