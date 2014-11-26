@@ -268,7 +268,7 @@ module Yast
     # Get generic widgets
     # @return a map describing all generic widgets
     def grub2Widgets
-      if @_grub2_widgets == nil
+      if @_grub2_widgets.nil?
         case Arch.architecture
         when "i386", "x86_64"
           @_grub2_widgets = { "loader_location" => grubBootLoaderLocationWidget }
@@ -286,7 +286,7 @@ module Yast
 
     def grub2efiWidgets
       if Arch.x86_64
-        if @_grub2_efi_widgets == nil
+        if @_grub2_efi_widgets.nil?
           @_grub2_efi_widgets = { "loader_location" => grub2SecureBootWidget }
           @_grub2_efi_widgets.merge! Grub2Options()
         end

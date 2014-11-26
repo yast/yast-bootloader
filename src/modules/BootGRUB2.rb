@@ -111,7 +111,7 @@ module Yast
         ::Bootloader::MBRUpdate.new.run
 
         grub_ret = BootCommon.InitializeBootloader
-        grub_ret = false if grub_ret == nil
+        grub_ret = false if grub_ret.nil?
 
         Builtins.y2milestone("GRUB return value: %1", grub_ret)
         ret = ret && grub_ret

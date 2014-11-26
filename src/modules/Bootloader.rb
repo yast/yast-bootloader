@@ -68,7 +68,7 @@ module Yast
     # Check whether abort was pressed
     # @return [Boolean] true if abort was pressed
     def testAbort
-      return false if @test_abort == nil
+      return false if @test_abort.nil?
       @test_abort.call
     end
 

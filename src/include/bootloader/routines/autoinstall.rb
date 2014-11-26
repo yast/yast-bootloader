@@ -242,7 +242,7 @@ module Yast
             "%1%2%3",
             Ops.get_string(f, "key", ""),
             separator,
-            Ops.get(f, "value") == nil ? "" : Ops.get(f, "value")
+            Ops.get(f, "value").nil? ? "" : Ops.get(f, "value")
           )
         end
         files = Builtins.mergestring(lines, "\n")

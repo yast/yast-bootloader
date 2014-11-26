@@ -275,7 +275,7 @@ module Yast
       elsif op == :init
         # Bootloader::blSave (false, false, false);
         ret = BootCommon.InitializeBootloader
-        ret = false if ret == nil
+        ret = false if ret.nil?
 
         Popup.Warning(_("Writing bootloader settings failed.")) if !ret
       elsif op == :propose

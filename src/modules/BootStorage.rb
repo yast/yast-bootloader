@@ -433,7 +433,7 @@ module Yast
       # get extended partition device (if exists)
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
-      if BootCommon.mbrDisk == "" || BootCommon.mbrDisk == nil
+      if BootCommon.mbrDisk == "" || BootCommon.mbrDisk.nil?
         # mbr detection.
         BootCommon.mbrDisk = BootCommon.FindMBRDisk
       end

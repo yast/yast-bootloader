@@ -52,7 +52,7 @@ module Yast
     # @param [String] disk string the disk to be checked
     # @return strign the contents of the MBR of the disk in hexa form
     def GetMBRContents(disk)
-      if @_old_mbr == nil || disk != @_old_mbr_disk
+      if @_old_mbr.nil? || disk != @_old_mbr_disk
         @_old_mbr_disk = disk
         out = Convert.to_map(
           SCR.Execute(
@@ -82,7 +82,7 @@ module Yast
     # @param [String] disk string the disk to be checked
     # @return [Boolean] true if it is MBR
     def ThinkPadMBR(disk)
-      if @_thinkpad_mbr == nil || disk != @_old_thinkpad_disk
+      if @_thinkpad_mbr.nil? || disk != @_old_thinkpad_disk
         @_old_thinkpad_disk = disk
         mbr = GetMBRContents(disk)
         x02 = Builtins.tointeger(Ops.add("0x", Builtins.substring(mbr, 4, 2)))

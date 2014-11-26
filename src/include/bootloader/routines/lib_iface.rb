@@ -171,7 +171,7 @@ module Yast
       Builtins.y2milestone("Reading bootloader sections")
       run_pbl_yaml "#{sections_data.path}=GetSections()"
       sects = sections_data.data
-      if sects == nil
+      if sects.nil?
         Builtins.y2error("Reading sections failed")
         return []
       end
@@ -206,7 +206,7 @@ module Yast
       run_pbl_yaml "#{globals_data.path}=GetGlobalSettings()"
       glob = globals_data.data
 
-      if glob == nil
+      if glob.nil?
         Builtins.y2error("Reading global settings failed")
         return {}
       end
@@ -363,7 +363,7 @@ module Yast
       run_pbl_yaml "#{ret_data.path}=GetFilesContents()"
 
       ret = ret_data.data
-      if ret == nil
+      if ret.nil?
         Builtins.y2error("Getting contents of files failed")
         return {}
       end
