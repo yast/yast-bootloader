@@ -132,11 +132,11 @@ module Yast
           @ret = Convert.convert(
             Builtins.union(
               @ret,
-              
+
               "warning_level" => :error,
               "warning"       => BootSupportCheck.StringProblems,
               "raw_proposal"  => Bootloader.Summary
-              
+
             ),
             :from => "map",
             :to   => "map <string, any>"

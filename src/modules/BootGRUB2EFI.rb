@@ -141,11 +141,11 @@ module Yast
       Ops.set(
         BootCommon.bootloader_attribs,
         "grub2-efi",
-        
+
         "required_packages" => packages,
         "loader_name"       => "GRUB2-EFI",
         "initializer"       => fun_ref(method(:Initializer), "void ()")
-        
+
       )
 
       nil

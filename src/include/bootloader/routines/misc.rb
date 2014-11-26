@@ -511,7 +511,7 @@ module Yast
     end
 
     # This function gets bootloader's serial settings from append (bnc#862388)
-    def GetSerialFromAppend 
+    def GetSerialFromAppend
       append = @globals["append"] || ""
       type = Builtins.regexpsub(append, "^.*console=([[:alpha:]]+)[[:digit:]]*,*[[:digit:]]*[noe]*[[:digit:]]*.*[[:space:]]*.*$", "\\1")
       args = Builtins.regexpsub(append, "^.*console=[[:alpha:]]+([[:digit:]]*,*[[:digit:]]*[noe]*[[:digit:]]*).*[[:space:]]*.*$", "\\1")

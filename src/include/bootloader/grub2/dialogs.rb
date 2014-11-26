@@ -146,7 +146,7 @@ module Yast
       # Window title
       caption = _("Boot Loader Options")
       CWM.ShowAndRun(
-        
+
           "widget_descr" => widgets,
           "widget_names" => ["tab"],
           "contents"     => VBox("tab"),
@@ -154,7 +154,7 @@ module Yast
           "back_button"  => Label.BackButton,
           "abort_button" => Label.CancelButton,
           "next_button"  => Label.OKButton
-        
+
       )
     end
 

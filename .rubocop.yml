@@ -162,11 +162,6 @@ Style/StringLiterals:
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 
-# Offense count: 3
-# Cop supports --auto-correct.
-Style/TrailingWhitespace:
-  Enabled: false
-
 # Offense count: 11
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/VariableName:
