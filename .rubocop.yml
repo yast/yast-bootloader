@@ -129,14 +129,17 @@ Style/HashSyntax:
   Include:
     - 'src/lib/**/*.rb' # force new hash style only for new code
 
-# Offense count: 6
+# JR: I found lambda easier to read and understand then ->()
 Style/Lambda:
   Enabled: false
 
 # Offense count: 229
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/MethodName:
-  Enabled: false
+  Include:
+    - 'src/lib/**/*.rb' # force correct names on new code
+  Exclude:
+    - 'src/lib/bootloader/grub2base.rb' # base class that implement common API with incorrect names
 
 Style/MultilineOperationIndentation:
   EnforcedStyle: indented

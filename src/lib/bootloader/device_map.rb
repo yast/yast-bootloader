@@ -156,13 +156,13 @@ module Bootloader
       target_map.select! do |_k, v|
         [:CT_DMRAID, :CT_DISK, :CT_DMMULTIPATH].include?(v["type"]) ||
           (v["type"] == :CT_MDPART &&
-            checkMDRaidDevices(v["devices"] || [], target_map))
+            mdraid_on_disk?(v["devices"] || [], target_map))
       end
 
       # filter out members of BIOS RAIDs and multipath devices
       target_map.delete_if do |k, v|
         [:UB_DMRAID, :UB_DMMULTIPATH].include?(v["used_by_type"]) ||
-          (v["used_by_type"] == :UB_MDPART && isDiskInMDRaid(k, target_map))
+          (v["used_by_type"] == :UB_MDPART && disk_in_mdraid?(k, target_map))
       end
 
       target_map
@@ -216,7 +216,7 @@ module Bootloader
     # @param [Array<String>] devices - list of devices from MD raid
     # @param [Hash{String => map}] tm - unfiltered target map
     # @return - true if MD RAID is build on disks (not on partitions)
-    def checkMDRaidDevices(devices, tm)
+    def mdraid_on_disk?(devices, tm)
       ret = true
       devices.each do |key|
         break unless ret
@@ -231,7 +231,7 @@ module Bootloader
     # @param [String] disk (/dev/sda)
     # @param [Hash{String => map}] tm - target map
     # @return - true if disk (not only part of disk) is in MDRAID
-    def isDiskInMDRaid(disk, tm)
+    def disk_in_mdraid?(disk, tm)
       tm.values.any? do |disk_info|
         disk_info["type"] == :CT_MDPART &&
           (disk_info["devices"] || []).include?(disk)
