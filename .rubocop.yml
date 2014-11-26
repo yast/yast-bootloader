@@ -156,17 +156,11 @@ Style/NumericLiterals:
 Style/SignalException:
   EnforcedStyle: only_raise
 
-# Offense count: 4505
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 
-# Offense count: 7
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/StringLiteralsInInterpolation:
-  Enabled: false
+  EnforcedStyle: double_quotes
 
 # Offense count: 4
 # Cop supports --auto-correct.
