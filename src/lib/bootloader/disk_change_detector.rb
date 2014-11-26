@@ -33,9 +33,7 @@ module Bootloader
         ret << change_message('"/"', Yast::BootStorage.RootPartitionDevice)
       end
 
-      if mbr_changed?
-        ret << change_message("MBR", Yast::BootCommon.mbrDisk)
-      end
+      ret << change_message("MBR", Yast::BootCommon.mbrDisk) if mbr_changed?
 
       if extended_changed?
         ret << change_message('"extended partition"', Yast::BootStorage.ExtendedPartitionDevice)

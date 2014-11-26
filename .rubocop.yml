@@ -10,7 +10,6 @@ Lint/Eval:
   # test helper data source is safe, so eval is not problem
   - test/test_helper.rb
 
-# Offense count: 105
 Metrics/AbcSize:
   Max: 129
   Exclude:
@@ -129,11 +128,6 @@ Style/FileName:
 Style/HashSyntax:
   Include:
     - 'src/lib/**/*.rb' # force new hash style only for new code
-
-# Offense count: 25
-# Configuration parameters: MaxLineLength.
-Style/IfUnlessModifier:
-  Enabled: false
 
 # Offense count: 6
 Style/Lambda:

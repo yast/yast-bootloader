@@ -154,16 +154,12 @@ module Yast
         next res if [:CT_LVM, :CT_EVMS].include?(info["type"])
         partitions = info["partitions"]
         parts = partitions.map do |p|
-          raid = nil
-          if p["used_by_type"] == :UB_MD
-            raid = p["used_by_device"]
-          end
+          raid = p["used_by_type"] == :UB_MD ? p["used_by_device"] : nil
           device = p["device"] || ""
           # We only pass along RAID1 devices as all other causes
           # severe breakage in the bootloader stack
-          if raid && @md_info.include?(raid)
-            @md_info[raid] << device
-          end
+          @md_info[raid] << device if raid && @md_info.include?(raid)
+
           nr = (p["nr"] || 0).to_s
           region = p.fetch("region", [])
           [
@@ -206,9 +202,9 @@ module Yast
       partitions = []
 
       devices.each do |k, v|
-        if all_disks.include?(k)
-          partitions.concat(v["partitions"] || [])
-        end
+        next unless all_disks.include?(k)
+
+        partitions.concat(v["partitions"] || [])
       end
 
       partitions.delete_if do |p|

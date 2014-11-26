@@ -110,9 +110,7 @@ module Yast
       BootCommon.changed = true
       BootCommon.location_changed = true
 
-      if settings["loader_type"] == ""
-        settings["loader_type"] = nil
-      end
+      settings["loader_type"] = nil if settings["loader_type"] == ""
       # if bootloader is not set, then propose it
       loader_type = settings["loader_type"] || BootCommon.getLoaderType(true)
       # Explitelly set it to ensure it is installed
@@ -345,9 +343,7 @@ module Yast
       log.info "Reinitialize bootloader library before saving: #{reinit}"
       ret = blSave(true, reinit, true) && ret
 
-      if !ret
-        log.error "Error before configuration files saving finished"
-      end
+      log.error "Error before configuration files saving finished" unless ret
 
       if Mode.normal
         Progress.NextStage
@@ -572,9 +568,7 @@ module Yast
     end
 
     def mark_as_changed
-      if BootCommon.write_settings["save_all"]
-        BootCommon.save_all = true
-      end
+      BootCommon.save_all = true if BootCommon.write_settings["save_all"]
 
       return unless BootCommon.save_all
 

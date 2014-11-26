@@ -48,9 +48,7 @@ module Bootloader
       Yast::BootCommon.activate_changed = true
 
       # for GPT remove protective MBR flag otherwise some systems won't boot
-      if gpt_boot_disk?
-        Yast::BootCommon.pmbr_action = :remove
-      end
+      Yast::BootCommon.pmbr_action = :remove if gpt_boot_disk?
 
       log.info "location configured. Resulting globals #{Yast::BootCommon.globals}"
 
@@ -213,9 +211,7 @@ module Bootloader
 
       @underlying_boot_partition_devices = [Yast::BootStorage.BootPartitionDevice]
       md_info = Yast::BootStorage.Md2Partitions(Yast::BootStorage.BootPartitionDevice)
-      if !md_info.empty?
-        @underlying_boot_partition_devices = md_info.keys
-      end
+      @underlying_boot_partition_devices = md_info.keys if !md_info.empty?
       log.info "Boot partition devices: #{@underlying_boot_partition_devices}"
 
       @underlying_boot_partition_devices

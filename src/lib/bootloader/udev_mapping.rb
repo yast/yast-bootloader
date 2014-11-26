@@ -164,9 +164,7 @@ module Bootloader
       log.debug("device name mapping to kernel names: #{@all_devices}")
 
       @target_map_timestamp = Yast::Storage.GetTargetChangeTime
-      if Yast::Mode.installation
-        @uuids_stable = !uuid_may_appear?
-      end
+      @uuids_stable = !uuid_may_appear? if Yast::Mode.installation
 
       nil
     end

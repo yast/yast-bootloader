@@ -136,21 +136,11 @@ module Yast
     # @return [Array] device names
     def GetBootloaderDevices
       ret = []
-      if @globals["boot_boot"] == "true"
-        ret << BootStorage.BootPartitionDevice
-      end
-      if @globals["boot_root"] == "true"
-        ret << BootStorage.RootPartitionDevice
-      end
-      if @globals["boot_mbr"] == "true"
-        ret << @mbrDisk
-      end
-      if @globals["boot_extended"] == "true"
-        ret << BootStorage.ExtendedPartitionDevice
-      end
-      if @globals["boot_custom"]
-        ret << @globals["boot_custom"]
-      end
+      ret << BootStorage.BootPartitionDevice if @globals["boot_boot"] == "true"
+      ret << BootStorage.RootPartitionDevice if @globals["boot_root"] == "true"
+      ret << @mbrDisk if @globals["boot_mbr"] == "true"
+      ret << BootStorage.ExtendedPartitionDevice if @globals["boot_extended"] == "true"
+      ret << @globals["boot_custom"] if @globals["boot_custom"]
       Builtins.y2warning("Empty bootloader devices. Globals #{@globals.inspect}") if ret.empty?
 
       ret
@@ -543,9 +533,7 @@ module Yast
       end
 
       word = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*[noe]*([[:digit:]]*)", "\\1")
-      if !word.empty?
-        ret << " --word=#{word}"
-      end
+      ret << " --word=#{word}" unless word.empty?
 
       ret
     end

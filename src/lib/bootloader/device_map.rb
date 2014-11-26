@@ -84,9 +84,7 @@ module Bootloader
         return
       end
 
-      if Yast::Arch.s390
-        return propose_s390_device_map
-      end
+      return propose_s390_device_map if Yast::Arch.s390
 
       fill_mapping
 

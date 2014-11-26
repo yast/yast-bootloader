@@ -303,9 +303,8 @@ module Yast
     # Get general widgets for global bootloader options
     # @return a map describing all general widgets for global options
     def CommonGlobalWidgets
-      if !@_common_global_widgets.nil?
-        return deep_copy(@_common_global_widgets)
-      end
+      return deep_copy(@_common_global_widgets) if @_common_global_widgets
+
       @_common_global_widgets = {
         "adv_button"     => getAdvancedButtonWidget,
         "loader_type"    => {

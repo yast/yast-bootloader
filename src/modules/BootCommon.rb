@@ -155,9 +155,7 @@ module Yast
         "global"     => remapGlobals(@globals),
         "device_map" => BootStorage.device_map.remapped_hash
       }
-      if @loader_type != "grub2"
-        Ops.set(exp, "activate", @activate)
-      end
+      Ops.set(exp, "activate", @activate) if @loader_type != "grub2"
 
       deep_copy(exp)
     end
@@ -493,13 +491,9 @@ module Yast
         return SUPPORTED_BOOTLOADERS + ["default"]
       end
       ret = [getLoaderType(false)]
-      if Arch.i386 || Arch.x86_64 || Arch.s390 || Arch.ppc
-        ret << "grub2"
-      end
-      if Arch.x86_64
-        ret << "grub2-efi"
-      end
-      ret = Builtins.add(ret, "none")
+      ret << "grub2" # grub2 everywhere
+      ret << "grub2-efi" if Arch.x86_64
+      ret << "none"
       # avoid double entry for selected one
       ret.uniq
     end

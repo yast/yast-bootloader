@@ -25,9 +25,7 @@ module Bootloader
       # After a proposal is done, Bootloader::Propose() always sets
       # backup_mbr to true. The default is false. No other parts of the code
       # currently change this flag.
-      if Yast::BootCommon.backup_mbr
-        create_backups
-      end
+      create_backups if Yast::BootCommon.backup_mbr
 
       ret = true
       # Rewrite MBR with generic boot code only if we do not plan to install
@@ -36,9 +34,7 @@ module Bootloader
         ret &&= install_generic_mbr
       end
 
-      if activate
-        ret &&= activate_partitions
-      end
+      ret &&= activate_partitions if activate
 
       ret
     end
@@ -162,9 +158,8 @@ module Bootloader
       end
       ret = [mbr_disk]
       # Add to disks only if part of raid on base devices lives on mbr_disk
-      if mbrs.include?(mbr_disk)
-        ret.concat(mbrs)
-      end
+      ret.concat(mbrs) if mbrs.include?(mbr_disk)
+
       ret.uniq
     end
 
