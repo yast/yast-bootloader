@@ -70,7 +70,7 @@ module Yast
 
     def run_pbl_yaml(*args)
       cmd = "pbl-yaml --state=#{STATE_FILE} "
-      cmd << args.map {|e| "'#{e}'"}.join(" ")
+      cmd << args.map { |e| "'#{e}'" }.join(" ")
 
       SCR.Execute(path(".target.bash"), cmd)
     end

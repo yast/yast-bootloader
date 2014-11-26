@@ -156,12 +156,6 @@ Style/NumericLiterals:
 Style/SignalException:
   EnforcedStyle: only_raise
 
-# Offense count: 34
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles, EnforcedStyleForEmptyBraces, SpaceBeforeBlockParameters.
-Style/SpaceInsideBlockBraces:
-  Enabled: false
-
 # Offense count: 2
 # Cop supports --auto-correct.
 Style/SpaceInsideBrackets:

@@ -128,7 +128,7 @@ module Yast
       boot_device = Storage.GetPartition(devices, BootCommon.getBootPartition)
       return true if mbr_disk["label"] != "gpt"
       return true if boot_device["used_fs"] != :btrfs
-      return true if mbr_disk["partitions"].any? {|p| p["fsid"] == Partitions.fsid_bios_grub }
+      return true if mbr_disk["partitions"].any? { |p| p["fsid"] == Partitions.fsid_bios_grub }
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.

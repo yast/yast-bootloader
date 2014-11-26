@@ -188,7 +188,7 @@ module Bootloader
     end
 
     def extended_partition_num(disk)
-      part = activatable_partitions(disk).find {|p| p["type"] == :extended }
+      part = activatable_partitions(disk).find { |p| p["type"] == :extended }
       return nil unless part
 
       num = part["nr"]

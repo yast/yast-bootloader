@@ -74,7 +74,7 @@ EOF
         )
       expect(Yast::SCR).to receive(:Write).never
 
-      expect {subject.enable("really strong password")}.to raise_error(RuntimeError, /bad error/)
+      expect { subject.enable("really strong password") }.to raise_error(RuntimeError, /bad error/)
     end
 
     it "raise exception if grub2-mkpasswd-pbkdf do not provide password" do
@@ -87,7 +87,7 @@ EOF
         )
       expect(Yast::SCR).to receive(:Write).never
 
-      expect {subject.enable("really strong password")}.to raise_error(RuntimeError, /bad output/)
+      expect { subject.enable("really strong password") }.to raise_error(RuntimeError, /bad output/)
     end
 
     it "raise exception if grub2-mkpasswd-pbkdf create password line but without password" do
@@ -100,7 +100,7 @@ EOF
         )
       expect(Yast::SCR).to receive(:Write).never
 
-      expect {subject.enable("really strong password")}.to raise_error(RuntimeError, /password is/)
+      expect { subject.enable("really strong password") }.to raise_error(RuntimeError, /password is/)
     end
   end
 end

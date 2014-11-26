@@ -178,8 +178,8 @@ module Bootloader
     # FIXME: find better location
     def gpt_boot_disk?
       targets = Yast::BootCommon.GetBootloaderDevices
-      boot_discs = targets.map {|d| Yast::Storage.GetDisk(target_map, d)}
-      boot_discs.any? {|d| d["label"] == "gpt" }
+      boot_discs = targets.map { |d| Yast::Storage.GetDisk(target_map, d) }
+      boot_discs.any? { |d| d["label"] == "gpt" }
     end
 
     def target_map

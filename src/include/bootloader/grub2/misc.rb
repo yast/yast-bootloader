@@ -76,8 +76,8 @@ module Yast
 
     def gpt_boot_disk?
       targets = BootCommon.GetBootloaderDevices
-      boot_discs = targets.map {|d| Storage.GetDisk(Storage.GetTargetMap, d)}
-      boot_discs.any? {|d| d["label"] == "gpt" }
+      boot_discs = targets.map { |d| Storage.GetDisk(Storage.GetTargetMap, d) }
+      boot_discs.any? { |d| d["label"] == "gpt" }
     end
 
     # Detect "/boot", "/" (root), extended partition device and MBR disk device
