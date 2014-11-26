@@ -153,10 +153,6 @@ Style/NegatedIf:
 Style/NumericLiterals:
   MinDigits: 4
 
-# Offense count: 14
-Style/RegexpLiteral:
-  MaxSlashes: 5
-
 # Offense count: 6
 Style/SelfAssignment:
   Enabled: false

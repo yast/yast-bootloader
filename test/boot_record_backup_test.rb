@@ -15,7 +15,7 @@ describe Bootloader::BootRecordBackup do
   describe "#restore" do
     it "returns true if backup is successfully restored" do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* if=\/var\/lib\/YaST2\/backup_boot_sectors/)
+      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, %r{bin/dd.* if=/var/lib/YaST2/backup_boot_sectors})
         .and_return(0)
 
       expect(subject.restore).to be true
@@ -23,7 +23,7 @@ describe Bootloader::BootRecordBackup do
 
     it "returns false if copying backup failed" do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* if=\/var\/lib\/YaST2\/backup_boot_sectors/)
+      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, %r{bin/dd.* if=/var/lib/YaST2/backup_boot_sectors})
         .and_return(1)
 
       expect(subject.restore).to be false
@@ -45,17 +45,17 @@ describe Bootloader::BootRecordBackup do
     end
 
     it "store backup of device first 512 bytes to /var/log/YaST2" do
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* of=\/var\/log\/YaST2/)
+      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, %r{bin/dd.* of=/var/log/YaST2})
       subject.write
     end
 
     it "store backup of device first 512 bytes to /var/lib/YaST2/backup_boot_sectors" do
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* of=\/var\/lib\/YaST2\/backup_boot_sectors/)
+      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, %r{bin/dd.* if=/var/lib/YaST2/backup_boot_sectors})
       subject.write
     end
 
     it "writes /var/lib/YaST2/backup_boot_sectors if it do not exists" do
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /mkdir.* \/var\/lib\/YaST2\/backup_boot_sectors/)
+      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, %r{mkdir.* /var/lib/YaST2/backup_boot_sectors})
       subject.write
     end
 
@@ -82,7 +82,7 @@ describe Bootloader::BootRecordBackup do
 
     it "store backup of device first 512 bytes to /boot/backup_mbr if it is MBR of primary disk" do
       allow(Yast::BootCommon).to receive(:mbrDisk).and_return("/dev/sda")
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* of=\/boot\/backup_mbr/)
+      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, %r{bin/dd.* of=/boot/backup_mbr})
 
       subject.write
     end
@@ -91,7 +91,7 @@ describe Bootloader::BootRecordBackup do
       allow(Yast::BootCommon).to receive(:mbrDisk).and_return("/dev/sda")
       allow(Yast::BootCommon).to receive(:ThinkPadMBR).and_return(true)
 
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /\Acp.* \/var\/lib\/YaST2\/backup_boot_sectors.*thinkpadMBR/)
+      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, %r{\Acp.* /var/lib/YaST2/backup_boot_sectors.*thinkpadMBR})
       subject.write
     end
   end
