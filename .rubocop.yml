@@ -146,10 +146,6 @@ Style/MethodName:
 Style/MultilineOperationIndentation:
   EnforcedStyle: indented
 
-# Offense count: 8
-Style/MultilineTernaryOperator:
-  Enabled: false
-
 # Offense count: 52
 # Cop supports --auto-correct.
 Style/NegatedIf:

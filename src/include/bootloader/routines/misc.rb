@@ -46,24 +46,30 @@ module Yast
     # @return [String] printable bootloader name
     def getLoaderName(bootloader, mode)
       if bootloader == "none"
-        return mode == :summary ?
+        if mode == :summary
           # summary string
-          _("Do not install any boot loader") :
+          return _("Do not install any boot loader")
+        else
           # combo box item
-          _("Do Not Install Any Boot Loader")
+          return _("Do Not Install Any Boot Loader")
+        end
       end
       if bootloader == "default"
-        return mode == :summary ?
+        if mode == :summary
           # summary string
-          _("Install the default boot loader") :
+          return _("Install the default boot loader")
+        else
           # combo box item
-          _("Install Default Boot Loader")
+          return _("Install Default Boot Loader")
+        end
       end
-      fallback_name = mode == :summary ?
+      if mode == :summary
         # summary string
-        _("Boot loader") :
+        fallback_name = _("Boot loader")
+      else
         # combo box item
-        _("Boot Loader")
+        fallback_name = _("Boot Loader")
+      end
       # fallback bootloader name, keep short
       Ops.get_string(
         @bootloader_attribs,
@@ -288,9 +294,8 @@ module Yast
     # @return additional kernel parameters
     def GetAdditionalFailsafeParams
       if Stage.initial
-        @additional_failsafe_params = SCR.Read(
-          path(".etc.install_inf.NoPCMCIA")
-        ) == "1" ? " NOPCMCIA " : ""
+        nopcmcia = SCR.Read(path(".etc.install_inf.NoPCMCIA")) == "1"
+        @additional_failsafe_params =  nopcmcia ? " NOPCMCIA " : ""
       else
         saved_params = Convert.convert(
           SCR.Read(path(".target.ycp"), "/var/lib/YaST2/bootloader.ycp"),

@@ -67,8 +67,8 @@ module Bootloader
       # IMO it is good idea check MBR also in this case
       # see bug #279837 comment #53
       if boot_partition_on_mbr_disk?
-        selected_location = Yast::BootStorage.BootPartitionDevice !=
-          Yast::BootStorage.RootPartitionDevice ? :boot : :root
+        separate_boot = Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+        selected_location =  separate_boot ? :boot : :root
       elsif underlying_boot_partition_devices.size > 1
         selected_location = :mbr
       end

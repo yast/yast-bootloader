@@ -208,13 +208,15 @@ module Yast
     # @return [Yast::Term] with widgets
 
     def grubBootLoaderLocationWidget
-      if BootStorage.can_boot_from_partition
-        partition_boot = BootStorage.BootPartitionDevice == BootStorage.RootPartitionDevice ?
-          Left(CheckBox(Id("boot_root"), _("Boot from &Root Partition"))) :
-          Left(CheckBox(Id("boot_boot"), _("Boo&t from Boot Partition")))
-      else
-        partition_boot = Empty()
-      end
+      partition_boot = if BootStorage.can_boot_from_partition
+                         if BootStorage.BootPartitionDevice == BootStorage.RootPartitionDevice
+                           Left(CheckBox(Id("boot_root"), _("Boot from &Root Partition")))
+                         else
+                           Left(CheckBox(Id("boot_boot"), _("Boo&t from Boot Partition")))
+                         end
+                       else
+                         Empty()
+                       end
 
       boot_custom = [
         Left(
@@ -245,14 +247,16 @@ module Yast
                   CheckBox(Id("boot_mbr"), _("Boot from &Master Boot Record"))
                 ),
                 partition_boot,
-                BootStorage.ExtendedPartitionDevice ?
+                if BootStorage.ExtendedPartitionDevice
                   Left(
                     CheckBox(
                       Id("boot_extended"),
                       _("Boot from &Extended Partition")
                     )
-                  ) :
-                  Empty(),
+                  )
+                else
+                  Empty()
+                end,
                 *boot_custom
               )
             )
