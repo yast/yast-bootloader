@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 26 13:11:58 UTC 2014 - jsrain@suse.cz
+
+- initialize bootloader during update if proposed from scratch
+  (bnc#899743)
+
+-------------------------------------------------------------------
 Fri Nov 21 11:56:38 UTC 2014 - jsrain@suse.cz
 
 - detect EFI directly from sysfs during live installation
