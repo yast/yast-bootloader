@@ -153,11 +153,8 @@ Style/NegatedIf:
 Style/NumericLiterals:
   MinDigits: 4
 
-# Offense count: 33
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/SignalException:
-  Enabled: false
+  EnforcedStyle: only_raise
 
 # Offense count: 15
 # Cop supports --auto-correct.
