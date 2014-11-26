@@ -158,16 +158,6 @@ Style/SignalException:
 
 # Offense count: 1
 # Cop supports --auto-correct.
-Style/SpaceAfterMethodName:
-  Enabled: false
-
-# Offense count: 1
-# Cop supports --auto-correct.
-Style/SpaceAfterSemicolon:
-  Enabled: false
-
-# Offense count: 1
-# Cop supports --auto-correct.
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/SpaceAroundEqualsInParameterDefault:
   Enabled: false

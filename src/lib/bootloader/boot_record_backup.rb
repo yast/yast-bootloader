@@ -16,7 +16,7 @@ module Bootloader
     attr_reader :device
 
     # Exception from this class
-    class Error < RuntimeError;end
+    class Error < RuntimeError; end
 
     # Exception used to indicate that backup missing, so any action with it is
     # not possible
