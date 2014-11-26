@@ -69,7 +69,7 @@ module Bootloader
     # @raise [::Bootloader::BootRecordBackup::Missing] if backup missing
     # @return true if copy is successful
     def restore
-      raise Missing.new unless exists?
+      raise Missing unless exists?
 
       # Copy only 440 bytes for Vista booting problem bnc #396444
       # and also to not destroy partition table

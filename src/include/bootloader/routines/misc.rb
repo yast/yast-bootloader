@@ -498,10 +498,10 @@ module Yast
         parity = ""
         word = ""
         Builtins.foreach(list_serial) do |key|
-          unit = getKeyValue(key) if Builtins.search(key, "--unit") != nil
-          speed = getKeyValue(key) if Builtins.search(key, "--speed") != nil
-          parity = getKeyValue(key) if Builtins.search(key, "--parity") != nil
-          word = getKeyValue(key) if Builtins.search(key, "--word") != nil
+          unit = getKeyValue(key) unless Builtins.search(key, "--unit").nil?
+          speed = getKeyValue(key) unless Builtins.search(key, "--speed").nil?
+          parity = getKeyValue(key) unless Builtins.search(key, "--parity").nil?
+          word = getKeyValue(key) unless Builtins.search(key, "--word").nil?
         end
         # build value
         ret = buildConsoleValue(unit, speed, parity, word)
@@ -572,7 +572,7 @@ module Yast
 
       console_value = getConsoleValue
 
-      if Ops.get(@globals, "append") != nil
+      if !Ops.get(@globals, "append").nil?
         updated_append = ""
         if console_value != "" || !console_value.nil?
           updated_append = UpdateSerialConsole(

@@ -150,15 +150,8 @@ Style/MultilineOperationIndentation:
 Style/NegatedIf:
   Enabled: false
 
-# Offense count: 66
-# Cop supports --auto-correct.
 Style/NumericLiterals:
   MinDigits: 4
-
-# Offense count: 1
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/RaiseArgs:
-  Enabled: false
 
 # Offense count: 14
 # Cop supports --auto-correct.
