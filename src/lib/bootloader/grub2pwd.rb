@@ -53,7 +53,7 @@ private
       raise "INTERNAL ERROR: output do not contain encrypted password. Output: #{result["stdout"]}"
     end
 
-    ret = pwd_line[/^.*password is\s*(\S+)/,1]
+    ret = pwd_line[/^.*password is\s*(\S+)/, 1]
     if !ret
       raise "INTERNAL ERROR: output do not contain encrypted password. Output: #{result["stdout"]}"
     end

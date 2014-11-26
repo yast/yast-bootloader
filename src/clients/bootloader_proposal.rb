@@ -249,7 +249,7 @@ module Yast
       retur nil if old_bootloader.empty?
 
       # get value from entry
-      old_bootloader.last.sub(/^.*=\s*(\S*).*/,"\\1").delete('"')
+      old_bootloader.last.sub(/^.*=\s*(\S*).*/, "\\1").delete('"')
     end
   end unless defined? Yast::BootloaderProposalClient
 end

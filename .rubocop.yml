@@ -156,11 +156,6 @@ Style/NumericLiterals:
 Style/SignalException:
   EnforcedStyle: only_raise
 
-# Offense count: 15
-# Cop supports --auto-correct.
-Style/SpaceAfterComma:
-  Enabled: false
-
 # Offense count: 1
 # Cop supports --auto-correct.
 Style/SpaceAfterMethodName:

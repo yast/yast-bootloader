@@ -24,7 +24,7 @@ describe GRUB2Pwd do
     it "removes file #{GRUB2Pwd::PWD_ENCRYPTION_FILE} when exists" do
       mock_file_presence(true)
 
-      expect(Yast::SCR).to receive(:Execute).with(kind_of(Yast::Path),"rm '#{GRUB2Pwd::PWD_ENCRYPTION_FILE}'")
+      expect(Yast::SCR).to receive(:Execute).with(kind_of(Yast::Path), "rm '#{GRUB2Pwd::PWD_ENCRYPTION_FILE}'")
 
       subject.disable
     end
@@ -66,7 +66,7 @@ EOF
 
     it "raise exception if grub2-mkpasswd-pbkdf failed" do
       expect(Yast::WFM).to receive(:Execute)
-        .with(kind_of(Yast::Path),/grub2-mkpasswd/)
+        .with(kind_of(Yast::Path), /grub2-mkpasswd/)
         .and_return(
           "exit"   => 1,
           "stderr" => "bad error",
@@ -79,7 +79,7 @@ EOF
 
     it "raise exception if grub2-mkpasswd-pbkdf do not provide password" do
       expect(Yast::WFM).to receive(:Execute)
-        .with(kind_of(Yast::Path),/grub2-mkpasswd/)
+        .with(kind_of(Yast::Path), /grub2-mkpasswd/)
         .and_return(
           "exit"   => 0,
           "stderr" => "",
@@ -92,7 +92,7 @@ EOF
 
     it "raise exception if grub2-mkpasswd-pbkdf create password line but without password" do
       expect(Yast::WFM).to receive(:Execute)
-        .with(kind_of(Yast::Path),/grub2-mkpasswd/)
+        .with(kind_of(Yast::Path), /grub2-mkpasswd/)
         .and_return(
           "exit"   => 0,
           "stderr" => "",

@@ -34,7 +34,7 @@ module Bootloader
     end
 
     def disks_order
-      disks = @mapping.select { |_k,v| v.start_with?("hd") }.keys
+      disks = @mapping.select { |_k, v| v.start_with?("hd") }.keys
 
       disks.sort_by { |d| @mapping[d][2..-1].to_i }
     end
@@ -51,7 +51,7 @@ module Bootloader
       end
 
       log.info "device map before reduction #{@mapping}"
-      @mapping.select! do |_k,v|
+      @mapping.select! do |_k, v|
         v[2..-1].to_i < BIOS_LIMIT
       end
 
