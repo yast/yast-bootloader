@@ -18,6 +18,8 @@ module Bootloader
     end
 
     def run
+      textdomain "bootloader"
+
       return unless create_dialog
 
       begin

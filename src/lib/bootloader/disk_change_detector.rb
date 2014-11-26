@@ -12,6 +12,8 @@ module Bootloader
       Yast.import "Mode"
       Yast.import "Storage"
 
+      textdomain "bootloader"
+
       mp = Yast::Storage.GetMountPoints
       @actual_root = mp["/"].first || ""
       @actual_boot = mp["/boot"].first || actual_root
