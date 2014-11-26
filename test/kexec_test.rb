@@ -80,14 +80,14 @@ describe Bootloader::Kexec do
     end
 
     it "returns false if initrd and vmlinuz copy failed" do
-      allow(Yast::WFM).to receive(:Execute).with(anything(),/\/bin\/cp/)
+      allow(Yast::WFM).to receive(:Execute).with(anything,/\/bin\/cp/)
         .and_return("exit" => 1)
 
       expect(subject.prepare_environment).to be false
     end
 
     it "returns true when copy initrd and vmlinuz to destination" do
-      expect(Yast::WFM).to receive(:Execute).with(anything(),/\/bin\/cp/)
+      expect(Yast::WFM).to receive(:Execute).with(anything,/\/bin\/cp/)
         .and_return("exit" => 0)
 
       expect(subject.prepare_environment).to be true

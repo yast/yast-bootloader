@@ -42,10 +42,10 @@ describe Bootloader::Sysconfig do
         Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT.comment"))
         .and_return("comment ABC")
       expect(Yast::SCR).to receive(:Write).with(
-        Yast::Path.new(".sysconfig.bootloader.LOADER_TYPE.comment"), anything()
+        Yast::Path.new(".sysconfig.bootloader.LOADER_TYPE.comment"), anything
       )
       expect(Yast::SCR).to receive(:Write).with(
-        Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT.comment"), anything()
+        Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT.comment"), anything
       ).never
 
       sysconfig.write

@@ -154,7 +154,7 @@ describe Bootloader::MBRUpdate do
         allow(Yast::BootCommon).to receive(:mbrDisk)
           .and_return("/dev/sda")
 
-        expect(Yast::SCR).to receive(:Execute).with(anything(), /dd /).and_return( "exit" => 0 )
+        expect(Yast::SCR).to receive(:Execute).with(anything, /dd /).and_return( "exit" => 0 )
         subject.run
       end
 
@@ -173,7 +173,7 @@ describe Bootloader::MBRUpdate do
         allow(Yast::BootCommon).to receive(:mbrDisk)
           .and_return("/dev/sda")
 
-        expect(Yast::SCR).to receive(:Execute).with(anything(), /gptmbr.bin/).and_return( "exit" => 0 )
+        expect(Yast::SCR).to receive(:Execute).with(anything, /gptmbr.bin/).and_return( "exit" => 0 )
         subject.run
       end
     end
@@ -191,7 +191,7 @@ describe Bootloader::MBRUpdate do
           .and_return(["/dev/sda1", "/dev/sdb1"])
 
         expect(Yast::WFM).to receive(:Execute)
-          .with(anything(), /parted -s \/dev\/sda set 1 boot on/)
+          .with(anything, /parted -s \/dev\/sda set 1 boot on/)
           .and_return( "exit" => 0)
         subject.run
       end
@@ -201,7 +201,7 @@ describe Bootloader::MBRUpdate do
           .and_return(["/dev/sda1", "/dev/sdb1"])
 
         allow(Yast::WFM).to receive(:Execute)
-          .with(anything(), /parted -s \/dev\/sda set 1 boot on/)
+          .with(anything, /parted -s \/dev\/sda set 1 boot on/)
           .and_return( "exit" => 1)
 
         expect(subject.run).to be false
@@ -212,7 +212,7 @@ describe Bootloader::MBRUpdate do
           .and_return(["/dev/sda1", "/dev/sdb1"])
 
         expect(Yast::WFM).to receive(:Execute)
-          .with(anything(), /parted -s \/dev\/sda set 1 legacy_boot on/)
+          .with(anything, /parted -s \/dev\/sda set 1 legacy_boot on/)
           .and_return( "exit" => 0)
         subject.run
       end
@@ -222,7 +222,7 @@ describe Bootloader::MBRUpdate do
           .and_return(["/dev/sda1", "/dev/sdb1"])
 
         allow(Yast::WFM).to receive(:Execute)
-          .with(anything(), /parted -s \/dev\/sda set 1 legacy_boot on/)
+          .with(anything, /parted -s \/dev\/sda set 1 legacy_boot on/)
           .and_return( "exit" => 1)
 
         expect(subject.run).to be true
@@ -233,7 +233,7 @@ describe Bootloader::MBRUpdate do
           .and_return(["/dev/sda1", "/dev/sdb6"])
 
         expect(Yast::WFM).to_not receive(:Execute)
-          .with(anything(), /sdb/)
+          .with(anything, /sdb/)
         subject.run
       end
 
@@ -241,7 +241,7 @@ describe Bootloader::MBRUpdate do
         allow(Yast::BootCommon).to receive(:getBootPartition).and_return("/dev/md1")
 
         expect(Yast::WFM).to receive(:Execute)
-          .with(anything(), /md set 1/)
+          .with(anything, /md set 1/)
         subject.run
       end
     end

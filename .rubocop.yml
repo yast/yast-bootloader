@@ -143,11 +143,6 @@ Style/Lambda:
 Style/LineEndConcatenation:
   Enabled: false
 
-# Offense count: 12
-# Cop supports --auto-correct.
-Style/MethodCallParentheses:
-  Enabled: false
-
 # Offense count: 229
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/MethodName:
