@@ -123,14 +123,14 @@ module Yast
       # 'date' command output
       msg = Builtins.sformat(
         _(
-          "Warning!\n" +
-            "\n" +
-            "Current MBR of %1 will now be rewritten with MBR\n" +
-            "saved at %2.\n" +
-            "\n" +
-            "Only the booting code in the MBR will be rewritten.\n" +
-            "The partition table remains unchanged.\n" +
-            "\n" +
+          "Warning!\n" \
+            "\n" \
+            "Current MBR of %1 will now be rewritten with MBR\n" \
+            "saved at %2.\n" \
+            "\n" \
+            "Only the booting code in the MBR will be rewritten.\n" \
+            "The partition table remains unchanged.\n" \
+            "\n" \
             "Continue?\n"
         ),
         device,

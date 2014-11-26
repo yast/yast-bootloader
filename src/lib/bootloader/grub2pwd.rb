@@ -14,11 +14,11 @@ class GRUB2Pwd
   def enable(password)
     enc_passwd = encrypt(password)
 
-    file_content = "#! /bin/sh\n" +
-      "exec tail -n +3 $0\n" +
-      "# File created by YaST and next password change in YaST will overwrite it\n" +
-      "set superusers=\"root\"\n" +
-      "password_pbkdf2 root #{enc_passwd}\n" +
+    file_content = "#! /bin/sh\n" \
+      "exec tail -n +3 $0\n" \
+      "# File created by YaST and next password change in YaST will overwrite it\n" \
+      "set superusers=\"root\"\n" \
+      "password_pbkdf2 root #{enc_passwd}\n" \
       "export superusers"
 
     Yast::SCR.Write(

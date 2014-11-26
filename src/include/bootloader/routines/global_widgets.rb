@@ -137,10 +137,10 @@ module Yast
         # popup - Continue/Cancel
         if Popup.ContinueCancel(
             _(
-              "\n" +
-                "If you do not install any boot loader, the system\n" +
-                "might not start.\n" +
-                "\n" +
+              "\n" \
+                "If you do not install any boot loader, the system\n" \
+                "might not start.\n" \
+                "\n" \
                 "Proceed?\n"
             )
           )
