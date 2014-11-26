@@ -66,7 +66,7 @@ describe Yast::BootStorage do
           number = "system"
         else
           number = partition[/(\d+)$/, 1]
-          disk = partition[0..-(number.size+1)]
+          disk = partition[0..-(number.size + 1)]
         end
         { "disk" => disk, "nr" => number }
       end

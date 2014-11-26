@@ -60,7 +60,7 @@ module Bootloader
           pos += 1
         when :delete
           disks.delete_at(pos)
-          pos = pos == disks.size ? pos -1 : pos
+          pos = pos == disks.size ? pos - 1 : pos
         when :add
           disk = add_device_popup
           disks << disk if disk

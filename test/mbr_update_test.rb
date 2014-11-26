@@ -21,7 +21,7 @@ describe Bootloader::MBRUpdate do
           number = "system"
         else
           number = partition[/(\d+)$/, 1]
-          disk = number ? partition[0..-(number.size+1)] : partition
+          disk = number ? partition[0..-(number.size + 1)] : partition
         end
         { "disk" => disk, "nr" => number }
       end
