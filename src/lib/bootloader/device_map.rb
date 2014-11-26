@@ -222,13 +222,10 @@ module Bootloader
     def checkMDRaidDevices(devices, tm)
       ret = true
       devices.each do |key|
-        if key != "" && ret
-          if tm[key] != nil
-            ret = true
-          else
-            ret = false
-          end
-        end
+        break unless ret
+        next if key == ""
+
+        ret = tm[key].nil?
       end
       ret
     end

@@ -112,15 +112,15 @@ module Bootloader
         mbr_dev = m_activate["mbr"]
         raise "INTERNAL ERROR: Data for partition to activate is invalid." if num.nil? || mbr_dev.nil?
 
-        if can_activate_partition?(num)
-          log.info "Activating partition #{num} on #{mbr_dev}"
-          # this is needed only on gpt disks but we run it always
-          # anyway; parted just fails, then
-          set_parted_flag(mbr_dev, num, "legacy_boot")
+        next unless can_activate_partition?(num)
 
-          out = set_parted_flag(mbr_dev, num, "boot")
-          ret &&= out["exit"] == 0
-        end
+        log.info "Activating partition #{num} on #{mbr_dev}"
+        # this is needed only on gpt disks but we run it always
+        # anyway; parted just fails, then
+        set_parted_flag(mbr_dev, num, "legacy_boot")
+
+        out = set_parted_flag(mbr_dev, num, "boot")
+        ret &&= out["exit"] == 0
       end
       ret
     end

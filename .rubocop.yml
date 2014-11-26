@@ -146,14 +146,8 @@ Style/MethodName:
 Style/MultilineOperationIndentation:
   EnforcedStyle: indented
 
-# Offense count: 52
-# Cop supports --auto-correct.
+# keep negated if as we prefer it only in traling form
 Style/NegatedIf:
-  Enabled: false
-
-# Offense count: 2
-# Configuration parameters: EnforcedStyle, MinBodyLength, SupportedStyles.
-Style/Next:
   Enabled: false
 
 # Offense count: 14
