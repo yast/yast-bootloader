@@ -233,7 +233,7 @@ module Yast
       # FIXME: move to boot storage
       tm = Storage.GetTargetMap
       ret = {}
-      tm.each do |_k, v|
+      tm.each_value do |v|
         cyl_size = v["cyl_size"] || 0
         partitions = v["partitions"] || []
         partitions = partitions.select do |p|

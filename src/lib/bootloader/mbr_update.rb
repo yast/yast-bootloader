@@ -116,7 +116,7 @@ module Bootloader
         set_parted_flag(mbr_dev, num, "legacy_boot")
 
         out = set_parted_flag(mbr_dev, num, "boot")
-        ret &&= out["exit"] == 0
+        ret &&= out["exit"].zero?
       end
       ret
     end

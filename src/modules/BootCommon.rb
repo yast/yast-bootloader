@@ -155,9 +155,9 @@ module Yast
         "global"     => remapGlobals(@globals),
         "device_map" => BootStorage.device_map.remapped_hash
       }
-      Ops.set(exp, "activate", @activate) if @loader_type != "grub2"
+      exp["activate"] = @activate if @loader_type != "grub2"
 
-      deep_copy(exp)
+      exp
     end
 
     # Import settings from a map

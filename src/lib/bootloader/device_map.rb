@@ -217,14 +217,9 @@ module Bootloader
     # @param [Hash{String => map}] tm - unfiltered target map
     # @return - true if MD RAID is build on disks (not on partitions)
     def mdraid_on_disk?(devices, tm)
-      ret = true
-      devices.each do |key|
-        break unless ret
-        next if key == ""
-
-        ret = tm[key].nil?
+      devices.all? do |key|
+        key == "" || tm[key]
       end
-      ret
     end
 
     # Check if disk is in MDRaid it means completed disk is used in RAID

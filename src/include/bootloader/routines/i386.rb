@@ -115,7 +115,7 @@ module Yast
           Builtins.y2milestone("Running command %1", command)
           out = SCR.Execute(path(".target.bash_output"), command)
           Builtins.y2milestone("Command output: %1", out)
-          ret &&= 0 == out["exit"]
+          ret = out["exit"].zero?
         end
       end
 
