@@ -136,6 +136,10 @@ Style/MultilineOperationIndentation:
 Style/NegatedIf:
   Enabled: false
 
+# do not force %r
+Style/RegexpLiteral:
+  Enabled: false
+
 Style/SignalException:
   EnforcedStyle: only_raise
 

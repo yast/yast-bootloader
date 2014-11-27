@@ -37,7 +37,7 @@ module Bootloader
     # @param dev [String] device udev or kernel one like /dev/disks/by-id/blabla
     # @raise when device have udev format but do not exists
     def to_kernel_device(dev)
-      return dev unless dev.start_with?("/dev/disk/by-")
+      return dev if dev !~ /^\/dev\/disk\/by-/
 
       all_devices[dev] or raise "Unknown udev device #{dev}"
     end
