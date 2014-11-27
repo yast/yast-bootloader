@@ -136,9 +136,6 @@ Style/MultilineOperationIndentation:
 Style/NegatedIf:
   Enabled: false
 
-Style/NumericLiterals:
-  MinDigits: 4
-
 Style/SignalException:
   EnforcedStyle: only_raise
 
