@@ -20,8 +20,8 @@ describe Bootloader::MBRUpdate do
           disk = "/dev/system"
           number = "system"
         else
-          number = partition[/(\d+)$/,1]
-          disk = number ? partition[0..-(number.size+1)] : partition
+          number = partition[/(\d+)$/, 1]
+          disk = number ? partition[0..-(number.size + 1)] : partition
         end
         { "disk" => disk, "nr" => number }
       end
@@ -32,8 +32,8 @@ describe Bootloader::MBRUpdate do
 
       # fake query for gpt label
       allow(Yast::Storage).to receive(:GetTargetMap).and_return(
-        double(:fetch =>  { "label" => "msdos" },
-          :[] =>  { "label" => "msdos" }
+        double(:fetch => { "label" => "msdos" },
+               :[]    => { "label" => "msdos" }
         )
       )
     end
@@ -67,45 +67,45 @@ describe Bootloader::MBRUpdate do
         subject.run
       end
 
-      # FIXME get reason for it
+      # FIXME: get reason for it
       it "creates backup for all devices in BootCommon.GetBootloaderDevices if at least one device lies on mbrDisk" do
         expect(::Bootloader::BootRecordBackup).to(
           receive(:new).with("/dev/sda").and_return(double(:write => true))
         )
 
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices).
-          and_return(["/dev/sdb", "/dev/sda1"])
+        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+          .and_return(["/dev/sdb", "/dev/sda1"])
         backup_mock = double(::Bootloader::BootRecordBackup)
         expect(backup_mock).to receive(:write).twice
         expect(::Bootloader::BootRecordBackup).to(
-          receive(:new).with("/dev/sdb").
-          and_return(backup_mock)
+          receive(:new).with("/dev/sdb")
+          .and_return(backup_mock)
         )
         expect(::Bootloader::BootRecordBackup).to(
-          receive(:new).with("/dev/sda1").
-          and_return(backup_mock)
+          receive(:new).with("/dev/sda1")
+          .and_return(backup_mock)
         )
 
         subject.run
       end
 
       it "creates backup of any disk where Bootloader Devices laid in md raid" do
-        allow(Yast::BootStorage).to receive(:Md2Partitions).and_return({"/dev/sdb1" => "/dev/md0", "/dev/sda1" => "/dev/md0"})
+        allow(Yast::BootStorage).to receive(:Md2Partitions).and_return("/dev/sdb1" => "/dev/md0", "/dev/sda1" => "/dev/md0")
 
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices).
-          and_return(["/dev/md0"])
+        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+          .and_return(["/dev/md0"])
         backup_mock = double(::Bootloader::BootRecordBackup)
         expect(backup_mock).to receive(:write)
         expect(::Bootloader::BootRecordBackup).to(
           receive(:new).with("/dev/sdb").and_return(backup_mock)
         )
         expect(::Bootloader::BootRecordBackup).to(
-          receive(:new).with("/dev/md0").
-          and_return(double(:write => true))
+          receive(:new).with("/dev/md0")
+          .and_return(double(:write => true))
         )
         expect(::Bootloader::BootRecordBackup).to(
-          receive(:new).with("/dev/sda").
-          and_return(double(:write => true))
+          receive(:new).with("/dev/sda")
+          .and_return(double(:write => true))
         )
 
         subject.run
@@ -140,10 +140,10 @@ describe Bootloader::MBRUpdate do
       end
 
       it "do nothing if mbrDisk is in Bootloader devices, so we install there bootloader stage1" do
-        allow(Yast::BootCommon).to receive(:mbrDisk).
-          and_return("/dev/sda")
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices).
-          and_return(["/dev/sda"])
+        allow(Yast::BootCommon).to receive(:mbrDisk)
+          .and_return("/dev/sda")
+        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+          .and_return(["/dev/sda"])
 
         expect(Yast::WFM).to_not receive(:Execute)
         expect(Yast::SCR).to_not receive(:Execute)
@@ -151,11 +151,10 @@ describe Bootloader::MBRUpdate do
       end
 
       it "rewrites diskMBR with generic code" do
-        allow(Yast::BootCommon).to receive(:mbrDisk).
-          and_return("/dev/sda")
+        allow(Yast::BootCommon).to receive(:mbrDisk)
+          .and_return("/dev/sda")
 
-
-        expect(Yast::SCR).to receive(:Execute).with(anything(), /dd /).and_return({ "exit" => 0 })
+        expect(Yast::SCR).to receive(:Execute).with(anything, /dd /).and_return("exit" => 0)
         subject.run
       end
 
@@ -167,15 +166,14 @@ describe Bootloader::MBRUpdate do
       end
 
       it "install gpt generic code if disk is gpt" do
-        allow(Yast::Storage).to receive(:GetTargetMap).and_return({
+        allow(Yast::Storage).to receive(:GetTargetMap).and_return(
           "/dev/sda" => { "label" => "gpt" }
-        })
+        )
 
-        allow(Yast::BootCommon).to receive(:mbrDisk).
-          and_return("/dev/sda")
+        allow(Yast::BootCommon).to receive(:mbrDisk)
+          .and_return("/dev/sda")
 
-
-        expect(Yast::SCR).to receive(:Execute).with(anything(), /gptmbr.bin/).and_return({ "exit" => 0 })
+        expect(Yast::SCR).to receive(:Execute).with(anything, /gptmbr.bin/).and_return("exit" => 0)
         subject.run
       end
     end
@@ -189,61 +187,61 @@ describe Bootloader::MBRUpdate do
       end
 
       it "sets boot flag on all partitions in Bootloader devices" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices).
-          and_return(["/dev/sda1", "/dev/sdb1"])
+        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+          .and_return(["/dev/sda1", "/dev/sdb1"])
 
-        expect(Yast::WFM).to receive(:Execute).
-          with(anything(), /parted -s \/dev\/sda set 1 boot on/).
-          and_return({ "exit" => 0})
+        expect(Yast::WFM).to receive(:Execute)
+          .with(anything, /parted -s \/dev\/sda set 1 boot on/)
+          .and_return("exit" => 0)
         subject.run
       end
 
       it "returns false if any setting of boot flag failed" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices).
-          and_return(["/dev/sda1", "/dev/sdb1"])
+        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+          .and_return(["/dev/sda1", "/dev/sdb1"])
 
-        allow(Yast::WFM).to receive(:Execute).
-          with(anything(), /parted -s \/dev\/sda set 1 boot on/).
-          and_return({ "exit" => 1})
+        allow(Yast::WFM).to receive(:Execute)
+          .with(anything, /parted -s \/dev\/sda set 1 boot on/)
+          .and_return("exit" => 1)
 
         expect(subject.run).to be false
       end
 
       it "sets legacy_boot flag on all partitions in Bootloader devices" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices).
-          and_return(["/dev/sda1", "/dev/sdb1"])
+        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+          .and_return(["/dev/sda1", "/dev/sdb1"])
 
-        expect(Yast::WFM).to receive(:Execute).
-          with(anything(), /parted -s \/dev\/sda set 1 legacy_boot on/).
-          and_return({ "exit" => 0})
+        expect(Yast::WFM).to receive(:Execute)
+          .with(anything, /parted -s \/dev\/sda set 1 legacy_boot on/)
+          .and_return("exit" => 0)
         subject.run
       end
 
       it "do not return false if setting legacy_boot failed" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices).
-          and_return(["/dev/sda1", "/dev/sdb1"])
+        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+          .and_return(["/dev/sda1", "/dev/sdb1"])
 
-        allow(Yast::WFM).to receive(:Execute).
-          with(anything(), /parted -s \/dev\/sda set 1 legacy_boot on/).
-          and_return({ "exit" => 1})
+        allow(Yast::WFM).to receive(:Execute)
+          .with(anything, /parted -s \/dev\/sda set 1 legacy_boot on/)
+          .and_return("exit" => 1)
 
         expect(subject.run).to be true
       end
 
       it "do not set any flag on old DOS MBR for logical partitions" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices).
-          and_return(["/dev/sda1", "/dev/sdb6"])
+        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+          .and_return(["/dev/sda1", "/dev/sdb6"])
 
-        expect(Yast::WFM).to_not receive(:Execute).
-          with(anything(), /sdb/)
+        expect(Yast::WFM).to_not receive(:Execute)
+          .with(anything, /sdb/)
         subject.run
       end
 
       it "sets flags also on /boot device if it is software raid" do
         allow(Yast::BootCommon).to receive(:getBootPartition).and_return("/dev/md1")
 
-        expect(Yast::WFM).to receive(:Execute).
-          with(anything(), /md set 1/)
+        expect(Yast::WFM).to receive(:Execute)
+          .with(anything, /md set 1/)
         subject.run
       end
     end

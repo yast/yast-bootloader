@@ -32,8 +32,6 @@ module Yast
       Yast.import "Package"
       Yast.import "Message"
 
-
-
       Yast.include include_target, "bootloader/routines/helps.rb"
 
       # Map of default (fallback) handlers for widget events on global widgets
@@ -62,8 +60,7 @@ module Yast
     # Store function of a widget
     # @param [String] widget string widget key
     # @param [Hash] event map event that caused the operation
-    def GlobalOptionStore(widget, event)
-      event = deep_copy(event)
+    def GlobalOptionStore(widget, _event)
       return if widget == "adv_button"
       Ops.set(
         BootCommon.globals,
@@ -78,8 +75,7 @@ module Yast
     # @param [String] widget string widget key
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] to return to wizard sequencer, or nil
-    def InstDetailsButtonHandle(widget, event)
-      event = deep_copy(event)
+    def InstDetailsButtonHandle(_widget, _event)
       lt = Bootloader.getLoaderType
       if lt == "none" || lt == "default"
         NoLoaderAvailable()
@@ -92,8 +88,7 @@ module Yast
     # @param [String] widget string widget key
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] to return to wizard sequencer, or nil
-    def LoaderOptionsButtonHandle(widget, event)
-      event = deep_copy(event)
+    def LoaderOptionsButtonHandle(_widget, _event)
       lt = Bootloader.getLoaderType
       if lt == "none" || lt == "default"
         NoLoaderAvailable()
@@ -132,7 +127,7 @@ module Yast
     # @return [Symbol] to return to wizard sequencer, or nil
     def LoaderTypeComboHandle(key, event)
       event = deep_copy(event)
-      return if event["ID"] != key # FIXME can it happen at all?
+      return if event["ID"] != key # FIXME: can it happen at all?
       old_bl = Bootloader.getLoaderType
       new_bl = UI.QueryWidget(Id(key), :Value).to_s
 
@@ -142,10 +137,10 @@ module Yast
         # popup - Continue/Cancel
         if Popup.ContinueCancel(
             _(
-              "\n" +
-                "If you do not install any boot loader, the system\n" +
-                "might not start.\n" +
-                "\n" +
+              "\n" \
+                "If you do not install any boot loader, the system\n" \
+                "might not start.\n" \
+                "\n" \
                 "Proceed?\n"
             )
           )
@@ -155,7 +150,7 @@ module Yast
         return :redraw
       end
 
-      if ["grub2", "grub2-efi"].include? (new_bl)
+      if ["grub2", "grub2-efi"].include?(new_bl)
         BootCommon.setLoaderType(new_bl)
         Bootloader.Propose
         BootCommon.location_changed = true
@@ -168,10 +163,9 @@ module Yast
 
     # reset menu button
 
-
     # Init function of widget
     # @param [String] widget any id of the widget
-    def resetButtonInit(widget)
+    def resetButtonInit(_widget)
       items = []
       items = Builtins.add(
         items,
@@ -246,7 +240,7 @@ module Yast
     # @param [String] widget any widget key
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] to return to wizard sequencer, or nil
-    def resetButtonHandle(widget, event)
+    def resetButtonHandle(_widget, event)
       event = deep_copy(event)
       op = Ops.get(event, "ID")
       return :manual if op == :manual
@@ -281,7 +275,7 @@ module Yast
       elsif op == :init
         # Bootloader::blSave (false, false, false);
         ret = BootCommon.InitializeBootloader
-        ret = false if ret == nil
+        ret = false if ret.nil?
 
         Popup.Warning(_("Writing bootloader settings failed.")) if !ret
       elsif op == :propose
@@ -290,10 +284,6 @@ module Yast
 
       :redraw
     end
-
-
-
-
 
     # Get map of widget
     # @return a map of widget
@@ -313,26 +303,25 @@ module Yast
     # Get general widgets for global bootloader options
     # @return a map describing all general widgets for global options
     def CommonGlobalWidgets
-      if @_common_global_widgets != nil
-        return deep_copy(@_common_global_widgets)
-      end
+      return deep_copy(@_common_global_widgets) if @_common_global_widgets
+
       @_common_global_widgets = {
         "adv_button"     => getAdvancedButtonWidget,
         "loader_type"    => {
-          "widget"            => :func,
-          "widget_func"       => fun_ref(
+          "widget"      => :func,
+          "widget_func" => fun_ref(
             method(:LoaderTypeComboWidget),
             "term ()"
           ),
-          "init"              => fun_ref(
+          "init"        => fun_ref(
             method(:LoaderTypeComboInit),
             "void (string)"
           ),
-          "handle"            => fun_ref(
+          "handle"      => fun_ref(
             method(:LoaderTypeComboHandle),
             "symbol (string, map)"
           ),
-          "help"              => LoaderTypeHelp()
+          "help"        => LoaderTypeHelp()
         },
         "loader_options" => {
           "widget"        => :push_button,
@@ -345,7 +334,7 @@ module Yast
           ),
           "help"          => LoaderOptionsHelp()
         },
-        #FIXME: after deleting all using of metadata delete widget from
+        # FIXME: after deleting all using of metadata delete widget from
         # from CommonGlobalWidgets the button is only for GRUB...
         "inst_details"   => {
           "widget"        => :push_button,
@@ -361,8 +350,6 @@ module Yast
           "help"          => InstDetailsHelp()
         }
       }
-
-
 
       deep_copy(@_common_global_widgets)
     end

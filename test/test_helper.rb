@@ -25,5 +25,3 @@ def target_map_stub(name)
   tm = eval(File.read(path))
   allow(Yast::Storage).to receive(:GetTargetMap).and_return(tm)
 end
-
-

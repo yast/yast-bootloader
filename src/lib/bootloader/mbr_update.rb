@@ -10,7 +10,7 @@ Yast.import "Partitions"
 module Bootloader
   # this class place generic MBR wherever it is needed
   # and also mark needed partitions with boot flag and legacy_boot
-  # FIXME make it single responsibility class
+  # FIXME: make it single responsibility class
   class MBRUpdate
     include Yast::Logger
 
@@ -25,9 +25,7 @@ module Bootloader
       # After a proposal is done, Bootloader::Propose() always sets
       # backup_mbr to true. The default is false. No other parts of the code
       # currently change this flag.
-      if Yast::BootCommon.backup_mbr
-        create_backups
-      end
+      create_backups if Yast::BootCommon.backup_mbr
 
       ret = true
       # Rewrite MBR with generic boot code only if we do not plan to install
@@ -36,12 +34,11 @@ module Bootloader
         ret &&= install_generic_mbr
       end
 
-      if activate
-        ret &&= activate_partitions
-      end
+      ret &&= activate_partitions if activate
 
       ret
     end
+
   private
 
     def mbr_disk
@@ -70,10 +67,10 @@ module Bootloader
       mbr_type == "gpt"
     end
 
+    GPT_MBR = "/usr/share/syslinux/gptmbr.bin"
+    DOS_MBR = "/usr/share/syslinux/mbr.bin"
     def generic_mbr_file
-      @generic_mbr_file ||= mbr_is_gpt? ?
-        "/usr/share/syslinux/gptmbr.bin" :
-        "/usr/share/syslinux/mbr.bin"
+      @generic_mbr_file ||= mbr_is_gpt? ? GPT_MBR : DOS_MBR
     end
 
     def install_generic_mbr
@@ -87,7 +84,7 @@ module Bootloader
         log.info "Command `#{command}` output: #{out}"
         ret &&= out["exit"] == 0
       end
-      return ret
+      ret
     end
 
     def set_parted_flag(disk, part_num, flag)
@@ -111,16 +108,15 @@ module Bootloader
         mbr_dev = m_activate["mbr"]
         raise "INTERNAL ERROR: Data for partition to activate is invalid." if num.nil? || mbr_dev.nil?
 
+        next unless can_activate_partition?(num)
 
-        if can_activate_partition?(num)
-          log.info "Activating partition #{num} on #{mbr_dev}"
-          # this is needed only on gpt disks but we run it always
-          # anyway; parted just fails, then
-          set_parted_flag(mbr_dev, num, "legacy_boot")
+        log.info "Activating partition #{num} on #{mbr_dev}"
+        # this is needed only on gpt disks but we run it always
+        # anyway; parted just fails, then
+        set_parted_flag(mbr_dev, num, "legacy_boot")
 
-          out = set_parted_flag(mbr_dev, num, "boot")
-          ret &&= out["exit"] == 0
-        end
+        out = set_parted_flag(mbr_dev, num, "boot")
+        ret &&= out["exit"].zero?
       end
       ret
     end
@@ -134,7 +130,7 @@ module Bootloader
         @boot_devices << boot_device if boot_device.start_with?("/dev/md")
       end
 
-      return @boot_devices
+      @boot_devices
     end
 
     # get a list of all bootloader devices or their underlying soft-RAID
@@ -162,9 +158,8 @@ module Bootloader
       end
       ret = [mbr_disk]
       # Add to disks only if part of raid on base devices lives on mbr_disk
-      if mbrs.include?(mbr_disk)
-        ret.concat(mbrs)
-      end
+      ret.concat(mbrs) if mbrs.include?(mbr_disk)
+
       ret.uniq
     end
 
@@ -188,7 +183,7 @@ module Bootloader
     end
 
     def extended_partition_num(disk)
-      part = activatable_partitions(disk).find {|p| p["type"] == :extended }
+      part = activatable_partitions(disk).find { |p| p["type"] == :extended }
       return nil unless part
 
       num = part["nr"]
@@ -240,7 +235,7 @@ module Bootloader
 
       ret = {
         "num" => num,
-        "mbr" => mbr_dev,
+        "mbr" => mbr_dev
       }
 
       log.info "Partition for activating: #{ret}"

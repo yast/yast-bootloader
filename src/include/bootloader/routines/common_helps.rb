@@ -16,7 +16,7 @@
 #
 module Yast
   module BootloaderRoutinesCommonHelpsInclude
-    def initialize_bootloader_routines_common_helps(include_target)
+    def initialize_bootloader_routines_common_helps(_include_target)
       textdomain "bootloader"
 
       @common_help_messages = {
@@ -24,7 +24,6 @@ module Yast
           "<p><b>Timeout in Seconds</b><br>\nSpecifies the time the bootloader will wait until the default kernel is loaded.</p>\n"
         )
       }
-
 
       @common_descriptions = { "timeout" => _("&Timeout in Seconds") }
     end

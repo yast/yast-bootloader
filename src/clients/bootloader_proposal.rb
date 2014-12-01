@@ -77,13 +77,13 @@ module Yast
 
         if Bootloader.getLoaderType == "grub2"
           @ret["links"] = [
-              "enable_boot_mbr",
-              "disable_boot_mbr",
-              "enable_boot_root",
-              "disable_boot_root",
-              "enable_boot_boot",
-              "disable_boot_boot"
-            ]
+            "enable_boot_mbr",
+            "disable_boot_mbr",
+            "enable_boot_root",
+            "disable_boot_root",
+            "enable_boot_boot",
+            "disable_boot_boot"
+          ]
         end
 
         # to make sure packages will get installed
@@ -91,8 +91,8 @@ module Yast
 
         @ret["raw_proposal"] = Bootloader.Summary
 
-        #F#300779 - Install diskless client (NFS-root)
-        #kokso:  bootloader will not be installed
+        # F#300779 - Install diskless client (NFS-root)
+        # kokso:  bootloader will not be installed
         @device = BootCommon.getBootDisk
         if @device == "/dev/nfs"
           Builtins.y2milestone(
@@ -103,7 +103,7 @@ module Yast
         end
         Builtins.y2milestone("Type of BootPartitionDevice: %1", @device)
 
-        #F#300779 - end
+        # F#300779 - end
 
         if Bootloader.getLoaderType == ""
           Builtins.y2error("No bootloader selected")
@@ -128,16 +128,15 @@ module Yast
           }
         end
 
-
         if !BootSupportCheck.SystemSupported
           @ret = Convert.convert(
             Builtins.union(
               @ret,
-              {
-                "warning_level" => :error,
-                "warning"       => BootSupportCheck.StringProblems,
-                "raw_proposal"  => Bootloader.Summary
-              }
+
+              "warning_level" => :error,
+              "warning"       => BootSupportCheck.StringProblems,
+              "raw_proposal"  => Bootloader.Summary
+
             ),
             :from => "map",
             :to   => "map <string, any>"
@@ -236,22 +235,22 @@ module Yast
     end
 
   private
+
     BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader"
     # read bootloader from /mnt as SCR is not yet switched in proposal
     # phase of update (bnc#874646)
     def old_bootloader
       target_boot_sysconfig_path = ::File.join(Installation.destdir, BOOT_SYSCONFIG_PATH)
-      return nil unless ::File.exists? target_boot_sysconfig_path
+      return nil unless ::File.exist? target_boot_sysconfig_path
 
       boot_sysconfig = ::File.read target_boot_sysconfig_path
-      old_bootloader = boot_sysconfig.lines.grep /^\s*LOADER_TYPE/
+      old_bootloader = boot_sysconfig.lines.grep(/^\s*LOADER_TYPE/)
       Builtins.y2milestone "bootloader entry #{old_bootloader.inspect}"
       retur nil if old_bootloader.empty?
 
       # get value from entry
-      old_bootloader.last.sub(/^.*=\s*(\S*).*/,"\\1").delete('"')
+      old_bootloader.last.sub(/^.*=\s*(\S*).*/, "\\1").delete('"')
     end
-
   end unless defined? Yast::BootloaderProposalClient
 end
 

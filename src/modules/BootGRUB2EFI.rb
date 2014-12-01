@@ -59,10 +59,10 @@ module Yast
 
       if BootCommon.location_changed
         grub_ret = BootCommon.InitializeBootloader
-        grub_ret = false if grub_ret == nil
+        grub_ret = false if grub_ret.nil?
 
         Builtins.y2milestone("GRUB2EFI return value: %1", grub_ret)
-        ret = ret && grub_ret
+        ret &&= grub_ret
       end
 
       # something with PMBR needed
@@ -84,7 +84,7 @@ module Yast
       BootCommon.pmbr_action = :add if !BootCommon.was_proposed || Mode.autoinst || Mode.autoupgrade
 
       # set secure boot always on (bnc #879486)
-      BootCommon.setSystemSecureBootStatus(true) if !BootCommon.was_proposed && Arch.x86_64;
+      BootCommon.setSystemSecureBootStatus(true) if !BootCommon.was_proposed && Arch.x86_64
     end
 
     # Display bootloader summary
@@ -127,10 +127,8 @@ module Yast
       }
     end
 
-
     # Constructor
     def BootGRUB2EFI
-
       if Arch.i386
         packages = ["grub2-i386-efi"]
       elsif Arch.x86_64
@@ -143,11 +141,11 @@ module Yast
       Ops.set(
         BootCommon.bootloader_attribs,
         "grub2-efi",
-        {
-          "required_packages" => packages,
-          "loader_name"       => "GRUB2-EFI",
-          "initializer"       => fun_ref(method(:Initializer), "void ()")
-        }
+
+        "required_packages" => packages,
+        "loader_name"       => "GRUB2-EFI",
+        "initializer"       => fun_ref(method(:Initializer), "void ()")
+
       )
 
       nil

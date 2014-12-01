@@ -17,7 +17,6 @@ require "bootloader/kexec"
 module Yast
   class BootloaderFinishClient < Client
     def main
-
       textdomain "bootloader"
 
       Yast.import "Arch"
@@ -27,7 +26,6 @@ module Yast
       Yast.import "Misc"
       Yast.import "Mode"
       Yast.import "BootCommon"
-
 
       @ret = nil
       @func = ""
@@ -62,17 +60,17 @@ module Yast
         if Mode.update
           @cmd = Ops.add(
             Ops.add("targetdir=", Installation.destdir),
-            "\n" +
-              "if test ${targetdir} = / ; then echo targetdir is / ; exit 1 ; fi\n" +
-              "grep -E \"^[^ ]+ ${targetdir}/dev \" < /proc/mounts\n" +
-              "if test $? = 0\n" +
-              "then\n" +
-              "\techo targetdir ${targetdir} already mounted.\n" +
-              "\texit 1\n" +
-              "else\n" +
-              "\tmkdir -vp ${targetdir}/dev\n" +
-              "\tcp --preserve=all --recursive --remove-destination /lib/udev/devices/* ${targetdir}/dev\n" +
-              "\tmount -v --bind /dev ${targetdir}/dev\n" +
+            "\n" \
+              "if test ${targetdir} = / ; then echo targetdir is / ; exit 1 ; fi\n" \
+              "grep -E \"^[^ ]+ ${targetdir}/dev \" < /proc/mounts\n" \
+              "if test $? = 0\n" \
+              "then\n" \
+              "\techo targetdir ${targetdir} already mounted.\n" \
+              "\texit 1\n" \
+              "else\n" \
+              "\tmkdir -vp ${targetdir}/dev\n" \
+              "\tcp --preserve=all --recursive --remove-destination /lib/udev/devices/* ${targetdir}/dev\n" \
+              "\tmount -v --bind /dev ${targetdir}/dev\n" \
               "fi\n"
           )
           Builtins.y2milestone("mount --bind cmd: %1", @cmd)
@@ -133,9 +131,9 @@ module Yast
           # %1 is replaced with additional message from reIPL
           Misc.boot_msg = Builtins.sformat(
             _(
-              "\n" +
-                "Your system will now shut down.%1\n" +
-                "For details, read the related chapter \n" +
+              "\n" \
+                "Your system will now shut down.%1\n" \
+                "For details, read the related chapter \n" \
                 "in the documentation. \n"
             ),
             @ipl_msg
@@ -161,7 +159,6 @@ module Yast
 
         @retcode = false
 
-
         if !Mode.update
           @retcode = Bootloader.WriteInstallation
         else
@@ -173,7 +170,7 @@ module Yast
           Builtins.y2milestone("Regerate initrd with result #{res}")
         end
 
-        # FIXME workaround grub2 need manual rerun of branding due to overwrite by
+        # FIXME: workaround grub2 need manual rerun of branding due to overwrite by
         # pbl. see bnc#879686 and bnc#901003
         if Bootloader.getLoaderType =~ /grub2/
           prefix = Installation.destdir

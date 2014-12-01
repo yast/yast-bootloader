@@ -16,7 +16,7 @@
 #
 module Yast
   module BootloaderRoutinesPopupsInclude
-    def initialize_bootloader_routines_popups(include_target)
+    def initialize_bootloader_routines_popups(_include_target)
       textdomain "bootloader"
 
       Yast.import "Encoding"
@@ -123,14 +123,14 @@ module Yast
       # 'date' command output
       msg = Builtins.sformat(
         _(
-          "Warning!\n" +
-            "\n" +
-            "Current MBR of %1 will now be rewritten with MBR\n" +
-            "saved at %2.\n" +
-            "\n" +
-            "Only the booting code in the MBR will be rewritten.\n" +
-            "The partition table remains unchanged.\n" +
-            "\n" +
+          "Warning!\n" \
+            "\n" \
+            "Current MBR of %1 will now be rewritten with MBR\n" \
+            "saved at %2.\n" \
+            "\n" \
+            "Only the booting code in the MBR will be rewritten.\n" \
+            "The partition table remains unchanged.\n" \
+            "\n" \
             "Continue?\n"
         ),
         device,
@@ -156,9 +156,10 @@ module Yast
       UI.OpenDialog(Opt(:decorated, :warncolor), dialog)
 
       button = nil
-      begin
+      loop do
         button = Convert.to_symbol(UI.UserInput)
-      end until button == :yes || button == :no
+        break if button == :yes || button == :no
+      end
 
       UI.CloseDialog
 

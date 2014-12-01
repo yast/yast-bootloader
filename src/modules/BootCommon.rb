@@ -24,7 +24,6 @@ require "bootloader/sysconfig"
 
 module Yast
   class BootCommonClass < Module
-
     SUPPORTED_BOOTLOADERS = [
       "none", # allow user to manage bootloader itself
       "grub2",
@@ -47,7 +46,6 @@ module Yast
 
       Yast.import "Linuxrc"
 
-
       # General bootloader settings
 
       # map of global options and values
@@ -60,14 +58,13 @@ module Yast
 
       @cached_settings_base_data_change_time = nil
 
-
       # device to save loader stage 1 to
       # NOTE: this variable is being phased out. The boot_* keys in the globals map
       # are now used to remember the selected boot location. Thus, we now have a
       # list of selected loader devices. It can be generated from the information in
       # the boot_* keys and the global variables (Boot|Root|Extended)PartitionDevice
       # and mbrDisk by calling GetBootloaderDevices().
-      #FIXME: need remove to read only loader location from perl-Bootloader
+      # FIXME: need remove to read only loader location from perl-Bootloader
       @loader_device = nil
 
       # proposal helping variables
@@ -78,10 +75,8 @@ module Yast
       # NOTE: this variable is being phased out. The boot_* keys in the globals map
       # will be used to remember the last selected location.
       # Currently, valid values are: mbr, boot, root, mbr_md, none
-      #FIXME: need remove to read only loader location from perl-Bootloader
+      # FIXME: need remove to read only loader location from perl-Bootloader
       @selected_location = nil
-
-
 
       # These global variables and functions are needed in included files
 
@@ -120,7 +115,6 @@ module Yast
       @write_settings = {}
 
       @additional_failsafe_params = ""
-
 
       # other variables
 
@@ -161,11 +155,9 @@ module Yast
         "global"     => remapGlobals(@globals),
         "device_map" => BootStorage.device_map.remapped_hash
       }
-      if @loader_type != "grub2"
-        Ops.set(exp, "activate", @activate)
-      end
+      exp["activate"] = @activate if @loader_type != "grub2"
 
-      deep_copy(exp)
+      exp
     end
 
     # Import settings from a map
@@ -242,7 +234,7 @@ module Yast
     # @param [Boolean] init boolean true to init the library
     # @param [Boolean] flush boolean true to flush settings to the disk
     # @return [Boolean] true if success
-    def Save(clean, init, flush)
+    def Save(_clean, init, flush)
       ret = true
 
       bl = getLoaderType(false)
@@ -274,7 +266,7 @@ module Yast
       # "mountby"
 
       Builtins.y2milestone(
-        "device map before mapping #{BootStorage.device_map.to_s}"
+        "device map before mapping #{BootStorage.device_map}"
       )
       my_device_mapping = Builtins.mapmap(BootStorage.device_map.to_hash) do |k, v|
         { ::Bootloader::UdevMapping.to_mountby_device(k) => v }
@@ -332,7 +324,6 @@ module Yast
       Builtins.y2error("No generic write function available")
       false
     end
-
 
     # end of generic versions of bootloader-specific functions
     #-----------------------------------------------------------------------------
@@ -427,7 +418,6 @@ module Yast
       @loader_type
     end
 
-
     # set type of bootloader
     # @param [String] bootloader string type of bootloader
     def setLoaderType(bootloader)
@@ -501,13 +491,9 @@ module Yast
         return SUPPORTED_BOOTLOADERS + ["default"]
       end
       ret = [getLoaderType(false)]
-      if Arch.i386 || Arch.x86_64 || Arch.s390 || Arch.ppc
-        ret << "grub2"
-      end
-      if Arch.x86_64
-        ret << "grub2-efi"
-      end
-      ret = Builtins.add(ret, "none")
+      ret << "grub2" # grub2 everywhere
+      ret << "grub2-efi" if Arch.x86_64
+      ret << "none"
       # avoid double entry for selected one
       ret.uniq
     end
@@ -525,10 +511,10 @@ module Yast
           return true
         end
       end
-      return false
+      false
     end
 
-    # FIXME just backward compatible interface, call directly BootStorage
+    # FIXME: just backward compatible interface, call directly BootStorage
     def Md2Partitions(md_device)
       BootStorage.Md2Partitions(md_device)
     end

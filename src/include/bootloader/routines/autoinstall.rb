@@ -17,7 +17,7 @@
 #
 module Yast
   module BootloaderRoutinesAutoinstallInclude
-    def initialize_bootloader_routines_autoinstall(include_target)
+    def initialize_bootloader_routines_autoinstall(_include_target)
       # Example autoyast configuration file snippets:
       #
       # -------------------------------------------------
@@ -113,7 +113,6 @@ module Yast
       Yast.import "Popup"
     end
 
-
     # Translate the autoinstallation map to the Export map
     # @param [Hash{String => Object}] ai a map the autoinstallation map
     # @return a map the export map
@@ -128,7 +127,7 @@ module Yast
 
       unsupported_bootloaders = ["grub", "zipl", "plilo", "lilo", "elilo"]
       if ai["loader_type"] && unsupported_bootloaders.include?(exp["loader_type"].downcase)
-        # FIXME this should be better handled by exception and show it properly, but it require too big change now
+        # FIXME: this should be better handled by exception and show it properly, but it require too big change now
         Popup.Error(_("Unsupported bootloader '%s'. Adapt your AutoYaST profile accordingly.") %
  exp["loader_type"])
         return nil
@@ -148,17 +147,10 @@ module Yast
       # any time
       Ops.set(exp, ["specific", "global"], {})
 
-      # LILO and GRUB stuff
-
-      old_key_to_new_global_key = {
-        "repl_mbr" => "generic_mbr",
-        "activate" => "activate"
-      }
-
       # device map stuff
       if Ops.greater_than(Builtins.size(Ops.get_list(ai, "device_map", [])), 0)
         dm = Ops.get_list(ai, "device_map", [])
-        if dm != nil && Ops.greater_than(Builtins.size(dm), 0)
+        if !dm.nil? && Ops.greater_than(Builtins.size(dm), 0)
           device_map = Builtins.listmap(dm) do |entry|
             firmware = Builtins.deletechars(
               Ops.get(entry, "firmware", ""),
@@ -215,7 +207,7 @@ module Yast
       end
 
       if Ops.greater_than(Builtins.size(modlist), 0)
-        Ops.set(exp, "initrd", { "list" => modlist, "settings" => modsett })
+        Ops.set(exp, "initrd",  "list" => modlist, "settings" => modsett)
       end
 
       old_format = false
@@ -250,10 +242,10 @@ module Yast
             "%1%2%3",
             Ops.get_string(f, "key", ""),
             separator,
-            Ops.get(f, "value") == nil ? "" : Ops.get(f, "value")
+            Ops.get(f, "value").nil? ? "" : Ops.get(f, "value")
           )
         end
-        file = Builtins.mergestring(lines, "\n")
+        files = Builtins.mergestring(lines, "\n")
         BootCommon.InitializeLibrary(true, loader)
         BootCommon.SetDeviceMap(BootStorage.device_map.to_hash)
         BootCommon.SetGlobal({})
@@ -271,7 +263,7 @@ module Yast
       exp = deep_copy(exp)
       # bootloader type and location stuff
       ai = { "loader_type" => Ops.get_string(exp, "loader_type", "default") }
-      glob = Builtins.filter(Ops.get_map(exp, ["specific", "global"], {})) do |k, v|
+      glob = Builtins.filter(Ops.get_map(exp, ["specific", "global"], {})) do |k, _v|
         Builtins.substring(k, 0, 2) != "__"
       end
       # global options stuff
@@ -286,13 +278,10 @@ module Yast
         end)
       end
       # device map stuff
-      if Ops.greater_than(
-          Builtins.size(Ops.get_map(exp, ["specific", "device_map"], {})),
-          0
-        )
+      if !exp.fetch("specific", {}).fetch("device_map", {}).empty?
         device_map = Ops.get_map(exp, ["specific", "device_map"], {})
-        Builtins.y2error("DM: %1", device_map)
-        if device_map != nil && Ops.greater_than(Builtins.size(device_map), 0)
+        Builtins.y2milestone("DM: %1", device_map)
+        if !device_map.nil? && Ops.greater_than(Builtins.size(device_map), 0)
           dm = Builtins.maplist(device_map) do |linux, firmware|
             { "linux" => linux, "firmware" => firmware }
           end

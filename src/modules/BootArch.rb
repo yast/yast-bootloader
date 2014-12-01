@@ -22,7 +22,6 @@ require "yast"
 module Yast
   class BootArchClass < Module
     def main
-
       textdomain "bootloader"
 
       Yast.import "Arch"
@@ -109,11 +108,7 @@ module Yast
         )
       end
 
-
-      #B#352020 kokso: - Graphical failsafe mode
-      #ret = ret + " 3";
       ret = Ops.add(ret, " x11failsafe")
-      #B#352020 end
       ret
     end
 
@@ -128,7 +123,6 @@ module Yast
     def ResumeAvailable
       Arch.i386 || Arch.x86_64 || Arch.s390
     end
-
 
     # Return architecture as string
     # @return [String] type of architecture e.g. "i386"

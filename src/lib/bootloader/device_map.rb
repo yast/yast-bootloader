@@ -34,7 +34,7 @@ module Bootloader
     end
 
     def disks_order
-      disks = @mapping.select { |k,v| v.start_with?("hd") }.keys
+      disks = @mapping.select { |_k, v| v.start_with?("hd") }.keys
 
       disks.sort_by { |d| @mapping[d][2..-1].to_i }
     end
@@ -51,7 +51,7 @@ module Bootloader
       end
 
       log.info "device map before reduction #{@mapping}"
-      @mapping.select! do |k,v|
+      @mapping.select! do |_k, v|
         v[2..-1].to_i < BIOS_LIMIT
       end
 
@@ -76,7 +76,6 @@ module Bootloader
       Hash[remapped]
     end
 
-
     def propose
       @mapping = {}
 
@@ -85,16 +84,14 @@ module Bootloader
         return
       end
 
-      if Yast::Arch.s390
-        return propose_s390_device_map
-      end
+      return propose_s390_device_map if Yast::Arch.s390
 
       fill_mapping
 
       order_boot_device
     end
 
-    private
+  private
 
     def order_boot_device
       # For us priority disk is device where /boot or / lives as we control this disk and
@@ -104,10 +101,12 @@ module Bootloader
         Yast::BootStorage.BootPartitionDevice
       )
       # if none of priority disk is hd0, then choose one and assign it
-      if !any_first_device?(priority_disks)
-        @mapping = change_order(@mapping,
-            priority_device: priority_disks.first)
-      end
+      return if any_first_device?(priority_disks)
+
+      @mapping = change_order(
+        @mapping,
+        priority_device: priority_disks.first
+      )
     end
 
     def fill_mapping
@@ -143,9 +142,8 @@ module Bootloader
         next unless target.fetch("bios_id", "").empty?
 
         index = 0 # find free index
-        while ids[index]
-          index += 1
-        end
+        index += 1 while ids[index]
+
         @mapping[target_dev] = "hd#{index}"
         ids[index] = true
       end
@@ -155,16 +153,16 @@ module Bootloader
       target_map = Yast::Storage.GetTargetMap.dup
 
       # select only disk devices
-      target_map.select! do |k, v|
+      target_map.select! do |_k, v|
         [:CT_DMRAID, :CT_DISK, :CT_DMMULTIPATH].include?(v["type"]) ||
-          ( v["type"] == :CT_MDPART &&
-            checkMDRaidDevices(v["devices"] || [], target_map))
+          (v["type"] == :CT_MDPART &&
+            mdraid_on_disk?(v["devices"] || [], target_map))
       end
 
       # filter out members of BIOS RAIDs and multipath devices
       target_map.delete_if do |k, v|
         [:UB_DMRAID, :UB_DMMULTIPATH].include?(v["used_by_type"]) ||
-          (v["used_by_type"] == :UB_MDPART && isDiskInMDRaid(k, target_map))
+          (v["used_by_type"] == :UB_MDPART && disk_in_mdraid?(k, target_map))
       end
 
       target_map
@@ -172,19 +170,19 @@ module Bootloader
 
     def propose_s390_device_map
       # s390 have some special requirements for device map. Keep it short and simple (bnc#884798)
-      # TODO device map is not needed at all for s390, so if we get rid of perl-Bootloader translations
+      # TODO: device map is not needed at all for s390, so if we get rid of perl-Bootloader translations
       # we can keep it empty
-        boot_part = Yast::Storage.GetEntryForMountpoint("/boot/zipl")
-        boot_part = Yast::Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
-        boot_part = Yast::Storage.GetEntryForMountpoint("/") if boot_part.empty?
+      boot_part = Yast::Storage.GetEntryForMountpoint("/boot/zipl")
+      boot_part = Yast::Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
+      boot_part = Yast::Storage.GetEntryForMountpoint("/") if boot_part.empty?
 
-        raise "Cannot find boot partition" if boot_part.empty?
+      raise "Cannot find boot partition" if boot_part.empty?
 
-        disk = Yast::Storage.GetDiskPartition(boot_part["device"])["disk"]
+      disk = Yast::Storage.GetDiskPartition(boot_part["device"])["disk"]
 
-        @mapping = { disk => "hd0" }
+      @mapping = { disk => "hd0" }
 
-        log.info "Detected device mapping: #{@mapping}"
+      log.info "Detected device mapping: #{@mapping}"
     end
 
     # Returns true if any device from list devices is in device_mapping
@@ -218,31 +216,21 @@ module Bootloader
     # @param [Array<String>] devices - list of devices from MD raid
     # @param [Hash{String => map}] tm - unfiltered target map
     # @return - true if MD RAID is build on disks (not on partitions)
-    def checkMDRaidDevices(devices, tm)
-      ret = true
-      devices.each do |key|
-        if key != "" && ret
-          if tm[key] != nil
-            ret = true
-          else
-            ret = false
-          end
-        end
+    def mdraid_on_disk?(devices, tm)
+      devices.all? do |key|
+        key == "" || tm[key]
       end
-      ret
     end
 
     # Check if disk is in MDRaid it means completed disk is used in RAID
     # @param [String] disk (/dev/sda)
     # @param [Hash{String => map}] tm - target map
     # @return - true if disk (not only part of disk) is in MDRAID
-    def isDiskInMDRaid(disk, tm)
+    def disk_in_mdraid?(disk, tm)
       tm.values.any? do |disk_info|
         disk_info["type"] == :CT_MDPART &&
           (disk_info["devices"] || []).include?(disk)
       end
     end
-
-
   end
 end

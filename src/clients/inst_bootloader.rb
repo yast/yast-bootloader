@@ -16,7 +16,6 @@
 module Yast
   class InstBootloaderClient < Client
     def main
-
       textdomain "bootloader"
 
       Yast.import "Bootloader"
@@ -25,9 +24,7 @@ module Yast
       Yast.import "GetInstArgs"
       Yast.import "Mode"
 
-
       Builtins.y2milestone("starting inst_bootloader")
-
 
       if GetInstArgs.going_back # going backwards?
         return :auto # don't execute this once more
@@ -39,8 +36,8 @@ module Yast
 
         Builtins.y2milestone("contents FILES: %1", @files)
 
-        #F#300779 - Install diskless client (NFS-root)
-        #kokso: bootloader will not be installed
+        # F#300779 - Install diskless client (NFS-root)
+        # kokso: bootloader will not be installed
         @device = BootCommon.getBootDisk
 
         if @device == "/dev/nfs"
@@ -69,7 +66,7 @@ module Yast
 
       # FATE #302245 save kernel args etc to /etc/sysconfig/bootloader
       sysconfig = ::Bootloader::Sysconfig.new(
-        bootloader: Bootloader.getLoaderType,
+        bootloader:  Bootloader.getLoaderType,
         secure_boot: BootCommon.getSystemSecureBootStatus(false)
 
       )

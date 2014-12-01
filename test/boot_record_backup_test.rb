@@ -15,23 +15,23 @@ describe Bootloader::BootRecordBackup do
   describe "#restore" do
     it "returns true if backup is successfully restored" do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* if=\/var\/lib\/YaST2\/backup_boot_sectors/).
-        and_return(0)
+      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* if=\/var\/lib\/YaST2\/backup_boot_sectors/)
+        .and_return(0)
 
       expect(subject.restore).to be true
     end
 
     it "returns false if copying backup failed" do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* if=\/var\/lib\/YaST2\/backup_boot_sectors/).
-        and_return(1)
+      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* if=\/var\/lib\/YaST2\/backup_boot_sectors/)
+        .and_return(1)
 
       expect(subject.restore).to be false
     end
 
     it "raise ::Bootloader::BootRecordBackup::Missing exception if there is not backup for device BR" do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(0)
-      expect{subject.restore}.to raise_error(::Bootloader::BootRecordBackup::Missing)
+      expect { subject.restore }.to raise_error(::Bootloader::BootRecordBackup::Missing)
     end
   end
 
@@ -62,7 +62,7 @@ describe Bootloader::BootRecordBackup do
     it "move old backup in backup_boot_sectors to copy with timestamp" do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
       allow(Yast::SCR).to receive(:Read).with(DIR_PATH, anything).and_return([])
-      allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return({"ctime" => 200})
+      allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return("ctime" => 200)
       expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/mv .*backup_boot_sectors.*\s+.*backup_boot_sectors/)
 
       subject.write
@@ -70,10 +70,10 @@ describe Bootloader::BootRecordBackup do
 
     it "keep only ten backups in backup_boot_sectors" do
       # special backup format, leaked implementation to test
-      file_names = Array.new(11) { |i| "_dev_sda-1970-01-01-00-03-%02d" % i }
+      file_names = Array.new(11) { |i| format("_dev_sda-1970-01-01-00-03-%02d", i) }
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
       allow(Yast::SCR).to receive(:Read).with(DIR_PATH, anything).and_return(file_names)
-      allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return({"ctime" => 200})
+      allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return("ctime" => 200)
       allow(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/mv .*backup_boot_sectors.*\s+.*backup_boot_sectors/)
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.remove"), /.*backup_boot_sectors.*/)
 

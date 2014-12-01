@@ -2,8 +2,8 @@
   "/dev/sda" => {
     "bios_id"        => "0x80",
     "bus"            => "IDE",
-    "cyl_count"      => 1827,
-    "cyl_size"       => 8225280,
+    "cyl_count"      => 1_827,
+    "cyl_size"       => 8_225_280,
     "device"         => "/dev/sda",
     "driver"         => "ahci",
     "driver_module"  => "ahci",
@@ -29,7 +29,7 @@
         "name"           => "sda1",
         "nr"             => 1,
         "region"         => [0, 261],
-        "size_k"         => 2096482,
+        "size_k"         => 2_096_482,
         "type"           => :primary,
         "udev_id"        => [
           "ata-VBOX_HARDDISK_VB7c7aa34e-2f09570d-part1",
@@ -74,7 +74,7 @@
         "name"           => "sda2",
         "nr"             => 2,
         "region"         => [261, 25],
-        "size_k"         => 200812,
+        "size_k"         => 200_812,
         "tunefs_opt"     => "-c 0 -i 0",
         "type"           => :primary,
         "udev_id"        => [
@@ -120,8 +120,8 @@
         "mountby"        => :uuid,
         "name"           => "sda3",
         "nr"             => 3,
-        "region"         => [286, 1540],
-        "size_k"         => 12370050,
+        "region"         => [286, 1_540],
+        "size_k"         => 12_370_050,
         "tunefs_opt"     => "-c 0 -i 0",
         "type"           => :primary,
         "udev_id"        => [
@@ -139,7 +139,7 @@
     ],
     "proposal_name"  => "1. IDE Disk, 14.00 GiB, /dev/sda, VBOX-HARDDISK",
     "sector_size"    => 512,
-    "size_k"         => 14680064,
+    "size_k"         => 14_680_064,
     "transport"      => :sata,
     "type"           => :CT_DISK,
     "udev_id"        => [

@@ -37,7 +37,8 @@ module Bootloader
         # partition can remain activated, which causes less problems with
         # other installed OSes like Windows (older versions assign the C:
         # drive letter to the activated partition).
-        Yast::BootCommon.globals["activate"] = Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk).empty? ? "true" : "false"
+        boot_flag_part = Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk)
+        Yast::BootCommon.globals["activate"] = boot_flag_part.empty? ? "true" : "false"
       else
         # if not installing to MBR, always activate (so the generic MBR will
         # boot Linux)
@@ -47,9 +48,7 @@ module Bootloader
       Yast::BootCommon.activate_changed = true
 
       # for GPT remove protective MBR flag otherwise some systems won't boot
-      if gpt_boot_disk?
-        Yast::BootCommon.pmbr_action = :remove
-      end
+      Yast::BootCommon.pmbr_action = :remove if gpt_boot_disk?
 
       log.info "location configured. Resulting globals #{Yast::BootCommon.globals}"
 
@@ -66,8 +65,8 @@ module Bootloader
       # IMO it is good idea check MBR also in this case
       # see bug #279837 comment #53
       if boot_partition_on_mbr_disk?
-        selected_location = Yast::BootStorage.BootPartitionDevice !=
-          Yast::BootStorage.RootPartitionDevice ? :boot : :root
+        separate_boot = Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+        selected_location =  separate_boot ? :boot : :root
       elsif underlying_boot_partition_devices.size > 1
         selected_location = :mbr
       end
@@ -88,7 +87,8 @@ module Bootloader
       end
 
       assign_bootloader_device(selected_location)
-      if !Yast::BootStorage.possible_locations_for_stage1.include?(Yast::BootCommon.GetBootloaderDevices.first)
+      valid_locations = Yast::BootStorage.possible_locations_for_stage1
+      if !valid_locations.include?(Yast::BootCommon.GetBootloaderDevices.first)
         selected_location = :mbr # default to mbr
         assign_bootloader_device(selected_location)
       end
@@ -173,11 +173,11 @@ module Bootloader
       end
     end
 
-    # FIXME find better location
+    # FIXME: find better location
     def gpt_boot_disk?
       targets = Yast::BootCommon.GetBootloaderDevices
-      boot_discs = targets.map {|d| Yast::Storage.GetDisk(target_map, d)}
-      boot_discs.any? {|d| d["label"] == "gpt" }
+      boot_discs = targets.map { |d| Yast::Storage.GetDisk(target_map, d) }
+      boot_discs.any? { |d| d["label"] == "gpt" }
     end
 
     def target_map
@@ -211,9 +211,7 @@ module Bootloader
 
       @underlying_boot_partition_devices = [Yast::BootStorage.BootPartitionDevice]
       md_info = Yast::BootStorage.Md2Partitions(Yast::BootStorage.BootPartitionDevice)
-      if !md_info.empty?
-        @underlying_boot_partition_devices = md_info.keys
-      end
+      @underlying_boot_partition_devices = md_info.keys if !md_info.empty?
       log.info "Boot partition devices: #{@underlying_boot_partition_devices}"
 
       @underlying_boot_partition_devices
@@ -221,7 +219,6 @@ module Bootloader
 
     def boot_partition_on_mbr_disk?
       return @boot_partition_on_mbr_disk unless @boot_partition_on_mbr_disk.nil?
-
 
       @boot_partition_on_mbr_disk = underlying_boot_partition_devices.any? do |dev|
         pdp = Yast::Storage.GetDiskPartition(dev)

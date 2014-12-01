@@ -16,7 +16,7 @@
 #
 module Yast
   module BootloaderRoutinesHelpsInclude
-    def initialize_bootloader_routines_helps(include_target)
+    def initialize_bootloader_routines_helps(_include_target)
       textdomain "bootloader"
 
       Yast.import "StorageDevices"
@@ -50,9 +50,9 @@ module Yast
       # help text 1/2 (%1 may be following sentence, optionally empty)
       help = Builtins.sformat(
         _(
-          "<P>From <B>Other</B>,\n" +
-            "you can manually edit the boot loader configuration files, clear the current \n" +
-            "configuration and propose a new configuration, start from scratch, or reread\n" +
+          "<P>From <B>Other</B>,\n" \
+            "you can manually edit the boot loader configuration files, clear the current \n" \
+            "configuration and propose a new configuration, start from scratch, or reread\n" \
             "the configuration saved on your disk. %1</P>"
         ),
         ins
@@ -69,7 +69,6 @@ module Yast
       )
     end
 
-
     # Get help
     # @return [String] help text
     def SectionsHelp
@@ -83,11 +82,11 @@ module Yast
         ) +
         # help 3/4
         _(
-          "<P> By pressing <b>Set as Default</b>, mark the selected \n" +
-            "section as default. When booting, the boot loader will provide \n" +
-            "a boot menu and wait for the user to select the kernel or other \n" +
-            "OS to boot. If no key is pressed before the time-out, the default \n" +
-            "kernel or OS will be booted. The order of sections in the boot loader\n" +
+          "<P> By pressing <b>Set as Default</b>, mark the selected \n" \
+            "section as default. When booting, the boot loader will provide \n" \
+            "a boot menu and wait for the user to select the kernel or other \n" \
+            "OS to boot. If no key is pressed before the time-out, the default \n" \
+            "kernel or OS will be booted. The order of sections in the boot loader\n" \
             "menu can be changed using the <B>Up</B> and <B>Down</B> buttons.</P>"
         ) +
         # help 4/4
@@ -95,7 +94,6 @@ module Yast
           "<P>Press <B>Add</B> to create a new boot loader section\nor <B>Delete</B> to delete the selected section.</P>"
         )
     end
-
 
     # popup widgets helps
 
@@ -116,8 +114,8 @@ module Yast
       helptext = Ops.add(
         helptext,
         _(
-          "<p>- In the <b>Master Boot Record</b> (MBR).\n" +
-            "This is not recommended if there is another operating system installed\n" +
+          "<p>- In the <b>Master Boot Record</b> (MBR).\n" \
+            "This is not recommended if there is another operating system installed\n" \
             "on the computer.</p>"
         )
       )
@@ -126,13 +124,13 @@ module Yast
       helptext = Ops.add(
         helptext,
         _(
-          "<p>\n" +
-            "- In the <b>Boot Sector</b> of the <tt>/boot</tt> or <tt>/</tt> (root) \n" +
-            "partition.  This is the recommended option whenever there is a suitable\n" +
-            "partition. Either set <b>Activate Boot Loader Partition</b> and\n" +
-            "<b>Replace MBR with Generic Code</b> in <b>Boot Loader Installation Details</b>\n" +
-            "to update the master boot record\n" +
-            "if it is needed or configure your other boot manager\n" +
+          "<p>\n" \
+            "- In the <b>Boot Sector</b> of the <tt>/boot</tt> or <tt>/</tt> (root) \n" \
+            "partition.  This is the recommended option whenever there is a suitable\n" \
+            "partition. Either set <b>Activate Boot Loader Partition</b> and\n" \
+            "<b>Replace MBR with Generic Code</b> in <b>Boot Loader Installation Details</b>\n" \
+            "to update the master boot record\n" \
+            "if it is needed or configure your other boot manager\n" \
             "to start &product;.</p>"
         )
       )
@@ -141,8 +139,8 @@ module Yast
       helptext = Ops.add(
         helptext,
         _(
-          "<p>\n" +
-            "- In some <b>Other</b> partition. Consider your system's restrictions\n" +
+          "<p>\n" \
+            "- In some <b>Other</b> partition. Consider your system's restrictions\n" \
             "when selecting this option.</p>"
         )
       )
@@ -151,9 +149,9 @@ module Yast
         helptext = Ops.add(
           helptext,
           _(
-            "<p>For example, most PCs have a BIOS\n" +
-              "limit that restricts booting to\n" +
-              "hard disk cylinders smaller than 1024. Depending on the boot manager used,\n" +
+            "<p>For example, most PCs have a BIOS\n" \
+              "limit that restricts booting to\n" \
+              "hard disk cylinders smaller than 1024. Depending on the boot manager used,\n" \
               "you may or may not be able to boot from a logical partition.</p>"
           )
         )
@@ -163,8 +161,8 @@ module Yast
       helptext = Ops.add(
         helptext,
         _(
-          "<p>\n" +
-            "Enter the device name of the partition (for example, <tt>/dev/hda3</tt> or\n" +
+          "<p>\n" \
+            "Enter the device name of the partition (for example, <tt>/dev/hda3</tt> or\n" \
             "<tt>/dev/sdb</tt>) in the input field.</p>"
         )
       )
@@ -176,8 +174,8 @@ module Yast
     def InstDetailsHelp
       # help text 1/1
       _(
-        "<p><b>Boot Loader Installation Details</b><br>\n" +
-          "To adjust advanced boot loader installation options (such as the device\n" +
+        "<p><b>Boot Loader Installation Details</b><br>\n" \
+          "To adjust advanced boot loader installation options (such as the device\n" \
           "mapping), click <b>Boot Loader Installation Details</b>.</p>"
       )
     end
@@ -187,20 +185,19 @@ module Yast
     def LoaderTypeHelp
       # help text 1/1
       _(
-        "<p><b>Boot Loader Type</b><br>\n" +
-          "To select whether to install a boot loader and which bootloader to install,\n" +
+        "<p><b>Boot Loader Type</b><br>\n" \
+          "To select whether to install a boot loader and which bootloader to install,\n" \
           "use <b>Boot Loader</b>.</p>"
       )
     end
-
 
     # Get help text
     # @return [String] help text
     def LoaderOptionsHelp
       # help text 1/1
       _(
-        "<p><b>Boot Loader Options</b><br>\n" +
-          "To adjust options of the boot loader, such as the time-out, click\n" +
+        "<p><b>Boot Loader Options</b><br>\n" \
+          "To adjust options of the boot loader, such as the time-out, click\n" \
           "<b>Boot Loader Options</b>.</p>"
       )
     end
@@ -210,8 +207,8 @@ module Yast
     def getExpertManualHelp
       # help text 1/1
       _(
-        "<P><B>Expert Manual Configuration</B><BR>\n" +
-          "Here, manually edit the boot loader configuration.</P>\n" +
+        "<P><B>Expert Manual Configuration</B><BR>\n" \
+          "Here, manually edit the boot loader configuration.</P>\n" \
           "<P>Note: The final configuration file may have different indenting.</P>"
       )
     end
@@ -221,8 +218,8 @@ module Yast
     def SectionNameHelp
       # help text 1/1
       _(
-        "<p><b>Section Name</b><br>\n" +
-          "Use <b>Section Name</b> to specify the boot loader section name. The section\n" +
+        "<p><b>Section Name</b><br>\n" \
+          "Use <b>Section Name</b> to specify the boot loader section name. The section\n" \
           "name must be unique.</p>"
       )
     end
@@ -236,8 +233,8 @@ module Yast
       ) +
         # help text 2/5
         _(
-          "<p>Select <b>Clone Selected Section</b> to clone the currently selected\n" +
-            "section. Then modify the options that should differ from the\n" +
+          "<p>Select <b>Clone Selected Section</b> to clone the currently selected\n" \
+            "section. Then modify the options that should differ from the\n" \
             "selected section.</p>"
         ) +
         # help text 3/5
@@ -250,13 +247,13 @@ module Yast
         ) +
         # help text 5/5
         _(
-          "<p>Select <b>Other System (Chainloader)</b> to add a section that \n" +
-            "loads and starts a boot sector of a partition of the disk. This is used for\n" +
+          "<p>Select <b>Other System (Chainloader)</b> to add a section that \n" \
+            "loads and starts a boot sector of a partition of the disk. This is used for\n" \
             "booting other operating systems.</p>"
         ) +
         _(
-          "<p>Select <b>Menu Section</b> to add a section that \n" +
-            "loads configuration file (the list of boot sections) from a partition of the disk. This is used for\n" +
+          "<p>Select <b>Menu Section</b> to add a section that \n" \
+            "loads configuration file (the list of boot sections) from a partition of the disk. This is used for\n" \
             "booting other operating systems.</p>"
         )
     end

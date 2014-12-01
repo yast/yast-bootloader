@@ -36,7 +36,7 @@ module Yast
     # @param [String] widget string id of the widget
     # @param [Hash] event map event description of event that occured
     # @return [Symbol] always nil
-    def HandlePasswdWidget(widget, event)
+    def HandlePasswdWidget(_widget, event)
       event = deep_copy(event)
       if Ops.get(event, "ID") == :use_pas
         enabled = Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
@@ -50,8 +50,7 @@ module Yast
     # @param [String] key any widget key
     # @param [Hash] event map event that caused validation
     # @return [Boolean] true if widget settings ok
-    def ValidatePasswdWidget(key, event)
-      event = deep_copy(event)
+    def ValidatePasswdWidget(_key, _event)
       return true if !Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
       if UI.QueryWidget(Id(:pw1), :Value) == ""
         emptyPasswdErrorPopup
@@ -87,7 +86,7 @@ module Yast
 
     # Init function of a widget
     # @param [String] widget string widget key
-    def InitBootLoaderLocationWidget(widget)
+    def InitBootLoaderLocationWidget(_widget)
       boot_devices = BootStorage.possible_locations_for_stage1
       if BootCommon.VerifyMDArray
         UI.ChangeWidget(Id("enable_redundancy"), :Value,
@@ -131,7 +130,7 @@ module Yast
     # @param [String] widget string widget key
     # @param [Hash] event map event that caused the operation
     # @return [Symbol]
-    def HandleBootLoaderLocationWidget(widget, event)
+    def HandleBootLoaderLocationWidget(_widget, event)
       event = deep_copy(event)
       ret = Ops.get(event, "ID")
       if ret == "boot_custom"
@@ -144,12 +143,10 @@ module Yast
       nil
     end
 
-
     # Store function of a widget
     # @param [String] widget string widget key
     # @param [Hash] event map event that caused the operation
-    def StoreBootLoaderLocationWidget(widget, event)
-      event = deep_copy(event)
+    def StoreBootLoaderLocationWidget(_widget, _event)
       if BootCommon.VerifyMDArray
         BootCommon.enable_md_array_redundancy = Convert.to_boolean(
           UI.QueryWidget(Id("enable_redundancy"), :Value)
@@ -174,7 +171,7 @@ module Yast
       if UI.QueryWidget(Id("boot_custom"), :Value)
         custom_value = UI.QueryWidget(Id("boot_custom_list"), :Value)
       else
-        #bnc#544809 Custom Boot Partition cannot be deleted
+        # bnc#544809 Custom Boot Partition cannot be deleted
         custom_value = ""
       end
       BootCommon.globals["boot_custom"] = custom_value
@@ -187,7 +184,6 @@ module Yast
     #
     # @return [String] help text for widget BootLoaderLocationWidget
     def HelpBootLoaderLocationWidget
-      ret = ""
       ret = Ops.get(@grub_help_messages, "boot_mbr", "")
       ret = Ops.add(ret, "\n")
       ret = Ops.add(ret, Ops.get(@grub_help_messages, "boot_custom", ""))
@@ -212,30 +208,32 @@ module Yast
     # @return [Yast::Term] with widgets
 
     def grubBootLoaderLocationWidget
-      if BootStorage.can_boot_from_partition
-        partition_boot = BootStorage.BootPartitionDevice == BootStorage.RootPartitionDevice ?
-          Left(CheckBox(Id("boot_root"), _("Boot from &Root Partition"))) :
-          Left(CheckBox(Id("boot_boot"), _("Boo&t from Boot Partition")))
-      else
-        partition_boot = Empty()
-      end
+      partition_boot = if BootStorage.can_boot_from_partition
+                         if BootStorage.BootPartitionDevice == BootStorage.RootPartitionDevice
+                           Left(CheckBox(Id("boot_root"), _("Boot from &Root Partition")))
+                         else
+                           Left(CheckBox(Id("boot_boot"), _("Boo&t from Boot Partition")))
+                         end
+                       else
+                         Empty()
+                       end
 
       boot_custom = [
-      Left(
-        CheckBox(
-          Id("boot_custom"),
-          Opt(:notify),
-          _("C&ustom Boot Partition")
-        )
-      ),
-      Left(
-        ComboBox(
-          Id("boot_custom_list"),
-          Opt(:editable, :hstretch),
-          "",
-          []
-        )
-      )]
+        Left(
+          CheckBox(
+            Id("boot_custom"),
+            Opt(:notify),
+            _("C&ustom Boot Partition")
+          )
+        ),
+        Left(
+          ComboBox(
+            Id("boot_custom_list"),
+            Opt(:editable, :hstretch),
+            "",
+            []
+          )
+        )]
 
       contents = VBox(
         VSpacing(1),
@@ -249,14 +247,16 @@ module Yast
                   CheckBox(Id("boot_mbr"), _("Boot from &Master Boot Record"))
                 ),
                 partition_boot,
-                BootStorage.ExtendedPartitionDevice ?
+                if BootStorage.ExtendedPartitionDevice
                   Left(
                     CheckBox(
                       Id("boot_extended"),
                       _("Boot from &Extended Partition")
                     )
-                  ) :
-                  Empty(),
+                  )
+                else
+                  Empty()
+                end,
                 *boot_custom
               )
             )

@@ -23,7 +23,7 @@ require "bootloader/udev_mapping"
 
 module Yast
   module BootloaderRoutinesMiscInclude
-    def initialize_bootloader_routines_misc(include_target)
+    def initialize_bootloader_routines_misc(_include_target)
       textdomain "bootloader"
       Yast.import "Mode"
       Yast.import "Stage"
@@ -46,24 +46,30 @@ module Yast
     # @return [String] printable bootloader name
     def getLoaderName(bootloader, mode)
       if bootloader == "none"
-        return mode == :summary ?
+        if mode == :summary
           # summary string
-          _("Do not install any boot loader") :
+          return _("Do not install any boot loader")
+        else
           # combo box item
-          _("Do Not Install Any Boot Loader")
+          return _("Do Not Install Any Boot Loader")
+        end
       end
       if bootloader == "default"
-        return mode == :summary ?
+        if mode == :summary
           # summary string
-          _("Install the default boot loader") :
+          return _("Install the default boot loader")
+        else
           # combo box item
-          _("Install Default Boot Loader")
+          return _("Install Default Boot Loader")
+        end
       end
-      fallback_name = mode == :summary ?
+      if mode == :summary
         # summary string
-        _("Boot loader") :
+        fallback_name = _("Boot loader")
+      else
         # combo box item
-        _("Boot Loader")
+        fallback_name = _("Boot Loader")
+      end
       # fallback bootloader name, keep short
       Ops.get_string(
         @bootloader_attribs,
@@ -130,21 +136,11 @@ module Yast
     # @return [Array] device names
     def GetBootloaderDevices
       ret = []
-      if @globals["boot_boot"] == "true"
-        ret << BootStorage.BootPartitionDevice
-      end
-      if @globals["boot_root"] == "true"
-        ret << BootStorage.RootPartitionDevice
-      end
-      if @globals["boot_mbr"] == "true"
-        ret << @mbrDisk
-      end
-      if @globals["boot_extended"] == "true"
-        ret << BootStorage.ExtendedPartitionDevice
-      end
-      if @globals["boot_custom"]
-        ret << @globals["boot_custom"]
-      end
+      ret << BootStorage.BootPartitionDevice if @globals["boot_boot"] == "true"
+      ret << BootStorage.RootPartitionDevice if @globals["boot_root"] == "true"
+      ret << @mbrDisk if @globals["boot_mbr"] == "true"
+      ret << BootStorage.ExtendedPartitionDevice if @globals["boot_extended"] == "true"
+      ret << @globals["boot_custom"] if @globals["boot_custom"]
       Builtins.y2warning("Empty bootloader devices. Globals #{@globals.inspect}") if ret.empty?
 
       ret
@@ -156,7 +152,7 @@ module Yast
     # @return [String] value, "false" if not present,
     #   "true" if present key without value
     def getKernelParamFromLine(line, key)
-      # FIXME this doesn't work with quotes and spaces
+      # FIXME: this doesn't work with quotes and spaces
       res = "false"
       # we can get nil if params is not yet proposed, so return not there (bnc#902397)
       return res unless line
@@ -167,7 +163,6 @@ module Yast
       end
       res
     end
-
 
     def kernel_param_key(value)
       value.split("=").first
@@ -181,21 +176,21 @@ module Yast
     # @return [String] new kernel command line
     def setKernelParamToLine(line, key, value)
       line ||= ""
-      # FIXME this doesn't work with quotes and spaces
+      # FIXME: this doesn't work with quotes and spaces
       params = line.split(" ").reject(&:empty?)
       # count occurences of every parameter, initial value is 0
-      occurences = Hash.new { |k| 0 }
+      occurences = Hash.new { |_k| 0 }
       params.each do |param|
         k = kernel_param_key(param)
         occurences[k] += 1
       end
       done = false
-      params = params.reduce([]) do |res, param|
+      params = params.each_with_object([]) do |param, res|
         k = kernel_param_key(param)
         if k != key # not our param
           res << param
         elsif value == "false"
-          # do nothing as we want to remove this param
+          next # do nothing as we want to remove this param
         elsif occurences[k] == 1 # last parameter with given key
           done = true
           if value == "true"
@@ -207,7 +202,6 @@ module Yast
           occurences[k] -= 1
           res << param
         end
-        res
       end
       if !done
         if value == "true"
@@ -236,10 +230,10 @@ module Yast
     # Get map of swap partitions
     # @return a map where key is partition name and value its size
     def getSwapPartitions
-      # FIXME move to boot storage
+      # FIXME: move to boot storage
       tm = Storage.GetTargetMap
       ret = {}
-      tm.each do |k, v|
+      tm.each_value do |v|
         cyl_size = v["cyl_size"] || 0
         partitions = v["partitions"] || []
         partitions = partitions.select do |p|
@@ -259,8 +253,6 @@ module Yast
       ret
     end
 
-
-
     # Update the Kernel::vgaType value to the saved one if not defined
     def UpdateInstallationKernelParameters
       saved_params = {}
@@ -273,7 +265,7 @@ module Yast
       end
       if Kernel.GetVgaType == ""
         vgaType = Ops.get_string(saved_params, "vgamode", "")
-        Kernel.SetVgaType(vgaType) if vgaType != nil && vgaType != ""
+        Kernel.SetVgaType(vgaType) if !vgaType.nil? && vgaType != ""
       end
       if !Stage.initial
         Kernel.SetCmdLine(
@@ -292,9 +284,8 @@ module Yast
     # @return additional kernel parameters
     def GetAdditionalFailsafeParams
       if Stage.initial
-        @additional_failsafe_params = SCR.Read(
-          path(".etc.install_inf.NoPCMCIA")
-        ) == "1" ? " NOPCMCIA " : ""
+        nopcmcia = SCR.Read(path(".etc.install_inf.NoPCMCIA")) == "1"
+        @additional_failsafe_params =  nopcmcia ? " NOPCMCIA " : ""
       else
         saved_params = Convert.convert(
           SCR.Read(path(".target.ycp"), "/var/lib/YaST2/bootloader.ycp"),
@@ -411,7 +402,7 @@ module Yast
 
       boot_disk_device = Ops.get_string(p_dev, "disk", "")
 
-      if boot_disk_device != "" && boot_disk_device != nil
+      if boot_disk_device != "" && !boot_disk_device.nil?
         Builtins.y2milestone("Boot device - disk: %1", boot_disk_device)
         return boot_disk_device
       end
@@ -437,14 +428,14 @@ module Yast
         if parity != ""
           # add parity
           case parity
-            when "no"
-              ret = Ops.add(ret, "n")
-            when "odd"
-              ret = Ops.add(ret, "o")
-            when "even"
-              ret = Ops.add(ret, "e")
-            else
-              ret = Ops.add(ret, "n")
+          when "no"
+            ret = Ops.add(ret, "n")
+          when "odd"
+            ret = Ops.add(ret, "o")
+          when "even"
+            ret = Ops.add(ret, "e")
+          else
+            ret = Ops.add(ret, "n")
           end
 
           # add word
@@ -463,13 +454,11 @@ module Yast
       ret
     end
 
-
     # FATE #110038: Serial console
     # Function parse string key (e.g. --speed=9600)
     # and return value of key
     # @param [String] key e.g. --unit=0
     # @return [String] value of key
-
 
     def getKeyValue(key)
       ret = ""
@@ -482,7 +471,6 @@ module Yast
       Builtins.y2debug("parse: %1 and return value: %2", key, ret)
       ret
     end
-
 
     # FATE #110038: Serial console
     # Function check value from globals (serial and terminal)
@@ -500,10 +488,10 @@ module Yast
         parity = ""
         word = ""
         Builtins.foreach(list_serial) do |key|
-          unit = getKeyValue(key) if Builtins.search(key, "--unit") != nil
-          speed = getKeyValue(key) if Builtins.search(key, "--speed") != nil
-          parity = getKeyValue(key) if Builtins.search(key, "--parity") != nil
-          word = getKeyValue(key) if Builtins.search(key, "--word") != nil
+          unit = getKeyValue(key) unless Builtins.search(key, "--unit").nil?
+          speed = getKeyValue(key) unless Builtins.search(key, "--speed").nil?
+          parity = getKeyValue(key) unless Builtins.search(key, "--parity").nil?
+          word = getKeyValue(key) unless Builtins.search(key, "--word").nil?
         end
         # build value
         ret = buildConsoleValue(unit, speed, parity, word)
@@ -513,7 +501,7 @@ module Yast
     end
 
     # This function gets bootloader's serial settings from append (bnc#862388)
-    def GetSerialFromAppend ()
+    def GetSerialFromAppend
       append = @globals["append"] || ""
       type = Builtins.regexpsub(append, "^.*console=([[:alpha:]]+)[[:digit:]]*,*[[:digit:]]*[noe]*[[:digit:]]*.*[[:space:]]*.*$", "\\1")
       args = Builtins.regexpsub(append, "^.*console=[[:alpha:]]+([[:digit:]]*,*[[:digit:]]*[noe]*[[:digit:]]*).*[[:space:]]*.*$", "\\1")
@@ -532,31 +520,28 @@ module Yast
 
       parity = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*([noe]*)[[:digit:]]*", "\\1")
       case parity
-         when "n"
-           ret << " --parity=no"
-         when "o"
-           ret << " --parity=odd"
-         when "e"
-           ret << " --parity=even"
-         when ""
-           # no parity, do nothing
-         else
-           raise "unknown parity flag #{parity}"
-       end
+      when "n"
+        ret << " --parity=no"
+      when "o"
+        ret << " --parity=odd"
+      when "e"
+        ret << " --parity=even"
+      when ""
+        # no parity, do nothing
+      else
+        raise "unknown parity flag #{parity}"
+      end
 
-       word = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*[noe]*([[:digit:]]*)", "\\1")
-       if !word.empty?
-         ret << " --word=#{word}"
-       end
+      word = Builtins.regexpsub(args, "[[:digit:]]+,*[[:digit:]]*[noe]*([[:digit:]]*)", "\\1")
+      ret << " --word=#{word}" unless word.empty?
 
-     ret
-   end
+      ret
+    end
 
     # FATE #110038: Serial console
     # Add console arg for kernel if there is defined serial console
 
     def HandleConsole2
-
       if @globals["terminal"] != "serial"
         # if bootloader is not set to serial console, we should leave the
         # kernel append as is to allow it's serial console be enabled
@@ -575,9 +560,9 @@ module Yast
 
       console_value = getConsoleValue
 
-      if Ops.get(@globals, "append") != nil
+      if !Ops.get(@globals, "append").nil?
         updated_append = ""
-        if console_value != "" || console_value != nil
+        if console_value != "" || !console_value.nil?
           updated_append = UpdateSerialConsole(
             Ops.get(@globals, "append", ""),
             console_value
@@ -588,7 +573,7 @@ module Yast
             ""
           )
         end
-        Ops.set(@globals, "append", updated_append) if updated_append != nil
+        Ops.set(@globals, "append", updated_append) if !updated_append.nil?
       end
 
       nil

@@ -17,7 +17,7 @@
 #
 module Yast
   module BootloaderRoutinesSwitcherInclude
-    def initialize_bootloader_routines_switcher(include_target)
+    def initialize_bootloader_routines_switcher(_include_target)
       Yast.import "BootGRUB2"
       Yast.import "BootGRUB2EFI"
       Yast.import "BootCommon"

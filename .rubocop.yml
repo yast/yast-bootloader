@@ -1,0 +1,158 @@
+Lint/Eval:
+  Exclude:
+  # test helper data source is safe, so eval is not problem
+  - test/test_helper.rb
+
+Metrics/AbcSize:
+  Max: 129
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+Metrics/AbcSize:
+  Max: 50 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+Metrics/BlockNesting:
+  Max: 5
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+Metrics/BlockNesting:
+  Max: 2
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+
+# Configuration parameters: CountComments.
+Metrics/ClassLength:
+  Max: 385
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+# Configuration parameters: CountComments.
+Metrics/ClassLength:
+  Max: 170 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+Metrics/CyclomaticComplexity:
+  Max: 29
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+Metrics/CyclomaticComplexity:
+  Max: 12 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+# Configuration parameters: AllowURI, URISchemes.
+Metrics/LineLength:
+  Max: 299
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+# Configuration parameters: AllowURI, URISchemes.
+Metrics/LineLength:
+  Max: 110 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+# Configuration parameters: CountComments.
+Metrics/MethodLength:
+  Max: 160
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+# Configuration parameters: CountComments.
+Metrics/MethodLength:
+  Max: 40 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+Metrics/PerceivedComplexity:
+  Max: 34
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+Metrics/PerceivedComplexity:
+  Max: 13 # TODO this should be lower for new code
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+# be more strict then rubocop, 5 is too much
+Metrics/ParameterLists:
+  Max: 4
+
+# Configuration parameters: EnforcedStyle, SupportedStyles.
+# JR: I personally think that having this variable on class level is much more readable
+# and easier to recognize that modified changed
+Style/AccessModifierIndentation:
+  EnforcedStyle: outdent
+
+# Configuration parameters: EnforcedHashRocketStyle, EnforcedColonStyle, EnforcedLastArgumentHashStyle, SupportedLastArgumentHashStyles.
+Style/AlignHash:
+  EnforcedHashRocketStyle: table
+  EnforcedColonStyle: table
+
+# Configuration parameters: EnforcedStyle, SupportedStyles.
+Style/AlignParameters:
+  EnforcedStyle: with_fixed_indentation
+
+# Configuration parameters: EnforcedStyle, SupportedStyles.
+Style/AndOr:
+  EnforcedStyle: conditionals
+
+# Configuration parameters: IndentWhenRelativeTo, SupportedStyles, IndentOneStep.
+Style/CaseIndentation:
+  IndentWhenRelativeTo: end
+
+Style/Documentation:
+  Include:
+    - 'src/lib/**/*.rb' # force well documented code only for new code
+
+Style/FileName:
+  Include:
+    - 'src/lib/**/*.rb' # force correct names on new code
+
+Style/HashSyntax:
+  Include:
+    - 'src/lib/**/*.rb' # force new hash style only for new code
+
+# JR: I found lambda easier to read and understand then ->()
+Style/Lambda:
+  Enabled: false
+
+Style/MethodName:
+  Include:
+    - 'src/lib/**/*.rb' # force correct names on new code
+  Exclude:
+    - 'src/lib/bootloader/grub2base.rb' # base class that implement common API with incorrect names
+
+Style/MultilineOperationIndentation:
+  EnforcedStyle: indented
+
+# keep negated if as we prefer it only in traling form
+Style/NegatedIf:
+  Enabled: false
+
+# do not force %r
+Style/RegexpLiteral:
+  Enabled: false
+
+Style/SignalException:
+  EnforcedStyle: only_raise
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/VariableName:
+  Include:
+    - 'src/lib/**/*.rb' # force known variables only for new code
+
+# do not prefer work arrays
+Style/WordArray:
+  Enabled: false

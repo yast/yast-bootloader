@@ -12,6 +12,8 @@ module Bootloader
       Yast.import "Mode"
       Yast.import "Storage"
 
+      textdomain "bootloader"
+
       mp = Yast::Storage.GetMountPoints
       @actual_root = mp["/"].first || ""
       @actual_boot = mp["/boot"].first || actual_root
@@ -33,26 +35,24 @@ module Bootloader
         ret << change_message('"/"', Yast::BootStorage.RootPartitionDevice)
       end
 
-      if mbr_changed?
-        ret << change_message('MBR', Yast::BootCommon.mbrDisk)
-      end
+      ret << change_message("MBR", Yast::BootCommon.mbrDisk) if mbr_changed?
 
       if extended_changed?
         ret << change_message('"extended partition"', Yast::BootStorage.ExtendedPartitionDevice)
       end
 
-
       if invalid_custom?
         # TRANSLATORS: %s stands for partition
         ret <<
           _("Selected custom bootloader partition %s is not available any more.") %
-            Yast::BootCommon.globals["boot_custom"]
+          Yast::BootCommon.globals["boot_custom"]
       end
 
       ret
     end
 
   private
+
     attr_reader :actual_boot, :actual_root, :actual_extended
 
     def change_message(location, device)
@@ -64,7 +64,7 @@ module Bootloader
 
     def boot_changed?
       boot_selected?("boot_boot") &&
-          actual_boot != Yast::BootStorage.BootPartitionDevice
+        actual_boot != Yast::BootStorage.BootPartitionDevice
     end
 
     def root_changed?
@@ -92,7 +92,7 @@ module Bootloader
 
       all_boot_partitions = Yast::BootStorage.possible_locations_for_stage1
 
-      return !all_boot_partitions.include?(boot_custom)
+      !all_boot_partitions.include?(boot_custom)
     end
   end
 end

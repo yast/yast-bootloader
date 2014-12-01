@@ -17,8 +17,8 @@ describe Bootloader::Stage1 do
         disk = "/dev/system"
         number = "system"
       else
-        number = partition[/(\d+)$/,1]
-        disk = partition[0..-(number.size+1)]
+        number = partition[/(\d+)$/, 1]
+        disk = partition[0..-(number.size + 1)]
       end
       { "disk" => disk, "nr" => number }
     end
@@ -27,10 +27,10 @@ describe Bootloader::Stage1 do
   describe "#propose" do
     it "returns symbol with selected location" do
       target_map_stub("storage_mdraid.rb")
-      allow(Yast::BootStorage).to receive(:possible_locations_for_stage1).
-        and_return(["/dev/sda","/dev/sda1"])
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice).
-        and_return("/dev/md1")
+      allow(Yast::BootStorage).to receive(:possible_locations_for_stage1)
+        .and_return(["/dev/sda", "/dev/sda1"])
+      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
+        .and_return("/dev/md1")
       expect(subject.propose).to be_a(Symbol)
     end
   end
