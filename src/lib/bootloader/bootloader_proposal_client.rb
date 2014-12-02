@@ -1,6 +1,7 @@
 require "installation/proposal_client"
 
 module Bootloader
+  # Proposal client for bootloader configuration
   class BootloaderProposalClient < ::Installation::ProposalClient
     include Yast::I18n
     include Yast::Logger
@@ -39,26 +40,7 @@ module Bootloader
         Yast::Bootloader.ResetEx(false)
       end
 
-      if Yast::Mode.update
-        if ["grub2", "grub2-efi"].include? old_bootloader
-          log.info "update of grub2, do not repropose"
-          if !Yast::BootCommon.was_read || force_reset
-            Yast::Bootloader.blRead(true, true)
-            Yast::BootCommon.was_read = true
-          end
-        else
-          if !Yast::BootCommon.was_proposed || force_reset
-            # Repropose the type. A regular Reset/Propose is not enough.
-            # For more details see bnc#872081
-            Yast::BootCommon.setLoaderType(nil)
-            Yast::Bootloader.Reset
-            Yast::Bootloader.Propose
-          end
-        end
-      else
-        # in installation always propose missing stuff
-        Yast::Bootloader.Propose
-      end
+      pure_propose
 
       if Yast::Bootloader.getLoaderType == "grub2"
         ret["links"] = [
@@ -86,32 +68,7 @@ module Bootloader
       end
       # F#300779 - end
 
-      if Yast::Bootloader.getLoaderType == ""
-        log.error "No bootloader selected"
-        ret["warning_level"] = :error
-        # warning text in the summary richtext
-        ret["warning"] = _(
-          "No boot loader is selected for installation. Your system might not be bootable."
-        )
-      end
-
-      if !Yast::BootCommon.BootloaderInstallable
-        ret = {
-          "warning_level" => :error,
-          # error in the proposal
-          "warning"       => _(
-            "Because of the partitioning, the bootloader cannot be installed properly"
-          )
-        }
-      end
-
-      if !Yast::BootSupportCheck.SystemSupported
-        ret.merge!(
-          "warning_level" => :error,
-          "warning"       => Yast::BootSupportCheck.StringProblems,
-          "raw_proposal"  => Yast::Bootloader.Summary
-        )
-      end
+      handle_errors
 
       # cache the values
       Yast::BootCommon.cached_settings_base_data_change_time = Yast::Storage.GetTargetChangeTime()
@@ -155,8 +112,6 @@ module Bootloader
         Yast::BootCommon.globals["boot_root"] = "false"
         Yast::Bootloader.proposed_cfg_changed = true
       else
-        has_next = param["has_next"]
-
         settings = Yast::Bootloader.Export
         # don't ask for abort confirm if nothing was changed (#29496)
         Yast::BootCommon.changed = false
@@ -199,6 +154,62 @@ module Bootloader
 
       # get value from entry
       old_bootloader.last.sub(/^.*=\s*(\S*).*/, "\\1").delete('"')
+    end
+
+    def pure_propose
+      if Yast::Mode.update
+        update_propose
+      else
+        # in installation always propose missing stuff
+        Yast::Bootloader.Propose
+      end
+    end
+
+    def update_propose
+      if ["grub2", "grub2-efi"].include? old_bootloader
+        log.info "update of grub2, do not repropose"
+        if !Yast::BootCommon.was_read || force_reset
+          Yast::Bootloader.blRead(true, true)
+          Yast::BootCommon.was_read = true
+        end
+      elsif !Yast::BootCommon.was_proposed || force_reset
+        # Repropose the type. A regular Reset/Propose is not enough.
+        # For more details see bnc#872081
+        Yast::BootCommon.setLoaderType(nil)
+        Yast::Bootloader.Reset
+        Yast::Bootloader.Propose
+      end
+    end
+
+    def handle_errors(ret)
+      if Yast::Bootloader.getLoaderType == ""
+        log.error "No bootloader selected"
+        ret["warning_level"] = :error
+        # warning text in the summary richtext
+        ret["warning"] = _(
+          "No boot loader is selected for installation. Your system might not be bootable."
+        )
+      end
+
+      if !Yast::BootCommon.BootloaderInstallable
+        ret.merge!(
+          "warning_level" => :error,
+          # error in the proposal
+          "warning"       => _(
+            "Because of the partitioning, the bootloader cannot be installed properly"
+          )
+        )
+      end
+
+      if !Yast::BootSupportCheck.SystemSupported
+        ret.merge!(
+          "warning_level" => :error,
+          "warning"       => Yast::BootSupportCheck.StringProblems,
+          "raw_proposal"  => Yast::Bootloader.Summary
+        )
+      end
+
+      ret
     end
   end
 end
