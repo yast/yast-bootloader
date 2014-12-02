@@ -18,6 +18,7 @@
 require "installation/auto_client"
 
 module Bootloader
+  # Autoyast client for bootloader
   class BootloaderAutoClient < ::Installation::AutoClient
     include Yast::I18n
     include Yast::Logger
@@ -39,7 +40,7 @@ module Bootloader
     def run
       progress_orig = Yast::Progress.set(false)
       super
-      Yast::Progress.set(@progress_orig)
+      Yast::Progress.set(progress_orig)
     end
 
     def import(data)
