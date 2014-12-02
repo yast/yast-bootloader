@@ -77,7 +77,7 @@ module Bootloader
           finish_ret = WFM.call(reipl_client)
           log.info "result of reipl_bootloader_finish #{finish_ret}"
         else
-          log.error("No such client: #{reipl_client}"
+          log.error "No such client: #{reipl_client}"
         end
       end
 
