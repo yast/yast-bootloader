@@ -31,6 +31,15 @@ describe Bootloader::DiskChangeDetector do
       expect(subject.changes).to be_empty
     end
 
+    it "do not crash if separate /boot missing" do
+      mount_points = { # TODO: full mock
+        "/"     => ["/dev/sda1"]
+      }
+      allow(Yast::Storage).to receive(:GetMountPoints).and_return(mount_points)
+
+      expect { subject }.to_not raise_error
+    end
+
     it "returns list containing message with boot if device for /boot changed and stage1 selected for boot" do
       Yast::BootCommon.globals["boot_boot"] = "true"
       Yast::BootStorage.BootPartitionDevice = "/dev/sdb1"

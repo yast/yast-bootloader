@@ -15,8 +15,8 @@ module Bootloader
       textdomain "bootloader"
 
       mp = Yast::Storage.GetMountPoints
-      @actual_root = mp["/"].first || ""
-      @actual_boot = mp["/boot"].first || actual_root
+      @actual_root = mp["/"] ? mp["/"].first : ""
+      @actual_boot = mp["/boot"] ? mp["/boot"].first : actual_root
       @actual_extended = Yast::BootStorage.extended_partition_for(Yast::BootStorage.BootPartitionDevice)
     end
 
