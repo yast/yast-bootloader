@@ -2,6 +2,7 @@ require "bootloader/kexec"
 require "installation/finish_client"
 
 module Bootloader
+  # Finish client for bootloader configuration
   class BootloaderFinishClient < ::Installation::FinishClient
     include Yast::I18n
     include Yast::Logger
@@ -35,25 +36,8 @@ module Bootloader
     def write
       # provide the /dev content from the inst-sys also inside the chroot of just the upgraded system
       # umount of this bind mount will happen in umount_finish
-      if Yast::Mode.update
-        cmd = "targetdir=#{Installation.destdir}\n" \
-          "if test ${targetdir} = / ; then echo targetdir is / ; exit 1 ; fi\n" \
-          "grep -E \"^[^ ]+ ${targetdir}/dev \" < /proc/mounts\n" \
-          "if test $? = 0\n" \
-          "then\n" \
-          "\techo targetdir ${targetdir} already mounted.\n" \
-          "\texit 1\n" \
-          "else\n" \
-          "\tmkdir -vp ${targetdir}/dev\n" \
-          "\tcp --preserve=all --recursive --remove-destination /lib/udev/devices/* ${targetdir}/dev\n" \
-          "\tmount -v --bind /dev ${targetdir}/dev\n" \
-          "fi\n"
-        out = WFM.Execute(Yast::Path.new(".local.bash_output"), cmd)
-        if out["exit"] != 0
-          log.error "unable to bind mount /dev in chroot"
-        end
-        log.info "#{cmd}\n output: #{out}"
-      end
+      update_mount
+
       # --------------------------------------------------------------
       # message after first round of packet installation
       # now the installed system is run and more packages installed
@@ -66,43 +50,7 @@ module Bootloader
       # where we do a hard reboot. However, the cdrom is still mounted here
       # and cant be removed.
 
-      finish_ret = {}
-      if Yast::Arch.s390
-        reipl_client = "reipl_bootloader_finish"
-
-        # Calling a special reIPL client
-        # it returns a result map (keys: (boolean) different, (string) ipl_msg)
-
-        if Yast::WFM.ClientExists(reipl_client)
-          finish_ret = WFM.call(reipl_client)
-          log.info "result of reipl_bootloader_finish #{finish_ret}"
-        else
-          log.error "No such client: #{reipl_client}"
-        end
-      end
-
-      if Yast::Arch.s390 && finish_ret["different"]
-        # reIPL message
-        ipl_msg = finish_ret["ipl_msg"] || ""
-
-        # TRANSLATORS: reboot message
-        # %1 is replaced with additional message from reIPL
-        Yast::Misc.boot_msg = Yast::Builtins.sformat(
-          _(
-            "\n" \
-              "Your system will now shut down.%1\n" \
-              "For details, read the related chapter \n" \
-              "in the documentation. \n"
-          ),
-          ipl_msg
-        )
-      else
-        # Final message after all packages from CD1 are installed
-        # and we're ready to start (boot into) the installed system
-        # Message that will be displayed along with information
-        # how the boot loader was installed
-        Yast::Misc.boot_msg = _("The system will reboot now...")
-      end
+      set_boot_msg
 
       #--------------------------------------------------------------
       # Install bootloader (always, see #23018)
@@ -164,6 +112,69 @@ module Bootloader
       end
 
       retcode
+    end
+
+  private
+
+    def update_mount
+      return unless Yast::Mode.update
+
+      cmd = "targetdir=#{Installation.destdir}\n" \
+        "if test ${targetdir} = / ; then echo targetdir is / ; exit 1 ; fi\n" \
+        "grep -E \"^[^ ]+ ${targetdir}/dev \" < /proc/mounts\n" \
+        "if test $? = 0\n" \
+        "then\n" \
+        "\techo targetdir ${targetdir} already mounted.\n" \
+        "\texit 1\n" \
+        "else\n" \
+        "\tmkdir -vp ${targetdir}/dev\n" \
+        "\tcp --preserve=all --recursive --remove-destination /lib/udev/devices/* ${targetdir}/dev\n" \
+        "\tmount -v --bind /dev ${targetdir}/dev\n" \
+        "fi\n"
+      out = WFM.Execute(Yast::Path.new(".local.bash_output"), cmd)
+      log.error "unable to bind mount /dev in chroot" if out["exit"] != 0
+      log.info "#{cmd}\n output: #{out}"
+    end
+
+    def set_boot_msg
+      finish_ret = {}
+
+      if Yast::Arch.s390
+        reipl_client = "reipl_bootloader_finish"
+
+        # Calling a special reIPL client
+        # it returns a result map (keys: (boolean) different, (string) ipl_msg)
+
+        if Yast::WFM.ClientExists(reipl_client)
+          finish_ret = WFM.call(reipl_client)
+          log.info "result of reipl_bootloader_finish #{finish_ret}"
+        else
+          log.error "No such client: #{reipl_client}"
+        end
+      end
+
+      if Yast::Arch.s390 && finish_ret["different"]
+        # reIPL message
+        ipl_msg = finish_ret["ipl_msg"] || ""
+
+        # TRANSLATORS: reboot message
+        # %1 is replaced with additional message from reIPL
+        Yast::Misc.boot_msg = Yast::Builtins.sformat(
+          _(
+            "\n" \
+              "Your system will now shut down.%1\n" \
+              "For details, read the related chapter \n" \
+              "in the documentation. \n"
+          ),
+          ipl_msg
+        )
+      else
+        # Final message after all packages from CD1 are installed
+        # and we're ready to start (boot into) the installed system
+        # Message that will be displayed along with information
+        # how the boot loader was installed
+        Yast::Misc.boot_msg = _("The system will reboot now...")
+      end
     end
   end
 end
