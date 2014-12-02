@@ -96,6 +96,3 @@ module Bootloader
     end
   end
 end
-
-Yast::BootloaderAutoClient.new.main
-
