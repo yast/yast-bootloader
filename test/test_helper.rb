@@ -1,5 +1,7 @@
 ENV["Y2DIR"] = File.expand_path("../../src", __FILE__)
 
+require "yast"
+
 if ENV["COVERAGE"]
   require "simplecov"
   SimpleCov.start
@@ -17,8 +19,6 @@ if ENV["COVERAGE"]
     ]
   end
 end
-
-require "yast"
 
 def target_map_stub(name)
   path = File.join(File.dirname(__FILE__), "data", name)
