@@ -30,7 +30,6 @@ module Bootloader
     ]
 
     def make_proposal(attrs)
-      ret = {}
       force_reset = attrs["force_reset"]
       auto_mode = Yast::Mode.autoinst || Yast::Mode.autoupgrade
 
@@ -141,8 +140,6 @@ module Bootloader
       ret = {}
 
       ret["links"] = PROPOSAL_LINKS if Yast::Bootloader.getLoaderType == "grub2"
-
-
       ret["raw_proposal"] = Yast::Bootloader.Summary
 
       # F#300779 - Install diskless client (NFS-root)
@@ -156,6 +153,8 @@ module Bootloader
       # F#300779 - end
 
       handle_errors(ret)
+
+      ret
     end
 
     # Add to argument proposal map all errors detected by proposal
@@ -183,7 +182,7 @@ module Bootloader
       if !Yast::BootSupportCheck.SystemSupported
         ret.merge!(
           "warning_level" => :error,
-          "warning"       => Yast::BootSupportCheck.StringProblems,
+          "warning"       => Yast::BootSupportCheck.StringProblems
         )
       end
 
