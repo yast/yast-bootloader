@@ -4,7 +4,6 @@ module Bootloader
   # Proposal client for bootloader configuration
   class ProposalClient < ::Installation::ProposalClient
     include Yast::I18n
-    include Yast::Logger
 
     def initialize
       Yast.import "UI"

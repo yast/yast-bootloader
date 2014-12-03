@@ -5,7 +5,6 @@ module Bootloader
   # Finish client for bootloader configuration
   class FinishClient < ::Installation::FinishClient
     include Yast::I18n
-    include Yast::Logger
 
     BASH_PATH = Yast::Path.new(".target.bash_output")
 
@@ -119,18 +118,20 @@ module Bootloader
     def update_mount
       return unless Yast::Mode.update
 
-      cmd = "targetdir=#{Installation.destdir}\n" \
-        "if test ${targetdir} = / ; then echo targetdir is / ; exit 1 ; fi\n" \
-        "grep -E \"^[^ ]+ ${targetdir}/dev \" < /proc/mounts\n" \
-        "if test $? = 0\n" \
-        "then\n" \
-        "\techo targetdir ${targetdir} already mounted.\n" \
-        "\texit 1\n" \
-        "else\n" \
-        "\tmkdir -vp ${targetdir}/dev\n" \
-        "\tcp --preserve=all --recursive --remove-destination /lib/udev/devices/* ${targetdir}/dev\n" \
-        "\tmount -v --bind /dev ${targetdir}/dev\n" \
-        "fi\n"
+      cmd = <<-eos
+targetdir=#{Installation.destdir}
+if test ${targetdir} = / ; then echo targetdir is / ; exit 1 ; fi
+grep -E \"^[^ ]+ ${targetdir}/dev \" < /proc/mounts
+if test $? = 0
+then
+ echo targetdir ${targetdir} already mounted.
+ exit 1
+else
+  mkdir -vp ${targetdir}/dev
+  cp --preserve=all --recursive --remove-destination /lib/udev/devices/* ${targetdir}/dev
+  mount -v --bind /dev ${targetdir}/dev
+fi
+eos
       out = WFM.Execute(Yast::Path.new(".local.bash_output"), cmd)
       log.error "unable to bind mount /dev in chroot" if out["exit"] != 0
       log.info "#{cmd}\n output: #{out}"

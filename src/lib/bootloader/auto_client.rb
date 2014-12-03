@@ -1,31 +1,10 @@
-# encoding: utf-8
-
-# File:
-#      bootloader_auto.ycp
-#
-# Module:
-#      Bootloader installation and configuration
-#
-# Summary:
-#      Bootloader autoinstallation preparation
-#
-# Authors:
-#      Jiri Srain <jsrain@suse.cz>
-#
-# $Id$
-#
-
 require "installation/auto_client"
 
 module Bootloader
   # Autoyast client for bootloader
   class AutoClient < ::Installation::AutoClient
-    include Yast::I18n
-    include Yast::Logger
-
     def initialize
       Yast.import "UI"
-      textdomain "bootloader"
 
       Yast.import "Bootloader"
       Yast.import "BootCommon"
