@@ -20,6 +20,15 @@ module Bootloader
       Yast.include self, "bootloader/routines/wizards.rb"
     end
 
+    PROPOSAL_LINKS = [
+      "enable_boot_mbr",
+      "disable_boot_mbr",
+      "enable_boot_root",
+      "disable_boot_root",
+      "enable_boot_boot",
+      "disable_boot_boot"
+    ]
+
     def make_proposal(attrs)
       ret = {}
       force_reset = attrs["force_reset"]
@@ -42,14 +51,7 @@ module Bootloader
       pure_propose
 
       if Yast::Bootloader.getLoaderType == "grub2"
-        ret["links"] = [
-          "enable_boot_mbr",
-          "disable_boot_mbr",
-          "enable_boot_root",
-          "disable_boot_root",
-          "enable_boot_boot",
-          "disable_boot_boot"
-        ]
+        ret["links"] = PROPOSAL_LINKS
       end
 
       # to make sure packages will get installed
@@ -81,35 +83,10 @@ module Bootloader
 
       # enable boot from MBR
       case chosen_id
-      when "enable_boot_mbr"
-        log.info "Boot from MBR enabled by a single-click"
-        Yast::BootCommon.globals["boot_mbr"] = "true"
-        Yast::Bootloader.proposed_cfg_changed = true
-      # disable boot from MBR
-      when "disable_boot_mbr"
-        log.info "Boot from MBR disabled by a single-click"
-        Yast::BootCommon.globals["boot_mbr"] = "false"
-        Yast::Bootloader.proposed_cfg_changed = true
-      # enable boot from /boot
-      when "enable_boot_boot"
-        log.info "Boot from /boot enabled by a single-click"
-        Yast::BootCommon.globals["boot_boot"] = "true"
-        Yast::Bootloader.proposed_cfg_changed = true
-      # disable boot from /boot
-      when "disable_boot_boot"
-        log.info "Boot from /boot disabled by a single-click"
-        Yast::BootCommon.globals["boot_boot"] = "false"
-        Yast::Bootloader.proposed_cfg_changed = true
-      # enable boot from /
-      when "enable_boot_root"
-        log.info "Boot from / enabled by a single-click"
-        Yast::BootCommon.globals["boot_root"] = "true"
-        Yast::Bootloader.proposed_cfg_changed = true
-      # disable boot from /
-      when "disable_boot_root"
-        log.info "Boot from / disabled by a single-click"
-        Yast::BootCommon.globals["boot_root"] = "false"
-        Yast::Bootloader.proposed_cfg_changed = true
+      when *PROPOSAL_LINKS
+        value = chosen_id =~ /enable/ ? "true" : "false"
+        option = chosen_id[/(enable|disable)_(.*)/, 2]
+        single_click_action(option, value)
       else
         settings = Yast::Bootloader.Export
         # don't ask for abort confirm if nothing was changed (#29496)
@@ -209,6 +186,12 @@ module Bootloader
       end
 
       ret
+    end
+
+    def single_click_action(option, value)
+      log.info "option #{option} with value #{value} set by a single-click"
+      Yast::BootCommon.globals[option] = value
+      Yast::Bootloader.proposed_cfg_changed = true
     end
   end
 end
