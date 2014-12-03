@@ -67,7 +67,7 @@ module Bootloader
       end
       # F#300779 - end
 
-      handle_errors
+      handle_errors(ret)
 
       # cache the values
       Yast::BootCommon.cached_settings_base_data_change_time = Yast::Storage.GetTargetChangeTime()
