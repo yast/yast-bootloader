@@ -3,7 +3,7 @@ require "installation/finish_client"
 
 module Bootloader
   # Finish client for bootloader configuration
-  class BootloaderFinishClient < ::Installation::FinishClient
+  class FinishClient < ::Installation::FinishClient
     include Yast::I18n
     include Yast::Logger
 

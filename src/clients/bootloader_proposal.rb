@@ -1,3 +1,3 @@
-require "bootloader/bootloader_proposal_client"
+require "bootloader/proposal_client"
 
-::Bootloader::BootloaderProposalClient.run
+::Bootloader::ProposalClient.run

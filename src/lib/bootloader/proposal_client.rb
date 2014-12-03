@@ -2,7 +2,7 @@ require "installation/proposal_client"
 
 module Bootloader
   # Proposal client for bootloader configuration
-  class BootloaderProposalClient < ::Installation::ProposalClient
+  class ProposalClient < ::Installation::ProposalClient
     include Yast::I18n
     include Yast::Logger
 

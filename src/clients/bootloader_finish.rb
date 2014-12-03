@@ -1,3 +1,3 @@
-require "bootloader/bootloader_finish_client"
+require "bootloader/finish_client"
 
-Bootloader::BootloaderFinishClient.run
+Bootloader::FinishClient.run

@@ -1,3 +1,3 @@
-require "bootloader/bootloader_auto_client"
+require "bootloader/auto_client"
 
-::Bootloader::BootloaderAutoClient.run
+::Bootloader::AutoClient.run

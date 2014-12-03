@@ -19,7 +19,7 @@ require "installation/auto_client"
 
 module Bootloader
   # Autoyast client for bootloader
-  class BootloaderAutoClient < ::Installation::AutoClient
+  class AutoClient < ::Installation::AutoClient
     include Yast::I18n
     include Yast::Logger
 
