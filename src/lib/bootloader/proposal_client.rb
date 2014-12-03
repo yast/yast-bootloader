@@ -48,26 +48,17 @@ module Bootloader
         Yast::Bootloader.ResetEx(false)
       end
 
-      pure_propose
-
-      ret["links"] = PROPOSAL_LINKS if Yast::Bootloader.getLoaderType == "grub2"
+      if Yast::Mode.update
+        propose_for_update
+      else
+        # in installation always propose missing stuff
+        Yast::Bootloader.Propose
+      end
 
       # to make sure packages will get installed
       Yast::BootCommon.setLoaderType(Yast::BootCommon.getLoaderType(false))
 
-      ret["raw_proposal"] = Yast::Bootloader.Summary
-
-      # F#300779 - Install diskless client (NFS-root)
-      # kokso:  bootloader will not be installed
-      device = Yast::BootCommon.getBootDisk
-      log.info "Type of BootPartitionDevice: #{device}"
-      if device == "/dev/nfs"
-        log.info "Boot partition is nfs type, bootloader will not be installed."
-        return ret
-      end
-      # F#300779 - end
-
-      handle_errors(ret)
+      ret = construct_proposal_map
 
       # cache the values
       Yast::BootCommon.cached_settings_base_data_change_time = Yast::Storage.GetTargetChangeTime()
@@ -124,22 +115,13 @@ module Bootloader
       boot_sysconfig = ::File.read target_boot_sysconfig_path
       old_bootloader = boot_sysconfig.lines.grep(/^\s*LOADER_TYPE/)
       log.info "bootloader entry #{old_bootloader.inspect}"
-      retur nil if old_bootloader.empty?
+      return nil if old_bootloader.empty?
 
       # get value from entry
-      old_bootloader.last.sub(/^.*=\s*(\S*).*/, "\\1").delete('"')
+      old_bootloader.last.sub(/^.*=\s*(\S*).*/, "\\1").delete('"\'')
     end
 
-    def pure_propose
-      if Yast::Mode.update
-        update_propose
-      else
-        # in installation always propose missing stuff
-        Yast::Bootloader.Propose
-      end
-    end
-
-    def update_propose
+    def propose_for_update
       if ["grub2", "grub2-efi"].include? old_bootloader
         log.info "update of grub2, do not repropose"
         if !Yast::BootCommon.was_read || force_reset
@@ -155,6 +137,29 @@ module Bootloader
       end
     end
 
+    def construct_proposal_map
+      ret = {}
+
+      ret["links"] = PROPOSAL_LINKS if Yast::Bootloader.getLoaderType == "grub2"
+
+
+      ret["raw_proposal"] = Yast::Bootloader.Summary
+
+      # F#300779 - Install diskless client (NFS-root)
+      # kokso:  bootloader will not be installed
+      device = Yast::BootCommon.getBootDisk
+      log.info "Type of BootPartitionDevice: #{device}"
+      if device == "/dev/nfs"
+        log.info "Boot partition is nfs type, bootloader will not be installed."
+        return ret
+      end
+      # F#300779 - end
+
+      handle_errors(ret)
+    end
+
+    # Add to argument proposal map all errors detected by proposal
+    # @return modified parameter
     def handle_errors(ret)
       if Yast::Bootloader.getLoaderType == ""
         log.error "No bootloader selected"
@@ -179,7 +184,6 @@ module Bootloader
         ret.merge!(
           "warning_level" => :error,
           "warning"       => Yast::BootSupportCheck.StringProblems,
-          "raw_proposal"  => Yast::Bootloader.Summary
         )
       end
 
