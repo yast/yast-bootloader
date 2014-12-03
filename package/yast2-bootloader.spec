@@ -27,15 +27,14 @@ Group:	        System/YaST
 License:        GPL-2.0+
 Url:            http://github.com/yast/yast-bootloader
 BuildRequires:	yast2-devtools >= 3.1.10
-BuildRequires:	yast2 >= 3.1.0
+BuildRequires:	yast2 >= 3.1.112
 BuildRequires:  rubygem(rspec)
 BuildRequires:  rubygem(yast-rake)
 BuildRequires:  yast2-storage
 BuildRequires:  yast2-ruby-bindings >= 1.0.0
 PreReq:         /bin/sed %fillup_prereq
-# Installation::*version variables
-# Wizard::SetDialogTitleAndIcon
-Requires:	yast2 >= 3.1.0
+# Base classes for inst clients
+Requires:	yast2 >= 3.1.112
 Requires:	yast2-packager >= 2.17.24
 Requires:	yast2-pkg-bindings >= 2.17.25
 Requires:	perl-Bootloader-YAML
