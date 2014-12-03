@@ -50,9 +50,7 @@ module Bootloader
 
       pure_propose
 
-      if Yast::Bootloader.getLoaderType == "grub2"
-        ret["links"] = PROPOSAL_LINKS
-      end
+      ret["links"] = PROPOSAL_LINKS if Yast::Bootloader.getLoaderType == "grub2"
 
       # to make sure packages will get installed
       Yast::BootCommon.setLoaderType(Yast::BootCommon.getLoaderType(false))
