@@ -54,8 +54,6 @@ module Bootloader
 
     def reset
       Bootloader.Reset
-
-      {}
     end
 
     def change
