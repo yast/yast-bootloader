@@ -33,18 +33,13 @@ module Bootloader
       force_reset = attrs["force_reset"]
       auto_mode = Yast::Mode.autoinst || Yast::Mode.autoupgrade
 
-      if force_reset && !auto_mode
+      if (force_reset || !Yast::Bootloader.proposed_cfg_changed) &&
+          !auto_mode
         # force re-calculation of bootloader proposal
         # this deletes any internally cached values, a new proposal will
         # not be partially based on old data now any more
-        log.info "Recalculation of bootloader configuration forced"
+        log.info "Recalculation of bootloader configuration"
         Yast::Bootloader.Reset
-      end
-
-      # proposal not changed by user so repropose it from scratch
-      if !Yast::Bootloader.proposed_cfg_changed && !auto_mode
-        log.info "Proposal not modified, so repropose from scratch"
-        Yast::Bootloader.ResetEx(false)
       end
 
       if Yast::Mode.update
@@ -160,9 +155,9 @@ module Bootloader
     # Add to argument proposal map all errors detected by proposal
     # @return modified parameter
     def handle_errors(ret)
-      if Yast::Bootloader.getLoaderType == ""
+      if Yast::Bootloader.getLoaderType == "none"
         log.error "No bootloader selected"
-        ret["warning_level"] = :error
+        ret["warning_level"] = :warning
         # warning text in the summary richtext
         ret["warning"] = _(
           "No boot loader is selected for installation. Your system might not be bootable."
