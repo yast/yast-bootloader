@@ -200,7 +200,7 @@ module Yast
       BootCommon.changed = false
       BootCommon.location_changed = false
       BootCommon.write_settings = {}
-      blReset(init)
+      blReset
 
       nil
     end
