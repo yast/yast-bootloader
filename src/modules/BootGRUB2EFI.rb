@@ -133,6 +133,8 @@ module Yast
         packages = ["grub2-i386-efi"]
       elsif Arch.x86_64
         packages = ["grub2-x86_64-efi", "shim", "mokutil"]
+      elsif Arch.aarch64
+        packages = ["grub2-arm64-efi"]
       else
         # do not raise exception as we call constructor everywhere even if it doesn't make sense
         packages = []

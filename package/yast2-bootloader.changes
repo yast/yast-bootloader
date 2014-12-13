@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 20 10:54:52 UTC 2015 - schwab@suse.de
+
+- Use grub2-efi on aarch64
+- 3.1.115
+
+-------------------------------------------------------------------
 Tue Jan 13 08:48:38 UTC 2015 - jreidinger@suse.com
 
 - Do not crash with unsupported bootloader when resetting

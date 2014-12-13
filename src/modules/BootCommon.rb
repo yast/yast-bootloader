@@ -407,8 +407,8 @@ module Yast
       @loader_type = "grub2" if ["s390", "ppc", "grub"].include? @loader_type
 
       Builtins.y2milestone("Bootloader detection returned %1", @loader_type)
-      if (Arch.i386 || Arch.x86_64) && boot_efi?
-        # use grub2-efi as default bootloader for x86_64/i386 EFI
+      if (Arch.i386 || Arch.x86_64 || Arch.aarch64) && boot_efi?
+        # use grub2-efi as default bootloader for x86_64/i386/aarch64 EFI
         @loader_type = "grub2-efi"
       end
 
@@ -492,8 +492,8 @@ module Yast
         return SUPPORTED_BOOTLOADERS + ["default"]
       end
       ret = [getLoaderType(false)]
-      ret << "grub2" # grub2 everywhere
-      ret << "grub2-efi" if Arch.x86_64
+      ret << "grub2" unless Arch.aarch64 # grub2 everywhere except aarch64
+      ret << "grub2-efi" if Arch.x86_64 || Arch.aarch64
       ret << "none"
       # avoid double entry for selected one
       ret.uniq
