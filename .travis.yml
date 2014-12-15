@@ -9,7 +9,6 @@ before_install:
 script:
     - rake check:syntax
     - rake check:pot
-    - rubocop
     - yardoc
     - COVERAGE=1 rake test:unit
     - sudo rake install
