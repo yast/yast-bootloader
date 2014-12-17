@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 25 08:15:01 UTC 2015 - schwab@suse.de
+
+- Propose secure_boot by default only on x86, aarch64 is not ready yet
+- 3.1.125
+
+-------------------------------------------------------------------
 Wed Feb 25 21:48:10 UTC 2015 - jreidinger@suse.com
 
 - Fixed creation of a multipath device map
