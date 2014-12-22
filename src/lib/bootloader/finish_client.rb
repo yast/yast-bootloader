@@ -100,7 +100,7 @@ module Bootloader
       return unless Yast::Mode.update
 
       cmd = <<-eos
-targetdir=#{Installation.destdir}
+targetdir=#{Yast::Installation.destdir}
 if test ${targetdir} = / ; then echo targetdir is / ; exit 1 ; fi
 grep -E \"^[^ ]+ ${targetdir}/dev \" < /proc/mounts
 if test $? = 0
@@ -113,7 +113,7 @@ else
   mount -v --bind /dev ${targetdir}/dev
 fi
 eos
-      out = WFM.Execute(Yast::Path.new(".local.bash_output"), cmd)
+      out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), cmd)
       log.error "unable to bind mount /dev in chroot" if out["exit"] != 0
       log.info "#{cmd}\n output: #{out}"
     end
@@ -128,7 +128,7 @@ eos
         # it returns a result map (keys: (boolean) different, (string) ipl_msg)
 
         if Yast::WFM.ClientExists(reipl_client)
-          finish_ret = WFM.call(reipl_client)
+          finish_ret = Yast::WFM.call(reipl_client)
           log.info "result of reipl_bootloader_finish #{finish_ret}"
         else
           log.error "No such client: #{reipl_client}"
