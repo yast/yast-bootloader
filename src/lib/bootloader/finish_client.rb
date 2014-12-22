@@ -37,30 +37,11 @@ module Bootloader
       # umount of this bind mount will happen in umount_finish
       update_mount
 
-      # --------------------------------------------------------------
       # message after first round of packet installation
       # now the installed system is run and more packages installed
       # just warn the user that the screen is going back to text mode
       # and yast2 will come up again.
-      # dont mention this "going back to text mode" here, maybe this
-      # wont be necessary in the final version
-
-      # we should tell the user to remove the cd on an SMP or Laptop system
-      # where we do a hard reboot. However, the cdrom is still mounted here
-      # and cant be removed.
-
       set_boot_msg
-
-      #--------------------------------------------------------------
-      # Install bootloader (always, see #23018)
-      # should also set Misc::boot_msg appropriate
-
-      # In Mode::update(), the configuration is not yet read (for some
-      # unresearched reason). Therefore, for Mode::update(), there is another
-      # call of ResolveSymlinksInSections() after a Read() in
-      # Bootloader::ReadOrProposeIfNeeded() (which is called the first time
-      # Write() is reached from the call-chain that starts below:
-      # Bootloader::Update() -> Write()).
 
       retcode = false
 
