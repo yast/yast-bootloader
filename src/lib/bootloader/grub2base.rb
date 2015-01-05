@@ -78,7 +78,6 @@ module Yast
     end
 
     # Reset bootloader settings
-    # @param [Boolean] unused
     def Reset
       return if Mode.autoinst
       BootCommon.Reset
