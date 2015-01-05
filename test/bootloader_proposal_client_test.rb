@@ -83,6 +83,9 @@ describe Bootloader::ProposalClient do
       allow(Yast::Bootloader).to receive(:Propose)
       allow(Yast::Bootloader).to receive(:Summary).and_return("Summary")
       allow(Yast::BootCommon).to receive(:BootloaderInstallable).and_return(true)
+
+      Yast.import "Arch"
+      allow(Yast::Arch).to receive(:s390)
     end
 
     it "returns map with links set to single click actions" do
