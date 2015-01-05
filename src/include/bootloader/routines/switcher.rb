@@ -71,10 +71,8 @@ module Yast
     end
 
     # Reset bootloader-specific settings
-    # @param [Boolean] init boolean true if basic initialization of system-dependent
-    # settings should be done
-    def blReset(init)
-      get_function(:Reset).call(init)
+    def blReset
+      get_function(:Reset).call
     end
 
     # Propose bootloader settings

@@ -424,6 +424,7 @@ module Yast
       if !bootloader
         Builtins.y2milestone("Resetting the loader type")
         @loader_type = nil
+        return
       end
       Builtins.y2milestone("Setting bootloader to >>%1<<", bootloader)
       raise "Unsupported bootloader '#{bootloader}'" unless SUPPORTED_BOOTLOADERS.include?(bootloader)

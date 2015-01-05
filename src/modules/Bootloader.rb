@@ -188,9 +188,7 @@ module Yast
     end
 
     # Reset bootloader settings
-    # @param [Boolean] init boolean true if basic initialization of system-dependent
-    # settings should be done
-    def ResetEx(init)
+    def Reset
       return if Mode.autoinst
       log.info "Reseting configuration"
       BootCommon.was_proposed = false
@@ -200,14 +198,9 @@ module Yast
       BootCommon.changed = false
       BootCommon.location_changed = false
       BootCommon.write_settings = {}
-      blReset(init)
+      blReset
 
       nil
-    end
-
-    # Reset bootloader settings
-    def Reset
-      ResetEx(true)
     end
 
     # Propose bootloader settings
@@ -626,7 +619,6 @@ module Yast
     publish :function => :blWidgetMaps, :type => "map <string, map <string, any>> ()"
     publish :function => :blDialogs, :type => "map <string, symbol ()> ()"
     publish :variable => :test_abort, :type => "boolean ()"
-    publish :function => :ResetEx, :type => "void (boolean)"
     publish :function => :Summary, :type => "list <string> ()"
     publish :function => :Update, :type => "boolean ()"
     publish :function => :WriteInstallation, :type => "boolean ()"
