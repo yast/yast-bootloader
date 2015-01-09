@@ -1,3 +1,7 @@
+# use the shared Yast defaults
+inherit_from:
+  /usr/share/YaST2/data/devtools/data/rubocop_yast_style.yml
+
 Lint/Eval:
   Exclude:
   # test helper data source is safe, so eval is not problem
@@ -90,22 +94,9 @@ Metrics/ParameterLists:
 Style/AccessModifierIndentation:
   EnforcedStyle: outdent
 
-# Configuration parameters: EnforcedHashRocketStyle, EnforcedColonStyle, EnforcedLastArgumentHashStyle, SupportedLastArgumentHashStyles.
-Style/AlignHash:
-  EnforcedHashRocketStyle: table
-  EnforcedColonStyle: table
-
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-Style/AlignParameters:
-  EnforcedStyle: with_fixed_indentation
-
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/AndOr:
   EnforcedStyle: conditionals
-
-# Configuration parameters: IndentWhenRelativeTo, SupportedStyles, IndentOneStep.
-Style/CaseIndentation:
-  IndentWhenRelativeTo: end
 
 Style/Documentation:
   Include:
@@ -129,30 +120,6 @@ Style/MethodName:
   Exclude:
     - 'src/lib/bootloader/grub2base.rb' # base class that implement common API with incorrect names
 
-Style/MultilineOperationIndentation:
-  EnforcedStyle: indented
-
-# keep negated if as we prefer it only in traling form
-Style/NegatedIf:
-  Enabled: false
-
-# do not force %r
-Style/RegexpLiteral:
-  Enabled: false
-
-Style/SignalException:
-  EnforcedStyle: only_raise
-
-Style/StringLiterals:
-  EnforcedStyle: double_quotes
-
-Style/StringLiteralsInInterpolation:
-  EnforcedStyle: double_quotes
-
 Style/VariableName:
   Include:
     - 'src/lib/**/*.rb' # force known variables only for new code
-
-# do not prefer work arrays
-Style/WordArray:
-  Enabled: false
