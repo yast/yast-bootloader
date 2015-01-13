@@ -112,7 +112,7 @@ module Bootloader
       return nil if old_bootloader.empty?
 
       # get value from entry
-      old_bootloader.last.sub(/^.*=\s*(\S*).*/, "\\1").delete('"\'')
+      old_bootloader.last.chomp.sub(/^.*=\s*(\S*).*/, "\\1").delete('"\'')
     end
 
     def propose_for_update
