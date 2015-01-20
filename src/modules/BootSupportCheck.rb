@@ -77,7 +77,7 @@ module Yast
       return true if lt == "none"
 
       # grub2 is sooo cool...
-      return true if lt == "grub2"
+      return true if lt == "grub2" && !Arch.aarch64
 
       if Arch.i386 || Arch.x86_64
         if efi?
@@ -86,6 +86,9 @@ module Yast
           return true if lt == "grub2"
         end
       end
+
+      return true if lt == "grub2-efi" && Arch.aarch64
+
       Builtins.y2error(
         "Unsupported combination of hardware platform %1 and bootloader %2",
         Arch.architecture,

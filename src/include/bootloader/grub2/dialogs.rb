@@ -59,7 +59,7 @@ module Yast
         "contents"     => VBox(
           VSquash(HBox(
             Top(VBox(VSpacing(1), "loader_type")),
-            Arch.s390 ? Empty() : "loader_location")),
+            Arch.s390 || Arch.aarch64 ? Empty() : "loader_location")),
           MarginBox(1, 0.5, "distributor"),
           MarginBox(1, 0.5, Left("activate")),
           MarginBox(1, 0.5, Left("generic_mbr")),
@@ -285,11 +285,13 @@ module Yast
     end
 
     def grub2efiWidgets
-      if Arch.x86_64
-        if @_grub2_efi_widgets.nil?
+      if @_grub2_efi_widgets.nil?
+        if Arch.x86_64
           @_grub2_efi_widgets = { "loader_location" => grub2SecureBootWidget }
-          @_grub2_efi_widgets.merge! Grub2Options()
+        else
+          @_grub2_efi_widgets = {}
         end
+        @_grub2_efi_widgets.merge! Grub2Options()
       end
 
       deep_copy(@_grub2_efi_widgets)
