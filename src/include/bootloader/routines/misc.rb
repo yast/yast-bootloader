@@ -422,7 +422,11 @@ module Yast
       ret = ""
       if unit != "" && speed != ""
         # add number of serial console
-        ret = Ops.add("ttyS", unit)
+        if Arch.aarch64
+          ret = Ops.add("ttyAMA", unit)
+        else
+          ret = Ops.add("ttyS", unit)
+        end
         # add speed
         ret = Ops.add(Ops.add(ret, ","), speed)
         if parity != ""
@@ -507,7 +511,7 @@ module Yast
       args = Builtins.regexpsub(append, "^.*console=[[:alpha:]]+([[:digit:]]*,*[[:digit:]]*[noe]*[[:digit:]]*).*[[:space:]]*.*$", "\\1")
 
       Builtins.y2milestone("BuildSerialFromAppend: %1, %2", type, args)
-      return "" if type != "ttyS" || args.empty?
+      return "" if (type != "ttyS" && type != "ttyAMA") || args.empty?
 
       unit = Builtins.regexpsub(args, "([[:digit:]]+),*[[:digit:]]*[noe]*[[:digit:]]*", "\\1")
       return ""  if unit == ""
