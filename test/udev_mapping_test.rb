@@ -26,7 +26,7 @@ describe Bootloader::UdevMapping do
     end
 
     it "raise exception if udev link is not known" do
-      expect{subject.to_kernel_device("/dev/disk/by-id/non-existing-device")}.to raise_error
+      expect { subject.to_kernel_device("/dev/disk/by-id/non-existing-device") }.to raise_error
     end
   end
 
@@ -56,8 +56,8 @@ describe Bootloader::UdevMapping do
           disk = "tmpfs"
           number = ""
         else
-          number = partition[/(\d+)$/,1]
-          disk = partition[0..-(number.size+1)]
+          number = partition[/(\d+)$/, 1]
+          disk = partition[0..-(number.size + 1)]
         end
         { "disk" => disk, "nr" => number }
       end
@@ -107,10 +107,8 @@ describe Bootloader::UdevMapping do
       target_map_stub("storage_lvm.rb")
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
 
-      expect{subject.to_mountby_device("/dev/non-exists")}.to raise_error
-      expect{subject.to_mountby_device("/dev/disk-by-uuid/ffff-ffff-ffff-ffff")}.to raise_error
+      expect { subject.to_mountby_device("/dev/non-exists") }.to raise_error
+      expect { subject.to_mountby_device("/dev/disk-by-uuid/ffff-ffff-ffff-ffff") }.to raise_error
     end
   end
 end
-
-

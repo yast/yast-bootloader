@@ -1,5 +1,6 @@
-# encoding: utf-8
+require "bootloader/proposal_client"
 
+<<<<<<< HEAD
 # Module:		bootloader_proposal.ycp
 #
 # $Id$
@@ -260,3 +261,6 @@ module Yast
 end
 
 Yast::BootloaderProposalClient.new.main
+=======
+::Bootloader::ProposalClient.run
+>>>>>>> upstream/master

@@ -16,7 +16,7 @@
 #
 module Yast
   module BootloaderGrub2HelpsInclude
-    def initialize_bootloader_grub2_helps(include_target)
+    def initialize_bootloader_grub2_helps(_include_target)
       textdomain "bootloader"
 
       @grub2_help_messages = {

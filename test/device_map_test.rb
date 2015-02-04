@@ -39,7 +39,7 @@ describe Bootloader::DeviceMap do
       expect(subject.to_hash).to be_empty
     end
 
-    # TODO I do not have sufficient target map yet
+    # TODO: I do not have sufficient target map yet
     it "do not add to device map members of raids and multipath"
 
     it "do not add non-disk devices" do
@@ -49,23 +49,23 @@ describe Bootloader::DeviceMap do
       expect(subject.to_hash).to_not include("/dev/tmpfs")
     end
 
-    # TODO I do not have sufficient target map yet with enough disks and mixture of bios ids
+    # TODO: I do not have sufficient target map yet with enough disks and mixture of bios ids
     it "propose order according to bios id"
 
-    # TODO I do not have sufficient target map yet
+    # TODO: I do not have sufficient target map yet
     it "do not propose USB as first device"
 
-    # TODO I do not have sufficient target map yet with enough disks and mixture of bios ids
+    # TODO: I do not have sufficient target map yet with enough disks and mixture of bios ids
     it "propose as first device disk containing /boot"
   end
 
   describe "#disks_order" do
     it "returns disks in device sorted by id" do
-      map = Bootloader::DeviceMap.new({
+      map = Bootloader::DeviceMap.new(
         "/dev/vdb" => "hd0",
         "/dev/vda" => "hd2",
         "/dev/vdc" => "hd1"
-      })
+      )
 
       expect(map.disks_order).to eq(["/dev/vdb", "/dev/vdc", "/dev/vda"])
     end
@@ -77,14 +77,14 @@ describe Bootloader::DeviceMap do
     end
 
     it "returns device map with keys mapped to mount_by option" do
-       map = Bootloader::DeviceMap.new({
-        "/dev/vdb" => "hd0",
-        "/dev/vda" => "hd2",
-        "/dev/vdc" => "hd1"
-      })
+      map = Bootloader::DeviceMap.new(
+       "/dev/vdb" => "hd0",
+       "/dev/vda" => "hd2",
+       "/dev/vdc" => "hd1"
+     )
 
-      expect(Bootloader::UdevMapping).to receive(:to_kernel_device).
-        and_return("/dev/bla", "/dev/ble", "/dev/blabla")
+      expect(Bootloader::UdevMapping).to receive(:to_kernel_device)
+        .and_return("/dev/bla", "/dev/ble", "/dev/blabla")
 
       expect(map.remapped_hash).to eq(
         "/dev/bla"    => "hd0",
@@ -96,11 +96,11 @@ describe Bootloader::DeviceMap do
     it "returns not mapped map if mount_by is label and arch is not ppc" do
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:label)
       allow(Yast::Arch).to receive(:ppc).and_return(false)
-      map = Bootloader::DeviceMap.new({
+      map = Bootloader::DeviceMap.new(
         "/dev/vdb" => "hd0",
         "/dev/vda" => "hd2",
         "/dev/vdc" => "hd1"
-      })
+      )
 
       expect(Bootloader::UdevMapping).to_not receive(:to_kernel_device)
 
@@ -110,26 +110,26 @@ describe Bootloader::DeviceMap do
 
   describe "#contain_disk?" do
     before do
-      allow(Bootloader::UdevMapping).to receive(:to_mountby_device).
-        and_return("/dev/bla")
+      allow(Bootloader::UdevMapping).to receive(:to_mountby_device)
+        .and_return("/dev/bla")
 
     end
 
     it "checks if device map contain passed disk" do
-      map = Bootloader::DeviceMap.new({
+      map = Bootloader::DeviceMap.new(
         "/dev/vdb" => "hd0",
         "/dev/vda" => "hd2",
         "/dev/vdc" => "hd1"
-      })
+      )
 
       expect(map.contain_disk?("/dev/vdb")).to be true
       expect(map.contain_disk?("/dev/vdd")).to be false
     end
 
     it "try also device in format for mountby" do
-      map = Bootloader::DeviceMap.new({
+      map = Bootloader::DeviceMap.new(
         "/dev/bla" => "hd0"
-      })
+      )
 
       expect(map.contain_disk?("/dev/bla")).to be true
     end

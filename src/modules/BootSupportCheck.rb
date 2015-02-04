@@ -19,7 +19,6 @@ require "yast"
 module Yast
   class BootSupportCheckClass < Module
     def main
-
       textdomain "bootloader"
 
       Yast.import "Bootloader"
@@ -57,13 +56,9 @@ module Yast
       ret
     end
 
-
     # Check that bootloader is known and supported
     def KnownLoader
-      if !Builtins.contains(
-          ["grub2", "grub2-efi", "none"],
-          Bootloader.getLoaderType
-        )
+      if !["grub2", "grub2-efi", "none"].include?(Bootloader.getLoaderType)
         Builtins.y2error("Unknown bootloader: %1", Bootloader.getLoaderType)
         AddNewProblem(
           Builtins.sformat(
@@ -82,7 +77,7 @@ module Yast
       return true if lt == "none"
 
       # grub2 is sooo cool...
-      return true if lt == "grub2"
+      return true if lt == "grub2" && !Arch.aarch64
 
       if Arch.i386 || Arch.x86_64
         if efi?
@@ -91,6 +86,9 @@ module Yast
           return true if lt == "grub2"
         end
       end
+
+      return true if lt == "grub2-efi" && Arch.aarch64
+
       Builtins.y2error(
         "Unsupported combination of hardware platform %1 and bootloader %2",
         Arch.architecture,
@@ -111,7 +109,7 @@ module Yast
       ret = true
       tm = Storage.GetTargetMap
       devices = [BootStorage.BootPartitionDevice]
-      # TODO add more devices
+      # TODO: add more devices
       Builtins.foreach(devices) do |dev|
         p_dev = Storage.GetDiskPartition(dev)
         num = p_dev["nr"].to_i
@@ -133,7 +131,7 @@ module Yast
       boot_device = Storage.GetPartition(devices, BootCommon.getBootPartition)
       return true if mbr_disk["label"] != "gpt"
       return true if boot_device["used_fs"] != :btrfs
-      return true if mbr_disk["partitions"].any? {|p| p["fsid"] == Partitions.fsid_bios_grub }
+      return true if mbr_disk["partitions"].any? { |p| p["fsid"] == Partitions.fsid_bios_grub }
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
@@ -141,14 +139,13 @@ module Yast
           "Boot from MBR does not work together with btrfs filesystem and GPT disk label without bios_grub partition." \
           "To fix this issue, create bios_grub partition or use any ext filesystem for boot partition or do not install stage 1 to MBR."
       ))
-      return false
+      false
     end
 
     # Check if boot partition exist
     # check if not on raid0
     #
     # @return [Boolean] true on success
-
 
     def check_BootDevice
       result = true
@@ -158,7 +155,7 @@ module Yast
 
       found_boot = false
       # check if boot device is on raid0
-      Builtins.foreach(devices) do |k, v|
+      Builtins.foreach(devices) do |_k, v|
         Builtins.foreach(Ops.get_list(v, "partitions", [])) do |p|
           if Ops.get_string(p, "device", "") == boot_device
             if Ops.get_string(p, "raid_type", "") != "raid1" &&
@@ -222,7 +219,7 @@ module Yast
     # Check if EFI is needed
     def efi?
       cmd = "modprobe efivars 2>/dev/null"
-      ret = Convert.to_map(SCR.Execute(path(".target.bash_output"), cmd))
+      SCR.Execute(path(".target.bash_output"), cmd)
       if FileUtils.Exists("/sys/firmware/efi/systab")
         return true
       else
@@ -241,7 +238,7 @@ module Yast
       if [:ext2, :ext3, :ext4].include? boot_part["used_fs"]
         return true
       else
-        AddNewProblem(_( "Missing ext partition for booting. Cannot install boot code."))
+        AddNewProblem(_("Missing ext partition for booting. Cannot install boot code."))
         return false
       end
     end
@@ -259,6 +256,8 @@ module Yast
       # ensure that s390 have ext* partition for booting (bnc#873951)
       ret &&= check_zipl_part if Arch.s390
       ret &&= check_gpt_reserved_partition if Arch.x86_64
+
+      ret
     end
 
     # GRUB2EFI-related check
@@ -293,7 +292,6 @@ module Yast
       supported
     end
 
-
     def EndOfBootOrRootPartition
       part = Storage.GetEntryForMountpoint("/boot")
       part = Storage.GetEntryForMountpoint("/") if Builtins.isempty(part)
@@ -303,14 +301,14 @@ module Yast
 
       end_cyl = Region.End(Ops.get_list(part, "region", []))
 
-      cyl_size = 82252800
+      cyl_size = 82_252_800
       target_map = Storage.GetTargetMap
-      Builtins.foreach(target_map) do |dev, disk|
-        if Builtins.find(Ops.get_list(disk, "partitions", [])) do |p|
-            Ops.get_string(p, "device", "") == device
-          end != nil
-          cyl_size = Ops.get_integer(disk, "cyl_size", 82252800)
+      Builtins.foreach(target_map) do |_dev, disk|
+        partition = (disk["partitions"] || []).find do |p|
+          p["device"] == device
         end
+
+        cyl_size = disk["cyl_size"] || 82_252_800 if partition
       end
 
       ret = Ops.multiply(end_cyl, cyl_size)

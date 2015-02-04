@@ -28,14 +28,12 @@ module Yast
     attr_accessor :device_map
 
     def main
-
       textdomain "bootloader"
 
       Yast.import "Storage"
       Yast.import "StorageDevices"
       Yast.import "Arch"
       Yast.import "Mode"
-
 
       # Saved change time from target map - only for checkCallingDiskInfo()
       @disk_change_time_checkCallingDiskInfo = nil
@@ -49,7 +47,6 @@ module Yast
       # mountpoints for perl-Bootloader
       @mountpoints = {}
 
-
       # list of all partitions for perl-Bootloader
       @partinfo = []
 
@@ -62,7 +59,6 @@ module Yast
       # string sepresenting device name of /boot partition
       # same as RootPartitionDevice if no separate /boot partition
       @BootPartitionDevice = ""
-
 
       # string representing device name of / partition
       @RootPartitionDevice = ""
@@ -82,7 +78,7 @@ module Yast
     #
     # @return [Hash{String => String}] mapping real disk to multipath
 
-    # FIXME grub only
+    # FIXME: grub only
 
     def mapRealDevicesToMultipath
       ret = {}
@@ -96,9 +92,6 @@ module Yast
 
       ret
     end
-
-
-
 
     # Check if function was called or storage change
     # partitionig of disk. It is usefull fo using cached data
@@ -161,16 +154,12 @@ module Yast
         next res if [:CT_LVM, :CT_EVMS].include?(info["type"])
         partitions = info["partitions"]
         parts = partitions.map do |p|
-          raid = nil
-          if p["used_by_type"] == :UB_MD
-            raid = p["used_by_device"]
-          end
+          raid = p["used_by_type"] == :UB_MD ? p["used_by_device"] : nil
           device = p["device"] || ""
           # We only pass along RAID1 devices as all other causes
           # severe breakage in the bootloader stack
-          if raid && @md_info.include?(raid)
-            @md_info[raid] << device
-          end
+          @md_info[raid] << device if raid && @md_info.include?(raid)
+
           nr = (p["nr"] || 0).to_s
           region = p.fetch("region", [])
           [
@@ -189,7 +178,6 @@ module Yast
       end
     end
 
-
     # Get the order of disks according to BIOS mapping
     # @return a list of all disks in the order BIOS sees them
     def DisksOrder
@@ -197,7 +185,6 @@ module Yast
 
       @device_map.disks_order
     end
-
 
     # Returns list of partitions and disks. Requests current partitioning from
     # yast2-storage and creates list of partition and disks usable for grub stage1
@@ -215,9 +202,9 @@ module Yast
       partitions = []
 
       devices.each do |k, v|
-        if all_disks.include?(k)
-          partitions.concat(v["partitions"] || [])
-        end
+        next unless all_disks.include?(k)
+
+        partitions.concat(v["partitions"] || [])
       end
 
       partitions.delete_if do |p|
@@ -227,7 +214,7 @@ module Yast
       partitions.select! do |p|
         [:primary, :extended, :logical, :sw_raid].include?(p["type"]) &&
           (p["used_fs"] || p["detected_fs"]) != :xfs &&
-        ["Linux native", "Extended", "Linux RAID", "MD RAID", "DM RAID"].include?(p["fstype"])
+          ["Linux native", "Extended", "Linux RAID", "MD RAID", "DM RAID"].include?(p["fstype"])
       end
 
       res = partitions.map { |p| p["device"] || "" }
@@ -303,7 +290,7 @@ module Yast
 
         if p["raid_type"] == "raid1"
           p_devices = p["devices"] || []
-          if p_devices.size == 2 # TODO why only 2? it do not make sense
+          if p_devices.size == 2 # TODO: why only 2? it do not make sense
             ret = checkDifferentDisks(p_devices)
           else
             log.info "Device: #{device} doesn't contain 2 partitions: #{p_devices}"
@@ -334,7 +321,7 @@ module Yast
       log.info "FS for boot partition #{fs}"
 
       # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
-      return fs != :xfs
+      fs != :xfs
     end
 
     # FATE#305008: Failover boot configurations for md arrays with redundancy
@@ -381,7 +368,7 @@ module Yast
     def Md2Partitions(md_device)
       ret = {}
       tm = Storage.GetTargetMap
-      tm.each_pair do |disk, descr|
+      tm.each_pair do |_disk, descr|
         bios_id = (descr["bios_id"] || 256).to_i # maximum + 1 (means: no bios_id found)
         partitions = descr["partitions"] || []
         partitions.each do |partition|
@@ -397,18 +384,18 @@ module Yast
 
     # returns disk names where partition lives
     def real_disks_for_partition(partition)
-      # FIXME handle somehow if disk are in logical raid
+      # FIXME: handle somehow if disk are in logical raid
       partitions = Md2Partitions(partition).keys
       partitions = [partition] if partitions.empty?
-      res = partitions.map do |partition|
-        Storage.GetDiskPartition(partition)["disk"]
+      res = partitions.map do |part|
+        Storage.GetDiskPartition(part)["disk"]
       end
       res.uniq!
       # handle LVM disks
       tm = Storage.GetTargetMap
-      res = res.reduce([]) do |ret, disk|
+      res = res.each_with_object([]) do |disk, ret|
         disk_meta = tm[disk]
-        next ret unless disk_meta
+        next unless disk_meta
 
         if disk_meta["lvm2"]
           devices = (disk_meta["devices"] || []) + (disk_meta["devices_add"] || [])
@@ -417,7 +404,6 @@ module Yast
         else
           ret << disk
         end
-        ret
       end
 
       res.uniq
@@ -443,7 +429,7 @@ module Yast
       # get extended partition device (if exists)
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
-      if BootCommon.mbrDisk == "" || BootCommon.mbrDisk == nil
+      if BootCommon.mbrDisk == "" || BootCommon.mbrDisk.nil?
         # mbr detection.
         BootCommon.mbrDisk = BootCommon.FindMBRDisk
       end

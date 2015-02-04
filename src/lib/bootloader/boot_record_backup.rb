@@ -16,7 +16,7 @@ module Bootloader
     attr_reader :device
 
     # Exception from this class
-    class Error < RuntimeError;end
+    class Error < RuntimeError; end
 
     # Exception used to indicate that backup missing, so any action with it is
     # not possible
@@ -25,8 +25,6 @@ module Bootloader
         super "Backup for boot record missing."
       end
     end
-
-
 
     # Create backup handling class for given device
     # @param device[String] expect kernel name of device like "/dev/sda"
@@ -51,26 +49,27 @@ module Bootloader
       logs_path = "/var/log/YaST2/" + device_file
       copy_br(device, logs_path)
 
-      if device == Yast::BootCommon.mbrDisk
-        copy_br(device, "/boot/backup_mbr")
+      # special backup only if device is mbr disk
+      return if device != Yast::BootCommon.mbrDisk
 
-        # save thinkpad MBR
-        if Yast::BootCommon.ThinkPadMBR(device)
-          device_file_path_thinkpad = device_file_path + "thinkpadMBR"
-          log.info("Backup thinkpad MBR")
-          Yast::SCR.Execute(
-            BASH_PATH,
-            "cp #{device_file_path} #{device_file_path_thinkpad}",
-          )
-        end
-      end
+      copy_br(device, "/boot/backup_mbr")
+
+      return unless Yast::BootCommon.ThinkPadMBR(device)
+
+      # special backup for thinkpad MBR
+      device_file_path_thinkpad = device_file_path + "thinkpadMBR"
+      log.info("Backup thinkpad MBR")
+      Yast::SCR.Execute(
+        BASH_PATH,
+        "cp #{device_file_path} #{device_file_path_thinkpad}"
+      )
     end
 
     # Restore backup
     # @raise [::Bootloader::BootRecordBackup::Missing] if backup missing
     # @return true if copy is successful
     def restore
-      raise Missing.new unless exists?
+      raise Missing unless exists?
 
       # Copy only 440 bytes for Vista booting problem bnc #396444
       # and also to not destroy partition table
@@ -130,8 +129,9 @@ module Bootloader
       change_date = formated_file_ctime(device_file_path)
       Yast::SCR.Execute(
         BASH_PATH,
-        "/bin/mv %{path} %{path}-%{date}" %
-          { path: device_file_path, date: change_date }
+        format("/bin/mv %{path} %{path}-%{date}",
+          path: device_file_path, date: change_date
+        )
       )
     end
   end

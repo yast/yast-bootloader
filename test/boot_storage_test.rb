@@ -22,7 +22,7 @@ describe Yast::BootStorage do
   end
 
   describe ".possible_locations_for_stage1" do
-    let (:possible_locations) { subject.possible_locations_for_stage1 }
+    let(:possible_locations) { subject.possible_locations_for_stage1 }
     before do
       target_map_stub("storage_mdraid.rb")
       allow(Yast::Arch).to receive(:s390).and_return(false) # be arch agnostic
@@ -65,8 +65,8 @@ describe Yast::BootStorage do
           disk = "/dev/system"
           number = "system"
         else
-          number = partition[/(\d+)$/,1]
-          disk = partition[0..-(number.size+1)]
+          number = partition[/(\d+)$/, 1]
+          disk = partition[0..-(number.size + 1)]
         end
         { "disk" => disk, "nr" => number }
       end
@@ -95,7 +95,7 @@ describe Yast::BootStorage do
       result = subject.real_disks_for_partition("/dev/system/root")
       expect(result).to include("/dev/vda")
 
-      #do not crash if target map do not contain devices_add(bnc#891070)
+      # do not crash if target map do not contain devices_add(bnc#891070)
       target_map_stub("storage_lvm_without_devices_add.rb")
 
       result = subject.real_disks_for_partition("/dev/system/root")

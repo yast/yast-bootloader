@@ -6,7 +6,7 @@ module Bootloader
     include Yast::Logger
     AGENT_PATH = Yast::Path.new(".sysconfig.bootloader")
     ATTR_VALUE_MAPPING = {
-      bootloader: "LOADER_TYPE",
+      bootloader:  "LOADER_TYPE",
       secure_boot: "SECURE_BOOT"
     }
 
@@ -39,7 +39,7 @@ module Bootloader
     end
 
     PROPOSED_COMMENTS = {
-      bootloader: "\n" \
+      bootloader:  "\n" \
         "## Path:\tSystem/Bootloader\n" \
         "## Description:\tBootloader configuration\n" \
         "## Type:\tlist(grub,grub2,grub2-efi,none)\n" \
@@ -101,7 +101,7 @@ module Bootloader
       )
     end
 
-    def temporary_target_agent &block
+    def temporary_target_agent(&block)
       old_agent = sys_agent
       @sys_agent = Yast::Path.new(".target.sysconfig.bootloader")
 
@@ -129,11 +129,10 @@ module Bootloader
       # write value of option
       Yast::SCR.Write(file_path_option, value)
 
-      # write comment of option if it is necessary
-      if !comment_exist
-        Yast::SCR.Write(comment_path, PROPOSED_COMMENTS[option])
-      end
-    end
+      # write comment of option only if it doesn't exist
+      return if comment_exist
 
+      Yast::SCR.Write(comment_path, PROPOSED_COMMENTS[option])
+    end
   end
 end

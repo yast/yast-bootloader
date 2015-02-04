@@ -33,7 +33,6 @@ module Yast
       Yast.include include_target, "bootloader/routines/global_widgets.rb"
       Yast.include include_target, "bootloader/grub2/dialogs.rb"
 
-
       @return_tab = "installation"
     end
 
@@ -67,7 +66,6 @@ module Yast
       ret = Bootloader.Write
       ret ? :next : :abort
     end
-
 
     # Run dialog for kernel section editation
     # @return [Symbol] for wizard sequencer
@@ -105,12 +103,12 @@ module Yast
         widget_descr,
         "tab",
         CWMTab.CreateWidget(
-          {
+
             "tab_order"    => ["boot_code_tab", "kernel_tab", "bootloader_tab"],
             "tabs"         => Grub2TabDescr(),
             "widget_descr" => widget_descr,
             "initial_tab"  => "boot_code_tab"
-          }
+
         )
       )
       Ops.set(widget_descr, ["tab", "no_help"], "")
@@ -118,7 +116,7 @@ module Yast
       # dialog caption
       caption = _("Boot Loader Settings")
       ret = CWM.ShowAndRun(
-        {
+
           "widget_descr"       => widget_descr,
           "widget_names"       => widget_names,
           "contents"           => contents,
@@ -127,11 +125,11 @@ module Yast
           "abort_button"       => Label.CancelButton,
           "next_button"        => Label.OKButton,
           "fallback_functions" => @global_handlers
-        }
+
       )
       if ret != :back && ret != :abort && ret != :cancel
         @return_tab = CWMTab.LastTab
-        @return_tab = "installation" if @return_tab.include? "tab" #workaround different tab set for grub2
+        @return_tab = "installation" if @return_tab.include? "tab" # workaround different tab set for grub2
       end
       ret
     end

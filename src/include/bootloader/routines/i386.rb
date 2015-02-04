@@ -20,7 +20,7 @@
 #
 module Yast
   module BootloaderRoutinesI386Include
-    def initialize_bootloader_routines_i386(include_target)
+    def initialize_bootloader_routines_i386(_include_target)
       textdomain "bootloader"
 
       # general MBR reading cache
@@ -52,7 +52,7 @@ module Yast
     # @param [String] disk string the disk to be checked
     # @return strign the contents of the MBR of the disk in hexa form
     def GetMBRContents(disk)
-      if @_old_mbr == nil || disk != @_old_mbr_disk
+      if @_old_mbr.nil? || disk != @_old_mbr_disk
         @_old_mbr_disk = disk
         out = Convert.to_map(
           SCR.Execute(
@@ -82,7 +82,7 @@ module Yast
     # @param [String] disk string the disk to be checked
     # @return [Boolean] true if it is MBR
     def ThinkPadMBR(disk)
-      if @_thinkpad_mbr == nil || disk != @_old_thinkpad_disk
+      if @_thinkpad_mbr.nil? || disk != @_old_thinkpad_disk
         @_old_thinkpad_disk = disk
         mbr = GetMBRContents(disk)
         x02 = Builtins.tointeger(Ops.add("0x", Builtins.substring(mbr, 4, 2)))
@@ -113,12 +113,9 @@ module Yast
         if @loader_device != @mbrDisk
           command = Builtins.sformat("/usr/lib/YaST2/bin/tp_mbr %1", @mbrDisk)
           Builtins.y2milestone("Running command %1", command)
-          out = Convert.to_map(
-            SCR.Execute(path(".target.bash_output"), command)
-          )
-          exit = Ops.get_integer(out, "exit", 0)
+          out = SCR.Execute(path(".target.bash_output"), command)
           Builtins.y2milestone("Command output: %1", out)
-          ret = ret && 0 == exit
+          ret = out["exit"].zero?
         end
       end
 

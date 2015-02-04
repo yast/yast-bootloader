@@ -28,7 +28,7 @@ module Yast
   module BootloaderGrub2MiscInclude
     include Yast::Logger
 
-    def initialize_bootloader_grub2_misc(include_target)
+    def initialize_bootloader_grub2_misc(_include_target)
       textdomain "bootloader"
       Yast.import "Arch"
       Yast.import "BootCommon"
@@ -44,7 +44,6 @@ module Yast
     # --------------------------------------------------------------
     # --------------------------------------------------------------
     # LocationProposal() and related stuff (taken from routines/lilolike.ycp)
-
 
     # Set "boot_*" flags in the globals map according to the boot device selected
     # with parameter selected_location. Only a single boot device can be selected
@@ -77,8 +76,8 @@ module Yast
 
     def gpt_boot_disk?
       targets = BootCommon.GetBootloaderDevices
-      boot_discs = targets.map {|d| Storage.GetDisk(Storage.GetTargetMap, d)}
-      boot_discs.any? {|d| d["label"] == "gpt" }
+      boot_discs = targets.map { |d| Storage.GetDisk(Storage.GetTargetMap, d) }
+      boot_discs.any? { |d| d["label"] == "gpt" }
     end
 
     # Detect "/boot", "/" (root), extended partition device and MBR disk device
@@ -106,7 +105,6 @@ module Yast
     def grub_LocationProposal
       log.info "globals: #{BootCommon.globals}"
       log.info "Mode #{Mode.mode}"
-      md_mbr = ""
       no_boot_key = ["boot_boot", "boot_root", "boot_mbr", "boot_extended", "boot_custom"].none? do |k|
         BootCommon.globals[k]
       end
@@ -136,11 +134,11 @@ module Yast
 
       # refresh device map
       if BootStorage.device_map.empty?  ||
-        BootCommon.cached_settings_base_data_change_time !=
-            Storage.GetTargetChangeTime &&
-            # bnc#585824 - Bootloader doesn't use defined device map from autoyast
-            !((Mode.autoinst || Mode.autoupgrade) &&
-              BootCommon.cached_settings_base_data_change_time == nil)
+          BootCommon.cached_settings_base_data_change_time !=
+              Storage.GetTargetChangeTime &&
+              # bnc#585824 - Bootloader doesn't use defined device map from autoyast
+              !((Mode.autoinst || Mode.autoupgrade) &&
+                BootCommon.cached_settings_base_data_change_time.nil?)
         BootStorage.device_map.propose
         BootCommon.InitializeLibrary(true, "grub2")
       end

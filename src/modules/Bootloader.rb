@@ -39,7 +39,7 @@ module Yast
       Yast.import "Storage"
       Yast.import "Directory"
 
-      #fate 303395
+      # fate 303395
       Yast.import "ProductFeatures"
       # Write is repeating again
       # Because of progress bar during inst_finish
@@ -60,7 +60,6 @@ module Yast
       Yast.include self, "bootloader/routines/switcher.rb"
       Yast.include self, "bootloader/routines/popups.rb"
 
-
       # general functions
 
       @test_abort = nil
@@ -69,7 +68,7 @@ module Yast
     # Check whether abort was pressed
     # @return [Boolean] true if abort was pressed
     def testAbort
-      return false if @test_abort == nil
+      return false if @test_abort.nil?
       @test_abort.call
     end
 
@@ -111,9 +110,7 @@ module Yast
       BootCommon.changed = true
       BootCommon.location_changed = true
 
-      if settings["loader_type"] == ""
-        settings["loader_type"] = nil
-      end
+      settings["loader_type"] = nil if settings["loader_type"] == ""
       # if bootloader is not set, then propose it
       loader_type = settings["loader_type"] || BootCommon.getLoaderType(true)
       # Explitelly set it to ensure it is installed
@@ -191,9 +188,7 @@ module Yast
     end
 
     # Reset bootloader settings
-    # @param [Boolean] init boolean true if basic initialization of system-dependent
-    # settings should be done
-    def ResetEx(init)
+    def Reset
       return if Mode.autoinst
       log.info "Reseting configuration"
       BootCommon.was_proposed = false
@@ -203,14 +198,9 @@ module Yast
       BootCommon.changed = false
       BootCommon.location_changed = false
       BootCommon.write_settings = {}
-      blReset(init)
+      blReset
 
       nil
-    end
-
-    # Reset bootloader settings
-    def Reset
-      ResetEx(true)
     end
 
     # Propose bootloader settings
@@ -229,7 +219,6 @@ module Yast
 
       nil
     end
-
 
     # Display bootloader summary
     # @return a list of summary lines
@@ -333,23 +322,21 @@ module Yast
 
       return ret if getLoaderType == "none"
 
-      #F#300779 - Install diskless client (NFS-root)
-      #kokso: bootloader will not be installed
+      # F#300779 - Install diskless client (NFS-root)
+      # kokso: bootloader will not be installed
       if BootCommon.getBootDisk == "/dev/nfs"
         log.info "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
         return ret
       end
 
-      #F#300779 -end
+      # F#300779 -end
 
       # save bootloader settings
       reinit = !Mode.normal
       log.info "Reinitialize bootloader library before saving: #{reinit}"
       ret = blSave(true, reinit, true) && ret
 
-      if !ret
-        log.error "Error before configuration files saving finished"
-      end
+      log.error "Error before configuration files saving finished" unless ret
 
       if Mode.normal
         Progress.NextStage
@@ -360,12 +347,11 @@ module Yast
 
       # call bootloader executable
       log.info "Calling bootloader executable"
-      ret = ret && blWrite
+      ret &&= blWrite
       ret = handle_failed_write unless ret
 
       ret
     end
-
 
     # Write bootloader settings during installation
     # @return [Boolean] true on success
@@ -403,7 +389,7 @@ module Yast
 
       # call bootloader executable
       log.info "Calling bootloader executable"
-      ret = ret && blWrite
+      ret &&= blWrite
       ret = handle_failed_write unless ret
 
       ret
@@ -453,7 +439,7 @@ module Yast
 
       # map old api response to new one
       api_mapping = { "true" => :present, "false" => :missing }
-      return api_mapping[ret] || ret
+      api_mapping[ret] || ret
     end
 
     # Modify kernel parameters for installed kernels according to values
@@ -551,12 +537,12 @@ module Yast
       end
     end
 
-    private
+  private
 
     # Write settings to /etc/sysconfig/bootloader
     def write_sysconfig
       sysconfig = ::Bootloader::Sysconfig.new(
-        bootloader: getLoaderType,
+        bootloader:  getLoaderType,
         secure_boot: BootCommon.getSystemSecureBootStatus(false)
       )
       sysconfig.write
@@ -575,14 +561,13 @@ module Yast
     end
 
     def mark_as_changed
-      if BootCommon.write_settings["save_all"]
-        BootCommon.save_all = true
-      end
-      if BootCommon.save_all
-        BootCommon.changed = true
-        BootCommon.location_changed = true
-        Initrd.changed = true
-      end
+      BootCommon.save_all = true if BootCommon.write_settings["save_all"]
+
+      return unless BootCommon.save_all
+
+      BootCommon.changed = true
+      BootCommon.location_changed = true
+      Initrd.changed = true
     end
 
     def handle_failed_write
@@ -634,7 +619,6 @@ module Yast
     publish :function => :blWidgetMaps, :type => "map <string, map <string, any>> ()"
     publish :function => :blDialogs, :type => "map <string, symbol ()> ()"
     publish :variable => :test_abort, :type => "boolean ()"
-    publish :function => :ResetEx, :type => "void (boolean)"
     publish :function => :Summary, :type => "list <string> ()"
     publish :function => :Update, :type => "boolean ()"
     publish :function => :WriteInstallation, :type => "boolean ()"

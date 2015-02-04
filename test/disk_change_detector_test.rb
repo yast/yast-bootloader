@@ -7,8 +7,8 @@ require "bootloader/disk_change_detector"
 describe Bootloader::DiskChangeDetector do
   before do
     Yast.import "Storage"
-    mount_points = { #TODO full mock
-      "/" => ["/dev/sda1"],
+    mount_points = { # TODO: full mock
+      "/"     => ["/dev/sda1"],
       "/boot" => ["/dev/sda2"]
     }
     allow(Yast::Storage).to receive(:GetMountPoints).and_return(mount_points)
@@ -29,6 +29,15 @@ describe Bootloader::DiskChangeDetector do
   describe ".changes" do
     it "returns empty array if disk proposal do not change" do
       expect(subject.changes).to be_empty
+    end
+
+    it "do not crash if separate /boot missing" do
+      mount_points = { # TODO: full mock
+        "/"     => ["/dev/sda1"]
+      }
+      allow(Yast::Storage).to receive(:GetMountPoints).and_return(mount_points)
+
+      expect { subject }.to_not raise_error
     end
 
     it "returns list containing message with boot if device for /boot changed and stage1 selected for boot" do
@@ -54,14 +63,13 @@ describe Bootloader::DiskChangeDetector do
       Yast::BootCommon.globals["boot_mbr"] = "true"
       allow(Yast::BootCommon).to receive(:FindMBRDisk).and_return("/dev/sda")
       Yast::BootCommon.mbrDisk = "/dev/sdb"
-      expect(subject.changes.first).to include('MBR')
+      expect(subject.changes.first).to include("MBR")
     end
 
     it "returns list containing message with custom partition if custom boot disk changed and stage1 selected for custom" do
       Yast::BootCommon.globals["boot_custom"] = "/dev/sdc"
       allow(Yast::BootStorage).to receive(:possible_locations_for_stage1).and_return(["/dev/sda", "/dev/sda2"])
-      expect(subject.changes.first).to include('custom bootloader partition')
+      expect(subject.changes.first).to include("custom bootloader partition")
     end
   end
 end
-

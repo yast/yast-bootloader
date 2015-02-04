@@ -39,13 +39,13 @@ describe Bootloader::Sysconfig do
     it "write comments for attributes if it is not already written" do
       sysconfig = Bootloader::Sysconfig.new(bootloader: "grub2", secure_boot: true)
       allow(Yast::SCR).to receive(:Read).with(
-        Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT.comment")).
-        and_return("comment ABC")
+        Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT.comment"))
+        .and_return("comment ABC")
       expect(Yast::SCR).to receive(:Write).with(
-        Yast::Path.new(".sysconfig.bootloader.LOADER_TYPE.comment"), anything()
+        Yast::Path.new(".sysconfig.bootloader.LOADER_TYPE.comment"), anything
       )
       expect(Yast::SCR).to receive(:Write).with(
-        Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT.comment"), anything()
+        Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT.comment"), anything
       ).never
 
       sysconfig.write

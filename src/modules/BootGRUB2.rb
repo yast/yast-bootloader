@@ -57,9 +57,7 @@ module Yast
 
       # TODO: check if necessary for grub2
       # refresh device map if not read
-      if BootStorage.device_map.empty?
-        BootStorage.device_map.propose
-      end
+      BootStorage.device_map.propose if BootStorage.device_map.empty?
 
       if Mode.normal
         redundant_disks = BootStorage.devices_for_redundant_boot
@@ -98,7 +96,7 @@ module Yast
       if @orig_globals
         location = ["boot_mbr", "boot_boot", "boot_root", "boot_extended", "boot_custom", "boot_custom", "activate", "generic_mbr"]
         location.each do |i|
-           BootCommon.location_changed = true if @orig_globals[i] != BootCommon.globals[i]
+          BootCommon.location_changed = true if @orig_globals[i] != BootCommon.globals[i]
         end
       else
         # there is no original, so we do not read config, but propose it
@@ -111,20 +109,20 @@ module Yast
         ::Bootloader::MBRUpdate.new.run
 
         grub_ret = BootCommon.InitializeBootloader
-        grub_ret = false if grub_ret == nil
+        grub_ret = false if grub_ret.nil?
 
         Builtins.y2milestone("GRUB return value: %1", grub_ret)
-        ret = ret && grub_ret
-        ret = ret && BootCommon.PostUpdateMBR
+        ret &&= grub_ret
+        ret &&= BootCommon.PostUpdateMBR
       end
 
       # something with PMBR needed
       if BootCommon.pmbr_action
         boot_devices = BootCommon.GetBootloaderDevices
-        boot_discs = boot_devices.map {|d| Storage.GetDisk(Storage.GetTargetMap, d)}
+        boot_discs = boot_devices.map { |d| Storage.GetDisk(Storage.GetTargetMap, d) }
         boot_discs.uniq!
-        gpt_disks = boot_discs.select {|d| d["label"] == "gpt" }
-        gpt_disks_devices = gpt_disks.map {|d| d["device"] }
+        gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
+        gpt_disks_devices = gpt_disks.map { |d| d["device"] }
 
         pmbr_setup(BootCommon.pmbr_action, *gpt_disks_devices)
       end
@@ -136,34 +134,34 @@ module Yast
       super
 
       # do not repropose, only in autoinst mode to allow propose missing parts
-      if !BootCommon.was_proposed || Mode.autoinst || Mode.autoupgrade
-        case Arch.architecture
-        when "i386", "x86_64"
-          grub_LocationProposal
-          # pass vga if available (bnc#896300)
-          if !Kernel.GetVgaType.empty?
-            BootCommon.globals["vgamode"]= Kernel.GetVgaType
-          end
-        when /ppc/
-          partition = prep_partitions.first
-          if partition
-            BootCommon.globals["boot_custom"] = partition
-          else
-            # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
-            # we need to detect what is mount on /boot and if it is nfs, then just
-            # skip this proposal. In other case if it is not nfs, then it is error and raise exception
-            BootCommon.DetectDisks
-            if BootCommon.getBootDisk == "/dev/nfs"
-              return
-            else
-              raise "there is no prep partition"
-            end
-          end
-        when /s390/
-          Builtins.y2milestone "no partition needed for grub2 on s390"
-        else
-          raise "unsuported architecture #{Arch.architecture}"
+      return if BootCommon.was_proposed && !Mode.autoinst && !Mode.autoupgrade
+
+      case Arch.architecture
+      when "i386", "x86_64"
+        grub_LocationProposal
+        # pass vga if available (bnc#896300)
+        if !Kernel.GetVgaType.empty?
+          BootCommon.globals["vgamode"] = Kernel.GetVgaType
         end
+      when /ppc/
+        partition = prep_partitions.first
+        if partition
+          BootCommon.globals["boot_custom"] = partition
+        else
+          # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
+          # we need to detect what is mount on /boot and if it is nfs, then just
+          # skip this proposal. In other case if it is not nfs, then it is error and raise exception
+          BootCommon.DetectDisks
+          if BootCommon.getBootDisk == "/dev/nfs"
+            return
+          else
+            raise "there is no prep partition"
+          end
+        end
+      when /s390/
+        Builtins.y2milestone "no partition needed for grub2 on s390"
+      else
+        raise "unsuported architecture #{Arch.architecture}"
       end
     end
 
@@ -229,18 +227,17 @@ module Yast
       end
 
       if ["boot_root", "boot_boot", "boot_mbr", "boot_extended"].none? { |loc| BootCommon.globals[loc] == "true" }
-          # no location chosen, so warn user that it is problem unless he is sure
-          msg = _("Warning: No location for bootloader stage1 selected." \
-            "Unless you know what you are doing please select above location.")
-          line << "<li>" << HTML.Colorize(msg, "red") << "</li>"
+        # no location chosen, so warn user that it is problem unless he is sure
+        msg = _("Warning: No location for bootloader stage1 selected." \
+          "Unless you know what you are doing please select above location.")
+        line << "<li>" << HTML.Colorize(msg, "red") << "</li>"
       end
 
       line << "</ul>"
 
       # TRANSLATORS: title for list of location proposals
-      return _("Change Location: %s") % line
+      _("Change Location: %s") % line
     end
-
 
     # Display bootloader summary
     # @return a list of summary lines
@@ -274,23 +271,21 @@ module Yast
       end
       if !locations.empty?
         result << Builtins.sformat(
-            _("Status Location: %1"),
-            locations.join(", ")
-          )
+          _("Status Location: %1"),
+          locations.join(", ")
+        )
       end
 
       # it is necessary different summary for autoyast and installation
       # other mode than autoyast on running system
       # both ppc and s390 have special devices for stage1 so it do not make sense
       # allow change of location to MBR or boot partition (bnc#879107)
-      if !Arch.ppc && !Arch.s390 && !Mode.config
-        result << urlLocationSummary
-      end
+      result << urlLocationSummary if !Arch.ppc && !Arch.s390 && !Mode.config
 
       order_sum = BootCommon.DiskOrderSummary
       result << order_sum if order_sum
 
-      return result
+      result
     end
 
     def Dialogs
@@ -331,12 +326,12 @@ module Yast
       Ops.set(
         BootCommon.bootloader_attribs,
         "grub2",
-        {
-          # we need syslinux to have generic mbr bnc#885496
-          "required_packages" => ["grub2", "syslinux"],
-          "loader_name"       => "GRUB2",
-          "initializer"       => fun_ref(method(:Initializer), "void ()")
-        }
+
+        # we need syslinux to have generic mbr bnc#885496
+        "required_packages" => ["grub2", "syslinux"],
+        "loader_name"       => "GRUB2",
+        "initializer"       => fun_ref(method(:Initializer), "void ()")
+
       )
 
       nil

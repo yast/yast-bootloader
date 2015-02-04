@@ -1,8 +1,39 @@
 -------------------------------------------------------------------
-Wed Nov 26 13:11:58 UTC 2014 - jsrain@suse.cz
+Wed Feb  4 13:56:13 UTC 2015 - jsrain@suse.cz
 
 - initialize bootloader during update if proposed from scratch
   (bnc#899743)
+- 3.1.117
+
+-------------------------------------------------------------------
+Tue Feb  3 15:08:09 UTC 2015 - schwab@suse.de
+
+- Use ttyAMA instead of ttyS on aarch64
+- 3.1.116
+
+-------------------------------------------------------------------
+Tue Jan 20 10:54:52 UTC 2015 - schwab@suse.de
+
+- Use grub2-efi on aarch64
+- 3.1.115
+
+-------------------------------------------------------------------
+Tue Jan 13 08:48:38 UTC 2015 - jreidinger@suse.com
+
+- Do not crash with unsupported bootloader when resetting
+  bootloader to repropose during update (bnc#912595)
+- 3.1.113
+
+-------------------------------------------------------------------
+Thu Dec  4 09:47:42 UTC 2014 - jreidinger@suse.com
+
+- remove X-KDE-Library from desktop file (bnc#899104)
+
+-------------------------------------------------------------------
+Tue Dec  2 14:52:29 UTC 2014 - jreidinger@suse.com
+
+- fix crash when not using separate boot (found by openqa)
+- 3.1.112
 
 -------------------------------------------------------------------
 Fri Nov 21 11:56:38 UTC 2014 - jsrain@suse.cz

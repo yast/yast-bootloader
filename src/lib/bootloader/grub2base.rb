@@ -4,6 +4,7 @@ require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
 
 module Yast
+  # Common base for GRUB2 specialized classes
   class GRUB2Base < Module
     def main
       Yast.import "UI"
@@ -38,14 +39,13 @@ module Yast
 
     # general functions
 
-
     # set pmbr flags on boot disks
     def pmbr_setup(action, *devices)
       action_parted = case action
         when :add    then "on"
         when :remove then "off"
         else raise "invalid action #{action}"
-      end
+        end
       devices.each do |dev|
         res = SCR.Execute(path(".target.bash_output"),
           "parted '#{dev}' disk_set pmbr_boot #{action_parted}")
@@ -63,7 +63,7 @@ module Yast
         "vgamode"   => "",
         "gfxmode"   => "auto",
         "terminal"  => Arch.s390 ? "console" : "gfxterm",
-        "os_prober" =>  disable_os_prober ? "false" : "true",
+        "os_prober" => disable_os_prober ? "false" : "true",
         "activate"  => Arch.ppc ? "true" : "false"
       }
     end
@@ -78,8 +78,7 @@ module Yast
     end
 
     # Reset bootloader settings
-    # @param [Boolean] unused
-    def Reset(init)
+    def Reset
       return if Mode.autoinst
       BootCommon.Reset
     end
@@ -109,15 +108,14 @@ module Yast
         end
       end
 
-
       BootCommon.globals = StandardGlobals().merge(BootCommon.globals || {})
 
       swap_parts = BootCommon.getSwapPartitions
-      largest_swap_part = (swap_parts.max_by{|part, size| size} || [""]).first
+      largest_swap_part = (swap_parts.max_by { |_part, size| size } || [""]).first
 
       resume = BootArch.ResumeAvailable ? largest_swap_part : ""
       # try to use label or udev id for device name... FATE #302219
-      if resume != "" && resume != nil
+      if resume != "" && !resume.nil?
         resume = ::Bootloader::UdevMapping.to_mountby_device(resume)
       end
 
@@ -150,7 +148,7 @@ module Yast
       when nil
         GRUB2Pwd.new.disable
       when ""
-        #do nothing
+        # do nothing
       else
         GRUB2Pwd.new.enable @password
       end

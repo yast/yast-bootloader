@@ -5,8 +5,8 @@ Yast.import "BootCommon"
 describe Yast::BootCommon do
   describe ".setKernelParamToLine" do
     def expect_set(key: nil, val: nil, old: nil, new: nil)
-      expect(Yast::BootCommon.setKernelParamToLine(old, key, val)).
-        to eq new
+      expect(Yast::BootCommon.setKernelParamToLine(old, key, val))
+        .to eq new
     end
 
     it "return line with added key=value if there is not yet such key on line" do

@@ -11,7 +11,7 @@
         "mount"        => "/dev/shm",
         "mountby"      => :device,
         "name"         => "none",
-        "size_k"       => 510516,
+        "size_k"       => 510_516,
         "type"         => :tmpfs,
         "used_fs"      => :tmpfs
       },
@@ -23,7 +23,7 @@
         "mount"        => "/run",
         "mountby"      => :device,
         "name"         => "none",
-        "size_k"       => 510516,
+        "size_k"       => 510_516,
         "type"         => :tmpfs,
         "used_fs"      => :tmpfs
       },
@@ -35,7 +35,7 @@
         "mount"        => "/sys/fs/cgroup",
         "mountby"      => :device,
         "name"         => "none",
-        "size_k"       => 510516,
+        "size_k"       => 510_516,
         "type"         => :tmpfs,
         "used_fs"      => :tmpfs
       },
@@ -47,7 +47,7 @@
         "mount"        => "/var/lock",
         "mountby"      => :device,
         "name"         => "none",
-        "size_k"       => 510516,
+        "size_k"       => 510_516,
         "type"         => :tmpfs,
         "used_fs"      => :tmpfs
       },
@@ -59,7 +59,7 @@
         "mount"        => "/var/run",
         "mountby"      => :device,
         "name"         => "none",
-        "size_k"       => 510516,
+        "size_k"       => 510_516,
         "type"         => :tmpfs,
         "used_fs"      => :tmpfs
       }
@@ -69,8 +69,8 @@
   "/dev/vda"   => {
     "bios_id"       => "0x80",
     "bus"           => "None",
-    "cyl_count"     => 1871,
-    "cyl_size"      => 8225280,
+    "cyl_count"     => 1_871,
+    "cyl_size"      => 8_225_280,
     "device"        => "/dev/vda",
     "driver"        => "virtio-pci",
     "driver_module" => "virtio_pci",
@@ -90,8 +90,8 @@
         "mountby"     => :device,
         "name"        => "vda1",
         "nr"          => 1,
-        "region"      => [0, 1807],
-        "size_k"      => 14513703,
+        "region"      => [0, 1_807],
+        "size_k"      => 14_513_703,
         "type"        => :primary,
         "used_fs"     => :ext3,
         "uuid"        => "ae751ebb-d184-4553-b902-2fe7d83905c4"
@@ -106,15 +106,15 @@
         "mountby"     => :device,
         "name"        => "vda2",
         "nr"          => 2,
-        "region"      => [1807, 64],
-        "size_k"      => 514079,
+        "region"      => [1_807, 64],
+        "size_k"      => 514_079,
         "type"        => :primary,
         "used_fs"     => :swap,
         "uuid"        => "efc95cda-3447-43ca-8f73-1257e256b3ff"
       }
     ],
     "sector_size"   => 512,
-    "size_k"        => 15033344,
+    "size_k"        => 15_033_344,
     "transport"     => :unknown,
     "type"          => :CT_DISK,
     "unique"        => "KSbE.Fxp0d3BezAE"

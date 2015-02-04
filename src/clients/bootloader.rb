@@ -78,14 +78,14 @@ module Yast
           }
         },
         "options"    => {
-          "option"  => {
+          "option" => {
             # command line help text for an option
             "help" => _(
               "The key of the option"
             ),
             "type" => "string"
           },
-          "value"   => {
+          "value"  => {
             # command line help text for an option
             "help" => _(
               "The value of the option"
@@ -123,8 +123,7 @@ module Yast
     # Print summary of basic options
     # @param [Hash] options a list of parameters passed as args
     # @return [Boolean] false
-    def BootloaderSummaryHandler(options)
-      options = deep_copy(options)
+    def BootloaderSummaryHandler(_options)
       CommandLine.Print(
         RichText.Rich2Plain(
           Ops.add("<br>", Builtins.mergestring(Bootloader.Summary, "<br>"))
@@ -133,14 +132,13 @@ module Yast
       false # do not call Write...
     end
 
-
     # Modify the boot loader global option
     # @param [String] key string the key to modify
     # @param [String] value string the value to set
     # @return [Boolean] true on success
     def BootloaderModify(key, value)
       BootCommon.globals[key] = value
-      return true
+      true
     end
 
     # Set specified option in global options

@@ -21,7 +21,7 @@ module Bootloader
     end
 
     # Returns hash where keys are udev links for disks and partitions and value their kernel devices.
-    # TODO remove when remove pbl support
+    # TODO: remove when remove pbl support
     # @example of output
     #   {
     #     "/dev/disk/by-id/abcd" => "/dev/sda",
@@ -53,7 +53,7 @@ module Bootloader
       # we do not know if it is partition or disk, but target map help us
       target_map = Yast::Storage.GetTargetMap
       storage_data = target_map[kernel_dev]
-      if !storage_data #so partition
+      if !storage_data # so partition
         disk = target_map[Yast::Storage.GetDiskPartition(kernel_dev)["disk"]]
         # if device is not disk, then it can be virtual device like tmpfs or
         # disk no longer exists
@@ -81,7 +81,7 @@ module Bootloader
       end
 
       # udev pair contain as first udev device and as second coresponding kernel device
-      return udev_pair.first
+      udev_pair.first
     end
 
   private
@@ -94,10 +94,10 @@ module Bootloader
 
     # Maps mountby symbol to udev key in Storage target map
     MOUNT_BY_MAPPING_TO_UDEV = {
-      :uuid  => "uuid",
-      :id    => "udev_id",
-      :path  => "udev_path",
-      :label => "label"
+      uuid:  "uuid",
+      id:    "udev_id",
+      path:  "udev_path",
+      label: "label"
     }
 
     # Maps udev key in Storage target map to device prefix
@@ -112,7 +112,7 @@ module Bootloader
     # @private internall use only
     # @note only temporary method
     def map_disks(data, device)
-      keys = UDEV_MAPPING.keys - ["label"] #disks do not have labels
+      keys = UDEV_MAPPING.keys - ["label"] # disks do not have labels
       fill_all_devices(keys, data, device)
     end
 
@@ -128,7 +128,6 @@ module Bootloader
       end
     end
 
-
     # Returns array of pairs where each pair contain full udev name as first and kernel device as second
     # @param names [Array<String>] udev names for device e.g. "aaaa-bbbb-cccc-dddd" for uuid device name
     # @param key [String] storage key for given udev mapping see UDEV_MAPPING
@@ -140,7 +139,7 @@ module Bootloader
       return [] if [nil, "", []].include?(names)
       prefix = UDEV_MAPPING[key]
       names = [names] if names.is_a?(::String)
-      ret = names.reduce([]) do |res, name|
+      names.reduce([]) do |res, name|
         # watch out for fake uuids (shorter than 9 chars)
         next res if name.size < 9 && key == "uuid"
         res << [prefix + name, device]
@@ -165,9 +164,7 @@ module Bootloader
       log.debug("device name mapping to kernel names: #{@all_devices}")
 
       @target_map_timestamp = Yast::Storage.GetTargetChangeTime
-      if Yast::Mode.installation
-        @uuids_stable = !uuid_may_appear?
-      end
+      @uuids_stable = !uuid_may_appear? if Yast::Mode.installation
 
       nil
     end
@@ -181,7 +178,7 @@ module Bootloader
         return false unless uuid_may_appear?
       end
 
-      return @target_map_timestamp == Yast::Storage.GetTargetChangeTime
+      @target_map_timestamp == Yast::Storage.GetTargetChangeTime
     end
 
     def uuid_may_appear?

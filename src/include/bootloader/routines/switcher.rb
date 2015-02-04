@@ -17,7 +17,7 @@
 #
 module Yast
   module BootloaderRoutinesSwitcherInclude
-    def initialize_bootloader_routines_switcher(include_target)
+    def initialize_bootloader_routines_switcher(_include_target)
       Yast.import "BootGRUB2"
       Yast.import "BootGRUB2EFI"
       Yast.import "BootCommon"
@@ -71,10 +71,8 @@ module Yast
     end
 
     # Reset bootloader-specific settings
-    # @param [Boolean] init boolean true if basic initialization of system-dependent
-    # settings should be done
-    def blReset(init)
-      get_function(:Reset).call(init)
+    def blReset
+      get_function(:Reset).call
     end
 
     # Propose bootloader settings

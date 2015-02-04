@@ -1,5 +1,6 @@
 require "yast"
 
+# class is responsible for detection, encryption and writing of grub2 password protection
 class GRUB2Pwd
   YAST_BASH_PATH = Yast::Path.new(".target.bash_output")
   PWD_ENCRYPTION_FILE = "/etc/grub.d/42_password"
@@ -13,11 +14,11 @@ class GRUB2Pwd
   def enable(password)
     enc_passwd = encrypt(password)
 
-    file_content = "#! /bin/sh\n" +
-      "exec tail -n +3 $0\n" +
-      "# File created by YaST and next password change in YaST will overwrite it\n" +
-      "set superusers=\"root\"\n" +
-      "password_pbkdf2 root #{enc_passwd}\n" +
+    file_content = "#! /bin/sh\n" \
+      "exec tail -n +3 $0\n" \
+      "# File created by YaST and next password change in YaST will overwrite it\n" \
+      "set superusers=\"root\"\n" \
+      "password_pbkdf2 root #{enc_passwd}\n" \
       "export superusers"
 
     Yast::SCR.Write(
@@ -52,11 +53,11 @@ private
       raise "INTERNAL ERROR: output do not contain encrypted password. Output: #{result["stdout"]}"
     end
 
-    ret = pwd_line[/^.*password is\s*(\S+)/,1]
+    ret = pwd_line[/^.*password is\s*(\S+)/, 1]
     if !ret
       raise "INTERNAL ERROR: output do not contain encrypted password. Output: #{result["stdout"]}"
     end
 
-    return ret
+    ret
   end
 end

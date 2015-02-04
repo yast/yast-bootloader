@@ -8,6 +8,7 @@ Yast.import "Popup"
 require "bootloader/device_map"
 
 module Bootloader
+  # Represents dialog for modification of device map
   class DeviceMapDialog
     include Yast::UIShortcuts
     include Yast::I18n
@@ -17,6 +18,8 @@ module Bootloader
     end
 
     def run
+      textdomain "bootloader"
+
       return unless create_dialog
 
       begin
@@ -24,10 +27,9 @@ module Bootloader
       ensure
         close_dialog
       end
-
     end
-  private
 
+  private
 
     def create_dialog
       Yast::UI.OpenDialog dialog_content
@@ -39,7 +41,7 @@ module Bootloader
     end
 
     def controller_loop
-      while true do
+      loop do
         input = Yast::UI.UserInput
         pos = selected_disk_index
         case input
@@ -60,7 +62,7 @@ module Bootloader
           pos += 1
         when :delete
           disks.delete_at(pos)
-          pos = pos == disks.size ? pos -1 : pos
+          pos = pos == disks.size ? pos - 1 : pos
         when :add
           disk = add_device_popup
           disks << disk if disk
@@ -127,9 +129,8 @@ module Bootloader
     def store_order
       Yast::BootCommon.mbrDisk = disks.first
 
-      mapping = disks.reduce({}) do |res, disk|
+      mapping = disks.each_with_object({}) do |disk, res|
         res[disk] = "hd#{res.size}"
-        res
       end
 
       Yast::BootStorage.device_map = ::Bootloader::DeviceMap.new(mapping)
@@ -143,7 +144,7 @@ module Bootloader
         VSpacing(1),
         ButtonBox(
           PushButton(Id(:ok), Opt(:key_F10, :default), Yast::Label.OKButton),
-          PushButton(Id(:cancel), Opt(:key_F8), Yast::Label.CancelButton),
+          PushButton(Id(:cancel), Opt(:key_F8), Yast::Label.CancelButton)
         ),
         VSpacing(1)
       )
@@ -162,7 +163,7 @@ module Bootloader
 
     def refresh_buttons
       pos = selected_disk_index
-      if !pos #nothing selected
+      if !pos # nothing selected
         disk_to_select = disks.first
         # there is no disks
         if !disk_to_select

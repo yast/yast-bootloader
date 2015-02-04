@@ -25,7 +25,7 @@ require "bootloader/udev_mapping"
 
 module Yast
   module BootloaderRoutinesLibIfaceInclude
-    def initialize_bootloader_routines_lib_iface(include_target)
+    def initialize_bootloader_routines_lib_iface(_include_target)
       textdomain "bootloader"
 
       Yast.import "Storage"
@@ -40,7 +40,7 @@ module Yast
     class TmpYAMLFile
       attr_reader :path
 
-      def initialize(data=nil)
+      def initialize(data = nil)
         @path = mktemp
         write_data(data) unless data.nil?
       end
@@ -53,7 +53,7 @@ module Yast
         YAML.load(SCR.Read(Path.new(".target.string"), path))
       end
 
-      private
+    private
 
       def mktemp
         res = SCR.Execute(Path.new(".target.bash_output"),
@@ -70,7 +70,7 @@ module Yast
 
     def run_pbl_yaml(*args)
       cmd = "pbl-yaml --state=#{STATE_FILE} "
-      cmd << args.map{|e| "'#{e}'"}.join(" ")
+      cmd << args.map { |e| "'#{e}'" }.join(" ")
 
       SCR.Execute(path(".target.bash"), cmd)
     end
@@ -118,7 +118,7 @@ module Yast
     def InitializeLibrary(force, loader)
       return false if !force && loader == @library_initialized
 
-      SCR.Execute(Path.new(".target.remove"), STATE_FILE) #remove old state file to do clear initialization
+      SCR.Execute(Path.new(".target.remove"), STATE_FILE) # remove old state file to do clear initialization
 
       Builtins.y2milestone("Initializing lib for %1", loader)
       architecture = BootArch.StrArch
@@ -171,7 +171,7 @@ module Yast
       Builtins.y2milestone("Reading bootloader sections")
       run_pbl_yaml "#{sections_data.path}=GetSections()"
       sects = sections_data.data
-      if sects == nil
+      if sects.nil?
         Builtins.y2error("Reading sections failed")
         return []
       end
@@ -206,7 +206,7 @@ module Yast
       run_pbl_yaml "#{globals_data.path}=GetGlobalSettings()"
       glob = globals_data.data
 
-      if glob == nil
+      if glob.nil?
         Builtins.y2error("Reading global settings failed")
         return {}
       end
@@ -248,7 +248,6 @@ module Yast
     ensure
       arg_data.unlink if arg_data
     end
-
 
     # Get the device mapping (Linux <-> Firmware)
     # @return a map from Linux device to Firmware device identification
@@ -319,7 +318,6 @@ module Yast
       arg_data.unlink
     end
 
-
     # Update append in from boot section, it means take value from "console"
     # and add it to "append"
     #
@@ -353,7 +351,7 @@ module Yast
 
       # perl have slightly different evaluation of boolean, so lets convert it
       ret = ![false, nil, 0, ""].include?(ret)
-      return ret
+      ret
     end
 
     # Get contents of files from the library cache
@@ -365,7 +363,7 @@ module Yast
       run_pbl_yaml "#{ret_data.path}=GetFilesContents()"
 
       ret = ret_data.data
-      if ret == nil
+      if ret.nil?
         Builtins.y2error("Getting contents of files failed")
         return {}
       end
