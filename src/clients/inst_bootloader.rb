@@ -32,7 +32,7 @@ module Yast
 
       # if BL config is created from scratch, prepare config files
       # in order not to touch old files (bnc#899743)
-      if Mode.installation || ! BootCommon.was_read
+      if Mode.installation || !BootCommon.was_read
         Bootloader.blSave(false, false, false)
         @files = BootCommon.GetFilesContents
 
