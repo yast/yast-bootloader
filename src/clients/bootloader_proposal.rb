@@ -61,6 +61,10 @@ module Yast
               Bootloader.blRead(true, true)
               BootCommon.was_read = true
             end
+          elsif old_bootloader == "none"
+            Builtins.y2milestone "Bootloader not configured, do not repropose"
+            # blRead just exits for none bootloader
+            BootCommon.was_read = true
           else
             if !BootCommon.was_proposed || @force_reset
               # Repropose the type. A regular Reset/Propose is not enough.
