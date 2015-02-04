@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb  4 13:56:13 UTC 2015 - jsrain@suse.cz
+
+- initialize bootloader during update if proposed from scratch
+  (bnc#899743)
+- 3.1.117
+
+-------------------------------------------------------------------
 Tue Feb  3 15:08:09 UTC 2015 - schwab@suse.de
 
 - Use ttyAMA instead of ttyS on aarch64

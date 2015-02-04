@@ -145,13 +145,22 @@ describe Bootloader::ProposalClient do
       Yast.import "Mode"
       expect(Yast::Mode).to receive(:update).and_return(true)
 
-      expect(subject).to receive("old_bootloader").and_return("grub")
+      expect(subject).to receive("old_bootloader").and_return("grub").twice
 
       expect(Yast::BootCommon).to receive(:setLoaderType).with(nil)
       allow(Yast::BootCommon).to receive(:getLoaderType).and_return("grub2")
       expect(Yast::BootCommon).to receive(:setLoaderType).with("grub2")
       expect(Yast::Bootloader).to receive(:Reset).at_least(:once)
       expect(Yast::Bootloader).to receive(:Propose)
+
+      subject.make_proposal({})
+    end
+
+    it "do not propose during update if if old bootloader is none" do
+      Yast.import "Mode"
+      expect(Yast::Mode).to receive(:update).and_return(true)
+
+      expect(subject).to receive("old_bootloader").and_return("none").twice
 
       subject.make_proposal({})
     end
