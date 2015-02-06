@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb  6 12:46:48 UTC 2015 - ancor@suse.com
+
+- The unit tests are now compatible with RSpec 3 (bnc#916364)
+- 3.1.118
+
+-------------------------------------------------------------------
 Wed Feb  4 13:56:13 UTC 2015 - jsrain@suse.cz
 
 - initialize bootloader during update if proposed from scratch

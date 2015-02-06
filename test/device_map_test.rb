@@ -29,7 +29,7 @@ describe Bootloader::DeviceMap do
       allow(Yast::Arch).to receive(:s390).and_return(true)
 
       subject.propose
-      expect(subject.to_hash).to have(1).items
+      expect(subject.to_hash.size).to eq(1)
     end
 
     it "propose always empty map in Mode config" do
