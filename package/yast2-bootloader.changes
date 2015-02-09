@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Feb  9 18:27:04 CEST 2015 - dvaleev@suse.com
+
+- Allow PReP on GPT as possible bootloader location (bsc#916935)
+- 2.17.98
+
+-------------------------------------------------------------------
 Thu Sep  5 15:40:04 CEST 2013 - snwint@suse.de
 
 - add and use defineUdevMapping() API call
