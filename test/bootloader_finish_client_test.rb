@@ -107,7 +107,6 @@ describe Bootloader::FinishClient do
 
         expect(subject.write).to eq false
       end
-
     end
 
     context "grub2 based bootloader" do

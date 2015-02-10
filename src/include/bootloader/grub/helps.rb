@@ -85,11 +85,11 @@ module Yast
         ),
         # help text 1/5
         "disk_order"        => _(
-            "<p><big><b>Disks Order</b></big><br>\n" \
-              "To specify the order of the disks according to the order in BIOS, use\n" \
-              "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" \
-              "To add a disk, push <b>Add</b>.\n" \
-              "To remove a disk, push <b>Remove</b>.</p>"
+          "<p><big><b>Disks Order</b></big><br>\n" \
+            "To specify the order of the disks according to the order in BIOS, use\n" \
+            "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" \
+            "To add a disk, push <b>Add</b>.\n" \
+            "To remove a disk, push <b>Remove</b>.</p>"
           )
       }
 

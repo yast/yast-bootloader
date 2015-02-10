@@ -78,9 +78,9 @@ describe Bootloader::DeviceMap do
 
     it "returns device map with keys mapped to mount_by option" do
       map = Bootloader::DeviceMap.new(
-       "/dev/vdb" => "hd0",
-       "/dev/vda" => "hd2",
-       "/dev/vdc" => "hd1"
+        "/dev/vdb" => "hd0",
+        "/dev/vda" => "hd2",
+        "/dev/vdc" => "hd1"
      )
 
       expect(Bootloader::UdevMapping).to receive(:to_kernel_device)
@@ -112,7 +112,6 @@ describe Bootloader::DeviceMap do
     before do
       allow(Bootloader::UdevMapping).to receive(:to_mountby_device)
         .and_return("/dev/bla")
-
     end
 
     it "checks if device map contain passed disk" do

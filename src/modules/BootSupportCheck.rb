@@ -135,10 +135,12 @@ module Yast
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
-      AddNewProblem(_(
+      AddNewProblem(
+        _(
           "Boot from MBR does not work together with btrfs filesystem and GPT disk label without bios_grub partition." \
           "To fix this issue, create bios_grub partition or use any ext filesystem for boot partition or do not install stage 1 to MBR."
-      ))
+        )
+      )
       false
     end
 
