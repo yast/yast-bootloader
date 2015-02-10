@@ -127,9 +127,9 @@ map<string,any> genericGlobalBootOptionWidget () {
         gt_map2 = generic_Term(gt_map2, "normal");
         widget = `Frame (_("Boot Menu"), `HBox (
 	    `HSpacing (2),
-	    gt_map1["term"]:nil,
+	    `HWeight(50, gt_map1["term"]:nil),
 	    `HSpacing (2),
-	    gt_map2["term"]:nil,
+	    `HWeight(50, gt_map2["term"]:nil),
 	    `HSpacing (2)
 	));
         help = (string)gt_map1["help"]:"" + (string)gt_map2["help"]:"";
