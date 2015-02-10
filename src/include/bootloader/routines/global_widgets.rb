@@ -135,15 +135,15 @@ module Yast
 
       if new_bl == "none"
         # popup - Continue/Cancel
-        if Popup.ContinueCancel(
-            _(
-              "\n" \
-                "If you do not install any boot loader, the system\n" \
-                "might not start.\n" \
-                "\n" \
-                "Proceed?\n"
-            )
-          )
+        popup_msg = _(
+          "\n" \
+          "If you do not install any boot loader, the system\n" \
+          "might not start.\n" \
+          "\n" \
+          "Proceed?\n"
+        )
+
+        if Popup.ContinueCancel(popup_msg)
           BootCommon.setLoaderType("none")
           BootCommon.location_changed = true
         end

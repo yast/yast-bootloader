@@ -81,7 +81,6 @@ describe Bootloader::Sysconfig do
       )
 
       sysconfig.pre_write
-
     end
   end
 end

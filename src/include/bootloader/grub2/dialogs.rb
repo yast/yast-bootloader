@@ -57,9 +57,12 @@ module Yast
         # if name is not included, that it is not displayed
         "widget_names" => widget_names,
         "contents"     => VBox(
-          VSquash(HBox(
-            Top(VBox(VSpacing(1), "loader_type")),
-            Arch.s390 || Arch.aarch64 ? Empty() : "loader_location")),
+          VSquash(
+            HBox(
+              Top(VBox(VSpacing(1), "loader_type")),
+              Arch.s390 || Arch.aarch64 ? Empty() : "loader_location"
+            )
+          ),
           MarginBox(1, 0.5, "distributor"),
           MarginBox(1, 0.5, Left("activate")),
           MarginBox(1, 0.5, Left("generic_mbr")),
@@ -147,13 +150,13 @@ module Yast
       caption = _("Boot Loader Options")
       CWM.ShowAndRun(
 
-          "widget_descr" => widgets,
-          "widget_names" => ["tab"],
-          "contents"     => VBox("tab"),
-          "caption"      => caption,
-          "back_button"  => Label.BackButton,
-          "abort_button" => Label.CancelButton,
-          "next_button"  => Label.OKButton
+        "widget_descr" => widgets,
+        "widget_names" => ["tab"],
+        "contents"     => VBox("tab"),
+        "caption"      => caption,
+        "back_button"  => Label.BackButton,
+        "abort_button" => Label.CancelButton,
+        "next_button"  => Label.OKButton
 
       )
     end
