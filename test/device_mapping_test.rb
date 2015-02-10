@@ -49,6 +49,9 @@ describe Bootloader::DeviceMapping do
         when "/dev/system/root"
           disk = "/dev/system"
           number = "system"
+        when "/dev/mapper/cr_swap"
+          disk = "/dev/sda"
+          number = "1"
         when "tmpfs"
           disk = "tmpfs"
           number = ""
@@ -99,6 +102,12 @@ describe Bootloader::DeviceMapping do
 
       expect{subject.to_mountby_device("/dev/non-exists")}.to raise_error
       expect{subject.to_mountby_device("/dev/disk-by-uuid/ffff-ffff-ffff-ffff")}.to raise_error
+    end
+
+    it "returns kernel device name if device is encrypted" do
+      target_map_stub("storage_encrypted.rb")
+
+      expect(subject.to_mountby_device("/dev/mapper/cr_swap")).to eq "/dev/mapper/cr_swap"
     end
   end
 end
