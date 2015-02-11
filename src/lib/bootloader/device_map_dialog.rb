@@ -32,8 +32,11 @@ module Bootloader
   private
 
     def create_dialog
-      Yast::UI.OpenDialog dialog_content
+      res = Yast::UI.OpenDialog dialog_content
+      return false unless res
       refresh_buttons
+
+      return true
     end
 
     def close_dialog
