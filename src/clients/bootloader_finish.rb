@@ -167,6 +167,25 @@ module Yast
           @retcode = Bootloader.WriteInstallation
         else
           @retcode = Bootloader.Update
+
+          # workaround for packages that forgot to update initrd(bnc#889616)
+          # do not use Initrd module as it can also change configuration, which we do not want
+          res = SCR.Execute(path(".target.bash_output"), "/sbin/mkinitrd")
+          Builtins.y2milestone("Regerate initrd with result #{res}")
+        end
+
+        # FIXME workaround grub2 need manual rerun of branding due to overwrite by
+        # pbl. see bnc#879686 and bnc#901003
+        if Bootloader.getLoaderType =~ /grub2/
+          prefix = Installation.destdir
+          branding_activator = Dir["#{prefix}/usr/share/grub2/themes/*/activate-theme"].first
+          if branding_activator
+            branding_activator = branding_activator[prefix.size..-1]
+            res = SCR.Execute(path(".target.bash_output"), branding_activator)
+            Builtins.y2milestone("Reactivate branding with #{branding_activator} and result #{res}")
+            res = SCR.Execute(path(".target.bash_output"), "/usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg")
+            Builtins.y2milestone("Regenerating config for branding with result #{res}")
+          end
         end
 
         if @retcode
@@ -185,8 +204,7 @@ module Yast
           # (bnc #381192) don't use it if kexec is used
           # update calling onetime boot bnc #339024
           if !@retcode
-            @bl = Bootloader.getLoaderType
-            return Bootloader.FlagOnetimeBoot(Bootloader.getDefaultSection)
+            @ret = Bootloader.FlagOnetimeBoot(Bootloader.getDefaultSection)
           end
         else
           return @retcode
@@ -195,25 +213,6 @@ module Yast
         Builtins.y2error("unknown function: %1", @func)
         @ret = nil
       end
-
-      # FIXME workaround grub2 in upgrade need manual rerun of branding
-      # package. see bnc#879686
-      if Mode.update && Bootloader.getLoaderType =~ /grub2/
-        prefix = Installation.destdir
-        branding_activator = Dir["#{prefix}/usr/share/grub2/themes/*/activate-theme"].first
-        if branding_activator
-          branding_activator = branding_activator[prefix.size..-1]
-          res = SCR.Execute(path(".target.bash_output"), branding_activator)
-          Builtins.y2milestone("Reactivate branding with #{branding_activator} and result #{res}")
-        end
-      end
-      # workaround for packages that forgot to update initrd(bnc#889616)
-      # do not use Initrd module as it can also change configuration, which we do not want
-      if Mode.update
-        res = SCR.Execute(path(".target.bash_output"), "/sbin/mkinitrd")
-        Builtins.y2milestone("Regerate initrd with result #{res}")
-      end
-
 
       Builtins.y2debug("ret=%1", @ret)
       Builtins.y2milestone("bootloader_finish finished")

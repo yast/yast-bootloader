@@ -1,6 +1,14 @@
 -------------------------------------------------------------------
 Tue Feb 10 15:24:53 UTC 2015 - ancor@suse.com
 
+- Clean integration of several patches introduced during
+  the openSUSE 13.2 release
+  + Ensure branding is used also during common install (bnc#901003)
+  + Fix crash during installation if kernel parameter is not
+    pre-proposed (bnc#902397)
+  + Fix branding activation on live CD and also with kexec enabled
+    (bnc#897847)
+  + Properly sparate paths in kexec copy
 - Fixed detection for encrypted partitions (bnc#913540)
 - 3.1.101.1
 
