@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Feb 10 15:24:53 UTC 2015 - ancor@suse.com
+
+- Fixed detection for encrypted partitions (bnc#913540)
+- 3.1.119
+
+-------------------------------------------------------------------
 Fri Feb  6 12:46:48 UTC 2015 - ancor@suse.com
 
 - The unit tests are now compatible with RSpec 3 (bnc#916364)

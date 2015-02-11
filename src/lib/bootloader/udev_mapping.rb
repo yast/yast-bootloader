@@ -59,7 +59,9 @@ module Bootloader
         # disk no longer exists
         return kernel_dev unless disk
 
-        storage_data = disk["partitions"].find { |p| p["device"] == kernel_dev }
+        storage_data = disk["partitions"].find do |p|
+          [p["device"], p["crypt_device"]].include?(kernel_dev)
+        end
       end
 
       raise "Unknown device #{kernel_dev}" unless storage_data
