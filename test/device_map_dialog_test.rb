@@ -10,7 +10,7 @@ describe Bootloader::DeviceMapDialog do
 
       device_map = Bootloader::DeviceMap.new(
         "/dev/sda" => "hd0",
-        "/dev/sdb" => "hd1",
+        "/dev/sdb" => "hd1"
       )
       allow(Yast::BootStorage).to receive(:DisksOrder)
         .and_return(device_map.disks_order)

@@ -36,7 +36,7 @@ module Bootloader
       return false unless res
       refresh_buttons
 
-      return true
+      true
     end
 
     def close_dialog
