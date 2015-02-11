@@ -1,0 +1,81 @@
+{
+  "/dev/sda" => {
+    "bios_id" => "0x80",
+    "bus" => "IDE",
+    "cyl_count" => 2088,
+    "cyl_size" => 8225280,
+    "device" => "/dev/sda",
+    "driver" => "ahci",
+    "driver_module" => "ahci",
+    "label" => "msdos",
+    "max_logical" => 255,
+    "max_primary" => 4,
+    "model" => "HARDDISK",
+    "name" => "sda",
+    "partitions" => [
+      {
+        "crypt_device" => "/dev/mapper/cr_swap",
+        "detected_fs" => :swap,
+        "device" => "/dev/sda1",
+        "enc_type" => :luks,
+        "fsid" => 130,
+        "fstopt" => "defaults",
+        "fstype" => "Linux swap",
+        "mount" => "swap",
+        "mountby" => :device,
+        "name" => "sda1",
+        "nr" => 1,
+        "region" => [0, 261],
+        "size_k" => 2095104,
+        "type" => :primary,
+        "used_by_device" => "",
+        "used_by_type" => :UB_NONE, 
+        "used_fs" => :swap,
+        "uuid" => "8a0f8519-7a40-4ccd-9b04-378f50c2f3dd",
+        "udev_id" => [
+          "ata-VBOX_HARDDISK_VBa974c669-b10eb72d-part1",
+          "scsi-0ATA_VBOX_HARDDISK_VBa974c669-b10eb72d-part1",
+          "scsi-1ATA_VBOX_HARDDISK_VBa974c669-b10eb72d-part1",
+          "scsi-SATA_VBOX_HARDDISK_VBa974c669-b10eb72d-part1"
+        ],
+        "udev_path" => "pci-0000:00:0d.0-ata-1.0-part1"
+      },
+      {
+        "detected_fs" => :ext4,
+        "device" => "/dev/sda2",
+        "fsid" => 131,
+        "fstopt" => "acl,user_xattr",
+        "fstype" => "Linux native",
+        "mkfs_opt" => "-O dir_index -m5.0",
+        "mount" => "/",
+        "mountby" => :uuid,
+        "name" => "sda2",
+        "nr" => 2,
+        "region" => [260,1828],
+        "size_k" => 14681088,
+        "tunefs_opt" => "-c 0 -i 0",
+        "type" => :primary, 
+        "used_by_device" => "",
+        "used_by_type" => :UB_NONE,
+        "used_fs" => :ext4,
+        "uuid" => "210f0de4-8d2b-4231-94db-8d7ba94254a9",
+        "udev_id" => [
+          "ata-VBOX_HARDDISK_VBa974c669-b10eb72d",
+          "scsi-0ATA_VBOX_HARDDISK_VBa974c669-b10eb72d",
+          "scsi-1ATA_VBOX_HARDDISK_VBa974c669-b10eb72d",
+          "scsi-SATA_VBOX_HARDDISK_VBa974c669-b10eb72d"
+        ],
+        "udev_path" => "pci-0000:00:0d.0-ata-1.0"
+      }
+    ],
+    "proposal_name" => "1. IDE Disk, 16.00 GiB, /dev/sda, VBOX-HARDDISK",
+    "sector_size" => 512,
+    "size_k" => 16777216,
+    "transport" => :sata,
+    "type" => :CT_DISK,
+    "unique" => "3OOL.nq7fqYbYIm7",
+    "used_by_device" => "",
+    "used_by_type" => :UB_NONE,
+    "vendor" => "VBOX"
+  }
+}
