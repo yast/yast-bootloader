@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb 12 12:45:50 UTC 2015 - jreidinger@suse.com
+
+- fix redundancy boot proposal if there are more devices
+  (bnc#917025)
+- 3.1.120
+
+-------------------------------------------------------------------
 Tue Feb 10 15:24:53 UTC 2015 - ancor@suse.com
 
 - Fixed detection for encrypted partitions (bnc#913540)

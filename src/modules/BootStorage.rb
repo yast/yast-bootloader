@@ -352,10 +352,9 @@ module Yast
 
       boot_devices.each do |dev|
         ret = checkMDDevices(tm, dev)
-        if !ret
-          log.info "Skip enable redundancy of md arrays"
-          return []
-        end
+        # only log if device is not suitable, otherwise md redundancy is not
+        # allowed even if there is some suitable device (bnc#917025)
+        log.info "Skip enable redundancy for device #{dev}" unless ret
       end
 
       @md_physical_disks
