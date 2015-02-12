@@ -56,4 +56,55 @@ describe Yast::BootArch do
       expect(subject.ResumeAvailable).to eq false
     end
   end
+
+  describe ".DefaultKernelParams" do
+    context "on x86_64 or i386" do
+      before do
+        stub_arch("x86_64")
+      end
+
+      it "adds parameters from boot command line" do
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0")
+
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include("console=ttyS0")
+      end
+
+      it "adds additional parameters from Product file" do
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS0")
+
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include("console=ttyS0")
+      end
+
+      it "removes splash param from command line or product file and add it silent" do
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("splash=verbose")
+
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include("splash=silent")
+        expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("splash=verbose")
+      end
+
+      it "adds passed parameter as resume device" do
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include("resume=/dev/sda2")
+      end
+
+      it "do not adds resume device if parameter is empty" do
+        expect(subject.DefaultKernelParams("")).to_not include("resume")
+      end
+
+      it "adds splash=silent quit showopts parameters" do
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include(" splash=silent quiet showopts")
+      end
+    end
+
+    context "on s390" do
+      before do
+        stub_arch("s390_64")
+      end
+
+      it "adds additional parameters from Product file" do
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS0")
+
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include("console=ttyS0")
+      end
+    end
+  end
 end
