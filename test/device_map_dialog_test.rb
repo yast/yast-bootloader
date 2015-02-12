@@ -14,13 +14,14 @@ describe Bootloader::DeviceMapDialog do
       )
       allow(Yast::BootStorage).to receive(:DisksOrder)
         .and_return(device_map.disks_order)
+
+      allow(Yast::UI).to receive(:QueryWidget).and_return("/dev/sda")
+      allow(Yast::UI).to receive(:OpenDialog).and_return(true)
+      allow(Yast::UI).to receive(:CloseDialog).and_return(true)
     end
 
     def mock_ui_events(*events)
       allow(Yast::UI).to receive(:UserInput).and_return(*events)
-      allow(Yast::UI).to receive(:QueryWidget).and_return("/dev/sda")
-      allow(Yast::UI).to receive(:OpenDialog).and_return(true)
-      allow(Yast::UI).to receive(:CloseDialog).and_return(true)
     end
 
     it "always returns symbol :back" do
