@@ -21,6 +21,8 @@ require "yast"
 
 module Yast
   class BootArchClass < Module
+    include Yast::Logger
+
     def main
       textdomain "bootloader"
 
@@ -39,44 +41,29 @@ module Yast
         "globals",
         "additional_kernel_parameters"
       )
-      kernel_cmdline = Kernel.GetCmdLine
+      kernel_cmdline = Kernel.GetCmdLine.dup
 
       if Arch.i386 || Arch.x86_64
-        ret = kernel_cmdline != "" ? Ops.add(kernel_cmdline, " ") : ""
-        if resume != ""
-          ret = Ops.add(ret, Builtins.sformat("resume=%1 ", resume))
-        end
-        ret = Ops.add(Ops.add(ret, features), " ") if features != ""
-        if Builtins.regexpmatch(ret, "^(.* )?splash=[[:lower:]]+( .*)?$")
-          ret = Builtins.regexpsub(
-            ret,
-            "^((.* ))?splash=[[:lower:]]+(( .*)?)$",
-            "\\1 \\3"
-          )
-        end
-        ret = Ops.add(ret, "splash=silent quiet showopts")
+        ret = kernel_cmdline
+        ret << " resume=#{resume}" unless resume.empty?
+        ret << " #{features}" unless features.empty?
+        ret.gsub!(/(?:\A|\s)splash=\S*/, "")
+        ret << " splash=silent quiet showopts"
         return ret
       elsif Arch.s390
-        file_desc = Convert.convert(
-          SCR.Execute(path(".target.bash_output"), "echo $TERM"),
-          :from => "any",
-          :to   => "map <string, any>"
-        )
-        env_term = Ops.get_string(file_desc, "stdout", "")
-        termparm = "hvc_iucv=8 TERM=dumb"
+        # TODO: maybe use ENV directly?
+        file_desc = SCR.Execute(path(".target.bash_output"), "echo $TERM")
+        env_term = file_desc["stdout"]
         if env_term == "linux\n"
           termparm = "TERM=linux console=ttyS0 console=ttyS1"
+        else
+          termparm = "hvc_iucv=8 TERM=dumb"
         end
-        parameters = Builtins.sformat("%1 %2", features, termparm)
-        if resume != ""
-          parameters = Ops.add(
-            parameters,
-            Builtins.sformat(" resume=%1", resume)
-          )
-        end
+        parameters = "#{features} #{termparm}"
+        parameters << " resume=#{resume}" unless resume.empty?
         return parameters
       else
-        Builtins.y2warning("Default kernel parameters not defined")
+        log.warn "Default kernel parameters not defined"
         return kernel_cmdline
       end
     end
@@ -84,32 +71,24 @@ module Yast
     # Get parameters for the failsafe kernel
     # @return [String] parameters for failsafe kernel
     def FailsafeKernelParams
-      ret = ""
       if Arch.i386
         ret = "showopts apm=off noresume nosmp maxcpus=0 edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset"
       elsif Arch.x86_64
         ret = "showopts apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset"
       elsif Arch.s390
-        ret = Ops.add(DefaultKernelParams(""), " noresume")
+        ret = "#{DefaultKernelParams("")} noresume"
       else
-        Builtins.y2warning("Parameters for Failsafe boot option not defined")
+        log.warn "Parameters for Failsafe boot option not defined"
+        ret = ""
       end
       if Stage.initial
-        ret = Ops.add(ret, " NOPCMCIA") if Linuxrc.InstallInf("NOPCMCIA") == "1"
+        ret << " NOPCMCIA" if Linuxrc.InstallInf("NOPCMCIA") == "1"
       else
-        saved_params = Convert.convert(
-          SCR.Read(path(".target.ycp"), "/var/lib/YaST2/bootloader.ycp"),
-          :from => "any",
-          :to   => "map <string, any>"
-        )
-        ret = Ops.add(
-          Ops.add(ret, " "),
-          Ops.get_string(saved_params, "additional_failsafe_params", "")
-        )
+        saved_params = SCR.Read(path(".target.ycp"), "/var/lib/YaST2/bootloader.ycp")
+        ret << ((saved_params && saved_params["additional_failsafe_params"]) || "")
       end
 
-      ret = Ops.add(ret, " x11failsafe")
-      ret
+      ret << " x11failsafe"
     end
 
     # Is VGA parameter setting available
@@ -144,7 +123,7 @@ module Yast
         end
       end
 
-      Builtins.y2milestone("Type of architecture: %1", ret)
+      log.info "Type of architecture: #{ret}"
       ret
     end
 
