@@ -50,7 +50,7 @@ describe Yast::BootArch do
       expect(subject.ResumeAvailable).to eq true
     end
 
-    it "otherwise it returns false" do
+    it "it returns false otherwise" do
       stub_arch("ppc64")
 
       expect(subject.ResumeAvailable).to eq false
@@ -76,10 +76,12 @@ describe Yast::BootArch do
       end
 
       it "removes splash param from command line or product file and add it silent" do
-        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("splash=verbose")
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("splash=verbose splash=quit splash=hell")
 
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("splash=silent")
         expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("splash=verbose")
+        expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("splash=quit")
+        expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("splash=hell")
       end
 
       it "adds passed parameter as resume device" do
@@ -121,6 +123,14 @@ describe Yast::BootArch do
       it "adds passed parameter as resume device" do
         expect(subject.DefaultKernelParams("/dev/dasd2")).to include("resume=/dev/dasd2")
       end
+
+      it "does not add parameters from boot command line" do
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0")
+
+        expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("console=ttyS0")
+      end
+
+
     end
 
     context "on other archs" do
@@ -129,9 +139,11 @@ describe Yast::BootArch do
       end
 
       it "returns parameters from current command line" do
-        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0")
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0 splash=verbose")
+        # just to test that it do not add product features
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS1")
 
-        expect(subject.DefaultKernelParams("/dev/sda2")).to eq "console=ttyS0"
+        expect(subject.DefaultKernelParams("/dev/sda2")).to eq "console=ttyS0 splash=verbose"
       end
     end
   end
