@@ -21,6 +21,8 @@ require "yast"
 
 module Yast
   class BootArchClass < Module
+    include Yast::Logger
+
     def main
       textdomain "bootloader"
 
@@ -39,44 +41,29 @@ module Yast
         "globals",
         "additional_kernel_parameters"
       )
-      kernel_cmdline = Kernel.GetCmdLine
+      kernel_cmdline = Kernel.GetCmdLine.dup
 
       if Arch.i386 || Arch.x86_64
-        ret = kernel_cmdline != "" ? Ops.add(kernel_cmdline, " ") : ""
-        if resume != ""
-          ret = Ops.add(ret, Builtins.sformat("resume=%1 ", resume))
-        end
-        ret = Ops.add(Ops.add(ret, features), " ") if features != ""
-        if Builtins.regexpmatch(ret, "^(.* )?splash=[[:lower:]]+( .*)?$")
-          ret = Builtins.regexpsub(
-            ret,
-            "^((.* ))?splash=[[:lower:]]+(( .*)?)$",
-            "\\1 \\3"
-          )
-        end
-        ret = Ops.add(ret, "splash=silent quiet showopts")
+        ret = kernel_cmdline
+        ret << " resume=#{resume}" unless resume.empty?
+        ret << " #{features}" unless features.empty?
+        ret.gsub!(/(?:\A|\s)splash=\S*/, "")
+        ret << " splash=silent quiet showopts"
         return ret
       elsif Arch.s390
-        file_desc = Convert.convert(
-          SCR.Execute(path(".target.bash_output"), "echo $TERM"),
-          :from => "any",
-          :to   => "map <string, any>"
-        )
-        env_term = Ops.get_string(file_desc, "stdout", "")
-        termparm = "hvc_iucv=8 TERM=dumb"
+        # TODO maybe use ENV directly?
+        file_desc = SCR.Execute(path(".target.bash_output"), "echo $TERM")
+        env_term = file_desc["stdout"]
         if env_term == "linux\n"
           termparm = "TERM=linux console=ttyS0 console=ttyS1"
+        else
+          termparm = "hvc_iucv=8 TERM=dumb"
         end
-        parameters = Builtins.sformat("%1 %2", features, termparm)
-        if resume != ""
-          parameters = Ops.add(
-            parameters,
-            Builtins.sformat(" resume=%1", resume)
-          )
-        end
+        parameters = "#{features} #{termparm}"
+        parameters << " resume=#{resume}" unless resume.empty?
         return parameters
       else
-        Builtins.y2warning("Default kernel parameters not defined")
+        log.warn "Default kernel parameters not defined"
         return kernel_cmdline
       end
     end

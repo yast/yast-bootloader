@@ -161,8 +161,8 @@ describe Yast::BootArch do
     end
 
     it "use stored additional parameters on already installed system" do
-      allow(Yast::Stage).to receive(:initial).and_return(true)
-      allow(Yast::SCR).to receive(:Read).and_return("ultra_safe=1")
+      allow(Yast::Stage).to receive(:initial).and_return(false)
+      allow(Yast::SCR).to receive(:Read).and_return("additional_failsafe_params" => "ultra_safe=1")
 
       expect(subject.FailsafeKernelParams).to include("ultra_safe=1")
     end
