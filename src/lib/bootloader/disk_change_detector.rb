@@ -45,7 +45,7 @@ module Bootloader
         # TRANSLATORS: %s stands for partition
         ret <<
           _("Selected custom bootloader partition %s is not available any more.") %
-            Yast::BootCommon.globals["boot_custom"]
+          Yast::BootCommon.globals["boot_custom"]
       end
 
       ret

@@ -51,7 +51,7 @@ module Yast
         ret << " splash=silent quiet showopts"
         return ret
       elsif Arch.s390
-        # TODO maybe use ENV directly?
+        # TODO: maybe use ENV directly?
         file_desc = SCR.Execute(path(".target.bash_output"), "echo $TERM")
         env_term = file_desc["stdout"]
         if env_term == "linux\n"

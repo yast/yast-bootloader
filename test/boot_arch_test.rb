@@ -109,13 +109,13 @@ describe Yast::BootArch do
       end
 
       it "adds serial console if ENV{TERM} is linux" do
-        allow(Yast::SCR).to receive(:Execute).with(anything(), "echo $TERM").and_return("stdout" => "linux\n")
+        allow(Yast::SCR).to receive(:Execute).with(anything, "echo $TERM").and_return("stdout" => "linux\n")
 
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("TERM=linux console=ttyS0 console=ttyS1")
       end
 
       it "adds TERM=dumb and hvc_iucv=8 for other TERM" do
-        allow(Yast::SCR).to receive(:Execute).with(anything(), "echo $TERM").and_return("stdout" => "\n")
+        allow(Yast::SCR).to receive(:Execute).with(anything, "echo $TERM").and_return("stdout" => "\n")
 
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("hvc_iucv=8 TERM=dumb")
       end
@@ -129,7 +129,6 @@ describe Yast::BootArch do
 
         expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("console=ttyS0")
       end
-
 
     end
 
