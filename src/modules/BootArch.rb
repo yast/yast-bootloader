@@ -78,7 +78,7 @@ module Yast
       elsif Arch.s390
         ret = "#{DefaultKernelParams("")} noresume"
       else
-        Builtins.y2warning("Parameters for Failsafe boot option not defined")
+        log.warn "Parameters for Failsafe boot option not defined"
         ret = ""
       end
       if Stage.initial
@@ -123,7 +123,7 @@ module Yast
         end
       end
 
-      Builtins.y2milestone("Type of architecture: %1", ret)
+      log.info "Type of architecture: #{ret}"
       ret
     end
 
