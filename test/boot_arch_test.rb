@@ -105,6 +105,66 @@ describe Yast::BootArch do
 
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("console=ttyS0")
       end
+
+      it "adds serial console if ENV{TERM} is linux" do
+        allow(Yast::SCR).to receive(:Execute).with(anything(), "echo $TERM").and_return("stdout" => "linux\n")
+
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include("TERM=linux console=ttyS0 console=ttyS1")
+      end
+
+      it "adds TERM=dumb and hvc_iucv=8 for other TERM" do
+        allow(Yast::SCR).to receive(:Execute).with(anything(), "echo $TERM").and_return("stdout" => "\n")
+
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include("hvc_iucv=8 TERM=dumb")
+      end
+
+      it "adds passed parameter as resume device" do
+        expect(subject.DefaultKernelParams("/dev/dasd2")).to include("resume=/dev/dasd2")
+      end
+    end
+
+    context "on other archs" do
+      before do
+        stub_arch("ppc64")
+      end
+
+      it "returns parameters from current command line" do
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0")
+
+        expect(subject.DefaultKernelParams("/dev/sda2")).to eq "console=ttyS0"
+      end
+    end
+  end
+
+  describe ".FailsafeKernelParams" do
+    it "returns string with failsafe parameters" do
+      stub_arch("x86_64")
+
+      expect(subject.FailsafeKernelParams).to be_a(::String)
+    end
+
+    it "returns default parameters with noresume on s390" do
+      stub_arch("s390_64")
+
+      expect(subject.FailsafeKernelParams).to include("noresume")
+    end
+
+    it "return NOPCMCIA if installation start with it" do
+      allow(Yast::Stage).to receive(:initial).and_return(true)
+      allow(Yast::Linuxrc).to receive(:InstallInf).with("NOPCMCIA").and_return("1")
+
+      expect(subject.FailsafeKernelParams).to include("NOPCMCIA")
+    end
+
+    it "always set x11failsafe" do
+      expect(subject.FailsafeKernelParams).to include("x11failsafe")
+    end
+
+    it "use stored additional parameters on already installed system" do
+      allow(Yast::Stage).to receive(:initial).and_return(true)
+      allow(Yast::SCR).to receive(:Read).and_return("ultra_safe=1")
+
+      expect(subject.FailsafeKernelParams).to include("ultra_safe=1")
     end
   end
 end
