@@ -85,7 +85,7 @@ module Yast
         ret << " NOPCMCIA" if Linuxrc.InstallInf("NOPCMCIA") == "1"
       else
         saved_params = SCR.Read(path(".target.ycp"), "/var/lib/YaST2/bootloader.ycp")
-        ret << (saved_params["additional_failsafe_params"] || "")
+        ret << ((saved_params && saved_params["additional_failsafe_params"]) || "")
       end
 
       ret << " x11failsafe"
