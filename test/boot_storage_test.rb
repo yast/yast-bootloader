@@ -59,17 +59,7 @@ describe Yast::BootStorage do
 
   describe ".real_disks_for_partition" do
     before do
-      # simple mock getting disks from partition as it need initialized libstorage
-      allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
-        if partition == "/dev/system/root"
-          disk = "/dev/system"
-          number = "system"
-        else
-          number = partition[/(\d+)$/, 1]
-          disk = partition[0..-(number.size + 1)]
-        end
-        { "disk" => disk, "nr" => number }
-      end
+      mock_disk_partition
     end
 
     it "returns unique list of disk on which partitions lives" do

@@ -14,17 +14,7 @@ describe Bootloader::MBRUpdate do
       Yast::BootCommon.backup_mbr = false
       allow(Yast::BootStorage).to receive(:Md2Partitions).and_return({})
 
-      # simple mock getting disks from partition as it need initialized libstorage
-      allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
-        if partition == "/dev/system/root"
-          disk = "/dev/system"
-          number = "system"
-        else
-          number = partition[/(\d+)$/, 1]
-          disk = number ? partition[0..-(number.size + 1)] : partition
-        end
-        { "disk" => disk, "nr" => number }
-      end
+      mock_disk_partition
 
       allow(Yast::Storage).to receive(:GetDeviceName) do |dev, num|
         dev + num.to_s

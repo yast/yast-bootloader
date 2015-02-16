@@ -25,3 +25,24 @@ def target_map_stub(name)
   tm = eval(File.read(path))
   allow(Yast::Storage).to receive(:GetTargetMap).and_return(tm)
 end
+
+def mock_disk_partition
+  # simple mock getting disks from partition as it need initialized libstorage
+  allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
+    case partition
+    when "/dev/system/root"
+      disk = "/dev/system"
+      number = "system"
+    when "/dev/mapper/cr_swap"
+      disk = "/dev/sda"
+      number = "1"
+    when "tmpfs"
+      disk = "tmpfs"
+      number = ""
+    else
+      number = partition[/(\d+)$/, 1] || ""
+      disk = partition[0..-(number.size + 1)]
+    end
+    { "disk" => disk, "nr" => number }
+  end
+end
