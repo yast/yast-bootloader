@@ -76,7 +76,6 @@ describe Bootloader::DeviceMap do
       subject.propose
       expect(subject.to_hash.size).to eq 8
     end
-
   end
 
   describe "#disks_order" do
