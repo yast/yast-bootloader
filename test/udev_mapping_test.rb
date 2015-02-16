@@ -43,24 +43,7 @@ describe Bootloader::UdevMapping do
 
   describe ".to_mountby_device" do
     before do
-      # simple mock getting disks from partition as it need initialized libstorage
-      allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
-        case partition
-        when "/dev/system/root"
-          disk = "/dev/system"
-          number = "system"
-        when "/dev/mapper/cr_swap"
-          disk = "/dev/sda"
-          number = "1"
-        when "tmpfs"
-          disk = "tmpfs"
-          number = ""
-        else
-          number = partition[/(\d+)$/, 1]
-          disk = partition[0..-(number.size + 1)]
-        end
-        { "disk" => disk, "nr" => number }
-      end
+      mock_disk_partition
     end
 
     it "returns udev link in same format as used to its mounting" do
@@ -103,12 +86,11 @@ describe Bootloader::UdevMapping do
       expect(subject.to_mountby_device("/dev/vda1")).to eq "/dev/vda1"
     end
 
-    it "raises exception if unknown device passed" do
+    it "raises exception if partition do not exists" do
       target_map_stub("storage_lvm.rb")
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
 
-      expect { subject.to_mountby_device("/dev/non-exists") }.to raise_error
-      expect { subject.to_mountby_device("/dev/disk-by-uuid/ffff-ffff-ffff-ffff") }.to raise_error
+      expect { subject.to_mountby_device("/dev/vda50") }.to raise_error
     end
   end
 end

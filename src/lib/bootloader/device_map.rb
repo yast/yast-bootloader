@@ -39,27 +39,6 @@ module Bootloader
       disks.sort_by { |d| @mapping[d][2..-1].to_i }
     end
 
-    BIOS_LIMIT = 8
-    # FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
-    # The function reduces records (devices) in device.map
-    # Grub doesn't support more than 8 devices in device.map
-    # @return [Boolean] true if device map was reduced
-    def reduce_to_bios_limit
-      if @mapping.size <= BIOS_LIMIT
-        log.info "device map not need to be reduced"
-        return false
-      end
-
-      log.info "device map before reduction #{@mapping}"
-      @mapping.select! do |_k, v|
-        v[2..-1].to_i < BIOS_LIMIT
-      end
-
-      log.info "device map after reduction #{@mapping}"
-
-      true
-    end
-
     # Function remap device map to device name (/dev/sda)
     # or to label (ufo_disk)
     # @return [Hash{String => String}] new device map
@@ -89,9 +68,32 @@ module Bootloader
       fill_mapping
 
       order_boot_device
+
+      reduce_to_bios_limit
     end
 
   private
+
+    BIOS_LIMIT = 8
+    # FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
+    # The function reduces records (devices) in device.map
+    # Grub doesn't support more than 8 devices in device.map
+    # @return [Boolean] true if device map was reduced
+    def reduce_to_bios_limit
+      if @mapping.size <= BIOS_LIMIT
+        log.info "device map not need to be reduced"
+        return false
+      end
+
+      log.info "device map before reduction #{@mapping}"
+      @mapping.select! do |_k, v|
+        v[2..-1].to_i < BIOS_LIMIT
+      end
+
+      log.info "device map after reduction #{@mapping}"
+
+      true
+    end
 
     def order_boot_device
       # For us priority disk is device where /boot or / lives as we control this disk and

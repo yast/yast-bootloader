@@ -12,16 +12,7 @@ describe Bootloader::Stage1 do
     # simple mock getting disks from partition as it need initialized libstorage
     allow(Yast::BootStorage).to receive(:can_boot_from_partition).and_return(true)
     allow(subject).to receive(:gpt_boot_disk?).and_return(true)
-    allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
-      if partition == "/dev/system/root"
-        disk = "/dev/system"
-        number = "system"
-      else
-        number = partition[/(\d+)$/, 1]
-        disk = partition[0..-(number.size + 1)]
-      end
-      { "disk" => disk, "nr" => number }
-    end
+    mock_disk_partition
   end
 
   describe "#propose" do

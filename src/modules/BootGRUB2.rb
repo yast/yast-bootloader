@@ -338,7 +338,6 @@ module Yast
     end
 
     publish :function => :grub_updateMBR, :type => "boolean ()"
-    publish :function => :ReduceDeviceMapTo8, :type => "boolean ()"
     publish :variable => :common_help_messages, :type => "map <string, string>"
     publish :variable => :common_descriptions, :type => "map <string, string>"
     publish :variable => :grub_help_messages, :type => "map <string, string>"
