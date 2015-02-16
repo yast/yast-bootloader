@@ -157,17 +157,5 @@ module Yast
 
       nil
     end
-
-    # --------------------------------------------------------------
-    # --------------------------------------------------------------
-    # other stuff
-
-    # FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
-    # The function reduces records (devices) in device.map
-    # Grub doesn't support more than 8 devices in device.map
-    # @return [Boolean] true if device map was reduced
-    def ReduceDeviceMapTo8
-      BootStorage.device_map.reduce_to_bios_limit
-    end
   end
 end

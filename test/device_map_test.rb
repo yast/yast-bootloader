@@ -57,6 +57,26 @@ describe Bootloader::DeviceMap do
 
     # TODO: I do not have sufficient target map yet with enough disks and mixture of bios ids
     it "propose as first device disk containing /boot"
+
+    it "limit number of disks in device map to 8" do
+      # simple mock getting disks from partition as it need initialized libstorage
+      allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
+        if partition == "/dev/system/root"
+          disk = "/dev/system"
+          number = "system"
+        else
+          number = partition[/(\d+)$/, 1]
+          disk = partition[0..-(number.size + 1)]
+        end
+        { "disk" => disk, "nr" => number }
+      end
+
+      target_map_stub("many_disks.rb")
+
+      subject.propose
+      expect(subject.to_hash.size).to eq 8
+    end
+
   end
 
   describe "#disks_order" do
