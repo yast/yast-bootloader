@@ -1,5 +1,7 @@
 require "yast"
 
+require "shellwords"
+
 require "bootloader/boot_record_backup"
 
 Yast.import "Arch"
@@ -88,10 +90,33 @@ module Bootloader
     end
 
     def set_parted_flag(disk, part_num, flag)
-      command = "/usr/sbin/parted -s #{disk} set #{part_num} #{flag} on"
+      # we need at first clear this flag to avoid multiple flags (bnc#848609)
+      reset_flag(disk, flag)
+
+      # and then set it
+      command = "/usr/sbin/parted -s #{Shellwords.escape(disk)} set #{part_num} #{flag} on"
       out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
       log.info "Command `#{command}` output: #{out}"
       out
+    end
+
+    def reset_flag(disk, flag)
+      command = "/usr/sbin/parted -m #{Shellwords.escape(disk)} print"
+      out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
+      log.info "Command `#{command}` output: #{out}"
+      return if out["exit"] != 0
+
+      partitions = out["stdout"].lines.select do |line|
+        values = line.split(":")
+        values[6] && values[6].match(/(?:\s|\A)#{flag}/)
+      end
+      partitions.map! { |line| line.split(":").first }
+
+      partitions.each do |part_num|
+        command = "/usr/sbin/parted -s #{Shellwords.escape(disk)} set #{part_num} #{flag} off"
+        out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
+        log.info "Command `#{command}` output: #{out}"
+      end
     end
 
     def can_activate_partition?(num)
