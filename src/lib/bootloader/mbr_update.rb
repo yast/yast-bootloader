@@ -106,7 +106,10 @@ module Bootloader
       log.info "Command `#{command}` output: #{out}"
       return if out["exit"] != 0
 
-      partitions = out["stdout"].lines.grep(/[\s:]#{flag}/)
+      partitions = out["stdout"].lines.select do |line|
+        values = line.split(":")
+        values[6] && values[6].match(/(?:\s|\A)#{flag}/)
+      end
       partitions.map! { |line| line.split(":").first }
 
       partitions.each do |part_num|
