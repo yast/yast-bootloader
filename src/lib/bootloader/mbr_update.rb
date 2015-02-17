@@ -88,10 +88,30 @@ module Bootloader
     end
 
     def set_parted_flag(disk, part_num, flag)
+      # we need at first clear this flag to avoid multiple flags (bnc#848609)
+      reset_flag(disk, flag)
+
+      # and then set it
       command = "/usr/sbin/parted -s #{disk} set #{part_num} #{flag} on"
       out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
       log.info "Command `#{command}` output: #{out}"
       out
+    end
+
+    def reset_flag(disk, flag)
+      command = "/usr/sbin/parted -s #{disk} print"
+      out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
+      log.info "Command `#{command}` output: #{out}"
+      return if out["exit"] != 0
+
+      partitions = out["stdout"].lines.grep(/\s#{flag}/)
+      partitions.map! { |line| line.sub(/\A\s*([0-9]+).*/, "\\1").chomp }
+
+      partitions.each do |part_num|
+        command = "/usr/sbin/parted -s #{disk} set #{part_num} #{flag} off"
+        out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
+        log.info "Command `#{command}` output: #{out}"
+      end
     end
 
     def can_activate_partition?(num)
