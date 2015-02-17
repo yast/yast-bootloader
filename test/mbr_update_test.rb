@@ -26,7 +26,6 @@ describe Bootloader::MBRUpdate do
                :[]    => { "label" => "msdos" }
         )
       )
-
     end
 
     context "BootCommon.backup_mbr config is not set" do
@@ -207,19 +206,19 @@ describe Bootloader::MBRUpdate do
         allow(Yast::WFM).to receive(:Execute)
           .with(anything, /parted -s \/dev\/sda print/)
           .and_return(
-            "exit" => 0,
+            "exit"   => 0,
             "stdout" => parted_output
           )
         expect(Yast::WFM).to receive(:Execute)
           .with(anything, /parted -s \/dev\/sda set 1 boot off/)
           .and_return(
-            "exit" => 0,
+            "exit"   => 0,
             "stdout" => parted_output
           )
         expect(Yast::WFM).to receive(:Execute)
           .with(anything, /parted -s \/dev\/sda set 3 boot off/)
           .and_return(
-            "exit" => 0,
+            "exit"   => 0,
             "stdout" => parted_output
           )
 
@@ -267,19 +266,19 @@ describe Bootloader::MBRUpdate do
         allow(Yast::WFM).to receive(:Execute)
           .with(anything, /parted -s \/dev\/sda print/)
           .and_return(
-            "exit" => 0,
+            "exit"   => 0,
             "stdout" => parted_output
           )
         expect(Yast::WFM).to receive(:Execute)
           .with(anything, /parted -s \/dev\/sda set 1 legacy_boot off/)
           .and_return(
-            "exit" => 0,
+            "exit"   => 0,
             "stdout" => parted_output
           )
         expect(Yast::WFM).to receive(:Execute)
           .with(anything, /parted -s \/dev\/sda set 4 legacy_boot off/)
           .and_return(
-            "exit" => 0,
+            "exit"   => 0,
             "stdout" => parted_output
           )
 
