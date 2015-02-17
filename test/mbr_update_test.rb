@@ -190,21 +190,15 @@ describe Bootloader::MBRUpdate do
         allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
           .and_return(["/dev/sda1", "/dev/sdb1"])
 
-        parted_output = "Model: ATA WDC WD5000BPKT-7 (scsi)\n" \
-                        "Disk /dev/sda: 500GB\n" \
-                        "Sector size (logical/physical): 512B/4096B\n" \
-                        "Partition Table: gpt\n" \
-                        "Disk Flags:\n" \
-                        "\n" \
-                        "Number  Start   End     Size    File system     Name     Flags\n" \
-                        "1      1049kB  165MB   164MB   fat16           primary  boot, legacy_boot\n" \
-                        "2      165MB   8760MB  8595MB  linux-swap(v1)  primary\n" \
-                        "3      8760MB  30.2GB  21.5GB  ext4            primary  boot\n" \
-                        "4      30.2GB  500GB   470GB   ext4            primary  legacy_boot\n" \
-                        "\n"
+        parted_output = "BYT;\n" \
+                        "/dev/sda:500GB:scsi:512:4096:gpt:ATA WDC WD5000BPKT-7:;\n" \
+                        "1:1049kB:165MB:164MB:fat16:primary:boot, legacy_boot;\n" \
+                        "2:165MB:8760MB:8595MB:linux-swap(v1):primary:;\n" \
+                        "3:8760MB:30.2GB:21.5GB:ext4:primary:boot;\n" \
+                        "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
 
         allow(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -s \/dev\/sda print/)
+          .with(anything, /parted -m \/dev\/sda print/)
           .and_return(
             "exit"   => 0,
             "stdout" => parted_output
@@ -250,21 +244,15 @@ describe Bootloader::MBRUpdate do
         allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
           .and_return(["/dev/sda1", "/dev/sdb1"])
 
-        parted_output = "Model: ATA WDC WD5000BPKT-7 (scsi)\n" \
-                        "Disk /dev/sda: 500GB\n" \
-                        "Sector size (logical/physical): 512B/4096B\n" \
-                        "Partition Table: gpt\n" \
-                        "Disk Flags:\n" \
-                        "\n" \
-                        "Number  Start   End     Size    File system     Name     Flags\n" \
-                        "1      1049kB  165MB   164MB   fat16           primary  boot, legacy_boot\n" \
-                        "2      165MB   8760MB  8595MB  linux-swap(v1)  primary\n" \
-                        "3      8760MB  30.2GB  21.5GB  ext4            primary  boot\n" \
-                        "4      30.2GB  500GB   470GB   ext4            primary  legacy_boot\n" \
-                        "\n"
+        parted_output = "BYT;\n" \
+                        "/dev/sda:500GB:scsi:512:4096:gpt:ATA WDC WD5000BPKT-7:;\n" \
+                        "1:1049kB:165MB:164MB:fat16:primary:boot, legacy_boot;\n" \
+                        "2:165MB:8760MB:8595MB:linux-swap(v1):primary:;\n" \
+                        "3:8760MB:30.2GB:21.5GB:ext4:primary:boot;\n" \
+                        "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
 
         allow(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -s \/dev\/sda print/)
+          .with(anything, /parted -m \/dev\/sda print/)
           .and_return(
             "exit"   => 0,
             "stdout" => parted_output
