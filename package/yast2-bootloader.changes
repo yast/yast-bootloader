@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb 18 16:22:05 UTC 2015 - jreidinger@suse.com
+
+- fix crash on ppc(bnc#917833)
+- 3.1.123
+
+-------------------------------------------------------------------
 Tue Feb 17 13:24:26 UTC 2015 - jreidinger@suse.com
 
 - reset flags before set new ones(bnc#848609)
