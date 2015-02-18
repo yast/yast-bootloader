@@ -130,6 +130,7 @@ module Yast
         # FIXME: this should be better handled by exception and show it properly, but it require too big change now
         Popup.Error(_("Unsupported bootloader '%s'. Adapt your AutoYaST profile accordingly.") %
  exp["loader_type"])
+        Builtins.y2error("unsupported bootloader #{exp["loader_type"]}")
         return nil
       end
 
