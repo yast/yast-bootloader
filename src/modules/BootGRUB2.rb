@@ -25,6 +25,7 @@ require "bootloader/device_map_dialog"
 
 module Yast
   import "Arch"
+  import "BootStorage"
   import "Storage"
   import "BootCommon"
   import "HTML"
@@ -144,6 +145,7 @@ module Yast
           BootCommon.globals["vgamode"] = Kernel.GetVgaType
         end
       when /ppc/
+        BootStorage.detect_disks
         partition = prep_partitions.first
         if partition
           BootCommon.globals["boot_custom"] = partition
@@ -151,7 +153,6 @@ module Yast
           # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
           # we need to detect what is mount on /boot and if it is nfs, then just
           # skip this proposal. In other case if it is not nfs, then it is error and raise exception
-          BootCommon.DetectDisks
           if BootCommon.getBootDisk == "/dev/nfs"
             return
           else
