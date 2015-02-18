@@ -32,6 +32,7 @@ module Bootloader
           Yast::Bootloader.Propose
         end
       else
+        log.error "Failed to convert autoyast profile to standard form"
         ret = false
       end
 
