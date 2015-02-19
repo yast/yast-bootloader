@@ -6,7 +6,6 @@ describe Yast::Bootloader do
   subject { Yast::Bootloader }
 
   describe ".Import" do
-
     before do
       # ensure flags are reset
       Yast::BootCommon.was_read = false
