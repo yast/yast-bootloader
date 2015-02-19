@@ -6,6 +6,15 @@ describe Yast::Bootloader do
   subject { Yast::Bootloader }
 
   describe ".Import" do
+
+    before do
+      # ensure flags are reset
+      Yast::BootCommon.was_read = false
+      Yast::BootCommon.was_proposed = false
+      Yast::BootCommon.changed = false
+      Yast::BootCommon.location_changed = false
+    end
+
     # FIXME: looks useless as import is used in autoinstallation and in such case reset do nothing
     it "resets configuration" do
       expect(subject).to receive(:Reset)
@@ -80,8 +89,6 @@ describe Yast::Bootloader do
       allow(subject).to receive(:Read)
       Yast::BootCommon.was_read = false
       Yast::BootCommon.was_proposed = false
-
-      allow(subject).to receive(:UpdateConfiguration)
     end
 
     it "does nothing if already read" do
@@ -131,6 +138,7 @@ describe Yast::Bootloader do
       expect(subject).to receive(:Read)
       expect(Yast::Stage).to receive(:initial).and_return(true)
       allow(Yast::Mode).to receive(:update).and_return(true)
+      allow(subject).to receive(:UpdateConfiguration)
 
       subject.ReadOrProposeIfNeeded
     end
