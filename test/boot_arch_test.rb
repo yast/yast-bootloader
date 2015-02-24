@@ -124,12 +124,8 @@ describe Yast::BootArch do
         expect(subject.DefaultKernelParams("/dev/dasd2")).to include("resume=/dev/dasd2")
       end
 
-      #JR: temporary disabled as it cause build service only failure
-      #it "does not add parameters from boot command line" do
-      #  allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0")
-      #
-      #  expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("console=ttyS0")
-      #end
+      # JR: temporary disabled as it cause build service only failure
+      it "does not add parameters from boot command line"
     end
 
     context "on other archs" do
