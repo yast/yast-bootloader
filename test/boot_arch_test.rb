@@ -130,8 +130,8 @@ describe Yast::BootArch do
 
         expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("console=ttyS0")
       end
-    end
 =end
+    end
 
     context "on other archs" do
       before do
