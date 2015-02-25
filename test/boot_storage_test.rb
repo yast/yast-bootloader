@@ -92,4 +92,34 @@ describe Yast::BootStorage do
       expect(result).to include("/dev/vda")
     end
   end
+
+  describe ".multipath_mapping" do
+    before do
+      mock_disk_partition
+      # force reinit every time
+      allow(subject).to receive(:checkCallingDiskInfo).and_return(true)
+      # mock getting mount points as it need whole libstorage initialization
+      allow(Yast::Storage).to receive(:GetMountPoints).and_return("/" => "/dev/vda1")
+      # mock for same reason getting udev mapping
+      allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) do |arg|
+        arg
+      end
+    end
+
+    it "returns empty map if there is no multipath" do
+      target_map_stub("storage_lvm.rb")
+
+      # init variables
+      subject.InitDiskInfo
+      expect(subject.multipath_mapping).to eq({})
+    end
+
+    it "return map of kernel disks to multipath devices" do
+      target_map_stub("many_disks.rb")
+
+      # init variables
+      subject.InitDiskInfo
+      expect(subject.multipath_mapping["/dev/sda"]).to eq "/dev/mapper/3600508b1001c9a84c91492de27962d57"
+    end
+  end
 end

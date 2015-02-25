@@ -84,7 +84,7 @@ module Yast
       ret = {}
       tm = Storage.GetTargetMap
       tm.each do |disk, disk_info|
-        next unless disk_info["type"] != :CT_DMMULTIPATH
+        next if disk_info["type"] != :CT_DMMULTIPATH
 
         devices = disk_info["devices"] || []
         devices.each { |d| ret[d] = disk }
