@@ -114,7 +114,7 @@ describe Yast::BootStorage do
       expect(subject.multipath_mapping).to eq({})
     end
 
-    it "return map of kernel disks to multipath devices" do
+    it "returns map of kernel names for disk devices to multipath devices associated with it" do
       target_map_stub("many_disks.rb")
 
       # init variables

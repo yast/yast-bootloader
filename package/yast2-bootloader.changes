@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Wed Feb 25 21:48:10 UTC 2015 - jreidinger@suse.com
 
-- Fix creation of multipath device map
+- Fixed creation of a multipath device map
 - 3.1.124
 
 -------------------------------------------------------------------
