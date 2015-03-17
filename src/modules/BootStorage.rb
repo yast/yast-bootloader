@@ -30,6 +30,7 @@ module Yast
     def main
       textdomain "bootloader"
 
+      Yast.import "BootCommon"
       Yast.import "Storage"
       Yast.import "StorageDevices"
       Yast.import "Arch"
@@ -419,7 +420,7 @@ module Yast
       log.info "mountPoints #{mp}"
       log.info "mountdata_boot #{mountdata_boot}"
 
-      @RootPartitionDevice = mountdata_root.first || ""
+      @RootPartitionDevice = mountdata_root ? mountdata_root.first || "" : ""
       raise "No mountpoint for / !!" if @RootPartitionDevice.empty?
 
       # if /boot changed, re-configure location
