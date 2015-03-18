@@ -102,9 +102,7 @@ module Yast
     # @return [Hash{String => String}] globals
 
     def remapGlobals(globals_set)
-      if !Arch.ppc
-        return globals_set if Storage.GetDefaultMountBy == :label
-      end
+      return globals_set if !Arch.ppc && Storage.GetDefaultMountBy == :label
 
       globals_set["boot_custom"] &&=
         ::Bootloader::UdevMapping.to_kernel_device(globals_set["boot_custom"])
