@@ -110,7 +110,7 @@ module Yast
 
       BootCommon.globals = StandardGlobals().merge(BootCommon.globals || {})
 
-      swap_parts = BootCommon.getSwapPartitions
+      swap_parts = BootStorage.available_swap_partitions
       largest_swap_part = (swap_parts.max_by { |_part, size| size } || [""]).first
 
       resume = BootArch.ResumeAvailable ? largest_swap_part : ""
