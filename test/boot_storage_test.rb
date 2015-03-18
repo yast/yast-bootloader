@@ -122,4 +122,79 @@ describe Yast::BootStorage do
       expect(subject.multipath_mapping["/dev/sda"]).to eq "/dev/mapper/3600508b1001c9a84c91492de27962d57"
     end
   end
+
+  describe ".detect_disks" do
+    before do
+      mock_disk_partition
+      target_map_stub("storage_lvm.rb")
+
+      allow(Yast::Storage).to receive(:GetMountPoints).and_return(
+        "/"     => ["/dev/vda1"],
+        "/boot" => ["/dev/vda2"]
+      )
+    end
+
+    it "fills RootPartitionDevice variable" do
+      subject.RootPartitionDevice = nil
+
+      subject.detect_disks
+
+      expect(subject.RootPartitionDevice).to eq "/dev/vda1"
+    end
+
+    it "fills BootPartitionDevice variable" do
+      subject.BootPartitionDevice = nil
+
+      subject.detect_disks
+
+      expect(subject.BootPartitionDevice).to eq "/dev/vda2"
+    end
+
+    it "sets ExtendedPartitionDevice variable to nil if boot is not logical" do
+      subject.ExtendedPartitionDevice = nil
+
+      subject.detect_disks
+
+      expect(subject.ExtendedPartitionDevice).to eq nil
+    end
+
+    # need target map with it
+    it "sets ExtendedPartitionDevice variable to extended partition if boot is logical"
+
+    it "raises exception if there is no mount point for root" do
+      allow(Yast::Storage).to receive(:GetMountPoints).and_return({})
+
+      expect { subject.detect_disks }.to raise_error
+    end
+
+    it "sets BootCommon.mbrDisk if not already set" do
+      Yast::BootCommon.mbrDisk = nil
+
+      expect(Yast::BootCommon).to receive(:FindMBRDisk).and_return("/dev/vda")
+
+      subject.detect_disks
+
+      expect(Yast::BootCommon.mbrDisk).to eq "/dev/vda"
+    end
+
+    it "returns true if bootloader devices is not yet set" do
+      allow(Yast::BootCommon).to receive(:GetBootloaderDevices).and_return([])
+
+      expect(subject.detect_disks).to eq true
+    end
+
+    it "returns true if any bootloader device is no longer available" do
+      allow(Yast::BootCommon).to receive(:GetBootloaderDevices).and_return(["/dev/not_available"])
+      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
+
+      expect(subject.detect_disks).to eq true
+    end
+
+    it "returns false if all bootloader devices are available" do
+      allow(Yast::BootCommon).to receive(:GetBootloaderDevices).and_return(["/dev/vda"])
+      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
+
+      expect(subject.detect_disks).to eq false
+    end
+  end
 end
