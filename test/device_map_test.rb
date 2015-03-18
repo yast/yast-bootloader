@@ -17,6 +17,7 @@ describe Bootloader::DeviceMap do
     before do
       allow(Yast::Arch).to receive(:s390).and_return(false)
       allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+      mock_disk_partition
       target_map_stub("storage_mdraid.rb")
     end
 
