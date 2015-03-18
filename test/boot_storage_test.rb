@@ -202,4 +202,20 @@ describe Yast::BootStorage do
     # TODO: proper target map with 2 partitions in raid
     it "returns devices that can be used for redundant boot"
   end
+
+  describe ".available_swap_partitions" do
+    it "returns map of swap partitions and their size" do
+      target_map_stub("storage_lvm.yaml")
+      expect(subject.available_swap_partitions).to eq(
+        "/dev/vda2" => 1_026_048
+      )
+    end
+
+    it "returns crypt device name for encrypted swap" do
+      target_map_stub("storage_encrypted.yaml")
+      expect(subject.available_swap_partitions).to eq(
+        "/dev/mapper/cr_swap" => 2_096_482
+      )
+    end
+  end
 end

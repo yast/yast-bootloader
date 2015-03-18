@@ -102,14 +102,7 @@ module Yast
     # @return [Hash{String => String}] globals
 
     def remapGlobals(globals_set)
-      globals_set = deep_copy(globals_set)
-      if Arch.ppc
-        by_mount = :id
-      else
-        by_mount = Storage.GetDefaultMountBy
-      end
-
-      return globals_set if by_mount == :label
+      return globals_set if !Arch.ppc && Storage.GetDefaultMountBy == :label
 
       globals_set["boot_custom"] &&=
         ::Bootloader::UdevMapping.to_kernel_device(globals_set["boot_custom"])
@@ -225,32 +218,6 @@ module Yast
         Report.Error("Can't restore MBR. No saved MBR found")
         return false
       end
-    end
-
-    # Get map of swap partitions
-    # @return a map where key is partition name and value its size
-    def getSwapPartitions
-      # FIXME: move to boot storage
-      tm = Storage.GetTargetMap
-      ret = {}
-      tm.each_value do |v|
-        cyl_size = v["cyl_size"] || 0
-        partitions = v["partitions"] || []
-        partitions = partitions.select do |p|
-          p["mount"] == "swap" && !p["delete"]
-        end
-        partitions.each do |s|
-          # bnc#577127 - Encrypted swap is not properly set up as resume device
-          if s["crypt_device"] && !s["crypt_device"].empty?
-            dev = s["crypt_device"]
-          else
-            dev = s["device"]
-          end
-          ret[dev] = Ops.get_integer(s, ["region", 1], 0) * cyl_size
-        end
-      end
-      Builtins.y2milestone("Available swap partitions: %1", ret)
-      ret
     end
 
     # Update the Kernel::vgaType value to the saved one if not defined

@@ -447,6 +447,31 @@ module Yast
       end
     end
 
+    # Get map of swap partitions
+    # @return a map where key is partition name and value its size in KB
+    def available_swap_partitions
+      tm = Storage.GetTargetMap
+      ret = {}
+      tm.each_value do |v|
+        partitions = v["partitions"] || []
+        partitions.select! do |p|
+          p["mount"] == "swap" && !p["delete"]
+        end
+        partitions.each do |s|
+          # bnc#577127 - Encrypted swap is not properly set up as resume device
+          if s["crypt_device"] && !s["crypt_device"].empty?
+            dev = s["crypt_device"]
+          else
+            dev = s["device"]
+          end
+          ret[dev] = s["size_k"] || 0
+        end
+      end
+
+      log.info "Available swap partitions: #{ret}"
+      ret
+    end
+
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
     publish :variable => :partinfo, :type => "list <list>"

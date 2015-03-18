@@ -560,7 +560,6 @@ module Yast
     publish :function => :getKernelParamFromLine, :type => "string (string, string)"
     publish :function => :setKernelParamToLine, :type => "string (string, string, string)"
     publish :function => :restoreMBR, :type => "boolean (string)"
-    publish :function => :getSwapPartitions, :type => "map <string, integer> ()"
     publish :function => :UpdateInstallationKernelParameters, :type => "void ()"
     publish :function => :GetAdditionalFailsafeParams, :type => "string ()"
     publish :function => :BootloaderInstallable, :type => "boolean ()"
