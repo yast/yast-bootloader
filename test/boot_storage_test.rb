@@ -129,7 +129,7 @@ describe Yast::BootStorage do
       target_map_stub("storage_lvm.rb")
 
       allow(Yast::Storage).to receive(:GetMountPoints).and_return(
-        "/" => ["/dev/vda1"],
+        "/"     => ["/dev/vda1"],
         "/boot" => ["/dev/vda2"]
       )
     end
@@ -164,7 +164,7 @@ describe Yast::BootStorage do
     it "raises exception if there is no mount point for root" do
       allow(Yast::Storage).to receive(:GetMountPoints).and_return({})
 
-      expect{subject.detect_disks}.to raise_error
+      expect { subject.detect_disks }.to raise_error
     end
 
     it "sets BootCommon.mbrDisk if not already set" do

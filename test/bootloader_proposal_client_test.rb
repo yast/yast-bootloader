@@ -79,6 +79,7 @@ describe Bootloader::ProposalClient do
 
   describe "#make_proposal" do
     before do
+      mock_disk_partition
       Yast::BootCommon.setLoaderType("grub2")
       allow(Yast::Bootloader).to receive(:Propose)
       allow(Yast::Bootloader).to receive(:Summary).and_return("Summary")
