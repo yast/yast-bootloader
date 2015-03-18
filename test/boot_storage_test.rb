@@ -197,4 +197,9 @@ describe Yast::BootStorage do
       expect(subject.detect_disks).to eq false
     end
   end
+
+  describe ".devices_for_redundant_boot" do
+    # TODO: proper target map with 2 partitions in raid
+    it "returns devices that can be used for redundant boot"
+  end
 end
