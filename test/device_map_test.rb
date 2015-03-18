@@ -18,7 +18,7 @@ describe Bootloader::DeviceMap do
       allow(Yast::Arch).to receive(:s390).and_return(false)
       allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       mock_disk_partition
-      target_map_stub("storage_mdraid.rb")
+      target_map_stub("storage_mdraid.yaml")
     end
 
     it "fills itself with device map proposal" do
@@ -44,7 +44,7 @@ describe Bootloader::DeviceMap do
     it "do not add to device map members of raids and multipath"
 
     it "do not add non-disk devices" do
-      target_map_stub("storage_tmpfs.rb")
+      target_map_stub("storage_tmpfs.yaml")
 
       subject.propose
       expect(subject.to_hash).to_not include("/dev/tmpfs")
@@ -63,7 +63,7 @@ describe Bootloader::DeviceMap do
       # simple mock getting disks from partition as it need initialized libstorage
       mock_disk_partition
 
-      target_map_stub("many_disks.rb")
+      target_map_stub("many_disks.yaml")
 
       subject.propose
       expect(subject.to_hash.size).to eq 8

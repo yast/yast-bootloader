@@ -1,0 +1,148 @@
+---
+"/dev/btrfs":
+  device: "/dev/btrfs"
+  name: btrfs
+  partitions: []
+  type: :CT_BTRFS
+  used_by_device: ''
+  used_by_type: :UB_NONE
+"/dev/system":
+  create: true
+  cyl_count: 1795
+  cyl_size: 4194304
+  device: "/dev/system"
+  devices: []
+  devices_add:
+  - "/dev/vda3"
+  lvm2: true
+  name: system
+  partitions:
+  - create: true
+    detected_fs: :btrfs
+    device: "/dev/system/root"
+    format: true
+    fstype: LV
+    inactive: true
+    mount: "/"
+    mountby: :uuid
+    name: root
+    size_k: 7352320
+    stripes: 1
+    subvol:
+    - create: true
+      name: "@/boot/grub2/i386-pc"
+    - create: true
+      name: "@/boot/grub2/x86_64-efi"
+    - create: true
+      name: "@/home"
+    - create: true
+      name: "@/opt"
+    - create: true
+      name: "@/srv"
+    - create: true
+      name: "@/tmp"
+    - create: true
+      name: "@/usr/local"
+    - create: true
+      name: "@/var/crash"
+    - create: true
+      name: "@/var/lib/mailman"
+    - create: true
+      name: "@/var/lib/named"
+    - create: true
+      name: "@/var/lib/pgsql"
+    - create: true
+      name: "@/var/log"
+    - create: true
+      name: "@/var/opt"
+    - create: true
+      name: "@/var/spool"
+    - create: true
+      name: "@/var/tmp"
+    type: :lvm
+    used_by:
+    - device: '12345'
+      type: :UB_BTRFS
+    used_by_device: '12345'
+    used_by_type: :UB_BTRFS
+    used_fs: :btrfs
+    userdata:
+      "/": snapshots
+    uuid: '12345'
+  pe_free: 0
+  pesize: 4194304
+  size_k: 7352320
+  type: :CT_LVM
+  used_by_device: ''
+  used_by_type: :UB_NONE
+"/dev/vda":
+  bios_id: '0x80'
+  bus: None
+  cyl_count: 1044
+  cyl_size: 8225280
+  device: "/dev/vda"
+  driver: virtio-pci
+  driver_module: virtio_pci
+  label: gpt
+  max_logical: 0
+  max_primary: 15
+  name: vda
+  partitions:
+  - detected_fs: :swap
+    device: "/dev/vda1"
+    fsid: 263
+    fstype: BIOS Grub
+    name: vda1
+    nr: 1
+    region:
+    - 0
+    - 1
+    size_k: 1024
+    type: :primary
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :swap
+    uuid: 3de29985-8cc6-4c9d-8562-2ede26b0c5b6
+  - detected_fs: :swap
+    device: "/dev/vda2"
+    fsid: 130
+    fstype: Linux swap
+    inactive: true
+    mount: swap
+    mountby: :uuid
+    name: vda2
+    nr: 2
+    region:
+    - 1
+    - 127
+    size_k: 1026048
+    type: :primary
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :swap
+    uuid: ec8e9948-ca5f-4b18-a863-ac999365e4a9
+  - boot: true
+    detected_fs: :unknown
+    device: "/dev/vda3"
+    fsid: 142
+    fstype: Linux LVM
+    name: vda3
+    nr: 3
+    region:
+    - 127
+    - 917
+    size_k: 7359488
+    type: :primary
+    used_by:
+    - device: "/dev/system"
+      type: :UB_LVM
+    used_by_device: "/dev/system"
+    used_by_type: :UB_LVM
+  proposal_name: '1. Disk, 8.00 GiB, /dev/vda, '
+  sector_size: 512
+  size_k: 8388608
+  transport: :unknown
+  type: :CT_DISK
+  unique: KSbE.Fxp0d3BezAE
+  used_by_device: ''
+  used_by_type: :UB_NONE
