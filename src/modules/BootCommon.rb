@@ -469,8 +469,8 @@ module Yast
       if Mode.update || Mode.normal || Mode.repair
         @secure_boot = ::Bootloader::Sysconfig.from_system.secure_boot
       else
-        # propose secure boot always to true (bnc#872054), otherwise respect user choice
-        @secure_boot = true
+        # propose secure boot always to true on x86 (bnc#872054), otherwise respect user choice
+        @secure_boot = Arch.i386 || Arch.x86_64
       end
 
       @secure_boot
