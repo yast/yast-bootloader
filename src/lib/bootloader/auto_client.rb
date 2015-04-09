@@ -18,8 +18,10 @@ module Bootloader
 
     def run
       progress_orig = Yast::Progress.set(false)
-      super
+      ret = super
       Yast::Progress.set(progress_orig)
+
+      ret
     end
 
     def import(data)
