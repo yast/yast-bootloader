@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 14 14:50:43 CEST 2015 - schubi@suse.de
+
+- While calling AutoYaST clone_system libStorage has to be set
+  to "normal" mode in order to read mountpoints correctly.
+- 3.1.127
+
+-------------------------------------------------------------------
 Thu Apr  9 13:15:02 UTC 2015 - jreidinger@suse.com
 
 - fix abort when importing bootloader values in autoyast
