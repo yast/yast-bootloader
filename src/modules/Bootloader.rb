@@ -173,7 +173,15 @@ module Yast
 
       getLoaderType
 
+      # While calling AutoYaST clone_system libStorage
+      # has to be set to "normal" mode in order to read
+      # mountpoints correctly
+      old_mode = Mode.mode
+      Mode.SetMode("normal") if Mode.config
+
       BootCommon.DetectDisks
+      Mode.SetMode(old_mode) if old_mode == "autoinst_config"
+
       Progress.NextStage
       return false if testAbort
 
