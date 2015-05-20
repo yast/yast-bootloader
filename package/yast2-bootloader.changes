@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed May 20 13:35:23 CEST 2015 - dvaleev@suse.com
+
+- Disable os-prober for Power boo#931653
+- 3.1.128
+-------------------------------------------------------------------
 Tue Apr 14 14:50:43 CEST 2015 - schubi@suse.de
 
 - While calling AutoYaST clone_system libStorage has to be set
