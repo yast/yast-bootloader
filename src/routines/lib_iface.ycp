@@ -44,7 +44,7 @@ global boolean  DefineMultipath(map<string,string> multipath_map);
  *  @return nothing
  */
 // FIXME: this should be done directly in perl-Bootloader through LibStorage.pm
-global void SetDiskInfo () {
+global void _SetDiskInfo () {
     map<string,list<string> > md_info = $[];
 
     map<string,map> tm = (map<string,map>)Storage::GetTargetMap ();
@@ -137,6 +137,28 @@ global void SetDiskInfo () {
     System::Bootloader_API::setMDArrays ((map<string,list<string> >) md_info);
     DefineMultipath(multipath_mapping);
 }
+
+
+/**
+ * Adjust mode to 'normal' before calling SetDiskInfo() so
+ * libstorage will really return the mountpoints in auto mode.
+ */
+global void SetDiskInfo () {
+  y2milestone("Current mode is %1", Mode::mode());
+  if (Mode::autoinst ())
+  {
+    y2milestone("Adjusting mode");
+    Mode::SetMode ("normal");
+    _SetDiskInfo();
+    Mode::SetMode ("autoinstallation");
+  }
+  else
+  {
+    y2milestone("Keeping mode");
+    _SetDiskInfo();
+  }
+}
+
 
 /**
  * Initialize the bootloader library
