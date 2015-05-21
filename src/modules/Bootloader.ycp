@@ -237,7 +237,21 @@
 	if (!checkUsedStorage ())
 	    return false;
 
-	BootCommon::DetectDisks ();
+	// While calling AutoYaST clone_system libStorage
+	// has to be set to "normal" mode in order to read
+	// mountpoints correctly
+	//
+	// Mode::config() tests for "autoinst_config"
+	if (Mode::config ())
+	{
+	    Mode.SetMode ("normal");
+	    BootCommon::DetectDisks ();
+	    Mode::SetMode ("autoinst_config");
+	}
+	else
+	{
+	    BootCommon::DetectDisks ();
+	}
         Progress::NextStage ();
         if (testAbort ())
             return false;
