@@ -1,8 +1,7 @@
 -------------------------------------------------------------------
 Mon Jun  1 14:20:30 UTC 2015 - jreidinger@suse.com
 
-- do not crash if last tab do not exists like for non-supported
-  bootloader (bnc#923458)
+- Don't crash when reconfiguring from grub1 to grub2 (bnc#923458)
 - 3.1.129
 
 -------------------------------------------------------------------
