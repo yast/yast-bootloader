@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun  1 14:20:30 UTC 2015 - jreidinger@suse.com
+
+- Don't crash when reconfiguring from grub1 to grub2 (bnc#923458)
+- 3.1.129
+
+-------------------------------------------------------------------
 Wed May 20 13:35:23 CEST 2015 - dvaleev@suse.com
 
 - Disable os-prober for Power boo#931653
