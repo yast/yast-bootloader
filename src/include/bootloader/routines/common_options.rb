@@ -190,8 +190,8 @@ module Yast
       {
         "widget"  => :intfield,
         "label"   => Ops.get(@common_descriptions, "timeout", "timeout"),
-        "minimum" => 0,
-        "maximum" => 300,
+        "minimum" => -1,
+        "maximum" => 600,
         "init"    => fun_ref(method(:InitGlobalInt), "void (string)"),
         "store"   => fun_ref(method(:StoreGlobalInt), "void (string, map)"),
         "help"    => Ops.get(@common_help_messages, "timeout", "")

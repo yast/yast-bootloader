@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jun  2 12:40:05 UTC 2015 - jreidinger@suse.com
+
+- Do not crash if system contain unpartitioned disk (bnc#930091)
+- allow negative timeout to cancel automatic boot (bnc#812618)
+- fix typo in help text (bnc#702664)
+- 3.1.130
+
+-------------------------------------------------------------------
 Mon Jun  1 14:20:30 UTC 2015 - jreidinger@suse.com
 
 - Don't crash when reconfiguring from grub1 to grub2 (bnc#923458)
