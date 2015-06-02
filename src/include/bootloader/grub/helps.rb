@@ -67,7 +67,7 @@ module Yast
         ),
         "terminal"          => _(
           "<p><b>Terminal Definition</b></p><br>\n" \
-            "Defines the type of terminal you want to use. For a serial terminal (eg. a serial console),\n" \
+            "Defines the type of terminal you want to use. For a serial terminal (e.g. a serial console),\n" \
             "you have to specify <code>serial</code>. You can also pass <code>console</code> to the\n" \
             "command, as <code>serial console</code>. In this case, a terminal in which you\n" \
             "press any key will be selected as a GRUB terminal.</p>"
