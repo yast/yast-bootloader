@@ -2,6 +2,7 @@
 Tue Jun  2 12:40:05 UTC 2015 - jreidinger@suse.com
 
 - Do not crash if system contain unpartitioned disk (bnc#930091)
+- allow negative timeout to cancel automatic boot (bnc#812618)
 
 -------------------------------------------------------------------
 Mon Jun  1 14:20:30 UTC 2015 - jreidinger@suse.com
