@@ -133,7 +133,7 @@ module Yast
       ret << BootStorage.RootPartitionDevice if @globals["boot_root"] == "true"
       ret << @mbrDisk if @globals["boot_mbr"] == "true"
       ret << BootStorage.ExtendedPartitionDevice if @globals["boot_extended"] == "true"
-      ret << @globals["boot_custom"] if @globals["boot_custom"]
+      ret << @globals["boot_custom"] if @globals["boot_custom"] && !@globals["boot_custom"].empty?
       Builtins.y2warning("Empty bootloader devices. Globals #{@globals.inspect}") if ret.empty?
 
       ret
