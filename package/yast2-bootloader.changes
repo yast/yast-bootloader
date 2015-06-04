@@ -2,6 +2,8 @@
 Thu Jun  4 07:42:21 UTC 2015 - jreidinger@suse.com
 
 - add missing cleaning of tmp file (bnc#926843)
+- fixed an Internal Error when using password for grub2 with
+  non-english locale (bnc#900358)
 
 -------------------------------------------------------------------
 Tue Feb 10 15:24:53 UTC 2015 - ancor@suse.com

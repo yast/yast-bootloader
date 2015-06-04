@@ -36,8 +36,11 @@ class GRUB2Pwd
 private
 
   def encrypt(password)
+    Yast.import "String"
+
+    quoted_password = Yast::String.Quote(password)
     result = Yast::SCR.Execute(YAST_BASH_PATH,
-      "echo -e \"#{password}\\n#{password}\" | grub2-mkpasswd-pbkdf2"
+      "echo '#{quoted_password}\n#{quoted_password}\n' | LANG=C grub2-mkpasswd-pbkdf2"
     )
 
     if result["exit"] != 0

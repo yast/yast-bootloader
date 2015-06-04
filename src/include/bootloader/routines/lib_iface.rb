@@ -40,6 +40,13 @@ module Yast
     class TmpYAMLFile
       attr_reader :path
 
+      def self.open(data=nil, &block)
+        file = new(data)
+        block.call(file)
+      ensure
+        file.unlink if file
+      end
+
       def initialize(data=nil)
         @path = mktemp
         write_data(data) unless data.nil?
@@ -95,20 +102,18 @@ module Yast
         BootStorage.multipath_mapping
       )
 
-      mp_data = TmpYAMLFile.new(BootStorage.mountpoints)
-      part_data = TmpYAMLFile.new(BootStorage.partinfo)
-      md_data = TmpYAMLFile.new(BootStorage.md_info)
-
-      run_pbl_yaml "DefineMountPoints(#{mp_data.path})",
-        "DefinePartitions(#{part_data.path})",
-        "DefineMDArrays(#{md_data.path})"
+      TmpYAMLFile.open(BootStorage.mountpoints) do |mp_data|
+        TmpYAMLFile.open(BootStorage.partinfo) do |part_data|
+          TmpYAMLFile.open(BootStorage.md_info) do |md_data|
+            run_pbl_yaml "DefineMountPoints(#{mp_data.path})",
+              "DefinePartitions(#{part_data.path})",
+              "DefineMDArrays(#{md_data.path})"
+          end
+        end
+      end
       DefineMultipath(BootStorage.multipath_mapping)
 
       nil
-    ensure
-      mp_data.unlink if mp_data
-      part_data.unlink if part_data
-      md_data.unlink if md_data
     end
 
     # Initialize the bootloader library
@@ -122,11 +127,12 @@ module Yast
 
       Builtins.y2milestone("Initializing lib for %1", loader)
       architecture = BootArch.StrArch
-      loader_data = TmpYAMLFile.new([loader, architecture])
-      udev_data = TmpYAMLFile.new(::Bootloader::DeviceMapping.to_hash)
-
-      run_pbl_yaml "SetLoaderType(@#{loader_data.path})",
-        "DefineUdevMapping(#{udev_data.path})"
+      TmpYAMLFile.open([loader, architecture]) do |loader_data|
+        TmpYAMLFile.open(::Bootloader::DeviceMapping.to_hash) do |udev_data|
+          run_pbl_yaml "SetLoaderType(@#{loader_data.path})",
+            "DefineUdevMapping(#{udev_data.path})"
+        end
+      end
 
       Builtins.y2milestone("Putting partitioning into library")
       # pass all needed disk/partition information to library
@@ -134,9 +140,6 @@ module Yast
       Builtins.y2milestone("Library initialization finished")
       @library_initialized = loader
       true
-    ensure
-      loader_data.unlink if loader_data
-      udev_data.unlink if udev_data
     end
 
     # Set boot loader sections
@@ -156,30 +159,28 @@ module Yast
         deep_copy(s)
       end
       Builtins.y2milestone("Storing bootloader sections %1", sections)
-      sections_data = TmpYAMLFile.new(sections)
-      run_pbl_yaml "SetSections(#{sections_data.path})"
+      TmpYAMLFile.open(sections) do |sections_data|
+        run_pbl_yaml "SetSections(#{sections_data.path})"
+      end
 
       true
-    ensure
-      sections_data.unlink
     end
 
     # Get boot loader sections
     # @return a list of all loader sections (as maps)
     def GetSections
-      sections_data = TmpYAMLFile.new
-      Builtins.y2milestone("Reading bootloader sections")
-      run_pbl_yaml "#{sections_data.path}=GetSections()"
-      sects = sections_data.data
-      if sects == nil
-        Builtins.y2error("Reading sections failed")
-        return []
-      end
-      Builtins.y2milestone("Read sections: %1", sects)
+      TmpYAMLFile.open do |sections_data|
+        Builtins.y2milestone("Reading bootloader sections")
+        run_pbl_yaml "#{sections_data.path}=GetSections()"
+        sects = sections_data.data
+        if sects == nil
+          Builtins.y2error("Reading sections failed")
+          return []
+        end
+        Builtins.y2milestone("Read sections: %1", sects)
 
-      sects
-    ensure
-      sections_data.unlink
+        sects
+      end
     end
 
     # Set global bootloader options
@@ -189,46 +190,41 @@ module Yast
       globals = deep_copy(globals)
       Builtins.y2milestone("Storing global settings %1", globals)
       Ops.set(globals, "__modified", "1")
-      globals_data = TmpYAMLFile.new(globals)
-
-      run_pbl_yaml "SetGlobalSettings(#{globals_data.path})"
+      TmpYAMLFile.open(globals) do |globals_data|
+        run_pbl_yaml "SetGlobalSettings(#{globals_data.path})"
+      end
 
       true
-    ensure
-      globals_data.unlink
     end
 
     # Get global bootloader options
     # @return a map of global bootloader options
     def GetGlobal
       Builtins.y2milestone("Reading bootloader global settings")
-      globals_data = TmpYAMLFile.new
-      run_pbl_yaml "#{globals_data.path}=GetGlobalSettings()"
-      glob = globals_data.data
+      TmpYAMLFile.open do |globals_data|
+        run_pbl_yaml "#{globals_data.path}=GetGlobalSettings()"
+        glob = globals_data.data
 
-      if glob == nil
-        Builtins.y2error("Reading global settings failed")
-        return {}
+        if glob == nil
+          Builtins.y2error("Reading global settings failed")
+          return {}
+        end
+
+        Builtins.y2milestone("Read global settings: %1", glob)
+        glob
       end
-
-      Builtins.y2milestone("Read global settings: %1", glob)
-      glob
-    ensure
-      globals_data.unlink
     end
 
     # Set the device mapping (Linux <-> Firmware)
     # @param [Hash{String => String}] device_map a map from Linux device to Firmware device identification
     # @return [Boolean] true on success
     def SetDeviceMap(device_map)
-      arg_data = TmpYAMLFile.new(device_map)
-
-      Builtins.y2milestone("Storing device map")
-      run_pbl_yaml "SetDeviceMapping(#{arg_data.path})"
+      Builtins.y2milestone("Storing device map #{device_map}")
+      TmpYAMLFile.open(device_map) do |arg_data|
+        run_pbl_yaml "SetDeviceMapping(#{arg_data.path})"
+      end
 
       true
-    ensure
-      arg_data.unlink
     end
 
     # Set the mapping (real device <-> multipath)
@@ -241,12 +237,11 @@ module Yast
         return true
       end
 
-      arg_data = TmpYAMLFile.new(multipath_map)
-      run_pbl_yaml "DefineMultipath(#{arg_data.path})"
+      TmpYAMLFile.open(multipath_map) do |arg_data|
+        run_pbl_yaml "DefineMultipath(#{arg_data.path})"
+      end
 
       true
-    ensure
-      arg_data.unlink if arg_data
     end
 
 
@@ -255,21 +250,19 @@ module Yast
     def GetDeviceMap
       Builtins.y2milestone("Reading device mapping")
 
-      res_data = TmpYAMLFile.new
+      TmpYAMLFile.open do |res_data|
+        run_pbl_yaml "#{res_data.path}=GetDeviceMapping()"
 
-      run_pbl_yaml "#{res_data.path}=GetDeviceMapping()"
+        devmap = res_data.data
 
-      devmap = res_data.data
+        if !devmap
+          Builtins.y2error("Reading device mapping failed")
+          return {}
+        end
 
-      if !devmap
-        Builtins.y2error("Reading device mapping failed")
-        return {}
+        Builtins.y2milestone("Read device mapping: %1", devmap)
+        devmap
       end
-
-      Builtins.y2milestone("Read device mapping: %1", devmap)
-      devmap
-    ensure
-      res_data.unlink
     end
 
     # Read the files from the system to internal cache of the library
@@ -277,14 +270,13 @@ module Yast
     # data
     # @return [Boolean] true on success
     def ReadFiles(avoid_reading_device_map)
-      param_data = TmpYAMLFile.new(avoid_reading_device_map)
       Builtins.y2milestone("Reading Files")
 
-      run_pbl_yaml "ReadSettings(#{param_data.path})"
+      TmpYAMLFile.open(avoid_reading_device_map) do |param_data|
+        run_pbl_yaml "ReadSettings(#{param_data.path})"
+      end
 
       true
-    ensure
-      param_data.unlink
     end
 
     # Flush the internal cache of the library to the disk
@@ -300,23 +292,19 @@ module Yast
     # @return [Boolean] true on success
     def UpdateBootloader
       # true mean avoid init of bootloader
-      arg_data = TmpYAMLFile.new(true)
-
-      Builtins.y2milestone("Updating bootloader configuration")
-      run_pbl_yaml "UpdateBootloader(#{arg_data.path})"
-    ensure
-      arg_data.unlink
+      TmpYAMLFile.open(true) do |arg_data|
+        Builtins.y2milestone("Updating bootloader configuration")
+        run_pbl_yaml "UpdateBootloader(#{arg_data.path})"
+      end
     end
 
     def SetSecureBoot(enable)
-      arg_data = TmpYAMLFile.new(enable)
-
-      Builtins.y2milestone("Set SecureBoot")
-      run_pbl_yaml "SetSecureBoot(#{arg_data.path})"
+      Builtins.y2milestone("Set SecureBoot #{enable}")
+      TmpYAMLFile.open(enable) do |arg_data|
+        run_pbl_yaml "SetSecureBoot(#{arg_data.path})"
+      end
 
       true
-    ensure
-      arg_data.unlink
     end
 
 
@@ -333,81 +321,74 @@ module Yast
         console
       )
 
-      args_data = TmpYAMLFile.new([append, console])
-      append_data = TmpYAMLFile.new
-      run_pbl_yaml "#{append_data.path}=UpdateSerialConsole(@#{args_data.path})"
+      TmpYAMLFile.open([append, console]) do |args_data|
+        TmpYAMLFile.open do |append_data|
+          run_pbl_yaml "#{append_data.path}=UpdateSerialConsole(@#{args_data.path})"
 
-      append_data.data
-    ensure
-      args_data.unlink
-      append_data.unlink
+          append_data.data
+        end
+      end
     end
 
     # Initialize the boot loader (eg. modify firmware, depending on architecture)
     # @return [Boolean] true on success
     def InitializeBootloader
-      ret_data = TmpYAMLFile.new
-      run_pbl_yaml "#{ret_data.path}=InitializeBootloader()"
-      ret = ret_data.data
-      Builtins.y2milestone("Initializing bootloader ret: #{ret.inspect}")
+      TmpYAMLFile.open do |ret_data|
+        run_pbl_yaml "#{ret_data.path}=InitializeBootloader()"
+        ret = ret_data.data
+        Builtins.y2milestone("Initializing bootloader ret: #{ret.inspect}")
 
-      # perl have slightly different evaluation of boolean, so lets convert it
-      ret = ![false, nil, 0, ""].include?(ret)
-      ret
-    ensure
-      ret_data.unlink
+        # perl have slightly different evaluation of boolean, so lets convert it
+        ret = ![false, nil, 0, ""].include?(ret)
+        ret
+      end
     end
 
     # Get contents of files from the library cache
     # @return a map filename -> contents, empty map in case of fail
     def GetFilesContents
       Builtins.y2milestone("Getting contents of files")
-      ret_data = TmpYAMLFile.new
+      TmpYAMLFile.open do |ret_data|
 
-      run_pbl_yaml "#{ret_data.path}=GetFilesContents()"
+        run_pbl_yaml "#{ret_data.path}=GetFilesContents()"
 
-      ret = ret_data.data
-      if ret == nil
-        Builtins.y2error("Getting contents of files failed")
-        return {}
+        ret = ret_data.data
+        if ret == nil
+          Builtins.y2error("Getting contents of files failed")
+          return {}
+        end
+
+        ret
       end
-
-      ret
-    ensure
-      ret_data.unlink
     end
 
     # Set the contents of all files to library cache
     # @param [Hash{String => String}] files a map filename -> contents
     # @return [Boolean] true on success
     def SetFilesContents(files)
-      files_data = TmpYAMLFile.new(files)
-
       Builtins.y2milestone("Storing contents of files")
-      run_pbl_yaml "SetFilesContents(#{files_data.path})"
+
+      TmpYAMLFile.open(files) do |files_data|
+        run_pbl_yaml "SetFilesContents(#{files_data.path})"
+      end
 
       true
-    ensure
-      files_data.unlink
     end
 
     # Analyse content of MBR
     #
     # @param [String] device name ("/dev/sda")
     # @return [String] result of analyse ("GRUB stage1", "uknown",...)
-
     def examineMBR(device)
-      device_data = TmpYAMLFile.new(device)
-      ret_data = TmpYAMLFile.new
+      TmpYAMLFile.open(device) do |device_data|
+        TmpYAMLFile.open do |ret_data|
+          run_pbl_yaml "#{ret_data.path}=ExamineMBR(#{device_data.path})"
+          ret = ret_data.data
 
-      run_pbl_yaml "#{ret_data.path}=ExamineMBR(#{device_data.path})"
-      ret = ret_data.data
-
-      Builtins.y2milestone("Device: %1 includes in MBR: %2", device, ret)
-      ret
-    ensure
-      device_data.unlink
-      ret_data.unlink
+          Builtins.y2milestone("Device: %1 includes in MBR: %2", device, ret)
+          ret
+        end
+      end
     end
   end
 end
