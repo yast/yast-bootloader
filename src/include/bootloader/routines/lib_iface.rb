@@ -128,7 +128,7 @@ module Yast
       Builtins.y2milestone("Initializing lib for %1", loader)
       architecture = BootArch.StrArch
       TmpYAMLFile.open([loader, architecture]) do |loader_data|
-        TmpYAMLFile.open(::Bootloader::DeviceMapping.to_hash) do |udev_data|
+        TmpYAMLFile.open(::Bootloader::UdevMapping.to_hash) do |udev_data|
           run_pbl_yaml "SetLoaderType(@#{loader_data.path})",
             "DefineUdevMapping(#{udev_data.path})"
         end
