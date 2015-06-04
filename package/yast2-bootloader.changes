@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun  3 14:42:59 UTC 2015 - jreidinger@suse.com
+
+- do not crash in offline update in bootloader proposal(bnc#931021)
+- 3.1.133
+
+-------------------------------------------------------------------
 Wed Jun  3 12:37:08 UTC 2015 - jreidinger@suse.com
 
 - Fix cleaning of tmp file for init bootloader (bnc#926843)

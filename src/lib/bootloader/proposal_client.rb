@@ -43,7 +43,7 @@ module Bootloader
       end
 
       if Yast::Mode.update
-        propose_for_update
+        propose_for_update(force_reset)
       else
         # in installation always propose missing stuff
         Yast::Bootloader.Propose
@@ -115,7 +115,7 @@ module Bootloader
       old_bootloader.last.chomp.sub(/^.*=\s*(\S*).*/, "\\1").delete('"\'')
     end
 
-    def propose_for_update
+    def propose_for_update(force_reset)
       if ["grub2", "grub2-efi"].include? old_bootloader
         log.info "update of grub2, do not repropose"
         if !Yast::BootCommon.was_read || force_reset
