@@ -40,14 +40,14 @@ module Yast
     class TmpYAMLFile
       attr_reader :path
 
-      def self.open(data=nil, &block)
+      def self.open(data = nil, &block)
         file = new(data)
         block.call(file)
       ensure
         file.unlink if file
       end
 
-      def initialize(data=nil)
+      def initialize(data = nil)
         @path = mktemp
         write_data(data) unless data.nil?
       end
@@ -169,12 +169,11 @@ module Yast
     # Get boot loader sections
     # @return a list of all loader sections (as maps)
     def GetSections
-
       TmpYAMLFile.open do |sections_data|
         Builtins.y2milestone("Reading bootloader sections")
         run_pbl_yaml "#{sections_data.path}=GetSections()"
         sects = sections_data.data
-        if sects == nil
+        if sects.nil?
           Builtins.y2error("Reading sections failed")
           return []
         end
@@ -348,7 +347,6 @@ module Yast
     def GetFilesContents
       Builtins.y2milestone("Getting contents of files")
       TmpYAMLFile.open do |ret_data|
-
         run_pbl_yaml "#{ret_data.path}=GetFilesContents()"
 
         ret = ret_data.data
