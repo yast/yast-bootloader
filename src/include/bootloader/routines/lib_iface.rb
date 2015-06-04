@@ -220,7 +220,7 @@ module Yast
     # @return [Boolean] true on success
     def SetDeviceMap(device_map)
       Builtins.y2milestone("Storing device map #{device_map}")
-      TmpYAMLFile.open(device_map) do |args_data|
+      TmpYAMLFile.open(device_map) do |arg_data|
         run_pbl_yaml "SetDeviceMapping(#{arg_data.path})"
       end
 
