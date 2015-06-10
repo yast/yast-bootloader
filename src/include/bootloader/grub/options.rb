@@ -40,7 +40,7 @@ module Yast
       event = deep_copy(event)
       if Ops.get(event, "ID") == :use_pas
         enabled = Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
-        UI.ChangeWidget(Id(:restricted_pw), :Enabled, enabled)
+        UI.ChangeWidget(Id(:unrestricted_pw), :Enabled, enabled)
         UI.ChangeWidget(Id(:pw1), :Enabled, enabled)
         UI.ChangeWidget(Id(:pw2), :Enabled, enabled)
       end
@@ -76,7 +76,7 @@ module Yast
             HBox(
               HSpacing(2),
               # TRANSLATORS: checkbox entry
-              CheckBox(Id(:restricted_pw), _("A&llow to boot locked default entry without password")),
+              CheckBox(Id(:unrestricted_pw), _("A&llow to boot locked default entry without password")),
               HStretch()
             ),
             HBox(

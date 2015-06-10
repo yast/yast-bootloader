@@ -309,29 +309,34 @@ module Yast
     def grub2_pwd_store(_key, _event)
       usepass = UI.QueryWidget(Id(:use_pas), :Value)
       if !usepass
-        # we are in proper module that can store password
-        self.password = nil
+        password.used = false
         return
       end
 
+      password.used = true
+
       value = UI.QueryWidget(Id(:pw1), :Value)
       # special value as we do not know password, so it mean user do not change it
-      if value == MASKED_PASSWORD
-        self.password = ""
-      else
-        self.password = value
+      if value != MASKED_PASSWORD
+        password.password = value
       end
+
+      value = UI.QueryWidget(Id(:unrestricted_pw), :Value)
+      password.unrestricted = value
     end
 
     def grub2_pwd_init(_widget)
+      enabled = password.used?
       # read state on disk only if not already set by user (bnc#900026)
-      password_used = password == "" ? GRUB2Pwd.new.used? : password
-      value = password_used ? MASKED_PASSWORD : ""
-      UI.ChangeWidget(Id(:use_pas), :Value, password_used)
-      UI.ChangeWidget(Id(:pw1), :Enabled, password_used)
+      value = enabled && password.password? ? MASKED_PASSWORD : ""
+
+      UI.ChangeWidget(Id(:use_pas), :Value, enabled)
+      UI.ChangeWidget(Id(:pw1), :Enabled, enabled)
       UI.ChangeWidget(Id(:pw1), :Value, value)
-      UI.ChangeWidget(Id(:pw2), :Enabled, password_used)
+      UI.ChangeWidget(Id(:pw2), :Enabled, enabled)
       UI.ChangeWidget(Id(:pw2), :Value, value)
+      UI.ChangeWidget(Id(:unrestricted_pw), :Enabled, enabled)
+      UI.ChangeWidget(Id(:unrestricted_pw), :Value, password.unrestricted?)
     end
 
     def Grub2Options
