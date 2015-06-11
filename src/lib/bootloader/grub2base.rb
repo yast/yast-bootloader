@@ -33,7 +33,7 @@ module Yast
       # for simplified widgets than other
       Yast.include self, "bootloader/grub2/dialogs.rb"
 
-      @password = Bootloader::GRUB2Pwd.new
+      @password = ::Bootloader::GRUB2Pwd.new
     end
 
     # general functions
