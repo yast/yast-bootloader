@@ -1,6 +1,7 @@
 ENV["Y2DIR"] = File.expand_path("../../src", __FILE__)
 
 require "yast"
+require "yast/rspec"
 require "yaml"
 
 if ENV["COVERAGE"]

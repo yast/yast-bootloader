@@ -36,6 +36,9 @@ module Bootloader
 
     private
 
+    YAST_BASH_PATH = Yast::Path.new(".target.bash_output")
+    PWD_ENCRYPTION_FILE = "/etc/grub.d/42_password"
+
     def propose
       @used = false
       @unrestricted = false # TODO ensure it in FATE
@@ -66,19 +69,10 @@ module Bootloader
       @encrypted_password = pwd_line[/password_pbkdf2 root (\S+)/, 1]
     end
 
-    YAST_BASH_PATH = Yast::Path.new(".target.bash_output")
-    PWD_ENCRYPTION_FILE = "/etc/grub.d/42_password"
     def read_used
       Yast.import "FileUtils"
 
       Yast::FileUtils.Exists PWD_ENCRYPTION_FILE
-    end
-
-    def unrestricted?
-      if !used?
-        raise "Wrong code call: 'unrestricted?' called when password protection not set."
-      end
-
     end
 
     def enable
@@ -86,7 +80,7 @@ module Bootloader
 
       file_content = "#! /bin/sh\n" \
         "exec tail -n +3 $0\n" \
-        "# File created by YaST and next password change in YaST will overwrite it\n" \
+        "# File created by YaST and next YaST run probably overwrite it\n" \
         "set superusers=\"root\"\n" \
         "password_pbkdf2 root #{@encrypted_password}\n" \
         "export superusers"
@@ -104,7 +98,7 @@ module Bootloader
     end
 
     def disable
-      return unless used?
+      return unless read_used
 
       Yast::SCR.Execute(YAST_BASH_PATH, "rm '#{PWD_ENCRYPTION_FILE}'")
     end
