@@ -317,9 +317,7 @@ module Yast
 
       value = UI.QueryWidget(Id(:pw1), :Value)
       # special value as we do not know password, so it mean user do not change it
-      if value != MASKED_PASSWORD
-        password.password = value
-      end
+      password.password = value if value != MASKED_PASSWORD
 
       value = UI.QueryWidget(Id(:unrestricted_pw), :Value)
       password.unrestricted = value

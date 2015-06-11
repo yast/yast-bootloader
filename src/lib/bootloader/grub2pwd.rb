@@ -10,7 +10,7 @@ module Bootloader
     alias_method :unrestricted?, :unrestricted
 
     def initialize
-      # TODO offline upgrade should somehow read it when we need grub2 -> grub2 modifications
+      # TODO: offline upgrade should somehow read it when we need grub2 -> grub2 modifications
       if Yast::Stage.initial
         propose
       else
@@ -34,14 +34,14 @@ module Bootloader
       !@encrypted_password.nil?
     end
 
-    private
+  private
 
     YAST_BASH_PATH = Yast::Path.new(".target.bash_output")
     PWD_ENCRYPTION_FILE = "/etc/grub.d/42_password"
 
     def propose
       @used = false
-      @unrestricted = false # TODO ensure it in FATE
+      @unrestricted = false # TODO: ensure it in FATE
       @encrypted_password = nil # not set by default
     end
 

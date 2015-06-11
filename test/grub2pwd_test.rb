@@ -119,7 +119,7 @@ describe Bootloader::GRUB2Pwd do
             .with(path(".target.string"), described_class::PWD_ENCRYPTION_FILE)
             .and_return(FILE_CONTENT_WRONG)
 
-          expect{described_class.new}.to raise_error
+          expect { described_class.new }.to raise_error
         end
       end
     end
@@ -200,7 +200,7 @@ describe Bootloader::GRUB2Pwd do
         config = described_class.new
         config.used = true
 
-        expect{config.write}.to raise_error
+        expect { config.write }.to raise_error
       end
     end
   end
@@ -239,7 +239,6 @@ EOF
       allow(Yast::FileUtils).to receive(:Exists)
         .with(described_class::PWD_ENCRYPTION_FILE)
         .and_return(false)
-
 
       expect(subject.password?).to eq false
     end
