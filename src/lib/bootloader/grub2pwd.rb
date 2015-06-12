@@ -91,6 +91,8 @@ module Bootloader
     def enable
       raise "Wrong code: password not written" unless @encrypted_password
 
+      # The files in /etc/grub.d are programs that write GRUB 2 programs on their stdout.
+      # So 'exec tail' is a way of saying "just echo the rest of this program as its output".
       file_content = "#! /bin/sh\n" \
         "exec tail -n +3 $0\n" \
         "# File created by YaST and next YaST run probably overwrite it\n" \
