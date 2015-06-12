@@ -27,8 +27,8 @@ describe Bootloader::GRUB2Pwd do
     "export superusers"
 
   FILE_CONTENT_UNRESTRICTED = FILE_CONTENT_RESTRICTED +
-    "\nset unrestricted_menuentry_users=\"$superusers\"\n\n" \
-    "export unrestricted_menuentry_users"
+    "\nset unrestricted_menu=\"y\"\n" \
+    "export unrestricted_menu"
 
   FILE_CONTENT_WRONG = "#! /bin/sh\n" \
     "exec tail -n +3 $0\n" \

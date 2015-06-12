@@ -70,7 +70,7 @@ module Bootloader
         PWD_ENCRYPTION_FILE
       )
 
-      unrestricted_lines = content.lines.grep(/unrestricted_menuentry_users/)
+      unrestricted_lines = content.lines.grep(/unrestricted_menu\s*=\s*\"y\"\s*/)
       @unrestricted = !unrestricted_lines.empty?
 
       pwd_line = content.lines.grep(/password_pbkdf2 root/).first
@@ -99,8 +99,8 @@ module Bootloader
         "export superusers"
 
       if @unrestricted
-        file_content << "\nset unrestricted_menuentry_users=\"$superusers\"\n\n" \
-          "export unrestricted_menuentry_users"
+        file_content << "\nset unrestricted_menu=\"y\"\n" \
+          "export unrestricted_menu"
       end
 
       Yast::SCR.Write(
