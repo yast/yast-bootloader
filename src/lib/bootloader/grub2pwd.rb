@@ -5,10 +5,16 @@ Yast.import "Stage"
 module Bootloader
   # class is responsible for detection, encryption and writing of grub2 password protection
   class GRUB2Pwd
+    # @!attribute used
+    #   @return [bool] specifies if password protection enabled
+    #
+    # @!attribute unrestricted
+    #   @return [bool] specifies if unrestricted password protection should be used
     attr_accessor :used, :unrestricted
     alias_method :used?, :used
     alias_method :unrestricted?, :unrestricted
 
+    # Reads or proposes configuration depending on stage
     def initialize
       # TODO: offline upgrade should somehow read it when we need grub2 -> grub2 modifications
       if Yast::Stage.initial
@@ -18,6 +24,7 @@ module Bootloader
       end
     end
 
+    # writes configuration to disk
     def write
       if used?
         enable
@@ -26,10 +33,16 @@ module Bootloader
       end
     end
 
+    # Sets password in encrypted form
+    # @param [String] value plain text password
     def password=(value)
       @encrypted_password = encrypt(value)
     end
 
+    # Gets if password is specified
+    # Rationale for this method is that in some cases it is possible
+    # to disable password configuration, but still keep old configuration in
+    # object, so after enabling it again it use old configuration
     def password?
       !@encrypted_password.nil?
     end

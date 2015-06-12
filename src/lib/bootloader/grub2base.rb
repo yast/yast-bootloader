@@ -6,7 +6,8 @@ require "bootloader/udev_mapping"
 module Yast
   # Common base for GRUB2 specialized classes
   class GRUB2Base < Module
-    # stored password object
+    # @!attribute password
+    #    @return [::Bootloader::GRUB2Pwd] stored password configuration object
     attr_reader :password
 
     def main
