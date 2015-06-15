@@ -76,7 +76,7 @@ module Yast
             HBox(
               HSpacing(2),
               # TRANSLATORS: checkbox entry
-              CheckBox(Id(:unrestricted_pw), _("A&llow to boot locked default entry without password")),
+              CheckBox(Id(:unrestricted_pw), _("P&rotect Entry Modification Only")),
               HStretch()
             ),
             HBox(

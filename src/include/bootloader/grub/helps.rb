@@ -80,12 +80,12 @@ module Yast
         ),
         "password"          => _(
           "<p><b>Protect Boot Loader with Password</b><br>\n" \
-            "Define the password that will be required to access the boot menu. \n" \
-            "YaST will only accept the password if you repeat\n" \
-            "it in <b>Retype Password</b>. If <b>Allow to boot locked default \n" \
-            "entry without password</b> is checked, then without password is \n " \
-            "possible to let bootloader autoboot default entry with its kernel \n" \
-            "parameters.</p>"
+            "At boot time, modifying or even booting any entry will require the" \
+            " password. If <b>Protect Entry Modification Only</b> is checked then " \
+            "booting any entry is not restricted but modifying entries requires " \
+            "the password.<br>" \
+            "YaST will only accept the password if you repeat it in " \
+            "<b>Retype Password</b>."
         ),
         # help text 1/5
         "disk_order"        => _(
