@@ -24,11 +24,11 @@ describe Bootloader::GRUB2Pwd do
     "# File created by YaST and next YaST run probably overwrite it\n" \
     "set superusers=\"root\"\n" \
     "password_pbkdf2 root #{ENCRYPTED_PASSWORD}\n" \
-    "export superusers"
+    "export superusers\n"
 
   FILE_CONTENT_UNRESTRICTED = FILE_CONTENT_RESTRICTED +
-    "\nset unrestricted_menu=\"y\"\n" \
-    "export unrestricted_menu"
+    "set unrestricted_menu=\"y\"\n" \
+    "export unrestricted_menu\n"
 
   FILE_CONTENT_WRONG = "#! /bin/sh\n" \
     "exec tail -n +3 $0\n" \
