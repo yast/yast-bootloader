@@ -6,17 +6,16 @@ module Bootloader
   # class is responsible for detection, encryption and writing of grub2 password protection
   class GRUB2Pwd
     # @!attribute used
-    #   @return [bool] specifies if password protection enabled
+    #   @return [Boolean] specifies if password protection enabled
     #
     # @!attribute unrestricted
-    #   @return [bool] specifies if unrestricted password protection should be used
+    #   @return [Boolean] specifies if unrestricted password protection should be used (see fate#318574)
     attr_accessor :used, :unrestricted
     alias_method :used?, :used
     alias_method :unrestricted?, :unrestricted
 
     # Reads or proposes configuration depending on stage
     def initialize
-      # TODO: offline upgrade should somehow read it when we need grub2 -> grub2 modifications
       if Yast::Stage.initial
         propose
       else
