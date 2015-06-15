@@ -48,7 +48,7 @@ module Bootloader
 
   private
 
-    YAST_BASH_PATH = Yast::Path.new(".target.bash_output")
+    YAST_BASH_PATH = Yast::Path.new(".local.bash_output")
     PWD_ENCRYPTION_FILE = "/etc/grub.d/42_password"
 
     def propose
@@ -97,11 +97,11 @@ module Bootloader
         "# File created by YaST and next YaST run probably overwrite it\n" \
         "set superusers=\"root\"\n" \
         "password_pbkdf2 root #{@encrypted_password}\n" \
-        "export superusers"
+        "export superusers\n"
 
       if @unrestricted
-        file_content << "\nset unrestricted_menu=\"y\"\n" \
-          "export unrestricted_menu"
+        file_content << "set unrestricted_menu=\"y\"\n" \
+          "export unrestricted_menu\n"
       end
 
       Yast::SCR.Write(
