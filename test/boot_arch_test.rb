@@ -142,36 +142,4 @@ describe Yast::BootArch do
       end
     end
   end
-
-  describe ".FailsafeKernelParams" do
-    it "returns string with failsafe parameters" do
-      stub_arch("x86_64")
-
-      expect(subject.FailsafeKernelParams).to be_a(::String)
-    end
-
-    it "returns default parameters with noresume on s390" do
-      stub_arch("s390_64")
-
-      expect(subject.FailsafeKernelParams).to include("noresume")
-    end
-
-    it "return NOPCMCIA if installation start with it" do
-      allow(Yast::Stage).to receive(:initial).and_return(true)
-      allow(Yast::Linuxrc).to receive(:InstallInf).with("NOPCMCIA").and_return("1")
-
-      expect(subject.FailsafeKernelParams).to include("NOPCMCIA")
-    end
-
-    it "always set x11failsafe" do
-      expect(subject.FailsafeKernelParams).to include("x11failsafe")
-    end
-
-    it "use stored additional parameters on already installed system" do
-      allow(Yast::Stage).to receive(:initial).and_return(false)
-      allow(Yast::SCR).to receive(:Read).and_return("additional_failsafe_params" => "ultra_safe=1")
-
-      expect(subject.FailsafeKernelParams).to include("ultra_safe=1")
-    end
-  end
 end

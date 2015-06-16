@@ -122,7 +122,7 @@ module Yast
       end
 
       BootCommon.globals["append"]          ||= BootArch.DefaultKernelParams(resume)
-      BootCommon.globals["append_failsafe"] ||= BootArch.FailsafeKernelParams
+      BootCommon.globals["failsafe_disabled"] = true if BootCommon.globals["failsafe_disabled"].nil?
       # long name doesn't fit 800x600 GRUB screens, using short name by default
       # (bnc#873675)
       BootCommon.globals["distributor"]     ||= Product.short_name

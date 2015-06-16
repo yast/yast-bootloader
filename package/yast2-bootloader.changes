@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jun 16 15:13:10 UTC 2015 - jreidinger@suse.com
+
+- Stop adding 'Failsafe' entry to bootloader menu unless user
+  manually add it (fate#317016)
+- 3.1.134
+
+-------------------------------------------------------------------
 Wed Jun  3 14:42:59 UTC 2015 - jreidinger@suse.com
 
 - do not crash in offline update in bootloader proposal(bnc#931021)

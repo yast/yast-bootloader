@@ -336,35 +336,31 @@ module Yast
 
     def Grub2Options
       grub2_specific = {
-        "distributor"     => CommonInputFieldWidget(
+        "distributor" => CommonInputFieldWidget(
           Ops.get(@grub2_descriptions, "distributor", "Distributor"),
           Ops.get(@grub2_help_messages, "distributor", "")
         ),
-        "activate"        => CommonCheckboxWidget(
+        "activate"    => CommonCheckboxWidget(
           Ops.get(@grub_descriptions, "activate", "activate"),
           Ops.get(@grub_help_messages, "activate", "")
         ),
-        "generic_mbr"     => CommonCheckboxWidget(
+        "generic_mbr" => CommonCheckboxWidget(
           Ops.get(@grub_descriptions, "generic_mbr", "generic mbr"),
           Ops.get(@grub_help_messages, "generic_mbr", "")
         ),
-        "hiddenmenu"      => CommonCheckboxWidget(
+        "hiddenmenu"  => CommonCheckboxWidget(
           Ops.get(@grub_descriptions, "hiddenmenu", "hidden menu"),
           Ops.get(@grub_help_messages, "hiddenmenu", "")
         ),
-        "os_prober"       => CommonCheckboxWidget(
+        "os_prober"   => CommonCheckboxWidget(
           Ops.get(@grub2_descriptions, "os_prober", "os_prober"),
           Ops.get(@grub2_help_messages, "os_prober", "")
         ),
-        "append"          => CommonInputFieldWidget(
+        "append"      => CommonInputFieldWidget(
           Ops.get(@grub2_descriptions, "append", "append"),
           Ops.get(@grub2_help_messages, "append", "")
         ),
-        "append_failsafe" => CommonInputFieldWidget(
-          Ops.get(@grub2_descriptions, "append_failsafe", "append_failsafe"),
-          Ops.get(@grub2_help_messages, "append_failsafe", "")
-        ),
-        "vgamode"         => {
+        "vgamode"     => {
           "widget" => :combobox,
           "label"  => Ops.get(@grub2_descriptions, "vgamode", "vgamode"),
           "opt"    => [:editable, :hstretch],
@@ -372,7 +368,7 @@ module Yast
           "store"  => fun_ref(method(:StoreGlobalStr), "void (string, map)"),
           "help"   => Ops.get(@grub2_help_messages, "vgamode", "")
         },
-        "pmbr"            => {
+        "pmbr"        => {
           "widget" => :combobox,
           "label"  => @grub2_descriptions["pmbr"],
           "opt"    => [],
@@ -380,7 +376,7 @@ module Yast
           "store"  => fun_ref(method(:StorePMBR), "void (string, map)"),
           "help"   => @grub2_help_messages["pmbr"]
         },
-        "default"         => {
+        "default"     => {
           "widget" => :combobox,
           "label"  => Ops.get(@grub_descriptions, "default", "default"),
           "opt"    => [:editable, :hstretch],
@@ -388,7 +384,7 @@ module Yast
           "store"  => fun_ref(method(:StoreGlobalStr), "void (string, map)"),
           "help"   => Ops.get(@grub_help_messages, "default", "")
         },
-        "console"         => {
+        "console"     => {
           "widget"        => :custom,
           "custom_widget" => ConsoleContent(),
           "init"          => fun_ref(method(:ConsoleInit), "void (string)"),
@@ -403,7 +399,7 @@ module Yast
           "handle_events" => [:browsegfx],
           "help"          => Ops.get(@grub_help_messages, "serial", "")
         },
-        "password"        => {
+        "password"    => {
           "widget"            => :custom,
           "custom_widget"     => passwd_content,
           "init"              => fun_ref(

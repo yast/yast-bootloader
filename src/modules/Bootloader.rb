@@ -412,7 +412,6 @@ module Yast
 
     FLAVOR_KERNEL_LINE_MAP = {
       :common    => "append",
-      :recovery  => "append_failsafe",
       :xen_guest => "xen_append",
       :xen_host  => "xen_kernel_append"
     }
@@ -427,8 +426,8 @@ module Yast
     #   Bootloader.kernel_param(:common, "crashkernel")
     #   => "256M@64B"
     #
-    # @example get cio_ignore parameter for recovery kernel when missing
-    #   Bootloader.kernel_param(:recovery, "cio_ignore")
+    # @example get cio_ignore parameter for xen_host kernel when missing
+    #   Bootloader.kernel_param(:xen_host, "cio_ignore")
     #   => :missing
     #
     # @example get verbose parameter for xen_guest which is there
@@ -437,6 +436,11 @@ module Yast
     #
 
     def kernel_param(flavor, key)
+      if flavor == :recovery
+        log.warn "Using deprecated recovery flavor"
+        return :missing
+      end
+
       ReadOrProposeIfNeeded() # ensure we have some data
 
       kernel_line_key = FLAVOR_KERNEL_LINE_MAP[flavor]
@@ -456,21 +460,21 @@ module Yast
     #   string value. Other parameters specify which kernel flavors are affected.
     #   Known values are:
     #     - `:common` for non-specific flavor
-    #     - `:recovery` for fallback boot entries
+    #     - `:recovery` DEPRECATED: no longer use
     #     - `:xen_guest` for xen guest kernels
     #     - `:xen_host` for xen host kernels
     #
-    # @example add crashkernel parameter to common kernel, xen guest and also recovery
-    #   Bootloader.modify_kernel_params(:common, :recovery, :xen_guest, "crashkernel" => "256M@64M")
+    # @example add crashkernel parameter to common kernel and xen guest
+    #   Bootloader.modify_kernel_params(:common, :xen_guest, "crashkernel" => "256M@64M")
     #
     # @example same as before just with array passing
-    #   targets = [:common, :recovery, :xen_guest]
+    #   targets = [:common, :xen_guest]
     #   Bootloader.modify_kernel_params(targets, "crashkernel" => "256M@64M")
     #
     # @example remove cio_ignore parameter for common kernel only
     #   Bootloader.modify_kernel_params("cio_ignore" => :missing)
     #
-    # @example add feature_a parameter and remove feature_b from xen host kernel
+    # @example add cio_ignore parameter for xen host kernel
     #   Bootloader.modify_kernel_params(:xen_host, "cio_ignore" => :present)
     #
     def modify_kernel_params(*args)
@@ -480,6 +484,11 @@ module Yast
       end
       args = [:common] if args.empty? # by default change common kernels only
       args = args.first if args.first.is_a? Array # support array like syntax
+
+      if args.include?[:recovery]
+        args.delete(:recovery)
+        log.warn "recovery flavor is deprecated and not set"
+      end
 
       # remap symbols to something that setKernelParamToLine understand
       remap_values = {
@@ -559,7 +568,6 @@ module Yast
     def write_proposed_params(params_to_save)
       return unless Stage.initial
 
-      params_to_save["additional_failsafe_params"] = BootCommon.GetAdditionalFailsafeParams
       params_to_save["installation_kernel_params"] = Kernel.GetCmdLine
       SCR.Write(
         path(".target.ycp"),

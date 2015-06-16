@@ -114,8 +114,6 @@ module Yast
       # map of save mode settings
       @write_settings = {}
 
-      @additional_failsafe_params = ""
-
       # other variables
 
       # bootloader installation variables
@@ -561,7 +559,6 @@ module Yast
     publish :function => :setKernelParamToLine, :type => "string (string, string, string)"
     publish :function => :restoreMBR, :type => "boolean (string)"
     publish :function => :UpdateInstallationKernelParameters, :type => "void ()"
-    publish :function => :GetAdditionalFailsafeParams, :type => "string ()"
     publish :function => :BootloaderInstallable, :type => "boolean ()"
     publish :function => :PartitionInstallable, :type => "boolean ()"
     publish :function => :getBootDisk, :type => "string ()"
