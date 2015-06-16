@@ -360,10 +360,6 @@ module Yast
           Ops.get(@grub2_descriptions, "append", "append"),
           Ops.get(@grub2_help_messages, "append", "")
         ),
-        "append_failsafe" => CommonInputFieldWidget(
-          Ops.get(@grub2_descriptions, "append_failsafe", "append_failsafe"),
-          Ops.get(@grub2_help_messages, "append_failsafe", "")
-        ),
         "vgamode"         => {
           "widget" => :combobox,
           "label"  => Ops.get(@grub2_descriptions, "vgamode", "vgamode"),

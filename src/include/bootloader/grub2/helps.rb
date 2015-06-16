@@ -26,9 +26,6 @@ module Yast
         "vgamode"         => _(
           "<p><b>Vga Mode</b> defines the VGA mode the kernel should set the <i>console</i> to when booting.</p>"
         ),
-        "append_failsafe" => _(
-          "<p><b>Failsafe Kernel Command Line Parameter</b> lets you define failsafe parameters to pass to the kernel.</p>"
-        ),
         "os_prober"       => _(
           "<p><b>Probe Foreign OS</b> by means of os-prober for multiboot with other foreign distribution </p>"
         ),
@@ -44,7 +41,6 @@ module Yast
         "append"          => _("O&ptional Kernel Command Line Parameter"),
         "distributor"     => _("D&istributor"),
         "vgamode"         => _("&Vga Mode"),
-        "append_failsafe" => _("&Failsafe Kernel Command Line Parameter"),
         "os_prober"       => _("Probe Foreign OS"),
         "pmbr"            => _("Protective MBR flag")
       }

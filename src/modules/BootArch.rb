@@ -68,29 +68,6 @@ module Yast
       end
     end
 
-    # Get parameters for the failsafe kernel
-    # @return [String] parameters for failsafe kernel
-    def FailsafeKernelParams
-      if Arch.i386
-        ret = "showopts apm=off noresume nosmp maxcpus=0 edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset"
-      elsif Arch.x86_64
-        ret = "showopts apm=off noresume edd=off powersaved=off nohz=off highres=off processor.max_cstate=1 nomodeset"
-      elsif Arch.s390
-        ret = "#{DefaultKernelParams("")} noresume"
-      else
-        log.warn "Parameters for Failsafe boot option not defined"
-        ret = ""
-      end
-      if Stage.initial
-        ret << " NOPCMCIA" if Linuxrc.InstallInf("NOPCMCIA") == "1"
-      else
-        saved_params = SCR.Read(path(".target.ycp"), "/var/lib/YaST2/bootloader.ycp")
-        ret << ((saved_params && saved_params["additional_failsafe_params"]) || "")
-      end
-
-      ret << " x11failsafe"
-    end
-
     # Is VGA parameter setting available
     # @return true if vga= can be set
     def VgaAvailable
@@ -128,7 +105,6 @@ module Yast
     end
 
     publish :function => :DefaultKernelParams, :type => "string (string)"
-    publish :function => :FailsafeKernelParams, :type => "string ()"
     publish :function => :VgaAvailable, :type => "boolean ()"
     publish :function => :ResumeAvailable, :type => "boolean ()"
     publish :function => :StrArch, :type => "string ()"
