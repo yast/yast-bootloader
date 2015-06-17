@@ -485,7 +485,7 @@ module Yast
       args = [:common] if args.empty? # by default change common kernels only
       args = args.first if args.first.is_a? Array # support array like syntax
 
-      if args.include?[:recovery]
+      if args.include?(:recovery)
         args.delete(:recovery)
         log.warn "recovery flavor is deprecated and not set"
       end
