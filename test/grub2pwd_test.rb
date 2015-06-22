@@ -45,8 +45,8 @@ describe Bootloader::GRUB2Pwd do
         expect(subject.used?).to eq false
       end
 
-      it "propose to not use unrestricted mode" do
-        expect(subject.unrestricted?).to eq false
+      it "propose to use unrestricted mode" do
+        expect(subject.unrestricted?).to eq true
       end
 
       it "do not have any password used" do
@@ -71,8 +71,8 @@ describe Bootloader::GRUB2Pwd do
           expect(subject.used?).to eq false
         end
 
-        it "propose to not use unrestricted mode" do
-          expect(subject.unrestricted?).to eq false
+        it "propose to use unrestricted mode" do
+          expect(subject.unrestricted?).to eq true
         end
 
         it "do not have any password used" do
