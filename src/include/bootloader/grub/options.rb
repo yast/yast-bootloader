@@ -40,6 +40,7 @@ module Yast
       event = deep_copy(event)
       if Ops.get(event, "ID") == :use_pas
         enabled = Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
+        UI.ChangeWidget(Id(:unrestricted_pw), :Enabled, enabled)
         UI.ChangeWidget(Id(:pw1), :Enabled, enabled)
         UI.ChangeWidget(Id(:pw2), :Enabled, enabled)
       end
@@ -71,14 +72,22 @@ module Yast
           Id(:use_pas),
           _("Prot&ect Boot Loader with Password"),
           true,
-          HBox(
-            HSpacing(2),
-            # text entry
-            Password(Id(:pw1), Opt(:hstretch), _("&Password")),
-            # text entry
-            HSpacing(2),
-            Password(Id(:pw2), Opt(:hstretch), _("Re&type Password")),
-            HStretch()
+          VBox(
+            HBox(
+              HSpacing(2),
+              # TRANSLATORS: checkbox entry
+              CheckBox(Id(:unrestricted_pw), _("P&rotect Entry Modification Only")),
+              HStretch()
+            ),
+            HBox(
+              HSpacing(2),
+              # text entry
+              Password(Id(:pw1), Opt(:hstretch), _("&Password")),
+              # text entry
+              HSpacing(2),
+              Password(Id(:pw2), Opt(:hstretch), _("Re&type Password")),
+              HStretch()
+            )
           )
         )
       )

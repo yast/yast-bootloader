@@ -348,7 +348,6 @@ module Yast
     publish :variable => :grub_descriptions, :type => "map <string, string>"
     publish :variable => :grub2_help_messages, :type => "map <string, string>"
     publish :variable => :grub2_descriptions, :type => "map <string, string>"
-    publish :variable => :password, :type => "string"
     publish :function => :askLocationResetPopup, :type => "boolean (string)"
     publish :function => :grub2Widgets, :type => "map <string, map <string, any>> ()"
     publish :function => :grub2efiWidgets, :type => "map <string, map <string, any>> ()"

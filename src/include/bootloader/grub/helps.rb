@@ -80,8 +80,12 @@ module Yast
         ),
         "password"          => _(
           "<p><b>Protect Boot Loader with Password</b><br>\n" \
-            "Define the password that will be required to access the boot menu. YaST will only accept the password if you repeat\n" \
-            "it in <b>Retype Password</b>.</p>"
+            "At boot time, modifying or even booting any entry will require the" \
+            " password. If <b>Protect Entry Modification Only</b> is checked then " \
+            "booting any entry is not restricted but modifying entries requires " \
+            "the password (which is the way GRUB 1 behaved).<br>" \
+            "YaST will only accept the password if you repeat it in " \
+            "<b>Retype Password</b>.</p>"
         ),
         # help text 1/5
         "disk_order"        => _(

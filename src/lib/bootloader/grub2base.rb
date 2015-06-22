@@ -6,6 +6,10 @@ require "bootloader/udev_mapping"
 module Yast
   # Common base for GRUB2 specialized classes
   class GRUB2Base < Module
+    # @!attribute password
+    #    @return [::Bootloader::GRUB2Pwd] stored password configuration object
+    attr_reader :password
+
     def main
       Yast.import "UI"
 
@@ -30,11 +34,7 @@ module Yast
       # for simplified widgets than other
       Yast.include self, "bootloader/grub2/dialogs.rb"
 
-      # password can have three states
-      # 1. nil -> remove password
-      # 2. "" -> do not change it
-      # 3. "something" -> set password to this value
-      @password = ""
+      @password = ::Bootloader::GRUB2Pwd.new
     end
 
     # general functions
@@ -146,14 +146,7 @@ module Yast
 
     # overwrite Save to allow generation of modification scripts
     def Save(clean, init, flush)
-      case @password
-      when nil
-        GRUB2Pwd.new.disable
-      when ""
-        # do nothing
-      else
-        GRUB2Pwd.new.enable @password
-      end
+      @password.write
 
       BootCommon.Save(clean, init, flush)
     end
