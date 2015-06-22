@@ -247,27 +247,6 @@ module Yast
       nil
     end
 
-    # Get additional kernel parameters
-    # @return additional kernel parameters
-    def GetAdditionalFailsafeParams
-      if Stage.initial
-        nopcmcia = SCR.Read(path(".etc.install_inf.NoPCMCIA")) == "1"
-        @additional_failsafe_params =  nopcmcia ? " NOPCMCIA " : ""
-      else
-        saved_params = Convert.convert(
-          SCR.Read(path(".target.ycp"), "/var/lib/YaST2/bootloader.ycp"),
-          :from => "any",
-          :to   => "map <string, any>"
-        )
-        @additional_failsafe_params = Ops.get_string(
-          saved_params,
-          "additional_failsafe_params",
-          ""
-        )
-      end
-      @additional_failsafe_params
-    end
-
     # Check if the bootloader can be installed at all with current configuration
     # @return [Boolean] true if it can
     def BootloaderInstallable

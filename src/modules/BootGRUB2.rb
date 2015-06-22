@@ -85,6 +85,9 @@ module Yast
         end
       end
 
+      # always disable failsafe unless user manually enable it (fate#317016)
+      BootCommon.globals["failsafe_disabled"] = "true" if BootCommon.globals["failsafe_disabled"].nil?
+
       @orig_globals ||= deep_copy(BootCommon.globals)
       ret
     end

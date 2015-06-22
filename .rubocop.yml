@@ -46,7 +46,7 @@ Metrics/CyclomaticComplexity:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
 Metrics/CyclomaticComplexity:
-  Max: 12 # TODO this should be lower for new code
+  Max: 13 # TODO this should be lower for new code
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
@@ -80,7 +80,7 @@ Metrics/PerceivedComplexity:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
 Metrics/PerceivedComplexity:
-  Max: 13 # TODO this should be lower for new code
+  Max: 14 # TODO this should be lower for new code
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 

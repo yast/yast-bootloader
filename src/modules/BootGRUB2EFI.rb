@@ -43,6 +43,10 @@ module Yast
       BootCommon.Read(false, avoid_reading_device_map)
       # read status of secure boot to boot common cache (bnc#892032)
       BootCommon.getSystemSecureBootStatus(reread)
+
+      # always disable failsafe unless user manually enable it (fate#317016)
+      BootCommon.globals["failsafe_disabled"] = "true" if BootCommon.globals["failsafe_disabled"].nil?
+
       @orig_globals ||= deep_copy(BootCommon.globals)
     end
 
