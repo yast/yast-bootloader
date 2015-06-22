@@ -258,7 +258,7 @@ EOF
       expect(subject.password?).to eq true
     end
 
-    it "returns true if password explicitelly set" do
+    it "returns true if password explicitly set" do
       subject.instance_variable_set(:@encrypted_password, ENCRYPTED_PASSWORD)
 
       expect(subject.password?).to eq true

@@ -53,12 +53,12 @@ module Bootloader
 
     def propose
       @used = false
-      @unrestricted = false # TODO: ensure it in FATE
+      @unrestricted = true
       @encrypted_password = nil # not set by default
     end
 
     def read
-      if !read_used
+      if !used_on_target?
         propose
         return
       end
@@ -81,7 +81,7 @@ module Bootloader
       @encrypted_password = pwd_line[/password_pbkdf2 root (\S+)/, 1]
     end
 
-    def read_used
+    def used_on_target?
       Yast.import "FileUtils"
 
       Yast::FileUtils.Exists PWD_ENCRYPTION_FILE
@@ -112,7 +112,7 @@ module Bootloader
     end
 
     def disable
-      return unless read_used
+      return unless used_on_target?
 
       Yast::SCR.Execute(YAST_BASH_PATH, "rm '#{PWD_ENCRYPTION_FILE}'")
     end

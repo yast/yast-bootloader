@@ -83,9 +83,9 @@ module Yast
             "At boot time, modifying or even booting any entry will require the" \
             " password. If <b>Protect Entry Modification Only</b> is checked then " \
             "booting any entry is not restricted but modifying entries requires " \
-            "the password.<br>" \
+            "the password (which is the way GRUB 1 behaved).<br>" \
             "YaST will only accept the password if you repeat it in " \
-            "<b>Retype Password</b>."
+            "<b>Retype Password</b>.</p>"
         ),
         # help text 1/5
         "disk_order"        => _(
