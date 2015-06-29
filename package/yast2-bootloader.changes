@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Jun 29 12:46:58 UTC 2015 - jreidinger@suse.com
+
+- set only proper boot flags ("boot" for DOS partition table and
+  legacy_boot for GPT partition table), otherwise it can confuse
+  some firmware and cause booting problems (bnc#930903)
+- 3.1.136
+
+-------------------------------------------------------------------
 Mon Jun 22 11:01:16 UTC 2015 - jreidinger@suse.com
 
 - Let password protection be configurable between a restricted mode
