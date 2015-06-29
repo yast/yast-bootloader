@@ -176,112 +176,132 @@ describe Bootloader::MBRUpdate do
         allow(Yast::WFM).to receive(:Execute).and_return("exit" => 0, "stdout" => "")
       end
 
-      it "sets boot flag on all partitions in Bootloader devices" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
-          .and_return(["/dev/sda1", "/dev/sdb1"])
+      context "disk label is DOS mbr" do
+        before do
+          allow(Yast::Storage).to receive(:GetTargetMap).and_return(
+            double(:fetch => { "label" => "msdos" },
+                   :[]    => { "label" => "msdos" }
+            )
+          )
+        end
 
-        expect(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -s \/dev\/sda set 1 boot on/)
-          .and_return("exit" => 0)
-        subject.run
+        it "sets boot flag on all partitions in Bootloader devices" do
+          allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+            .and_return(["/dev/sda1", "/dev/sdb1"])
+
+          expect(Yast::WFM).to receive(:Execute)
+            .with(anything, /parted -s \/dev\/sda set 1 boot on/)
+            .and_return("exit" => 0)
+          subject.run
+        end
+
+        it "resets all old boot flags on disk before set boot flag" do
+          allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+            .and_return(["/dev/sda1", "/dev/sdb1"])
+
+          parted_output = "BYT;\n" \
+                          "/dev/sda:500GB:scsi:512:4096:gpt:ATA WDC WD5000BPKT-7:;\n" \
+                          "1:1049kB:165MB:164MB:fat16:primary:boot, legacy_boot;\n" \
+                          "2:165MB:8760MB:8595MB:linux-swap(v1):primary:;\n" \
+                          "3:8760MB:30.2GB:21.5GB:ext4:primary:boot;\n" \
+                          "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
+
+          allow(Yast::WFM).to receive(:Execute)
+            .with(anything, /parted -m \/dev\/sda print/)
+            .and_return(
+              "exit"   => 0,
+              "stdout" => parted_output
+            )
+          expect(Yast::WFM).to receive(:Execute)
+            .with(anything, /parted -s \/dev\/sda set 1 boot off/)
+            .and_return(
+              "exit"   => 0,
+              "stdout" => parted_output
+            )
+          expect(Yast::WFM).to receive(:Execute)
+            .with(anything, /parted -s \/dev\/sda set 3 boot off/)
+            .and_return(
+              "exit"   => 0,
+              "stdout" => parted_output
+            )
+
+          subject.run
+        end
+
+        it "returns false if any setting of boot flag failed" do
+          allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+            .and_return(["/dev/sda1", "/dev/sdb1"])
+
+          allow(Yast::WFM).to receive(:Execute)
+            .with(anything, /parted -s \/dev\/sda set 1 boot on/)
+            .and_return("exit" => 1)
+
+          expect(subject.run).to be false
+        end
       end
 
-      it "resets all old boot flags on disk before set boot flag" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
-          .and_return(["/dev/sda1", "/dev/sdb1"])
-
-        parted_output = "BYT;\n" \
-                        "/dev/sda:500GB:scsi:512:4096:gpt:ATA WDC WD5000BPKT-7:;\n" \
-                        "1:1049kB:165MB:164MB:fat16:primary:boot, legacy_boot;\n" \
-                        "2:165MB:8760MB:8595MB:linux-swap(v1):primary:;\n" \
-                        "3:8760MB:30.2GB:21.5GB:ext4:primary:boot;\n" \
-                        "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
-
-        allow(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -m \/dev\/sda print/)
-          .and_return(
-            "exit"   => 0,
-            "stdout" => parted_output
+      context "disk label is GPT" do
+        before do
+          allow(Yast::Storage).to receive(:GetTargetMap).and_return(
+            double(:fetch => { "label" => "gpt" },
+                   :[]    => { "label" => "gpt" }
+            )
           )
-        expect(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -s \/dev\/sda set 1 boot off/)
-          .and_return(
-            "exit"   => 0,
-            "stdout" => parted_output
-          )
-        expect(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -s \/dev\/sda set 3 boot off/)
-          .and_return(
-            "exit"   => 0,
-            "stdout" => parted_output
-          )
+        end
 
-        subject.run
-      end
+        it "sets legacy_boot flag on all partitions in Bootloader devices" do
+          allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+            .and_return(["/dev/sda1", "/dev/sdb1"])
 
-      it "returns false if any setting of boot flag failed" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
-          .and_return(["/dev/sda1", "/dev/sdb1"])
+          expect(Yast::WFM).to receive(:Execute)
+            .with(anything, /parted -s \/dev\/sda set 1 legacy_boot on/)
+            .and_return("exit" => 0)
+          subject.run
+        end
 
-        allow(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -s \/dev\/sda set 1 boot on/)
-          .and_return("exit" => 1)
+        it "resets all old boot flags on disk before set boot flag" do
+          allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+            .and_return(["/dev/sda1", "/dev/sdb1"])
 
-        expect(subject.run).to be false
-      end
+          parted_output = "BYT;\n" \
+                          "/dev/sda:500GB:scsi:512:4096:gpt:ATA WDC WD5000BPKT-7:;\n" \
+                          "1:1049kB:165MB:164MB:fat16:primary:boot, legacy_boot;\n" \
+                          "2:165MB:8760MB:8595MB:linux-swap(v1):primary:;\n" \
+                          "3:8760MB:30.2GB:21.5GB:ext4:primary:boot;\n" \
+                          "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
 
-      it "sets legacy_boot flag on all partitions in Bootloader devices" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
-          .and_return(["/dev/sda1", "/dev/sdb1"])
+          allow(Yast::WFM).to receive(:Execute)
+            .with(anything, /parted -m \/dev\/sda print/)
+            .and_return(
+              "exit"   => 0,
+              "stdout" => parted_output
+            )
+          expect(Yast::WFM).to receive(:Execute)
+            .with(anything, /parted -s \/dev\/sda set 1 legacy_boot off/)
+            .and_return(
+              "exit"   => 0,
+              "stdout" => parted_output
+            )
+          expect(Yast::WFM).to receive(:Execute)
+            .with(anything, /parted -s \/dev\/sda set 4 legacy_boot off/)
+            .and_return(
+              "exit"   => 0,
+              "stdout" => parted_output
+            )
 
-        expect(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -s \/dev\/sda set 1 legacy_boot on/)
-          .and_return("exit" => 0)
-        subject.run
-      end
+          subject.run
+        end
 
-      it "resets all old boot flags on disk before set boot flag" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
-          .and_return(["/dev/sda1", "/dev/sdb1"])
+        it "returns false if setting legacy_boot failed" do
+          allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
+            .and_return(["/dev/sda1", "/dev/sdb1"])
 
-        parted_output = "BYT;\n" \
-                        "/dev/sda:500GB:scsi:512:4096:gpt:ATA WDC WD5000BPKT-7:;\n" \
-                        "1:1049kB:165MB:164MB:fat16:primary:boot, legacy_boot;\n" \
-                        "2:165MB:8760MB:8595MB:linux-swap(v1):primary:;\n" \
-                        "3:8760MB:30.2GB:21.5GB:ext4:primary:boot;\n" \
-                        "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
+          allow(Yast::WFM).to receive(:Execute)
+            .with(anything, /parted -s \/dev\/sda set 1 legacy_boot on/)
+            .and_return("exit" => 1)
 
-        allow(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -m \/dev\/sda print/)
-          .and_return(
-            "exit"   => 0,
-            "stdout" => parted_output
-          )
-        expect(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -s \/dev\/sda set 1 legacy_boot off/)
-          .and_return(
-            "exit"   => 0,
-            "stdout" => parted_output
-          )
-        expect(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -s \/dev\/sda set 4 legacy_boot off/)
-          .and_return(
-            "exit"   => 0,
-            "stdout" => parted_output
-          )
-
-        subject.run
-      end
-
-      it "do not return false if setting legacy_boot failed" do
-        allow(Yast::BootCommon).to receive(:GetBootloaderDevices)
-          .and_return(["/dev/sda1", "/dev/sdb1"])
-
-        allow(Yast::WFM).to receive(:Execute)
-          .with(anything, /parted -s \/dev\/sda set 1 legacy_boot on/)
-          .and_return("exit" => 1)
-
-        expect(subject.run).to be true
+          expect(subject.run).to be false
+        end
       end
 
       it "do not set any flag on old DOS MBR for logical partitions" do

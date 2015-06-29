@@ -136,11 +136,13 @@ module Bootloader
         next unless can_activate_partition?(num)
 
         log.info "Activating partition #{num} on #{mbr_dev}"
-        # this is needed only on gpt disks but we run it always
-        # anyway; parted just fails, then
-        set_parted_flag(mbr_dev, num, "legacy_boot")
+        # set corresponding flag only bnc#930903
+        if mbr_is_gpt?
+          out = set_parted_flag(mbr_dev, num, "legacy_boot")
+        else
+          out = set_parted_flag(mbr_dev, num, "boot")
+        end
 
-        out = set_parted_flag(mbr_dev, num, "boot")
         ret &&= out["exit"].zero?
       end
       ret
