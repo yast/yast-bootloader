@@ -19,6 +19,7 @@ module Bootloader
     # Update contents of MBR (active partition and booting code)
     # @return [Boolean] true on success
     def run
+      # s390 do not use MBR at all, so nothing to do
       return true if Yast::Arch.s390
 
       activate = Yast::BootCommon.globals["activate"] == "true"

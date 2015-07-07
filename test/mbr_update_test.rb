@@ -37,6 +37,11 @@ describe Bootloader::MBRUpdate do
       end
 
       it "does nothing except returning true" do
+        expect(Yast::WFM).to_not receive(:Execute)
+        expect(Yast::SCR).to_not receive(:Execute)
+        expect_any_instance_of(::Bootloader::BootRecordBackup).to_not(
+          receive(:write)
+        )
         expect(subject.run).to eq true
       end
     end
