@@ -19,6 +19,8 @@ module Bootloader
     # Update contents of MBR (active partition and booting code)
     # @return [Boolean] true on success
     def run
+      return true if Yast::Arch.s390
+
       activate = Yast::BootCommon.globals["activate"] == "true"
       generic_mbr = Yast::BootCommon.globals["generic_mbr"] == "true"
 
