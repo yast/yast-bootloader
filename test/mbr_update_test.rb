@@ -20,12 +20,30 @@ describe Bootloader::MBRUpdate do
         dev + num.to_s
       end
 
+      # by default common architecture"
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+
       # fake query for gpt label
       allow(Yast::Storage).to receive(:GetTargetMap).and_return(
         double(:fetch => { "label" => "msdos" },
                :[]    => { "label" => "msdos" }
         )
       )
+    end
+
+    context "on s390" do
+      before do
+        allow(Yast::Arch).to receive(:s390).and_return(true)
+      end
+
+      it "does nothing except returning true" do
+        expect(Yast::WFM).to_not receive(:Execute)
+        expect(Yast::SCR).to_not receive(:Execute)
+        expect_any_instance_of(::Bootloader::BootRecordBackup).to_not(
+          receive(:write)
+        )
+        expect(subject.run).to eq true
+      end
     end
 
     context "BootCommon.backup_mbr config is not set" do
