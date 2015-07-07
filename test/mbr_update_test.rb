@@ -33,7 +33,7 @@ describe Bootloader::MBRUpdate do
 
     context "on s390" do
       before do
-        allow(Yast::Arch).to receive(:architecture).and_return("s390_64")
+        allow(Yast::Arch).to receive(:s390).and_return(true)
       end
 
       it "does nothing except returning true" do
