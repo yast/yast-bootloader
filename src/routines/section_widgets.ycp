@@ -274,7 +274,7 @@ term SectionTypesWidget () {
 	// radio button
 	"image" : _("Kernel (Linux)"),
 	// radio button
-	"xen" : _("Kernel via XEN"),
+	"xen" : _("Kernel via Xen"),
 	// radio button (don't translate 'chainloader')
 	"chainloader" : _("Other System (Chainloader)"),
     ];
