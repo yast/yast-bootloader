@@ -108,7 +108,7 @@
             "memtest86" : "Memory Test",
             "original MBR" : "MBR before Installation",
             "windows" : "Windows",
-	    "xen" : "XEN",
+	    "xen" : "Xen",
         ];
 	string translated = trans[orig]:"\n"; // not allowed character
 		// not_translated version will be used
@@ -246,7 +246,7 @@
 	    // be able to have translations with and without diacritics
 	    // please use diacritics here
             "Vendor diagnostics" : _("_Vendor Diagnostics"),
-	    "xen" : "XEN",
+	    "xen" : "Xen",
         ];
 /*	trans = filter (string k, string v, trans, {
 	    if (substring (v, 0, 1) == "_")

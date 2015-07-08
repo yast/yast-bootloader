@@ -113,7 +113,7 @@ to specify <code>+1</code> here. For specifics on blocklist notation see the gru
 "),
     "type_xen"			:
     _("<p>Select <b>Xen Section</b> if you want to add a new Linux kernel or other image 
-and start it in a XEN environment.</p>
+and start it in a Xen environment.</p>
 "),
     "xen_image"			:
     _("<p><b>Kernel Image</b> defines the kernel to boot. Either enter the name directly or choose via <b>Browse</b>.</p>"),
@@ -147,7 +147,7 @@ directly or choose by using <b>Browse</b>.</p>
     "PCRChainloaderHelp"		:
     _("<p><b>PCR Index of Chainloader</b> is Platform Configuration Register for chainloader</p>"),
     "PCRXenHelp"		:
-    _("<p><b>PCR Index of XEN</b> is Platform Configuration Register for XEN</p>"),
+    _("<p><b>PCR Index of Xen</b> is Platform Configuration Register for Xen</p>"),
 
 
 ];
