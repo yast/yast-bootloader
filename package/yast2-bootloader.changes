@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jul  9 08:54:10 UTC 2015 - jreidinger@suse.com
+
+- fix crash when aborting during initial screen (bnc#910343)
+- 3.1.138
+
+-------------------------------------------------------------------
 Tue Jul  7 12:20:21 UTC 2015 - jreidinger@suse.com
 
 - skip MBR update on s390 (bnc#937015)
