@@ -40,11 +40,8 @@ module Yast
     # @return true if abort was pressed
     def testAbort
       return false if Mode.commandline
-      if :abort == UI.PollInput
-        UI.CloseDialog if !Stage.initial
-        return true
-      end
-      false
+
+      UI.PollInput == :abort
     end
 
     # Read settings dialog

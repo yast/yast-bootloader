@@ -114,7 +114,7 @@ module Yast
       )
       ret = Sequencer.Run(my_aliases, sequence)
 
-      UI.CloseDialog
+      Wizard.CloseDialog
       ret
     end
   end
