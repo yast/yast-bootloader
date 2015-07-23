@@ -22,7 +22,7 @@ The goal of this document is to have a single source of information  which scena
 
 * software RAID
   * /boot cannot be on RAID unless it is RAID1
-  * cannot have stage1 on MD RAID1 ( so no /boot on RAID1 )
+  * cannot have stage1 on MD RAID1, so when /boot is on RAID1, then boot from MBR have to be used
 * LVM
   * /boot cannot be encrypted (not bootloader limitation see [bug](https://bugzilla.novell.com/show_bug.cgi?id=890364#c40))
 * multipath
