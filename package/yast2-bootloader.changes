@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug  5 11:37:12 UTC 2015 - jsrain@suse.cz
+
+- always run mkinitrd at the end of S/390 installation (bsc#933177)
+- 3.1.139
+
+-------------------------------------------------------------------
 Thu Jul  9 08:54:10 UTC 2015 - jreidinger@suse.com
 
 - fix crash when aborting during initial screen (bnc#910343)

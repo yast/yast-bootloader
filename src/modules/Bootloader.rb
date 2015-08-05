@@ -579,6 +579,10 @@ module Yast
     def mark_as_changed
       BootCommon.save_all = true if BootCommon.write_settings["save_all"]
 
+      # always run mkinitrd at the end of S/390 installation (bsc#933177)
+      # otherwise cio_ignore settings are not honored in initrd
+      Initrd.changed = true if Arch.s390 && Stage.initial
+
       return unless BootCommon.save_all
 
       BootCommon.changed = true
