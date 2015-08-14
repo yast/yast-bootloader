@@ -122,22 +122,22 @@ module Bootloader
         if !Yast::BootCommon.was_read || force_reset
           # SCR isn't pointing to /mnt yet but we'd really like to read
           # the config files - so we're cheating a bit.
-          WFM.Execute(Path.new(".local.bash"),
+          Yast::WFM.Execute(Path.new(".local.bash"),
             "ln -s /mnt/boot/grub2 /boot; " \
             "ln -s /mnt/etc/default/grub{,_installdevice} /etc/default; " \
             "ln -s /mnt/etc/sysconfig/bootloader /etc/sysconfig"
           )
-          Bootloader.blRead(true, true)
-          BootCommon.was_read = true
+          Yast::Bootloader.blRead(true, true)
+          Yast::BootCommon.was_read = true
           # update the product name
-          prod = Product.short_name
-          BootCommon.globals["distributor"] = prod
+          prod = Yast::Product.short_name
+          Yast::BootCommon.globals["distributor"] = prod
           log.info "grub2 menu entry = #{prod}"
         end
       elsif old_bootloader == "none"
         log.info "Bootloader not configured, do not repropose"
         # blRead just exits for none bootloader
-        BootCommon.was_read = true
+        Yast::BootCommon.was_read = true
       elsif !Yast::BootCommon.was_proposed || force_reset
         # Repropose the type. A regular Reset/Propose is not enough.
         # For more details see bnc#872081
