@@ -123,8 +123,8 @@ module Bootloader
           # SCR isn't pointing to /mnt yet but we'd really like to read
           # the config files - so we're cheating a bit.
           WFM.Execute(Path.new(".local.bash"),
-            "ln -s /mnt/boot/grub2 /boot; " +
-            "ln -s /mnt/etc/default/grub{,_installdevice} /etc/default; " +
+            "ln -s /mnt/boot/grub2 /boot; " \
+            "ln -s /mnt/etc/default/grub{,_installdevice} /etc/default; " \
             "ln -s /mnt/etc/sysconfig/bootloader /etc/sysconfig"
           )
           Bootloader.blRead(true, true)
