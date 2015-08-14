@@ -16,6 +16,7 @@ module Bootloader
       Yast.import "Storage"
       Yast.import "Mode"
       Yast.import "BootSupportCheck"
+      Yast.import "Product"
 
       Yast.include self, "bootloader/routines/wizards.rb"
     end
@@ -119,13 +120,24 @@ module Bootloader
       if ["grub2", "grub2-efi"].include? old_bootloader
         log.info "update of grub2, do not repropose"
         if !Yast::BootCommon.was_read || force_reset
+          # SCR isn't pointing to /mnt yet but we'd really like to read
+          # the config files - so we're cheating a bit.
+          Yast::WFM.Execute(Path.new(".local.bash"),
+            "ln -s /mnt/boot/grub2 /boot; " \
+            "ln -s /mnt/etc/default/grub{,_installdevice} /etc/default; " \
+            "ln -s /mnt/etc/sysconfig/bootloader /etc/sysconfig"
+          )
           Yast::Bootloader.blRead(true, true)
           Yast::BootCommon.was_read = true
+          # update the product name
+          prod = Yast::Product.short_name
+          Yast::BootCommon.globals["distributor"] = prod
+          log.info "grub2 menu entry = #{prod}"
         end
       elsif old_bootloader == "none"
         log.info "Bootloader not configured, do not repropose"
         # blRead just exits for none bootloader
-        BootCommon.was_read = true
+        Yast::BootCommon.was_read = true
       elsif !Yast::BootCommon.was_proposed || force_reset
         # Repropose the type. A regular Reset/Propose is not enough.
         # For more details see bnc#872081

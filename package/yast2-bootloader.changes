@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 14 15:17:16 CEST 2015 - snwint@suse.de
+
+- as SCR hasn't been setup yet, use some trickery to read boot config (bsc #940486)
+- 3.1.140
+
+-------------------------------------------------------------------
 Wed Aug  5 11:37:12 UTC 2015 - jsrain@suse.cz
 
 - always run mkinitrd at the end of S/390 installation (bsc#933177)
