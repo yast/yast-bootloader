@@ -104,7 +104,7 @@ module Bootloader
     end
 
     def reset_flag(disk, flag)
-      command = "/usr/sbin/parted -m #{Shellwords.escape(disk)} print"
+      command = "/usr/sbin/parted -sm #{Shellwords.escape(disk)} print"
       out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
       log.info "Command `#{command}` output: #{out}"
       return if out["exit"] != 0
