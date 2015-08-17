@@ -225,7 +225,7 @@ describe Bootloader::MBRUpdate do
                           "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
 
           allow(Yast::WFM).to receive(:Execute)
-            .with(anything, /parted -m \/dev\/sda print/)
+            .with(anything, /parted -sm \/dev\/sda print/)
             .and_return(
               "exit"   => 0,
               "stdout" => parted_output
@@ -289,7 +289,7 @@ describe Bootloader::MBRUpdate do
                           "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
 
           allow(Yast::WFM).to receive(:Execute)
-            .with(anything, /parted -m \/dev\/sda print/)
+            .with(anything, /parted -sm \/dev\/sda print/)
             .and_return(
               "exit"   => 0,
               "stdout" => parted_output

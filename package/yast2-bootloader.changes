@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug 17 07:44:21 UTC 2015 - jreidinger@suse.com
+
+- avoid bootloader module stuck caused by parted prompt
+  (bnc#941510)
+- 3.1.141
+
+-------------------------------------------------------------------
 Fri Aug 14 15:17:16 CEST 2015 - snwint@suse.de
 
 - as SCR hasn't been setup yet, use some trickery to read boot config (bsc #940486)

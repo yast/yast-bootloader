@@ -48,7 +48,7 @@ module Yast
         end
       devices.each do |dev|
         res = SCR.Execute(path(".target.bash_output"),
-          "parted '#{dev}' disk_set pmbr_boot #{action_parted}")
+          "parted -s '#{dev}' disk_set pmbr_boot #{action_parted}")
         Builtins.y2milestone("parted disk_set pmbr: #{res}")
       end
     end
