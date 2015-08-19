@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 19 12:42:41 UTC 2015 - jreidinger@suse.com
+
+- do not require parted on target system (bnc#937066)
+- 3.1.142
+
+-------------------------------------------------------------------
 Mon Aug 17 07:44:21 UTC 2015 - jreidinger@suse.com
 
 - avoid bootloader module stuck caused by parted prompt
