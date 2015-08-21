@@ -193,7 +193,6 @@ module Yast
           end
         else
           occurences[k] -= 1
-          res << param
         end
       end
       if !done

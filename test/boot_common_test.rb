@@ -23,6 +23,15 @@ describe Yast::BootCommon do
                  new: "quit silent=1 vga=800")
     end
 
+    context "when kernel parameter is duplicated" do
+      it "return line with modified kernel parameter to given value avoiding duplications" do
+        expect_set(key: "crashkernel",
+                   val: "64M,low",
+                   old: "quit silent=1 crashkernel=128M,low crashkernel=256M,high",
+                   new: "quit silent=1 crashkernel=64M,low")
+      end
+    end
+
     it "return line with added parameter to kernel parameter line if value is \"true\"" do
       expect_set(key: "verbose",
                  val: "true",
