@@ -22,6 +22,8 @@ module Yast
   class BootloaderClass < Module
     include Yast::Logger
 
+    OLD_API_MAPPING = { "true" => :present, "false" => :missing }
+
     def main
       Yast.import "UI"
 
@@ -447,11 +449,14 @@ module Yast
       raise ArgumentError, "Unknown flavor #{flavor}" unless kernel_line_key
 
       line = BootCommon.globals[kernel_line_key]
-      ret = BootCommon.getKernelParamFromLine(line, key)
+      values = BootCommon.getKernelParamFromLine(line, key)
 
       # map old api response to new one
-      api_mapping = { "true" => :present, "false" => :missing }
-      api_mapping[ret] || ret
+      if values.kind_of?(Array) # more than one value
+        values
+      else # only one value
+        OLD_API_MAPPING[values] || values
+      end
     end
 
     # Modify kernel parameters for installed kernels according to values
@@ -499,20 +504,17 @@ module Yast
         values[key] = remap_values[values[key]] || values[key]
       end
 
+      kernel_lines = args.map do |a|
+        FLAVOR_KERNEL_LINE_MAP[a] ||
+          raise(ArgumentError, "Invalid argument #{a.inspect}")
+      end
+
+      changed = false
       values.each do |key, value|
-        next if key == "root" # grub2 does not support modifying root
-        if key == "vga"
-          BootCommon.globals["vgamode"] = value == "false" ? "" : value
-          next
-        else
-          kernel_lines = args.map do |a|
-            FLAVOR_KERNEL_LINE_MAP[a] ||
-              raise(ArgumentError, "Invalid argument #{a.inspect}")
-          end
-          kernel_lines.each do |line_key|
-            BootCommon.globals[line_key] = BootCommon.setKernelParamToLine(BootCommon.globals[line_key], key, value)
-          end
-        end
+        changed = true if add_kernel_param(kernel_lines, key, value)
+      end
+
+      if changed
         BootCommon.globals["__modified"] = "1"
         BootCommon.changed = true
       end
@@ -623,6 +625,27 @@ module Yast
 
       ret
     end
+
+    # Add a kernel parameter
+    #
+    # @param [Array<Symbol>] kernel_lines Kernel lines to update
+    # @param [String]        key          Parameter name
+    # @param [String]        value        Parameter value
+    # @return [true,false]   True if the parameter was added to some kernel line;
+    #                        false otherwise (not added or added to as 'global').
+    def add_kernel_param(kernel_lines, key, value)
+      return false if key == "root" # grub2 does not support modifying root
+      if key == "vga"
+        BootCommon.globals["vgamode"] = value == "false" ? "" : value
+        false
+      else
+        kernel_lines.each do |line_key|
+          BootCommon.globals[line_key] = BootCommon.setKernelParamToLine(BootCommon.globals[line_key], key, value)
+        end
+        true
+      end
+    end
+
 
     publish :function => :Export, :type => "map ()"
     publish :function => :Import, :type => "boolean (map)"
