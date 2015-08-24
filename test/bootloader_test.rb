@@ -193,8 +193,8 @@ describe Yast::Bootloader do
       it "uses :common by default" do
         subject.modify_kernel_params(params)
 
-        expect(Yast::BootCommon.globals)
-          .to eq(kernel_line(:common) => append, "__modified" => "1")
+        expect(Yast::BootCommon.globals[kernel_line(:common)]).to eq(append)
+        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
         expect(Yast::BootCommon.changed).to eq(true)
       end
     end
@@ -203,8 +203,8 @@ describe Yast::Bootloader do
       it "adds parameter for that target" do
         subject.modify_kernel_params(:xen_guest, params)
 
-        expect(Yast::BootCommon.globals)
-          .to eq(kernel_line(:xen_guest) => append, "__modified" => "1")
+        expect(Yast::BootCommon.globals[kernel_line(:xen_guest)]).to eq(append)
+        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
         expect(Yast::BootCommon.changed).to eq(true)
       end
     end
@@ -213,10 +213,9 @@ describe Yast::Bootloader do
       it "adds parameters to each target" do
         subject.modify_kernel_params(:xen_host, :xen_guest, params)
 
-        expect(Yast::BootCommon.globals)
-          .to eq(kernel_line(:xen_host)  => append,
-                 kernel_line(:xen_guest) => append,
-                 "__modified"            => "1")
+        expect(Yast::BootCommon.globals[kernel_line(:xen_host)]).to eq(append)
+        expect(Yast::BootCommon.globals[kernel_line(:xen_guest)]).to eq(append)
+        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
         expect(Yast::BootCommon.changed).to eq(true)
       end
     end
@@ -225,10 +224,9 @@ describe Yast::Bootloader do
       it "adds parameters to each target" do
         subject.modify_kernel_params([:xen_host, :xen_guest], params)
 
-        expect(Yast::BootCommon.globals)
-          .to eq(kernel_line(:xen_host)  => append,
-                 kernel_line(:xen_guest) => append,
-                 "__modified"            => "1")
+        expect(Yast::BootCommon.globals[kernel_line(:xen_host)]).to eq(append)
+        expect(Yast::BootCommon.globals[kernel_line(:xen_guest)]).to eq(append)
+        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
         expect(Yast::BootCommon.changed).to eq(true)
       end
     end
@@ -240,8 +238,8 @@ describe Yast::Bootloader do
       it "removes parameter from the given target" do
         subject.modify_kernel_params(:common, params)
 
-        expect(Yast::BootCommon.globals)
-          .to eq(kernel_line(:common) => append, "__modified" => "1")
+        expect(Yast::BootCommon.globals[kernel_line(:common)]).to eq(append)
+        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
         expect(Yast::BootCommon.changed).to eq(true)
       end
     end
@@ -252,8 +250,8 @@ describe Yast::Bootloader do
       it "adds the parameter to the given target without any value" do
         subject.modify_kernel_params(:common, params)
 
-        expect(Yast::BootCommon.globals)
-          .to eq(kernel_line(:common) => "quiet", "__modified" => "1")
+        expect(Yast::BootCommon.globals[kernel_line(:common)]).to eq("quiet")
+        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
         expect(Yast::BootCommon.changed).to eq(true)
       end
     end
@@ -263,19 +261,18 @@ describe Yast::Bootloader do
 
       it "adds the parameter as 'vgamode' to the global scope and does not mark BootCommon as 'modified'" do
         subject.modify_kernel_params(:common, params)
-        expect(Yast::BootCommon.globals)
-          .to eq("vgamode" => "80")
+        expect(Yast::BootCommon.globals["vgamode"]).to eq("80")
+        expect(Yast::BootCommon.globals).to_not have_key("__modified")
         expect(Yast::BootCommon.changed).to eq(false)
       end
     end
 
-    context "when parameter is 'root' (unsupported)" do
+    context "when parameter is 'root' (cannot be modified)" do
       let(:params) { { "root" => "/dev/sda1" } }
-      it "makes no changes" do
-        subject.modify_kernel_params(:common, params)
 
-        expect(Yast::BootCommon.globals)
-          .to eq({})
+      it "makes no changes" do
+        expect { subject.modify_kernel_params(:common, params) }
+          .to_not change { Yast::BootCommon.globals }
         expect(Yast::BootCommon.changed).to eq(false)
       end
     end
@@ -286,9 +283,9 @@ describe Yast::Bootloader do
       it "adds the parameter multiple times" do
         subject.modify_kernel_params(:common, params)
 
-        expect(Yast::BootCommon.globals)
-          .to eq(kernel_line(:common) => "crashkernel=256M,low crashkernel=1024M,high",
-                 "__modified"         => "1")
+        expect(Yast::BootCommon.globals[kernel_line(:common)])
+          .to eq("crashkernel=256M,low crashkernel=1024M,high")
+        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
         expect(Yast::BootCommon.changed).to eq(true)
       end
     end
