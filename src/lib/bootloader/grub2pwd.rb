@@ -114,7 +114,8 @@ module Bootloader
     def disable
       return unless used_on_target?
 
-      Yast::SCR.Execute(YAST_BASH_PATH, "rm '#{PWD_ENCRYPTION_FILE}'")
+      # operate on target as we have to remove password during installation from target grub2
+      Yast::SCR.Execute(Yast::Path.new(".target.bash"), "rm '#{PWD_ENCRYPTION_FILE}'")
     end
 
     def encrypt(password)

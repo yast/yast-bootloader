@@ -138,7 +138,7 @@ describe Bootloader::GRUB2Pwd do
           .and_return(true)
 
         expect(Yast::SCR).to receive(:Execute)
-          .with(described_class::YAST_BASH_PATH, "rm '#{described_class::PWD_ENCRYPTION_FILE}'")
+          .with(path(".target.bash"), "rm '#{described_class::PWD_ENCRYPTION_FILE}'")
 
         subject.write
       end
