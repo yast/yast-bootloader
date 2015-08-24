@@ -452,7 +452,7 @@ module Yast
       values = BootCommon.getKernelParamFromLine(line, key)
 
       # map old api response to new one
-      if values.kind_of?(Array) # more than one value
+      if values.is_a?(Array) # more than one value
         values
       else # only one value
         OLD_API_MAPPING[values] || values
@@ -468,6 +468,7 @@ module Yast
     #     - `:recovery` DEPRECATED: no longer use
     #     - `:xen_guest` for xen guest kernels
     #     - `:xen_host` for xen host kernels
+    # @return [Boolean] true if params were modified; false otherwise.
     #
     # @example add crashkernel parameter to common kernel and xen guest
     #   Bootloader.modify_kernel_params(:common, :xen_guest, "crashkernel" => "256M@64M")
@@ -514,10 +515,9 @@ module Yast
         changed = true if add_kernel_param(kernel_lines, key, value)
       end
 
-      if changed
-        BootCommon.globals["__modified"] = "1"
-        BootCommon.changed = true
-      end
+      return false unless changed
+      BootCommon.globals["__modified"] = "1"
+      BootCommon.changed = true
     end
 
     # Get currently used bootloader, detect if not set yet
@@ -645,7 +645,6 @@ module Yast
         true
       end
     end
-
 
     publish :function => :Export, :type => "map ()"
     publish :function => :Import, :type => "boolean (map)"

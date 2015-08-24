@@ -214,9 +214,9 @@ describe Yast::Bootloader do
         subject.modify_kernel_params(:xen_host, :xen_guest, params)
 
         expect(Yast::BootCommon.globals)
-          .to eq(kernel_line(:xen_host) => append,
+          .to eq(kernel_line(:xen_host)  => append,
                  kernel_line(:xen_guest) => append,
-                 "__modified" => "1")
+                 "__modified"            => "1")
         expect(Yast::BootCommon.changed).to eq(true)
       end
     end
@@ -226,9 +226,9 @@ describe Yast::Bootloader do
         subject.modify_kernel_params([:xen_host, :xen_guest], params)
 
         expect(Yast::BootCommon.globals)
-          .to eq(kernel_line(:xen_host) => append,
+          .to eq(kernel_line(:xen_host)  => append,
                  kernel_line(:xen_guest) => append,
-                 "__modified" => "1")
+                 "__modified"            => "1")
         expect(Yast::BootCommon.changed).to eq(true)
       end
     end
@@ -281,14 +281,14 @@ describe Yast::Bootloader do
     end
 
     context "when multiple values are specified for a parameter" do
-      let(:params) { { "crashkernel" => [ "256M,low", "1024M,high" ] } }
+      let(:params) { { "crashkernel" => ["256M,low", "1024M,high"] } }
 
       it "adds the parameter multiple times" do
         subject.modify_kernel_params(:common, params)
 
         expect(Yast::BootCommon.globals)
           .to eq(kernel_line(:common) => "crashkernel=256M,low crashkernel=1024M,high",
-                 "__modified" => "1")
+                 "__modified"         => "1")
         expect(Yast::BootCommon.changed).to eq(true)
       end
     end
@@ -297,7 +297,7 @@ describe Yast::Bootloader do
   describe ".kernel_param" do
     let(:initial_lines) do
       { kernel_line(:common) => "quiet verbose=1 crashkernel=256M,low crashkernel=1024M,high" }
-  end
+    end
 
     around do |example|
       old_value = Yast::BootCommon.globals
