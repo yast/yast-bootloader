@@ -151,7 +151,7 @@ module Yast
       # we can get nil if params is not yet proposed, so return not there (bnc#902397)
       return res unless line
       params = line.split(" ").reject(&:empty?)
-      values = params.map { |p| kernel_param_parts(p) }.select { |p| p[0] == key }.map(&:last)
+      values = params.map { |p| kernel_param_parts(p) }.select { |p| p[0] == key }.map(&:last).uniq
       if values.empty? # not present
         "false"
       elsif values.size == 1 # only one value

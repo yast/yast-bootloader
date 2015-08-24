@@ -106,6 +106,14 @@ describe Yast::BootCommon do
       it "returns 'true'" do
         expect(Yast::BootCommon.getKernelParamFromLine(line, "quiet")).to eq("true")
       end
+
+      context "and is duplicated" do
+        let(:line) { "quiet crashkernel=72M,low quiet" }
+
+        it "returns the value" do
+          expect(Yast::BootCommon.getKernelParamFromLine(line, "quiet")).to eq("true")
+        end
+      end
     end
 
     context "when parameter has a value" do
