@@ -139,35 +139,51 @@ module Yast
       ret
     end
 
-    # get kernel parameter from kernel command line
+    # get kernel parameter values from kernel command line
+    #
     # @param [String] line string original line
     # @param [String] key string parameter key
-    # @return [String] value, "false" if not present,
-    #   "true" if present key without value
+    # @return [String,Array<String>] value, "false" if not present or "true" if present without
+    #   value. If the parameter has on more than 1 value, an array will be returned.
     def getKernelParamFromLine(line, key)
       # FIXME: this doesn't work with quotes and spaces
       res = "false"
       # we can get nil if params is not yet proposed, so return not there (bnc#902397)
       return res unless line
       params = line.split(" ").reject(&:empty?)
-      params.each do |p|
-        l = p.split("=")
-        res = l[1] || "true" if l[0] == key
+      values = params.map { |p| kernel_param_parts(p) }.select { |p| p[0] == key }.map(&:last).uniq
+      if values.empty? # not present
+        "false"
+      elsif values.size == 1 # only one value
+        values.first
+      else # more than 1 value
+        values
       end
-      res
     end
 
-    def kernel_param_key(value)
-      value.split("=").first
+    def kernel_param_key(param)
+      param.split("=").first
+    end
+
+    # Split kernel parameters into [key, value] form
+    #
+    # It also takes care about converting parameters without a value
+    # (ie. "quiet" will be ["quiet", "true"]).
+    #
+    # @param [String] param   Parameter string in "key=value" form.
+    # @return [Array<String>] Parameter key and value.
+    def kernel_param_parts(param)
+      key, value = param.split("=")
+      [key, value || "true"]
     end
 
     # set kernel parameter to GRUB command line
     # @param [String] line string original line
     # @param [String] key string parameter key
-    # @param [String] value string value, "false" to remove key,
-    #   "true" to add key without value
+    # @param [String,Array<String>] values string (or array of strings) containing values,
+    #   "false" to remove key, "true" to add key without value
     # @return [String] new kernel command line
-    def setKernelParamToLine(line, key, value)
+    def setKernelParamToLine(line, key, values)
       line ||= ""
       # FIXME: this doesn't work with quotes and spaces
       params = line.split(" ").reject(&:empty?)
@@ -182,25 +198,28 @@ module Yast
         k = kernel_param_key(param)
         if k != key # not our param
           res << param
-        elsif value == "false"
+        elsif values == "false"
           next # do nothing as we want to remove this param
         elsif occurences[k] == 1 # last parameter with given key
           done = true
-          if value == "true"
+          if values == "true"
             res << key
-          elsif value != "false"
-            res << Builtins.sformat("%1=%2", key, value)
+          elsif values != "false"
+            Array(values).each do |v|
+              res << Builtins.sformat("%1=%2", key, v)
+            end
           end
         else
           occurences[k] -= 1
-          res << param
         end
       end
       if !done
-        if value == "true"
+        if values == "true"
           params << key
-        elsif value != "false"
-          params << Builtins.sformat("%1=%2", key, value)
+        elsif values != "false"
+          Array(values).each do |v|
+            params << Builtins.sformat("%1=%2", key, v)
+          end
         end
       end
       params.join(" ")

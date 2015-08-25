@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 25 07:31:56 UTC 2015 - igonzalezsosa@suse.com
+
+- Add support for kernel parameter with multiple values
+  (bsc#882082)
+- 3.1.144
+
+-------------------------------------------------------------------
 Mon Aug 24 12:44:51 UTC 2015 - jreidinger@suse.com
 
 - fix removing password protection (bnc#942867)

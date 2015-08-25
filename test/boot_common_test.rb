@@ -23,6 +23,24 @@ describe Yast::BootCommon do
                  new: "quit silent=1 vga=800")
     end
 
+    context "when kernel parameter is duplicated" do
+      it "return line with modified kernel parameter to given value avoiding duplications" do
+        expect_set(key: "crashkernel",
+                   val: "64M,low",
+                   old: "quit silent=1 crashkernel=128M,low crashkernel=256M,high",
+                   new: "quit silent=1 crashkernel=64M,low")
+      end
+    end
+
+    context "when value is an array" do
+      it "return line with modified kernel parameter to given values if line contain key" do
+        expect_set(key: "crashkernel",
+                   val: ["128M,low", "256M,high"],
+                   old: "quit silent=1",
+                   new: "quit silent=1 crashkernel=128M,low crashkernel=256M,high")
+      end
+    end
+
     it "return line with added parameter to kernel parameter line if value is \"true\"" do
       expect_set(key: "verbose",
                  val: "true",
@@ -72,4 +90,49 @@ describe Yast::BootCommon do
                  new: "")
     end
   end
+
+  describe ".getKernelParamFromLine" do
+    context "when parameter is not defined" do
+      let(:line) { "quiet" }
+
+      it "returns 'false'" do
+        expect(Yast::BootCommon.getKernelParamFromLine("quiet", "crashkernel")).to eq("false")
+      end
+    end
+
+    context "when parameter is present but hasn't got a value" do
+      let(:line) { "quiet" }
+
+      it "returns 'true'" do
+        expect(Yast::BootCommon.getKernelParamFromLine(line, "quiet")).to eq("true")
+      end
+
+      context "and is duplicated" do
+        let(:line) { "quiet crashkernel=72M,low quiet" }
+
+        it "returns the value" do
+          expect(Yast::BootCommon.getKernelParamFromLine(line, "quiet")).to eq("true")
+        end
+      end
+    end
+
+    context "when parameter has a value" do
+      let(:line) { "quiet crashkernel=72M,low" }
+
+      it "returns the value" do
+        expect(Yast::BootCommon.getKernelParamFromLine(line, "crashkernel"))
+          .to eq("72M,low")
+      end
+    end
+
+    context "when parameter has many values" do
+      let(:line) { "quiet crashkernel=72M,low crashkernel=128M,high" }
+
+      it "returns all the values as an array" do
+        expect(Yast::BootCommon.getKernelParamFromLine(line, "crashkernel"))
+          .to eq(["72M,low", "128M,high"])
+      end
+    end
+  end
+
 end
