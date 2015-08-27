@@ -72,7 +72,7 @@ module Bootloader
       end
 
       if logical_boot? && extended_partition
-        log.info "/boot is on logical partition and extended partition detected, extended is favored in this situation"
+        log.info "/boot is on logical partition and extended detected, extended proposed"
         selected_location = :extended
       end
 
