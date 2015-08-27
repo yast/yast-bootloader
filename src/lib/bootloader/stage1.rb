@@ -60,24 +60,30 @@ module Bootloader
     def propose_boot_location
       raise "Boot partition disk not found" if boot_partition_disk.empty?
       selected_location = :mbr
+      separate_boot = Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
 
       # there was check if boot device is on logical partition
       # IMO it is good idea check MBR also in this case
       # see bug #279837 comment #53
       if boot_partition_on_mbr_disk?
-        separate_boot = Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
         selected_location =  separate_boot ? :boot : :root
       elsif underlying_boot_partition_devices.size > 1
         selected_location = :mbr
       end
 
-      if logical_boot? && extended_partition &&
-          underlying_boot_partition_devices.size > 1
+      if logical_boot? && extended_partition
+        log.info "/boot is on logical partition and extended detected, extended proposed"
         selected_location = :extended
       end
 
-      if logical_boot_with_btrfs?
-        log.info "/boot is on logical parititon and uses btrfs, mbr is favored in this situration"
+      if boot_with_btrfs? && logical_boot?
+        log.info "/boot is on logical partition and uses btrfs, mbr is favored in this situation"
+        selected_location = :mbr
+      end
+
+      # for separate btrfs partition prefer MBR (bnc#940797)
+      if boot_with_btrfs? && separate_boot
+        log.info "separated /boot is used and uses btrfs, mbr is favored in this situation"
         selected_location = :mbr
       end
 
@@ -108,35 +114,29 @@ module Bootloader
       @logical_boot
     end
 
-    def logical_boot_with_btrfs?
+    def boot_with_btrfs?
       init_boot_info unless @boot_initialized
 
-      @logical_boot_with_btrfs
+      @boot_with_btrfs
     end
 
     def init_boot_info
       boot_disk_map = target_map[boot_partition_disk] || {}
       partitions_on_boot_partition_disk = boot_disk_map["partitions"] || []
       @logical_boot = false
-      @logical_boot_with_btrfs = false
+      @boot_with_btrfs = false
 
       partitions_on_boot_partition_disk.each do |p|
         if p["type"] == :extended
           @extended = p["device"]
-        elsif underlying_boot_partition_devices.include?(p["device"]) &&
-            p["type"] == :logical
-          # If any of the underlying_boot_partition_devices can be found on
-          # the boot_partition_disk AND is a logical partition, set
-          # is_logical to true.
-          # For soft-RAID this will not match anyway ("/dev/[hs]da*" does not
-          # match "/dev/md*").
-          @logical_boot = true
-          @logical_boot_with_btrfs = true if p["used_fs"] == :btrfs
+        elsif underlying_boot_partition_devices.include?(p["device"])
+          @boot_with_btrfs = true if p["used_fs"] == :btrfs
+          @logical_boot = true if p["type"] == :logical
         end
       end
 
       log.info "/boot is in logical partition: #{@logical_boot}"
-      log.info "/boot is in logical partition and use btrfs: #{@logical_boot_with_btrfs}"
+      log.info "/boot use btrfs: #{@boot_with_btrfs}"
       log.info "The extended partition: #{@extended}"
     end
 
