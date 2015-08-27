@@ -71,8 +71,7 @@ module Bootloader
         selected_location = :mbr
       end
 
-      if logical_boot? && extended_partition &&
-          underlying_boot_partition_devices.size > 1
+      if logical_boot? && extended_partition
         selected_location = :extended
       end
 
