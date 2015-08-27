@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Aug 27 13:21:25 UTC 2015 - jreidinger@suse.com
+
+- use extended partition to boot even for non software raids
+  (bnc#940765)
+- for separate boot partition with btrfs prefer MBR bootloader
+  location (bnc#940797)
+- 3.1.145
+
+-------------------------------------------------------------------
 Tue Aug 25 07:31:56 UTC 2015 - igonzalezsosa@suse.com
 
 - Add support for kernel parameter with multiple values
