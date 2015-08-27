@@ -22,3 +22,17 @@ LOADER_TYPE=""
 #
 LOADER_LOCATION=""
 
+## Path:        System/Bootloader
+## Description: Bootloader configuration
+## Type:        string
+## Default:     "splash=silent quiet showotps"
+#
+# Arguments for kernel which are used like default boot section if the
+# arguments cannot be taken from the bootloader configuration (e.g.
+# menu.lst for GRUB). Under normal circumstances, this value is only
+# used as fallback.
+# If the options is commented perl-Bootloader uses its default arguments
+# for kernel.
+#
+DEFAULT_APPEND="splash=silent quiet showopts"
+
