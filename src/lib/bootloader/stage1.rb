@@ -72,17 +72,18 @@ module Bootloader
       end
 
       if logical_boot? && extended_partition
+        log.info "/boot is on logical parititon and extended partition detected, extended is favored in this situation"
         selected_location = :extended
       end
 
       if boot_with_btrfs? && logical_boot?
-        log.info "/boot is on logical parititon and uses btrfs, mbr is favored in this situration"
+        log.info "/boot is on logical parititon and uses btrfs, mbr is favored in this situation"
         selected_location = :mbr
       end
 
       # for separate btrfs partition prefer MBR (bnc#940797)
       if boot_with_btrfs? && separate_boot
-        log.info "separated /boot is used and uses btrfs, mbr is favored in this situration"
+        log.info "separated /boot is used and uses btrfs, mbr is favored in this situation"
         selected_location = :mbr
       end
 
