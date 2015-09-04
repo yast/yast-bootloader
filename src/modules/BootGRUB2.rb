@@ -152,6 +152,10 @@ module Yast
         partition = prep_partitions.first
         if partition
           BootCommon.globals["boot_custom"] = partition
+          BootCommon.globals.delete("boot_boot")
+          BootCommon.globals.delete("boot_root")
+          BootCommon.globals.delete("boot_mbr")
+          BootCommon.globals.delete("generic_mbr")
         else
           # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
           # we need to detect what is mount on /boot and if it is nfs, then just
