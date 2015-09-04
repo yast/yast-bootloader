@@ -437,6 +437,10 @@ module Yast
         BootCommon.mbrDisk = BootCommon.FindMBRDisk
       end
 
+      # device map may be implicitly proposed in FindMBRDisk above
+      # - but not always...
+      device_map.propose if device_map.empty?
+
       # if no bootloader devices have been set up, or any of the set up
       # bootloader devices have become unavailable, then re-propose the
       # bootloader location.
