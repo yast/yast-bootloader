@@ -437,6 +437,10 @@ module Yast
         BootCommon.mbrDisk = BootCommon.FindMBRDisk
       end
 
+      # device map may be implicitly proposed in FindMBRDisk above
+      # - but not always...
+      device_map.propose if device_map.empty?
+
       # if no bootloader devices have been set up, or any of the set up
       # bootloader devices have become unavailable, then re-propose the
       # bootloader location.
@@ -448,6 +452,21 @@ module Yast
       bldevs.any? do |dev|
         !all_boot_partitions.include?(dev)
       end
+    end
+
+    def prep_partitions
+      target_map = Storage.GetTargetMap
+
+      partitions = target_map.reduce([]) do |parts, pair|
+        parts.concat(pair[1]["partitions"] || [])
+      end
+
+      prep_partitions = partitions.select do |partition|
+        [0x41, 0x108].include? partition["fsid"]
+      end
+
+      y2milestone "detected prep partitions #{prep_partitions.inspect}"
+      prep_partitions.map { |p| p["device"] }
     end
 
     # Get map of swap partitions
