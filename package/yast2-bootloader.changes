@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Sep  4 15:17:27 CEST 2015 - snwint@suse.de
+
+- ensure device map has really been proposed (bsc#943749)
+- when we switch to custom boot, turn off the other boot locations
+  (bsc#943749)
+- 3.1.146
+
+-------------------------------------------------------------------
 Thu Aug 27 13:21:25 UTC 2015 - jreidinger@suse.com
 
 - use extended partition to boot even for non software raids
