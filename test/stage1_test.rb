@@ -37,8 +37,8 @@ describe Bootloader::Stage1 do
       object_double("Yast::Arch", :architecture => "ppc64").as_stubbed_const
       object_double(
         "Yast::BootStorage",
-        :prep_partitions => ["/dev/sda1"],
-        :detect_disks => nil
+        prep_partitions: ["/dev/sda1"],
+        detect_disks:    nil
       ).as_stubbed_const
 
       expect(subject.propose).to eq(:custom)
