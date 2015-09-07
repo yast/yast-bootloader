@@ -35,7 +35,8 @@ describe Bootloader::Stage1 do
 
     it "returns :custom on ppc" do
       object_double("Yast::Arch", :architecture => "ppc64").as_stubbed_const
-      object_double("Yast::BootStorage",
+      object_double(
+        "Yast::BootStorage",
         :prep_partitions => ["/dev/sda1"],
         :detect_disks => nil
       ).as_stubbed_const
