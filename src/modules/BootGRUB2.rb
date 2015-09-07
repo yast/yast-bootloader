@@ -152,7 +152,7 @@ module Yast
       # less tricky architectures, so directly propose stage1 location
       when /ppc/, /s390/
         grub_DetectDisks
-        Bootloader::Stage1.propose
+        ::Bootloader::Stage1.new.propose
       else
         raise "unsuported architecture #{Arch.architecture}"
       end
