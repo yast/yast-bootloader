@@ -22,6 +22,7 @@ require "yast"
 require "bootloader/grub2base"
 require "bootloader/mbr_update"
 require "bootloader/device_map_dialog"
+require "bootloader/stage1"
 
 module Yast
   import "Arch"
@@ -141,47 +142,20 @@ module Yast
       return if BootCommon.was_proposed && !Mode.autoinst && !Mode.autoupgrade
 
       case Arch.architecture
+      # intel need some specific handler. TODO: unify it to use same rutine
       when "i386", "x86_64"
         grub_LocationProposal
         # pass vga if available (bnc#896300)
         if !Kernel.GetVgaType.empty?
           BootCommon.globals["vgamode"] = Kernel.GetVgaType
         end
-      when /ppc/
-        BootStorage.detect_disks
-        partition = prep_partitions.first
-        if partition
-          BootCommon.globals["boot_custom"] = partition
-        else
-          # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
-          # we need to detect what is mount on /boot and if it is nfs, then just
-          # skip this proposal. In other case if it is not nfs, then it is error and raise exception
-          if BootCommon.getBootDisk == "/dev/nfs"
-            return
-          else
-            raise "there is no prep partition"
-          end
-        end
-      when /s390/
-        Builtins.y2milestone "no partition needed for grub2 on s390"
+      # less tricky architectures, so directly propose stage1 location
+      when /ppc/, /s390/
+        grub_DetectDisks
+        ::Bootloader::Stage1.new.propose
       else
         raise "unsuported architecture #{Arch.architecture}"
       end
-    end
-
-    def prep_partitions
-      target_map = Storage.GetTargetMap
-
-      partitions = target_map.reduce([]) do |parts, pair|
-        parts.concat(pair[1]["partitions"] || [])
-      end
-
-      prep_partitions = partitions.select do |partition|
-        [0x41, 0x108].include? partition["fsid"]
-      end
-
-      y2milestone "detected prep partitions #{prep_partitions.inspect}"
-      prep_partitions.map { |p| p["device"] }
     end
 
     # FATE#303643 Enable one-click changes in bootloader proposal

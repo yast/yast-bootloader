@@ -9,8 +9,10 @@ module Bootloader
     include Yast::Logger
 
     def initialize
+      Yast.import "Arch"
       Yast.import "BootCommon"
       Yast.import "BootStorage"
+      Yast.import "Kernel"
       Yast.import "Storage"
     end
 
@@ -23,6 +25,25 @@ module Bootloader
     # existing values of the output variables (which are respected at other times, in AutoYaST).
     # @see for keys in globals to https://old-en.opensuse.org/YaST/Bootloader_API#global_options_in_map
     def propose
+      result = case Yast::Arch.architecture
+        when "i386", "x86_64"
+          propose_x86
+        when /ppc/
+          propose_ppc
+        when /s390/
+          propose_s390
+        else
+          raise "unsuported architecture #{Arch.architecture}"
+        end
+
+      log.info "location configured. Resulting globals #{Yast::BootCommon.globals}"
+
+      result
+    end
+
+  private
+
+    def propose_x86
       selected_location = propose_boot_location
       log.info "grub_ConfigureLocation (#{selected_location} on #{Yast::BootCommon.GetBootloaderDevices})"
 
@@ -50,12 +71,32 @@ module Bootloader
       # for GPT remove protective MBR flag otherwise some systems won't boot
       Yast::BootCommon.pmbr_action = :remove if gpt_boot_disk?
 
-      log.info "location configured. Resulting globals #{Yast::BootCommon.globals}"
+      selected_location
+    end
+
+    def propose_s390
+      # s390 do not need any partition as it is stored to predefined zipl location
+      selected_location = :none
+      assign_bootloader_device(selected_location)
 
       selected_location
     end
 
-  private
+    def propose_ppc
+      partition = Yast::BootStorage.prep_partitions.first
+      if partition
+        assign_bootloader_device([:custom, partition])
+
+        return :custom
+      # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
+      # we need to detect what is mount on /boot and if it is nfs, then just
+      # skip this proposal. In other case if it is not nfs, then it is error and raise exception
+      elsif Yast::BootCommon.getBootDisk == "/dev/nfs"
+        return :none
+      else
+        raise "there is no prep partition"
+      end
+    end
 
     def propose_boot_location
       raise "Boot partition disk not found" if boot_partition_disk.empty?
@@ -149,8 +190,11 @@ module Bootloader
     # automatic anyway and perl-Bootloader should be able to make it without help
     # from the user or the proposal.
     #
-    # @param [Symbol] selected_location symbol one of `boot `root `mbr `extended `mbr_md `none
+    # @param [Symbol, Array] selected_location symbol one of :boot, :root, :mbr,
+    #   :extended, `none or Array with first value :custom and second device for
+    #   custom devices
     def assign_bootloader_device(selected_location)
+      log.info "assign bootloader device '#{selected_location.inspect}'"
       # first, default to all off:
       ["boot_boot", "boot_root", "boot_mbr", "boot_extended"].each do |flag|
         Yast::BootCommon.globals[flag] = "false"
@@ -168,6 +212,12 @@ module Bootloader
         Yast::BootCommon.globals["generic_mbr"] = "false"
       when :none
         log.info "Resetting bootloader device"
+      when Array
+        if selected_location.first != :custom
+          raise "Unknown value to select bootloader device #{selected_location.inspect}"
+        end
+
+        Yast::BootCommon.globals["boot_custom"] = selected_location[1]
       else
         raise "Unknown value to select bootloader device #{selected_location.inspect}"
       end

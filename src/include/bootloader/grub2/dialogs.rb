@@ -27,6 +27,7 @@ module Yast
       Yast.import "CWM"
       Yast.import "CWMTab"
       Yast.import "BootCommon"
+      Yast.import "BootStorage"
       Yast.import "Stage"
 
       Yast.include include_target, "bootloader/grub2/options.rb"
@@ -245,7 +246,7 @@ module Yast
           Id("boot_custom_list"),
           # TRANSLATORS: place where boot code is installed
           _("Boot &Loader Location"),
-          prep_partitions
+          BootStorage.prep_partitions
         )
       )
 
