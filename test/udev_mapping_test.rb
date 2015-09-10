@@ -26,7 +26,7 @@ describe Bootloader::UdevMapping do
     end
 
     it "raise exception if udev link is not known" do
-      expect { subject.to_kernel_device("/dev/disk/by-id/non-existing-device") }.to raise_error
+      expect { subject.to_kernel_device("/dev/disk/by-id/non-existing-device") }.to raise_error(RuntimeError)
     end
   end
 
@@ -90,7 +90,7 @@ describe Bootloader::UdevMapping do
       target_map_stub("storage_lvm.yaml")
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
 
-      expect { subject.to_mountby_device("/dev/vda50") }.to raise_error
+      expect { subject.to_mountby_device("/dev/vda50") }.to raise_error(RuntimeError)
     end
   end
 end

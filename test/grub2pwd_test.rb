@@ -200,7 +200,7 @@ describe Bootloader::GRUB2Pwd do
         config = described_class.new
         config.used = true
 
-        expect { config.write }.to raise_error
+        expect { config.write }.to raise_error(RuntimeError)
       end
     end
   end

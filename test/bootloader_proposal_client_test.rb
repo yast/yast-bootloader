@@ -174,7 +174,6 @@ describe Bootloader::ProposalClient do
 
       expect(Yast::Bootloader).to_not receive(:Propose)
       expect(Yast::Bootloader).to receive(:blRead)
-      expect(Yast::Product).to receive(:short_name).and_return("SLES")
 
       subject.make_proposal({})
     end
