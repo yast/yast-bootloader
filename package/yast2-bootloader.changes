@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Sep 10 14:45:51 CEST 2015 - schubi@suse.de
+
+- AutoYaST configuration: Initialize libstorage and do not regard
+  the installed system.
+  (bnc#942360)
+- 3.1.147
+
+-------------------------------------------------------------------
 Fri Sep  4 15:17:27 CEST 2015 - snwint@suse.de
 
 - ensure device map has really been proposed (bsc#943749)
