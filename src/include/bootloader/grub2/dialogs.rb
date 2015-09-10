@@ -46,7 +46,7 @@ module Yast
 
       legacy_intel = (Arch.x86_64 || Arch.i386) && lt != "grub2-efi"
       pmbr_available = lt == "grub2-efi" || (legacy_intel && gpt_boot_disk?)
-      widget_names = ["distributor", "loader_type", "loader_location"]
+      widget_names = ["loader_type", "loader_location"]
       widget_names << "activate" << "generic_mbr" if legacy_intel
       widget_names << "inst_details" if legacy_intel || Arch.ppc
       widget_names << "pmbr" if pmbr_available
@@ -64,7 +64,6 @@ module Yast
               Arch.s390 || Arch.aarch64 ? Empty() : "loader_location"
             )
           ),
-          MarginBox(1, 0.5, "distributor"),
           MarginBox(1, 0.5, Left("activate")),
           MarginBox(1, 0.5, Left("generic_mbr")),
           MarginBox(1, 0.5, Left("pmbr")),
