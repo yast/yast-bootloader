@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Sep 10 07:11:25 UTC 2015 - jreidinger@suse.com
+
+- make default distributor value empty to use default one in grub2
+  (bnc#942519)
+- remove distributor entry from ui. Support only changes in text
+  file
+- 3.1.147
+
+-------------------------------------------------------------------
 Fri Sep  4 15:17:27 CEST 2015 - snwint@suse.de
 
 - ensure device map has really been proposed (bsc#943749)
