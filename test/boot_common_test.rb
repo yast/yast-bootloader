@@ -65,11 +65,11 @@ describe Yast::BootCommon do
                  new: "verbose")
     end
 
-    it "return empty string when value is \"false\" and line is nil" do
+    it "return quoted empty string when value is \"false\" and line is nil" do
       expect_set(key: "verbose",
                  val: "false",
                  old: nil,
-                 new: "")
+                 new: '""')
     end
   end
 end
