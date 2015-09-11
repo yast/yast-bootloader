@@ -16,7 +16,7 @@ describe GRUB2Pwd do
   describe "#used?" do
     it "return true if exists file #{GRUB2Pwd::PWD_ENCRYPTION_FILE}" do
       mock_file_presence(true)
-      expect(subject.used?).to be_true
+      expect(subject.used?).to eq true
     end
   end
 

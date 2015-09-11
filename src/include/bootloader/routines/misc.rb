@@ -478,6 +478,8 @@ module Yast
     # @return [String] new kernel command line
     def setKernelParamToLine(line, key, value)
       line ||= ""
+      # bnc#945479, see last line of this method
+      line = "" if line == '""'
       # FIXME this doesn't work with quotes and spaces
       params = line.split(" ").reject(&:empty?)
       # count occurences of every parameter, initial value is 0
@@ -513,7 +515,8 @@ module Yast
           params << Builtins.sformat("%1=%2", key, value)
         end
       end
-      params.join(" ")
+      # bnc#945479 perl-bootloader does not cope well with empty strings
+      params.empty? ? '""' : params.join(" ")
     end
 
 
