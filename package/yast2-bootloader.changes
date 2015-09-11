@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep 11 16:46:11 UTC 2015 - ancor@suse.com
+
+- Empty kernel command lines are now properly written (bnc#945479)
+- 3.1.148
+
+-------------------------------------------------------------------
 Thu Sep 10 14:45:51 CEST 2015 - schubi@suse.de
 
 - AutoYaST configuration: Initialize libstorage and do not regard

@@ -185,6 +185,8 @@ module Yast
     # @return [String] new kernel command line
     def setKernelParamToLine(line, key, values)
       line ||= ""
+      # bnc#945479, see last line of this method
+      line = "" if line == '""'
       # FIXME: this doesn't work with quotes and spaces
       params = line.split(" ").reject(&:empty?)
       # count occurences of every parameter, initial value is 0
@@ -222,7 +224,8 @@ module Yast
           end
         end
       end
-      params.join(" ")
+      # bnc#945479 perl-bootloader does not cope well with empty strings
+      params.empty? ? '""' : params.join(" ")
     end
 
     # Rewrite current MBR with /var/lib/YaST2/backup_boot_sectors/%device
