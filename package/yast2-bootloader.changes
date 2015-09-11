@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 11 16:46:11 UTC 2015 - ancor@suse.com
+
+- Empty kernel command lines are now properly written (bnc#945479)
+
+-------------------------------------------------------------------
 Thu Jun  4 08:19:26 UTC 2015 - jreidinger@suse.com
 
 - add missing cleaning of tmp file (bnc#926843) 
