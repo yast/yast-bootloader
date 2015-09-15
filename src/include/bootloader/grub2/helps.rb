@@ -20,29 +20,25 @@ module Yast
       textdomain "bootloader"
 
       @grub2_help_messages = {
-        "append"       => _(
+        "append"    => _(
           "<p><b>Optional Kernel Command Line Parameter</b> lets you define additional parameters to pass to the kernel.</p>"
         ),
-        "vgamode"      => _(
+        "vgamode"   => _(
           "<p><b>Vga Mode</b> defines the VGA mode the kernel should set the <i>console</i> to when booting.</p>"
         ),
-        "os_prober"    => _(
+        "os_prober" => _(
           "<p><b>Probe Foreign OS</b> by means of os-prober for multiboot with other foreign distribution </p>"
         ),
-        "pmbr"         => _(
+        "pmbr"      => _(
           "<p><b>Protective MBR flag</b> is expert only settings, that is needed only on exotic hardware. For details see Protective MBR in GPT disks. Do not touch if you are not sure.</p>"
-        ),
-        "distribution" => _(
-          "<p><b>Distributor</b> specifies name of distributor of kernel used to create boot entry name. </p>"
         )
       }
 
       @grub2_descriptions = {
-        "append"      => _("O&ptional Kernel Command Line Parameter"),
-        "distributor" => _("D&istributor"),
-        "vgamode"     => _("&Vga Mode"),
-        "os_prober"   => _("Probe Foreign OS"),
-        "pmbr"        => _("Protective MBR flag")
+        "append"    => _("O&ptional Kernel Command Line Parameter"),
+        "vgamode"   => _("&Vga Mode"),
+        "os_prober" => _("Probe Foreign OS"),
+        "pmbr"      => _("Protective MBR flag")
       }
     end
   end

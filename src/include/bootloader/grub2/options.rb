@@ -339,10 +339,6 @@ module Yast
 
     def Grub2Options
       grub2_specific = {
-        "distributor" => CommonInputFieldWidget(
-          Ops.get(@grub2_descriptions, "distributor", "Distributor"),
-          Ops.get(@grub2_help_messages, "distributor", "")
-        ),
         "activate"    => CommonCheckboxWidget(
           Ops.get(@grub_descriptions, "activate", "activate"),
           Ops.get(@grub_help_messages, "activate", "")

@@ -123,13 +123,7 @@ module Yast
 
       BootCommon.globals["append"]          ||= BootArch.DefaultKernelParams(resume)
       BootCommon.globals["failsafe_disabled"] = "true" if BootCommon.globals["failsafe_disabled"].nil?
-      # long name doesn't fit 800x600 GRUB screens, using short name by default
-      # (bnc#873675)
-      BootCommon.globals["distributor"]     ||= Product.short_name
-      if !BootCommon.globals["distributor"] ||
-          BootCommon.globals["distributor"].empty?
-        BootCommon.globals["distributor"]     = Product.name
-      end
+      BootCommon.globals["distributor"]     ||= ""
 
       # Propose bootloader serial settings from kernel cmdline during install (bnc#862388)
       serial = BootCommon.GetSerialFromAppend

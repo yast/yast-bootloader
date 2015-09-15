@@ -129,10 +129,6 @@ module Bootloader
           )
           Yast::Bootloader.blRead(true, true)
           Yast::BootCommon.was_read = true
-          # update the product name
-          prod = Yast::Product.short_name
-          Yast::BootCommon.globals["distributor"] = prod
-          log.info "grub2 menu entry = #{prod}"
         end
       elsif old_bootloader == "none"
         log.info "Bootloader not configured, do not repropose"
