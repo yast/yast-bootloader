@@ -542,6 +542,8 @@ module Yast
         log.info "Not reading settings in Mode::config ()"
         BootCommon.was_read = true
         BootCommon.was_proposed = true
+        log.info "But initialize libstorage in readonly mode" # bnc#942360
+        Storage.InitLibstorage(true)
       elsif Stage.initial && !Mode.update
         Propose()
       else

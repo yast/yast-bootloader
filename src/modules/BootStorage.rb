@@ -415,6 +415,10 @@ module Yast
     # Sets properly boot, root and mbr disk.
     # @return true if proposal need to be reconfigured
     def detect_disks
+      # The AutoYaST config mode does access to the system.
+      # bnc#942360
+      return if Mode.config
+
       mp = Storage.GetMountPoints
 
       mountdata_boot = mp["/boot"] || mp["/"]
