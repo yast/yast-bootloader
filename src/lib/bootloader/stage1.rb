@@ -33,7 +33,7 @@ module Bootloader
         when /s390/
           propose_s390
         else
-          raise "unsuported architecture #{Arch.architecture}"
+          raise "unsuported architecture #{Yast::Arch.architecture}"
         end
 
       log.info "location configured. Resulting globals #{Yast::BootCommon.globals}"

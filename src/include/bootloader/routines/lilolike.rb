@@ -67,7 +67,8 @@ module Yast
     # FIXME: replace with grub_ConfigureLocation() when lilo et al. have
     # changed to stop using selected_location and loader_device.
     def ConfigureLocation
-      ::Bootloader::Stage1.new.propose.to_s
+      # configure stage1 only on non-EFI systems
+      ::Bootloader::Stage1.new.propose.to_s if Yast::Bootloader.getLoaderType == "grub2"
     end
 
     # Detect /boot and / (root) partition devices
