@@ -28,6 +28,7 @@ describe Yast::BootStorage do
       allow(Yast::Arch).to receive(:s390).and_return(false) # be arch agnostic
       subject.device_map.propose
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:device)
+      allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
     end
 
     it "returns list of kernel devices that can be used as stage1 for bootloader" do
@@ -132,6 +133,7 @@ describe Yast::BootStorage do
         "/"     => ["/dev/vda1"],
         "/boot" => ["/dev/vda2"]
       )
+      allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
     end
 
     it "fills RootPartitionDevice variable" do

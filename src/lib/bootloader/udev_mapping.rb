@@ -37,9 +37,20 @@ module Bootloader
     # @param dev [String] device udev or kernel one like /dev/disks/by-id/blabla
     # @raise when device have udev format but do not exists
     def to_kernel_device(dev)
-      return dev if dev !~ /^\/dev\/disk\/by-/
+      # for non-udev devices try to see specific raid names (bnc#944041)
+      if dev =~ /^\/dev\/disk\/by-/
+        all_devices[dev] or raise "Unknown udev device #{dev}"
+      else
+        param = Yast::ArgRef.new({})
+        result = Yast::Storage.GetContVolInfo(dev, param)
+        return dev unless result # not raid with funny name
 
-      all_devices[dev] or raise "Unknown udev device #{dev}"
+        info = param.value
+        return info["vdevice"] unless info["vdevice"].empty?
+        return info["cdevice"] unless info["cdevice"].empty?
+
+        raise "unknown value for raid device '#{info.inspect}'"
+      end
     end
 
     # Converts udev or kernel device (disk or partition) to udev name according to mountby

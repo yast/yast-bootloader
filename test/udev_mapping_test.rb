@@ -10,6 +10,7 @@ describe Bootloader::UdevMapping do
     # always invalidate cache to use new mocks
     allow(subject.instance).to receive(:cache_valid?).and_return false
     allow(Yast::Arch).to receive(:ppc).and_return(false)
+    allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
   end
 
   describe ".to_kernel_device" do
