@@ -19,7 +19,7 @@ describe Bootloader::UdevMapping do
     end
 
     it "returns mapped raid name for partitioned devices" do
-      allow(Yast::Storage).to receive(:GetContVolInfo) do |dev, info|
+      allow(Yast::Storage).to receive(:GetContVolInfo) do |_dev, info|
         info.value["vdevice"] = "/dev/md126p1"
         info.value["cdevice"] = ""
         true
@@ -29,7 +29,7 @@ describe Bootloader::UdevMapping do
     end
 
     it "returns mapped raid name for non-partitioned devices" do
-      allow(Yast::Storage).to receive(:GetContVolInfo) do |dev, info|
+      allow(Yast::Storage).to receive(:GetContVolInfo) do |_dev, info|
         info.value["vdevice"] = ""
         info.value["cdevice"] = "/dev/md126"
         true
