@@ -34,17 +34,28 @@ module Bootloader
     end
 
     # Converts full udev name to kernel device ( disk or partition )
-    # @param dev [String] device udev or kernel one like /dev/disks/by-id/blabla
+    # @param dev [String] device udev, mdadm or kernel name like /dev/disk/by-id/blabla
     # @raise when device have udev format but do not exists
     def to_kernel_device(dev)
-      return dev if dev !~ /^\/dev\/disk\/by-/
+      # for non-udev devices try to see specific raid names (bnc#944041)
+      if dev =~ /^\/dev\/disk\/by-/
+        all_devices[dev] or raise "Unknown udev device #{dev}"
+      else
+        param = Yast::ArgRef.new({})
+        result = Yast::Storage.GetContVolInfo(dev, param)
+        return dev unless result # not raid with funny name
 
-      all_devices[dev] or raise "Unknown udev device #{dev}"
+        info = param.value
+        return info["vdevice"] unless info["vdevice"].empty?
+        return info["cdevice"] unless info["cdevice"].empty?
+
+        raise "unknown value for raid device '#{info.inspect}'"
+      end
     end
 
     # Converts udev or kernel device (disk or partition) to udev name according to mountby
     # option or kernel device if such udev device do not exists
-    # @param dev [String] device udev or kernel one like /dev/disks/by-id/blabla
+    # @param dev [String] device udev or kernel one like /dev/disk/by-id/blabla
     # @raise when device have udev format but do not exists
     def to_mountby_device(dev)
       kernel_dev = to_kernel_device(dev)
@@ -89,6 +100,14 @@ module Bootloader
   private
 
     # reader of all devices that ensure that it contain valid data
+    #
+    # @return hash where keys are udev links for disks and partitions and value their kernel devices.
+    # @example of output
+    #   {
+    #     "/dev/disk/by-id/abcd" => "/dev/sda",
+    #     "/dev/disk/by-id/abcde" => "/dev/sda",
+    #     "/dev/disk/by-label/label1" => "/dev/sda1",
+    #     "/dev/disk/by-uuid/aaaa-bbbb-cccc-dddd" => "/dev/sda",
     def all_devices
       map_devices unless cache_valid?
       @all_devices

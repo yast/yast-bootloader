@@ -10,6 +10,7 @@ describe Bootloader::UdevMapping do
     # always invalidate cache to use new mocks
     allow(subject.instance).to receive(:cache_valid?).and_return false
     allow(Yast::Arch).to receive(:ppc).and_return(false)
+    allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
   end
 
   describe ".to_kernel_device" do
@@ -17,7 +18,29 @@ describe Bootloader::UdevMapping do
       target_map_stub("storage_ppc.yaml")
     end
 
-    it "return argument for non-udev mapped device names" do
+    it "returns mapped raid name for partitioned devices" do
+      expect(Yast::Storage).to receive(:GetContVolInfo) do |dev, info|
+        expect(dev).to eq "/dev/md/crazy_name"
+        info.value["vdevice"] = "/dev/md126p1"
+        info.value["cdevice"] = ""
+        true
+      end
+
+      expect(subject.to_kernel_device("/dev/md/crazy_name")).to eq "/dev/md126p1"
+    end
+
+    it "returns mapped raid name for non-partitioned devices" do
+      expect(Yast::Storage).to receive(:GetContVolInfo) do |dev, info|
+        expect(dev).to eq "/dev/md/crazy_name"
+        info.value["vdevice"] = ""
+        info.value["cdevice"] = "/dev/md126"
+        true
+      end
+
+      expect(subject.to_kernel_device("/dev/md/crazy_name")).to eq "/dev/md126"
+    end
+
+    it "return argument for non-udev non-raid mapped device names" do
       expect(subject.to_kernel_device("/dev/sda")).to eq "/dev/sda"
     end
 
