@@ -100,6 +100,14 @@ module Bootloader
   private
 
     # reader of all devices that ensure that it contain valid data
+    #
+    # @return hash where keys are udev links for disks and partitions and value their kernel devices.
+    # @example of output
+    #   {
+    #     "/dev/disk/by-id/abcd" => "/dev/sda",
+    #     "/dev/disk/by-id/abcde" => "/dev/sda",
+    #     "/dev/disk/by-label/label1" => "/dev/sda1",
+    #     "/dev/disk/by-uuid/aaaa-bbbb-cccc-dddd" => "/dev/sda",
     def all_devices
       map_devices unless cache_valid?
       @all_devices
