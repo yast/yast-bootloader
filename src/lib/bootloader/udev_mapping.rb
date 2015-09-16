@@ -34,7 +34,7 @@ module Bootloader
     end
 
     # Converts full udev name to kernel device ( disk or partition )
-    # @param dev [String] device udev or kernel one like /dev/disks/by-id/blabla
+    # @param dev [String] device udev or kernel one like /dev/disk/by-id/blabla
     # @raise when device have udev format but do not exists
     def to_kernel_device(dev)
       # for non-udev devices try to see specific raid names (bnc#944041)
@@ -55,7 +55,7 @@ module Bootloader
 
     # Converts udev or kernel device (disk or partition) to udev name according to mountby
     # option or kernel device if such udev device do not exists
-    # @param dev [String] device udev or kernel one like /dev/disks/by-id/blabla
+    # @param dev [String] device udev or kernel one like /dev/disk/by-id/blabla
     # @raise when device have udev format but do not exists
     def to_mountby_device(dev)
       kernel_dev = to_kernel_device(dev)
