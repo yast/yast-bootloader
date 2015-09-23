@@ -136,7 +136,7 @@ describe Bootloader::ProposalClient do
 
     it "call bootloader propose in common installation" do
       Yast.import "Mode"
-      expect(Yast::Mode).to receive(:update).and_return(false)
+      allow(Yast::Mode).to receive(:update).and_return(false)
       expect(Yast::Bootloader).to receive(:Propose)
 
       subject.make_proposal({})
@@ -144,7 +144,7 @@ describe Bootloader::ProposalClient do
 
     it "reproprose from scrach during update if old bootloader is not grub2" do
       Yast.import "Mode"
-      expect(Yast::Mode).to receive(:update).and_return(true)
+      allow(Yast::Mode).to receive(:update).and_return(true)
 
       expect(subject).to receive("old_bootloader").and_return("grub").twice
 
@@ -159,7 +159,7 @@ describe Bootloader::ProposalClient do
 
     it "do not propose during update if if old bootloader is none" do
       Yast.import "Mode"
-      expect(Yast::Mode).to receive(:update).and_return(true)
+      allow(Yast::Mode).to receive(:update).and_return(true)
 
       expect(subject).to receive("old_bootloader").and_return("none").twice
 
@@ -168,7 +168,7 @@ describe Bootloader::ProposalClient do
 
     it "just read old configuration update if old bootloader is grub2" do
       Yast.import "Mode"
-      expect(Yast::Mode).to receive(:update).and_return(true)
+      allow(Yast::Mode).to receive(:update).and_return(true)
 
       expect(subject).to receive("old_bootloader").and_return("grub2")
 
