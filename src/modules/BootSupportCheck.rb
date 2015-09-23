@@ -271,10 +271,10 @@ module Yast
     def GRUB2
       ret = GRUB()
       # ensure that s390 have ext* partition for booting (bnc#873951)
-      ret &&= check_zipl_part if Arch.s390
-      ret &&= check_gpt_reserved_partition if Arch.x86_64
-      ret &&= check_zipl_part if Arch.x86_64 || Arch.ppc64
-      ret &&= check_mbr if Arch.x86_64
+      ret = check_zipl_part && ret if Arch.s390
+      ret = check_gpt_reserved_partition && ret if Arch.x86_64
+      ret = check_activate_partition && ret if Arch.x86_64 || Arch.ppc64
+      ret = check_mbr && ret if Arch.x86_64
 
       ret
     end
