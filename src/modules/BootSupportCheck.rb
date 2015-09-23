@@ -245,6 +245,21 @@ module Yast
       end
     end
 
+    def check_activate_partition
+      # activate set or there is already activate flag
+      return true if BootCommon.globals["activate"] == "true" || Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk)
+
+      AddNewProblem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
+      return false
+    end
+
+    def check_mbr
+      return true if BootCommon.globals["generic_mbr"] == "true" || BootCommon.globals["boot_mbr"] == "true"
+
+      AddNewProblem(_("Installer do not modify disk MBR. Unless it contain already some boot code it, disk refuse to boot."))
+      return false
+    end
+
     # GRUB-related check
     def GRUB
       ret = GptPartitionTable()
@@ -258,6 +273,8 @@ module Yast
       # ensure that s390 have ext* partition for booting (bnc#873951)
       ret &&= check_zipl_part if Arch.s390
       ret &&= check_gpt_reserved_partition if Arch.x86_64
+      ret &&= check_zipl_part if Arch.x86_64 || Arch.ppc64
+      ret &&= check_mbr if Arch.x86_64
 
       ret
     end
