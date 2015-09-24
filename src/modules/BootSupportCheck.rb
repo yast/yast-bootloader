@@ -252,7 +252,7 @@ module Yast
     def check_mbr
       return true if BootCommon.globals["generic_mbr"] == "true" || BootCommon.globals["boot_mbr"] == "true"
 
-      AddNewProblem(_("Installer do not modify disk MBR. Unless it contain already some boot code it, disk refuse to boot."))
+      AddNewProblem(_("The installer will not modify the MBR of the disk. Unless it already contains boot code, the BIOS won't be able to boot disk."))
       false
     end
 
@@ -265,14 +265,14 @@ module Yast
 
     # GRUB2-related check
     def GRUB2
-      ret = GRUB()
+      ret = [GRUB()]
       # ensure that s390 have ext* partition for booting (bnc#873951)
-      ret = check_zipl_part && ret if Arch.s390
-      ret = check_gpt_reserved_partition && ret if Arch.x86_64
-      ret = check_activate_partition && ret if Arch.x86_64 || Arch.ppc64
-      ret = check_mbr && ret if Arch.x86_64
+      ret << check_zipl_part if Arch.s390
+      ret << check_gpt_reserved_partition if Arch.x86_64
+      ret << check_activate_partition if Arch.x86_64 || Arch.ppc64
+      ret << check_mbr if Arch.x86_64
 
-      ret
+      ret.all?
     end
 
     # GRUB2EFI-related check
