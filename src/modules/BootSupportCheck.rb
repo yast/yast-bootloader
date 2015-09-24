@@ -222,11 +222,7 @@ module Yast
     def efi?
       cmd = "modprobe efivars 2>/dev/null"
       SCR.Execute(path(".target.bash_output"), cmd)
-      if FileUtils.Exists("/sys/firmware/efi/systab")
-        return true
-      else
-        return false
-      end
+      FileUtils.Exists("/sys/firmware/efi/systab")
     end
 
     def check_zipl_part
@@ -245,6 +241,21 @@ module Yast
       end
     end
 
+    def check_activate_partition
+      # activate set or there is already activate flag
+      return true if BootCommon.globals["activate"] == "true" || Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk)
+
+      AddNewProblem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
+      false
+    end
+
+    def check_mbr
+      return true if BootCommon.globals["generic_mbr"] == "true" || BootCommon.globals["boot_mbr"] == "true"
+
+      AddNewProblem(_("The installer will not modify the MBR of the disk. Unless it already contains boot code, the BIOS won't be able to boot disk."))
+      false
+    end
+
     # GRUB-related check
     def GRUB
       ret = GptPartitionTable()
@@ -254,12 +265,14 @@ module Yast
 
     # GRUB2-related check
     def GRUB2
-      ret = GRUB()
+      ret = [GRUB()]
       # ensure that s390 have ext* partition for booting (bnc#873951)
-      ret &&= check_zipl_part if Arch.s390
-      ret &&= check_gpt_reserved_partition if Arch.x86_64
+      ret << check_zipl_part if Arch.s390
+      ret << check_gpt_reserved_partition if Arch.x86_64
+      ret << check_activate_partition if Arch.x86_64 || Arch.ppc64
+      ret << check_mbr if Arch.x86_64
 
-      ret
+      ret.all?
     end
 
     # GRUB2EFI-related check

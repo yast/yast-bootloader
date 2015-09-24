@@ -77,8 +77,13 @@ module Yast
     # selected_location and set the activate flag if needed
     # all these settings are stored in internal variables
     def DetectDisks
-      need_location_reconfigure = BootStorage.detect_disks
-      ConfigureLocation() if need_location_reconfigure
+      location_reconfigure = BootStorage.detect_disks
+
+      return if location_reconfigure == :ok
+      # if already proposed, then empty location is intention of user
+      return if location_reconfigure == :empty && BootCommon.was_proposed
+
+      grub_ConfigureLocation
     end
 
     # Update global options of bootloader
