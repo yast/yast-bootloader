@@ -458,7 +458,7 @@ module Yast
         !all_boot_partitions.include?(dev)
       end
 
-      return invalid ? :invalid : :ok
+      invalid ? :invalid : :ok
     end
 
     def prep_partitions

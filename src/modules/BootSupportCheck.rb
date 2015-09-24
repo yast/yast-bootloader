@@ -222,11 +222,7 @@ module Yast
     def efi?
       cmd = "modprobe efivars 2>/dev/null"
       SCR.Execute(path(".target.bash_output"), cmd)
-      if FileUtils.Exists("/sys/firmware/efi/systab")
-        return true
-      else
-        return false
-      end
+      FileUtils.Exists("/sys/firmware/efi/systab")
     end
 
     def check_zipl_part
@@ -250,14 +246,14 @@ module Yast
       return true if BootCommon.globals["activate"] == "true" || Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk)
 
       AddNewProblem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
-      return false
+      false
     end
 
     def check_mbr
       return true if BootCommon.globals["generic_mbr"] == "true" || BootCommon.globals["boot_mbr"] == "true"
 
       AddNewProblem(_("Installer do not modify disk MBR. Unless it contain already some boot code it, disk refuse to boot."))
-      return false
+      false
     end
 
     # GRUB-related check
