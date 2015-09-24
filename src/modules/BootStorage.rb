@@ -413,11 +413,12 @@ module Yast
     end
 
     # Sets properly boot, root and mbr disk.
-    # @return true if proposal need to be reconfigured
+    # @return :empty if bl devices are empty, :invalid if storage changed and
+    #   :ok if everything is fine
     def detect_disks
       # The AutoYaST config mode does access to the system.
       # bnc#942360
-      return if Mode.config
+      return :ok if Mode.config
 
       mp = Storage.GetMountPoints
 
@@ -450,12 +451,14 @@ module Yast
       # bootloader location.
       bldevs = BootCommon.GetBootloaderDevices
 
-      return true if bldevs.empty?
+      return :empty if bldevs.empty?
 
       all_boot_partitions = possible_locations_for_stage1
-      bldevs.any? do |dev|
+      invalid = bldevs.any? do |dev|
         !all_boot_partitions.include?(dev)
       end
+
+      return invalid ? :invalid : :ok
     end
 
     def prep_partitions

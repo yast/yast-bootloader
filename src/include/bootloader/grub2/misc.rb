@@ -88,11 +88,13 @@ module Yast
     # globals["activate"] and globals["generic_mbr"] flags if needed
     # all these settings are stored in internal variables
     def grub_DetectDisks
-      need_location_reconfigure = BootStorage.detect_disks
-      # if already proposed, then empty location is intention of user
-      need_location_reconfigure = false if BootCommon.was_proposed
+      location_reconfigure = BootStorage.detect_disks
 
-      grub_ConfigureLocation if need_location_reconfigure
+      return if location_reconfigure == :ok
+      # if already proposed, then empty location is intention of user
+      return if location_reconfigure == :empty && BootCommon.was_proposed
+
+      grub_ConfigureLocation
     end
 
     # Propose the boot loader location for grub
