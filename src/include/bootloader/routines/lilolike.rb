@@ -78,6 +78,9 @@ module Yast
     # all these settings are stored in internal variables
     def DetectDisks
       need_location_reconfigure = BootStorage.detect_disks
+      # if already proposed, then empty location is intention of user
+      need_location_reconfigure = false if BootCommon.was_proposed
+
       ConfigureLocation() if need_location_reconfigure
     end
 
