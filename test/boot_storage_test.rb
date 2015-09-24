@@ -179,24 +179,24 @@ describe Yast::BootStorage do
       expect(Yast::BootCommon.mbrDisk).to eq "/dev/vda"
     end
 
-    it "returns true if bootloader devices is not yet set" do
+    it "returns :empty if bootloader devices is not yet set" do
       allow(Yast::BootCommon).to receive(:GetBootloaderDevices).and_return([])
 
-      expect(subject.detect_disks).to eq true
+      expect(subject.detect_disks).to eq :empty
     end
 
-    it "returns true if any bootloader device is no longer available" do
+    it "returns :invalid if any bootloader device is no longer available" do
       allow(Yast::BootCommon).to receive(:GetBootloaderDevices).and_return(["/dev/not_available"])
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
 
-      expect(subject.detect_disks).to eq true
+      expect(subject.detect_disks).to eq :invalid
     end
 
-    it "returns false if all bootloader devices are available" do
+    it "returns :ok if all bootloader devices are available" do
       allow(Yast::BootCommon).to receive(:GetBootloaderDevices).and_return(["/dev/vda"])
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
 
-      expect(subject.detect_disks).to eq false
+      expect(subject.detect_disks).to eq :ok
     end
   end
 
