@@ -89,6 +89,8 @@ module Yast
     # all these settings are stored in internal variables
     def grub_DetectDisks
       need_location_reconfigure = BootStorage.detect_disks
+      # if already proposed, then empty location is intention of user
+      need_location_reconfigure = false if BootCommon.was_proposed
 
       grub_ConfigureLocation if need_location_reconfigure
     end
