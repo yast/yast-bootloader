@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep 25 15:22:17 UTC 2015 - jreidinger@suse.com
+
+- fix booting on ppc with /boot on software raid (bnc#940542)
+- 3.1.153
+
+-------------------------------------------------------------------
 Thu Sep 24 08:53:00 UTC 2015 - jreidinger@suse.com
 
 - fix one click proposal change to behave reasonable
