@@ -152,13 +152,17 @@ module Bootloader
     end
 
     def boot_devices
-      if !@boot_devices
-        @boot_devices = bootloader_devices.dup
+      return @boot_devices if @boot_devices
 
-        boot_device = Yast::BootCommon.getBootPartition
-        # bnc#494630 - add also boot partitions from soft-raids
-        @boot_devices << boot_device if boot_device.start_with?("/dev/md")
-      end
+      @boot_devices = bootloader_devices.dup
+
+      # ppc do not use boot partition and have to activate prep partition that
+      # cannot be on raid (bnc#940542)
+      return @boot_devices if Yast::Arch.ppc64
+
+      # bnc#494630 - add also boot partitions from soft-raids
+      boot_device = Yast::BootCommon.getBootPartition
+      @boot_devices << boot_device if boot_device.start_with?("/dev/md")
 
       @boot_devices
     end
