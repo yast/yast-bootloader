@@ -205,11 +205,13 @@ module Bootloader
       if device_mapping[priority_device]
         old_first_device = device_mapping.key("hd0")
         old_device_id = device_mapping[priority_device]
-        device_mapping[old_first_device] = old_device_id
+        device_mapping[old_first_device] = old_device_id if old_first_device
         device_mapping[priority_device] = "hd0"
       else
         log.warn("Unknown priority device '#{priority_device}'. Skipping")
       end
+
+      log.info "Device mapping after re-ordering: #{device_mapping}"
 
       device_mapping
     end
