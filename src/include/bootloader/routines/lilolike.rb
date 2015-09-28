@@ -29,6 +29,7 @@ module Yast
       Yast.import "Storage"
 
       Yast.include include_target, "bootloader/routines/i386.rb"
+      Yast.include include_target, "bootloader/grub2/misc.rb"
     end
 
     # FindMbrDisk()
