@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep 28 15:41:45 CEST 2015 - schubi@suse.de
+
+- Including a needed file. This is an additional fix for
+  bnc#930341.
+- 3.1.154
+
+-------------------------------------------------------------------
 Fri Sep 25 15:22:17 UTC 2015 - jreidinger@suse.com
 
 - fix booting on ppc with /boot on software raid (bnc#940542)
