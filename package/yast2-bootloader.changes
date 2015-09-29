@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep 29 10:28:42 UTC 2015 - jreidinger@suse.com
+
+- fix device map handling if there's no 'hd0' entry in it
+  (bsc#947730) by snwint
+- 3.1.155
+
+-------------------------------------------------------------------
 Mon Sep 28 15:41:45 CEST 2015 - schubi@suse.de
 
 - Including a needed file. This is an additional fix for
