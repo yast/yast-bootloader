@@ -29,7 +29,6 @@ module Yast
       Yast.import "Storage"
 
       Yast.include include_target, "bootloader/routines/i386.rb"
-      Yast.include include_target, "bootloader/grub2/misc.rb"
     end
 
     # FindMbrDisk()
@@ -82,9 +81,12 @@ module Yast
 
       return if location_reconfigure == :ok
       # if already proposed, then empty location is intention of user
-      return if location_reconfigure == :empty && BootCommon.was_proposed
+      if location_reconfigure == :empty && BootCommon.was_proposed
+        # unless autoinstall where we do not allow empty boot devices (bnc#948258)
+        return unless Mode.auto
+      end
 
-      grub_ConfigureLocation
+      ConfigureLocation()
     end
 
     # Update global options of bootloader
