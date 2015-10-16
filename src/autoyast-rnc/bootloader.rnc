@@ -41,6 +41,19 @@ loader_type = element loader_type { text }
 bl_location = element location { text }
 bl_global =
   element global {
+    element append          { text }? &
+    element append_failsafe { text }? &
+    element cryptodisk      { INTEGER }? &
+    element distributor     { text }? &
+    element gfxbackground   { text }? &
+    element gfxmode         { text }? &
+    element gfxtheme        { text }? &
+    # really "true"|"false", without config:type=boolean
+    element hiddenmenu      { "true" | "false" }? &
+    element os_prober       { "true" | "false" }? &
+    element suse_btrfs      { "true" | "false" }? &
+    element xen_append      { text }? &
+
     element boot_custom { text }? &
     element generic_mbr { text }? &
     element trusted_grub{ text }? &
@@ -77,6 +90,8 @@ sections =
   }
 section =
   element section {
+    element menuentry {text}? &
+    element usage   {text}? &
     element append  {text}? &
     element initial {text}? &
     element console {text}? &
