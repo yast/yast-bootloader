@@ -19,6 +19,10 @@ describe Bootloader::FinishClient do
       allow(Yast::Bootloader).to receive(:Read)
       allow(Yast::Bootloader).to receive(:FlagOnetimeBoot).and_return(true)
       allow(Yast::Bootloader).to receive(:getDefaultSection).and_return("linux")
+
+      Yast.import "BootCommon"
+
+      allow(Yast::BootCommon).to receive(:was_read).and_return(true)
     end
 
     it "sets on non-s390 systems reboot message" do

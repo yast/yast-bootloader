@@ -48,12 +48,20 @@ module Bootloader
       if !Yast::Mode.update
         retcode = Yast::Bootloader.WriteInstallation
       else
-        retcode = Yast::Bootloader.Update
+        # if we do not read nor propose that we have nothing to do
+        if Yast::BootCommon.was_read || Yast::BootCommon.was_proposed
+          retcode = Yast::Bootloader.Update
+        else
+          quick_exit = true
+        end
+
 
         # workaround for packages that forgot to update initrd(bnc#889616)
         # do not use Initrd module as it can also change configuration, which we do not want
         res = Yast::SCR.Execute(BASH_PATH, "/sbin/mkinitrd")
         log.info "Regerate initrd with result #{res}"
+
+        return true if quick_exit
       end
 
       # FIXME: workaround grub2 need manual rerun of branding due to overwrite by
