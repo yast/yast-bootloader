@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 16 14:27:17 CEST 2015 - schubi@suse.de
+
+- Set StorageDevices flag disks_valid to true while cloning system
+  in AutoYaST. (bnc#950105)
+- 3.1.157
+
+-------------------------------------------------------------------
 Thu Oct  1 12:21:31 UTC 2015 - jreidinger@suse.com
 
 - Fix proposing stage1 location in autoyast (bnc#948258)
