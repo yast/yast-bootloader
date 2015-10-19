@@ -166,7 +166,7 @@ describe Bootloader::ProposalClient do
       subject.make_proposal({})
     end
 
-    it "do nothing if old bootloader is grub2" do
+    it "propose no change if old bootloader is grub2" do
       Yast.import "Mode"
       allow(Yast::Mode).to receive(:update).and_return(true)
 
@@ -175,7 +175,7 @@ describe Bootloader::ProposalClient do
       expect(Yast::Bootloader).to_not receive(:Propose)
       expect(Yast::Bootloader).to_not receive(:blRead)
 
-      expect(subject.make_proposal({})).to eq({})
+      expect(subject.make_proposal({})).to eq({"raw_proposal" => ["do not change"]})
     end
 
     it "resets configuration if not automode and force_reset passed" do
