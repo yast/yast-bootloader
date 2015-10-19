@@ -3,6 +3,13 @@ Mon Oct 19 16:10:34 UTC 2015 - jreidinger@suse.com
 
 - do not modify bootloader configuration during offlien upgrade 
   from grub2 to grub2 (bnc#950695,bnc#950162)
+- 3.1.158
+
+-------------------------------------------------------------------
+Fri Oct 16 14:27:17 CEST 2015 - schubi@suse.de
+
+- Set StorageDevices flag disks_valid to true while cloning system
+  in AutoYaST. (bnc#950105)
 - 3.1.157
 
 -------------------------------------------------------------------

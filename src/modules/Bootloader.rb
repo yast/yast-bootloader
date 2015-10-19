@@ -39,6 +39,7 @@ module Yast
       Yast.import "Progress"
       Yast.import "Stage"
       Yast.import "Storage"
+      Yast.import "StorageDevices"
       Yast.import "Directory"
 
       # fate 303395
@@ -175,11 +176,15 @@ module Yast
 
       getLoaderType
 
-      # While calling AutoYaST clone_system libStorage
-      # has to be set to "normal" mode in order to read
-      # mountpoints correctly
+      # While calling "yast clone_system" and while cloning bootloader
+      # in the AutoYaST module, libStorage has to be set to "normal"
+      # mode in order to read mountpoints correctly.
+      # (bnc#950105)
       old_mode = Mode.mode
-      Mode.SetMode("normal") if Mode.config
+      if Mode.config
+        Mode.SetMode("normal")
+        StorageDevices.InitDone # Set StorageDevices flag disks_valid to true
+      end
 
       BootCommon.DetectDisks
       Mode.SetMode(old_mode) if old_mode == "autoinst_config"
