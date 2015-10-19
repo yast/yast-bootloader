@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct 19 16:10:34 UTC 2015 - jreidinger@suse.com
+
+- do not modify bootloader configuration during offlien upgrade 
+  from grub2 to grub2 (bnc#950695,bnc#950162)
+- 3.1.157
+
+-------------------------------------------------------------------
 Thu Oct  1 12:21:31 UTC 2015 - jreidinger@suse.com
 
 - Fix proposing stage1 location in autoyast (bnc#948258)
