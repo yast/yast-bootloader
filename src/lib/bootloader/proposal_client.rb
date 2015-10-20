@@ -44,7 +44,7 @@ module Bootloader
       end
 
       if Yast::Mode.update
-        propose_for_update(force_reset)
+        return { "raw_proposal" => [_("do not change")] } unless propose_for_update(force_reset)
       else
         # in installation always propose missing stuff
         Yast::Bootloader.Propose
@@ -117,19 +117,11 @@ module Bootloader
     end
 
     def propose_for_update(force_reset)
-      if ["grub2", "grub2-efi"].include? old_bootloader
+      if ["grub2", "grub2-efi"].include?(old_bootloader) &&
+          !Yast::BootCommon.was_proposed &&
+          !Yast::Bootloader.proposed_cfg_changed
         log.info "update of grub2, do not repropose"
-        if !Yast::BootCommon.was_read || force_reset
-          # SCR isn't pointing to /mnt yet but we'd really like to read
-          # the config files - so we're cheating a bit.
-          Yast::WFM.Execute(Path.new(".local.bash"),
-            "ln -s /mnt/boot/grub2 /boot; " \
-            "ln -s /mnt/etc/default/grub{,_installdevice} /etc/default; " \
-            "ln -s /mnt/etc/sysconfig/bootloader /etc/sysconfig"
-          )
-          Yast::Bootloader.blRead(true, true)
-          Yast::BootCommon.was_read = true
-        end
+        return false
       elsif old_bootloader == "none"
         log.info "Bootloader not configured, do not repropose"
         # blRead just exits for none bootloader
@@ -141,6 +133,8 @@ module Bootloader
         Yast::Bootloader.Reset
         Yast::Bootloader.Propose
       end
+
+      true
     end
 
     def construct_proposal_map
