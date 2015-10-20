@@ -44,7 +44,7 @@ module Bootloader
       end
 
       if Yast::Mode.update
-        return {"raw_proposal" => [_("do not change")]} unless propose_for_update(force_reset)
+        return { "raw_proposal" => [_("do not change")] } unless propose_for_update(force_reset)
       else
         # in installation always propose missing stuff
         Yast::Bootloader.Propose
@@ -117,7 +117,7 @@ module Bootloader
     end
 
     def propose_for_update(force_reset)
-      if ["grub2", "grub2-efi"].include?(old_bootloader) && 
+      if ["grub2", "grub2-efi"].include?(old_bootloader) &&
           !Yast::BootCommon.was_proposed &&
           !Yast::Bootloader.proposed_cfg_changed
         log.info "update of grub2, do not repropose"

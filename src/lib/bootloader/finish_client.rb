@@ -55,7 +55,6 @@ module Bootloader
           quick_exit = true
         end
 
-
         # workaround for packages that forgot to update initrd(bnc#889616)
         # do not use Initrd module as it can also change configuration, which we do not want
         res = Yast::SCR.Execute(BASH_PATH, "/sbin/mkinitrd")

@@ -175,7 +175,7 @@ describe Bootloader::ProposalClient do
       expect(Yast::Bootloader).to_not receive(:Propose)
       expect(Yast::Bootloader).to_not receive(:blRead)
 
-      expect(subject.make_proposal({})).to eq({"raw_proposal" => ["do not change"]})
+      expect(subject.make_proposal({})).to eq("raw_proposal" => ["do not change"])
     end
 
     it "resets configuration if not automode and force_reset passed" do
