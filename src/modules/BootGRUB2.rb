@@ -205,7 +205,7 @@ module Yast
       end
 
       if ["boot_root", "boot_boot", "boot_mbr", "boot_extended"].none? { |loc| BootCommon.globals[loc] == "true" } &&
-          !BootCommon.globals["boot_custom"] && !BootCommon.globals["boot_custom"].empty?
+          (BootCommon.globals["boot_custom"].nil? ||BootCommon.globals["boot_custom"].empty?)
         # no location chosen, so warn user that it is problem unless he is sure
         msg = _("Warning: No location for bootloader stage1 selected." \
           "Unless you know what you are doing please select above location.")
