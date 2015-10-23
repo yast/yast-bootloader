@@ -30,6 +30,13 @@ module Yast
         return :auto # don't execute this once more
       end
 
+      # for upgrade that is from grub2 to grub2 and user do not want
+      # any changes, just quit (bnc#951731)
+      if Mode.update && !(BootCommon.was_read || BootCommon.was_proposed)
+        Builtins.y2milestone("clean upgrade, do nothing")
+        return :auto
+      end
+
       # if BL config is created from scratch, prepare config files
       # in order not to touch old files (bnc#899743)
       if Mode.installation || !BootCommon.was_read
