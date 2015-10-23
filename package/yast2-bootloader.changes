@@ -8,7 +8,7 @@ Fri Oct 23 13:16:59 UTC 2015 - jreidinger@suse.com
 -------------------------------------------------------------------
 Mon Oct 19 16:10:34 UTC 2015 - jreidinger@suse.com
 
-- do not modify bootloader configuration during offlien upgrade
+- do not modify bootloader configuration during offline upgrade
   from grub2 to grub2 (bnc#950695,bnc#950162)
 - 3.1.158
 
