@@ -54,19 +54,25 @@ bl_global =
     boot_root? &
     boot_boot? &
     boot_mbr? &
-    stage1_dev?
+    stage1_dev? &
+    boot_efilabel? &
+    prompt? &
+    secure_boot?
   }
 
 lines_cache_id = element lines_cache_id { text }
 stage1_dev = element stage1_dev { text }
 bl_timeout = element timeout { INTEGER }
 gfxmenu = element gfxmenu { text }
+boot_efilabel = element boot_efilabel { text }
 
 # really "true"|"false", without config:type=boolean
 bl_activate = element activate { "true" | "false" }
 boot_root = element boot_root { "true" | "false" }
 boot_boot = element boot_boot { "true" | "false" }
 boot_mbr = element boot_mbr { "true" | "false" }
+prompt = element prompt { "true" | "false" }
+secure_boot = element secure-boot { "true" | "false" }
 
 sections =
   element sections {
@@ -97,7 +103,8 @@ section =
     element makeactive { "true" | "false" }? &
     element remap { "true" | "false" }? &
     element configfile {text}? &
-    element image   {text}?
+    element image   {text}? &
+    element description {text}?
   }
 kernel_parameters = element kernel_parameters { text }
 

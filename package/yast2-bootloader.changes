@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov  4 11:28:08 UTC 2015 - igonzalezsosa@suse.com
+
+- Fix validation of AutoYaST profiles (bsc#805275)
+- 2.17.99
+
+-------------------------------------------------------------------
 Wed Jul  8 09:00:11 UTC 2015 - jreidinger@suse.com
 
 - unify xen name to Xen to fix removing duplicite xen entries at
