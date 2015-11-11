@@ -259,7 +259,7 @@ module Yast
     # GRUB-related check
     def GRUB
       ret = GptPartitionTable()
-      ret = check_BootDevice if ret
+      ret = check_BootDevice if ret && Arch.x86_64
       ret
     end
 
