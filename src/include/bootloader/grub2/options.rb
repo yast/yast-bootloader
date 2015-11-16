@@ -123,12 +123,12 @@ module Yast
     # Init function for console
     # @param [String] widget
     def ConsoleInit(_widget)
-      enable = Ops.get(BootCommon.globals, "terminal", "") == "serial"
+      enable = default_grub.terminal == :serial
       UI.ChangeWidget(Id(:console_frame), :Value, enable)
-      args = Ops.get(BootCommon.globals, "serial", "")
+      args = default_grub.serial_console || ""
       UI.ChangeWidget(Id(:console_args), :Value, args)
 
-      enable = Ops.get(BootCommon.globals, "terminal", "") == "gfxterm"
+      enable = default_grub.terminal == :gfxterm
       UI.ChangeWidget(Id(:gfxterm_frame), :Value, enable)
 
       @vga_modes = Initrd.VgaModes if Builtins.size(@vga_modes) == 0
@@ -191,46 +191,27 @@ module Yast
     # @param [String] widget any widget key
     # @param [Hash] event map event description of event that occured
     def ConsoleStore(_widget, _event)
-      use_serial = Convert.to_boolean(
-        UI.QueryWidget(Id(:console_frame), :Value)
-      )
-      use_gfxterm = Convert.to_boolean(
-        UI.QueryWidget(Id(:gfxterm_frame), :Value)
-      )
+      use_serial = UI.QueryWidget(Id(:console_frame), :Value)
+      use_gfxterm = UI.QueryWidget(Id(:gfxterm_frame), :Value)
 
       if use_gfxterm && use_serial
         use_gfxterm = false
-      elsif !use_gfxterm && !use_serial
-        Ops.set(BootCommon.globals, "terminal", "console")
       end
 
       if use_serial
-        Ops.set(BootCommon.globals, "terminal", "serial")
-        console_value = Convert.to_string(
-          UI.QueryWidget(Id(:console_args), :Value)
-        )
-        if console_value != ""
-          Ops.set(BootCommon.globals, "serial", console_value)
-        end
+        console_value = UI.QueryWidget(Id(:console_args), :Value)
+        enable_serial_console(console_value)
+      elsif use_gfxterm
+        grub_default.terminal = :gfxterm
       else
-        if Builtins.haskey(BootCommon.globals, "serial")
-          BootCommon.globals = Builtins.remove(BootCommon.globals, "serial")
-        end
+        grub_default.terminal = :console
       end
-
-      Ops.set(BootCommon.globals, "terminal", "gfxterm") if use_gfxterm
 
       mode = Convert.to_string(UI.QueryWidget(Id(:gfxmode), :Value))
       Ops.set(BootCommon.globals, "gfxmode", mode) if mode != ""
 
       theme = Convert.to_string(UI.QueryWidget(Id(:gfxtheme), :Value))
       Ops.set(BootCommon.globals, "gfxtheme", theme)
-
-      # FATE: #110038: Serial console
-      # add or remove console key with value for sections
-      BootCommon.HandleConsole2
-
-      nil
     end
 
     def ConsoleHandle(_widget, _event)
@@ -337,6 +318,27 @@ module Yast
       UI.ChangeWidget(Id(:unrestricted_pw), :Value, password.unrestricted?)
     end
 
+    def init_os_prober(widget)
+      value = default_grub.os_prober.enabled? || false # avoid nil
+      UI.ChangeWidget(Id(widget), :Value, value)
+    end
+
+    def store_os_prober(widget, _event)
+      value = UI.QueryWidget(Id(widget), :Value)
+      os_prober = default_grub.os_prober
+      value ? os.prober.enable : os_prober.disable
+    end
+
+    def init_append(widget)
+      value = default_grub.kernel_params.serialize
+      UI.ChangeWidget(Id(widget), :Value, value)
+    end
+
+    def store_append(widget, _event)
+      value = UI.QueryWidget(Id(widget), :Value)
+      default_grub.kernel_params.replace(value)
+    end
+
     def Grub2Options
       grub2_specific = {
         "activate"    => CommonCheckboxWidget(
@@ -351,14 +353,20 @@ module Yast
           Ops.get(@grub_descriptions, "hiddenmenu", "hidden menu"),
           Ops.get(@grub_help_messages, "hiddenmenu", "")
         ),
-        "os_prober"   => CommonCheckboxWidget(
-          Ops.get(@grub2_descriptions, "os_prober", "os_prober"),
-          Ops.get(@grub2_help_messages, "os_prober", "")
-        ),
-        "append"      => CommonInputFieldWidget(
-          Ops.get(@grub2_descriptions, "append", "append"),
-          Ops.get(@grub2_help_messages, "append", "")
-        ),
+        "os_prober"   => {
+          "widget" => :checkbox,
+          "label"  => @grub2_descriptions["os_prober"],
+          "help"   => @grub2_help_messages["os_prober"],
+          "init"   => fun_ref(method(:init_os_prober), "void (string)"),
+          "store"  => fun_ref(method(:store_os_prober), "void (string, map)")
+        },
+        "append"      => {
+          "widget"=> :textentry,
+          "label" => @grub2_descriptions["append"],
+          "help"  => @grub2_help_messages["append"],
+          "init"  => fun_ref(method(:init_append), "void (string)"),
+          "store" => fun_ref(method(:store_append), "void (string, map)")
+        },
         "vgamode"     => {
           "widget" => :combobox,
           "label"  => Ops.get(@grub2_descriptions, "vgamode", "vgamode"),

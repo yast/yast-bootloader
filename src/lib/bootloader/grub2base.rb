@@ -2,6 +2,10 @@
 require "yast"
 require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
+require "bootloader/serial_console"
+require "config_files/grub2/default"
+require "config_files/matcher"
+require "config_files/placer"
 
 module Yast
   # Common base for GRUB2 specialized classes
@@ -9,6 +13,7 @@ module Yast
     # @!attribute password
     #    @return [::Bootloader::GRUB2Pwd] stored password configuration object
     attr_reader :password
+    attr_reader :grub_default
 
     def main
       Yast.import "UI"
@@ -35,6 +40,7 @@ module Yast
       Yast.include self, "bootloader/grub2/dialogs.rb"
 
       @password = ::Bootloader::GRUB2Pwd.new
+      @grub_default = ::ConfigFiles::Grub2::Default.new
     end
 
     # general functions
@@ -55,17 +61,10 @@ module Yast
 
     # Propose global options of bootloader
     def StandardGlobals
-      # s390 do not have os_prober, see bnc#868909#c2
-      # ppc have slow os_prober, see boo#931653
-      disable_os_prober = (Arch.s390 || Arch.ppc) ||
-        ProductFeatures.GetBooleanFeature("globals", "disable_os_prober")
       {
-        "timeout"   => "8",
         "default"   => "0",
         "vgamode"   => "",
         "gfxmode"   => "auto",
-        "terminal"  => Arch.s390 ? "console" : "gfxterm",
-        "os_prober" => disable_os_prober ? "false" : "true",
         "activate"  => Arch.ppc ? "true" : "false"
       }
     end
@@ -110,6 +109,10 @@ module Yast
         end
       end
 
+      propose_os_probing
+      propose_terminal
+      propose_timout
+
       BootCommon.globals = StandardGlobals().merge(BootCommon.globals || {})
 
       swap_parts = BootStorage.available_swap_partitions
@@ -121,17 +124,13 @@ module Yast
         resume = ::Bootloader::UdevMapping.to_mountby_device(resume)
       end
 
-      BootCommon.globals["append"]          ||= BootArch.DefaultKernelParams(resume)
+      if grub_default.kernel_params.empty?
+        grub_default.kernel_params.replace(BootArch.DefaultKernelParams(resume))
+      end
       BootCommon.globals["failsafe_disabled"] = "true" if BootCommon.globals["failsafe_disabled"].nil?
       BootCommon.globals["distributor"]     ||= ""
 
-      # Propose bootloader serial settings from kernel cmdline during install (bnc#862388)
-      serial = BootCommon.GetSerialFromAppend
-
-      if !serial.empty?
-        BootCommon.globals["terminal"] ||= "serial"
-        BootCommon.globals["serial"] ||= serial
-      end
+      propose_serial
 
       Builtins.y2milestone("Proposed globals: %1", BootCommon.globals)
 
@@ -158,5 +157,61 @@ module Yast
 
       nil
     end
+
+    def enable_serial_console(console)
+      console = SerialConsole.load_from_console_args(console)
+      raise "Invalid console parameters" unless console
+
+      grub_default.serial_console = console.console_args
+
+      placer = ConfigFiles::ReplacePlacer.new(serial_console_matcher)
+      kernel_params = default_grub.kernel_params
+      kernel_params.add_parameter("console", console.kernel_args, placer)
+    end
+
+    def disable_serial_console
+      default_grub.kernel_params.remove_parameter(serial_console_matcher)
+    end
+
+  private
+
+    def serial_console_matcher
+      ConfigFiles::Matcher.new(key: "console", value_matcher: /tty(S|AMA)/)
+    end
+
+    def propose_os_probing
+      os_prober = grub_default.os_prober
+      if !os_prober.defined?
+        # s390 do not have os_prober, see bnc#868909#c2
+        # ppc have slow os_prober, see boo#931653
+        disable_os_prober = (Arch.s390 || Arch.ppc) ||
+          ProductFeatures.GetBooleanFeature("globals", "disable_os_prober")
+        if disable_os_prober
+          os_prober.disable
+        else
+          os_prober.enable
+        end
+      end
+    end
+
+    def propose_terminal
+      return if grub_default.terminal
+
+      grub_default.terminal = Arch.s390 ? :console : :gfxterm
+    end
+
+    def propose_timeout
+      return if grub_default.timeout
+
+      grub_default.timeout = 8
+    end
+
+    def propose_serial
+      console = SerialConsole.load_from_kernel_args(grub_default.kernel_params)
+      return unless console
+
+      grub_default.serial_console = console.console_args
+    end
+
   end
 end
