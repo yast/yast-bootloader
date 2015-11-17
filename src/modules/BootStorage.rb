@@ -155,7 +155,7 @@ module Yast
         next res if [:CT_LVM, :CT_EVMS].include?(info["type"])
         partitions = info["partitions"]
         # disk do not have to be partitioned, so skip it in such case
-        next unless partitions
+        next res unless partitions
 
         parts = partitions.map do |p|
           raid = p["used_by_type"] == :UB_MD ? p["used_by_device"] : nil
