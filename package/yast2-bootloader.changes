@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov 17 13:59:40 CET 2015 - shundhammer@suse.de
+
+- Fixed crash in bootloader proposal if previous installation was
+  on software RAID (bsc#955216)
+- 3.1.161
+
+-------------------------------------------------------------------
 Wed Nov 11 11:36:29 UTC 2015 - jreidinger@suse.com
 
 - Do not show raid0 warning for /boot on s390 and ppc architectures
