@@ -111,7 +111,7 @@ module Yast
 
       propose_os_probing
       propose_terminal
-      propose_timout
+      propose_timeout
 
       BootCommon.globals = StandardGlobals().merge(BootCommon.globals || {})
 
