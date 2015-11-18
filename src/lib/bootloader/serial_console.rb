@@ -23,7 +23,7 @@ module Bootloader
     # 2. console unit
     # 3. speed of serial console ( baud rate )
     # 4. parity of serial console ( just first letter )
-    # 5. word lenght for serial console
+    # 5. word length for serial console
     #
     # For details see https://en.wikipedia.org/wiki/Serial_port
     # @example serial console param ( on kernel cmdline "console=<example>" )
@@ -35,7 +35,7 @@ module Bootloader
     # Loads serial console configuration from parameters passed to kernel
     # @param [ConfigFiles::Grub2::Default::KernelParams] kernel_params to read
     # @return [Bootloader::SerialConsole,nil] returns nil if none found,
-    #   otherwise instace of SerialConsole
+    #   otherwise instance of SerialConsole
     def self.load_from_kernel_args(kernel_params)
       console_parameter = kernel_params.parameter("console")
       return nil unless console_parameter
@@ -60,7 +60,7 @@ module Bootloader
     # Loads serial console configuration from parameters passed to grub
     # @param [String] console_args string passed to grub as configuration
     # @return [Bootloader::SerialConsole,nil] returns nil if none found,
-    #   otherwise instace of SerialConsole
+    #   otherwise instance of SerialConsole
     # @example
     #   console_arg = "serial --speed=38400 --unit=0 --word=8 --parity=no --stop=1"
     #   SerialConsole.load_from_console_args(console_arg)
