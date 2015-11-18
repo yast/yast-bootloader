@@ -62,10 +62,10 @@ module Yast
     # Propose global options of bootloader
     def StandardGlobals
       {
-        "default"   => "0",
-        "vgamode"   => "",
-        "gfxmode"   => "auto",
-        "activate"  => Arch.ppc ? "true" : "false"
+        "default"  => "0",
+        "vgamode"  => "",
+        "gfxmode"  => "auto",
+        "activate" => Arch.ppc ? "true" : "false"
       }
     end
 
@@ -181,16 +181,16 @@ module Yast
 
     def propose_os_probing
       os_prober = grub_default.os_prober
-      if !os_prober.defined?
-        # s390 do not have os_prober, see bnc#868909#c2
-        # ppc have slow os_prober, see boo#931653
-        disable_os_prober = (Arch.s390 || Arch.ppc) ||
-          ProductFeatures.GetBooleanFeature("globals", "disable_os_prober")
-        if disable_os_prober
-          os_prober.disable
-        else
-          os_prober.enable
-        end
+      return if os_prober.defined?
+
+      # s390 do not have os_prober, see bnc#868909#c2
+      # ppc have slow os_prober, see boo#931653
+      disable_os_prober = (Arch.s390 || Arch.ppc) ||
+        ProductFeatures.GetBooleanFeature("globals", "disable_os_prober")
+      if disable_os_prober
+        os_prober.disable
+      else
+        os_prober.enable
       end
     end
 
@@ -212,6 +212,5 @@ module Yast
 
       grub_default.serial_console = console.console_args
     end
-
   end
 end

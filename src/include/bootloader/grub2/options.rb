@@ -194,9 +194,7 @@ module Yast
       use_serial = UI.QueryWidget(Id(:console_frame), :Value)
       use_gfxterm = UI.QueryWidget(Id(:gfxterm_frame), :Value)
 
-      if use_gfxterm && use_serial
-        use_gfxterm = false
-      end
+      use_gfxterm = false if use_gfxterm && use_serial
 
       if use_serial
         console_value = UI.QueryWidget(Id(:console_args), :Value)
@@ -361,11 +359,11 @@ module Yast
           "store"  => fun_ref(method(:store_os_prober), "void (string, map)")
         },
         "append"      => {
-          "widget"=> :textentry,
-          "label" => @grub2_descriptions["append"],
-          "help"  => @grub2_help_messages["append"],
-          "init"  => fun_ref(method(:init_append), "void (string)"),
-          "store" => fun_ref(method(:store_append), "void (string, map)")
+          "widget" => :textentry,
+          "label"  => @grub2_descriptions["append"],
+          "help"   => @grub2_help_messages["append"],
+          "init"   => fun_ref(method(:init_append), "void (string)"),
+          "store"  => fun_ref(method(:store_append), "void (string, map)")
         },
         "vgamode"     => {
           "widget" => :combobox,

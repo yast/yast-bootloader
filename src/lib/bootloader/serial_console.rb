@@ -75,8 +75,8 @@ module Bootloader
       new(unit, speed, parity, word)
     end
 
-    def initialize(unit, speed=SPEED_DEFAULT, parity=PARITY_DEFAULT,
-        word=WORD_DEFAULT)
+    def initialize(unit, speed = SPEED_DEFAULT, parity = PARITY_DEFAULT,
+        word = WORD_DEFAULT)
       @unit = unit
       @speed = speed
       @parity = parity
