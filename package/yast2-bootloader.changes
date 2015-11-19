@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 18 12:10:10 UTC 2015 - mvidner@suse.com
+
+- Fix validation of AutoYaST profiles (bsc#954412)
+- 3.1.94.8
+
+-------------------------------------------------------------------
 Fri Sep 11 16:46:11 UTC 2015 - ancor@suse.com
 
 - Empty kernel command lines are now properly written (bnc#945479)
