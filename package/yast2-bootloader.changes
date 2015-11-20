@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov 20 07:19:26 UTC 2015 - igonzalezsosa@suse.com
+
+- Fix AutoYaST schema to allow specification of 'vgamode'
+  in globals section (bsc#954412)
+- 3.1.94.9
+
+-------------------------------------------------------------------
 Wed Nov 18 12:10:10 UTC 2015 - mvidner@suse.com
 
 - Fix validation of AutoYaST profiles (bsc#954412)

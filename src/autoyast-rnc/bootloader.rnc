@@ -52,7 +52,8 @@ bl_global =
     element hiddenmenu      { "true" | "false" }? &
     element os_prober       { "true" | "false" }? &
     element suse_btrfs      { "true" | "false" }? &
-    element xen_append      { text }? &
+    element xen_append        { text }? &
+    element xen_kernel_append { text }? &
 
     element boot_custom { text }? &
     element generic_mbr { text }? &
@@ -68,7 +69,8 @@ bl_global =
     boot_boot? &
     boot_extended? &
     boot_mbr? &
-    stage1_dev?
+    stage1_dev? &
+    element vgamode { text }?
   }
 
 lines_cache_id = element lines_cache_id { text }
