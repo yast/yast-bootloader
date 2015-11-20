@@ -1,8 +1,9 @@
 -------------------------------------------------------------------
 Fri Nov 20 07:19:26 UTC 2015 - igonzalezsosa@suse.com
 
-- Fix AutoYaST schema to allow specification of 'vgamode'
-  in globals section (bsc#954412)
+- Fix AutoYaST schema to allow specification of 'vgamode',
+  'xen_kernel_append' and 'failsafe_disabled' in globals section
+  (bsc#954412)
 
 -------------------------------------------------------------------
 Wed Nov 18 12:10:10 UTC 2015 - mvidner@suse.com

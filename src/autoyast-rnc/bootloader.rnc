@@ -49,6 +49,7 @@ bl_global =
     element gfxmode         { text }? &
     element gfxtheme        { text }? &
     # really "true"|"false", without config:type=boolean
+    element failsafe_disabled { "true" | "false" }? &
     element hiddenmenu      { "true" | "false" }? &
     element os_prober       { "true" | "false" }? &
     element suse_btrfs      { "true" | "false" }? &
