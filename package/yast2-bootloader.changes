@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Fri Nov 20 07:19:26 UTC 2015 - igonzalezsosa@suse.com
+
+- Fix AutoYaST schema to allow specification of 'vgamode',
+  'xen_kernel_append' and 'failsafe_disabled' in globals section
+  (bsc#954412)
+
+-------------------------------------------------------------------
+Wed Nov 18 12:10:10 UTC 2015 - mvidner@suse.com
+
+- Fix validation of AutoYaST profiles (bsc#954412)
+
+-------------------------------------------------------------------
 Tue Nov 17 13:59:40 CET 2015 - shundhammer@suse.de
 
 - Fixed crash in bootloader proposal if previous installation was
