@@ -94,7 +94,7 @@ module Yast
     end
 
     def Read(reread, _avoid_reading_device_map)
-      grub_default.load
+      grub_default.load if !grub_default.loaded? || reread
     end
 
     def Write
