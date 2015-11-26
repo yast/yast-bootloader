@@ -86,9 +86,7 @@ module Yast
         end
       end
 
-      # always disable failsafe unless user manually enable it (fate#317016)
-      BootCommon.globals["failsafe_disabled"] = "true" if BootCommon.globals["failsafe_disabled"].nil?
-
+      super
       @orig_globals ||= deep_copy(BootCommon.globals)
       ret
     end
@@ -131,6 +129,8 @@ module Yast
 
         pmbr_setup(BootCommon.pmbr_action, *gpt_disks_devices)
       end
+
+      super
 
       ret
     end

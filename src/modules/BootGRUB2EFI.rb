@@ -44,8 +44,7 @@ module Yast
       # read status of secure boot to boot common cache (bnc#892032)
       BootCommon.getSystemSecureBootStatus(reread)
 
-      # always disable failsafe unless user manually enable it (fate#317016)
-      BootCommon.globals["failsafe_disabled"] = "true" if BootCommon.globals["failsafe_disabled"].nil?
+      super
 
       @orig_globals ||= deep_copy(BootCommon.globals)
     end
@@ -56,10 +55,7 @@ module Yast
       ret = BootCommon.UpdateBootloader
 
       # we do not have originals or it changed
-      if !@orig_globals ||
-          @orig_globals["distributor"] != BootCommon.globals["distributor"]
-        BootCommon.location_changed = true
-      end
+      BootCommon.location_changed = true unless @orig_globals
 
       if BootCommon.location_changed
         grub_ret = BootCommon.InitializeBootloader
@@ -77,6 +73,8 @@ module Yast
 
         pmbr_setup(BootCommon.pmbr_action, efi_disk)
       end
+
+      super
 
       ret
     end

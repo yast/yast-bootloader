@@ -64,7 +64,6 @@ module Yast
       {
         "default"  => "0",
         "vgamode"  => "",
-        "gfxmode"  => "auto",
         "activate" => Arch.ppc ? "true" : "false"
       }
     end
@@ -94,6 +93,14 @@ module Yast
       }
     end
 
+    def Read(reread, _avoid_reading_device_map)
+      grub_default.load
+    end
+
+    def Write
+      grub_default.save
+    end
+
     def Propose
       if BootCommon.was_proposed
         # workaround autoyast config is Imported thus was_proposed always set
@@ -115,20 +122,13 @@ module Yast
 
       BootCommon.globals = StandardGlobals().merge(BootCommon.globals || {})
 
-      swap_parts = BootStorage.available_swap_partitions
-      largest_swap_part = (swap_parts.max_by { |_part, size| size } || [""]).first
-
-      resume = BootArch.ResumeAvailable ? largest_swap_part : ""
-      # try to use label or udev id for device name... FATE #302219
-      if resume != "" && !resume.nil?
-        resume = ::Bootloader::UdevMapping.to_mountby_device(resume)
-      end
-
       if grub_default.kernel_params.empty?
-        grub_default.kernel_params.replace(BootArch.DefaultKernelParams(resume))
+        kernel_line = BootArch.DefaultKernelParams(propose_resume)
+        grub_default.kernel_params.replace(kernel_line)
       end
-      BootCommon.globals["failsafe_disabled"] = "true" if BootCommon.globals["failsafe_disabled"].nil?
-      BootCommon.globals["distributor"]     ||= ""
+      grub_default.gfxmode ||= "auto"
+      grub_default.recovery_entry.disabled unless grub_default.recovery_entry.defined?
+      grub_default.distributor ||= ""
 
       propose_serial
 
@@ -165,12 +165,12 @@ module Yast
       grub_default.serial_console = console.console_args
 
       placer = ConfigFiles::ReplacePlacer.new(serial_console_matcher)
-      kernel_params = default_grub.kernel_params
+      kernel_params = grub_default.kernel_params
       kernel_params.add_parameter("console", console.kernel_args, placer)
     end
 
     def disable_serial_console
-      default_grub.kernel_params.remove_parameter(serial_console_matcher)
+      grub_default.kernel_params.remove_parameter(serial_console_matcher)
     end
 
   private
@@ -211,6 +211,19 @@ module Yast
       return unless console
 
       grub_default.serial_console = console.console_args
+    end
+
+    def propose_resume
+      swap_parts = BootStorage.available_swap_partitions
+      largest_swap_part = (swap_parts.max_by { |_part, size| size } || [""]).first
+
+      resume = BootArch.ResumeAvailable ? largest_swap_part : ""
+      # try to use label or udev id for device name... FATE #302219
+      if resume != "" && !resume.nil?
+        resume = ::Bootloader::UdevMapping.to_mountby_device(resume)
+      end
+
+      resume
     end
   end
 end

@@ -123,12 +123,12 @@ module Yast
     # Init function for console
     # @param [String] widget
     def ConsoleInit(_widget)
-      enable = default_grub.terminal == :serial
+      enable = grub_default.terminal == :serial
       UI.ChangeWidget(Id(:console_frame), :Value, enable)
-      args = default_grub.serial_console || ""
+      args = grub_default.serial_console || ""
       UI.ChangeWidget(Id(:console_args), :Value, args)
 
-      enable = default_grub.terminal == :gfxterm
+      enable = grub_default.terminal == :gfxterm
       UI.ChangeWidget(Id(:gfxterm_frame), :Value, enable)
 
       @vga_modes = Initrd.VgaModes if Builtins.size(@vga_modes) == 0
@@ -173,15 +173,15 @@ module Yast
         Item(Id("auto"), _("Autodetect by grub2"))
       )
       UI.ChangeWidget(Id(:gfxmode), :Items, items)
-      mode = Ops.get(BootCommon.globals, "gfxmode", "")
+      mode = grub_default.gfxmode
 
       # there's mode specified, use it
       UI.ChangeWidget(Id(:gfxmode), :Value, mode) if mode != ""
 
       UI.ChangeWidget(
-        Id(:gfxtheme),
+        Id(:theme),
         :Value,
-        Ops.get(BootCommon.globals, "gfxtheme", "")
+        grub_default.theme
       )
 
       nil
@@ -206,10 +206,10 @@ module Yast
       end
 
       mode = Convert.to_string(UI.QueryWidget(Id(:gfxmode), :Value))
-      Ops.set(BootCommon.globals, "gfxmode", mode) if mode != ""
+      grub_default.gfxmode = mode if mode != ""
 
-      theme = Convert.to_string(UI.QueryWidget(Id(:gfxtheme), :Value))
-      Ops.set(BootCommon.globals, "gfxtheme", theme)
+      theme = Convert.to_string(UI.QueryWidget(Id(:theme), :Value))
+      grub_default.theme = theme if theme != ""
     end
 
     def ConsoleHandle(_widget, _event)
@@ -225,7 +225,7 @@ module Yast
         _("Choose new graphical theme file")
       )
 
-      UI.ChangeWidget(Id(:gfxtheme), :Value, file) if !file.nil?
+      UI.ChangeWidget(Id(:theme), :Value, file) if !file.nil?
 
       nil
     end
@@ -247,7 +247,7 @@ module Yast
             HBox(
               Left(
                 InputField(
-                  Id(:gfxtheme),
+                  Id(:theme),
                   Opt(:hstretch),
                   _("&Console theme")
                 )
@@ -317,24 +317,24 @@ module Yast
     end
 
     def init_os_prober(widget)
-      value = default_grub.os_prober.enabled? || false # avoid nil
+      value = grub_default.os_prober.enabled? || false # avoid nil
       UI.ChangeWidget(Id(widget), :Value, value)
     end
 
     def store_os_prober(widget, _event)
       value = UI.QueryWidget(Id(widget), :Value)
-      os_prober = default_grub.os_prober
-      value ? os.prober.enable : os_prober.disable
+      os_prober = grub_default.os_prober
+      value ? os_prober.enable : os_prober.disable
     end
 
     def init_append(widget)
-      value = default_grub.kernel_params.serialize
+      value = grub_default.kernel_params.serialize
       UI.ChangeWidget(Id(widget), :Value, value)
     end
 
     def store_append(widget, _event)
       value = UI.QueryWidget(Id(widget), :Value)
-      default_grub.kernel_params.replace(value)
+      grub_default.kernel_params.replace(value)
     end
 
     def Grub2Options
