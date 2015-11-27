@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Nov 27 14:46:57 CET 2015 - snwint@suse.de
+
+- updated boot doc for prep partitions
+
+-------------------------------------------------------------------
 Tue Nov 17 13:59:40 CET 2015 - shundhammer@suse.de
 
 - Fixed crash in bootloader proposal if previous installation was
