@@ -1,4 +1,6 @@
 require "yast"
+require "bootloader/udev_mapping"
+require "cfa/grub2/install_device"
 
 module Bootloader
   # Represents where is bootloader stage1 installed. Allows also proposing its
@@ -14,6 +16,17 @@ module Bootloader
       Yast.import "BootStorage"
       Yast.import "Kernel"
       Yast.import "Storage"
+
+      @model = CFA::InstallDevice.new
+    end
+
+    def read
+      @model.read
+    end
+
+    def write
+      @model.write
+      # TODO: really write it with grub2-install and parted
     end
 
     # Propose and set Stage1 location.
@@ -59,12 +72,12 @@ module Bootloader
         # other installed OSes like Windows (older versions assign the C:
         # drive letter to the activated partition).
         boot_flag_part = Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk)
-        Yast::BootCommon.globals["activate"] = boot_flag_part.empty? ? "true" : "false"
+        @model.activate = boot_flag_part.empty?
       else
         # if not installing to MBR, always activate (so the generic MBR will
         # boot Linux)
-        Yast::BootCommon.globals["activate"] = "true"
-        Yast::BootCommon.globals["generic_mbr"] = "true"
+        @model.activate = true
+        @model.generic_mbr = true
       end
       Yast::BootCommon.activate_changed = true
 
@@ -196,20 +209,16 @@ module Bootloader
     def assign_bootloader_device(selected_location)
       log.info "assign bootloader device '#{selected_location.inspect}'"
       # first, default to all off:
-      ["boot_boot", "boot_root", "boot_mbr", "boot_extended"].each do |flag|
-        Yast::BootCommon.globals[flag] = "false"
-      end
-      # need to remove the boot_custom key to switch this value off
-      Yast::BootCommon.globals.delete("boot_custom")
+      @model.devices.each { |d| @model.remove_device(d) }
 
       case selected_location
-      when :root then Yast::BootCommon.globals["boot_root"] = "true"
-      when :boot then Yast::BootCommon.globals["boot_boot"] = "true"
-      when :extended then Yast::BootCommon.globals["boot_extended"] = "true"
+      when :root then add_udev_device(Yast::BootStorage.RootPartitionDevice)
+      when :boot then add_udev_device(Yast::BootStorage.BootPartitionDevice)
+      when :extended then add_udev_device(extended)
       when :mbr
-        Yast::BootCommon.globals["boot_mbr"] = "true"
+        add_udev_device(Yast::BootCommon.getBootDisk)
         # Disable generic MBR as we want grub2 there
-        Yast::BootCommon.globals["generic_mbr"] = "false"
+        @model.generic_mbr = true
       when :none
         log.info "Resetting bootloader device"
       when Array
@@ -217,11 +226,17 @@ module Bootloader
           raise "Unknown value to select bootloader device #{selected_location.inspect}"
         end
 
-        Yast::BootCommon.globals["boot_custom"] = selected_location[1]
+        @model.add_device(selected_location[1]) #add directly proposed value without changes
       else
         raise "Unknown value to select bootloader device #{selected_location.inspect}"
       end
     end
+
+    def add_udev_device(dev)
+      udev_device = Bootloader::UdevMapping.to_mountby_device(dev)
+      @model.add_device(dev)
+    end
+
 
     # FIXME: find better location
     def gpt_boot_disk?
