@@ -21,7 +21,7 @@ module Bootloader
       saved = Yast::Execute.on_target("/usr/bin/grub2-editenv", "list", stdout: :capture)
       saved_line = saved.lines.grep(/saved_entry=/).first
 
-      saved_line || @data.first
+      saved_line ? saved_line.[/saved_entry=(\S*)\s\n/,1]  : @data.first
     end
 
     # Sets default section internally
@@ -33,7 +33,7 @@ module Bootloader
 
     # writes default to system making it persistent
     def write
-      Yast::Execute.on_target("/usr/sbin/grub2-set-default", @default)
+      Yast::Execute.on_target("/usr/sbin/grub2-set-default", default)
     end
   end
 end
