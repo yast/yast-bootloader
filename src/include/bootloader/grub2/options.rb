@@ -77,17 +77,7 @@ module Yast
     end
 
     def DefaultEntryInit(widget)
-      items = []
-
-      Builtins.foreach(BootCommon.sections) do |s|
-        items = Builtins.add(
-          items,
-          Item(
-            Id(Ops.get_string(s, "menuentry", "")),
-            Ops.get_string(s, "menuentry", "")
-          )
-        )
-      end
+      items = @sections.map { |s| Item(Id(s), s) }
 
       UI.ChangeWidget(Id(widget), :Items, items)
       InitGlobalStr(widget)

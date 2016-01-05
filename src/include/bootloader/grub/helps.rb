@@ -72,9 +72,6 @@ module Yast
             "command, as <code>serial console</code>. In this case, a terminal in which you\n" \
             "press any key will be selected as a GRUB terminal.</p>"
         ),
-        "fallback"          => _(
-          "<p><b>Fallback Sections if default Fails</b> contains a list of section numbers\nthat will be used for booting in case the default section is unbootable.</p>"
-        ),
         "hiddenmenu"        => _(
           "<p>Selecting <b>Hide Menu on Boot</b> will hide the boot menu.</p>"
         ),

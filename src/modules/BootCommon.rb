@@ -51,9 +51,6 @@ module Yast
       # map of global options and values
       @globals = {}
 
-      # list of section
-      @sections = []
-
       # Saved change time from target map - proposal
 
       @cached_settings_base_data_change_time = nil
@@ -141,7 +138,6 @@ module Yast
       Yast.include self, "bootloader/routines/misc.rb"
       # FIXME: there are other archs than i386, this is not 'commmon'
       Yast.include self, "bootloader/routines/lilolike.rb"
-      Yast.include self, "bootloader/routines/lib_iface.rb"
     end
 
     # generic versions of bootloader-specific functions
@@ -181,10 +177,6 @@ module Yast
       bl = getLoaderType(false)
       return true if bl == "none"
       InitializeLibrary(reread, bl)
-      ReadFiles(avoid_reading_device_map) if reread
-      @sections = GetSections()
-      @globals = GetGlobal()
-      dev_map = GetDeviceMap()
 
       # convert device names in device map to the kernel device names
       dev_map = Builtins.mapmap(dev_map) do |k, v|
@@ -209,7 +201,6 @@ module Yast
 
     # Reset bootloader settings
     def Reset
-      @sections = []
       @globals = {}
       @activate = false
       @activate_changed = false
@@ -285,7 +276,6 @@ module Yast
       ret &&= SetSecureBoot(@secure_boot)
       ret &&= DefineMultipath(BootStorage.multipath_mapping)
       ret &&= SetDeviceMap(my_device_mapping)
-      ret &&= SetSections(@sections)
       ret &&= SetGlobal(my_globals)
       ret &&= CommitSettings() if flush
 
@@ -519,7 +509,6 @@ module Yast
     end
 
     publish :variable => :globals, :type => "map <string, string>"
-    publish :variable => :sections, :type => "list <map <string, any>>"
     publish :variable => :cached_settings_base_data_change_time, :type => "integer"
     publish :variable => :loader_device, :type => "string"
     publish :variable => :selected_location, :type => "string"

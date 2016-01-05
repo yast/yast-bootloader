@@ -1,9 +1,11 @@
 # encoding: utf-8
 require "yast"
+require "bootloader/sections"
 require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
 require "bootloader/serial_console"
 require "config_files/grub2/default"
+require "config_files/grub2/grub_cfg"
 require "config_files/matcher"
 require "config_files/placer"
 
@@ -41,6 +43,7 @@ module Yast
 
       @password = ::Bootloader::GRUB2Pwd.new
       @grub_default = ::ConfigFiles::Grub2::Default.new
+      @sections = []
     end
 
     # general functions
@@ -95,6 +98,9 @@ module Yast
 
     def Read(reread, _avoid_reading_device_map)
       grub_default.load if !grub_default.loaded? || reread
+      grub_cfg = CFA::Grub2::GrubConf.new
+      grub_cfg.load
+      @sections = ::Bootloader::Sections.new(grub_cfg)
     end
 
     def Write
