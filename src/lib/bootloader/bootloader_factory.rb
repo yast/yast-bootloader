@@ -1,6 +1,9 @@
 require "yast"
 require "yast/"
 require "bootloader/sysconfig"
+require "bootloader/none_bootloader"
+require "bootloader/grub2"
+require "bootloader/grub2efi"
 
 Yast.import "Arch"
 Yast.import "Mode"
@@ -41,13 +44,14 @@ module Bootloader
       end
 
       def bootloader_by_name(name)
+        @cached_bootloaders = {} # needed to be able to store settings if moving between bootloaders
         case name
         when "grub2"
-          Yast::BootGRUB2 # replace by instance in future
+          @cached_bootloaders["grub2"] ||= Grub2.new
         when "grub2-efi"
-          Yast::BootGRUB2EFI
+          @cached_bootloaders["grub2-efi"] ||= Grub2EFI.new
         when "none"
-          # TODO own class
+          @cached_bootloaders["none"] ||= NoneBootloader.new
         else
           # TODO exception for unsupported bootloader
         end

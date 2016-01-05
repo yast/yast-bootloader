@@ -9,38 +9,37 @@ require "config_files/grub2/grub_cfg"
 require "config_files/matcher"
 require "config_files/placer"
 
-module Yast
+Yast.import "Arch"
+Yast.import "BootArch"
+Yast.import "BootCommon"
+Yast.import "BootStorage"
+Yast.import "HTML"
+Yast.import "Initrd"
+Yast.import "Kernel"
+Yast.import "Mode"
+Yast.import "Pkg"
+Yast.import "Product"
+Yast.import "ProductFeatures"
+Yast.import "Stage"
+Yast.import "Storage"
+Yast.import "StorageDevices"
+
+
+module Bootloader
   # Common base for GRUB2 specialized classes
-  class GRUB2Base < Module
+  class GRUB2Base < BootloaderBase
+    include Yast::Logger
+    include Yast::I18n
+
     # @!attribute password
     #    @return [::Bootloader::GRUB2Pwd] stored password configuration object
     attr_reader :password
+    # @!attribute grub_default
+    #    @return [CFA::Grub2::Default] grub2 configuration object
     attr_reader :grub_default
 
-    def main
-      Yast.import "UI"
-
+    def initialize
       textdomain "bootloader"
-
-      Yast.import "Arch"
-      Yast.import "BootArch"
-      Yast.import "BootCommon"
-      Yast.import "BootStorage"
-      Yast.import "HTML"
-      Yast.import "Initrd"
-      Yast.import "Kernel"
-      Yast.import "Mode"
-      Yast.import "Pkg"
-      Yast.import "Product"
-      Yast.import "ProductFeatures"
-      Yast.import "Stage"
-      Yast.import "Storage"
-      Yast.import "StorageDevices"
-
-      # includes
-      # for simplified widgets than other
-      Yast.include self, "bootloader/grub2/dialogs.rb"
-
       @password = ::Bootloader::GRUB2Pwd.new
       @grub_default = ::ConfigFiles::Grub2::Default.new
       @sections = []
@@ -49,6 +48,7 @@ module Yast
     # general functions
 
     # set pmbr flags on boot disks
+    # TODO: move it to own place
     def pmbr_setup(action, *devices)
       action_parted = case action
         when :add    then "on"
@@ -62,71 +62,24 @@ module Yast
       end
     end
 
-    # Propose global options of bootloader
-    def StandardGlobals
-      {
-        "default"  => "0",
-        "vgamode"  => "",
-        "activate" => Arch.ppc ? "true" : "false"
-      }
-    end
-
-    # Update read settings to new version of configuration files
-    def Update
-      Read(true, true)
-
-      BootCommon.UpdateGlobals
-
-      nil
-    end
-
-    # Reset bootloader settings
-    def Reset
-      return if Mode.autoinst
-      BootCommon.Reset
-    end
-
-    def Dialogs
-      Builtins.y2milestone("Called GRUB2 Dialogs")
-      {
-        "loader"       => fun_ref(
-          method(:Grub2LoaderDetailsDialog),
-          "symbol ()"
-        )
-      }
-    end
-
-    def Read(reread, _avoid_reading_device_map)
+    def read(reread: false)
       grub_default.load if !grub_default.loaded? || reread
       grub_cfg = CFA::Grub2::GrubConf.new
       grub_cfg.load
       @sections = ::Bootloader::Sections.new(grub_cfg)
     end
 
-    def Write
+    def write
+      super
       grub_default.save
+      # TODO: call grub_install
+      # TODO: call grub-mkconfig
     end
 
-    def Propose
-      if BootCommon.was_proposed
-        # workaround autoyast config is Imported thus was_proposed always set
-        if Mode.autoinst || Mode.autoupgrade
-          Builtins.y2milestone(
-            "autoinst mode we ignore meaningless was_proposed as it always set"
-          )
-        else
-          Builtins.y2milestone(
-            "calling Propose with was_proposed set is really bogus, clear it to force a re-propose"
-          )
-          return
-        end
-      end
-
+    def propose
       propose_os_probing
       propose_terminal
       propose_timeout
-
-      BootCommon.globals = StandardGlobals().merge(BootCommon.globals || {})
 
       if grub_default.kernel_params.empty?
         kernel_line = BootArch.DefaultKernelParams(propose_resume)
@@ -138,30 +91,11 @@ module Yast
 
       propose_serial
 
-      Builtins.y2milestone("Proposed globals: %1", BootCommon.globals)
-
       nil
     end
 
-    # overwrite Save to allow generation of modification scripts
-    def Save(clean, init, flush)
+    def save
       @password.write
-
-      BootCommon.Save(clean, init, flush)
-    end
-
-    # Initializer of GRUB bootloader
-    def Initializer
-      Builtins.y2milestone("Called GRUB2 initializer")
-      BootCommon.current_bootloader_attribs = {
-        "propose"            => false,
-        "read"               => false,
-        "scratch"            => false,
-        "restore_mbr"        => false,
-        "bootloader_on_disk" => false
-      }
-
-      nil
     end
 
     def enable_serial_console(console)
