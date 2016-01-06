@@ -173,7 +173,7 @@ module Yast
     # @param [Boolean] avoid_reading_device_map do not read new device map from file, use
     # internal data
     # @return [Boolean] true on success
-    def Read(reread, avoid_reading_device_map)
+    def Read(reread, _avoid_reading_device_map)
       bl = getLoaderType(false)
       return true if bl == "none"
       InitializeLibrary(reread, bl)
@@ -285,6 +285,7 @@ module Yast
 
       ret
     end
+
     # Display bootloader summary
     # @return a list of summary lines
     def Summary

@@ -257,7 +257,7 @@ module Yast
           log.info "Same disk for md array -> disable synchronize md arrays"
           return false
         else
-          disks <<  disk
+          disks << disk
         end
         # add disk from partition to md_physical_disks
         @md_physical_disks << disk unless @md_physical_disks.include?(disk)
@@ -305,7 +305,7 @@ module Yast
       end
 
       log.info "device: #{device} is based on md_physical_disks: #{@md_physical_disks}"\
-        "is #{ ret ? "valid" : "invalid" } for enable redundancy"
+        "is #{ret ? "valid" : "invalid"} for enable redundancy"
 
       ret
     end

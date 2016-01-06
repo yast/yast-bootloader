@@ -52,7 +52,6 @@ describe Bootloader::Sections do
     it "writes default value" do
       subject.default = "linux"
 
-
       expect(Yast::Execute).to receive(:on_target)
         .with("/usr/bin/grub2-set-default", "linux")
 

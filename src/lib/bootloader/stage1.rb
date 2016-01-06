@@ -39,15 +39,15 @@ module Bootloader
     # @see for keys in globals to https://old-en.opensuse.org/YaST/Bootloader_API#global_options_in_map
     def propose
       result = case Yast::Arch.architecture
-        when "i386", "x86_64"
-          propose_x86
-        when /ppc/
-          propose_ppc
-        when /s390/
-          propose_s390
-        else
-          raise "unsuported architecture #{Yast::Arch.architecture}"
-        end
+               when "i386", "x86_64"
+                 propose_x86
+               when /ppc/
+                 propose_ppc
+               when /s390/
+                 propose_s390
+               else
+                 raise "unsuported architecture #{Yast::Arch.architecture}"
+               end
 
       log.info "location configured. Resulting globals #{Yast::BootCommon.globals}"
 
@@ -120,7 +120,7 @@ module Bootloader
       # IMO it is good idea check MBR also in this case
       # see bug #279837 comment #53
       if boot_partition_on_mbr_disk?
-        selected_location =  separate_boot ? :boot : :root
+        selected_location = separate_boot ? :boot : :root
       elsif underlying_boot_partition_devices.size > 1
         selected_location = :mbr
       end
@@ -226,7 +226,7 @@ module Bootloader
           raise "Unknown value to select bootloader device #{selected_location.inspect}"
         end
 
-        @model.add_device(selected_location[1]) #add directly proposed value without changes
+        @model.add_device(selected_location[1]) # add directly proposed value without changes
       else
         raise "Unknown value to select bootloader device #{selected_location.inspect}"
       end
@@ -234,9 +234,8 @@ module Bootloader
 
     def add_udev_device(dev)
       udev_device = Bootloader::UdevMapping.to_mountby_device(dev)
-      @model.add_device(dev)
+      @model.add_device(udev_device)
     end
-
 
     # FIXME: find better location
     def gpt_boot_disk?

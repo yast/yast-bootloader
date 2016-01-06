@@ -12,7 +12,6 @@ Yast.import "Storage"
 Yast.import "BootCommon"
 Yast.import "HTML"
 
-
 module Bootloader
   # Represents non-EFI variant of GRUB2
   class Grub2 < GRUB2Base
@@ -61,7 +60,7 @@ module Bootloader
     # FATE#303643 Enable one-click changes in bootloader proposal
     #
     #
-    def urlLocationSummary
+    def url_location_summary
       # TODO: convert to using grub_devices info
       Builtins.y2milestone("Prepare url summary for GRUB2")
       line = "<ul>\n<li>"
@@ -121,7 +120,7 @@ module Bootloader
 
     # Display bootloader summary
     # @return a list of summary lines
-    def Summary
+    def summary
       # TODO: convert to using grub_devices info
       result = [
         Builtins.sformat(
@@ -160,7 +159,7 @@ module Bootloader
       # other mode than autoyast on running system
       # both ppc and s390 have special devices for stage1 so it do not make sense
       # allow change of location to MBR or boot partition (bnc#879107)
-      result << urlLocationSummary if !Arch.ppc && !Arch.s390 && !Mode.config
+      result << url_location_summary if !Arch.ppc && !Arch.s390 && !Mode.config
 
       order_sum = BootCommon.DiskOrderSummary
       result << order_sum if order_sum

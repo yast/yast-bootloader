@@ -27,7 +27,7 @@ describe Bootloader::MBRUpdate do
       allow(Yast::Storage).to receive(:GetTargetMap).and_return(
         double(:fetch => { "label" => "msdos" },
                :[]    => { "label" => "msdos" }
-        )
+              )
       )
     end
 
@@ -199,7 +199,7 @@ describe Bootloader::MBRUpdate do
           allow(Yast::Storage).to receive(:GetTargetMap).and_return(
             double(:fetch => { "label" => "msdos" },
                    :[]    => { "label" => "msdos" }
-            )
+                  )
           )
         end
 
@@ -263,7 +263,7 @@ describe Bootloader::MBRUpdate do
           allow(Yast::Storage).to receive(:GetTargetMap).and_return(
             double(:fetch => { "label" => "gpt" },
                    :[]    => { "label" => "gpt" }
-            )
+                  )
           )
         end
 

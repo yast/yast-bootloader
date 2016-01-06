@@ -140,7 +140,7 @@ module Yast
       log.info "(2) globals: #{BootCommon.globals}"
 
       # refresh device map
-      if BootStorage.device_map.empty?  ||
+      if BootStorage.device_map.empty? ||
           BootCommon.cached_settings_base_data_change_time !=
               Storage.GetTargetChangeTime &&
               # bnc#585824 - Bootloader doesn't use defined device map from autoyast

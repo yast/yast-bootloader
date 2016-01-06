@@ -92,7 +92,7 @@ describe Bootloader::DeviceMap do
         "/dev/vdb" => "hd0",
         "/dev/vda" => "hd2",
         "/dev/vdc" => "hd1"
-     )
+      )
 
       expect(Bootloader::UdevMapping).to receive(:to_kernel_device)
         .and_return("/dev/bla", "/dev/ble", "/dev/blabla")

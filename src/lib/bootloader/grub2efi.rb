@@ -5,6 +5,7 @@ require "bootloader/grub2base"
 require "bootloader/sysconfig"
 
 module Bootloader
+  # Represents grub2 bootloader with efi target
   class Grub2EFI < GRUB2Base
     attr_accessor :secure_boot
 
@@ -62,12 +63,10 @@ module Bootloader
         )
       ]
 
-      result += Yast::Builtins.sformat(
-              _("Enable Secure Boot: %1"),
-              @secure_boot ? _("yes") : _("no")
-            )
+      result + Yast::Builtins.sformat(
+        _("Enable Secure Boot: %1"),
+        @secure_boot ? _("yes") : _("no")
       )
-      deep_copy(result)
     end
 
     def name

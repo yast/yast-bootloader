@@ -33,7 +33,7 @@ describe Bootloader::DiskChangeDetector do
 
     it "do not crash if separate /boot missing" do
       mount_points = { # TODO: full mock
-        "/"     => ["/dev/sda1"]
+        "/" => ["/dev/sda1"]
       }
       allow(Yast::Storage).to receive(:GetMountPoints).and_return(mount_points)
 

@@ -131,7 +131,7 @@ module Bootloader
         BASH_PATH,
         format("/bin/mv %{path} %{path}-%{date}",
           path: device_file_path, date: change_date
-        )
+              )
       )
     end
   end

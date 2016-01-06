@@ -24,7 +24,6 @@ Yast.import "Stage"
 Yast.import "Storage"
 Yast.import "StorageDevices"
 
-
 module Bootloader
   # Common base for GRUB2 specialized classes
   class GRUB2Base < BootloaderBase
@@ -51,10 +50,10 @@ module Bootloader
     # TODO: move it to own place
     def pmbr_setup(action, *devices)
       action_parted = case action
-        when :add    then "on"
-        when :remove then "off"
-        else raise "invalid action #{action}"
-        end
+                      when :add    then "on"
+                      when :remove then "off"
+                      else raise "invalid action #{action}"
+                      end
       devices.each do |dev|
         res = WFM.Execute(path(".local.bash_output"),
           "parted -s '#{dev}' disk_set pmbr_boot #{action_parted}")

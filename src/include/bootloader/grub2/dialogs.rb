@@ -89,7 +89,7 @@ module Yast
           MarginBox(1, 0.5, "append"),
           MarginBox(1, 0.5, "console"),
           VStretch()
-       )
+        )
       }
     end
 
@@ -119,7 +119,7 @@ module Yast
           MarginBox(1, 1, "default"),
           MarginBox(1, 1, "password"),
           VStretch()
-       )
+        )
       }
     end
 

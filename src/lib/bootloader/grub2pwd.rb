@@ -124,7 +124,7 @@ module Bootloader
       quoted_password = Yast::String.Quote(password)
       result = Yast::WFM.Execute(YAST_BASH_PATH,
         "echo '#{quoted_password}\n#{quoted_password}\n' | LANG=C grub2-mkpasswd-pbkdf2"
-      )
+                                )
 
       if result["exit"] != 0
         raise "Failed to create encrypted password for grub2. Command output: #{result["stderr"]}"

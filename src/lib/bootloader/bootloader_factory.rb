@@ -33,9 +33,12 @@ module Bootloader
           return SUPPORTED_BOOTLOADERS + ["default"]
         end
 
-        ret = []
-        system_bl = system.name rescue nil # rescue exception if system one is not support
-        system_bl = system_bl ? [system.name] : [] # use current as first
+        system_bl = begin
+                      system.name
+                    rescue
+                      nil
+                    end # rescue exception if system one is not support
+        ret = system_bl ? [system.name] : [] # use current as first
         ret << "grub2" unless Yast::Arch.aarch64 # grub2 everywhere except aarch64
         ret << "grub2-efi" if Yast::Arch.x86_64 || Yast::Arch.aarch64
         ret << "none"
@@ -52,16 +55,15 @@ module Bootloader
           @cached_bootloaders["grub2-efi"] ||= Grub2EFI.new
         when "none"
           @cached_bootloaders["none"] ||= NoneBootloader.new
-        else
-          # TODO exception for unsupported bootloader
         end
       end
 
     private
+
       def boot_efi?
         if Yast::Mode.live_installation
-           Yast::Execute.locally("modprobe", "efivars")
-           ::File.exist?("/sys/firmware/efi/systab")
+          Yast::Execute.locally("modprobe", "efivars")
+          ::File.exist?("/sys/firmware/efi/systab")
         else
           Yast::Linuxrc.InstallInf("EFI") == "1"
         end
@@ -70,9 +72,7 @@ module Bootloader
       def proposed_name
         return "grub2-efi" if Yast::Arch.aarch64
 
-        if Yast::Arch.x86_64 && boot_efi?
-          return "grub2-efi"
-        end
+        return "grub2-efi" if Yast::Arch.x86_64 && boot_efi?
 
         "grub2" # grub2 works(c) everywhere
       end

@@ -123,15 +123,15 @@ module Bootloader
         next if bios_id.empty?
 
         index = case Yast::Arch.architecture
-        when /ppc/
-          # on ppc it looks like "vdevice/v-scsi@71000002/@0"
-          bios_id[/\d+\z/].to_i
-        when "i386", "x86_64"
-          # it looks like 0x81. It is boot drive unit see http://en.wikipedia.org/wiki/Master_boot_record
-          bios_id[2..-1].to_i(16) - 0x80
-        else
-          raise "no support for bios id '#{bios_id}' on #{Yast::Arch.architecture}"
-        end
+                when /ppc/
+                  # on ppc it looks like "vdevice/v-scsi@71000002/@0"
+                  bios_id[/\d+\z/].to_i
+                when "i386", "x86_64"
+                  # it looks like 0x81. It is boot drive unit see http://en.wikipedia.org/wiki/Master_boot_record
+                  bios_id[2..-1].to_i(16) - 0x80
+                else
+                  raise "no support for bios id '#{bios_id}' on #{Yast::Arch.architecture}"
+                end
         # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
         if !ids[index]
           @mapping[target_dev] = "hd#{index}"

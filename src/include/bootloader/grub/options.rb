@@ -100,7 +100,7 @@ module Yast
       if BootCommon.VerifyMDArray
         UI.ChangeWidget(Id("enable_redundancy"), :Value,
           BootCommon.enable_md_array_redundancy
-        )
+                       )
 
         value = BootCommon.globals["boot_mbr"] == "true"
         UI.ChangeWidget(Id("boot_mbr"), :Value, value)
@@ -135,6 +135,7 @@ module Yast
 
       nil
     end
+
     # handle function of a widget
     # @param [String] widget string widget key
     # @param [Hash] event map event that caused the operation

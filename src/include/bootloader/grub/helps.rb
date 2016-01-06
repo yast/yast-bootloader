@@ -91,7 +91,7 @@ module Yast
             "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" \
             "To add a disk, push <b>Add</b>.\n" \
             "To remove a disk, push <b>Remove</b>.</p>"
-          )
+        )
       }
 
       @grub_descriptions = {

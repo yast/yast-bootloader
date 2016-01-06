@@ -95,10 +95,10 @@ module Bootloader
 
       Yast::WFM.Execute(Yast::Path.new(".local.mkdir"),
         File.join(destdir, "/etc/sysconfig")
-      )
+                       )
       Yast::WFM.Execute(Yast::Path.new(".local.bash"),
         "touch #{destdir}/etc/sysconfig/bootloader"
-      )
+                       )
     end
 
     def temporary_target_agent(&block)

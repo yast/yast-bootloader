@@ -4,6 +4,7 @@ require "yast2/execute"
 Yast.import "Arch"
 
 module Bootloader
+  # Wraps grub install script for easier usage.
   class GrubInstall
     def initialize(efi: false, secure_boot: false)
       @efi = efi
@@ -36,30 +37,30 @@ module Bootloader
 
     def target
       @target ||= case Yast::Arch.architecture
-      when "i386"
-        if @efi
-          "i386-efi"
-        else
-          "i386-pc"
-        end
-      when "x86_64"
-        if @efi
-          "x86_64-efi"
-        else
-          "i386-pc"
-        end
-      when "ppc", "ppc64"
-        raise "EFI on ppc not supported" if @efi
-        "powerpc-ieee1275"
-      when "s390_32", "s390_64"
-        raise "EFI on s390 not supported" if @efi
-        "s390x-emu"
-      when "aarch64"
-        raise "Only EFI supported on aarch64" unless @efi
-        "arm64-efi"
-      else
-        raise "unsupported architecture '#{Yast::Arch.architecture}'"
-      end
+                  when "i386"
+                    if @efi
+                      "i386-efi"
+                    else
+                      "i386-pc"
+                    end
+                  when "x86_64"
+                    if @efi
+                      "x86_64-efi"
+                    else
+                      "i386-pc"
+                    end
+                  when "ppc", "ppc64"
+                    raise "EFI on ppc not supported" if @efi
+                    "powerpc-ieee1275"
+                  when "s390_32", "s390_64"
+                    raise "EFI on s390 not supported" if @efi
+                    "s390x-emu"
+                  when "aarch64"
+                    raise "Only EFI supported on aarch64" unless @efi
+                    "arm64-efi"
+                  else
+                    raise "unsupported architecture '#{Yast::Arch.architecture}'"
+                  end
     end
   end
 end

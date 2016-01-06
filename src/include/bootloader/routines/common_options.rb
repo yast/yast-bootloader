@@ -197,6 +197,7 @@ module Yast
         "help"    => Ops.get(@common_help_messages, "timeout", "")
       }
     end
+
     # Common widgets of global settings
     # @return [Hash{String => map<String,Object>}] CWS widgets
     def CommonOptions
