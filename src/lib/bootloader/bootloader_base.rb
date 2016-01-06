@@ -1,4 +1,7 @@
+require "yast"
 require "bootloader/sysconfig"
+
+Yast.import "BootStorage"
 
 module Bootloader
   # Represents base for all kinds of bootloaders
@@ -8,6 +11,7 @@ module Bootloader
     end
 
     def read
+      Yast::BootStorage.detect_disks
     end
 
   protected

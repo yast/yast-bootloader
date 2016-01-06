@@ -9,6 +9,7 @@ module Bootloader
   #   and "generic_mbr" which is related to stage1 code
   class Stage1
     include Yast::Logger
+    attr_reader :model
 
     def initialize
       Yast.import "Arch"
@@ -26,7 +27,14 @@ module Bootloader
 
     def write
       @model.write
-      # TODO: really write it with grub2-install and parted
+    end
+
+    def include?(dev)
+      kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+
+      @model.devices.any? do |map_dev|
+        kernel_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
+      end
     end
 
     # Propose and set Stage1 location.

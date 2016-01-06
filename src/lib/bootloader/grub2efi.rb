@@ -2,6 +2,7 @@
 
 require "yast"
 require "bootloader/grub2base"
+require "bootloader/grub_install"
 require "bootloader/sysconfig"
 
 module Bootloader
@@ -13,6 +14,8 @@ module Bootloader
       super
 
       textdomain "bootloader"
+
+      @grub_install = GrubInstall.new(efi: true)
     end
 
     # Read settings from disk
@@ -39,6 +42,8 @@ module Bootloader
       end
 
       super
+
+      @grub_install.execute(secure_boot: @secure_boot)
 
       ret
     end

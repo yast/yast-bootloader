@@ -6,16 +6,15 @@ Yast.import "Arch"
 module Bootloader
   # Wraps grub install script for easier usage.
   class GrubInstall
-    def initialize(efi: false, secure_boot: false)
+    def initialize(efi: false)
       @efi = efi
-      @secure_boot = secure_boot
-
-      raise "cannot have secure boot without efi" if secure_boot && !efi
     end
 
-    def execute(devices: nil)
+    def execute(devices: nil, secure_boot: false)
+      raise "cannot have secure boot without efi" if secure_boot && !@efi
+
       cmd = []
-      if @secure_boot
+      if secure_boot
         cmd << "/usr/sbin/shim-install" << "--config-file=/boot/grub2/grub.cfg"
       else
         cmd << "/usr/sbin/grub2-install" << "--target=#{target}"
