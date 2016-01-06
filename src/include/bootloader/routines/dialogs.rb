@@ -44,25 +44,6 @@ module Yast
       UI.PollInput == :abort
     end
 
-    # Read settings dialog
-    # @return `abort if aborted and `next otherwise
-    def ReadDialog
-      Bootloader.test_abort = fun_ref(method(:testAbort), "boolean ()")
-      Wizard.RestoreHelp(getInitProgressHelp)
-      ret = Bootloader.Read
-      ret ? :next : :abort
-    end
-
-    # Write settings dialog
-    # @return `abort if aborted and `next otherwise
-    def WriteDialog
-      if !Stage.initial
-        Bootloader.test_abort = fun_ref(method(:testAbort), "boolean ()")
-      end
-      Wizard.RestoreHelp(getSaveProgressHelp)
-      ret = Bootloader.Write
-      ret ? :next : :abort
-    end
 
     # Run dialog for kernel section editation
     # @return [Symbol] for wizard sequencer

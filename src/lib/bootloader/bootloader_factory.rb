@@ -27,6 +27,14 @@ module Bootloader
         bootloader_by_name(Sysconfig.from_system.bootloader)
       end
 
+      def current
+        @current ||= system
+      end
+
+      def current=(name)
+        @current = bootloader_by_name(name)
+      end
+
       def supported_names
         if Yast::Mode.config
           # default means bootloader use what it think is the best

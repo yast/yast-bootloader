@@ -27,24 +27,6 @@ module Yast
 
     # Get help
     # @return [String] help text
-    def getInitProgressHelp
-      # help text 1/1 (shown during settings reading progress)
-      _(
-        "<P><BIG><B>Boot Loader Configuration Tool</B></BIG><BR>\nChange the settings of your boot loader.</P>"
-      )
-    end
-
-    # Get help
-    # @return [String] help text
-    def getSaveProgressHelp
-      # help text
-      _(
-        "<P><B><BIG>Saving Boot Loader Configuration</BIG></B><BR>\nPlease wait...<br></p>"
-      )
-    end
-
-    # Get help
-    # @return [String] help text
     def getAdvancedButtonHelp
       ins = ""
       # help text 1/2 (%1 may be following sentence, optionally empty)

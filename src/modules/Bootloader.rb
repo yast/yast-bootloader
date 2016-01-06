@@ -71,8 +71,9 @@ module Yast
     # Check whether abort was pressed
     # @return [Boolean] true if abort was pressed
     def testAbort
-      return false if @test_abort.nil?
-      @test_abort.call
+      return false if Mode.commandline
+
+      UI.PollInput == :abort
     end
 
     # bnc #419197 yast2-bootloader does not correctly initialise libstorage
