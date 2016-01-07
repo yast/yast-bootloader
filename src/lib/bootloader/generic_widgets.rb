@@ -6,39 +6,64 @@ Yast.import "UI"
 Yast.import "Popup"
 
 module Bootloader
-  class GlobalWidgets
-    class << self
-      include Yast::UIShortcuts
-      include Yast::I18n
+  # generic class for widgets for CWM
+  # TODO: does it make sense to move it to yast2?
+  class WidgetBase
+    include Yast::UIShortcuts
+    include Yast::I18n
 
+    # method that return widget description, need to be implemented
+    def description
+      {}
+    end
+
+  protected
+
+    # shortcut from Yast namespace to avoid including whole namespace
+    # kill converts in CWM module, to avoid this workaround for funrefs
+    def fun_ref(*args)
+      Yast::FunRef.new(*args)
+    end
+
+    def init_method(method_symbol: :init)
+      fun_ref(method(method_symbol), "void (string)")
+    end
+
+    def handle_method(method_symbol: :handle)
+      fun_ref(method(method_symbol), "symbol (string, map)")
+    end
+  end
+
+  class GenericWidgets
+    class << self
       # Description of widgets usable in CWM framework
+      def description
+        {
+          "loader_type" => LoaderTypeWidget.new.description
+        }
+      end
+    end
+
+    class LoaderTypeWidget < WidgetBase
       def description
         textdomain "bootloader"
 
         {
-          "loader_type"    => {
-            "widget"        => :custom,
-            "custom_widget" => loader_content
-            "init"        => fun_ref(method(:init_loader), "void (string)"),
-            "handle"      => fun_ref(method(:loader_handle), "symbol (string, map)"),
-            "help"        => loader_help
-          }
+          "widget"        => :custom,
+          "custom_widget" => content
+          "init"          => init_method,
+          "handle"        => handle_method,
+          "help"          => help
         }
       end
 
     private
 
-      # shortcut from Yast namespace to avoid including whole namespace
-      # kill converts in CWM module, to avoid this workaround for funrefs
-      def fun_ref(*args)
-        Yast::FunRef.new(*args)
-      end
-
-      def init_loader(widget)
+      def init(widget)
         Yast::UI.ChangeWidget(Id(widget), :Value, BootloaderFactory.current.name)
       end
 
-      def loader_content
+      def content
         ComboBox(
           Id("loader_type"),
           Opt(:notify),
@@ -62,7 +87,7 @@ module Bootloader
         names[name] or raise "Unknown supported bootloader '#{name}'"
       end
 
-      def loader_handle(key, event)
+      def handle(key, event)
         return if event["ID"] != key # can happen in fake CWM events
 
         old_bl = BootloaderFactory.current.name
@@ -89,7 +114,7 @@ module Bootloader
         :redraw
       end
 
-      def loader_help
+      def help
         _(
           "<p><b>Boot Loader Type</b><br>\n" \
             "To select whether to install a boot loader and which bootloader to install,\n" \
