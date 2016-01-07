@@ -23,60 +23,6 @@ module Yast
       Yast.import "Arch"
     end
 
-    # wizard sequecer widgets helps
-
-    # Get help
-    # @return [String] help text
-    def getAdvancedButtonHelp
-      ins = ""
-      # help text 1/2 (%1 may be following sentence, optionally empty)
-      help = Builtins.sformat(
-        _(
-          "<P>From <B>Other</B>,\n" \
-            "you can manually edit the boot loader configuration files, clear the current \n" \
-            "configuration and propose a new configuration, start from scratch, or reread\n" \
-            "the configuration saved on your disk. %1</P>"
-        ),
-        ins
-      )
-      help
-    end
-
-    # Get help
-    # @return [String] help text
-    def getManualEditHelp
-      # help text 1/1
-      _(
-        "<P>To edit boot loader configuration files\nmanually, click <B>Edit Configuration Files</B>.</P>"
-      )
-    end
-
-    # Get help
-    # @return [String] help text
-    def SectionsHelp
-      # help 1/4
-      _(
-        "<P> In the table, each section represents one item\nin the boot menu.</P>"
-      ) +
-        # help 2/4
-        _(
-          "<P> Press <B>Edit</B> to display the properties of the\nselected section.</P>"
-        ) +
-        # help 3/4
-        _(
-          "<P> By pressing <b>Set as Default</b>, mark the selected \n" \
-            "section as default. When booting, the boot loader will provide \n" \
-            "a boot menu and wait for the user to select the kernel or other \n" \
-            "OS to boot. If no key is pressed before the time-out, the default \n" \
-            "kernel or OS will be booted. The order of sections in the boot loader\n" \
-            "menu can be changed using the <B>Up</B> and <B>Down</B> buttons.</P>"
-        ) +
-        # help 4/4
-        _(
-          "<P>Press <B>Add</B> to create a new boot loader section\nor <B>Delete</B> to delete the selected section.</P>"
-        )
-    end
-
     # popup widgets helps
 
     # Get help
@@ -153,28 +99,6 @@ module Yast
 
     # Get help text
     # @return [String] help text
-    def InstDetailsHelp
-      # help text 1/1
-      _(
-        "<p><b>Boot Loader Installation Details</b><br>\n" \
-          "To adjust advanced boot loader installation options (such as the device\n" \
-          "mapping), click <b>Boot Loader Installation Details</b>.</p>"
-      )
-    end
-
-    # Get help text
-    # @return [String] help text
-    def LoaderTypeHelp
-      # help text 1/1
-      _(
-        "<p><b>Boot Loader Type</b><br>\n" \
-          "To select whether to install a boot loader and which bootloader to install,\n" \
-          "use <b>Boot Loader</b>.</p>"
-      )
-    end
-
-    # Get help text
-    # @return [String] help text
     def LoaderOptionsHelp
       # help text 1/1
       _(
@@ -182,62 +106,6 @@ module Yast
           "To adjust options of the boot loader, such as the time-out, click\n" \
           "<b>Boot Loader Options</b>.</p>"
       )
-    end
-
-    # Get help
-    # @return [String] help text
-    def getExpertManualHelp
-      # help text 1/1
-      _(
-        "<P><B>Expert Manual Configuration</B><BR>\n" \
-          "Here, manually edit the boot loader configuration.</P>\n" \
-          "<P>Note: The final configuration file may have different indenting.</P>"
-      )
-    end
-
-    # Get help text
-    # @return [String] help text
-    def SectionNameHelp
-      # help text 1/1
-      _(
-        "<p><b>Section Name</b><br>\n" \
-          "Use <b>Section Name</b> to specify the boot loader section name. The section\n" \
-          "name must be unique.</p>"
-      )
-    end
-
-    # Get help text
-    # @return [String] help text
-    def SectionTypeHelp
-      # help text 1/5
-      _(
-        "<p><big><b>Type of the New Section</b></big><br>\nSelect the type of the new section to create.</p>"
-      ) +
-        # help text 2/5
-        _(
-          "<p>Select <b>Clone Selected Section</b> to clone the currently selected\n" \
-            "section. Then modify the options that should differ from the\n" \
-            "selected section.</p>"
-        ) +
-        # help text 3/5
-        _(
-          "<p>Select <b>Image Section</b> to add a new Linux kernel or other image\nto load and start.</p>"
-        ) +
-        # help text 4/5
-        _(
-          "<p>Select <b>Xen Section</b> to add a new Linux kernel or other image,\nbut to start it in a Xen environment.</p>"
-        ) +
-        # help text 5/5
-        _(
-          "<p>Select <b>Other System (Chainloader)</b> to add a section that \n" \
-            "loads and starts a boot sector of a partition of the disk. This is used for\n" \
-            "booting other operating systems.</p>"
-        ) +
-        _(
-          "<p>Select <b>Menu Section</b> to add a section that \n" \
-            "loads configuration file (the list of boot sections) from a partition of the disk. This is used for\n" \
-            "booting other operating systems.</p>"
-        )
     end
   end
 end

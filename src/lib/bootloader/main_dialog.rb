@@ -1,6 +1,8 @@
 require "yast"
 
+require "bootloader/config_dialog"
 require "bootloader/read_dialog"
+require "bootloader/write_dialog"
 
 Yast.import "BootCommon"
 Yast.import "Label"
@@ -42,7 +44,7 @@ module Bootloader
       my_aliases = {
         "read"  => [lambda { ReadDialog.new.run }, true],
         "main"  => method(:run_content),
-        "write" => [lambda { WriteDialog() }, true]
+        "write" => [lambda { WriteDialog.new.run }, true]
       }
 
       sequence = {
@@ -83,7 +85,7 @@ module Bootloader
 
       # run generic sequence
       aliases = {
-        "main"                 => lambda { MainDialog() },
+        "main"                 => lambda { ConfigFialog.new.run },
         "installation_details" => lambda { DetailsDialog("installation") },
         "loader_details"       => lambda { DetailsDialog("loader") }
       }
