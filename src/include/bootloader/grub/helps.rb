@@ -20,16 +20,6 @@ module Yast
       textdomain "bootloader"
 
       @grub_help_messages = {
-        "boot-menu"         => _("<p><big><b>Boot Menu</b></big><br></p>"),
-        "activate"          => _(
-          "<p><b>Set active Flag in Partition Table for Boot Partition</b><br>\n" \
-            "To activate the partition which contains the boot loader. The generic MBR code will then\n" \
-            "boot the active partition. Older BIOSes require one partition to be active even\n" \
-            "if the boot loader is installed in the MBR.</p>"
-        ),
-        "timeout"           => _(
-          "<p><b>Timeout in Seconds</b><br>\nSpecifies the time the bootloader will wait until the default kernel is loaded.</p>\n"
-        ),
         "default"           => _(
           "<p> By pressing <b>Set as Default</b> you mark the selected section as\n" \
             "the default. When booting, the boot loader will provide a boot menu and\n" \
@@ -37,9 +27,6 @@ module Yast
             "key is pressed before the timeout, the default kernel or OS will\n" \
             "boot. The order of the sections in the boot loader menu can be changed\n" \
             "using the <b>Up</b> and <b>Down</b> buttons.</p>\n"
-        ),
-        "generic_mbr"       => _(
-          "<p><b>Write generic Boot Code to MBR</b> replace the master boot record of your disk with generic code (OS independent code which\nboots the active partition).</p>"
         ),
         "boot_boot"         => _(
           "<p><b>Boot from Boot Partition</b> is one of the recommended options, the other is\n<b>Boot from Root Partition</b>.</p>"
@@ -75,15 +62,6 @@ module Yast
         "hiddenmenu"        => _(
           "<p>Selecting <b>Hide Menu on Boot</b> will hide the boot menu.</p>"
         ),
-        "password"          => _(
-          "<p><b>Protect Boot Loader with Password</b><br>\n" \
-            "At boot time, modifying or even booting any entry will require the" \
-            " password. If <b>Protect Entry Modification Only</b> is checked then " \
-            "booting any entry is not restricted but modifying entries requires " \
-            "the password (which is the way GRUB 1 behaved).<br>" \
-            "YaST will only accept the password if you repeat it in " \
-            "<b>Retype Password</b>.</p>"
-        ),
         # help text 1/5
         "disk_order"        => _(
           "<p><big><b>Disks Order</b></big><br>\n" \
@@ -96,10 +74,6 @@ module Yast
 
       @grub_descriptions = {
         "boot"          => _("Boot Loader Locations"),
-        "activate"      => _(
-          "Set &active Flag in Partition Table for Boot Partition"
-        ),
-        "timeout"       => _("&Timeout in Seconds"),
         "default"       => _("&Default Boot Section"),
         "generic_mbr"   => _("Write &generic Boot Code to MBR"),
         "boot_custom"   => _("Custom Boot Partition"),
@@ -109,8 +83,6 @@ module Yast
         "boot_extended" => _("Boot from Extended Partition"),
         "serial"        => _("Serial Connection &Parameters"),
         "fallback"      => _("Fallback Sections if Default fails"),
-        "hiddenmenu"    => _("&Hide Menu on Boot"),
-        "password"      => _("Pa&ssword for the Menu Interface"),
         "debug"         => _("Debugg&ing Flag")
       }
     end

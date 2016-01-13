@@ -52,14 +52,6 @@ module Yast
     end
 
     # Display error
-    def emptyPasswdErrorPopup
-      # error popup
-      Report.Error(_("The password must not be empty."))
-
-      nil
-    end
-
-    # Display error
     def passwdMissmatchPopup
       # error popup
       Report.Error(

@@ -32,67 +32,6 @@ module Yast
       Yast.include include_target, "bootloader/grub/helps.rb"
     end
 
-    # Handle function of a widget
-    # @param [String] widget string id of the widget
-    # @param [Hash] event map event description of event that occured
-    # @return [Symbol] always nil
-    def HandlePasswdWidget(_widget, event)
-      event = deep_copy(event)
-      if Ops.get(event, "ID") == :use_pas
-        enabled = Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
-        UI.ChangeWidget(Id(:unrestricted_pw), :Enabled, enabled)
-        UI.ChangeWidget(Id(:pw1), :Enabled, enabled)
-        UI.ChangeWidget(Id(:pw2), :Enabled, enabled)
-      end
-      nil
-    end
-
-    # Validate function of a popup
-    # @param [String] key any widget key
-    # @param [Hash] event map event that caused validation
-    # @return [Boolean] true if widget settings ok
-    def ValidatePasswdWidget(_key, _event)
-      return true if !Convert.to_boolean(UI.QueryWidget(Id(:use_pas), :Value))
-      if UI.QueryWidget(Id(:pw1), :Value) == ""
-        emptyPasswdErrorPopup
-        UI.SetFocus(Id(:pw1))
-        return false
-      end
-      if UI.QueryWidget(Id(:pw1), :Value) == UI.QueryWidget(Id(:pw2), :Value)
-        return true
-      end
-      passwdMissmatchPopup
-      UI.SetFocus(Id(:pw1))
-      false
-    end
-
-    def passwd_content
-      HBox(
-        CheckBoxFrame(
-          Id(:use_pas),
-          _("Prot&ect Boot Loader with Password"),
-          true,
-          VBox(
-            HBox(
-              HSpacing(2),
-              # TRANSLATORS: checkbox entry
-              CheckBox(Id(:unrestricted_pw), _("P&rotect Entry Modification Only")),
-              HStretch()
-            ),
-            HBox(
-              HSpacing(2),
-              # text entry
-              Password(Id(:pw1), Opt(:hstretch), _("&Password")),
-              # text entry
-              HSpacing(2),
-              Password(Id(:pw2), Opt(:hstretch), _("Re&type Password")),
-              HStretch()
-            )
-          )
-        )
-      )
-    end
-
     # Init function of a widget
     # @param [String] widget string widget key
     def InitBootLoaderLocationWidget(_widget)

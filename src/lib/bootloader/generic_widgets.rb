@@ -2,125 +2,75 @@ require "yast"
 
 require "bootloader/bootloader_factory"
 
+require "cwm/widget"
+
 Yast.import "UI"
 Yast.import "Popup"
 
 module Bootloader
-  # generic class for widgets for CWM
-  # TODO: does it make sense to move it to yast2?
-  class WidgetBase
-    include Yast::UIShortcuts
-    include Yast::I18n
-
-    # method that return widget description, need to be implemented
-    def description
-      {}
+  class LoaderTypeWidget < CWM::ComboBoxWidget
+    def initialize
+      textdomain "bootloader"
     end
 
-  protected
+  private
 
-    # shortcut from Yast namespace to avoid including whole namespace
-    # kill converts in CWM module, to avoid this workaround for funrefs
-    def fun_ref(*args)
-      Yast::FunRef.new(*args)
+    def init(widget)
+      self.value = BootloaderFactory.current.name
     end
 
-    def init_method(method_symbol: :init)
-      fun_ref(method(method_symbol), "void (string)")
-    end
-
-    def handle_method(method_symbol: :handle)
-      fun_ref(method(method_symbol), "symbol (string, map)")
-    end
-  end
-
-  class GenericWidgets
-    class << self
-      # Description of widgets usable in CWM framework
-      def description
-        {
-          "loader_type" => LoaderTypeWidget.new.description
-        }
+    def items
+      BootloaderFactory.supported_names.map do |name|
+        [name, localized_names(name)]
       end
     end
 
-    class LoaderTypeWidget < WidgetBase
-      def description
-        textdomain "bootloader"
+    def localized_names(name)
+      names = {
+        "grub2" => _("GRUB2"),
+        "grub2-efi" => _("GRUB2 for EFI"),
+        # Translators: option in combo box when bootloader is not managed by yast2
+        "none" => _("Not Managed"),
+        "default" => _("Default")
+      }
 
-        {
-          "widget"        => :custom,
-          "custom_widget" => content
-          "init"          => init_method,
-          "handle"        => handle_method,
-          "help"          => help
-        }
-      end
+      names[name] or raise "Unknown supported bootloader '#{name}'"
+    end
 
-    private
+    def handle(key, event)
+      return if event["ID"] != key # can happen in fake CWM events
 
-      def init(widget)
-        Yast::UI.ChangeWidget(Id(widget), :Value, BootloaderFactory.current.name)
-      end
+      old_bl = BootloaderFactory.current.name
+      new_bl = Yast::UI.QueryWidget(Id(key), :Value)
 
-      def content
-        ComboBox(
-          Id("loader_type"),
-          Opt(:notify),
-          # combo box
-          _("&Boot Loader"),
-          BootloaderFactory.supported_names.map do |name|
-            Item(Id(name), localized_names(name))
-          end
+      return nil if old_bl == new_bl
+
+      if new_bl == "none"
+        # popup - Continue/Cancel
+        popup_msg = _(
+          "\n" \
+          "If you do not install any boot loader, the system\n" \
+          "might not start.\n" \
+          "\n" \
+          "Proceed?\n"
         )
-      end
 
-      def localized_names(name)
-        names = {
-          "grub2" => _("GRUB2"),
-          "grub2-efi" => _("GRUB2 for EFI"),
-          # Translators: option in combo box when bootloader is not managed by yast2
-          "none" => _("Not Managed"),
-          "default" => _("Default")
-        }
-
-        names[name] or raise "Unknown supported bootloader '#{name}'"
-      end
-
-      def handle(key, event)
-        return if event["ID"] != key # can happen in fake CWM events
-
-        old_bl = BootloaderFactory.current.name
-        new_bl = Yast::UI.QueryWidget(Id(key), :Value)
-
-        return nil if old_bl == new_bl
-
-        if new_bl == "none"
-          # popup - Continue/Cancel
-          popup_msg = _(
-            "\n" \
-            "If you do not install any boot loader, the system\n" \
-            "might not start.\n" \
-            "\n" \
-            "Proceed?\n"
-          )
-
-          if !Yast::Popup.ContinueCancel(popup_msg)
-            return :redraw
-          end
+        if !Yast::Popup.ContinueCancel(popup_msg)
+          return :redraw
         end
-
-        BootloaderFactory.current_name = new_bl
-        :redraw
       end
 
-      def help
-        _(
-          "<p><b>Boot Loader Type</b><br>\n" \
-            "To select whether to install a boot loader and which bootloader to install,\n" \
-            "use <b>Boot Loader</b>.</p>"
-        )
-      end
+      BootloaderFactory.current_name = new_bl
+
+      :redraw
+    end
+
+    def help
+      _(
+        "<p><b>Boot Loader Type</b><br>\n" \
+          "To select whether to install a boot loader and which bootloader to install,\n" \
+          "use <b>Boot Loader</b>.</p>"
+      )
     end
   end
 end
