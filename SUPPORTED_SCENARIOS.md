@@ -41,6 +41,10 @@ The goal of this document is to have a single source of information  which scena
 * ppc64(le and be)
   * only GRUB2
   * there must be at least one [PReP partition](http://en.wikipedia.org/wiki/Partition_type#List_of_partition_IDs) which size must not exceed 8MB (see [fate](https://fate.suse.com/317302))
+  * there's no requirement on the partition number
+  * good PReP disk layout overview [PowerLinux Boot howto](https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/W51a7ffcf4dfd_4b40_9d82_446ebc23c550/page/PowerLinux%20Boot%20howto)
+  * boot code implemented in [SLOF - Slimline Open Firmware](https://github.com/aik/SLOF/blob/master/slof/fs/packages/disk-label.fs) - used e.g. by qemu
+  * full reference (quite ancient) [CHRP](https://stuff.mit.edu/afs/sipb/contrib/doc/specs/protocol/chrp/)
 * s390x
   * /boot/zipl must be on ext fs ( unless upgraded from working zipl configuration )
   * only GRUB2
