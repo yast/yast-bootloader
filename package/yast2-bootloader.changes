@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Nov 27 14:46:57 CET 2015 - snwint@suse.de
+
+- updated boot doc for prep partitions
+- 3.1.162
+
+-------------------------------------------------------------------
 Fri Nov 20 07:19:26 UTC 2015 - igonzalezsosa@suse.com
 
 - Fix AutoYaST schema to allow specification of 'vgamode',
