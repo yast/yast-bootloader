@@ -33,23 +33,30 @@ module Bootloader
     # @!attribute password
     #    @return [::Bootloader::GRUB2Pwd] stored password configuration object
     attr_reader :password
+
+    attr_reader :sections
     # @!attribute grub_default
     #    @return [CFA::Grub2::Default] grub2 configuration object
     attr_reader :grub_default
+
+    attr_accessor :pmbr_action
 
     def initialize
       textdomain "bootloader"
       @password = ::Bootloader::GRUB2Pwd.new
       @grub_default = ::ConfigFiles::Grub2::Default.new
       @sections = []
+      @pmbr_action = :nothing
     end
 
     # general functions
 
     # set pmbr flags on boot disks
     # TODO: move it to own place
-    def pmbr_setup(action, *devices)
-      action_parted = case action
+    def pmbr_setup(*devices)
+      return if @pmbr_action == :nothing
+
+      action_parted = case @pmbr_action
                       when :add    then "on"
                       when :remove then "off"
                       else raise "invalid action #{action}"
@@ -71,6 +78,8 @@ module Bootloader
     def write
       super
       grub_default.save
+      pmbr_setup
+      @sections.write
       # TODO: call grub_install
       # TODO: call grub-mkconfig
     end

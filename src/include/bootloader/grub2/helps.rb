@@ -20,16 +20,12 @@ module Yast
       textdomain "bootloader"
 
       @grub2_help_messages = {
-        "vgamode"   => _(
-          "<p><b>Vga Mode</b> defines the VGA mode the kernel should set the <i>console</i> to when booting.</p>"
-        ),
         "pmbr"      => _(
           "<p><b>Protective MBR flag</b> is expert only settings, that is needed only on exotic hardware. For details see Protective MBR in GPT disks. Do not touch if you are not sure.</p>"
         )
       }
 
       @grub2_descriptions = {
-        "vgamode"   => _("&Vga Mode"),
         "pmbr"      => _("Protective MBR flag")
       }
     end

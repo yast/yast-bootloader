@@ -8,14 +8,14 @@ Yast.import "UI"
 Yast.import "Popup"
 
 module Bootloader
-  class LoaderTypeWidget < CWM::ComboBoxWidget
+  class LoaderTypeWidget < CWM::ComboBox
     def initialize
       textdomain "bootloader"
     end
 
   private
 
-    def init(widget)
+    def init
       self.value = BootloaderFactory.current.name
     end
 
@@ -37,9 +37,7 @@ module Bootloader
       names[name] or raise "Unknown supported bootloader '#{name}'"
     end
 
-    def handle(key, event)
-      return if event["ID"] != key # can happen in fake CWM events
-
+    def handle
       old_bl = BootloaderFactory.current.name
       new_bl = Yast::UI.QueryWidget(Id(key), :Value)
 

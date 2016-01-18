@@ -41,17 +41,14 @@ module Bootloader
       # TODO: device map write
       @stage1.write
 
-      # something with PMBR needed
       # TODO: own class handling PBMR
-      if BootCommon.pmbr_action
-        boot_devices = BootCommon.GetBootloaderDevices
-        boot_discs = boot_devices.map { |d| Storage.GetDisk(Storage.GetTargetMap, d) }
-        boot_discs.uniq!
-        gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
-        gpt_disks_devices = gpt_disks.map { |d| d["device"] }
+      boot_devices = BootCommon.GetBootloaderDevices
+      boot_discs = boot_devices.map { |d| Storage.GetDisk(Storage.GetTargetMap, d) }
+      boot_discs.uniq!
+      gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
+      gpt_disks_devices = gpt_disks.map { |d| d["device"] }
 
-        pmbr_setup(BootCommon.pmbr_action, *gpt_disks_devices)
-      end
+      pmbr_setup(*gpt_disks_devices)
 
       @grub_install.execute(devices: @stage1.model.devices)
 

@@ -40,21 +40,6 @@ module Bootloader
             "store"  => fun_ref(method(:StoreGlobalStr), "void (string, map)"),
             "help"   => Ops.get(@grub_help_messages, "default", "")
           },
-          "console"     => {
-            "widget"        => :custom,
-            "custom_widget" => ConsoleContent(),
-            "init"          => fun_ref(method(:ConsoleInit), "void (string)"),
-            "store"         => fun_ref(
-              method(:ConsoleStore),
-              "void (string, map)"
-            ),
-            "handle"        => fun_ref(
-              method(:ConsoleHandle),
-              "symbol (string, map)"
-            ),
-            "handle_events" => [:browsegfx],
-            "help"          => Ops.get(@grub_help_messages, "serial", "")
-          },
         }
 
         own.merge(super)
@@ -78,15 +63,21 @@ module Bootloader
     def password
       BootloaderFactory.current.password
     end
+
+    def sections
+      BootloaderFactory.current.password
+    end
+
+    def grub2
+      BootloaderFactory.current
+    end
   end
 
-  class TimeoutWidget < CWM::IntFieldWidget
+  class TimeoutWidget < CWM::IntField
     include Grub2Widget
 
     def initialize(hidden_menu_widget)
       textdomain "bootloader"
-
-      self.widget_id = "timeout"
 
       @minimum = -1
       @maximum = 600
@@ -107,7 +98,7 @@ module Bootloader
       )
     end
 
-    def init(widget)
+    def init
       if grub_default.hidden_timeout && grub_default.hidden_timeout > 0
         self.value = grub_default.hidden_timeout
       else
@@ -115,7 +106,7 @@ module Bootloader
       end
     end
 
-    def store(_widget, _event)
+    def store
       if @hidden_menu_widget.checked?
         grub_default.hidden_timeout = value
         grub_default.timeout = 0
@@ -126,13 +117,11 @@ module Bootloader
     end
   end
 
-  class ActivateWidget < CWM::CheckboxWidget
+  class ActivateWidget < CWM::CheckBox
     include Grub2Widget
 
     def initialize
       textdomain "bootloader"
-
-      self.widget_id = "activate"
     end
 
   private
@@ -150,22 +139,20 @@ module Bootloader
       )
     end
 
-    def init(widget)
+    def init
       self.value = stage1.model.activate
     end
 
-    def store(_widget, _event)
+    def store
       stage1.model.activate = checked?
     end
   end
 
-  class GenericMBRWidget < CWM::CheckboxWidget
+  class GenericMBRWidget < CWM::CheckBox
     include Grub2Widget
 
     def initialize
       textdomain "bootloader"
-
-      self.widget_id = "generic_mbr"
     end
 
   private
@@ -182,22 +169,20 @@ module Bootloader
       )
     end
 
-    def init(_widget)
+    def init
       self.value = stage1.model.generic_mbr
     end
 
-    def store(_widget, _event)
+    def store
       stage1.model.generic_mbr = checked?
     end
   end
 
-  class HiddenMenuWidget < CWM::CheckboxWidget
+  class HiddenMenuWidget < CWM::CheckBox
     include Grub2Widget
 
     def initialize
       textdomain "bootloader"
-
-      self.widget_id = "hidden_menu"
     end
 
   private
@@ -212,18 +197,16 @@ module Bootloader
       )
     end
 
-    def init(_widget)
+    def init
       self.value = default_grub.hidden_timeout && default_grub.hidden_timeout > 0
     end
   end
 
-  class OSProberWidget < CWM::CheckboxWidget
+  class OSProberWidget < CWM::CheckBox
     include Grub2Widget
 
     def initialize
       textdomain "bootloader"
-
-      self.widget_id = "os_prober"
     end
 
   private
@@ -239,22 +222,20 @@ module Bootloader
       )
     end
 
-    def init(_widget)
+    def init
       self.value = grub_default.os_prober.enabled?
     end
 
-    def store(_widget, _event)
+    def store
       grub_default.os_prober.value = checked?
     end
   end
 
-  class KernelAppendWidget < CWM::InputFieldEntry
+  class KernelAppendWidget < CWM::InputField
     include Grub2Widget
 
     def initialize
       textdomain "bootloader"
-
-      self.widget_id = "kernel_append"
     end
 
   private
@@ -270,12 +251,41 @@ module Bootloader
       )
     end
 
-    def init(_widget)
+    def init
       self.value = grub_default.kernel_params.serialize
     end
 
-    def store(_widget, _event)
+    def store
       grub_default.kernel_params.replace(value)
+    end
+  end
+
+  class PMBRWidget < CWM::ComboBox
+    include Grub2Widget
+
+    def initialize
+      textdomain "bootloader"
+    end
+
+  private
+
+    def init
+      self.value = grub2.pmbr_action
+    end
+
+    def items
+      [
+        # TRANSLATORS: set flag on disk
+        [:add, _("set")],
+        # TRANSLATORS: remove flag from disk
+        [:remove, _("remove")],
+        # TRANSLATORS: do not change flag on disk
+        [:nothing, _("do not change")]
+      ]
+    end
+
+    def store
+      grub2.pmbr_action = value
     end
   end
 
@@ -284,8 +294,6 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
-
-      self.widget_id = "password"
     end
 
   private
@@ -319,7 +327,7 @@ module Bootloader
       )
     end
 
-    def validate(_widget, _event)
+    def validate
       return true unless Yast::UI.QueryWidget(Id(:use_pas), :Value)
       if Yast::UI.QueryWidget(Id(:pw1), :Value) == ""
         Yast::Report.Error(_("The password must not be empty."))
@@ -336,7 +344,7 @@ module Bootloader
       false
     end
 
-    def init(_widget)
+    def init
       enabled = password.used?
       # read state on disk only if not already set by user (bnc#900026)
       value = enabled && password.password? ? MASKED_PASSWORD : ""
@@ -350,7 +358,7 @@ module Bootloader
       UI.ChangeWidget(Id(:unrestricted_pw), :Value, password.unrestricted?)
     end
 
-    def handle(_widget, _event)
+    def handle(event)
       return unless event["ID"] == :use_pas
 
       enabled = Yast::UI.QueryWidget(Id(:use_pas), :Value)
@@ -361,7 +369,7 @@ module Bootloader
       nil
     end
 
-    def store(_widget, _event)
+    def store
       usepass = Yast::UI.QueryWidget(Id(:use_pas), :Value)
       if !usepass
         password.used = false
@@ -396,8 +404,6 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
-
-      self.widget_id = "console"
     end
 
   private
@@ -456,7 +462,7 @@ module Bootloader
       )
     end
 
-    def init(_widget)
+    def init
       enable = grub_default.terminal == :serial
       Yast::UI.ChangeWidget(Id(:console_frame), :Value, enable)
       args = grub_default.serial_console || ""
@@ -496,7 +502,7 @@ module Bootloader
       @vga_modes
     end
 
-    def store(_widget, _event)
+    def store
       use_serial = Yast::UI.QueryWidget(Id(:console_frame), :Value)
       use_gfxterm = Yast::UI.QueryWidget(Id(:gfxterm_frame), :Value)
 
@@ -518,7 +524,7 @@ module Bootloader
       grub_default.theme = theme if theme != ""
     end
 
-    def handle(_widget, event)
+    def handle(event)
       return if event["ID"] != :browsegfx
 
       theme_dir = "/boot/grub2/themes/openSUSE"
@@ -533,6 +539,30 @@ module Bootloader
       Yast::UI.ChangeWidget(Id(:theme), :Value, file) if file
 
       nil
+    end
+  end
+
+  class DefaultSectionWidget < CWM::ComboBox
+    include Grub2Widget
+
+    def initialize
+      textdomain "bootloader"
+    end
+
+  private
+
+    def init
+      self.value = sections.default
+    end
+
+    def list
+      sections.all.map do |section|
+        [section, section]
+      end
+    end
+
+    def store
+      sections.default = value
     end
   end
 end

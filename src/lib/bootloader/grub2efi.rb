@@ -38,7 +38,7 @@ module Bootloader
         efi_disk ||= Storage.GetEntryForMountpoint("/boot")["device"]
         efi_disk ||= Storage.GetEntryForMountpoint("/")["device"]
 
-        pmbr_setup(BootCommon.pmbr_action, efi_disk)
+        pmbr_setup(efi_disk)
       end
 
       super
