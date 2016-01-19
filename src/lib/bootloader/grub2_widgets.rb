@@ -8,45 +8,6 @@ Yast.import "Report"
 Yast.import "UI"
 
 module Bootloader
-  class Grub2BaseWidgets < GenericWidgets
-    class << self
-      def description
-        textdomain "bootloader"
-
-        widgets
-
-        own = {
-          "vgamode"     => {
-            "widget" => :combobox,
-            "label"  => Ops.get(@grub2_descriptions, "vgamode", "vgamode"),
-            "opt"    => [:editable, :hstretch],
-            "init"   => fun_ref(method(:VgaModeInit), "void (string)"),
-            "store"  => fun_ref(method(:StoreGlobalStr), "void (string, map)"),
-            "help"   => Ops.get(@grub2_help_messages, "vgamode", "")
-          },
-          "pmbr"        => {
-            "widget" => :combobox,
-            "label"  => @grub2_descriptions["pmbr"],
-            "opt"    => [],
-            "init"   => fun_ref(method(:PMBRInit), "void (string)"),
-            "store"  => fun_ref(method(:StorePMBR), "void (string, map)"),
-            "help"   => @grub2_help_messages["pmbr"]
-          },
-          "default"     => {
-            "widget" => :combobox,
-            "label"  => Ops.get(@grub_descriptions, "default", "default"),
-            "opt"    => [:editable, :hstretch],
-            "init"   => fun_ref(method(:DefaultEntryInit), "void (string)"),
-            "store"  => fun_ref(method(:StoreGlobalStr), "void (string, map)"),
-            "help"   => Ops.get(@grub_help_messages, "default", "")
-          },
-        }
-
-        own.merge(super)
-      end
-    end
-  end
-
   # Adds to generic widget grub2 specific helpers
   module Grub2Widget
 
