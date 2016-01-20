@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 19 17:12:10 UTC 2016 - igonzalezsosa@suse.com
+
+- Add nounzip element to AutoYaST schema (bsc#962620)
+- 2.17.100
+
+-------------------------------------------------------------------
 Wed Nov  4 11:28:08 UTC 2015 - igonzalezsosa@suse.com
 
 - Fix validation of AutoYaST profiles (bsc#805275)

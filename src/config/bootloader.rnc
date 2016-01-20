@@ -104,7 +104,8 @@ section =
     element remap { "true" | "false" }? &
     element configfile {text}? &
     element image   {text}? &
-    element description {text}?
+    element description {text}? &
+    element nounzip {text}?
   }
 kernel_parameters = element kernel_parameters { text }
 
