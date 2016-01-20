@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Tue Jan 19 17:12:10 UTC 2016 - igonzalezsosa@suse.com
 
-- Add nounzip elemento to AutoYaST schema (bsc#962620)
+- Add nounzip element to AutoYaST schema (bsc#962620)
 - 2.17.100
 
 -------------------------------------------------------------------
