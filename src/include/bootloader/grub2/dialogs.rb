@@ -54,7 +54,7 @@ module Yast
       {
         "id"           => "boot_code_tab",
         # Title in tab
-        "header"       => _("Boot Code Options"),
+        "header"       => _("boot code options"),
         # if name is not included, that it is not displayed
         "widget_names" => widget_names,
         "contents"     => VBox(
@@ -81,7 +81,7 @@ module Yast
       {
         "id"           => "kernel_tab",
         # Title in tab
-        "header"       => _("Kernel Parameters"),
+        "header"       => _("kernel parameters"),
         "widget_names" => widgets,
         "contents"     => VBox(
           VSpacing(1),

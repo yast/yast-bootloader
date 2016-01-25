@@ -526,4 +526,101 @@ module Bootloader
       sections.default = value
     end
   end
+
+  class KernelTab < CWM::Tab
+    def label
+      textdomain "bootloader"
+
+      _("kernel parameters")
+    end
+
+    def contents
+      console_widget = Yast::Arch.s390 ? CWM::Empty.new("console") : ConsoleWidget.new
+      VBox(
+        VSpacing(1),
+        MarginBox(1, 0.5, KernelAppendWidget.new),
+        MarginBox(1, 0.5, console_widget),
+        VStretch()
+      )
+    end
+  end
+
+  class BootCodeTab < CWM::Tab
+    include Grub2Widget
+
+    def initialize
+      self.initial = true
+    end
+
+    def label
+      textdomain "bootloader"
+
+      _("boot code options")
+    end
+
+    def contents
+      if Arch.s390 || Arch.aarch64
+        loader_widget = CWM::Empty.new("loader_location")
+      else
+        # TODO: create widget
+        loader_widget = CWM::Empty.new("loader_location")
+      end
+
+      if (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name != "grub2-efi"
+        activate_widget = ActivateWidget.new
+        generic_mbr_widget = GenericMBRWidget.new
+      else
+        activate_widget = CWM::Empty.new("activate")
+        generic_mbr_widget = CWM::Empty.new("generic_mbr")
+      end
+
+      # TODO: inst details
+      inst_details_widget = CWM::Empty.new("inst_details")
+      # TODO: PMbr detection if possible
+      pmbr_widget = CWM::Empty.new("pmbr")
+
+      VBox(
+        VSquash(
+          HBox(
+            Top(VBox(VSpacing(1), LoaderTypeWidget.new)),
+            loader_widget
+          )
+        ),
+        MarginBox(1, 0.5, Left(activate_widget)),
+        MarginBox(1, 0.5, Left(generic_mbr_widget)),
+        MarginBox(1, 0.5, Left(pmbr_widget)),
+        MarginBox(1, 0.5, Left(inst_details_widget)),
+        VStretch()
+      )
+    end
+  end
+
+  class BootloaderTab < CWM::Tab
+    def label
+      textdomain "bootloader"
+
+      _("Bootloader Options")
+    end
+
+    def contents
+      VBox(
+        VSpacing(2),
+        HBox(
+          HSpacing(1),
+          TimeoutWidget.new,
+          HSpacing(1),
+          VBox(
+            Left(Yast::Arch.s390 ? CWM::Empty.new("os_prober") : OSProberWidget.new),
+            VSpacing(1),
+            Left(HiddenMenuWidget.new)
+          ),
+          HSpacing(1)
+        ),
+        VSpacing(1),
+        MarginBox(1, 1, DefaultSectionWidget.new),
+        MarginBox(1, 1, GrubPasswordWidget.new),
+        VStretch()
+      )
+    end
+  end
 end
