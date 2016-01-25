@@ -17,6 +17,7 @@
 #
 require "yast"
 require "bootloader/sysconfig"
+require "bootloader/bootloader_factory"
 
 module Yast
   class BootloaderClass < Module
@@ -58,11 +59,6 @@ module Yast
       # old value of vga parameter of default bootloader section
       @old_vga = nil
 
-      # UI helping variables
-
-      Yast.include self, "bootloader/routines/switcher.rb"
-      Yast.include self, "bootloader/routines/popups.rb"
-
       # general functions
 
       @test_abort = nil
@@ -89,16 +85,18 @@ module Yast
     # @return bootloader settings
     def Export
       ReadOrProposeIfNeeded()
-      out = {
-        "loader_type"     => getLoaderType,
-        "initrd"          => Initrd.Export,
-        "specific"        => blExport,
-        "write_settings"  => BootCommon.write_settings,
-        "loader_device"   => BootCommon.loader_device,
-        "loader_location" => BootCommon.selected_location
-      }
-      log.info "Exporting settings: #{out}"
-      out
+      # TODO implement it using new way
+#      out = {
+#        "loader_type"     => getLoaderType,
+#        "initrd"          => Initrd.Export,
+#        "specific"        => blExport,
+#        "write_settings"  => BootCommon.write_settings,
+#        "loader_device"   => BootCommon.loader_device,
+#        "loader_location" => BootCommon.selected_location
+#      }
+#      log.info "Exporting settings: #{out}"
+#      out
+      {}
     end
 
     # Import settings from a map
@@ -193,14 +191,15 @@ module Yast
       Progress.NextStage
       return false if testAbort
 
-      ret = blRead(true, false)
+      ::Bootloader::BootloaderFactory.current.read
       BootCommon.was_read = true
       @old_vga = BootCommon.globals["vgamode"]
 
       Progress.Finish
       return false if testAbort
       log.debug "Read settings: #{Export()}"
-      ret
+
+      true
     end
 
     # Reset bootloader settings

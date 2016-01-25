@@ -1,5 +1,4 @@
 require "yast"
-require "yast/"
 require "bootloader/sysconfig"
 require "bootloader/none_bootloader"
 require "bootloader/grub2"

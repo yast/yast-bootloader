@@ -1,5 +1,7 @@
 require "yast"
 
+require "bootloader/bootloader_base"
+
 Yast.import "HTML"
 
 module Bootloader

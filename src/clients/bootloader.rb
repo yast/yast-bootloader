@@ -14,19 +14,20 @@
 #
 # $Id$
 #
+require "yast"
+
+require "bootloader/main_dialog"
+
 module Yast
   class BootloaderClient < Client
     def main
       Yast.import "UI"
       textdomain "bootloader"
 
-      Yast.import "BootCommon"
       Yast.import "Bootloader"
       Yast.import "CommandLine"
       Yast.import "Mode"
       Yast.import "RichText"
-
-      Yast.include self, "bootloader/routines/wizards.rb"
 
       # the command line description map
       cmdline = {
@@ -114,7 +115,7 @@ module Yast
     # CommandLine handler for running GUI
     # @return [Boolean] true if settings were saved
     def GuiHandler
-      ret = BootloaderSequence()
+      ret = ::Bootloader::MainDialog.new.run
 
       return false if ret == :abort || ret == :back || ret == :nil
       true

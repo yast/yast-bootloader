@@ -15,6 +15,9 @@ Yast.import "Wizard"
 
 module Bootloader
   class MainDialog
+    include Yast::UIShortcuts
+    include Yast::I18n
+
     # Whole configuration of printer but without reading and writing.
     # For use with autoinstallation.
     # @return sequence result
@@ -75,6 +78,8 @@ module Bootloader
     # @return `next, `back or `abort
     def run_content
       if !Yast::BootCommon.BootloaderInstallable
+        textdomain "bootloader"
+
         # error report
         Yast::Report.Error(
           _(
@@ -85,7 +90,7 @@ module Bootloader
 
       # run generic sequence
       aliases = {
-        "main"                 => lambda { ConfigFialog.new.run },
+        "main"                 => lambda { ConfigDialog.new.run },
         "installation_details" => lambda { DetailsDialog("installation") },
         "loader_details"       => lambda { DetailsDialog("loader") }
       }

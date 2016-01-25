@@ -4,10 +4,10 @@ require "bootloader/sections"
 require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
 require "bootloader/serial_console"
-require "config_files/grub2/default"
-require "config_files/grub2/grub_cfg"
-require "config_files/matcher"
-require "config_files/placer"
+require "cfa/grub2/default"
+require "cfa/grub2/grub_cfg"
+require "cfa/matcher"
+require "cfa/placer"
 
 Yast.import "Arch"
 Yast.import "BootArch"
@@ -44,7 +44,7 @@ module Bootloader
     def initialize
       textdomain "bootloader"
       @password = ::Bootloader::GRUB2Pwd.new
-      @grub_default = ::ConfigFiles::Grub2::Default.new
+      @grub_default = ::CFA::Grub2::Default.new
       @sections = []
       @pmbr_action = :nothing
     end
@@ -70,7 +70,7 @@ module Bootloader
 
     def read(reread: false)
       grub_default.load if !grub_default.loaded? || reread
-      grub_cfg = CFA::Grub2::GrubConf.new
+      grub_cfg = CFA::Grub2::GrubCfg.new
       grub_cfg.load
       @sections = ::Bootloader::Sections.new(grub_cfg)
     end
@@ -112,7 +112,7 @@ module Bootloader
 
       grub_default.serial_console = console.console_args
 
-      placer = ConfigFiles::ReplacePlacer.new(serial_console_matcher)
+      placer = CFA::ReplacePlacer.new(serial_console_matcher)
       kernel_params = grub_default.kernel_params
       kernel_params.add_parameter("console", console.kernel_args, placer)
     end
@@ -124,7 +124,7 @@ module Bootloader
   private
 
     def serial_console_matcher
-      ConfigFiles::Matcher.new(key: "console", value_matcher: /tty(S|AMA)/)
+      CFA::Matcher.new(key: "console", value_matcher: /tty(S|AMA)/)
     end
 
     def propose_os_probing
