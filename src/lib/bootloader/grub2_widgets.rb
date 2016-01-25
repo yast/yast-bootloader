@@ -261,7 +261,7 @@ module Bootloader
 
     MASKED_PASSWORD = "**********"
 
-    def content
+    def contents
       HBox(
         CheckBoxFrame(
           Id(:use_pas),
@@ -369,7 +369,7 @@ module Bootloader
 
   private
 
-    def content
+    def contents
       # TODO: simplify a bit content or split it
       VBox(
         CheckBoxFrame(
@@ -510,6 +510,21 @@ module Bootloader
       textdomain "bootloader"
     end
 
+    def label
+      _("&Default Boot Section")
+    end
+
+    def help
+      _(
+        "<p> By pressing <b>Set as Default</b> you mark the selected section as\n" \
+        "the default. When booting, the boot loader will provide a boot menu and\n" \
+        "wait for the user to select a kernel or OS to boot. If no\n" \
+        "key is pressed before the timeout, the default kernel or OS will\n" \
+        "boot. The order of the sections in the boot loader menu can be changed\n" \
+        "using the <b>Up</b> and <b>Down</b> buttons.</p>\n"
+      )
+    end
+
   private
 
     def init
@@ -559,7 +574,7 @@ module Bootloader
     end
 
     def contents
-      if Arch.s390 || Arch.aarch64
+      if Yast::Arch.s390 || Yast::Arch.aarch64
         loader_widget = CWM::Empty.new("loader_location")
       else
         # TODO: create widget
@@ -603,16 +618,17 @@ module Bootloader
     end
 
     def contents
+      hiden_menu_widget = HiddenMenuWidget.new
       VBox(
         VSpacing(2),
         HBox(
           HSpacing(1),
-          TimeoutWidget.new,
+          TimeoutWidget.new(hiden_menu_widget),
           HSpacing(1),
           VBox(
             Left(Yast::Arch.s390 ? CWM::Empty.new("os_prober") : OSProberWidget.new),
             VSpacing(1),
-            Left(HiddenMenuWidget.new)
+            Left(hiden_menu_widget)
           ),
           HSpacing(1)
         ),

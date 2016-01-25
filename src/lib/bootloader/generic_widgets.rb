@@ -13,6 +13,12 @@ module Bootloader
       textdomain "bootloader"
     end
 
+    def label
+      textdomain "bootloader"
+
+      _("&Boot Loader")
+    end
+
   private
 
     def init
