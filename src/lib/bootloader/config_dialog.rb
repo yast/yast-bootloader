@@ -2,6 +2,7 @@ require "yast"
 
 require "bootloader/bootloader_factory"
 require "bootloader/none_bootloader"
+require "bootloader/grub2_widgets"
 
 Yast.import "BootCommon"
 Yast.import "CWMTab"
@@ -13,6 +14,7 @@ module Bootloader
   class ConfigDialog
     include Yast::Logger
     include Yast::I18n
+    include Yast::UIShortcuts
 
     def run
       textdomain "bootloader"
@@ -35,34 +37,19 @@ module Bootloader
       # F#300779: end
 
 
-      widget_descr = Builtins.union(CommonGlobalWidgets(), Bootloader.blWidgetMaps)
       if BootloaderFactory.current.is_a?(NoneBootloader)
-        contents = VBox("loader_type")
-        widget_names = ["loader_type"]
+        contents = VBox(LoaderTypeWidget.new)
       else
-        contents = VBox("tab")
-        widget_names = ["tab"]
-        widget_descr["tab"] = Yast::CWMTab.CreateWidget(
-          "tab_order"    => ["boot_code_tab", "kernel_tab", "bootloader_tab"],
-          "tabs"         => Grub2TabDescr(),
-          "widget_descr" => widget_descr,
-          "initial_tab"  => "boot_code_tab",
-          "no_help"      => ""
-        )
+        tabs = CWM::Tabs.new(BootCodeTab.new, KernelTab.new, BootloaderTab.new)
+        contents = VBox(tabs)
       end
 
-
-
-      # dialog caption
-      caption = _("Boot Loader Settings")
-      Yast::CWM.ShowAndRun(
-        "widget_descr"       => widget_descr,
-        "widget_names"       => widget_names,
-        "contents"           => contents,
-        "caption"            => caption,
-        "back_button"        => "",
-        "abort_button"       => Yast::Label.CancelButton,
-        "next_button"        => Yast::Label.OKButton,
+      Yast::CWM.show(
+        contents,
+        caption:      _("Boot Loader Settings"),
+        back_button:  "",
+        abort_button: Yast::Label.CancelButton,
+        next_button:  Yast::Label.OKButton
       )
     end
   end
