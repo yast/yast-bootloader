@@ -26,7 +26,7 @@ module Bootloader
     end
 
     def sections
-      BootloaderFactory.current.password
+      BootloaderFactory.current.sections
     end
 
     def grub2
@@ -45,8 +45,6 @@ module Bootloader
       @hidden_menu_widget = hidden_menu_widget
     end
 
-  private
-
     attr_reader :minimum, :maximum
 
     def label
@@ -60,7 +58,7 @@ module Bootloader
     end
 
     def init
-      if grub_default.hidden_timeout && grub_default.hidden_timeout > 0
+      if grub_default.hidden_timeout && grub_default.hidden_timeout.to_i > 0
         self.value = grub_default.hidden_timeout
       else
         self.value = grub_default.timeout
@@ -84,8 +82,6 @@ module Bootloader
     def initialize
       textdomain "bootloader"
     end
-
-  private
 
     def label
       _("Set &active Flag in Partition Table for Boot Partition")
@@ -116,8 +112,6 @@ module Bootloader
       textdomain "bootloader"
     end
 
-  private
-
     def label
       _("Write &generic Boot Code to MBR")
     end
@@ -146,8 +140,6 @@ module Bootloader
       textdomain "bootloader"
     end
 
-  private
-
     def label
       _("&Hide Menu on Boot")
     end
@@ -159,7 +151,7 @@ module Bootloader
     end
 
     def init
-      self.value = default_grub.hidden_timeout && default_grub.hidden_timeout > 0
+      self.value = grub_default.hidden_timeout && grub_default.hidden_timeout.to_i > 0
     end
   end
 
@@ -169,8 +161,6 @@ module Bootloader
     def initialize
       textdomain "bootloader"
     end
-
-  private
 
     def label
       _("Probe Foreign OS")
@@ -199,8 +189,6 @@ module Bootloader
       textdomain "bootloader"
     end
 
-  private
-
     def label
       _("O&ptional Kernel Command Line Parameter")
     end
@@ -228,8 +216,6 @@ module Bootloader
       textdomain "bootloader"
     end
 
-  private
-
     def init
       self.value = grub2.pmbr_action
     end
@@ -256,8 +242,6 @@ module Bootloader
     def initialize
       textdomain "bootloader"
     end
-
-  private
 
     MASKED_PASSWORD = "**********"
 
@@ -295,7 +279,7 @@ module Bootloader
         Yast::UI.SetFocus(Id(:pw1))
         return false
       end
-      if Yast::UI.QueryWidget(Id(:pw1), :Value) == UI.QueryWidget(Id(:pw2), :Value)
+      if Yast::UI.QueryWidget(Id(:pw1), :Value) == Yast::UI.QueryWidget(Id(:pw2), :Value)
         return true
       end
       Yast::Report.Error(_(
@@ -310,13 +294,13 @@ module Bootloader
       # read state on disk only if not already set by user (bnc#900026)
       value = enabled && password.password? ? MASKED_PASSWORD : ""
 
-      UI.ChangeWidget(Id(:use_pas), :Value, enabled)
-      UI.ChangeWidget(Id(:pw1), :Enabled, enabled)
-      UI.ChangeWidget(Id(:pw1), :Value, value)
-      UI.ChangeWidget(Id(:pw2), :Enabled, enabled)
-      UI.ChangeWidget(Id(:pw2), :Value, value)
-      UI.ChangeWidget(Id(:unrestricted_pw), :Enabled, enabled)
-      UI.ChangeWidget(Id(:unrestricted_pw), :Value, password.unrestricted?)
+      Yast::UI.ChangeWidget(Id(:use_pas), :Value, enabled)
+      Yast::UI.ChangeWidget(Id(:pw1), :Enabled, enabled)
+      Yast::UI.ChangeWidget(Id(:pw1), :Value, value)
+      Yast::UI.ChangeWidget(Id(:pw2), :Enabled, enabled)
+      Yast::UI.ChangeWidget(Id(:pw2), :Value, value)
+      Yast::UI.ChangeWidget(Id(:unrestricted_pw), :Enabled, enabled)
+      Yast::UI.ChangeWidget(Id(:unrestricted_pw), :Value, password.unrestricted?)
     end
 
     def handle(event)
@@ -343,7 +327,7 @@ module Bootloader
       # special value as we do not know password, so it mean user do not change it
       password.password = value if value != MASKED_PASSWORD
 
-      value = UI.QueryWidget(Id(:unrestricted_pw), :Value)
+      value = Yast::UI.QueryWidget(Id(:unrestricted_pw), :Value)
       password.unrestricted = value
     end
 
@@ -366,8 +350,6 @@ module Bootloader
     def initialize
       textdomain "bootloader"
     end
-
-  private
 
     def contents
       # TODO: simplify a bit content or split it
@@ -433,13 +415,13 @@ module Bootloader
       Yast::UI.ChangeWidget(Id(:gfxterm_frame), :Value, enable)
 
 
-      UI.ChangeWidget(Id(:gfxmode), :Items, vga_modes_items)
+      Yast::UI.ChangeWidget(Id(:gfxmode), :Items, vga_modes_items)
       mode = grub_default.gfxmode
 
       # there's mode specified, use it
-      UI.ChangeWidget(Id(:gfxmode), :Value, mode) if mode && mode != ""
+      Yast::UI.ChangeWidget(Id(:gfxmode), :Value, mode) if mode && mode != ""
 
-      UI.ChangeWidget(Id(:theme), :Value, grub_default.theme)
+      Yast::UI.ChangeWidget(Id(:theme), :Value, grub_default.theme)
     end
 
     def vga_modes_items
@@ -524,8 +506,6 @@ module Bootloader
         "using the <b>Up</b> and <b>Down</b> buttons.</p>\n"
       )
     end
-
-  private
 
     def init
       self.value = sections.default
