@@ -37,7 +37,6 @@ PreReq:         /bin/sed %fillup_prereq
 Requires:	yast2 >= 3.1.112
 Requires:	yast2-packager >= 2.17.24
 Requires:	yast2-pkg-bindings >= 2.17.25
-Requires:	perl-Bootloader-YAML
 Requires:	yast2-core >= 2.18.7
 Requires:       yast2-storage >= 2.18.18
 Requires:       parted
