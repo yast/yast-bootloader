@@ -2,6 +2,7 @@ require "yast"
 
 require "bootloader/generic_widgets"
 
+Yast.import "BootStorage"
 Yast.import "Initrd"
 Yast.import "Label"
 Yast.import "Report"
@@ -571,8 +572,12 @@ module Bootloader
 
       # TODO: inst details
       inst_details_widget = CWM::Empty.new("inst_details")
-      # TODO: PMbr detection if possible
-      pmbr_widget = CWM::Empty.new("pmbr")
+
+      if (Yast::Arch.x86_64 || Yast::Arch.i386) && Yast::BootStorage.gpt_boot_disk?
+        pmbr_widget = PMBRWidget.new
+      else
+        pmbr_widget = CWM::Empty.new("pmbr")
+      end
 
       VBox(
         VSquash(

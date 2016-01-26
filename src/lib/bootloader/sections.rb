@@ -4,6 +4,8 @@ require "yast2/execute"
 module Bootloader
   # Represents available sections and handling of default boot entry
   class Sections
+    include Yast::Logger
+
     # @param [CFA::Grub2::GrubCfg] grub_cfg - loaded parsed grub cfg tree
     def initialize(grub_cfg)
       @data = grub_cfg.sections
@@ -27,12 +29,17 @@ module Bootloader
     # Sets default section internally
     # @note to write it to system use #write later
     def default=(value)
-      raise "Unknown value #{value.inspect}" unless @data.include?(value)
+      log.info "set new default to '#{value.inspect}'"
+
+      # empty value mean no default specified
+      raise "Unknown value #{value.inspect}" if  !@data.include?(value) && !value.empty?
+
       @default = value
     end
 
     # writes default to system making it persistent
     def write
+      return if default.empty?
       Yast::Execute.on_target("/usr/sbin/grub2-set-default", default)
     end
   end

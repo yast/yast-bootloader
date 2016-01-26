@@ -90,7 +90,7 @@ module Bootloader
       Yast::BootCommon.activate_changed = true
 
       # for GPT remove protective MBR flag otherwise some systems won't boot
-      Yast::BootCommon.pmbr_action = :remove if gpt_boot_disk?
+      Yast::BootCommon.pmbr_action = :remove if Yast::BootStorage.gpt_boot_disk?
 
       selected_location
     end
@@ -243,13 +243,6 @@ module Bootloader
     def add_udev_device(dev)
       udev_device = Bootloader::UdevMapping.to_mountby_device(dev)
       @model.add_device(udev_device)
-    end
-
-    # FIXME: find better location
-    def gpt_boot_disk?
-      targets = Yast::BootCommon.GetBootloaderDevices
-      boot_discs = targets.map { |d| Yast::Storage.GetDisk(target_map, d) }
-      boot_discs.any? { |d| d["label"] == "gpt" }
     end
 
     def target_map

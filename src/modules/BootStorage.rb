@@ -94,6 +94,12 @@ module Yast
       ret
     end
 
+    def gpt_boot_disk?
+      targets = Yast::BootCommon.GetBootloaderDevices
+      boot_discs = targets.map { |d| Yast::Storage.GetDisk(target_map, d) }
+      boot_discs.any? { |d| d["label"] == "gpt" }
+    end
+
     # Check if function was called or storage change
     # partitionig of disk. It is usefull fo using cached data
     # about disk. Data is send to perl-Bootloader and it includes
