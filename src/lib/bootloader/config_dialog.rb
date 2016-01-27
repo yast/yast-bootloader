@@ -4,7 +4,7 @@ require "bootloader/bootloader_factory"
 require "bootloader/none_bootloader"
 require "bootloader/grub2_widgets"
 
-Yast.import "BootCommon"
+Yast.import "BootStorage"
 Yast.import "CWMTab"
 Yast.import "CWM"
 Yast.import "Mode"
@@ -23,7 +23,7 @@ module Bootloader
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-      device = Yast::BootCommon.getBootDisk
+      device = Yast::BootStorage.disk_with_boot_partition
 
       if device == "/dev/nfs" && Yast::Mode.installation
         Yast::Popup.Message(

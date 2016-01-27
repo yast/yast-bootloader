@@ -501,6 +501,29 @@ module Yast
       prep_partitions.map { |p| p["device"] }
     end
 
+    def disk_with_boot_partition
+      boot_device = BootPartitionDevice()
+
+      if boot_device.empty?
+        log.error("BootPartitionDevice and RootPartitionDevice are empty"
+        return boot_device
+      end
+
+      p_dev = Storage.GetDiskPartition(boot_device)
+
+      boot_disk_device = p_dev["disk"]
+
+      if boot_disk_device && !boot_disk_device.empty?
+        log.info "Boot device - disk: #{boot_disk_device}"
+        return boot_disk_device
+      end
+
+      log.error("Finding boot disk failed!")
+      ""
+    end
+
+    end
+
     # Get map of swap partitions
     # @return a map where key is partition name and value its size in KB
     def available_swap_partitions

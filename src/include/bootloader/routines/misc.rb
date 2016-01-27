@@ -357,26 +357,5 @@ module Yast
     #
     # @return [String] name of boot device - disk
 
-    def getBootDisk
-      boot_device = getBootPartition
-
-      if boot_device == ""
-        Builtins.y2milestone(
-          "BootPartitionDevice and RootPartitionDevice are empty"
-        )
-        return boot_device
-      end
-      p_dev = Storage.GetDiskPartition(boot_device)
-
-      boot_disk_device = Ops.get_string(p_dev, "disk", "")
-
-      if boot_disk_device != "" && !boot_disk_device.nil?
-        Builtins.y2milestone("Boot device - disk: %1", boot_disk_device)
-        return boot_disk_device
-      end
-
-      Builtins.y2milestone("Finding boot disk failed!")
-      ""
-    end
   end
 end

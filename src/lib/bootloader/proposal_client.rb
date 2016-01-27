@@ -11,6 +11,7 @@ module Bootloader
 
       Yast.import "Arch"
       Yast.import "BootCommon"
+      Yast.import "BootStorage"
       Yast.import "Bootloader"
       Yast.import "Installation"
       Yast.import "Storage"
@@ -145,7 +146,7 @@ module Bootloader
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso:  bootloader will not be installed
-      device = Yast::BootCommon.getBootDisk
+      device = Yast::BootStorage.disk_with_boot_partition
       log.info "Type of BootPartitionDevice: #{device}"
       if device == "/dev/nfs"
         log.info "Boot partition is nfs type, bootloader will not be installed."

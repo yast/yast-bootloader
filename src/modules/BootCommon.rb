@@ -213,7 +213,6 @@ module Yast
     publish :function => :UpdateInstallationKernelParameters, :type => "void ()"
     publish :function => :BootloaderInstallable, :type => "boolean ()"
     publish :function => :PartitionInstallable, :type => "boolean ()"
-    publish :function => :getBootDisk, :type => "string ()"
     publish :function => :DiskOrderSummary, :type => "string ()"
     publish :function => :PostUpdateMBR, :type => "boolean ()"
     publish :function => :UpdateGlobals, :type => "void ()"

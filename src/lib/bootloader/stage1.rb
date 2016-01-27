@@ -178,7 +178,7 @@ module Bootloader
       # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
       # we need to detect what is mount on /boot and if it is nfs, then just
       # skip this proposal. In other case if it is not nfs, then it is error and raise exception
-      elsif Yast::BootCommon.getBootDisk == "/dev/nfs"
+      elsif Yast::BootStorage.disk_with_boot_partition == "/dev/nfs"
         return :none
       else
         raise "there is no prep partition"
@@ -290,7 +290,7 @@ module Bootloader
       when :boot then add_udev_device(Yast::BootStorage.BootPartitionDevice)
       when :extended then add_udev_device(extended)
       when :mbr
-        add_udev_device(Yast::BootCommon.getBootDisk)
+        add_udev_device(Yast::BootStorage.mbr_disk)
         # Disable generic MBR as we want grub2 there
         @model.generic_mbr = true
       when :none

@@ -47,7 +47,7 @@ module Yast
 
         # F#300779 - Install diskless client (NFS-root)
         # kokso: bootloader will not be installed
-        @device = BootCommon.getBootDisk
+        @device = BootStorage.disk_with_boot_partition
 
         if @device == "/dev/nfs"
           Builtins.y2milestone(
