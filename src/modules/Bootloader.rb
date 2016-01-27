@@ -285,17 +285,13 @@ module Yast
         # progress stage, text in dialog (short)
         _("Create initrd"),
         # progress stage, text in dialog (short)
-        _("Save boot loader configuration files"),
-        # progress stage, text in dialog (short)
-        _("Install boot loader")
+        _("Save boot loader configuration"),
       ]
       titles = [
         # progress step, text in dialog (short)
         _("Creating initrd..."),
         # progress step, text in dialog (short)
-        _("Saving boot loader configuration files..."),
-        # progress step, text in dialog (short)
-        _("Installing boot loader...")
+        _("Saving boot loader configuration..."),
       ]
       # progress bar caption
       if Mode.normal
@@ -332,40 +328,9 @@ module Yast
         Progress.Title(titles[1])
       end
 
-      write_sysconfig
-      write_proposed_params(params_to_save)
+      Bootloader::BootloaderFactory.current.write
 
-      return ret if getLoaderType == "none"
-
-      # F#300779 - Install diskless client (NFS-root)
-      # kokso: bootloader will not be installed
-      if BootCommon.getBootDisk == "/dev/nfs"
-        log.info "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
-        return ret
-      end
-
-      # F#300779 -end
-
-      # save bootloader settings
-      reinit = !Mode.normal
-      log.info "Reinitialize bootloader library before saving: #{reinit}"
-      ret = blSave(true, reinit, true) && ret
-
-      log.error "Error before configuration files saving finished" unless ret
-
-      if Mode.normal
-        Progress.NextStage
-      else
-        Progress.NextStep if !@repeating_write
-        Progress.Title(titles[2])
-      end
-
-      # call bootloader executable
-      log.info "Calling bootloader executable"
-      ret &&= blWrite
-      ret = handle_failed_write unless ret
-
-      ret
+      true
     end
 
     # Write bootloader settings during installation
@@ -564,26 +529,6 @@ module Yast
     end
 
   private
-
-    # Write settings to /etc/sysconfig/bootloader
-    def write_sysconfig
-      sysconfig = ::Bootloader::Sysconfig.new(
-        bootloader:  getLoaderType,
-        secure_boot: BootCommon.getSystemSecureBootStatus(false)
-      )
-      sysconfig.write
-    end
-
-    def write_proposed_params(params_to_save)
-      return unless Stage.initial
-
-      params_to_save["installation_kernel_params"] = Kernel.GetCmdLine
-      SCR.Write(
-        path(".target.ycp"),
-        "/var/lib/YaST2/bootloader.ycp",
-        params_to_save
-      )
-    end
 
     def mark_as_changed
       BootCommon.save_all = true if BootCommon.write_settings["save_all"]
