@@ -31,32 +31,6 @@ module Yast
       Yast.include include_target, "bootloader/routines/i386.rb"
     end
 
-    # FindMbrDisk()
-    # try to find the system's mbr device
-    # @return [String]   mbr device
-    def FindMBRDisk
-      # check the disks order, first has MBR
-      order = BootStorage.DisksOrder
-      if Ops.greater_than(Builtins.size(order), 0)
-        ret = Ops.get(order, 0, "")
-        Builtins.y2milestone("First disk in the order: %1, using for MBR", ret)
-        return ret
-      end
-
-      # OK, order empty, use the disk with boot partition
-      mp = Storage.GetMountPoints
-      boot_disk = Ops.get_string(
-        mp,
-        ["/boot", 2],
-        Ops.get_string(mp, ["/", 2], "")
-      )
-      Builtins.y2milestone(
-        "Disk with boot partition: %1, using for MBR",
-        boot_disk
-      )
-      boot_disk
-    end
-
     # ConfigureLocation()
     # Where to install the bootloader.
     # Returns the type of device where to install: one of "boot", "root", "mbr", "mbr_md"

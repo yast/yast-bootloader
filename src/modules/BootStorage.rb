@@ -26,6 +26,7 @@ module Yast
     include Yast::Logger
 
     attr_accessor :device_map
+    attr_accessor :mbr_disk
 
     def main
       textdomain "bootloader"
@@ -418,6 +419,27 @@ module Yast
       res.uniq
     end
 
+    def find_mbr_disk
+      # check the disks order, first has MBR
+      order = DisksOrder()
+      if !order.empty?
+        ret = order.first
+        log.info "First disk in the order: #{ret}, using for MBR"
+        return ret
+      end
+
+      # OK, order empty, use the disk with boot partition
+      mp = Storage.GetMountPoints
+      boot_disk = Ops.get_string(
+        mp,
+        ["/boot", 2],
+        Ops.get_string(mp, ["/", 2], "")
+      )
+      log.info "Disk with boot partition: #{boot_disk}, using for MBR"
+
+      boot_disk
+    end
+
     # Sets properly boot, root and mbr disk.
     # @return :empty if bl devices are empty, :invalid if storage changed and
     #   :ok if everything is fine
@@ -443,10 +465,7 @@ module Yast
       # get extended partition device (if exists)
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
-      if BootCommon.mbrDisk == "" || BootCommon.mbrDisk.nil?
-        # mbr detection.
-        BootCommon.mbrDisk = BootCommon.FindMBRDisk
-      end
+      @mbr_disk = find_mbr_disk
 
       # device map may be implicitly proposed in FindMBRDisk above
       # - but not always...

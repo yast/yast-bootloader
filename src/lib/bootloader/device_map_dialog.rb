@@ -130,7 +130,7 @@ module Bootloader
     end
 
     def store_order
-      Yast::BootCommon.mbrDisk = disks.first
+      Yast::BootStorage.mbr_disk = disks.first
 
       mapping = disks.each_with_object({}) do |disk, res|
         res[disk] = "hd#{res.size}"

@@ -127,7 +127,7 @@ module Yast
       return true if BootCommon.globals["boot_mbr"] != "true"
 
       devices = Storage.GetTargetMap
-      mbr_disk = Storage.GetDisk(devices, BootCommon.FindMBRDisk)
+      mbr_disk = Storage.GetDisk(devices, BootStorage.mbr_disk)
       boot_device = Storage.GetPartition(devices, BootCommon.getBootPartition)
       return true if mbr_disk["label"] != "gpt"
       return true if boot_device["used_fs"] != :btrfs
@@ -243,7 +243,7 @@ module Yast
 
     def check_activate_partition
       # activate set or there is already activate flag
-      return true if BootCommon.globals["activate"] == "true" || Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk)
+      return true if BootCommon.globals["activate"] == "true" || Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
 
       AddNewProblem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
       false

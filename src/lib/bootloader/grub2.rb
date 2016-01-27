@@ -121,8 +121,8 @@ module Bootloader
       if @stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
-        locations << BootCommon.mbrDisk + _(" (MBR)")
-        already_mentioned << BootCommon.mbrDisk
+        locations << BootStorage.mbr_disk + _(" (MBR)")
+        already_mentioned << BootStorage.mbr_disk
       end
       if !@stage1.custom_devices.empty?
         locations << @stage1.custom_devices

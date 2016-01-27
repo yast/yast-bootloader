@@ -57,7 +57,7 @@ module Bootloader
     end
 
     def mbr?
-      include?(Yast::BootCommon.mbrDisk)
+      include?(Yast::BootStorage.mbr_disk)
     end
 
     def extended?
@@ -68,7 +68,7 @@ module Bootloader
       known_devices = [
         Yast::BootStorage.BootPartitionDevice,
         Yast::BootStorage.RootPartitionDevice,
-        Yast::BootCommon.mbrDisk,
+        Yast::BootStorage.mbr_disk,
         Yast::BootStorage.ExtendedPartitionDevice
       ]
       known_devices.compact!
@@ -121,7 +121,7 @@ module Bootloader
           end
         end
 
-        res[:mbr] = Yast::BootCommon.mbrDisk
+        res[:mbr] = Yast::BootStorage.mbr_disk
       else
         log.info "no available non-custom location for arch #{Yast::Arch.architecture}"
       end
@@ -146,7 +146,7 @@ module Bootloader
         # partition can remain activated, which causes less problems with
         # other installed OSes like Windows (older versions assign the C:
         # drive letter to the activated partition).
-        boot_flag_part = Yast::Storage.GetBootPartition(Yast::BootCommon.mbrDisk)
+        boot_flag_part = Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
         @model.activate = boot_flag_part.empty?
       else
         # if not installing to MBR, always activate (so the generic MBR will
@@ -154,7 +154,6 @@ module Bootloader
         @model.activate = true
         @model.generic_mbr = true
       end
-      Yast::BootCommon.activate_changed = true
 
       # for GPT remove protective MBR flag otherwise some systems won't boot
       Yast::BootCommon.pmbr_action = :remove if Yast::BootStorage.gpt_boot_disk?
@@ -350,7 +349,7 @@ module Bootloader
       @boot_partition_on_mbr_disk = underlying_boot_partition_devices.any? do |dev|
         pdp = Yast::Storage.GetDiskPartition(dev)
         p_disk = pdp["disk"] || ""
-        p_disk == Yast::BootCommon.mbrDisk
+        p_disk == Yast::BootStorage.mbr_disk
       end
 
       log.info "/boot is on 1st disk: #{@boot_partition_on_mbr_disk}"

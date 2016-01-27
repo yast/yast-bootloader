@@ -1,6 +1,7 @@
 require "yast"
 
 Yast.import "BootCommon"
+Yast.import "BootStorage"
 
 module Bootloader
   # Responsibility of class is to manage backup of MBR, respective PBR of disk,
@@ -50,7 +51,7 @@ module Bootloader
       copy_br(device, logs_path)
 
       # special backup only if device is mbr disk
-      return if device != Yast::BootCommon.mbrDisk
+      return if device != Yast::BootStorage.mbr_disk
 
       copy_br(device, "/boot/backup_mbr")
 

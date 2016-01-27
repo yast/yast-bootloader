@@ -47,7 +47,7 @@ module Bootloader
   private
 
     def mbr_disk
-      @mbr_disk ||= Yast::BootCommon.mbrDisk
+      @mbr_disk ||= Yast::BootStorage.mbr_disk
     end
 
     def bootloader_devices
@@ -186,7 +186,7 @@ module Bootloader
     def disks_to_rewrite
       # find the MBRs on the same disks as the devices underlying the boot
       # devices; if for any of the "underlying" or "base" devices no device
-      # for acessing the MBR can be determined, include mbrDisk in the list
+      # for acessing the MBR can be determined, include mbr_disk in the list
       mbrs = base_devices.map do |dev|
         partition_to_activate(dev)["mbr"] || mbr_disk
       end

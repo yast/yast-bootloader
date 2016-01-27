@@ -83,9 +83,6 @@ module Yast
       # Parameters of all bootloaders
       @bootloader_attribs = {}
 
-      # device holding MBR for bootloader
-      @mbrDisk = ""
-
       # Backup original MBR before installing bootloader
       @backup_mbr = false
 
@@ -515,7 +512,6 @@ module Yast
     publish :variable => :selected_location, :type => "string"
     publish :variable => :current_bootloader_attribs, :type => "map <string, any>"
     publish :variable => :bootloader_attribs, :type => "map <string, map <string, any>>"
-    publish :variable => :mbrDisk, :type => "string"
     publish :variable => :backup_mbr, :type => "boolean"
     publish :variable => :activate, :type => "boolean"
     publish :variable => :pmbr_action, :type => "symbol"
@@ -553,7 +549,6 @@ module Yast
     publish :function => :getBootDisk, :type => "string ()"
     publish :function => :DiskOrderSummary, :type => "string ()"
     publish :function => :PostUpdateMBR, :type => "boolean ()"
-    publish :function => :FindMBRDisk, :type => "string ()"
     publish :function => :UpdateGlobals, :type => "void ()"
     publish :function => :SetDiskInfo, :type => "void ()"
     publish :function => :InitializeLibrary, :type => "boolean (boolean, string)"
