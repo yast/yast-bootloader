@@ -248,6 +248,30 @@ module Bootloader
     end
   end
 
+  class SecureBootWidget < CWM::CheckBox
+    include Grub2Widget
+
+    def initialize
+      textdomain "bootloader"
+    end
+
+    def label
+      _("Enable &Secure Boot Support")
+    end
+
+    def help
+      _("Tick to enable UEFI Secure Boot\n")
+    end
+
+    def init
+      self.value = grub2.secure_boot
+    end
+
+    def store
+      grub2.secure_boot = value
+    end
+  end
+
   class GrubPasswordWidget < CWM::CustomWidget
     include Grub2Widget
 
@@ -693,42 +717,32 @@ module Bootloader
     end
 
     def contents
-      if Yast::Arch.s390 || Yast::Arch.aarch64 || grub2.name == "grub2-efi"
-        loader_widget = CWM::Empty.new("loader_location")
-      else
-        loader_widget = LoaderLocationWidget.new
+      widgets = []
+      if (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc) && grub2.name == "grub2"
+        widgets << MarginBox(1, 0.5, Left(LoaderLocationWidget.new))
       end
 
       if (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name != "grub2-efi"
-        activate_widget = ActivateWidget.new
-        generic_mbr_widget = GenericMBRWidget.new
-      else
-        activate_widget = CWM::Empty.new("activate")
-        generic_mbr_widget = CWM::Empty.new("generic_mbr")
+        widgets << MarginBox(1, 0.5, Left(ActivateWidget.new))
+        widgets << MarginBox(1, 0.5, Left(GenericMBRWidget.new))
       end
 
-      if (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc ) && grub2.name != "grub2-efi"
-        inst_details_widget = DeviceMapWidget.new
-      else
-        inst_details_widget = CWM::Empty.new("inst_details")
+      if (Yast::Arch.x86_64 || Yast::Arch.i386 ) && grub2.name == "grub2-efi"
+        widgets << MarginBox(1, 0.5, Left(SecureBootWidget.new))
       end
-
-      #TODO: secure boot for efi
 
       if (Yast::Arch.x86_64 || Yast::Arch.i386) &&
           (Yast::BootStorage.gpt_boot_disk? || grub2.name == "grub2-efi")
-        pmbr_widget = PMBRWidget.new
-      else
-        pmbr_widget = CWM::Empty.new("pmbr")
+        widgets << MarginBox(1, 0.5, Left(PMBRWidget.new))
+      end
+
+      if (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc ) && grub2.name != "grub2-efi"
+        widgets << MarginBox(1, 0.5, Left(DeviceMapWidget.new))
       end
 
       VBox(
         LoaderTypeWidget.new,
-        loader_widget,
-        MarginBox(1, 0.5, Left(activate_widget)),
-        MarginBox(1, 0.5, Left(generic_mbr_widget)),
-        MarginBox(1, 0.5, Left(pmbr_widget)),
-        MarginBox(1, 0.5, Left(inst_details_widget)),
+        *widgets,
         VStretch()
       )
     end
