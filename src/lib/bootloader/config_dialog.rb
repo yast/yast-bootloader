@@ -46,10 +46,11 @@ module Bootloader
 
       Yast::CWM.show(
         contents,
-        caption:      _("Boot Loader Settings"),
-        back_button:  "",
-        abort_button: Yast::Label.CancelButton,
-        next_button:  Yast::Label.OKButton
+        caption:        _("Boot Loader Settings"),
+        back_button:    "",
+        abort_button:   Yast::Label.CancelButton,
+        next_button:    Yast::Label.OKButton,
+        skip_store_for: [:redraw]
       )
     end
   end

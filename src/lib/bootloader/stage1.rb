@@ -18,7 +18,7 @@ module Bootloader
       Yast.import "Kernel"
       Yast.import "Storage"
 
-      @model = CFA::InstallDevice.new
+      @model = CFA::Grub2::InstallDevice.new
     end
 
     def read
@@ -34,6 +34,48 @@ module Bootloader
 
       @model.devices.any? do |map_dev|
         kernel_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
+      end
+    end
+
+    def add_udev_device(dev)
+      udev_device = Bootloader::UdevMapping.to_mountby_device(dev)
+      @model.add_device(udev_device)
+    end
+
+    def clear_devices
+      @model.devices.each do |dev|
+        @model.remove_device(dev)
+      end
+    end
+
+    def boot_partition?
+      include?(Yast::BootStorage.BootPartitionDevice)
+    end
+
+    def root_partition?
+      include?(Yast::BootStorage.RootPartitionDevice)
+    end
+
+    def mbr?
+      include?(Yast::BootCommon.mbrDisk)
+    end
+
+    def extended?
+      include?(Yast::BootStorage.ExtendedPartitionDevice)
+    end
+
+    def custom_devices
+      known_devices = [
+        Yast::BootStorage.BootPartitionDevice,
+        Yast::BootStorage.RootPartitionDevice,
+        Yast::BootCommon.mbrDisk,
+        Yast::BootStorage.ExtendedPartitionDevice
+      ]
+      known_devices.compact!
+      known_devices.map! { |d| Bootloader::UdevMapping.to_kernel_device(d) }
+
+      @model.devices.select do |dev|
+        !known_devices.include?(Bootloader::UdevMapping.to_kernel_device(dev))
       end
     end
 
@@ -60,6 +102,31 @@ module Bootloader
       log.info "location configured. Resulting globals #{Yast::BootCommon.globals}"
 
       result
+    end
+
+    # returns hash, where key is symbol for location and value is device name
+    def available_locations
+      res = {}
+
+      case Yast::Arch.architecture
+      when "i386", "x86_64"
+        if Yast::BootStorage.can_boot_from_partition
+          if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+            res[:boot] = Yast::BootStorage.BootPartitionDevice
+          else
+            res[:root] = Yast::BootStorage.RootPartitionDevice
+          end
+          if logical_boot?
+            res[:extended] = extended
+          end
+        end
+
+        res[:mbr] = Yast::BootCommon.mbrDisk
+      else
+        log.info "no available non-custom location for arch #{Yast::Arch.architecture}"
+      end
+
+      res
     end
 
   private
@@ -238,11 +305,6 @@ module Bootloader
       else
         raise "Unknown value to select bootloader device #{selected_location.inspect}"
       end
-    end
-
-    def add_udev_device(dev)
-      udev_device = Bootloader::UdevMapping.to_mountby_device(dev)
-      @model.add_device(udev_device)
     end
 
     def target_map

@@ -19,10 +19,12 @@ module Bootloader
       _("&Boot Loader")
     end
 
-  private
-
     def init
       self.value = BootloaderFactory.current.name
+    end
+
+    def opt
+      [:notify]
     end
 
     def items
@@ -45,7 +47,7 @@ module Bootloader
 
     def handle
       old_bl = BootloaderFactory.current.name
-      new_bl = Yast::UI.QueryWidget(Id(key), :Value)
+      new_bl = value
 
       return nil if old_bl == new_bl
 
@@ -65,6 +67,7 @@ module Bootloader
       end
 
       BootloaderFactory.current_name = new_bl
+      BootloaderFactory.current.propose
 
       :redraw
     end

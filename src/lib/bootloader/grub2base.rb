@@ -45,7 +45,7 @@ module Bootloader
       textdomain "bootloader"
       @password = ::Bootloader::GRUB2Pwd.new
       @grub_default = ::CFA::Grub2::Default.new
-      @sections = []
+      @sections = ::Bootloader::Sections.new
       @pmbr_action = :nothing
     end
 
@@ -90,11 +90,11 @@ module Bootloader
       propose_timeout
 
       if grub_default.kernel_params.empty?
-        kernel_line = BootArch.DefaultKernelParams(propose_resume)
+        kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
         grub_default.kernel_params.replace(kernel_line)
       end
       grub_default.gfxmode ||= "auto"
-      grub_default.recovery_entry.disabled unless grub_default.recovery_entry.defined?
+      grub_default.recovery_entry.disable unless grub_default.recovery_entry.defined?
       grub_default.distributor ||= ""
 
       propose_serial
@@ -133,8 +133,8 @@ module Bootloader
 
       # s390 do not have os_prober, see bnc#868909#c2
       # ppc have slow os_prober, see boo#931653
-      disable_os_prober = (Arch.s390 || Arch.ppc) ||
-        ProductFeatures.GetBooleanFeature("globals", "disable_os_prober")
+      disable_os_prober = (Yast::Arch.s390 || Yast::Arch.ppc) ||
+        Yast::ProductFeatures.GetBooleanFeature("globals", "disable_os_prober")
       if disable_os_prober
         os_prober.disable
       else
@@ -145,7 +145,7 @@ module Bootloader
     def propose_terminal
       return if grub_default.terminal
 
-      grub_default.terminal = Arch.s390 ? :console : :gfxterm
+      grub_default.terminal = Yast::Arch.s390 ? :console : :gfxterm
     end
 
     def propose_timeout
@@ -162,13 +162,13 @@ module Bootloader
     end
 
     def propose_resume
-      swap_parts = BootStorage.available_swap_partitions
+      swap_parts = Yast::BootStorage.available_swap_partitions
       largest_swap_part = (swap_parts.max_by { |_part, size| size } || [""]).first
 
-      resume = BootArch.ResumeAvailable ? largest_swap_part : ""
+      resume = Yast::BootArch.ResumeAvailable ? largest_swap_part : ""
       # try to use label or udev id for device name... FATE #302219
       if resume != "" && !resume.nil?
-        resume = ::Bootloader::UdevMapping.to_mountby_device(resume)
+        resume = UdevMapping.to_mountby_device(resume)
       end
 
       resume

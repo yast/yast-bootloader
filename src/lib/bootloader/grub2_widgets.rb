@@ -1,6 +1,7 @@
 require "yast"
 
 require "bootloader/generic_widgets"
+require "bootloader/device_map_dialog"
 
 Yast.import "BootStorage"
 Yast.import "Initrd"
@@ -98,7 +99,7 @@ module Bootloader
     end
 
     def init
-      self.value = stage1.model.activate
+      self.value = stage1.model.activate?
     end
 
     def store
@@ -126,7 +127,7 @@ module Bootloader
     end
 
     def init
-      self.value = stage1.model.generic_mbr
+      self.value = stage1.model.generic_mbr?
     end
 
     def store
@@ -215,6 +216,16 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+    end
+
+    def label
+      _("Protective MBR flag")
+    end
+
+    def help
+      _(
+        "<p><b>Protective MBR flag</b> is expert only settings, that is needed only on exotic hardware. For details see Protective MBR in GPT disks. Do not touch if you are not sure.</p>"
+      )
     end
 
     def init
@@ -523,6 +534,133 @@ module Bootloader
     end
   end
 
+  class LoaderLocationWidget < CWM::CustomWidget
+    include Grub2Widget
+
+    def contents
+      textdomain "bootloader"
+
+      checkboxes = []
+      locations = stage1.available_locations
+      if locations[:boot]
+        checkboxes << Left(CheckBox(Id(:boot), _("Boo&t from Boot Partition")))
+      end
+      if locations[:root]
+        checkboxes << Left(CheckBox(Id(:root), _("Boo&t from Root Partition")))
+      end
+      if locations[:mbr]
+        checkboxes << Left(CheckBox(Id(:mbr), _("Boot from &Master Boot Record")))
+      end
+      if locations[:extended]
+        checkboxes << Left(CheckBox(Id(:extended), _("Boot from &Extended Partition")))
+      end
+      checkboxes << Left(CheckBox(Id(:custom), Opt(:notify), _("C&ustom Boot Partition")))
+      checkboxes << Left(InputField(Id(:custom_list), Opt(:hstretch),""))
+
+      VBox(
+        VSpacing(1),
+        Frame(
+          _("Boot Loader Location"),
+          HBox(
+            HSpacing(1),
+            VBox(*checkboxes),
+            HSpacing(1)
+          )
+        ),
+        VSpacing(1)
+      )
+    end
+
+    def handle(event)
+      return unless event["ID"] == :custom
+
+      checked = Yast::UI.QueryWidget(Id(:custom), :Value)
+      Yast::UI.ChangeWidget(Id(:custom_list), :Enabled, checked)
+
+      nil
+    end
+
+    def init
+      locations = stage1.available_locations
+      if locations[:boot]
+        Yast::UI.ChangeWidget(Id(:boot), :Value, stage1.boot_partition?)
+      end
+      if locations[:root]
+        Yast::UI.ChangeWidget(Id(:root), :Value, stage1.root_partition?)
+      end
+      if locations[:extended]
+        Yast::UI.ChangeWidget(Id(:extended), :Value, stage1.extended_partition?)
+      end
+      if locations[:mbr]
+        Yast::UI.ChangeWidget(Id(:mbr), :Value, stage1.mbr?)
+      end
+      custom_devices = stage1.custom_devices
+      if custom_devices.empty?
+        Yast::UI.ChangeWidget(:custom, :Value, false)
+        Yast::UI.ChangeWidget(:custom_list, :Enabled, false)
+      else
+        Yast::UI.ChangeWidget(:custom, :Value, true)
+        Yast::UI.ChangeWidget(:custom_list, :Enabled, true)
+        Yast::UI.ChangeWidget(:custom_list, :Value, custom_devices.join(","))
+      end
+    end
+
+    def store
+      locations = stage1.available_locations
+      stage1.clear_devices
+      locations.each_pair do |id, dev|
+        if Yast::UI.QueryWidget(Id(id), :Value)
+          stage1.add_udev_device(dev)
+        end
+      end
+      if Yast::UI.QueryWidget(:custom, :Value)
+        devs = Yast::UI.QueryWidget(:custom_list, :Value)
+        devs.split(",").each do |dev|
+          stage1.add_udev_device(dev.strip)
+        end
+      end
+    end
+
+    def validate
+      if Yast::UI.QueryWidget(:custom, :Value)
+        devs = Yast::UI.QueryWidget(:custom_list, :Value)
+        if devs.strip.empty?
+          Yast::Report.Error(_("Custom boot device have to be specied if checked"))
+          Yast::UI.SetFocus(Id(:custom_list))
+          return false
+        end
+      end
+
+      true
+    end
+  end
+
+  class DeviceMapWidget < ::CWM::PushButton
+    def label
+      textdomain "bootloader"
+
+      _("Edit Disk Boot Order")
+    end
+
+    def help
+      textdomain "bootloader"
+
+      _(
+          "<p><big><b>Disks Order</b></big><br>\n" \
+            "To specify the order of the disks according to the order in BIOS, use\n" \
+            "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" \
+            "To add a disk, push <b>Add</b>.\n" \
+            "To remove a disk, push <b>Remove</b>.</p>"
+        )
+    end
+
+    def handle
+      DeviceMapDialog.run
+
+      nil
+    end
+  end
+
   class KernelTab < CWM::Tab
     def label
       textdomain "bootloader"
@@ -555,11 +693,10 @@ module Bootloader
     end
 
     def contents
-      if Yast::Arch.s390 || Yast::Arch.aarch64
+      if Yast::Arch.s390 || Yast::Arch.aarch64 || grub2.name == "grub2-efi"
         loader_widget = CWM::Empty.new("loader_location")
       else
-        # TODO: create widget
-        loader_widget = CWM::Empty.new("loader_location")
+        loader_widget = LoaderLocationWidget.new
       end
 
       if (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name != "grub2-efi"
@@ -570,22 +707,24 @@ module Bootloader
         generic_mbr_widget = CWM::Empty.new("generic_mbr")
       end
 
-      # TODO: inst details
-      inst_details_widget = CWM::Empty.new("inst_details")
+      if (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc ) && grub2.name != "grub2-efi"
+        inst_details_widget = DeviceMapWidget.new
+      else
+        inst_details_widget = CWM::Empty.new("inst_details")
+      end
 
-      if (Yast::Arch.x86_64 || Yast::Arch.i386) && Yast::BootStorage.gpt_boot_disk?
+      #TODO: secure boot for efi
+
+      if (Yast::Arch.x86_64 || Yast::Arch.i386) &&
+          (Yast::BootStorage.gpt_boot_disk? || grub2.name == "grub2-efi")
         pmbr_widget = PMBRWidget.new
       else
         pmbr_widget = CWM::Empty.new("pmbr")
       end
 
       VBox(
-        VSquash(
-          HBox(
-            Top(VBox(VSpacing(1), LoaderTypeWidget.new)),
-            loader_widget
-          )
-        ),
+        LoaderTypeWidget.new,
+        loader_widget,
         MarginBox(1, 0.5, Left(activate_widget)),
         MarginBox(1, 0.5, Left(generic_mbr_widget)),
         MarginBox(1, 0.5, Left(pmbr_widget)),

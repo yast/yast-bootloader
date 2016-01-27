@@ -42,7 +42,7 @@ module Bootloader
       @stage1.write
 
       # TODO: own class handling PBMR
-      boot_devices = BootCommon.GetBootloaderDevices
+      boot_devices = @stage1.model.devices
       boot_discs = boot_devices.map { |d| Storage.GetDisk(Storage.GetTargetMap, d) }
       boot_discs.uniq!
       gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
@@ -103,36 +103,36 @@ module Bootloader
       already_mentioned = []
 
       if BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
-        if @stage1.include?(BootStorage.BootPartitionDevice)
+        if @stage1.boot_partition?
           locations << BootStorage.BootPartitionDevice + " (\"/boot\")"
           already_mentioned << BootStorage.BootPartitionDevice
         end
       else
-        if @stage1.include?(BootStorage.RootPartitionDevice)
+        if @stage1.root_partition?
           locations << BootStorage.RootPartitionDevice + " (\"/\")"
           already_mentioned << BootStorage.RootPartitionDevice
         end
       end
-      if @stage1.include?(BootStorage.ExtendedPartitionDevice)
+      if @stage1.extended_partition?
         # TRANSLATORS: extended is here for extended partition. Keep translation short.
         locations << BootStorage.ExtendedPartitionDevice + _(" (extended)")
         already_mentioned << BootStorage.ExtendedPartitionDevice
       end
-      if @stage1.include?(BootCommon.mbrDisk)
+      if @stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
         locations << BootCommon.mbrDisk + _(" (MBR)")
         already_mentioned << BootCommon.mbrDisk
       end
-      if !(@stage1.model.devices - already_mentioned).empty?
-        locations << (@stage1.model.devices - already_mentioned)
+      if !@stage1.custom_devices.empty?
+        locations << @stage1.custom_devices
       end
 
       locations
     end
 
     def mbr_line
-      if @stage1.include?(BootCommon.mbrDisk)
+      if @stage1.mbr?
         _(
           "Install bootcode into MBR (<a href=\"disable_boot_mbr\">do not install</a>)"
         )
@@ -146,7 +146,7 @@ module Bootloader
     def partition_line
       # check for separated boot partition, use root otherwise
       if BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
-        if @stage1.include?(BootStorage.BootPartitionDevice)
+        if @stage1.boot_partition?
           _(
             "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>)"
           )
@@ -156,7 +156,7 @@ module Bootloader
           )
         end
       else
-        if @stage1.include?(BootStorage.RootPartitionDevice)
+        if @stage1.root_partition?
           _(
             "Install bootcode into \"/\" partition (<a href=\"disable_boot_root\">do not install</a>)"
           )
