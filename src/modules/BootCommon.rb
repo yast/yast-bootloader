@@ -165,37 +165,6 @@ module Yast
       true
     end
 
-    # Read settings from disk
-    # @param [Boolean] reread boolean true to force reread settings from system
-    # @param [Boolean] avoid_reading_device_map do not read new device map from file, use
-    # internal data
-    # @return [Boolean] true on success
-    def Read(reread, _avoid_reading_device_map)
-      bl = getLoaderType(false)
-      return true if bl == "none"
-      InitializeLibrary(reread, bl)
-
-      # convert device names in device map to the kernel device names
-      dev_map = Builtins.mapmap(dev_map) do |k, v|
-        { ::Bootloader::UdevMapping.to_mountby_device(k) => v }
-      end
-
-      BootStorage.device_map = ::Bootloader::DeviceMap.new(dev_map)
-
-      # convert custom boot device names in globals to the kernel device names
-      # also, for legacy bootloaders like LILO that still pass device names,
-      # convert the stage1_dev
-      @globals = Builtins.mapmap(@globals) do |k, v|
-        if k == "stage1_dev" || Builtins.regexpmatch(k, "^boot_.*custom$")
-          next { k => ::Bootloader::UdevMapping.to_kernel_device(v) }
-        else
-          next { k => v }
-        end
-      end
-
-      true
-    end
-
     # Reset bootloader settings
     def Reset
       @globals = {}
@@ -204,133 +173,6 @@ module Yast
       @was_proposed = false
 
       nil
-    end
-
-    # Save all bootloader configuration files to the cache of the PlugLib
-    # PlugLib must be initialized properly !!!
-    # @param [Boolean] clean boolean true if settings should be cleaned up (checking their
-    #  correctness, supposing all files are on the disk)
-    # @param [Boolean] init boolean true to init the library
-    # @param [Boolean] flush boolean true to flush settings to the disk
-    # @return [Boolean] true if success
-    def Save(_clean, init, flush)
-      ret = true
-
-      bl = getLoaderType(false)
-
-      InitializeLibrary(init, bl)
-
-      return true if bl == "none"
-
-      # bnc#589433 -  Install grub into root (/) partition gives error
-      @globals.delete("boot_custom") if @globals["boot_custom"] == ""
-
-      # FIXME: give mountby information to perl-Bootloader (or define some
-      # better interface), so that perl-Bootloader can use mountby device names
-      # for these devices instead. Tracked in bug #248162.
-
-      # convert custom boot device names in globals to the device names
-      # indicated by "mountby"
-      # also, for legacy bootloaders like LILO that still pass device names,
-      # convert the stage1_dev
-      my_globals = Builtins.mapmap(@globals) do |k, v|
-        if k == "stage1_dev" || Builtins.regexpmatch(k, "^boot_.*custom$")
-          next { k => ::Bootloader::UdevMapping.to_mountby_device(v) }
-        else
-          next { k => v }
-        end
-      end
-
-      # convert device names in device map to the device names indicated by
-      # "mountby"
-
-      Builtins.y2milestone(
-        "device map before mapping #{BootStorage.device_map}"
-      )
-      my_device_mapping = Builtins.mapmap(BootStorage.device_map.to_hash) do |k, v|
-        { ::Bootloader::UdevMapping.to_mountby_device(k) => v }
-      end
-      Builtins.y2milestone("device map after mapping %1", my_device_mapping)
-
-      if VerifyMDArray()
-        if !@enable_md_array_redundancy
-          my_globals.delete("boot_md_mbr")
-        elsif !my_globals["boot_md_mbr"]
-          my_globals["boot_md_mbr"] = BootStorage.devices_for_redundant_boot.join(",")
-        end
-      else
-        my_globals.delete("boot_md_mbr")
-      end
-
-      Builtins.y2milestone("SetSecureBoot %1", @secure_boot)
-      ret &&= SetSecureBoot(@secure_boot)
-      ret &&= DefineMultipath(BootStorage.multipath_mapping)
-      ret &&= SetDeviceMap(my_device_mapping)
-      ret &&= SetGlobal(my_globals)
-      ret &&= CommitSettings() if flush
-
-      # write settings to /etc/sysconfig/bootloader
-      sysconf = ::Bootloader::Sysconfig.new(bootloader: bl, secure_boot: @secure_boot)
-      sysconf.write
-
-      ret
-    end
-
-    def getSystemSecureBootStatus(recheck)
-      return @secure_boot if !recheck && !@secure_boot.nil?
-
-      if Mode.update || Mode.normal || Mode.repair
-        @secure_boot = ::Bootloader::Sysconfig.from_system.secure_boot
-      else
-        # propose secure boot always to true on x86 (bnc#872054), otherwise respect user choice
-        @secure_boot = Arch.i386 || Arch.x86_64
-      end
-
-      @secure_boot
-    end
-
-    def setSystemSecureBootStatus(enable)
-      Builtins.y2milestone("Set secure boot: %2 => %1", enable, @secure_boot)
-      @location_changed = true if @secure_boot != enable # secure boot require reinstall of stage 1
-      @secure_boot = enable
-
-      nil
-    end
-
-    # List bootloaders available for configured architecture
-    # @return a list of bootloaders
-    def getBootloaders
-      if Mode.config
-        # default means bootloader use what it think is the best
-        return SUPPORTED_BOOTLOADERS + ["default"]
-      end
-      ret = [getLoaderType(false)]
-      ret << "grub2" unless Arch.aarch64 # grub2 everywhere except aarch64
-      ret << "grub2-efi" if Arch.x86_64 || Arch.aarch64
-      ret << "none"
-      # avoid double entry for selected one
-      ret.uniq
-    end
-
-    # FATE#305008: Failover boot configurations for md arrays with redundancy
-    # Verify if proposal includes md array with more diferent disks
-    #
-    # @return [Boolean] true if there is md array based on more disks
-    def VerifyMDArray
-      if @globals["boot_md_mbr"]
-        md_array = @globals["boot_md_mbr"]
-        disks = md_array.split(",").reject(&:empty?)
-        if Builtins.size(disks) > 1
-          Builtins.y2milestone("boot_md_mbr includes disks: %1", disks)
-          return true
-        end
-      end
-      false
-    end
-
-    # FIXME: just backward compatible interface, call directly BootStorage
-    def Md2Partitions(md_device)
-      BootStorage.Md2Partitions(md_device)
     end
 
     publish :variable => :globals, :type => "map <string, string>"
@@ -351,14 +193,12 @@ module Yast
     publish :variable => :location_changed, :type => "boolean"
     publish :variable => :enable_md_array_redundancy, :type => "boolean"
     publish :function => :getLoaderType, :type => "string (boolean)"
-    publish :function => :getSystemSecureBootStatus, :type => "boolean (boolean)"
     publish :function => :getBootloaders, :type => "list <string> ()"
     publish :function => :Summary, :type => "list <string> ()"
     publish :function => :examineMBR, :type => "string (string)"
     publish :function => :ThinkPadMBR, :type => "boolean (string)"
     publish :function => :VerifyMDArray, :type => "boolean ()"
     publish :function => :askLocationResetPopup, :type => "boolean (string)"
-    publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
     publish :function => :DetectDisks, :type => "void ()"
     publish :function => :getBootPartition, :type => "string ()"
     publish :function => :getLoaderName, :type => "string (string, symbol)"
@@ -392,14 +232,7 @@ module Yast
     publish :function => :SetFilesContents, :type => "boolean (map <string, string>)"
     publish :function => :Export, :type => "map ()"
     publish :function => :Import, :type => "boolean (map)"
-    publish :function => :Read, :type => "boolean (boolean, boolean)"
     publish :function => :Reset, :type => "void ()"
-    publish :function => :Propose, :type => "void ()"
-    publish :function => :Save, :type => "boolean (boolean, boolean, boolean)"
-    publish :function => :Update, :type => "void ()"
-    publish :function => :Write, :type => "boolean ()"
-    publish :function => :setLoaderType, :type => "void (string)"
-    publish :function => :setSystemSecureBootStatus, :type => "void (boolean)"
   end
 
   BootCommon = BootCommonClass.new

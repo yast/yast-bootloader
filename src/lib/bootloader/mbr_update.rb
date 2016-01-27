@@ -171,7 +171,7 @@ module Bootloader
     # devices, if necessary
     def base_devices
       @bootloader_base_devices ||= boot_devices.reduce([]) do |res, dev|
-        md = Yast::BootCommon.Md2Partitions(dev)
+        md = Yast::BootStorage.Md2Partitions(dev)
         if md.empty?
           res << dev
         else
@@ -198,7 +198,7 @@ module Bootloader
     end
 
     def first_base_device_to_boot(md_device)
-      md = Yast::BootCommon.Md2Partitions(md_device)
+      md = Yast::BootStorage.Md2Partitions(md_device)
       md.reduce do |res, items|
         device, bios_id = items
         next device unless res
