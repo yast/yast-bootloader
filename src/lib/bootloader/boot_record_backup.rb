@@ -54,16 +54,6 @@ module Bootloader
       return if device != Yast::BootStorage.mbr_disk
 
       copy_br(device, "/boot/backup_mbr")
-
-      return unless Yast::BootCommon.ThinkPadMBR(device)
-
-      # special backup for thinkpad MBR
-      device_file_path_thinkpad = device_file_path + "thinkpadMBR"
-      log.info("Backup thinkpad MBR")
-      Yast::SCR.Execute(
-        BASH_PATH,
-        "cp #{device_file_path} #{device_file_path_thinkpad}"
-      )
     end
 
     # Restore backup
