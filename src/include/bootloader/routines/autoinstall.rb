@@ -134,7 +134,7 @@ module Yast
         return nil
       end
 
-      BootCommon.DetectDisks if Mode.autoinst
+      BootStorage.DetectDisks if Mode.autoinst
       # prepare settings for default bootloader if not specified in the
       # profile
       if Mode.autoinst &&

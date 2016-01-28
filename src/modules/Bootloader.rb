@@ -185,7 +185,7 @@ module Yast
         StorageDevices.InitDone # Set StorageDevices flag disks_valid to true
       end
 
-      BootCommon.DetectDisks
+      BootStorage.DetectDisks
       Mode.SetMode(old_mode) if old_mode == "autoinst_config"
 
       Progress.NextStage

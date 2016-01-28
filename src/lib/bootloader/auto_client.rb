@@ -8,6 +8,7 @@ module Bootloader
 
       Yast.import "Bootloader"
       Yast.import "BootCommon"
+      Yast.import "BootStorage"
       Yast.import "Initrd"
       Yast.import "Progress"
       Yast.import "Mode"
@@ -30,7 +31,7 @@ module Bootloader
         ret = Yast::Bootloader.Import(data)
         # moved here from inst_autosetup*
         if Yast::Stage.initial
-          Yast::BootCommon.DetectDisks
+          Yast::BootStorage.DetectDisks
           Yast::Bootloader.Propose
         end
       else

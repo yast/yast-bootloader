@@ -86,7 +86,7 @@ module Bootloader
       # allow change of location to MBR or boot partition (bnc#879107)
       result << url_location_summary if !Arch.ppc && !Arch.s390 && !Mode.config
 
-      order_sum = BootCommon.DiskOrderSummary
+      order_sum = disk_order_summary
       result << order_sum if order_sum
 
       result
@@ -97,6 +97,19 @@ module Bootloader
     end
 
   private
+
+    def disk_order_summary
+      return "" if Yast::Arch.s390
+
+      order = BootStorage.DisksOrder
+      return "" if order.size < 2
+
+      Yast::Builtins.sformat(
+        # part of summary, %1 is a list of hard disks device names
+        _("Order of Hard Disks: %1"),
+        order.join(", ")
+      )
+    end
 
     def locations
       locations = []
