@@ -764,7 +764,7 @@ module Bootloader
   private
 
     def indented_widget(widget)
-      widgets << MarginBox(1, 0.5, Left(widget))
+      MarginBox(1, 0.5, Left(widget))
     end
 
     def loader_location_widget?

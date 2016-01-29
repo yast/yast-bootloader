@@ -28,7 +28,7 @@ module Bootloader
     # Read settings from disk
     # @param [Boolean] reread boolean true to force reread settings from system
     def read(reread: false)
-      BootStorage.device_map.propose if BootStorage.device_map.empty?
+      Yast::BootStorage.device_map.propose if Yast::BootStorage.device_map.empty?
       @stage1.read
 
       super
@@ -42,7 +42,7 @@ module Bootloader
 
       # TODO: own class handling PBMR
       boot_devices = @stage1.model.devices
-      boot_discs = boot_devices.map { |d| Storage.GetDisk(Storage.GetTargetMap, d) }
+      boot_discs = boot_devices.map { |d| Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, d) }
       boot_discs.uniq!
       gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
       gpt_disks_devices = gpt_disks.map { |d| d["device"] }
@@ -77,7 +77,7 @@ module Bootloader
     # @return a list of summary lines
     def summary
       result = [
-        Builtins.sformat(
+        Yast::Builtins.sformat(
           _("Boot Loader Type: %1"),
           "GRUB2"
         )
@@ -94,7 +94,7 @@ module Bootloader
       # other mode than autoyast on running system
       # both ppc and s390 have special devices for stage1 so it do not make sense
       # allow change of location to MBR or boot partition (bnc#879107)
-      result << url_location_summary if !Arch.ppc && !Arch.s390 && !Mode.config
+      result << url_location_summary if !Yast::Arch.ppc && !Yast::Arch.s390 && !Yast::Mode.config
 
       order_sum = disk_order_summary
       result << order_sum if order_sum
@@ -111,7 +111,7 @@ module Bootloader
     def disk_order_summary
       return "" if Yast::Arch.s390
 
-      order = BootStorage.DisksOrder
+      order = Yast::BootStorage.DisksOrder
       return "" if order.size < 2
 
       Yast::Builtins.sformat(
@@ -125,27 +125,27 @@ module Bootloader
       locations = []
       already_mentioned = []
 
-      if BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
+      if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
         if @stage1.boot_partition?
-          locations << BootStorage.BootPartitionDevice + " (\"/boot\")"
-          already_mentioned << BootStorage.BootPartitionDevice
+          locations << Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
+          already_mentioned << Yast::BootStorage.BootPartitionDevice
         end
       else
         if @stage1.root_partition?
-          locations << BootStorage.RootPartitionDevice + " (\"/\")"
-          already_mentioned << BootStorage.RootPartitionDevice
+          locations << Yast::BootStorage.RootPartitionDevice + " (\"/\")"
+          already_mentioned << Yast::BootStorage.RootPartitionDevice
         end
       end
       if @stage1.extended_partition?
         # TRANSLATORS: extended is here for extended partition. Keep translation short.
-        locations << BootStorage.ExtendedPartitionDevice + _(" (extended)")
-        already_mentioned << BootStorage.ExtendedPartitionDevice
+        locations << Yast::BootStorage.ExtendedPartitionDevice + _(" (extended)")
+        already_mentioned << Yast::BootStorage.ExtendedPartitionDevice
       end
       if @stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
-        locations << BootStorage.mbr_disk + _(" (MBR)")
-        already_mentioned << BootStorage.mbr_disk
+        locations << Yast::BootStorage.mbr_disk + _(" (MBR)")
+        already_mentioned << Yast::BootStorage.mbr_disk
       end
       locations << @stage1.custom_devices if !@stage1.custom_devices.empty?
 
@@ -166,7 +166,7 @@ module Bootloader
 
     def partition_line
       # check for separated boot partition, use root otherwise
-      if BootStorage.BootPartitionDevice != BootStorage.RootPartitionDevice
+      if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
         if @stage1.boot_partition?
           _(
             "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>)"
@@ -200,7 +200,7 @@ module Bootloader
       line << "</li>\n"
 
       # do not allow to switch on boot from partition that do not support it
-      if BootStorage.can_boot_from_partition
+      if Yast::BootStorage.can_boot_from_partition
         line << "<li>"
         line << partition_line
         line << "</li>"
@@ -210,7 +210,7 @@ module Bootloader
         # no location chosen, so warn user that it is problem unless he is sure
         msg = _("Warning: No location for bootloader stage1 selected." \
           "Unless you know what you are doing please select above location.")
-        line << "<li>" << HTML.Colorize(msg, "red") << "</li>"
+        line << "<li>" << Yast::HTML.Colorize(msg, "red") << "</li>"
       end
 
       line << "</ul>"

@@ -20,11 +20,11 @@ module Bootloader
     end
 
     def read
-      @model.read
+      @model.load
     end
 
     def write
-      @model.write
+      @model.save
     end
 
     def include?(dev)
