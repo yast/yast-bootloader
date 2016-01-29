@@ -1,19 +1,17 @@
 require "yast"
 require "bootloader/udev_mapping"
+require "bootloader/bootloader_factory"
 require "cfa/grub2/install_device"
 
 module Bootloader
   # Represents where is bootloader stage1 installed. Allows also proposing its
   # location.
-  # @note it should replace all BootCommon.globals["boot_*"] and also "activate"
-  #   and "generic_mbr" which is related to stage1 code
   class Stage1
     include Yast::Logger
     attr_reader :model
 
     def initialize
       Yast.import "Arch"
-      Yast.import "BootCommon"
       Yast.import "BootStorage"
       Yast.import "Kernel"
       Yast.import "Storage"
@@ -99,8 +97,6 @@ module Bootloader
                  raise "unsuported architecture #{Yast::Arch.architecture}"
                end
 
-      log.info "location configured. Resulting globals #{Yast::BootCommon.globals}"
-
       result
     end
 
@@ -133,7 +129,7 @@ module Bootloader
 
     def propose_x86
       selected_location = propose_boot_location
-      log.info "grub_ConfigureLocation (#{selected_location} on #{Yast::BootCommon.GetBootloaderDevices})"
+      log.info "propose_x86 (#{selected_location}"
 
       # set active flag, if needed
       if selected_location == :mbr &&
@@ -154,9 +150,6 @@ module Bootloader
         @model.activate = true
         @model.generic_mbr = true
       end
-
-      # for GPT remove protective MBR flag otherwise some systems won't boot
-      Yast::BootCommon.pmbr_action = :remove if Yast::BootStorage.gpt_boot_disk?
 
       selected_location
     end
@@ -221,8 +214,9 @@ module Bootloader
       end
 
       assign_bootloader_device(selected_location)
+      # FIXME: verify this code as it looks like just fix for previous invalid proposal
       valid_locations = Yast::BootStorage.possible_locations_for_stage1
-      if !valid_locations.include?(Yast::BootCommon.GetBootloaderDevices.first)
+      if !valid_locations.include?(@model.devices.first)
         selected_location = :mbr # default to mbr
         assign_bootloader_device(selected_location)
       end

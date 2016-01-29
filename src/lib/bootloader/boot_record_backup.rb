@@ -1,6 +1,5 @@
 require "yast"
 
-Yast.import "BootCommon"
 Yast.import "BootStorage"
 
 module Bootloader

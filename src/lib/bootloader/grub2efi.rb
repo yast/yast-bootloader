@@ -31,9 +31,7 @@ module Bootloader
     # Write bootloader settings to disk
     # @return [Boolean] true on success
     def write
-      # TODO: move to own class
-      # something with PMBR needed
-      if Yast::BootCommon.pmbr_action
+      if pmbr_action
         efi_disk = Yast::Storage.GetEntryForMountpoint("/boot/efi")["device"]
         efi_disk ||= Yast::Storage.GetEntryForMountpoint("/boot")["device"]
         efi_disk ||= Yast::Storage.GetEntryForMountpoint("/")["device"]
@@ -52,7 +50,7 @@ module Bootloader
       super
 
       # for UEFI always set PMBR flag on disk (bnc#872054)
-      Yast::BootCommon.pmbr_action = :add if !Yast::BootCommon.was_proposed || Yast::Mode.autoinst || Yast::Mode.autoupgrade
+      pmbr_action = :add
 
       @secure_boot = true
     end

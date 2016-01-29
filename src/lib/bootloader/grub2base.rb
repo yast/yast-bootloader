@@ -11,7 +11,6 @@ require "cfa/placer"
 
 Yast.import "Arch"
 Yast.import "BootArch"
-Yast.import "BootCommon"
 Yast.import "BootStorage"
 Yast.import "HTML"
 Yast.import "Initrd"

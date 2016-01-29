@@ -10,7 +10,6 @@ module Bootloader
       textdomain "bootloader"
 
       Yast.import "Arch"
-      Yast.import "BootCommon"
       Yast.import "BootStorage"
       Yast.import "Bootloader"
       Yast.import "Installation"
@@ -171,7 +170,7 @@ module Bootloader
         )
       end
 
-      if !Yast::BootCommon.BootloaderInstallable
+      if !Yast::BootStorage.bootloader_installable?
         ret.merge!(
           "warning_level" => :error,
           # error in the proposal

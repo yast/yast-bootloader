@@ -1,6 +1,5 @@
 require "yast"
 
-Yast.import "BootCommon"
 Yast.import "BootStorage"
 Yast.import "Label"
 Yast.import "Popup"

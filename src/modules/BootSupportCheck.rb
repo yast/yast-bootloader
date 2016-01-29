@@ -128,7 +128,7 @@ module Yast
 
       devices = Storage.GetTargetMap
       mbr_disk = Storage.GetDisk(devices, BootStorage.mbr_disk)
-      boot_device = Storage.GetPartition(devices, BootCommon.getBootPartition)
+      boot_device = Storage.GetPartition(devices, BootStorage.BootPartitionDevice)
       return true if mbr_disk["label"] != "gpt"
       return true if boot_device["used_fs"] != :btrfs
       return true if mbr_disk["partitions"].any? { |p| p["fsid"] == Partitions.fsid_bios_grub }
@@ -153,7 +153,7 @@ module Yast
       result = true
       devices = Storage.GetTargetMap
 
-      boot_device = BootCommon.getBootPartition
+      boot_device = BootStorage.BootPartitionDevice
 
       found_boot = false
       # check if boot device is on raid0

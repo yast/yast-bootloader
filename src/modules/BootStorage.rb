@@ -20,6 +20,7 @@
 require "yast"
 require "bootloader/device_map"
 require "bootloader/udev_mapping"
+require "bootloader/bootloader_factory"
 
 module Yast
   class BootStorageClass < Module
@@ -96,7 +97,14 @@ module Yast
     end
 
     def gpt_boot_disk?
-      targets = Yast::BootCommon.GetBootloaderDevices
+      current_bl = Bootloader::BootloaderFactory.current
+
+      # efi require gpt disk, so it is always one
+      return true if current_bl.name == "grub2efi"
+      # if bootloader do not know its location, then we do not care
+      return false unless current_bl.respond_to?(:stage1)
+
+      targets = current_bl.stage1.model.devices
       boot_discs = targets.map { |d| Yast::Storage.GetDisk(target_map, d) }
       boot_discs.any? { |d| d["label"] == "gpt" }
     end
@@ -440,9 +448,54 @@ module Yast
       boot_disk
     end
 
+    # FIXME: merge with BootSupportCheck
+    # Check if the bootloader can be installed at all with current configuration
+    # @return [Boolean] true if it can
+    def bootloader_installable?
+      return true if Mode.config
+      if Arch.i386 || Arch.x86_64
+        # the only relevant is the partition holding the /boot filesystem
+        DetectDisks()
+        Builtins.y2milestone(
+          "Boot partition device: %1",
+          BootStorage.BootPartitionDevice
+        )
+        dev = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
+        Builtins.y2milestone("Disk info: %1", dev)
+        # MD, but not mirroring is OK
+        # FIXME: type detection by name deprecated
+        if Ops.get_string(dev, "disk", "") == "/dev/md"
+          tm = Storage.GetTargetMap
+          md = Ops.get_map(tm, "/dev/md", {})
+          parts = Ops.get_list(md, "partitions", [])
+          info = {}
+          Builtins.foreach(parts) do |p|
+            if Ops.get_string(p, "device", "") ==
+                BootStorage.BootPartitionDevice
+              info = deep_copy(p)
+            end
+          end
+          if Builtins.tolower(Ops.get_string(info, "raid_type", "")) != "raid1"
+            Builtins.y2milestone(
+              "Cannot install bootloader on RAID (not mirror)"
+            )
+            return false
+          end
+
+        # EVMS
+        # FIXME: type detection by name deprecated
+        elsif Builtins.search(BootPartitionDevice(), "/dev/evms/") == 0
+          Builtins.y2milestone("Cannot install bootloader on EVMS")
+          return false
+        end
+
+        return true
+      else
+        return true
+      end
+    end
+
     # Sets properly boot, root and mbr disk.
-    # @return :empty if bl devices are empty, :invalid if storage changed and
-    #   :ok if everything is fine
     def detect_disks
       # The AutoYaST config mode does access to the system.
       # bnc#942360
@@ -470,20 +523,6 @@ module Yast
       # device map may be implicitly proposed in FindMBRDisk above
       # - but not always...
       device_map.propose if device_map.empty?
-
-      # if no bootloader devices have been set up, or any of the set up
-      # bootloader devices have become unavailable, then re-propose the
-      # bootloader location.
-      bldevs = BootCommon.GetBootloaderDevices
-
-      return :empty if bldevs.empty?
-
-      all_boot_partitions = possible_locations_for_stage1
-      invalid = bldevs.any? do |dev|
-        !all_boot_partitions.include?(dev)
-      end
-
-      invalid ? :invalid : :ok
     end
 
     def prep_partitions

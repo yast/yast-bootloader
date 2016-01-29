@@ -10,7 +10,6 @@ require "bootloader/grub_install"
 Yast.import "Arch"
 Yast.import "BootStorage"
 Yast.import "Storage"
-Yast.import "BootCommon"
 Yast.import "HTML"
 
 module Bootloader
@@ -51,6 +50,14 @@ module Bootloader
       pmbr_setup(*gpt_disks_devices)
 
       @grub_install.execute(devices: @stage1.model.devices)
+      # Do some mbr activations
+      if !Yast::Arch.s390
+        MBRUpdate.new.run(
+          activate: @stage1.activate,
+          generic_mbr: @stage1.generic_mbr,
+          grub2_devices: @stage1
+        )
+      end
 
       super
     end
@@ -59,6 +66,9 @@ module Bootloader
       super
 
       @stage1.propose
+      # for GPT remove protective MBR flag otherwise some systems won't
+      # boot, safer option for legacy booting
+      self.pmbr_action = :remove if Yast::BootStorage.gpt_boot_disk?
 
       # TODO: propose device map
     end

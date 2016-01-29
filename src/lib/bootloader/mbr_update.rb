@@ -1,11 +1,9 @@
 require "yast"
 
-require "shellwords"
-
 require "bootloader/boot_record_backup"
+require "yast2/execute"
 
 Yast.import "Arch"
-Yast.import "BootCommon"
 Yast.import "PackageSystem"
 Yast.import "Partitions"
 
@@ -17,31 +15,19 @@ module Bootloader
     include Yast::Logger
 
     # Update contents of MBR (active partition and booting code)
-    # @return [Boolean] true on success
-    def run
-      # s390 do not use MBR at all, so nothing to do
-      return true if Yast::Arch.s390
-
-      activate = Yast::BootCommon.globals["activate"] == "true"
-      generic_mbr = Yast::BootCommon.globals["generic_mbr"] == "true"
-
+    def run(activate: false, generic_mbr: false, grub2_stage1: [])
       log.info "MBRUpdate: activate: #{activate} generic: #{generic_mbr}"
+      @grub2_stage1 = grub2_stage1
 
-      # After a proposal is done, Bootloader::Propose() always sets
-      # backup_mbr to true. The default is false. No other parts of the code
-      # currently change this flag.
-      create_backups if Yast::BootCommon.backup_mbr
+      create_backups
 
-      ret = true
       # Rewrite MBR with generic boot code only if we do not plan to install
       # there bootloader stage1
-      if generic_mbr && !bootloader_devices.include?(mbr_disk)
-        ret &&= install_generic_mbr
+      if generic_mbr && !grub2_stage1.include?(mbr_disk)
+        install_generic_mbr
       end
 
-      ret &&= activate_partitions if activate
-
-      ret
+      activate_partitions if activate
     end
 
   private
@@ -50,12 +36,8 @@ module Bootloader
       @mbr_disk ||= Yast::BootStorage.mbr_disk
     end
 
-    def bootloader_devices
-      @bootloader_devices ||= Yast::BootCommon.GetBootloaderDevices
-    end
-
     def create_backups
-      devices_to_backup = disks_to_rewrite + bootloader_devices + [mbr_disk]
+      devices_to_backup = disks_to_rewrite + grub2_stage1.devices + [mbr_disk]
       devices_to_backup.uniq!
       log.info "Creating backup of boot sectors of #{devices_to_backup}"
       backups = devices_to_backup.map do |d|
@@ -84,12 +66,9 @@ module Bootloader
       disks_to_rewrite.each do |disk|
         log.info "Copying generic MBR code to #{disk}"
         # added fix 446 -> 440 for Vista booting problem bnc #396444
-        command = "/bin/dd bs=440 count=1 if=#{generic_mbr_file} of=#{disk}"
-        out = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), command)
-        log.info "Command `#{command}` output: #{out}"
-        ret &&= out["exit"] == 0
+        command = ["/bin/dd", "bs=440", "count=1", "if=#{generic_mbr_file}", "of=#{disk}"]
+        Execute.on_target(*command)
       end
-      ret
     end
 
     def set_parted_flag(disk, part_num, flag)
@@ -97,28 +76,23 @@ module Bootloader
       reset_flag(disk, flag)
 
       # and then set it
-      command = "/usr/sbin/parted -s #{Shellwords.escape(disk)} set #{part_num} #{flag} on"
-      out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
-      log.info "Command `#{command}` output: #{out}"
-      out
+      command = ["/usr/sbin/parted", "-s", disk, "set", part_num, flag, "on"]
+      Execute.locally(*command)
     end
 
     def reset_flag(disk, flag)
-      command = "/usr/sbin/parted -sm #{Shellwords.escape(disk)} print"
-      out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
-      log.info "Command `#{command}` output: #{out}"
-      return if out["exit"] != 0
+      command = ["/usr/sbin/parted", "-sm", disk, "print"]
+      out = Execute.locally(*command, stdout: :capture)
 
-      partitions = out["stdout"].lines.select do |line|
+      partitions = out.lines.select do |line|
         values = line.split(":")
         values[6] && values[6].match(/(?:\s|\A)#{flag}/)
       end
       partitions.map! { |line| line.split(":").first }
 
       partitions.each do |part_num|
-        command = "/usr/sbin/parted -s #{Shellwords.escape(disk)} set #{part_num} #{flag} off"
-        out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), command)
-        log.info "Command `#{command}` output: #{out}"
+        command = ["/usr/sbin/parted", "-s", disk, "set", part_num, flag, "off"]
+        Execute.locally(*command)
       end
     end
 
@@ -130,7 +104,6 @@ module Bootloader
     end
 
     def activate_partitions
-      ret = true
       partitions_to_activate.each do |m_activate|
         num = m_activate["num"]
         mbr_dev = m_activate["mbr"]
@@ -141,27 +114,24 @@ module Bootloader
         log.info "Activating partition #{num} on #{mbr_dev}"
         # set corresponding flag only bnc#930903
         if mbr_is_gpt?
-          out = set_parted_flag(mbr_dev, num, "legacy_boot")
+          set_parted_flag(mbr_dev, num, "legacy_boot")
         else
-          out = set_parted_flag(mbr_dev, num, "boot")
+          set_parted_flag(mbr_dev, num, "boot")
         end
-
-        ret &&= out["exit"].zero?
       end
-      ret
     end
 
     def boot_devices
       return @boot_devices if @boot_devices
 
-      @boot_devices = bootloader_devices.dup
+      @boot_devices = @grub2_stage1.devices
 
       # ppc do not use boot partition and have to activate prep partition that
       # cannot be on raid (bnc#940542)
       return @boot_devices if Yast::Arch.ppc64
 
       # bnc#494630 - add also boot partitions from soft-raids
-      boot_device = Yast::BootCommon.getBootPartition
+      boot_device = Yast::BootStorage.BootPartitionDevice
       @boot_devices << boot_device if boot_device.start_with?("/dev/md")
 
       @boot_devices

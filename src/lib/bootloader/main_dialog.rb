@@ -4,7 +4,7 @@ require "bootloader/config_dialog"
 require "bootloader/read_dialog"
 require "bootloader/write_dialog"
 
-Yast.import "BootCommon"
+Yast.import "BootStorage"
 Yast.import "Label"
 Yast.import "Report"
 Yast.import "Sequencer"
@@ -77,9 +77,10 @@ module Bootloader
     # Run wizard sequencer
     # @return `next, `back or `abort
     def run_content
-      if !Yast::BootCommon.BootloaderInstallable
+      if !Yast::BootStorage.bootloader_installable?
         textdomain "bootloader"
 
+        # TODO: not much helpful for customers
         # error report
         Yast::Report.Error(
           _(

@@ -18,12 +18,13 @@
 require "yast"
 require "bootloader/sysconfig"
 require "bootloader/bootloader_factory"
+require "cfa/matcher"
 
 module Yast
   class BootloaderClass < Module
     include Yast::Logger
 
-    OLD_API_MAPPING = { "true" => :present, "false" => :missing }
+    BOOLEAN_MAPPING = { true => :present, false => :missing }
 
     def main
       Yast.import "UI"
@@ -223,7 +224,6 @@ module Yast
       log.info "Proposing configuration"
       # always have a current target map available in the log
       log.info "unfiltered target map: #{Storage.GetTargetMap.inspect}"
-      BootCommon.UpdateInstallationKernelParameters
       blPropose
 
       BootCommon.was_proposed = true
@@ -415,18 +415,20 @@ module Yast
 
       ReadOrProposeIfNeeded() # ensure we have some data
 
-      kernel_line_key = FLAVOR_KERNEL_LINE_MAP[flavor]
-      raise ArgumentError, "Unknown flavor #{flavor}" unless kernel_line_key
-
-      line = BootCommon.globals[kernel_line_key]
-      values = BootCommon.getKernelParamFromLine(line, key)
-
-      # map old api response to new one
-      if values.is_a?(Array) # more than one value
-        values
-      else # only one value
-        OLD_API_MAPPING[values] || values
+      current_bl = Bootloader::BootloaderFactory.current
+      # currently only grub2 bootloader supported
+      return :missing unless current_bl.respond_to?(:grub_default)
+      grub_default = current_bl.grub_default
+      params = case flavor
+        when :common then grub_default.kernel_params
+        when :xen_guest then grub_default.xen_kernel_params
+        when :xen_host then grub_default.xen_hypervisor_params
+        else raise ArgumentError, "Unknown flavor #{flavor}"
       end
+
+      res = params.parameter(key)
+
+      BOOLEAN_MAPPING(res) || res
     end
 
     # Modify kernel parameters for installed kernels according to values
@@ -466,28 +468,39 @@ module Yast
         log.warn "recovery flavor is deprecated and not set"
       end
 
-      # remap symbols to something that setKernelParamToLine understand
-      remap_values = {
-        :missing => "false",
-        :present => "true"
-      }
+      remap_values = BOOLEAN_MAPPING.reverse
       values.each_key do |key|
         values[key] = remap_values[values[key]] || values[key]
       end
 
-      kernel_lines = args.map do |a|
-        FLAVOR_KERNEL_LINE_MAP[a] ||
-          raise(ArgumentError, "Invalid argument #{a.inspect}")
+      params = case flavor
+        when :common then grub_default.kernel_params
+        when :xen_guest then grub_default.xen_kernel_params
+        when :xen_host then grub_default.xen_hypervisor_params
+        else raise ArgumentError, "Unknown flavor #{flavor}"
       end
 
       changed = false
       values.each do |key, value|
-        changed = true if add_kernel_param(kernel_lines, key, value)
+        old_val = params.parameter(key)
+        next if old_val = value
+
+        changed = true
+        # at first clean old entries
+        matcher = CFA::Matcher.new(key: key)
+        params.remove_parameter(matcher)
+
+        case value
+        when false then next # already done
+        when true then params.add_parameter(key, value)
+        when Array
+          value.each { |val| params.add_parameter(key, val) }
+        else
+          raise ArgumentError, "Unknown value #{value.inspect}"
+        end
       end
 
-      return false unless changed
-      BootCommon.globals["__modified"] = "1"
-      BootCommon.changed = true
+      changed
     end
 
     # Get currently used bootloader, detect if not set yet
