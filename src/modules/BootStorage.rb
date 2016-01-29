@@ -97,7 +97,7 @@ module Yast
     end
 
     def gpt_boot_disk?
-      current_bl = Bootloader::BootloaderFactory.current
+      current_bl = ::Bootloader::BootloaderFactory.current
 
       # efi require gpt disk, so it is always one
       return true if current_bl.name == "grub2efi"
@@ -453,46 +453,44 @@ module Yast
     # @return [Boolean] true if it can
     def bootloader_installable?
       return true if Mode.config
-      if Arch.i386 || Arch.x86_64
-        # the only relevant is the partition holding the /boot filesystem
-        DetectDisks()
-        Builtins.y2milestone(
-          "Boot partition device: %1",
-          BootStorage.BootPartitionDevice
-        )
-        dev = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
-        Builtins.y2milestone("Disk info: %1", dev)
-        # MD, but not mirroring is OK
-        # FIXME: type detection by name deprecated
-        if Ops.get_string(dev, "disk", "") == "/dev/md"
-          tm = Storage.GetTargetMap
-          md = Ops.get_map(tm, "/dev/md", {})
-          parts = Ops.get_list(md, "partitions", [])
-          info = {}
-          Builtins.foreach(parts) do |p|
-            if Ops.get_string(p, "device", "") ==
-                BootStorage.BootPartitionDevice
-              info = deep_copy(p)
-            end
-          end
-          if Builtins.tolower(Ops.get_string(info, "raid_type", "")) != "raid1"
-            Builtins.y2milestone(
-              "Cannot install bootloader on RAID (not mirror)"
-            )
-            return false
-          end
+      return true if !Arch.i386 && !Arch.x86_64
 
-        # EVMS
-        # FIXME: type detection by name deprecated
-        elsif Builtins.search(BootPartitionDevice(), "/dev/evms/") == 0
-          Builtins.y2milestone("Cannot install bootloader on EVMS")
+      # the only relevant is the partition holding the /boot filesystem
+      detect_disks
+      Builtins.y2milestone(
+        "Boot partition device: %1",
+        BootStorage.BootPartitionDevice
+      )
+      dev = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
+      Builtins.y2milestone("Disk info: %1", dev)
+      # MD, but not mirroring is OK
+      # FIXME: type detection by name deprecated
+      if Ops.get_string(dev, "disk", "") == "/dev/md"
+        tm = Storage.GetTargetMap
+        md = Ops.get_map(tm, "/dev/md", {})
+        parts = Ops.get_list(md, "partitions", [])
+        info = {}
+        Builtins.foreach(parts) do |p|
+          if Ops.get_string(p, "device", "") ==
+              BootStorage.BootPartitionDevice
+            info = deep_copy(p)
+          end
+        end
+        if Builtins.tolower(Ops.get_string(info, "raid_type", "")) != "raid1"
+          Builtins.y2milestone(
+            "Cannot install bootloader on RAID (not mirror)"
+          )
           return false
         end
 
-        return true
-      else
-        return true
+      # EVMS
+      # FIXME: type detection by name deprecated
+      elsif Builtins.search(BootPartitionDevice(), "/dev/evms/") == 0
+        Builtins.y2milestone("Cannot install bootloader on EVMS")
+        return false
       end
+
+      return true
     end
 
     # Sets properly boot, root and mbr disk.
@@ -544,7 +542,7 @@ module Yast
       boot_device = BootPartitionDevice()
 
       if boot_device.empty?
-        log.error("BootPartitionDevice and RootPartitionDevice are empty"
+        log.error "BootPartitionDevice and RootPartitionDevice are empty"
         return boot_device
       end
 
@@ -559,8 +557,6 @@ module Yast
 
       log.error("Finding boot disk failed!")
       ""
-    end
-
     end
 
     # Get map of swap partitions

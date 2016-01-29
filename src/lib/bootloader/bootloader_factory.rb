@@ -27,7 +27,7 @@ module Bootloader
       end
 
       def current
-        @current ||= system
+        @current ||= (system || proposed)
       end
 
       def current_name=(name)

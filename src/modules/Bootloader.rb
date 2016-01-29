@@ -32,7 +32,6 @@ module Yast
       textdomain "bootloader"
 
       Yast.import "Arch"
-      Yast.import "BootCommon"
       Yast.import "BootStorage"
       Yast.import "Installation"
       Yast.import "Initrd"
@@ -106,35 +105,36 @@ module Yast
     def Import(settings)
       settings = deep_copy(settings)
       log.info "Importing settings: #{settings}"
-      Reset()
-
-      BootCommon.was_read = true
-      BootCommon.was_proposed = true
-      BootCommon.changed = true
-      BootCommon.location_changed = true
-
-      settings["loader_type"] = nil if settings["loader_type"] == ""
-      # if bootloader is not set, then propose it
-      loader_type = settings["loader_type"] || BootCommon.getLoaderType(true)
-      # Explitelly set it to ensure it is installed
-      BootCommon.setLoaderType(loader_type)
-
-      # import loader_device and selected_location only for bootloaders
-      # that have not phased them out yet
-      BootCommon.loader_device = settings["loader_device"] || ""
-      BootCommon.selected_location = settings["loader_location"] || "custom"
-
-      # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
-      # for grub, always correct the bootloader device according to
-      # selected_location (or fall back to value of loader_device)
-      if Arch.i386 || Arch.x86_64
-        BootCommon.loader_device = BootCommon.GetBootloaderDevice
-      end
-
-      Initrd.Import(settings["initrd"] || {})
-      ret = blImport(settings["specific"] || {})
-      BootCommon.write_settings = settings["write_settings"] || {}
-      ret
+      # TODO: implement it using new way
+#      Reset()
+#
+#      BootCommon.was_read = true
+#      BootCommon.was_proposed = true
+#      BootCommon.changed = true
+#      BootCommon.location_changed = true
+#
+#      settings["loader_type"] = nil if settings["loader_type"] == ""
+#      # if bootloader is not set, then propose it
+#      loader_type = settings["loader_type"] || BootCommon.getLoaderType(true)
+#      # Explitelly set it to ensure it is installed
+#      BootCommon.setLoaderType(loader_type)
+#
+#      # import loader_device and selected_location only for bootloaders
+#      # that have not phased them out yet
+#      BootCommon.loader_device = settings["loader_device"] || ""
+#      BootCommon.selected_location = settings["loader_location"] || "custom"
+#
+#      # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
+#      # for grub, always correct the bootloader device according to
+#      # selected_location (or fall back to value of loader_device)
+#      if Arch.i386 || Arch.x86_64
+#        BootCommon.loader_device = BootCommon.GetBootloaderDevice
+#      end
+#
+#      Initrd.Import(settings["initrd"] || {})
+#      ret = blImport(settings["specific"] || {})
+#      BootCommon.write_settings = settings["write_settings"] || {}
+#      ret
     end
 
     # Read settings from disk
@@ -174,8 +174,6 @@ module Yast
       Progress.NextStage
       return false if !checkUsedStorage
 
-      getLoaderType
-
       # While calling "yast clone_system" and while cloning bootloader
       # in the AutoYaST module, libStorage has to be set to "normal"
       # mode in order to read mountpoints correctly.
@@ -186,19 +184,15 @@ module Yast
         StorageDevices.InitDone # Set StorageDevices flag disks_valid to true
       end
 
-      BootStorage.DetectDisks
+      BootStorage.detect_disks
       Mode.SetMode(old_mode) if old_mode == "autoinst_config"
 
       Progress.NextStage
       return false if testAbort
 
       ::Bootloader::BootloaderFactory.current.read
-      BootCommon.was_read = true
-      @old_vga = BootCommon.globals["vgamode"]
 
       Progress.Finish
-      return false if testAbort
-      log.debug "Read settings: #{Export()}"
 
       true
     end
@@ -207,14 +201,7 @@ module Yast
     def Reset
       return if Mode.autoinst
       log.info "Reseting configuration"
-      BootCommon.was_proposed = false
-      BootCommon.was_read = false
-      BootCommon.loader_device = ""
-      #	BootCommon::setLoaderType (nil);
-      BootCommon.changed = false
-      BootCommon.location_changed = false
-      BootCommon.write_settings = {}
-      blReset
+      # TODO consider what to actually do in reset
 
       nil
     end
@@ -224,12 +211,8 @@ module Yast
       log.info "Proposing configuration"
       # always have a current target map available in the log
       log.info "unfiltered target map: #{Storage.GetTargetMap.inspect}"
-      blPropose
+      ::Bootloader::BootloaderFactory.current.propose
 
-      BootCommon.was_proposed = true
-      BootCommon.changed = true
-      BootCommon.location_changed = true
-      BootCommon.backup_mbr = true
       log.info "Proposed settings: #{Export()}"
 
       nil
@@ -244,7 +227,7 @@ module Yast
         return _("The boot partition is of type NFS. Bootloader cannot be installed.")
       end
 
-      blSummary
+      ::Bootloader::BootloaderFactory.current.summary
     end
 
     # Update read settings to new version of configuration files
@@ -270,11 +253,7 @@ module Yast
     # Write bootloader settings to disk
     # @return [Boolean] true on success
     def Write
-      if @repeating_write
-        BootCommon.was_read = true
-      else
-        ReadOrProposeIfNeeded()
-      end
+      ReadOrProposeIfNeeded()
 
       mark_as_changed
 
@@ -314,13 +293,6 @@ module Yast
 
       log.error "Error occurred while creating initrd" unless ret
 
-      BootCommon.changed = true if Mode.commandline
-
-      if !(BootCommon.changed ||
-          BootCommon.write_settings["initrd_changed_externally"])
-        log.info "No bootloader cfg. file saving needed, exiting"
-      end
-
       if Mode.normal
         Progress.NextStage
       else
@@ -328,7 +300,7 @@ module Yast
         Progress.Title(titles[1])
       end
 
-      Bootloader::BootloaderFactory.current.write
+      ::Bootloader::BootloaderFactory.current.write
 
       true
     end
@@ -379,7 +351,9 @@ module Yast
     # @return [String] default section label
     def getDefaultSection
       ReadOrProposeIfNeeded()
-      BootCommon.globals["default"] || ""
+
+      ""
+      # FIXME: use bootloader factory to get it
     end
 
     FLAVOR_KERNEL_LINE_MAP = {
@@ -415,7 +389,7 @@ module Yast
 
       ReadOrProposeIfNeeded() # ensure we have some data
 
-      current_bl = Bootloader::BootloaderFactory.current
+      current_bl = ::Bootloader::BootloaderFactory.current
       # currently only grub2 bootloader supported
       return :missing unless current_bl.respond_to?(:grub_default)
       grub_default = current_bl.grub_default
@@ -506,7 +480,7 @@ module Yast
     # Get currently used bootloader, detect if not set yet
     # @return [String] botloader type
     def getLoaderType
-      BootCommon.getLoaderType(false)
+      ::Bootloader::BootloaderFactory.current.name
     end
 
     # Set section to boot on next reboot
@@ -519,14 +493,14 @@ module Yast
     # Check whether settings were read or proposed, if not, decide
     # what to do and read or propose settings
     def ReadOrProposeIfNeeded
-      return if BootCommon.was_read || BootCommon.was_proposed
+      current_bl = ::Bootloader::BootloaderFactory.current
+      return if current_bl.read? || current_bl.proposed?
 
       if Mode.config
-        log.info "Not reading settings in Mode::config ()"
-        BootCommon.was_read = true
-        BootCommon.was_proposed = true
-        log.info "But initialize libstorage in readonly mode" # bnc#942360
+        log.info "Initialize libstorage in readonly mode" # bnc#942360
         Storage.InitLibstorage(true)
+        log.info "Not reading settings in Mode::config ()"
+        Propose()
       elsif Stage.initial && !Mode.update
         Propose()
       else
@@ -535,8 +509,6 @@ module Yast
         Progress.set(progress_orig)
         if Mode.update
           UpdateConfiguration()
-          BootCommon.changed = true
-          BootCommon.location_changed = true
         end
       end
     end
@@ -544,17 +516,9 @@ module Yast
   private
 
     def mark_as_changed
-      BootCommon.save_all = true if BootCommon.write_settings["save_all"]
-
       # always run mkinitrd at the end of S/390 installation (bsc#933177)
       # otherwise cio_ignore settings are not honored in initrd
       Initrd.changed = true if Arch.s390 && Stage.initial
-
-      return unless BootCommon.save_all
-
-      BootCommon.changed = true
-      BootCommon.location_changed = true
-      Initrd.changed = true
     end
 
     def handle_failed_write
@@ -575,40 +539,20 @@ module Yast
     # @return boolean if succeed
     def write_initrd(params_to_save)
       ret = true
-      new_vga = BootCommon.globals["vgamode"]
-      if (new_vga != @old_vga && !NONSPLASH_VGA_VALUES.include?(new_vga)) ||
-          !Mode.normal
-        Initrd.setSplash(new_vga)
-        params_to_save["vgamode"] = new_vga if Stage.initial
-      end
+      # TODO: detect VGA change
+#      new_vga = BootCommon.globals["vgamode"]
+#      if (new_vga != @old_vga && !NONSPLASH_VGA_VALUES.include?(new_vga)) ||
+#          !Mode.normal
+#        Initrd.setSplash(new_vga)
+#        params_to_save["vgamode"] = new_vga if Stage.initial
+#      end
 
       # save initrd
-      if Initrd.changed && !BootCommon.write_settings["forbid_save_initrd"]
+      if Initrd.changed
         ret = Initrd.Write
-        BootCommon.changed = true
       end
 
       ret
-    end
-
-    # Add a kernel parameter
-    #
-    # @param [Array<Symbol>] kernel_lines Kernel lines to update
-    # @param [String]        key          Parameter name
-    # @param [String]        value        Parameter value
-    # @return [true,false]   True if the parameter was added to some kernel line;
-    #                        false otherwise (not added or added to as 'global').
-    def add_kernel_param(kernel_lines, key, value)
-      return false if key == "root" # grub2 does not support modifying root
-      if key == "vga"
-        BootCommon.globals["vgamode"] = value == "false" ? "" : value
-        false
-      else
-        kernel_lines.each do |line_key|
-          BootCommon.globals[line_key] = BootCommon.setKernelParamToLine(BootCommon.globals[line_key], key, value)
-        end
-        true
-      end
     end
 
     publish :function => :Export, :type => "map ()"
