@@ -8,6 +8,7 @@ Yast.import "UI"
 Yast.import "Popup"
 
 module Bootloader
+  # Widget to switch between all supported bootloaders
   class LoaderTypeWidget < CWM::ComboBox
     def initialize
       textdomain "bootloader"
@@ -35,11 +36,11 @@ module Bootloader
 
     def localized_names(name)
       names = {
-        "grub2" => _("GRUB2"),
+        "grub2"     => _("GRUB2"),
         "grub2-efi" => _("GRUB2 for EFI"),
         # Translators: option in combo box when bootloader is not managed by yast2
-        "none" => _("Not Managed"),
-        "default" => _("Default")
+        "none"      => _("Not Managed"),
+        "default"   => _("Default")
       }
 
       names[name] or raise "Unknown supported bootloader '#{name}'"
@@ -61,9 +62,7 @@ module Bootloader
           "Proceed?\n"
         )
 
-        if !Yast::Popup.ContinueCancel(popup_msg)
-          return :redraw
-        end
+        return :redraw if !Yast::Popup.ContinueCancel(popup_msg)
       end
 
       BootloaderFactory.current_name = new_bl

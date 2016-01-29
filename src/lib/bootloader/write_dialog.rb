@@ -4,6 +4,7 @@ Yast.import "Bootloader"
 Yast.import "Wizard"
 
 module Bootloader
+  # Dialog providing visual feedback during writing configuration
   class WriteDialog
     include Yast::I18n
 

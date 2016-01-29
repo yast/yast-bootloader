@@ -50,7 +50,7 @@ module Bootloader
       super
 
       # for UEFI always set PMBR flag on disk (bnc#872054)
-      pmbr_action = :add
+      self.pmbr_action = :add
 
       @secure_boot = true
     end

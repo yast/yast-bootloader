@@ -490,7 +490,7 @@ module Yast
         return false
       end
 
-      return true
+      true
     end
 
     # Sets properly boot, root and mbr disk.

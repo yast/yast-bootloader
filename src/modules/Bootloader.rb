@@ -85,17 +85,17 @@ module Yast
     # @return bootloader settings
     def Export
       ReadOrProposeIfNeeded()
-      # TODO implement it using new way
-#      out = {
-#        "loader_type"     => getLoaderType,
-#        "initrd"          => Initrd.Export,
-#        "specific"        => blExport,
-#        "write_settings"  => BootCommon.write_settings,
-#        "loader_device"   => BootCommon.loader_device,
-#        "loader_location" => BootCommon.selected_location
-#      }
-#      log.info "Exporting settings: #{out}"
-#      out
+      # TODO: implement it using new way
+      #      out = {
+      #        "loader_type"     => getLoaderType,
+      #        "initrd"          => Initrd.Export,
+      #        "specific"        => blExport,
+      #        "write_settings"  => BootCommon.write_settings,
+      #        "loader_device"   => BootCommon.loader_device,
+      #        "loader_location" => BootCommon.selected_location
+      #      }
+      #      log.info "Exporting settings: #{out}"
+      #      out
       {}
     end
 
@@ -106,35 +106,35 @@ module Yast
       settings = deep_copy(settings)
       log.info "Importing settings: #{settings}"
       # TODO: implement it using new way
-#      Reset()
-#
-#      BootCommon.was_read = true
-#      BootCommon.was_proposed = true
-#      BootCommon.changed = true
-#      BootCommon.location_changed = true
-#
-#      settings["loader_type"] = nil if settings["loader_type"] == ""
-#      # if bootloader is not set, then propose it
-#      loader_type = settings["loader_type"] || BootCommon.getLoaderType(true)
-#      # Explitelly set it to ensure it is installed
-#      BootCommon.setLoaderType(loader_type)
-#
-#      # import loader_device and selected_location only for bootloaders
-#      # that have not phased them out yet
-#      BootCommon.loader_device = settings["loader_device"] || ""
-#      BootCommon.selected_location = settings["loader_location"] || "custom"
-#
-#      # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
-#      # for grub, always correct the bootloader device according to
-#      # selected_location (or fall back to value of loader_device)
-#      if Arch.i386 || Arch.x86_64
-#        BootCommon.loader_device = BootCommon.GetBootloaderDevice
-#      end
-#
-#      Initrd.Import(settings["initrd"] || {})
-#      ret = blImport(settings["specific"] || {})
-#      BootCommon.write_settings = settings["write_settings"] || {}
-#      ret
+      #      Reset()
+      #
+      #      BootCommon.was_read = true
+      #      BootCommon.was_proposed = true
+      #      BootCommon.changed = true
+      #      BootCommon.location_changed = true
+      #
+      #      settings["loader_type"] = nil if settings["loader_type"] == ""
+      #      # if bootloader is not set, then propose it
+      #      loader_type = settings["loader_type"] || BootCommon.getLoaderType(true)
+      #      # Explitelly set it to ensure it is installed
+      #      BootCommon.setLoaderType(loader_type)
+      #
+      #      # import loader_device and selected_location only for bootloaders
+      #      # that have not phased them out yet
+      #      BootCommon.loader_device = settings["loader_device"] || ""
+      #      BootCommon.selected_location = settings["loader_location"] || "custom"
+      #
+      #      # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
+      #      # for grub, always correct the bootloader device according to
+      #      # selected_location (or fall back to value of loader_device)
+      #      if Arch.i386 || Arch.x86_64
+      #        BootCommon.loader_device = BootCommon.GetBootloaderDevice
+      #      end
+      #
+      #      Initrd.Import(settings["initrd"] || {})
+      #      ret = blImport(settings["specific"] || {})
+      #      BootCommon.write_settings = settings["write_settings"] || {}
+      #      ret
     end
 
     # Read settings from disk
@@ -201,7 +201,7 @@ module Yast
     def Reset
       return if Mode.autoinst
       log.info "Reseting configuration"
-      # TODO consider what to actually do in reset
+      # TODO: consider what to actually do in reset
 
       nil
     end
@@ -264,13 +264,13 @@ module Yast
         # progress stage, text in dialog (short)
         _("Create initrd"),
         # progress stage, text in dialog (short)
-        _("Save boot loader configuration"),
+        _("Save boot loader configuration")
       ]
       titles = [
         # progress step, text in dialog (short)
         _("Creating initrd..."),
         # progress step, text in dialog (short)
-        _("Saving boot loader configuration..."),
+        _("Saving boot loader configuration...")
       ]
       # progress bar caption
       if Mode.normal
@@ -394,11 +394,11 @@ module Yast
       return :missing unless current_bl.respond_to?(:grub_default)
       grub_default = current_bl.grub_default
       params = case flavor
-        when :common then grub_default.kernel_params
-        when :xen_guest then grub_default.xen_kernel_params
-        when :xen_host then grub_default.xen_hypervisor_params
-        else raise ArgumentError, "Unknown flavor #{flavor}"
-      end
+               when :common then grub_default.kernel_params
+               when :xen_guest then grub_default.xen_kernel_params
+               when :xen_host then grub_default.xen_hypervisor_params
+               else raise ArgumentError, "Unknown flavor #{flavor}"
+               end
 
       res = params.parameter(key)
 
@@ -448,16 +448,16 @@ module Yast
       end
 
       params = case flavor
-        when :common then grub_default.kernel_params
-        when :xen_guest then grub_default.xen_kernel_params
-        when :xen_host then grub_default.xen_hypervisor_params
-        else raise ArgumentError, "Unknown flavor #{flavor}"
-      end
+               when :common then grub_default.kernel_params
+               when :xen_guest then grub_default.xen_kernel_params
+               when :xen_host then grub_default.xen_hypervisor_params
+               else raise ArgumentError, "Unknown flavor #{flavor}"
+               end
 
       changed = false
       values.each do |key, value|
         old_val = params.parameter(key)
-        next if old_val = value
+        next if old_val == value
 
         changed = true
         # at first clean old entries
@@ -507,9 +507,7 @@ module Yast
         progress_orig = Progress.set(false)
         Read()
         Progress.set(progress_orig)
-        if Mode.update
-          UpdateConfiguration()
-        end
+        UpdateConfiguration() if Mode.update
       end
     end
 
@@ -537,20 +535,18 @@ module Yast
     # store new vgamode if needed and regenerate initrd in such case
     # @param params_to_save used to store predefined vgamode value
     # @return boolean if succeed
-    def write_initrd(params_to_save)
+    def write_initrd(_params_to_save)
       ret = true
       # TODO: detect VGA change
-#      new_vga = BootCommon.globals["vgamode"]
-#      if (new_vga != @old_vga && !NONSPLASH_VGA_VALUES.include?(new_vga)) ||
-#          !Mode.normal
-#        Initrd.setSplash(new_vga)
-#        params_to_save["vgamode"] = new_vga if Stage.initial
-#      end
+      #      new_vga = BootCommon.globals["vgamode"]
+      #      if (new_vga != @old_vga && !NONSPLASH_VGA_VALUES.include?(new_vga)) ||
+      #          !Mode.normal
+      #        Initrd.setSplash(new_vga)
+      #        params_to_save["vgamode"] = new_vga if Stage.initial
+      #      end
 
       # save initrd
-      if Initrd.changed
-        ret = Initrd.Write
-      end
+      ret = Initrd.Write if Initrd.changed
 
       ret
     end

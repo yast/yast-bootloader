@@ -11,6 +11,7 @@ Yast.import "Mode"
 Yast.import "Popup"
 
 module Bootloader
+  # Dialog for whole bootloader configuration
   class ConfigDialog
     include Yast::Logger
     include Yast::I18n
@@ -35,7 +36,6 @@ module Bootloader
         return :next
       end
       # F#300779: end
-
 
       if BootloaderFactory.current.is_a?(NoneBootloader)
         contents = VBox(LoaderTypeWidget.new)

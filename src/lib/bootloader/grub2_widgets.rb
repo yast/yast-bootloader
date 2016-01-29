@@ -12,7 +12,6 @@ Yast.import "UI"
 module Bootloader
   # Adds to generic widget grub2 specific helpers
   module Grub2Widget
-
   protected
 
     def grub_default
@@ -36,6 +35,7 @@ module Bootloader
     end
   end
 
+  # Represents bootloader timeout value
   class TimeoutWidget < CWM::IntField
     include Grub2Widget
 
@@ -56,7 +56,7 @@ module Bootloader
     def help
       _("<p><b>Timeout in Seconds</b><br>\n" \
         "Specifies the time the bootloader will wait until the default kernel is loaded.</p>\n"
-      )
+       )
     end
 
     def init
@@ -78,6 +78,7 @@ module Bootloader
     end
   end
 
+  # Represents decision if bootloader need activated partition
   class ActivateWidget < CWM::CheckBox
     include Grub2Widget
 
@@ -107,6 +108,7 @@ module Bootloader
     end
   end
 
+  # Represents decision if generic MBR have to be installed on disk
   class GenericMBRWidget < CWM::CheckBox
     include Grub2Widget
 
@@ -135,6 +137,7 @@ module Bootloader
     end
   end
 
+  # Represents decision if menu should be hidden or visible
   class HiddenMenuWidget < CWM::CheckBox
     include Grub2Widget
 
@@ -157,6 +160,7 @@ module Bootloader
     end
   end
 
+  # Represents if os prober should be run
   class OSProberWidget < CWM::CheckBox
     include Grub2Widget
 
@@ -184,6 +188,7 @@ module Bootloader
     end
   end
 
+  # represents kernel command line
   class KernelAppendWidget < CWM::InputField
     include Grub2Widget
 
@@ -211,6 +216,7 @@ module Bootloader
     end
   end
 
+  # Represents Protective MBR action
   class PMBRWidget < CWM::ComboBox
     include Grub2Widget
 
@@ -224,7 +230,9 @@ module Bootloader
 
     def help
       _(
-        "<p><b>Protective MBR flag</b> is expert only settings, that is needed only on exotic hardware. For details see Protective MBR in GPT disks. Do not touch if you are not sure.</p>"
+        "<p><b>Protective MBR flag</b> is expert only settings, that is needed " \
+        "only on exotic hardware. For details see Protective MBR in GPT disks. " \
+        "Do not touch if you are not sure.</p>"
       )
     end
 
@@ -248,6 +256,7 @@ module Bootloader
     end
   end
 
+  # Represents switcher for secure boot on EFI
   class SecureBootWidget < CWM::CheckBox
     include Grub2Widget
 
@@ -272,6 +281,7 @@ module Bootloader
     end
   end
 
+  # Represents grub password protection widget
   class GrubPasswordWidget < CWM::CustomWidget
     include Grub2Widget
 
@@ -319,7 +329,7 @@ module Bootloader
         return true
       end
       Yast::Report.Error(_(
-        "'Password' and 'Retype password'\ndo not match. Retype the password."
+                           "'Password' and 'Retype password'\ndo not match. Retype the password."
       ))
       Yast::UI.SetFocus(Id(:pw1))
       false
@@ -376,10 +386,11 @@ module Bootloader
           "the password (which is the way GRUB 1 behaved).<br>" \
           "YaST will only accept the password if you repeat it in " \
           "<b>Retype Password</b>.</p>"
-        )
+      )
     end
   end
 
+  # Represents graphical and serial console for bootloader
   class ConsoleWidget < CWM::CustomWidget
     include Grub2Widget
 
@@ -390,54 +401,8 @@ module Bootloader
     def contents
       # TODO: simplify a bit content or split it
       VBox(
-        CheckBoxFrame(
-          Id(:gfxterm_frame),
-          _("Use &graphical console"),
-          true,
-          HBox(
-            HSpacing(2),
-            ComboBox(
-              Id(:gfxmode),
-              Opt(:editable, :hstretch),
-              _("&Console resolution"),
-              [""]
-            ),
-            HBox(
-              Left(
-                InputField(
-                  Id(:theme),
-                  Opt(:hstretch),
-                  _("&Console theme")
-                )
-              ),
-              VBox(
-                Left(Label("")),
-                Left(
-                  PushButton(
-                    Id(:browsegfx),
-                    Opt(:notify),
-                    Yast::Label.BrowseButton
-                  )
-                )
-              )
-            ),
-            HStretch()
-          )
-        ),
-        CheckBoxFrame(
-          Id(:console_frame),
-          _("Use &serial console"),
-          true,
-          HBox(
-            HSpacing(2),
-            InputField(
-              Id(:console_args),
-              Opt(:hstretch),
-              _("&Console arguments")
-            ),
-            HStretch()
-          )
-        )
+        graphical_console_frame,
+        serial_console_frame
       )
     end
 
@@ -450,7 +415,6 @@ module Bootloader
       enable = grub_default.terminal == :gfxterm
       Yast::UI.ChangeWidget(Id(:gfxterm_frame), :Value, enable)
 
-
       Yast::UI.ChangeWidget(Id(:gfxmode), :Items, vga_modes_items)
       mode = grub_default.gfxmode
 
@@ -458,27 +422,6 @@ module Bootloader
       Yast::UI.ChangeWidget(Id(:gfxmode), :Value, mode) if mode && mode != ""
 
       Yast::UI.ChangeWidget(Id(:theme), :Value, grub_default.theme)
-    end
-
-    def vga_modes_items
-      return @vga_modes if @vga_modes
-
-      @vga_modes = Yast::Initrd.VgaModes
-
-      @vga_modes.sort! do |a, b|
-        res = a["width"] <=> b["width"]
-        res = a["height"] <=> b["height"] if res == 0
-
-        res
-      end
-
-      @vga_modes.map! { |a| "#{a["width"]}x#{a["height"]}" }
-      @vga_modes.uniq!
-
-      @vga_modes.map! { |m| Item(Id(m), m) }
-      @vga_modes.unshift(Item(Id("auto"), _("Autodetect by grub2")))
-
-      @vga_modes
     end
 
     def store
@@ -519,8 +462,86 @@ module Bootloader
 
       nil
     end
+
+  private
+
+    def graphical_console_frame
+      CheckBoxFrame(
+        Id(:gfxterm_frame),
+        _("Use &graphical console"),
+        true,
+        HBox(
+          HSpacing(2),
+          ComboBox(
+            Id(:gfxmode),
+            Opt(:editable, :hstretch),
+            _("&Console resolution"),
+            [""]
+          ),
+          HBox(
+            Left(
+              InputField(
+                Id(:theme),
+                Opt(:hstretch),
+                _("&Console theme")
+              )
+            ),
+            VBox(
+              Left(Label("")),
+              Left(
+                PushButton(
+                  Id(:browsegfx),
+                  Opt(:notify),
+                  Yast::Label.BrowseButton
+                )
+              )
+            )
+          ),
+          HStretch()
+        )
+      )
+    end
+
+    def vga_modes_items
+      return @vga_modes if @vga_modes
+
+      @vga_modes = Yast::Initrd.VgaModes
+
+      @vga_modes.sort! do |a, b|
+        res = a["width"] <=> b["width"]
+        res = a["height"] <=> b["height"] if res == 0
+
+        res
+      end
+
+      @vga_modes.map! { |a| "#{a["width"]}x#{a["height"]}" }
+      @vga_modes.uniq!
+
+      @vga_modes.map! { |m| Item(Id(m), m) }
+      @vga_modes.unshift(Item(Id("auto"), _("Autodetect by grub2")))
+
+      @vga_modes
+    end
+
+    def serial_console_frame
+      CheckBoxFrame(
+        Id(:console_frame),
+        _("Use &serial console"),
+        true,
+        HBox(
+          HSpacing(2),
+          InputField(
+            Id(:console_args),
+            Opt(:hstretch),
+            _("&Console arguments")
+          ),
+          HStretch()
+        )
+      )
+    end
   end
 
+  # represent choosing default section to boot
   class DefaultSectionWidget < CWM::ComboBox
     include Grub2Widget
 
@@ -558,6 +579,7 @@ module Bootloader
     end
   end
 
+  # Represents stage1 location for bootloader
   class LoaderLocationWidget < CWM::CustomWidget
     include Grub2Widget
 
@@ -579,7 +601,7 @@ module Bootloader
         checkboxes << Left(CheckBox(Id(:extended), _("Boot from &Extended Partition")))
       end
       checkboxes << Left(CheckBox(Id(:custom), Opt(:notify), _("C&ustom Boot Partition")))
-      checkboxes << Left(InputField(Id(:custom_list), Opt(:hstretch),""))
+      checkboxes << Left(InputField(Id(:custom_list), Opt(:hstretch), ""))
 
       VBox(
         VSpacing(1),
@@ -615,9 +637,7 @@ module Bootloader
       if locations[:extended]
         Yast::UI.ChangeWidget(Id(:extended), :Value, stage1.extended_partition?)
       end
-      if locations[:mbr]
-        Yast::UI.ChangeWidget(Id(:mbr), :Value, stage1.mbr?)
-      end
+      Yast::UI.ChangeWidget(Id(:mbr), :Value, stage1.mbr?) if locations[:mbr]
       custom_devices = stage1.custom_devices
       if custom_devices.empty?
         Yast::UI.ChangeWidget(:custom, :Value, false)
@@ -633,15 +653,14 @@ module Bootloader
       locations = stage1.available_locations
       stage1.clear_devices
       locations.each_pair do |id, dev|
-        if Yast::UI.QueryWidget(Id(id), :Value)
-          stage1.add_udev_device(dev)
-        end
+        stage1.add_udev_device(dev) if Yast::UI.QueryWidget(Id(id), :Value)
       end
-      if Yast::UI.QueryWidget(:custom, :Value)
-        devs = Yast::UI.QueryWidget(:custom_list, :Value)
-        devs.split(",").each do |dev|
-          stage1.add_udev_device(dev.strip)
-        end
+
+      return unless Yast::UI.QueryWidget(:custom, :Value)
+
+      devs = Yast::UI.QueryWidget(:custom_list, :Value)
+      devs.split(",").each do |dev|
+        stage1.add_udev_device(dev.strip)
       end
     end
 
@@ -659,6 +678,7 @@ module Bootloader
     end
   end
 
+  # Represents button that open Device Map edit dialog
   class DeviceMapWidget < ::CWM::PushButton
     def label
       textdomain "bootloader"
@@ -670,12 +690,12 @@ module Bootloader
       textdomain "bootloader"
 
       _(
-          "<p><big><b>Disks Order</b></big><br>\n" \
-            "To specify the order of the disks according to the order in BIOS, use\n" \
-            "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" \
-            "To add a disk, push <b>Add</b>.\n" \
-            "To remove a disk, push <b>Remove</b>.</p>"
-        )
+        "<p><big><b>Disks Order</b></big><br>\n" \
+          "To specify the order of the disks according to the order in BIOS, use\n" \
+          "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" \
+          "To add a disk, push <b>Add</b>.\n" \
+          "To remove a disk, push <b>Remove</b>.</p>"
+      )
     end
 
     def handle
@@ -685,6 +705,7 @@ module Bootloader
     end
   end
 
+  # represents Tab with kernel related configuration
   class KernelTab < CWM::Tab
     def label
       textdomain "bootloader"
@@ -703,6 +724,7 @@ module Bootloader
     end
   end
 
+  # Represent tab with options related to stage1 location and bootloader type
   class BootCodeTab < CWM::Tab
     include Grub2Widget
 
@@ -718,27 +740,19 @@ module Bootloader
 
     def contents
       widgets = []
-      if (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc) && grub2.name == "grub2"
-        widgets << MarginBox(1, 0.5, Left(LoaderLocationWidget.new))
+
+      widgets << indented_widget(LoaderLocationWidget.new) if loader_location_widget?
+
+      if generic_mbr_widget?
+        widgets << indented_widget(ActivateWidget.new)
+        widgets << indented_widget(GenericMBRWidget.new)
       end
 
-      if (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name != "grub2-efi"
-        widgets << MarginBox(1, 0.5, Left(ActivateWidget.new))
-        widgets << MarginBox(1, 0.5, Left(GenericMBRWidget.new))
-      end
+      widgets << indented_widget(SecureBootWidget.new) if secure_boot_widget?
 
-      if (Yast::Arch.x86_64 || Yast::Arch.i386 ) && grub2.name == "grub2-efi"
-        widgets << MarginBox(1, 0.5, Left(SecureBootWidget.new))
-      end
+      widgets << indented_widget(PMBRWidget.new) if pmbr_widget?
 
-      if (Yast::Arch.x86_64 || Yast::Arch.i386) &&
-          (Yast::BootStorage.gpt_boot_disk? || grub2.name == "grub2-efi")
-        widgets << MarginBox(1, 0.5, Left(PMBRWidget.new))
-      end
-
-      if (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc ) && grub2.name != "grub2-efi"
-        widgets << MarginBox(1, 0.5, Left(DeviceMapWidget.new))
-      end
+      widgets << indented_widget(DeviceMapWidget.new) if device_map_button?
 
       VBox(
         LoaderTypeWidget.new,
@@ -746,8 +760,36 @@ module Bootloader
         VStretch()
       )
     end
+
+  private
+
+    def indented_widget(widget)
+      widgets << MarginBox(1, 0.5, Left(widget))
+    end
+
+    def loader_location_widget?
+      (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc) && grub2.name == "grub2"
+    end
+
+    def generic_mbr_widget?
+      (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name != "grub2-efi"
+    end
+
+    def secure_boot_widget?
+      (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name == "grub2-efi"
+    end
+
+    def pmbr_widget?
+      (Yast::Arch.x86_64 || Yast::Arch.i386) &&
+        (Yast::BootStorage.gpt_boot_disk? || grub2.name == "grub2-efi")
+    end
+
+    def device_map_button?
+      (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc) && grub2.name != "grub2-efi"
+    end
   end
 
+  # Represents bootloader specific options like its timeout, default section or password protection
   class BootloaderTab < CWM::Tab
     def label
       textdomain "bootloader"

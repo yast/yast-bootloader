@@ -23,9 +23,7 @@ module Bootloader
 
       # Rewrite MBR with generic boot code only if we do not plan to install
       # there bootloader stage1
-      if generic_mbr && !grub2_stage1.include?(mbr_disk)
-        install_generic_mbr
-      end
+      install_generic_mbr if generic_mbr && !grub2_stage1.include?(mbr_disk)
 
       activate_partitions if activate
     end
@@ -62,7 +60,7 @@ module Bootloader
 
     def install_generic_mbr
       Yast::PackageSystem.Install("syslinux") unless Yast::Stage.initial
-      ret = true
+
       disks_to_rewrite.each do |disk|
         log.info "Copying generic MBR code to #{disk}"
         # added fix 446 -> 440 for Vista booting problem bnc #396444

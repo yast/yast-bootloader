@@ -53,8 +53,8 @@ module Bootloader
       # Do some mbr activations
       if !Yast::Arch.s390
         MBRUpdate.new.run(
-          activate: @stage1.activate,
-          generic_mbr: @stage1.generic_mbr,
+          activate:      @stage1.activate,
+          generic_mbr:   @stage1.generic_mbr,
           grub2_devices: @stage1
         )
       end
@@ -147,9 +147,7 @@ module Bootloader
         locations << BootStorage.mbr_disk + _(" (MBR)")
         already_mentioned << BootStorage.mbr_disk
       end
-      if !@stage1.custom_devices.empty?
-        locations << @stage1.custom_devices
-      end
+      locations << @stage1.custom_devices if !@stage1.custom_devices.empty?
 
       locations
     end

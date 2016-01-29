@@ -12,8 +12,8 @@ Yast.import "Stage"
 Yast.import "UI"
 Yast.import "Wizard"
 
-
 module Bootloader
+  # main entry dialog running subdialogs like read, config and write
   class MainDialog
     include Yast::UIShortcuts
     include Yast::I18n
@@ -52,9 +52,9 @@ module Bootloader
 
       sequence = {
         "ws_start" => "read",
-        "read"     => { :abort => :abort, :next => "main" },
-        "main"     => { :abort => :abort, :next => "write" },
-        "write"    => { :abort => :abort, :next => :next }
+        "read"     => { abort: :abort, next: "main" },
+        "main"     => { abort: :abort, next: "write" },
+        "write"    => { abort: :abort, next: :next }
       }
 
       Yast::Wizard.CreateDialog
@@ -99,14 +99,14 @@ module Bootloader
       sequence = {
         "ws_start"             => "main",
         "main"                 => {
-          :next           => :next,
-          :abort          => :abort,
-          :inst_details   => "installation_details",
-          :loader_details => "loader_details",
-          :redraw         => "main"
+          next:           :next,
+          abort:          :abort,
+          inst_details:   "installation_details",
+          loader_details: "loader_details",
+          redraw:         "main"
         },
-        "installation_details" => { :next => "main", :abort => :abort },
-        "loader_details"       => { :next => "main", :abort => :abort }
+        "installation_details" => { next: "main", abort: :abort },
+        "loader_details"       => { next: "main", abort: :abort }
       }
 
       Yast::Sequencer.Run(aliases, sequence)

@@ -31,10 +31,14 @@ module Bootloader
     def summary
     end
 
+    # rubocop:disable Style/TrivialAccessors
+    # @return true if configuration is already read
     def read?
       @read
     end
 
+    # rubocop:disable Style/TrivialAccessors
+    # @return true if configuration is already proposed
     def proposed?
       @proposed
     end

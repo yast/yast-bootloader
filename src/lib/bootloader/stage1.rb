@@ -86,18 +86,16 @@ module Bootloader
     # existing values of the output variables (which are respected at other times, in AutoYaST).
     # @see for keys in globals to https://old-en.opensuse.org/YaST/Bootloader_API#global_options_in_map
     def propose
-      result = case Yast::Arch.architecture
-               when "i386", "x86_64"
-                 propose_x86
-               when /ppc/
-                 propose_ppc
-               when /s390/
-                 propose_s390
-               else
-                 raise "unsuported architecture #{Yast::Arch.architecture}"
-               end
-
-      result
+      case Yast::Arch.architecture
+      when "i386", "x86_64"
+        propose_x86
+      when /ppc/
+        propose_ppc
+      when /s390/
+        propose_s390
+      else
+        raise "unsuported architecture #{Yast::Arch.architecture}"
+      end
     end
 
     # returns hash, where key is symbol for location and value is device name
@@ -106,17 +104,7 @@ module Bootloader
 
       case Yast::Arch.architecture
       when "i386", "x86_64"
-        if Yast::BootStorage.can_boot_from_partition
-          if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
-            res[:boot] = Yast::BootStorage.BootPartitionDevice
-          else
-            res[:root] = Yast::BootStorage.RootPartitionDevice
-          end
-          if logical_boot?
-            res[:extended] = extended
-          end
-        end
-
+        available_partitions(res)
         res[:mbr] = Yast::BootStorage.mbr_disk
       else
         log.info "no available non-custom location for arch #{Yast::Arch.architecture}"
@@ -126,6 +114,17 @@ module Bootloader
     end
 
   private
+
+    def available_partitions(res)
+      return unless Yast::BootStorage.can_boot_from_partition
+
+      if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+        res[:boot] = Yast::BootStorage.BootPartitionDevice
+      else
+        res[:root] = Yast::BootStorage.RootPartitionDevice
+      end
+      res[:extended] = extended if logical_boot?
+    end
 
     def propose_x86
       selected_location = propose_boot_location
@@ -150,29 +149,22 @@ module Bootloader
         @model.activate = true
         @model.generic_mbr = true
       end
-
-      selected_location
     end
 
     def propose_s390
       # s390 do not need any partition as it is stored to predefined zipl location
-      selected_location = :none
-      assign_bootloader_device(selected_location)
-
-      selected_location
+      assign_bootloader_device(:none)
     end
 
     def propose_ppc
       partition = Yast::BootStorage.prep_partitions.first
       if partition
         assign_bootloader_device([:custom, partition])
-
-        return :custom
       # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
       # we need to detect what is mount on /boot and if it is nfs, then just
       # skip this proposal. In other case if it is not nfs, then it is error and raise exception
       elsif Yast::BootStorage.disk_with_boot_partition == "/dev/nfs"
-        return :none
+        return
       else
         raise "there is no prep partition"
       end
@@ -214,14 +206,6 @@ module Bootloader
       end
 
       assign_bootloader_device(selected_location)
-      # FIXME: verify this code as it looks like just fix for previous invalid proposal
-      valid_locations = Yast::BootStorage.possible_locations_for_stage1
-      if !valid_locations.include?(@model.devices.first)
-        selected_location = :mbr # default to mbr
-        assign_bootloader_device(selected_location)
-      end
-
-      selected_location
     end
 
     def extended_partition
@@ -243,6 +227,9 @@ module Bootloader
     end
 
     def init_boot_info
+      return if @boot_initialized
+
+      @boot_initialized = true
       boot_disk_map = target_map[boot_partition_disk] || {}
       partitions_on_boot_partition_disk = boot_disk_map["partitions"] || []
       @logical_boot = false
@@ -305,50 +292,31 @@ module Bootloader
     end
 
     def boot_partition_disk
-      return @boot_partition_disk if @boot_partition_disk
-
-      boot_device = Yast::BootStorage.BootPartitionDevice
-      dp = Yast::Storage.GetDiskPartition(boot_device)
-      @boot_partition_disk = dp["disk"] || ""
-      return @boot_partition_disk if @boot_partition_disk.empty?
-
-      partitions = target_map[@boot_partition_disk]["partitions"]
-      boot_part = partitions.find { |p| p["device"] == boot_device }
-      return @boot_partition_disk if boot_part["fstype"] != "md raid" # we are intersted only in raids
-
-      result = boot_part["devices"].first
-      result = Storage.GetDiskPartition(result)["disk"]
-
-      log.info "Device for analyse MBR from soft-raid (MD-Raid only): #{result}"
-      @boot_partition_disk = result
+      Yast::BootStorage.disk_with_boot_partition
     end
 
     # determine the underlying devices for the "/boot" partition (either the
     # BootPartitionDevice, or the devices from which the soft-RAID device for
     # "/boot" is built)
     def underlying_boot_partition_devices
-      return @underlying_boot_partition_devices if @underlying_boot_partition_devices
-
-      @underlying_boot_partition_devices = [Yast::BootStorage.BootPartitionDevice]
+      underlying_boot_partition_devices = [Yast::BootStorage.BootPartitionDevice]
       md_info = Yast::BootStorage.Md2Partitions(Yast::BootStorage.BootPartitionDevice)
-      @underlying_boot_partition_devices = md_info.keys if !md_info.empty?
-      log.info "Boot partition devices: #{@underlying_boot_partition_devices}"
+      underlying_boot_partition_devices = md_info.keys if !md_info.empty?
+      log.info "Boot partition devices: #{underlying_boot_partition_devices}"
 
-      @underlying_boot_partition_devices
+      underlying_boot_partition_devices
     end
 
     def boot_partition_on_mbr_disk?
-      return @boot_partition_on_mbr_disk unless @boot_partition_on_mbr_disk.nil?
-
-      @boot_partition_on_mbr_disk = underlying_boot_partition_devices.any? do |dev|
+      boot_partition_on_mbr_disk = underlying_boot_partition_devices.any? do |dev|
         pdp = Yast::Storage.GetDiskPartition(dev)
         p_disk = pdp["disk"] || ""
         p_disk == Yast::BootStorage.mbr_disk
       end
 
-      log.info "/boot is on 1st disk: #{@boot_partition_on_mbr_disk}"
+      log.info "/boot is on 1st disk: #{boot_partition_on_mbr_disk}"
 
-      @boot_partition_on_mbr_disk
+      boot_partition_on_mbr_disk
     end
   end
 end

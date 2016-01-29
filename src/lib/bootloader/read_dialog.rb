@@ -4,6 +4,7 @@ Yast.import "Bootloader"
 Yast.import "Wizard"
 
 module Bootloader
+  # Dialog for graphical indication that bootloader configuration is read
   class ReadDialog
     include Yast::I18n
 

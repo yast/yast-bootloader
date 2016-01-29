@@ -33,7 +33,7 @@ module Bootloader
       log.info "set new default to '#{value.inspect}'"
 
       # empty value mean no default specified
-      raise "Unknown value #{value.inspect}" if  !@data.include?(value) && !value.empty?
+      raise "Unknown value #{value.inspect}" if !@data.include?(value) && !value.empty?
 
       @default = value
     end
