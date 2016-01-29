@@ -40,6 +40,16 @@ module Bootloader
       @model.add_device(udev_device)
     end
 
+    def remove_device(dev)
+      kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+
+      dev = @model.devices.find do |map_dev|
+        kernel_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
+      end
+
+      @model.remove_device(dev)
+    end
+
     def clear_devices
       @model.devices.each do |dev|
         @model.remove_device(dev)

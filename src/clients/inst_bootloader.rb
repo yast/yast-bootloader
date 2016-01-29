@@ -13,13 +13,16 @@
 #      Jozef Uhliarik <juhliarik@suse.cz>
 #
 #
+
+require "bootloader/bootloader_factory"
+
 module Yast
   class InstBootloaderClient < Client
     def main
       textdomain "bootloader"
 
       Yast.import "Bootloader"
-      Yast.import "BootCommon"
+      #Yast.import "BootCommon"
       Yast.import "Installation"
       Yast.import "GetInstArgs"
       Yast.import "Mode"
@@ -32,14 +35,15 @@ module Yast
 
       # for upgrade that is from grub2 to grub2 and user do not want
       # any changes, just quit (bnc#951731)
-      if Mode.update && !(BootCommon.was_read || BootCommon.was_proposed)
+      bl_current = ::Bootloader::BootloaderFactory.current
+      if Mode.update && !(bl_current.read? || bl_current.proposed?)
         Builtins.y2milestone("clean upgrade, do nothing")
         return :auto
       end
 
       # if BL config is created from scratch, prepare config files
       # in order not to touch old files (bnc#899743)
-      if Mode.installation || !BootCommon.was_read
+      if Mode.installation || !bl_current.read?
         Bootloader.blSave(false, false, false)
         @files = BootCommon.GetFilesContents
 

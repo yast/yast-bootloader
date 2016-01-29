@@ -1,9 +1,12 @@
 require "installation/proposal_client"
+require "bootloader/main_dialog"
+require "bootloader/bootloader_factory"
 
 module Bootloader
   # Proposal client for bootloader configuration
   class ProposalClient < ::Installation::ProposalClient
     include Yast::I18n
+    include Yast::Logger
 
     def initialize
       Yast.import "UI"
@@ -17,8 +20,6 @@ module Bootloader
       Yast.import "Mode"
       Yast.import "BootSupportCheck"
       Yast.import "Product"
-
-      Yast.include self, "bootloader/routines/wizards.rb"
     end
 
     PROPOSAL_LINKS = [
@@ -50,34 +51,23 @@ module Bootloader
         Yast::Bootloader.Propose
       end
 
-      # to make sure packages will get installed
-      Yast::BootCommon.setLoaderType(Yast::BootCommon.getLoaderType(false))
-
-      ret = construct_proposal_map
-
-      # cache the values
-      Yast::BootCommon.cached_settings_base_data_change_time = Yast::Storage.GetTargetChangeTime()
-
-      ret
+      construct_proposal_map
     end
 
     def ask_user(param)
       chosen_id = param["chosen_id"]
       result = :next
+      log.info "ask user called with #{chosen_id}"
 
       # enable boot from MBR
       case chosen_id
       when *PROPOSAL_LINKS
-        value = chosen_id =~ /enable/ ? "true" : "false"
-        option = chosen_id[/(enable|disable)_(.*)/, 2]
+        value = chosen_id =~ /enable/ ? true : false
+        option = chosen_id[/(enable|disable)_boot_(.*)/, 2]
         single_click_action(option, value)
       else
         settings = Yast::Bootloader.Export
-        # don't ask for abort confirm if nothing was changed (#29496)
-        Yast::BootCommon.changed = false
-        result = BootloaderAutoSequence()
-        # set to true, simply because must be saved during installation
-        Yast::BootCommon.changed = true
+        result = ::Bootloader::MainDialog.new.run_auto
         if result != :next
           Yast::Bootloader.Import(settings)
         else
@@ -117,19 +107,20 @@ module Bootloader
     end
 
     def propose_for_update(force_reset)
+      current_bl = ::Bootloader::BootloaderFactory.current
       if ["grub2", "grub2-efi"].include?(old_bootloader) &&
-          !Yast::BootCommon.was_proposed &&
+          !current_bl.proposed? &&
           !Yast::Bootloader.proposed_cfg_changed
         log.info "update of grub2, do not repropose"
         return false
       elsif old_bootloader == "none"
         log.info "Bootloader not configured, do not repropose"
         # blRead just exits for none bootloader
-        Yast::BootCommon.was_read = true
-      elsif !Yast::BootCommon.was_proposed || force_reset
+        ::Bootloader::BootloaderFactory.current_name = "none"
+        ::Bootloader::BootloaderFactory.current.read
+      elsif !current_bl.proposed? || force_reset
         # Repropose the type. A regular Reset/Propose is not enough.
         # For more details see bnc#872081
-        Yast::BootCommon.setLoaderType(nil)
         Yast::Bootloader.Reset
         Yast::Bootloader.Propose
       end
@@ -140,7 +131,7 @@ module Bootloader
     def construct_proposal_map
       ret = {}
 
-      ret["links"] = PROPOSAL_LINKS if Yast::Bootloader.getLoaderType == "grub2"
+      ret["links"] = PROPOSAL_LINKS # use always possible links even if it maybe not used
       ret["raw_proposal"] = Yast::Bootloader.Summary
 
       # F#300779 - Install diskless client (NFS-root)
@@ -161,7 +152,7 @@ module Bootloader
     # Add to argument proposal map all errors detected by proposal
     # @return modified parameter
     def handle_errors(ret)
-      if Yast::Bootloader.getLoaderType == "none"
+      if ::Bootloader::BootloaderFactory.current.name == "none"
         log.error "No bootloader selected"
         ret["warning_level"] = :warning
         # warning text in the summary richtext
@@ -191,8 +182,13 @@ module Bootloader
     end
 
     def single_click_action(option, value)
-      log.info "option #{option} with value #{value} set by a single-click"
-      Yast::BootCommon.globals[option] = value
+      stage1 = ::Bootloader::BootloaderFactory.current.stage1
+      locations = stage1.available_locations
+      device = locations[option.to_sym] or raise "invalid option #{option}"
+      log.info "single_click_action #{option} #{value.inspect} #{device}"
+
+      value ? stage1.add_udev_device(device) : stage1.remove_device(device)
+
       Yast::Bootloader.proposed_cfg_changed = true
     end
   end

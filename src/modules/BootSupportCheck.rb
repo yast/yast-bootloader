@@ -12,9 +12,9 @@
 # Authors:
 #      Jiri Srain <jsrain@suse.cz>
 #
-# $Id: BootCommon.ycp 49686 2008-08-05 10:04:46Z juhliarik $
-#
 require "yast"
+
+require "bootloader/bootloader_factory"
 
 module Yast
   class BootSupportCheckClass < Module
@@ -26,7 +26,6 @@ module Yast
       Yast.import "Storage"
       Yast.import "Partitions"
       Yast.import "Region"
-      Yast.import "BootCommon"
       Yast.import "BootStorage"
       Yast.import "FileUtils"
       Yast.import "Mode"
@@ -124,7 +123,7 @@ module Yast
     # when grub2 is used and install stage1 to MBR, target /boot is btrfs, label is gpt-like
     # then there must be special partition to install core.img, otherwise grub2-install failed
     def check_gpt_reserved_partition
-      return true if BootCommon.globals["boot_mbr"] != "true"
+      return true unless stage1.mbr?
 
       devices = Storage.GetTargetMap
       mbr_disk = Storage.GetDisk(devices, BootStorage.mbr_disk)
@@ -182,7 +181,7 @@ module Yast
               if Ops.get_string(p, "raid_type", "") == "raid1" &&
                   Ops.get(p, "type") == :sw_raid
                 if Builtins.tolower(Ops.get_string(p, "fstype", "")) == "md raid" &&
-                    Ops.get(BootCommon.globals, "boot_mbr", "false") != "true"
+                    !stage1.mbr?
                   AddNewProblem(
                     _(
                       "The boot device is on software RAID1. Select other bootloader location, e.g. Master Boot Record"
@@ -191,7 +190,7 @@ module Yast
                   Builtins.y2error(
                     "Booting from soft-raid: %1 and bootloader setting are not valid: %2",
                     p,
-                    BootCommon.globals
+                    stage1.inspect
                   )
                   result = false
                   raise Break
@@ -243,14 +242,14 @@ module Yast
 
     def check_activate_partition
       # activate set or there is already activate flag
-      return true if BootCommon.globals["activate"] == "true" || Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
+      return true if stage1.model.activate? || Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
 
       AddNewProblem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
       false
     end
 
     def check_mbr
-      return true if BootCommon.globals["generic_mbr"] == "true" || BootCommon.globals["boot_mbr"] == "true"
+      return true if stage1.model.generic_mbr? || stage1.mbr?
 
       AddNewProblem(_("The installer will not modify the MBR of the disk. Unless it already contains boot code, the BIOS won't be able to boot disk."))
       false
@@ -340,6 +339,12 @@ module Yast
     publish :function => :StringProblems, :type => "string ()"
     publish :function => :SystemSupported, :type => "boolean ()"
     publish :function => :EndOfBootOrRootPartition, :type => "integer ()"
+
+    private
+
+    def stage1
+      ::Bootloader::BootloaderFactory.current.stage1
+    end
   end
 
   BootSupportCheck = BootSupportCheckClass.new

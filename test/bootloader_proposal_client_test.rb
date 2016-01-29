@@ -2,7 +2,28 @@ require_relative "test_helper"
 
 require "bootloader/proposal_client"
 
+require "bootloader/bootloader_factory"
+require "bootloader/main_dialog"
+
 describe Bootloader::ProposalClient do
+  before do
+    # needed for udev conversion
+    mock_disk_partition
+    allow(Yast::BootStorage).to receive(:detect_disks)
+    allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/sda")
+    allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/sda1")
+
+    allow_any_instance_of(::Bootloader::Stage1).to(
+      receive(:available_locations)
+      .and_return(
+        mbr: "/dev/sda",
+        boot: "/dev/sda1"
+      )
+    )
+
+    allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
+  end
+
   describe "#description" do
     it "returns map with rich_text_title, menu_title and id" do
       result = subject.description
@@ -12,25 +33,24 @@ describe Bootloader::ProposalClient do
   end
 
   describe "#ask_user" do
+    let (:stage1) { ::Bootloader::BootloaderFactory.current.stage1 }
     context "single click action is passed" do
       before do
-        Yast.import "BootCommon"
         Yast.import "Bootloader"
 
-        Yast::BootCommon.globals = {}
-        Yast::Bootloader.proposed_cfg_changed = false
+        ::Bootloader::BootloaderFactory.current_name = "grub2"
       end
 
       it "if id contain enable it enabled respective key" do
         subject.ask_user("chosen_id" => "enable_boot_mbr")
 
-        expect(Yast::BootCommon.globals["boot_mbr"]).to eq "true"
+        expect(stage1.mbr?).to eq true
       end
 
       it "if id contain disable it disabled respective key" do
         subject.ask_user("chosen_id" => "disable_boot_mbr")
 
-        expect(Yast::BootCommon.globals["boot_mbr"]).to eq "false"
+        expect(stage1.mbr?).to eq false
       end
 
       it "it returns \"workflow sequence\" with :next" do
@@ -55,13 +75,13 @@ describe Bootloader::ProposalClient do
       end
 
       it "returns as workflow sequence result of GUI" do
-        allow(subject).to receive(:BootloaderAutoSequence).and_return(:next)
+        allow_any_instance_of(::Bootloader::MainDialog).to receive(:run_auto).and_return(:next)
 
         expect(subject.ask_user({})).to eq("workflow_sequence" => :next)
       end
 
       it "sets to true that poposed cfg changed if GUI changes are confirmed" do
-        allow(subject).to receive(:BootloaderAutoSequence).and_return(:next)
+        allow_any_instance_of(::Bootloader::MainDialog).to receive(:run_auto).and_return(:next)
 
         subject.ask_user({})
 
@@ -69,7 +89,7 @@ describe Bootloader::ProposalClient do
       end
 
       it "restores previous configuration if GUI is canceled" do
-        allow(subject).to receive(:BootloaderAutoSequence).and_return(:cancel)
+        allow_any_instance_of(::Bootloader::MainDialog).to receive(:run_auto).and_return(:cancel)
         expect(Yast::Bootloader).to receive(:Import).with({})
 
         subject.ask_user({})
@@ -80,10 +100,10 @@ describe Bootloader::ProposalClient do
   describe "#make_proposal" do
     before do
       mock_disk_partition
-      Yast::BootCommon.setLoaderType("grub2")
+      ::Bootloader::BootloaderFactory.current_name = "grub2"
       allow(Yast::Bootloader).to receive(:Propose)
       allow(Yast::Bootloader).to receive(:Summary).and_return("Summary")
-      allow(Yast::BootCommon).to receive(:BootloaderInstallable).and_return(true)
+      allow(Yast::BootStorage).to receive(:bootloader_installable?).and_return(true)
 
       Yast.import "Arch"
       allow(Yast::Arch).to receive(:s390)
@@ -100,13 +120,13 @@ describe Bootloader::ProposalClient do
     end
 
     it "do not check installation errors if install on nfs" do
-      expect(Yast::BootCommon).to receive(:getBootDisk).and_return("/dev/nfs")
+      expect(Yast::BootStorage).to receive(:disk_with_boot_partition).and_return("/dev/nfs")
 
       expect(subject.make_proposal({})).to_not include("warning")
     end
 
     it "report warning if no bootloader selected" do
-      Yast::BootCommon.setLoaderType("none")
+      ::Bootloader::BootloaderFactory.current_name = "none"
 
       result = subject.make_proposal({})
 
@@ -115,7 +135,7 @@ describe Bootloader::ProposalClient do
     end
 
     it "report error if bootloader is not installable" do
-      expect(Yast::BootCommon).to receive(:BootloaderInstallable).and_return(false)
+      expect(Yast::BootStorage).to receive(:bootloader_installable?).and_return(false)
 
       result = subject.make_proposal({})
 
@@ -148,9 +168,6 @@ describe Bootloader::ProposalClient do
 
       expect(subject).to receive("old_bootloader").and_return("grub").twice
 
-      expect(Yast::BootCommon).to receive(:setLoaderType).with(nil)
-      allow(Yast::BootCommon).to receive(:getLoaderType).and_return("grub2")
-      expect(Yast::BootCommon).to receive(:setLoaderType).with("grub2")
       expect(Yast::Bootloader).to receive(:Reset).at_least(:once)
       expect(Yast::Bootloader).to receive(:Propose)
 
@@ -173,7 +190,7 @@ describe Bootloader::ProposalClient do
       expect(subject).to receive("old_bootloader").and_return("grub2")
 
       expect(Yast::Bootloader).to_not receive(:Propose)
-      expect(Yast::Bootloader).to_not receive(:blRead)
+      expect(Yast::Bootloader).to_not receive(:Read)
 
       expect(subject.make_proposal({})).to eq("raw_proposal" => ["do not change"])
     end

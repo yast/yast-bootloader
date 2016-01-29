@@ -1,6 +1,7 @@
 require_relative "test_helper"
 
 require "bootloader/finish_client"
+require "bootloader/bootloader_factory"
 
 describe Bootloader::FinishClient do
   describe "#write" do
@@ -20,9 +21,8 @@ describe Bootloader::FinishClient do
       allow(Yast::Bootloader).to receive(:FlagOnetimeBoot).and_return(true)
       allow(Yast::Bootloader).to receive(:getDefaultSection).and_return("linux")
 
-      Yast.import "BootCommon"
-
-      allow(Yast::BootCommon).to receive(:was_read).and_return(true)
+      Bootloader::BootloaderFactory.current_name = "grub2"
+      allow(Bootloader::BootloaderFactory.current).to receive(:read?).and_return(true)
     end
 
     it "sets on non-s390 systems reboot message" do
@@ -84,12 +84,6 @@ describe Bootloader::FinishClient do
         expect(Yast::Bootloader).to receive(:Update)
 
         subject.write
-      end
-
-      it "return false if Bootloader::Update failed" do
-        expect(Yast::Bootloader).to receive(:Update).and_return(false)
-
-        expect(subject.write).to eq false
       end
 
       it "recreate initrd" do

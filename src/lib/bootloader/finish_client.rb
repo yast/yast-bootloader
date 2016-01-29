@@ -1,4 +1,5 @@
 require "bootloader/kexec"
+require "bootloader/bootloader_factory"
 require "installation/finish_client"
 
 module Bootloader
@@ -49,7 +50,8 @@ module Bootloader
         retcode = Yast::Bootloader.WriteInstallation
       else
         # if we do not read nor propose that we have nothing to do
-        if Yast::BootCommon.was_read || Yast::BootCommon.was_proposed
+        bl_current = ::Bootloader::BootloaderFactory.current
+        if bl_current.read? || bl_current.proposed?
           retcode = Yast::Bootloader.Update
         else
           quick_exit = true
