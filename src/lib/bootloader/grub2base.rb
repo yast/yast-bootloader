@@ -41,6 +41,8 @@ module Bootloader
     attr_accessor :pmbr_action
 
     def initialize
+      super
+
       textdomain "bootloader"
       @password = ::Bootloader::GRUB2Pwd.new
       @grub_default = ::CFA::Grub2::Default.new

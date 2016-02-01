@@ -13,109 +13,77 @@ describe Yast::Bootloader do
 
   subject { Yast::Bootloader }
 
+  let(:bootloader) { ::Bootloader::BootloaderFactory.current }
+
+  before do
+    # clean cache
+    ::Bootloader::BootloaderFactory.instance_variable_set(:@cached_bootloaders, {})
+    ::Bootloader::BootloaderFactory.current_name = "grub2"
+  end
+
   describe ".Import" do
     before do
-      # ensure flags are reset
-      Yast::BootCommon.was_read = false
-      Yast::BootCommon.was_proposed = false
-      Yast::BootCommon.changed = false
-      Yast::BootCommon.location_changed = false
     end
 
-    # FIXME: looks useless as import is used in autoinstallation and in such case reset do nothing
-    it "resets configuration" do
-      expect(subject).to receive(:Reset)
+    it "resets configuration"
 
-      subject.Import({})
-    end
+    it "marks that configuration is read"
 
-    it "marks that configuration is read" do
-      subject.Import({})
+    it "marks that configuration is already proposed"
 
-      expect(Yast::BootCommon.was_read).to eq true
-    end
+    it "marks that configuration is changed"
 
-    it "marks that configuration is already proposed" do
-      subject.Import({})
+    it "marks that stage1 location changed"
 
-      expect(Yast::BootCommon.was_proposed).to eq true
-    end
+    it "sets bootloader from key \"loader_type\""
 
-    it "marks that configuration is changed" do
-      subject.Import({})
+    it "sets proposed bootloader if not set in data"
 
-      expect(Yast::BootCommon.changed).to eq true
-    end
+    it "acts like missing if \"loader_type\" value is empty"
 
-    it "marks that stage1 location changed" do
-      subject.Import({})
+    it "pass initrd specific map to initrd module"
+#      initrd_map = {
+#        "list"     => ["nouveau", "nvidia"],
+#        "settings" => {
+#          "nouveau" => {
+#            "debug" => "1"
+#          }
+#        }
+#      }
+#      expect(Yast::Initrd).to receive(:Import).with(initrd_map)
+#
+#      subject.Import("initrd" => initrd_map)
+#    end
 
-      expect(Yast::BootCommon.location_changed).to eq true
-    end
-
-    it "sets bootloader from key \"loader_type\"" do
-      expect(Yast::BootCommon).to receive(:setLoaderType).with("grub2")
-      subject.Import("loader_type" => "grub2")
-    end
-
-    it "sets proposed bootloader if not set in data" do
-      expect(Yast::BootCommon).to receive(:setLoaderType).with(Yast::BootCommon.getLoaderType(true))
-      subject.Import({})
-    end
-
-    it "acts like missing if \"loader_type\" value is empty" do
-      expect(Yast::BootCommon).to receive(:setLoaderType).with(Yast::BootCommon.getLoaderType(true))
-      subject.Import("loader_type" => "")
-    end
-
-    it "pass initrd specific map to initrd module" do
-      initrd_map = {
-        "list"     => ["nouveau", "nvidia"],
-        "settings" => {
-          "nouveau" => {
-            "debug" => "1"
-          }
-        }
-      }
-      expect(Yast::Initrd).to receive(:Import).with(initrd_map)
-
-      subject.Import("initrd" => initrd_map)
-    end
-
-    it "sets passed \"write_settings\" map" do
-      write_settings = { "key" => "value" }
-
-      subject.Import("write_settings" => write_settings)
-      expect(Yast::BootCommon.write_settings).to eq write_settings
-    end
+    it "sets passed \"write_settings\" map"
   end
 
   describe ".ReadOrProposeIfNeeded" do
     before do
-      allow(subject).to receive(:Propose)
-      allow(subject).to receive(:Read)
-      Yast::BootCommon.was_read = false
-      Yast::BootCommon.was_proposed = false
+      allow(Yast::Stage).to receive(:initial).and_return(false)
+      allow(Yast::Mode).to receive(:update).and_return(false)
+      allow(Yast::Mode).to receive(:config).and_return(false)
+
     end
 
     it "does nothing if already read" do
-      expect(subject).to_not receive(:Propose)
+      bootloader.instance_variable_set(:@read, true)
       expect(subject).to_not receive(:Read)
-      Yast::BootCommon.was_read = true
+      expect(subject).to_not receive(:Propose)
 
       subject.ReadOrProposeIfNeeded
     end
 
     it "does nothing if already proposed" do
-      expect(subject).to_not receive(:Propose)
+      bootloader.instance_variable_set(:@proposed, true)
       expect(subject).to_not receive(:Read)
-      Yast::BootCommon.was_proposed = true
+      expect(subject).to_not receive(:Propose)
 
       subject.ReadOrProposeIfNeeded
     end
 
-    it "does nothing in config mode" do
-      expect(subject).to_not receive(:Propose)
+    it "propose in config mode" do
+      expect(subject).to receive(:Propose)
       expect(subject).to_not receive(:Read)
       expect(Yast::Mode).to receive(:config).and_return(true)
 
@@ -125,8 +93,9 @@ describe Yast::Bootloader do
     it "propose configuration in initial stage except update mode" do
       expect(subject).to receive(:Propose)
       expect(subject).to_not receive(:Read)
-      expect(Yast::Stage).to receive(:initial).and_return(true)
-      expect(Yast::Mode).to receive(:update).and_return(false)
+      allow(Yast::Mode).to receive(:config).and_return(false)
+      allow(Yast::Mode).to receive(:update).and_return(false)
+      allow(Yast::Stage).to receive(:initial).and_return(true)
 
       subject.ReadOrProposeIfNeeded
     end
@@ -134,8 +103,6 @@ describe Yast::Bootloader do
     it "reads configuration in normal stage" do
       expect(subject).to_not receive(:Propose)
       expect(subject).to receive(:Read)
-      expect(Yast::Stage).to receive(:initial).and_return(false)
-      allow(Yast::Mode).to receive(:update).and_return(false)
 
       subject.ReadOrProposeIfNeeded
     end
@@ -143,17 +110,8 @@ describe Yast::Bootloader do
     it "reads configuration in update mode" do
       expect(subject).to_not receive(:Propose)
       expect(subject).to receive(:Read)
-      expect(Yast::Stage).to receive(:initial).and_return(true)
       allow(Yast::Mode).to receive(:update).and_return(true)
-      allow(subject).to receive(:UpdateConfiguration)
-
-      subject.ReadOrProposeIfNeeded
-    end
-
-    it "calls .UpdateConfiguration in update mode" do
       allow(Yast::Stage).to receive(:initial).and_return(true)
-      allow(Yast::Mode).to receive(:update).and_return(true)
-      expect(subject).to receive(:UpdateConfiguration)
 
       subject.ReadOrProposeIfNeeded
     end
@@ -164,28 +122,15 @@ describe Yast::Bootloader do
     let(:params) { { "crashkernel" => "256M" } }
     let(:append) { "crashkernel=256M" }
 
-    before do
-      Yast::BootCommon.changed = false
-    end
-
-    around do |example|
-      old_globals_value = Yast::BootCommon.globals
-      Yast::BootCommon.globals = initial_lines
-      example.run
-      Yast::BootCommon.globals = old_globals_value
-    end
-
     context "when no parameters are passed" do
       it "raises an ArgumentError exception" do
         expect { subject.modify_kernel_params(:common) }.to raise_error(ArgumentError)
-        expect(Yast::BootCommon.changed).to eq(false)
       end
     end
 
     context "when target does not exist" do
       it "raises an ArgumentError exception" do
         expect { subject.modify_kernel_params(:unknown, params) }.to raise_error(ArgumentError)
-        expect(Yast::BootCommon.changed).to eq(false)
       end
     end
 
@@ -193,9 +138,7 @@ describe Yast::Bootloader do
       it "uses :common by default" do
         subject.modify_kernel_params(params)
 
-        expect(Yast::BootCommon.globals[kernel_line(:common)]).to eq(append)
-        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
-        expect(Yast::BootCommon.changed).to eq(true)
+        expect(bootloader.grub_default.kernel_params.serialize).to eq append
       end
     end
 
@@ -203,9 +146,7 @@ describe Yast::Bootloader do
       it "adds parameter for that target" do
         subject.modify_kernel_params(:xen_guest, params)
 
-        expect(Yast::BootCommon.globals[kernel_line(:xen_guest)]).to eq(append)
-        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
-        expect(Yast::BootCommon.changed).to eq(true)
+        expect(bootloader.grub_default.xen_kernel_params.serialize).to eq append
       end
     end
 
@@ -213,10 +154,8 @@ describe Yast::Bootloader do
       it "adds parameters to each target" do
         subject.modify_kernel_params(:xen_host, :xen_guest, params)
 
-        expect(Yast::BootCommon.globals[kernel_line(:xen_host)]).to eq(append)
-        expect(Yast::BootCommon.globals[kernel_line(:xen_guest)]).to eq(append)
-        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
-        expect(Yast::BootCommon.changed).to eq(true)
+        expect(bootloader.grub_default.xen_kernel_params.serialize).to eq append
+        expect(bootloader.grub_default.xen_hypervisor_params.serialize).to eq append
       end
     end
 
@@ -224,23 +163,22 @@ describe Yast::Bootloader do
       it "adds parameters to each target" do
         subject.modify_kernel_params([:xen_host, :xen_guest], params)
 
-        expect(Yast::BootCommon.globals[kernel_line(:xen_host)]).to eq(append)
-        expect(Yast::BootCommon.globals[kernel_line(:xen_guest)]).to eq(append)
-        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
-        expect(Yast::BootCommon.changed).to eq(true)
+        expect(bootloader.grub_default.xen_kernel_params.serialize).to eq append
+        expect(bootloader.grub_default.xen_hypervisor_params.serialize).to eq append
       end
     end
 
     context "when a parameter is set to be removed" do
-      let(:initial_lines) { { kernel_line(:common) => "quiet #{append}" } }
+      before do
+        bootloader.grub_default.kernel_params.add_parameter("quiet", true)
+        bootloader.grub_default.kernel_params.add_parameter("silent", true)
+      end
       let(:params) { { "quiet" => :missing } }
 
       it "removes parameter from the given target" do
         subject.modify_kernel_params(:common, params)
 
-        expect(Yast::BootCommon.globals[kernel_line(:common)]).to eq(append)
-        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
-        expect(Yast::BootCommon.changed).to eq(true)
+        expect(bootloader.grub_default.kernel_params.serialize).to eq "silent"
       end
     end
 
@@ -250,30 +188,7 @@ describe Yast::Bootloader do
       it "adds the parameter to the given target without any value" do
         subject.modify_kernel_params(:common, params)
 
-        expect(Yast::BootCommon.globals[kernel_line(:common)]).to eq("quiet")
-        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
-        expect(Yast::BootCommon.changed).to eq(true)
-      end
-    end
-
-    context "when parameter is 'vga'" do
-      let(:params) { { "vga" => "80" } }
-
-      it "adds the parameter as 'vgamode' to the global scope and does not mark BootCommon as 'modified'" do
-        subject.modify_kernel_params(:common, params)
-        expect(Yast::BootCommon.globals["vgamode"]).to eq("80")
-        expect(Yast::BootCommon.globals).to_not have_key("__modified")
-        expect(Yast::BootCommon.changed).to eq(false)
-      end
-    end
-
-    context "when parameter is 'root' (cannot be modified)" do
-      let(:params) { { "root" => "/dev/sda1" } }
-
-      it "makes no changes" do
-        expect { subject.modify_kernel_params(:common, params) }
-          .to_not change { Yast::BootCommon.globals }
-        expect(Yast::BootCommon.changed).to eq(false)
+        expect(bootloader.grub_default.kernel_params.serialize).to eq "quiet"
       end
     end
 
@@ -283,24 +198,14 @@ describe Yast::Bootloader do
       it "adds the parameter multiple times" do
         subject.modify_kernel_params(:common, params)
 
-        expect(Yast::BootCommon.globals[kernel_line(:common)])
-          .to eq("crashkernel=256M,low crashkernel=1024M,high")
-        expect(Yast::BootCommon.globals["__modified"]).to eq("1")
-        expect(Yast::BootCommon.changed).to eq(true)
+        expect(bootloader.grub_default.kernel_params.serialize).to eq "crashkernel=256M,low crashkernel=1024M,high"
       end
     end
   end
 
   describe ".kernel_param" do
-    let(:initial_lines) do
-      { kernel_line(:common) => "quiet verbose=1 crashkernel=256M,low crashkernel=1024M,high" }
-    end
-
-    around do |example|
-      old_value = Yast::BootCommon.globals
-      Yast::BootCommon.globals = initial_lines
-      example.run
-      Yast::BootCommon.globals = old_value
+    before do
+      bootloader.grub_default.kernel_params.replace("quiet verbose=1 crashkernel=256M,low crashkernel=1024M,high")
     end
 
     context "when parameter does not exist" do

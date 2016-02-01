@@ -230,20 +230,6 @@ module Yast
       ::Bootloader::BootloaderFactory.current.summary
     end
 
-    # Update read settings to new version of configuration files
-    def UpdateConfiguration
-      # first run bootloader-specific update function
-      blUpdate
-
-      # remove no more needed Kernel modules from /etc/modules-load.d/
-      ["cdrom", "ide-cd", "ide-scsi"].each do |kernel_module|
-        Kernel.RemoveModuleToLoad(kernel_module) if Kernel.module_to_be_loaded?(kernel_module)
-      end
-      Kernel.SaveModulesToLoad
-
-      nil
-    end
-
     # Update the whole configuration
     # @return [Boolean] true on success
     def Update
@@ -402,7 +388,7 @@ module Yast
 
       res = params.parameter(key)
 
-      BOOLEAN_MAPPING(res) || res
+      BOOLEAN_MAPPING[res] || res
     end
 
     # Modify kernel parameters for installed kernels according to values
@@ -430,6 +416,11 @@ module Yast
     #   Bootloader.modify_kernel_params(:xen_host, "cio_ignore" => :present)
     #
     def modify_kernel_params(*args)
+      current_bl = ::Bootloader::BootloaderFactory.current
+      # currently only grub2 bootloader supported
+      return :missing unless current_bl.respond_to?(:grub_default)
+      grub_default = current_bl.grub_default
+
       values = args.pop
       if !values.is_a? Hash
         raise ArgumentError, "Missing parameters to modify #{args.inspect}"
@@ -442,35 +433,39 @@ module Yast
         log.warn "recovery flavor is deprecated and not set"
       end
 
-      remap_values = BOOLEAN_MAPPING.reverse
+      remap_values = BOOLEAN_MAPPING.invert
       values.each_key do |key|
-        values[key] = remap_values[values[key]] || values[key]
+        values[key] =  remap_values[values[key]] if remap_values.key?(values[key])
       end
 
-      params = case flavor
-               when :common then grub_default.kernel_params
-               when :xen_guest then grub_default.xen_kernel_params
-               when :xen_host then grub_default.xen_hypervisor_params
-               else raise ArgumentError, "Unknown flavor #{flavor}"
-               end
+      params = args.map do |flavor|
+        case flavor
+        when :common then grub_default.kernel_params
+        when :xen_guest then grub_default.xen_kernel_params
+        when :xen_host then grub_default.xen_hypervisor_params
+        else raise ArgumentError, "Unknown flavor #{flavor}"
+        end
+      end
 
       changed = false
       values.each do |key, value|
-        old_val = params.parameter(key)
-        next if old_val == value
+        params.each do |param|
+          old_val = param.parameter(key)
+          next if old_val == value
 
-        changed = true
-        # at first clean old entries
-        matcher = CFA::Matcher.new(key: key)
-        params.remove_parameter(matcher)
+          changed = true
+          # at first clean old entries
+          matcher = CFA::Matcher.new(key: key)
+          param.remove_parameter(matcher)
 
-        case value
-        when false then next # already done
-        when true then params.add_parameter(key, value)
-        when Array
-          value.each { |val| params.add_parameter(key, val) }
-        else
-          raise ArgumentError, "Unknown value #{value.inspect}"
+          case value
+          when false then next # already done
+          when true then param.add_parameter(key, value)
+          when Array
+            value.each { |val| param.add_parameter(key, val) }
+          else
+            param.add_parameter(key, value)
+          end
         end
       end
 
@@ -507,7 +502,6 @@ module Yast
         progress_orig = Progress.set(false)
         Read()
         Progress.set(progress_orig)
-        UpdateConfiguration() if Mode.update
       end
     end
 
