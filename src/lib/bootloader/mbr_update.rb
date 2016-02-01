@@ -8,6 +8,18 @@ Yast.import "PackageSystem"
 Yast.import "Partitions"
 
 module Bootloader
+
+  # fake stage 1 for bootloader that do not have it
+  class NoStage1
+    def devices
+      []
+    end
+
+    def include?(_e)
+      false
+    end
+  end
+
   # this class place generic MBR wherever it is needed
   # and also mark needed partitions with boot flag and legacy_boot
   # FIXME: make it single responsibility class
@@ -15,7 +27,7 @@ module Bootloader
     include Yast::Logger
 
     # Update contents of MBR (active partition and booting code)
-    def run(activate: false, generic_mbr: false, grub2_stage1: [])
+    def run(activate: false, generic_mbr: false, grub2_stage1: NoStage1.new)
       log.info "MBRUpdate: activate: #{activate} generic: #{generic_mbr}"
       @grub2_stage1 = grub2_stage1
 
@@ -35,7 +47,7 @@ module Bootloader
     end
 
     def create_backups
-      devices_to_backup = disks_to_rewrite + grub2_stage1.devices + [mbr_disk]
+      devices_to_backup = disks_to_rewrite + @grub2_stage1.devices + [mbr_disk]
       devices_to_backup.uniq!
       log.info "Creating backup of boot sectors of #{devices_to_backup}"
       backups = devices_to_backup.map do |d|
@@ -65,7 +77,7 @@ module Bootloader
         log.info "Copying generic MBR code to #{disk}"
         # added fix 446 -> 440 for Vista booting problem bnc #396444
         command = ["/bin/dd", "bs=440", "count=1", "if=#{generic_mbr_file}", "of=#{disk}"]
-        Execute.on_target(*command)
+        Yast::Execute.on_target(*command)
       end
     end
 
@@ -75,12 +87,12 @@ module Bootloader
 
       # and then set it
       command = ["/usr/sbin/parted", "-s", disk, "set", part_num, flag, "on"]
-      Execute.locally(*command)
+      Yast::Execute.locally(*command)
     end
 
     def reset_flag(disk, flag)
       command = ["/usr/sbin/parted", "-sm", disk, "print"]
-      out = Execute.locally(*command, stdout: :capture)
+      out = Yast::Execute.locally(*command, stdout: :capture)
 
       partitions = out.lines.select do |line|
         values = line.split(":")
@@ -90,7 +102,7 @@ module Bootloader
 
       partitions.each do |part_num|
         command = ["/usr/sbin/parted", "-s", disk, "set", part_num, flag, "off"]
-        Execute.locally(*command)
+        Yast::Execute.locally(*command)
       end
     end
 

@@ -119,7 +119,7 @@ describe Bootloader::GRUB2Pwd do
             .with(path(".target.string"), described_class::PWD_ENCRYPTION_FILE)
             .and_return(FILE_CONTENT_WRONG)
 
-          expect { described_class.new }.to raise_error
+          expect { described_class.new }.to raise_error(RuntimeError)
         end
       end
     end
