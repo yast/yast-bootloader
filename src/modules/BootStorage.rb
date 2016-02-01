@@ -20,7 +20,6 @@
 require "yast"
 require "bootloader/device_map"
 require "bootloader/udev_mapping"
-require "bootloader/bootloader_factory"
 
 module Yast
   class BootStorageClass < Module
@@ -96,6 +95,7 @@ module Yast
     end
 
     def gpt_boot_disk?
+      require "bootloader/bootloader_factory"
       current_bl = ::Bootloader::BootloaderFactory.current
 
       # efi require gpt disk, so it is always one
