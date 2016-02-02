@@ -24,7 +24,7 @@ module Bootloader
       saved = Yast::Execute.on_target("/usr/bin/grub2-editenv", "list", stdout: :capture)
       saved_line = saved.lines.grep(/saved_entry=/).first
 
-      saved_line ? saved_line[/saved_entry=(\S*)\s\n/, 1] : @data.first
+      @default = saved_line ? saved_line[/saved_entry=(\S*)/, 1] : @data.first
     end
 
     # Sets default section internally
