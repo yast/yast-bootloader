@@ -8,7 +8,6 @@ Yast.import "PackageSystem"
 Yast.import "Partitions"
 
 module Bootloader
-
   # fake stage 1 for bootloader that do not have it
   class NoStage1
     def devices

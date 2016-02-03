@@ -340,7 +340,7 @@ module Yast
     publish :function => :SystemSupported, :type => "boolean ()"
     publish :function => :EndOfBootOrRootPartition, :type => "integer ()"
 
-    private
+  private
 
     def stage1
       ::Bootloader::BootloaderFactory.current.stage1

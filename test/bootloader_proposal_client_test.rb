@@ -16,7 +16,7 @@ describe Bootloader::ProposalClient do
     allow_any_instance_of(::Bootloader::Stage1).to(
       receive(:available_locations)
       .and_return(
-        mbr: "/dev/sda",
+        mbr:  "/dev/sda",
         boot: "/dev/sda1"
       )
     )
@@ -33,7 +33,7 @@ describe Bootloader::ProposalClient do
   end
 
   describe "#ask_user" do
-    let (:stage1) { ::Bootloader::BootloaderFactory.current.stage1 }
+    let(:stage1) { ::Bootloader::BootloaderFactory.current.stage1 }
     context "single click action is passed" do
       before do
         Yast.import "Bootloader"

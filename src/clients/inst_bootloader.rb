@@ -22,7 +22,7 @@ module Yast
       textdomain "bootloader"
 
       Yast.import "Bootloader"
-      #Yast.import "BootCommon"
+      # Yast.import "BootCommon"
       Yast.import "Installation"
       Yast.import "GetInstArgs"
       Yast.import "Mode"

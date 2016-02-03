@@ -42,18 +42,18 @@ describe Yast::Bootloader do
     it "acts like missing if \"loader_type\" value is empty"
 
     it "pass initrd specific map to initrd module"
-#      initrd_map = {
-#        "list"     => ["nouveau", "nvidia"],
-#        "settings" => {
-#          "nouveau" => {
-#            "debug" => "1"
-#          }
-#        }
-#      }
-#      expect(Yast::Initrd).to receive(:Import).with(initrd_map)
-#
-#      subject.Import("initrd" => initrd_map)
-#    end
+    #      initrd_map = {
+    #        "list"     => ["nouveau", "nvidia"],
+    #        "settings" => {
+    #          "nouveau" => {
+    #            "debug" => "1"
+    #          }
+    #        }
+    #      }
+    #      expect(Yast::Initrd).to receive(:Import).with(initrd_map)
+    #
+    #      subject.Import("initrd" => initrd_map)
+    #    end
 
     it "sets passed \"write_settings\" map"
   end
