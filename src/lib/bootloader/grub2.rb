@@ -53,9 +53,9 @@ module Bootloader
       # Do some mbr activations
       if !Yast::Arch.s390
         MBRUpdate.new.run(
-          activate:      @stage1.activate,
-          generic_mbr:   @stage1.generic_mbr,
-          grub2_devices: @stage1
+          activate:      @stage1.model.activate?,
+          generic_mbr:   @stage1.model.generic_mbr?,
+          grub2_stage1: @stage1
         )
       end
 
