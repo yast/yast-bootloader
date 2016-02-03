@@ -5,7 +5,7 @@ before_install:
     # disable rvm, use system Ruby
     - rvm reset
     - wget https://raw.githubusercontent.com/yast/yast-devtools/master/travis-tools/travis_setup.sh
-    - sh ./travis_setup.sh -p "yast2-devtools yast2 yast2-storage rake ruby2.1-dev libaugeas-dev pkg-config" -g "gettext yast-rake yard rspec:3.3.0 simplecov coveralls rubocop:0.29.1 cfa_grub2"
+    - sh ./travis_setup.sh -p "yast2-devtools yast2 yast2-storage rake ruby2.1-dev libaugeas-dev pkg-config" -g "gettext yast-rake yard rspec:3.3.0 simplecov coveralls rubocop:0.29.1 cfa_grub2 cheetah"
 script:
     - rake check:syntax
     - rake check:pot
