@@ -3,11 +3,23 @@
 require_relative "./test_helper"
 
 require "bootloader/mbr_update"
+require "bootloader/stage1"
 
 Yast.import "BootStorage"
 
 describe Bootloader::MBRUpdate do
   subject { Bootloader::MBRUpdate.new }
+
+  def stage1(devices: [], activate: false, generic_mbr: false)
+    stage1 = Bootloader::Stage1.new
+
+    devices.each { |d| stage1.model.add_device(d) }
+    stage1.model.activate = activate
+    stage1.model.generic_mbr = generic_mbr
+
+    stage1
+  end
+
   describe "#run" do
     before do
       allow(Yast::BootStorage).to receive(:Md2Partitions).and_return({})
@@ -40,7 +52,7 @@ describe Bootloader::MBRUpdate do
       )
       expect(backup_mock).to receive(:write)
 
-      subject.run
+      subject.run(stage1)
     end
 
     # FIXME: get reason for it
@@ -60,7 +72,7 @@ describe Bootloader::MBRUpdate do
         .and_return(backup_mock)
       )
 
-      subject.run(grub2_stage1: double(devices: ["/dev/sdb", "/dev/sda1"]))
+      subject.run(stage1(devices: ["/dev/sdb", "/dev/sda1"]))
     end
 
     it "creates backup of any disk where Bootloader Devices laid in md raid" do
@@ -80,20 +92,20 @@ describe Bootloader::MBRUpdate do
         .and_return(double(:write => true))
       )
 
-      subject.run(grub2_stage1: double(devices: ["/dev/md0"], include?: true))
+      subject.run(stage1(devices: ["/dev/md0"]))
     end
 
     context "activate and generic mbr is disabled" do
       it "do not write generic mbr anywhere" do
         expect(Yast::Execute).to_not receive(:locally)
         expect(Yast::Execute).to_not receive(:on_target)
-        subject.run(activate: false, generic_mbr: false)
+        subject.run(stage1(generic_mbr: false, activate: false))
       end
 
       it "do not set boot and legacy boot flag anywhere" do
         expect(Yast::Execute).to_not receive(:locally)
         expect(Yast::Execute).to_not receive(:on_target)
-        subject.run(activate: false, generic_mbr: false)
+        subject.run(stage1(generic_mbr: false, activate: false))
       end
     end
 
@@ -109,7 +121,7 @@ describe Bootloader::MBRUpdate do
 
         expect(Yast::Execute).to_not receive(:locally)
         expect(Yast::Execute).to_not receive(:on_target)
-        subject.run(generic_mbr: true, grub2_stage1: double(devices: ["/dev/sda"], include?: true))
+        subject.run(stage1(generic_mbr: true, devices: ["/dev/sda"]))
       end
 
       it "rewrites mbr_disk with generic code" do
@@ -120,14 +132,14 @@ describe Bootloader::MBRUpdate do
           return nil unless args.first =~ /dd/
           expect(args).to be_include("of=/dev/sda")
         end
-        subject.run(generic_mbr: true)
+        subject.run(stage1(generic_mbr: true))
       end
 
       it "install syslinux if non on initial stage" do
         allow(Yast::Stage).to receive(:initial).and_return(false)
         expect(Yast::PackageSystem).to receive(:Install).with("syslinux")
 
-        subject.run(generic_mbr: true)
+        subject.run(stage1(generic_mbr: true))
       end
 
       it "install gpt generic code if disk is gpt" do
@@ -143,7 +155,7 @@ describe Bootloader::MBRUpdate do
           expect(args.any? { |a| a =~ /if=.*gptmbr.bin/ }).to eq true
         end
 
-        subject.run(generic_mbr: true)
+        subject.run(stage1(generic_mbr: true))
       end
     end
 
@@ -169,7 +181,7 @@ describe Bootloader::MBRUpdate do
           expect(Yast::Execute).to receive(:locally)
             .with(/parted/, "-s", "/dev/sdb", "set", 1, "boot", "on")
 
-          subject.run(activate: true, grub2_stage1: double(devices: ["/dev/sda1", "/dev/sdb1"]))
+          subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb1"]))
         end
 
         it "resets all old boot flags on disk before set boot flag" do
@@ -189,7 +201,7 @@ describe Bootloader::MBRUpdate do
           expect(Yast::Execute).to receive(:locally)
             .with(/parted/, "-s", "/dev/sda", "set", "3", "boot", "off")
 
-          subject.run(activate: true, grub2_stage1: double(devices: ["/dev/sda1", "/dev/sdb1"]))
+          subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb1"]))
         end
       end
 
@@ -208,7 +220,7 @@ describe Bootloader::MBRUpdate do
           expect(Yast::Execute).to receive(:locally)
             .with(/parted/, "-s", "/dev/sdb", "set", 1, "legacy_boot", "on")
 
-          subject.run(activate: true, grub2_stage1: double(devices: ["/dev/sda1", "/dev/sdb1"]))
+          subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb1"]))
         end
 
         it "resets all old boot flags on disk before set boot flag" do
@@ -228,7 +240,7 @@ describe Bootloader::MBRUpdate do
           expect(Yast::Execute).to receive(:locally)
             .with(/parted/, "-s", "/dev/sda", "set", "4", "legacy_boot", "off")
 
-          subject.run(activate: true, grub2_stage1: double(devices: ["/dev/sda1", "/dev/sdb1"]))
+          subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb1"]))
         end
       end
 
@@ -239,16 +251,16 @@ describe Bootloader::MBRUpdate do
           ""
         end
 
-        subject.run(activate: true, grub2_stage1: double(devices: ["/dev/sda1", "/dev/sdb6"]))
+        subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb6"]))
       end
 
       it "sets flags also on /boot device if it is software raid" do
         allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/md1")
 
-        allow(Yast::Execute).to receive(:locally)
-          .with(/parted/, "-s", "/dev/md", "set", "1", "boot", "on")
+        expect(Yast::Execute).to receive(:locally)
+          .with(/parted/, "-s", "/dev/md", "set", 1, "boot", "on")
 
-        subject.run
+        subject.run(stage1(activate: true))
       end
     end
   end

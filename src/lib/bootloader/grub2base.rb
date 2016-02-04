@@ -1,5 +1,6 @@
 # encoding: utf-8
 require "yast"
+require "yast2/execute"
 require "bootloader/sections"
 require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
@@ -63,9 +64,7 @@ module Bootloader
                       else raise "invalid action #{action}"
                       end
       devices.each do |dev|
-        res = WFM.Execute(path(".local.bash_output"),
-          "parted -s '#{dev}' disk_set pmbr_boot #{action_parted}")
-        Builtins.y2milestone("parted disk_set pmbr: #{res}")
+        Yast::Execute.locally("parted", "-s", dev, "disk_set", "pmbr_boot", action_parted)
       end
     end
 
@@ -78,6 +77,7 @@ module Bootloader
 
     def write
       super
+
       grub_default.save
       pmbr_setup
       @sections.write
@@ -86,6 +86,8 @@ module Bootloader
     end
 
     def propose
+      super
+
       propose_os_probing
       propose_terminal
       propose_timeout

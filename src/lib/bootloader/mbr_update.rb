@@ -8,17 +8,6 @@ Yast.import "PackageSystem"
 Yast.import "Partitions"
 
 module Bootloader
-  # fake stage 1 for bootloader that do not have it
-  class NoStage1
-    def devices
-      []
-    end
-
-    def include?(_e)
-      false
-    end
-  end
-
   # this class place generic MBR wherever it is needed
   # and also mark needed partitions with boot flag and legacy_boot
   # FIXME: make it single responsibility class
@@ -26,17 +15,17 @@ module Bootloader
     include Yast::Logger
 
     # Update contents of MBR (active partition and booting code)
-    def run(activate: false, generic_mbr: false, grub2_stage1: NoStage1.new)
-      log.info "MBRUpdate: activate: #{activate} generic: #{generic_mbr}"
-      @grub2_stage1 = grub2_stage1
+    def run(stage1)
+      log.info "Stage1: #{stage1}"
+      @stage1 = stage1
 
       create_backups
 
       # Rewrite MBR with generic boot code only if we do not plan to install
       # there bootloader stage1
-      install_generic_mbr if generic_mbr && !grub2_stage1.include?(mbr_disk)
+      install_generic_mbr if stage1.model.generic_mbr? && !stage1.include?(mbr_disk)
 
-      activate_partitions if activate
+      activate_partitions if stage1.model.activate?
     end
 
   private
@@ -46,7 +35,7 @@ module Bootloader
     end
 
     def create_backups
-      devices_to_backup = disks_to_rewrite + @grub2_stage1.devices + [mbr_disk]
+      devices_to_backup = disks_to_rewrite + @stage1.model.devices + [mbr_disk]
       devices_to_backup.uniq!
       log.info "Creating backup of boot sectors of #{devices_to_backup}"
       backups = devices_to_backup.map do |d|
@@ -133,7 +122,7 @@ module Bootloader
     def boot_devices
       return @boot_devices if @boot_devices
 
-      @boot_devices = @grub2_stage1.devices
+      @boot_devices = @stage1.model.devices
 
       # ppc do not use boot partition and have to activate prep partition that
       # cannot be on raid (bnc#940542)
