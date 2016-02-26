@@ -31,6 +31,7 @@ module Bootloader
 
     # @return [Array<String>] description for proposal summary page for given bootloader
     def summary
+      []
     end
 
     # rubocop:disable Style/TrivialAccessors
