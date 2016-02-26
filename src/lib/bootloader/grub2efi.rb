@@ -5,9 +5,12 @@ require "bootloader/grub2base"
 require "bootloader/grub_install"
 require "bootloader/sysconfig"
 
+Yast.import "Arch"
+
 module Bootloader
   # Represents grub2 bootloader with efi target
   class Grub2EFI < GRUB2Base
+    include Yast::Logger
     attr_accessor :secure_boot
 
     def initialize
@@ -74,6 +77,26 @@ module Bootloader
 
     def name
       "grub2-efi"
+    end
+
+    def packages
+      res = super
+
+      case Yast::Arch.architecture
+      when "i386"
+        res << "grub2-i386-efi"
+      when "x86_64"
+        res << "grub2-x86_64-efi"
+        if @secure_boot
+          res << "shim" << "mokutil"
+        end
+      when "aarch64"
+        res << "grub2-arm64-efi"
+      else
+        log.warn "Unknown architecture #{Yast::Arch.architecture} for EFI"
+      end
+
+      res
     end
 
   private

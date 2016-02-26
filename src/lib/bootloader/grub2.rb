@@ -102,6 +102,19 @@ module Bootloader
       "grub2"
     end
 
+    def packages
+      res = super
+
+      res << "grub"
+
+      if stage1.model.generic_mbr?
+        # needed for generic _mbr binary files
+        res << "syslinux"
+      end
+
+      res
+    end
+
   private
 
     def disk_order_summary

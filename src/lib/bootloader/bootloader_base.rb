@@ -2,6 +2,8 @@ require "yast"
 require "bootloader/sysconfig"
 
 Yast.import "BootStorage"
+Yast.import "Linuxrc"
+Yast.import "Mode"
 
 module Bootloader
   # Represents base for all kinds of bootloaders
@@ -41,6 +43,19 @@ module Bootloader
     # @return true if configuration is already proposed
     def proposed?
       @proposed
+    end
+
+    # list of packages needed for configure given bootloader
+    def packages
+      res = []
+
+      # added kexec-tools fate# 303395
+      if !Yast::Mode.live_installation &&
+          Yast::Linuxrc.InstallInf("kexec_reboot") != "0"
+        res << "kexec-tools"
+      end
+
+      res
     end
 
   protected
