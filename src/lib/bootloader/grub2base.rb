@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "yast"
 require "yast2/execute"
+require "bootloader/bootloader_base"
 require "bootloader/sections"
 require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
@@ -26,7 +27,7 @@ Yast.import "StorageDevices"
 
 module Bootloader
   # Common base for GRUB2 specialized classes
-  class GRUB2Base < BootloaderBase
+  class Grub2Base < BootloaderBase
     include Yast::Logger
     include Yast::I18n
 
