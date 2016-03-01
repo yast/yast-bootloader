@@ -79,10 +79,10 @@ module Bootloader
     def write
       super
 
+      log.info "writing /etc/default/grub #{grub_default.inspect}"
       grub_default.save
       pmbr_setup
       @sections.write
-      # TODO: call grub_install
       # TODO: call grub-mkconfig
     end
 
@@ -155,7 +155,7 @@ module Bootloader
     def propose_timeout
       return if grub_default.timeout
 
-      grub_default.timeout = 8
+      grub_default.timeout = "8"
     end
 
     def propose_serial

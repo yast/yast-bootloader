@@ -32,12 +32,12 @@ module Bootloader
     end
 
     # Write bootloader settings to disk
-    # @return [Boolean] true on success
     def write
       if pmbr_action
-        efi_disk = Yast::Storage.GetEntryForMountpoint("/boot/efi")["device"]
-        efi_disk ||= Yast::Storage.GetEntryForMountpoint("/boot")["device"]
-        efi_disk ||= Yast::Storage.GetEntryForMountpoint("/")["device"]
+        efi_partition = Yast::Storage.GetEntryForMountpoint("/boot/efi")["device"]
+        efi_partition ||= Yast::Storage.GetEntryForMountpoint("/boot")["device"]
+        efi_partition ||= Yast::Storage.GetEntryForMountpoint("/")["device"]
+        efi_disk = Yast::Storage.GetDiskPartition(efi_partition)["disk"]
 
         pmbr_setup(efi_disk)
       end
@@ -46,7 +46,7 @@ module Bootloader
 
       @grub_install.execute(secure_boot: @secure_boot)
 
-      ret
+      true
     end
 
     def propose

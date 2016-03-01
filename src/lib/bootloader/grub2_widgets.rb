@@ -69,11 +69,11 @@ module Bootloader
 
     def store
       if @hidden_menu_widget.checked?
-        grub_default.hidden_timeout = value
+        grub_default.hidden_timeout = value.to_s
         grub_default.timeout = 0
       else
         grub_default.hidden_timeout = 0
-        grub_default.timeout = value
+        grub_default.timeout = value.to_s
       end
     end
   end

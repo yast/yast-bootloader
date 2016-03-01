@@ -1,4 +1,5 @@
 require "yast"
+require "date"
 
 module Bootloader
   # Responsibility of class is to manage backup of MBR, respective PBR of disk,
