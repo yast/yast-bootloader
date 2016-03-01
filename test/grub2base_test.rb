@@ -60,7 +60,7 @@ describe Bootloader::Grub2Base do
 
   describe "#propose" do
     before do
-      allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
+      allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return({})
     end
 
     describe "os_prober proposal" do
@@ -80,6 +80,223 @@ describe Bootloader::Grub2Base do
           expect(subject.grub_default.os_prober.enabled?).to eq false
         end
       end
+
+      context "on Power PC" do
+        before do
+          allow(Yast::Arch).to receive(:architecture).and_return("ppc64")
+        end
+
+        it "disable os probing" do
+          subject.propose
+
+          expect(subject.grub_default.os_prober.enabled?).to eq false
+        end
+      end
+
+      context "when Product explicitelly disable os prober" do
+        before do
+          allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).and_return(true)
+        end
+
+        it "disable os probing" do
+          subject.propose
+
+          expect(subject.grub_default.os_prober.enabled?).to eq false
+        end
+      end
+
+      context "otherwise" do
+        it "proposes using os probing" do
+          subject.propose
+
+          expect(subject.grub_default.os_prober.enabled?).to eq true
+        end
+      end
+    end
+
+    describe "terminal proposal" do
+      context "on s390" do
+        before do
+          allow(Yast::Arch).to receive(:architecture).and_return("s390_64")
+        end
+
+        it "proposes console terminal" do
+          subject.propose
+
+          expect(subject.grub_default.terminal).to eq :console
+        end
+      end
+
+      context "otherwise" do
+        before do
+          allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+        end
+
+        it "proposes gfx terminal" do
+          subject.propose
+
+          expect(subject.grub_default.terminal).to eq :gfxterm
+        end
+      end
+    end
+
+    it "proposes timeout to 8 seconds" do
+      subject.propose
+
+      expect(subject.grub_default.timeout).to eq "8"
+    end
+
+    describe "kernel parameters proposal" do
+      context "on x86_64" do
+        before do
+          allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+        end
+
+        it "proposes kernel parameters used in installation" do
+          kernel_params = "verbose suse=rulezz"
+          allow(Yast::Kernel).to receive(:GetCmdLine).and_return(kernel_params)
+
+          subject.propose
+
+          expect(subject.grub_default.kernel_params.serialize).to include(kernel_params)
+        end
+
+        it "adds the biggest available swap partition as resume device" do
+          allow(Yast::BootStorage).to receive(:available_swap_partitions).
+            and_return(
+              "/dev/sda2" => 512,
+              "/dev/sdb2" => 1024
+            )
+
+          allow(Bootloader::UdevMapping).to receive(:to_mountby_device) { |a| a }
+
+          subject.propose
+
+          expect(subject.grub_default.kernel_params.serialize).to include("resume=/dev/sdb2")
+        end
+
+        it "adds additional kernel parameters for given product" do
+          allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+            .with("globals", "additional_kernel_parameters")
+            .and_return("product_aurora=shot")
+
+          subject.propose
+
+          expect(subject.grub_default.kernel_params.serialize).to include("product_aurora=shot")
+        end
+
+        it "removes splash argument and always add splash=silent" do
+          kernel_params = "splash=verbose,theme:st_theme verbose suse=rulezz"
+          allow(Yast::Kernel).to receive(:GetCmdLine).and_return(kernel_params)
+
+          subject.propose
+
+          expect(subject.grub_default.kernel_params.serialize).to_not include("splash=verbose,theme:st_theme")
+          expect(subject.grub_default.kernel_params.serialize).to include("splash=silent")
+        end
+
+        it "adds quiet and showopts arguments" do
+          subject.propose
+
+          expect(subject.grub_default.kernel_params.serialize).to include("quiet showopts")
+        end
+      end
+
+      context "on s390" do
+        before do
+          allow(Yast::Arch).to receive(:architecture).and_return("s390_64")
+        end
+
+        context "with TERM=\"linux\"" do
+          before do
+            ENV["TERM"] = "linux"
+          end
+
+          it "proposes to use serial console with \"TERM=linux console=ttyS0 console=ttyS1\"" do
+            subject.propose
+
+            expect(subject.grub_default.kernel_params.serialize).to include("TERM=linux console=ttyS0 console=ttyS1")
+          end
+        end
+
+        context "on other TERM" do
+          before do
+            ENV["TERM"] = "xterm"
+          end
+
+          it "proposes dumb term and sets 8 iuvc terminals" do
+            subject.propose
+
+            expect(subject.grub_default.kernel_params.serialize).to include("hvc_iucv=8 TERM=dumb")
+          end
+        end
+
+        it "adds additional kernel parameters for given product" do
+          allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+            .with("globals", "additional_kernel_parameters")
+            .and_return("product_aurora=shot")
+
+          subject.propose
+
+          expect(subject.grub_default.kernel_params.serialize).to include("product_aurora=shot")
+        end
+
+        it "adds the biggest available swap partition as resume device" do
+          allow(Yast::BootStorage).to receive(:available_swap_partitions).
+            and_return(
+              "/dev/dasda2" => 512,
+              "/dev/dasdb2" => 1024
+            )
+
+          allow(Bootloader::UdevMapping).to receive(:to_mountby_device) { |a| a }
+
+          subject.propose
+
+          expect(subject.grub_default.kernel_params.serialize).to include("resume=/dev/dasdb2")
+        end
+      end
+
+      context "on other architectures" do
+        before do
+          allow(Yast::Arch).to receive(:architecture).and_return("aarm64")
+        end
+
+        it "proposes kernel parameters used in installation" do
+          kernel_params = "verbose suse=rulezz"
+          allow(Yast::Kernel).to receive(:GetCmdLine).and_return(kernel_params)
+
+          subject.propose
+
+          expect(subject.grub_default.kernel_params.serialize).to include(kernel_params)
+        end
+      end
+    end
+
+    it "proposes gfx mode to auto" do
+      subject.propose
+
+      expect(subject.grub_default.gfxmode).to eq "auto"
+    end
+
+    it "proposes to disable recovery boot entry" do
+      subject.propose
+
+      expect(subject.grub_default.recovery_entry.enabled?).to eq false
+    end
+
+    it "proposes empty distributor entry" do
+      subject.propose
+
+      expect(subject.grub_default.distributor).to eq ""
+    end
+
+    it "proposes serial console from its usage on kernel command line" do
+      kernel_params = "console=ttyS1,4800n8"
+      allow(Yast::Kernel).to receive(:GetCmdLine).and_return(kernel_params)
+
+      subject.propose
+
+      expect(subject.grub_default.serial_console).to eq "serial --unit=1 --speed=4800 --parity=no --word=8"
     end
   end
 end
