@@ -21,7 +21,7 @@ describe Bootloader::BootloaderBase do
     end
 
     context "Mode.normal is set" do
-      it "install packages listed required by bootloader from packages method" do
+      it "install packages required by bootloader" do
         expect(Yast::PackageSystem).to receive(:InstallAll).with(["kexec-tools"])
 
         subject.write

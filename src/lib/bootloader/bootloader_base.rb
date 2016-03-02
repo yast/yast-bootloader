@@ -47,7 +47,7 @@ module Bootloader
       @proposed
     end
 
-    # list of packages needed for configure given bootloader
+    # @return [Array<String>] packages required to configure given bootloader
     def packages
       res = []
 
