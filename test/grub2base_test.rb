@@ -299,4 +299,45 @@ describe Bootloader::Grub2Base do
       expect(subject.grub_default.serial_console).to eq "serial --unit=1 --speed=4800 --parity=no --word=8"
     end
   end
+
+  describe "#disable_serial_console" do
+    it "cleans serial console configuation" do
+      subject.grub_default.serial_console = "test console"
+
+      subject.disable_serial_console
+
+      expect(subject.grub_default.serial_console).to be_empty
+    end
+
+    it "removes serial console parameters from kernel command line configuration" do
+      subject.grub_default.kernel_params.replace("verbose console=ttyS1,4800n1")
+
+      subject.disable_serial_console
+
+      expect(subject.grub_default.kernel_params.serialize).to eq "verbose"
+    end
+  end
+
+  describe "#enable_serial_console" do
+    before do
+      # fix architecture as serial console device is different on different architectures
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+    end
+
+    it "sets serial console configuration according to argument" do
+      subject.grub_default.serial_console = ""
+
+      subject.enable_serial_console("serial --unit=1 --speed=4800 --parity=no --word=8")
+
+      expect(subject.grub_default.serial_console).to eq "serial --unit=1 --speed=4800 --parity=no --word=8"
+    end
+
+    it "sets serial console parameter to kernel command line configuration according to parameter" do
+      subject.grub_default.kernel_params.replace("")
+
+      subject.enable_serial_console("serial --unit=1 --speed=4800 --parity=no --word=8")
+
+      expect(subject.grub_default.kernel_params.serialize).to eq "console=ttyS1,4800n8"
+    end
+  end
 end

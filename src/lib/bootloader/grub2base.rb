@@ -83,6 +83,7 @@ module Bootloader
       grub_default.save
       pmbr_setup
       @sections.write
+      @password.write
       # TODO: call grub-mkconfig
     end
 
@@ -106,10 +107,6 @@ module Bootloader
       nil
     end
 
-    def save
-      @password.write
-    end
-
     def enable_serial_console(console)
       console = SerialConsole.load_from_console_args(console)
       raise "Invalid console parameters" unless console
@@ -123,6 +120,7 @@ module Bootloader
 
     def disable_serial_console
       grub_default.kernel_params.remove_parameter(serial_console_matcher)
+      grub_default.serial_console = ""
     end
 
   private
