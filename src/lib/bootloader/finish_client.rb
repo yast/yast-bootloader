@@ -68,15 +68,7 @@ module Bootloader
       # FIXME: workaround grub2 need manual rerun of branding due to overwrite by
       # pbl. see bnc#879686 and bnc#901003
       if Yast::Bootloader.getLoaderType =~ /grub2/
-        prefix = Yast::Installation.destdir
-        branding_activator = Dir["#{prefix}/usr/share/grub2/themes/*/activate-theme"].first
-        if branding_activator
-          branding_activator = branding_activator[prefix.size..-1]
-          res = Yast::SCR.Execute(BASH_PATH, branding_activator)
-          log.info "Reactivate branding with #{branding_activator} and result #{res}"
-          res = Yast::SCR.Execute(BASH_PATH, "/usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg")
-          log.info "Regenerating config for branding with result #{res}"
-        end
+        fix_branding
       end
 
       if retcode
@@ -104,6 +96,18 @@ module Bootloader
     end
 
   private
+
+    def fix_branding
+      prefix = Yast::Installation.destdir
+      branding_activator = Dir["#{prefix}/usr/share/grub2/themes/*/activate-theme"].first
+      return unless branding_activator
+
+      branding_activator = branding_activator[prefix.size..-1]
+      res = Yast::SCR.Execute(BASH_PATH, branding_activator)
+      log.info "Reactivate branding with #{branding_activator} and result #{res}"
+      res = Yast::SCR.Execute(BASH_PATH, "/usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg")
+      log.info "Regenerating config for branding with result #{res}"
+    end
 
     def update_mount
       return unless Yast::Mode.update
