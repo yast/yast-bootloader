@@ -14,7 +14,7 @@ Yast.import "HTML"
 
 module Bootloader
   # Represents non-EFI variant of GRUB2
-  class Grub2 < GRUB2Base
+  class Grub2 < Grub2Base
     attr_reader :stage1
 
     def initialize

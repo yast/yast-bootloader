@@ -9,7 +9,7 @@ Yast.import "Arch"
 
 module Bootloader
   # Represents grub2 bootloader with efi target
-  class Grub2EFI < GRUB2Base
+  class Grub2EFI < Grub2Base
     include Yast::Logger
     attr_accessor :secure_boot
 
