@@ -193,7 +193,7 @@ describe Bootloader::MBRUpdate do
                           "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
 
           allow(Yast::Execute).to receive(:locally)
-            .with(/parted/, "-sm",  "/dev/sda", "print", anything)
+            .with(/parted/, "-sm", "/dev/sda", "print", anything)
             .and_return(parted_output)
 
           expect(Yast::Execute).to receive(:locally)
@@ -232,7 +232,7 @@ describe Bootloader::MBRUpdate do
                           "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
 
           allow(Yast::Execute).to receive(:locally)
-            .with(/parted/, "-sm",  "/dev/sda", "print", anything)
+            .with(/parted/, "-sm", "/dev/sda", "print", anything)
             .and_return(parted_output)
 
           expect(Yast::Execute).to receive(:locally)

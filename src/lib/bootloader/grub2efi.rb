@@ -87,9 +87,7 @@ module Bootloader
         res << "grub2-i386-efi"
       when "x86_64"
         res << "grub2-x86_64-efi"
-        if @secure_boot
-          res << "shim" << "mokutil"
-        end
+        res << "shim" << "mokutil" if @secure_boot
       when "aarch64"
         res << "grub2-arm64-efi"
       else

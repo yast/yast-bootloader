@@ -88,4 +88,3 @@ describe Bootloader::BootloaderBase do
     end
   end
 end
-

@@ -20,19 +20,16 @@ module Bootloader
     # so if any change is found, then configuration can be invalid
     # @return [Array<String>] list of localized messages with changes
     def changes
-      ret = []
-      return ret if Yast::Mode.config
+      return [] if Yast::Mode.config
 
-      @stage1.model.devices.each do |device|
-        if invalid_device?(device)
-          # TRANSLATORS: %s stands for partition
-          ret <<
-            _("Selected bootloader partition %s is not available any more.") %
-              device
-        end
+      @stage1.model.devices.each_with_object([]) do |device, ret|
+        next unless invalid_device?(device)
+
+        # TRANSLATORS: %s stands for partition
+        ret <<
+          _("Selected bootloader partition %s is not available any more.") %
+            device
       end
-
-      ret
     end
 
   private

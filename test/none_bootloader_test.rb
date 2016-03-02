@@ -51,4 +51,3 @@ describe Bootloader::NoneBootloader do
     end
   end
 end
-

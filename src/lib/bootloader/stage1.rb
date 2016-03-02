@@ -3,6 +3,10 @@ require "bootloader/udev_mapping"
 require "bootloader/bootloader_factory"
 require "cfa/grub2/install_device"
 
+Yast.import "Arch"
+Yast.import "BootStorage"
+Yast.import "Storage"
+
 module Bootloader
   # Represents where is bootloader stage1 installed. Allows also proposing its
   # location.
@@ -11,11 +15,6 @@ module Bootloader
     attr_reader :model
 
     def initialize
-      Yast.import "Arch"
-      Yast.import "BootStorage"
-      Yast.import "Kernel"
-      Yast.import "Storage"
-
       @model = CFA::Grub2::InstallDevice.new
     end
 

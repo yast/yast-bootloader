@@ -67,9 +67,7 @@ module Bootloader
 
       # FIXME: workaround grub2 need manual rerun of branding due to overwrite by
       # pbl. see bnc#879686 and bnc#901003
-      if Yast::Bootloader.getLoaderType =~ /grub2/
-        fix_branding
-      end
+      fix_branding if Yast::Bootloader.getLoaderType =~ /grub2/
 
       if retcode
         # re-read external changes, then boot through to second stage of

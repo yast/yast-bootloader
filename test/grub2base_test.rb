@@ -162,8 +162,8 @@ describe Bootloader::Grub2Base do
         end
 
         it "adds the biggest available swap partition as resume device" do
-          allow(Yast::BootStorage).to receive(:available_swap_partitions).
-            and_return(
+          allow(Yast::BootStorage).to receive(:available_swap_partitions)
+            .and_return(
               "/dev/sda2" => 512,
               "/dev/sdb2" => 1024
             )
@@ -242,8 +242,8 @@ describe Bootloader::Grub2Base do
         end
 
         it "adds the biggest available swap partition as resume device" do
-          allow(Yast::BootStorage).to receive(:available_swap_partitions).
-            and_return(
+          allow(Yast::BootStorage).to receive(:available_swap_partitions)
+            .and_return(
               "/dev/dasda2" => 512,
               "/dev/dasdb2" => 1024
             )

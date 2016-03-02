@@ -40,6 +40,16 @@ Metrics/ClassLength:
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
+Metrics/ModuleLength:
+  Max: 385
+  Exclude:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
+Metrics/ModuleLength:
+  Max: 100
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
+
 Metrics/CyclomaticComplexity:
   Max: 29
   Exclude:
@@ -123,3 +133,9 @@ Style/MethodName:
 Style/VariableName:
   Include:
     - 'src/lib/**/*.rb' # force known variables only for new code
+
+Style/TrivialAccessors:
+  # predicates makes cannot be done with accessors
+  AllowPredicates: true
+  # Allow hiding internal attributes names
+  ExactNameMatch: true

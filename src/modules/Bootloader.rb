@@ -435,7 +435,7 @@ module Yast
 
       remap_values = BOOLEAN_MAPPING.invert
       values.each_key do |key|
-        values[key] =  remap_values[values[key]] if remap_values.key?(values[key])
+        values[key] = remap_values[values[key]] if remap_values.key?(values[key])
       end
 
       params = args.map do |flavor|

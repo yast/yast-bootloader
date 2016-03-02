@@ -50,10 +50,8 @@ module Bootloader
       pmbr_setup(*gpt_disks_devices)
 
       @grub_install.execute(devices: @stage1.model.devices)
-      # Do some mbr activations
-      if !Yast::Arch.s390
-        MBRUpdate.new.run(@stage1)
-      end
+      # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
+      MBRUpdate.new.run(@stage1) unless Yast::Arch.s390
 
       super
     end
