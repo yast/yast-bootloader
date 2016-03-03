@@ -19,7 +19,9 @@ end
 
 if ENV["COVERAGE"]
   require "simplecov"
-  SimpleCov.start
+  SimpleCov.start do
+    add_filter "/test/"
+  end
 
   # for coverage we need to load all ruby files
   src_location = File.expand_path("../../src", __FILE__)
