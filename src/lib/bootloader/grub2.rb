@@ -28,10 +28,10 @@ module Bootloader
     # Read settings from disk
     # @param [Boolean] reread boolean true to force reread settings from system
     def read(reread: false)
+      super
+
       Yast::BootStorage.device_map.propose if Yast::BootStorage.device_map.empty?
       @stage1.read
-
-      super
     end
 
     # Write bootloader settings to disk
@@ -41,12 +41,6 @@ module Bootloader
       @stage1.write
 
       # TODO: own class handling PBMR
-      boot_devices = @stage1.model.devices
-      boot_discs = boot_devices.map { |d| Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, d) }
-      boot_discs.uniq!
-      gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
-      gpt_disks_devices = gpt_disks.map { |d| d["device"] }
-
       pmbr_setup(*gpt_disks_devices)
 
       @grub_install.execute(devices: @stage1.model.devices)
@@ -103,7 +97,7 @@ module Bootloader
     def packages
       res = super
 
-      res << "grub"
+      res << "grub2"
 
       if stage1.model.generic_mbr?
         # needed for generic _mbr binary files
@@ -114,6 +108,14 @@ module Bootloader
     end
 
   private
+
+    def gpt_disks_devices
+      boot_devices = @stage1.model.devices
+      boot_discs = boot_devices.map { |d| Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, d) }
+      boot_discs.uniq!
+      gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
+      gpt_disks.map { |d| d["device"] }
+    end
 
     def disk_order_summary
       return "" if Yast::Arch.s390

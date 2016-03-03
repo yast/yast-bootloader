@@ -81,7 +81,6 @@ module Bootloader
 
       log.info "writing /etc/default/grub #{grub_default.inspect}"
       grub_default.save
-      pmbr_setup
       @sections.write
       @password.write
       # TODO: call grub-mkconfig
