@@ -4,6 +4,7 @@ require "bootloader/sysconfig"
 Yast.import "BootStorage"
 Yast.import "Linuxrc"
 Yast.import "Mode"
+Yast.import "PackageSystem"
 
 module Bootloader
   # Represents base for all kinds of bootloaders
@@ -16,6 +17,8 @@ module Bootloader
     # writes configuration to target disk
     def write
       write_sysconfig
+      # in running system install package, for other modes, it need specific handling
+      Yast::PackageSystem.InstallAll(packages) if Yast::Mode.normal
     end
 
     # reads configuration from target disk
@@ -44,7 +47,7 @@ module Bootloader
       @proposed
     end
 
-    # list of packages needed for configure given bootloader
+    # @return [Array<String>] packages required to configure given bootloader
     def packages
       res = []
 

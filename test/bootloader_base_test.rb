@@ -4,15 +4,28 @@ require "bootloader/bootloader_base"
 
 describe Bootloader::BootloaderBase do
   describe "#write" do
-    it "writes to sysconfig name of its child" do
-      subject.define_singleton_method(:name) { "funny_bootloader" }
+    before do
+      allow(Bootloader::Sysconfig).to receive(:new).and_return(double(write: nil))
+      allow(Yast::PackageSystem).to receive(:InstallAll)
 
+      subject.define_singleton_method(:name) { "funny_bootloader" }
+    end
+
+    it "writes to sysconfig name of its child" do
       sysconfig = double(Bootloader::Sysconfig, write: nil)
       expect(Bootloader::Sysconfig).to receive(:new)
         .with(bootloader: "funny_bootloader")
         .and_return(sysconfig)
 
       subject.write
+    end
+
+    context "Mode.normal is set" do
+      it "install packages required by bootloader" do
+        expect(Yast::PackageSystem).to receive(:InstallAll).with(["kexec-tools"])
+
+        subject.write
+      end
     end
   end
 
