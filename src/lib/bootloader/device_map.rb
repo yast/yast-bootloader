@@ -24,6 +24,10 @@ module Bootloader
       "Device Map: #{@mapping.inspect}"
     end
 
+    def size
+      @mapping.size
+    end
+
     def empty?
       @mapping.empty?
     end

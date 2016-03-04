@@ -67,7 +67,7 @@ module Bootloader
       include?(Yast::BootStorage.mbr_disk)
     end
 
-    def extended?
+    def extended_partition?
       include?(Yast::BootStorage.ExtendedPartitionDevice)
     end
 
