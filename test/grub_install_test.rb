@@ -45,13 +45,13 @@ describe Bootloader::GrubInstall do
       it "raise exception on ppc64" do
         stub_arch("ppc64")
 
-        expect{subject.execute}.to raise_error(RuntimeError)
+        expect { subject.execute }.to raise_error(RuntimeError)
       end
 
       it "raise exception on s390" do
         stub_arch("s390_64")
 
-        expect{subject.execute}.to raise_error(RuntimeError)
+        expect { subject.execute }.to raise_error(RuntimeError)
       end
 
       it "runs with target arm64-efi on aarch64" do
@@ -64,7 +64,7 @@ describe Bootloader::GrubInstall do
       it "raise exception for other architectures" do
         stub_arch("punks_not_dead")
 
-        expect{subject.execute}.to raise_error(RuntimeError)
+        expect { subject.execute }.to raise_error(RuntimeError)
       end
     end
 
@@ -72,7 +72,7 @@ describe Bootloader::GrubInstall do
       subject { Bootloader::GrubInstall.new(efi: false) }
 
       it "raise exception if secure_boot: true passed" do
-        expect{subject.execute(secure_boot: true)}.to raise_error(RuntimeError)
+        expect { subject.execute(secure_boot: true) }.to raise_error(RuntimeError)
       end
 
       it "runs for each device passed in devices" do
@@ -116,17 +116,15 @@ describe Bootloader::GrubInstall do
       it "raise exception on aarch64" do
         stub_arch("aarch64")
 
-        expect{subject.execute}.to raise_error(RuntimeError)
+        expect { subject.execute }.to raise_error(RuntimeError)
       end
 
       it "raise exception for other architectures" do
         stub_arch("punks_not_dead")
 
-        expect{subject.execute}.to raise_error(RuntimeError)
+        expect { subject.execute }.to raise_error(RuntimeError)
       end
 
     end
   end
 end
-
-

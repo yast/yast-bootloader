@@ -14,6 +14,7 @@ describe Bootloader::Grub2 do
   describe "#read" do
     before do
       allow(Yast::BootStorage).to receive(:device_map).and_return(double(empty?: false))
+      allow(Bootloader::Stage1).to receive(:new).and_return(double.as_null_object)
     end
 
     it "proposes device map if it is empty" do
@@ -38,6 +39,7 @@ describe Bootloader::Grub2 do
       stage1 = double(Bootloader::Stage1, model: double(devices: [], generic_mbr?: false), write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
       allow(Bootloader::MBRUpdate).to receive(:new).and_return(double(run: nil))
+      allow(Bootloader::GrubInstall).to receive(:new).and_return(double.as_null_object)
     end
 
     it "writes stage1 location" do
@@ -52,7 +54,7 @@ describe Bootloader::Grub2 do
       stage1 = double(Bootloader::Stage1, model: double(devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false), write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
-      allow(Yast::Storage).to receive(:GetDisk) do |m, dev|
+      allow(Yast::Storage).to receive(:GetDisk) do |_m, dev|
         case dev
         when "/dev/sda" then { "device" => "/dev/sda", "label" => "msdos" }
         when "/dev/sdb1" then { "device" => "/dev/sdb", "label" => "gpt" }
@@ -150,6 +152,7 @@ describe Bootloader::Grub2 do
       allow(Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
       allow(Yast::BootStorage).to receive(:DisksOrder)
         .and_return(Bootloader::DeviceMap.new("/dev/sda" => "hd0"))
+      allow(Yast::BootStorage).to receive(:can_boot_from_partition).and_return(true)
     end
 
     it "contain line saying that bootloader type is GRUB2" do
