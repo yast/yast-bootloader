@@ -126,6 +126,15 @@ describe Bootloader::Grub2 do
 
       expect(subject.pmbr_action).to eq :remove
     end
+
+    it "propose to do not change pmbr flag if boot disk is not with gpt label" do
+      allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(false)
+
+      subject.propose
+
+      expect(subject.pmbr_action).to eq :nothing
+    end
+
   end
 
   describe "#name" do
@@ -145,6 +154,14 @@ describe Bootloader::Grub2 do
 
       expect(subject.packages).to include("syslinux")
     end
+
+    it "returns list without syslinux package if generic_mbr is not used" do
+      stage1 = double(model: double(generic_mbr?: false))
+      allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
+
+      expect(subject.packages).to_not include("syslinux")
+    end
+
   end
 
   describe "#summary" do
