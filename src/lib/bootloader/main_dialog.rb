@@ -32,9 +32,7 @@ module Bootloader
       )
       # desktop file only in running system and in installation there is no
       # visible window title
-      if !Yast::Stage.initial
-        Yast::Wizard.SetDesktopTitleAndIcon("bootloader")
-      end
+      Yast::Wizard.SetDesktopTitleAndIcon("bootloader") if !Yast::Stage.initial
 
       ret = run_content
       Yast::Wizard.CloseDialog

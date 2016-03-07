@@ -8,6 +8,7 @@ describe Bootloader::Grub2EFI do
     allow(::CFA::Grub2::GrubCfg).to receive(:new).and_return(double("GrubCfg").as_null_object)
     allow(Bootloader::Sections).to receive(:new).and_return(double("Sections").as_null_object)
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
+    allow(Bootloader::GrubInstall).to receive(:new).and_return(double.as_null_object)
   end
 
   describe "#read" do
