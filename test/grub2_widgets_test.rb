@@ -2,7 +2,7 @@ require_relative "test_helper"
 
 require "bootloader/grub2_widgets"
 
-def assign_bootloader(name="grub2")
+def assign_bootloader(name = "grub2")
   Bootloader::BootloaderFactory.clear_cache
   Bootloader::BootloaderFactory.current_name = name
 end
@@ -35,7 +35,7 @@ describe Bootloader::TimeoutWidget do
   it_behaves_like "described_widget"
 
   it "has minimal value to -1 as unlimited" do
-    expect(widget.minimum).to eq -1
+    expect(widget.minimum).to eq(-1)
   end
 
   it "has maximum value to 600" do
@@ -174,4 +174,3 @@ describe Bootloader::OSProberWidget do
     expect(bootloader.grub_default.os_prober).to be_enabled
   end
 end
-
