@@ -34,6 +34,10 @@ module Bootloader
         @current = bootloader_by_name(name)
       end
 
+      def clear_cache
+        @cached_bootloaders = nil
+      end
+
       def supported_names
         if Yast::Mode.config
           # default means bootloader use what it think is the best
@@ -54,7 +58,7 @@ module Bootloader
       end
 
       def bootloader_by_name(name)
-        @cached_bootloaders = {} # needed to be able to store settings if moving between bootloaders
+        @cached_bootloaders ||= {} # needed to be able to store settings if moving between bootloaders
         case name
         when "grub2"
           @cached_bootloaders["grub2"] ||= Grub2.new
