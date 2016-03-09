@@ -61,9 +61,9 @@ module Bootloader
 
     def init
       if grub_default.hidden_timeout && grub_default.hidden_timeout.to_i > 0
-        self.value = grub_default.hidden_timeout
+        self.value = grub_default.hidden_timeout.to_i
       else
-        self.value = grub_default.timeout
+        self.value = grub_default.timeout.to_i
       end
     end
 
@@ -169,7 +169,7 @@ module Bootloader
     end
 
     def label
-      _("Probe Foreign OS")
+      _("Pro&be Foreign OS")
     end
 
     def help
@@ -225,7 +225,7 @@ module Bootloader
     end
 
     def label
-      _("Protective MBR flag")
+      _("&Protective MBR flag")
     end
 
     def help
@@ -421,7 +421,7 @@ module Bootloader
       # there's mode specified, use it
       Yast::UI.ChangeWidget(Id(:gfxmode), :Value, mode) if mode && mode != ""
 
-      Yast::UI.ChangeWidget(Id(:theme), :Value, grub_default.theme)
+      Yast::UI.ChangeWidget(Id(:theme), :Value, grub_default.theme || "")
     end
 
     def store
@@ -568,7 +568,7 @@ module Bootloader
       self.value = sections.default
     end
 
-    def list
+    def items
       sections.all.map do |section|
         [section, section]
       end
@@ -683,7 +683,7 @@ module Bootloader
     def label
       textdomain "bootloader"
 
-      _("Edit Disk Boot Order")
+      _("&Edit Disk Boot Order")
     end
 
     def help

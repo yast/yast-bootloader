@@ -617,8 +617,8 @@ describe Bootloader::DefaultSectionWidget do
     expect(bootloader.sections.default).to eq "openSUSE"
   end
 
-  it "lists all available sections" do
-    expect(subject.list).to eq([
+  it "enlists all available sections" do
+    expect(subject.items).to eq([
       ["openSUSE", "openSUSE"],
       ["windows", "windows"]
     ])
