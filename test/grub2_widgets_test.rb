@@ -49,7 +49,7 @@ describe Bootloader::TimeoutWidget do
 
   it "is initialized to hidden timeout value if defined" do
     bootloader.grub_default.hidden_timeout = "10"
-    expect(subject).to receive(:value=).with("10")
+    expect(subject).to receive(:value=).with(10)
 
     subject.init
   end
@@ -57,7 +57,7 @@ describe Bootloader::TimeoutWidget do
   it "is initialized to timeout value otherwise" do
     bootloader.grub_default.hidden_timeout = ""
     bootloader.grub_default.timeout = "10"
-    expect(subject).to receive(:value=).with("10")
+    expect(subject).to receive(:value=).with(10)
 
     subject.init
   end
