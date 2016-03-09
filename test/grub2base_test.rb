@@ -7,7 +7,7 @@ describe Bootloader::Grub2Base do
     before do
       allow(::CFA::Grub2::Default).to receive(:new).and_return(double("GrubDefault", loaded?: false, load: nil, save: nil))
       allow(::CFA::Grub2::GrubCfg).to receive(:new).and_return(double("GrubCfg", load: nil))
-      allow(Bootloader::Sections).to receive(:new).and_return(double("Sections", write: nil))
+      allow(Bootloader::Sections).to receive(:new).and_return(double("Sections").as_null_object)
     end
 
     it "reads grub default config" do

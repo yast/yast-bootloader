@@ -74,6 +74,7 @@ module Bootloader
       grub_cfg = CFA::Grub2::GrubCfg.new
       grub_cfg.load
       @sections = ::Bootloader::Sections.new(grub_cfg)
+      log.info "grub sections: #{@sections.all}"
     end
 
     def write
