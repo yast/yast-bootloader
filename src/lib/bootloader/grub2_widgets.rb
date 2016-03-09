@@ -369,7 +369,7 @@ module Bootloader
 
       password.used = true
 
-      value = YAST::UI.QueryWidget(Id(:pw1), :Value)
+      value = Yast::UI.QueryWidget(Id(:pw1), :Value)
       # special value as we do not know password, so it mean user do not change it
       password.password = value if value != MASKED_PASSWORD
 
