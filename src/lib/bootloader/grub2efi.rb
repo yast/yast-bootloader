@@ -62,17 +62,16 @@ module Bootloader
     # @return a list of summary lines
 
     def summary
-      result = [
+      [
         Yast::Builtins.sformat(
           _("Boot Loader Type: %1"),
           "GRUB2 EFI"
+        ),
+        Yast::Builtins.sformat(
+          _("Enable Secure Boot: %1"),
+          @secure_boot ? _("yes") : _("no")
         )
       ]
-
-      result + Yast::Builtins.sformat(
-        _("Enable Secure Boot: %1"),
-        @secure_boot ? _("yes") : _("no")
-      )
     end
 
     def name

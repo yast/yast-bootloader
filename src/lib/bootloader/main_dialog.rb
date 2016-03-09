@@ -30,14 +30,12 @@ module Bootloader
         Yast::Label.BackButton,
         Yast::Label.NextButton
       )
-      if Yast::Stage.initial
-        Yast::Wizard.SetTitleIcon("bootloader") # no .desktop file in inst-sys
-      else
-        Yast::Wizard.SetDesktopTitleAndIcon("bootloader")
-      end
+      # desktop file only in running system and in installation there is no
+      # visible window title
+      Yast::Wizard.SetDesktopTitleAndIcon("bootloader") if !Yast::Stage.initial
 
       ret = run_content
-      Yast::UI.CloseDialog
+      Yast::Wizard.CloseDialog
       ret
     end
 
