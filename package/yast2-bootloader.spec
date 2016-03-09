@@ -30,7 +30,7 @@ BuildRequires:	yast2-devtools >= 3.1.10
 BuildRequires:	yast2 >= 3.1.112
 BuildRequires:  rubygem(rspec)
 BuildRequires:  rubygem(yast-rake)
-BuildRequires:  rubygem(cfa-grub2)
+BuildRequires:  rubygem(cfa_grub2)
 BuildRequires:  yast2-storage
 BuildRequires:  yast2-ruby-bindings >= 1.0.0
 PreReq:         /bin/sed %fillup_prereq
@@ -41,7 +41,7 @@ Requires:	yast2-pkg-bindings >= 2.17.25
 Requires:	yast2-core >= 2.18.7
 Requires:       yast2-storage >= 2.18.18
 Requires:       parted
-Requires:       rubygem(cfa-grub2)
+Requires:       rubygem(cfa_grub2)
 
 %ifarch %ix86 x86_64
 Requires:	syslinux
