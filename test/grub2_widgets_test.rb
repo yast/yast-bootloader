@@ -418,6 +418,8 @@ describe Bootloader::GrubPasswordWidget do
         allow(Yast::UI).to receive(:QueryWidget).with(Id(:use_pas), :Value).and_return(true)
         allow(Yast::UI).to receive(:QueryWidget).with(Id(:pw1), :Value).and_return("pwd")
         allow(Yast::UI).to receive(:QueryWidget).with(Id(:unrestricted_pw), :Value).and_return(true)
+        # mock out setting password as it require external grub2 utility for pwd encryption
+        allow(bootloader.password).to receive(:password=)
       end
 
       it "sets that password protection is used" do
