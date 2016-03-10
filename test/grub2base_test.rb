@@ -290,7 +290,8 @@ describe Bootloader::Grub2Base do
       expect(subject.grub_default.distributor).to eq ""
     end
 
-    it "proposes serial console from its usage on kernel command line" do
+    it "proposes serial console from its usage on kernel command line on non-s390" do
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       kernel_params = "console=ttyS1,4800n8"
       allow(Yast::Kernel).to receive(:GetCmdLine).and_return(kernel_params)
 
