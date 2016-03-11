@@ -18,6 +18,8 @@ require "bootloader/bootloader_factory"
 
 module Yast
   class BootSupportCheckClass < Module
+    include Yast::Logger
+
     def main
       textdomain "bootloader"
 
@@ -34,66 +36,60 @@ module Yast
       @detected_problems = []
     end
 
-    # Add a new problem description to the list of found problems
-    def AddNewProblem(description)
-      @detected_problems = Builtins.add(@detected_problems, description)
+    # Check if the system configuraiton is supported
+    # Also sets the founds problems into internal variable
+    # Always run this function before calling DetectedProblems()
+    # @return [Boolean] true if supported
+    def SystemSupported
+      @detected_problems = []
 
-      nil
+      lt = ::Bootloader::BootloaderFactory.current.name
+      # detect correct bootloader type
+      supported = correct_loader_type(lt)
+
+      # check specifics for individual loaders
+      case lt
+      when "grub2"
+        supported = GRUB2() && supported
+      when "grub2-efi"
+        supported = GRUB2EFI() && supported
+      end
+
+      log.info "Configuration supported: #{supported}"
+
+      supported
     end
 
     # Formated string of detected problems
     # Always run SystemSupported before calling this function
     # @return [Boolean] a list of problems, empty if no was found
     def StringProblems
-      ret = ""
-      if Ops.greater_than(Builtins.size(@detected_problems), 0)
-        Builtins.foreach(@detected_problems) do |s|
-          ret = Ops.add(Ops.add(ret, s), "\n")
-        end
-      end
-
-      ret
+      @detected_problems.join("\n")
     end
 
-    # Check that bootloader is known and supported
-    def KnownLoader
-      if !["grub2", "grub2-efi", "none"].include?(Bootloader.getLoaderType)
-        Builtins.y2error("Unknown bootloader: %1", Bootloader.getLoaderType)
-        AddNewProblem(
-          Builtins.sformat(
-            _("Unknown bootloader: %1"),
-            Bootloader.getLoaderType
-          )
-        )
-        return false
-      end
-      true
+    publish :function => :StringProblems, :type => "string ()"
+    publish :function => :SystemSupported, :type => "boolean ()"
+
+  private
+
+    # Add a new problem description to the list of found problems
+    def add_new_problem(description)
+      @detected_problems << description
     end
 
     # Check that bootloader matches current hardware
-    def CorrectLoaderType
-      lt = Bootloader.getLoaderType
+    def correct_loader_type(lt)
       return true if lt == "none"
 
       # grub2 is sooo cool...
       return true if lt == "grub2" && !Arch.aarch64
 
-      if Arch.i386 || Arch.x86_64
-        if efi?
-          return true if lt == "grub2-efi"
-        else
-          return true if lt == "grub2"
-        end
-      end
+      return true if (Arch.i386 || Arch.x86_64) && lt == "grub2-efi" && efi?
 
       return true if lt == "grub2-efi" && Arch.aarch64
 
-      Builtins.y2error(
-        "Unsupported combination of hardware platform %1 and bootloader %2",
-        Arch.architecture,
-        lt
-      )
-      AddNewProblem(
+      log.error "Unsupported combination of hardware platform #{Arch.architecture} and bootloader #{lt}"
+      add_new_problem(
         Builtins.sformat(
           _("Unsupported combination of hardware platform %1 and bootloader %2"),
           Arch.architecture,
@@ -101,23 +97,6 @@ module Yast
         )
       )
       false
-    end
-
-    #  * Checks for GPT partition table
-    def GptPartitionTable
-      ret = true
-      tm = Storage.GetTargetMap
-      devices = [BootStorage.BootPartitionDevice]
-      # TODO: add more devices
-      Builtins.foreach(devices) do |dev|
-        p_dev = Storage.GetDiskPartition(dev)
-        num = p_dev["nr"].to_i
-        mbr_dev = Ops.get_string(p_dev, "disk", "")
-        label = Ops.get_string(tm, [mbr_dev, "label"], "")
-        Builtins.y2milestone("Label: %1", label)
-        Builtins.y2milestone("Partition number: %1", num)
-      end
-      ret
     end
 
     # when grub2 is used and install stage1 to MBR, target /boot is btrfs, label is gpt-like
@@ -134,7 +113,7 @@ module Yast
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
-      AddNewProblem(
+      add_new_problem(
         _(
           "Boot from MBR does not work together with btrfs filesystem and GPT disk label without bios_grub partition." \
           "To fix this issue, create bios_grub partition or use any ext filesystem for boot partition or do not install stage 1 to MBR."
@@ -148,73 +127,46 @@ module Yast
     #
     # @return [Boolean] true on success
 
-    def check_BootDevice
-      result = true
+    def check_boot_device
       devices = Storage.GetTargetMap
 
       boot_device = BootStorage.BootPartitionDevice
 
-      found_boot = false
       # check if boot device is on raid0
-      Builtins.foreach(devices) do |_k, v|
-        Builtins.foreach(Ops.get_list(v, "partitions", [])) do |p|
-          if Ops.get_string(p, "device", "") == boot_device
-            if Ops.get_string(p, "raid_type", "") != "raid1" &&
-                Ops.get(p, "type") == :sw_raid
-              AddNewProblem(
-                Builtins.sformat(
-                  _(
-                    "The boot device is on raid type: %1. System will not boot."
-                  ),
-                  Ops.get_string(p, "raid_type", "")
-                )
+      (devices || {}).each do |_k, v|
+        (v["partitions"] || []).each do |p|
+          next if p["device"] != boot_device
+
+          if p["raid_type"] != "raid1" && p["type"] == :sw_raid
+            add_new_problem(
+              Builtins.sformat(
+                _(
+                  "The boot device is on raid type: %1. System will not boot."
+                ),
+                p["raid_type"]
               )
-              Builtins.y2error(
-                "The boot device: %1 is on raid type: %2",
-                boot_device,
-                Ops.get_string(p, "raid_type", "")
+            )
+            log.error "The boot device: #{boot_device} is on raid type: #{p["raid_type"]}"
+            return false
+          # bnc#501043 added check for valid configuration
+          elsif p["raid_type"] == "raid1" && p["type"] == :sw_raid &&
+              (p["fstype"] || "") == "md raid" && stage1.boot_partition?
+            add_new_problem(
+              _(
+                "The boot device is on software RAID1. Select other bootloader location, e.g. Master Boot Record"
               )
-              result = false
-              raise Break
-            else
-              # bnc#501043 added check for valid configuration
-              if Ops.get_string(p, "raid_type", "") == "raid1" &&
-                  Ops.get(p, "type") == :sw_raid
-                if Builtins.tolower(Ops.get_string(p, "fstype", "")) == "md raid" &&
-                    !stage1.mbr?
-                  AddNewProblem(
-                    _(
-                      "The boot device is on software RAID1. Select other bootloader location, e.g. Master Boot Record"
-                    )
-                  )
-                  Builtins.y2error(
-                    "Booting from soft-raid: %1 and bootloader setting are not valid: %2",
-                    p,
-                    stage1.inspect
-                  )
-                  result = false
-                  raise Break
-                else
-                  found_boot = true
-                  Builtins.y2milestone("Valid configuration for soft-raid")
-                end
-              else
-                found_boot = true
-                Builtins.y2milestone(
-                  "The boot device: %1 is on raid: %2",
-                  boot_device,
-                  Ops.get_string(p, "raid_type", "")
-                )
-              end
-            end
-            found_boot = true
-            Builtins.y2milestone("/boot filesystem is OK")
-            raise Break
+            )
+            log.error "Booting from soft-raid: #{p} and bootloader setting are not valid: #{stage1.inspect}"
+            return false
+          else
+            log.info "The boot device: #{boot_device} is on raid: #{p["raid_type"]}"
           end
+          log.info "/boot filesystem is OK"
+          return true
         end
-        raise Break if !result || found_boot
-      end if boot_device != ""
-      result
+      end
+
+      true
     end
 
     # Check if EFI is needed
@@ -235,7 +187,7 @@ module Yast
       if [:ext2, :ext3, :ext4].include? boot_part["used_fs"]
         return true
       else
-        AddNewProblem(_("Missing ext partition for booting. Cannot install boot code."))
+        add_new_problem(_("Missing ext partition for booting. Cannot install boot code."))
         return false
       end
     end
@@ -244,27 +196,22 @@ module Yast
       # activate set or there is already activate flag
       return true if stage1.model.activate? || Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
 
-      AddNewProblem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
+      add_new_problem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
       false
     end
 
     def check_mbr
       return true if stage1.model.generic_mbr? || stage1.mbr?
 
-      AddNewProblem(_("The installer will not modify the MBR of the disk. Unless it already contains boot code, the BIOS won't be able to boot disk."))
+      add_new_problem(_("The installer will not modify the MBR of the disk. Unless it already contains boot code, the BIOS won't be able to boot disk."))
       false
-    end
-
-    # GRUB-related check
-    def GRUB
-      ret = GptPartitionTable()
-      ret = check_BootDevice if ret && Arch.x86_64
-      ret
     end
 
     # GRUB2-related check
     def GRUB2
-      ret = [GRUB()]
+
+      ret = []
+      ret << check_boot_device if Arch.x86_64
       # ensure that s390 have ext* partition for booting (bnc#873951)
       ret << check_zipl_part if Arch.s390
       ret << check_gpt_reserved_partition if Arch.x86_64
@@ -278,69 +225,6 @@ module Yast
     def GRUB2EFI
       true
     end
-
-    # Check if the system configuraiton is supported
-    # Also sets the founds problems into internal variable
-    # Always run this function before calling DetectedProblems()
-    # @return [Boolean] true if supported
-    def SystemSupported
-      @detected_problems = []
-
-      # check if the bootloader is known and supported
-      supported = KnownLoader()
-
-      lt = Bootloader.getLoaderType
-      return true if lt == "none"
-
-      # detect correct bootloader type
-      supported = CorrectLoaderType() && supported
-
-      # check specifics for individual loaders
-      if lt == "grub2"
-        supported = GRUB2() && supported
-      elsif lt == "grub2-efi"
-        supported = GRUB2EFI() && supported
-      end
-
-      Builtins.y2milestone("Configuration supported: %1", supported)
-      supported
-    end
-
-    def EndOfBootOrRootPartition
-      part = Storage.GetEntryForMountpoint("/boot")
-      part = Storage.GetEntryForMountpoint("/") if Builtins.isempty(part)
-
-      device = Ops.get_string(part, "device", "")
-      Builtins.y2milestone("device:%1", device)
-
-      end_cyl = Region.End(Ops.get_list(part, "region", []))
-
-      cyl_size = 82_252_800
-      target_map = Storage.GetTargetMap
-      Builtins.foreach(target_map) do |_dev, disk|
-        partition = (disk["partitions"] || []).find do |p|
-          p["device"] == device
-        end
-
-        cyl_size = disk["cyl_size"] || 82_252_800 if partition
-      end
-
-      ret = Ops.multiply(end_cyl, cyl_size)
-
-      Builtins.y2milestone(
-        "end_cyl:%1 cyl_size:%2 end:%3",
-        end_cyl,
-        cyl_size,
-        ret
-      )
-      ret
-    end
-
-    publish :function => :StringProblems, :type => "string ()"
-    publish :function => :SystemSupported, :type => "boolean ()"
-    publish :function => :EndOfBootOrRootPartition, :type => "integer ()"
-
-  private
 
     def stage1
       ::Bootloader::BootloaderFactory.current.stage1
