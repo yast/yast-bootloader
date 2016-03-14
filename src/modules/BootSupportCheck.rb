@@ -132,6 +132,7 @@ module Yast
 
       boot_device = BootStorage.BootPartitionDevice
 
+      # FIXME: big part of this method should be in BootStorage
       # check if boot device is on raid0
       (devices || {}).each do |_k, v|
         (v["partitions"] || []).each do |p|
