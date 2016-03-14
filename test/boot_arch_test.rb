@@ -128,7 +128,7 @@ describe Yast::BootArch do
       it "does not add parameters from boot command line"
     end
 
-    context "on other archs" do
+    context "on POWER archs" do
       before do
         stub_arch("ppc64")
       end
@@ -138,7 +138,11 @@ describe Yast::BootArch do
         # just to test that it do not add product features
         allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS1")
 
-        expect(subject.DefaultKernelParams("/dev/sda2")).to eq "console=ttyS0 splash=verbose"
+        expect(subject.DefaultKernelParams("/dev/sda2")).to eq "console=ttyS0 resume=/dev/sda2 console=ttyS1 splash=silent quiet showopts"
+      end
+
+      it "adds splash=silent quit showopts parameters" do
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include(" splash=silent quiet showopts")
       end
     end
   end
