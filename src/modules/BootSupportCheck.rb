@@ -210,7 +210,6 @@ module Yast
 
     # GRUB2-related check
     def GRUB2
-
       ret = []
       ret << check_boot_device if Arch.x86_64
       # ensure that s390 have ext* partition for booting (bnc#873951)
