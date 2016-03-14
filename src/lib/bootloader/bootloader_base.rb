@@ -60,8 +60,7 @@ module Bootloader
       res
     end
 
-  protected
-
+    # done in common write but also in installation pre write as kernel update need it
     def write_sysconfig
       sysconfig = Bootloader::Sysconfig.new(bootloader: name)
       sysconfig.write
