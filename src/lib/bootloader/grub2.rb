@@ -142,29 +142,24 @@ module Bootloader
 
     def locations
       locations = []
-      already_mentioned = []
 
       if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
         if @stage1.boot_partition?
           locations << Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
-          already_mentioned << Yast::BootStorage.BootPartitionDevice
         end
       else
         if @stage1.root_partition?
           locations << Yast::BootStorage.RootPartitionDevice + " (\"/\")"
-          already_mentioned << Yast::BootStorage.RootPartitionDevice
         end
       end
       if @stage1.extended_partition?
         # TRANSLATORS: extended is here for extended partition. Keep translation short.
         locations << Yast::BootStorage.ExtendedPartitionDevice + _(" (extended)")
-        already_mentioned << Yast::BootStorage.ExtendedPartitionDevice
       end
       if @stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
         locations << Yast::BootStorage.mbr_disk + _(" (MBR)")
-        already_mentioned << Yast::BootStorage.mbr_disk
       end
       locations << @stage1.custom_devices if !@stage1.custom_devices.empty?
 

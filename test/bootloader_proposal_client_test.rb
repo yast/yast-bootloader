@@ -22,6 +22,8 @@ describe Bootloader::ProposalClient do
       )
     )
 
+    allow_any_instance_of(::Bootloader::Stage1).to receive(:propose)
+
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
 
     Bootloader::BootloaderFactory.clear_cache

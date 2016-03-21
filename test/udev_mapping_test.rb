@@ -109,11 +109,11 @@ describe Bootloader::UdevMapping do
       expect(subject.to_mountby_device("/dev/vda1")).to eq "/dev/vda1"
     end
 
-    it "raises exception if partition do not exists" do
+    it "returns its name if partition do not exists" do
       target_map_stub("storage_lvm.yaml")
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
 
-      expect { subject.to_mountby_device("/dev/vda50") }.to raise_error(RuntimeError)
+      expect(subject.to_mountby_device("/dev/vda50")).to eq "/dev/vda50"
     end
   end
 end

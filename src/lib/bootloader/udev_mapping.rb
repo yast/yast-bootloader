@@ -61,27 +61,11 @@ module Bootloader
       kernel_dev = to_kernel_device(dev)
 
       log.info "#{dev} looked as kernel device name: #{kernel_dev}"
-      # we do not know if it is partition or disk, but target map help us
-      target_map = Yast::Storage.GetTargetMap
-      storage_data = target_map[kernel_dev]
-      if !storage_data # so partition
-        disk = target_map[Yast::Storage.GetDiskPartition(kernel_dev)["disk"]]
-        # if device is not disk, then it can be virtual device like tmpfs or
-        # disk no longer exists
-        return kernel_dev unless disk
 
-        storage_data = disk["partitions"].find do |p|
-          [p["device"], p["crypt_device"]].include?(kernel_dev)
-        end
-      end
+      storage_data = storage_data_for(kernel_dev)
+      return kernel_dev unless storage_data
 
-      raise "Unknown device #{kernel_dev}" unless storage_data
-
-      mount_by = storage_data["mountby"]
-      mount_by ||= Yast::Arch.ppc ? :id : Yast::Storage.GetDefaultMountBy
-
-      log.info "mount by: #{mount_by}"
-
+      mount_by = used_mount_by(storage_data)
       # explicit request to mount by kernel device
       return kernel_dev if mount_by == :device
 
@@ -98,6 +82,33 @@ module Bootloader
     end
 
   private
+
+    def storage_data_for(kernel_dev)
+      # we do not know if it is partition or disk, but target map help us
+      target_map = Yast::Storage.GetTargetMap
+      storage_data = target_map[kernel_dev]
+      if !storage_data # so partition
+        disk = target_map[Yast::Storage.GetDiskPartition(kernel_dev)["disk"]]
+        # if device is not disk, then it can be virtual device like tmpfs or
+        # disk no longer exists, so just return nil and kernel dev above
+        return nil unless disk
+
+        storage_data = disk["partitions"].find do |p|
+          [p["device"], p["crypt_device"]].include?(kernel_dev)
+        end
+      end
+
+      storage_data
+    end
+
+    def used_mount_by(storage_data)
+      mount_by = storage_data["mountby"]
+      mount_by ||= Yast::Arch.ppc ? :id : Yast::Storage.GetDefaultMountBy
+
+      log.info "mount by: #{mount_by}"
+
+      mount_by
+    end
 
     # reader of all devices that ensure that it contain valid data
     #
