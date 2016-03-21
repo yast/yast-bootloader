@@ -103,7 +103,7 @@ module Yast
       # if bootloader do not know its location, then we do not care
       return false unless current_bl.respond_to?(:stage1)
 
-      targets = current_bl.devices
+      targets = current_bl.stage1.devices
       target_map = Yast::Storage.GetTargetMap
       boot_discs = targets.map { |d| Yast::Storage.GetDisk(target_map, d) }
       boot_discs.any? { |d| d["label"] == "gpt" }

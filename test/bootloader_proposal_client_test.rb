@@ -12,6 +12,7 @@ describe Bootloader::ProposalClient do
     allow(Yast::BootStorage).to receive(:detect_disks)
     allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/sda")
     allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/sda1")
+    allow(Yast::Storage).to receive(:GetTargetMap).and_return({})
 
     allow_any_instance_of(::Bootloader::Stage1).to(
       receive(:available_locations)
@@ -22,6 +23,8 @@ describe Bootloader::ProposalClient do
     )
 
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
+
+    Bootloader::BootloaderFactory.clear_cache
   end
 
   describe "#description" do
@@ -120,7 +123,7 @@ describe Bootloader::ProposalClient do
     end
 
     it "do not check installation errors if install on nfs" do
-      expect(Yast::BootStorage).to receive(:disk_with_boot_partition).and_return("/dev/nfs")
+      expect(Yast::BootStorage).to receive(:disk_with_boot_partition).and_return("/dev/nfs").at_least(:once)
 
       expect(subject.make_proposal({})).to_not include("warning")
     end
@@ -157,7 +160,7 @@ describe Bootloader::ProposalClient do
     it "call bootloader propose in common installation" do
       Yast.import "Mode"
       allow(Yast::Mode).to receive(:update).and_return(false)
-      expect(Yast::Bootloader).to receive(:Propose)
+      expect(Bootloader::BootloaderFactory).to receive(:proposed).and_call_original
 
       subject.make_proposal({})
     end
@@ -169,7 +172,7 @@ describe Bootloader::ProposalClient do
       expect(subject).to receive("old_bootloader").and_return("grub").twice
 
       expect(Yast::Bootloader).to receive(:Reset).at_least(:once)
-      expect(Yast::Bootloader).to receive(:Propose)
+      expect(Bootloader::BootloaderFactory).to receive(:proposed).and_call_original
 
       subject.make_proposal({})
     end

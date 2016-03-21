@@ -48,7 +48,7 @@ module Bootloader
         return { "raw_proposal" => [_("do not change")] } unless propose_for_update(force_reset)
       else
         # in installation always propose missing stuff
-        bl = Bootloader::BootloaderFactory.proposed
+        bl = ::Bootloader::BootloaderFactory.proposed
         bl.propose
       end
 
@@ -123,7 +123,9 @@ module Bootloader
         # Repropose the type. A regular Reset/Propose is not enough.
         # For more details see bnc#872081
         Yast::Bootloader.Reset
-        Yast::Bootloader.Propose
+        ::Bootloader::BootloaderFactory.clear_cache
+        proposed = ::Bootloader::BootloaderFactory.proposed
+        proposed.propose
       end
 
       true
