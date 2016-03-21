@@ -36,14 +36,14 @@ describe Bootloader::Grub2 do
 
   describe "write" do
     before do
-      stage1 = double(Bootloader::Stage1, model: double(devices: [], generic_mbr?: false), write: nil)
+      stage1 = double(Bootloader::Stage1, devices: [], generic_mbr?: false, write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
       allow(Bootloader::MBRUpdate).to receive(:new).and_return(double(run: nil))
       allow(Bootloader::GrubInstall).to receive(:new).and_return(double.as_null_object)
     end
 
     it "writes stage1 location" do
-      stage1 = double(Bootloader::Stage1, model: double(devices: [], generic_mbr?: false))
+      stage1 = double(Bootloader::Stage1, devices: [], generic_mbr?: false)
       expect(stage1).to receive(:write)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
@@ -51,7 +51,7 @@ describe Bootloader::Grub2 do
     end
 
     it "changes pmbr flag as specified in pmbr_action for all boot devices with gpt label" do
-      stage1 = double(Bootloader::Stage1, model: double(devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false), write: nil)
+      stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
       allow(Yast::Storage).to receive(:GetDisk) do |_m, dev|
@@ -68,7 +68,7 @@ describe Bootloader::Grub2 do
     end
 
     it "runs grub2-install for all configured stage1 locations" do
-      stage1 = double(Bootloader::Stage1, model: double(devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false), write: nil)
+      stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
       grub2_install = double(Bootloader::GrubInstall)
@@ -149,14 +149,14 @@ describe Bootloader::Grub2 do
     end
 
     it "returns list containing syslinux package if generic_mbr is used" do
-      stage1 = double(model: double(generic_mbr?: true))
+      stage1 = double(generic_mbr?: true)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
       expect(subject.packages).to include("syslinux")
     end
 
     it "returns list without syslinux package if generic_mbr is not used" do
-      stage1 = double(model: double(generic_mbr?: false))
+      stage1 = double(generic_mbr?: false)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
       expect(subject.packages).to_not include("syslinux")

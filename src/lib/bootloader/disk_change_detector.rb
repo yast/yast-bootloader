@@ -22,7 +22,7 @@ module Bootloader
     def changes
       return [] if Yast::Mode.config
 
-      @stage1.model.devices.each_with_object([]) do |device, ret|
+      @stage1.devices.each_with_object([]) do |device, ret|
         next unless invalid_device?(device)
 
         # TRANSLATORS: %s stands for partition

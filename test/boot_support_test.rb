@@ -42,14 +42,14 @@ describe Yast::BootSupportCheck do
 
       it "returns false if neither generic mbr nor grub2 mbr is written" do
         allow(bootloader).to receive(:stage1)
-          .and_return(double(mbr?: false, model: double(generic_mbr?: false, activate?: false)))
+          .and_return(double(mbr?: false, generic_mbr?: false, activate?: false))
 
         expect(subject.SystemSupported).to eq false
       end
 
       it "returns false if no partition have boot flag and its write is not set" do
         allow(bootloader).to receive(:stage1)
-          .and_return(double(mbr?: false, model: double(activate?: false, generic_mbr?: true)))
+          .and_return(double(mbr?: false, activate?: false, generic_mbr?: true))
         allow(Yast::Storage).to receive(:GetBootPartition).and_return(nil)
 
         expect(subject.SystemSupported).to eq false

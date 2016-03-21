@@ -107,7 +107,7 @@ describe Bootloader::ActivateWidget do
   it_behaves_like "labeled widget"
 
   it "is initialized to activate flag" do
-    bootloader.stage1.model.activate = true
+    bootloader.stage1.activate = true
     expect(subject).to receive(:value=).with(true)
 
     subject.init
@@ -117,7 +117,7 @@ describe Bootloader::ActivateWidget do
     expect(subject).to receive(:value).and_return(true)
     subject.store
 
-    expect(bootloader.stage1.model.activate?).to eq true
+    expect(bootloader.stage1.activate?).to eq true
   end
 end
 
@@ -129,7 +129,7 @@ describe Bootloader::GenericMBRWidget do
   it_behaves_like "labeled widget"
 
   it "is initialized to generic MBR flag" do
-    bootloader.stage1.model.generic_mbr = true
+    bootloader.stage1.generic_mbr = true
     expect(subject).to receive(:value=).with(true)
 
     subject.init
@@ -139,7 +139,7 @@ describe Bootloader::GenericMBRWidget do
     expect(subject).to receive(:value).and_return(true)
     subject.store
 
-    expect(bootloader.stage1.model.generic_mbr?).to eq true
+    expect(bootloader.stage1.generic_mbr?).to eq true
   end
 end
 

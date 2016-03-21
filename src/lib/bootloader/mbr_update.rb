@@ -23,9 +23,9 @@ module Bootloader
 
       # Rewrite MBR with generic boot code only if we do not plan to install
       # there bootloader stage1
-      install_generic_mbr if stage1.model.generic_mbr? && !stage1.include?(mbr_disk)
+      install_generic_mbr if stage1.generic_mbr? && !stage1.include?(mbr_disk)
 
-      activate_partitions if stage1.model.activate?
+      activate_partitions if stage1.activate?
     end
 
   private
@@ -35,7 +35,7 @@ module Bootloader
     end
 
     def create_backups
-      devices_to_backup = disks_to_rewrite + @stage1.model.devices + [mbr_disk]
+      devices_to_backup = disks_to_rewrite + @stage1.devices + [mbr_disk]
       devices_to_backup.uniq!
       log.info "Creating backup of boot sectors of #{devices_to_backup}"
       backups = devices_to_backup.map do |d|
@@ -122,7 +122,7 @@ module Bootloader
     def boot_devices
       return @boot_devices if @boot_devices
 
-      @boot_devices = @stage1.model.devices
+      @boot_devices = @stage1.devices
 
       # ppc do not use boot partition and have to activate prep partition that
       # cannot be on raid (bnc#940542)

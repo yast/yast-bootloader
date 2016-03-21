@@ -100,11 +100,11 @@ module Bootloader
     end
 
     def init
-      self.value = stage1.model.activate?
+      self.value = stage1.activate?
     end
 
     def store
-      stage1.model.activate = checked?
+      stage1.activate = checked?
     end
   end
 
@@ -129,11 +129,11 @@ module Bootloader
     end
 
     def init
-      self.value = stage1.model.generic_mbr?
+      self.value = stage1.generic_mbr?
     end
 
     def store
-      stage1.model.generic_mbr = checked?
+      stage1.generic_mbr = checked?
     end
   end
 

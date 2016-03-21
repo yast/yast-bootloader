@@ -195,14 +195,14 @@ module Yast
 
     def check_activate_partition
       # activate set or there is already activate flag
-      return true if stage1.model.activate? || Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
+      return true if stage1.activate? || Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
 
       add_new_problem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
       false
     end
 
     def check_mbr
-      return true if stage1.model.generic_mbr? || stage1.mbr?
+      return true if stage1.generic_mbr? || stage1.mbr?
 
       add_new_problem(_("The installer will not modify the MBR of the disk. Unless it already contains boot code, the BIOS won't be able to boot disk."))
       false

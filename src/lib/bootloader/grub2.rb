@@ -43,7 +43,7 @@ module Bootloader
       # TODO: own class handling PBMR
       pmbr_setup(*gpt_disks_devices)
 
-      @grub_install.execute(devices: @stage1.model.devices)
+      @grub_install.execute(devices: @stage1.devices)
       # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
       MBRUpdate.new.run(@stage1) unless Yast::Arch.s390
 
@@ -62,13 +62,13 @@ module Bootloader
     end
 
     def merge(other)
-      if !other.stage1.model.devices.empty?
+      if !other.stage1.devices.empty?
         stage1.clear_devices
-        other.stage1.model.devices.each { |d| stage1.add_udev_device(d) }
+        other.stage1.devices.each { |d| stage1.add_udev_device(d) }
       end
 
-      stage1.model.activate = other.stage1.activate unless other.stage1.activate.nil?
-      stage1.model.generic_mbr = other.stage1.generic_mbr unless other.stage1.generic_mbr.nil?
+      stage1.activate = other.stage1.activate unless other.stage1.activate.nil?
+      stage1.generic_mbr = other.stage1.generic_mbr unless other.stage1.generic_mbr.nil?
     end
 
     # Display bootloader summary
@@ -109,7 +109,7 @@ module Bootloader
 
       res << "grub2"
 
-      if stage1.model.generic_mbr?
+      if stage1.generic_mbr?
         # needed for generic _mbr binary files
         res << "syslinux"
       end
@@ -120,7 +120,7 @@ module Bootloader
   private
 
     def gpt_disks_devices
-      boot_devices = @stage1.model.devices
+      boot_devices = @stage1.devices
       boot_discs = boot_devices.map { |d| Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, d) }
       boot_discs.uniq!
       gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
@@ -225,7 +225,7 @@ module Bootloader
         line << "</li>"
       end
 
-      if @stage1.model.devices.empty?
+      if @stage1.devices.empty?
         # no location chosen, so warn user that it is problem unless he is sure
         msg = _("Warning: No location for bootloader stage1 selected." \
           "Unless you know what you are doing please select above location.")
