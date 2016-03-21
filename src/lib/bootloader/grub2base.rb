@@ -107,6 +107,15 @@ module Bootloader
       nil
     end
 
+    def merge(other)
+      super
+
+      merge_grub_default(other)
+      merge_password(other)
+      merge_pmbr_action(other)
+      merge_sections(other)
+    end
+
     def enable_serial_console(console)
       console = SerialConsole.load_from_console_args(console)
       raise "Invalid console parameters" unless console
@@ -124,6 +133,38 @@ module Bootloader
     end
 
   private
+
+    def merge_pmbr_action(other)
+      @pmbr_action = other.pmbr_action if other.pmbr_action
+    end
+
+    def merge_sections(other)
+      sections.default = other.sections.default if other.sections.default
+    end
+
+    def merge_password(other)
+      @password = other.password
+    end
+
+    def merge_grub_default(other)
+      default = grub_default
+      other = other.grub_default
+
+      unless other.kernel_params.serialize.empty?
+        default.kernel_params.replace(other.kernel_params.serialize + " " + default.kernel_params.serialize)
+      end
+
+      # string attributes
+      [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
+          :gfx_mode, :theme].each do |attr|
+        default.send((attr.to_s + "="),other.send(attr)) if other.send(attr)
+      end
+
+      # boolean attributes
+      [:os_prober].each do |attr|
+        default.send(attr).value = other.send(attr).enabled? if other.send(attr).defined?
+      end
+    end
 
     def serial_console_matcher
       CFA::Matcher.new(key: "console", value_matcher: /tty(S|AMA)/)
