@@ -58,6 +58,10 @@ module Bootloader
       @secure_boot = true
     end
 
+    def merge(other)
+      @secure_boot = other.secure_boot unless other.secure_boot.nil?
+    end
+
     # Display bootloader summary
     # @return a list of summary lines
 
