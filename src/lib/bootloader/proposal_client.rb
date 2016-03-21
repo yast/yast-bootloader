@@ -48,7 +48,8 @@ module Bootloader
         return { "raw_proposal" => [_("do not change")] } unless propose_for_update(force_reset)
       else
         # in installation always propose missing stuff
-        Yast::Bootloader.Propose
+        bl = Bootloader::BootloaderFactory.proposed
+        bl.propose
       end
 
       construct_proposal_map
