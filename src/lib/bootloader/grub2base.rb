@@ -84,7 +84,7 @@ module Bootloader
       grub_default.save
       @sections.write
       @password.write
-      # TODO: call grub-mkconfig
+      Yast::Execute.on_target("/usr/sbin/grub2-mkconfig", "-o", "/boot/grub2/grub.cfg")
     end
 
     def propose
