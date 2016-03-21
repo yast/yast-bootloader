@@ -49,9 +49,7 @@ module Bootloader
       end
 
       # we do not manage bootloader, so relax :)
-      if bl_current.name == "none"
-        return true
-      end
+      return true if bl_current.name == "none"
 
       # read one from system, so we do not overwrite changes done in rpm post install scripts
       Bootloader::BootloaderFactory.clear_cache
