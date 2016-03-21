@@ -42,44 +42,38 @@ module Bootloader
 
       retcode = false
 
-      if !Yast::Mode.update
-        retcode = Yast::Bootloader.WriteInstallation
-      else
-        # if we do not read nor propose that we have nothing to do
-        bl_current = ::Bootloader::BootloaderFactory.current
-        if bl_current.read? || bl_current.proposed?
-          retcode = Yast::Bootloader.Update
-        else
-          quick_exit = true
-        end
-
-        # workaround for packages that forgot to update initrd(bnc#889616)
-        # do not use Initrd module as it can also change configuration, which we do not want
-        res = Yast::SCR.Execute(BASH_PATH, "/sbin/mkinitrd")
-        log.info "Regerate initrd with result #{res}"
-
-        return true if quick_exit
+      bl_current = Bootloader::BootloaderFactory.current
+      # we do nothing in upgrade unless we have to change bootloader
+      if Yast::Mode.update && !bl_current.read? && !bl_current.proposed?
+        return true
       end
 
-      if retcode
-        # re-read external changes, then boot through to second stage of
-        # installation or update
-        Yast::Bootloader.Read
-        # fate #303395: Use kexec to avoid booting between first and second stage
-        # copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
-        ret = false
-        if Yast::Linuxrc.InstallInf("kexec_reboot") == "1"
-          kexec = ::Bootloader::Kexec.new
-          ret = kexec.prepare_environment
-        else
-          log.info "Installation started with kexec_reboot set 0"
-        end
+      # we do not manage bootloader, so relax :)
+      if bl_current.name == "none"
+        return true
+      end
 
-        # (bnc #381192) don't use it if kexec is used
-        # update calling onetime boot bnc #339024
-        if !ret
-          retcode = Yast::Bootloader.FlagOnetimeBoot(Yast::Bootloader.getDefaultSection)
-        end
+      # read one from system, so we do not overwrite changes done in rpm post install scripts
+      Bootloader::BootloaderFactory.clear_cache
+      system = Bootloader::BootloaderFactory.system
+      system.read
+      system.merge(bl_current)
+      system.write
+
+      # fate #303395: Use kexec to avoid booting between first and second stage
+      # copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
+      ret = false
+      if Yast::Linuxrc.InstallInf("kexec_reboot") == "1"
+        kexec = ::Bootloader::Kexec.new
+        ret = kexec.prepare_environment
+      else
+        log.info "Installation started with kexec_reboot set 0"
+      end
+
+      # (bnc #381192) don't use it if kexec is used
+      # update calling onetime boot bnc #339024
+      if !ret
+        retcode = Yast::Bootloader.FlagOnetimeBoot(Yast::Bootloader.getDefaultSection)
       end
 
       retcode
