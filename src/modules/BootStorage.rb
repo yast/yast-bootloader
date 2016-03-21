@@ -584,6 +584,19 @@ module Yast
       ret
     end
 
+    def encrypted_boot?
+      dev = BootPartitionDevice()
+      tm = Yast::Storage.GetTargetMap || {}
+      tm.each_value do |v|
+        partitions = v["partitions"] || []
+        partition = partitions.find { |p| p["device"] == dev || p["crypt_device"] == dev }
+
+        next unless partition
+
+        return partition["crypt_device"] && !partition["crypt_device"].empty?
+      end
+    end
+
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
     publish :variable => :partinfo, :type => "list <list>"

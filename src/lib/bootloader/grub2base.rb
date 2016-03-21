@@ -93,6 +93,7 @@ module Bootloader
       propose_os_probing
       propose_terminal
       propose_timeout
+      propose_encrypted
 
       if grub_default.kernel_params.empty?
         kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
@@ -156,8 +157,8 @@ module Bootloader
 
       # string attributes
       [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
-          :gfx_mode, :theme].each do |attr|
-        default.send((attr.to_s + "="),other.send(attr)) if other.send(attr)
+       :gfx_mode, :theme].each do |attr|
+        default.send((attr.to_s + "="), other.send(attr)) if other.send(attr)
       end
 
       # boolean attributes
@@ -215,6 +216,10 @@ module Bootloader
       end
 
       resume
+    end
+
+    def propose_encrypted
+      grub_default.cryptodisk.value = !!Yast::BootStorage.encrypted_boot?
     end
   end
 end
