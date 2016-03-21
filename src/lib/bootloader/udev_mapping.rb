@@ -20,7 +20,8 @@ module Bootloader
         :to_mountby_device
     end
 
-    # Returns hash where keys are udev links for disks and partitions and value their kernel devices.
+    # Returns hash where keys are udev links for disks and partitions and value
+    # their kernel devices.
     # TODO: remove when remove pbl support
     # @example of output
     #   {
@@ -71,7 +72,11 @@ module Bootloader
 
       udev_data_key = MOUNT_BY_MAPPING_TO_UDEV[mount_by]
       raise "Internal error unknown mountby #{mount_by}" unless udev_data_key
-      udev_pair = map_device_to_udev_devices(storage_data[udev_data_key], udev_data_key, kernel_dev).first
+      udev_pair = map_device_to_udev_devices(
+        storage_data[udev_data_key],
+        udev_data_key,
+        kernel_dev
+      ).first
       if !udev_pair
         log.warn "Cannot find udev link to satisfy mount by for #{kernel_dev}"
         return kernel_dev
@@ -112,7 +117,9 @@ module Bootloader
 
     # reader of all devices that ensure that it contain valid data
     #
-    # @return hash where keys are udev links for disks and partitions and value their kernel devices.
+    # @return hash where keys are udev links for disks and partitions and value
+    #   their kernel devices.
+    #
     # @example of output
     #   {
     #     "/dev/disk/by-id/abcd" => "/dev/sda",
@@ -160,8 +167,10 @@ module Bootloader
       end
     end
 
-    # Returns array of pairs where each pair contain full udev name as first and kernel device as second
-    # @param names [Array<String>] udev names for device e.g. "aaaa-bbbb-cccc-dddd" for uuid device name
+    # Returns array of pairs where each pair contain full udev name as first and kernel
+    # device as second
+    # @param names [Array<String>] udev names for device e.g. "aaaa-bbbb-cccc-dddd"
+    #   for uuid device name
     # @param key [String] storage key for given udev mapping see UDEV_MAPPING
     # @param device [String] kernel name e.g. "/dev/sda"
     # @example
@@ -204,7 +213,7 @@ module Bootloader
     def cache_valid?
       return false unless @all_devices
 
-      # bnc#594482 - check if cache do not contain final uuids and recreate it when no new one can appear
+      # bnc#594482 - check if cache do not contain final uuids and recreate it when it is stable
       if Yast::Mode.installation && !@uuids_stable
         # recreate cache if uuids are stable now
         return false unless uuid_may_appear?

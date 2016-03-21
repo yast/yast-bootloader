@@ -152,7 +152,8 @@ module Bootloader
       other = other.grub_default
 
       unless other.kernel_params.serialize.empty?
-        default.kernel_params.replace(other.kernel_params.serialize + " " + default.kernel_params.serialize)
+        new_kernel_params = default.kernel_params.serialize + " " + other.kernel_params.serialize
+        default.kernel_params.replace(new_kernel_params)
       end
 
       # string attributes

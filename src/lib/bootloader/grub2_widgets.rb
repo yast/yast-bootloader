@@ -93,7 +93,8 @@ module Bootloader
     def help
       _(
         "<p><b>Set active Flag in Partition Table for Boot Partition</b><br>\n" \
-          "To activate the partition which contains the boot loader. The generic MBR code will then\n" \
+          "To activate the partition which contains the boot loader." \
+          " The generic MBR code will then\n" \
           "boot the active partition. Older BIOSes require one partition to be active even\n" \
           "if the boot loader is installed in the MBR.</p>"
       )

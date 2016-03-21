@@ -105,7 +105,9 @@ module Bootloader
       partitions_to_activate.each do |m_activate|
         num = m_activate["num"]
         mbr_dev = m_activate["mbr"]
-        raise "INTERNAL ERROR: Data for partition to activate is invalid." if num.nil? || mbr_dev.nil?
+        if num.nil? || mbr_dev.nil?
+          raise "INTERNAL ERROR: Data for partition to activate is invalid."
+        end
 
         next unless can_activate_partition?(num)
 
@@ -181,7 +183,9 @@ module Bootloader
       partitions = tm.fetch(disk, {}).fetch("partitions", [])
       # do not select swap and do not select BIOS grub partition
       # as it clear its special flags (bnc#894040)
-      partitions.select { |p| p["used_fs"] != :swap && p["fsid"] != Yast::Partitions.fsid_bios_grub }
+      partitions.select do |p|
+        p["used_fs"] != :swap && p["fsid"] != Yast::Partitions.fsid_bios_grub
+      end
     end
 
     def extended_partition_num(disk)

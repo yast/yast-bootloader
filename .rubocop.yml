@@ -63,7 +63,7 @@ Metrics/LineLength:
 
 # Configuration parameters: AllowURI, URISchemes.
 Metrics/LineLength:
-  Max: 110 # TODO this should be lower for new code
+  Max: 100 # TODO this should be lower for new code
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
@@ -75,7 +75,7 @@ Metrics/MethodLength:
 
 # Configuration parameters: CountComments.
 Metrics/MethodLength:
-  Max: 40 # TODO this should be lower for new code
+  Max: 30 # TODO this should be lower for new code
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
