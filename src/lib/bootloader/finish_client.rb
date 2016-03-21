@@ -61,10 +61,6 @@ module Bootloader
         return true if quick_exit
       end
 
-      # FIXME: workaround grub2 need manual rerun of branding due to overwrite by
-      # pbl. see bnc#879686 and bnc#901003
-      fix_branding if Yast::Bootloader.getLoaderType =~ /grub2/
-
       if retcode
         # re-read external changes, then boot through to second stage of
         # installation or update
@@ -90,18 +86,6 @@ module Bootloader
     end
 
   private
-
-    def fix_branding
-      prefix = Yast::Installation.destdir
-      branding_activator = Dir["#{prefix}/usr/share/grub2/themes/*/activate-theme"].first
-      return unless branding_activator
-
-      branding_activator = branding_activator[prefix.size..-1]
-      res = Yast::SCR.Execute(BASH_PATH, branding_activator)
-      log.info "Reactivate branding with #{branding_activator} and result #{res}"
-      res = Yast::SCR.Execute(BASH_PATH, "/usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg")
-      log.info "Regenerating config for branding with result #{res}"
-    end
 
     def set_boot_msg
       finish_ret = {}
