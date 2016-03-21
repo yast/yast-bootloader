@@ -61,6 +61,16 @@ module Bootloader
       # TODO: propose device map
     end
 
+    def merge(other)
+      if !other.stage1.model.devices.empty?
+        stage1.clear_devices
+        other.stage1.model.devices.each { |d| stage1.add_udev_device(d) }
+      end
+
+      stage1.model.activate = other.stage1.activate unless other.stage1.activate.nil?
+      stage1.model.generic_mbr = other.stage1.generic_mbr unless other.stage1.generic_mbr.nil?
+    end
+
     # Display bootloader summary
     # @return a list of summary lines
     def summary
