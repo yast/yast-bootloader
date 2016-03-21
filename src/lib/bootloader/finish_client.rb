@@ -34,10 +34,6 @@ module Bootloader
     end
 
     def write
-      # provide the /dev content from the inst-sys also inside the chroot of just the upgraded system
-      # umount of this bind mount will happen in umount_finish
-      update_mount
-
       # message after first round of packet installation
       # now the installed system is run and more packages installed
       # just warn the user that the screen is going back to text mode
@@ -105,28 +101,6 @@ module Bootloader
       log.info "Reactivate branding with #{branding_activator} and result #{res}"
       res = Yast::SCR.Execute(BASH_PATH, "/usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg")
       log.info "Regenerating config for branding with result #{res}"
-    end
-
-    def update_mount
-      return unless Yast::Mode.update
-
-      cmd = <<-eos
-targetdir=#{Yast::Installation.destdir}
-if test ${targetdir} = / ; then echo targetdir is / ; exit 1 ; fi
-grep -E \"^[^ ]+ ${targetdir}/dev \" < /proc/mounts
-if test $? = 0
-then
- echo targetdir ${targetdir} already mounted.
- exit 1
-else
-  mkdir -vp ${targetdir}/dev
-  cp --preserve=all --recursive --remove-destination /lib/udev/devices/* ${targetdir}/dev
-  mount -v --bind /dev ${targetdir}/dev
-fi
-eos
-      out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), cmd)
-      log.error "unable to bind mount /dev in chroot" if out["exit"] != 0
-      log.info "#{cmd}\n output: #{out}"
     end
 
     def set_boot_msg
