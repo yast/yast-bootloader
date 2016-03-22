@@ -162,8 +162,8 @@ module Bootloader
         default.send((attr.to_s + "="), other.send(attr)) if other.send(attr)
       end
 
-      # boolean attributes
-      [:os_prober].each do |attr|
+      # boolean attributes, instance of {CFA::Boolean}
+      [:os_prober, :cryptodisk].each do |attr|
         default.send(attr).value = other.send(attr).enabled? if other.send(attr).defined?
       end
     end
