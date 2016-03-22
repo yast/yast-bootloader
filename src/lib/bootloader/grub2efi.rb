@@ -59,6 +59,8 @@ module Bootloader
     end
 
     def merge(other)
+      super
+
       @secure_boot = other.secure_boot unless other.secure_boot.nil?
     end
 

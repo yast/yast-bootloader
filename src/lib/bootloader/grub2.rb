@@ -62,6 +62,8 @@ module Bootloader
     end
 
     def merge(other)
+      super
+
       if !other.stage1.devices.empty?
         stage1.clear_devices
         other.stage1.devices.each { |d| stage1.add_udev_device(d) }
