@@ -94,12 +94,6 @@ Metrics/ParameterLists:
   Max: 4
 
 # Configuration parameters: EnforcedStyle, SupportedStyles.
-# JR: I personally think that having this variable on class level is much more readable
-# and easier to recognize that modified changed
-Style/AccessModifierIndentation:
-  EnforcedStyle: outdent
-
-# Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/AndOr:
   EnforcedStyle: conditionals
 
@@ -122,15 +116,7 @@ Style/Lambda:
 Style/MethodName:
   Include:
     - 'src/lib/**/*.rb' # force correct names on new code
-  Exclude:
-    - 'src/lib/bootloader/grub2base.rb' # base class that implement common API with incorrect names
 
 Style/VariableName:
   Include:
     - 'src/lib/**/*.rb' # force known variables only for new code
-
-Style/TrivialAccessors:
-  # predicates makes cannot be done with accessors
-  AllowPredicates: true
-  # Allow hiding internal attributes names
-  ExactNameMatch: true
