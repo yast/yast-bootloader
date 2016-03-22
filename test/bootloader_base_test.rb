@@ -107,7 +107,7 @@ describe Bootloader::BootloaderBase do
       other = described_class.new
       other.define_singleton_method(:name) { "more_funny_bootloader" }
 
-      expect{subject.merge(other)}.to raise_error(RuntimeError)
+      expect { subject.merge(other) }.to raise_error(RuntimeError)
     end
 
     it "sets read flag if subject or passed one have it" do

@@ -474,27 +474,18 @@ module Bootloader
         HBox(
           HSpacing(2),
           ComboBox(
-            Id(:gfxmode),
-            Opt(:editable, :hstretch),
-            _("&Console resolution"),
-            [""]
+            Id(:gfxmode), Opt(:editable, :hstretch), _("&Console resolution")
           ),
           HBox(
             Left(
               InputField(
-                Id(:theme),
-                Opt(:hstretch),
-                _("&Console theme")
+                Id(:theme), Opt(:hstretch), _("&Console theme")
               )
             ),
             VBox(
               Left(Label("")),
               Left(
-                PushButton(
-                  Id(:browsegfx),
-                  Opt(:notify),
-                  Yast::Label.BrowseButton
-                )
+                PushButton(Id(:browsegfx), Opt(:notify), Yast::Label.BrowseButton)
               )
             )
           ),
