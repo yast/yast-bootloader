@@ -29,6 +29,7 @@ module Bootloader
 
     # Proposes new configuration
     def propose
+      Yast::BootStorage.detect_disks
       @proposed = true
     end
 
@@ -61,9 +62,9 @@ module Bootloader
     end
 
     # done in common write but also in installation pre write as kernel update need it
-    def write_sysconfig
+    def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(bootloader: name)
-      sysconfig.write
+      prewrite ? sysconfig.pre_write : sysconfig.write
     end
 
     # merges other bootloader configuration into this one.

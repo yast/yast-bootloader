@@ -59,6 +59,10 @@ describe Bootloader::Grub2EFI do
   end
 
   context "#propose" do
+    before do
+      allow(Yast::BootStorage).to receive(:detect_disks)
+    end
+
     it "proposes to add pmbr flag for disk" do
       subject.propose
 

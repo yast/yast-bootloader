@@ -38,6 +38,9 @@ module Bootloader
     # @param dev [String] device udev, mdadm or kernel name like /dev/disk/by-id/blabla
     # @raise when device have udev format but do not exists
     def to_kernel_device(dev)
+      log.info "call to_kernel_device for #{dev}"
+      raise "invalid device nil" unless dev
+
       # for non-udev devices try to see specific raid names (bnc#944041)
       if dev =~ /^\/dev\/disk\/by-/
         all_devices[dev] or raise "Unknown udev device #{dev}"

@@ -41,6 +41,9 @@ Requires:       yast2-packager >= 2.17.24
 Requires:       yast2-pkg-bindings >= 2.17.25
 Requires:       yast2-storage >= 2.18.18
 Requires:       rubygem(cfa_grub2)
+# lenses are needed as cfa_grub2 depends only on augeas bindings, but also
+# lenses are needed here
+Requires:       augeas-lenses
 
 %ifarch %ix86 x86_64
 Requires:       syslinux

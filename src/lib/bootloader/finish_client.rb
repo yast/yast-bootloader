@@ -2,6 +2,12 @@ require "bootloader/kexec"
 require "bootloader/bootloader_factory"
 require "installation/finish_client"
 
+Yast.import "Arch"
+Yast.import "Bootloader"
+Yast.import "Linuxrc"
+Yast.import "Misc"
+Yast.import "Mode"
+
 module Bootloader
   # Finish client for bootloader configuration
   class FinishClient < ::Installation::FinishClient
@@ -11,14 +17,6 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
-
-      Yast.import "Arch"
-      Yast.import "Bootloader"
-      Yast.import "Installation"
-      Yast.import "Linuxrc"
-      Yast.import "Misc"
-      Yast.import "Mode"
-      Yast.import "BootCommon"
     end
 
     def steps
@@ -40,9 +38,7 @@ module Bootloader
       # and yast2 will come up again.
       set_boot_msg
 
-      retcode = false
-
-      bl_current = Bootloader::BootloaderFactory.current
+      bl_current = ::Bootloader::BootloaderFactory.current
       # we do nothing in upgrade unless we have to change bootloader
       if Yast::Mode.update && !bl_current.read? && !bl_current.proposed?
         return true
@@ -52,8 +48,8 @@ module Bootloader
       return true if bl_current.name == "none"
 
       # read one from system, so we do not overwrite changes done in rpm post install scripts
-      Bootloader::BootloaderFactory.clear_cache
-      system = Bootloader::BootloaderFactory.system
+      ::Bootloader::BootloaderFactory.clear_cache
+      system = ::Bootloader::BootloaderFactory.system
       system.read
       system.merge(bl_current)
       system.write
@@ -68,13 +64,7 @@ module Bootloader
         log.info "Installation started with kexec_reboot set 0"
       end
 
-      # (bnc #381192) don't use it if kexec is used
-      # update calling onetime boot bnc #339024
-      if !ret
-        retcode = Yast::Bootloader.FlagOnetimeBoot(Yast::Bootloader.getDefaultSection)
-      end
-
-      retcode
+      true
     end
 
   private

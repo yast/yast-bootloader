@@ -23,6 +23,11 @@ module Bootloader
       @model = CFA::Grub2::InstallDevice.new
     end
 
+    def inspect
+      "<Bootloader::Stage1 #{object_id} activate: #{activate?} " \
+        "generic_mbr: #{generic_mbr?} devices: #{devices.inspect}>"
+    end
+
     def read
       @model.load
     end
@@ -73,6 +78,8 @@ module Bootloader
     end
 
     def extended_partition?
+      return false unless Yast::BootStorage.ExtendedPartitionDevice
+
       include?(Yast::BootStorage.ExtendedPartitionDevice)
     end
 

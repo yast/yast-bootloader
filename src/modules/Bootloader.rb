@@ -222,7 +222,7 @@ module Yast
     # @return a list of summary lines
     def Summary
       # kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-      if BootStorage.disks_with_boot_partition == "/dev/nfs"
+      if BootStorage.disk_with_boot_partition == "/dev/nfs"
         log.info "Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed."
         return _("The boot partition is of type NFS. Bootloader cannot be installed.")
       end
@@ -310,7 +310,7 @@ module Yast
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso: bootloader will not be installed
-      if BootStorage.disks_with_boot_partition == "/dev/nfs"
+      if BootStorage.disk_with_boot_partition == "/dev/nfs"
         log.info "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
         return ret
       end
@@ -478,13 +478,6 @@ module Yast
       ::Bootloader::BootloaderFactory.current.name
     end
 
-    # Set section to boot on next reboot
-    # @param [String] section string section to boot
-    # @return [Boolean] true on success
-    def FlagOnetimeBoot(section)
-      blFlagOnetimeBoot(section)
-    end
-
     # Check whether settings were read or proposed, if not, decide
     # what to do and read or propose settings
     def ReadOrProposeIfNeeded
@@ -551,7 +544,6 @@ module Yast
     publish :function => :Read, :type => "boolean ()"
     publish :function => :Reset, :type => "void ()"
     publish :function => :Write, :type => "boolean ()"
-    publish :function => :FlagOnetimeBoot, :type => "boolean (string)"
     publish :function => :getDefaultSection, :type => "string ()"
     publish :function => :getLoaderType, :type => "string ()"
     publish :variable => :proposed_cfg_changed, :type => "boolean"

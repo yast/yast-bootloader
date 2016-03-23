@@ -109,6 +109,8 @@ describe Bootloader::Grub2 do
     before do
       stage1 = double.as_null_object
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
+
+      allow(Yast::BootStorage).to receive(:detect_disks)
     end
 
     it "proposes stage1" do

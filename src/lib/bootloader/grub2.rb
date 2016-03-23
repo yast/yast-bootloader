@@ -31,7 +31,14 @@ module Bootloader
       super
 
       Yast::BootStorage.device_map.propose if Yast::BootStorage.device_map.empty?
-      @stage1.read
+      begin
+        @stage1.read
+      rescue Errno::ENOENT
+        # grub_installdevice is not part of grub2 rpm, so it doesn't need to exist.
+        # In such case ignore exception and fresh empty @stage1
+        log.info "grub_installdevice do not exists. Using empty one."
+        @stage1 = Stage1.new
+      end
     end
 
     # Write bootloader settings to disk
@@ -64,14 +71,32 @@ module Bootloader
     def merge(other)
       super
 
-      if !other.stage1.devices.empty?
-        stage1.clear_devices
-        other.stage1.devices.each { |d| stage1.add_udev_device(d) }
-      end
+      # merge here is a bit tricky, as for stage1 does not exist `defined?`
+      # because grub_installdevice contain value or not, so it is not
+      # possible to recognize if chosen or just not set
+      # so logic is following
+      # 1) if any flag is set to true, then use it because e.g. autoyast defined flags,
+      #    but devices usually not
+      # 2) if there is devices specified, then set also flags to value in other
+      #    as it mean, that there is enough info to decide
+      log.info "stage1 to merge #{other.stage1.inspect}"
 
-      stage1.activate = other.stage1.activate unless other.stage1.activate.nil?
-      stage1.generic_mbr = other.stage1.generic_mbr unless other.stage1.generic_mbr.nil?
+      # so first part of logic
+      stage1.activate = stage1.activate? || other.stage1.activate?
+      stage1.generic_mbr = stage1.generic_mbr? || other.stage1.generic_mbr?
+
+      # quit to not use second part described above
+      return if other.stage1.devices.empty?
+
+      stage1.clear_devices
+      other.stage1.devices.each { |d| stage1.add_udev_device(d) }
+
+      stage1.activate = other.stage1.activate?
+      stage1.generic_mbr = other.stage1.generic_mbr?
+
+      log.info "stage1 after merge #{stage1.inspect}"
     end
+
 
     # Display bootloader summary
     # @return a list of summary lines
@@ -84,7 +109,7 @@ module Bootloader
       ]
       locations_val = locations
       if !locations_val.empty?
-        result << Builtins.sformat(
+        result << Yast::Builtins.sformat(
           _("Status Location: %1"),
           locations_val.join(", ")
         )
