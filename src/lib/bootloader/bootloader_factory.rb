@@ -58,7 +58,8 @@ module Bootloader
       end
 
       def bootloader_by_name(name)
-        @cached_bootloaders ||= {} # needed to be able to store settings if moving between bootloaders
+        # needed to be able to store settings when moving between bootloaders
+        @cached_bootloaders ||= {}
         case name
         when "grub2"
           @cached_bootloaders["grub2"] ||= Grub2.new

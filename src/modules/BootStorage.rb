@@ -103,7 +103,7 @@ module Yast
       # if bootloader do not know its location, then we do not care
       return false unless current_bl.respond_to?(:stage1)
 
-      targets = current_bl.stage1.model.devices
+      targets = current_bl.stage1.devices
       target_map = Yast::Storage.GetTargetMap
       boot_discs = targets.map { |d| Yast::Storage.GetDisk(target_map, d) }
       boot_discs.any? { |d| d["label"] == "gpt" }
@@ -582,6 +582,19 @@ module Yast
 
       log.info "Available swap partitions: #{ret}"
       ret
+    end
+
+    def encrypted_boot?
+      dev = BootPartitionDevice()
+      tm = Yast::Storage.GetTargetMap || {}
+      tm.each_value do |v|
+        partitions = v["partitions"] || []
+        partition = partitions.find { |p| p["device"] == dev || p["crypt_device"] == dev }
+
+        next unless partition
+
+        return partition["crypt_device"] && !partition["crypt_device"].empty?
+      end
     end
 
     publish :variable => :multipath_mapping, :type => "map <string, string>"

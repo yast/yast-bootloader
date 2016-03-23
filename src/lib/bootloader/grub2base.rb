@@ -84,7 +84,7 @@ module Bootloader
       grub_default.save
       @sections.write
       @password.write
-      # TODO: call grub-mkconfig
+      Yast::Execute.on_target("/usr/sbin/grub2-mkconfig", "-o", "/boot/grub2/grub.cfg")
     end
 
     def propose
@@ -93,6 +93,7 @@ module Bootloader
       propose_os_probing
       propose_terminal
       propose_timeout
+      propose_encrypted
 
       if grub_default.kernel_params.empty?
         kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
@@ -105,6 +106,15 @@ module Bootloader
       propose_serial
 
       nil
+    end
+
+    def merge(other)
+      super
+
+      merge_grub_default(other)
+      merge_password(other)
+      merge_pmbr_action(other)
+      merge_sections(other)
     end
 
     def enable_serial_console(console)
@@ -124,6 +134,39 @@ module Bootloader
     end
 
   private
+
+    def merge_pmbr_action(other)
+      @pmbr_action = other.pmbr_action if other.pmbr_action
+    end
+
+    def merge_sections(other)
+      sections.default = other.sections.default if other.sections.default
+    end
+
+    def merge_password(other)
+      @password = other.password
+    end
+
+    def merge_grub_default(other)
+      default = grub_default
+      other = other.grub_default
+
+      unless other.kernel_params.serialize.empty?
+        new_kernel_params = default.kernel_params.serialize + " " + other.kernel_params.serialize
+        default.kernel_params.replace(new_kernel_params)
+      end
+
+      # string attributes
+      [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
+       :gfx_mode, :theme].each do |attr|
+        default.send((attr.to_s + "="), other.send(attr)) if other.send(attr)
+      end
+
+      # boolean attributes, instance of {CFA::Boolean}
+      [:os_prober, :cryptodisk].each do |attr|
+        default.send(attr).value = other.send(attr).enabled? if other.send(attr).defined?
+      end
+    end
 
     def serial_console_matcher
       CFA::Matcher.new(key: "console", value_matcher: /tty(S|AMA)/)
@@ -174,6 +217,10 @@ module Bootloader
       end
 
       resume
+    end
+
+    def propose_encrypted
+      grub_default.cryptodisk.value = !!Yast::BootStorage.encrypted_boot?
     end
   end
 end

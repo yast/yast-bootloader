@@ -1,3 +1,5 @@
+require "forwardable"
+
 require "yast"
 require "bootloader/udev_mapping"
 require "bootloader/bootloader_factory"
@@ -11,8 +13,11 @@ module Bootloader
   # Represents where is bootloader stage1 installed. Allows also proposing its
   # location.
   class Stage1
+    extend Forwardable
     include Yast::Logger
+
     attr_reader :model
+    def_delegators :@model, :generic_mbr?, :generic_mbr=, :activate?, :activate=, :devices
 
     def initialize
       @model = CFA::Grub2::InstallDevice.new
@@ -29,7 +34,7 @@ module Bootloader
     def include?(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
-      @model.devices.any? do |map_dev|
+      devices.any? do |map_dev|
         kernel_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
       end
     end
@@ -42,7 +47,7 @@ module Bootloader
     def remove_device(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
-      dev = @model.devices.find do |map_dev|
+      dev = devices.find do |map_dev|
         kernel_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
       end
 
@@ -50,7 +55,7 @@ module Bootloader
     end
 
     def clear_devices
-      @model.devices.each do |dev|
+      devices.each do |dev|
         @model.remove_device(dev)
       end
     end
@@ -81,7 +86,7 @@ module Bootloader
       known_devices.compact!
       known_devices.map! { |d| Bootloader::UdevMapping.to_kernel_device(d) }
 
-      @model.devices.select do |dev|
+      devices.select do |dev|
         !known_devices.include?(Bootloader::UdevMapping.to_kernel_device(dev))
       end
     end
@@ -151,12 +156,12 @@ module Bootloader
         # other installed OSes like Windows (older versions assign the C:
         # drive letter to the activated partition).
         boot_flag_part = Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
-        @model.activate = boot_flag_part.empty?
+        self.activate = boot_flag_part.empty?
       else
         # if not installing to MBR, always activate (so the generic MBR will
         # boot Linux)
-        @model.activate = true
-        @model.generic_mbr = true
+        self.activate = true
+        self.generic_mbr = true
       end
     end
 
@@ -273,7 +278,7 @@ module Bootloader
     def assign_bootloader_device(selected_location)
       log.info "assign bootloader device '#{selected_location.inspect}'"
       # first, default to all off:
-      @model.devices.each { |d| @model.remove_device(d) }
+      clear_devices
 
       case selected_location
       when :root then add_udev_device(Yast::BootStorage.RootPartitionDevice)
@@ -282,7 +287,7 @@ module Bootloader
       when :mbr
         add_udev_device(Yast::BootStorage.mbr_disk)
         # Disable generic MBR as we want grub2 there
-        @model.generic_mbr = true
+        self.generic_mbr = true
       when :none
         log.info "Resetting bootloader device"
       when Array

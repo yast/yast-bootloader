@@ -34,10 +34,6 @@ module Bootloader
     end
 
     def write
-      # provide the /dev content from the inst-sys also inside the chroot of just the upgraded system
-      # umount of this bind mount will happen in umount_finish
-      update_mount
-
       # message after first round of packet installation
       # now the installed system is run and more packages installed
       # just warn the user that the screen is going back to text mode
@@ -46,88 +42,42 @@ module Bootloader
 
       retcode = false
 
-      if !Yast::Mode.update
-        retcode = Yast::Bootloader.WriteInstallation
-      else
-        # if we do not read nor propose that we have nothing to do
-        bl_current = ::Bootloader::BootloaderFactory.current
-        if bl_current.read? || bl_current.proposed?
-          retcode = Yast::Bootloader.Update
-        else
-          quick_exit = true
-        end
-
-        # workaround for packages that forgot to update initrd(bnc#889616)
-        # do not use Initrd module as it can also change configuration, which we do not want
-        res = Yast::SCR.Execute(BASH_PATH, "/sbin/mkinitrd")
-        log.info "Regerate initrd with result #{res}"
-
-        return true if quick_exit
+      bl_current = Bootloader::BootloaderFactory.current
+      # we do nothing in upgrade unless we have to change bootloader
+      if Yast::Mode.update && !bl_current.read? && !bl_current.proposed?
+        return true
       end
 
-      # FIXME: workaround grub2 need manual rerun of branding due to overwrite by
-      # pbl. see bnc#879686 and bnc#901003
-      fix_branding if Yast::Bootloader.getLoaderType =~ /grub2/
+      # we do not manage bootloader, so relax :)
+      return true if bl_current.name == "none"
 
-      if retcode
-        # re-read external changes, then boot through to second stage of
-        # installation or update
-        Yast::Bootloader.Read
-        # fate #303395: Use kexec to avoid booting between first and second stage
-        # copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
-        ret = false
-        if Yast::Linuxrc.InstallInf("kexec_reboot") == "1"
-          kexec = ::Bootloader::Kexec.new
-          ret = kexec.prepare_environment
-        else
-          log.info "Installation started with kexec_reboot set 0"
-        end
+      # read one from system, so we do not overwrite changes done in rpm post install scripts
+      Bootloader::BootloaderFactory.clear_cache
+      system = Bootloader::BootloaderFactory.system
+      system.read
+      system.merge(bl_current)
+      system.write
 
-        # (bnc #381192) don't use it if kexec is used
-        # update calling onetime boot bnc #339024
-        if !ret
-          retcode = Yast::Bootloader.FlagOnetimeBoot(Yast::Bootloader.getDefaultSection)
-        end
+      # fate #303395: Use kexec to avoid booting between first and second stage
+      # copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
+      ret = false
+      if Yast::Linuxrc.InstallInf("kexec_reboot") == "1"
+        kexec = ::Bootloader::Kexec.new
+        ret = kexec.prepare_environment
+      else
+        log.info "Installation started with kexec_reboot set 0"
+      end
+
+      # (bnc #381192) don't use it if kexec is used
+      # update calling onetime boot bnc #339024
+      if !ret
+        retcode = Yast::Bootloader.FlagOnetimeBoot(Yast::Bootloader.getDefaultSection)
       end
 
       retcode
     end
 
   private
-
-    def fix_branding
-      prefix = Yast::Installation.destdir
-      branding_activator = Dir["#{prefix}/usr/share/grub2/themes/*/activate-theme"].first
-      return unless branding_activator
-
-      branding_activator = branding_activator[prefix.size..-1]
-      res = Yast::SCR.Execute(BASH_PATH, branding_activator)
-      log.info "Reactivate branding with #{branding_activator} and result #{res}"
-      res = Yast::SCR.Execute(BASH_PATH, "/usr/sbin/grub2-mkconfig -o /boot/grub2/grub.cfg")
-      log.info "Regenerating config for branding with result #{res}"
-    end
-
-    def update_mount
-      return unless Yast::Mode.update
-
-      cmd = <<-eos
-targetdir=#{Yast::Installation.destdir}
-if test ${targetdir} = / ; then echo targetdir is / ; exit 1 ; fi
-grep -E \"^[^ ]+ ${targetdir}/dev \" < /proc/mounts
-if test $? = 0
-then
- echo targetdir ${targetdir} already mounted.
- exit 1
-else
-  mkdir -vp ${targetdir}/dev
-  cp --preserve=all --recursive --remove-destination /lib/udev/devices/* ${targetdir}/dev
-  mount -v --bind /dev ${targetdir}/dev
-fi
-eos
-      out = Yast::WFM.Execute(Yast::Path.new(".local.bash_output"), cmd)
-      log.error "unable to bind mount /dev in chroot" if out["exit"] != 0
-      log.info "#{cmd}\n output: #{out}"
-    end
 
     def set_boot_msg
       finish_ret = {}

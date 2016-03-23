@@ -56,19 +56,8 @@ module Bootloader
           return :back # we just go back to original dialog
         when :cancel
           return :back
-        when :up
-          disks.insert(pos - 1, disks.delete_at(pos))
-          pos -= 1
-        when :down
-          disks.insert(pos + 1, disks.delete_at(pos))
-          pos += 1
-        when :delete
-          disks.delete_at(pos)
-          pos = pos == disks.size ? pos - 1 : pos
-        when :add
-          disk = add_device_popup
-          disks << disk if disk
-          pos = disks.size - 1
+        when :up, :down, :delete, :add
+          pos = handle_buttons(input, pos)
         when :disks
           refresh_buttons
           next
@@ -79,6 +68,26 @@ module Bootloader
         Yast::UI.ChangeWidget(Id(:disks), :CurrentItem, disks[pos])
         refresh_buttons
       end
+    end
+
+    def handle_buttons(action, pos)
+      case action
+      when :up
+        disks.insert(pos - 1, disks.delete_at(pos))
+        pos -= 1
+      when :down
+        disks.insert(pos + 1, disks.delete_at(pos))
+        pos += 1
+      when :delete
+        disks.delete_at(pos)
+        pos = pos == disks.size ? pos - 1 : pos
+      when :add
+        disk = add_device_popup
+        disks << disk if disk
+        pos = disks.size - 1
+      end
+
+      pos
     end
 
     def dialog_content

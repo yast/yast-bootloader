@@ -43,7 +43,7 @@ module Bootloader
       # TODO: own class handling PBMR
       pmbr_setup(*gpt_disks_devices)
 
-      @grub_install.execute(devices: @stage1.model.devices)
+      @grub_install.execute(devices: @stage1.devices)
       # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
       MBRUpdate.new.run(@stage1) unless Yast::Arch.s390
 
@@ -59,6 +59,18 @@ module Bootloader
       self.pmbr_action = :remove if Yast::BootStorage.gpt_boot_disk?
 
       # TODO: propose device map
+    end
+
+    def merge(other)
+      super
+
+      if !other.stage1.devices.empty?
+        stage1.clear_devices
+        other.stage1.devices.each { |d| stage1.add_udev_device(d) }
+      end
+
+      stage1.activate = other.stage1.activate unless other.stage1.activate.nil?
+      stage1.generic_mbr = other.stage1.generic_mbr unless other.stage1.generic_mbr.nil?
     end
 
     # Display bootloader summary
@@ -99,7 +111,7 @@ module Bootloader
 
       res << "grub2"
 
-      if stage1.model.generic_mbr?
+      if stage1.generic_mbr?
         # needed for generic _mbr binary files
         res << "syslinux"
       end
@@ -110,7 +122,7 @@ module Bootloader
   private
 
     def gpt_disks_devices
-      boot_devices = @stage1.model.devices
+      boot_devices = @stage1.devices
       boot_discs = boot_devices.map { |d| Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, d) }
       boot_discs.uniq!
       gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
@@ -132,29 +144,24 @@ module Bootloader
 
     def locations
       locations = []
-      already_mentioned = []
 
       if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
         if @stage1.boot_partition?
           locations << Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
-          already_mentioned << Yast::BootStorage.BootPartitionDevice
         end
       else
         if @stage1.root_partition?
           locations << Yast::BootStorage.RootPartitionDevice + " (\"/\")"
-          already_mentioned << Yast::BootStorage.RootPartitionDevice
         end
       end
       if @stage1.extended_partition?
         # TRANSLATORS: extended is here for extended partition. Keep translation short.
         locations << Yast::BootStorage.ExtendedPartitionDevice + _(" (extended)")
-        already_mentioned << Yast::BootStorage.ExtendedPartitionDevice
       end
       if @stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
         locations << Yast::BootStorage.mbr_disk + _(" (MBR)")
-        already_mentioned << Yast::BootStorage.mbr_disk
       end
       locations << @stage1.custom_devices if !@stage1.custom_devices.empty?
 
@@ -178,21 +185,25 @@ module Bootloader
       if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
         if @stage1.boot_partition?
           _(
-            "Install bootcode into /boot partition (<a href=\"disable_boot_boot\">do not install</a>)"
+            "Install bootcode into /boot partition " \
+              "(<a href=\"disable_boot_boot\">do not install</a>)"
           )
         else
           _(
-            "Do not install bootcode into /boot partition (<a href=\"enable_boot_boot\">install</a>)"
+            "Do not install bootcode into /boot partition " \
+              "(<a href=\"enable_boot_boot\">install</a>)"
           )
         end
       else
         if @stage1.root_partition?
           _(
-            "Install bootcode into \"/\" partition (<a href=\"disable_boot_root\">do not install</a>)"
+            "Install bootcode into \"/\" partition " \
+              "(<a href=\"disable_boot_root\">do not install</a>)"
           )
         else
           _(
-            "Do not install bootcode into \"/\" partition (<a href=\"enable_boot_root\">install</a>)"
+            "Do not install bootcode into \"/\" partition " \
+              "(<a href=\"enable_boot_root\">install</a>)"
           )
         end
       end
@@ -215,7 +226,7 @@ module Bootloader
         line << "</li>"
       end
 
-      if @stage1.model.devices.empty?
+      if @stage1.devices.empty?
         # no location chosen, so warn user that it is problem unless he is sure
         msg = _("Warning: No location for bootloader stage1 selected." \
           "Unless you know what you are doing please select above location.")

@@ -27,7 +27,7 @@ describe Bootloader::Stage1 do
         .and_return("/dev/sda")
       subject.propose
 
-      expect(subject.model.devices).to eq ["/dev/sda"]
+      expect(subject.devices).to eq ["/dev/sda"]
     end
 
     it "sets to device first available prep partition for ppc64" do
@@ -40,7 +40,7 @@ describe Bootloader::Stage1 do
 
       subject.propose
 
-      expect(subject.model.devices).to eq(["/dev/sda1"])
+      expect(subject.devices).to eq(["/dev/sda1"])
     end
 
     it "sets no device for s390" do
@@ -48,7 +48,7 @@ describe Bootloader::Stage1 do
 
       subject.propose
 
-      expect(subject.model.devices).to eq([])
+      expect(subject.devices).to eq([])
     end
   end
 end

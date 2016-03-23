@@ -6,15 +6,12 @@ module Bootloader
   class Sections
     include Yast::Logger
 
+    attr_reader :all
+
     # @param [CFA::Grub2::GrubCfg, nil] grub_cfg - loaded parsed grub cfg tree
     # or nil if not available yet
     def initialize(grub_cfg = nil)
-      @data = grub_cfg ? grub_cfg.sections : []
-    end
-
-    # Gets all available sections
-    def all
-      @data
+      @all = grub_cfg ? grub_cfg.sections : []
     end
 
     # @return [String] name of default section
@@ -24,7 +21,7 @@ module Bootloader
       saved = Yast::Execute.on_target("/usr/bin/grub2-editenv", "list", stdout: :capture)
       saved_line = saved.lines.grep(/saved_entry=/).first
 
-      @default = saved_line ? saved_line[/saved_entry=(\S*)/, 1] : @data.first
+      @default = saved_line ? saved_line[/saved_entry=(\S*)/, 1] : @all.first
     end
 
     # Sets default section internally
@@ -33,7 +30,7 @@ module Bootloader
       log.info "set new default to '#{value.inspect}'"
 
       # empty value mean no default specified
-      raise "Unknown value #{value.inspect}" if !@data.include?(value) && !value.empty?
+      raise "Unknown value #{value.inspect}" if !@all.include?(value) && !value.empty?
 
       @default = value
     end

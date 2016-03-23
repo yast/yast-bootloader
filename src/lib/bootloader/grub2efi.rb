@@ -58,6 +58,12 @@ module Bootloader
       @secure_boot = true
     end
 
+    def merge(other)
+      super
+
+      @secure_boot = other.secure_boot unless other.secure_boot.nil?
+    end
+
     # Display bootloader summary
     # @return a list of summary lines
 
@@ -95,8 +101,6 @@ module Bootloader
 
       res
     end
-
-  private
 
     # overwrite BootloaderBase version to save secure boot
     def write_sysconfig

@@ -23,9 +23,9 @@ module Bootloader
 
       # Rewrite MBR with generic boot code only if we do not plan to install
       # there bootloader stage1
-      install_generic_mbr if stage1.model.generic_mbr? && !stage1.include?(mbr_disk)
+      install_generic_mbr if stage1.generic_mbr? && !stage1.include?(mbr_disk)
 
-      activate_partitions if stage1.model.activate?
+      activate_partitions if stage1.activate?
     end
 
   private
@@ -35,7 +35,7 @@ module Bootloader
     end
 
     def create_backups
-      devices_to_backup = disks_to_rewrite + @stage1.model.devices + [mbr_disk]
+      devices_to_backup = disks_to_rewrite + @stage1.devices + [mbr_disk]
       devices_to_backup.uniq!
       log.info "Creating backup of boot sectors of #{devices_to_backup}"
       backups = devices_to_backup.map do |d|
@@ -105,7 +105,9 @@ module Bootloader
       partitions_to_activate.each do |m_activate|
         num = m_activate["num"]
         mbr_dev = m_activate["mbr"]
-        raise "INTERNAL ERROR: Data for partition to activate is invalid." if num.nil? || mbr_dev.nil?
+        if num.nil? || mbr_dev.nil?
+          raise "INTERNAL ERROR: Data for partition to activate is invalid."
+        end
 
         next unless can_activate_partition?(num)
 
@@ -122,7 +124,7 @@ module Bootloader
     def boot_devices
       return @boot_devices if @boot_devices
 
-      @boot_devices = @stage1.model.devices
+      @boot_devices = @stage1.devices
 
       # ppc do not use boot partition and have to activate prep partition that
       # cannot be on raid (bnc#940542)
@@ -181,7 +183,9 @@ module Bootloader
       partitions = tm.fetch(disk, {}).fetch("partitions", [])
       # do not select swap and do not select BIOS grub partition
       # as it clear its special flags (bnc#894040)
-      partitions.select { |p| p["used_fs"] != :swap && p["fsid"] != Yast::Partitions.fsid_bios_grub }
+      partitions.select do |p|
+        p["used_fs"] != :swap && p["fsid"] != Yast::Partitions.fsid_bios_grub
+      end
     end
 
     def extended_partition_num(disk)

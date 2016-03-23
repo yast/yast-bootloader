@@ -2,18 +2,13 @@
 inherit_from:
   /usr/share/YaST2/data/devtools/data/rubocop_yast_style.yml
 
-Lint/Eval:
-  Exclude:
-  # test helper data source is safe, so eval is not problem
-  - test/test_helper.rb
-
 Metrics/AbcSize:
   Max: 129
   Exclude:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
 Metrics/AbcSize:
-  Max: 50 # TODO this should be lower for new code
+  Max: 30
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
@@ -68,7 +63,7 @@ Metrics/LineLength:
 
 # Configuration parameters: AllowURI, URISchemes.
 Metrics/LineLength:
-  Max: 110 # TODO this should be lower for new code
+  Max: 100 # TODO this should be lower for new code
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
@@ -80,7 +75,7 @@ Metrics/MethodLength:
 
 # Configuration parameters: CountComments.
 Metrics/MethodLength:
-  Max: 40 # TODO this should be lower for new code
+  Max: 30 # TODO this should be lower for new code
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
@@ -97,12 +92,6 @@ Metrics/PerceivedComplexity:
 # be more strict then rubocop, 5 is too much
 Metrics/ParameterLists:
   Max: 4
-
-# Configuration parameters: EnforcedStyle, SupportedStyles.
-# JR: I personally think that having this variable on class level is much more readable
-# and easier to recognize that modified changed
-Style/AccessModifierIndentation:
-  EnforcedStyle: outdent
 
 # Configuration parameters: EnforcedStyle, SupportedStyles.
 Style/AndOr:
@@ -127,15 +116,7 @@ Style/Lambda:
 Style/MethodName:
   Include:
     - 'src/lib/**/*.rb' # force correct names on new code
-  Exclude:
-    - 'src/lib/bootloader/grub2base.rb' # base class that implement common API with incorrect names
 
 Style/VariableName:
   Include:
     - 'src/lib/**/*.rb' # force known variables only for new code
-
-Style/TrivialAccessors:
-  # predicates makes cannot be done with accessors
-  AllowPredicates: true
-  # Allow hiding internal attributes names
-  ExactNameMatch: true

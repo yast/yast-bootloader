@@ -60,11 +60,19 @@ module Bootloader
       res
     end
 
-  protected
-
+    # done in common write but also in installation pre write as kernel update need it
     def write_sysconfig
       sysconfig = Bootloader::Sysconfig.new(bootloader: name)
       sysconfig.write
+    end
+
+    # merges other bootloader configuration into this one.
+    # It have to be same bootloader type.
+    def merge(other)
+      raise "Invalid merge argument #{other.name} for #{name}" if name != other.name
+
+      @read ||= other.read?
+      @proposed ||= other.proposed?
     end
   end
 end

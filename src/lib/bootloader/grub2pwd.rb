@@ -9,7 +9,8 @@ module Bootloader
     #   @return [Boolean] specifies if password protection enabled
     #
     # @!attribute unrestricted
-    #   @return [Boolean] specifies if unrestricted password protection should be used (see fate#318574)
+    #   @return [Boolean] specifies if unrestricted password protection should
+    #      be used (see fate#318574)
     attr_accessor :used, :unrestricted
     alias_method :used?, :used
     alias_method :unrestricted?, :unrestricted
@@ -75,7 +76,8 @@ module Bootloader
       pwd_line = content.lines.grep(/password_pbkdf2 root/).first
 
       if !pwd_line
-        raise "Cannot find encrypted password, YaST2 password generator in /etc/grub.d is probably modified."
+        raise "Cannot find encrypted password. " \
+          "YaST2 password generator in /etc/grub.d is probably modified."
       end
 
       @encrypted_password = pwd_line[/password_pbkdf2 root (\S+)/, 1]
@@ -132,12 +134,12 @@ module Bootloader
 
       pwd_line = result["stdout"].split("\n").grep(/password is/).first
       if !pwd_line
-        raise "INTERNAL ERROR: output do not contain encrypted password. Output: #{result["stdout"]}"
+        raise "grub2-mkpasswd output do not contain encrypted password. Output: #{result["stdout"]}"
       end
 
       ret = pwd_line[/^.*password is\s*(\S+)/, 1]
       if !ret
-        raise "INTERNAL ERROR: output do not contain encrypted password. Output: #{result["stdout"]}"
+        raise "grub2-mkpasswd output do not contain encrypted password. Output: #{result["stdout"]}"
       end
 
       ret

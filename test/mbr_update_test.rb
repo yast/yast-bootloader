@@ -14,8 +14,8 @@ describe Bootloader::MBRUpdate do
     stage1 = Bootloader::Stage1.new
 
     devices.each { |d| stage1.model.add_device(d) }
-    stage1.model.activate = activate
-    stage1.model.generic_mbr = generic_mbr
+    stage1.activate = activate
+    stage1.generic_mbr = generic_mbr
 
     stage1
   end

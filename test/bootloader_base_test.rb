@@ -100,4 +100,37 @@ describe Bootloader::BootloaderBase do
       end
     end
   end
+
+  describe "#merge" do
+    it "raises exception if different bootloader type passed" do
+      subject.define_singleton_method(:name) { "funny_bootloader" }
+      other = described_class.new
+      other.define_singleton_method(:name) { "more_funny_bootloader" }
+
+      expect { subject.merge(other) }.to raise_error(RuntimeError)
+    end
+
+    it "sets read flag if subject or passed one have it" do
+      subject.define_singleton_method(:name) { "funny_bootloader" }
+      other = described_class.new
+      other.define_singleton_method(:name) { "funny_bootloader" }
+
+      allow(Yast::BootStorage).to receive(:detect_disks)
+      other.read
+
+      subject.merge(other)
+      expect(subject.read?).to eq true
+    end
+
+    it "sets propose flag if subject or passed one have it" do
+      subject.define_singleton_method(:name) { "funny_bootloader" }
+      other = described_class.new
+      other.define_singleton_method(:name) { "funny_bootloader" }
+
+      other.propose
+
+      subject.merge(other)
+      expect(subject.proposed?).to eq true
+    end
+  end
 end

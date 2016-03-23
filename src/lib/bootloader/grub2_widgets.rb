@@ -93,18 +93,19 @@ module Bootloader
     def help
       _(
         "<p><b>Set active Flag in Partition Table for Boot Partition</b><br>\n" \
-          "To activate the partition which contains the boot loader. The generic MBR code will then\n" \
+          "To activate the partition which contains the boot loader." \
+          " The generic MBR code will then\n" \
           "boot the active partition. Older BIOSes require one partition to be active even\n" \
           "if the boot loader is installed in the MBR.</p>"
       )
     end
 
     def init
-      self.value = stage1.model.activate?
+      self.value = stage1.activate?
     end
 
     def store
-      stage1.model.activate = checked?
+      stage1.activate = checked?
     end
   end
 
@@ -129,11 +130,11 @@ module Bootloader
     end
 
     def init
-      self.value = stage1.model.generic_mbr?
+      self.value = stage1.generic_mbr?
     end
 
     def store
-      stage1.model.generic_mbr = checked?
+      stage1.generic_mbr = checked?
     end
   end
 
@@ -473,27 +474,18 @@ module Bootloader
         HBox(
           HSpacing(2),
           ComboBox(
-            Id(:gfxmode),
-            Opt(:editable, :hstretch),
-            _("&Console resolution"),
-            [""]
+            Id(:gfxmode), Opt(:editable, :hstretch), _("&Console resolution")
           ),
           HBox(
             Left(
               InputField(
-                Id(:theme),
-                Opt(:hstretch),
-                _("&Console theme")
+                Id(:theme), Opt(:hstretch), _("&Console theme")
               )
             ),
             VBox(
               Left(Label("")),
               Left(
-                PushButton(
-                  Id(:browsegfx),
-                  Opt(:notify),
-                  Yast::Label.BrowseButton
-                )
+                PushButton(Id(:browsegfx), Opt(:notify), Yast::Label.BrowseButton)
               )
             )
           ),
@@ -586,30 +578,13 @@ module Bootloader
     def contents
       textdomain "bootloader"
 
-      checkboxes = []
-      locations = stage1.available_locations
-      if locations[:boot]
-        checkboxes << Left(CheckBox(Id(:boot), _("Boo&t from Boot Partition")))
-      end
-      if locations[:root]
-        checkboxes << Left(CheckBox(Id(:root), _("Boo&t from Root Partition")))
-      end
-      if locations[:mbr]
-        checkboxes << Left(CheckBox(Id(:mbr), _("Boot from &Master Boot Record")))
-      end
-      if locations[:extended]
-        checkboxes << Left(CheckBox(Id(:extended), _("Boot from &Extended Partition")))
-      end
-      checkboxes << Left(CheckBox(Id(:custom), Opt(:notify), _("C&ustom Boot Partition")))
-      checkboxes << Left(InputField(Id(:custom_list), Opt(:hstretch), ""))
-
       VBox(
         VSpacing(1),
         Frame(
           _("Boot Loader Location"),
           HBox(
             HSpacing(1),
-            VBox(*checkboxes),
+            VBox(*location_checkboxes),
             HSpacing(1)
           )
         ),
@@ -627,7 +602,6 @@ module Bootloader
     end
 
     def init
-      locations = stage1.available_locations
       if locations[:boot]
         Yast::UI.ChangeWidget(Id(:boot), :Value, stage1.boot_partition?)
       end
@@ -638,15 +612,8 @@ module Bootloader
         Yast::UI.ChangeWidget(Id(:extended), :Value, stage1.extended_partition?)
       end
       Yast::UI.ChangeWidget(Id(:mbr), :Value, stage1.mbr?) if locations[:mbr]
-      custom_devices = stage1.custom_devices
-      if custom_devices.empty?
-        Yast::UI.ChangeWidget(:custom, :Value, false)
-        Yast::UI.ChangeWidget(:custom_list, :Enabled, false)
-      else
-        Yast::UI.ChangeWidget(:custom, :Value, true)
-        Yast::UI.ChangeWidget(:custom_list, :Enabled, true)
-        Yast::UI.ChangeWidget(:custom_list, :Value, custom_devices.join(","))
-      end
+
+      init_custom_devices(stage1.custom_devices)
     end
 
     def store
@@ -675,6 +642,44 @@ module Bootloader
       end
 
       true
+    end
+
+  private
+
+    def init_custom_devices(custom_devices)
+      if custom_devices.empty?
+        Yast::UI.ChangeWidget(:custom, :Value, false)
+        Yast::UI.ChangeWidget(:custom_list, :Enabled, false)
+      else
+        Yast::UI.ChangeWidget(:custom, :Value, true)
+        Yast::UI.ChangeWidget(:custom_list, :Enabled, true)
+        Yast::UI.ChangeWidget(:custom_list, :Value, custom_devices.join(","))
+      end
+    end
+
+    def locations
+      @locations ||= stage1.available_locations
+    end
+
+    def location_checkboxes
+      checkboxes = []
+      checkboxes << checkbox(:boot, _("Boo&t from Boot Partition")) if locations[:boot]
+      checkboxes << checkbox(:root, _("Boo&t from Root Partition")) if locations[:root]
+      checkboxes << checkbox(:mbr, _("Boot from &Master Boot Record")) if locations[:mbr]
+      checkboxes << checkbox(:extended, _("Boot from &Extended Partition")) if locations[:extended]
+
+      checkboxes.concat(custom_partition_content)
+    end
+
+    def checkbox(id, title)
+      Left(CheckBox(Id(id), title))
+    end
+
+    def custom_partition_content
+      [
+        Left(CheckBox(Id(:custom), Opt(:notify), _("C&ustom Boot Partition"))),
+        Left(InputField(Id(:custom_list), Opt(:hstretch), ""))
+      ]
     end
   end
 
