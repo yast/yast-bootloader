@@ -64,7 +64,10 @@ module Yast
         "default"   => "0",
         "vgamode"   => "",
         "gfxmode"   => "auto",
-        "terminal"  => Arch.s390 ? "console" : "gfxterm",
+	# set console to gfxterm for all ppc architectures
+	# Boards with graphics are rare and those are PowerNV, where 
+	# modules are not used, see bsc#911682
+        "terminal"  => (Arch.s390 || Arch.ppc) ? "console" : "gfxterm",
         "os_prober" => disable_os_prober ? "false" : "true",
         "activate"  => Arch.ppc ? "true" : "false"
       }
