@@ -152,11 +152,20 @@ module Bootloader
       default = grub_default
       other = other.grub_default
 
+      log.info "before merge default #{default.inspect}"
+      log.info "before merge other #{other.inspect}"
+
       unless other.kernel_params.serialize.empty?
         new_kernel_params = default.kernel_params.serialize + " " + other.kernel_params.serialize
         default.kernel_params.replace(new_kernel_params)
       end
 
+      merge_attributes(default, other)
+
+      log.info "after merge default #{default.inspect}"
+    end
+
+    def merge_attributes(default, other)
       # string attributes
       [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
        :gfxmode, :theme].each do |attr|

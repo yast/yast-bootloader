@@ -55,7 +55,7 @@ module Bootloader
     # Write bootloader settings to disk
     # @return [Boolean] true on success
     def write
-      @device_map.write  if Yast::Arch.x86_64 || Yast::Arch.i386
+      @device_map.write if Yast::Arch.x86_64 || Yast::Arch.i386
       @stage1.write
 
       # TODO: own class handling PBMR

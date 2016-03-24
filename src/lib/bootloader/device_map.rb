@@ -98,11 +98,11 @@ module Bootloader
 
       other_devices = size - grub_devices.size
 
-      (BIOS_LIMIT-other_devices..grub_devices.size).each do |index|
+      (BIOS_LIMIT - other_devices..grub_devices.size).each do |index|
         @model.remove_mapping(grub_devices[index])
       end
 
-      log.info "device map after reduction #{to_s}"
+      log.info "device map after reduction #{self}"
 
       true
     end
