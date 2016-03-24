@@ -3,7 +3,7 @@
 require "yast"
 require "bootloader/grub2base"
 require "bootloader/mbr_update"
-require "bootloader/device_map_dialog"
+require "bootloader/device_map"
 require "bootloader/stage1"
 require "bootloader/grub_install"
 
@@ -16,6 +16,7 @@ module Bootloader
   # Represents non-EFI variant of GRUB2
   class Grub2 < Grub2Base
     attr_reader :stage1
+    attr_reader :device_map
 
     def initialize
       super
@@ -23,6 +24,7 @@ module Bootloader
       textdomain "bootloader"
       @stage1 = Stage1.new
       @grub_install = GrubInstall.new(efi: false)
+      @device_map = DeviceMap.new
     end
 
     # Read settings from disk
@@ -30,21 +32,30 @@ module Bootloader
     def read(reread: false)
       super
 
-      Yast::BootStorage.device_map.propose if Yast::BootStorage.device_map.empty?
       begin
         @stage1.read
       rescue Errno::ENOENT
         # grub_installdevice is not part of grub2 rpm, so it doesn't need to exist.
         # In such case ignore exception and fresh empty @stage1
-        log.info "grub_installdevice do not exists. Using empty one."
+        log.info "grub_installdevice does not exist. Using empty one."
         @stage1 = Stage1.new
+      end
+
+      begin
+        # device map is needed only for legacy boot on intel
+        @device.read if Yast::Arch.x86_64 || Yast::Arch.i386
+      rescue Errno::ENOENT
+        # grub_installdevice is not part of grub2 rpm, so it doesn't need to exist.
+        # In such case ignore exception and fresh empty @stage1
+        log.info "grub2/device.map does not exist. Using empty one."
+        @device_map = DeviceMap.new
       end
     end
 
     # Write bootloader settings to disk
     # @return [Boolean] true on success
     def write
-      # TODO: device map write
+      @device_map.write  if Yast::Arch.x86_64 || Yast::Arch.i386
       @stage1.write
 
       # TODO: own class handling PBMR
@@ -64,12 +75,13 @@ module Bootloader
       # for GPT remove protective MBR flag otherwise some systems won't
       # boot, safer option for legacy booting
       self.pmbr_action = :remove if Yast::BootStorage.gpt_boot_disk?
-
-      # TODO: propose device map
+      device_map.propose if Yast::Arch.x86_64 || Yast::Arch.i386
     end
 
     def merge(other)
       super
+
+      @device_map = other.device_map if !other.device_map.empty?
 
       # merge here is a bit tricky, as for stage1 does not exist `defined?`
       # because grub_installdevice contain value or not, so it is not
@@ -158,13 +170,12 @@ module Bootloader
     def disk_order_summary
       return "" if Yast::Arch.s390
 
-      order = Yast::BootStorage.DisksOrder
-      return "" if order.size < 2
+      return "" if @device_map.size < 2
 
       Yast::Builtins.sformat(
         # part of summary, %1 is a list of hard disks device names
         _("Order of Hard Disks: %1"),
-        order.join(", ")
+        @device_map.disks_order(", ")
       )
     end
 

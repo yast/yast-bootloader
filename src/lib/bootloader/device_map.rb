@@ -2,72 +2,75 @@ require "yast"
 
 require "bootloader/udev_mapping"
 
+require "yast2/target_file"
+require "cfa/grub2/device_map"
+
 module Bootloader
   # Class representing grub device map structure
   class DeviceMap
+    extend Forwardable
     include Yast::Logger
 
-    def initialize(mapping = {})
+    def_delegators :@model, :grub_device_for, :system_device_for, :grub_devices,
+      :add_mapping, :remove_mapping
+
+    def initialize
       # lazy load to avoid circular dependencies
       Yast.import "Arch"
       Yast.import "BootStorage"
       Yast.import "Mode"
       Yast.import "Storage"
-      @mapping = mapping
-    end
-
-    def to_hash
-      @mapping.dup
+      @model = CFA::Grub2::DeviceMap.new
     end
 
     def to_s
-      "Device Map: #{@mapping.inspect}"
+      "Device Map: #{@model.grub_devices}"
+    end
+
+    def read
+      @model.load
+    end
+
+    def write
+      @model.save
     end
 
     def size
-      @mapping.size
+      @model.grub_devices.size
     end
 
     def empty?
-      @mapping.empty?
+      size == 0
+    end
+
+    def clear_mapping
+      @model.grub_devices.each do |grub_dev|
+        @model.remove_mapping(grub_dev)
+      end
     end
 
     def contain_disk?(disk)
-      @mapping.include?(disk) ||
-        @mapping.include?(::Bootloader::UdevMapping.to_mountby_device(disk))
+      disk = @model.grub_device_for(disk) ||
+        @model.grub_device_for(::Bootloader::UdevMapping.to_mountby_device(disk))
+
+      !disk.nil?
     end
 
     def disks_order
-      disks = @mapping.select { |_k, v| v.start_with?("hd") }.keys
+      grub_devices = @model.grub_devices
+      grub_devices.select! { |d| d.start_with?("hd") }
+      grub_devices.sort_by(&:to_i)
 
-      disks.sort_by { |d| @mapping[d][2..-1].to_i }
-    end
-
-    # Function remap device map to device name (/dev/sda)
-    # or to label (ufo_disk)
-    # @return [Hash{String => String}] new device map
-    def remapped_hash
-      if !Yast::Arch.ppc
-        return to_hash if Yast::Storage.GetDefaultMountBy == :label
-      end
-
-      # convert device names in device map to the device names by device or label
-      remapped = @mapping.map do |k, v|
-        [UdevMapping.to_kernel_device(k), v]
-      end
-
-      Hash[remapped]
+      grub_devices.map { |grub_dev| @model.system_device_for(grub_dev) }
     end
 
     def propose
-      @mapping = {}
+      @model = CFA::Grub2::DeviceMap.new
 
       if Yast::Mode.config
         log.info("Skipping device map proposing in Config mode")
         return
       end
-
-      return propose_s390_device_map if Yast::Arch.s390
 
       fill_mapping
 
@@ -84,17 +87,22 @@ module Bootloader
     # Grub doesn't support more than 8 devices in device.map
     # @return [Boolean] true if device map was reduced
     def reduce_to_bios_limit
-      if @mapping.size <= BIOS_LIMIT
+      if size <= BIOS_LIMIT
         log.info "device map not need to be reduced"
         return false
       end
 
-      log.info "device map before reduction #{@mapping}"
-      @mapping.select! do |_k, v|
-        v[2..-1].to_i < BIOS_LIMIT
+      grub_devices = @model.grub_devices
+      grub_devices.select! { |d| d.start_with?("hd") }
+      grub_devices.sort_by(&:to_i)
+
+      other_devices = size - grub_devices.size
+
+      (BIOS_LIMIT-other_devices..grub_devices.size).each do |index|
+        @model.remove_mapping(grub_devices[index])
       end
 
-      log.info "device map after reduction #{@mapping}"
+      log.info "device map after reduction #{to_s}"
 
       true
     end
@@ -109,10 +117,7 @@ module Bootloader
       # if none of priority disk is hd0, then choose one and assign it
       return if any_first_device?(priority_disks)
 
-      @mapping = change_order(
-        @mapping,
-        priority_device: priority_disks.first
-      )
+      change_order(priority_disks.first)
     end
 
     def fill_mapping
@@ -126,11 +131,7 @@ module Bootloader
         bios_id = target["bios_id"] || ""
         next if bios_id.empty?
 
-        index = case Yast::Arch.architecture
-                when /ppc/
-                  # on ppc it looks like "vdevice/v-scsi@71000002/@0"
-                  bios_id[/\d+\z/].to_i
-                when "i386", "x86_64"
+        index = if Yast::Arch.x86_64 || Yast::Arch.i386
                   # it looks like 0x81. It is boot drive unit see http://en.wikipedia.org/wiki/Master_boot_record
                   bios_id[2..-1].to_i(16) - 0x80
                 else
@@ -138,7 +139,7 @@ module Bootloader
                 end
         # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
         if !ids[index]
-          @mapping[target_dev] = "hd#{index}"
+          @model.add_mapping("hd#{index}", target_dev)
           ids[index] = true
         end
       end
@@ -150,7 +151,7 @@ module Bootloader
         index = 0 # find free index
         index += 1 while ids[index]
 
-        @mapping[target_dev] = "hd#{index}"
+        @model.add_mapping("hd#{index}", target_dev)
         ids[index] = true
       end
     end
@@ -174,50 +175,28 @@ module Bootloader
       target_map
     end
 
-    def propose_s390_device_map
-      # s390 have some special requirements for device map. Keep it short and simple (bnc#884798)
-      # TODO: device map is not needed at all for s390, so if we get rid of
-      # perl-Bootloader translations we can keep it empty
-      boot_part = Yast::Storage.GetEntryForMountpoint("/boot/zipl")
-      boot_part = Yast::Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
-      boot_part = Yast::Storage.GetEntryForMountpoint("/") if boot_part.empty?
-
-      raise "Cannot find boot partition" if boot_part.empty?
-
-      disk = Yast::Storage.GetDiskPartition(boot_part["device"])["disk"]
-
-      @mapping = { disk => "hd0" }
-
-      log.info "Detected device mapping: #{@mapping}"
-    end
-
     # Returns true if any device from list devices is in device_mapping
     # marked as hd0.
     def any_first_device?(devices)
-      devices.any? { |dev| @mapping[dev] == "hd0" }
+      devices.include?(@model.system_device_for("hd0"))
     end
 
     # This function changes order of devices in device_mapping.
     # Priority device are always placed at first place    #
-    def change_order(device_mapping, priority_device: nil)
-      log.info "Change order with #{device_mapping} and priority_device: #{priority_device}"
-      return device_mapping unless priority_device
+    def change_order(priority_device)
+      log.info "Change order with priority_device: #{priority_device}"
 
-      device_mapping = device_mapping.dup
-
-      # change order of priority device if it is already in device map, otherwise ignore them
-      if device_mapping[priority_device]
-        old_first_device = device_mapping.key("hd0")
-        old_device_id = device_mapping[priority_device]
-        device_mapping[old_first_device] = old_device_id if old_first_device
-        device_mapping[priority_device] = "hd0"
-      else
+      grub_dev = @model.grub_device_for(priority_device)
+      if !grub_dev
         log.warn("Unknown priority device '#{priority_device}'. Skipping")
+        return
       end
 
-      log.info "Device mapping after re-ordering: #{device_mapping}"
-
-      device_mapping
+      replaced_dev = @model.system_device_for("hd0")
+      @model.remove_mapping("hd0")
+      @model.remove_mapping(grub_dev)
+      @model.add_mapping("hd0", priority_device)
+      @model.add_mapping(grub_dev, replaced_dev)
     end
 
     # Check if MD raid is build on disks not on paritions

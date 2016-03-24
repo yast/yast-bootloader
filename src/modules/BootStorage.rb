@@ -18,14 +18,12 @@
 #
 #
 require "yast"
-require "bootloader/device_map"
 require "bootloader/udev_mapping"
 
 module Yast
   class BootStorageClass < Module
     include Yast::Logger
 
-    attr_accessor :device_map
     attr_accessor :mbr_disk
 
     def main
@@ -53,9 +51,6 @@ module Yast
 
       # information about MD arrays for perl-Bootloader
       @md_info = {}
-
-      # device mapping between Linux and firmware
-      @device_map = ::Bootloader::DeviceMap.new
 
       # string sepresenting device name of /boot partition
       # same as RootPartitionDevice if no separate /boot partition
@@ -197,22 +192,12 @@ module Yast
       end
     end
 
-    # Get the order of disks according to BIOS mapping
-    # @return a list of all disks in the order BIOS sees them
-    def DisksOrder
-      @device_map.propose if @device_map.empty?
-
-      @device_map.disks_order
-    end
-
     # Returns list of partitions and disks. Requests current partitioning from
     # yast2-storage and creates list of partition and disks usable for grub stage1
     def possible_locations_for_stage1
       devices = Storage.GetTargetMap
 
       all_disks = devices.keys
-      # Devices which is not in device map cannot be used to boot
-      all_disks.select! { |d| device_map.contain_disk?(d) }
 
       disks_for_stage1 = all_disks.select do |d|
         [:CT_DISK, :CR_DMRAID].include?(devices[d]["type"])
@@ -428,15 +413,7 @@ module Yast
     end
 
     def find_mbr_disk
-      # check the disks order, first has MBR
-      order = DisksOrder()
-      if !order.empty?
-        ret = order.first
-        log.info "First disk in the order: #{ret}, using for MBR"
-        return ret
-      end
-
-      # OK, order empty, use the disk with boot partition
+      # use the disk with boot partition
       mp = Storage.GetMountPoints
       boot_disk = Ops.get_string(
         mp,
@@ -517,10 +494,6 @@ module Yast
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
       @mbr_disk = find_mbr_disk
-
-      # device map may be implicitly proposed in FindMBRDisk above
-      # - but not always...
-      device_map.propose if device_map.empty?
     end
 
     def prep_partitions
@@ -605,7 +578,6 @@ module Yast
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
     publish :function => :InitDiskInfo, :type => "void ()"
-    publish :function => :DisksOrder, :type => "list <string> ()"
     publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
   end
 
