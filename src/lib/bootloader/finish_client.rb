@@ -56,10 +56,9 @@ module Bootloader
 
       # fate #303395: Use kexec to avoid booting between first and second stage
       # copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
-      ret = false
       if Yast::Linuxrc.InstallInf("kexec_reboot") == "1"
         kexec = ::Bootloader::Kexec.new
-        ret = kexec.prepare_environment
+        kexec.prepare_environment
       else
         log.info "Installation started with kexec_reboot set 0"
       end

@@ -28,9 +28,9 @@ BuildRequires:  yast2 >= 3.1.176
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  yast2-ruby-bindings >= 1.0.0
 BuildRequires:  yast2-storage
-BuildRequires:  rubygem(cfa_grub2)
-BuildRequires:  rubygem(rspec)
-BuildRequires:  rubygem(yast-rake)
+BuildRequires:  rubygem(%rb_default_ruby_abi:cfa_grub2) >= 0.3.2
+BuildRequires:  rubygem(%rb_default_ruby_abi:rspec)
+BuildRequires:  rubygem(%rb_default_ruby_abi:yast-rake)
 PreReq:         /bin/sed %fillup_prereq
 # Base classes for inst clients
 Requires:       parted
@@ -40,7 +40,7 @@ Requires:       yast2-core >= 2.18.7
 Requires:       yast2-packager >= 2.17.24
 Requires:       yast2-pkg-bindings >= 2.17.25
 Requires:       yast2-storage >= 2.18.18
-Requires:       rubygem(cfa_grub2)
+Requires:       rubygem(%rb_default_ruby_abi:cfa_grub2) >= 0.3.2
 # lenses are needed as cfa_grub2 depends only on augeas bindings, but also
 # lenses are needed here
 Requires:       augeas-lenses

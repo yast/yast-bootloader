@@ -85,18 +85,11 @@ module Bootloader
       stage1.activate = stage1.activate? || other.stage1.activate?
       stage1.generic_mbr = stage1.generic_mbr? || other.stage1.generic_mbr?
 
-      # quit to not use second part described above
-      return if other.stage1.devices.empty?
-
-      stage1.clear_devices
-      other.stage1.devices.each { |d| stage1.add_udev_device(d) }
-
-      stage1.activate = other.stage1.activate?
-      stage1.generic_mbr = other.stage1.generic_mbr?
+      # use second part described above if there is some device
+      replace_with(other) unless other.stage1.devices.empty?
 
       log.info "stage1 after merge #{stage1.inspect}"
     end
-
 
     # Display bootloader summary
     # @return a list of summary lines
@@ -145,6 +138,14 @@ module Bootloader
     end
 
   private
+
+    def replace_with(other)
+      stage1.clear_devices
+      other.stage1.devices.each { |d| stage1.add_udev_device(d) }
+
+      stage1.activate = other.stage1.activate?
+      stage1.generic_mbr = other.stage1.generic_mbr?
+    end
 
     def gpt_disks_devices
       boot_devices = @stage1.devices

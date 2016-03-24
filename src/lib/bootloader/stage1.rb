@@ -192,7 +192,6 @@ module Bootloader
     end
 
     def propose_boot_location
-      raise "Boot partition disk not found" if boot_partition_disk.empty?
       selected_location = :mbr
       separate_boot = Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
 
@@ -251,7 +250,7 @@ module Bootloader
       return if @boot_initialized
 
       @boot_initialized = true
-      boot_disk_map = target_map[boot_partition_disk] || {}
+      boot_disk_map = Yast::Storage.GetTargetMap[Yast::BootStorage.disk_with_boot_partition] || {}
       partitions_on_boot_partition_disk = boot_disk_map["partitions"] || []
       @logical_boot = false
       @boot_with_btrfs = false
@@ -308,14 +307,6 @@ module Bootloader
       end
     end
 
-    def target_map
-      @target_map ||= Yast::Storage.GetTargetMap
-    end
-
-    def boot_partition_disk
-      Yast::BootStorage.disk_with_boot_partition
-    end
-
     # determine the underlying devices for the "/boot" partition (either the
     # BootPartitionDevice, or the devices from which the soft-RAID device for
     # "/boot" is built)
@@ -329,15 +320,11 @@ module Bootloader
     end
 
     def boot_partition_on_mbr_disk?
-      boot_partition_on_mbr_disk = underlying_boot_partition_devices.any? do |dev|
+      underlying_boot_partition_devices.any? do |dev|
         pdp = Yast::Storage.GetDiskPartition(dev)
         p_disk = pdp["disk"] || ""
         p_disk == Yast::BootStorage.mbr_disk
       end
-
-      log.info "/boot is on 1st disk: #{boot_partition_on_mbr_disk}"
-
-      boot_partition_on_mbr_disk
     end
   end
 end
