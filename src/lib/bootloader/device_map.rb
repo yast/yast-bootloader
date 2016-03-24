@@ -59,7 +59,7 @@ module Bootloader
     def disks_order
       grub_devices = @model.grub_devices
       grub_devices.select! { |d| d.start_with?("hd") }
-      grub_devices.sort_by(&:to_i)
+      grub_devices.sort_by! { |dev| dev[2..-1].to_i }
 
       grub_devices.map { |grub_dev| @model.system_device_for(grub_dev) }
     end

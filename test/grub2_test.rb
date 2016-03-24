@@ -13,14 +13,16 @@ describe Bootloader::Grub2 do
 
   describe "#read" do
     before do
-      allow(Yast::BootStorage).to receive(:device_map).and_return(double(empty?: false))
       allow(Bootloader::Stage1).to receive(:new).and_return(double.as_null_object)
+      allow(Bootloader::DeviceMap).to receive(:new).and_return(double.as_null_object)
     end
 
-    it "proposes device map if it is empty" do
-      device_map = double(empty?: true)
-      expect(device_map).to receive(:propose)
-      allow(Yast::BootStorage).to receive(:device_map).and_return(device_map)
+    it "reads device map on legacy intel" do
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+
+      device_map = double(Bootloader::DeviceMap)
+      expect(device_map).to receive(:read)
+      allow(Bootloader::DeviceMap).to receive(:new).and_return(device_map)
 
       subject.read
     end
@@ -40,6 +42,7 @@ describe Bootloader::Grub2 do
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
       allow(Bootloader::MBRUpdate).to receive(:new).and_return(double(run: nil))
       allow(Bootloader::GrubInstall).to receive(:new).and_return(double.as_null_object)
+      allow(Bootloader::DeviceMap).to receive(:new).and_return(double.as_null_object)
     end
 
     it "writes stage1 location" do
@@ -109,6 +112,7 @@ describe Bootloader::Grub2 do
     before do
       stage1 = double.as_null_object
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
+      allow(Bootloader::DeviceMap).to receive(:new).and_return(double.as_null_object)
 
       allow(Yast::BootStorage).to receive(:detect_disks)
     end
@@ -169,8 +173,6 @@ describe Bootloader::Grub2 do
   describe "#summary" do
     before do
       allow(Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
-      allow(Yast::BootStorage).to receive(:DisksOrder)
-        .and_return(Bootloader::DeviceMap.new("/dev/sda" => "hd0"))
       allow(Yast::BootStorage).to receive(:can_boot_from_partition).and_return(true)
     end
 

@@ -145,7 +145,7 @@ module Bootloader
       Yast::BootStorage.mbr_disk = disks.first
 
       @device_map.clear_mapping
-      disks.each_with_index({}) do |disk, index|
+      disks.each_with_index do |disk, index|
         @device_map.add_mapping("hd#{index}", disk)
       end
     end

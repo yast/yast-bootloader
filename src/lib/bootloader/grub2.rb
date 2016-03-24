@@ -43,7 +43,7 @@ module Bootloader
 
       begin
         # device map is needed only for legacy boot on intel
-        @device.read if Yast::Arch.x86_64 || Yast::Arch.i386
+        @device_map.read if Yast::Arch.x86_64 || Yast::Arch.i386
       rescue Errno::ENOENT
         # grub_installdevice is not part of grub2 rpm, so it doesn't need to exist.
         # In such case ignore exception and fresh empty @stage1

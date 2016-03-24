@@ -3,18 +3,19 @@ require_relative "test_helper"
 require "bootloader/device_map_dialog"
 
 describe Bootloader::DeviceMapDialog do
+  let(:device_map) do
+    device_map = Bootloader::DeviceMap.new
+    device_map.add_mapping("hd0", "/dev/sda")
+    device_map.add_mapping("hd1", "/dev/sdb")
+
+    device_map
+  end
+
+  subject { Bootloader::DeviceMapDialog.new(device_map) }
+
   # just simple tests to avoid typos as logic is not so easy to test
   describe "#run" do
     before do
-      Yast.import "BootStorage"
-
-      device_map = Bootloader::DeviceMap.new(
-        "/dev/sda" => "hd0",
-        "/dev/sdb" => "hd1"
-      )
-      allow(Yast::BootStorage).to receive(:DisksOrder)
-        .and_return(device_map.disks_order)
-
       allow(Yast::UI).to receive(:QueryWidget).and_return("/dev/sda")
       allow(Yast::UI).to receive(:OpenDialog).and_return(true)
       allow(Yast::UI).to receive(:CloseDialog).and_return(true)
