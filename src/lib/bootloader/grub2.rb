@@ -182,15 +182,8 @@ module Bootloader
     def locations
       locations = []
 
-      if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
-        if stage1.boot_partition?
-          locations << Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
-        end
-      else
-        if stage1.root_partition?
-          locations << Yast::BootStorage.RootPartitionDevice + " (\"/\")"
-        end
-      end
+      partition_location = boot_partition_location
+      locations << partition_location unless partition_location.empty?
       if stage1.extended_partition?
         # TRANSLATORS: extended is here for extended partition. Keep translation short.
         locations << Yast::BootStorage.ExtendedPartitionDevice + _(" (extended)")
@@ -203,6 +196,20 @@ module Bootloader
       locations << stage1.custom_devices if !stage1.custom_devices.empty?
 
       locations
+    end
+
+    def boot_partition_location
+      if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+        if stage1.boot_partition?
+          return Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
+        end
+      else
+        if stage1.root_partition?
+          return Yast::BootStorage.RootPartitionDevice + " (\"/\")"
+        end
+      end
+
+      ""
     end
 
     def mbr_line
