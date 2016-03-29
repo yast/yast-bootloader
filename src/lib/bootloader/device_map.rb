@@ -61,7 +61,7 @@ module Bootloader
       grub_devices.select! { |d| d.start_with?("hd") }
       grub_devices.sort_by! { |dev| dev[2..-1].to_i }
 
-      grub_devices.map { |grub_dev| @model.system_device_for(grub_dev) }
+      grub_devices.map { |d| @model.system_device_for(d) }
     end
 
     def propose
@@ -96,9 +96,9 @@ module Bootloader
       grub_devices.select! { |d| d.start_with?("hd") }
       grub_devices.sort_by(&:to_i)
 
-      other_devices = size - grub_devices.size
+      other_devices_size = size - grub_devices.size
 
-      (BIOS_LIMIT - other_devices..grub_devices.size).each do |index|
+      (BIOS_LIMIT - other_devices_size..grub_devices.size).each do |index|
         @model.remove_mapping(grub_devices[index])
       end
 

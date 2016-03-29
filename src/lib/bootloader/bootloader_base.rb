@@ -62,6 +62,7 @@ module Bootloader
     end
 
     # done in common write but also in installation pre write as kernel update need it
+    # @param prewrite [Boolean] true only in installation when scr is not yet switched
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(bootloader: name)
       prewrite ? sysconfig.pre_write : sysconfig.write
