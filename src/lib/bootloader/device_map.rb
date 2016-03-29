@@ -57,11 +57,7 @@ module Bootloader
     end
 
     def disks_order
-      grub_devices = @model.grub_devices
-      grub_devices.select! { |d| d.start_with?("hd") }
-      grub_devices.sort_by! { |dev| dev[2..-1].to_i }
-
-      grub_devices.map { |d| @model.system_device_for(d) }
+      sorted_disks.map { |d| @model.system_device_for(d) }
     end
 
     def propose
@@ -81,6 +77,12 @@ module Bootloader
 
   private
 
+    def sorted_disks
+      grub_devices = @model.grub_devices
+      grub_devices.select! { |d| d.start_with?("hd") }
+      grub_devices.sort_by { |dev| dev[2..-1].to_i }
+    end
+
     BIOS_LIMIT = 8
     # FATE #303548 - Grub: limit device.map to devices detected by BIOS Int 13
     # The function reduces records (devices) in device.map
@@ -92,9 +94,7 @@ module Bootloader
         return false
       end
 
-      grub_devices = @model.grub_devices
-      grub_devices.select! { |d| d.start_with?("hd") }
-      grub_devices.sort_by(&:to_i)
+      grub_devices = sorted_disks
 
       other_devices_size = size - grub_devices.size
 
