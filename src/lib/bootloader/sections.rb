@@ -1,6 +1,8 @@
 require "yast"
 require "yast2/execute"
 
+Yast.import "Stage"
+
 module Bootloader
   # Represents available sections and handling of default boot entry
   class Sections
@@ -17,6 +19,8 @@ module Bootloader
     # @return [String] name of default section
     def default
       return @default if @default
+
+      return @default = "" if Yast::Stage.initial
 
       saved = Yast::Execute.on_target("/usr/bin/grub2-editenv", "list", stdout: :capture)
       saved_line = saved.lines.grep(/saved_entry=/).first

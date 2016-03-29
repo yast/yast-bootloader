@@ -26,7 +26,6 @@ describe Yast::BootStorage do
     before do
       target_map_stub("storage_mdraid.yaml")
       allow(Yast::Arch).to receive(:s390).and_return(false) # be arch agnostic
-      subject.device_map.propose
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:device)
       allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
     end
@@ -41,13 +40,6 @@ describe Yast::BootStorage do
 
     it "returns all partitions suitable for stage1" do
       expect(possible_locations).to include("/dev/vda1")
-    end
-
-    it "do not return partitions if disk is not in device map" do
-      subject.device_map = ::Bootloader::DeviceMap.new("/dev/vdb" => "hd0")
-
-      res = subject.possible_locations_for_stage1
-      expect(res).to_not include("/dev/vda1")
     end
 
     it "do not list partitions marked for delete" do

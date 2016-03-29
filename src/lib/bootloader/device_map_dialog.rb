@@ -12,8 +12,12 @@ module Bootloader
     include Yast::UIShortcuts
     include Yast::I18n
 
-    def self.run
-      new.run
+    def self.run(device_map)
+      new(device_map).run
+    end
+
+    def initialize(device_map)
+      @device_map = device_map
     end
 
     def run
@@ -130,7 +134,7 @@ module Bootloader
     end
 
     def disks
-      @disks ||= Yast::BootStorage.DisksOrder
+      @disks ||= @device_map.disks_order
     end
 
     def refresh_disks
@@ -140,11 +144,10 @@ module Bootloader
     def store_order
       Yast::BootStorage.mbr_disk = disks.first
 
-      mapping = disks.each_with_object({}) do |disk, res|
-        res[disk] = "hd#{res.size}"
+      @device_map.clear_mapping
+      disks.each_with_index do |disk, index|
+        @device_map.add_mapping("hd#{index}", disk)
       end
-
-      Yast::BootStorage.device_map = ::Bootloader::DeviceMap.new(mapping)
     end
 
     def add_device_popup

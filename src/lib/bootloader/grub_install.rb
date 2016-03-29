@@ -25,10 +25,10 @@ module Bootloader
 
       if devices
         devices.each do |dev|
-          Yast::Execute.locally(cmd + [dev])
+          Yast::Execute.on_target(cmd + [dev])
         end
       else
-        Yast::Execute.locally cmd
+        Yast::Execute.on_target(cmd)
       end
     end
 

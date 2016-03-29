@@ -42,7 +42,7 @@ module Yast
         return :auto
       end
 
-      bl_current.write_sysconfig
+      bl_current.write_sysconfig(prewrite: true)
 
       log.info "finish inst_bootloader"
 

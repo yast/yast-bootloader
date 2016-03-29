@@ -3,7 +3,7 @@
 require "yast"
 require "bootloader/grub2base"
 require "bootloader/mbr_update"
-require "bootloader/device_map_dialog"
+require "bootloader/device_map"
 require "bootloader/stage1"
 require "bootloader/grub_install"
 
@@ -16,6 +16,7 @@ module Bootloader
   # Represents non-EFI variant of GRUB2
   class Grub2 < Grub2Base
     attr_reader :stage1
+    attr_reader :device_map
 
     def initialize
       super
@@ -23,6 +24,7 @@ module Bootloader
       textdomain "bootloader"
       @stage1 = Stage1.new
       @grub_install = GrubInstall.new(efi: false)
+      @device_map = DeviceMap.new
     end
 
     # Read settings from disk
@@ -30,22 +32,38 @@ module Bootloader
     def read(reread: false)
       super
 
-      Yast::BootStorage.device_map.propose if Yast::BootStorage.device_map.empty?
-      @stage1.read
+      begin
+        stage1.read
+      rescue Errno::ENOENT
+        # grub_installdevice is not part of grub2 rpm, so it doesn't need to exist.
+        # In such case ignore exception and use empty @stage1
+        log.info "grub_installdevice does not exist. Using empty one."
+        @stage1 = Stage1.new
+      end
+
+      begin
+        # device map is needed only for legacy boot on intel
+        device_map.read if Yast::Arch.x86_64 || Yast::Arch.i386
+      rescue Errno::ENOENT
+        # device map is only optional part of grub2, so it doesn't need to exist.
+        # In such case ignore exception and use empty device map
+        log.info "grub2/device.map does not exist. Using empty one."
+        @device_map = DeviceMap.new
+      end
     end
 
     # Write bootloader settings to disk
     # @return [Boolean] true on success
     def write
-      # TODO: device map write
-      @stage1.write
+      device_map.write if Yast::Arch.x86_64 || Yast::Arch.i386
+      stage1.write
 
       # TODO: own class handling PBMR
       pmbr_setup(*gpt_disks_devices)
 
-      @grub_install.execute(devices: @stage1.devices)
+      @grub_install.execute(devices: stage1.devices)
       # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
-      MBRUpdate.new.run(@stage1) unless Yast::Arch.s390
+      MBRUpdate.new.run(stage1) unless Yast::Arch.s390
 
       super
     end
@@ -53,24 +71,36 @@ module Bootloader
     def propose
       super
 
-      @stage1.propose
+      stage1.propose
       # for GPT remove protective MBR flag otherwise some systems won't
       # boot, safer option for legacy booting
       self.pmbr_action = :remove if Yast::BootStorage.gpt_boot_disk?
-
-      # TODO: propose device map
+      device_map.propose if Yast::Arch.x86_64 || Yast::Arch.i386
     end
 
     def merge(other)
       super
 
-      if !other.stage1.devices.empty?
-        stage1.clear_devices
-        other.stage1.devices.each { |d| stage1.add_udev_device(d) }
-      end
+      @device_map = other.device_map if !other.device_map.empty?
 
-      stage1.activate = other.stage1.activate unless other.stage1.activate.nil?
-      stage1.generic_mbr = other.stage1.generic_mbr unless other.stage1.generic_mbr.nil?
+      # merge here is a bit tricky, as for stage1 does not exist `defined?`
+      # because grub_installdevice contain value or not, so it is not
+      # possible to recognize if chosen or just not set
+      # so logic is following
+      # 1) if any flag is set to true, then use it because e.g. autoyast defined flags,
+      #    but devices usually not
+      # 2) if there is devices specified, then set also flags to value in other
+      #    as it mean, that there is enough info to decide
+      log.info "stage1 to merge #{other.stage1.inspect}"
+
+      # so first part of logic
+      stage1.activate = stage1.activate? || other.stage1.activate?
+      stage1.generic_mbr = stage1.generic_mbr? || other.stage1.generic_mbr?
+
+      # use second part described above if there is some device
+      replace_with(other) unless other.stage1.devices.empty?
+
+      log.info "stage1 after merge #{stage1.inspect}"
     end
 
     # Display bootloader summary
@@ -84,7 +114,7 @@ module Bootloader
       ]
       locations_val = locations
       if !locations_val.empty?
-        result << Builtins.sformat(
+        result << Yast::Builtins.sformat(
           _("Status Location: %1"),
           locations_val.join(", ")
         )
@@ -121,8 +151,16 @@ module Bootloader
 
   private
 
+    def replace_with(other)
+      stage1.clear_devices
+      other.stage1.devices.each { |d| stage1.add_udev_device(d) }
+
+      stage1.activate = other.stage1.activate?
+      stage1.generic_mbr = other.stage1.generic_mbr?
+    end
+
     def gpt_disks_devices
-      boot_devices = @stage1.devices
+      boot_devices = stage1.devices
       boot_discs = boot_devices.map { |d| Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, d) }
       boot_discs.uniq!
       gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
@@ -132,44 +170,50 @@ module Bootloader
     def disk_order_summary
       return "" if Yast::Arch.s390
 
-      order = Yast::BootStorage.DisksOrder
-      return "" if order.size < 2
+      return "" if device_map.size < 2
 
       Yast::Builtins.sformat(
         # part of summary, %1 is a list of hard disks device names
         _("Order of Hard Disks: %1"),
-        order.join(", ")
+        device_map.disks_order(", ")
       )
     end
 
     def locations
       locations = []
 
-      if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
-        if @stage1.boot_partition?
-          locations << Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
-        end
-      else
-        if @stage1.root_partition?
-          locations << Yast::BootStorage.RootPartitionDevice + " (\"/\")"
-        end
-      end
-      if @stage1.extended_partition?
+      partition_location = boot_partition_location
+      locations << partition_location unless partition_location.empty?
+      if stage1.extended_partition?
         # TRANSLATORS: extended is here for extended partition. Keep translation short.
         locations << Yast::BootStorage.ExtendedPartitionDevice + _(" (extended)")
       end
-      if @stage1.mbr?
+      if stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
         locations << Yast::BootStorage.mbr_disk + _(" (MBR)")
       end
-      locations << @stage1.custom_devices if !@stage1.custom_devices.empty?
+      locations << stage1.custom_devices if !stage1.custom_devices.empty?
 
       locations
     end
 
+    def boot_partition_location
+      if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+        if stage1.boot_partition?
+          return Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
+        end
+      else
+        if stage1.root_partition?
+          return Yast::BootStorage.RootPartitionDevice + " (\"/\")"
+        end
+      end
+
+      ""
+    end
+
     def mbr_line
-      if @stage1.mbr?
+      if stage1.mbr?
         _(
           "Install bootcode into MBR (<a href=\"disable_boot_mbr\">do not install</a>)"
         )
@@ -183,7 +227,7 @@ module Bootloader
     def partition_line
       # check for separated boot partition, use root otherwise
       if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
-        if @stage1.boot_partition?
+        if stage1.boot_partition?
           _(
             "Install bootcode into /boot partition " \
               "(<a href=\"disable_boot_boot\">do not install</a>)"
@@ -195,7 +239,7 @@ module Bootloader
           )
         end
       else
-        if @stage1.root_partition?
+        if stage1.root_partition?
           _(
             "Install bootcode into \"/\" partition " \
               "(<a href=\"disable_boot_root\">do not install</a>)"
@@ -226,7 +270,7 @@ module Bootloader
         line << "</li>"
       end
 
-      if @stage1.devices.empty?
+      if stage1.devices.empty?
         # no location chosen, so warn user that it is problem unless he is sure
         msg = _("Warning: No location for bootloader stage1 selected." \
           "Unless you know what you are doing please select above location.")

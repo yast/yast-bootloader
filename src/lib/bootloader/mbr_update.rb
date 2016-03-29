@@ -16,14 +16,14 @@ module Bootloader
 
     # Update contents of MBR (active partition and booting code)
     def run(stage1)
-      log.info "Stage1: #{stage1}"
+      log.info "Stage1: #{stage1.inspect}"
       @stage1 = stage1
 
       create_backups
 
       # Rewrite MBR with generic boot code only if we do not plan to install
       # there bootloader stage1
-      install_generic_mbr if stage1.generic_mbr? && !stage1.include?(mbr_disk)
+      install_generic_mbr if stage1.generic_mbr? && !stage1.mbr?
 
       activate_partitions if stage1.activate?
     end

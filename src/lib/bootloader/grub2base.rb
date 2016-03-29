@@ -1,6 +1,7 @@
 # encoding: utf-8
 require "yast"
 require "yast2/execute"
+require "yast2/target_file" # adds ability to work with cfa in inst-sys
 require "bootloader/bootloader_base"
 require "bootloader/sections"
 require "bootloader/grub2pwd"
@@ -151,14 +152,23 @@ module Bootloader
       default = grub_default
       other = other.grub_default
 
+      log.info "before merge default #{default.inspect}"
+      log.info "before merge other #{other.inspect}"
+
       unless other.kernel_params.serialize.empty?
         new_kernel_params = default.kernel_params.serialize + " " + other.kernel_params.serialize
         default.kernel_params.replace(new_kernel_params)
       end
 
+      merge_attributes(default, other)
+
+      log.info "after merge default #{default.inspect}"
+    end
+
+    def merge_attributes(default, other)
       # string attributes
       [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
-       :gfx_mode, :theme].each do |attr|
+       :gfxmode, :theme].each do |attr|
         default.send((attr.to_s + "="), other.send(attr)) if other.send(attr)
       end
 

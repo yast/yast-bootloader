@@ -685,6 +685,8 @@ module Bootloader
 
   # Represents button that open Device Map edit dialog
   class DeviceMapWidget < ::CWM::PushButton
+    include Grub2Widget
+
     def label
       textdomain "bootloader"
 
@@ -704,7 +706,7 @@ module Bootloader
     end
 
     def handle
-      DeviceMapDialog.run
+      DeviceMapDialog.run(grub2.device_map)
 
       nil
     end
@@ -790,7 +792,7 @@ module Bootloader
     end
 
     def device_map_button?
-      (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc) && grub2.name != "grub2-efi"
+      (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name != "grub2-efi"
     end
   end
 

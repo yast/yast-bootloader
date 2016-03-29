@@ -14,7 +14,7 @@ describe Bootloader::GrubInstall do
       params = [/grub2-install/, "--target=#{target}", "--force", "--skip-fs-probe"]
       params << device if device
 
-      expect(Yast::Execute).to receive(:locally)
+      expect(Yast::Execute).to receive(:on_target)
         .with(params)
     end
 
@@ -22,7 +22,7 @@ describe Bootloader::GrubInstall do
       subject { Bootloader::GrubInstall.new(efi: true) }
 
       it "runs shim-install instead of grub2-install if secure_boot: true passed" do
-        expect(Yast::Execute).to receive(:locally)
+        expect(Yast::Execute).to receive(:on_target)
           .with([/shim-install/, "--config-file=/boot/grub2/grub.cfg"])
 
         subject.execute(secure_boot: true)

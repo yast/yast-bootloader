@@ -103,9 +103,9 @@ module Bootloader
     end
 
     # overwrite BootloaderBase version to save secure boot
-    def write_sysconfig
+    def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(bootloader: name, secure_boot: @secure_boot)
-      sysconfig.write
+      prewrite ? sysconfig.pre_write : sysconfig.write
     end
   end
 end

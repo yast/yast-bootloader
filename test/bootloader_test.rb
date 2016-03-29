@@ -19,6 +19,8 @@ describe Yast::Bootloader do
     # clean cache
     ::Bootloader::BootloaderFactory.instance_variable_set(:@cached_bootloaders, {})
     ::Bootloader::BootloaderFactory.current_name = "grub2"
+    allow(Yast::BootStorage).to receive(:detect_disks)
+    allow(::Bootloader::BootloaderFactory.current).to receive(:read)
   end
 
   describe ".Import" do

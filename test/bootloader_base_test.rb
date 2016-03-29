@@ -50,6 +50,16 @@ describe Bootloader::BootloaderBase do
   end
 
   describe "#propose" do
+    before do
+      allow(Yast::BootStorage).to receive(:detect_disks)
+    end
+
+    it "detects disk configuration" do
+      expect(Yast::BootStorage).to receive(:detect_disks)
+
+      subject.propose
+    end
+
     it "sets proposed flag" do
       expect(subject.proposed?).to eq false
 
@@ -126,6 +136,8 @@ describe Bootloader::BootloaderBase do
       subject.define_singleton_method(:name) { "funny_bootloader" }
       other = described_class.new
       other.define_singleton_method(:name) { "funny_bootloader" }
+
+      allow(Yast::BootStorage).to receive(:detect_disks)
 
       other.propose
 
