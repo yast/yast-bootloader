@@ -103,6 +103,7 @@ module Bootloader
       grub_default.gfxmode ||= "auto"
       grub_default.recovery_entry.disable unless grub_default.recovery_entry.defined?
       grub_default.distributor ||= ""
+      grub_default.default = "saved"
 
       propose_serial
 
@@ -176,6 +177,9 @@ module Bootloader
       [:os_prober, :cryptodisk].each do |attr|
         default.send(attr).value = other.send(attr).enabled? if other.send(attr).defined?
       end
+
+      # grub default have special value saved, otherwise choosing sections won't work
+      default.default = "saved" # yes, default/grub2 have value GRUB_DEFAULT so default.default
     end
 
     def serial_console_matcher
