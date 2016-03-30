@@ -29,17 +29,11 @@ module Yast
       cmdline = {
         "id"         => "bootloader",
         # command line help text for Bootloader module
-        "help"       => _(
-          "Boot loader configuration module"
-        ),
-        "guihandler" => fun_ref(method(:GuiHandler), "boolean ()"),
+        "help"       => _("Boot loader configuration module"),
+        "guihandler" => fun_ref(method(:GuiHandler), "boolean ()")
       }
 
-      Builtins.y2milestone("Starting bootloader configuration module")
-      ret = CommandLine.Run(cmdline)
-
-      Builtins.y2milestone("Finishing bootloader configuration module")
-      ret
+      CommandLine.Run(cmdline)
     end
 
     # --------------------------------------------------------------------------
