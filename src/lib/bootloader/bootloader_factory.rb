@@ -18,6 +18,8 @@ module Bootloader
         "grub2-efi"
       ]
 
+      attr_writer :current
+
       def proposed
         bootloader_by_name(proposed_name)
       end
