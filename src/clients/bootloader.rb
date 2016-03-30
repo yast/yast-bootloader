@@ -21,13 +21,9 @@ require "bootloader/main_dialog"
 module Yast
   class BootloaderClient < Client
     def main
-      Yast.import "UI"
       textdomain "bootloader"
 
-      Yast.import "Bootloader"
       Yast.import "CommandLine"
-      Yast.import "Mode"
-      Yast.import "RichText"
 
       # the command line description map
       cmdline = {
@@ -37,69 +33,6 @@ module Yast
           "Boot loader configuration module"
         ),
         "guihandler" => fun_ref(method(:GuiHandler), "boolean ()"),
-        "initialize" => fun_ref(Bootloader.method(:Read), "boolean ()"),
-        "finish"     => fun_ref(Bootloader.method(:Write), "boolean ()"),
-        "actions"    => {
-          "summary" => {
-            "handler" => fun_ref(
-              method(:BootloaderSummaryHandler),
-              "boolean (map)"
-            ),
-            # command line help text for summary action
-            "help"    => _(
-              "Configuration summary of boot loader"
-            )
-          },
-          "delete"  => {
-            "handler" => fun_ref(
-              method(:BootloaderDeleteHandler),
-              "boolean (map)"
-            ),
-            # command line help text for delete action
-            "help"    => _(
-              "Delete a global option"
-            )
-          },
-          "set"     => {
-            "handler" => fun_ref(method(:BootloaderSetHandler), "boolean (map)"),
-            # command line help text for set action
-            "help"    => _(
-              "Set a global option"
-            )
-          },
-          "print"   => {
-            "handler" => fun_ref(
-              method(:BootloaderPrintHandler),
-              "boolean (map)"
-            ),
-            # command line help text for print action
-            "help"    => _(
-              "Print value of specified option"
-            )
-          }
-        },
-        "options"    => {
-          "option" => {
-            # command line help text for an option
-            "help" => _(
-              "The key of the option"
-            ),
-            "type" => "string"
-          },
-          "value"  => {
-            # command line help text for an option
-            "help" => _(
-              "The value of the option"
-            ),
-            "type" => "string"
-          }
-        },
-        "mappings"   => {
-          "summary" => [],
-          "delete"  => ["option"],
-          "set"     => ["option", "value"],
-          "print"   => ["option"]
-        }
       }
 
       Builtins.y2milestone("Starting bootloader configuration module")
@@ -119,71 +52,6 @@ module Yast
 
       return false if ret == :abort || ret == :back || ret == :nil
       true
-    end
-
-    # Print summary of basic options
-    # @param [Hash] options a list of parameters passed as args
-    # @return [Boolean] false
-    def BootloaderSummaryHandler(_options)
-      CommandLine.Print(
-        RichText.Rich2Plain(
-          Ops.add("<br>", Builtins.mergestring(Bootloader.Summary, "<br>"))
-        )
-      )
-      false # do not call Write...
-    end
-
-    # Modify the boot loader global option
-    # @param [String] key string the key to modify
-    # @param [String] value string the value to set
-    # @return [Boolean] true on success
-    def BootloaderModify(key, value)
-      BootCommon.globals[key] = value
-      true
-    end
-
-    # Set specified option in global options
-    # @param [Hash] options a list of parameters passed as args
-    # @return [Boolean] true on success
-    def BootloaderSetHandler(options)
-      option = options["option"]
-      value = options["value"]
-      if value.nil?
-        # command line error report
-        CommandLine.Print(_("Value was not specified."))
-        return false
-      end
-      BootloaderModify(option, value.to_s)
-    end
-
-    # Delete specified option
-    # @param [Hash] options a list of parameters passed as args
-    # @return [Boolean] true on success
-    def BootloaderDeleteHandler(options)
-      option = options["option"]
-      BootloaderModifySection(option, nil)
-    end
-
-    # Print the value of specified option
-    # @param [Hash] options a list of parameters passed as args
-    # @return [Boolean] true on success
-    def BootloaderPrintHandler(options)
-      options = deep_copy(options)
-      option = options["option"]
-      if option.nil?
-        # command line error report
-        CommandLine.Print(_("Option was not specified."))
-        return false
-      end
-      value = BootCommon.globals[option]
-      if value
-        # command line, %1 is the value of bootloader option
-        CommandLine.Print(_("Value: %s") % value)
-      else
-        # command line error report
-        CommandLine.Print(_("Specified option does not exist."))
-      end
-      false
     end
   end
 end
