@@ -54,6 +54,9 @@ module Bootloader
       system.merge(bl_current)
       system.write
 
+      # and remember result of merge as current one
+      ::Bootloader::BootloaderFactory.current = system
+
       # fate #303395: Use kexec to avoid booting between first and second stage
       # copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
       if Yast::Linuxrc.InstallInf("kexec_reboot") == "1"
