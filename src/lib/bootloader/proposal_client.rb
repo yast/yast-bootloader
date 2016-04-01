@@ -140,8 +140,8 @@ module Bootloader
 
       current_bl = ::Bootloader::BootloaderFactory.current
 
-      log.info "propose to install #{proposed.packages}"
-      Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, proposed.packages)
+      log.info "propose to install #{current_bl.packages}"
+      Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, current_bl.packages)
 
       true
     end
