@@ -51,6 +51,8 @@ module Bootloader
         # do nothing as user already modify it
       else
         # in installation always propose missing stuff
+        # current below use proposed value if not already set
+        # If set, then use same bootloader, but propose it again
         bl = ::Bootloader::BootloaderFactory.current
         bl.propose
       end
