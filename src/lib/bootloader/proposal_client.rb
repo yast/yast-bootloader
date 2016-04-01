@@ -20,6 +20,7 @@ module Bootloader
       Yast.import "Mode"
       Yast.import "BootSupportCheck"
       Yast.import "Product"
+      Yast.import "PackagesProposal"
     end
 
     PROPOSAL_LINKS = [
@@ -46,11 +47,19 @@ module Bootloader
 
       if Yast::Mode.update
         return { "raw_proposal" => [_("do not change")] } unless propose_for_update(force_reset)
+      elsif Yast::Bootloader.proposed_cfg_changed
+        # do nothing as user already modify it
       else
         # in installation always propose missing stuff
-        bl = ::Bootloader::BootloaderFactory.proposed
+        # current below use proposed value if not already set
+        # If set, then use same bootloader, but propose it again
+        bl = ::Bootloader::BootloaderFactory.current
         bl.propose
       end
+
+      bl = ::Bootloader::BootloaderFactory.current
+      log.info "propose to install #{bl.packages}"
+      Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
 
       construct_proposal_map
     end
@@ -119,6 +128,8 @@ module Bootloader
         # blRead just exits for none bootloader
         ::Bootloader::BootloaderFactory.current_name = "none"
         ::Bootloader::BootloaderFactory.current.read
+
+        return false
       elsif !current_bl.proposed? || force_reset
         # Repropose the type. A regular Reset/Propose is not enough.
         # For more details see bnc#872081
@@ -126,7 +137,13 @@ module Bootloader
         ::Bootloader::BootloaderFactory.clear_cache
         proposed = ::Bootloader::BootloaderFactory.proposed
         proposed.propose
+        ::Bootloader::BootloaderFactory.current = proposed
       end
+
+      current_bl = ::Bootloader::BootloaderFactory.current
+
+      log.info "propose to install #{current_bl.packages}"
+      Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, current_bl.packages)
 
       true
     end
