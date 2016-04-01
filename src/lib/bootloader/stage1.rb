@@ -175,12 +175,18 @@ module Bootloader
     def propose_s390
       # s390 do not need any partition as it is stored to predefined zipl location
       assign_bootloader_device(:none)
+
+      self.activate = false
+      self.generic_mbr = false
     end
 
     def propose_ppc
       partition = Yast::BootStorage.prep_partitions.first
       if partition
         assign_bootloader_device([:custom, partition])
+
+        self.activate = true
+        self.generic_mbr = false
       # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
       # we need to detect what is mount on /boot and if it is nfs, then just
       # skip this proposal. In other case if it is not nfs, then it is error and raise exception
