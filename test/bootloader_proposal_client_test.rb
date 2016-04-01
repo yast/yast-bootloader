@@ -162,7 +162,7 @@ describe Bootloader::ProposalClient do
     it "call bootloader propose in common installation" do
       Yast.import "Mode"
       allow(Yast::Mode).to receive(:update).and_return(false)
-      expect(Bootloader::BootloaderFactory).to receive(:proposed).and_call_original
+      expect(Bootloader::BootloaderFactory.current).to receive(:propose)
 
       subject.make_proposal({})
     end
