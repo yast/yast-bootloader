@@ -26,26 +26,11 @@ Yast.import "Stage"
 Yast.import "Storage"
 Yast.import "StorageDevices"
 
-# Refinement for suse specific attributes in GRUB2 default file
-module GrubDefaultRefinement
-  refine ::CFA::Grub2::Default do
-    def suse_btrfs
-      generic_get("SUSE_BTRFS_SNAPSHOT_BOOTING")
-    end
-
-    def suse_btrfs=(value)
-      generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", value)
-    end
-  end
-end
-
 module Bootloader
   # Common base for GRUB2 specialized classes
   class Grub2Base < BootloaderBase
     include Yast::Logger
     include Yast::I18n
-
-    using GrubDefaultRefinement
 
     # @!attribute password
     #    @return [::Bootloader::GRUB2Pwd] stored password configuration object
@@ -119,7 +104,8 @@ module Bootloader
       grub_default.recovery_entry.disable unless grub_default.recovery_entry.defined?
       grub_default.distributor ||= ""
       grub_default.default = "saved"
-      grub_default.suse_btrfs = "true" # always propose true as grub2 itself detect if btrfs used
+      # always propose true as grub2 itself detect if btrfs used
+      grub_default.generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", "true")
 
       propose_serial
 
@@ -185,9 +171,13 @@ module Bootloader
     def merge_attributes(default, other)
       # string attributes
       [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
-       :gfxmode, :theme, :suse_btrfs].each do |attr|
+       :gfxmode, :theme].each do |attr|
         default.send((attr.to_s + "="), other.send(attr)) if other.send(attr)
       end
+
+      # suse btrfs is suse specific so it is not in CFA
+      val = other.generic_get("SUSE_BTRFS_SNAPSHOT_BOOTING")
+      grub_default.generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", val) if val
 
       # boolean attributes, instance of {CFA::Boolean}
       [:os_prober, :cryptodisk].each do |attr|
