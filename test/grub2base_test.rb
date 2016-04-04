@@ -147,6 +147,12 @@ describe Bootloader::Grub2Base do
       expect(subject.grub_default.timeout).to eq "8"
     end
 
+    it "proposes using btrfs snapshots always to true" do
+      subject.propose
+
+      expect(subject.grub_default.generic_get("SUSE_BTRFS_SNAPSHOT_BOOTING")).to eq "true"
+    end
+
     describe "kernel parameters proposal" do
       context "on x86_64" do
         before do
