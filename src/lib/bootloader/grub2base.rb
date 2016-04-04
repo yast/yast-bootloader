@@ -26,16 +26,17 @@ Yast.import "Stage"
 Yast.import "Storage"
 Yast.import "StorageDevices"
 
+# Refinement for suse specific attributes in GRUB2 default file
 module GrubDefaultRefinement
- refine ::CFA::Grub2::Default do
-   def suse_btrfs
-     generic_get("SUSE_BTRFS_SNAPSHOT_BOOTING")
-   end
+  refine ::CFA::Grub2::Default do
+    def suse_btrfs
+      generic_get("SUSE_BTRFS_SNAPSHOT_BOOTING")
+    end
 
-   def suse_btrfs=(value)
-     generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", value)
-   end
- end
+    def suse_btrfs=(value)
+      generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", value)
+    end
+  end
 end
 
 module Bootloader
