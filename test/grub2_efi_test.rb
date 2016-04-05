@@ -4,7 +4,9 @@ require "bootloader/grub2efi"
 
 describe Bootloader::Grub2EFI do
   before do
-    allow(::CFA::Grub2::Default).to receive(:new).and_return(double("GrubDefault").as_null_object)
+    default = double("GrubDefault").as_null_object
+    allow(default).to receive(:timeout) # collision between timeout method of double and attr
+    allow(::CFA::Grub2::Default).to receive(:new).and_return(default)
     allow(::CFA::Grub2::GrubCfg).to receive(:new).and_return(double("GrubCfg").as_null_object)
     allow(Bootloader::Sections).to receive(:new).and_return(double("Sections").as_null_object)
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
@@ -113,6 +115,19 @@ describe Bootloader::Grub2EFI do
       subject.secure_boot = false
 
       expect(subject.summary).to include("Enable Secure Boot: no")
+    end
+  end
+
+  describe "#merge" do
+    it "overwrite secure boot if specified in merged one" do
+      other = described_class.new
+      other.secure_boot = true
+
+      subject.secure_boot = false
+
+      subject.merge(other)
+
+      expect(subject.secure_boot).to eq true
     end
   end
 end
