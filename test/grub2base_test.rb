@@ -348,4 +348,75 @@ describe Bootloader::Grub2Base do
       expect(subject.grub_default.kernel_params.serialize).to eq "console=ttyS1,4800n8"
     end
   end
+
+  describe "#merge" do
+    let(:other) do
+      other = Bootloader::Grub2Base.new
+      other.define_singleton_method(:name) { "grub2base" }
+      other
+    end
+
+    before do
+      subject.define_singleton_method(:name) { "grub2base" }
+    end
+
+    it "for default configuration prefer value from other if defined" do
+      subject.grub_default.default = "0"
+      other.grub_default.default = "saved"
+
+      subject.grub_default.terminal = :gfxterm
+
+      subject.grub_default.os_prober.enable
+      other.grub_default.os_prober.disable
+
+      subject.merge(other)
+
+      expect(subject.grub_default.default).to eq "saved"
+      expect(subject.grub_default.terminal).to eq :gfxterm
+      expect(subject.grub_default.os_prober).to be_disabled
+    end
+
+    it "for kernel line place subject params and then merged ones" do
+      subject.grub_default.kernel_params.replace("verbose debug=true")
+      other.grub_default.kernel_params.replace("silent 3")
+
+      subject.merge(other)
+
+      expect(subject.grub_default.kernel_params.serialize).to eq "verbose debug=true silent 3"
+    end
+
+    it "use grub2 password configuration specified in merged object" do
+      allow(other.password).to receive(:password?).and_return(true)
+
+      subject.merge(other)
+
+      expect(subject.password).to be_password
+    end
+
+    it "overwrites default section with merged one if specified" do
+      allow(other.sections).to receive(:all).and_return(["Win crap", "openSUSE"])
+      allow(subject.sections).to receive(:all).and_return(["Win crap", "openSUSE"])
+
+      other.sections.default = "openSUSE"
+
+      subject.merge(other)
+
+      expect(subject.sections.default).to eq "openSUSE"
+
+      other.sections.default = ""
+
+      subject.merge(other)
+
+      expect(subject.sections.default).to eq "openSUSE"
+    end
+
+    it "overwrites pmbr action if merged one define it" do
+      subject.pmbr_action = :add
+      other.pmbr_action = :nothing
+
+      subject.merge(other)
+
+      expect(subject.pmbr_action).to eq :nothing
+    end
+  end
 end

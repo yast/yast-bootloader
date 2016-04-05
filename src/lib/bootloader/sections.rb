@@ -22,10 +22,10 @@ module Bootloader
 
       return @default = "" if Yast::Stage.initial
 
-      saved = Yast::Execute.on_target("/usr/bin/grub2-editenv", "list", stdout: :capture)
+      saved = Yast::Execute.on_target("/usr/bin/grub2-editenv", "list", stdout: :capture) || ""
       saved_line = saved.lines.grep(/saved_entry=/).first
 
-      @default = saved_line ? saved_line[/saved_entry=(\S*)/, 1] : @all.first
+      @default = saved_line ? saved_line[/saved_entry=(\S*)/, 1] : all.first
     end
 
     # Sets default section internally
@@ -34,7 +34,7 @@ module Bootloader
       log.info "set new default to '#{value.inspect}'"
 
       # empty value mean no default specified
-      raise "Unknown value #{value.inspect}" if !@all.include?(value) && !value.empty?
+      raise "Unknown value #{value.inspect}" if !all.include?(value) && !value.empty?
 
       @default = value
     end
