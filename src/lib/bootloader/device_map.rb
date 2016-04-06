@@ -24,7 +24,7 @@ module Bootloader
     end
 
     def to_s
-      "Device Map: #{@model.grub_devices}"
+      "Device Map: #{grub_devices}"
     end
 
     def read
@@ -36,7 +36,7 @@ module Bootloader
     end
 
     def size
-      @model.grub_devices.size
+      grub_devices.size
     end
 
     def empty?
@@ -44,20 +44,20 @@ module Bootloader
     end
 
     def clear_mapping
-      @model.grub_devices.each do |grub_dev|
-        @model.remove_mapping(grub_dev)
+      grub_devices.each do |grub_dev|
+        remove_mapping(grub_dev)
       end
     end
 
     def contain_disk?(disk)
-      disk = @model.grub_device_for(disk) ||
-        @model.grub_device_for(::Bootloader::UdevMapping.to_mountby_device(disk))
+      disk = grub_device_for(disk) ||
+        grub_device_for(::Bootloader::UdevMapping.to_mountby_device(disk))
 
       !disk.nil?
     end
 
     def disks_order
-      sorted_disks.map { |d| @model.system_device_for(d) }
+      sorted_disks.map { |d| system_device_for(d) }
     end
 
     def propose
@@ -78,9 +78,8 @@ module Bootloader
   private
 
     def sorted_disks
-      grub_devices = @model.grub_devices
-      grub_devices.select! { |d| d.start_with?("hd") }
-      grub_devices.sort_by { |dev| dev[2..-1].to_i }
+      grub_devices.select { |d| d.start_with?("hd") }
+        .sort_by { |dev| dev[2..-1].to_i }
     end
 
     BIOS_LIMIT = 8
@@ -99,7 +98,7 @@ module Bootloader
       other_devices_size = size - grub_devices.size
 
       (BIOS_LIMIT - other_devices_size..grub_devices.size).each do |index|
-        @model.remove_mapping(grub_devices[index])
+        remove_mapping(grub_devices[index])
       end
 
       log.info "device map after reduction #{self}"
@@ -139,7 +138,7 @@ module Bootloader
                 end
         # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
         if !ids[index]
-          @model.add_mapping("hd#{index}", target_dev)
+          add_mapping("hd#{index}", target_dev)
           ids[index] = true
         end
       end
@@ -151,7 +150,7 @@ module Bootloader
         index = 0 # find free index
         index += 1 while ids[index]
 
-        @model.add_mapping("hd#{index}", target_dev)
+        add_mapping("hd#{index}", target_dev)
         ids[index] = true
       end
     end
@@ -178,7 +177,7 @@ module Bootloader
     # Returns true if any device from list devices is in device_mapping
     # marked as hd0.
     def any_first_device?(devices)
-      devices.include?(@model.system_device_for("hd0"))
+      devices.include?(system_device_for("hd0"))
     end
 
     # This function changes order of devices in device_mapping.
@@ -186,17 +185,17 @@ module Bootloader
     def change_order(priority_device)
       log.info "Change order with priority_device: #{priority_device}"
 
-      grub_dev = @model.grub_device_for(priority_device)
+      grub_dev = grub_device_for(priority_device)
       if !grub_dev
         log.warn("Unknown priority device '#{priority_device}'. Skipping")
         return
       end
 
-      replaced_dev = @model.system_device_for("hd0")
-      @model.remove_mapping("hd0")
-      @model.remove_mapping(grub_dev)
-      @model.add_mapping("hd0", priority_device)
-      @model.add_mapping(grub_dev, replaced_dev)
+      replaced_dev = system_device_for("hd0")
+      remove_mapping("hd0")
+      remove_mapping(grub_dev)
+      add_mapping("hd0", priority_device)
+      add_mapping(grub_dev, replaced_dev)
     end
 
     # Check if MD raid is build on disks not on paritions
