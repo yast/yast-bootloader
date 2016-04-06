@@ -379,11 +379,11 @@ describe Bootloader::Grub2Base do
 
     it "for kernel line place subject params and then merged ones" do
       subject.grub_default.kernel_params.replace("verbose debug=true")
-      other.grub_default.kernel_params.replace("silent 3")
+      other.grub_default.kernel_params.replace("silent debug=false 3")
 
       subject.merge(other)
 
-      expect(subject.grub_default.kernel_params.serialize).to eq "verbose debug=true silent 3"
+      expect(subject.grub_default.kernel_params.serialize).to eq "verbose debug=true silent debug=false 3"
     end
 
     it "use grub2 password configuration specified in merged object" do
