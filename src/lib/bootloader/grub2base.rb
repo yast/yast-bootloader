@@ -175,7 +175,8 @@ module Bootloader
       # string attributes
       [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
        :gfxmode, :theme, :default].each do |attr|
-        default.send((attr.to_s + "=").to_sym, other.send(attr)) if other.send(attr)
+        val = other.public_send(attr)
+        default.public_send((attr.to_s + "=").to_sym, val) if val
       end
 
       # suse btrfs is suse specific so it is not in CFA
@@ -184,7 +185,8 @@ module Bootloader
 
       # boolean attributes, instance of {CFA::Boolean}
       [:os_prober, :cryptodisk].each do |attr|
-        default.send(attr).value = other.send(attr).enabled? if other.send(attr).defined?
+        val = other.public_send(attr)
+        default.public_send(attr).value = val.enabled? if val.defined?
       end
     end
 

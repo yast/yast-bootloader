@@ -4,9 +4,7 @@ require "bootloader/grub2"
 
 describe Bootloader::Grub2 do
   before do
-    default = double("GrubDefault").as_null_object
-    allow(default).to receive(:timeout) # mock double own method that is not nulled
-    allow(::CFA::Grub2::Default).to receive(:new).and_return(default)
+    allow(::CFA::Grub2::Default).to receive(:new).and_return(double("GrubDefault").as_null_object)
     allow(::CFA::Grub2::GrubCfg).to receive(:new).and_return(double("GrubCfg").as_null_object)
     allow(Bootloader::Sections).to receive(:new).and_return(double("Sections").as_null_object)
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
