@@ -22,6 +22,8 @@ module Bootloader
 
       return @default = "" if Yast::Stage.initial
 
+      # Execute.on_target can return nil if call failed. It shows users error popup, but bootloader
+      # can continue with empty default section
       saved = Yast::Execute.on_target("/usr/bin/grub2-editenv", "list", stdout: :capture) || ""
       saved_line = saved.lines.grep(/saved_entry=/).first
 

@@ -357,6 +357,7 @@ describe Bootloader::Grub2Base do
     end
 
     before do
+      allow(Yast::Execute).to receive(:on_target).and_return("")
       subject.define_singleton_method(:name) { "grub2base" }
     end
 
