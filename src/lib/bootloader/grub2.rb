@@ -73,7 +73,7 @@ module Bootloader
 
       stage1.propose
       # for GPT add protective MBR flag otherwise some systems won't
-      # boot, safer option for legacy booting
+      # boot, safer option for legacy booting (bnc#872054)
       self.pmbr_action = :add if Yast::BootStorage.gpt_boot_disk?
       device_map.propose if Yast::Arch.x86_64 || Yast::Arch.i386
     end
