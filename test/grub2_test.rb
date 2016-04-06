@@ -125,12 +125,12 @@ describe Bootloader::Grub2 do
       subject.propose
     end
 
-    it "propose to remove pmbr flag if boot disk is with gpt label" do
+    it "propose to add pmbr flag if boot disk is with gpt label" do
       allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
 
       subject.propose
 
-      expect(subject.pmbr_action).to eq :remove
+      expect(subject.pmbr_action).to eq :add
     end
 
     it "propose to do not change pmbr flag if boot disk is not with gpt label" do
