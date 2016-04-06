@@ -144,7 +144,9 @@ module Bootloader
     end
 
     def merge_sections(other)
-      sections.default = other.sections.default if other.sections.default
+      return if !other.sections.default || other.sections.default.empty?
+
+      sections.default = other.sections.default
     end
 
     def merge_password(other)
@@ -158,6 +160,7 @@ module Bootloader
       log.info "before merge default #{default.inspect}"
       log.info "before merge other #{other.inspect}"
 
+      # TODO: other kernel flavors probably will be also needed
       unless other.kernel_params.serialize.empty?
         new_kernel_params = default.kernel_params.serialize + " " + other.kernel_params.serialize
         default.kernel_params.replace(new_kernel_params)
@@ -171,8 +174,9 @@ module Bootloader
     def merge_attributes(default, other)
       # string attributes
       [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
-       :gfxmode, :theme].each do |attr|
-        default.send((attr.to_s + "="), other.send(attr)) if other.send(attr)
+       :gfxmode, :theme, :default].each do |attr|
+        val = other.public_send(attr)
+        default.public_send((attr.to_s + "=").to_sym, val) if val
       end
 
       # suse btrfs is suse specific so it is not in CFA
@@ -181,11 +185,9 @@ module Bootloader
 
       # boolean attributes, instance of {CFA::Boolean}
       [:os_prober, :cryptodisk].each do |attr|
-        default.send(attr).value = other.send(attr).enabled? if other.send(attr).defined?
+        val = other.public_send(attr)
+        default.public_send(attr).value = val.enabled? if val.defined?
       end
-
-      # grub default have special value saved, otherwise choosing sections won't work
-      default.default = "saved" # yes, default/grub2 have value GRUB_DEFAULT so default.default
     end
 
     def serial_console_matcher

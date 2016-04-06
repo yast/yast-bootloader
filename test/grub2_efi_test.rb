@@ -115,4 +115,17 @@ describe Bootloader::Grub2EFI do
       expect(subject.summary).to include("Enable Secure Boot: no")
     end
   end
+
+  describe "#merge" do
+    it "overwrite secure boot if specified in merged one" do
+      other = described_class.new
+      other.secure_boot = true
+
+      subject.secure_boot = false
+
+      subject.merge(other)
+
+      expect(subject.secure_boot).to eq true
+    end
+  end
 end

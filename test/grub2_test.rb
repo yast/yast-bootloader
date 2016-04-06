@@ -176,8 +176,136 @@ describe Bootloader::Grub2 do
       allow(Yast::BootStorage).to receive(:can_boot_from_partition).and_return(true)
     end
 
-    it "contain line saying that bootloader type is GRUB2" do
+    it "contains line saying that bootloader type is GRUB2" do
       expect(subject.summary).to include("Boot Loader Type: GRUB2")
+    end
+  end
+
+  describe "#merge" do
+    let(:other) { described_class.new }
+    it "replaces device map if merged one is not empty" do
+      other.device_map.add_mapping("hd0", "/dev/sda")
+
+      subject.merge(other)
+
+      expect(subject.device_map.system_device_for("hd0")).to eq "/dev/sda"
+    end
+
+    context "stage1 does not contain any device" do
+      before do
+        allow(Bootloader::Stage1).to receive(:new).and_call_original
+        allow(other.stage1).to receive(:devices).and_return([])
+      end
+
+      it "sets activate flag if subject or merged one contain it" do
+        subject.stage1.activate = true
+        other.stage1.activate = false
+
+        subject.merge(other)
+
+        expect(subject.stage1.activate?).to eq true
+
+        subject.stage1.activate = false
+        other.stage1.activate = false
+
+        subject.merge(other)
+
+        expect(subject.stage1.activate?).to eq false
+
+        subject.stage1.activate = false
+        other.stage1.activate = true
+
+        subject.merge(other)
+
+        expect(subject.stage1.activate?).to eq true
+      end
+
+      it "sets generic_mbr flag if subject or merged one contain it" do
+        subject.stage1.generic_mbr = true
+        other.stage1.generic_mbr = false
+
+        subject.merge(other)
+
+        expect(subject.stage1.generic_mbr?).to eq true
+
+        subject.stage1.generic_mbr = false
+        other.stage1.generic_mbr = false
+
+        subject.merge(other)
+
+        expect(subject.stage1.generic_mbr?).to eq false
+
+        subject.stage1.generic_mbr = false
+        other.stage1.generic_mbr = true
+
+        subject.merge(other)
+
+        expect(subject.stage1.generic_mbr?).to eq true
+      end
+    end
+
+    context "stage1 contains devices" do
+      before do
+        allow(Bootloader::Stage1).to receive(:new).and_call_original
+        allow(other.stage1).to receive(:devices).and_return(["/dev/sda"])
+
+        allow(Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
+      end
+
+      it "replaces activate flag with merged one" do
+        subject.stage1.activate = true
+        other.stage1.activate = false
+
+        subject.merge(other)
+
+        expect(subject.stage1.activate?).to eq false
+
+        subject.stage1.activate = false
+        other.stage1.activate = false
+
+        subject.merge(other)
+
+        expect(subject.stage1.activate?).to eq false
+
+        subject.stage1.activate = false
+        other.stage1.activate = true
+
+        subject.merge(other)
+
+        expect(subject.stage1.activate?).to eq true
+      end
+
+      it "replaces generic_mbr flag with merged one" do
+        subject.stage1.generic_mbr = true
+        other.stage1.generic_mbr = false
+
+        subject.merge(other)
+
+        expect(subject.stage1.generic_mbr?).to eq false
+
+        subject.stage1.generic_mbr = false
+        other.stage1.generic_mbr = false
+
+        subject.merge(other)
+
+        expect(subject.stage1.generic_mbr?).to eq false
+
+        subject.stage1.generic_mbr = false
+        other.stage1.generic_mbr = true
+
+        subject.merge(other)
+
+        expect(subject.stage1.generic_mbr?).to eq true
+      end
+
+      it "replaces all stage1 devices with merged ones" do
+        subject.stage1.clear_devices
+        subject.stage1.add_udev_device("/dev/sdb")
+
+        subject.merge(other)
+
+        expect(subject.stage1.devices).to eq ["/dev/sda"]
+      end
     end
   end
 end
