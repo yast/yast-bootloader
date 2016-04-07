@@ -17,8 +17,10 @@ module Bootloader
 
         return res if bootloader_type == "none"
 
-        export_stage1(res, config.stage1) if config.respond_to?(:stage1)
-        export_default(res, config.grub_default)
+        res["global"] = {}
+        global = res["global"]
+        export_stage1(global, config.stage1) if config.respond_to?(:stage1)
+        export_default(global, config.grub_default)
 
         res
       end
@@ -34,12 +36,11 @@ module Bootloader
         "boot_extended" => :extended_partition?
       }
       def export_stage1(res, stage1)
-        res["global"] ||= {}
         STAGE1_MAPPING.each do |key, method|
-          res["global"][key] = stage1.public_send(method) ? "true" : "false"
+          res[key] = stage1.public_send(method) ? "true" : "false"
         end
 
-        res["global"]["boot_custom"] = stage1.custom_devices.join(",") unless stage1.custom_devices.empty?
+        res["boot_custom"] = stage1.custom_devices.join(",") unless stage1.custom_devices.empty?
       end
 
       DEFAULT_BOOLEAN_MAPPING = {
@@ -60,17 +61,17 @@ module Bootloader
       def export_default(res, default)
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
           val = default.public_send(method)
-          res["global"][key] = val.enabled? ? "true" : "false" if val.defined?
+          res[key] = val.enabled? ? "true" : "false" if val.defined?
         end
 
         DEFAULT_STRING_MAPPING.each do |key, method|
           val = default.public_send(method)
-          res["global"][key] = val if val
+          res[key] = val if val
         end
 
         DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
           val = default.public_send(method)
-          res["global"][key] = val.serialize unless val.empty?
+          res[key] = val.serialize unless val.empty?
         end
 
         export_timeout(res, default)
@@ -78,11 +79,11 @@ module Bootloader
 
       def export_timeout(res, default)
         if default.hidden_timeout.to_s.to_i > 0
-          res["global"]["hiddenmenu"] = "true"
-          res["global"]["timeout"] = default.hidden_timeout.to_s.to_i
+          res["hiddenmenu"] = "true"
+          res["timeout"] = default.hidden_timeout.to_s.to_i
         else
-          res["global"]["hiddenmenu"] = "false"
-          res["global"]["timeout"] = default.timeout.to_s.to_i
+          res["hiddenmenu"] = "false"
+          res["timeout"] = default.timeout.to_s.to_i
         end
       end
     end
