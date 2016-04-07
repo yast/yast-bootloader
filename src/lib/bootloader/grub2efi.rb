@@ -52,8 +52,8 @@ module Bootloader
     def propose
       super
 
-      # for UEFI always set PMBR flag on disk (bnc#872054)
-      self.pmbr_action = :add
+      # for UEFI always remove PMBR flag on disk (bnc#872054)
+      self.pmbr_action = :remove
 
       @secure_boot = true
     end
