@@ -1,4 +1,6 @@
 require "installation/auto_client"
+require "bootloader/bootloader_factory"
+require "bootloader/autoyast_converter"
 
 module Bootloader
   # Autoyast client for bootloader
@@ -74,7 +76,8 @@ module Bootloader
     #
     # return map or list
     def export
-      Export2AI(Yast::Bootloader.Export)
+      config = BootloaderFactory.current
+      AutoyastConverter.export(config)
     end
 
     def write
