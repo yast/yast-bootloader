@@ -1,11 +1,17 @@
+require "yast"
+
 module Bootloader
   # Converter between internal configuration model and autoyast serialization of configuration.
   class AutoyastConverter
     class << self
+      include Yast::Logger
+
       def import(_data)
       end
 
       def export(config)
+        log.info "exporting config #{config.inspect}"
+
         bootloader_type = config.name
         res = { "loader_type" => bootloader_type }
 
@@ -13,6 +19,8 @@ module Bootloader
 
         export_stage1(res, config.stage1) if config.respond_to?(:stage1)
         export_default(res, config.grub_default)
+
+        res
       end
 
     private
@@ -31,7 +39,7 @@ module Bootloader
           res["global"][key] = stage1.public_send(method) ? "true" : "false"
         end
 
-        res["global"]["boot_custom"] = stage1.custom_devices.join(",")
+        res["global"]["boot_custom"] = stage1.custom_devices.join(",") unless stage1.custom_devices.empty?
       end
 
       DEFAULT_BOOLEAN_MAPPING = {

@@ -33,7 +33,7 @@ module Bootloader
         ret = Yast::Bootloader.Import(data)
         # moved here from inst_autosetup*
         if Yast::Stage.initial
-          Yast::BootStorage.DetectDisks
+          Yast::BootStorage.detect_disks
           Yast::Bootloader.Propose
         end
       else
@@ -76,8 +76,16 @@ module Bootloader
     #
     # return map or list
     def export
+      # it is needed to have information about storage configuration to understand current config
+      Yast::BootStorage.detect_disks
+
       config = BootloaderFactory.current
-      AutoyastConverter.export(config)
+      config.read if !config.read? && !config.proposed?
+      result = AutoyastConverter.export(config)
+
+      log.info "autoyast map for bootloader: #{result.inspect}"
+
+      result
     end
 
     def write
