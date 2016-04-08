@@ -91,9 +91,6 @@ rake install DESTDIR="%{buildroot}"
 %dir %{yast_desktopdir}
 %{yast_desktopdir}/bootloader.desktop
 
-%dir %{yast_yncludedir}
-%dir %{yast_yncludedir}/bootloader
-%{yast_yncludedir}/bootloader/*
 %dir %{yast_moduledir}
 %{yast_moduledir}/*
 %dir %{yast_clientdir}
