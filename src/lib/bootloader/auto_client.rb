@@ -1,22 +1,19 @@
+require "yast"
+
 require "installation/auto_client"
 require "bootloader/bootloader_factory"
 require "bootloader/autoyast_converter"
 
+Yast.import "Bootloader"
+Yast.import "BootStorage"
+Yast.import "Initrd"
+Yast.import "Progress"
+
 module Bootloader
   # Autoyast client for bootloader
   class AutoClient < ::Installation::AutoClient
-    def initialize
-      Yast.import "UI"
-
-      Yast.import "Bootloader"
-      Yast.import "BootCommon"
-      Yast.import "BootStorage"
-      Yast.import "Initrd"
-      Yast.import "Progress"
-      Yast.import "Mode"
-
-      Yast.include self, "bootloader/routines/autoinstall.rb"
-      Yast.include self, "bootloader/routines/wizards.rb"
+    class << self
+      attr_accessor :changed
     end
 
     def run
@@ -28,20 +25,17 @@ module Bootloader
     end
 
     def import(data)
-      data = AI2Export(data)
-      if data
-        ret = Yast::Bootloader.Import(data)
-        # moved here from inst_autosetup*
-        if Yast::Stage.initial
-          Yast::BootStorage.detect_disks
-          Yast::Bootloader.Propose
-        end
-      else
-        log.error "Failed to convert autoyast profile to standard form"
-        ret = false
-      end
+      Yast::BootStorage.detect_disks
 
-      ret
+      imported_configuration = AutoyastConverter.import(data)
+      BootloaderFactory.clear_cache
+
+      proposed_configuration = BootloaderFactory.bootloader_by_name(imported_configuration.name)
+
+      proposed_configuration.merge(imported_configuration)
+      BootloaderFactory.current = proposed_configuration
+
+      true
     end
 
     def summary
@@ -51,15 +45,15 @@ module Bootloader
     end
 
     def modified?
-      BootCommon.changed
+      self.class.changed
     end
 
     def modified
-      BootCommon.changed = true
+      self.class.changed = true
     end
 
     def reset
-      Bootloader.Reset
+      Yast::Bootloader.Reset
     end
 
     def change
