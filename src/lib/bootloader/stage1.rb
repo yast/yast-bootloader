@@ -192,6 +192,9 @@ module Bootloader
       # skip this proposal. In other case if it is not nfs, then it is error and raise exception
       elsif Yast::BootStorage.disk_with_boot_partition == "/dev/nfs"
         return
+      # powernv do not have prep partition, so we do not have any partition to activate (bnc#970582)
+      elsif Yast::Arch.board_powernv
+        return
       else
         raise "there is no prep partition"
       end
