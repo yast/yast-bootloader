@@ -214,7 +214,7 @@ module Bootloader
     def propose_terminal
       return if grub_default.terminal
 
-      grub_default.terminal = Yast::Arch.s390 || Yast::Arch.ppc ? :console : :gfxterm
+      grub_default.terminal = (Yast::Arch.s390 || Yast::Arch.ppc) ? :console : :gfxterm
       grub_default.generic_set("GRUB_GFXPAYLOAD_LINUX", "text") if Yast::Arch.ppc
     end
 

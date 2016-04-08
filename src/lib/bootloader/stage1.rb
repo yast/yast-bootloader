@@ -190,10 +190,8 @@ module Bootloader
       # handle diskless setup, in such case do not write boot code anywhere (bnc#874466)
       # we need to detect what is mount on /boot and if it is nfs, then just
       # skip this proposal. In other case if it is not nfs, then it is error and raise exception
-      elsif Yast::BootStorage.disk_with_boot_partition == "/dev/nfs"
-        return
       # powernv do not have prep partition, so we do not have any partition to activate (bnc#970582)
-      elsif Yast::Arch.board_powernv
+      elsif Yast::BootStorage.disk_with_boot_partition == "/dev/nfs" || Yast::Arch.board_powernv
         return
       else
         raise "there is no prep partition"
