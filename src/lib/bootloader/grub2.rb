@@ -61,9 +61,11 @@ module Bootloader
       # TODO: own class handling PBMR
       pmbr_setup(*gpt_disks_devices)
 
-      @grub_install.execute(devices: stage1.devices)
+      # powernv must not call grub2-install (bnc#970582)
+      @grub_install.execute(devices: stage1.devices) unless Yast::Arch.board_powernv
       # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
-      MBRUpdate.new.run(stage1) unless Yast::Arch.s390
+      # powernv do not have prep partition, so we do not have any partition to activate (bnc#970582)
+      MBRUpdate.new.run(stage1) if !Yast::Arch.s390 && !Yast::Arch.board_powernv
 
       super
     end

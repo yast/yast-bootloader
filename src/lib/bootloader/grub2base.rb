@@ -179,9 +179,11 @@ module Bootloader
         default.public_send((attr.to_s + "=").to_sym, val) if val
       end
 
-      # suse btrfs is suse specific so it is not in CFA
-      val = other.generic_get("SUSE_BTRFS_SNAPSHOT_BOOTING")
-      grub_default.generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", val) if val
+      # specific attributes that are not part of cfa
+      ["SUSE_BTRFS_SNAPSHOT_BOOTING", "GRUB_GFXPAYLOAD_LINUX"].each do |attr|
+        val = other.generic_get(attr)
+        grub_default.generic_set(attr, val) if val
+      end
 
       # boolean attributes, instance of {CFA::Boolean}
       [:os_prober, :cryptodisk].each do |attr|
@@ -212,7 +214,8 @@ module Bootloader
     def propose_terminal
       return if grub_default.terminal
 
-      grub_default.terminal = Yast::Arch.s390 ? :console : :gfxterm
+      grub_default.terminal = (Yast::Arch.s390 || Yast::Arch.ppc) ? :console : :gfxterm
+      grub_default.generic_set("GRUB_GFXPAYLOAD_LINUX", "text") if Yast::Arch.ppc
     end
 
     def propose_timeout
