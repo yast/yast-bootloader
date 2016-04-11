@@ -11,13 +11,13 @@ Yast.import "Linuxrc"
 module Bootloader
   # Factory to get instance of bootloader
   class BootloaderFactory
-    class << self
-      SUPPORTED_BOOTLOADERS = [
-        "none", # allows user to manage bootloader itself
-        "grub2",
-        "grub2-efi"
-      ]
+    SUPPORTED_BOOTLOADERS = [
+      "none", # allows user to manage bootloader itself
+      "grub2",
+      "grub2-efi"
+    ]
 
+    class << self
       attr_writer :current
 
       def proposed
@@ -43,7 +43,7 @@ module Bootloader
       def supported_names
         if Yast::Mode.config
           # default means bootloader use what it think is the best
-          return SUPPORTED_BOOTLOADERS + ["default"]
+          return BootloaderFactory::SUPPORTED_BOOTLOADERS + ["default"]
         end
 
         system_bl = begin
