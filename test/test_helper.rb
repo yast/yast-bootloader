@@ -4,9 +4,24 @@ require "yast"
 require "yast/rspec"
 require "yaml"
 
+RSpec.configure do |config|
+  config.mock_with :rspec do |mocks|
+    # If you misremember a method name both in code and in tests,
+    # will save you.
+    # https://relishapp.com/rspec/rspec-mocks/v/3-0/docs/verifying-doubles/partial-doubles
+    #
+    # With graceful degradation for RSpec 2
+    if mocks.respond_to?(:verify_partial_doubles=)
+      mocks.verify_partial_doubles = true
+    end
+  end
+end
+
 if ENV["COVERAGE"]
   require "simplecov"
-  SimpleCov.start
+  SimpleCov.start do
+    add_filter "/test/"
+  end
 
   # for coverage we need to load all ruby files
   src_location = File.expand_path("../../src", __FILE__)
@@ -47,4 +62,6 @@ def mock_disk_partition
     end
     { "disk" => disk, "nr" => number }
   end
+
+  allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
 end

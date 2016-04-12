@@ -20,7 +20,8 @@ module Bootloader
         :to_mountby_device
     end
 
-    # Returns hash where keys are udev links for disks and partitions and value their kernel devices.
+    # Returns hash where keys are udev links for disks and partitions and value
+    # their kernel devices.
     # TODO: remove when remove pbl support
     # @example of output
     #   {
@@ -37,6 +38,9 @@ module Bootloader
     # @param dev [String] device udev, mdadm or kernel name like /dev/disk/by-id/blabla
     # @raise when device have udev format but do not exists
     def to_kernel_device(dev)
+      log.info "call to_kernel_device for #{dev}"
+      raise "invalid device nil" unless dev
+
       # for non-udev devices try to see specific raid names (bnc#944041)
       if dev =~ /^\/dev\/disk\/by-/
         all_devices[dev] or raise "Unknown udev device #{dev}"
@@ -61,33 +65,21 @@ module Bootloader
       kernel_dev = to_kernel_device(dev)
 
       log.info "#{dev} looked as kernel device name: #{kernel_dev}"
-      # we do not know if it is partition or disk, but target map help us
-      target_map = Yast::Storage.GetTargetMap
-      storage_data = target_map[kernel_dev]
-      if !storage_data # so partition
-        disk = target_map[Yast::Storage.GetDiskPartition(kernel_dev)["disk"]]
-        # if device is not disk, then it can be virtual device like tmpfs or
-        # disk no longer exists
-        return kernel_dev unless disk
 
-        storage_data = disk["partitions"].find do |p|
-          [p["device"], p["crypt_device"]].include?(kernel_dev)
-        end
-      end
+      storage_data = storage_data_for(kernel_dev)
+      return kernel_dev unless storage_data
 
-      raise "Unknown device #{kernel_dev}" unless storage_data
-
-      mount_by = storage_data["mountby"]
-      mount_by ||= Yast::Arch.ppc ? :id : Yast::Storage.GetDefaultMountBy
-
-      log.info "mount by: #{mount_by}"
-
+      mount_by = used_mount_by(storage_data)
       # explicit request to mount by kernel device
       return kernel_dev if mount_by == :device
 
       udev_data_key = MOUNT_BY_MAPPING_TO_UDEV[mount_by]
       raise "Internal error unknown mountby #{mount_by}" unless udev_data_key
-      udev_pair = map_device_to_udev_devices(storage_data[udev_data_key], udev_data_key, kernel_dev).first
+      udev_pair = map_device_to_udev_devices(
+        storage_data[udev_data_key],
+        udev_data_key,
+        kernel_dev
+      ).first
       if !udev_pair
         log.warn "Cannot find udev link to satisfy mount by for #{kernel_dev}"
         return kernel_dev
@@ -99,9 +91,38 @@ module Bootloader
 
   private
 
+    def storage_data_for(kernel_dev)
+      # we do not know if it is partition or disk, but target map help us
+      target_map = Yast::Storage.GetTargetMap
+      storage_data = target_map[kernel_dev]
+      if !storage_data # so partition
+        disk = target_map[Yast::Storage.GetDiskPartition(kernel_dev)["disk"]]
+        # if device is not disk, then it can be virtual device like tmpfs or
+        # disk no longer exists, so just return nil and kernel dev above
+        return nil unless disk
+
+        storage_data = disk["partitions"].find do |p|
+          [p["device"], p["crypt_device"]].include?(kernel_dev)
+        end
+      end
+
+      storage_data
+    end
+
+    def used_mount_by(storage_data)
+      mount_by = storage_data["mountby"]
+      mount_by ||= Yast::Arch.ppc ? :id : Yast::Storage.GetDefaultMountBy
+
+      log.info "mount by: #{mount_by}"
+
+      mount_by
+    end
+
     # reader of all devices that ensure that it contain valid data
     #
-    # @return hash where keys are udev links for disks and partitions and value their kernel devices.
+    # @return hash where keys are udev links for disks and partitions and value
+    #   their kernel devices.
+    #
     # @example of output
     #   {
     #     "/dev/disk/by-id/abcd" => "/dev/sda",
@@ -149,8 +170,10 @@ module Bootloader
       end
     end
 
-    # Returns array of pairs where each pair contain full udev name as first and kernel device as second
-    # @param names [Array<String>] udev names for device e.g. "aaaa-bbbb-cccc-dddd" for uuid device name
+    # Returns array of pairs where each pair contain full udev name as first and kernel
+    # device as second
+    # @param names [Array<String>] udev names for device e.g. "aaaa-bbbb-cccc-dddd"
+    #   for uuid device name
     # @param key [String] storage key for given udev mapping see UDEV_MAPPING
     # @param device [String] kernel name e.g. "/dev/sda"
     # @example
@@ -193,7 +216,7 @@ module Bootloader
     def cache_valid?
       return false unless @all_devices
 
-      # bnc#594482 - check if cache do not contain final uuids and recreate it when no new one can appear
+      # bnc#594482 - check if cache do not contain final uuids and recreate it when it is stable
       if Yast::Mode.installation && !@uuids_stable
         # recreate cache if uuids are stable now
         return false unless uuid_may_appear?

@@ -18,19 +18,17 @@
 #
 #
 require "yast"
-require "bootloader/device_map"
 require "bootloader/udev_mapping"
 
 module Yast
   class BootStorageClass < Module
     include Yast::Logger
 
-    attr_accessor :device_map
+    attr_accessor :mbr_disk
 
     def main
       textdomain "bootloader"
 
-      Yast.import "BootCommon"
       Yast.import "Storage"
       Yast.import "StorageDevices"
       Yast.import "Arch"
@@ -53,9 +51,6 @@ module Yast
 
       # information about MD arrays for perl-Bootloader
       @md_info = {}
-
-      # device mapping between Linux and firmware
-      @device_map = ::Bootloader::DeviceMap.new
 
       # string sepresenting device name of /boot partition
       # same as RootPartitionDevice if no separate /boot partition
@@ -92,6 +87,21 @@ module Yast
       end
 
       ret
+    end
+
+    def gpt_boot_disk?
+      require "bootloader/bootloader_factory"
+      current_bl = ::Bootloader::BootloaderFactory.current
+
+      # efi require gpt disk, so it is always one
+      return true if current_bl.name == "grub2efi"
+      # if bootloader do not know its location, then we do not care
+      return false unless current_bl.respond_to?(:stage1)
+
+      targets = current_bl.stage1.devices
+      target_map = Yast::Storage.GetTargetMap
+      boot_discs = targets.map { |d| Yast::Storage.GetDisk(target_map, d) }
+      boot_discs.any? { |d| d["label"] == "gpt" }
     end
 
     # Check if function was called or storage change
@@ -182,22 +192,12 @@ module Yast
       end
     end
 
-    # Get the order of disks according to BIOS mapping
-    # @return a list of all disks in the order BIOS sees them
-    def DisksOrder
-      @device_map.propose if @device_map.empty?
-
-      @device_map.disks_order
-    end
-
     # Returns list of partitions and disks. Requests current partitioning from
     # yast2-storage and creates list of partition and disks usable for grub stage1
     def possible_locations_for_stage1
       devices = Storage.GetTargetMap
 
       all_disks = devices.keys
-      # Devices which is not in device map cannot be used to boot
-      all_disks.select! { |d| device_map.contain_disk?(d) }
 
       disks_for_stage1 = all_disks.select do |d|
         [:CT_DISK, :CR_DMRAID].include?(devices[d]["type"])
@@ -257,7 +257,7 @@ module Yast
           log.info "Same disk for md array -> disable synchronize md arrays"
           return false
         else
-          disks <<  disk
+          disks << disk
         end
         # add disk from partition to md_physical_disks
         @md_physical_disks << disk unless @md_physical_disks.include?(disk)
@@ -305,7 +305,7 @@ module Yast
       end
 
       log.info "device: #{device} is based on md_physical_disks: #{@md_physical_disks}"\
-        "is #{ ret ? "valid" : "invalid" } for enable redundancy"
+        "is #{ret ? "valid" : "invalid"} for enable redundancy"
 
       ret
     end
@@ -412,9 +412,65 @@ module Yast
       res.uniq
     end
 
+    def find_mbr_disk
+      # use the disk with boot partition
+      mp = Storage.GetMountPoints
+      boot_disk = Ops.get_string(
+        mp,
+        ["/boot", 2],
+        Ops.get_string(mp, ["/", 2], "")
+      )
+      log.info "Disk with boot partition: #{boot_disk}, using for MBR"
+
+      boot_disk
+    end
+
+    # FIXME: merge with BootSupportCheck
+    # Check if the bootloader can be installed at all with current configuration
+    # @return [Boolean] true if it can
+    def bootloader_installable?
+      return true if Mode.config
+      return true if !Arch.i386 && !Arch.x86_64
+
+      # the only relevant is the partition holding the /boot filesystem
+      detect_disks
+      Builtins.y2milestone(
+        "Boot partition device: %1",
+        BootStorage.BootPartitionDevice
+      )
+      dev = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
+      Builtins.y2milestone("Disk info: %1", dev)
+      # MD, but not mirroring is OK
+      # FIXME: type detection by name deprecated
+      if Ops.get_string(dev, "disk", "") == "/dev/md"
+        tm = Storage.GetTargetMap
+        md = Ops.get_map(tm, "/dev/md", {})
+        parts = Ops.get_list(md, "partitions", [])
+        info = {}
+        Builtins.foreach(parts) do |p|
+          if Ops.get_string(p, "device", "") ==
+              BootStorage.BootPartitionDevice
+            info = deep_copy(p)
+          end
+        end
+        if Builtins.tolower(Ops.get_string(info, "raid_type", "")) != "raid1"
+          Builtins.y2milestone(
+            "Cannot install bootloader on RAID (not mirror)"
+          )
+          return false
+        end
+
+      # EVMS
+      # FIXME: type detection by name deprecated
+      elsif Builtins.search(BootPartitionDevice(), "/dev/evms/") == 0
+        Builtins.y2milestone("Cannot install bootloader on EVMS")
+        return false
+      end
+
+      true
+    end
+
     # Sets properly boot, root and mbr disk.
-    # @return :empty if bl devices are empty, :invalid if storage changed and
-    #   :ok if everything is fine
     def detect_disks
       # The AutoYaST config mode does access to the system.
       # bnc#942360
@@ -437,28 +493,7 @@ module Yast
       # get extended partition device (if exists)
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
-      if BootCommon.mbrDisk == "" || BootCommon.mbrDisk.nil?
-        # mbr detection.
-        BootCommon.mbrDisk = BootCommon.FindMBRDisk
-      end
-
-      # device map may be implicitly proposed in FindMBRDisk above
-      # - but not always...
-      device_map.propose if device_map.empty?
-
-      # if no bootloader devices have been set up, or any of the set up
-      # bootloader devices have become unavailable, then re-propose the
-      # bootloader location.
-      bldevs = BootCommon.GetBootloaderDevices
-
-      return :empty if bldevs.empty?
-
-      all_boot_partitions = possible_locations_for_stage1
-      invalid = bldevs.any? do |dev|
-        !all_boot_partitions.include?(dev)
-      end
-
-      invalid ? :invalid : :ok
+      @mbr_disk = find_mbr_disk
     end
 
     def prep_partitions
@@ -474,6 +509,27 @@ module Yast
 
       y2milestone "detected prep partitions #{prep_partitions.inspect}"
       prep_partitions.map { |p| p["device"] }
+    end
+
+    def disk_with_boot_partition
+      boot_device = BootPartitionDevice()
+
+      if boot_device.empty?
+        log.error "BootPartitionDevice and RootPartitionDevice are empty"
+        return boot_device
+      end
+
+      p_dev = Storage.GetDiskPartition(boot_device)
+
+      boot_disk_device = p_dev["disk"]
+
+      if boot_disk_device && !boot_disk_device.empty?
+        log.info "Boot device - disk: #{boot_disk_device}"
+        return boot_disk_device
+      end
+
+      log.error("Finding boot disk failed!")
+      ""
     end
 
     # Get map of swap partitions
@@ -501,6 +557,19 @@ module Yast
       ret
     end
 
+    def encrypted_boot?
+      dev = BootPartitionDevice()
+      tm = Yast::Storage.GetTargetMap || {}
+      tm.each_value do |v|
+        partitions = v["partitions"] || []
+        partition = partitions.find { |p| p["device"] == dev || p["crypt_device"] == dev }
+
+        next unless partition
+
+        return partition["crypt_device"] && !partition["crypt_device"].empty?
+      end
+    end
+
     publish :variable => :multipath_mapping, :type => "map <string, string>"
     publish :variable => :mountpoints, :type => "map <string, any>"
     publish :variable => :partinfo, :type => "list <list>"
@@ -509,7 +578,6 @@ module Yast
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
     publish :function => :InitDiskInfo, :type => "void ()"
-    publish :function => :DisksOrder, :type => "list <string> ()"
     publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
   end
 

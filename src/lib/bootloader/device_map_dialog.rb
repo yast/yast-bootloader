@@ -1,6 +1,5 @@
 require "yast"
 
-Yast.import "BootCommon"
 Yast.import "BootStorage"
 Yast.import "Label"
 Yast.import "Popup"
@@ -13,8 +12,12 @@ module Bootloader
     include Yast::UIShortcuts
     include Yast::I18n
 
-    def self.run
-      new.run
+    def self.run(device_map)
+      new(device_map).run
+    end
+
+    def initialize(device_map)
+      @device_map = device_map
     end
 
     def run
@@ -57,19 +60,8 @@ module Bootloader
           return :back # we just go back to original dialog
         when :cancel
           return :back
-        when :up
-          disks.insert(pos - 1, disks.delete_at(pos))
-          pos -= 1
-        when :down
-          disks.insert(pos + 1, disks.delete_at(pos))
-          pos += 1
-        when :delete
-          disks.delete_at(pos)
-          pos = pos == disks.size ? pos - 1 : pos
-        when :add
-          disk = add_device_popup
-          disks << disk if disk
-          pos = disks.size - 1
+        when :up, :down, :delete, :add
+          pos = handle_buttons(input, pos)
         when :disks
           refresh_buttons
           next
@@ -80,6 +72,26 @@ module Bootloader
         Yast::UI.ChangeWidget(Id(:disks), :CurrentItem, disks[pos])
         refresh_buttons
       end
+    end
+
+    def handle_buttons(action, pos)
+      case action
+      when :up
+        disks.insert(pos - 1, disks.delete_at(pos))
+        pos -= 1
+      when :down
+        disks.insert(pos + 1, disks.delete_at(pos))
+        pos += 1
+      when :delete
+        disks.delete_at(pos)
+        pos = pos == disks.size ? pos - 1 : pos
+      when :add
+        disk = add_device_popup
+        disks << disk if disk
+        pos = disks.size - 1
+      end
+
+      pos
     end
 
     def dialog_content
@@ -122,7 +134,7 @@ module Bootloader
     end
 
     def disks
-      @disks ||= Yast::BootStorage.DisksOrder
+      @disks ||= @device_map.disks_order
     end
 
     def refresh_disks
@@ -130,13 +142,12 @@ module Bootloader
     end
 
     def store_order
-      Yast::BootCommon.mbrDisk = disks.first
+      Yast::BootStorage.mbr_disk = disks.first
 
-      mapping = disks.each_with_object({}) do |disk, res|
-        res[disk] = "hd#{res.size}"
+      @device_map.clear_mapping
+      disks.each_with_index do |disk, index|
+        @device_map.add_mapping("hd#{index}", disk)
       end
-
-      Yast::BootStorage.device_map = ::Bootloader::DeviceMap.new(mapping)
     end
 
     def add_device_popup

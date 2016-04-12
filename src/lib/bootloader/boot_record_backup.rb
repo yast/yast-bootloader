@@ -1,6 +1,5 @@
 require "yast"
-
-Yast.import "BootCommon"
+require "date"
 
 module Bootloader
   # Responsibility of class is to manage backup of MBR, respective PBR of disk,
@@ -50,19 +49,10 @@ module Bootloader
       copy_br(device, logs_path)
 
       # special backup only if device is mbr disk
-      return if device != Yast::BootCommon.mbrDisk
+      Yast.import "BootStorage"
+      return if device != Yast::BootStorage.mbr_disk
 
       copy_br(device, "/boot/backup_mbr")
-
-      return unless Yast::BootCommon.ThinkPadMBR(device)
-
-      # special backup for thinkpad MBR
-      device_file_path_thinkpad = device_file_path + "thinkpadMBR"
-      log.info("Backup thinkpad MBR")
-      Yast::SCR.Execute(
-        BASH_PATH,
-        "cp #{device_file_path} #{device_file_path_thinkpad}"
-      )
     end
 
     # Restore backup
@@ -131,7 +121,7 @@ module Bootloader
         BASH_PATH,
         format("/bin/mv %{path} %{path}-%{date}",
           path: device_file_path, date: change_date
-        )
+              )
       )
     end
   end

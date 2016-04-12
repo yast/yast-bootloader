@@ -26,7 +26,6 @@ describe Yast::BootStorage do
     before do
       target_map_stub("storage_mdraid.yaml")
       allow(Yast::Arch).to receive(:s390).and_return(false) # be arch agnostic
-      subject.device_map.propose
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:device)
       allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
     end
@@ -41,13 +40,6 @@ describe Yast::BootStorage do
 
     it "returns all partitions suitable for stage1" do
       expect(possible_locations).to include("/dev/vda1")
-    end
-
-    it "do not return partitions if disk is not in device map" do
-      subject.device_map = ::Bootloader::DeviceMap.new("/dev/vdb" => "hd0")
-
-      res = subject.possible_locations_for_stage1
-      expect(res).to_not include("/dev/vda1")
     end
 
     it "do not list partitions marked for delete" do
@@ -169,34 +161,12 @@ describe Yast::BootStorage do
       expect { subject.detect_disks }.to raise_error
     end
 
-    it "sets BootCommon.mbrDisk if not already set" do
-      Yast::BootCommon.mbrDisk = nil
-
-      expect(Yast::BootCommon).to receive(:FindMBRDisk).and_return("/dev/vda")
+    it "sets BootStorage.mbr_disk" do
+      expect(subject).to receive(:find_mbr_disk).and_return("/dev/vda")
 
       subject.detect_disks
 
-      expect(Yast::BootCommon.mbrDisk).to eq "/dev/vda"
-    end
-
-    it "returns :empty if bootloader devices is not yet set" do
-      allow(Yast::BootCommon).to receive(:GetBootloaderDevices).and_return([])
-
-      expect(subject.detect_disks).to eq :empty
-    end
-
-    it "returns :invalid if any bootloader device is no longer available" do
-      allow(Yast::BootCommon).to receive(:GetBootloaderDevices).and_return(["/dev/not_available"])
-      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
-
-      expect(subject.detect_disks).to eq :invalid
-    end
-
-    it "returns :ok if all bootloader devices are available" do
-      allow(Yast::BootCommon).to receive(:GetBootloaderDevices).and_return(["/dev/vda"])
-      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
-
-      expect(subject.detect_disks).to eq :ok
+      expect(subject.mbr_disk).to eq "/dev/vda"
     end
   end
 

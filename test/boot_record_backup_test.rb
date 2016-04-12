@@ -4,6 +4,8 @@ require_relative "./test_helper"
 
 require "bootloader/boot_record_backup"
 
+Yast.import "BootStorage"
+
 describe Bootloader::BootRecordBackup do
   BASH_PATH = Yast::Path.new(".target.bash")
   SIZE_PATH = Yast::Path.new(".target.size")
@@ -39,8 +41,6 @@ describe Bootloader::BootRecordBackup do
     before do
       allow(Yast::SCR).to receive(:Execute).with(BASH_PATH, /mkdir/)
       allow(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd/)
-      allow(Yast::BootCommon).to receive(:mbrDisk).and_return("/dev/non-exist")
-      allow(Yast::BootCommon).to receive(:ThinkPadMBR).and_return(false)
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(0)
     end
 
@@ -81,17 +81,9 @@ describe Bootloader::BootRecordBackup do
     end
 
     it "store backup of device first 512 bytes to /boot/backup_mbr if it is MBR of primary disk" do
-      allow(Yast::BootCommon).to receive(:mbrDisk).and_return("/dev/sda")
+      allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/sda")
       expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* of=\/boot\/backup_mbr/)
 
-      subject.write
-    end
-
-    it "copy backup of device also to backup_boot_sectors with thinkpadMBR suffix if it is primary disk and contain thinkpad boot code" do
-      allow(Yast::BootCommon).to receive(:mbrDisk).and_return("/dev/sda")
-      allow(Yast::BootCommon).to receive(:ThinkPadMBR).and_return(true)
-
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /\Acp.* \/var\/lib\/YaST2\/backup_boot_sectors.*thinkpadMBR/)
       subject.write
     end
   end
