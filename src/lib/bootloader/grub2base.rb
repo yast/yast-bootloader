@@ -214,6 +214,8 @@ module Bootloader
     def propose_terminal
       return if grub_default.terminal
 
+      # for ppc: Boards with graphics are rare and those are PowerNV, where
+      # modules are not used, see bsc#911682
       grub_default.terminal = (Yast::Arch.s390 || Yast::Arch.ppc) ? :console : :gfxterm
       grub_default.generic_set("GRUB_GFXPAYLOAD_LINUX", "text") if Yast::Arch.ppc
     end
