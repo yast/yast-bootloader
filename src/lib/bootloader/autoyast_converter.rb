@@ -24,6 +24,8 @@ module Bootloader
       def import(data)
         bootloader = bootloader_from_data(data)
         return bootloader if bootloader.name == "none"
+        # let it be empty if not defined to keep code simplier as effect is same
+        data["global"] ||= {}
 
         import_stage1(data, bootloader)
         import_default(data, bootloader)

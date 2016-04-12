@@ -180,7 +180,7 @@ module Bootloader
       end
 
       # specific attributes that are not part of cfa
-      ["SUSE_BTRFS_SNAPSHOT_BOOTING", "GRUB_GFXPAYLOAD_LINUX"].each do |attr|
+      ["SUSE_BTRFS_SNAPSHOT_BOOTING", "GRUB_GFXPAYLOAD_LINUX", "GRUB_USE_LINUXEFI"].each do |attr|
         val = other.generic_get(attr)
         grub_default.generic_set(attr, val) if val
       end

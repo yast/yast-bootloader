@@ -56,6 +56,7 @@ module Bootloader
       self.pmbr_action = :remove
 
       @secure_boot = true
+      grub_default.generic_set("GRUB_USE_LINUXEFI", Yast::Arch.aarch64 ? "false" : "true")
     end
 
     def merge(other)

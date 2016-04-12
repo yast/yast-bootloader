@@ -8,6 +8,7 @@ Yast.import "Bootloader"
 Yast.import "BootStorage"
 Yast.import "Initrd"
 Yast.import "Progress"
+Yast.import "PackagesProposal"
 
 module Bootloader
   # Autoyast client for bootloader
@@ -31,9 +32,13 @@ module Bootloader
       BootloaderFactory.clear_cache
 
       proposed_configuration = BootloaderFactory.bootloader_by_name(imported_configuration.name)
+      proposed_configuration.propose
 
       proposed_configuration.merge(imported_configuration)
       BootloaderFactory.current = proposed_configuration
+
+      Yast::PackagesProposal.AddResolvables("yast2-bootloader",
+        :package, proposed_configuration.packages)
 
       true
     end
