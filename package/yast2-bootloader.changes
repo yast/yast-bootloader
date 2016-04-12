@@ -1,9 +1,9 @@
 -------------------------------------------------------------------
 Tue Apr 12 13:29:54 UTC 2016 - jreidinger@suse.com
 
-- do not propose nor running grub2-install on bare metal ppc
+- do not propose nor running grub2-install on bare metal POWER
   (bnc#970582)
-- Do not use perl-Bootloader in yast2-bootloader (FATE#317701)
+- do not use perl-Bootloader in yast2-bootloader (FATE#317701)
 - 3.1.166
 
 -------------------------------------------------------------------
