@@ -55,6 +55,9 @@ module Bootloader
     # Write bootloader settings to disk
     # @return [Boolean] true on success
     def write
+      # super have to called as first as grub install require some config writen in ancestor
+      super
+
       device_map.write if Yast::Arch.x86_64 || Yast::Arch.i386
       stage1.write
 
@@ -66,8 +69,6 @@ module Bootloader
       # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
       # powernv do not have prep partition, so we do not have any partition to activate (bnc#970582)
       MBRUpdate.new.run(stage1) if !Yast::Arch.s390 && !Yast::Arch.board_powernv
-
-      super
     end
 
     def propose
