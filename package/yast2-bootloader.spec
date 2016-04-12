@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        3.1.162.1
+Version:        3.1.166
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -91,9 +91,6 @@ rake install DESTDIR="%{buildroot}"
 %dir %{yast_desktopdir}
 %{yast_desktopdir}/bootloader.desktop
 
-%dir %{yast_yncludedir}
-%dir %{yast_yncludedir}/bootloader
-%{yast_yncludedir}/bootloader/*
 %dir %{yast_moduledir}
 %{yast_moduledir}/*
 %dir %{yast_clientdir}
