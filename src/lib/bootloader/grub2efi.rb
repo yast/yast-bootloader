@@ -33,6 +33,9 @@ module Bootloader
 
     # Write bootloader settings to disk
     def write
+      # super have to called as first as grub install require some config writen in ancestor
+      super
+
       if pmbr_action
         efi_partition = Yast::Storage.GetEntryForMountpoint("/boot/efi")["device"]
         efi_partition ||= Yast::Storage.GetEntryForMountpoint("/boot")["device"]
@@ -41,8 +44,6 @@ module Bootloader
 
         pmbr_setup(efi_disk)
       end
-
-      super
 
       @grub_install.execute(secure_boot: @secure_boot)
 
