@@ -22,6 +22,8 @@ module Bootloader
       include Yast::Logger
 
       def import(data)
+        log.info "import data #{data.inspect}"
+
         bootloader = bootloader_from_data(data)
         return bootloader if bootloader.name == "none"
         # let it be empty if not defined to keep code simplier as effect is same

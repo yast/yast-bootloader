@@ -26,19 +26,10 @@ module Bootloader
     end
 
     def import(data)
-      Yast::BootStorage.detect_disks
-
-      imported_configuration = AutoyastConverter.import(data)
-      BootloaderFactory.clear_cache
-
-      proposed_configuration = BootloaderFactory.bootloader_by_name(imported_configuration.name)
-      proposed_configuration.propose
-
-      proposed_configuration.merge(imported_configuration)
-      BootloaderFactory.current = proposed_configuration
+      Yast::Bootloader.Import(data)
 
       Yast::PackagesProposal.AddResolvables("yast2-bootloader",
-        :package, proposed_configuration.packages)
+        :package, BootloaderFactory.current..packages)
 
       true
     end
@@ -75,16 +66,7 @@ module Bootloader
     #
     # return map or list
     def export
-      # it is needed to have information about storage configuration to understand current config
-      Yast::BootStorage.detect_disks
-
-      config = BootloaderFactory.current
-      config.read if !config.read? && !config.proposed?
-      result = AutoyastConverter.export(config)
-
-      log.info "autoyast map for bootloader: #{result.inspect}"
-
-      result
+      Yast::Bootloader.Export
     end
 
     def write
