@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 13 13:14:30 UTC 2016 - jreidinger@suse.com
+
+- Drop preparing storage data for perl-Bootloader as it is no
+  longer needed (related to FATE#317701)
+- 3.1.168
+
+-------------------------------------------------------------------
 Wed Apr 13 11:14:11 UTC 2016 - jreidinger@suse.com
 
 - Fix import of integer timeout and export of terminal symbol
