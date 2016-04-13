@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 13 11:14:11 UTC 2016 - jreidinger@suse.com
+
+- Fix import of integer timeout and export of terminal symbol
+  (found during testing of FATE#317701)
+- 3.1.167
+
+-------------------------------------------------------------------
 Tue Apr 12 13:29:54 UTC 2016 - jreidinger@suse.com
 
 - do not propose nor running grub2-install on bare metal POWER

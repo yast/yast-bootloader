@@ -28,7 +28,7 @@ module Bootloader
         data["global"] ||= {}
 
         import_stage1(data, bootloader)
-        import_default(data, bootloader)
+        import_default(data, bootloader.grub_default)
         # TODO: import Initrd
 
         log.warn "autoyast profile contain sections which won't be processed" if data["sections"]
@@ -54,37 +54,40 @@ module Bootloader
 
     private
 
-      def import_default(data, bootloader)
+      def import_default(data, default)
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
-          next unless data["global"][key]
+          val = data["global"][key]
+          next unless val
 
-          bootloader.grub_default.public_send(method).value = data["global"][key] == "true"
+          default.public_send(method).value = val == "true"
         end
 
         DEFAULT_STRING_MAPPING.each do |key, method|
-          next unless data["global"][key]
+          val = data["global"][key]
+          next unless val
 
-          bootloader.grub_default.public_send(:"#{method}=", data["global"][key])
+          default.public_send(:"#{method}=", SYMBOL_PARAM.include?(key) ? val.to_sym : val)
         end
 
         DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
-          next unless data["global"][key]
+          val = data["global"][key]
+          next unless val
 
-          bootloader.grub_default.public_send(method).replace(data["global"][key])
+          default.public_send(method).replace(val)
         end
 
-        import_timeout(data, bootloader)
+        import_timeout(data, default)
       end
 
-      def import_timeout(data, bootloader)
+      def import_timeout(data, default)
         return unless data["global"]["timeout"]
 
         if data["global"]["hiddenmenu"] == "true"
-          bootloader.grub_default.timeout = "0"
-          bootloader.grub_default.hidden_timeout = data["global"]["timeout"]
+          default.timeout = "0"
+          default.hidden_timeout = data["global"]["timeout"].to_s if data["global"]["timeout"]
         else
-          bootloader.grub_default.timeout = data["global"]["timeout"]
-          bootloader.grub_default.hidden_timeout = "0"
+          default.timeout = data["global"]["timeout"].to_s if data["global"]["timeout"]
+          default.hidden_timeout = "0"
         end
       end
 
@@ -190,6 +193,10 @@ module Bootloader
         "xen_append"        => :xen_kernel_params,
         "xen_kernel_append" => :xen_hypervisor_params
       }
+
+      SYMBOL_PARAM = [
+        "terminal"
+      ]
       def export_default(res, default)
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
           val = default.public_send(method)
@@ -198,7 +205,7 @@ module Bootloader
 
         DEFAULT_STRING_MAPPING.each do |key, method|
           val = default.public_send(method)
-          res[key] = val if val
+          res[key] = val.to_s if val
         end
 
         DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
