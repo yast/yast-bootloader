@@ -27,6 +27,8 @@ describe Bootloader::ProposalClient do
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
 
     Bootloader::BootloaderFactory.clear_cache
+
+    allow(Yast::Bootloader).to receive(:Reset)
   end
 
   describe "#description" do
