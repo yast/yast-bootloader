@@ -30,27 +30,8 @@ module Yast
       textdomain "bootloader"
 
       Yast.import "Storage"
-      Yast.import "StorageDevices"
       Yast.import "Arch"
       Yast.import "Mode"
-
-      # Saved change time from target map - only for checkCallingDiskInfo()
-      @disk_change_time_checkCallingDiskInfo = nil
-
-      # Storage locked
-      @storage_initialized = false
-
-      # device mapping between real devices and multipath
-      @multipath_mapping = {}
-
-      # mountpoints for perl-Bootloader
-      @mountpoints = {}
-
-      # list of all partitions for perl-Bootloader
-      @partinfo = []
-
-      # information about MD arrays for perl-Bootloader
-      @md_info = {}
 
       # string sepresenting device name of /boot partition
       # same as RootPartitionDevice if no separate /boot partition
@@ -68,27 +49,6 @@ module Yast
       @md_physical_disks = []
     end
 
-    # bnc #447591, 438243, 448110 multipath wrong device map
-    # Function maps real devices to multipath e.g.
-    # "/dev/sda/" : "/dev/mapper/SATA_ST3120813AS_3LS0CD7M"
-    #
-    # @return [Hash{String => String}] mapping real disk to multipath
-
-    # FIXME: grub only
-
-    def mapRealDevicesToMultipath
-      ret = {}
-      tm = Storage.GetTargetMap
-      tm.each do |disk, disk_info|
-        next if disk_info["type"] != :CT_DMMULTIPATH
-
-        devices = disk_info["devices"] || []
-        devices.each { |d| ret[d] = disk }
-      end
-
-      ret
-    end
-
     def gpt_boot_disk?
       require "bootloader/bootloader_factory"
       current_bl = ::Bootloader::BootloaderFactory.current
@@ -102,94 +62,6 @@ module Yast
       target_map = Yast::Storage.GetTargetMap
       boot_discs = targets.map { |d| Yast::Storage.GetDisk(target_map, d) }
       boot_discs.any? { |d| d["label"] == "gpt" }
-    end
-
-    # Check if function was called or storage change
-    # partitionig of disk. It is usefull fo using cached data
-    # about disk. Data is send to perl-Bootloader and it includes
-    # info about partitions, multi path and md-raid
-    #
-    # @return false if it is posible use cached data
-
-    def checkCallingDiskInfo
-      # fix for problem with unintialized storage library in AutoYaST mode
-      # bnc #464090
-      if Mode.config && !@storage_initialized
-        @storage_initialized = true
-        log.info "Init storage library in yast2-bootloader"
-        Storage.InitLibstorage(true)
-      end
-      if @disk_change_time_checkCallingDiskInfo != Storage.GetTargetChangeTime ||
-          @partinfo.empty?
-        # save last change time from storage
-        @disk_change_time_checkCallingDiskInfo = Storage.GetTargetChangeTime
-        log.info "disk was changed by storage or partinfo is empty"
-        log.info "generate partinfo, md_info, mountpoints and multipath_mapping"
-        return true
-      else
-        log.info "Skip genarating partinfo, md_info, mountpoints and multipath_mapping"
-        return false
-      end
-    end
-
-    # Function init data for perl-Bootloader about disk
-    # It means fullfil md_info, multipath_mapping, partinfo
-    # and mountpoints
-
-    def InitDiskInfo
-      return unless checkCallingDiskInfo
-
-      # delete variables for perl-Bootloader
-      @md_info = {}
-
-      tm = Storage.GetTargetMap
-
-      @multipath_mapping = mapRealDevicesToMultipath
-      @mountpoints = Builtins.mapmap(Storage.GetMountPoints) do |k, v|
-        # detect all raid1 md devices and mark them in md_info
-        device = v[0]
-        @md_info[device] = [] if v[3] == "raid1"
-        { k => device }
-      end
-      # filter out temporary mount points from installation
-
-      tmpdir = SCR.Read(path(".target.tmpdir"))
-      @mountpoints = Builtins.filter(@mountpoints) do |k, v|
-        v.is_a?(::String) && !k.start_with?(tmpdir)
-      end
-
-      log.info "Detected mountpoints: #{@mountpoints}"
-
-      @partinfo = tm.reduce([]) do |res, i|
-        disk, info = i
-        next res if [:CT_LVM, :CT_EVMS].include?(info["type"])
-        partitions = info["partitions"]
-        # disk do not have to be partitioned, so skip it in such case
-        next res unless partitions
-
-        parts = partitions.map do |p|
-          raid = p["used_by_type"] == :UB_MD ? p["used_by_device"] : nil
-          device = p["device"] || ""
-          # We only pass along RAID1 devices as all other causes
-          # severe breakage in the bootloader stack
-          @md_info[raid] << device if raid && @md_info.include?(raid)
-
-          nr = (p["nr"] || 0).to_s
-          region = p.fetch("region", [])
-          [
-            device,
-            disk,
-            nr,
-            p["fsid"].to_i.to_s,
-            p["fstype"] || "unknown",
-            p["type"] || "nil",
-            (region[0] || 0).to_s,
-            (region[1] || 0).to_s,
-            ::Bootloader::UdevMapping.to_mountby_device(device)
-          ]
-        end
-        res.concat(parts)
-      end
     end
 
     # Returns list of partitions and disks. Requests current partitioning from
@@ -570,14 +442,9 @@ module Yast
       end
     end
 
-    publish :variable => :multipath_mapping, :type => "map <string, string>"
-    publish :variable => :mountpoints, :type => "map <string, any>"
-    publish :variable => :partinfo, :type => "list <list>"
-    publish :variable => :md_info, :type => "map <string, list <string>>"
     publish :variable => :BootPartitionDevice, :type => "string"
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
-    publish :function => :InitDiskInfo, :type => "void ()"
     publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
   end
 
