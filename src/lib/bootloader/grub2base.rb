@@ -163,7 +163,7 @@ module Bootloader
       log.info "before merge other #{other.inspect}"
 
       KERNEL_FLAVORS_METHODS.each do |method|
-        next if  other.public_send(method).empty?
+        next if other.public_send(method).empty?
 
         new_kernel_params = default.public_send(method).serialize +
           " " + other.public_send(method).serialize

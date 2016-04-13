@@ -167,7 +167,7 @@ module Yast
     # Reset bootloader settings
     def Reset
       return if Mode.autoinst
-      log.info "Reseting configuration"
+      log.info "Resetting configuration"
 
       ::Bootloader::BootloaderFactory.clear_cache
       if Stage.initial
