@@ -43,18 +43,18 @@ describe Bootloader::AutoyastConverter do
         "loader_type" => "lilo"
       }
 
-      expect{subject.import(map)}.to raise_error(Bootloader::UnsupportedBootloader)
+      expect { subject.import(map) }.to raise_error(Bootloader::UnsupportedBootloader)
     end
 
     it "import configuration to returned bootloader" do
       data = {
-        "append"   => "verbose nomodeset",
-        "terminal" => "gfxterm",
-        "os_prober" => "true",
-        "hiddenmenu" => "true",
-        "timeout" => 10,
-        "activate" => "true",
-        "generic_mbr" => "false",
+        "append"      => "verbose nomodeset",
+        "terminal"    => "gfxterm",
+        "os_prober"   => "true",
+        "hiddenmenu"  => "true",
+        "timeout"     => 10,
+        "activate"    => "true",
+        "generic_mbr" => "false"
       }
 
       bootloader = subject.import("global" => data)
@@ -68,7 +68,7 @@ describe Bootloader::AutoyastConverter do
 
     it "supports SLE9 format" do
       data = {
-        "activate" => "true",
+        "activate"      => "true",
         "loader_device" => "/dev/sda1"
       }
 
@@ -93,17 +93,17 @@ describe Bootloader::AutoyastConverter do
       bootloader.stage1.activate = true
 
       expected_export = {
-        "append"   => "verbose nomodeset",
-        "terminal" => "gfxterm",
-        "os_prober" => "true",
-        "hiddenmenu" => "true",
-        "timeout" => 10,
-        "boot_mbr" => "false",
-        "boot_boot" => "false",
+        "append"        => "verbose nomodeset",
+        "terminal"      => "gfxterm",
+        "os_prober"     => "true",
+        "hiddenmenu"    => "true",
+        "timeout"       => 10,
+        "boot_mbr"      => "false",
+        "boot_boot"     => "false",
         "boot_extended" => "false",
-        "boot_root" => "false",
-        "activate" => "true",
-        "generic_mbr" => "false",
+        "boot_root"     => "false",
+        "activate"      => "true",
+        "generic_mbr"   => "false"
       }
 
       expect(subject.export(bootloader)["global"]).to eq expected_export
