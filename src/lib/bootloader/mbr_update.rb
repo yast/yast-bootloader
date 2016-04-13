@@ -226,12 +226,12 @@ module Bootloader
       if num == 0
         partition = activatable_partitions(mbr_dev).first
         # strange, no partitions on our mbr device, we probably won't boot
-        if partition.empty?
+        if !partition
           log.warn "no non-swap partitions for mbr device #{mbr_dev}"
           return {}
         end
-        num = partition["nr"]
-        log.info "loader_device is disk device, so use its #{num} partition"
+        log.info "loader_device is disk device, so use its partition #{partition.inspect}"
+        num = partition["nr"] or return {}
       end
 
       if num > 4
