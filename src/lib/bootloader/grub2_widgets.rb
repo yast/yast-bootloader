@@ -308,7 +308,7 @@ module Bootloader
             HBox(
               HSpacing(2),
               # text entry
-              Password(Id(:pw1), Opt(:hstretch), _("&Password")),
+              Password(Id(:pw1), Opt(:hstretch), _("&Password for GRUB2 user 'root'")),
               # text entry
               HSpacing(2),
               Password(Id(:pw2), Opt(:hstretch), _("Re&type Password")),
@@ -386,7 +386,9 @@ module Bootloader
           "booting any entry is not restricted but modifying entries requires " \
           "the password (which is the way GRUB 1 behaved).<br>" \
           "YaST will only accept the password if you repeat it in " \
-          "<b>Retype Password</b>.</p>"
+          "<b>Retype Password</b>. Password is specified for user 'root'. YaST2" \
+          "bootloader currently do not support other users and if needed to use," \
+          " then it have to be specified manually.</p>"
       )
     end
   end
