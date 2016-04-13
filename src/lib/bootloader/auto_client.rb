@@ -29,7 +29,7 @@ module Bootloader
       Yast::Bootloader.Import(data)
 
       Yast::PackagesProposal.AddResolvables("yast2-bootloader",
-        :package, BootloaderFactory.current..packages)
+        :package, BootloaderFactory.current.packages)
 
       true
     end
