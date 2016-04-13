@@ -20,6 +20,16 @@ require "bootloader/sysconfig"
 require "bootloader/bootloader_factory"
 require "cfa/matcher"
 
+Yast.import "UI"
+Yast.import "Arch"
+Yast.import "BootStorage"
+Yast.import "Initrd"
+Yast.import "Mode"
+Yast.import "Progress"
+Yast.import "Stage"
+Yast.import "Storage"
+Yast.import "StorageDevices"
+
 module Yast
   class BootloaderClass < Module
     include Yast::Logger
@@ -27,27 +37,7 @@ module Yast
     BOOLEAN_MAPPING = { true => :present, false => :missing }
 
     def main
-      Yast.import "UI"
-
       textdomain "bootloader"
-
-      Yast.import "Arch"
-      Yast.import "BootStorage"
-      Yast.import "Installation"
-      Yast.import "Initrd"
-      Yast.import "Kernel"
-      Yast.import "Mode"
-      Yast.import "Progress"
-      Yast.import "Stage"
-      Yast.import "Storage"
-      Yast.import "StorageDevices"
-      Yast.import "Directory"
-
-      # fate 303395
-      Yast.import "ProductFeatures"
-      # Write is repeating again
-      # Because of progress bar during inst_finish
-      @repeating_write = false
 
       # installation proposal help variables
 
@@ -84,57 +74,34 @@ module Yast
     # Export bootloader settings to a map
     # @return bootloader settings
     def Export
-      ReadOrProposeIfNeeded()
-      # TODO: implement it using new way
-      #      out = {
-      #        "loader_type"     => getLoaderType,
-      #        "initrd"          => Initrd.Export,
-      #        "specific"        => blExport,
-      #        "write_settings"  => BootCommon.write_settings,
-      #        "loader_device"   => BootCommon.loader_device,
-      #        "loader_location" => BootCommon.selected_location
-      #      }
-      #      log.info "Exporting settings: #{out}"
-      #      out
-      {}
+      Yast::BootStorage.detect_disks
+
+      config = Bootloader::BootloaderFactory.current
+      config.read if !config.read? && !config.proposed?
+      result = Bootloader::AutoyastConverter.export(config)
+
+      log.info "autoyast map for bootloader: #{result.inspect}"
+
+      result
     end
 
     # Import settings from a map
-    # @param [Hash] settings map of bootloader settings
+    # @param [Hash] data map of bootloader settings
     # @return [Boolean] true on success
-    def Import(settings)
-      settings = deep_copy(settings)
-      log.info "Importing settings: #{settings}"
-      # TODO: implement it using new way
-      #      Reset()
-      #
-      #      BootCommon.was_read = true
-      #      BootCommon.was_proposed = true
-      #      BootCommon.changed = true
-      #      BootCommon.location_changed = true
-      #
-      #      settings["loader_type"] = nil if settings["loader_type"] == ""
-      #      # if bootloader is not set, then propose it
-      #      loader_type = settings["loader_type"] || BootCommon.getLoaderType(true)
-      #      # Explitelly set it to ensure it is installed
-      #      BootCommon.setLoaderType(loader_type)
-      #
-      #      # import loader_device and selected_location only for bootloaders
-      #      # that have not phased them out yet
-      #      BootCommon.loader_device = settings["loader_device"] || ""
-      #      BootCommon.selected_location = settings["loader_location"] || "custom"
-      #
-      #      # FIXME: obsolete for grub (but inactive through the outer "if" now anyway):
-      #      # for grub, always correct the bootloader device according to
-      #      # selected_location (or fall back to value of loader_device)
-      #      if Arch.i386 || Arch.x86_64
-      #        BootCommon.loader_device = BootCommon.GetBootloaderDevice
-      #      end
-      #
-      #      Initrd.Import(settings["initrd"] || {})
-      #      ret = blImport(settings["specific"] || {})
-      #      BootCommon.write_settings = settings["write_settings"] || {}
-      #      ret
+    def Import(data)
+      Yast::BootStorage.detect_disks
+
+      imported_configuration = Bootloader::AutoyastConverter.import(data)
+      Bootloader::BootloaderFactory.clear_cache
+
+      proposed_configuration = Bootloader::BootloaderFactory
+        .bootloader_by_name(imported_configuration.name)
+      proposed_configuration.propose
+
+      proposed_configuration.merge(imported_configuration)
+      Bootloader::BootloaderFactory.current = proposed_configuration
+
+      true
     end
 
     # Read settings from disk
@@ -200,10 +167,17 @@ module Yast
     # Reset bootloader settings
     def Reset
       return if Mode.autoinst
-      log.info "Reseting configuration"
-      # TODO: consider what to actually do in reset
+      log.info "Resetting configuration"
 
-      nil
+      ::Bootloader::BootloaderFactory.clear_cache
+      if Stage.initial
+        config = ::Bootloader::BootloaderFactory.proposed
+        config.propose
+      else
+        config = ::Bootloader::BootloaderFactory.system
+        config.read
+      end
+      ::Bootloader::BootloaderFactory.current = config
     end
 
     # Propose bootloader settings
@@ -274,63 +248,16 @@ module Yast
         Progress.Title(titles[0])
       end
 
-      params_to_save = {}
-      ret = write_initrd(params_to_save)
+      ret = write_initrd
 
       log.error "Error occurred while creating initrd" unless ret
 
-      if Mode.normal
-        Progress.NextStage
-      else
-        Progress.NextStep if !@repeating_write
-        Progress.Title(titles[1])
-      end
+      Progress.NextStep
+      Progress.Title(titles[1]) unless Mode.normal
 
       ::Bootloader::BootloaderFactory.current.write
 
       true
-    end
-
-    # Write bootloader settings during installation
-    # @return [Boolean] true on success
-    def WriteInstallation
-      log.info "Writing bootloader configuration during installation"
-
-      mark_as_changed
-
-      params_to_save = {}
-      ret = write_initrd(params_to_save)
-
-      log.error "Error occurred while creating initrd" unless ret
-
-      write_sysconfig
-      write_proposed_params(params_to_save)
-
-      return ret if getLoaderType == "none"
-
-      # F#300779 - Install diskless client (NFS-root)
-      # kokso: bootloader will not be installed
-      if BootStorage.disk_with_boot_partition == "/dev/nfs"
-        log.info "Bootloader::Write() -> Boot partition is nfs type, bootloader will not be installed."
-        return ret
-      end
-
-      # F#300779 -end
-
-      # save bootloader settings
-      reinit = !(Mode.update || Mode.normal)
-      log.info "Reinitialize bootloader library before saving: #{reinit}"
-
-      ret = blSave(true, reinit, true) && ret
-
-      log.eror "Error before configuration files saving finished" unless ret
-
-      # call bootloader executable
-      log.info "Calling bootloader executable"
-      ret &&= blWrite
-      ret = handle_failed_write unless ret
-
-      ret
     end
 
     # return default section label
@@ -338,8 +265,9 @@ module Yast
     def getDefaultSection
       ReadOrProposeIfNeeded()
 
-      ""
-      # FIXME: use bootloader factory to get it
+      bootloader = Bootloader::BootloaderFactory.current
+      return "" unless bootloader.respond_to?(:sections)
+      bootloader.sections.default
     end
 
     FLAVOR_KERNEL_LINE_MAP = {
@@ -422,9 +350,8 @@ module Yast
       grub_default = current_bl.grub_default
 
       values = args.pop
-      if !values.is_a? Hash
-        raise ArgumentError, "Missing parameters to modify #{args.inspect}"
-      end
+      raise ArgumentError, "Missing parameters to modify #{args.inspect}" if !values.is_a? Hash
+
       args = [:common] if args.empty? # by default change common kernels only
       args = args.first if args.first.is_a? Array # support array like syntax
 
@@ -506,36 +433,16 @@ module Yast
       Initrd.changed = true if Arch.s390 && Stage.initial
     end
 
-    def handle_failed_write
-      log.error "Installing bootloader failed"
-      if writeErrorPopup
-        @repeating_write = true
-        res = WFM.call("bootloader_proposal", ["AskUser", { "has_next" => false }])
-        return Write() if res["workflow_sequence"] == :next
-      end
-
-      false
-    end
-
     NONSPLASH_VGA_VALUES = ["", "false", "ask"]
 
     # store new vgamode if needed and regenerate initrd in such case
     # @param params_to_save used to store predefined vgamode value
     # @return boolean if succeed
-    def write_initrd(_params_to_save)
-      ret = true
-      # TODO: detect VGA change
-      #      new_vga = BootCommon.globals["vgamode"]
-      #      if (new_vga != @old_vga && !NONSPLASH_VGA_VALUES.include?(new_vga)) ||
-      #          !Mode.normal
-      #        Initrd.setSplash(new_vga)
-      #        params_to_save["vgamode"] = new_vga if Stage.initial
-      #      end
+    def write_initrd
+      return true unless Initrd.changed
 
       # save initrd
-      ret = Initrd.Write if Initrd.changed
-
-      ret
+      Initrd.Write
     end
 
     publish :function => :Export, :type => "map ()"

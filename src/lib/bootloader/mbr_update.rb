@@ -230,8 +230,8 @@ module Bootloader
           log.warn "no non-swap partitions for mbr device #{mbr_dev}"
           return {}
         end
-        num = partition["nr"]
-        log.info "loader_device is disk device, so use its #{num} partition"
+        log.info "loader_device is disk device, so use its partition #{partition.inspect}"
+        num = partition["nr"] or return {}
       end
 
       if num > 4

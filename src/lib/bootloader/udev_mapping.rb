@@ -15,23 +15,8 @@ module Bootloader
     class << self
       extend Forwardable
       def_delegators :instance,
-        :to_hash,
         :to_kernel_device,
         :to_mountby_device
-    end
-
-    # Returns hash where keys are udev links for disks and partitions and value
-    # their kernel devices.
-    # TODO: remove when remove pbl support
-    # @example of output
-    #   {
-    #     "/dev/disk/by-id/abcd" => "/dev/sda",
-    #     "/dev/disk/by-id/abcde" => "/dev/sda",
-    #     "/dev/disk/by-label/label1" => "/dev/sda1",
-    #     "/dev/disk/by-uuid/aaaa-bbbb-cccc-dddd" => "/dev/sda",
-    #   }
-    def to_hash
-      all_devices
     end
 
     # Converts full udev name to kernel device ( disk or partition )

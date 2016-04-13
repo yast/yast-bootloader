@@ -153,6 +153,8 @@ module Bootloader
       @password = other.password
     end
 
+    KERNEL_FLAVORS_METHODS = [:kernel_params, :xen_hypervisor_params, :xen_kernel_params]
+
     def merge_grub_default(other)
       default = grub_default
       other = other.grub_default
@@ -160,10 +162,12 @@ module Bootloader
       log.info "before merge default #{default.inspect}"
       log.info "before merge other #{other.inspect}"
 
-      # TODO: other kernel flavors probably will be also needed
-      unless other.kernel_params.serialize.empty?
-        new_kernel_params = default.kernel_params.serialize + " " + other.kernel_params.serialize
-        default.kernel_params.replace(new_kernel_params)
+      KERNEL_FLAVORS_METHODS.each do |method|
+        next if other.public_send(method).empty?
+
+        new_kernel_params = default.public_send(method).serialize +
+          " " + other.public_send(method).serialize
+        default.public_send(method).replace(new_kernel_params)
       end
 
       merge_attributes(default, other)

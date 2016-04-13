@@ -400,7 +400,6 @@ module Bootloader
     end
 
     def contents
-      # TODO: simplify a bit content or split it
       VBox(
         graphical_console_frame,
         serial_console_frame
