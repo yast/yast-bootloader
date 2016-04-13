@@ -65,46 +65,14 @@ module Yast
       end
     end
 
-    # Is VGA parameter setting available
-    # @return true if vga= can be set
-    def VgaAvailable
-      Arch.i386 || Arch.x86_64
-    end
-
     # Is Suspend to Disk available?
     # @return true if STD is available
     def ResumeAvailable
       Arch.i386 || Arch.x86_64 || Arch.s390
     end
 
-    # Return architecture as string
-    # @return [String] type of architecture e.g. "i386"
-    def StrArch
-      ret = Arch.architecture
-      if ret == "ppc" || ret == "ppc64"
-        if Arch.board_iseries
-          ret = "iseries"
-        elsif Arch.board_prep
-          ret = "prep"
-        elsif Arch.board_chrp
-          ret = "chrp"
-        elsif Arch.board_mac_new
-          ret = "pmac"
-        elsif Arch.board_mac_old
-          ret = "pmac"
-        else
-          ret = "unknown"
-        end
-      end
-
-      log.info "Type of architecture: #{ret}"
-      ret
-    end
-
     publish :function => :DefaultKernelParams, :type => "string (string)"
-    publish :function => :VgaAvailable, :type => "boolean ()"
     publish :function => :ResumeAvailable, :type => "boolean ()"
-    publish :function => :StrArch, :type => "string ()"
   end
 
   BootArch = BootArchClass.new
