@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 14 12:21:20 CEST 2016 - schubi@suse.de
+
+- Fix: Taking modulename "Bootloader" instead of class.
+  (related to FATE#317701)
+- 3.1.170
+
+-------------------------------------------------------------------
 Wed Apr 13 14:14:14 UTC 2016 - jreidinger@suse.com
 
 - Clean pending TODOs and implement bootloader API calls with new
