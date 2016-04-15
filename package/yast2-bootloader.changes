@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 14 15:52:10 UTC 2016 - igonzalezsosa@suse.com
+
+- Fix error when showing order of hard disks (bsc#975514)
+- 3.1.171
+
+-------------------------------------------------------------------
 Thu Apr 14 12:21:20 CEST 2016 - schubi@suse.de
 
 - Fix: Taking modulename "Bootloader" instead of class.
