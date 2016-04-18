@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Apr 18 06:53:06 UTC 2016 - jreidinger@suse.com
+
+- fix regression in serial console handling and cover it with
+  automatic tests
+  (bnc#870514 appears again)
+- 3.1.172
+
+-------------------------------------------------------------------
 Thu Apr 14 15:52:10 UTC 2016 - igonzalezsosa@suse.com
 
 - Fix error when showing order of hard disks (bsc#975514)
