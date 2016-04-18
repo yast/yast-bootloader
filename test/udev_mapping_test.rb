@@ -11,6 +11,8 @@ describe Bootloader::UdevMapping do
     allow(subject.instance).to receive(:cache_valid?).and_return false
     allow(Yast::Arch).to receive(:ppc).and_return(false)
     allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
+    allow(Bootloader::UdevMapping).to receive(:to_kernel_device).and_call_original
+    allow(Bootloader::UdevMapping).to receive(:to_mountby_device).and_call_original
   end
 
   describe ".to_kernel_device" do

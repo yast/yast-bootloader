@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Apr 18 13:20:34 UTC 2016 - jreidinger@suse.com
+
+- fix regression in installation on md raid
+  (related to FATE#317701 found by openqa)
+- 3.1.173
+
+-------------------------------------------------------------------
 Mon Apr 18 06:53:06 UTC 2016 - jreidinger@suse.com
 
 - fix regression in serial console handling and cover it with

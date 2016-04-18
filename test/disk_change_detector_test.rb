@@ -12,10 +12,6 @@ describe Bootloader::DiskChangeDetector do
     described_class.new(stage1)
   end
 
-  before do
-    allow(Bootloader::UdevMapping).to receive(:to_kernel_device) { |a| a }
-  end
-
   describe ".changes" do
     it "returns empty array if disk proposal do not change" do
       allow(Yast::BootStorage).to receive(:possible_locations_for_stage1).and_return(["/dev/sda", "/dev/sda2"])

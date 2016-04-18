@@ -175,8 +175,6 @@ describe Bootloader::Grub2Base do
               "/dev/sdb2" => 1024
             )
 
-          allow(Bootloader::UdevMapping).to receive(:to_mountby_device) { |a| a }
-
           subject.propose
 
           expect(subject.grub_default.kernel_params.serialize).to include("resume=/dev/sdb2")
@@ -254,8 +252,6 @@ describe Bootloader::Grub2Base do
               "/dev/dasda2" => 512,
               "/dev/dasdb2" => 1024
             )
-
-          allow(Bootloader::UdevMapping).to receive(:to_mountby_device) { |a| a }
 
           subject.propose
 
