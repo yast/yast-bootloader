@@ -37,12 +37,13 @@ module Bootloader
     # @return [Bootloader::SerialConsole,nil] returns nil if none found,
     #   otherwise instance of SerialConsole
     def self.load_from_kernel_args(kernel_params)
-      console_parameter = kernel_params.parameter("console")
-      return nil unless console_parameter
+      console_parameters = kernel_params.parameter("console")
+      return nil unless console_parameters
 
-      console_parameter = Array(console_parameter)
-      serial_console = console_parameter.find { |p| p =~ /ttyS/ || p =~ /ttyAMA/ }
-      return nil unless serial_console
+      console_parameters = Array(console_parameters)
+      # use only the last parameter (bnc#870514)
+      serial_console = console_parameters.last
+      return nil if serial_console !~ /ttyS/ && serial_console !~ /ttyAMA/
 
       unit = serial_console[KERNEL_PARAM_REGEXP, 2]
       return nil if unit.empty?
