@@ -48,7 +48,7 @@ module Bootloader
       # handle md disks
       if md_disk?(dev)
         @mbr_disks = md_disks
-        return @mbr_disks.each{ |d| add_udev_device(d) }
+        return @mbr_disks.each { |d| add_udev_device(d) }
       end
 
       udev_device = Bootloader::UdevMapping.to_mountby_device(dev)
@@ -154,7 +154,7 @@ module Bootloader
       return false if disk_dev != dev # not a disk
 
       disk_map = Yast::Storage.GetTargetMap[dev]
-      return disk_map && disk_map["type"] == :CT_MD
+      disk_map && disk_map["type"] == :CT_MD
     end
 
     def md_disks
