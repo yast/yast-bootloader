@@ -45,6 +45,12 @@ module Bootloader
     end
 
     def add_udev_device(dev)
+      # handle md disks
+      if md_disk?(dev)
+        @mbr_disks = md_disks
+        return @mbr_disks.each{ |d| add_udev_device(d) }
+      end
+
       udev_device = Bootloader::UdevMapping.to_mountby_device(dev)
       @model.add_device(udev_device)
     end
@@ -74,7 +80,11 @@ module Bootloader
     end
 
     def mbr?
-      include?(Yast::BootStorage.mbr_disk)
+      if @mbr_disks
+        @mbr_disks.all? { |d| include?(d) }
+      else
+        include?(Yast::BootStorage.mbr_disk)
+      end
     end
 
     def extended_partition?
@@ -135,6 +145,29 @@ module Bootloader
     end
 
   private
+
+    def md_disk?(dev)
+      dev = Bootloader::UdevMapping.to_kernel_device(dev)
+
+      disk_dev = Yast::Storage.GetDiskPartition(dev)
+      disk_dev = disk_dev["disk"] || ""
+      return false if disk_dev != dev # not a disk
+
+      disk_map = Yast::Storage.GetTargetMap[dev]
+      return disk_map["type"] == :CT_MD
+    end
+
+    def md_disks
+      partitions = underlying_boot_partition_devices
+      disks = partitions.map do |part|
+        disk_dev = Yast::Storage.GetDiskPartition(part)
+        disk_dev["disk"]
+      end
+
+      log.info "md_disks: #{disks.inspect} laying on #{partitions.inspect}"
+
+      disks
+    end
 
     def available_partitions(res)
       return unless Yast::BootStorage.can_boot_from_partition
