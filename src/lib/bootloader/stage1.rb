@@ -154,7 +154,7 @@ module Bootloader
       return false if disk_dev != dev # not a disk
 
       disk_map = Yast::Storage.GetTargetMap[dev]
-      return disk_map["type"] == :CT_MD
+      return disk_map && disk_map["type"] == :CT_MD
     end
 
     def md_disks

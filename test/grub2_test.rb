@@ -172,7 +172,6 @@ describe Bootloader::Grub2 do
 
   describe "#summary" do
     before do
-      allow(Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
       allow(Yast::BootStorage).to receive(:can_boot_from_partition).and_return(true)
     end
 
@@ -277,8 +276,6 @@ describe Bootloader::Grub2 do
       before do
         allow(Bootloader::Stage1).to receive(:new).and_call_original
         allow(other.stage1).to receive(:devices).and_return(["/dev/sda"])
-
-        allow(Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
       end
 
       it "replaces activate flag with merged one" do

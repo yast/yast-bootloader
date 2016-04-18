@@ -65,3 +65,12 @@ def mock_disk_partition
 
   allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
 end
+
+# stub udev mapping everywhere
+RSpec.configure do |config|
+  config.before do
+    allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
+    allow(::Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
+    allow(::Yast::Storage).to receive(:GetTargetMap).and_return({}) #empty target map by default
+  end
+end

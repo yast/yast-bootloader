@@ -14,8 +14,6 @@ describe Bootloader::Stage1 do
     allow(Yast::BootStorage).to receive(:can_boot_from_partition).and_return(true)
     mock_disk_partition
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
-    allow(Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
-    allow(Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
   end
 
   describe "#propose" do

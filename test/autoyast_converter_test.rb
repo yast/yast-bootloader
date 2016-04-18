@@ -6,11 +6,6 @@ require "bootloader/grub2"
 describe Bootloader::AutoyastConverter do
   subject { described_class }
 
-  before do
-    allow(Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
-    allow(Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
-  end
-
   describe ".import" do
     before do
       allow(Bootloader::BootloaderFactory).to receive(:proposed).and_return(Bootloader::Grub2.new)
