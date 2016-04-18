@@ -16,6 +16,13 @@ describe ::Bootloader::SerialConsole do
       expect(described_class.load_from_kernel_args(kernel_args)).to eq nil
     end
 
+    # covers bug #870514
+    it "returns nil if serial console configuration is not the last one" do
+      kernel_args = double("KernelArgs", :parameter => ["ttyS1", "tty1"])
+
+      expect(described_class.load_from_kernel_args(kernel_args)).to eq nil
+    end
+
     it "loads configuration if found" do
       kernel_args = double("KernelArgs", :parameter => "ttyS1,4800n8")
       expected_grub_config = "serial --unit=1 --speed=4800 --parity=no --word=8"
