@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 19 09:01:33 UTC 2016 - jreidinger@suse.com
+
+- Improve misleading label for GRUB2 password (bnc#952633)
+- 3.1.174
+
+-------------------------------------------------------------------
 Mon Apr 18 13:20:34 UTC 2016 - jreidinger@suse.com
 
 - fix regression in installation on md raid
@@ -24,6 +30,7 @@ Thu Apr 14 12:21:20 CEST 2016 - schubi@suse.de
 
 - Fix: Taking modulename "Bootloader" instead of class.
   (related to FATE#317701)
+>>>>>>> master
 - 3.1.170
 
 -------------------------------------------------------------------

@@ -307,8 +307,8 @@ module Bootloader
             ),
             HBox(
               HSpacing(2),
-              # text entry
-              Password(Id(:pw1), Opt(:hstretch), _("&Password")),
+              # TRANSLATORS: text entry, please keep it short
+              Password(Id(:pw1), Opt(:hstretch), _("&Password for GRUB2 User 'root'")),
               # text entry
               HSpacing(2),
               Password(Id(:pw2), Opt(:hstretch), _("Re&type Password")),
@@ -386,7 +386,9 @@ module Bootloader
           "booting any entry is not restricted but modifying entries requires " \
           "the password (which is the way GRUB 1 behaved).<br>" \
           "YaST will only accept the password if you repeat it in " \
-          "<b>Retype Password</b>.</p>"
+          "<b>Retype Password</b>. The password applies to the GRUB2 user 'root' " \
+          "which is distinct from the Linux 'root'. YaST currently does not support" \
+          "other GRUB2 users. If you need them, use a separate GRUB2 script.</p>"
       )
     end
   end
@@ -716,7 +718,7 @@ module Bootloader
     def label
       textdomain "bootloader"
 
-      _("kernel parameters")
+      _("&Kernel Parameters")
     end
 
     def contents
@@ -741,7 +743,7 @@ module Bootloader
     def label
       textdomain "bootloader"
 
-      _("boot code options")
+      _("Boot Co&de Options")
     end
 
     def contents
@@ -800,7 +802,7 @@ module Bootloader
     def label
       textdomain "bootloader"
 
-      _("Bootloader Options")
+      _("Boot&loader Options")
     end
 
     def contents
