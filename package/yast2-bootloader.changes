@@ -1,7 +1,36 @@
 -------------------------------------------------------------------
-Wed Apr 13 16:01:33 UTC 2016 - jreidinger@suse.com
+Tue Apr 19 09:01:33 UTC 2016 - jreidinger@suse.com
 
 - Improve misleading label for GRUB2 password (bnc#952633)
+- 3.1.174
+
+-------------------------------------------------------------------
+Mon Apr 18 13:20:34 UTC 2016 - jreidinger@suse.com
+
+- fix regression in installation on md raid
+  (related to FATE#317701 found by openqa)
+- 3.1.173
+
+-------------------------------------------------------------------
+Mon Apr 18 06:53:06 UTC 2016 - jreidinger@suse.com
+
+- fix regression in serial console handling and cover it with
+  automatic tests
+  (bnc#870514 appears again)
+- 3.1.172
+
+-------------------------------------------------------------------
+Thu Apr 14 15:52:10 UTC 2016 - igonzalezsosa@suse.com
+
+- Fix error when showing order of hard disks (bsc#975514)
+- 3.1.171
+
+-------------------------------------------------------------------
+Thu Apr 14 12:21:20 CEST 2016 - schubi@suse.de
+
+- Fix: Taking modulename "Bootloader" instead of class.
+  (related to FATE#317701)
+>>>>>>> master
 - 3.1.170
 
 -------------------------------------------------------------------

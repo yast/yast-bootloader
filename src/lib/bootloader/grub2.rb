@@ -178,7 +178,7 @@ module Bootloader
       Yast::Builtins.sformat(
         # part of summary, %1 is a list of hard disks device names
         _("Order of Hard Disks: %1"),
-        device_map.disks_order(", ")
+        device_map.disks_order.join(", ")
       )
     end
 

@@ -76,9 +76,9 @@ module Yast
     def Export
       Yast::BootStorage.detect_disks
 
-      config = Bootloader::BootloaderFactory.current
+      config = ::Bootloader::BootloaderFactory.current
       config.read if !config.read? && !config.proposed?
-      result = Bootloader::AutoyastConverter.export(config)
+      result = ::Bootloader::AutoyastConverter.export(config)
 
       log.info "autoyast map for bootloader: #{result.inspect}"
 
@@ -91,15 +91,15 @@ module Yast
     def Import(data)
       Yast::BootStorage.detect_disks
 
-      imported_configuration = Bootloader::AutoyastConverter.import(data)
-      Bootloader::BootloaderFactory.clear_cache
+      imported_configuration = ::Bootloader::AutoyastConverter.import(data)
+      ::Bootloader::BootloaderFactory.clear_cache
 
-      proposed_configuration = Bootloader::BootloaderFactory
+      proposed_configuration = ::Bootloader::BootloaderFactory
         .bootloader_by_name(imported_configuration.name)
       proposed_configuration.propose
 
       proposed_configuration.merge(imported_configuration)
-      Bootloader::BootloaderFactory.current = proposed_configuration
+      ::Bootloader::BootloaderFactory.current = proposed_configuration
 
       true
     end

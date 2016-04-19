@@ -172,12 +172,40 @@ describe Bootloader::Grub2 do
 
   describe "#summary" do
     before do
-      allow(Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
       allow(Yast::BootStorage).to receive(:can_boot_from_partition).and_return(true)
     end
 
     it "contains line saying that bootloader type is GRUB2" do
       expect(subject.summary).to include("Boot Loader Type: GRUB2")
+    end
+
+    context "when arch is not s390" do
+      before do
+        allow(Yast::Arch).to receive(:s390).and_return(false)
+      end
+
+      it "includes order of hard disks if there are more than 1" do
+        allow(subject.device_map).to receive(:size).and_return(2)
+        allow(subject.device_map).to receive(:disks_order).and_return(["/dev/sda", "/dev/sdb"])
+
+        expect(subject.summary).to include(%r{Order of Hard Disks: /dev/sda, /dev/sdb})
+      end
+
+      it "does not include order of hard disk if there is only 1" do
+        allow(subject.device_map).to receive(:size).and_return(1)
+
+        expect(subject.summary).to_not include(/Order of Hard Disks/)
+      end
+    end
+
+    context "when arch is s390" do
+      before do
+        allow(Yast::Arch).to receive(:s390).and_return(true)
+      end
+
+      it "does not includes order of hard disks" do
+        expect(subject.summary).to_not include(/Order of Hard Disks/)
+      end
     end
   end
 
@@ -248,8 +276,6 @@ describe Bootloader::Grub2 do
       before do
         allow(Bootloader::Stage1).to receive(:new).and_call_original
         allow(other.stage1).to receive(:devices).and_return(["/dev/sda"])
-
-        allow(Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
       end
 
       it "replaces activate flag with merged one" do
