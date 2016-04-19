@@ -307,7 +307,7 @@ module Bootloader
             ),
             HBox(
               HSpacing(2),
-              # text entry
+              # TRANSLATORS: text entry, please keep it short
               Password(Id(:pw1), Opt(:hstretch), _("&Password for GRUB2 User 'root'")),
               # text entry
               HSpacing(2),
