@@ -72,5 +72,6 @@ RSpec.configure do |config|
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
     allow(::Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
     allow(::Yast::Storage).to receive(:GetTargetMap).and_return({}) # empty target map by default
+    allow(::Yast::BootStorage).to receive(:underlaying_devices) { |d| [d]}
   end
 end

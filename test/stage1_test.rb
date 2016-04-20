@@ -14,6 +14,10 @@ describe Bootloader::Stage1 do
     allow(subject).to receive(:can_use_boot?).and_return(true)
     mock_disk_partition
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+
+    # nasty hack to allow call of uninitialized libstorage as we do not want
+    # to overmock Yast::Storage.GetDiskPartitionTg call
+    Yast::Storage.instance_variable_set(:@sint, double(getPartitionPrefix: ""))
   end
 
   describe "#propose" do
@@ -31,6 +35,7 @@ describe Bootloader::Stage1 do
     end
 
     it "sets underlaying disks for md raid setup" do
+      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
       target_map_stub("storage_mdraid.yaml")
 
       allow(Yast::BootStorage).to receive(:mbr_disk)
@@ -43,6 +48,24 @@ describe Bootloader::Stage1 do
       expect(subject.devices).to eq ["/dev/vda", "/dev/vdb", "/dev/vdc", "/dev/vdd"]
 
       expect(subject.mbr?).to eq true
+    end
+
+    it "sets underlaying partition for lvm partitions setup" do
+      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
+      target_map_stub("storage_lvm.yaml")
+
+      allow(Yast::BootStorage).to receive(:mbr_disk)
+        .and_return("/dev/system")
+      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
+        .and_return("/dev/system/root")
+      allow(Yast::BootStorage).to receive(:RootPartitionDevice)
+        .and_return("/dev/system/root")
+
+      subject.propose
+
+      expect(subject.devices).to eq ["/dev/vda3"]
+
+      expect(subject.root_partition?).to eq true
     end
 
     it "sets to device first available prep partition for ppc64" do
@@ -67,11 +90,28 @@ describe Bootloader::Stage1 do
     end
   end
 
+  describe "#add_udev_device" do
+    it "adds underlayed lvm partition for lvm disk" do
+      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
+      target_map_stub("storage_lvm.yaml")
+
+      allow(Yast::BootStorage).to receive(:mbr_disk)
+        .and_return("/dev/system")
+      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
+        .and_return("/dev/system/root")
+      allow(Yast::BootStorage).to receive(:RootPartitionDevice)
+        .and_return("/dev/system/root")
+
+      subject.add_udev_device("/dev/system")
+
+      expect(subject.devices).to eq(["/dev/vda"])
+
+      expect(subject.mbr?).to eq true
+    end
+  end
+
   describe "#can_use_boot?" do
     before do
-      # nasty hack to allow call of uninitialized libstorage as we do not want
-      # to overmock Yast::Storage.GetDiskPartitionTg call
-      Yast::Storage.instance_variable_set(:@sint, double(getPartitionPrefix: ""))
       allow(subject).to receive(:can_use_boot?).and_call_original
     end
 
@@ -80,15 +120,6 @@ describe Bootloader::Stage1 do
 
       allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/vda")
       allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/vda1")
-
-      expect(subject.can_use_boot?).to eq false
-    end
-
-    it "returns false if boot partition type is lvm" do
-      target_map_stub("storage_lvm.yaml")
-
-      allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/system")
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/system/root")
 
       expect(subject.can_use_boot?).to eq false
     end

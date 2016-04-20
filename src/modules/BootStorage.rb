@@ -47,6 +47,8 @@ module Yast
       # list <string> includes physical disks used for md raid
 
       @md_physical_disks = []
+
+      @underlaying_devices_cache = {}
     end
 
     def gpt_boot_disk?
@@ -216,6 +218,45 @@ module Yast
       end
 
       @md_physical_disks
+    end
+
+    # returns device where dev physically lives, so where can be bootloader installed
+    # it is main entry point when real stage 1 device is needed to get
+    def underlaying_devices(dev)
+      return @underlaying_devices_cache[dev] if @underlaying_devices_cache[dev]
+
+      res = []
+
+      tm = Yast::Storage.GetTargetMap
+      disk_data = Yast::Storage.GetDiskPartition(dev)
+      if disk_data["nr"].empty? #disk
+        disk = Yast::Storage.GetDisk(tm, dev)
+        if disk["type"] == :CT_MD
+          res = Md2Partitions(BootPartitionDevice()).keys.map do |part|
+            disk_dev = Yast::Storage.GetDiskPartition(part)
+            disk_dev["disk"]
+          end
+        elsif disk["type"] == :CT_LVM
+          res = disk["devices"]
+          res = disk["devices_add"] if res.empty?
+          res.map! { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
+        end
+      else
+        part = Yast::Storage.GetPartition(tm, dev)
+        if part["type"] = :lvm
+          lvm_dev = Yast::Storage.GetDisk(tm, disk_data["disk"])
+          res = lvm_dev["devices"]
+          res = lvm_dev["devices_add"] if res.empty?
+        end
+      end
+
+      res = [dev] if res.empty?
+
+      @underlaying_devices_cache[dev] = res
+
+      log.info "underlaying device for #{dev} is #{res.inspect}"
+
+      res
     end
 
     # Converts the md device to the list of devices building it

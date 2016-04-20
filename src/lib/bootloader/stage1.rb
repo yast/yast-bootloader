@@ -38,21 +38,19 @@ module Bootloader
 
     def include?(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+      real_devs = Yast::BootStorage.underlaying_devices(kernel_dev)
 
-      devices.any? do |map_dev|
-        kernel_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
+      real_devs.all? do |real_dev|
+        devices.any? do |map_dev|
+          real_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
+        end
       end
     end
 
     def add_udev_device(dev)
-      # handle md disks
-      if md_disk?(dev)
-        @mbr_disks = md_disks
-        return @mbr_disks.each { |d| add_udev_device(d) }
-      end
-
-      udev_device = Bootloader::UdevMapping.to_mountby_device(dev)
-      @model.add_device(udev_device)
+      real_devices = Yast::BootStorage.underlaying_devices(dev)
+      udev_devices = real_devices.map { |d| Bootloader::UdevMapping.to_mountby_device(d) }
+      udev_devices.each { |d| @model.add_device(d) }
     end
 
     def remove_device(dev)
@@ -80,11 +78,7 @@ module Bootloader
     end
 
     def mbr?
-      if @mbr_disks
-        @mbr_disks.all? { |d| include?(d) }
-      else
-        include?(Yast::BootStorage.mbr_disk)
-      end
+      include?(Yast::BootStorage.mbr_disk)
     end
 
     def extended_partition?
@@ -159,36 +153,11 @@ module Bootloader
 
       # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
       return false if part["used_fs"] == :xfs
-      # cannot install stage1 to lvm logical device (bnc#976315)
-      return false if part["type"] == :lvm
 
       true
     end
 
   private
-
-    def md_disk?(dev)
-      dev = Bootloader::UdevMapping.to_kernel_device(dev)
-
-      disk_dev = Yast::Storage.GetDiskPartition(dev)
-      disk_dev = disk_dev["disk"] || ""
-      return false if disk_dev != dev # not a disk
-
-      disk_map = Yast::Storage.GetTargetMap[dev]
-      disk_map && disk_map["type"] == :CT_MD
-    end
-
-    def md_disks
-      partitions = underlying_boot_partition_devices
-      disks = partitions.map do |part|
-        disk_dev = Yast::Storage.GetDiskPartition(part)
-        disk_dev["disk"]
-      end
-
-      log.info "md_disks: #{disks.inspect} laying on #{partitions.inspect}"
-
-      disks
-    end
 
     def available_partitions(res)
       return unless can_use_boot?
