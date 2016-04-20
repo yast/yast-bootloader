@@ -121,6 +121,8 @@ module Bootloader
       else
         raise "unsuported architecture #{Yast::Arch.architecture}"
       end
+
+      log.info "proposed stage1 configuratopn #{inspect}"
     end
 
     # returns hash, where key is symbol for location and value is device name
@@ -187,6 +189,7 @@ module Bootloader
         used_disks = Yast::BootStorage.underlaying_devices(Yast::BootStorage.mbr_disk)
         need_activate = used_disks.any? { |d| Yast::Storage.GetBootPartition(d).empty? }
         self.activate = need_activate
+        self.generic_mbr = false
       else
         # if not installing to MBR, always activate (so the generic MBR will
         # boot Linux)
@@ -323,12 +326,8 @@ module Bootloader
       when :root then add_udev_device(Yast::BootStorage.RootPartitionDevice)
       when :boot then add_udev_device(Yast::BootStorage.BootPartitionDevice)
       when :extended then add_udev_device(extended)
-      when :mbr
-        add_udev_device(Yast::BootStorage.mbr_disk)
-        # Disable generic MBR as we want grub2 there
-        self.generic_mbr = true
-      when :none
-        log.info "Resetting bootloader device"
+      when :mbr then add_udev_device(Yast::BootStorage.mbr_disk)
+      when :none then log.info "Resetting bootloader device"
       when Array
         if selected_location.first != :custom
           raise "Unknown value to select bootloader device #{selected_location.inspect}"

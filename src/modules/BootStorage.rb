@@ -237,21 +237,22 @@ module Yast
             disk_dev["disk"]
           end
         elsif disk["type"] == :CT_LVM
-          res = disk["devices"]
-          res = disk["devices_add"] if res.empty?
+          # not happy with this usage of || but target map do not need to have it defined
+          res = (disk["devices"] || []) + (disk["devices_add"] || [])
           res.map! { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
         end
       else
         part = Yast::Storage.GetPartition(tm, dev)
         if part["type"] == :lvm
           lvm_dev = Yast::Storage.GetDisk(tm, disk_data["disk"])
-          res = lvm_dev["devices"]
-          res = lvm_dev["devices_add"] if res.empty?
+          res = (lvm_dev["devices"] || [])+ (lvm_dev["devices_add"] || [])
         elsif part["type"] == :sw_raid
-          res = part["devices"]
-          res = part["devices_add"] if res.empty?
+          res = (part["devices"] || []) + (part["devices_add"] || [])
         end
       end
+
+      # some underlaying devices added, so run recursive to ensure that it is really bottom one
+      res = res.each_with_object([]) { |d, f| f.concat(underlaying_devices(d)) }
 
       res = [dev] if res.empty?
 
