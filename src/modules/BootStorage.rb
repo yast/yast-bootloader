@@ -182,24 +182,6 @@ module Yast
       ret
     end
 
-    def can_boot_from_partition
-      tm = Storage.GetTargetMap
-      partition = @BootPartitionDevice || @RootPartitionDevice
-
-      part = Storage.GetPartition(tm, partition)
-
-      if !part
-        log.error "cannot find partition #{partition}"
-        return false
-      end
-
-      fs = part["used_fs"]
-      log.info "FS for boot partition #{fs}"
-
-      # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
-      fs != :xfs
-    end
-
     # FATE#305008: Failover boot configurations for md arrays with redundancy
     # Function check partitions and set redundancy available if
     # partitioning of disk allows it.

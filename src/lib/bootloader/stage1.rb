@@ -144,6 +144,27 @@ module Bootloader
       res
     end
 
+    def can_use_boot?
+      tm = Yast::Storage.GetTargetMap
+      partition = Yast::BootStorage.BootPartitionDevice
+
+      part = Yast::Storage.GetPartition(tm, partition)
+
+      if !part
+        log.error "cannot find partition #{partition}"
+        return false
+      end
+
+      log.info "Boot partition info #{part.inspect}"
+
+      # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
+      return false if part["used_fs"] == :xfs
+      # cannot install stage1 to lvm logical device (bnc#976315)
+      return false if part["type"] == :lvm
+
+      true
+    end
+
   private
 
     def md_disk?(dev)
@@ -170,7 +191,7 @@ module Bootloader
     end
 
     def available_partitions(res)
-      return unless Yast::BootStorage.can_boot_from_partition
+      return unless can_use_boot?
 
       if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
         res[:boot] = Yast::BootStorage.BootPartitionDevice
@@ -260,7 +281,7 @@ module Bootloader
         selected_location = :mbr
       end
 
-      if !Yast::BootStorage.can_boot_from_partition
+      if !can_use_boot?
         log.info "/boot cannot be used to install stage1"
         selected_location = :mbr
       end
