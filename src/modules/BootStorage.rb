@@ -245,7 +245,7 @@ module Yast
         part = Yast::Storage.GetPartition(tm, dev)
         if part["type"] == :lvm
           lvm_dev = Yast::Storage.GetDisk(tm, disk_data["disk"])
-          res = (lvm_dev["devices"] || [])+ (lvm_dev["devices_add"] || [])
+          res = (lvm_dev["devices"] || []) + (lvm_dev["devices_add"] || [])
         elsif part["type"] == :sw_raid
           res = (part["devices"] || []) + (part["devices_add"] || [])
         end
@@ -255,6 +255,8 @@ module Yast
       res = res.each_with_object([]) { |d, f| f.concat(underlaying_devices(d)) }
 
       res = [dev] if res.empty?
+
+      res.uniq!
 
       @underlaying_devices_cache[dev] = res
 

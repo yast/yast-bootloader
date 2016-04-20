@@ -284,14 +284,13 @@ module Bootloader
 
       @boot_initialized = true
       boot_disk_map = Yast::Storage.GetTargetMap[Yast::BootStorage.disk_with_boot_partition] || {}
-      partitions_on_boot_partition_disk = boot_disk_map["partitions"] || []
       boot_part = Yast::Storage.GetPartition(Yast::Storage.GetTargetMap,
         Yast::BootStorage.BootPartitionDevice)
       @logical_boot = boot_part["type"] == :logical
       @boot_with_btrfs = boot_part["used_fs"] == :btrfs
 
       # check for sure also underlaying partitions
-      partitions_on_boot_partition_disk.each do |p|
+      (boot_disk_map["partitions"] || []).each do |p|
         if p["type"] == :extended
           @extended = p["device"]
         elsif underlying_boot_partition_devices.include?(p["device"])
