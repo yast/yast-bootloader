@@ -229,7 +229,7 @@ module Yast
 
       tm = Yast::Storage.GetTargetMap
       disk_data = Yast::Storage.GetDiskPartition(dev)
-      if disk_data["nr"].empty? #disk
+      if disk_data["nr"].to_s.empty? # disk
         disk = Yast::Storage.GetDisk(tm, dev)
         if disk["type"] == :CT_MD
           res = Md2Partitions(BootPartitionDevice()).keys.map do |part|
@@ -243,7 +243,7 @@ module Yast
         end
       else
         part = Yast::Storage.GetPartition(tm, dev)
-        if part["type"] = :lvm
+        if part["type"] == :lvm
           lvm_dev = Yast::Storage.GetDisk(tm, disk_data["disk"])
           res = lvm_dev["devices"]
           res = lvm_dev["devices_add"] if res.empty?

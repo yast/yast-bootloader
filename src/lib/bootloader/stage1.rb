@@ -341,12 +341,7 @@ module Bootloader
     # BootPartitionDevice, or the devices from which the soft-RAID device for
     # "/boot" is built)
     def underlying_boot_partition_devices
-      underlying_boot_partition_devices = [Yast::BootStorage.BootPartitionDevice]
-      md_info = Yast::BootStorage.Md2Partitions(Yast::BootStorage.BootPartitionDevice)
-      underlying_boot_partition_devices = md_info.keys if !md_info.empty?
-      log.info "Boot partition devices: #{underlying_boot_partition_devices}"
-
-      underlying_boot_partition_devices
+      Yast::BootStorage.underlaying_devices(Yast::BootStorage.BootPartitionDevice)
     end
 
     def boot_partition_on_mbr_disk?
