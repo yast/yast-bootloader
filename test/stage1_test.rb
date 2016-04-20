@@ -31,7 +31,7 @@ describe Bootloader::Stage1 do
         .and_return("/dev/vda")
       subject.propose
 
-      expect(subject.devices).to eq ["/dev/md1"]
+      expect(subject.devices).to eq ["/dev/vda"]
     end
 
     it "sets underlaying disks for md raid setup" do
@@ -48,24 +48,6 @@ describe Bootloader::Stage1 do
       expect(subject.devices).to eq ["/dev/vda", "/dev/vdb", "/dev/vdc", "/dev/vdd"]
 
       expect(subject.mbr?).to eq true
-    end
-
-    it "sets underlaying partition for lvm partitions setup" do
-      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
-      target_map_stub("storage_lvm.yaml")
-
-      allow(Yast::BootStorage).to receive(:mbr_disk)
-        .and_return("/dev/system")
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
-        .and_return("/dev/system/root")
-      allow(Yast::BootStorage).to receive(:RootPartitionDevice)
-        .and_return("/dev/system/root")
-
-      subject.propose
-
-      expect(subject.devices).to eq ["/dev/vda3"]
-
-      expect(subject.root_partition?).to eq true
     end
 
     it "sets to device first available prep partition for ppc64" do
@@ -91,7 +73,7 @@ describe Bootloader::Stage1 do
   end
 
   describe "#add_udev_device" do
-    it "adds underlayed lvm partition for lvm disk" do
+    it "adds underlayed disk device for lvm disk" do
       allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
       target_map_stub("storage_lvm.yaml")
 
@@ -107,6 +89,24 @@ describe Bootloader::Stage1 do
       expect(subject.devices).to eq(["/dev/vda"])
 
       expect(subject.mbr?).to eq true
+    end
+
+    it "adds underlayed partition devices for lvm partition" do
+      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
+      target_map_stub("storage_lvm.yaml")
+
+      allow(Yast::BootStorage).to receive(:mbr_disk)
+        .and_return("/dev/system")
+      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
+        .and_return("/dev/system/root")
+      allow(Yast::BootStorage).to receive(:RootPartitionDevice)
+        .and_return("/dev/system/root")
+
+      subject.add_udev_device("/dev/system/root")
+
+      expect(subject.devices).to eq(["/dev/vda3"])
+
+      expect(subject.boot_partition?).to eq true
     end
   end
 

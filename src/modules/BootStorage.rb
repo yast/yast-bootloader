@@ -247,6 +247,9 @@ module Yast
           lvm_dev = Yast::Storage.GetDisk(tm, disk_data["disk"])
           res = lvm_dev["devices"]
           res = lvm_dev["devices_add"] if res.empty?
+        elsif part["type"] == :sw_raid
+          res = part["devices"]
+          res = part["devices_add"] if res.empty?
         end
       end
 
