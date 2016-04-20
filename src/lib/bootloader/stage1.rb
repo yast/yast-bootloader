@@ -172,11 +172,10 @@ module Bootloader
 
     def propose_x86
       selected_location = propose_boot_location
-      log.info "propose_x86 (#{selected_location}"
+      log.info "propose_x86 (#{selected_location})"
 
       # set active flag, if needed
-      if selected_location == :mbr &&
-          underlying_boot_partition_devices.size <= 1
+      if selected_location == :mbr
         # We are installing into MBR:
         # If there is an active partition, then we do not need to activate
         # one (otherwise we do).
@@ -185,8 +184,9 @@ module Bootloader
         # partition can remain activated, which causes less problems with
         # other installed OSes like Windows (older versions assign the C:
         # drive letter to the activated partition).
-        boot_flag_part = Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
-        self.activate = boot_flag_part.empty?
+        used_disks = Yast::BootStorage.underlaying_devices(Yast::BootStorage.mbr_disk)
+        need_activate = used_disks.any? { |d| Yast::Storage.GetBootPartition(d).empty? }
+        self.activate = need_activate
       else
         # if not installing to MBR, always activate (so the generic MBR will
         # boot Linux)
@@ -282,9 +282,12 @@ module Bootloader
       @boot_initialized = true
       boot_disk_map = Yast::Storage.GetTargetMap[Yast::BootStorage.disk_with_boot_partition] || {}
       partitions_on_boot_partition_disk = boot_disk_map["partitions"] || []
-      @logical_boot = false
-      @boot_with_btrfs = false
+      boot_part = Yast::Storage.GetPartition(Yast::Storage.GetTargetMap,
+        Yast::BootStorage.BootPartitionDevice)
+      @logical_boot = boot_part["type"] == :logical
+      @boot_with_btrfs = boot_part["used_fs"] == :btrfs
 
+      # check for sure also underlaying partitions
       partitions_on_boot_partition_disk.each do |p|
         if p["type"] == :extended
           @extended = p["device"]
