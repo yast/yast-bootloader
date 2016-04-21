@@ -36,6 +36,7 @@ describe Bootloader::Stage1 do
 
     it "sets underlaying disks for md raid setup" do
       allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
+      Yast::BootStorage.instance_variable_set(:@underlaying_devices_cache, {})
       target_map_stub("storage_mdraid.yaml")
 
       allow(Yast::BootStorage).to receive(:mbr_disk)
@@ -75,6 +76,7 @@ describe Bootloader::Stage1 do
   describe "#add_udev_device" do
     it "adds underlayed disk device for lvm disk" do
       allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
+      Yast::BootStorage.instance_variable_set(:@underlaying_devices_cache, {})
       target_map_stub("storage_lvm.yaml")
 
       allow(Yast::BootStorage).to receive(:mbr_disk)
@@ -93,6 +95,7 @@ describe Bootloader::Stage1 do
 
     it "adds underlayed partition devices for lvm partition" do
       allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
+      Yast::BootStorage.instance_variable_set(:@underlaying_devices_cache, {})
       target_map_stub("storage_lvm.yaml")
 
       allow(Yast::BootStorage).to receive(:mbr_disk)

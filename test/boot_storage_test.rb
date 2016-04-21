@@ -4,22 +4,6 @@ Yast.import "BootStorage"
 
 describe Yast::BootStorage do
   subject { Yast::BootStorage }
-  describe ".Md2Partitions" do
-    it "returns map with devices creating virtual device as key and bios id as value" do
-      target_map_stub("storage_mdraid.yaml")
-      result = subject.Md2Partitions("/dev/md1")
-      expect(result).to include("/dev/vda1")
-      expect(result).to include("/dev/vdb1")
-      expect(result).to include("/dev/vdc1")
-      expect(result).to include("/dev/vdd1")
-    end
-
-    it "returns empty map if device is not created from other devices" do
-      target_map_stub("storage_mdraid.yaml")
-      result = subject.Md2Partitions("/dev/vda1")
-      expect(result).to be_empty
-    end
-  end
 
   describe ".underlaying_devices" do
     before do
@@ -114,42 +98,6 @@ describe Yast::BootStorage do
     end
   end
 
-  describe ".real_disks_for_partition" do
-    before do
-      mock_disk_partition
-    end
-
-    it "returns unique list of disk on which partitions lives" do
-      target_map_stub("storage_mdraid.yaml")
-
-      result = subject.real_disks_for_partition("/dev/vda1")
-      expect(result).to include("/dev/vda")
-    end
-
-    it "can handle md raid" do
-      target_map_stub("storage_mdraid.yaml")
-
-      result = subject.real_disks_for_partition("/dev/md1")
-      expect(result).to include("/dev/vda")
-      expect(result).to include("/dev/vdb")
-      expect(result).to include("/dev/vdc")
-      expect(result).to include("/dev/vdd")
-    end
-
-    it "can handle LVM" do
-      target_map_stub("storage_lvm.yaml")
-
-      result = subject.real_disks_for_partition("/dev/system/root")
-      expect(result).to include("/dev/vda")
-
-      # do not crash if target map do not contain devices_add(bnc#891070)
-      target_map_stub("storage_lvm_without_devices_add.yaml")
-
-      result = subject.real_disks_for_partition("/dev/system/root")
-      expect(result).to include("/dev/vda")
-    end
-  end
-
   describe ".detect_disks" do
     before do
       mock_disk_partition
@@ -202,11 +150,6 @@ describe Yast::BootStorage do
 
       expect(subject.mbr_disk).to eq "/dev/vda"
     end
-  end
-
-  describe ".devices_for_redundant_boot" do
-    # TODO: proper target map with 2 partitions in raid
-    it "returns devices that can be used for redundant boot"
   end
 
   describe ".available_swap_partitions" do

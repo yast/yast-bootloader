@@ -22,8 +22,6 @@ describe Bootloader::MBRUpdate do
 
   describe "#run" do
     before do
-      allow(Yast::BootStorage).to receive(:Md2Partitions).and_return({})
-
       mock_disk_partition
 
       allow(Yast::Storage).to receive(:GetDeviceName) do |dev, num|
@@ -73,26 +71,6 @@ describe Bootloader::MBRUpdate do
       )
 
       subject.run(stage1(devices: ["/dev/sdb", "/dev/sda1"]))
-    end
-
-    it "creates backup of any disk where Bootloader Devices laid in md raid" do
-      allow(Yast::BootStorage).to receive(:Md2Partitions).and_return("/dev/sdb1" => "/dev/md0", "/dev/sda1" => "/dev/md0")
-
-      backup_mock = double(::Bootloader::BootRecordBackup)
-      expect(backup_mock).to receive(:write)
-      expect(::Bootloader::BootRecordBackup).to(
-        receive(:new).with("/dev/sdb").and_return(backup_mock)
-      )
-      expect(::Bootloader::BootRecordBackup).to(
-        receive(:new).with("/dev/md0")
-        .and_return(double(:write => true))
-      )
-      expect(::Bootloader::BootRecordBackup).to(
-        receive(:new).with("/dev/sda")
-        .and_return(double(:write => true))
-      )
-
-      subject.run(stage1(devices: ["/dev/md0"]))
     end
 
     context "activate and generic mbr is disabled" do
@@ -252,15 +230,6 @@ describe Bootloader::MBRUpdate do
         end
 
         subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb6"]))
-      end
-
-      it "sets flags also on /boot device if it is software raid" do
-        allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/md1")
-
-        expect(Yast::Execute).to receive(:locally)
-          .with(/parted/, "-s", "/dev/md", "set", 1, "boot", "on")
-
-        subject.run(stage1(activate: true))
       end
     end
   end
