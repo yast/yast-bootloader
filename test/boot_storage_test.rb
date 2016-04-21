@@ -21,6 +21,70 @@ describe Yast::BootStorage do
     end
   end
 
+  describe ".underlaying_devices" do
+    before do
+      #clear cache
+      subject.instance_variable_set(:@underlaying_devices_cache, {})
+      allow(subject).to receive(:underlaying_devices).and_call_original
+
+      # nasty hack to allow call of uninitialized libstorage as we do not want
+      # to overmock Yast::Storage.GetDiskPartitionTg call
+      Yast::Storage.instance_variable_set(:@sint, double(getPartitionPrefix: "").as_null_object)
+    end
+
+    it "returns for physical device itself in array" do
+      target_map_stub("storage_tmpfs.yaml")
+
+      expect(subject.underlaying_devices("/dev/vda1")).to eq(["/dev/vda1"])
+    end
+
+    it "returns underlaying disks where lvm partition lives for lvm disk" do
+      target_map_stub("storage_lvm.yaml")
+
+      expect(subject.underlaying_devices("/dev/system")).to eq(["/dev/vda"])
+    end
+
+    it "returns partitions where lvm lives for lvm partition" do
+      target_map_stub("storage_lvm.yaml")
+
+      expect(subject.underlaying_devices("/dev/system/root")).to eq(["/dev/vda3"])
+    end
+
+    it "returns disks where lives /boot partitions for md raid disk" do
+      target_map_stub("storage_mdraid.yaml")
+      allow(subject).to receive(:BootPartitionDevice).and_return("/dev/md1")
+
+      expect(subject.underlaying_devices("/dev/md")).to eq(
+        ["/dev/vda", "/dev/vdb", "/dev/vdc", "/dev/vdd"]
+      )
+    end
+
+    it "returns partitions which creates md raid for md raid partition" do
+      target_map_stub("storage_mdraid.yaml")
+
+      expect(subject.underlaying_devices("/dev/md1")).to eq(
+        ["/dev/vda1", "/dev/vdb1", "/dev/vdc1", "/dev/vdd1"]
+      )
+    end
+
+    it "returns physical partitions where md raid lives for lvm partition on md raid" do
+      target_map_stub("storage_lvm_on_mdraid.yaml")
+
+      expect(subject.underlaying_devices("/dev/system/root")).to eq(
+        ["/dev/vda1", "/dev/vdb1"]
+      )
+    end
+
+    it "returns physical disks where md raid lives for lvm disk on md raid" do
+      target_map_stub("storage_lvm_on_mdraid.yaml")
+      allow(subject).to receive(:BootPartitionDevice).and_return("/dev/system/root")
+
+      expect(subject.underlaying_devices("/dev/system")).to eq(
+        ["/dev/vda", "/dev/vdb"]
+      )
+    end
+  end
+
   describe ".possible_locations_for_stage1" do
     let(:possible_locations) { subject.possible_locations_for_stage1 }
     before do
@@ -128,7 +192,7 @@ describe Yast::BootStorage do
     it "raises exception if there is no mount point for root" do
       allow(Yast::Storage).to receive(:GetMountPoints).and_return({})
 
-      expect { subject.detect_disks }.to raise_error
+      expect { subject.detect_disks }.to raise_error(RuntimeError)
     end
 
     it "sets BootStorage.mbr_disk" do
