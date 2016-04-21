@@ -16,7 +16,7 @@ describe Yast::BootStorage do
       Yast::Storage.instance_variable_set(:@sint, double(getPartitionPrefix: "").as_null_object)
     end
 
-    it "returns for physical device itself in array" do
+    it "returns itself in single element array for physical device as argument" do
       target_map_stub("storage_tmpfs.yaml")
 
       expect(subject.underlaying_devices("/dev/vda1")).to eq(["/dev/vda1"])

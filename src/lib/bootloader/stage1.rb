@@ -233,7 +233,7 @@ module Bootloader
       # see bug #279837 comment #53
       if boot_partition_on_mbr_disk?
         selected_location = separate_boot ? :boot : :root
-      elsif underlying_boot_partition_devices.size > 1
+      elsif underlaying_boot_partition_devices.size > 1
         selected_location = :mbr
       end
 
@@ -293,7 +293,7 @@ module Bootloader
       (boot_disk_map["partitions"] || []).each do |p|
         if p["type"] == :extended
           @extended = p["device"]
-        elsif underlying_boot_partition_devices.include?(p["device"])
+        elsif underlaying_boot_partition_devices.include?(p["device"])
           @boot_with_btrfs = true if p["used_fs"] == :btrfs
           @logical_boot = true if p["type"] == :logical
         end
@@ -338,15 +338,15 @@ module Bootloader
       end
     end
 
-    # determine the underlying devices for the "/boot" partition (either the
+    # determine the underlaying devices for the "/boot" partition (either the
     # BootPartitionDevice, or the devices from which the soft-RAID device for
     # "/boot" is built)
-    def underlying_boot_partition_devices
+    def underlaying_boot_partition_devices
       Yast::BootStorage.underlaying_devices(Yast::BootStorage.BootPartitionDevice)
     end
 
     def boot_partition_on_mbr_disk?
-      underlying_boot_partition_devices.any? do |dev|
+      underlaying_boot_partition_devices.any? do |dev|
         pdp = Yast::Storage.GetDiskPartition(dev)
         p_disk = pdp["disk"] || ""
         p_disk == Yast::BootStorage.mbr_disk

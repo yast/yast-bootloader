@@ -118,6 +118,9 @@ module Yast
 
     # returns device where dev physically lives, so where can be bootloader installed
     # it is main entry point when real stage 1 device is needed to get
+    # @param dev [String] device for which detection should be done
+    # @return [Array<String>] list of devices which is physically available
+    #   and can be used for stage1
     def underlaying_devices(dev)
       return @underlaying_devices_cache[dev] if @underlaying_devices_cache[dev]
 
