@@ -7,7 +7,7 @@ describe Yast::BootStorage do
 
   describe ".underlaying_devices" do
     before do
-      #clear cache
+      # clear cache
       subject.instance_variable_set(:@underlaying_devices_cache, {})
       allow(subject).to receive(:underlaying_devices).and_call_original
 
