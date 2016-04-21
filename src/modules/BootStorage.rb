@@ -232,7 +232,9 @@ module Yast
       if disk_data["nr"].to_s.empty? # disk
         disk = Yast::Storage.GetDisk(tm, dev)
         if disk["type"] == :CT_MD
-          res = Md2Partitions(BootPartitionDevice()).keys.map do |part|
+          # md disk is just virtual device, so lets use boot partition location
+          # in raid and get its disks
+          res = underlaying_devices(BootPartitionDevice()).map do |part|
             disk_dev = Yast::Storage.GetDiskPartition(part)
             disk_dev["disk"]
           end
