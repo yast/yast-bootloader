@@ -38,21 +38,19 @@ module Bootloader
 
     def include?(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+      real_devs = Yast::BootStorage.underlaying_devices(kernel_dev)
 
-      devices.any? do |map_dev|
-        kernel_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
+      real_devs.all? do |real_dev|
+        devices.any? do |map_dev|
+          real_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
+        end
       end
     end
 
     def add_udev_device(dev)
-      # handle md disks
-      if md_disk?(dev)
-        @mbr_disks = md_disks
-        return @mbr_disks.each { |d| add_udev_device(d) }
-      end
-
-      udev_device = Bootloader::UdevMapping.to_mountby_device(dev)
-      @model.add_device(udev_device)
+      real_devices = Yast::BootStorage.underlaying_devices(dev)
+      udev_devices = real_devices.map { |d| Bootloader::UdevMapping.to_mountby_device(d) }
+      udev_devices.each { |d| @model.add_device(d) }
     end
 
     def remove_device(dev)
@@ -80,11 +78,7 @@ module Bootloader
     end
 
     def mbr?
-      if @mbr_disks
-        @mbr_disks.all? { |d| include?(d) }
-      else
-        include?(Yast::BootStorage.mbr_disk)
-      end
+      include?(Yast::BootStorage.mbr_disk)
     end
 
     def extended_partition?
@@ -127,6 +121,8 @@ module Bootloader
       else
         raise "unsuported architecture #{Yast::Arch.architecture}"
       end
+
+      log.info "proposed stage1 configuratopn #{inspect}"
     end
 
     # returns hash, where key is symbol for location and value is device name
@@ -144,33 +140,29 @@ module Bootloader
       res
     end
 
-  private
+    def can_use_boot?
+      tm = Yast::Storage.GetTargetMap
+      partition = Yast::BootStorage.BootPartitionDevice
 
-    def md_disk?(dev)
-      dev = Bootloader::UdevMapping.to_kernel_device(dev)
+      part = Yast::Storage.GetPartition(tm, partition)
 
-      disk_dev = Yast::Storage.GetDiskPartition(dev)
-      disk_dev = disk_dev["disk"] || ""
-      return false if disk_dev != dev # not a disk
-
-      disk_map = Yast::Storage.GetTargetMap[dev]
-      disk_map && disk_map["type"] == :CT_MD
-    end
-
-    def md_disks
-      partitions = underlying_boot_partition_devices
-      disks = partitions.map do |part|
-        disk_dev = Yast::Storage.GetDiskPartition(part)
-        disk_dev["disk"]
+      if !part
+        log.error "cannot find partition #{partition}"
+        return false
       end
 
-      log.info "md_disks: #{disks.inspect} laying on #{partitions.inspect}"
+      log.info "Boot partition info #{part.inspect}"
 
-      disks
+      # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
+      return false if part["used_fs"] == :xfs
+
+      true
     end
 
+  private
+
     def available_partitions(res)
-      return unless Yast::BootStorage.can_boot_from_partition
+      return unless can_use_boot?
 
       if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
         res[:boot] = Yast::BootStorage.BootPartitionDevice
@@ -182,11 +174,10 @@ module Bootloader
 
     def propose_x86
       selected_location = propose_boot_location
-      log.info "propose_x86 (#{selected_location}"
+      log.info "propose_x86 (#{selected_location})"
 
       # set active flag, if needed
-      if selected_location == :mbr &&
-          underlying_boot_partition_devices.size <= 1
+      if selected_location == :mbr
         # We are installing into MBR:
         # If there is an active partition, then we do not need to activate
         # one (otherwise we do).
@@ -195,8 +186,10 @@ module Bootloader
         # partition can remain activated, which causes less problems with
         # other installed OSes like Windows (older versions assign the C:
         # drive letter to the activated partition).
-        boot_flag_part = Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
-        self.activate = boot_flag_part.empty?
+        used_disks = Yast::BootStorage.underlaying_devices(Yast::BootStorage.mbr_disk)
+        need_activate = used_disks.any? { |d| Yast::Storage.GetBootPartition(d).empty? }
+        self.activate = need_activate
+        self.generic_mbr = false
       else
         # if not installing to MBR, always activate (so the generic MBR will
         # boot Linux)
@@ -240,7 +233,7 @@ module Bootloader
       # see bug #279837 comment #53
       if boot_partition_on_mbr_disk?
         selected_location = separate_boot ? :boot : :root
-      elsif underlying_boot_partition_devices.size > 1
+      elsif underlaying_boot_partition_devices.size > 1
         selected_location = :mbr
       end
 
@@ -260,7 +253,7 @@ module Bootloader
         selected_location = :mbr
       end
 
-      if !Yast::BootStorage.can_boot_from_partition
+      if !can_use_boot?
         log.info "/boot cannot be used to install stage1"
         selected_location = :mbr
       end
@@ -291,14 +284,16 @@ module Bootloader
 
       @boot_initialized = true
       boot_disk_map = Yast::Storage.GetTargetMap[Yast::BootStorage.disk_with_boot_partition] || {}
-      partitions_on_boot_partition_disk = boot_disk_map["partitions"] || []
-      @logical_boot = false
-      @boot_with_btrfs = false
+      boot_part = Yast::Storage.GetPartition(Yast::Storage.GetTargetMap,
+        Yast::BootStorage.BootPartitionDevice)
+      @logical_boot = boot_part["type"] == :logical
+      @boot_with_btrfs = boot_part["used_fs"] == :btrfs
 
-      partitions_on_boot_partition_disk.each do |p|
+      # check for sure also underlaying partitions
+      (boot_disk_map["partitions"] || []).each do |p|
         if p["type"] == :extended
           @extended = p["device"]
-        elsif underlying_boot_partition_devices.include?(p["device"])
+        elsif underlaying_boot_partition_devices.include?(p["device"])
           @boot_with_btrfs = true if p["used_fs"] == :btrfs
           @logical_boot = true if p["type"] == :logical
         end
@@ -330,12 +325,8 @@ module Bootloader
       when :root then add_udev_device(Yast::BootStorage.RootPartitionDevice)
       when :boot then add_udev_device(Yast::BootStorage.BootPartitionDevice)
       when :extended then add_udev_device(extended)
-      when :mbr
-        add_udev_device(Yast::BootStorage.mbr_disk)
-        # Disable generic MBR as we want grub2 there
-        self.generic_mbr = true
-      when :none
-        log.info "Resetting bootloader device"
+      when :mbr then add_udev_device(Yast::BootStorage.mbr_disk)
+      when :none then log.info "Resetting bootloader device"
       when Array
         if selected_location.first != :custom
           raise "Unknown value to select bootloader device #{selected_location.inspect}"
@@ -347,20 +338,15 @@ module Bootloader
       end
     end
 
-    # determine the underlying devices for the "/boot" partition (either the
+    # determine the underlaying devices for the "/boot" partition (either the
     # BootPartitionDevice, or the devices from which the soft-RAID device for
     # "/boot" is built)
-    def underlying_boot_partition_devices
-      underlying_boot_partition_devices = [Yast::BootStorage.BootPartitionDevice]
-      md_info = Yast::BootStorage.Md2Partitions(Yast::BootStorage.BootPartitionDevice)
-      underlying_boot_partition_devices = md_info.keys if !md_info.empty?
-      log.info "Boot partition devices: #{underlying_boot_partition_devices}"
-
-      underlying_boot_partition_devices
+    def underlaying_boot_partition_devices
+      Yast::BootStorage.underlaying_devices(Yast::BootStorage.BootPartitionDevice)
     end
 
     def boot_partition_on_mbr_disk?
-      underlying_boot_partition_devices.any? do |dev|
+      underlaying_boot_partition_devices.any? do |dev|
         pdp = Yast::Storage.GetDiskPartition(dev)
         p_disk = pdp["disk"] || ""
         p_disk == Yast::BootStorage.mbr_disk

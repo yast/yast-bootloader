@@ -122,32 +122,7 @@ module Bootloader
     end
 
     def boot_devices
-      return @boot_devices if @boot_devices
-
-      @boot_devices = @stage1.devices
-
-      # ppc do not use boot partition and have to activate prep partition that
-      # cannot be on raid (bnc#940542)
-      return @boot_devices if Yast::Arch.ppc64
-
-      # bnc#494630 - add also boot partitions from soft-raids
-      boot_device = Yast::BootStorage.BootPartitionDevice
-      @boot_devices << boot_device if boot_device.start_with?("/dev/md")
-
-      @boot_devices
-    end
-
-    # get a list of all bootloader devices or their underlying soft-RAID
-    # devices, if necessary
-    def base_devices
-      @bootloader_base_devices ||= boot_devices.reduce([]) do |res, dev|
-        md = Yast::BootStorage.Md2Partitions(dev)
-        if md.empty?
-          res << dev
-        else
-          res.concat(md.keys)
-        end
-      end
+      @stage1.devices
     end
 
     # Get the list of MBR disks that should be rewritten by generic code
@@ -157,7 +132,7 @@ module Bootloader
       # find the MBRs on the same disks as the devices underlying the boot
       # devices; if for any of the "underlying" or "base" devices no device
       # for acessing the MBR can be determined, include mbr_disk in the list
-      mbrs = base_devices.map do |dev|
+      mbrs = boot_devices.map do |dev|
         partition_to_activate(dev)["mbr"] || mbr_disk
       end
       ret = [mbr_disk]
@@ -252,8 +227,7 @@ module Bootloader
     # boot partition
     # @return a list of partitions to activate
     def partitions_to_activate
-      result = base_devices
-      result = bootloader_devices if result.empty?
+      result = boot_devices
 
       result.map! { |partition| partition_to_activate(partition) }
       result.delete({})

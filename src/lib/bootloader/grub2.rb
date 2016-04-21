@@ -260,14 +260,13 @@ module Bootloader
     #
     #
     def url_location_summary
-      # TODO: convert to using grub_devices info
       log.info "Prepare url summary for GRUB2"
       line = "<ul>\n<li>"
       line << mbr_line
       line << "</li>\n"
 
       # do not allow to switch on boot from partition that do not support it
-      if Yast::BootStorage.can_boot_from_partition
+      if stage1.can_use_boot?
         line << "<li>"
         line << partition_line
         line << "</li>"

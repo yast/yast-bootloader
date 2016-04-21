@@ -11,9 +11,13 @@ Yast.import "Storage"
 describe Bootloader::Stage1 do
   before do
     # simple mock getting disks from partition as it need initialized libstorage
-    allow(Yast::BootStorage).to receive(:can_boot_from_partition).and_return(true)
+    allow(subject).to receive(:can_use_boot?).and_return(true)
     mock_disk_partition
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+
+    # nasty hack to allow call of uninitialized libstorage as we do not want
+    # to overmock Yast::Storage.GetDiskPartitionTg call
+    Yast::Storage.instance_variable_set(:@sint, double(getPartitionPrefix: ""))
   end
 
   describe "#propose" do
@@ -27,10 +31,12 @@ describe Bootloader::Stage1 do
         .and_return("/dev/vda")
       subject.propose
 
-      expect(subject.devices).to eq ["/dev/md1"]
+      expect(subject.devices).to eq ["/dev/vda"]
     end
 
     it "sets underlaying disks for md raid setup" do
+      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
+      Yast::BootStorage.instance_variable_set(:@underlaying_devices_cache, {})
       target_map_stub("storage_mdraid.yaml")
 
       allow(Yast::BootStorage).to receive(:mbr_disk)
@@ -64,6 +70,71 @@ describe Bootloader::Stage1 do
       subject.propose
 
       expect(subject.devices).to eq([])
+    end
+  end
+
+  describe "#add_udev_device" do
+    it "adds underlayed disk device for lvm disk" do
+      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
+      Yast::BootStorage.instance_variable_set(:@underlaying_devices_cache, {})
+      target_map_stub("storage_lvm.yaml")
+
+      allow(Yast::BootStorage).to receive(:mbr_disk)
+        .and_return("/dev/system")
+      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
+        .and_return("/dev/system/root")
+      allow(Yast::BootStorage).to receive(:RootPartitionDevice)
+        .and_return("/dev/system/root")
+
+      subject.add_udev_device("/dev/system")
+
+      expect(subject.devices).to eq(["/dev/vda"])
+
+      expect(subject.mbr?).to eq true
+    end
+
+    it "adds underlayed partition devices for lvm partition" do
+      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
+      Yast::BootStorage.instance_variable_set(:@underlaying_devices_cache, {})
+      target_map_stub("storage_lvm.yaml")
+
+      allow(Yast::BootStorage).to receive(:mbr_disk)
+        .and_return("/dev/system")
+      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
+        .and_return("/dev/system/root")
+      allow(Yast::BootStorage).to receive(:RootPartitionDevice)
+        .and_return("/dev/system/root")
+
+      subject.add_udev_device("/dev/system/root")
+
+      expect(subject.devices).to eq(["/dev/vda3"])
+
+      expect(subject.boot_partition?).to eq true
+    end
+  end
+
+  describe "#can_use_boot?" do
+    before do
+      allow(subject).to receive(:can_use_boot?).and_call_original
+    end
+
+    it "returns false if boot partition fs is xfs" do
+      target_map_stub("storage_xfs.yaml")
+
+      allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/vda")
+      allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/vda1")
+
+      expect(subject.can_use_boot?).to eq false
+    end
+
+    it "returns true otherwise" do
+      target_map_stub("storage_tmpfs.yaml")
+
+      allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/vda")
+      allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/vda1")
+
+      expect(subject.can_use_boot?).to eq true
+
     end
   end
 end

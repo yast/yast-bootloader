@@ -4,20 +4,68 @@ Yast.import "BootStorage"
 
 describe Yast::BootStorage do
   subject { Yast::BootStorage }
-  describe ".Md2Partitions" do
-    it "returns map with devices creating virtual device as key and bios id as value" do
-      target_map_stub("storage_mdraid.yaml")
-      result = subject.Md2Partitions("/dev/md1")
-      expect(result).to include("/dev/vda1")
-      expect(result).to include("/dev/vdb1")
-      expect(result).to include("/dev/vdc1")
-      expect(result).to include("/dev/vdd1")
+
+  describe ".underlaying_devices" do
+    before do
+      # clear cache
+      subject.instance_variable_set(:@underlaying_devices_cache, {})
+      allow(subject).to receive(:underlaying_devices).and_call_original
+
+      # nasty hack to allow call of uninitialized libstorage as we do not want
+      # to overmock Yast::Storage.GetDiskPartitionTg call
+      Yast::Storage.instance_variable_set(:@sint, double(getPartitionPrefix: "").as_null_object)
     end
 
-    it "returns empty map if device is not created from other devices" do
+    it "returns itself in single element array for physical device as argument" do
+      target_map_stub("storage_tmpfs.yaml")
+
+      expect(subject.underlaying_devices("/dev/vda1")).to eq(["/dev/vda1"])
+    end
+
+    it "returns underlaying disks where lvm partition lives for lvm disk" do
+      target_map_stub("storage_lvm.yaml")
+
+      expect(subject.underlaying_devices("/dev/system")).to eq(["/dev/vda"])
+    end
+
+    it "returns partitions where lvm lives for lvm partition" do
+      target_map_stub("storage_lvm.yaml")
+
+      expect(subject.underlaying_devices("/dev/system/root")).to eq(["/dev/vda3"])
+    end
+
+    it "returns disks where lives /boot partitions for md raid disk" do
       target_map_stub("storage_mdraid.yaml")
-      result = subject.Md2Partitions("/dev/vda1")
-      expect(result).to be_empty
+      allow(subject).to receive(:BootPartitionDevice).and_return("/dev/md1")
+
+      expect(subject.underlaying_devices("/dev/md")).to eq(
+        ["/dev/vda", "/dev/vdb", "/dev/vdc", "/dev/vdd"]
+      )
+    end
+
+    it "returns partitions which creates md raid for md raid partition" do
+      target_map_stub("storage_mdraid.yaml")
+
+      expect(subject.underlaying_devices("/dev/md1")).to eq(
+        ["/dev/vda1", "/dev/vdb1", "/dev/vdc1", "/dev/vdd1"]
+      )
+    end
+
+    it "returns physical partitions where md raid lives for lvm partition on md raid" do
+      target_map_stub("storage_lvm_on_mdraid.yaml")
+
+      expect(subject.underlaying_devices("/dev/system/root")).to eq(
+        ["/dev/vda1", "/dev/vdb1"]
+      )
+    end
+
+    it "returns physical disks where md raid lives for lvm disk on md raid" do
+      target_map_stub("storage_lvm_on_mdraid.yaml")
+      allow(subject).to receive(:BootPartitionDevice).and_return("/dev/system/root")
+
+      expect(subject.underlaying_devices("/dev/system")).to eq(
+        ["/dev/vda", "/dev/vdb"]
+      )
     end
   end
 
@@ -47,42 +95,6 @@ describe Yast::BootStorage do
       partition_to_delete["delete"] = true
 
       expect(possible_locations).to_not include(partition_to_delete["device"])
-    end
-  end
-
-  describe ".real_disks_for_partition" do
-    before do
-      mock_disk_partition
-    end
-
-    it "returns unique list of disk on which partitions lives" do
-      target_map_stub("storage_mdraid.yaml")
-
-      result = subject.real_disks_for_partition("/dev/vda1")
-      expect(result).to include("/dev/vda")
-    end
-
-    it "can handle md raid" do
-      target_map_stub("storage_mdraid.yaml")
-
-      result = subject.real_disks_for_partition("/dev/md1")
-      expect(result).to include("/dev/vda")
-      expect(result).to include("/dev/vdb")
-      expect(result).to include("/dev/vdc")
-      expect(result).to include("/dev/vdd")
-    end
-
-    it "can handle LVM" do
-      target_map_stub("storage_lvm.yaml")
-
-      result = subject.real_disks_for_partition("/dev/system/root")
-      expect(result).to include("/dev/vda")
-
-      # do not crash if target map do not contain devices_add(bnc#891070)
-      target_map_stub("storage_lvm_without_devices_add.yaml")
-
-      result = subject.real_disks_for_partition("/dev/system/root")
-      expect(result).to include("/dev/vda")
     end
   end
 
@@ -128,7 +140,7 @@ describe Yast::BootStorage do
     it "raises exception if there is no mount point for root" do
       allow(Yast::Storage).to receive(:GetMountPoints).and_return({})
 
-      expect { subject.detect_disks }.to raise_error
+      expect { subject.detect_disks }.to raise_error(RuntimeError)
     end
 
     it "sets BootStorage.mbr_disk" do
@@ -138,11 +150,6 @@ describe Yast::BootStorage do
 
       expect(subject.mbr_disk).to eq "/dev/vda"
     end
-  end
-
-  describe ".devices_for_redundant_boot" do
-    # TODO: proper target map with 2 partitions in raid
-    it "returns devices that can be used for redundant boot"
   end
 
   describe ".available_swap_partitions" do

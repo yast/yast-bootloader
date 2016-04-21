@@ -47,6 +47,8 @@ module Yast
       # list <string> includes physical disks used for md raid
 
       @md_physical_disks = []
+
+      @underlaying_devices_cache = {}
     end
 
     def gpt_boot_disk?
@@ -114,174 +116,54 @@ module Yast
       ext_part["device"]
     end
 
-    # FATE#305008: Failover boot configurations for md arrays with redundancy
-    # Check if devices has same partition number and if they are from different disks
-    #
-    # @param list <string> list of devices
-    # @return [Boolean] true on success
-    def checkDifferentDisks(devices)
-      disks = []
-      no_partition = ""
-      devices.each do |dev|
-        p_dev = Storage.GetDiskPartition(dev)
-        disk = p_dev["disk"]
-        if disks.include?(disk)
-          log.info "Same disk for md array -> disable synchronize md arrays"
-          return false
-        else
-          disks << disk
-        end
-        # add disk from partition to md_physical_disks
-        @md_physical_disks << disk unless @md_physical_disks.include?(disk)
+    # returns device where dev physically lives, so where can be bootloader installed
+    # it is main entry point when real stage 1 device is needed to get
+    # @param dev [String] device for which detection should be done
+    # @return [Array<String>] list of devices which is physically available
+    #   and can be used for stage1
+    def underlaying_devices(dev)
+      return @underlaying_devices_cache[dev] if @underlaying_devices_cache[dev]
 
-        no_p = p_dev["nr"].to_s
-        if no_p == ""
-          log.error "Wrong number of partition: #{dev} from Storage::GetDiskPartition: #{p_dev}"
-          return false
-        end
-        if no_partition == ""
-          no_partition = no_p
-        elsif no_partition != no_p
-          log.info "Different number of partitions -> disable synchronize md arrays"
-          return false
-        end
-      end
+      res = []
 
-      true
-    end
-
-    # FATE#305008: Failover boot configurations for md arrays with redundancy
-    # Check if device are build from 2 partitions with same number but from different disks
-    #
-    # @param [Hash{String => map}] tm taregte map from storage
-    # @param [String] device (md device)
-    # @return true if device is from 2 partisions with same number and different disks
-    def checkMDDevices(tm, device)
-      ret = false
-      tm_dm = tm["/dev/md"] || {}
-
-      # find partitions in target map
-      (tm_dm["partitions"] || []).each do |p|
-        next unless p["device"] == device
-
-        if p["raid_type"] == "raid1"
-          p_devices = p["devices"] || []
-          if p_devices.size == 2 # TODO: why only 2? it do not make sense
-            ret = checkDifferentDisks(p_devices)
-          else
-            log.info "Device: #{device} doesn't contain 2 partitions: #{p_devices}"
+      tm = Yast::Storage.GetTargetMap
+      disk_data = Yast::Storage.GetDiskPartition(dev)
+      if disk_data["nr"].to_s.empty? # disk
+        disk = Yast::Storage.GetDisk(tm, dev)
+        if disk["type"] == :CT_MD
+          # md disk is just virtual device, so lets use boot partition location
+          # in raid and get its disks
+          res = underlaying_devices(BootPartitionDevice()).map do |part|
+            disk_dev = Yast::Storage.GetDiskPartition(part)
+            disk_dev["disk"]
           end
-        else
-          log.info "Device: #{device} is not on raid1: #{p["raid_type"]}"
+        elsif disk["type"] == :CT_LVM
+          # not happy with this usage of || but target map do not need to have it defined
+          res = (disk["devices"] || []) + (disk["devices_add"] || [])
+          res.map! { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
+        end
+      else
+        part = Yast::Storage.GetPartition(tm, dev)
+        if part["type"] == :lvm
+          lvm_dev = Yast::Storage.GetDisk(tm, disk_data["disk"])
+          res = (lvm_dev["devices"] || []) + (lvm_dev["devices_add"] || [])
+        elsif part["type"] == :sw_raid
+          res = (part["devices"] || []) + (part["devices_add"] || [])
         end
       end
 
-      log.info "device: #{device} is based on md_physical_disks: #{@md_physical_disks}"\
-        "is #{ret ? "valid" : "invalid"} for enable redundancy"
+      # some underlaying devices added, so run recursive to ensure that it is really bottom one
+      res = res.each_with_object([]) { |d, f| f.concat(underlaying_devices(d)) }
 
-      ret
-    end
+      res = [dev] if res.empty?
 
-    def can_boot_from_partition
-      tm = Storage.GetTargetMap
-      partition = @BootPartitionDevice || @RootPartitionDevice
-
-      part = Storage.GetPartition(tm, partition)
-
-      if !part
-        log.error "cannot find partition #{partition}"
-        return false
-      end
-
-      fs = part["used_fs"]
-      log.info "FS for boot partition #{fs}"
-
-      # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
-      fs != :xfs
-    end
-
-    # FATE#305008: Failover boot configurations for md arrays with redundancy
-    # Function check partitions and set redundancy available if
-    # partitioning of disk allows it.
-    # It means if md array is based on 2 partitions with same number but 2 different disks
-    # E.g. /dev/md0 is from /dev/sda1 and /dev/sb1 and /dev/md0 is "/"
-    # There is possible only boot from MBR (GRUB not generic boot code)
-    #
-    # @return [Array] Array of devices that can be used to redundancy boot
-
-    def devices_for_redundant_boot
-      tm = Storage.GetTargetMap
-
-      if !tm["/dev/md"]
-        log.info "Doesn't include md raid"
-        return []
-      end
-
-      boot_devices = [@BootPartitionDevice]
-      if @BootPartitionDevice != @RootPartitionDevice
-        boot_devices << @RootPartitionDevice
-      end
-      boot_devices << @ExtendedPartitionDevice
-      boot_devices.delete_if { |d| d.nil? || d.empty? }
-
-      log.info "Devices for analyse of redundacy md array: #{boot_devices}"
-
-      boot_devices.each do |dev|
-        ret = checkMDDevices(tm, dev)
-        # only log if device is not suitable, otherwise md redundancy is not
-        # allowed even if there is some suitable device (bnc#917025)
-        log.info "Skip enable redundancy for device #{dev}" unless ret
-      end
-
-      @md_physical_disks
-    end
-
-    # Converts the md device to the list of devices building it
-    # @param [String] md_device string md device
-    # @return a map of devices from device name to BIOS ID or empty hash if
-    #   not detected) building the md device
-    def Md2Partitions(md_device)
-      ret = {}
-      tm = Storage.GetTargetMap
-      tm.each_pair do |_disk, descr|
-        bios_id = (descr["bios_id"] || 256).to_i # maximum + 1 (means: no bios_id found)
-        partitions = descr["partitions"] || []
-        partitions.each do |partition|
-          if partition["used_by_device"] == md_device
-            ret[partition["device"]] = bios_id
-          end
-        end
-      end
-      log.info "Partitions building #{md_device}: #{ret}"
-
-      ret
-    end
-
-    # returns disk names where partition lives
-    def real_disks_for_partition(partition)
-      # FIXME: handle somehow if disk are in logical raid
-      partitions = Md2Partitions(partition).keys
-      partitions = [partition] if partitions.empty?
-      res = partitions.map do |part|
-        Storage.GetDiskPartition(part)["disk"]
-      end
       res.uniq!
-      # handle LVM disks
-      tm = Storage.GetTargetMap
-      res = res.each_with_object([]) do |disk, ret|
-        disk_meta = tm[disk]
-        next unless disk_meta
 
-        if disk_meta["lvm2"]
-          devices = (disk_meta["devices"] || []) + (disk_meta["devices_add"] || [])
-          disks = devices.map { |d| real_disks_for_partition(d) }
-          ret.concat(disks.flatten)
-        else
-          ret << disk
-        end
-      end
+      @underlaying_devices_cache[dev] = res
 
-      res.uniq
+      log.info "underlaying device for #{dev} is #{res.inspect}"
+
+      res
     end
 
     def find_mbr_disk
