@@ -73,7 +73,13 @@ module Bootloader
     def read(reread: false)
       grub_default.load if !grub_default.loaded? || reread
       grub_cfg = CFA::Grub2::GrubCfg.new
-      grub_cfg.load
+      begin
+        grub_cfg.load
+      rescue Errno::ENOENT
+        # raise error only outside of first stage, as there may not need to be
+        # grub.cfg generated (bnc#976534)
+        raise unless Yast::Stage.initial
+      end
       @sections = ::Bootloader::Sections.new(grub_cfg)
       log.info "grub sections: #{@sections.all}"
     end
