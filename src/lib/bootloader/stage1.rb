@@ -207,7 +207,7 @@ module Bootloader
     end
 
     def propose_ppc
-      partition = Yast::BootStorage.prep_partitions.first
+      partition = proposed_prep_partition
       if partition
         assign_bootloader_device([:custom, partition])
 
@@ -222,6 +222,33 @@ module Bootloader
       else
         raise "there is no prep partition"
       end
+    end
+
+    def proposed_prep_partition
+      partitions = Yast::BootStorage.prep_partitions
+
+      created = partitions.find do |part|
+        part_map = Yast::Storage.GetPartition(Yast::Storage.GetTargetMap, part)
+        part_map["create"] == true
+      end
+
+      if created
+        log.info "using freshly created prep partition #{created}"
+        return created
+      end
+
+      same_disk_part = partitions.find do |part|
+        disk = Yast::Storage.GetDiskPartition(part)["disk"]
+        Yast::BootStorage.disk_with_boot_partition == disk
+      end
+
+      if same_disk_part
+        log.info "using prep on boot disk #{same_disk_part}"
+        return same_disk_part
+      end
+
+      log.info "nothing better so lets return first available prep"
+      partitions.first
     end
 
     def propose_boot_location

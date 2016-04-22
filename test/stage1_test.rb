@@ -51,17 +51,42 @@ describe Bootloader::Stage1 do
       expect(subject.mbr?).to eq true
     end
 
-    it "sets to device first available prep partition for ppc64" do
-      allow(Yast::Arch).to receive(:architecture).and_return("ppc64")
-      object_double(
-        "Yast::BootStorage",
-        prep_partitions: ["/dev/sda1"],
-        detect_disks:    nil
-      ).as_stubbed_const
+    context "on ppc64" do
+      before do
+        allow(Yast::Arch).to receive(:architecture).and_return("ppc64")
 
-      subject.propose
+        object_double(
+          "Yast::BootStorage",
+          prep_partitions: ["/dev/sda1", "/dev/sdb1", "/dev/sdc1"],
+          detect_disks:    nil,
+          disk_with_boot_partition: "/dev/sdb"
+        ).as_stubbed_const
 
-      expect(subject.devices).to eq(["/dev/sda1"])
+        subject.propose
+
+        allow(Yast::Storage).to receive(:GetPartition).and_return({})
+      end
+
+      it "tries to use newly created partition at first" do
+        expect(Yast::Storage).to receive(:GetPartition).with(anything, "/dev/sdc1")
+          .and_return({"create" => true})
+
+        subject.propose
+
+        expect(subject.devices).to eq(["/dev/sdc1"])
+      end
+
+      it "then it tries to use partition on same disk as /boot" do
+        expect(subject.devices).to eq(["/dev/sdb1"])
+      end
+
+      it "sets to device first available prep partition as fallback" do
+        allow(Yast::BootStorage).to receive(:disk_with_boot_partition).and_return("/dev/sdd")
+        subject.propose
+
+        expect(subject.devices).to eq(["/dev/sda1"])
+      end
+
     end
 
     it "sets no device for s390" do

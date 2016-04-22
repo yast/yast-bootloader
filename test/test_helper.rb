@@ -68,6 +68,11 @@ end
 
 # stub udev mapping everywhere
 RSpec.configure do |config|
+  Yast.import "Storage"
+  Yast.import "BootStorage"
+  Yast.import "Bootloader"
+  require "bootloader/udev_mapping"
+
   config.before do
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
     allow(::Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
