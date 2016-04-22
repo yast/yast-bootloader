@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Apr 22 08:55:08 UTC 2016 - jreidinger@suse.com
+
+- smarter prep partition proposal (bnc#970152)
+- fix exception when grub.cfg is not yet generated (bnc#976534)
+- 3.1.176
+
+-------------------------------------------------------------------
 Wed Apr 20 15:18:46 UTC 2016 - jreidinger@suse.com
 
 - fix installing grub2 to underlaying devices (bnc#976315)

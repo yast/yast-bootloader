@@ -164,7 +164,7 @@ module Bootloader
     def available_partitions(res)
       return unless can_use_boot?
 
-      if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+      if separated_boot?
         res[:boot] = Yast::BootStorage.BootPartitionDevice
       else
         res[:root] = Yast::BootStorage.RootPartitionDevice
@@ -207,7 +207,7 @@ module Bootloader
     end
 
     def propose_ppc
-      partition = Yast::BootStorage.prep_partitions.first
+      partition = proposed_prep_partition
       if partition
         assign_bootloader_device([:custom, partition])
 
@@ -218,38 +218,61 @@ module Bootloader
       # skip this proposal. In other case if it is not nfs, then it is error and raise exception
       # powernv do not have prep partition, so we do not have any partition to activate (bnc#970582)
       elsif Yast::BootStorage.disk_with_boot_partition == "/dev/nfs" || Yast::Arch.board_powernv
+        self.activate = false
+        self.generic_mbr = false
         return
       else
         raise "there is no prep partition"
       end
     end
 
+    def proposed_prep_partition
+      partitions = Yast::BootStorage.prep_partitions
+
+      created = partitions.find do |part|
+        part_map = Yast::Storage.GetPartition(Yast::Storage.GetTargetMap, part)
+        part_map["create"] == true
+      end
+
+      if created
+        log.info "using freshly created prep partition #{created}"
+        return created
+      end
+
+      same_disk_part = partitions.find do |part|
+        disk = Yast::Storage.GetDiskPartition(part)["disk"]
+        Yast::BootStorage.disk_with_boot_partition == disk
+      end
+
+      if same_disk_part
+        log.info "using prep on boot disk #{same_disk_part}"
+        return same_disk_part
+      end
+
+      log.info "nothing better so lets return first available prep"
+      partitions.first
+    end
+
+    def separated_boot?
+      Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+    end
+
     def propose_boot_location
       selected_location = :mbr
-      separate_boot = Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
 
       # there was check if boot device is on logical partition
       # IMO it is good idea check MBR also in this case
       # see bug #279837 comment #53
-      if boot_partition_on_mbr_disk?
-        selected_location = separate_boot ? :boot : :root
-      elsif underlaying_boot_partition_devices.size > 1
-        selected_location = :mbr
-      end
+      selected_location = separated_boot? ? :boot : :root if boot_partition_on_mbr_disk?
 
       if logical_boot? && extended_partition
         log.info "/boot is on logical partition and extended detected, extended proposed"
         selected_location = :extended
       end
 
-      if boot_with_btrfs? && logical_boot?
-        log.info "/boot is on logical partition and uses btrfs, mbr is favored in this situation"
-        selected_location = :mbr
-      end
-
       # for separate btrfs partition prefer MBR (bnc#940797)
-      if boot_with_btrfs? && separate_boot
-        log.info "separated /boot is used and uses btrfs, mbr is favored in this situation"
+      if boot_with_btrfs? && (logical_boot? || separated_boot?)
+        log.info "/boot is on logical partition or separated and uses btrfs, mbr is preferred"
         selected_location = :mbr
       end
 
@@ -291,17 +314,12 @@ module Bootloader
 
       # check for sure also underlaying partitions
       (boot_disk_map["partitions"] || []).each do |p|
-        if p["type"] == :extended
-          @extended = p["device"]
-        elsif underlaying_boot_partition_devices.include?(p["device"])
-          @boot_with_btrfs = true if p["used_fs"] == :btrfs
-          @logical_boot = true if p["type"] == :logical
-        end
-      end
+        @extended = p["device"] if p["type"] == :extended
+        next unless underlaying_boot_partition_devices.include?(p["device"])
 
-      log.info "/boot is in logical partition: #{@logical_boot}"
-      log.info "/boot use btrfs: #{@boot_with_btrfs}"
-      log.info "The extended partition: #{@extended}"
+        @boot_with_btrfs = true if p["used_fs"] == :btrfs
+        @logical_boot = true if p["type"] == :logical
+      end
     end
 
     # Set "boot_*" flags in the globals map according to the boot device selected
