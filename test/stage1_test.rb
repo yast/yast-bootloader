@@ -57,8 +57,8 @@ describe Bootloader::Stage1 do
 
         object_double(
           "Yast::BootStorage",
-          prep_partitions: ["/dev/sda1", "/dev/sdb1", "/dev/sdc1"],
-          detect_disks:    nil,
+          prep_partitions:          ["/dev/sda1", "/dev/sdb1", "/dev/sdc1"],
+          detect_disks:             nil,
           disk_with_boot_partition: "/dev/sdb"
         ).as_stubbed_const
 
@@ -69,7 +69,7 @@ describe Bootloader::Stage1 do
 
       it "tries to use newly created partition at first" do
         expect(Yast::Storage).to receive(:GetPartition).with(anything, "/dev/sdc1")
-          .and_return({"create" => true})
+          .and_return("create" => true)
 
         subject.propose
 
