@@ -196,9 +196,9 @@ global void MapDevices()
 			uuid_disks[dev_by_something]= k;	
 		}
 		// map disk by path
-		if ((v["path"]:nil != "")  && (v["path"]:nil != nil))
+		if ((v["udev_path"]:nil != "")  && (v["udev_path"]:nil != nil))
 		{
-			dev_by_something = "/dev/disk/by-path/"+v["path"]:"";
+			dev_by_something = "/dev/disk/by-path/"+v["udev_path"]:"";
 			path_disks[dev_by_something]= k;
 		}
 		// map disk by id
@@ -228,9 +228,9 @@ global void MapDevices()
 			}
 
 			// map partition by path
-			if ((p["path"]:nil != "")  && (p["path"]:nil != nil))
+			if ((p["udev_path"]:nil != "")  && (p["udev_path"]:nil != nil))
 			{
-				dev_by_something = "/dev/disk/by-path/"+p["path"]:"";
+				dev_by_something = "/dev/disk/by-path/"+p["udev_path"]:"";
 				path_partitions[dev_by_something]= p["device"]:"";	
 			}
 
