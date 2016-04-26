@@ -18,6 +18,7 @@
 require "yast"
 require "bootloader/sysconfig"
 require "bootloader/bootloader_factory"
+require "bootloader/autoyast_converter"
 require "cfa/matcher"
 
 Yast.import "UI"
