@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 26 10:27:20 CEST 2016 - schubi@suse.de
+
+- Added requirement in proposal. (bnc#977004)
+- 3.1.177
+
+-------------------------------------------------------------------
 Fri Apr 22 08:55:08 UTC 2016 - jreidinger@suse.com
 
 - smarter prep partition proposal (bnc#970152)
