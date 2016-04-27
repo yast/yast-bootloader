@@ -90,16 +90,18 @@ module Yast
     # @param [Hash] data map of bootloader settings
     # @return [Boolean] true on success
     def Import(data)
-      Yast::BootStorage.detect_disks
+      # AutoYaST configuration mode. There is no access to the system
+      Yast::BootStorage.detect_disks unless Mode.config
 
       imported_configuration = ::Bootloader::AutoyastConverter.import(data)
       ::Bootloader::BootloaderFactory.clear_cache
 
       proposed_configuration = ::Bootloader::BootloaderFactory
         .bootloader_by_name(imported_configuration.name)
-      proposed_configuration.propose
-
-      proposed_configuration.merge(imported_configuration)
+      unless Mode.config  # no AutoYaST configuration mode
+        proposed_configuration.propose
+        proposed_configuration.merge(imported_configuration)
+      end
       ::Bootloader::BootloaderFactory.current = proposed_configuration
 
       true
@@ -179,6 +181,7 @@ module Yast
         config.read
       end
       ::Bootloader::BootloaderFactory.current = config
+      nil
     end
 
     # Propose bootloader settings

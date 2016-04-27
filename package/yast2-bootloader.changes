@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Apr 27 10:43:14 CEST 2016 - schubi@suse.de
+
+- Adapted new version of bootloader to the AutoYaST configuration
+  module.
+  (related to FATE#317701)
+- 3.1.78
+
+-------------------------------------------------------------------
 Tue Apr 26 10:27:20 CEST 2016 - schubi@suse.de
 
 - Added requirement in proposal. (bnc#977004)
