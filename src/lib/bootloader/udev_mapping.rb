@@ -22,7 +22,7 @@ module Bootloader
     # Converts full udev name to kernel device ( disk or partition )
     # @param dev [String] device udev, mdadm or kernel name like /dev/disk/by-id/blabla
     # @raise when device have udev format but do not exists
-    # @return kernel device[String] or nil (AutoYaST configuration)
+    # @return [String,nil] kernel device or nil when running AutoYaST configuration.
     def to_kernel_device(dev)
       # AutoYaST configuration mode. There is no access to the system
       return nil if Yast::Mode.config
@@ -50,7 +50,7 @@ module Bootloader
     # option or kernel device if such udev device do not exists
     # @param dev [String] device udev or kernel one like /dev/disk/by-id/blabla
     # @raise when device have udev format but do not exists
-    # @return udev name[String]
+    # @return [String] udev name
     def to_mountby_device(dev)
       kernel_dev = to_kernel_device(dev)
 
