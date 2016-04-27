@@ -23,6 +23,9 @@ module Bootloader
     # @param dev [String] device udev, mdadm or kernel name like /dev/disk/by-id/blabla
     # @raise when device have udev format but do not exists
     def to_kernel_device(dev)
+      # AutoYaST configuration mode. There is no access to the system
+      return nil if Yast::Mode.config
+
       log.info "call to_kernel_device for #{dev}"
       raise "invalid device nil" unless dev
 

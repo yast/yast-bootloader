@@ -3,6 +3,7 @@ require "yast"
 require "installation/auto_client"
 require "bootloader/bootloader_factory"
 require "bootloader/autoyast_converter"
+require "bootloader/main_dialog"
 
 Yast.import "Bootloader"
 Yast.import "BootStorage"
@@ -53,7 +54,7 @@ module Bootloader
     end
 
     def change
-      BootloaderAutoSequence()
+      ::Bootloader::MainDialog.new.run_auto
     end
 
     # Return configuration data
