@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Mon May  2 10:24:17 CEST 2016 - schubi@suse.de
 
-- Fixed nil in custom_devices. [[]].compact! is returning nil.
+- Fixed nil in custom_devices. Compact! is returning nil if no
+  changes were made.
   Removed empty reject, because it is not needed anymore.
   (bnc#977945)
 - 3.1.179
