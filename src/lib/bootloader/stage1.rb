@@ -94,7 +94,7 @@ module Bootloader
         Yast::BootStorage.mbr_disk,
         Yast::BootStorage.ExtendedPartitionDevice
       ]
-      known_devices.compact!.reject!(&:empty?)
+      known_devices.compact!
       known_devices.map! { |d| Bootloader::UdevMapping.to_kernel_device(d) }
 
       devices.select do |dev|
