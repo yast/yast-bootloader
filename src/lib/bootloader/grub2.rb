@@ -17,6 +17,8 @@ module Bootloader
   class Grub2 < Grub2Base
     attr_reader :stage1
     attr_reader :device_map
+    # @return [Boolean]
+    attr_accessor :trusted_boot
 
     def initialize
       super
@@ -25,6 +27,7 @@ module Bootloader
       @stage1 = Stage1.new
       @grub_install = GrubInstall.new(efi: false)
       @device_map = DeviceMap.new
+      @trusted_boot = false
     end
 
     # Read settings from disk
@@ -50,6 +53,8 @@ module Bootloader
         log.info "grub2/device.map does not exist. Using empty one."
         @device_map = DeviceMap.new
       end
+
+      @trusted_boot = Sysconfig.from_system.trusted_boot if reread || @trusted_boot.nil?
     end
 
     # Write bootloader settings to disk
@@ -65,7 +70,7 @@ module Bootloader
       pmbr_setup(*gpt_disks_devices)
 
       # powernv must not call grub2-install (bnc#970582)
-      @grub_install.execute(devices: stage1.devices) unless Yast::Arch.board_powernv
+      @grub_install.execute(devices: stage1.devices, trusted_boot: trusted_boot) unless Yast::Arch.board_powernv
       # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
       # powernv do not have prep partition, so we do not have any partition to activate (bnc#970582)
       MBRUpdate.new.run(stage1) if !Yast::Arch.s390 && !Yast::Arch.board_powernv
@@ -79,12 +84,14 @@ module Bootloader
       # boot, safer option for legacy booting (bnc#872054)
       self.pmbr_action = :add if Yast::BootStorage.gpt_boot_disk?
       device_map.propose if Yast::Arch.x86_64 || Yast::Arch.i386
+      @trusted_boot = false
     end
 
     def merge(other)
       super
 
       @device_map = other.device_map if !other.device_map.empty?
+      @trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
 
       # merge here is a bit tricky, as for stage1 does not exist `defined?`
       # because grub_installdevice contain value or not, so it is not
@@ -113,6 +120,10 @@ module Bootloader
         Yast::Builtins.sformat(
           _("Boot Loader Type: %1"),
           "GRUB2"
+        ),
+        Yast::Builtins.sformat(
+          _("Enable Trusted Boot: %1"),
+          @trusted_boot ? _("yes") : _("no")
         )
       ]
       locations_val = locations
@@ -149,7 +160,18 @@ module Bootloader
         res << "syslinux"
       end
 
+      if Yast::Arch.x86_64 || Yast::Arch.i386
+        res << "trustedgrub2" << "trustedgrub2-i386-pc" if @trusted_boot
+      end
+
       res
+    end
+
+    # FIXME: refactor with injection like super(prewrite: prewrite, sysconfig = ...)
+    # overwrite BootloaderBase version to save trusted boot
+    def write_sysconfig(prewrite: false)
+      sysconfig = Bootloader::Sysconfig.new(bootloader: name, trusted_boot: @trusted_boot)
+      prewrite ? sysconfig.pre_write : sysconfig.write
     end
 
   private

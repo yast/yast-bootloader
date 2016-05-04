@@ -10,8 +10,9 @@ module Bootloader
       @efi = efi
     end
 
-    def execute(devices: nil, secure_boot: false)
+    def execute(devices: nil, secure_boot: false, trusted_boot: false)
       raise "cannot have secure boot without efi" if secure_boot && !@efi
+      raise "cannot have trusted boot with efi" if trusted_boot && @efi
 
       cmd = []
       if secure_boot
@@ -21,6 +22,7 @@ module Bootloader
         # Do skip-fs-probe to avoid error when embedding stage1
         # to extended partition
         cmd << "--force" << "--skip-fs-probe"
+        cmd << "--directory=/usr/lib/trustedgrub2/#{target}" if trusted_boot
       end
 
       # EFI has 2 boot paths. The default is that there is a target file listed

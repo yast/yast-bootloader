@@ -6,27 +6,32 @@ module Bootloader
     include Yast::Logger
     AGENT_PATH = Yast::Path.new(".sysconfig.bootloader")
     ATTR_VALUE_MAPPING = {
-      bootloader:  "LOADER_TYPE",
-      secure_boot: "SECURE_BOOT"
+      bootloader:   "LOADER_TYPE",
+      secure_boot:  "SECURE_BOOT",
+      trusted_boot: "TRUSTED_BOOT"
     }
 
     # specifies bootloader in sysconfig
     attr_accessor :bootloader
-    # boolean attribute if secure boot should be used
+    # @return [Boolean] if secure boot should be used
     attr_accessor :secure_boot
+    # @return [Boolean] if trusted boot should be used
+    attr_accessor :trusted_boot
 
-    def initialize(bootloader: nil, secure_boot: false)
+    def initialize(bootloader: nil, secure_boot: false, trusted_boot: false)
       @sys_agent = AGENT_PATH
       @bootloader = bootloader
       @secure_boot = secure_boot
+      @trusted_boot = trusted_boot
     end
 
     def self.from_system
       bootloader = Yast::SCR.Read(AGENT_PATH + "LOADER_TYPE")
       # propose secure boot always to true (bnc#872054), otherwise respect user choice
       secure_boot = Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
+      trusted_boot = Yast::SCR.Read(AGENT_PATH + "TRUSTED_BOOT") == "yes"
 
-      new(bootloader: bootloader, secure_boot: secure_boot)
+      new(bootloader: bootloader, secure_boot: secure_boot, trusted_boot: trusted_boot)
     end
 
     # Specialized write before rpm install, that do not have switched SCR
@@ -39,7 +44,7 @@ module Bootloader
     end
 
     PROPOSED_COMMENTS = {
-      bootloader:  "\n" \
+      bootloader:   "\n" \
         "## Path:\tSystem/Bootloader\n" \
         "## Description:\tBootloader configuration\n" \
         "## Type:\tlist(grub,grub2,grub2-efi,none)\n" \
@@ -51,7 +56,7 @@ module Bootloader
         "#\n" \
         "#\n",
 
-      secure_boot: "\n" \
+      secure_boot:  "\n" \
         "## Path:\tSystem/Bootloader\n" \
         "## Description:\tBootloader configuration\n" \
         "## Type:\tyesno\n" \
@@ -61,6 +66,16 @@ module Bootloader
         "# This setting is only relevant to UEFI which supports UEFI. It won't\n" \
         "# take effect on any other firmware type.\n" \
         "#\n" \
+        "#\n",
+
+      trusted_boot: "\n" \
+        "## Path:\tSystem/Bootloader\n" \
+        "## Description:\tBootloader configuration\n" \
+        "## Type:\tyesno\n" \
+        "## Default:\t\"no\"\n" \
+        "#\n" \
+        "# Enable Trusted Boot support\n" \
+        "# Only available for legacy (non-UEFI) boot.\n" \
         "#\n"
     }
 
@@ -71,6 +86,9 @@ module Bootloader
 
       sb = secure_boot ? "yes" : "no"
       write_option(:secure_boot, sb)
+
+      tb = trusted_boot ? "yes" : "no"
+      write_option(:trusted_boot, tb)
 
       # flush write
       Yast::SCR.Write(sys_agent, nil)

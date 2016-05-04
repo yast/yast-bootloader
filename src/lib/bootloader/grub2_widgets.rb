@@ -282,6 +282,32 @@ module Bootloader
     end
   end
 
+  # Represents switcher for Trusted Boot
+  class TrustedBootWidget < CWM::CheckBox
+    include Grub2Widget
+
+    def initialize
+      textdomain "bootloader"
+    end
+
+    def label
+      _("Enable &Trusted Boot Support")
+    end
+
+    def help
+      # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
+      _("<b>Trusted Boot</b> will install TrustedGRUB2 instead of regular GRUB2.\n")
+    end
+
+    def init
+      self.value = grub2.trusted_boot
+    end
+
+    def store
+      grub2.trusted_boot = value
+    end
+  end
+
   # Represents grub password protection widget
   class GrubPasswordWidget < CWM::CustomWidget
     include Grub2Widget
@@ -758,6 +784,8 @@ module Bootloader
 
       widgets << indented_widget(SecureBootWidget.new) if secure_boot_widget?
 
+      widgets << indented_widget(TrustedBootWidget.new) if trusted_boot_widget?
+
       widgets << indented_widget(PMBRWidget.new) if pmbr_widget?
 
       widgets << indented_widget(DeviceMapWidget.new) if device_map_button?
@@ -785,6 +813,10 @@ module Bootloader
 
     def secure_boot_widget?
       (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name == "grub2-efi"
+    end
+
+    def trusted_boot_widget?
+      (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name != "grub2-efi"
     end
 
     def pmbr_widget?

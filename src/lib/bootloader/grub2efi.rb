@@ -24,7 +24,6 @@ module Bootloader
     # Read settings from disk
     # @param [Boolean] reread boolean true to force reread settings from system
     # internal data
-    # @return [Boolean] true on success
     def read(reread: false)
       @secure_boot = Sysconfig.from_system.secure_boot if reread || @secure_boot.nil?
 
