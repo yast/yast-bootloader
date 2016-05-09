@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon May  9 09:28:55 UTC 2016 - agraf@suse.com
+
+- Disable secure boot on AArch64 (bsc#978157)
+- Generate grub2 as removable on non-nvram efi systems (bsc#978593)
+- 3.1.180
+
+-------------------------------------------------------------------
 Mon May  2 10:24:17 CEST 2016 - schubi@suse.de
 
 - Fixed nil in custom_devices. Compact! is returning nil if no
