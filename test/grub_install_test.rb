@@ -10,8 +10,21 @@ describe Bootloader::GrubInstall do
       allow(Yast::Arch).to receive(:architecture).and_return(arch)
     end
 
-    def expect_grub2_install(target, device: nil)
+    def stub_efivars(removable: false)
+      if removable
+        efivardirs = []
+      else
+        efivardirs = ["Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c",
+                      "BootCurrent-8be4df61-93ca-11d2-aa0d-00e098032b8c",
+                      "BootOrder-8be4df61-93ca-11d2-aa0d-00e098032b8c"]
+      end
+
+      allow(Dir).to receive(:glob).and_return(efivardirs)
+    end
+
+    def expect_grub2_install(target, device: nil, removable: false)
       params = [/grub2-install/, "--target=#{target}", "--force", "--skip-fs-probe"]
+      params << "--no-nvram" << "--removable" if removable
       params << device if device
 
       expect(Yast::Execute).to receive(:on_target)
@@ -22,6 +35,7 @@ describe Bootloader::GrubInstall do
       subject { Bootloader::GrubInstall.new(efi: true) }
 
       it "runs shim-install instead of grub2-install if secure_boot: true passed" do
+        stub_efivars
         expect(Yast::Execute).to receive(:on_target)
           .with([/shim-install/, "--config-file=/boot/grub2/grub.cfg"])
 
@@ -30,6 +44,7 @@ describe Bootloader::GrubInstall do
 
       it "runs with target i386-efi on i386" do
         stub_arch("i386")
+        stub_efivars
         expect_grub2_install("i386-efi")
 
         subject.execute
@@ -37,6 +52,7 @@ describe Bootloader::GrubInstall do
 
       it "runs with target x86_64-efi on x86_64" do
         stub_arch("x86_64")
+        stub_efivars
         expect_grub2_install("x86_64-efi")
 
         subject.execute
@@ -44,18 +60,21 @@ describe Bootloader::GrubInstall do
 
       it "raise exception on ppc64" do
         stub_arch("ppc64")
+        stub_efivars
 
         expect { subject.execute }.to raise_error(RuntimeError)
       end
 
       it "raise exception on s390" do
         stub_arch("s390_64")
+        stub_efivars
 
         expect { subject.execute }.to raise_error(RuntimeError)
       end
 
       it "runs with target arm64-efi on aarch64" do
         stub_arch("aarch64")
+        stub_efivars
         expect_grub2_install("arm64-efi")
 
         subject.execute
@@ -65,6 +84,14 @@ describe Bootloader::GrubInstall do
         stub_arch("punks_not_dead")
 
         expect { subject.execute }.to raise_error(RuntimeError)
+      end
+
+      it "creates a removable grub2 install on non-nvram systems" do
+        stub_arch("aarch64")
+        stub_efivars(removable: true)
+        expect_grub2_install("arm64-efi", removable: true)
+
+        subject.execute
       end
     end
 
@@ -77,6 +104,7 @@ describe Bootloader::GrubInstall do
 
       it "runs for each device passed in devices" do
         stub_arch("x86_64")
+        stub_efivars
         expect_grub2_install("i386-pc", device: "/dev/sda")
         expect_grub2_install("i386-pc", device: "/dev/sdb")
         expect_grub2_install("i386-pc", device: "/dev/sdc")
@@ -86,6 +114,7 @@ describe Bootloader::GrubInstall do
 
       it "runs with target i386-pc on i386" do
         stub_arch("i386")
+        stub_efivars
         expect_grub2_install("i386-pc", device: "/dev/sda")
 
         subject.execute(devices: ["/dev/sda"])
@@ -93,6 +122,7 @@ describe Bootloader::GrubInstall do
 
       it "runs with target i386-pc on x86_64" do
         stub_arch("x86_64")
+        stub_efivars
         expect_grub2_install("i386-pc", device: "/dev/sda")
 
         subject.execute(devices: ["/dev/sda"])
@@ -100,6 +130,7 @@ describe Bootloader::GrubInstall do
 
       it "runs with target powerpc-ieee1275 on ppc64" do
         stub_arch("ppc64")
+        stub_efivars
         expect_grub2_install("powerpc-ieee1275", device: "/dev/sda")
 
         subject.execute(devices: ["/dev/sda"])
@@ -107,6 +138,7 @@ describe Bootloader::GrubInstall do
 
       it "runs with target s390x-emu on s390" do
         stub_arch("s390_64")
+        stub_efivars
 
         expect_grub2_install("s390x-emu", device: "/dev/dasda1")
 

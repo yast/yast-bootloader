@@ -23,6 +23,28 @@ module Bootloader
         cmd << "--force" << "--skip-fs-probe"
       end
 
+      # EFI has 2 boot paths. The default is that there is a target file listed
+      # in the boot list. The boot list is stored in NVRAM and exposed as
+      # efivars.
+      #
+      # If no entry in the boot list was bootable (or a removable media is in
+      # the boot list), EFI falls back to removable media booting which loads
+      # a default file from /efi/boot/boot.efi.
+      #
+      # On U-Boot EFI capable systems we do not have NVRAM because we would
+      # have to store that on the same flash that Linux may be running on,
+      # creating device ownership conflicts. So on those systems we instead have
+      # to rely on the removable boot case.
+      #
+      # The easiest heuristic is that on "normal" EFI systems with working
+      # NVRAM, there is at least one efi variable visible. On systems without
+      # working NVRAM, we either see no efivars at all (booted via non-EFI entry
+      # point) or there is no efi variable exposed. Install grub in the
+      # removable location there.
+      if Dir.glob("/sys/firmware/efi/efivars/*").empty?
+        cmd << "--no-nvram" << "--removable"
+      end
+
       if devices
         devices.each do |dev|
           Yast::Execute.on_target(cmd + [dev])

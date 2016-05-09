@@ -69,10 +69,18 @@ describe Bootloader::Grub2EFI do
       expect(subject.pmbr_action).to eq :remove
     end
 
-    it "proposes to use secure boot" do
+    it "proposes to use secure boot for x86_64" do
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       subject.propose
 
       expect(subject.secure_boot).to eq true
+    end
+
+    it "proposes to not use secure boot for aarch64" do
+      allow(Yast::Arch).to receive(:architecture).and_return("aarch64")
+      subject.propose
+
+      expect(subject.secure_boot).to eq false
     end
   end
 
