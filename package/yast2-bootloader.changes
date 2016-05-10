@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 10 15:10:43 UTC 2016 - jreidinger@suse.com
+
+- do not crash with uninitialized variable 'extended' (bnc#978284)
+- 3.1.181
+
+-------------------------------------------------------------------
 Mon May  9 09:28:55 UTC 2016 - agraf@suse.com
 
 - Disable secure boot on AArch64 (bsc#978157)
