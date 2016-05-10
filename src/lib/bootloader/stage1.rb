@@ -169,7 +169,7 @@ module Bootloader
       else
         res[:root] = Yast::BootStorage.RootPartitionDevice
       end
-      res[:extended] = extended if logical_boot?
+      res[:extended] = extended_partition if logical_boot?
     end
 
     def propose_x86

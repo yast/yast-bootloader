@@ -162,4 +162,18 @@ describe Bootloader::Stage1 do
 
     end
   end
+
+  describe "#available_locations" do
+    context "on x86_64" do
+      before do
+        allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+      end
+
+      it "returns map with :extended set to extended partition" do
+        pending "need to get target map with /boot on logical partition"
+
+        expect(subject.available_locations[:extended]).to eq "/dev/sda4"
+      end
+    end
+  end
 end
