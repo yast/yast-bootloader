@@ -342,7 +342,7 @@ module Bootloader
       case selected_location
       when :root then add_udev_device(Yast::BootStorage.RootPartitionDevice)
       when :boot then add_udev_device(Yast::BootStorage.BootPartitionDevice)
-      when :extended then add_udev_device(extended)
+      when :extended then add_udev_device(extended_partition)
       when :mbr then add_udev_device(Yast::BootStorage.mbr_disk)
       when :none then log.info "Resetting bootloader device"
       when Array
