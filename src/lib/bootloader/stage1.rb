@@ -159,6 +159,31 @@ module Bootloader
       true
     end
 
+    def merge(other)
+      # merge here is a bit tricky, as for stage1 does not exist `defined?`
+      # because grub_installdevice contain value or not, so it is not
+      # possible to recognize if chosen or just not set
+      # so logic is following
+      # 1) if any flag is set to true, then use it because e.g. autoyast defined flags,
+      #    but devices usually not
+      # 2) if there is devices specified, then set also flags to value in other
+      #    as it mean, that there is enough info to decide
+      log.info "stage1 to merge #{other.inspect}"
+
+      if other.devices.empty?
+        self.activate    = activate?    || other.activate?
+        self.generic_mbr = generic_mbr? || other.generic_mbr?
+      else
+        clear_devices
+        other.devices.each { |d| add_udev_device(d) }
+
+        self.activate    = other.activate?
+        self.generic_mbr = other.generic_mbr?
+      end
+
+      log.info "stage1 after merge #{inspect}"
+    end
+
   private
 
     def available_partitions(res)

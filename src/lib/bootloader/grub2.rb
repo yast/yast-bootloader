@@ -95,24 +95,7 @@ module Bootloader
       @device_map = other.device_map if !other.device_map.empty?
       @trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
 
-      # merge here is a bit tricky, as for stage1 does not exist `defined?`
-      # because grub_installdevice contain value or not, so it is not
-      # possible to recognize if chosen or just not set
-      # so logic is following
-      # 1) if any flag is set to true, then use it because e.g. autoyast defined flags,
-      #    but devices usually not
-      # 2) if there is devices specified, then set also flags to value in other
-      #    as it mean, that there is enough info to decide
-      log.info "stage1 to merge #{other.stage1.inspect}"
-
-      # so first part of logic
-      stage1.activate = stage1.activate? || other.stage1.activate?
-      stage1.generic_mbr = stage1.generic_mbr? || other.stage1.generic_mbr?
-
-      # use second part described above if there is some device
-      replace_with(other) unless other.stage1.devices.empty?
-
-      log.info "stage1 after merge #{stage1.inspect}"
+      stage1.merge(other.stage1)
     end
 
     # Display bootloader summary
@@ -177,14 +160,6 @@ module Bootloader
     end
 
   private
-
-    def replace_with(other)
-      stage1.clear_devices
-      other.stage1.devices.each { |d| stage1.add_udev_device(d) }
-
-      stage1.activate = other.stage1.activate?
-      stage1.generic_mbr = other.stage1.generic_mbr?
-    end
 
     def gpt_disks_devices
       boot_devices = stage1.devices
