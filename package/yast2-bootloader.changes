@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 11 11:03:09 UTC 2016 - jreidinger@suse.com
+
+- do not crash when stage1 is set to extended partition (thanks to
+  mvidner for catch, also fix bnc#978284)
+- 3.1.182
+
+-------------------------------------------------------------------
 Tue May 10 15:10:43 UTC 2016 - jreidinger@suse.com
 
 - do not crash with uninitialized variable 'extended' (bnc#978284)
