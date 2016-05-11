@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 11 14:11:12 UTC 2016 - mvidner@suse.com
+
+- Reintroduce Trusted Boot (FATE#316553).
+- 3.1.183
+
+-------------------------------------------------------------------
 Wed May 11 11:03:09 UTC 2016 - jreidinger@suse.com
 
 - do not crash when stage1 is set to extended partition (thanks to
