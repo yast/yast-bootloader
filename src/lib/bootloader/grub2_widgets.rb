@@ -775,21 +775,22 @@ module Bootloader
     def contents
       widgets = []
 
-      widgets << indented_widget(LoaderLocationWidget.new) if loader_location_widget?
+      widgets << LoaderLocationWidget.new if loader_location_widget?
 
       if generic_mbr_widget?
-        widgets << indented_widget(ActivateWidget.new)
-        widgets << indented_widget(GenericMBRWidget.new)
+        widgets << ActivateWidget.new
+        widgets << GenericMBRWidget.new
       end
 
-      widgets << indented_widget(SecureBootWidget.new) if secure_boot_widget?
+      widgets << SecureBootWidget.new if secure_boot_widget?
 
-      widgets << indented_widget(TrustedBootWidget.new) if trusted_boot_widget?
+      widgets << TrustedBootWidget.new if trusted_boot_widget?
 
-      widgets << indented_widget(PMBRWidget.new) if pmbr_widget?
+      widgets << PMBRWidget.new if pmbr_widget?
 
-      widgets << indented_widget(DeviceMapWidget.new) if device_map_button?
+      widgets << DeviceMapWidget.new if device_map_button?
 
+      widgets = widgets.map { |w| indented_widget(w) }
       VBox(
         LoaderTypeWidget.new,
         *widgets,
