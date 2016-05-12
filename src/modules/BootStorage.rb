@@ -316,7 +316,11 @@ module Yast
       tm = Yast::Storage.GetTargetMap || {}
       tm.each_value do |v|
         partitions = v["partitions"] || []
-        partition = partitions.find { |p| p["device"] == dev || p["crypt_device"] == dev }
+        partition = partitions.find { |p|
+          p["device"] == dev ||
+          p["crypt_device"] == dev ||
+          ( p["used_by_device"] == dev && p["crypt_device"] )
+        }
 
         next unless partition
 
