@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 12 15:46:49 CEST 2016 - snwint@suse.de
+
+- fix grub2 settings for lvm encrypted boot partition (bsc #976315)
+- 3.1.183
+
+-------------------------------------------------------------------
 Wed May 11 11:03:09 UTC 2016 - jreidinger@suse.com
 
 - do not crash when stage1 is set to extended partition (thanks to
