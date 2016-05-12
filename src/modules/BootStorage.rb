@@ -311,21 +311,49 @@ module Yast
       ret
     end
 
+    # Build map with encrypted partitions (even indirectly)
+    # @return map with encrypted partitions
+    def crypto_devices
+      cryptos = {}
+      tm = Yast::Storage.GetTargetMap || {}
+      log.info "target map = #{tm}"
+
+      # first, find the directly encrypted things
+      # that is, target map has a 'crypt_device' key for it
+      #
+      # FIXME: can the device itself have a 'crypt_device' key?
+      tm.each_value do |d|
+        partitions = d["partitions"] || []
+        partitions.each do |p|
+          if p["crypt_device"]
+            cryptos[p["device"]] = true
+            cryptos[p["used_by_device"]] = true if p["used_by_device"]
+          end
+        end
+      end
+
+      log.info "crypto devices, step 1 = #{cryptos}"
+
+      # second step: check if the encrypted things have itself partitions
+      tm.each_value do |d|
+        next if !cryptos[d["device"]]
+        partitions = d["partitions"] || []
+        partitions.each { |p| cryptos[p["device"]] = true }
+      end
+
+      log.info "crypto devices, final = #{cryptos}"
+
+      cryptos
+    end
+
     def encrypted_boot?
       dev = BootPartitionDevice()
-      tm = Yast::Storage.GetTargetMap || {}
-      tm.each_value do |v|
-        partitions = v["partitions"] || []
-        partition = partitions.find { |p|
-          p["device"] == dev ||
-          p["crypt_device"] == dev ||
-          ( p["used_by_device"] == dev && p["crypt_device"] )
-        }
+      log.info "boot device = #{dev}"
+      result = !!crypto_devices[dev]
 
-        next unless partition
+      log.info "encrypted_boot? = #{result}"
 
-        return partition["crypt_device"] && !partition["crypt_device"].empty?
-      end
+      result
     end
 
     publish :variable => :BootPartitionDevice, :type => "string"
