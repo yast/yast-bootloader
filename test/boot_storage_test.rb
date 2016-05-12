@@ -167,4 +167,13 @@ describe Yast::BootStorage do
       )
     end
   end
+
+  describe ".encrypted_boot?" do
+    it "returns true if /boot partition is on boot" do
+      target_map_stub("storage_encrypted_two_levels.yaml")
+      subject.BootPartitionDevice = "/dev/system/root"
+
+      expect(subject.encrypted_boot?).to eq true
+    end
+  end
 end
