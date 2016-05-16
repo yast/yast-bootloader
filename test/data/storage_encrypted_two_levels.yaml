@@ -1,0 +1,224 @@
+"/dev/sda":
+  unique: 3OOL.W8iGvCekDp8
+  bus: IDE
+  device: "/dev/sda"
+  vendor: QEMU
+  model: HARDDISK
+  driver: ata_piix
+  driver_module: ata_piix
+  partitions:
+  - device: "/dev/sda1"
+    name: sda1
+    used_by_type: :UB_NONE
+    used_by_device: ''
+    udev_path: pci-0000:00:01.1-ata-1-part1
+    udev_id:
+    - ata-QEMU_HARDDISK_QM00001-part1
+    - scsi-0ATA_QEMU_HARDDISK_QM00001-part1
+    - scsi-1ATA_QEMU_HARDDISK_QM00001-part1
+    - scsi-SATA_QEMU_HARDDISK_QM00001-part1
+    size_k: 408576
+    used_fs: :ext4
+    detected_fs: :ext4
+    uuid: 75fde4d6-63ca-4b0c-9913-fd8e57eb9a92
+    nr: 1
+    fsid: 131
+    fstype: Linux native
+    region:
+    - 0
+    - 51
+    type: :primary
+    boot: true
+  - device: "/dev/sda2"
+    name: sda2
+    used_by:
+    - type: :UB_LVM
+      device: "/dev/system"
+    used_by_type: :UB_LVM
+    used_by_device: "/dev/system"
+    udev_path: pci-0000:00:01.1-ata-1-part2
+    udev_id:
+    - ata-QEMU_HARDDISK_QM00001-part2
+    - scsi-0ATA_QEMU_HARDDISK_QM00001-part2
+    - scsi-1ATA_QEMU_HARDDISK_QM00001-part2
+    - scsi-SATA_QEMU_HARDDISK_QM00001-part2
+    crypt_device: "/dev/mapper/cr_ata-QEMU_HARDDISK_QM00001-part2"
+    size_k: 20559872
+    detected_fs: :unknown
+    enc_type: :luks
+    nr: 2
+    fsid: 142
+    fstype: Linux LVM
+    region:
+    - 50
+    - 2560
+    type: :primary
+  size_k: 20971520
+  cyl_size: 8225280
+  cyl_count: 2610
+  sector_size: 512
+  label: msdos
+  name: sda
+  max_logical: 255
+  max_primary: 4
+  type: :CT_DISK
+  transport: :ata
+  used_by_type: :UB_NONE
+  used_by_device: ''
+  udev_id:
+  - ata-QEMU_HARDDISK_QM00001
+  - scsi-0ATA_QEMU_HARDDISK_QM00001
+  - scsi-1ATA_QEMU_HARDDISK_QM00001
+  - scsi-SATA_QEMU_HARDDISK_QM00001
+  udev_path: pci-0000:00:01.1-ata-1
+  dasd_format: 0
+  dasd_type: 0
+"/dev/system":
+  device: "/dev/system"
+  name: system
+  used_by_type: :UB_NONE
+  used_by_device: ''
+  type: :CT_LVM
+  create: false
+  size_k: 20557824
+  cyl_size: 4194304
+  pesize: 4194304
+  cyl_count: 5019
+  pe_free: 2
+  lvm2: true
+  devices:
+  - "/dev/mapper/cr_ata-QEMU_HARDDISK_QM00001-part2"
+  partitions:
+  - device: "/dev/system/root"
+    name: root
+    used_by:
+    - type: :UB_BTRFS
+      device: 30b268b1-8a74-48d9-b4f5-a40d3aa6a45b
+    used_by_type: :UB_BTRFS
+    used_by_device: 30b268b1-8a74-48d9-b4f5-a40d3aa6a45b
+    size_k: 19030016
+    used_fs: :btrfs
+    detected_fs: :btrfs
+    fstopt: defaults
+    stripes: 1
+    type: :lvm
+    fstype: LV
+    subvol:
+    - name: "@/.snapshots"
+    - name: "@/.snapshots/1/snapshot"
+    - name: "@/home"
+    - name: "@/opt"
+    - name: "@/srv"
+    - name: "@/tmp"
+    - name: "@/usr/local"
+    - name: "@/var/crash"
+    - name: "@/var/lib/libvirt/images"
+      nocow: true
+    - name: "@/var/lib/mailman"
+    - name: "@/var/lib/mariadb"
+      nocow: true
+    - name: "@/var/lib/mysql"
+      nocow: true
+    - name: "@/var/lib/named"
+    - name: "@/var/lib/pgsql"
+      nocow: true
+    - name: "@/var/log"
+    - name: "@/var/opt"
+    - name: "@/var/spool"
+    - name: "@/var/tmp"
+    - name: "@/.snapshots/2/snapshot"
+    - name: "@/.snapshots/1/snapshot/var/lib/machines"
+    - name: "@/.snapshots/3/snapshot"
+    - name: "@/.snapshots/4/snapshot"
+    - name: "@/.snapshots/5/snapshot"
+    uuid: 30b268b1-8a74-48d9-b4f5-a40d3aa6a45b
+    mount: "/"
+    mountby: :uuid
+  - device: "/dev/system/swap"
+    name: swap
+    used_by_type: :UB_NONE
+    used_by_device: ''
+    size_k: 1519616
+    used_fs: :swap
+    detected_fs: :swap
+    mount: swap
+    mountby: :device
+    fstopt: defaults
+    uuid: 4ff45837-2a10-45ab-94dd-a83a309aad0e
+    stripes: 1
+    type: :lvm
+    fstype: LV
+"/dev/btrfs":
+  device: "/dev/btrfs"
+  name: btrfs
+  used_by_type: :UB_NONE
+  used_by_device: ''
+  type: :CT_BTRFS
+  partitions: []
+"/dev/tmpfs":
+  device: "/dev/tmpfs"
+  name: tmpfs
+  used_by_type: :UB_NONE
+  used_by_device: ''
+  type: :CT_TMPFS
+  partitions:
+  - device: tmpfs
+    name: none
+    used_by_type: :UB_NONE
+    used_by_device: ''
+    size_k: 507856
+    used_fs: :tmpfs
+    detected_fs: :tmpfs
+    mount: "/dev/shm"
+    mountby: :uuid
+    ignore_fstab: true
+    type: :tmpfs
+    fstype: TMPFS
+  - device: tmpfs
+    name: none
+    used_by_type: :UB_NONE
+    used_by_device: ''
+    size_k: 507856
+    used_fs: :tmpfs
+    detected_fs: :tmpfs
+    mount: "/run"
+    mountby: :uuid
+    ignore_fstab: true
+    type: :tmpfs
+    fstype: TMPFS
+  - device: tmpfs
+    name: none
+    used_by_type: :UB_NONE
+    used_by_device: ''
+    size_k: 507856
+    used_fs: :tmpfs
+    detected_fs: :tmpfs
+    mount: "/sys/fs/cgroup"
+    mountby: :uuid
+    ignore_fstab: true
+    type: :tmpfs
+    fstype: TMPFS
+  - device: tmpfs
+    name: none
+    used_by_type: :UB_NONE
+    used_by_device: ''
+    size_k: 101572
+    used_fs: :tmpfs
+    detected_fs: :tmpfs
+    mount: "/run/user/486"
+    mountby: :uuid
+    ignore_fstab: true
+    type: :tmpfs
+    fstype: TMPFS
+  - device: tmpfs
+    name: none
+    used_by_type: :UB_NONE
+    used_by_device: ''
+    size_k: 101572
+    used_fs: :tmpfs
+    detected_fs: :tmpfs
+    mount: "/run/user/0"
+    mountby: :uuid
+    ignore_fstab: true
+    type: :tmpfs
+    fstype: TMPFS

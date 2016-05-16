@@ -1,7 +1,13 @@
 -------------------------------------------------------------------
-Wed May 11 14:11:12 UTC 2016 - mvidner@suse.com
+Mon May 16 09:36:28 UTC 2016 - mvidner@suse.com
 
 - Reintroduce Trusted Boot (FATE#316553).
+- 3.1.184
+
+-------------------------------------------------------------------
+Thu May 12 15:46:49 CEST 2016 - snwint@suse.de
+
+- fix grub2 settings for lvm encrypted boot partition (bsc#976315)
 - 3.1.183
 
 -------------------------------------------------------------------
