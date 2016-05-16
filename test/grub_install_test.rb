@@ -96,6 +96,11 @@ describe Bootloader::GrubInstall do
     end
 
     context "initialized with efi:false" do
+      before do
+        # no efi vars without efi
+        stub_efivars(removable: true)
+      end
+
       subject { Bootloader::GrubInstall.new(efi: false) }
 
       it "raise exception if secure_boot: true passed" do
