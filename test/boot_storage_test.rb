@@ -108,6 +108,8 @@ describe Yast::BootStorage do
         "/boot" => ["/dev/vda2"]
       )
       allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
+      # disable general mock for disk detection
+      allow(subject).to receive(:detect_disks).and_call_original
     end
 
     it "fills RootPartitionDevice variable" do

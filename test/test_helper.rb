@@ -79,5 +79,6 @@ RSpec.configure do |config|
     allow(::Yast::Storage).to receive(:GetTargetMap).and_return({}) # empty target map by default
     allow(::Yast::BootStorage).to receive(:underlaying_devices) { |d| [d] }
     allow(::Yast::Bootloader).to receive(:checkUsedStorage).and_return(true)
+    allow(Yast::BootStorage).to receive(:detect_disks) # do not do real disk detection
   end
 end
