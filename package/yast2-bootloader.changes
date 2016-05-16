@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon May 16 11:41:05 UTC 2016 - jreidinger@suse.com
+
+- do not install grub2 with --no-nvram on non-EFI systems
+  (bnc#980108)
+- 3.1.185
+
+-------------------------------------------------------------------
 Mon May 16 09:36:28 UTC 2016 - mvidner@suse.com
 
 - Reintroduce Trusted Boot (FATE#316553).

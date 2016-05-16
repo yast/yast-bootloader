@@ -43,7 +43,7 @@ module Bootloader
       # working NVRAM, we either see no efivars at all (booted via non-EFI entry
       # point) or there is no efi variable exposed. Install grub in the
       # removable location there.
-      if Dir.glob("/sys/firmware/efi/efivars/*").empty?
+      if @efi && Dir.glob("/sys/firmware/efi/efivars/*").empty?
         cmd << "--no-nvram" << "--removable"
       end
 
