@@ -70,8 +70,10 @@ module Bootloader
       end
     end
 
-    def read(reread: false)
-      grub_default.load if !grub_default.loaded? || reread
+    def read
+      super
+
+      grub_default.load
       grub_cfg = CFA::Grub2::GrubCfg.new
       begin
         grub_cfg.load

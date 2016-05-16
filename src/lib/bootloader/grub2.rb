@@ -30,9 +30,8 @@ module Bootloader
       @trusted_boot = false
     end
 
-    # Read settings from disk
-    # @param [Boolean] reread boolean true to force reread settings from system
-    def read(reread: false)
+    # Read settings from disk, overwritting already set values
+    def read
       super
 
       begin
@@ -54,7 +53,7 @@ module Bootloader
         @device_map = DeviceMap.new
       end
 
-      @trusted_boot = Sysconfig.from_system.trusted_boot if reread || @trusted_boot.nil?
+      @trusted_boot = Sysconfig.from_system.trusted_boot
     end
 
     # Write bootloader settings to disk
