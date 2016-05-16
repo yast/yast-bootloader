@@ -61,7 +61,6 @@ describe Bootloader::Grub2Base do
   describe "#propose" do
     before do
       allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return({})
-      allow(Yast::BootStorage).to receive(:detect_disks)
     end
 
     describe "os_prober proposal" do

@@ -30,10 +30,6 @@ describe Bootloader::BootloaderBase do
   end
 
   describe "#read" do
-    before do
-      allow(Yast::BootStorage).to receive(:detect_disks)
-    end
-
     it "detects disks in system" do
       expect(Yast::BootStorage).to receive(:detect_disks)
 
@@ -50,10 +46,6 @@ describe Bootloader::BootloaderBase do
   end
 
   describe "#propose" do
-    before do
-      allow(Yast::BootStorage).to receive(:detect_disks)
-    end
-
     it "detects disk configuration" do
       expect(Yast::BootStorage).to receive(:detect_disks)
 
@@ -125,7 +117,6 @@ describe Bootloader::BootloaderBase do
       other = described_class.new
       other.define_singleton_method(:name) { "funny_bootloader" }
 
-      allow(Yast::BootStorage).to receive(:detect_disks)
       other.read
 
       subject.merge(other)
@@ -136,8 +127,6 @@ describe Bootloader::BootloaderBase do
       subject.define_singleton_method(:name) { "funny_bootloader" }
       other = described_class.new
       other.define_singleton_method(:name) { "funny_bootloader" }
-
-      allow(Yast::BootStorage).to receive(:detect_disks)
 
       other.propose
 

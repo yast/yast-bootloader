@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon May 16 12:21:09 UTC 2016 - jreidinger@suse.com
+
+- Fix storing default boot section (bnc#978366)
+- Fix showing default boot section name with spaces inside
+  (found during testing fix for bnc#978366)
+- 3.1.186
+
+-------------------------------------------------------------------
 Mon May 16 11:41:05 UTC 2016 - jreidinger@suse.com
 
 - do not install grub2 with --no-nvram on non-EFI systems

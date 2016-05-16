@@ -21,11 +21,9 @@ module Bootloader
       @grub_install = GrubInstall.new(efi: true)
     end
 
-    # Read settings from disk
-    # @param [Boolean] reread boolean true to force reread settings from system
-    # internal data
-    def read(reread: false)
-      @secure_boot = Sysconfig.from_system.secure_boot if reread || @secure_boot.nil?
+    # Read settings from disk overwritting already set values
+    def read
+      @secure_boot = Sysconfig.from_system.secure_boot
 
       super
     end

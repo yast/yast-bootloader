@@ -9,7 +9,6 @@ describe Bootloader::ProposalClient do
   before do
     # needed for udev conversion
     mock_disk_partition
-    allow(Yast::BootStorage).to receive(:detect_disks)
     allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/sda")
     allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/sda1")
     allow(Yast::Storage).to receive(:GetTargetMap).and_return({})
