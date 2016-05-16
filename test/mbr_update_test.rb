@@ -74,6 +74,11 @@ describe Bootloader::MBRUpdate do
     end
 
     context "activate and generic mbr is disabled" do
+      before do
+        allow(::Bootloader::BootRecordBackup)
+          .to receive(:new).and_return(double(:write => true))
+      end
+
       it "do not write generic mbr anywhere" do
         expect(Yast::Execute).to_not receive(:locally)
         expect(Yast::Execute).to_not receive(:on_target)
@@ -91,6 +96,8 @@ describe Bootloader::MBRUpdate do
       before do
         allow(Yast::Stage).to receive(:initial).and_return(false)
         allow(Yast::PackageSystem).to receive(:Install)
+        allow(::Bootloader::BootRecordBackup)
+          .to receive(:new).and_return(double(:write => true))
       end
 
       it "do nothing if mbr_disk is in Bootloader devices, so we install there bootloader stage1" do
@@ -142,6 +149,8 @@ describe Bootloader::MBRUpdate do
         allow(Yast::Stage).to receive(:initial).and_return(false)
         allow(Yast::PackageSystem).to receive(:Install)
         allow(Yast::Execute).to receive(:locally).and_return("")
+        allow(::Bootloader::BootRecordBackup)
+          .to receive(:new).and_return(double(:write => true))
       end
 
       context "disk label is DOS mbr" do

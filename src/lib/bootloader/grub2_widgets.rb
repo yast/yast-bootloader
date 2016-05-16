@@ -282,6 +282,32 @@ module Bootloader
     end
   end
 
+  # Represents switcher for Trusted Boot
+  class TrustedBootWidget < CWM::CheckBox
+    include Grub2Widget
+
+    def initialize
+      textdomain "bootloader"
+    end
+
+    def label
+      _("Enable &Trusted Boot Support")
+    end
+
+    def help
+      # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
+      _("<b>Trusted Boot</b> will install TrustedGRUB2 instead of regular GRUB2.\n")
+    end
+
+    def init
+      self.value = grub2.trusted_boot
+    end
+
+    def store
+      grub2.trusted_boot = value
+    end
+  end
+
   # Represents grub password protection widget
   class GrubPasswordWidget < CWM::CustomWidget
     include Grub2Widget
@@ -749,19 +775,22 @@ module Bootloader
     def contents
       widgets = []
 
-      widgets << indented_widget(LoaderLocationWidget.new) if loader_location_widget?
+      widgets << LoaderLocationWidget.new if loader_location_widget?
 
       if generic_mbr_widget?
-        widgets << indented_widget(ActivateWidget.new)
-        widgets << indented_widget(GenericMBRWidget.new)
+        widgets << ActivateWidget.new
+        widgets << GenericMBRWidget.new
       end
 
-      widgets << indented_widget(SecureBootWidget.new) if secure_boot_widget?
+      widgets << SecureBootWidget.new if secure_boot_widget?
 
-      widgets << indented_widget(PMBRWidget.new) if pmbr_widget?
+      widgets << TrustedBootWidget.new if trusted_boot_widget?
 
-      widgets << indented_widget(DeviceMapWidget.new) if device_map_button?
+      widgets << PMBRWidget.new if pmbr_widget?
 
+      widgets << DeviceMapWidget.new if device_map_button?
+
+      widgets = widgets.map { |w| indented_widget(w) }
       VBox(
         LoaderTypeWidget.new,
         *widgets,
@@ -785,6 +814,10 @@ module Bootloader
 
     def secure_boot_widget?
       (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name == "grub2-efi"
+    end
+
+    def trusted_boot_widget?
+      (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name == "grub2"
     end
 
     def pmbr_widget?

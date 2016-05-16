@@ -29,6 +29,7 @@ module Bootloader
         # let it be empty if not defined to keep code simplier as effect is same
         data["global"] ||= {}
 
+        import_grub2(data, bootloader)
         import_stage1(data, bootloader)
         import_default(data, bootloader.grub_default)
         # TODO: import Initrd
@@ -48,6 +49,7 @@ module Bootloader
 
         res["global"] = {}
         global = res["global"]
+        export_grub2(global, config) if config.name == "grub2"
         export_stage1(global, config.stage1) if config.respond_to?(:stage1)
         export_default(global, config.grub_default)
 
@@ -55,6 +57,17 @@ module Bootloader
       end
 
     private
+
+      def import_grub2(data, bootloader)
+        return unless bootloader.name == "grub2"
+
+        GRUB2_BOOLEAN_MAPPING.each do |key, method|
+          val = data["global"][key]
+          next unless val
+
+          bootloader.public_send(:"#{method}=", val == "true")
+        end
+      end
 
       def import_default(data, default)
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
@@ -178,6 +191,17 @@ module Bootloader
         end
 
         res["boot_custom"] = stage1.custom_devices.join(",") unless stage1.custom_devices.empty?
+      end
+
+      # only for grub2, not for others
+      GRUB2_BOOLEAN_MAPPING = {
+        "trusted_grub" => :trusted_boot
+      }
+      def export_grub2(res, bootloader)
+        GRUB2_BOOLEAN_MAPPING.each do |key, method|
+          val = bootloader.public_send(method)
+          res[key] = val ? "true" : "false" unless val.nil?
+        end
       end
 
       DEFAULT_BOOLEAN_MAPPING = {

@@ -43,13 +43,14 @@ describe Bootloader::AutoyastConverter do
 
     it "import configuration to returned bootloader" do
       data = {
-        "append"      => "verbose nomodeset",
-        "terminal"    => "gfxterm",
-        "os_prober"   => "true",
-        "hiddenmenu"  => "true",
-        "timeout"     => 10,
-        "activate"    => "true",
-        "generic_mbr" => "false"
+        "append"       => "verbose nomodeset",
+        "terminal"     => "gfxterm",
+        "os_prober"    => "true",
+        "hiddenmenu"   => "true",
+        "timeout"      => 10,
+        "activate"     => "true",
+        "generic_mbr"  => "false",
+        "trusted_grub" => "true"
       }
 
       bootloader = subject.import("global" => data)
@@ -59,6 +60,7 @@ describe Bootloader::AutoyastConverter do
       expect(bootloader.grub_default.os_prober).to be_enabled
       expect(bootloader.grub_default.hidden_timeout).to eq "10"
       expect(bootloader.stage1).to be_activate
+      expect(bootloader.trusted_boot).to eq true
     end
 
     it "supports SLE9 format" do
@@ -86,6 +88,7 @@ describe Bootloader::AutoyastConverter do
       bootloader.grub_default.os_prober.enable
       bootloader.grub_default.hidden_timeout = "10"
       bootloader.stage1.activate = true
+      bootloader.trusted_boot = true
 
       expected_export = {
         "append"        => "verbose nomodeset",
@@ -98,7 +101,8 @@ describe Bootloader::AutoyastConverter do
         "boot_extended" => "false",
         "boot_root"     => "false",
         "activate"      => "true",
-        "generic_mbr"   => "false"
+        "generic_mbr"   => "false",
+        "trusted_grub"  => "true"
       }
 
       expect(subject.export(bootloader)["global"]).to eq expected_export
