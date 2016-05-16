@@ -817,7 +817,7 @@ module Bootloader
     end
 
     def trusted_boot_widget?
-      (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name != "grub2-efi"
+      (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name == "grub2"
     end
 
     def pmbr_widget?
