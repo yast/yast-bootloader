@@ -77,7 +77,7 @@ describe Bootloader::GrubInstall do
         stub_efivars
         expect_grub2_install("arm64-efi")
 
-        subject.execute
+        subject.execute(devices: [])
       end
 
       it "raise exception for other architectures" do
@@ -145,9 +145,9 @@ describe Bootloader::GrubInstall do
         stub_arch("s390_64")
         stub_efivars
 
-        expect_grub2_install("s390x-emu", device: "/dev/dasda1")
+        expect_grub2_install("s390x-emu")
 
-        subject.execute(devices: ["/dev/dasda1"])
+        subject.execute(devices: [])
       end
 
       it "raise exception on aarch64" do

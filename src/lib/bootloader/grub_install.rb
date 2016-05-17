@@ -47,12 +47,14 @@ module Bootloader
         cmd << "--no-nvram" << "--removable"
       end
 
-      if devices
+      if devices && !devices.empty?
         devices.each do |dev|
           Yast::Execute.on_target(cmd + [dev])
         end
       else
-        Yast::Execute.on_target(cmd)
+        # s390 and efi can install grub2 without device, otherwise user
+        # intentionally do not want grub2 installed by yast2
+        Yast::Execute.on_target(cmd) if Yast::Arch.s390 || @efi
       end
     end
 
