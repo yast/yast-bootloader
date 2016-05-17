@@ -98,7 +98,7 @@ module Yast
 
       proposed_configuration = ::Bootloader::BootloaderFactory
         .bootloader_by_name(imported_configuration.name)
-      unless Mode.config  # no AutoYaST configuration mode
+      unless Mode.config # no AutoYaST configuration mode
         proposed_configuration.propose
         proposed_configuration.merge(imported_configuration)
       end
