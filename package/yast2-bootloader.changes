@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue May 17 07:42:46 UTC 2016 - jreidinger@suse.com
+
+- do not skip grub2 install during installation on s390
+  (bnc#980250)
+- 3.1.187
+
+-------------------------------------------------------------------
 Mon May 16 12:21:09 UTC 2016 - jreidinger@suse.com
 
 - Fix storing default boot section (bnc#978366)
