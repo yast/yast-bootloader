@@ -10,7 +10,7 @@ module Bootloader
       @efi = efi
     end
 
-    def execute(devices: nil, secure_boot: false, trusted_boot: false)
+    def execute(devices: [], secure_boot: false, trusted_boot: false)
       raise "cannot have secure boot without efi" if secure_boot && !@efi
       raise "cannot have trusted boot with efi" if trusted_boot && @efi
 
@@ -25,6 +25,18 @@ module Bootloader
         cmd << "--directory=/usr/lib/trustedgrub2/#{target}" if trusted_boot
       end
 
+      cmd << "--no-nvram" << "--removable" if removable_efi?
+
+      if no_device_install?
+        Yast::Execute.on_target(cmd)
+      else
+        devices.each { |d| Yast::Execute.on_target(cmd + [d]) }
+      end
+    end
+
+  private
+
+    def removable_efi?
       # EFI has 2 boot paths. The default is that there is a target file listed
       # in the boot list. The boot list is stored in NVRAM and exposed as
       # efivars.
@@ -43,20 +55,12 @@ module Bootloader
       # working NVRAM, we either see no efivars at all (booted via non-EFI entry
       # point) or there is no efi variable exposed. Install grub in the
       # removable location there.
-      if @efi && Dir.glob("/sys/firmware/efi/efivars/*").empty?
-        cmd << "--no-nvram" << "--removable"
-      end
-
-      if devices
-        devices.each do |dev|
-          Yast::Execute.on_target(cmd + [dev])
-        end
-      else
-        Yast::Execute.on_target(cmd)
-      end
+      @efi && Dir.glob("/sys/firmware/efi/efivars/*").empty?
     end
 
-  private
+    def no_device_install?
+      Yast::Arch.s390 || @efi
+    end
 
     def target
       @target ||= case Yast::Arch.architecture

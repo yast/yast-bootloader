@@ -171,7 +171,7 @@ module Bootloader
       log.info "stage1 to merge #{other.inspect}"
 
       if other.devices.empty?
-        self.activate    = activate?    || other.activate?
+        self.activate    = activate? || other.activate?
         self.generic_mbr = generic_mbr? || other.generic_mbr?
       else
         clear_devices
