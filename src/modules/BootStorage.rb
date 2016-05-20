@@ -146,10 +146,10 @@ module Yast
           Ops.set(@all_devices, dev_by_something, k)
         end
         # map disk by path
-        if Ops.get(v, "path") != "" && Ops.get(v, "path") != nil
+        if Ops.get(v, "udev_path") != "" && Ops.get(v, "udev_path") != nil
           dev_by_something = Ops.add(
             "/dev/disk/by-path/",
-            Ops.get_string(v, "path", "")
+            Ops.get_string(v, "udev_path", "")
           )
           Ops.set(@all_devices, dev_by_something, k)
         end
@@ -193,10 +193,10 @@ module Yast
             )
           end
           # map partition by path
-          if Ops.get(p, "path") != "" && Ops.get(p, "path") != nil
+          if Ops.get(p, "udev_path") != "" && Ops.get(p, "udev_path") != nil
             dev_by_something = Ops.add(
               "/dev/disk/by-path/",
-              Ops.get_string(p, "path", "")
+              Ops.get_string(p, "udev_path", "")
             )
             Ops.set(
               @all_devices,
