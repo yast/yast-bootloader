@@ -83,7 +83,7 @@ describe Bootloader::FinishClient do
       subject.write
     end
 
-    it "return true if everything goes as expect" do
+    it "returns true if everything goes as expect" do
       expect(subject.write).to eq true
     end
 
@@ -94,7 +94,7 @@ describe Bootloader::FinishClient do
         allow(Yast::Mode).to receive(:update).and_return(true)
       end
 
-      it "do nothing if bootloader config is not read or proposed, so no changes done" do
+      it "does nothing if bootloader config is not read or proposed, so no changes done" do
         allow(@current_bl).to receive(:read?).and_return(false)
         allow(@current_bl).to receive(:proposed?).and_return(false)
 
@@ -110,7 +110,7 @@ describe Bootloader::FinishClient do
           .and_return("1")
       end
 
-      it "prepare kexec environment" do
+      it "prepares kexec environment" do
         kexec = double
         expect(kexec).to receive(:prepare_environment)
         allow(::Bootloader::Kexec).to receive(:new).and_return(kexec)
