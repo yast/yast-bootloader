@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue May 24 09:00:13 UTC 2016 - jreidinger@suse.com
+
+- run mkinitrd at the end of installation to ensure proper initrd
+  even for image based installation or live install
+  (bnc#977656,bnc#979719)
+- 3.1.188
+
+-------------------------------------------------------------------
 Tue May 17 07:42:46 UTC 2016 - jreidinger@suse.com
 
 - do not skip grub2 install during installation on s390

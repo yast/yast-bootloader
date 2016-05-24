@@ -1,9 +1,9 @@
 require "bootloader/kexec"
 require "bootloader/bootloader_factory"
 require "installation/finish_client"
+require "yast2/execute"
 
 Yast.import "Arch"
-Yast.import "Bootloader"
 Yast.import "Linuxrc"
 Yast.import "Misc"
 Yast.import "Mode"
@@ -12,8 +12,6 @@ module Bootloader
   # Finish client for bootloader configuration
   class FinishClient < ::Installation::FinishClient
     include Yast::I18n
-
-    BASH_PATH = Yast::Path.new(".target.bash_output")
 
     def initialize
       textdomain "bootloader"
@@ -65,6 +63,12 @@ module Bootloader
       else
         log.info "Installation started with kexec_reboot set 0"
       end
+
+      # call mkinitrd to ensure initrd is properly set, it is especially needed
+      # in live system install ( where it is just copyied ) and image based
+      # installation where post install script is not executed
+      # (bnc#979719,bnc#977656)
+      Yast::Execute.on_target("/sbin/mkinitrd")
 
       true
     end
