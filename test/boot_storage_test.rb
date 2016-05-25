@@ -67,6 +67,18 @@ describe Yast::BootStorage do
         ["/dev/vda", "/dev/vdb"]
       )
     end
+
+    it "skips disks used as partitionless lvm devices" do
+      target_map_stub("lvm_whole_disk.yml")
+
+      allow(subject).to receive(:BootPartitionDevice).and_return("/dev/system/root")
+      expect(subject.underlaying_devices("/dev/system")).to eq(
+        ["/dev/sda"]
+      )
+      expect(subject.underlaying_devices("/dev/system/root")).to eq(
+        ["/dev/sda1"]
+      )
+    end
   end
 
   describe ".possible_locations_for_stage1" do

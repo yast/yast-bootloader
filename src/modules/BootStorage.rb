@@ -139,22 +139,27 @@ module Yast
           end
         elsif disk["type"] == :CT_LVM
           # not happy with this usage of || but target map do not need to have it defined
-          res = (disk["devices"] || []) + (disk["devices_add"] || [])
+          res = devices_on(disk)
+          # skip lvm on partiotionless disks as it cannot be used, see bnc#980529
+          res.delete_if { |d| tm[d] }
           res.map! { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
         end
-      else
+      else # partition
         part = Yast::Storage.GetPartition(tm, dev)
         if part["type"] == :lvm
           lvm_dev = Yast::Storage.GetDisk(tm, disk_data["disk"])
-          res = (lvm_dev["devices"] || []) + (lvm_dev["devices_add"] || [])
+          # skip lvm on partiotionless disks as it cannot be used, see bnc#980529
+          res = devices_on(lvm_dev)
+          res.delete_if { |d| tm[d] }
         elsif part["type"] == :sw_raid
-          res = (part["devices"] || []) + (part["devices_add"] || [])
+          res = devices_on(part)
         end
       end
 
       # some underlaying devices added, so run recursive to ensure that it is really bottom one
       res = res.each_with_object([]) { |d, f| f.concat(underlaying_devices(d)) }
 
+      # TODO: check if res empty is caused by filtering out lvm on partitionless disk
       res = [dev] if res.empty?
 
       res.uniq!
@@ -164,6 +169,11 @@ module Yast
       log.info "underlaying device for #{dev} is #{res.inspect}"
 
       res
+    end
+
+    # @private
+    def devices_on(dev)
+      (dev["devices"] || []) + (dev["devices_add"] || [])
     end
 
     def find_mbr_disk
