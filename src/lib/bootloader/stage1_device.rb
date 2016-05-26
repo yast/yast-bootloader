@@ -73,8 +73,9 @@ module Bootloader
       []
     end
 
-    # For pure virtual disk devices it is selected /boot partition and its underlaying devices
-    # then for it select on which disks it lives. So result is disk which contain partition holding /boot.
+    # For pure virtual disk devices it is selected /boot partition and its
+    # underlaying devices then for it select on which disks it lives. So result
+    # is disk which contain partition holding /boot.
     def underlaying_disk_with_boot_partition
       underlaying_devices_for(Yast::BootStorage.BootPartitionDevice).map do |part|
         disk_dev = Yast::Storage.GetDiskPartition(part)

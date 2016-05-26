@@ -86,6 +86,4 @@ describe Bootloader::Stage1Device do
       expect(subject.real_devices).to eq(["/dev/sda1"])
     end
   end
-
-
 end

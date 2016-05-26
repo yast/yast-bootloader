@@ -14,18 +14,7 @@ module Bootloader
       raise "cannot have secure boot without efi" if secure_boot && !@efi
       raise "cannot have trusted boot with efi" if trusted_boot && @efi
 
-      cmd = []
-      if secure_boot
-        cmd << "/usr/sbin/shim-install" << "--config-file=/boot/grub2/grub.cfg"
-      else
-        cmd << "/usr/sbin/grub2-install" << "--target=#{target}"
-        # Do skip-fs-probe to avoid error when embedding stage1
-        # to extended partition
-        cmd << "--force" << "--skip-fs-probe"
-        cmd << "--directory=/usr/lib/trustedgrub2/#{target}" if trusted_boot
-      end
-
-      cmd << "--no-nvram" << "--removable" if removable_efi?
+      cmd = basic_cmd(secure_boot, trusted_boot)
 
       if no_device_install?
         Yast::Execute.on_target(cmd)
@@ -35,6 +24,24 @@ module Bootloader
     end
 
   private
+
+    # creates basic command for grub2 install without specifying any stage1
+    # locations
+    def basic_cmd(secure_boot, trusted_boot)
+      if secure_boot
+        cmd = ["/usr/sbin/shim-install", "--config-file=/boot/grub2/grub.cfg"]
+      else
+        cmd = ["/usr/sbin/grub2-install", "--target=#{target}"]
+        # Do skip-fs-probe to avoid error when embedding stage1
+        # to extended partition
+        cmd << "--force" << "--skip-fs-probe"
+        cmd << "--directory=/usr/lib/trustedgrub2/#{target}" if trusted_boot
+      end
+
+      cmd << "--no-nvram" << "--removable" if removable_efi?
+
+      cmd
+    end
 
     def removable_efi?
       # EFI has 2 boot paths. The default is that there is a target file listed
@@ -64,30 +71,48 @@ module Bootloader
 
     def target
       @target ||= case Yast::Arch.architecture
-                  when "i386"
-                    if @efi
-                      "i386-efi"
-                    else
-                      "i386-pc"
-                    end
-                  when "x86_64"
-                    if @efi
-                      "x86_64-efi"
-                    else
-                      "i386-pc"
-                    end
-                  when "ppc", "ppc64"
-                    raise "EFI on ppc not supported" if @efi
-                    "powerpc-ieee1275"
-                  when "s390_32", "s390_64"
-                    raise "EFI on s390 not supported" if @efi
-                    "s390x-emu"
-                  when "aarch64"
-                    raise "Only EFI supported on aarch64" unless @efi
-                    "arm64-efi"
+                  when "i386"               then i386_target
+                  when "x86_64"             then x64_target
+                  when "ppc", "ppc64"       then ppc_target
+                  when "s390_32", "s390_64" then s390_target
+                  when "aarch64"            then aarch64_target
                   else
                     raise "unsupported architecture '#{Yast::Arch.architecture}'"
                   end
+    end
+
+    def i386_target
+      if @efi
+        "i386-efi"
+      else
+        "i386-pc"
+      end
+    end
+
+    def x64_target
+      if @efi
+        "x86_64-efi"
+      else
+        "i386-pc"
+      end
+    end
+
+    def ppc_target
+      raise "EFI on ppc not supported" if @efi
+
+      "powerpc-ieee1275"
+    end
+
+    def s390_target
+      raise "EFI on s390 not supported" if @efi
+
+      "s390x-emu"
+    end
+
+    def aarch64_target
+      raise "Only EFI supported on aarch64" unless @efi
+
+      "arm64-efi"
     end
   end
 end
