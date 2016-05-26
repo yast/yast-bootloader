@@ -90,8 +90,7 @@ module Bootloader
           # other installed OSes like Windows (older versions assign the C:
           # drive letter to the activated partition).
           used_disks = ::Bootloader::Stage1Device.new(Yast::BootStorage.mbr_disk).real_devices
-          need_activate = used_disks.any? { |d| Yast::Storage.GetBootPartition(d).empty? }
-          stage1.activate = need_activate
+          stage1.activate = used_disks.any? { |d| Yast::Storage.GetBootPartition(d).empty? }
           stage1.generic_mbr = false
         else
           # if not installing to MBR, always activate (so the generic MBR will
