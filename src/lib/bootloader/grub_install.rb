@@ -11,8 +11,8 @@ module Bootloader
     end
 
     def execute(devices: [], secure_boot: false, trusted_boot: false)
-      raise "cannot have secure boot without efi" if secure_boot && !@efi
-      raise "cannot have trusted boot with efi" if trusted_boot && @efi
+      raise "cannot have secure boot without efi" if secure_boot && !efi
+      raise "cannot have trusted boot with efi" if trusted_boot && efi
 
       cmd = basic_cmd(secure_boot, trusted_boot)
 
@@ -24,6 +24,8 @@ module Bootloader
     end
 
   private
+
+    attr_reader :efi
 
     # creates basic command for grub2 install without specifying any stage1
     # locations
@@ -62,57 +64,39 @@ module Bootloader
       # working NVRAM, we either see no efivars at all (booted via non-EFI entry
       # point) or there is no efi variable exposed. Install grub in the
       # removable location there.
-      @efi && Dir.glob("/sys/firmware/efi/efivars/*").empty?
+      efi && Dir.glob("/sys/firmware/efi/efivars/*").empty?
     end
 
     def no_device_install?
-      Yast::Arch.s390 || @efi
+      Yast::Arch.s390 || efi
     end
 
+    NON_EFI_TARGETS = {
+      "i386"    => "i386-pc",
+      "x86_64"  => "i386-pc", # x64 use same legacy boot for backward compatibility
+      "s390_32" => "s390x-emu",
+      "s390_64" => "s390x-emu",
+      "ppc"     => "powerpc-ieee1275",
+      "ppc64"   => "powerpc-ieee1275"
+    }
+
+    EFI_TARGETS = {
+      "i386"    => "i386-efi",
+      "x86_64"  => "x86_64-efi",
+      "aarch64" => "arm64-efi"
+    }
     def target
-      @target ||= case Yast::Arch.architecture
-                  when "i386"               then i386_target
-                  when "x86_64"             then x64_target
-                  when "ppc", "ppc64"       then ppc_target
-                  when "s390_32", "s390_64" then s390_target
-                  when "aarch64"            then aarch64_target
-                  else
-                    raise "unsupported architecture '#{Yast::Arch.architecture}'"
-                  end
-    end
+      return @target if @target
 
-    def i386_target
-      if @efi
-        "i386-efi"
-      else
-        "i386-pc"
+      arch = Yast::Arch.architecture
+      target = efi ? EFI_TARGETS[arch] : NON_EFI_TARGETS[arch]
+
+      if !target
+        raise "unsupported combination of architecture #{arch} and " \
+          "#{efi ? "enabled" : "disabled"} EFI"
       end
-    end
 
-    def x64_target
-      if @efi
-        "x86_64-efi"
-      else
-        "i386-pc"
-      end
-    end
-
-    def ppc_target
-      raise "EFI on ppc not supported" if @efi
-
-      "powerpc-ieee1275"
-    end
-
-    def s390_target
-      raise "EFI on s390 not supported" if @efi
-
-      "s390x-emu"
-    end
-
-    def aarch64_target
-      raise "Only EFI supported on aarch64" unless @efi
-
-      "arm64-efi"
+      @target ||= target
     end
   end
 end
