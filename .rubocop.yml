@@ -31,7 +31,7 @@ Metrics/ClassLength:
 
 # Configuration parameters: CountComments.
 Metrics/ClassLength:
-  Max: 200 # TODO this should be lower for new code
+  Max: 200
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
@@ -51,7 +51,7 @@ Metrics/CyclomaticComplexity:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
 Metrics/CyclomaticComplexity:
-  Max: 10 # TODO this should be lower for new code
+  Max: 10
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
@@ -85,7 +85,7 @@ Metrics/PerceivedComplexity:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
 Metrics/PerceivedComplexity:
-  Max: 10 # TODO this should be lower for new code
+  Max: 10
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
