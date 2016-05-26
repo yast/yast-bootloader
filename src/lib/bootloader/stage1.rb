@@ -3,6 +3,7 @@ require "forwardable"
 require "yast"
 require "bootloader/udev_mapping"
 require "bootloader/bootloader_factory"
+require "bootloader/stage1_device"
 require "cfa/grub2/install_device"
 
 Yast.import "Arch"
@@ -38,17 +39,14 @@ module Bootloader
 
     def include?(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
-      real_devs = Yast::BootStorage.underlaying_devices(kernel_dev)
+      real_devs = ::Bootloader::Stage1Device.new(kernel_dev).real_devices
 
-      real_devs.all? do |real_dev|
-        devices.any? do |map_dev|
-          real_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
-        end
-      end
+      include_real_devs?(real_devs)
     end
 
     def add_udev_device(dev)
-      real_devices = Yast::BootStorage.underlaying_devices(dev)
+      kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+      real_devices = ::Bootloader::Stage1Device.new(kernel_dev).real_devices
       udev_devices = real_devices.map { |d| Bootloader::UdevMapping.to_mountby_device(d) }
       udev_devices.each { |d| @model.add_device(d) }
     end
@@ -70,21 +68,49 @@ module Bootloader
     end
 
     def boot_partition?
-      include?(Yast::BootStorage.BootPartitionDevice)
+      if !@boot_partition_device
+        dev = Yast::BootStorage.BootPartitionDevice
+        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+
+        @boot_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
+      end
+
+      include_real_devs?(@boot_partition_device.real_devices)
     end
 
     def root_partition?
-      include?(Yast::BootStorage.RootPartitionDevice)
+      if !@root_partition_device
+        dev = Yast::BootStorage.RootPartitionDevice
+        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+
+        @root_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
+      end
+
+      include_real_devs?(@root_partition_device.real_devices)
     end
 
     def mbr?
-      include?(Yast::BootStorage.mbr_disk)
+      if !@mbr_device
+        dev = Yast::BootStorage.mbr_disk
+        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+
+        @mbr_device = ::Bootloader::Stage1Device.new(kernel_dev)
+      end
+
+      include_real_devs?(@mbr_device.real_devices)
     end
 
     def extended_partition?
       return false unless Yast::BootStorage.ExtendedPartitionDevice
 
-      include?(Yast::BootStorage.ExtendedPartitionDevice)
+      if !@extended_partition_device
+        dev = Yast::BootStorage.ExtendedPartitionDevice
+        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+
+        @extended_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
+      end
+
+      include_real_devs?(@extended_partition_device.real_devices)
     end
 
     def custom_devices
@@ -186,6 +212,14 @@ module Bootloader
 
   private
 
+    def include_real_devs?(real_devs)
+      real_devs.all? do |real_dev|
+        devices.any? do |map_dev|
+          real_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
+        end
+      end
+    end
+
     def available_partitions(res)
       return unless can_use_boot?
 
@@ -211,7 +245,7 @@ module Bootloader
         # partition can remain activated, which causes less problems with
         # other installed OSes like Windows (older versions assign the C:
         # drive letter to the activated partition).
-        used_disks = Yast::BootStorage.underlaying_devices(Yast::BootStorage.mbr_disk)
+        used_disks = ::Bootloader::Stage1Device.new(Yast::BootStorage.mbr_disk).real_devices
         need_activate = used_disks.any? { |d| Yast::Storage.GetBootPartition(d).empty? }
         self.activate = need_activate
         self.generic_mbr = false
@@ -385,7 +419,7 @@ module Bootloader
     # BootPartitionDevice, or the devices from which the soft-RAID device for
     # "/boot" is built)
     def underlaying_boot_partition_devices
-      Yast::BootStorage.underlaying_devices(Yast::BootStorage.BootPartitionDevice)
+      ::Bootloader::Stage1Device.new(Yast::BootStorage.BootPartitionDevice).real_devices
     end
 
     def boot_partition_on_mbr_disk?

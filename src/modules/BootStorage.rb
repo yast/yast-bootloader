@@ -47,8 +47,6 @@ module Yast
       # list <string> includes physical disks used for md raid
 
       @md_physical_disks = []
-
-      @underlaying_devices_cache = {}
     end
 
     def gpt_boot_disk?
@@ -114,18 +112,6 @@ module Yast
       return nil unless ext_part
 
       ext_part["device"]
-    end
-
-    # returns device where dev physically lives, so where can be bootloader installed
-    # it is main entry point when real stage 1 device is needed to get
-    # @param dev [String] device for which detection should be done. Device here
-    #   means any name  under /dev like "/dev/sda", "/dev/system/root" or "/dev/md-15".
-    #   Such device have to be in kernel name, so no udev links.
-    # @return [Array<String>] list of devices which is physically available
-    #   and can be used for bootloader stage1. Devices is in kernel name.
-    def underlaying_devices(dev)
-      require "bootloader/stage1_device"
-      ::Bootloader::Stage1Device.new(dev).real_devices
     end
 
     def find_mbr_disk

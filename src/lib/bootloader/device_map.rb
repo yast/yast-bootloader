@@ -1,6 +1,7 @@
 require "yast"
 
 require "bootloader/udev_mapping"
+require "bootloader/stage1_device"
 
 require "yast2/target_file"
 require "cfa/grub2/device_map"
@@ -110,9 +111,8 @@ module Bootloader
       # For us priority disk is device where /boot or / lives as we control this disk and
       # want to modify its MBR. So we get disk of such partition and change order to add it
       # to top of device map. For details see bnc#887808,bnc#880439
-      priority_disks = Yast::BootStorage.underlaying_devices(
-        Yast::BootStorage.disk_with_boot_partition
-      )
+      boot_disk = Yast::BootStorage.disk_with_boot_partition
+      priority_disks = ::Bootloader::Stage1Device.new(boot_disk).real_devices
       # if none of priority disk is hd0, then choose one and assign it
       return if any_first_device?(priority_disks)
 
