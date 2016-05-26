@@ -7,6 +7,12 @@ module Bootloader
   # Purpose of this class is provide mapping between intentioned stage1 location
   # and real one as many virtual devices cannot be used for stage1 like md
   # devices or lvm
+  #
+  # @example
+  #   # system with lvm, /boot lives on /dev/system/root. /dev/system is
+  #   # created from /dev/sda1 and /dev/sdb1
+  #   dev = Stage1Device.new("/dev/system/boot")
+  #   puts dev.real_devices # => ["/dev/sda1", "/dev/sdb1"]
   class Stage1Device
     include Yast::Logger
 
