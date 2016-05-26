@@ -118,62 +118,20 @@ module Yast
 
     # returns device where dev physically lives, so where can be bootloader installed
     # it is main entry point when real stage 1 device is needed to get
-    # @param dev [String] device for which detection should be done
+    # @param dev [String] device for which detection should be done. Device here
+    #   means any name  under /dev like "/dev/sda", "/dev/system/root" or "/dev/md-15".
+    #   Such device have to be in kernel name, so no udev links.
     # @return [Array<String>] list of devices which is physically available
-    #   and can be used for stage1
+    #   and can be used for bootloader stage1. Devices is in kernel name.
     def underlaying_devices(dev)
       return @underlaying_devices_cache[dev] if @underlaying_devices_cache[dev]
 
-      res = []
-
-      tm = Yast::Storage.GetTargetMap
-      disk_data = Yast::Storage.GetDiskPartition(dev)
-      if disk_data["nr"].to_s.empty? # disk
-        disk = Yast::Storage.GetDisk(tm, dev)
-        if disk["type"] == :CT_MD
-          # md disk is just virtual device, so lets use boot partition location
-          # in raid and get its disks
-          res = underlaying_devices(BootPartitionDevice()).map do |part|
-            disk_dev = Yast::Storage.GetDiskPartition(part)
-            disk_dev["disk"]
-          end
-        elsif disk["type"] == :CT_LVM
-          # not happy with this usage of || but target map do not need to have it defined
-          res = devices_on(disk)
-          # skip lvm on partiotionless disks as it cannot be used, see bnc#980529
-          res.delete_if { |d| tm[d] }
-          res.map! { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
-        end
-      else # partition
-        part = Yast::Storage.GetPartition(tm, dev)
-        if part["type"] == :lvm
-          lvm_dev = Yast::Storage.GetDisk(tm, disk_data["disk"])
-          # skip lvm on partiotionless disks as it cannot be used, see bnc#980529
-          res = devices_on(lvm_dev)
-          res.delete_if { |d| tm[d] }
-        elsif part["type"] == :sw_raid
-          res = devices_on(part)
-        end
-      end
-
-      # some underlaying devices added, so run recursive to ensure that it is really bottom one
-      res = res.each_with_object([]) { |d, f| f.concat(underlaying_devices(d)) }
-
-      # TODO: check if res empty is caused by filtering out lvm on partitionless disk
-      res = [dev] if res.empty?
-
-      res.uniq!
-
+      res = underlaying_devices_nocache(dev)
       @underlaying_devices_cache[dev] = res
 
       log.info "underlaying device for #{dev} is #{res.inspect}"
 
       res
-    end
-
-    # @private
-    def devices_on(dev)
-      (dev["devices"] || []) + (dev["devices_add"] || [])
     end
 
     def find_mbr_disk
@@ -370,6 +328,76 @@ module Yast
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
     publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
+
+  private
+    # underlaying_devices without any caching
+    # @see {#underlaying_devices}
+    def underlaying_devices_nocache(dev)
+      res = underlaying_devices_one_level(dev)
+
+      # some underlaying devices added, so run recursive to ensure that it is really bottom one
+      res = res.each_with_object([]) { |d, f| f.concat(underlaying_devices(d)) }
+
+      # TODO: check if res empty is caused by filtering out lvm on partitionless disk
+      res = [dev] if res.empty?
+
+      res.uniq
+    end
+
+    # get one level of underlaying devices, so no recursion deeper
+    def underlaying_devices_one_level(dev)
+      tm = Yast::Storage.GetTargetMap
+      disk_data = Yast::Storage.GetDiskPartition(dev)
+      if disk?(disk_data)
+        disk = Yast::Storage.GetDisk(tm, dev)
+        if disk["type"] == :CT_MD
+          # md disk is just virtual device, so select underlaying device /boot partition
+          return underlaying_disk_with_boot_partition
+        elsif disk["type"] == :CT_LVM
+          res = lvm_underlaying_devices(disk)
+          return res.map { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
+        end
+      # given device is partition
+      else
+        part = Yast::Storage.GetPartition(tm, dev)
+        if part["type"] == :lvm
+          lvm_group = Yast::Storage.GetDisk(tm, disk_data["disk"])
+          return lvm_underlaying_devices(lvm_group)
+        elsif part["type"] == :sw_raid
+          return devices_on(part)
+        end
+      end
+
+      []
+    end
+
+    # For pure virtual disk devices it is selected /boot partition and its underlaying devices
+    # then for it select on which disks it lives. So result is disk which contain partition holding /boot.
+    def underlaying_disk_with_boot_partition
+      underlaying_devices(BootPartitionDevice()).map do |part|
+        disk_dev = Yast::Storage.GetDiskPartition(part)
+        disk_dev["disk"]
+      end
+    end
+
+    # returns underlaying devices that creating lvm group
+    def lvm_underlaying_devices(lvm_group)
+      tm = Yast::Storage.GetTargetMap
+      res = devices_on(lvm_group)
+      # skip lvm on partiotionless disks as it cannot be used, see bnc#980529
+      res.reject { |d| tm[d] }
+    end
+
+    # returns if given result of GetDiskPartition indicate that it is disk
+    def disk?(disk_data)
+      disk_data["nr"].to_s.empty?
+    end
+
+    # returns devices which constructed passed device.
+    # @param [Hash] dev is part of target map with given device
+    def devices_on(dev)
+      (dev["devices"] || []) + (dev["devices_add"] || [])
+    end
   end
 
   BootStorage = BootStorageClass.new
