@@ -204,7 +204,7 @@ module Yast
     def check_mbr
       return true if stage1.generic_mbr? || stage1.mbr?
 
-      add_new_problem(_("The installer will not modify the MBR of the disk. Unless it already contains boot code, the BIOS won't be able to boot disk."))
+      add_new_problem(_("The installer will not modify the MBR of the disk. Unless it already contains boot code, the BIOS won't be able to boot from this disk."))
       false
     end
 
