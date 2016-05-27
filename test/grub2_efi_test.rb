@@ -23,14 +23,14 @@ describe Bootloader::Grub2EFI do
   end
 
   describe "write" do
-    it "setups protective mbr to disk containing /boot/efi" do
+    it "setups protective mbr to real disks containing /boot/efi" do
       subject.pmbr_action = :add
       allow(Yast::Storage).to receive(:GetEntryForMountpoint)
-        .with("/boot/efi").and_return("device" => "/dev/sda1")
-      allow(Yast::Storage).to receive(:GetDiskPartition)
-        .with("/dev/sda1").and_return("disk" => "/dev/sda")
+        .with("/boot/efi").and_return("device" => "/dev/md1")
+      allow(Bootloader::Stage1Device).to receive(:new)
+        .and_return(double(real_devices: ["/dev/sda", "/dev/sdb"]))
 
-      expect(subject).to receive(:pmbr_setup).with("/dev/sda")
+      expect(subject).to receive(:pmbr_setup).with("/dev/sda", "/dev/sdb")
 
       subject.write
     end
