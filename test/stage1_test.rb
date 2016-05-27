@@ -35,8 +35,7 @@ describe Bootloader::Stage1 do
     end
 
     it "sets underlaying disks for md raid setup" do
-      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
-      Yast::BootStorage.instance_variable_set(:@underlaying_devices_cache, {})
+      allow(Bootloader::Stage1Device).to receive(:new).and_call_original
       target_map_stub("storage_mdraid.yaml")
 
       allow(Yast::BootStorage).to receive(:mbr_disk)
@@ -96,12 +95,17 @@ describe Bootloader::Stage1 do
 
       expect(subject.devices).to eq([])
     end
+
+    it "raise exception on unsupported architecture" do
+      allow(Yast::Arch).to receive(:architecture).and_return("aarch64")
+
+      expect { subject.propose }.to raise_error(RuntimeError)
+    end
   end
 
   describe "#add_udev_device" do
     it "adds underlayed disk device for lvm disk" do
-      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
-      Yast::BootStorage.instance_variable_set(:@underlaying_devices_cache, {})
+      allow(Bootloader::Stage1Device).to receive(:new).and_call_original
       target_map_stub("storage_lvm.yaml")
 
       allow(Yast::BootStorage).to receive(:mbr_disk)
@@ -119,8 +123,7 @@ describe Bootloader::Stage1 do
     end
 
     it "adds underlayed partition devices for lvm partition" do
-      allow(Yast::BootStorage).to receive(:underlaying_devices).and_call_original
-      Yast::BootStorage.instance_variable_set(:@underlaying_devices_cache, {})
+      allow(Bootloader::Stage1Device).to receive(:new).and_call_original
       target_map_stub("storage_lvm.yaml")
 
       allow(Yast::BootStorage).to receive(:mbr_disk)

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 25 11:59:53 UTC 2016 - jreidinger@suse.com
+
+- do not try to install grub2 on lvm on partition-less disk
+  (bnc#980529)
+- 3.1.189
+
+-------------------------------------------------------------------
 Tue May 24 09:00:13 UTC 2016 - jreidinger@suse.com
 
 - run mkinitrd at the end of installation to ensure proper initrd

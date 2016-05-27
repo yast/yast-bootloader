@@ -47,8 +47,6 @@ module Yast
       # list <string> includes physical disks used for md raid
 
       @md_physical_disks = []
-
-      @underlaying_devices_cache = {}
     end
 
     def gpt_boot_disk?
@@ -114,56 +112,6 @@ module Yast
       return nil unless ext_part
 
       ext_part["device"]
-    end
-
-    # returns device where dev physically lives, so where can be bootloader installed
-    # it is main entry point when real stage 1 device is needed to get
-    # @param dev [String] device for which detection should be done
-    # @return [Array<String>] list of devices which is physically available
-    #   and can be used for stage1
-    def underlaying_devices(dev)
-      return @underlaying_devices_cache[dev] if @underlaying_devices_cache[dev]
-
-      res = []
-
-      tm = Yast::Storage.GetTargetMap
-      disk_data = Yast::Storage.GetDiskPartition(dev)
-      if disk_data["nr"].to_s.empty? # disk
-        disk = Yast::Storage.GetDisk(tm, dev)
-        if disk["type"] == :CT_MD
-          # md disk is just virtual device, so lets use boot partition location
-          # in raid and get its disks
-          res = underlaying_devices(BootPartitionDevice()).map do |part|
-            disk_dev = Yast::Storage.GetDiskPartition(part)
-            disk_dev["disk"]
-          end
-        elsif disk["type"] == :CT_LVM
-          # not happy with this usage of || but target map do not need to have it defined
-          res = (disk["devices"] || []) + (disk["devices_add"] || [])
-          res.map! { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
-        end
-      else
-        part = Yast::Storage.GetPartition(tm, dev)
-        if part["type"] == :lvm
-          lvm_dev = Yast::Storage.GetDisk(tm, disk_data["disk"])
-          res = (lvm_dev["devices"] || []) + (lvm_dev["devices_add"] || [])
-        elsif part["type"] == :sw_raid
-          res = (part["devices"] || []) + (part["devices_add"] || [])
-        end
-      end
-
-      # some underlaying devices added, so run recursive to ensure that it is really bottom one
-      res = res.each_with_object([]) { |d, f| f.concat(underlaying_devices(d)) }
-
-      res = [dev] if res.empty?
-
-      res.uniq!
-
-      @underlaying_devices_cache[dev] = res
-
-      log.info "underlaying device for #{dev} is #{res.inspect}"
-
-      res
     end
 
     def find_mbr_disk

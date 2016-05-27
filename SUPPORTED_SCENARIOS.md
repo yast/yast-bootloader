@@ -25,6 +25,8 @@ The goal of this document is to have a single source of information  which scena
   * cannot have stage1 on MD RAID1, so when /boot is on RAID1, then boot from MBR have to be used
 * LVM
   * /boot cannot be encrypted (not bootloader limitation see [bug](https://bugzilla.novell.com/show_bug.cgi?id=890364#c40))
+  * LVM can contain volumes on partition-less disks as long as at least one volume lives on partition
+    and disk with such volume is first in boot order. see [bug](http://bugzilla.suse.com/show_bug.cgi?id=980529)
 * multipath
 * Device mapper
 * local hard disk (including USB/ieee1394)

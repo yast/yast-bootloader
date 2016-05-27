@@ -11,21 +11,10 @@ module Bootloader
     end
 
     def execute(devices: [], secure_boot: false, trusted_boot: false)
-      raise "cannot have secure boot without efi" if secure_boot && !@efi
-      raise "cannot have trusted boot with efi" if trusted_boot && @efi
+      raise "cannot have secure boot without efi" if secure_boot && !efi
+      raise "cannot have trusted boot with efi" if trusted_boot && efi
 
-      cmd = []
-      if secure_boot
-        cmd << "/usr/sbin/shim-install" << "--config-file=/boot/grub2/grub.cfg"
-      else
-        cmd << "/usr/sbin/grub2-install" << "--target=#{target}"
-        # Do skip-fs-probe to avoid error when embedding stage1
-        # to extended partition
-        cmd << "--force" << "--skip-fs-probe"
-        cmd << "--directory=/usr/lib/trustedgrub2/#{target}" if trusted_boot
-      end
-
-      cmd << "--no-nvram" << "--removable" if removable_efi?
+      cmd = basic_cmd(secure_boot, trusted_boot)
 
       if no_device_install?
         Yast::Execute.on_target(cmd)
@@ -35,6 +24,26 @@ module Bootloader
     end
 
   private
+
+    attr_reader :efi
+
+    # creates basic command for grub2 install without specifying any stage1
+    # locations
+    def basic_cmd(secure_boot, trusted_boot)
+      if secure_boot
+        cmd = ["/usr/sbin/shim-install", "--config-file=/boot/grub2/grub.cfg"]
+      else
+        cmd = ["/usr/sbin/grub2-install", "--target=#{target}"]
+        # Do skip-fs-probe to avoid error when embedding stage1
+        # to extended partition
+        cmd << "--force" << "--skip-fs-probe"
+        cmd << "--directory=/usr/lib/trustedgrub2/#{target}" if trusted_boot
+      end
+
+      cmd << "--no-nvram" << "--removable" if removable_efi?
+
+      cmd
+    end
 
     def removable_efi?
       # EFI has 2 boot paths. The default is that there is a target file listed
@@ -55,39 +64,39 @@ module Bootloader
       # working NVRAM, we either see no efivars at all (booted via non-EFI entry
       # point) or there is no efi variable exposed. Install grub in the
       # removable location there.
-      @efi && Dir.glob("/sys/firmware/efi/efivars/*").empty?
+      efi && Dir.glob("/sys/firmware/efi/efivars/*").empty?
     end
 
     def no_device_install?
-      Yast::Arch.s390 || @efi
+      Yast::Arch.s390 || efi
     end
 
+    NON_EFI_TARGETS = {
+      "i386"    => "i386-pc",
+      "x86_64"  => "i386-pc", # x64 use same legacy boot for backward compatibility
+      "s390_32" => "s390x-emu",
+      "s390_64" => "s390x-emu",
+      "ppc"     => "powerpc-ieee1275",
+      "ppc64"   => "powerpc-ieee1275"
+    }
+
+    EFI_TARGETS = {
+      "i386"    => "i386-efi",
+      "x86_64"  => "x86_64-efi",
+      "aarch64" => "arm64-efi"
+    }
     def target
-      @target ||= case Yast::Arch.architecture
-                  when "i386"
-                    if @efi
-                      "i386-efi"
-                    else
-                      "i386-pc"
-                    end
-                  when "x86_64"
-                    if @efi
-                      "x86_64-efi"
-                    else
-                      "i386-pc"
-                    end
-                  when "ppc", "ppc64"
-                    raise "EFI on ppc not supported" if @efi
-                    "powerpc-ieee1275"
-                  when "s390_32", "s390_64"
-                    raise "EFI on s390 not supported" if @efi
-                    "s390x-emu"
-                  when "aarch64"
-                    raise "Only EFI supported on aarch64" unless @efi
-                    "arm64-efi"
-                  else
-                    raise "unsupported architecture '#{Yast::Arch.architecture}'"
-                  end
+      return @target if @target
+
+      arch = Yast::Arch.architecture
+      target = efi ? EFI_TARGETS[arch] : NON_EFI_TARGETS[arch]
+
+      if !target
+        raise "unsupported combination of architecture #{arch} and " \
+          "#{efi ? "enabled" : "disabled"} EFI"
+      end
+
+      @target ||= target
     end
   end
 end

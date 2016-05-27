@@ -72,12 +72,13 @@ RSpec.configure do |config|
   Yast.import "BootStorage"
   Yast.import "Bootloader"
   require "bootloader/udev_mapping"
+  require "bootloader/stage1_device"
 
   config.before do
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
     allow(::Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
     allow(::Yast::Storage).to receive(:GetTargetMap).and_return({}) # empty target map by default
-    allow(::Yast::BootStorage).to receive(:underlaying_devices) { |d| [d] }
+    allow(::Bootloader::Stage1Device).to receive(:new) { |d| double(real_devices: [d]) }
     allow(::Yast::Bootloader).to receive(:checkUsedStorage).and_return(true)
     allow(Yast::BootStorage).to receive(:detect_disks) # do not do real disk detection
   end

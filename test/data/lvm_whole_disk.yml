@@ -1,0 +1,151 @@
+---
+"/dev/sda":
+  bios_id: '0x80'
+  bus: SCSI
+  cyl_count: 3916
+  cyl_size: 8225280
+  dasd_format: 0
+  dasd_type: 0
+  device: "/dev/sda"
+  driver: mptspi
+  driver_module: mptspi
+  label: msdos
+  max_logical: 255
+  max_primary: 4
+  model: VMware Virtual S
+  name: sda
+  partitions:
+  - boot: true
+    detected_fs: :unknown
+    device: "/dev/sda1"
+    fsid: 142
+    fstype: Linux LVM
+    name: sda1
+    nr: 1
+    region:
+    - 0
+    - 3916
+    size_k: 31456256
+    type: :primary
+    udev_path: pci-0000:00:10.0-scsi-0:0:0:0-part1
+    used_by:
+    - device: "/dev/system"
+      type: :UB_LVM
+    used_by_device: "/dev/system"
+    used_by_type: :UB_LVM
+  proposal_name: 1. SCSI Disk, 30.00 GiB, /dev/sda, VMware,-VMware Virtual S
+  sector_size: 512
+  size_k: 31457280
+  transport: :spi
+  type: :CT_DISK
+  udev_path: pci-0000:00:10.0-scsi-0:0:0:0
+  unique: R7kM.bB3YCy3qF70
+  used_by_device: ''
+  used_by_type: :UB_NONE
+  vendor: VMware,
+"/dev/sdb":
+  bios_id: '0x81'
+  bus: SCSI
+  cyl_count: 2610
+  cyl_size: 8225280
+  dasd_format: 0
+  dasd_type: 0
+  device: "/dev/sdb"
+  driver: mptspi
+  driver_module: mptspi
+  label: msdos
+  max_logical: 255
+  max_primary: 4
+  model: VMware Virtual S
+  name: sdb
+  partitions: []
+  proposal_name: 2. SCSI Disk, 20.00 GiB, /dev/sdb, VMware,-VMware Virtual S
+  sector_size: 512
+  size_k: 20971520
+  transport: :spi
+  type: :CT_DISK
+  udev_path: pci-0000:00:10.0-scsi-0:0:1:0
+  unique: uI_Q.bB3YCy3qF70
+  used_by:
+  - device: "/dev/system"
+    type: :UB_LVM
+  used_by_device: "/dev/system"
+  used_by_type: :UB_LVM
+  vendor: VMware,
+"/dev/system":
+  create: false
+  cyl_count: 12798
+  cyl_size: 4194304
+  device: "/dev/system"
+  devices:
+  - "/dev/sda1"
+  - "/dev/sdb"
+  lvm2: true
+  name: system
+  partitions:
+  - detected_fs: :ext3
+    device: "/dev/system/home"
+    fstype: LV
+    label: home
+    name: home
+    size_k: 5234688
+    stripes: 1
+    type: :lvm
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :ext3
+    uuid: f72a2e11-1a58-4618-88d5-4a9cced3fcb5
+  - detected_fs: :ext4
+    device: "/dev/system/local"
+    fstype: LV
+    label: local
+    name: local
+    size_k: 8388608
+    stripes: 1
+    type: :lvm
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :ext4
+    uuid: a4339246-1c17-4957-aa66-535f6d0d6393
+  - detected_fs: :ext3
+    device: "/dev/system/opt"
+    fstype: LV
+    label: opt
+    name: opt
+    size_k: 26214400
+    stripes: 1
+    type: :lvm
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :ext3
+    uuid: 69474311-830d-472f-aa77-08794e5c8a57
+  - detected_fs: :ext4
+    device: "/dev/system/root"
+    fstype: LV
+    label: root
+    name: root
+    size_k: 10485760
+    stripes: 1
+    type: :lvm
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :ext4
+    uuid: bbf1ac6a-65c6-4596-b822-6b62b19c9a64
+  - detected_fs: :swap
+    device: "/dev/system/swap"
+    fstype: LV
+    inactive: true
+    name: swap
+    size_k: 2097152
+    stripes: 1
+    type: :lvm
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :swap
+    uuid: 1b69e6bc-de2a-4999-b31a-dccc27c71290
+  pe_free: 0
+  pesize: 4194304
+  size_k: 52420608
+  type: :CT_LVM
+  used_by_device: ''
+  used_by_type: :UB_NONE
