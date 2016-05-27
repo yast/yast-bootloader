@@ -4,6 +4,7 @@ require "yast"
 require "bootloader/grub2base"
 require "bootloader/grub_install"
 require "bootloader/sysconfig"
+require "bootloader/stage1_device"
 
 Yast.import "Arch"
 
@@ -39,7 +40,10 @@ module Bootloader
         efi_partition ||= Yast::Storage.GetEntryForMountpoint("/")["device"]
         efi_disk = Yast::Storage.GetDiskPartition(efi_partition)["disk"]
 
-        pmbr_setup(efi_disk)
+        # get underlaying disk as it have to be set there and not on virtual one (bnc#981977)
+        device = ::Bootloader::Stage1Device.new(efi_disk)
+
+        pmbr_setup(*device.real_devices)
       end
 
       @grub_install.execute(secure_boot: @secure_boot)
