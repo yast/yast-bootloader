@@ -95,6 +95,12 @@ describe Bootloader::Stage1 do
 
       expect(subject.devices).to eq([])
     end
+
+    it "raise exception on unsupported architecture" do
+      allow(Yast::Arch).to receive(:architecture).and_return("aarch64")
+
+      expect{subject.propose}.to raise_error(RuntimeError)
+    end
   end
 
   describe "#add_udev_device" do

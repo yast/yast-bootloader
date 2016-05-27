@@ -15,16 +15,8 @@ module Bootloader
 
     # @param [Bootloader::Stage1] stage1 where write proposal
     def self.propose(stage1)
-      proposal = case Yast::Arch.architecture
-                 when "i386", "x86_64"
-                   X64
-                 when /ppc/
-                   PPC
-                 when /s390/
-                   S390
-                 else
-                   raise "unsuported architecture #{Yast::Arch.architecture}"
-                 end
+      arch = Yast::Arch.architecture
+      proposal = AVAILABLE_PROPOSALS[arch]
 
       proposal.new(stage1).propose
 
@@ -252,5 +244,15 @@ module Bootloader
         partitions.first
       end
     end
+
+    AVAILABLE_PROPOSALS = {
+      "i386"    => X64,
+      "x86_64"  => X64,
+      "s390_32" => S390,
+      "s390_64" => S390,
+      "ppc"     => PPC,
+      "ppc64"   => PPC
+    }
+    AVAILABLE_PROPOSALS.default_proc = lambda { |h,k| raise "unsuported architecture #{k}" }
   end
 end
