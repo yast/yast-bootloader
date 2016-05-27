@@ -99,7 +99,7 @@ describe Bootloader::Stage1 do
     it "raise exception on unsupported architecture" do
       allow(Yast::Arch).to receive(:architecture).and_return("aarch64")
 
-      expect{subject.propose}.to raise_error(RuntimeError)
+      expect { subject.propose }.to raise_error(RuntimeError)
     end
   end
 
