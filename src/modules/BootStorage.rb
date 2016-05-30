@@ -234,6 +234,10 @@ module Yast
       ""
     end
 
+    def separated_boot?
+      BootPartitionDevice() != RootPartitionDevice()
+    end
+
     # Get map of swap partitions
     # @return a map where key is partition name and value its size in KB
     def available_swap_partitions

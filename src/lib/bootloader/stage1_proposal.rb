@@ -122,7 +122,7 @@ module Bootloader
       end
 
       def separated_boot?
-        Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+        Yast::BootStorage.separated_boot?
       end
 
       def extended_partition

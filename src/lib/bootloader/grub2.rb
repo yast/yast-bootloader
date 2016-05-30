@@ -200,7 +200,7 @@ module Bootloader
     end
 
     def boot_partition_location
-      if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+      if Yast::BootStorage.separated_boot?
         if stage1.boot_partition?
           return Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
         end
@@ -227,7 +227,7 @@ module Bootloader
 
     def partition_line
       # check for separated boot partition, use root otherwise
-      if Yast::BootStorage.BootPartitionDevice != Yast::BootStorage.RootPartitionDevice
+      if Yast::BootStorage.separated_boot?
         if stage1.boot_partition?
           _(
             "Install bootcode into /boot partition " \

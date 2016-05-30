@@ -215,12 +215,12 @@ module Bootloader
     def available_partitions(res)
       return unless can_use_boot?
 
-      if separated_boot?
+      if Yast::BootStorage.separated_boot?
         res[:boot] = Yast::BootStorage.BootPartitionDevice
       else
         res[:root] = Yast::BootStorage.RootPartitionDevice
       end
-      res[:extended] = extended_partition if logical_boot?
+      res[:extended] = extended_partition if extended_partition?
     end
   end
 end
