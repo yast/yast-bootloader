@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon May 30 08:23:24 UTC 2016 - jreidinger@suse.com
+
+- fix unknown method error ( caused by fix for bnc#980529)
+- 3.1.191
+
+-------------------------------------------------------------------
 Fri May 27 12:13:54 UTC 2016 - jreidinger@suse.com
 
 - use proper device to setup pmbr for grub2efi (bnc#981997)

@@ -170,12 +170,40 @@ describe Bootloader::Stage1 do
     context "on x86_64" do
       before do
         allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+        allow(subject).to receive(:can_use_boot?).and_call_original
       end
 
       it "returns map with :extended set to extended partition" do
         pending "need to get target map with /boot on logical partition"
 
         expect(subject.available_locations[:extended]).to eq "/dev/sda4"
+      end
+
+      it "returns map with :root if separated /boot is not available" do
+        target_map_stub("storage_tmpfs.yaml")
+        allow(Yast::BootStorage).to receive(:detect_disks).and_call_original
+        Yast::BootStorage.detect_disks
+
+        expect(subject.available_locations[:root]).to eq "/dev/vda1"
+      end
+
+      it "returns map with :boot if separated /boot is available" do
+        target_map_stub("storage_mdraid.yaml")
+        allow(Yast::BootStorage).to receive(:detect_disks).and_call_original
+        Yast::BootStorage.detect_disks
+
+        expect(subject.available_locations[:boot]).to eq "/dev/md1"
+      end
+
+      it "returns map without :boot nor :root when xfs used" do
+        target_map_stub("storage_xfs.yaml")
+        allow(Yast::BootStorage).to receive(:detect_disks).and_call_original
+        Yast::BootStorage.detect_disks
+
+        res = subject.available_locations
+
+        expect(res).to_not include(:root)
+        expect(res).to_not include(:boot)
       end
     end
   end
