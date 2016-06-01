@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        3.1.191
+Version:        3.1.192
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -59,15 +59,6 @@ Group:          System/YaST
 %description
 This package contains the YaST2 component for bootloader configuration.
 
-%package devel-doc
-Requires:       yast2-bootloader = %version
-Summary:        YaST2 - Bootloader Configuration - Development Documentation
-Group:          System/YaST
-
-%description devel-doc
-This package contains development documentation for using the API
-provided by yast2-bootloader package.
-
 %prep
 %setup -n %{name}-%{version}
 
@@ -75,7 +66,6 @@ provided by yast2-bootloader package.
 rake test:unit
 
 %build
-yardoc
 
 %install
 rake install DESTDIR="%{buildroot}"
@@ -111,9 +101,5 @@ rake install DESTDIR="%{buildroot}"
 %doc %{yast_docdir}/COPYING
 %doc %{yast_docdir}/README.md
 %doc %{yast_docdir}/CONTRIBUTING.md
-
-%files devel-doc
-%defattr(-,root,root)
-%doc %{yast_docdir}/autodocs
 
 %changelog
