@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jun  1 13:31:57 UTC 2016 - igonzalezsosa@suse.com
+
+- Drop yast2-bootloader-devel-doc package (fate#320356)
+- 3.1.192
+
+-------------------------------------------------------------------
 Mon May 30 08:23:24 UTC 2016 - jreidinger@suse.com
 
 - fix unknown method error ( caused by fix for bnc#980529)
