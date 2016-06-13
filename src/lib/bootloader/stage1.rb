@@ -220,7 +220,10 @@ module Bootloader
       else
         res[:root] = Yast::BootStorage.RootPartitionDevice
       end
-      res[:extended] = extended_partition if extended_partition?
+
+      if extended_partition?
+        res[:extended] = Yast::BootStorage.ExtendedPartitionDevice
+      end
     end
   end
 end
