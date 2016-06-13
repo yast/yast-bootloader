@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun 13 13:36:51 UTC 2016 - jreidinger@suse.com
+
+- fix unknown method extended_partition (bnc#983062)
+- 3.1.193
+
+-------------------------------------------------------------------
 Wed Jun  1 13:31:57 UTC 2016 - igonzalezsosa@suse.com
 
 - Drop yast2-bootloader-devel-doc package (fate#320356)
