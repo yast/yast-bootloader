@@ -145,17 +145,17 @@ module Bootloader
 
     # returns hash, where key is symbol for location and value is device name
     def available_locations
-      res = {}
-
       case Yast::Arch.architecture
       when "i386", "x86_64"
-        available_partitions(res)
+        res = available_partitions
         res[:mbr] = Yast::BootStorage.mbr_disk
+
+        return res
       else
         log.info "no available non-custom location for arch #{Yast::Arch.architecture}"
-      end
 
-      res
+        return {}
+      end
     end
 
     def can_use_boot?
@@ -212,15 +212,21 @@ module Bootloader
       end
     end
 
-    def available_partitions(res)
-      return unless can_use_boot?
+    def available_partitions
+      return {} unless can_use_boot?
 
+      res = {}
       if Yast::BootStorage.separated_boot?
         res[:boot] = Yast::BootStorage.BootPartitionDevice
       else
         res[:root] = Yast::BootStorage.RootPartitionDevice
       end
-      res[:extended] = extended_partition if extended_partition?
+
+      if extended_partition?
+        res[:extended] = Yast::BootStorage.ExtendedPartitionDevice
+      end
+
+      res
     end
   end
 end
