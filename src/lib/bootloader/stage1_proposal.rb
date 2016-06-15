@@ -197,7 +197,7 @@ module Bootloader
         if partition
           assign_bootloader_device([:custom, partition])
 
-          stage1.activate = true
+          stage1.activate = !on_gpt?(partition) # do not activate on gpt disks see (bnc#983194)
           stage1.generic_mbr = false
         # handle diskless setup, in such case do not write boot code anywhere
         # (bnc#874466)
@@ -242,6 +242,13 @@ module Bootloader
 
         log.info "nothing better so lets return first available prep"
         partitions.first
+      end
+
+      def on_gpt?(partition)
+        target_map = Yast::Storage.GetTargetMap
+        real_partitions = Bootloader::Stage1Device.new(partition).real_devices
+        disks = real_partitions.map { |p| Yast::Storage.GetDisk(target_map, p) }
+        disks.any? { |d| d["label"] == "gpt" }
       end
     end
 

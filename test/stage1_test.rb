@@ -86,6 +86,21 @@ describe Bootloader::Stage1 do
         expect(subject.devices).to eq(["/dev/sda1"])
       end
 
+      it "activate partition if it is on DOS partition table" do
+        expect(Yast::Storage).to receive(:GetDisk).with(anything, "/dev/sdb1")
+          .and_return("label" => "dos")
+        subject.propose
+
+        expect(subject.activate?).to eq true
+      end
+
+      it "does not activate partition if it is on GPT" do
+        expect(Yast::Storage).to receive(:GetDisk).with(anything, "/dev/sdb1")
+          .and_return("label" => "gpt")
+        subject.propose
+
+        expect(subject.activate?).to eq false
+      end
     end
 
     it "sets no device for s390" do
