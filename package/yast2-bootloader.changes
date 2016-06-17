@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Jun 17 16:10:23 CEST 2016 - schubi@suse.de
+
+- AutoYaST configuration: Crash while bootloader AutoYaST
+  configuration if the settings have not been read from the
+  system ("Clone" button). (bnc#985007)
+- 3.1.195
+
+-------------------------------------------------------------------
 Wed Jun 15 12:42:08 UTC 2016 - jreidinger@suse.com
 
 - do not activate partition on gpt disks on ppc (bnc#983194)
