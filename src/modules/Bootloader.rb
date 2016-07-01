@@ -348,6 +348,7 @@ module Yast
     #   Bootloader.modify_kernel_params(:xen_host, "cio_ignore" => :present)
     #
     def modify_kernel_params(*args)
+      ReadOrProposeIfNeeded() # ensure we have data to modify
       current_bl = ::Bootloader::BootloaderFactory.current
       # currently only grub2 bootloader supported
       return :missing unless current_bl.respond_to?(:grub_default)
