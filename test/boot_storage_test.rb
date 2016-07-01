@@ -46,10 +46,11 @@ describe Yast::BootStorage do
       allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
       # disable general mock for disk detection
       allow(subject).to receive(:detect_disks).and_call_original
+      subject.RootPartitionDevice = ""
     end
 
     it "fills RootPartitionDevice variable" do
-      subject.RootPartitionDevice = nil
+      subject.RootPartitionDevice = ""
 
       subject.detect_disks
 
@@ -57,7 +58,7 @@ describe Yast::BootStorage do
     end
 
     it "fills BootPartitionDevice variable" do
-      subject.BootPartitionDevice = nil
+      subject.BootPartitionDevice = ""
 
       subject.detect_disks
 
@@ -65,7 +66,7 @@ describe Yast::BootStorage do
     end
 
     it "sets ExtendedPartitionDevice variable to nil if boot is not logical" do
-      subject.ExtendedPartitionDevice = nil
+      subject.ExtendedPartitionDevice = ""
 
       subject.detect_disks
 
