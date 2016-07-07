@@ -1,5 +1,7 @@
 require "yast"
 
+Yast.import "Arch"
+
 module Bootloader
   # Represents sysconfig file for bootloader usually located in /etc/sysconfig/bootloader
   class Sysconfig
@@ -28,7 +30,13 @@ module Bootloader
     def self.from_system
       bootloader = Yast::SCR.Read(AGENT_PATH + "LOADER_TYPE")
       # propose secure boot always to true (bnc#872054), otherwise respect user choice
-      secure_boot = Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
+      # but only on architectures that support it (bnc#984895)
+      if Yast::Arch.x86_64 || Yast::Arch.i386
+        secure_boot = Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
+      else
+        secure_boot = false
+      end
+
       trusted_boot = Yast::SCR.Read(AGENT_PATH + "TRUSTED_BOOT") == "yes"
 
       new(bootloader: bootloader, secure_boot: secure_boot, trusted_boot: trusted_boot)
@@ -63,7 +71,7 @@ module Bootloader
         "## Default:\t\"no\"\n" \
         "#\n" \
         "# Enable UEFI Secure Boot support\n" \
-        "# This setting is only relevant to UEFI which supports UEFI. It won't\n" \
+        "# This setting is only relevant to UEFI which supports Secure Boot. It won't\n" \
         "# take effect on any other firmware type.\n" \
         "#\n" \
         "#\n",
