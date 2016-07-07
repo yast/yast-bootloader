@@ -176,7 +176,8 @@ module Yast
     def detect_disks
       # The AutoYaST config mode does access to the system.
       # bnc#942360
-      return :ok if Mode.config
+      return if Mode.config
+      return unless @RootPartitionDevice.empty? # quit if already detected
 
       mp = Storage.GetMountPoints
 

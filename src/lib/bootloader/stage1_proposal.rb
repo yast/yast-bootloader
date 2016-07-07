@@ -167,7 +167,8 @@ module Bootloader
       # BootPartitionDevice, or the devices from which the soft-RAID device for
       # "/boot" is built)
       def underlaying_boot_partition_devices
-        ::Bootloader::Stage1Device.new(Yast::BootStorage.BootPartitionDevice).real_devices
+        @underlaying_boot_partition_devices ||=
+          ::Bootloader::Stage1Device.new(Yast::BootStorage.BootPartitionDevice).real_devices
       end
 
       def boot_partition_on_mbr_disk?
