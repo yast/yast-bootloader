@@ -36,6 +36,7 @@ module Bootloader
     end
 
     def summary
+      Yast::BootStorage.detect_disks
       formatted_summary = Yast::Bootloader.Summary.map { |l| "<LI>#{l}</LI>" }
 
       "<UL>" + formatted_summary.join("\n") + "</UL>"
