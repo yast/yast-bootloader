@@ -24,15 +24,13 @@ module Bootloader
     # @raise when device have udev format but do not exists
     # @return [String,nil] kernel device or nil when running AutoYaST configuration.
     def to_kernel_device(dev)
-      # AutoYaST configuration mode. There is no access to the system
-      return nil if Yast::Mode.config
-
       log.info "call to_kernel_device for #{dev}"
       raise "invalid device nil" unless dev
 
       # for non-udev devices try to see specific raid names (bnc#944041)
       if dev =~ /^\/dev\/disk\/by-/
-        all_devices[dev] or raise "Unknown udev device #{dev}"
+        # in mode config if not found, then return itself
+        all_devices[dev] or Yast::Mode.config ? dev : raise("Unknown udev device #{dev}")
       else
         param = Yast::ArgRef.new({})
         result = Yast::Storage.GetContVolInfo(dev, param)

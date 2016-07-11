@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jul 11 12:18:29 UTC 2016 - jreidinger@suse.com
+
+- do not crash after configuration in autoyast bootloader section
+  without previous cloning (bnc#985007)
+- 3.1.197
+
+-------------------------------------------------------------------
 Thu Jul  7 07:51:12 UTC 2016 - jreidinger@suse.com
 
 - set by default SECURE_BOOT to false on architectures that do not

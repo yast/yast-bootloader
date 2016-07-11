@@ -91,7 +91,7 @@ module Yast
     # @return [Boolean] true on success
     def Import(data)
       # AutoYaST configuration mode. There is no access to the system
-      Yast::BootStorage.detect_disks unless Mode.config
+      Yast::BootStorage.detect_disks
 
       imported_configuration = ::Bootloader::AutoyastConverter.import(data)
       ::Bootloader::BootloaderFactory.clear_cache
@@ -144,18 +144,7 @@ module Yast
       Progress.NextStage
       return false if !checkUsedStorage
 
-      # While calling "yast clone_system" and while cloning bootloader
-      # in the AutoYaST module, libStorage has to be set to "normal"
-      # mode in order to read mountpoints correctly.
-      # (bnc#950105)
-      old_mode = Mode.mode
-      if Mode.config
-        Mode.SetMode("normal")
-        StorageDevices.InitDone # Set StorageDevices flag disks_valid to true
-      end
-
       BootStorage.detect_disks
-      Mode.SetMode(old_mode) if old_mode == "autoinst_config"
 
       Progress.NextStage
       return false if testAbort

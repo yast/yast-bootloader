@@ -174,10 +174,21 @@ module Yast
 
     # Sets properly boot, root and mbr disk.
     def detect_disks
+      return unless @RootPartitionDevice.empty? # quit if already detected
+      # While calling "yast clone_system" and while cloning bootloader
+      # in the AutoYaST module, libStorage has to be set to "normal"
+      # mode in order to read mountpoints correctly.
+      # (bnc#950105)
+      old_mode = Mode.mode
+      if Mode.config
+        Mode.SetMode("normal")
+        log.info "Initialize libstorage in readonly mode" # bnc#942360
+        Storage.InitLibstorage(true)
+        StorageDevices.InitDone # Set StorageDevices flag disks_valid to true
+      end
+
       # The AutoYaST config mode does access to the system.
       # bnc#942360
-      return if Mode.config
-      return unless @RootPartitionDevice.empty? # quit if already detected
 
       mp = Storage.GetMountPoints
 
@@ -197,6 +208,8 @@ module Yast
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
       @mbr_disk = find_mbr_disk
+
+      Mode.SetMode(old_mode) if old_mode == "autoinst_config"
     end
 
     def prep_partitions
