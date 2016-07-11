@@ -83,6 +83,7 @@ module Bootloader
     EFI_TARGETS = {
       "i386"    => "i386-efi",
       "x86_64"  => "x86_64-efi",
+      "arm"     => "arm-efi",
       "aarch64" => "arm64-efi"
     }
     def target

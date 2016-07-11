@@ -87,6 +87,12 @@ describe Bootloader::Grub2EFI do
       expect(subject.packages).to include("grub2-i386-efi")
     end
 
+    it "adds to list grub2-arm-efi on arm" do
+      allow(Yast::Arch).to receive(:architecture).and_return("arm")
+
+      expect(subject.packages).to include("grub2-arm-efi")
+    end
+
     it "adds to list grub2-arm64-efi on aarch64" do
       allow(Yast::Arch).to receive(:architecture).and_return("aarch64")
 
