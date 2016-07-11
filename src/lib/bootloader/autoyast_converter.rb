@@ -190,6 +190,10 @@ module Bootloader
           res[key] = stage1.public_send(method) ? "true" : "false"
         end
 
+        # if there is no separated boot, then root and boot partition is same, so in such case
+        # have only one true there
+        res["boot_boot"] = "false" if res["boot_root"] == "true" && res["boot_boot"] == "true"
+
         res["boot_custom"] = stage1.custom_devices.join(",") unless stage1.custom_devices.empty?
       end
 
