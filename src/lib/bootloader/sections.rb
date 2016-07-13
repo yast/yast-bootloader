@@ -23,7 +23,7 @@ module Bootloader
 
       return @default = "" if Yast::Stage.initial
 
-      default_path = read_default
+      default_path = read_default_path
 
       @default = default_path ? path_to_title(default_path) : all.first
     end
@@ -48,7 +48,9 @@ module Bootloader
 
   private
 
-    def read_default
+    # @return [String, nil] return default boot path as string or nil if not set or something goes wrong
+    # @note shows error popup if calling grub2-editenv failed
+    def read_default_path
       # Execute.on_target can return nil if call failed. It shows users error popup, but bootloader
       # can continue with empty default section
       saved = Yast::Execute.on_target("/usr/bin/grub2-editenv", "list", stdout: :capture) || ""
@@ -57,12 +59,16 @@ module Bootloader
       saved_line ? saved_line[/saved_entry=(.*)$/, 1] : nil
     end
 
+    # @return [String] convert grub boot path to title that can be displayed. If
+    # entry not found, then return argument
     def path_to_title(path)
       entry = @data.find { |e| e[:path] == path }
 
       entry ? entry[:title] : path
     end
 
+    # @return [String] convert displayable title to grub boot path. If
+    # entry not found, then return argument
     def title_to_path(title)
       entry = @data.find { |e| e[:title] == title }
 
