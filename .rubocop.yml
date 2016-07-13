@@ -121,10 +121,6 @@ Style/VariableName:
   Include:
     - 'src/lib/**/*.rb' # force known variables only for new code
 
-# alias method is safer option
+# alias method is more convenient method for method aliasing
 Style/Alias:
   EnforcedStyle: prefer_alias_method
-
-# performance gain is not so big and readability is better
-Performance/RedundantBlockCall:
-  Enabled: false
