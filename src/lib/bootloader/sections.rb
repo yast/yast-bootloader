@@ -19,7 +19,7 @@ module Bootloader
       @all = @data.map { |e| e[:title] }
     end
 
-    # @return [String] name of default boot title. It is not full path,
+    # @return [String] title of default boot section. It is not full path,
     #   so it should be reasonable short
     def default
       return @default if @default
