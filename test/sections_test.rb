@@ -8,7 +8,7 @@ describe Bootloader::Sections do
   subject do
     sections = [
       { title: "linux", path: "linux" },
-      { title: "windows", path: "alien>windows" },
+      { title: "windows", path: "alien>windows" }
     ]
     grub_cfg = double("CFA::Grub2::GrubCfg", boot_entries: sections)
     Bootloader::Sections.new(grub_cfg)
