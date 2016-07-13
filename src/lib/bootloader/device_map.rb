@@ -80,7 +80,7 @@ module Bootloader
 
     def sorted_disks
       grub_devices.select { |d| d.start_with?("hd") }
-        .sort_by { |dev| dev[2..-1].to_i }
+                  .sort_by { |dev| dev[2..-1].to_i }
     end
 
     BIOS_LIMIT = 8

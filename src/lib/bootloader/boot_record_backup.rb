@@ -9,7 +9,7 @@ module Bootloader
     BASH_PATH = Yast::Path.new(".target.bash")
     BASH_OUTPUT_PATH = Yast::Path.new(".target.bash_output")
     TARGET_SIZE = Yast::Path.new(".target.size")
-    MAIN_BACKUP_DIR = "/var/lib/YaST2/backup_boot_sectors/"
+    MAIN_BACKUP_DIR = "/var/lib/YaST2/backup_boot_sectors/".freeze
     KEPT_BACKUPS = 10
 
     attr_reader :device
@@ -120,8 +120,7 @@ module Bootloader
       Yast::SCR.Execute(
         BASH_PATH,
         format("/bin/mv %{path} %{path}-%{date}",
-          path: device_file_path, date: change_date
-              )
+          path: device_file_path, date: change_date)
       )
     end
   end

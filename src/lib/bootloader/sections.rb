@@ -48,7 +48,8 @@ module Bootloader
 
   private
 
-    # @return [String, nil] return default boot path as string or nil if not set or something goes wrong
+    # @return [String, nil] return default boot path as string or nil if not set
+    #   or something goes wrong
     # @note shows error popup if calling grub2-editenv failed
     def read_default_path
       # Execute.on_target can return nil if call failed. It shows users error popup, but bootloader

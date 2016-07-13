@@ -28,7 +28,7 @@ module Bootloader
         # TRANSLATORS: %s stands for partition
         ret <<
           _("Selected bootloader partition %s is not available any more.") %
-            device
+          device
       end
     end
 

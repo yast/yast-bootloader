@@ -128,7 +128,7 @@ module Bootloader
       id:    "udev_id",
       path:  "udev_path",
       label: "label"
-    }
+    }.freeze
 
     # Maps udev key in Storage target map to device prefix
     UDEV_MAPPING = {
@@ -136,7 +136,7 @@ module Bootloader
       "udev_id"   => "/dev/disk/by-id/",
       "udev_path" => "/dev/disk/by-path/",
       "label"     => "/dev/disk/by-label/"
-    }
+    }.freeze
 
     # Maps udev names to kernel names with given mapping from data to device
     # @private internall use only

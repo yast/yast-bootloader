@@ -623,9 +623,9 @@ describe Bootloader::DefaultSectionWidget do
 
   it "enlists all available sections" do
     expect(subject.items).to eq([
-      ["openSUSE", "openSUSE"],
-      ["windows", "windows"]
-    ])
+                                  ["openSUSE", "openSUSE"],
+                                  ["windows", "windows"]
+                                ])
   end
 end
 

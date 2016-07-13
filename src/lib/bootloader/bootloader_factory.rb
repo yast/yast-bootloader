@@ -15,7 +15,7 @@ module Bootloader
       "none", # allows user to manage bootloader itself
       "grub2",
       "grub2-efi"
-    ]
+    ].freeze
 
     class << self
       attr_writer :current

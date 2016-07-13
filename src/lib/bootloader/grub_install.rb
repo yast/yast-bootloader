@@ -78,14 +78,14 @@ module Bootloader
       "s390_64" => "s390x-emu",
       "ppc"     => "powerpc-ieee1275",
       "ppc64"   => "powerpc-ieee1275"
-    }
+    }.freeze
 
     EFI_TARGETS = {
       "i386"    => "i386-efi",
       "x86_64"  => "x86_64-efi",
       "arm"     => "arm-efi",
       "aarch64" => "arm64-efi"
-    }
+    }.freeze
     def target
       return @target if @target
 

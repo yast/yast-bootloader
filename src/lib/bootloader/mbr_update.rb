@@ -52,8 +52,8 @@ module Bootloader
       mbr_type == "gpt"
     end
 
-    GPT_MBR = "/usr/share/syslinux/gptmbr.bin"
-    DOS_MBR = "/usr/share/syslinux/mbr.bin"
+    GPT_MBR = "/usr/share/syslinux/gptmbr.bin".freeze
+    DOS_MBR = "/usr/share/syslinux/mbr.bin".freeze
     def generic_mbr_file
       @generic_mbr_file ||= mbr_is_gpt? ? GPT_MBR : DOS_MBR
     end

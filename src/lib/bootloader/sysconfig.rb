@@ -11,7 +11,7 @@ module Bootloader
       bootloader:   "LOADER_TYPE",
       secure_boot:  "SECURE_BOOT",
       trusted_boot: "TRUSTED_BOOT"
-    }
+    }.freeze
 
     # specifies bootloader in sysconfig
     attr_accessor :bootloader
@@ -31,11 +31,11 @@ module Bootloader
       bootloader = Yast::SCR.Read(AGENT_PATH + "LOADER_TYPE")
       # propose secure boot always to true (bnc#872054), otherwise respect user choice
       # but only on architectures that support it (bnc#984895)
-      if Yast::Arch.x86_64 || Yast::Arch.i386
-        secure_boot = Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
-      else
-        secure_boot = false
-      end
+      secure_boot = if Yast::Arch.x86_64 || Yast::Arch.i386
+                      Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
+                    else
+                      false
+                    end
 
       trusted_boot = Yast::SCR.Read(AGENT_PATH + "TRUSTED_BOOT") == "yes"
 
@@ -85,7 +85,7 @@ module Bootloader
         "# Enable Trusted Boot support\n" \
         "# Only available for legacy (non-UEFI) boot.\n" \
         "#\n"
-    }
+    }.freeze
 
     def write
       log.info "Saving /etc/sysconfig/bootloader for #{bootloader}"
@@ -120,14 +120,12 @@ module Bootloader
       return if File.exist?(File.join(destdir, "/etc/sysconfig"))
 
       Yast::WFM.Execute(Yast::Path.new(".local.mkdir"),
-        File.join(destdir, "/etc/sysconfig")
-                       )
+        File.join(destdir, "/etc/sysconfig"))
       Yast::WFM.Execute(Yast::Path.new(".local.bash"),
-        "touch #{destdir}/etc/sysconfig/bootloader"
-                       )
+        "touch #{destdir}/etc/sysconfig/bootloader")
     end
 
-    def temporary_target_agent(&block)
+    def temporary_target_agent
       old_agent = sys_agent
       @sys_agent = Yast::Path.new(".target.sysconfig.bootloader")
 
@@ -141,7 +139,7 @@ module Bootloader
           Yast::Term.new(:SysConfigFile, target_sysconfig_path))
       )
 
-      block.call
+      yield
     ensure
       Yast::SCR.UnregisterAgent(@sys_agent)
       @sys_agent = old_agent

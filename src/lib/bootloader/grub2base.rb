@@ -161,7 +161,7 @@ module Bootloader
       @password = other.password
     end
 
-    KERNEL_FLAVORS_METHODS = [:kernel_params, :xen_hypervisor_params, :xen_kernel_params]
+    KERNEL_FLAVORS_METHODS = [:kernel_params, :xen_hypervisor_params, :xen_kernel_params].freeze
 
     def merge_grub_default(other)
       default = grub_default

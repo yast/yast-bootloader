@@ -260,7 +260,7 @@ module Bootloader
       "s390_64" => S390,
       "ppc"     => PPC,
       "ppc64"   => PPC
-    }
+    }.freeze
     AVAILABLE_PROPOSALS.default_proc = lambda { |_h, k| raise "unsuported architecture #{k}" }
   end
 end

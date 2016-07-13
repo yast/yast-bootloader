@@ -30,7 +30,7 @@ module Bootloader
       "disable_boot_root",
       "enable_boot_boot",
       "disable_boot_boot"
-    ]
+    ].freeze
 
     def make_proposal(attrs)
       force_reset = attrs["force_reset"]
@@ -100,7 +100,7 @@ module Bootloader
 
   private
 
-    BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader"
+    BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader".freeze
     # read bootloader from /mnt as SCR is not yet switched in proposal
     # phase of update (bnc#874646)
     def old_bootloader
@@ -182,20 +182,15 @@ module Bootloader
       end
 
       if !Yast::BootStorage.bootloader_installable?
-        ret.merge!(
-          "warning_level" => :error,
-          # error in the proposal
-          "warning"       => _(
-            "Because of the partitioning, the bootloader cannot be installed properly"
-          )
+        ret["warning_level"] = :error
+        ret["warning"] = _(
+          "Because of the partitioning, the bootloader cannot be installed properly"
         )
       end
 
       if !Yast::BootSupportCheck.SystemSupported
-        ret.merge!(
-          "warning_level" => :error,
-          "warning"       => Yast::BootSupportCheck.StringProblems
-        )
+        ret["warning_level"] = :error
+        ret["warning"] = Yast::BootSupportCheck.StringProblems
       end
 
       ret
