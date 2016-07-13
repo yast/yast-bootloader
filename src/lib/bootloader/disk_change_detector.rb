@@ -26,9 +26,7 @@ module Bootloader
         next unless invalid_device?(device)
 
         # TRANSLATORS: %s stands for partition
-        ret <<
-          _("Selected bootloader partition %s is not available any more.") %
-          device
+        ret << _("Selected bootloader partition %s is not available any more.") % device
       end
     end
 

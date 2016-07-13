@@ -93,16 +93,17 @@ module Yast
       # AutoYaST configuration mode. There is no access to the system
       Yast::BootStorage.detect_disks
 
-      imported_configuration = ::Bootloader::AutoyastConverter.import(data)
-      ::Bootloader::BootloaderFactory.clear_cache
+      factory = ::Bootloader::BootloaderFactory
 
-      proposed_configuration = ::Bootloader::BootloaderFactory
-                               .bootloader_by_name(imported_configuration.name)
+      imported_configuration = ::Bootloader::AutoyastConverter.import(data)
+      factory.clear_cache
+
+      proposed_configuration = factory.bootloader_by_name(imported_configuration.name)
       unless Mode.config # no AutoYaST configuration mode
         proposed_configuration.propose
         proposed_configuration.merge(imported_configuration)
       end
-      ::Bootloader::BootloaderFactory.current = proposed_configuration
+      factory.current = proposed_configuration
 
       true
     end

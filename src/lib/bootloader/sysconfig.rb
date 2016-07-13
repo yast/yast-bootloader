@@ -125,7 +125,7 @@ module Bootloader
         "touch #{destdir}/etc/sysconfig/bootloader")
     end
 
-    def temporary_target_agent
+    def temporary_target_agent(&block)
       old_agent = sys_agent
       @sys_agent = Yast::Path.new(".target.sysconfig.bootloader")
 
@@ -139,7 +139,7 @@ module Bootloader
           Yast::Term.new(:SysConfigFile, target_sysconfig_path))
       )
 
-      yield
+      block.call
     ensure
       Yast::SCR.UnregisterAgent(@sys_agent)
       @sys_agent = old_agent

@@ -124,3 +124,7 @@ Style/VariableName:
 # alias method is safer option
 Style/Alias:
   EnforcedStyle: prefer_alias_method
+
+# performance gain is not so big and readability is better
+Performance/RedundantBlockCall:
+  Enabled: false

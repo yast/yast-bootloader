@@ -8,6 +8,8 @@ module Bootloader
   class Sections
     include Yast::Logger
 
+    # @return [Array<String>] list of all available boot titles if initialized
+    #   with grub_cfg otherwise it is empty array
     attr_reader :all
 
     # @param [CFA::Grub2::GrubCfg, nil] grub_cfg - loaded parsed grub cfg tree
@@ -17,7 +19,8 @@ module Bootloader
       @all = @data.map { |e| e[:title] }
     end
 
-    # @return [String] name of default section
+    # @return [String] name of default boot title. It is not full path,
+    #   so it should be reasonable short
     def default
       return @default if @default
 
@@ -25,10 +28,11 @@ module Bootloader
 
       default_path = read_default_path
 
-      @default = default_path ? path_to_title(default_path) : all.first
+      @default = default_path ? path_to_title(default_path) : all.first || ""
     end
 
-    # Sets default section internally
+    # Sets default section internally.
+    # @param [String] new boot title to boot
     # @note to write it to system use #write later
     def default=(value)
       log.info "set new default to '#{value.inspect}'"
