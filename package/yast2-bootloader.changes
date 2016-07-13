@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Wed Jul 13 08:49:50 UTC 2016 - jreidinger@suse.com
 
-- fix writting default boot entry when it is located in grub2
+- fix writing default boot entry when it is located in grub2
   submenu (bnc#986005)
 - 3.1.198
 
