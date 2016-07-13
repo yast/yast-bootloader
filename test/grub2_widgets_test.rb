@@ -594,7 +594,11 @@ end
 
 describe Bootloader::DefaultSectionWidget do
   before do
-    grub_cfg = double(sections: ["openSUSE", "windows"])
+    sections = [
+      { title: "openSUSE", path: "openSUSE" },
+      { title: "windows", path: "windows" }
+    ]
+    grub_cfg = double(boot_entries: sections)
     assign_bootloader
     sections = Bootloader::Sections.new(grub_cfg)
     # fake section list

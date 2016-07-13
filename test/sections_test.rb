@@ -6,7 +6,11 @@ require "bootloader/sections"
 
 describe Bootloader::Sections do
   subject do
-    grub_cfg = double("CFA::Grub2::GrubCfg", sections: ["linux", "windows"])
+    sections = [
+      { title: "linux", path: "linux" },
+      { title: "windows", path: "alien>windows" }
+    ]
+    grub_cfg = double("CFA::Grub2::GrubCfg", boot_entries: sections)
     Bootloader::Sections.new(grub_cfg)
   end
 
@@ -20,7 +24,7 @@ describe Bootloader::Sections do
     it "gets name of default section stored in grub2" do
       expect(Yast::Execute).to receive(:on_target)
         .with("/usr/bin/grub2-editenv", "list", stdout: :capture)
-        .and_return("saved_entry=windows\nbla_bla=no\n")
+        .and_return("saved_entry=alien>windows\nbla_bla=no\n")
 
       expect(subject.default).to eq "windows"
     end
@@ -54,6 +58,15 @@ describe Bootloader::Sections do
 
       expect(Yast::Execute).to receive(:on_target)
         .with("/usr/sbin/grub2-set-default", "linux")
+
+      subject.write
+    end
+
+    it "converts default value to its path" do
+      subject.default = "windows"
+
+      expect(Yast::Execute).to receive(:on_target)
+        .with("/usr/sbin/grub2-set-default", "alien>windows")
 
       subject.write
     end

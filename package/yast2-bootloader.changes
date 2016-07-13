@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Jul 13 08:49:50 UTC 2016 - jreidinger@suse.com
+
+- fix writing default boot entry when it is located in grub2
+  submenu (bnc#986005)
+- 3.1.198
+
+-------------------------------------------------------------------
 Mon Jul 11 12:18:29 UTC 2016 - jreidinger@suse.com
 
 - do not crash after configuration in autoyast bootloader section
