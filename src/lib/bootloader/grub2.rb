@@ -204,10 +204,8 @@ module Bootloader
         if stage1.boot_partition?
           return Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
         end
-      else
-        if stage1.root_partition?
-          return Yast::BootStorage.RootPartitionDevice + " (\"/\")"
-        end
+      elsif stage1.root_partition?
+        return Yast::BootStorage.RootPartitionDevice + " (\"/\")"
       end
 
       ""
@@ -239,18 +237,16 @@ module Bootloader
               "(<a href=\"enable_boot_boot\">install</a>)"
           )
         end
+      elsif stage1.root_partition?
+        _(
+          "Install bootcode into \"/\" partition " \
+            "(<a href=\"disable_boot_root\">do not install</a>)"
+        )
       else
-        if stage1.root_partition?
-          _(
-            "Install bootcode into \"/\" partition " \
-              "(<a href=\"disable_boot_root\">do not install</a>)"
-          )
-        else
-          _(
-            "Do not install bootcode into \"/\" partition " \
-              "(<a href=\"enable_boot_root\">install</a>)"
-          )
-        end
+        _(
+          "Do not install bootcode into \"/\" partition " \
+            "(<a href=\"enable_boot_root\">install</a>)"
+        )
       end
     end
 
