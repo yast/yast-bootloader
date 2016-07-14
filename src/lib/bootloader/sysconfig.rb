@@ -32,10 +32,10 @@ module Bootloader
       # propose secure boot always to true (bnc#872054), otherwise respect user choice
       # but only on architectures that support it (bnc#984895)
       secure_boot = if Yast::Arch.x86_64 || Yast::Arch.i386
-                      Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
-                    else
-                      false
-                    end
+        Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
+      else
+        false
+      end
 
       trusted_boot = Yast::SCR.Read(AGENT_PATH + "TRUSTED_BOOT") == "yes"
 

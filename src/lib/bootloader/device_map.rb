@@ -132,11 +132,11 @@ module Bootloader
         next if bios_id.empty?
 
         index = if Yast::Arch.x86_64 || Yast::Arch.i386
-                  # it looks like 0x81. It is boot drive unit see http://en.wikipedia.org/wiki/Master_boot_record
-                  bios_id[2..-1].to_i(16) - 0x80
-                else
-                  raise "no support for bios id '#{bios_id}' on #{Yast::Arch.architecture}"
-                end
+          # it looks like 0x81. It is boot drive unit see http://en.wikipedia.org/wiki/Master_boot_record
+          bios_id[2..-1].to_i(16) - 0x80
+        else
+          raise "no support for bios id '#{bios_id}' on #{Yast::Arch.architecture}"
+        end
         # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
         if !ids[index]
           add_mapping("hd#{index}", target_dev)

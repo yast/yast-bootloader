@@ -302,11 +302,11 @@ module Yast
       return :missing unless current_bl.respond_to?(:grub_default)
       grub_default = current_bl.grub_default
       params = case flavor
-               when :common then grub_default.kernel_params
-               when :xen_guest then grub_default.xen_kernel_params
-               when :xen_host then grub_default.xen_hypervisor_params
-               else raise ArgumentError, "Unknown flavor #{flavor}"
-               end
+      when :common then grub_default.kernel_params
+      when :xen_guest then grub_default.xen_kernel_params
+      when :xen_host then grub_default.xen_hypervisor_params
+      else raise ArgumentError, "Unknown flavor #{flavor}"
+      end
 
       res = params.parameter(key)
 

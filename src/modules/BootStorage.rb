@@ -265,10 +265,10 @@ module Yast
         partitions.each do |s|
           # bnc#577127 - Encrypted swap is not properly set up as resume device
           dev = if s["crypt_device"] && !s["crypt_device"].empty?
-                  s["crypt_device"]
-                else
-                  s["device"]
-                end
+            s["crypt_device"]
+          else
+            s["device"]
+          end
           ret[dev] = s["size_k"] || 0
         end
       end

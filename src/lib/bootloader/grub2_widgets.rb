@@ -60,10 +60,10 @@ module Bootloader
 
     def init
       self.value = if grub_default.hidden_timeout && grub_default.hidden_timeout.to_i > 0
-                     grub_default.hidden_timeout.to_i
-                   else
-                     grub_default.timeout.to_i
-                   end
+        grub_default.hidden_timeout.to_i
+      else
+        grub_default.timeout.to_i
+      end
     end
 
     def store

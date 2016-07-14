@@ -52,10 +52,10 @@ module Yast
         return ret
       elsif Arch.s390
         termparm = if ENV["TERM"] == "linux"
-                     "TERM=linux console=ttyS0 console=ttyS1"
-                   else
-                     "hvc_iucv=8 TERM=dumb"
-                   end
+          "TERM=linux console=ttyS0 console=ttyS1"
+        else
+          "hvc_iucv=8 TERM=dumb"
+        end
         parameters = "#{features} #{termparm}"
         parameters << " resume=#{resume}" unless resume.empty?
         return parameters

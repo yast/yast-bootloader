@@ -61,10 +61,11 @@ module Bootloader
       return if @pmbr_action == :nothing
 
       action_parted = case @pmbr_action
-                      when :add    then "on"
-                      when :remove then "off"
-                      else raise "invalid action #{action}"
-                      end
+      when :add    then "on"
+      when :remove then "off"
+      else raise "invalid action #{action}"
+      end
+
       devices.each do |dev|
         Yast::Execute.locally("parted", "-s", dev, "disk_set", "pmbr_boot", action_parted)
       end
