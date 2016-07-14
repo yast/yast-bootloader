@@ -58,10 +58,9 @@ module Bootloader
       disk_data = Yast::Storage.GetDiskPartition(dev)
       if disk?(disk_data)
         disk = Yast::Storage.GetDisk(tm, dev)
-        if disk["type"] == :CT_MD
-          # md disk is just virtual device, so select underlaying device /boot partition
-          return underlaying_disk_with_boot_partition
-        elsif disk["type"] == :CT_LVM
+        # md disk is just virtual device, so select underlaying device /boot partition
+        return underlaying_disk_with_boot_partition if disk["type"] == :CT_MD
+        if disk["type"] == :CT_LVM
           res = lvm_underlaying_devices(disk)
           return res.map { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
         end

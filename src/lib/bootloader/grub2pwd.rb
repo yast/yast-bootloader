@@ -50,7 +50,7 @@ module Bootloader
   private
 
     YAST_BASH_PATH = Yast::Path.new(".local.bash_output")
-    PWD_ENCRYPTION_FILE = "/etc/grub.d/42_password"
+    PWD_ENCRYPTION_FILE = "/etc/grub.d/42_password".freeze
 
     def propose
       @used = false
@@ -108,7 +108,7 @@ module Bootloader
 
       Yast::SCR.Write(
         Yast::Path.new(".target.string"),
-        [PWD_ENCRYPTION_FILE, 0700],
+        [PWD_ENCRYPTION_FILE, 0o700],
         file_content
       )
     end
@@ -125,8 +125,7 @@ module Bootloader
 
       quoted_password = Yast::String.Quote(password)
       result = Yast::WFM.Execute(YAST_BASH_PATH,
-        "echo '#{quoted_password}\n#{quoted_password}\n' | LANG=C grub2-mkpasswd-pbkdf2"
-                                )
+        "echo '#{quoted_password}\n#{quoted_password}\n' | LANG=C grub2-mkpasswd-pbkdf2")
 
       if result["exit"] != 0
         raise "Failed to create encrypted password for grub2. Command output: #{result["stderr"]}"

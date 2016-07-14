@@ -40,7 +40,7 @@ Requires:       yast2-core >= 2.18.7
 Requires:       yast2-packager >= 2.17.24
 Requires:       yast2-pkg-bindings >= 2.17.25
 Requires:       yast2-storage >= 2.18.18
-# GRUB_DEFAULT attribute
+# GrubCfg with boot_entries that filter out unbootable entries
 Requires:       rubygem(%rb_default_ruby_abi:cfa_grub2) >= 0.5.1
 # lenses are needed as cfa_grub2 depends only on augeas bindings, but also
 # lenses are needed here

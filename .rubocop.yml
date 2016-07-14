@@ -120,3 +120,7 @@ Style/MethodName:
 Style/VariableName:
   Include:
     - 'src/lib/**/*.rb' # force known variables only for new code
+
+# alias method is more convenient method for method aliasing
+Style/Alias:
+  EnforcedStyle: prefer_alias_method

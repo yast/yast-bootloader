@@ -61,10 +61,11 @@ module Bootloader
       return if @pmbr_action == :nothing
 
       action_parted = case @pmbr_action
-                      when :add    then "on"
-                      when :remove then "off"
-                      else raise "invalid action #{action}"
-                      end
+      when :add    then "on"
+      when :remove then "off"
+      else raise "invalid action #{action}"
+      end
+
       devices.each do |dev|
         Yast::Execute.locally("parted", "-s", dev, "disk_set", "pmbr_boot", action_parted)
       end
@@ -161,7 +162,7 @@ module Bootloader
       @password = other.password
     end
 
-    KERNEL_FLAVORS_METHODS = [:kernel_params, :xen_hypervisor_params, :xen_kernel_params]
+    KERNEL_FLAVORS_METHODS = [:kernel_params, :xen_hypervisor_params, :xen_kernel_params].freeze
 
     def merge_grub_default(other)
       default = grub_default

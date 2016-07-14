@@ -35,7 +35,7 @@ module Yast
   class BootloaderClass < Module
     include Yast::Logger
 
-    BOOLEAN_MAPPING = { true => :present, false => :missing }
+    BOOLEAN_MAPPING = { true => :present, false => :missing }.freeze
 
     def main
       textdomain "bootloader"
@@ -93,16 +93,17 @@ module Yast
       # AutoYaST configuration mode. There is no access to the system
       Yast::BootStorage.detect_disks
 
-      imported_configuration = ::Bootloader::AutoyastConverter.import(data)
-      ::Bootloader::BootloaderFactory.clear_cache
+      factory = ::Bootloader::BootloaderFactory
 
-      proposed_configuration = ::Bootloader::BootloaderFactory
-        .bootloader_by_name(imported_configuration.name)
+      imported_configuration = ::Bootloader::AutoyastConverter.import(data)
+      factory.clear_cache
+
+      proposed_configuration = factory.bootloader_by_name(imported_configuration.name)
       unless Mode.config # no AutoYaST configuration mode
         proposed_configuration.propose
         proposed_configuration.merge(imported_configuration)
       end
-      ::Bootloader::BootloaderFactory.current = proposed_configuration
+      factory.current = proposed_configuration
 
       true
     end
@@ -267,7 +268,7 @@ module Yast
       :common    => "append",
       :xen_guest => "xen_append",
       :xen_host  => "xen_kernel_append"
-    }
+    }.freeze
 
     # Gets value for given parameter in kernel parameters for given flavor.
     # @param [Symbol] flavor flavor of kernel, for possible values see #modify_kernel_param
@@ -301,11 +302,11 @@ module Yast
       return :missing unless current_bl.respond_to?(:grub_default)
       grub_default = current_bl.grub_default
       params = case flavor
-               when :common then grub_default.kernel_params
-               when :xen_guest then grub_default.xen_kernel_params
-               when :xen_host then grub_default.xen_hypervisor_params
-               else raise ArgumentError, "Unknown flavor #{flavor}"
-               end
+      when :common then grub_default.kernel_params
+      when :xen_guest then grub_default.xen_kernel_params
+      when :xen_host then grub_default.xen_hypervisor_params
+      else raise ArgumentError, "Unknown flavor #{flavor}"
+      end
 
       res = params.parameter(key)
 
@@ -427,7 +428,7 @@ module Yast
       Initrd.changed = true if Arch.s390 && Stage.initial
     end
 
-    NONSPLASH_VGA_VALUES = ["", "false", "ask"]
+    NONSPLASH_VGA_VALUES = ["", "false", "ask"].freeze
 
     # store new vgamode if needed and regenerate initrd in such case
     # @param params_to_save used to store predefined vgamode value

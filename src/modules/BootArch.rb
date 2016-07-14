@@ -51,10 +51,10 @@ module Yast
         ret << " splash=silent quiet showopts"
         return ret
       elsif Arch.s390
-        if ENV["TERM"] == "linux"
-          termparm = "TERM=linux console=ttyS0 console=ttyS1"
+        termparm = if ENV["TERM"] == "linux"
+          "TERM=linux console=ttyS0 console=ttyS1"
         else
-          termparm = "hvc_iucv=8 TERM=dumb"
+          "hvc_iucv=8 TERM=dumb"
         end
         parameters = "#{features} #{termparm}"
         parameters << " resume=#{resume}" unless resume.empty?

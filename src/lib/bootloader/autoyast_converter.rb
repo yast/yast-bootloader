@@ -111,7 +111,7 @@ module Bootloader
         "boot_boot"     => :BootPartitionDevice,
         "boot_mbr"      => :mbr_disk,
         "boot_extended" => :ExtendedPartitionDevice
-      }
+      }.freeze
       def import_stage1(data, bootloader)
         return unless bootloader.name == "grub2"
 
@@ -184,7 +184,7 @@ module Bootloader
         "boot_boot"     => :boot_partition?,
         "boot_mbr"      => :mbr?,
         "boot_extended" => :extended_partition?
-      }
+      }.freeze
       def export_stage1(res, stage1)
         STAGE1_MAPPING.each do |key, method|
           res[key] = stage1.public_send(method) ? "true" : "false"
@@ -200,7 +200,7 @@ module Bootloader
       # only for grub2, not for others
       GRUB2_BOOLEAN_MAPPING = {
         "trusted_grub" => :trusted_boot
-      }
+      }.freeze
       def export_grub2(res, bootloader)
         GRUB2_BOOLEAN_MAPPING.each do |key, method|
           val = bootloader.public_send(method)
@@ -210,23 +210,23 @@ module Bootloader
 
       DEFAULT_BOOLEAN_MAPPING = {
         "os_prober" => :os_prober
-      }
+      }.freeze
 
       DEFAULT_STRING_MAPPING = {
         "gfxmode"  => :gfxmode,
         "serial"   => :serial_console,
         "terminal" => :terminal
-      }
+      }.freeze
 
       DEFAULT_KERNEL_PARAMS_MAPPING = {
         "append"            => :kernel_params,
         "xen_append"        => :xen_kernel_params,
         "xen_kernel_append" => :xen_hypervisor_params
-      }
+      }.freeze
 
       SYMBOL_PARAM = [
         "terminal"
-      ]
+      ].freeze
       def export_default(res, default)
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
           val = default.public_send(method)

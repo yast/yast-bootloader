@@ -253,7 +253,7 @@ module Bootloader
       end
     end
 
-    AVAILABLE_PROPOSALS = {
+    AVAILABLE_PROPOSALS = { # rubocop:disable Style/MutableConstant default_proc conflict
       "i386"    => X64,
       "x86_64"  => X64,
       "s390_32" => S390,

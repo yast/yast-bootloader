@@ -11,10 +11,10 @@ module Bootloader
       "n" => "no",
       "o" => "odd",
       "e" => "even"
-    }
+    }.freeze
     SPEED_DEFAULT = 9600
-    PARITY_DEFAULT = "no"
-    WORD_DEFAULT = ""
+    PARITY_DEFAULT = "no".freeze
+    WORD_DEFAULT = "".freeze
 
     # REGEXP that separate usefull parts of kernel parameter for serial console
     # matching groups are:

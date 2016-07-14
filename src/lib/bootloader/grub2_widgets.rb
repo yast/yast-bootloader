@@ -55,15 +55,14 @@ module Bootloader
 
     def help
       _("<p><b>Timeout in Seconds</b><br>\n" \
-        "Specifies the time the bootloader will wait until the default kernel is loaded.</p>\n"
-       )
+        "Specifies the time the bootloader will wait until the default kernel is loaded.</p>\n")
     end
 
     def init
-      if grub_default.hidden_timeout && grub_default.hidden_timeout.to_i > 0
-        self.value = grub_default.hidden_timeout.to_i
+      self.value = if grub_default.hidden_timeout && grub_default.hidden_timeout.to_i > 0
+        grub_default.hidden_timeout.to_i
       else
-        self.value = grub_default.timeout.to_i
+        grub_default.timeout.to_i
       end
     end
 
@@ -316,7 +315,7 @@ module Bootloader
       textdomain "bootloader"
     end
 
-    MASKED_PASSWORD = "**********"
+    MASKED_PASSWORD = "**********".freeze
 
     def contents
       HBox(

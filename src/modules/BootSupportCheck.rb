@@ -185,12 +185,12 @@ module Yast
       boot_part = Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
       boot_part = Storage.GetEntryForMountpoint("/") if boot_part.empty?
 
-      if [:ext2, :ext3, :ext4].include? boot_part["used_fs"]
-        return true
-      else
+      if ![:ext2, :ext3, :ext4].include? boot_part["used_fs"]
         add_new_problem(_("Missing ext partition for booting. Cannot install boot code."))
         return false
       end
+
+      true
     end
 
     def check_activate_partition
