@@ -185,7 +185,7 @@ describe Bootloader::Grub2 do
 
     context "when arch is not s390" do
       before do
-        allow(Yast::Arch).to receive(:s390).and_return(false)
+        allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       end
 
       it "includes order of hard disks if there are more than 1" do
@@ -204,7 +204,7 @@ describe Bootloader::Grub2 do
 
     context "when arch is s390" do
       before do
-        allow(Yast::Arch).to receive(:s390).and_return(true)
+        allow(Yast::Arch).to receive(:architecture).and_return("s390_64")
       end
 
       it "does not includes order of hard disks" do

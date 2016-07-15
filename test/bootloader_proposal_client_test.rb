@@ -110,7 +110,7 @@ describe Bootloader::ProposalClient do
       allow(Yast::BootStorage).to receive(:bootloader_installable?).and_return(true)
 
       Yast.import "Arch"
-      allow(Yast::Arch).to receive(:s390)
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
     end
 
     it "returns map with links set to single click actions" do

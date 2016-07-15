@@ -13,8 +13,7 @@ describe Bootloader::Kexec do
       allow(Yast::ProductFeatures).to receive(:GetBooleanFeature)
         .with("globals", "kexec_reboot").and_return(true)
       Yast.import "Arch"
-      allow(Yast::Arch).to receive(:ppc).and_return(false)
-      allow(Yast::Arch).to receive(:s390).and_return(false)
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       Yast.import "Mode"
       allow(Yast::Mode).to receive(:live_installation).and_return(false)
       allow(Yast::SCR).to receive(:Read)
@@ -37,15 +36,13 @@ describe Bootloader::Kexec do
     end
 
     it "returns false if running on s390" do
-      Yast.import "Arch"
-      allow(Yast::Arch).to receive(:s390).and_return(true)
+      allow(Yast::Arch).to receive(:architecture).and_return("s390_64")
 
       expect(subject.prepare_environment).to be false
     end
 
     it "returns false if running on ppc" do
-      Yast.import "Arch"
-      allow(Yast::Arch).to receive(:ppc).and_return(true)
+      allow(Yast::Arch).to receive(:architecture).and_return("ppc64")
 
       expect(subject.prepare_environment).to be false
     end

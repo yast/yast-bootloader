@@ -9,7 +9,7 @@ describe Bootloader::FinishClient do
     before do
       Yast.import "Arch"
 
-      allow(Yast::Arch).to receive(:s390).and_return(false)
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
 
       Bootloader::BootloaderFactory.current_name = "grub2"
       @current_bl = Bootloader::BootloaderFactory.current
@@ -33,7 +33,7 @@ describe Bootloader::FinishClient do
     end
 
     it "sets on s390 systems reboot message if reipl return not different" do
-      allow(Yast::Arch).to receive(:s390).and_return(true)
+      allow(Yast::Arch).to receive(:architecture).and_return("s390_64")
 
       expect(Yast::WFM).to receive(:ClientExists).and_return(true)
       expect(Yast::WFM).to receive(:call).and_return(
@@ -49,7 +49,7 @@ describe Bootloader::FinishClient do
     end
 
     it "sets on s390 systems shut down message if reipl return different as true" do
-      allow(Yast::Arch).to receive(:s390).and_return(true)
+      allow(Yast::Arch).to receive(:architecture).and_return("s390_64")
 
       expect(Yast::WFM).to receive(:ClientExists).and_return(true)
       expect(Yast::WFM).to receive(:call).and_return(
