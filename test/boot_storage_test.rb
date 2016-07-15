@@ -9,7 +9,7 @@ describe Yast::BootStorage do
     let(:possible_locations) { subject.possible_locations_for_stage1 }
     before do
       target_map_stub("storage_mdraid.yaml")
-      allow(Yast::Arch).to receive(:s390).and_return(false) # be arch agnostic
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64") # be arch agnostic
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:device)
       allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
     end
