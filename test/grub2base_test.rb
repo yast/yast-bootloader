@@ -120,10 +120,46 @@ describe Bootloader::Grub2Base do
           allow(Yast::Arch).to receive(:architecture).and_return("s390_64")
         end
 
-        it "proposes console terminal" do
+        context "with TERM=\"linux\"" do
+          before do
+            ENV["TERM"] = "linux"
+          end
+
+          it "proposes to use serial terminal" do
+            subject.propose
+
+            expect(subject.grub_default.terminal).to eq :serial
+          end
+        end
+
+        context "on other TERM" do
+          before do
+            ENV["TERM"] = "xterm"
+          end
+
+          it "proposes to use console terminal" do
+            subject.propose
+
+            expect(subject.grub_default.terminal).to eq :console
+          end
+        end
+      end
+
+      context "on ppc" do
+        before do
+          allow(Yast::Arch).to receive(:architecture).and_return("ppc64")
+        end
+
+        it "proposes to use console terminal" do
           subject.propose
 
           expect(subject.grub_default.terminal).to eq :console
+        end
+
+        it "sets GFXPAYLOAD_LINUX to text" do
+          subject.propose
+
+          expect(subject.grub_default.generic_get("GRUB_GFXPAYLOAD_LINUX")).to eq "text"
         end
       end
 
