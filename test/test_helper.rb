@@ -27,13 +27,9 @@ if ENV["COVERAGE"]
   src_location = File.expand_path("../../src", __FILE__)
   Dir["#{src_location}/{module,lib}/**/*.rb"].each { |f| require_relative f }
 
-  # use coveralls for on-line code coverage reporting at Travis CI
+  # use codecov for on-line code coverage reporting at Travis CI
   if ENV["TRAVIS"]
-    require "coveralls"
-    SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
-      SimpleCov::Formatter::HTMLFormatter,
-      Coveralls::SimpleCov::Formatter
-    ]
+    SimpleCov.formatter = SimpleCov::Formatter::Codecov
   end
 end
 
