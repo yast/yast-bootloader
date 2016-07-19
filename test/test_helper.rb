@@ -29,6 +29,7 @@ if ENV["COVERAGE"]
 
   # use codecov for on-line code coverage reporting at Travis CI
   if ENV["TRAVIS"]
+    require "codecov"
     SimpleCov.formatter = SimpleCov::Formatter::Codecov
   end
 end
