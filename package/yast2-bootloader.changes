@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 23 14:20:15 UTC 2016 - jreidinger@suse.com
+
+- fix proposing generic mbr if proposed to boot from MBR
+  ( found during debugging bnc#994348 )
+- 3.1.200
+
+-------------------------------------------------------------------
 Mon Jul 18 14:56:27 UTC 2016 - jreidinger@suse.com
 
 - do not fail tests when run in environment connected by serial
