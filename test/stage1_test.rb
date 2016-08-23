@@ -50,6 +50,20 @@ describe Bootloader::Stage1 do
       expect(subject.mbr?).to eq true
     end
 
+    it "do not set generic_mbr if proposed boot from mbr" do
+      allow(Bootloader::Stage1Device).to receive(:new).and_call_original
+      target_map_stub("storage_mdraid.yaml")
+
+      allow(Yast::BootStorage).to receive(:mbr_disk)
+        .and_return("/dev/md")
+      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
+        .and_return("/dev/md1")
+
+      subject.propose
+
+      expect(subject.generic_mbr?).to eq false
+    end
+
     context "on ppc64" do
       before do
         allow(Yast::Arch).to receive(:architecture).and_return("ppc64")
