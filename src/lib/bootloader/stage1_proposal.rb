@@ -20,7 +20,7 @@ module Bootloader
 
       proposal.new(stage1).propose
 
-      log.info "proposed stage1 configuratopn #{stage1.inspect}"
+      log.info "proposed stage1 configuration #{stage1.inspect}"
     end
 
   protected
@@ -119,6 +119,8 @@ module Bootloader
         end
 
         assign_bootloader_device(selected_location)
+
+        selected_location
       end
 
       def separated_boot?
