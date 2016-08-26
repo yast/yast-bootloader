@@ -8,6 +8,7 @@ Yast.import "Initrd"
 Yast.import "Label"
 Yast.import "Report"
 Yast.import "UI"
+Yast.import "Mode"
 
 module Bootloader
   # Adds to generic widget grub2 specific helpers
@@ -295,7 +296,13 @@ module Bootloader
 
     def help
       # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
-      _("<b>Trusted Boot</b> will install TrustedGRUB2 instead of regular GRUB2.\n")
+      _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
+        "instead of regular GRUB2.</p>\n" \
+        "<p>It means measuring the integrity of the boot process,\n" \
+        "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
+        "chip).</p>\n" \
+        "<p>First you need to make sure Trusted Boot is enabled in the BIOS\n" \
+        "setup (the setting may be named Security Chip, for example).</p>\n")
     end
 
     def init
@@ -304,6 +311,20 @@ module Bootloader
 
     def store
       grub2.trusted_boot = value
+    end
+
+    def validate
+      return true if Yast::Mode.config || !value
+      tpm_files = Dir.glob("/sys/**/pcrs")
+      if !tpm_files.empty?
+        # check for file size does not work, since FS reports it 4096
+        # even if the file is in fact empty and a single byte cannot
+        # be read, therefore testing real reading (details: bsc#994556)
+        return true unless File.read(tpm_files[0], 1).nil?
+      end
+      Yast::Popup.ContinueCancel(_("Trusted Platform Module not found.\n" \
+                                   "Make sure it is enabled in BIOS.\n" \
+                                   "The system will not boot otherwise."))
     end
   end
 
