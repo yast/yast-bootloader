@@ -1,6 +1,7 @@
 require "yast"
 
 require "bootloader/boot_record_backup"
+require "bootloader/stage1_device"
 require "yast2/execute"
 
 Yast.import "Arch"
@@ -45,7 +46,7 @@ module Bootloader
     end
 
     def mbr_is_gpt?
-      mbr_storage_object = Yast::Storage.GetTargetMap[mbr_disk]
+      mbr_storage_object = target_map[mbr_disk]
       raise "Cannot find in storage mbr disk #{mbr_disk}" unless mbr_storage_object
       mbr_type = mbr_storage_object["label"]
       log.info "mbr type = #{mbr_type}"
@@ -138,24 +139,35 @@ module Bootloader
       ret = [mbr_disk]
       # Add to disks only if part of raid on base devices lives on mbr_disk
       ret.concat(mbrs) if mbrs.include?(mbr_disk)
+      # get only real disks
+      ret = ret.each_with_object([]) do |disk, res|
+        res.concat(::Bootloader::Stage1Device.new(disk).real_devices)
+      end
 
       ret.uniq
     end
 
     def first_base_device_to_boot(md_device)
-      md = Yast::BootStorage.Md2Partitions(md_device)
-      md.reduce do |res, items|
-        device, bios_id = items
-        next device unless res
+      md = ::Bootloader::Stage1Device.new(md_device)
+      md.real_devices.min_by { |device| bios_id_for(device) }
+    end
 
-        bios_id < md[res] ? device : res
-      end
+    MAX_BIOS_ID = 1000
+    def bios_id_for(device)
+      disk = Yast::Storage.GetDiskPartition(device)["disk"]
+      disk_info = target_map[disk]
+      return MAX_BIOS_ID unless disk_info
+
+      bios_id = disk_info["bios_id"]
+      # prefer device without bios id over ones without disk info
+      return MAX_BIOS_ID - 1  if !bios_id || bios_id !~ /0x[0-9a-fA-F]+/
+
+      bios_id[2..-1].to_i(16) - 0x80
     end
 
     # List of partition for disk that can be used for setting boot flag
     def activatable_partitions(disk)
-      tm = Yast::Storage.GetTargetMap
-      partitions = tm.fetch(disk, {}).fetch("partitions", [])
+      partitions = target_map.fetch(disk, {}).fetch("partitions", [])
       # do not select swap and do not select BIOS grub partition
       # as it clear its special flags (bnc#894040)
       partitions.select do |p|
@@ -173,27 +185,19 @@ module Bootloader
     end
 
     # Given a device name to which we install the bootloader (loader_device),
-    # get the name of the partition which should be activated.
-    # Also return the device file name of the disk device that corresponds to
-    # loader_device (i.e. where the corresponding MBR can be found).
+    # gets back disk and partition number to activate. If empty Hash is returned
+    # then no suitable partition to activate found.
     # @param [String] loader_device string the device to install bootloader to
-    # @return a map $[ "mbr": string, "num": any]
-    #  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
-    #  partition number (eg. 4)
+    # @return a Hash `{ "mbr" => String, "num" => Integer }`
+    #  containing disk (eg. "/dev/hda") and partition number (eg. 4)
     def partition_to_activate(loader_device)
-      p_dev = Yast::Storage.GetDiskPartition(loader_device)
+      real_device = first_base_device_to_boot(loader_device)
+      log.info "real devices for #{loader_device} is #{real_device}"
+
+      p_dev = Yast::Storage.GetDiskPartition(real_device)
       num = p_dev["nr"].to_i
       mbr_dev = p_dev["disk"]
       raise "Invalid loader device #{loader_device}" unless mbr_dev
-
-      # If loader_device is /dev/md* (which means bootloader is installed to
-      # /dev/md*), then call recursive method with partition that lays on device
-      # with the lowest bios id number or first one if noone have bios id
-      # FIXME: use ::storage to detect md devices, not by name!
-      if loader_device.start_with?("/dev/md")
-        base_device = first_base_device_to_boot(loader_device)
-        return partition_to_activate(base_device) if base_device
-      end
 
       # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
       # if loader_device is disk Choose any partition which is not swap to
@@ -233,6 +237,10 @@ module Bootloader
       result.delete({})
 
       result.uniq
+    end
+
+    def target_map
+      @target_map ||= Yast::Storage.GetTargetMap
     end
   end
 end
