@@ -143,29 +143,20 @@ module Bootloader
       ret.uniq
     end
 
-    MAX_BIOS_ID = 1000
     def first_base_device_to_boot(md_device)
       md = ::Bootloader::Stage1Device.new(md_device)
-      lowest_id = MAX_BIOS_ID
-      md.real_devices.reduce do |res, device|
-        res ||= device # ensure at least one device is used, even if none have bios_id
-        bios_id_num = bios_id_for(device)
-        if lowest_id > bios_id_num
-          lowest_id = bios_id_num
-          next device
-        else
-          res
-        end
-      end
+      md.real_devices.min_by { |device| bios_id_for(device) }
     end
 
+    MAX_BIOS_ID = 1000
     def bios_id_for(device)
       disk = Yast::Storage.GetDiskPartition(device)["disk"]
       disk_info = target_map[disk]
       return MAX_BIOS_ID unless disk_info
 
       bios_id = disk_info["bios_id"]
-      return MAX_BIOS_ID if !bios_id || bios_id !~ /0x[0-9a-fA-F]+/
+      # prefer device without bios id over ones without disk info
+      return MAX_BIOS_ID - 1  if !bios_id || bios_id !~ /0x[0-9a-fA-F]+/
 
       bios_id[2..-1].to_i(16) - 0x80
     end
@@ -190,13 +181,11 @@ module Bootloader
     end
 
     # Given a device name to which we install the bootloader (loader_device),
-    # get the name of the partition which should be activated.
-    # Also return the device file name of the disk device that corresponds to
-    # loader_device (i.e. where the corresponding MBR can be found).
+    # gets back disk and partition number to activate. If empty Hash is returned
+    # then no suitable partition to activate found.
     # @param [String] loader_device string the device to install bootloader to
-    # @return a map $[ "mbr": string, "num": any]
-    #  containing device (eg. "/dev/hda4"), disk (eg. "/dev/hda") and
-    #  partition number (eg. 4)
+    # @return a Hash `{ "mbr" => String, "num" => Integer }`
+    #  containing disk (eg. "/dev/hda") and partition number (eg. 4)
     def partition_to_activate(loader_device)
       real_device = first_base_device_to_boot(loader_device)
       log.info "real devices for #{loader_device} is #{real_device}"
