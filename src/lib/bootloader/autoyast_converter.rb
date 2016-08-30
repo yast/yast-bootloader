@@ -3,6 +3,7 @@ require "yast"
 require "bootloader/bootloader_factory"
 
 Yast.import "BootStorage"
+Yast.import "Arch"
 
 module Bootloader
   # Represents unsupported bootloader type error
@@ -32,6 +33,7 @@ module Bootloader
         import_grub2(data, bootloader)
         import_stage1(data, bootloader)
         import_default(data, bootloader.grub_default)
+        import_device_map(data, bootloader)
         # TODO: import Initrd
 
         log.warn "autoyast profile contain sections which won't be processed" if data["sections"]
@@ -103,6 +105,19 @@ module Bootloader
         else
           default.timeout = data["global"]["timeout"].to_s if data["global"]["timeout"]
           default.hidden_timeout = "0"
+        end
+      end
+
+      def import_device_map(data, bootloader)
+        return unless bootloader.name == "grub2"
+        return if !Yast::Arch.x86_64 && !Yast::Arch.i386
+
+        dev_map = data["device_map"]
+        return unless dev_map
+
+        bootloader.device_map.clear_mapping
+        dev_map.each do |entry|
+          bootloader.device_map.add_mapping(entry["firmware"], entry["linux"])
         end
       end
 
