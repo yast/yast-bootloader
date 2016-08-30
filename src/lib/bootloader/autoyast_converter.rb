@@ -54,6 +54,9 @@ module Bootloader
         export_grub2(global, config) if config.name == "grub2"
         export_stage1(global, config.stage1) if config.respond_to?(:stage1)
         export_default(global, config.grub_default)
+        # Do not export device map as device name are very unpredictable and is used only as
+        # work-around when automatic ones do not work for what-ever reasons ( it can really safe
+        # your day in L3 )
 
         res
       end

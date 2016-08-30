@@ -3,7 +3,7 @@ Tue Aug 30 13:31:14 UTC 2016 - jreidinger@suse.com
 
 - import properly device map in autoyast profile (found during
   debugging bnc#995627)
-- log device map entries before written down to allow easier
+- log device map entries before written them, to allow easier
   debugging of augeas lenses failure (bnc#995627)
 - 3.1.203
 

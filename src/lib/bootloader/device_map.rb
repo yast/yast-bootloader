@@ -33,7 +33,7 @@ module Bootloader
     end
 
     def write
-      log.info "writting device map: #{to_s}"
+      log.info "writing device map: #{to_s}"
       @model.save
     end
 
