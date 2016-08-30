@@ -195,7 +195,8 @@ describe Bootloader::MBRUpdate do
             "/dev/sdb" => { "label" => "msdos", "bios_id" => "0x80" }
           )
 
-          allow(::Bootloader::Stage1Device).to receive(:new).with("/dev/md1") { |d| double(real_devices: ["/dev/sda1","/dev/sdb1"]) }
+          allow(::Bootloader::Stage1Device).to receive(:new).with("/dev/md1")
+            .and_return(double(real_devices: ["/dev/sda1", "/dev/sdb1"]))
           expect(Yast::Execute).to receive(:locally)
             .with(/parted/, "-s", "/dev/sdb", "set", 1, "boot", "on")
 
