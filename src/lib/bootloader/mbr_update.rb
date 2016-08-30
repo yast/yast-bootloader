@@ -139,6 +139,10 @@ module Bootloader
       ret = [mbr_disk]
       # Add to disks only if part of raid on base devices lives on mbr_disk
       ret.concat(mbrs) if mbrs.include?(mbr_disk)
+      # get only real disks
+      ret = ret.each_with_object([]) do |disk, res|
+        res.concat(::Bootloader::Stage1Device.new(disk).real_devices)
+      end
 
       ret.uniq
     end
