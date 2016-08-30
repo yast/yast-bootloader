@@ -3,6 +3,8 @@ require_relative "test_helper"
 require "bootloader/autoyast_converter"
 require "bootloader/grub2"
 
+Yast.import "Arch"
+
 describe Bootloader::AutoyastConverter do
   subject { described_class }
 
@@ -61,6 +63,21 @@ describe Bootloader::AutoyastConverter do
       expect(bootloader.grub_default.hidden_timeout).to eq "10"
       expect(bootloader.stage1).to be_activate
       expect(bootloader.trusted_boot).to eq true
+    end
+
+    it "imports device map for grub2 on intel architecture" do
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+      data = {
+        "loader_type" => "grub2",
+        "device_map"  => [
+          { "firmware" => "hd0", "linux" => "/dev/vda" },
+          { "firmware" => "hd1", "linux" => "/dev/vdb" }
+        ]
+      }
+
+      bootloader = subject.import(data)
+      expect(bootloader.device_map.system_device_for("hd0")).to eq "/dev/vda"
+      expect(bootloader.device_map.system_device_for("hd1")).to eq "/dev/vdb"
     end
 
     it "supports SLE9 format" do

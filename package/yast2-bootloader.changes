@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Aug 30 13:31:14 UTC 2016 - jreidinger@suse.com
+
+- import properly device map in autoyast profile (found during
+  debugging bnc#995627)
+- log device map entries before written them, to allow easier
+  debugging of augeas lenses failure (bnc#995627)
+- 3.1.203
+
+-------------------------------------------------------------------
 Tue Aug 30 08:42:25 UTC 2016 - jreidinger@suse.com
 
 - fix crash when activating partition on md raid (bnc#995627)
