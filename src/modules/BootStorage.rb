@@ -325,7 +325,6 @@ module Yast
     publish :variable => :BootPartitionDevice, :type => "string"
     publish :variable => :RootPartitionDevice, :type => "string"
     publish :variable => :ExtendedPartitionDevice, :type => "string"
-    publish :function => :Md2Partitions, :type => "map <string, integer> (string)"
   end
 
   BootStorage = BootStorageClass.new

@@ -188,6 +188,19 @@ describe Bootloader::MBRUpdate do
 
           subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb1"]))
         end
+
+        it "sets boot flag on boot device with the lowest bios id when stage1 partition is on md" do
+          allow(Yast::Storage).to receive(:GetTargetMap).and_return(
+            "/dev/sda" => { "label" => "msdos", "bios_id" => "0x81" },
+            "/dev/sdb" => { "label" => "msdos", "bios_id" => "0x80" }
+          )
+
+          allow(::Bootloader::Stage1Device).to receive(:new).with("/dev/md1") { |d| double(real_devices: ["/dev/sda1","/dev/sdb1"]) }
+          expect(Yast::Execute).to receive(:locally)
+            .with(/parted/, "-s", "/dev/sdb", "set", 1, "boot", "on")
+
+          subject.run(stage1(activate: true, devices: ["/dev/md1"]))
+        end
       end
 
       context "disk label is GPT" do
