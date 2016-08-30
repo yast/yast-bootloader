@@ -69,9 +69,9 @@ describe Bootloader::AutoyastConverter do
       allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       data = {
         "loader_type" => "grub2",
-        "device_map" => [
-          {"firmware" => "hd0", "linux" => "/dev/vda"},
-          {"firmware" => "hd1", "linux" => "/dev/vdb"}
+        "device_map"  => [
+          { "firmware" => "hd0", "linux" => "/dev/vda" },
+          { "firmware" => "hd1", "linux" => "/dev/vdb" }
         ]
       }
 
