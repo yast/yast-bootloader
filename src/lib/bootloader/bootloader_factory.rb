@@ -3,6 +3,7 @@ require "bootloader/sysconfig"
 require "bootloader/none_bootloader"
 require "bootloader/grub2"
 require "bootloader/grub2efi"
+require "bootloader/exceptions"
 
 Yast.import "Arch"
 Yast.import "Mode"
@@ -69,6 +70,10 @@ module Bootloader
           @cached_bootloaders["grub2-efi"] ||= Grub2EFI.new
         when "none"
           @cached_bootloaders["none"] ||= NoneBootloader.new
+        when String
+          raise UnsupportedBootloader, name
+        else
+          return nil # in other cases it means that read failed
         end
       end
 
