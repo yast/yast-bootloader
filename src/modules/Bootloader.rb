@@ -16,6 +16,7 @@
 # $Id$
 #
 require "yast"
+require "bootloader/exceptions"
 require "bootloader/sysconfig"
 require "bootloader/bootloader_factory"
 require "bootloader/autoyast_converter"
@@ -27,6 +28,7 @@ Yast.import "BootStorage"
 Yast.import "Initrd"
 Yast.import "Mode"
 Yast.import "Progress"
+Yast.import "Report"
 Yast.import "Stage"
 Yast.import "Storage"
 Yast.import "StorageDevices"
@@ -150,7 +152,21 @@ module Yast
       Progress.NextStage
       return false if testAbort
 
-      ::Bootloader::BootloaderFactory.current.read
+      begin
+        ::Bootloader::BootloaderFactory.current.read
+      rescue ::Bootloader::UnsupportedBootloader => e
+        ret = Yast::Report.AnyQuestion(_("Unsupported Bootloader"),
+          _("System uses unsupported bootloader '%s'. Propose to use supported bootloader?") %
+            e.bootloader_name,
+          _("Propose"),
+          _("Quit"),
+          :yes # focus proposing new one
+        )
+        return false unless ret
+
+        ::Bootloader::BootloaderFactory.current = ::Bootloader::BootloaderFactory.proposed
+        ::Bootloader::BootloaderFactory.current.propose
+      end
 
       Progress.Finish
 
