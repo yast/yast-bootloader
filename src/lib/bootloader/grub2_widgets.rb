@@ -472,6 +472,20 @@ module Bootloader
       Yast::UI.ChangeWidget(Id(:theme), :Value, grub_default.theme || "")
     end
 
+    def validate
+      if Yast::UI.QueryWidget(Id(:console_frame), :Value)
+        console_value = Yast::UI.QueryWidget(Id(:console_args), :Value)
+        if console_value.strip.empty?
+          Yast::Report.Error(
+            _("To enable serial console you must provide the corresponding arguments.")
+          )
+          Yast::UI.SetFocus(Id(:console_args))
+          return false
+        end
+      end
+      true
+    end
+
     def store
       use_serial = Yast::UI.QueryWidget(Id(:console_frame), :Value)
       use_gfxterm = Yast::UI.QueryWidget(Id(:gfxterm_frame), :Value)
