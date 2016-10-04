@@ -4,7 +4,9 @@ Fri Sep 30 15:25:29 UTC 2016 - jreidinger@suse.com
 - show popup when unsupported bootloader used on system, allowing
   user to exit yast2-bootloader or propose supported bootloader
   there (bnc#923458) 
-- 3.1.204
+- Version bumped to 3.2.X to ease coordination of Tumbleweed,
+  Leap 42.2 and SLE-12-SP2 development.
+- 3.2.0
 
 -------------------------------------------------------------------
 Tue Aug 30 13:31:14 UTC 2016 - jreidinger@suse.com
