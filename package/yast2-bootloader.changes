@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct  4 12:51:04 UTC 2016 - ancor@suse.com
+
+- Do not crash when the user tries to enable serial console with
+  blank arguments (bsc#1000629)
+- 3.1.204
+
+-------------------------------------------------------------------
 Tue Aug 30 13:31:14 UTC 2016 - jreidinger@suse.com
 
 - import properly device map in autoyast profile (found during
