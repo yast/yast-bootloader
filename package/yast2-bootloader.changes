@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct  4 12:51:04 UTC 2016 - ancor@suse.com
+
+- Do not crash when the user tries to enable serial console with
+  blank arguments (bsc#1000629)
+- 3.2.1
+
+-------------------------------------------------------------------
 Fri Sep 30 15:25:29 UTC 2016 - jreidinger@suse.com
 
 - show popup when unsupported bootloader used on system, allowing
