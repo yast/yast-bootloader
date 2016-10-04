@@ -479,6 +479,7 @@ module Bootloader
           Yast::Report.Error(
             _("To enable serial console you must provide the corresponding arguments.")
           )
+          Yast::UI.SetFocus(Id(:console_args))
           return false
         end
       end

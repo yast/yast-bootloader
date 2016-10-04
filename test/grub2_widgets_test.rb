@@ -477,6 +477,7 @@ describe Bootloader::ConsoleWidget do
       stub_widget_value(:console_args, "")
 
       expect(Yast::Report).to receive(:Error)
+      expect(Yast::UI).to receive(:SetFocus).with(Id(:console_args))
       expect(subject.validate).to eq false
     end
   end
