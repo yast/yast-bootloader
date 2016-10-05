@@ -32,7 +32,7 @@ Partitions
 Disks
 -----
 
-- label of disk ( e.g. to install proper generic code or to respect some msdos PT limitation )
+- disk label like GPT or DOS partition table ( e.g. to propose correct generic MBR )
 - where virtual disks like LVM, RAID ones, etc. layes on physical devices ( in some cases it have to use physical devices to write boot code )
 - convert udev device to kernel name and also kernel name to udev name according to settings in storage ( mountby option )
 - BIOS boot order ( needed mainly for non-EFI x86_64 to enlist disks in device map )
