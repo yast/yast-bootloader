@@ -156,9 +156,9 @@ module Yast
         ::Bootloader::BootloaderFactory.current.read
       rescue ::Bootloader::UnsupportedBootloader => e
         ret = Yast::Report.AnyQuestion(_("Unsupported Bootloader"),
-          _("Unsupported bootloader '%s' detected. Show proposal of supported configuration?") %
+          _("Unsupported bootloader '%s' detected. Use proposal of supported configuration instead?") %
             e.bootloader_name,
-          _("Show"),
+          _("Use"),
           _("Quit"),
           :yes) # focus proposing new one
         return false unless ret
