@@ -21,8 +21,9 @@ module Bootloader
       guarded_run
     rescue ::Bootloader::BrokenConfiguration => e
       ret = Yast::Report.AnyQuestion(_("Broken Configuration"),
-        _("Bootloader configuration is broken (%s). Propose configuration from scratch?") %
-          e.reason,
+        # TRANSLATORS: %s stands for readon why yast cannot process it
+        _("YaST cannot process current bootloader configuration (%s). " \
+          "Propose new configuration from scratch?") % e.reason,
         _("Propose"),
         _("Quit"),
         :yes) # focus proposing new one

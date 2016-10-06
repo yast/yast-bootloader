@@ -20,8 +20,9 @@ module Bootloader
       @reason = msg
       textdomain "bootloader"
 
-      super _("Found problem during reading bootloader configuration files. " \
-        "Please open bootloader module and fix it. Details: %s") % msg
+      # TRANSLATORS: %s is translated description of error
+      super _("Error reading the bootloader configuration files. " \
+        "Please use YaST2 bootloader to fix it. Details: %s") % msg
     end
   end
 end
