@@ -18,6 +18,26 @@ module Bootloader
     include Yast::UIShortcuts
 
     def run
+      guarded_run
+    rescue ::Bootloader::BrokenConfiguration => e
+      ret = Yast::Report.AnyQuestion(_("Broken Configuration"),
+        # TRANSLATORS: %s stands for readon why yast cannot process it
+        _("YaST cannot process current bootloader configuration (%s). " \
+          "Propose new configuration from scratch?") % e.reason,
+        _("Propose"),
+        _("Quit"),
+        :yes) # focus proposing new one
+      return :abort unless ret
+
+      ::Bootloader::BootloaderFactory.current = ::Bootloader::BootloaderFactory.proposed
+      ::Bootloader::BootloaderFactory.current.propose
+
+      retry
+    end
+
+  private
+
+    def guarded_run
       textdomain "bootloader"
 
       log.info "Running Main Dialog"

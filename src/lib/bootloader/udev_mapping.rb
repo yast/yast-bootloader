@@ -1,6 +1,8 @@
 require "yast"
 require "singleton"
 
+require "bootloader/exceptions"
+
 Yast.import "Storage"
 Yast.import "Mode"
 Yast.import "Arch"
@@ -10,6 +12,7 @@ module Bootloader
   class UdevMapping
     include Singleton
     include Yast::Logger
+    include Yast::I18n
 
     # make more comfortable to work with singleton
     class << self
@@ -24,23 +27,15 @@ module Bootloader
     # @raise when device have udev format but do not exists
     # @return [String,nil] kernel device or nil when running AutoYaST configuration.
     def to_kernel_device(dev)
+      textdomain "bootloader"
       log.info "call to_kernel_device for #{dev}"
       raise "invalid device nil" unless dev
 
       # for non-udev devices try to see specific raid names (bnc#944041)
       if dev =~ /^\/dev\/disk\/by-/
-        # in mode config if not found, then return itself
-        all_devices[dev] or Yast::Mode.config ? dev : raise("Unknown udev device #{dev}")
+        udev_to_kernel(dev)
       else
-        param = Yast::ArgRef.new({})
-        result = Yast::Storage.GetContVolInfo(dev, param)
-        return dev unless result # not raid with funny name
-
-        info = param.value
-        return info["vdevice"] unless info["vdevice"].empty?
-        return info["cdevice"] unless info["cdevice"].empty?
-
-        raise "unknown value for raid device '#{info.inspect}'"
+        alternative_raid_to_kernel(dev)
       end
     end
 
@@ -78,6 +73,28 @@ module Bootloader
     end
 
   private
+
+    def udev_to_kernel(dev)
+      return all_devices[dev] if all_devices[dev]
+
+      # in mode config if not found, then return itself
+      return dev if Yast::Mode.config
+
+      # TRANSLATORS: error message, %s stands for problematic device.
+      raise(Bootloader::BrokenConfiguration, _("Unknown udev device '%s'") % dev)
+    end
+
+    def alternative_raid_to_kernel(dev)
+      param = Yast::ArgRef.new({})
+      result = Yast::Storage.GetContVolInfo(dev, param)
+      return dev unless result # not raid with funny name
+
+      info = param.value
+      return info["vdevice"] unless info["vdevice"].empty?
+      return info["cdevice"] unless info["cdevice"].empty?
+
+      raise "unknown value for raid device '#{info.inspect}'"
+    end
 
     def storage_data_for(kernel_dev)
       # we do not know if it is partition or disk, but target map help us
