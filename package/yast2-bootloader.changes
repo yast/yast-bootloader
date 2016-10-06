@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct  6 08:24:51 UTC 2016 - jreidinger@suse.com
+
+- allow user to repropose configuration if unknown udev link found
+  (bnc#931291)
+- 3.2.2
+
+-------------------------------------------------------------------
 Tue Oct  4 12:51:04 UTC 2016 - ancor@suse.com
 
 - Do not crash when the user tries to enable serial console with
