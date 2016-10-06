@@ -165,6 +165,17 @@ module Yast
 
         ::Bootloader::BootloaderFactory.current = ::Bootloader::BootloaderFactory.proposed
         ::Bootloader::BootloaderFactory.current.propose
+      rescue ::Bootloader::BrokenConfiguration => e
+        ret = Yast::Report.AnyQuestion(_("Broken Configuration"),
+          _("Bootloader configuration is broken (%s). Propose configuration from scratch?") %
+            e.reason,
+          _("Propose"),
+          _("Quit"),
+          :yes) # focus proposing new one
+        return false unless ret
+
+        ::Bootloader::BootloaderFactory.current = ::Bootloader::BootloaderFactory.proposed
+        ::Bootloader::BootloaderFactory.current.propose
       end
 
       Progress.Finish
