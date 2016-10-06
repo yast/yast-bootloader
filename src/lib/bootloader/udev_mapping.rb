@@ -33,25 +33,9 @@ module Bootloader
 
       # for non-udev devices try to see specific raid names (bnc#944041)
       if dev =~ /^\/dev\/disk\/by-/
-        # TRANSLATORS: error message, %s stands for problematic device.
-        if all_devices[dev]
-          return all_devices[dev]
-        else
-          # in mode config if not found, then return itself
-          return dev if Yast::Mode.config
-
-          raise(Bootloader::BrokenConfiguration, _("Unknown udev device '%s'") % dev)
-        end
+        udev_to_kernel(dev)
       else
-        param = Yast::ArgRef.new({})
-        result = Yast::Storage.GetContVolInfo(dev, param)
-        return dev unless result # not raid with funny name
-
-        info = param.value
-        return info["vdevice"] unless info["vdevice"].empty?
-        return info["cdevice"] unless info["cdevice"].empty?
-
-        raise "unknown value for raid device '#{info.inspect}'"
+        alternative_raid_to_kernel(dev)
       end
     end
 
@@ -89,6 +73,28 @@ module Bootloader
     end
 
   private
+
+    def udev_to_kernel(dev)
+      return all_devices[dev] if all_devices[dev]
+
+      # in mode config if not found, then return itself
+      return dev if Yast::Mode.config
+
+      # TRANSLATORS: error message, %s stands for problematic device.
+      raise(Bootloader::BrokenConfiguration, _("Unknown udev device '%s'") % dev)
+    end
+
+    def alternative_raid_to_kernel(dev)
+      param = Yast::ArgRef.new({})
+      result = Yast::Storage.GetContVolInfo(dev, param)
+      return dev unless result # not raid with funny name
+
+      info = param.value
+      return info["vdevice"] unless info["vdevice"].empty?
+      return info["cdevice"] unless info["cdevice"].empty?
+
+      raise "unknown value for raid device '#{info.inspect}'"
+    end
 
     def storage_data_for(kernel_dev)
       # we do not know if it is partition or disk, but target map help us

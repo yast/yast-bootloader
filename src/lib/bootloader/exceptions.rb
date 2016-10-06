@@ -10,6 +10,8 @@ module Bootloader
     end
   end
 
+  # universal exception when unrecoverable error found during parsing configuration
+  # holds in {#reason} translated message what exactly is broken.
   class BrokenConfiguration < RuntimeError
     include Yast::I18n
     attr_reader :reason
