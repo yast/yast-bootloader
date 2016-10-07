@@ -15,7 +15,7 @@ describe Bootloader::BootloaderFactory do
       allow(Bootloader::Sysconfig).to receive(:from_system)
         .and_return(Bootloader::Sysconfig.new(bootloader: "grub"))
 
-      expect{Bootloader::BootloaderFactory.system}.to raise_error(Bootloader::UnsupportedBootloader)
+      expect { Bootloader::BootloaderFactory.system }.to raise_error(Bootloader::UnsupportedBootloader)
     end
 
     it "returns nil if sysconfig do not specify bootloader" do
