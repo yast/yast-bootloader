@@ -72,11 +72,6 @@ module Bootloader
 
       # enable boot from MBR
       case chosen_id
-      when "reselect_packages"
-        bl = ::Bootloader::BootloaderFactory.current
-        # reset user selection
-        bl.packages.each { |p| Pkg.ResolvableNeutral(p, :package, true) }
-        Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
       when *PROPOSAL_LINKS
         value = chosen_id =~ /enable/ ? true : false
         option = chosen_id[/(enable|disable)_boot_(.*)/, 2]
@@ -203,15 +198,23 @@ module Bootloader
         return
       end
 
-      packages = current_bl.packages.map{ |p| [p, Yast::Pkg.ResolvableProperties(p, :package, "")] }
-      packages.select! { |_n, p| p["status"] == "available" && p["transact_by"] == "user" }
-      if !packages.empty?
-        ret["warning_level"] = :error
-        ret["warning"] = _("Packages required for booting is deselected (%s). " \
-          "<a href=\"reselect_packages\">Reselect it again.</a>" ) % packages.map(&:first).join(",")
-        return
-      end
+      pkgs = current_bl.packages.map { |p| [p, Yast::Pkg.ResolvableProperties(p, :package, "")] }
+      log.info "packages info #{pkgs.inspect}"
+      pkgs.select! { |_n, p| unselected?(p) }
+      return if pkgs.empty?
 
+      ret["warning_level"] = :error
+      ret["warning"] = _("Packages required for booting is deselected (%s). " \
+        "Please select it for installation again.") % pkgs.map(&:first).join(",")
+    end
+
+    def unselected?(packages)
+      # if all transactions are done by solver, then it is selected by it
+      unselected = packages.any? { |p| p["transact_by"] == :user && p["status"] == :available }
+      not_selected = packages.none? { |p| p["status"] == :selected }
+      return true if unselected && not_selected
+
+      false
     end
 
     def single_click_action(option, value)
