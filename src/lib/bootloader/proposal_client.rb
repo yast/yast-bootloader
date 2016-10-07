@@ -204,9 +204,10 @@ module Bootloader
       return if pkgs.empty?
 
       ret["warning_level"] = :error
-      ret["warning"] = n_("A package required for booting is deselected (%s). Please select it for installation again.",
-        "Packages required for booting are deselected (%s). Please select them for installation again.",
-          pkgs.size) % pkgs.map(&:first).join(", ")
+      ret["warning"] = n_("A package required for booting is deselected (%s). " \
+        "Please select it for installation again.", "Packages required for booting are " \
+        "deselected (%s). Please select them for installation again.",
+        pkgs.size) % pkgs.map(&:first).join(", ")
     end
 
     def unselected?(packages)
