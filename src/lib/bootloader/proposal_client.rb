@@ -21,6 +21,7 @@ module Bootloader
       Yast.import "BootSupportCheck"
       Yast.import "Product"
       Yast.import "PackagesProposal"
+      Yast.import "Pkg"
     end
 
     PROPOSAL_LINKS = [
@@ -71,6 +72,11 @@ module Bootloader
 
       # enable boot from MBR
       case chosen_id
+      when "reselect_packages"
+        bl = ::Bootloader::BootloaderFactory.current
+        # reset user selection
+        bl.packages.each { |p| Pkg.ResolvableNeutral(p, :package, true) }
+        Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
       when *PROPOSAL_LINKS
         value = chosen_id =~ /enable/ ? true : false
         option = chosen_id[/(enable|disable)_boot_(.*)/, 2]
@@ -172,13 +178,15 @@ module Bootloader
     # Add to argument proposal map all errors detected by proposal
     # @return modified parameter
     def handle_errors(ret)
-      if ::Bootloader::BootloaderFactory.current.name == "none"
+      current_bl = ::Bootloader::BootloaderFactory.current
+      if current_bl.name == "none"
         log.error "No bootloader selected"
         ret["warning_level"] = :warning
         # warning text in the summary richtext
         ret["warning"] = _(
           "No boot loader is selected for installation. Your system might not be bootable."
         )
+        return
       end
 
       if !Yast::BootStorage.bootloader_installable?
@@ -186,14 +194,24 @@ module Bootloader
         ret["warning"] = _(
           "Because of the partitioning, the bootloader cannot be installed properly"
         )
+        return
       end
 
       if !Yast::BootSupportCheck.SystemSupported
         ret["warning_level"] = :error
         ret["warning"] = Yast::BootSupportCheck.StringProblems
+        return
       end
 
-      ret
+      packages = current_bl.packages.map{ |p| [p, Yast::Pkg.ResolvableProperties(p, :package, "")] }
+      packages.select! { |_n, p| p["status"] == "available" && p["transact_by"] == "user" }
+      if !packages.empty?
+        ret["warning_level"] = :error
+        ret["warning"] = _("Packages required for booting is deselected (%s). " \
+          "<a href=\"reselect_packages\">Reselect it again.</a>" ) % packages.map(&:first).join(",")
+        return
+      end
+
     end
 
     def single_click_action(option, value)
