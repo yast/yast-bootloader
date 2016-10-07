@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct  7 12:46:18 UTC 2016 - jreidinger@suse.com
+
+- Warn user if the packages needed for booting are deselected
+  (bsc#885496)
+- 3.2.3
+
+-------------------------------------------------------------------
 Thu Oct  6 08:24:51 UTC 2016 - jreidinger@suse.com
 
 - allow user to repropose configuration if unknown udev link found

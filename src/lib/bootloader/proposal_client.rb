@@ -21,6 +21,7 @@ module Bootloader
       Yast.import "BootSupportCheck"
       Yast.import "Product"
       Yast.import "PackagesProposal"
+      Yast.import "Pkg"
     end
 
     PROPOSAL_LINKS = [
@@ -172,13 +173,15 @@ module Bootloader
     # Add to argument proposal map all errors detected by proposal
     # @return modified parameter
     def handle_errors(ret)
-      if ::Bootloader::BootloaderFactory.current.name == "none"
+      current_bl = ::Bootloader::BootloaderFactory.current
+      if current_bl.name == "none"
         log.error "No bootloader selected"
         ret["warning_level"] = :warning
         # warning text in the summary richtext
         ret["warning"] = _(
           "No boot loader is selected for installation. Your system might not be bootable."
         )
+        return
       end
 
       if !Yast::BootStorage.bootloader_installable?
@@ -186,14 +189,34 @@ module Bootloader
         ret["warning"] = _(
           "Because of the partitioning, the bootloader cannot be installed properly"
         )
+        return
       end
 
       if !Yast::BootSupportCheck.SystemSupported
         ret["warning_level"] = :error
         ret["warning"] = Yast::BootSupportCheck.StringProblems
+        return
       end
 
-      ret
+      pkgs = current_bl.packages.map { |p| [p, Yast::Pkg.ResolvableProperties(p, :package, "")] }
+      log.info "packages info #{pkgs.inspect}"
+      pkgs.select! { |_n, p| unselected?(p) }
+      return if pkgs.empty?
+
+      ret["warning_level"] = :error
+      ret["warning"] = n_("A package required for booting is deselected (%s). " \
+        "Please select it for installation again.", "Packages required for booting are " \
+        "deselected (%s). Please select them for installation again.",
+        pkgs.size) % pkgs.map(&:first).join(", ")
+    end
+
+    def unselected?(packages)
+      # if all transactions are done by solver, then it is selected by it
+      unselected = packages.any? { |p| p["transact_by"] == :user && p["status"] == :available }
+      not_selected = packages.none? { |p| p["status"] == :selected }
+      return true if unselected && not_selected
+
+      false
     end
 
     def single_click_action(option, value)
