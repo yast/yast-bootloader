@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Oct 13 12:26:53 UTC 2016 - jreidinger@suse.com
+
+- Do not require syslinux on target system during installation
+  (bsc#1004229)
+- 3.1.205
+
+-------------------------------------------------------------------
 Tue Oct  4 12:51:04 UTC 2016 - ancor@suse.com
 
 - Do not crash when the user tries to enable serial console with
