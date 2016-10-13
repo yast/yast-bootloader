@@ -112,7 +112,7 @@ describe Bootloader::MBRUpdate do
         allow(Yast::BootStorage).to receive(:mbr_disk)
           .and_return("/dev/sda")
 
-        expect(Yast::Execute).to receive(:on_target) do |*args|
+        expect(Yast::Execute).to receive(:locally) do |*args|
           return nil unless args.first =~ /dd/
           expect(args).to be_include("of=/dev/sda")
         end
@@ -125,7 +125,7 @@ describe Bootloader::MBRUpdate do
 
         allow(::Bootloader::Stage1Device).to receive(:new).with("/dev/md0")
           .and_return(double(real_devices: ["/dev/sda1", "/dev/sdb1"]))
-        expect(Yast::Execute).to receive(:on_target).at_least(:twice) do |*args|
+        expect(Yast::Execute).to receive(:locally).at_least(:twice) do |*args|
           next nil unless args.first =~ /dd/
           next nil unless args.include?("of=/dev/sdb")
           expect(args).to be_include("of=/dev/sda")
@@ -133,7 +133,7 @@ describe Bootloader::MBRUpdate do
         subject.run(stage1(generic_mbr: true))
       end
 
-      it "install syslinux if non on initial stage" do
+      it "install syslinux if not on initial stage" do
         allow(Yast::Stage).to receive(:initial).and_return(false)
         expect(Yast::PackageSystem).to receive(:Install).with("syslinux")
 
@@ -148,7 +148,7 @@ describe Bootloader::MBRUpdate do
         allow(Yast::BootStorage).to receive(:mbr_disk)
           .and_return("/dev/sda")
 
-        expect(Yast::Execute).to receive(:on_target) do |*args|
+        expect(Yast::Execute).to receive(:locally) do |*args|
           return nil unless args.first =~ /dd/
           expect(args.any? { |a| a =~ /if=.*gptmbr.bin/ }).to eq true
         end

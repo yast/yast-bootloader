@@ -139,7 +139,8 @@ module Bootloader
 
       res << "grub2"
 
-      if stage1.generic_mbr?
+      # do not require it in insts-sys as insts-sys have it itself (bsc#1004229)
+      if stage1.generic_mbr? && !Yast::Stage.initial
         # needed for generic _mbr binary files
         res << "syslinux"
       end

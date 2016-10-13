@@ -46,10 +46,6 @@ Requires:       rubygem(%rb_default_ruby_abi:cfa_grub2) >= 0.5.1
 # lenses are needed here
 Requires:       augeas-lenses
 
-%ifarch %ix86 x86_64
-Requires:       syslinux
-%endif
-
 Requires:       yast2-ruby-bindings >= 1.0.0
 
 Summary:        YaST2 - Bootloader Configuration
