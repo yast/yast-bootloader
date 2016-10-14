@@ -20,7 +20,7 @@ Partitions
 - raid level ( needed to check if it is 1, where we support redundancy boot from )
 - if partition is freshly created or deleted ( well, for deleted is to not count partitions that will gone in installation, for creation it is used for prep partition chooser, as newly created prep is prefered as it will not overwrite existing code )
 - if partition have boot flag or legacy_boot flag( bootloader ensure at least one partition have it and if requested, then also mark partition as one for boot )
-- marking partition with boot flag ( currently done directly via parted, but in future it would be nice to have it in one location, marking partition means also ensuring that no other partition have it )
+- marking partition with boot or legacy_boot flag ( currently done directly via parted, but in future it would be nice to have it in one location, marking partition means also ensuring that no other partition have it )
 - where virtual partitions like EVMS, LVM, RAID ones, etc. lays on physical devices ( in some cases it have to use physical devices to write boot code )
   EVMS is no longer supported, so its support in bootloader can be dropped.
 - convert udev device to kernel name and also kernel name to udev name according to settings in storage ( mountby option ) ( needed for persistant storage names feature )
