@@ -42,3 +42,4 @@ Disks
 - convert udev device to kernel name and also kernel name to udev name according to settings in storage ( mountby option )
 - BIOS boot order ( needed mainly for `non-EFI` `x86_64` when writting generic code to MBR to use the first one ).
   This requirement can be dropped when implementation changed and it use all disks from raid instead.
+- set pmbr flag for disk (optional, currently it is done via parted. Protective mbr flag is needed for some bioses/ EFI firmware to boot properly )
