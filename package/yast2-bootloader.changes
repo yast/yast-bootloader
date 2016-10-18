@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct 18 08:28:37 UTC 2016 - jreidinger@suse.com
+
+- fix installation on dm raids to not use mapper device and instead
+  use underlaying device (bsc#1004921)
+- 3.1.205
+
+-------------------------------------------------------------------
 Tue Oct  4 12:51:04 UTC 2016 - ancor@suse.com
 
 - Do not crash when the user tries to enable serial console with
