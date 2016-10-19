@@ -2,6 +2,7 @@ require "yast"
 
 Yast.import "BootStorage"
 Yast.import "Storage"
+Yast.import "Partitions"
 
 module Bootloader
   # Purpose of this class is provide mapping between intentioned stage1 location
@@ -59,10 +60,13 @@ module Bootloader
       if disk?(disk_data)
         disk = Yast::Storage.GetDisk(tm, dev)
         # md disk is just virtual device, so select underlaying device /boot partition
-        return underlaying_disk_with_boot_partition if disk["type"] == :CT_MD
-        if disk["type"] == :CT_LVM
+        case disk["type"]
+        when :CT_MD then return underlaying_disk_with_boot_partition
+        when :CT_LVM
           res = lvm_underlaying_devices(disk)
           return res.map { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
+        when :CT_DMRAID
+          return disk["devices"]
         end
       # given device is partition
       else
@@ -72,6 +76,9 @@ module Bootloader
           return lvm_underlaying_devices(lvm_group)
         elsif part["type"] == :sw_raid
           return devices_on(part)
+        elsif part["fstype"] == Yast::Partitions.dmraid_name
+          mapper = Yast::Storage.GetDisk(tm, disk_data["disk"])
+          return mapper["devices"]
         end
       end
 
