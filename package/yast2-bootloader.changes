@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Oct 13 12:26:53 UTC 2016 - jreidinger@suse.com
+
+- Do not require syslinux on target system during installation
+  (bsc#1004229)
+- fix installation on dm raids to not use mapper device and instead
+  use underlaying device (bsc#1004921)
+- 3.2.4
+
+-------------------------------------------------------------------
 Fri Oct  7 12:46:18 UTC 2016 - jreidinger@suse.com
 
 - Warn user if the packages needed for booting are deselected
@@ -24,7 +33,7 @@ Fri Sep 30 15:25:29 UTC 2016 - jreidinger@suse.com
 
 - show popup when unsupported bootloader used on system, allowing
   user to exit yast2-bootloader or propose supported bootloader
-  there (bnc#923458) 
+  there (bnc#923458)
 - Version bumped to 3.2.X to ease coordination of Tumbleweed,
   Leap 42.2 and SLE-12-SP2 development.
 - 3.2.0
