@@ -75,6 +75,20 @@ describe Bootloader::Stage1Device do
       )
     end
 
+    it "returns underlayed devices for dm main device" do
+      target_map_stub("storage_dm.yaml")
+
+      subject = Bootloader::Stage1Device.new("/dev/mapper/pdc_dhigiadcde")
+      expect(subject.real_devices).to eq(["/dev/sda"])
+    end
+
+    it "returns underlayed devices for dm part device" do
+      target_map_stub("storage_dm.yaml")
+
+      subject = Bootloader::Stage1Device.new("/dev/mapper/pdc_dhigiadcde-part6")
+      expect(subject.real_devices).to eq(["/dev/sda"])
+    end
+
     it "skips disks used as partitionless lvm devices" do
       target_map_stub("lvm_whole_disk.yml")
 
