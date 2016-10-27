@@ -9,7 +9,6 @@ require "cfa/grub2/install_device"
 
 Yast.import "Arch"
 Yast.import "BootStorage"
-Yast.import "Storage"
 
 module Bootloader
   # Represents where is bootloader stage1 installed. Allows also proposing its

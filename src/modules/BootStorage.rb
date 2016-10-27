@@ -29,7 +29,6 @@ module Yast
     def main
       textdomain "bootloader"
 
-      Yast.import "Storage"
       Yast.import "Arch"
       Yast.import "Mode"
 

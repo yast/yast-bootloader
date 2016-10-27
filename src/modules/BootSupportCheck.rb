@@ -25,8 +25,6 @@ module Yast
 
       Yast.import "Bootloader"
       Yast.import "Arch"
-      Yast.import "Storage"
-      Yast.import "Partitions"
       Yast.import "Region"
       Yast.import "BootStorage"
       Yast.import "FileUtils"

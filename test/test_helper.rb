@@ -68,7 +68,6 @@ end
 
 # stub udev mapping everywhere
 RSpec.configure do |config|
-  Yast.import "Storage"
   Yast.import "BootStorage"
   Yast.import "Bootloader"
   require "bootloader/udev_mapping"

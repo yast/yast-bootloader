@@ -16,7 +16,6 @@ module Bootloader
       Yast.import "BootStorage"
       Yast.import "Bootloader"
       Yast.import "Installation"
-      Yast.import "Storage"
       Yast.import "Mode"
       Yast.import "BootSupportCheck"
       Yast.import "Product"

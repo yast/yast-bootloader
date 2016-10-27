@@ -23,8 +23,6 @@ Yast.import "Pkg"
 Yast.import "Product"
 Yast.import "ProductFeatures"
 Yast.import "Stage"
-Yast.import "Storage"
-Yast.import "StorageDevices"
 
 module Bootloader
   # Common base for GRUB2 specialized classes

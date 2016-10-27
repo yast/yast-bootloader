@@ -30,8 +30,6 @@ Yast.import "Mode"
 Yast.import "Progress"
 Yast.import "Report"
 Yast.import "Stage"
-Yast.import "Storage"
-Yast.import "StorageDevices"
 
 module Yast
   class BootloaderClass < Module

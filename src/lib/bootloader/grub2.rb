@@ -9,7 +9,6 @@ require "bootloader/grub_install"
 
 Yast.import "Arch"
 Yast.import "BootStorage"
-Yast.import "Storage"
 Yast.import "HTML"
 
 module Bootloader

@@ -3,7 +3,6 @@ require "singleton"
 
 require "bootloader/exceptions"
 
-Yast.import "Storage"
 Yast.import "Mode"
 Yast.import "Arch"
 

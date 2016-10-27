@@ -2,7 +2,6 @@ require "yast"
 
 Yast.import "Arch"
 Yast.import "BootStorage"
-Yast.import "Storage"
 
 require "bootloader/stage1_device"
 
