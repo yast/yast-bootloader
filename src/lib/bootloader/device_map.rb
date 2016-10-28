@@ -20,7 +20,6 @@ module Bootloader
       Yast.import "Arch"
       Yast.import "BootStorage"
       Yast.import "Mode"
-      Yast.import "Storage"
       @model = CFA::Grub2::DeviceMap.new
     end
 

@@ -1,8 +1,6 @@
 require "yast"
 
 Yast.import "BootStorage"
-Yast.import "Storage"
-Yast.import "Partitions"
 
 module Bootloader
   # Purpose of this class is provide mapping between intentioned stage1 location

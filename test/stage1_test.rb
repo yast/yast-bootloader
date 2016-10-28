@@ -6,7 +6,6 @@ require "bootloader/stage1"
 
 Yast.import "Arch"
 Yast.import "BootStorage"
-Yast.import "Storage"
 
 describe Bootloader::Stage1 do
   before do

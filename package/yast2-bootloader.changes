@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Oct 28 11:34:10 CEST 2016 - aschnell@suse.com
+
+- storage-ng: removed dependency from (old) yast2-storage, even
+  if it breaks some functionality.
+- 3.3.0
+
+-------------------------------------------------------------------
 Thu Oct 13 12:26:53 UTC 2016 - jreidinger@suse.com
 
 - Do not require syslinux on target system during installation

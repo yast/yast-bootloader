@@ -6,7 +6,6 @@ require "yast2/execute"
 
 Yast.import "Arch"
 Yast.import "PackageSystem"
-Yast.import "Partitions"
 
 module Bootloader
   # this class place generic MBR wherever it is needed
