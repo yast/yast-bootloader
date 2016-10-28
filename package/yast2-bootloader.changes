@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Oct 28 13:48:40 CEST 2016 - aschnell@suse.com
+
+- make simple EFI proposal work with storage-ng
+
+-------------------------------------------------------------------
 Fri Oct 28 11:34:10 CEST 2016 - aschnell@suse.com
 
 - storage-ng: removed dependency from (old) yast2-storage, even

@@ -29,21 +29,42 @@ module Bootloader
       super
     end
 
+    # Find the blkdevice for the filesystem mounted at mountpoint. Returns nil
+    # if no filesystem is found or the filesystem has no blkdevice (e.g. NFS).
+    def find_blk_device_at_mountpoint(mountpoint)
+      staging = Y2Storage::StorageManager.instance.staging
+
+      fses = Storage::Filesystem.find_by_mountpoint(staging, mountpoint)
+      return nil if fses.empty?
+      return nil if fses[0].blk_devices.empty?
+
+      fses[0].blk_devices[0]
+    end
+
     # Write bootloader settings to disk
     def write
-      # super have to called as first as grub install require some config writen in ancestor
+      # super have to called as first as grub install require some config written in ancestor
       super
 
       if pmbr_action
-        efi_partition = Yast::Storage.GetEntryForMountpoint("/boot/efi")["device"]
-        efi_partition ||= Yast::Storage.GetEntryForMountpoint("/boot")["device"]
-        efi_partition ||= Yast::Storage.GetEntryForMountpoint("/")["device"]
-        efi_disk = Yast::Storage.GetDiskPartition(efi_partition)["disk"]
+        efi_partition = find_blk_device_at_mountpoint("/boot/efi")
+        efi_partition ||= find_blk_device_at_mountpoint("/boot")
+        efi_partition ||= find_blk_device_at_mountpoint("/")
 
+        if !efi_partition || !Storage.partition?(efi_partition)
+          raise "could not find boot partiton"
+        end
+
+        efi_disk = Storage.to_partition(efi_partition).partition_table.partitionable
+
+# storage-ng
+# rubocop:disable Style/BlockComments
+=begin
         # get underlaying disk as it have to be set there and not on virtual one (bnc#981977)
         device = ::Bootloader::Stage1Device.new(efi_disk)
+=end
 
-        pmbr_setup(*device.real_devices)
+        pmbr_setup(efi_disk.name)
       end
 
       @grub_install.execute(secure_boot: @secure_boot)
