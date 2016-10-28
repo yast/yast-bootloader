@@ -50,6 +50,10 @@ module Yast
       @md_physical_disks = []
     end
 
+    def staging
+      Y2Storage::StorageManager.instance.staging
+    end
+
     def gpt_boot_disk?
       require "bootloader/bootloader_factory"
       current_bl = ::Bootloader::BootloaderFactory.current
@@ -103,8 +107,6 @@ module Yast
 
     # Get extended partition for given partition or disk
     def extended_partition_for(device)
-      staging = Y2Storage::StorageManager.instance.staging
-
       blk_device = Storage::BlkDevice.find_by_name(staging, device)
       if Storage.partition?(blk_device)
         partition = Storage.to_partition(blk_device)
@@ -168,8 +170,6 @@ module Yast
     # TODO: function also defined in grub2efi.rb but simply require grub2efi
     # does not work and debugging is impossible due to bsc#932331.
     def find_blk_device_at_mountpoint(mountpoint)
-      staging = Y2Storage::StorageManager.instance.staging
-
       fses = Storage::Filesystem.find_by_mountpoint(staging, mountpoint)
       return nil if fses.empty?
       return nil if fses[0].blk_devices.empty?
@@ -233,8 +233,6 @@ module Yast
     end
 
     def disk_with_boot_partition
-      staging = Y2Storage::StorageManager.instance.staging
-
       boot_device = BootPartitionDevice()
 
       partition = Storage::Partition.find_by_name(staging, boot_device)
@@ -252,8 +250,6 @@ module Yast
     # Get map of swap partitions
     # @return a map where key is partition name and value its size in KiB
     def available_swap_partitions
-      staging = Y2Storage::StorageManager.instance.staging
-
       ret = {}
 
       Storage::Swap.all(staging).each do |swap|
