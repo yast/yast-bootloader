@@ -18,6 +18,8 @@
 #
 #
 require "yast"
+require "storage"
+require "y2storage"
 require "bootloader/udev_mapping"
 
 module Yast
@@ -46,6 +48,10 @@ module Yast
       # list <string> includes physical disks used for md raid
 
       @md_physical_disks = []
+    end
+
+    def staging
+      Y2Storage::StorageManager.instance.staging
     end
 
     def gpt_boot_disk?
@@ -101,29 +107,13 @@ module Yast
 
     # Get extended partition for given partition or disk
     def extended_partition_for(device)
-      disk_partition = Yast::Storage.GetDiskPartition(device)
-      return nil unless disk_partition["disk"]
+      blk_device = Storage::BlkDevice.find_by_name(staging, device)
+      if Storage.partition?(blk_device)
+        partition = Storage.to_partition(blk_device)
+        return partition.parent.name if partition.type == Storage::PartitionType_LOGICAL
+      end
 
-      target_map = Yast::Storage.GetTargetMap
-      disk_map = target_map[disk_partition["disk"]] || {}
-      partitions = disk_map["partitions"] || []
-      ext_part = partitions.find { |p| p["type"] == :extended }
-      return nil unless ext_part
-
-      ext_part["device"]
-    end
-
-    def find_mbr_disk
-      # use the disk with boot partition
-      mp = Storage.GetMountPoints
-      boot_disk = Ops.get_string(
-        mp,
-        ["/boot", 2],
-        Ops.get_string(mp, ["/", 2], "")
-      )
-      log.info "Disk with boot partition: #{boot_disk}, using for MBR"
-
-      boot_disk
+      nil
     end
 
     # FIXME: merge with BootSupportCheck
@@ -133,6 +123,9 @@ module Yast
       return true if Mode.config
       return true if !Arch.i386 && !Arch.x86_64
 
+# storage-ng
+# rubocop:disable Style/BlockComments
+=begin
       # the only relevant is the partition holding the /boot filesystem
       detect_disks
       Builtins.y2milestone(
@@ -167,8 +160,21 @@ module Yast
         Builtins.y2milestone("Cannot install bootloader on EVMS")
         return false
       end
+=end
 
       true
+    end
+
+    # Find the blkdevice for the filesystem mounted at mountpoint. Returns nil
+    # if no filesystem is found or the filesystem has no blkdevice (e.g. NFS).
+    # TODO: function also defined in grub2efi.rb but simply require grub2efi
+    # does not work and debugging is impossible due to bsc#932331.
+    def find_blk_device_at_mountpoint(mountpoint)
+      fses = Storage::Filesystem.find_by_mountpoint(staging, mountpoint)
+      return nil if fses.empty?
+      return nil if fses[0].blk_devices.empty?
+
+      fses[0].blk_devices[0]
     end
 
     # Sets properly boot, root and mbr disk.
@@ -189,24 +195,24 @@ module Yast
       # The AutoYaST config mode does access to the system.
       # bnc#942360
 
-      mp = Storage.GetMountPoints
+      root_blk_device = find_blk_device_at_mountpoint("/")
 
-      mountdata_boot = mp["/boot"] || mp["/"]
-      mountdata_root = mp["/"]
+      boot_blk_device = find_blk_device_at_mountpoint("/boot")
+      boot_blk_device = root_blk_device if !boot_blk_device
 
-      log.info "mountPoints #{mp}"
-      log.info "mountdata_boot #{mountdata_boot}"
+      # TODO: @RootPartitionDevice and @BootPartitionDevice should be the
+      # BlkDevice object itself not its name
 
-      @RootPartitionDevice = mountdata_root ? mountdata_root.first || "" : ""
-      raise "No mountpoint for / !!" if @RootPartitionDevice.empty?
+      @RootPartitionDevice = root_blk_device.name
+      @BootPartitionDevice = boot_blk_device.name
 
-      # if /boot changed, re-configure location
-      @BootPartitionDevice = mountdata_boot.first
+      log.info "RootPartitionDevice #{@RootPartitionDevice}"
+      log.info "BootPartitionDevice #{@BootPartitionDevice}"
 
       # get extended partition device (if exists)
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
-      @mbr_disk = find_mbr_disk
+      @mbr_disk = @BootPartitionDevice
 
       Mode.SetMode(old_mode) if old_mode == "autoinst_config"
     end
@@ -229,22 +235,12 @@ module Yast
     def disk_with_boot_partition
       boot_device = BootPartitionDevice()
 
-      if boot_device.empty?
-        log.error "BootPartitionDevice and RootPartitionDevice are empty"
-        return boot_device
-      end
+      partition = Storage::Partition.find_by_name(staging, boot_device)
+      partitionable = partition.partition_table.partitionable
 
-      p_dev = Storage.GetDiskPartition(boot_device)
+      log.info "Boot device - disk: #{partitionable.name}"
 
-      boot_disk_device = p_dev["disk"]
-
-      if boot_disk_device && !boot_disk_device.empty?
-        log.info "Boot device - disk: #{boot_disk_device}"
-        return boot_disk_device
-      end
-
-      log.error("Finding boot disk failed!")
-      ""
+      partitionable.name
     end
 
     def separated_boot?
@@ -252,24 +248,13 @@ module Yast
     end
 
     # Get map of swap partitions
-    # @return a map where key is partition name and value its size in KB
+    # @return a map where key is partition name and value its size in KiB
     def available_swap_partitions
-      tm = Storage.GetTargetMap
       ret = {}
-      tm.each_value do |v|
-        partitions = v["partitions"] || []
-        partitions.select! do |p|
-          p["mount"] == "swap" && !p["delete"]
-        end
-        partitions.each do |s|
-          # bnc#577127 - Encrypted swap is not properly set up as resume device
-          dev = if s["crypt_device"] && !s["crypt_device"].empty?
-            s["crypt_device"]
-          else
-            s["device"]
-          end
-          ret[dev] = s["size_k"] || 0
-        end
+
+      Storage::Swap.all(staging).each do |swap|
+        blk_device = swap.blk_devices[0]
+        ret[blk_device.name] = blk_device.size / 1024
       end
 
       log.info "Available swap partitions: #{ret}"
@@ -280,6 +265,9 @@ module Yast
     # @return map with encrypted partitions
     def crypto_devices
       cryptos = {}
+
+# storage-ng
+=begin
       tm = Yast::Storage.GetTargetMap || {}
       log.info "target map = #{tm}"
 
@@ -305,6 +293,7 @@ module Yast
         partitions = d["partitions"] || []
         partitions.each { |p| cryptos[p["device"]] = true }
       end
+=end
 
       log.info "crypto devices, final = #{cryptos}"
 

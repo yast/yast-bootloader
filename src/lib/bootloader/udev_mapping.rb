@@ -48,6 +48,9 @@ module Bootloader
 
       log.info "#{dev} looked as kernel device name: #{kernel_dev}"
 
+# storage-ng
+# rubocop:disable Style/BlockComments
+=begin
       storage_data = storage_data_for(kernel_dev)
       return kernel_dev unless storage_data
 
@@ -69,6 +72,9 @@ module Bootloader
 
       # udev pair contain as first udev device and as second coresponding kernel device
       udev_pair.first
+=end
+
+      kernel_dev
     end
 
   private
@@ -84,6 +90,8 @@ module Bootloader
     end
 
     def alternative_raid_to_kernel(dev)
+# storage-ng
+=begin
       param = Yast::ArgRef.new({})
       result = Yast::Storage.GetContVolInfo(dev, param)
       return dev unless result # not raid with funny name
@@ -93,8 +101,13 @@ module Bootloader
       return info["cdevice"] unless info["cdevice"].empty?
 
       raise "unknown value for raid device '#{info.inspect}'"
+=end
+
+      dev
     end
 
+# storage-ng
+=begin
     def storage_data_for(kernel_dev)
       # we do not know if it is partition or disk, but target map help us
       target_map = Yast::Storage.GetTargetMap
@@ -112,6 +125,7 @@ module Bootloader
 
       storage_data
     end
+=end
 
     def used_mount_by(storage_data)
       mount_by = storage_data["mountby"]
