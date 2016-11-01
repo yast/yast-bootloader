@@ -151,8 +151,13 @@ module Bootloader
   private
 
     def system_locale
-      language = ::Bootloader::Language.new
-      language.load
+      begin
+        language = ::Bootloader::Language.new
+        language.load
+      rescue Errno::ENOENT
+        log.info "/etc/sysconfig/language does not exist. Using current locale"
+        return {}
+      end
 
       lang = language.rc_lang || "C"
 
