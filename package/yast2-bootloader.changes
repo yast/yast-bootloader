@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
 Tue Nov  1 11:49:05 UTC 2016 - jreidinger@suse.com
 
-- start using system locale when generating grub menu (bsc#998152)
+- Use the system-wide locale (/etc/sysconfig/language:RC_LANG) when
+  generating the GRUB2 menu (bsc#998152)
 - 3.2.5
 
 -------------------------------------------------------------------

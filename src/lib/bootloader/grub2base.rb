@@ -96,7 +96,7 @@ module Bootloader
       @sections.write
       @password.write
       Yast::Execute.on_target("/usr/sbin/grub2-mkconfig", "-o", "/boot/grub2/grub.cfg",
-        env: system_locale)
+        env: systemwide_locale)
     end
 
     def propose
@@ -150,7 +150,7 @@ module Bootloader
 
   private
 
-    def system_locale
+    def systemwide_locale
       begin
         language = ::Bootloader::Language.new
         language.load
