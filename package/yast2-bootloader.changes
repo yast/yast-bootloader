@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov  1 11:49:05 UTC 2016 - jreidinger@suse.com
+
+- start using system locale when generating grub menu (bsc#998152)
+- 3.2.5
+
+-------------------------------------------------------------------
 Thu Oct 13 12:26:53 UTC 2016 - jreidinger@suse.com
 
 - Do not require syslinux on target system during installation
