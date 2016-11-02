@@ -57,6 +57,7 @@ describe Bootloader::Grub2 do
       stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
+      allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
       allow(Yast::Storage).to receive(:GetDisk) do |_m, dev|
         case dev
         when "/dev/sda" then { "device" => "/dev/sda", "label" => "msdos" }
