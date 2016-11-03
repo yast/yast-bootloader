@@ -856,7 +856,7 @@ module Bootloader
 
     def pmbr_widget?
       (Yast::Arch.x86_64 || Yast::Arch.i386) &&
-        (Yast::BootStorage.gpt_boot_disk? || grub2.name == "grub2-efi")
+        Yast::BootStorage.gpt_boot_disk?
     end
 
     def device_map_button?

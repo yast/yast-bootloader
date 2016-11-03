@@ -34,7 +34,7 @@ module Bootloader
       # super have to called as first as grub install require some config writen in ancestor
       super
 
-      if pmbr_action
+      if pmbr_action && Yast::BootStorage.gpt_boot_disk?
         efi_partition = Yast::Storage.GetEntryForMountpoint("/boot/efi")["device"]
         efi_partition ||= Yast::Storage.GetEntryForMountpoint("/boot")["device"]
         efi_partition ||= Yast::Storage.GetEntryForMountpoint("/")["device"]
