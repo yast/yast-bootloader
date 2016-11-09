@@ -66,7 +66,7 @@ module Bootloader
         log.info "Copying generic MBR code to #{disk}"
         # added fix 446 -> 440 for Vista booting problem bnc #396444
         command = ["/bin/dd", "bs=440", "count=1", "if=#{generic_mbr_file}", "of=#{disk}"]
-        Yast::Execute.on_target(*command)
+        Yast::Execute.locally(*command)
       end
     end
 

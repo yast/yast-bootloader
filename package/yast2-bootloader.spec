@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        3.1.203
+Version:        3.1.205
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -45,10 +45,6 @@ Requires:       rubygem(%rb_default_ruby_abi:cfa_grub2) >= 0.5.1
 # lenses are needed as cfa_grub2 depends only on augeas bindings, but also
 # lenses are needed here
 Requires:       augeas-lenses
-
-%ifarch %ix86 x86_64
-Requires:       syslinux
-%endif
 
 Requires:       yast2-ruby-bindings >= 1.0.0
 

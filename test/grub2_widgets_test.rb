@@ -458,6 +458,30 @@ describe Bootloader::ConsoleWidget do
     expect(subject.contents).to be_a Yast::Term
   end
 
+  context "validation" do
+    it "is valid if serial console is not used" do
+      stub_widget_value(:console_frame, false)
+
+      expect(subject.validate).to eq true
+    end
+
+    it "is valid if serial console arguments are provided" do
+      stub_widget_value(:console_frame, true)
+      stub_widget_value(:console_args, "console=ttyS0,9600n8")
+
+      expect(subject.validate).to eq true
+    end
+
+    it "reports an error if serial console is used without arguments" do
+      stub_widget_value(:console_frame, true)
+      stub_widget_value(:console_args, "")
+
+      expect(Yast::Report).to receive(:Error)
+      expect(Yast::UI).to receive(:SetFocus).with(Id(:console_args))
+      expect(subject.validate).to eq false
+    end
+  end
+
   context "initialization" do
     before do
       allow(Yast::UI).to receive(:ChangeWidget)
