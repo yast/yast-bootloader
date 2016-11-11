@@ -100,6 +100,13 @@ describe Bootloader::UdevMapping do
       expect(subject.to_mountby_device("/dev/vda1")).to eq "/dev/vda1"
     end
 
+    it "returns kernel device if mount by is used by label" do
+      target_map_stub("storage_dm.yaml")
+      expect(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:label)
+
+      expect(subject.to_mountby_device("/dev/sda")).to eq "/dev/sda"
+    end
+
     it "returns its name if partition do not exists" do
       target_map_stub("storage_lvm.yaml")
       allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
