@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov 11 12:09:59 UTC 2016 - jreidinger@suse.com
+
+- Do not crash in bootloader when default mount by is set to label
+  (bsc#1009493)
+- 3.2.7
+
+-------------------------------------------------------------------
 Wed Nov  2 14:14:21 UTC 2016 - jreidinger@suse.com
 
 - set pmbr flag only on GPT disks (bsc#1008092)
