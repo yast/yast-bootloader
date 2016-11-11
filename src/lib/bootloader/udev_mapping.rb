@@ -58,7 +58,7 @@ module Bootloader
 
       disk = Yast::Storage.GetTargetMap.key?(kernel_dev)
       if disk && mount_by == :label
-        log.info "mount be label for disk, so using kernel device as fallback"
+        log.info "mount by label for disk, so using kernel device as fallback"
         return kernel_dev
       end
 
