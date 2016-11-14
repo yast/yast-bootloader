@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Nov 14 14:21:16 UTC 2016 - lslezak@suse.cz
+
+- Revert the package deselection check (from 3.2.3), there is
+  a new generic solution in yast2-packager-3.2.6 for all YaST
+  modules (bsc#885496)
+- 3.2.7
+
+-------------------------------------------------------------------
 Wed Nov  2 14:14:21 UTC 2016 - jreidinger@suse.com
 
 - set pmbr flag only on GPT disks (bsc#1008092)
