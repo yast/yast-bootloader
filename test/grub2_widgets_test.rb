@@ -411,6 +411,15 @@ describe Bootloader::GrubPasswordWidget do
 
         expect(bootloader.password.used).to eq false
       end
+
+      it "removes rd.shell parameter from kernel command line" do
+        allow(Yast::UI).to receive(:QueryWidget).with(Id(:use_pas), :Value).and_return(false)
+        bootloader.grub_default.kernel_params.add_parameter("rd.shell", "0")
+
+        subject.store
+
+        expect(bootloader.grub_default.kernel_params.parameter("rd.shell")).to eq false
+      end
     end
 
     context "use password checkbox checked" do
@@ -444,6 +453,13 @@ describe Bootloader::GrubPasswordWidget do
         # mock setting it as it internally hash its value, so hard to verify it
         expect(bootloader.password).to receive(:password=).with("pwd")
         subject.store
+      end
+
+      it "adds rd.shell=0 parameter to kernel command line if unrestricted mode is used" do
+        expect(Yast::UI).to receive(:QueryWidget).with(Id(:unrestricted_pw), :Value).and_return(true)
+        subject.store
+
+        expect(bootloader.grub_default.kernel_params.parameter("rd.shell")).to eq "0"
       end
     end
   end
