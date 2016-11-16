@@ -435,8 +435,8 @@ module Bootloader
           " password. If <b>Protect Entry Modification Only</b> is checked then " \
           "booting any entry is not restricted but modifying entries requires " \
           "the password (which is the way GRUB 1 behaved). As side-effect of " \
-          "this option, rd.shell=0 is added to kernel parameters, to avoid " \
-          "going into initrd shell.<br>" \
+          "this option, rd.shell=0 is added to kernel parameters, to prevent " \
+          "an unauthorized access to the initrd shell.<br>" \
           "YaST will only accept the password if you repeat it in " \
           "<b>Retype Password</b>. The password applies to the GRUB2 user 'root' " \
           "which is distinct from the Linux 'root'. YaST currently does not support" \
