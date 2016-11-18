@@ -64,9 +64,10 @@ module Yast
       return false unless current_bl.respond_to?(:stage1)
 
       targets = current_bl.stage1.devices
-      target_map = Yast::Storage.GetTargetMap
-      boot_discs = targets.map { |d| Yast::Storage.GetDisk(target_map, d) }
-      boot_discs.any? { |d| d["label"] == "gpt" }
+      boot_discs = targets.map { |d| Storage::Disk.find_by_name(staging, d) }
+      boot_discs.any? do |d|
+        d.partition_table? && d.partition_table.type == Storage::PtType_GPT
+      end
     end
 
     # Returns list of partitions and disks. Requests current partitioning from
