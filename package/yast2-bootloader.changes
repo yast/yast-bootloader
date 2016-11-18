@@ -17,7 +17,6 @@ Tue Nov  1 11:49:05 UTC 2016 - jreidinger@suse.com
   generating the GRUB2 menu (bsc#998152)
 
 -------------------------------------------------------------------
-Tue Nov  1 11:49:05 UTC 2016 - jreidinger@suse.com
 Fri Oct 28 13:48:40 CEST 2016 - aschnell@suse.com
 
 - make simple EFI proposal work with storage-ng
