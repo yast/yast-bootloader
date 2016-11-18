@@ -65,7 +65,8 @@ module Bootloader
       stage1.write
 
       # TODO: own class handling PBMR
-      pmbr_setup(*gpt_disks_devices)
+      # set it only for gpt disk bsc#1008092
+      pmbr_setup(*gpt_disks_devices) if Yast::BootStorage.gpt_boot_disk?
 
       # powernv must not call grub2-install (bnc#970582)
       unless Yast::Arch.board_powernv
