@@ -7,6 +7,7 @@ require "bootloader/sections"
 require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
 require "bootloader/serial_console"
+require "bootloader/language"
 require "cfa/grub2/default"
 require "cfa/grub2/grub_cfg"
 require "cfa/matcher"
@@ -92,7 +93,8 @@ module Bootloader
       grub_default.save
       @sections.write
       @password.write
-      Yast::Execute.on_target("/usr/sbin/grub2-mkconfig", "-o", "/boot/grub2/grub.cfg")
+      Yast::Execute.on_target("/usr/sbin/grub2-mkconfig", "-o", "/boot/grub2/grub.cfg",
+        env: systemwide_locale)
     end
 
     def propose
@@ -145,6 +147,27 @@ module Bootloader
     end
 
   private
+
+    def systemwide_locale
+      begin
+        language = ::Bootloader::Language.new
+        language.load
+      rescue Errno::ENOENT
+        log.info "/etc/sysconfig/language does not exist. Using current locale"
+        return {}
+      end
+
+      lang = language.rc_lang || "C"
+
+      log.info "System language is #{lang}"
+
+      {
+        "LC_MESSAGES" => nil,
+        "LC_ALL"      => nil,
+        "LANGUAGE"    => nil,
+        "LANG"        => lang
+      }
+    end
 
     def merge_pmbr_action(other)
       @pmbr_action = other.pmbr_action if other.pmbr_action

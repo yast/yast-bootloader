@@ -46,7 +46,7 @@ module Bootloader
       # super have to called as first as grub install require some config written in ancestor
       super
 
-      if pmbr_action
+      if pmbr_action && Yast::BootStorage.gpt_boot_disk?
         efi_partition = find_blk_device_at_mountpoint("/boot/efi")
         efi_partition ||= find_blk_device_at_mountpoint("/boot")
         efi_partition ||= find_blk_device_at_mountpoint("/")

@@ -28,6 +28,8 @@ BuildRequires:  yast2 >= 3.1.176
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  yast2-ruby-bindings >= 1.0.0
 BuildRequires:  yast2-storage-ng >= 0.1.4
+# lenses needed also for tests
+BuildRequires:  augeas-lenses
 BuildRequires:  rubygem(%rb_default_ruby_abi:cfa_grub2) >= 0.5.1
 BuildRequires:  rubygem(%rb_default_ruby_abi:rspec)
 BuildRequires:  rubygem(%rb_default_ruby_abi:yast-rake)

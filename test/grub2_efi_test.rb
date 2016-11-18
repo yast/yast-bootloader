@@ -25,6 +25,7 @@ describe Bootloader::Grub2EFI do
   describe "write" do
     it "setups protective mbr to real disks containing /boot/efi" do
       subject.pmbr_action = :add
+      allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
       allow(Yast::Storage).to receive(:GetEntryForMountpoint)
         .with("/boot/efi").and_return("device" => "/dev/md1")
       allow(Bootloader::Stage1Device).to receive(:new)

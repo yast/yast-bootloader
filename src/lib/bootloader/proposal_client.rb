@@ -20,7 +20,6 @@ module Bootloader
       Yast.import "BootSupportCheck"
       Yast.import "Product"
       Yast.import "PackagesProposal"
-      Yast.import "Pkg"
     end
 
     PROPOSAL_LINKS = [
@@ -194,28 +193,7 @@ module Bootloader
       if !Yast::BootSupportCheck.SystemSupported
         ret["warning_level"] = :error
         ret["warning"] = Yast::BootSupportCheck.StringProblems
-        return
       end
-
-      pkgs = current_bl.packages.map { |p| [p, Yast::Pkg.ResolvableProperties(p, :package, "")] }
-      log.info "packages info #{pkgs.inspect}"
-      pkgs.select! { |_n, p| unselected?(p) }
-      return if pkgs.empty?
-
-      ret["warning_level"] = :error
-      ret["warning"] = n_("A package required for booting is deselected (%s). " \
-        "Please select it for installation again.", "Packages required for booting are " \
-        "deselected (%s). Please select them for installation again.",
-        pkgs.size) % pkgs.map(&:first).join(", ")
-    end
-
-    def unselected?(packages)
-      # if all transactions are done by solver, then it is selected by it
-      unselected = packages.any? { |p| p["transact_by"] == :user && p["status"] == :available }
-      not_selected = packages.none? { |p| p["status"] == :selected }
-      return true if unselected && not_selected
-
-      false
     end
 
     def single_click_action(option, value)

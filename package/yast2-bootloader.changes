@@ -1,4 +1,22 @@
 -------------------------------------------------------------------
+Mon Nov 14 14:21:16 UTC 2016 - lslezak@suse.cz
+
+- Revert the package deselection check (from 3.2.3), there is
+  a new generic solution in yast2-packager-3.2.6 for all YaST
+  modules (bsc#885496)
+
+-------------------------------------------------------------------
+Wed Nov  2 14:14:21 UTC 2016 - jreidinger@suse.com
+
+- set pmbr flag only on GPT disks (bsc#1008092)
+
+-------------------------------------------------------------------
+Tue Nov  1 11:49:05 UTC 2016 - jreidinger@suse.com
+
+- Use the system-wide locale (/etc/sysconfig/language:RC_LANG) when
+  generating the GRUB2 menu (bsc#998152)
+
+-------------------------------------------------------------------
 Fri Oct 28 13:48:40 CEST 2016 - aschnell@suse.com
 
 - make simple EFI proposal work with storage-ng
