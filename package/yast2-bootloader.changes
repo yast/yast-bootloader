@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Nov 16 14:19:14 UTC 2016 - jreidinger@suse.com
+
+- when protecting modification of kernel parameters by password,
+  add also rd.shell=0 parameter to avoid getting into initrd shell
+  (bsc#1009220)
+- 3.2.8
+
+-------------------------------------------------------------------
 Mon Nov 14 14:21:16 UTC 2016 - lslezak@suse.cz
 
 - Revert the package deselection check (from 3.2.3), there is
