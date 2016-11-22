@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov 11 12:09:59 UTC 2016 - jreidinger@suse.com
+
+- Do not crash in bootloader when default mount by is set to label
+  (bsc#1009493)
+- 3.1.206
+
+-------------------------------------------------------------------
 Thu Oct 13 12:26:53 UTC 2016 - jreidinger@suse.com
 
 - Do not require syslinux on target system during installation
