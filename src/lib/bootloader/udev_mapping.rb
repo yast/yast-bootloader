@@ -56,6 +56,12 @@ module Bootloader
       # explicit request to mount by kernel device
       return kernel_dev if mount_by == :device
 
+      disk = Yast::Storage.GetTargetMap.key?(kernel_dev)
+      if disk && mount_by == :label
+        log.info "mount by label for disk, so using kernel device as fallback"
+        return kernel_dev
+      end
+
       udev_data_key = MOUNT_BY_MAPPING_TO_UDEV[mount_by]
       raise "Internal error unknown mountby #{mount_by}" unless udev_data_key
       udev_pair = map_device_to_udev_devices(
