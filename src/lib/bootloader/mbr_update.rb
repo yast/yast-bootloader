@@ -191,7 +191,7 @@ module Bootloader
       part = activatable_partitions(disk).find { |p| p.type == Storage::PartitionType_EXTENDED }
       return nil unless part
 
-      log.info "Using extended partition #{part.number} instead"
+      log.info "Using extended partition instead: #{part.inspect}"
       part
     end
 
