@@ -53,7 +53,7 @@ describe Bootloader::Sections do
     end
 
     it "raises exception if section do not exists" do
-      expect{subject.default = "non-exist"}.to raise_error(RuntimeError)
+      expect { subject.default = "non-exist" }.to raise_error(RuntimeError)
     end
 
     it "handle localized grub.cfg" do
@@ -66,9 +66,9 @@ describe Bootloader::Sections do
 
       puts sections.all.inspect
 
-      expect{sections.default = "openSUSE Tumbleweed, с Linux 4.8.6-2-default"}.to_not raise_error
-      expect{sections.default = "openSUSE Tumbleweed, \u0441 Linux 4.8.6-2-default"}.to_not raise_error
-      expect{sections.default = "openSUSE Tumbleweed, \xD1\x81 Linux 4.8.6-2-default"}.to_not raise_error
+      expect { sections.default = "openSUSE Tumbleweed, с Linux 4.8.6-2-default" }.to_not raise_error
+      expect { sections.default = "openSUSE Tumbleweed, \u0441 Linux 4.8.6-2-default" }.to_not raise_error
+      expect { sections.default = "openSUSE Tumbleweed, \xD1\x81 Linux 4.8.6-2-default" }.to_not raise_error
     end
   end
 
