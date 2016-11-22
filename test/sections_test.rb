@@ -56,15 +56,13 @@ describe Bootloader::Sections do
       expect { subject.default = "non-exist" }.to raise_error(RuntimeError)
     end
 
-    it "handle localized grub.cfg" do
+    it "handles localized grub.cfg" do
       data_path = File.expand_path("../data/grub.cfg", __FILE__)
       file = CFA::MemoryFile.new(File.read(data_path))
       grub_cfg = CFA::Grub2::GrubCfg.new(file_handler: file)
       grub_cfg.load
 
       sections = Bootloader::Sections.new(grub_cfg)
-
-      puts sections.all.inspect
 
       expect { sections.default = "openSUSE Tumbleweed, с Linux 4.8.6-2-default" }.to_not raise_error
       expect { sections.default = "openSUSE Tumbleweed, \u0441 Linux 4.8.6-2-default" }.to_not raise_error
