@@ -126,6 +126,10 @@ module Yast
     # @return [Boolean] true on success
 
     def check_boot_device
+# storage-ng
+# Simply assume there is no RAID for the time being
+# rubocop:disable Style/BlockComments
+=begin
       devices = Storage.GetTargetMap
 
       boot_device = BootStorage.BootPartitionDevice
@@ -164,6 +168,7 @@ module Yast
           return true
         end
       end
+=end
 
       true
     end

@@ -3,6 +3,7 @@ require "yast"
 require "bootloader/boot_record_backup"
 require "bootloader/stage1_device"
 require "yast2/execute"
+require "y2storage"
 
 Yast.import "Arch"
 Yast.import "PackageSystem"
@@ -13,6 +14,8 @@ module Bootloader
   # FIXME: make it single responsibility class
   class MBRUpdate
     include Yast::Logger
+    using Y2Storage::Refinements::DevicegraphLists
+    using Y2Storage::Refinements::Disk
 
     # Update contents of MBR (active partition and booting code)
     def run(stage1)
@@ -30,6 +33,10 @@ module Bootloader
 
   private
 
+    def devicegraph
+      Y2Storage::StorageManager.instance.staging
+    end
+
     def mbr_disk
       @mbr_disk ||= Yast::BootStorage.mbr_disk
     end
@@ -45,11 +52,9 @@ module Bootloader
     end
 
     def mbr_is_gpt?
-      mbr_storage_object = target_map[mbr_disk]
+      mbr_storage_object = devicegraph.disks.with(name: mbr_disk).first
       raise "Cannot find in storage mbr disk #{mbr_disk}" unless mbr_storage_object
-      mbr_type = mbr_storage_object["label"]
-      log.info "mbr type = #{mbr_type}"
-      mbr_type == "gpt"
+      mbr_storage_object.gpt?
     end
 
     GPT_MBR = "/usr/share/syslinux/gptmbr.bin".freeze
@@ -148,7 +153,14 @@ module Bootloader
 
     def first_base_device_to_boot(md_device)
       md = ::Bootloader::Stage1Device.new(md_device)
+      # storage-ng
+      # No BIOS-ID support in libstorage-ng, so just return first one
+      md.real_devices.first
+# rubocop:disable Style/BlockComments
+=begin
       md.real_devices.min_by { |device| bios_id_for(device) }
+=end
+      # rubocop:enable all
     end
 
     MAX_BIOS_ID = 1000
@@ -166,21 +178,21 @@ module Bootloader
 
     # List of partition for disk that can be used for setting boot flag
     def activatable_partitions(disk)
-      partitions = target_map.fetch(disk, {}).fetch("partitions", [])
+      return [] unless disk
+
       # do not select swap and do not select BIOS grub partition
       # as it clear its special flags (bnc#894040)
-      partitions.select do |p|
-        p["used_fs"] != :swap && p["fsid"] != Yast::Partitions.fsid_bios_grub
+      devicegraph.disks.with(name: disk.name).partitions.reject do |part|
+        [Storage::ID_SWAP, Storage::ID_GPT_BIOS].include?(part.id)
       end
     end
 
-    def extended_partition_num(disk)
-      part = activatable_partitions(disk).find { |p| p["type"] == :extended }
+    def extended_partition(disk)
+      part = activatable_partitions(disk).find { |p| p.type == Storage::PartitionType_EXTENDED }
       return nil unless part
 
-      num = part["nr"]
-      log.info "Using extended partition #{num} instead"
-      num
+      log.info "Using extended partition instead: #{part.inspect}"
+      part
     end
 
     # Given a device name to which we install the bootloader (loader_device),
@@ -192,38 +204,45 @@ module Bootloader
     def partition_to_activate(loader_device)
       real_device = first_base_device_to_boot(loader_device)
       log.info "real devices for #{loader_device} is #{real_device}"
+      partition, mbr_dev = partition_and_disk_to_activate(real_device)
 
-      p_dev = Yast::Storage.GetDiskPartition(real_device)
-      num = p_dev["nr"].to_i
-      mbr_dev = p_dev["disk"]
       raise "Invalid loader device #{loader_device}" unless mbr_dev
 
-      # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
-      # if loader_device is disk Choose any partition which is not swap to
-      # satisfy such bios (bnc#893449)
-      if num == 0
-        partition = activatable_partitions(mbr_dev).first
-        # strange, no partitions on our mbr device, we probably won't boot
-        if !partition
-          log.warn "no non-swap partitions for mbr device #{mbr_dev}"
-          return {}
-        end
-        log.info "loader_device is disk device, so use its partition #{partition.inspect}"
-        num = partition["nr"] or return {}
+      # strange, no partitions on our mbr device, we probably won't boot
+      if !partition
+        log.warn "no non-swap partitions for mbr device #{mbr_dev.name}"
+        return {}
       end
 
-      if num > 4
+      if partition.type == Storage::PartitionType_LOGICAL
         log.info "Bootloader partition type can be logical"
-        num = extended_partition_num(mbr_dev) || num
+        partition = extended_partition(mbr_dev)
       end
 
       ret = {
-        "num" => num,
-        "mbr" => mbr_dev
+        "num" => partition.number,
+        "mbr" => mbr_dev.name
       }
 
       log.info "Partition for activating: #{ret}"
       ret
+    end
+
+    def partition_and_disk_to_activate(dev_name)
+      parts = devicegraph.partitions.with(name: dev_name)
+      partition = parts.first
+      mbr_dev = parts.disks.first
+
+      # if real_device is not a partition but a disk
+      if !partition
+        mbr_dev = devicegraph.disks.with(name: dev_name).first
+        # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
+        # if loader_device is disk Choose any partition which is not swap to
+        # satisfy such bios (bnc#893449)
+        partition = activatable_partitions(mbr_dev).first
+        log.info "loader_device is disk device, so use its partition #{partition.inspect}"
+      end
+      [partition, mbr_dev]
     end
 
     # Get a list of partitions to activate if user wants to activate
@@ -236,10 +255,6 @@ module Bootloader
       result.delete({})
 
       result.uniq
-    end
-
-    def target_map
-      @target_map ||= Yast::Storage.GetTargetMap
     end
   end
 end

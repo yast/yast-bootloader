@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov 22 16:52:31 UTC 2016 - ancor@suse.com
+
+- storage-ng: fixed minimal EFI proposal
+- storage-ng: made minimal legacy proposal work
+- 3.3.1
+
+-------------------------------------------------------------------
 Mon Nov 14 14:21:16 UTC 2016 - lslezak@suse.cz
 
 - Revert the package deselection check (from 3.2.3), there is

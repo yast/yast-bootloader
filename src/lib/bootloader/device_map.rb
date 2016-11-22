@@ -6,11 +6,14 @@ require "bootloader/stage1_device"
 require "yast2/target_file"
 require "cfa/grub2/device_map"
 
+require "y2storage"
+
 module Bootloader
   # Class representing grub device map structure
   class DeviceMap
     extend Forwardable
     include Yast::Logger
+    using Y2Storage::Refinements::DevicegraphLists
 
     def_delegators :@model, :grub_device_for, :system_device_for, :grub_devices,
       :add_mapping, :remove_mapping
@@ -121,6 +124,16 @@ module Bootloader
     end
 
     def fill_mapping
+      # storage-ng
+      # BIOS-ID is not supported in libstorage-ng, so let's simply create a
+      # mapping entry per disk for the time being (see commented code for the
+      # real expected behavior)
+      staging = Y2Storage::StorageManager.instance.staging
+      staging.disks.each_with_index do |disk, index|
+        add_mapping("hd#{index}", disk.name)
+      end
+# rubocop:disable Style/BlockComments
+=begin
       target_map = filtered_target_map
       log.info("Filtered target map: #{target_map}")
 
@@ -154,6 +167,7 @@ module Bootloader
         add_mapping("hd#{index}", target_dev)
         ids[index] = true
       end
+=end
     end
 
     def filtered_target_map
