@@ -41,9 +41,7 @@ module Bootloader
         efi_partition ||= filesystems.with_mountpoint("/boot").partitions.first
         efi_partition ||= filesystems.with_mountpoint("/").partitions.first
 
-        if !efi_partition
-          raise "could not find boot partiton"
-        end
+        raise "could not find boot partiton" unless efi_partition
 
         efi_disk = efi_partition.partitionable
 
