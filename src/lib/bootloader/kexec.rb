@@ -99,8 +99,8 @@ module Bootloader
       cmd = Yast::Builtins.sformat(
         "/bin/cp -L %1/%2 %1/%3 %4",
         Yast::Installation.destdir,
-        "vmlinuz",
-        "initrd",
+        "boot/vmlinuz",
+        "boot/initrd",
         Yast::Directory.vardir
       )
 
