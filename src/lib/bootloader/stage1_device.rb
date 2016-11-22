@@ -24,7 +24,7 @@ module Bootloader
       @intended_device = device
     end
 
-    # @returns [Array<String>] list of devices where stage1 need to be installed
+    # @return [Array<String>] list of devices where stage1 need to be installed
     # to fit the best intended device. Devices used kernel device names, so no
     # udev names
     def real_devices
@@ -40,7 +40,7 @@ module Bootloader
   private
 
     # underlaying_devices without any caching
-    # @see {#underlaying_devices}
+    # @see #underlaying_devices
     def underlaying_devices_for(dev)
       res = underlaying_devices_one_level(dev)
 
