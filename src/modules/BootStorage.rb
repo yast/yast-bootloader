@@ -25,6 +25,7 @@ require "bootloader/udev_mapping"
 module Yast
   class BootStorageClass < Module
     include Yast::Logger
+    using Y2Storage::Refinements::DevicegraphLists
 
     attr_accessor :mbr_disk
 
@@ -108,13 +109,12 @@ module Yast
 
     # Get extended partition for given partition or disk
     def extended_partition_for(device)
-      blk_device = Storage::BlkDevice.find_by_name(staging, device)
-      if Storage.partition?(blk_device)
-        partition = Storage.to_partition(blk_device)
-        return partition.parent.name if partition.type == Storage::PartitionType_LOGICAL
-      end
+      disk_list = staging.disks.with(name: device)
+      disk_list ||= staging.partitions.with(name: device).disks
+      return nil if disk_list.empty?
 
-      nil
+      part = disk_list.partitions.with(type: Storage::PartitionType_EXTENDED).first
+      part ? part.name : nil
     end
 
     # FIXME: merge with BootSupportCheck
@@ -213,7 +213,7 @@ module Yast
       # get extended partition device (if exists)
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
-      @mbr_disk = @BootPartitionDevice
+      @mbr_disk = disk_with_boot_partition
 
       Mode.SetMode(old_mode) if old_mode == "autoinst_config"
     end
