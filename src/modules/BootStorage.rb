@@ -168,8 +168,6 @@ module Yast
 
     # Find the blkdevice for the filesystem mounted at mountpoint. Returns nil
     # if no filesystem is found or the filesystem has no blkdevice (e.g. NFS).
-    # TODO: function also defined in grub2efi.rb but simply require grub2efi
-    # does not work and debugging is impossible due to bsc#932331.
     def find_blk_device_at_mountpoint(mountpoint)
       fses = Storage::Filesystem.find_by_mountpoint(staging, mountpoint)
       return nil if fses.empty?
