@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 22 13:41:42 UTC 2016 - jreidinger@suse.com
+
+- use proper sources when doing kexec (bsc#981434)
+- 3.2.9
+
+-------------------------------------------------------------------
 Wed Nov 16 14:19:14 UTC 2016 - jreidinger@suse.com
 
 - when protecting modification of kernel parameters by password,
