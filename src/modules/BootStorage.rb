@@ -26,6 +26,7 @@ module Yast
   class BootStorageClass < Module
     include Yast::Logger
     using Y2Storage::Refinements::DevicegraphLists
+    using Y2Storage::Refinements::Disk
 
     attr_accessor :mbr_disk
 
@@ -65,10 +66,10 @@ module Yast
       return false unless current_bl.respond_to?(:stage1)
 
       targets = current_bl.stage1.devices
-      boot_discs = targets.map { |d| Storage::Disk.find_by_name(staging, d) }
-      boot_discs.any? do |d|
-        d.partition_table? && d.partition_table.type == Storage::PtType_GPT
-      end
+      boot_disks = staging.disks.with(name: targets)
+      boot_disks += staging.partitions.with(name: targets).disks
+
+      boot_disks.any? { |disk| disk.gpt? }
     end
 
     # Returns list of partitions and disks. Requests current partitioning from
