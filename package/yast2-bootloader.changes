@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Fri Nov 11 12:09:59 UTC 2016 - jreidinger@suse.com
+Tue Nov 22 18:38:42 UTC 2016 - jreidinger@suse.com
 
 - Do not crash in bootloader when default mount by is set to label
   (bsc#1009493)
