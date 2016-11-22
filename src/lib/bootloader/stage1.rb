@@ -6,6 +6,7 @@ require "bootloader/bootloader_factory"
 require "bootloader/stage1_device"
 require "bootloader/stage1_proposal"
 require "cfa/grub2/install_device"
+require "y2storage"
 
 Yast.import "Arch"
 Yast.import "BootStorage"
@@ -16,6 +17,7 @@ module Bootloader
   class Stage1
     extend Forwardable
     include Yast::Logger
+    using Y2Storage::Refinements::DevicegraphLists
 
     attr_reader :model
     def_delegators :@model, :generic_mbr?, :generic_mbr=, :activate?, :activate=, :devices,
@@ -158,20 +160,20 @@ module Bootloader
     end
 
     def can_use_boot?
-      tm = Yast::Storage.GetTargetMap
       partition = Yast::BootStorage.BootPartitionDevice
 
-      part = Yast::Storage.GetPartition(tm, partition)
+      parts = partitions.with(name: partition)
 
-      if !part
+      if parts.empty?
         log.error "cannot find partition #{partition}"
         return false
       end
 
-      log.info "Boot partition info #{part.inspect}"
+      log.info "Boot partition info #{parts.first.inspect}"
 
       # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
-      return false if part["used_fs"] == :xfs
+      fs = parts.filesystems.first
+      return false if fs && fs.type == ::Storage::FsType_XFS
 
       true
     end
@@ -202,6 +204,14 @@ module Bootloader
     end
 
   private
+
+    # Partitions in the staging (planned) devicegraph
+    #
+    # @return [Y2Storage::PartitionsList]
+    def partitions
+      staging = Y2Storage::StorageManager.instance.staging
+      staging.partitions
+    end
 
     def include_real_devs?(real_devs)
       real_devs.all? do |real_dev|

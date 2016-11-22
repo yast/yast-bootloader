@@ -1,4 +1,5 @@
 require "yast"
+require "y2storage"
 
 Yast.import "BootStorage"
 
@@ -14,6 +15,7 @@ module Bootloader
   #   puts dev.real_devices # => ["/dev/sda1", "/dev/sdb1"]
   class Stage1Device
     include Yast::Logger
+    using Y2Storage::Refinements::DevicegraphLists
 
     # @param [String] device intended location of stage1. Device here
     #   means any name  under /dev like "/dev/sda", "/dev/system/root" or
@@ -37,6 +39,10 @@ module Bootloader
 
   private
 
+    def devicegraph
+      Y2Storage::StorageManager.instance.staging
+    end
+
     # underlaying_devices without any caching
     # @see {#underlaying_devices}
     def underlaying_devices_for(dev)
@@ -53,34 +59,42 @@ module Bootloader
 
     # get one level of underlaying devices, so no recursion deeper
     def underlaying_devices_one_level(dev)
-      tm = Yast::Storage.GetTargetMap
-      disk_data = Yast::Storage.GetDiskPartition(dev)
-      if disk?(disk_data)
-        disk = Yast::Storage.GetDisk(tm, dev)
-        # md disk is just virtual device, so select underlaying device /boot partition
-        case disk["type"]
-        when :CT_MD then return underlaying_disk_with_boot_partition
-        when :CT_LVM
-          res = lvm_underlaying_devices(disk)
-          return res.map { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
-        when :CT_DMRAID
-          return disk["devices"]
-        end
-      # given device is partition
-      else
-        part = Yast::Storage.GetPartition(tm, dev)
-        if part["type"] == :lvm
-          lvm_group = Yast::Storage.GetDisk(tm, disk_data["disk"])
-          return lvm_underlaying_devices(lvm_group)
-        elsif part["type"] == :sw_raid
-          return devices_on(part)
-        elsif part["fstype"] == Yast::Partitions.dmraid_name
-          mapper = Yast::Storage.GetDisk(tm, disk_data["disk"])
-          return mapper["devices"]
-        end
-      end
+      vgs = devicegraph.volume_groups.with(vg_name: dev)
+      return usable_pvs(vgs).disks.to_a unless vgs.empty?
+
+      lvs = devicegraph.logical_volumes.with(lv_name: dev)
+      return usable_pvs(lvs.vgs).map { |pv| pv.blk_device.name } unless lvs.empty?
+
+      # TODO: storage-ng
+      # md
+      # md disk is just virtual device, so select underlaying device /boot partition
+      # return underlaying_disk_with_boot_partition
+
+      # TODO: storage-ng
+      # DMRAID main device - not implemented in libstorage-ng
+      # return disk["devices"]
+
+      # TODO: storage-ng
+      # DMRAID part device - not implemented in libstorage-ng
+      # return mapper["devices"]
+      #
+      # TODO: storage-ng
+      # sw_raid
+      # return devices_on(part)
 
       []
+    end
+
+    # Physical volumes from a given set of volume groups that are useful for the
+    # bootloader.
+    #
+    # Ignores physical volumes on a whole disk. See bnc#980529
+    #
+    # @param volumes_group_list [Y2Storage::LvmVgsList]
+    # @return [Y2Storage::LvmPvsList]
+    def usable_pvs(volume_groups_list)
+      pvs = volume_groups_list.physical_volumes
+      pvs.with { |pv| !Storage.disk?(pv.blk_device) }
     end
 
     # For pure virtual disk devices it is selected /boot partition and its
@@ -91,19 +105,6 @@ module Bootloader
         disk_dev = Yast::Storage.GetDiskPartition(part)
         disk_dev["disk"]
       end
-    end
-
-    # returns underlaying devices that creating lvm group
-    def lvm_underlaying_devices(lvm_group)
-      tm = Yast::Storage.GetTargetMap
-      res = devices_on(lvm_group)
-      # skip lvm on partiotionless disks as it cannot be used, see bnc#980529
-      res.reject { |d| tm[d] }
-    end
-
-    # returns if given result of GetDiskPartition indicate that it is disk
-    def disk?(disk_data)
-      disk_data["nr"].to_s.empty?
     end
 
     # returns devices which constructed passed device.
