@@ -5,6 +5,7 @@ require "bootloader/grub2base"
 require "bootloader/grub_install"
 require "bootloader/sysconfig"
 require "bootloader/stage1_device"
+require "y2storage"
 
 Yast.import "Arch"
 
@@ -13,6 +14,7 @@ module Bootloader
   class Grub2EFI < Grub2Base
     include Yast::Logger
     attr_accessor :secure_boot
+    using Y2Storage::Refinements::DevicegraphLists
 
     def initialize
       super
@@ -29,33 +31,19 @@ module Bootloader
       super
     end
 
-    # Find the blkdevice for the filesystem mounted at mountpoint. Returns nil
-    # if no filesystem is found or the filesystem has no blkdevice (e.g. NFS).
-    def find_blk_device_at_mountpoint(mountpoint)
-      staging = Y2Storage::StorageManager.instance.staging
-
-      fses = Storage::Filesystem.find_by_mountpoint(staging, mountpoint)
-      return nil if fses.empty?
-      return nil if fses[0].blk_devices.empty?
-
-      fses[0].blk_devices[0]
-    end
-
     # Write bootloader settings to disk
     def write
       # super have to called as first as grub install require some config written in ancestor
       super
 
       if pmbr_action && Yast::BootStorage.gpt_boot_disk?
-        efi_partition = find_blk_device_at_mountpoint("/boot/efi")
-        efi_partition ||= find_blk_device_at_mountpoint("/boot")
-        efi_partition ||= find_blk_device_at_mountpoint("/")
+        efi_partition = filesystems.with_mountpoint("/boot/efi").partitions.first
+        efi_partition ||= filesystems.with_mountpoint("/boot").partitions.first
+        efi_partition ||= filesystems.with_mountpoint("/").partitions.first
 
-        if !efi_partition || !Storage.partition?(efi_partition)
-          raise "could not find boot partiton"
-        end
+        raise "could not find boot partiton" unless efi_partition
 
-        efi_disk = Storage.to_partition(efi_partition).partition_table.partitionable
+        efi_disk = efi_partition.partitionable
 
 # storage-ng
 # rubocop:disable Style/BlockComments
@@ -133,6 +121,16 @@ module Bootloader
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(bootloader: name, secure_boot: @secure_boot)
       prewrite ? sysconfig.pre_write : sysconfig.write
+    end
+
+  private
+
+    # Filesystems in the staging (planned) devicegraph
+    #
+    # @return [Y2Storage::FilesystemsList]
+    def filesystems
+      staging = Y2Storage::StorageManager.instance.staging
+      staging.filesystems
     end
   end
 end

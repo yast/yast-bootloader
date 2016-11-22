@@ -25,6 +25,8 @@ require "bootloader/udev_mapping"
 module Yast
   class BootStorageClass < Module
     include Yast::Logger
+    using Y2Storage::Refinements::DevicegraphLists
+    using Y2Storage::Refinements::Disk
 
     attr_accessor :mbr_disk
 
@@ -64,10 +66,10 @@ module Yast
       return false unless current_bl.respond_to?(:stage1)
 
       targets = current_bl.stage1.devices
-      boot_discs = targets.map { |d| Storage::Disk.find_by_name(staging, d) }
-      boot_discs.any? do |d|
-        d.partition_table? && d.partition_table.type == Storage::PtType_GPT
-      end
+      boot_disks = staging.disks.with(name: targets)
+      boot_disks += staging.partitions.with(name: targets).disks
+
+      boot_disks.any? { |disk| disk.gpt? }
     end
 
     # Returns list of partitions and disks. Requests current partitioning from
@@ -108,13 +110,12 @@ module Yast
 
     # Get extended partition for given partition or disk
     def extended_partition_for(device)
-      blk_device = Storage::BlkDevice.find_by_name(staging, device)
-      if Storage.partition?(blk_device)
-        partition = Storage.to_partition(blk_device)
-        return partition.parent.name if partition.type == Storage::PartitionType_LOGICAL
-      end
+      disk_list = staging.disks.with(name: device)
+      disk_list ||= staging.partitions.with(name: device).disks
+      return nil if disk_list.empty?
 
-      nil
+      part = disk_list.partitions.with(type: Storage::PartitionType_EXTENDED).first
+      part ? part.name : nil
     end
 
     # FIXME: merge with BootSupportCheck
@@ -168,8 +169,6 @@ module Yast
 
     # Find the blkdevice for the filesystem mounted at mountpoint. Returns nil
     # if no filesystem is found or the filesystem has no blkdevice (e.g. NFS).
-    # TODO: function also defined in grub2efi.rb but simply require grub2efi
-    # does not work and debugging is impossible due to bsc#932331.
     def find_blk_device_at_mountpoint(mountpoint)
       fses = Storage::Filesystem.find_by_mountpoint(staging, mountpoint)
       return nil if fses.empty?
@@ -213,7 +212,7 @@ module Yast
       # get extended partition device (if exists)
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
-      @mbr_disk = @BootPartitionDevice
+      @mbr_disk = disk_with_boot_partition
 
       Mode.SetMode(old_mode) if old_mode == "autoinst_config"
     end
