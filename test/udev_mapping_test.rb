@@ -4,7 +4,7 @@ require_relative "./test_helper"
 
 require "bootloader/udev_mapping"
 
-describe Bootloader::UdevMapping do
+xdescribe Bootloader::UdevMapping do
   subject { Bootloader::UdevMapping }
   before do
     # always invalidate cache to use new mocks
