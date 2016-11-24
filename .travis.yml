@@ -7,6 +7,7 @@ before_install:
     # install newer augeasget repo with newer augeas, otherwise ruby-augeas fails (see https://github.com/yast/yast-network/pull/454#issuecomment-253795507)
     - sudo add-apt-repository -y ppa:raphink/augeas
     - sudo apt-get update
+    - sudo apt-get install libaugeas-dev libxml2-dev
     # end of augeas install
     - wget https://raw.githubusercontent.com/yast/yast-devtools/master/travis-tools/travis_setup.sh
     - sh ./travis_setup.sh -p "yast2-devtools yast2 yast2-storage-ng libstorage-ng rake ruby2.1-dev libaugeas-dev pkg-config" -g "gettext yast-rake yard rspec:3.3.0 simplecov coveralls rubocop:0.41.2 cfa_grub2 cheetah"
