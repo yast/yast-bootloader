@@ -39,7 +39,6 @@ describe Bootloader::Grub2EFI do
     xit "calls grub2-install with respective secure boot configuration" do
       # This test fails (only!) in Travis with
       # Failure/Error: subject.write Storage::Exception: Storage::Exception
-     Storage::Exception:
       grub_install = double(Bootloader::GrubInstall)
       expect(grub_install).to receive(:execute).with(secure_boot: true)
       allow(Bootloader::GrubInstall).to receive(:new).and_return(grub_install)
