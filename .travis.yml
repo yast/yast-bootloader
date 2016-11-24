@@ -10,7 +10,7 @@ before_install:
     - sudo apt-get install libaugeas-dev libxml2-dev
     # end of augeas install
     - wget https://raw.githubusercontent.com/yast/yast-devtools/master/travis-tools/travis_setup.sh
-    - sh ./travis_setup.sh -p "yast2-devtools yast2 yast2-storage-ng libstorage-ng rake ruby2.1-dev libaugeas-dev pkg-config" -g "gettext yast-rake yard rspec:3.3.0 simplecov coveralls rubocop:0.41.2 cfa_grub2 cheetah"
+    - sh ./travis_setup.sh -p "yast2-devtools yast2 yast2-storage-ng rake ruby2.1-dev libaugeas-dev pkg-config" -g "gettext yast-rake yard rspec:3.3.0 simplecov coveralls rubocop:0.41.2 cfa_grub2 cheetah"
 script:
     - rake check:syntax
     - rake check:pot
