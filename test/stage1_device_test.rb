@@ -2,7 +2,7 @@ require_relative "test_helper"
 
 require "bootloader/stage1_device"
 
-describe Bootloader::Stage1Device do
+xdescribe Bootloader::Stage1Device do
 
   before do
     # we really want to test this class in this test, so revert generic mock from helper

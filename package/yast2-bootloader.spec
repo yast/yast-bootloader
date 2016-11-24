@@ -62,7 +62,7 @@ This package contains the YaST2 component for bootloader configuration.
 
 %check
 # storage-ng
-# rake test:unit
+rake test:unit
 
 %build
 

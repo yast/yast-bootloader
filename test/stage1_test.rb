@@ -7,7 +7,7 @@ require "bootloader/stage1"
 Yast.import "Arch"
 Yast.import "BootStorage"
 
-describe Bootloader::Stage1 do
+xdescribe Bootloader::Stage1 do
   before do
     # simple mock getting disks from partition as it need initialized libstorage
     allow(subject).to receive(:can_use_boot?).and_return(true)
