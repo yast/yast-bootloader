@@ -3,6 +3,7 @@ ENV["Y2DIR"] = File.expand_path("../../src", __FILE__)
 require "yast"
 require "yast/rspec"
 require "yaml"
+require "y2storage"
 
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
@@ -41,6 +42,12 @@ def target_map_stub(name)
   path = File.join(File.dirname(__FILE__), "data", name)
   tm = YAML.load(File.read(path))
   allow(Yast::Storage).to receive(:GetTargetMap).and_return(tm)
+end
+
+def devicegraph_stub(name)
+  path = File.join(File.dirname(__FILE__), "data", "storage-ng", name)
+  storage = Y2Storage::StorageManager.fake_from_yaml(path)
+  storage.probed.copy(storage.staging)
 end
 
 def mock_disk_partition

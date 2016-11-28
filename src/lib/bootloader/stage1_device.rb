@@ -59,11 +59,23 @@ module Bootloader
 
     # get one level of underlaying devices, so no recursion deeper
     def underlaying_devices_one_level(dev)
-      vgs = devicegraph.volume_groups.with(vg_name: dev)
-      return usable_pvs(vgs).disks.to_a unless vgs.empty?
+      # FIXME: there is nothing like this right now in libstorage-ng
+      #  a_vg.name #=> "/dev/vgname"
+      # revisit when such thing exist
+      match = /^\/dev\/(\w*)$/.match(dev)
+      if match && match[1]
+        vgs = devicegraph.volume_groups.with(vg_name: match[1])
+        return usable_pvs(vgs).disks.map(&:name) unless vgs.empty?
+      end
 
-      lvs = devicegraph.logical_volumes.with(lv_name: dev)
-      return usable_pvs(lvs.vgs).map { |pv| pv.blk_device.name } unless lvs.empty?
+      # FIXME: there is nothing like this right now in libstorage-ng
+      #  a_lv.name #=> "/dev/vgname/lvname"
+      # revisit when such thing exist
+      match = /^\/dev\/\w*\/(\w*)$/.match(dev)
+      if match && match[1]
+        lvs = devicegraph.logical_volumes.with(lv_name: match[1])
+        return usable_pvs(lvs.vgs).map { |pv| pv.blk_device.name } unless lvs.empty?
+      end
 
       # TODO: storage-ng
       # md
