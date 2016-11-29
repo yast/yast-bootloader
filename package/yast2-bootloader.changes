@@ -3,7 +3,6 @@ Tue Nov 29 09:17:26 UTC 2016 - jreidinger@suse.com
 
 - do not crash for empty device partition like partitions living
   on /dev/loop (bsc#986124)
-- 3.1.162.1
 
 -------------------------------------------------------------------
 Fri Nov 27 14:46:57 CET 2015 - snwint@suse.de
