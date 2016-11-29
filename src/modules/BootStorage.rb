@@ -160,6 +160,7 @@ module Yast
         parts = partitions.map do |p|
           raid = p["used_by_type"] == :UB_MD ? p["used_by_device"] : nil
           device = p["device"] || ""
+          next nil if device.empty?
           # We only pass along RAID1 devices as all other causes
           # severe breakage in the bootloader stack
           @md_info[raid] << device if raid && @md_info.include?(raid)
@@ -178,7 +179,7 @@ module Yast
             ::Bootloader::UdevMapping.to_mountby_device(device)
           ]
         end
-        res.concat(parts)
+        res.concat(parts.compact)
       end
     end
 
