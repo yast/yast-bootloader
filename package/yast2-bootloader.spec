@@ -50,6 +50,11 @@ Requires:       augeas-lenses
 
 Requires:       yast2-ruby-bindings >= 1.0.0
 
+# only recommend syslinux, as it is not needed when generic mbr is not used (bsc#1004229)
+%ifarch %ix86 x86_64
+Recommends:     syslinux
+%endif
+
 Summary:        YaST2 - Bootloader Configuration
 License:        GPL-2.0+
 Group:          System/YaST
