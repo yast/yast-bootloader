@@ -2,7 +2,7 @@ require_relative "test_helper"
 
 require "bootloader/stage1_device"
 
-xdescribe Bootloader::Stage1Device do
+describe Bootloader::Stage1Device do
 
   before do
     # we really want to test this class in this test, so revert generic mock from helper
@@ -10,34 +10,28 @@ xdescribe Bootloader::Stage1Device do
   end
 
   describe "#real_devices" do
-    before do
-      # nasty hack to allow call of uninitialized libstorage as we do not want
-      # to overmock Yast::Storage.GetDiskPartitionTg call
-      Yast::Storage.instance_variable_set(:@sint, double(getPartitionPrefix: "").as_null_object)
-    end
-
     it "returns itself in single element array for physical device as argument" do
-      target_map_stub("storage_tmpfs.yaml")
+      devicegraph_stub("storage_lvm.yaml")
 
       subject = Bootloader::Stage1Device.new("/dev/vda1")
       expect(subject.real_devices).to eq(["/dev/vda1"])
     end
 
     it "returns underlaying disks where lvm partition lives for lvm disk" do
-      target_map_stub("storage_lvm.yaml")
+      devicegraph_stub("storage_lvm.yaml")
 
       subject = Bootloader::Stage1Device.new("/dev/system")
       expect(subject.real_devices).to eq(["/dev/vda"])
     end
 
     it "returns partitions where lvm lives for lvm partition" do
-      target_map_stub("storage_lvm.yaml")
+      devicegraph_stub("storage_lvm.yaml")
 
       subject = Bootloader::Stage1Device.new("/dev/system/root")
       expect(subject.real_devices).to eq(["/dev/vda3"])
     end
 
-    it "returns disks where lives /boot partitions for md raid disk" do
+    xit "returns disks where lives /boot partitions for md raid disk" do
       target_map_stub("storage_mdraid.yaml")
       allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/md1")
 
@@ -47,7 +41,7 @@ xdescribe Bootloader::Stage1Device do
       )
     end
 
-    it "returns partitions which creates md raid for md raid partition" do
+    xit "returns partitions which creates md raid for md raid partition" do
       target_map_stub("storage_mdraid.yaml")
 
       subject = Bootloader::Stage1Device.new("/dev/md1")
@@ -56,7 +50,7 @@ xdescribe Bootloader::Stage1Device do
       )
     end
 
-    it "returns physical partitions where md raid lives for lvm partition on md raid" do
+    xit "returns physical partitions where md raid lives for lvm partition on md raid" do
       target_map_stub("storage_lvm_on_mdraid.yaml")
 
       subject = Bootloader::Stage1Device.new("/dev/system/root")
@@ -65,7 +59,7 @@ xdescribe Bootloader::Stage1Device do
       )
     end
 
-    it "returns physical disks where md raid lives for lvm disk on md raid" do
+    xit "returns physical disks where md raid lives for lvm disk on md raid" do
       target_map_stub("storage_lvm_on_mdraid.yaml")
       allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/system/root")
 
@@ -75,14 +69,14 @@ xdescribe Bootloader::Stage1Device do
       )
     end
 
-    it "returns underlayed devices for dm main device" do
+    xit "returns underlayed devices for dm main device" do
       target_map_stub("storage_dm.yaml")
 
       subject = Bootloader::Stage1Device.new("/dev/mapper/pdc_dhigiadcde")
       expect(subject.real_devices).to eq(["/dev/sda"])
     end
 
-    it "returns underlayed devices for dm part device" do
+    xit "returns underlayed devices for dm part device" do
       target_map_stub("storage_dm.yaml")
 
       subject = Bootloader::Stage1Device.new("/dev/mapper/pdc_dhigiadcde-part6")
@@ -90,7 +84,7 @@ xdescribe Bootloader::Stage1Device do
     end
 
     it "skips disks used as partitionless lvm devices" do
-      target_map_stub("lvm_whole_disk.yml")
+      devicegraph_stub("lvm_whole_disk.yml")
 
       allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/system/root")
       subject = Bootloader::Stage1Device.new("/dev/system")
