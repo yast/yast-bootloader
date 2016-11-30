@@ -62,7 +62,7 @@ module Bootloader
       # FIXME: there is nothing like this right now in libstorage-ng
       #  a_vg.name #=> "/dev/vgname"
       # revisit when such thing exist
-      match = /^\/dev\/(\w*)$/.match(dev)
+      match = /^\/dev\/(\w+)$/.match(dev)
       if match && match[1]
         vgs = devicegraph.volume_groups.with(vg_name: match[1])
         return usable_pvs(vgs).disks.map(&:name) unless vgs.empty?
@@ -71,7 +71,7 @@ module Bootloader
       # FIXME: there is nothing like this right now in libstorage-ng
       #  a_lv.name #=> "/dev/vgname/lvname"
       # revisit when such thing exist
-      match = /^\/dev\/\w*\/(\w*)$/.match(dev)
+      match = /^\/dev\/\w+\/(\w+)$/.match(dev)
       if match && match[1]
         lvs = devicegraph.logical_volumes.with(lv_name: match[1])
         return usable_pvs(lvs.vgs).map { |pv| pv.blk_device.name } unless lvs.empty?
