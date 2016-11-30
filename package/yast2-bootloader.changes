@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Nov 30 08:36:28 UTC 2016 - jreidinger@suse.com
+
+- Recommends syslinux as it is often used by generic_mbr, but it
+  is not hard requirement (bsc#1004229)
+- 3.2.11
+
+-------------------------------------------------------------------
 Tue Nov 22 18:38:42 UTC 2016 - jreidinger@suse.com
 
 - Do not crash in bootloader when default mount by is set to label
