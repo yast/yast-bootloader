@@ -100,7 +100,7 @@ module Bootloader
 
       other_devices_size = size - grub_devices.size
 
-      (BIOS_LIMIT - other_devices_size..grub_devices.size).each do |index|
+      (BIOS_LIMIT - other_devices_size..(grub_devices.size - 1)).each do |index|
         remove_mapping(grub_devices[index])
       end
 
