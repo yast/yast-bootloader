@@ -8,7 +8,7 @@
     - partition:
         size:         1 MiB
         name:         /dev/vda1
-        id:           gpt_bios
+        id:           bios_boot
         file_system:  vfat
         uuid:         3de29985-8cc6-4c9d-8562-2ede26b0c5b6
 
