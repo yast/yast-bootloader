@@ -3,6 +3,7 @@ require "yast"
 require "yast2/execute"
 require "yast2/target_file" # adds ability to work with cfa in inst-sys
 require "bootloader/bootloader_base"
+require "bootloader/exceptions"
 require "bootloader/sections"
 require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
@@ -134,7 +135,7 @@ module Bootloader
 
     def enable_serial_console(console)
       console = SerialConsole.load_from_console_args(console)
-      raise "Invalid console parameters" unless console
+      raise ::Bootloader::BrokenConfiguration unless console
 
       grub_default.serial_console = console.console_args
 

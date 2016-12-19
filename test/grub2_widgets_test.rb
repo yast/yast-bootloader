@@ -483,7 +483,7 @@ describe Bootloader::ConsoleWidget do
 
     it "is valid if serial console arguments are provided" do
       stub_widget_value(:console_frame, true)
-      stub_widget_value(:console_args, "console=ttyS0,9600n8")
+      stub_widget_value(:console_args, "serial --unit=0 --speed=9600 --parity=no --stop=8")
 
       expect(subject.validate).to eq true
     end
@@ -496,6 +496,16 @@ describe Bootloader::ConsoleWidget do
       expect(Yast::UI).to receive(:SetFocus).with(Id(:console_args))
       expect(subject.validate).to eq false
     end
+
+    it "reports an error if serial console is not correct" do
+      stub_widget_value(:console_frame, true)
+      stub_widget_value(:console_args, "serial --speed=5")
+
+      expect(Yast::Report).to receive(:Error)
+      expect(Yast::UI).to receive(:SetFocus).with(Id(:console_args))
+      expect(subject.validate).to eq false
+    end
+
   end
 
   context "initialization" do

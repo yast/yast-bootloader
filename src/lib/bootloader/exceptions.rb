@@ -25,4 +25,11 @@ module Bootloader
         "Please use YaST2 bootloader to fix it. Details: %s") % msg
     end
   end
+
+  class InvalidSerialConsoleArguments < RuntimeError
+    MESSAGE = "Invalid serial console arguments"
+    def initialize(msg = MESSAGE)
+      super
+    end
+  end
 end
