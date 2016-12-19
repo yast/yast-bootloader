@@ -496,7 +496,7 @@ module Bootloader
           n = _("NUM")
           syntax = "serial --unit=#{n} --speed=#{n} --parity={odd|even|no} --word=#{n} --stop=#{n}"
           # Translators: do not translate "unit"
-          msg = _("To enable the serial console you must provide the corresponding arguments.\n"
+          msg = _("To enable the serial console you must provide the corresponding arguments.\n" \
           "The \"unit\" argument is required, the complete syntax is:\n%s") % syntax
           Yast::Report.Error(msg)
           Yast::UI.SetFocus(Id(:console_args))
