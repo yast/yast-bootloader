@@ -490,15 +490,17 @@ module Bootloader
           return false
         end
         if ::Bootloader::SerialConsole.load_from_console_args(console_value).nil?
-          Yast::Report.Error(
-            _("To enable serial console you must provide the corresponding arguments.\n" \
-              "Minimal requirement is unit parameter.\nWhole format is " \
-              "\"serial --speed=<number> --unit=<number> --word=<number> --parity=<odd|even|no> " \
-              "--stop=<number>\"")
-          )
+          # Translators: NUM is an abbreviation for "number", to be substituted in a command
+          # like "serial --unit=NUM --speed=NUM --parity={odd|even|no} --word=NUM --stop=NUM"
+          # so do not use punctuation
+          n = _("NUM")
+          syntax = "serial --unit=#{n} --speed=#{n} --parity={odd|even|no} --word=#{n} --stop=#{n}"
+          # Translators: do not translate "unit"
+          msg = _("To enable the serial console you must provide the corresponding arguments.\n"
+          "The \"unit\" argument is required, the complete syntax is:\n%s") % syntax
+          Yast::Report.Error(msg)
           Yast::UI.SetFocus(Id(:console_args))
           return false
-
         end
       end
       true
