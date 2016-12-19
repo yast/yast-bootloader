@@ -491,8 +491,8 @@ module Bootloader
         end
         if ::Bootloader::SerialConsole.load_from_console_args(console_value).nil?
           Yast::Report.Error(
-            _("To enable serial console you must provide the corresponding arguments. " \
-              "Minimal requirement is unit parameter. Whole format is " \
+            _("To enable serial console you must provide the corresponding arguments.\n" \
+              "Minimal requirement is unit parameter.\nWhole format is " \
               "\"serial --speed=<number> --unit=<number> --word=<number> --parity=<odd|even|no> " \
               "--stop=<number>\"")
           )
