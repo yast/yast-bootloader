@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Dec 19 12:40:33 UTC 2016 - jreidinger@suse.com
+
+- provide more helpful error message when invalid arguments for
+  serial console is provided (bsc#1012383)
+- 3.2.13
+
+-------------------------------------------------------------------
 Mon Dec  5 13:58:33 UTC 2016 - jreidinger@suse.com
 
 - stop failing with new cfa ( caused by deleting nil, change
