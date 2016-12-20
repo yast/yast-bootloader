@@ -8,7 +8,7 @@ require "bootloader/stage1_device"
 module Bootloader
   # Represents object that can set passed stage1 to proposed values.
   # It is highly coupled with Stage1 class and it is recommended to use
-  # {Stage1#proposal} instead of direct usage of this class.
+  # {Bootloader::Stage1#propose} instead of direct usage of this class.
   class Stage1Proposal
     include Yast::Logger
 
