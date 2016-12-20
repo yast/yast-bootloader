@@ -1,9 +1,39 @@
 -------------------------------------------------------------------
+Mon Dec  5 13:58:33 UTC 2016 - jreidinger@suse.com
+
+- stop failing with new cfa ( caused by deleting nil, change
+  in cfa needed for bsc#983486 )
+
+-------------------------------------------------------------------
+Wed Nov 30 08:36:28 UTC 2016 - jreidinger@suse.com
+
+- Recommends syslinux as it is often used by generic_mbr, but it
+  is not hard requirement (bsc#1004229)
+
+-------------------------------------------------------------------
+Tue Nov 22 18:38:42 UTC 2016 - jreidinger@suse.com
+
+- Do not crash in bootloader when default mount by is set to label
+  (bsc#1009493)
+
+-------------------------------------------------------------------
 Tue Nov 22 16:52:31 UTC 2016 - ancor@suse.com
 
 - storage-ng: fixed minimal EFI proposal
 - storage-ng: made minimal legacy proposal work
 - 3.3.1
+
+-------------------------------------------------------------------
+Tue Nov 22 13:41:42 UTC 2016 - jreidinger@suse.com
+
+- use proper sources when doing kexec (bsc#981434)
+
+-------------------------------------------------------------------
+Wed Nov 16 14:19:14 UTC 2016 - jreidinger@suse.com
+
+- when protecting modification of kernel parameters by password,
+  add also rd.shell=0 parameter to avoid getting into initrd shell
+  (bsc#1009220)
 
 -------------------------------------------------------------------
 Mon Nov 14 14:21:16 UTC 2016 - lslezak@suse.cz

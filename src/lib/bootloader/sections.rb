@@ -32,7 +32,7 @@ module Bootloader
     end
 
     # Sets default section internally.
-    # @param [String] new boot title to boot
+    # @param [String] value of new boot title to boot
     # @note to write it to system use #write later
     def default=(value)
       log.info "set new default to '#{value.inspect}'"

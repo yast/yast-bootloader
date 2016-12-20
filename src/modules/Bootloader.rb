@@ -298,7 +298,7 @@ module Yast
     # Gets value for given parameter in kernel parameters for given flavor.
     # @param [Symbol] flavor flavor of kernel, for possible values see #modify_kernel_param
     # @param [String] key of parameter on kernel command line
-    # @returns [String,:missing,:present] Returns string for parameters with value,
+    # @return [String,:missing,:present] Returns string for parameters with value,
     #   `:missing` if key is not there and `:present` for parameters without value.
     #
     # @example get crashkernel parameter to common kernel
@@ -455,9 +455,8 @@ module Yast
 
     NONSPLASH_VGA_VALUES = ["", "false", "ask"].freeze
 
-    # store new vgamode if needed and regenerate initrd in such case
-    # @param params_to_save used to store predefined vgamode value
-    # @return boolean if succeed
+    # regenerates initrd if needed
+    # @return boolean true if succeed
     def write_initrd
       return true unless Initrd.changed
 

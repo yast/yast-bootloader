@@ -1,8 +1,10 @@
 #! /usr/bin/env rspec --format doc
+# encoding: utf-8
 
 require_relative "./test_helper"
 
 require "bootloader/sections"
+require "cfa/memory_file"
 
 describe Bootloader::Sections do
   subject do
@@ -50,6 +52,24 @@ describe Bootloader::Sections do
 
       expect(subject.default).to eq "windows"
     end
+
+    it "raises exception if section do not exists" do
+      expect { subject.default = "non-exist" }.to raise_error(RuntimeError)
+    end
+
+    # disabled as failing on older ruby
+    #    it "handles localized grub.cfg" do
+    #      data_path = File.expand_path("../data/grub.cfg", __FILE__)
+    #      file = CFA::MemoryFile.new(File.read(data_path))
+    #      grub_cfg = CFA::Grub2::GrubCfg.new(file_handler: file)
+    #      grub_cfg.load
+    #
+    #      sections = Bootloader::Sections.new(grub_cfg)
+    #
+    #      expect { sections.default = "openSUSE Tumbleweed, с Linux 4.8.6-2-default" }.to_not raise_error
+    #      expect { sections.default = "openSUSE Tumbleweed, \u0441 Linux 4.8.6-2-default" }.to_not raise_error
+    #      expect { sections.default = "openSUSE Tumbleweed, \xD1\x81 Linux 4.8.6-2-default" }.to_not raise_error
+    #    end
   end
 
   describe "#write" do

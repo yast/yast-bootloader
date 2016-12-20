@@ -2,6 +2,7 @@ require "yast"
 
 require "bootloader/generic_widgets"
 require "bootloader/device_map_dialog"
+require "cfa/matcher"
 
 Yast.import "BootStorage"
 Yast.import "Initrd"
@@ -409,6 +410,8 @@ module Bootloader
 
     def store
       usepass = Yast::UI.QueryWidget(Id(:use_pas), :Value)
+      matcher = CFA::Matcher.new(key: "rd.shell")
+      grub_default.kernel_params.remove_parameter(matcher)
       if !usepass
         password.used = false
         return
@@ -421,6 +424,7 @@ module Bootloader
       password.password = value if value != MASKED_PASSWORD
 
       value = Yast::UI.QueryWidget(Id(:unrestricted_pw), :Value)
+      grub_default.kernel_params.add_parameter("rd.shell", "0") if value
       password.unrestricted = value
     end
 
@@ -430,7 +434,9 @@ module Bootloader
           "At boot time, modifying or even booting any entry will require the" \
           " password. If <b>Protect Entry Modification Only</b> is checked then " \
           "booting any entry is not restricted but modifying entries requires " \
-          "the password (which is the way GRUB 1 behaved).<br>" \
+          "the password (which is the way GRUB 1 behaved). As side-effect of " \
+          "this option, rd.shell=0 is added to kernel parameters, to prevent " \
+          "an unauthorized access to the initrd shell.<br>" \
           "YaST will only accept the password if you repeat it in " \
           "<b>Retype Password</b>. The password applies to the GRUB2 user 'root' " \
           "which is distinct from the Linux 'root'. YaST currently does not support" \
