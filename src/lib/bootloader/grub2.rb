@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require "yast"
+require "y2storage"
 require "bootloader/grub2base"
 require "bootloader/mbr_update"
 require "bootloader/device_map"
@@ -18,6 +19,9 @@ module Bootloader
     attr_reader :device_map
     # @return [Boolean]
     attr_accessor :trusted_boot
+
+    using Y2Storage::Refinements::DevicegraphLists
+    using Y2Storage::Refinements::Disk
 
     def initialize
       super
@@ -161,12 +165,16 @@ module Bootloader
 
   private
 
+    def devicegraph
+      Y2Storage::StorageManager.instance.staging
+    end
+
     def gpt_disks_devices
       boot_devices = stage1.devices
-      boot_discs = boot_devices.map { |d| Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, d) }
-      boot_discs.uniq!
-      gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
-      gpt_disks.map { |d| d["device"] }
+      boot_discs = devicegraph.disks.with(name: boot_devices).to_a
+      boot_discs += devicegraph.partitions.with(name: boot_devices).disks.to_a
+      gpt_disks = boot_discs.select { |d| d.gpt? }
+      gpt_disks.map { |d| d.name }.uniq
     end
 
     def disk_order_summary
