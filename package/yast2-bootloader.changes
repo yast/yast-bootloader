@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec 20 17:38:07 UTC 2016 - ancor@suse.com
+
+- storage-ng: fixed minimal legacy proposal to work with GPT
+- 3.3.2
+
+-------------------------------------------------------------------
 Mon Dec  5 13:58:33 UTC 2016 - jreidinger@suse.com
 
 - stop failing with new cfa ( caused by deleting nil, change
