@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Dec 21 12:19:53 UTC 2016 - ancor@suse.com
+
+- storage-ng: simplify code by using a new query function in
+  yast2-storage-ng (#with_name_or_partition)
+- 3.3.3
+
+-------------------------------------------------------------------
 Tue Dec 20 17:38:07 UTC 2016 - ancor@suse.com
 
 - storage-ng: fixed minimal legacy proposal to work with GPT
