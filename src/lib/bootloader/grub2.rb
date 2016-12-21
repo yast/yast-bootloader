@@ -171,10 +171,9 @@ module Bootloader
 
     def gpt_disks_devices
       boot_devices = stage1.devices
-      boot_discs = devicegraph.disks.with(name: boot_devices).to_a
-      boot_discs += devicegraph.partitions.with(name: boot_devices).disks.to_a
+      boot_discs = devicegraph.disks.with_name_or_partition(boot_devices)
       gpt_disks = boot_discs.select { |d| d.gpt? }
-      gpt_disks.map { |d| d.name }.uniq
+      gpt_disks.map { |d| d.name }
     end
 
     def disk_order_summary

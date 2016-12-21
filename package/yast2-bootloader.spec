@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        3.3.2
+Version:        3.3.3
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -27,7 +27,8 @@ Url:            http://github.com/yast/yast-bootloader
 BuildRequires:  yast2 >= 3.1.176
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  yast2-ruby-bindings >= 1.0.0
-BuildRequires:  yast2-storage-ng >= 0.1.5
+# DisksList#with_name_or_partition
+BuildRequires:  yast2-storage-ng >= 0.1.6
 # lenses needed also for tests
 BuildRequires:  augeas-lenses
 BuildRequires:  rubygem(%rb_default_ruby_abi:cfa_grub2) >= 0.5.1

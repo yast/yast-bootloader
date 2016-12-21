@@ -53,7 +53,7 @@ describe Bootloader::Grub2 do
       subject.write
     end
 
-    xit "changes pmbr flag as specified in pmbr_action for all boot devices with gpt label" do
+    it "changes pmbr flag as specified in pmbr_action for all boot devices with gpt label" do
       stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
