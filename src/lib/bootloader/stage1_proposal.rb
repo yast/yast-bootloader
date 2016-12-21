@@ -186,9 +186,7 @@ module Bootloader
 
       def boot_partition_on_mbr_disk?
         underlaying_boot_partition_devices.any? do |dev|
-          disk = devicegraph.disks.with(name: dev).first
-          disk ||= devicegraph.partitions.with(name: dev).disks.first
-
+          disk = devicegraph.disks.with_name_or_partition(dev).first
           disk && disk.name == Yast::BootStorage.mbr_disk
         end
       end

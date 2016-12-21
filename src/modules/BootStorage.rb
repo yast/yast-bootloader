@@ -66,8 +66,7 @@ module Yast
       return false unless current_bl.respond_to?(:stage1)
 
       targets = current_bl.stage1.devices
-      boot_disks = staging.disks.with(name: targets)
-      boot_disks += staging.partitions.with(name: targets).disks
+      boot_disks = staging.disks.with_name_or_partition(targets)
 
       boot_disks.any? { |disk| disk.gpt? }
     end
@@ -110,8 +109,7 @@ module Yast
 
     # Get extended partition for given partition or disk
     def extended_partition_for(device)
-      disk_list = staging.disks.with(name: device)
-      disk_list ||= staging.partitions.with(name: device).disks
+      disk_list = staging.disks.with_name_or_partition(device)
       return nil if disk_list.empty?
 
       part = disk_list.partitions.with(type: Storage::PartitionType_EXTENDED).first
