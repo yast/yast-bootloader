@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan  3 09:36:01 UTC 2017 - jreidinger@suse.com
+
+- do not try to write legacy_boot flag for msdos partition table
+  in more disks scenario when there is also GPT disk (bsc#1017776)
+- 3.1.207
+
+-------------------------------------------------------------------
 Fri Nov 11 12:09:59 UTC 2016 - jreidinger@suse.com
 
 - Do not crash in bootloader when default mount by is set to label

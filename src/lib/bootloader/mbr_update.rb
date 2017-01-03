@@ -45,9 +45,9 @@ module Bootloader
       backups.each(&:write)
     end
 
-    def mbr_is_gpt?
-      mbr_storage_object = target_map[mbr_disk]
-      raise "Cannot find in storage mbr disk #{mbr_disk}" unless mbr_storage_object
+    def gpt?(disk)
+      mbr_storage_object = target_map[disk]
+      raise "Cannot find in storage mbr disk #{disk}" unless mbr_storage_object
       mbr_type = mbr_storage_object["label"]
       log.info "mbr type = #{mbr_type}"
       mbr_type == "gpt"
@@ -55,8 +55,8 @@ module Bootloader
 
     GPT_MBR = "/usr/share/syslinux/gptmbr.bin".freeze
     DOS_MBR = "/usr/share/syslinux/mbr.bin".freeze
-    def generic_mbr_file
-      @generic_mbr_file ||= mbr_is_gpt? ? GPT_MBR : DOS_MBR
+    def generic_mbr_file_for(disk)
+      @generic_mbr_file ||= gpt?(disk) ? GPT_MBR : DOS_MBR
     end
 
     def install_generic_mbr
@@ -65,7 +65,7 @@ module Bootloader
       disks_to_rewrite.each do |disk|
         log.info "Copying generic MBR code to #{disk}"
         # added fix 446 -> 440 for Vista booting problem bnc #396444
-        command = ["/bin/dd", "bs=440", "count=1", "if=#{generic_mbr_file}", "of=#{disk}"]
+        command = ["/bin/dd", "bs=440", "count=1", "if=#{generic_mbr_file_for(disk)}", "of=#{disk}"]
         Yast::Execute.locally(*command)
       end
     end
@@ -95,9 +95,9 @@ module Bootloader
       end
     end
 
-    def can_activate_partition?(num)
+    def can_activate_partition?(disk, num)
       # if primary partition on old DOS MBR table, GPT do not have such limit
-      gpt_disk = mbr_is_gpt?
+      gpt_disk = gpt?(disk)
 
       !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || num <= 4)
     end
@@ -105,19 +105,19 @@ module Bootloader
     def activate_partitions
       partitions_to_activate.each do |m_activate|
         num = m_activate["num"]
-        mbr_dev = m_activate["mbr"]
-        if num.nil? || mbr_dev.nil?
+        disk = m_activate["mbr"]
+        if num.nil? || disk.nil?
           raise "INTERNAL ERROR: Data for partition to activate is invalid."
         end
 
-        next unless can_activate_partition?(num)
+        next unless can_activate_partition?(disk, num)
 
-        log.info "Activating partition #{num} on #{mbr_dev}"
+        log.info "Activating partition #{num} on #{disk}"
         # set corresponding flag only bnc#930903
-        if mbr_is_gpt?
-          set_parted_flag(mbr_dev, num, "legacy_boot")
+        if gpt?(disk)
+          set_parted_flag(disk, num, "legacy_boot")
         else
-          set_parted_flag(mbr_dev, num, "boot")
+          set_parted_flag(disk, num, "boot")
         end
       end
     end
