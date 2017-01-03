@@ -160,7 +160,7 @@ module Bootloader
         ids[index] = true
       end
 
-      log.info "complete initial device map filling: #{to_s}"
+      log.info "complete initial device map filling: #{self}"
     end
 
     def filtered_target_map

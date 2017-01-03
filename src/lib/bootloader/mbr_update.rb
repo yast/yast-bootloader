@@ -45,7 +45,7 @@ module Bootloader
       backups.each(&:write)
     end
 
-    def is_gpt?(disk)
+    def gpt?(disk)
       mbr_storage_object = target_map[disk]
       raise "Cannot find in storage mbr disk #{disk}" unless mbr_storage_object
       mbr_type = mbr_storage_object["label"]
@@ -56,7 +56,7 @@ module Bootloader
     GPT_MBR = "/usr/share/syslinux/gptmbr.bin".freeze
     DOS_MBR = "/usr/share/syslinux/mbr.bin".freeze
     def generic_mbr_file_for(disk)
-      @generic_mbr_file ||= is_gpt?(disk) ? GPT_MBR : DOS_MBR
+      @generic_mbr_file ||= gpt?(disk) ? GPT_MBR : DOS_MBR
     end
 
     def install_generic_mbr
@@ -97,7 +97,7 @@ module Bootloader
 
     def can_activate_partition?(disk, num)
       # if primary partition on old DOS MBR table, GPT do not have such limit
-      gpt_disk = is_gpt?(disk)
+      gpt_disk = gpt?(disk)
 
       !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || num <= 4)
     end
@@ -114,7 +114,7 @@ module Bootloader
 
         log.info "Activating partition #{num} on #{disk}"
         # set corresponding flag only bnc#930903
-        if is_gpt?(disk)
+        if gpt?(disk)
           set_parted_flag(disk, num, "legacy_boot")
         else
           set_parted_flag(disk, num, "boot")
