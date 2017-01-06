@@ -120,9 +120,6 @@ module Bootloader
 
       propose_serial
 
-      # we proposing new config and we do not know sections yet, so propose empty
-      @sections.default = ""
-
       nil
     end
 
