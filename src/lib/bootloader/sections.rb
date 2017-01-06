@@ -12,23 +12,16 @@ module Bootloader
     #   with grub_cfg otherwise it is empty array
     attr_reader :all
 
+    # @return [String] title of default boot section. It is not full path,
+    #   so it should be reasonable short
+    attr_reader :default
+
     # @param [CFA::Grub2::GrubCfg, nil] grub_cfg - loaded parsed grub cfg tree
     # or nil if not available yet
     def initialize(grub_cfg = nil)
       @data = grub_cfg ? grub_cfg.boot_entries : []
       @all = @data.map { |e| e[:title] }
-    end
-
-    # @return [String] title of default boot section. It is not full path,
-    #   so it should be reasonable short
-    def default
-      return @default if @default
-
-      return @default = "" if Yast::Stage.initial
-
-      default_path = read_default_path
-
-      @default = default_path ? path_to_title(default_path) : all.first || ""
+      @default = grub_cfg ? read_default : ""
     end
 
     # Sets default section internally.
@@ -52,16 +45,18 @@ module Bootloader
 
   private
 
-    # @return [String, nil] return default boot path as string or nil if not set
+    # @return [String] return default boot path as string or "" if not set
     #   or something goes wrong
     # @note shows error popup if calling grub2-editenv failed
-    def read_default_path
+    def read_default
       # Execute.on_target can return nil if call failed. It shows users error popup, but bootloader
       # can continue with empty default section
       saved = Yast::Execute.on_target("/usr/bin/grub2-editenv", "list", stdout: :capture) || ""
-      saved_line = saved.lines.grep(/saved_entry=/).first
+      saved_line = saved.lines.grep(/saved_entry=/).first || ""
 
-      saved_line ? saved_line[/saved_entry=(.*)$/, 1] : nil
+      default_path = saved_line[/saved_entry=(.*)$/, 1]
+
+      default_path ? path_to_title(default_path) : all.first || ""
     end
 
     # @return [String] convert grub boot path to title that can be displayed. If

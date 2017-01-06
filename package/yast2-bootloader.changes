@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan  6 13:22:36 UTC 2017 - jreidinger@suse.com
+
+- do not crash when switching from no bootloader to grub2 when
+  grub2 package is not installed (bsc#1018280)
+- 3.2.14
+
+-------------------------------------------------------------------
 Tue Jan  3 09:36:01 UTC 2017 - jreidinger@suse.com
 
 - do not try to write legacy_boot flag for msdos partition table
