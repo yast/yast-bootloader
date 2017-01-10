@@ -103,7 +103,7 @@ module Yast
 
     def remapGlobals(globals_set)
       if Mode.config || # AutoYaST configuration mode --> no Storage available
-        !Arch.ppc && Storage.GetDefaultMountBy == :label
+          !Arch.ppc && Storage.GetDefaultMountBy == :label
         return globals_set
       end
 
