@@ -43,8 +43,9 @@ module Bootloader
     # or to label (ufo_disk)
     # @return [Hash{String => String}] new device map
     def remapped_hash
-      if !Yast::Arch.ppc
-        return to_hash if Yast::Storage.GetDefaultMountBy == :label
+      if Yast::Mode.config || # AutoYaST configuration mode --> no Storage available
+        !Arch.ppc && Storage.GetDefaultMountBy == :label
+        return to_hash
       end
 
       # convert device names in device map to the device names by device or label
