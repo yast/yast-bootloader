@@ -44,7 +44,7 @@ module Bootloader
     # @return [Hash{String => String}] new device map
     def remapped_hash
       if Yast::Mode.config || # AutoYaST configuration mode --> no Storage available
-          !Arch.ppc && Storage.GetDefaultMountBy == :label
+          !Yast::Arch.ppc && Yast::Storage.GetDefaultMountBy == :label
         return to_hash
       end
 
