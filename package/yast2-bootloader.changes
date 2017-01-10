@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan 10 10:57:15 CET 2017 - schubi@suse.de
+
+- AutoYaST: Do not crash while editing settings in AutoYaST
+  configuration module (with device_maps) (bnc#1018180)
+- 3.1.163
+
+-------------------------------------------------------------------
 Tue Nov 29 09:17:26 UTC 2016 - jreidinger@suse.com
 
 - do not crash for empty device partition like partitions living
