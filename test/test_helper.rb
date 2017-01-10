@@ -4,6 +4,9 @@ require "yast"
 require "yast/rspec"
 require "yaml"
 
+# force utf-8 encoding for external
+Encoding.default_external = Encoding::UTF_8
+
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
     # If you misremember a method name both in code and in tests,
