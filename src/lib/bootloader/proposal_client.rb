@@ -153,7 +153,7 @@ module Bootloader
 
       ret["links"] = PROPOSAL_LINKS # use always possible links even if it maybe not used
       ret["raw_proposal"] = Yast::Bootloader.Summary
-      ret["label_proposal"] = Yast::Bootloader.Summary
+      ret["label_proposal"] = Yast::Bootloader.Summary(simple_mode: true)
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso:  bootloader will not be installed
