@@ -126,7 +126,7 @@ module Bootloader
       result << url_location_summary unless no_location
 
       order_sum = disk_order_summary
-      result << order_sum if order_sum
+      result << order_sum unless order_sum.empty?
 
       result
     end
