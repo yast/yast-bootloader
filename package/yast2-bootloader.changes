@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 25 12:57:38 UTC 2017 - mvidner@suse.com
+
+- Implement simple_mode -> label_proposal (FATE#322328)
+- 3.1.208
+
+-------------------------------------------------------------------
 Tue Jan  3 09:36:01 UTC 2017 - jreidinger@suse.com
 
 - do not try to write legacy_boot flag for msdos partition table
