@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jan 25 12:57:38 UTC 2017 - mvidner@suse.com
+
+- Implement simple_mode -> label_proposal (FATE#322328)
+- 3.2.15
+
+-------------------------------------------------------------------
 Fri Jan  6 13:22:36 UTC 2017 - jreidinger@suse.com
 
 - do not crash when switching from no bootloader to grub2 when

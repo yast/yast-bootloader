@@ -100,7 +100,7 @@ module Bootloader
 
     # Display bootloader summary
     # @return a list of summary lines
-    def summary
+    def summary(simple_mode: false)
       result = [
         Yast::Builtins.sformat(
           _("Boot Loader Type: %1"),
@@ -123,10 +123,11 @@ module Bootloader
       # other mode than autoyast on running system
       # both ppc and s390 have special devices for stage1 so it do not make sense
       # allow change of location to MBR or boot partition (bnc#879107)
-      result << url_location_summary if !Yast::Arch.ppc && !Yast::Arch.s390 && !Yast::Mode.config
+      no_location = simple_mode || Yast::Arch.ppc || Yast::Arch.s390 || Yast::Mode.config
+      result << url_location_summary unless no_location
 
       order_sum = disk_order_summary
-      result << order_sum if order_sum
+      result << order_sum unless order_sum.empty?
 
       result
     end
