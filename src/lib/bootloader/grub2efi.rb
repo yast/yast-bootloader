@@ -70,8 +70,7 @@ module Bootloader
 
     # Display bootloader summary
     # @return a list of summary lines
-
-    def summary
+    def summary(*)
       [
         Yast::Builtins.sformat(
           _("Boot Loader Type: %1"),
