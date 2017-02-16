@@ -27,7 +27,7 @@ module Bootloader
     end
 
     def to_s
-      "Device Map: #{grub_devices}"
+      "Device Map: #{to_hash}"
     end
 
     def read
@@ -77,6 +77,10 @@ module Bootloader
       order_boot_device
 
       reduce_to_bios_limit
+    end
+
+    def to_hash
+      grub_devices.each_with_object({}) { |k, r| r[k] = system_device_for(k) }
     end
 
   private
@@ -167,6 +171,8 @@ module Bootloader
         add_mapping("hd#{index}", target_dev)
         ids[index] = true
       end
+
+      log.info "complete initial device map filling: #{self}"
 =end
     end
 
