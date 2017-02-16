@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        3.3.3
+Version:        3.3.4
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -42,7 +42,8 @@ Requires:       yast2 >= 3.1.176
 Requires:       yast2-core >= 2.18.7
 Requires:       yast2-packager >= 2.17.24
 Requires:       yast2-pkg-bindings >= 2.17.25
-Requires:       yast2-storage-ng >= 0.1.4
+# Support for encrypted devices in DevicesList
+Requires:       yast2-storage-ng >= 0.1.11
 # GrubCfg with boot_entries that filter out unbootable entries
 Requires:       rubygem(%rb_default_ruby_abi:cfa_grub2) >= 0.5.1
 # lenses are needed as cfa_grub2 depends only on augeas bindings, but also

@@ -171,7 +171,7 @@ module Bootloader
 
       def with_btrfs?(partition)
         partition.filesystem.type == ::Storage::FsType_BTRFS
-      rescue Storage::WrongNumberOfChildren
+      rescue Storage::WrongNumberOfChildren, Storage::DeviceHasWrongType
         # No filesystem in the partition
         false
       end
