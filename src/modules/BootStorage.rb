@@ -165,14 +165,24 @@ module Yast
       true
     end
 
-    # Find the blkdevice for the filesystem mounted at mountpoint. Returns nil
-    # if no filesystem is found or the filesystem has no blkdevice (e.g. NFS).
+    # Find the partition or disk for the filesystem mounted at mountpoint.
+    #
+    # Returns nil if no filesystem is found or the filesystem has no blkdevice
+    # (e.g. NFS).
+    #
+    # If the filesystem is in a virtual device (like a LUKS or LVM volume), it
+    # returns the (first) underlying partition or disk.
     def find_blk_device_at_mountpoint(mountpoint)
-      fses = Storage::Filesystem.find_by_mountpoint(staging, mountpoint)
+      fses = staging.filesystems.with_mountpoint(mountpoint)
       return nil if fses.empty?
-      return nil if fses[0].blk_devices.empty?
 
-      fses[0].blk_devices[0]
+      partitions = fses.partitions
+      partitions = fses.lvm_vgs.partitions if partitions.empty?
+      return partitions.first unless partitions.empty?
+
+      disks = fses.disks
+      disks = fses.lvm_vgs.disks if disks.empty?
+      disks.first
     end
 
     # Sets properly boot, root and mbr disk.
