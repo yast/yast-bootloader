@@ -1,4 +1,21 @@
 -------------------------------------------------------------------
+Wed Jan 25 12:57:38 UTC 2017 - mvidner@suse.com
+
+- Implement simple_mode -> label_proposal (FATE#322328)
+
+-------------------------------------------------------------------
+Fri Jan  6 13:22:36 UTC 2017 - jreidinger@suse.com
+
+- do not crash when switching from no bootloader to grub2 when
+  grub2 package is not installed (bsc#1018280)
+
+-------------------------------------------------------------------
+Tue Jan  3 09:36:01 UTC 2017 - jreidinger@suse.com
+
+- do not try to write legacy_boot flag for msdos partition table
+  in more disks scenario when there is also GPT disk (bsc#1017776)
+
+-------------------------------------------------------------------
 Wed Dec 21 12:19:53 UTC 2016 - ancor@suse.com
 
 - storage-ng: simplify code by using a new query function in

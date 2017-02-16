@@ -5,6 +5,9 @@ require "yast/rspec"
 require "yaml"
 require "y2storage"
 
+# force utf-8 encoding for external
+Encoding.default_external = Encoding::UTF_8
+
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
     # If you misremember a method name both in code and in tests,
@@ -24,9 +27,9 @@ if ENV["COVERAGE"]
     add_filter "/test/"
   end
 
-  # for coverage we need to load all ruby files
   src_location = File.expand_path("../../src", __FILE__)
-  Dir["#{src_location}/{module,lib}/**/*.rb"].each { |f| require_relative f }
+  # track all ruby files under src
+  SimpleCov.track_files("#{src_location}/**/*.rb")
 
   # use coveralls for on-line code coverage reporting at Travis CI
   if ENV["TRAVIS"]
