@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Wed Mar  1 16:42:18 UTC 2017 - jreidinger@suse.com
+
+- propose for xen hypervisor vga parameter if framebuffer is used
+  ( should fix issue with text only environment when fbdev driver
+  is used )
+  (FATE#322200)
+- 3.2.16
+
+-------------------------------------------------------------------
 Wed Jan 25 12:57:38 UTC 2017 - mvidner@suse.com
 
 - Implement simple_mode -> label_proposal (FATE#322328)

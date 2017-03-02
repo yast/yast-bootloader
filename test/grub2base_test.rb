@@ -310,6 +310,24 @@ describe Bootloader::Grub2Base do
       end
     end
 
+    context "xen hyperviser kernel parameters proposal" do
+      it "do nothing if there is no framebuffer" do
+        allow(Dir).to receive(:[]).and_return([])
+
+        subject.propose
+
+        expect(subject.grub_default.xen_hypervisor_params.parameter("vga")).to eq false
+      end
+
+      it "propose vga parameter if there is framebuffer" do
+        allow(Dir).to receive(:[]).and_return(["/dev/fb0"])
+
+        subject.propose
+
+        expect(subject.grub_default.xen_hypervisor_params.parameter("vga")).to eq "gfx-1024x768x16"
+      end
+    end
+
     it "proposes gfx mode to auto" do
       subject.propose
 
