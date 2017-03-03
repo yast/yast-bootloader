@@ -63,15 +63,6 @@ module Yast
       UI.PollInput == :abort
     end
 
-    # bnc #419197 yast2-bootloader does not correctly initialise libstorage
-    # Function try initialize yast2-storage
-    # if other module used it then don't continue with initialize
-    # @return [Boolean] true on success
-
-    def checkUsedStorage
-      Storage.InitLibstorage(true) || !Mode.normal
-    end
-
     # Export bootloader settings to a map
     # @return bootloader settings
     def Export
@@ -143,8 +134,6 @@ module Yast
       return false if testAbort
 
       Progress.NextStage
-      return false if !checkUsedStorage
-
       BootStorage.detect_disks
 
       Progress.NextStage
