@@ -69,7 +69,7 @@ module Yast
     # @return [Boolean] true on success
 
     def checkUsedStorage
-      Storage.InitLibstorage(true) || !Mode.normal
+      true
     end
 
     # Export bootloader settings to a map
