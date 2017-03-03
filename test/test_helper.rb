@@ -87,7 +87,6 @@ RSpec.configure do |config|
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
     allow(::Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
     allow(::Bootloader::Stage1Device).to receive(:new) { |d| double(real_devices: [d]) }
-    allow(::Yast::Bootloader).to receive(:checkUsedStorage).and_return(true)
     allow(Yast::BootStorage).to receive(:detect_disks) # do not do real disk detection
   end
 end
