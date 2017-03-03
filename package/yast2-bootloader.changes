@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Mar  3 15:33:11 CET 2017 - snwint@suse.de
+
+- storage-ng: avoid call to old libstorage
+- 3.3.5
+
+-------------------------------------------------------------------
 Thu Feb 16 14:47:03 UTC 2017 - ancor@suse.com
 
 - storage-ng: fixed proposal to work with LVM and encrypted LVM
