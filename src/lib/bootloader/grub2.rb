@@ -78,7 +78,11 @@ module Bootloader
       end
       # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
       # powernv do not have prep partition, so we do not have any partition to activate (bnc#970582)
+# storage-ng
+# the default is not to install into mbr
+=begin
       MBRUpdate.new.run(stage1) if !Yast::Arch.s390 && !Yast::Arch.board_powernv
+=end
     end
 
     def propose

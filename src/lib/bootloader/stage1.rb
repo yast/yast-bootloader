@@ -37,7 +37,11 @@ module Bootloader
     end
 
     def write
+# storage-ng
+# we normally don't need grub_installdevice
+=begin
       @model.save
+=end
     end
 
     # Checks if given device is used as stage1 location
