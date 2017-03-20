@@ -1,6 +1,7 @@
 require_relative "test_helper"
 
 require "bootloader/grub2_widgets"
+require "cwm/rspec"
 
 def assign_bootloader(name = "grub2")
   Bootloader::BootloaderFactory.clear_cache
@@ -248,6 +249,10 @@ describe Bootloader::SecureBootWidget do
 
     expect(bootloader.secure_boot).to eq true
   end
+end
+
+describe Bootloader::TrustedBootWidget do
+  include_examples "CWM::AbstractWidget"
 end
 
 describe Bootloader::GrubPasswordWidget do
@@ -668,6 +673,10 @@ describe Bootloader::DefaultSectionWidget do
   end
 end
 
+describe Bootloader::LoaderLocationWidget do
+  include_examples "CWM::CustomWidget"
+end
+
 describe Bootloader::DeviceMapWidget do
   before do
     assign_bootloader
@@ -680,4 +689,16 @@ describe Bootloader::DeviceMapWidget do
 
     subject.handle
   end
+end
+
+describe Bootloader::KernelTab do
+  include_examples "CWM::Tab"
+end
+
+describe Bootloader::BootCodeTab do
+  include_examples "CWM::Tab"
+end
+
+describe Bootloader::BootloaderTab do
+  include_examples "CWM::Tab"
 end
