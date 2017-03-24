@@ -66,8 +66,8 @@ module Bootloader
     rescue ::Bootloader::NoRoot
       {
         "label_proposal" => [],
-        "warning_level" => :fatal,
-        "warning" => _("Cannot detect device mounted as root. Please check partitioning.")
+        "warning_level"  => :fatal,
+        "warning"        => _("Cannot detect device mounted as root. Please check partitioning.")
       }
     end
 
