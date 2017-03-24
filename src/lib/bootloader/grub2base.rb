@@ -120,6 +120,7 @@ module Bootloader
       grub_default.generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", "true")
 
       propose_serial
+      propose_xen_hypervisor
 
       nil
     end
@@ -268,6 +269,14 @@ module Bootloader
       return unless console
 
       grub_default.serial_console = console.console_args
+    end
+
+    def propose_xen_hypervisor
+      return if Dir["/dev/fb*"].empty?
+
+      matcher = CFA::Matcher.new(key: "vga")
+      placer = CFA::ReplacePlacer.new(matcher)
+      grub_default.xen_hypervisor_params.add_parameter("vga", "gfx-1024x768x16", placer)
     end
 
     def propose_resume

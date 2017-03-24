@@ -1,8 +1,37 @@
 -------------------------------------------------------------------
-Mon Dec 19 12:40:33 UTC 2016 - jreidinger@suse.com
+Wed Mar  1 17:42:18 UTC 2017 - jreidinger@suse.com
 
 - provide more helpful error message when invalid arguments for
   serial console are provided (bsc#1012383)
+- 3.2.17
+
+-------------------------------------------------------------------
+Wed Mar  1 16:42:18 UTC 2017 - jreidinger@suse.com
+
+- propose for xen hypervisor vga parameter if framebuffer is used
+  ( should fix issue with text only environment when fbdev driver
+  is used )
+  (FATE#322200)
+- 3.2.16
+
+-------------------------------------------------------------------
+Wed Jan 25 12:57:38 UTC 2017 - mvidner@suse.com
+
+- Implement simple_mode -> label_proposal (FATE#322328)
+- 3.2.15
+
+-------------------------------------------------------------------
+Fri Jan  6 13:22:36 UTC 2017 - jreidinger@suse.com
+
+- do not crash when switching from no bootloader to grub2 when
+  grub2 package is not installed (bsc#1018280)
+- 3.2.14
+
+-------------------------------------------------------------------
+Tue Jan  3 09:36:01 UTC 2017 - jreidinger@suse.com
+
+- do not try to write legacy_boot flag for msdos partition table
+  in more disks scenario when there is also GPT disk (bsc#1017776)
 - 3.2.13
 
 -------------------------------------------------------------------
