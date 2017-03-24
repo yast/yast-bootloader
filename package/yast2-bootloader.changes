@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 24 14:17:00 UTC 2017 - jreidinger@suse.com
+
+- Report user friendly message when no root partition is detected
+  instead of internal error. (bsc#1029293)
+- 3.2.18
+
+-------------------------------------------------------------------
 Wed Mar  1 17:42:18 UTC 2017 - jreidinger@suse.com
 
 - provide more helpful error message when invalid arguments for
