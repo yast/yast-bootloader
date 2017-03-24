@@ -461,7 +461,18 @@ module Bootloader
       )
     end
 
+    # Explanation for help and error messages
+    def syntax
+      # Translators: NUM is an abbreviation for "number",
+      # to be substituted in a command like
+      # "serial --unit=NUM --speed=NUM --parity={odd|even|no} --word=NUM --stop=NUM"
+      # so do not use punctuation
+      n = _("NUM")
+      "serial --unit=#{n} --speed=#{n} --parity={odd|even|no} --word=#{n} --stop=#{n}"
+    end
+
     def help
+      # Translators: do not translate the quoted parts like "unit"
       _(
         "When graphical console is used, it will allow to use beside other" \
         " features also different resolution. Option 'auto' try to find " \
@@ -469,11 +480,11 @@ module Bootloader
         "When serial console is in use, it allows to configure boot output " \
         "to be printed to serial device like ttyS0. It have to be configured "\
         " to write to device to it with format " \
-        "'serial --unit=NUM --speed=NUM --parity={odd|even|no} --word=NUM --stop=NUM'." \
+        "'%s'." \
         " Mandatory parts are are 'serial' and '--unit'. Other are optional and " \
         "if not set, then use defaults. NUM in commands start for positive number like 8." \
         " Example parameters are 'serial --speed=38400 --unit=0'."
-      )
+      ) % syntax
     end
 
     def init
@@ -505,11 +516,6 @@ module Bootloader
           return false
         end
         if ::Bootloader::SerialConsole.load_from_console_args(console_value).nil?
-          # Translators: NUM is an abbreviation for "number", to be substituted in a command
-          # like "serial --unit=NUM --speed=NUM --parity={odd|even|no} --word=NUM --stop=NUM"
-          # so do not use punctuation
-          n = _("NUM")
-          syntax = "serial --unit=#{n} --speed=#{n} --parity={odd|even|no} --word=#{n} --stop=#{n}"
           # Translators: do not translate "unit"
           msg = _("To enable the serial console you must provide the corresponding arguments.\n" \
           "The \"unit\" argument is required, the complete syntax is:\n%s") % syntax
