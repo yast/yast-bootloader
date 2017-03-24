@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Mar  1 17:42:18 UTC 2017 - jreidinger@suse.com
+
+- provide more helpful error message when invalid arguments for
+  serial console are provided (bsc#1012383)
+- 3.2.17
+
+-------------------------------------------------------------------
 Wed Mar  1 16:42:18 UTC 2017 - jreidinger@suse.com
 
 - propose for xen hypervisor vga parameter if framebuffer is used
