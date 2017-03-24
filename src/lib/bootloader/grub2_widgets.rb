@@ -461,6 +461,21 @@ module Bootloader
       )
     end
 
+    def help
+      _(
+        "When graphical console is used, it will allow to use beside other" \
+        " features also different resolution. Option 'auto' try to find " \
+        "the best one when boot start. \n" \
+        "When serial console is in use, it allows to configure boot output " \
+        "to be printed to serial device like ttyS0. It have to be configured "\
+        " to write to device to it with format " \
+        "'serial --unit=NUM --speed=NUM --parity={odd|even|no} --word=NUM --stop=NUM'." \
+        " Mandatory parts are are 'serial' and '--unit'. Other are optional and " \
+        "if not set, then use defaults. NUM in commands start for positive number like 8." \
+        " Example parameters are 'serial --speed=38400 --unit=0'."
+      )
+    end
+
     def init
       enable = grub_default.terminal == :serial
       Yast::UI.ChangeWidget(Id(:console_frame), :Value, enable)
