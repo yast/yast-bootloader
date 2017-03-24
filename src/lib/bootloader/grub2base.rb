@@ -135,7 +135,7 @@ module Bootloader
 
     def enable_serial_console(console)
       console = SerialConsole.load_from_console_args(console)
-      raise ::Bootloader::BrokenConfiguration unless console
+      raise ::Bootloader::InvalidSerialConsoleArguments unless console
 
       grub_default.serial_console = console.console_args
 

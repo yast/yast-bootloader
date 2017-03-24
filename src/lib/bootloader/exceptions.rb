@@ -27,7 +27,7 @@ module Bootloader
   end
 
   # Represents error when serial console arguments are not valid
-  class InvalidSerialConsoleArguments < RuntimeError
+  class InvalidSerialConsoleArguments < BrokenConfiguration
     MESSAGE = "Invalid serial console arguments".freeze
     def initialize(msg = MESSAGE)
       super
