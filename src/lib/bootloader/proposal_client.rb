@@ -1,4 +1,5 @@
 require "installation/proposal_client"
+require "bootloader/exceptions"
 require "bootloader/main_dialog"
 require "bootloader/bootloader_factory"
 
@@ -62,6 +63,12 @@ module Bootloader
       Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
 
       construct_proposal_map
+    rescue ::Bootloader::NoRoot
+      {
+        "label_proposal" => [],
+        "warning_level"  => :fatal,
+        "warning"        => _("Cannot detect device mounted as root. Please check partitioning.")
+      }
     end
 
     def ask_user(param)

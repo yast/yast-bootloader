@@ -33,4 +33,7 @@ module Bootloader
       super
     end
   end
+
+  class NoRoot < RuntimeError
+  end
 end
