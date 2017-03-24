@@ -465,14 +465,14 @@ module Bootloader
       # Translators: do not translate the quoted parts like "unit"
       _(
         "When graphical console is used, it will allow to use beside other" \
-        " features also different resolution. Option 'auto' try to find " \
-        "the best one when boot start. \n" \
+        " features also different resolution. Option 'auto' tries to find " \
+        "the best one when boot starts. \n" \
         "When serial console is in use, it allows to configure boot output " \
-        "to be printed to serial device like ttyS0. It have to be configured "\
-        " to write to device to it with format " \
+        "to be printed to serial device like ttyS0. It has to be configured "\
+        " at least which device to use with format " \
         "'%s'." \
-        " Mandatory parts are are 'serial' and '--unit'. Other are optional and " \
-        "if not set, then use defaults. NUM in commands start for positive number like 8." \
+        " Mandatory parts are 'serial' and '--unit'. Other parts are optional and " \
+        "if not set, then default is used. NUM in commands stands for positive number like 8." \
         " Example parameters are 'serial --speed=38400 --unit=0'."
       ) % syntax
     end
