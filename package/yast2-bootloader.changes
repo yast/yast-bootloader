@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 24 14:17:00 UTC 2017 - jreidinger@suse.com
+
+- Report user friendly message when no root partition is detected
+  instead of internal error. (bsc#1029293)
+- 3.1.209
+
+-------------------------------------------------------------------
 Wed Jan 25 12:57:38 UTC 2017 - mvidner@suse.com
 
 - Implement simple_mode -> label_proposal (FATE#322328)

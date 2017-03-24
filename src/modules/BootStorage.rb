@@ -19,6 +19,7 @@
 #
 require "yast"
 require "bootloader/udev_mapping"
+require "bootloader/exceptions"
 
 module Yast
   class BootStorageClass < Module
@@ -199,7 +200,7 @@ module Yast
       log.info "mountdata_boot #{mountdata_boot}"
 
       @RootPartitionDevice = mountdata_root ? mountdata_root.first || "" : ""
-      raise "No mountpoint for / !!" if @RootPartitionDevice.empty?
+      raise ::Bootloader::NoRoot, "Missing '/' mount point" if @RootPartitionDevice.empty?
 
       # if /boot changed, re-configure location
       @BootPartitionDevice = mountdata_boot.first
