@@ -464,16 +464,16 @@ module Bootloader
     def help
       # Translators: do not translate the quoted parts like "unit"
       _(
-        "When graphical console is used, it will allow to use beside other" \
-        " features also different resolution. Option 'auto' tries to find " \
-        "the best one when boot starts. \n" \
-        "When serial console is in use, it allows to configure boot output " \
-        "to be printed to serial device like ttyS0. It has to be configured "\
-        " at least which device to use with format " \
-        "'%s'." \
-        " Mandatory parts are 'serial' and '--unit'. Other parts are optional and " \
-        "if not set, then default is used. NUM in commands stands for positive number like 8." \
-        " Example parameters are 'serial --speed=38400 --unit=0'."
+        "<p>When a graphical console is used it allows to use various " \
+        "display resolutions. The <tt>auto</tt> option tries to find " \
+        "the best one when booting starts.</p>\n" \
+        "<p>When a serial console is used the boot output " \
+        "will be printed to a serial device like <tt>ttyS0</tt>. " \
+        "At least the <tt>--unit</tt> option has to be specified, " \
+        "and the complete syntax is <tt>%s</tt>. " \
+        "Other parts are optional and if not set, a default is used. " \
+        "<tt>NUM</tt> in commands stands for a positive number like 8. " \
+        "Example parameters are <tt>serial --speed=38400 --unit=0</tt>.</p>"
       ) % syntax
     end
 
