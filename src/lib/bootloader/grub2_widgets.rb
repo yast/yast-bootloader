@@ -461,16 +461,6 @@ module Bootloader
       )
     end
 
-    # Explanation for help and error messages
-    def syntax
-      # Translators: NUM is an abbreviation for "number",
-      # to be substituted in a command like
-      # "serial --unit=NUM --speed=NUM --parity={odd|even|no} --word=NUM --stop=NUM"
-      # so do not use punctuation
-      n = _("NUM")
-      "serial --unit=#{n} --speed=#{n} --parity={odd|even|no} --word=#{n} --stop=#{n}"
-    end
-
     def help
       # Translators: do not translate the quoted parts like "unit"
       _(
@@ -567,6 +557,16 @@ module Bootloader
     end
 
   private
+
+    # Explanation for help and error messages
+    def syntax
+      # Translators: NUM is an abbreviation for "number",
+      # to be substituted in a command like
+      # "serial --unit=NUM --speed=NUM --parity={odd|even|no} --word=NUM --stop=NUM"
+      # so do not use punctuation
+      n = _("NUM")
+      "serial --unit=#{n} --speed=#{n} --parity={odd|even|no} --word=#{n} --stop=#{n}"
+    end
 
     def graphical_console_frame
       CheckBoxFrame(
