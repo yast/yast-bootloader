@@ -175,6 +175,9 @@ module Bootloader
       fs = parts.filesystems.first
       return false if fs && fs.type == ::Storage::FsType_XFS
 
+      # LVM partition does not have reserved space for stage one
+      return false if staging.lvm_vgs.partitions.with(name: partition).any?
+
       true
     end
 
@@ -209,8 +212,11 @@ module Bootloader
     #
     # @return [Y2Storage::PartitionsList]
     def partitions
-      staging = Y2Storage::StorageManager.instance.staging
       staging.partitions
+    end
+
+    def staging
+      Y2Storage::StorageManager.instance.staging
     end
 
     def include_real_devs?(real_devs)

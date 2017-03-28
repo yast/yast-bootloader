@@ -183,7 +183,7 @@ module Bootloader
       # do not select swap and do not select BIOS grub partition
       # as it clear its special flags (bnc#894040)
       devicegraph.disks.with(name: disk.name).partitions.reject do |part|
-        [Storage::ID_SWAP, Storage::ID_GPT_BIOS].include?(part.id)
+        [Storage::ID_SWAP, Storage::ID_BIOS_BOOT].include?(part.id)
       end
     end
 
