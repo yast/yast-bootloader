@@ -19,6 +19,9 @@ require "bootloader/bootloader_factory"
 module Yast
   class BootSupportCheckClass < Module
     include Yast::Logger
+    using Y2Storage::Refinements::DevicegraphLists
+    using Y2Storage::Refinements::Disk
+
 
     def main
       textdomain "bootloader"
@@ -101,12 +104,11 @@ module Yast
     def check_gpt_reserved_partition
       return true unless stage1.mbr?
 
-      devices = Storage.GetTargetMap
-      mbr_disk = Storage.GetDisk(devices, BootStorage.mbr_disk)
-      boot_device = Storage.GetPartition(devices, BootStorage.BootPartitionDevice)
-      return true if mbr_disk["label"] != "gpt"
-      return true if boot_device["used_fs"] != :btrfs
-      return true if mbr_disk["partitions"].any? { |p| p["fsid"] == Partitions.fsid_bios_grub }
+      disk = staging.disks.with(name: BootStorage.mbr_disk).first
+      boot_device = staging.disks.partitions.with(name: BootStorage.BootPartitionDevice).first
+      return true unless disk.gpt?
+      return true if !boot_device.has_filesystem || boot_device.filesystem.type != ::Storage::FsType_BTRFS
+      return true if disk.partitions.any? { |p| p.partition_id == ::Storage::ID_BIOS_BOOT }
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
@@ -196,8 +198,14 @@ module Yast
     end
 
     def check_activate_partition
-      # activate set or there is already activate flag
-      return true if stage1.activate? || Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
+      # activate set
+      return true if stage1.activate?
+
+      # there is already activate flag
+      disks = staging.disks.with(name: Yast::BootStorage.mbr_disk)
+      legacy_boot = disks.first.partition_table.partition_legacy_boot_flag_supported?
+
+      return true if disks.partitions.any? { |p| legacy_boot ? p.legacy_boot? : p.boot? }
 
       add_new_problem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
       false
@@ -230,6 +238,10 @@ module Yast
 
     def stage1
       ::Bootloader::BootloaderFactory.current.stage1
+    end
+
+    def staging
+      Y2Storage::StorageManager.instance.staging
     end
   end
 
