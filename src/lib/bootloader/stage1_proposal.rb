@@ -97,6 +97,8 @@ module Bootloader
 
       def any_boot_flag_partition?(disk_name)
         disks = devicegraph.disks.with(name: disk_name)
+        return false unless disks.first.has_partition_table
+
         legacy_boot = disks.first.partition_table.partition_legacy_boot_flag_supported?
         disks.partitions.any? do |p|
           legacy_boot ? p.legacy_boot? : p.boot?

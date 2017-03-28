@@ -22,7 +22,6 @@ module Yast
     using Y2Storage::Refinements::DevicegraphLists
     using Y2Storage::Refinements::Disk
 
-
     def main
       textdomain "bootloader"
 
@@ -105,7 +104,7 @@ module Yast
       return true unless stage1.mbr?
 
       disk = staging.disks.with(name: BootStorage.mbr_disk).first
-      boot_device = staging.disks.partitions.with(name: BootStorage.BootPartitionDevice).first
+      boot_device = staging.partitions.with(name: BootStorage.BootPartitionDevice).first
       return true unless disk.gpt?
       return true if !boot_device.has_filesystem || boot_device.filesystem.type != ::Storage::FsType_BTRFS
       return true if disk.partitions.any? { |p| p.partition_id == ::Storage::ID_BIOS_BOOT }
@@ -203,9 +202,11 @@ module Yast
 
       # there is already activate flag
       disks = staging.disks.with(name: Yast::BootStorage.mbr_disk)
-      legacy_boot = disks.first.partition_table.partition_legacy_boot_flag_supported?
+      if disks.first.has_partition_table
+        legacy_boot = disks.first.partition_table.partition_legacy_boot_flag_supported?
 
-      return true if disks.partitions.any? { |p| legacy_boot ? p.legacy_boot? : p.boot? }
+        return true if disks.partitions.any? { |p| legacy_boot ? p.legacy_boot? : p.boot? }
+      end
 
       add_new_problem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
       false
