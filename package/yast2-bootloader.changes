@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Mar 28 13:32:23 UTC 2017 - jreidinger@suse.com
+
+- storage-ng: fixed proposal to not try to install to LVM
+  partition
+- 3.3.6
+
+-------------------------------------------------------------------
 Fri Mar  3 15:33:11 CET 2017 - snwint@suse.de
 
 - storage-ng: avoid call to old libstorage
