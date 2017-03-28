@@ -83,7 +83,7 @@ module Bootloader
           # other installed OSes like Windows (older versions assign the C:
           # drive letter to the activated partition).
           used_disks = ::Bootloader::Stage1Device.new(Yast::BootStorage.mbr_disk).real_devices
-          stage1.activate = used_disks.any? { |d| Yast::Storage.GetBootPartition(d).empty? }
+          stage1.activate = used_disks.any? { |d| any_boot_flag_partition?(d) }
           stage1.generic_mbr = false
         else
           # if not installing to MBR, always activate (so the generic MBR will
@@ -94,6 +94,14 @@ module Bootloader
       end
 
     private
+
+      def any_boot_flag_partition?(disk_name)
+        disks = devicegraph.disks.with(name: disk_name)
+        legacy_boot = disks.first.partition_table.partition_legacy_boot_flag_supported?
+        disks.partitions.any? do |p|
+          legacy_boot ? p.legacy_boot? : p.boot?
+        end
+      end
 
       def devicegraph
         Y2Storage::StorageManager.instance.staging
