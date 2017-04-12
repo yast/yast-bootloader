@@ -93,6 +93,17 @@ describe Bootloader::GrubInstall do
 
         subject.execute
       end
+
+      it "pass suse-enable-tpm option when trusted boot is requested" do
+        stub_arch("x86_64")
+        stub_efivars
+
+        expect(Yast::Execute).to receive(:on_target) do |arg|
+          expect(arg).to include("--suse-enable-tpm")
+        end
+
+        subject.execute(trusted_boot: true)
+      end
     end
 
     context "initialized with efi:false" do
@@ -148,6 +159,16 @@ describe Bootloader::GrubInstall do
         expect_grub2_install("s390x-emu")
 
         subject.execute(devices: [])
+      end
+
+      it "pass directory argument when trusted boot is requested" do
+        stub_arch("x86_64")
+
+        expect(Yast::Execute).to receive(:on_target) do |arg|
+          expect(arg).to include("--directory=/usr/lib/trustedgrub2/i386-pc")
+        end
+
+        subject.execute(devices: ["/dev/sda"], trusted_boot: true)
       end
 
       it "raise exception on aarch64" do
