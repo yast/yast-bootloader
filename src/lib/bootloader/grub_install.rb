@@ -39,7 +39,7 @@ module Bootloader
       end
 
       if trusted_boot
-        cmd << efi ? "--suse-enable-tpm" : "--directory=/usr/lib/trustedgrub2/#{target}"
+        cmd << (efi ? "--suse-enable-tpm" : "--directory=/usr/lib/trustedgrub2/#{target}")
       end
 
       cmd << "--no-nvram" << "--removable" if removable_efi?
