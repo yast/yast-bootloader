@@ -297,13 +297,12 @@ module Bootloader
     end
 
     def help
-        # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
-      res =  _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
+      # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
+      res = _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
           "instead of regular GRUB2.</p>\n" \
           "<p>It means measuring the integrity of the boot process,\n" \
           "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
-          "chip).</p>\n"
-        )
+          "chip).</p>\n")
       if grub2.name == "grub2"
         res += _("<p>First you need to make sure Trusted Boot is enabled in the BIOS\n" \
           "setup (the setting may be named Security Chip, for example).</p>\n")
@@ -608,7 +607,7 @@ module Bootloader
 
       @vga_modes.sort! do |a, b|
         res = a["width"] <=> b["width"]
-        res = a["height"] <=> b["height"] if res == 0
+        res = a["height"] <=> b["height"] if res.zero?
 
         res
       end
@@ -900,9 +899,7 @@ module Bootloader
       return false if !(Yast::Arch.x86_64 || Yast::Arch.i386)
       return true if grub2.name == "grub2"
       # for details about grub2 efi trusted boot support see FATE#315831
-      if grub2.name == "grub2-efi"
-        return File.exist?("/dev/tpm0")
-      end
+      return File.exist?("/dev/tpm0") if grub2.name == "grub2-efi"
       false
     end
 
