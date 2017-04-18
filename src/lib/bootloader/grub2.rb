@@ -17,8 +17,6 @@ module Bootloader
   class Grub2 < Grub2Base
     attr_reader :stage1
     attr_reader :device_map
-    # @return [Boolean]
-    attr_accessor :trusted_boot
 
     using Y2Storage::Refinements::DevicegraphLists
     using Y2Storage::Refinements::Disk
@@ -30,7 +28,6 @@ module Bootloader
       @stage1 = Stage1.new
       @grub_install = GrubInstall.new(efi: false)
       @device_map = DeviceMap.new
-      @trusted_boot = false
     end
 
     # Read settings from disk, overwritting already set values
@@ -55,8 +52,6 @@ module Bootloader
         log.info "grub2/device.map does not exist. Using empty one."
         @device_map = DeviceMap.new
       end
-
-      @trusted_boot = Sysconfig.from_system.trusted_boot
     end
 
     # Write bootloader settings to disk
@@ -89,14 +84,12 @@ module Bootloader
       # boot, safer option for legacy booting (bnc#872054)
       self.pmbr_action = :add if Yast::BootStorage.gpt_boot_disk?
       device_map.propose if Yast::Arch.x86_64 || Yast::Arch.i386
-      @trusted_boot = false
     end
 
     def merge(other)
       super
 
       @device_map = other.device_map if !other.device_map.empty?
-      @trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
 
       stage1.merge(other.stage1)
     end
@@ -111,7 +104,7 @@ module Bootloader
         ),
         Yast::Builtins.sformat(
           _("Enable Trusted Boot: %1"),
-          @trusted_boot ? _("yes") : _("no")
+          trusted_boot ? _("yes") : _("no")
         )
       ]
       locations_val = locations
@@ -151,7 +144,7 @@ module Bootloader
       end
 
       if Yast::Arch.x86_64 || Yast::Arch.i386
-        res << "trustedgrub2" << "trustedgrub2-i386-pc" if @trusted_boot
+        res << "trustedgrub2" << "trustedgrub2-i386-pc" if trusted_boot
       end
 
       res
@@ -160,7 +153,7 @@ module Bootloader
     # FIXME: refactor with injection like super(prewrite: prewrite, sysconfig = ...)
     # overwrite BootloaderBase version to save trusted boot
     def write_sysconfig(prewrite: false)
-      sysconfig = Bootloader::Sysconfig.new(bootloader: name, trusted_boot: @trusted_boot)
+      sysconfig = Bootloader::Sysconfig.new(bootloader: name, trusted_boot: trusted_boot)
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
 

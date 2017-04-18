@@ -55,7 +55,7 @@ module Bootloader
         pmbr_setup(efi_disk.name)
       end
 
-      @grub_install.execute(secure_boot: @secure_boot)
+      @grub_install.execute(secure_boot: @secure_boot, trusted_boot: trusted_boot)
 
       true
     end
@@ -88,6 +88,10 @@ module Bootloader
         Yast::Builtins.sformat(
           _("Enable Secure Boot: %1"),
           @secure_boot ? _("yes") : _("no")
+        ),
+        Yast::Builtins.sformat(
+          _("Enable Trusted Boot: %1"),
+          trusted_boot ? _("yes") : _("no")
         )
       ]
     end
@@ -118,7 +122,8 @@ module Bootloader
 
     # overwrite BootloaderBase version to save secure boot
     def write_sysconfig(prewrite: false)
-      sysconfig = Bootloader::Sysconfig.new(bootloader: name, secure_boot: @secure_boot)
+      sysconfig = Bootloader::Sysconfig.new(bootloader: name,
+        secure_boot: @secure_boot, trusted_boot: trusted_boot)
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
 

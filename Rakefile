@@ -8,4 +8,7 @@ Yast::Tasks.configuration do |conf|
   conf.obs_project = "YaST:storage-ng"
   # Make sure 'rake osc:sr' fails
   conf.obs_sr_project = nil
+  # TODO: improve it, at least do not get worse
+  # TODO: remove condition when new packaging tasks are accepted to factory
+  conf.documentation_minimal = 50 if conf.respond_to?(:documentation_minimal=)
 end

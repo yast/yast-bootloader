@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Apr 13 13:34:12 UTC 2017 - jreidinger@suse.com
+
+- Add possibility to use trusted boot for EFI (FATE#315831)
+
+-------------------------------------------------------------------
 Tue Mar 28 13:32:23 UTC 2017 - jreidinger@suse.com
 
 - storage-ng: fixed proposal to not try to install to LVM
@@ -6,10 +11,30 @@ Tue Mar 28 13:32:23 UTC 2017 - jreidinger@suse.com
 - 3.3.6
 
 -------------------------------------------------------------------
+Fri Mar 24 14:17:00 UTC 2017 - jreidinger@suse.com
+
+- Report user friendly message when no root partition is detected
+  instead of internal error. (bsc#1029293)
+
+-------------------------------------------------------------------
 Fri Mar  3 15:33:11 CET 2017 - snwint@suse.de
 
 - storage-ng: avoid call to old libstorage
 - 3.3.5
+
+-------------------------------------------------------------------
+Wed Mar  1 17:42:18 UTC 2017 - jreidinger@suse.com
+
+- provide more helpful error message when invalid arguments for
+  serial console are provided (bsc#1012383)
+
+-------------------------------------------------------------------
+Wed Mar  1 16:42:18 UTC 2017 - jreidinger@suse.com
+
+- propose for xen hypervisor vga parameter if framebuffer is used
+  ( should fix issue with text only environment when fbdev driver
+  is used )
+  (FATE#322200)
 
 -------------------------------------------------------------------
 Thu Feb 16 14:47:03 UTC 2017 - ancor@suse.com

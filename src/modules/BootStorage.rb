@@ -21,6 +21,7 @@ require "yast"
 require "storage"
 require "y2storage"
 require "bootloader/udev_mapping"
+require "bootloader/exceptions"
 
 module Yast
   class BootStorageClass < Module
@@ -204,6 +205,7 @@ module Yast
       # bnc#942360
 
       root_blk_device = find_blk_device_at_mountpoint("/")
+      raise ::Bootloader::NoRoot, "Missing '/' mount point" unless root_blk_device
 
       boot_blk_device = find_blk_device_at_mountpoint("/boot")
       boot_blk_device = root_blk_device if !boot_blk_device
