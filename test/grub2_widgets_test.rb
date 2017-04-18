@@ -691,3 +691,20 @@ describe Bootloader::DeviceMapWidget do
     subject.handle
   end
 end
+
+describe Bootloader::TrustedBootWidget do
+  before do
+    assign_bootloader
+  end
+
+  it_behaves_like "labeled widget"
+
+  it "check if trusted platform is found for legacy boot when enabled" do
+    expect(Dir).to receive(:glob).and_return([])
+    expect(Yast::Popup).to receive(:ContinueCancel).and_return(false)
+
+    allow(subject).to receive(:value).and_return(true)
+
+    expect(subject.validate).to eq false
+  end
+end

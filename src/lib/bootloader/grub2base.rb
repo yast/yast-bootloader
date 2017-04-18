@@ -45,6 +45,9 @@ module Bootloader
 
     attr_accessor :pmbr_action
 
+    # @return [Boolean]
+    attr_accessor :trusted_boot
+
     def initialize
       super
 
@@ -87,6 +90,8 @@ module Bootloader
       end
       @sections = ::Bootloader::Sections.new(grub_cfg)
       log.info "grub sections: #{@sections.all}"
+
+      self.trusted_boot = Sysconfig.from_system.trusted_boot
     end
 
     def write
@@ -122,6 +127,7 @@ module Bootloader
       propose_serial
       propose_xen_hypervisor
 
+      self.trusted_boot = false
       nil
     end
 
@@ -132,6 +138,8 @@ module Bootloader
       merge_password(other)
       merge_pmbr_action(other)
       merge_sections(other)
+
+      self.trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
     end
 
     def enable_serial_console(console)

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Apr 13 13:34:12 UTC 2017 - jreidinger@suse.com
+
+- Add possibility to use trusted boot for EFI (FATE#315831)
+- 3.2.19
+
+-------------------------------------------------------------------
 Fri Mar 24 14:17:00 UTC 2017 - jreidinger@suse.com
 
 - Report user friendly message when no root partition is detected

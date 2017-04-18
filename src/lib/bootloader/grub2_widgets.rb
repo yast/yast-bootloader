@@ -298,13 +298,17 @@ module Bootloader
 
     def help
       # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
-      _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
-        "instead of regular GRUB2.</p>\n" \
-        "<p>It means measuring the integrity of the boot process,\n" \
-        "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
-        "chip).</p>\n" \
-        "<p>First you need to make sure Trusted Boot is enabled in the BIOS\n" \
-        "setup (the setting may be named Security Chip, for example).</p>\n")
+      res = _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
+          "instead of regular GRUB2.</p>\n" \
+          "<p>It means measuring the integrity of the boot process,\n" \
+          "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
+          "chip).</p>\n")
+      if grub2.name == "grub2"
+        res += _("<p>First you need to make sure Trusted Boot is enabled in the BIOS\n" \
+          "setup (the setting may be named Security Chip, for example).</p>\n")
+      end
+
+      res
     end
 
     def init
@@ -316,7 +320,7 @@ module Bootloader
     end
 
     def validate
-      return true if Yast::Mode.config || !value
+      return true if Yast::Mode.config || !value || grub2.name == "grub2-efi"
       tpm_files = Dir.glob("/sys/**/pcrs")
       if !tpm_files.empty?
         # check for file size does not work, since FS reports it 4096
@@ -603,7 +607,7 @@ module Bootloader
 
       @vga_modes.sort! do |a, b|
         res = a["width"] <=> b["width"]
-        res = a["height"] <=> b["height"] if res == 0
+        res = a["height"] <=> b["height"] if res.zero?
 
         res
       end
@@ -892,7 +896,11 @@ module Bootloader
     end
 
     def trusted_boot_widget?
-      (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name == "grub2"
+      return false if !(Yast::Arch.x86_64 || Yast::Arch.i386)
+      return true if grub2.name == "grub2"
+      # for details about grub2 efi trusted boot support see FATE#315831
+      return File.exist?("/dev/tpm0") if grub2.name == "grub2-efi"
+      false
     end
 
     def pmbr_widget?

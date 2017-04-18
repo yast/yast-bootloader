@@ -12,7 +12,6 @@ module Bootloader
 
     def execute(devices: [], secure_boot: false, trusted_boot: false)
       raise "cannot have secure boot without efi" if secure_boot && !efi
-      raise "cannot have trusted boot with efi" if trusted_boot && efi
 
       cmd = basic_cmd(secure_boot, trusted_boot)
 
@@ -37,7 +36,10 @@ module Bootloader
         # Do skip-fs-probe to avoid error when embedding stage1
         # to extended partition
         cmd << "--force" << "--skip-fs-probe"
-        cmd << "--directory=/usr/lib/trustedgrub2/#{target}" if trusted_boot
+      end
+
+      if trusted_boot
+        cmd << (efi ? "--suse-enable-tpm" : "--directory=/usr/lib/trustedgrub2/#{target}")
       end
 
       cmd << "--no-nvram" << "--removable" if removable_efi?
