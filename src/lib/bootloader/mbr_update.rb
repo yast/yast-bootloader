@@ -14,8 +14,6 @@ module Bootloader
   # FIXME: make it single responsibility class
   class MBRUpdate
     include Yast::Logger
-    using Y2Storage::Refinements::DevicegraphLists
-    using Y2Storage::Refinements::Disk
 
     # Update contents of MBR (active partition and booting code)
     def run(stage1)
@@ -34,7 +32,7 @@ module Bootloader
   private
 
     def devicegraph
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.y2storage_staging
     end
 
     def mbr_disk
@@ -52,7 +50,7 @@ module Bootloader
     end
 
     def gpt?(disk)
-      mbr_storage_object = devicegraph.disks.with(name: disk).first
+      mbr_storage_object = devicegraph.disks.find { |d| d.name == disk}
       raise "Cannot find in storage mbr disk #{disk}" unless mbr_storage_object
       mbr_storage_object.gpt?
     end
@@ -182,13 +180,13 @@ module Bootloader
 
       # do not select swap and do not select BIOS grub partition
       # as it clear its special flags (bnc#894040)
-      devicegraph.disks.with(name: disk.name).partitions.reject do |part|
-        [Storage::ID_SWAP, Storage::ID_BIOS_BOOT].include?(part.id)
+      disk.partitions.reject do |part|
+        [Y2Storage::ID::SWAP, Y2Storage::ID::BIOS_BOOT].include?(part.id)
       end
     end
 
     def extended_partition(disk)
-      part = activatable_partitions(disk).find { |p| p.type == Storage::PartitionType_EXTENDED }
+      part = activatable_partitions(disk).find { |p| p.type == Y2Storage::PartitionType::EXTENDED }
       return nil unless part
 
       log.info "Using extended partition instead: #{part.inspect}"
@@ -229,13 +227,13 @@ module Bootloader
     end
 
     def partition_and_disk_to_activate(dev_name)
-      parts = devicegraph.partitions.with(name: dev_name)
+      parts = devicegraph.partitions.select{ |p| p.name == dev_name}
       partition = parts.first
-      mbr_dev = parts.disks.first
+      mbr_dev = partition.disk
 
       # if real_device is not a partition but a disk
       if !partition
-        mbr_dev = devicegraph.disks.with(name: dev_name).first
+        mbr_dev = devicegraph.disks.find { |d| d.name == dev_name }
         # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
         # if loader_device is disk Choose any partition which is not swap to
         # satisfy such bios (bnc#893449)

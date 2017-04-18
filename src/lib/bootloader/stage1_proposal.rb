@@ -66,7 +66,6 @@ module Bootloader
 
     # x86_64 specific stage1 proposal
     class X64 < Stage1Proposal
-      using Y2Storage::Refinements::DevicegraphLists
 
       def propose
         selected_location = propose_boot_location
@@ -96,17 +95,17 @@ module Bootloader
     private
 
       def any_boot_flag_partition?(disk_name)
-        disks = devicegraph.disks.with(name: disk_name)
-        return false unless disks.first.has_partition_table
+        disk = devicegraph.disks.find { |d| d.name == disk_name }
+        return false unless disk.has_partition_table
 
-        legacy_boot = disks.first.partition_table.partition_legacy_boot_flag_supported?
-        disks.partitions.any? do |p|
+        legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
+        disk.partitions.any? do |p|
           legacy_boot ? p.legacy_boot? : p.boot?
         end
       end
 
       def devicegraph
-        Y2Storage::StorageManager.instance.staging
+        Y2Storage::StorageManager.instance.y2storage_staging
       end
 
       def propose_boot_location
@@ -164,26 +163,25 @@ module Bootloader
         return if @boot_initialized
         @boot_initialized = true
 
-        boot_part = devicegraph.partitions.with(name: Yast::BootStorage.BootPartitionDevice).first
-        @logical_boot = boot_part.type == Storage::PartitionType_LOGICAL
+        boot_part = devicegraph.partitions.find { |p| p.name == Yast::BootStorage.BootPartitionDevice }
+        @logical_boot = boot_part.type.is?(:logical)
         @boot_with_btrfs = with_btrfs?(boot_part)
 
         # check for sure also underlaying partitions
         disk_name = Yast::BootStorage.disk_with_boot_partition
-        devicegraph.disks.with(name: disk_name).partitions.each do |p|
-          @extended = p.name if p.type == Storage::PartitionType_EXTENDED
+        devicegraph.disks.find { |d| d.name == disk_name}.partitions.each do |p|
+          @extended = p.name if p.type.is?(:extended)
           next unless underlaying_boot_partition_devices.include?(p.name)
 
           @boot_with_btrfs = with_btrfs?(p)
-          @logical_boot = true if p.type == Storage::PartitionType_LOGICAL
+          @logical_boot = true if p.type.is?(:logical)
         end
       end
 
       def with_btrfs?(partition)
-        partition.filesystem.type == ::Storage::FsType_BTRFS
-      rescue Storage::WrongNumberOfChildren, Storage::DeviceHasWrongType
-        # No filesystem in the partition
-        false
+        type = partition.filesystem_type
+        return false unless type
+        type.is?(:btrfs)
       end
 
       # determine the underlaying devices for the "/boot" partition (either the
@@ -196,7 +194,7 @@ module Bootloader
 
       def boot_partition_on_mbr_disk?
         underlaying_boot_partition_devices.any? do |dev|
-          disk = devicegraph.disks.with_name_or_partition(dev).first
+          disk = devicegraph.disks.find { |d| d.name_or_partition?(dev) }
           disk && disk.name == Yast::BootStorage.mbr_disk
         end
       end

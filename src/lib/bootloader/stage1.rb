@@ -162,21 +162,21 @@ module Bootloader
     def can_use_boot?
       partition = Yast::BootStorage.BootPartitionDevice
 
-      parts = partitions.with(name: partition)
+      part = partitions.find { |p| p.name == partition }
 
-      if parts.empty?
+      if !part
         log.error "cannot find partition #{partition}"
         return false
       end
 
-      log.info "Boot partition info #{parts.first.inspect}"
+      log.info "Boot partition info #{part.inspect}"
 
       # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
-      fs = parts.filesystems.first
-      return false if fs && fs.type == ::Storage::FsType_XFS
+      fs = part.filesystem
+      return false if fs && fs.type == ::Y2Storage::FsType::XFS
 
       # LVM partition does not have reserved space for stage one
-      return false if staging.lvm_vgs.partitions.with(name: partition).any?
+      return false if partition.descendants.any? {|d| d.is?(:lvm_vg) }
 
       true
     end
@@ -216,7 +216,7 @@ module Bootloader
     end
 
     def staging
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.y2storage_staging
     end
 
     def include_real_devs?(real_devs)

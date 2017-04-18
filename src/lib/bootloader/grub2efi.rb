@@ -14,7 +14,6 @@ module Bootloader
   class Grub2EFI < Grub2Base
     include Yast::Logger
     attr_accessor :secure_boot
-    using Y2Storage::Refinements::DevicegraphLists
 
     def initialize
       super
@@ -37,13 +36,13 @@ module Bootloader
       super
 
       if pmbr_action && Yast::BootStorage.gpt_boot_disk?
-        efi_partition = filesystems.with_mountpoint("/boot/efi").partitions.first
-        efi_partition ||= filesystems.with_mountpoint("/boot").partitions.first
-        efi_partition ||= filesystems.with_mountpoint("/").partitions.first
+        efi_partition = filesystems.select{ |f| f.mountpoint == "/boot/efi" }.partitions.first
+        efi_partition ||= filesystems.select{ |f| f.mountpoint == "/boot" }.partitions.first
+        efi_partition ||= filesystems.select{ |f| f.mountpoint == "/" }.partitions.first
 
         raise "could not find boot partiton" unless efi_partition
 
-        efi_disk = efi_partition.partitionable
+        efi_disk = efi_partition.disk
 
 # storage-ng
 # rubocop:disable Style/BlockComments
@@ -133,7 +132,7 @@ module Bootloader
     #
     # @return [Y2Storage::FilesystemsList]
     def filesystems
-      staging = Y2Storage::StorageManager.instance.staging
+      staging = Y2Storage::StorageManager.instance.y2storage_staging
       staging.filesystems
     end
   end

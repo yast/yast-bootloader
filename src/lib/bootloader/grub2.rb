@@ -18,9 +18,6 @@ module Bootloader
     attr_reader :stage1
     attr_reader :device_map
 
-    using Y2Storage::Refinements::DevicegraphLists
-    using Y2Storage::Refinements::Disk
-
     def initialize
       super
 
@@ -160,7 +157,7 @@ module Bootloader
   private
 
     def devicegraph
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.y2storage_staging
     end
 
     def gpt_disks_devices

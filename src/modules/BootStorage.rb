@@ -54,7 +54,7 @@ module Yast
     end
 
     def staging
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.y2storage_staging
     end
 
     def gpt_boot_disk?
@@ -67,7 +67,7 @@ module Yast
       return false unless current_bl.respond_to?(:stage1)
 
       targets = current_bl.stage1.devices
-      boot_disks = staging.disks.with_name_or_partition(targets)
+      boot_disks = staging.disks.select{ |d| targets.any? { |t| d.name_or_partition?(t) } }
 
       boot_disks.any? { |disk| disk.gpt? }
     end
@@ -110,10 +110,10 @@ module Yast
 
     # Get extended partition for given partition or disk
     def extended_partition_for(device)
-      disk_list = staging.disks.with_name_or_partition(device)
-      return nil if disk_list.empty?
+      disk = staging.disks.find { |d| d.name_or_partition?(device) }
+      return nil unless disk
 
-      part = disk_list.partitions.with(type: Storage::PartitionType_EXTENDED).first
+      part = disk.partitions.find { |p| p.type.is?(:extended) }
       part ? part.name : nil
     end
 
@@ -174,16 +174,16 @@ module Yast
     # If the filesystem is in a virtual device (like a LUKS or LVM volume), it
     # returns the (first) underlying partition or disk.
     def find_blk_device_at_mountpoint(mountpoint)
-      fses = staging.filesystems.with_mountpoint(mountpoint)
-      return nil if fses.empty?
+      fs = staging.filesystems.find { |fs| fs.mountpoint ==  mountpoint }
+      return nil unless fs
 
-      partitions = fses.partitions
-      partitions = fses.lvm_vgs.partitions if partitions.empty?
-      return partitions.first unless partitions.empty?
+      part = fs.ancestors.find { |a| a.is?(:partition) }
+      return part if part
 
-      disks = fses.disks
-      disks = fses.lvm_vgs.disks if disks.empty?
-      disks.first
+      disk = fs.ancestors.find { |a| a.is?(:disk) }
+      return disk if disk
+
+      return nil
     end
 
     # Sets properly boot, root and mbr disk.
@@ -245,7 +245,7 @@ module Yast
     def disk_with_boot_partition
       boot_device = BootPartitionDevice()
 
-      partition = Storage::Partition.find_by_name(staging, boot_device)
+      partition = staging.partitions.find { |p| p.name == boot_device }
       partitionable = partition.partition_table.partitionable
 
       log.info "Boot device - disk: #{partitionable.name}"
@@ -262,7 +262,7 @@ module Yast
     def available_swap_partitions
       ret = {}
 
-      Storage::Swap.all(staging).each do |swap|
+      staging.filesystems.select{ |f| f.type.is?(:swap) }).each do |swap|
         blk_device = swap.blk_devices[0]
         ret[blk_device.name] = blk_device.size / 1024
       end

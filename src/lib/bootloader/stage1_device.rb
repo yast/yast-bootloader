@@ -15,7 +15,6 @@ module Bootloader
   #   puts dev.real_devices # => ["/dev/sda1", "/dev/sdb1"]
   class Stage1Device
     include Yast::Logger
-    using Y2Storage::Refinements::DevicegraphLists
 
     # @param [String] device intended location of stage1. Device here
     #   means any name  under /dev like "/dev/sda", "/dev/system/root" or
@@ -40,7 +39,7 @@ module Bootloader
   private
 
     def devicegraph
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.y2storage_staging
     end
 
     # underlaying_devices without any caching
@@ -64,8 +63,11 @@ module Bootloader
       # revisit when such thing exist
       match = /^\/dev\/(\w+)$/.match(dev)
       if match && match[1]
-        vgs = devicegraph.volume_groups.with(vg_name: match[1])
-        return usable_pvs(vgs).disks.map(&:name) unless vgs.empty?
+        vgs = devicegraph.lvm_vgs.select { |v| v.vg_name == match[1] }
+        if !vgs.empty?
+          pvs = usable_pvs(vgs)
+          return pvs.map { |p| p.ancestors.find{ |a| a.is_a?(:disk)}.name }
+        end
       end
 
       # FIXME: there is nothing like this right now in libstorage-ng
@@ -73,8 +75,12 @@ module Bootloader
       # revisit when such thing exist
       match = /^\/dev\/\w+\/(\w+)$/.match(dev)
       if match && match[1]
-        lvs = devicegraph.logical_volumes.with(lv_name: match[1])
-        return usable_pvs(lvs.vgs).map { |pv| pv.blk_device.name } unless lvs.empty?
+        vgs = devicegraph.lvm_lgs.select { |v| v.lv_name == match[1] }.map(&:lvm_vg)
+        # FIXME: DRY it
+        if !vgs.empty?
+          pvs = usable_pvs(vgs)
+          return pvs.map { |p| p.ancestors.find{ |a| a.is_a?(:disk)}.name }
+        end
       end
 
       # TODO: storage-ng
@@ -105,8 +111,8 @@ module Bootloader
     # @param volumes_group_list [Y2Storage::LvmVgsList]
     # @return [Y2Storage::LvmPvsList]
     def usable_pvs(volume_groups_list)
-      pvs = volume_groups_list.physical_volumes
-      pvs.with { |pv| !Storage.disk?(pv.blk_device) }
+      pvs = volume_groups_list.reduce([]) { |res, v| res.concat(v.lvm_pvs) }
+      pvs.select { |pv| pv.blk_device.is_a?(:disk)) }
     end
 
     # For pure virtual disk devices it is selected /boot partition and its
