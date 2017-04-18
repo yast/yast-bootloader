@@ -94,7 +94,7 @@ describe Bootloader::GrubInstall do
         subject.execute
       end
 
-      it "pass suse-enable-tpm option when trusted boot is requested" do
+      it "passes suse-enable-tpm option when trusted boot is requested" do
         stub_arch("x86_64")
         stub_efivars
 

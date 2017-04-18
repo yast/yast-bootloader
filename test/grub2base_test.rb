@@ -35,6 +35,13 @@ describe Bootloader::Grub2Base do
       subject.read
 
       expect(subject.trusted_boot).to eq true
+
+      mocked_sysconfig = ::Bootloader::Sysconfig.new(trusted_boot: false)
+      expect(::Bootloader::Sysconfig).to receive(:from_system).and_return(mocked_sysconfig)
+
+      subject.read
+
+      expect(subject.trusted_boot).to eq false
     end
   end
 
