@@ -78,7 +78,7 @@ module Bootloader
       match = /^\/dev\/\w+\/(\w+)$/.match(dev)
       if match && match[1]
         vgs = devicegraph.lvm_lvs.select { |v| v.lv_name == match[1] }.map(&:lvm_vg)
-        return usable_pvs(vgs).map { |v| v.blk_device.name} unless vgs.empty?
+        return usable_pvs(vgs).map { |v| v.blk_device.name } unless vgs.empty?
       end
 
       # TODO: storage-ng
@@ -106,7 +106,7 @@ module Bootloader
     #
     # Ignores physical volumes on a whole disk. See bnc#980529
     #
-    # @param volumes_group_list [Y2Storage::LvmVgsList]
+    # @param volume_groups_list [Y2Storage::LvmVgsList]
     # @return [Y2Storage::LvmPvsList]
     def usable_pvs(volume_groups_list)
       pvs = volume_groups_list.reduce([]) { |a, e| a.concat(e.lvm_pvs) }
