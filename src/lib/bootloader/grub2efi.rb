@@ -36,9 +36,9 @@ module Bootloader
       super
 
       if pmbr_action && Yast::BootStorage.gpt_boot_disk?
-        efi_partition = filesystems.select{ |f| f.mountpoint == "/boot/efi" }.partitions.first
-        efi_partition ||= filesystems.select{ |f| f.mountpoint == "/boot" }.partitions.first
-        efi_partition ||= filesystems.select{ |f| f.mountpoint == "/" }.partitions.first
+        efi_partition = filesystems.select { |f| f.mountpoint == "/boot/efi" }.partitions.first
+        efi_partition ||= filesystems.select { |f| f.mountpoint == "/boot" }.partitions.first
+        efi_partition ||= filesystems.select { |f| f.mountpoint == "/" }.partitions.first
 
         raise "could not find boot partiton" unless efi_partition
 

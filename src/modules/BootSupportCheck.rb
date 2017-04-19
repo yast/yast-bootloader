@@ -19,8 +19,6 @@ require "bootloader/bootloader_factory"
 module Yast
   class BootSupportCheckClass < Module
     include Yast::Logger
-    using Y2Storage::Refinements::DevicegraphLists
-    using Y2Storage::Refinements::Disk
 
     def main
       textdomain "bootloader"
@@ -103,11 +101,11 @@ module Yast
     def check_gpt_reserved_partition
       return true unless stage1.mbr?
 
-      disk = staging.disks.with(name: BootStorage.mbr_disk).first
-      boot_device = staging.partitions.with(name: BootStorage.BootPartitionDevice).first
+      disk = staging.disks.find { |d| d.name == BootStorage.mbr_disk }
+      boot_device = staging.partitions.find { |p| p.name == BootStorage.BootPartitionDevice }
       return true unless disk.gpt?
-      return true if !boot_device.has_filesystem || boot_device.filesystem.type != ::Storage::FsType_BTRFS
-      return true if disk.partitions.any? { |p| p.partition_id == ::Storage::ID_BIOS_BOOT }
+      return true if boot_device.filesystem_type != ::Y2Storage::FsType::BTRFS
+      return true if disk.partitions.any? { |p| p.partition_id.is?(:bios_boot) }
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
@@ -201,9 +199,9 @@ module Yast
       return true if stage1.activate?
 
       # there is already activate flag
-      disks = staging.disks.with(name: Yast::BootStorage.mbr_disk)
-      if disks.first.has_partition_table
-        legacy_boot = disks.first.partition_table.partition_legacy_boot_flag_supported?
+      disk = staging.disks.find { |d| d.name == Yast::BootStorage.mbr_disk }
+      if disk.partition_table
+        legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
 
         return true if disks.partitions.any? { |p| legacy_boot ? p.legacy_boot? : p.boot? }
       end
@@ -242,7 +240,7 @@ module Yast
     end
 
     def staging
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.y2bootloader_staging
     end
   end
 

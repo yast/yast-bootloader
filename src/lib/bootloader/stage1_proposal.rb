@@ -66,7 +66,6 @@ module Bootloader
 
     # x86_64 specific stage1 proposal
     class X64 < Stage1Proposal
-
       def propose
         selected_location = propose_boot_location
         log.info "propose_x86 (#{selected_location})"
@@ -163,13 +162,14 @@ module Bootloader
         return if @boot_initialized
         @boot_initialized = true
 
-        boot_part = devicegraph.partitions.find { |p| p.name == Yast::BootStorage.BootPartitionDevice }
+        boot_part = devicegraph.partitions
+                               .find { |p| p.name == Yast::BootStorage.BootPartitionDevice }
         @logical_boot = boot_part.type.is?(:logical)
         @boot_with_btrfs = with_btrfs?(boot_part)
 
         # check for sure also underlaying partitions
         disk_name = Yast::BootStorage.disk_with_boot_partition
-        devicegraph.disks.find { |d| d.name == disk_name}.partitions.each do |p|
+        devicegraph.disks.find { |d| d.name == disk_name }.partitions.each do |p|
           @extended = p.name if p.type.is?(:extended)
           next unless underlaying_boot_partition_devices.include?(p.name)
 

@@ -50,7 +50,7 @@ module Bootloader
     end
 
     def gpt?(disk)
-      mbr_storage_object = devicegraph.disks.find { |d| d.name == disk}
+      mbr_storage_object = devicegraph.disks.find { |d| d.name == disk }
       raise "Cannot find in storage mbr disk #{disk}" unless mbr_storage_object
       mbr_storage_object.gpt?
     end
@@ -227,7 +227,7 @@ module Bootloader
     end
 
     def partition_and_disk_to_activate(dev_name)
-      parts = devicegraph.partitions.select{ |p| p.name == dev_name}
+      parts = devicegraph.partitions.select { |p| p.name == dev_name }
       partition = parts.first
       mbr_dev = partition.disk
 

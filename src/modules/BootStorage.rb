@@ -26,8 +26,6 @@ require "bootloader/exceptions"
 module Yast
   class BootStorageClass < Module
     include Yast::Logger
-    using Y2Storage::Refinements::DevicegraphLists
-    using Y2Storage::Refinements::Disk
 
     attr_accessor :mbr_disk
 
@@ -67,7 +65,7 @@ module Yast
       return false unless current_bl.respond_to?(:stage1)
 
       targets = current_bl.stage1.devices
-      boot_disks = staging.disks.select{ |d| targets.any? { |t| d.name_or_partition?(t) } }
+      boot_disks = staging.disks.select { |d| targets.any? { |t| d.name_or_partition?(t) } }
 
       boot_disks.any? { |disk| disk.gpt? }
     end
@@ -174,7 +172,7 @@ module Yast
     # If the filesystem is in a virtual device (like a LUKS or LVM volume), it
     # returns the (first) underlying partition or disk.
     def find_blk_device_at_mountpoint(mountpoint)
-      fs = staging.filesystems.find { |fs| fs.mountpoint ==  mountpoint }
+      fs = staging.filesystems.find { |f| f.mountpoint == mountpoint }
       return nil unless fs
 
       part = fs.ancestors.find { |a| a.is?(:partition) }
@@ -183,7 +181,7 @@ module Yast
       disk = fs.ancestors.find { |a| a.is?(:disk) }
       return disk if disk
 
-      return nil
+      nil
     end
 
     # Sets properly boot, root and mbr disk.
@@ -262,7 +260,7 @@ module Yast
     def available_swap_partitions
       ret = {}
 
-      staging.filesystems.select{ |f| f.type.is?(:swap) }).each do |swap|
+      staging.filesystems.select { |f| f.type.is?(:swap) }.each do |swap|
         blk_device = swap.blk_devices[0]
         ret[blk_device.name] = blk_device.size / 1024
       end

@@ -56,6 +56,11 @@ module Bootloader
       res.uniq
     end
 
+    def pv_disk(vgs)
+      pvs = usable_pvs(vgs)
+      pvs.map { |p| p.ancestors.find { |a| a.is_a?(:disk) }.name }
+    end
+
     # get one level of underlaying devices, so no recursion deeper
     def underlaying_devices_one_level(dev)
       # FIXME: there is nothing like this right now in libstorage-ng
@@ -64,10 +69,7 @@ module Bootloader
       match = /^\/dev\/(\w+)$/.match(dev)
       if match && match[1]
         vgs = devicegraph.lvm_vgs.select { |v| v.vg_name == match[1] }
-        if !vgs.empty?
-          pvs = usable_pvs(vgs)
-          return pvs.map { |p| p.ancestors.find{ |a| a.is_a?(:disk)}.name }
-        end
+        return pv_disk(vgs) unless vgs.empty?
       end
 
       # FIXME: there is nothing like this right now in libstorage-ng
@@ -76,11 +78,7 @@ module Bootloader
       match = /^\/dev\/\w+\/(\w+)$/.match(dev)
       if match && match[1]
         vgs = devicegraph.lvm_lgs.select { |v| v.lv_name == match[1] }.map(&:lvm_vg)
-        # FIXME: DRY it
-        if !vgs.empty?
-          pvs = usable_pvs(vgs)
-          return pvs.map { |p| p.ancestors.find{ |a| a.is_a?(:disk)}.name }
-        end
+        return pv_disk(vgs) unless vgs.empty?
       end
 
       # TODO: storage-ng
@@ -111,8 +109,8 @@ module Bootloader
     # @param volumes_group_list [Y2Storage::LvmVgsList]
     # @return [Y2Storage::LvmPvsList]
     def usable_pvs(volume_groups_list)
-      pvs = volume_groups_list.reduce([]) { |res, v| res.concat(v.lvm_pvs) }
-      pvs.select { |pv| pv.blk_device.is_a?(:disk)) }
+      pvs = volume_groups_list.reduce([]) { |a, e| a.concat(e.lvm_pvs) }
+      pvs.select { |pv| pv.blk_device.is_a?(:disk) }
     end
 
     # For pure virtual disk devices it is selected /boot partition and its

@@ -17,7 +17,6 @@ module Bootloader
   class Stage1
     extend Forwardable
     include Yast::Logger
-    using Y2Storage::Refinements::DevicegraphLists
 
     attr_reader :model
     def_delegators :@model, :generic_mbr?, :generic_mbr=, :activate?, :activate=, :devices,
@@ -176,7 +175,7 @@ module Bootloader
       return false if fs && fs.type == ::Y2Storage::FsType::XFS
 
       # LVM partition does not have reserved space for stage one
-      return false if partition.descendants.any? {|d| d.is?(:lvm_vg) }
+      return false if partition.descendants.any? { |d| d.is?(:lvm_vg) }
 
       true
     end
