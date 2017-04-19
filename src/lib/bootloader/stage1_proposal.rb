@@ -48,10 +48,10 @@ module Bootloader
       stage1.clear_devices
 
       case selected_location
-      when :root then stage1.add_udev_device(Yast::BootStorage.RootPartitionDevice)
-      when :boot then stage1.add_udev_device(Yast::BootStorage.BootPartitionDevice)
+      when :root then stage1.add_udev_device(Yast::BootStorage.root_partition.name)
+      when :boot then stage1.add_udev_device(Yast::BootStorage.boot_partition.name)
       when :extended then stage1.add_udev_device(extended_partition)
-      when :mbr then stage1.add_udev_device(Yast::BootStorage.mbr_disk)
+      when :mbr then stage1.add_udev_device(Yast::BootStorage.mbr_disk.name)
       when :none then log.info "Resetting bootloader device"
       when Array
         if selected_location.first != :custom
@@ -80,7 +80,7 @@ module Bootloader
           # partition can remain activated, which causes less problems with
           # other installed OSes like Windows (older versions assign the C:
           # drive letter to the activated partition).
-          used_disks = ::Bootloader::Stage1Device.new(Yast::BootStorage.mbr_disk).real_devices
+          used_disks = ::Bootloader::Stage1Device.new(Yast::BootStorage.mbr_disk.name).real_devices
           stage1.activate = used_disks.none? { |d| any_boot_flag_partition?(d) }
           stage1.generic_mbr = false
         else
@@ -162,14 +162,12 @@ module Bootloader
         return if @boot_initialized
         @boot_initialized = true
 
-        boot_part = devicegraph.partitions
-                               .find { |p| p.name == Yast::BootStorage.BootPartitionDevice }
+        boot_part =  Yast::BootStorage.boot_partition
         @logical_boot = boot_part.type.is?(:logical)
         @boot_with_btrfs = with_btrfs?(boot_part)
 
         # check for sure also underlaying partitions
-        disk_name = Yast::BootStorage.disk_with_boot_partition
-        devicegraph.disks.find { |d| d.name == disk_name }.partitions.each do |p|
+        Yast::BootStorage.disk_with_boot_partition.partitions.each do |p|
           @extended = p.name if p.type.is?(:extended)
           next unless underlaying_boot_partition_devices.include?(p.name)
 
@@ -189,13 +187,13 @@ module Bootloader
       # "/boot" is built)
       def underlaying_boot_partition_devices
         @underlaying_boot_partition_devices ||=
-          ::Bootloader::Stage1Device.new(Yast::BootStorage.BootPartitionDevice).real_devices
+          ::Bootloader::Stage1Device.new(Yast::BootStorage.boot_partition.name).real_devices
       end
 
       def boot_partition_on_mbr_disk?
         underlaying_boot_partition_devices.any? do |dev|
           disk = devicegraph.disks.find { |d| d.name_or_partition?(dev) }
-          disk && disk.name == Yast::BootStorage.mbr_disk
+          disk == Yast::BootStorage.mbr_disk
         end
       end
     end

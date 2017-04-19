@@ -117,7 +117,7 @@ module Bootloader
     # underlaying devices then for it select on which disks it lives. So result
     # is disk which contain partition holding /boot.
     def underlaying_disk_with_boot_partition
-      underlaying_devices_for(Yast::BootStorage.BootPartitionDevice).map do |part|
+      underlaying_devices_for(Yast::BootStorage.boot_partition.name).map do |part|
         disk_dev = Yast::Storage.GetDiskPartition(part)
         disk_dev["disk"]
       end

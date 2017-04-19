@@ -188,12 +188,12 @@ module Bootloader
       locations << partition_location unless partition_location.empty?
       if stage1.extended_partition?
         # TRANSLATORS: extended is here for extended partition. Keep translation short.
-        locations << Yast::BootStorage.ExtendedPartitionDevice + _(" (extended)")
+        locations << Yast::BootStorage.extended_partition.name + _(" (extended)")
       end
       if stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
-        locations << Yast::BootStorage.mbr_disk + _(" (MBR)")
+        locations << Yast::BootStorage.mbr_disk.name + _(" (MBR)")
       end
       locations << stage1.custom_devices if !stage1.custom_devices.empty?
 
@@ -203,10 +203,10 @@ module Bootloader
     def boot_partition_location
       if Yast::BootStorage.separated_boot?
         if stage1.boot_partition?
-          return Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
+          return Yast::BootStorage.boot_partition.name + " (\"/boot\")"
         end
       elsif stage1.root_partition?
-        return Yast::BootStorage.RootPartitionDevice + " (\"/\")"
+        return Yast::BootStorage.root_partition.name + " (\"/\")"
       end
 
       ""

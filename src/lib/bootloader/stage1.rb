@@ -74,7 +74,7 @@ module Bootloader
 
     def boot_partition?
       if !@boot_partition_device
-        dev = Yast::BootStorage.BootPartitionDevice
+        dev = Yast::BootStorage.boot_partition.name
         kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
         @boot_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
@@ -85,7 +85,7 @@ module Bootloader
 
     def root_partition?
       if !@root_partition_device
-        dev = Yast::BootStorage.RootPartitionDevice
+        dev = Yast::BootStorage.root_partition.name
         kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
         @root_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
@@ -96,7 +96,7 @@ module Bootloader
 
     def mbr?
       if !@mbr_device
-        dev = Yast::BootStorage.mbr_disk
+        dev = Yast::BootStorage.mbr_disk.name
         kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
         @mbr_device = ::Bootloader::Stage1Device.new(kernel_dev)
@@ -106,10 +106,10 @@ module Bootloader
     end
 
     def extended_partition?
-      return false unless Yast::BootStorage.ExtendedPartitionDevice
+      return false unless Yast::BootStorage.extended_partition
 
       if !@extended_partition_device
-        dev = Yast::BootStorage.ExtendedPartitionDevice
+        dev = Yast::BootStorage.extended_partition.name
         kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
         @extended_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
@@ -120,10 +120,10 @@ module Bootloader
 
     def custom_devices
       known_devices = [
-        Yast::BootStorage.BootPartitionDevice,
-        Yast::BootStorage.RootPartitionDevice,
-        Yast::BootStorage.mbr_disk,
-        Yast::BootStorage.ExtendedPartitionDevice
+        Yast::BootStorage.boot_partition.name,
+        Yast::BootStorage.root_partition.name,
+        Yast::BootStorage.mbr_disk.name,
+        Yast::BootStorage.extended_partition.name
       ]
       known_devices.compact!
       known_devices.map! { |d| Bootloader::UdevMapping.to_kernel_device(d) }
@@ -148,7 +148,7 @@ module Bootloader
       case Yast::Arch.architecture
       when "i386", "x86_64"
         res = available_partitions
-        res[:mbr] = Yast::BootStorage.mbr_disk
+        res[:mbr] = Yast::BootStorage.mbr_disk.name
 
         return res
       else
@@ -159,12 +159,10 @@ module Bootloader
     end
 
     def can_use_boot?
-      partition = Yast::BootStorage.BootPartitionDevice
-
-      part = partitions.find { |p| p.name == partition }
+      part = Yast::BootStorage.boot_partition
 
       if !part
-        log.error "cannot find partition #{partition}"
+        log.error "boot partition is not assigned"
         return false
       end
 
@@ -230,13 +228,13 @@ module Bootloader
 
       res = {}
       if Yast::BootStorage.separated_boot?
-        res[:boot] = Yast::BootStorage.BootPartitionDevice
+        res[:boot] = Yast::BootStorage.boot_partition.name
       else
-        res[:root] = Yast::BootStorage.RootPartitionDevice
+        res[:root] = Yast::BootStorage.root_partition.name
       end
 
       if extended_partition?
-        res[:extended] = Yast::BootStorage.ExtendedPartitionDevice
+        res[:extended] = Yast::BootStorage.extended_partition.name
       end
 
       res

@@ -101,8 +101,8 @@ module Yast
     def check_gpt_reserved_partition
       return true unless stage1.mbr?
 
-      disk = staging.disks.find { |d| d.name == BootStorage.mbr_disk }
-      boot_device = staging.partitions.find { |p| p.name == BootStorage.BootPartitionDevice }
+      disk = BootStorage.mbr_disk
+      boot_device = BootStorage.boot_partition
       return true unless disk.gpt?
       return true if boot_device.filesystem_type != ::Y2Storage::Filesystems::Type::BTRFS
       return true if disk.partitions.any? { |p| p.partition_id.is?(:bios_boot) }
@@ -130,7 +130,7 @@ module Yast
 =begin
       devices = Storage.GetTargetMap
 
-      boot_device = BootStorage.BootPartitionDevice
+      boot_device = BootStorage.boot_partition.name
 
       # FIXME: big part of this method should be in BootStorage
       # check if boot device is on raid0
@@ -199,7 +199,7 @@ module Yast
       return true if stage1.activate?
 
       # there is already activate flag
-      disk = staging.disks.find { |d| d.name == Yast::BootStorage.mbr_disk }
+      disk = Yast::BootStorage.mbr_disk
       if disk.partition_table
         legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
 

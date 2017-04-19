@@ -27,23 +27,20 @@ module Yast
   class BootStorageClass < Module
     include Yast::Logger
 
-    attr_accessor :mbr_disk
+    # @return [Y2Storage::Partitionable]
+    attr_reader :mbr_disk
+    # @return [Y2Storage::Partition]
+    attr_reader :boot_partition
+    # @return [Y2Storage::Partition]
+    attr_reader :root_partition
+    # @return [Y2Storage::Partition, nil]
+    attr_reader :extended_partition
 
     def main
       textdomain "bootloader"
 
       Yast.import "Arch"
       Yast.import "Mode"
-
-      # string sepresenting device name of /boot partition
-      # same as RootPartitionDevice if no separate /boot partition
-      @BootPartitionDevice = ""
-
-      # string representing device name of / partition
-      @RootPartitionDevice = ""
-
-      # string representing device name of extended partition
-      @ExtendedPartitionDevice = ""
 
       # FATE#305008: Failover boot configurations for md arrays with redundancy
       # list <string> includes physical disks used for md raid
@@ -53,6 +50,10 @@ module Yast
 
     def staging
       Y2Storage::StorageManager.instance.y2storage_staging
+    end
+
+    def assign_mbr_disk_by_name(dev_name)
+      @mbr_disk = staging.disks.find { |d| d.name == dev_name }
     end
 
     def gpt_boot_disk?
@@ -111,8 +112,7 @@ module Yast
       disk = staging.disks.find { |d| d.name_or_partition?(device) }
       return nil unless disk
 
-      part = disk.partitions.find { |p| p.type.is?(:extended) }
-      part ? part.name : nil
+      disk.partitions.find { |p| p.type.is?(:extended) }
     end
 
     # FIXME: merge with BootSupportCheck
@@ -129,9 +129,9 @@ module Yast
       detect_disks
       Builtins.y2milestone(
         "Boot partition device: %1",
-        BootStorage.BootPartitionDevice
+        BootStorage.boot_partition.inspect
       )
-      dev = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
+      dev = Storage.GetDiskPartition(BootStorage.boot_partition.name)
       Builtins.y2milestone("Disk info: %1", dev)
       # MD, but not mirroring is OK
       # FIXME: type detection by name deprecated
@@ -142,7 +142,7 @@ module Yast
         info = {}
         Builtins.foreach(parts) do |p|
           if Ops.get_string(p, "device", "") ==
-              BootStorage.BootPartitionDevice
+              BootStorage.boot_partition.name
             info = deep_copy(p)
           end
         end
@@ -155,7 +155,7 @@ module Yast
 
       # EVMS
       # FIXME: type detection by name deprecated
-      elsif Builtins.search(BootPartitionDevice(), "/dev/evms/") == 0
+      elsif Builtins.search(boot_partition.name, "/dev/evms/") == 0
         Builtins.y2milestone("Cannot install bootloader on EVMS")
         return false
       end
@@ -186,7 +186,7 @@ module Yast
 
     # Sets properly boot, root and mbr disk.
     def detect_disks
-      return unless @RootPartitionDevice.empty? # quit if already detected
+      return unless root_partition # quit if already detected
       # While calling "yast clone_system" and while cloning bootloader
       # in the AutoYaST module, libStorage has to be set to "normal"
       # mode in order to read mountpoints correctly.
@@ -202,23 +202,17 @@ module Yast
       # The AutoYaST config mode does access to the system.
       # bnc#942360
 
-      root_blk_device = find_blk_device_at_mountpoint("/")
-      raise ::Bootloader::NoRoot, "Missing '/' mount point" unless root_blk_device
+      @root_partition = find_blk_device_at_mountpoint("/")
+      raise ::Bootloader::NoRoot, "Missing '/' mount point" unless @root_partition
 
-      boot_blk_device = find_blk_device_at_mountpoint("/boot")
-      boot_blk_device = root_blk_device if !boot_blk_device
+      @boot_partition = find_blk_device_at_mountpoint("/boot")
+      @boot_partition ||= root_blk_device
 
-      # TODO: @RootPartitionDevice and @BootPartitionDevice should be the
-      # BlkDevice object itself not its name
-
-      @RootPartitionDevice = root_blk_device.name
-      @BootPartitionDevice = boot_blk_device.name
-
-      log.info "RootPartitionDevice #{@RootPartitionDevice}"
-      log.info "BootPartitionDevice #{@BootPartitionDevice}"
+      log.info "root partition #{root_partition.inspect}"
+      log.info "boot partition #{boot_partition.inspect}"
 
       # get extended partition device (if exists)
-      @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
+      @extended_partition = extended_partition_for(boot_partition)
 
       @mbr_disk = disk_with_boot_partition
 
@@ -241,18 +235,15 @@ module Yast
     end
 
     def disk_with_boot_partition
-      boot_device = BootPartitionDevice()
-
-      partition = staging.partitions.find { |p| p.name == boot_device }
-      partitionable = partition.partition_table.partitionable
+      partitionable = boot_partition.partition_table.partitionable
 
       log.info "Boot device - disk: #{partitionable.name}"
 
-      partitionable.name
+      partitionable
     end
 
     def separated_boot?
-      BootPartitionDevice() != RootPartitionDevice()
+      boot_partition != root_partition
     end
 
     # Get map of swap partitions
@@ -309,18 +300,14 @@ module Yast
     end
 
     def encrypted_boot?
-      dev = BootPartitionDevice()
-      log.info "boot device = #{dev}"
-      result = !!crypto_devices[dev]
+      dev = boot_partition
+      log.info "boot device = #{dev.inspect}"
+      result = !!crypto_devices[dev.name]
 
       log.info "encrypted_boot? = #{result}"
 
       result
     end
-
-    publish :variable => :BootPartitionDevice, :type => "string"
-    publish :variable => :RootPartitionDevice, :type => "string"
-    publish :variable => :ExtendedPartitionDevice, :type => "string"
   end
 
   BootStorage = BootStorageClass.new

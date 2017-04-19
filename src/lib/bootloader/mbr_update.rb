@@ -36,7 +36,7 @@ module Bootloader
     end
 
     def mbr_disk
-      @mbr_disk ||= Yast::BootStorage.mbr_disk
+      @mbr_disk ||= Yast::BootStorage.mbr_disk.name
     end
 
     def create_backups
