@@ -78,7 +78,7 @@ module Bootloader
       match = /^\/dev\/\w+\/(\w+)$/.match(dev)
       if match && match[1]
         vgs = devicegraph.lvm_lvs.select { |v| v.lv_name == match[1] }.map(&:lvm_vg)
-        return pv_disk(vgs) unless vgs.empty?
+        return usable_pvs(vgs).map { |v| v.blk_device.name} unless vgs.empty?
       end
 
       # TODO: storage-ng
@@ -110,7 +110,7 @@ module Bootloader
     # @return [Y2Storage::LvmPvsList]
     def usable_pvs(volume_groups_list)
       pvs = volume_groups_list.reduce([]) { |a, e| a.concat(e.lvm_pvs) }
-      pvs.select { |pv| pv.blk_device.is?(:disk) }
+      pvs.reject { |pv| pv.blk_device.is?(:disk) }
     end
 
     # For pure virtual disk devices it is selected /boot partition and its
