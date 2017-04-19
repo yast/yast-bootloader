@@ -58,7 +58,7 @@ module Bootloader
 
     def pv_disk(vgs)
       pvs = usable_pvs(vgs)
-      pvs.map { |p| p.ancestors.find { |a| a.is_a?(:disk) }.name }
+      pvs.map { |p| p.ancestors.find { |a| a.is?(:disk) }.name }
     end
 
     # get one level of underlaying devices, so no recursion deeper
