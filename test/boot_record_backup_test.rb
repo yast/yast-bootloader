@@ -6,7 +6,7 @@ require "bootloader/boot_record_backup"
 
 Yast.import "BootStorage"
 
-describe Bootloader::BootRecordBackup do
+xdescribe Bootloader::BootRecordBackup do
   BASH_PATH = Yast::Path.new(".target.bash")
   SIZE_PATH = Yast::Path.new(".target.size")
   DIR_PATH = Yast::Path.new(".target.dir")

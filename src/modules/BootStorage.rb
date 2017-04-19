@@ -302,7 +302,9 @@ module Yast
     def encrypted_boot?
       dev = boot_partition
       log.info "boot device = #{dev.inspect}"
-      result = !!crypto_devices[dev.name]
+      # storage-ng
+      dev_name = dev ? dev.name : "" # FIXME this should not happen
+      result = !!crypto_devices[dev_name]
 
       log.info "encrypted_boot? = #{result}"
 

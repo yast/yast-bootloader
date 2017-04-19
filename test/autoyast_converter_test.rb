@@ -93,7 +93,7 @@ describe Bootloader::AutoyastConverter do
     end
   end
 
-  describe ".export" do
+  xdescribe ".export" do
     let(:bootloader) { Bootloader::Grub2.new }
     it "export loader type" do
       expect(subject.export(bootloader)["loader_type"]).to eq "grub2"

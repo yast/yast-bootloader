@@ -83,7 +83,7 @@ describe Bootloader::Stage1Device do
       expect(subject.real_devices).to eq(["/dev/sda"])
     end
 
-    it "skips disks used as partitionless lvm devices" do
+    xit "skips disks used as partitionless lvm devices" do
       devicegraph_stub("lvm_whole_disk.yml")
 
       allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/system/root")
