@@ -162,7 +162,9 @@ module Bootloader
 
     def gpt_disks_devices
       boot_devices = stage1.devices
-      boot_discs = devicegraph.disks.select { |d| d.name_or_partition?(boot_devices) }
+      boot_discs = devicegraph.disks.select do |disk|
+        boot_devices.any? { |bd| disk.name_or_partition?(bd) }
+      end
       gpt_disks = boot_discs.select { |d| d.gpt? }
       gpt_disks.map { |d| d.name }
     end
