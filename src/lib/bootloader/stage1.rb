@@ -171,8 +171,7 @@ module Bootloader
       log.info "Boot partition info #{part.inspect}"
 
       # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
-      fs = part.filesystem
-      return false if fs && fs.type == ::Y2Storage::FsType::XFS
+      return false if part.filesystem_type == ::Y2Storage::Filesystems::Type::XFS
 
       # LVM partition does not have reserved space for stage one
       return false if partition.descendants.any? { |d| d.is?(:lvm_vg) }

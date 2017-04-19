@@ -104,7 +104,7 @@ module Yast
       disk = staging.disks.find { |d| d.name == BootStorage.mbr_disk }
       boot_device = staging.partitions.find { |p| p.name == BootStorage.BootPartitionDevice }
       return true unless disk.gpt?
-      return true if boot_device.filesystem_type != ::Y2Storage::FsType::BTRFS
+      return true if boot_device.filesystem_type != ::Y2Storage::Filesystems::Type::BTRFS
       return true if disk.partitions.any? { |p| p.partition_id.is?(:bios_boot) }
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
