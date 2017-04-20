@@ -225,7 +225,7 @@ module Bootloader
         # and raise exception.
         # powernv do not have prep partition, so we do not have any partition
         # to activate (bnc#970582)
-        elsif Yast::BootStorage.disk_with_boot_partition == "/dev/nfs" || Yast::Arch.board_powernv
+        elsif Yast::BootStorage.disk_with_boot_partition.name == "/dev/nfs" || Yast::Arch.board_powernv
           stage1.activate = false
           stage1.generic_mbr = false
           return
@@ -251,7 +251,7 @@ module Bootloader
 
         same_disk_part = partitions.find do |part|
           disk = Yast::Storage.GetDiskPartition(part)["disk"]
-          Yast::BootStorage.disk_with_boot_partition == disk
+          Yast::BootStorage.disk_with_boot_partition.name == disk
         end
 
         if same_disk_part

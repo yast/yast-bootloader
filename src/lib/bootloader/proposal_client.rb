@@ -165,7 +165,7 @@ module Bootloader
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso:  bootloader will not be installed
-      device = Yast::BootStorage.disk_with_boot_partition
+      device = Yast::BootStorage.disk_with_boot_partition.name
       log.info "Type of BootPartitionDevice: #{device}"
       if device == "/dev/nfs"
         log.info "Boot partition is nfs type, bootloader will not be installed."

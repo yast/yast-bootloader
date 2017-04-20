@@ -204,7 +204,7 @@ module Yast
     # @return a list of summary lines
     def Summary(simple_mode: false)
       # kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-      if BootStorage.disk_with_boot_partition == "/dev/nfs"
+      if BootStorage.disk_with_boot_partition.name == "/dev/nfs"
         log.info "Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed."
         return _("The boot partition is of type NFS. Bootloader cannot be installed.")
       end
