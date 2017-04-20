@@ -206,7 +206,7 @@ module Yast
       raise ::Bootloader::NoRoot, "Missing '/' mount point" unless @root_partition
 
       @boot_partition = find_blk_device_at_mountpoint("/boot")
-      @boot_partition ||= root_blk_device
+      @boot_partition ||= @root_partition
 
       log.info "root partition #{root_partition.inspect}"
       log.info "boot partition #{boot_partition.inspect}"
