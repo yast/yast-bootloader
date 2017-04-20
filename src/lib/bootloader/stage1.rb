@@ -120,13 +120,13 @@ module Bootloader
 
     def custom_devices
       known_devices = [
-        Yast::BootStorage.boot_partition.name,
-        Yast::BootStorage.root_partition.name,
-        Yast::BootStorage.mbr_disk.name,
-        Yast::BootStorage.extended_partition.name
+        Yast::BootStorage.boot_partition,
+        Yast::BootStorage.root_partition,
+        Yast::BootStorage.mbr_disk,
+        Yast::BootStorage.extended_partition
       ]
-      known_devices.compact!
-      known_devices.map! { |d| Bootloader::UdevMapping.to_kernel_device(d) }
+      known_devices.compact! # extended partition can be nil
+      known_devices.map! { |d| Bootloader::UdevMapping.to_kernel_device(d.name) }
 
       devices.select do |dev|
         !known_devices.include?(Bootloader::UdevMapping.to_kernel_device(dev))
