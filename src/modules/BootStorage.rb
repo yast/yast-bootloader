@@ -186,7 +186,7 @@ module Yast
 
     # Sets properly boot, root and mbr disk.
     def detect_disks
-      return unless root_partition # quit if already detected
+      return if root_partition # quit if already detected
       # While calling "yast clone_system" and while cloning bootloader
       # in the AutoYaST module, libStorage has to be set to "normal"
       # mode in order to read mountpoints correctly.
