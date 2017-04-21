@@ -27,12 +27,16 @@ module Yast
   class BootStorageClass < Module
     include Yast::Logger
 
-    # @return [Y2Storage::Partitionable]
+    # Disk where to place MBR code. By default one with /boot partition
+    # @return [Y2Storage::Disk]
     attr_reader :mbr_disk
+    # Partition where lives /boot. If there is not separated /boot, / is used instead.
     # @return [Y2Storage::Partition]
     attr_reader :boot_partition
+    # Partition where / lives.
     # @return [Y2Storage::Partition]
     attr_reader :root_partition
+    # Extended partition on same disk as /boot, nil if there is none
     # @return [Y2Storage::Partition, nil]
     attr_reader :extended_partition
 
@@ -235,11 +239,11 @@ module Yast
     end
 
     def disk_with_boot_partition
-      partitionable = boot_partition.partition_table.partitionable
+      disk = boot_partition.disk
 
-      log.info "Boot device - disk: #{partitionable.name}"
+      log.info "Boot device - disk: #{disk}"
 
-      partitionable
+      disk
     end
 
     def separated_boot?

@@ -172,7 +172,7 @@ module Bootloader
       return false if part.filesystem_type == ::Y2Storage::Filesystems::Type::XFS
 
       # LVM partition does not have reserved space for stage one
-      return false if part.descendants.any? { |d| d.is?(:lvm_vg) }
+      return false if part.lvm_pv
 
       true
     end

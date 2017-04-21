@@ -105,7 +105,7 @@ module Yast
       boot_device = BootStorage.boot_partition
       return true unless disk.gpt?
       return true if boot_device.filesystem_type != ::Y2Storage::Filesystems::Type::BTRFS
-      return true if disk.partitions.any? { |p| p.partition_id.is?(:bios_boot) }
+      return true if disk.partitions.any? { |p| p.id.is?(:bios_boot) }
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.

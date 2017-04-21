@@ -180,9 +180,7 @@ module Bootloader
 
       # do not select swap and do not select BIOS grub partition
       # as it clear its special flags (bnc#894040)
-      disk.partitions.reject do |part|
-        [Y2Storage::ID::SWAP, Y2Storage::ID::BIOS_BOOT].include?(part.id)
-      end
+      disk.partitions.reject { |p| p.id.is?(:swap, :bios_boot) }
     end
 
     def extended_partition(disk)
@@ -227,20 +225,19 @@ module Bootloader
     end
 
     def partition_and_disk_to_activate(dev_name)
-      parts = devicegraph.partitions.select { |p| p.name == dev_name }
-      partition = parts.first
-      mbr_dev = partition.disk
-
-      # if real_device is not a partition but a disk
-      if !partition
-        mbr_dev = devicegraph.disks.find { |d| d.name == dev_name }
-        # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
-        # if loader_device is disk Choose any partition which is not swap to
-        # satisfy such bios (bnc#893449)
-        partition = activatable_partitions(mbr_dev).first
-        log.info "loader_device is disk device, so use its partition #{partition.inspect}"
-      end
-      [partition, mbr_dev]
+       device = Y2Storage::BlkDevice.find_by_name(devicegraph, dev_name)
+       if device.is?(:disk)
+         mbr_dev = device
+         # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
+         # if loader_device is disk Choose any partition which is not swap to
+         # satisfy such bios (bnc#893449)
+         partition = activatable_partitions(mbr_dev).first
+         log.info "loader_device is disk device, so use its partition #{partition.inspect}"
+       else
+         partition = device
+         mbr_dev = device.disk
+       end
+       [partition, mbr_dev]
     end
 
     # Get a list of partitions to activate if user wants to activate

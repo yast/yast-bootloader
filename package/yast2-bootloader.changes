@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Apr 21 11:28:29 UTC 2017 - jreidinger@suse.com
+
+- storage-ng: use new wrapper API
+- 3.3.7
+
+-------------------------------------------------------------------
 Thu Apr 13 13:34:12 UTC 2017 - jreidinger@suse.com
 
 - Add possibility to use trusted boot for EFI (FATE#315831)
