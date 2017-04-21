@@ -159,7 +159,7 @@ module Bootloader
 
         STAGE1_DEVICES_MAPPING.each do |key, device|
           if data["global"][key] == "true" || data["boot_#{key}"]
-            stage1.add_udev_device(Yast::BootStorage.public_send(device))
+            stage1.add_udev_device(Yast::BootStorage.public_send(device).name)
           end
         end
 

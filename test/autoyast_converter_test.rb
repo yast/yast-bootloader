@@ -93,8 +93,16 @@ describe Bootloader::AutoyastConverter do
     end
   end
 
-  xdescribe ".export" do
+  describe ".export" do
     let(:bootloader) { Bootloader::Grub2.new }
+
+    before do
+      devicegraph_stub("storage_lvm.yaml")
+      # FIXME not needed when switched to lazy loading
+      Yast::BootStorage.detect_disks
+      Yast::BootStorage.detect_disks
+    end
+
     it "export loader type" do
       expect(subject.export(bootloader)["loader_type"]).to eq "grub2"
     end

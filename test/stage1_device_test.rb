@@ -83,10 +83,11 @@ describe Bootloader::Stage1Device do
       expect(subject.real_devices).to eq(["/dev/sda"])
     end
 
-    xit "skips disks used as partitionless lvm devices" do
+    it "skips disks used as partitionless lvm devices" do
       devicegraph_stub("lvm_whole_disk.yml")
 
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/system/root")
+      # FIXME won't be needed when boot_partition lazy loads
+      Yast::BootStorage.detect_disks
       subject = Bootloader::Stage1Device.new("/dev/system")
       expect(subject.real_devices).to eq(["/dev/sda"])
 

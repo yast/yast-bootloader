@@ -6,13 +6,17 @@ require "bootloader/boot_record_backup"
 
 Yast.import "BootStorage"
 
-xdescribe Bootloader::BootRecordBackup do
+describe Bootloader::BootRecordBackup do
   BASH_PATH = Yast::Path.new(".target.bash")
   SIZE_PATH = Yast::Path.new(".target.size")
   DIR_PATH = Yast::Path.new(".target.dir")
   STAT_PATH = Yast::Path.new(".target.stat")
 
   subject { Bootloader::BootRecordBackup.new("/dev/sda") }
+
+  before do
+    allow(Yast::BootStorage).to receive(:mbr_disk).and_return(double(name: "/dev/sda"))
+  end
 
   describe "#restore" do
     it "returns true if backup is successfully restored" do
@@ -81,7 +85,6 @@ xdescribe Bootloader::BootRecordBackup do
     end
 
     it "store backup of device first 512 bytes to /boot/backup_mbr if it is MBR of primary disk" do
-      allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/sda")
       expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* of=\/boot\/backup_mbr/)
 
       subject.write
