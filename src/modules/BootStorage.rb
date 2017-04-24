@@ -21,30 +21,30 @@ require "yast"
 require "storage"
 require "y2storage"
 require "bootloader/udev_mapping"
+require "bootloader/exceptions"
 
 module Yast
   class BootStorageClass < Module
     include Yast::Logger
-    using Y2Storage::Refinements::DevicegraphLists
-    using Y2Storage::Refinements::Disk
 
-    attr_accessor :mbr_disk
+    # Disk where to place MBR code. By default one with /boot partition
+    # @return [Y2Storage::Disk]
+    attr_reader :mbr_disk
+    # Partition where lives /boot. If there is not separated /boot, / is used instead.
+    # @return [Y2Storage::Partition]
+    attr_reader :boot_partition
+    # Partition where / lives.
+    # @return [Y2Storage::Partition]
+    attr_reader :root_partition
+    # Extended partition on same disk as /boot, nil if there is none
+    # @return [Y2Storage::Partition, nil]
+    attr_reader :extended_partition
 
     def main
       textdomain "bootloader"
 
       Yast.import "Arch"
       Yast.import "Mode"
-
-      # string sepresenting device name of /boot partition
-      # same as RootPartitionDevice if no separate /boot partition
-      @BootPartitionDevice = ""
-
-      # string representing device name of / partition
-      @RootPartitionDevice = ""
-
-      # string representing device name of extended partition
-      @ExtendedPartitionDevice = ""
 
       # FATE#305008: Failover boot configurations for md arrays with redundancy
       # list <string> includes physical disks used for md raid
@@ -53,7 +53,11 @@ module Yast
     end
 
     def staging
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.y2storage_staging
+    end
+
+    def assign_mbr_disk_by_name(dev_name)
+      @mbr_disk = staging.disks.find { |d| d.name == dev_name }
     end
 
     def gpt_boot_disk?
@@ -66,7 +70,7 @@ module Yast
       return false unless current_bl.respond_to?(:stage1)
 
       targets = current_bl.stage1.devices
-      boot_disks = staging.disks.with_name_or_partition(targets)
+      boot_disks = staging.disks.select { |d| targets.any? { |t| d.name_or_partition?(t) } }
 
       boot_disks.any? { |disk| disk.gpt? }
     end
@@ -109,11 +113,10 @@ module Yast
 
     # Get extended partition for given partition or disk
     def extended_partition_for(device)
-      disk_list = staging.disks.with_name_or_partition(device)
-      return nil if disk_list.empty?
+      disk = staging.disks.find { |d| d.name_or_partition?(device) }
+      return nil unless disk
 
-      part = disk_list.partitions.with(type: Storage::PartitionType_EXTENDED).first
-      part ? part.name : nil
+      disk.partitions.find { |p| p.type.is?(:extended) }
     end
 
     # FIXME: merge with BootSupportCheck
@@ -130,9 +133,9 @@ module Yast
       detect_disks
       Builtins.y2milestone(
         "Boot partition device: %1",
-        BootStorage.BootPartitionDevice
+        BootStorage.boot_partition.inspect
       )
-      dev = Storage.GetDiskPartition(BootStorage.BootPartitionDevice)
+      dev = Storage.GetDiskPartition(BootStorage.boot_partition.name)
       Builtins.y2milestone("Disk info: %1", dev)
       # MD, but not mirroring is OK
       # FIXME: type detection by name deprecated
@@ -143,7 +146,7 @@ module Yast
         info = {}
         Builtins.foreach(parts) do |p|
           if Ops.get_string(p, "device", "") ==
-              BootStorage.BootPartitionDevice
+              BootStorage.boot_partition.name
             info = deep_copy(p)
           end
         end
@@ -156,7 +159,7 @@ module Yast
 
       # EVMS
       # FIXME: type detection by name deprecated
-      elsif Builtins.search(BootPartitionDevice(), "/dev/evms/") == 0
+      elsif Builtins.search(boot_partition.name, "/dev/evms/") == 0
         Builtins.y2milestone("Cannot install bootloader on EVMS")
         return false
       end
@@ -173,21 +176,21 @@ module Yast
     # If the filesystem is in a virtual device (like a LUKS or LVM volume), it
     # returns the (first) underlying partition or disk.
     def find_blk_device_at_mountpoint(mountpoint)
-      fses = staging.filesystems.with_mountpoint(mountpoint)
-      return nil if fses.empty?
+      fs = staging.filesystems.find { |f| f.mountpoint == mountpoint }
+      return nil unless fs
 
-      partitions = fses.partitions
-      partitions = fses.lvm_vgs.partitions if partitions.empty?
-      return partitions.first unless partitions.empty?
+      part = fs.ancestors.find { |a| a.is?(:partition) }
+      return part if part
 
-      disks = fses.disks
-      disks = fses.lvm_vgs.disks if disks.empty?
-      disks.first
+      disk = fs.ancestors.find { |a| a.is?(:disk) }
+      return disk if disk
+
+      nil
     end
 
     # Sets properly boot, root and mbr disk.
     def detect_disks
-      return unless @RootPartitionDevice.empty? # quit if already detected
+      return if root_partition # quit if already detected
       # While calling "yast clone_system" and while cloning bootloader
       # in the AutoYaST module, libStorage has to be set to "normal"
       # mode in order to read mountpoints correctly.
@@ -203,26 +206,26 @@ module Yast
       # The AutoYaST config mode does access to the system.
       # bnc#942360
 
-      root_blk_device = find_blk_device_at_mountpoint("/")
+      @root_partition = find_blk_device_at_mountpoint("/")
+      raise ::Bootloader::NoRoot, "Missing '/' mount point" unless @root_partition
 
-      boot_blk_device = find_blk_device_at_mountpoint("/boot")
-      boot_blk_device = root_blk_device if !boot_blk_device
+      @boot_partition = find_blk_device_at_mountpoint("/boot")
+      @boot_partition ||= @root_partition
 
-      # TODO: @RootPartitionDevice and @BootPartitionDevice should be the
-      # BlkDevice object itself not its name
-
-      @RootPartitionDevice = root_blk_device.name
-      @BootPartitionDevice = boot_blk_device.name
-
-      log.info "RootPartitionDevice #{@RootPartitionDevice}"
-      log.info "BootPartitionDevice #{@BootPartitionDevice}"
+      log.info "root partition #{root_partition.inspect}"
+      log.info "boot partition #{boot_partition.inspect}"
 
       # get extended partition device (if exists)
-      @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
+      @extended_partition = extended_partition_for(boot_partition)
 
       @mbr_disk = disk_with_boot_partition
 
       Mode.SetMode(old_mode) if old_mode == "autoinst_config"
+    end
+
+    # resets disk configuration. Clears cache from #detect_disks
+    def reset_disks
+      @boot_partition = @root_partition = @mbr_disk = @extended_partition = nil
     end
 
     def prep_partitions
@@ -241,18 +244,15 @@ module Yast
     end
 
     def disk_with_boot_partition
-      boot_device = BootPartitionDevice()
+      disk = boot_partition.disk
 
-      partition = Storage::Partition.find_by_name(staging, boot_device)
-      partitionable = partition.partition_table.partitionable
+      log.info "Boot device - disk: #{disk}"
 
-      log.info "Boot device - disk: #{partitionable.name}"
-
-      partitionable.name
+      disk
     end
 
     def separated_boot?
-      BootPartitionDevice() != RootPartitionDevice()
+      boot_partition != root_partition
     end
 
     # Get map of swap partitions
@@ -260,7 +260,7 @@ module Yast
     def available_swap_partitions
       ret = {}
 
-      Storage::Swap.all(staging).each do |swap|
+      staging.filesystems.select { |f| f.type.is?(:swap) }.each do |swap|
         blk_device = swap.blk_devices[0]
         ret[blk_device.name] = blk_device.size / 1024
       end
@@ -309,18 +309,16 @@ module Yast
     end
 
     def encrypted_boot?
-      dev = BootPartitionDevice()
-      log.info "boot device = #{dev}"
-      result = !!crypto_devices[dev]
+      dev = boot_partition
+      log.info "boot device = #{dev.inspect}"
+      # storage-ng
+      dev_name = dev ? dev.name : "" # FIXME this should not happen
+      result = !!crypto_devices[dev_name]
 
       log.info "encrypted_boot? = #{result}"
 
       result
     end
-
-    publish :variable => :BootPartitionDevice, :type => "string"
-    publish :variable => :RootPartitionDevice, :type => "string"
-    publish :variable => :ExtendedPartitionDevice, :type => "string"
   end
 
   BootStorage = BootStorageClass.new

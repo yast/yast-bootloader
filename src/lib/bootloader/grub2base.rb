@@ -3,6 +3,7 @@ require "yast"
 require "yast2/execute"
 require "yast2/target_file" # adds ability to work with cfa in inst-sys
 require "bootloader/bootloader_base"
+require "bootloader/exceptions"
 require "bootloader/sections"
 require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
@@ -41,6 +42,9 @@ module Bootloader
     attr_reader :grub_default
 
     attr_accessor :pmbr_action
+
+    # @return [Boolean]
+    attr_accessor :trusted_boot
 
     def initialize
       super
@@ -84,6 +88,8 @@ module Bootloader
       end
       @sections = ::Bootloader::Sections.new(grub_cfg)
       log.info "grub sections: #{@sections.all}"
+
+      self.trusted_boot = Sysconfig.from_system.trusted_boot
     end
 
     def write
@@ -117,7 +123,9 @@ module Bootloader
       grub_default.generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", "true")
 
       propose_serial
+      propose_xen_hypervisor
 
+      self.trusted_boot = false
       nil
     end
 
@@ -128,11 +136,13 @@ module Bootloader
       merge_password(other)
       merge_pmbr_action(other)
       merge_sections(other)
+
+      self.trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
     end
 
     def enable_serial_console(console)
       console = SerialConsole.load_from_console_args(console)
-      raise "Invalid console parameters" unless console
+      raise ::Bootloader::InvalidSerialConsoleArguments unless console
 
       grub_default.serial_console = console.console_args
 
@@ -265,6 +275,14 @@ module Bootloader
       return unless console
 
       grub_default.serial_console = console.console_args
+    end
+
+    def propose_xen_hypervisor
+      return if Dir["/dev/fb*"].empty?
+
+      matcher = CFA::Matcher.new(key: "vga")
+      placer = CFA::ReplacePlacer.new(matcher)
+      grub_default.xen_hypervisor_params.add_parameter("vga", "gfx-1024x768x16", placer)
     end
 
     def propose_resume

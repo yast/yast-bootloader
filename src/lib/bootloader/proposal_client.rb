@@ -1,4 +1,5 @@
 require "installation/proposal_client"
+require "bootloader/exceptions"
 require "bootloader/main_dialog"
 require "bootloader/bootloader_factory"
 
@@ -35,6 +36,8 @@ module Bootloader
       force_reset = attrs["force_reset"]
       auto_mode = Yast::Mode.autoinst || Yast::Mode.autoupgrade
 
+      Yast::BootStorage.detect_disks
+
       if (force_reset || !Yast::Bootloader.proposed_cfg_changed) &&
           !auto_mode
         # force re-calculation of bootloader proposal
@@ -61,6 +64,12 @@ module Bootloader
       Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
 
       construct_proposal_map
+    rescue ::Bootloader::NoRoot
+      {
+        "label_proposal" => [],
+        "warning_level"  => :fatal,
+        "warning"        => _("Cannot detect device mounted as root. Please check partitioning.")
+      }
     end
 
     def ask_user(param)
@@ -156,7 +165,7 @@ module Bootloader
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso:  bootloader will not be installed
-      device = Yast::BootStorage.disk_with_boot_partition
+      device = Yast::BootStorage.disk_with_boot_partition.name
       log.info "Type of BootPartitionDevice: #{device}"
       if device == "/dev/nfs"
         log.info "Boot partition is nfs type, bootloader will not be installed."

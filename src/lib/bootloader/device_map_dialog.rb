@@ -142,7 +142,7 @@ module Bootloader
     end
 
     def store_order
-      Yast::BootStorage.mbr_disk = disks.first
+      Yast::BootStorage.assign_mbr_disk_by_name(disks.first)
 
       @device_map.clear_mapping
       disks.each_with_index do |disk, index|

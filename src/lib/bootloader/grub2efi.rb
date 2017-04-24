@@ -14,7 +14,6 @@ module Bootloader
   class Grub2EFI < Grub2Base
     include Yast::Logger
     attr_accessor :secure_boot
-    using Y2Storage::Refinements::DevicegraphLists
 
     def initialize
       super
@@ -37,13 +36,15 @@ module Bootloader
       super
 
       if pmbr_action && Yast::BootStorage.gpt_boot_disk?
-        efi_partition = filesystems.with_mountpoint("/boot/efi").partitions.first
-        efi_partition ||= filesystems.with_mountpoint("/boot").partitions.first
-        efi_partition ||= filesystems.with_mountpoint("/").partitions.first
+        efi_partition = filesystems.find { |f| f.mountpoint == "/boot/efi" }
+        efi_partition ||= filesystems.find { |f| f.mountpoint == "/boot" }
+        efi_partition ||= filesystems.find { |f| f.mountpoint == "/" }
 
         raise "could not find boot partiton" unless efi_partition
 
-        efi_disk = efi_partition.partitionable
+        efi_partition = efi_partition.plain_blk_devices.first
+
+        efi_disk = efi_partition.disk
 
 # storage-ng
 # rubocop:disable Style/BlockComments
@@ -55,7 +56,7 @@ module Bootloader
         pmbr_setup(efi_disk.name)
       end
 
-      @grub_install.execute(secure_boot: @secure_boot)
+      @grub_install.execute(secure_boot: @secure_boot, trusted_boot: trusted_boot)
 
       true
     end
@@ -88,6 +89,10 @@ module Bootloader
         Yast::Builtins.sformat(
           _("Enable Secure Boot: %1"),
           @secure_boot ? _("yes") : _("no")
+        ),
+        Yast::Builtins.sformat(
+          _("Enable Trusted Boot: %1"),
+          trusted_boot ? _("yes") : _("no")
         )
       ]
     end
@@ -118,7 +123,8 @@ module Bootloader
 
     # overwrite BootloaderBase version to save secure boot
     def write_sysconfig(prewrite: false)
-      sysconfig = Bootloader::Sysconfig.new(bootloader: name, secure_boot: @secure_boot)
+      sysconfig = Bootloader::Sysconfig.new(bootloader: name,
+        secure_boot: @secure_boot, trusted_boot: trusted_boot)
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
 
@@ -128,7 +134,7 @@ module Bootloader
     #
     # @return [Y2Storage::FilesystemsList]
     def filesystems
-      staging = Y2Storage::StorageManager.instance.staging
+      staging = Y2Storage::StorageManager.instance.y2storage_staging
       staging.filesystems
     end
   end

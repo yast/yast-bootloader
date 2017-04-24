@@ -51,6 +51,10 @@ def devicegraph_stub(name)
   path = File.join(File.dirname(__FILE__), "data", "storage-ng", name)
   storage = Y2Storage::StorageManager.fake_from_yaml(path)
   storage.probed.copy(storage.staging)
+  # clears cache for storage devices
+  Yast::BootStorage.reset_disks
+  # unmock detect disks as we have it
+  allow(Yast::BootStorage).to receive(:detect_disks).and_call_original
 end
 
 def mock_disk_partition

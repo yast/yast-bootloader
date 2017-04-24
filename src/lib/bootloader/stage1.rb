@@ -17,7 +17,6 @@ module Bootloader
   class Stage1
     extend Forwardable
     include Yast::Logger
-    using Y2Storage::Refinements::DevicegraphLists
 
     attr_reader :model
     def_delegators :@model, :generic_mbr?, :generic_mbr=, :activate?, :activate=, :devices,
@@ -75,7 +74,7 @@ module Bootloader
 
     def boot_partition?
       if !@boot_partition_device
-        dev = Yast::BootStorage.BootPartitionDevice
+        dev = Yast::BootStorage.boot_partition.name
         kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
         @boot_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
@@ -86,7 +85,7 @@ module Bootloader
 
     def root_partition?
       if !@root_partition_device
-        dev = Yast::BootStorage.RootPartitionDevice
+        dev = Yast::BootStorage.root_partition.name
         kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
         @root_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
@@ -97,7 +96,7 @@ module Bootloader
 
     def mbr?
       if !@mbr_device
-        dev = Yast::BootStorage.mbr_disk
+        dev = Yast::BootStorage.mbr_disk.name
         kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
         @mbr_device = ::Bootloader::Stage1Device.new(kernel_dev)
@@ -107,10 +106,10 @@ module Bootloader
     end
 
     def extended_partition?
-      return false unless Yast::BootStorage.ExtendedPartitionDevice
+      return false unless Yast::BootStorage.extended_partition
 
       if !@extended_partition_device
-        dev = Yast::BootStorage.ExtendedPartitionDevice
+        dev = Yast::BootStorage.extended_partition.name
         kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
         @extended_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
@@ -121,13 +120,13 @@ module Bootloader
 
     def custom_devices
       known_devices = [
-        Yast::BootStorage.BootPartitionDevice,
-        Yast::BootStorage.RootPartitionDevice,
+        Yast::BootStorage.boot_partition,
+        Yast::BootStorage.root_partition,
         Yast::BootStorage.mbr_disk,
-        Yast::BootStorage.ExtendedPartitionDevice
+        Yast::BootStorage.extended_partition
       ]
-      known_devices.compact!
-      known_devices.map! { |d| Bootloader::UdevMapping.to_kernel_device(d) }
+      known_devices.compact! # extended partition can be nil
+      known_devices.map! { |d| Bootloader::UdevMapping.to_kernel_device(d.name) }
 
       devices.select do |dev|
         !known_devices.include?(Bootloader::UdevMapping.to_kernel_device(dev))
@@ -149,7 +148,7 @@ module Bootloader
       case Yast::Arch.architecture
       when "i386", "x86_64"
         res = available_partitions
-        res[:mbr] = Yast::BootStorage.mbr_disk
+        res[:mbr] = Yast::BootStorage.mbr_disk.name
 
         return res
       else
@@ -160,23 +159,20 @@ module Bootloader
     end
 
     def can_use_boot?
-      partition = Yast::BootStorage.BootPartitionDevice
+      part = Yast::BootStorage.boot_partition
 
-      parts = partitions.with(name: partition)
-
-      if parts.empty?
-        log.error "cannot find partition #{partition}"
+      if !part
+        log.error "boot partition is not assigned"
         return false
       end
 
-      log.info "Boot partition info #{parts.first.inspect}"
+      log.info "Boot partition info #{part.inspect}"
 
       # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
-      fs = parts.filesystems.first
-      return false if fs && fs.type == ::Storage::FsType_XFS
+      return false if part.filesystem_type == ::Y2Storage::Filesystems::Type::XFS
 
       # LVM partition does not have reserved space for stage one
-      return false if staging.lvm_vgs.partitions.with(name: partition).any?
+      return false if part.lvm_pv
 
       true
     end
@@ -216,7 +212,7 @@ module Bootloader
     end
 
     def staging
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.y2storage_staging
     end
 
     def include_real_devs?(real_devs)
@@ -232,13 +228,13 @@ module Bootloader
 
       res = {}
       if Yast::BootStorage.separated_boot?
-        res[:boot] = Yast::BootStorage.BootPartitionDevice
+        res[:boot] = Yast::BootStorage.boot_partition.name
       else
-        res[:root] = Yast::BootStorage.RootPartitionDevice
+        res[:root] = Yast::BootStorage.root_partition.name
       end
 
       if extended_partition?
-        res[:extended] = Yast::BootStorage.ExtendedPartitionDevice
+        res[:extended] = Yast::BootStorage.extended_partition.name
       end
 
       res

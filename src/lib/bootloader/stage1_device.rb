@@ -15,7 +15,6 @@ module Bootloader
   #   puts dev.real_devices # => ["/dev/sda1", "/dev/sdb1"]
   class Stage1Device
     include Yast::Logger
-    using Y2Storage::Refinements::DevicegraphLists
 
     # @param [String] device intended location of stage1. Device here
     #   means any name  under /dev like "/dev/sda", "/dev/system/root" or
@@ -40,7 +39,7 @@ module Bootloader
   private
 
     def devicegraph
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.y2storage_staging
     end
 
     # underlaying_devices without any caching
@@ -57,6 +56,11 @@ module Bootloader
       res.uniq
     end
 
+    def pv_disk(vg)
+      pvs = usable_pvs(vg)
+      pvs.map { |p| p.ancestors.find { |a| a.is?(:disk) }.name }
+    end
+
     # get one level of underlaying devices, so no recursion deeper
     def underlaying_devices_one_level(dev)
       # FIXME: there is nothing like this right now in libstorage-ng
@@ -64,18 +68,12 @@ module Bootloader
       # revisit when such thing exist
       match = /^\/dev\/(\w+)$/.match(dev)
       if match && match[1]
-        vgs = devicegraph.volume_groups.with(vg_name: match[1])
-        return usable_pvs(vgs).disks.map(&:name) unless vgs.empty?
+        vg = devicegraph.lvm_vgs.find { |v| v.vg_name == match[1] }
+        return pv_disk(vg) if vg
       end
 
-      # FIXME: there is nothing like this right now in libstorage-ng
-      #  a_lv.name #=> "/dev/vgname/lvname"
-      # revisit when such thing exist
-      match = /^\/dev\/\w+\/(\w+)$/.match(dev)
-      if match && match[1]
-        lvs = devicegraph.logical_volumes.with(lv_name: match[1])
-        return usable_pvs(lvs.vgs).map { |pv| pv.blk_device.name } unless lvs.empty?
-      end
+      lvs = devicegraph.lvm_lvs.find { |v| v.name == dev }
+      return usable_pvs(lvs.lvm_vg).map { |v| v.blk_device.name } if lvs && lvs.lvm_vg
 
       # TODO: storage-ng
       # md
@@ -102,18 +100,17 @@ module Bootloader
     #
     # Ignores physical volumes on a whole disk. See bnc#980529
     #
-    # @param volumes_group_list [Y2Storage::LvmVgsList]
-    # @return [Y2Storage::LvmPvsList]
-    def usable_pvs(volume_groups_list)
-      pvs = volume_groups_list.physical_volumes
-      pvs.with { |pv| !Storage.disk?(pv.blk_device) }
+    # @param volume_group [Y2Storage::LvmVg]
+    # @return [Array<Y2Storage::LvmPv>]
+    def usable_pvs(volume_group)
+      volume_group.lvm_pvs.reject { |pv| pv.plain_blk_device.is?(:disk) }
     end
 
     # For pure virtual disk devices it is selected /boot partition and its
     # underlaying devices then for it select on which disks it lives. So result
     # is disk which contain partition holding /boot.
     def underlaying_disk_with_boot_partition
-      underlaying_devices_for(Yast::BootStorage.BootPartitionDevice).map do |part|
+      underlaying_devices_for(Yast::BootStorage.boot_partition.name).map do |part|
         disk_dev = Yast::Storage.GetDiskPartition(part)
         disk_dev["disk"]
       end

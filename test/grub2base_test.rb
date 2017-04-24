@@ -27,6 +27,22 @@ describe Bootloader::Grub2Base do
 
       subject.read
     end
+
+    it "reads trusted boot configuration from sysconfig" do
+      mocked_sysconfig = ::Bootloader::Sysconfig.new(trusted_boot: true)
+      expect(::Bootloader::Sysconfig).to receive(:from_system).and_return(mocked_sysconfig)
+
+      subject.read
+
+      expect(subject.trusted_boot).to eq true
+
+      mocked_sysconfig = ::Bootloader::Sysconfig.new(trusted_boot: false)
+      expect(::Bootloader::Sysconfig).to receive(:from_system).and_return(mocked_sysconfig)
+
+      subject.read
+
+      expect(subject.trusted_boot).to eq false
+    end
   end
 
   describe "write" do
@@ -310,6 +326,24 @@ describe Bootloader::Grub2Base do
       end
     end
 
+    context "xen hyperviser kernel parameters proposal" do
+      it "do nothing if there is no framebuffer" do
+        allow(Dir).to receive(:[]).and_return([])
+
+        subject.propose
+
+        expect(subject.grub_default.xen_hypervisor_params.parameter("vga")).to eq false
+      end
+
+      it "propose vga parameter if there is framebuffer" do
+        allow(Dir).to receive(:[]).and_return(["/dev/fb0"])
+
+        subject.propose
+
+        expect(subject.grub_default.xen_hypervisor_params.parameter("vga")).to eq "gfx-1024x768x16"
+      end
+    end
+
     it "proposes gfx mode to auto" do
       subject.propose
 
@@ -336,6 +370,12 @@ describe Bootloader::Grub2Base do
       subject.propose
 
       expect(subject.grub_default.serial_console).to eq "serial --unit=1 --speed=4800 --parity=no --word=8"
+    end
+
+    it "proposes to disable trusted boot" do
+      subject.propose
+
+      expect(subject.trusted_boot).to eq false
     end
   end
 
@@ -449,6 +489,15 @@ describe Bootloader::Grub2Base do
       subject.merge(other)
 
       expect(subject.pmbr_action).to eq :nothing
+    end
+
+    it "overwrites trusted boot configuration if merged define it" do
+      subject.trusted_boot = true
+      other.trusted_boot = false
+
+      subject.merge(other)
+
+      expect(subject.trusted_boot).to eq false
     end
   end
 end

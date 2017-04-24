@@ -79,7 +79,7 @@ xdescribe Yast::BootStorage do
     it "raises exception if there is no mount point for root" do
       allow(Yast::Storage).to receive(:GetMountPoints).and_return({})
 
-      expect { subject.detect_disks }.to raise_error(RuntimeError)
+      expect { subject.detect_disks }.to raise_error(::Bootloader::NoRoot)
     end
 
     it "sets BootStorage.mbr_disk" do

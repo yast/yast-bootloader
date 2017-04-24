@@ -13,7 +13,6 @@ module Bootloader
   class DeviceMap
     extend Forwardable
     include Yast::Logger
-    using Y2Storage::Refinements::DevicegraphLists
 
     def_delegators :@model, :grub_device_for, :system_device_for, :grub_devices,
       :add_mapping, :remove_mapping
@@ -120,7 +119,7 @@ module Bootloader
       # want to modify its MBR. So we get disk of such partition and change order to add it
       # to top of device map. For details see bnc#887808,bnc#880439
       boot_disk = Yast::BootStorage.disk_with_boot_partition
-      priority_disks = ::Bootloader::Stage1Device.new(boot_disk).real_devices
+      priority_disks = ::Bootloader::Stage1Device.new(boot_disk.name).real_devices
       # if none of priority disk is hd0, then choose one and assign it
       return if any_first_device?(priority_disks)
 
@@ -132,7 +131,7 @@ module Bootloader
       # BIOS-ID is not supported in libstorage-ng, so let's simply create a
       # mapping entry per disk for the time being (see commented code for the
       # real expected behavior)
-      staging = Y2Storage::StorageManager.instance.staging
+      staging = Y2Storage::StorageManager.instance.y2storage_staging
       staging.disks.each_with_index do |disk, index|
         add_mapping("hd#{index}", disk.name)
       end

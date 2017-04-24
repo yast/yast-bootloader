@@ -17,11 +17,6 @@ module Bootloader
   class Grub2 < Grub2Base
     attr_reader :stage1
     attr_reader :device_map
-    # @return [Boolean]
-    attr_accessor :trusted_boot
-
-    using Y2Storage::Refinements::DevicegraphLists
-    using Y2Storage::Refinements::Disk
 
     def initialize
       super
@@ -30,7 +25,6 @@ module Bootloader
       @stage1 = Stage1.new
       @grub_install = GrubInstall.new(efi: false)
       @device_map = DeviceMap.new
-      @trusted_boot = false
     end
 
     # Read settings from disk, overwritting already set values
@@ -55,8 +49,6 @@ module Bootloader
         log.info "grub2/device.map does not exist. Using empty one."
         @device_map = DeviceMap.new
       end
-
-      @trusted_boot = Sysconfig.from_system.trusted_boot
     end
 
     # Write bootloader settings to disk
@@ -89,14 +81,12 @@ module Bootloader
       # boot, safer option for legacy booting (bnc#872054)
       self.pmbr_action = :add if Yast::BootStorage.gpt_boot_disk?
       device_map.propose if Yast::Arch.x86_64 || Yast::Arch.i386
-      @trusted_boot = false
     end
 
     def merge(other)
       super
 
       @device_map = other.device_map if !other.device_map.empty?
-      @trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
 
       stage1.merge(other.stage1)
     end
@@ -111,7 +101,7 @@ module Bootloader
         ),
         Yast::Builtins.sformat(
           _("Enable Trusted Boot: %1"),
-          @trusted_boot ? _("yes") : _("no")
+          trusted_boot ? _("yes") : _("no")
         )
       ]
       locations_val = locations
@@ -151,7 +141,7 @@ module Bootloader
       end
 
       if Yast::Arch.x86_64 || Yast::Arch.i386
-        res << "trustedgrub2" << "trustedgrub2-i386-pc" if @trusted_boot
+        res << "trustedgrub2" << "trustedgrub2-i386-pc" if trusted_boot
       end
 
       res
@@ -160,19 +150,21 @@ module Bootloader
     # FIXME: refactor with injection like super(prewrite: prewrite, sysconfig = ...)
     # overwrite BootloaderBase version to save trusted boot
     def write_sysconfig(prewrite: false)
-      sysconfig = Bootloader::Sysconfig.new(bootloader: name, trusted_boot: @trusted_boot)
+      sysconfig = Bootloader::Sysconfig.new(bootloader: name, trusted_boot: trusted_boot)
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
 
   private
 
     def devicegraph
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.y2storage_staging
     end
 
     def gpt_disks_devices
       boot_devices = stage1.devices
-      boot_discs = devicegraph.disks.with_name_or_partition(boot_devices)
+      boot_discs = devicegraph.disks.select do |disk|
+        boot_devices.any? { |bd| disk.name_or_partition?(bd) }
+      end
       gpt_disks = boot_discs.select { |d| d.gpt? }
       gpt_disks.map { |d| d.name }
     end
@@ -196,12 +188,12 @@ module Bootloader
       locations << partition_location unless partition_location.empty?
       if stage1.extended_partition?
         # TRANSLATORS: extended is here for extended partition. Keep translation short.
-        locations << Yast::BootStorage.ExtendedPartitionDevice + _(" (extended)")
+        locations << Yast::BootStorage.extended_partition.name + _(" (extended)")
       end
       if stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
-        locations << Yast::BootStorage.mbr_disk + _(" (MBR)")
+        locations << Yast::BootStorage.mbr_disk.name + _(" (MBR)")
       end
       locations << stage1.custom_devices if !stage1.custom_devices.empty?
 
@@ -211,10 +203,10 @@ module Bootloader
     def boot_partition_location
       if Yast::BootStorage.separated_boot?
         if stage1.boot_partition?
-          return Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
+          return Yast::BootStorage.boot_partition.name + " (\"/boot\")"
         end
       elsif stage1.root_partition?
-        return Yast::BootStorage.RootPartitionDevice + " (\"/\")"
+        return Yast::BootStorage.root_partition.name + " (\"/\")"
       end
 
       ""
