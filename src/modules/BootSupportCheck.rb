@@ -203,7 +203,7 @@ module Yast
       if disk.partition_table
         legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
 
-        return true if disks.partitions.any? { |p| legacy_boot ? p.legacy_boot? : p.boot? }
+        return true if disk.partitions.any? { |p| legacy_boot ? p.legacy_boot? : p.boot? }
       end
 
       add_new_problem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))

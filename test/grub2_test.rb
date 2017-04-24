@@ -165,14 +165,11 @@ describe Bootloader::Grub2 do
 
   end
 
-  xdescribe "#summary" do
+  describe "#summary" do
     before do
       stage1 = double(can_use_boot?: true, extended_partition?: false).as_null_object
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
-      allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/sda")
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/sda1")
-      allow(Yast::BootStorage).to receive(:RootPartitionDevice).and_return("/dev/sda1")
     end
 
     it "contains line saying that bootloader type is GRUB2" do

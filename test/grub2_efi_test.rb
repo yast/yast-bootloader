@@ -23,20 +23,16 @@ describe Bootloader::Grub2EFI do
   end
 
   describe "write" do
-    xit "setups protective mbr to real disks containing /boot/efi" do
+    it "setups protective mbr to real disks containing /boot/efi" do
       subject.pmbr_action = :add
       allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
-      allow(Yast::Storage).to receive(:GetEntryForMountpoint)
-        .with("/boot/efi").and_return("device" => "/dev/md1")
-      allow(Bootloader::Stage1Device).to receive(:new)
-        .and_return(double(real_devices: ["/dev/sda", "/dev/sdb"]))
 
-      expect(subject).to receive(:pmbr_setup).with("/dev/sda", "/dev/sdb")
+      expect(subject).to receive(:pmbr_setup).with("/dev/sda")
 
       subject.write
     end
 
-    xit "calls grub2-install with respective secure boot and trusted boot configuration" do
+    it "calls grub2-install with respective secure boot and trusted boot configuration" do
       # This test fails (only!) in Travis with
       # Failure/Error: subject.write Storage::Exception: Storage::Exception
       grub_install = double(Bootloader::GrubInstall)
@@ -49,7 +45,7 @@ describe Bootloader::Grub2EFI do
       subject.write
     end
 
-    xit "writes secure boot and trusted boot configuration to bootloader sysconfig" do
+    it "writes secure boot and trusted boot configuration to bootloader sysconfig" do
       # This test fails (only!) in Travis with
       # Failure/Error: subject.write Storage::Exception: Storage::Exception
       sysconfig = double(Bootloader::Sysconfig)
