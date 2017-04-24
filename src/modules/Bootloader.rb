@@ -66,8 +66,6 @@ module Yast
     # Export bootloader settings to a map
     # @return bootloader settings
     def Export
-      Yast::BootStorage.detect_disks
-
       config = ::Bootloader::BootloaderFactory.current
       config.read if !config.read? && !config.proposed?
       result = ::Bootloader::AutoyastConverter.export(config)
@@ -81,9 +79,6 @@ module Yast
     # @param [Hash] data map of bootloader settings
     # @return [Boolean] true on success
     def Import(data)
-      # AutoYaST configuration mode. There is no access to the system
-      Yast::BootStorage.detect_disks
-
       factory = ::Bootloader::BootloaderFactory
 
       imported_configuration = ::Bootloader::AutoyastConverter.import(data)
@@ -108,8 +103,6 @@ module Yast
         # progress stage, text in dialog (short, infinitiv)
         _("Check boot loader"),
         # progress stage, text in dialog (short, infinitiv)
-        _("Read partitioning"),
-        # progress stage, text in dialog (short, infinitiv)
         _("Load boot loader settings")
       ]
       titles = [
@@ -132,9 +125,6 @@ module Yast
 
       Progress.NextStage
       return false if testAbort
-
-      Progress.NextStage
-      BootStorage.detect_disks
 
       Progress.NextStage
       return false if testAbort

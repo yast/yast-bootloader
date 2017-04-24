@@ -53,8 +53,6 @@ def devicegraph_stub(name)
   storage.probed.copy(storage.staging)
   # clears cache for storage devices
   Yast::BootStorage.reset_disks
-  # unmock detect disks as we have it
-  allow(Yast::BootStorage).to receive(:detect_disks).and_call_original
 end
 
 def mock_disk_partition
@@ -91,6 +89,5 @@ RSpec.configure do |config|
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
     allow(::Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
     allow(::Bootloader::Stage1Device).to receive(:new) { |d| double(real_devices: [d]) }
-    allow(Yast::BootStorage).to receive(:detect_disks) # do not do real disk detection
   end
 end
