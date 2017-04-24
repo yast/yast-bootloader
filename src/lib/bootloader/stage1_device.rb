@@ -103,7 +103,7 @@ module Bootloader
     # @param volume_group [Y2Storage::LvmVg]
     # @return [Array<Y2Storage::LvmPv>]
     def usable_pvs(volume_group)
-      volume_group.lvm_pvs.reject { |pv| pv.blk_device.is?(:disk) }
+      volume_group.lvm_pvs.reject { |pv| pv.plain_blk_device.is?(:disk) }
     end
 
     # For pure virtual disk devices it is selected /boot partition and its
