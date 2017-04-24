@@ -42,6 +42,7 @@ module Yast
 
       @boot_partition
     end
+
     # Partition where / lives.
     # @return [Y2Storage::Partition]
     def root_partition
@@ -49,6 +50,7 @@ module Yast
 
       @root_partition
     end
+
     # Extended partition on same disk as /boot, nil if there is none
     # @return [Y2Storage::Partition, nil]
     def extended_partition
