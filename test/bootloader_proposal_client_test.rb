@@ -5,14 +5,8 @@ require "bootloader/proposal_client"
 require "bootloader/bootloader_factory"
 require "bootloader/main_dialog"
 
-xdescribe Bootloader::ProposalClient do
+describe Bootloader::ProposalClient do
   before do
-    # needed for udev conversion
-    mock_disk_partition
-    allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/sda")
-    allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/sda1")
-    allow(Yast::Storage).to receive(:GetTargetMap).and_return({})
-
     allow_any_instance_of(::Bootloader::Stage1).to(
       receive(:available_locations)
       .and_return(
@@ -103,7 +97,6 @@ xdescribe Bootloader::ProposalClient do
 
   describe "#make_proposal" do
     before do
-      mock_disk_partition
       ::Bootloader::BootloaderFactory.current_name = "grub2"
       allow(Yast::Bootloader).to receive(:Propose)
       allow(Yast::Bootloader).to receive(:Summary).and_return("Summary")
@@ -123,7 +116,8 @@ xdescribe Bootloader::ProposalClient do
       expect(subject.make_proposal({})).to include("raw_proposal")
     end
 
-    it "do not check installation errors if install on nfs" do
+    # FIXME: create yaml file with root on nfs
+    xit "do not check installation errors if install on nfs" do
       expect(Yast::BootStorage).to receive(:disk_with_boot_partition).and_return("/dev/nfs").at_least(:once)
 
       expect(subject.make_proposal({})).to_not include("warning")

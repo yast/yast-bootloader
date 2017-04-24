@@ -40,7 +40,7 @@ describe Yast::BootSupportCheck do
         expect(subject.SystemSupported).to eq false
       end
 
-      xit "returns false if neither generic mbr nor grub2 mbr is written" do
+      it "returns false if neither generic mbr nor grub2 mbr is written" do
         allow(bootloader).to receive(:stage1)
           .and_return(double(mbr?: false, generic_mbr?: false, activate?: false))
 

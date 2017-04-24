@@ -29,16 +29,35 @@ module Yast
 
     # Disk where to place MBR code. By default one with /boot partition
     # @return [Y2Storage::Disk]
-    attr_reader :mbr_disk
+    def mbr_disk
+      detect_disks
+
+      @mbr_disk
+    end
+
     # Partition where lives /boot. If there is not separated /boot, / is used instead.
     # @return [Y2Storage::Partition]
-    attr_reader :boot_partition
+    def boot_partition
+      detect_disks
+
+      @boot_partition
+    end
+
     # Partition where / lives.
     # @return [Y2Storage::Partition]
-    attr_reader :root_partition
+    def root_partition
+      detect_disks
+
+      @root_partition
+    end
+
     # Extended partition on same disk as /boot, nil if there is none
     # @return [Y2Storage::Partition, nil]
-    attr_reader :extended_partition
+    def extended_partition
+      detect_disks
+
+      @extended_partition
+    end
 
     def main
       textdomain "bootloader"
@@ -189,40 +208,6 @@ module Yast
     end
 
     # Sets properly boot, root and mbr disk.
-    def detect_disks
-      return if root_partition # quit if already detected
-      # While calling "yast clone_system" and while cloning bootloader
-      # in the AutoYaST module, libStorage has to be set to "normal"
-      # mode in order to read mountpoints correctly.
-      # (bnc#950105)
-      old_mode = Mode.mode
-      if Mode.config
-        Mode.SetMode("normal")
-        log.info "Initialize libstorage in readonly mode" # bnc#942360
-        Storage.InitLibstorage(true)
-        StorageDevices.InitDone # Set StorageDevices flag disks_valid to true
-      end
-
-      # The AutoYaST config mode does access to the system.
-      # bnc#942360
-
-      @root_partition = find_blk_device_at_mountpoint("/")
-      raise ::Bootloader::NoRoot, "Missing '/' mount point" unless @root_partition
-
-      @boot_partition = find_blk_device_at_mountpoint("/boot")
-      @boot_partition ||= @root_partition
-
-      log.info "root partition #{root_partition.inspect}"
-      log.info "boot partition #{boot_partition.inspect}"
-
-      # get extended partition device (if exists)
-      @extended_partition = extended_partition_for(boot_partition)
-
-      @mbr_disk = disk_with_boot_partition
-
-      Mode.SetMode(old_mode) if old_mode == "autoinst_config"
-    end
-
     # resets disk configuration. Clears cache from #detect_disks
     def reset_disks
       @boot_partition = @root_partition = @mbr_disk = @extended_partition = nil
@@ -318,6 +303,42 @@ module Yast
       log.info "encrypted_boot? = #{result}"
 
       result
+    end
+
+  private
+
+    def detect_disks
+      return if @root_partition # quit if already detected
+      # While calling "yast clone_system" and while cloning bootloader
+      # in the AutoYaST module, libStorage has to be set to "normal"
+      # mode in order to read mountpoints correctly.
+      # (bnc#950105)
+      old_mode = Mode.mode
+      if Mode.config
+        Mode.SetMode("normal")
+        log.info "Initialize libstorage in readonly mode" # bnc#942360
+        Storage.InitLibstorage(true)
+        StorageDevices.InitDone # Set StorageDevices flag disks_valid to true
+      end
+
+      # The AutoYaST config mode does access to the system.
+      # bnc#942360
+
+      @root_partition = find_blk_device_at_mountpoint("/")
+      raise ::Bootloader::NoRoot, "Missing '/' mount point" unless @root_partition
+
+      @boot_partition = find_blk_device_at_mountpoint("/boot")
+      @boot_partition ||= @root_partition
+
+      log.info "root partition #{root_partition.inspect}"
+      log.info "boot partition #{boot_partition.inspect}"
+
+      # get extended partition device (if exists)
+      @extended_partition = extended_partition_for(boot_partition)
+
+      @mbr_disk = disk_with_boot_partition
+
+      Mode.SetMode(old_mode) if old_mode == "autoinst_config"
     end
   end
 

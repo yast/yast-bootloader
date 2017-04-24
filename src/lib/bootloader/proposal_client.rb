@@ -36,8 +36,6 @@ module Bootloader
       force_reset = attrs["force_reset"]
       auto_mode = Yast::Mode.autoinst || Yast::Mode.autoupgrade
 
-      Yast::BootStorage.detect_disks
-
       if (force_reset || !Yast::Bootloader.proposed_cfg_changed) &&
           !auto_mode
         # force re-calculation of bootloader proposal
