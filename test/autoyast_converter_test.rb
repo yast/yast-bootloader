@@ -98,7 +98,7 @@ describe Bootloader::AutoyastConverter do
 
     before do
       devicegraph_stub("storage_lvm.yaml")
-      # FIXME not needed when switched to lazy loading
+      # FIXME: not needed when switched to lazy loading
       Yast::BootStorage.detect_disks
     end
 

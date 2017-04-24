@@ -100,8 +100,8 @@ module Bootloader
     #
     # Ignores physical volumes on a whole disk. See bnc#980529
     #
-    # @param volume_groups_list [Y2Storage::LvmVgsList]
-    # @return [Y2Storage::LvmPvsList]
+    # @param volume_group [Y2Storage::LvmVg]
+    # @return [Array<Y2Storage::LvmPv>]
     def usable_pvs(volume_group)
       volume_group.lvm_pvs.reject { |pv| pv.blk_device.is?(:disk) }
     end

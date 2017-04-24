@@ -30,6 +30,13 @@ module Bootloader
       @stage1 = stage1
     end
 
+    DEVICE_MAPPING = {
+      root:     :root_partition,
+      boot:     :boot_partition,
+      extended: :extended_partition,
+      mbr:      :mbr_disk
+    }.freeze
+
     # Set "boot_*" flags in the globals map according to the boot device selected
     # with parameter selected_location. Only a single boot device can be selected
     # with this function. The function cannot be used to set a custom boot device.
@@ -48,10 +55,9 @@ module Bootloader
       stage1.clear_devices
 
       case selected_location
-      when :root then stage1.add_udev_device(Yast::BootStorage.root_partition.name)
-      when :boot then stage1.add_udev_device(Yast::BootStorage.boot_partition.name)
-      when :extended then stage1.add_udev_device(extended_partition)
-      when :mbr then stage1.add_udev_device(Yast::BootStorage.mbr_disk.name)
+      when :root, :boot, :extended, :mbr
+        device = Yast::BootStorage.public_send(DEVICE_MAPPING[selected_location])
+        stage1.add_udev_device(device.name)
       when :none then log.info "Resetting bootloader device"
       when Array
         if selected_location.first != :custom
@@ -115,7 +121,7 @@ module Bootloader
         # see bug #279837 comment #53
         selected_location = separated_boot? ? :boot : :root if boot_partition_on_mbr_disk?
 
-        if logical_boot? && extended_partition
+        if logical_boot? && Yast::BootStorage.extended_partition
           log.info "/boot is on logical partition and extended detected, extended proposed"
           selected_location = :extended
         end
@@ -140,12 +146,6 @@ module Bootloader
         Yast::BootStorage.separated_boot?
       end
 
-      def extended_partition
-        init_boot_info unless @boot_initialized
-
-        @extended
-      end
-
       def logical_boot?
         init_boot_info unless @boot_initialized
 
@@ -162,13 +162,12 @@ module Bootloader
         return if @boot_initialized
         @boot_initialized = true
 
-        boot_part =  Yast::BootStorage.boot_partition
+        boot_part = Yast::BootStorage.boot_partition
         @logical_boot = boot_part.type.is?(:logical)
         @boot_with_btrfs = with_btrfs?(boot_part)
 
         # check for sure also underlaying partitions
         Yast::BootStorage.disk_with_boot_partition.partitions.each do |p|
-          @extended = p.name if p.type.is?(:extended)
           next unless underlaying_boot_partition_devices.include?(p.name)
 
           @boot_with_btrfs = with_btrfs?(p)
@@ -225,7 +224,8 @@ module Bootloader
         # and raise exception.
         # powernv do not have prep partition, so we do not have any partition
         # to activate (bnc#970582)
-        elsif Yast::BootStorage.disk_with_boot_partition.name == "/dev/nfs" || Yast::Arch.board_powernv
+        elsif Yast::BootStorage.disk_with_boot_partition.name == "/dev/nfs" ||
+            Yast::Arch.board_powernv
           stage1.activate = false
           stage1.generic_mbr = false
           return

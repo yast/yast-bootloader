@@ -86,7 +86,7 @@ describe Bootloader::Stage1Device do
     it "skips disks used as partitionless lvm devices" do
       devicegraph_stub("lvm_whole_disk.yml")
 
-      # FIXME won't be needed when boot_partition lazy loads
+      # FIXME: won't be needed when boot_partition lazy loads
       Yast::BootStorage.detect_disks
       subject = Bootloader::Stage1Device.new("/dev/system")
       expect(subject.real_devices).to eq(["/dev/sda"])
