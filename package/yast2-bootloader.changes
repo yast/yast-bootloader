@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Apr 25 12:05:03 UTC 2017 - jreidinger@suse.com
+
+- storage-ng:
+-- implement detection of encrypted boot
+-- use libstorage instead of directly calling parted
+- 3.3.8
+
+-------------------------------------------------------------------
 Fri Apr 21 11:28:29 UTC 2017 - jreidinger@suse.com
 
 - storage-ng: use new wrapper API
