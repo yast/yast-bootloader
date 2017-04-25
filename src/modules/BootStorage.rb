@@ -254,51 +254,11 @@ module Yast
       ret
     end
 
-    # Build map with encrypted partitions (even indirectly)
-    # @return map with encrypted partitions
-    def crypto_devices
-      cryptos = {}
-
-# storage-ng
-=begin
-      tm = Yast::Storage.GetTargetMap || {}
-      log.info "target map = #{tm}"
-
-      # first, find the directly encrypted things
-      # that is, target map has a 'crypt_device' key for it
-      #
-      # FIXME: can the device itself have a 'crypt_device' key?
-      tm.each_value do |d|
-        partitions = d["partitions"] || []
-        partitions.each do |p|
-          if p["crypt_device"]
-            cryptos[p["device"]] = true
-            cryptos[p["used_by_device"]] = true if p["used_by_device"]
-          end
-        end
-      end
-
-      log.info "crypto devices, step 1 = #{cryptos}"
-
-      # second step: check if the encrypted things have itself partitions
-      tm.each_value do |d|
-        next if !cryptos[d["device"]]
-        partitions = d["partitions"] || []
-        partitions.each { |p| cryptos[p["device"]] = true }
-      end
-=end
-
-      log.info "crypto devices, final = #{cryptos}"
-
-      cryptos
-    end
-
     def encrypted_boot?
       dev = boot_partition
       log.info "boot device = #{dev.inspect}"
       # storage-ng
-      dev_name = dev ? dev.name : "" # FIXME this should not happen
-      result = !!crypto_devices[dev_name]
+      result = dev.ancestors.any? { |a| a.is?(:encryption) }
 
       log.info "encrypted_boot? = #{result}"
 
