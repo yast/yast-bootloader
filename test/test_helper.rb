@@ -89,6 +89,7 @@ RSpec.configure do |config|
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
     allow(::Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
     allow(::Bootloader::Stage1Device).to receive(:new) { |d| double(real_devices: [d]) }
+    allow_any_instance_of(::Y2Storage::StorageManager).to receive(:commit)
     devicegraph_stub("trivial.yaml")
   end
 end
