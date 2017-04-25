@@ -157,7 +157,7 @@ module Bootloader
     end
 
     def extended_partition(partition)
-      part = partition.siblings.find { |p| p.type.is?(:extended) }
+      part = partition.partitionable.partitions.find { |p| p.type.is?(:extended) }
       return nil unless part
 
       log.info "Using extended partition instead: #{part.inspect}"
