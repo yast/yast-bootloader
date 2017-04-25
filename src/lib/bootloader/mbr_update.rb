@@ -72,54 +72,26 @@ module Bootloader
       end
     end
 
-    def set_parted_flag(disk, part_num, flag)
-      # we need at first clear this flag to avoid multiple flags (bnc#848609)
-      reset_flag(disk, flag)
-
-      # and then set it
-      command = ["/usr/sbin/parted", "-s", disk, "set", part_num, flag, "on"]
-      Yast::Execute.locally(*command)
-    end
-
-    def reset_flag(disk, flag)
-      command = ["/usr/sbin/parted", "-sm", disk, "print"]
-      out = Yast::Execute.locally(*command, stdout: :capture)
-
-      partitions = out.lines.select do |line|
-        values = line.split(":")
-        values[6] && values[6].match(/(?:\s|\A)#{flag}/)
-      end
-      partitions.map! { |line| line.split(":").first }
-
-      partitions.each do |part_num|
-        command = ["/usr/sbin/parted", "-s", disk, "set", part_num, flag, "off"]
-        Yast::Execute.locally(*command)
-      end
-    end
-
-    def can_activate_partition?(disk, num)
+    def can_activate_partition?(partition)
       # if primary partition on old DOS MBR table, GPT do not have such limit
-      gpt_disk = gpt?(disk)
+      gpt_disk = partition.disk.gpt?
 
-      !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || num <= 4)
+      !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || partition.number <= 4)
     end
 
     def activate_partitions
-      partitions_to_activate.each do |m_activate|
-        num = m_activate["num"]
-        disk = m_activate["mbr"]
-        if num.nil? || disk.nil?
-          raise "INTERNAL ERROR: Data for partition to activate is invalid."
-        end
+      partitions_to_activate.each do |partition|
+        next unless can_activate_partition?(partition)
 
-        next unless can_activate_partition?(disk, num)
-
-        log.info "Activating partition #{num} on #{disk}"
+        log.info "Activating partition #{partition.inspect}"
         # set corresponding flag only bnc#930903
         if gpt?(disk)
-          set_parted_flag(disk, num, "legacy_boot")
+          # for legacy_boot storage_ng do not reset others, so lets
+          # do it manually
+          partition.siblings.select{ |d| d.is?(:partition) }.each { |p| p.legacy_boot = false }
+          partition.legacy_boot = true
         else
-          set_parted_flag(disk, num, "boot")
+          partition.boot = true
         end
       end
     end
@@ -136,7 +108,8 @@ module Bootloader
       # devices; if for any of the "underlying" or "base" devices no device
       # for acessing the MBR can be determined, include mbr_disk in the list
       mbrs = boot_devices.map do |dev|
-        partition_to_activate(dev)["mbr"] || mbr_disk
+        dev = partition_to_activate(dev)
+        dev ? dev.disk.name : mbr_disk
       end
       ret = [mbr_disk]
       # Add to disks only if part of raid on base devices lives on mbr_disk
@@ -183,8 +156,8 @@ module Bootloader
       disk.partitions.reject { |p| p.id.is?(:swap, :bios_boot) }
     end
 
-    def extended_partition(disk)
-      part = activatable_partitions(disk).find { |p| p.type == Y2Storage::PartitionType::EXTENDED }
+    def extended_partition(partition)
+      part = partition.siblings.find { |p| p.type.is?(:extended) }
       return nil unless part
 
       log.info "Using extended partition instead: #{part.inspect}"
@@ -200,9 +173,7 @@ module Bootloader
     def partition_to_activate(loader_device)
       real_device = first_base_device_to_boot(loader_device)
       log.info "real devices for #{loader_device} is #{real_device}"
-      partition, mbr_dev = partition_and_disk_to_activate(real_device)
-
-      raise "Invalid loader device #{loader_device}" unless mbr_dev
+      partition = partition_of(real_device)
 
       # strange, no partitions on our mbr device, we probably won't boot
       if !partition
@@ -210,21 +181,16 @@ module Bootloader
         return {}
       end
 
-      if partition.type == Storage::PartitionType_LOGICAL
+      if partition.type.is?(:logical)
         log.info "Bootloader partition type can be logical"
-        partition = extended_partition(mbr_dev)
+        partition = extended_partition(partition)
       end
 
-      ret = {
-        "num" => partition.number,
-        "mbr" => mbr_dev.name
-      }
-
-      log.info "Partition for activating: #{ret}"
-      ret
+      log.info "Partition for activating: #{partition.inspect}"
+      partition
     end
 
-    def partition_and_disk_to_activate(dev_name)
+    def partition_of(dev_name)
       device = Y2Storage::BlkDevice.find_by_name(devicegraph, dev_name)
       if device.is?(:disk)
         mbr_dev = device
@@ -235,9 +201,8 @@ module Bootloader
         log.info "loader_device is disk device, so use its partition #{partition.inspect}"
       else
         partition = device
-        mbr_dev = device.disk
       end
-      [partition, mbr_dev]
+      partition
     end
 
     # Get a list of partitions to activate if user wants to activate
@@ -247,9 +212,7 @@ module Bootloader
       result = boot_devices
 
       result.map! { |partition| partition_to_activate(partition) }
-      result.delete({})
-
-      result.uniq
+      result.uniq.compact
     end
   end
 end
