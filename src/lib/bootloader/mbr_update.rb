@@ -88,7 +88,7 @@ module Bootloader
         if gpt?(disk)
           # for legacy_boot storage_ng do not reset others, so lets
           # do it manually
-          partition.siblings.select{ |d| d.is?(:partition) }.each { |p| p.legacy_boot = false }
+          partition.siblings.select { |d| d.is?(:partition) }.each { |p| p.legacy_boot = false }
           partition.legacy_boot = true
         else
           partition.boot = true
