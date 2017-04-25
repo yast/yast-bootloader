@@ -76,7 +76,7 @@ module Bootloader
       # if primary partition on old DOS MBR table, GPT do not have such limit
       gpt_disk = partition.disk.gpt?
 
-      !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || partition.number <= 4)
+      !(Yast::Arch.ppc && gpt_disk) && (gpt_disk || partition.is?(:primary, :extended))
     end
 
     def activate_partitions
