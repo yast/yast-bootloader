@@ -254,7 +254,6 @@ module Yast
       Progress.Title(titles[1]) unless Mode.normal
 
       ::Bootloader::BootloaderFactory.current.write
-      Y2Storage::StorageManager.commit # commit changes done to flags
 
       true
     end

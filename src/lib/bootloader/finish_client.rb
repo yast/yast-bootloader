@@ -52,8 +52,6 @@ module Bootloader
       system.merge(bl_current)
       system.write
 
-      Y2Storage::StorageManager.commit # write boot flags
-
       # and remember result of merge as current one
       ::Bootloader::BootloaderFactory.current = system
 
