@@ -257,8 +257,8 @@ module Yast
     def encrypted_boot?
       dev = boot_partition
       log.info "boot device = #{dev.inspect}"
-      # storage-ng
-      result = dev.ancestors.any? { |a| a.is?(:encryption) }
+      # check if on physical partition is any encryption
+      result = dev.descendants.any? { |a| a.is?(:encryption) }
 
       log.info "encrypted_boot? = #{result}"
 
