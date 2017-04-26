@@ -204,17 +204,11 @@ module Bootloader
       log.info "real devices for #{loader_device} is #{real_device}"
       partition = to_partition(real_device)
 
-      raise "Invalid loader device #{loader_device}" unless mbr_dev
-
-      # strange, no partitions on our mbr device, we probably won't boot
-      if !partition
-        log.warn "no non-swap partitions for mbr device #{mbr_dev.name}"
-        return {}
-      end
+      raise "Invalid loader device #{loader_device}" unless partition
 
       if partition.type == Storage::PartitionType_LOGICAL
         log.info "Bootloader partition type can be logical"
-        partition = extended_partition(mbr_dev)
+        partition = extended_partition(partition)
       end
 
       log.info "Partition for activating: #{partition}"
