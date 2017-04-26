@@ -119,9 +119,9 @@ module Bootloader
         if disk.gpt?
           # for legacy_boot storage_ng do not reset others, so lets
           # do it manually
-          set_parted_flag(disk, num, "legacy_boot")
+          set_parted_flag(disk.name, num, "legacy_boot")
         else
-          set_parted_flag(disk, num, "boot")
+          set_parted_flag(disk.name, num, "boot")
         end
       end
     end
