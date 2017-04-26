@@ -64,14 +64,14 @@ module Bootloader
       return if @pmbr_action == :nothing
 
       action_parted = case @pmbr_action
-      when :add    then true
-      when :remove then false
+      when :add    then "on"
+      when :remove then "off"
       else raise "invalid action #{action}"
       end
 
-      staging = Y2Storage::StorageManager.instance.y2storage_staging
-      disks = staging.disks.select { |d| devices.include?(d.name) }
-      disks.each { |d| d.pmbr_boot = action_parted }
+      devices.each do |dev|
+        Yast::Execute.locally("parted", "-s", dev, "disk_set", "pmbr_boot", action_parted)
+      end
     end
 
     def read
