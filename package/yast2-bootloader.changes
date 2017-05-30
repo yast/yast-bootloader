@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue May 30 07:37:01 UTC 2017 - jreidinger@suse.com
+- Repropose bootloader configuration when storage proposal is
+  modified (bsc#1035746)
+- 3.2.20
+
+-------------------------------------------------------------------
 Thu Apr 13 13:34:12 UTC 2017 - jreidinger@suse.com
 
 - Add possibility to use trusted boot for EFI (FATE#315831)
