@@ -69,6 +69,13 @@ module Yast
       # list <string> includes physical disks used for md raid
 
       @md_physical_disks = []
+
+      # Revision to recognize if cached values are still valid
+      @storage_revision = nil
+    end
+
+    def storage_changed?
+      @storage_revision != Y2Storage::StorageManager.instance.staging_revision
     end
 
     def staging
@@ -198,6 +205,7 @@ module Yast
       fs = staging.filesystems.find { |f| f.mountpoint == mountpoint }
       return nil unless fs
 
+
       part = fs.ancestors.find { |a| a.is?(:partition) }
       return part if part
 
@@ -205,12 +213,6 @@ module Yast
       return disk if disk
 
       nil
-    end
-
-    # Sets properly boot, root and mbr disk.
-    # resets disk configuration. Clears cache from #detect_disks
-    def reset_disks
-      @boot_partition = @root_partition = @mbr_disk = @extended_partition = nil
     end
 
     def prep_partitions
@@ -297,6 +299,8 @@ module Yast
       @extended_partition = extended_partition_for(boot_partition)
 
       @mbr_disk = disk_with_boot_partition
+
+      @storage_revision = Y2Storage::StorageManager.instance.staging_revision
 
       Mode.SetMode(old_mode) if old_mode == "autoinst_config"
     end

@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Tue May 30 07:37:01 UTC 2017 - jreidinger@suse.com
+- Repropose bootloader configuration when storage proposal is
+  modified (bsc#1035746)
+
+-------------------------------------------------------------------
 Tue Apr 25 12:05:03 UTC 2017 - jreidinger@suse.com
 
 - storage-ng:
