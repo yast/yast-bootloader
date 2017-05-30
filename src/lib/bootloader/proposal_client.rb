@@ -34,10 +34,12 @@ module Bootloader
 
     def make_proposal(attrs)
       force_reset = attrs["force_reset"]
-      auto_mode = Yast::Mode.autoinst || Yast::Mode.autoupgrade
+      storage_changed = Yast::BootStorage.storage_changed?
+      # clean device cache if storage changed
+      Yast::BootStorage.reset_disks if storage_changed
+      log.info "Storage changed: #{storage_changed}"
 
-      if (force_reset || !Yast::Bootloader.proposed_cfg_changed) &&
-          !auto_mode
+      if reset_needed?(force_reset, storage_changed)
         # force re-calculation of bootloader proposal
         # this deletes any internally cached values, a new proposal will
         # not be partially based on old data now any more
@@ -105,6 +107,17 @@ module Bootloader
     end
 
   private
+
+    # returns if proposal should be reseted
+    # logic in this condition:
+    # when reset is forced or user do not modify proposal, reset proposal,
+    # but only when not using auto_mode
+    # But if storage changed, always repropose as it can be very wrong.
+    def reset_needed?(force_reset, storage_changed)
+      return true if storage_changed
+      return false if Yast::Mode.autoinst || Yast::Mode.autoupgrade
+      force_reset || !Yast::Bootloader.proposed_cfg_changed
+    end
 
     BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader".freeze
     # read bootloader from /mnt as SCR is not yet switched in proposal

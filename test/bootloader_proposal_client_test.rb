@@ -193,6 +193,13 @@ describe Bootloader::ProposalClient do
       expect(subject.make_proposal({})).to eq("raw_proposal" => ["do not change"])
     end
 
+    it "always resets if storage changed" do
+      expect(Yast::Bootloader).to receive(:Reset)
+      expect(Yast::BootStorage).to receive(:storage_changed?).and_return(true)
+
+      subject.make_proposal("force_reset" => true)
+    end
+
     it "resets configuration if not automode and force_reset passed" do
       expect(Yast::Bootloader).to receive(:Reset)
 
