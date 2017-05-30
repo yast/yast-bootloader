@@ -182,7 +182,7 @@ module Yast
 
     # Sets properly boot, root and mbr disk.
     def detect_disks
-      # Use cachced value if already detected and cache still valid
+      # Use cached value if already detected and cache still valid
       return if !@RootPartitionDevice.empty? && !storage_changed?
       # While calling "yast clone_system" and while cloning bootloader
       # in the AutoYaST module, libStorage has to be set to "normal"
