@@ -11,6 +11,7 @@ describe Bootloader::ProposalClient do
     mock_disk_partition
     allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/sda")
     allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/sda1")
+    allow(Yast::BootStorage).to receive(:storage_changed?).and_return(false)
     allow(Yast::Storage).to receive(:GetTargetMap).and_return({})
 
     allow_any_instance_of(::Bootloader::Stage1).to(
@@ -197,6 +198,13 @@ describe Bootloader::ProposalClient do
       expect(Yast::Bootloader).to_not receive(:Read)
 
       expect(subject.make_proposal({})).to eq("raw_proposal" => ["do not change"])
+    end
+
+    it "always resets if storage changed" do
+      expect(Yast::Bootloader).to receive(:Reset)
+      expect(Yast::BootStorage).to receive(:storage_changed?).and_return(true)
+
+      subject.make_proposal("force_reset" => true)
     end
 
     it "resets configuration if not automode and force_reset passed" do
