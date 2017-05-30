@@ -214,6 +214,12 @@ module Yast
       nil
     end
 
+    # Sets properly boot, root and mbr disk.
+    # resets disk configuration. Clears cache from #detect_disks
+    def reset_disks
+      @boot_partition = @root_partition = @mbr_disk = @extended_partition = nil
+    end
+
     def prep_partitions
       target_map = Storage.GetTargetMap
 
