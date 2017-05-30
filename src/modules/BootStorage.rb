@@ -205,7 +205,6 @@ module Yast
       fs = staging.filesystems.find { |f| f.mountpoint == mountpoint }
       return nil unless fs
 
-
       part = fs.ancestors.find { |a| a.is?(:partition) }
       return part if part
 
