@@ -1,4 +1,5 @@
 require "installation/proposal_client"
+require "bootloader/exceptions"
 require "bootloader/main_dialog"
 require "bootloader/bootloader_factory"
 
@@ -34,10 +35,12 @@ module Bootloader
 
     def make_proposal(attrs)
       force_reset = attrs["force_reset"]
-      auto_mode = Yast::Mode.autoinst || Yast::Mode.autoupgrade
+      storage_changed = Yast::BootStorage.storage_changed?
+      # redetect disks if cache is invalid as first part
+      Yast::BootStorage.detect_disks if storage_changed
+      log.info "Storage changed: #{storage_changed}"
 
-      if (force_reset || !Yast::Bootloader.proposed_cfg_changed) &&
-          !auto_mode
+      if reset_needed?(force_reset, storage_changed)
         # force re-calculation of bootloader proposal
         # this deletes any internally cached values, a new proposal will
         # not be partially based on old data now any more
@@ -62,6 +65,12 @@ module Bootloader
       Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
 
       construct_proposal_map
+    rescue ::Bootloader::NoRoot
+      {
+        "label_proposal" => [],
+        "warning_level"  => :fatal,
+        "warning"        => _("Cannot detect device mounted as root. Please check partitioning.")
+      }
     end
 
     def ask_user(param)
@@ -99,6 +108,17 @@ module Bootloader
     end
 
   private
+
+    # returns if proposal should be reseted
+    # logic in this condition:
+    # when reset is forced or user do not modify proposal, reset proposal,
+    # but only when not using auto_mode
+    # But if storage changed, always repropose as it can be very wrong.
+    def reset_needed?(force_reset, storage_changed)
+      return true if storage_changed
+      return false if Yast::Mode.autoinst || Yast::Mode.autoupgrade
+      force_reset || !Yast::Bootloader.proposed_cfg_changed
+    end
 
     BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader".freeze
     # read bootloader from /mnt as SCR is not yet switched in proposal
@@ -153,6 +173,7 @@ module Bootloader
 
       ret["links"] = PROPOSAL_LINKS # use always possible links even if it maybe not used
       ret["raw_proposal"] = Yast::Bootloader.Summary
+      ret["label_proposal"] = Yast::Bootloader.Summary(simple_mode: true)
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso:  bootloader will not be installed
