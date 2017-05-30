@@ -48,6 +48,13 @@ module Yast
       # list <string> includes physical disks used for md raid
 
       @md_physical_disks = []
+
+      # Timestamp to recognize if cached values are still valid
+      @storage_timestamp = nil
+    end
+
+    def storage_changed?
+      @storage_timestamp != Storage.GetTargetChangeTime
     end
 
     def gpt_boot_disk?
@@ -175,7 +182,8 @@ module Yast
 
     # Sets properly boot, root and mbr disk.
     def detect_disks
-      return unless @RootPartitionDevice.empty? # quit if already detected
+      # Use cachced value if already detected and cache still valid
+      return if !@RootPartitionDevice.empty? && !storage_changed?
       # While calling "yast clone_system" and while cloning bootloader
       # in the AutoYaST module, libStorage has to be set to "normal"
       # mode in order to read mountpoints correctly.
@@ -209,6 +217,8 @@ module Yast
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
       @mbr_disk = find_mbr_disk
+
+      @storage_timestamp = Storage.GetTargetChangeTime
 
       Mode.SetMode(old_mode) if old_mode == "autoinst_config"
     end

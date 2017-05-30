@@ -89,6 +89,18 @@ describe Yast::BootStorage do
 
       expect(subject.mbr_disk).to eq "/dev/vda"
     end
+
+    it "skips cache if storage gets changed" do
+      subject.RootPartitionDevice = "/dev/sda1"
+      subject.BootPartitionDevice = "/dev/sda2"
+      subject.mbr_disk = "/dev/sda"
+
+      allow(Yast::Storage).to receive(:GetTargetChangeTime).and_return(Time.now.to_i)
+
+      subject.detect_disks
+
+      expect(subject.RootPartitionDevice).to eq "/dev/vda1"
+    end
   end
 
   describe ".available_swap_partitions" do
