@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue May 30 07:37:01 UTC 2017 - jreidinger@suse.com
+
+- Repropose bootloader configuration when storage proposal is
+  modified (bsc#1035746)
+- 3.1.210
+
+-------------------------------------------------------------------
 Fri Mar 24 14:17:00 UTC 2017 - jreidinger@suse.com
 
 - Report user friendly message when no root partition is detected
