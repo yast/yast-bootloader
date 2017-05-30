@@ -35,8 +35,8 @@ module Bootloader
     def make_proposal(attrs)
       force_reset = attrs["force_reset"]
       storage_changed = Yast::BootStorage.storage_changed?
-      # redetect disks if cache is invalid as first part
-      Yast::BootStorage.detect_disks if storage_changed
+      # clean device cache if storage changed
+      Yast::BootStorage.reset_disks if storage_changed
       log.info "Storage changed: #{storage_changed}"
 
       if reset_needed?(force_reset, storage_changed)
