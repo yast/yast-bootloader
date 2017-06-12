@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jun 12 11:00:48 UTC 2017 - jreidinger@suse.com
+
+- Do not crash if all devices have defined bios_id, but none is
+  the first one (bsc#1043759)
+- 3.2.21
+
+-------------------------------------------------------------------
 Tue May 30 07:37:01 UTC 2017 - jreidinger@suse.com
 - Repropose bootloader configuration when storage proposal is
   modified (bsc#1035746)
