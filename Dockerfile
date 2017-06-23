@@ -1,2 +1,2 @@
-FROM yastdevel/ruby:sle12-sp3
+FROM yastdevel/ruby
 COPY . /usr/src/app
