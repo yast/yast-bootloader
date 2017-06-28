@@ -179,6 +179,9 @@ module Yast
     end
 
     def check_zipl_part
+# storage-ng
+=begin
+
       # if partitioning worked before upgrade, it will keep working (bnc#886604)
       return true if Mode.update
 
@@ -190,6 +193,8 @@ module Yast
         add_new_problem(_("Missing ext partition for booting. Cannot install boot code."))
         return false
       end
+
+=end
 
       true
     end
