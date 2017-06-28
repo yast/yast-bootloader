@@ -236,7 +236,7 @@ module Yast
     end
 
     def disk_with_boot_partition
-      disk = boot_partition.disk
+      disk = boot_partition.partitionable
 
       log.info "Boot device - disk: #{disk}"
 
