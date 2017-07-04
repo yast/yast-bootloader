@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul  4 15:27:27 UTC 2017 - igonzalezsosa@suse.com
+
+- Adapt the module to use the new storage-ng during system cloning
+  (bsc#1047245)
+- 3.3.9
+
+-------------------------------------------------------------------
 Tue May 30 07:37:01 UTC 2017 - jreidinger@suse.com
 - Repropose bootloader configuration when storage proposal is
   modified (bsc#1035746)
