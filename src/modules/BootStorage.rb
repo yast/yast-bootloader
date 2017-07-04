@@ -276,20 +276,6 @@ module Yast
 
     def detect_disks
       return if @root_partition # quit if already detected
-      # While calling "yast clone_system" and while cloning bootloader
-      # in the AutoYaST module, libStorage has to be set to "normal"
-      # mode in order to read mountpoints correctly.
-      # (bnc#950105)
-      old_mode = Mode.mode
-      if Mode.config
-        Mode.SetMode("normal")
-        log.info "Initialize libstorage in readonly mode" # bnc#942360
-        Storage.InitLibstorage(true)
-        StorageDevices.InitDone # Set StorageDevices flag disks_valid to true
-      end
-
-      # The AutoYaST config mode does access to the system.
-      # bnc#942360
 
       @root_partition = find_blk_device_at_mountpoint("/")
       raise ::Bootloader::NoRoot, "Missing '/' mount point" unless @root_partition
@@ -306,8 +292,6 @@ module Yast
       @mbr_disk = disk_with_boot_partition
 
       @storage_revision = Y2Storage::StorageManager.instance.staging_revision
-
-      Mode.SetMode(old_mode) if old_mode == "autoinst_config"
     end
   end
 
