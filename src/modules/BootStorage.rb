@@ -193,7 +193,7 @@ module Yast
         Mode.SetMode("normal")
         log.info "Initialize libstorage in readonly mode" # bnc#942360
         # Set StorageDevices flag disks_valid to true. So InitLibstorage
-        # can scan valid disks. (bnc#1046738)
+        # can scan valid disks. (bnc#1046738, bnc#1046738)
         StorageDevices.InitDone
         Storage.InitLibstorage(true)
       end
