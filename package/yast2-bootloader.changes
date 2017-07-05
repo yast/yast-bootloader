@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Fri Jun 23 09:14:05 CEST 2017 - schubi@suse.de
 
-- AuotYaST configuration: Set StorageDevices flag disks_valid
+- AutoYaST configuration: Set StorageDevices flag disks_valid
   to true. So libstorage can scan valid disks and "/" partition
   can be found. (bnc#1043132, bnc#1046738)
 - 3.2.23
