@@ -16,21 +16,18 @@ Fri Jun 23 09:14:05 CEST 2017 - schubi@suse.de
 - AuotYaST configuration: Set StorageDevices flag disks_valid
   to true. So libstorage can scan valid disks and "/" partition
   can be found. (bnc#1043132)
-- 3.3.0
 
 -------------------------------------------------------------------
 Wed Jun 14 14:54:38 UTC 2017 - jreidinger@suse.com
 
 - Use udev device for prep partition if it is available
   (bsc#1041692)
-- 3.2.22
 
 -------------------------------------------------------------------
 Mon Jun 12 11:00:48 UTC 2017 - jreidinger@suse.com
 
 - Do not crash if all devices have defined bios_id, but none is
   the first one (bsc#1043759)
-- 3.2.21
 
 -------------------------------------------------------------------
 Tue May 30 07:37:01 UTC 2017 - jreidinger@suse.com
