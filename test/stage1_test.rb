@@ -99,6 +99,18 @@ xdescribe Bootloader::Stage1 do
         expect(subject.devices).to eq(["/dev/sda1"])
       end
 
+      it "sets udev link for device" do
+        expect(Yast::Storage).to receive(:GetPartition).with(anything, "/dev/sdc1")
+          .and_return("create" => true)
+
+        expect(Bootloader::UdevMapping).to receive(:to_mountby_device).with("/dev/sdc1")
+          .and_return("/dev/disk/by-id/partition1")
+
+        subject.propose
+
+        expect(subject.devices).to eq(["/dev/disk/by-id/partition1"])
+      end
+
       it "activate partition if it is on DOS partition table" do
         expect(Yast::Storage).to receive(:GetDisk).with(anything, "/dev/sdb1")
           .and_return("label" => "dos")
