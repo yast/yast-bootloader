@@ -1,11 +1,4 @@
 -------------------------------------------------------------------
-Fri Jul  7 11:00:48 UTC 2017 - jreidinger@suse.com
-
-- Backport: Do not crash if all devices have defined bios_id, but
-  none is the first one (bsc#1043759)
-- 3.2.24
-
--------------------------------------------------------------------
 Fri Jun 23 09:14:05 CEST 2017 - schubi@suse.de
 
 - AutoYaST configuration: Set StorageDevices flag disks_valid
