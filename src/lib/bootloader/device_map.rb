@@ -203,7 +203,9 @@ module Bootloader
       remove_mapping("hd0")
       remove_mapping(grub_dev)
       add_mapping("hd0", priority_device)
-      add_mapping(grub_dev, replaced_dev)
+      # switch order only if there was previously device at hd0. It can be empty e.g.
+      # if bios_id is defined, but not for 0x80
+      add_mapping(grub_dev, replaced_dev) if replaced_dev
     end
 
     # Check if MD raid is build on disks not on paritions
