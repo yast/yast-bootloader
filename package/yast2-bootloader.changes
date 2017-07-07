@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Mon Jun 12 11:00:48 UTC 2017 - jreidinger@suse.com
+Fri Jul  7 11:00:48 UTC 2017 - jreidinger@suse.com
 
 - Backport: Do not crash if all devices have defined bios_id, but
   none is the first one (bsc#1043759)
