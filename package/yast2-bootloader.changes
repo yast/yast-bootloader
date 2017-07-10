@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Jul 10 15:41:22 UTC 2017 - jlopez@suse.com
+
+- storage-ng: adapt detection of PReP partition
+
+-------------------------------------------------------------------
 Wed Jul  5 12:27:37 CEST 2017 - shundhammer@suse.de
 
 - Merged master to storage-ng branch
