@@ -215,10 +215,11 @@ module Bootloader
         partition = proposed_prep_partition
         if partition
           # ensure that stage1 device is in udev (bsc#1041692)
-          udev_partition = UdevMapping.to_mountby_device(partition)
+          udev_partition = UdevMapping.to_mountby_device(partition.name)
           assign_bootloader_device([:custom, udev_partition])
 
-          stage1.activate = !on_gpt?(partition) # do not activate on gpt disks see (bnc#983194)
+          # do not activate on gpt disks see (bnc#983194)
+          stage1.activate = !partition.partitionable.gpt?
           stage1.generic_mbr = false
         # handle diskless setup, in such case do not write boot code anywhere
         # (bnc#874466)
@@ -239,38 +240,32 @@ module Bootloader
 
     private
 
+      # PReP partition to use for stage 1.
+      # The logic to select PReP partition is the following (first matching):
+      #   * newly created PReP partition
+      #   * PReP partition which is on same disk as /boot
+      #   * first available PReP partition
+      #
+      # TODO Improve logic to propose PReP partitions:
+      #   for example, by creating a PReP partition in all disks.
       def proposed_prep_partition
         partitions = Yast::BootStorage.prep_partitions
 
-        created = partitions.find do |part|
-          part_map = Yast::Storage.GetPartition(Yast::Storage.GetTargetMap, part)
-          part_map["create"] == true
+        partition = partitions.find { |p| !p.exists_in_probed? }
+        if partition
+          log.info "using freshly created prep partition #{partition}"
+          return partition
         end
 
-        if created
-          log.info "using freshly created prep partition #{created}"
-          return created
-        end
-
-        same_disk_part = partitions.find do |part|
-          disk = Yast::Storage.GetDiskPartition(part)["disk"]
-          Yast::BootStorage.disk_with_boot_partition.name == disk
-        end
-
-        if same_disk_part
-          log.info "using prep on boot disk #{same_disk_part}"
-          return same_disk_part
+        boot_disk = Yast::BootStorage.disk_with_boot_partition
+        partition = partitions.find { |p| p.partitionable == boot_disk }
+        if partition
+          log.info "using prep on boot disk #{partition}"
+          return partition
         end
 
         log.info "nothing better so lets return first available prep"
         partitions.first
-      end
-
-      def on_gpt?(partition)
-        target_map = Yast::Storage.GetTargetMap
-        real_partitions = Bootloader::Stage1Device.new(partition).real_devices
-        disks = real_partitions.map { |p| Yast::Storage.GetDisk(target_map, p) }
-        disks.any? { |d| d["label"] == "gpt" }
       end
     end
 
