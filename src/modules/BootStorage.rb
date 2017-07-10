@@ -221,18 +221,9 @@ module Yast
     end
 
     def prep_partitions
-      target_map = Storage.GetTargetMap
-
-      partitions = target_map.reduce([]) do |parts, pair|
-        parts.concat(pair[1]["partitions"] || [])
-      end
-
-      prep_partitions = partitions.select do |partition|
-        [0x41, 0x108].include? partition["fsid"]
-      end
-
-      y2milestone "detected prep partitions #{prep_partitions.inspect}"
-      prep_partitions.map { |p| p["device"] }
+      partitions = Y2Storage::Partitionable.all.map(&:prep_partitions).join
+      y2milestone "detected prep partitions #{partitions.inspect}"
+      partitions
     end
 
     def disk_with_boot_partition
