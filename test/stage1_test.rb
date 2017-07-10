@@ -11,7 +11,6 @@ describe Bootloader::Stage1 do
   before do
     # simple mock getting disks from partition as it need initialized libstorage
     allow(subject).to receive(:can_use_boot?).and_return(true)
-    # mock_disk_partition
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
   end
 

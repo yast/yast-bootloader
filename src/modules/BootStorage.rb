@@ -221,8 +221,8 @@ module Yast
     end
 
     def prep_partitions
-      partitions = Y2Storage::Partitionable.all.map(&:prep_partitions).join
-      y2milestone "detected prep partitions #{partitions.inspect}"
+      partitions = Y2Storage::Partitionable.all(staging).map(&:prep_partitions).flatten
+      log.info "detected prep partitions #{partitions.inspect}"
       partitions
     end
 
