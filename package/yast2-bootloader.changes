@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 24 16:05:52 UTC 2017 - ancor@suse.com
+
+- storage-ng: adapted calls to temporary y2storage_* methods, since
+  they were finally removed from Y2Storage::StorageManager.
+
+-------------------------------------------------------------------
 Mon Jul 10 15:41:22 UTC 2017 - jlopez@suse.com
 
 - storage-ng: adapt detection of PReP partition

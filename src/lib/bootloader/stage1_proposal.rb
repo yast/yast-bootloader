@@ -111,7 +111,7 @@ module Bootloader
       end
 
       def devicegraph
-        Y2Storage::StorageManager.instance.y2storage_staging
+        Y2Storage::StorageManager.instance.staging
       end
 
       def propose_boot_location

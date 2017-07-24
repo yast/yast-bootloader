@@ -212,7 +212,7 @@ module Bootloader
     end
 
     def staging
-      Y2Storage::StorageManager.instance.y2storage_staging
+      Y2Storage::StorageManager.instance.staging
     end
 
     def include_real_devs?(real_devs)
