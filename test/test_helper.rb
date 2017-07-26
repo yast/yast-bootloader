@@ -49,8 +49,7 @@ end
 
 def devicegraph_stub(name)
   path = File.join(File.dirname(__FILE__), "data", "storage-ng", name)
-  storage = Y2Storage::StorageManager.fake_from_yaml(path)
-  storage.probed.copy(storage.staging)
+  Y2Storage::StorageManager.create_test_instance.probe_from_yaml(path)
   # clears cache for storage devices
   Yast::BootStorage.reset_disks
 end

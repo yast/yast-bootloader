@@ -134,7 +134,7 @@ module Bootloader
     #
     # @return [Y2Storage::FilesystemsList]
     def filesystems
-      staging = Y2Storage::StorageManager.instance.y2storage_staging
+      staging = Y2Storage::StorageManager.instance.staging
       staging.filesystems
     end
   end

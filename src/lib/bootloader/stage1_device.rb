@@ -39,7 +39,7 @@ module Bootloader
   private
 
     def devicegraph
-      Y2Storage::StorageManager.instance.y2storage_staging
+      Y2Storage::StorageManager.instance.staging
     end
 
     # underlaying_devices without any caching

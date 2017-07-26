@@ -248,7 +248,7 @@ module Yast
     end
 
     def staging
-      Y2Storage::StorageManager.instance.y2storage_staging
+      Y2Storage::StorageManager.instance.staging
     end
   end
 

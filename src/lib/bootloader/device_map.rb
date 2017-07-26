@@ -131,7 +131,7 @@ module Bootloader
       # BIOS-ID is not supported in libstorage-ng, so let's simply create a
       # mapping entry per disk for the time being (see commented code for the
       # real expected behavior)
-      staging = Y2Storage::StorageManager.instance.y2storage_staging
+      staging = Y2Storage::StorageManager.instance.staging
       staging.disks.each_with_index do |disk, index|
         add_mapping("hd#{index}", disk.name)
       end
