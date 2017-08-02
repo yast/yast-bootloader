@@ -18,6 +18,9 @@ describe Bootloader::DeviceMap do
     end
 
     it "writes its mappings" do
+      file.content = "(hd0)\t/dev/vdd\n"
+      described_class.new.read # fill cache
+
       subject.add_mapping("hd0", "/dev/vdb")
       subject.add_mapping("hd2", "/dev/vda")
       subject.add_mapping("hd1", "/dev/vdc")
@@ -30,6 +33,7 @@ describe Bootloader::DeviceMap do
       subject.write
 
       expect(file.content.lines).to include("(hd0)\t/dev/vdc\n")
+      expect(file.content.lines).to_not include("(hd0)\t/dev/vdd\n")
     end
   end
 
