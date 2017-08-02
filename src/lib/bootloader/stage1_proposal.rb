@@ -101,8 +101,9 @@ module Bootloader
     private
 
       def any_boot_flag_partition?(disk_name)
-        disk = devicegraph.disks.find { |d| d.name == disk_name }
-        return false unless disk.partition_table
+        disk = Y2Storage::Partitionable.find_by_name(devicegraph, disk_name)
+        log.info "any_boot_flag_partition?(#{disk_name}): #{disk.inspect}"
+        return false unless disk && disk.partition_table
 
         legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
         disk.partitions.any? do |p|
