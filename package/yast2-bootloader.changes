@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug  2 16:00:44 CEST 2017 - snwint@suse.de
+
+- not everything is a disk, use libstorage's partitionable instead
+- 3.4.1
+
+-------------------------------------------------------------------
 Mon Jul 24 16:05:52 UTC 2017 - ancor@suse.com
 
 - storage-ng: adapted calls to temporary y2storage_* methods, since
