@@ -1,9 +1,41 @@
 require_relative "test_helper"
 
+require "cfa/memory_file"
+
 require "bootloader/device_map"
 
 describe Bootloader::DeviceMap do
   subject { Bootloader::DeviceMap.new }
+
+  describe "#write" do
+    let(:file) { CFA::MemoryFile.new }
+
+    around do |example|
+      old_handler = CFA::BaseModel.default_file_handler
+      CFA::BaseModel.default_file_handler = file
+      example.run
+      CFA::BaseModel.default_file_handler = old_handler
+    end
+
+    it "writes its mappings" do
+      file.content = "(hd0)\t/dev/vdd\n"
+      described_class.new.read # fill cache
+
+      subject.add_mapping("hd0", "/dev/vdb")
+      subject.add_mapping("hd2", "/dev/vda")
+      subject.add_mapping("hd1", "/dev/vdc")
+      dev = subject.system_device_for("hd0")
+      subject.remove_mapping("hd0")
+      subject.remove_mapping("hd1")
+      subject.add_mapping("hd0", "/dev/vdc")
+      subject.add_mapping("hd1", dev)
+
+      subject.write
+
+      expect(file.content.lines).to include("(hd0)\t/dev/vdc\n")
+      expect(file.content.lines).to_not include("(hd0)\t/dev/vdd\n")
+    end
+  end
 
   describe "#propose" do
     before do
