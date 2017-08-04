@@ -106,7 +106,7 @@ module Bootloader
     def activate_partitions
       partitions_to_activate.each do |partition|
         num = partition.number
-        disk = partition.disk
+        disk = partition.partitionable
         if num.nil? || disk.nil?
           raise "INTERNAL ERROR: Data for partition to activate is invalid."
         end
@@ -137,7 +137,7 @@ module Bootloader
       # devices; if for any of the "underlying" or "base" devices no device
       # for acessing the MBR can be determined, include mbr_disk in the list
       mbrs = boot_devices.map do |dev|
-        partition_to_activate(dev).disk.name || mbr_disk
+        partition_to_activate(dev).partitionable.name || mbr_disk
       end
       ret = [mbr_disk]
       # Add to disks only if part of raid on base devices lives on mbr_disk
@@ -192,40 +192,57 @@ module Bootloader
       part
     end
 
-    # Given a device name to which we install the bootloader (loader_device),
-    # gets back disk and partition number to activate. If empty Hash is returned
-    # then no suitable partition to activate found.
-    # @param [String] loader_device string the device to install bootloader to
-    # @return a Hash `{ "mbr" => String, "num" => Integer }`
-    #  containing disk (eg. "/dev/hda") and partition number (eg. 4)
+    # Given a device name (the bootloader location), returns the partition
+    # to activate.
+    #
+    # Raises an exception if no suitable partition to activate was found.
+    #
+    # @param loader_device [String] the device to install the bootloader to
+    #
+    # @return [Y2Storage::Partition]
+    #
     def partition_to_activate(loader_device)
+      # storage-ng
+      # FIXME
+      # going through 'real' device(s) here is almost certainly wrong; atm the
+      # unfinished storage-ng adjustments make this a no-op and it works
       real_device = first_base_device_to_boot(loader_device)
-      log.info "real devices for #{loader_device} is #{real_device}"
+      log.info "real device for #{loader_device.inspect} is #{real_device.inspect}"
       partition = to_partition(real_device)
 
-      raise "Invalid loader device #{loader_device}" unless partition
+      raise "Invalid loader device #{loader_device.inspect}" unless partition
 
       if partition.type == Storage::PartitionType_LOGICAL
-        log.info "Bootloader partition type can be logical"
+        log.info "Bootloader partition cannot be a logical partition, using extended"
         partition = extended_partition(partition)
       end
 
-      log.info "Partition for activating: #{partition}"
+      log.info "Partition for activating: #{partition.inspect}"
       partition
     end
 
+    # Given a device name it returns the device if it's a partition or the
+    # first partition (if one exists) on this device.
+    #
+    # Returns nil otherwise.
+    #
+    # @param dev_name [String] device name
+    #
+    # @return [Y2Storage::Partition, nil]
+    #
     def to_partition(dev_name)
-      device = Y2Storage::BlkDevice.find_by_name(devicegraph, dev_name)
-      if device.is?(:disk)
-        mbr_dev = device
-        # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
-        # if loader_device is disk Choose any partition which is not swap to
-        # satisfy such bios (bnc#893449)
-        partition = activatable_partitions(mbr_dev).first
-        log.info "loader_device is disk device, so use its partition #{partition.inspect}"
-      else
-        partition = device
-      end
+      partition = Y2Storage::Partition.find_by_name(devicegraph, dev_name)
+      return partition if partition
+
+      device = Y2Storage::Partitionable.find_by_name(devicegraph, dev_name)
+      return nil unless device
+
+      # (bnc # 337742) - Unable to boot the openSUSE (32 and 64 bits) after installation
+      # if loader_device is disk Choose any partition which is not swap to
+      # satisfy such bios (bnc#893449)
+      partition = activatable_partitions(device).first
+      log.info "loader_device is disk device, so use its partition #{partition.inspect}"
+
       partition
     end
 
