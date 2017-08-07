@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug  7 12:00:31 CEST 2017 - snwint@suse.de
+
+- more fixes where code assumes disk devices instead of libstorage's
+  partitionable
+- 3.4.2
+
+-------------------------------------------------------------------
 Wed Aug  2 16:00:44 CEST 2017 - snwint@suse.de
 
 - not everything is a disk, use libstorage's partitionable instead
