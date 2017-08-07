@@ -13,6 +13,9 @@ module Bootloader
     def execute(devices: [], secure_boot: false, trusted_boot: false)
       raise "cannot have secure boot without efi" if secure_boot && !efi
 
+# storage-ng
+# no need for this, 'pbl' reads the settings from sysconfig and runs grub2-install
+=begin
       cmd = basic_cmd(secure_boot, trusted_boot)
 
       if no_device_install?
@@ -20,6 +23,10 @@ module Bootloader
       else
         devices.each { |d| Yast::Execute.on_target(cmd + [d]) }
       end
+=end
+
+      # '--force' is needed as 'pbl' refuses to run during install
+      Yast::Execute.on_target(["/sbin/pbl", "--install", "--force"])
     end
 
   private
