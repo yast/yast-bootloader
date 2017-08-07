@@ -43,7 +43,7 @@ module Bootloader
       end
 
       # we do not manage bootloader, so relax :)
-      return true if bl_current.name == "none"
+      return true if bl_current.name == "none" || bl_current.stage1.devices.empty?
 
       # read one from system, so we do not overwrite changes done in rpm post install scripts
       ::Bootloader::BootloaderFactory.clear_cache
