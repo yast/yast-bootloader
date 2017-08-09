@@ -701,7 +701,6 @@ describe Bootloader::DeviceMapWidget do
   end
 end
 
-
 describe Bootloader::TrustedBootWidget do
   before do
     assign_bootloader
