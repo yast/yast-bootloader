@@ -1,7 +1,7 @@
 require_relative "test_helper"
 
 require "bootloader/grub2_widgets"
-require_relative "cwm/rspec"
+require "cwm/rspec"
 
 def assign_bootloader(name = "grub2")
   Bootloader::BootloaderFactory.clear_cache

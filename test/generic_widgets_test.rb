@@ -3,7 +3,7 @@
 require_relative "test_helper"
 
 require "bootloader/generic_widgets"
-require_relative "cwm/rspec"
+require "cwm/rspec"
 
 describe Bootloader::LoaderTypeWidget do
   before do
