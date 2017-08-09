@@ -25,4 +25,15 @@ module Bootloader
         "Please use YaST2 bootloader to fix it. Details: %s") % msg
     end
   end
+
+  # Represents error when serial console arguments are not valid
+  class InvalidSerialConsoleArguments < BrokenConfiguration
+    MESSAGE = "Invalid serial console arguments".freeze
+    def initialize(msg = MESSAGE)
+      super
+    end
+  end
+
+  class NoRoot < RuntimeError
+  end
 end

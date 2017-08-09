@@ -19,6 +19,7 @@
 #
 require "yast"
 require "bootloader/udev_mapping"
+require "bootloader/exceptions"
 
 module Yast
   class BootStorageClass < Module
@@ -47,6 +48,13 @@ module Yast
       # list <string> includes physical disks used for md raid
 
       @md_physical_disks = []
+
+      # Timestamp to recognize if cached values are still valid
+      @storage_timestamp = nil
+    end
+
+    def storage_changed?
+      @storage_timestamp != Storage.GetTargetChangeTime
     end
 
     def gpt_boot_disk?
@@ -174,7 +182,8 @@ module Yast
 
     # Sets properly boot, root and mbr disk.
     def detect_disks
-      return unless @RootPartitionDevice.empty? # quit if already detected
+      # Use cached value if already detected and cache still valid
+      return if !@RootPartitionDevice.empty? && !storage_changed?
       # While calling "yast clone_system" and while cloning bootloader
       # in the AutoYaST module, libStorage has to be set to "normal"
       # mode in order to read mountpoints correctly.
@@ -183,8 +192,10 @@ module Yast
       if Mode.config
         Mode.SetMode("normal")
         log.info "Initialize libstorage in readonly mode" # bnc#942360
+        # Set StorageDevices flag disks_valid to true. So InitLibstorage
+        # can scan valid disks. (bnc#1046738, bnc#1043132)
+        StorageDevices.InitDone
         Storage.InitLibstorage(true)
-        StorageDevices.InitDone # Set StorageDevices flag disks_valid to true
       end
 
       # The AutoYaST config mode does access to the system.
@@ -199,7 +210,7 @@ module Yast
       log.info "mountdata_boot #{mountdata_boot}"
 
       @RootPartitionDevice = mountdata_root ? mountdata_root.first || "" : ""
-      raise "No mountpoint for / !!" if @RootPartitionDevice.empty?
+      raise ::Bootloader::NoRoot, "Missing '/' mount point" if @RootPartitionDevice.empty?
 
       # if /boot changed, re-configure location
       @BootPartitionDevice = mountdata_boot.first
@@ -208,6 +219,8 @@ module Yast
       @ExtendedPartitionDevice = extended_partition_for(@BootPartitionDevice)
 
       @mbr_disk = find_mbr_disk
+
+      @storage_timestamp = Storage.GetTargetChangeTime
 
       Mode.SetMode(old_mode) if old_mode == "autoinst_config"
     end

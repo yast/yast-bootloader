@@ -5,6 +5,7 @@ Yast.import "BootStorage"
 Yast.import "Storage"
 
 require "bootloader/stage1_device"
+require "bootloader/udev_mapping"
 
 module Bootloader
   # Represents object that can set passed stage1 to proposed values.
@@ -198,7 +199,9 @@ module Bootloader
       def propose
         partition = proposed_prep_partition
         if partition
-          assign_bootloader_device([:custom, partition])
+          # ensure that stage1 device is in udev (bsc#1041692)
+          udev_partition = UdevMapping.to_mountby_device(partition)
+          assign_bootloader_device([:custom, udev_partition])
 
           stage1.activate = !on_gpt?(partition) # do not activate on gpt disks see (bnc#983194)
           stage1.generic_mbr = false

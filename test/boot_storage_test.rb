@@ -79,7 +79,7 @@ describe Yast::BootStorage do
     it "raises exception if there is no mount point for root" do
       allow(Yast::Storage).to receive(:GetMountPoints).and_return({})
 
-      expect { subject.detect_disks }.to raise_error(RuntimeError)
+      expect { subject.detect_disks }.to raise_error(::Bootloader::NoRoot)
     end
 
     it "sets BootStorage.mbr_disk" do
@@ -88,6 +88,18 @@ describe Yast::BootStorage do
       subject.detect_disks
 
       expect(subject.mbr_disk).to eq "/dev/vda"
+    end
+
+    it "skips cache if storage gets changed" do
+      subject.RootPartitionDevice = "/dev/sda1"
+      subject.BootPartitionDevice = "/dev/sda2"
+      subject.mbr_disk = "/dev/sda"
+
+      allow(Yast::Storage).to receive(:GetTargetChangeTime).and_return(Time.now.to_i)
+
+      subject.detect_disks
+
+      expect(subject.RootPartitionDevice).to eq "/dev/vda1"
     end
   end
 

@@ -2,6 +2,7 @@ require "yast"
 
 require "bootloader/generic_widgets"
 require "bootloader/device_map_dialog"
+require "bootloader/serial_console"
 require "cfa/matcher"
 
 Yast.import "BootStorage"
@@ -297,13 +298,17 @@ module Bootloader
 
     def help
       # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
-      _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
-        "instead of regular GRUB2.</p>\n" \
-        "<p>It means measuring the integrity of the boot process,\n" \
-        "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
-        "chip).</p>\n" \
-        "<p>First you need to make sure Trusted Boot is enabled in the BIOS\n" \
-        "setup (the setting may be named Security Chip, for example).</p>\n")
+      res = _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
+          "instead of regular GRUB2.</p>\n" \
+          "<p>It means measuring the integrity of the boot process,\n" \
+          "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
+          "chip).</p>\n")
+      if grub2.name == "grub2"
+        res += _("<p>First you need to make sure Trusted Boot is enabled in the BIOS\n" \
+          "setup (the setting may be named Security Chip, for example).</p>\n")
+      end
+
+      res
     end
 
     def init
@@ -315,7 +320,7 @@ module Bootloader
     end
 
     def validate
-      return true if Yast::Mode.config || !value
+      return true if Yast::Mode.config || !value || grub2.name == "grub2-efi"
       tpm_files = Dir.glob("/sys/**/pcrs")
       if !tpm_files.empty?
         # check for file size does not work, since FS reports it 4096
@@ -460,6 +465,22 @@ module Bootloader
       )
     end
 
+    def help
+      # Translators: do not translate the quoted parts like "unit"
+      _(
+        "<p>When a graphical console is used it allows to use various " \
+        "display resolutions. The <tt>auto</tt> option tries to find " \
+        "the best one when booting starts.</p>\n" \
+        "<p>When a serial console is used the boot output " \
+        "will be printed to a serial device like <tt>ttyS0</tt>. " \
+        "At least the <tt>--unit</tt> option has to be specified, " \
+        "and the complete syntax is <tt>%s</tt>. " \
+        "Other parts are optional and if not set, a default is used. " \
+        "<tt>NUM</tt> in commands stands for a positive number like 8. " \
+        "Example parameters are <tt>serial --speed=38400 --unit=0</tt>.</p>"
+      ) % syntax
+    end
+
     def init
       enable = grub_default.terminal == :serial
       Yast::UI.ChangeWidget(Id(:console_frame), :Value, enable)
@@ -485,6 +506,14 @@ module Bootloader
           Yast::Report.Error(
             _("To enable serial console you must provide the corresponding arguments.")
           )
+          Yast::UI.SetFocus(Id(:console_args))
+          return false
+        end
+        if ::Bootloader::SerialConsole.load_from_console_args(console_value).nil?
+          # Translators: do not translate "unit"
+          msg = _("To enable the serial console you must provide the corresponding arguments.\n" \
+          "The \"unit\" argument is required, the complete syntax is:\n%s") % syntax
+          Yast::Report.Error(msg)
           Yast::UI.SetFocus(Id(:console_args))
           return false
         end
@@ -533,6 +562,16 @@ module Bootloader
 
   private
 
+    # Explanation for help and error messages
+    def syntax
+      # Translators: NUM is an abbreviation for "number",
+      # to be substituted in a command like
+      # "serial --unit=NUM --speed=NUM --parity={odd|even|no} --word=NUM --stop=NUM"
+      # so do not use punctuation
+      n = _("NUM")
+      "serial --unit=#{n} --speed=#{n} --parity={odd|even|no} --word=#{n} --stop=#{n}"
+    end
+
     def graphical_console_frame
       CheckBoxFrame(
         Id(:gfxterm_frame),
@@ -568,7 +607,7 @@ module Bootloader
 
       @vga_modes.sort! do |a, b|
         res = a["width"] <=> b["width"]
-        res = a["height"] <=> b["height"] if res == 0
+        res = a["height"] <=> b["height"] if res.zero?
 
         res
       end
@@ -857,7 +896,11 @@ module Bootloader
     end
 
     def trusted_boot_widget?
-      (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name == "grub2"
+      return false if !(Yast::Arch.x86_64 || Yast::Arch.i386)
+      return true if grub2.name == "grub2"
+      # for details about grub2 efi trusted boot support see FATE#315831
+      return File.exist?("/dev/tpm0") if grub2.name == "grub2-efi"
+      false
     end
 
     def pmbr_widget?
