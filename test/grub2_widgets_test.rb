@@ -684,6 +684,11 @@ describe Bootloader::DefaultSectionWidget do
 end
 
 describe Bootloader::LoaderLocationWidget do
+  before do
+    assign_bootloader
+    allow_any_instance_of(Bootloader::Stage1).to receive(:can_use_boot?).and_return true
+  end
+
   include_examples "CWM::CustomWidget"
 end
 
@@ -719,13 +724,25 @@ describe Bootloader::TrustedBootWidget do
 end
 
 describe Bootloader::KernelTab do
+  before do
+    assign_bootloader
+  end
+
   include_examples "CWM::Tab"
 end
 
 describe Bootloader::BootCodeTab do
+  before do
+    assign_bootloader
+  end
+
   include_examples "CWM::Tab"
 end
 
 describe Bootloader::BootloaderTab do
+  before do
+    assign_bootloader
+  end
+
   include_examples "CWM::Tab"
 end
