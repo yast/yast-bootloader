@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug 10 12:28:13 UTC 2017 - gsouza@suse.com
+
+- Allow installation of system without grub if it will not be 
+  used (bsc#1014167)
+- 3.3.1
+
+-------------------------------------------------------------------
 Fri Jun 23 09:14:05 CEST 2017 - schubi@suse.de
 
 - AutoYaST configuration: Set StorageDevices flag disks_valid
