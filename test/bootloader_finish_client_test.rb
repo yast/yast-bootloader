@@ -12,6 +12,7 @@ describe Bootloader::FinishClient do
       allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
 
       Bootloader::BootloaderFactory.current_name = "grub2"
+      Bootloader::BootloaderFactory.current.stage1.add_udev_device("/")
       @current_bl = Bootloader::BootloaderFactory.current
       allow(@current_bl).to receive(:read?).and_return(true)
 
@@ -114,6 +115,25 @@ describe Bootloader::FinishClient do
         kexec = double
         expect(kexec).to receive(:prepare_environment)
         allow(::Bootloader::Kexec).to receive(:new).and_return(kexec)
+
+        subject.write
+      end
+    end
+
+    context "when there is no device to install grub" do
+      before do
+        Bootloader::BootloaderFactory.current.stage1.remove_device("/")
+      end
+
+      it "does not run mkinitrd" do
+        expect(Yast::Execute).to_not receive(:on_target).with("/sbin/mkinitrd")
+
+        subject.write
+      end
+
+      it "does not read nor write system configuration" do
+        expect(@system_bl).to_not receive(:read)
+        expect(@system_bl).to_not receive(:write)
 
         subject.write
       end
