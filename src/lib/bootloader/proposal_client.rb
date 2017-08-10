@@ -60,8 +60,6 @@ module Bootloader
         bl.propose
       end
 
-      bl = ::Bootloader::BootloaderFactory.current
-
       update_required_packages
 
       construct_proposal_map
