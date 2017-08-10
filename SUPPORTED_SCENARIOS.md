@@ -58,3 +58,7 @@ The goal of this document is to have a single source of information  which scena
 * /boot
 * extended partition
   * /boot has to be on a logical partition
+  
+# Required software
+
+* During installation, yast-bootloader requires installing the packages kexec_tools and grub2. If one decides for not installing grub in MBR <b>and</b> "/" then the system can be installed without these packages.
