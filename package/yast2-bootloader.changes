@@ -2,7 +2,6 @@
 Wed Aug  2 16:00:44 CEST 2017 - snwint@suse.de
 
 - not everything is a disk, use libstorage's partitionable instead
-- 3.4.1
 
 -------------------------------------------------------------------
 Mon Jul 24 16:05:52 UTC 2017 - ancor@suse.com
@@ -19,66 +18,56 @@ Mon Jul 10 15:41:22 UTC 2017 - jlopez@suse.com
 Wed Jul  5 12:27:37 CEST 2017 - shundhammer@suse.de
 
 - Merged master to storage-ng branch
-- 3.4.0
 
 -------------------------------------------------------------------
 Tue Jul  4 15:27:27 UTC 2017 - igonzalezsosa@suse.com
 
 - Adapt the module to use the new storage-ng during system cloning
   (bsc#1047245)
-- 3.3.9
 
 -------------------------------------------------------------------
 Tue Apr 25 12:05:03 UTC 2017 - jreidinger@suse.com
 
 - storage-ng:
 -- implement detection of encrypted boot
-- 3.3.8
 
 -------------------------------------------------------------------
 Fri Apr 21 11:28:29 UTC 2017 - jreidinger@suse.com
 
 - storage-ng: use new wrapper API
-- 3.3.7
 
 -------------------------------------------------------------------
 Tue Mar 28 13:32:23 UTC 2017 - jreidinger@suse.com
 
 - storage-ng: fixed proposal to not try to install to LVM
   partition
-- 3.3.6
 
 -------------------------------------------------------------------
 Fri Mar  3 15:33:11 CET 2017 - snwint@suse.de
 
 - storage-ng: avoid call to old libstorage
-- 3.3.5
 
 -------------------------------------------------------------------
 Thu Feb 16 14:47:03 UTC 2017 - ancor@suse.com
 
 - storage-ng: fixed proposal to work with LVM and encrypted LVM
-- 3.3.4
 
 -------------------------------------------------------------------
 Wed Dec 21 12:19:53 UTC 2016 - ancor@suse.com
 
 - storage-ng: simplify code by using a new query function in
   yast2-storage-ng (#with_name_or_partition)
-- 3.3.3
 
 -------------------------------------------------------------------
 Tue Dec 20 17:38:07 UTC 2016 - ancor@suse.com
 
 - storage-ng: fixed minimal legacy proposal to work with GPT
-- 3.3.2
 
 -------------------------------------------------------------------
 Tue Nov 22 16:52:31 UTC 2016 - ancor@suse.com
 
 - storage-ng: fixed minimal EFI proposal
 - storage-ng: made minimal legacy proposal work
-- 3.3.1
 
 -------------------------------------------------------------------
 Fri Oct 28 13:48:40 CEST 2016 - aschnell@suse.com
@@ -90,7 +79,6 @@ Fri Oct 28 11:34:10 CEST 2016 - aschnell@suse.com
 
 - storage-ng: removed dependency from (old) yast2-storage, even
   if it breaks some functionality.
-- 3.3.0
 
 -------------------------------------------------------------------
 Fri Jun 23 09:14:05 CEST 2017 - schubi@suse.de
