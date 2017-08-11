@@ -27,29 +27,6 @@ Tue Jul  4 15:27:27 UTC 2017 - igonzalezsosa@suse.com
 - Adapt the module to use the new storage-ng during system cloning
   (bsc#1047245)
 - 3.3.9
--------------------------------------------------------------------
-Fri Jun 23 09:14:05 CEST 2017 - schubi@suse.de
-
-- AutoYaST configuration: Set StorageDevices flag disks_valid
-  to true. So libstorage can scan valid disks and "/" partition
-  can be found. (bnc#1046738, bnc#1043132)
-
--------------------------------------------------------------------
-Wed Jun 14 14:54:38 UTC 2017 - jreidinger@suse.com
-
-- Use udev device for prep partition if it is available
-  (bsc#1041692)
-
--------------------------------------------------------------------
-Mon Jun 12 11:00:48 UTC 2017 - jreidinger@suse.com
-
-- Do not crash if all devices have defined bios_id, but none is
-  the first one (bsc#1043759)
-
--------------------------------------------------------------------
-Tue May 30 07:37:01 UTC 2017 - jreidinger@suse.com
-- Repropose bootloader configuration when storage proposal is
-  modified (bsc#1035746)
 
 -------------------------------------------------------------------
 Tue Apr 25 12:05:03 UTC 2017 - jreidinger@suse.com
@@ -65,22 +42,11 @@ Fri Apr 21 11:28:29 UTC 2017 - jreidinger@suse.com
 - 3.3.7
 
 -------------------------------------------------------------------
-Thu Apr 13 13:34:12 UTC 2017 - jreidinger@suse.com
-
-- Add possibility to use trusted boot for EFI (FATE#315831)
-
--------------------------------------------------------------------
 Tue Mar 28 13:32:23 UTC 2017 - jreidinger@suse.com
 
 - storage-ng: fixed proposal to not try to install to LVM
   partition
 - 3.3.6
-
--------------------------------------------------------------------
-Fri Mar 24 14:17:00 UTC 2017 - jreidinger@suse.com
-
-- Report user friendly message when no root partition is detected
-  instead of internal error. (bsc#1029293)
 
 -------------------------------------------------------------------
 Fri Mar  3 15:33:11 CET 2017 - snwint@suse.de
@@ -89,41 +55,10 @@ Fri Mar  3 15:33:11 CET 2017 - snwint@suse.de
 - 3.3.5
 
 -------------------------------------------------------------------
-Wed Mar  1 17:42:18 UTC 2017 - jreidinger@suse.com
-
-- provide more helpful error message when invalid arguments for
-  serial console are provided (bsc#1012383)
-
--------------------------------------------------------------------
-Wed Mar  1 16:42:18 UTC 2017 - jreidinger@suse.com
-
-- propose for xen hypervisor vga parameter if framebuffer is used
-  ( should fix issue with text only environment when fbdev driver
-  is used )
-  (FATE#322200)
-
--------------------------------------------------------------------
 Thu Feb 16 14:47:03 UTC 2017 - ancor@suse.com
 
 - storage-ng: fixed proposal to work with LVM and encrypted LVM
 - 3.3.4
-
--------------------------------------------------------------------
-Wed Jan 25 12:57:38 UTC 2017 - mvidner@suse.com
-
-- Implement simple_mode -> label_proposal (FATE#322328)
-
--------------------------------------------------------------------
-Fri Jan  6 13:22:36 UTC 2017 - jreidinger@suse.com
-
-- do not crash when switching from no bootloader to grub2 when
-  grub2 package is not installed (bsc#1018280)
-
--------------------------------------------------------------------
-Tue Jan  3 09:36:01 UTC 2017 - jreidinger@suse.com
-
-- do not try to write legacy_boot flag for msdos partition table
-  in more disks scenario when there is also GPT disk (bsc#1017776)
 
 -------------------------------------------------------------------
 Wed Dec 21 12:19:53 UTC 2016 - ancor@suse.com
@@ -139,59 +74,11 @@ Tue Dec 20 17:38:07 UTC 2016 - ancor@suse.com
 - 3.3.2
 
 -------------------------------------------------------------------
-Mon Dec  5 13:58:33 UTC 2016 - jreidinger@suse.com
-
-- stop failing with new cfa ( caused by deleting nil, change
-  in cfa needed for bsc#983486 )
-
--------------------------------------------------------------------
-Wed Nov 30 08:36:28 UTC 2016 - jreidinger@suse.com
-
-- Recommends syslinux as it is often used by generic_mbr, but it
-  is not hard requirement (bsc#1004229)
-
--------------------------------------------------------------------
-Tue Nov 22 18:38:42 UTC 2016 - jreidinger@suse.com
-
-- Do not crash in bootloader when default mount by is set to label
-  (bsc#1009493)
-
--------------------------------------------------------------------
 Tue Nov 22 16:52:31 UTC 2016 - ancor@suse.com
 
 - storage-ng: fixed minimal EFI proposal
 - storage-ng: made minimal legacy proposal work
 - 3.3.1
-
--------------------------------------------------------------------
-Tue Nov 22 13:41:42 UTC 2016 - jreidinger@suse.com
-
-- use proper sources when doing kexec (bsc#981434)
-
--------------------------------------------------------------------
-Wed Nov 16 14:19:14 UTC 2016 - jreidinger@suse.com
-
-- when protecting modification of kernel parameters by password,
-  add also rd.shell=0 parameter to avoid getting into initrd shell
-  (bsc#1009220)
-
--------------------------------------------------------------------
-Mon Nov 14 14:21:16 UTC 2016 - lslezak@suse.cz
-
-- Revert the package deselection check (from 3.2.3), there is
-  a new generic solution in yast2-packager-3.2.6 for all YaST
-  modules (bsc#885496)
-
--------------------------------------------------------------------
-Wed Nov  2 14:14:21 UTC 2016 - jreidinger@suse.com
-
-- set pmbr flag only on GPT disks (bsc#1008092)
-
--------------------------------------------------------------------
-Tue Nov  1 11:49:05 UTC 2016 - jreidinger@suse.com
-
-- Use the system-wide locale (/etc/sysconfig/language:RC_LANG) when
-  generating the GRUB2 menu (bsc#998152)
 
 -------------------------------------------------------------------
 Fri Oct 28 13:48:40 CEST 2016 - aschnell@suse.com
@@ -204,6 +91,139 @@ Fri Oct 28 11:34:10 CEST 2016 - aschnell@suse.com
 - storage-ng: removed dependency from (old) yast2-storage, even
   if it breaks some functionality.
 - 3.3.0
+
+-------------------------------------------------------------------
+Fri Jun 23 09:14:05 CEST 2017 - schubi@suse.de
+
+- AutoYaST configuration: Set StorageDevices flag disks_valid
+  to true. So libstorage can scan valid disks and "/" partition
+  can be found. (bnc#1046738, bnc#1043132)
+- 3.3.0
+
+-------------------------------------------------------------------
+Wed Jun 14 14:54:38 UTC 2017 - jreidinger@suse.com
+
+- Use udev device for prep partition if it is available
+  (bsc#1041692)
+- 3.2.22
+
+-------------------------------------------------------------------
+Mon Jun 12 11:00:48 UTC 2017 - jreidinger@suse.com
+
+- Do not crash if all devices have defined bios_id, but none is
+  the first one (bsc#1043759)
+- 3.2.21
+
+-------------------------------------------------------------------
+Tue May 30 07:37:01 UTC 2017 - jreidinger@suse.com
+- Repropose bootloader configuration when storage proposal is
+  modified (bsc#1035746)
+- 3.2.20
+
+-------------------------------------------------------------------
+Thu Apr 13 13:34:12 UTC 2017 - jreidinger@suse.com
+
+- Add possibility to use trusted boot for EFI (FATE#315831)
+- 3.2.19
+
+-------------------------------------------------------------------
+Fri Mar 24 14:17:00 UTC 2017 - jreidinger@suse.com
+
+- Report user friendly message when no root partition is detected
+  instead of internal error. (bsc#1029293)
+- 3.2.18
+
+-------------------------------------------------------------------
+Wed Mar  1 17:42:18 UTC 2017 - jreidinger@suse.com
+
+- provide more helpful error message when invalid arguments for
+  serial console are provided (bsc#1012383)
+- 3.2.17
+
+-------------------------------------------------------------------
+Wed Mar  1 16:42:18 UTC 2017 - jreidinger@suse.com
+
+- propose for xen hypervisor vga parameter if framebuffer is used
+  ( should fix issue with text only environment when fbdev driver
+  is used )
+  (FATE#322200)
+- 3.2.16
+
+-------------------------------------------------------------------
+Wed Jan 25 12:57:38 UTC 2017 - mvidner@suse.com
+
+- Implement simple_mode -> label_proposal (FATE#322328)
+- 3.2.15
+
+-------------------------------------------------------------------
+Fri Jan  6 13:22:36 UTC 2017 - jreidinger@suse.com
+
+- do not crash when switching from no bootloader to grub2 when
+  grub2 package is not installed (bsc#1018280)
+- 3.2.14
+
+-------------------------------------------------------------------
+Tue Jan  3 09:36:01 UTC 2017 - jreidinger@suse.com
+
+- do not try to write legacy_boot flag for msdos partition table
+  in more disks scenario when there is also GPT disk (bsc#1017776)
+- 3.2.13
+
+-------------------------------------------------------------------
+Mon Dec  5 13:58:33 UTC 2016 - jreidinger@suse.com
+
+- stop failing with new cfa ( caused by deleting nil, change
+  in cfa needed for bsc#983486 )
+- 3.2.12
+
+-------------------------------------------------------------------
+Wed Nov 30 08:36:28 UTC 2016 - jreidinger@suse.com
+
+- Recommends syslinux as it is often used by generic_mbr, but it
+  is not hard requirement (bsc#1004229)
+- 3.2.11
+
+-------------------------------------------------------------------
+Tue Nov 22 18:38:42 UTC 2016 - jreidinger@suse.com
+
+- Do not crash in bootloader when default mount by is set to label
+  (bsc#1009493)
+- 3.2.10
+
+-------------------------------------------------------------------
+Tue Nov 22 13:41:42 UTC 2016 - jreidinger@suse.com
+
+- use proper sources when doing kexec (bsc#981434)
+- 3.2.9
+
+-------------------------------------------------------------------
+Wed Nov 16 14:19:14 UTC 2016 - jreidinger@suse.com
+
+- when protecting modification of kernel parameters by password,
+  add also rd.shell=0 parameter to avoid getting into initrd shell
+  (bsc#1009220)
+- 3.2.8
+
+-------------------------------------------------------------------
+Mon Nov 14 14:21:16 UTC 2016 - lslezak@suse.cz
+
+- Revert the package deselection check (from 3.2.3), there is
+  a new generic solution in yast2-packager-3.2.6 for all YaST
+  modules (bsc#885496)
+- 3.2.7
+
+-------------------------------------------------------------------
+Wed Nov  2 14:14:21 UTC 2016 - jreidinger@suse.com
+
+- set pmbr flag only on GPT disks (bsc#1008092)
+- 3.2.6
+
+-------------------------------------------------------------------
+Tue Nov  1 11:49:05 UTC 2016 - jreidinger@suse.com
+
+- Use the system-wide locale (/etc/sysconfig/language:RC_LANG) when
+  generating the GRUB2 menu (bsc#998152)
+- 3.2.5
 
 -------------------------------------------------------------------
 Thu Oct 13 12:26:53 UTC 2016 - jreidinger@suse.com
