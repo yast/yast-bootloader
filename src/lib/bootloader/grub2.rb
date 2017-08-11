@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require "yast"
+require "y2storage"
 require "bootloader/grub2base"
 require "bootloader/mbr_update"
 require "bootloader/device_map"
@@ -9,7 +10,6 @@ require "bootloader/grub_install"
 
 Yast.import "Arch"
 Yast.import "BootStorage"
-Yast.import "Storage"
 Yast.import "HTML"
 
 module Bootloader
@@ -156,12 +156,17 @@ module Bootloader
 
   private
 
+    def devicegraph
+      Y2Storage::StorageManager.instance.staging
+    end
+
     def gpt_disks_devices
       boot_devices = stage1.devices
-      boot_discs = boot_devices.map { |d| Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, d) }
-      boot_discs.uniq!
-      gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
-      gpt_disks.map { |d| d["device"] }
+      boot_discs = devicegraph.disks.select do |disk|
+        boot_devices.any? { |bd| disk.name_or_partition?(bd) }
+      end
+      gpt_disks = boot_discs.select { |d| d.gpt? }
+      gpt_disks.map { |d| d.name }
     end
 
     def disk_order_summary
@@ -183,12 +188,12 @@ module Bootloader
       locations << partition_location unless partition_location.empty?
       if stage1.extended_partition?
         # TRANSLATORS: extended is here for extended partition. Keep translation short.
-        locations << Yast::BootStorage.ExtendedPartitionDevice + _(" (extended)")
+        locations << Yast::BootStorage.extended_partition.name + _(" (extended)")
       end
       if stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
-        locations << Yast::BootStorage.mbr_disk + _(" (MBR)")
+        locations << Yast::BootStorage.mbr_disk.name + _(" (MBR)")
       end
       locations << stage1.custom_devices if !stage1.custom_devices.empty?
 
@@ -198,10 +203,10 @@ module Bootloader
     def boot_partition_location
       if Yast::BootStorage.separated_boot?
         if stage1.boot_partition?
-          return Yast::BootStorage.BootPartitionDevice + " (\"/boot\")"
+          return Yast::BootStorage.boot_partition.name + " (\"/boot\")"
         end
       elsif stage1.root_partition?
-        return Yast::BootStorage.RootPartitionDevice + " (\"/\")"
+        return Yast::BootStorage.root_partition.name + " (\"/\")"
       end
 
       ""

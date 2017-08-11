@@ -95,6 +95,11 @@ describe Bootloader::AutoyastConverter do
 
   describe ".export" do
     let(:bootloader) { Bootloader::Grub2.new }
+
+    before do
+      devicegraph_stub("storage_lvm.yaml")
+    end
+
     it "export loader type" do
       expect(subject.export(bootloader)["loader_type"]).to eq "grub2"
     end

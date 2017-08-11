@@ -1,0 +1,67 @@
+---
+- disk:
+    name: /dev/sda
+    size: 51192 MiB
+    partition_table:  msdos
+    partitions:
+
+    - partition:
+        size:         30719 MiB
+        name:         /dev/sda1
+        id:           lvm
+
+- disk:
+    name: /dev/sdb
+    size: 20 GiB
+
+- lvm_vg:
+    vg_name:    system
+    lvm_lvs:
+
+    - lvm_lv:
+        lv_name:      home
+        size:         5112 MiB
+        file_system:  ext4
+        label:        home
+        mount_point:  "/home"
+        uuid:         f72a2e11-1a58-4618-88d5-4a9cced3fcb5
+
+    - lvm_lv:
+        lv_name:      local
+        size:         8 GiB
+        file_system:  ext4
+        label:        local
+        mount_point:  "/local"
+        uuid:         a4339246-1c17-4957-aa66-535f6d0d6393
+
+    - lvm_lv:
+        lv_name:      opt
+        size:         25 GiB
+        file_system:  ext4
+        label:        opt
+        mount_point:  "/opt"
+        uuid:         69474311-830d-472f-aa77-08794e5c8a57
+
+    - lvm_lv:
+        lv_name:      root
+        size:         10 GiB
+        file_system:  ext4
+        label:        root
+        mount_point:  "/"
+        uuid:         bbf1ac6a-65c6-4596-b822-6b62b19c9a64
+
+    - lvm_lv:
+        lv_name:      swap
+        size:         2 GiB
+        file_system:  swap
+        label:        swap
+        mount_point:  swap
+        uuid:         1b69e6bc-de2a-4999-b31a-dccc27c71290
+
+    lvm_pvs:
+
+    - lvm_pv:
+        blk_device: /dev/sda1
+
+    - lvm_pv:
+        blk_device: /dev/sdb

@@ -25,9 +25,6 @@ module Yast
 
       Yast.import "Bootloader"
       Yast.import "Arch"
-      Yast.import "Storage"
-      Yast.import "Partitions"
-      Yast.import "Region"
       Yast.import "BootStorage"
       Yast.import "FileUtils"
       Yast.import "Mode"
@@ -104,12 +101,11 @@ module Yast
     def check_gpt_reserved_partition
       return true unless stage1.mbr?
 
-      devices = Storage.GetTargetMap
-      mbr_disk = Storage.GetDisk(devices, BootStorage.mbr_disk)
-      boot_device = Storage.GetPartition(devices, BootStorage.BootPartitionDevice)
-      return true if mbr_disk["label"] != "gpt"
-      return true if boot_device["used_fs"] != :btrfs
-      return true if mbr_disk["partitions"].any? { |p| p["fsid"] == Partitions.fsid_bios_grub }
+      disk = BootStorage.mbr_disk
+      boot_device = BootStorage.boot_partition
+      return true unless disk.gpt?
+      return true if boot_device.filesystem_type != ::Y2Storage::Filesystems::Type::BTRFS
+      return true if disk.partitions.any? { |p| p.id.is?(:bios_boot) }
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
@@ -128,9 +124,13 @@ module Yast
     # @return [Boolean] true on success
 
     def check_boot_device
+# storage-ng
+# Simply assume there is no RAID for the time being
+# rubocop:disable Style/BlockComments
+=begin
       devices = Storage.GetTargetMap
 
-      boot_device = BootStorage.BootPartitionDevice
+      boot_device = BootStorage.boot_partition.name
 
       # FIXME: big part of this method should be in BootStorage
       # check if boot device is on raid0
@@ -166,6 +166,7 @@ module Yast
           return true
         end
       end
+=end
 
       true
     end
@@ -178,6 +179,9 @@ module Yast
     end
 
     def check_zipl_part
+# storage-ng
+=begin
+
       # if partitioning worked before upgrade, it will keep working (bnc#886604)
       return true if Mode.update
 
@@ -190,12 +194,25 @@ module Yast
         return false
       end
 
+=end
+
       true
     end
 
     def check_activate_partition
-      # activate set or there is already activate flag
-      return true if stage1.activate? || Yast::Storage.GetBootPartition(Yast::BootStorage.mbr_disk)
+      # activate set
+      return true if stage1.activate?
+
+      # there is already activate flag
+      disk = Yast::BootStorage.mbr_disk
+
+      # do not activate for ppc and GPT see bsc#983194
+      return true if Arch.ppc64 && disk.gpt?
+      if disk.partition_table
+        legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
+
+        return true if disk.partitions.any? { |p| legacy_boot ? p.legacy_boot? : p.boot? }
+      end
 
       add_new_problem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
       false
@@ -228,6 +245,10 @@ module Yast
 
     def stage1
       ::Bootloader::BootloaderFactory.current.stage1
+    end
+
+    def staging
+      Y2Storage::StorageManager.instance.staging
     end
   end
 

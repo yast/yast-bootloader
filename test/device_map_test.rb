@@ -12,12 +12,12 @@ describe Bootloader::DeviceMap do
       target_map_stub("storage_mdraid.yaml")
     end
 
-    it "fills itself with device map proposal" do
+    xit "fills itself with device map proposal" do
       subject.propose
       expect(subject).to_not be_empty
     end
 
-    it "propose always empty map in Mode config" do
+    xit "propose always empty map in Mode config" do
       allow(Yast::Mode).to receive(:config).and_return(true)
 
       subject.propose
@@ -27,7 +27,7 @@ describe Bootloader::DeviceMap do
     # TODO: I do not have sufficient target map yet
     it "do not add to device map members of raids and multipath"
 
-    it "do not add non-disk devices" do
+    xit "do not add non-disk devices" do
       target_map_stub("storage_tmpfs.yaml")
 
       subject.propose
@@ -43,7 +43,7 @@ describe Bootloader::DeviceMap do
     # TODO: I do not have sufficient target map yet with enough disks and mixture of bios ids
     it "propose as first device disk containing /boot"
 
-    it "limits number of disks in device map to 8" do
+    xit "limits number of disks in device map to 8" do
       # simple mock getting disks from partition as it need initialized libstorage
       mock_disk_partition
 

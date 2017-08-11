@@ -47,7 +47,7 @@ describe Yast::BootSupportCheck do
         expect(subject.SystemSupported).to eq false
       end
 
-      it "returns false if no partition have boot flag and its write is not set" do
+      xit "returns false if no partition have boot flag and its write is not set" do
         allow(bootloader).to receive(:stage1)
           .and_return(double(mbr?: false, activate?: false, generic_mbr?: true))
         allow(Yast::Storage).to receive(:GetBootPartition).and_return(nil)
