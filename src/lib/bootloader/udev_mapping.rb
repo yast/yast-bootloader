@@ -49,6 +49,8 @@ module Bootloader
       log.info "#{dev} looked as kernel device name: #{kernel_dev}"
 
 # storage-ng
+# FIXME
+# jreidinger: this is regression as we should use udev names
 # rubocop:disable Style/BlockComments
 =begin
       storage_data = storage_data_for(kernel_dev)
