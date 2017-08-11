@@ -71,21 +71,6 @@ describe Bootloader::ProposalClient do
       end
     end
 
-    context "when grub installation is enabled in at least one device" do
-      it "adds yast2-bootloader to resolvables" do
-        expect(Yast::PackagesProposal).to receive(:AddResolvables).with("yast2-bootloader", anything, anything)
-        subject.ask_user("chosen_id" => "enable_boot_mbr")
-      end
-    end
-
-    context "when grub installation is disabled for all devices" do
-      it "removes yast2-bootloader from resolvables" do
-        allow(Yast::PackagesProposal).to receive(:GetResolvables).and_return(["grub"])
-        expect(Yast::PackagesProposal).to receive(:RemoveResolvables).with("yast2-bootloader", anything, anything)
-        subject.ask_user("chosen_id" => "disable_boot_mbr")
-      end
-    end
-
     context "gui id is passed" do
       before do
         Yast.import "Bootloader"
@@ -234,6 +219,14 @@ describe Bootloader::ProposalClient do
       expect(Yast::Bootloader).to_not receive(:Reset)
 
       subject.make_proposal("force_reset" => true)
+    end
+
+    it "updates resolvables with necessary packages" do
+      current_packages = Yast::PackagesProposal.GetResolvables("yast2-bootloader", :package)
+      packages_to_propose = ::Bootloader::BootloaderFactory.current.packages
+      expect(Yast::PackagesProposal).to receive(:RemoveResolvables).with("yast2-bootloader", :package, current_packages)
+      expect(Yast::PackagesProposal).to receive(:AddResolvables).with("yast2-bootloader", :package, packages_to_propose)
+      subject.make_proposal({})
     end
   end
 end
