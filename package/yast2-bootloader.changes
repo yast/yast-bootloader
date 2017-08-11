@@ -1,81 +1,87 @@
 -------------------------------------------------------------------
-Wed Aug  2 16:00:44 CEST 2017 - snwint@suse.de
+Fri Aug 11 14:14:33 UTC 2017 - snwint@suse.com
+
+- merge storage-ng branch to master
+- note: all changes below with this date belong to the merge
+
+-------------------------------------------------------------------
+Fri Aug 11 14:14:33 UTC 2017 - snwint@suse.de
 
 - not everything is a disk, use libstorage's partitionable instead
 
 -------------------------------------------------------------------
-Mon Jul 24 16:05:52 UTC 2017 - ancor@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - ancor@suse.com
 
 - storage-ng: adapted calls to temporary y2storage_* methods, since
   they were finally removed from Y2Storage::StorageManager.
 
 -------------------------------------------------------------------
-Mon Jul 10 15:41:22 UTC 2017 - jlopez@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - jlopez@suse.com
 
 - storage-ng: adapt detection of PReP partition
 
 -------------------------------------------------------------------
-Wed Jul  5 12:27:37 CEST 2017 - shundhammer@suse.de
+Fri Aug 11 14:14:33 UTC 2017 - shundhammer@suse.de
 
 - Merged master to storage-ng branch
 
 -------------------------------------------------------------------
-Tue Jul  4 15:27:27 UTC 2017 - igonzalezsosa@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - igonzalezsosa@suse.com
 
 - Adapt the module to use the new storage-ng during system cloning
   (bsc#1047245)
 
 -------------------------------------------------------------------
-Tue Apr 25 12:05:03 UTC 2017 - jreidinger@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - jreidinger@suse.com
 
 - storage-ng:
--- implement detection of encrypted boot
+- implement detection of encrypted boot
 
 -------------------------------------------------------------------
-Fri Apr 21 11:28:29 UTC 2017 - jreidinger@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - jreidinger@suse.com
 
 - storage-ng: use new wrapper API
 
 -------------------------------------------------------------------
-Tue Mar 28 13:32:23 UTC 2017 - jreidinger@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - jreidinger@suse.com
 
 - storage-ng: fixed proposal to not try to install to LVM
   partition
 
 -------------------------------------------------------------------
-Fri Mar  3 15:33:11 CET 2017 - snwint@suse.de
+Fri Aug 11 14:14:33 UTC 2017 - snwint@suse.de
 
 - storage-ng: avoid call to old libstorage
 
 -------------------------------------------------------------------
-Thu Feb 16 14:47:03 UTC 2017 - ancor@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - ancor@suse.com
 
 - storage-ng: fixed proposal to work with LVM and encrypted LVM
 
 -------------------------------------------------------------------
-Wed Dec 21 12:19:53 UTC 2016 - ancor@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - ancor@suse.com
 
 - storage-ng: simplify code by using a new query function in
   yast2-storage-ng (#with_name_or_partition)
 
 -------------------------------------------------------------------
-Tue Dec 20 17:38:07 UTC 2016 - ancor@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - ancor@suse.com
 
 - storage-ng: fixed minimal legacy proposal to work with GPT
 
 -------------------------------------------------------------------
-Tue Nov 22 16:52:31 UTC 2016 - ancor@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - ancor@suse.com
 
 - storage-ng: fixed minimal EFI proposal
 - storage-ng: made minimal legacy proposal work
 
 -------------------------------------------------------------------
-Fri Oct 28 13:48:40 CEST 2016 - aschnell@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - aschnell@suse.com
 
 - make simple EFI proposal work with storage-ng
 
 -------------------------------------------------------------------
-Fri Oct 28 11:34:10 CEST 2016 - aschnell@suse.com
+Fri Aug 11 14:14:33 UTC 2017 - aschnell@suse.com
 
 - storage-ng: removed dependency from (old) yast2-storage, even
   if it breaks some functionality.
