@@ -2,7 +2,6 @@ require "yast"
 
 Yast.import "Arch"
 Yast.import "BootStorage"
-Yast.import "Storage"
 
 require "bootloader/stage1_device"
 require "bootloader/udev_mapping"
@@ -32,6 +31,13 @@ module Bootloader
       @stage1 = stage1
     end
 
+    DEVICE_MAPPING = {
+      root:     :root_partition,
+      boot:     :boot_partition,
+      extended: :extended_partition,
+      mbr:      :mbr_disk
+    }.freeze
+
     # Set "boot_*" flags in the globals map according to the boot device selected
     # with parameter selected_location. Only a single boot device can be selected
     # with this function. The function cannot be used to set a custom boot device.
@@ -50,10 +56,9 @@ module Bootloader
       stage1.clear_devices
 
       case selected_location
-      when :root then stage1.add_udev_device(Yast::BootStorage.RootPartitionDevice)
-      when :boot then stage1.add_udev_device(Yast::BootStorage.BootPartitionDevice)
-      when :extended then stage1.add_udev_device(extended_partition)
-      when :mbr then stage1.add_udev_device(Yast::BootStorage.mbr_disk)
+      when :root, :boot, :extended, :mbr
+        device = Yast::BootStorage.public_send(DEVICE_MAPPING[selected_location])
+        stage1.add_udev_device(device.name)
       when :none then log.info "Resetting bootloader device"
       when Array
         if selected_location.first != :custom
@@ -82,8 +87,8 @@ module Bootloader
           # partition can remain activated, which causes less problems with
           # other installed OSes like Windows (older versions assign the C:
           # drive letter to the activated partition).
-          used_disks = ::Bootloader::Stage1Device.new(Yast::BootStorage.mbr_disk).real_devices
-          stage1.activate = used_disks.any? { |d| Yast::Storage.GetBootPartition(d).empty? }
+          used_disks = ::Bootloader::Stage1Device.new(Yast::BootStorage.mbr_disk.name).real_devices
+          stage1.activate = used_disks.none? { |d| any_boot_flag_partition?(d) }
           stage1.generic_mbr = false
         else
           # if not installing to MBR, always activate (so the generic MBR will
@@ -95,6 +100,21 @@ module Bootloader
 
     private
 
+      def any_boot_flag_partition?(disk_name)
+        disk = Y2Storage::Partitionable.find_by_name(devicegraph, disk_name)
+        log.info "any_boot_flag_partition?(#{disk_name}): #{disk.inspect}"
+        return false unless disk && disk.partition_table
+
+        legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
+        disk.partitions.any? do |p|
+          legacy_boot ? p.legacy_boot? : p.boot?
+        end
+      end
+
+      def devicegraph
+        Y2Storage::StorageManager.instance.staging
+      end
+
       def propose_boot_location
         selected_location = :mbr
 
@@ -103,7 +123,7 @@ module Bootloader
         # see bug #279837 comment #53
         selected_location = separated_boot? ? :boot : :root if boot_partition_on_mbr_disk?
 
-        if logical_boot? && extended_partition
+        if logical_boot? && Yast::BootStorage.extended_partition
           log.info "/boot is on logical partition and extended detected, extended proposed"
           selected_location = :extended
         end
@@ -128,12 +148,6 @@ module Bootloader
         Yast::BootStorage.separated_boot?
       end
 
-      def extended_partition
-        init_boot_info unless @boot_initialized
-
-        @extended
-      end
-
       def logical_boot?
         init_boot_info unless @boot_initialized
 
@@ -148,22 +162,25 @@ module Bootloader
 
       def init_boot_info
         return if @boot_initialized
-
         @boot_initialized = true
-        boot_disk_map = Yast::Storage.GetTargetMap[Yast::BootStorage.disk_with_boot_partition] || {}
-        boot_part = Yast::Storage.GetPartition(Yast::Storage.GetTargetMap,
-          Yast::BootStorage.BootPartitionDevice)
-        @logical_boot = boot_part["type"] == :logical
-        @boot_with_btrfs = boot_part["used_fs"] == :btrfs
+
+        boot_part = Yast::BootStorage.boot_partition
+        @logical_boot = boot_part.type.is?(:logical)
+        @boot_with_btrfs = with_btrfs?(boot_part)
 
         # check for sure also underlaying partitions
-        (boot_disk_map["partitions"] || []).each do |p|
-          @extended = p["device"] if p["type"] == :extended
-          next unless underlaying_boot_partition_devices.include?(p["device"])
+        Yast::BootStorage.disk_with_boot_partition.partitions.each do |p|
+          next unless underlaying_boot_partition_devices.include?(p.name)
 
-          @boot_with_btrfs = true if p["used_fs"] == :btrfs
-          @logical_boot = true if p["type"] == :logical
+          @boot_with_btrfs = with_btrfs?(p)
+          @logical_boot = true if p.type.is?(:logical)
         end
+      end
+
+      def with_btrfs?(partition)
+        type = partition.filesystem_type
+        return false unless type
+        type.is?(:btrfs)
       end
 
       # determine the underlaying devices for the "/boot" partition (either the
@@ -171,14 +188,13 @@ module Bootloader
       # "/boot" is built)
       def underlaying_boot_partition_devices
         @underlaying_boot_partition_devices ||=
-          ::Bootloader::Stage1Device.new(Yast::BootStorage.BootPartitionDevice).real_devices
+          ::Bootloader::Stage1Device.new(Yast::BootStorage.boot_partition.name).real_devices
       end
 
       def boot_partition_on_mbr_disk?
         underlaying_boot_partition_devices.any? do |dev|
-          pdp = Yast::Storage.GetDiskPartition(dev)
-          p_disk = pdp["disk"] || ""
-          p_disk == Yast::BootStorage.mbr_disk
+          disk = devicegraph.disks.find { |d| d.name_or_partition?(dev) }
+          disk == Yast::BootStorage.mbr_disk
         end
       end
     end
@@ -200,10 +216,11 @@ module Bootloader
         partition = proposed_prep_partition
         if partition
           # ensure that stage1 device is in udev (bsc#1041692)
-          udev_partition = UdevMapping.to_mountby_device(partition)
+          udev_partition = UdevMapping.to_mountby_device(partition.name)
           assign_bootloader_device([:custom, udev_partition])
 
-          stage1.activate = !on_gpt?(partition) # do not activate on gpt disks see (bnc#983194)
+          # do not activate on gpt disks see (bnc#983194)
+          stage1.activate = !partition.partitionable.gpt?
           stage1.generic_mbr = false
         # handle diskless setup, in such case do not write boot code anywhere
         # (bnc#874466)
@@ -212,7 +229,8 @@ module Bootloader
         # and raise exception.
         # powernv do not have prep partition, so we do not have any partition
         # to activate (bnc#970582)
-        elsif Yast::BootStorage.disk_with_boot_partition == "/dev/nfs" || Yast::Arch.board_powernv
+        elsif Yast::BootStorage.disk_with_boot_partition.name == "/dev/nfs" ||
+            Yast::Arch.board_powernv
           stage1.activate = false
           stage1.generic_mbr = false
           return
@@ -223,38 +241,32 @@ module Bootloader
 
     private
 
+      # PReP partition to use for stage 1.
+      # The logic to select PReP partition is the following (first matching):
+      #   * newly created PReP partition
+      #   * PReP partition which is on same disk as /boot
+      #   * first available PReP partition
+      #
+      # TODO Improve logic to propose PReP partitions:
+      #   for example, by creating a PReP partition in all disks.
       def proposed_prep_partition
         partitions = Yast::BootStorage.prep_partitions
 
-        created = partitions.find do |part|
-          part_map = Yast::Storage.GetPartition(Yast::Storage.GetTargetMap, part)
-          part_map["create"] == true
+        partition = partitions.find { |p| !p.exists_in_probed? }
+        if partition
+          log.info "using freshly created prep partition #{partition}"
+          return partition
         end
 
-        if created
-          log.info "using freshly created prep partition #{created}"
-          return created
-        end
-
-        same_disk_part = partitions.find do |part|
-          disk = Yast::Storage.GetDiskPartition(part)["disk"]
-          Yast::BootStorage.disk_with_boot_partition == disk
-        end
-
-        if same_disk_part
-          log.info "using prep on boot disk #{same_disk_part}"
-          return same_disk_part
+        boot_disk = Yast::BootStorage.disk_with_boot_partition
+        partition = partitions.find { |p| p.partitionable == boot_disk }
+        if partition
+          log.info "using prep on boot disk #{partition}"
+          return partition
         end
 
         log.info "nothing better so lets return first available prep"
         partitions.first
-      end
-
-      def on_gpt?(partition)
-        target_map = Yast::Storage.GetTargetMap
-        real_partitions = Bootloader::Stage1Device.new(partition).real_devices
-        disks = real_partitions.map { |p| Yast::Storage.GetDisk(target_map, p) }
-        disks.any? { |d| d["label"] == "gpt" }
       end
     end
 

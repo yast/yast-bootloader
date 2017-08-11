@@ -6,6 +6,8 @@ require "bootloader/stage1_device"
 require "yast2/target_file"
 require "cfa/grub2/device_map"
 
+require "y2storage"
+
 module Bootloader
   # Class representing grub device map structure
   class DeviceMap
@@ -20,7 +22,6 @@ module Bootloader
       Yast.import "Arch"
       Yast.import "BootStorage"
       Yast.import "Mode"
-      Yast.import "Storage"
       @model = CFA::Grub2::DeviceMap.new
     end
 
@@ -118,7 +119,7 @@ module Bootloader
       # want to modify its MBR. So we get disk of such partition and change order to add it
       # to top of device map. For details see bnc#887808,bnc#880439
       boot_disk = Yast::BootStorage.disk_with_boot_partition
-      priority_disks = ::Bootloader::Stage1Device.new(boot_disk).real_devices
+      priority_disks = ::Bootloader::Stage1Device.new(boot_disk.name).real_devices
       # if none of priority disk is hd0, then choose one and assign it
       return if any_first_device?(priority_disks)
 
@@ -126,6 +127,16 @@ module Bootloader
     end
 
     def fill_mapping
+      # storage-ng
+      # BIOS-ID is not supported in libstorage-ng, so let's simply create a
+      # mapping entry per disk for the time being (see commented code for the
+      # real expected behavior)
+      staging = Y2Storage::StorageManager.instance.staging
+      staging.disks.each_with_index do |disk, index|
+        add_mapping("hd#{index}", disk.name)
+      end
+# rubocop:disable Style/BlockComments
+=begin
       target_map = filtered_target_map
       log.info("Filtered target map: #{target_map}")
 
@@ -161,6 +172,7 @@ module Bootloader
       end
 
       log.info "complete initial device map filling: #{self}"
+=end
     end
 
     def filtered_target_map

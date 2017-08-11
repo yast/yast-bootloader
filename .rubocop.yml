@@ -124,3 +124,12 @@ Style/VariableName:
 # alias method is more convenient method for method aliasing
 Style/Alias:
   EnforcedStyle: prefer_alias_method
+
+# This two are not equivalent if using refinements (and we use them to add
+# functionality to the classes coming from libstorage)
+#   using RefinementAddingFooToThing
+#   things.map { |s| s.foo } # it works
+#   things.map(&:foo) # it does not work
+# See https://github.com/bbatsov/rubocop/issues/2720
+Style/SymbolProc:
+  Enabled: false

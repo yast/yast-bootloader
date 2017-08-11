@@ -23,13 +23,11 @@ module Bootloader
 
     # reads configuration from target disk
     def read
-      Yast::BootStorage.detect_disks
       @read = true
     end
 
     # Proposes new configuration
     def propose
-      Yast::BootStorage.detect_disks
       @proposed = true
     end
 

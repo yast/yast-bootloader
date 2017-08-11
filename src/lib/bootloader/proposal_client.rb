@@ -17,7 +17,6 @@ module Bootloader
       Yast.import "BootStorage"
       Yast.import "Bootloader"
       Yast.import "Installation"
-      Yast.import "Storage"
       Yast.import "Mode"
       Yast.import "BootSupportCheck"
       Yast.import "Product"
@@ -36,8 +35,8 @@ module Bootloader
     def make_proposal(attrs)
       force_reset = attrs["force_reset"]
       storage_changed = Yast::BootStorage.storage_changed?
-      # redetect disks if cache is invalid as first part
-      Yast::BootStorage.detect_disks if storage_changed
+      # clean device cache if storage changed
+      Yast::BootStorage.reset_disks if storage_changed
       log.info "Storage changed: #{storage_changed}"
 
       if reset_needed?(force_reset, storage_changed)
@@ -177,7 +176,7 @@ module Bootloader
 
       # F#300779 - Install diskless client (NFS-root)
       # kokso:  bootloader will not be installed
-      device = Yast::BootStorage.disk_with_boot_partition
+      device = Yast::BootStorage.disk_with_boot_partition.name
       log.info "Type of BootPartitionDevice: #{device}"
       if device == "/dev/nfs"
         log.info "Boot partition is nfs type, bootloader will not be installed."

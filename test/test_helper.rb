@@ -3,6 +3,7 @@ ENV["Y2DIR"] = File.expand_path("../../src", __FILE__)
 require "yast"
 require "yast/rspec"
 require "yaml"
+require "y2storage"
 
 # force utf-8 encoding for external
 Encoding.default_external = Encoding::UTF_8
@@ -46,6 +47,13 @@ def target_map_stub(name)
   allow(Yast::Storage).to receive(:GetTargetMap).and_return(tm)
 end
 
+def devicegraph_stub(name)
+  path = File.join(File.dirname(__FILE__), "data", "storage-ng", name)
+  Y2Storage::StorageManager.create_test_instance.probe_from_yaml(path)
+  # clears cache for storage devices
+  Yast::BootStorage.reset_disks
+end
+
 def mock_disk_partition
   # simple mock getting disks from partition as it need initialized libstorage
   allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
@@ -71,7 +79,6 @@ end
 
 # stub udev mapping everywhere
 RSpec.configure do |config|
-  Yast.import "Storage"
   Yast.import "BootStorage"
   Yast.import "Bootloader"
   require "bootloader/udev_mapping"
@@ -80,9 +87,7 @@ RSpec.configure do |config|
   config.before do
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
     allow(::Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
-    allow(::Yast::Storage).to receive(:GetTargetMap).and_return({}) # empty target map by default
     allow(::Bootloader::Stage1Device).to receive(:new) { |d| double(real_devices: [d]) }
-    allow(::Yast::Bootloader).to receive(:checkUsedStorage).and_return(true)
-    allow(Yast::BootStorage).to receive(:detect_disks) # do not do real disk detection
+    devicegraph_stub("trivial.yaml")
   end
 end
