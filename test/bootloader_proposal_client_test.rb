@@ -213,5 +213,13 @@ describe Bootloader::ProposalClient do
 
       subject.make_proposal("force_reset" => true)
     end
+
+    it "updates resolvables with necessary packages" do
+      current_packages = Yast::PackagesProposal.GetResolvables("yast2-bootloader", :package)
+      packages_to_propose = ::Bootloader::BootloaderFactory.current.packages
+      expect(Yast::PackagesProposal).to receive(:RemoveResolvables).with("yast2-bootloader", :package, current_packages)
+      expect(Yast::PackagesProposal).to receive(:AddResolvables).with("yast2-bootloader", :package, packages_to_propose)
+      subject.make_proposal({})
+    end
   end
 end

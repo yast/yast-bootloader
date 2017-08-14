@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Aug 14 11:28:13 UTC 2017 - gsouza@suse.com
+
+- Allow installation of system without grub if it will not be 
+  used (bsc#1014167)
+- 3.3.2
+
+-------------------------------------------------------------------
 Fri Aug 11 14:14:33 UTC 2017 - snwint@suse.com
 
 - merge storage-ng branch to master

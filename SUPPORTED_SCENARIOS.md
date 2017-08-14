@@ -58,3 +58,24 @@ The goal of this document is to have a single source of information  which scena
 * /boot
 * extended partition
   * /boot has to be on a logical partition
+  
+# Required packages
+
+As we've previously mentioned, we have 3 options for bootloaders: grub2, grub2-efi, and none. The bootloader option, the system configuration, and its architecture will define the required packages. Besides that, the system will always require the package <b>kexec-tools</b> unless the installation is happening through a live medium.
+
+## grub2
+This is the most common option and requires <b>grub2</b>. There is also special cases that may require additional packages:
+
+* Generic mbr binary files will require the package <b>syslinux</b>.
+* If using trusted boot option, systems with x86_64 and i386 architectures will require the packages <b>trustedgrub2</b> and <b>trustedgrub2-i386-pc</b>.
+
+## grub2-efi
+This option requires packages based on the architecture of the system:
+
+* i386 architecture requires: <b>grub2-i386-efi</b>.
+* x86_64 architecture requires: <b>grub2-x86_64-efi</b>. If secure boot is used, it also requires <b>shim</b> and <b>mokutil</b>.
+* arm architecture requires: <b>grub2-arm-efi</b>.
+* aarch64 architecture requires: <b>grub2-arm64-efi</b>.
+
+## none
+This option has no additional package requirement.

@@ -4,3 +4,4 @@
 [![Jenkins Build](http://img.shields.io/jenkins/s/https/ci.opensuse.org/yast-bootloader-master.svg)](https://ci.opensuse.org/view/Yast/job/yast-bootloader-master/)
 [![Coverage Status](https://img.shields.io/coveralls/yast/yast-bootloader.svg)](https://coveralls.io/r/yast/yast-bootloader?branch=master)
 
+Check our list of [supported scenarios.](SUPPORTED_SCENARIOS.md)

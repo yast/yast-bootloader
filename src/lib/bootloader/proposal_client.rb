@@ -59,9 +59,7 @@ module Bootloader
         bl.propose
       end
 
-      bl = ::Bootloader::BootloaderFactory.current
-      log.info "propose to install #{bl.packages}"
-      Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
+      update_required_packages
 
       construct_proposal_map
     rescue ::Bootloader::NoRoot
@@ -159,10 +157,7 @@ module Bootloader
         ::Bootloader::BootloaderFactory.current = proposed
       end
 
-      current_bl = ::Bootloader::BootloaderFactory.current
-
-      log.info "propose to install #{current_bl.packages}"
-      Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, current_bl.packages)
+      update_required_packages
 
       true
     end
@@ -226,6 +221,14 @@ module Bootloader
       value ? stage1.add_udev_device(device) : stage1.remove_device(device)
 
       Yast::Bootloader.proposed_cfg_changed = true
+    end
+
+    def update_required_packages
+      bl = ::Bootloader::BootloaderFactory.current
+      bootloader_resolvables = Yast::PackagesProposal.GetResolvables("yast2-bootloader", :package)
+      log.info "proposed packages to install #{bl.packages}"
+      Yast::PackagesProposal.RemoveResolvables("yast2-bootloader", :package, bootloader_resolvables)
+      Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
     end
   end
 end
