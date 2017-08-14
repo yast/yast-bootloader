@@ -50,7 +50,7 @@ module Bootloader
 
       # special backup only if device is mbr disk
       Yast.import "BootStorage"
-      return if device != Yast::BootStorage.mbr_disk
+      return if device != Yast::BootStorage.mbr_disk.name
 
       copy_br(device, "/boot/backup_mbr")
     end

@@ -30,8 +30,6 @@ Yast.import "Mode"
 Yast.import "Progress"
 Yast.import "Report"
 Yast.import "Stage"
-Yast.import "Storage"
-Yast.import "StorageDevices"
 
 module Yast
   class BootloaderClass < Module
@@ -65,20 +63,9 @@ module Yast
       UI.PollInput == :abort
     end
 
-    # bnc #419197 yast2-bootloader does not correctly initialise libstorage
-    # Function try initialize yast2-storage
-    # if other module used it then don't continue with initialize
-    # @return [Boolean] true on success
-
-    def checkUsedStorage
-      Storage.InitLibstorage(true) || !Mode.normal
-    end
-
     # Export bootloader settings to a map
     # @return bootloader settings
     def Export
-      Yast::BootStorage.detect_disks
-
       config = ::Bootloader::BootloaderFactory.current
       config.read if !config.read? && !config.proposed?
       result = ::Bootloader::AutoyastConverter.export(config)
@@ -92,9 +79,6 @@ module Yast
     # @param [Hash] data map of bootloader settings
     # @return [Boolean] true on success
     def Import(data)
-      # AutoYaST configuration mode. There is no access to the system
-      Yast::BootStorage.detect_disks
-
       factory = ::Bootloader::BootloaderFactory
 
       imported_configuration = ::Bootloader::AutoyastConverter.import(data)
@@ -119,8 +103,6 @@ module Yast
         # progress stage, text in dialog (short, infinitiv)
         _("Check boot loader"),
         # progress stage, text in dialog (short, infinitiv)
-        _("Read partitioning"),
-        # progress stage, text in dialog (short, infinitiv)
         _("Load boot loader settings")
       ]
       titles = [
@@ -143,11 +125,6 @@ module Yast
 
       Progress.NextStage
       return false if testAbort
-
-      Progress.NextStage
-      return false if !checkUsedStorage
-
-      BootStorage.detect_disks
 
       Progress.NextStage
       return false if testAbort
@@ -217,7 +194,7 @@ module Yast
     # @return a list of summary lines
     def Summary(simple_mode: false)
       # kokso: additional warning that root partition is nfs type -> bootloader will not be installed
-      if BootStorage.disk_with_boot_partition == "/dev/nfs"
+      if BootStorage.disk_with_boot_partition.name == "/dev/nfs"
         log.info "Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed."
         return _("The boot partition is of type NFS. Bootloader cannot be installed.")
       end

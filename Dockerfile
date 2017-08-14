@@ -1,2 +1,2 @@
-FROM yastdevel/ruby
+FROM yastdevel/storage-ng
 COPY . /usr/src/app

@@ -1,8 +1,7 @@
 require "yast"
+require "y2storage"
 
 Yast.import "BootStorage"
-Yast.import "Storage"
-Yast.import "Partitions"
 
 module Bootloader
   # Purpose of this class is provide mapping between intentioned stage1 location
@@ -39,6 +38,10 @@ module Bootloader
 
   private
 
+    def devicegraph
+      Y2Storage::StorageManager.instance.staging
+    end
+
     # underlaying_devices without any caching
     # @see #underlaying_devices
     def underlaying_devices_for(dev)
@@ -53,59 +56,64 @@ module Bootloader
       res.uniq
     end
 
+    def pv_disk(vg)
+      pvs = usable_pvs(vg)
+      pvs.map { |p| p.ancestors.find { |a| a.is?(:disk) }.name }
+    end
+
     # get one level of underlaying devices, so no recursion deeper
     def underlaying_devices_one_level(dev)
-      tm = Yast::Storage.GetTargetMap
-      disk_data = Yast::Storage.GetDiskPartition(dev)
-      if disk?(disk_data)
-        disk = Yast::Storage.GetDisk(tm, dev)
-        # md disk is just virtual device, so select underlaying device /boot partition
-        case disk["type"]
-        when :CT_MD then return underlaying_disk_with_boot_partition
-        when :CT_LVM
-          res = lvm_underlaying_devices(disk)
-          return res.map { |r| Yast::Storage.GetDiskPartition(r)["disk"] }
-        when :CT_DMRAID
-          return disk["devices"]
-        end
-      # given device is partition
-      else
-        part = Yast::Storage.GetPartition(tm, dev)
-        if part["type"] == :lvm
-          lvm_group = Yast::Storage.GetDisk(tm, disk_data["disk"])
-          return lvm_underlaying_devices(lvm_group)
-        elsif part["type"] == :sw_raid
-          return devices_on(part)
-        elsif part["fstype"] == Yast::Partitions.dmraid_name
-          mapper = Yast::Storage.GetDisk(tm, disk_data["disk"])
-          return mapper["devices"]
-        end
+      # FIXME: there is nothing like this right now in libstorage-ng
+      #  a_vg.name #=> "/dev/vgname"
+      # revisit when such thing exist
+      match = /^\/dev\/(\w+)$/.match(dev)
+      if match && match[1]
+        vg = devicegraph.lvm_vgs.find { |v| v.vg_name == match[1] }
+        return pv_disk(vg) if vg
       end
 
+      lvs = devicegraph.lvm_lvs.find { |v| v.name == dev }
+      return usable_pvs(lvs.lvm_vg).map { |v| v.blk_device.name } if lvs && lvs.lvm_vg
+
+      # TODO: storage-ng
+      # md
+      # md disk is just virtual device, so select underlaying device /boot partition
+      # return underlaying_disk_with_boot_partition
+
+      # TODO: storage-ng
+      # DMRAID main device - not implemented in libstorage-ng
+      # return disk["devices"]
+
+      # TODO: storage-ng
+      # DMRAID part device - not implemented in libstorage-ng
+      # return mapper["devices"]
+      #
+      # TODO: storage-ng
+      # sw_raid
+      # return devices_on(part)
+
       []
+    end
+
+    # Physical volumes from a given set of volume groups that are useful for the
+    # bootloader.
+    #
+    # Ignores physical volumes on a whole disk. See bnc#980529
+    #
+    # @param volume_group [Y2Storage::LvmVg]
+    # @return [Array<Y2Storage::LvmPv>]
+    def usable_pvs(volume_group)
+      volume_group.lvm_pvs.reject { |pv| pv.plain_blk_device.is?(:disk) }
     end
 
     # For pure virtual disk devices it is selected /boot partition and its
     # underlaying devices then for it select on which disks it lives. So result
     # is disk which contain partition holding /boot.
     def underlaying_disk_with_boot_partition
-      underlaying_devices_for(Yast::BootStorage.BootPartitionDevice).map do |part|
+      underlaying_devices_for(Yast::BootStorage.boot_partition.name).map do |part|
         disk_dev = Yast::Storage.GetDiskPartition(part)
         disk_dev["disk"]
       end
-    end
-
-    # returns underlaying devices that creating lvm group
-    def lvm_underlaying_devices(lvm_group)
-      tm = Yast::Storage.GetTargetMap
-      res = devices_on(lvm_group)
-      # skip lvm on partiotionless disks as it cannot be used, see bnc#980529
-      res.reject { |d| tm[d] }
-    end
-
-    # returns if given result of GetDiskPartition indicate that it is disk
-    def disk?(disk_data)
-      disk_data["nr"].to_s.empty?
     end
 
     # returns devices which constructed passed device.

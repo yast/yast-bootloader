@@ -5,6 +5,7 @@ require "bootloader/grub2base"
 require "bootloader/grub_install"
 require "bootloader/sysconfig"
 require "bootloader/stage1_device"
+require "y2storage"
 
 Yast.import "Arch"
 
@@ -31,19 +32,28 @@ module Bootloader
 
     # Write bootloader settings to disk
     def write
-      # super have to called as first as grub install require some config writen in ancestor
+      # super have to called as first as grub install require some config written in ancestor
       super
 
       if pmbr_action && Yast::BootStorage.gpt_boot_disk?
-        efi_partition = Yast::Storage.GetEntryForMountpoint("/boot/efi")["device"]
-        efi_partition ||= Yast::Storage.GetEntryForMountpoint("/boot")["device"]
-        efi_partition ||= Yast::Storage.GetEntryForMountpoint("/")["device"]
-        efi_disk = Yast::Storage.GetDiskPartition(efi_partition)["disk"]
+        efi_partition = filesystems.find { |f| f.mountpoint == "/boot/efi" }
+        efi_partition ||= filesystems.find { |f| f.mountpoint == "/boot" }
+        efi_partition ||= filesystems.find { |f| f.mountpoint == "/" }
 
+        raise "could not find boot partiton" unless efi_partition
+
+        efi_partition = efi_partition.plain_blk_devices.first
+
+        efi_disk = efi_partition.disk
+
+# storage-ng
+# rubocop:disable Style/BlockComments
+=begin
         # get underlaying disk as it have to be set there and not on virtual one (bnc#981977)
         device = ::Bootloader::Stage1Device.new(efi_disk)
+=end
 
-        pmbr_setup(*device.real_devices)
+        pmbr_setup(efi_disk.name)
       end
 
       @grub_install.execute(secure_boot: @secure_boot, trusted_boot: trusted_boot)
@@ -116,6 +126,16 @@ module Bootloader
       sysconfig = Bootloader::Sysconfig.new(bootloader: name,
         secure_boot: @secure_boot, trusted_boot: trusted_boot)
       prewrite ? sysconfig.pre_write : sysconfig.write
+    end
+
+  private
+
+    # Filesystems in the staging (planned) devicegraph
+    #
+    # @return [Y2Storage::FilesystemsList]
+    def filesystems
+      staging = Y2Storage::StorageManager.instance.staging
+      staging.filesystems
     end
   end
 end

@@ -30,12 +30,6 @@ describe Bootloader::BootloaderBase do
   end
 
   describe "#read" do
-    it "detects disks in system" do
-      expect(Yast::BootStorage).to receive(:detect_disks)
-
-      subject.read
-    end
-
     it "sets read flag" do
       expect(subject.read?).to eq false
 
@@ -46,12 +40,6 @@ describe Bootloader::BootloaderBase do
   end
 
   describe "#propose" do
-    it "detects disk configuration" do
-      expect(Yast::BootStorage).to receive(:detect_disks)
-
-      subject.propose
-    end
-
     it "sets proposed flag" do
       expect(subject.proposed?).to eq false
 

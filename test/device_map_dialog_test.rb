@@ -19,6 +19,7 @@ describe Bootloader::DeviceMapDialog do
       allow(Yast::UI).to receive(:QueryWidget).and_return("/dev/sda")
       allow(Yast::UI).to receive(:OpenDialog).and_return(true)
       allow(Yast::UI).to receive(:CloseDialog).and_return(true)
+      allow(Yast::BootStorage).to receive(:assign_mbr_disk_by_name)
     end
 
     def mock_ui_events(*events)
