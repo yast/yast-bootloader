@@ -125,11 +125,11 @@ module Yast
     def find_mbr_disk
       # use the disk with boot partition
       mp = Storage.GetMountPoints
-      boot_disk = Ops.get_string(
-        mp,
-        ["/boot", 2],
-        Ops.get_string(mp, ["/", 2], "")
+      tm = Yast::Storage.GetTargetMap
+      dev = Ops.get_string(
+        mp, ["/boot", 0], Ops.get_string(mp, ["/", 0], "")
       )
+      boot_disk = Yast::Storage.GetDisk(tm, dev)["device"]
       log.info "Disk with boot partition: #{boot_disk}, using for MBR"
 
       boot_disk

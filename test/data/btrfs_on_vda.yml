@@ -1,0 +1,131 @@
+---
+"/dev/btrfs":
+  device: "/dev/btrfs"
+  name: btrfs
+  partitions:
+  - detected_fs: :unknown
+    device: "/dev/vda2"
+    devices:
+    - "/dev/vda2"
+    format: true
+    fstype: BTRFS
+    inactive: true
+    mount: "/"
+    mountby: :uuid
+    name: vda2
+    size_k: 19438650
+    subvol:
+    - create: true
+      name: "@/boot/grub2/i386-pc"
+    - create: true
+      name: "@/boot/grub2/x86_64-efi"
+    - create: true
+      name: "@/home"
+    - create: true
+      name: "@/opt"
+    - create: true
+      name: "@/srv"
+    - create: true
+      name: "@/tmp"
+    - create: true
+      name: "@/usr/local"
+    - create: true
+      name: "@/var/cache"
+    - create: true
+      name: "@/var/crash"
+    - create: true
+      name: "@/var/lib/libvirt/images"
+      nocow: true
+    - create: true
+      name: "@/var/lib/machines"
+    - create: true
+      name: "@/var/lib/mailman"
+    - create: true
+      name: "@/var/lib/mariadb"
+      nocow: true
+    - create: true
+      name: "@/var/lib/mysql"
+      nocow: true
+    - create: true
+      name: "@/var/lib/named"
+    - create: true
+      name: "@/var/lib/pgsql"
+      nocow: true
+    - create: true
+      name: "@/var/log"
+    - create: true
+      name: "@/var/opt"
+    - create: true
+      name: "@/var/spool"
+    - create: true
+      name: "@/var/tmp"
+    type: :btrfs
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :btrfs
+    userdata:
+      "/": snapshots
+    uuid: '12345'
+  type: :CT_BTRFS
+  used_by_device: ''
+  used_by_type: :UB_NONE
+"/dev/vda":
+  bios_id: '0x80'
+  bus: None
+  cyl_count: 2610
+  cyl_size: 8225280
+  dasd_format: 0
+  dasd_type: 0
+  device: "/dev/vda"
+  driver: virtio-pci
+  driver_module: virtio_pci
+  label: msdos
+  max_logical: 255
+  max_primary: 4
+  name: vda
+  partitions:
+  - create: true
+    detected_fs: :unknown
+    device: "/dev/vda1"
+    format: true
+    fsid: 130
+    fstype: Linux swap
+    inactive: true
+    mount: swap
+    mountby: :uuid
+    name: vda1
+    nr: 1
+    region:
+    - 0
+    - 190
+    size_k: 1526175
+    type: :primary
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :swap
+  - create: true
+    detected_fs: :btrfs
+    device: "/dev/vda2"
+    fsid: 131
+    fstype: Linux native
+    name: vda2
+    nr: 2
+    region:
+    - 190
+    - 2420
+    size_k: 19438650
+    type: :primary
+    used_by:
+    - device: '12345'
+      type: :UB_BTRFS
+    used_by_device: '12345'
+    used_by_type: :UB_BTRFS
+    used_fs: :btrfs
+  proposal_name: '1. Disk, 20.00 GiB, /dev/vda, '
+  sector_size: 512
+  size_k: 20971520
+  transport: :unknown
+  type: :CT_DISK
+  unique: KSbE.Fxp0d3BezAE
+  used_by_device: ''
+  used_by_type: :UB_NONE
