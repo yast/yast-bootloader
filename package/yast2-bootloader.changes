@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Aug 18 12:48:00 UTC 2017 - gsouza@suse.com
+
+- Find correct mbr device to  install grub (bsc#1039712, 
+  bsc#1052006)
+- 3.2.24
+
+-------------------------------------------------------------------
 Fri Jun 23 09:14:05 CEST 2017 - schubi@suse.de
 
 - AutoYaST configuration: Set StorageDevices flag disks_valid
