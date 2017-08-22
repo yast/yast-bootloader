@@ -1,0 +1,155 @@
+---
+"/dev/btrfs":
+  device: "/dev/btrfs"
+  name: btrfs
+  partitions:
+  - detected_fs: :unknown
+    device: "/dev/sda2"
+    devices:
+    - "/dev/sda2"
+    format: true
+    fstype: BTRFS
+    inactive: true
+    mount: "/"
+    mountby: :uuid
+    name: sda2
+    size_k: 8956237
+    subvol:
+    - create: true
+      name: "@/boot/grub2/i386-pc"
+    - create: true
+      name: "@/boot/grub2/x86_64-efi"
+    - create: true
+      name: "@/home"
+    - create: true
+      name: "@/opt"
+    - create: true
+      name: "@/srv"
+    - create: true
+      name: "@/tmp"
+    - create: true
+      name: "@/usr/local"
+    - create: true
+      name: "@/var/cache"
+    - create: true
+      name: "@/var/crash"
+    - create: true
+      name: "@/var/lib/libvirt/images"
+      nocow: true
+    - create: true
+      name: "@/var/lib/machines"
+    - create: true
+      name: "@/var/lib/mailman"
+    - create: true
+      name: "@/var/lib/mariadb"
+      nocow: true
+    - create: true
+      name: "@/var/lib/mysql"
+      nocow: true
+    - create: true
+      name: "@/var/lib/named"
+    - create: true
+      name: "@/var/lib/pgsql"
+      nocow: true
+    - create: true
+      name: "@/var/log"
+    - create: true
+      name: "@/var/opt"
+    - create: true
+      name: "@/var/spool"
+    - create: true
+      name: "@/var/tmp"
+    type: :btrfs
+    udev_id:
+    - ata-VBOX_HARDDISK_VB47720f86-244aaead-part2
+    - scsi-0ATA_VBOX_HARDDISK_VB47720f86-244aaead-part2
+    - scsi-1ATA_VBOX_HARDDISK_VB47720f86-244aaead-part2
+    - scsi-SATA_VBOX_HARDDISK_VB47720f86-244aaead-part2
+    udev_path: pci-0000:00:0d.0-ata-1-part2
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :btrfs
+    uuid: '12345'
+  type: :CT_BTRFS
+  used_by_device: ''
+  used_by_type: :UB_NONE
+"/dev/sda":
+  bios_id: '0x80'
+  bus: IDE
+  cyl_count: 1305
+  cyl_size: 8225280
+  dasd_format: 0
+  dasd_type: 0
+  device: "/dev/sda"
+  driver: ahci
+  driver_module: ahci
+  label: msdos
+  max_logical: 255
+  max_primary: 4
+  model: HARDDISK
+  name: sda
+  partitions:
+  - create: true
+    detected_fs: :unknown
+    device: "/dev/sda1"
+    format: true
+    fsid: 130
+    fstype: Linux swap
+    inactive: true
+    mount: swap
+    mountby: :uuid
+    name: sda1
+    nr: 1
+    region:
+    - 0
+    - 190
+    size_k: 1526175
+    type: :primary
+    udev_id:
+    - ata-VBOX_HARDDISK_VB47720f86-244aaead-part1
+    - scsi-0ATA_VBOX_HARDDISK_VB47720f86-244aaead-part1
+    - scsi-1ATA_VBOX_HARDDISK_VB47720f86-244aaead-part1
+    - scsi-SATA_VBOX_HARDDISK_VB47720f86-244aaead-part1
+    udev_path: pci-0000:00:0d.0-ata-1-part1
+    used_by_device: ''
+    used_by_type: :UB_NONE
+    used_fs: :swap
+  - create: true
+    detected_fs: :btrfs
+    device: "/dev/sda2"
+    fsid: 131
+    fstype: Linux native
+    name: sda2
+    nr: 2
+    region:
+    - 190
+    - 1115
+    size_k: 8956237
+    type: :primary
+    udev_id:
+    - ata-VBOX_HARDDISK_VB47720f86-244aaead-part2
+    - scsi-0ATA_VBOX_HARDDISK_VB47720f86-244aaead-part2
+    - scsi-1ATA_VBOX_HARDDISK_VB47720f86-244aaead-part2
+    - scsi-SATA_VBOX_HARDDISK_VB47720f86-244aaead-part2
+    udev_path: pci-0000:00:0d.0-ata-1-part2
+    used_by:
+    - device: '12345'
+      type: :UB_BTRFS
+    used_by_device: '12345'
+    used_by_type: :UB_BTRFS
+    used_fs: :btrfs
+  proposal_name: 1. IDE diskas, 10.00 GiB, /dev/sda, VBOX-HARDDISK
+  sector_size: 512
+  size_k: 10485760
+  transport: :unknown
+  type: :CT_DISK
+  udev_id:
+  - ata-VBOX_HARDDISK_VB47720f86-244aaead
+  - scsi-0ATA_VBOX_HARDDISK_VB47720f86-244aaead
+  - scsi-1ATA_VBOX_HARDDISK_VB47720f86-244aaead
+  - scsi-SATA_VBOX_HARDDISK_VB47720f86-244aaead
+  udev_path: pci-0000:00:0d.0-ata-1
+  unique: 3OOL.pZT8_gpdDv7
+  used_by_device: ''
+  used_by_type: :UB_NONE
+  vendor: VBOX

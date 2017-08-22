@@ -4,6 +4,41 @@ Yast.import "BootStorage"
 
 describe Yast::BootStorage do
   subject { Yast::BootStorage }
+  before do
+    # nasty hack to allow call of uninitialized libstorage as we do not want
+    # to overmock Yast::Storage.GetDiskPartitionTg call
+    Yast::Storage.instance_variable_set(:@sint, double(getPartitionPrefix: "").as_null_object)
+  end
+
+  describe ".find_mbr_disk" do
+    context "when sda is the real device for a btrfs disk" do
+      before do
+        target_map_stub("btrfs_on_sda.yml")
+      end
+
+      it "finds /dev/sda as the disk" do
+        allow(Yast::Storage).to receive(:GetMountPoints)
+          .and_return("/"    => ["/dev/sda2", 0, "/dev/btrfs", ""],
+                      "swap" => [["/dev/sda1", 130, "/dev/sda", ""]])
+
+        expect(subject.find_mbr_disk).to eq "/dev/sda"
+      end
+    end
+
+    context "when vda is the real device for a btrfs disk" do
+      before do
+        target_map_stub("btrfs_on_vda.yml")
+      end
+
+      it "finds /dev/vda as the disk" do
+        allow(Yast::Storage).to receive(:GetMountPoints)
+          .and_return("/"    => ["/dev/vda2", 0, "/dev/btrfs", ""],
+                      "swap" => [["/dev/vda1", 130, "/dev/vda", ""]])
+
+        expect(subject.find_mbr_disk).to eq "/dev/vda"
+      end
+    end
+  end
 
   describe ".possible_locations_for_stage1" do
     let(:possible_locations) { subject.possible_locations_for_stage1 }
