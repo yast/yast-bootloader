@@ -185,28 +185,29 @@ describe Bootloader::Stage1 do
     end
   end
 
-  xdescribe "#can_use_boot?" do
+  describe "#can_use_boot?" do
     before do
       allow(subject).to receive(:can_use_boot?).and_call_original
+      devicegraph_stub("complex-lvm-encrypt.yml")
     end
 
-    it "returns false if boot partition fs is xfs" do
-      target_map_stub("storage_xfs.yaml")
+    let(:devicegraph) { Y2Storage::StorageManager.instance.staging }
 
-      allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/vda")
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/vda1")
+    it "returns false if boot partition fs is xfs" do
+      boot_partition = Y2Storage::Partition.find_by_name(devicegraph, "/dev/sda1")
+      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
 
       expect(subject.can_use_boot?).to eq false
     end
 
-    it "returns true otherwise" do
-      target_map_stub("storage_tmpfs.yaml")
+    it "returns false if boot partition is on lvm" do
+    end
 
-      allow(Yast::BootStorage).to receive(:mbr_disk).and_return("/dev/vda")
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice).and_return("/dev/vda1")
+    it "returns true otherwise" do
+      boot_partition = Y2Storage::Partition.find_by_name(devicegraph, "/dev/sda2")
+      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
 
       expect(subject.can_use_boot?).to eq true
-
     end
   end
 
