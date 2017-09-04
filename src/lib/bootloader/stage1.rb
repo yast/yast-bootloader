@@ -161,18 +161,19 @@ module Bootloader
     def can_use_boot?
       part = Yast::BootStorage.boot_partition
 
-      if !part
-        log.error "boot partition is not assigned"
-        return false
-      end
-
       log.info "Boot partition info #{part.inspect}"
+
+      # no boot assigned
+      return false unless part
 
       # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
       return false if part.filesystem_type == ::Y2Storage::Filesystems::Type::XFS
 
       # LVM partition does not have reserved space for stage one
       return false if part.lvm_pv
+
+      # encrypted partition does not have reserved space and it is bad idea in general (bsc#1056862)
+      return false if part.encrypted?
 
       true
     end

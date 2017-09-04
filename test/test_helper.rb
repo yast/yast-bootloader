@@ -41,40 +41,11 @@ if ENV["COVERAGE"]
   end
 end
 
-def target_map_stub(name)
-  path = File.join(File.dirname(__FILE__), "data", name)
-  tm = YAML.load(File.read(path))
-  allow(Yast::Storage).to receive(:GetTargetMap).and_return(tm)
-end
-
 def devicegraph_stub(name)
-  path = File.join(File.dirname(__FILE__), "data", "storage-ng", name)
+  path = File.join(File.dirname(__FILE__), "data", name)
   Y2Storage::StorageManager.create_test_instance.probe_from_yaml(path)
   # clears cache for storage devices
   Yast::BootStorage.reset_disks
-end
-
-def mock_disk_partition
-  # simple mock getting disks from partition as it need initialized libstorage
-  allow(Yast::Storage).to receive(:GetDiskPartition) do |partition|
-    case partition
-    when "/dev/system/root"
-      disk = "/dev/system"
-      number = "system"
-    when "/dev/mapper/cr_swap"
-      disk = "/dev/sda"
-      number = "1"
-    when "tmpfs"
-      disk = "tmpfs"
-      number = ""
-    else
-      number = partition[/(\d+)$/, 1] || ""
-      disk = partition[0..-(number.size + 1)]
-    end
-    { "disk" => disk, "nr" => number }
-  end
-
-  allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
 end
 
 # stub udev mapping everywhere
