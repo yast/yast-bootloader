@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep  4 11:44:34 UTC 2017 - jreidinger@suse.com
+
+- Do not propose to stage1 to be installed to encrypted partition
+  (bsc#1056862)
+- 3.3.3
+
+-------------------------------------------------------------------
 Thu Aug 14 11:28:13 UTC 2017 - gsouza@suse.com
 
 - Allow installation of system without grub if it will not be 
