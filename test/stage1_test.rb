@@ -201,6 +201,17 @@ describe Bootloader::Stage1 do
     end
 
     it "returns false if boot partition is on lvm" do
+      boot_partition = Y2Storage::Partition.find_by_name(devicegraph, "/dev/sde2")
+      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
+
+      expect(subject.can_use_boot?).to eq false
+    end
+
+    it "returns false if boot partition is encrypted" do
+      boot_partition = Y2Storage::Partition.find_by_name(devicegraph, "/dev/sda4")
+      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
+
+      expect(subject.can_use_boot?).to eq false
     end
 
     it "returns true otherwise" do
