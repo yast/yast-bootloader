@@ -101,42 +101,6 @@ module Yast
       boot_disks.any? { |disk| disk.gpt? }
     end
 
-    # Returns list of partitions and disks. Requests current partitioning from
-    # yast2-storage and creates list of partition and disks usable for grub stage1
-    def possible_locations_for_stage1
-      devices = Storage.GetTargetMap
-
-      all_disks = devices.keys
-
-      disks_for_stage1 = all_disks.select do |d|
-        [:CT_DISK, :CR_DMRAID].include?(devices[d]["type"])
-      end
-
-      partitions = []
-
-      devices.each do |k, v|
-        next unless all_disks.include?(k)
-
-        partitions.concat(v["partitions"] || [])
-      end
-
-      partitions.delete_if do |p|
-        p["delete"]
-      end
-
-      partitions.select! do |p|
-        [:primary, :extended, :logical, :sw_raid].include?(p["type"]) &&
-          (p["used_fs"] || p["detected_fs"]) != :xfs &&
-          ["Linux native", "Extended", "Linux RAID", "MD RAID", "DM RAID"].include?(p["fstype"])
-      end
-
-      res = partitions.map { |p| p["device"] || "" }
-      res.concat(disks_for_stage1)
-      res.delete_if(&:empty?)
-
-      res
-    end
-
     # Get extended partition for given partition or disk
     def extended_partition_for(device)
       disk = staging.disks.find { |d| d.name_or_partition?(device) }

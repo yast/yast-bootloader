@@ -14,101 +14,47 @@ describe Yast::BootStorage do
     end
   end
 
-  xdescribe ".possible_locations_for_stage1" do
-    let(:possible_locations) { subject.possible_locations_for_stage1 }
-    before do
-      target_map_stub("storage_mdraid.yaml")
-      allow(Yast::Arch).to receive(:architecture).and_return("x86_64") # be arch agnostic
-      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:device)
-      allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
-    end
+  describe ".mbr_disk" do
+    it "returns disk where lives /boot" do
+      devicegraph_stub("trivial.yaml")
 
-    it "returns list of kernel devices that can be used as stage1 for bootloader" do
-      expect(possible_locations).to be_a(Array)
-    end
-
-    it "returns also physical disks" do
-      expect(possible_locations).to include("/dev/vda")
-    end
-
-    it "returns all partitions suitable for stage1" do
-      expect(possible_locations).to include("/dev/vda1")
-    end
-
-    it "do not list partitions marked for delete" do
-      partition_to_delete = Yast::Storage.GetTargetMap["/dev/vda"]["partitions"].first
-      partition_to_delete["delete"] = true
-
-      expect(possible_locations).to_not include(partition_to_delete["device"])
+      expect(subject.mbr_disk).to eq find_device("/dev/sda")
     end
   end
 
-  xdescribe ".detect_disks" do
-    before do
-      mock_disk_partition
-      target_map_stub("storage_lvm.yaml")
+  describe ".boot_partition" do
+    it "returns /boot partition if it is separated" do
+      devicegraph_stub("separate_boot.yaml")
 
-      allow(Yast::Storage).to receive(:GetMountPoints).and_return(
-        "/"     => ["/dev/vda1"],
-        "/boot" => ["/dev/vda2"]
-      )
-      allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
-      # disable general mock for disk detection
-      allow(subject).to receive(:detect_disks).and_call_original
-      subject.RootPartitionDevice = ""
+      expect(subject.boot_partition).to eq find_device("/dev/sda2")
     end
 
-    it "fills RootPartitionDevice variable" do
-      subject.RootPartitionDevice = ""
+    it "returns / partition if separated /boot does not exist" do
+      devicegraph_stub("trivial.yaml")
 
-      subject.detect_disks
+      expect(subject.boot_partition).to eq find_device("/dev/sda3")
+    end
+  end
 
-      expect(subject.RootPartitionDevice).to eq "/dev/vda1"
+  describe ".root_partition" do
+    it "returns / partition" do
+      devicegraph_stub("trivial.yaml")
+
+      expect(subject.root_partition).to eq find_device("/dev/sda3")
+    end
+  end
+
+  describe ".extended_partition" do
+    it "returns extended partition for .mbr_disk" do
+      devicegraph_stub("logical.yaml")
+
+      expect(subject.extended_partition).to eq find_device("/dev/sda2")
     end
 
-    it "fills BootPartitionDevice variable" do
-      subject.BootPartitionDevice = ""
+    it "returns nil if there is no such partition" do
+      devicegraph_stub("trivial_dos.yaml")
 
-      subject.detect_disks
-
-      expect(subject.BootPartitionDevice).to eq "/dev/vda2"
-    end
-
-    it "sets ExtendedPartitionDevice variable to nil if boot is not logical" do
-      subject.ExtendedPartitionDevice = ""
-
-      subject.detect_disks
-
-      expect(subject.ExtendedPartitionDevice).to eq nil
-    end
-
-    # need target map with it
-    it "sets ExtendedPartitionDevice variable to extended partition if boot is logical"
-
-    it "raises exception if there is no mount point for root" do
-      allow(Yast::Storage).to receive(:GetMountPoints).and_return({})
-
-      expect { subject.detect_disks }.to raise_error(::Bootloader::NoRoot)
-    end
-
-    it "sets BootStorage.mbr_disk" do
-      expect(subject).to receive(:find_mbr_disk).and_return("/dev/vda")
-
-      subject.detect_disks
-
-      expect(subject.mbr_disk).to eq "/dev/vda"
-    end
-
-    it "skips cache if storage gets changed" do
-      subject.RootPartitionDevice = "/dev/sda1"
-      subject.BootPartitionDevice = "/dev/sda2"
-      subject.mbr_disk = "/dev/sda"
-
-      allow(Yast::Storage).to receive(:GetTargetChangeTime).and_return(Time.now.to_i)
-
-      subject.detect_disks
-
-      expect(subject.RootPartitionDevice).to eq "/dev/vda1"
+      expect(subject.extended_partition).to eq nil
     end
   end
 
