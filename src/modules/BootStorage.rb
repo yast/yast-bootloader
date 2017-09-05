@@ -101,14 +101,6 @@ module Yast
       boot_disks.any? { |disk| disk.gpt? }
     end
 
-    # Get extended partition for given partition or disk
-    def extended_partition_for(device)
-      disk = staging.disks.find { |d| d.name_or_partition?(device) }
-      return nil unless disk
-
-      disk.partitions.find { |p| p.type.is?(:extended) }
-    end
-
     # FIXME: merge with BootSupportCheck
     # Check if the bootloader can be installed at all with current configuration
     # @return [Boolean] true if it can
@@ -241,10 +233,11 @@ module Yast
       log.info "root partition #{root_partition.inspect}"
       log.info "boot partition #{boot_partition.inspect}"
 
-      # get extended partition device (if exists)
-      @extended_partition = extended_partition_for(boot_partition)
-
       @mbr_disk = disk_with_boot_partition
+
+      # get extended partition device (if exists)
+      @extended_partition = @mbr_disk.partitions.find { |p| p.type.is?(:extended) }
+
 
       @storage_revision = Y2Storage::StorageManager.instance.staging_revision
     end
