@@ -58,16 +58,16 @@ describe Yast::BootStorage do
     end
   end
 
-  xdescribe ".available_swap_partitions" do
+  describe ".available_swap_partitions" do
     it "returns map of swap partitions and their size" do
-      target_map_stub("storage_lvm.yaml")
+      devicegraph_stub("trivial.yaml")
       expect(subject.available_swap_partitions).to eq(
         "/dev/vda2" => 1_026_048
       )
     end
 
     it "returns crypt device name for encrypted swap" do
-      target_map_stub("storage_encrypted.yaml")
+      devicegraph_stub("complex_lvm_encrypt.yaml")
       expect(subject.available_swap_partitions).to eq(
         "/dev/mapper/cr_swap" => 2_096_482
       )

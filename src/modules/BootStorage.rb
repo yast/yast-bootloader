@@ -201,7 +201,7 @@ module Yast
 
       staging.filesystems.select { |f| f.type.is?(:swap) }.each do |swap|
         blk_device = swap.blk_devices[0]
-        ret[blk_device.name] = blk_device.size / 1024
+        ret[blk_device.name] = blk_device.size.to_i / 1024
       end
 
       log.info "Available swap partitions: #{ret}"
