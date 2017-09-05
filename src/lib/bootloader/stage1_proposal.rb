@@ -13,7 +13,9 @@ module Bootloader
   class Stage1Proposal
     include Yast::Logger
 
+    # Sets passed stage1 to proposed values
     # @param [Bootloader::Stage1] stage1 where write proposal
+    # @return [void]
     def self.propose(stage1)
       arch = Yast::Arch.architecture
       proposal = AVAILABLE_PROPOSALS[arch]

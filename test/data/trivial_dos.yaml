@@ -2,19 +2,12 @@
 - disk:
     name: /dev/sda
     size: 8 GiB
-    partition_table:  gpt
+    partition_table:  ms-dos
     partitions:
 
     - partition:
-        size:         1 MiB
-        name:         /dev/sda1
-        id:           bios_boot
-        file_system:  vfat
-        uuid:         3de29985-8cc6-4c9d-8562-2ede26b0c5b6
-
-    - partition:
         size:         1002 MiB
-        name:         /dev/sda2
+        name:         /dev/sda1
         id:           swap
         file_system:  swap
         mount_point:  swap
@@ -22,6 +15,6 @@
 
     - partition:
         size:         unlimited
-        name:         /dev/sda3
+        name:         /dev/sda2
         file_system:  btrfs
         mount_point:  "/"

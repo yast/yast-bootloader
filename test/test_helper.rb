@@ -48,6 +48,11 @@ def devicegraph_stub(name)
   Yast::BootStorage.reset_disks
 end
 
+def find_device(name)
+  graph = Y2Storage::StorageManager.instance.staging
+  Y2Storage::BlkDevice.find_by_name(graph, name)
+end
+
 # stub udev mapping everywhere
 RSpec.configure do |config|
   Yast.import "BootStorage"

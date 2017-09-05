@@ -76,6 +76,12 @@ module Bootloader
       new(unit, speed, parity, word)
     end
 
+    # constuctor
+    # @param unit [String] serial console unit
+    # @param speed [String] speed how console can communicate
+    # @param parity [String] if partity can be used. For possible values see grub2 documentation.
+    # @param word [String] word size. If empty then default is used.
+    # @see https://www.gnu.org/software/grub/manual/grub.html#serial
     def initialize(unit, speed = SPEED_DEFAULT, parity = PARITY_DEFAULT,
       word = WORD_DEFAULT)
       @unit = unit
