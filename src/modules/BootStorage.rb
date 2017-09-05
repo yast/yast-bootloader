@@ -238,7 +238,6 @@ module Yast
       # get extended partition device (if exists)
       @extended_partition = @mbr_disk.partitions.find { |p| p.type.is?(:extended) }
 
-
       @storage_revision = Y2Storage::StorageManager.instance.staging_revision
     end
   end
