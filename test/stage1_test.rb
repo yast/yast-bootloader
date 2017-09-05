@@ -9,8 +9,6 @@ Yast.import "BootStorage"
 
 describe Bootloader::Stage1 do
   before do
-    # simple mock getting disks from partition as it need initialized libstorage
-    allow(subject).to receive(:can_use_boot?).and_return(true)
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
   end
 
@@ -218,39 +216,32 @@ describe Bootloader::Stage1 do
     end
   end
 
-  xdescribe "#available_locations" do
+  describe "#available_locations" do
     context "on x86_64" do
       before do
         allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
-        allow(subject).to receive(:can_use_boot?).and_call_original
-        allow(Yast::BootStorage).to receive(:detect_disks).and_call_original
-        # reset cache
-        Yast::BootStorage.RootPartitionDevice = ""
       end
 
       it "returns map with :extended set to extended partition" do
-        pending "need to get target map with /boot on logical partition"
+        devicegraph_stub("logical.yaml")
 
-        expect(subject.available_locations[:extended]).to eq "/dev/sda4"
+        expect(subject.available_locations[:extended]).to eq "/dev/sda2"
       end
 
       it "returns map with :root if separated /boot is not available" do
-        target_map_stub("storage_tmpfs.yaml")
-        Yast::BootStorage.detect_disks
+        devicegraph_stub("trivial.yaml")
 
-        expect(subject.available_locations[:root]).to eq "/dev/vda1"
+        expect(subject.available_locations[:root]).to eq "/dev/sda3"
       end
 
       it "returns map with :boot if separated /boot is available" do
-        target_map_stub("storage_mdraid.yaml")
-        Yast::BootStorage.detect_disks
+        devicegraph_stub("separate_boot.yaml")
 
-        expect(subject.available_locations[:boot]).to eq "/dev/md1"
+        expect(subject.available_locations[:boot]).to eq "/dev/sda2"
       end
 
       it "returns map without :boot nor :root when xfs used" do
-        target_map_stub("storage_xfs.yaml")
-        Yast::BootStorage.detect_disks
+        devicegraph_stub("xfs.yaml")
 
         res = subject.available_locations
 
