@@ -7,7 +7,7 @@ describe Yast::BootStorage do
 
   describe ".prep_partitions" do
     it "returns the correct set of Y2Storage::Partition objects" do
-      devicegraph_stub("prep_partitions.yml")
+      devicegraph_stub("prep_partitions.yaml")
       partitions = subject.prep_partitions
       expect(partitions).to all(be_a(Y2Storage::Partition))
       expect(partitions.map(&:name)).to contain_exactly("/dev/sda2", "/dev/sdb2")

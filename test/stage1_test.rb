@@ -186,7 +186,7 @@ describe Bootloader::Stage1 do
   describe "#can_use_boot?" do
     before do
       allow(subject).to receive(:can_use_boot?).and_call_original
-      devicegraph_stub("complex-lvm-encrypt.yml")
+      devicegraph_stub("complex-lvm-encrypt.yaml")
     end
 
     it "returns false if boot partition fs is xfs" do
