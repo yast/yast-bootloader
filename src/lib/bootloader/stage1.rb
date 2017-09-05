@@ -234,7 +234,7 @@ module Bootloader
         res[:root] = Yast::BootStorage.root_partition.name
       end
 
-      if extended_partition?
+      if Yast::BootStorage.extended_partition
         res[:extended] = Yast::BootStorage.extended_partition.name
       end
 

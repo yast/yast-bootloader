@@ -71,11 +71,13 @@
         id:           lvm
 
     - partition:
-        size:         unlimited
+        size:         2 GiB
         name:         /dev/sde3
         id:           swap
         file_system:  swap
         label:        swap
+        encryption:
+          name:       /dev/mapper/cr_swap
 
 # One disk with a single partition
 - disk:

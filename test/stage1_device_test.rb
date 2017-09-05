@@ -84,7 +84,7 @@ describe Bootloader::Stage1Device do
     end
 
     it "skips disks used as partitionless lvm devices" do
-      devicegraph_stub("lvm_whole_disk.yml")
+      devicegraph_stub("lvm_whole_disk.yaml")
 
       subject = Bootloader::Stage1Device.new("/dev/system")
       expect(subject.real_devices).to eq(["/dev/sda"])
