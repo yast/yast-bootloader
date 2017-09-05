@@ -7,7 +7,7 @@ require "bootloader/stage1"
 
 Yast.import "BootStorage"
 
-xdescribe Bootloader::MBRUpdate do
+describe Bootloader::MBRUpdate do
   subject { Bootloader::MBRUpdate.new }
 
   def stage1(devices: [], activate: false, generic_mbr: false)
@@ -22,24 +22,12 @@ xdescribe Bootloader::MBRUpdate do
 
   describe "#run" do
     before do
-      mock_disk_partition
-
-      allow(Yast::Storage).to receive(:GetDeviceName) do |dev, num|
-        dev + num.to_s
-      end
-
       # by default common architecture"
       allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
-
-      # fake query for gpt label
-      allow(Yast::Storage).to receive(:GetTargetMap).and_return(
-        double(:fetch => { "label" => "msdos" },
-               :[]    => { "label" => "msdos" })
-      )
     end
 
     before do
-      Yast::BootStorage.mbr_disk = "/dev/sda"
+      allow(Yast::BootStorage).to receive(:mbr_disk).and_return(find_device("/dev/sda"))
     end
 
     it "creates backup for BootStorage.mbr_disk" do
@@ -54,6 +42,7 @@ xdescribe Bootloader::MBRUpdate do
 
     # FIXME: get reason for it
     it "creates backup for all devices in stage1" do
+      devicegraph_stub("two_disks.yaml")
       expect(::Bootloader::BootRecordBackup).to(
         receive(:new).with("/dev/sda").and_return(double(:write => true))
       )
@@ -100,18 +89,12 @@ xdescribe Bootloader::MBRUpdate do
       end
 
       it "do nothing if mbr_disk is in Bootloader devices, so we install there bootloader stage1" do
-        allow(Yast::BootStorage).to receive(:mbr_disk)
-          .and_return("/dev/sda")
-
         expect(Yast::Execute).to_not receive(:locally)
         expect(Yast::Execute).to_not receive(:on_target)
         subject.run(stage1(generic_mbr: true, devices: ["/dev/sda"]))
       end
 
       it "rewrites mbr_disk with generic code" do
-        allow(Yast::BootStorage).to receive(:mbr_disk)
-          .and_return("/dev/sda")
-
         expect(Yast::Execute).to receive(:locally) do |*args|
           return nil unless args.first =~ /dd/
           expect(args).to be_include("of=/dev/sda")
@@ -119,7 +102,7 @@ xdescribe Bootloader::MBRUpdate do
         subject.run(stage1(generic_mbr: true))
       end
 
-      it "always uses real devices" do
+      xit "always uses real devices" do
         allow(Yast::BootStorage).to receive(:mbr_disk)
           .and_return("/dev/md0")
 
@@ -141,13 +124,6 @@ xdescribe Bootloader::MBRUpdate do
       end
 
       it "install gpt generic code if disk is gpt" do
-        allow(Yast::Storage).to receive(:GetTargetMap).and_return(
-          "/dev/sda" => { "label" => "gpt" }
-        )
-
-        allow(Yast::BootStorage).to receive(:mbr_disk)
-          .and_return("/dev/sda")
-
         expect(Yast::Execute).to receive(:locally) do |*args|
           return nil unless args.first =~ /dd/
           expect(args.any? { |a| a =~ /if=.*gptmbr.bin/ }).to eq true
@@ -168,10 +144,7 @@ xdescribe Bootloader::MBRUpdate do
 
       context "disk label is DOS mbr" do
         before do
-          allow(Yast::Storage).to receive(:GetTargetMap).and_return(
-            double(:fetch => { "label" => "msdos" },
-                   :[]    => { "label" => "msdos" })
-          )
+          devicegraph_stub("two_disks_msdos.yaml")
         end
 
         it "sets boot flag on all stage1 partitions" do
@@ -203,7 +176,7 @@ xdescribe Bootloader::MBRUpdate do
           subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb1"]))
         end
 
-        it "sets boot flag on boot device with the lowest bios id when stage1 partition is on md" do
+        xit "sets boot flag on boot device with the lowest bios id when stage1 partition is on md" do
           allow(Yast::Storage).to receive(:GetTargetMap).and_return(
             "/dev/sda" => { "label" => "msdos", "bios_id" => "0x81" },
             "/dev/sdb" => { "label" => "msdos", "bios_id" => "0x80" }
@@ -220,10 +193,7 @@ xdescribe Bootloader::MBRUpdate do
 
       context "disk label is GPT" do
         before do
-          allow(Yast::Storage).to receive(:GetTargetMap).and_return(
-            double(:fetch => { "label" => "gpt" },
-                   :[]    => { "label" => "gpt" })
-          )
+          devicegraph_stub("two_disks.yaml")
         end
 
         it "sets legacy_boot flag on all partitions in Bootloader devices" do
@@ -240,8 +210,7 @@ xdescribe Bootloader::MBRUpdate do
                           "/dev/sda:500GB:scsi:512:4096:gpt:ATA WDC WD5000BPKT-7:;\n" \
                           "1:1049kB:165MB:164MB:fat16:primary:boot, legacy_boot;\n" \
                           "2:165MB:8760MB:8595MB:linux-swap(v1):primary:;\n" \
-                          "3:8760MB:30.2GB:21.5GB:ext4:primary:boot;\n" \
-                          "4:30.2GB:500GB:470GB:ext4:primary:legacy_boot;"
+                          "3:8760MB:30.2GB:21.5GB:ext4:primary:legacy_boot;\n"
 
           allow(Yast::Execute).to receive(:locally)
             .with(/parted/, "-sm", "/dev/sda", "print", anything)
@@ -250,20 +219,21 @@ xdescribe Bootloader::MBRUpdate do
           expect(Yast::Execute).to receive(:locally)
             .with(/parted/, "-s", "/dev/sda", "set", "1", "legacy_boot", "off")
           expect(Yast::Execute).to receive(:locally)
-            .with(/parted/, "-s", "/dev/sda", "set", "4", "legacy_boot", "off")
+            .with(/parted/, "-s", "/dev/sda", "set", "3", "legacy_boot", "off")
 
           subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb1"]))
         end
       end
 
       it "do not set any flag on old DOS MBR for logical partitions" do
+        devicegraph_stub("logical.yaml")
         allow(Yast::Execute).to receive(:locally) do |*args|
-          expect(args).to_not include("/dev/sdb")
+          expect(args).to_not include("6")
           # empty return for quering parted
           ""
         end
 
-        subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb6"]))
+        subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sda6"]))
       end
     end
   end

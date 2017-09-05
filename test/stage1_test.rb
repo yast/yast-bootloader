@@ -191,31 +191,29 @@ describe Bootloader::Stage1 do
       devicegraph_stub("complex-lvm-encrypt.yml")
     end
 
-    let(:devicegraph) { Y2Storage::StorageManager.instance.staging }
-
     it "returns false if boot partition fs is xfs" do
-      boot_partition = Y2Storage::Partition.find_by_name(devicegraph, "/dev/sda1")
+      boot_partition = find_device("/dev/sda1")
       allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
 
       expect(subject.can_use_boot?).to eq false
     end
 
     it "returns false if boot partition is on lvm" do
-      boot_partition = Y2Storage::Partition.find_by_name(devicegraph, "/dev/sde2")
+      boot_partition = find_device("/dev/sde2")
       allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
 
       expect(subject.can_use_boot?).to eq false
     end
 
     it "returns false if boot partition is encrypted" do
-      boot_partition = Y2Storage::Partition.find_by_name(devicegraph, "/dev/sda4")
+      boot_partition = find_device("/dev/sda4")
       allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
 
       expect(subject.can_use_boot?).to eq false
     end
 
     it "returns true otherwise" do
-      boot_partition = Y2Storage::Partition.find_by_name(devicegraph, "/dev/sda2")
+      boot_partition = find_device("/dev/sda2")
       allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
 
       expect(subject.can_use_boot?).to eq true
