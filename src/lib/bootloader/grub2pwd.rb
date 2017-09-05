@@ -6,9 +6,12 @@ module Bootloader
   # class is responsible for detection, encryption and writing of grub2 password protection
   class GRUB2Pwd
     # @!attribute used
+    #   flag is password protection is used at all
     #   @return [Boolean] specifies if password protection enabled
     #
     # @!attribute unrestricted
+    #   if password protection is unrestricted or not
+    #   @see https://www.gnu.org/software/grub/manual/grub.html#Security
     #   @return [Boolean] specifies if unrestricted password protection should
     #      be used (see fate#318574)
     attr_accessor :used, :unrestricted
