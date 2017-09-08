@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep  8 14:48:33 UTC 2017 - jreidinger@suse.com
+
+- make disk order dialog wider to improve readability (bsc#1055647)
+- 4.0.0
+
+-------------------------------------------------------------------
 Mon Sep  4 11:44:34 UTC 2017 - jreidinger@suse.com
 
 - Do not propose to stage1 to be installed to encrypted partition
