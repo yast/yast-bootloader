@@ -110,7 +110,11 @@ module Bootloader
 
     def contents
       HBox(
-        SelectionBox(Id(:disks), Opt(:notify), _("D&isks"), disks),
+        VBox(
+          SelectionBox(Id(:disks), Opt(:notify), _("D&isks"), disks),
+          # make dialog reasonable big, but increace mainly selection box which contain device names
+          HSpacing(60)
+        ),
         action_buttons
       )
     end
