@@ -2,6 +2,7 @@ require "yast"
 require "singleton"
 
 require "bootloader/exceptions"
+require "y2storage"
 
 Yast.import "Mode"
 Yast.import "Arch"
@@ -87,11 +88,18 @@ module Bootloader
 
   private
 
-    def udev_to_kernel(dev)
-      return all_devices[dev] if all_devices[dev]
+    def staging
+      Y2Storage::StorageManager.instance.staging
+    end
 
+    def udev_to_kernel(dev)
       # in mode config if not found, then return itself
       return dev if Yast::Mode.config
+
+      devices = Y2Storage::BlkDevice.all(staging)
+      device = devices.find {|i| i.udev_full_all.include?(dev) }
+
+      return device.name if device
 
       # TRANSLATORS: error message, %s stands for problematic device.
       raise(Bootloader::BrokenConfiguration, _("Unknown udev device '%s'") % dev)

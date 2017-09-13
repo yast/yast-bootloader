@@ -4,50 +4,21 @@ require_relative "./test_helper"
 
 require "bootloader/udev_mapping"
 
-xdescribe Bootloader::UdevMapping do
+describe Bootloader::UdevMapping do
   subject { Bootloader::UdevMapping }
   before do
-    # always invalidate cache to use new mocks
-    allow(subject.instance).to receive(:cache_valid?).and_return false
-    allow(Yast::Arch).to receive(:ppc).and_return(false)
-    allow(Yast::Storage).to receive(:GetContVolInfo).and_return(false)
+    # always call proper method
     allow(Bootloader::UdevMapping).to receive(:to_kernel_device).and_call_original
     allow(Bootloader::UdevMapping).to receive(:to_mountby_device).and_call_original
   end
 
   describe ".to_kernel_device" do
-    before do
-      target_map_stub("storage_ppc.yaml")
-    end
-
-    it "returns mapped raid name for partitioned devices" do
-      expect(Yast::Storage).to receive(:GetContVolInfo) do |dev, info|
-        expect(dev).to eq "/dev/md/crazy_name"
-        info.value["vdevice"] = "/dev/md126p1"
-        info.value["cdevice"] = ""
-        true
-      end
-
-      expect(subject.to_kernel_device("/dev/md/crazy_name")).to eq "/dev/md126p1"
-    end
-
-    it "returns mapped raid name for non-partitioned devices" do
-      expect(Yast::Storage).to receive(:GetContVolInfo) do |dev, info|
-        expect(dev).to eq "/dev/md/crazy_name"
-        info.value["vdevice"] = ""
-        info.value["cdevice"] = "/dev/md126"
-        true
-      end
-
-      expect(subject.to_kernel_device("/dev/md/crazy_name")).to eq "/dev/md126"
-    end
-
     it "return argument for non-udev non-raid mapped device names" do
       expect(subject.to_kernel_device("/dev/sda")).to eq "/dev/sda"
     end
 
     it "return kernel device name for udev mapped name" do
-      expect(subject.to_kernel_device("/dev/disk/by-id/wwn-0x5000cca6d4c3bbb8")).to eq "/dev/sda"
+      expect(subject.to_kernel_device("/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6")).to eq "/dev/sda1"
     end
 
     it "raise exception if udev link is not known" do
@@ -55,7 +26,7 @@ xdescribe Bootloader::UdevMapping do
     end
   end
 
-  describe ".to_mountby_device" do
+  xdescribe ".to_mountby_device" do
     before do
       mock_disk_partition
     end
