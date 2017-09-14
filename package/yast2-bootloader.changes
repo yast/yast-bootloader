@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Sep 14 09:14:41 UTC 2017 - jreidinger@suse.com
+
+- fix regression to udev mapping introduced by new storage-ng
+  (bsc#1057604)
+- 4.0.1
+
+-------------------------------------------------------------------
 Fri Sep  8 14:48:33 UTC 2017 - jreidinger@suse.com
 
 - make disk order dialog wider to improve readability (bsc#1055647)
