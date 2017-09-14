@@ -26,63 +26,67 @@ describe Bootloader::UdevMapping do
     end
   end
 
-  xdescribe ".to_mountby_device" do
+  describe ".to_mountby_device" do
+    let(:device) { find_device("/dev/sda3") }
+
     before do
-      mock_disk_partition
+      # find by name creates always new instance, so to make mocking easier, mock it to return always same instance
+      allow(Y2Storage::BlkDevice).to receive(:find_by_name).and_return(device)
     end
 
-    it "returns udev link in same format as used to its mounting" do
-      target_map_stub("storage_lvm.yaml")
-      expect(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
+    it "returns udev link in same format as used to its mounting if defined" do
+      allow(device).to receive(:blk_filesystem).and_return(
+        double(
+          mount_by: Y2Storage::Filesystems::MountByType.new(:uuid),
+          uuid: "3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
+        )
+      )
 
-      expect(subject.to_mountby_device("/dev/vda1")).to eq "/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
+      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
     end
 
-    it "respects partition specific mountby option" do
-      target_map_stub("storage_lvm.yaml")
-      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:id)
+    it "returns udev link by label if defined" do
+      allow(device).to receive(:blk_filesystem).and_return(
+        double(
+          mount_by: Y2Storage::Filesystems::MountByType.new(:uuid),
+          uuid: nil,
+          label: "DATA"
+        )
+      )
 
-      expect(subject.to_mountby_device("/dev/vda2")).to eq "/dev/disk/by-uuid/ec8e9948-ca5f-4b18-a863-ac999365e4a9"
+      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-label/DATA"
     end
 
-    it "returns encrypted device name if device have it" do
-      target_map_stub("storage_encrypted.yaml")
-      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
+    it "returns udev link by uuid if defined" do
+      allow(device).to receive(:blk_filesystem).and_return(
+        double(
+          mount_by: Y2Storage::Filesystems::MountByType.new(:label),
+          uuid: "3de29985-8cc6-4c9d-8562-2ede26b0c5b6",
+          label: ""
+        )
+      )
 
-      expect(subject.to_mountby_device("/dev/mapper/cr_swap")).to eq "/dev/mapper/cr_swap"
+      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
     end
 
-    it "returns kernel device name if requested udev mapping do not exists" do
-      target_map_stub("storage_lvm.yaml")
-      expect(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:id)
+    it "returns first udev link by id if defined" do
+      allow(device).to receive(:blk_filesystem).and_return(nil)
+      allow(device).to receive(:udev_ids).and_return(["abc", "cde"])
 
-      expect(subject.to_mountby_device("/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6")).to eq "/dev/vda1"
+      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-id/abc"
     end
 
-    it "returns kernel device name for non-disk devices like tmpfs" do
-      target_map_stub("storage_tmpfs.yaml")
+    it "returns first udev link by path if defined" do
+      allow(device).to receive(:blk_filesystem).and_return(nil)
+      allow(device).to receive(:udev_paths).and_return(["abc", "cde"])
 
-      expect(subject.to_mountby_device("tmpfs")).to eq "tmpfs"
+      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-path/abc"
     end
 
-    it "returns kernel device name if device is mounted by device name" do
-      target_map_stub("storage_tmpfs.yaml")
+    it "returns kernel name as last fallback" do
+      allow(device).to receive(:blk_filesystem).and_return(nil)
 
-      expect(subject.to_mountby_device("/dev/vda1")).to eq "/dev/vda1"
-    end
-
-    it "returns kernel device if mount by label is used for disk" do
-      target_map_stub("storage_dm.yaml")
-      expect(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:label)
-
-      expect(subject.to_mountby_device("/dev/sda")).to eq "/dev/sda"
-    end
-
-    it "returns its name if partition do not exists" do
-      target_map_stub("storage_lvm.yaml")
-      allow(Yast::Storage).to receive(:GetDefaultMountBy).and_return(:uuid)
-
-      expect(subject.to_mountby_device("/dev/vda50")).to eq "/dev/vda50"
+      expect(subject.to_mountby_device(device.name)).to eq device.name
     end
   end
 end
