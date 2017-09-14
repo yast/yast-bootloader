@@ -7,7 +7,7 @@ require "bootloader/udev_mapping"
 describe Bootloader::UdevMapping do
   subject { Bootloader::UdevMapping }
   before do
-    # always call proper method
+    # Udev mapping is globally mocked in test_helper, so ensure here we test real method.
     allow(Bootloader::UdevMapping).to receive(:to_kernel_device).and_call_original
     allow(Bootloader::UdevMapping).to receive(:to_mountby_device).and_call_original
   end

@@ -41,10 +41,10 @@ module Bootloader
     # Converts udev or kernel device (disk or partition) to udev name that fits best.
     #
     # Here is description of strategy for finding the best possible udev persistent name.
-    # There is three scenarious we consider:
+    # There are three scenarios we consider:
     # S1. disk with boot configuration is moved to different PC
     # S2. disk dies and its content is loaded to new disk from backup
-    # S3. path to disk dies and disk is moved to diffent one
+    # S3. path to disk dies and disk is moved to different one
     #
     # Strategy is:
     #
@@ -53,7 +53,7 @@ module Bootloader
     #    label
     # 3. if there is by-uuid then use it as it can also handle S1, S2 and S3 as uuid can be
     #    changed, but it is harder to do
-    # 4. if there is by-id use it, as it can handle S3 in some scenarious, but not always.
+    # 4. if there is by-id use it, as it can handle S3 in some scenarios, but not always.
     # 5. if there is by-path use it as it is last supported udev symlink that at least prevent
     #    change of kernel device during boot
     # 6. as fallback use kernel name
