@@ -38,7 +38,7 @@ describe Bootloader::UdevMapping do
       allow(device).to receive(:blk_filesystem).and_return(
         double(
           mount_by: Y2Storage::Filesystems::MountByType.new(:uuid),
-          uuid: "3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
+          uuid:     "3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
         )
       )
 
@@ -49,8 +49,8 @@ describe Bootloader::UdevMapping do
       allow(device).to receive(:blk_filesystem).and_return(
         double(
           mount_by: Y2Storage::Filesystems::MountByType.new(:uuid),
-          uuid: nil,
-          label: "DATA"
+          uuid:     nil,
+          label:    "DATA"
         )
       )
 
@@ -61,8 +61,8 @@ describe Bootloader::UdevMapping do
       allow(device).to receive(:blk_filesystem).and_return(
         double(
           mount_by: Y2Storage::Filesystems::MountByType.new(:label),
-          uuid: "3de29985-8cc6-4c9d-8562-2ede26b0c5b6",
-          label: ""
+          uuid:     "3de29985-8cc6-4c9d-8562-2ede26b0c5b6",
+          label:    ""
         )
       )
 

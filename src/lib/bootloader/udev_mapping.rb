@@ -80,7 +80,7 @@ module Bootloader
       return dev if Yast::Mode.config
 
       devices = Y2Storage::BlkDevice.all(staging)
-      device = devices.find {|i| i.udev_full_all.include?(dev) }
+      device = devices.find { |i| i.udev_full_all.include?(dev) }
 
       return device.name if device
 
@@ -145,6 +145,8 @@ module Bootloader
 
     def alternative_raid_to_kernel(dev)
 # storage-ng
+# FIXME
+# rubocop:disable Style/BlockComments
 =begin
       param = Yast::ArgRef.new({})
       result = Yast::Storage.GetContVolInfo(dev, param)
