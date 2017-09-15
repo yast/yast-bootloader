@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Sep 15 11:54:25 UTC 2017 - jreidinger@suse.com
+
+- Use always kernel name for underlaying devices detection
+  (caused by fix for bsc#1057604)
+- 4.0.2
+
+-------------------------------------------------------------------
 Thu Sep 14 09:14:41 UTC 2017 - jreidinger@suse.com
 
 - fix regression to udev mapping introduced by new storage-ng
