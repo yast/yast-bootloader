@@ -1,5 +1,6 @@
 require "yast"
 require "y2storage"
+require "bootloader/udev_mapping"
 
 Yast.import "BootStorage"
 
@@ -45,6 +46,7 @@ module Bootloader
     # underlaying_devices without any caching
     # @see #underlaying_devices
     def underlaying_devices_for(dev)
+      dev = UdevMapping.to_kernel_device(dev)
       res = underlaying_devices_one_level(dev)
 
       # some underlaying devices added, so run recursive to ensure that it is really bottom one
