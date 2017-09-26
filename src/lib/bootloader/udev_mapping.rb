@@ -80,8 +80,8 @@ module Bootloader
       return dev if Yast::Mode.config
 
       devices = Y2Storage::BlkDevice.all(staging)
+      devices.reject! { |d| d.is?(:disk) && d.descendants.any? { |i| i.is?(:multipath) } }
       device = devices.find { |i| i.udev_full_all.include?(dev) }
-
       return device.name if device
 
       # TRANSLATORS: error message, %s stands for problematic device.

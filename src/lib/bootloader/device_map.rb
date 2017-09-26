@@ -132,7 +132,7 @@ module Bootloader
       # mapping entry per disk for the time being (see commented code for the
       # real expected behavior)
       staging = Y2Storage::StorageManager.instance.staging
-      staging.disks.each_with_index do |disk, index|
+      staging.disk_devices.each_with_index do |disk, index|
         add_mapping("hd#{index}", disk.name)
       end
 # rubocop:disable Style/BlockComments
