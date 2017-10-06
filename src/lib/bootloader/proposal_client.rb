@@ -38,9 +38,10 @@ module Bootloader
       storage_changed = Yast::BootStorage.storage_changed?
       # redetect disks if cache is invalid as first part
       Yast::BootStorage.detect_disks if storage_changed
-      log.info "Storage changed: #{storage_changed}"
+      log.info "Storage changed: #{storage_changed} force_reset #{force_reset}."
+      log.info "Storage read previously #{Yast::BootStorage.storage_read?.inspect}"
 
-      if reset_needed?(force_reset, storage_changed)
+      if reset_needed?(force_reset, storage_changed && Yast::BootStorage.storage_read?)
         # force re-calculation of bootloader proposal
         # this deletes any internally cached values, a new proposal will
         # not be partially based on old data now any more
@@ -138,6 +139,10 @@ module Bootloader
 
     def propose_for_update(force_reset)
       current_bl = ::Bootloader::BootloaderFactory.current
+      log.info "update detection:"
+      log.info "proposed? #{current_bl.proposed?}"
+      log.info "config changed? #{Yast::Bootloader.proposed_cfg_changed}"
+
       if ["grub2", "grub2-efi"].include?(old_bootloader) &&
           !current_bl.proposed? &&
           !Yast::Bootloader.proposed_cfg_changed
