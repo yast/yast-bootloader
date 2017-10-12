@@ -117,9 +117,15 @@ module Bootloader
     # but only when not using auto_mode
     # But if storage changed, always repropose as it can be very wrong.
     def reset_needed?(force_reset, storage_changed)
+      log.info "reset_needed? force_reset: #{force_reset} storage_changed: #{storage_changed}" \
+        "auto mode: #{Yast::Mode.auto} cfg_changed #{Yast::Bootloader.proposed_cfg_changed}"
       return true if storage_changed
       return false if Yast::Mode.autoinst || Yast::Mode.autoupgrade
-      force_reset || !Yast::Bootloader.proposed_cfg_changed
+      return true if force_reset
+      # reset when user does not do any change and not in update
+      return true if !Yast::Mode.update && !Yast::Bootloader.proposed_cfg_changed
+
+      false
     end
 
     BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader".freeze
