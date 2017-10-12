@@ -215,7 +215,7 @@ describe Bootloader::ProposalClient do
 
     it "do not resets configuration in automode and even if force_reset passed" do
       Yast.import "Mode"
-      expect(Yast::Mode).to receive(:autoinst).and_return(true)
+      allow(Yast::Mode).to receive(:autoinst).and_return(true)
       expect(Yast::Bootloader).to_not receive(:Reset)
 
       subject.make_proposal("force_reset" => true)
