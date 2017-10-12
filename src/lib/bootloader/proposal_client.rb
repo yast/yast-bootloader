@@ -36,12 +36,13 @@ module Bootloader
     def make_proposal(attrs)
       force_reset = attrs["force_reset"]
       storage_changed = Yast::BootStorage.storage_changed?
+      storage_read = Yast::BootStorage.storage_read?
       # redetect disks if cache is invalid as first part
       Yast::BootStorage.detect_disks if storage_changed
       log.info "Storage changed: #{storage_changed} force_reset #{force_reset}."
-      log.info "Storage read previously #{Yast::BootStorage.storage_read?.inspect}"
+      log.info "Storage read previously #{storage_read.inspect}"
 
-      if reset_needed?(force_reset, storage_changed && Yast::BootStorage.storage_read?)
+      if reset_needed?(force_reset, storage_changed && storage_read)
         # force re-calculation of bootloader proposal
         # this deletes any internally cached values, a new proposal will
         # not be partially based on old data now any more
