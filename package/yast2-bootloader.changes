@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Oct 26 12:51:47 UTC 2017 - gsouza@suse.com
+
+- bsc#1059757: use correct function to detect devices
+- 4.0.3
+
+-------------------------------------------------------------------
 Fri Sep 15 11:54:25 UTC 2017 - jreidinger@suse.com
 
 - Use always kernel name for underlaying devices detection
