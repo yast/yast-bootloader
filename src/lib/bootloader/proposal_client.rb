@@ -147,7 +147,7 @@ module Bootloader
     def propose_for_update(force_reset)
       current_bl = ::Bootloader::BootloaderFactory.current
 
-      if grub2_update(current_bl)
+      if grub2_update?(current_bl)
         log.info "update of grub2, do not repropose"
         return false
       elsif old_bootloader == "none"
