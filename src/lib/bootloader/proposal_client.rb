@@ -150,9 +150,7 @@ module Bootloader
       log.info "proposed? #{current_bl.proposed?}"
       log.info "config changed? #{Yast::Bootloader.proposed_cfg_changed}"
 
-      if ["grub2", "grub2-efi"].include?(old_bootloader) &&
-          !current_bl.proposed? &&
-          !Yast::Bootloader.proposed_cfg_changed
+      if grub2_update(current_bl)
         log.info "update of grub2, do not repropose"
         return false
       elsif old_bootloader == "none"
@@ -178,6 +176,12 @@ module Bootloader
       Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, current_bl.packages)
 
       true
+    end
+
+    def grub2_update?(current_bl)
+      ["grub2", "grub2-efi"].include?(old_bootloader) &&
+        !current_bl.proposed? &&
+        !Yast::Bootloader.proposed_cfg_changed
     end
 
     def construct_proposal_map
