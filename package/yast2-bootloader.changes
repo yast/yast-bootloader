@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Oct 30 13:56:22 UTC 2017 - jreidinger@suse.com
+
+- Fix detection of upgrade of grub2 (bsc#1059603)
+- Fallback to default when default section does not exists. It can
+  happen during upgrade, when sections are renamed.(bsc#1059603)
+- 3.1.214
+
+-------------------------------------------------------------------
 Wed Nov 29 07:55:19 UTC 2017 - jreidinger@suse.com
 
 - Prevent crash when doing backup of boot sector (bsc#1067131)
