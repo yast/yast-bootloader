@@ -146,9 +146,6 @@ module Bootloader
 
     def propose_for_update(force_reset)
       current_bl = ::Bootloader::BootloaderFactory.current
-      log.info "update detection:"
-      log.info "proposed? #{current_bl.proposed?}"
-      log.info "config changed? #{Yast::Bootloader.proposed_cfg_changed}"
 
       if grub2_update(current_bl)
         log.info "update of grub2, do not repropose"
