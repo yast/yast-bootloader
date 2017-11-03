@@ -113,12 +113,12 @@ describe Bootloader::AutoyastConverter do
       bootloader.trusted_boot = true
 
       expected_export = {
-        "append"        => "verbose nomodeset",
-        "terminal"      => "gfxterm",
-        "os_prober"     => "true",
-        "hiddenmenu"    => "true",
-        "timeout"       => 10,
-        "trusted_grub"  => "true"
+        "append"       => "verbose nomodeset",
+        "terminal"     => "gfxterm",
+        "os_prober"    => "true",
+        "hiddenmenu"   => "true",
+        "timeout"      => 10,
+        "trusted_grub" => "true"
       }
 
       expect(subject.export(bootloader)["global"]).to eq expected_export
