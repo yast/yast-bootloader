@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Nov  3 10:09:39 CET 2017 - schubi@suse.de
+
+- AutoYaST: Do not export stage1 settings anymore (boot_boot,
+  boot_custom,...) (bnc#1063975)
+- 4.0.3
+
+-------------------------------------------------------------------
 Fri Sep 15 11:54:25 UTC 2017 - jreidinger@suse.com
 
 - Use always kernel name for underlaying devices detection
