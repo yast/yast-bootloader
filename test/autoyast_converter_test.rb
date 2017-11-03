@@ -118,12 +118,6 @@ describe Bootloader::AutoyastConverter do
         "os_prober"     => "true",
         "hiddenmenu"    => "true",
         "timeout"       => 10,
-        "boot_mbr"      => "false",
-        "boot_boot"     => "false",
-        "boot_extended" => "false",
-        "boot_root"     => "false",
-        "activate"      => "true",
-        "generic_mbr"   => "false",
         "trusted_grub"  => "true"
       }
 
