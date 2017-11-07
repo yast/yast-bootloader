@@ -17,6 +17,12 @@ describe Bootloader::UdevMapping do
       expect(subject.to_kernel_device("/dev/sda")).to eq "/dev/sda"
     end
 
+    it "returns the right device name in a multipath environment" do
+      devicegraph_stub("multipath.xml")
+      expect(subject.to_kernel_device("/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_001"))
+        .to eq "/dev/mapper/0QEMU_QEMU_HARDDISK_001"
+    end
+
     it "return kernel device name for udev mapped name" do
       expect(subject.to_kernel_device("/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6")).to eq "/dev/sda1"
     end
