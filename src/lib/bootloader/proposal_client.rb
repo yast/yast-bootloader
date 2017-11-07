@@ -36,11 +36,13 @@ module Bootloader
     def make_proposal(attrs)
       force_reset = attrs["force_reset"]
       storage_changed = Yast::BootStorage.storage_changed?
+      storage_read = Yast::BootStorage.storage_read?
       # redetect disks if cache is invalid as first part
       Yast::BootStorage.detect_disks if storage_changed
-      log.info "Storage changed: #{storage_changed}"
+      log.info "Storage changed: #{storage_changed} force_reset #{force_reset}."
+      log.info "Storage read previously #{storage_read.inspect}"
 
-      if reset_needed?(force_reset, storage_changed)
+      if reset_needed?(force_reset, storage_changed && storage_read)
         # force re-calculation of bootloader proposal
         # this deletes any internally cached values, a new proposal will
         # not be partially based on old data now any more
@@ -115,9 +117,15 @@ module Bootloader
     # but only when not using auto_mode
     # But if storage changed, always repropose as it can be very wrong.
     def reset_needed?(force_reset, storage_changed)
+      log.info "reset_needed? force_reset: #{force_reset} storage_changed: #{storage_changed}" \
+        "auto mode: #{Yast::Mode.auto} cfg_changed #{Yast::Bootloader.proposed_cfg_changed}"
       return true if storage_changed
       return false if Yast::Mode.autoinst || Yast::Mode.autoupgrade
-      force_reset || !Yast::Bootloader.proposed_cfg_changed
+      return true if force_reset
+      # reset when user does not do any change and not in update
+      return true if !Yast::Mode.update && !Yast::Bootloader.proposed_cfg_changed
+
+      false
     end
 
     BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader".freeze
@@ -138,9 +146,8 @@ module Bootloader
 
     def propose_for_update(force_reset)
       current_bl = ::Bootloader::BootloaderFactory.current
-      if ["grub2", "grub2-efi"].include?(old_bootloader) &&
-          !current_bl.proposed? &&
-          !Yast::Bootloader.proposed_cfg_changed
+
+      if grub2_update?(current_bl)
         log.info "update of grub2, do not repropose"
         return false
       elsif old_bootloader == "none"
@@ -166,6 +173,12 @@ module Bootloader
       Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, current_bl.packages)
 
       true
+    end
+
+    def grub2_update?(current_bl)
+      ["grub2", "grub2-efi"].include?(old_bootloader) &&
+        !current_bl.proposed? &&
+        !Yast::Bootloader.proposed_cfg_changed
     end
 
     def construct_proposal_map

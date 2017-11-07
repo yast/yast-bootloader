@@ -53,8 +53,9 @@ describe Bootloader::Sections do
       expect(subject.default).to eq "windows"
     end
 
-    it "raises exception if section do not exists" do
-      expect { subject.default = "non-exist" }.to raise_error(RuntimeError)
+    it "sets default to empty if section do not exists" do
+      subject.default = "non-exist"
+      expect(subject.default).to eq ""
     end
 
     it "handles localized grub.cfg" do
