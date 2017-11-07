@@ -31,7 +31,10 @@ module Bootloader
       log.info "set new default to '#{value.inspect}'"
 
       # empty value mean no default specified
-      raise "Unknown value #{value.inspect}" if !all.empty? && !all.include?(value) && !value.empty?
+      if !all.empty? && !all.include?(value) && !value.empty?
+        log.warn "Invalid value #{value} trying to set as default. Fallback to default"
+        value = ""
+      end
 
       @default = value
     end
