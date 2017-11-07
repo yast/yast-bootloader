@@ -52,7 +52,6 @@ module Bootloader
         res["global"] = {}
         global = res["global"]
         export_grub2(global, config) if config.name == "grub2"
-        export_stage1(global, config.stage1) if config.respond_to?(:stage1)
         export_default(global, config.grub_default)
         # Do not export device map as device name are very unpredictable and is used only as
         # work-around when automatic ones do not work for what-ever reasons ( it can really safe
@@ -193,26 +192,6 @@ module Bootloader
         else
           BootloaderFactory.bootloader_by_name(loader_type)
         end
-      end
-
-      STAGE1_MAPPING = {
-        "activate"      => :activate?,
-        "generic_mbr"   => :generic_mbr?,
-        "boot_root"     => :root_partition?,
-        "boot_boot"     => :boot_partition?,
-        "boot_mbr"      => :mbr?,
-        "boot_extended" => :extended_partition?
-      }.freeze
-      def export_stage1(res, stage1)
-        STAGE1_MAPPING.each do |key, method|
-          res[key] = stage1.public_send(method) ? "true" : "false"
-        end
-
-        # if there is no separated boot, then root and boot partition is same, so in such case
-        # have only one true there
-        res["boot_boot"] = "false" if res["boot_root"] == "true" && res["boot_boot"] == "true"
-
-        res["boot_custom"] = stage1.custom_devices.join(",") unless stage1.custom_devices.empty?
       end
 
       # only for grub2, not for others
