@@ -136,13 +136,16 @@ module Bootloader
       mbrs = boot_devices.map do |dev|
         partition_to_activate(dev)["mbr"] || mbr_disk
       end
+      log.info "found mbrs #{mbrs.inspect}"
       ret = [mbr_disk]
       # Add to disks only if part of raid on base devices lives on mbr_disk
       ret.concat(mbrs) if mbrs.include?(mbr_disk)
+      log.info "disks to rewrite before real devices: #{ret.inspect}"
       # get only real disks
       ret = ret.each_with_object([]) do |disk, res|
         res.concat(::Bootloader::Stage1Device.new(disk).real_devices)
       end
+      log.info "disks to rewrite after real devices: #{ret.inspect}"
 
       ret.compact.uniq
     end
