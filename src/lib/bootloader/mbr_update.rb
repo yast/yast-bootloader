@@ -144,7 +144,7 @@ module Bootloader
         res.concat(::Bootloader::Stage1Device.new(disk).real_devices)
       end
 
-      ret.uniq
+      ret.compact.uniq
     end
 
     def first_base_device_to_boot(md_device)
