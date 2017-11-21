@@ -88,10 +88,10 @@ module Bootloader
         disks.delete_at(pos)
         pos = pos == disks.size ? pos - 1 : pos
       when :add
-        if Yast::Mode.config || Yast::Mode.auto
-          disks_to_add = add_device_popup_ay_mode
+        disks_to_add = if Yast::Mode.config || Yast::Mode.auto
+          add_device_popup_ay_mode
         else
-          disks_to_add = add_devices_popup
+          add_devices_popup
         end
         disks.concat disks_to_add
         pos = disks.size - 1
