@@ -6,6 +6,24 @@ Tue Nov 21 13:14:50 UTC 2017 - gsouza@suse.com
 - 4.0.5
 
 -------------------------------------------------------------------
+Tue Nov  7 10:25:47 UTC 2017 - jreidinger@suse.com
+
+- merge SLE12 SP3 fixes:
+- Fix detection of upgrade of grub2 (bsc#1059603)
+- Fallback to default when default section does not exists. It can
+  happen during upgrade, when sections are renamed.(bsc#1059603)
+- Find correct mbr device to  install grub (bsc#1039712,
+  bsc#1052006)
+- 4.0.4
+
+-------------------------------------------------------------------
+Fri Nov  3 10:09:39 CET 2017 - schubi@suse.de
+
+- AutoYaST: Do not export stage1 settings anymore (boot_boot,
+  boot_custom,...) (bnc#1063975)
+- 4.0.3
+
+-------------------------------------------------------------------
 Fri Sep 15 11:54:25 UTC 2017 - jreidinger@suse.com
 
 - Use always kernel name for underlaying devices detection

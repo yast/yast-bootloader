@@ -86,6 +86,10 @@ module Yast
       @mbr_disk = staging.disks.find { |d| d.name == dev_name }
     end
 
+    def storage_read?
+      !@storage_revision.nil?
+    end
+
     def gpt_boot_disk?
       require "bootloader/bootloader_factory"
       current_bl = ::Bootloader::BootloaderFactory.current
