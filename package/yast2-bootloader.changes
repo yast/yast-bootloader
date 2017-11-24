@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov 21 13:14:50 UTC 2017 - gsouza@suse.com
+
+- use correct function to detect devices (bsc#1059757)
+- improve dialog to add devices in bootloader order (bsc#1060172)
+- 4.0.5
+
+-------------------------------------------------------------------
 Tue Nov  7 10:25:47 UTC 2017 - jreidinger@suse.com
 
 - merge SLE12 SP3 fixes:

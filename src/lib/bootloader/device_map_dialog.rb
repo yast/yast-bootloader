@@ -1,8 +1,10 @@
 require "yast"
+require "y2storage"
 
 Yast.import "BootStorage"
 Yast.import "Label"
 Yast.import "Popup"
+Yast.import "Mode"
 
 require "bootloader/device_map"
 
@@ -86,8 +88,12 @@ module Bootloader
         disks.delete_at(pos)
         pos = pos == disks.size ? pos - 1 : pos
       when :add
-        disk = add_device_popup
-        disks << disk if disk
+        disks_to_add = if Yast::Mode.config || Yast::Mode.auto
+          add_device_popup_ay_mode
+        else
+          add_devices_popup
+        end
+        disks.concat disks_to_add
         pos = disks.size - 1
       end
 
@@ -145,6 +151,11 @@ module Bootloader
       Yast::UI.ChangeWidget(Id(:disks), :Items, disks)
     end
 
+    def available_devices
+      staging = Y2Storage::StorageManager.instance.staging
+      staging.disk_devices.map(&:name)
+    end
+
     def store_order
       Yast::BootStorage.assign_mbr_disk_by_name(disks.first)
 
@@ -154,7 +165,7 @@ module Bootloader
       end
     end
 
-    def add_device_popup
+    def add_device_popup_ay_mode
       popup = VBox(
         VSpacing(1),
         # textentry header
@@ -172,7 +183,27 @@ module Bootloader
       new_dev = Yast::UI.QueryWidget(Id(:devname), :Value)
       Yast::UI.CloseDialog
 
-      pushed == :ok ? new_dev : nil
+      pushed == :ok ? [new_dev] : []
+    end
+
+    def add_devices_popup
+      devices = available_devices - disks
+      popup = VBox(
+        MultiSelectionBox(
+          Id(:devnames),
+          "&Devices:",
+          devices
+        ),
+        ending_buttons,
+        VSpacing(1)
+      )
+      Yast::UI.OpenDialog(popup)
+      Yast::UI.SetFocus(:devnames)
+      pushed = Yast::UI.UserInput
+      new_devs = Yast::UI.QueryWidget(Id(:devnames), :SelectedItems)
+      Yast::UI.CloseDialog
+
+      pushed == :ok ? new_devs : []
     end
 
     def selected_disk_index

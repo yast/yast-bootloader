@@ -39,6 +39,24 @@ describe Bootloader::DeviceMapDialog do
     it "allows adding disks after clicking on button" do
       # need additional ok for adding dialog
       mock_ui_events(:add, :ok, :ok)
+      allow(Yast::UI).to receive(:QueryWidget).with(anything, :SelectedItems)
+        .and_return(["/dev/sda", "/dev/sda", "/dev/sdb"])
+
+      expect(subject.run).to eq :back
+    end
+
+    it "allows adding disks in config mode after clicking on button" do
+      # need additional ok for adding dialog
+      mock_ui_events(:add, :ok, :ok)
+      allow(Yast::Mode).to receive(:config).and_return(true)
+
+      expect(subject.run).to eq :back
+    end
+
+    it "allows adding disks in auto mode after clicking on button" do
+      # need additional ok for adding dialog
+      mock_ui_events(:add, :ok, :ok)
+      allow(Yast::Mode).to receive(:auto).and_return(true)
 
       expect(subject.run).to eq :back
     end
