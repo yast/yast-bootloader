@@ -80,7 +80,9 @@ module Bootloader
       return dev if Yast::Mode.config
 
       devices = Y2Storage::BlkDevice.all(staging)
-      # removes possible multipath wires from the list since they should not appear as disk devices
+      # As wires devices have identical udev devices as its multipath device,
+      # we remove possible multipath wires from the list since we want to translate
+      # udev device to multipath device and not wire
       devices.reject! { |d| d.is?(:disk) && d.descendants.any? { |i| i.is?(:multipath) } }
       device = devices.find { |i| i.udev_full_all.include?(dev) }
       return device.name if device
