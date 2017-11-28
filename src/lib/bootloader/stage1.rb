@@ -172,6 +172,9 @@ module Bootloader
       # LVM partition does not have reserved space for stage one
       return false if part.lvm_pv
 
+      # MD Raid does not have reserved space for stage one (bsc#1063957)
+      return false if part.is?(:md) || part.ancestors.any?{ |a| a.is?(:md) }
+
       # encrypted partition does not have reserved space and it is bad idea in general (bsc#1056862)
       return false if part.encrypted?
 
