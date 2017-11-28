@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 28 10:22:57 UTC 2017 - jreidinger@suse.com
+
+- Do not propose boot from partition for md raids (bsc#1063957)
+- 4.0.6
+
+-------------------------------------------------------------------
 Tue Nov 21 13:14:50 UTC 2017 - gsouza@suse.com
 
 - use correct function to detect devices (bsc#1059757)
