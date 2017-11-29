@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 29 07:55:19 UTC 2017 - jreidinger@suse.com
+
+- Prevent crash when doing backup of boot sector (bsc#1067131)
+- 4.0.7
+
+-------------------------------------------------------------------
 Tue Nov 28 10:22:57 UTC 2017 - jreidinger@suse.com
 
 - Do not propose boot from partition for md raids (bsc#1063957)
