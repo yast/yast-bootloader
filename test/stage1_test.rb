@@ -209,6 +209,14 @@ describe Bootloader::Stage1 do
       expect(subject.can_use_boot?).to eq false
     end
 
+    it "returns false if boot partition is device for md raid" do
+      devicegraph_stub("md_raid.xml")
+      boot_partition = find_device("/dev/vdd2")
+      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
+
+      expect(subject.can_use_boot?).to eq false
+    end
+
     it "returns false if boot partition is encrypted" do
       boot_partition = find_device("/dev/sda4")
       allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
