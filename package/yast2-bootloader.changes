@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Dec  5 12:41:16 UTC 2017 - jreidinger@suse.com
+
+- improve detection of md raids devices (bsc#1063957)
+- 4.0.8
+
+-------------------------------------------------------------------
 Wed Nov 29 07:55:19 UTC 2017 - jreidinger@suse.com
 
 - Prevent crash when doing backup of boot sector (bsc#1067131)
