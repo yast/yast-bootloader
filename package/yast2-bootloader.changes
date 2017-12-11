@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Dec 11 12:41:21 UTC 2017 - jreidinger@suse.com
+
+- fix invalidation of cache causing crash (bsc#1071931)
+- 4.0.9
+
+-------------------------------------------------------------------
 Tue Dec  5 12:41:16 UTC 2017 - jreidinger@suse.com
 
 - improve detection of md raids devices (bsc#1063957)

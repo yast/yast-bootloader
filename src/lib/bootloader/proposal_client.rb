@@ -38,6 +38,8 @@ module Bootloader
       storage_changed = Yast::BootStorage.storage_changed?
       log.info "Storage changed: #{storage_changed} force_reset #{force_reset}."
       log.info "Storage read previously #{storage_read.inspect}"
+      # clear storage-ng devices cache otherwise it crashes (bsc#1071931)
+      Yast::BootStorage.reset_disks if storage_changed
 
       if reset_needed?(force_reset, storage_changed && storage_read)
         # force re-calculation of bootloader proposal
