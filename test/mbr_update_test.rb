@@ -26,26 +26,9 @@ describe Bootloader::MBRUpdate do
       allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
     end
 
-    before do
-      allow(Yast::BootStorage).to receive(:mbr_disk).and_return(find_device("/dev/sda"))
-    end
-
-    it "creates backup for BootStorage.mbr_disk" do
-      backup_mock = double(::Bootloader::BootRecordBackup)
-      expect(::Bootloader::BootRecordBackup).to(
-        receive(:new).with("/dev/sda").and_return(backup_mock)
-      )
-      expect(backup_mock).to receive(:write)
-
-      subject.run(stage1)
-    end
-
     # FIXME: get reason for it
     it "creates backup for all devices in stage1" do
       devicegraph_stub("two_disks.yaml")
-      expect(::Bootloader::BootRecordBackup).to(
-        receive(:new).with("/dev/sda").and_return(double(:write => true))
-      )
 
       backup_mock = double(::Bootloader::BootRecordBackup)
       expect(backup_mock).to receive(:write).twice

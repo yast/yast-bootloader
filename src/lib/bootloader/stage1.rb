@@ -3,7 +3,6 @@ require "forwardable"
 require "yast"
 require "bootloader/udev_mapping"
 require "bootloader/bootloader_factory"
-require "bootloader/stage1_device"
 require "bootloader/stage1_proposal"
 require "cfa/grub2/install_device"
 require "y2storage"
@@ -44,16 +43,30 @@ module Bootloader
     #   it can also be virtual or real device, method convert it as needed
     def include?(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
-      real_devs = ::Bootloader::Stage1Device.new(kernel_dev).real_devices
+      real_devs = Yast::BootStorage.stage1_device_for_name(kernel_dev)
+      real_devs_names = real_devs.map(&:name)
 
-      include_real_devs?(real_devs)
+      include_real_devs?(real_devs_names)
     end
 
     def add_udev_device(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
-      real_devices = ::Bootloader::Stage1Device.new(kernel_dev).real_devices
-      udev_devices = real_devices.map { |d| Bootloader::UdevMapping.to_mountby_device(d) }
+      real_devices = Yast::BootStorage.stage1_device_for_name(kernel_dev)
+      udev_devices = real_devices.map { |d| Bootloader::UdevMapping.to_mountby_device(d.name) }
       udev_devices.each { |d| @model.add_device(d) }
+    end
+
+    def available_locations
+      case Yast::Arch.architecture
+      when "i386", "x86_64"
+        res = [:mbr]
+        res << :boot if can_use_boot?
+        return res
+      else
+        log.info "no available non-custom location for arch #{Yast::Arch.architecture}"
+
+        return []
+      end
     end
 
     def remove_device(dev)
@@ -72,64 +85,49 @@ module Bootloader
       end
     end
 
-    def boot_partition?
-      if !@boot_partition_device
-        dev = Yast::BootStorage.boot_partition.name
-        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+    def detect_devices
+      # check if cache is valid
+      return if @cache_revision == Y2Storage::StorageManager.instance.staging_revision
 
-        @boot_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
-      end
+      devices = Yast::BootStorage.boot_partitions
+      @boot_devices = devices.map(&:name)
 
-      include_real_devs?(@boot_partition_device.real_devices)
+      devices = Yast::BootStorage.boot_disks
+      @mbr_devices = devices.map(&:name)
+
+      @cache_revision = Y2Storage::StorageManager.instance.staging_revision
     end
 
-    def root_partition?
-      if !@root_partition_device
-        dev = Yast::BootStorage.root_partition.name
-        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+    def boot_devices
+      detect_devices
 
-        @root_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
-      end
+      @boot_devices
+    end
 
-      include_real_devs?(@root_partition_device.real_devices)
+    def mbr_devices
+      detect_devices
+
+      @mbr_devices
+    end
+
+    def boot_partition?
+      include_real_devs?(boot_devices)
     end
 
     def mbr?
-      if !@mbr_device
-        dev = Yast::BootStorage.mbr_disk.name
-        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
-
-        @mbr_device = ::Bootloader::Stage1Device.new(kernel_dev)
-      end
-
-      include_real_devs?(@mbr_device.real_devices)
-    end
-
-    def extended_partition?
-      return false unless Yast::BootStorage.extended_partition
-
-      if !@extended_partition_device
-        dev = Yast::BootStorage.extended_partition.name
-        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
-
-        @extended_partition_device = ::Bootloader::Stage1Device.new(kernel_dev)
-      end
-
-      include_real_devs?(@extended_partition_device.real_devices)
+      include_real_devs?(mbr_devices)
     end
 
     def custom_devices
-      known_devices = [
-        Yast::BootStorage.boot_partition,
-        Yast::BootStorage.root_partition,
-        Yast::BootStorage.mbr_disk,
-        Yast::BootStorage.extended_partition
-      ]
-      known_devices.compact! # extended partition can be nil
-      known_devices.map! { |d| Bootloader::UdevMapping.to_kernel_device(d.name) }
+      known_devices = mbr_devices + boot_devices
+      log.info "known devices #{known_devices.inspect}"
 
       devices.select do |dev|
-        !known_devices.include?(Bootloader::UdevMapping.to_kernel_device(dev))
+        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+        stage1_for_dev = Yast::BootStorage.stage1_device_for_name(kernel_dev).map(&:name)
+        log.info "stage1 devices for #{dev} as #{kernel_dev} is #{stage1_for_dev.inspect}"
+        # devices already covered by known devices by mbr or by partition
+        !(stage1_for_dev - known_devices).empty?
       end
     end
 
@@ -143,40 +141,34 @@ module Bootloader
       Stage1Proposal.propose(self)
     end
 
-    # returns hash, where key is symbol for location and value is device name
-    def available_locations
-      case Yast::Arch.architecture
-      when "i386", "x86_64"
-        res = available_partitions
-        res[:mbr] = Yast::BootStorage.mbr_disk.name
-
-        return res
-      else
-        log.info "no available non-custom location for arch #{Yast::Arch.architecture}"
-
-        return {}
-      end
-    end
-
     def can_use_boot?
-      part = Yast::BootStorage.boot_partition
-
-      log.info "Boot partition info #{part.inspect}"
+      fs = Yast::BootStorage.boot_mountpoint
 
       # no boot assigned
-      return false unless part
+      return false unless fs
+
+      return false unless fs.is?(:blk_filesystem)
 
       # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
-      return false if part.filesystem_type == ::Y2Storage::Filesystems::Type::XFS
+      return false if fs.type == ::Y2Storage::Filesystems::Type::XFS
 
-      # LVM partition does not have reserved space for stage one
-      return false if part.lvm_pv
+      parts = fs.blk_devices
 
-      # MD Raid does not have reserved space for stage one (bsc#1063957)
-      return false if ([part] + part.ancestors + part.descendants).any? { |a| a.is?(:md) }
+      subgraph = parts.each_with_object([]) do |part, result|
+        result.concat([part] + part.descendants + part.ancestors)
+      end
 
-      # encrypted partition does not have reserved space and it is bad idea in general (bsc#1056862)
-      return false if part.encrypted?
+      return false if subgraph.any? do |dev|
+        # LVM partition does not have reserved space for stage one
+        next true if dev.is?(:lvm_pv)
+        # MD Raid does not have reserved space for stage one (bsc#1063957)
+        next true if dev.is?(:md)
+        # encrypted partition does not have reserved space and it is bad idea in general
+        # (bsc#1056862)
+        next true if dev.is?(:encryption)
+
+        false
+      end
 
       true
     end
@@ -208,13 +200,6 @@ module Bootloader
 
   private
 
-    # Partitions in the staging (planned) devicegraph
-    #
-    # @return [Y2Storage::PartitionsList]
-    def partitions
-      staging.partitions
-    end
-
     def staging
       Y2Storage::StorageManager.instance.staging
     end
@@ -225,23 +210,6 @@ module Bootloader
           real_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
         end
       end
-    end
-
-    def available_partitions
-      return {} unless can_use_boot?
-
-      res = {}
-      if Yast::BootStorage.separated_boot?
-        res[:boot] = Yast::BootStorage.boot_partition.name
-      else
-        res[:root] = Yast::BootStorage.root_partition.name
-      end
-
-      if Yast::BootStorage.extended_partition
-        res[:extended] = Yast::BootStorage.extended_partition.name
-      end
-
-      res
     end
   end
 end

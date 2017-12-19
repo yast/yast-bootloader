@@ -101,11 +101,11 @@ module Yast
     def check_gpt_reserved_partition
       return true unless stage1.mbr?
 
-      disk = BootStorage.mbr_disk
-      boot_device = BootStorage.boot_partition
-      return true unless disk.gpt?
-      return true if boot_device.filesystem_type != ::Y2Storage::Filesystems::Type::BTRFS
-      return true if disk.partitions.any? { |p| p.id.is?(:bios_boot) }
+      boot_fs = BootStorage.boot_mountpoint
+      gpt_disks = BootStorage.stage1_disks_for(boot_fs).select(&:gpt?)
+      return true if gpt_disks.empty?
+      return true if boot_fs.type != ::Y2Storage::Filesystems::Type::BTRFS
+      return true if gpt_disks.all? { |disk| disk.partitions.any? { |p| p.id.is?(:bios_boot) } }
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
@@ -123,54 +123,6 @@ module Yast
     #
     # @return [Boolean] true on success
 
-    def check_boot_device
-# storage-ng
-# Simply assume there is no RAID for the time being
-# rubocop:disable Style/BlockComments
-=begin
-      devices = Storage.GetTargetMap
-
-      boot_device = BootStorage.boot_partition.name
-
-      # FIXME: big part of this method should be in BootStorage
-      # check if boot device is on raid0
-      (devices || {}).each do |_k, v|
-        (v["partitions"] || []).each do |p|
-          next if p["device"] != boot_device
-
-          if p["raid_type"] != "raid1" && p["type"] == :sw_raid
-            add_new_problem(
-              Builtins.sformat(
-                _(
-                  "The boot device is on raid type: %1. System will not boot."
-                ),
-                p["raid_type"]
-              )
-            )
-            log.error "The boot device: #{boot_device} is on raid type: #{p["raid_type"]}"
-            return false
-          # bnc#501043 added check for valid configuration
-          elsif p["raid_type"] == "raid1" && p["type"] == :sw_raid &&
-              (p["fstype"] || "") == "md raid" && stage1.boot_partition?
-            add_new_problem(
-              _(
-                "The boot device is on software RAID1. Select other bootloader location, e.g. Master Boot Record"
-              )
-            )
-            log.error "Booting from soft-raid: #{p} and bootloader setting are not valid: #{stage1.inspect}"
-            return false
-          else
-            log.info "The boot device: #{boot_device} is on raid: #{p["raid_type"]}"
-          end
-          log.info "/boot filesystem is OK"
-          return true
-        end
-      end
-=end
-
-      true
-    end
-
     # Check if EFI is needed
     def efi?
       cmd = "modprobe efivars 2>/dev/null"
@@ -178,41 +130,26 @@ module Yast
       FileUtils.Exists("/sys/firmware/efi/systab")
     end
 
-    def check_zipl_part
-# storage-ng
-=begin
-
-      # if partitioning worked before upgrade, it will keep working (bnc#886604)
-      return true if Mode.update
-
-      boot_part = Storage.GetEntryForMountpoint("/boot/zipl")
-      boot_part = Storage.GetEntryForMountpoint("/boot") if boot_part.empty?
-      boot_part = Storage.GetEntryForMountpoint("/") if boot_part.empty?
-
-      if ![:ext2, :ext3, :ext4].include? boot_part["used_fs"]
-        add_new_problem(_("Missing ext partition for booting. Cannot install boot code."))
-        return false
-      end
-
-=end
-
-      true
-    end
-
     def check_activate_partition
       # activate set
       return true if stage1.activate?
 
       # there is already activate flag
-      disk = Yast::BootStorage.mbr_disk
+      disks = Yast::BootStorage.boot_disks
 
       # do not activate for ppc and GPT see bsc#983194
-      return true if Arch.ppc64 && disk.gpt?
-      if disk.partition_table
-        legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
+      return true if Arch.ppc64 && disks.all(&:gpt?)
+      all_activate = disks.all? do |disk|
+        if disk.partition_table
+          legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
 
-        return true if disk.partitions.any? { |p| legacy_boot ? p.legacy_boot? : p.boot? }
+          disk.partitions.any? { |p| legacy_boot ? p.legacy_boot? : p.boot? }
+        else
+          false
+        end
       end
+
+      return true if all_activate
 
       add_new_problem(_("Activate flag is not set by installer. If it is not set at all, some BIOSes could refuse to boot."))
       false
@@ -228,9 +165,6 @@ module Yast
     # GRUB2-related check
     def GRUB2
       ret = []
-      ret << check_boot_device if Arch.x86_64
-      # ensure that s390 have ext* partition for booting (bnc#873951)
-      ret << check_zipl_part if Arch.s390
       ret << check_gpt_reserved_partition if Arch.x86_64
       ret << check_activate_partition if Arch.x86_64 || Arch.ppc64
       ret << check_mbr if Arch.x86_64

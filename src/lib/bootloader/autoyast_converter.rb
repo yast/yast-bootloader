@@ -124,10 +124,10 @@ module Bootloader
       end
 
       STAGE1_DEVICES_MAPPING = {
-        "boot_root"     => :root_partition,
-        "boot_boot"     => :boot_partition,
-        "boot_mbr"      => :mbr_disk,
-        "boot_extended" => :extended_partition
+        "boot_root"     => :boot_devices,
+        "boot_boot"     => :boot_devices,
+        "boot_mbr"      => :mbr_devices,
+        "boot_extended" => :boot_devices
       }.freeze
       def import_stage1(data, bootloader)
         return unless bootloader.name == "grub2"
@@ -149,16 +149,9 @@ module Bootloader
       end
 
       def import_stage1_devices(data, stage1)
-        # extended partion maybe do not exists, so report it to user
-        if (data["global"]["boot_extended"] == "true" ||
-            data["location"] == "extended") &&
-            Yast::BootStorage.extended_partition.nil?
-          raise "boot_extended used in autoyast profile, but there is no extended partition"
-        end
-
-        STAGE1_DEVICES_MAPPING.each do |key, device|
+        STAGE1_DEVICES_MAPPING.each do |key, method|
           if data["global"][key] == "true" || data["boot_#{key}"]
-            stage1.add_udev_device(Yast::BootStorage.public_send(device).name)
+            stage1.add_udev_device(stage1.public_send(method))
           end
         end
 

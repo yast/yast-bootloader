@@ -195,7 +195,7 @@ describe Bootloader::ProposalClient do
 
     it "always resets if storage changed" do
       expect(Yast::Bootloader).to receive(:Reset)
-      expect(Yast::BootStorage).to receive(:storage_changed?).and_return(true)
+      allow(Yast::BootStorage).to receive(:storage_changed?).and_return(true)
 
       subject.make_proposal("force_reset" => true)
     end

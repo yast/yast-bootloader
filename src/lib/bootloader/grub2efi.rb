@@ -4,10 +4,10 @@ require "yast"
 require "bootloader/grub2base"
 require "bootloader/grub_install"
 require "bootloader/sysconfig"
-require "bootloader/stage1_device"
 require "y2storage"
 
 Yast.import "Arch"
+Yast.import "BootStorage"
 
 module Bootloader
   # Represents grub2 bootloader with efi target
@@ -35,25 +35,21 @@ module Bootloader
       # super have to called as first as grub install require some config written in ancestor
       super
 
-      if pmbr_action && Yast::BootStorage.gpt_boot_disk?
-        efi_partition = filesystems.find { |f| f.mountpoint == "/boot/efi" }
-        efi_partition ||= filesystems.find { |f| f.mountpoint == "/boot" }
-        efi_partition ||= filesystems.find { |f| f.mountpoint == "/" }
+      if pmbr_action
+        fs = filesystems
+        efi_partition = fs.find { |f| f.mountpoint == "/boot/efi" }
+        efi_partition ||= fs.find { |f| f.mountpoint == "/boot" }
+        efi_partition ||= fs.find { |f| f.mountpoint == "/" }
 
         raise "could not find boot partiton" unless efi_partition
 
-        efi_partition = efi_partition.plain_blk_devices.first
+        disks = Yast::BootStorage.stage1_disks_for(efi_partition)
+        # set only gpt disks
+        disks.select! { |disk| disk.gpt? }
 
-        efi_disk = efi_partition.disk
-
-# storage-ng
-# rubocop:disable Style/BlockComments
-=begin
-        # get underlaying disk as it have to be set there and not on virtual one (bnc#981977)
-        device = ::Bootloader::Stage1Device.new(efi_disk)
-=end
-
-        pmbr_setup(efi_disk.name)
+        disks.each do |efi_disk|
+          pmbr_setup(efi_disk.name)
+        end
       end
 
       @grub_install.execute(secure_boot: @secure_boot, trusted_boot: trusted_boot)

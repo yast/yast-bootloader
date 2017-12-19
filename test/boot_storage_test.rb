@@ -14,50 +14,6 @@ describe Yast::BootStorage do
     end
   end
 
-  describe ".mbr_disk" do
-    it "returns disk where lives /boot" do
-      devicegraph_stub("trivial.yaml")
-
-      expect(subject.mbr_disk).to eq find_device("/dev/sda")
-    end
-  end
-
-  describe ".boot_partition" do
-    it "returns /boot partition if it is separated" do
-      devicegraph_stub("separate_boot.yaml")
-
-      expect(subject.boot_partition).to eq find_device("/dev/sda2")
-    end
-
-    it "returns / partition if separated /boot does not exist" do
-      devicegraph_stub("trivial.yaml")
-
-      expect(subject.boot_partition).to eq find_device("/dev/sda3")
-    end
-  end
-
-  describe ".root_partition" do
-    it "returns / partition" do
-      devicegraph_stub("trivial.yaml")
-
-      expect(subject.root_partition).to eq find_device("/dev/sda3")
-    end
-  end
-
-  describe ".extended_partition" do
-    it "returns extended partition for .mbr_disk" do
-      devicegraph_stub("logical.yaml")
-
-      expect(subject.extended_partition).to eq find_device("/dev/sda2")
-    end
-
-    it "returns nil if there is no such partition" do
-      devicegraph_stub("trivial_dos.yaml")
-
-      expect(subject.extended_partition).to eq nil
-    end
-  end
-
   describe ".available_swap_partitions" do
     it "returns map of swap partitions and their size" do
       devicegraph_stub("trivial.yaml")

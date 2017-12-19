@@ -15,10 +15,6 @@ describe Bootloader::Stage1 do
   describe "#propose" do
     xit "sets devices to proposed locations" do
       target_map_stub("storage_mdraid.yaml")
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
-        .and_return("/dev/md1")
-      allow(Yast::BootStorage).to receive(:mbr_disk)
-        .and_return("/dev/vda")
       subject.propose
 
       expect(subject.devices).to eq ["/dev/vda"]
@@ -54,7 +50,7 @@ describe Bootloader::Stage1 do
       expect(subject.generic_mbr?).to eq false
     end
 
-    context "on ppc64" do
+    xcontext "on ppc64" do
       let(:sda) { double("Y2Storage::Disk", gpt?: true) }
       let(:sdb) { double("Y2Storage::Disk", gpt?: true) }
       let(:sdc) { double("Y2Storage::Disk", gpt?: true) }
@@ -76,9 +72,8 @@ describe Bootloader::Stage1 do
 
         object_double(
           "Yast::BootStorage",
-          prep_partitions:          [sda1, sdb1, sdc1],
-          detect_disks:             nil,
-          disk_with_boot_partition: sdb
+          prep_partitions: [sda1, sdb1, sdc1],
+          detect_disks:    nil
         ).as_stubbed_const
 
         subject.propose
@@ -96,7 +91,6 @@ describe Bootloader::Stage1 do
       end
 
       it "sets to device first available prep partition as fallback" do
-        allow(Yast::BootStorage).to receive(:disk_with_boot_partition).and_return("/dev/sdd")
         subject.propose
 
         expect(subject.devices).to eq(["/dev/sda1"])
@@ -189,14 +183,14 @@ describe Bootloader::Stage1 do
 
     it "returns false if boot partition fs is xfs" do
       boot_partition = find_device("/dev/sda1")
-      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
+      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq false
     end
 
     it "returns false if boot partition is on lvm" do
       boot_partition = find_device("/dev/sde2")
-      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
+      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq false
     end
@@ -204,7 +198,7 @@ describe Bootloader::Stage1 do
     it "returns false if boot partition is on md raid" do
       devicegraph_stub("md_raid.xml")
       boot_partition = find_device("/dev/md0")
-      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
+      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq false
     end
@@ -212,21 +206,21 @@ describe Bootloader::Stage1 do
     it "returns false if boot partition is device for md raid" do
       devicegraph_stub("md_raid.xml")
       boot_partition = find_device("/dev/vdd2")
-      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
+      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq false
     end
 
     it "returns false if boot partition is encrypted" do
       boot_partition = find_device("/dev/sda4")
-      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
+      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq false
     end
 
     it "returns true otherwise" do
       boot_partition = find_device("/dev/sda2")
-      allow(Yast::BootStorage).to receive(:boot_partition).and_return(boot_partition)
+      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq true
     end
@@ -238,25 +232,13 @@ describe Bootloader::Stage1 do
         allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       end
 
-      it "returns map with :extended set to extended partition" do
-        devicegraph_stub("logical.yaml")
-
-        expect(subject.available_locations[:extended]).to eq "/dev/sda2"
-      end
-
-      it "returns map with :root if separated /boot is not available" do
-        devicegraph_stub("trivial.yaml")
-
-        expect(subject.available_locations[:root]).to eq "/dev/sda3"
-      end
-
-      it "returns map with :boot if separated /boot is available" do
+      it "returns array with :boot if partition can be used for stage1" do
         devicegraph_stub("separate_boot.yaml")
 
-        expect(subject.available_locations[:boot]).to eq "/dev/sda2"
+        expect(subject.available_locations).to include(:boot)
       end
 
-      it "returns map without :boot nor :root when xfs used" do
+      it "returns array without :boot when xfs used" do
         devicegraph_stub("xfs.yaml")
 
         res = subject.available_locations
